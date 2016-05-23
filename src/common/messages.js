@@ -226,6 +226,9 @@ export const messages = {
   homeSelectedVms: {
     defaultMessage: '{selected}x {vmIcon} selected (on {total})'
   },
+  homeMore: {
+    defaultMessage: 'More'
+  },
 
   // ----- Forms -----
   add: {
@@ -1258,6 +1261,24 @@ export const messages = {
   },
   restartVmsModalMessage: {
     defaultMessage: 'Are you sure you want to restart {vms} VM{vms, plural, one {} other {s}}?'
+  },
+  snapshotVmsModalTitle: {
+    defaultMessage: 'Snapshot VM{vms, plural, one {} other {s}}'
+  },
+  snapshotVmsModalMessage: {
+    defaultMessage: 'Are you sure you want to snapshot {vms} VM{vms, plural, one {} other {s}}?'
+  },
+  deleteVmModalTitle: {
+    defaultMessage: 'Delete VM'
+  },
+  deleteVmsModalTitle: {
+    defaultMessage: 'Delete VM{vms, plural, one {} other {s}}'
+  },
+  deleteVmModalMessage: {
+    defaultMessage: 'Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED'
+  },
+  deleteVmsModalMessage: {
+    defaultMessage: 'Are you sure you want to delete {vms} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED'
   },
   migrateVmModalTitle: {
     defaultMessage: 'Migrate VM'

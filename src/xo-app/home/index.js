@@ -15,11 +15,13 @@ import Tooltip from 'tooltip'
 import React, { Component } from 'react'
 import {
   addTag,
+  deleteVms,
   editVm,
   migrateVm,
   migrateVms,
   removeTag,
   restartVms,
+  snapshotVms,
   startVm,
   startVms,
   stopVm,
@@ -326,6 +328,7 @@ export default class Home extends Component {
       return <p>There are no VMs</p>
     }
 
+    const selectedVmsIds = keys(this._isSelected)
     const { pools, hosts, tags } = this.props
     const { activePage, sortBy } = this.state
     const filteredVms = this.getFilteredVms()
@@ -393,10 +396,24 @@ export default class Home extends Component {
           <Col mediumSize={8} className='text-xs-right hidden-sm-down'>
           {this.state.displayActions
             ? <div className='btn-group'>
-              <ActionButton btnStyle='secondary' handler={stopVms} handlerParam={keys(this._isSelected)} icon='vm-stop' />
-              <ActionButton btnStyle='secondary' handler={startVms} handlerParam={keys(this._isSelected)} icon='vm-start' />
-              <ActionButton btnStyle='secondary' handler={restartVms} handlerParam={keys(this._isSelected)} icon='vm-reboot' />
-              <ActionButton btnStyle='secondary' handler={migrateVms} handlerParam={keys(this._isSelected)} icon='vm-migrate' />
+              <ActionButton btnStyle='secondary' handler={stopVms} handlerParam={selectedVmsIds} icon='vm-stop' />
+              <ActionButton btnStyle='secondary' handler={startVms} handlerParam={selectedVmsIds} icon='vm-start' />
+              <ActionButton btnStyle='secondary' handler={restartVms} handlerParam={selectedVmsIds} icon='vm-reboot' />
+              <ActionButton btnStyle='secondary' handler={migrateVms} handlerParam={selectedVmsIds} icon='vm-migrate' />
+              <DropdownButton bsStyle='secondary' id='advanced' title={_('homeMore')}>
+                <MenuItem onClick={() => { restartVms(selectedVmsIds, true) }}>
+                  <Icon icon='vm-force-reboot' fixedWidth /> {_('forceRebootVmLabel')}
+                </MenuItem>
+                <MenuItem onClick={() => { stopVms(selectedVmsIds, true) }}>
+                  <Icon icon='vm-force-shutdown' fixedWidth /> {_('forceShutdownVmLabel')}
+                </MenuItem>
+                <MenuItem onClick={() => { snapshotVms(selectedVmsIds) }}>
+                  <Icon icon='vm-snapshot' fixedWidth /> {_('snapshotVmLabel')}
+                </MenuItem>
+                <MenuItem onClick={() => { deleteVms(selectedVmsIds) }}>
+                  <Icon icon='vm-delete' fixedWidth /> {_('vmRemoveButton')}
+                </MenuItem>
+              </DropdownButton>
             </div>
             : <div>
               {pools.length
