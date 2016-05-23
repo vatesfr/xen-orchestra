@@ -6,10 +6,12 @@ import map from 'lodash/map'
 import React, { Component } from 'react'
 import TabButton from 'tab-button'
 import { connectStore } from 'utils'
-import { createGetObjects, createSort } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Row, Col } from 'grid'
 import { Text } from 'editable'
+import {
+  createGetObjectsOfType
+} from 'selectors'
 import {
   deleteVm,
   editVm,
@@ -18,13 +20,9 @@ import {
 } from 'xo'
 
 @connectStore(() => {
-  const snapshots = createSort(
-    createGetObjects(
-      (_, props) => props.vm.snapshots
-    ),
-    'snapshot_time',
-    'desc'
-  )
+  const snapshots = createGetObjectsOfType('VM-snapshot').pick(
+    (_, props) => props.vm.snapshots
+  ).sort()
 
   return (state, props) => ({
     snapshots: snapshots(state, props)

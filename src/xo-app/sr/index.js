@@ -15,12 +15,10 @@ import {
   routes
 } from 'utils'
 import {
-  create as createSelector,
-  createFilter,
   createGetObject,
-  createGetObjects,
-  createSort,
-  messages
+  createGetObjectMessages,
+  createGetObjectsOfType,
+  createSelector
 } from 'selectors'
 
 import TabAdvanced from './tab-advanced'
@@ -42,35 +40,25 @@ import TabDisks from './tab-disks'
   const getSr = createGetObject()
 
   const getContainer = createGetObject(
-    (...args) => getSr(...args).$container
+    (state, props) => getSr(state, props).$container
   )
 
-  const getPbds = createGetObjects(
+  const getPbds = createGetObjectsOfType('PBD').pick(
     createSelector(getSr, sr => sr.$PBDs),
   )
 
-  const getSrHosts = createGetObjects(
+  const getSrHosts = createGetObjectsOfType('host').pick(
     createSelector(
       getPbds,
       pbds => map(pbds, pbd => pbd.host)
     )
   )
 
-  const getVdis = createSort(
-    createGetObjects(
-      createSelector(getSr, sr => sr.VDIs),
-    ),
-    'name_label'
-  )
+  const getVdis = createGetObjectsOfType('VDI').pick(
+    createSelector(getSr, sr => sr.VDIs),
+  ).sort()
 
-  const getLogs = createFilter(
-    messages,
-    createSelector(
-      getSr,
-      (sr) => ({ $object }) => $object === sr.id
-    ),
-    true
-  )
+  const getLogs = createGetObjectMessages(getSr)
 
   return (state, props) => {
     const sr = getSr(state, props)

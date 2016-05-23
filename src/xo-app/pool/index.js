@@ -14,15 +14,10 @@ import {
   routes
 } from 'utils'
 import {
-  createFilter,
   createGetObject,
-  createSelector,
-  createSort,
-  hosts,
-  messages,
-  objects,
-  userSrs,
-  vms
+  createGetObjectMessages,
+  createGetObjectsOfType,
+  createSelector
 } from 'selectors'
 
 import TabAdvanced from './tab-advanced'
@@ -48,55 +43,38 @@ import TabStorage from './tab-storage'
   const getPool = createGetObject()
 
   const getMaster = createGetObject(
-    (...args) => getPool(...args).master
+    (state, props) => getPool(state, props).master
   )
 
-  const getNetworks = createSort(
-    createFilter(
-      objects,
-      createSelector(
-        getPool,
-        ({ id }) => obj => obj.type === 'network' && obj.$pool === id
-      ),
-      true
+  const getNetworks = createGetObjectsOfType('network').filter(
+    createSelector(
+      getPool,
+      ({ id }) => network => network.$pool === id
+    )
+  ).sort()
+
+  const getHosts = createGetObjectsOfType('host').filter(
+    createSelector(
+      getPool,
+      ({ id }) => obj => obj.$pool === id
+    )
+  ).sort()
+
+  const getPoolSrs = createGetObjectsOfType('SR').filter(
+    createSelector(
+      getPool,
+      ({ id }) => sr => sr.content_type === 'user' && sr.$pool === id
+    )
+  ).sort()
+
+  const getNumberOfVms = createGetObjectsOfType('VM').count(
+    createSelector(
+      getPool,
+      ({ id }) => obj => obj.$pool === id
     )
   )
 
-  const getPoolHosts = createFilter(
-    hosts,
-    createSelector(
-      getPool,
-      ({ id }) => obj => obj.$pool === id
-    ),
-    true
-  )
-
-  const getPoolSrs = createFilter(
-    userSrs,
-    createSelector(
-      getPool,
-      ({ id }) => obj => obj.$pool === id
-    ),
-    true
-  )
-
-  const getPoolVms = createFilter(
-    vms,
-    createSelector(
-      getPool,
-      ({ id }) => obj => obj.$pool === id
-    ),
-    true
-  )
-
-  const getLogs = createFilter(
-    messages,
-    createSelector(
-      getPool,
-      (pool) => ({ $object }) => $object === pool.id
-    ),
-    true
-  )
+  const getLogs = createGetObjectMessages(getPool)
 
   return (state, props) => {
     const pool = getPool(state, props)
@@ -105,13 +83,13 @@ import TabStorage from './tab-storage'
     }
 
     return {
-      hosts: getPoolHosts(state, props),
+      hosts: getHosts(state, props),
       logs: getLogs(state, props),
       master: getMaster(state, props),
       networks: getNetworks(state, props),
+      nVms: getNumberOfVms(state, props),
       pool,
-      srs: getPoolSrs(state, props),
-      vms: getPoolVms(state, props)
+      srs: getPoolSrs(state, props)
     }
   }
 })
@@ -170,9 +148,9 @@ export default class Pool extends Component {
       'logs',
       'master',
       'networks',
+      'nVms',
       'pool',
-      'srs',
-      'vms'
+      'srs'
     ])
    )
     return <Page header={this.header()}>

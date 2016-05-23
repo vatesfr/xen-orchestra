@@ -25,10 +25,8 @@ import {
 } from 'utils'
 import {
   createGetObject,
-  createGetObjects,
-  createSelector,
-  createSort,
-  hosts
+  createGetObjectsOfType,
+  createSelector
 } from 'selectors'
 
 import TabGeneral from './tab-general'
@@ -58,20 +56,17 @@ const isRunning = vm => vm && vm.power_state === 'Running'
   const getVm = createGetObject()
 
   const getContainer = createGetObject(
-    (...args) => getVm(...args).$container
+    (state, props) => getVm(state, props).$container
   )
 
   const getPool = createGetObject(
-    (...args) => getVm(...args).$pool
+    (state, props) => getVm(state, props).$pool
   )
 
-  const getVbds = createSort(
-    createGetObjects(
-      createSelector(getVm, vm => vm.$VBDs)
-    ),
-    'position'
-  )
-  const getVdis = createGetObjects(
+  const getVbds = createGetObjectsOfType('VBD').pick(
+    (state, props) => getVm(state, props).$VBDs
+  ).sort()
+  const getVdis = createGetObjectsOfType('VDI').pick(
     createSelector(
       getVbds,
       vbds => mapPlus(vbds, (vbd, push) => {
@@ -81,7 +76,7 @@ const isRunning = vm => vm && vm.power_state === 'Running'
       })
     )
   )
-  const getSrs = createGetObjects(
+  const getSrs = createGetObjectsOfType('SR').pick(
     createSelector(
       getVdis,
       vdis => map(vdis, vdi => vdi.$SR)
@@ -99,6 +94,8 @@ const isRunning = vm => vm && vm.power_state === 'Running'
     }
   )
 
+  const getHosts = createGetObjectsOfType('host')
+
   return (state, props) => {
     const vm = getVm(state, props)
     if (!vm) {
@@ -107,7 +104,7 @@ const isRunning = vm => vm && vm.power_state === 'Running'
 
     return {
       container: getContainer(state, props),
-      hosts: hosts(state, props),
+      hosts: getHosts(state, props),
       pool: getPool(state, props),
       srs: getSrs(state, props),
       vbds: getVbds(state, props),

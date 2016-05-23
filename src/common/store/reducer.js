@@ -80,19 +80,36 @@ export default {
     [actions.updatePermissions]: (_, permissions) => permissions
   }),
 
-  objects: combineActionHandlers({}, {
-    [actions.updateObjects]: (objects, updates) => {
-      const newObjects = { ...objects }
+  objects: combineActionHandlers({
+    all: {}, // Mutable for performance!
+    byType: {}
+  }, {
+    [actions.updateObjects]: ({ all, byType: prevByType }, updates) => {
+      const byType = { ...prevByType }
+      const get = type => {
+        const curr = byType[type]
+        const prev = prevByType[type]
+        return curr === prev
+          ? (byType[type] = { ...prev })
+          : curr
+      }
+
       for (const id in updates) {
         const object = updates[id]
+
         if (object) {
-          newObjects[id] = object
+          all[id] = object
+          get(object.type)[id] = object
         } else {
-          delete newObjects[id]
+          const previous = all[id]
+          if (previous) {
+            delete all[id]
+            delete get(previous.type)[id]
+          }
         }
       }
 
-      return newObjects
+      return { all, byType }
     }
   }),
 

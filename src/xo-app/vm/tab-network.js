@@ -4,17 +4,17 @@ import map from 'lodash/map'
 import React, { Component } from 'react'
 import TabButton from 'tab-button'
 import { connectStore } from 'utils'
-import { createGetObjects, createSelector, createSort } from 'selectors'
 import { Row, Col } from 'grid'
+import {
+  createGetObjectsOfType,
+  createSelector
+} from 'selectors'
 
 @connectStore(() => {
-  const vifs = createSort(
-    createGetObjects(
-      (_, props) => props.vm.VIFs
-    ),
-    'device'
-  )
-  const networks = createGetObjects(
+  const vifs = createGetObjectsOfType('VIF').pick(
+    (_, props) => props.vm.VIFs
+  ).sort()
+  const networks = createGetObjectsOfType('network').pick(
     createSelector(
       vifs,
       vifs => map(vifs, vif => vif.$network)

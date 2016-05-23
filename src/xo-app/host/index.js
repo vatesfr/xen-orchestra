@@ -19,15 +19,9 @@ import {
   routes
 } from 'utils'
 import {
-  createFilter,
-  createFinder,
   createGetObject,
-  createGetObjects,
-  createSelector,
-  createSort,
-  objects,
-  messages,
-  vms
+  createGetObjectsOfType,
+  createSelector
 } from 'selectors'
 
 import TabAdvanced from './tab-advanced'
@@ -57,68 +51,57 @@ const isRunning = host => host && host.power_state === 'Running'
   const getHost = createGetObject()
 
   const getPool = createGetObject(
-    (...args) => getHost(...args).$pool
+    (state, props) => getHost(state, props).$pool
   )
 
-  const getVmController = createFinder(
-    objects,
-    createSelector(
-      getHost,
-      ({ id }) => obj => obj.type === 'VM-controller' && obj.$container === id
-    ),
-    true
-  )
-
-  const getHostVms = createFilter(
-    vms,
+  const getVmController = createGetObjectsOfType('VM-controller').find(
     createSelector(
       getHost,
       ({ id }) => obj => obj.$container === id
-    ),
-    true
+    )
   )
 
-  const getLogs = createFilter(
-    messages,
+  const getHostVms = createGetObjectsOfType('VM').filter(
+    createSelector(
+      getHost,
+      ({ id }) => obj => obj.$container === id
+    )
+  )
+
+  const getLogs = createGetObjectsOfType('message').filter(
     createSelector(
       getHost,
       getVmController,
       (host, controller) => ({ $object }) => $object === host.id || $object === controller.id
-    ),
-    true
-  )
+    )
+  ).sort()
 
-  const getPifs = createSort(
-    createGetObjects(
-      createSelector(getHost, host => host.PIFs),
-    ),
-    'device'
-  )
+  const getPifs = createGetObjectsOfType('PIF').pick(
+    createSelector(getHost, host => host.$PIFs)
+  ).sort()
 
-  const getNetworks = createGetObjects(
+  const getNetworks = createGetObjectsOfType('network').pick(
     createSelector(
       getPifs,
       pifs => map(pifs, pif => pif.$network)
     )
   )
 
-  const getPoolPatches = createSort(
-    createGetObjects(
-      createSelector(
-        createGetObjects(
-          createSelector(getHost, host => host.patches)
-        ),
-        patches => map(patches, patch => patch.pool_patch)
-      )
-    ),
-    'name'
+  const getPoolPatches = createGetObjectsOfType('pool_patch').pick(
+    createSelector(
+      createGetObjectsOfType(
+        'host_patch',
+        createSelector(getHost, host => host.patches)
+      ),
+      hostPatches => map(hostPatches, patch => patch.pool_patch)
+    )
+  ).sort()
+
+  const getPbds = createGetObjectsOfType('PBD').pick(
+    createSelector(getHost, host => host.$PBDs)
   )
 
-  const getPbds = createGetObjects(
-      createSelector(getHost, host => host.$PBDs)
-    )
-
-  const getSrs = createGetObjects(
+  const getSrs = createGetObjectsOfType('SR').pick(
     createSelector(
       getPbds,
       pbds => map(pbds, pbd => pbd.SR)

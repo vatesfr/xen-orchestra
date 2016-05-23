@@ -1,4 +1,4 @@
-import checkPermissions from 'xo-acl-resolver'
+// import checkPermissions from 'xo-acl-resolver'
 import filter from 'lodash/filter'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
@@ -7,11 +7,12 @@ import isArrayLike from 'lodash/isArrayLike'
 import isFunction from 'lodash/isFunction'
 import orderBy from 'lodash/orderBy'
 import pickBy from 'lodash/pickBy'
+import size from 'lodash/size'
 import slice from 'lodash/slice'
 import { createSelector as create } from 'reselect'
 
 import shallowEqual from './shallow-equal'
-import { EMPTY_OBJECT } from './utils'
+import { EMPTY_OBJECT, invoke } from './utils'
 
 // ===================================================================
 
@@ -93,38 +94,68 @@ const _create2 = (...inputs) => {
 // ===================================================================
 // Generic selector creators.
 
-export const createFilter = (objects, predicate, predicateIsSelector) =>
-  _createCollectionWrapper(
-    predicateIsSelector
-      ? create(
-        objects,
-        predicate,
-        (objects, predicate) => predicate
-          ? (isArrayLike(objects) ? filter : pickBy)(objects, predicate)
-          : objects
-      )
-      : create(
-        objects,
-        objects => (isArrayLike(objects) ? filter : pickBy)(objects, predicate)
-      )
+export const createCounter = (collection, predicate) =>
+  _create2(
+    collection,
+    predicate,
+    (collection, predicate) => {
+      if (!predicate) {
+        return size(collection)
+      }
+
+      let count = 0
+      forEach(collection, item => {
+        if (predicate(item)) {
+          ++count
+        }
+      })
+      return count
+    }
   )
 
-export const createFinder = (collectionSelector, predicate, predicateIsSelector) =>
-  predicateIsSelector
-    ? create(
-      collectionSelector,
-      predicate,
-      find
+// Creates an object selector from an object selector and a properties
+// selector.
+//
+// Should only be used with a reasonable number of properties.
+export const createPicker = (object, props) =>
+  _createCollectionWrapper(
+    _create2(
+      object, props,
+      (objects, props) => {
+        const values = {}
+        forEach(props, prop => {
+          const value = object[prop]
+          if (value) {
+            values[prop] = value
+          }
+        })
+        return values
+      }
     )
-    : create(
-      collectionSelector,
-      collection => find(collection, predicate)
-    )
+  )
 
-export const createPager = (arraySelector, pageSelector, n = 25) => _createCollectionWrapper(
-  create(
-    arraySelector,
-    pageSelector,
+export const createFilter = (collection, predicate) =>
+  _createCollectionWrapper(
+    _create2(
+      collection,
+      predicate,
+      (collection, predicate) => predicate
+        ? (isArrayLike(collection) ? filter : pickBy)(collection, predicate)
+        : collection
+    )
+  )
+
+export const createFinder = (collection, predicate) =>
+  _create2(
+    collection,
+    predicate,
+    find
+  )
+
+export const createPager = (array, page, n = 25) => _createCollectionWrapper(
+  _create2(
+    array,
+    page,
     (array, page) => {
       const start = (page - 1) * n
       return slice(array, start, start + n)
@@ -138,11 +169,13 @@ export const createSort = (
   order = 'asc'
 ) => _create2(collection, getter, order, orderBy)
 
-export const createTop = (objectsSctor, iteratee, n) =>
+export const createTop = (collection, iteratee, n) =>
   _createCollectionWrapper(
-    create(
-      objectsSctor,
-      objects => {
+    _create2(
+      collection,
+      iteratee,
+      n,
+      (objects, iteratee, n) => {
         let results = orderBy(objects, iteratee, 'desc')
         if (n < results.length) {
           results.length = n
@@ -153,132 +186,125 @@ export const createTop = (objectsSctor, iteratee, n) =>
   )
 
 // ===================================================================
-// Private selectors.
+// Root-ish selectors (no dependencies).
 
-const _id = (state, { routeParams, id }) => routeParams
+const _getId = (state, { routeParams, id }) => routeParams
   ? routeParams.id
   : id
 
-const _objects = _createCollectionWrapper(create(
-  state => state.objects,
-  _createCollectionWrapper(state => {
-    const { user } = state
-    if (user && user.permission === 'admin') {
-      return true
-    }
+// FIXME: ACLS handling is disabled for now for perf reasons, it
+// should be fixed ASAP.
+// _createCollectionWrapper(create(
+//   state => state.objects,
+//   _createCollectionWrapper(state => {
+//     const { user } = state
+//     if (user && user.permission === 'admin') {
+//       return true
+//     }
 
-    return state.permissions
-  }),
-  (objects, permissions) => {
-    if (permissions === true) {
-      return objects
-    }
+//     return state.permissions
+//   }),
+//   (objects, permissions) => {
+//     if (permissions === true) {
+//       return objects
+//     }
 
-    if (!permissions) {
-      return EMPTY_OBJECT
-    }
+//     if (!permissions) {
+//       return EMPTY_OBJECT
+//     }
 
-    const getObject = id => (objects[id] || EMPTY_OBJECT)
+//     const getObject = id => (objects[id] || EMPTY_OBJECT)
 
-    return pickBy(objects, (_, id) => checkPermissions(
-      permissions,
-      getObject,
-      [ [ id, 'view' ] ]
-    ))
-  }
-))
-export { _objects as objects }
-
-const _hosts = createFilter(
-  _objects,
-  object => object.type === 'host'
-)
-const _userSrs = createFilter(
-  _objects,
-  object => object.type === 'SR' && object.content_type === 'user'
-)
-const _vms = createFilter(
-  _objects,
-  object => object.type === 'VM'
-)
+//     return pickBy(objects, (_, id) => checkPermissions(
+//       permissions,
+//       getObject,
+//       [ [ id, 'view' ] ]
+//     ))
+//   }
+// ))
 
 // ===================================================================
 // Common selector creators.
 
-export const createGetObject = (id = _id) =>
-  (state, props) => _objects(state, props)[id(state, props)]
+// Creates an object selector from an id selector.
+export const createGetObject = (idSelector = _getId) =>
+  (state, props) => state.objects.all[idSelector(state, props)]
 
-export const createGetObjects = ids => _createCollectionWrapper(
-  create(
-    _objects,
-    ids,
-    (objects, ids) => {
-      const result = {}
-      forEach(ids, id => {
-        const object = objects[id]
-        if (object) {
-          result[id] = objects[id]
-        }
-      })
-      return result
-    }
+// Specialized createSort() configured for a given type.
+export const createSortForType = invoke(() => {
+  const optionsByType = {
+    message: [
+      [ message => message.time ],
+      'desc'
+    ],
+    PIF: [
+      [ pif => pif.device ]
+    ],
+    pool_patch: [
+      [ patch => patch.name ]
+    ],
+    VBD: [
+      [ vbd => vbd.position ]
+    ],
+    'VDI-snapshot': [
+      [ snapshot => snapshot.snapshot_time ],
+      'desc'
+    ],
+    'VM-snapshot': [
+      [ snapshot => snapshot.snapshot_time ],
+      'desc'
+    ]
+  }
+  const defaults = [
+    [ object => object.name_label ]
+  ]
+  const getOptions = type => optionsByType[type] || defaults
+
+  return (type, collection) => createSort(collection, ...getOptions(type))
+})
+
+// Creates a collection selector which returns all objects of a given
+// type.
+//
+// The selector as the following methods:
+//
+// - count: returns a selector which returns the number of objects
+// - filter: returns a selector which returns the objects filtered by
+//           a predicate (sort can be chained)
+// - find: returns a selector which returns the first object matching
+//         a predicate
+// - pick: returns a selector which returns only the objects with given
+//         ids (sort can be chained)
+// - sort: returns a selector which returns the objects appropriately
+//         sorted
+export const createGetObjectsOfType = type => {
+  const getObjects = state => state.objects.byType[type] || EMPTY_OBJECT
+
+  const _addSort = getObjects => {
+    // TODO: maybe memoize when no idsSelector.
+    getObjects.sort = () => createSortForType(type, getObjects)
+    return getObjects
+  }
+
+  getObjects.count = predicate => createCounter(getObjects, predicate)
+  getObjects.filter = predicate => _addSort(
+    createFilter(getObjects, predicate)
   )
-)
-
-// ===================================================================
-// Global selectors.
-
-export const hosts = createSort(_hosts)
-
-export const messages = createSort(
-  createFilter(_objects, object => object.type === 'message'),
-  'time',
-  'desc'
-)
-
-export const userSrs = createSort(_userSrs)
-
-export const pools = createSort(
-  createFilter(_objects, object => object.type === 'pool')
-)
-
-export const tasks = createSort(
-  createFilter(_objects, object => object.type === 'task' && object.status === 'pending')
-)
-
-export const tags = _createCollectionWrapper(
-  create(
-    _objects,
-    objects => {
-      const tags = {}
-      forEach(objects, object => {
-        forEach(object.tags, tag => {
-          tags[tag] = true
-        })
-      })
-      return Object.keys(tags).sort()
-    }
+  getObjects.find = predicate => createFinder(getObjects, predicate)
+  getObjects.pick = idsSelector => _addSort(
+    createPicker(getObjects, idsSelector)
   )
-)
 
-const _createObjectContainers = (set, container = '$container') =>
-  _createCollectionWrapper(
+  return _addSort(getObjects)
+}
+
+// TODO: implement
+export const createGetTags = () => EMPTY_OBJECT
+
+export const createGetObjectMessages = objectSelector =>
+  createGetObjectsOfType('message').filter(
     create(
-      _objects,
-      set,
-      (objects, set) => {
-        const containers = {}
-        forEach(set, o => {
-          const id = o[container]
-          if (!containers[id]) {
-            containers[id] = objects[id]
-          }
-        })
-        return containers
-      }
+      objectSelector,
+      ({ id }) => message => message.$object === id
     )
-  )
-
-export const userSrsContainers = _createObjectContainers(_userSrs)
-
-export const vms = createSort(_vms)
+  ).sort()

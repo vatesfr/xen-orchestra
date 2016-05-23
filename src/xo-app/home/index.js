@@ -43,15 +43,14 @@ import {
   osFamily
 } from 'utils'
 import {
-  createFilter,
+  createCounter,
   createGetObject,
+  createGetObjectsOfType,
+  createGetTags,
+  createFilter,
   createSort,
   createPager,
-  createSelector,
-  hosts,
-  pools,
-  tags,
-  vms
+  createSelector
 } from 'selectors'
 
 import {
@@ -66,7 +65,7 @@ import {
 import styles from './index.css'
 
 @connectStore({
-  container: createGetObject((state, props) => props.vm.$container)
+  container: createGetObject((_, props) => props.vm.$container)
 })
 class VmItem extends Component {
   componentWillMount () {
@@ -194,10 +193,10 @@ class VmItem extends Component {
 const VMS_PER_PAGE = 20
 
 @connectStore({
-  pools,
-  hosts,
-  vms,
-  tags
+  pools: createGetObjectsOfType('pool').sort(),
+  hosts: createGetObjectsOfType('host').sort(),
+  vms: createGetObjectsOfType('VM'),
+  tags: createGetTags()
 })
 export default class Home extends Component {
   static contextTypes = {
@@ -215,14 +214,17 @@ export default class Home extends Component {
       sortOrder: 'asc'
     }
 
+    this.getNumberOfVms = createCounter(
+      () => this.props.vms
+    )
+
     this.getFilteredVms = createSort(
       createFilter(
         () => this.props.vms,
         createSelector(
           () => this.filter || '',
           complexMatcher.create
-        ),
-        true
+        )
       ),
       () => this.state.sortBy,
       () => this.state.sortOrder
@@ -323,8 +325,8 @@ export default class Home extends Component {
   }
 
   render () {
-    const { vms } = this.props
-    if (isEmpty(vms)) {
+    const nVms = this.getNumberOfVms()
+    if (!nVms) {
       return <p>There are no VMs</p>
     }
 
@@ -388,8 +390,8 @@ export default class Home extends Component {
             {' '}
             <span className='text-muted'>
               {size(this._isSelected)
-                ? _('homeSelectedVms', { selected: size(this._isSelected), total: vms.length, vmIcon: <Icon icon='vm' /> })
-                : _('homeDisplayedVms', { displayed: filteredVms.length, total: vms.length, vmIcon: <Icon icon='vm' /> })
+                ? _('homeSelectedVms', { selected: size(this._isSelected), total: nVms, vmIcon: <Icon icon='vm' /> })
+                : _('homeDisplayedVms', { displayed: filteredVms.length, total: nVms, vmIcon: <Icon icon='vm' /> })
               }
             </span>
           </Col>
