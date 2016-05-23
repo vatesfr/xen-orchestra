@@ -280,3 +280,12 @@ export const createGetSortedObjectsOfType = (type, idsSelector) =>
 
 // TODO: implement
 export const createGetTags = () => EMPTY_OBJECT
+
+export const createGetObjectMessages = objectSelector =>
+  createFilter(
+    createGetSortedObjectsOfType('message'),
+    create(
+      objectSelector,
+      ({ id }) => message => message.$object === id
+    )
+  )

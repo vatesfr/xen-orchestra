@@ -5,10 +5,10 @@ import { addTag, removeTag } from 'xo'
 import { Row, Col } from 'grid'
 
 export default ({
-  pool,
-  srs,
   hosts,
-  vms
+  nVms,
+  pool,
+  srs
 }) => <div>
   <Row className='text-xs-center'>
     <Col mediumSize={4}>
@@ -18,7 +18,7 @@ export default ({
       <h2>{srs.length}x <Icon icon='sr' size='lg' /></h2>
     </Col>
     <Col mediumSize={4}>
-      <h2>{vms.length}x <Icon icon='vm' size='lg' /></h2>
+      <h2>{nVms}x <Icon icon='vm' size='lg' /></h2>
     </Col>
   </Row>
   <Row className='text-xs-center'>
