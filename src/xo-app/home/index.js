@@ -43,6 +43,7 @@ import {
   osFamily
 } from 'utils'
 import {
+  createCounter,
   createGetObject,
   createGetObjectsOfType,
   createGetSortedObjectsOfType,
@@ -214,6 +215,10 @@ export default class Home extends Component {
       sortOrder: 'asc'
     }
 
+    this.getNumberOfVms = createCounter(
+      () => this.props.vms
+    )
+
     this.getFilteredVms = createSort(
       createFilter(
         () => this.props.vms,
@@ -321,8 +326,8 @@ export default class Home extends Component {
   }
 
   render () {
-    const { vms } = this.props
-    if (isEmpty(vms)) {
+    const nVms = this.getNumberOfVms()
+    if (!nVms) {
       return <p>There are no VMs</p>
     }
 
@@ -386,8 +391,8 @@ export default class Home extends Component {
             {' '}
             <span className='text-muted'>
               {size(this._isSelected)
-                ? _('homeSelectedVms', { selected: size(this._isSelected), total: vms.length, vmIcon: <Icon icon='vm' /> })
-                : _('homeDisplayedVms', { displayed: filteredVms.length, total: vms.length, vmIcon: <Icon icon='vm' /> })
+                ? _('homeSelectedVms', { selected: size(this._isSelected), total: nVms, vmIcon: <Icon icon='vm' /> })
+                : _('homeDisplayedVms', { displayed: filteredVms.length, total: nVms, vmIcon: <Icon icon='vm' /> })
               }
             </span>
           </Col>
