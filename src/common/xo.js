@@ -309,19 +309,16 @@ export const convertVmToTemplate = ({ id }) => (
   )
 )
 
-export const snapshotVm = ({ id, name_label: nameLabel }) => (
-  xo.call('vm.snapshot', {
-    id,
-    name: `${nameLabel}_${new Date().toISOString()}`
-  })
+export const snapshotVm = ({ id }) => (
+  xo.call('vm.snapshot', { id })
 )
 
-export const snapshotVms = (vms, nameLabel) => {
+export const snapshotVms = vms => {
   confirm({
     title: _('snapshotVmsModalTitle', { vms: vms.length }),
     body: _('snapshotVmsModalMessage', { vms: vms.length })
   }).then(
-    () => map(vms, vmId => snapshotVm({ id: vmId, name_label: nameLabel })),
+    () => map(vms, vmId => snapshotVm({ id: vmId })),
     noop
   )
 }

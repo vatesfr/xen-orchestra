@@ -406,7 +406,7 @@ export default class Home extends Component {
                 <MenuItem onClick={() => { stopVms(keys(this._isSelected), true) }}>
                   <Icon icon='vm-force-shutdown' fixedWidth /> {_('forceShutdownVmLabel')}
                 </MenuItem>
-                <MenuItem onClick={() => { snapshotVms(keys(this._isSelected), 'test') }}>
+                <MenuItem onClick={() => { snapshotVms(keys(this._isSelected)) }}>
                   <Icon icon='vm-snapshot' fixedWidth /> {_('snapshotVmLabel')}
                 </MenuItem>
                 <MenuItem onClick={() => { deleteVms(keys(this._isSelected)) }}>
