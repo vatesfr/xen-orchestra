@@ -1259,6 +1259,18 @@ export const messages = {
   restartVmsModalMessage: {
     defaultMessage: 'Are you sure you want to restart {vms} VM{vms, plural, one {} other {s}}?'
   },
+  snapshotVmsModalTitle: {
+    defaultMessage: 'Snapshot VM{vms, plural, one {} other {s}}'
+  },
+  snapshotVmsModalMessage: {
+    defaultMessage: 'Are you sure you want to snapshot {vms} VM{vms, plural, one {} other {s}}?'
+  },
+  deleteVmsModalTitle: {
+    defaultMessage: 'Delete VM{vms, plural, one {} other {s}}'
+  },
+  deleteVmsModalMessage: {
+    defaultMessage: 'Are you sure you want to delete {vms} VM{vms, plural, one {} other {s}}? This operation is NOT reversible.'
+  },
   migrateVmModalTitle: {
     defaultMessage: 'Migrate VM'
   },

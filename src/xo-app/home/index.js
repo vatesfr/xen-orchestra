@@ -15,11 +15,13 @@ import Tooltip from 'tooltip'
 import React, { Component } from 'react'
 import {
   addTag,
+  deleteVms,
   editVm,
   migrateVm,
   migrateVms,
   removeTag,
   restartVms,
+  snapshotVms,
   startVm,
   startVms,
   stopVm,
@@ -397,6 +399,20 @@ export default class Home extends Component {
               <ActionButton btnStyle='secondary' handler={startVms} handlerParam={keys(this._isSelected)} icon='vm-start' />
               <ActionButton btnStyle='secondary' handler={restartVms} handlerParam={keys(this._isSelected)} icon='vm-reboot' />
               <ActionButton btnStyle='secondary' handler={migrateVms} handlerParam={keys(this._isSelected)} icon='vm-migrate' />
+              <DropdownButton bsStyle='secondary' id='advanced' title='More'>
+                <MenuItem onClick={() => { restartVms(keys(this._isSelected), true) }}>
+                  <Icon icon='vm-force-reboot' fixedWidth /> {_('forceRebootVmLabel')}
+                </MenuItem>
+                <MenuItem onClick={() => { stopVms(keys(this._isSelected), true) }}>
+                  <Icon icon='vm-force-shutdown' fixedWidth /> {_('forceShutdownVmLabel')}
+                </MenuItem>
+                <MenuItem onClick={() => { snapshotVms(keys(this._isSelected), 'test') }}>
+                  <Icon icon='vm-snapshot' fixedWidth /> {_('snapshotVmLabel')}
+                </MenuItem>
+                <MenuItem onClick={() => { deleteVms(keys(this._isSelected)) }}>
+                  <Icon icon='vm-delete' fixedWidth /> {_('vmRemoveButton')}
+                </MenuItem>
+              </DropdownButton>
             </div>
             : <div>
               {pools.length

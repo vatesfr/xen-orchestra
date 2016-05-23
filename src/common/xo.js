@@ -252,12 +252,12 @@ export const stopVm = ({ id }, force = false) => (
   xo.call('vm.stop', { id, force })
 )
 
-export const stopVms = vms => {
+export const stopVms = (vms, force = false) => {
   confirm({
     title: _('stopVmsModalTitle', { vms: vms.length }),
     body: _('stopVmsModalMessage', { vms: vms.length })
   }).then(
-    () => map(vms, vmId => stopVm({ id: vmId })),
+    () => map(vms, vmId => stopVm({ id: vmId }, force)),
     noop
   )
 }
@@ -278,12 +278,12 @@ export const restartVm = ({ id }, force = false) => (
   xo.call('vm.restart', { id, force })
 )
 
-export const restartVms = vms => {
+export const restartVms = (vms, force = false) => {
   confirm({
     title: _('restartVmsModalTitle', { vms: vms.length }),
     body: _('restartVmsModalMessage', { vms: vms.length })
   }).then(
-    () => map(vms, vmId => restartVm({ id: vmId })),
+    () => map(vms, vmId => restartVm({ id: vmId }, force)),
     noop
   )
 }
@@ -316,6 +316,16 @@ export const snapshotVm = ({ id, name_label: nameLabel }) => (
   })
 )
 
+export const snapshotVms = (vms, nameLabel) => {
+  confirm({
+    title: _('snapshotVmsModalTitle', { vms: vms.length }),
+    body: _('snapshotVmsModalMessage', { vms: vms.length })
+  }).then(
+    () => map(vms, vmId => snapshotVm({ id: vmId, name_label: nameLabel })),
+    noop
+  )
+}
+
 export const migrateVm = ({ id: vm }, { id: host, name_label: hostName }) => {
   confirm({
     title: _('migrateVmModalTitle'),
@@ -342,6 +352,16 @@ export const deleteVm = ({ id }, force = true) => (
     noop
   )
 )
+
+export const deleteVms = (vms, force = true) => {
+  confirm({
+    title: _('deleteVmsModalTitle', { vms: vms.length }),
+    body: _('deleteVmsModalMessage', { vms: vms.length })
+  }).then(
+    () => map(vms, vmId => xo.call('vm.delete', { id: vmId }, force)),
+    noop
+  )
+}
 
 export const revertSnapshot = ({ id }) => (
   xo.call('vm.revert', { id })
