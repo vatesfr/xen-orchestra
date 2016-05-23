@@ -228,16 +228,6 @@ export const createGetObjects = (collection, ids) =>
     )
   )
 
-// Creates a collection selector which returns all objects of a given
-// type.
-export const createGetObjectsOfType = (type, idsSelector) => {
-  const getObjects = state => state.objects.byType[type] || EMPTY_OBJECT
-
-  return idsSelector
-    ? createGetObjects(getObjects, idsSelector)
-    : getObjects
-}
-
 // Specialized createSort() configured for a given type.
 export const createSortForType = invoke(() => {
   const optionsByType = {
@@ -271,19 +261,31 @@ export const createSortForType = invoke(() => {
   return (type, collection) => createSort(collection, ...getOptions(type))
 })
 
-// Creates a sorted collection selector which returns all objects of a
-// given type appropriately sorted.
+// Creates a collection selector which returns all objects of a given
+// type.
 //
-// TODO: maybe memoize when no idsSelector.
-export const createGetSortedObjectsOfType = (type, idsSelector) =>
-  createSortForType(type, createGetObjectsOfType(type, idsSelector))
+// The selector as the following methods:
+//
+// - sort: returns a selector which returns the objects appropriately
+//         sorted
+export const createGetObjectsOfType = (type, idsSelector) => {
+  let getObjects = state => state.objects.byType[type] || EMPTY_OBJECT
+  if (idsSelector) {
+    getObjects = createGetObjects(getObjects, idsSelector)
+  }
+
+  // TODO: maybe memoize when no idsSelector.
+  getObjects.sort = () => createSortForType(type, getObjects)
+
+  return getObjects
+}
 
 // TODO: implement
 export const createGetTags = () => EMPTY_OBJECT
 
 export const createGetObjectMessages = objectSelector =>
   createFilter(
-    createGetSortedObjectsOfType('message'),
+    createGetObjectsOfType('message').sort(),
     create(
       objectSelector,
       ({ id }) => message => message.$object === id

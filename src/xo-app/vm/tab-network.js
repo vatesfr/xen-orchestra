@@ -7,15 +7,14 @@ import { connectStore } from 'utils'
 import { Row, Col } from 'grid'
 import {
   createGetObjectsOfType,
-  createGetSortedObjectsOfType,
   createSelector
 } from 'selectors'
 
 @connectStore(() => {
-  const vifs = createGetSortedObjectsOfType(
+  const vifs = createGetObjectsOfType(
     'VIF',
     (_, props) => props.vm.VIFs
-  )
+  ).sort()
   const networks = createGetObjectsOfType(
     'network',
     createSelector(

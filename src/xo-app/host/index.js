@@ -23,7 +23,6 @@ import {
   createFinder,
   createGetObject,
   createGetObjectsOfType,
-  createGetSortedObjectsOfType,
   createSelector
 } from 'selectors'
 
@@ -58,7 +57,7 @@ const isRunning = host => host && host.power_state === 'Running'
   )
 
   const getVmController = createFinder(
-    createGetSortedObjectsOfType('VM-controller'),
+    createGetObjectsOfType('VM-controller'),
     createSelector(
       getHost,
       ({ id }) => obj => obj.$container === id
@@ -74,7 +73,7 @@ const isRunning = host => host && host.power_state === 'Running'
   )
 
   const getLogs = createFilter(
-    createGetSortedObjectsOfType('message'),
+    createGetObjectsOfType('message').sort(),
     createSelector(
       getHost,
       getVmController,
@@ -82,10 +81,10 @@ const isRunning = host => host && host.power_state === 'Running'
     )
   )
 
-  const getPifs = createGetSortedObjectsOfType(
+  const getPifs = createGetObjectsOfType(
     'PIF',
     createSelector(getHost, host => host.$PIFs)
-  )
+  ).sort()
 
   const getNetworks = createGetObjectsOfType(
     'network',
@@ -95,7 +94,7 @@ const isRunning = host => host && host.power_state === 'Running'
     )
   )
 
-  const getPoolPatches = createGetSortedObjectsOfType(
+  const getPoolPatches = createGetObjectsOfType(
     'pool_patch',
     createSelector(
       createGetObjectsOfType(
@@ -104,7 +103,7 @@ const isRunning = host => host && host.power_state === 'Running'
       ),
       hostPatches => map(hostPatches, patch => patch.pool_patch)
     )
-  )
+  ).sort()
 
   const getPbds = createGetObjectsOfType(
     'PBD',

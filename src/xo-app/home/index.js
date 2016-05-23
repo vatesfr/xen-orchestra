@@ -46,7 +46,6 @@ import {
   createCounter,
   createGetObject,
   createGetObjectsOfType,
-  createGetSortedObjectsOfType,
   createGetTags,
   createFilter,
   createSort,
@@ -194,8 +193,8 @@ class VmItem extends Component {
 const VMS_PER_PAGE = 20
 
 @connectStore({
-  pools: createGetSortedObjectsOfType('pool'),
-  hosts: createGetSortedObjectsOfType('host'),
+  pools: createGetObjectsOfType('pool').sort(),
+  hosts: createGetObjectsOfType('host').sort(),
   vms: createGetObjectsOfType('VM'),
   tags: createGetTags()
 })

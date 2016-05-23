@@ -26,7 +26,6 @@ import {
 import {
   createGetObject,
   createGetObjectsOfType,
-  createGetSortedObjectsOfType,
   createSelector
 } from 'selectors'
 
@@ -64,10 +63,10 @@ const isRunning = vm => vm && vm.power_state === 'Running'
     (state, props) => getVm(state, props).$pool
   )
 
-  const getVbds = createGetSortedObjectsOfType(
+  const getVbds = createGetObjectsOfType(
     'VBD',
     (state, props) => getVm(state, props).$VBDs
-  )
+  ).sort()
   const getVdis = createGetObjectsOfType(
     'VDI',
     createSelector(

@@ -13,7 +13,6 @@ import {
   createFilter,
   createGetObject,
   createGetObjectsOfType,
-  createGetSortedObjectsOfType,
   createSelector
 } from 'selectors'
 import {
@@ -132,11 +131,11 @@ const Sr = connectStore(() => {
 
 @connectStore(() => {
   const getOrphanVdiSnapshots = createFilter(
-    createGetSortedObjectsOfType('VDI-snapshot'),
+    createGetObjectsOfType('VDI-snapshot').sort(),
     [ snapshot => !snapshot.$snapshot_of ]
   )
   const getOrphanVmSnapshots = createFilter(
-    createGetSortedObjectsOfType('VM-snapshot'),
+    createGetObjectsOfType('VM-snapshot').sort(),
     [ snapshot => !snapshot.$snapshot_of ]
   )
   const getUserSrs = createFilter(

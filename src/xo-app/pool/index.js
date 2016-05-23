@@ -19,7 +19,6 @@ import {
   createGetObject,
   createGetObjectMessages,
   createGetObjectsOfType,
-  createGetSortedObjectsOfType,
   createSelector
 } from 'selectors'
 
@@ -50,7 +49,7 @@ import TabStorage from './tab-storage'
   )
 
   const getNetworks = createFilter(
-    createGetSortedObjectsOfType('network'),
+    createGetObjectsOfType('network').sort(),
     createSelector(
       getPool,
       ({ id }) => network => network.$pool === id
@@ -58,7 +57,7 @@ import TabStorage from './tab-storage'
   )
 
   const getHosts = createFilter(
-    createGetSortedObjectsOfType('host'),
+    createGetObjectsOfType('host').sort(),
     createSelector(
       getPool,
       ({ id }) => obj => obj.$pool === id
@@ -66,7 +65,7 @@ import TabStorage from './tab-storage'
   )
 
   const getPoolSrs = createFilter(
-    createGetSortedObjectsOfType('SR'),
+    createGetObjectsOfType('SR').sort(),
     createSelector(
       getPool,
       ({ id }) => sr => sr.content_type === 'user' && sr.$pool === id

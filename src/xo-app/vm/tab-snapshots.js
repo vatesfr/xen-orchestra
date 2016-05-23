@@ -10,7 +10,7 @@ import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Row, Col } from 'grid'
 import { Text } from 'editable'
 import {
-  createGetSortedObjectsOfType
+  createGetObjectsOfType
 } from 'selectors'
 import {
   deleteVm,
@@ -20,10 +20,10 @@ import {
 } from 'xo'
 
 @connectStore(() => {
-  const snapshots = createGetSortedObjectsOfType(
+  const snapshots = createGetObjectsOfType(
     'VM-snapshot',
     (_, props) => props.vm.snapshots
-  )
+  ).sort()
 
   return (state, props) => ({
     snapshots: snapshots(state, props)
