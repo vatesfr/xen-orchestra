@@ -3,9 +3,13 @@
 
 $nav-pills-border-radius: 0;
 $nav-pills-active-link-color: white;
-$nav-pills-active-link-bg: #333;
-$brand-primary: #03072B;
-$brand-secondary: #040C44;
+$nav-pills-active-link-bg: #366e98;
+$brand-menu: #044B7F;
+$brand-primary: #366e98;
+$brand-secondary: #047F75;
+$brand-success: #089944;
+$brand-danger: #990822;
+$brand-warning: #ECA649;
 
 @import "../node_modules/bootstrap/scss/bootstrap";
 
@@ -21,8 +25,8 @@ $fa-font-path: "./";
 }
 
 $ct-series-colors: (
-  #5da5da,
-  #faa43a,
+  $brand-menu,
+  $brand-primary,
   #60bd68,
   #f17cb0,
   #b2912f,
@@ -272,7 +276,8 @@ $select-input-height: 40px; // Bootstrap input height
 // MENU STYLE ==================================================================
 
 .xo-menu, .xo-sub-menu {
-  background: linear-gradient(to top, $brand-primary, $brand-secondary);
+  // background: linear-gradient(to top, $brand-primary, $brand-secondary);
+  background: $brand-menu;
   color: white;
 }
 
