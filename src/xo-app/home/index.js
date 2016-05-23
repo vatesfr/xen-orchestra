@@ -399,7 +399,7 @@ export default class Home extends Component {
               <ActionButton btnStyle='secondary' handler={startVms} handlerParam={keys(this._isSelected)} icon='vm-start' />
               <ActionButton btnStyle='secondary' handler={restartVms} handlerParam={keys(this._isSelected)} icon='vm-reboot' />
               <ActionButton btnStyle='secondary' handler={migrateVms} handlerParam={keys(this._isSelected)} icon='vm-migrate' />
-              <DropdownButton bsStyle='secondary' id='advanced' title='More'>
+              <DropdownButton bsStyle='secondary' id='advanced' title={_('homeMore')}>
                 <MenuItem onClick={() => { restartVms(keys(this._isSelected), true) }}>
                   <Icon icon='vm-force-reboot' fixedWidth /> {_('forceRebootVmLabel')}
                 </MenuItem>

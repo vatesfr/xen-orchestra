@@ -226,6 +226,9 @@ export const messages = {
   homeSelectedVms: {
     defaultMessage: '{selected}x {vmIcon} selected (on {total})'
   },
+  homeMore: {
+    defaultMessage: 'More'
+  },
 
   // ----- Forms -----
   add: {
