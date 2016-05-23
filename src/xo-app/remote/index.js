@@ -6,6 +6,8 @@ import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React, { Component } from 'react'
 import { connectStore } from 'utils'
+import { error } from 'notification'
+import { injectIntl } from 'react-intl'
 import {
   createRemote,
   deleteRemote,
@@ -13,9 +15,7 @@ import {
   enableRemote,
   subscribeRemotes
 } from 'xo'
-import { error } from 'notification'
-import { injectIntl } from 'react-intl'
-import {format, parse} from '/home/fabrice/Documents/xo-remote-parser'
+import {format, parse} from 'xo-remote-parser'
 
 const remoteTypes = {
   local: 'remoteTypeLocal',
