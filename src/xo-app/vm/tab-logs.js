@@ -9,22 +9,12 @@ import { deleteMessage } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Row, Col } from 'grid'
 import {
-  createFilter,
-  createGetObjectsOfType,
-  createSelector,
-  createSortForType
+  createGetObjectsOfType
 } from 'selectors'
 
 @connectStore(() => {
-  const logs = createSortForType(
-    'message',
-    createFilter(
-      createGetObjectsOfType('message'),
-      createSelector(
-        (_, props) => props.vm.id,
-        id => message => message.$object === id
-      )
-    )
+  const logs = createGetObjectsOfType(
+    (_, props) => props.vm
   )
 
   return (state, props) => ({

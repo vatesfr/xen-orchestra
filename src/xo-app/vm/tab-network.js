@@ -11,12 +11,10 @@ import {
 } from 'selectors'
 
 @connectStore(() => {
-  const vifs = createGetObjectsOfType(
-    'VIF',
+  const vifs = createGetObjectsOfType('VIF').pick(
     (_, props) => props.vm.VIFs
   ).sort()
-  const networks = createGetObjectsOfType(
-    'network',
+  const networks = createGetObjectsOfType('network').pick(
     createSelector(
       vifs,
       vifs => map(vifs, vif => vif.$network)

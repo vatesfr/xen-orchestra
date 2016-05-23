@@ -20,8 +20,7 @@ import {
 } from 'xo'
 
 @connectStore(() => {
-  const snapshots = createGetObjectsOfType(
-    'VM-snapshot',
+  const snapshots = createGetObjectsOfType('VM-snapshot').pick(
     (_, props) => props.vm.snapshots
   ).sort()
 

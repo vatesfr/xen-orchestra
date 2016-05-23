@@ -63,12 +63,10 @@ const isRunning = vm => vm && vm.power_state === 'Running'
     (state, props) => getVm(state, props).$pool
   )
 
-  const getVbds = createGetObjectsOfType(
-    'VBD',
+  const getVbds = createGetObjectsOfType('VBD').pick(
     (state, props) => getVm(state, props).$VBDs
   ).sort()
-  const getVdis = createGetObjectsOfType(
-    'VDI',
+  const getVdis = createGetObjectsOfType('VDI').pick(
     createSelector(
       getVbds,
       vbds => mapPlus(vbds, (vbd, push) => {
@@ -78,8 +76,7 @@ const isRunning = vm => vm && vm.power_state === 'Running'
       })
     )
   )
-  const getSrs = createGetObjectsOfType(
-    'SR',
+  const getSrs = createGetObjectsOfType('SR').pick(
     createSelector(
       getVdis,
       vdis => map(vdis, vdi => vdi.$SR)
