@@ -667,12 +667,12 @@ exports.convert = convertToTemplate
 snapshot = $coroutine ({vm, name}) ->
   yield checkPermissionOnSrs.call(this, vm)
 
-  snapshot = yield @getXapi(vm).snapshotVm(vm._xapiRef, name)
+  snapshot = yield @getXapi(vm).snapshotVm(vm._xapiRef, name ? "#{vm.name_label}_#{new Date().toISOString()}")
   return snapshot.$id
 
 snapshot.params = {
   id: { type: 'string' }
-  name: { type: 'string' }
+  name: { type: 'string', optional: true }
 }
 
 snapshot.resolve = {
