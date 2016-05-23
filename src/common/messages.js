@@ -1268,11 +1268,17 @@ export const messages = {
   snapshotVmsModalMessage: {
     defaultMessage: 'Are you sure you want to snapshot {vms} VM{vms, plural, one {} other {s}}?'
   },
+  deleteVmModalTitle: {
+    defaultMessage: 'Delete VM'
+  },
   deleteVmsModalTitle: {
     defaultMessage: 'Delete VM{vms, plural, one {} other {s}}'
   },
+  deleteVmModalMessage: {
+    defaultMessage: 'Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED'
+  },
   deleteVmsModalMessage: {
-    defaultMessage: 'Are you sure you want to delete {vms} VM{vms, plural, one {} other {s}}? This operation is NOT reversible.'
+    defaultMessage: 'Are you sure you want to delete {vms} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED'
   },
   migrateVmModalTitle: {
     defaultMessage: 'Migrate VM'

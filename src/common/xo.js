@@ -337,15 +337,12 @@ export const migrateVms = vms => {
   throw new Error('Not implemented.')
 }
 
-export const deleteVm = ({ id }, force = true) => (
+export const deleteVm = ({ id }) => (
   confirm({
-    title: 'Remove VM',
-    body: <div>
-      <p>Are you sure you want to remove this VM?</p>
-      <p>This operation is definitive.</p>
-    </div>
+    title: _('deleteVmModalTitle'),
+    body: _('deleteVmModalMessage')
   }).then(
-    () => xo.call('vm.delete', { id, force }),
+    () => xo.call('vm.delete', { id, delete_disks: true }),
     noop
   )
 )
@@ -355,7 +352,7 @@ export const deleteVms = (vms, force = true) => {
     title: _('deleteVmsModalTitle', { vms: vms.length }),
     body: _('deleteVmsModalMessage', { vms: vms.length })
   }).then(
-    () => map(vms, vmId => xo.call('vm.delete', { id: vmId }, force)),
+    () => map(vms, vmId => xo.call('vm.delete', { id: vmId })),
     noop
   )
 }
