@@ -19,6 +19,7 @@ get.description = 'returns logs list for one namespace'
 get.params = {
   namespace: { type: 'string' }
 }
+get.permission = 'admin'
 
 // -------------------------------------------------------------------
 
