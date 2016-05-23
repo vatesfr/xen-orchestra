@@ -36,12 +36,10 @@ import Vm from './vm'
   'vms/:id': Vm
 })
 export default class XoApp extends Component {
-  componentDidMount () {
-    this.refs.bodyWrapper.style.minHeight = this.refs.menu.getWrappedInstance().height + 'px'
+  displayOpenSourceDisclaimer () {
     const previousDisclaimer = cookies.get('previousDisclaimer')
     const now = Math.floor(Date.now() / 1e3)
     const oneWeekAgo = now - 7 * 24 * 3600
-    console.log(previousDisclaimer, oneWeekAgo)
     if (!previousDisclaimer || previousDisclaimer < oneWeekAgo) {
       alert('Xen Orchestra from the sources', <div>
         <p>You are using XO from the sources! That's great for a personal/non-profit usage.</p>
@@ -51,6 +49,12 @@ export default class XoApp extends Component {
       cookies.set('previousDisclaimer', now)
     }
   }
+
+  componentDidMount () {
+    this.refs.bodyWrapper.style.minHeight = this.refs.menu.getWrappedInstance().height + 'px'
+    this.displayOpenSourceDisclaimer()
+  }
+
   render () {
     return <IntlProvider>
       <div style={{
