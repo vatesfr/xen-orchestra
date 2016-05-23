@@ -4,7 +4,7 @@ import { propTypes } from 'utils'
 const SINGLE_LINE_STYLE = { display: 'flex' }
 const COL_STYLE = { margin: 'auto' }
 
-const SingleLine = propTypes({
+const SingleLineRow = propTypes({
   className: propTypes.string
 })(({
   children,
@@ -15,4 +15,4 @@ const SingleLine = propTypes({
 >
   {React.Children.map(children, child => cloneElement(child, { style: COL_STYLE }))}
 </div>)
-export { SingleLine as default }
+export { SingleLineRow as default }

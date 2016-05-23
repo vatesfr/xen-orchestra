@@ -9,7 +9,7 @@ import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import keys from 'lodash/keys'
 import map from 'lodash/map'
-import SingleLine from 'single-line'
+import SingleLineRow from 'single-line'
 import size from 'lodash/size'
 import Tags from 'tags'
 import Tooltip from 'tooltip'
@@ -88,7 +88,7 @@ class VmItem extends Component {
     const { vm, container, expandAll, selected, hosts } = this.props
     return <div className={styles.item}>
       <BlockLink to={`/vms/${vm.id}`}>
-        <SingleLine>
+        <SingleLineRow>
           <Col smallSize={10} mediumSize={9} largeSize={5}>
             <EllipsisContainer>
               <input type='checkbox' checked={selected} onChange={this._onSelect} value={vm.id} />
@@ -159,7 +159,7 @@ class VmItem extends Component {
               <Icon icon='nav' fixedWidth />&nbsp;&nbsp;&nbsp;
             </a>
           </Col>
-        </SingleLine>
+        </SingleLineRow>
       </BlockLink>
       {!this.state.collapsed || expandAll
         ? <Row>
@@ -385,7 +385,7 @@ export default class Home extends Component {
         </Col>
       </Row>
       <div className={styles.itemContainer}>
-        <SingleLine className={styles.itemContainerHeader}>
+        <SingleLineRow className={styles.itemContainerHeader}>
           <Col smallsize={11} mediumSize={3}>
             <input type='checkbox' onChange={() => this._selectAllVms()} ref='masterCheckbox' />
             {' '}
@@ -512,7 +512,7 @@ export default class Home extends Component {
               <Icon icon='nav' />
             </button>
           </Col>
-        </SingleLine>
+        </SingleLineRow>
         {map(currentPageVms, vm =>
           <VmItem vm={vm} key={vm.id} expandAll={this.state.expandAll} onSelect={this._selectVm} selected={this._isSelected[vm.id]} hosts={hosts} />
         )}
