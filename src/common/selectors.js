@@ -171,6 +171,8 @@ const _getId = (state, { routeParams, id }) => routeParams
   ? routeParams.id
   : id
 
+// FIXME: ACLS handling is disabled for now for perf reasons, it
+// should be fixed ASAP.
 // _createCollectionWrapper(create(
 //   state => state.objects,
 //   _createCollectionWrapper(state => {
