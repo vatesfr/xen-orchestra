@@ -347,7 +347,7 @@ export const deleteVm = ({ id }) => (
   )
 )
 
-export const deleteVms = (vms, force = true) => (
+export const deleteVms = vms => (
   confirm({
     title: _('deleteVmsModalTitle', { vms: vms.length }),
     body: _('deleteVmsModalMessage', { vms: vms.length })
