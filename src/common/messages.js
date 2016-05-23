@@ -221,10 +221,10 @@ export const messages = {
     defaultMessage: 'vCPUs'
   },
   homeDisplayedVms: {
-    defaultMessage: '{displayed}x {vmIcon} (on {total})'
+    defaultMessage: '{displayed, number}x {vmIcon} (on {total, number})'
   },
   homeSelectedVms: {
-    defaultMessage: '{selected}x {vmIcon} selected (on {total})'
+    defaultMessage: '{selected, number}x {vmIcon} selected (on {total, numer})'
   },
   homeMore: {
     defaultMessage: 'More'
