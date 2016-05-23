@@ -358,6 +358,25 @@ export const messages = {
     defaultMessage: 'Select your backup type:'
   },
 
+  // ------ New Remote -----
+  remoteList: {
+    defaultMessage: 'Remote stores for backup'
+  },
+  newRemote: {
+    defaultMessage: 'New File System Remote'
+  },
+  remoteTypeLocal: {
+    defaultMessage: 'Local'
+  },
+  remoteTypeNfs: {
+    defaultMessage: 'NFS'
+  },
+  remoteTypeSmb: {
+    defaultMessage: 'SMB'
+  },
+  remoteType: {
+    defaultMessage: 'Type'
+  },
   // ----- Plugins ------
 
   autoloadPlugin: {

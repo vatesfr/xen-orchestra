@@ -111,6 +111,10 @@
     @extend .fa;
     @extend .fa-database;
   }
+  &-delete {
+    @extend .fa;
+    @extend .fa-trash;
+  }
 
   // Backups
   &-backup {
