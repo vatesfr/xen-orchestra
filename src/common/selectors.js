@@ -228,7 +228,14 @@ const _getId = (state, { routeParams, id }) => routeParams
 
 // Creates an object selector from an id selector.
 export const createGetObject = (idSelector = _getId) =>
-  (state, props) => state.objects.all[idSelector(state, props)]
+  (state, props) => {
+    const { user } = state
+    if (!user || user.permission !== 'admin') {
+      return undefined
+    }
+
+    return state.objects.all[idSelector(state, props)]
+  }
 
 // Specialized createSort() configured for a given type.
 export const createSortForType = invoke(() => {
@@ -278,7 +285,14 @@ export const createSortForType = invoke(() => {
 // - sort: returns a selector which returns the objects appropriately
 //         sorted
 export const createGetObjectsOfType = type => {
-  const getObjects = state => state.objects.byType[type] || EMPTY_OBJECT
+  const getObjects = state => {
+    const { user } = state
+    if (!user || user.permission !== 'admin') {
+      return EMPTY_OBJECT
+    }
+
+    return state.objects.byType[type] || EMPTY_OBJECT
+  }
 
   const _addSort = getObjects => {
     // TODO: maybe memoize when no idsSelector.
