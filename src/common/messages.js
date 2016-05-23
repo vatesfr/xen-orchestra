@@ -224,7 +224,7 @@ export const messages = {
     defaultMessage: '{displayed, number}x {vmIcon} (on {total, number})'
   },
   homeSelectedVms: {
-    defaultMessage: '{selected, number}x {vmIcon} selected (on {total, numer})'
+    defaultMessage: '{selected, number}x {vmIcon} selected (on {total, number})'
   },
   homeMore: {
     defaultMessage: 'More'
