@@ -1,6 +1,5 @@
 import _ from 'messages'
 import ActionRowButton from 'action-row-button'
-import filter from 'lodash/filter'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
@@ -12,12 +11,10 @@ import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Row, Col } from 'grid'
 import {
   createFilter,
-  createGetObjects,
-  createSelector,
-  createSort,
-  messages,
-  objects,
-  userSrs
+  createGetObject,
+  createGetObjectsOfType,
+  createGetSortedObjectsOfType,
+  createSelector
 } from 'selectors'
 import {
   connectStore,
@@ -25,74 +22,145 @@ import {
   noop
 } from 'utils'
 
+const AlarmMessage = connectStore(() => {
+  const object = createGetObject(
+    (_, props) => props.message.$object
+  )
+  const pool = createGetObject(
+    (_, props) => props.message.$pool
+  )
+
+  return (state, props) => ({
+    object: object(state, props),
+    pool: pool(state, props)
+  })
+})(({ message, object, pool }) =>
+  <tr>
+    <td><FormattedTime value={message.time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={message.time * 1000} />)</td>
+    <td>{message.body}</td>
+    <td>{object.name_label}</td>
+    <td>{pool.name_label}</td>
+    <td>
+      <ActionRowButton
+        btnStyle='danger'
+        handler={deleteMessage}
+        handlerParam={message}
+        icon='delete'
+      />
+    </td>
+  </tr>
+)
+
+const OrphanVdiSnapshot = connectStore(() => {
+  const sr = createGetObject(
+    (_, props) => props.vdi.$SR
+  )
+
+  return (state, props) => ({
+    sr: sr(state, props)
+  })
+})(({ vdi, sr }) =>
+  <tr>
+    <td>
+      <FormattedTime
+        value={vdi.snapshot_time * 1000}
+        minute='numeric'
+        hour='numeric'
+        day='numeric'
+        month='long'
+        year='numeric' />
+      (<FormattedRelative value={vdi.snapshot_time * 1000} />)
+    </td>
+    <td>{vdi.name_label}</td>
+    <td>{vdi.name_description}</td>
+    <td>{formatSize(vdi.size)}</td>
+    <td>{sr.name_label}</td>
+    <td>
+      <ActionRowButton
+        btnStyle='danger'
+        handler={deleteVdi}
+        handlerParam={vdi}
+        icon='delete'
+        />
+    </td>
+  </tr>
+)
+
+const OrphanVmSnapshot = connectStore(() => {
+  const container = createGetObject(
+    (_, props) => props.vm.$container
+  )
+
+  return (state, props) => ({
+    container: container(state, props)
+  })
+})(({ container, vm }) =>
+  <tr>
+    <td><FormattedTime value={vm.snapshot_time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={vm.snapshot_time * 1000} />)</td>
+    <td>{vm.name_label}</td>
+    <td>{vm.name_description}</td>
+    <td>{container.name_label}</td>
+    <td>
+      <ActionRowButton
+        btnStyle='danger'
+        handler={deleteVm}
+        handlerParam={vm}
+        icon='delete'
+      />
+    </td>
+  </tr>
+)
+
+const Sr = connectStore(() => {
+  const container = createGetObject(
+    (_, props) => props.sr.$container
+  )
+
+  return (state, props) => ({
+    container: container(state, props)
+  })
+})(({ container, sr }) =>
+  <tr>
+    <td>{sr.name_label}</td>
+    <td>{container.name_label}</td>
+    <td>{sr.SR_type}</td>
+    <td>{formatSize(sr.size)}</td>
+    <td>
+      <progress className='progress' value={sr.physical_usage} max={sr.size} /></td>
+  </tr>
+)
+
 @connectStore(() => {
-  const getVdiSnapshots = createSort(
-    createFilter(objects, object => object.type === 'VDI-snapshot')
+  const getOrphanVdiSnapshots = createFilter(
+    createGetSortedObjectsOfType('VDI-snapshot'),
+    [ snapshot => !snapshot.$snapshot_of ]
   )
-  const getVmSnapshots = createSort(
-    createFilter(objects, object => object.type === 'VM-snapshot')
+  const getOrphanVmSnapshots = createFilter(
+    createGetSortedObjectsOfType('VM-snapshot'),
+    [ snapshot => !snapshot.$snapshot_of ]
   )
-  const getVdiOrphanedSnapshots = createSelector(
-    getVdiSnapshots,
-    vdiSnapshots => {
-      const orphanedVdis = filter(vdiSnapshots, vdi => vdi && !vdi.$snapshot_of)
-      return orphanedVdis
-    }
+  const getUserSrs = createFilter(
+    createGetObjectsOfType('SR'),
+    [ sr => sr.content_type === 'user' ]
   )
-  const getVmOrphanedSnapshots = createSelector(
-    getVmSnapshots,
-    vmSnapshots => {
-      const orphanedVms = filter(vmSnapshots, vm => vm && !vm.$snapshot_of)
-      return orphanedVms
-    }
-  )
-  const getVmContainers = createGetObjects(
+  const getVdiSrs = createGetObjectsOfType(
+    'SR',
     createSelector(
-      getVmOrphanedSnapshots,
-      vmOrphaned => map(vmOrphaned, '$container')
+      getOrphanVdiSnapshots,
+      snapshots => map(snapshots, '$SR')
     )
   )
-  const getSrContainers = createGetObjects(
-    createSelector(
-      userSrs,
-      userSrs => map(userSrs, '$container')
-    )
+  const getAlertMessages = createFilter(
+    createGetObjectsOfType('message'),
+    [ message => message.name === 'ALARM' ]
   )
-  const getVdiSrs = createGetObjects(
-    createSelector(
-      getVdiOrphanedSnapshots,
-      vdiOrphaned => map(vdiOrphaned, '$SR')
-    )
-  )
-  const getAlertMessages = createFilter(messages, message => message.name === 'ALARM')
-  const getAlertObject = createGetObjects(
-    createSelector(
-      getAlertMessages,
-      alertMessages => map(alertMessages, '$object')
-    )
-  )
-  const getAlertPool = createGetObjects(
-    createSelector(
-      getAlertMessages,
-      alertMessages => map(alertMessages, '$pool')
-    )
-  )
-  return (state, props) => {
-    return {
-      alertMessages: getAlertMessages(state, props),
-      alertObject: getAlertObject(state, props),
-      alertPool: getAlertPool(state, props),
-      messages: messages(state, props),
-      srContainers: getSrContainers(state, props),
-      userSrs: userSrs(state, props),
-      vdiOrphaned: getVdiOrphanedSnapshots(state, props),
-      vdiSnapshots: getVdiSnapshots(state, props),
-      vdiSr: getVdiSrs(state, props),
-      vmContainers: getVmContainers(state, props),
-      vmOrphaned: getVmOrphanedSnapshots(state, props),
-      vmSnapshots: getVmSnapshots(state, props)
-    }
-  }
+  return (state, props) => ({
+    alertMessages: getAlertMessages(state, props),
+    userSrs: getUserSrs(state, props),
+    vdiOrphaned: getOrphanVdiSnapshots(state, props),
+    vdiSr: getVdiSrs(state, props),
+    vmOrphaned: getOrphanVmSnapshots(state, props)
+  })
 })
 export default class Health extends Component {
   _deleteOrphanedVdis = () => (
@@ -157,30 +225,7 @@ export default class Health extends Component {
                       </thead>
                       <tbody>
                         {map(this.props.vdiOrphaned, vdi =>
-                          <tr key={vdi.id}>
-                            <td>
-                              <FormattedTime
-                                value={vdi.snapshot_time * 1000}
-                                minute='numeric'
-                                hour='numeric'
-                                day='numeric'
-                                month='long'
-                                year='numeric' />
-                              (<FormattedRelative value={vdi.snapshot_time * 1000} />)
-                            </td>
-                            <td>{vdi.name_label}</td>
-                            <td>{vdi.name_description}</td>
-                            <td>{formatSize(vdi.size)}</td>
-                            <td>{this.props.vdiSr[vdi.$SR].name_label}</td>
-                            <td>
-                              <ActionRowButton
-                                btnStyle='danger'
-                                handler={deleteVdi}
-                                handlerParam={vdi}
-                                icon='delete'
-                                />
-                            </td>
-                          </tr>
+                          <OrphanVdiSnapshot key={vdi.id} vdi={vdi} />
                         )}
                       </tbody>
                     </table>
@@ -212,20 +257,7 @@ export default class Health extends Component {
                   </thead>
                   <tbody>
                     {map(this.props.vmOrphaned, vm =>
-                      <tr key={vm.id}>
-                        <td><FormattedTime value={vm.snapshot_time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={vm.snapshot_time * 1000} />)</td>
-                        <td>{vm.name_label}</td>
-                        <td>{vm.name_description}</td>
-                        <td>{this.props.vmContainers[vm.$container].name_label}</td>
-                        <td>
-                          <ActionRowButton
-                            btnStyle='danger'
-                            handler={deleteVm}
-                            handlerParam={vm}
-                            icon='delete'
-                            />
-                        </td>
-                      </tr>
+                      <OrphanVmSnapshot key={vm.id} vm={vm} />
                     )}
                   </tbody>
                 </table>
@@ -262,14 +294,7 @@ export default class Health extends Component {
                       </thead>
                       <tbody>
                         {map(this.props.userSrs, sr =>
-                          <tr key={sr.id}>
-                            <td>{sr.name_label}</td>
-                            <td>{this.props.srContainers[sr.$container].name_label}</td>
-                            <td>{sr.SR_type}</td>
-                            <td>{formatSize(sr.size)}</td>
-                            <td>
-                              <progress className='progress' value={sr.physical_usage} max={sr.size}></progress></td>
-                          </tr>
+                          <Sr key={sr.id} sr={sr} />
                         )}
                       </tbody>
                     </table>
@@ -313,20 +338,7 @@ export default class Health extends Component {
                       </thead>
                       <tbody>
                         {map(this.props.alertMessages, message =>
-                          <tr key={message.id}>
-                            <td><FormattedTime value={message.time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={message.time * 1000} />)</td>
-                            <td>{message.body}</td>
-                            <td>{this.props.alertObject[message.$object].name_label}</td>
-                            <td>{this.props.alertPool[message.$pool].name_label}</td>
-                            <td>
-                              <ActionRowButton
-                                btnStyle='danger'
-                                handler={deleteMessage}
-                                handlerParam={message}
-                                icon='delete'
-                                />
-                            </td>
-                          </tr>
+                          <AlarmMessage key={message.id} message={message} />
                         )}
                       </tbody>
                     </table>

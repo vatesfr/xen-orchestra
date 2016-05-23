@@ -93,33 +93,28 @@ const _create2 = (...inputs) => {
 // ===================================================================
 // Generic selector creators.
 
-export const createFilter = (objects, predicate) =>
+export const createFilter = (collection, predicate) =>
   _createCollectionWrapper(
     _create2(
-      objects,
+      collection,
       predicate,
-      (objects, predicate) => predicate
-        ? (isArrayLike(objects) ? filter : pickBy)(objects, predicate)
-        : objects
+      (collection, predicate) => predicate
+        ? (isArrayLike(collection) ? filter : pickBy)(collection, predicate)
+        : collection
     )
   )
 
-export const createFinder = (collectionSelector, predicate, predicateIsSelector) =>
-  predicateIsSelector
-    ? create(
-      collectionSelector,
-      predicate,
-      find
-    )
-    : create(
-      collectionSelector,
-      collection => find(collection, predicate)
-    )
+export const createFinder = (collection, predicate) =>
+  _create2(
+    collection,
+    predicate,
+    find
+  )
 
-export const createPager = (arraySelector, pageSelector, n = 25) => _createCollectionWrapper(
-  create(
-    arraySelector,
-    pageSelector,
+export const createPager = (array, page, n = 25) => _createCollectionWrapper(
+  _create2(
+    array,
+    page,
     (array, page) => {
       const start = (page - 1) * n
       return slice(array, start, start + n)
@@ -133,11 +128,13 @@ export const createSort = (
   order = 'asc'
 ) => _create2(collection, getter, order, orderBy)
 
-export const createTop = (objectsSctor, iteratee, n) =>
+export const createTop = (collection, iteratee, n) =>
   _createCollectionWrapper(
-    create(
-      objectsSctor,
-      objects => {
+    _create2(
+      collection,
+      iteratee,
+      n,
+      (objects, iteratee, n) => {
         let results = orderBy(objects, iteratee, 'desc')
         if (n < results.length) {
           results.length = n
@@ -230,6 +227,10 @@ export const createSortForType = invoke(() => {
     ],
     VBD: [
       [ vbd => vbd.position ]
+    ],
+    'VDI-snapshot': [
+      [ snapshot => snapshot.snapshot_time ],
+      'desc'
     ],
     'VM-snapshot': [
       [ snapshot => snapshot.snapshot_time ],
