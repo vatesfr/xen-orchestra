@@ -238,7 +238,7 @@ export const startVm = ({ id }) => (
   xo.call('vm.start', { id })
 )
 
-export const startVms = vms => {
+export const startVms = vms => (
   confirm({
     title: _('startVmsModalTitle', { vms: vms.length }),
     body: _('startVmsModalMessage', { vms: vms.length })
@@ -246,13 +246,13 @@ export const startVms = vms => {
     () => map(vms, vmId => startVm({ id: vmId })),
     noop
   )
-}
+)
 
 export const stopVm = ({ id }, force = false) => (
   xo.call('vm.stop', { id, force })
 )
 
-export const stopVms = (vms, force) => {
+export const stopVms = (vms, force) => (
   confirm({
     title: _('stopVmsModalTitle', { vms: vms.length }),
     body: _('stopVmsModalMessage', { vms: vms.length })
@@ -260,7 +260,7 @@ export const stopVms = (vms, force) => {
     () => map(vms, vmId => stopVm({ id: vmId }, force)),
     noop
   )
-}
+)
 
 export const suspendVm = ({ id }) => (
   xo.call('vm.suspend', { id })
@@ -278,7 +278,7 @@ export const restartVm = ({ id }, force = false) => (
   xo.call('vm.restart', { id, force })
 )
 
-export const restartVms = (vms, force) => {
+export const restartVms = (vms, force) => (
   confirm({
     title: _('restartVmsModalTitle', { vms: vms.length }),
     body: _('restartVmsModalMessage', { vms: vms.length })
@@ -286,7 +286,7 @@ export const restartVms = (vms, force) => {
     () => map(vms, vmId => restartVm({ id: vmId }, force)),
     noop
   )
-}
+)
 
 export const cloneVm = ({ id, name_label: nameLabel }, fullCopy = false) => (
   xo.call('vm.clone', {
@@ -313,7 +313,7 @@ export const snapshotVm = ({ id }) => (
   xo.call('vm.snapshot', { id })
 )
 
-export const snapshotVms = vms => {
+export const snapshotVms = vms => (
   confirm({
     title: _('snapshotVmsModalTitle', { vms: vms.length }),
     body: _('snapshotVmsModalMessage', { vms: vms.length })
@@ -321,9 +321,9 @@ export const snapshotVms = vms => {
     () => map(vms, vmId => snapshotVm({ id: vmId })),
     noop
   )
-}
+)
 
-export const migrateVm = ({ id: vm }, { id: host, name_label: hostName }) => {
+export const migrateVm = ({ id: vm }, { id: host, name_label: hostName }) => (
   confirm({
     title: _('migrateVmModalTitle'),
     body: _('migrateVmModalBody', { hostName })
@@ -331,7 +331,7 @@ export const migrateVm = ({ id: vm }, { id: host, name_label: hostName }) => {
     () => xo.call('vm.migrate', { vm, targetHost: host }),
     noop
   )
-}
+)
 
 export const migrateVms = vms => {
   throw new Error('Not implemented.')
@@ -347,7 +347,7 @@ export const deleteVm = ({ id }) => (
   )
 )
 
-export const deleteVms = (vms, force = true) => {
+export const deleteVms = (vms, force = true) => (
   confirm({
     title: _('deleteVmsModalTitle', { vms: vms.length }),
     body: _('deleteVmsModalMessage', { vms: vms.length })
@@ -355,7 +355,7 @@ export const deleteVms = (vms, force = true) => {
     () => map(vms, vmId => xo.call('vm.delete', { id: vmId })),
     noop
   )
-}
+)
 
 export const revertSnapshot = ({ id }) => (
   xo.call('vm.revert', { id })
