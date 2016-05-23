@@ -7,6 +7,7 @@ import isArrayLike from 'lodash/isArrayLike'
 import isFunction from 'lodash/isFunction'
 import orderBy from 'lodash/orderBy'
 import pickBy from 'lodash/pickBy'
+import size from 'lodash/size'
 import slice from 'lodash/slice'
 import { createSelector as create } from 'reselect'
 
@@ -92,6 +93,25 @@ const _create2 = (...inputs) => {
 
 // ===================================================================
 // Generic selector creators.
+
+export const createCounter = (collection, predicate) =>
+  _create2(
+    collection,
+    predicate,
+    (collection, predicate) => {
+      if (!predicate) {
+        return size(collection)
+      }
+
+      let count = 0
+      forEach(collection, item => {
+        if (predicate(item)) {
+          ++count
+        }
+      })
+      return count
+    }
+  )
 
 export const createFilter = (collection, predicate) =>
   _createCollectionWrapper(

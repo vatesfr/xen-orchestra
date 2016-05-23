@@ -7,16 +7,11 @@ import React, { Component } from 'react'
 import { Row, Col } from 'grid'
 import {
   createCollectionWrapper,
+  createCounter,
   createFilter,
-  createGetObjects,
+  createGetObjectsOfType,
   createSelector,
-  createTop,
-  hosts,
-  messages,
-  pools,
-  tasks,
-  userSrs as _userSrs,
-  vms
+  createTop
 } from 'selectors'
 import {
   connectStore,
@@ -27,9 +22,12 @@ import {
 } from 'xo'
 
 @connectStore(() => {
+  const getHosts = createGetObjectsOfType('host')
+  const getVms = createGetObjectsOfType('VM')
+
   const getHostMetrics = createCollectionWrapper(
     createSelector(
-      hosts,
+      getHosts,
       hosts => {
         const metrics = {
           cpus: 0,
@@ -46,7 +44,14 @@ import {
     )
   )
 
-  const userSrs = createTop(_userSrs, sr => sr.physical_usage / sr.size, 5)
+  const userSrs = createTop(
+    createFilter(
+      createGetObjectsOfType('SR'),
+      [ sr => sr.content_type === 'user' ]
+    ),
+    [ sr => sr.physical_usage / sr.size ],
+    5
+  )
 
   const getSrMetrics = createCollectionWrapper(
     createSelector(
@@ -66,7 +71,7 @@ import {
   )
   const getVmMetrics = createCollectionWrapper(
     createSelector(
-      vms,
+      getVms,
       vms => {
         const metrics = {
           vcpus: 0,
@@ -86,28 +91,37 @@ import {
       }
     )
   )
-  const getContainers = createGetObjects(
-    createSelector(
-      userSrs,
-      userSrs => map(userSrs, '$container')
+  const getNumberOfAlarmMessages = createCounter(
+    createGetObjectsOfType('message'),
+    [ message => message.name === 'ALARM' ]
+  )
+  const getNumberOfHosts = createCounter(
+    getHosts
+  )
+  const getNumberOfPools = createCounter(
+    createGetObjectsOfType('pool')
+  )
+  const getNumberOfTasks = createCounter(
+    createFilter(
+      createGetObjectsOfType('task'),
+      [ task => task.status === 'pending' ]
     )
   )
-  const getAlarmMessages = createFilter(messages, message => message.name === 'ALARM')
+  const getNumberOfVms = createCounter(
+    getVms
+  )
 
   return (state, props) => {
     return {
       hostMetrics: getHostMetrics(state, props),
-      hosts: hosts(state, props),
-      nAlarmMessages: getAlarmMessages(state, props).length,
-      nHosts: hosts(state, props).length,
-      nPools: pools(state, props).length,
-      nTasks: tasks(state, props).length,
-      nVms: vms(state, props).length,
-      srContainers: getContainers(state, props),
+      nAlarmMessages: getNumberOfAlarmMessages(state, props),
+      nHosts: getNumberOfHosts(state, props),
+      nPools: getNumberOfPools(state, props),
+      nTasks: getNumberOfTasks(state, props),
+      nVms: getNumberOfVms(state, props),
       srMetrics: getSrMetrics(state, props),
       userSrs: userSrs(state, props),
-      vmMetrics: getVmMetrics(state, props),
-      vms: vms(state, props)
+      vmMetrics: getVmMetrics(state, props)
     }
   }
 })
