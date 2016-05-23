@@ -252,7 +252,7 @@ export const stopVm = ({ id }, force = false) => (
   xo.call('vm.stop', { id, force })
 )
 
-export const stopVms = (vms, force = false) => {
+export const stopVms = (vms, force) => {
   confirm({
     title: _('stopVmsModalTitle', { vms: vms.length }),
     body: _('stopVmsModalMessage', { vms: vms.length })
@@ -278,7 +278,7 @@ export const restartVm = ({ id }, force = false) => (
   xo.call('vm.restart', { id, force })
 )
 
-export const restartVms = (vms, force = false) => {
+export const restartVms = (vms, force) => {
   confirm({
     title: _('restartVmsModalTitle', { vms: vms.length }),
     body: _('restartVmsModalMessage', { vms: vms.length })
