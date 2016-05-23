@@ -113,6 +113,27 @@ export const createCounter = (collection, predicate) =>
     }
   )
 
+// Creates an object selector from an object selector and a properties
+// selector.
+//
+// Should only be used with a reasonable number of properties.
+export const createPicker = (object, props) =>
+  _createCollectionWrapper(
+    _create2(
+      object, props,
+      (objects, props) => {
+        const values = {}
+        forEach(props, prop => {
+          const value = object[prop]
+          if (value) {
+            values[prop] = value
+          }
+        })
+        return values
+      }
+    )
+  )
+
 export const createFilter = (collection, predicate) =>
   _createCollectionWrapper(
     _create2(
@@ -209,27 +230,6 @@ const _getId = (state, { routeParams, id }) => routeParams
 export const createGetObject = (idSelector = _getId) =>
   (state, props) => state.objects.all[idSelector(state, props)]
 
-// Creates a collection selector from a collection selector and an ids
-// selector.
-//
-// Should only be used with a reasonable number of ids.
-export const createGetObjects = (collection, ids) =>
-  _createCollectionWrapper(
-    _create2(
-      collection, ids,
-      (collection, ids) => {
-        const objects = {}
-        forEach(ids, id => {
-          const object = collection[id]
-          if (object) {
-            objects[id] = object
-          }
-        })
-        return objects
-      }
-    )
-  )
-
 // Specialized createSort() configured for a given type.
 export const createSortForType = invoke(() => {
   const optionsByType = {
@@ -292,7 +292,7 @@ export const createGetObjectsOfType = type => {
   )
   getObjects.find = predicate => createFinder(getObjects, predicate)
   getObjects.pick = idsSelector => _addSort(
-    createGetObjects(getObjects, idsSelector)
+    createPicker(getObjects, idsSelector)
   )
 
   return _addSort(getObjects)
