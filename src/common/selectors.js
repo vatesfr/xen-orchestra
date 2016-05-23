@@ -245,6 +245,12 @@ export const createSortForType = invoke(() => {
       [ message => message.time ],
       'desc'
     ],
+    PIF: [
+      [ pif => pif.device ]
+    ],
+    pool_patch: [
+      [ patch => patch.name ]
+    ],
     VBD: [
       [ vbd => vbd.position ]
     ],

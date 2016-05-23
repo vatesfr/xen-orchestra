@@ -22,12 +22,9 @@ import {
   createFilter,
   createFinder,
   createGetObject,
-  createGetObjects,
-  createSelector,
-  createSort,
-  objects,
-  messages,
-  vms
+  createGetObjectsOfType,
+  createGetSortedObjectsOfType,
+  createSelector
 } from 'selectors'
 
 import TabAdvanced from './tab-advanced'
@@ -57,20 +54,19 @@ const isRunning = host => host && host.power_state === 'Running'
   const getHost = createGetObject()
 
   const getPool = createGetObject(
-    (...args) => getHost(...args).$pool
+    (state, props) => getHost(state, props).$pool
   )
 
   const getVmController = createFinder(
-    objects,
+    createGetSortedObjectsOfType('VM-controller'),
     createSelector(
       getHost,
-      ({ id }) => obj => obj.type === 'VM-controller' && obj.$container === id
-    ),
-    true
+      ({ id }) => obj => obj.$container === id
+    )
   )
 
   const getHostVms = createFilter(
-    vms,
+    createGetObjectsOfType('VM'),
     createSelector(
       getHost,
       ({ id }) => obj => obj.$container === id
@@ -78,7 +74,7 @@ const isRunning = host => host && host.power_state === 'Running'
   )
 
   const getLogs = createFilter(
-    messages,
+    createGetSortedObjectsOfType('message'),
     createSelector(
       getHost,
       getVmController,
@@ -86,37 +82,37 @@ const isRunning = host => host && host.power_state === 'Running'
     )
   )
 
-  const getPifs = createSort(
-    createGetObjects(
-      createSelector(getHost, host => host.PIFs),
-    ),
-    'device'
+  const getPifs = createGetSortedObjectsOfType(
+    'PIF',
+    createSelector(getHost, host => host.$PIFs)
   )
 
-  const getNetworks = createGetObjects(
+  const getNetworks = createGetObjectsOfType(
+    'network',
     createSelector(
       getPifs,
       pifs => map(pifs, pif => pif.$network)
     )
   )
 
-  const getPoolPatches = createSort(
-    createGetObjects(
-      createSelector(
-        createGetObjects(
-          createSelector(getHost, host => host.patches)
-        ),
-        patches => map(patches, patch => patch.pool_patch)
-      )
-    ),
-    'name'
+  const getPoolPatches = createGetSortedObjectsOfType(
+    'pool_patch',
+    createSelector(
+      createGetObjectsOfType(
+        'host_patch',
+        createSelector(getHost, host => host.patches)
+      ),
+      hostPatches => map(hostPatches, patch => patch.pool_patch)
+    )
   )
 
-  const getPbds = createGetObjects(
-      createSelector(getHost, host => host.$PBDs)
-    )
+  const getPbds = createGetObjectsOfType(
+    'PBD',
+    createSelector(getHost, host => host.$PBDs)
+  )
 
-  const getSrs = createGetObjects(
+  const getSrs = createGetObjectsOfType(
+    'SR',
     createSelector(
       getPbds,
       pbds => map(pbds, pbd => pbd.SR)
