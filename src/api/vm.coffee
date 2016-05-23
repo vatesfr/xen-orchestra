@@ -27,7 +27,7 @@ startsWith = require 'lodash.startswith'
   pCatch,
   pFinally
 } = require '../utils'
-{isVmRunning: $isVMRunning} = require('../xapi')
+{isVmRunning: $isVmRunning} = require('../xapi')
 
 #=====================================================================
 
@@ -452,7 +452,7 @@ set = $coroutine (params) ->
       yield @allocateLimitsInResourceSet({
         cpus: CPUs - VM.CPUs.number
       }, resourceSet)
-    if $isVMRunning VM
+    if $isVmRunning VM
       if CPUs > VM.CPUs.max
         @throw(
           'INVALID_PARAMS'
