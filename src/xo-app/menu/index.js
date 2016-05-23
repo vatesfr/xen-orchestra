@@ -8,6 +8,7 @@ import React from 'react'
 import Tooltip from 'tooltip'
 import { Button } from 'react-bootstrap-4/lib'
 import { connectStore, noop } from 'utils'
+import { signOut } from 'xo'
 
 import styles from './index.css'
 
@@ -112,8 +113,8 @@ export default class Menu extends Component {
         )}
         <li>&nbsp;</li>
         <li>&nbsp;</li>
-        <li className='nav-item'>
-          <Button className='nav-link'>
+        <li className='nav-item xo-menu-item'>
+          <Button className='nav-link' onClick={signOut}>
             <Icon icon='sign-out' size='lg' fixedWidth />
             <span className={styles.hiddenCollapsed}>{' '}{_('signOut')}</span>
           </Button>

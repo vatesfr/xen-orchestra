@@ -23,12 +23,12 @@ import {
 
 // ===================================================================
 
-const xo = invoke(() => {
-  const signOut = () => {
-    cookies.expire('token')
-    window.location.reload(true)
-  }
+export const signOut = () => {
+  cookies.expire('token')
+  window.location.reload(true)
+}
 
+const xo = invoke(() => {
   const token = cookies.get('token')
   if (!token) {
     signOut()
