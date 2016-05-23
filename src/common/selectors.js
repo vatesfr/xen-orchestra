@@ -266,28 +266,43 @@ export const createSortForType = invoke(() => {
 //
 // The selector as the following methods:
 //
+// - count: returns a selector which returns the number of objects
+// - filter: returns a selector which returns the objects filtered by
+//           a predicate (sort can be chained)
+// - find: returns a selector which returns the first object matching
+//         a predicate
+// - pick: returns a selector which returns only the objects with given
+//         ids (sort can be chained)
 // - sort: returns a selector which returns the objects appropriately
 //         sorted
-export const createGetObjectsOfType = (type, idsSelector) => {
-  let getObjects = state => state.objects.byType[type] || EMPTY_OBJECT
-  if (idsSelector) {
-    getObjects = createGetObjects(getObjects, idsSelector)
+export const createGetObjectsOfType = type => {
+  const getObjects = state => state.objects.byType[type] || EMPTY_OBJECT
+
+  const _addSort = getObjects => {
+    // TODO: maybe memoize when no idsSelector.
+    getObjects.sort = () => createSortForType(type, getObjects)
+    return getObjects
   }
 
-  // TODO: maybe memoize when no idsSelector.
-  getObjects.sort = () => createSortForType(type, getObjects)
+  getObjects.count = predicate => createCounter(getObjects, predicate)
+  getObjects.filter = predicate => _addSort(
+    createFilter(getObjects, predicate)
+  )
+  getObjects.find = predicate => createFinder(getObjects, predicate)
+  getObjects.pick = idsSelector => _addSort(
+    createGetObjects(getObjects, idsSelector)
+  )
 
-  return getObjects
+  return _addSort(getObjects)
 }
 
 // TODO: implement
 export const createGetTags = () => EMPTY_OBJECT
 
 export const createGetObjectMessages = objectSelector =>
-  createFilter(
-    createGetObjectsOfType('message').sort(),
+  createGetObjectsOfType('message').filter(
     create(
       objectSelector,
       ({ id }) => message => message.$object === id
     )
-  )
+  ).sort()

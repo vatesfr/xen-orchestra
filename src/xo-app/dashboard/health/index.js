@@ -10,7 +10,6 @@ import { deleteMessage, deleteVdi, deleteVm } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Row, Col } from 'grid'
 import {
-  createFilter,
   createGetObject,
   createGetObjectsOfType,
   createSelector
@@ -130,29 +129,22 @@ const Sr = connectStore(() => {
 )
 
 @connectStore(() => {
-  const getOrphanVdiSnapshots = createFilter(
-    createGetObjectsOfType('VDI-snapshot').sort(),
-    [ snapshot => !snapshot.$snapshot_of ]
-  )
-  const getOrphanVmSnapshots = createFilter(
-    createGetObjectsOfType('VM-snapshot').sort(),
-    [ snapshot => !snapshot.$snapshot_of ]
-  )
-  const getUserSrs = createFilter(
-    createGetObjectsOfType('SR'),
-    [ sr => sr.content_type === 'user' ]
-  )
-  const getVdiSrs = createGetObjectsOfType(
-    'SR',
-    createSelector(
+  const getOrphanVdiSnapshots = createGetObjectsOfType('VDI-snapshot')
+    .filter([ snapshot => !snapshot.$snapshot_of ])
+    .sort()
+  const getOrphanVmSnapshots = createGetObjectsOfType('VM-snapshot')
+    .filter([ snapshot => !snapshot.$snapshot_of ])
+    .sort()
+  const getUserSrs = createGetObjectsOfType('SR')
+    .filter([ sr => sr.content_type === 'user' ])
+  const getVdiSrs = createGetObjectsOfType('SR')
+    .pick(createSelector(
       getOrphanVdiSnapshots,
       snapshots => map(snapshots, '$SR')
-    )
-  )
-  const getAlertMessages = createFilter(
-    createGetObjectsOfType('message'),
-    [ message => message.name === 'ALARM' ]
-  )
+    ))
+  const getAlertMessages = createGetObjectsOfType('message')
+    .filter([ message => message.name === 'ALARM' ])
+
   return (state, props) => ({
     alertMessages: getAlertMessages(state, props),
     userSrs: getUserSrs(state, props),

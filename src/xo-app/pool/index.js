@@ -14,8 +14,6 @@ import {
   routes
 } from 'utils'
 import {
-  createCounter,
-  createFilter,
   createGetObject,
   createGetObjectMessages,
   createGetObjectsOfType,
@@ -48,32 +46,28 @@ import TabStorage from './tab-storage'
     (state, props) => getPool(state, props).master
   )
 
-  const getNetworks = createFilter(
-    createGetObjectsOfType('network').sort(),
+  const getNetworks = createGetObjectsOfType('network').filter(
     createSelector(
       getPool,
       ({ id }) => network => network.$pool === id
     )
-  )
+  ).sort()
 
-  const getHosts = createFilter(
-    createGetObjectsOfType('host').sort(),
+  const getHosts = createGetObjectsOfType('host').filter(
     createSelector(
       getPool,
       ({ id }) => obj => obj.$pool === id
     )
-  )
+  ).sort()
 
-  const getPoolSrs = createFilter(
-    createGetObjectsOfType('SR').sort(),
+  const getPoolSrs = createGetObjectsOfType('SR').filter(
     createSelector(
       getPool,
       ({ id }) => sr => sr.content_type === 'user' && sr.$pool === id
     )
-  )
+  ).sort()
 
-  const getNumberOfVms = createCounter(
-    createGetObjectsOfType('VM'),
+  const getNumberOfVms = createGetObjectsOfType('VM').count(
     createSelector(
       getPool,
       ({ id }) => obj => obj.$pool === id

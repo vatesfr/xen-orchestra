@@ -8,7 +8,6 @@ import { Row, Col } from 'grid'
 import {
   createCollectionWrapper,
   createCounter,
-  createFilter,
   createGetObjectsOfType,
   createSelector,
   createTop
@@ -45,8 +44,7 @@ import {
   )
 
   const userSrs = createTop(
-    createFilter(
-      createGetObjectsOfType('SR'),
+    createGetObjectsOfType('SR').filter(
       [ sr => sr.content_type === 'user' ]
     ),
     [ sr => sr.physical_usage / sr.size ],
@@ -102,8 +100,7 @@ import {
     createGetObjectsOfType('pool')
   )
   const getNumberOfTasks = createCounter(
-    createFilter(
-      createGetObjectsOfType('task'),
+    createGetObjectsOfType('task').filter(
       [ task => task.status === 'pending' ]
     )
   )

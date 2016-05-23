@@ -19,8 +19,6 @@ import {
   routes
 } from 'utils'
 import {
-  createFilter,
-  createFinder,
   createGetObject,
   createGetObjectsOfType,
   createSelector
@@ -56,46 +54,40 @@ const isRunning = host => host && host.power_state === 'Running'
     (state, props) => getHost(state, props).$pool
   )
 
-  const getVmController = createFinder(
-    createGetObjectsOfType('VM-controller'),
+  const getVmController = createGetObjectsOfType('VM-controller').find(
     createSelector(
       getHost,
       ({ id }) => obj => obj.$container === id
     )
   )
 
-  const getHostVms = createFilter(
-    createGetObjectsOfType('VM'),
+  const getHostVms = createGetObjectsOfType('VM').filter(
     createSelector(
       getHost,
       ({ id }) => obj => obj.$container === id
     )
   )
 
-  const getLogs = createFilter(
-    createGetObjectsOfType('message').sort(),
+  const getLogs = createGetObjectsOfType('message').filter(
     createSelector(
       getHost,
       getVmController,
       (host, controller) => ({ $object }) => $object === host.id || $object === controller.id
     )
-  )
+  ).sort()
 
-  const getPifs = createGetObjectsOfType(
-    'PIF',
+  const getPifs = createGetObjectsOfType('PIF').pick(
     createSelector(getHost, host => host.$PIFs)
   ).sort()
 
-  const getNetworks = createGetObjectsOfType(
-    'network',
+  const getNetworks = createGetObjectsOfType('network').pick(
     createSelector(
       getPifs,
       pifs => map(pifs, pif => pif.$network)
     )
   )
 
-  const getPoolPatches = createGetObjectsOfType(
-    'pool_patch',
+  const getPoolPatches = createGetObjectsOfType('pool_patch').pick(
     createSelector(
       createGetObjectsOfType(
         'host_patch',
@@ -105,13 +97,11 @@ const isRunning = host => host && host.power_state === 'Running'
     )
   ).sort()
 
-  const getPbds = createGetObjectsOfType(
-    'PBD',
+  const getPbds = createGetObjectsOfType('PBD').pick(
     createSelector(getHost, host => host.$PBDs)
   )
 
-  const getSrs = createGetObjectsOfType(
-    'SR',
+  const getSrs = createGetObjectsOfType('SR').pick(
     createSelector(
       getPbds,
       pbds => map(pbds, pbd => pbd.SR)
