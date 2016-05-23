@@ -121,7 +121,7 @@ export const createPicker = (object, props) =>
   _createCollectionWrapper(
     _create2(
       object, props,
-      (objects, props) => {
+      (object, props) => {
         const values = {}
         forEach(props, prop => {
           const value = object[prop]
