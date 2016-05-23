@@ -4,12 +4,13 @@
 $nav-pills-border-radius: 0;
 $nav-pills-active-link-color: white;
 $nav-pills-active-link-bg: #366e98;
-$brand-menu: #044B7F;
+$brand-menu: #044b7f;
 $brand-primary: #366e98;
-$brand-secondary: #047F75;
+$brand-secondary: #047f75;
 $brand-success: #089944;
 $brand-danger: #990822;
-$brand-warning: #ECA649;
+$brand-warning: #eca649;
+$brand-info: #044b7f;
 
 @import "../node_modules/bootstrap/scss/bootstrap";
 
@@ -25,7 +26,7 @@ $fa-font-path: "./";
 }
 
 $ct-series-colors: (
-  $brand-menu,
+  $brand-success,
   $brand-primary,
   #60bd68,
   #f17cb0,

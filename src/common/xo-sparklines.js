@@ -63,7 +63,7 @@ export const CpuSparkLines = propTypes({
 
   return (
     <Sparklines style={STYLE} data={computeArraysAvg(cpus)} max={100} min={0} width={WIDTH} height={HEIGHT}>
-      <SparklinesLine style={{ strokeWidth: 1, stroke: '#2598d9', fill: '#2598d9', fillOpacity: 0.5 }} color='#2598d9' />
+      <SparklinesLine style={{ strokeWidth: 1, stroke: '#366e98', fill: '#366e98', fillOpacity: 0.5 }} color='#2598d9' />
       <SparklinesSpots />
     </Sparklines>
   )
@@ -80,7 +80,7 @@ export const MemorySparkLines = propTypes({
 
   return (
     <Sparklines style={STYLE} data={memoryUsed} max={memory[memory.length - 1]} min={0} width={WIDTH} height={HEIGHT}>
-      <SparklinesLine style={{ strokeWidth: 1, stroke: '#cc0066', fill: '#cc0066', fillOpacity: 0.5 }} color='#cc0066' />
+      <SparklinesLine style={{ strokeWidth: 1, stroke: '#990822', fill: '#990822', fillOpacity: 0.5 }} color='#cc0066' />
       <SparklinesSpots />
     </Sparklines>
   )
@@ -97,7 +97,7 @@ export const XvdSparkLines = propTypes({
 
   return (
     <Sparklines style={STYLE} data={computeObjectsAvg(xvds)} min={0} width={WIDTH} height={HEIGHT}>
-      <SparklinesLine style={{ strokeWidth: 1, stroke: '#33cc33', fill: '#33cc33', fillOpacity: 0.5 }} color='#33cc33' />
+      <SparklinesLine style={{ strokeWidth: 1, stroke: '#089944', fill: '#089944', fillOpacity: 0.5 }} color='#33cc33' />
       <SparklinesSpots />
     </Sparklines>
   )
@@ -114,7 +114,7 @@ export const VifSparkLines = propTypes({
 
   return (
     <Sparklines style={STYLE} data={computeObjectsAvg(vifs)} min={0} width={WIDTH} height={HEIGHT}>
-      <SparklinesLine style={{ strokeWidth: 1, stroke: '#ffd633', fill: '#ffd633', fillOpacity: 0.5 }} color='#ffd633' />
+      <SparklinesLine style={{ strokeWidth: 1, stroke: '#eca649', fill: '#eca649', fillOpacity: 0.5 }} color='#ffd633' />
       <SparklinesSpots />
     </Sparklines>
   )
@@ -131,7 +131,7 @@ export const PifSparkLines = propTypes({
 
   return (
     <Sparklines style={STYLE} data={computeObjectsAvg(pifs)} min={0} width={WIDTH} height={HEIGHT}>
-      <SparklinesLine style={{ strokeWidth: 1, stroke: '#ffd633', fill: '#ffd633', fillOpacity: 0.5 }} color='#ffd633' />
+      <SparklinesLine style={{ strokeWidth: 1, stroke: '#eca649', fill: '#eca649', fillOpacity: 0.5 }} color='#ffd633' />
       <SparklinesSpots />
     </Sparklines>
   )
