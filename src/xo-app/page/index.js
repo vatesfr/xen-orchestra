@@ -9,8 +9,7 @@ const Page = ({ children, header }) => {
       maxHeight: '100vh',
       margin: '-1em' /* To offset the padding applied to the wrapper */
     }}>
-      <nav style={{
-        backgroundColor: '#eee',
+      <nav className='page-header' style={{
         padding: '0.6em',
         paddingBottom: 0,
         flexShrink: 0
