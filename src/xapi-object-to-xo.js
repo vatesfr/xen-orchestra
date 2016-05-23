@@ -364,9 +364,9 @@ const TRANSFORMS = {
       VDIs: link(obj, 'VDIs'),
 
       $container: (
-        obj.shared
+        obj.shared || !obj.$PBDs[0]
           ? link(obj, 'pool')
-          : obj.$PBDs[0] && link(obj.$PBDs[0], 'host')
+          : link(obj.$PBDs[0], 'host')
       ),
       $PBDs: link(obj, 'PBDs')
     }
