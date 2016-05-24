@@ -102,6 +102,9 @@ class GenericSelect extends Component {
       </div>
     )
   }
+  // Unable to use @autobind here.
+  // It exists already one _renderOption method with @autobind in the superclass.
+  // It's forbidden to use @authobind with inheritance.
   _renderOption = ::this._renderOption
 
   render () {
