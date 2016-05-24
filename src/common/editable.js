@@ -190,7 +190,7 @@ export class Text extends Editable {
   }
 
   _renderEdition () {
-    const { children, value } = this.props
+    const { value } = this.props
     const { saving } = this.state
 
     return <input
@@ -202,7 +202,7 @@ export class Text extends Editable {
       readOnly={saving}
       ref='input'
       style={{
-        width: `${children.length + 1}ex`
+        width: `${value.length + 1}ex`
       }}
       type='text'
     />
