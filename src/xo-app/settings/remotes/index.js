@@ -5,7 +5,6 @@ import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React, { Component } from 'react'
-import { connectStore } from 'utils'
 import { error } from 'notification'
 import { injectIntl } from 'react-intl'
 import {
@@ -15,7 +14,7 @@ import {
   enableRemote,
   subscribeRemotes
 } from 'xo'
-import {format, parse} from 'xo-remote-parser'
+import { format, parse } from 'xo-remote-parser'
 
 const remoteTypes = {
   local: 'remoteTypeLocal',
@@ -127,7 +126,6 @@ class SmbRemote extends AbstractRemote {
 }
 
 @injectIntl
-@connectStore({})
 export default class New extends Component {
   constructor (props) {
     super(props)
@@ -165,14 +163,8 @@ export default class New extends Component {
       type
     } = this.state
 
-    const UI_TYPE_REMOTE_TYPE = {
-      local: 'file',
-      nfs: 'nfs',
-      smb: 'smb'
-    }
-
     const urlParams = {
-      type: UI_TYPE_REMOTE_TYPE[type],
+      type,
       host: host && host.value,
       path: path && path.value
     }
@@ -181,8 +173,7 @@ export default class New extends Component {
     domain && (urlParams.domain = domain.value)
 
     const url = format(urlParams)
-    return createRemote(name && name.value, url)
-    .then(() => {
+    return createRemote(name && name.value, url).then(() => {
       this.setState({type: 'local'})
       path && (path.value = '')
       username && (username.value = '')
