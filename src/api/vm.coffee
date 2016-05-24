@@ -534,10 +534,10 @@ set.params = {
   # Note: static_min ≤ dynamic_min ≤ dynamic_max ≤ static_max
   memory: { type: ['integer', 'string'], optional: true }
 
-  # Set static_min & dynamic_min
+  # Set dynamic_min
   memoryMin: { type: ['integer', 'string'], optional: true }
 
-  # Set static_max
+  # Set dynamic_max
   memoryMax: { type: ['integer', 'string'], optional: true }
 
   # Set static_max
