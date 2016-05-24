@@ -1054,7 +1054,13 @@ export const messages = {
     defaultMessage: 'CPU limits'
   },
   vmMemoryLimitsLabel: {
-    defaultMessage: 'Memory limits'
+    defaultMessage: 'Memory limits (min/max)'
+  },
+  vmMaxVcpus: {
+    defaultMessage: 'vCPUs max:'
+  },
+  vmMaxRam: {
+    defaultMessage: 'Memory max:'
   },
 
   // ----- VM placeholders -----

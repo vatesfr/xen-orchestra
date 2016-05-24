@@ -89,6 +89,15 @@ export default ({
       <Col smallSize={12}><em>{_('noToolsDetected')}.</em></Col>
     </Row>
   }
+  <br />
+  <Row className='text-xs-center'>
+    <Col mediumSize={6}>
+      {_('vmMaxVcpus')} {vm.CPUs.max}
+    </Col>
+    <Col mediumSize={6}>
+      {_('vmMaxRam')} {vm.power_state !== 'Running' ? formatSize(vm.memory.static[1]) : formatSize(vm.memory.dynamic[1])}
+    </Col>
+  </Row>
   {/* TODO: use CSS style */}
   <br />
   <Row>
