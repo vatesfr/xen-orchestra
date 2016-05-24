@@ -93,6 +93,8 @@ export const resolveUrl = invoke(
 
 // -------------------------------------------------------------------
 
+const _signIn = new Promise(resolve => xo.once('authenticated', resolve))
+
 const createSubscription = cb => {
   const delay = 5e3
 
@@ -102,7 +104,7 @@ const createSubscription = cb => {
   let timeout
 
   const loop = () => {
-    new Promise(resolve => resolve(cb())).then(result => {
+    _signIn.then(() => cb()).then(result => {
       forEach(subscribers, subscriber => {
         subscriber(result)
       })
