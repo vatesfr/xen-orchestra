@@ -2,6 +2,7 @@
 import filter from 'lodash/filter'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
+import groupBy from 'lodash/groupBy'
 import isArray from 'lodash/isArray'
 import isArrayLike from 'lodash/isArrayLike'
 import isFunction from 'lodash/isFunction'
@@ -152,6 +153,13 @@ export const createFinder = (collection, predicate) =>
     find
   )
 
+export const createGroupBy = (collection, getter) =>
+  _create2(
+    collection,
+    getter,
+    groupBy
+  )
+
 export const createPager = (array, page, n = 25) => _createCollectionWrapper(
   _create2(
     array,
@@ -270,6 +278,42 @@ export const createSortForType = invoke(() => {
   return (type, collection) => createSort(collection, ...getOptions(type))
 })
 
+// Add utility methods to a collection selector.
+const _extendCollectionSelector = (selector, objectsType) => {
+  // Terminal methods.
+  const _addCount = selector => {
+    selector.count = predicate => createCounter(selector, predicate)
+    return selector
+  }
+  _addCount(selector)
+  const _addGroupBy = selector => {
+    selector.groupBy = getter => createGroupBy(selector, getter)
+    return selector
+  }
+  _addGroupBy(selector)
+  selector.find = predicate => createFinder(selector, predicate)
+
+  // groupBy can be chained.
+  const _addSort = selector => {
+    // TODO: maybe memoize when no idsSelector.
+    selector.sort = () => _addGroupBy(createSortForType(objectsType, selector))
+    return selector
+  }
+  _addSort(selector)
+
+  // groupBy and sort can be chained.
+  selector.pick = idsSelector => _addGroupBy(_addSort(
+    createPicker(selector, idsSelector)
+  ))
+
+  // count, groupBy and sort can be chained.
+  selector.filter = predicate => _addCount(_addGroupBy(_addSort(
+    createFilter(selector, predicate)
+  )))
+
+  return selector
+}
+
 // Creates a collection selector which returns all objects of a given
 // type.
 //
@@ -277,13 +321,15 @@ export const createSortForType = invoke(() => {
 //
 // - count: returns a selector which returns the number of objects
 // - filter: returns a selector which returns the objects filtered by
-//           a predicate (sort can be chained)
+//           a predicate (count, groupBy and sort can be chained)
 // - find: returns a selector which returns the first object matching
 //         a predicate
+// - groupBy: returns a selector which returns the objects grouped by
+//            a value determined by a getter selector
 // - pick: returns a selector which returns only the objects with given
-//         ids (sort can be chained)
+//         ids (groupBy and sort can be chained)
 // - sort: returns a selector which returns the objects appropriately
-//         sorted
+//         sorted (groupBy can be chained)
 export const createGetObjectsOfType = type => {
   const getObjects = state => {
     const { user } = state
@@ -294,35 +340,14 @@ export const createGetObjectsOfType = type => {
     return state.objects.byType[type] || EMPTY_OBJECT
   }
 
-  const _addSort = getObjects => {
-    // TODO: maybe memoize when no idsSelector.
-    getObjects.sort = () => createSortForType(type, getObjects)
-    return getObjects
-  }
-
-  getObjects.count = predicate => createCounter(getObjects, predicate)
-  getObjects.filter = predicate => _addSort(
-    createFilter(getObjects, predicate)
-  )
-  getObjects.find = predicate => createFinder(getObjects, predicate)
-  getObjects.pick = idsSelector => _addSort(
-    createPicker(getObjects, idsSelector)
-  )
-
-  return _addSort(getObjects)
+  return _extendCollectionSelector(getObjects, type)
 }
 
 // TODO: implement
 export const createGetTags = () => {
   const getTags = () => EMPTY_OBJECT
 
-  getTags.count = () => () => 0
-  getTags.filter = () => getTags
-  getTags.find = () => {}
-  getTags.pick = () => getTags
-  getTags.sort = () => []
-
-  return getTags
+  return _extendCollectionSelector(getTags, 'tag')
 }
 
 export const createGetObjectMessages = objectSelector =>
