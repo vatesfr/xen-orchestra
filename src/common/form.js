@@ -135,3 +135,39 @@ export class Range extends Component {
     )
   }
 }
+
+const TOGGLE_STYLE = { visibility: 'hidden' }
+export class Toggle extends Component {
+  get value () {
+    return this.refs.input.checked
+  }
+
+  set value (checked) {
+    this.refs.input.checked = Boolean(checked)
+  }
+
+  _onChange = event => {
+    this.forceUpdate()
+
+    const { onChange } = this.props
+    onChange && onChange(event)
+  }
+
+  render () {
+    const { props, refs } = this
+    const { input } = refs
+    const checked = input ? input.checked : props.defaultChecked
+
+    return <label>
+      <Icon icon={`toggle-${checked ? 'on' : 'off'}`} size={2} />
+      <input
+        defaultChecked={props.defaultChecked}
+        disabled={props.disabled}
+        onChange={this._onChange}
+        ref='input'
+        style={TOGGLE_STYLE}
+        type='checkbox'
+      />
+    </label>
+  }
+}
