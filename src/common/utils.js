@@ -170,7 +170,7 @@ export const connectStore = (mapStateToProps, opts = {}) => {
   return Component => {
     const ConnectedComponent = connector(Component)
 
-    if (opts && opts.withRef && 'value' in Component.prototype) {
+    if (opts.withRef && 'value' in Component.prototype) {
       Object.defineProperty(ConnectedComponent.prototype, 'value', {
         configurable: true,
         get () {

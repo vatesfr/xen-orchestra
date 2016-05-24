@@ -93,16 +93,16 @@ class GenericSelect extends Component {
     }, onChange && (() => { onChange(this.value) }))
   }
 
-  @autobind
   _renderOption (option) {
     const { type } = option
 
     return (
       <div>
-        {type && <Icon icon={option.type} />} {option.label}
+        {type && <Icon icon={type} />} {option.label}
       </div>
     )
   }
+  _renderOption = ::this._renderOption
 
   render () {
     const { props } = this
