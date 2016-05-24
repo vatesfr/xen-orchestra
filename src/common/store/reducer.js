@@ -136,7 +136,7 @@ export default {
   xoaRegisterState: combineActionHandlers({state: '?'}, {
     [actions.xoaRegisterState]: (_, registration) => registration
   }),
-  xoaConfiguration: combineActionHandlers({}, {
+  xoaConfiguration: combineActionHandlers({proxyHost: '', proxyPort: '', proxyUser: ''}, { // defined values for controlled inputs
     [actions.xoaConfiguration]: (_, configuration) => {
       delete configuration.password
       return configuration

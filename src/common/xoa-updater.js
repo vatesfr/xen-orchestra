@@ -176,6 +176,7 @@ class XoaUpdater extends EventEmitter {
       })
 
       this.update()
+      this.isRegistered()
       this.getConfiguration()
       return c
     }
@@ -229,7 +230,9 @@ class XoaUpdater extends EventEmitter {
       this.token = token
       return token
     } catch (error) {
-      delete this.token
+      if (!renew) {
+        delete this.token
+      }
       if (error.code && error.code === 1) {
         this.registerError = 'Authentication failed'
       } else {
@@ -328,8 +331,8 @@ class XoaUpdater extends EventEmitter {
 
   async getConfiguration () {
     try {
-      const config = await this._call('getConfiguration')
-      this._configuration = config
+      this._configuration = await this._call('getConfiguration')
+      return this._configuration
     } catch (error) {
       this._configuration = {}
     } finally {
@@ -349,8 +352,9 @@ class XoaUpdater extends EventEmitter {
 
   async configure (config) {
     try {
-      const config = await this._call('configure', config)
-      this._configuration = config
+      this._configuration = await this._call('configure', config)
+      this.update()
+      return this._configuration
     } catch (error) {
       this._configuration = {}
     } finally {
