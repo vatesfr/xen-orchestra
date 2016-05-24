@@ -30,9 +30,6 @@ import {
 
 // ===================================================================
 
-const applyPredicate = (objects, predicate) =>
-  predicate ? filter(objects, predicate) : objects
-
 // Example of use:
 // containers = pools array
 // containersObjects = hosts array
@@ -112,7 +109,7 @@ class GenericSelect extends Component {
 
     this.setState({
       value
-    }, onChange && (() => { onChange(this.value) }))
+    }, () => { console.log(this.value) })
   }
 
   @autobind
@@ -148,17 +145,18 @@ class GenericSelect extends Component {
 // ===================================================================
 
 @connectStore(() => {
-  const getHosts = createGetObjectsOfType('host').sort()
-  const getPools = createGetObjectsOfType('pool').sort()
-  const getObjects = createCollectionWrapper(
+  const getHosts = createGetObjectsOfType('host').filter(
+    (state, props) => props.predicate
+  )
+  const getPools = createGetObjectsOfType('pool').pick(
     createSelector(
       getHosts,
-      hosts => keyBy(hosts, 'id')
+      hosts => map(hosts, '$pool')
     )
-  )
+  ).sort()
 
   return (state, props) => ({
-    objects: getObjects(state, props),
+    objects: getHosts(state, props),
     pools: getPools(state, props)
   })
 }, { withRef: true })
@@ -166,24 +164,15 @@ export class SelectHost extends GenericSelect {
   constructor (props) {
     super(props)
     this._placeholder = _('selectHosts')
-
-    this.getFilteredHosts = createSelector(
-      () => this.props.objects,
-      hosts => applyPredicate(hosts, this.props.predicate)
-    )
-
-    this.getFilteredPools = createSelector(
-      () => this.props.pools,
-      pools => containersFilter(pools, this.getFilteredHosts(), '$pool')
-    )
   }
 
   _computeOptions (props) {
-    const pools = this.getFilteredPools()
-    const hostsByPool = groupBy(this.getFilteredHosts(), '$pool')
+    const hostsByPool = groupBy(props.objects, '$pool')
     let newOptions = []
 
-    forEach(pools, (pool, poolId) => {
+    forEach(props.pools, pool => {
+      const poolId = pool.id
+
       newOptions.push({
         label: pool.name_label || poolId,
         disabled: true,
@@ -209,16 +198,12 @@ export class SelectHost extends GenericSelect {
 // ===================================================================
 
 @connectStore(() => {
-  const getPools = createGetObjectsOfType('pool').sort()
-  const getObjects = createCollectionWrapper(
-    createSelector(
-      getPools,
-      pools => keyBy(pools, 'id')
-    )
+  const getPools = createGetObjectsOfType('pool').filter(
+    (state, props) => props.predicate
   )
 
   return (state, props) => ({
-    objects: getObjects(state, props)
+    objects: getPools(state, props)
   })
 }, { withRef: true })
 export class SelectPool extends GenericSelect {
@@ -229,7 +214,7 @@ export class SelectPool extends GenericSelect {
 
   _computeOptions (props) {
     return map(
-      applyPredicate(props.objects, props.predicate),
+      props.objects,
       pool => {
         const { id } = pool
         return {
@@ -276,7 +261,7 @@ export class SelectRemote extends GenericSelect {
   _computeOptions (props, remotes = this.state.remotes) {
     const remotesByGroup = groupBy(
       map(
-        applyPredicate(remotes, props.predicate),
+        props.predicate ? filter(remotes, props.predicate) : remotes,
         parse
       ), 'type'
     )
@@ -303,47 +288,43 @@ export class SelectRemote extends GenericSelect {
 // ===================================================================
 
 @connectStore(() => {
-  const getHosts = createGetObjectsOfType('host').sort()
-  const getPools = createGetObjectsOfType('pool').sort()
   const getSrs = createGetObjectsOfType('SR').filter([
     sr => sr.content_type === 'user'
   ])
-  const getObjects = createCollectionWrapper(
+  const getHosts = createGetObjectsOfType('host').pick(
     createSelector(
       getSrs,
-      srs => keyBy(srs, 'id')
+      srs => map(srs, '$pool')
     )
+  ).sort()
+  const getPools = createGetObjectsOfType('pool').pick(
+    createSelector(
+      getSrs,
+      srs => map(srs, '$pool')
+    )
+  ).sort()
+  const getContainers = createSelector(
+    getHosts,
+    getPools,
+    (hosts, pools) => containersFilter(hosts.concat(pools), getSrs, '$container')
   )
 
   return (state, props) => ({
-    hosts: getHosts(state, props),
-    objects: getObjects(state, props),
-    pools: getPools(state, props)
+    containers: getContainers(state, props),
+    objects: getSrs(state, props)
   })
 }, { withRef: true })
 export class SelectSr extends GenericSelect {
   constructor (props) {
     super(props)
     this._placeholder = _('selectSrs')
-
-    this.getFilteredSrs = createSelector(
-      () => this.props.objects,
-      srs => applyPredicate(srs, this.props.predicate)
-    )
-
-    this.getFilteredContainers = createSelector(
-      () => this.props.hosts,
-      () => this.props.pools,
-      (hosts, pools) => containersFilter(hosts.concat(pools), this.getFilteredSrs(), '$container')
-    )
   }
 
   _computeOptions (props) {
-    const containers = this.getFilteredContainers()
-    const srsByContainer = groupBy(this.getFilteredSrs(), '$container')
+    const srsByContainer = groupBy(props.objects, '$container')
     let newOptions = []
 
-    forEach(containers, container => {
+    forEach(props.containers, container => {
       const containerId = container.id
       const containerLabel = container.name_label || containerId
 
@@ -372,31 +353,31 @@ export class SelectSr extends GenericSelect {
 // ===================================================================
 
 @connectStore(() => {
-  const getHosts = createGetObjectsOfType('host').sort()
-  const getPools = createGetObjectsOfType('pool').sort()
-  const getVms = createGetObjectsOfType('VM').sort()
-  const getObjects = createCollectionWrapper(
+  const getVms = createGetObjectsOfType('VM').filter(
+    (state, props) => props.predicate
+  )
+  const getHosts = createGetObjectsOfType('host').pick(
     createSelector(
       getVms,
-      vms => keyBy(vms, 'id')
+      vms => map(vms, '$pool')
     )
-  )
+  ).sort()
+  const getPools = createGetObjectsOfType('pool').pick(
+    createSelector(
+      getVms,
+      vms => map(vms, '$pool')
+    )
+  ).sort()
 
   return (state, props) => ({
-    hosts: getHosts(state, props),
-    objects: getObjects(state, props),
-    pools: getPools(state, props)
+    containers: getHosts(state, props).concat(getPools(state, props)),
+    objects: getVms(state, props)
   })
 }, { withRef: true })
 export class SelectVm extends GenericSelect {
   constructor (props) {
     super(props)
     this._placeholder = _('selectVms')
-
-    this.getFilteredVms = createSelector(
-      () => this.props.objects,
-      vms => applyPredicate(vms, this.props.predicate)
-    )
 
     this.getFilteredContainers = createSelector(
       () => this.props.hosts,
@@ -463,7 +444,9 @@ export class SelectVm extends GenericSelect {
 // ===================================================================
 
 @connectStore({
-  tags: createGetTags()
+  tags: createGetTags().filter(
+    (state, props) => props.predicate
+  ).sort()
 }, { withRef: true })
 export class SelectTag extends GenericSelect {
   constructor (props) {
@@ -487,7 +470,7 @@ export class SelectTag extends GenericSelect {
 
   _computeOptions (props) {
     return map(
-      applyPredicate(props.tags, props.predicate),
+      props.tags,
       tag => ({
         value: tag,
         label: tag,
