@@ -415,6 +415,10 @@ set = $coroutine (params) ->
     memoryMax = parseSize(params.memoryMax)
     if memoryMax > VM.memory.static[1]
       yield xapi.call 'VM.set_memory_static_max', memoryMax
+    if resourceSet?
+      yield @allocateLimitsInResourceSet({
+        memory: memory - VM.memory.dynamic[1]
+      }, resourceSet)
     yield xapi.call 'VM.set_memory_dynamic_max', ref, "#{memoryMax}"
   if 'memoryStaticMax' of params
     memoryStaticMax = parseSize(params.memoryStaticMax)
