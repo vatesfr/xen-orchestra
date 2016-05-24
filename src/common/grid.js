@@ -2,9 +2,6 @@ import classNames from 'classnames'
 import React from 'react'
 import { propTypes } from 'utils'
 
-const colStyle = {margin: 'auto'}
-const rowStyle = {display: 'flex'}
-
 export const Col = propTypes({
   className: propTypes.string,
   size: propTypes.number,
@@ -25,7 +22,8 @@ export const Col = propTypes({
   offset,
   smallOffset = offset,
   mediumOffset,
-  largeOffset
+  largeOffset,
+  style
 }) => <div className={classNames(
   className,
   smallSize && `col-xs-${smallSize}`,
@@ -35,7 +33,7 @@ export const Col = propTypes({
   mediumOffset && `offset-md-${mediumOffset}`,
   largeOffset && `offset-lg-${largeOffset}`
 )}
-  style={colStyle}
+  style={style}
 >
   {children}
 </div>)
@@ -54,9 +52,6 @@ export const Row = propTypes({
 })(({
   children,
   className
-}) => <div
-  className={`${className || ''} row`}
-  style={rowStyle}
->
+}) => <div className={`${className || ''} row`}>
   {children}
 </div>)
