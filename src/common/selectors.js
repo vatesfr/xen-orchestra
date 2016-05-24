@@ -313,7 +313,17 @@ export const createGetObjectsOfType = type => {
 }
 
 // TODO: implement
-export const createGetTags = () => EMPTY_OBJECT
+export const createGetTags = () => {
+  const getTags = () => EMPTY_OBJECT
+
+  getTags.count = () => () => 0
+  getTags.filter = () => getTags
+  getTags.find = () => {}
+  getTags.pick = () => getTags
+  getTags.sort = () => []
+
+  return getTags
+}
 
 export const createGetObjectMessages = objectSelector =>
   createGetObjectsOfType('message').filter(
