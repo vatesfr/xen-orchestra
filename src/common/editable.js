@@ -210,6 +210,15 @@ export class Text extends Editable {
 }
 
 @propTypes({
+  value: propTypes.number.isRequired
+})
+export class Number extends Text {
+  get value () {
+    return +this.refs.input.value
+  }
+}
+
+@propTypes({
   labelProp: propTypes.string.isRequired,
   options: propTypes.oneOfType([
     propTypes.array,
