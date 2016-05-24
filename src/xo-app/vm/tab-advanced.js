@@ -5,7 +5,7 @@ import isEmpty from 'lodash/isEmpty'
 import React from 'react'
 import TabButton from 'tab-button'
 import { Row, Col } from 'grid'
-import { normalizeXenToolsStatus, osFamily } from 'utils'
+import { formatSize, normalizeXenToolsStatus, osFamily } from 'utils'
 import {
   cloneVm,
   convertVmToTemplate,
@@ -141,11 +141,14 @@ export default ({
         <tbody>
           <tr>
             <th>{_('vmCpuLimitsLabel')}</th>
-            <td></td>
+            <td>{vm.CPUs.max}</td>
           </tr>
           <tr>
             <th>{_('vmMemoryLimitsLabel')}</th>
-            <td></td>
+            <td>
+              <p>Static: {formatSize(vm.memory.static[0])}/{formatSize(vm.memory.static[1])}</p>
+              <p>Dynamic: {formatSize(vm.memory.dynamic[0])}/{formatSize(vm.memory.dynamic[1])}</p>
+            </td>
           </tr>
         </tbody>
       </table>
