@@ -466,7 +466,7 @@ set = $coroutine (params) ->
       yield xapi.call 'VM.set_VCPUs_at_startup', ref, "#{CPUs}"
 
   if 'cpusMax' of params
-    yield xapi.call 'VM.set_VCPUs_max', ref, "#{CPUs}"
+    yield xapi.call 'VM.set_VCPUs_max', ref, "#{cpusMax}"
 
   # HA policy
   # TODO: also handle "best-effort" case
