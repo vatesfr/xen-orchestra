@@ -418,7 +418,7 @@ set = $coroutine (params) ->
     yield xapi.call 'VM.set_memory_static_max', ref, "#{memoryMax}"
   if 'memoryStaticMax' of params
     memoryStaticMax = parseSize(params.memoryStaticMax)
-      yield xapi.call 'VM.set_memory_static_max', memoryMax
+    yield xapi.call 'VM.set_memory_static_max', memoryMax
 
 
   # Memory.
