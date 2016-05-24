@@ -13,8 +13,9 @@ import { formatSize, formatSizeRaw, parseSize, propTypes } from './utils'
 
 const LONG_CLICK = 400
 const SELECT_STYLE = { padding: '0px' }
-const SIZE_STYLE = { width: '6em' }
+const SIZE_STYLE = { width: '10rem' }
 const UNITS = ['kiB', 'MiB', 'GiB']
+const EDITABLE_STYLE = { borderBottom: '1px dashed #ccc' }
 
 @propTypes({
   alt: propTypes.node.isRequired
@@ -126,8 +127,7 @@ class Editable extends Component {
       const { useLongClick } = props
 
       const success = <Icon icon='success' />
-
-      return <span>
+      return <span style={useLongClick ? null : EDITABLE_STYLE}>
         <span
           onClick={!useLongClick && this._openEdition}
           onMouseDown={useLongClick && this._startTimer}

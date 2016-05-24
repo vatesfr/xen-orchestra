@@ -4,12 +4,14 @@ import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import React from 'react'
 import TabButton from 'tab-button'
+import { Size, Text } from 'editable'
 import { Row, Col } from 'grid'
 import { formatSize, normalizeXenToolsStatus, osFamily } from 'utils'
 import {
   cloneVm,
   convertVmToTemplate,
   deleteVm,
+  editVm,
   recoveryStartVm,
   restartVm,
   stopVm,
@@ -25,8 +27,8 @@ export default ({
 }) => <div>
   <Row>
     <Col smallSize={12} className='text-xs-right'>
-      {vm.power_state === 'Running'
-        ? <span>
+      {vm.power_state === 'Running' &&
+        <span>
           <TabButton
             btnStyle='primary'
             handler={suspendVm}
@@ -49,10 +51,9 @@ export default ({
             labelId='forceShutdownVmLabel'
           />
         </span>
-        : null
       }
-      {vm.power_state === 'Halted'
-        ? <span>
+      {vm.power_state === 'Halted' &&
+        <span>
           <TabButton
             btnStyle='primary'
             handler={recoveryStartVm}
@@ -74,7 +75,6 @@ export default ({
             labelId='vmConvertButton'
           />
         </span>
-        : null
       }
       <TabButton
         btnStyle='danger'
@@ -111,12 +111,13 @@ export default ({
               }
             </td>
           </tr>
-          {vm.PV_args
-            ? <tr>
-              <th key={0}>{_('pvArgsLabel')}</th>
-              <td key={1}>{vm.PV_args}</td>
+          {vm.PV_args &&
+            <tr>
+              <th>{_('pvArgsLabel')}</th>
+              <td>
+                <Text value={vm.PV_args} onChange={value => editVm(vm, { PV_args: value })} />
+              </td>
             </tr>
-            : null
           }
           <tr>
             <th>{_('cpuWeightLabel')}</th>
@@ -141,13 +142,18 @@ export default ({
         <tbody>
           <tr>
             <th>{_('vmCpuLimitsLabel')}</th>
-            <td>{vm.CPUs.max}</td>
+            <td>
+              {vm.power_state === 'Running'
+                ? vm.CPUs.max
+                : <Text value={vm.CPUs.max} onChange={value => editVm(vm, { cpusMax: value })} />
+              }
+            </td>
           </tr>
           <tr>
             <th>{_('vmMemoryLimitsLabel')}</th>
             <td>
-              <p>Static: {formatSize(vm.memory.static[0])}/{formatSize(vm.memory.static[1])}</p>
-              <p>Dynamic: {formatSize(vm.memory.dynamic[0])}/{formatSize(vm.memory.dynamic[1])}</p>
+              <p>Static: {formatSize(vm.memory.static[0])}/<Size value={vm.memory.static[1]} onChange={memoryStaticMax => editVm(vm, { memoryStaticMax })} /></p>
+              <p>Dynamic: <Size value={vm.memory.dynamic[0]} onChange={memoryMin => editVm(vm, { memoryMin })} />/<Size value={vm.memory.dynamic[1]} onChange={memoryMax => editVm(vm, { memoryMax })} /></p>
             </td>
           </tr>
         </tbody>
@@ -164,10 +170,7 @@ export default ({
             <th>{_('osName')}</th>
             <td>{isEmpty(vm.os_version)
                 ? _('unknownOsName')
-                : [
-                  <Icon icon={osFamily(vm.os_version.distro)} />,
-                  ' ' + vm.os_version.name
-                ]
+                : <span><Icon icon={osFamily(vm.os_version.distro)} />&nbsp;{vm.os_version.name}</span>
                 }
             </td>
           </tr>
