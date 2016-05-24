@@ -11,7 +11,6 @@ import sortBy from 'lodash/sortBy'
 import { parse } from 'xo-remote-parser'
 
 import {
-  createCollectionWrapper,
   createGetObjectsOfType,
   createGetTags,
   createSelector
@@ -27,24 +26,6 @@ import {
 import {
   subscribeRemotes
 } from 'xo'
-
-// ===================================================================
-
-// Example of use:
-// containers = pools array
-// containersObjects = hosts array
-// containerAttr = '$pool'
-const containersFilter = (containers, containersObjects, containerAttr) => {
-  const filteredContainers = {}
-  containers = keyBy(containers, 'id')
-
-  forEach(containersObjects, object => {
-    const id = object[containerAttr]
-    filteredContainers[id] = containers[id]
-  })
-
-  return filteredContainers
-}
 
 // ===================================================================
 
@@ -109,7 +90,7 @@ class GenericSelect extends Component {
 
     this.setState({
       value
-    }, () => { console.log(this.value) })
+    }, onChange && (() => { onChange(this.value) }))
   }
 
   @autobind
@@ -154,8 +135,10 @@ class GenericSelect extends Component {
       hosts => map(hosts, '$pool')
     )
   ).sort()
+  const getHostsByPool = getHosts.groupBy('$pool')
 
   return (state, props) => ({
+    hostsByPool: getHostsByPool(state, props),
     objects: getHosts(state, props),
     pools: getPools(state, props)
   })
@@ -167,7 +150,6 @@ export class SelectHost extends GenericSelect {
   }
 
   _computeOptions (props) {
-    const hostsByPool = groupBy(props.objects, '$pool')
     let newOptions = []
 
     forEach(props.pools, pool => {
@@ -180,7 +162,7 @@ export class SelectHost extends GenericSelect {
       })
 
       newOptions.push.apply(newOptions,
-        map(hostsByPool[poolId], host => {
+        map(props.hostsByPool[poolId], host => {
           const { id } = host
           return {
             value: id,
@@ -294,13 +276,13 @@ export class SelectRemote extends GenericSelect {
   const getHosts = createGetObjectsOfType('host').pick(
     createSelector(
       getSrs,
-      srs => map(srs, '$pool')
+      srs => map(srs, '$container')
     )
   ).sort()
   const getPools = createGetObjectsOfType('pool').pick(
     createSelector(
       getSrs,
-      srs => map(srs, '$pool')
+      srs => map(srs, '$container')
     )
   ).sort()
   const getContainers = createSelector(
@@ -308,10 +290,12 @@ export class SelectRemote extends GenericSelect {
     getPools,
     (hosts, pools) => hosts.concat(pools)
   )
+  const getSrsByContainer = getSrs.groupBy('$container')
 
   return (state, props) => ({
     containers: getContainers(state, props),
-    objects: getSrs(state, props)
+    objects: getSrs(state, props),
+    srsByContainer: getSrsByContainer(state, props)
   })
 }, { withRef: true })
 export class SelectSr extends GenericSelect {
@@ -321,7 +305,6 @@ export class SelectSr extends GenericSelect {
   }
 
   _computeOptions (props) {
-    const srsByContainer = groupBy(props.objects, '$container')
     let newOptions = []
 
     forEach(props.containers, container => {
@@ -335,7 +318,7 @@ export class SelectSr extends GenericSelect {
       })
 
       newOptions.push.apply(newOptions,
-        map(srsByContainer[containerId], sr => {
+        map(props.srsByContainer[containerId], sr => {
           const { id } = sr
           return {
             value: id,
@@ -373,10 +356,12 @@ export class SelectSr extends GenericSelect {
     getPools,
     (hosts, pools) => hosts.concat(pools)
   )
+  const getVmsByContainer = getVms.groupBy('$container')
 
   return (state, props) => ({
     containers: getContainers(state, props),
-    objects: getVms(state, props)
+    objects: getVms(state, props),
+    vmsByContainer: getVmsByContainer(state, props)
   })
 }, { withRef: true })
 export class SelectVm extends GenericSelect {
@@ -386,7 +371,6 @@ export class SelectVm extends GenericSelect {
   }
 
   _computeOptions (props) {
-    const vmsByContainer = groupBy(props.objects, '$container')
     let newOptions = []
 
     forEach(sortBy(props.containers, [ 'type', 'name_label' ]), container => {
@@ -400,7 +384,7 @@ export class SelectVm extends GenericSelect {
       })
 
       newOptions.push.apply(newOptions,
-        map(vmsByContainer[containerId], vm => {
+        map(props.vmsByContainer[containerId], vm => {
           const { id } = vm
           return {
             value: id,

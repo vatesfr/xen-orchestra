@@ -13,7 +13,7 @@ import {
   required: propTypes.bool,
   schema: propTypes.object.isRequired,
   uiSchema: propTypes.object,
-  value: propTypes.any
+  defaultValue: propTypes.any
 })
 export default class AbstractInput extends Component {
   set value (value) {

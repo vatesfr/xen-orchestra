@@ -20,7 +20,7 @@ export default class EnumInput extends AbstractInput {
       <PrimitiveInputWrapper {...props}>
         <select
           className='form-control'
-          defaultValue={props.value || ''}
+          defaultValue={props.defaultValue || ''}
           disabled={props.disabled}
           onChange={onChange && (event => onChange(event.target.value))}
           ref='input'

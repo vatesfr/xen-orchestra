@@ -14,7 +14,7 @@ export default class StringInput extends AbstractInput {
       <PrimitiveInputWrapper {...props}>
         <input
           className='form-control'
-          defaultValue={props.value || ''}
+          defaultValue={props.defaultValue || ''}
           disabled={props.disabled}
           onChange={onChange && (event => onChange(event.target.value))}
           placeholder={props.placeholder}

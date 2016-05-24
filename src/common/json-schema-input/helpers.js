@@ -29,19 +29,19 @@ export const PrimitiveInputWrapper = ({ label, required = false, schema, childre
 
 // ===================================================================
 
-export const forceDisplayOptionalAttr = ({ schema, value }) => {
-  if (!schema || !value) {
+export const forceDisplayOptionalAttr = ({ schema, defaultValue }) => {
+  if (!schema || !defaultValue) {
     return false
   }
 
   // Array
-  if (schema.items && Array.isArray(value)) {
+  if (schema.items && Array.isArray(defaultValue)) {
     return true
   }
 
   // Object
   for (const key in schema.properties) {
-    if (value[key]) {
+    if (defaultValue[key]) {
       return true
     }
   }
