@@ -1,3 +1,5 @@
+/* eslint-disable camelcase */
+
 import createDebug from 'debug'
 import every from 'lodash.every'
 import fatfs from 'fatfs'
@@ -8,6 +10,7 @@ import includes from 'lodash.includes'
 import pickBy from 'lodash.pickby'
 import sortBy from 'lodash.sortby'
 import unzip from 'julien-f-unzip'
+import { defer } from 'promise-toolbox'
 import { utcFormat, utcParse } from 'd3-time-format'
 import {
   wrapError as wrapXapiError,
@@ -112,6 +115,10 @@ const asBoolean = value => Boolean(value)
 //     : value
 // }
 const asInteger = value => String(value)
+
+const optional = (value, fn) => value == null
+  ? undefined
+  : fn ? fn(value) : value
 
 const filterUndefineds = obj => pickBy(obj, value => value !== undefined)
 
@@ -274,8 +281,7 @@ export default class Xapi extends XapiBase {
   // TODO: implements a timeout.
   _waitObject (predicate) {
     if (isFunction(predicate)) {
-      let resolve
-      const promise = new Promise(resolve_ => resolve = resolve_)
+      const { promise, resolve } = defer()
 
       const unregister = this._registerGenericWatcher(obj => {
         if (predicate(obj)) {
@@ -290,10 +296,7 @@ export default class Xapi extends XapiBase {
 
     let watcher = this._objectWatchers[predicate]
     if (!watcher) {
-      let resolve
-      const promise = new Promise(resolve_ => {
-        resolve = resolve_
-      })
+      const { promise, resolve } = defer()
 
       // Register the watcher.
       watcher = this._objectWatchers[predicate] = {
@@ -352,18 +355,8 @@ export default class Xapi extends XapiBase {
 
     let watcher = this._taskWatchers[ref]
     if (!watcher) {
-      let resolve, reject
-      const promise = new Promise((resolve_, reject_) => {
-        resolve = resolve_
-        reject = reject_
-      })
-
       // Register the watcher.
-      watcher = this._taskWatchers[ref] = {
-        promise,
-        resolve,
-        reject
-      }
+      watcher = this._taskWatchers[ref] = defer()
     }
 
     return watcher.promise
@@ -435,7 +428,7 @@ export default class Xapi extends XapiBase {
         nameDescription
       }),
       autoPoweron != null && this._updateObjectMapProperty(pool, 'other_config', {
-        autoPoweron: autoPoweron ? 'on' : null
+        autoPoweron: autoPoweron ? 'true' : null
       })
     ])
   }
@@ -976,6 +969,7 @@ export default class Xapi extends XapiBase {
     generation_id,
     ha_always_run,
     ha_restart_priority,
+    has_vendor_device = false, // Avoid issue with some Dundee builds.
     hardware_platform_version,
     HVM_boot_params,
     HVM_boot_policy,
@@ -1044,11 +1038,12 @@ export default class Xapi extends XapiBase {
       generation_id,
       ha_always_run: asBoolean(ha_always_run),
       ha_restart_priority,
-      hardware_platform_version,
+      has_vendor_device,
+      hardware_platform_version: optional(hardware_platform_version, asInteger),
       // HVM_shadow_multiplier: asFloat(HVM_shadow_multiplier), // FIXME: does not work FIELD_TYPE_ERROR(hVM_shadow_multiplier)
       name_description,
       name_label,
-      order,
+      order: optional(order, asInteger),
       protection_policy,
       shutdown_delay: asInteger(shutdown_delay),
       start_delay: asInteger(start_delay),
@@ -1384,10 +1379,7 @@ export default class Xapi extends XapiBase {
       vifs[vif.$ref] = vif
     })
 
-    return {
-      // TODO: make non-enumerable?
-      streams: await streams::pAll(),
-
+    return Object.defineProperty({
       version: '1.0.0',
       vbds,
       vdis,
@@ -1401,7 +1393,9 @@ export default class Xapi extends XapiBase {
           }
         }
         : vm
-    }
+    }, 'streams', {
+      value: await streams::pAll()
+    })
   }
 
   @deferrable.onFailure

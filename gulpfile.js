@@ -10,10 +10,12 @@ var plumber = require('gulp-plumber')
 var sourceMaps = require('gulp-sourcemaps')
 var watch = require('gulp-watch')
 
+var join = require('path').join
+
 // ===================================================================
 
-var SRC_DIR = __dirname + '/src'
-var DIST_DIR = __dirname + '/dist'
+var SRC_DIR = join(__dirname, 'src')
+var DIST_DIR = join(__dirname, 'dist')
 
 var PRODUCTION = process.argv.indexOf('--production') !== -1
 

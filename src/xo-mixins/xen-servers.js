@@ -78,7 +78,7 @@ export default class {
   async unregisterXenServer (id) {
     this.disconnectXenServer(id)::pCatch(noop)
 
-    if (!await this._servers.remove(id)) { // eslint-disable-line space-before-keywords
+    if (!await this._servers.remove(id)) {
       throw new NoSuchXenServer(id)
     }
   }

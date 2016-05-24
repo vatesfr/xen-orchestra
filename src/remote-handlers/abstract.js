@@ -1,5 +1,4 @@
 import eventToPromise from 'event-to-promise'
-import getStream from 'get-stream'
 import through2 from 'through2'
 
 import {
@@ -10,6 +9,7 @@ import {
   addChecksumToReadStream,
   noop,
   pCatch,
+  streamToBuffer,
   validChecksumOfReadStream
 } from '../utils'
 
@@ -48,11 +48,14 @@ export default class RemoteHandlerAbstract {
   }
 
   async outputFile (file, data, options) {
-    return this._outputFile(file, data, options)
+    return this._outputFile(file, data, {
+      flags: 'wx',
+      ...options
+    })
   }
 
   async _outputFile (file, data, options) {
-    const stream = await this.createOutputStream(file)
+    const stream = await this.createOutputStream(file, options)
     const promise = eventToPromise(stream, 'finish')
     stream.end(data)
     return promise
@@ -62,8 +65,8 @@ export default class RemoteHandlerAbstract {
     return this._readFile(file, options)
   }
 
-  async _readFile (file, options) {
-    return getStream(await this.createReadStream(file, options))
+  _readFile (file, options) {
+    return this.createReadStream(file, options).then(streamToBuffer)
   }
 
   async rename (oldPath, newPath) {
@@ -128,7 +131,10 @@ export default class RemoteHandlerAbstract {
     checksum = false,
     ...options
   } = {}) {
-    const streamP = this._createOutputStream(file, options)
+    const streamP = this._createOutputStream(file, {
+      flags: 'wx',
+      ...options
+    })
 
     if (!checksum) {
       return streamP

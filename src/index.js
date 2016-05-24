@@ -14,8 +14,9 @@ import proxyConsole from './proxy-console'
 import serveStatic from 'serve-static'
 import startsWith from 'lodash.startswith'
 import WebSocket from 'ws'
+import { compile as compilePug } from 'pug'
 import { createServer as createProxyServer } from 'http-proxy'
-import {compile as compileJade} from 'jade'
+import { join as joinPath } from 'path'
 
 import {
   AlreadyAuthenticated,
@@ -128,8 +129,8 @@ async function setUpPassport (express, xo) {
   }
 
   // Registers the sign in form.
-  const signInPage = compileJade(
-    await readFile(__dirname + '/../signin.jade')
+  const signInPage = compilePug(
+    await readFile(joinPath(__dirname, '..', 'signin.pug'))
   )
   express.get('/signin', (req, res, next) => {
     res.send(signInPage({
@@ -515,7 +516,7 @@ const setUpConsoleProxy = (webServer, xo) => {
         const { token } = parseCookies(req.headers.cookie)
 
         const user = await xo.authenticateUser({ token })
-        if (!await xo.hasPermissions(user.id, [ [ id, 'operate' ] ])) { // eslint-disable-line space-before-keywords
+        if (!await xo.hasPermissions(user.id, [ [ id, 'operate' ] ])) {
           throw new InvalidCredential()
         }
 

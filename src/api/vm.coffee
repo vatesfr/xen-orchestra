@@ -27,7 +27,7 @@ startsWith = require 'lodash.startswith'
   pCatch,
   pFinally
 } = require '../utils'
-{isVmRunning: $isVMRunning} = require('../xapi')
+{isVmRunning: $isVmRunning} = require('../xapi')
 
 #=====================================================================
 
@@ -426,15 +426,18 @@ set = $coroutine (params) ->
         "cannot set memory below the static minimum (#{VM.memory.static[0]})"
       )
 
-    if ($isVMRunning VM) and memory > VM.memory.static[1]
-      @throw(
-        'INVALID_PARAMS'
-        "cannot set memory above the static maximum (#{VM.memory.static[1]}) "+
-          "for a running VM"
-      )
+    if memory < VM.memory.dynamic[0]
+      yield xapi.call 'VM.set_memory_dynamic_min', ref, "#{memory}"
+    else if memory > VM.memory.static[1]
+      if $isVmRunning VM
+        @throw(
+          'INVALID_PARAMS'
+          "cannot set memory above the static maximum (#{VM.memory.static[1]}) "+
+            "for a running VM"
+        )
 
-    if memory > VM.memory.static[1]
       yield xapi.call 'VM.set_memory_static_max', ref, "#{memory}"
+
     if resourceSet?
       yield @allocateLimitsInResourceSet({
         memory: memory - VM.memory.size
@@ -449,7 +452,7 @@ set = $coroutine (params) ->
       yield @allocateLimitsInResourceSet({
         cpus: CPUs - VM.CPUs.number
       }, resourceSet)
-    if $isVMRunning VM
+    if $isVmRunning VM
       if CPUs > VM.CPUs.max
         @throw(
           'INVALID_PARAMS'
@@ -664,12 +667,12 @@ exports.convert = convertToTemplate
 snapshot = $coroutine ({vm, name}) ->
   yield checkPermissionOnSrs.call(this, vm)
 
-  snapshot = yield @getXapi(vm).snapshotVm(vm._xapiRef, name)
+  snapshot = yield @getXapi(vm).snapshotVm(vm._xapiRef, name ? "#{vm.name_label}_#{new Date().toISOString()}")
   return snapshot.$id
 
 snapshot.params = {
   id: { type: 'string' }
-  name: { type: 'string' }
+  name: { type: 'string', optional: true }
 }
 
 snapshot.resolve = {
@@ -688,14 +691,14 @@ rollingDeltaBackup = $coroutine ({vm, remote, tag, depth}) ->
   })
 
 rollingDeltaBackup.params = {
-  vm: { type: 'string' }
+  id: { type: 'string' }
   remote: { type: 'string' }
   tag: { type: 'string'}
   depth: { type: ['string', 'number'] }
 }
 
 rollingDeltaBackup.resolve = {
-  vm: ['vm', ['VM', 'VM-snapshot'], 'administrate']
+  vm: ['id', ['VM', 'VM-snapshot'], 'administrate']
 }
 
 rollingDeltaBackup.permission = 'admin'
@@ -726,12 +729,12 @@ exports.importDeltaBackup = importDeltaBackup
 deltaCopy = ({ vm, sr }) -> @deltaCopyVm(vm, sr)
 
 deltaCopy.params = {
-  vm: { type: 'string' },
+  id: { type: 'string' },
   sr: { type: 'string' }
 }
 
 deltaCopy.resolve = {
-  vm: [ 'vm', 'VM', 'operate'],
+  vm: [ 'id', 'VM', 'operate'],
   sr: [ 'sr', 'SR', 'operate']
 }
 
@@ -834,21 +837,30 @@ exports.rollingBackup = rollingBackup
 
 #---------------------------------------------------------------------
 
-rollingDrCopy = ({vm, pool, tag, depth}) ->
-  if vm.$pool is pool.id
-    throw new GenericError('Disaster Recovery attempts to copy on the same pool')
-  return @rollingDrCopyVm({vm, sr: @getObject(pool.default_SR, 'SR'), tag, depth})
+rollingDrCopy = ({vm, pool, sr, tag, depth}) ->
+  unless sr
+    unless pool
+      throw new InvalidParameters('either pool or sr param should be specified')
+
+    if vm.$pool is pool.id
+      throw new GenericError('Disaster Recovery attempts to copy on the same pool')
+
+    sr = @getObject(pool.default_SR, 'SR')
+
+  return @rollingDrCopyVm({vm, sr, tag, depth})
 
 rollingDrCopy.params = {
-  id: { type: 'string' }
-  pool: { type: 'string' }
-  tag: { type: 'string'}
   depth: { type: 'number' }
+  id: { type: 'string' }
+  pool: { type: 'string', optional: true }
+  sr: { type: 'string', optional: true }
+  tag: { type: 'string'}
 }
 
 rollingDrCopy.resolve = {
   vm: ['id', ['VM', 'VM-snapshot'], 'administrate'],
   pool: ['pool', 'pool', 'administrate']
+  sr: ['sr', 'SR', 'administrate']
 }
 
 rollingDrCopy.description = 'Copies a VM to a different pool, with a tagged name, and removes the oldest VM with the same tag from this pool, according to depth'
@@ -1092,8 +1104,6 @@ exports.attachDisk = attachDisk
 
 #---------------------------------------------------------------------
 
-# FIXME: position should be optional and default to last.
-
 # TODO: implement resource sets
 createInterface = $coroutine ({vm, network, position, mtu, mac}) ->
   vif = yield @getXapi(vm).createVif(vm._xapiId, network._xapiId, {
@@ -1107,7 +1117,7 @@ createInterface = $coroutine ({vm, network, position, mtu, mac}) ->
 createInterface.params = {
   vm: { type: 'string' }
   network: { type: 'string' }
-  position: { type: 'string' }
+  position: { type: 'string', optional: true }
   mtu: { type: 'string', optional: true }
   mac: { type: 'string', optional: true }
 }

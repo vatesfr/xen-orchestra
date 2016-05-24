@@ -57,7 +57,7 @@ export default class {
     })
 
     xo.on('start', async () => {
-      if (!(await users.exists())) {
+      if (!await users.exists()) {
         const email = 'admin@admin.net'
         const password = 'admin'
 
@@ -246,7 +246,7 @@ export default class {
   }
 
   async getGroup (id) {
-    const group = (await this._groups.first(id))
+    const group = await this._groups.first(id)
     if (!group) {
       throw new NoSuchGroup(id)
     }

@@ -3,8 +3,10 @@
 import {expect} from 'chai'
 import leche from 'leche'
 
-import {productParams} from './job-executor'
-import {_computeCrossProduct} from './job-executor'
+import {
+  _computeCrossProduct,
+  productParams
+} from './job-executor'
 
 describe('productParams', function () {
   leche.withData({

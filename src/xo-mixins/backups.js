@@ -391,8 +391,7 @@ export default class {
         // The problem is in the merge case, a delta merged in a full vdi
         // backup forces us to browse the resulting file =>
         // Significant transfer time on the network !
-        checksum: !isFull,
-        flags: 'wx'
+        checksum: !isFull
       })
 
       stream.on('error', error => targetStream.emit('error', error))
@@ -545,12 +544,8 @@ export default class {
 
     $onFailure(() => handler.unlink(infoPath)::pCatch(noop))
 
-    const { streams,
-      ...infos
-    } = delta
-
     // Write Metadata.
-    await handler.outputFile(infoPath, JSON.stringify(infos, null, 2), {flag: 'wx'})
+    await handler.outputFile(infoPath, JSON.stringify(delta, null, 2))
 
     // Here we have a completed backup. We can merge old vdis.
     await Promise.all(
@@ -631,7 +626,7 @@ export default class {
   }
 
   async _backupVm (vm, handler, file, {compress, onlyMetadata}) {
-    const targetStream = await handler.createOutputStream(file, { flags: 'wx' })
+    const targetStream = await handler.createOutputStream(file)
     const promise = eventToPromise(targetStream, 'finish')
 
     const sourceStream = await this._xo.getXapi(vm).exportVm(vm._xapiId, {

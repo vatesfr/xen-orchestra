@@ -1,5 +1,4 @@
 import assign from 'lodash.assign'
-import getStream from 'get-stream'
 import startsWith from 'lodash.startswith'
 import { parse as parseUrl } from 'url'
 import { request as httpRequest } from 'http'
@@ -7,7 +6,8 @@ import { request as httpsRequest } from 'https'
 import { stringify as formatQueryString } from 'querystring'
 
 import {
-  isString
+  isString,
+  streamToBuffer
 } from './utils'
 
 // -------------------------------------------------------------------
@@ -90,7 +90,7 @@ export default (...args) => {
     response.cancel = () => {
       req.abort()
     }
-    response.readAll = () => getStream(response)
+    response.readAll = () => streamToBuffer(response)
 
     const length = response.headers['content-length']
     if (length) {

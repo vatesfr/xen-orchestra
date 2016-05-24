@@ -126,6 +126,9 @@ const TRANSFORMS = {
 
         return {
           usage: 0,
+          size: 0,
+
+          // Deprecated
           total: 0
         }
       })(),
@@ -322,7 +325,7 @@ const TRANSFORMS = {
           return disks
         })(),
         install_methods: (function () {
-          const {['install-methods']: methods} = otherConfig
+          const methods = otherConfig['install-methods']
 
           return methods ? methods.split(',') : []
         })(),
@@ -361,9 +364,9 @@ const TRANSFORMS = {
       VDIs: link(obj, 'VDIs'),
 
       $container: (
-        obj.shared
+        obj.shared || !obj.$PBDs[0]
           ? link(obj, 'pool')
-          : obj.$PBDs[0] && link(obj.$PBDs[0], 'host')
+          : link(obj.$PBDs[0], 'host')
       ),
       $PBDs: link(obj, 'PBDs')
     }

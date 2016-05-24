@@ -1,3 +1,4 @@
+/.nyc_output/
 /dist/
 /node_modules/
 /src/api/index.js
