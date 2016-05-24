@@ -155,7 +155,6 @@ class Editable extends Component {
 }
 
 @propTypes({
-  children: propTypes.string,
   value: propTypes.string.isRequired
 })
 export class Text extends Editable {
@@ -270,7 +269,6 @@ export class Select extends Editable {
 }
 
 @propTypes({
-  children: propTypes.string,
   value: propTypes.number.isRequired
 })
 export class Size extends Editable {
