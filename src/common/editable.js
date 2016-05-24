@@ -1,4 +1,3 @@
-
 import _ from 'messages'
 import findKey from 'lodash/findKey'
 import Icon from 'icon'
@@ -7,9 +6,9 @@ import isString from 'lodash/isString'
 import map from 'lodash/map'
 import React from 'react'
 import round from 'lodash/round'
+import { DropdownButton, MenuItem } from 'react-bootstrap-4/lib'
 
 import Component from './base-component'
-import { DropdownButton, MenuItem } from 'react-bootstrap-4/lib'
 import { formatSize, formatSizeRaw, parseSize, propTypes } from './utils'
 
 const LONG_CLICK = 400
@@ -62,7 +61,7 @@ class Editable extends Component {
     }
 
     if (keyCode === 13) {
-      return this.value && this._save(this.value)
+      return this._save(this.value)
     }
   }
 
@@ -224,6 +223,10 @@ export class Select extends Editable {
     this._defaultValue = findKey(this.props.options, option => option === this.props.value)
   }
 
+  get value () {
+    return this.props.options[this._select.value]
+  }
+
   _onChange = event => {
     this._save(this.props.options[event.target.value])
   }
@@ -236,7 +239,9 @@ export class Select extends Editable {
       {labelProp ? option[labelProp] : option}
     </option>
   }
-  _autoOpen = ref => {
+
+  _onEditionMount = ref => {
+    this._select = ref
     // Seems to work in Google Chrome (not in Firefox)
     ref && ref.dispatchEvent(new window.MouseEvent('mousedown'))
   }
@@ -258,7 +263,7 @@ export class Select extends Editable {
       onChange={this._onChange}
       onKeyDown={this._onKeyDown}
       readOnly={saving}
-      ref={this._autoOpen}
+      ref={this._onEditionMount}
       style={SELECT_STYLE}
     >
       {map(options, this._optionToJsx)}
