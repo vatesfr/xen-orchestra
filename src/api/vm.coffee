@@ -72,7 +72,7 @@ create = $coroutine ({
   limits = {
     cpus: template.CPUs.number,
     disk: 0,
-    memory: template.memory.size,
+    memory: template.memory.dynamic[1],
     vms: 1
   }
   objectIds = [
@@ -449,7 +449,7 @@ set = $coroutine (params) ->
 
     if resourceSet?
       yield @allocateLimitsInResourceSet({
-        memory: memory - VM.memory.size
+        memory: memory - VM.memory.dynamic[1]
       }, resourceSet)
     yield xapi.call 'VM.set_memory_dynamic_max', ref, "#{memory}"
 
