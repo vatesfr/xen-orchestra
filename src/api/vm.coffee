@@ -416,6 +416,10 @@ set = $coroutine (params) ->
     if memoryMax > VM.memory.static[1]
       yield xapi.call 'VM.set_memory_static_max', memoryMax
     yield xapi.call 'VM.set_memory_static_max', ref, "#{memoryMax}"
+  if 'memoryStaticMax' of params
+    memoryStaticMax = parseSize(params.memoryStaticMax)
+      yield xapi.call 'VM.set_memory_static_max', memoryMax
+
 
   # Memory.
   if 'memory' of params
@@ -535,6 +539,9 @@ set.params = {
 
   # Set static_max
   memoryMax: { type: ['integer', 'string'], optional: true }
+
+  # Set static_max
+  memoryStaticMax: { type: ['integer', 'string'], optional: true }
 
   # Kernel arguments for PV VM.
   PV_args: { type: 'string', optional: true }
