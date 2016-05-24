@@ -263,11 +263,10 @@ export { invoke }
 // class MyComponent extends React.Component {}
 // ```
 export const propTypes = types => target => {
-  if (target.propTypes) {
-    throw new Error('refusing to override propTypes property')
+  target.propTypes = {
+    ...target.propTypes,
+    ...types
   }
-
-  target.propTypes = types
 
   return target
 }
@@ -276,6 +275,8 @@ assign(propTypes, PropTypes)
 // -------------------------------------------------------------------
 
 export const formatSize = bytes => humanFormat(bytes, { scale: 'binary', unit: 'B' })
+
+export const formatSizeRaw = bytes => humanFormat.raw(bytes, { scale: 'binary', unit: 'B' })
 
 export const parseSize = size => {
   let bytes = humanFormat.parse.raw(size, { scale: 'binary' })

@@ -225,13 +225,15 @@ export default class Host extends Component {
             <Icon icon={`host-${host.power_state.toLowerCase()}`} />
             {' '}
             <Text
+              value={host.name_label}
               onChange={this._setNameLabel}
-            >{host.name_label}</Text>
+            />
           </h2>
           <span>
             <Text
+              value={host.name_description}
               onChange={this._setNameDescription}
-            >{host.name_description}</Text>
+            />
             <span className='text-muted'> - <Link to={`/pools/${pool.id}`}>{pool.name_label}</Link></span>
           </span>
         </Col>

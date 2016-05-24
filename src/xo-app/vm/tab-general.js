@@ -4,9 +4,10 @@ import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React from 'react'
 import Tags from 'tags'
-import { addTag, removeTag } from 'xo'
+import { addTag, editVm, removeTag } from 'xo'
 import { FormattedRelative } from 'react-intl'
 import { Row, Col } from 'grid'
+import { Size } from 'editable'
 import {
   BlockLink,
   formatSize,
@@ -32,7 +33,12 @@ export default ({
       <BlockLink to={`/vms/${vm.id}/stats`}>{statsOverview && <CpuSparkLines data={statsOverview} />}</BlockLink>
     </Col>
     <Col mediumSize={3}>
-      <h2>{formatSize(vm.memory.size)} <Icon icon='memory' size='lg' /></h2>
+      <h2 className='form-inline'>
+        <Size value={vm.memory.size} onChange={memory => editVm(vm, { memory })}>
+          {formatSize(vm.memory.size)}
+        </Size>
+        &nbsp;<span><Icon icon='memory' size='lg' /></span>
+      </h2>
       <BlockLink to={`/vms/${vm.id}/stats`}>{statsOverview && <MemorySparkLines data={statsOverview} />}</BlockLink>
     </Col>
     <Col mediumSize={3}>

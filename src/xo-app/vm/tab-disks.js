@@ -62,14 +62,10 @@ export default ({
 
                 return <tr key={vbd.id}>
                   <td>
-                    <Text onChange={value => editVdi(vdi, { name_label: value })}>
-                      {vdi.name_label}
-                    </Text>
+                    <Text value={vdi.name_label} onChange={value => editVdi(vdi, { name_label: value })} />
                   </td>
                   <td>
-                    <Text onChange={value => editVdi(vdi, { name_description: value })}>
-                      {vdi.name_description}
-                    </Text>
+                    <Text value={vdi.name_description} onChange={value => editVdi(vdi, { name_description: value })} />
                   </td>
                   <td>{vdi.tags}</td>
                   <td>{formatSize(vdi.size)}</td>

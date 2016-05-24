@@ -5,11 +5,16 @@ import isFunction from 'lodash/isFunction'
 import isString from 'lodash/isString'
 import map from 'lodash/map'
 import React from 'react'
+import round from 'lodash/round'
+import { DropdownButton, MenuItem } from 'react-bootstrap-4/lib'
 
 import Component from './base-component'
-import { propTypes } from './utils'
+import { formatSize, formatSizeRaw, parseSize, propTypes } from './utils'
 
 const LONG_CLICK = 400
+const SELECT_STYLE = { padding: '0px' }
+const SIZE_STYLE = { width: '6em' }
+const UNITS = ['kiB', 'MiB', 'GiB']
 
 @propTypes({
   alt: propTypes.node.isRequired
@@ -39,6 +44,15 @@ class Hover extends Component {
   }
 }
 
+@propTypes({
+  onChange: propTypes.func.isRequired,
+  onUndo: propTypes.oneOfType([
+    propTypes.bool,
+    propTypes.func
+  ]),
+  useLongClick: propTypes.bool,
+  value: propTypes.any.isRequired
+})
 class Editable extends Component {
   _onKeyDown = event => {
     const { keyCode } = event
@@ -47,7 +61,7 @@ class Editable extends Component {
     }
 
     if (keyCode === 13) {
-      return this._save(event.target.value)
+      return this._save(this.value)
     }
   }
 
@@ -75,7 +89,7 @@ class Editable extends Component {
   async _save (value, fn) {
     const { props } = this
 
-    const previous = props.children
+    const previous = props.value
     if (value === previous) {
       return this._closeEdition()
     }
@@ -103,39 +117,23 @@ class Editable extends Component {
     }, LONG_CLICK)
   }
   _stopTimer = () => clearTimeout(this._timeout)
-}
-
-@propTypes({
-  children: propTypes.string.isRequired,
-  onChange: propTypes.func.isRequired,
-  onUndo: propTypes.oneOf([
-    propTypes.bool,
-    propTypes.func
-  ]),
-  useLongClick: propTypes.bool
-})
-export class Text extends Editable {
-  _onInput = ({ target }) => {
-    target.style.width = `${target.value.length + 1}ex`
-  }
 
   render () {
-    const { state } = this
+    const { state, props } = this
 
     if (!state.editing) {
       const { onUndo, previous } = state
-      const { useLongClick } = this.props
+      const { useLongClick } = props
 
       const success = <Icon icon='success' />
 
       return <span>
         <span
+          onClick={!useLongClick && this._openEdition}
           onMouseDown={useLongClick && this._startTimer}
           onMouseUp={useLongClick && this._stopTimer}
-          onClick={!useLongClick && this._openEdition}
-          className={!this.props.children && 'text-muted'}
         >
-          {this.props.children || this.props.placeholder || (useLongClick ? _('editableLongClickPlaceholder') : _('editableClickPlaceholder'))}
+          {this._renderDisplay()}
         </span>
         {previous != null && (onUndo !== false
           ? <Hover alt={<Icon icon='undo' onClick={this._undo} />}>
@@ -146,22 +144,10 @@ export class Text extends Editable {
       </span>
     }
 
-    const { children } = this.props
     const { error, saving } = state
 
     return <span>
-      <input
-        autoFocus
-        defaultValue={children}
-        onBlur={this._closeEdition}
-        onInput={this._onInput}
-        onKeyDown={this._onKeyDown}
-        readOnly={saving}
-        style={{
-          width: `${children.length + 1}ex`
-        }}
-        type='text'
-      />
+      {this._renderEdition()}
       {saving && <span>{' '}<Icon icon='loading' /></span>}
       {error != null && <span>{' '}<Icon icon='error' title={error} /></span>}
     </span>
@@ -169,20 +155,74 @@ export class Text extends Editable {
 }
 
 @propTypes({
-  defaultValue: propTypes.any,
+  children: propTypes.string,
+  value: propTypes.string.isRequired
+})
+export class Text extends Editable {
+  get value () {
+    return this.refs.input.value
+  }
+
+  _onInput = ({ target }) => {
+    target.style.width = `${target.value.length + 1}ex`
+  }
+
+  _renderDisplay () {
+    const {
+      children,
+      value
+    } = this.props
+
+    if (children || value) {
+      return <span> {children || value} </span>
+    }
+
+    const {
+      placeholder,
+      useLongClick
+    } = this.props
+
+    return <span className='text-muted'>
+      {placeholder ||
+        (useLongClick ? _('editableLongClickPlaceholder') : _('editableClickPlaceholder'))
+      }
+    </span>
+  }
+
+  _renderEdition () {
+    const { children, value } = this.props
+    const { saving } = this.state
+
+    return <input
+      autoFocus
+      defaultValue={value}
+      onBlur={this._closeEdition}
+      onInput={this._onInput}
+      onKeyDown={this._onKeyDown}
+      readOnly={saving}
+      ref='input'
+      style={{
+        width: `${children.length + 1}ex`
+      }}
+      type='text'
+    />
+  }
+}
+
+@propTypes({
   labelProp: propTypes.string.isRequired,
-  onChange: propTypes.func.isRequired,
   options: propTypes.oneOfType([
     propTypes.array,
     propTypes.object
-  ]).isRequired,
-  useLongClick: propTypes.bool
+  ]).isRequired
 })
 export class Select extends Editable {
-  constructor (props) {
-    super()
+  componentWillReceiveProps () {
+    this._defaultValue = findKey(this.props.options, option => option === this.props.value)
+  }
 
-    this._defaultValue = findKey(props.options, option => option === props.defaultValue)
+  get value () {
+    return this.props.options[this._select.value]
   }
 
   _onChange = event => {
@@ -197,46 +237,99 @@ export class Select extends Editable {
       {labelProp ? option[labelProp] : option}
     </option>
   }
-  _autoOpen = ref => {
+
+  _onEditionMount = ref => {
+    this._select = ref
     // Seems to work in Google Chrome (not in Firefox)
     ref && ref.dispatchEvent(new window.MouseEvent('mousedown'))
   }
 
-  _style = {padding: '0px'}
+  _renderDisplay () {
+    return this.props.children ||
+      <span>{this.props.value[this.props.labelProp]}</span>
+  }
 
-  render () {
-    const { state } = this
-
-    if (!state.editing) {
-      const { useLongClick } = this.props
-
-      return <span
-        onClick={!useLongClick && this._openEdition}
-        onMouseDown={useLongClick && this._startTimer}
-        onMouseUp={useLongClick && this._stopTimer}
-      >
-        {this.props.children}
-      </span>
-    }
-
+  _renderEdition () {
+    const { saving } = this.state
     const { options } = this.props
-    const { error, saving } = state
-    return <span>
-      <select
+
+    return <select
+      autoFocus
+      className='form-control'
+      defaultValue={this._defaultValue}
+      onBlur={this._closeEdition}
+      onChange={this._onChange}
+      onKeyDown={this._onKeyDown}
+      readOnly={saving}
+      ref={this._onEditionMount}
+      style={SELECT_STYLE}
+    >
+      {map(options, this._optionToJsx)}
+    </select>
+  }
+}
+
+@propTypes({
+  children: propTypes.string,
+  value: propTypes.number.isRequired
+})
+export class Size extends Editable {
+  get value () {
+    const { sizeNumber, sizeUnit } = this.state
+    return sizeNumber ? parseSize(sizeNumber + ' ' + sizeUnit) : 0
+  }
+
+  componentWillReceiveProps () {
+    const humanSize = formatSizeRaw(this.props.value)
+    this.setState({
+      sizeNumber: round(humanSize.value, 1),
+      sizeUnit: humanSize.prefix + 'B'
+    })
+  }
+
+  _updateNumber = () => {
+    this.setState({ sizeNumber: this.refs.value.value })
+  }
+  _updateUnit = sizeUnit => {
+    this.setState({ sizeUnit })
+  }
+
+  _renderDisplay () {
+    return this.props.children || formatSize(this.props.value)
+  }
+
+  _renderEdition () {
+    const {
+      saving,
+      sizeNumber,
+      sizeUnit
+    } = this.state
+
+    return <span
+      className='input-group'
+      onBlur={this._closeEdition}
+      onKeyDown={this._onKeyDown}
+      style={SIZE_STYLE}
+    >
+      <input
         autoFocus
         className='form-control'
-        defaultValue={this._defaultValue}
-        onBlur={this._closeEdition}
-        onChange={this._onChange}
-        onKeyDown={this._onKeyDown}
+        defaultValue={sizeNumber}
+        onChange={this._updateNumber}
         readOnly={saving}
-        ref={this._autoOpen}
-        style={this._style}
-      >
-        {map(options, this._optionToJsx)}
-      </select>
-      {saving && <span>{' '}<Icon icon='loading' /></span>}
-      {error != null && <span>{' '}<Icon icon='error' title={error} /></span>}
+        ref='value'
+        step={0.1}
+        type='number'
+      />
+      <span className='input-group-btn'>
+        <DropdownButton
+          title={sizeUnit}
+          id='size'
+          bsStyle='secondary'
+        >
+          {map(UNITS, unit => <MenuItem key={unit} onClick={() => this._updateUnit(unit)}>{unit}</MenuItem>)}
+        </DropdownButton>
+      </span>
     </span>
   }
 }

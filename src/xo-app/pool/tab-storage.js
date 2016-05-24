@@ -29,9 +29,7 @@ export default ({
               {map(srs, sr => {
                 return <tr key={sr.id}>
                   <td>
-                    <Text onChange={value => editSr(sr, { name_label: value })}>
-                      {sr.name_label}
-                    </Text>
+                    <Text value={sr.name_label} onChange={value => editSr(sr, { name_label: value })} />
                   </td>
                   <td>{sr.SR_type}</td>
                   <td>{formatSize(sr.size)}</td>

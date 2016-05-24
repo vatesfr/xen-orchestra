@@ -66,9 +66,7 @@ export default class TabSnapshot extends Component {
                   <tr key={snapshot.id}>
                     <td><FormattedTime value={snapshot.snapshot_time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={snapshot.snapshot_time * 1000} />)</td>
                     <td>
-                      <Text onChange={value => editVm(snapshot, {name_label: value})}>
-                        {snapshot.name_label}
-                      </Text>
+                      <Text value={snapshot.name_label} onChange={value => editVm(snapshot, {name_label: value})} />
                     </td>
                     <td>
                       <ActionRowButton

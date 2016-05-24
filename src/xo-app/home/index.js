@@ -106,9 +106,7 @@ class VmItem extends Component {
               </Tooltip>
               &nbsp;&nbsp;
               <Ellipsis>
-                <Text onChange={this._setNameLabel} placeholder={_('vmHomeNamePlaceholder')} useLongClick>
-                  {vm.name_label}
-                </Text>
+                <Text value={vm.name_label} onChange={this._setNameLabel} placeholder={_('vmHomeNamePlaceholder')} useLongClick />
               </Ellipsis>
             </EllipsisContainer>
           </Col>
@@ -135,9 +133,7 @@ class VmItem extends Component {
               <Icon icon={vm.os_version && osFamily(vm.os_version.distro)} fixedWidth />
               {' '}
               <Ellipsis>
-                <Text onChange={this._setNameDescription} placeholder={_('vmHomeDescriptionPlaceholder')} useLongClick>
-                  {vm.name_description}
-                </Text>
+                <Text value={vm.name_description} onChange={this._setNameDescription} placeholder={_('vmHomeDescriptionPlaceholder')} useLongClick />
               </Ellipsis>
             </EllipsisContainer>
           </Col>
@@ -145,7 +141,7 @@ class VmItem extends Component {
             <EllipsisContainer>
               <Ellipsis>
                 {this._isRunning(vm)
-                  ? <Select onChange={this._migrateVm} options={hosts} labelProp='name_label' defaultValue={container} useLongClick>
+                  ? <Select onChange={this._migrateVm} options={hosts} labelProp='name_label' value={container} useLongClick>
                     <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>
                   </Select>
                   : <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>
