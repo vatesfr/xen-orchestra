@@ -182,7 +182,7 @@ export class Text extends Editable {
       useLongClick
     } = this.props
 
-    return <span className={'text-muted'}>
+    return <span className='text-muted'>
       {placeholder ||
         (useLongClick ? _('editableLongClickPlaceholder') : _('editableClickPlaceholder'))
       }
@@ -210,13 +210,11 @@ export class Text extends Editable {
 }
 
 @propTypes({
-  children: propTypes.any,
   labelProp: propTypes.string.isRequired,
   options: propTypes.oneOfType([
     propTypes.array,
     propTypes.object
-  ]).isRequired,
-  value: propTypes.any.isRequired
+  ]).isRequired
 })
 export class Select extends Editable {
   componentWillReceiveProps () {
