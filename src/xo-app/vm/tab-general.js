@@ -34,9 +34,7 @@ export default ({
     </Col>
     <Col mediumSize={3}>
       <h2 className='form-inline'>
-        <Size value={vm.memory.size} onChange={memory => editVm(vm, { memory })}>
-          {formatSize(vm.memory.size)}
-        </Size>
+        <Size value={vm.memory.dynamic[1]} onChange={memory => editVm(vm, { memory })} />
         &nbsp;<span><Icon icon='memory' size='lg' /></span>
       </h2>
       <BlockLink to={`/vms/${vm.id}/stats`}>{statsOverview && <MemorySparkLines data={statsOverview} />}</BlockLink>
@@ -89,15 +87,6 @@ export default ({
       <Col smallSize={12}><em>{_('noToolsDetected')}.</em></Col>
     </Row>
   }
-  <br />
-  <Row className='text-xs-center'>
-    <Col mediumSize={6}>
-      {_('vmMaxVcpus')} {vm.CPUs.max}
-    </Col>
-    <Col mediumSize={6}>
-      {_('vmMaxRam')} {vm.power_state !== 'Running' ? formatSize(vm.memory.static[1]) : formatSize(vm.memory.dynamic[1])}
-    </Col>
-  </Row>
   {/* TODO: use CSS style */}
   <br />
   <Row>
