@@ -409,7 +409,6 @@ set = $coroutine (params) ->
 
   if 'memoryMin' of params
     memoryMin = parseSize(params.memoryMin)
-    yield xapi.call 'VM.set_memory_static_min', ref, "#{memoryMin}"
     yield xapi.call 'VM.set_memory_dynamic_min', ref, "#{memoryMin}"
 
   if 'memoryMax' of params
