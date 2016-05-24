@@ -1,6 +1,7 @@
 import forEach from 'lodash/forEach'
-import isString from 'lodash/isString'
 import frLocaleData from 'react-intl/locale-data/fr'
+import isFunction from 'lodash/isFunction'
+import isString from 'lodash/isString'
 import React, {
   Component,
   PropTypes
@@ -1631,13 +1632,20 @@ localizedMessages.fr = {
 
 // ===================================================================
 
-const getMessage = (messageId, values = {}) => {
+const getMessage = (messageId, values, render) => {
   const message = messages[messageId]
   if (process.env.NODE_ENV !== 'production' && !message) {
     throw new Error(`no message defined for ${messageId}`)
   }
 
-  return <FormattedMessage {...message} values={values} />
+  if (isFunction(values)) {
+    render = values
+    values = undefined
+  }
+
+  return <FormattedMessage {...message} values={values}>
+    {render}
+  </FormattedMessage>
 }
 
 export { getMessage as default }
