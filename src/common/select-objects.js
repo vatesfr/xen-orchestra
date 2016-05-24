@@ -306,7 +306,7 @@ export class SelectRemote extends GenericSelect {
   const getContainers = createSelector(
     getHosts,
     getPools,
-    (hosts, pools) => containersFilter(hosts.concat(pools), getSrs, '$container')
+    (hosts, pools) => hosts.concat(pools)
   )
 
   return (state, props) => ({
@@ -359,18 +359,23 @@ export class SelectSr extends GenericSelect {
   const getHosts = createGetObjectsOfType('host').pick(
     createSelector(
       getVms,
-      vms => map(vms, '$pool')
+      vms => map(vms, '$container')
     )
   ).sort()
   const getPools = createGetObjectsOfType('pool').pick(
     createSelector(
       getVms,
-      vms => map(vms, '$pool')
+      vms => map(vms, '$container')
     )
   ).sort()
+  const getContainers = createSelector(
+    getHosts,
+    getPools,
+    (hosts, pools) => hosts.concat(pools)
+  )
 
   return (state, props) => ({
-    containers: getHosts(state, props).concat(getPools(state, props)),
+    containers: getContainers(state, props),
     objects: getVms(state, props)
   })
 }, { withRef: true })
@@ -378,20 +383,13 @@ export class SelectVm extends GenericSelect {
   constructor (props) {
     super(props)
     this._placeholder = _('selectVms')
-
-    this.getFilteredContainers = createSelector(
-      () => this.props.hosts,
-      () => this.props.pools,
-      (hosts, pools) => containersFilter(hosts.concat(pools), this.getFilteredVms(), '$container')
-    )
   }
 
   _computeOptions (props) {
-    const containers = this.getFilteredContainers()
-    const vmsByContainer = groupBy(this.getFilteredVms(), '$container')
+    const vmsByContainer = groupBy(props.objects, '$container')
     let newOptions = []
 
-    forEach(sortBy(containers, [ 'type', 'name_label' ]), container => {
+    forEach(sortBy(props.containers, [ 'type', 'name_label' ]), container => {
       const containerId = container.id
       const containerLabel = container.name_label || containerId
 
