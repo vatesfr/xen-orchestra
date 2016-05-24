@@ -7,7 +7,7 @@ import Tags from 'tags'
 import { addTag, editVm, removeTag } from 'xo'
 import { FormattedRelative } from 'react-intl'
 import { Row, Col } from 'grid'
-import { Size } from 'editable'
+import { Number, Size } from 'editable'
 import {
   BlockLink,
   formatSize,
@@ -29,7 +29,7 @@ export default ({
   <br />
   <Row className='text-xs-center'>
     <Col mediumSize={3}>
-      <h2>{vm.CPUs.number}x <Icon icon='cpu' size='lg' /></h2>
+      <h2><Number value={vm.CPUs.number} onChange={vcpus => editVm(vm, { CPUs: vcpus })} />x <Icon icon='cpu' size='lg' /></h2>
       <BlockLink to={`/vms/${vm.id}/stats`}>{statsOverview && <CpuSparkLines data={statsOverview} />}</BlockLink>
     </Col>
     <Col mediumSize={3}>
