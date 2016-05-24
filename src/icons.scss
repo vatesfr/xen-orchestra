@@ -80,6 +80,22 @@
     @extend .fa;
     @extend .fa-info-circle;
   }
+  &-search {
+    @extend .fa;
+    @extend .fa-search;
+  }
+  &-settings {
+    @extend .fa;
+    @extend .fa-cog;
+  }
+  &-summary {
+    @extend .fa;
+    @extend .fa-flag-checkered;
+  }
+  &-run {
+    @extend .fa;
+    @extend .fa-play;
+  }
 
   &-shown {
     @extend .fa;
@@ -726,27 +742,5 @@
   &-refresh {
     @extend .fa;
     @extend .fa-refresh;
-  }
-
-  // Misc
-
-  &-search {
-    @extend .fa;
-    @extend .fa-search;
-  }
-
-  // Alias
-
-  &-storage {
-    @extend .xo-icon-menu-new-sr;
-  }
-  &-settings {
-    @extend .xo-icon-menu-settings;
-  }
-  &-summary {
-    @extend .xo-icon-new-vm-summary;
-  }
-  &-play {
-    @extend .xo-icon-vm-start;
   }
 }

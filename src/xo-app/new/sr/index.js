@@ -104,13 +104,14 @@ export default class New extends Component {
 
   _handleSubmit = async () => {
     const {
+      description,
       device,
       localPath,
       name,
-      description,
+      password,
+      port,
       server,
-      username,
-      password
+      username
     } = this.refs
     const {
       host,
@@ -119,46 +120,45 @@ export default class New extends Component {
       path,
       type
     } = this.state
-    const [address, port] = server && server.value.split(':') || []
-
-    if (type === 'nfs') {
-      const previous = await probeSrNfsExists(host, address, path)
-      if (previous && previous.length > 0) {
-        try {
-          await confirm('Previous Path Usage', <p>
-            This path has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.
-          </p>)
-        } catch (error) {
-          return
-        }
-      }
-    }
-
-    if (type === 'iscsi') {
-      const previous = await probeSrIscsiExists(host, iqn.ip, iqn.iqn, lun.scsiId, port, username && username.value, password && password.value)
-      if (previous && previous.length > 0) {
-        try {
-          await confirm('Previous LUN Usage', <p>
-            This LUN has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.
-          </p>)
-        } catch (error) {
-          return
-        }
-      }
-    }
 
     const createMethodFactories = {
-      nfs: () => createSrNfs(host, name.value, description.value, address, path),
-      iscsi: () => createSrIscsi(host, name.value, description.value, iqn.ip, iqn.iqn, lun.scsiId, port, username && username.value, password && password.value),
+      nfs: async () => {
+        const previous = await probeSrNfsExists(host, server.value, path)
+        if (previous && previous.length > 0) {
+          try {
+            await confirm('Previous Path Usage', <p>
+              This path has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.
+            </p>)
+          } catch (error) {
+            return
+          }
+        }
+        return createSrNfs(host, name.value, description.value, server.value, path)
+      },
+      iscsi: async () => {
+        const previous = await probeSrIscsiExists(host, iqn.ip, iqn.iqn, lun.scsiId, port.value, username && username.value, password && password.value)
+        if (previous && previous.length > 0) {
+          try {
+            await confirm('Previous LUN Usage', <p>
+              This LUN has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.
+            </p>)
+          } catch (error) {
+            return
+          }
+        }
+        return createSrIscsi(host, name.value, description.value, iqn.ip, iqn.iqn, lun.scsiId, port.value, username && username.value, password && password.value)
+      },
       lvm: () => createSrLvm(host, name.value, description.value, device.value),
       local: () => createSrIso(host, name.value, description.value, localPath.value, 'local'),
-      nfsiso: () => createSrIso(host, name.value, description.value, `${address}:${path}`, 'nfs', username.value, password.value),
+      nfsiso: () => createSrIso(host, name.value, description.value, `${server.value}:${path}`, 'nfs', username.value, password.value),
       smb: () => createSrIso(host, name.value, description.value, server.value, 'smb', username.value, password.value)
     }
 
     try {
       const id = await createMethodFactories[type]()
-      this.context.router.push(`srs/${id}`)
+      if (id) {
+        this.context.router.push(`srs/${id}`)
+      }
     } catch (err) {
       error('SR Creation', err.message || String(err))
     }
@@ -205,20 +205,18 @@ export default class New extends Component {
 
   _handleSrLunSelection = async lun => {
     const {
-      server,
-      username,
-      password
+      password,
+      port,
+      username
     } = this.refs
     const {
       host,
       iqn
     } = this.state
 
-    const [, port] = server.value.split(':')
-
     try {
       this.setState({loading: true})
-      const list = await probeSrIscsiExists(host, iqn.ip, iqn.iqn, lun.scsiId, port, username && username.value, password && password.value)
+      const list = await probeSrIscsiExists(host, iqn.ip, iqn.iqn, lun.scsiId, port.value, username && username.value, password && password.value)
       const srIds = map(this.getHostSrs(), sr => sr.id)
       const used = filter(list, item => includes(srIds, item.id))
       const unused = filter(list, item => !includes(srIds, item.id))
@@ -245,9 +243,10 @@ export default class New extends Component {
 
   _handleSearchServer = async () => {
     const {
+      password,
+      port,
       server,
-      username,
-      password
+      username
     } = this.refs
 
     const {
@@ -255,17 +254,15 @@ export default class New extends Component {
       type
     } = this.state
 
-    const [address, port] = server.value.split(':')
-
     try {
       if (type === 'nfs' || type === 'nfsiso') {
-        const paths = await probeSrNfs(host, address)
+        const paths = await probeSrNfs(host, server.value)
         this.setState({
           usage: undefined,
           paths
         })
       } else if (type === 'iscsi') {
-        const iqns = await probeSrIscsiIqns(host, address, port, username && username.value, password && password.value)
+        const iqns = await probeSrIscsiIqns(host, server.value, port.value, username && username.value, password && password.value)
         if (!iqns.length) {
           info('iSCSI Detection', 'No IQNs found')
         } else {
@@ -288,11 +285,9 @@ export default class New extends Component {
       host
     } = this.state
 
-    const [address] = server.value.split(':')
-
     try {
       this.setState({loading: true})
-      const list = await probeSrNfsExists(host, address, path)
+      const list = await probeSrNfsExists(host, server.value, path)
       const srIds = map(this.getHostSrs(), sr => sr.id)
       const used = filter(list, item => includes(srIds, item.id))
       const unused = filter(list, item => !includes(srIds, item.id))
@@ -358,7 +353,7 @@ export default class New extends Component {
     return (
       <form id='newSrForm'>
         <Wizard>
-          <Section icon='storage' title='newSrGeneral'>
+          <Section icon='sr' title='newSrGeneral'>
             <fieldset className='form-group'>
               <label>{_('newSrHost')}</label>
               <SelectHost
@@ -444,18 +439,24 @@ export default class New extends Component {
                     <label htmlFor='srServer'>
                       {_('newSrServer')} ({_('newSrAuth')}<input type='checkbox' ref='auth' onChange={event => { this._handleAuthChoice() }} />)
                     </label>
-                    <div className='input-group'>
+                    <div className='form-inline'>
                       <input
                         id='srServer'
                         className='form-control'
-                        placeholder='address[:port]'
+                        placeholder='address'
                         ref='server'
                         required
                         type='text'
                       />
-                      <span className='input-group-btn'>
-                        <ActionButton icon='search' btnStyle='default' handler={this._handleSearchServer} />
-                      </span>
+                      {' : '}
+                      <input
+                        id='srServer'
+                        className='form-control'
+                        placeholder='[port]'
+                        ref='port'
+                        type='text'
+                      />
+                      <ActionButton icon='search' btnStyle='default' handler={this._handleSearchServer} />
                     </div>
                     {auth &&
                       <fieldset>
@@ -607,7 +608,7 @@ export default class New extends Component {
                     <dd>{path}</dd>
                   </dl>
                 }
-                <ActionButton form='newSrForm' type='submit' disabled={lockCreation} icon='play' btnStyle='primary' handler={this._handleSubmit}>
+                <ActionButton form='newSrForm' type='submit' disabled={lockCreation} icon='run' btnStyle='primary' handler={this._handleSubmit}>
                   {_('newSrCreate')}
                 </ActionButton>
               </div>
