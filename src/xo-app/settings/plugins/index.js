@@ -143,7 +143,7 @@ class Plugin extends Component {
               schema={state.configurationSchema}
               required
               ref='pluginInput'
-              value={props.configuration}
+              defaultValue={props.configuration}
             />
             <div className='form-group pull-xs-right'>
               <div className='btn-toolbar'>

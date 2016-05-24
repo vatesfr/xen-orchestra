@@ -52,7 +52,7 @@ class ArrayItem extends Component {
   required: propTypes.bool,
   schema: propTypes.object.isRequired,
   uiSchema: propTypes.object,
-  value: propTypes.array
+  defaultValue: propTypes.array
 })
 export default class ArrayInput extends Component {
   constructor (props) {
@@ -112,18 +112,18 @@ export default class ArrayInput extends Component {
           required
           schema={items}
           uiSchema={props.uiSchema.items}
-          value={props.value}
+          defaultValue={props.defaultValue}
         />
       </ArrayItem>
     )
   }
 
-  _makeChildren ({ value, ...props }) {
-    return map(value, value => {
+  _makeChildren ({ defaultValue, ...props }) {
+    return map(defaultValue, defaultValue => {
       return (
         this._makeChild({
           ...props,
-          value
+          defaultValue
         })
       )
     })

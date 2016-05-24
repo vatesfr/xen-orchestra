@@ -69,24 +69,15 @@ const InputByType = {
   required: propTypes.bool,
   schema: propTypes.object.isRequired,
   uiSchema: propTypes.object,
-  value: propTypes.any
+  defaultValue: propTypes.any
 })
 export default class GenericInput extends Component {
   get value () {
-    const { input } = this.refs
-    return input.getWrappedInstance
-      ? input.getWrappedInstance().value
-      : input.value
+    return this.refs.input.value
   }
 
   set value (value) {
-    const { input } = this.refs
-
-    if (input.getWrappedInstance) {
-      input.getWrappedInstance().value = value
-    } else {
-      input.value = value
-    }
+    this.refs.input.value = value
   }
 
   render () {

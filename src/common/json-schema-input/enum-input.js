@@ -1,7 +1,6 @@
 import React from 'react'
+import _ from 'messages'
 import map from 'lodash/map'
-import { injectIntl } from 'react-intl'
-import { messages } from 'messages'
 
 import AbstractInput from './abstract-input'
 import { PrimitiveInputWrapper } from './helpers'
@@ -20,13 +19,13 @@ export default class EnumInput extends AbstractInput {
       <PrimitiveInputWrapper {...props}>
         <select
           className='form-control'
-          defaultValue={props.value || ''}
+          defaultValue={props.defaultValue || ''}
           disabled={props.disabled}
           onChange={onChange && (event => onChange(event.target.value))}
           ref='input'
           required={required}
         >
-          <option value=''>{props.intl.formatMessage(messages.noSelectedValue)}</option>
+          {_('noSelectedValue', message => <option value=''>{message}</option>)}
           {map(props.schema.enum, (value, index) =>
             <option value={value} key={index}>{value}</option>
           )}
@@ -35,4 +34,3 @@ export default class EnumInput extends AbstractInput {
     )
   }
 }
-export default injectIntl(EnumInput, { withRef: true })

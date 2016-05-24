@@ -11,7 +11,7 @@ export default class BooleanInput extends AbstractInput {
   constructor (props) {
     super(props)
     this.state = {
-      checked: Boolean(props.value || props.schema.default) || false
+      checked: Boolean(props.defaultValue || props.schema.default) || false
     }
   }
 

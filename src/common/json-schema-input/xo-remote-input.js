@@ -1,6 +1,5 @@
 import React from 'react'
 import { SelectRemote } from 'select-objects'
-import { subscribeRemotes } from 'xo'
 
 import XoAbstractInput from './xo-abstract-input'
 import { PrimitiveInputWrapper } from './helpers'
@@ -8,21 +7,6 @@ import { PrimitiveInputWrapper } from './helpers'
 // ===================================================================
 
 export default class RemoteInput extends XoAbstractInput {
-  constructor (props) {
-    super(props)
-    this.state = {
-      remotes: []
-    }
-  }
-
-  componentWillMount () {
-    this.componentWillUnmount = subscribeRemotes(remotes => {
-      this.setState({
-        remotes
-      })
-    })
-  }
-
   render () {
     const { props } = this
 
@@ -31,11 +15,10 @@ export default class RemoteInput extends XoAbstractInput {
         <SelectRemote
           disabled={props.disabled}
           multi={props.schema.type === 'array'}
-          onChange={this._handleChange}
-          options={this.state.remotes}
+          onChange={props.onChange}
           ref='input'
           required={props.required}
-          value={props.value}
+          defaultValue={props.defaultValue}
         />
       </PrimitiveInputWrapper>
     )

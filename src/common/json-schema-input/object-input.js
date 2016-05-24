@@ -50,7 +50,7 @@ class ObjectItem extends Component {
   required: propTypes.bool,
   schema: propTypes.object.isRequired,
   uiSchema: propTypes.object,
-  value: propTypes.object
+  defaultValue: propTypes.object
 })
 export default class ObjectInput extends Component {
   constructor (props) {
@@ -93,7 +93,7 @@ export default class ObjectInput extends Component {
       depth = 0,
       schema,
       uiSchema = {},
-      value = {}
+      defaultValue = {}
     } = props
     const obj = {}
 
@@ -107,7 +107,7 @@ export default class ObjectInput extends Component {
             required={includes(schema.required, key)}
             schema={childSchema}
             uiSchema={uiSchema.properties}
-            value={value[key]}
+            defaultValue={defaultValue[key]}
           />
         </ObjectItem>
       )
