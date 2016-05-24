@@ -484,19 +484,27 @@ export default class Home extends Component {
               <DropdownButton bsStyle='link' id='sort' title={_('homeSortBy')}>
                 <MenuItem onClick={this._sortByName}>
                   {this._tick(sortBy === 'name_label')}
-                  {_('homeSortByName')}
+                  {sortBy === 'name_label'
+                  ? <strong>{_('homeSortByName')}</strong>
+                  : _('homeSortByName')}
                 </MenuItem>
                 <MenuItem onClick={this._sortByPowerState}>
                   {this._tick(sortBy === 'power_state')}
-                  {_('homeSortByPowerstate')}
+                  {sortBy === 'power_state'
+                  ? <strong>{_('homeSortByPowerstate')}</strong>
+                  : _('homeSortByPowerstate')}
                 </MenuItem>
                 <MenuItem onClick={this._sortByRam}>
                   {this._tick(sortBy === 'memory.size')}
-                  {_('homeSortByRAM')}
+                  {sortBy === 'memory.size'
+                  ? <strong>{_('homeSortByRAM')}</strong>
+                  : _('homeSortByRAM')}
                 </MenuItem>
                 <MenuItem onClick={this._sortByVcpus}>
                   {this._tick(sortBy === 'CPUs.number')}
-                  {_('homeSortByvCPUs')}
+                  {sortBy === 'CPUs.number'
+                  ? <strong>{_('homeSortByvCPUs')}</strong>
+                  : _('homeSortByvCPUs')}
                 </MenuItem>
               </DropdownButton>
             </div>
