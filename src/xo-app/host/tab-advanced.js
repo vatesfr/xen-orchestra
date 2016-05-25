@@ -65,7 +65,12 @@ export default ({
           </tr>
           <tr>
             <th>{_('hostStatus')}</th>
-            <td><Toggle defaultValue={host.enabled} onChange={value => value ? enableHost(host) : disableHost(host)} /></td>
+            <td>
+              {host.enabled
+                ? _('hostStatusEnabled')
+                : _('hostStatusDisabled')
+              }
+            </td>
           </tr>
           <tr>
             <th>{_('hostPowerOnMode')}</th>
