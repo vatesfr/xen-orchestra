@@ -1616,7 +1616,21 @@ localizedMessages.fr = {
 
 // ===================================================================
 
-const getMessage = (messageId, values, render) => {
+// Params:
+//
+// - props (optional): properties to add to the FormattedMessage
+// - messageId: identifier of the message to format/translate
+// - values (optional): values to pass to the message
+// - render (optional): a function receiving the React nodes of the
+//     translated message and returning the React node to render
+const getMessage = (props, messageId, values, render) => {
+  if (isString(props)) {
+    render = values
+    values = messageId
+    messageId = props
+    props = undefined
+  }
+
   const message = messages[messageId]
   if (process.env.NODE_ENV !== 'production' && !message) {
     throw new Error(`no message defined for ${messageId}`)
@@ -1627,7 +1641,7 @@ const getMessage = (messageId, values, render) => {
     values = undefined
   }
 
-  return <FormattedMessage {...message} values={values}>
+  return <FormattedMessage {...props} {...message} values={values}>
     {render}
   </FormattedMessage>
 }
