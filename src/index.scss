@@ -4,7 +4,8 @@
 $nav-pills-border-radius: 0;
 $nav-pills-active-link-color: white;
 $nav-pills-active-link-bg: #366e98;
-$brand-menu: #044b7f;
+$side-menu-bg: #044b7f;
+$side-menu-color: white;
 $brand-primary: #366e98;
 $brand-secondary: #047f75;
 $brand-success: #089944;
@@ -16,6 +17,7 @@ $brand-info: #044b7f;
 
 // -------------------------------------------------------------------
 
+
 $fa-font-path: "./";
 
 @import "../node_modules/font-awesome/scss/font-awesome";
@@ -25,132 +27,35 @@ $fa-font-path: "./";
   @extend .fa;
 }
 
-$ct-series-colors: (
-  $brand-success,
-  $brand-primary,
-  #60bd68,
-  #f17cb0,
-  #b2912f,
-  #b276b2,
-  #decf3f,
-  #f15854,
-  #4d4d4d,
-  #dda458,
-  #eacf7d,
-  #86797d,
-  #b2c326,
-  #6188e2,
-  #a748ca
-) !default;
-
-@import "../node_modules/chartist/dist/scss/settings/_chartist-settings";
-@import "../node_modules/chartist/dist/scss/chartist";
-
-// Line in charts with only 2px in width
-.ct-line {
-  stroke-width: 2px;
-}
-
-.ct-bar {
-  stroke-width: 10%;
-}
-
-// CHARTIST TOOLTIP ============================================================
-
-.ct-point {
-  stroke-width: 30px;
-  stroke-opacity: 0!important;
-}
-
-.ct-point:hover {
-  stroke-opacity: 0.2!important;
-  stroke-width: 20px;
-}
-
-.ct-tooltip {
-  position: absolute;
-  display: inline-block;
-  min-width: 5em;
-  padding: 8px 10px;
-  background: #383838;
-  color: #fff;
-  text-align: center;
-  pointer-events: none;
-  z-index: 10;
-  font-weight: 700;
-
-  // Arrow!
-  &:before {
-    position: absolute;
-    bottom: -14px;
-    top: 100%;
-    left: 50%;
-    border: solid transparent;
-    content: '';
-    height: 0;
-    width: 0;
-    pointer-events: none;
-    border-color: rgba(251, 249, 228, 0);
-    border-top-color: #383838;
-    border-width: 7px;
-    margin-left: -8px;
-  }
-
-  &.hide {
-    display: block;
-    opacity: 0;
-    visibility: hidden;
-  }
-}
-
-// CHARTIST LEGEND =============================================================
-
-.ct-legend {
-  position: absolute;
-  bottom: 0;
-  margin-bottom: -1em;
-
-  li {
-    position: relative;
-    padding-left: 1.4em;
-    list-style-type: none;
-    display: inline;
-    margin-right: 0.5em;
-    font-size: 0.8em;
-  }
-
-  li:before {
-    width: 1em;
-    height: 1em;
-    position: absolute;
-    left: 0;
-    content: '';
-    border: 3px solid transparent;
-    border-radius: 2px;
-    margin-top: 0.5em;
-  }
-
-  li.inactive:before {
-    background: transparent;
-  }
-
-  &.ct-legend-inside {
-    position: absolute;
-    top: 0;
-    right: 0;
-  }
-
-  @for $i from 0 to length($ct-series-colors) {
-    .ct-series-#{$i}:before {
-      background-color: nth($ct-series-colors, $i + 1);
-      border-color: nth($ct-series-colors, $i + 1);
-    }
-  }
-}
-
 // -------------------------------------------------------------------
 
 @import "../node_modules/font-mfizz/dist/font-mfizz";
+
+// -------------------------------------------------------------------
+
+
+@import "./chartist";
+@import "./icons";
+
+// ROOT STYLES =================================================================
+
+@include media-breakpoint-down(md) {
+  html {
+    font-size: 1.5vw;
+  }
+}
+
+@include media-breakpoint-down(sm) {
+  html {
+    font-size: 2.2vw;
+  }
+}
+
+@include media-breakpoint-down(xs) {
+  html {
+    font-size: 2.95vw;
+  }
+}
 
 // REACT-SELECT ================================================================
 
@@ -211,32 +116,10 @@ $select-input-height: 40px; // Bootstrap input height
   @extend .text-warning;
 }
 
-// ICONS =======================================================================
-
-@import "./icons";
-
 // HEADER CONTENT STYLE=========================================================
 
 .header-title {
   margin-bottom: 1em;
-}
-
-@include media-breakpoint-down(md) {
-  html {
-    font-size: 1.5vw;
-  }
-}
-
-@include media-breakpoint-down(sm) {
-  html {
-    font-size: 2.2vw;
-  }
-}
-
-@include media-breakpoint-down(xs) {
-  html {
-    font-size: 2.95vw;
-  }
 }
 
 // OJBECT TAB STYLE ============================================================
@@ -295,9 +178,8 @@ $select-input-height: 40px; // Bootstrap input height
 // MENU STYLE ==================================================================
 
 .xo-menu, .xo-sub-menu {
-  // background: linear-gradient(to top, $brand-primary, $brand-secondary);
-  background: $brand-menu;
-  color: white;
+  background: $side-menu-bg;
+  color: $side-menu-color;
 }
 
 .xo-menu {
