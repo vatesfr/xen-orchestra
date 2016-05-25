@@ -111,7 +111,7 @@ class NfsRemote extends AbstractRemote {
 
 class SmbRemote extends AbstractRemote {
   _renderRemoteInfo (remote) {
-    return <span><strong className='text-info'>\\</strong>{remote.host}<strong className='text-info'>\</strong>{remote.path}</span>
+    return <span><strong className='text-info'>\\</strong>{remote.host}{remote.path && <span><strong className='text-info'>\</strong>{remote.path}</span>}</span>
   }
 
   _renderAuthInfo (remote) {
