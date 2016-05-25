@@ -14,7 +14,7 @@ export default ({
   host
 }) => <div>
   <Row>
-    <Col smallSize={12} className='text-xs-right'>
+    <Col mediumSize={12} className='text-xs-right'>
       {host.power_state === 'Running' &&
         <TabButton
           btnStyle='warning'
@@ -43,7 +43,7 @@ export default ({
     </Col>
   </Row>
   <Row>
-    <Col smallSize={12}>
+    <Col mediumSize={12}>
       <h3>{_('xenSettingsLabel')}</h3>
       <table className='table'>
         <tbody>

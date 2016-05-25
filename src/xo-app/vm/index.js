@@ -174,8 +174,8 @@ export default class Vm extends Component {
       return <Icon icon='loading' />
     }
     return <Container>
-      <Row className='header-title'>
-        <Col smallSize={6}>
+      <Row>
+        <Col mediumSize={6} className='header-title'>
           <h2>
             {isEmpty(vm.current_operations)
               ? <Icon icon={`vm-${vm.power_state.toLowerCase()}`} />
@@ -212,12 +212,13 @@ export default class Vm extends Component {
             </span>
           </span>
         </Col>
-        <Col smallSize={6}>
-          <div className='pull-xs-right'>
+        <Col mediumSize={6} className='text-xs-center'>
+          <div>
             <VmActionBar vm={vm} />
           </div>
         </Col>
       </Row>
+      <br />
       <Row>
         <Col size={12}>
           <NavTabs>

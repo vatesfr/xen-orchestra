@@ -1,31 +1,26 @@
-import _ from 'messages'
+// import _ from 'messages' TODO: fix tooltip
 import ActionButton from 'action-button'
 import map from 'lodash/map'
 import React from 'react'
-import Tooltip from 'tooltip'
+// import Tooltip from 'tooltip' TODO: fix tooltip
 import {
-  ButtonToolbar
+  ButtonGroup
 } from 'react-bootstrap-4/lib'
 
-const STYLE = {
-  borderRadius: '15px',
-  fontSize: '1.8em'
-}
-
 const ActionBar = ({ actions, param }) => (
-  <ButtonToolbar>
-    {map(actions, ({ handler, handlerParam = param, label, icon }, index) => (
-      <Tooltip key={index} content={_(label)}>
+  <ButtonGroup>
+      {map(actions, ({ handler, handlerParam = param, label, icon }, index) => (
+        /* <Tooltip key={index} content={_(label)}> TODO: fix tooltip */
         <ActionButton
           btnStyle='secondary'
           handler={handler}
           handlerParam={handlerParam}
           icon={icon}
-          style={STYLE}
+          size='large'
         />
-      </Tooltip>
-    ))}
-  </ButtonToolbar>
+        /* </Tooltip> */
+      ))}
+  </ButtonGroup>
 )
 ActionBar.propTypes = {
   actions: React.PropTypes.arrayOf(

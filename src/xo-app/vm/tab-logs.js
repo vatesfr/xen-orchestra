@@ -29,7 +29,7 @@ export default class TabLogs extends Component {
 
     if (isEmpty(logs)) {
       return <Row>
-        <Col smallSize={12} className='text-xs-center'>
+        <Col mediumSize={12} className='text-xs-center'>
           <br />
           <h4>{_('noLogs')}</h4>
         </Col>
@@ -38,7 +38,7 @@ export default class TabLogs extends Component {
 
     return <div>
       <Row>
-        <Col smallSize={12} className='text-xs-right'>
+        <Col mediumSize={12} className='text-xs-right'>
           <TabButton
             btnStyle='danger'
             handler={this._deleteAllLogs}
@@ -48,7 +48,7 @@ export default class TabLogs extends Component {
         </Col>
       </Row>
       <Row>
-        <Col smallSize={12}>
+        <Col mediumSize={12}>
           <table className='table'>
             <thead className='thead-default'>
               <tr>

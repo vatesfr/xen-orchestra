@@ -34,14 +34,14 @@ export default class TabLogs extends Component {
     return <div>
       {isEmpty(logs)
         ? <Row>
-          <Col smallSize={6} className='text-xs-center'>
+          <Col mediumSize={6} className='text-xs-center'>
             <br />
             <h4>{_('noLogs')}</h4>
           </Col>
         </Row>
         : <div>
           <Row>
-            <Col smallSize={12} className='text-xs-right'>
+            <Col mediumSize={12} className='text-xs-right'>
               <button className='btn btn-lg btn-tab' onClick={this._previousPage}>
                 &lt;
               </button>
@@ -57,7 +57,7 @@ export default class TabLogs extends Component {
             </Col>
           </Row>
           <Row>
-            <Col smallSize={12}>
+            <Col mediumSize={12}>
               <table className='table'>
                 <thead className='thead-default'>
                   <tr>

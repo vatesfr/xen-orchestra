@@ -24,12 +24,12 @@ export default ({
     </Col>
   </Row>
   <Row>
-    <Col smallSize={12} className='text-xs-center'>
+    <Col mediumSize={12} className='text-xs-center'>
       <h5>Disk usage:</h5>
     </Col>
   </Row>
   <Row>
-    <Col smallOffset={1} smallSize={10}>
+    <Col smallOffset={1} mediumSize={10}>
       <span className='progress'>
         {map(vdis, vdi => (
           <Tooltip key={vdi.id} content={vdi.name_label}>
@@ -45,7 +45,7 @@ export default ({
     </Col>
   </Row>
   <Row className='text-xs-center'>
-    <Col smallSize={12}>
+    <Col mediumSize={12}>
       <h2 className='text-xs-center'>
         <Tags labels={sr.tags} onDelete={tag => removeTag(sr.id, tag)} onAdd={tag => addTag(sr.id, tag)} />
       </h2>

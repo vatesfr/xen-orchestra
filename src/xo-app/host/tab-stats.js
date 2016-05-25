@@ -85,10 +85,10 @@ export default class HostStats extends Component {
       ? <p>No stats.</p>
       : <div>
         <Row>
-          <Col smallSize={6} className='text-xs-right'>
+          <Col mediumSize={6} className='text-xs-right'>
             {selectStatsLoading && <Icon icon='loading' size={2} />}
           </Col>
-          <Col smallSize={6}>
+          <Col mediumSize={6}>
             <div className='btn-tab'>
               <select className='form-control' onChange={this.handleSelectStats} defaultValue={granularity} >
                 {_('statLastTenMinutes', message => <option value='seconds'>{message}</option>)}
@@ -100,11 +100,11 @@ export default class HostStats extends Component {
           </Col>
         </Row>
         <Row>
-          <Col smallSize={6}>
+          <Col mediumSize={6}>
             <h5 className='text-xs-center'><Icon icon='cpu' size={1} /> {_('statsCpu')}</h5>
             <CpuLineChart data={stats} />
           </Col>
-          <Col smallSize={6}>
+          <Col mediumSize={6}>
             <h5 className='text-xs-center'><Icon icon='memory' size={1} /> {_('statsMemory')}</h5>
             <MemoryLineChart data={stats} />
           </Col>
@@ -112,11 +112,11 @@ export default class HostStats extends Component {
         <br />
         <hr />
         <Row>
-          <Col smallSize={6}>
+          <Col mediumSize={6}>
             <h5 className='text-xs-center'><Icon icon='network' size={1} /> {_('statsNetwork')}</h5>
             <PifLineChart data={stats} />
           </Col>
-          <Col smallSize={6}>
+          <Col mediumSize={6}>
             <h5 className='text-xs-center'><Icon icon='disk' size={1} /> {_('statLoad')}</h5>
             <LoadLineChart data={stats} />
           </Col>

@@ -16,6 +16,6 @@ const TabButton = ({
   <ActionButton
     {...props}
     {...COMMON_PROPS}
-  >{_(labelId)}</ActionButton>
+  ><span className='hidden-md-down'>{_(labelId)}</span></ActionButton>
 )
 export { TabButton as default }

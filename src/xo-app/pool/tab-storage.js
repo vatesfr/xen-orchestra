@@ -12,7 +12,7 @@ export default ({
   srs
 }) => <div>
   <Row>
-    <Col smallSize={12}>
+    <Col mediumSize={12}>
       {!isEmpty(srs)
         ? <div>
           <table className='table'>

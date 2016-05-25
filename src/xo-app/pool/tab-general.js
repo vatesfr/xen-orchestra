@@ -22,7 +22,7 @@ export default ({
     </Col>
   </Row>
   <Row className='text-xs-center'>
-    <Col smallSize={12}>
+    <Col mediumSize={12}>
       <h2 className='text-xs-center'>
         <Tags labels={pool.tags} onDelete={tag => removeTag(pool.id, tag)} onAdd={tag => addTag(pool.id, tag)} />
       </h2>

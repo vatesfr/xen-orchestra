@@ -83,8 +83,8 @@ export default class Sr extends Component {
       return <Icon icon='loading' />
     }
     return <Container>
-      <Row className='header-title'>
-        <Col smallSize={6}>
+      <Row>
+        <Col mediumSize={6} className='header-title'>
           <h2>
             <Icon icon='sr' />
             {' '}
@@ -103,12 +103,13 @@ export default class Sr extends Component {
             </span>
           </span>
         </Col>
-        <Col smallSize={6}>
-          <div className='pull-xs-right'>
+        <Col mediumSize={6}>
+          <div className='text-xs-center'>
             <SrActionBar sr={sr} />
           </div>
         </Col>
       </Row>
+      <br />
       <Row>
         <Col size={12}>
           <NavTabs>

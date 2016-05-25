@@ -218,7 +218,35 @@ $select-input-height: 40px; // Bootstrap input height
 // HEADER CONTENT STYLE=========================================================
 
 .header-title {
-  margin-bottom: 0.4em;
+  margin-bottom: 1em;
+}
+
+html {
+  font-size: 1.3vmin;
+}
+
+@include media-breakpoint-down(lg) {
+  html {
+    font-size: 1.4vmin;
+  }
+}
+
+@include media-breakpoint-down(md) {
+  html {
+    font-size: 1.5vw;
+  }
+}
+
+@include media-breakpoint-down(sm) {
+  html {
+    font-size: 2.2vw;
+  }
+}
+
+@include media-breakpoint-down(xs) {
+  html {
+    font-size: 2.95vw;
+  }
 }
 
 // OJBECT TAB STYLE ============================================================

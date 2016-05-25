@@ -36,7 +36,7 @@ export default class TabNetwork extends Component {
 
     return <div>
       <Row>
-        <Col smallSize={12} className='text-xs-right'>
+        <Col mediumSize={12} className='text-xs-right'>
           <TabButton
             btnStyle='primary'
             handler={() => null()} // TODO: add vif
@@ -46,7 +46,7 @@ export default class TabNetwork extends Component {
         </Col>
       </Row>
       <Row>
-        <Col smallSize={12}>
+        <Col mediumSize={12}>
           {!isEmpty(vifs)
             ? <span>
               <table className='table'>

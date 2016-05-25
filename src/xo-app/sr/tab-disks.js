@@ -14,7 +14,7 @@ export default ({
   vdis
 }) => <div>
   <Row>
-    <Col smallSize={12}>
+    <Col mediumSize={12}>
       {!isEmpty(vdis)
         ? <span>
           <table className='table'>

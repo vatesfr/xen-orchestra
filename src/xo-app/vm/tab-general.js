@@ -51,7 +51,7 @@ export default ({
   {/* TODO: use CSS style */}
   <br />
   <Row className='text-xs-center'>
-    <Col smallSize={3}>
+    <Col mediumSize={3}>
       {vm.power_state === 'Running'
         ? <div>
           <p className='text-xs-center'>{_('started', { ago: <FormattedRelative value={vm.startTime * 1000} /> })}</p>
@@ -59,7 +59,7 @@ export default ({
         : <p className='text-xs-center'>{_('vmNotRunning')}</p>
       }
     </Col>
-    <Col smallSize={3}>
+    <Col mediumSize={3}>
       <p>
         {vm.virtualizationMode === 'pv'
           ? _('paraVirtualizedMode')
@@ -67,7 +67,7 @@ export default ({
         }
       </p>
     </Col>
-    <Col smallSize={3}>
+    <Col mediumSize={3}>
       <BlockLink to={`/vms/${vm.id}/network`}>
         <p className='copy-to-clipboard'>
           {vm.addresses && vm.addresses['0/ip']
@@ -77,20 +77,20 @@ export default ({
         </p>
       </BlockLink>
     </Col>
-    <Col smallSize={3}>
+    <Col mediumSize={3}>
       {/* TODO: tooltip and better icon usage */}
       <BlockLink to={`/vms/${vm.id}/advanced`}><h1><Icon icon={vm.os_version && vm.os_version.distro && osFamily(vm.os_version.distro)} /></h1></BlockLink>
     </Col>
   </Row>
   {!vm.xenTools && vm.power_state === 'Running' &&
     <Row className='text-xs-center'>
-      <Col smallSize={12}><em>{_('noToolsDetected')}.</em></Col>
+      <Col mediumSize={12}><em>{_('noToolsDetected')}.</em></Col>
     </Row>
   }
   {/* TODO: use CSS style */}
   <br />
   <Row>
-    <Col smallSize={12}>
+    <Col mediumSize={12}>
       <h2 className='text-xs-center'>
         <Tags labels={vm.tags} onDelete={tag => removeTag(vm.id, tag)} onAdd={tag => addTag(vm.id, tag)} />
       </h2>
@@ -99,7 +99,7 @@ export default ({
   {isEmpty(vm.current_operations)
     ? null
     : <Row className='text-xs-center'>
-      <Col smallSize={12}>
+      <Col mediumSize={12}>
         <h4>{_('vmCurrentStatus')}{' '}{map(vm.current_operations)[0]}</h4>
       </Col>
     </Row>

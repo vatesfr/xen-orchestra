@@ -14,7 +14,7 @@ export default ({
   vdis
 }) => <div>
   <Row>
-    <Col smallSize={12} className='text-xs-right'>
+    <Col mediumSize={12} className='text-xs-right'>
       <TabButton
         btnStyle='primary'
         handler={() => null()} // TODO: add disk
@@ -36,7 +36,7 @@ export default ({
     </Col>
   </Row>
   <Row>
-    <Col smallSize={12}>
+    <Col mediumSize={12}>
       {!isEmpty(vbds)
         ? <span>
           <table className='table'>

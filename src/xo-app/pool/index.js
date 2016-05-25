@@ -101,8 +101,8 @@ export default class Pool extends Component {
       return <Icon icon='loading' />
     }
     return <Container>
-      <Row className='header-title'>
-        <Col smallSize={6}>
+      <Row>
+        <Col mediumSize={6} className='header-title'>
           <h2>
             <Icon icon='pool' />
             {' '}
@@ -118,12 +118,13 @@ export default class Pool extends Component {
             />
           </span>
         </Col>
-        <Col smallSize={6}>
-          <div className='pull-xs-right'>
+        <Col mediumSize={6}>
+          <div className='text-xs-center'>
             <PoolActionBar pool={pool} />
           </div>
         </Col>
       </Row>
+      <br />
       <Row>
         <Col size={12}>
           <NavTabs>

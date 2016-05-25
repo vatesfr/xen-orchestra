@@ -5,7 +5,7 @@ export default ({
   hosts
 }) => <div>
   <Row>
-    <Col smallSize={12} className='text-xs-right'>
+    <Col mediumSize={12} className='text-xs-right'>
       TODO
     </Col>
   </Row>

@@ -219,8 +219,8 @@ export default class Host extends Component {
       return <Icon icon='loading' />
     }
     return <Container>
-      <Row className='header-title'>
-        <Col smallSize={6}>
+      <Row>
+        <Col mediumSize={6} className='header-title'>
           <h2>
             <Icon icon={`host-${host.power_state.toLowerCase()}`} />
             {' '}
@@ -237,14 +237,15 @@ export default class Host extends Component {
             <span className='text-muted'> - <Link to={`/pools/${pool.id}`}>{pool.name_label}</Link></span>
           </span>
         </Col>
-        <Col smallSize={6}>
-          <div className='pull-xs-right'>
+        <Col mediumSize={6}>
+          <div className='text-xs-center'>
             <HostActionBar host={host} />
           </div>
         </Col>
       </Row>
+      <br />
       <Row>
-        <Col size={12}>
+        <Col mediumSize={12}>
           <NavTabs>
             <NavLink to={`/hosts/${host.id}/general`}>{_('generalTabName')}</NavLink>
             <NavLink to={`/hosts/${host.id}/stats`}>{_('statsTabName')}</NavLink>

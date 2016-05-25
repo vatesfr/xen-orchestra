@@ -14,7 +14,7 @@ export default ({
   pbds
 }) => <div>
   <Row>
-    <Col smallSize={12} className='text-xs-right'>
+    <Col mediumSize={12} className='text-xs-right'>
       <TabButton
         btnStyle='primary'
         handler={() => null()} // TODO: add SR
@@ -24,7 +24,7 @@ export default ({
     </Col>
   </Row>
   <Row>
-    <Col smallSize={12}>
+    <Col mediumSize={12}>
       {!isEmpty(pbds)
         ? <span>
           <table className='table'>

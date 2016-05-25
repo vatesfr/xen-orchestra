@@ -14,12 +14,12 @@ export default class HostPatches extends Component {
     return (
       <div>
         <Row>
-          <Col smallSize={12}>
+          <Col mediumSize={12}>
             {isEmpty(missingPatches)
               ? <h4>{_('hostUpToDate')}</h4>
               : <span>
                 <Row>
-                  <Col smallSize={12} className='text-xs-right'>
+                  <Col mediumSize={12} className='text-xs-right'>
                     <TabButton
                       btnStyle='primary'
                       handler={installAllPatches}
@@ -29,7 +29,7 @@ export default class HostPatches extends Component {
                   </Col>
                 </Row>
                 <Row>
-                  <Col smallSize={12}>
+                  <Col mediumSize={12}>
                     <h3>{_('hostMissingPatches')}</h3>
                     <table className='table'>
                       <thead className='thead-default'>
@@ -67,7 +67,7 @@ export default class HostPatches extends Component {
           </Col>
         </Row>
         <Row>
-          <Col smallSize={12}>
+          <Col mediumSize={12}>
             {!isEmpty(poolPatches)
               ? <span>
                 <h3>{_('hostInstalledPatches')}</h3>

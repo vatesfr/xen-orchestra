@@ -11,7 +11,7 @@ export default ({
   pbds
 }) => <div>
   <Row>
-    <Col smallSize={12}>
+    <Col mediumSize={12}>
       {!isEmpty(hosts)
         ? <div>
           <table className='table'>

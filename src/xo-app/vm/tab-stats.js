@@ -90,10 +90,10 @@ export default injectIntl(
         ? <p>No stats.</p>
         : <div>
           <Row>
-            <Col smallSize={6} className='text-xs-right'>
+            <Col mediumSize={6} className='text-xs-right'>
               {selectStatsLoading && <Icon icon='loading' size={2} />}
             </Col>
-            <Col smallSize={6}>
+            <Col mediumSize={6}>
               <div className='btn-tab'>
                 <select className='form-control' onChange={this.handleSelectStats} defaultValue={granularity} >
                   <option value='seconds'>{intl.formatMessage(messages.statLastTenMinutes)}</option>
@@ -105,11 +105,11 @@ export default injectIntl(
             </Col>
           </Row>
           <Row>
-            <Col smallSize={6}>
+            <Col mediumSize={6}>
               <h5 className='text-xs-center'><Icon icon='cpu' size={1} /> {_('statsCpu')}</h5>
               <CpuLineChart data={stats} />
             </Col>
-            <Col smallSize={6}>
+            <Col mediumSize={6}>
               <h5 className='text-xs-center'><Icon icon='memory' size={1} /> {_('statsMemory')}</h5>
               <MemoryLineChart data={stats} />
             </Col>
@@ -117,11 +117,11 @@ export default injectIntl(
           <br />
           <hr />
           <Row>
-            <Col smallSize={6}>
+            <Col mediumSize={6}>
               <h5 className='text-xs-center'><Icon icon='network' size={1} /> {_('statsNetwork')}</h5>
               <VifLineChart data={stats} />
             </Col>
-            <Col smallSize={6}>
+            <Col mediumSize={6}>
               <h5 className='text-xs-center'><Icon icon='disk' size={1} /> {_('statDisk')}</h5>
               <XvdLineChart data={stats} />
             </Col>

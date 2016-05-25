@@ -18,28 +18,28 @@ export default ({
   Console is only available for running VMs.
 </p> : <div>
   {statsOverview && <Row className='text-xs-center'>
-    <Col smallSize={3}>
+    <Col mediumSize={3}>
       <p>
         <Icon icon='cpu' size={2} />
         {' '}
         <CpuSparkLines data={statsOverview} />
       </p>
     </Col>
-    <Col smallSize={3}>
+    <Col mediumSize={3}>
       <p>
         <Icon icon='memory' size={2} />
         {' '}
         <MemorySparkLines data={statsOverview} />
       </p>
     </Col>
-    <Col smallSize={3}>
+    <Col mediumSize={3}>
       <p>
         <Icon icon='network' size={2} />
         {' '}
         <VifSparkLines data={statsOverview} />
       </p>
     </Col>
-    <Col smallSize={3}>
+    <Col mediumSize={3}>
       <p>
         <Icon icon='disk' size={2} />
         {' '}
@@ -48,7 +48,7 @@ export default ({
     </Col>
   </Row>}
   <Row>
-    <Col smallSize={5}>
+    <Col mediumSize={5}>
       {/* TODO: insert real ISO selector, CtrlAltSuppr button and Clipboard */}
       <div className='input-group'>
         <select className='form-control'>
@@ -63,7 +63,7 @@ export default ({
         </span>
       </div>
     </Col>
-    <Col smallSize={5}>
+    <Col mediumSize={5}>
       <div className='input-group'>
         <input type='text' className='form-control'></input>
         <span className='input-group-btn'>
@@ -73,12 +73,12 @@ export default ({
         </span>
       </div>
     </Col>
-    <Col smallSize={2}>
+    <Col mediumSize={2}>
       <button className='btn btn-secondary'><Icon icon='vm-keyboard' /> {_('ctrlAltDelButtonLabel')}</button>
     </Col>
   </Row>
   <Row className='console'>
-    <Col smallSize={12}>
+    <Col mediumSize={12}>
       <NoVnc url={resolveUrl(`consoles/${vm.id}`)} />
       <p><em><Icon icon='info' /> {_('tipLabel')} {_('tipConsoleLabel')}</em></p>
     </Col>

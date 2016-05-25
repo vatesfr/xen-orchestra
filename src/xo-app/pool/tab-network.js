@@ -53,7 +53,7 @@ export default ({
   networks
 }) => <div>
   <Row>
-    <Col smallSize={12}>
+    <Col mediumSize={12}>
       {!isEmpty(networks)
         ? <span>
           <table className='table'>
