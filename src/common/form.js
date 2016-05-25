@@ -163,7 +163,7 @@ export class Toggle extends Component {
     const { input } = refs
     const value = input ? input.checked : props.defaultValue
 
-    return <label>
+    return <label className={props.disabled ? 'text-muted' : value ? 'text-success' : null}>
       <Icon icon={`toggle-${value ? 'on' : 'off'}`} size={2} />
       <input
         defaultChecked={props.defaultValue}

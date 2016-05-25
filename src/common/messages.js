@@ -594,9 +594,6 @@ export const messages = {
   hostPowerOnMode: {
     defaultMessage: 'Power on mode'
   },
-  powerOnDisabled: {
-    defaultMessage: 'Disabled'
-  },
   hostStartedSince: {
     defaultMessage: 'Host uptime'
   },

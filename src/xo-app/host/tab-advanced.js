@@ -3,7 +3,8 @@ import CopyToClipboard from 'react-copy-to-clipboard'
 import Icon from 'icon'
 import React from 'react'
 import TabButton from 'tab-button'
-import { restartHost } from 'xo'
+import { Toggle } from 'form'
+import { enableHost, disableHost, restartHost } from 'xo'
 import { FormattedRelative } from 'react-intl'
 import { Row, Col } from 'grid'
 
@@ -14,15 +15,30 @@ export default ({
 }) => <div>
   <Row>
     <Col smallSize={12} className='text-xs-right'>
-      {host.power_state === 'Running'
-        ? <TabButton
+      {host.power_state === 'Running' &&
+        <TabButton
           btnStyle='warning'
           handler={forceReboot}
           handlerParam={host}
           icon='host-force-reboot'
           labelId='forceRebootHostLabel'
         />
-        : null
+      }
+      {host.enabled
+        ? <TabButton
+          btnStyle='warning'
+          handler={disableHost}
+          handlerParam={host}
+          icon='host-disable'
+          labelId='disableHostLabel'
+        />
+        : <TabButton
+          btnStyle='success'
+          handler={enableHost}
+          handlerParam={host}
+          icon='host-enable'
+          labelId='enableHostLabel'
+        />
       }
     </Col>
   </Row>
@@ -59,10 +75,7 @@ export default ({
           <tr>
             <th>{_('hostPowerOnMode')}</th>
             <td>
-              {host.powerOnMode
-                ? host.powerOnMode
-                : _('powerOnDisabled')
-              }
+              <Toggle defaultValue={host.powerOnMode} disabled />
             </td>
           </tr>
           <tr>
