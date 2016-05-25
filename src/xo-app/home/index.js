@@ -419,8 +419,7 @@ export default class Home extends Component {
               </DropdownButton>
             </div>
             : <div>
-              {pools.length
-               ? (
+              {pools.length && (
                 <OverlayTrigger
                   trigger='click'
                   rootClose
@@ -428,6 +427,7 @@ export default class Home extends Component {
                   overlay={
                     <Popover className={styles.selectObject} id='poolPopover'>
                       <SelectPool
+                        autoFocus
                         multi
                         onChange={this._updateSelectedPools}
                         defaultValue={this.state.selectedPools}
@@ -437,11 +437,9 @@ export default class Home extends Component {
                 >
                   <Button className='btn-link'><span><Icon icon='pool' /> {_('homeAllPools')} ({pools.length})</span></Button>
                 </OverlayTrigger>
-               ) : null
-              }
+              )}
               {' '}
-              {hosts.length
-               ? (
+              {hosts.length && (
                 <OverlayTrigger
                   trigger='click'
                   rootClose
@@ -449,6 +447,7 @@ export default class Home extends Component {
                   overlay={
                     <Popover className={styles.selectObject} id='HostPopover'>
                       <SelectHost
+                        autoFocus
                         multi
                         onChange={this._updateSelectedHosts}
                         defaultValue={this.state.selectedHosts}
@@ -458,12 +457,11 @@ export default class Home extends Component {
                 >
                   <Button className='btn-link'><span><Icon icon='host' /> {_('homeAllHosts')} ({hosts.length})</span></Button>
                 </OverlayTrigger>
-               ) : null
-              }
+              )}
               {' '}
-              {tags.length
-               ? (
+              {tags.length && (
                 <OverlayTrigger
+                  autoFocus
                   trigger='click'
                   rootClose
                   placement='bottom'
@@ -479,8 +477,7 @@ export default class Home extends Component {
                 >
                   <Button className='btn-link'><span><Icon icon='tags' /> {_('homeAllTags')} ({tags.length})</span></Button>
                 </OverlayTrigger>
-               ) : null
-              }
+              )}
               {' '}
               <DropdownButton bsStyle='link' id='sort' title={_('homeSortBy')}>
                 <MenuItem onClick={this._sortByName}>

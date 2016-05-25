@@ -88,7 +88,7 @@
     "react-redux": "^4.4.0",
     "react-router": "^2.0.0",
     "react-router-redux": "^4.0.0",
-    "react-select": "^1.0.0-beta12",
+    "react-select": "^1.0.0-beta13",
     "react-sparklines": "^1.5.0",
     "readable-stream": "^2.0.6",
     "redux": "^3.3.1",
