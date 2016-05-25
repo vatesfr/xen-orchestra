@@ -67,17 +67,17 @@ export class Password extends Component {
 // ===================================================================
 
 @propTypes({
+  defaultValue: propTypes.number,
   max: propTypes.number.isRequired,
   min: propTypes.number.isRequired,
   step: propTypes.number,
-  value: propTypes.number,
   onChange: propTypes.func
 })
 export class Range extends Component {
   constructor (props) {
     super()
     this.state = {
-      value: props.value || props.min
+      value: props.defaultValue || props.min
     }
   }
 
