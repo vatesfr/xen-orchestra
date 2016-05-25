@@ -4,13 +4,13 @@ import React from 'react'
 import Tags from 'tags'
 import Tooltip from 'tooltip'
 import { addTag, removeTag } from 'xo'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import { formatSize } from 'utils'
 
 export default ({
   sr,
   vdis
-}) => <div>
+}) => <Container>
   <Row className='text-xs-center'>
     <Col mediumSize={4}>
       <h2>{sr.VDIs.length}x <Icon icon='disk' size='lg' /></h2>
@@ -51,4 +51,4 @@ export default ({
       </h2>
     </Col>
   </Row>
-</div>
+</Container>

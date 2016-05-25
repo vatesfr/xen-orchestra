@@ -3,7 +3,7 @@ import Icon from 'icon'
 import NoVnc from 'react-novnc'
 import React from 'react'
 import { resolveUrl } from 'xo'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 
 import {
   CpuSparkLines,
@@ -16,7 +16,7 @@ export default ({
   vmController,
   host,
   statsOverview
-}) => <div>
+}) => <Container>
   {statsOverview && <Row className='text-xs-center'>
     <Col mediumSize={3}>
       <Icon icon='cpu' size={2} />
@@ -76,4 +76,4 @@ export default ({
       <p><em><Icon icon='info' /> {_('tipLabel')} {_('tipConsoleLabel')}</em></p>
     </Col>
   </Row>
-</div>
+</Container>

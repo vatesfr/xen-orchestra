@@ -5,7 +5,7 @@ import React from 'react'
 import { autobind } from 'utils'
 import { fetchVmStats } from 'xo'
 import { injectIntl } from 'react-intl'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import {
   CpuLineChart,
   MemoryLineChart,
@@ -88,7 +88,7 @@ export default injectIntl(
 
       return !stats
         ? <p>No stats.</p>
-        : <div>
+        : <Container>
           <Row>
             <Col mediumSize={6} className='text-xs-right'>
               {selectStatsLoading && <Icon icon='loading' size={2} />}
@@ -126,7 +126,7 @@ export default injectIntl(
               <XvdLineChart data={stats} />
             </Col>
           </Row>
-        </div>
+        </Container>
     }
   }
 )

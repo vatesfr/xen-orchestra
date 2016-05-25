@@ -4,7 +4,7 @@ import map from 'lodash/map'
 import React, { Component } from 'react'
 import TabButton from 'tab-button'
 import { connectStore } from 'utils'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import {
   createGetObjectsOfType,
   createSelector
@@ -34,7 +34,7 @@ export default class TabNetwork extends Component {
       vm
     } = this.props
 
-    return <div>
+    return <Container>
       <Row>
         <Col mediumSize={12} className='text-xs-right'>
           <TabButton
@@ -92,6 +92,6 @@ export default class TabNetwork extends Component {
           }
         </Col>
       </Row>
-    </div>
+    </Container>
   }
 }

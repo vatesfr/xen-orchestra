@@ -6,7 +6,7 @@ import React from 'react'
 import Tags from 'tags'
 import { addTag, editVm, removeTag } from 'xo'
 import { FormattedRelative } from 'react-intl'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import { Number, Size } from 'editable'
 import {
   BlockLink,
@@ -24,7 +24,7 @@ export default ({
   statsOverview,
   vm,
   vmTotalDiskSpace
-}) => <div>
+}) => <Container>
   {/* TODO: use CSS style */}
   <br />
   <Row className='text-xs-center'>
@@ -104,4 +104,4 @@ export default ({
       </Col>
     </Row>
   }
-</div>
+</Container>

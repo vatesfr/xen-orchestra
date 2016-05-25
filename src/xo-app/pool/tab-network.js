@@ -3,7 +3,7 @@ import React, { Component } from 'react'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import { Text } from 'editable'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import { editNetwork } from 'xo'
 import { connectStore } from 'utils'
 import { createGetObject, createSelector } from 'selectors'
@@ -51,7 +51,7 @@ class PifItem extends Component {
 
 export default ({
   networks
-}) => <div>
+}) => <Container>
   <Row>
     <Col mediumSize={12}>
       {!isEmpty(networks)
@@ -104,4 +104,4 @@ export default ({
       }
     </Col>
   </Row>
-</div>
+</Container>

@@ -7,7 +7,7 @@ import React, { Component } from 'react'
 import { deleteMessage } from 'xo'
 import { createPager } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 
 export default class TabLogs extends Component {
   constructor () {
@@ -31,7 +31,7 @@ export default class TabLogs extends Component {
   render () {
     const logs = this.getLogs()
 
-    return <div>
+    return <Container>
       {isEmpty(logs)
         ? <Row>
           <Col mediumSize={6} className='text-xs-center'>
@@ -89,6 +89,6 @@ export default class TabLogs extends Component {
           </Row>
         </div>
       }
-    </div>
+    </Container>
   }
 }

@@ -7,7 +7,7 @@ import TabButton from 'tab-button'
 import { connectStore } from 'utils'
 import { deleteMessage } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import {
   createGetObjectsOfType
 } from 'selectors'
@@ -36,7 +36,7 @@ export default class TabLogs extends Component {
       </Row>
     }
 
-    return <div>
+    return <Container>
       <Row>
         <Col mediumSize={12} className='text-xs-right'>
           <TabButton
@@ -78,6 +78,6 @@ export default class TabLogs extends Component {
           </table>
         </Col>
       </Row>
-    </div>
+    </Container>
   }
 }

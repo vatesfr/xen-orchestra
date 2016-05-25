@@ -3,13 +3,13 @@ import React from 'react'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import TabButton from 'tab-button'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 
 export default ({
   host,
   networks,
   pifs
-}) => <div>
+}) => <Container>
   <Row>
     <Col mediumSize={12} className='text-xs-right'>
       <TabButton
@@ -67,4 +67,4 @@ export default ({
       }
     </Col>
   </Row>
-</div>
+</Container>

@@ -3,7 +3,7 @@ import Icon from 'icon'
 import NoVnc from 'react-novnc'
 import React from 'react'
 import { resolveUrl } from 'xo'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import {
   CpuSparkLines,
   MemorySparkLines,
@@ -16,7 +16,7 @@ export default ({
   vm
 }) => vm.power_state !== 'Running' ? <p>
   Console is only available for running VMs.
-</p> : <div>
+</p> : <Container>
   {statsOverview && <Row className='text-xs-center'>
     <Col mediumSize={3}>
       <p>
@@ -83,4 +83,4 @@ export default ({
       <p><em><Icon icon='info' /> {_('tipLabel')} {_('tipConsoleLabel')}</em></p>
     </Col>
   </Row>
-</div>
+</Container>

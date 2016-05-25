@@ -1,12 +1,12 @@
 import React from 'react'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 
 export default ({
   hosts
-}) => <div>
+}) => <Container>
   <Row>
     <Col mediumSize={12} className='text-xs-right'>
       TODO
     </Col>
   </Row>
-</div>
+</Container>

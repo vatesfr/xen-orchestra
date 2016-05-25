@@ -4,7 +4,7 @@ import Icon from 'icon'
 import React from 'react'
 import { autobind } from 'utils'
 import { fetchHostStats } from 'xo'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import {
   CpuLineChart,
   MemoryLineChart,
@@ -83,7 +83,7 @@ export default class HostStats extends Component {
 
     return !stats
       ? <p>No stats.</p>
-      : <div>
+      : <Container>
         <Row>
           <Col mediumSize={6} className='text-xs-right'>
             {selectStatsLoading && <Icon icon='loading' size={2} />}
@@ -121,6 +121,6 @@ export default class HostStats extends Component {
             <LoadLineChart data={stats} />
           </Col>
         </Row>
-      </div>
+      </Container>
   }
 }

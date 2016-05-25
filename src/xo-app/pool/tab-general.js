@@ -2,14 +2,14 @@ import Icon from 'icon'
 import React from 'react'
 import Tags from 'tags'
 import { addTag, removeTag } from 'xo'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 
 export default ({
   hosts,
   nVms,
   pool,
   srs
-}) => <div>
+}) => <Container>
   <Row className='text-xs-center'>
     <Col mediumSize={4}>
       <h2>{hosts.length}x <Icon icon='host' size='lg' /></h2>
@@ -28,4 +28,4 @@ export default ({
       </h2>
     </Col>
   </Row>
-</div>
+</Container>

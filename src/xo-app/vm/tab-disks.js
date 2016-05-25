@@ -4,7 +4,7 @@ import map from 'lodash/map'
 import React from 'react'
 import TabButton from 'tab-button'
 import { editVdi } from 'xo'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import { formatSize } from 'utils'
 import { Text } from 'editable'
 
@@ -12,7 +12,7 @@ export default ({
   srs,
   vbds,
   vdis
-}) => <div>
+}) => <Container>
   <Row>
     <Col mediumSize={12} className='text-xs-right'>
       <TabButton
@@ -99,4 +99,4 @@ export default ({
       }
     </Col>
   </Row>
-</div>
+</Container>

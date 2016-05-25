@@ -6,13 +6,13 @@ import TabButton from 'tab-button'
 import { Toggle } from 'form'
 import { enableHost, disableHost, restartHost } from 'xo'
 import { FormattedRelative } from 'react-intl'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 
 const forceReboot = host => restartHost(host, true)
 
 export default ({
   host
-}) => <div>
+}) => <Container>
   <Row>
     <Col mediumSize={12} className='text-xs-right'>
       {host.power_state === 'Running' &&
@@ -152,4 +152,4 @@ export default ({
       </table>
     </Col>
   </Row>
-</div>
+</Container>

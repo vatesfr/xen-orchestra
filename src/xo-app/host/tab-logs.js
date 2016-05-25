@@ -8,7 +8,7 @@ import React from 'react'
 import { deleteMessage } from 'xo'
 import { createPager } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 
 export default class TabLogs extends Component {
   constructor () {
@@ -41,7 +41,7 @@ export default class TabLogs extends Component {
       </Row>
     }
 
-    return <div>
+    return <Container>
       <Row>
         <Col mediumSize={12} className='text-xs-right'>
           <button className='btn btn-lg btn-tab' onClick={this._previousPage}>
@@ -89,6 +89,6 @@ export default class TabLogs extends Component {
           </table>
         </Col>
       </Row>
-    </div>
+    </Container>
   }
 }

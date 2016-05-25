@@ -4,7 +4,7 @@ import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import TabButton from 'tab-button'
 import React, { Component } from 'react'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import { formatSize } from 'utils'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 
@@ -12,7 +12,7 @@ export default class HostPatches extends Component {
   render () {
     const { poolPatches, missingPatches, installAllPatches, installPatch } = this.props
     return (
-      <div>
+      <Container>
         <Row>
           <Col mediumSize={12}>
             {isEmpty(missingPatches)
@@ -107,7 +107,7 @@ export default class HostPatches extends Component {
             }
           </Col>
         </Row>
-      </div>
+      </Container>
     )
   }
 }

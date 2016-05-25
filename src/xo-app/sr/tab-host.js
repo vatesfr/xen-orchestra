@@ -3,13 +3,13 @@ import React from 'react'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import { Text } from 'editable'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import { editHost } from 'xo'
 
 export default ({
   hosts,
   pbds
-}) => <div>
+}) => <Container>
   <Row>
     <Col mediumSize={12}>
       {!isEmpty(hosts)
@@ -51,4 +51,4 @@ export default ({
       }
     </Col>
   </Row>
-</div>
+</Container>

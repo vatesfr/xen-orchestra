@@ -4,11 +4,11 @@ import Icon from 'icon'
 import React from 'react'
 import TabButton from 'tab-button'
 import { deleteSr } from 'xo'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 
 export default ({
   sr
-}) => <div>
+}) => <Container>
   <Row>
     <Col mediumSize={12} className='text-xs-right'>
       <TabButton
@@ -41,4 +41,4 @@ export default ({
       </table>
     </Col>
   </Row>
-</div>
+</Container>

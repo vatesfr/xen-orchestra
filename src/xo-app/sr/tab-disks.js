@@ -5,14 +5,14 @@ import map from 'lodash/map'
 import React from 'react'
 import Icon from 'icon'
 import { deleteVdi, editVdi } from 'xo'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import { formatSize } from 'utils'
 import { Text } from 'editable'
 
 export default ({
   sr,
   vdis
-}) => <div>
+}) => <Container>
   <Row>
     <Col mediumSize={12}>
       {!isEmpty(vdis)
@@ -61,4 +61,4 @@ export default ({
       }
     </Col>
   </Row>
-</div>
+</Container>

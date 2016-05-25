@@ -7,7 +7,7 @@ import React, { Component } from 'react'
 import TabButton from 'tab-button'
 import { connectStore } from 'utils'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import { Text } from 'editable'
 import {
   createGetObjectsOfType
@@ -32,7 +32,7 @@ export default class TabSnapshot extends Component {
   render () {
     const { snapshots, vm } = this.props
 
-    return <div>
+    return <Container>
       <Row>
         <Col mediumSize={12} className='text-xs-right'>
           <TabButton
@@ -89,6 +89,6 @@ export default class TabSnapshot extends Component {
           </Col>
         </Row>
       }
-    </div>
+    </Container>
   }
 }

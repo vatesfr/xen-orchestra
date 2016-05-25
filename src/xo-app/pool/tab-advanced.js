@@ -2,11 +2,11 @@ import _ from 'messages'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import Icon from 'icon'
 import React from 'react'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 
 export default ({
   pool
-}) => <div>
+}) => <Container>
   <Row>
     <Col mediumSize={12}>
       <h3>{_('xenSettingsLabel')}</h3>
@@ -37,4 +37,4 @@ export default ({
       </table>
     </Col>
   </Row>
-</div>
+</Container>

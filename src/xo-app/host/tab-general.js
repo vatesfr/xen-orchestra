@@ -6,7 +6,7 @@ import Tags from 'tags'
 import Tooltip from 'tooltip'
 import { addTag, removeTag } from 'xo'
 import { FormattedRelative } from 'react-intl'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import {
   BlockLink,
   formatSize
@@ -23,7 +23,7 @@ export default ({
   host,
   vmController,
   vms
-}) => <div>
+}) => <Container>
   <br />
   <Row className='text-xs-center'>
     <Col mediumSize={3}>
@@ -92,4 +92,4 @@ export default ({
       </h2>
     </Col>
   </Row>
-</div>
+</Container>

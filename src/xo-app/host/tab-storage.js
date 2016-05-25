@@ -5,14 +5,14 @@ import React from 'react'
 import TabButton from 'tab-button'
 import { editSr } from 'xo'
 import { Link } from 'react-router'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import { formatSize } from 'utils'
 import { Text } from 'editable'
 
 export default ({
   srs,
   pbds
-}) => <div>
+}) => <Container>
   <Row>
     <Col mediumSize={12} className='text-xs-right'>
       <TabButton
@@ -77,4 +77,4 @@ export default ({
       }
     </Col>
   </Row>
-</div>
+</Container>
