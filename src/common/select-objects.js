@@ -1,12 +1,13 @@
-import Icon from 'icon'
-import React, { Component } from 'react'
-import Select from 'react-select'
 import _ from 'messages'
 import filter from 'lodash/filter'
 import forEach from 'lodash/forEach'
 import groupBy from 'lodash/groupBy'
+import Icon from 'icon'
 import keyBy from 'lodash/keyBy'
+import keys from 'lodash/keys'
 import map from 'lodash/map'
+import React, { Component } from 'react'
+import Select from 'react-select'
 import sortBy from 'lodash/sortBy'
 import { parse } from 'xo-remote-parser'
 
@@ -344,27 +345,27 @@ export class SelectSr extends GenericSelect {
   const getVms = createGetObjectsOfType('VM').filter(
     (state, props) => props.predicate
   )
-  const getHosts = createGetObjectsOfType('host').pick(
-    createSelector(
-      getVms,
-      vms => map(vms, '$container')
-    )
-  ).sort()
-  const getPools = createGetObjectsOfType('pool').pick(
-    createSelector(
-      getVms,
-      vms => map(vms, '$container')
-    )
-  ).sort()
-  const getContainers = createSelector(
-    getHosts,
-    getPools,
-    (hosts, pools) => hosts.concat(pools)
+
+  const getContainerIds = createSelector(
+    getVms,
+    vms => {
+      // It makes sense to create a set instead of simply mapping
+      // because there are much fewer containers than VMs.
+      const set = {}
+      forEach(vms, vm => {
+        set[vm.$container] = true
+      })
+      return keys(set)
+    }
   )
-  const getVmsByContainer = getVms.groupBy('$container')
+  const getHostContainers = createGetObjectsOfType('host').pick(getContainerIds).sort()
+  const getPoolContainers = createGetObjectsOfType('pool').pick(getContainerIds).sort()
+
+  const getVmsByContainer = getVms.sort().groupBy('$container')
 
   return (state, props) => ({
-    containers: getContainers(state, props),
+    hostContainers: getHostContainers(state, props),
+    poolContainers: getPoolContainers(state, props),
     objects: getVms(state, props),
     vmsByContainer: getVmsByContainer(state, props)
   })
@@ -378,7 +379,7 @@ export class SelectVm extends GenericSelect {
   _computeOptions (props) {
     let newOptions = []
 
-    forEach(sortBy(props.containers, [ 'type', 'name_label' ]), container => {
+    const makeOptionsForContainer = container => {
       const containerId = container.id
       const containerLabel = container.name_label || containerId
 
@@ -398,7 +399,9 @@ export class SelectVm extends GenericSelect {
           }
         })
       )
-    })
+    }
+    forEach(props.hostContainers, makeOptionsForContainer)
+    forEach(props.poolContainers, makeOptionsForContainer)
 
     return newOptions
   }
