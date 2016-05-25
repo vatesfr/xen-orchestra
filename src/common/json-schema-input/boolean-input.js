@@ -12,8 +12,8 @@ export default class BooleanInput extends AbstractInput {
     return this.refs.input.value
   }
 
-  set value (checked) {
-    this.refs.input.value = checked
+  set value (value) {
+    this.refs.input.value = value
   }
 
   render () {
@@ -23,7 +23,7 @@ export default class BooleanInput extends AbstractInput {
       <PrimitiveInputWrapper {...props}>
         <div className='checkbox form-control'>
           <Toggle
-            defaultChecked={props.defaultValue || props.schema.default || false}
+            defaultValue={props.defaultValue || props.schema.default}
             disabled={props.disabled}
             onChange={props.onChange}
             ref='input'
