@@ -37,10 +37,10 @@ class PifItem extends Component {
       <td>{pif.mac}</td>
       <td>
         {pif.attached
-          ? <span className='label label-success'>
+          ? <span className='tag tag-success'>
             {_('poolNetworkPifAttached')}
           </span>
-          : <span className='label label-default'>
+          : <span className='tag tag-default'>
             {_('poolNetworkPifDetached')}
           </span>
           }

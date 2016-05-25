@@ -47,13 +47,13 @@ $fa-font-path: "./";
 
 @include media-breakpoint-down(sm) {
   html {
-    font-size: 2.2vw;
+    font-size: 3vmin;
   }
 }
 
 @include media-breakpoint-down(xs) {
   html {
-    font-size: 2.95vw;
+    font-size: 2.95vmin;
   }
 }
 
@@ -122,12 +122,9 @@ $select-input-height: 40px; // Bootstrap input height
   margin-bottom: 1em;
 }
 
-// OJBECT TAB STYLE ============================================================
-
 .nav-tabs {
   font-size: 1.2em;
 }
-
 
 // CONTENT TAB STYLE ===========================================================
 
@@ -150,7 +147,7 @@ $select-input-height: 40px; // Bootstrap input height
   padding: 0.3em;
   margin: 0.2em;
   margin-top: -0.1em;
-  font-size: 0.6em;
+  font-size: 0.8em;
 }
 
 .add-tag-action {
@@ -171,7 +168,7 @@ $select-input-height: 40px; // Bootstrap input height
   visibility: visible;
 }
 
-.label-ip {
+.tag-ip {
   margin-left: 1em;
 }
 

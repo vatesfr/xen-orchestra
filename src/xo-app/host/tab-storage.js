@@ -60,10 +60,10 @@ export default ({
                   </td>
                   <td>
                     {pbd.attached
-                      ? <span className='label label-success'>
+                      ? <span className='tag tag-success'>
                           {_('pbdStatusConnected')}
                       </span>
-                      : <span className='label label-default'>
+                      : <span className='tag tag-default'>
                           {_('pbdStatusDisconnected')}
                       </span>
                     }

@@ -98,9 +98,9 @@ export default class Overview extends Component {
     const state = this.state.scheduleTable[schedule.id]
 
     return (
-      (state && <span className='label label-success'>enabled</span>) ||
-      (state === false && <span className='label label-default'>disabled</span>) ||
-      (<span className='label label-warning'>unknown</span>)
+      (state && <span className='tag tag-success'>enabled</span>) ||
+      (state === false && <span className='tag tag-default'>disabled</span>) ||
+      (<span className='tag tag-warning'>unknown</span>)
     )
   }
 

@@ -252,7 +252,7 @@ export default class Host extends Component {
             <NavLink to={`/hosts/${host.id}/console`}>{_('consoleTabName')}</NavLink>
             <NavLink to={`/hosts/${host.id}/network`}>{_('networkTabName')}</NavLink>
             <NavLink to={`/hosts/${host.id}/storage`}>{_('storageTabName')}</NavLink>
-            <NavLink to={`/hosts/${host.id}/patches`}>{_('patchesTabName')} {isEmpty(missingPatches) ? null : <span className='label label-pill label-danger'>{missingPatches.length}</span>}</NavLink>
+            <NavLink to={`/hosts/${host.id}/patches`}>{_('patchesTabName')} {isEmpty(missingPatches) ? null : <span className='tag tag-pill tag-danger'>{missingPatches.length}</span>}</NavLink>
             <NavLink to={`/hosts/${host.id}/logs`}>{_('logsTabName')}</NavLink>
             <NavLink to={`/hosts/${host.id}/advanced`}>{_('advancedTabName')}</NavLink>
           </NavTabs>

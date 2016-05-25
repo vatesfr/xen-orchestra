@@ -50,10 +50,10 @@ export default ({
                   <td>{pif.mtu}</td>
                   <td>
                     {pif.attached
-                      ? <span className='label label-success'>
+                      ? <span className='tag tag-success'>
                           {_('pifStatusConnected')}
                       </span>
-                      : <span className='label label-default'>
+                      : <span className='tag tag-default'>
                           {_('pifStatusDisconnected')}
                       </span>
                     }

@@ -90,10 +90,10 @@ export default class HostPatches extends Component {
                         <td>{formatSize(poolPatch.size)}</td>
                         {/* <td>
                           {patch.applied
-                            ? <span className='label label-success'>
+                            ? <span className='tag tag-success'>
                                 {_('patchStatusApplied')}
                             </span>
-                            : <span className='label label-default'>
+                            : <span className='tag tag-default'>
                                 {_('patchStatusNotApplied')}
                             </span>
                           }

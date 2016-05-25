@@ -220,14 +220,14 @@ export default class Vm extends Component {
       </Row>
       <br />
       <Row>
-        <Col size={12}>
+        <Col mediumSize={12}>
           <NavTabs>
             <NavLink to={`/vms/${vm.id}/general`}>{_('generalTabName')}</NavLink>
             <NavLink to={`/vms/${vm.id}/stats`}>{_('statsTabName')}</NavLink>
             <NavLink to={`/vms/${vm.id}/console`}>{_('consoleTabName')}</NavLink>
             <NavLink to={`/vms/${vm.id}/network`}>{_('networkTabName')}</NavLink>
             <NavLink to={`/vms/${vm.id}/disks`}>{_('disksTabName', { disks: vm.$VBDs.length })}</NavLink>
-            <NavLink to={`/vms/${vm.id}/snapshots`}>{_('snapshotsTabName')} {vm.snapshots.length !== 0 && <span className='label label-pill label-default'>{vm.snapshots.length}</span>}</NavLink>
+            <NavLink to={`/vms/${vm.id}/snapshots`}>{_('snapshotsTabName')} {vm.snapshots.length !== 0 && <span className='tag tag-pill tag-default'>{vm.snapshots.length}</span>}</NavLink>
             <NavLink to={`/vms/${vm.id}/logs`}>{_('logsTabName')}</NavLink>
             <NavLink to={`/vms/${vm.id}/advanced`}>{_('advancedTabName')}</NavLink>
           </NavTabs>
