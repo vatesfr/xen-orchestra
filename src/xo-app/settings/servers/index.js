@@ -57,7 +57,7 @@ export default class Servers extends Component {
               </td>
               <td>
                 <Text
-                  value={server.password}
+                  value=''
                   onChange={password => editServer(server, { password })}
                   placeholder='password'
                 />
