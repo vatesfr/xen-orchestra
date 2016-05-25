@@ -139,11 +139,11 @@ export class Range extends Component {
 const TOGGLE_STYLE = { visibility: 'hidden' }
 export class Toggle extends Component {
   get value () {
-    return this.refs.input.checked
+    return this.refs.input.value
   }
 
-  set value (checked) {
-    this.refs.input.checked = Boolean(checked)
+  set value (value) {
+    this.refs.input.value = Boolean(value)
   }
 
   _onChange = event => {
@@ -156,12 +156,12 @@ export class Toggle extends Component {
   render () {
     const { props, refs } = this
     const { input } = refs
-    const checked = input ? input.checked : props.defaultChecked
+    const value = input ? input.value : props.defaultValue
 
     return <label>
-      <Icon icon={`toggle-${checked ? 'on' : 'off'}`} size={2} />
+      <Icon icon={`toggle-${value ? 'on' : 'off'}`} size={2} />
       <input
-        defaultChecked={props.defaultChecked}
+        defaultValue={props.defaultValue}
         disabled={props.disabled}
         onChange={this._onChange}
         ref='input'
