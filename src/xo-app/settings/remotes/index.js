@@ -1,4 +1,4 @@
-import _, { messages } from 'messages'
+import _ from 'messages'
 import ActionButton from 'action-button'
 import filter from 'lodash/filter'
 import Icon from 'icon'
@@ -6,7 +6,6 @@ import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React, { Component } from 'react'
 import { error } from 'notification'
-import { injectIntl } from 'react-intl'
 import {
   createRemote,
   deleteRemote,
@@ -23,6 +22,9 @@ const remoteTypes = {
 }
 
 class AbstractRemote extends Component {
+  _disable = id => disableRemote(id).then(subscribeRemotes.forceRefresh)
+  _enable = id => enableRemote(id).then(subscribeRemotes.forceRefresh)
+  _delete = id => deleteRemote(id).then(subscribeRemotes.forceRefresh)
   render () {
     const {
       remote
@@ -38,19 +40,19 @@ class AbstractRemote extends Component {
         <span>
           <span className='text-success'>{this.accessible} <Icon icon='success' /></span>
           {' '}
-          <ActionButton btnStyle='warning' handler={disableRemote} handlerParam={remote.id} icon='disconnect' />
+          <ActionButton btnStyle='warning' handler={this._disable} handlerParam={remote.id} icon='disconnect' />
         </span>
       }
       {!remote.enabled &&
         <span>
           <span className='text-muted'>{this.unaccessible}</span>
           {' '}
-          <ActionButton btnStyle='primary' handler={enableRemote} handlerParam={remote.id} icon='connect' />
+          <ActionButton btnStyle='primary' handler={this._enable} handlerParam={remote.id} icon='connect' />
         </span>
       }
       </td>
       <td><span className='text-muted'>{remote.error}</span></td>
-      <td><ActionButton btnStyle='danger' handler={deleteRemote} handlerParam={remote.id} icon='delete' /></td>
+      <td><ActionButton btnStyle='danger' handler={this._delete} handlerParam={remote.id} icon='delete' /></td>
     </tr>
   }
 
@@ -125,7 +127,6 @@ class SmbRemote extends AbstractRemote {
   }
 }
 
-@injectIntl
 export default class New extends Component {
   constructor (props) {
     super(props)
@@ -174,6 +175,7 @@ export default class New extends Component {
 
     const url = format(urlParams)
     return createRemote(name && name.value, url).then(() => {
+      subscribeRemotes.forceRefresh()
       this.setState({type: 'local'})
       path && (path.value = '')
       username && (username.value = '')
@@ -183,7 +185,6 @@ export default class New extends Component {
   }
 
   render () {
-    const { formatMessage } = this.props.intl
     const {
       remotes,
       type
@@ -246,9 +247,7 @@ export default class New extends Component {
               onChange={event => { this._handleRemoteTypeSelection(event.target.value) }}
               required
             >
-              {map(remoteTypes, (label, key) =>
-                <option key={key} value={key}>{formatMessage(messages[label])}</option>
-              )}
+              {map(remoteTypes, (label, key) => _({key}, label, message => <option value={key}>{message}</option>))}
             </select>
           </div>
           <div className='form-group'>
@@ -258,7 +257,7 @@ export default class New extends Component {
             <fieldset className='form-group'>
               <div className='input-group'>
                 <span className='input-group-addon'>/</span>
-                <input type='text' ref='path' className='form-control' placeholder='path/to/backup' />
+                <input type='text' ref='path' pattern='^(([^/]+)+(/[^/]+)*)?$' className='form-control' placeholder='path/to/backup' />
               </div>
             </fieldset>
           }
@@ -269,7 +268,7 @@ export default class New extends Component {
               </div>
               <div className='input-group'>
                 <span className='input-group-addon'>/</span>
-                <input type='text' ref='path' className='form-control' placeholder='path/to/backup' />
+                <input type='text' ref='path' pattern='^(([^/]+)+(/[^/]+)*)?$' className='form-control' placeholder='path/to/backup' />
               </div>
             </fieldset>
           }
@@ -277,9 +276,9 @@ export default class New extends Component {
             <fieldset className='form-group'>
               <div className='input-group form-group'>
                 <span className='input-group-addon'>\\</span>
-                <input type='text' ref='host' className='form-control' placeholder='host <address>\<share> *' required />
+                <input type='text' ref='host' pattern='^([^\\/]+)\\([^\\/]+)$' className='form-control' placeholder='<address>\<share> *' required />
                 <span className='input-group-addon'>\</span>
-                <input type='text' ref='path' className='form-control' placeholder='subfolder [path\to\backup]' />
+                <input type='text' ref='path' pattern='^(([^\\/]+)+(\\[^\\/]+)*)?$' className='form-control' placeholder='subfolder [path\to\backup]' />
               </div>
               <div className='form-group'>
                 <input type='text' ref='username' className='form-control' placeholder='User Name' />
