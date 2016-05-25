@@ -1033,18 +1033,6 @@ export const messages = {
   unknownOsKernel: {
     defaultMessage: 'Unknown'
   },
-  enabledAutoPowerOn: {
-    defaultMessage: 'Enabled'
-  },
-  disabledAutoPowerOn: {
-    defaultMessage: 'Disabled'
-  },
-  enabledHa: {
-    defaultMessage: 'Enabled'
-  },
-  disabledHa: {
-    defaultMessage: 'Disabled'
-  },
   unknownOriginalTemplate: {
     defaultMessage: 'Unknown'
   },
@@ -1547,10 +1535,6 @@ localizedMessages.fr = {
   originalTemplate: 'Modèle d\'origine',
   unknownOsName: 'Inconnu',
   unknownOsKernel: 'Inconnu',
-  enabledAutoPowerOn: 'Activé',
-  disabledAutoPowerOn: 'Désactivé',
-  enabledHa: 'Activée',
-  disabledHa: 'Désactivée',
   vmLimitsLabel: 'Limites',
   vmCpuLimitsLabel: 'Limites processeur',
   vmMemoryLimitsLabel: 'Limites mémoire',
