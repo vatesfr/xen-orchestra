@@ -6,7 +6,6 @@ import isString from 'lodash/isString'
 import map from 'lodash/map'
 import React from 'react'
 import round from 'lodash/round'
-import { Toggle } from 'form'
 import { DropdownButton, MenuItem } from 'react-bootstrap-4/lib'
 
 import Component from './base-component'
@@ -332,31 +331,5 @@ export class Size extends Editable {
         </DropdownButton>
       </span>
     </span>
-  }
-}
-
-export default class ToggleInput extends Editable {
-
-  get value () {
-    return this.refs.input.value
-  }
-
-  set value (checked) {
-    this.refs.input.value = checked
-  }
-
-  render () {
-    const { props } = this
-
-    return (
-      <div className='checkbox form-control'>
-        <Toggle
-          defaultChecked={props.defaultValue || false}
-          disabled={props.disabled}
-          onChange={props.onChange}
-          ref='input'
-        />
-      </div>
-    )
   }
 }

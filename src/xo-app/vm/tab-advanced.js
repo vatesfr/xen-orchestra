@@ -4,6 +4,7 @@ import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import React from 'react'
 import TabButton from 'tab-button'
+import { Toggle } from 'form'
 import { Size, Text } from 'editable'
 import { Row, Col } from 'grid'
 import { formatSize, normalizeXenToolsStatus, osFamily } from 'utils'
@@ -128,11 +129,11 @@ export default ({
           </tr>
           <tr>
             <th>{_('autoPowerOn')}</th>
-            <td>{vm.auto_poweron ? _('enabledAutoPowerOn') : _('disabledAutoPowerOn')}</td>
+            <td><Toggle defaultValue={vm.auto_poweron} onChange={value => editVm(vm, { auto_poweron: value })} /></td>
           </tr>
           <tr>
             <th>{_('ha')}</th>
-            <td>{vm.high_availability ? _('enabledHa') : _('disabledHa')}</td>
+            <td><Toggle defaultValue={vm.high_availability} onChange={value => editVm(vm, { high_availability: value })} /></td>
           </tr>
         </tbody>
       </table>
