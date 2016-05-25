@@ -221,16 +221,6 @@ $select-input-height: 40px; // Bootstrap input height
   margin-bottom: 1em;
 }
 
-html {
-  font-size: 1.3vmin;
-}
-
-@include media-breakpoint-down(lg) {
-  html {
-    font-size: 1.4vmin;
-  }
-}
-
 @include media-breakpoint-down(md) {
   html {
     font-size: 1.5vw;
