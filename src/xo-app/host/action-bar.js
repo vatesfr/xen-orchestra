@@ -3,7 +3,6 @@ import React from 'react'
 import {
   // disableHost,
   emergencyShutdownHost,
-  enableHost,
   restartHost,
   restartHostAgent,
   startHost,
@@ -23,11 +22,6 @@ const hostActionBarByState = {
           icon: 'host-restart-agent',
           label: 'restartHostAgent',
           handler: restartHostAgent
-        },
-        {
-          icon: 'host-enable',
-          label: 'enableHostLabel',
-          handler: enableHost
         },
         {
           icon: 'host-emergency-shutdown',

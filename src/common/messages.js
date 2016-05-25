@@ -585,17 +585,8 @@ export const messages = {
   hostXenServerVersion: {
     defaultMessage: 'Version'
   },
-  hostStatusEnabled: {
-    defaultMessage: 'Enabled'
-  },
-  hostStatusDisabled: {
-    defaultMessage: 'Disabled'
-  },
   hostPowerOnMode: {
     defaultMessage: 'Power on mode'
-  },
-  powerOnDisabled: {
-    defaultMessage: 'Disabled'
   },
   hostStartedSince: {
     defaultMessage: 'Host uptime'

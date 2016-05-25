@@ -74,6 +74,7 @@
   &-toggle-on {
     @extend .fa;
     @extend .fa-toggle-on;
+    @extend .text-success;
   }
 
   &-toggle-off {
