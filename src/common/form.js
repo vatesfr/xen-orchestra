@@ -147,8 +147,8 @@ export class Toggle extends Component {
     return this.refs.input.checked
   }
 
-  set value (checked) {
-    this.refs.input.checked = Boolean(checked)
+  set value (value) {
+    this.refs.input.checked = Boolean(value)
   }
 
   _onChange = () => {
