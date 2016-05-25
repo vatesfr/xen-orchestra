@@ -73,8 +73,12 @@ class VmItem extends Component {
     this.setState({ collapsed: true })
   }
 
+  get _isRunning () {
+    const { vm } = this.props
+    return vm && vm.power_state === 'Running'
+  }
+
   _addTag = tag => addTag(this.props.vm.id, tag)
-  _isRunning = vm => vm && vm.power_state === 'Running'
   _migrateVm = host => migrateVm(this.props.vm, host)
   _removeTag = tag => removeTag(this.props.vm.id, tag)
   _setNameDescription = nameDescription => editVm(this.props.vm, { name_description: nameDescription })
@@ -113,7 +117,7 @@ class VmItem extends Component {
           <Col mediumSize={4} className='hidden-md-down'>
             <EllipsisContainer>
               <span className={styles.itemActionButons}>
-                {this._isRunning(vm)
+                {this._isRunning
                   ? <span>
                     <Tooltip content={_('stopVmLabel')}>
                       <a onClick={this._stop}>
@@ -140,7 +144,7 @@ class VmItem extends Component {
           <Col mediumSize={2} className='hidden-sm-down'>
             <EllipsisContainer>
               <Ellipsis>
-                {this._isRunning(vm)
+                {this._isRunning
                   ? <Select onChange={this._migrateVm} options={hosts} labelProp='name_label' value={container} useLongClick>
                     <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>
                   </Select>
