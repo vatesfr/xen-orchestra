@@ -4,8 +4,6 @@
 $nav-pills-border-radius: 0;
 $nav-pills-active-link-color: white;
 $nav-pills-active-link-bg: #366e98;
-$side-menu-bg: #044b7f;
-$side-menu-color: white;
 $brand-primary: #366e98;
 $brand-secondary: #047f75;
 $brand-success: #089944;
@@ -38,6 +36,9 @@ $fa-font-path: "./";
 @import "./icons";
 
 // ROOT STYLES =================================================================
+
+$side-menu-bg: #044b7f;
+$side-menu-color: white;
 
 @include media-breakpoint-down(md) {
   html {
