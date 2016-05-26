@@ -47,8 +47,11 @@ import styles from './index.css'
 
   const getPifs = createGetObjectsOfType('PIF')
 
+  const getNetworks = createGetObjectsOfType('network')
+
   return (state, props) => ({
     pifs: getPifs(state, props),
+    networks: getNetworks(state, props),
     vdis: getVdis(state, props),
     vifs: getVifs(state, props)
   })
@@ -175,7 +178,7 @@ export default class MigrateVmModalBody extends Component {
             </SingleLineRow>
             {map(this.props.vifs, vif => <div className={styles.listItem} key={vif.id}>
               <SingleLineRow>
-                <Col size={6}>{vif.MAC}</Col>
+                <Col size={6}>{vif.MAC} ({this.props.networks[vif.$network].name_label})</Col>
                 <Col size={6}>
                   <SelectNetwork
                     onChange={this._getSelectNetwork(vif.id)}
