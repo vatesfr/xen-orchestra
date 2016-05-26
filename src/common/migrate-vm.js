@@ -50,7 +50,7 @@ import styles from './migrate-vm.css'
     vdis: getVdis(state, props),
     vifs: getVifs(state, props)
   })
-})
+}, { withRef: true })
 export default class MigrateVmModalBody extends Component {
   constructor (props) {
     super(props)
@@ -95,8 +95,17 @@ export default class MigrateVmModalBody extends Component {
     )
   }
 
+  get value () {
+    return {
+      targetHost: this.state.host && this.state.host.id,
+      mapVdisSrs: this.state.mapVdisSrs,
+      mapVifsNetworks: this.state.mapVifsNetworks,
+      migrationNetwork: this.state.network && this.state.network.id
+    }
+  }
+
   _selectHost = host => this.setState({ host })
-  _selectMigrationNetwork = network => this.setState({ migrationNetwork: network.id })
+  _selectMigrationNetwork = network => this.setState({ network })
 
   _getSelectSr = vdiId =>
     sr => this.setState({ mapVdisSrs: { ...this.state.mapVdisSrs, [vdiId]: sr.id } })

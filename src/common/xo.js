@@ -334,8 +334,6 @@ export const snapshotVms = vms => (
   )
 )
 
-export migrateVm from 'migrate-vm'
-
 import MigrateVmModalBody from 'migrate-vm'
 export const migrateVm = (vm, host) => {
   let body
@@ -348,7 +346,12 @@ export const migrateVm = (vm, host) => {
     title: _('migrateVmModalTitle'),
     body
   }).then(
-    () => xo.call('vm.migrate', { vm: vm.id, targetHost: host.id }),
+    params => {
+      if (!params.targetHost) {
+        throw new Error('A target host is required to migrate a VM')
+      }
+      xo.call('vm.migrate', { vm: vm.id, ...params })
+    },
     noop
   )
 }
