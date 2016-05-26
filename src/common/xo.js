@@ -492,3 +492,21 @@ export const purgePluginConfiguration = async id => {
     throw error
   }
 }
+
+// -------------------------------------------------------------------
+
+export const createRemote = (name, url) => (
+  xo.call('remote.create', {name, url})
+)
+
+export const deleteRemote = id => (
+  xo.call('remote.delete', {id})
+)
+
+export const enableRemote = id => (
+  xo.call('remote.set', {id, enabled: true})
+)
+
+export const disableRemote = id => (
+  xo.call('remote.set', {id, enabled: false})
+)
