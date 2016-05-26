@@ -13,12 +13,18 @@ import { Col, Row } from 'grid'
 import { injectIntl } from 'react-intl'
 
 import {
+  Card,
+  CardBlock,
+  CardHeader
+} from 'card'
+
+import {
   createGetObject,
   createGetObjectsOfType
 } from 'selectors'
 
 import {
-  SelectEntity,
+  SelectSubject,
   SelectNetwork,
   SelectPool,
   SelectSr,
@@ -33,15 +39,15 @@ import {
 import {
   createResourceSet,
   deleteResourceSet,
-  setRessourceSet,
+  editRessourceSet,
   subscribeResourceSets
 } from 'xo'
 
 import {
-  Entities,
   ObjectP,
+  Subjects,
   resolveResourceSets
-} from '../dashboard'
+} from '../helpers'
 
 // ===================================================================
 
@@ -153,7 +159,7 @@ class Edit extends Component {
 
       // Fill form
       let selectedPools = {}
-      forEach(resourceSet.objects, (objects, type) => {
+      forEach(resourceSet.objectsByType, (objects, type) => {
         forEach(objects, object => {
           selectedPools[object.$pool] = true
         })
@@ -161,16 +167,16 @@ class Edit extends Component {
       selectedPools = keyBy(Object.keys(selectedPools))
 
       const { refs } = this
-      const { objects } = resourceSet
+      const { objectsByType } = resourceSet
 
-      const selectedSrs = objects.SR
-      const selectedNetworks = objects.network
+      const selectedSrs = objectsByType.SR
+      const selectedNetworks = objectsByType.network
 
       this._updateSelectedPools(selectedPools, selectedSrs, selectedNetworks, () => {
         refs.selectPool.value = selectedPools
         refs.inputName.value = resourceSet.name
-        refs.selectEntity.value = resourceSet.subjects
-        refs.selectVmTemplate.value = objects['VM-template']
+        refs.selectSubject.value = resourceSet.subjects
+        refs.selectVmTemplate.value = objectsByType['VM-template']
         refs.selectSr.value = selectedSrs
         refs.selectNetwork.value = selectedNetworks
 
@@ -274,14 +280,14 @@ class Edit extends Component {
       ...refs.selectNetwork.value
     ]
 
-    await setRessourceSet(set.id, {
+    await editRessourceSet(set.id, {
       limits: {
         cpus: cpus === '' ? undefined : +cpus,
         memory: memory === '' ? undefined : +memory,
         disk: disk === '' ? undefined : +disk
       },
       objects: map(objects, object => object.id),
-      subjects: map(refs.selectEntity.value, object => object.id)
+      subjects: map(refs.selectSubject.value, object => object.id)
     })
 
     subscribeResourceSets.forceRefresh()
@@ -295,7 +301,7 @@ class Edit extends Component {
     this._updateSelectedPools([], [], [], () => {
       refs.selectPool.value = undefined
       refs.inputName.value = ''
-      refs.selectEntity.value = undefined
+      refs.selectSubject.value = undefined
       refs.selectVmTemplate.value = undefined
       refs.selectSr.value = undefined
       refs.selectNetwork.value = undefined
@@ -310,129 +316,131 @@ class Edit extends Component {
     const { formatMessage } = this.props.intl
 
     return (
-      <div className='card'>
-        <div className='card-header text-xs-center'>
+      <Card>
+        <CardHeader>
           <h5><Icon icon='administration' /> {_('selfServiceAdminPage')}</h5>
-        </div>
-        <form id='resource-set-form' className='card-block'>
-          <h5><Icon icon='edition' /> {_('resourceSetCreation')}</h5>
-          <div className='form-group'>
-            <Row>
-              <Col mediumSize={4}>
-                <input
-                  className='form-control'
-                  placeholder={formatMessage(messages.resourceSetName)}
-                  ref='inputName'
-                  required
-                  type='text'
-                />
-              </Col>
-              <Col mediumSize={4}>
-                <SelectEntity
-                  multi
-                  ref='selectEntity'
-                  required
-                />
-              </Col>
-              <Col mediumSize={4}>
-                <SelectPool
-                  multi
-                  onChange={this._updateSelectedPools}
-                  ref='selectPool'
-                  required
-                />
-              </Col>
-            </Row>
-          </div>
-          <div className='form-group'>
-            <Row>
-              <Col mediumSize={4}>
-                <SelectVmTemplate
-                  disabled={!state.nPools}
-                  multi
-                  predicate={state.vmTemplatePredicate}
-                  ref='selectVmTemplate'
-                  required
-                />
-              </Col>
-              <Col mediumSize={4}>
-                <SelectSr
-                  disabled={!state.nPools}
-                  multi
-                  onChange={this._updateSelectedSrs}
-                  predicate={state.srPredicate}
-                  ref='selectSr'
-                  required
-                />
-              </Col>
-              <Col mediumSize={4}>
-                <SelectNetwork
-                  disabled={!state.nSrs}
-                  multi
-                  onChange={this._updateSelectedNetworks}
-                  predicate={state.networkPredicate}
-                  ref='selectNetwork'
-                  required
-                />
-              </Col>
-            </Row>
-          </div>
-          <div className='form-group'>
-            <Row>
-              <Col mediumSize={4}>
-                <input
-                  className='form-control'
-                  min={0}
-                  placeholder={formatMessage(messages.maxCpus)}
-                  ref='inputMaxCpus'
-                  type='number'
-                />
-              </Col>
-              <Col mediumSize={4}>
-                <input
-                  className='form-control'
-                  min={0}
-                  placeholder={formatMessage(messages.maxRam)}
-                  ref='inputMaxRam'
-                  type='number'
-                />
-              </Col>
-              <Col mediumSize={4}>
-                <input
-                  className='form-control'
-                  min={0}
-                  placeholder={formatMessage(messages.maxDiskSpace)}
-                  ref='inputMaxDiskSpace'
-                  type='number'
-                />
-              </Col>
-            </Row>
-          </div>
-          <hr />
-          <Hosts excludedHosts={state.excludedHosts} eligibleHosts={state.eligibleHosts} />
-          <hr />
-          <div className='form-group pull-xs-right'>
-            <div className='btn-toolbar'>
-              <div className='btn-group'>
-                <ActionButton
-                  className='btn-primary'
-                  form='resource-set-form'
-                  handler={this._saveResourceSet}
-                  icon='save'
-                  type='submit'
-                >
-                  {_('saveResourceSet')}
-                </ActionButton>
-              </div>
-              <div className='btn-group'>
-                <button type='button' className='btn btn-secondary' onClick={this._resetResourceSet}>
-                  {_('resetResourceSet')}
-                </button>
+        </CardHeader>
+        <CardBlock>
+          <form id='resource-set-form' className='card-block'>
+            <h5><Icon icon='edition' /> {_('resourceSetCreation')}</h5>
+            <div className='form-group'>
+              <Row>
+                <Col mediumSize={4}>
+                  <input
+                    className='form-control'
+                    placeholder={formatMessage(messages.resourceSetName)}
+                    ref='inputName'
+                    required
+                    type='text'
+                  />
+                </Col>
+                <Col mediumSize={4}>
+                  <SelectSubject
+                    multi
+                    ref='selectSubject'
+                    required
+                  />
+                </Col>
+                <Col mediumSize={4}>
+                  <SelectPool
+                    multi
+                    onChange={this._updateSelectedPools}
+                    ref='selectPool'
+                    required
+                  />
+                </Col>
+              </Row>
+            </div>
+            <div className='form-group'>
+              <Row>
+                <Col mediumSize={4}>
+                  <SelectVmTemplate
+                    disabled={!state.nPools}
+                    multi
+                    predicate={state.vmTemplatePredicate}
+                    ref='selectVmTemplate'
+                    required
+                  />
+                </Col>
+                <Col mediumSize={4}>
+                  <SelectSr
+                    disabled={!state.nPools}
+                    multi
+                    onChange={this._updateSelectedSrs}
+                    predicate={state.srPredicate}
+                    ref='selectSr'
+                    required
+                  />
+                </Col>
+                <Col mediumSize={4}>
+                  <SelectNetwork
+                    disabled={!state.nSrs}
+                    multi
+                    onChange={this._updateSelectedNetworks}
+                    predicate={state.networkPredicate}
+                    ref='selectNetwork'
+                    required
+                  />
+                </Col>
+              </Row>
+            </div>
+            <div className='form-group'>
+              <Row>
+                <Col mediumSize={4}>
+                  <input
+                    className='form-control'
+                    min={0}
+                    placeholder={formatMessage(messages.maxCpus)}
+                    ref='inputMaxCpus'
+                    type='number'
+                  />
+                </Col>
+                <Col mediumSize={4}>
+                  <input
+                    className='form-control'
+                    min={0}
+                    placeholder={formatMessage(messages.maxRam)}
+                    ref='inputMaxRam'
+                    type='number'
+                  />
+                </Col>
+                <Col mediumSize={4}>
+                  <input
+                    className='form-control'
+                    min={0}
+                    placeholder={formatMessage(messages.maxDiskSpace)}
+                    ref='inputMaxDiskSpace'
+                    type='number'
+                  />
+                </Col>
+              </Row>
+            </div>
+            <hr />
+            <Hosts excludedHosts={state.excludedHosts} eligibleHosts={state.eligibleHosts} />
+            <hr />
+            <div className='form-group pull-xs-right'>
+              <div className='btn-toolbar'>
+                <div className='btn-group'>
+                  <ActionButton
+                    className='btn-primary'
+                    form='resource-set-form'
+                    handler={this._saveResourceSet}
+                    icon='save'
+                    type='submit'
+                  >
+                    {_('saveResourceSet')}
+                  </ActionButton>
+                </div>
+                <div className='btn-group'>
+                  <button type='button' className='btn btn-secondary' onClick={this._resetResourceSet}>
+                    {_('resetResourceSet')}
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        </form>
-      </div>
+          </form>
+        </CardBlock>
+      </Card>
     )
   }
 }
@@ -514,11 +522,11 @@ export default class Administration extends Component {
     return (
       <div>
         <Edit resourceSet={state.editingResourceSet} onReset={this._resetEditedResourceSet} />
-        <div className='card'>
-          <div className='card-header text-xs-center'>
+        <Card>
+          <CardHeader>
             <h5><Icon icon='resource-set' /> {_('resourceSets')}</h5>
-          </div>
-          <div className='card-block'>
+          </CardHeader>
+          <CardBlock>
             {map(state.resourceSets, (resourceSet, key) => (
               <div key={key} className='p-b-1'>
                 <h5 className='form-inline clearfix'>
@@ -540,9 +548,9 @@ export default class Administration extends Component {
                 </h5>
                 <ul key={key} className='list-group'>
                   <li className='list-group-item'>
-                    <Entities entities={resourceSet.subjects} />
+                    <Subjects subjects={resourceSet.subjects} />
                   </li>
-                  {map(resourceSet.objects, (objectsSet, type) => (
+                  {map(resourceSet.objectsByType, (objectsSet, type) => (
                     <li key={type} className='list-group-item'>
                       {map(objectsSet, object => <ObjectP key={object.id} object={object} />)}
                     </li>
@@ -551,16 +559,16 @@ export default class Administration extends Component {
                     <Limits limits={resourceSet.limits} />
                   </li>
                 </ul>
-                {resourceSet.missing.length > 0 &&
+                {resourceSet.missingObjects.length > 0 &&
                   <div className='alert alert-danger m-t-1' role='alert'>
-                    <strong>{_('resourceSetMissingObjects')}</strong> {resourceSet.missing.join(', ')}
+                    <strong>{_('resourceSetMissingObjects')}</strong> {resourceSet.missingObjects.join(', ')}
                   </div>
                 }
                 <hr />
               </div>
             ))}
-          </div>
-        </div>
+          </CardBlock>
+        </Card>
       </div>
     )
   }

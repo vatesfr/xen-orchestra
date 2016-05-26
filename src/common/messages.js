@@ -247,7 +247,7 @@ export const messages = {
   noSelectedValue: {
     defaultMessage: 'No selected value'
   },
-  selectEntities: {
+  selectSubjects: {
     defaultMessage: 'Choose user(s) and/or group(s)'
   },
   selectHosts: {
@@ -1455,7 +1455,7 @@ localizedMessages.fr = {
   preview: 'Aperçu',
   item: 'Objet',
   noSelectedValue: 'Pas de valeur sélectionnée',
-  selectEntities: 'Select. utilisateurs et/ou groupe(s)',
+  selectSubjects: 'Select. utilisateurs et/ou groupe(s)',
   selectHosts: 'Selectionner Hôte(s)...',
   selectNetworks: 'Selectionner Network(s)...',
   selectPools: 'Selectionner Pool(s)...',

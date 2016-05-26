@@ -1,165 +1,29 @@
+import BaseComponent from 'base-component'
 import ChartistGraph from 'react-chartist'
 import Icon from 'icon'
 import React, { Component } from 'react'
 import _ from 'messages'
-import forEach from 'lodash/forEach'
-import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
-import store from 'store'
 import { Panel } from 'react-bootstrap-4/lib'
 import { Row, Col } from 'grid'
-import { createGetObject } from 'selectors'
+import { formatSize } from 'utils'
+import { subscribeResourceSets } from 'xo'
 
 import {
-  connectStore,
-  formatSize,
-  propTypes
-} from 'utils'
+  Card,
+  CardBlock,
+  CardHeader
+} from 'card'
 
 import {
-  subscribeGroups,
-  subscribeUsers,
-  subscribeResourceSets
-} from 'xo'
+  ObjectP,
+  Subjects,
+  resolveResourceSets
+} from '../helpers'
 
 // ===================================================================
 
-const getObject = createGetObject((_, id) => id)
-
-// ===================================================================
-
-export const resolveResourceSets = resourceSets => (
-  map(resourceSets, resourceSet => {
-    const { objects, ...attrs } = resourceSet
-    const resolvedObjects = {}
-    const resolvedSet = {
-      ...attrs,
-      missing: [],
-      objects: resolvedObjects
-    }
-    const state = store.getState()
-
-    forEach(objects, id => {
-      const object = getObject(state, id)
-
-      // Error, missing resource.
-      if (!object) {
-        resolvedSet.missing.push(id)
-        return
-      }
-
-      const { type } = object
-
-      if (!resolvedObjects[type]) {
-        resolvedObjects[type] = [ object ]
-      } else {
-        resolvedObjects[type].push(object)
-      }
-    })
-
-    return resolvedSet
-  })
-)
-
-// ===================================================================
-
-@propTypes({
-  entities: propTypes.array.isRequired
-})
-export class Entities extends Component {
-  constructor (props) {
-    super(props)
-    this.state = {
-      groups: [],
-      users: []
-    }
-  }
-
-  componentWillMount () {
-    const unsubscribeGroups = subscribeGroups(groups => {
-      this.setState({
-        groups: keyBy(groups, 'id')
-      })
-    })
-    const unsubscribeUsers = subscribeUsers(users => {
-      this.setState({
-        users: keyBy(users, 'id')
-      })
-    })
-
-    this.componentWillUnmount = () => {
-      unsubscribeGroups()
-      unsubscribeUsers()
-    }
-  }
-
-  render () {
-    const { state } = this
-
-    return (
-      <div>
-        {map(this.props.entities, id => {
-          const entity = state.users[id] || state.groups[id]
-          if (!entity) {
-            return <span key={id} className='m-r-1'>{_('unknownResourceSetValue')}</span>
-          }
-
-          if (entity.email) {
-            return (
-              <span key={id} className='m-r-1'>
-                <Icon icon='user' /> {entity.email}
-              </span>
-            )
-          }
-
-          return (
-            <span key={id} className='m-r-1'>
-              <Icon icon='group' /> {entity.name}
-            </span>
-          )
-        })}
-      </div>
-    )
-  }
-}
-
-// ===================================================================
-
-const OBJECT_TYPE_TO_ICON = {
-  'VM-template': 'vm',
-  'network': 'network',
-  'SR': 'sr'
-}
-
-export const ObjectP = propTypes({
-  object: propTypes.object.isRequired
-})(connectStore(() => {
-  const getPool = createGetObject(
-    (_, props) => props.object.$pool
-  )
-
-  return (state, props) => ({
-    pool: getPool(state, props)
-  })
-})(({ object, pool }) => {
-  const icon = OBJECT_TYPE_TO_ICON[object.type]
-  const { id } = object
-
-  return (
-    <span key={id} className='m-r-1'>
-      <Icon icon={icon} /> {object.name_label || id} {pool && `(${pool.name_label || pool.id})`}
-    </span>
-  )
-}))
-
-// ===================================================================
-
-class ResourceSet extends Component {
-  constructor (props) {
-    super(props)
-    this.state = {}
-  }
-
+class ResourceSet extends BaseComponent {
   _updateOpen = () => {
     this.setState({
       open: !this.state.open
@@ -179,33 +43,33 @@ class ResourceSet extends Component {
 
     return (
       <div className='p-b-1'>
-        <button className='card-header btn btn-lg btn-block' onClick={this._updateOpen}>
+        <button className='btn btn-lg btn-primary btn-block' onClick={this._updateOpen}>
           {resourceSet.name} <Icon icon={`chevron-${open ? 'up' : 'down'}`} />
         </button>
         <Panel className='p-t-1' collapsible expanded={open}>
           <ul className='list-group p-b-1'>
             <li className='list-group-item'>
-              <Entities entities={resourceSet.subjects} />
+              <Subjects subjects={resourceSet.subjects} />
             </li>
-            {map(resourceSet.objects, (objectsSet, type) => (
+            {map(resourceSet.objectsByType, (objectsSet, type) => (
               <li key={type} className='list-group-item'>
                 {map(objectsSet, object => <ObjectP key={object.id} object={object} />)}
               </li>
             ))}
           </ul>
         </Panel>
-        {resourceSet.missing.length > 0 &&
+        {resourceSet.missingObjects.length > 0 &&
           <div className='alert alert-danger' role='alert'>
-            <strong>{_('resourceSetMissingObjects')}</strong> {resourceSet.missing.join(', ')}
+            <strong>{_('resourceSetMissingObjects')}</strong> {resourceSet.missingObjects.join(', ')}
           </div>
         }
         <Row>
           <Col mediumSize={4}>
-            <div className='card'>
-              <div className='card-header text-xs-center'>
+            <Card>
+              <CardHeader>
                 <strong><Icon icon='cpu' /> {_('resourceSetVcpus')}</strong>
-              </div>
-              <div className='card-block text-center' style={{ height: '236px' }}>
+              </CardHeader>
+              <CardBlock className='text-center'>
                 {cpus ? (
                   <div>
                     <ChartistGraph
@@ -223,15 +87,15 @@ class ResourceSet extends Component {
                 ) : (
                   <p className='text-xs-center display-1'>&infin;</p>
                 )}
-              </div>
-            </div>
+              </CardBlock>
+            </Card>
           </Col>
           <Col mediumSize={4}>
-            <div className='card'>
-              <div className='card-header text-xs-center'>
+            <Card>
+              <CardHeader>
                 <strong><Icon icon='memory' /> {_('resourceSetMemory')}</strong>
-              </div>
-              <div className='card-block text-center' style={{ height: '236px' }}>
+              </CardHeader>
+              <CardBlock className='text-center'>
                 {memory ? (
                   <div>
                     <ChartistGraph
@@ -249,15 +113,15 @@ class ResourceSet extends Component {
                 ) : (
                   <p className='text-xs-center display-1'>&infin;</p>
                 )}
-              </div>
-            </div>
+              </CardBlock>
+            </Card>
           </Col>
           <Col mediumSize={4}>
-            <div className='card'>
-              <div className='card-header text-xs-center'>
+            <Card>
+              <CardHeader>
                 <strong><Icon icon='disk' /> {_('resourceSetStorage')}</strong>
-              </div>
-              <div className='card-block text-center' style={{ height: '236px' }}>
+              </CardHeader>
+              <CardBlock>
                 {disk ? (
                   <div>
                     <ChartistGraph
@@ -275,8 +139,8 @@ class ResourceSet extends Component {
                 ) : (
                   <p className='text-xs-center display-1'>&infin;</p>
                 )}
-              </div>
-            </div>
+              </CardBlock>
+            </Card>
           </Col>
         </Row>
       </div>
@@ -303,14 +167,14 @@ export default class Dashboard extends Component {
   render () {
     return (
       <div>
-        <div className='card'>
-          <div className='card-header text-xs-center'>
+        <Card>
+          <CardHeader>
             <h5><Icon icon='resource-set' /> {_('selfServiceDashboardPage')}</h5>
-          </div>
-          <div className='card-block'>
+          </CardHeader>
+          <CardBlock>
             {map(this.state.resourceSets, (resourceSet, key) => <ResourceSet key={key} resourceSet={resourceSet} />)}
-          </div>
-        </div>
+          </CardBlock>
+        </Card>
       </div>
     )
   }

@@ -504,7 +504,7 @@ export class SelectTag extends GenericSelect {
       vms => map(vms, '$container')
     )
   ).sort()
-  const getVmsByPool = getVmTemplates.groupBy('$container')
+  const getVmsByPool = getVmTemplates.sort().groupBy('$container')
 
   return (state, props) => ({
     containers: getPools(state, props),
@@ -521,7 +521,7 @@ export class SelectVmTemplate extends GenericSelect {
   _computeOptions (props) {
     let newOptions = []
 
-    forEach(sortBy(props.containers, [ 'type', 'name_label' ]), container => {
+    forEach(props.containers, container => {
       const containerId = container.id
       const containerLabel = container.name_label || containerId
 
@@ -559,7 +559,7 @@ export class SelectVmTemplate extends GenericSelect {
       networks => map(networks, '$pool')
     )
   ).sort()
-  const getNetworksByPool = getNetworks.groupBy('$pool')
+  const getNetworksByPool = getNetworks.sort().groupBy('$pool')
 
   return (state, props) => ({
     networksByPool: getNetworksByPool(state, props),
@@ -604,10 +604,10 @@ export class SelectNetwork extends GenericSelect {
 
 // ===================================================================
 
-export class SelectEntity extends GenericSelect {
+export class SelectSubject extends GenericSelect {
   constructor (props) {
     super(props)
-    this._placeholder = _('selectEntities')
+    this._placeholder = _('selectSubjects')
     this.state = {
       users: {},
       groups: {}
@@ -637,7 +637,7 @@ export class SelectEntity extends GenericSelect {
     }
   }
 
-  _getEntities = () => {
+  _getSubjects = () => {
     const { props: { predicate }, state } = this
     const entities = state.users.concat(state.groups)
     return predicate
@@ -650,13 +650,13 @@ export class SelectEntity extends GenericSelect {
 
     if (this.props.multi) {
       return map(value, value => {
-        const entity = value.value || value
-        return groups[entity] || users[entity]
+        const subject = value.value || value
+        return groups[subject] || users[subject]
       })
     }
 
-    const entity = value.value || value
-    return groups[entity] || users[entity]
+    const subject = value.value || value
+    return groups[subject] || users[subject]
   }
 
   set value (value) {
@@ -668,12 +668,12 @@ export class SelectEntity extends GenericSelect {
       entities = filter(entities, props.predicate)
     }
 
-    return map(entities, entity => {
-      if (entity.email) {
-        return { label: entity.email, value: entity.id, type: 'group' }
+    return map(entities, subject => {
+      if (subject.email) {
+        return { label: subject.email, value: subject.id, type: 'group' }
       }
 
-      return { label: entity.name, value: entity.id, type: 'user' }
+      return { label: subject.name, value: subject.id, type: 'user' }
     })
   }
 }

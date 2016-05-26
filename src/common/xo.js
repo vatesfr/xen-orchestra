@@ -506,7 +506,7 @@ export const createResourceSet = (name, { subjects, objects, limits } = {}) => (
   xo.call('resourceSet.create', { name, subjects, objects, limits })
 )
 
-export const setRessourceSet = (id, { name, subjects, objects, limits } = {}) => (
+export const editRessourceSet = (id, { name, subjects, objects, limits } = {}) => (
   xo.call('resourceSet.set', { id, name, subjects, objects, limits })
 )
 
