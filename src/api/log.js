@@ -30,7 +30,7 @@ async function delete_ ({namespace, id}) {
 
 delete_.description = 'deletes one or several logs from a namespace'
 delete_.params = {
-  id: { type: 'string' },
+  id: { type: [ 'array', 'string' ] },
   namespace: { type: 'string' }
 }
 delete_.permission = 'admin'
