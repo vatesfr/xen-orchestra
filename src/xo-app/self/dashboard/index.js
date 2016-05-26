@@ -1,10 +1,10 @@
 import BaseComponent from 'base-component'
 import ChartistGraph from 'react-chartist'
+import Collapse from 'collapse'
 import Icon from 'icon'
 import React, { Component } from 'react'
 import _ from 'messages'
 import map from 'lodash/map'
-import { Panel } from 'react-bootstrap-4/lib'
 import { Row, Col } from 'grid'
 import { formatSize } from 'utils'
 import { subscribeResourceSets } from 'xo'
@@ -24,14 +24,7 @@ import {
 // ===================================================================
 
 class ResourceSet extends BaseComponent {
-  _updateOpen = () => {
-    this.setState({
-      open: !this.state.open
-    })
-  }
-
   render () {
-    const { open } = this.state
     const { resourceSet } = this.props
     const {
       limits: {
@@ -43,10 +36,7 @@ class ResourceSet extends BaseComponent {
 
     return (
       <div className='p-b-1'>
-        <button className='btn btn-lg btn-primary btn-block' onClick={this._updateOpen}>
-          {resourceSet.name} <Icon icon={`chevron-${open ? 'up' : 'down'}`} />
-        </button>
-        <Panel className='p-t-1' collapsible expanded={open}>
+        <Collapse buttonText={resourceSet.name} className='p-b-1'>
           <ul className='list-group p-b-1'>
             <li className='list-group-item'>
               <Subjects subjects={resourceSet.subjects} />
@@ -57,7 +47,7 @@ class ResourceSet extends BaseComponent {
               </li>
             ))}
           </ul>
-        </Panel>
+        </Collapse>
         {resourceSet.missingObjects.length > 0 &&
           <div className='alert alert-danger' role='alert'>
             <strong>{_('resourceSetMissingObjects')}</strong> {resourceSet.missingObjects.join(', ')}
