@@ -7,7 +7,7 @@ import React, { Component } from 'react'
 import TabButton from 'tab-button'
 import { connectStore } from 'utils'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import { Text } from 'editable'
 import {
   createGetObjectsOfType
@@ -32,9 +32,9 @@ export default class TabSnapshot extends Component {
   render () {
     const { snapshots, vm } = this.props
 
-    return <div>
+    return <Container>
       <Row>
-        <Col smallSize={12} className='text-xs-right'>
+        <Col mediumSize={12} className='text-xs-right'>
           <TabButton
             btnStyle='primary'
             handler={snapshotVm}
@@ -46,13 +46,13 @@ export default class TabSnapshot extends Component {
       </Row>
       {isEmpty(snapshots)
         ? <Row>
-          <Col smallSize={12} className='text-xs-center'>
+          <Col mediumSize={12} className='text-xs-center'>
             <h4>{_('noSnapshots')}</h4>
             <p><em><Icon icon='info' size={1} /> {_('tipLabel')} {_('tipCreateSnapshotLabel')}</em></p>
           </Col>
         </Row>
         : <Row>
-          <Col smallSize={12}>
+          <Col mediumSize={12}>
             <table className='table'>
               <thead className='thead-default'>
                 <tr>
@@ -89,6 +89,6 @@ export default class TabSnapshot extends Component {
           </Col>
         </Row>
       }
-    </div>
+    </Container>
   }
 }

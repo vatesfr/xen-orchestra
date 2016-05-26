@@ -6,15 +6,15 @@ import TabButton from 'tab-button'
 import { Toggle } from 'form'
 import { enableHost, disableHost, restartHost } from 'xo'
 import { FormattedRelative } from 'react-intl'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 
 const forceReboot = host => restartHost(host, true)
 
 export default ({
   host
-}) => <div>
+}) => <Container>
   <Row>
-    <Col smallSize={12} className='text-xs-right'>
+    <Col mediumSize={12} className='text-xs-right'>
       {host.power_state === 'Running' &&
         <TabButton
           btnStyle='warning'
@@ -43,7 +43,7 @@ export default ({
     </Col>
   </Row>
   <Row>
-    <Col smallSize={12}>
+    <Col mediumSize={12}>
       <h3>{_('xenSettingsLabel')}</h3>
       <table className='table'>
         <tbody>
@@ -152,4 +152,4 @@ export default ({
       </table>
     </Col>
   </Row>
-</div>
+</Container>

@@ -6,7 +6,7 @@ import Tags from 'tags'
 import Tooltip from 'tooltip'
 import { addTag, removeTag } from 'xo'
 import { FormattedRelative } from 'react-intl'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import {
   BlockLink,
   formatSize
@@ -23,7 +23,7 @@ export default ({
   host,
   vmController,
   vms
-}) => <div>
+}) => <Container>
   <br />
   <Row className='text-xs-center'>
     <Col mediumSize={3}>
@@ -45,26 +45,26 @@ export default ({
   </Row>
   <br />
   <Row className='text-xs-center'>
-    <Col smallSize={3}>
+    <Col mediumSize={3}>
       <p className='text-xs-center'>{_('started', { ago: <FormattedRelative value={host.startTime * 1000} /> })}</p>
     </Col>
-    <Col smallSize={3}>
+    <Col mediumSize={3}>
       <p>{host.license_params.sku_marketing_name} {host.license_params.version} ({host.license_params.sku_type})</p>
     </Col>
-    <Col smallSize={3}>
+    <Col mediumSize={3}>
       <p>{host.address}</p>
     </Col>
-    <Col smallSize={3}>
+    <Col mediumSize={3}>
       <p>{host.bios_strings['system-manufacturer']} {host.bios_strings['system-product-name']}</p>
     </Col>
   </Row>
   <Row>
-    <Col smallSize={12} className='text-xs-center'>
+    <Col mediumSize={12} className='text-xs-center'>
       <h5>RAM usage:</h5>
     </Col>
   </Row>
   <Row>
-    <Col smallOffset={1} smallSize={10}>
+    <Col smallOffset={1} mediumSize={10}>
       <span className='progress'>
         <Tooltip content='XenServer'>
           <span
@@ -86,10 +86,10 @@ export default ({
     </Col>
   </Row>
   <Row>
-    <Col smallSize={12}>
+    <Col mediumSize={12}>
       <h2 className='text-xs-center'>
         <Tags labels={host.tags} onDelete={tag => removeTag(host.id, tag)} onAdd={tag => addTag(host.id, tag)} />
       </h2>
     </Col>
   </Row>
-</div>
+</Container>

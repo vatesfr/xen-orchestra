@@ -4,13 +4,13 @@ import Icon from 'icon'
 import React from 'react'
 import TabButton from 'tab-button'
 import { deleteSr } from 'xo'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 
 export default ({
   sr
-}) => <div>
+}) => <Container>
   <Row>
-    <Col smallSize={12} className='text-xs-right'>
+    <Col mediumSize={12} className='text-xs-right'>
       <TabButton
         btnStyle='danger'
         handler={deleteSr}
@@ -21,7 +21,7 @@ export default ({
     </Col>
   </Row>
   <Row>
-    <Col smallSize={12}>
+    <Col mediumSize={12}>
       <h3>{_('xenSettingsLabel')}</h3>
       <table className='table'>
         <tbody>
@@ -41,4 +41,4 @@ export default ({
       </table>
     </Col>
   </Row>
-</div>
+</Container>

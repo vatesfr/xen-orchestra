@@ -3,15 +3,15 @@ import React from 'react'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import TabButton from 'tab-button'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 
 export default ({
   host,
   networks,
   pifs
-}) => <div>
+}) => <Container>
   <Row>
-    <Col smallSize={12} className='text-xs-right'>
+    <Col mediumSize={12} className='text-xs-right'>
       <TabButton
         btnStyle='primary'
         handler={() => null(host)} // TODO: add network
@@ -21,7 +21,7 @@ export default ({
     </Col>
   </Row>
   <Row>
-    <Col smallSize={12}>
+    <Col mediumSize={12}>
       {!isEmpty(pifs)
         ? <span>
           <table className='table'>
@@ -50,10 +50,10 @@ export default ({
                   <td>{pif.mtu}</td>
                   <td>
                     {pif.attached
-                      ? <span className='label label-success'>
+                      ? <span className='tag tag-success'>
                           {_('pifStatusConnected')}
                       </span>
-                      : <span className='label label-default'>
+                      : <span className='tag tag-default'>
                           {_('pifStatusDisconnected')}
                       </span>
                     }
@@ -67,4 +67,4 @@ export default ({
       }
     </Col>
   </Row>
-</div>
+</Container>

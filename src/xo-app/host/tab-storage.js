@@ -5,16 +5,16 @@ import React from 'react'
 import TabButton from 'tab-button'
 import { editSr } from 'xo'
 import { Link } from 'react-router'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import { formatSize } from 'utils'
 import { Text } from 'editable'
 
 export default ({
   srs,
   pbds
-}) => <div>
+}) => <Container>
   <Row>
-    <Col smallSize={12} className='text-xs-right'>
+    <Col mediumSize={12} className='text-xs-right'>
       <TabButton
         btnStyle='primary'
         handler={() => null()} // TODO: add SR
@@ -24,7 +24,7 @@ export default ({
     </Col>
   </Row>
   <Row>
-    <Col smallSize={12}>
+    <Col mediumSize={12}>
       {!isEmpty(pbds)
         ? <span>
           <table className='table'>
@@ -60,10 +60,10 @@ export default ({
                   </td>
                   <td>
                     {pbd.attached
-                      ? <span className='label label-success'>
+                      ? <span className='tag tag-success'>
                           {_('pbdStatusConnected')}
                       </span>
-                      : <span className='label label-default'>
+                      : <span className='tag tag-default'>
                           {_('pbdStatusDisconnected')}
                       </span>
                     }
@@ -77,4 +77,4 @@ export default ({
       }
     </Col>
   </Row>
-</div>
+</Container>

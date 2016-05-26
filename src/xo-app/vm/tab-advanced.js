@@ -6,7 +6,7 @@ import React from 'react'
 import TabButton from 'tab-button'
 import { Toggle } from 'form'
 import { Size, Text } from 'editable'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import { formatSize, normalizeXenToolsStatus, osFamily } from 'utils'
 import {
   cloneVm,
@@ -25,9 +25,9 @@ const fullCopy = vm => cloneVm(vm, true)
 
 export default ({
   vm
-}) => <div>
+}) => <Container>
   <Row>
-    <Col smallSize={12} className='text-xs-right'>
+    <Col mediumSize={12} className='text-xs-right'>
       {vm.power_state === 'Running' &&
         <span>
           <TabButton
@@ -87,7 +87,7 @@ export default ({
     </Col>
   </Row>
   <Row>
-    <Col smallSize={12}>
+    <Col mediumSize={12}>
       <h3>{_('xenSettingsLabel')}</h3>
       <table className='table'>
         <tbody>
@@ -193,4 +193,4 @@ export default ({
       </table>
     </Col>
   </Row>
-</div>
+</Container>

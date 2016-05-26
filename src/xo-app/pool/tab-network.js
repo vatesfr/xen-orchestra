@@ -3,7 +3,7 @@ import React, { Component } from 'react'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import { Text } from 'editable'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import { editNetwork } from 'xo'
 import { connectStore } from 'utils'
 import { createGetObject, createSelector } from 'selectors'
@@ -37,10 +37,10 @@ class PifItem extends Component {
       <td>{pif.mac}</td>
       <td>
         {pif.attached
-          ? <span className='label label-success'>
+          ? <span className='tag tag-success'>
             {_('poolNetworkPifAttached')}
           </span>
-          : <span className='label label-default'>
+          : <span className='tag tag-default'>
             {_('poolNetworkPifDetached')}
           </span>
           }
@@ -51,9 +51,9 @@ class PifItem extends Component {
 
 export default ({
   networks
-}) => <div>
+}) => <Container>
   <Row>
-    <Col smallSize={12}>
+    <Col mediumSize={12}>
       {!isEmpty(networks)
         ? <span>
           <table className='table'>
@@ -104,4 +104,4 @@ export default ({
       }
     </Col>
   </Row>
-</div>
+</Container>

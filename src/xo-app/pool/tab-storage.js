@@ -4,15 +4,15 @@ import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import { Text } from 'editable'
 import { formatSize } from 'utils'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import { editSr } from 'xo'
 
 export default ({
   hosts,
   srs
-}) => <div>
+}) => <Container>
   <Row>
-    <Col smallSize={12}>
+    <Col mediumSize={12}>
       {!isEmpty(srs)
         ? <div>
           <table className='table'>
@@ -51,4 +51,4 @@ export default ({
       }
     </Col>
   </Row>
-</div>
+</Container>

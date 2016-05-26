@@ -7,7 +7,7 @@ import TabButton from 'tab-button'
 import { connectStore } from 'utils'
 import { deleteMessage } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import {
   createGetObjectsOfType
 } from 'selectors'
@@ -29,16 +29,16 @@ export default class TabLogs extends Component {
 
     if (isEmpty(logs)) {
       return <Row>
-        <Col smallSize={12} className='text-xs-center'>
+        <Col mediumSize={12} className='text-xs-center'>
           <br />
           <h4>{_('noLogs')}</h4>
         </Col>
       </Row>
     }
 
-    return <div>
+    return <Container>
       <Row>
-        <Col smallSize={12} className='text-xs-right'>
+        <Col mediumSize={12} className='text-xs-right'>
           <TabButton
             btnStyle='danger'
             handler={this._deleteAllLogs}
@@ -48,7 +48,7 @@ export default class TabLogs extends Component {
         </Col>
       </Row>
       <Row>
-        <Col smallSize={12}>
+        <Col mediumSize={12}>
           <table className='table'>
             <thead className='thead-default'>
               <tr>
@@ -78,6 +78,6 @@ export default class TabLogs extends Component {
           </table>
         </Col>
       </Row>
-    </div>
+    </Container>
   }
 }

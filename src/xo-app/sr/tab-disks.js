@@ -5,16 +5,16 @@ import map from 'lodash/map'
 import React from 'react'
 import Icon from 'icon'
 import { deleteVdi, editVdi } from 'xo'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import { formatSize } from 'utils'
 import { Text } from 'editable'
 
 export default ({
   sr,
   vdis
-}) => <div>
+}) => <Container>
   <Row>
-    <Col smallSize={12}>
+    <Col mediumSize={12}>
       {!isEmpty(vdis)
         ? <span>
           <table className='table'>
@@ -34,7 +34,7 @@ export default ({
                     <Text value={vdi.name_label} onChange={value => editVdi(vdi, { name_label: value })} />
                     {' '}
                     {vdi.type === 'VDI-snapshot' &&
-                      <span className='label label-info'>
+                      <span className='tag tag-info'>
                         <Icon icon='vm-snapshot' />
                       </span>
                     }
@@ -61,4 +61,4 @@ export default ({
       }
     </Col>
   </Row>
-</div>
+</Container>

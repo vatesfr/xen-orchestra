@@ -4,7 +4,7 @@ import map from 'lodash/map'
 import React, { Component } from 'react'
 import TabButton from 'tab-button'
 import { connectStore } from 'utils'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import {
   createGetObjectsOfType,
   createSelector
@@ -34,9 +34,9 @@ export default class TabNetwork extends Component {
       vm
     } = this.props
 
-    return <div>
+    return <Container>
       <Row>
-        <Col smallSize={12} className='text-xs-right'>
+        <Col mediumSize={12} className='text-xs-right'>
           <TabButton
             btnStyle='primary'
             handler={() => null()} // TODO: add vif
@@ -46,44 +46,46 @@ export default class TabNetwork extends Component {
         </Col>
       </Row>
       <Row>
-        <Col smallSize={12}>
+        <Col mediumSize={12}>
           {!isEmpty(vifs)
             ? <span>
-              <table className='table'>
-                <thead className='thead-default'>
-                  <tr>
-                    <th>{_('vifDeviceLabel')}</th>
-                    <th>{_('vifMacLabel')}</th>
-                    <th>{_('vifMtuLabel')}</th>
-                    <th>{_('vifNetworkLabel')}</th>
-                    <th>{_('vifStatusLabel')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {map(vifs, vif =>
-                    <tr key={vif.id}>
-                      <td>VIF #{vif.device}</td>
-                      <td><pre>{vif.MAC}</pre></td>
-                      <td>{vif.MTU}</td>
-                      <td>{networks[vif.$network].name_label}</td>
-                      <td>
-                        {vif.attached
-                          ? <span className='label label-success'>
-                              {_('vifStatusConnected')}
-                          </span>
-                          : <span className='label label-default'>
-                              {_('vifStatusDisconnected')}
-                          </span>
-                        }
-                      </td>
+              <div className='table-responsive'>
+                <table className='table' style={{ minWidth: '0' }}>
+                  <thead>
+                    <tr>
+                      <th>{_('vifDeviceLabel')}</th>
+                      <th>{_('vifMacLabel')}</th>
+                      <th>{_('vifMtuLabel')}</th>
+                      <th>{_('vifNetworkLabel')}</th>
+                      <th>{_('vifStatusLabel')}</th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {map(vifs, vif =>
+                      <tr key={vif.id}>
+                        <td>VIF #{vif.device}</td>
+                        <td><pre>{vif.MAC}</pre></td>
+                        <td>{vif.MTU}</td>
+                        <td>{networks[vif.$network].name_label}</td>
+                        <td>
+                          {vif.attached
+                            ? <span className='tag tag-success'>
+                                {_('vifStatusConnected')}
+                            </span>
+                            : <span className='tag tag-default'>
+                                {_('vifStatusDisconnected')}
+                            </span>
+                          }
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
               {vm.addresses && !isEmpty(vm.addresses)
                 ? <span>
                   <h4>{_('vifIpAddresses')}</h4>
-                  {map(vm.addresses, address => <span key={address} className='label label-info label-ip'>{address}</span>)}
+                  {map(vm.addresses, address => <span key={address} className='tag tag-info tag-ip'>{address}</span>)}
                 </span>
                 : _('noIpRecord')
               }
@@ -92,6 +94,6 @@ export default class TabNetwork extends Component {
           }
         </Col>
       </Row>
-    </div>
+    </Container>
   }
 }

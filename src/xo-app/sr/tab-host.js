@@ -3,15 +3,15 @@ import React from 'react'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import { Text } from 'editable'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import { editHost } from 'xo'
 
 export default ({
   hosts,
   pbds
-}) => <div>
+}) => <Container>
   <Row>
-    <Col smallSize={12}>
+    <Col mediumSize={12}>
       {!isEmpty(hosts)
         ? <div>
           <table className='table'>
@@ -34,10 +34,10 @@ export default ({
                   </td>
                   <td>
                     {pbd.attached
-                      ? <span className='label label-success'>
+                      ? <span className='tag tag-success'>
                         {_('pbdStatusConnected')}
                       </span>
-                      : <span className='label label-default'>
+                      : <span className='tag tag-default'>
                         {_('pbdStatusDisconnected')}
                       </span>
                     }
@@ -51,4 +51,4 @@ export default ({
       }
     </Col>
   </Row>
-</div>
+</Container>

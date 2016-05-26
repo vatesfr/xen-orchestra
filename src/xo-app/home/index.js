@@ -177,7 +177,7 @@ class VmItem extends Component {
             </span>
           </Col>
           <Col largeSize={4} className={styles.itemExpanded}>
-            {map(vm.addresses, address => <span key={address} className='label label-info label-ip'>{address}</span>)}
+            {map(vm.addresses, address => <span key={address} className='tag tag-info tag-ip'>{address}</span>)}
           </Col>
           <Col mediumSize={4}>
             <span style={{fontSize: '1.4em'}}>
@@ -341,7 +341,7 @@ export default class Home extends Component {
         <Col mediumSize={6}>
           <div className='input-group'>
             <div className='input-group-btn'>
-              <DropdownButton id='filter' bsStyle='secondary' title={_('homeFilters')}>
+              <DropdownButton id='filter' bsStyle='info' title={_('homeFilters')}>
                 <MenuItem onClick={this._filterRunning}>
                   {_('homeFilterRunningVms')}
                 </MenuItem>

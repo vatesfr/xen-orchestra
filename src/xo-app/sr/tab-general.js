@@ -4,13 +4,13 @@ import React from 'react'
 import Tags from 'tags'
 import Tooltip from 'tooltip'
 import { addTag, removeTag } from 'xo'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import { formatSize } from 'utils'
 
 export default ({
   sr,
   vdis
-}) => <div>
+}) => <Container>
   <Row className='text-xs-center'>
     <Col mediumSize={4}>
       <h2>{sr.VDIs.length}x <Icon icon='disk' size='lg' /></h2>
@@ -24,12 +24,12 @@ export default ({
     </Col>
   </Row>
   <Row>
-    <Col smallSize={12} className='text-xs-center'>
+    <Col mediumSize={12} className='text-xs-center'>
       <h5>Disk usage:</h5>
     </Col>
   </Row>
   <Row>
-    <Col smallOffset={1} smallSize={10}>
+    <Col smallOffset={1} mediumSize={10}>
       <span className='progress'>
         {map(vdis, vdi => (
           <Tooltip key={vdi.id} content={vdi.name_label}>
@@ -45,10 +45,10 @@ export default ({
     </Col>
   </Row>
   <Row className='text-xs-center'>
-    <Col smallSize={12}>
+    <Col mediumSize={12}>
       <h2 className='text-xs-center'>
         <Tags labels={sr.tags} onDelete={tag => removeTag(sr.id, tag)} onAdd={tag => addTag(sr.id, tag)} />
       </h2>
     </Col>
   </Row>
-</div>
+</Container>

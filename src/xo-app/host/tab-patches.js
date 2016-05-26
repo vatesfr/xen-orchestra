@@ -4,7 +4,7 @@ import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import TabButton from 'tab-button'
 import React, { Component } from 'react'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import { formatSize } from 'utils'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 
@@ -12,14 +12,14 @@ export default class HostPatches extends Component {
   render () {
     const { poolPatches, missingPatches, installAllPatches, installPatch } = this.props
     return (
-      <div>
+      <Container>
         <Row>
-          <Col smallSize={12}>
+          <Col mediumSize={12}>
             {isEmpty(missingPatches)
               ? <h4>{_('hostUpToDate')}</h4>
               : <span>
                 <Row>
-                  <Col smallSize={12} className='text-xs-right'>
+                  <Col mediumSize={12} className='text-xs-right'>
                     <TabButton
                       btnStyle='primary'
                       handler={installAllPatches}
@@ -29,7 +29,7 @@ export default class HostPatches extends Component {
                   </Col>
                 </Row>
                 <Row>
-                  <Col smallSize={12}>
+                  <Col mediumSize={12}>
                     <h3>{_('hostMissingPatches')}</h3>
                     <table className='table'>
                       <thead className='thead-default'>
@@ -67,7 +67,7 @@ export default class HostPatches extends Component {
           </Col>
         </Row>
         <Row>
-          <Col smallSize={12}>
+          <Col mediumSize={12}>
             {!isEmpty(poolPatches)
               ? <span>
                 <h3>{_('hostInstalledPatches')}</h3>
@@ -90,10 +90,10 @@ export default class HostPatches extends Component {
                         <td>{formatSize(poolPatch.size)}</td>
                         {/* <td>
                           {patch.applied
-                            ? <span className='label label-success'>
+                            ? <span className='tag tag-success'>
                                 {_('patchStatusApplied')}
                             </span>
-                            : <span className='label label-default'>
+                            : <span className='tag tag-default'>
                                 {_('patchStatusNotApplied')}
                             </span>
                           }
@@ -107,7 +107,7 @@ export default class HostPatches extends Component {
             }
           </Col>
         </Row>
-      </div>
+      </Container>
     )
   }
 }
