@@ -1,6 +1,7 @@
 import _ from 'messages'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
+import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React, { Component } from 'react'
 import SingleLineRow from 'single-line-row'
@@ -105,10 +106,7 @@ export default class MigrateVmModalBody extends Component {
     }
   }
 
-  _selectHost = host => {
-    console.log('host = ', host)
-    this.setState({ host, intraPool: host ? this.props.vm.$pool === host.$pool : undefined })
-  }
+  _selectHost = host => this.setState({ host, intraPool: isEmpty(host) ? undefined : this.props.vm.$pool === host.$pool })
   _selectMigrationNetwork = network => this.setState({ network })
 
   _getSelectSr = vdiId =>
@@ -131,62 +129,64 @@ export default class MigrateVmModalBody extends Component {
         </SingleLineRow>
       </div>
       {this.state.intraPool !== undefined &&
-      (this.state.intraPool ? <p><em><Icon icon='info' size={1} /> {_('migrateVmAdvancedModalNoRemapping')}</em></p>
-      : <div>
-        <div className={styles.block}>
-          <SingleLineRow>
-            <Col size={6}>{_('migrateVmAdvancedModalSelectNetwork')}</Col>
-            <Col size={6}>
-              <SelectNetwork
-                onChange={this._selectMigrationNetwork}
-                predicate={this._getNetworkPredicate()}
-              />
-            </Col>
-          </SingleLineRow>
-        </div>
-        <div className={styles.block}>
-          <SingleLineRow>
-            <Col size={12}>{_('migrateVmAdvancedModalSelectSrs')}</Col>
-          </SingleLineRow>
-          &nbsp;
-          <SingleLineRow>
-            <Col size={6}><span className={styles.listTitle}>{_('migrateVmAdvancedModalName')}</span></Col>
-            <Col size={6}><span className={styles.listTitle}>{_('migrateVmAdvancedModalSr')}</span></Col>
-          </SingleLineRow>
-          {map(this.props.vdis, vdi => <div className={styles.listItem} key={vdi.id}>
+      (this.state.intraPool
+        ? <p><em><Icon icon='info' size={1} /> {_('migrateVmAdvancedModalNoRemapping')}</em></p>
+        : <div>
+          <div className={styles.block}>
             <SingleLineRow>
-              <Col size={6}>{vdi.name_label}</Col>
-              <Col size={6}>
-                <SelectSr
-                  onChange={this._getSelectSr(vdi.id)}
-                  predicate={this._getSrPredicate()}
-                />
-              </Col>
-            </SingleLineRow>
-          </div>)}
-        </div>
-        <div className={styles.block}>
-          <SingleLineRow>
-            <Col size={12}>{_('migrateVmAdvancedModalSelectNetworks')}</Col>
-          </SingleLineRow>
-          &nbsp;
-          <SingleLineRow>
-            <Col size={6}><span className={styles.listTitle}>{_('migrateVmAdvancedModalVif')}</span></Col>
-            <Col size={6}><span className={styles.listTitle}>{_('migrateVmAdvancedModalNetwork')}</span></Col>
-          </SingleLineRow>
-          {map(this.props.vifs, vif => <div className={styles.listItem} key={vif.id}>
-            <SingleLineRow>
-              <Col size={6}>{vif.MAC}</Col>
+              <Col size={6}>{_('migrateVmAdvancedModalSelectNetwork')}</Col>
               <Col size={6}>
                 <SelectNetwork
-                  onChange={this._getSelectNetwork(vif.id)}
+                  onChange={this._selectMigrationNetwork}
                   predicate={this._getNetworkPredicate()}
                 />
               </Col>
             </SingleLineRow>
-          </div>)}
+          </div>
+          <div className={styles.block}>
+            <SingleLineRow>
+              <Col size={12}>{_('migrateVmAdvancedModalSelectSrs')}</Col>
+            </SingleLineRow>
+            &nbsp;
+            <SingleLineRow>
+              <Col size={6}><span className={styles.listTitle}>{_('migrateVmAdvancedModalName')}</span></Col>
+              <Col size={6}><span className={styles.listTitle}>{_('migrateVmAdvancedModalSr')}</span></Col>
+            </SingleLineRow>
+            {map(this.props.vdis, vdi => <div className={styles.listItem} key={vdi.id}>
+              <SingleLineRow>
+                <Col size={6}>{vdi.name_label}</Col>
+                <Col size={6}>
+                  <SelectSr
+                    onChange={this._getSelectSr(vdi.id)}
+                    predicate={this._getSrPredicate()}
+                  />
+                </Col>
+              </SingleLineRow>
+            </div>)}
+          </div>
+          <div className={styles.block}>
+            <SingleLineRow>
+              <Col size={12}>{_('migrateVmAdvancedModalSelectNetworks')}</Col>
+            </SingleLineRow>
+            &nbsp;
+            <SingleLineRow>
+              <Col size={6}><span className={styles.listTitle}>{_('migrateVmAdvancedModalVif')}</span></Col>
+              <Col size={6}><span className={styles.listTitle}>{_('migrateVmAdvancedModalNetwork')}</span></Col>
+            </SingleLineRow>
+            {map(this.props.vifs, vif => <div className={styles.listItem} key={vif.id}>
+              <SingleLineRow>
+                <Col size={6}>{vif.MAC}</Col>
+                <Col size={6}>
+                  <SelectNetwork
+                    onChange={this._getSelectNetwork(vif.id)}
+                    predicate={this._getNetworkPredicate()}
+                  />
+                </Col>
+              </SingleLineRow>
+            </div>)}
+          </div>
         </div>
-      </div>)}
+      )}
     </div>
   }
 }
