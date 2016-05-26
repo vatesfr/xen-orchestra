@@ -25,7 +25,9 @@ import {
 } from 'utils'
 
 import {
-  subscribeRemotes
+  subscribeGroups,
+  subscribeRemotes,
+  subscribeUsers
 } from 'xo'
 
 // ===================================================================
@@ -58,8 +60,20 @@ class GenericSelect extends Component {
   }
 
   componentWillReceiveProps (props) {
+    const options = this._computeOptions(props)
+    const { objects } = props
+
+    this.setState({ options })
+
+    if (!objects) {
+      return
+    }
+
+    // Reset selected values if options are changed.
     this.setState({
-      options: this._computeOptions(props)
+      value: this._setValue(
+        filter(this.value, value => value && objects[value.id])
+      )
     })
   }
 
@@ -275,10 +289,12 @@ export class SelectRemote extends GenericSelect {
 
 // ===================================================================
 
+const userSrPredicate = sr => sr.content_type === 'user'
+
 @connectStore(() => {
-  const getSrs = createGetObjectsOfType('SR').filter([
-    sr => sr.content_type === 'user'
-  ])
+  const getSrs = createGetObjectsOfType('SR').filter(
+    (_, { predicate }) => predicate || userSrPredicate
+  )
   const getHosts = createGetObjectsOfType('host').pick(
     createSelector(
       getSrs,
@@ -326,9 +342,15 @@ export class SelectSr extends GenericSelect {
       newOptions.push.apply(newOptions,
         map(props.srsByContainer[containerId], sr => {
           const { id } = sr
+          let label = `${sr.name_label || id}`
+
+          if (sr.content_type === 'user') {
+            label += ` (${formatSize(sr.size)})`
+          }
+
           return {
             value: id,
-            label: `${sr.name_label || id} (${formatSize(sr.size)})`,
+            label,
             type: 'disk'
           }
         })
@@ -465,6 +487,193 @@ export class SelectTag extends GenericSelect {
         value: tag,
         label: tag,
         type: 'tags'
-      }))
+      })
+    )
+  }
+}
+
+// ===================================================================
+
+@connectStore(() => {
+  const getVmTemplates = createGetObjectsOfType('VM-template').filter(
+    (state, props) => props.predicate
+  )
+  const getPools = createGetObjectsOfType('pool').pick(
+    createSelector(
+      getVmTemplates,
+      vms => map(vms, '$container')
+    )
+  ).sort()
+  const getVmsByPool = getVmTemplates.sort().groupBy('$container')
+
+  return (state, props) => ({
+    containers: getPools(state, props),
+    objects: getVmTemplates(state, props),
+    vmTemplatesByContainer: getVmsByPool(state, props)
+  })
+}, { withRef: true })
+export class SelectVmTemplate extends GenericSelect {
+  constructor (props) {
+    super(props)
+    this._placeholder = _('selectVms')
+  }
+
+  _computeOptions (props) {
+    let newOptions = []
+
+    forEach(props.containers, container => {
+      const containerId = container.id
+      const containerLabel = container.name_label || containerId
+
+      newOptions.push({
+        label: containerLabel,
+        disabled: true,
+        type: container.type
+      })
+
+      newOptions.push.apply(newOptions,
+        map(props.vmTemplatesByContainer[containerId], vm => {
+          const { id } = vm
+          return {
+            value: id,
+            label: `${vm.name_label || id} (${containerLabel})`,
+            type: 'vm'
+          }
+        })
+      )
+    })
+
+    return newOptions
+  }
+}
+
+// ===================================================================
+
+@connectStore(() => {
+  const getNetworks = createGetObjectsOfType('network').filter(
+    (state, props) => props.predicate
+  )
+  const getPools = createGetObjectsOfType('pool').pick(
+    createSelector(
+      getNetworks,
+      networks => map(networks, '$pool')
+    )
+  ).sort()
+  const getNetworksByPool = getNetworks.sort().groupBy('$pool')
+
+  return (state, props) => ({
+    networksByPool: getNetworksByPool(state, props),
+    objects: getNetworks(state, props),
+    pools: getPools(state, props)
+  })
+}, { withRef: true })
+export class SelectNetwork extends GenericSelect {
+  constructor (props) {
+    super(props)
+    this._placeholder = _('selectNetworks')
+  }
+
+  _computeOptions (props) {
+    let newOptions = []
+
+    forEach(props.pools, pool => {
+      const poolId = pool.id
+      const poolLabel = pool.name_label || poolId
+
+      newOptions.push({
+        label: poolLabel,
+        disabled: true,
+        type: pool.type
+      })
+
+      newOptions.push.apply(newOptions,
+        map(props.networksByPool[poolId], network => {
+          const { id } = network
+          return {
+            value: id,
+            label: `${network.name_label || id} (${poolLabel})`,
+            type: 'network'
+          }
+        })
+      )
+    })
+
+    return newOptions
+  }
+}
+
+// ===================================================================
+
+export class SelectSubject extends GenericSelect {
+  constructor (props) {
+    super(props)
+    this._placeholder = _('selectSubjects')
+    this.state = {
+      users: {},
+      groups: {}
+    }
+  }
+
+  componentWillMount () {
+    const unsubscribeGroups = subscribeUsers(users => {
+      users = keyBy(users, 'id')
+      this.setState({
+        users,
+        options: this._computeOptions(this.props, { ...users, ...this.state.groups })
+      })
+    })
+
+    const unsubscribeUsers = subscribeGroups(groups => {
+      groups = keyBy(groups, 'id')
+      this.setState({
+        groups,
+        options: this._computeOptions(this.props, { ...this.state.users, ...groups })
+      })
+    })
+
+    this.componentWillUnmount = () => {
+      unsubscribeGroups()
+      unsubscribeUsers()
+    }
+  }
+
+  _getSubjects = () => {
+    const { props: { predicate }, state } = this
+    const entities = state.users.concat(state.groups)
+    return predicate
+      ? filter(entities, predicate)
+      : entities
+  }
+
+  get value () {
+    const { groups, users, value } = this.state
+
+    if (this.props.multi) {
+      return map(value, value => {
+        const subject = value.value || value
+        return groups[subject] || users[subject]
+      })
+    }
+
+    const subject = value.value || value
+    return groups[subject] || users[subject]
+  }
+
+  set value (value) {
+    super.value = value
+  }
+
+  _computeOptions (props, entities = { ...this.state.users, ...this.state.groups }) {
+    if (props.predicate) {
+      entities = filter(entities, props.predicate)
+    }
+
+    return map(entities, subject => {
+      if (subject.email) {
+        return { label: subject.email, value: subject.id, type: 'group' }
+      }
+
+      return { label: subject.name, value: subject.id, type: 'user' }
+    })
   }
 }

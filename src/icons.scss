@@ -38,6 +38,26 @@
     @extend .fa-undo;
     @extend .text-warning;
   }
+  &-edition {
+    @extend .fa;
+    @extend .fa-pencil-square-o;
+  }
+  &-edit {
+    @extend .fa;
+    @extend .fa-pencil;
+  }
+  &-administration {
+    @extend .fa;
+    @extend .fa-wrench;
+  }
+  &-chevron-up {
+    @extend .fa;
+    @extend .fa-chevron-up;
+  }
+  &-chevron-down {
+    @extend .fa;
+    @extend .fa-chevron-down;
+  }
 
   &-caret {
     @extend .fa;
@@ -114,6 +134,14 @@
   &-delete {
     @extend .fa;
     @extend .fa-trash;
+  }
+  &-self-service {
+    @extend .fa;
+    @extend .fa-cloud;
+  }
+  &-resource-set {
+    @extend .fa;
+    @extend .fa-list-alt;
   }
 
   // Backups
@@ -442,6 +470,10 @@
   &-user {
     @extend .fa;
     @extend .fa-user;
+  }
+  &-group {
+    @extend .fa;
+    @extend .fa-users;
   }
   &-sign-out {
     @extend .fa;

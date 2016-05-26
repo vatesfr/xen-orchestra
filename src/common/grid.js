@@ -47,11 +47,15 @@ export const Container = propTypes({
   {children}
 </div>)
 
+const ROW_STYLE = {
+  display: 'flex'
+}
+
 export const Row = propTypes({
   className: propTypes.string
 })(({
   children,
   className
-}) => <div className={`${className || ''} row`}>
+}) => <div style={ROW_STYLE} className={`${className || ''} row`}>
   {children}
 </div>)
