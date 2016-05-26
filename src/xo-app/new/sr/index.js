@@ -12,7 +12,7 @@ import Wizard, { Section } from 'wizard'
 import { confirm } from 'modal'
 import { connectStore, formatSize } from 'utils'
 import { GenericSelect, SelectHost } from 'select-objects'
-import { hosts, objects, createFilter, createSelector } from 'selectors'
+import { createGetObjectsOfType, createFilter, createSelector } from 'selectors'
 import { injectIntl } from 'react-intl'
 
 class SelectIqn extends GenericSelect {
@@ -22,6 +22,10 @@ class SelectIqn extends GenericSelect {
       label: `${iqn.iqn} (${iqn.ip})`
     }))
   }
+  get value () {
+    const value = this.state.value
+    return value && value.value || value
+  }
 }
 
 class SelectLun extends GenericSelect {
@@ -30,6 +34,10 @@ class SelectLun extends GenericSelect {
       value: lun,
       label: `LUN ${lun.id}: ${lun.serial} - ${formatSize(+lun.size)} - (${lun.vendor})`
     }))
+  }
+  get value () {
+    const value = this.state.value
+    return value && value.value || value
   }
 }
 
@@ -62,8 +70,8 @@ const SR_TYPE_TO_INFO = {
 
 @injectIntl
 @connectStore(() => {
-  const srs = createFilter(objects, () => object => object.type === 'SR', true)
-
+  const hosts = createGetObjectsOfType('host')
+  const srs = createGetObjectsOfType('SR')
   return (state, props) => ({
     hosts: hosts(state, props),
     srs: srs(state, props)
@@ -123,7 +131,7 @@ export default class New extends Component {
 
     const createMethodFactories = {
       nfs: async () => {
-        const previous = await probeSrNfsExists(host, server.value, path)
+        const previous = await probeSrNfsExists(host.id, server.value, path)
         if (previous && previous.length > 0) {
           try {
             await confirm('Previous Path Usage', <p>
@@ -133,10 +141,10 @@ export default class New extends Component {
             return
           }
         }
-        return createSrNfs(host, name.value, description.value, server.value, path)
+        return createSrNfs(host.id, name.value, description.value, server.value, path)
       },
       iscsi: async () => {
-        const previous = await probeSrIscsiExists(host, iqn.ip, iqn.iqn, lun.scsiId, port.value, username && username.value, password && password.value)
+        const previous = await probeSrIscsiExists(host.id, iqn.ip, iqn.iqn, lun.scsiId, port.value, username && username.value, password && password.value)
         if (previous && previous.length > 0) {
           try {
             await confirm('Previous LUN Usage', <p>
@@ -146,12 +154,12 @@ export default class New extends Component {
             return
           }
         }
-        return createSrIscsi(host, name.value, description.value, iqn.ip, iqn.iqn, lun.scsiId, port.value, username && username.value, password && password.value)
+        return createSrIscsi(host.id, name.value, description.value, iqn.ip, iqn.iqn, lun.scsiId, port.value, username && username.value, password && password.value)
       },
-      lvm: () => createSrLvm(host, name.value, description.value, device.value),
-      local: () => createSrIso(host, name.value, description.value, localPath.value, 'local'),
-      nfsiso: () => createSrIso(host, name.value, description.value, `${server.value}:${path}`, 'nfs', username.value, password.value),
-      smb: () => createSrIso(host, name.value, description.value, server.value, 'smb', username.value, password.value)
+      lvm: () => createSrLvm(host.id, name.value, description.value, device.value),
+      local: () => createSrIso(host.id, name.value, description.value, localPath.value, 'local'),
+      nfsiso: () => createSrIso(host.id, name.value, description.value, `${server.value}:${path}`, 'nfs', username.value, password.value),
+      smb: () => createSrIso(host.id, name.value, description.value, server.value, 'smb', username.value, password.value)
     }
 
     try {
@@ -165,10 +173,11 @@ export default class New extends Component {
   }
 
   _handleSrHostSelection = host => this.setState({host})
-  _handleNameChange = name => this.setState({name})
-  _handleDescriptionChange = description => this.setState({description})
+  _handleNameChange = event => this.setState({name: event.target.value})
+  _handleDescriptionChange = event => this.setState({description: event.target.value})
 
-  _handleSrTypeSelection = type => {
+  _handleSrTypeSelection = event => {
+    const type = event.target.value
     this.setState({
       type,
       paths: undefined,
@@ -191,7 +200,7 @@ export default class New extends Component {
 
     try {
       this.setState({loading: true})
-      const luns = await probeSrIscsiLuns(host, iqn.ip, iqn.iqn, username && username.value, password && password.value)
+      const luns = await probeSrIscsiLuns(host.id, iqn.ip, iqn.iqn, username && username.value, password && password.value)
       this.setState({
         iqn,
         luns
@@ -216,7 +225,7 @@ export default class New extends Component {
 
     try {
       this.setState({loading: true})
-      const list = await probeSrIscsiExists(host, iqn.ip, iqn.iqn, lun.scsiId, port.value, username && username.value, password && password.value)
+      const list = await probeSrIscsiExists(host.id, iqn.ip, iqn.iqn, lun.scsiId, port.value, username && username.value, password && password.value)
       const srIds = map(this.getHostSrs(), sr => sr.id)
       const used = filter(list, item => includes(srIds, item.id))
       const unused = filter(list, item => !includes(srIds, item.id))
@@ -256,13 +265,13 @@ export default class New extends Component {
 
     try {
       if (type === 'nfs' || type === 'nfsiso') {
-        const paths = await probeSrNfs(host, server.value)
+        const paths = await probeSrNfs(host.id, server.value)
         this.setState({
           usage: undefined,
           paths
         })
       } else if (type === 'iscsi') {
-        const iqns = await probeSrIscsiIqns(host, server.value, port.value, username && username.value, password && password.value)
+        const iqns = await probeSrIscsiIqns(host.id, server.value, port.value, username && username.value, password && password.value)
         if (!iqns.length) {
           info('iSCSI Detection', 'No IQNs found')
         } else {
@@ -287,7 +296,7 @@ export default class New extends Component {
 
     try {
       this.setState({loading: true})
-      const list = await probeSrNfsExists(host, server.value, path)
+      const list = await probeSrNfsExists(host.id, server.value, path)
       const srIds = map(this.getHostSrs(), sr => sr.id)
       const used = filter(list, item => includes(srIds, item.id))
       const unused = filter(list, item => !includes(srIds, item.id))
@@ -324,7 +333,7 @@ export default class New extends Component {
 
     const method = (type === 'nfsiso') ? reattachSrIso : reattachSr
     try {
-      await method(host, uuid, name, description, type)
+      await method(host.id, uuid, name, description, type)
     } catch (err) {
       error('Reattach', err.message || String(err))
     }
@@ -366,7 +375,7 @@ export default class New extends Component {
                 className='form-control'
                 placeholder='storage name'
                 ref='name'
-                onBlur={event => { this._handleNameChange(event.target.value) }}
+                onBlur={this._handleNameChange}
                 required
                 type='text'
               />
@@ -376,7 +385,7 @@ export default class New extends Component {
                 className='form-control'
                 placeholder='storage description'
                 ref='description'
-                onBlur={event => { this._handleDescriptionChange(event.target.value) }}
+                onBlur={this._handleDescriptionChange}
                 required
                 type='text'
               />
@@ -385,7 +394,7 @@ export default class New extends Component {
                 className='form-control'
                 defaultValue={null}
                 id='selectSrType'
-                onChange={event => { this._handleSrTypeSelection(event.target.value) }}
+                onChange={this._handleSrTypeSelection}
                 required
               >
                 <option value={null}>{formatMessage(messages.noSelectedValue)}</option>
