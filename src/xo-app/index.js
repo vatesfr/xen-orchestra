@@ -17,6 +17,7 @@ import Menu from './menu'
 import Modal, { alert } from 'modal'
 import New from './new'
 import Pool from './pool'
+import Self from './self'
 import Settings from './settings'
 import Sr from './sr'
 import User from './user'
@@ -30,6 +31,7 @@ import Vm from './vm'
   'hosts/:id': Host,
   'pools/:id': Pool,
   new: New,
+  self: Self,
   settings: Settings,
   'srs/:id': Sr,
   user: User,
