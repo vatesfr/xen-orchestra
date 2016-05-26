@@ -164,7 +164,8 @@ export const createPager = (array, page, n = 25) => _createCollectionWrapper(
   _create2(
     array,
     page,
-    (array, page) => {
+    n,
+    (array, page, n) => {
       const start = (page - 1) * n
       return slice(array, start, start + n)
     }
