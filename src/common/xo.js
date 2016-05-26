@@ -368,6 +368,14 @@ export const deleteVms = vms => (
   )
 )
 
+export const importBackup = ({remote, file, sr}) => (
+  xo.call('vm.importBackup', {remote, file, sr})
+)
+
+export const importDeltaBackup = ({sr, remote, filePath}) => (
+  xo.call('vm.importDeltaBackup', {sr, remote, filePath})
+)
+
 export const revertSnapshot = ({ id }) => (
   xo.call('vm.revert', { id })
 )
@@ -540,6 +548,10 @@ export const enableRemote = id => (
 
 export const disableRemote = id => (
   xo.call('remote.set', {id, enabled: false})
+)
+
+export const listRemote = id => (
+  xo.call('remote.list', {id})
 )
 
 // -------------------------------------------------------------------

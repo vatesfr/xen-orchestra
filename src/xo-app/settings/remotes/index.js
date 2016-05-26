@@ -127,7 +127,7 @@ class SmbRemote extends AbstractRemote {
   }
 }
 
-export default class New extends Component {
+export default class Remotes extends Component {
   constructor (props) {
     super(props)
     this.state = {
