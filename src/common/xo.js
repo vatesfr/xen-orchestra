@@ -334,7 +334,7 @@ export const snapshotVms = vms => (
   )
 )
 
-import MigrateVmModalBody from 'migrate-vm'
+import MigrateVmModalBody from '../xo-app/migrate-vm'
 export const migrateVm = (vm, host) => {
   let body
   if (!host) {

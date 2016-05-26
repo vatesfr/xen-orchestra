@@ -21,7 +21,7 @@ import {
   createSelector
 } from 'selectors'
 
-import styles from './migrate-vm.css'
+import styles from './index.css'
 
 @connectStore(() => {
   const getVm = (_, props) => props.vm
