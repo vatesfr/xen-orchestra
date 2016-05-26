@@ -124,7 +124,10 @@ const Sr = connectStore(() => {
     <td>{sr.SR_type}</td>
     <td>{formatSize(sr.size)}</td>
     <td>
-      <progress className='progress' value={sr.physical_usage} max={sr.size} /></td>
+      {sr.size > 1 &&
+        <meter value={(sr.physical_usage / sr.size) * 100} min='0' max='100' optimum='40' low='80' high='90'></meter>
+      }
+    </td>
   </tr>
 )
 
