@@ -68,7 +68,7 @@ export default class Tags extends Component {
 }
 
 export const Tag = ({ label, onDelete }) => (
-  <span className='tag'>
+  <span className='xo-tag'>
     {label}{' '}
     {onDelete
       ? <span onClick={onDelete && (() => onDelete(label))} style={{cursor: 'pointer'}}>
