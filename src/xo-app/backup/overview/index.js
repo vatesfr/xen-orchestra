@@ -6,6 +6,8 @@ import _ from 'messages'
 import forEach from 'lodash/forEach'
 import map from 'lodash/map'
 import sortBy from 'lodash/orderBy'
+import { Row, Col } from 'grid'
+import { Debug } from 'utils'
 
 import {
   enableSchedule,
@@ -118,45 +120,89 @@ export default class Overview extends Component {
     const { state } = this
 
     return (
-      <div className='card'>
-        <div className='card-header text-xs-center'>
-          <h5><Icon icon='schedule' /> Schedules</h5>
-        </div>
-        <div>
-          <table className='table'>
-            <thead className='thead-default'>
-              <tr>
-                <th>{_('job')}</th>
-                <th>{_('jobTag')}</th>
-                <th className='hidden-xs-down'>{_('jobScheduling')}</th>
-                <th>{_('jobState')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {map(state.schedules, (schedule, key) => {
-                return (
-                  <tr key={key}>
-                    <td>{this._getScheduleLabel(schedule)}</td>
-                    <td><a>{this._getScheduleTag(schedule)}</a></td>
-                    <td className='hidden-xs-down'>{schedule.cron}</td>
-                    <td>
-                      {this._getScheduleState(schedule)}
-                      <fieldset className='pull-xs-right'>
-                        {this._getScheduleToggle(schedule)}
-                        <ActionButton
-                          className='btn btn-xs btn-warning m-l-1'
-                          icon='run-schedule'
-                          handler={runJob}
-                          handlerParam={schedule.job}
-                        />
-                      </fieldset>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+      <div>
+        <Row>
+          <Col mediumSize={12}>
+            <div className='card'>
+              <div className='card-header text-xs-center'>
+                <h5><Icon icon='schedule' /> Schedules</h5>
+              </div>
+              <div>
+                <table className='table'>
+                  <thead className='thead-default'>
+                    <tr>
+                      <th>{_('job')}</th>
+                      <th>{_('jobTag')}</th>
+                      <th className='hidden-xs-down'>{_('jobScheduling')}</th>
+                      <th>{_('jobState')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {map(state.schedules, (schedule, key) => {
+                      return (
+                        <tr key={key}>
+                          <td>{this._getScheduleLabel(schedule)}</td>
+                          <td><a>{this._getScheduleTag(schedule)}</a></td>
+                          <td className='hidden-xs-down'>{schedule.cron}</td>
+                          <td>
+                            {this._getScheduleState(schedule)}
+                            <fieldset className='pull-xs-right'>
+                              {this._getScheduleToggle(schedule)}
+                              <ActionButton
+                                className='btn btn-xs btn-warning m-l-1'
+                                icon='run-schedule'
+                                handler={runJob}
+                                handlerParam={schedule.job}
+                              />
+                            </fieldset>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </Col>
+        </Row>
+        <Row>
+          <Col mediumSize={12}>
+            <div className='card'>
+              <div className='card-header text-xs-center'>
+                <h5><Icon icon='logs' /> Logs</h5>
+              </div>
+              <div>
+                <table className='table'>
+                  <thead className='thead-default'>
+                    <tr>
+                      <th>{_('jobId')}</th>
+                      <th>{_('job')}</th>
+                      <th>{_('jobStart')}</th>
+                      <th>{_('jobEnd')}</th>
+                      <th>{_('jobDuration')}</th>
+                      <th>{_('jobStatus')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {map(state.jobs, (job, key) => {
+                      return (
+                        <tr key={job.id}>
+                          <td>{job.id}</td>
+                          <td>{job.key}</td>
+                          <td><Debug value={job} /></td>
+                          <td>{job.start}</td>
+                          <td>{job.end}</td>
+                          <td>{job.duration}</td>
+                          <td>{job.status}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </Col>
+        </Row>
       </div>
     )
   }

@@ -337,6 +337,9 @@ export const messages = {
   job: {
     defaultMessage: 'Job'
   },
+  jobId: {
+    defaultMessage: 'Job ID'
+  },
   jobTag: {
     defaultMessage: 'Tag'
   },
@@ -345,6 +348,30 @@ export const messages = {
   },
   jobState: {
     defaultMessage: 'State'
+  },
+  jobStatus: {
+    defaultMessage: 'Status'
+  },
+  jobStart: {
+    defaultMessage: 'Start'
+  },
+  jobEnd: {
+    defaultMessage: 'End'
+  },
+  jobDuration: {
+    defaultMessage: 'Duration'
+  },
+  jobStateStarted: {
+    defaultMessage: 'Started'
+  },
+  jobStateFinished: {
+    defaultMessage: 'Finished'
+  },
+  jobStateFailed: {
+    defaultMessage: 'Failed'
+  },
+  jobRemoveLogs: {
+    defaultMessage: 'Remove all logs'
   },
   runJob: {
     defaultMessage: 'Run job'

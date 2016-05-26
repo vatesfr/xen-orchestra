@@ -137,6 +137,10 @@
     @extend .fa;
     @extend .fa-map-signs;
   }
+  &-logs {
+    @extend .fa;
+    @extend .fa-file-text;
+  }
 
   // VM
   &-vm {
