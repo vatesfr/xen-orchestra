@@ -142,6 +142,8 @@ const createSubscription = cb => {
 
 export const subscribeJobs = createSubscription(() => xo.call('job.getAll'))
 
+export const subscribeJobsLogs = createSubscription(() => xo.call('log.get', {namespace: 'jobs'}))
+
 export const subscribePermissions = createSubscription(() => xo.call('acl.getCurrentPermissions'))
 
 export const subscribePlugins = createSubscription(() => xo.call('plugin.get'))

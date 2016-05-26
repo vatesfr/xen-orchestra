@@ -63,6 +63,10 @@
     @extend .fa;
     @extend .fa-caret-down;
   }
+  &-caret-up {
+    @extend .fa;
+    @extend .fa-caret-up;
+  }
   &-loading {
     @extend .fa;
     @extend .fa-spinner;
