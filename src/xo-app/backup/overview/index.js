@@ -9,14 +9,16 @@ import map from 'lodash/map'
 import moment from 'moment'
 import orderBy from 'lodash/orderBy'
 import React, { Component } from 'react'
+import { confirm } from 'modal'
 import { connectStore } from 'utils'
 import { createGetObject, createPager } from 'selectors'
 import { FormattedDate } from 'react-intl'
 import { Pagination } from 'react-bootstrap-4/lib'
 
 import {
-  enableSchedule,
+  deleteJobsLog,
   disableSchedule,
+  enableSchedule,
   runJob,
   subscribeJobs,
   subscribeJobsLogs,
@@ -88,7 +90,7 @@ class Log extends Component {
   }
 
   _toggleCalls = () => this.setState({seeCalls: !this.state.seeCalls})
-
+  _delete = id => deleteJobsLog(id).then(() => subscribeJobsLogs.forceRefresh())
   render () {
     const { log } = this.props
     const { seeCalls } = this.state
@@ -110,6 +112,8 @@ class Log extends Component {
           {log.status !== 'Finished' &&
             <span className={classnames('tag', {'tag-warning': log.status === 'In progress', 'tag-default': !log.status})}>{log.status || 'unknown'}</span>
           }
+          {' '}
+          <ActionButton btnStyle='default' size='small' handler={this._delete} handlerParam={log.logKey} icon='delete' />
         </td>
       </tr>
       {seeCalls &&
@@ -135,6 +139,7 @@ export default class Overview extends Component {
     super(props)
     this.state = {
       logs: [],
+      logsToClear: [],
       activePage: 1,
       scheduleTable: {}
     }
@@ -214,7 +219,8 @@ export default class Overview extends Component {
       })
 
       this.setState({
-        logs: orderBy(logs, ['time'], ['desc'])
+        logs: orderBy(logs, ['time'], ['desc']),
+        logsToClear
       })
     })
 
@@ -239,6 +245,13 @@ export default class Overview extends Component {
   }
 
   _onPageSelection = (_, event) => this.setState({activePage: event.eventKey})
+
+  _deleteAllLogs = () => {
+    return confirm({
+      title: 'Delete All Logs',
+      body: <p>Are you sure you want to delete all Job Logs ?</p>
+    }).then(() => deleteJobsLog(this.state.logsToClear).then(() => subscribeJobsLogs.forceRefresh()))
+  }
 
   _getScheduleJob (schedule) {
     const { jobs } = this.state || {}
@@ -337,31 +350,36 @@ export default class Overview extends Component {
             </table>
           </div>
         </div>
-        <table className='table'>
-          <thead>
-            <tr>
-              <th>Job ID</th>
-              <th>Job</th>
-              <th>Start</th>
-              <th>End</th>
-              <th>Duration</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          {map(activePageLogs, log => <Log key={log.logKey} log={log} />)}
-        </table>
-        {logs.length > LOGS_PER_PAGE &&
-          <Pagination
-            first
-            last
-            prev
-            next
-            ellipsis
-            boundaryLinks
-            maxButtons={5}
-            items={ceil(logs.length / LOGS_PER_PAGE)}
-            activePage={activePage}
-            onSelect={this._onPageSelection} />}
+        <div className='card'>
+          <div className='card-header text-xs-center'>
+            <h5><Icon icon='log' /> Logs<span className='pull-right'><ActionButton btnStyle='danger' handler={this._deleteAllLogs} icon='delete' /></span></h5>
+          </div>
+          <table className='table'>
+            <thead className='thead-default'>
+              <tr>
+                <th>Job ID</th>
+                <th>Job</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Duration</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            {map(activePageLogs, log => <Log key={log.logKey} log={log} />)}
+          </table>
+          {logs.length > LOGS_PER_PAGE &&
+            <Pagination
+              first
+              last
+              prev
+              next
+              ellipsis
+              boundaryLinks
+              maxButtons={5}
+              items={ceil(logs.length / LOGS_PER_PAGE)}
+              activePage={activePage}
+              onSelect={this._onPageSelection} />}
+        </div>
       </div>
     )
   }

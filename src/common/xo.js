@@ -541,3 +541,9 @@ export const enableRemote = id => (
 export const disableRemote = id => (
   xo.call('remote.set', {id, enabled: false})
 )
+
+// -------------------------------------------------------------------
+
+export const deleteJobsLog = id => (
+  xo.call('log.delete', {namespace: 'jobs', id})
+)
