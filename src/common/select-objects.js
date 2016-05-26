@@ -33,7 +33,6 @@ import {
 // ===================================================================
 
 @propTypes({
-  autoFocus: propTypes.bool,
   defaultValue: propTypes.any,
   disabled: propTypes.bool,
   multi: propTypes.bool,
@@ -127,17 +126,15 @@ export class GenericSelect extends Component {
 
     return (
       <Select
-        autofocus={props.autoFocus}
         disabled={props.disabled}
-        multi={props.multi}
         onChange={this._handleChange}
-        openOnFocus
         optionRenderer={this._renderOption}
         options={this.state.options}
         placeholder={props.placeholder || this._placeholder}
         required={props.required}
         value={this.state.value}
         valueRenderer={this._renderValue}
+        multi={props.multi}
       />
     )
   }

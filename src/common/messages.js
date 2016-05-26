@@ -1476,6 +1476,9 @@ export const messages = {
   migrateVmAdvancedModalNetwork: {
     defaultMessage: 'Network'
   },
+  migrateVmAdvancedModalNoRemapping: {
+    defaultMessage: 'Intra-pool migration: re-mapping is not necessary'
+  },
 
   // ----- Servers -----
   serverHost: 'Host',
@@ -1818,6 +1821,7 @@ localizedMessages.fr = {
   migrateVmAdvancedModalSr: 'SR',
   migrateVmAdvancedModalVif: 'VIF',
   migrateVmAdvancedModalNetwork: 'Réseau',
+  migrateVmAdvancedModalNoRemapping: 'Migration intra-pool : le re-mappage n\'est pas nécessaire',
   // ------ Self ------
   resourceSets: 'Ensemble de ressources',
   resourceSetName: 'Nom de l\'ensemble de ressources',

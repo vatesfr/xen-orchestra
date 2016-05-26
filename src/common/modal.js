@@ -30,7 +30,6 @@ export const alert = (title, body) => {
 
 class Confirm extends Component {
   _resolve = () => {
-    console.log('this.refs.body.value', this.refs.body.value)
     this.props.resolve(this.refs.body.value)
     instance.close()
   }
