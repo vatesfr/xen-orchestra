@@ -34,7 +34,9 @@ export default ({
                   <td>{sr.SR_type}</td>
                   <td>{formatSize(sr.size)}</td>
                   <td>
-                    <meter value={sr.physical_usage} min='0' max={sr.size}></meter>
+                    {sr.size > 1 &&
+                      <meter value={(sr.physical_usage / sr.size) * 100} min='0' max='100' optimum='40' low='80' high='90'></meter>
+                    }
                   </td>
                   <td>
                     {sr.$PBDs.length > 1
