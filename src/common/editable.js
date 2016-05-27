@@ -225,8 +225,10 @@ export class Number extends Text {
   ]).isRequired
 })
 export class Select extends Editable {
-  componentWillReceiveProps () {
-    this._defaultValue = findKey(this.props.options, option => option === this.props.value)
+  constructor (props) {
+    super()
+
+    this._defaultValue = findKey(props.options, option => option === props.value)
   }
 
   get value () {
