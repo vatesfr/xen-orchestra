@@ -454,7 +454,7 @@ export const reconnectAllHostsSr = ({ id }) => (
       <p>This will reconnect this SR to all its hosts</p>
     </div>
   }).then(
-    () => xo.call('sr.connectAllSrPbds', { id })
+    () => xo.call('sr.connectAllPbds', { id })
   )
 )
 
@@ -465,7 +465,7 @@ export const disconnectAllHostsSr = ({ id }) => (
       <p>This will disconnect this SR to all its hosts</p>
     </div>
   }).then(
-    () => xo.call('sr.disconnectAllSrPbds', { id })
+    () => xo.call('sr.disconnectAllPbds', { id })
   )
 )
 
