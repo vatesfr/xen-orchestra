@@ -117,7 +117,7 @@ class Plugin extends Component {
     return (
       <div className='card-block'>
         <h4 className='form-inline clearfix'>
-          <ActionToggle disabled={loaded && props.unloadable} toggleOn={loaded} handler={this._updateLoad} />
+          <ActionToggle disabled={loaded && props.unloadable} value={loaded} handler={this._updateLoad} />
           <span className='text-primary'>
             {` ${props.name} `}
           </span>

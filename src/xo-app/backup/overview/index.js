@@ -295,7 +295,7 @@ export default class Overview extends Component {
     const method = enabled ? disableSchedule : enableSchedule
 
     return (
-      <ActionToggle toggleOn={this.state.scheduleTable[schedule.id]} handler={() => method(id)} />
+      <ActionToggle value={this.state.scheduleTable[schedule.id]} handler={() => method(id)} />
     )
   }
 

@@ -1,25 +1,15 @@
 import ActionButton from 'action-button'
-import React, { Component } from 'react'
+import classnames from 'classnames'
+import React from 'react'
 import { propTypes } from 'utils'
 
-@propTypes({
-  toggleOn: propTypes.bool
-})
-export default class ActionToggle extends Component {
-  render () {
-    const { props } = this
-    let className
-    let toggle
+const ActionToggle = ({ className, value, ...props }) =>
+  <ActionButton
+    {...props}
+    className={classnames(value && 'btn-success', className)}
+    icon={value ? 'toggle-on' : 'toggle-off'}
+  />
 
-    if (props.toggleOn) {
-      className = ' btn-success'
-      toggle = 'toggle-on'
-    } else {
-      toggle = 'toggle-off'
-    }
-
-    return (
-      <ActionButton {...props} className={className} icon={toggle} />
-    )
-  }
-}
+export default propTypes({
+  value: propTypes.bool
+})(ActionToggle)
