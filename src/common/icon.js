@@ -2,12 +2,13 @@ import classNames from 'classnames'
 import isInteger from 'lodash/isInteger'
 import React, { PropTypes } from 'react'
 
-const Icon = ({ icon, size = 1, fixedWidth, ...props }) => (
+const Icon = ({ className, icon, size = 1, fixedWidth }) => (
   <i className={classNames(
+      className,
       icon ? `xo-icon-${icon}` : 'fa', // Without icon prop, is a placeholder.
       isInteger(size) ? `fa-${size}x` : `fa-${size}`,
       fixedWidth && 'fa-fw'
-  )} {...props} />
+  )} />
 )
 Icon.propTypes = {
   fixedWidth: PropTypes.bool,
