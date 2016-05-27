@@ -39,12 +39,12 @@ export const alert = (title, body) => {
 }
 
 @propTypes({
-  title: propTypes.oneOfType([
+  children: propTypes.oneOfType([
     propTypes.string,
     propTypes.node,
     propTypes.element
   ]).isRequired,
-  body: propTypes.oneOfType([
+  title: propTypes.oneOfType([
     propTypes.string,
     propTypes.node,
     propTypes.element
@@ -65,7 +65,7 @@ class Confirm extends Component {
 
   render () {
     const { Body, Footer, Header, Title } = ReactModal
-    const { title, body, icon } = this.props
+    const { title, children, icon, bodyHasValue } = this.props
     return <div>
       <Header closeButton>
         <Title>
@@ -75,7 +75,7 @@ class Confirm extends Component {
         </Title>
       </Header>
       <Body>
-        {cloneElement(body, { ref: 'body' })}
+        {bodyHasValue ? cloneElement(children, { ref: 'body' }) : children}
       </Body>
       <Footer>
         <Button
@@ -105,11 +105,12 @@ export const confirm = ({
     modal(
       <Confirm
         title={title}
-        body={body}
         resolve={resolve}
         reject={reject}
         icon={icon}
-      />,
+      >
+        {body}
+      </Confirm>,
       reject
     )
   })
