@@ -11,6 +11,10 @@
     @extend .fa;
     @extend .fa-desktop;
   }
+  &-remote {
+    @extend .fa;
+    @extend .fa-plug;
+  }
   &-task {
     @extend .fa;
     @extend .fa-tasks;

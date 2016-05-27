@@ -5,6 +5,7 @@ import Icon from 'icon'
 import React, { Component } from 'react'
 import _ from 'messages'
 import map from 'lodash/map'
+import renderXoItem from 'render-xo-item'
 import { Row, Col } from 'grid'
 import { formatSize } from 'utils'
 import { subscribeResourceSets } from 'xo'
@@ -16,7 +17,6 @@ import {
 } from 'card'
 
 import {
-  ObjectP,
   Subjects,
   resolveResourceSets
 } from '../helpers'
@@ -43,7 +43,7 @@ class ResourceSet extends BaseComponent {
             </li>
             {map(resourceSet.objectsByType, (objectsSet, type) => (
               <li key={type} className='list-group-item'>
-                {map(objectsSet, object => <ObjectP key={object.id} object={object} />)}
+                {map(objectsSet, object => renderXoItem(object, { className: 'm-r-1' }))}
               </li>
             ))}
           </ul>

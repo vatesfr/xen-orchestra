@@ -1,16 +1,12 @@
-import Icon from 'icon'
 import React, { Component } from 'react'
 import _ from 'messages'
 import forEach from 'lodash/forEach'
 import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
+import renderXoItem from 'render-xo-item'
 import store from 'store'
 import { createGetObject } from 'selectors'
-
-import {
-  connectStore,
-  propTypes
-} from 'utils'
+import { propTypes } from 'utils'
 
 import {
   subscribeGroups,
@@ -95,19 +91,15 @@ export class Subjects extends Component {
       <div>
         {map(this.props.subjects, id => {
           if (state.users[id]) {
-            return (
-              <span key={id} className='m-r-1'>
-                <Icon icon='user' /> {state.users[id].email}
-              </span>
-            )
+            return renderXoItem({ type: 'user', ...state.users[id] }, {
+              className: 'm-r-1'
+            })
           }
 
           if (state.groups[id]) {
-            return (
-              <span key={id} className='m-r-1'>
-                <Icon icon='group' /> {state.groups[id].name}
-              </span>
-            )
+            return renderXoItem({ type: 'group', ...state.groups[id] }, {
+              className: 'm-r-1'
+            })
           }
 
           return <span key={id} className='m-r-1'>{_('unknownResourceSetValue')}</span>
@@ -116,32 +108,3 @@ export class Subjects extends Component {
     )
   }
 }
-
-// ===================================================================
-
-const OBJECT_TYPE_TO_ICON = {
-  'VM-template': 'vm',
-  'network': 'network',
-  'SR': 'sr'
-}
-
-export const ObjectP = propTypes({
-  object: propTypes.object.isRequired
-})(connectStore(() => {
-  const getPool = createGetObject(
-    (_, props) => props.object.$pool
-  )
-
-  return (state, props) => ({
-    pool: getPool(state, props)
-  })
-})(({ object, pool }) => {
-  const icon = OBJECT_TYPE_TO_ICON[object.type]
-  const { id } = object
-
-  return (
-    <span key={id} className='m-r-1'>
-      <Icon icon={icon} /> {object.name_label || id} {pool && `(${pool.name_label || pool.id})`}
-    </span>
-  )
-}))

@@ -1,14 +1,15 @@
+import Component from 'base-component'
+import React from 'react'
+import Select from 'react-select'
 import _ from 'messages'
 import filter from 'lodash/filter'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
 import groupBy from 'lodash/groupBy'
-import Icon from 'icon'
 import keyBy from 'lodash/keyBy'
 import keys from 'lodash/keys'
 import map from 'lodash/map'
-import React, { Component } from 'react'
-import Select from 'react-select'
+import renderXoItem from 'render-xo-item'
 import sortBy from 'lodash/sortBy'
 import { parse } from 'xo-remote-parser'
 
@@ -21,7 +22,6 @@ import {
 import {
   autobind,
   connectStore,
-  formatSize,
   propTypes
 } from 'utils'
 
@@ -41,7 +41,8 @@ import {
   onChange: propTypes.func,
   placeholder: propTypes.string,
   predicate: propTypes.func,
-  required: propTypes.bool
+  required: propTypes.bool,
+  xoObjects: propTypes.object.isRequired
 })
 export class GenericSelect extends Component {
   constructor (props) {
@@ -62,27 +63,34 @@ export class GenericSelect extends Component {
 
   componentWillReceiveProps (props) {
     const options = this._computeOptions(props)
-    const { objects } = props
+    const { xoObjects } = props
 
     this.setState({ options })
 
-    if (!objects) {
+    if (!xoObjects) {
       return
     }
-    if (props.value) {
-      // Reset selected values if options are changed.
+
+    // Reset selected values if options are changed.
+    const value = this.value
+
+    // For array.
+    if (props.multi) {
       this.setState({
         value: this._setValue(
-          filter(this.value, value => value && objects[value.id]),
+          filter(value, value => value && xoObjects[value.id]),
           props
         )
       })
+
       return
     }
-    const value = this.value
+
+    // For one unique selected value.
     this.setState({
       value: this._setValue(
-        find(objects, (_, id) => id === value.id) || ''
+        find(xoObjects, (_, id) => id === value.id) || '',
+        props
       )
     })
   }
@@ -94,14 +102,14 @@ export class GenericSelect extends Component {
   }
 
   get value () {
-    const { objects } = this.props
+    const { xoObjects } = this.props
     const { value } = this.state
 
     if (this.props.multi) {
-      return map(value, value => objects[value.value || value])
+      return map(value, value => xoObjects[value.value || value])
     }
 
-    return objects[value.value || value] || ''
+    return xoObjects[value.value || value] || ''
   }
 
   set value (value) {
@@ -119,18 +127,10 @@ export class GenericSelect extends Component {
     }, onChange && (() => { onChange(this.value) }))
   }
 
-  _renderOption (option) {
-    const { type } = option
-
-    return (
-      <div>
-        {type && <Icon icon={type} />} {option.label}
-      </div>
-    )
+  _renderOption = option => {
+    const { xoItem } = option
+    return !xoItem ? option.label : renderXoItem(xoItem)
   }
-  // Unable to use @autobind here.
-  // The inherited class cannot use autobind else.
-  _renderOption = ::this._renderOption
 
   render () {
     const { props } = this
@@ -147,12 +147,14 @@ export class GenericSelect extends Component {
         placeholder={props.placeholder || this._placeholder}
         required={props.required}
         value={this.state.value}
-        valueRenderer={this._renderValue}
+        valueRenderer={this._renderOption}
       />
     )
   }
 }
 
+// ===================================================================
+// XO objects.
 // ===================================================================
 
 @connectStore(() => {
@@ -165,11 +167,11 @@ export class GenericSelect extends Component {
       hosts => map(hosts, '$pool')
     )
   ).sort()
-  const getHostsByPool = getHosts.groupBy('$pool')
+  const getHostsByPool = getHosts.sort().groupBy('$pool')
 
   return (state, props) => ({
     hostsByPool: getHostsByPool(state, props),
-    objects: getHosts(state, props),
+    xoObjects: getHosts(state, props),
     pools: getPools(state, props)
   })
 }, { withRef: true })
@@ -183,23 +185,17 @@ export class SelectHost extends GenericSelect {
     let newOptions = []
 
     forEach(props.pools, pool => {
-      const poolId = pool.id
-
       newOptions.push({
-        label: pool.name_label || poolId,
         disabled: true,
-        type: 'pool'
+        xoItem: pool
       })
 
       newOptions.push.apply(newOptions,
-        map(props.hostsByPool[poolId], host => {
-          const { id } = host
-          return {
-            value: id,
-            label: host.name_label || id,
-            type: 'host'
-          }
-        })
+        map(props.hostsByPool[pool.id], host => ({
+          value: host.id,
+          label: `${host.name_label} ${pool.name_label}`,
+          xoItem: host
+        }))
       )
     })
 
@@ -215,7 +211,7 @@ export class SelectHost extends GenericSelect {
   )
 
   return (state, props) => ({
-    objects: getPools(state, props)
+    xoObjects: getPools(state, props)
   })
 }, { withRef: true })
 export class SelectPool extends GenericSelect {
@@ -226,74 +222,13 @@ export class SelectPool extends GenericSelect {
 
   _computeOptions (props) {
     return map(
-      props.objects,
-      pool => {
-        const { id } = pool
-        return {
-          value: id,
-          label: pool.name_label || id,
-          type: 'pool'
-        }
-      }
-    )
-  }
-}
-
-// ===================================================================
-
-export class SelectRemote extends GenericSelect {
-  constructor (props) {
-    super(props)
-    this._placeholder = _('selectRemotes')
-  }
-
-  componentWillMount () {
-    this.componentWillUnmount = subscribeRemotes(remotes => {
-      this.setState({
-        remotes: keyBy(remotes, 'id'),
-        options: this._computeOptions(this.props, remotes)
+      props.xoObjects,
+      pool => ({
+        value: pool.id,
+        label: pool.name_label,
+        xoItem: pool
       })
-    })
-  }
-
-  get value () {
-    const { remotes, value } = this.state
-
-    if (this.props.multi) {
-      return map(value, value => remotes[value.value || value])
-    }
-
-    return remotes[value.value || value]
-  }
-
-  set value (value) {
-    super.value = value
-  }
-
-  _computeOptions (props, remotes = this.state.remotes) {
-    const remotesByGroup = groupBy(
-      map(
-        props.predicate ? filter(remotes, props.predicate) : remotes,
-        parse
-      ), 'type'
     )
-    let newOptions = []
-
-    forEach(remotesByGroup, (remotes, label) => {
-      newOptions.push({
-        label,
-        disabled: true
-      })
-
-      newOptions.push.apply(newOptions,
-        map(sortBy(remotes, 'name'), remote => ({
-          value: remote.id,
-          label: remote.name
-        }))
-      )
-    })
-
-    return newOptions
   }
 }
 
@@ -322,11 +257,11 @@ const userSrPredicate = sr => sr.content_type === 'user'
     getPools,
     (hosts, pools) => hosts.concat(pools)
   )
-  const getSrsByContainer = getSrs.groupBy('$container')
+  const getSrsByContainer = getSrs.sort().groupBy('$container')
 
   return (state, props) => ({
     containers: getContainers(state, props),
-    objects: getSrs(state, props),
+    xoObjects: getSrs(state, props),
     srsByContainer: getSrsByContainer(state, props)
   })
 }, { withRef: true })
@@ -340,30 +275,17 @@ export class SelectSr extends GenericSelect {
     let newOptions = []
 
     forEach(props.containers, container => {
-      const containerId = container.id
-      const containerLabel = container.name_label || containerId
-
       newOptions.push({
-        label: containerLabel,
         disabled: true,
-        type: container.type
+        xoItem: container
       })
 
       newOptions.push.apply(newOptions,
-        map(props.srsByContainer[containerId], sr => {
-          const { id } = sr
-          let label = `${sr.name_label || id}`
-
-          if (sr.content_type === 'user') {
-            label += ` (${formatSize(sr.size)})`
-          }
-
-          return {
-            value: id,
-            label,
-            type: 'disk'
-          }
-        })
+        map(props.srsByContainer[container.id], sr => ({
+          value: sr.id,
+          label: `${sr.name_label} ${container.name_label}`,
+          xoItem: sr
+        }))
       )
     })
 
@@ -398,7 +320,7 @@ export class SelectSr extends GenericSelect {
   return (state, props) => ({
     hostContainers: getHostContainers(state, props),
     poolContainers: getPoolContainers(state, props),
-    objects: getVms(state, props),
+    xoObjects: getVms(state, props),
     vmsByContainer: getVmsByContainer(state, props)
   })
 }, { withRef: true })
@@ -412,93 +334,23 @@ export class SelectVm extends GenericSelect {
     let newOptions = []
 
     const makeOptionsForContainer = container => {
-      const containerId = container.id
-      const containerLabel = container.name_label || containerId
-
       newOptions.push({
-        label: containerLabel,
         disabled: true,
-        type: container.type
+        xoItem: container
       })
 
       newOptions.push.apply(newOptions,
-        map(props.vmsByContainer[containerId], vm => {
-          const { id } = vm
-          return {
-            value: id,
-            label: `${vm.name_label || id} (${containerLabel})`,
-            vm
-          }
-        })
+        map(props.vmsByContainer[container.id], vm => ({
+          value: vm.id,
+          label: `${vm.name_label} ${container.name_label}`,
+          xoItem: vm
+        }))
       )
     }
     forEach(props.hostContainers, makeOptionsForContainer)
     forEach(props.poolContainers, makeOptionsForContainer)
 
     return newOptions
-  }
-
-  @autobind
-  _renderOption (option) {
-    const { vm } = option
-
-    if (!vm) {
-      return super._renderOption(option)
-    }
-
-    return (
-      <div>
-        <Icon icon={`vm-${vm.power_state.toLowerCase()}`} /> {option.label}
-      </div>
-    )
-  }
-
-  @autobind
-  _renderValue (option) {
-    return (
-      <div>
-        <Icon icon={`vm-${option.vm.power_state.toLowerCase()}`} /> {option.label}
-      </div>
-    )
-  }
-}
-
-// ===================================================================
-
-@connectStore({
-  tags: createGetTags().filter(
-    (state, props) => props.predicate
-  ).sort()
-}, { withRef: true })
-export class SelectTag extends GenericSelect {
-  constructor (props) {
-    super(props)
-    this._placeholder = _('selectTags')
-  }
-
-  get value () {
-    const { value } = this.state
-
-    if (this.props.multi) {
-      return map(value, value => value.value || value)
-    }
-
-    return value.value || value
-  }
-
-  set value (value) {
-    super.value = value
-  }
-
-  _computeOptions (props) {
-    return map(
-      props.tags,
-      tag => ({
-        value: tag,
-        label: tag,
-        type: 'tags'
-      })
-    )
   }
 }
 
@@ -518,7 +370,7 @@ export class SelectTag extends GenericSelect {
 
   return (state, props) => ({
     containers: getPools(state, props),
-    objects: getVmTemplates(state, props),
+    xoObjects: getVmTemplates(state, props),
     vmTemplatesByContainer: getVmsByPool(state, props)
   })
 }, { withRef: true })
@@ -532,24 +384,17 @@ export class SelectVmTemplate extends GenericSelect {
     let newOptions = []
 
     forEach(props.containers, container => {
-      const containerId = container.id
-      const containerLabel = container.name_label || containerId
-
       newOptions.push({
-        label: containerLabel,
         disabled: true,
-        type: container.type
+        xoItem: container
       })
 
       newOptions.push.apply(newOptions,
-        map(props.vmTemplatesByContainer[containerId], vm => {
-          const { id } = vm
-          return {
-            value: id,
-            label: `${vm.name_label || id} (${containerLabel})`,
-            type: 'vm'
-          }
-        })
+        map(props.vmTemplatesByContainer[container.id], vm => ({
+          value: vm.id,
+          label: `${vm.name_label} ${container.name_label}`,
+          xoItem: vm
+        }))
       )
     })
 
@@ -573,7 +418,7 @@ export class SelectVmTemplate extends GenericSelect {
 
   return (state, props) => ({
     networksByPool: getNetworksByPool(state, props),
-    objects: getNetworks(state, props),
+    xoObjects: getNetworks(state, props),
     pools: getPools(state, props)
   })
 }, { withRef: true })
@@ -587,24 +432,17 @@ export class SelectNetwork extends GenericSelect {
     let newOptions = []
 
     forEach(props.pools, pool => {
-      const poolId = pool.id
-      const poolLabel = pool.name_label || poolId
-
       newOptions.push({
-        label: poolLabel,
         disabled: true,
-        type: pool.type
+        xoItem: pool
       })
 
       newOptions.push.apply(newOptions,
-        map(props.networksByPool[poolId], network => {
-          const { id } = network
-          return {
-            value: id,
-            label: `${network.name_label || id} (${poolLabel})`,
-            type: 'network'
-          }
-        })
+        map(props.networksByPool[pool.id], network => ({
+          value: network.id,
+          label: `${network.name_label} ${pool.name_label}`,
+          xoItem: network
+        }))
       )
     })
 
@@ -614,31 +452,167 @@ export class SelectNetwork extends GenericSelect {
 
 // ===================================================================
 
-export class SelectSubject extends GenericSelect {
+@connectStore(() => {
+  const getTags = createGetTags().filter(
+    (state, props) => props.predicate
+  ).sort()
+
+  return (state, props) => ({
+    xoObjects: getTags(state, props)
+  })
+}, { withRef: true })
+export class SelectTag extends GenericSelect {
   constructor (props) {
     super(props)
-    this._placeholder = _('selectSubjects')
+    this._placeholder = _('selectTags')
+  }
+
+  _computeOptions (props) {
+    return map(
+      props.xoObjects,
+      tag => ({
+        value: tag,
+        label: tag,
+        xoItem: { type: 'tag', tag: tag }
+      })
+    )
+  }
+}
+
+// ===================================================================
+// Subscriptions objects.
+// ===================================================================
+
+@propTypes({
+  autoFocus: propTypes.bool,
+  defaultValue: propTypes.any,
+  disabled: propTypes.bool,
+  multi: propTypes.bool,
+  onChange: propTypes.func,
+  placeholder: propTypes.string,
+  predicate: propTypes.func,
+  required: propTypes.bool
+})
+class SelectSubscriptionObject extends Component {
+  get value () {
+    return this.refs.select.value
+  }
+
+  set value (value) {
+    this.refs.select.value = value
+  }
+}
+
+// ===================================================================
+
+class AbstractSelectRemote extends GenericSelect {
+  constructor (props) {
+    super(props)
+    this._placeholder = _('selectRemotes')
+  }
+
+  _computeOptions (props) {
+    const {
+      predicate,
+      xoObjects
+    } = props
+    const remotesByGroup = groupBy(
+      map(
+        predicate ? filter(xoObjects, predicate) : xoObjects,
+        parse
+      ), 'type'
+    )
+    let newOptions = []
+
+    forEach(remotesByGroup, (remotes, label) => {
+      newOptions.push({
+        disabled: true,
+        label
+      })
+
+      newOptions.push.apply(newOptions,
+        map(sortBy(remotes, 'name'), remote => ({
+          value: remote.id,
+          label: `${remote.name} ${label}`,
+          xoItem: { type: 'remote', remote }
+        }))
+      )
+    })
+
+    return newOptions
+  }
+}
+
+export class SelectRemote extends SelectSubscriptionObject {
+  constructor (props) {
+    super(props)
     this.state = {
-      users: {},
-      groups: {}
+      remotes: {}
     }
   }
 
   componentWillMount () {
-    const unsubscribeGroups = subscribeUsers(users => {
-      users = keyBy(users, 'id')
+    this.componentWillUnmount = subscribeRemotes(remotes => {
       this.setState({
-        users,
-        options: this._computeOptions(this.props, { ...users, ...this.state.groups })
+        remotes: keyBy(remotes, 'id')
       })
     })
+  }
 
-    const unsubscribeUsers = subscribeGroups(groups => {
-      groups = keyBy(groups, 'id')
-      this.setState({
-        groups,
-        options: this._computeOptions(this.props, { ...this.state.users, ...groups })
-      })
+  render () {
+    return (
+      <AbstractSelectRemote ref='select' {...this.props} xoObjects={this.state.remotes} />
+    )
+  }
+}
+
+// ===================================================================
+
+class AbstractSelectSubject extends GenericSelect {
+  constructor (props) {
+    super(props)
+    this._placeholder = _('selectSubjects')
+  }
+
+  _computeOptions (props) {
+    const {
+      predicate,
+      xoObjects
+    } = props
+    const subjects = predicate ? filter(xoObjects, predicate) : xoObjects
+
+    return map(subjects, subject => {
+      if (subject.email) {
+        return {
+          value: subject.id,
+          xoItem: { type: 'user', ...subject }
+        }
+      }
+
+      return {
+        value: subject.id,
+        xoItem: { type: 'group', ...subject }
+      }
+    })
+  }
+}
+
+export class SelectSubject extends SelectSubscriptionObject {
+  constructor (props) {
+    super(props)
+    this.state = {
+      users: [],
+      groups: []
+    }
+  }
+
+  componentWillMount () {
+    const unsubscribeGroups = subscribeUsers(groups => {
+      this.setState({ groups })
+    })
+
+    const unsubscribeUsers = subscribeGroups(users => {
+      this.setState({ users })
     })
 
     this.componentWillUnmount = () => {
@@ -648,42 +622,13 @@ export class SelectSubject extends GenericSelect {
   }
 
   _getSubjects = () => {
-    const { props: { predicate }, state } = this
-    const entities = state.users.concat(state.groups)
-    return predicate
-      ? filter(entities, predicate)
-      : entities
+    const { state } = this
+    return keyBy(state.users.concat(state.groups), 'id')
   }
 
-  get value () {
-    const { groups, users, value } = this.state
-
-    if (this.props.multi) {
-      return map(value, value => {
-        const subject = value.value || value
-        return groups[subject] || users[subject]
-      })
-    }
-
-    const subject = value.value || value
-    return groups[subject] || users[subject]
-  }
-
-  set value (value) {
-    super.value = value
-  }
-
-  _computeOptions (props, entities = { ...this.state.users, ...this.state.groups }) {
-    if (props.predicate) {
-      entities = filter(entities, props.predicate)
-    }
-
-    return map(entities, subject => {
-      if (subject.email) {
-        return { label: subject.email, value: subject.id, type: 'group' }
-      }
-
-      return { label: subject.name, value: subject.id, type: 'user' }
-    })
+  render () {
+    return (
+      <AbstractSelectSubject ref='select' {...this.props} xoObjects={this._getSubjects()} />
+    )
   }
 }
