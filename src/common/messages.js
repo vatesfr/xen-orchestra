@@ -2,6 +2,7 @@ import forEach from 'lodash/forEach'
 import frLocaleData from 'react-intl/locale-data/fr'
 import isFunction from 'lodash/isFunction'
 import isString from 'lodash/isString'
+import moment from 'moment'
 import React, {
   Component,
   PropTypes
@@ -14,6 +15,8 @@ import {
   FormattedMessage,
   IntlProvider as IntlProvider_
 } from 'react-intl'
+
+import 'moment/locale/fr' // See bug mentionned in // http://momentjs.com/docs/#/use-it/browserify/
 
 // ===================================================================
 
@@ -1792,5 +1795,16 @@ export class IntlProvider extends Component {
     >
      {children}
     </IntlProvider_>
+  }
+}
+
+@connect(({ lang }) => ({ lang }))
+export class FormattedDuration extends Component {
+  render () {
+    const {
+      duration,
+      lang
+    } = this.props
+    return <span>{moment.duration(duration).locale(lang).humanize()}</span>
   }
 }

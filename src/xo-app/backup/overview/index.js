@@ -1,4 +1,4 @@
-import _ from 'messages'
+import _, { FormattedDuration } from 'messages'
 import ActionButton from 'action-button'
 import ActionToggle from 'action-toggle'
 import ceil from 'lodash/ceil'
@@ -6,7 +6,6 @@ import classnames from 'classnames'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import map from 'lodash/map'
-import moment from 'moment'
 import orderBy from 'lodash/orderBy'
 import React, { Component } from 'react'
 import { confirm } from 'modal'
@@ -104,7 +103,7 @@ class Log extends Component {
         <td>{jobKeyToLabel[log.key]}</td>
         <td><FormattedDate value={new Date(+log.start)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' /></td>
         <td><FormattedDate value={new Date(+log.end)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' /></td>
-        <td>{moment.duration(+log.duration).humanize()}</td>
+        <td><FormattedDuration duration={+log.duration} /></td>
         <td>
           {log.status === 'Finished' &&
             <span className={classnames('tag', {'tag-success': (!log.error && !log.hasErrors), 'tag-danger': (log.error || log.hasErrors)})}>{log.status}</span>
@@ -124,7 +123,7 @@ class Log extends Component {
                 <strong className='text-info'>{call.method}: </strong>
                 {map(call.params, (value, key) => <JobParam paramValue={value} paramKey={key} key={key} />)}
                 {call.returnedValue && <JobReturn returnValue={call.returnedValue} />}
-                {call.error && <span className='text-danger'><Icon icon='error' /></span>}
+                {call.error && <Icon icon='error' />}
               </li>)}
             </ul>
           </td>
@@ -165,7 +164,7 @@ export default class Overview extends Component {
       const logsToClear = []
       forEach(rawLogs, (log, logKey) => {
         const data = log.data
-        const [time] = logKey.split(':')
+        const { time } = log
         if (data.event === 'job.start' && data.key in jobKeyToState) {
           logsToClear.push(logKey)
           logs[logKey] = {
