@@ -76,6 +76,34 @@ forget.resolve = {
 
 // -------------------------------------------------------------------
 
+export async function connectAllPbds ({SR}) {
+  await this.getXapi(SR).connectAllSrPbds(SR._xapiId)
+}
+
+connectAllPbds.params = {
+  id: { type: 'string' }
+}
+
+connectAllPbds.resolve = {
+  SR: ['id', 'SR', 'administrate']
+}
+
+// -------------------------------------------------------------------
+
+export async function disconnectAllPbds ({SR}) {
+  await this.getXapi(SR).disconnectAllSrPbds(SR._xapiId)
+}
+
+disconnectAllPbds.params = {
+  id: { type: 'string' }
+}
+
+disconnectAllPbds.resolve = {
+  SR: ['id', 'SR', 'administrate']
+}
+
+// -------------------------------------------------------------------
+
 export async function createIso ({
   host,
   nameLabel,
