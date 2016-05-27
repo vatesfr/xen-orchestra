@@ -101,9 +101,9 @@ class Log extends Component {
           {log.jobId}
         </td>
         <td>{jobKeyToLabel[log.key]}</td>
-        <td><FormattedDate value={new Date(+log.start)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' /></td>
-        <td><FormattedDate value={new Date(+log.end)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' /></td>
-        <td><FormattedDuration duration={+log.duration} /></td>
+        <td><FormattedDate value={new Date(log.start)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' /></td>
+        <td><FormattedDate value={new Date(log.end)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' /></td>
+        <td><FormattedDuration duration={log.duration} /></td>
         <td>
           {log.status === 'Finished' &&
             <span className={classnames('tag', {'tag-success': (!log.error && !log.hasErrors), 'tag-danger': (log.error || log.hasErrors)})}>{log.status}</span>
