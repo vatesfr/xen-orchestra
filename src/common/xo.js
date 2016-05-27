@@ -447,25 +447,25 @@ export const forgetSr = ({ id }) => (
   )
 )
 
-export const connectAllHostsFromSr = ({ id }) => (
+export const reconnectAllHostsSr = ({ id }) => (
   confirm({
     title: 'Reconnect all hosts',
     body: <div>
       <p>This will reconnect this SR to all its hosts</p>
     </div>
   }).then(
-    () => xo.call('sr.connectAll', { id })
+    () => xo.call('sr.connectAllSrPbds', { id })
   )
 )
 
-export const disconnectAllHostsFromSr = ({ id }) => (
+export const disconnectAllHostsSr = ({ id }) => (
   confirm({
     title: 'Disconnect all hosts',
     body: <div>
       <p>This will disconnect this SR to all its hosts</p>
     </div>
   }).then(
-    () => xo.call('sr.disconnectAll', { id })
+    () => xo.call('sr.disconnectAllSrPbds', { id })
   )
 )
 
