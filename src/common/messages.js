@@ -395,8 +395,70 @@ export const messages = {
   remoteType: {
     defaultMessage: 'Type'
   },
-  // ----- Plugins ------
 
+  // ------ New Storage -----
+  newSrGeneral: {
+    defaultMessage: 'General'
+  },
+  newSrTypeSelection: {
+    defaultMessage: 'Select Strorage Type:'
+  },
+  newSrSettings: {
+    defaultMessage: 'Settings'
+  },
+  newSrUsage: {
+    defaultMessage: 'Storage Usage'
+  },
+  newSrSummary: {
+    defaultMessage: 'Summary'
+  },
+  newSrHost: {
+    defaultMessage: 'Host'
+  },
+  newSrType: {
+    defaultMessage: 'Type'
+  },
+  newSrName: {
+    defaultMessage: 'Name'
+  },
+  newSrDescription: {
+    defaultMessage: 'Description'
+  },
+  newSrServer: {
+    defaultMessage: 'Server'
+  },
+  newSrPath: {
+    defaultMessage: 'Path'
+  },
+  newSrIqn: {
+    defaultMessage: 'IQN'
+  },
+  newSrLun: {
+    defaultMessage: 'LUN'
+  },
+  newSrAuth: {
+    defaultMessage: 'with auth.'
+  },
+  newSrUsername: {
+    defaultMessage: 'User Name'
+  },
+  newSrPassword: {
+    defaultMessage: 'Password'
+  },
+  newSrDevice: {
+    defaultMessage: 'Device'
+  },
+  newSrInUse: {
+    defaultMessage: 'in use'
+  },
+  newSrSize: {
+    defaultMessage: 'Size'
+  },
+  newSrCreate: {
+    defaultMessage: 'Create'
+  },
+
+  // ----- Plugins ------
   autoloadPlugin: {
     defaultMessage: 'Auto-load at server start'
   },

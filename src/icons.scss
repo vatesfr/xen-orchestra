@@ -80,6 +80,22 @@
     @extend .fa;
     @extend .fa-info-circle;
   }
+  &-search {
+    @extend .fa;
+    @extend .fa-search;
+  }
+  &-settings {
+    @extend .fa;
+    @extend .fa-cog;
+  }
+  &-summary {
+    @extend .fa;
+    @extend .fa-flag-checkered;
+  }
+  &-run {
+    @extend .fa;
+    @extend .fa-play;
+  }
 
   &-shown {
     @extend .fa;
