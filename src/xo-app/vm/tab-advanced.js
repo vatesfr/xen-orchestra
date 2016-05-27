@@ -5,7 +5,7 @@ import isEmpty from 'lodash/isEmpty'
 import React from 'react'
 import TabButton from 'tab-button'
 import { Toggle } from 'form'
-import { Size, Text } from 'editable'
+import { Number, Size, Text } from 'editable'
 import { Container, Row, Col } from 'grid'
 import { formatSize, normalizeXenToolsStatus, osFamily } from 'utils'
 import {
@@ -165,7 +165,7 @@ export default ({
             <td>
               {vm.power_state === 'Running'
                 ? vm.CPUs.max
-                : <Text value={vm.CPUs.max} onChange={value => editVm(vm, { cpusMax: value })} />
+                : <Number value={vm.CPUs.max} onChange={value => editVm(vm, { cpusMax: value })} />
               }
             </td>
           </tr>
