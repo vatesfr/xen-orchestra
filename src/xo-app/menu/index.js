@@ -118,7 +118,7 @@ export default class Menu extends Component {
           </Button>
         </li>
         {map(items, (item, index) =>
-          <MenuLinkItem key={index} item={item} />
+          <MenuLinkItem key={index} item={item} collapsed={this.state.collapsed} />
         )}
         <li>&nbsp;</li>
         <li>&nbsp;</li>
@@ -143,14 +143,14 @@ export default class Menu extends Component {
 }
 
 const MenuLinkItem = props => {
-  const { item } = props
+  const { item, collapsed } = props
   const { to, icon, label, subMenu, pill } = item
 
   return <li className='nav-item xo-menu-item'>
-    <Link activeClassName='active' className='nav-link' to={to}>
+    <Link activeClassName='active' className={collapsed ? 'text-xs-center nav-link' : 'nav-link'} to={to}>
       <Icon className={pill && styles.hiddenCollapsed} icon={`menu-${icon}`} size='lg' fixedWidth />
       <span className={styles.hiddenCollapsed}>{' '}{_(label)}&nbsp;</span>
-      {(pill || pill > 0) && <span>&nbsp;<span className='tag tag-pill tag-primary'>{pill}</span></span>}
+      {(pill || pill > 0) && <span><span className='tag tag-pill tag-primary'>{pill}</span></span>}
     </Link>
     {subMenu && <SubMenu items={subMenu} />}
   </li>
