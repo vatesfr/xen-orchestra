@@ -144,9 +144,11 @@ export default class New extends Component {
         const previous = await probeSrNfsExists(host.id, server.value, path)
         if (previous && previous.length > 0) {
           try {
-            await confirm('Previous Path Usage', <p>
+            await confirm({title: 'Previous Path Usage',
+              body: <p>
               This path has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.
-            </p>)
+              </p>
+            })
           } catch (error) {
             return
           }
@@ -157,9 +159,11 @@ export default class New extends Component {
         const previous = await probeSrIscsiExists(host.id, iqn.ip, iqn.iqn, lun.scsiId, port.value, username && username.value, password && password.value)
         if (previous && previous.length > 0) {
           try {
-            await confirm('Previous LUN Usage', <p>
+            await confirm({title: 'Previous LUN Usage',
+              body: <p>
               This LUN has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.
-            </p>)
+              </p>
+            })
           } catch (error) {
             return
           }
@@ -168,8 +172,8 @@ export default class New extends Component {
       },
       lvm: () => createSrLvm(host.id, name.value, description.value, device.value),
       local: () => createSrIso(host.id, name.value, description.value, localPath.value, 'local'),
-      nfsiso: () => createSrIso(host.id, name.value, description.value, `${server.value}:${path}`, 'nfs', username.value, password.value),
-      smb: () => createSrIso(host.id, name.value, description.value, server.value, 'smb', username.value, password.value)
+      nfsiso: () => createSrIso(host.id, name.value, description.value, `${server.value}:${path}`, 'nfs', username && username.value, password && password.value),
+      smb: () => createSrIso(host.id, name.value, description.value, server.value, 'smb', username && username.value, password && password.value)
     }
 
     try {
