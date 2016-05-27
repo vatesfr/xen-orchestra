@@ -40,7 +40,7 @@ const deltaBuilder = (backups, uuid, name, tag, value) => {
 const isEmptyRemote = remote => !remote.backups || !(size(remote.backups.delta) || size(remote.backups.other))
 
 @connectStore(() => {
-  const object = createGetObject((_, props) => props.id)
+  const object = createGetObject()
   return (state, props) => ({object: object(state, props)})
 })
 class ObjectName extends Component {
@@ -69,14 +69,13 @@ export default class Restore extends Component {
   componentWillMount () {
     this.componentWillUnmount = subscribeRemotes(rawRemotes => {
       const { remotes } = this.state
-      forEach(remotes, r => {
-        if (r.backups) {
-          const freshRemote = find(rawRemotes, {id: r.id})
-          freshRemote && (freshRemote.backups = r.backups)
-        }
-      })
       this.setState({
-        remotes: orderBy(rawRemotes, ['name'])
+        remotes: orderBy(map(rawRemotes, r => {
+          r = {...r}
+          const older = find(remotes, {id: r.id})
+          older && older.backups && (r.backups = older.backups)
+          return r
+        }), ['name'])
       })
     })
   }
@@ -109,7 +108,6 @@ export default class Restore extends Component {
       }
       this.setState({remotes})
     } catch (err) {
-      console.log(err)
       error('List Remote', err.message || String(err))
     }
   }
@@ -118,14 +116,22 @@ export default class Restore extends Component {
     info('VM import', 'Starting your backup import')
   }
 
-  _importDeltaBackup = (remote, sr, filePath) => {
+  _importDeltaBackup = async (remote, sr, filePath) => {
     this._notifyImportStart()
-    importDeltaBackup({remote, sr, filePath})
+    try {
+      await importDeltaBackup({remote, sr, filePath})
+    } catch (err) {
+      error('VM import', err.message || String(err))
+    }
   }
 
-  _importBackup = (remote, sr, file) => {
+  _importBackup = async (remote, sr, file) => {
     this._notifyImportStart()
-    importBackup({remote, sr, file})
+    try {
+      await importBackup({remote, sr, file})
+    } catch (err) {
+      error('VM import', err.message || String(err))
+    }
   }
 
   render () {
@@ -143,7 +149,7 @@ export default class Restore extends Component {
         {!remotes.length && <span>No remotes</span>}
         {map(remotes, (r, key) =>
           <div key={key}>
-            <p>
+            <div>
               <Link to='settings/remotes'>{r.name}</Link>
               {' '}
               {r.enabled && <span className='tag tag-success'>enabled</span>}
@@ -172,13 +178,15 @@ export default class Restore extends Component {
                                         {' '}
                                         <DropdownButton id='filter' bsStyle='info' title='Import'>
                                           {map(writableSrs, (sr, key) =>
-                                            <MenuItem key={key} onClick={this._importDeltaBackup}>
+                                            <MenuItem key={key} onClick={() => this._importDeltaBackup(r.id, sr.id, b.path)}>
                                               <Icon icon='sr' />
                                               To {sr.name_label} ({formatSize(sr.size - sr.physical_usage)})
                                               <ObjectName id={sr.$container} />
                                             </MenuItem>
                                           )}
                                         </DropdownButton>
+                                        <br />
+                                        <br />
                                       </div>
                                     )}
                                   </Col>
@@ -191,21 +199,23 @@ export default class Restore extends Component {
                     </Row>
                   )}
                   {map(r.backups.other, (b, k) =>
-                    <p key={k}>
+                    <div key={k}>
                       {b}
                       {' '}
                       <DropdownButton id='filter' bsStyle='info' title='Import'>
                         {map(writableSrs, (sr, key) =>
-                          <MenuItem key={key} onClick={this._importBackup}>
+                          <MenuItem key={key} onClick={() => this._importBackup(r.id, sr.id, b)}>
                             <Icon icon='sr' /> To {sr.name_label} ({formatSize(sr.size - sr.physical_usage)}) <ObjectName id={sr.$container} />
                           </MenuItem>
                         )}
                       </DropdownButton>
-                    </p>
+                      <br />
+                      <br />
+                    </div>
                   )}
                 </div>
               }
-            </p>
+            </div>
             <hr />
           </div>
         )}
