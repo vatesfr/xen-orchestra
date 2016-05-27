@@ -21,7 +21,7 @@ import {
   updateObjects
 } from 'store/actions'
 
-// ===================================================================
+// =============================================================================
 
 export const signOut = () => {
   cookies.expire('token')
@@ -55,7 +55,7 @@ const xo = invoke(() => {
   return xo
 })
 
-// ===================================================================
+// =============================================================================
 
 export const connectStore = (store) => {
   let updates = {}
@@ -84,14 +84,14 @@ export const connectStore = (store) => {
   })
 }
 
-// -------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 export const resolveUrl = invoke(
   xo._url, // FIXME: accessing private prop
   baseUrl => to => resolve(baseUrl, to)
 )
 
-// -------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 const _signIn = new Promise(resolve => xo.once('authenticated', resolve))
 
@@ -138,7 +138,7 @@ const createSubscription = cb => {
   return subscribe
 }
 
-// -------------------------------------------------------------------
+// Subscriptions ---------------------------------------------------------------
 
 export const subscribeJobs = createSubscription(() => xo.call('job.getAll'))
 
@@ -171,8 +171,9 @@ export const subscribeGroups = createSubscription(invoke(
   sort => () => xo.call('group.getAll').then(sort)
 ))
 
-// ===================================================================
+// =============================================================================
 
+// Server ----------------------------------------------------------------------
 export const addServer = (host, username, password) => (
   xo.call('server.add', { host, username, password })
 )
@@ -193,7 +194,7 @@ export const removeServer = ({ id }) => (
   xo.call('server.remove', { id })
 )
 
-// -------------------------------------------------------------------
+// Host ------------------------------------------------------------------------
 
 export const editHost = ({ id }, props) => (
   xo.call('host.set', { ...props, id })
@@ -243,7 +244,7 @@ export const installAllHostPatches = ({ id }) => (
   xo.call('host.installAllPatches', { host: id })
 )
 
-// -------------------------------------------------------------------
+// VM --------------------------------------------------------------------------
 
 export const startVm = ({ id }) => (
   xo.call('vm.start', { id })
@@ -404,7 +405,7 @@ export const fetchVmStats = ({ id }, granularity) => (
   xo.call('vm.stats', { id, granularity })
 )
 
-// -------------------------------------------------------------------
+// VDI -------------------------------------------------------------------------
 
 export const editVdi = ({ id }, props) => (
   xo.call('vdi.set', { ...props, id })
@@ -414,15 +415,15 @@ export const deleteVdi = ({ id }) => (
   xo.call('vdi.delete', { id })
 )
 
-// -------------------------------------------------------------------
+// Network ---------------------------------------------------------------------
 
 export const editNetwork = ({ id }, props) => (
   xo.call('network.set', { ...props, id })
 )
 
-// -------------------------------------------------------------------
+// SR --------------------------------------------------------------------------
 
-export const deleteSr = ({ id }) => (
+export const srDelete = ({ id }) => (
   confirm({
     title: 'Delete SR',
     body: <div>
@@ -430,8 +431,41 @@ export const deleteSr = ({ id }) => (
       <p>This operation is definitive, and ALL DISKS WILL BE LOST FOREVER.</p>
     </div>
   }).then(
-    () => { throw new Error('not implemented') },
-    noop
+    () => xo.call('sr.destroy', { id })
+  )
+)
+
+export const srForget = ({ id }) => (
+  confirm({
+    title: 'Forget SR',
+    body: <div>
+      <p>Are you sure you want to forget this SR?</p>
+      <p>VDIs on this storage wont be removed.</p>
+    </div>
+  }).then(
+    () => xo.call('sr.forget', { id })
+  )
+)
+
+export const srConnectAllHosts = ({ id }) => (
+  confirm({
+    title: 'Reconnect all hosts',
+    body: <div>
+      <p>This will reconnect this SR to all its hosts</p>
+    </div>
+  }).then(
+    () => xo.call('sr.disconnectAll', { id })
+  )
+)
+
+export const srDisconnectAllHosts = ({ id }) => (
+  confirm({
+    title: 'Disconnect all hosts',
+    body: <div>
+      <p>This will disconnect this SR to all its hosts</p>
+    </div>
+  }).then(
+    () => xo.call('sr.disconnectAll', { id })
   )
 )
 
@@ -439,13 +473,17 @@ export const editSr = ({ id }, props) => (
   xo.call('sr.set', { ...props, id })
 )
 
-// -------------------------------------------------------------------
+export const srRescan = ({ id }) => (
+  xo.call('sr.scan', { id })
+)
+
+// Messages --------------------------------------------------------------------
 
 export const deleteMessage = ({ id }) => (
   xo.call('message.delete', { id })
 )
 
-// -------------------------------------------------------------------
+// Tags ------------------------------------------------------------------------
 
 export const addTag = (id, tag) => (
   xo.call('tag.add', { id, tag })
@@ -455,7 +493,7 @@ export const removeTag = (id, tag) => (
   xo.call('tag.remove', { id, tag })
 )
 
-// -------------------------------------------------------------------
+// Backups ---------------------------------------------------------------------
 
 export const createSchedule = (jobId, cron, enabled) => (
   xo.call('schedule.create', { jobId, cron, enabled })
@@ -478,7 +516,7 @@ export const disableSchedule = (scheduleId) => (
   xo.call('scheduler.disable', { id: scheduleId })
 )
 
-// -------------------------------------------------------------------
+// Plugins ---------------------------------------------------------------------
 
 export const loadPlugin = async id => {
   try {
@@ -526,7 +564,7 @@ export const purgePluginConfiguration = async id => {
   }
 }
 
-// -------------------------------------------------------------------
+// Resource set ----------------------------------------------------------------
 
 export const createResourceSet = (name, { subjects, objects, limits } = {}) => (
   xo.call('resourceSet.create', { name, subjects, objects, limits })
@@ -548,7 +586,7 @@ export const deleteResourceSet = async id => {
   }
 }
 
-// -------------------------------------------------------------------
+// Remote ----------------------------------------------------------------------
 
 export const createRemote = (name, url) => (
   xo.call('remote.create', {name, url})
@@ -636,7 +674,7 @@ export const createSrLvm = (host, nameLabel, nameDescription, device) => (
   xo.call('sr.createLvm', {host, nameLabel, nameDescription, device})
 )
 
-// -------------------------------------------------------------------
+// Job logs --------------------------------------------------------------------
 
 export const deleteJobsLog = id => (
   xo.call('log.delete', {namespace: 'jobs', id})
