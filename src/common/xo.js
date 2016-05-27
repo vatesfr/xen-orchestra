@@ -431,7 +431,8 @@ export const deleteSr = ({ id }) => (
       <p>This operation is definitive, and ALL DISKS WILL BE LOST FOREVER.</p>
     </div>
   }).then(
-    () => xo.call('sr.destroy', { id })
+    () => xo.call('sr.destroy', { id }),
+    noop
   )
 )
 
@@ -443,7 +444,8 @@ export const forgetSr = ({ id }) => (
       <p>VDIs on this storage wont be removed.</p>
     </div>
   }).then(
-    () => xo.call('sr.forget', { id })
+    () => xo.call('sr.forget', { id }),
+    noop
   )
 )
 
@@ -454,7 +456,8 @@ export const reconnectAllHostsSr = ({ id }) => (
       <p>This will reconnect this SR to all its hosts</p>
     </div>
   }).then(
-    () => xo.call('sr.connectAllPbds', { id })
+    () => xo.call('sr.connectAllPbds', { id }),
+    noop
   )
 )
 
@@ -465,7 +468,8 @@ export const disconnectAllHostsSr = ({ id }) => (
       <p>This will disconnect this SR to all its hosts</p>
     </div>
   }).then(
-    () => xo.call('sr.disconnectAllPbds', { id })
+    () => xo.call('sr.disconnectAllPbds', { id }),
+    noop
   )
 )
 
