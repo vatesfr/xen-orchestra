@@ -28,5 +28,5 @@ render(
       {DevTools && <DevTools />}
     </div>
   </Provider>,
-  document.getElementsByTagName('xo-app')[0]
+  document.getElementById('xo-app')
 )
