@@ -148,9 +148,9 @@ const MenuLinkItem = props => {
 
   return <li className='nav-item xo-menu-item'>
     <Link activeClassName='active' className='nav-link' to={to}>
-      <Icon icon={`menu-${icon}`} size='lg' fixedWidth />
-      <span className={styles.hiddenCollapsed}>{' '}{_(label)}</span>
-      {(pill || pill > 0) && <span>&nbsp;&nbsp;<span className='tag tag-pill tag-primary'>{pill}</span></span>}
+      <Icon className={pill && styles.hiddenCollapsed} icon={`menu-${icon}`} size='lg' fixedWidth />
+      <span className={styles.hiddenCollapsed}>{' '}{_(label)}&nbsp;</span>
+      {(pill || pill > 0) && <span>&nbsp;<span className='tag tag-pill tag-primary'>{pill}</span></span>}
     </Link>
     {subMenu && <SubMenu items={subMenu} />}
   </li>
