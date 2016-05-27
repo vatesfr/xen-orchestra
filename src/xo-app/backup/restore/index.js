@@ -81,41 +81,46 @@ export default class Restore extends Component {
   }
 
   _list = async id => {
+    let files
     try {
-      const files = await listRemote(id)
-      const { remotes } = this.state
-      const remote = find(remotes, {id})
-      if (remote) {
-        const backups = remote.backups = {
-          delta: {},
-          other: []
-        }
-
-        forEach(files, file => {
-          const arr = /^vm_delta_(.*)_([^\/]+)\/([^_]+)_(.*)$/.exec(file)
-
-          if (arr) {
-            const [ , tag, id, date ] = arr
-            const value = {
-              path: file,
-              date: +moment(date, 'YYYYMMDDTHHmmssZ').format('x')
-            }
-            deltaBuilder(backups.delta, tag, id, value)
-          } else {
-            backups.other.push(file)
-          }
-        })
-
-        forEach(remote.backups, byTag => {
-          forEach(byTag, (byId, id) => {
-            byTag[id] = orderBy(byId, ['date'], ['asc'])
-          })
-        })
-      }
-      this.setState({remotes})
+      files = await listRemote(id)
     } catch (err) {
       error('List Remote', err.message || String(err))
+      return
     }
+    const { remotes } = this.state
+    const remote = find(remotes, {id})
+    if (remote) {
+      const backups = remote.backups = {
+        delta: {},
+        other: []
+      }
+
+      forEach(files, file => {
+        const arr = /^vm_delta_(.*)_([^\/]+)\/([^_]+)_(.*)$/.exec(file)
+
+        if (arr) {
+          const [ , tag, id, date, name ] = arr
+          const value = {
+            path: file,
+            date: +moment(date, 'YYYYMMDDTHHmmssZ').format('x'),
+            name
+          }
+          deltaBuilder(backups.delta, tag, id, value)
+        } else {
+          backups.other.push(file)
+        }
+      })
+
+      forEach(remote.backups.delta, byTag => {
+        forEach(byTag, (byId, tag) => {
+          forEach(byId, (bks, id) => {
+            byId[id] = orderBy(bks, ['date'], ['asc'])
+          })
+        })
+      })
+    }
+    this.setState({remotes})
   }
 
   _notifyImportStart () {
