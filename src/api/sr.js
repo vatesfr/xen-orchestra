@@ -48,8 +48,8 @@ scan.resolve = {
 // -------------------------------------------------------------------
 
 // TODO: find a way to call this "delete" and not destroy
-export async function destroy ({SR}) {
-  await this.getXapi(SR).call('SR.destroy', SR._xapiRef)
+export async function destroy ({ sr }) {
+  await this.getXapi(sr).destroySr(sr._xapiId)
 }
 
 destroy.params = {
@@ -57,13 +57,13 @@ destroy.params = {
 }
 
 destroy.resolve = {
-  SR: ['id', 'SR', 'administrate']
+  sr: ['id', 'SR', 'administrate']
 }
 
 // -------------------------------------------------------------------
 
 export async function forget ({SR}) {
-  await this.getXapi(SR).call('SR.forget', SR._xapiRef)
+  await this.getXapi(SR).forgetSr(SR._xapiId)
 }
 
 forget.params = {

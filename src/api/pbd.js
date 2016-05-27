@@ -1,7 +1,3 @@
-import {
-  GenericError
-} from '../api-errors'
-
 // FIXME: too low level, should be removed.
 
 // ===================================================================
@@ -24,17 +20,8 @@ delete_.resolve = {
 // ===================================================================
 // Disconnect
 
-export async function disconnect ({PBD}) {
-  // TODO: check if PBD is attached before
-  try {
-    await this.getXapi(PBD).call('PBD.unplug', PBD._xapiRef)
-  } catch (error) {
-    if (error.code === 'VDI_IN_USE') {
-      throw new GenericError('VDI in use')
-    } else {
-      throw error
-    }
-  }
+export async function disconnect ({ pbd }) {
+  return this.getXapi(pbd).unplugPbd(pbd._xapiId)
 }
 
 disconnect.params = {
@@ -42,7 +29,7 @@ disconnect.params = {
 }
 
 disconnect.resolve = {
-  PBD: ['id', 'PBD', 'administrate']
+  pbd: ['id', 'PBD', 'administrate']
 }
 
 // ===================================================================

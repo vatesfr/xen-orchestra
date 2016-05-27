@@ -21,9 +21,11 @@ import {
 } from 'semver'
 
 import httpRequest from './http-request'
+import mixins from './xapi-mixins'
 import {
   debounce,
-  deferrable
+  deferrable,
+  mixin
 } from './decorators'
 import httpProxy from './http-proxy'
 import {
@@ -200,6 +202,7 @@ export const VDI_FORMAT_RAW = 'raw'
 
 // ===================================================================
 
+@mixin(mapToArray(mixins))
 export default class Xapi extends XapiBase {
   constructor (...args) {
     super(...args)

@@ -259,6 +259,31 @@ export const mixin = MixIns => Class => {
 
   const { name } = Class
 
+  // Copy properties of plain object mix-ins to the prototype.
+  {
+    const allMixIns = MixIns
+    MixIns = []
+    const { prototype } = Class
+    const descriptors = { __proto__: null }
+    for (const MixIn of allMixIns) {
+      if (isFunction(MixIn)) {
+        MixIns.push(MixIn)
+        continue
+      }
+
+      for (const prop of _ownKeys(MixIn)) {
+        if (prop in prototype) {
+          throw new Error(`${name}#${prop} is already defined`)
+        }
+
+        (
+          descriptors[prop] = getOwnPropertyDescriptor(MixIn, prop)
+        ).enumerable = false // Object methods are enumerable but class methods are not.
+      }
+    }
+    defineProperties(prototype, descriptors)
+  }
+
   const Decorator = (...args) => {
     const instance = new Class(...args)
 
