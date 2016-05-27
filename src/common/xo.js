@@ -21,7 +21,7 @@ import {
   updateObjects
 } from 'store/actions'
 
-// =============================================================================
+// ===================================================================
 
 export const signOut = () => {
   cookies.expire('token')
@@ -55,7 +55,7 @@ const xo = invoke(() => {
   return xo
 })
 
-// =============================================================================
+// ===================================================================
 
 export const connectStore = (store) => {
   let updates = {}
@@ -84,14 +84,14 @@ export const connectStore = (store) => {
   })
 }
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------
 
 export const resolveUrl = invoke(
   xo._url, // FIXME: accessing private prop
   baseUrl => to => resolve(baseUrl, to)
 )
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------
 
 const _signIn = new Promise(resolve => xo.once('authenticated', resolve))
 
@@ -138,7 +138,7 @@ const createSubscription = cb => {
   return subscribe
 }
 
-// Subscriptions ---------------------------------------------------------------
+// Subscriptions -----------------------------------------------------
 
 export const subscribeJobs = createSubscription(() => xo.call('job.getAll'))
 
@@ -171,9 +171,9 @@ export const subscribeGroups = createSubscription(invoke(
   sort => () => xo.call('group.getAll').then(sort)
 ))
 
-// =============================================================================
+// ===================================================================
 
-// Server ----------------------------------------------------------------------
+// Server ------------------------------------------------------------
 export const addServer = (host, username, password) => (
   xo.call('server.add', { host, username, password })
 )
@@ -194,7 +194,7 @@ export const removeServer = ({ id }) => (
   xo.call('server.remove', { id })
 )
 
-// Host ------------------------------------------------------------------------
+// Host --------------------------------------------------------------
 
 export const editHost = ({ id }, props) => (
   xo.call('host.set', { ...props, id })
@@ -244,7 +244,7 @@ export const installAllHostPatches = ({ id }) => (
   xo.call('host.installAllPatches', { host: id })
 )
 
-// VM --------------------------------------------------------------------------
+// VM ----------------------------------------------------------------
 
 export const startVm = ({ id }) => (
   xo.call('vm.start', { id })
@@ -405,7 +405,7 @@ export const fetchVmStats = ({ id }, granularity) => (
   xo.call('vm.stats', { id, granularity })
 )
 
-// VDI -------------------------------------------------------------------------
+// VDI ---------------------------------------------------------------
 
 export const editVdi = ({ id }, props) => (
   xo.call('vdi.set', { ...props, id })
@@ -415,13 +415,13 @@ export const deleteVdi = ({ id }) => (
   xo.call('vdi.delete', { id })
 )
 
-// Network ---------------------------------------------------------------------
+// Network -----------------------------------------------------------
 
 export const editNetwork = ({ id }, props) => (
   xo.call('network.set', { ...props, id })
 )
 
-// SR --------------------------------------------------------------------------
+// SR ----------------------------------------------------------------
 
 export const deleteSr = ({ id }) => (
   confirm({
@@ -477,13 +477,13 @@ export const rescanSr = ({ id }) => (
   xo.call('sr.scan', { id })
 )
 
-// Messages --------------------------------------------------------------------
+// Messages ----------------------------------------------------------
 
 export const deleteMessage = ({ id }) => (
   xo.call('message.delete', { id })
 )
 
-// Tags ------------------------------------------------------------------------
+// Tags --------------------------------------------------------------
 
 export const addTag = (id, tag) => (
   xo.call('tag.add', { id, tag })
@@ -493,7 +493,7 @@ export const removeTag = (id, tag) => (
   xo.call('tag.remove', { id, tag })
 )
 
-// Backups ---------------------------------------------------------------------
+// Backups -----------------------------------------------------------
 
 export const createSchedule = (jobId, cron, enabled) => (
   xo.call('schedule.create', { jobId, cron, enabled })
@@ -516,7 +516,7 @@ export const disableSchedule = (scheduleId) => (
   xo.call('scheduler.disable', { id: scheduleId })
 )
 
-// Plugins ---------------------------------------------------------------------
+// Plugins -----------------------------------------------------------
 
 export const loadPlugin = async id => {
   try {
@@ -564,7 +564,7 @@ export const purgePluginConfiguration = async id => {
   }
 }
 
-// Resource set ----------------------------------------------------------------
+// Resource set ------------------------------------------------------
 
 export const createResourceSet = (name, { subjects, objects, limits } = {}) => (
   xo.call('resourceSet.create', { name, subjects, objects, limits })
@@ -586,7 +586,7 @@ export const deleteResourceSet = async id => {
   }
 }
 
-// Remote ----------------------------------------------------------------------
+// Remote ------------------------------------------------------------
 
 export const createRemote = (name, url) => (
   xo.call('remote.create', {name, url})
@@ -674,7 +674,7 @@ export const createSrLvm = (host, nameLabel, nameDescription, device) => (
   xo.call('sr.createLvm', {host, nameLabel, nameDescription, device})
 )
 
-// Job logs --------------------------------------------------------------------
+// Job logs ----------------------------------------------------------
 
 export const deleteJobsLog = id => (
   xo.call('log.delete', {namespace: 'jobs', id})
