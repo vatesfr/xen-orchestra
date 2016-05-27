@@ -1,7 +1,8 @@
 import DevTools from 'dev-tools'
+import hashHistory from 'react-router/lib/hashHistory'
 import React from 'react'
 import Router from 'react-router/lib/Router'
-import store, { history } from 'store'
+import store from 'store'
 import { Provider } from 'react-redux'
 import { render } from 'react-dom'
 
@@ -19,7 +20,7 @@ if (
 render(
   <Provider store={store}>
     <div>
-      <Router history={history} routes={{
+      <Router history={hashHistory} routes={{
         ...XoApp.route,
         component: XoApp,
         path: '/'
