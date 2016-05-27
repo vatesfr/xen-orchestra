@@ -111,7 +111,6 @@ export default class MigrateVmModalBody extends Component {
   }
 
   _selectHost = host => {
-    console.log('Select host')
     if (!host) {
       this.setState({ intraPool: undefined, targetHost: undefined })
       return
@@ -154,12 +153,6 @@ export default class MigrateVmModalBody extends Component {
 
   _selectMigrationNetwork = network => this.setState({ network })
 
-  _getSelectSr = vdiId =>
-    sr => this.setState({ mapVdisSrs: { ...this.state.mapVdisSrs, [vdiId]: sr.id } })
-
-  _getSelectNetwork = vifId =>
-    network => this.setState({ mapVifsNetworks: { ...this.state.mapVifsNetworks, [vifId]: network.id } })
-
   render () {
     const { vdis, vifs, networks } = this.props
     return <div>
@@ -195,7 +188,7 @@ export default class MigrateVmModalBody extends Component {
               <SingleLineRow>
                 <Col size={12}>{_('migrateVmAdvancedModalSelectSrs')}</Col>
               </SingleLineRow>
-              &nbsp;
+              <br />
               <SingleLineRow>
                 <Col size={6}><span className={styles.listTitle}>{_('migrateVmAdvancedModalName')}</span></Col>
                 <Col size={6}><span className={styles.listTitle}>{_('migrateVmAdvancedModalSr')}</span></Col>
@@ -207,7 +200,7 @@ export default class MigrateVmModalBody extends Component {
                     <SelectSr
                       ref={'sr_' + vdi.id}
                       defaultValue={this.state.defaultSr}
-                      onChange={this._getSelectSr(vdi.id)}
+                      onChange={sr => this.setState({ mapVdisSrs: { ...this.state.mapVdisSrs, [vdi.id]: sr.id } })}
                       predicate={this._getSrPredicate()}
                     />
                   </Col>
@@ -218,7 +211,7 @@ export default class MigrateVmModalBody extends Component {
               <SingleLineRow>
                 <Col size={12}>{_('migrateVmAdvancedModalSelectNetworks')}</Col>
               </SingleLineRow>
-              &nbsp;
+              <br />
               <SingleLineRow>
                 <Col size={6}><span className={styles.listTitle}>{_('migrateVmAdvancedModalVif')}</span></Col>
                 <Col size={6}><span className={styles.listTitle}>{_('migrateVmAdvancedModalNetwork')}</span></Col>
@@ -230,7 +223,7 @@ export default class MigrateVmModalBody extends Component {
                     <SelectNetwork
                       ref={'network_' + vif.id}
                       defaultValue={this.state.defaultNetworks[vif.id]}
-                      onChange={this._getSelectNetwork(vif.id)}
+                      onChange={network => this.setState({ mapVifsNetworks: { ...this.state.mapVifsNetworks, [vif.id]: network.id } })}
                       predicate={this._getNetworkPredicate()}
                     />
                   </Col>

@@ -28,7 +28,9 @@ export const alert = (title, body) => {
           <Button bsStyle='primary' onClick={() => {
             resolve()
             instance.close()
-          }} style={{marginRight: '0.5em'}}>{_('ok')}</Button>
+          }}>
+            {_('ok')}
+          </Button>
         </Footer>
       </div>,
       resolve
