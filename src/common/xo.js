@@ -423,7 +423,7 @@ export const editNetwork = ({ id }, props) => (
 
 // SR --------------------------------------------------------------------------
 
-export const srDelete = ({ id }) => (
+export const deleteSr = ({ id }) => (
   confirm({
     title: 'Delete SR',
     body: <div>
@@ -435,7 +435,7 @@ export const srDelete = ({ id }) => (
   )
 )
 
-export const srForget = ({ id }) => (
+export const forgetSr = ({ id }) => (
   confirm({
     title: 'Forget SR',
     body: <div>
@@ -447,7 +447,7 @@ export const srForget = ({ id }) => (
   )
 )
 
-export const srConnectAllHosts = ({ id }) => (
+export const connectAllHostsFromSr = ({ id }) => (
   confirm({
     title: 'Reconnect all hosts',
     body: <div>
@@ -458,7 +458,7 @@ export const srConnectAllHosts = ({ id }) => (
   )
 )
 
-export const srDisconnectAllHosts = ({ id }) => (
+export const disconnectAllHostsFromSr = ({ id }) => (
   confirm({
     title: 'Disconnect all hosts',
     body: <div>
@@ -473,7 +473,7 @@ export const editSr = ({ id }, props) => (
   xo.call('sr.set', { ...props, id })
 )
 
-export const srRescan = ({ id }) => (
+export const rescanSr = ({ id }) => (
   xo.call('sr.scan', { id })
 )
 

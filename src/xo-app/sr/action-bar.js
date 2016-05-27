@@ -1,6 +1,6 @@
 import ActionBar from 'action-bar'
 import React from 'react'
-import { srForget, srRescan, srReconnectAllHosts, srDisconnectAllHosts } from 'xo'
+import { forgetSr, rescanSr, reconnectAllHostsSr, disconnectAllHostsSr } from 'xo'
 
 const SrActionBar = ({ sr }) => (
   <ActionBar
@@ -8,22 +8,22 @@ const SrActionBar = ({ sr }) => (
       {
         icon: 'refresh',
         label: 'srRescan',
-        handler: srRescan
+        handler: rescanSr
       },
       {
         icon: 'sr-reconnect-all',
         label: 'srReconnectAll',
-        handler: srReconnectAllHosts
+        handler: reconnectAllHostsSr
       },
       {
         icon: 'sr-disconnect-all',
         label: 'srDisconnectAll',
-        handler: srDisconnectAllHosts
+        handler: disconnectAllHostsSr
       },
       {
         icon: 'sr-forget',
         label: 'srForget',
-        handler: srForget
+        handler: forgetSr
       }
     ]}
     display='icon'

@@ -3,7 +3,7 @@ import CopyToClipboard from 'react-copy-to-clipboard'
 import Icon from 'icon'
 import React from 'react'
 import TabButton from 'tab-button'
-import { srDelete } from 'xo'
+import { deleteSr } from 'xo'
 import { Container, Row, Col } from 'grid'
 
 export default ({
@@ -13,7 +13,7 @@ export default ({
     <Col mediumSize={12} className='text-xs-right'>
       <TabButton
         btnStyle='danger'
-        handler={srDelete}
+        handler={deleteSr}
         hanlerParam={sr}
         icon='sr-remove'
         labelId='srRemoveButton'
