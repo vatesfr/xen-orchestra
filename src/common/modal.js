@@ -2,6 +2,7 @@ import _ from 'messages'
 import Icon from 'icon'
 import React, { Component, cloneElement } from 'react'
 import { Button, Modal as ReactModal } from 'react-bootstrap-4/lib'
+import { propTypes } from './utils'
 
 let instance
 
@@ -27,7 +28,7 @@ export const alert = (title, body) => {
           <Button bsStyle='primary' onClick={() => {
             resolve()
             instance.close()
-          }} style={{marginRight: '0.5em'}} key='ok'>{_('ok')}</Button>
+          }} style={{marginRight: '0.5em'}}>{_('ok')}</Button>
         </Footer>
       </div>,
       resolve
@@ -35,9 +36,22 @@ export const alert = (title, body) => {
   })
 }
 
+@propTypes({
+  title: propTypes.oneOfType([
+    propTypes.string,
+    propTypes.node,
+    propTypes.element
+  ]).isRequired,
+  body: propTypes.oneOfType([
+    propTypes.string,
+    propTypes.node,
+    propTypes.element
+  ]).isRequired,
+  icon: propTypes.string
+})
 class Confirm extends Component {
   _resolve = () => {
-    this.props.resolve(this.props.bodyHasValue && this.refs.body.value)
+    this.props.resolve(this.refs.body.value)
     instance.close()
   }
   _reject = () => {
@@ -49,7 +63,7 @@ class Confirm extends Component {
 
   render () {
     const { Body, Footer, Header, Title } = ReactModal
-    const { title, body, icon, bodyHasValue } = this.props
+    const { title, body, icon } = this.props
     return <div>
       <Header closeButton>
         <Title>
@@ -59,21 +73,19 @@ class Confirm extends Component {
         </Title>
       </Header>
       <Body>
-        {bodyHasValue ? cloneElement(body, { ref: 'body' }) : body}
+        {cloneElement(body, { ref: 'body' })}
       </Body>
       <Footer>
         <Button
           bsStyle='primary'
           onClick={this._resolve}
           style={this._style}
-          key='ok'
         >
           {_('ok')}
         </Button>
         <Button
           bsStyle='secondary'
           onClick={this._reject}
-          key='cancel'
         >
           {_('cancel')}
         </Button>
@@ -85,8 +97,7 @@ class Confirm extends Component {
 export const confirm = ({
   body,
   title,
-  icon = 'alarm',
-  bodyHasValue
+  icon = 'alarm'
 }) => {
   return new Promise((resolve, reject) => {
     modal(
@@ -96,7 +107,6 @@ export const confirm = ({
         resolve={resolve}
         reject={reject}
         icon={icon}
-        bodyHasValue={bodyHasValue}
       />,
       reject
     )
