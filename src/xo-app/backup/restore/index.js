@@ -21,14 +21,13 @@ import {
   subscribeRemotes
 } from 'xo'
 
-const deltaBuilder = (backups, uuid, name, tag, value) => {
-  let deltaBackup = backups[uuid]
-    ? backups[uuid]
-    : backups[uuid] = {}
-
-  deltaBackup = deltaBackup[name]
-    ? deltaBackup[name]
-    : deltaBackup[name] = {}
+/**
+ * Groups backup files by VM id, tag
+ */
+const deltaBuilder = (backups, id, tag, value) => {
+  let deltaBackup = backups[id]
+    ? backups[id]
+    : backups[id] = {}
 
   deltaBackup = deltaBackup[tag]
     ? deltaBackup[tag]
@@ -95,12 +94,12 @@ export default class Restore extends Component {
           const arr = /^vm_delta_(.*)_([^\/]+)\/([^_]+)_(.*)$/.exec(file)
 
           if (arr) {
-            const [ , tag, uuid, date, name ] = arr
+            const [ , tag, id, date, name ] = arr
             const value = {
               path: file,
               date
             }
-            deltaBuilder(backups.delta, uuid, name, tag, value)
+            deltaBuilder(backups.delta, id, name, tag, value)
           } else {
             backups.other.push(file)
           }
@@ -164,33 +163,26 @@ export default class Restore extends Component {
                     <Row key={uuid}>
                       <Col smallSize={2}>{uuid}</Col>
                       <Col smallSize={10}>
-                        {map(backups, (backups, name) =>
-                          <Row key={name}>
-                            <Col smallSize={2}>{name}</Col>
+                        {map(backups, (backups, tag) =>
+                          <Row key={tag}>
+                            <Col smallSize={2}>{tag}</Col>
                             <Col smallSize={10}>
-                              {map(backups, (backups, tag) =>
-                                <Row key={tag}>
-                                  <Col smallSize={2}>{tag}</Col>
-                                  <Col smallSize={10}>
-                                    {map(backups, (b, k) =>
-                                      <div key={k}>
-                                        <FormattedDate value={new Date(+b.date)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />
-                                        {' '}
-                                        <DropdownButton id='filter' bsStyle='info' title='Import'>
-                                          {map(writableSrs, (sr, key) =>
-                                            <MenuItem key={key} onClick={() => this._importDeltaBackup(r.id, sr.id, b.path)}>
-                                              <Icon icon='sr' />
-                                              To {sr.name_label} ({formatSize(sr.size - sr.physical_usage)})
-                                              <ObjectName id={sr.$container} />
-                                            </MenuItem>
-                                          )}
-                                        </DropdownButton>
-                                        <br />
-                                        <br />
-                                      </div>
+                              {map(backups, (b, k) =>
+                                <div key={k}>
+                                  <FormattedDate value={new Date(+b.date)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />
+                                  {' '}
+                                  <DropdownButton id='filter' bsStyle='info' title='Import'>
+                                    {map(writableSrs, (sr, key) =>
+                                      <MenuItem key={key} onClick={() => this._importDeltaBackup(r.id, sr.id, b.path)}>
+                                        <Icon icon='sr' />
+                                        To {sr.name_label} ({formatSize(sr.size - sr.physical_usage)})
+                                        <ObjectName id={sr.$container} />
+                                      </MenuItem>
                                     )}
-                                  </Col>
-                                </Row>
+                                  </DropdownButton>
+                                  <br />
+                                  <br />
+                                </div>
                               )}
                             </Col>
                           </Row>
