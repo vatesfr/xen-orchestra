@@ -334,15 +334,31 @@ export const snapshotVms = vms => (
   )
 )
 
-export const migrateVm = ({ id: vm }, { id: host, name_label: hostName }) => (
-  confirm({
+import MigrateVmModalBody from '../xo-app/migrate-vm-modal'
+export const migrateVm = (vm, host) => {
+  let body
+  if (!host) {
+    body = <MigrateVmModalBody vm={vm} />
+  } else {
+    body = _('migrateVmModalBody', { hostName: host.name_label })
+  }
+  return confirm({
     title: _('migrateVmModalTitle'),
-    body: _('migrateVmModalBody', { hostName })
+    body
   }).then(
-    () => xo.call('vm.migrate', { vm, targetHost: host }),
+    params => {
+      if (!params && !host) {
+        throw new Error('A target host is required to migrate a VM')
+      }
+      if (params) {
+        xo.call('vm.migrate', { vm: vm.id, ...params })
+      } else {
+        xo.call('vm.migrate', { vm: vm.id, targetHost: host.id })
+      }
+    },
     noop
   )
-)
+}
 
 export const migrateVms = vms => {
   throw new Error('Not implemented.')

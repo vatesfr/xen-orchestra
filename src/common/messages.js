@@ -1452,6 +1452,33 @@ export const messages = {
   migrateVmModalBody: {
     defaultMessage: 'Are you sure you want to migrate this VM to {hostName}?'
   },
+  migrateVmAdvancedModalSelectHost: {
+    defaultMessage: 'Select a destination host:'
+  },
+  migrateVmAdvancedModalSelectNetwork: {
+    defaultMessage: 'Select a migration network:'
+  },
+  migrateVmAdvancedModalSelectSrs: {
+    defaultMessage: 'For each VDI, select an SR:'
+  },
+  migrateVmAdvancedModalSelectNetworks: {
+    defaultMessage: 'For each VIF, select a network:'
+  },
+  migrateVmAdvancedModalName: {
+    defaultMessage: 'Name'
+  },
+  migrateVmAdvancedModalSr: {
+    defaultMessage: 'SR'
+  },
+  migrateVmAdvancedModalVif: {
+    defaultMessage: 'VIF'
+  },
+  migrateVmAdvancedModalNetwork: {
+    defaultMessage: 'Network'
+  },
+  migrateVmAdvancedModalNoRemapping: {
+    defaultMessage: 'Intra-pool migration: re-mapping is not needed'
+  },
 
   // ----- Servers -----
   serverHost: 'Host',
@@ -1786,6 +1813,15 @@ localizedMessages.fr = {
   restartVmsModalMessage: 'Voulez-vous vraiment redémarrer {vms} VM{vms, plural, one {} other {s}} ?',
   migrateVmModalTitle: 'Migrer la VM',
   migrateVmModalBody: 'Voulez-vous vraiment migrer cette VM sur {hostName} ?',
+  migrateVmAdvancedModalSelectHost: 'Sélectionnez un hôte de destination:',
+  migrateVmAdvancedModalSelectNetwork: 'Sélectionnez un réseau pour la migration:',
+  migrateVmAdvancedModalSelectSrs: 'Pour chaque VDI, sélectionnez un SR:',
+  migrateVmAdvancedModalSelectNetworks: 'Pour chaque VIF, sélectionnez un réseau:',
+  migrateVmAdvancedModalName: 'Nom',
+  migrateVmAdvancedModalSr: 'SR',
+  migrateVmAdvancedModalVif: 'VIF',
+  migrateVmAdvancedModalNetwork: 'Réseau',
+  migrateVmAdvancedModalNoRemapping: 'Migration intra-pool : le re-mappage n\'est pas requis',
   // ------ Self ------
   resourceSets: 'Ensemble de ressources',
   resourceSetName: 'Nom de l\'ensemble de ressources',

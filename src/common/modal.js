@@ -1,31 +1,108 @@
 import _ from 'messages'
 import Icon from 'icon'
-import React, { Component } from 'react'
+import isArray from 'lodash/isArray'
+import isString from 'lodash/isString'
+import React, { Component, cloneElement } from 'react'
 import { Button, Modal as ReactModal } from 'react-bootstrap-4/lib'
+import { propTypes } from './utils'
 
 let instance
 
-const modal = (title, body, footer, onClose) => {
+const modal = (content, onClose) => {
   if (!instance) {
     throw new Error('No modal instance.')
-  } else if (instance.showModal) {
+  } else if (instance.state.showModal) {
     throw new Error('Other modal still open.')
   }
-  instance.setState({ title, body, footer, onClose, showModal: true })
+  instance.setState({ content, onClose, showModal: true })
 }
 
 export const alert = (title, body) => {
   return new Promise(resolve => {
+    const { Body, Footer, Header, Title } = ReactModal
     modal(
-      title,
-      body,
-      <Button bsStyle='primary' onClick={() => {
-        resolve()
-        instance.close()
-      }} style={{marginRight: '0.5em'}} key='ok'>{_('ok')}</Button>,
+      <div>
+        <Header closeButton>
+          <Title>{title}</Title>
+        </Header>
+        <Body>{body}</Body>
+        <Footer>
+          <Button bsStyle='primary' onClick={() => {
+            resolve()
+            instance.close()
+          }}>
+            {_('ok')}
+          </Button>
+        </Footer>
+      </div>,
       resolve
     )
   })
+}
+
+const _addRef = (component, ref) => {
+  if (isString(component) || isArray(component)) {
+    return component
+  }
+
+  try {
+    return cloneElement(component, { ref })
+  } catch (_) {} // Stateless component.
+  return component
+}
+
+@propTypes({
+  children: propTypes.node.isRequired,
+  title: propTypes.node.isRequired,
+  icon: propTypes.string
+})
+class Confirm extends Component {
+  _resolve = () => {
+    const { body } = this.refs
+    this.props.resolve(body && body.value)
+    instance.close()
+  }
+  _reject = () => {
+    this.props.reject()
+    instance.close()
+  }
+
+  _style = { marginRight: '0.5em' }
+
+  render () {
+    const { Body, Footer, Header, Title } = ReactModal
+    const { title, icon } = this.props
+
+    const body = _addRef(this.props.children, 'body')
+
+    return <div>
+      <Header closeButton>
+        <Title>
+        {icon
+          ? <span><Icon icon={icon} /> {title}</span>
+          : title}
+        </Title>
+      </Header>
+      <Body>
+        {body}
+      </Body>
+      <Footer>
+        <Button
+          bsStyle='primary'
+          onClick={this._resolve}
+          style={this._style}
+        >
+          {_('ok')}
+        </Button>
+        <Button
+          bsStyle='secondary'
+          onClick={this._reject}
+        >
+          {_('cancel')}
+        </Button>
+      </Footer>
+    </div>
+  }
 }
 
 export const confirm = ({
@@ -35,20 +112,14 @@ export const confirm = ({
 }) => {
   return new Promise((resolve, reject) => {
     modal(
-      icon
-        ? <span><Icon icon={icon} /> {title}</span>
-        : title,
-      body,
-      [
-        <Button bsStyle='primary' onClick={() => {
-          resolve()
-          instance.close()
-        }} style={{marginRight: '0.5em'}} key='ok'>{_('ok')}</Button>,
-        <Button bsStyle='secondary' onClick={() => {
-          reject()
-          instance.close()
-        }} key='cancel'>{_('cancel')}</Button>
-      ],
+      <Confirm
+        title={title}
+        resolve={resolve}
+        reject={reject}
+        icon={icon}
+      >
+        {body}
+      </Confirm>,
       reject
     )
   })
@@ -80,48 +151,16 @@ export default class Modal extends Component {
   }
 
   render () {
-    const { title, body, footer, showModal } = this.state
+    const { showModal } = this.state
     /* TODO: remove this work-around and use
      * ReactModal.Body, ReactModal.Header, ...
      * after this issue has been fixed:
      * https://phabricator.babeljs.io/T6976
      */
-    const { Body, Footer, Header, Title } = ReactModal
     return (
       <ReactModal show={showModal} onHide={this._onHide}>
-        <Header closeButton>
-          <Title>{title}</Title>
-        </Header>
-        <Body>
-          {body}
-        </Body>
-        <Footer>
-          {footer}
-        </Footer>
+        {this.state.content}
       </ReactModal>
     )
   }
 }
-
-/* Example:
-
-import { alert, confirm } from 'modal'
-
-<button onClick={() => alert('My first modal', 'This is my first modal')}>
-  My 1st modal
-</button>
-
-<button onClick={() => confirm('My second modal', <div>
-  This is a more complex modal which:
-  <ul>
-    <li>uses JSX syntax</li>
-    <li>can be confirmed or cancelled</li>
-  </ul>
-</div>
-).then(() =>
-  console.log('Confirmed')
-).catch(() =>
-  console.log('Cancelled'))}>
-  My 2nd modal
-</button>
-*/
