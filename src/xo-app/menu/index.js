@@ -8,13 +8,20 @@ import React from 'react'
 import Tooltip from 'tooltip'
 import { Button } from 'react-bootstrap-4/lib'
 import { connectStore, noop } from 'utils'
+import { createGetObjectsOfType } from 'selectors'
 import { signOut } from 'xo'
 
 import styles from './index.css'
 
-@connectStore([
-  'user'
-], {
+@connectStore(() => {
+  const getNumberOfTasks = createGetObjectsOfType('task').count(
+    [ task => task.status === 'pending' ]
+  )
+  return (state, props) => ({
+    nTasks: getNumberOfTasks(state, props),
+    user: state.user
+  })
+}, {
   withRef: true
 })
 export default class Menu extends Component {
@@ -55,7 +62,7 @@ export default class Menu extends Component {
   }
 
   render () {
-    const { user } = this.props
+    const { nTasks, user } = this.props
     const items = [
       { to: '/home', icon: 'home', label: 'homePage' },
       { to: '/dashboard/overview', icon: 'dashboard', label: 'dashboardPage', subMenu: [
@@ -88,7 +95,8 @@ export default class Menu extends Component {
         { to: '/new/sr', icon: 'new-sr', label: 'newSrPage' },
         { to: '/settings/servers', icon: 'settings-servers', label: 'newServerPage' },
         { to: '/import', icon: 'new-import', label: 'newImport' }
-      ]}
+      ]},
+      { to: '/tasks', icon: 'tasks', label: 'taskMenu', pill: nTasks }
     ]
 
     return <div className={classNames(
@@ -136,12 +144,13 @@ export default class Menu extends Component {
 
 const MenuLinkItem = props => {
   const { item } = props
-  const { to, icon, label, subMenu } = item
+  const { to, icon, label, subMenu, pill } = item
 
   return <li className='nav-item xo-menu-item'>
     <Link activeClassName='active' className='nav-link' to={to}>
       <Icon icon={`menu-${icon}`} size='lg' fixedWidth />
       <span className={styles.hiddenCollapsed}>{' '}{_(label)}</span>
+      {(pill || pill > 0) && <span>&nbsp;&nbsp;<span className='tag tag-pill tag-primary'>{pill}</span></span>}
     </Link>
     {subMenu && <SubMenu items={subMenu} />}
   </li>

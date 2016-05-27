@@ -593,6 +593,10 @@
     @extend .fa;
     @extend .fa-info;
   }
+  &-menu-tasks {
+    @extend .fa;
+    @extend .fa-tasks;
+  }
   &-menu-new {
     @extend .fa;
     @extend .fa-plus;
