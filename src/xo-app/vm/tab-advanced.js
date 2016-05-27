@@ -15,6 +15,7 @@ import {
   editVm,
   recoveryStartVm,
   restartVm,
+  resumeVm,
   stopVm,
   suspendVm
 } from 'xo'
@@ -74,6 +75,24 @@ export default ({
             handlerParam={vm}
             icon='vm-create-template'
             labelId='vmConvertButton'
+          />
+        </span>
+      }
+      {vm.power_state === 'Suspended' &&
+        <span>
+          <TabButton
+            btnStyle='primary'
+            handler={resumeVm}
+            handlerParam={vm}
+            icon='vm-start'
+            labelId='resumeVmLabel'
+          />
+          <TabButton
+            btnStyle='warning'
+            handler={forceShutdown}
+            handlerParam={vm}
+            icon='vm-force-shutdown'
+            labelId='forceShutdownVmLabel'
           />
         </span>
       }

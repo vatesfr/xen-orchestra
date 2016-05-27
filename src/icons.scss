@@ -262,13 +262,13 @@
   &-suspended {
     @extend .fa;
     @extend .fa-circle;
-    @extend .xo-status-paused;
+    @extend .xo-status-suspended;
   }
 
   &-paused {
     @extend .fa;
     @extend .fa-circle;
-    @extend .xo-status-paused;
+    @extend .xo-status-suspended;
   }
 
   &-unknown {
