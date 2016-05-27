@@ -22,16 +22,16 @@ import {
 } from 'xo'
 
 /**
- * Groups backup files by VM id, tag
+ * Groups backup files by tag, vmId
  */
-const deltaBuilder = (backups, id, tag, value) => {
-  let deltaBackup = backups[id]
-    ? backups[id]
-    : backups[id] = {}
+const deltaBuilder = (backups, tag, id, value) => {
+  let deltaBackup = backups[tag]
+    ? backups[tag]
+    : backups[tag] = {}
 
-  deltaBackup = deltaBackup[tag]
-    ? deltaBackup[tag]
-    : deltaBackup[tag] = []
+  deltaBackup = deltaBackup[id]
+    ? deltaBackup[id]
+    : deltaBackup[id] = []
 
   deltaBackup.push(value)
 }
@@ -94,15 +94,21 @@ export default class Restore extends Component {
           const arr = /^vm_delta_(.*)_([^\/]+)\/([^_]+)_(.*)$/.exec(file)
 
           if (arr) {
-            const [ , tag, id, date, name ] = arr
+            const [ , tag, id, date ] = arr
             const value = {
               path: file,
               date
             }
-            deltaBuilder(backups.delta, id, name, tag, value)
+            deltaBuilder(backups.delta, tag, id, value)
           } else {
             backups.other.push(file)
           }
+        })
+
+        forEach(remote.backups, byTag => {
+          forEach(byTag, (byId, id) => {
+            byTag[id] = orderBy(byId, ['date'], ['asc'])
+          })
         })
       }
       this.setState({remotes})
@@ -159,13 +165,13 @@ export default class Restore extends Component {
               {r.backups &&
                 <div>
                   {isEmptyRemote(r) && <span>No backups available</span>}
-                  {map(r.backups.delta, (backups, uuid) =>
-                    <Row key={uuid}>
-                      <Col smallSize={2}>{uuid}</Col>
+                  {map(r.backups.delta, (backups, tag) =>
+                    <Row key={tag}>
+                      <Col smallSize={2}>{tag}</Col>
                       <Col smallSize={10}>
-                        {map(backups, (backups, tag) =>
-                          <Row key={tag}>
-                            <Col smallSize={2}>{tag}</Col>
+                        {map(backups, (backups, id) =>
+                          <Row key={id}>
+                            <Col smallSize={2}>{id}</Col>
                             <Col smallSize={10}>
                               {map(backups, (b, k) =>
                                 <div key={k}>
