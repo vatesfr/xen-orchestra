@@ -57,13 +57,23 @@ import {
 
 // ===================================================================
 
-const SR_TYPE_TO_INFO = {
+const SR_TYPE_TO_LABEL = {
   nfs: 'NFS',
   iscsi: 'iSCSI',
   lvm: 'Local LVM',
   local: 'Local',
   nfsiso: 'NFS ISO',
   smb: 'SMB'
+}
+
+const SR_GROUP_TO_LABEL = {
+  vdisr: 'VDI SR',
+  isosr: 'ISO SR'
+}
+
+const typeGroups = {
+  vdisr: ['nfs', 'iscsi', 'lvm'],
+  isosr: ['local', 'nfsiso', 'smb']
 }
 
 // ===================================================================
@@ -398,9 +408,12 @@ export default class New extends Component {
                 required
               >
                 <option value={null}>{formatMessage(messages.noSelectedValue)}</option>
-                {map(SR_TYPE_TO_INFO, (label, key) =>
-                  <option key={key} value={key}>{label}</option>
-                )}
+                {map(typeGroups, (types, group) =>
+                  <optgroup label={SR_GROUP_TO_LABEL[group]}>
+                    {map(types, type =>
+                      <option key={type} value={type}>{SR_TYPE_TO_LABEL[type]}</option>
+                    )}
+                  </optgroup>)}
               </select>
             </fieldset>
           </Section>
