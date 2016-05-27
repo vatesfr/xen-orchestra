@@ -11,9 +11,10 @@ import trim from 'lodash.trim'
 import Wizard, { Section } from 'wizard'
 import { confirm } from 'modal'
 import { connectStore, formatSize } from 'utils'
-import { GenericSelect, SelectHost } from 'select-objects'
 import { createGetObjectsOfType, createFilter, createSelector } from 'selectors'
+import { GenericSelect, SelectHost } from 'select-objects'
 import { injectIntl } from 'react-intl'
+import { Password } from 'form'
 
 class SelectIqn extends GenericSelect {
   _computeOptions (props) {
@@ -495,14 +496,12 @@ export default class New extends Component {
                           required
                           type='text'
                         />
-                        <label htmlFor='srServerUser'>{_('newSrPassword')}</label>
-                        <input
-                          id='srServerPassword'
-                          className='form-control'
+                        <label>{_('newSrPassword')}</label>
+                        <Password
+                          enableGenerator={false}
                           placeholder='password'
                           ref='password'
                           required
-                          type='text'
                         />
                       </fieldset>
                     }
@@ -546,14 +545,12 @@ export default class New extends Component {
                       required
                       type='text'
                     />
-                    <label htmlFor='srServerPassword'>{_('newSrPassword')}</label>
-                    <input
-                      id='srServerPassword'
-                      className='form-control'
+                    <label>{_('newSrPassword')}</label>
+                    <Password
+                      enableGenerator={false}
                       placeholder='password'
                       ref='password'
                       required
-                      type='text'
                     />
                   </fieldset>
                 }
