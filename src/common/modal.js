@@ -1,5 +1,7 @@
 import _ from 'messages'
 import Icon from 'icon'
+import isArray from 'lodash/isArray'
+import isString from 'lodash/isString'
 import React, { Component, cloneElement } from 'react'
 import { Button, Modal as ReactModal } from 'react-bootstrap-4/lib'
 import { propTypes } from './utils'
@@ -38,22 +40,26 @@ export const alert = (title, body) => {
   })
 }
 
+const _addRef = (component, ref) => {
+  if (isString(component) || isArray(component)) {
+    return component
+  }
+
+  try {
+    return cloneElement(component, { ref })
+  } catch (_) {} // Stateless component.
+  return component
+}
+
 @propTypes({
-  children: propTypes.oneOfType([
-    propTypes.string,
-    propTypes.node,
-    propTypes.element
-  ]).isRequired,
-  title: propTypes.oneOfType([
-    propTypes.string,
-    propTypes.node,
-    propTypes.element
-  ]).isRequired,
+  children: propTypes.node.isRequired,
+  title: propTypes.node.isRequired,
   icon: propTypes.string
 })
 class Confirm extends Component {
   _resolve = () => {
-    this.props.resolve(this.refs.body.value)
+    const { body } = this.refs
+    this.props.resolve(body && body.value)
     instance.close()
   }
   _reject = () => {
@@ -65,7 +71,10 @@ class Confirm extends Component {
 
   render () {
     const { Body, Footer, Header, Title } = ReactModal
-    const { title, children, icon, bodyHasValue } = this.props
+    const { title, icon } = this.props
+
+    const body = _addRef(this.props.children, 'body')
+
     return <div>
       <Header closeButton>
         <Title>
@@ -75,7 +84,7 @@ class Confirm extends Component {
         </Title>
       </Header>
       <Body>
-        {bodyHasValue ? cloneElement(children, { ref: 'body' }) : children}
+        {body}
       </Body>
       <Footer>
         <Button

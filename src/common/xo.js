@@ -344,8 +344,7 @@ export const migrateVm = (vm, host) => {
   }
   return confirm({
     title: _('migrateVmModalTitle'),
-    body,
-    bodyHasValue: !host
+    body
   }).then(
     params => {
       if (!params && !host) {
