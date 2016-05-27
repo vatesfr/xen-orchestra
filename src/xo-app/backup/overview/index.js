@@ -106,10 +106,10 @@ class Log extends Component {
         <td><FormattedDuration duration={log.duration} /></td>
         <td>
           {log.status === 'Finished' &&
-            <span className={classnames('tag', {'tag-success': (!log.error && !log.hasErrors), 'tag-danger': (log.error || log.hasErrors)})}>{log.status}</span>
+            <span className={classnames('tag', {'tag-success': (!log.error && !log.hasErrors), 'tag-danger': (log.error || log.hasErrors)})}>{_('jobFinished')}</span>
           }
           {log.status !== 'Finished' &&
-            <span className={classnames('tag', {'tag-warning': log.status === 'In progress', 'tag-default': !log.status})}>{log.status || 'unknown'}</span>
+            <span className={classnames('tag', {'tag-warning': log.status === 'Started', 'tag-default': !log.status})}>{_('jobFinished') || _('jobUnknown')}</span>
           }
           {' '}
           <ActionButton btnStyle='default' size='small' handler={this._delete} handlerParam={log.logKey} icon='delete' />
@@ -212,7 +212,7 @@ export default class Overview extends Component {
 
       forEach(logs, log => {
         if (log.end === undefined) {
-          log.status = 'In progress'
+          log.status = _('jobStarted')
         }
         log.calls = orderBy(log.calls, ['time'], ['desc'])
       })

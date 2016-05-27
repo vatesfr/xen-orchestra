@@ -364,6 +364,12 @@ export const messages = {
   runJobVerbose: {
     defaultMessage: 'One shot running started. See overview for logs.'
   },
+  jobStarted: {
+    defaultMessage: 'Started'
+  },
+  jobFinished: {
+    defaultMessage: 'Finished'
+  },
 
   // ------ New backup -----
   newBackupSelection: {
