@@ -51,7 +51,7 @@ export const SrItem = propTypes({
     container: getContainer(state, props)
   })
 })(({ sr, container }) => {
-  let label = `${sr.name_label || id}`
+  let label = `${sr.name_label || sr.id}`
 
   if (sr.content_type === 'user') {
     label += ` (${formatSize(sr.size)})`
