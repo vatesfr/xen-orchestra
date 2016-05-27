@@ -1,9 +1,6 @@
 import ActionBar from 'action-bar'
 import React from 'react'
-
-const NOT_IMPLEMENTED = () => {
-  throw new Error('not implemented')
-}
+import { forgetSr, rescanSr, reconnectAllHostsSr, disconnectAllHostsSr } from 'xo'
 
 const SrActionBar = ({ sr }) => (
   <ActionBar
@@ -11,22 +8,22 @@ const SrActionBar = ({ sr }) => (
       {
         icon: 'refresh',
         label: 'srRescan',
-        handler: NOT_IMPLEMENTED // TODO add sr
+        handler: rescanSr
       },
       {
         icon: 'sr-reconnect-all',
         label: 'srReconnectAll',
-        handler: NOT_IMPLEMENTED // TODO add VM
+        handler: reconnectAllHostsSr
       },
       {
         icon: 'sr-disconnect-all',
         label: 'srDisconnectAll',
-        handler: NOT_IMPLEMENTED // TODO add host
+        handler: disconnectAllHostsSr
       },
       {
         icon: 'sr-forget',
         label: 'srForget',
-        handler: NOT_IMPLEMENTED // TODO disconnect server
+        handler: forgetSr
       }
     ]}
     display='icon'

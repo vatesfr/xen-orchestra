@@ -14,7 +14,7 @@ export default ({
       <TabButton
         btnStyle='danger'
         handler={deleteSr}
-        hanlerParam={sr}
+        handlerParam={sr}
         icon='sr-remove'
         labelId='srRemoveButton'
       />
