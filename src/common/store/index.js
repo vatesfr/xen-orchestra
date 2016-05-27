@@ -1,7 +1,7 @@
 import DevTools from 'dev-tools'
 import hashHistory from 'react-router/lib/hashHistory'
 import reduxThunk from 'redux-thunk'
-import { connectStore } from 'xo'
+import { connectStore as connectXo } from 'xo'
 import {
   applyMiddleware,
   combineReducers,
@@ -30,7 +30,7 @@ const store = createStore(
   compose.apply(null, enhancers)
 )
 
-connectStore(store)
+connectXo(store)
 
 export default store
 
