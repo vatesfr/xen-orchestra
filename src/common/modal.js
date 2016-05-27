@@ -37,7 +37,7 @@ export const alert = (title, body) => {
 
 class Confirm extends Component {
   _resolve = () => {
-    this.props.resolve(this.refs.body.value)
+    this.props.resolve(this.props.bodyHasValue && this.refs.body.value)
     instance.close()
   }
   _reject = () => {
@@ -49,7 +49,7 @@ class Confirm extends Component {
 
   render () {
     const { Body, Footer, Header, Title } = ReactModal
-    const { title, body, icon } = this.props
+    const { title, body, icon, bodyHasValue } = this.props
     return <div>
       <Header closeButton>
         <Title>
@@ -59,7 +59,7 @@ class Confirm extends Component {
         </Title>
       </Header>
       <Body>
-        {cloneElement(body, { ref: 'body' })}
+        {bodyHasValue ? cloneElement(body, { ref: 'body' }) : body}
       </Body>
       <Footer>
         <Button
@@ -85,7 +85,8 @@ class Confirm extends Component {
 export const confirm = ({
   body,
   title,
-  icon = 'alarm'
+  icon = 'alarm',
+  bodyHasValue
 }) => {
   return new Promise((resolve, reject) => {
     modal(
@@ -95,6 +96,7 @@ export const confirm = ({
         resolve={resolve}
         reject={reject}
         icon={icon}
+        bodyHasValue={bodyHasValue}
       />,
       reject
     )

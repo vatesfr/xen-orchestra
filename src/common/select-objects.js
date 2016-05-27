@@ -1,5 +1,6 @@
 import _ from 'messages'
 import filter from 'lodash/filter'
+import find from 'lodash/find'
 import forEach from 'lodash/forEach'
 import groupBy from 'lodash/groupBy'
 import Icon from 'icon'
@@ -51,12 +52,12 @@ export class GenericSelect extends Component {
   }
 
   // Supports id strings and objects.
-  _setValue (value) {
-    if (this.props.multi) {
+  _setValue (value, props = this.props) {
+    if (props.multi) {
       return map(value, object => object.id || object)
     }
 
-    return value.id || value || ''
+    return value.id || value
   }
 
   componentWillReceiveProps (props) {
@@ -68,11 +69,20 @@ export class GenericSelect extends Component {
     if (!objects) {
       return
     }
-
-    // Reset selected values if options are changed.
+    if (props.value) {
+      // Reset selected values if options are changed.
+      this.setState({
+        value: this._setValue(
+          filter(this.value, value => value && objects[value.id]),
+          props
+        )
+      })
+      return
+    }
+    const value = this.value
     this.setState({
       value: this._setValue(
-        filter(this.value, value => value && objects[value.id])
+        find(objects, (_, id) => id === value.id) || ''
       )
     })
   }
@@ -91,7 +101,7 @@ export class GenericSelect extends Component {
       return map(value, value => objects[value.value || value])
     }
 
-    return objects[value.value || value]
+    return objects[value.value || value] || ''
   }
 
   set value (value) {
@@ -105,7 +115,7 @@ export class GenericSelect extends Component {
     const { onChange } = this.props
 
     this.setState({
-      value
+      value: value || ''
     }, onChange && (() => { onChange(this.value) }))
   }
 

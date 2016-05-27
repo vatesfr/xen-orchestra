@@ -1,7 +1,6 @@
 import _ from 'messages'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
-import isEmpty from 'lodash/isEmpty'
 import find from 'lodash/find'
 import map from 'lodash/map'
 import React, { Component } from 'react'
@@ -77,7 +76,7 @@ export default class MigrateVmModalBody extends Component {
     this._getSrPredicate = createSelector(
       () => this.state.host,
       host => (host
-        ? sr => sr.$container === host.id || sr.$container === host.$pool
+        ? sr => sr.content_type !== 'iso' && (sr.$container === host.id || sr.$container === host.$pool)
         : () => false)
     )
 
@@ -114,26 +113,46 @@ export default class MigrateVmModalBody extends Component {
   }
 
   _selectHost = host => {
-    const { srs, pools, pifs, vifs, networks } = this.props
+    if (!host) {
+      this.setState({ intraPool: undefined })
+      return
+    }
+    const { networks, pools, pifs, srs, vdis, vifs } = this.props
     const defaultMigrationNetwork = networks[find(pifs, pif => pif.$host === host.id && pif.management).$network]
     const defaultSr = srs[pools[host.$pool].default_SR]
     const defaultNetworks = {}
+    // Default network...
     forEach(vifs, vif => {
-      defaultNetworks[vif.id] = find(host.$PIFs, pif =>
-        networks[vif.$network].name_label === networks[pifs[pif].$network].name_label
-      )
+      // ...is the one which has the same name_label as the VIF's previous network (if it has an IP)...
+      const defaultPif = find(host.$PIFs, pifId => {
+        const pif = pifs[pifId]
+        return pif.ip && networks[vif.$network].name_label === networks[pif.$network].name_label
+      })
+      defaultNetworks[vif.id] = defaultPif && networks[defaultPif.$network]
+      // ...or the first network in the target host networks list that has an IP.
       if (!defaultNetworks[vif.id]) {
-        defaultNetworks[vif.id] = networks[pifs[host.$PIFs[0]].$network]
+        defaultNetworks[vif.id] = networks[pifs[find(host.$PIFs, pif => pifs[pif].ip)].$network]
       }
     })
     this.setState({
-      defaultMigrationNetwork,
+      network: defaultMigrationNetwork,
       defaultNetworks,
       defaultSr,
       host,
-      intraPool: isEmpty(host) ? undefined : this.props.vm.$pool === host.$pool
+      intraPool: this.props.vm.$pool === host.$pool
+    }, () => {
+      if (!this.state.intraPool) {
+        this.refs.network.value = defaultMigrationNetwork
+        forEach(vdis, (_, vdiId) => {
+          this.refs['sr_' + vdiId].value = defaultSr
+        })
+        forEach(vifs, vif => {
+          this.refs['network_' + vif.id].value = defaultNetworks[vif.id]
+        })
+      }
     })
   }
+
   _selectMigrationNetwork = network => this.setState({ network })
 
   _getSelectSr = vdiId =>
@@ -150,7 +169,6 @@ export default class MigrateVmModalBody extends Component {
           <Col size={6}>{_('migrateVmAdvancedModalSelectHost')}</Col>
           <Col size={6}>
             <SelectHost
-              defaultValue={this.state.defaultMigrationNetwork}
               onChange={this._selectHost}
               predicate={this._getHostPredicate()}
             />
@@ -159,14 +177,15 @@ export default class MigrateVmModalBody extends Component {
       </div>
       {this.state.intraPool !== undefined &&
       (this.state.intraPool
-        ? <p><em><Icon icon='info' size={1} /> {_('migrateVmAdvancedModalNoRemapping')}</em></p>
+        ? <p className='text-success'><em><Icon icon='info' size={1} /> {_('migrateVmAdvancedModalNoRemapping')}</em></p>
         : <div>
           <div className={styles.block}>
             <SingleLineRow>
               <Col size={6}>{_('migrateVmAdvancedModalSelectNetwork')}</Col>
               <Col size={6}>
                 <SelectNetwork
-                  defaultValue={this.state.defaultMigrationNetwork}
+                  ref='network'
+                  defaultValue={this.state.network}
                   onChange={this._selectMigrationNetwork}
                   predicate={this._getNetworkPredicate()}
                 />
@@ -187,6 +206,7 @@ export default class MigrateVmModalBody extends Component {
                 <Col size={6}>{vdi.name_label}</Col>
                 <Col size={6}>
                   <SelectSr
+                    ref={'sr_' + vdi.id}
                     defaultValue={this.state.defaultSr}
                     onChange={this._getSelectSr(vdi.id)}
                     predicate={this._getSrPredicate()}
@@ -209,6 +229,7 @@ export default class MigrateVmModalBody extends Component {
                 <Col size={6}>{vif.MAC} ({networks[vif.$network].name_label})</Col>
                 <Col size={6}>
                   <SelectNetwork
+                    ref={'network_' + vif.id}
                     defaultValue={this.state.defaultNetworks[vif.id]}
                     onChange={this._getSelectNetwork(vif.id)}
                     predicate={this._getNetworkPredicate()}

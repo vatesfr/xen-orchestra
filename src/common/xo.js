@@ -344,13 +344,18 @@ export const migrateVm = (vm, host) => {
   }
   return confirm({
     title: _('migrateVmModalTitle'),
-    body
+    body,
+    bodyHasValue: !host
   }).then(
     params => {
-      if (!params.targetHost && !host) {
+      if (!params && !host) {
         throw new Error('A target host is required to migrate a VM')
       }
-      xo.call('vm.migrate', { vm: vm.id, targetHost: host.id, ...params })
+      if (params) {
+        xo.call('vm.migrate', { vm: vm.id, ...params })
+      } else {
+        xo.call('vm.migrate', { vm: vm.id, targetHost: host.id })
+      }
     },
     noop
   )
