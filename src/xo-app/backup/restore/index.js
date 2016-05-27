@@ -13,6 +13,7 @@ import { DropdownButton, MenuItem } from 'react-bootstrap-4/lib'
 import { info, error } from 'notification'
 import { FormattedDate } from 'react-intl'
 import { Row, Col } from 'grid'
+import moment from 'moment'
 
 import {
   importBackup,
@@ -97,7 +98,7 @@ export default class Restore extends Component {
             const [ , tag, id, date ] = arr
             const value = {
               path: file,
-              date
+              date: +moment(date, 'YYYYMMDDTHHmmssZ').format('x')
             }
             deltaBuilder(backups.delta, tag, id, value)
           } else {
@@ -175,7 +176,7 @@ export default class Restore extends Component {
                             <Col smallSize={10}>
                               {map(backups, (b, k) =>
                                 <div key={k}>
-                                  <FormattedDate value={new Date(+b.date)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />
+                                  <FormattedDate value={new Date(b.date)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />
                                   {' '}
                                   <DropdownButton id='filter' bsStyle='info' title='Import'>
                                     {map(writableSrs, (sr, key) =>
