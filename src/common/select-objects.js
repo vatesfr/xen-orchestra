@@ -9,9 +9,10 @@ import groupBy from 'lodash/groupBy'
 import keyBy from 'lodash/keyBy'
 import keys from 'lodash/keys'
 import map from 'lodash/map'
+import mapValues from 'lodash/mapValues'
 import renderXoItem from 'render-xo-item'
 import sortBy from 'lodash/sortBy'
-import { parse } from 'xo-remote-parser'
+import { parse as parseRemote } from 'xo-remote-parser'
 
 import {
   createGetObjectsOfType,
@@ -20,7 +21,6 @@ import {
 } from 'selectors'
 
 import {
-  autobind,
   connectStore,
   propTypes
 } from 'utils'
@@ -118,8 +118,7 @@ export class GenericSelect extends Component {
     })
   }
 
-  @autobind
-  _handleChange (value) {
+  _handleChange = value => {
     const { onChange } = this.props
 
     this.setState({
@@ -452,13 +451,23 @@ export class SelectNetwork extends GenericSelect {
 
 // ===================================================================
 
+const wrapExoticValue = (value, type) => ({
+  type,
+  [type]: value,
+  id: value
+})
+
 @connectStore(() => {
   const getTags = createGetTags().filter(
     (state, props) => props.predicate
-  ).sort()
+  )
+  const getWrappedTags = createSelector(
+    getTags,
+    tags => mapValues(tags, tag => wrapExoticValue(tag, 'tag'))
+  )
 
   return (state, props) => ({
-    xoObjects: getTags(state, props)
+    xoObjects: getWrappedTags(state, props)
   })
 }, { withRef: true })
 export class SelectTag extends GenericSelect {
@@ -470,11 +479,14 @@ export class SelectTag extends GenericSelect {
   _computeOptions (props) {
     return map(
       props.xoObjects,
-      tag => ({
-        value: tag,
-        label: tag,
-        xoItem: { type: 'tag', tag: tag }
-      })
+      tag => {
+        const { tag: value } = tag
+        return {
+          value,
+          label: value,
+          xoItem: tag
+        }
+      }
     )
   }
 }
@@ -505,6 +517,9 @@ class SelectSubscriptionObject extends Component {
 
 // ===================================================================
 
+@propTypes({
+  remotesByGroup: propTypes.object.isRequired
+})
 class AbstractSelectRemote extends GenericSelect {
   constructor (props) {
     super(props)
@@ -512,26 +527,16 @@ class AbstractSelectRemote extends GenericSelect {
   }
 
   _computeOptions (props) {
-    const {
-      predicate,
-      xoObjects
-    } = props
-    const remotesByGroup = groupBy(
-      map(
-        predicate ? filter(xoObjects, predicate) : xoObjects,
-        parse
-      ), 'type'
-    )
     let newOptions = []
 
-    forEach(remotesByGroup, (remotes, label) => {
+    forEach(props.remotesByGroup, (remotes, label) => {
       newOptions.push({
         disabled: true,
         label
       })
 
       newOptions.push.apply(newOptions,
-        map(sortBy(remotes, 'name'), remote => ({
+        map(remotes, remote => ({
           value: remote.id,
           label: `${remote.name} ${label}`,
           xoItem: { type: 'remote', remote }
@@ -553,15 +558,28 @@ export class SelectRemote extends SelectSubscriptionObject {
 
   componentWillMount () {
     this.componentWillUnmount = subscribeRemotes(remotes => {
+      const { predicate } = this.props
+      remotes = predicate ? filter(remotes, predicate) : remotes
+
       this.setState({
-        remotes: keyBy(remotes, 'id')
+        remotes: keyBy(remotes, 'id'),
+        remotesByGroup: groupBy(
+          sortBy(map(remotes, parseRemote), 'name'),
+          'type'
+        )
       })
     })
   }
 
   render () {
+    const { state } = this
     return (
-      <AbstractSelectRemote ref='select' {...this.props} xoObjects={this.state.remotes} />
+      <AbstractSelectRemote
+        {...this.props}
+        ref='select'
+        xoObjects={state.remotes}
+        remotesByGroup={state.remotesByGroup}
+      />
     )
   }
 }

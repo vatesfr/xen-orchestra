@@ -132,7 +132,12 @@ const xoItemToRender = {
 const renderXoItem = (item, {
   className
 } = {}) => {
-  const Component = xoItemToRender[item.type]
+  const { type } = item
+  const Component = xoItemToRender[type]
+
+  if (process.env.NODE_ENV !== 'production' && !Component) {
+    throw new Error(`no available component for type ${type}`)
+  }
 
   if (Component) {
     return (
