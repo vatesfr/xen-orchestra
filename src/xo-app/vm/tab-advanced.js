@@ -190,7 +190,7 @@ export default ({
             <th>{_('osName')}</th>
             <td>{isEmpty(vm.os_version)
                 ? _('unknownOsName')
-                : <span><Icon icon={osFamily(vm.os_version.distro)} />&nbsp;{vm.os_version.name}</span>
+                : <span><Icon className='text-info' icon={osFamily(vm.os_version.distro)} />&nbsp;{vm.os_version.name}</span>
                 }
             </td>
           </tr>

@@ -79,7 +79,7 @@ export default ({
     </Col>
     <Col mediumSize={3}>
       {/* TODO: tooltip and better icon usage */}
-      <BlockLink to={`/vms/${vm.id}/advanced`}><h1><Icon icon={vm.os_version && vm.os_version.distro && osFamily(vm.os_version.distro)} /></h1></BlockLink>
+      <BlockLink to={`/vms/${vm.id}/advanced`}><h1><Icon className='text-info' icon={vm.os_version && vm.os_version.distro && osFamily(vm.os_version.distro)} /></h1></BlockLink>
     </Col>
   </Row>
   {!vm.xenTools && vm.power_state === 'Running' &&
