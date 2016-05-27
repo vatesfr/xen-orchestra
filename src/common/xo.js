@@ -347,10 +347,10 @@ export const migrateVm = (vm, host) => {
     body
   }).then(
     params => {
-      if (!params.targetHost) {
+      if (!params.targetHost && !host) {
         throw new Error('A target host is required to migrate a VM')
       }
-      xo.call('vm.migrate', { vm: vm.id, ...params })
+      xo.call('vm.migrate', { vm: vm.id, targetHost: host.id, ...params })
     },
     noop
   )

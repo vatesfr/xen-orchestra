@@ -33,6 +33,7 @@ import {
 // ===================================================================
 
 @propTypes({
+  autoFocus: propTypes.bool,
   defaultValue: propTypes.any,
   disabled: propTypes.bool,
   multi: propTypes.bool,
@@ -126,15 +127,17 @@ export class GenericSelect extends Component {
 
     return (
       <Select
+        autofocus={props.autoFocus}
         disabled={props.disabled}
+        multi={props.multi}
         onChange={this._handleChange}
+        openOnFocus
         optionRenderer={this._renderOption}
         options={this.state.options}
         placeholder={props.placeholder || this._placeholder}
         required={props.required}
         value={this.state.value}
         valueRenderer={this._renderValue}
-        multi={props.multi}
       />
     )
   }
@@ -672,61 +675,5 @@ export class SelectSubject extends GenericSelect {
 
       return { label: subject.name, value: subject.id, type: 'user' }
     })
-  }
-}
-
-// ===================================================================
-
-@connectStore(() => {
-  const getNetworks = createGetObjectsOfType('network').filter(
-    (state, props) => props.predicate
-  )
-  const getPools = createGetObjectsOfType('pool').pick(
-    createSelector(
-      getNetworks,
-      networks => map(networks, '$pool')
-    )
-  ).sort()
-  const getNetworksByPool = getNetworks.groupBy('$pool')
-
-  return (state, props) => ({
-    networksByPool: getNetworksByPool(state, props),
-    objects: getNetworks(state, props),
-    pools: getPools(state, props)
-  })
-}, { withRef: true })
-export class SelectNetwork extends GenericSelect {
-  constructor (props) {
-    super(props)
-    this._placeholder = _('selectNetworks')
-  }
-
-  _computeOptions (props) {
-    let newOptions = []
-
-    forEach(props.pools, pool => {
-      const poolId = pool.id
-      const poolLabel = pool.name_label || poolId
-
-      newOptions.push({
-        label: poolLabel,
-        disabled: true,
-        type: pool.type
-      })
-
-      newOptions.push.apply(newOptions,
-        map(props.networksByPool[poolId], network => {
-          const { id } = network
-          return {
-            value: id,
-            label: `${network.name_label || id} (${poolLabel})`,
-            network,
-            type: 'network'
-          }
-        })
-      )
-    })
-
-    return newOptions
   }
 }

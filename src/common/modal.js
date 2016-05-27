@@ -8,7 +8,7 @@ let instance
 const modal = (content, onClose) => {
   if (!instance) {
     throw new Error('No modal instance.')
-  } else if (instance.showModal) {
+  } else if (instance.state.showModal) {
     throw new Error('Other modal still open.')
   }
   instance.setState({ content, onClose, showModal: true })
@@ -16,13 +16,20 @@ const modal = (content, onClose) => {
 
 export const alert = (title, body) => {
   return new Promise(resolve => {
+    const { Body, Footer, Header, Title } = ReactModal
     modal(
-      title,
-      body,
-      <Button bsStyle='primary' onClick={() => {
-        resolve()
-        instance.close()
-      }} style={{marginRight: '0.5em'}} key='ok'>{_('ok')}</Button>,
+      <div>
+        <Header closeButton>
+          <Title>{title}</Title>
+        </Header>
+        <Body>{body}</Body>
+        <Footer>
+          <Button bsStyle='primary' onClick={() => {
+            resolve()
+            instance.close()
+          }} style={{marginRight: '0.5em'}} key='ok'>{_('ok')}</Button>
+        </Footer>
+      </div>,
       resolve
     )
   })
@@ -133,26 +140,3 @@ export default class Modal extends Component {
     )
   }
 }
-
-/* Example:
-
-import { alert, confirm } from 'modal'
-
-<button onClick={() => alert('My first modal', 'This is my first modal')}>
-  My 1st modal
-</button>
-
-<button onClick={() => confirm('My second modal', <div>
-  This is a more complex modal which:
-  <ul>
-    <li>uses JSX syntax</li>
-    <li>can be confirmed or cancelled</li>
-  </ul>
-</div>
-).then(() =>
-  console.log('Confirmed')
-).catch(() =>
-  console.log('Cancelled'))}>
-  My 2nd modal
-</button>
-*/
