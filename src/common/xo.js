@@ -105,11 +105,11 @@ const createSubscription = cb => {
 
   const loop = () => {
     _signIn.then(() => cb()).then(result => {
+      timeout = setTimeout(loop, delay)
+
       forEach(subscribers, subscriber => {
         subscriber(result)
       })
-
-      timeout = setTimeout(loop, delay)
     }, ::console.error)
   }
 
