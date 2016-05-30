@@ -493,6 +493,20 @@ export const rescanSr = ({ id }) => (
   xo.call('sr.scan', { id })
 )
 
+// PBDs --------------------------------------------------------------
+
+export const connectPbd = ({ id }) => (
+  xo.call('pbd.connect', { id })
+)
+
+export const disconnectPbd = ({ id }) => (
+  xo.call('pbd.disconnect', { id })
+)
+
+export const deletePbd = ({ id }) => (
+  xo.call('pbd.delete', { id })
+)
+
 // Messages ----------------------------------------------------------
 
 export const deleteMessage = ({ id }) => (
