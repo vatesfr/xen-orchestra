@@ -14,3 +14,7 @@
 .collapsed .hiddenUncollapsed {
   display: inherit;
 }
+
+.collapsed .centerCollapsed {
+  text-align: center;
+}

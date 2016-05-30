@@ -143,11 +143,11 @@ export default class Menu extends Component {
 }
 
 const MenuLinkItem = props => {
-  const { item, collapsed } = props
+  const { item } = props
   const { to, icon, label, subMenu, pill } = item
 
   return <li className='nav-item xo-menu-item'>
-    <Link activeClassName='active' className={collapsed ? 'text-xs-center nav-link' : 'nav-link'} to={to}>
+    <Link activeClassName='active' className={classNames('nav-link', styles.centerCollapsed)} to={to}>
       <Icon className={pill && styles.hiddenCollapsed} icon={`menu-${icon}`} size='lg' fixedWidth />
       <span className={styles.hiddenCollapsed}>{' '}{_(label)}&nbsp;</span>
       {(pill || pill > 0) && <span><span className='tag tag-pill tag-primary'>{pill}</span></span>}
