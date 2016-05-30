@@ -1,6 +1,7 @@
 import _ from 'messages'
 import assign from 'lodash/assign'
 import cookies from 'cookies-js'
+import isEqual from 'lodash/isEqual'
 import forEach from 'lodash/forEach'
 import map from 'lodash/map'
 import once from 'lodash/once'
@@ -99,6 +100,7 @@ const createSubscription = cb => {
   const delay = 5e3
 
   const subscribers = Object.create(null)
+  let cache
   let n = 0
   let nextId = 0
   let timeout
@@ -107,9 +109,13 @@ const createSubscription = cb => {
     _signIn.then(() => cb()).then(result => {
       timeout = setTimeout(loop, delay)
 
-      forEach(subscribers, subscriber => {
-        subscriber(result)
-      })
+      if (!isEqual(result, cache)) {
+        cache = result
+
+        forEach(subscribers, subscriber => {
+          subscriber(result)
+        })
+      }
     }, ::console.error)
   }
 
@@ -126,6 +132,7 @@ const createSubscription = cb => {
 
       if (!--n) {
         clearTimeout(timeout)
+        cache = null
       }
     })
   }
