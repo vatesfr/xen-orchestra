@@ -118,7 +118,7 @@ export default class Menu extends Component {
           </Button>
         </li>
         {map(items, (item, index) =>
-          <MenuLinkItem key={index} item={item} collapsed={this.state.collapsed} />
+          <MenuLinkItem key={index} item={item} />
         )}
         <li>&nbsp;</li>
         <li>&nbsp;</li>
