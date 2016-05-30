@@ -12,10 +12,6 @@ import { signOut } from 'xo'
 
 import styles from './index.css'
 
-function windowIsSmall () {
-  return window.innerWidth < 1200
-}
-
 @connectStore([
   'user'
 ], {
@@ -23,11 +19,16 @@ function windowIsSmall () {
 })
 export default class Menu extends Component {
   componentWillMount () {
-    this._updateCollapsed = () => this.setState({ collapsed: windowIsSmall() })
-    this._updateCollapsed()
-    window.addEventListener('resize', this._updateCollapsed)
+    const updateCollapsed = () => {
+      console.log(window.innerWidth)
+
+      this.setState({ collapsed: window.innerWidth < 1200 })
+    }
+    updateCollapsed()
+
+    window.addEventListener('resize', updateCollapsed)
     this._removeListener = () => {
-      window.removeEventListener('resize', this._updateCollapsed)
+      window.removeEventListener('resize', updateCollapsed)
       this._removeListener = noop
     }
   }
