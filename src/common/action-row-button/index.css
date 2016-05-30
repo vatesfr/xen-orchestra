@@ -1,7 +1,7 @@
 .button {
-  visibility: hidden;
+  opacity: 0.5;
 }
 
 tr:hover .button, tr:focus .button {
-  visibility: visible;
+  opacity: 1;
 }

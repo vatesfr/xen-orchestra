@@ -6,6 +6,7 @@ import map from 'lodash/map'
 import { Text } from 'editable'
 import { Container, Row, Col } from 'grid'
 import { editHost, connectPbd, disconnectPbd, deletePbd } from 'xo'
+import { ButtonGroup } from 'react-bootstrap-4/lib'
 
 export default ({
   hosts,
@@ -39,20 +40,20 @@ export default ({
                       <span className='tag tag-success'>
                           {_('pbdStatusConnected')}
                       </span>
-                      <span className='btn-group pull-xs-right'>
+                      <ButtonGroup className='pull-xs-right'>
                         <ActionRowButton
                           btnStyle='warning'
                           icon='disconnect'
                           handler={disconnectPbd}
                           handlerParam={pbd}
                         />
-                      </span>
+                      </ButtonGroup>
                     </span>
                     : <span>
                       <span className='tag tag-default'>
                         {_('pbdStatusDisconnected')}
                       </span>
-                      <span className='btn-group pull-xs-right'>
+                      <ButtonGroup className='pull-xs-right'>
                         <ActionRowButton
                           btnStyle='default'
                           icon='connect'
@@ -65,7 +66,7 @@ export default ({
                           handler={deletePbd}
                           handlerParam={pbd}
                         />
-                      </span>
+                      </ButtonGroup>
                     </span>
                   }
                   </td>

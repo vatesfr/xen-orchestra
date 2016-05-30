@@ -9,6 +9,7 @@ import { Container, Row, Col } from 'grid'
 import { formatSize } from 'utils'
 import { Text } from 'editable'
 import { connectPbd, disconnectPbd, deletePbd, editSr } from 'xo'
+import { ButtonGroup } from 'react-bootstrap-4/lib'
 
 export default ({
   srs,
@@ -67,20 +68,20 @@ export default ({
                         <span className='tag tag-success'>
                             {_('pbdStatusConnected')}
                         </span>
-                        <span className='btn-group pull-xs-right'>
+                        <ButtonGroup className='pull-xs-right'>
                           <ActionRowButton
-                            btnStyle='warning'
+                            btnStyle='default'
                             icon='disconnect'
                             handler={disconnectPbd}
                             handlerParam={pbd}
                           />
-                        </span>
+                        </ButtonGroup>
                       </span>
                       : <span>
                         <span className='tag tag-default'>
                           {_('pbdStatusDisconnected')}
                         </span>
-                        <span className='btn-group pull-xs-right'>
+                        <ButtonGroup className='pull-xs-right'>
                           <ActionRowButton
                             btnStyle='default'
                             icon='connect'
@@ -93,7 +94,7 @@ export default ({
                             handler={deletePbd}
                             handlerParam={pbd}
                           />
-                        </span>
+                        </ButtonGroup>
                       </span>
                     }
                   </td>
