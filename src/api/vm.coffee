@@ -55,6 +55,7 @@ checkPermissionOnSrs = (vm, permission = 'operate') -> (
 
 # TODO: Implement ACLs
 create = $coroutine ({
+  clone
   resourceSet
   installation
   name_description
@@ -143,6 +144,7 @@ create = $coroutine ({
     throw new Unauthorized()
 
   xapiVm = yield xapi.createVm(template._xapiId, {
+    clone,
     installRepository: installation && installation.repository,
     nameDescription: name_description,
     nameLabel: name_label,
@@ -163,6 +165,11 @@ create = $coroutine ({
   return vm.id
 
 create.params = {
+  clone: {
+    type: 'boolean'
+    optional: true
+  }
+
   resourceSet: {
     type: 'string',
     optional: true

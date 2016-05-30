@@ -1058,6 +1058,7 @@ export default class Xapi extends XapiBase {
 
   // TODO: clean up on error.
   async createVm (templateId, {
+    clone = true,
     nameDescription = undefined,
     nameLabel = undefined,
     pvArgs = undefined,
@@ -1083,7 +1084,7 @@ export default class Xapi extends XapiBase {
 
     // Clones the template.
     const vm = await this._getOrWaitObject(
-      await this._cloneVm(template, nameLabel)
+      await this[clone ? '_cloneVm' : '_copyVm'](template, nameLabel)
     )
 
     // TODO: copy BIOS strings?
