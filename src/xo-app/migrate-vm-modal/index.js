@@ -1,6 +1,5 @@
 import _ from 'messages'
 import forEach from 'lodash/forEach'
-import Icon from 'icon'
 import find from 'lodash/find'
 import map from 'lodash/map'
 import React, { Component } from 'react'
@@ -168,9 +167,8 @@ export default class MigrateVmModalBody extends Component {
         </SingleLineRow>
       </div>
       {this.state.intraPool !== undefined &&
-        (this.state.intraPool
-          ? <p className='text-success'><em><Icon icon='info' size={1} /> {_('migrateVmAdvancedModalNoRemapping')}</em></p>
-          : <div>
+        (!this.state.intraPool &&
+          <div>
             <div className={styles.block}>
               <SingleLineRow>
                 <Col size={6}>{_('migrateVmAdvancedModalSelectNetwork')}</Col>

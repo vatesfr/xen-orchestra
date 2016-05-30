@@ -1485,9 +1485,6 @@ export const messages = {
   migrateVmAdvancedModalNetwork: {
     defaultMessage: 'Network'
   },
-  migrateVmAdvancedModalNoRemapping: {
-    defaultMessage: 'Intra-pool migration: re-mapping is not needed'
-  },
 
   // ----- Servers -----
   serverHost: 'Host',
