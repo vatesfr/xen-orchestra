@@ -213,9 +213,16 @@ export class Text extends Editable {
 @propTypes({
   value: propTypes.number.isRequired
 })
-export class Number extends Text {
+export class Number extends Component {
   get value () {
     return +this.refs.input.value
+  }
+
+  render () {
+    return <Text
+      {...this.props}
+      value={String(this.props.value)}
+    />
   }
 }
 
