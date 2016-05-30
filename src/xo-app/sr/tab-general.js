@@ -1,3 +1,4 @@
+import _ from 'messages'
 import Icon from 'icon'
 import map from 'lodash/map'
 import React from 'react'
@@ -25,7 +26,7 @@ export default ({
   </Row>
   <Row>
     <Col mediumSize={12} className='text-xs-center'>
-      <h5>Disk usage:</h5>
+      <h5>{formatSize(sr.physical_usage)} {_('srUsed')} ({formatSize(sr.size - sr.physical_usage)} {_('srFree')})</h5>
     </Col>
   </Row>
   <Row>

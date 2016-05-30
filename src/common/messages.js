@@ -1218,6 +1218,12 @@ export const messages = {
   srUsage: {
     defaultMessage: 'Usage'
   },
+  srUsed: {
+    defaultMessage: 'used'
+  },
+  srFree: {
+    defaultMessage: 'free'
+  },
   srUsageStatePanel: {
     defaultMessage: 'Storage Usage'
   },
