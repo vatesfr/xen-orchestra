@@ -34,14 +34,14 @@ class Hover extends Component {
 
   render () {
     if (this.state.hover) {
-      return <a onMouseLeave={this._onMouseLeave}>
+      return <span onMouseLeave={this._onMouseLeave}>
         {this.props.alt}
-      </a>
+      </span>
     }
 
-    return <a onMouseEnter={this._onMouseEnter}>
+    return <span onMouseEnter={this._onMouseEnter}>
       {this.props.children}
-    </a>
+    </span>
   }
 }
 
@@ -136,7 +136,9 @@ class Editable extends Component {
           {this._renderDisplay()}
         </span>
         {previous != null && (onUndo !== false
-          ? <Hover alt={<Icon icon='undo' onClick={this._undo} />}>
+          ? <Hover
+            alt={<a onClick={this._undo}><Icon icon='undo' /></a>}
+          >
             {success}
           </Hover>
           : success
