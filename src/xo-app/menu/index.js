@@ -18,6 +18,12 @@ import styles from './index.css'
     [ task => task.status === 'pending' ]
   )
   return (state, props) => ({
+    // FIXME: remove when fixed in React.
+    //
+    // There are currently issues between context updates (used by
+    // react-intl) and pure components.
+    lang: state.lang,
+
     nTasks: getNumberOfTasks(state, props),
     user: state.user
   })
@@ -44,14 +50,6 @@ export default class Menu extends Component {
 
   get height () {
     return this.refs.content.offsetHeight
-  }
-
-  // FIXME: remove when fixed in React.
-  //
-  // There are currently issues between context updates (used by
-  // router and intl) and pure components.
-  shouldComponentUpdate () {
-    return true
   }
 
   _toggleCollapsed = () => {
