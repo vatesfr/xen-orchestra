@@ -92,6 +92,9 @@ export const messages = {
   newMenu: {
     defaultMessage: 'New'
   },
+  taskMenu: {
+    defaultMessage: 'Tasks'
+  },
   newVmPage: {
     defaultMessage: 'VM'
   },
