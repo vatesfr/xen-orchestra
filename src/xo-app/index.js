@@ -20,6 +20,7 @@ import Pool from './pool'
 import Self from './self'
 import Settings from './settings'
 import Sr from './sr'
+import Tasks from './tasks'
 import User from './user'
 import Vm from './vm'
 
@@ -34,6 +35,7 @@ import Vm from './vm'
   self: Self,
   settings: Settings,
   'srs/:id': Sr,
+  tasks: Tasks,
   user: User,
   'vms/:id': Vm
 })
