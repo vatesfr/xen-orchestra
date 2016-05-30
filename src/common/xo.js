@@ -131,8 +131,10 @@ const createSubscription = cb => {
   }
 
   subscribe.forceRefresh = () => {
-    clearTimeout(timeout)
-    loop()
+    if (n) {
+      clearTimeout(timeout)
+      loop()
+    }
   }
 
   return subscribe
