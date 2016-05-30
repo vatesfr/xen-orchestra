@@ -218,9 +218,12 @@ export class Number extends Component {
     return +this.refs.input.value
   }
 
+  _onChange = value => this.props.onChange(+value)
+
   render () {
     return <Text
       {...this.props}
+      onChange={this._onChange}
       value={String(this.props.value)}
     />
   }
