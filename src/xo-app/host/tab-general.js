@@ -1,4 +1,5 @@
 import _ from 'messages'
+import Copiable from 'copiable'
 import Icon from 'icon'
 import map from 'lodash/map'
 import React from 'react'
@@ -52,7 +53,9 @@ export default ({
       <p>{host.license_params.sku_marketing_name} {host.license_params.version} ({host.license_params.sku_type})</p>
     </Col>
     <Col mediumSize={3}>
-      <p>{host.address}</p>
+      <Copiable tagName='p'>
+        {host.address}
+      </Copiable>
     </Col>
     <Col mediumSize={3}>
       <p>{host.bios_strings['system-manufacturer']} {host.bios_strings['system-product-name']}</p>

@@ -54,7 +54,9 @@ export default ({
           </tr>
           <tr>
             <th>{_('hostAddress')}</th>
-            <td>{host.address}</td>
+            <Copiable tagName='td'>
+              {host.address}
+            </Copiable>
           </tr>
           <tr>
             <th>{_('hostStatus')}</th>
@@ -81,11 +83,15 @@ export default ({
           </tr>
           <tr>
             <th>{_('hostXenServerVersion')}</th>
-            <td>{host.license_params.sku_marketing_name} {host.version} ({host.license_params.sku_type})</td>
+            <Copiable tagName='td'>
+              {host.license_params.sku_marketing_name} {host.version} ({host.license_params.sku_type})
+            </Copiable>
           </tr>
           <tr>
             <th>{_('hostBuildNumber')}</th>
-            <td>{host.build}</td>
+            <Copiable tagName='td'>
+              {host.build}
+            </Copiable>
           </tr>
           <tr>
             <th>{_('hostIscsiName')}</th>
@@ -101,7 +107,9 @@ export default ({
         <tbody>
           <tr>
             <th>{_('hostCpusModel')}</th>
-            <td>{host.CPUs.modelname}</td>
+            <Copiable tagName='td'>
+              {host.CPUs.modelname}
+            </Copiable>
           </tr>
           <tr>
             <th>{_('hostCpusNumber')}</th>
@@ -109,7 +117,9 @@ export default ({
           </tr>
           <tr>
             <th>{_('hostManufacturerinfo')}</th>
-            <td>{host.bios_strings['system-manufacturer']} ({host.bios_strings['system-product-name']})</td>
+            <Copiable tagName='td'>
+              {host.bios_strings['system-manufacturer']} ({host.bios_strings['system-product-name']})
+            </Copiable>
           </tr>
           <tr>
             <th>{_('hostBiosinfo')}</th>
