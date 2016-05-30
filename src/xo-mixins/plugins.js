@@ -54,6 +54,12 @@ export default class {
   ) {
     const id = name
 
+    // See: https://github.com/mafintosh/is-my-json-valid/issues/116
+    configurationSchema = {
+      required: true,
+      ...configurationSchema
+    }
+
     const plugin = this._plugins[id] = {
       configured: !configurationSchema,
       configurationSchema,
