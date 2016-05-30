@@ -27,8 +27,6 @@ import styles from './index.css'
 export default class Menu extends Component {
   componentWillMount () {
     const updateCollapsed = () => {
-      console.log(window.innerWidth)
-
       this.setState({ collapsed: window.innerWidth < 1200 })
     }
     updateCollapsed()
