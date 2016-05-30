@@ -1,5 +1,5 @@
 import _ from 'messages'
-import CopyToClipboard from 'react-copy-to-clipboard'
+import Copiable from 'copiable'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import React from 'react'
@@ -112,15 +112,9 @@ export default ({
         <tbody>
           <tr>
             <th>{_('uuid')}</th>
-            <td className='copy-to-clipboard'>
+            <Copiable tagName='td'>
               {vm.uuid}
-              {' '}
-              <CopyToClipboard text={vm.uuid}>
-                <button className='btn btn-sm btn-secondary btn-copy-to-clipboard'>
-                  <Icon icon='clipboard' />
-                </button>
-              </CopyToClipboard>
-            </td>
+            </Copiable>
           </tr>
           <tr>
             <th>{_('virtualizationMode')}</th>

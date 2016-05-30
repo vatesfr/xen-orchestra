@@ -1,0 +1,7 @@
+.container .button {
+  visibility: hidden;
+}
+
+.container:hover .button {
+  visibility: visible;
+}

@@ -1,6 +1,5 @@
 import _ from 'messages'
-import CopyToClipboard from 'react-copy-to-clipboard'
-import Icon from 'icon'
+import Copiable from 'copiable'
 import React from 'react'
 import TabButton from 'tab-button'
 import { Toggle } from 'form'
@@ -49,15 +48,9 @@ export default ({
         <tbody>
           <tr>
             <th>{_('uuid')}</th>
-            <td className='copy-to-clipboard'>
+            <Copiable tagName='td'>
               {host.uuid}
-              {' '}
-              <CopyToClipboard text={host.uuid}>
-                <button className='btn btn-sm btn-secondary btn-copy-to-clipboard'>
-                  <Icon icon='clipboard' />
-                </button>
-              </CopyToClipboard>
-            </td>
+            </Copiable>
           </tr>
           <tr>
             <th>{_('hostAddress')}</th>
@@ -96,15 +89,9 @@ export default ({
           </tr>
           <tr>
             <th>{_('hostIscsiName')}</th>
-            <td>
+            <Copiable tagName='td'>
               {host.iSCSI_name}
-              {' '}
-              <CopyToClipboard text={host.iSCSI_name}>
-                <button className='btn btn-sm btn-secondary btn-copy-to-clipboard'>
-                  <Icon icon='clipboard' />
-                </button>
-              </CopyToClipboard>
-            </td>
+            </Copiable>
           </tr>
         </tbody>
       </table>

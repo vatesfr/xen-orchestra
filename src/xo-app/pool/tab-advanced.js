@@ -1,6 +1,5 @@
 import _ from 'messages'
-import CopyToClipboard from 'react-copy-to-clipboard'
-import Icon from 'icon'
+import Copiable from 'copiable'
 import React from 'react'
 import { Container, Row, Col } from 'grid'
 
@@ -14,15 +13,9 @@ export default ({
         <tbody>
           <tr>
             <th>{_('uuid')}</th>
-            <td className='copy-to-clipboard'>
+            <Copiable tagName='td'>
               {pool.uuid}
-              {' '}
-              <CopyToClipboard text={pool.uuid}>
-                <button className='btn btn-sm btn-secondary btn-copy-to-clipboard'>
-                  <Icon icon='clipboard' />
-                </button>
-              </CopyToClipboard>
-            </td>
+            </Copiable>
           </tr>
           <tr>
             <th>{_('poolHaStatus')}</th>
