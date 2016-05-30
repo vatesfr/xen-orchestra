@@ -3,7 +3,7 @@ import keys from 'lodash/keys'
 import Link from 'react-router/lib/Link'
 import map from 'lodash/map'
 import React from 'react'
-import { connectStore, Debug } from 'utils'
+import { connectStore } from 'utils'
 import {
   createGetObject,
   createGetObjectsOfType,
