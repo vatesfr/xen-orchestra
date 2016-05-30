@@ -150,7 +150,7 @@ const MenuLinkItem = props => {
     <Link activeClassName='active' className={classNames('nav-link', styles.centerCollapsed)} to={to}>
       <Icon className={classNames(pill && styles.hiddenCollapsed)} icon={`menu-${icon}`} size='lg' fixedWidth />
       <span className={styles.hiddenCollapsed}>{' '}{_(label)}&nbsp;</span>
-      {pill > 0 && <span><span className='tag tag-pill tag-primary'>{pill}</span></span>}
+      {pill > 0 && <span className='tag tag-pill tag-primary'>{pill}</span>}
     </Link>
     {subMenu && <SubMenu items={subMenu} />}
   </li>
