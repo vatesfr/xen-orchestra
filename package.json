@@ -31,6 +31,7 @@
     "npm": ">=3"
   },
   "devDependencies": {
+    "asap": "^2.0.4",
     "ava": "^0.15.0",
     "babel-eslint": "^6.0.0",
     "babel-plugin-transform-decorators-legacy": "^1.3.4",

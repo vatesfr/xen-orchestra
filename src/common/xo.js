@@ -1,4 +1,5 @@
 import _ from 'messages'
+import asap from 'asap'
 import assign from 'lodash/assign'
 import cookies from 'cookies-js'
 import isEqual from 'lodash/isEqual'
@@ -123,7 +124,9 @@ const createSubscription = cb => {
     const id = nextId++
     subscribers[id] = cb
 
-    if (!n++) {
+    if (n++) {
+      asap(() => cb(cache))
+    } else {
       loop()
     }
 
