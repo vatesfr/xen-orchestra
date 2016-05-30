@@ -1,5 +1,5 @@
 import _ from 'messages'
-import ActionButton from 'action-button'
+import ActionRowButton from 'action-row-button'
 import React from 'react'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
@@ -39,10 +39,9 @@ export default ({
                       <span className='tag tag-success'>
                           {_('pbdStatusConnected')}
                       </span>
-                      <span className='quick-buttons btn-group pull-xs-right'>
-                        <ActionButton
+                      <span className='btn-group pull-xs-right'>
+                        <ActionRowButton
                           btnStyle='warning'
-                          size='sm'
                           icon='disconnect'
                           handler={disconnectPbd}
                           handlerParam={pbd}
@@ -53,17 +52,15 @@ export default ({
                       <span className='tag tag-default'>
                         {_('pbdStatusDisconnected')}
                       </span>
-                      <span className='quick-buttons btn-group pull-xs-right'>
-                        <ActionButton
+                      <span className='btn-group pull-xs-right'>
+                        <ActionRowButton
                           btnStyle='default'
-                          size='sm'
                           icon='connect'
                           handler={connectPbd}
                           handlerParam={pbd}
                         />
-                        <ActionButton
+                        <ActionRowButton
                           btnStyle='default'
-                          size='sm'
                           icon='sr-forget'
                           handler={deletePbd}
                           handlerParam={pbd}

@@ -1,0 +1,7 @@
+.button {
+  visibility: hidden;
+}
+
+tr:hover .button, tr:focus .button {
+  visibility: visible;
+}
