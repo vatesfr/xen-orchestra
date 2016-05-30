@@ -2,12 +2,14 @@ import _ from 'messages'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React from 'react'
+import ActionRowButton from 'action-row-button'
 import TabButton from 'tab-button'
-import { editSr } from 'xo'
 import { Link } from 'react-router'
 import { Container, Row, Col } from 'grid'
 import { formatSize } from 'utils'
 import { Text } from 'editable'
+import { connectPbd, disconnectPbd, deletePbd, editSr } from 'xo'
+import { ButtonGroup } from 'react-bootstrap-4/lib'
 
 export default ({
   srs,
@@ -62,11 +64,37 @@ export default ({
                   </td>
                   <td>
                     {pbd.attached
-                      ? <span className='tag tag-success'>
-                          {_('pbdStatusConnected')}
+                      ? <span>
+                        <span className='tag tag-success'>
+                            {_('pbdStatusConnected')}
+                        </span>
+                        <ButtonGroup className='pull-xs-right'>
+                          <ActionRowButton
+                            btnStyle='default'
+                            icon='disconnect'
+                            handler={disconnectPbd}
+                            handlerParam={pbd}
+                          />
+                        </ButtonGroup>
                       </span>
-                      : <span className='tag tag-default'>
+                      : <span>
+                        <span className='tag tag-default'>
                           {_('pbdStatusDisconnected')}
+                        </span>
+                        <ButtonGroup className='pull-xs-right'>
+                          <ActionRowButton
+                            btnStyle='default'
+                            icon='connect'
+                            handler={connectPbd}
+                            handlerParam={pbd}
+                          />
+                          <ActionRowButton
+                            btnStyle='default'
+                            icon='sr-forget'
+                            handler={deletePbd}
+                            handlerParam={pbd}
+                          />
+                        </ButtonGroup>
                       </span>
                     }
                   </td>

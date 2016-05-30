@@ -1,10 +1,12 @@
 import _ from 'messages'
+import ActionRowButton from 'action-row-button'
 import React from 'react'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import { Text } from 'editable'
 import { Container, Row, Col } from 'grid'
-import { editHost } from 'xo'
+import { editHost, connectPbd, disconnectPbd, deletePbd } from 'xo'
+import { ButtonGroup } from 'react-bootstrap-4/lib'
 
 export default ({
   hosts,
@@ -33,14 +35,40 @@ export default ({
                     <Text value={host.name_description} onChange={value => editHost(host, { name_description: value })} />
                   </td>
                   <td>
-                    {pbd.attached
-                      ? <span className='tag tag-success'>
-                        {_('pbdStatusConnected')}
+                  {pbd.attached
+                    ? <span>
+                      <span className='tag tag-success'>
+                          {_('pbdStatusConnected')}
                       </span>
-                      : <span className='tag tag-default'>
+                      <ButtonGroup className='pull-xs-right'>
+                        <ActionRowButton
+                          btnStyle='warning'
+                          icon='disconnect'
+                          handler={disconnectPbd}
+                          handlerParam={pbd}
+                        />
+                      </ButtonGroup>
+                    </span>
+                    : <span>
+                      <span className='tag tag-default'>
                         {_('pbdStatusDisconnected')}
                       </span>
-                    }
+                      <ButtonGroup className='pull-xs-right'>
+                        <ActionRowButton
+                          btnStyle='default'
+                          icon='connect'
+                          handler={connectPbd}
+                          handlerParam={pbd}
+                        />
+                        <ActionRowButton
+                          btnStyle='default'
+                          icon='sr-forget'
+                          handler={deletePbd}
+                          handlerParam={pbd}
+                        />
+                      </ButtonGroup>
+                    </span>
+                  }
                   </td>
                 </tr>
               })}
