@@ -259,6 +259,12 @@ export const messages = {
   selectSubjects: {
     defaultMessage: 'Choose user(s) and/or group(s)'
   },
+  selectObjects: {
+    defaultMessage: 'Select Object(s)...'
+  },
+  selectRole: {
+    defaultMessage: 'Choose a role'
+  },
   selectHosts: {
     defaultMessage: 'Select Host(s)...'
   },

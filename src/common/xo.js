@@ -161,6 +161,8 @@ const createSubscription = cb => {
 
 // Subscriptions -----------------------------------------------------
 
+export const subscribeAcls = createSubscription(() => xo.call('acl.get'))
+
 export const subscribeJobs = createSubscription(() => xo.call('job.getAll'))
 
 export const subscribeJobsLogs = createSubscription(() => xo.call('log.get', {namespace: 'jobs'}))
@@ -197,6 +199,8 @@ export const subscribeGroups = createSubscription(() => xo.call('group.getAll').
 
   return sortBy(groups, 'name')
 }))
+
+export const subscribeRoles = createSubscription(() => xo.call('role.getAll'))
 
 // ===================================================================
 
@@ -804,4 +808,30 @@ export const deleteJobsLog = id => (
   xo.call('log.delete', {namespace: 'jobs', id})::tap(
     subscribeJobsLogs.forceRefresh
   )
+)
+
+// Acls, users, groups ----------------------------------------------------------
+
+export const addAcl = ({subject, object, action}) => (
+  xo.call('acl.add', {subject, object, action})
+)
+
+export const removeAcl = ({subject, object, action}) => (
+  xo.call('acl.remove', {subject, object, action})
+)
+
+export const createGroup = ({name}) => (
+  xo.call('group.create', {name})
+)
+
+export const deleteGroup = ({id}) => (
+  xo.call('group.delete', {id})
+)
+
+export const removeUserFromGroup = ({user, group}) => (
+  xo.call('group.removeUser', {id: group, userId: user})
+)
+
+export const addUserToGroup = ({user, group}) => (
+  xo.call('group.addUser', {id: group, userId: user})
 )
