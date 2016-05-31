@@ -125,7 +125,7 @@ const createSubscription = cb => {
     subscribers[id] = cb
 
     if (n++) {
-      asap(() => cb(cache))
+      cache !== undefined && asap(() => cb(cache))
     } else {
       loop()
     }
@@ -135,7 +135,7 @@ const createSubscription = cb => {
 
       if (!--n) {
         clearTimeout(timeout)
-        cache = null
+        cache = undefined
       }
     })
   }
