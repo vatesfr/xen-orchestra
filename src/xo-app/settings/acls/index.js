@@ -1,18 +1,18 @@
 import _ from 'messages'
 import ActionButton from 'action-button'
-import { connectStore } from 'utils'
-import { createGetObjectsOfType, createSelector } from 'selectors'
+import assign from 'lodash/assign'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
 import isEmpty from 'lodash/isEmpty'
-import map from 'lodash/map'
-import React, { Component } from 'react'
-import { error } from 'notification'
-import { GenericSelect, SelectSubject } from 'select-objects'
-import assign from 'lodash/assign'
 import keyBy from 'lodash/keyBy'
+import map from 'lodash/map'
 import ObjectName from 'object-name'
 import orderBy from 'lodash/orderBy'
+import React, { Component } from 'react'
+import { connectStore } from 'utils'
+import { createGetObjectsOfType, createSelector } from 'selectors'
+import { error } from 'notification'
+import { GenericSelect, SelectSubject } from 'select-objects'
 
 import {
   addAcl,
@@ -24,19 +24,19 @@ import {
 } from 'xo'
 
 @connectStore(() => {
-  const getPools = createGetObjectsOfType('pool')
   const getHosts = createGetObjectsOfType('host')
-  const getVms = createGetObjectsOfType('VM')
-  const getSrs = createGetObjectsOfType('SR')
   const getNetworks = createGetObjectsOfType('network')
+  const getPools = createGetObjectsOfType('pool')
+  const getSrs = createGetObjectsOfType('SR')
+  const getVms = createGetObjectsOfType('VM')
 
   const getHighLevelObjects = createSelector(
-    getPools,
     getHosts,
-    getVms,
-    getSrs,
     getNetworks,
-    (pools, hosts, vms, srs, networks) => assign(pools, hosts, vms, srs, networks)
+    getPools,
+    getSrs,
+    getVms,
+    (hosts, networks, pools, srs, vms) => assign(hosts, networks, pools, srs, vms)
   )
 
   return (state, props) => ({objects: getHighLevelObjects(state, props)})
@@ -51,7 +51,7 @@ class SelectObject extends GenericSelect {
     return map(props.objects, object => ({
       value: object.id,
       label: object.name_label || object.name || object.id,
-      type: object.type && object.type.toLowerCase()
+      type: object.type && object.type.toLowerCase() || ''
     }))
   }
 }
@@ -60,12 +60,10 @@ class SelectRole extends GenericSelect {
   constructor (props) {
     super(props)
     this._placeholder = _('selectRole')
-    this.state = {roles: {}}
   }
 
   componentWillMount () {
     this.componentWillUnmount = subscribeRoles(roles => {
-      console.log('roles', roles)
       return this.setState({
         roles,
         options: this._computeOptions(this.props, roles)
@@ -74,16 +72,21 @@ class SelectRole extends GenericSelect {
   }
 
   _computeOptions (props, roles) {
-    return map(roles, role => ({value: role.id, label: role.name}))
+    return map(roles, role => ({value: role.id, label: role.name, type: 'role'}))
   }
 
   get value () {
     const { roles, value } = this.state
-    const id = value.value || value
-    if (this.props.multi) {
-      return map(value, value => find(roles, role => role.id === id))
+
+    const getRole = value => {
+      const id = value.value || value
+      return find(roles, role => role.id === id)
     }
-    return find(roles, role => role.id === id)
+
+    if (this.props.multi) {
+      return map(value, v => getRole(v))
+    }
+    return getRole(value)
   }
 }
 
@@ -144,9 +147,9 @@ export default class Acls extends Component {
     }
   }
 
-  _handleSelectSubject = subjects => this.setState({subjects})
   _handleSelectObjects = objects => this.setState({objects})
   _handleSelectRole = role => this.setState({role})
+  _handleSelectSubject = subjects => this.setState({subjects})
 
   _handleRoleChange = (role, subject, object, action) => removeAcl({subject, object, action}).then(() => addAcl({subject, object, action: role.id})).then(() => subscribeAcls.forceRefresh())
 
@@ -205,7 +208,7 @@ export default class Acls extends Component {
               <td><SubjectDisplay id={acl.subject} /></td>
               <td><ObjectName id={acl.object} /></td>
               <td>{acl.action}</td>
-              <td><SelectRole onChange={role => this._handleRoleChange(role, acl.subject, acl.object, acl.action)} /></td>
+              <td><SelectRole onChange={role => this._handleRoleChange(role, acl.subject, acl.object, acl.action)} placeholder='Change Role' /></td>
               <td><ActionButton icon='delete' btnStyle='danger' handler={this._removeAcl} handlerParam={{subject: acl.subject, object: acl.object, action: acl.action}} /></td>
             </tr>
           )}

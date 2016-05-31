@@ -824,6 +824,10 @@ export const createGroup = ({name}) => (
   xo.call('group.create', {name})
 )
 
+export const setGroupName = (id, name) => (
+  xo.call('group.set', {id, name})
+)
+
 export const deleteGroup = ({id}) => (
   xo.call('group.delete', {id})
 )
@@ -835,3 +839,19 @@ export const removeUserFromGroup = ({user, group}) => (
 export const addUserToGroup = ({user, group}) => (
   xo.call('group.addUser', {id: group, userId: user})
 )
+
+export const createUser = (email, password, permission) => (
+  xo.call('user.create', {email, password, permission})
+)
+
+export const deleteUser = id => (
+  xo.call('user.delete', {id})
+)
+
+export const updateUser = (id, {email = undefined, password = undefined, permission = undefined}) => {
+  const params = {id}
+  email && (params.email = email)
+  password && (params.password = password)
+  permission && (params.permission = permission)
+  return xo.call('user.set', params)
+}
