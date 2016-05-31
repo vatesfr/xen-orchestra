@@ -124,7 +124,7 @@ const xoItemToRender = {
   // Tags.
   tag: tag => (
     <span>
-      <Icon icon='tag' /> {tag.tag}
+      <Icon icon='tag' /> {tag.value}
     </span>
   )
 }

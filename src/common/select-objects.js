@@ -32,6 +32,15 @@ import {
 } from 'xo'
 
 // ===================================================================
+//
+// GenericSelect usage:
+//
+// One subclass must inherit from GenericSelect and implement
+// _computeOptions (props).
+// GenericSelect must receive the xoObjects prop. It's a hash with
+// the XO objects that can be selected. The keys are the objects ids.
+//
+// ===================================================================
 
 @propTypes({
   autoFocus: propTypes.bool,
@@ -453,7 +462,7 @@ export class SelectNetwork extends GenericSelect {
 
 const wrapExoticValue = (value, type) => ({
   type,
-  [type]: value,
+  value,
   id: value
 })
 
