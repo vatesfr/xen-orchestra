@@ -982,12 +982,6 @@ export const messages = {
   vdbBootableStatus: {
     defaultMessage: 'Boot flag'
   },
-  vdbBootable: {
-    defaultMessage: 'Bootable'
-  },
-  vdbNotBootable: {
-    defaultMessage: 'Not bootable'
-  },
   vdbStatus: {
     defaultMessage: 'Status'
   },

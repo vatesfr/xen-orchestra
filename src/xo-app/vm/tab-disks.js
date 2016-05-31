@@ -3,10 +3,11 @@ import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React from 'react'
 import TabButton from 'tab-button'
-import { editVdi } from 'xo'
 import { Container, Row, Col } from 'grid'
-import { formatSize } from 'utils'
-import { Text } from 'editable'
+import { editVdi, migrateVdi, setBootableVbd } from 'xo'
+import { Link } from 'react-router'
+import { Select, Size, Text } from 'editable'
+import { Toggle } from 'form'
 
 export default ({
   srs,
@@ -45,8 +46,6 @@ export default ({
                 <tr>
                   <th>{_('vdiNameLabel')}</th>
                   <th>{_('vdiNameDescription')}</th>
-                  <th>{_('vdiNameDescription')}</th>
-                  <th>{_('vdiNameDescription')}</th>
                   <th>{_('vdiSize')}</th>
                   <th>{_('vdiSr')}</th>
                   <th>{_('vdbBootableStatus')}</th>
@@ -69,23 +68,23 @@ export default ({
                     <td>
                       <Text value={vdi.name_description} onChange={value => editVdi(vdi, { name_description: value })} />
                     </td>
+                    <td><Size value={vdi.size} onChange={size => editVdi(vdi, { size })} /></td>
                     <td>
-                      <Text value={vdi.name_description} onChange={value => editVdi(vdi, { name_description: value })} />
+                      <Select
+                        onChange={() => migrateVdi(vdi, sr)}
+                        options={srs} // FIXME: use the future editable Select with predicates
+                        labelProp='name_label'
+                        value={sr.name_label}
+                        useLongClick
+                      >
+                        <Link to={`/srs/${sr.id}`}>{sr.name_label}</Link>
+                      </Select>
                     </td>
                     <td>
-                      <Text value={vdi.name_description} onChange={value => editVdi(vdi, { name_description: value })} />
-                    </td>
-                    <td>{formatSize(vdi.size)}</td>
-                    <td>{sr.name_label}</td>
-                    <td>
-                      {vbd.bootable
-                        ? <span className='tag tag-success'>
-                            {_('vdbBootable')}
-                        </span>
-                        : <span className='tag tag-default'>
-                            {_('vdbNotBootable')}
-                        </span>
-                      }
+                      <Toggle
+                        defaultValue={vbd.bootable}
+                        onChange={bootable => setBootableVbd(vbd, bootable)}
+                      />
                     </td>
                     <td>
                       {vbd.attached
