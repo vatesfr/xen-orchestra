@@ -188,42 +188,54 @@ export class Toggle extends Component {
 }
 
 const UNITS = ['kiB', 'MiB', 'GiB']
-const SIZE_STYLE = { width: '10rem' }
+const DEFAULT_UNIT = 'GiB'
 @propTypes({
+  defaultUnit: propTypes.oneOf(UNITS),
   onChange: propTypes.func,
+  placeholder: propTypes.string,
   readOnly: propTypes.bool,
   standalone: propTypes.bool,
   value: propTypes.number
 })
 export class SizeInput extends Component {
-  get value () {
-    return parseSize(this.refs.value.value + ' ' + this.state.unit)
-  }
-
   constructor (props) {
     super(props)
 
-    const humanSize = formatSizeRaw(props.value)
-    this._value = humanSize.value
-    this.state = { unit: humanSize.prefix + 'B' }
+    const humanSize = props.value && formatSizeRaw(props.value)
+    this._value = humanSize && humanSize.value
+    this.state = { unit: humanSize ? humanSize.prefix + 'B' : props.defaultUnit || DEFAULT_UNIT }
   }
 
-  _onChange = () => this.props.onChange && this.props.onChange(this.value)
+  get value () {
+    const value = this.refs.value.value
+    return value ? parseSize(value + ' ' + this.state.unit) : undefined
+  }
+
+  set value (newValue) {
+    const humanSize = newValue && formatSizeRaw(newValue)
+    this.refs.value.value = humanSize && humanSize.value
+    this.setState({ unit: humanSize ? humanSize.prefix + 'B' : DEFAULT_UNIT })
+  }
+
+  _onChange = () =>
+    this.props.onChange && this.props.onChange(this.value)
 
   _updateUnit = unit => {
     this.setState({ unit })
     this._onChange()
   }
 
+  _style = { width: '10rem' }
   render () {
     const {
+      placeholder,
       readOnly,
       standalone
     } = this.props
 
     return <span
       className='input-group'
-      style={standalone && SIZE_STYLE}
+      style={standalone && this._style}
     >
       <input
         autoFocus
@@ -231,6 +243,7 @@ export class SizeInput extends Component {
         defaultValue={this._value}
         min={0}
         onChange={this._onChange}
+        placeholder={placeholder}
         readOnly={readOnly}
         ref='value'
         type='number'
@@ -240,10 +253,16 @@ export class SizeInput extends Component {
           bsStyle='secondary'
           disabled={readOnly}
           id='size'
+          pullRight
           title={this.state.unit}
         >
           {map(UNITS, unit =>
-            <MenuItem key={unit} onClick={() => this._updateUnit(unit)}>{unit}</MenuItem>
+            <MenuItem
+              key={unit}
+              onClick={() => this._updateUnit(unit)}
+            >
+              {unit}
+            </MenuItem>
           )}
         </DropdownButton>
       </span>

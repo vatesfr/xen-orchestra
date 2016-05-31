@@ -6,16 +6,12 @@ import isString from 'lodash/isString'
 import map from 'lodash/map'
 import { SizeInput } from 'form'
 import React from 'react'
-import round from 'lodash/round'
-import { DropdownButton, MenuItem } from 'react-bootstrap-4/lib'
 
 import Component from './base-component'
-import { formatSize, formatSizeRaw, parseSize, propTypes } from './utils'
+import { formatSize, propTypes } from './utils'
 
 const LONG_CLICK = 400
 const SELECT_STYLE = { padding: '0px' }
-const SIZE_STYLE = { width: '10rem' }
-const UNITS = ['kiB', 'MiB', 'GiB']
 const EDITABLE_STYLE = { borderBottom: '1px dashed #ccc' }
 
 @propTypes({
@@ -317,70 +313,6 @@ export class Size extends Editable {
         standalone
         value={value}
       />
-    </span>
-  }
-}
-
-@propTypes({
-  value: propTypes.number.isRequired
-})
-export class OldSize extends Editable {
-  get value () {
-    const { sizeNumber, sizeUnit } = this.state
-    return sizeNumber ? parseSize(sizeNumber + ' ' + sizeUnit) : 0
-  }
-
-  componentWillReceiveProps () {
-    const humanSize = formatSizeRaw(this.props.value)
-    this.setState({
-      sizeNumber: round(humanSize.value, 1),
-      sizeUnit: humanSize.prefix + 'B'
-    })
-  }
-
-  _updateNumber = () => {
-    this.setState({ sizeNumber: this.refs.value.value })
-  }
-  _updateUnit = sizeUnit => {
-    this.setState({ sizeUnit })
-  }
-
-  _renderDisplay () {
-    return this.props.children || formatSize(this.props.value)
-  }
-
-  _renderEdition () {
-    const {
-      saving,
-      sizeNumber,
-      sizeUnit
-    } = this.state
-
-    return <span
-      className='input-group'
-      onBlur={this._closeEdition}
-      onKeyDown={this._onKeyDown}
-      style={SIZE_STYLE}
-    >
-      <input
-        autoFocus
-        className='form-control'
-        defaultValue={sizeNumber}
-        onChange={this._updateNumber}
-        readOnly={saving}
-        ref='value'
-        step={0.1}
-        type='number'
-      />
-      <span className='input-group-btn'>
-        <DropdownButton
-          title={sizeUnit}
-          id='size'
-          bsStyle='secondary'
-        >
-          {map(UNITS, unit => <MenuItem key={unit} onClick={() => this._updateUnit(unit)}>{unit}</MenuItem>)}
-        </DropdownButton>
-      </span>
     </span>
   }
 }

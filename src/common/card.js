@@ -2,13 +2,13 @@ import React from 'react'
 import { propTypes } from 'utils'
 
 const CARD_STYLE = {
-  'min-height': '100%'
+  minHeight: '100%'
 }
 
 const CARD_HEADER_STYLE = {
-  'min-height': '100%',
-  'font-size': '1.2em',
-  'text-align': 'center'
+  minHeight: '100%',
+  fontSize: '1.2em',
+  textAlign: 'center'
 }
 
 export const Card = propTypes({
