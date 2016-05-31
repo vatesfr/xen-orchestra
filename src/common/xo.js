@@ -200,7 +200,10 @@ export const subscribeGroups = createSubscription(() => xo.call('group.getAll').
   return sortBy(groups, 'name')
 }))
 
-export const subscribeRoles = createSubscription(() => xo.call('role.getAll'))
+export const subscribeRoles = createSubscription(invoke(
+  sortBy('name'),
+  sort => () => xo.call('role.getAll').then(sort)
+))
 
 // ===================================================================
 
