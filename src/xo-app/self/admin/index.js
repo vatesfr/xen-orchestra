@@ -9,6 +9,7 @@ import intersection from 'lodash/intersection'
 import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
 import reduce from 'lodash/reduce'
+import round from 'lodash/round'
 import { Col, Row } from 'grid'
 import { injectIntl } from 'react-intl'
 
@@ -17,6 +18,11 @@ import {
   CardBlock,
   CardHeader
 } from 'card'
+
+import {
+  DropdownButton,
+  MenuItem
+} from 'react-bootstrap-4/lib'
 
 import {
   createGetObject,
@@ -33,6 +39,9 @@ import {
 
 import {
   connectStore,
+  formatSize,
+  formatSizeRaw,
+  parseSize,
   propTypes
 } from 'utils'
 
@@ -48,6 +57,10 @@ import {
   Subjects,
   resolveResourceSets
 } from '../helpers'
+
+const UNITS = ['kiB', 'MiB', 'GiB']
+const DEFAULT_RAM_UNIT = 'GiB'
+const DEFAULT_DISK_UNIT = 'GiB'
 
 // ===================================================================
 
@@ -139,7 +152,9 @@ class Edit extends Component {
     super(props)
     this.state = {
       eligibleHosts: [],
-      excludedHosts: props.hosts
+      excludedHosts: props.hosts,
+      ramUnit: DEFAULT_RAM_UNIT,
+      diskUnit: DEFAULT_DISK_UNIT
     }
   }
 
@@ -186,8 +201,14 @@ class Edit extends Component {
           refs.inputMaxCpus.value = refs.inputMaxDiskSpace.value = refs.inputMaxRam.value = ''
         } else {
           refs.inputMaxCpus.value = (limits.cpus && limits.cpus.total) || ''
-          refs.inputMaxDiskSpace.value = (limits.disk && limits.disk.total) || ''
-          refs.inputMaxRam.value = (limits.memory && limits.memory.total) || ''
+          const maxRam = limits.memory && formatSizeRaw(limits.memory.total)
+          const maxDiskSpace = limits.disk && formatSizeRaw(limits.disk.total)
+          refs.inputMaxRam.value = (maxRam && round(maxRam.value, 3)) || ''
+          refs.inputMaxDiskSpace.value = (maxDiskSpace && round(maxDiskSpace.value, 3)) || ''
+          this.setState({
+            ramUnit: maxRam ? maxRam.prefix + 'B' : DEFAULT_RAM_UNIT,
+            diskUnit: maxDiskSpace ? maxDiskSpace.prefix + 'B' : DEFAULT_DISK_UNIT
+          })
         }
       })
     }
@@ -268,10 +289,9 @@ class Edit extends Component {
   _saveResourceSet = async () => {
     const { refs } = this
 
-    // TODO: Use bytes conversion.
-    const cpus = refs.inputMaxCpus.value
-    const memory = refs.inputMaxRam.value
-    const disk = refs.inputMaxDiskSpace.value
+    const cpus = refs.inputMaxCpus.value || undefined
+    const memory = refs.inputMaxRam.value ? parseSize(refs.inputMaxRam.value + ' ' + this.state.ramUnit) : undefined
+    const disk = refs.inputMaxDiskSpace.value ? parseSize(refs.inputMaxDiskSpace.value + ' ' + this.state.diskUnit) : undefined
 
     const set = this.props.resourceSet || await createResourceSet(refs.inputName.value)
     const objects = [
@@ -282,9 +302,9 @@ class Edit extends Component {
 
     await editRessourceSet(set.id, {
       limits: {
-        cpus: cpus === '' ? undefined : +cpus,
-        memory: memory === '' ? undefined : +memory,
-        disk: disk === '' ? undefined : +disk
+        cpus,
+        memory,
+        disk
       },
       objects: map(objects, object => object.id),
       subjects: map(refs.selectSubject.value, object => object.id)
@@ -293,6 +313,9 @@ class Edit extends Component {
     subscribeResourceSets.forceRefresh()
     this._resetResourceSet()
   }
+
+  _updateRamUnit = ramUnit => this.setState({ ramUnit })
+  _updateDiskUnit = diskUnit => this.setState({ diskUnit })
 
   _resetResourceSet = () => {
     const { refs } = this
@@ -309,6 +332,8 @@ class Edit extends Component {
       refs.inputMaxDiskSpace.value = ''
       refs.inputMaxRam.value = ''
     })
+    this._updateRamUnit(DEFAULT_RAM_UNIT)
+    this._updateDiskUnit(DEFAULT_DISK_UNIT)
   }
 
   render () {
@@ -396,22 +421,52 @@ class Edit extends Component {
                   />
                 </Col>
                 <Col mediumSize={4}>
-                  <input
-                    className='form-control'
-                    min={0}
-                    placeholder={formatMessage(messages.maxRam)}
-                    ref='inputMaxRam'
-                    type='number'
-                  />
+                  <span
+                    className='input-group'
+                  >
+                    <input
+                      autoFocus
+                      className='form-control'
+                      min={0}
+                      placeholder={formatMessage(messages.maxRam)}
+                      ref='inputMaxRam'
+                      type='number'
+                    />
+                    <span className='input-group-btn'>
+                      <DropdownButton
+                        id='ram'
+                        pullRight
+                        title={state.ramUnit}
+                        bsStyle='secondary'
+                      >
+                        {map(UNITS, unit => <MenuItem key={unit} onClick={() => this._updateRamUnit(unit)}>{unit}</MenuItem>)}
+                      </DropdownButton>
+                    </span>
+                  </span>
                 </Col>
                 <Col mediumSize={4}>
-                  <input
-                    className='form-control'
-                    min={0}
-                    placeholder={formatMessage(messages.maxDiskSpace)}
-                    ref='inputMaxDiskSpace'
-                    type='number'
-                  />
+                  <span
+                    className='input-group'
+                  >
+                    <input
+                      autoFocus
+                      className='form-control'
+                      min={0}
+                      placeholder={formatMessage(messages.maxDiskSpace)}
+                      ref='inputMaxDiskSpace'
+                      type='number'
+                    />
+                    <span className='input-group-btn'>
+                      <DropdownButton
+                        id='disk'
+                        pullRight
+                        title={state.diskUnit}
+                        bsStyle='secondary'
+                      >
+                        {map(UNITS, unit => <MenuItem key={unit} onClick={() => this._updateDiskUnit(unit)}>{unit}</MenuItem>)}
+                      </DropdownButton>
+                    </span>
+                  </span>
                 </Col>
               </Row>
             </div>
@@ -453,17 +508,17 @@ const Limits = propTypes({
   <div>
     {cpus && (
       <div>
-        <Icon icon='cpu' /> {_('maxCpus')}: {cpus.total} ({_('remainingResource')} {cpus.available})
+        <Icon icon='cpu' /> {_('maxCpusLabel')} {cpus.total} ({_('remainingResource')} {cpus.available})
       </div>
     )}
     {memory && (
       <div>
-        <Icon icon='memory' /> {_('maxRam')}: {memory.total} ({_('remainingResource')} {memory.available})
+        <Icon icon='memory' /> {_('maxRamLabel')} {formatSize(memory.total)} ({_('remainingResource')} {formatSize(memory.available)})
       </div>
     )}
     {disk && (
       <div>
-        <Icon icon='disk' /> {_('maxDiskSpace')}: {disk.total} ({_('remainingResource')} {disk.available})
+        <Icon icon='disk' /> {_('maxDiskSpaceLabel')} {formatSize(disk.total)} ({_('remainingResource')} {formatSize(disk.available)})
       </div>
     )}
     {cpus === undefined && memory === undefined && disk === undefined && (
