@@ -72,7 +72,7 @@ export default ({
                     <td>
                       <Select
                         onChange={() => migrateVdi(vdi, sr)}
-                        options={srs}
+                        options={srs} // FIXME: use the future editable Select with predicates
                         labelProp='name_label'
                         value={sr.name_label}
                         useLongClick
