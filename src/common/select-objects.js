@@ -55,22 +55,22 @@ const getLabel = object => object.name_label || object.name || object.email
   ]).isRequired
 })
 export class GenericSelect extends Component {
-  constructor (props) {
-    super(props)
-
-    this.state = {
-      value: this._setValue(props.defaultValue || (props.multi ? [] : '')),
-      ...this._computeOptions(props)
-    }
-  }
-
   // Supports id strings and objects.
   _setValue (value, props = this.props) {
-    if (props.multi) {
-      return map(value, object => object.id || object)
-    }
+    this.setState({
+      value: props.multi
+        ? map(value, object => object.id || object)
+        : value.id || value
+    })
+  }
 
-    return value.id || value
+  componentWillMount () {
+    const { props } = this
+
+    this._setValue(props.defaultValue || (props.multi ? [] : ''))
+    this.setState({
+      ...this._computeOptions(props)
+    })
   }
 
   componentWillReceiveProps (newProps) {
@@ -84,9 +84,8 @@ export class GenericSelect extends Component {
       const {
         options,
         xoObjectsById
-      } = this._computeOptions(props)
+      } = this._computeOptions(newProps)
 
-      // WTF?
       if (!xoObjects) {
         return this.setState({
           options,
@@ -133,6 +132,7 @@ export class GenericSelect extends Component {
         xoObjectsById: keyBy(xoObjects, 'id'),
         options: map(xoObjects, object => ({
           label: getLabel(object),
+          value: object.id,
           xoItem: object
         }))
       }
@@ -158,6 +158,7 @@ export class GenericSelect extends Component {
 
       options.push.apply(options, map(containerObjects, object => ({
         label: `${getLabel(object)} ${getLabel(container)}`,
+        value: object.id,
         xoItem: object
       })))
     })
@@ -405,10 +406,10 @@ export const SelectNetwork = makeStoreSelect(
       )
     ).sort()
 
-    return (state, props) => ({
-      xoObjects: getNetworksByPool(state, props),
-      xoContainers: getPools(state, props)
-    })
+    return {
+      xoObjects: getNetworksByPool,
+      xoContainers: getPools
+    }
   }
 )
 
@@ -436,7 +437,9 @@ export const SelectSubject = makeSubscriptionSelect(subscriber => {
 
   const set = newSubjects => {
     subjects = newSubjects
-    subscriber(subjects)
+    subscriber({
+      xoObjects: subjects
+    })
   }
 
   const unsubscribeGroups = subscribeGroups(groups => {
