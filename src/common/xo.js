@@ -820,7 +820,7 @@ export const removeAcl = ({subject, object, action}) => (
   xo.call('acl.remove', {subject, object, action})
 )
 
-export const createGroup = ({name}) => (
+export const createGroup = name => (
   xo.call('group.create', {name})
 )
 
@@ -828,15 +828,15 @@ export const setGroupName = (id, name) => (
   xo.call('group.set', {id, name})
 )
 
-export const deleteGroup = ({id}) => (
+export const deleteGroup = id => (
   xo.call('group.delete', {id})
 )
 
-export const removeUserFromGroup = ({user, group}) => (
+export const removeUserFromGroup = (user, group) => (
   xo.call('group.removeUser', {id: group, userId: user})
 )
 
-export const addUserToGroup = ({user, group}) => (
+export const addUserToGroup = (user, group) => (
   xo.call('group.addUser', {id: group, userId: user})
 )
 

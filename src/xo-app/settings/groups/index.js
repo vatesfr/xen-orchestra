@@ -52,7 +52,7 @@ class UserDisplay extends Component {
 
   _removeUser = () => {
     const {id, group} = this.props
-    return removeUserFromGroup({user: id, group})
+    return removeUserFromGroup(id, group)
       .then(() => subscribeGroups.forceRefresh())
       .catch(err => error('Remove User', err.message || String(err)))
   }
@@ -90,7 +90,7 @@ export default class Groups extends Component {
   _createGroup = () => {
     const { name } = this.refs
     if (name) {
-      return createGroup({name: name.value})
+      return createGroup(name.value)
         .then(() => {
           subscribeGroups.forceRefresh()
           name.value = ''
@@ -105,7 +105,7 @@ export default class Groups extends Component {
         title: 'Delete group',
         body: <p>Are you sure you want to delete this group ?</p>
       })
-      return deleteGroup({id})
+      return deleteGroup(id)
       .then(() => subscribeGroups.forceRefresh())
       .catch(err => error('Delete Group', err.message || String(err)))
     } catch (_) {
@@ -118,7 +118,7 @@ export default class Groups extends Component {
   }
 
   _addUser = (user, group) => {
-    return addUserToGroup({user: user.id, group: group.id})
+    return addUserToGroup(user.id, group.id)
       .then(refreshSubs)
       .catch(err => error('Add User', err.message || String(err)))
   }
