@@ -1,10 +1,20 @@
 import classNames from 'classnames'
 import Icon from 'icon'
+import map from 'lodash/map'
 import randomPassword from 'random-password'
 import React from 'react'
 
 import Component from './base-component'
-import { autobind, propTypes } from './utils'
+import {
+  autobind,
+  formatSizeRaw,
+  parseSize,
+  propTypes
+} from './utils'
+import {
+  DropdownButton,
+  MenuItem
+} from 'react-bootstrap-4/lib'
 
 // ===================================================================
 
@@ -174,5 +184,69 @@ export class Toggle extends Component {
         type='checkbox'
       />
     </label>
+  }
+}
+
+const UNITS = ['kiB', 'MiB', 'GiB']
+const SIZE_STYLE = { width: '10rem' }
+@propTypes({
+  onChange: propTypes.func,
+  readOnly: propTypes.bool,
+  standalone: propTypes.bool,
+  value: propTypes.number
+})
+export class SizeInput extends Component {
+  get value () {
+    return parseSize(this.refs.value.value + ' ' + this.state.unit)
+  }
+
+  constructor (props) {
+    super(props)
+
+    const humanSize = formatSizeRaw(props.value)
+    this._value = humanSize.value
+    this.state = { unit: humanSize.prefix + 'B' }
+  }
+
+  _onChange = () => this.props.onChange && this.props.onChange(this.value)
+
+  _updateUnit = unit => {
+    this.setState({ unit })
+    this._onChange()
+  }
+
+  render () {
+    const {
+      readOnly,
+      standalone
+    } = this.props
+
+    return <span
+      className='input-group'
+      style={standalone && SIZE_STYLE}
+    >
+      <input
+        autoFocus
+        className='form-control'
+        defaultValue={this._value}
+        min={0}
+        onChange={this._onChange}
+        readOnly={readOnly}
+        ref='value'
+        type='number'
+      />
+      <span className='input-group-btn'>
+        <DropdownButton
+          bsStyle='secondary'
+          disabled={readOnly}
+          id='size'
+          title={this.state.unit}
+        >
+          {map(UNITS, unit =>
+            <MenuItem key={unit} onClick={() => this._updateUnit(unit)}>{unit}</MenuItem>
+          )}
+        </DropdownButton>
+      </span>
+    </span>
   }
 }

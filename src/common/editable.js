@@ -4,6 +4,7 @@ import Icon from 'icon'
 import isFunction from 'lodash/isFunction'
 import isString from 'lodash/isString'
 import map from 'lodash/map'
+import { SizeInput } from 'form'
 import React from 'react'
 import round from 'lodash/round'
 import { DropdownButton, MenuItem } from 'react-bootstrap-4/lib'
@@ -295,6 +296,35 @@ export class Select extends Editable {
   value: propTypes.number.isRequired
 })
 export class Size extends Editable {
+  get value () {
+    return this.refs.input.value
+  }
+
+  _renderDisplay () {
+    return this.props.children || formatSize(this.props.value)
+  }
+
+  _renderEdition () {
+    const { saving } = this.state
+    const { value } = this.props
+
+    return <span
+      onKeyDown={this._onKeyDown}
+    >
+      <SizeInput
+        ref='input'
+        readOnly={saving}
+        standalone
+        value={value}
+      />
+    </span>
+  }
+}
+
+@propTypes({
+  value: propTypes.number.isRequired
+})
+export class OldSize extends Editable {
   get value () {
     const { sizeNumber, sizeUnit } = this.state
     return sizeNumber ? parseSize(sizeNumber + ' ' + sizeUnit) : 0
