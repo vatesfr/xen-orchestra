@@ -1400,10 +1400,19 @@ export const messages = {
     defaultMessage: 'Maximum CPUs'
   },
   maxRam: {
-    defaultMessage: 'Maximum RAM (GiB)'
+    defaultMessage: 'Maximum RAM'
   },
   maxDiskSpace: {
     defaultMessage: 'Maximum disk space'
+  },
+  maxCpusLabel: {
+    defaultMessage: 'Maximum CPUs:'
+  },
+  maxRamLabel: {
+    defaultMessage: 'Maximum RAM:'
+  },
+  maxDiskSpaceLabel: {
+    defaultMessage: 'Maximum disk space:'
   },
   noResourceSetLimits: {
     defaultMessage: 'No limits.'
@@ -1848,8 +1857,11 @@ localizedMessages.fr = {
   noHostsAvailable: 'Pas d\'hôtes disponibles.',
   availableHostsDescription: 'Les VMs crées par cet ensemble de ressources doivent tourner sur les hôtes suivants.',
   maxCpus: 'Nombre max de CPUs',
-  maxRam: 'Maximum RAM (GiB)',
-  maxDiskSpace: 'Maximum d\'espace disque',
+  maxRam: 'Mémoire maximum',
+  maxDiskSpace: 'Espace disque maximum',
+  maxCpusLabel: 'Nombre max de CPUs :',
+  maxRamLabel: 'Mémoire maximum :',
+  maxDiskSpaceLabel: 'Espace disque maximum :',
   totalResource: 'Total :',
   remainingResource: 'Restants :',
   usedResource: 'Utilisés :',
