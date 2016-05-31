@@ -300,11 +300,19 @@ export class Size extends Editable {
     return this.props.children || formatSize(this.props.value)
   }
 
+  _closeEditionIfUnfocused = () =>
+    !this._focused && this._closeEdition()
+
   _renderEdition () {
     const { saving } = this.state
     const { value } = this.props
 
     return <span
+      onBlur={() => {
+        this._focused = false
+        setTimeout(this._closeEditionIfUnfocused, 10)
+      }}
+      onFocus={() => { this._focused = true }}
       onKeyDown={this._onKeyDown}
     >
       <SizeInput
