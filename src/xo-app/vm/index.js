@@ -115,6 +115,10 @@ const isRunning = vm => vm && vm.power_state === 'Running'
   }
 })
 export default class Vm extends Component {
+  static contextTypes = {
+    router: React.PropTypes.object
+  }
+
   @autobind
   loop (vm = this.props.vm) {
     if (this.cancel) {
@@ -154,6 +158,10 @@ export default class Vm extends Component {
   componentWillReceiveProps (props) {
     const vmCur = this.props.vm
     const vmNext = props.vm
+
+    if (vmCur && !vmNext) {
+      this.context.router.push('/')
+    }
 
     if (!isRunning(vmCur) && isRunning(vmNext)) {
       this.loop(vmNext)
