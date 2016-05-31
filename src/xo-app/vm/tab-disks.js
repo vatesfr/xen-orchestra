@@ -8,7 +8,6 @@ import { editVdi, migrateVdi, setBootableVbd } from 'xo'
 import { Container, Row, Col } from 'grid'
 import { Select, Size, Text } from 'editable'
 import { Link } from 'react-router'
-import { Debug } from 'utils'
 
 export default ({
   srs,
@@ -101,7 +100,6 @@ export default ({
                 })}
               </tbody>
             </table>
-            <Debug value={srs} />
           </div>
         </span>
         : <h4 className='text-xs-center'>{_('vbdNoVbd')}</h4>
