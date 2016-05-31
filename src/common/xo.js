@@ -427,6 +427,32 @@ export const deleteVdi = ({ id }) => (
   xo.call('vdi.delete', { id })
 )
 
+export const migrateVdi = ({ vdi, sr }) => (
+  xo.call('vdi.migrate', { vdi, sr })
+)
+
+// VDB ---------------------------------------------------------------
+
+export const editVbd = ({ id }, props) => (
+  xo.call('vbd.set', { ...props, id })
+)
+
+export const connectVbd = ({ id }) => (
+  xo.call('vbd.connect', { id })
+)
+
+export const discpnnectVbd = ({ id }) => (
+  xo.call('vbd.disconnect', { id })
+)
+
+export const deleteVdb = ({ id }) => (
+  xo.call('vbd.delete', { id })
+)
+
+export const setBootableVbd = ({ id }, bootable) => (
+  xo.call('vbd.setBootable', { vbd: id, bootable })
+)
+
 // Network -----------------------------------------------------------
 
 export const editNetwork = ({ id }, props) => (
