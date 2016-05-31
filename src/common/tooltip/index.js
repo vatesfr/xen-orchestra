@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react'
 
-import styles from './tooltip.css'
+import styles from './index.css'
 
 const Tooltip = ({ children, content }) => (
   <span className={styles.container}>

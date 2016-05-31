@@ -6,7 +6,7 @@ import isString from 'lodash/isString'
 import map from 'lodash/map'
 import some from 'lodash/some'
 
-import invoke from './invoke'
+import invoke from '../invoke'
 
 // ===================================================================
 

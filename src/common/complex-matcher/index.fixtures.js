@@ -4,7 +4,7 @@ import {
   createNot,
   createProperty,
   createString
-} from './complex-matcher'
+} from './'
 
 export const pattern = 'foo !"\\\\ \\"" name:|(wonderwoman batman)'
 

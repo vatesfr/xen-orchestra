@@ -4,11 +4,11 @@ import {
   addPropertyClause,
   parse,
   toString
-} from './complex-matcher'
+} from './'
 import {
   ast,
   pattern
-} from './complex-matcher.fixtures'
+} from './index.fixtures'
 
 test('addPropertyClause', t => {
   t.is(

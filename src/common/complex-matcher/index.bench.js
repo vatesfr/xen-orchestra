@@ -1,11 +1,11 @@
 import {
   parse,
   toString
-} from './complex-matcher'
+} from './'
 import {
   ast,
   pattern
-} from './complex-matcher.fixtures'
+} from './index.fixtures'
 
 export default ({ benchmark }) => {
   benchmark('parse', () => {

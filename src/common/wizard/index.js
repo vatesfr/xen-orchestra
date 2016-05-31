@@ -5,7 +5,7 @@ import Icon from 'icon'
 import map from 'lodash/map'
 import React, { Component, cloneElement } from 'react'
 
-import styles from './wizard.css'
+import styles from './index.css'
 
 const Wizard = ({ children }) => {
   const allDone = every(React.Children.toArray(children), (child) => child.props.done || child.props.summary)
