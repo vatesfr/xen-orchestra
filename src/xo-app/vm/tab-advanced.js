@@ -4,7 +4,6 @@ import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import React from 'react'
 import TabButton from 'tab-button'
-import { browserHistory } from 'react-router'
 import { Toggle } from 'form'
 import { Number, Size, Text } from 'editable'
 import { Container, Row, Col } from 'grid'
@@ -24,11 +23,6 @@ import {
 const forceReboot = vm => restartVm(vm, true)
 const forceShutdown = vm => stopVm(vm, true)
 const fullCopy = vm => cloneVm(vm, true)
-const removeVm = (vm) => {
-  deleteVm(vm).then(() => {
-    browserHistory.push('/')
-  })
-}
 
 export default ({
   vm
@@ -104,7 +98,7 @@ export default ({
       }
       <TabButton
         btnStyle='danger'
-        handler={removeVm}
+        handler={deleteVm}
         handlerParam={vm}
         icon='vm-delete'
         labelId='vmRemoveButton'
