@@ -4,7 +4,7 @@ import React from 'react'
 import TabButton from 'tab-button'
 import { Toggle } from 'form'
 import { enableHost, disableHost, restartHost } from 'xo'
-import { FormattedRelative } from 'react-intl'
+import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Container, Row, Col } from 'grid'
 
 const forceReboot = host => restartHost(host, true)
@@ -142,7 +142,7 @@ export default ({
           <tr>
             <th>{_('hostLicenseExpiry')}</th>
             <td>
-              {host.license_params.expiry}
+              <FormattedTime value={host.license_expiry * 1000} day='numeric' month='long' year='numeric' /><br />
             </td>
           </tr>
         </tbody>
