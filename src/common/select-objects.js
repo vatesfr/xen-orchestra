@@ -10,6 +10,7 @@ import keyBy from 'lodash/keyBy'
 import keys from 'lodash/keys'
 import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
+import pickBy from 'lodash/pickBy'
 import renderXoItem from 'render-xo-item'
 import sortBy from 'lodash/sortBy'
 import { parse as parseRemote } from 'xo-remote-parser'
@@ -628,18 +629,23 @@ export class SelectSubject extends SelectSubscriptionObject {
   constructor (props) {
     super(props)
     this.state = {
-      users: [],
-      groups: []
+      subjects: {}
     }
   }
 
   componentWillMount () {
-    const unsubscribeGroups = subscribeUsers(groups => {
-      this.setState({ groups })
+    const unsubscribeGroups = subscribeGroups(groups => {
+      this.setState({ subjects: {
+        ...pickBy(this.state.subjects, subject => subject.type !== 'group'),
+        ...keyBy(groups, 'id')
+      } })
     })
 
-    const unsubscribeUsers = subscribeGroups(users => {
-      this.setState({ users })
+    const unsubscribeUsers = subscribeUsers(users => {
+      this.setState({ subjects: {
+        ...pickBy(this.state.subjects, subject => subject.type !== 'user'),
+        ...keyBy(users, 'id')
+      } })
     })
 
     this.componentWillUnmount = () => {
@@ -648,14 +654,9 @@ export class SelectSubject extends SelectSubscriptionObject {
     }
   }
 
-  _getSubjects = () => {
-    const { state } = this
-    return keyBy(state.users.concat(state.groups), 'id')
-  }
-
   render () {
     return (
-      <AbstractSelectSubject ref='select' {...this.props} xoObjects={this._getSubjects()} />
+      <AbstractSelectSubject ref='select' {...this.props} xoObjects={this.state.subjects} />
     )
   }
 }

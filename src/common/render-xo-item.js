@@ -149,3 +149,13 @@ const renderXoItem = (item, {
 }
 
 export { renderXoItem as default }
+
+const GenericXoItem = connectStore(() => {
+  const getObject = createGetObject()
+
+  return (state, props) => ({
+    object: getObject(state, props)
+  })
+})(({ xoItem, ...props }) => renderXoItem(xoItem, props))
+
+export const renderXoItemFromId = (id, props) => <GenericXoItem {...props} id={id} />
