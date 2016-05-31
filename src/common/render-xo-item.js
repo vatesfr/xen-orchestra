@@ -94,7 +94,7 @@ const xoItemToRender = {
   ),
   remote: remote => (
     <span>
-      <Icon icon='remote' /> {remote.remote.name}
+      <Icon icon='remote' /> {remote.value.name}
     </span>
   ),
   user: user => (
@@ -132,7 +132,16 @@ const xoItemToRender = {
 const renderXoItem = (item, {
   className
 } = {}) => {
-  const { type } = item
+  const { id, type, label } = item
+
+  if (!type && label) {
+    return (
+      <span key={id} className={className}>
+        {label}
+      </span>
+    )
+  }
+
   const Component = xoItemToRender[type]
 
   if (process.env.NODE_ENV !== 'production' && !Component) {
@@ -141,7 +150,7 @@ const renderXoItem = (item, {
 
   if (Component) {
     return (
-      <span key={item.id} className={className}>
+      <span key={id} className={className}>
         <Component {...item} />
       </span>
     )
