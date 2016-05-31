@@ -433,20 +433,20 @@ export const migrateVdi = ({ vdi, sr }) => (
 
 // VDB ---------------------------------------------------------------
 
-export const editVbd = ({ id }, props) => (
-  xo.call('vbd.set', { ...props, id })
-)
-
 export const connectVbd = ({ id }) => (
   xo.call('vbd.connect', { id })
 )
 
-export const discpnnectVbd = ({ id }) => (
+export const disconnectVbd = ({ id }) => (
   xo.call('vbd.disconnect', { id })
 )
 
 export const deleteVdb = ({ id }) => (
   xo.call('vbd.delete', { id })
+)
+
+export const editVbd = ({ id }, props) => (
+  xo.call('vbd.set', { ...props, id })
 )
 
 export const setBootableVbd = ({ id }, bootable) => (

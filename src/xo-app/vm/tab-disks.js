@@ -3,11 +3,11 @@ import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React from 'react'
 import TabButton from 'tab-button'
-import { Toggle } from 'form'
-import { editVdi, migrateVdi, setBootableVbd } from 'xo'
 import { Container, Row, Col } from 'grid'
-import { Select, Size, Text } from 'editable'
+import { editVdi, migrateVdi, setBootableVbd } from 'xo'
 import { Link } from 'react-router'
+import { Select, Size, Text } from 'editable'
+import { Toggle } from 'form'
 
 export default ({
   srs,
