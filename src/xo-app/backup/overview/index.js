@@ -313,7 +313,7 @@ export default class Overview extends Component {
         value={this.state.scheduleTable[id]}
         handler={this._updateScheduleState}
         handlerParam={id}
-        size='sm'
+        size='small'
       />
     )
   }
