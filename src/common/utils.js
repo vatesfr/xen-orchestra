@@ -394,3 +394,11 @@ export const throwFn = error => () => {
       : error
   )
 }
+
+// -------------------------------------------------------------------
+
+export function tap (cb) {
+  return this.then(value =>
+    Promise.resolve(cb(value)).then(() => value)
+  )
+}

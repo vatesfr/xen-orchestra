@@ -14,7 +14,7 @@ import Xo from 'xo-lib'
 import { confirm } from 'modal'
 import { createBackoff } from 'jsonrpc-websocket-client'
 import { info } from 'notification'
-import { invoke, noop } from 'utils'
+import { invoke, noop, tap } from 'utils'
 import { resolve } from 'url'
 import {
   connected,
@@ -559,9 +559,9 @@ export const removeTag = (id, tag) => (
 // Backups -----------------------------------------------------------
 
 export const createSchedule = (jobId, cron, enabled) => (
-  xo.call('schedule.create', { jobId, cron, enabled }).then(() => {
-    subscribeSchedules.forceRefresh()
-  })
+  xo.call('schedule.create', { jobId, cron, enabled })::tap(
+    subscribeSchedules.forceRefresh
+  )
 )
 
 export const createJob = job => (
@@ -574,15 +574,15 @@ export const runJob = id => {
 }
 
 export const enableSchedule = id => (
-  xo.call('scheduler.enable', { id }).then(() => {
-    subscribeScheduleTable.forceRefresh()
-  })
+  xo.call('scheduler.enable', { id })::tap(
+    subscribeScheduleTable.forceRefresh
+  )
 )
 
 export const disableSchedule = id => (
-  xo.call('scheduler.disable', { id }).then(() => {
-    subscribeScheduleTable.forceRefresh()
-  })
+  xo.call('scheduler.disable', { id })::tap(
+    subscribeScheduleTable.forceRefresh
+  )
 )
 
 export const deleteSchedule = async schedule => {
@@ -757,7 +757,7 @@ export const createSrLvm = (host, nameLabel, nameDescription, device) => (
 // Job logs ----------------------------------------------------------
 
 export const deleteJobsLog = id => (
-  xo.call('log.delete', {namespace: 'jobs', id}).then(() => {
-    subscribeJobsLogs.forceRefresh()
-  })
+  xo.call('log.delete', {namespace: 'jobs', id})::tap(
+    subscribeJobsLogs.forceRefresh
+  )
 )
