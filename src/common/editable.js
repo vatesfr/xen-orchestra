@@ -318,17 +318,6 @@ const MAP_TYPE_SELECT = {
   value: propTypes.oneOfType([
     propTypes.string,
     propTypes.object
-  ]).isRequired,
-  xoType: propTypes.oneOf([
-    'host',
-    'network',
-    'pool',
-    'remote',
-    'sr',
-    'subject',
-    'tag',
-    'vm',
-    'vmTemplate'
   ]).isRequired
 })
 export class XoSelect extends Editable {
@@ -354,6 +343,11 @@ export class XoSelect extends Editable {
     } = this.props
 
     const Select = MAP_TYPE_SELECT[xoType]
+    if (process.env.NODE_ENV !== 'production') {
+      if (!Select) {
+        throw new Error(`${xoType} is not a valid XoSelect type.`)
+      }
+    }
 
     // Anchor is needed so that the BlockLink does not trigger a redirection
     // when this element is clicked.

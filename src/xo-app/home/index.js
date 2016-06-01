@@ -78,9 +78,13 @@ class VmItem extends Component {
     return vm && vm.power_state === 'Running'
   }
 
+  _getMigrationPredicate = createSelector(
+    (state, props) => props.container,
+    container => host => host.id !== container.id
+  )
+
   _addTag = tag => addTag(this.props.vm.id, tag)
   _migrateVm = host => migrateVm(this.props.vm, host)
-  _isNotCurrentHost = host => host.id !== this.props.container.id
   _removeTag = tag => removeTag(this.props.vm.id, tag)
   _setNameDescription = nameDescription => editVm(this.props.vm, { name_description: nameDescription })
   _setNameLabel = nameLabel => editVm(this.props.vm, { name_label: nameLabel })
@@ -148,7 +152,7 @@ class VmItem extends Component {
                 labelProp='name_label'
                 onChange={this._migrateVm}
                 placeholder={_('homeMigrateTo')}
-                predicate={this._isNotCurrentHost}
+                predicate={this._getMigrationPredicate(this.state, this.props)}
                 useLongClick
                 value={container}
                 xoType='host'
