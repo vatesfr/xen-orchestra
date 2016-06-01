@@ -97,6 +97,11 @@ const xoItemToRender = {
       <Icon icon='remote' /> {remote.value.name}
     </span>
   ),
+  role: role => (
+    <span>
+      {role.name}
+    </span>
+  ),
   user: user => (
     <span>
       <Icon icon='user' /> {user.email}

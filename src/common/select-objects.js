@@ -29,6 +29,7 @@ import {
 import {
   subscribeGroups,
   subscribeRemotes,
+  subscribeRoles,
   subscribeUsers
 } from 'xo'
 
@@ -420,6 +421,25 @@ export const SelectTag = makeStoreSelect(() => {
   }
 }, { placeholder: _('selectTags') })
 
+export const SelectHighLevelObjects = makeStoreSelect(() => {
+  const getHosts = createGetObjectsOfType('host')
+  const getNetworks = createGetObjectsOfType('network')
+  const getPools = createGetObjectsOfType('pool')
+  const getSrs = createGetObjectsOfType('SR')
+  const getVms = createGetObjectsOfType('VM')
+
+  const getHighLevelObjects = createSelector(
+    getHosts,
+    getNetworks,
+    getPools,
+    getSrs,
+    getVms,
+    (hosts, networks, pools, srs, vms) => sortBy(assign({}, hosts, networks, pools, srs, vms), ['type', 'name_label'])
+  )
+
+  return {xoObjects: getHighLevelObjects}
+}, { placeholder: _('selectObjects') })
+
 // ===================================================================
 // Objects from subscriptions.
 // ===================================================================
@@ -453,6 +473,17 @@ export const SelectSubject = makeSubscriptionSelect(subscriber => {
     unsubscribeUsers()
   }
 }, { placeholder: _('selectSubjects') })
+
+// ===================================================================
+
+export const SelectRole = makeSubscriptionSelect(subscriber => {
+  const unsubscribeRoles = subscribeRoles(roles => {
+    const xoObjects = map(sortBy(roles, 'name'), role => ({...role, type: 'role'}))
+    console.log('ROLES', xoObjects)
+    subscriber({xoObjects})
+  })
+  return unsubscribeRoles
+}, { placeholder: _('selectRole') })
 
 // ===================================================================
 

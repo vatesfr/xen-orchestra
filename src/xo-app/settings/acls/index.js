@@ -1,94 +1,21 @@
-import _ from 'messages'
 import ActionButton from 'action-button'
-import assign from 'lodash/assign'
-import find from 'lodash/find'
 import forEach from 'lodash/forEach'
 import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
-import ObjectName from 'object-name'
 import orderBy from 'lodash/orderBy'
 import React, { Component } from 'react'
-import { connectStore } from 'utils'
-import { createGetObjectsOfType, createSelector } from 'selectors'
 import { error } from 'notification'
-import { GenericSelect, SelectSubject } from 'select-objects'
+import { renderXoItemFromId } from 'render-xo-item'
+import { SelectHighLevelObjects, SelectRole, SelectSubject } from 'select-objects'
 
 import {
   addAcl,
   removeAcl,
   subscribeAcls,
   subscribeGroups,
-  subscribeRoles,
   subscribeUsers
 } from 'xo'
-
-@connectStore(() => {
-  const getHosts = createGetObjectsOfType('host')
-  const getNetworks = createGetObjectsOfType('network')
-  const getPools = createGetObjectsOfType('pool')
-  const getSrs = createGetObjectsOfType('SR')
-  const getVms = createGetObjectsOfType('VM')
-
-  const getHighLevelObjects = createSelector(
-    getHosts,
-    getNetworks,
-    getPools,
-    getSrs,
-    getVms,
-    (hosts, networks, pools, srs, vms) => assign({}, hosts, networks, pools, srs, vms)
-  )
-
-  return (state, props) => ({objects: getHighLevelObjects(state, props)})
-})
-class SelectObject extends GenericSelect {
-  constructor (props) {
-    super(props)
-    this._placeholder = _('selectObjects')
-  }
-
-  _computeOptions (props) {
-    return map(props.objects, object => ({
-      value: object.id,
-      label: object.name_label || object.name || object.id,
-      type: object.type && object.type.toLowerCase() || ''
-    }))
-  }
-}
-
-class SelectRole extends GenericSelect {
-  constructor (props) {
-    super(props)
-    this._placeholder = _('selectRole')
-  }
-
-  componentWillMount () {
-    this.componentWillUnmount = subscribeRoles(roles => {
-      return this.setState({
-        roles,
-        options: this._computeOptions(this.props, roles)
-      })
-    })
-  }
-
-  _computeOptions (props, roles) {
-    return map(roles, role => ({value: role.id, label: role.name, type: 'role'}))
-  }
-
-  get value () {
-    const { roles, value } = this.state
-
-    const getRole = value => {
-      const id = value.value || value
-      return find(roles, role => role.id === id)
-    }
-
-    if (this.props.multi) {
-      return map(value, v => getRole(v))
-    }
-    return getRole(value)
-  }
-}
 
 class SubjectDisplay extends Component {
   constructor (props) {
@@ -184,7 +111,7 @@ export default class Acls extends Component {
           <SelectSubject multi onChange={this._handleSelectSubject} />
         </div>
         <div className='form-group'>
-          <SelectObject multi onChange={this._handleSelectObjects} />
+          <SelectHighLevelObjects multi onChange={this._handleSelectObjects} />
         </div>
         <div className='form-group'>
           <SelectRole onChange={this._handleSelectRole} />
@@ -203,10 +130,13 @@ export default class Acls extends Component {
           </tr>
         </thead>
         <tbody>
+          {isEmpty(acls) &&
+            <tr><td><em>No Acls found</em></td></tr>
+          }
           {map(acls, (acl, index) =>
             <tr key={index}>
               <td><SubjectDisplay id={acl.subject} /></td>
-              <td><ObjectName id={acl.object} /></td>
+              <td>{renderXoItemFromId(acl.object)}</td>
               <td>{acl.action}</td>
               <td><SelectRole onChange={role => this._handleRoleChange(role, acl.subject, acl.object, acl.action)} placeholder='Change Role' /></td>
               <td><ActionButton icon='delete' btnStyle='danger' handler={this._removeAcl} handlerParam={{subject: acl.subject, object: acl.object, action: acl.action}} /></td>
