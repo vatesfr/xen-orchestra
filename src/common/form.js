@@ -1,10 +1,20 @@
 import classNames from 'classnames'
 import Icon from 'icon'
+import map from 'lodash/map'
 import randomPassword from 'random-password'
 import React from 'react'
 
 import Component from './base-component'
-import { autobind, propTypes } from './utils'
+import {
+  autobind,
+  formatSizeRaw,
+  parseSize,
+  propTypes
+} from './utils'
+import {
+  DropdownButton,
+  MenuItem
+} from 'react-bootstrap-4/lib'
 
 // ===================================================================
 
@@ -174,5 +184,87 @@ export class Toggle extends Component {
         type='checkbox'
       />
     </label>
+  }
+}
+
+const UNITS = ['kiB', 'MiB', 'GiB']
+const DEFAULT_UNIT = 'GiB'
+@propTypes({
+  defaultUnit: propTypes.oneOf(UNITS),
+  defaultValue: propTypes.number,
+  onChange: propTypes.func,
+  placeholder: propTypes.string,
+  readOnly: propTypes.bool,
+  style: propTypes.object
+})
+export class SizeInput extends Component {
+  constructor (props) {
+    super(props)
+
+    const humanSize = props.defaultValue && formatSizeRaw(props.defaultValue)
+    this._defaultValue = humanSize && humanSize.value
+    this.state = { unit: humanSize ? humanSize.prefix + 'B' : props.defaultUnit || DEFAULT_UNIT }
+  }
+
+  get value () {
+    const value = this.refs.value.value
+    return value ? parseSize(value + ' ' + this.state.unit) : undefined
+  }
+
+  set value (newValue) {
+    const humanSize = newValue && formatSizeRaw(newValue)
+    this.refs.value.value = humanSize && humanSize.value
+    this.setState({ unit: humanSize ? humanSize.prefix + 'B' : DEFAULT_UNIT })
+  }
+
+  _onChange = () =>
+    this.props.onChange && this.props.onChange(this.value)
+
+  _updateUnit = unit => {
+    this.setState({ unit })
+    this._onChange()
+  }
+
+  render () {
+    const {
+      placeholder,
+      readOnly,
+      style
+    } = this.props
+
+    return <span
+      className='input-group'
+      style={style}
+    >
+      <input
+        autoFocus
+        className='form-control'
+        defaultValue={this._defaultValue}
+        min={0}
+        onChange={this._onChange}
+        placeholder={placeholder}
+        readOnly={readOnly}
+        ref='value'
+        type='number'
+      />
+      <span className='input-group-btn'>
+        <DropdownButton
+          bsStyle='secondary'
+          disabled={readOnly}
+          id='size'
+          pullRight
+          title={this.state.unit}
+        >
+          {map(UNITS, unit =>
+            <MenuItem
+              key={unit}
+              onClick={() => this._updateUnit(unit)}
+            >
+              {unit}
+            </MenuItem>
+          )}
+        </DropdownButton>
+      </span>
+    </span>
   }
 }

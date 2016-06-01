@@ -13,6 +13,7 @@ import renderXoItem from 'render-xo-item'
 import { Col, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
 import { injectIntl } from 'react-intl'
+import { SizeInput } from 'form'
 
 import {
   Card,
@@ -248,7 +249,6 @@ class Edit extends Component {
   _saveResourceSet = async () => {
     const { refs } = this
 
-    // TODO: Use bytes conversion.
     const cpus = refs.inputMaxCpus.value
     const memory = refs.inputMaxRam.value
     const disk = refs.inputMaxDiskSpace.value
@@ -263,8 +263,8 @@ class Edit extends Component {
     await editRessourceSet(set.id, {
       limits: {
         cpus: cpus === '' ? undefined : +cpus,
-        memory: memory === '' ? undefined : +memory,
-        disk: disk === '' ? undefined : +disk
+        memory,
+        disk
       },
       objects: map(objects, object => object.id),
       subjects: map(refs.selectSubject.value, object => object.id)
@@ -376,21 +376,15 @@ class Edit extends Component {
                   />
                 </Col>
                 <Col mediumSize={4}>
-                  <input
-                    className='form-control'
-                    min={0}
+                  <SizeInput
                     placeholder={formatMessage(messages.maxRam)}
                     ref='inputMaxRam'
-                    type='number'
                   />
                 </Col>
                 <Col mediumSize={4}>
-                  <input
-                    className='form-control'
-                    min={0}
+                  <SizeInput
                     placeholder={formatMessage(messages.maxDiskSpace)}
                     ref='inputMaxDiskSpace'
-                    type='number'
                   />
                 </Col>
               </Row>
