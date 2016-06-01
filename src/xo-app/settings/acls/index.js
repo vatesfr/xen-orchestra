@@ -36,7 +36,7 @@ import {
     getPools,
     getSrs,
     getVms,
-    (hosts, networks, pools, srs, vms) => assign(hosts, networks, pools, srs, vms)
+    (hosts, networks, pools, srs, vms) => assign({}, hosts, networks, pools, srs, vms)
   )
 
   return (state, props) => ({objects: getHighLevelObjects(state, props)})
