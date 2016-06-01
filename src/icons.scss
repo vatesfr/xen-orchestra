@@ -180,6 +180,10 @@
     @extend .fa;
     @extend .fa-list-alt;
   }
+  &-trial {
+    @extend .fa;
+    @extend .fa-thumbs-up;
+  }
 
   // Backups
   &-backup {

@@ -3,10 +3,13 @@ import ansiUp from 'ansi_up'
 import assign from 'lodash/assign'
 import map from 'lodash/map'
 import React, { Component } from 'react'
-import xoaUpdater from '../../common/xoa-updater'
+import xoaUpdater, { exposeTrial, isTrialRunning } from 'xoa-updater'
 import { confirm } from 'modal'
 import { connectStore } from 'utils'
+import { FormattedDate } from 'react-intl'
 import { Password } from 'form'
+import isEmpty from 'lodash/isEmpty'
+import { error } from 'notification'
 
 xoaUpdater.start()
 
@@ -22,13 +25,14 @@ const states = {
 
 @connectStore((state) => {
   return {
-    state: state.xoaUpdaterState,
+    configuration: state.xoaConfiguration,
     log: state.xoaUpdaterLog,
     registration: state.xoaRegisterState,
-    configuration: state.xoaConfiguration
+    state: state.xoaUpdaterState,
+    trial: state.xoaTrialState
   }
 })
-export default class XoaUpdatesPanel extends Component {
+export default class XoaUpdates extends Component {
   constructor () {
     super()
     this.state = {}
@@ -92,6 +96,20 @@ export default class XoaUpdatesPanel extends Component {
     })
   }
 
+  _startTrial = async () => {
+    try {
+      await confirm({
+        title: 'Ready for trial ?',
+        body: <p>During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans!</p>
+      })
+      return xoaUpdater.requestTrial()
+        .then(() => xoaUpdater.update())
+        .catch(err => error('Request Trial', err.message || String(err)))
+    } catch (_) {
+      return
+    }
+  }
+
   render () {
     const textClasses = {
       info: 'text-info',
@@ -102,8 +120,9 @@ export default class XoaUpdatesPanel extends Component {
 
     const {
       log,
+      registration,
       state,
-      registration
+      trial
     } = this.props
     let { configuration } = this.props // Configuration from the store
 
@@ -119,15 +138,16 @@ export default class XoaUpdatesPanel extends Component {
     proxyUser !== undefined && (configuration.proxyUser = proxyUser) && (configEdited = true)
 
     return <div className='container-fluid'>
-      <h1>XOA updates</h1>
-      <p>{states[state]}</p>
       <p>
+        <strong>{states[state]}</strong>
+        {' '}
         <ActionButton
           btnStyle='info'
           handler={() => xoaUpdater.update()}
           icon='refresh'>
           Update
         </ActionButton>
+        {' '}
         <ActionButton
           btnStyle='primary'
           handler={() => xoaUpdater.upgrade()}
@@ -144,49 +164,62 @@ export default class XoaUpdatesPanel extends Component {
       </div>
       <h2>Settings {configEdited ? '*' : ''}</h2>
       <form className='form-inline'>
-        <div className='form-group'>
-          <input
-            className='form-control'
-            placeholder='Host (myproxy.example.org)'
-            required
-            type='text'
-            value={configuration.proxyHost}
-            onChange={this._handleProxyHostChange}
-          />
-        </div>
-        <div className='form-group'>
-          <input
-            className='form-control'
-            placeholder='Port (3128 ?...)'
-            required
-            type='text'
-            value={configuration.proxyPort}
-            onChange={this._handleProxyPortChange}
-          />
-        </div>
-        <div className='form-group'>
-          <input
-            className='form-control'
-            placeholder='User name'
-            required
-            type='text'
-            value={configuration.proxyUser}
-            onChange={this._handleProxyUserChange}
-          />
-        </div>
-        <div className='form-group'>
-          <Password
-            enableGenerator={false}
-            placeholder='password'
-            required
-            ref='proxyPassword'
-          />
-        </div>
-        <ActionButton type='submit' icon='save' btnStyle='primary' handler={this._configure}>Save</ActionButton>
-        <button type='button' className='btn btn-default' onClick={this._handleConfigReset} disabled={!configEdited}>Reset</button>
+        <fieldset>
+          <div className='form-group'>
+            <input
+              className='form-control'
+              placeholder='Host (myproxy.example.org)'
+              required
+              type='text'
+              value={configuration.proxyHost}
+              onChange={this._handleProxyHostChange}
+            />
+          </div>
+          {' '}
+          <div className='form-group'>
+            <input
+              className='form-control'
+              placeholder='Port (3128 ?...)'
+              required
+              type='text'
+              value={configuration.proxyPort}
+              onChange={this._handleProxyPortChange}
+            />
+          </div>
+          {' '}
+          <div className='form-group'>
+            <input
+              className='form-control'
+              placeholder='User name'
+              required
+              type='text'
+              value={configuration.proxyUser}
+              onChange={this._handleProxyUserChange}
+            />
+          </div>
+          {' '}
+          <div className='form-group'>
+            <Password
+              enableGenerator={false}
+              placeholder='password'
+              required
+              ref='proxyPassword'
+            />
+          </div>
+        </fieldset>
+        <br />
+        <fieldset>
+          <ActionButton type='submit' icon='save' btnStyle='primary' handler={this._configure}>Save</ActionButton>
+          {' '}
+          <button type='button' className='btn btn-default' onClick={this._handleConfigReset} disabled={!configEdited}>Reset</button>
+        </fieldset>
       </form>
       <h2>Registration</h2>
-      <p>{registration.state} {registration.email} {registration.error}</p>
+      <p>
+        <strong>{registration.state}</strong>
+        {registration.email && <span> to {registration.email}</span>}
+        <span className='text-danger'>{registration.error}</span>
+      </p>
       <form className='form-inline'>
         <div className='form-group'>
           <input
@@ -197,6 +230,7 @@ export default class XoaUpdatesPanel extends Component {
             type='text'
           />
         </div>
+        {' '}
         <div className='form-group'>
           <Password
             enableGenerator={false}
@@ -205,8 +239,41 @@ export default class XoaUpdatesPanel extends Component {
             required
           />
         </div>
+        {' '}
         <ActionButton type='submit' icon='success' btnStyle='primary' handler={this._register}>Register</ActionButton>
       </form>
+      {/* FREE ONLY */}
+      <h2>Trial</h2>
+      {trial.state === 'default' && exposeTrial(trial.trial) &&
+        <div>
+          {registration.state !== 'registered' && <p>Please, take time to register to enjoy your trial.</p>}
+          {registration.state === 'registered' &&
+            <ActionButton btnStyle='success' handler={this._startTrial} icon='trial'>Start trial</ActionButton>
+          }
+        </div>
+      }
+      {trial.state === 'default' && isTrialRunning(trial.trial) &&
+        <p className='text-success'>You can use a trial version until <FormattedDate value={new Date(trial.trial.end)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />. Upgrade your appliance to get it.</p>
+      }
+      {trial.state === 'default' && !isTrialRunning(trial.trial) && !exposeTrial(trial.trial) &&
+        <p>Your trial has been consumed and period is over</p>
+      }
+      {/* END of FREE ONLY */}
+      {/* STARTER, ENTERPRISE, PREMIUM ONLY*/}
+      {trial.state === 'trustedTrial' &&
+        <p>{trial.message}</p>
+      }
+      {trial.state === 'untrustedTrial' &&
+        <p className='text-danger'>{trial.message}</p>
+      }
+      {/* END of STARTER, ENTERPRISE, PREMIUM ONLY*/}
+      {/* FREE, STARTER, ENTERPRISE, PREMIUM ONLY*/}
+      {isEmpty(trial) || trial.state === 'ERROR' &&
+        <p className='text-danger'>
+          Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service.
+        </p>
+      }
+      {/* END of FREE, STARTER, ENTERPRISE, PREMIUM ONLY*/}
     </div>
   }
 }

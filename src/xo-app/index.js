@@ -1,12 +1,13 @@
 import Component from 'base-component'
 import cookies from 'cookies-js'
 import React from 'react'
+import { blockXoaAccess } from 'xoa-updater'
+import { connectStore, routes } from 'utils'
 import { IntlProvider } from 'messages'
 import { Notification } from 'notification'
 // import {
 //   keyHandler
 // } from 'react-key-handler'
-import { routes } from 'utils'
 
 import About from './about'
 import Backup from './backup'
@@ -66,6 +67,12 @@ const BODY_STYLE = {
   'vms/:id': Vm,
   'xoa-update': XoaUpdates
 })
+@connectStore((state) => {
+  return {
+    trial: state.xoaTrialState,
+    signedUp: !!state.user
+  }
+})
 export default class XoApp extends Component {
   displayOpenSourceDisclaimer () {
     const previousDisclaimer = cookies.get('previousDisclaimer')
@@ -87,12 +94,15 @@ export default class XoApp extends Component {
   }
 
   render () {
+    const { signedUp, trial } = this.props
+    const blocked = signedUp && blockXoaAccess(trial) // If we are under expired or unstable trial (signed up only)
+
     return <IntlProvider>
       <div style={CONTAINER_STYLE}>
         <Menu ref='menu' />
         <div ref='bodyWrapper' style={BODY_WRAPPER_STYLE}>
           <div style={BODY_STYLE}>
-            {this.props.children}
+            {blocked ? <XoaUpdates /> : this.props.children}
           </div>
         </div>
         <Modal />

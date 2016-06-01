@@ -27,6 +27,23 @@ const states = [
 
 // ===================================================================
 
+export function isTrialRunning (trial) {
+  return (trial && trial.end && Date.now() < trial.end)
+}
+
+export function exposeTrial (trial) {
+  // We won't suggest trial if any trial is running now, or if premium was enjoyed in any past trial
+  return !(trial && (isTrialRunning(trial) || trial.plan === 'premium'))
+}
+
+export function blockXoaAccess (xoaState) {
+  let block = xoaState.stata === 'untrustedTrial'
+  // STARTER, ENTERPRISE, PREMIUM ONLY
+  block = block || xoaState.state === 'ERROR'
+  // END of STARTER, ENTERPRISE, PREMIUM ONLY
+  return block
+}
+
 function getCurrentUrl () {
   if (typeof window === 'undefined') {
     throw new Error('cannot get current URL')
@@ -41,10 +58,6 @@ function adaptUrl (url, port = null) {
   }
   return 'ws' + matches[1] + '://' + matches[2] + '/api/updater'
 }
-
-// function blockXoaAccess (xoaState) {
-//   return xoaState.state === 'untrustedTrial'
-// }
 
 // ===================================================================
 
@@ -147,7 +160,7 @@ class XoaUpdater extends EventEmitter {
         } else if (this._lowState.state === 'xoa-upgraded') {
           this._promptForReload()
         }
-        this._xoaState()
+        this.xoaState()
       })
       middle.on('warning', warning => {
         this.log('warning', warning.message)
@@ -247,14 +260,28 @@ class XoaUpdater extends EventEmitter {
     }
   }
 
-  async _xoaState () {
+  async requestTrial () {
+    const state = await this.xoaState()
+    if (!state.state === 'ERROR') {
+      throw new Error(state.message)
+    }
+    if (isTrialRunning(state.trial)) {
+      throw new Error('You are already under trial')
+    }
+    try {
+      return this._call('requestTrial', {trialPlan: 'premium'})
+    } finally {
+      this.xoaState()
+    }
+  }
+
+  async xoaState () {
     try {
       const state = await this._call('xoaState')
       this._xoaState = state
-      this._xoaStateTS = Date.now()
       return state
     } catch (error) {
-      this._xoaStateError(error)
+      return this._xoaStateError(error)
     } finally {
       this.emit('trialState', assign({}, this._xoaState))
     }
@@ -266,7 +293,6 @@ class XoaUpdater extends EventEmitter {
       state: 'ERROR',
       message
     }
-    this._xoaStateTS = Date.now()
     return this._xoaState
   }
 
@@ -284,7 +310,7 @@ class XoaUpdater extends EventEmitter {
     if (this.isStarted()) {
       return
     }
-    await this._xoaState()
+    await this.xoaState()
     await this.isRegistered()
     this._interval = setInterval(() => this.run(), 60 * 60 * 1000)
     this.run()
@@ -365,15 +391,15 @@ class XoaUpdater extends EventEmitter {
 
 const xoaUpdater = new XoaUpdater()
 
+export default xoaUpdater
+
 export const connectStore = (store) => {
   forEach(states, state => xoaUpdater.on(state, () => store.dispatch(xoaUpdaterState(state))))
-  xoaUpdater.on('trialState', state => () => store.dispatch(xoaTrialState(state)))
+  xoaUpdater.on('trialState', state => store.dispatch(xoaTrialState(state)))
   xoaUpdater.on('log', log => store.dispatch(xoaUpdaterLog(log)))
   xoaUpdater.on('registerState', registration => store.dispatch(xoaRegisterState(registration)))
   xoaUpdater.on('configuration', configuration => store.dispatch(xoaConfiguration(configuration)))
 }
-
-export default xoaUpdater
 // .run(function (updater, $rootScope, $state, xoApi) {
 //   updater.start()
 //   .catch(() => {})
