@@ -12,6 +12,7 @@ import { formatSize, propTypes } from './utils'
 
 const LONG_CLICK = 400
 const SELECT_STYLE = { padding: '0px' }
+const SIZE_STYLE = { width: '10rem' }
 const EDITABLE_STYLE = { borderBottom: '1px dashed #ccc' }
 
 @propTypes({
@@ -321,7 +322,7 @@ export class Size extends Editable {
       <SizeInput
         ref='input'
         readOnly={saving}
-        style={{ width: '10rem' }}
+        style={SIZE_STYLE}
         defaultValue={value}
       />
     </span>

@@ -191,18 +191,18 @@ const UNITS = ['kiB', 'MiB', 'GiB']
 const DEFAULT_UNIT = 'GiB'
 @propTypes({
   defaultUnit: propTypes.oneOf(UNITS),
+  defaultValue: propTypes.number,
   onChange: propTypes.func,
   placeholder: propTypes.string,
   readOnly: propTypes.bool,
-  style: propTypes.object,
-  defaultValue: propTypes.number
+  style: propTypes.object
 })
 export class SizeInput extends Component {
   constructor (props) {
     super(props)
 
     const humanSize = props.defaultValue && formatSizeRaw(props.defaultValue)
-    this._value = humanSize && humanSize.value
+    this._defaultValue = humanSize && humanSize.value
     this.state = { unit: humanSize ? humanSize.prefix + 'B' : props.defaultUnit || DEFAULT_UNIT }
   }
 
@@ -239,7 +239,7 @@ export class SizeInput extends Component {
       <input
         autoFocus
         className='form-control'
-        defaultValue={this._value}
+        defaultValue={this._defaultValue}
         min={0}
         onChange={this._onChange}
         placeholder={placeholder}
