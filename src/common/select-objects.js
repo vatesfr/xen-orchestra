@@ -4,7 +4,6 @@ import Select from 'react-select'
 import _ from 'messages'
 import assign from 'lodash/assign'
 import filter from 'lodash/filter'
-import find from 'lodash/find'
 import forEach from 'lodash/forEach'
 import groupBy from 'lodash/groupBy'
 import keyBy from 'lodash/keyBy'
@@ -74,7 +73,7 @@ export class GenericSelect extends Component {
       return map(value, object => object.id || object)
     }
 
-    return (value !== null && value !== undefined)
+    return (value != null)
       ? value.id || value
       : ''
   }
@@ -107,7 +106,7 @@ export class GenericSelect extends Component {
         return this.setState({
           options,
           value: this._setValue(
-            filter(value, value => value && xoObjectsById[value.id]),
+            filter(value, value => xoObjectsById[value.id]),
             props
           ),
           xoObjectsById
@@ -117,10 +116,7 @@ export class GenericSelect extends Component {
       // For one unique selected value.
       this.setState({
         options,
-        value: this._setValue(
-          find(xoObjectsById, (_, id) => id === value.id),
-          props
-        ),
+        value: this._setValue(xoObjectsById[value.id], props),
         xoObjectsById
       })
     }
@@ -219,7 +215,7 @@ export class GenericSelect extends Component {
   }
 }
 
-const makeStoreSelect = (createSelectors, { placeholder }) => connectStore(() => {
+const makeStoreSelect = (createSelectors, props) => connectStore(() => {
   const selectors = createSelectors()
 
   return (state, props) =>
@@ -238,7 +234,7 @@ const makeStoreSelect = (createSelectors, { placeholder }) => connectStore(() =>
       return (
         <GenericSelect
           ref='select'
-          placeholder={placeholder}
+          {...props}
           {...this.props}
         />
       )
@@ -246,7 +242,7 @@ const makeStoreSelect = (createSelectors, { placeholder }) => connectStore(() =>
   }
 )
 
-const makeSubscriptionSelect = (subscribe, { placeholder }) => (
+const makeSubscriptionSelect = (subscribe, props) => (
   class extends Component {
     constructor (props) {
       super(props)
@@ -276,7 +272,7 @@ const makeSubscriptionSelect = (subscribe, { placeholder }) => (
       return (
         <GenericSelect
           ref='select'
-          placeholder={placeholder}
+          {...props}
           {...this.props}
           xoObjects={this._getFilteredXoObjects()}
           xoContainers={this.state.xoContainers}
