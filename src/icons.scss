@@ -308,7 +308,7 @@
   }
 
   // SR
-  &-sr {
+  &-sr, &-vdi {
     &-reconnect-all {
       @extend .fa;
       @extend .fa-retweet;

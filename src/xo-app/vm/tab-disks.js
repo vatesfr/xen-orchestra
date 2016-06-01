@@ -2,9 +2,18 @@ import _ from 'messages'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React from 'react'
+import ActionRowButton from 'action-row-button'
 import TabButton from 'tab-button'
+import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Container, Row, Col } from 'grid'
-import { editVdi, migrateVdi, setBootableVbd } from 'xo'
+import {
+  editVdi,
+  migrateVdi,
+  setBootableVbd,
+  disconnectVbd,
+  deleteVdi,
+  deleteVbd
+} from 'xo'
 import { Link } from 'react-router'
 import { Select, Size, Text } from 'editable'
 import { Toggle } from 'form'
@@ -88,11 +97,37 @@ export default ({
                     </td>
                     <td>
                       {vbd.attached
-                        ? <span className='tag tag-success'>
-                            {_('vbdStatusConnected')}
+                        ? <span>
+                          <span className='tag tag-success'>
+                              {_('vbdStatusConnected')}
+                          </span>
+                          <ButtonGroup className='pull-xs-right'>
+                            <ActionRowButton
+                              btnStyle='default'
+                              icon='disconnect'
+                              handler={disconnectVbd}
+                              handlerParam={vbd}
+                            />
+                          </ButtonGroup>
                         </span>
-                        : <span className='tag tag-default'>
-                            {_('vbdStatusDisconnected')}
+                        : <span>
+                          <span className='tag tag-default'>
+                              {_('vbdStatusDisconnected')}
+                          </span>
+                          <ButtonGroup className='pull-xs-right'>
+                            <ActionRowButton
+                              btnStyle='default'
+                              icon='vdi-forget'
+                              handler={deleteVbd}
+                              handlerParam={vbd}
+                            />
+                            <ActionRowButton
+                              btnStyle='default'
+                              icon='vdi-remove'
+                              handler={deleteVdi}
+                              handlerParam={vdi}
+                            />
+                          </ButtonGroup>
                         </span>
                       }
                     </td>

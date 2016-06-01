@@ -448,7 +448,7 @@ export const disconnectVbd = ({ id }) => (
   xo.call('vbd.disconnect', { id })
 )
 
-export const deleteVdb = ({ id }) => (
+export const deleteVbd = ({ id }) => (
   xo.call('vbd.delete', { id })
 )
 
