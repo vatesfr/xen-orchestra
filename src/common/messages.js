@@ -236,6 +236,9 @@ export const messages = {
   homeMore: {
     defaultMessage: 'More'
   },
+  homeMigrateTo: {
+    defaultMessage: 'Migrate to...'
+  },
 
   // ----- Forms -----
   add: {
@@ -1547,6 +1550,7 @@ localizedMessages.fr = {
   // ----- Home view -----
   homeDisplayedVms: '{displayed}x {vmIcon} (sur {total})',
   homeSelectedVms: '{selected}x {vmIcon} sélectionnée{selected, plural, zero {} one {} other {s}} (sur {total})',
+  homeMigrateTo: 'Migrer sur...',
   // ----- General Stuff -----
   homePage: 'Accueil',
   usernameLabel: 'Nom :',

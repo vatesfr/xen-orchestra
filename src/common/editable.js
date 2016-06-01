@@ -6,6 +6,17 @@ import isString from 'lodash/isString'
 import map from 'lodash/map'
 import { SizeInput } from 'form'
 import React from 'react'
+import {
+  SelectHost,
+  SelectNetwork,
+  SelectPool,
+  SelectRemote,
+  SelectSr,
+  SelectSubject,
+  SelectTag,
+  SelectVm,
+  SelectVmTemplate
+} from 'select-objects'
 
 import Component from './base-component'
 import { formatSize, propTypes } from './utils'
@@ -286,6 +297,70 @@ export class Select extends Editable {
     >
       {map(options, this._optionToJsx)}
     </select>
+  }
+}
+
+const MAP_TYPE_SELECT = {
+  host: SelectHost,
+  network: SelectNetwork,
+  pool: SelectPool,
+  remote: SelectRemote,
+  sr: SelectSr,
+  subject: SelectSubject,
+  tag: SelectTag,
+  VM: SelectVm,
+  'VM-template': SelectVmTemplate
+}
+
+@propTypes({
+  labelProp: propTypes.string.isRequired,
+  predicate: propTypes.func,
+  value: propTypes.oneOfType([
+    propTypes.string,
+    propTypes.object
+  ]).isRequired
+})
+export class XoSelect extends Editable {
+  get value () {
+    return this.refs.select.value
+  }
+
+  _renderDisplay () {
+    return this.props.children ||
+      <span>{this.props.value[this.props.labelProp]}</span>
+  }
+
+  _onChange = object => {
+    object ? this._save(this.value) : this._closeEdition()
+  }
+
+  _renderEdition () {
+    const {
+      placeholder,
+      predicate,
+      saving,
+      xoType
+    } = this.props
+
+    const Select = MAP_TYPE_SELECT[xoType]
+    if (process.env.NODE_ENV !== 'production') {
+      if (!Select) {
+        throw new Error(`${xoType} is not a valid XoSelect type.`)
+      }
+    }
+
+    // Anchor is needed so that the BlockLink does not trigger a redirection
+    // when this element is clicked.
+    return <a onBlur={this._closeEdition}>
+      <Select
+        autoFocus
+        disabled={saving}
+        onChange={this._onChange}
+        placeholder={placeholder}
+        predicate={predicate}
+        ref='select'
+      />
+    </a>
   }
 }
 

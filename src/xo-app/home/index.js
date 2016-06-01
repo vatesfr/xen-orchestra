@@ -30,7 +30,7 @@ import {
 } from 'xo'
 import { Link } from 'react-router'
 import { Row, Col } from 'grid'
-import { Text, Select } from 'editable'
+import { Text, XoSelect } from 'editable'
 import {
   SelectHost,
   SelectPool,
@@ -78,6 +78,11 @@ class VmItem extends Component {
     return vm && vm.power_state === 'Running'
   }
 
+  _getMigrationPredicate = createSelector(
+    () => this.props.container,
+    container => host => host.id !== container.id
+  )
+
   _addTag = tag => addTag(this.props.vm.id, tag)
   _migrateVm = host => migrateVm(this.props.vm, host)
   _removeTag = tag => removeTag(this.props.vm.id, tag)
@@ -89,7 +94,7 @@ class VmItem extends Component {
   _onSelect = () => this.props.onSelect(this.props.vm.id)
 
   render () {
-    const { vm, container, expandAll, selected, hosts } = this.props
+    const { vm, container, expandAll, selected } = this.props
     return <div className={styles.item}>
       <BlockLink to={`/vms/${vm.id}`}>
         <SingleLineRow>
@@ -142,16 +147,20 @@ class VmItem extends Component {
             </EllipsisContainer>
           </Col>
           <Col mediumSize={2} className='hidden-sm-down'>
-            <EllipsisContainer>
-              <Ellipsis>
-                {this._isRunning
-                  ? <Select onChange={this._migrateVm} options={hosts} labelProp='name_label' value={container} useLongClick>
-                    <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>
-                  </Select>
-                  : <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>
-                }
-              </Ellipsis>
-            </EllipsisContainer>
+            {this._isRunning
+              ? <XoSelect
+                labelProp='name_label'
+                onChange={this._migrateVm}
+                placeholder={_('homeMigrateTo')}
+                predicate={this._getMigrationPredicate()}
+                useLongClick
+                value={container}
+                xoType='host'
+              >
+                <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>
+              </XoSelect>
+              : <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>
+            }
           </Col>
           <Col mediumSize={1} className={styles.itemExpandRow}>
             <a className={styles.itemExpandButton}
@@ -516,7 +525,7 @@ export default class Home extends Component {
           </Col>
         </SingleLineRow>
         {map(currentPageVms, vm =>
-          <VmItem vm={vm} key={vm.id} expandAll={this.state.expandAll} onSelect={this._selectVm} selected={this._isSelected[vm.id]} hosts={hosts} />
+          <VmItem vm={vm} key={vm.id} expandAll={this.state.expandAll} onSelect={this._selectVm} selected={this._isSelected[vm.id]} />
         )}
       </div>
       {filteredVms.length > VMS_PER_PAGE && <Row>

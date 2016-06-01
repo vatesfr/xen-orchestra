@@ -188,7 +188,7 @@ export class GenericSelect extends Component {
     const { onChange } = this.props
 
     this.setState({
-      value
+      value: this._setValue(value)
     }, onChange && (() => { onChange(this.value) }))
   }
 
