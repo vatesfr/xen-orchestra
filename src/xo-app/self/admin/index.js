@@ -377,14 +377,12 @@ class Edit extends Component {
                 </Col>
                 <Col mediumSize={4}>
                   <SizeInput
-                    defaultUnit='GiB'
                     placeholder={formatMessage(messages.maxRam)}
                     ref='inputMaxRam'
                   />
                 </Col>
                 <Col mediumSize={4}>
                   <SizeInput
-                    defaultUnit='GiB'
                     placeholder={formatMessage(messages.maxDiskSpace)}
                     ref='inputMaxDiskSpace'
                   />

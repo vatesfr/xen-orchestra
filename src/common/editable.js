@@ -300,26 +300,29 @@ export class Size extends Editable {
     return this.props.children || formatSize(this.props.value)
   }
 
-  _closeEditionIfUnfocused = () =>
-    !this._focused && this._closeEdition()
+  _closeEditionIfUnfocused = () => {
+    this._focused = false
+    setTimeout(() => {
+      !this._focused && this._closeEdition()
+    }, 10)
+  }
+
+  _focus = () => { this._focused = true }
 
   _renderEdition () {
     const { saving } = this.state
     const { value } = this.props
 
     return <span
-      onBlur={() => {
-        this._focused = false
-        setTimeout(this._closeEditionIfUnfocused, 10)
-      }}
-      onFocus={() => { this._focused = true }}
+      onBlur={this._closeEditionIfUnfocused}
+      onFocus={this._focus}
       onKeyDown={this._onKeyDown}
     >
       <SizeInput
         ref='input'
         readOnly={saving}
-        standalone
-        value={value}
+        style={{ width: '10rem' }}
+        defaultValue={value}
       />
     </span>
   }

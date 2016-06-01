@@ -194,14 +194,14 @@ const DEFAULT_UNIT = 'GiB'
   onChange: propTypes.func,
   placeholder: propTypes.string,
   readOnly: propTypes.bool,
-  standalone: propTypes.bool,
-  value: propTypes.number
+  style: propTypes.object,
+  defaultValue: propTypes.number
 })
 export class SizeInput extends Component {
   constructor (props) {
     super(props)
 
-    const humanSize = props.value && formatSizeRaw(props.value)
+    const humanSize = props.defaultValue && formatSizeRaw(props.defaultValue)
     this._value = humanSize && humanSize.value
     this.state = { unit: humanSize ? humanSize.prefix + 'B' : props.defaultUnit || DEFAULT_UNIT }
   }
@@ -225,17 +225,16 @@ export class SizeInput extends Component {
     this._onChange()
   }
 
-  _style = { width: '10rem' }
   render () {
     const {
       placeholder,
       readOnly,
-      standalone
+      style
     } = this.props
 
     return <span
       className='input-group'
-      style={standalone && this._style}
+      style={style}
     >
       <input
         autoFocus
