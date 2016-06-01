@@ -10,8 +10,7 @@ import { injectIntl } from 'react-intl'
 
 import {
   createJob,
-  createSchedule,
-  subscribeSchedules
+  createSchedule
 } from 'xo'
 
 // ===================================================================
@@ -198,9 +197,7 @@ export default class New extends Component {
     }
 
     return createJob(job).then(jobId => {
-      createSchedule(jobId, this.state.cronPattern, enabled).then(() => {
-        subscribeSchedules.forceRefresh()
-      })
+      createSchedule(jobId, this.state.cronPattern, enabled)
     })
   }
 
@@ -276,7 +273,7 @@ export default class New extends Component {
                 form='form-new-vm-backup'
                 handler={this._handleSubmit}
                 icon='save'
-                redirectOnSuccess='backup/overview'
+                redirectOnSuccess='/backup/overview'
               >
                 {_('saveBackupJob')}
               </ActionButton>

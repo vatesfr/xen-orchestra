@@ -97,7 +97,7 @@ class Log extends Component {
   }
 
   _toggleCalls = () => this.setState({seeCalls: !this.state.seeCalls})
-  _delete = id => deleteJobsLog(id).then(() => subscribeJobsLogs.forceRefresh())
+
   render () {
     const { log } = this.props
     const { seeCalls } = this.state
@@ -120,7 +120,7 @@ class Log extends Component {
             <span className={classnames('tag', {'tag-warning': log.status === 'Started', 'tag-default': !log.status})}>{_('jobFinished') || _('jobUnknown')}</span>
           }
           {' '}
-          <ActionButton btnStyle='default' size='small' handler={this._delete} handlerParam={log.logKey} icon='delete' />
+          <ActionButton btnStyle='default' size='small' handler={deleteJobsLog} handlerParam={log.logKey} icon='delete' />
         </td>
       </tr>
       {seeCalls &&
@@ -264,7 +264,7 @@ export default class Overview extends Component {
     return confirm({
       title: 'Delete All Logs',
       body: <p>Are you sure you want to delete all Job Logs ?</p>
-    }).then(() => deleteJobsLog(this.state.logsToClear).then(() => subscribeJobsLogs.forceRefresh()))
+    }).then(() => deleteJobsLog(this.state.logsToClear))
   }
 
   _getScheduleJob (schedule) {
@@ -320,16 +320,7 @@ export default class Overview extends Component {
     const enabled = this.state.scheduleTable[id]
     const method = enabled ? disableSchedule : enableSchedule
 
-    return method(id).then(() => {
-      subscribeScheduleTable.forceRefresh()
-    })
-  }
-
-  _deleteSchedule = async schedule => {
-    try {
-      await deleteSchedule(schedule)
-      subscribeSchedules.forceRefresh()
-    } catch (_) {}
+    return method(id)
   }
 
   render () {
@@ -370,7 +361,7 @@ export default class Overview extends Component {
                           <ActionButton
                             className='btn btn-xs btn-danger m-l-1'
                             icon='delete'
-                            handler={this._deleteSchedule}
+                            handler={deleteSchedule}
                             handlerParam={schedule}
                           />
                           <ActionButton

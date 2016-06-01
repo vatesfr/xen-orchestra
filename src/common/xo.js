@@ -559,7 +559,9 @@ export const removeTag = (id, tag) => (
 // Backups -----------------------------------------------------------
 
 export const createSchedule = (jobId, cron, enabled) => (
-  xo.call('schedule.create', { jobId, cron, enabled })
+  xo.call('schedule.create', { jobId, cron, enabled }).then(() => {
+    subscribeSchedules.forceRefresh()
+  })
 )
 
 export const createJob = job => (
@@ -572,24 +574,26 @@ export const runJob = id => {
 }
 
 export const enableSchedule = id => (
-  xo.call('scheduler.enable', { id })
+  xo.call('scheduler.enable', { id }).then(() => {
+    subscribeScheduleTable.forceRefresh()
+  })
 )
 
 export const disableSchedule = id => (
-  xo.call('scheduler.disable', { id })
+  xo.call('scheduler.disable', { id }).then(() => {
+    subscribeScheduleTable.forceRefresh()
+  })
 )
 
 export const deleteSchedule = async schedule => {
-  try {
-    await confirm({
-      title: _('deleteJob'),
-      body: _('deleteJobQuestion')
-    })
-    await xo.call('schedule.delete', { id: schedule.id })
-    await xo.call('job.delete', { id: schedule.job })
-  } catch (error) {
-    throw error
-  }
+  await confirm({
+    title: _('deleteJob'),
+    body: _('deleteJobQuestion')
+  })
+  await xo.call('schedule.delete', { id: schedule.id })
+  await xo.call('job.delete', { id: schedule.job })
+
+  subscribeSchedules.forceRefresh()
 }
 
 // Plugins -----------------------------------------------------------
@@ -753,5 +757,7 @@ export const createSrLvm = (host, nameLabel, nameDescription, device) => (
 // Job logs ----------------------------------------------------------
 
 export const deleteJobsLog = id => (
-  xo.call('log.delete', {namespace: 'jobs', id})
+  xo.call('log.delete', {namespace: 'jobs', id}).then(() => {
+    subscribeJobsLogs.forceRefresh()
+  })
 )
