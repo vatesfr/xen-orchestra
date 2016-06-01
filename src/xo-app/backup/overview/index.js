@@ -1,4 +1,5 @@
 import ActionButton from 'action-button'
+import ActionRowButton from 'action-row-button'
 import ActionToggle from 'action-toggle'
 import Icon from 'icon'
 import React, { Component } from 'react'
@@ -10,7 +11,7 @@ import forEach from 'lodash/forEach'
 import map from 'lodash/map'
 import orderBy from 'lodash/orderBy'
 import { FormattedDate } from 'react-intl'
-import { Pagination } from 'react-bootstrap-4/lib'
+import { ButtonGroup, Pagination } from 'react-bootstrap-4/lib'
 import { confirm } from 'modal'
 import { connectStore } from 'utils'
 import { createGetObject, createPager } from 'selectors'
@@ -120,7 +121,7 @@ class Log extends Component {
             <span className={classnames('tag', {'tag-warning': log.status === 'Started', 'tag-default': !log.status})}>{_('jobFinished') || _('jobUnknown')}</span>
           }
           {' '}
-          <ActionButton btnStyle='default' size='small' handler={deleteJobsLog} handlerParam={log.logKey} icon='delete' />
+          <ActionRowButton btnStyle='default' handler={deleteJobsLog} handlerParam={log.logKey} icon='delete' />
         </td>
       </tr>
       {seeCalls &&
@@ -312,6 +313,7 @@ export default class Overview extends Component {
         value={this.state.scheduleTable[id]}
         handler={this._updateScheduleState}
         handlerParam={id}
+        size='sm'
       />
     )
   }
@@ -355,21 +357,22 @@ export default class Overview extends Component {
                       <td><a>{this._getScheduleTag(schedule)}</a></td>
                       <td className='hidden-xs-down'>{schedule.cron}</td>
                       <td>
-                        {this._getScheduleState(schedule)}
+                        {this._getScheduleToggle(schedule)}
                         <fieldset className='pull-xs-right'>
-                          {this._getScheduleToggle(schedule)}
-                          <ActionButton
-                            className='btn btn-xs btn-danger m-l-1'
-                            icon='delete'
-                            handler={deleteSchedule}
-                            handlerParam={schedule}
-                          />
-                          <ActionButton
-                            className='btn btn-xs btn-warning m-l-1'
-                            icon='run-schedule'
-                            handler={runJob}
-                            handlerParam={schedule.job}
-                          />
+                          <ButtonGroup>
+                            <ActionRowButton
+                              icon='delete'
+                              btnStyle='error'
+                              handler={deleteSchedule}
+                              handlerParam={schedule}
+                            />
+                            <ActionRowButton
+                              icon='run-schedule'
+                              btnStyle='warning'
+                              handler={runJob}
+                              handlerParam={schedule.job}
+                            />
+                          </ButtonGroup>
                         </fieldset>
                       </td>
                     </tr>
