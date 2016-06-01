@@ -562,22 +562,35 @@ export const createSchedule = (jobId, cron, enabled) => (
   xo.call('schedule.create', { jobId, cron, enabled })
 )
 
-export const createJob = (job) => (
+export const createJob = job => (
   xo.call('job.create', { job })
 )
 
-export const runJob = jobId => {
+export const runJob = id => {
   info(_('runJob'), _('runJobVerbose'))
-  return xo.call('job.runSequence', { idSequence: [jobId] })
+  return xo.call('job.runSequence', { idSequence: [id] })
 }
 
-export const enableSchedule = (scheduleId) => (
-  xo.call('scheduler.enable', { id: scheduleId })
+export const enableSchedule = id => (
+  xo.call('scheduler.enable', { id })
 )
 
-export const disableSchedule = (scheduleId) => (
-  xo.call('scheduler.disable', { id: scheduleId })
+export const disableSchedule = id => (
+  xo.call('scheduler.disable', { id })
 )
+
+export const deleteSchedule = async schedule => {
+  try {
+    await confirm({
+      title: _('deleteJob'),
+      body: _('deleteJobQuestion')
+    })
+    await xo.call('schedule.delete', { id: schedule.id })
+    await xo.call('job.delete', { id: schedule.job })
+  } catch (error) {
+    throw error
+  }
+}
 
 // Plugins -----------------------------------------------------------
 

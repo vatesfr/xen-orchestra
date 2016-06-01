@@ -1,3 +1,4 @@
+import ActionButton from 'action-button'
 import GenericInput from 'json-schema-input'
 import Icon from 'icon'
 import React, { Component } from 'react'
@@ -5,12 +6,12 @@ import Scheduler, { SchedulePreview } from 'scheduling'
 import Wizard, { Section } from 'wizard'
 import _, { messages } from 'messages'
 import map from 'lodash/map'
-import { autobind } from 'utils'
 import { injectIntl } from 'react-intl'
 
 import {
   createJob,
-  createSchedule
+  createSchedule,
+  subscribeSchedules
 } from 'xo'
 
 // ===================================================================
@@ -171,10 +172,7 @@ export default class New extends Component {
     }
   }
 
-  @autobind
-  _handleSubmit (event) {
-    event.preventDefault()
-
+  _handleSubmit = () => {
     const backup = this.refs.backupInput.value
     const {
       vms,
@@ -199,13 +197,14 @@ export default class New extends Component {
       }
     }
 
-    createJob(job).then(jobId => {
-      createSchedule(jobId, this.state.cronPattern, enabled)
+    return createJob(job).then(jobId => {
+      createSchedule(jobId, this.state.cronPattern, enabled).then(() => {
+        subscribeSchedules.forceRefresh()
+      })
     })
   }
 
-  @autobind
-  _handleReset () {
+  _handleReset = () => {
     const {
       backupInput,
       scheduler
@@ -218,17 +217,15 @@ export default class New extends Component {
     scheduler.value = '* * * * *'
   }
 
-  @autobind
-  _updateCronPattern (value) {
+  _updateCronPattern = value => {
     this.setState({
       cronPattern: value
     })
   }
 
-  @autobind
-  _handleBackupSelection (backupType) {
+  _handleBackupSelection = event => {
     this.setState({
-      backupInfo: BACKUP_TYPE_TO_INFO[backupType]
+      backupInfo: BACKUP_TYPE_TO_INFO[event.target.value]
     })
   }
 
@@ -245,7 +242,7 @@ export default class New extends Component {
               className='form-control'
               defaultValue={null}
               id='selectBackup'
-              onChange={event => { this._handleBackupSelection(event.target.value) }}
+              onChange={this._handleBackupSelection}
               required
             >
               <option value={null}>{formatMessage(messages.noSelectedValue)}</option>
@@ -254,16 +251,16 @@ export default class New extends Component {
               )}
             </select>
           </fieldset>
-          {backupInfo &&
-            <form className='card-block' id='form-new-vm-backup' onSubmit={this._handleSubmit}>
+          <form className='card-block' id='form-new-vm-backup'>
+            {backupInfo &&
               <GenericInput
                 ref='backupInput'
                 schema={backupInfo.schema}
                 label={<span><Icon icon={backupInfo.icon} /> {formatMessage(messages[backupInfo.label])}</span>}
                 required
               />
-            </form>
-          }
+            }
+          </form>
         </Section>
         <Section icon='schedule' title='schedule'>
           <Scheduler ref='scheduler' onChange={this._updateCronPattern} />
@@ -271,12 +268,18 @@ export default class New extends Component {
         <Section icon='preview' title='preview' summary>
           <div className='card-block'>
             <SchedulePreview cron={this.state.cronPattern} />
-            <fieldset className='text-xs-center p-t-1'>
-              <button type='submit' disabled={!backupInfo} form='form-new-vm-backup' className='btn btn-lg btn-primary'>
-                <Icon icon='save' />
-                {' '}
-                Save
-              </button>
+            <fieldset className='pull-xs-right p-t-1'>
+              <ActionButton
+                btnStyle='primary'
+                className='btn-lg m-r-1'
+                disabled={!backupInfo}
+                form='form-new-vm-backup'
+                handler={this._handleSubmit}
+                icon='save'
+                redirectOnSuccess='backup/overview'
+              >
+                {_('saveBackupJob')}
+              </ActionButton>
               <button type='button' className='btn btn-lg btn-secondary' onClick={this._handleReset}>
                 Reset
               </button>

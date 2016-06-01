@@ -373,6 +373,18 @@ export const messages = {
   jobFinished: {
     defaultMessage: 'Finished'
   },
+  saveBackupJob: {
+    defaultMessage: 'Save'
+  },
+  deleteJob: {
+    defaultMessage: 'Remove Job'
+  },
+  deleteJobQuestion: {
+    defaultMessage: 'Are you sure you want to delete this job?'
+  },
+  noScheduledJobs: {
+    defaultMessage: 'No scheduled jobs.'
+  },
 
   // ------ New backup -----
   newBackupSelection: {
@@ -1590,6 +1602,12 @@ localizedMessages.fr = {
   jobState: 'Etat',
   runJob: 'Execution d\'un job',
   runJobVerbose: 'Une exécution a été lancée. Voir l\'overview pour plus de détails.',
+  jobStarted: 'Démarré',
+  jobFinished: 'Terminé',
+  saveBackupJob: 'Sauvegarder',
+  deleteJob: 'Supprimer Job',
+  deleteJobQuestion: 'Etes-vous sûr de vouloir supprimer ce job ?',
+  noScheduledJobs: 'Aucun job programmé.',
   newBackupSelection: 'Sélectionner votre type de sauvegarde :',
   autoloadPlugin: 'Charger au démarrage du serveur',
   savePluginConfiguration: 'Sauvegarder config.',
