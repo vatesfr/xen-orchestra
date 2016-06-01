@@ -79,7 +79,7 @@ class VmItem extends Component {
   }
 
   _getMigrationPredicate = createSelector(
-    (state, props) => props.container,
+    () => this.props.container,
     container => host => host.id !== container.id
   )
 
@@ -152,7 +152,7 @@ class VmItem extends Component {
                 labelProp='name_label'
                 onChange={this._migrateVm}
                 placeholder={_('homeMigrateTo')}
-                predicate={this._getMigrationPredicate(this.state, this.props)}
+                predicate={this._getMigrationPredicate()}
                 useLongClick
                 value={container}
                 xoType='host'
