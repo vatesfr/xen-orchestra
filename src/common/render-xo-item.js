@@ -163,7 +163,7 @@ const GenericXoItem = connectStore(() => {
   const getObject = createGetObject()
 
   return (state, props) => ({
-    object: getObject(state, props)
+    xoItem: getObject(state, props)
   })
 })(({ xoItem, ...props }) => renderXoItem(xoItem, props))
 
