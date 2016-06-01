@@ -1,4 +1,4 @@
-import _, { messages } from 'messages'
+import _ from 'messages'
 import * as complexMatcher from 'complex-matcher'
 import ActionButton from 'action-button'
 import ceil from 'lodash/ceil'
@@ -14,7 +14,6 @@ import size from 'lodash/size'
 import Tags from 'tags'
 import Tooltip from 'tooltip'
 import React, { Component } from 'react'
-import { injectIntl } from 'react-intl'
 import {
   addTag,
   deleteVms,
@@ -31,7 +30,7 @@ import {
 } from 'xo'
 import { Link } from 'react-router'
 import { Row, Col } from 'grid'
-import { Text, SelectObjects } from 'editable'
+import { Text, XoSelect } from 'editable'
 import {
   SelectHost,
   SelectPool,
@@ -69,7 +68,6 @@ import styles from './index.css'
 @connectStore({
   container: createGetObject((_, props) => props.vm.$container)
 })
-@injectIntl
 class VmItem extends Component {
   componentWillMount () {
     this.setState({ collapsed: true })
@@ -82,7 +80,7 @@ class VmItem extends Component {
 
   _addTag = tag => addTag(this.props.vm.id, tag)
   _migrateVm = host => migrateVm(this.props.vm, host)
-  _isNotCurrentHost = host => host !== this.props.container
+  _isNotCurrentHost = host => host.id !== this.props.container.id
   _removeTag = tag => removeTag(this.props.vm.id, tag)
   _setNameDescription = nameDescription => editVm(this.props.vm, { name_description: nameDescription })
   _setNameLabel = nameLabel => editVm(this.props.vm, { name_label: nameLabel })
@@ -92,8 +90,7 @@ class VmItem extends Component {
   _onSelect = () => this.props.onSelect(this.props.vm.id)
 
   render () {
-    const { vm, container, expandAll, intl, selected } = this.props
-    const { formatMessage } = intl
+    const { vm, container, expandAll, selected } = this.props
     return <div className={styles.item}>
       <BlockLink to={`/vms/${vm.id}`}>
         <SingleLineRow>
@@ -147,16 +144,17 @@ class VmItem extends Component {
           </Col>
           <Col mediumSize={2} className='hidden-sm-down'>
             {this._isRunning
-              ? <SelectObjects
-                onChange={this._migrateVm}
-                xoType='host'
+              ? <XoSelect
                 labelProp='name_label'
-                placeholder={formatMessage(messages.homeMigrateTo)}
+                onChange={this._migrateVm}
+                placeholder={_('homeMigrateTo')}
                 predicate={this._isNotCurrentHost}
-                value={container} useLongClick
+                useLongClick
+                value={container}
+                xoType='host'
               >
                 <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>
-              </SelectObjects>
+              </XoSelect>
               : <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>
             }
           </Col>

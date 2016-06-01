@@ -300,9 +300,20 @@ export class Select extends Editable {
   }
 }
 
+const MAP_TYPE_SELECT = {
+  host: SelectHost,
+  network: SelectNetwork,
+  pool: SelectPool,
+  remote: SelectRemote,
+  sr: SelectSr,
+  subject: SelectSubject,
+  tag: SelectTag,
+  VM: SelectVm,
+  'VM-template': SelectVmTemplate
+}
+
 @propTypes({
   labelProp: propTypes.string.isRequired,
-  placeholder: propTypes.string,
   predicate: propTypes.func,
   value: propTypes.oneOfType([
     propTypes.string,
@@ -320,7 +331,7 @@ export class Select extends Editable {
     'vmTemplate'
   ]).isRequired
 })
-export class SelectObjects extends Editable {
+export class XoSelect extends Editable {
   get value () {
     return this.refs.select.value
   }
@@ -342,19 +353,10 @@ export class SelectObjects extends Editable {
       xoType
     } = this.props
 
-    const mapTypeSelect = {
-      host: SelectHost,
-      network: SelectNetwork,
-      pool: SelectPool,
-      remote: SelectRemote,
-      sr: SelectSr,
-      subject: SelectSubject,
-      tag: SelectTag,
-      vm: SelectVm,
-      vmTemplate: SelectVmTemplate
-    }
-    const Select = mapTypeSelect[xoType]
+    const Select = MAP_TYPE_SELECT[xoType]
 
+    // Anchor is needed so that the BlockLink does not trigger a redirection
+    // when this element is clicked.
     return <a onBlur={this._closeEdition}>
       <Select
         autoFocus
