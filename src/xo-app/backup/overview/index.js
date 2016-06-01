@@ -1,21 +1,29 @@
-import _, { FormattedDuration } from 'messages'
 import ActionButton from 'action-button'
 import ActionToggle from 'action-toggle'
+import Icon from 'icon'
+import React, { Component } from 'react'
+import _, { FormattedDuration } from 'messages'
 import ceil from 'lodash/ceil'
 import classnames from 'classnames'
+import filter from 'lodash/filter'
 import forEach from 'lodash/forEach'
-import Icon from 'icon'
 import map from 'lodash/map'
 import orderBy from 'lodash/orderBy'
-import React, { Component } from 'react'
+import { FormattedDate } from 'react-intl'
+import { Pagination } from 'react-bootstrap-4/lib'
 import { confirm } from 'modal'
 import { connectStore } from 'utils'
 import { createGetObject, createPager } from 'selectors'
-import { FormattedDate } from 'react-intl'
-import { Pagination } from 'react-bootstrap-4/lib'
+
+import {
+  Card,
+  CardHeader,
+  CardBlock
+} from 'card'
 
 import {
   deleteJobsLog,
+  deleteSchedule,
   disableSchedule,
   enableSchedule,
   runJob,
@@ -89,7 +97,7 @@ class Log extends Component {
   }
 
   _toggleCalls = () => this.setState({seeCalls: !this.state.seeCalls})
-  _delete = id => deleteJobsLog(id).then(() => subscribeJobsLogs.forceRefresh())
+
   render () {
     const { log } = this.props
     const { seeCalls } = this.state
@@ -112,7 +120,7 @@ class Log extends Component {
             <span className={classnames('tag', {'tag-warning': log.status === 'Started', 'tag-default': !log.status})}>{_('jobFinished') || _('jobUnknown')}</span>
           }
           {' '}
-          <ActionButton btnStyle='default' size='small' handler={this._delete} handlerParam={log.logKey} icon='delete' />
+          <ActionButton btnStyle='default' size='small' handler={deleteJobsLog} handlerParam={log.logKey} icon='delete' />
         </td>
       </tr>
       {seeCalls &&
@@ -140,6 +148,7 @@ export default class Overview extends Component {
       logs: [],
       logsToClear: [],
       activePage: 1,
+      schedules: [],
       scheduleTable: {}
     }
     this.getActivePageLogs = createPager(
@@ -224,8 +233,14 @@ export default class Overview extends Component {
     })
 
     const unsubscribeSchedules = subscribeSchedules(schedules => {
+      // Get only backup jobs.
+      schedules = filter(schedules, schedule => {
+        const job = this._getScheduleJob(schedule)
+        return job && jobKeyToLabel[job.key]
+      })
+
       this.setState({
-        schedules: orderBy(schedules, schedule => +schedule.id.split(':')[1])
+        schedules: orderBy(schedules, schedule => +schedule.id.split(':')[1], ['desc'])
       })
     })
 
@@ -249,7 +264,7 @@ export default class Overview extends Component {
     return confirm({
       title: 'Delete All Logs',
       body: <p>Are you sure you want to delete all Job Logs ?</p>
-    }).then(() => deleteJobsLog(this.state.logsToClear).then(() => subscribeJobsLogs.forceRefresh()))
+    }).then(() => deleteJobsLog(this.state.logsToClear))
   }
 
   _getScheduleJob (schedule) {
@@ -291,12 +306,21 @@ export default class Overview extends Component {
 
   _getScheduleToggle (schedule) {
     const { id } = schedule
+
+    return (
+      <ActionToggle
+        value={this.state.scheduleTable[id]}
+        handler={this._updateScheduleState}
+        handlerParam={id}
+      />
+    )
+  }
+
+  _updateScheduleState = id => {
     const enabled = this.state.scheduleTable[id]
     const method = enabled ? disableSchedule : enableSchedule
 
-    return (
-      <ActionToggle value={this.state.scheduleTable[schedule.id]} handler={() => method(id)} />
-    )
+    return method(id)
   }
 
   render () {
@@ -309,23 +333,23 @@ export default class Overview extends Component {
 
     return (
       <div>
-        <div className='card'>
-          <div className='card-header text-xs-center'>
+        <Card>
+          <CardHeader>
             <h5><Icon icon='schedule' /> Schedules</h5>
-          </div>
-          <div>
-            <table className='table'>
-              <thead className='thead-default'>
-                <tr>
-                  <th>{_('job')}</th>
-                  <th>{_('jobTag')}</th>
-                  <th className='hidden-xs-down'>{_('jobScheduling')}</th>
-                  <th>{_('jobState')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {map(schedules, (schedule, key) => {
-                  return (
+          </CardHeader>
+          <CardBlock>
+            {schedules.length ? (
+              <table className='table'>
+                <thead className='thead-default'>
+                  <tr>
+                    <th>{_('job')}</th>
+                    <th>{_('jobTag')}</th>
+                    <th className='hidden-xs-down'>{_('jobScheduling')}</th>
+                    <th>{_('jobState')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {map(schedules, (schedule, key) => (
                     <tr key={key}>
                       <td>{this._getScheduleLabel(schedule)}</td>
                       <td><a>{this._getScheduleTag(schedule)}</a></td>
@@ -335,6 +359,12 @@ export default class Overview extends Component {
                         <fieldset className='pull-xs-right'>
                           {this._getScheduleToggle(schedule)}
                           <ActionButton
+                            className='btn btn-xs btn-danger m-l-1'
+                            icon='delete'
+                            handler={deleteSchedule}
+                            handlerParam={schedule}
+                          />
+                          <ActionButton
                             className='btn btn-xs btn-warning m-l-1'
                             icon='run-schedule'
                             handler={runJob}
@@ -343,42 +373,48 @@ export default class Overview extends Component {
                         </fieldset>
                       </td>
                     </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div className='card'>
-          <div className='card-header text-xs-center'>
+                  ))}
+                </tbody>
+              </table>
+            ) : <p>{_('noScheduledJobs')}</p>}
+          </CardBlock>
+        </Card>
+        <Card>
+          <CardHeader>
             <h5><Icon icon='log' /> Logs<span className='pull-right'><ActionButton btnStyle='danger' handler={this._deleteAllLogs} icon='delete' /></span></h5>
-          </div>
-          <table className='table'>
-            <thead className='thead-default'>
-              <tr>
-                <th>Job ID</th>
-                <th>Job</th>
-                <th>Start</th>
-                <th>End</th>
-                <th>Duration</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            {map(activePageLogs, log => <Log key={log.logKey} log={log} />)}
-          </table>
-          {logs.length > LOGS_PER_PAGE &&
-            <Pagination
-              first
-              last
-              prev
-              next
-              ellipsis
-              boundaryLinks
-              maxButtons={5}
-              items={ceil(logs.length / LOGS_PER_PAGE)}
-              activePage={activePage}
-              onSelect={this._onPageSelection} />}
-        </div>
+          </CardHeader>
+          <CardBlock>
+            {logs.length ? (
+              <div>
+                <table className='table'>
+                  <thead className='thead-default'>
+                    <tr>
+                      <th>Job ID</th>
+                      <th>Job</th>
+                      <th>Start</th>
+                      <th>End</th>
+                      <th>Duration</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  {map(activePageLogs, log => <Log key={log.logKey} log={log} />)}
+                </table>
+                {logs.length > LOGS_PER_PAGE &&
+                  <Pagination
+                    first
+                    last
+                    prev
+                    next
+                    ellipsis
+                    boundaryLinks
+                    maxButtons={5}
+                    items={ceil(logs.length / LOGS_PER_PAGE)}
+                    activePage={activePage}
+                    onSelect={this._onPageSelection} />}
+              </div>
+            ) : <p>{_('noLogs')}</p>}
+          </CardBlock>
+        </Card>
       </div>
     )
   }

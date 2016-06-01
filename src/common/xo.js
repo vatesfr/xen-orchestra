@@ -14,7 +14,7 @@ import Xo from 'xo-lib'
 import { confirm } from 'modal'
 import { createBackoff } from 'jsonrpc-websocket-client'
 import { info } from 'notification'
-import { invoke, noop } from 'utils'
+import { invoke, noop, tap } from 'utils'
 import { resolve } from 'url'
 import {
   connected,
@@ -559,25 +559,42 @@ export const removeTag = (id, tag) => (
 // Backups -----------------------------------------------------------
 
 export const createSchedule = (jobId, cron, enabled) => (
-  xo.call('schedule.create', { jobId, cron, enabled })
+  xo.call('schedule.create', { jobId, cron, enabled })::tap(
+    subscribeSchedules.forceRefresh
+  )
 )
 
-export const createJob = (job) => (
+export const createJob = job => (
   xo.call('job.create', { job })
 )
 
-export const runJob = jobId => {
+export const runJob = id => {
   info(_('runJob'), _('runJobVerbose'))
-  return xo.call('job.runSequence', { idSequence: [jobId] })
+  return xo.call('job.runSequence', { idSequence: [id] })
 }
 
-export const enableSchedule = (scheduleId) => (
-  xo.call('scheduler.enable', { id: scheduleId })
+export const enableSchedule = id => (
+  xo.call('scheduler.enable', { id })::tap(
+    subscribeScheduleTable.forceRefresh
+  )
 )
 
-export const disableSchedule = (scheduleId) => (
-  xo.call('scheduler.disable', { id: scheduleId })
+export const disableSchedule = id => (
+  xo.call('scheduler.disable', { id })::tap(
+    subscribeScheduleTable.forceRefresh
+  )
 )
+
+export const deleteSchedule = async schedule => {
+  await confirm({
+    title: _('deleteJob'),
+    body: _('deleteJobQuestion')
+  })
+  await xo.call('schedule.delete', { id: schedule.id })
+  await xo.call('job.delete', { id: schedule.job })
+
+  subscribeSchedules.forceRefresh()
+}
 
 // Plugins -----------------------------------------------------------
 
@@ -740,5 +757,7 @@ export const createSrLvm = (host, nameLabel, nameDescription, device) => (
 // Job logs ----------------------------------------------------------
 
 export const deleteJobsLog = id => (
-  xo.call('log.delete', {namespace: 'jobs', id})
+  xo.call('log.delete', {namespace: 'jobs', id})::tap(
+    subscribeJobsLogs.forceRefresh
+  )
 )

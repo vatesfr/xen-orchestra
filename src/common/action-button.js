@@ -12,28 +12,39 @@ import { autobind, propTypes } from './utils'
   handler: propTypes.func.isRequired,
   handlerParam: propTypes.any,
   icon: propTypes.string.isRequired,
+  redirectOnSuccess: propTypes.string,
   size: propTypes.oneOf([
     'large',
     'small'
   ])
 })
 export default class ActionButton extends Component {
+  static contextTypes = {
+    router: React.PropTypes.object
+  }
+
   @autobind
   async _execute () {
     if (this.state.working) {
       return
     }
 
-    const { handler, handlerParam } = this.props
+    const {
+      handler,
+      handlerParam,
+      redirectOnSuccess
+    } = this.props
+
     try {
       this.setState({
         error: null,
         working: true
       })
       await handler(handlerParam)
+
       this.setState({
         working: false
-      })
+      }, redirectOnSuccess && (() => this.context.router.push(redirectOnSuccess)))
     } catch (error) {
       this.setState({
         error,
@@ -81,8 +92,9 @@ export default class ActionButton extends Component {
 
     return <Button
       bsStyle={error ? 'warning' : btnStyle}
-      disabled={working || disabled}
+      form={form}
       onClick={!form && this._execute}
+      disabled={working || disabled}
       type={form ? 'submit' : 'button'}
       {...{ bsSize, className, style }}
     >
