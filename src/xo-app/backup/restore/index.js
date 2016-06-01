@@ -1,13 +1,12 @@
 import ActionButton from 'action-button'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
-import Icon from 'icon'
 import Link from 'react-router/lib/Link'
 import map from 'lodash/map'
 import moment from 'moment'
-import ObjectName from 'object-name'
 import orderBy from 'lodash/orderBy'
 import React, { Component } from 'react'
+import renderXoItem, { renderXoItemFromId } from 'render-xo-item'
 import size from 'lodash/size'
 import { connectStore, formatSize } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
@@ -99,11 +98,9 @@ export default class Restore extends Component {
         }
       })
 
-      forEach(remote.backups.delta, byTag => {
-        forEach(byTag, (byId, tag) => {
-          forEach(byId, (bks, id) => {
-            byId[id] = orderBy(bks, ['date'], ['asc'])
-          })
+      forEach(remote.backups.delta, (byId, tag) => {
+        forEach(byId, (bks, id) => {
+          byId[id] = orderBy(bks, ['date'], ['asc'])
         })
       })
     }
@@ -147,66 +144,63 @@ export default class Restore extends Component {
         {!remotes.length && <span>No remotes</span>}
         {map(remotes, (r, key) =>
           <div key={key}>
-            <div>
-              <Link to='settings/remotes'>{r.name}</Link>
-              {' '}
-              {r.enabled && <span className='tag tag-success'>enabled</span>}
-              {r.error && <span className='text-danger'> (on error)</span>}
-              <span className='pull-right'>
-                <ActionButton disabled={!r.enabled} icon='refresh' btnStyle='default' handler={this._list} handlerParam={r.id} />
-              </span>
-              {r.backups &&
-                <div>
-                  {isEmptyRemote(r) && <span>No backups available</span>}
-                  {map(r.backups.delta, (backups, tag) =>
-                    <Row key={tag}>
-                      <Col smallSize={2}>{tag}</Col>
-                      <Col smallSize={10}>
-                        {map(backups, (backups, id) =>
-                          <Row key={id}>
-                            <Col smallSize={2}>{id}</Col>
-                            <Col smallSize={10}>
-                              {map(backups, (b, k) =>
-                                <div key={k}>
-                                  <FormattedDate value={new Date(b.date)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />
-                                  {' '}
-                                  <DropdownButton id='filter' bsStyle='info' title='Import'>
-                                    {map(writableSrs, (sr, key) =>
-                                      <MenuItem key={key} onClick={() => this._importDeltaBackup(r.id, sr.id, b.path)}>
-                                        <Icon icon='sr' />
-                                        To {sr.name_label} ({formatSize(sr.size - sr.physical_usage)})
-                                        <ObjectName id={sr.$container} />
-                                      </MenuItem>
-                                    )}
-                                  </DropdownButton>
-                                  <br />
-                                  <br />
-                                </div>
-                              )}
-                            </Col>
-                          </Row>
-                        )}
-                      </Col>
-                    </Row>
-                  )}
-                  {map(r.backups.other, (b, k) =>
-                    <div key={k}>
-                      {b}
-                      {' '}
-                      <DropdownButton id='filter' bsStyle='info' title='Import'>
+            <Link to='settings/remotes'>{r.name}</Link>
+            {' '}
+            {r.enabled && <span className='tag tag-success'>enabled</span>}
+            {r.error && <span className='text-danger'> (on error)</span>}
+            <span className='pull-right'>
+              <ActionButton disabled={!r.enabled} icon='refresh' btnStyle='default' handler={this._list} handlerParam={r.id} />
+            </span>
+            {r.backups &&
+              <div>
+                {isEmptyRemote(r) && <span>No backups available</span>}
+                {map(r.backups.delta, (backups, tag) =>
+                  <Row key={tag}>
+                    <Col smallSize={2}>{tag}</Col>
+                    <Col smallSize={10}>
+                      {map(backups, (backups, id) =>
+                        <div key={id} className='clearfix'>
+                          {renderXoItemFromId(id)}
+                          <span className='pull-right'>
+                            {map(backups, (b, k) =>
+                              <span key={k}>
+                                <FormattedDate value={new Date(b.date)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />
+                                {' '}
+                                <DropdownButton id='filter' bsStyle='info' title='Import to'>
+                                  {map(writableSrs, (sr, key) =>
+                                    <MenuItem key={key} onClick={() => this._importDeltaBackup(r.id, sr.id, b.path)}>
+                                      {renderXoItem(sr)} ({formatSize(sr.size - sr.physical_usage)} free)
+                                    </MenuItem>
+                                  )}
+                                </DropdownButton>
+                                <br />
+                                <br />
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                      )}
+                    </Col>
+                  </Row>
+                )}
+                {map(r.backups.other, (b, k) =>
+                  <div key={k}>
+                    {b}
+                    <span className='pull-right'>
+                      <DropdownButton id='filter' bsStyle='info' title='Import to '>
                         {map(writableSrs, (sr, key) =>
                           <MenuItem key={key} onClick={() => this._importBackup(r.id, sr.id, b)}>
-                            <Icon icon='sr' /> To {sr.name_label} ({formatSize(sr.size - sr.physical_usage)}) <ObjectName id={sr.$container} />
+                            {renderXoItem(sr)} ({formatSize(sr.size - sr.physical_usage)} free)
                           </MenuItem>
                         )}
                       </DropdownButton>
-                      <br />
-                      <br />
-                    </div>
-                  )}
-                </div>
-              }
-            </div>
+                    </span>
+                    <br />
+                    <br />
+                  </div>
+                )}
+              </div>
+            }
             <hr />
           </div>
         )}
