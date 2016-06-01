@@ -362,7 +362,7 @@ export default class Overview extends Component {
                           <ButtonGroup>
                             <ActionRowButton
                               icon='delete'
-                              btnStyle='error'
+                              btnStyle='danger'
                               handler={deleteSchedule}
                               handlerParam={schedule}
                             />
