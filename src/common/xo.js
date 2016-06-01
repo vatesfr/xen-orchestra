@@ -7,7 +7,8 @@ import forEach from 'lodash/forEach'
 import map from 'lodash/map'
 import once from 'lodash/once'
 import React from 'react'
-import sortBy from 'lodash/fp/sortBy'
+import fpSortBy from 'lodash/fp/sortBy'
+import sortBy from 'lodash/sortBy'
 import throttle from 'lodash/throttle'
 import Xo from 'xo-lib'
 import { confirm } from 'modal'
@@ -169,19 +170,25 @@ export const subscribeScheduleTable = createSubscription(() => xo.call('schedule
 export const subscribeSchedules = createSubscription(() => xo.call('schedule.getAll'))
 
 export const subscribeServers = createSubscription(invoke(
-  sortBy('host'),
+  fpSortBy('host'),
   sort => () => xo.call('server.getAll').then(sort)
 ))
 
-export const subscribeUsers = createSubscription(invoke(
-  sortBy('email'),
-  sort => () => xo.call('user.getAll').then(sort)
-))
+export const subscribeUsers = createSubscription(() => xo.call('user.getAll').then(users => {
+  forEach(users, user => {
+    user.type = 'user'
+  })
 
-export const subscribeGroups = createSubscription(invoke(
-  sortBy('name'),
-  sort => () => xo.call('group.getAll').then(sort)
-))
+  return sortBy(users, 'email')
+}))
+
+export const subscribeGroups = createSubscription(() => xo.call('group.getAll').then(groups => {
+  forEach(groups, group => {
+    group.type = 'group'
+  })
+
+  return sortBy(groups, 'name')
+}))
 
 // ===================================================================
 

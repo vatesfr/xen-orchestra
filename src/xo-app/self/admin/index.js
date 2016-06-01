@@ -9,7 +9,9 @@ import intersection from 'lodash/intersection'
 import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
 import reduce from 'lodash/reduce'
+import renderXoItem from 'render-xo-item'
 import { Col, Row } from 'grid'
+import { createGetObjectsOfType } from 'selectors'
 import { injectIntl } from 'react-intl'
 
 import {
@@ -17,11 +19,6 @@ import {
   CardBlock,
   CardHeader
 } from 'card'
-
-import {
-  createGetObject,
-  createGetObjectsOfType
-} from 'selectors'
 
 import {
   SelectSubject,
@@ -44,34 +41,9 @@ import {
 } from 'xo'
 
 import {
-  ObjectP,
   Subjects,
   resolveResourceSets
 } from '../helpers'
-
-// ===================================================================
-
-const Host = propTypes({
-  host: propTypes.object.isRequired
-})(connectStore(() => {
-  const getPool = createGetObject(
-    (_, props) => props.host.$pool
-  )
-
-  return (state, props) => ({
-    pool: getPool(state, props)
-  })
-})(({ host, pool }) => {
-  let s = host.name_label
-
-  if (pool) {
-    s += ` (${pool.name_label || pool.id})`
-  }
-
-  return (
-    <li className='list-group-item'>{s}</li>
-  )
-}))
 
 // ===================================================================
 
@@ -93,7 +65,11 @@ const Hosts = propTypes({
       <Col mediumSize={6}>
         <ul className='list-group'>
           {eligibleHosts.length
-            ? map(eligibleHosts, (host, key) => <Host key={key} host={host} />)
+            ? map(eligibleHosts, (host, key) => (
+              <li key={key} className='list-group-item'>
+                {renderXoItem(host)}
+              </li>
+            ))
             : (
             <li className='list-group-item'>
               {_('noHostsAvailable')}
@@ -105,7 +81,11 @@ const Hosts = propTypes({
       <Col mediumSize={6}>
         <ul className='list-group'>
           {excludedHosts.length
-            ? map(excludedHosts, (host, key) => <Host key={key} host={host} />)
+            ? map(excludedHosts, (host, key) => (
+              <li key={key} className='list-group-item'>
+                {renderXoItem(host)}
+              </li>
+            ))
             : (
             <li className='list-group-item'>
               <s>{_('noHostsAvailable')}</s>
@@ -552,7 +532,7 @@ export default class Administration extends Component {
                   </li>
                   {map(resourceSet.objectsByType, (objectsSet, type) => (
                     <li key={type} className='list-group-item'>
-                      {map(objectsSet, object => <ObjectP key={object.id} object={object} />)}
+                      {map(objectsSet, object => renderXoItem(object, { className: 'm-r-1' }))}
                     </li>
                   ))}
                   <li className='list-group-item'>
