@@ -610,6 +610,14 @@ export const runJob = id => {
   return xo.call('job.runSequence', { idSequence: [id] })
 }
 
+export const getJob = id => (
+  xo.call('job.get', { id })
+)
+
+export const setJob = job => (
+  xo.call('job.set', { job })
+)
+
 export const enableSchedule = id => (
   xo.call('scheduler.enable', { id })::tap(
     subscribeScheduleTable.forceRefresh
