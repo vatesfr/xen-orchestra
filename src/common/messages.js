@@ -1337,7 +1337,7 @@ export const messages = {
 
   // ----- New VM -----
   newVmCreateNewVmOn: {
-    defaultMessage: 'Create a new VM on {host}'
+    defaultMessage: 'Create a new VM on {pool}'
   },
   newVmInfoPanel: {
     defaultMessage: 'Infos'
@@ -1895,7 +1895,7 @@ localizedMessages.fr = {
   alarmPool: 'Pool',
   alarmRemoveAll: 'Supprimer toutes les alarmes',
   // ----- New VM -----
-  newVmCreateNewVmOn: 'Créer une nouvelle VM sur {host}',
+  newVmCreateNewVmOn: 'Créer une nouvelle VM sur {pool}',
   newVmInfoPanel: 'Informations',
   newVmNameLabel: 'Nom',
   newVmTemplateLabel: 'Modèle',
