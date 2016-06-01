@@ -194,23 +194,33 @@ export const subscribeGroups = createSubscription(() => xo.call('group.getAll').
 
 // Server ------------------------------------------------------------
 export const addServer = (host, username, password) => (
-  xo.call('server.add', { host, username, password })
+  xo.call('server.add', { host, username, password })::tap(
+    subscribeServers.forceRefresh
+  )
 )
 
 export const editServer = ({ id }, { host, username, password }) => (
-  xo.call('server.set', { id, host, username, password })
+  xo.call('server.set', { id, host, username, password })::tap(
+    subscribeServers.forceRefresh
+  )
 )
 
 export const connectServer = ({ id }) => (
-  xo.call('server.connect', { id })
+  xo.call('server.connect', { id })::tap(
+    subscribeServers.forceRefresh
+  )
 )
 
 export const disconnectServer = ({ id }) => (
-  xo.call('server.disconnect', { id })
+  xo.call('server.disconnect', { id })::tap(
+    subscribeServers.forceRefresh
+  )
 )
 
 export const removeServer = ({ id }) => (
-  xo.call('server.remove', { id })
+  xo.call('server.remove', { id })::tap(
+    subscribeServers.forceRefresh
+  )
 )
 
 // Host --------------------------------------------------------------
@@ -565,7 +575,9 @@ export const createSchedule = (jobId, cron, enabled) => (
 )
 
 export const createJob = job => (
-  xo.call('job.create', { job })
+  xo.call('job.create', { job })::tap(
+    subscribeJobs.forceRefresh
+  )
 )
 
 export const runJob = id => {
@@ -601,6 +613,8 @@ export const deleteSchedule = async schedule => {
 export const loadPlugin = async id => {
   try {
     await xo.call('plugin.load', { id })
+
+    subscribePlugins.forceRefresh()
   } catch (error) {
     info(_('pluginError'), JSON.stringify(error.data) || _('unknownPluginError'))
   }
@@ -609,23 +623,31 @@ export const loadPlugin = async id => {
 export const unloadPlugin = async id => {
   try {
     await xo.call('plugin.unload', { id })
+
+    subscribePlugins.forceRefresh()
   } catch (error) {
     info(_('pluginError'), JSON.stringify(error.data) || _('unknownPluginError'))
   }
 }
 
 export const enablePluginAutoload = id => (
-  xo.call('plugin.enableAutoload', { id })
+  xo.call('plugin.enableAutoload', { id })::tap(
+    subscribePlugins.forceRefresh
+  )
 )
 
 export const disablePluginAutoload = id => (
-  xo.call('plugin.disableAutoload', { id })
+  xo.call('plugin.disableAutoload', { id })::tap(
+    subscribePlugins.forceRefresh
+  )
 )
 
 export const configurePlugin = async (id, configuration) => {
   try {
     await xo.call('plugin.configure', { id, configuration })
     info(_('pluginConfigurationSuccess'), _('pluginConfigurationChanges'))
+
+    subscribePlugins.forceRefresh()
   } catch (error) {
     info(_('pluginError'), JSON.stringify(error.data) || _('unknownPluginError'))
     throw error
@@ -639,6 +661,8 @@ export const purgePluginConfiguration = async id => {
       body: _('purgePluginConfigurationQuestion')
     })
     await xo.call('plugin.purgeConfiguration', { id })
+
+    subscribePlugins.forceRefresh()
   } catch (error) {
     throw error
   }
@@ -647,45 +671,57 @@ export const purgePluginConfiguration = async id => {
 // Resource set ------------------------------------------------------
 
 export const createResourceSet = (name, { subjects, objects, limits } = {}) => (
-  xo.call('resourceSet.create', { name, subjects, objects, limits })
+  xo.call('resourceSet.create', { name, subjects, objects, limits })::tap(
+    subscribeResourceSets.forceRefresh
+  )
 )
 
 export const editRessourceSet = (id, { name, subjects, objects, limits } = {}) => (
-  xo.call('resourceSet.set', { id, name, subjects, objects, limits })
+  xo.call('resourceSet.set', { id, name, subjects, objects, limits })::tap(
+    subscribeResourceSets.forceRefresh
+  )
 )
 
 export const deleteResourceSet = async id => {
-  try {
-    await confirm({
-      title: _('deleteResourceSetWarning'),
-      body: _('deleteResourceSetQuestion')
-    })
-    await xo.call('resourceSet.delete', { id })
-  } catch (error) {
-    throw error
-  }
+  await confirm({
+    title: _('deleteResourceSetWarning'),
+    body: _('deleteResourceSetQuestion')
+  })
+  await xo.call('resourceSet.delete', { id })
+
+  subscribeResourceSets.forceRefresh()
 }
 
 // Remote ------------------------------------------------------------
 
 export const createRemote = (name, url) => (
-  xo.call('remote.create', {name, url})
+  xo.call('remote.create', {name, url})::tap(
+    subscribeRemotes.forceRefresh
+  )
 )
 
 export const deleteRemote = id => (
-  xo.call('remote.delete', {id})
+  xo.call('remote.delete', {id})::tap(
+    subscribeRemotes.forceRefresh
+  )
 )
 
 export const enableRemote = id => (
-  xo.call('remote.set', {id, enabled: true})
+  xo.call('remote.set', {id, enabled: true})::tap(
+    subscribeRemotes.forceRefresh
+  )
 )
 
 export const disableRemote = id => (
-  xo.call('remote.set', {id, enabled: false})
+  xo.call('remote.set', {id, enabled: false})::tap(
+    subscribeRemotes.forceRefresh
+  )
 )
 
 export const listRemote = id => (
-  xo.call('remote.list', {id})
+  xo.call('remote.list', {id})::tap(
+    subscribeRemotes.forceRefresh
+  )
 )
 
 // -------------------------------------------------------------------

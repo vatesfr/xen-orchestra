@@ -22,9 +22,6 @@ const remoteTypes = {
 }
 
 class AbstractRemote extends Component {
-  _disable = id => disableRemote(id).then(subscribeRemotes.forceRefresh)
-  _enable = id => enableRemote(id).then(subscribeRemotes.forceRefresh)
-  _delete = id => deleteRemote(id).then(subscribeRemotes.forceRefresh)
   render () {
     const {
       remote
@@ -40,19 +37,19 @@ class AbstractRemote extends Component {
         <span>
           <span className='text-success'>{this.accessible} <Icon icon='success' /></span>
           {' '}
-          <ActionButton btnStyle='warning' handler={this._disable} handlerParam={remote.id} icon='disconnect' />
+          <ActionButton btnStyle='warning' handler={disableRemote} handlerParam={remote.id} icon='disconnect' />
         </span>
       }
       {!remote.enabled &&
         <span>
           <span className='text-muted'>{this.unaccessible}</span>
           {' '}
-          <ActionButton btnStyle='primary' handler={this._enable} handlerParam={remote.id} icon='connect' />
+          <ActionButton btnStyle='primary' handler={enableRemote} handlerParam={remote.id} icon='connect' />
         </span>
       }
       </td>
       <td><span className='text-muted'>{remote.error}</span></td>
-      <td><ActionButton btnStyle='danger' handler={this._delete} handlerParam={remote.id} icon='delete' /></td>
+      <td><ActionButton btnStyle='danger' handler={deleteRemote} handlerParam={remote.id} icon='delete' /></td>
     </tr>
   }
 
@@ -175,7 +172,6 @@ export default class Remotes extends Component {
 
     const url = format(urlParams)
     return createRemote(name && name.value, url).then(() => {
-      subscribeRemotes.forceRefresh()
       this.setState({type: 'local'})
       path && (path.value = '')
       username && (username.value = '')

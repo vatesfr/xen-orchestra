@@ -270,7 +270,6 @@ class Edit extends Component {
       subjects: map(refs.selectSubject.value, object => object.id)
     })
 
-    subscribeResourceSets.forceRefresh()
     this._resetResourceSet()
   }
 
@@ -479,8 +478,6 @@ export default class Administration extends Component {
       if (editingResourceSet && editingResourceSet.id === id) {
         this._resetEditedResourceSet()
       }
-
-      subscribeResourceSets.forceRefresh()
     } catch (_) {}
   }
 

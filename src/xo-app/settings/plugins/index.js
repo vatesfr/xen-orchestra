@@ -60,7 +60,6 @@ class Plugin extends Component {
 
     method(this.props.id)::lastly(() => {
       this._updateAutoload = false
-      subscribePlugins.forceRefresh()
     })
   }
 
@@ -71,14 +70,13 @@ class Plugin extends Component {
     const method = (!props.loaded && loadPlugin) || (!props.unloadable && unloadPlugin)
 
     if (method) {
-      return method(id)::lastly(() => { subscribePlugins.forceRefresh() })
+      return method(id)
     }
   }
 
   _saveConfiguration = async () => {
     try {
       await configurePlugin(this.props.id, this.refs.pluginInput.value)
-      subscribePlugins.forceRefresh()
 
       this.setState({
         edit: false
@@ -102,7 +100,7 @@ class Plugin extends Component {
   _cancelEdit = () => {
     this.setState({
       edit: false
-    }, () => { subscribePlugins.forceRefresh() })
+    })
   }
 
   render () {
