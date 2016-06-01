@@ -15,13 +15,14 @@ import {
   deleteVbd
 } from 'xo'
 import { Link } from 'react-router'
-import { Select, Size, Text } from 'editable'
+import { XoSelect, Size, Text } from 'editable'
 import { Toggle } from 'form'
 
 export default ({
   srs,
   vbds,
-  vdis
+  vdis,
+  vm
 }) => <Container>
   <Row>
     <Col mediumSize={12} className='text-xs-right'>
@@ -79,15 +80,16 @@ export default ({
                     </td>
                     <td><Size value={vdi.size} onChange={size => editVdi(vdi, { size })} /></td>
                     <td>
-                      <Select
-                        onChange={() => migrateVdi(vdi, sr)}
-                        options={srs} // FIXME: use the future editable Select with predicates
+                      <XoSelect
+                        onChange={sr => migrateVdi(vdi, sr)}
+                        xoType='SR'
+                        predicate={sr => (sr.$pool === vm.$pool) && (sr.content_type === 'user')}
                         labelProp='name_label'
-                        value={sr.name_label}
+                        value={sr}
                         useLongClick
                       >
                         <Link to={`/srs/${sr.id}`}>{sr.name_label}</Link>
-                      </Select>
+                      </XoSelect>
                     </td>
                     <td>
                       <Toggle

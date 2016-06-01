@@ -444,8 +444,8 @@ export const deleteVdi = ({ id }) => (
   xo.call('vdi.delete', { id })
 )
 
-export const migrateVdi = ({ vdi, sr }) => (
-  xo.call('vdi.migrate', { vdi, sr })
+export const migrateVdi = (vdi, sr) => (
+  xo.call('vdi.migrate', { id: vdi.id, sr_id: sr.id })
 )
 
 // VDB ---------------------------------------------------------------

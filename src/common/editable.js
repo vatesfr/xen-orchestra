@@ -305,7 +305,7 @@ const MAP_TYPE_SELECT = {
   network: SelectNetwork,
   pool: SelectPool,
   remote: SelectRemote,
-  sr: SelectSr,
+  SR: SelectSr,
   subject: SelectSubject,
   tag: SelectTag,
   VM: SelectVm,
