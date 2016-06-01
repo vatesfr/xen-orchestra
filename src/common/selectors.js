@@ -13,7 +13,7 @@ import slice from 'lodash/slice'
 import { createSelector as create } from 'reselect'
 
 import shallowEqual from './shallow-equal'
-import { EMPTY_OBJECT, invoke } from './utils'
+import { EMPTY_ARRAY, EMPTY_OBJECT, invoke } from './utils'
 
 // ===================================================================
 
@@ -135,14 +135,19 @@ export const createPicker = (object, props) =>
     )
   )
 
+// Special cases:
+// - predicate == null → no filtering
+// - predicate === false → everything is filtered out
 export const createFilter = (collection, predicate) =>
   _createCollectionWrapper(
     _create2(
       collection,
       predicate,
-      (collection, predicate) => predicate
-        ? (isArrayLike(collection) ? filter : pickBy)(collection, predicate)
-        : collection
+      (collection, predicate) => predicate === false
+        ? (isArrayLike(collection) ? EMPTY_ARRAY : EMPTY_OBJECT)
+        : predicate
+          ? (isArrayLike(collection) ? filter : pickBy)(collection, predicate)
+          : collection
     )
   )
 
