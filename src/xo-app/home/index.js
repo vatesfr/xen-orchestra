@@ -1,4 +1,4 @@
-import _ from 'messages'
+import _, { messages } from 'messages'
 import * as complexMatcher from 'complex-matcher'
 import ActionButton from 'action-button'
 import ceil from 'lodash/ceil'
@@ -14,6 +14,7 @@ import size from 'lodash/size'
 import Tags from 'tags'
 import Tooltip from 'tooltip'
 import React, { Component } from 'react'
+import { injectIntl } from 'react-intl'
 import {
   addTag,
   deleteVms,
@@ -30,7 +31,7 @@ import {
 } from 'xo'
 import { Link } from 'react-router'
 import { Row, Col } from 'grid'
-import { Text, Select } from 'editable'
+import { Text, SelectObjects } from 'editable'
 import {
   SelectHost,
   SelectPool,
@@ -68,6 +69,7 @@ import styles from './index.css'
 @connectStore({
   container: createGetObject((_, props) => props.vm.$container)
 })
+@injectIntl
 class VmItem extends Component {
   componentWillMount () {
     this.setState({ collapsed: true })
@@ -80,6 +82,7 @@ class VmItem extends Component {
 
   _addTag = tag => addTag(this.props.vm.id, tag)
   _migrateVm = host => migrateVm(this.props.vm, host)
+  _isNotCurrentHost = host => host !== this.props.container
   _removeTag = tag => removeTag(this.props.vm.id, tag)
   _setNameDescription = nameDescription => editVm(this.props.vm, { name_description: nameDescription })
   _setNameLabel = nameLabel => editVm(this.props.vm, { name_label: nameLabel })
@@ -89,7 +92,8 @@ class VmItem extends Component {
   _onSelect = () => this.props.onSelect(this.props.vm.id)
 
   render () {
-    const { vm, container, expandAll, selected, hosts } = this.props
+    const { vm, container, expandAll, intl, selected } = this.props
+    const { formatMessage } = intl
     return <div className={styles.item}>
       <BlockLink to={`/vms/${vm.id}`}>
         <SingleLineRow>
@@ -142,16 +146,19 @@ class VmItem extends Component {
             </EllipsisContainer>
           </Col>
           <Col mediumSize={2} className='hidden-sm-down'>
-            <EllipsisContainer>
-              <Ellipsis>
-                {this._isRunning
-                  ? <Select onChange={this._migrateVm} options={hosts} labelProp='name_label' value={container} useLongClick>
-                    <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>
-                  </Select>
-                  : <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>
-                }
-              </Ellipsis>
-            </EllipsisContainer>
+            {this._isRunning
+              ? <SelectObjects
+                onChange={this._migrateVm}
+                xoType='host'
+                labelProp='name_label'
+                placeholder={formatMessage(messages.homeMigrateTo)}
+                predicate={this._isNotCurrentHost}
+                value={container} useLongClick
+              >
+                <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>
+              </SelectObjects>
+              : <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>
+            }
           </Col>
           <Col mediumSize={1} className={styles.itemExpandRow}>
             <a className={styles.itemExpandButton}
@@ -516,7 +523,7 @@ export default class Home extends Component {
           </Col>
         </SingleLineRow>
         {map(currentPageVms, vm =>
-          <VmItem vm={vm} key={vm.id} expandAll={this.state.expandAll} onSelect={this._selectVm} selected={this._isSelected[vm.id]} hosts={hosts} />
+          <VmItem vm={vm} key={vm.id} expandAll={this.state.expandAll} onSelect={this._selectVm} selected={this._isSelected[vm.id]} />
         )}
       </div>
       {filteredVms.length > VMS_PER_PAGE && <Row>

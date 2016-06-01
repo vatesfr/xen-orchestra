@@ -6,6 +6,17 @@ import isString from 'lodash/isString'
 import map from 'lodash/map'
 import { SizeInput } from 'form'
 import React from 'react'
+import {
+  SelectHost,
+  SelectNetwork,
+  SelectPool,
+  SelectRemote,
+  SelectSr,
+  SelectSubject,
+  SelectTag,
+  SelectVm,
+  SelectVmTemplate
+} from 'select-objects'
 
 import Component from './base-component'
 import { formatSize, propTypes } from './utils'
@@ -286,6 +297,74 @@ export class Select extends Editable {
     >
       {map(options, this._optionToJsx)}
     </select>
+  }
+}
+
+@propTypes({
+  labelProp: propTypes.string.isRequired,
+  placeholder: propTypes.string,
+  predicate: propTypes.func,
+  value: propTypes.oneOfType([
+    propTypes.string,
+    propTypes.object
+  ]).isRequired,
+  xoType: propTypes.oneOf([
+    'host',
+    'network',
+    'pool',
+    'remote',
+    'sr',
+    'subject',
+    'tag',
+    'vm',
+    'vmTemplate'
+  ]).isRequired
+})
+export class SelectObjects extends Editable {
+  get value () {
+    return this.refs.select.value
+  }
+
+  _renderDisplay () {
+    return this.props.children ||
+      <span>{this.props.value[this.props.labelProp]}</span>
+  }
+
+  _onChange = object => {
+    object ? this._save(this.value) : this._closeEdition()
+  }
+
+  _renderEdition () {
+    const {
+      placeholder,
+      predicate,
+      saving,
+      xoType
+    } = this.props
+
+    const mapTypeSelect = {
+      host: SelectHost,
+      network: SelectNetwork,
+      pool: SelectPool,
+      remote: SelectRemote,
+      sr: SelectSr,
+      subject: SelectSubject,
+      tag: SelectTag,
+      vm: SelectVm,
+      vmTemplate: SelectVmTemplate
+    }
+    const Select = mapTypeSelect[xoType]
+
+    return <a onBlur={this._closeEdition}>
+      <Select
+        autoFocus
+        disabled={saving}
+        onChange={this._onChange}
+        placeholder={placeholder}
+        predicate={predicate}
+        ref='select'
+      />
+    </a>
   }
 }
 
