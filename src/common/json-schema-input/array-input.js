@@ -65,11 +65,9 @@ export default class ArrayInput extends Component {
   }
 
   get value () {
-    if (!this.state.use) {
-      return
+    if (this.state.use) {
+      return map(this.refs, 'value')
     }
-
-    return map(this.refs, 'value')
   }
 
   set value (value = []) {
