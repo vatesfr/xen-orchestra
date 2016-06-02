@@ -110,7 +110,7 @@ const createSubscription = cb => {
   let running = false
 
   const loop = () => {
-    if (!running) {
+    if (running) {
       return
     }
 
