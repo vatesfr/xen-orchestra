@@ -23,6 +23,7 @@ import {
 
 import {
   connectStore,
+  mapPlus,
   propTypes
 } from 'utils'
 
@@ -68,6 +69,24 @@ export class GenericSelect extends Component {
     }
   }
 
+  _getValue (xoObjectsById = this.state.xoObjectsById, props = this.props) {
+    const { value } = this.state
+
+    if (props.multi) {
+      // Returns the values of the selected objects
+      // if they are contained in xoObjectsById.
+      return mapPlus(value, (value, push) => {
+        const o = xoObjectsById[value.value || value]
+
+        if (o) {
+          push(o)
+        }
+      })
+    }
+
+    return xoObjectsById[value.value || value] || ''
+  }
+
   // Supports id strings and objects.
   _setValue (value, props = this.props) {
     if (props.multi) {
@@ -100,24 +119,11 @@ export class GenericSelect extends Component {
         xoObjectsById
       } = this._computeOptions(newProps)
 
-      const value = this.value
+      const value = this._getValue(xoObjectsById, newProps)
 
-      // For array.
-      if (props.multi) {
-        return this.setState({
-          options,
-          value: this._setValue(
-            filter(value, value => xoObjectsById[value.id]),
-            props
-          ),
-          xoObjectsById
-        })
-      }
-
-      // For one unique selected value.
-      this.setState({
+      return this.setState({
         options,
-        value: this._setValue(xoObjectsById[value.id], props),
+        value: this._setValue(value, newProps),
         xoObjectsById
       })
     }
@@ -170,13 +176,7 @@ export class GenericSelect extends Component {
   }
 
   get value () {
-    const { xoObjectsById, value } = this.state
-
-    if (this.props.multi) {
-      return map(value, value => xoObjectsById[value.value || value])
-    }
-
-    return xoObjectsById[value.value || value] || ''
+    return this._getValue()
   }
 
   set value (value) {

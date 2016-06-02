@@ -12,6 +12,7 @@ import map from 'lodash/map'
 import orderBy from 'lodash/orderBy'
 import { FormattedDate } from 'react-intl'
 import { ButtonGroup, Pagination } from 'react-bootstrap-4/lib'
+import { Link } from 'react-router'
 import { confirm } from 'modal'
 import { connectStore } from 'utils'
 import { createGetObject, createPager } from 'selectors'
@@ -34,6 +35,8 @@ import {
   subscribeScheduleTable
 } from 'xo'
 
+import { getJobValues } from '../helpers'
+
 // ===================================================================
 
 const jobKeyToState = {
@@ -52,8 +55,6 @@ const jobKeyToLabel = {
   rollingBackup: _('backup'),
   rollingSnapshot: _('rollingSnapshot')
 }
-
-const getJobValues = job => job.values || job.items
 
 // ===================================================================
 
@@ -273,14 +274,11 @@ export default class Overview extends Component {
     return jobs[schedule.job]
   }
 
-  _getScheduleLabel (schedule) {
-    const job = this._getScheduleJob(schedule) || {}
+  _getJobLabel (job = {}) {
     return jobKeyToLabel[job.key] || _('unknownSchedule')
   }
 
-  _getScheduleTag (schedule) {
-    const job = this._getScheduleJob(schedule)
-
+  _getScheduleTag (schedule, job = {}) {
     try {
       const { paramsVector } = job
       const values = getJobValues(paramsVector)
@@ -351,32 +349,39 @@ export default class Overview extends Component {
                   </tr>
                 </thead>
                 <tbody>
-                  {map(schedules, (schedule, key) => (
-                    <tr key={key}>
-                      <td>{this._getScheduleLabel(schedule)}</td>
-                      <td><a>{this._getScheduleTag(schedule)}</a></td>
-                      <td className='hidden-xs-down'>{schedule.cron}</td>
-                      <td>
-                        {this._getScheduleToggle(schedule)}
-                        <fieldset className='pull-xs-right'>
-                          <ButtonGroup>
-                            <ActionRowButton
-                              icon='delete'
-                              btnStyle='danger'
-                              handler={deleteSchedule}
-                              handlerParam={schedule}
-                            />
-                            <ActionRowButton
-                              icon='run-schedule'
-                              btnStyle='warning'
-                              handler={runJob}
-                              handlerParam={schedule.job}
-                            />
-                          </ButtonGroup>
-                        </fieldset>
-                      </td>
-                    </tr>
-                  ))}
+                  {map(schedules, (schedule, key) => {
+                    const job = this._getScheduleJob(schedule)
+
+                    return (
+                      <tr key={key}>
+                        <td>{this._getJobLabel(job)}</td>
+                        <td>{this._getScheduleTag(schedule, job)}</td>
+                        <td className='hidden-xs-down'>{schedule.cron}</td>
+                        <td>
+                          {this._getScheduleToggle(schedule)}
+                          <fieldset className='pull-xs-right'>
+                            <Link className='btn btn-sm btn-primary m-r-1' to={`/backup/${job.id}/edit`}>
+                              <Icon icon='edit' />
+                            </Link>
+                            <ButtonGroup>
+                              <ActionRowButton
+                                icon='delete'
+                                btnStyle='danger'
+                                handler={deleteSchedule}
+                                handlerParam={schedule}
+                              />
+                              <ActionRowButton
+                                icon='run-schedule'
+                                btnStyle='warning'
+                                handler={runJob}
+                                handlerParam={schedule.job}
+                              />
+                            </ButtonGroup>
+                          </fieldset>
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             ) : <p>{_('noScheduledJobs')}</p>}

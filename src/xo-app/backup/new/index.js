@@ -1,7 +1,8 @@
 import ActionButton from 'action-button'
+import Component from 'base-component'
 import GenericInput from 'json-schema-input'
 import Icon from 'icon'
-import React, { Component } from 'react'
+import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
 import Wizard, { Section } from 'wizard'
 import _, { messages } from 'messages'
@@ -10,8 +11,11 @@ import { injectIntl } from 'react-intl'
 
 import {
   createJob,
-  createSchedule
+  createSchedule,
+  setJob
 } from 'xo'
+
+import { getJobValues } from '../helpers'
 
 // ===================================================================
 
@@ -30,7 +34,7 @@ const COMMON_SCHEMA = {
       description: 'Choose VMs to backup.'
     },
     _reportWhen: {
-      enum: [ 'Never', 'Always', 'Failure' ],
+      enum: [ 'never', 'always', 'failure' ],
       title: 'Report',
       description: 'When to send reports.'
     },
@@ -122,36 +126,36 @@ const CONTINUOUS_REPLICATION_SCHEMA = {
 
 // ===================================================================
 
-const BACKUP_TYPE_TO_INFO = {
-  backup: {
+const BACKUP_METHOD_TO_INFO = {
+  'vm.rollingBackup': {
     schema: BACKUP_SCHEMA,
     label: 'backup',
     icon: 'backup',
     jobKey: 'rollingBackup',
     method: 'vm.rollingBackup'
   },
-  rollingSnapshot: {
+  'vm.rollingSnapshot': {
     schema: ROLLING_SNAPHOT_SCHEMA,
     label: 'rollingSnapshot',
     icon: 'rolling-snapshot',
     jobKey: 'rollingSnapshot',
     method: 'vm.rollingSnapshot'
   },
-  deltaBackup: {
+  'vm.rollingDeltaBackup': {
     schema: DELTA_BACKUP_SCHEMA,
     label: 'deltaBackup',
     icon: 'delta-backup',
     jobKey: 'deltaBackup',
     method: 'vm.rollingDeltaBackup'
   },
-  disasterRecovery: {
+  'vm.rollingDrCopy': {
     schema: DISASTER_RECOVERY_SCHEMA,
     label: 'disasterRecovery',
     icon: 'disaster-recovery',
     jobKey: 'disasterRecovery',
     method: 'vm.rollingDrCopy'
   },
-  continuousReplication: {
+  'vm.deltaCopy': {
     schema: CONTINUOUS_REPLICATION_SCHEMA,
     label: 'continuousReplication',
     icon: 'continuous-replication',
@@ -166,8 +170,33 @@ const BACKUP_TYPE_TO_INFO = {
 export default class New extends Component {
   constructor (props) {
     super(props)
-    this.state = {
-      cronPattern: '* * * * *'
+
+    const { state } = this
+    const { job } = props
+
+    state.cronPattern = '* * * * *'
+
+    if (!job) {
+      return
+    }
+
+    let values = getJobValues(job.paramsVector)
+    state.backupInfo = BACKUP_METHOD_TO_INFO[job.method]
+
+    if (values.length !== 1) {
+      state.defaultValue = {
+        ...getJobValues(values[1])[0],
+        vms: getJobValues(values[0])
+      }
+
+      return
+    }
+
+    // Older versions of XenOrchestra uses only values[0].
+    values = getJobValues(values[0])
+    state.defaultValue = {
+      ...values[0],
+      vms: map(values, value => value.id)
     }
   }
 
@@ -196,6 +225,15 @@ export default class New extends Component {
       }
     }
 
+    // Update one job.
+    const oldJob = this.props.job
+
+    if (oldJob) {
+      job.id = oldJob.id
+      return setJob(job)
+    }
+
+    // Create job.
     return createJob(job).then(jobId => {
       createSchedule(jobId, this.state.cronPattern, enabled)
     })
@@ -222,7 +260,7 @@ export default class New extends Component {
 
   _handleBackupSelection = event => {
     this.setState({
-      backupInfo: BACKUP_TYPE_TO_INFO[event.target.value]
+      backupInfo: BACKUP_METHOD_TO_INFO[event.target.value]
     })
   }
 
@@ -232,18 +270,18 @@ export default class New extends Component {
 
     return (
       <Wizard>
-        <Section icon='backup' title='newVmBackup'>
+        <Section icon='backup' title={this.props.job ? 'editVmBackup' : 'newVmBackup'}>
           <fieldset className='form-group'>
             <label htmlFor='selectBackup'>{_('newBackupSelection')}</label>
             <select
               className='form-control'
-              defaultValue={null}
+              defaultValue={(backupInfo && backupInfo.method) || null}
               id='selectBackup'
               onChange={this._handleBackupSelection}
               required
             >
               <option value={null}>{formatMessage(messages.noSelectedValue)}</option>
-              {map(BACKUP_TYPE_TO_INFO, (info, key) =>
+              {map(BACKUP_METHOD_TO_INFO, (info, key) =>
                 <option key={key} value={key}>{formatMessage(messages[info.label])}</option>
               )}
             </select>
@@ -251,10 +289,11 @@ export default class New extends Component {
           <form className='card-block' id='form-new-vm-backup'>
             {backupInfo &&
               <GenericInput
-                ref='backupInput'
-                schema={backupInfo.schema}
+                defaultValue={this.state.defaultValue}
                 label={<span><Icon icon={backupInfo.icon} /> {formatMessage(messages[backupInfo.label])}</span>}
                 required
+                schema={backupInfo.schema}
+                ref='backupInput'
               />
             }
           </form>

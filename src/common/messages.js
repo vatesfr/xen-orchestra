@@ -125,6 +125,9 @@ export const messages = {
   newVmBackup: {
     defaultMessage: 'New VM backup'
   },
+  editVmBackup: {
+    defaultMessage: 'Edit VM backup'
+  },
   backup: {
     defaultMessage: 'Backup'
   },
@@ -1567,6 +1570,7 @@ localizedMessages.fr = {
   remove: 'Supprimer',
   schedule: 'Plan',
   newVmBackup: 'Nouvelle sauvegarde de VM',
+  editVmBackup: 'Edition d\'un job de backup',
   backup: 'Sauvegarde',
   rollingSnapshot: 'Sauvegarde continue',
   deltaBackup: 'Sauvegarde différentielle',
