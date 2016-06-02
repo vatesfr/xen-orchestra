@@ -119,6 +119,7 @@ export default class Servers extends Component {
             type='text'
           />
         </div>
+        {' '}
         <div className='form-group'>
           <input
             className='form-control'
@@ -128,6 +129,7 @@ export default class Servers extends Component {
             type='text'
           />
         </div>
+        {' '}
         <div className='form-group'>
           <Password
             placeholder='password'
@@ -135,6 +137,7 @@ export default class Servers extends Component {
             required
           />
         </div>
+        {' '}
         <ActionButton
           btnStyle='primary'
           form='form-add-server'
