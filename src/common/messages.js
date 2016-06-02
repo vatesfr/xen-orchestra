@@ -1403,8 +1403,14 @@ export const messages = {
     defaultMessage: 'Create'
   },
   newVmReset: {
+    newVmSelectTemplate: 'Sélectionner un template',
     defaultMessage: 'Reset'
   },
+  newVmSelectTemplate: {
+    defaultMessage: 'Select template'
+  },
+
+  // ----- Self -----
   resourceSets: {
     defaultMessage: 'Resource sets'
   },
@@ -1918,6 +1924,7 @@ localizedMessages.fr = {
   newVmSummaryPanel: 'Résumé',
   newVmCreate: 'Créer',
   newVmReset: 'Effacer',
+  newVmSelectTemplate: 'Sélectionner un template',
 
   // ---- VM import ---
   importVmsList: 'Glissez des backups ici ou cliquez pour sélectionner des backups à envoyer. Accepte seulement les fichiers .xva.',

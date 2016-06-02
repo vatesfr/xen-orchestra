@@ -1,0 +1,24 @@
+.inlineSelect {
+  display: inline-block;
+  width: 20rem;
+  font-size: 1rem;
+}
+
+.button {
+  font-size: 1.8em;
+}
+
+.lineItem {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.item {
+  white-space: nowrap;
+  margin: 0.5em;
+}
+
+.sizeInput {
+  width: 10em;
+}

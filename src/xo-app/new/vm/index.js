@@ -1,23 +1,39 @@
 import _ from 'messages'
 import BaseComponent from 'base-component'
 import { Button } from 'react-bootstrap-4/lib'
+import concat from 'lodash/concat'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import keys from 'lodash/keys'
 import map from 'lodash/map'
+import pullAt from 'lodash/pullAt'
 import React from 'react'
-import { SelectPool, SelectVmTemplate } from 'select-objects'
+import store from 'store'
 import Wizard, { Section } from 'wizard'
+
+import {
+  SelectNetwork,
+  SelectPool,
+  SelectSr,
+  SelectVmTemplate
+} from 'select-objects'
+
+import {
+  SizeInput
+} from 'form'
 
 import {
   connectStore
 } from 'utils'
 
 import {
+  createGetObject,
   createGetObjectsOfType
 } from 'selectors'
 
 import styles from './index.css'
+
+// import { Debug } from 'utils'
 
 const SectionContent = ({ summary, column, children }) => (
   <div style={{
@@ -47,6 +63,8 @@ const Item = ({ label, children }) => (
   </span>
 )
 
+const getObject = createGetObject((_, id) => id)
+
 @connectStore(() => {
   const getTemplates = createGetObjectsOfType('VM-template').sort()
   // const getPools = createGetObjectsOfType('pool').sort()
@@ -58,6 +76,16 @@ const Item = ({ label, children }) => (
   }
 })
 export default class NewVm extends BaseComponent {
+  constructor () {
+    super()
+
+    this._uniqueId = 0
+  }
+
+  get uniqueId () {
+    return this._uniqueId++
+  }
+
   get _params () {
     const { refs } = this
     const params = {}
@@ -65,6 +93,19 @@ export default class NewVm extends BaseComponent {
       params[key] = refs[key].value
     })
     return params
+  }
+
+  get _isDiskTemplate () {
+    return this.state.VBDs.length === 0 || this.state.template.name_label === 'Other install media'
+  }
+
+  _setRef (key, value) {
+    const type = this.refs[key].type
+    if (type === 'text' || type === 'number') {
+      this.refs[key].value = value || ''
+      return
+    }
+    this.refs[key].value = value
   }
 
   _reset = () => {
@@ -81,6 +122,7 @@ export default class NewVm extends BaseComponent {
         default: this.refs[key].value = undefined
       }
     })
+    this.setState({ template: undefined, VBDs: [], VIFs: [] })
     console.log('RESET')
   }
 
@@ -88,34 +130,74 @@ export default class NewVm extends BaseComponent {
     console.log('CREATE', this._params)
   }
 
-  _selectPool = pool => {
-    console.log('new pool = ', pool)
-    this.setState({ pool })
+  _selectPool = pool => this.setState({ pool, numberOfDisks: 1 })
+
+  _isInPool = object => object.$pool === this.state.pool.id
+
+  _initTemplate = template => {
+    if (!template) {
+      return this._reset()
+    }
+    const state = store.getState()
+    console.log('template = ', template)
+    this._setRef('name_description', template.name_description)
+    this._setRef('memory', template.memory.size)
+    this._setRef('CPUs', template.CPUs.number)
+    // template.PV_args && this._setRef('PV_args', template.PV_args)
+
+    const VBDs = []
+    forEach(template.$VBDs, vbdId => {
+      const vbd = getObject(state, vbdId)
+      if (!vbd.is_cd_drive) {
+        vbd.vdi = getObject(state, vbd.VDI)
+        VBDs.push(vbd)
+      }
+    })
+
+    this.setState({
+      template,
+      VBDs,
+      VIFs: map(template.VIFs, vif => getObject(state, vif))
+    })
+  }
+
+  _addVdi = () => this.setState({ VBDs: concat(this.state.VBDs, { id: this.uniqueId }) })
+  _removeVdi = index => {
+    const VBDs = this.state.VBDs.slice(0)
+    pullAt(VBDs, index)
+    this.setState({ VBDs })
+  }
+  _addInterface = () => this.setState({ VIFs: concat(this.state.VIFs, { id: this.uniqueId }) }, () => console.log('VIFS = ', this.state.VIFs))
+  _removeInterface = index => {
+    const VIFs = this.state.VIFs.slice(0)
+    pullAt(VIFs, index)
+    this.setState({ VIFs })
   }
 
   render () {
+    const { pool, template } = this.state
     return <div>
       <h1>
         {_('newVmCreateNewVmOn', {
-          /* TODO: style out of render */
           pool: <span className={styles.inlineSelect}>
             <SelectPool onChange={this._selectPool} />
           </span>
         })}
       </h1>
-      {this.state.pool && <div>
+      {pool && <div>
         <Wizard>
           {/* INFOS */}
           <Section icon='new-vm-infos' title='newVmInfoPanel'>
             <SectionContent>
               <Item label='newVmNameLabel'>
-                <input ref='name_label' className='form-control' type='text' />
+                <input ref='name_label' className='form-control' type='text' required />
               </Item>
               <Item label='newVmTemplateLabel'>
                 <span className={styles.inlineSelect}>
                   <SelectVmTemplate
-                    onChange={this._initExistingValues}
-                    predicate={vm => vm.$pool === this.state.pool.id}
+                    onChange={this._initTemplate}
+                    placeholder={_('newVmSelectTemplate')}
+                    predicate={this._isInPool}
                     ref='template'
                   />
                 </span>
@@ -132,52 +214,62 @@ export default class NewVm extends BaseComponent {
                 <input ref='CPUs' className='form-control' type='number' />
               </Item>
               <Item label='newVmRamLabel'>
-                <input ref='memory' className='form-control' type='text' />
+                <SizeInput ref='memory' className={styles.sizeInput} />
               </Item>
             </SectionContent>
           </Section>
           {/* INSTALL SETTINGS */}
           <Section icon='new-vm-install-settings' title='newVmInstallSettingsPanel'>
-            <SectionContent>
+            {template && (this._isDiskTemplate ? <SectionContent>
               <Item label='newVmIsoDvdLabel'>
-                <select className='form-control'>
-                  {map(['ISO 1', 'ISO 2', 'DVD 1', 'DVD 2'], (iso, index) =>
-                    <option key={index} value={index}>{iso}</option>
-                )}
-                </select>
+                <span className={styles.inlineSelect}>
+                  <SelectSr
+                    predicate={sr => sr.$pool === pool.id && sr.content_type === 'iso'}
+                    ref='installIso'
+                  />
+                </span>
               </Item>
               <Item label='newVmNetworkLabel'>
-                <select className='form-control'>
-                  {map(['Network 1', 'Network 2', 'Network 3'], (network, index) =>
-                    <option key={index} value={index}>{network}</option>
-                )}
-                </select>
+                <span className={styles.inlineSelect}>
+                  <SelectNetwork
+                    predicate={this._isInPool}
+                    ref='network'
+                  />
+                </span>
               </Item>
               <Item label='newVmPvArgsLabel'>
-                <input className='form-control' type='text' />
+                <input ref='PV_args' className='form-control' type='text' />
               </Item>
             </SectionContent>
+          : <SectionContent>
+            <span>CONFIG DRIVE</span>
+          </SectionContent>)}
           </Section>
           {/* INTERFACES */}
           <Section icon='new-vm-interfaces' title='newVmInterfacesPanel'>
             <SectionContent column>
-              <LineItem>
+              {map(this.state.VIFs, (vif, index) => <LineItem key={vif.id}>
                 <Item label='newVmMacLabel'>
-                  <input className='form-control' type='text' />
+                  <input ref={`mac_${vif.id}`} defaultValue={vif.MAC} className='form-control' type='text' />
                 </Item>
                 <Item label='newVmNetworkLabel'>
-                  <select className='form-control'>
-                    {map(['Network 1', 'Network 2', 'Network 3'], (network, index) =>
-                      <option key={index} value={index}>{network}</option>
-                  )}
-                  </select>
+                  <span className={styles.inlineSelect}>
+                    <SelectNetwork
+                      defaultValue={vif.$network}
+                      predicate={this._isInPool}
+                      ref='network'
+                    />
+                  </span>
                 </Item>
                 <Item>
-                  <Icon icon='new-vm-remove' />
+                  <Button onClick={() => this._removeInterface(index)} bsStyle='secondary'>
+                    <Icon icon='new-vm-remove' />
+                  </Button>
                 </Item>
               </LineItem>
+            )}
               <Item>
-                <Button bsStyle='secondary'>
+                <Button onClick={this._addInterface} bsStyle='secondary'>
                   <Icon icon='new-vm-add' />
                   {' '}
                   {_('newVmAddInterface')}
@@ -188,52 +280,39 @@ export default class NewVm extends BaseComponent {
           {/* DISKS */}
           <Section icon='new-vm-disks' title='newVmDisksPanel'>
             <SectionContent column>
-              <LineItem>
+              {map(this.state.VBDs, (vbd, index) => <LineItem key={vbd.id}>
                 <Item label='newVmSrLabel'>
-                  <input className='form-control' type='text' />
+                  <span className={styles.inlineSelect}>
+                    <SelectSr
+                      predicate={this._isInPool}
+                      ref={`sr_${vbd.id}`}
+                      defaultValue={vbd.vdi && vbd.vdi.$SR}
+                    />
+                  </span>
                 </Item>
                 {' '}
                 <Item className='checkbox'>
                   <label>
-                    <input type='checkbox' />
+                    <input ref={`bootable_${vbd.id}`} defaultValue={vbd.vdi && vbd.bootable} type='checkbox' />
                     {' '}
                     {_('newVmBootableLabel')}
                   </label>
                 </Item>
                 <Item label='newVmNameLabel'>
-                  <input className='form-control' type='text' />
+                  <input ref={`vdiName_${vbd.id}`} defaultValue={vbd.vdi && vbd.vdi.name_label} className='form-control' type='text' />
                 </Item>
                 <Item label='newVmDescriptionLabel'>
-                  <input className='form-control' type='text' />
+                  <input ref={`vdiDescription_${vbd.id}`} defaultValue={vbd.vdi && vbd.vdi.name_description} className='form-control' type='text' />
                 </Item>
                 <Item>
-                  <Icon icon='new-vm-remove' />
+                  <Button onClick={() => this._removeVdi(index)} bsStyle='secondary'>
+                    <Icon icon='new-vm-remove' />
+                  </Button>
                 </Item>
               </LineItem>
-              <LineItem>
-                <Item label='newVmSrLabel'>
-                  <input className='form-control' type='text' />
-                </Item>
-                {' '}
-                <Item className='checkbox'>
-                  <label>
-                    <input type='checkbox' />
-                    {' '}
-                    {_('newVmBootableLabel')}
-                  </label>
-                </Item>
-                <Item label='newVmNameLabel'>
-                  <input className='form-control' type='text' />
-                </Item>
-                <Item label='newVmDescriptionLabel'>
-                  <input className='form-control' type='text' />
-                </Item>
-                <Item>
-                  <Icon icon='new-vm-remove' />
-                </Item>
-              </LineItem>
+            )}
               <Item>
-                <Button bsStyle='secondary'>
+                <Button onClick={this._addVdi} bsStyle='secondary'>
                   <Icon icon='new-vm-add' />
                   {' '}
                   {_('newVmAddDisk')}

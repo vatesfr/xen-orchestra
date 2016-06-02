@@ -430,6 +430,7 @@ export class Size extends Editable {
       onKeyDown={this._onKeyDown}
     >
       <SizeInput
+        autoFocus
         ref='input'
         readOnly={saving}
         style={SIZE_STYLE}
