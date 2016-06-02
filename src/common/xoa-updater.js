@@ -400,28 +400,3 @@ export const connectStore = (store) => {
   xoaUpdater.on('registerState', registration => store.dispatch(xoaRegisterState(registration)))
   xoaUpdater.on('configuration', configuration => store.dispatch(xoaConfiguration(configuration)))
 }
-// .run(function (updater, $rootScope, $state, xoApi) {
-//   updater.start()
-//   .catch(() => {})
-
-//   $rootScope.$on('$stateChangeStart', function (event, state) {
-//     if (Date.now() - updater._xoaStateTS > (60 * 60 * 1000)) {
-//       updater.xoaState()
-//     }
-//     let {user} = xoApi
-//     let loggedIn = !!user
-//     if (!loggedIn || !updater._xoaState || state.name === 'settings.update') { // no reason to block
-//       return
-//     } else if (blockXoaAccess(updater._xoaState)) {
-//       blockTime || (blockTime = updater._xoaStateTS)
-//       updater.xoaState()
-//       if (Date.now() - blockTime < (60 * 1000)) { // We have 1 min before blocking for real
-//         return
-//       }
-//       event.preventDefault()
-//       $state.go('settings.update')
-//     } else {
-//       blockTime = undefined
-//     }
-//   })
-// })

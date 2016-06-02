@@ -151,7 +151,7 @@ export default class XoaUpdates extends Component {
         <ActionButton
           btnStyle='primary'
           handler={() => xoaUpdater.upgrade()}
-          icon='work'>
+          icon='upgrade'>
           Upgrade
         </ActionButton>
       </p>

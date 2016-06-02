@@ -759,6 +759,13 @@
     @extend .fa;
     @extend .fa-life-ring;
   }
+
+  // Updates
+  &-upgrade {
+    @extend .fa;
+    @extend .fa-cog;
+  }
+
   // Generic actions
 
   &-add-sr {
@@ -780,10 +787,5 @@
   &-refresh {
     @extend .fa;
     @extend .fa-refresh;
-  }
-  &-work {
-    @extend .fa;
-    @extend .fa-fw;
-    @extend .fa-cog;
   }
 }
