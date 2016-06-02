@@ -75,7 +75,7 @@
     "marked": "^0.3.5",
     "modular-css": "^0.21.0",
     "moment": "^2.13.0",
-    "notifyjs": "^1.3.0",
+    "notifyjs": "^2.0.1",
     "novnc-node": "^0.5.3",
     "promise-toolbox": "^0.4.0",
     "random-password": "^0.1.2",
