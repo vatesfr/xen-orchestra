@@ -207,6 +207,14 @@ export const subscribeRoles = createSubscription(invoke(
 
 // ===================================================================
 
+const resolveIds = params => {
+  for (const key in params) {
+    const param = params[key]
+    params[key] = param && param.id || param
+  }
+  return params
+}
+
 // Server ------------------------------------------------------------
 export const addServer = (host, username, password) => (
   xo.call('server.add', { host, username, password })::tap(
@@ -815,40 +823,40 @@ export const deleteJobsLog = id => (
 
 // Acls, users, groups ----------------------------------------------------------
 
-export const addAcl = ({subject, object, action}) => (
-  xo.call('acl.add', {subject, object, action})
-)
+export const addAcl = ({subject, object, action}) => {
+  return xo.call('acl.add', resolveIds({subject, object, action}))
+}
 
 export const removeAcl = ({subject, object, action}) => (
-  xo.call('acl.remove', {subject, object, action})
+  xo.call('acl.remove', resolveIds({subject, object, action}))
 )
 
 export const createGroup = name => (
   xo.call('group.create', {name})
 )
 
-export const setGroupName = (id, name) => (
-  xo.call('group.set', {id, name})
+export const setGroupName = (group, name) => (
+  xo.call('group.set', resolveIds({group, name}))
 )
 
-export const deleteGroup = id => (
-  xo.call('group.delete', {id})
+export const deleteGroup = group => (
+  xo.call('group.delete', resolveIds({id: group}))
 )
 
 export const removeUserFromGroup = (user, group) => (
-  xo.call('group.removeUser', {id: group, userId: user})
+  xo.call('group.removeUser', resolveIds({id: group, userId: user}))
 )
 
 export const addUserToGroup = (user, group) => (
-  xo.call('group.addUser', {id: group, userId: user})
+  xo.call('group.addUser', resolveIds({id: group, userId: user}))
 )
 
 export const createUser = (email, password, permission) => (
   xo.call('user.create', {email, password, permission})
 )
 
-export const deleteUser = id => (
-  xo.call('user.delete', {id})
+export const deleteUser = user => (
+  xo.call('user.delete', resolveIds({id: user}))
 )
 
 export const updateUser = (id, {email = undefined, password = undefined, permission = undefined}) => {
@@ -856,5 +864,5 @@ export const updateUser = (id, {email = undefined, password = undefined, permiss
   email && (params.email = email)
   password && (params.password = password)
   permission && (params.permission = permission)
-  return xo.call('user.set', params)
+  return xo.call('user.set', resolveIds(params))
 }
