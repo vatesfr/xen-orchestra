@@ -107,8 +107,16 @@ const createSubscription = cb => {
   let nextId = 0
   let timeout
 
+  let running = false
+
   const loop = () => {
+    if (!running) {
+      return
+    }
+
+    running = true
     _signIn.then(() => cb()).then(result => {
+      running = false
       timeout = setTimeout(loop, delay)
 
       if (!isEqual(result, cache)) {
