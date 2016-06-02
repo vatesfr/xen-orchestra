@@ -161,6 +161,8 @@ const createSubscription = cb => {
 
 // Subscriptions -----------------------------------------------------
 
+export const subscribeAcls = createSubscription(() => xo.call('acl.get'))
+
 export const subscribeJobs = createSubscription(() => xo.call('job.getAll'))
 
 export const subscribeJobsLogs = createSubscription(() => xo.call('log.get', {namespace: 'jobs'}))
@@ -198,7 +200,22 @@ export const subscribeGroups = createSubscription(() => xo.call('group.getAll').
   return sortBy(groups, 'name')
 }))
 
+export const subscribeRoles = createSubscription(invoke(
+  sortBy('name'),
+  sort => () => xo.call('role.getAll').then(sort)
+))
+
 // ===================================================================
+
+const resolveIds = params => {
+  for (const key in params) {
+    const param = params[key]
+    if (param != null && 'id' in param) {
+      params[key] = param.id
+    }
+  }
+  return params
+}
 
 // Server ------------------------------------------------------------
 export const addServer = (host, username, password) => (
@@ -805,3 +822,69 @@ export const deleteJobsLog = id => (
     subscribeJobsLogs.forceRefresh
   )
 )
+
+// Acls, users, groups ----------------------------------------------------------
+
+export const addAcl = ({subject, object, action}) => (
+  xo.call('acl.add', resolveIds({subject, object, action}))::tap(
+    subscribeAcls.forceRefresh
+  )
+)
+
+export const removeAcl = ({subject, object, action}) => (
+  xo.call('acl.remove', resolveIds({subject, object, action}))::tap(
+    subscribeAcls.forceRefresh
+  )
+)
+
+export const createGroup = name => (
+  xo.call('group.create', {name})::tap(
+    subscribeGroups.forceRefresh
+  )
+)
+
+export const setGroupName = (group, name) => (
+  xo.call('group.set', resolveIds({group, name}))::tap(
+    subscribeGroups.forceRefresh
+  )
+)
+
+export const deleteGroup = group => (
+  xo.call('group.delete', resolveIds({id: group}))::tap(
+    subscribeGroups.forceRefresh
+  )
+)
+
+export const removeUserFromGroup = (user, group) => (
+  xo.call('group.removeUser', resolveIds({id: group, userId: user}))::tap(
+    subscribeGroups.forceRefresh
+  )
+)
+
+export const addUserToGroup = (user, group) => (
+  xo.call('group.addUser', resolveIds({id: group, userId: user}))::tap(
+    subscribeGroups.forceRefresh
+  )
+)
+
+export const createUser = (email, password, permission) => (
+  xo.call('user.create', {email, password, permission})::tap(
+    subscribeUsers.forceRefresh
+  )
+)
+
+export const deleteUser = user => (
+  xo.call('user.delete', resolveIds({id: user}))::tap(
+    subscribeUsers.forceRefresh
+  )
+)
+
+export const updateUser = (id, {email = undefined, password = undefined, permission = undefined}) => {
+  const params = {id}
+  email && (params.email = email)
+  password && (params.password = password)
+  permission && (params.permission = permission)
+  return xo.call('user.set', resolveIds({email, password, permission}))::tap(
+    subscribeUsers.forceRefresh
+  )
+}

@@ -4,16 +4,17 @@ import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import Link from 'react-router/lib/Link'
 import map from 'lodash/map'
+import moment from 'moment'
+import ObjectName from 'object-name'
 import orderBy from 'lodash/orderBy'
 import React, { Component } from 'react'
 import size from 'lodash/size'
 import { connectStore, formatSize } from 'utils'
-import { createGetObject, createGetObjectsOfType } from 'selectors'
+import { createGetObjectsOfType } from 'selectors'
 import { DropdownButton, MenuItem } from 'react-bootstrap-4/lib'
-import { info, error } from 'notification'
 import { FormattedDate } from 'react-intl'
+import { info, error } from 'notification'
 import { Row, Col } from 'grid'
-import moment from 'moment'
 
 import {
   importBackup,
@@ -38,17 +39,6 @@ const deltaBuilder = (backups, tag, id, value) => {
 }
 
 const isEmptyRemote = remote => !remote.backups || !(size(remote.backups.delta) || size(remote.backups.other))
-
-@connectStore(() => {
-  const object = createGetObject()
-  return (state, props) => ({object: object(state, props)})
-})
-class ObjectName extends Component {
-  render () {
-    const { object } = this.props
-    return <span>{object && object.name_label}</span>
-  }
-}
 
 @connectStore(() => {
   const writableSrs = createGetObjectsOfType('SR').filter(
