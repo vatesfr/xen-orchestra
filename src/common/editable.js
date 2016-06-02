@@ -214,9 +214,15 @@ export class Text extends Editable {
       style={{
         width: `${value.length + 1}ex`
       }}
-      type='text'
+      type={this._isPassword ? 'password' : 'text'}
     />
   }
+}
+
+export class Password extends Text {
+  // TODO: this is a hack, this class should probably have a better
+  // implementation.
+  _isPassword = true
 }
 
 @propTypes({

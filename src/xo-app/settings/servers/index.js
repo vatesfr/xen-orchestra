@@ -4,7 +4,7 @@ import ActionRowButton from 'action-row-button'
 import map from 'lodash/map'
 import React, { Component } from 'react'
 import { Password } from 'form'
-import { Text } from 'editable'
+import { Password as EditablePassword, Text } from 'editable'
 import {
   addServer,
   editServer,
@@ -65,7 +65,7 @@ export default class Servers extends Component {
                 />
               </td>
               <td>
-                <Text
+                <EditablePassword
                   value=''
                   onChange={password => editServer(server, { password })}
                   placeholder='password'
