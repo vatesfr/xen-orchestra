@@ -25,7 +25,7 @@ export default class Servers extends Component {
     })
   }
 
-  _addUser = async () => {
+  _addServer = async () => {
     const { host, password, username } = this.refs
 
     await addServer(host.value, username.value, password.value)
@@ -138,7 +138,7 @@ export default class Servers extends Component {
         <ActionButton
           btnStyle='primary'
           form='form-add-server'
-          handler={this._addUser}
+          handler={this._addServer}
           icon='save'
         >
           Connect

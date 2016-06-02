@@ -1,4 +1,5 @@
 import ActionButton from 'action-button'
+import ActionRowButton from 'action-row-button'
 import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
@@ -118,12 +119,12 @@ class UserTableRow extends Component {
         />
       </td>
       <td>
-        {!this.state.changing && <ActionButton icon='delete' handler={this._delete} handlerParam={user.id} btnStyle='danger' />}
+        {!this.state.changing && <ActionRowButton icon='delete' handler={this._delete} handlerParam={user.id} btnStyle='danger' />}
         {this.state.changing &&
           <span>
-            <ActionButton icon='save' handler={this._save} handlerParam={user.id} btnStyle='primary' />
+            <ActionRowButton icon='save' handler={this._save} handlerParam={user.id} btnStyle='primary' />
             {' '}
-            <ActionButton icon='undo' handler={this._reset} handlerParam={user.id} btnStyle='default' />
+            <ActionRowButton icon='undo' handler={this._reset} handlerParam={user.id} btnStyle='default' />
           </span>
         }
       </td>
