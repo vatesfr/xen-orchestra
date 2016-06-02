@@ -65,6 +65,10 @@ export default class ArrayInput extends Component {
   }
 
   get value () {
+    if (!this.state.use) {
+      return
+    }
+
     return map(this.refs, 'value')
   }
 

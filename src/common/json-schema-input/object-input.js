@@ -62,13 +62,15 @@ export default class ObjectInput extends Component {
   }
 
   get value () {
+    if (!this.state.use) {
+      return
+    }
+
     const obj = {}
 
-    if (this.state.use) {
-      forEach(this.refs, (instance, key) => {
-        obj[key] = instance.value
-      })
-    }
+    forEach(this.refs, (instance, key) => {
+      obj[key] = instance.value
+    })
 
     return obj
   }
