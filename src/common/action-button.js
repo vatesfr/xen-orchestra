@@ -1,4 +1,5 @@
 import Icon from 'icon'
+import isFunction from 'lodash/isFunction'
 import React from 'react'
 import { Button } from 'react-bootstrap-4/lib'
 
@@ -12,7 +13,10 @@ import { autobind, propTypes } from './utils'
   handler: propTypes.func.isRequired,
   handlerParam: propTypes.any,
   icon: propTypes.string.isRequired,
-  redirectOnSuccess: propTypes.string,
+  redirectOnSuccess: propTypes.oneOfType(
+    propTypes.func,
+    propTypes.string
+  ),
   size: propTypes.oneOf([
     'large',
     'small'
@@ -31,8 +35,7 @@ export default class ActionButton extends Component {
 
     const {
       handler,
-      handlerParam,
-      redirectOnSuccess
+      handlerParam
     } = this.props
 
     try {
@@ -40,11 +43,20 @@ export default class ActionButton extends Component {
         error: null,
         working: true
       })
-      await handler(handlerParam)
+
+      const result = await handler(handlerParam)
+
+      let { redirectOnSuccess } = this.props
+      if (redirectOnSuccess) {
+        if (isFunction(redirectOnSuccess)) {
+          redirectOnSuccess = redirectOnSuccess(result)
+        }
+        return this.context.router.push(redirectOnSuccess)
+      }
 
       this.setState({
         working: false
-      }, redirectOnSuccess && (() => this.context.router.push(redirectOnSuccess)))
+      })
     } catch (error) {
       this.setState({
         error,

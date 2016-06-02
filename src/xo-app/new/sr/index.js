@@ -77,6 +77,8 @@ const typeGroups = {
   isosr: ['local', 'nfsiso', 'smb']
 }
 
+const getSrPath = id => `/sr/${id}`
+
 // ===================================================================
 
 @injectIntl
@@ -89,10 +91,6 @@ const typeGroups = {
   })
 })
 export default class New extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object
-  }
-
   constructor (props) {
     super(props)
     this.state = {
@@ -178,10 +176,7 @@ export default class New extends Component {
     }
 
     try {
-      const id = await createMethodFactories[type]()
-      if (id) {
-        this.context.router.push(`srs/${id}`)
-      }
+      return await createMethodFactories[type]()
     } catch (err) {
       error('SR Creation', err.message || String(err))
     }
@@ -629,7 +624,14 @@ export default class New extends Component {
                     <dd>{path}</dd>
                   </dl>
                 }
-                <ActionButton form='newSrForm' type='submit' disabled={lockCreation} icon='run' btnStyle='primary' handler={this._handleSubmit}>
+                <ActionButton
+                  btnStyle='primary'
+                  disabled={lockCreation}
+                  form='newSrForm'
+                  handler={this._handleSubmit}
+                  icon='run'
+                  redirectOnSuccess={getSrPath}
+                >
                   {_('newSrCreate')}
                 </ActionButton>
               </div>
