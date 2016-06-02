@@ -109,7 +109,7 @@ export default {
         }
       }
 
-      return { all, byType }
+      return { all, byType, fetched: true }
     }
   }),
 
