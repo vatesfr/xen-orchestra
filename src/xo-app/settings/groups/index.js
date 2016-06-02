@@ -1,5 +1,4 @@
 import ActionButton from 'action-button'
-import forEach from 'lodash/forEach'
 import includes from 'lodash/includes'
 import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
