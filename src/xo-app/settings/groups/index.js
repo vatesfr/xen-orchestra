@@ -9,6 +9,7 @@ import React, { Component } from 'react'
 import { confirm } from 'modal'
 import { error } from 'notification'
 import { SelectSubject } from 'select-objects'
+import { Text } from 'editable'
 
 import {
   addUserToGroup,
@@ -68,8 +69,7 @@ export default class Groups extends Component {
   constructor (props) {
     super(props)
     this.state = {
-      groups: [],
-      saveNameButtons: undefined
+      groups: []
     }
   }
 
@@ -112,33 +112,9 @@ export default class Groups extends Component {
       .catch(err => error('Add User', err.message || String(err)))
   }
 
-  _handleNameChange = () => !this.state.saveNameButtons && this.setState({saveNameButtons: true})
-  _saveNames = () => {
-    const { groups } = this.state
-    const { refs } = this
-    const promises = []
-    forEach(groups, group => {
-      const ref = refs[`name-${group.id}`]
-      ref && !isEmpty(ref.value) && group.name !== ref.value && promises.push(setGroupName(group.id, ref.value))
-    })
-    return Promise.all(promises)
-      .then(() => this.setState({saveNameButtons: undefined}))
-      .catch(err => error('Rename group(s)', err.message || String(err)))
-  }
-  _resetNames = () => {
-    const { groups } = this.state
-    const { refs } = this
-    forEach(groups, group => {
-      const ref = refs[`name-${group.id}`]
-      ref && (ref.value = group.name)
-    })
-    this.setState({saveNameButtons: undefined})
-  }
-
   render () {
     const {
-      groups,
-      saveNameButtons
+      groups
     } = this.state
 
     return <div>
@@ -147,14 +123,7 @@ export default class Groups extends Component {
           <thead>
             <tr>
               <th>
-                Name{saveNameButtons &&
-                  <span>
-                    {' '}
-                    <ActionButton icon='save' handler={this._saveNames} btnStyle='primary' size='small' />
-                    {' '}
-                    <ActionButton icon='undo' handler={this._resetNames} btnStyle='default' size='small' />
-                  </span>
-                }
+                Name
               </th>
               <th>Members</th>
               <th>Add member</th>
@@ -167,7 +136,7 @@ export default class Groups extends Component {
               <tr key={group.id}>
                 <td>
                   <div className='form-group'>
-                    <input type='text' ref={`name-${group.id}`} defaultValue={group.name} className='form-control' onChange={this._handleNameChange} />
+                    <Text value={group.name} onChange={value => setGroupName(group.id, value)} />
                   </div>
                 </td>
                 <td>
