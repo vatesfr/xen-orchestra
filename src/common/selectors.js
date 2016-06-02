@@ -5,7 +5,6 @@ import forEach from 'lodash/forEach'
 import groupBy from 'lodash/groupBy'
 import isArray from 'lodash/isArray'
 import isArrayLike from 'lodash/isArrayLike'
-import isEmpty from 'lodash/isEmpty'
 import isFunction from 'lodash/isFunction'
 import orderBy from 'lodash/orderBy'
 import pickBy from 'lodash/pickBy'
@@ -203,7 +202,7 @@ export const createTop = (collection, iteratee, n) =>
 // ===================================================================
 // Root-ish selectors (no dependencies).
 
-export const getAreObjectsFetched = state => !isEmpty(state.objects.all)
+export const getAreObjectsFetched = state => state.objects.fetched
 
 const _getId = (state, { routeParams, id }) => routeParams
   ? routeParams.id
