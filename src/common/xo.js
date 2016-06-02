@@ -210,7 +210,7 @@ export const subscribeRoles = createSubscription(invoke(
 const resolveIds = params => {
   for (const key in params) {
     const param = params[key]
-    if (param != null && 'id' in param) {
+    if (param != null && typeof param === 'object' && 'id' in param) {
       params[key] = param.id
     }
   }
