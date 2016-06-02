@@ -59,7 +59,6 @@ class UserTableRow extends Component {
       return updateUser(id, params)
         .then(() => {
           password.value = ''
-          subscribeUsers.forceRefresh()
           this.setState({changing: undefined})
         })
         .catch(err => error('Modify user', err.message || String(err)))
@@ -75,9 +74,6 @@ class UserTableRow extends Component {
         body: <p>Are you sure you want to delete this user ?</p>
       })
       return deleteUser(id)
-        .then(() => {
-          subscribeUsers.forceRefresh()
-        })
         .catch(err => error('Modify user', err.message || String(err)))
     } catch (_) {
       return
@@ -161,7 +157,6 @@ export default class Users extends Component {
     const {email, permission, password} = this.refs
     return createUser(email.value, password.value, permission.value)
       .then(() => {
-        subscribeUsers.forceRefresh()
         email.value = password.value = ''
         permission.value = permissions.user.value
       }).catch(err => error('Create user', err.message || String(err)))

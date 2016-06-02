@@ -210,7 +210,9 @@ export const subscribeRoles = createSubscription(invoke(
 const resolveIds = params => {
   for (const key in params) {
     const param = params[key]
-    params[key] = param && param.id || param
+    if (param != null && 'id' in param) {
+      params[key] = param.id
+    }
   }
   return params
 }
@@ -823,40 +825,58 @@ export const deleteJobsLog = id => (
 
 // Acls, users, groups ----------------------------------------------------------
 
-export const addAcl = ({subject, object, action}) => {
-  return xo.call('acl.add', resolveIds({subject, object, action}))
-}
+export const addAcl = ({subject, object, action}) => (
+  xo.call('acl.add', resolveIds({subject, object, action}))::tap(
+    subscribeAcls.forceRefresh
+  )
+)
 
 export const removeAcl = ({subject, object, action}) => (
-  xo.call('acl.remove', resolveIds({subject, object, action}))
+  xo.call('acl.remove', resolveIds({subject, object, action}))::tap(
+    subscribeAcls.forceRefresh
+  )
 )
 
 export const createGroup = name => (
-  xo.call('group.create', {name})
+  xo.call('group.create', {name})::tap(
+    subscribeGroups.forceRefresh
+  )
 )
 
 export const setGroupName = (group, name) => (
-  xo.call('group.set', resolveIds({group, name}))
+  xo.call('group.set', resolveIds({group, name}))::tap(
+    subscribeGroups.forceRefresh
+  )
 )
 
 export const deleteGroup = group => (
-  xo.call('group.delete', resolveIds({id: group}))
+  xo.call('group.delete', resolveIds({id: group}))::tap(
+    subscribeGroups.forceRefresh
+  )
 )
 
 export const removeUserFromGroup = (user, group) => (
-  xo.call('group.removeUser', resolveIds({id: group, userId: user}))
+  xo.call('group.removeUser', resolveIds({id: group, userId: user}))::tap(
+    subscribeGroups.forceRefresh
+  )
 )
 
 export const addUserToGroup = (user, group) => (
-  xo.call('group.addUser', resolveIds({id: group, userId: user}))
+  xo.call('group.addUser', resolveIds({id: group, userId: user}))::tap(
+    subscribeGroups.forceRefresh
+  )
 )
 
 export const createUser = (email, password, permission) => (
-  xo.call('user.create', {email, password, permission})
+  xo.call('user.create', {email, password, permission})::tap(
+    subscribeUsers.forceRefresh
+  )
 )
 
 export const deleteUser = user => (
-  xo.call('user.delete', resolveIds({id: user}))
+  xo.call('user.delete', resolveIds({id: user}))::tap(
+    subscribeUsers.forceRefresh
+  )
 )
 
 export const updateUser = (id, {email = undefined, password = undefined, permission = undefined}) => {
@@ -864,5 +884,7 @@ export const updateUser = (id, {email = undefined, password = undefined, permiss
   email && (params.email = email)
   password && (params.password = password)
   permission && (params.permission = permission)
-  return xo.call('user.set', resolveIds(params))
+  return xo.call('user.set', resolveIds({email, password, permission}))::tap(
+    subscribeUsers.forceRefresh
+  )
 }

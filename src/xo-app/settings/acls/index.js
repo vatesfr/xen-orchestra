@@ -78,7 +78,7 @@ export default class Acls extends Component {
   _handleSelectRole = role => this.setState({role})
   _handleSelectSubject = subjects => this.setState({subjects})
 
-  _handleRoleChange = (role, subject, object, action) => removeAcl({subject, object, action}).then(() => addAcl({subject, object, action: role.id})).then(() => subscribeAcls.forceRefresh())
+  _handleRoleChange = (role, subject, object, action) => removeAcl({subject, object, action}).then(() => addAcl({subject, object, action: role.id}))
 
   _addAcl = async () => {
     const {
@@ -89,13 +89,13 @@ export default class Acls extends Component {
     try {
       const promises = []
       forEach(subjects, subject => promises.push(...map(objects, object => addAcl({subject: subject.id, object: object.id, action: role.id}))))
-      await Promise.all(promises).then(() => subscribeAcls.forceRefresh())
+      await Promise.all(promises)
     } catch (err) {
       error('Add ACL(s)', err.message || String(err))
     }
   }
 
-  _removeAcl = async ({subject, object, action}) => removeAcl({subject, object, action}).then(() => subscribeAcls.forceRefresh()).catch(err => error('Remove ACL', err.message || String(err)))
+  _removeAcl = async ({subject, object, action}) => removeAcl({subject, object, action}).catch(err => error('Remove ACL', err.message || String(err)))
 
   render () {
     const {

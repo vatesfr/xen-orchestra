@@ -20,11 +20,6 @@ import {
   subscribeUsers
 } from 'xo'
 
-const refreshSubs = () => {
-  subscribeGroups.forceRefresh()
-  subscribeUsers.forceRefresh()
-}
-
 /**
  * @prop id: the id of a xo user
  * @prop group: the id of a xo group
@@ -53,7 +48,6 @@ class UserDisplay extends Component {
   _removeUser = () => {
     const {id, group} = this.props
     return removeUserFromGroup(id, group)
-      .then(() => subscribeGroups.forceRefresh())
       .catch(err => error('Remove User', err.message || String(err)))
   }
 
@@ -91,10 +85,7 @@ export default class Groups extends Component {
     const { name } = this.refs
     if (name) {
       return createGroup(name.value)
-        .then(() => {
-          subscribeGroups.forceRefresh()
-          name.value = ''
-        })
+        .then(() => { name.value = '' })
         .catch(err => error('Create Group', err.message || String(err)))
     }
   }
@@ -106,7 +97,6 @@ export default class Groups extends Component {
         body: <p>Are you sure you want to delete this group ?</p>
       })
       return deleteGroup(id)
-      .then(() => subscribeGroups.forceRefresh())
       .catch(err => error('Delete Group', err.message || String(err)))
     } catch (_) {
       return
@@ -119,7 +109,6 @@ export default class Groups extends Component {
 
   _addUser = (user, group) => {
     return addUserToGroup(user.id, group.id)
-      .then(refreshSubs)
       .catch(err => error('Add User', err.message || String(err)))
   }
 
@@ -133,10 +122,7 @@ export default class Groups extends Component {
       ref && !isEmpty(ref.value) && group.name !== ref.value && promises.push(setGroupName(group.id, ref.value))
     })
     return Promise.all(promises)
-      .then(() => {
-        this.setState({saveNameButtons: undefined})
-        subscribeGroups.forceRefresh()
-      })
+      .then(() => this.setState({saveNameButtons: undefined}))
       .catch(err => error('Rename group(s)', err.message || String(err)))
   }
   _resetNames = () => {
