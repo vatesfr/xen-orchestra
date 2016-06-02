@@ -5,8 +5,8 @@ import New from './new'
 import Overview from './overview'
 import Restore from './restore'
 
-const Backup = routes('backup', {
-  'edit/:id': Edit,
+const Backup = routes('overview', {
+  ':id/edit': Edit,
   new: New,
   overview: Overview,
   restore: Restore

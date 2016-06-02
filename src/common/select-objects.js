@@ -10,7 +10,6 @@ import keyBy from 'lodash/keyBy'
 import keys from 'lodash/keys'
 import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
-import reduce from 'lodash/reduce'
 import renderXoItem from 'render-xo-item'
 import sortBy from 'lodash/sortBy'
 import { parse as parseRemote } from 'xo-remote-parser'
@@ -24,6 +23,7 @@ import {
 
 import {
   connectStore,
+  mapPlus,
   propTypes
 } from 'utils'
 
@@ -75,15 +75,13 @@ export class GenericSelect extends Component {
     if (props.multi) {
       // Returns the values of the selected objects
       // if they are contained in xoObjectsById.
-      return reduce(value, (acc, value) => {
+      return mapPlus(value, (value, push) => {
         const o = xoObjectsById[value.value || value]
 
         if (o) {
-          acc.push(o)
+          push(o)
         }
-
-        return acc
-      }, [])
+      })
     }
 
     return xoObjectsById[value.value || value] || ''

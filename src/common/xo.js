@@ -615,7 +615,9 @@ export const getJob = id => (
 )
 
 export const setJob = job => (
-  xo.call('job.set', { job })
+  xo.call('job.set', { job })::tap(
+    subscribeJobs.forceRefresh
+  )
 )
 
 export const enableSchedule = id => (

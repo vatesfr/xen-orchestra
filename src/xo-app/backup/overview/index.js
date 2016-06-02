@@ -355,15 +355,13 @@ export default class Overview extends Component {
                     return (
                       <tr key={key}>
                         <td>{this._getJobLabel(job)}</td>
-                        <td><a>{this._getScheduleTag(schedule, job)}</a></td>
+                        <td>{this._getScheduleTag(schedule, job)}</td>
                         <td className='hidden-xs-down'>{schedule.cron}</td>
                         <td>
                           {this._getScheduleToggle(schedule)}
                           <fieldset className='pull-xs-right'>
-                            <Link to={`/backup/edit/${job.id}`}>
-                              <button className='btn btn-sm btn-primary m-r-1'>
-                                <Icon icon='edit' />
-                              </button>
+                            <Link className='btn btn-sm btn-primary m-r-1' to={`/backup/${job.id}/edit`}>
+                              <Icon icon='edit' />
                             </Link>
                             <ButtonGroup>
                               <ActionRowButton
