@@ -1,5 +1,6 @@
 import _ from 'messages'
 import ActionButton from 'action-button'
+import ActionRowButton from 'action-row-button'
 import map from 'lodash/map'
 import React, { Component } from 'react'
 import { Password } from 'form'
@@ -64,7 +65,7 @@ export default class Servers extends Component {
               </td>
               <td>
                 {server.status === 'disconnected'
-                  ? <ActionButton
+                  ? <ActionRowButton
                     btnStyle='secondary'
                     handler={connectServer}
                     handlerParam={server}
@@ -73,7 +74,7 @@ export default class Servers extends Component {
                       marginRight: '0.5em'
                     }}
                   />
-                  : <ActionButton
+                  : <ActionRowButton
                     btnStyle='warning'
                     handler={disconnectServer}
                     handlerParam={server}
@@ -83,7 +84,7 @@ export default class Servers extends Component {
                     }}
                   />
                 }
-                <ActionButton
+                <ActionRowButton
                   btnStyle='danger'
                   handler={removeServer}
                   handlerParam={server}
