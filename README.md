@@ -26,6 +26,31 @@ Development build:
 $ npm run dev
 ```
 
+### Environment
+
+#### `NODE_ENV`
+
+Set to *production* it disables many checks which result in increased
+performance.
+
+#### `XOA_PLAN`
+
+- 1: Free
+- 2: Starter
+- 3: Enterprise
+- 4: Premium
+- 5: Sources
+
+```js
+if (process.env.XOA_PLAN < 5) {
+  console.log('included only in XOA')
+}
+
+if (process.env.XOA_PLAN > 3) {
+  console.log('included only in Free and Starter')
+}
+```
+
 ## How to report a bug?
 
 If you are certain the bug is exclusively related to XO-Web, you may use the [bugtracker of this repository](https://github.com/vatesfr/xo-web/issues).
