@@ -45,13 +45,14 @@ import {
 } from 'utils'
 import {
   createCounter,
+  createFilter,
   createGetObject,
   createGetObjectsOfType,
   createGetTags,
-  createFilter,
-  createSort,
   createPager,
-  createSelector
+  createSelector,
+  createSort,
+  getAreObjectsFetched
 } from 'selectors'
 
 import {
@@ -203,6 +204,7 @@ class VmItem extends Component {
 const VMS_PER_PAGE = 20
 
 @connectStore({
+  fetched: getAreObjectsFetched,
   pools: createGetObjectsOfType('pool').sort(),
   hosts: createGetObjectsOfType('host').sort(),
   vms: createGetObjectsOfType('VM'),
@@ -335,9 +337,20 @@ export default class Home extends Component {
   }
 
   render () {
+    if (!this.props.fetched) {
+      return <h4>Loading</h4>
+    }
+    if (!this.props.hosts.length) {
+      return <h4>No connected hosts</h4>
+    }
     const nVms = this.getNumberOfVms()
     if (!nVms) {
-      return <p>There are no VMs</p>
+      return <div style={{display: 'flex', height: '100%'}}>
+        <div style={{margin: 'auto'}} className='text-xs-center'>
+          <h4>There are no VMs</h4>
+          <Link to='/settings/servers' className='btn btn-primary btn-lg'><span><Icon icon='pool' /> Add server</span></Link>
+        </div>
+      </div>
     }
 
     const selectedVmsIds = keys(this._isSelected)
