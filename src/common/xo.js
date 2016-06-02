@@ -879,12 +879,8 @@ export const deleteUser = user => (
   )
 )
 
-export const updateUser = (id, {email = undefined, password = undefined, permission = undefined}) => {
-  const params = {id}
-  email && (params.email = email)
-  password && (params.password = password)
-  permission && (params.permission = permission)
-  return xo.call('user.set', resolveIds({email, password, permission}))::tap(
+export const updateUser = (id, {email = undefined, password = undefined, permission = undefined}) => (
+  xo.call('user.set', resolveIds({id, email, password, permission}))::tap(
     subscribeUsers.forceRefresh
   )
-}
+)
