@@ -47,7 +47,7 @@ if (process.env.XOA_PLAN < 5) {
 }
 
 if (process.env.XOA_PLAN > 3) {
-  console.log('included only in Free and Starter')
+  console.log('included only in Premium and Sources')
 }
 ```
 
