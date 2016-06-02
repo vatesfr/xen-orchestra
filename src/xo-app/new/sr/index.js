@@ -498,7 +498,6 @@ export default class New extends Component {
                         />
                         <label>{_('newSrPassword')}</label>
                         <Password
-                          enableGenerator={false}
                           placeholder='password'
                           ref='password'
                           required
@@ -547,7 +546,6 @@ export default class New extends Component {
                     />
                     <label>{_('newSrPassword')}</label>
                     <Password
-                      enableGenerator={false}
                       placeholder='password'
                       ref='password'
                       required

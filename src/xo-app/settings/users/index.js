@@ -111,7 +111,6 @@ class UserTableRow extends Component {
       </td>
       <td>
         <Password
-          enableGenerator={false}
           placeholder='password (refill to change)'
           ref='password'
           required
@@ -207,7 +206,7 @@ export default class Users extends Component {
         {' '}
         <div className='form-group'>
           <Password
-            enableGenerator={false}
+            enableGenerator
             placeholder='password'
             ref='password'
             required

@@ -128,7 +128,6 @@ export default class Servers extends Component {
         </div>
         <div className='form-group'>
           <Password
-            enableGenerator={false}
             placeholder='password'
             ref='password'
             required

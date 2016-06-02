@@ -48,7 +48,7 @@ export class Password extends Component {
   render () {
     const {
       className,
-      enableGenerator = true,
+      enableGenerator = false,
       ...props
     } = this.props
     const { visible } = this.state
