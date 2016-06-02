@@ -25,6 +25,14 @@ export default class Servers extends Component {
     })
   }
 
+  _addUser = async () => {
+    const { host, password, username } = this.refs
+
+    await addServer(host.value, username.value, password.value)
+
+    host.value = username.value = password.value = ''
+  }
+
   render () {
     const { state } = this
     const servers = state && state.servers
@@ -100,14 +108,7 @@ export default class Servers extends Component {
       </table>
       <form
         className='form-inline'
-        onSubmit={event => {
-          event.preventDefault()
-
-          const { host, password, username } = this.refs
-
-          addServer(host.value, username.value, password.value)
-          host.value = username.value = password.value = ''
-        }}
+        id='form-add-server'
       >
         <div className='form-group'>
           <input
@@ -134,9 +135,14 @@ export default class Servers extends Component {
             required
           />
         </div>
-        <button type='submit' className='btn btn-primary'>
+        <ActionButton
+          btnStyle='primary'
+          form='form-add-server'
+          handler={this._addUser}
+          icon='save'
+        >
           Connect
-        </button>
+        </ActionButton>
       </form>
     </div>
   }
