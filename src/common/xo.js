@@ -205,6 +205,10 @@ export const subscribeRoles = createSubscription(invoke(
   sort => () => xo.call('role.getAll').then(sort)
 ))
 
+// System ============================================================
+
+export const serverVersion = _signIn.then(() => xo.call('system.getServerVersion'))
+
 // ===================================================================
 
 const resolveIds = params => {
@@ -218,6 +222,7 @@ const resolveIds = params => {
 }
 
 // Server ------------------------------------------------------------
+
 export const addServer = (host, username, password) => (
   xo.call('server.add', { host, username, password })::tap(
     subscribeServers.forceRefresh
