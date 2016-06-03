@@ -12,7 +12,7 @@ import map from 'lodash/map'
 import orderBy from 'lodash/orderBy'
 import { FormattedDate } from 'react-intl'
 import { ButtonGroup, Pagination } from 'react-bootstrap-4/lib'
-import { Link } from 'react-router'
+ // import { Link } from 'react-router'
 import { confirm } from 'modal'
 import { connectStore } from 'utils'
 import { createGetObject, createPager } from 'selectors'
@@ -24,8 +24,8 @@ import {
 } from 'card'
 
 import {
-  deleteBackupSchedule,
   deleteJobsLog,
+  deleteSchedule,
   disableSchedule,
   enableSchedule,
   runJob,
@@ -40,20 +40,17 @@ import { getJobValues } from '../helpers'
 // ===================================================================
 
 const jobKeyToLabel = {
-  continuousReplication: _('continuousReplication'),
-  deltaBackup: _('deltaBackup'),
-  disasterRecovery: _('disasterRecovery'),
-  rollingBackup: _('backup'),
-  rollingSnapshot: _('rollingSnapshot')
+  genericTask: _('customJob')
 }
 
 // ===================================================================
 
 const LOGS_PER_PAGE = 10
 
-@connectStore(() => ({
-  object: createGetObject((_, props) => props.value)
-}))
+@connectStore(() => {
+  const object = createGetObject((_, props) => props.value)
+  return (state, props) => ({object: object(state, props)})
+})
 class JobValue extends Component {}
 
 class JobParam extends JobValue {
@@ -102,22 +99,17 @@ class Log extends Component {
         </td>
         <td>{jobKeyToLabel[log.key]}</td>
         <td><FormattedDate value={new Date(log.start)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' /></td>
-        <td>{log.end && <FormattedDate value={new Date(log.end)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />}</td>
-        <td>{log.duration && <FormattedDuration duration={log.duration} />}</td>
+        <td><FormattedDate value={new Date(log.end)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' /></td>
+        <td><FormattedDuration duration={log.duration} /></td>
         <td>
           {log.status === 'Finished' &&
             <span className={classnames('tag', {'tag-success': (!log.error && !log.hasErrors), 'tag-danger': (log.error || log.hasErrors)})}>{_('jobFinished')}</span>
           }
-          {log.status === 'Started' &&
-            <span className='tag tag-warning'>{_('jobStarted')}</span>
-          }
-          {(log.status !== 'Started' && log.status !== 'Finished') &&
-            <span className='tag tag-default'>{_('jobUnknown')}</span>
+          {log.status !== 'Finished' &&
+            <span className={classnames('tag', {'tag-warning': log.status === 'Started', 'tag-default': !log.status})}>{_('jobFinished') || _('jobUnknown')}</span>
           }
           {' '}
-          <span className='pull-right'>
-            <ActionRowButton btnStyle='default' handler={deleteJobsLog} handlerParam={log.logKey} icon='delete' />
-          </span>
+          <ActionRowButton btnStyle='default' handler={deleteJobsLog} handlerParam={log.logKey} icon='delete' />
         </td>
       </tr>
       {seeCalls &&
@@ -218,7 +210,7 @@ export default class Overview extends Component {
 
       forEach(logs, log => {
         if (log.end === undefined) {
-          log.status = 'Started'
+          log.status = _('jobStarted')
         }
         log.calls = orderBy(log.calls, ['time'], ['desc'])
       })
@@ -270,7 +262,11 @@ export default class Overview extends Component {
   }
 
   _getJobLabel (job = {}) {
-    return jobKeyToLabel[job.key] || _('unknownSchedule')
+    return `${job.name} - ${job.method} (${job.id})`
+  }
+
+  _getScheduleLabel (schedule) {
+    return `${schedule.name} (${schedule.id})`
   }
 
   _getScheduleTag (schedule, job = {}) {
@@ -306,8 +302,7 @@ export default class Overview extends Component {
         value={this.state.scheduleTable[id]}
         handler={this._updateScheduleState}
         handlerParam={id}
-        size='small'
-      />
+        size='small' />
     )
   }
 
@@ -337,8 +332,8 @@ export default class Overview extends Component {
               <table className='table'>
                 <thead className='thead-default'>
                   <tr>
+                    <th>{_('schedule')}</th>
                     <th>{_('job')}</th>
-                    <th>{_('jobTag')}</th>
                     <th className='hidden-xs-down'>{_('jobScheduling')}</th>
                     <th>{_('jobState')}</th>
                   </tr>
@@ -349,20 +344,20 @@ export default class Overview extends Component {
 
                     return (
                       <tr key={key}>
+                        <td>{this._getScheduleLabel(schedule)}</td>
                         <td>{this._getJobLabel(job)}</td>
-                        <td>{this._getScheduleTag(schedule, job)}</td>
                         <td className='hidden-xs-down'>{schedule.cron}</td>
                         <td>
                           {this._getScheduleToggle(schedule)}
                           <fieldset className='pull-xs-right'>
-                            <Link className='btn btn-sm btn-primary m-r-1' to={`/backup/${job.id}/edit`}>
+                            {/* <Link className='btn btn-sm btn-primary m-r-1' to={`/backup/${job.id}/edit`}>
                               <Icon icon='edit' />
-                            </Link>
+                            </Link>*/}
                             <ButtonGroup>
                               <ActionRowButton
                                 icon='delete'
                                 btnStyle='danger'
-                                handler={deleteBackupSchedule}
+                                handler={deleteSchedule}
                                 handlerParam={schedule}
                               />
                               <ActionRowButton

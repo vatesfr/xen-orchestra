@@ -36,6 +36,7 @@ export default class Toggle extends Component {
     }
 
     this.refs.input.checked = Boolean(value)
+    this.forceUpdate()
   }
 
   _onChange = event => {

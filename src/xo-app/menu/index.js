@@ -82,6 +82,11 @@ export default class Menu extends Component {
         { to: '/settings/remotes', icon: 'menu-backup-remotes', label: 'backupRemotesPage' },
         { to: '/settings/plugins', icon: 'menu-settings-plugins', label: 'settingsPluginsPage' }
       ]},
+      { to: '/jobs/overview', icon: 'jobs', label: 'jobsPage', subMenu: [
+        { to: '/jobs/overview', icon: 'jobs-overview', label: 'jobsOverviewPage' },
+        { to: '/jobs/new', icon: 'jobs-new', label: 'jobsNewPage' },
+        { to: '/jobs/schedule', icon: 'jobs-schedule', label: 'jobsSchedulePage' }
+      ]},
       { to: '/about', icon: 'menu-about', label: 'aboutPage' },
       { to: '/tasks', icon: 'task', label: 'taskMenu', pill: nTasks },
       { to: '/vms/new', icon: 'menu-new', label: 'newMenu', subMenu: [

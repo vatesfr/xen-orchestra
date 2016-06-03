@@ -470,9 +470,7 @@ export const SelectTag = makeStoreSelect((_, props) => ({
   )
 }), { placeholder: _('selectTags') })
 
-// ===================================================================
-
-export const SelectHighLevelObjects = makeStoreSelect(() => {
+export const SelectHighLevelObject = makeStoreSelect(() => {
   const getHosts = createGetObjectsOfType('host')
   const getNetworks = createGetObjectsOfType('network')
   const getPools = createGetObjectsOfType('pool')

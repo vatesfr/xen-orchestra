@@ -14,7 +14,7 @@ import Upgrade from 'xoa-upgrade'
 import { connectStore } from 'utils'
 import { Container } from 'grid'
 import { error } from 'notification'
-import { SelectHighLevelObjects, SelectRole, SelectSubject } from 'select-objects'
+import { SelectHighLevelObject, SelectRole, SelectSubject } from 'select-objects'
 
 import {
   createGetObjectsOfType,
@@ -172,7 +172,7 @@ export default class Acls extends Component {
             <SelectSubject ref='selectSubject' multi onChange={this._handleSelectSubject} />
           </div>
           <div className='form-group'>
-            <SelectHighLevelObjects ref='selectObject' multi onChange={this._handleSelectObjects} />
+            <SelectHighLevelObject ref='selectObject' multi onChange={this._handleSelectObjects} />
           </div>
           <div className='form-group'>
             <SelectRole ref='selectAction' onChange={this._handleSelectRole} />
