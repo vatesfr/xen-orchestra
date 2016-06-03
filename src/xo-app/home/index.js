@@ -341,7 +341,7 @@ export default class Home extends Component {
   render () {
     if (!this.props.fetched) {
       return <CenterPanel>
-        <h2><Icon icon='loading' /> {_('homeFetchingData')}</h2>
+        <h2><img src='assets/loading.svg' /></h2>
       </CenterPanel>
     }
     if (!this.props.hosts.length) {
