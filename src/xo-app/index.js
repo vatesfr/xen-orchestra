@@ -43,6 +43,7 @@ const BODY_WRAPPER_STYLE = {
 const BODY_STYLE = {
   height: '100%',
   left: 0,
+  overflow: 'auto',
   position: 'absolute',
   top: 0,
   width: '100%'
