@@ -7,7 +7,7 @@ const CARD_STYLE = {
 
 const CARD_STYLE_WITH_SHADOW = {
   ...CARD_STYLE,
-  boxShadow: '0 0 1em black'
+  boxShadow: '0 10px 6px -6px #777' // https://css-tricks.com/almanac/properties/b/box-shadow/
 }
 
 const CARD_HEADER_STYLE = {

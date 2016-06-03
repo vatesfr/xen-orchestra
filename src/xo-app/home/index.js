@@ -385,8 +385,8 @@ export default class Home extends Component {
                 <Link to='/new/vm'>
                   <Icon icon='vm' size={4} />
                   <h4>{_('homeNewVm')}</h4>
-                  <p className='text-muted'>{_('homeNewVmMessage')}</p>
                 </Link>
+                <p className='text-muted'>{_('homeNewVmMessage')}</p>
               </Col>
             </Row>
             <h2>{_('homeNoVmsOr')}</h2>
@@ -395,15 +395,15 @@ export default class Home extends Component {
                 <Link to='/new/vm'>
                   <Icon icon='menu-new-import' size={4} />
                   <h4>{_('homeImportVm')}</h4>
-                  <p className='text-muted'>{_('homeImportVmMessage')}</p>
                 </Link>
+                <p className='text-muted'>{_('homeImportVmMessage')}</p>
               </Col>
               <Col mediumSize={6}>
                 <Link to='/new/vm'>
                   <Icon icon='backup' size={4} />
                   <h4>{_('homeRestoreBackup')}</h4>
-                  <p className='text-muted'>{_('homeRestoreBackupMessage')}</p>
                 </Link>
+                <p className='text-muted'>{_('homeRestoreBackupMessage')}</p>
               </Col>
             </Row>
           </CardBlock>

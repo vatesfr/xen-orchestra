@@ -192,7 +192,7 @@ export const messages = {
     defaultMessage: 'There are no VMs!'
   },
   homeNoVmsOr: {
-    defaultMessage: 'Or...'
+    defaultMessage: 'Or…'
   },
   homeImportVm: {
     defaultMessage: 'Import VM'
