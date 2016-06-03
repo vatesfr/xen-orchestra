@@ -344,7 +344,7 @@ export default class Home extends Component {
       </CenterPanel>
     }
     if (!this.props.hosts.length) {
-      return <div style={{marginTop: '3em', width: '100%'}} className='text-xs-center'>
+      return <div className='text-xs-center'>
         <h2>{_('homeWelcome')}</h2>
         <Link to='/settings/servers' className='btn btn-link'>
           <Icon icon='pool' size={4} />
@@ -371,7 +371,7 @@ export default class Home extends Component {
     }
     const nVms = this.getNumberOfVms()
     if (!nVms) {
-      return <div style={{marginTop: '3em', width: '100%'}} className='text-xs-center'>
+      return <div className='text-xs-center'>
         <h2>{_('homeNoVms')}</h2>
         <Row>
           <Col mediumSize={12}>
