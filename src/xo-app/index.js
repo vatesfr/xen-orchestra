@@ -26,7 +26,6 @@ import Vm from './vm'
 
 const CONTAINER_STYLE = {
   display: 'flex',
-  flexDirection: 'row',
   minHeight: '100vh',
 
   // FIXME: The size of `xo-main` matches the size of the window
