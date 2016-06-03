@@ -36,16 +36,16 @@ const CONTAINER_STYLE = {
   // an almost useless horizontal scrollbar appear.
   overflow: 'hidden'
 }
+const BODY_WRAPPER_STYLE = {
+  flex: 1,
+  position: 'relative'
+}
 const BODY_STYLE = {
-  // Necessary for children to expand, because a percentage height
-  // will not work as it works on the *specified* height of the
-  // element, not its *used* height which is the one altered by
-  // `flex: 1`.
-  //
-  // See: http://stackoverflow.com/questions/20959600/height-100-on-flexbox-column-child#answer-20959601
-  display: 'flex',
-
-  flex: 1
+  height: '100%',
+  left: 0,
+  position: 'absolute',
+  top: 0,
+  width: '100%'
 }
 
 @routes('home', {
@@ -87,8 +87,10 @@ export default class XoApp extends Component {
     return <IntlProvider>
       <div style={CONTAINER_STYLE}>
         <Menu ref='menu' />
-        <div ref='bodyWrapper' style={BODY_STYLE}>
-          {this.props.children}
+        <div ref='bodyWrapper' style={BODY_WRAPPER_STYLE}>
+          <div style={BODY_STYLE}>
+            {this.props.children}
+          </div>
         </div>
         <Modal />
         <Notification />
