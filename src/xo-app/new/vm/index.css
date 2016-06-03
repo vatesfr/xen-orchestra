@@ -22,3 +22,24 @@
 .sizeInput {
   width: 10em;
 }
+
+.sectionContent {
+  align-items: baseline;
+  display: flex;
+  flex: 1 1 40em;
+  flex-wrap: wrap;
+  font-size: 1em;
+}
+
+.sectionContentColumn {
+  flex-direction: column;
+}
+
+.summary {
+  align-items: baseline;
+  display: flex;
+  flex: 1 1 20em;
+  flex-wrap: wrap;
+  font-size: 2em;
+  justify-content: space-around;
+}
