@@ -37,6 +37,14 @@ const CONTAINER_STYLE = {
   overflow: 'hidden'
 }
 const BODY_STYLE = {
+  // Necessary for children to expand, because a percentage height
+  // will not work as it works on the *specified* height of the
+  // element, not its *used* height which is the one altered by
+  // `flex: 1`.
+  //
+  // See: http://stackoverflow.com/questions/20959600/height-100-on-flexbox-column-child#answer-20959601
+  display: 'flex',
+
   flex: 1
 }
 

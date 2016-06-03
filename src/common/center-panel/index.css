@@ -1,0 +1,13 @@
+.container {
+  display: flex;
+
+  /* inside flex element */
+  flex: 1;
+
+  /* inside normal element */
+  min-height: 100%;
+}
+
+.content {
+  margin: auto
+}
