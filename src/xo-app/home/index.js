@@ -346,7 +346,7 @@ export default class Home extends Component {
     if (!this.props.hosts.length) {
       return <div className='text-xs-center'>
         <h2>{_('homeWelcome')}</h2>
-        <Link to='/settings/servers' className='btn btn-link'>
+        <Link to='/settings/servers'>
           <Icon icon='pool' size={4} />
           <h4>{_('homeAddServer')}</h4>
           <p className='text-muted'>{_('homeWelcomeText')}</p>
@@ -375,7 +375,7 @@ export default class Home extends Component {
         <h2>{_('homeNoVms')}</h2>
         <Row>
           <Col>
-            <Link to='/new/vm' className='btn btn-link'>
+            <Link to='/new/vm'>
               <Icon icon='vm' size={4} />
               <h4>{_('homeNewVm')}</h4>
               <p className='text-muted'>{_('homeNewVmMessage')}</p>
@@ -385,14 +385,14 @@ export default class Home extends Component {
         <h2>{_('homeNoVmsOr')}</h2>
         <Row>
           <Col mediumSize={6}>
-            <Link to='/new/vm' className='btn btn-link'>
+            <Link to='/new/vm'>
               <Icon icon='menu-new-import' size={4} />
               <h4>{_('homeImportVm')}</h4>
               <p className='text-muted'>{_('homeImportVmMessage')}</p>
             </Link>
           </Col>
           <Col mediumSize={6}>
-            <Link to='/new/vm' className='btn btn-link'>
+            <Link to='/new/vm'>
               <Icon icon='backup' size={4} />
               <h4>{_('homeRestoreBackup')}</h4>
               <p className='text-muted'>{_('homeRestoreBackupMessage')}</p>
