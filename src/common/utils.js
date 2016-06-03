@@ -201,6 +201,10 @@ export const createSimpleMatcher = (pattern, valueGetter) => {
 
 // -------------------------------------------------------------------
 
+export { default as Debug } from './debug'
+
+// -------------------------------------------------------------------
+
 // Returns the first defined (non-null, non-undefined) value.
 export const firstDefined = function () {
   const n = arguments.length
@@ -325,12 +329,6 @@ export const normalizeXenToolsStatus = status => {
   }
   return 'out-of-date'
 }
-
-// -------------------------------------------------------------------
-
-export const Debug = ({ value }) => <pre>
-  {JSON.stringify(value, null, 2)}
-</pre>
 
 // -------------------------------------------------------------------
 
