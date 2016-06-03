@@ -341,14 +341,19 @@ export default class Home extends Component {
       return <h4>Loading</h4>
     }
     if (!this.props.hosts.length) {
-      return <h4>No connected hosts</h4>
+      return <div style={{display: 'flex', height: '100%'}}>
+        <div style={{margin: 'auto'}} className='text-xs-center'>
+          <h4>No connected hosts</h4>
+          <Link to='/settings/servers' className='btn btn-primary btn-lg'><span><Icon icon='pool' /> Add server</span></Link>
+        </div>
+      </div>
     }
     const nVms = this.getNumberOfVms()
     if (!nVms) {
       return <div style={{display: 'flex', height: '100%'}}>
         <div style={{margin: 'auto'}} className='text-xs-center'>
           <h4>There are no VMs</h4>
-          <Link to='/settings/servers' className='btn btn-primary btn-lg'><span><Icon icon='pool' /> Add server</span></Link>
+          <Link to='/new/vm' className='btn btn-primary btn-lg'><span><Icon icon='vm' /> Create a VM</span></Link>
         </div>
       </div>
     }
