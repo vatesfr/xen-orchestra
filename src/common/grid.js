@@ -15,7 +15,7 @@ export const Col = propTypes({
 })(({
   children,
   className,
-  size,
+  size = 12,
   smallSize = size,
   mediumSize,
   largeSize,
