@@ -15,6 +15,7 @@ import size from 'lodash/size'
 import Tags from 'tags'
 import Tooltip from 'tooltip'
 import React, { Component } from 'react'
+import { Card, CardHeader, CardBlock } from 'card'
 import {
   addTag,
   deleteVms,
@@ -344,62 +345,70 @@ export default class Home extends Component {
       </CenterPanel>
     }
     if (!this.props.hosts.length) {
-      return <div className='text-xs-center'>
-        <h2>{_('homeWelcome')}</h2>
-        <Link to='/settings/servers'>
-          <Icon icon='pool' size={4} />
-          <h4>{_('homeAddServer')}</h4>
-          <p className='text-muted'>{_('homeWelcomeText')}</p>
-        </Link>
-        <br /><br />
-        <h3>{_('homeHelp')}</h3>
-        <Row>
-          <Col mediumSize={6}>
-            <a href='https://xen-orchestra.com/docs/' target='_blank' className='btn btn-link'>
-              <Icon icon='menu-about' size={4} />
-              <h4>{_('homeOnlineDoc')}</h4>
-            </a>
-          </Col>
-          <Col mediumSize={6}>
-            <a href='https://xen-orchestra.com/#!/member/support' target='_blank' className='btn btn-link'>
-              <Icon icon='menu-settings-users' size={4} />
-              <h4>{_('homeProSupport')}</h4>
-            </a>
-          </Col>
-        </Row>
-      </div>
+      return <CenterPanel>
+        <Card shadow>
+          <CardHeader>{_('homeWelcome')}</CardHeader>
+          <CardBlock>
+            <Link to='/settings/servers'>
+              <Icon icon='pool' size={4} />
+              <h4>{_('homeAddServer')}</h4>
+            </Link>
+            <p className='text-muted'>{_('homeWelcomeText')}</p>
+            <br /><br />
+            <h3>{_('homeHelp')}</h3>
+            <Row>
+              <Col mediumSize={6}>
+                <a href='https://xen-orchestra.com/docs/' target='_blank' className='btn btn-link'>
+                  <Icon icon='menu-about' size={4} />
+                  <h4>{_('homeOnlineDoc')}</h4>
+                </a>
+              </Col>
+              <Col mediumSize={6}>
+                <a href='https://xen-orchestra.com/#!/member/support' target='_blank' className='btn btn-link'>
+                  <Icon icon='menu-settings-users' size={4} />
+                  <h4>{_('homeProSupport')}</h4>
+                </a>
+              </Col>
+            </Row>
+          </CardBlock>
+        </Card>
+      </CenterPanel>
     }
     const nVms = this.getNumberOfVms()
     if (!nVms) {
-      return <div className='text-xs-center'>
-        <h2>{_('homeNoVms')}</h2>
-        <Row>
-          <Col>
-            <Link to='/new/vm'>
-              <Icon icon='vm' size={4} />
-              <h4>{_('homeNewVm')}</h4>
-              <p className='text-muted'>{_('homeNewVmMessage')}</p>
-            </Link>
-          </Col>
-        </Row>
-        <h2>{_('homeNoVmsOr')}</h2>
-        <Row>
-          <Col mediumSize={6}>
-            <Link to='/new/vm'>
-              <Icon icon='menu-new-import' size={4} />
-              <h4>{_('homeImportVm')}</h4>
-              <p className='text-muted'>{_('homeImportVmMessage')}</p>
-            </Link>
-          </Col>
-          <Col mediumSize={6}>
-            <Link to='/new/vm'>
-              <Icon icon='backup' size={4} />
-              <h4>{_('homeRestoreBackup')}</h4>
-              <p className='text-muted'>{_('homeRestoreBackupMessage')}</p>
-            </Link>
-          </Col>
-        </Row>
-      </div>
+      return <CenterPanel>
+        <Card shadow>
+          <CardHeader>{_('homeNoVms')}</CardHeader>
+          <CardBlock>
+            <Row>
+              <Col>
+                <Link to='/new/vm'>
+                  <Icon icon='vm' size={4} />
+                  <h4>{_('homeNewVm')}</h4>
+                  <p className='text-muted'>{_('homeNewVmMessage')}</p>
+                </Link>
+              </Col>
+            </Row>
+            <h2>{_('homeNoVmsOr')}</h2>
+            <Row>
+              <Col mediumSize={6}>
+                <Link to='/new/vm'>
+                  <Icon icon='menu-new-import' size={4} />
+                  <h4>{_('homeImportVm')}</h4>
+                  <p className='text-muted'>{_('homeImportVmMessage')}</p>
+                </Link>
+              </Col>
+              <Col mediumSize={6}>
+                <Link to='/new/vm'>
+                  <Icon icon='backup' size={4} />
+                  <h4>{_('homeRestoreBackup')}</h4>
+                  <p className='text-muted'>{_('homeRestoreBackupMessage')}</p>
+                </Link>
+              </Col>
+            </Row>
+          </CardBlock>
+        </Card>
+      </CenterPanel>
     }
 
     const selectedVmsIds = keys(this._isSelected)

@@ -297,7 +297,7 @@ class Edit extends Component {
     return (
       <Card>
         <CardHeader>
-          <h5><Icon icon='administration' /> {_('selfServiceAdminPage')}</h5>
+          <Icon icon='administration' /> {_('selfServiceAdminPage')}
         </CardHeader>
         <CardBlock>
           <form id='resource-set-form' className='card-block'>

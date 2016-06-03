@@ -189,7 +189,7 @@ export const messages = {
     defaultMessage: 'Pro Support'
   },
   homeNoVms: {
-    defaultMessage: 'There are no VMs! Create one:'
+    defaultMessage: 'There are no VMs!'
   },
   homeNoVmsOr: {
     defaultMessage: 'Or...'

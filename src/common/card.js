@@ -5,18 +5,24 @@ const CARD_STYLE = {
   minHeight: '100%'
 }
 
+const CARD_STYLE_WITH_SHADOW = {
+  ...CARD_STYLE,
+  boxShadow: '0 0 1em black'
+}
+
 const CARD_HEADER_STYLE = {
   minHeight: '100%',
-  fontSize: '1.2em',
   textAlign: 'center'
 }
 
 export const Card = propTypes({
-  disableMaxHeight: propTypes.bool
+  disableMaxHeight: propTypes.bool,
+  shadow: propTypes.bool
 })(({
-  children
+  children,
+  shadow
 }) => (
-  <div className='card' style={CARD_STYLE}>
+  <div className='card' style={shadow ? CARD_STYLE_WITH_SHADOW : CARD_STYLE}>
     {children}
   </div>
 ))
@@ -27,9 +33,9 @@ export const CardHeader = propTypes({
   children,
   className
 }) => (
-  <div className={`card-header ${className || ''}`} style={CARD_HEADER_STYLE}>
+  <h3 className={`card-header ${className || ''}`} style={CARD_HEADER_STYLE}>
     {children}
-  </div>
+  </h3>
 ))
 
 export const CardBlock = propTypes({

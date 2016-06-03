@@ -57,7 +57,7 @@ class ResourceSet extends BaseComponent {
           <Col mediumSize={4}>
             <Card>
               <CardHeader>
-                <strong><Icon icon='cpu' /> {_('resourceSetVcpus')}</strong>
+                <Icon icon='cpu' /> {_('resourceSetVcpus')}
               </CardHeader>
               <CardBlock className='text-center'>
                 {cpus ? (
@@ -83,7 +83,7 @@ class ResourceSet extends BaseComponent {
           <Col mediumSize={4}>
             <Card>
               <CardHeader>
-                <strong><Icon icon='memory' /> {_('resourceSetMemory')}</strong>
+                <Icon icon='memory' /> {_('resourceSetMemory')}
               </CardHeader>
               <CardBlock className='text-center'>
                 {memory ? (
@@ -109,7 +109,7 @@ class ResourceSet extends BaseComponent {
           <Col mediumSize={4}>
             <Card>
               <CardHeader>
-                <strong><Icon icon='disk' /> {_('resourceSetStorage')}</strong>
+                <Icon icon='disk' /> {_('resourceSetStorage')}
               </CardHeader>
               <CardBlock>
                 {disk ? (
