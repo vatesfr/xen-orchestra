@@ -28,7 +28,7 @@ export default ({
   vm
 }) => <Container>
   <Row>
-    <Col mediumSize={12} className='text-xs-right'>
+    <Col className='text-xs-right'>
       {vm.power_state === 'Running' &&
         <span>
           <TabButton
@@ -106,7 +106,7 @@ export default ({
     </Col>
   </Row>
   <Row>
-    <Col mediumSize={12}>
+    <Col>
       <h3>{_('xenSettingsLabel')}</h3>
       <table className='table'>
         <tbody>

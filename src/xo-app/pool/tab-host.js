@@ -10,7 +10,7 @@ export default ({
   hosts
 }) => <Container>
   <Row>
-    <Col mediumSize={12}>
+    <Col>
       {!isEmpty(hosts)
         ? <div>
           <table className='table'>

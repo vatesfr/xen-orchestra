@@ -126,7 +126,7 @@ export default class Pool extends Component {
       </Row>
       <br />
       <Row>
-        <Col size={12}>
+        <Col>
           <NavTabs>
             <NavLink to={`/pools/${pool.id}/general`}>{_('generalTabName')}</NavLink>
             <NavLink to={`/pools/${pool.id}/hosts`}>{_('hostsTabName')}</NavLink>

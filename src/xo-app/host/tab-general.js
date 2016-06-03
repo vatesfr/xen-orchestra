@@ -62,7 +62,7 @@ export default ({
     </Col>
   </Row>
   <Row>
-    <Col mediumSize={12} className='text-xs-center'>
+    <Col className='text-xs-center'>
       <h5>RAM usage:</h5>
     </Col>
   </Row>
@@ -89,7 +89,7 @@ export default ({
     </Col>
   </Row>
   <Row>
-    <Col mediumSize={12}>
+    <Col>
       <h2 className='text-xs-center'>
         <Tags labels={host.tags} onDelete={tag => removeTag(host.id, tag)} onAdd={tag => addTag(host.id, tag)} />
       </h2>

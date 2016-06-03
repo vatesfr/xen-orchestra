@@ -16,7 +16,7 @@ export default ({
   pbds
 }) => <Container>
   <Row>
-    <Col mediumSize={12} className='text-xs-right'>
+    <Col className='text-xs-right'>
       <TabButton
         btnStyle='primary'
         handler={() => null()} // TODO: add SR
@@ -26,7 +26,7 @@ export default ({
     </Col>
   </Row>
   <Row>
-    <Col mediumSize={12}>
+    <Col>
       {!isEmpty(pbds)
         ? <span>
           <table className='table'>

@@ -32,7 +32,7 @@ export default class About extends Component {
   render () {
     return <Container className='text-xs-center'>
       <Row>
-        <Col mediumSize={12}>
+        <Col>
           <h2>{_('aboutPage')} Xen Orchestra {_getXoaPlan()}</h2>
         </Col>
       </Row>
@@ -54,7 +54,7 @@ export default class About extends Component {
       {process.env.XOA_PLAN > 4
         ? <div>
           <Row>
-            <Col mediumSize={12}>
+            <Col>
               <h2 className='text-danger'>No pro support provided!</h2>
               <h4 className='text-warning'>Use in production at your own risks</h4>
               <p className='text-muted'>You can download our turnkey appliance on xen-orchestra.com</p>
@@ -79,7 +79,7 @@ export default class About extends Component {
         </div>
         : <div>
           <Row>
-            <Col mediumSize={12}>
+            <Col>
               <h2 className='text-success'>Pro support included</h2>
               <a href='https://xen-orchestra.com/#!/member/products'>Acces your XO Account</a>
             </Col>

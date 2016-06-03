@@ -11,7 +11,7 @@ export default ({
   pifs
 }) => <Container>
   <Row>
-    <Col mediumSize={12} className='text-xs-right'>
+    <Col className='text-xs-right'>
       <TabButton
         btnStyle='primary'
         handler={() => null(host)} // TODO: add network
@@ -21,7 +21,7 @@ export default ({
     </Col>
   </Row>
   <Row>
-    <Col mediumSize={12}>
+    <Col>
       {!isEmpty(pifs)
         ? <span>
           <table className='table'>

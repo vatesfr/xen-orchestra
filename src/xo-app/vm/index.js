@@ -228,7 +228,7 @@ export default class Vm extends Component {
       </Row>
       <br />
       <Row>
-        <Col mediumSize={12}>
+        <Col>
           <NavTabs>
             <NavLink to={`/vms/${vm.id}/general`}>{_('generalTabName')}</NavLink>
             <NavLink to={`/vms/${vm.id}/stats`}>{_('statsTabName')}</NavLink>

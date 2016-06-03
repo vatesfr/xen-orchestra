@@ -245,7 +245,7 @@ export default class Host extends Component {
       </Row>
       <br />
       <Row>
-        <Col mediumSize={12}>
+        <Col>
           <NavTabs>
             <NavLink to={`/hosts/${host.id}/general`}>{_('generalTabName')}</NavLink>
             <NavLink to={`/hosts/${host.id}/stats`}>{_('statsTabName')}</NavLink>

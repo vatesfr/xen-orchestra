@@ -111,7 +111,7 @@ export default class Sr extends Component {
       </Row>
       <br />
       <Row>
-        <Col size={12}>
+        <Col>
           <NavTabs>
             <NavLink to={`/srs/${sr.id}/general`}>{_('generalTabName')}</NavLink>
             <NavLink to={`/srs/${sr.id}/disks`}>{_('disksTabName', { disks: sr.VDIs.length })}</NavLink>

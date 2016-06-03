@@ -41,7 +41,7 @@ export default class TabLogs extends Component {
         </Row>
         : <div>
           <Row>
-            <Col mediumSize={12} className='text-xs-right'>
+            <Col className='text-xs-right'>
               <button className='btn btn-lg btn-tab' onClick={this._previousPage}>
                 &lt;
               </button>
@@ -57,7 +57,7 @@ export default class TabLogs extends Component {
             </Col>
           </Row>
           <Row>
-            <Col mediumSize={12}>
+            <Col>
               <table className='table'>
                 <thead className='thead-default'>
                   <tr>

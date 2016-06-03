@@ -25,7 +25,7 @@ export default ({
   vm
 }) => <Container>
   <Row>
-    <Col mediumSize={12} className='text-xs-right'>
+    <Col className='text-xs-right'>
       <TabButton
         btnStyle='primary'
         handler={() => null()} // TODO: add disk
@@ -47,7 +47,7 @@ export default ({
     </Col>
   </Row>
   <Row style={{ minWidth: '0' }}>
-    <Col mediumSize={12}>
+    <Col>
       {!isEmpty(vbds)
         ? <span>
           <div className='table-responsive'>

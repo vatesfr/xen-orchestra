@@ -25,7 +25,7 @@ export default ({
     </Col>
   </Row>
   <Row>
-    <Col mediumSize={12} className='text-xs-center'>
+    <Col className='text-xs-center'>
       <h5>{formatSize(sr.physical_usage)} {_('srUsed')} ({formatSize(sr.size - sr.physical_usage)} {_('srFree')})</h5>
     </Col>
   </Row>
@@ -46,7 +46,7 @@ export default ({
     </Col>
   </Row>
   <Row className='text-xs-center'>
-    <Col mediumSize={12}>
+    <Col>
       <h2 className='text-xs-center'>
         <Tags labels={sr.tags} onDelete={tag => removeTag(sr.id, tag)} onAdd={tag => addTag(sr.id, tag)} />
       </h2>

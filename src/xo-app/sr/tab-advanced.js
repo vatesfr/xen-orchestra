@@ -9,7 +9,7 @@ export default ({
   sr
 }) => <Container>
   <Row>
-    <Col mediumSize={12} className='text-xs-right'>
+    <Col className='text-xs-right'>
       <TabButton
         btnStyle='danger'
         handler={deleteSr}
@@ -20,7 +20,7 @@ export default ({
     </Col>
   </Row>
   <Row>
-    <Col mediumSize={12}>
+    <Col>
       <h3>{_('xenSettingsLabel')}</h3>
       <table className='table'>
         <tbody>

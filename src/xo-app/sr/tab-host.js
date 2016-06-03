@@ -13,7 +13,7 @@ export default ({
   pbds
 }) => <Container>
   <Row>
-    <Col mediumSize={12}>
+    <Col>
       {!isEmpty(hosts)
         ? <div>
           <table className='table'>

@@ -71,7 +71,7 @@ export default ({
     </Col>
   </Row>
   <Row className='console'>
-    <Col mediumSize={12}>
+    <Col>
       <NoVnc url={resolveUrl(`consoles/${vmController.id}`)} />
       <p><em><Icon icon='info' /> {_('tipLabel')} {_('tipConsoleLabel')}</em></p>
     </Col>

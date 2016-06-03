@@ -62,7 +62,7 @@ export default ({
   vdis
 }) => <Container>
   <Row>
-    <Col mediumSize={12}>
+    <Col>
       {!isEmpty(vdis)
         ? <SortedTable collection={vdis} columns={COLUMNS} defaultColumn={0} />
         : <h4 className='text-xs-center'>{_('srNoVdis')}</h4>

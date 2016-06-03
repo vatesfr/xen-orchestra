@@ -5,7 +5,7 @@ export default ({
   hosts
 }) => <Container>
   <Row>
-    <Col mediumSize={12} className='text-xs-right'>
+    <Col className='text-xs-right'>
       TODO
     </Col>
   </Row>

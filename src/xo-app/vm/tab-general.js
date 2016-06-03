@@ -85,13 +85,13 @@ export default ({
   </Row>
   {!vm.xenTools && vm.power_state === 'Running' &&
     <Row className='text-xs-center'>
-      <Col mediumSize={12}><em>{_('noToolsDetected')}.</em></Col>
+      <Col><em>{_('noToolsDetected')}.</em></Col>
     </Row>
   }
   {/* TODO: use CSS style */}
   <br />
   <Row>
-    <Col mediumSize={12}>
+    <Col>
       <h2 className='text-xs-center'>
         <Tags labels={vm.tags} onDelete={tag => removeTag(vm.id, tag)} onAdd={tag => addTag(vm.id, tag)} />
       </h2>
@@ -100,7 +100,7 @@ export default ({
   {isEmpty(vm.current_operations)
     ? null
     : <Row className='text-xs-center'>
-      <Col mediumSize={12}>
+      <Col>
         <h4>{_('vmCurrentStatus')}{' '}{map(vm.current_operations)[0]}</h4>
       </Col>
     </Row>

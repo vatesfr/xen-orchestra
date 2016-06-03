@@ -184,7 +184,7 @@ export default class MigrateVmModalBody extends Component {
             </div>
             <div className={styles.block}>
               <SingleLineRow>
-                <Col size={12}>{_('migrateVmAdvancedModalSelectSrs')}</Col>
+                <Col>{_('migrateVmAdvancedModalSelectSrs')}</Col>
               </SingleLineRow>
               <br />
               <SingleLineRow>
@@ -207,7 +207,7 @@ export default class MigrateVmModalBody extends Component {
             </div>
             <div className={styles.block}>
               <SingleLineRow>
-                <Col size={12}>{_('migrateVmAdvancedModalSelectNetworks')}</Col>
+                <Col>{_('migrateVmAdvancedModalSelectNetworks')}</Col>
               </SingleLineRow>
               <br />
               <SingleLineRow>

@@ -374,7 +374,7 @@ export default class Home extends Component {
       return <div className='text-xs-center'>
         <h2>{_('homeNoVms')}</h2>
         <Row>
-          <Col mediumSize={12}>
+          <Col>
             <Link to='/new/vm' className='btn btn-link'>
               <Icon icon='vm' size={4} />
               <h4>{_('homeNewVm')}</h4>

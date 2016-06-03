@@ -34,7 +34,7 @@ export default class TabSnapshot extends Component {
 
     return <Container>
       <Row>
-        <Col mediumSize={12} className='text-xs-right'>
+        <Col className='text-xs-right'>
           <TabButton
             btnStyle='primary'
             handler={snapshotVm}
@@ -46,13 +46,13 @@ export default class TabSnapshot extends Component {
       </Row>
       {isEmpty(snapshots)
         ? <Row>
-          <Col mediumSize={12} className='text-xs-center'>
+          <Col className='text-xs-center'>
             <h4>{_('noSnapshots')}</h4>
             <p><em><Icon icon='info' size={1} /> {_('tipLabel')} {_('tipCreateSnapshotLabel')}</em></p>
           </Col>
         </Row>
         : <Row>
-          <Col mediumSize={12}>
+          <Col>
             <table className='table'>
               <thead className='thead-default'>
                 <tr>

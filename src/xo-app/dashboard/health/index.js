@@ -186,7 +186,7 @@ export default class Health extends Component {
     return <div className='container-fluid'>
       <h2><Icon icon='menu-dashboard-health' /> {_('overviewHealthDashboardPage')}</h2>
       <Row>
-        <Col mediumSize={12}>
+        <Col>
           <div className='card-dashboard'>
             <div className='card-header-dashboard'>
               <Icon icon='disk' /> {_('orphanedVdis')}
@@ -196,7 +196,7 @@ export default class Health extends Component {
                 ? <p className='text-xs-center'>{_('noOrphanedObject')}</p>
                 : <div>
                   <Row>
-                    <Col smallSize={12} className='text-xs-right'>
+                    <Col className='text-xs-right'>
                       <TabButton
                         btnStyle='danger'
                         handler={this._deleteOrphanedVdis}
@@ -231,7 +231,7 @@ export default class Health extends Component {
         </Col>
       </Row>
       <Row>
-        <Col mediumSize={12}>
+        <Col>
           <div className='card-dashboard'>
             <div className='card-header-dashboard'>
               <Icon icon='vm' /> {_('orphanedVms')}
@@ -261,7 +261,7 @@ export default class Health extends Component {
         </Col>
       </Row>
       <Row>
-        <Col mediumSize={12}>
+        <Col>
           <div className='card-dashboard'>
             <div className='card-header-dashboard'>
               <Icon icon='disk' /> {_('srStatePanel')}
@@ -275,7 +275,7 @@ export default class Health extends Component {
                   </Col>
                 </Row>
                 : <Row>
-                  <Col smallSize={12}>
+                  <Col>
                     <table className='table'>
                       <thead className='thead-default'>
                         <tr>
@@ -300,7 +300,7 @@ export default class Health extends Component {
         </Col>
       </Row>
       <Row>
-        <Col mediumSize={12}>
+        <Col>
           <div className='card-dashboard'>
             <div className='card-header-dashboard'>
               <Icon icon='alarm' /> {_('alarmMessage')}
@@ -310,7 +310,7 @@ export default class Health extends Component {
                 ? <p className='text-xs-center'>{_('noAlarms')}</p>
                 : <div>
                   <Row>
-                    <Col smallSize={12} className='text-xs-right'>
+                    <Col className='text-xs-right'>
                       <TabButton
                         btnStyle='danger'
                         handler={this._deleteAllLogs}

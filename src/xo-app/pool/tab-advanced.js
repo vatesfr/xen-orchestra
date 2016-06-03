@@ -7,7 +7,7 @@ export default ({
   pool
 }) => <Container>
   <Row>
-    <Col mediumSize={12}>
+    <Col>
       <h3>{_('xenSettingsLabel')}</h3>
       <table className='table'>
         <tbody>
