@@ -13,6 +13,7 @@ import SingleLineRow from 'single-line-row'
 import size from 'lodash/size'
 import Tags from 'tags'
 import Tooltip from 'tooltip'
+import { CenterPanel } from 'center-panel'
 import React, { Component } from 'react'
 import {
   addTag,
@@ -57,6 +58,7 @@ import {
 
 import {
   Button,
+  ButtonGroup,
   DropdownButton,
   MenuItem,
   OverlayTrigger,
@@ -338,13 +340,22 @@ export default class Home extends Component {
 
   render () {
     if (!this.props.fetched) {
-      return <h4>Loading</h4>
+      return <CenterPanel>
+        <h4><Icon icon='loading' /> Fetching data…</h4>
+      </CenterPanel>
     }
     if (!this.props.hosts.length) {
-      return <div style={{display: 'flex', height: '100%'}}>
+      return <div style={{display: 'flex', height: '50%'}}>
         <div style={{margin: 'auto'}} className='text-xs-center'>
-          <h4>No connected hosts</h4>
-          <Link to='/settings/servers' className='btn btn-primary btn-lg'><span><Icon icon='pool' /> Add server</span></Link>
+          <h2>Welcome on Xen Orchestra!</h2>
+          <p>Just connect to your XenServer hosts or pools:</p>
+          <Link to='/settings/servers' className='btn btn-success btn-lg'><span><Icon icon='pool' /> Add server</span></Link>
+          <img src='assets/logo.png' alt='XO logo' />
+          <h3>Want some help?</h3>
+          <ButtonGroup>
+            <a href='https://xen-orchestra.com/docs/' target='_blank' className='btn btn-info btn-lg'><span><Icon icon='menu-about' /> Online doc</span></a>
+            <a href='https://xen-orchestra.com/#!/member/support' target='_blank' className='btn btn-primary btn-lg'><span><Icon icon='menu-settings-users' /> Pro support</span></a>
+          </ButtonGroup>
         </div>
       </div>
     }
