@@ -1372,6 +1372,9 @@ export const messages = {
   newVmPvArgsLabel: {
     defaultMessage: 'PV Args'
   },
+  newVmPxeLabel: {
+    defaultMessage: 'PXE'
+  },
   newVmInterfacesPanel: {
     defaultMessage: 'Interfaces'
   },
@@ -1403,11 +1406,16 @@ export const messages = {
     defaultMessage: 'Create'
   },
   newVmReset: {
-    newVmSelectTemplate: 'Sélectionner un template',
     defaultMessage: 'Reset'
   },
   newVmSelectTemplate: {
     defaultMessage: 'Select template'
+  },
+  newVmSshKey: {
+    defaultMessage: 'SSH key'
+  },
+  newVmConfigDrive: {
+    defaultMessage: 'Config drive'
   },
 
   // ----- Self -----
@@ -1913,6 +1921,7 @@ localizedMessages.fr = {
   newVmIsoDvdLabel: 'ISO/DVD',
   newVmNetworkLabel: 'Network',
   newVmPvArgsLabel: 'PV Args',
+  newVmPxeLabel: 'PXE',
   newVmInterfacesPanel: 'Interfaces',
   newVmMacLabel: 'MAC',
   newVmAddInterface: 'Ajouter une interface',
@@ -1925,6 +1934,7 @@ localizedMessages.fr = {
   newVmCreate: 'Créer',
   newVmReset: 'Effacer',
   newVmSelectTemplate: 'Sélectionner un template',
+  newVmSshKey: 'Clé SSH',
 
   // ---- VM import ---
   importVmsList: 'Glissez des backups ici ou cliquez pour sélectionner des backups à envoyer. Accepte seulement les fichiers .xva.',

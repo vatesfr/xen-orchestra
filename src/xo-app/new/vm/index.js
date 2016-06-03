@@ -161,13 +161,15 @@ export default class NewVm extends BaseComponent {
     })
   }
 
+  _selectInstallMethod = event => this.setState({ installMethod: event.target.value })
+
   _addVdi = () => this.setState({ VBDs: concat(this.state.VBDs, { id: this.uniqueId }) })
   _removeVdi = index => {
     const VBDs = this.state.VBDs.slice(0)
     pullAt(VBDs, index)
     this.setState({ VBDs })
   }
-  _addInterface = () => this.setState({ VIFs: concat(this.state.VIFs, { id: this.uniqueId }) }, () => console.log('VIFS = ', this.state.VIFs))
+  _addInterface = () => this.setState({ VIFs: concat(this.state.VIFs, { id: this.uniqueId }) })
   _removeInterface = index => {
     const VIFs = this.state.VIFs.slice(0)
     pullAt(VIFs, index)
@@ -175,7 +177,7 @@ export default class NewVm extends BaseComponent {
   }
 
   render () {
-    const { pool, template } = this.state
+    const { installMethod, pool, template } = this.state
     return <div>
       <h1>
         {_('newVmCreateNewVmOn', {
@@ -221,28 +223,39 @@ export default class NewVm extends BaseComponent {
           {/* INSTALL SETTINGS */}
           <Section icon='new-vm-install-settings' title='newVmInstallSettingsPanel'>
             {template && (this._isDiskTemplate ? <SectionContent>
+              <input onChange={this._selectInstallMethod} name='installMethod' value='ISO' type='radio' />
               <Item label='newVmIsoDvdLabel'>
                 <span className={styles.inlineSelect}>
                   <SelectSr
-                    predicate={sr => sr.$pool === pool.id && sr.content_type === 'iso'}
+                    disabled={installMethod !== 'ISO'}
+                    predicate={sr => sr.$pool === pool.id && sr.content_type !== 'user'}
                     ref='installIso'
                   />
                 </span>
               </Item>
+              <input onChange={this._selectInstallMethod} name='installMethod' value='network' type='radio' />
               <Item label='newVmNetworkLabel'>
-                <span className={styles.inlineSelect}>
-                  <SelectNetwork
-                    predicate={this._isInPool}
-                    ref='network'
-                  />
+                <input ref='installNetwork' disabled={installMethod !== 'network'} placeholder='e.g: http://ftp.debian.org/debian' type='text' className='form-control' />
+              </Item>
+              {template.virtualizationMode === 'pv'
+                ? <Item label='newVmPvArgsLabel'>
+                  <input ref='PV_args' className='form-control' type='text' />
+                </Item>
+                : <span>
+                  <input onChange={this._selectInstallMethod} name='installMethod' value='PXE' type='radio' />
+                  <Item label='pxeLabel' />
                 </span>
-              </Item>
-              <Item label='newVmPvArgsLabel'>
-                <input ref='PV_args' className='form-control' type='text' />
-              </Item>
+              }
             </SectionContent>
           : <SectionContent>
-            <span>CONFIG DRIVE</span>
+            <input onChange={this._selectInstallMethod} name='installMethod' value='SSH' type='radio' />
+            <Item label='newVmSshKey'>
+              <input ref='sshKey' className='form-control' type='text' />
+            </Item>
+            <input onChange={this._selectInstallMethod} name='installMethod' value='configDrive' type='radio' />
+            <Item label='newVmConfigDrive'>
+              <textarea ref='configDrive' className='form-control' type='text' />
+            </Item>
           </SectionContent>)}
           </Section>
           {/* INTERFACES */}
