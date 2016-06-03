@@ -746,6 +746,15 @@
     color: #ccc;
   }
 
+ // About
+  &-bug {
+    @extend .fa;
+    @extend .fa-bug;
+  }
+  &-help {
+    @extend .fa;
+    @extend .fa-life-ring;
+  }
   // Generic actions
 
   &-add-sr {
