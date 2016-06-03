@@ -47,8 +47,8 @@ export default class About extends Component {
           <p className='text-muted'>Xen Orchestra web client</p>
         </Col>
       </Row>
-      {process.env.XOA_PLAN > 4 &&
-        <div>
+      {process.env.XOA_PLAN > 4
+        ? <div>
           <h2 className='text-danger'>No pro support provided!</h2>
           <h4 className='text-warning'>Use in production at your own risks</h4>
           <p className='text-muted'>You can download our turnkey appliance on xen-orchestra.com</p>
@@ -69,9 +69,7 @@ export default class About extends Component {
             </Col>
           </Row>
         </div>
-      }
-      {process.env.XOA_PLAN < 5 &&
-        <div>
+        : <div>
           <h2 className='text-success'>Pro support included</h2>
           <a href='https://xen-orchestra.com/#!/member/products'>Acces your XO Account</a>
           <Row>
