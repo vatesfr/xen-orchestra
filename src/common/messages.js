@@ -1417,6 +1417,9 @@ export const messages = {
   newVmConfigDrive: {
     defaultMessage: 'Config drive'
   },
+  newVmCustomConfig: {
+    defaultMessage: 'Custom config'
+  },
 
   // ----- Self -----
   resourceSets: {
@@ -1935,6 +1938,7 @@ localizedMessages.fr = {
   newVmReset: 'Effacer',
   newVmSelectTemplate: 'Sélectionner un template',
   newVmSshKey: 'Clé SSH',
+  newVmCustomConfig: 'Configuration personnalisée',
 
   // ---- VM import ---
   importVmsList: 'Glissez des backups ici ou cliquez pour sélectionner des backups à envoyer. Accepte seulement les fichiers .xva.',

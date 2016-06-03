@@ -3,9 +3,9 @@ import BaseComponent from 'base-component'
 import { Button } from 'react-bootstrap-4/lib'
 import classNames from 'classnames'
 import concat from 'lodash/concat'
-import every from 'lodash/every'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
+import isArray from 'lodash/isArray'
 import keys from 'lodash/keys'
 import map from 'lodash/map'
 import pullAt from 'lodash/pullAt'
@@ -37,7 +37,7 @@ import {
 import styles from './index.css'
 
 // import { Debug } from 'utils'
-
+/* eslint-disable camelcase */
 const SectionContent = ({ summary, column, children }) => (
   <div className={classNames(
     'form-inline',
@@ -96,6 +96,10 @@ export default class NewVm extends BaseComponent {
   }
 
   _setRef (key, value) {
+    if (!this.refs[key]) {
+      console.log('Cannot set ref ', key)
+      return
+    }
     const type = this.refs[key].type
     if (type === 'text' || type === 'number') {
       this.refs[key].value = value || ''
@@ -118,7 +122,11 @@ export default class NewVm extends BaseComponent {
         default: this.refs[key].value = undefined
       }
     })
-    this.setState({ template: undefined, VBDs: [], VIFs: [] })
+    this.setState({
+      template: undefined,
+      VBDs: [],
+      VIFs: []
+    })
     console.log('RESET')
   }
 
@@ -140,12 +148,9 @@ export default class NewVm extends BaseComponent {
     if (!template) {
       return this._reset()
     }
+
     const state = store.getState()
     console.log('template = ', template)
-    this._setRef('name_description', template.name_description)
-    this._setRef('memory', template.memory.size)
-    this._setRef('CPUs', template.CPUs.number)
-    // template.PV_args && this._setRef('PV_args', template.PV_args)
 
     const VBDs = []
     forEach(template.$VBDs, vbdId => {
@@ -157,10 +162,20 @@ export default class NewVm extends BaseComponent {
     })
 
     this.setState({
+      // infos
       template,
-      VBDs,
-      VIFs: map(template.VIFs, vif => getObject(state, vif))
-    })
+      name_label: '',
+      name_description: template.name_description,
+      // performances
+      memory: template.memory.size,
+      CPUs: template.CPUs.number,
+      // interfaces
+      VIFs: map(template.VIFs, vif => getObject(state, vif)),
+      // disks
+      VBDs
+    }, () => forEach(this.state, (element, key) => {
+      !isArray(element) && this._setRef(key, element)
+    }))
   }
 
   _selectInstallMethod = event => this.setState({ installMethod: event.target.value })
@@ -178,16 +193,14 @@ export default class NewVm extends BaseComponent {
     this.setState({ VIFs })
   }
 
-  _onChange = (section, ref) => event => this.setState({ [section]: { ...this.state[section], ref: event.target.value } })
-  _isDone = section => every(this.state[section])
+  _onChange = ref => event => this.setState({ [ref]: event.target.value })
 
   render () {
-    // const { installMethod, pool, template } = this.state
     return <div>
       <h1>
         {_('newVmCreateNewVmOn', {
           pool: <span className={styles.inlineSelect}>
-            <SelectPool onChange={this._selectPool} />
+            <SelectPool ref='pool' onChange={this._selectPool} />
           </span>
         })}
       </h1>
@@ -217,11 +230,11 @@ export default class NewVm extends BaseComponent {
     </div>
   }
 
-  _renderInfos = () => (
-    <Section icon='new-vm-infos' title='newVmInfoPanel' done={this._isDone('infos')}>
+  _renderInfos = () => {
+    return <Section icon='new-vm-infos' title='newVmInfoPanel' done={this._isInfoDone()}>
       <SectionContent>
         <Item label='newVmNameLabel'>
-          <input ref='name_label' onChange={this._onChange('infos', 'name_label')} className='form-control' type='text' required />
+          <input ref='name_label' onChange={this._onChange('name_label')} className='form-control' type='text' required />
         </Item>
         <Item label='newVmTemplateLabel'>
           <span className={styles.inlineSelect}>
@@ -234,34 +247,43 @@ export default class NewVm extends BaseComponent {
           </span>
         </Item>
         <Item label='newVmDescriptionLabel'>
-          <input ref='name_description' className='form-control' type='text' />
+          <input ref='name_description' onChange={this._onChange('name_description')} className='form-control' type='text' />
         </Item>
       </SectionContent>
     </Section>
-  )
+  }
+  _isInfoDone = () => {
+    const { template, name_label, name_description } = this.state
+    return name_label && template && name_description
+  }
 
-  _renderPerformances = () => (
-    <Section icon='new-vm-perf' title='newVmPerfPanel'>
+  _renderPerformances = () => {
+    return <Section icon='new-vm-perf' title='newVmPerfPanel' done={this._isPerformancesDone()}>
       <SectionContent>
         <Item label='newVmVcpusLabel'>
-          <input ref='CPUs' className='form-control' type='number' />
+          <input ref='CPUs' onChange={this._onChange('CPUs')} className='form-control' type='number' />
         </Item>
         <Item label='newVmRamLabel'>
-          <SizeInput ref='memory' className={styles.sizeInput} />
+          <SizeInput ref='memory' onChange={this._onChange('memory')} className={styles.sizeInput} />
         </Item>
       </SectionContent>
     </Section>
-  )
+  }
+  _isPerformancesDone = () => {
+    const { CPUs, memory } = this.state
+    return CPUs && memory
+  }
 
   _renderInstallSettings = () => {
     const { installMethod, pool, template } = this.state
-    return <Section icon='new-vm-install-settings' title='newVmInstallSettingsPanel'>
+    return <Section icon='new-vm-install-settings' title='newVmInstallSettingsPanel' done={this._isInstallSettingsDone()}>
       {template && (this._isDiskTemplate ? <SectionContent>
         <input onChange={this._selectInstallMethod} name='installMethod' value='ISO' type='radio' />
         <Item label='newVmIsoDvdLabel'>
           <span className={styles.inlineSelect}>
             <SelectSr
               disabled={installMethod !== 'ISO'}
+              onChange={this._onChange('installIso')}
               predicate={sr => sr.$pool === pool.id && sr.content_type !== 'user'}
               ref='installIso'
             />
@@ -269,11 +291,11 @@ export default class NewVm extends BaseComponent {
         </Item>
         <input onChange={this._selectInstallMethod} name='installMethod' value='network' type='radio' />
         <Item label='newVmNetworkLabel'>
-          <input ref='installNetwork' disabled={installMethod !== 'network'} placeholder='e.g: http://ftp.debian.org/debian' type='text' className='form-control' />
+          <input ref='installNetwork' onChange={this._onChange('installNetwork')} disabled={installMethod !== 'network'} placeholder='e.g: http://ftp.debian.org/debian' type='text' className='form-control' />
         </Item>
         {template.virtualizationMode === 'pv'
           ? <Item label='newVmPvArgsLabel'>
-            <input ref='PV_args' className='form-control' type='text' />
+            <input ref='PV_args' onChange={this._onChange('PV_args')} className='form-control' type='text' />
           </Item>
           : <span>
             <input onChange={this._selectInstallMethod} name='installMethod' value='PXE' type='radio' />
@@ -284,24 +306,41 @@ export default class NewVm extends BaseComponent {
     : <SectionContent>
       <input onChange={this._selectInstallMethod} name='installMethod' value='SSH' type='radio' />
       <Item label='newVmSshKey'>
-        <input ref='sshKey' disabled={installMethod !== 'SSH'} className='form-control' type='text' />
+        <input ref='sshKey' onChange={this._onChange('sshKey')} disabled={installMethod !== 'SSH'} className='form-control' type='text' />
       </Item>
-      <input onChange={this._selectInstallMethod} name='installMethod' value='configDrive' type='radio' />
-      <Item label='newVmConfigDrive'>
+      <input onChange={this._selectInstallMethod} name='installMethod' value='customConfig' type='radio' />
+      <Item label='newVmCustomConfig'>
         <textarea
           className='form-control'
-          defaultValue='#cloud-config&#10;#hostname: myhostname&#10;#ssh_authorized_keys:&#10;#  - ssh-rsa <myKey>&#10;#packages:&#10;#  - htop&#10;'
-          disabled={installMethod !== 'configDrive'}
-          ref='configDrive'
+          disabled={installMethod !== 'customConfig'}
+          onChange={this._onChange('customConfig')}
+          ref='customConfig'
           type='text'
         />
       </Item>
     </SectionContent>)}
     </Section>
   }
+  _isInstallSettingsDone = () => {
+    const {
+      customConfig,
+      installIso,
+      installMethod,
+      installNetwork,
+      sshKey
+    } = this.state
+    switch (installMethod) {
+      case 'customConfig': return customConfig
+      case 'ISO': return installIso
+      case 'network': return installNetwork
+      case 'PXE': return true
+      case 'SSH': return sshKey
+      default: return false
+    }
+  }
 
-  _renderInterfaces = () => (
-    <Section icon='new-vm-interfaces' title='newVmInterfacesPanel'>
+  _renderInterfaces = () => {
+    return <Section icon='new-vm-interfaces' title='newVmInterfacesPanel' done={this._isInterfacesDone()}>
       <SectionContent column>
         {map(this.state.VIFs, (vif, index) => <LineItem key={vif.id}>
           <Item label='newVmMacLabel'>
@@ -332,10 +371,13 @@ export default class NewVm extends BaseComponent {
         </Item>
       </SectionContent>
     </Section>
-  )
+  }
+  _isInterfacesDone = () => {
+    return true
+  }
 
-  _renderDisks = () => (
-    <Section icon='new-vm-disks' title='newVmDisksPanel'>
+  _renderDisks = () => {
+    return <Section icon='new-vm-disks' title='newVmDisksPanel' done={this._isInterfacesDone()}>
       <SectionContent column>
         {map(this.state.VBDs, (vbd, index) => <LineItem key={vbd.id}>
           <Item label='newVmSrLabel'>
@@ -377,10 +419,13 @@ export default class NewVm extends BaseComponent {
         </Item>
       </SectionContent>
     </Section>
-  )
+  }
+  _isDisksDone = () => {
+    return true
+  }
 
-  _renderSummary = () => (
-    <Section icon='new-vm-summary' title='newVmSummaryPanel' summary>
+  _renderSummary = () => {
+    return <Section icon='new-vm-summary' title='newVmSummaryPanel' summary>
       <SectionContent summary>
         <Item>
           0x{' '}
@@ -400,5 +445,6 @@ export default class NewVm extends BaseComponent {
         </Item>
       </SectionContent>
     </Section>
-  )
+  }
 }
+/* eslint-enable camelcase*/

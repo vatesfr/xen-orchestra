@@ -17,8 +17,6 @@ const Wizard = ({ children }) => {
 export { Wizard as default }
 
 @propTypes({
-  allDone: propTypes.bool,
-  done: propTypes.bool,
   icon: propTypes.string.isRequired,
   title: propTypes.string.isRequired
 })
