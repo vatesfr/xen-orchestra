@@ -125,6 +125,19 @@
     @extend .fa-toggle-off;
   }
 
+  &-asc {
+    @extend .fa;
+    @extend .fa-arrow-up;
+  }
+  &-desc {
+    @extend .fa;
+    @extend .fa-arrow-down;
+  }
+  &-sort {
+    @extend .fa;
+    @extend .fa-sort;
+  }
+
   &-connect {
     @extend .fa;
     @extend .fa-link;

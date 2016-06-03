@@ -15,7 +15,7 @@ const COLUMNS = [
   {
     name: _('vdiNameLabel'),
     itemRenderer: vdi => (
-      <div>
+      <span>
         <Text value={vdi.name_label} onChange={value => editVdi(vdi, { name_label: value })} />
         {' '}
         {vdi.type === 'VDI-snapshot' &&
@@ -23,7 +23,7 @@ const COLUMNS = [
             <Icon icon='vm-snapshot' />
           </span>
         }
-      </div>
+      </span>
     ),
     sortCriteria: vdi => vdi.name_label
   },
@@ -64,11 +64,8 @@ export default ({
   <Row>
     <Col mediumSize={12}>
       {!isEmpty(vdis)
-        ? (
-        <span>
-          <SortedTable collection={vdis} columns={COLUMNS} defaultColumn={0} />
-        </span>
-        ) : <h4 className='text-xs-center'>{_('srNoVdis')}</h4>
+        ? <SortedTable collection={vdis} columns={COLUMNS} defaultColumn={0} />
+        : <h4 className='text-xs-center'>{_('srNoVdis')}</h4>
       }
     </Col>
   </Row>
