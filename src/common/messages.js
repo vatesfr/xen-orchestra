@@ -198,7 +198,7 @@ export const messages = {
     defaultMessage: 'Import VM'
   },
   homeImportVmMessage: {
-    defaultMessage: 'Import an existng VM in xva format'
+    defaultMessage: 'Import an existing VM in xva format'
   },
   homeRestoreBackup: {
     defaultMessage: 'Restore a backup'
