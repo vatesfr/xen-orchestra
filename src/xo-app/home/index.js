@@ -2,6 +2,7 @@ import _ from 'messages'
 import * as complexMatcher from 'complex-matcher'
 import ActionButton from 'action-button'
 import ceil from 'lodash/ceil'
+import CenterPanel from 'center-panel'
 import debounce from 'lodash/debounce'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import forEach from 'lodash/forEach'
@@ -45,13 +46,14 @@ import {
 } from 'utils'
 import {
   createCounter,
+  createFilter,
   createGetObject,
   createGetObjectsOfType,
   createGetTags,
-  createFilter,
-  createSort,
   createPager,
-  createSelector
+  createSelector,
+  createSort,
+  getAreObjectsFetched
 } from 'selectors'
 
 import {
@@ -203,6 +205,7 @@ class VmItem extends Component {
 const VMS_PER_PAGE = 20
 
 @connectStore({
+  fetched: getAreObjectsFetched,
   pools: createGetObjectsOfType('pool').sort(),
   hosts: createGetObjectsOfType('host').sort(),
   vms: createGetObjectsOfType('VM'),
@@ -335,9 +338,68 @@ export default class Home extends Component {
   }
 
   render () {
+    if (!this.props.fetched) {
+      return <CenterPanel>
+        <h2><Icon icon='loading' /> {_('homeFetchingData')}</h2>
+      </CenterPanel>
+    }
+    if (!this.props.hosts.length) {
+      return <div className='text-xs-center'>
+        <h2>{_('homeWelcome')}</h2>
+        <Link to='/settings/servers' className='btn btn-link'>
+          <Icon icon='pool' size={4} />
+          <h4>{_('homeAddServer')}</h4>
+          <p className='text-muted'>{_('homeWelcomeText')}</p>
+        </Link>
+        <br /><br />
+        <h3>{_('homeHelp')}</h3>
+        <Row>
+          <Col mediumSize={6}>
+            <a href='https://xen-orchestra.com/docs/' target='_blank' className='btn btn-link'>
+              <Icon icon='menu-about' size={4} />
+              <h4>{_('homeOnlineDoc')}</h4>
+            </a>
+          </Col>
+          <Col mediumSize={6}>
+            <a href='https://xen-orchestra.com/#!/member/support' target='_blank' className='btn btn-link'>
+              <Icon icon='menu-settings-users' size={4} />
+              <h4>{_('homeProSupport')}</h4>
+            </a>
+          </Col>
+        </Row>
+      </div>
+    }
     const nVms = this.getNumberOfVms()
     if (!nVms) {
-      return <p>There are no VMs</p>
+      return <div className='text-xs-center'>
+        <h2>{_('homeNoVms')}</h2>
+        <Row>
+          <Col mediumSize={12}>
+            <Link to='/new/vm' className='btn btn-link'>
+              <Icon icon='vm' size={4} />
+              <h4>{_('homeNewVm')}</h4>
+              <p className='text-muted'>{_('homeNewVmMessage')}</p>
+            </Link>
+          </Col>
+        </Row>
+        <h2>{_('homeNoVmsOr')}</h2>
+        <Row>
+          <Col mediumSize={6}>
+            <Link to='/new/vm' className='btn btn-link'>
+              <Icon icon='menu-new-import' size={4} />
+              <h4>{_('homeImportVm')}</h4>
+              <p className='text-muted'>{_('homeImportVmMessage')}</p>
+            </Link>
+          </Col>
+          <Col mediumSize={6}>
+            <Link to='/new/vm' className='btn btn-link'>
+              <Icon icon='backup' size={4} />
+              <h4>{_('homeRestoreBackup')}</h4>
+              <p className='text-muted'>{_('homeRestoreBackupMessage')}</p>
+            </Link>
+          </Col>
+        </Row>
+      </div>
     }
 
     const selectedVmsIds = keys(this._isSelected)
