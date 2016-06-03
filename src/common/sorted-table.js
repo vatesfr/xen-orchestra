@@ -5,6 +5,8 @@ import map from 'lodash/map'
 import { createSort } from 'selectors'
 import { propTypes } from 'utils'
 
+import styles from './sorted-table.css'
+
 @propTypes({
   columnId: propTypes.number.isRequired,
   name: propTypes.any.isRequired,
@@ -24,22 +26,21 @@ class ColumnHead extends Component {
       return <th>{name}</th>
     }
 
-    let className = 'btn btn-link'
+    let className = styles.clickableColumn
 
-    // Background filled if column is selected.
     if (sortIcon === 'asc' || sortIcon === 'desc') {
       className += ' bg-info'
     }
 
     return (
-      <th>
-        <button
-          className={className}
-          onClick={this._sort}
-          type='button'
-        >
-          {name} <Icon icon={sortIcon} />
-        </button>
+      <th
+        className={className}
+        onClick={this._sort}
+      >
+        {name}
+        <span className='pull-xs-right'>
+          <Icon icon={sortIcon} />
+        </span>
       </th>
     )
   }
@@ -81,7 +82,7 @@ export default class SortedTable extends Component {
     this._sort(this.props.defaultColumn)
   }
 
-  _sort = (columnId) => {
+  _sort = columnId => {
     const { state } = this
     let sortOrder
 
