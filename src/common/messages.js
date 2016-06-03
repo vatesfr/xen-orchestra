@@ -167,6 +167,48 @@ export const messages = {
   },
 
   // ----- Home view ------
+  homeFetchingData: {
+    defaultMessage: 'Fetching data…'
+  },
+  homeWelcome: {
+    defaultMessage: 'Welcome on Xen Orchestra!'
+  },
+  homeWelcomeText: {
+    defaultMessage: 'Add your XenServer hosts or pools'
+  },
+  homeHelp: {
+    defaultMessage: 'Want some help?'
+  },
+  homeAddServer: {
+    defaultMessage: 'Add server'
+  },
+  homeOnlineDoc: {
+    defaultMessage: 'Online Doc'
+  },
+  homeProSupport: {
+    defaultMessage: 'Pro Support'
+  },
+  homeNoVms: {
+    defaultMessage: 'There are no VMs! Create one:'
+  },
+  homeNoVmsOr: {
+    defaultMessage: 'Or...'
+  },
+  homeImportVm: {
+    defaultMessage: 'Import VM'
+  },
+  homeImportVmMessage: {
+    defaultMessage: 'Import an existng VM in xva format'
+  },
+  homeRestoreBackup: {
+    defaultMessage: 'Restore a backup'
+  },
+  homeRestoreBackupMessage: {
+    defaultMessage: 'Restore a backup from a remote store'
+  },
+  homeNewVmMessage: {
+    defaultMessage: 'This will create a new VM'
+  },
   homeFilters: {
     defaultMessage: 'Filters'
   },

@@ -2,6 +2,7 @@ import _ from 'messages'
 import * as complexMatcher from 'complex-matcher'
 import ActionButton from 'action-button'
 import ceil from 'lodash/ceil'
+import CenterPanel from 'center-panel'
 import debounce from 'lodash/debounce'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import forEach from 'lodash/forEach'
@@ -13,7 +14,6 @@ import SingleLineRow from 'single-line-row'
 import size from 'lodash/size'
 import Tags from 'tags'
 import Tooltip from 'tooltip'
-import { CenterPanel } from 'center-panel'
 import React, { Component } from 'react'
 import {
   addTag,
@@ -58,7 +58,6 @@ import {
 
 import {
   Button,
-  ButtonGroup,
   DropdownButton,
   MenuItem,
   OverlayTrigger,
@@ -341,31 +340,65 @@ export default class Home extends Component {
   render () {
     if (!this.props.fetched) {
       return <CenterPanel>
-        <h4><Icon icon='loading' /> Fetching data…</h4>
+        <h2><Icon icon='loading' /> {_('homeFetchingData')}</h2>
       </CenterPanel>
     }
     if (!this.props.hosts.length) {
-      return <div style={{display: 'flex', height: '50%'}}>
-        <div style={{margin: 'auto'}} className='text-xs-center'>
-          <h2>Welcome on Xen Orchestra!</h2>
-          <p>Just connect to your XenServer hosts or pools:</p>
-          <Link to='/settings/servers' className='btn btn-success btn-lg'><span><Icon icon='pool' /> Add server</span></Link>
-          <img src='assets/logo.png' alt='XO logo' />
-          <h3>Want some help?</h3>
-          <ButtonGroup>
-            <a href='https://xen-orchestra.com/docs/' target='_blank' className='btn btn-info btn-lg'><span><Icon icon='menu-about' /> Online doc</span></a>
-            <a href='https://xen-orchestra.com/#!/member/support' target='_blank' className='btn btn-primary btn-lg'><span><Icon icon='menu-settings-users' /> Pro support</span></a>
-          </ButtonGroup>
-        </div>
+      return <div style={{marginTop: '3em', width: '100%'}} className='text-xs-center'>
+        <h2>{_('homeWelcome')}</h2>
+        <Link to='/settings/servers' className='btn btn-link'>
+          <Icon icon='pool' size={4} />
+          <h4>{_('homeAddServer')}</h4>
+          <p className='text-muted'>{_('homeWelcomeText')}</p>
+        </Link>
+        <br /><br />
+        <h3>{_('homeHelp')}</h3>
+        <Row>
+          <Col mediumSize={6}>
+            <a href='https://xen-orchestra.com/docs/' target='_blank' className='btn btn-link'>
+              <Icon icon='menu-about' size={4} />
+              <h4>{_('homeOnlineDoc')}</h4>
+            </a>
+          </Col>
+          <Col mediumSize={6}>
+            <a href='https://xen-orchestra.com/#!/member/support' target='_blank' className='btn btn-link'>
+              <Icon icon='menu-settings-users' size={4} />
+              <h4>{_('homeProSupport')}</h4>
+            </a>
+          </Col>
+        </Row>
       </div>
     }
     const nVms = this.getNumberOfVms()
     if (!nVms) {
-      return <div style={{display: 'flex', height: '100%'}}>
-        <div style={{margin: 'auto'}} className='text-xs-center'>
-          <h4>There are no VMs</h4>
-          <Link to='/new/vm' className='btn btn-primary btn-lg'><span><Icon icon='vm' /> Create a VM</span></Link>
-        </div>
+      return <div style={{marginTop: '3em', width: '100%'}} className='text-xs-center'>
+        <h2>{_('homeNoVms')}</h2>
+        <Row>
+          <Col mediumSize={12}>
+            <Link to='/new/vm' className='btn btn-link'>
+              <Icon icon='vm' size={4} />
+              <h4>{_('homeNewVm')}</h4>
+              <p className='text-muted'>{_('homeNewVmMessage')}</p>
+            </Link>
+          </Col>
+        </Row>
+        <h2>{_('homeNoVmsOr')}</h2>
+        <Row>
+          <Col mediumSize={6}>
+            <Link to='/new/vm' className='btn btn-link'>
+              <Icon icon='menu-new-import' size={4} />
+              <h4>{_('homeImportVm')}</h4>
+              <p className='text-muted'>{_('homeImportVmMessage')}</p>
+            </Link>
+          </Col>
+          <Col mediumSize={6}>
+            <Link to='/new/vm' className='btn btn-link'>
+              <Icon icon='backup' size={4} />
+              <h4>{_('homeRestoreBackup')}</h4>
+              <p className='text-muted'>{_('homeRestoreBackupMessage')}</p>
+            </Link>
+          </Col>
+        </Row>
       </div>
     }
 
