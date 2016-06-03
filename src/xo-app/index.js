@@ -24,6 +24,23 @@ import Tasks from './tasks'
 import User from './user'
 import Vm from './vm'
 
+const CONTAINER_STYLE = {
+  display: 'flex',
+  flexDirection: 'row',
+  minHeight: '100vh',
+
+  // FIXME: The size of `xo-main` matches the size of the window
+  // thanks to the, flex growing feature.
+  //
+  // Therefore, when there is a scrollbar on the right side, `xo-main`
+  // is too large (since the scrollbar uses a few, pixels) which makes
+  // an almost useless horizontal scrollbar appear.
+  overflow: 'hidden'
+}
+const BODY_STYLE = {
+  flex: 1
+}
+
 @routes('home', {
   about: About,
   backup: Backup,
@@ -61,20 +78,9 @@ export default class XoApp extends Component {
 
   render () {
     return <IntlProvider>
-      <div style={{
-        display: 'flex',
-        flexDirection: 'row',
-        minHeight: '100vh',
-        /* FIXME: 'The size of `xo-main` matches the size of the window thanks to the',
-         * flex growing feature.,
-         * Therefore, when there is a scrollbar on the right side,,
-         * `xo-main` is too large (since the scrollbar uses a few,
-         * pixels) which makes an almost useless horizontal scrollbar appear.,
-         */
-        overflow: 'hidden'
-      }}>
+      <div style={CONTAINER_STYLE}>
         <Menu ref='menu' />
-        <div ref='bodyWrapper' style={{flex: '1', padding: '1em'}}>
+        <div ref='bodyWrapper' style={BODY_STYLE}>
           {this.props.children}
         </div>
         <Modal />
