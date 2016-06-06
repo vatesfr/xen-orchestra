@@ -119,7 +119,7 @@ export class SchedulePreview extends Component {
 
     return (
       <div>
-        <div className='form-inline container-fluid p-b-1'>
+        <div className='form-inline p-b-1'>
           <Range min={MIN_PREVIEWS} max={MAX_PREVIEWS} onChange={this._handleChange} />
         </div>
         <ul className='list-group'>

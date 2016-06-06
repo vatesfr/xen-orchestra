@@ -3,8 +3,10 @@ import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import map from 'lodash/map'
 import React, { Component } from 'react'
-import { Password } from 'form'
+import { addSubscriptions } from 'utils'
+import { Container } from 'grid'
 import { Password as EditablePassword, Text } from 'editable'
+import { Password } from 'form'
 import {
   addServer,
   editServer,
@@ -13,7 +15,6 @@ import {
   removeServer,
   subscribeServers
 } from 'xo'
-import { addSubscriptions } from 'utils'
 
 @addSubscriptions({
   servers: subscribeServers
@@ -30,7 +31,7 @@ export default class Servers extends Component {
   render () {
     const { servers } = this.props
 
-    return <div className='container-fluid'>
+    return <Container>
       <table className='table table-striped'>
         <thead>
           <tr>
@@ -140,6 +141,6 @@ export default class Servers extends Component {
           Connect
         </ActionButton>
       </form>
-    </div>
+    </Container>
   }
 }

@@ -4,7 +4,7 @@ import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import map from 'lodash/map'
 import React, { Component } from 'react'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import {
   createCollectionWrapper,
   createCounter,
@@ -131,7 +131,7 @@ export default class Overview extends Component {
     const users = state && state.users
     const nUsers = users && Object.keys(users).length
 
-    return <div className='container-fluid'>
+    return <Container>
       {/* <h2>{_('overviewDashboardPage')}</h2> */}
       <Row>
         <Col mediumSize={4}>
@@ -300,6 +300,6 @@ export default class Overview extends Component {
           </div>
         </Col>
       </Row>
-    </div>
+    </Container>
   }
 }

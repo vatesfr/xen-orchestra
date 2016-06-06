@@ -8,7 +8,7 @@ import React, { Component } from 'react'
 import { confirm } from 'modal'
 import { deleteMessage, deleteVdi, deleteVm } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import {
   createGetObject,
   createGetObjectsOfType,
@@ -166,7 +166,7 @@ export default class Health extends Component {
   )
 
   render () {
-    return <div className='container-fluid'>
+    return <Container>
       <h2><Icon icon='menu-dashboard-health' /> {_('overviewHealthDashboardPage')}</h2>
       <Row>
         <Col>
@@ -326,6 +326,6 @@ export default class Health extends Component {
           </div>
         </Col>
       </Row>
-    </div>
+    </Container>
   }
 }

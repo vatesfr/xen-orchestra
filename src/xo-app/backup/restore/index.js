@@ -13,7 +13,7 @@ import { createGetObjectsOfType } from 'selectors'
 import { DropdownButton, MenuItem } from 'react-bootstrap-4/lib'
 import { FormattedDate } from 'react-intl'
 import { info, error } from 'notification'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 
 import {
   importBackup,
@@ -139,7 +139,7 @@ export default class Restore extends Component {
     } = this.props
 
     return (
-      <div className='container-fluid'>
+      <Container>
         <h2>Restore Backups</h2>
         {!remotes.length && <span>No remotes</span>}
         {map(remotes, (r, key) =>
@@ -204,7 +204,7 @@ export default class Restore extends Component {
             <hr />
           </div>
         )}
-      </div>
+      </Container>
       )
   }
 }
