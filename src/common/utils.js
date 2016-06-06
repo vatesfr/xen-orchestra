@@ -271,6 +271,24 @@ export const firstDefined = function () {
     }
   }
 }
+// -------------------------------------------------------------------
+
+// Returns the current XOA Plan
+export const getXoaPlan = () => {
+  switch (+process.env.XOA_PLAN) {
+    case 1:
+      return 'Free'
+    case 2:
+      return 'Starter'
+    case 3:
+      return 'Enterprise'
+    case 4:
+      return 'Premium'
+    case 5:
+      return 'Community'
+  }
+  return 'Unknown'
+}
 
 // -------------------------------------------------------------------
 

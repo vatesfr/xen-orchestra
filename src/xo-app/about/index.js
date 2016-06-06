@@ -6,24 +6,9 @@ import Link from 'react-router/lib/Link'
 import React from 'react'
 import { serverVersion } from 'xo'
 import { Container, Row, Col } from 'grid'
-
+import { getXoaPlan } from 'utils'
 import pkg from '../../../package'
 
-const _getXoaPlan = () => {
-  switch (+process.env.XOA_PLAN) {
-    case 1:
-      return 'Free'
-    case 2:
-      return 'Starter'
-    case 3:
-      return 'Enterprise'
-    case 4:
-      return 'Premium'
-    case 5:
-      return 'Community'
-  }
-  return 'Unknown'
-}
 export default class About extends Component {
   componentWillMount () {
     serverVersion.then(serverVersion => {
@@ -34,7 +19,7 @@ export default class About extends Component {
     return <Container className='text-xs-center'>
       <Row>
         <Col>
-          <h2>{_('aboutPage')} Xen Orchestra {_getXoaPlan()}</h2>
+          <h2>{_('aboutPage')} Xen Orchestra {getXoaPlan()}</h2>
         </Col>
       </Row>
       <Row>

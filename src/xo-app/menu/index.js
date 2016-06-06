@@ -7,27 +7,11 @@ import map from 'lodash/map'
 import React from 'react'
 import Tooltip from 'tooltip'
 import { Button } from 'react-bootstrap-4/lib'
-import { connectStore, noop } from 'utils'
+import { connectStore, noop, getXoaPlan } from 'utils'
 import { createGetObjectsOfType, getLang, getUser } from 'selectors'
 import { signOut } from 'xo'
 
 import styles from './index.css'
-
-const _getXoaPlan = () => {
-  switch (+process.env.XOA_PLAN) {
-    case 1:
-      return 'Free'
-    case 2:
-      return 'Starter'
-    case 3:
-      return 'Enterprise'
-    case 4:
-      return 'Premium'
-    case 5:
-      return 'Community'
-  }
-  return 'Unknown'
-}
 
 @connectStore(() => ({
   // FIXME: remove when fixed in React.
@@ -153,7 +137,7 @@ export default class Menu extends Component {
                 </span>
                 : <span>
                   <span className={classNames(styles.hiddenCollapsed, 'text-success')}>
-                    <Icon icon='info' size='lg' fixedWidth /> {_getXoaPlan()}
+                    <Icon icon='info' size='lg' fixedWidth /> {getXoaPlan()}
                   </span>
                   <span className={classNames(styles.hiddenUncollapsed, 'text-success')}>
                     <Icon icon='info' size='lg' fixedWidth />
