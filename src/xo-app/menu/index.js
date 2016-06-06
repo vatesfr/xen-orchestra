@@ -13,6 +13,22 @@ import { signOut } from 'xo'
 
 import styles from './index.css'
 
+const _getXoaPlan = () => {
+  switch (+process.env.XOA_PLAN) {
+    case 1:
+      return 'Free'
+    case 2:
+      return 'Starter'
+    case 3:
+      return 'Enterprise'
+    case 4:
+      return 'Premium'
+    case 5:
+      return 'Community'
+  }
+  return 'Unknown'
+}
+
 @connectStore(() => ({
   // FIXME: remove when fixed in React.
   //
@@ -83,13 +99,13 @@ export default class Menu extends Component {
         { to: '/settings/plugins', icon: 'settings-plugins', label: 'settingsPluginsPage' }
       ]},
       { to: '/about', icon: 'about', label: 'aboutPage' },
+      { to: '/tasks', icon: 'tasks', label: 'taskMenu', pill: nTasks },
       { to: '/new/vm', icon: 'new', label: 'newMenu', subMenu: [
         { to: '/new/vm', icon: 'new-vm', label: 'newVmPage' },
         { to: '/new/sr', icon: 'new-sr', label: 'newSrPage' },
         { to: '/settings/servers', icon: 'settings-servers', label: 'newServerPage' },
         { to: '/import', icon: 'new-import', label: 'newImport' }
-      ]},
-      { to: '/tasks', icon: 'tasks', label: 'taskMenu', pill: nTasks }
+      ]}
     ]
 
     return <div className={classNames(
@@ -113,6 +129,39 @@ export default class Menu extends Component {
         {map(items, (item, index) =>
           <MenuLinkItem key={index} item={item} />
         )}
+        <li>&nbsp;</li>
+        <li>&nbsp;</li>
+        <li className='nav-item xo-menu-item'>
+          <Link className='nav-link' style={{display: 'flex'}} to={'/about'}>
+            {+process.env.XOA_PLAN === 5
+              ? <span>
+                <span className={classNames(styles.hiddenCollapsed, 'text-warning')}>
+                  <Icon icon='alarm' size='lg' fixedWidth /> No support
+                </span>
+                <span className={classNames(styles.hiddenUncollapsed, 'text-warning')}>
+                  <Icon icon='alarm' size='lg' fixedWidth />
+                </span>
+              </span>
+              : +process.env.XOA_PLAN === 1
+                ? <span>
+                  <span className={classNames(styles.hiddenCollapsed, 'text-warning')}>
+                    <Icon icon='info' size='lg' fixedWidth /> Free upgrade!
+                  </span>
+                  <span className={classNames(styles.hiddenUncollapsed, 'text-warning')}>
+                    <Icon icon='info' size='lg' fixedWidth />
+                  </span>
+                </span>
+                : <span>
+                  <span className={classNames(styles.hiddenCollapsed, 'text-success')}>
+                    <Icon icon='info' size='lg' fixedWidth /> {_getXoaPlan()}
+                  </span>
+                  <span className={classNames(styles.hiddenUncollapsed, 'text-success')}>
+                    <Icon icon='info' size='lg' fixedWidth />
+                  </span>
+                </span>
+            }
+          </Link>
+        </li>
         <li>&nbsp;</li>
         <li>&nbsp;</li>
         <li className='nav-item xo-menu-item'>
