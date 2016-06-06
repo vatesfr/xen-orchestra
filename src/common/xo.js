@@ -211,6 +211,11 @@ export const serverVersion = _signIn.then(() => xo.call('system.getServerVersion
 
 // ===================================================================
 
+const resolveId = value =>
+  (value != null && typeof value === 'object' && 'id' in value)
+    ? value.id
+    : value
+
 const resolveIds = params => {
   for (const key in params) {
     const param = params[key]
@@ -894,8 +899,8 @@ export const deleteUser = user => (
   )
 )
 
-export const updateUser = (id, {email = undefined, password = undefined, permission = undefined}) => (
-  xo.call('user.set', resolveIds({id, email, password, permission}))::tap(
+export const editUser = (user, { email, password, permission }) => (
+  xo.call('user.set', { id: resolveId(user), email, password, permission })::tap(
     subscribeUsers.forceRefresh
   )
 )

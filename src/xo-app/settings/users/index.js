@@ -8,6 +8,7 @@ import { addSubscriptions } from 'utils'
 import { confirm } from 'modal'
 import { error } from 'notification'
 import { Password } from 'form'
+import * as Editable from 'editable'
 
 import {
   createUser,
@@ -82,21 +83,19 @@ class UserTableRow extends Component {
     }
   }
 
+  _setEmail = email => updateUser(this.props.user, { email })
+  _setPermission = permission => updateUser(this.props.user, { permission })
+  _setPassword = password => updateUser(this.props.user, { password })
+
   render () {
     const { user } = this.props
-    return <tr className='form-inline'>
+    return <tr>
       <td>
-        <div className='form-group'>
-          <input
-            type='text'
-            ref='email'
-            className='form-control'
-            placeholder='email'
-            required
-            defaultValue={user.email}
-            onChange={this._handleChange}
-          />
-        </div>
+        <Editable.Text
+          onChange={this._setEmail}
+          placeholder='email'
+          value={user.email}
+        />
       </td>
       <td>
         <div className='form-group'>
@@ -112,11 +111,10 @@ class UserTableRow extends Component {
         </div>
       </td>
       <td>
-        <Password
-          placeholder='password (refill to change)'
-          ref='password'
-          required
-          onChange={this._handleChange}
+        <Editable.Password
+          onChange={this._setPassword}
+          placeholder='password'
+          value=''
         />
       </td>
       <td>
@@ -150,7 +148,7 @@ export default class Users extends Component {
     const { users } = this.props
 
     return <div>
-      <table className='table'>
+      <table className='table table-striped'>
         <thead>
           <tr>
             <th>Email</th>
@@ -196,7 +194,7 @@ export default class Users extends Component {
           />
         </div>
         {' '}
-        <ActionButton type='submit' form='newUserForm' icon='add' btnStyle='success' handler={this._create}>Create</ActionButton>
+        <ActionButton form='newUserForm' icon='add' btnStyle='success' handler={this._create}>Create</ActionButton>
       </form>
     </div>
   }
