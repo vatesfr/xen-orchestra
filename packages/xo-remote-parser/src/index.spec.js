@@ -8,65 +8,53 @@ import { parse, format } from './'
 
 // ===================================================================
 
-const FILE_FIXED = {
-  url: 'file:///var/lib/xoa/backup',
-  type: 'local',
-  path: '/var/lib/xoa/backup'
-}
-
-const SMB = {
-  url: 'smb://Administrator:password@toto\\\\192.168.100.225\\smb\0',
-  type: 'smb',
-  host: '192.168.100.225\\smb',
-  path: undefined,
-  domain: 'toto',
-  username: 'Administrator',
-  password: 'password'
-}
-
-const SMB_AROBAS = {
-  url: 'smb://Administrator:pass@word@toto\\\\192.168.100.225\\smb\0',
-  type: 'smb',
-  host: '192.168.100.225\\smb',
-  path: undefined,
-  domain: 'toto',
-  username: 'Administrator',
-  password: 'pass@word'
-}
-
-const SMB_COLON = {
-  url: 'smb://Administrator:pass:word@toto\\\\192.168.100.225\\smb\0',
-  type: 'smb',
-  host: '192.168.100.225\\smb',
-  path: undefined,
-  domain: 'toto',
-  username: 'Administrator',
-  password: 'pass:word'
-}
-
-const parseData = {
-  file: {
-    url: 'file://var/lib/xoa/backup', // Remotes formatted before fixing #7 will not break when reparses
-    type: 'local',
-    path: '/var/lib/xoa/backup'
-  },
-  fileFixed: FILE_FIXED,
-  smb: SMB,
-  'smb@inPassword': SMB_AROBAS,
-  'smb:inPassword': SMB_COLON
-}
-
-const formatData = {
+// Data used for both parse and format (i.e. correctly formatted).
+const data = {
   file: {
     url: 'file:///var/lib/xoa/backup',
     type: 'local',
     path: '/var/lib/xoa/backup'
   },
-  fileFixed: FILE_FIXED,
-  smb: SMB,
-  'smb@inPassword': SMB_AROBAS,
-  'smb:inPassword': SMB_COLON
+  SMB: {
+    url: 'smb://Administrator:password@toto\\\\192.168.100.225\\smb\0',
+    type: 'smb',
+    host: '192.168.100.225\\smb',
+    path: undefined,
+    domain: 'toto',
+    username: 'Administrator',
+    password: 'password'
+  },
+  'SMB with @ sign in password': {
+    url: 'smb://Administrator:pass@word@toto\\\\192.168.100.225\\smb\0',
+    type: 'smb',
+    host: '192.168.100.225\\smb',
+    path: undefined,
+    domain: 'toto',
+    username: 'Administrator',
+    password: 'pass@word'
+  },
+  'SMB with colon in password': {
+    url: 'smb://Administrator:pass:word@toto\\\\192.168.100.225\\smb\0',
+    type: 'smb',
+    host: '192.168.100.225\\smb',
+    path: undefined,
+    domain: 'toto',
+    username: 'Administrator',
+    password: 'pass:word'
+  }
 }
+
+const parseData = {
+  ...data,
+
+  'file with missing leading slash (#7)': {
+    url: 'file://var/lib/xoa/backup',
+    type: 'local',
+    path: '/var/lib/xoa/backup'
+  }
+}
+
+const formatData = data
 
 // -------------------------------------------------------------------
 
