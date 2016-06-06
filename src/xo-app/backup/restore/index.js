@@ -139,15 +139,15 @@ export default class Restore extends Component {
     } = this.props
 
     return (
-      <div>
-        <h1>Restore</h1>
+      <div className='container-fluid'>
+        <h2>Restore Backups</h2>
         {!remotes.length && <span>No remotes</span>}
         {map(remotes, (r, key) =>
           <div key={key}>
-            <Link to='settings/remotes'>{r.name}</Link>
+            <Link to='/settings/remotes'>{r.name}</Link>
             {' '}
             {r.enabled && <span className='tag tag-success'>enabled</span>}
-            {r.error && <span className='text-danger'> (on error)</span>}
+            {r.error && <span className='tag tag-danger'>on error</span>}
             <span className='pull-right'>
               <ActionButton disabled={!r.enabled} icon='refresh' btnStyle='default' handler={this._list} handlerParam={r.id} />
             </span>
