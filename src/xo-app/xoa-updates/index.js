@@ -1,17 +1,16 @@
 import ActionButton from 'action-button'
 import ansiUp from 'ansi_up'
 import assign from 'lodash/assign'
+import BaseComponent from 'base-component'
+import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
-import React, { Component } from 'react'
+import React from 'react'
 import xoaUpdater, { exposeTrial, isTrialRunning } from 'xoa-updater'
 import { confirm } from 'modal'
 import { connectStore } from 'utils'
+import { error } from 'notification'
 import { FormattedDate } from 'react-intl'
 import { Password } from 'form'
-import isEmpty from 'lodash/isEmpty'
-import { error } from 'notification'
-
-xoaUpdater.start()
 
 const states = {
   disconnected: 'Disconnected',
@@ -23,6 +22,9 @@ const states = {
   error: 'An error occured'
 }
 
+const update = () => xoaUpdater.update()
+const upgrade = () => xoaUpdater.upgrade()
+
 @connectStore((state) => {
   return {
     configuration: state.xoaConfiguration,
@@ -32,12 +34,7 @@ const states = {
     trial: state.xoaTrialState
   }
 })
-export default class XoaUpdates extends Component {
-  constructor () {
-    super()
-    this.state = {}
-  }
-
+export default class XoaUpdates extends BaseComponent {
   // These 3 inputs are "controlled" http://facebook.github.io/react/docs/forms.html#controlled-components
   _handleProxyHostChange = event => this.setState({proxyHost: event.target.value || ''})
   _handleProxyPortChange = event => this.setState({proxyPort: event.target.value || ''})
@@ -96,6 +93,11 @@ export default class XoaUpdates extends Component {
     })
   }
 
+  _trialAllowed = trial => trial.state === 'default' && exposeTrial(trial.trial)
+  _trialAvailable = trial => trial.state === 'default' && isTrialRunning(trial.trial)
+  _trialConsumed = trial => trial.state === 'default' && !isTrialRunning(trial.trial) && !exposeTrial(trial.trial)
+  _updaterDown = trial => isEmpty(trial) || trial.state === 'ERROR'
+
   _startTrial = async () => {
     try {
       await confirm({
@@ -143,14 +145,14 @@ export default class XoaUpdates extends Component {
         {' '}
         <ActionButton
           btnStyle='info'
-          handler={() => xoaUpdater.update()}
+          handler={update}
           icon='refresh'>
           Update
         </ActionButton>
         {' '}
         <ActionButton
           btnStyle='primary'
-          handler={() => xoaUpdater.upgrade()}
+          handler={upgrade}
           icon='upgrade'>
           Upgrade
         </ActionButton>
@@ -169,7 +171,6 @@ export default class XoaUpdates extends Component {
             <input
               className='form-control'
               placeholder='Host (myproxy.example.org)'
-              required
               type='text'
               value={configuration.proxyHost}
               onChange={this._handleProxyHostChange}
@@ -180,7 +181,6 @@ export default class XoaUpdates extends Component {
             <input
               className='form-control'
               placeholder='Port (3128 ?...)'
-              required
               type='text'
               value={configuration.proxyPort}
               onChange={this._handleProxyPortChange}
@@ -191,7 +191,6 @@ export default class XoaUpdates extends Component {
             <input
               className='form-control'
               placeholder='User name'
-              required
               type='text'
               value={configuration.proxyUser}
               onChange={this._handleProxyUserChange}
@@ -200,16 +199,14 @@ export default class XoaUpdates extends Component {
           {' '}
           <div className='form-group'>
             <Password
-              enableGenerator={false}
               placeholder='password'
-              required
               ref='proxyPassword'
             />
           </div>
         </fieldset>
         <br />
         <fieldset>
-          <ActionButton type='submit' icon='save' btnStyle='primary' handler={this._configure}>Save</ActionButton>
+          <ActionButton icon='save' btnStyle='primary' handler={this._configure}>Save</ActionButton>
           {' '}
           <button type='button' className='btn btn-default' onClick={this._handleConfigReset} disabled={!configEdited}>Reset</button>
         </fieldset>
@@ -220,7 +217,7 @@ export default class XoaUpdates extends Component {
         {registration.email && <span> to {registration.email}</span>}
         <span className='text-danger'>{registration.error}</span>
       </p>
-      <form className='form-inline'>
+      <form id='registrationForm' className='form-inline'>
         <div className='form-group'>
           <input
             className='form-control'
@@ -233,47 +230,52 @@ export default class XoaUpdates extends Component {
         {' '}
         <div className='form-group'>
           <Password
-            enableGenerator={false}
             placeholder='password'
             ref='password'
             required
           />
         </div>
         {' '}
-        <ActionButton type='submit' icon='success' btnStyle='primary' handler={this._register}>Register</ActionButton>
+        <ActionButton form='registrationForm' icon='success' btnStyle='primary' handler={this._register}>Register</ActionButton>
       </form>
-      {/* FREE ONLY */}
-      <h2>Trial</h2>
-      {trial.state === 'default' && exposeTrial(trial.trial) &&
+      {process.env.XOA_PLAN === 1 &&
         <div>
-          {registration.state !== 'registered' && <p>Please, take time to register to enjoy your trial.</p>}
-          {registration.state === 'registered' &&
-            <ActionButton btnStyle='success' handler={this._startTrial} icon='trial'>Start trial</ActionButton>
+          <h2>Trial</h2>
+          {this._trialAllowed(trial) &&
+            <div>
+              {registration.state !== 'registered' && <p>Please, take time to register to enjoy your trial.</p>}
+              {registration.state === 'registered' &&
+                <ActionButton btnStyle='success' handler={this._startTrial} icon='trial'>Start trial</ActionButton>
+              }
+            </div>
+          }
+          {this._trialAvailable(trial) &&
+            <p className='text-success'>You can use a trial version until <FormattedDate value={new Date(trial.trial.end)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />. Upgrade your appliance to get it.</p>
+          }
+          {this._trialConsumed(trial) &&
+            <p>Your trial has been consumed and period is over</p>
           }
         </div>
       }
-      {trial.state === 'default' && isTrialRunning(trial.trial) &&
-        <p className='text-success'>You can use a trial version until <FormattedDate value={new Date(trial.trial.end)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />. Upgrade your appliance to get it.</p>
+      {(process.env.XOA_PLAN > 1 && process.env.XOA_PLAN < 5) &&
+        <div>
+          {trial.state === 'trustedTrial' &&
+            <p>{trial.message}</p>
+          }
+          {trial.state === 'untrustedTrial' &&
+            <p className='text-danger'>{trial.message}</p>
+          }
+        </div>
       }
-      {trial.state === 'default' && !isTrialRunning(trial.trial) && !exposeTrial(trial.trial) &&
-        <p>Your trial has been consumed and period is over</p>
+      {process.env.XOA_PLAN < 5 &&
+        <div>
+          {this._updaterDown(trial) &&
+            <p className='text-danger'>
+              Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service.
+            </p>
+          }
+        </div>
       }
-      {/* END of FREE ONLY */}
-      {/* STARTER, ENTERPRISE, PREMIUM ONLY*/}
-      {trial.state === 'trustedTrial' &&
-        <p>{trial.message}</p>
-      }
-      {trial.state === 'untrustedTrial' &&
-        <p className='text-danger'>{trial.message}</p>
-      }
-      {/* END of STARTER, ENTERPRISE, PREMIUM ONLY*/}
-      {/* FREE, STARTER, ENTERPRISE, PREMIUM ONLY*/}
-      {isEmpty(trial) || trial.state === 'ERROR' &&
-        <p className='text-danger'>
-          Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service.
-        </p>
-      }
-      {/* END of FREE, STARTER, ENTERPRISE, PREMIUM ONLY*/}
     </div>
   }
 }

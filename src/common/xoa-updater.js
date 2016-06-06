@@ -390,6 +390,7 @@ class XoaUpdater extends EventEmitter {
 }
 
 const xoaUpdater = new XoaUpdater()
+xoaUpdater.start()
 
 export default xoaUpdater
 
