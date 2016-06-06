@@ -9,7 +9,6 @@ import isPlainObject from 'lodash/isPlainObject'
 import isString from 'lodash/isString'
 import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
-import pick from 'lodash/fp/pick'
 import React, { cloneElement, PropTypes } from 'react'
 import { connect } from 'react-redux'
 
@@ -150,10 +149,6 @@ export const checkPropsState = (propsNames, stateNames) => Component => {
 const _normalizeMapStateToProps = mapper => {
   if (isFunction(mapper)) {
     return mapper
-  }
-
-  if (isArray(mapper)) {
-    return pick(mapper)
   }
 
   mapper = mapValues(mapper, _normalizeMapStateToProps)

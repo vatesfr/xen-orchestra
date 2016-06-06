@@ -1,9 +1,10 @@
-import { autobind, connectStore } from 'utils'
 import React, { Component } from 'react'
+import { autobind, connectStore } from 'utils'
+import { getUser } from 'selectors'
 
-@connectStore([
-  'user'
-])
+@connectStore({
+  user: getUser
+})
 export default class User extends Component {
   @autobind
   handleSelectLang (event) {

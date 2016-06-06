@@ -8,7 +8,7 @@ import React from 'react'
 import Tooltip from 'tooltip'
 import { Button } from 'react-bootstrap-4/lib'
 import { connectStore, noop } from 'utils'
-import { createGetObjectsOfType } from 'selectors'
+import { createGetObjectsOfType, getLang, getUser } from 'selectors'
 import { signOut } from 'xo'
 
 import styles from './index.css'
@@ -22,10 +22,10 @@ import styles from './index.css'
     //
     // There are currently issues between context updates (used by
     // react-intl) and pure components.
-    lang: state.lang,
+    lang: getLang(state, props),
 
     nTasks: getNumberOfTasks(state, props),
-    user: state.user
+    user: getUser(state, props)
   })
 }, {
   withRef: true
