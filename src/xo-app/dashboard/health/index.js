@@ -20,19 +20,14 @@ import {
   noop
 } from 'utils'
 
-const AlarmMessage = connectStore(() => {
-  const object = createGetObject(
+const AlarmMessage = connectStore(() => ({
+  object: createGetObject(
     (_, props) => props.message.$object
-  )
-  const pool = createGetObject(
+  ),
+  pool: createGetObject(
     (_, props) => props.message.$pool
   )
-
-  return (state, props) => ({
-    object: object(state, props),
-    pool: pool(state, props)
-  })
-})(({ message, object, pool }) =>
+}))(({ message, object, pool }) =>
   <tr>
     <td><FormattedTime value={message.time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={message.time * 1000} />)</td>
     <td>{message.body}</td>
@@ -49,15 +44,11 @@ const AlarmMessage = connectStore(() => {
   </tr>
 )
 
-const OrphanVdiSnapshot = connectStore(() => {
-  const sr = createGetObject(
+const OrphanVdiSnapshot = connectStore(() => ({
+  sr: createGetObject(
     (_, props) => props.vdi.$SR
   )
-
-  return (state, props) => ({
-    sr: sr(state, props)
-  })
-})(({ vdi, sr }) =>
+}))(({ vdi, sr }) =>
   <tr>
     <td>
       <FormattedTime
@@ -84,15 +75,11 @@ const OrphanVdiSnapshot = connectStore(() => {
   </tr>
 )
 
-const OrphanVmSnapshot = connectStore(() => {
-  const container = createGetObject(
+const OrphanVmSnapshot = connectStore(() => ({
+  container: createGetObject(
     (_, props) => props.vm.$container
   )
-
-  return (state, props) => ({
-    container: container(state, props)
-  })
-})(({ container, vm }) =>
+}))(({ container, vm }) =>
   <tr>
     <td><FormattedTime value={vm.snapshot_time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={vm.snapshot_time * 1000} />)</td>
     <td>{vm.name_label}</td>
@@ -109,15 +96,11 @@ const OrphanVmSnapshot = connectStore(() => {
   </tr>
 )
 
-const Sr = connectStore(() => {
-  const container = createGetObject(
+const Sr = connectStore(() => ({
+  container: createGetObject(
     (_, props) => props.sr.$container
   )
-
-  return (state, props) => ({
-    container: container(state, props)
-  })
-})(({ container, sr }) =>
+}))(({ container, sr }) =>
   <tr>
     <td>{sr.name_label}</td>
     <td>{container.name_label}</td>
@@ -148,13 +131,13 @@ const Sr = connectStore(() => {
   const getAlertMessages = createGetObjectsOfType('message')
     .filter([ message => message.name === 'ALARM' ])
 
-  return (state, props) => ({
-    alertMessages: getAlertMessages(state, props),
-    userSrs: getUserSrs(state, props),
-    vdiOrphaned: getOrphanVdiSnapshots(state, props),
-    vdiSr: getVdiSrs(state, props),
-    vmOrphaned: getOrphanVmSnapshots(state, props)
-  })
+  return {
+    alertMessages: getAlertMessages,
+    userSrs: getUserSrs,
+    vdiOrphaned: getOrphanVdiSnapshots,
+    vdiSr: getVdiSrs,
+    vmOrphaned: getOrphanVmSnapshots
+  }
 })
 export default class Health extends Component {
   _deleteOrphanedVdis = () => (

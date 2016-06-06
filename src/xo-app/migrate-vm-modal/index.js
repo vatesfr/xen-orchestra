@@ -49,14 +49,14 @@ import styles from './index.css'
   const getSrs = createGetObjectsOfType('SR')
   const getPools = createGetObjectsOfType('pool')
 
-  return (state, props) => ({
-    networks: getNetworks(state, props),
-    pifs: getPifs(state, props),
-    pools: getPools(state, props),
-    srs: getSrs(state, props),
-    vdis: getVdis(state, props),
-    vifs: getVifs(state, props)
-  })
+  return {
+    networks: getNetworks,
+    pifs: getPifs,
+    pools: getPools,
+    srs: getSrs,
+    vdis: getVdis,
+    vifs: getVifs
+  }
 }, { withRef: true })
 export default class MigrateVmModalBody extends Component {
   constructor (props) {

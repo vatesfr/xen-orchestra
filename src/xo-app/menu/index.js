@@ -13,21 +13,18 @@ import { signOut } from 'xo'
 
 import styles from './index.css'
 
-@connectStore(() => {
-  const getNumberOfTasks = createGetObjectsOfType('task').count(
-    [ task => task.status === 'pending' ]
-  )
-  return (state, props) => ({
-    // FIXME: remove when fixed in React.
-    //
-    // There are currently issues between context updates (used by
-    // react-intl) and pure components.
-    lang: getLang(state, props),
+@connectStore(() => ({
+  // FIXME: remove when fixed in React.
+  //
+  // There are currently issues between context updates (used by
+  // react-intl) and pure components.
+  lang: getLang,
 
-    nTasks: getNumberOfTasks(state, props),
-    user: getUser(state, props)
-  })
-}, {
+  nTasks: createGetObjectsOfType('task').count(
+    [ task => task.status === 'pending' ]
+  ),
+  user: getUser
+}), {
   withRef: true
 })
 export default class Menu extends Component {

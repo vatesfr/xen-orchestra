@@ -82,14 +82,10 @@ const getSrPath = id => `/sr/${id}`
 // ===================================================================
 
 @injectIntl
-@connectStore(() => {
-  const hosts = createGetObjectsOfType('host')
-  const srs = createGetObjectsOfType('SR')
-  return (state, props) => ({
-    hosts: hosts(state, props),
-    srs: srs(state, props)
-  })
-})
+@connectStore(() => ({
+  hosts: createGetObjectsOfType('host'),
+  srs: createGetObjectsOfType('SR')
+}))
 export default class New extends Component {
   constructor (props) {
     super(props)

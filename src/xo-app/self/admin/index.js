@@ -109,10 +109,10 @@ const Hosts = propTypes({
   const getHosts = createGetObjectsOfType('host').sort()
   const getHostsByPool = getHosts.groupBy('$pool')
 
-  return (state, props) => ({
-    hosts: getHosts(state, props),
-    hostsByPool: getHostsByPool(state, props)
-  })
+  return {
+    hosts: getHosts,
+    hostsByPool: getHostsByPool
+  }
 })
 @injectIntl
 class Edit extends Component {

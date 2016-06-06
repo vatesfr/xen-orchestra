@@ -10,13 +10,9 @@ import {
   createSelector
 } from 'selectors'
 
-export const TaskItem = connectStore(() => {
-  const getHost = createGetObject((_, props) => props.task.$host)
-
-  return (state, props) => ({
-    host: getHost(state, props)
-  })
-})(({ task, host }) => <li>
+export const TaskItem = connectStore(() => ({
+  host: createGetObject((_, props) => props.task.$host)
+}))(({ task, host }) => <li>
   {task.name_label} @{task.progress} (<Link to={`/hosts/${host.id}`}>{host.name_label}</Link>)
 </li>)
 

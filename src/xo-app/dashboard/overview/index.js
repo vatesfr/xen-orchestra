@@ -108,18 +108,16 @@ import {
     getVms
   )
 
-  return (state, props) => {
-    return {
-      hostMetrics: getHostMetrics(state, props),
-      nAlarmMessages: getNumberOfAlarmMessages(state, props),
-      nHosts: getNumberOfHosts(state, props),
-      nPools: getNumberOfPools(state, props),
-      nTasks: getNumberOfTasks(state, props),
-      nVms: getNumberOfVms(state, props),
-      srMetrics: getSrMetrics(state, props),
-      userSrs: userSrs(state, props),
-      vmMetrics: getVmMetrics(state, props)
-    }
+  return {
+    hostMetrics: getHostMetrics,
+    nAlarmMessages: getNumberOfAlarmMessages,
+    nHosts: getNumberOfHosts,
+    nPools: getNumberOfPools,
+    nTasks: getNumberOfTasks,
+    nVms: getNumberOfVms,
+    srMetrics: getSrMetrics,
+    userSrs: userSrs,
+    vmMetrics: getVmMetrics
   }
 })
 export default class Overview extends Component {

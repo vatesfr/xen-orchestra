@@ -19,12 +19,7 @@ import { createGetObject, createSelector } from 'selectors'
     )
   )
 
-  return (state, props) => {
-    return {
-      host: host(state, props),
-      pif: pif(state, props)
-    }
-  }
+  return { host, pif }
 })
 class PifItem extends Component {
   render () {

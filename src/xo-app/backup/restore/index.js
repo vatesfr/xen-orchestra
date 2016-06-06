@@ -40,14 +40,11 @@ const deltaBuilder = (backups, tag, id, value) => {
 
 const isEmptyRemote = remote => !remote.backups || !(size(remote.backups.delta) || size(remote.backups.other))
 
-@connectStore(() => {
-  const writableSrs = createGetObjectsOfType('SR').filter(
+@connectStore(() => ({
+  writableSrs: createGetObjectsOfType('SR').filter(
     [ sr => sr.content_type !== 'iso' ]
   ).sort()
-  return (state, props) => {
-    return { writableSrs: writableSrs(state, props) }
-  }
-})
+}))
 export default class Restore extends Component {
   constructor (props) {
     super(props)

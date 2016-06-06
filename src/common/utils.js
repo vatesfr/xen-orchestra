@@ -1,9 +1,11 @@
 import * as actions from 'store/actions'
 import assign from 'lodash/assign'
+import every from 'lodash/every'
 import forEach from 'lodash/forEach'
 import humanFormat from 'human-format'
 import includes from 'lodash/includes'
 import isArray from 'lodash/isArray'
+import isEmpty from 'lodash/isEmpty'
 import isFunction from 'lodash/isFunction'
 import isPlainObject from 'lodash/isPlainObject'
 import isString from 'lodash/isString'
@@ -148,7 +150,33 @@ export const checkPropsState = (propsNames, stateNames) => Component => {
 
 const _normalizeMapStateToProps = mapper => {
   if (isFunction(mapper)) {
-    return mapper
+    let factoryOrMapper = (state, props) => {
+      const result = mapper(state, props)
+
+      // Properly handles factory pattern.
+      if (isFunction(result)) {
+        mapper = result
+        return factoryOrMapper
+      }
+
+      if (isPlainObject(result)) {
+        if (isEmpty(result)) {
+          // Nothing can be determined, wait for it.
+          return result
+        }
+
+        if (every(result, isFunction)) {
+          indirection = (state, props) => mapValues(result, selector => selector(state, props))
+          return indirection(state, props)
+        }
+      }
+
+      indirection = mapper
+      return result
+    }
+
+    let indirection = factoryOrMapper
+    return (state, props) => indirection(state, props)
   }
 
   mapper = mapValues(mapper, _normalizeMapStateToProps)

@@ -60,10 +60,9 @@ const jobKeyToLabel = {
 
 const LOGS_PER_PAGE = 10
 
-@connectStore(() => {
-  const object = createGetObject((_, props) => props.value)
-  return (state, props) => ({object: object(state, props)})
-})
+@connectStore(() => ({
+  object: createGetObject((_, props) => props.value)
+}))
 class JobValue extends Component {}
 
 class JobParam extends JobValue {
