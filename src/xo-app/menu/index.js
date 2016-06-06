@@ -76,7 +76,7 @@ export default class Menu extends Component {
         { to: '/backup/new', icon: 'backup-new', label: 'backupNewPage' },
         { to: '/backup/restore', icon: 'backup-restore', label: 'backupRestorePage' }
       ]},
-      { to: '/update', icon: 'update', label: 'updatePage' },
+      { to: '/xoa-update', icon: 'update', label: 'updatePage' },
       { to: '/settings/servers', icon: 'settings', label: 'settingsPage', subMenu: [
         { to: '/settings/servers', icon: 'settings-servers', label: 'settingsServersPage' },
         { to: '/settings/users', icon: 'settings-users', label: 'settingsUsersPage' },

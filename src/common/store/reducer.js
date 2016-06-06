@@ -122,5 +122,25 @@ export default {
   status: combineActionHandlers('disconnected', {
     [actions.connected]: () => 'connected',
     [actions.disconnected]: () => 'disconnected'
+  }),
+
+  xoaUpdaterState: combineActionHandlers('disconnected', {
+    [actions.xoaUpdaterState]: (_, state) => state
+  }),
+  xoaTrialState: combineActionHandlers({}, {
+    [actions.xoaTrialState]: (_, state) => state
+  }),
+  xoaUpdaterLog: combineActionHandlers([], {
+    [actions.xoaUpdaterLog]: (_, log) => log
+  }),
+  xoaRegisterState: combineActionHandlers({state: '?'}, {
+    [actions.xoaRegisterState]: (_, registration) => registration
+  }),
+  xoaConfiguration: combineActionHandlers({proxyHost: '', proxyPort: '', proxyUser: ''}, { // defined values for controlled inputs
+    [actions.xoaConfiguration]: (_, configuration) => {
+      delete configuration.password
+      return configuration
+    }
   })
+
 }
