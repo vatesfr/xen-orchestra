@@ -5,8 +5,14 @@ import trimStart from 'lodash/trimStart'
 
 const sanitizePath = (...paths) => filter(map(paths, s => s && filter(map(s.split('/'), trim)).join('/'))).join('/')
 
-export const parse = (remote) => {
-  const [type, rest] = remote.url.split('://')
+export const parse = url => {
+  if (typeof url === 'object') {
+    url = url.url
+  }
+
+  const remote = {}
+
+  const [type, rest] = url.split('://')
   if (type === 'file') {
     remote.type = 'local'
     remote.path = `/${trimStart(rest, '/')}` // the leading slash has been forgotten on client side first implementation
