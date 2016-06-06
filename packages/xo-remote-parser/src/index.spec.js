@@ -19,7 +19,7 @@ const data = {
     url: 'smb://Administrator:password@toto\\\\192.168.100.225\\smb\0',
     type: 'smb',
     host: '192.168.100.225\\smb',
-    path: undefined,
+    path: '',
     domain: 'toto',
     username: 'Administrator',
     password: 'password'
@@ -28,7 +28,7 @@ const data = {
     url: 'smb://Administrator:pass@word@toto\\\\192.168.100.225\\smb\0',
     type: 'smb',
     host: '192.168.100.225\\smb',
-    path: undefined,
+    path: '',
     domain: 'toto',
     username: 'Administrator',
     password: 'pass@word'
@@ -37,7 +37,7 @@ const data = {
     url: 'smb://Administrator:pass:word@toto\\\\192.168.100.225\\smb\0',
     type: 'smb',
     host: '192.168.100.225\\smb',
-    path: undefined,
+    path: '',
     domain: 'toto',
     username: 'Administrator',
     password: 'pass:word'
