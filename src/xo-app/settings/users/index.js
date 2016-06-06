@@ -4,6 +4,7 @@ import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
 import React, { Component } from 'react'
+import { addSubscriptions } from 'utils'
 import { confirm } from 'modal'
 import { error } from 'notification'
 import { Password } from 'form'
@@ -132,27 +133,10 @@ class UserTableRow extends Component {
   }
 }
 
+@addSubscriptions({
+  users: cb => subscribeUsers(users => cb(keyBy(users, 'id')))
+})
 export default class Users extends Component {
-  constructor (props) {
-    super(props)
-    this.state = {
-      users: []
-    }
-  }
-
-  componentWillMount () {
-    const unsubscribeUsers = subscribeUsers(users => {
-      users = keyBy(users, 'id')
-      this.setState({
-        users
-      })
-    })
-
-    this.componentWillUnmount = () => {
-      unsubscribeUsers()
-    }
-  }
-
   _create = () => {
     const {email, permission, password} = this.refs
     return createUser(email.value, password.value, permission.value)
@@ -163,9 +147,7 @@ export default class Users extends Component {
   }
 
   render () {
-    const {
-      users
-    } = this.state
+    const { users } = this.props
 
     return <div>
       <table className='table'>

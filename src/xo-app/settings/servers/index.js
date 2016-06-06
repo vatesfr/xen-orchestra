@@ -13,18 +13,12 @@ import {
   removeServer,
   subscribeServers
 } from 'xo'
-import {
-  connectStore
-} from 'utils'
+import { addSubscriptions } from 'utils'
 
-@connectStore()
+@addSubscriptions({
+  servers: subscribeServers
+})
 export default class Servers extends Component {
-  componentWillMount () {
-    this.componentWillUnmount = subscribeServers(servers => {
-      this.setState({ servers })
-    })
-  }
-
   _addServer = async () => {
     const { host, password, username } = this.refs
 
@@ -34,8 +28,7 @@ export default class Servers extends Component {
   }
 
   render () {
-    const { state } = this
-    const servers = state && state.servers
+    const { servers } = this.props
 
     return <div className='container-fluid'>
       <table className='table table-striped'>

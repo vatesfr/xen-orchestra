@@ -14,6 +14,7 @@ import mapValues from 'lodash/mapValues'
 import React, { cloneElement, PropTypes } from 'react'
 import { connect } from 'react-redux'
 
+import BaseComponent from './base-component'
 import invoke from './invoke'
 
 // ===================================================================
@@ -42,6 +43,38 @@ export const propsEqual = (o1, o2, props) => {
 }
 
 // ===================================================================
+
+export const addSubscriptions = subscriptions => Component => {
+  class SubscriptionWrapper extends BaseComponent {
+    constructor () {
+      super()
+
+      this._unsubscribes = null
+    }
+
+    componentWillMount () {
+      this._unsubscribes = map(subscriptions, (subscribe, prop) =>
+        subscribe(value => this.setState({ [prop]: value }))
+      )
+    }
+
+    componentWillUnmount () {
+      forEach(this._unsubscribes, unsubscribe => unsubscribe())
+      this._unsubscribes = null
+    }
+
+    render () {
+      return <Component
+        {...this.props}
+        {...this.state}
+      />
+    }
+  }
+
+  return SubscriptionWrapper
+}
+
+// -------------------------------------------------------------------
 
 const _bind = (fn, thisArg) => function bound () {
   return fn.apply(thisArg, arguments)

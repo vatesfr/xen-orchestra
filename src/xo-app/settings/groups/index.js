@@ -3,13 +3,15 @@ import includes from 'lodash/includes'
 import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
-import orderBy from 'lodash/orderBy'
 import React, { Component } from 'react'
 import { confirm } from 'modal'
 import { error } from 'notification'
 import { SelectSubject } from 'select-objects'
 import { Text } from 'editable'
-
+import {
+  addSubscriptions,
+  propTypes
+} from 'utils'
 import {
   addUserToGroup,
   createGroup,
@@ -20,31 +22,14 @@ import {
   subscribeUsers
 } from 'xo'
 
-/**
- * @prop id: the id of a xo user
- * @prop group: the id of a xo group
- */
+@addSubscriptions({
+  users: cb => subscribeUsers(users => cb(keyBy(users, 'id')))
+})
+@propTypes({
+  id: propTypes.string.isRequired, // user id
+  group: propTypes.string.isRequired // group id
+})
 class UserDisplay extends Component {
-  constructor (props) {
-    super(props)
-    this.state = {
-      users: {}
-    }
-  }
-
-  componentWillMount () {
-    const unsubscribeUsers = subscribeUsers(users => {
-      users = keyBy(users, 'id')
-      this.setState({
-        users
-      })
-    })
-
-    this.componentWillUnmount = () => {
-      unsubscribeUsers()
-    }
-  }
-
   _removeUser = () => {
     const {id, group} = this.props
     return removeUserFromGroup(id, group)
@@ -52,34 +37,20 @@ class UserDisplay extends Component {
   }
 
   render () {
-    const { id } = this.props
-    const {
-      users
-    } = this.state
+    const { id, users } = this.props
+
     return <span>
-      {id && (users[id] && users[id].email) || <em>&lt;unknown user or group&gt;</em>}
+      {id && (users && users[id] && users[id].email) || <em>&lt;unknown user or group&gt;</em>}
       {' '}
       <ActionButton btnStyle='primary' size='small' icon='remove' handler={this._removeUser} />
     </span>
   }
 }
 
+@addSubscriptions({
+  groups: subscribeGroups
+})
 export default class Groups extends Component {
-  constructor (props) {
-    super(props)
-    this.state = {
-      groups: []
-    }
-  }
-
-  componentWillMount () {
-    const unsubscribeGroups = subscribeGroups(groups => this.setState({groups: orderBy(groups, ['name'])}))
-
-    this.componentWillUnmount = () => {
-      unsubscribeGroups()
-    }
-  }
-
   _createGroup = () => {
     const { name } = this.refs
     if (name) {
@@ -112,9 +83,7 @@ export default class Groups extends Component {
   }
 
   render () {
-    const {
-      groups
-    } = this.state
+    const { groups } = this.props
 
     return <div>
       <form>

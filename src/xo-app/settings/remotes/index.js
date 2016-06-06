@@ -5,7 +5,9 @@ import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React, { Component } from 'react'
+import { addSubscriptions } from 'utils'
 import { error } from 'notification'
+import { format, parse } from 'xo-remote-parser'
 import {
   createRemote,
   deleteRemote,
@@ -13,7 +15,6 @@ import {
   enableRemote,
   subscribeRemotes
 } from 'xo'
-import { format, parse } from 'xo-remote-parser'
 
 const remoteTypes = {
   local: 'remoteTypeLocal',
@@ -124,26 +125,22 @@ class SmbRemote extends AbstractRemote {
   }
 }
 
+@addSubscriptions({
+  remotes: cb => subscribeRemotes(rawRemotes => {
+    rawRemotes = map(rawRemotes, parse)
+    const remotes = {}
+    for (const remoteType in remoteTypes) {
+      remotes[remoteType] = filter(rawRemotes, r => r.type === remoteType)
+    }
+    cb(remotes)
+  })
+})
 export default class Remotes extends Component {
   constructor (props) {
     super(props)
     this.state = {
-      remotes: {},
       type: 'local'
     }
-  }
-
-  componentWillMount () {
-    this.componentWillUnmount = subscribeRemotes(rawRemotes => {
-      rawRemotes = map(rawRemotes, parse)
-      const remotes = {}
-      for (let type in remoteTypes) {
-        remotes[type] = filter(rawRemotes, r => r.type === type)
-      }
-      this.setState({
-        remotes
-      })
-    })
   }
 
   _handleRemoteTypeSelection = type => this.setState({type})
@@ -181,10 +178,9 @@ export default class Remotes extends Component {
   }
 
   render () {
-    const {
-      remotes,
-      type
-    } = this.state
+    const { remotes = {} } = this.props
+    const { type } = this.state
+
     return (
       <div>
         <h2>{_('remoteList')}</h2>

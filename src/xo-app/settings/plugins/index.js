@@ -5,8 +5,8 @@ import Icon from 'icon'
 import React, { Component } from 'react'
 import _ from 'messages'
 import map from 'lodash/map'
+import { addSubscriptions } from 'utils'
 import { lastly } from 'promise-toolbox'
-
 import {
   configurePlugin,
   disablePluginAutoload,
@@ -177,18 +177,10 @@ class Plugin extends Component {
   }
 }
 
+@addSubscriptions({
+  plugins: subscribePlugins
+})
 export default class Plugins extends Component {
-  constructor (props) {
-    super(props)
-    this.state = {}
-  }
-
-  componentWillMount () {
-    this.componentWillUnmount = subscribePlugins(plugins => {
-      this.setState({ plugins })
-    })
-  }
-
   render () {
     return (
       <div>
@@ -197,7 +189,7 @@ export default class Plugins extends Component {
           <span>Plugins</span>
         </h2>
         <ul style={{'paddingLeft': 0}} >
-          {map(this.state.plugins, (plugin, key) =>
+          {map(this.props.plugins, (plugin, key) =>
             <li key={key} className='list-group-item clearfix'>
               <Plugin {...plugin} />
             </li>

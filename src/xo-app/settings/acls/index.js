@@ -5,10 +5,10 @@ import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
 import orderBy from 'lodash/orderBy'
 import React, { Component } from 'react'
+import { addSubscriptions } from 'utils'
 import { error } from 'notification'
 import { renderXoItemFromId } from 'render-xo-item'
 import { SelectHighLevelObjects, SelectRole, SelectSubject } from 'select-objects'
-
 import {
   addAcl,
   removeAcl,
@@ -17,45 +17,21 @@ import {
   subscribeUsers
 } from 'xo'
 
+@addSubscriptions({
+  groups: cb => subscribeGroups(groups => cb(keyBy(groups, 'id'))),
+  users: cb => subscribeUsers(users => cb(keyBy(users, 'id')))
+})
 class SubjectDisplay extends Component {
-  constructor (props) {
-    super(props)
-    this.state = {
-      groups: {},
-      users: {}
-    }
-  }
-
-  componentWillMount () {
-    const unsubscribeUsers = subscribeUsers(users => {
-      users = keyBy(users, 'id')
-      this.setState({
-        users
-      })
-    })
-
-    const unsubscribeGroups = subscribeGroups(groups => {
-      groups = keyBy(groups, 'id')
-      this.setState({
-        groups
-      })
-    })
-
-    this.componentWillUnmount = () => {
-      unsubscribeGroups()
-      unsubscribeUsers()
-    }
-  }
   render () {
-    const { id } = this.props
-    const {
-      groups,
-      users
-    } = this.state
-    return <span>{id && (users[id] && users[id].email) || (groups[id] && groups[id].name)}</span>
+    const { id, groups, users } = this.props
+
+    return <span>{(users && users[id] && users[id].email) || (groups && groups[id] && groups[id].name)}</span>
   }
 }
 
+@addSubscriptions({
+  acls: cb => subscribeAcls(acls => cb(orderBy(acls, ['subject', 'object'])))
+})
 export default class Acls extends Component {
   constructor (props) {
     super(props)
@@ -63,14 +39,6 @@ export default class Acls extends Component {
       subjects: [],
       objects: [],
       role: undefined
-    }
-  }
-
-  componentWillMount () {
-    const unsubscribeAcls = subscribeAcls(acls => this.setState({acls: orderBy(acls, ['subject', 'object'])}))
-
-    this.componentWillUnmount = () => {
-      unsubscribeAcls()
     }
   }
 
@@ -98,8 +66,8 @@ export default class Acls extends Component {
   _removeAcl = async ({subject, object, action}) => removeAcl({subject, object, action}).catch(err => error('Remove ACL', err.message || String(err)))
 
   render () {
+    const { acls } = this.props
     const {
-      acls,
       objects,
       role,
       subjects
