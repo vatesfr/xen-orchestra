@@ -46,6 +46,7 @@ import {
   osFamily
 } from 'utils'
 import {
+  areObjectsFetched,
   createCounter,
   createFilter,
   createGetObject,
@@ -53,8 +54,7 @@ import {
   createGetTags,
   createPager,
   createSelector,
-  createSort,
-  getAreObjectsFetched
+  createSort
 } from 'selectors'
 
 import {

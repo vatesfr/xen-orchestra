@@ -202,7 +202,7 @@ export const createTop = (collection, iteratee, n) =>
 // ===================================================================
 // Root-ish selectors (no dependencies).
 
-export const getAreObjectsFetched = state => state.objects.fetched
+export const areObjectsFetched = state => state.objects.fetched
 
 const _getId = (state, { routeParams, id }) => routeParams
   ? routeParams.id
