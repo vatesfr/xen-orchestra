@@ -1,7 +1,7 @@
 import assign from 'lodash/assign'
 import Client from 'jsonrpc-websocket-client'
 import eventToPromise from 'event-to-promise'
-import forEach from 'lodash.foreach'
+import forEach from 'lodash/forEach'
 import makeError from 'make-error'
 import map from 'lodash/map'
 import { EventEmitter } from 'events'
