@@ -24,9 +24,7 @@
     "node": ">=0.12"
   },
   "dependencies": {
-    "lodash.filter": "^4.0.1",
-    "lodash.map": "^4.0.1",
-    "lodash.trim": "^4.0.1"
+    "lodash": "^4.13.1"
   },
   "devDependencies": {
     "babel-cli": "^6.3.17",

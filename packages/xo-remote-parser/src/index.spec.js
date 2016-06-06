@@ -8,28 +8,47 @@ import { parse, format } from './'
 
 // ===================================================================
 
-const data = {
+const FILE_FIXED = {
+  url: 'file:///var/lib/xoa/backup',
+  type: 'local',
+  path: '/var/lib/xoa/backup'
+}
+
+const SMB = {
+  url: 'smb://Administrator:password@toto\\\\192.168.100.225\\smb\0',
+  type: 'smb',
+  host: '192.168.100.225\\smb',
+  path: undefined,
+  domain: 'toto',
+  username: 'Administrator',
+  password: 'password'
+}
+
+const parseData = {
   file: {
-    url: 'file://var/lib/xoa/backup',
+    url: 'file://var/lib/xoa/backup', // Remotes formatted before fixing #7 will not break when reparses
     type: 'local',
     path: '/var/lib/xoa/backup'
   },
-  smb: {
-    url: 'smb://Administrator:password@toto\\\\192.168.100.225\\smb\0',
-    type: 'smb',
-    host: '192.168.100.225\\smb',
-    path: undefined,
-    domain: 'toto',
-    username: 'Administrator',
-    password: 'password'
-  }
+  fileFixed: FILE_FIXED,
+  smb: SMB
+}
+
+const formatData = {
+  file: {
+    url: 'file:///var/lib/xoa/backup',
+    type: 'local',
+    path: '/var/lib/xoa/backup'
+  },
+  fileFixed: FILE_FIXED,
+  smb: SMB
 }
 
 // -------------------------------------------------------------------
 
 describe('format', () => {
-  for (const name in data) {
-    const datum = data[name]
+  for (const name in formatData) {
+    const datum = formatData[name]
     it(name, () => {
       expect(format(datum)).to.equal(datum.url)
     })
@@ -37,8 +56,8 @@ describe('format', () => {
 })
 
 describe('parse', () => {
-  for (const name in data) {
-    const datum = data[name]
+  for (const name in parseData) {
+    const datum = parseData[name]
     it(name, () => {
       expect(parse(datum)).to.eql(datum)
     })
