@@ -2,27 +2,13 @@ import _ from 'messages'
 import Component from 'base-component'
 import Copiable from 'copiable'
 import Icon from 'icon'
+import Link from 'react-router/lib/Link'
 import React from 'react'
 import { serverVersion } from 'xo'
 import { Container, Row, Col } from 'grid'
-
+import { getXoaPlan } from 'utils'
 import pkg from '../../../package'
 
-const _getXoaPlan = () => {
-  switch (+process.env.XOA_PLAN) {
-    case 1:
-      return 'Free'
-    case 2:
-      return 'Starter'
-    case 3:
-      return 'Enterprise'
-    case 4:
-      return 'Premium'
-    case 5:
-      return 'Community'
-  }
-  return 'Unknown'
-}
 export default class About extends Component {
   componentWillMount () {
     serverVersion.then(serverVersion => {
@@ -33,7 +19,7 @@ export default class About extends Component {
     return <Container className='text-xs-center'>
       <Row>
         <Col>
-          <h2>{_('aboutPage')} Xen Orchestra {_getXoaPlan()}</h2>
+          <h2>{_('aboutPage')} Xen Orchestra {getXoaPlan()}</h2>
         </Col>
       </Row>
       <Row>
@@ -56,7 +42,7 @@ export default class About extends Component {
           <Row>
             <Col>
               <h2 className='text-danger'>No pro support provided!</h2>
-              <h4 className='text-warning'>Use in production at your own risks</h4>
+              <h4 className='text-danger'>Use in production at your own risks</h4>
               <p className='text-muted'>You can download our turnkey appliance on xen-orchestra.com</p>
             </Col>
           </Row>
@@ -77,6 +63,33 @@ export default class About extends Component {
             </Col>
           </Row>
         </div>
+        : +process.env.XOA_PLAN === 1
+          ? <div>
+            <Row>
+              <Col>
+                <Link to={'/update'}>
+                  <h2>Free Trial for Premium Edition!</h2>
+                  Request your trial now!
+                </Link>
+              </Col>
+            </Row>
+            <Row>
+              <Col mediumSize={6}>
+                <a href='https://xen-orchestra.com/'>
+                  <Icon icon='help' size={4} />
+                  <h4>Any issue?</h4>
+                </a>
+                <p className='text-muted'>Problem? Contact us!</p>
+              </Col>
+              <Col mediumSize={6}>
+                <a href='https://xen-orchestra.com/docs'>
+                  <Icon icon='user' size={4} />
+                  <h4>Documentation</h4>
+                </a>
+                <p className='text-muted'>Read our official doc</p>
+              </Col>
+            </Row>
+          </div>
         : <div>
           <Row>
             <Col>
@@ -93,7 +106,7 @@ export default class About extends Component {
               <p className='text-muted'>Problem? Open a ticket !</p>
             </Col>
             <Col mediumSize={6}>
-              <a href='https://xen-orchestra.com/doc'>
+              <a href='https://xen-orchestra.com/docs'>
                 <Icon icon='user' size={4} />
                 <h4>Documentation</h4>
               </a>
