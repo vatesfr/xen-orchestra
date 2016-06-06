@@ -1,24 +1,25 @@
-import _ from 'messages'
 import forEach from 'lodash/forEach'
 import find from 'lodash/find'
 import map from 'lodash/map'
 import React, { Component } from 'react'
-import SingleLineRow from 'single-line-row'
-import { Col } from 'grid'
+
+import _ from '../../messages'
+import SingleLineRow from '../../single-line-row'
+import { Col } from '../../grid'
 import {
   SelectHost,
   SelectNetwork,
   SelectSr
-} from 'select-objects'
+} from '../../select-objects'
 import {
   connectStore,
   mapPlus
-} from 'utils'
+} from '../../utils'
 import {
   createGetObjectsOfType,
   createPicker,
   createSelector
-} from 'selectors'
+} from '../../selectors'
 
 import styles from './index.css'
 

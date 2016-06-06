@@ -1,4 +1,3 @@
-import _ from 'messages'
 import asap from 'asap'
 import assign from 'lodash/assign'
 import cookies from 'cookies-js'
@@ -11,18 +10,20 @@ import fpSortBy from 'lodash/fp/sortBy'
 import sortBy from 'lodash/sortBy'
 import throttle from 'lodash/throttle'
 import Xo from 'xo-lib'
-import { confirm } from 'modal'
 import { createBackoff } from 'jsonrpc-websocket-client'
-import { info } from 'notification'
-import { invoke, noop, tap } from 'utils'
 import { resolve } from 'url'
+
+import _ from '../messages'
+import { confirm } from '../modal'
+import { info } from '../notification'
+import { invoke, noop, tap } from '../utils'
 import {
   connected,
   disconnected,
   signedIn,
   signedOut,
   updateObjects
-} from 'store/actions'
+} from '../store/actions'
 
 // ===================================================================
 
@@ -399,7 +400,7 @@ export const snapshotVms = vms => (
   )
 )
 
-import MigrateVmModalBody from '../xo-app/migrate-vm-modal'
+import MigrateVmModalBody from './migrate-vm-modal'
 export const migrateVm = (vm, host) => {
   let body
   if (!host) {
