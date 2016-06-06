@@ -24,6 +24,26 @@ const SMB = {
   password: 'password'
 }
 
+const SMB_AROBAS = {
+  url: 'smb://Administrator:pass@word@toto\\\\192.168.100.225\\smb\0',
+  type: 'smb',
+  host: '192.168.100.225\\smb',
+  path: undefined,
+  domain: 'toto',
+  username: 'Administrator',
+  password: 'pass@word'
+}
+
+const SMB_COLON = {
+  url: 'smb://Administrator:pass:word@toto\\\\192.168.100.225\\smb\0',
+  type: 'smb',
+  host: '192.168.100.225\\smb',
+  path: undefined,
+  domain: 'toto',
+  username: 'Administrator',
+  password: 'pass:word'
+}
+
 const parseData = {
   file: {
     url: 'file://var/lib/xoa/backup', // Remotes formatted before fixing #7 will not break when reparses
@@ -31,7 +51,9 @@ const parseData = {
     path: '/var/lib/xoa/backup'
   },
   fileFixed: FILE_FIXED,
-  smb: SMB
+  smb: SMB,
+  'smb@inPassword': SMB_AROBAS,
+  'smb:inPassword': SMB_COLON
 }
 
 const formatData = {
@@ -41,7 +63,9 @@ const formatData = {
     path: '/var/lib/xoa/backup'
   },
   fileFixed: FILE_FIXED,
-  smb: SMB
+  smb: SMB,
+  'smb@inPassword': SMB_AROBAS,
+  'smb:inPassword': SMB_COLON
 }
 
 // -------------------------------------------------------------------

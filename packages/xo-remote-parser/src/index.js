@@ -18,8 +18,12 @@ export const parse = (remote) => {
     remote.share = share
   } else if (type === 'smb') {
     remote.type = 'smb'
-    const [auth, smb] = rest.split('@')
-    const [username, password] = auth.split(':')
+    const lastArobas = rest.lastIndexOf('@')
+    const smb = rest.slice(lastArobas)
+    const auth = rest.slice(0, lastArobas)
+    const firstColon = auth.indexOf(':')
+    const username = auth.slice(0, firstColon)
+    const password = auth.slice(firstColon)
     const [domain, sh] = smb.split('\\\\')
     const [host, path] = sh.split('\0')
     remote.host = host
