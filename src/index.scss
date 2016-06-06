@@ -62,6 +62,7 @@ $side-menu-color: white;
 
 $select-input-height: 40px; // Bootstrap input height
 @import '../node_modules/react-select/scss/default';
+@import '../node_modules/react-virtualized/styles';
 
 // Boostrap hack...
 .is-searchable {
@@ -79,15 +80,6 @@ $select-input-height: 40px; // Bootstrap input height
     padding-left: 2em;
   }
 
-  &-toggle-on {
-    @extend .fa;
-    @extend .fa-toggle-on;
-  }
-
-  &-toggle-off {
-    @extend .fa;
-    @extend .fa-toggle-off;
-  }
   .Select-option.is-disabled {
     cursor: default;
     padding-left: 1em;
@@ -95,6 +87,7 @@ $select-input-height: 40px; // Bootstrap input height
     color: #777;
   }
 }
+
 // COLORS ======================================================================
 
 .xo-status-running {

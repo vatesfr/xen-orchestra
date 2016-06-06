@@ -1,6 +1,6 @@
 import Component from 'base-component'
 import React from 'react'
-import Select from 'react-select'
+import VirtualizedSelect from 'react-virtualized-select'
 import _ from 'messages'
 import assign from 'lodash/assign'
 import filter from 'lodash/filter'
@@ -193,24 +193,54 @@ export class GenericSelect extends Component {
     }, onChange && (() => { onChange(this.value) }))
   }
 
-  _renderOption = option => renderXoItem(option.xoItem)
+  _renderOption = ({
+    focusOption,
+    focusedOption,
+    selectValue,
+    option
+  }) => {
+    let className = 'Select-option'
+
+    if (option === focusedOption) {
+      className += ' is-focused'
+    }
+
+    const { disabled } = option
+
+    if (disabled) {
+      className += ' is-disabled'
+    }
+
+    return (
+      <div
+        className={className}
+        onClick={!disabled && (() => selectValue(option))}
+        onMouseOver={!disabled && (() => focusOption(option))}
+      >
+        {renderXoItem(option.xoItem)}
+      </div>
+    )
+  }
+
+  _renderValue = ({ xoItem }) => renderXoItem(xoItem)
 
   render () {
     const { props, state } = this
 
     return (
-      <Select
+      <VirtualizedSelect
         autofocus={props.autoFocus}
         disabled={props.disabled}
         multi={props.multi}
         onChange={this._handleChange}
         openOnFocus
+        optionHeight={40}
         optionRenderer={this._renderOption}
         options={state.options}
         placeholder={props.placeholder}
         required={props.required}
         value={state.value}
-        valueRenderer={this._renderOption}
+        valueRenderer={this._renderValue}
       />
     )
   }
