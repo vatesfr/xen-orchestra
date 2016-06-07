@@ -1,3 +1,4 @@
+import assign from 'lodash.assign'
 import JobExecutor from '../job-executor'
 import { Jobs } from '../models/job'
 import {
@@ -44,8 +45,10 @@ export default class {
     return job_.properties
   }
 
-  async updateJob (job) {
-    return /* await */ this._jobs.save(job)
+  async updateJob ({id, type, name, key, method, paramsVector}) {
+    const oldJob = await this.getJob(id)
+    assign(oldJob, {type, name, key, method, paramsVector})
+    return /* await */ this._jobs.save(oldJob)
   }
 
   async removeJob (id) {
