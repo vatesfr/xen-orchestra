@@ -15,6 +15,10 @@ import store from 'store'
 import Wizard, { Section } from 'wizard'
 
 import {
+  createVm
+} from 'xo'
+
+import {
   SelectNetwork,
   SelectPool,
   SelectSr,
@@ -84,15 +88,6 @@ export default class NewVm extends BaseComponent {
     return this._uniqueId++
   }
 
-  get _params () {
-    const { refs } = this
-    const params = {}
-    forEach(keys(refs), key => {
-      params[key] = refs[key].value
-    })
-    return params
-  }
-
   get _isDiskTemplate () {
     return this.state.VBDs.length === 0 || this.state.template.name_label === 'Other install media'
   }
@@ -137,11 +132,21 @@ export default class NewVm extends BaseComponent {
       VBDs: [],
       VIFs: []
     })
-    console.log('RESET')
   }
 
   _create = () => {
-    console.log('CREATE', this._params)
+    const { state } = this
+    const args = {
+      name_label: state.name_label,
+      template: state.template.id,
+      name_description: state.name_description,
+      CPUs: state.CPUs,
+      memory: state.memory,
+      pv_args: state.pv_args,
+      VIFs: state.VIFs,
+      VBDs: state.VBDs
+    }
+    createVm(args)
   }
 
   _selectPool = pool => {
@@ -234,12 +239,28 @@ export default class NewVm extends BaseComponent {
           {this._renderSummary()}
         </Wizard>
         <div style={{display: 'flex', justifyContent: 'space-around'}}>
-          <Button onClick={this._reset} bsStyle='secondary' className={styles.button}>
+          <Button
+            bsStyle='secondary'
+            className={styles.button}
+            onClick={this._reset}
+          >
             <Icon icon='new-vm-reset' />
             {' '}
             {_('newVmReset')}
           </Button>
-          <Button onClick={this._create} bsStyle='primary' type='submit' className={styles.button}>
+          <Button
+            bsStyle='primary'
+            className={styles.button}
+            disabled={!(
+              this._isInfoDone() &&
+              this._isPerformancesDone() &&
+              this._isInstallSettingsDone() &&
+              this._isInterfacesDone() &&
+              this._isDisksDone()
+            )}
+            onClick={this._create}
+            type='submit'
+          >
             <Icon icon='new-vm-create' />
             {' '}
             {_('newVmCreate')}
@@ -314,7 +335,7 @@ export default class NewVm extends BaseComponent {
         </Item>
         {template.virtualizationMode === 'pv'
           ? <Item label='newVmPvArgsLabel'>
-            <input ref='PV_args' onChange={this._onChange('PV_args')} className='form-control' type='text' />
+            <input ref='pv_args' onChange={this._onChange('pv_args')} className='form-control' type='text' />
           </Item>
           : <span>
             <input onChange={this._selectInstallMethod} name='installMethod' value='PXE' type='radio' />
