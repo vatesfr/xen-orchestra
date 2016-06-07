@@ -103,16 +103,21 @@ function checkAuthorization (objectId, permission) {
 export default (
   permissionsByObject_,
   getObject_,
-  permissions
+  permissions,
+  permission
 ) => {
   // Assign global variables.
   permissionsByObject = permissionsByObject_
   getObject = getObject_
 
   try {
-    for (const [objectId, permission] of permissions) {
-      if (!checkAuthorization(objectId, permission)) {
-        return false
+    if (permission) {
+      return checkAuthorization(permissions, permission)
+    } else {
+      for (const [objectId, permission] of permissions) {
+        if (!checkAuthorization(objectId, permission)) {
+          return false
+        }
       }
     }
 
