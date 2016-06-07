@@ -206,7 +206,7 @@ class VmItem extends Component {
 const VMS_PER_PAGE = 20
 
 @connectStore({
-  fetched: getAreObjectsFetched,
+  fetched: areObjectsFetched,
   pools: createGetObjectsOfType('pool').sort(),
   hosts: createGetObjectsOfType('host').sort(),
   vms: createGetObjectsOfType('VM'),
