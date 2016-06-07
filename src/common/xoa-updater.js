@@ -37,7 +37,7 @@ export function exposeTrial (trial) {
 }
 
 export function blockXoaAccess (xoaState) {
-  let block = xoaState.stata === 'untrustedTrial'
+  let block = xoaState.state === 'untrustedTrial'
   if (process.env.XOA_PLAN > 1 && process.env.XOA_PLAN < 5) {
     block = block || xoaState.state === 'ERROR'
   }
