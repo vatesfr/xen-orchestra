@@ -1,4 +1,4 @@
-// import checkPermissions from 'xo-acl-resolver'
+import checkPermissions from 'xo-acl-resolver'
 import filter from 'lodash/filter'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
@@ -212,36 +212,31 @@ export const getLang = state => state.lang
 
 export const getUser = state => state.user
 
-// FIXME: ACLS handling is disabled for now for perf reasons, it
-// should be fixed ASAP.
-// _createCollectionWrapper(create(
-//   state => state.objects,
-//   _createCollectionWrapper(state => {
-//     const { user } = state
-//     if (user && user.permission === 'admin') {
-//       return true
-//     }
+const _getPermissionsPredicate = invoke(() => {
+  const getPredicate = create(
+    state => state.permissions,
+    state => state.objects,
+    (permissions, objects) => {
+      objects = objects.all
+      const getObject = id => (objects[id] || EMPTY_OBJECT)
 
-//     return state.permissions
-//   }),
-//   (objects, permissions) => {
-//     if (permissions === true) {
-//       return objects
-//     }
+      return id => checkPermissions(permissions, getObject, id.id || id, 'view')
+    }
+  )
 
-//     if (!permissions) {
-//       return EMPTY_OBJECT
-//     }
+  return state => {
+    const user = getUser(state)
+    if (!user) {
+      return false
+    }
 
-//     const getObject = id => (objects[id] || EMPTY_OBJECT)
+    if (user.permission === 'admin') {
+      return // No predicate means no filtering.
+    }
 
-//     return pickBy(objects, (_, id) => checkPermissions(
-//       permissions,
-//       getObject,
-//       [ [ id, 'view' ] ]
-//     ))
-//   }
-// ))
+    return getPredicate(state)
+  }
+})
 
 // ===================================================================
 // Common selector creators.
@@ -249,12 +244,24 @@ export const getUser = state => state.user
 // Creates an object selector from an id selector.
 export const createGetObject = (idSelector = _getId) =>
   (state, props) => {
-    const { user } = state
-    if (!user || user.permission !== 'admin') {
-      return undefined
+    const object = state.objects.all[idSelector(state, props)]
+    if (!object) {
+      return
     }
 
-    return state.objects.all[idSelector(state, props)]
+    const predicate = _getPermissionsPredicate(state)
+    if (!predicate) {
+      if (predicate == null) {
+        return object // no filtering
+      }
+
+      // predicate is false.
+      return
+    }
+
+    if (predicate(object)) {
+      return object
+    }
   }
 
 // Specialized createSort() configured for a given type.
@@ -343,16 +350,12 @@ const _extendCollectionSelector = (selector, objectsType) => {
 // - sort: returns a selector which returns the objects appropriately
 //         sorted (groupBy can be chained)
 export const createGetObjectsOfType = type => {
-  const getObjects = state => {
-    const { user } = state
-    if (!user || user.permission !== 'admin') {
-      return EMPTY_OBJECT
-    }
+  const getObjects = state => state.objects.byType[type] || EMPTY_OBJECT
 
-    return state.objects.byType[type] || EMPTY_OBJECT
-  }
-
-  return _extendCollectionSelector(getObjects, type)
+  return _extendCollectionSelector(createFilter(
+    getObjects,
+    _getPermissionsPredicate
+  ), type)
 }
 
 // TODO: implement

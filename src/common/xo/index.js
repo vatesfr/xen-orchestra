@@ -22,7 +22,8 @@ import {
   disconnected,
   signedIn,
   signedOut,
-  updateObjects
+  updateObjects,
+  updatePermissions
 } from '../store/actions'
 
 // ===================================================================
@@ -61,7 +62,7 @@ const xo = invoke(() => {
 
 // ===================================================================
 
-export const connectStore = (store) => {
+export const connectStore = store => {
   let updates = {}
   const sendUpdates = throttle(() => {
     store.dispatch(updateObjects(updates))
@@ -86,6 +87,7 @@ export const connectStore = (store) => {
     assign(updates, notification.params.items)
     sendUpdates()
   })
+  subscribePermissions(permissions => store.dispatch(updatePermissions(permissions)))
 }
 
 // -------------------------------------------------------------------
