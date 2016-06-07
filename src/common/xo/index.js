@@ -435,6 +435,7 @@ export const migrateVms = vms => {
 
 export const createVm = args => {
   console.log('Create VM with args = ', args)
+  xo.call('vm.create', args)
 }
 
 export const deleteVm = ({ id }) => (

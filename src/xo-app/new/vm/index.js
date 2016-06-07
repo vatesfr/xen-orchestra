@@ -31,8 +31,7 @@ import {
 
 import {
   connectStore,
-  formatSize,
-  Debug
+  formatSize
 } from 'utils'
 
 import {
@@ -130,6 +129,7 @@ export default class NewVm extends BaseComponent {
       CPUs: undefined,
       memory: undefined,
       installMethod: undefined,
+      existingDisks: {},
       VDIs: [],
       VIFs: []
     })
@@ -170,22 +170,21 @@ export default class NewVm extends BaseComponent {
     console.log('template = ', template)
     console.log('template = ', template.template_info)
 
-    const existingDisks = []
+    const existingDisks = {}
     forEach(template.$VBDs, vbdId => {
       const vbd = getObject(state, vbdId)
       if (vbd.is_cd_drive) {
         return
       }
       const vdi = getObject(state, vbd.VDI)
-      existingDisks.push({
+      existingDisks[this.uniqueId] = {
         bootable: vbd.bootable,
-        device: this.uniqueId,
         name_label: vdi.name_label,
         name_description: vdi.name_description || 'Created by XO',
         size: vdi.size,
-        SR: vdi.$SR,
+        $SR: vdi.$SR,
         type: vdi.type
-      })
+      }
     })
 
     const VIFs = []
@@ -194,7 +193,7 @@ export default class NewVm extends BaseComponent {
       VIFs.push({
         mac: vif.MAC,
         network: vif.$network,
-        device: this.uniqueId
+        id: this.uniqueId
       })
     })
 
@@ -210,7 +209,7 @@ export default class NewVm extends BaseComponent {
       VIFs,
       // disks
       existingDisks,
-      VDIs: template.template_info.disks
+      VDIs: map(template.template_info.disks, disk => ({ ...disk, device: this.uniqueId }))
     }, () => forEach(this.state, (element, key) => {
       !isArray(element) && this._setRef(key, element)
     }))
@@ -227,9 +226,9 @@ export default class NewVm extends BaseComponent {
     pullAt(VDIs, index)
     this.setState({ VDIs })
   }
-  _removeExistingDisk = index => {
+  _removeExistingDisk = device => {
     const existingDisks = this.state.existingDisks.slice(0)
-    pullAt(existingDisks, index)
+    existingDisks[device] = undefined
     this.setState({ existingDisks })
   }
   _addInterface = () => this.setState({ VIFs: concat(this.state.VIFs, {
@@ -241,18 +240,15 @@ export default class NewVm extends BaseComponent {
     this.setState({ VIFs })
   }
 
-  // Modifies `prop` property of the state
-  // If it's an array, it modifies the `stateProp` property of
-  // `index`th object of the array with the `targetProp` property of the target
-  _onChange = (prop, index, stateProp, targetProp) => event => {
-    const stateValue = this.state[prop] && this.state[prop].slice && this.state[prop].slice(0)
-    if (isArray(stateValue)) {
-      stateValue[index][stateProp] = event.target ? event.target.value[targetProp] || event.target.value : event[targetProp] || event
-      this.setState({ stateValue })
-      return
-    }
-
+  _onChange = (prop, index, stateProp, targetProp) => event =>
     this.setState({ [prop]: event.target ? event.target.value[targetProp] || event.target.value : event[targetProp] || event })
+  _onChangeObject = (stateElement, key, stateProperty, targetProperty) => param => {
+    console.log('this.state[stateElement]', this.state[stateElement])
+    const stateValue = this.state[stateElement]
+    stateValue[key][stateProperty] = param.target
+      ? param.target.value[targetProperty] || param.target.value // HTML input (param is an event)
+      : param[targetProperty] || param // React input
+    this.setState({ stateValue })
   }
 
   render () {
@@ -419,13 +415,13 @@ export default class NewVm extends BaseComponent {
       <SectionContent column>
         {map(this.state.VIFs, (vif, index) => <LineItem key={index}>
           <Item label='newVmMacLabel'>
-            <input ref={`mac_${vif.id}`} onChange={this._onChange('VIFs', index, 'mac')} defaultValue={vif.mac} className='form-control' type='text' />
+            <input ref={`mac_${vif.id}`} onChange={this._onChangeObject('VIFs', index, 'mac')} defaultValue={vif.mac} className='form-control' type='text' />
           </Item>
           <Item label='newVmNetworkLabel'>
             <span className={styles.inlineSelect}>
               <SelectNetwork
                 defaultValue={vif.network}
-                onChange={this._onChange('VIFs', index, '$network', 'id')}
+                onChange={this._onChangeObject('VIFs', index, '$network', 'id')}
                 predicate={this._isInPool}
                 ref='network'
               />
@@ -457,15 +453,14 @@ export default class NewVm extends BaseComponent {
       <SectionContent column>
 
         {/* Existing disks */}
-        {map(this.state.existingDisks, (vdi, index) => <LineItem key={vdi.device}>
-          <Debug value={vdi} />
+        {map(this.state.existingDisks, (disk, index) => <LineItem key={index}>
           <Item label='newVmSrLabel'>
             <span className={styles.inlineSelect}>
               <SelectSr
-                defaultValue={vdi.SR}
-                onChange={this._onChange('existingDisks', index, 'SR', 'id')}
+                defaultValue={disk.$SR}
+                onChange={this._onChangeObject('existingDisks', index, '$SR', 'id')}
                 predicate={this._isInPool}
-                ref={`sr_${vdi.device}`}
+                ref={`sr_${index}`}
               />
             </span>
           </Item>
@@ -473,9 +468,9 @@ export default class NewVm extends BaseComponent {
           <Item className='checkbox'>
             <label>
               <input
-                checked={vdi.bootable}
-                onChange={this._onChange('existingDisks', index, 'bootable')}
-                ref={`bootable_${vdi.device}`}
+                checked={disk.bootable}
+                onChange={this._onChangeObject('existingDisks', index, 'bootable')}
+                ref={`bootable_${index}`}
                 type='checkbox'
               />
               {' '}
@@ -485,27 +480,27 @@ export default class NewVm extends BaseComponent {
           <Item label='newVmNameLabel'>
             <input
               className='form-control'
-              defaultValue={vdi.name_label}
-              onChange={this._onChange('existingDisks', index, 'name_label')}
-              ref={`name_label_${vdi.device}`}
+              defaultValue={disk.name_label}
+              onChange={this._onChangeObject('existingDisks', index, 'name_label')}
+              ref={`name_label_${index}`}
               type='text'
             />
           </Item>
           <Item label='newVmDescriptionLabel'>
             <input
               className='form-control'
-              defaultValue={vdi.name_description}
-              onChange={this._onChange('existingDisks', index, 'name_description')}
-              ref={`name_description_${vdi.device}`}
+              defaultValue={disk.name_description}
+              onChange={this._onChangeObject('existingDisks', index, 'name_description')}
+              ref={`name_description_${index}`}
               type='text'
             />
           </Item>
           <Item label='newVmSizeLabel'>
             <SizeInput
               className={styles.sizeInput}
-              defaultValue={vdi.size}
-              onChange={this._onChange('existingDisks', index, 'size')}
-              ref={`size_${vdi.device}`}
+              defaultValue={disk.size}
+              onChange={this._onChangeObject('existingDisks', index, 'size')}
+              ref={`size_${index}`}
             />
           </Item>
           <Item>
@@ -522,7 +517,7 @@ export default class NewVm extends BaseComponent {
             <span className={styles.inlineSelect}>
               <SelectSr
                 defaultValue={vdi.SR}
-                onChange={this._onChange('VDIs', index, 'SR', 'id')}
+                onChange={this._onChangeObject('VDIs', index, 'SR', 'id')}
                 predicate={this._isInPool}
                 ref={`sr_${vdi.device}`}
               />
@@ -533,7 +528,7 @@ export default class NewVm extends BaseComponent {
             <label>
               <input
                 checked={vdi.bootable}
-                onChange={this._onChange('VDIs', index, 'bootable')}
+                onChange={this._onChangeObject('VDIs', index, 'bootable')}
                 ref={`bootable_${vdi.device}`}
                 type='checkbox'
               />
@@ -545,7 +540,7 @@ export default class NewVm extends BaseComponent {
             <input
               className='form-control'
               defaultValue={vdi.name_label}
-              onChange={this._onChange('VDIs', index, 'name_label')}
+              onChange={this._onChangeObject('VDIs', index, 'name_label')}
               ref={`name_label_${vdi.device}`}
               type='text'
             />
@@ -554,7 +549,7 @@ export default class NewVm extends BaseComponent {
             <input
               className='form-control'
               defaultValue={vdi.name_description}
-              onChange={this._onChange('VDIs', index, 'name_description')}
+              onChange={this._onChangeObject('VDIs', index, 'name_description')}
               ref={`name_description_${vdi.device}`}
               type='text'
             />
@@ -563,7 +558,7 @@ export default class NewVm extends BaseComponent {
             <SizeInput
               className={styles.sizeInput}
               defaultValue={vdi.size}
-              onChange={this._onChange('VDIs', index, 'size')}
+              onChange={this._onChangeObject('VDIs', index, 'size')}
               ref={`size_${vdi.device}`}
             />
           </Item>
@@ -588,7 +583,7 @@ export default class NewVm extends BaseComponent {
     vdi.SR && vdi.name_label && vdi.name_description && vdi.size
   ) &&
   every(this.state.existingDisks, vdi =>
-    vdi.SR && vdi.name_label && vdi.name_description && vdi.size
+    vdi.$SR && vdi.name_label && vdi.name_description && vdi.size
   )
 
   _renderSummary = () => {
