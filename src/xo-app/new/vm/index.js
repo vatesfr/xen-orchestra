@@ -193,7 +193,18 @@ export default class NewVm extends BaseComponent {
     this.setState({ VIFs })
   }
 
-  _onChange = ref => event => this.setState({ [ref]: event.target.value })
+  _onChange = (ref, index, stateProp, targetProp) => event => {
+    console.log('event target = ', event)
+    const stateValue = this.state[ref].slice(0)
+    console.log('stateValue', stateValue)
+    if (isArray(stateValue)) {
+      stateValue[index][stateProp] = event.target ? event.target.value[targetProp] || event.target.value : event[targetProp]
+      this.setState({ stateValue })
+      return
+    }
+
+    this.setState({ [ref]: event.target.value })
+  }
 
   render () {
     return <div>
@@ -342,14 +353,15 @@ export default class NewVm extends BaseComponent {
   _renderInterfaces = () => {
     return <Section icon='new-vm-interfaces' title='newVmInterfacesPanel' done={this._isInterfacesDone()}>
       <SectionContent column>
-        {map(this.state.VIFs, (vif, index) => <LineItem key={vif.id}>
+        {map(this.state.VIFs, (vif, index) => <LineItem key={index}>
           <Item label='newVmMacLabel'>
-            <input ref={`mac_${vif.id}`} defaultValue={vif.MAC} className='form-control' type='text' />
+            <input ref={`mac_${vif.id}`} onChange={this._onChange('VIFs', index, 'MAC')} defaultValue={vif.MAC} className='form-control' type='text' />
           </Item>
           <Item label='newVmNetworkLabel'>
             <span className={styles.inlineSelect}>
               <SelectNetwork
                 defaultValue={vif.$network}
+                onChange={this._onChange('VIFs', index, '$network', 'id')}
                 predicate={this._isInPool}
                 ref='network'
               />
@@ -383,22 +395,34 @@ export default class NewVm extends BaseComponent {
           <Item label='newVmSrLabel'>
             <span className={styles.inlineSelect}>
               <SelectSr
+                defaultValue={vbd.vdi && vbd.vdi.$SR}
+                onChange={this._onChange('VBDs', index, 'sr', 'id')}
                 predicate={this._isInPool}
                 ref={`sr_${vbd.id}`}
-                defaultValue={vbd.vdi && vbd.vdi.$SR}
               />
             </span>
           </Item>
           {' '}
           <Item className='checkbox'>
             <label>
-              <input ref={`bootable_${vbd.id}`} defaultValue={vbd.vdi && vbd.bootable} type='checkbox' />
+              <input
+                defaultValue={vbd.vdi && vbd.bootable}
+                onChange={this._onChange('VBDs', index, 'bootable')}
+                ref={`bootable_${vbd.id}`}
+                type='checkbox'
+              />
               {' '}
               {_('newVmBootableLabel')}
             </label>
           </Item>
           <Item label='newVmNameLabel'>
-            <input ref={`vdiName_${vbd.id}`} defaultValue={vbd.vdi && vbd.vdi.name_label} className='form-control' type='text' />
+            <input
+              className='form-control'
+              defaultValue={vbd.vdi && vbd.vdi.name_label}
+              onChange={this._onChange('VBDs', index, 'vdiName')}
+              ref={`vdiName_${vbd.id}`}
+              type='text'
+            />
           </Item>
           <Item label='newVmDescriptionLabel'>
             <input ref={`vdiDescription_${vbd.id}`} defaultValue={vbd.vdi && vbd.vdi.name_description} className='form-control' type='text' />
