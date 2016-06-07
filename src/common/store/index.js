@@ -24,6 +24,9 @@ const store = createStore(
 )
 
 connectXo(store)
-connectXoaUpdater(store)
+
+if (process.env.XOA_PLAN < 5) {
+  require('xoa-updater').connectStore(store)
+}
 
 export default store
