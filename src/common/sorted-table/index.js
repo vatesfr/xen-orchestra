@@ -4,6 +4,7 @@ import React from 'react'
 import ceil from 'lodash/ceil'
 import map from 'lodash/map'
 import { Pagination } from 'react-bootstrap-4/lib'
+import { Portal } from 'react-overlays'
 import { propTypes } from 'utils'
 
 import {
@@ -71,7 +72,8 @@ const DEFAULT_ITEMS_PER_PAGE = 10
     ]),
     sortOrder: propTypes.string
   })).isRequired,
-  itemsPerPage: propTypes.number
+  itemsPerPage: propTypes.number,
+  paginationContainer: propTypes.func
 })
 export default class SortedTable extends Component {
   constructor (props) {
@@ -104,6 +106,12 @@ export default class SortedTable extends Component {
     this._sort(this.state.selectedColumn)
   }
 
+  componentDidMount () {
+    // Force one Portal refresh.
+    // Because Portal cannot see the container reference at first rendering.
+    this.forceUpdate()
+  }
+
   _sort = columnId => {
     const { state } = this
     let sortOrder
@@ -127,6 +135,16 @@ export default class SortedTable extends Component {
   _onPageSelection = (_, event) => this.setState({
     activePage: event.eventKey
   })
+
+  _getPaginationContainer () {
+    const { paginationContainer } = this.props
+
+    if (paginationContainer) {
+      return () => paginationContainer()
+    }
+
+    return () => this.refs.defaultPaginationContainer
+  }
 
   render () {
     const { props, state } = this
@@ -159,18 +177,21 @@ export default class SortedTable extends Component {
             ))}
           </tbody>
         </table>
-        <Pagination
-          first
-          last
-          prev
-          next
-          ellipsis
-          boundaryLinks
-          maxButtons={5}
-          items={ceil(this._getSortedItems().length / this.state.itemsPerPage)}
-          activePage={this.state.activePage}
-          onSelect={this._onPageSelection}
-        />
+        <Portal container={this._getPaginationContainer()}>
+          <Pagination
+            first
+            last
+            prev
+            next
+            ellipsis
+            boundaryLinks
+            maxButtons={5}
+            items={ceil(this._getSortedItems().length / state.itemsPerPage)}
+            activePage={this.state.activePage}
+            onSelect={this._onPageSelection}
+          />
+        </Portal>
+        <div ref='defaultPaginationContainer' />
       </div>
     )
   }
