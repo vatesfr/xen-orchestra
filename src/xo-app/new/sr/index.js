@@ -77,7 +77,7 @@ const typeGroups = {
   isosr: ['local', 'nfsiso', 'smb']
 }
 
-const getSrPath = id => `/sr/${id}`
+const getSrPath = id => `/srs/${id}`
 
 // ===================================================================
 
