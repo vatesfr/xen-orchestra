@@ -64,7 +64,7 @@ export default ({
   <Row>
     <Col>
       {!isEmpty(vdis)
-        ? <SortedTable collection={vdis} columns={COLUMNS} defaultColumn={0} />
+        ? <SortedTable collection={vdis} columns={COLUMNS} />
         : <h4 className='text-xs-center'>{_('srNoVdis')}</h4>
       }
     </Col>

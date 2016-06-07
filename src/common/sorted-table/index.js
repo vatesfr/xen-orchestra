@@ -1,11 +1,17 @@
 import Component from 'base-component'
 import Icon from 'icon'
 import React from 'react'
+import ceil from 'lodash/ceil'
 import map from 'lodash/map'
-import { createSort } from 'selectors'
+import { Pagination } from 'react-bootstrap-4/lib'
 import { propTypes } from 'utils'
 
-import styles from './sorted-table.css'
+import {
+  createPager,
+  createSort
+} from '../selectors'
+
+import styles from './index.css'
 
 @propTypes({
   columnId: propTypes.number.isRequired,
@@ -48,8 +54,10 @@ class ColumnHead extends Component {
 
 // ===================================================================
 
+const DEFAULT_ITEMS_PER_PAGE = 10
+
 @propTypes({
-  defaultColumn: propTypes.number.isRequired,
+  defaultColumn: propTypes.number,
   collection: propTypes.oneOfType([
     propTypes.array,
     propTypes.object
@@ -62,11 +70,17 @@ class ColumnHead extends Component {
       propTypes.string
     ]),
     sortOrder: propTypes.string
-  })).isRequired
+  })).isRequired,
+  itemsPerPage: propTypes.number
 })
 export default class SortedTable extends Component {
   constructor (props) {
     super(props)
+
+    this.state = {
+      selectedColumn: props.defaultColumn || 0,
+      itemsPerPage: props.itemsPerPage || DEFAULT_ITEMS_PER_PAGE
+    }
 
     this._getSelectedColumn = () =>
       this.props.columns[this.state.selectedColumn]
@@ -76,10 +90,18 @@ export default class SortedTable extends Component {
       () => this._getSelectedColumn().sortCriteria,
       () => this.state.sortOrder
     )
+
+    this.state.activePage = 1
+
+    this._getActiveSortedItems = createPager(
+      this._getSortedItems,
+      () => this.state.activePage,
+      this.state.itemsPerPage
+    )
   }
 
   componentWillMount () {
-    this._sort(this.props.defaultColumn)
+    this._sort(this.state.selectedColumn)
   }
 
   _sort = columnId => {
@@ -102,36 +124,54 @@ export default class SortedTable extends Component {
     })
   }
 
+  _onPageSelection = (_, event) => this.setState({
+    activePage: event.eventKey
+  })
+
   render () {
     const { props, state } = this
 
     return (
-      <table className='table'>
-        <thead className='thead-default'>
-          <tr>
-            {map(props.columns, (column, key) => (
-              <ColumnHead
-                columnId={key}
-                key={key}
-                name={column.name}
-                sort={column.sortCriteria && this._sort}
-                sortIcon={state.selectedColumn === key ? state.sortOrder : 'sort'}
-              />
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {map(this._getSortedItems(), (item, key) => (
-            <tr key={key}>
+      <div>
+        <table className='table'>
+          <thead className='thead-default'>
+            <tr>
               {map(props.columns, (column, key) => (
-                <td key={key}>
-                  {column.itemRenderer(item)}
-                </td>
+                <ColumnHead
+                  columnId={key}
+                  key={key}
+                  name={column.name}
+                  sort={column.sortCriteria && this._sort}
+                  sortIcon={state.selectedColumn === key ? state.sortOrder : 'sort'}
+               />
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {map(this._getActiveSortedItems(), (item, key) => (
+              <tr key={key}>
+                {map(props.columns, (column, key) => (
+                  <td key={key}>
+                    {column.itemRenderer(item)}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <Pagination
+          first
+          last
+          prev
+          next
+          ellipsis
+          boundaryLinks
+          maxButtons={5}
+          items={ceil(this._getSortedItems().length / this.state.itemsPerPage)}
+          activePage={this.state.activePage}
+          onSelect={this._onPageSelection}
+        />
+      </div>
     )
   }
 }
