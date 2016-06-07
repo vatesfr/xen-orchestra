@@ -29,6 +29,15 @@ export default class Schedules extends Component {
       jobs: undefined,
       cron: '* * * * *'
     }
+    this.loaded = new Promise((resolve, reject) => {
+      this._resolveLoaded = resolve
+    })
+      .then(() => {
+        const { id } = this.props
+        if (id) {
+          this._edit(id)
+        }
+      })
   }
 
   componentWillMount () {
@@ -57,7 +66,7 @@ export default class Schedules extends Component {
         if (scheduleJob && scheduleJob.key === JOB_KEY) {
           s[id] = schedule
         }
-        this.setState({schedules: s})
+        this.setState({schedules: s}, this._resolveLoaded)
       }
     })
 

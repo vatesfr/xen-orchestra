@@ -1,8 +1,8 @@
 import ActionButton from 'action-button'
+import ActionRowButton from 'action-row-button'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
 import GenericInput from 'json-schema-input/generic-input'
-import Icon from 'icon'
 import includes from 'lodash/includes'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
@@ -15,6 +15,7 @@ import {
   apiMethods,
   createJob,
   deleteJob,
+  runJob,
   subscribeJobs,
   updateJob
 } from 'xo'
@@ -80,12 +81,22 @@ const dataToParamVectorItems = function (params, data) {
 export default class Jobs extends Component {
   constructor (props) {
     super(props)
+
     this.state = {
       action: undefined,
       actions: undefined,
       job: undefined,
       jobs: undefined
     }
+    this.loaded = new Promise((resolve, reject) => {
+      this._resolveLoaded = resolve
+    })
+      .then(() => {
+        const { id } = this.props
+        if (id) {
+          this._edit(id)
+        }
+      })
   }
 
   componentWillMount () {
@@ -95,7 +106,7 @@ export default class Jobs extends Component {
         const job = jobs[id]
         job && (job.key === JOB_KEY) && (j[id] = job)
       }
-      this.setState({jobs: j})
+      this.setState({jobs: j}, this._resolveLoaded)
     })
 
     this.componentWillUnmount = () => {
@@ -233,7 +244,7 @@ export default class Jobs extends Component {
     job && (_job.id = job.id)
     const saveJob = job ? updateJob : createJob
 
-    return saveJob(job).then(this._reset).catch(err => error('Create Job', err.message || String(err)))
+    return saveJob(_job).then(this._reset).catch(err => error('Create Job', err.message || String(err)))
   }
 
   _edit = id => {
@@ -327,11 +338,28 @@ export default class Jobs extends Component {
               <span>{job.name} <span className='text-muted'>({job.id})</span></span>
             </td>
             <td>{job.method}</td>
-            <td></td>
             <td>
-              <button type='button' className='btn btn-primary' onClick={() => this._edit(job.id)}><Icon icon='edit' /></button>
+              <ActionRowButton
+                icon='run-schedule'
+                btnStyle='warning'
+                handler={runJob}
+                handlerParam={job.id}
+              />
+            </td>
+            <td>
+              <ActionRowButton
+                icon='edit'
+                btnStyle='primary'
+                handler={this._edit}
+                handlerParam={job.id}
+              />
               {' '}
-              <button type='button' className='btn btn-danger' onClick={() => deleteJob(job)}><Icon icon='delete' /></button>
+              <ActionRowButton
+                icon='delete'
+                btnStyle='danger'
+                handler={deleteJob}
+                handlerParam={job.id}
+              />
             </td>
           </tr>)}
         </tbody>

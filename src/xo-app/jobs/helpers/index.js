@@ -24,9 +24,9 @@ export class SelectPlainObject extends Component {
   }
 
   _setValue (value, props = this.props) {
-    const reduceValue = value => value != null ? value[optionKey] || value : ''
     let { optionKey } = props
     optionKey || (optionKey = 'id')
+    const reduceValue = value => value != null ? (value[optionKey] || value) : ''
     if (props.multi) {
       if (!Array.isArray(value)) {
         value = [value]
@@ -66,7 +66,10 @@ export class SelectPlainObject extends Component {
     optionKey || (optionKey = 'id')
     const { value } = this.state
     const { options } = this.props
-    const pickValue = ({value}) => find(options, option => option[optionKey] === value || option === value)
+    const pickValue = value => {
+      value = value.value || value
+      return find(options, option => option[optionKey] === value || option === value)
+    }
 
     if (this.props.multi) {
       return map(value, pickValue)

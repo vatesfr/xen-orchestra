@@ -12,7 +12,7 @@ import map from 'lodash/map'
 import orderBy from 'lodash/orderBy'
 import { FormattedDate } from 'react-intl'
 import { ButtonGroup, Pagination } from 'react-bootstrap-4/lib'
- // import { Link } from 'react-router'
+import { Link } from 'react-router'
 import { confirm } from 'modal'
 import { connectStore } from 'utils'
 import { createGetObject, createPager } from 'selectors'
@@ -325,7 +325,7 @@ export default class Overview extends Component {
       <div>
         <Card>
           <CardHeader>
-            <h5><Icon icon='schedule' /> Schedules</h5>
+            <Icon icon='schedule' /> Schedules
           </CardHeader>
           <CardBlock>
             {schedules.length ? (
@@ -344,15 +344,22 @@ export default class Overview extends Component {
 
                     return (
                       <tr key={key}>
-                        <td>{this._getScheduleLabel(schedule)}</td>
-                        <td>{this._getJobLabel(job)}</td>
+                        <td>
+                          {this._getScheduleLabel(schedule)}
+                          <Link className='btn btn-sm btn-primary m-r-1' to={`/jobs/schedule/${schedule.id}/edit`}>
+                            <Icon icon='edit' />
+                          </Link>
+                        </td>
+                        <td>
+                          {this._getJobLabel(job)}
+                          <Link className='btn btn-sm btn-primary m-r-1' to={`/jobs/${job.id}/edit`}>
+                            <Icon icon='edit' />
+                          </Link>
+                        </td>
                         <td className='hidden-xs-down'>{schedule.cron}</td>
                         <td>
                           {this._getScheduleToggle(schedule)}
                           <fieldset className='pull-xs-right'>
-                            {/* <Link className='btn btn-sm btn-primary m-r-1' to={`/backup/${job.id}/edit`}>
-                              <Icon icon='edit' />
-                            </Link>*/}
                             <ButtonGroup>
                               <ActionRowButton
                                 icon='delete'
@@ -379,7 +386,7 @@ export default class Overview extends Component {
         </Card>
         <Card>
           <CardHeader>
-            <h5><Icon icon='log' /> Logs<span className='pull-right'><ActionButton btnStyle='danger' handler={this._deleteAllLogs} icon='delete' /></span></h5>
+            <Icon icon='log' /> Logs<span className='pull-right'><ActionButton btnStyle='danger' handler={this._deleteAllLogs} icon='delete' /></span>
           </CardHeader>
           <CardBlock>
             {logs.length ? (
