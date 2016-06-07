@@ -1,4 +1,4 @@
-import DevTools from 'dev-tools'
+import DevTools from 'store/dev-tools'
 import hashHistory from 'react-router/lib/hashHistory'
 import React from 'react'
 import Router from 'react-router/lib/Router'

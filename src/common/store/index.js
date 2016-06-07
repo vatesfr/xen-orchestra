@@ -1,7 +1,4 @@
-import DevTools from 'dev-tools'
 import reduxThunk from 'redux-thunk'
-import { connectStore as connectXo } from 'xo'
-import { connectStore as connectXoaUpdater } from 'xoa-updater'
 import {
   applyMiddleware,
   combineReducers,
@@ -9,6 +6,9 @@ import {
   createStore
 } from 'redux'
 
+import { connectStore as connectXo } from '../xo'
+
+import DevTools from './dev-tools'
 import reducer from './reducer'
 
 // ===================================================================
