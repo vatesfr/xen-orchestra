@@ -9,9 +9,9 @@ import { propTypes } from 'utils'
 import {
   createPager,
   createSort
-} from 'selectors'
+} from '../selectors'
 
-import styles from './sorted-table.css'
+import styles from './index.css'
 
 @propTypes({
   columnId: propTypes.number.isRequired,
@@ -54,8 +54,10 @@ class ColumnHead extends Component {
 
 // ===================================================================
 
+const DEFAULT_ITEMS_PER_PAGE = 10
+
 @propTypes({
-  defaultColumn: propTypes.number.isRequired,
+  defaultColumn: propTypes.number,
   collection: propTypes.oneOfType([
     propTypes.array,
     propTypes.object
@@ -69,11 +71,16 @@ class ColumnHead extends Component {
     ]),
     sortOrder: propTypes.string
   })).isRequired,
-  rowsPerPage: propTypes.number.isRequired
+  itemsPerPage: propTypes.number
 })
 export default class SortedTable extends Component {
   constructor (props) {
     super(props)
+
+    this.state = {
+      selectedColumn: props.defaultColumn || 0,
+      itemsPerPage: props.itemsPerPage || DEFAULT_ITEMS_PER_PAGE
+    }
 
     this._getSelectedColumn = () =>
       this.props.columns[this.state.selectedColumn]
@@ -89,12 +96,12 @@ export default class SortedTable extends Component {
     this._getActiveSortedItems = createPager(
       this._getSortedItems,
       () => this.state.activePage,
-      this.props.rowsPerPage
+      this.state.itemsPerPage
     )
   }
 
   componentWillMount () {
-    this._sort(this.props.defaultColumn)
+    this._sort(this.state.selectedColumn)
   }
 
   _sort = columnId => {
@@ -160,7 +167,7 @@ export default class SortedTable extends Component {
           ellipsis
           boundaryLinks
           maxButtons={5}
-          items={ceil(this._getSortedItems().length / this.props.rowsPerPage)}
+          items={ceil(this._getSortedItems().length / this.state.itemsPerPage)}
           activePage={this.state.activePage}
           onSelect={this._onPageSelection}
         />
