@@ -109,7 +109,9 @@ export default class SortedTable extends Component {
   componentDidMount () {
     // Force one Portal refresh.
     // Because Portal cannot see the container reference at first rendering.
-    this.forceUpdate()
+    if (this.props.paginationContainer) {
+      this.forceUpdate()
+    }
   }
 
   _sort = columnId => {
@@ -136,18 +138,24 @@ export default class SortedTable extends Component {
     activePage: event.eventKey
   })
 
-  _getPaginationContainer () {
-    const { paginationContainer } = this.props
-
-    if (paginationContainer) {
-      return () => paginationContainer()
-    }
-
-    return () => this.refs.defaultPaginationContainer
-  }
-
   render () {
     const { props, state } = this
+    const { paginationContainer } = props
+
+    const paginationInstance = (
+      <Pagination
+        first
+        last
+        prev
+        next
+        ellipsis
+        boundaryLinks
+        maxButtons={5}
+        items={ceil(this._getSortedItems().length / state.itemsPerPage)}
+        activePage={this.state.activePage}
+        onSelect={this._onPageSelection}
+      />
+    )
 
     return (
       <div>
@@ -177,21 +185,13 @@ export default class SortedTable extends Component {
             ))}
           </tbody>
         </table>
-        <Portal container={this._getPaginationContainer()}>
-          <Pagination
-            first
-            last
-            prev
-            next
-            ellipsis
-            boundaryLinks
-            maxButtons={5}
-            items={ceil(this._getSortedItems().length / state.itemsPerPage)}
-            activePage={this.state.activePage}
-            onSelect={this._onPageSelection}
-          />
-        </Portal>
-        <div ref='defaultPaginationContainer' />
+        {paginationContainer
+          ? (
+          <Portal container={() => paginationContainer()}> // Rebuild container function to refresh Portal component.
+            {paginationInstance}
+          </Portal>
+          ) : paginationInstance
+        }
       </div>
     )
   }
