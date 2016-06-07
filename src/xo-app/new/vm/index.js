@@ -89,7 +89,7 @@ export default class NewVm extends BaseComponent {
   }
 
   get _isDiskTemplate () {
-    return this.state.VBDs.length === 0 || this.state.template.name_label === 'Other install media'
+    return this.state.VDIs.length === 0 || this.state.template.name_label === 'Other install media'
   }
 
   _setRef (key, value) {
@@ -129,7 +129,7 @@ export default class NewVm extends BaseComponent {
       CPUs: undefined,
       memory: undefined,
       installMethod: undefined,
-      VBDs: [],
+      VDIs: [],
       VIFs: []
     })
   }
@@ -144,7 +144,7 @@ export default class NewVm extends BaseComponent {
       memory: state.memory,
       pv_args: state.pv_args,
       VIFs: state.VIFs,
-      VBDs: state.VBDs
+      VDIs: state.VDIs
     }
     createVm(args)
   }
@@ -167,13 +167,33 @@ export default class NewVm extends BaseComponent {
     const state = store.getState()
     console.log('template = ', template)
 
-    const VBDs = []
+    const VDIs = []
     forEach(template.$VBDs, vbdId => {
       const vbd = getObject(state, vbdId)
-      if (!vbd.is_cd_drive) {
-        vbd.vdi = getObject(state, vbd.VDI)
-        VBDs.push(vbd)
+      if (vbd.is_cd_drive) {
+        return
       }
+      const vdi = getObject(state, vbd.VDI)
+      const filteredVdi = {
+        bootable: vbd.bootable,
+        device: undefined, // TODO
+        name_label: vdi.name_label,
+        name_description: vdi.name_description || 'Created by XO',
+        size: vdi.size,
+        SR: vdi.$SR,
+        type: vdi.type
+      }
+      VDIs.push(filteredVdi)
+    })
+
+    const VIFs = []
+    forEach(template.VIFs, vifId => {
+      const vif = getObject(state, vifId)
+      const filteredVif = {
+        mac: vif.MAC,
+        network: vif.$network
+      }
+      VIFs.push(filteredVif)
     })
 
     this.setState({
@@ -185,9 +205,9 @@ export default class NewVm extends BaseComponent {
       memory: template.memory.size,
       CPUs: template.CPUs.number,
       // interfaces
-      VIFs: map(template.VIFs, vif => getObject(state, vif)),
+      VIFs,
       // disks
-      VBDs
+      VDIs
     }, () => forEach(this.state, (element, key) => {
       !isArray(element) && this._setRef(key, element)
     }))
@@ -195,11 +215,14 @@ export default class NewVm extends BaseComponent {
 
   _selectInstallMethod = event => this.setState({ installMethod: event.target.value })
 
-  _addVdi = () => this.setState({ VBDs: concat(this.state.VBDs, { id: this.uniqueId }) })
+  _addVdi = () => this.setState({ VDIs: concat(this.state.VDIs, {
+    id: this.uniqueId,
+    type: 'system'
+  }) })
   _removeVdi = index => {
-    const VBDs = this.state.VBDs.slice(0)
-    pullAt(VBDs, index)
-    this.setState({ VBDs })
+    const VDIs = this.state.VDIs.slice(0)
+    pullAt(VDIs, index)
+    this.setState({ VDIs })
   }
   _addInterface = () => this.setState({ VIFs: concat(this.state.VIFs, { id: this.uniqueId }) })
   _removeInterface = index => {
@@ -384,12 +407,12 @@ export default class NewVm extends BaseComponent {
       <SectionContent column>
         {map(this.state.VIFs, (vif, index) => <LineItem key={index}>
           <Item label='newVmMacLabel'>
-            <input ref={`mac_${vif.id}`} onChange={this._onChange('VIFs', index, 'MAC')} defaultValue={vif.MAC} className='form-control' type='text' />
+            <input ref={`mac_${vif.id}`} onChange={this._onChange('VIFs', index, 'mac')} defaultValue={vif.mac} className='form-control' type='text' />
           </Item>
           <Item label='newVmNetworkLabel'>
             <span className={styles.inlineSelect}>
               <SelectNetwork
-                defaultValue={vif.$network}
+                defaultValue={vif.network}
                 onChange={this._onChange('VIFs', index, '$network', 'id')}
                 predicate={this._isInPool}
                 ref='network'
@@ -414,20 +437,20 @@ export default class NewVm extends BaseComponent {
     </Section>
   }
   _isInterfacesDone = () => every(this.state.VIFs, vif =>
-    vif.MAC && vif.$network
+    vif.mac && vif.network
   )
 
   _renderDisks = () => {
     return <Section icon='new-vm-disks' title='newVmDisksPanel' done={this._isDisksDone()}>
       <SectionContent column>
-        {map(this.state.VBDs, (vbd, index) => <LineItem key={vbd.id}>
+        {map(this.state.VDIs, (vdi, index) => <LineItem key={vdi.id}>
           <Item label='newVmSrLabel'>
             <span className={styles.inlineSelect}>
               <SelectSr
-                defaultValue={vbd.vdi && vbd.vdi.$SR}
-                onChange={this._onChange('VBDs', index, 'sr', 'id')}
+                defaultValue={vdi.SR}
+                onChange={this._onChange('VDIs', index, 'SR', 'id')}
                 predicate={this._isInPool}
-                ref={`sr_${vbd.id}`}
+                ref={`sr_${vdi.id}`}
               />
             </span>
           </Item>
@@ -435,9 +458,9 @@ export default class NewVm extends BaseComponent {
           <Item className='checkbox'>
             <label>
               <input
-                defaultValue={vbd.vdi && vbd.bootable}
-                onChange={this._onChange('VBDs', index, 'bootable')}
-                ref={`bootable_${vbd.id}`}
+                defaultValue={vdi.bootable}
+                onChange={this._onChange('VDIs', index, 'bootable')}
+                ref={`bootable_${vdi.id}`}
                 type='checkbox'
               />
               {' '}
@@ -447,19 +470,27 @@ export default class NewVm extends BaseComponent {
           <Item label='newVmNameLabel'>
             <input
               className='form-control'
-              defaultValue={vbd.vdi && vbd.vdi.name_label}
-              onChange={this._onChange('VBDs', index, 'vdiName')}
-              ref={`vdiName_${vbd.id}`}
+              defaultValue={vdi.name_label}
+              onChange={this._onChange('VDIs', index, 'name_label')}
+              ref={`name_label_${vdi.id}`}
               type='text'
             />
           </Item>
           <Item label='newVmDescriptionLabel'>
             <input
               className='form-control'
-              defaultValue={vbd.vdi && vbd.vdi.name_description}
-              onChange={this._onChange('VBDs', index, 'vdiDescription')}
-              ref={`vdiDescription_${vbd.id}`}
+              defaultValue={vdi.name_description}
+              onChange={this._onChange('VDIs', index, 'name_description')}
+              ref={`name_description_${vdi.id}`}
               type='text'
+            />
+          </Item>
+          <Item label='newVmSizeLabel'>
+            <SizeInput
+              className={styles.sizeInput}
+              defaultValue={vdi.size}
+              onChange={this._onChange('VDIs', index, 'size')}
+              ref={`size_${vdi.id}`}
             />
           </Item>
           <Item>
@@ -479,12 +510,12 @@ export default class NewVm extends BaseComponent {
       </SectionContent>
     </Section>
   }
-  _isDisksDone = () => every(this.state.VBDs, vbd =>
-    (vbd.sr || vbd.vdi && vbd.vdi.$SR) && (vbd.vdiName || vbd.vdi && vbd.vdi.name_label) && (vbd.vdiDescription || vbd.vdi && vbd.vdi.name_description)
+  _isDisksDone = () => every(this.state.VDIs, vdi =>
+    vdi.SR && vdi.name_label && vdi.name_description
   )
 
   _renderSummary = () => {
-    const { CPUs, memory, VBDs, VIFs } = this.state
+    const { CPUs, memory, VDIs, VIFs } = this.state
     return <Section icon='new-vm-summary' title='newVmSummaryPanel' summary>
       <SectionContent summary>
         <Item>
@@ -496,7 +527,7 @@ export default class NewVm extends BaseComponent {
           <Icon icon='memory' />
         </Item>
         <Item>
-          {VBDs.length}x{' '}
+          {VDIs.length}x{' '}
           <Icon icon='disk' />
         </Item>
         <Item>
