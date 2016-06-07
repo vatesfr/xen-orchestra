@@ -3,6 +3,7 @@ import BaseComponent from 'base-component'
 import { Button } from 'react-bootstrap-4/lib'
 import classNames from 'classnames'
 import concat from 'lodash/concat'
+import every from 'lodash/every'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import isArray from 'lodash/isArray'
@@ -25,7 +26,8 @@ import {
 } from 'form'
 
 import {
-  connectStore
+  connectStore,
+  formatSize
 } from 'utils'
 
 import {
@@ -111,6 +113,9 @@ export default class NewVm extends BaseComponent {
   _reset = () => {
     const { refs } = this
     forEach(keys(refs), key => {
+      if (key === 'pool') {
+        return
+      }
       switch (this.refs[key].type) {
         case 'text':
         case 'number':
@@ -123,7 +128,12 @@ export default class NewVm extends BaseComponent {
       }
     })
     this.setState({
+      name_label: undefined,
       template: undefined,
+      name_description: undefined,
+      CPUs: undefined,
+      memory: undefined,
+      installMethod: undefined,
       VBDs: [],
       VIFs: []
     })
@@ -194,16 +204,14 @@ export default class NewVm extends BaseComponent {
   }
 
   _onChange = (ref, index, stateProp, targetProp) => event => {
-    console.log('event target = ', event)
-    const stateValue = this.state[ref].slice(0)
-    console.log('stateValue', stateValue)
+    const stateValue = this.state[ref] && this.state[ref].slice && this.state[ref].slice(0)
     if (isArray(stateValue)) {
-      stateValue[index][stateProp] = event.target ? event.target.value[targetProp] || event.target.value : event[targetProp]
+      stateValue[index][stateProp] = event.target ? event.target.value[targetProp] || event.target.value : event[targetProp] || event
       this.setState({ stateValue })
       return
     }
 
-    this.setState({ [ref]: event.target.value })
+    this.setState({ [ref]: event.target ? event.target.value[targetProp] || event.target.value : event[targetProp] || event })
   }
 
   render () {
@@ -310,7 +318,7 @@ export default class NewVm extends BaseComponent {
           </Item>
           : <span>
             <input onChange={this._selectInstallMethod} name='installMethod' value='PXE' type='radio' />
-            <Item label='pxeLabel' />
+            <Item label='newVmPxeLabel' />
           </span>
         }
       </SectionContent>
@@ -384,12 +392,12 @@ export default class NewVm extends BaseComponent {
       </SectionContent>
     </Section>
   }
-  _isInterfacesDone = () => {
-    return true
-  }
+  _isInterfacesDone = () => every(this.state.VIFs, vif =>
+    vif.MAC && vif.$network
+  )
 
   _renderDisks = () => {
-    return <Section icon='new-vm-disks' title='newVmDisksPanel' done={this._isInterfacesDone()}>
+    return <Section icon='new-vm-disks' title='newVmDisksPanel' done={this._isDisksDone()}>
       <SectionContent column>
         {map(this.state.VBDs, (vbd, index) => <LineItem key={vbd.id}>
           <Item label='newVmSrLabel'>
@@ -425,7 +433,13 @@ export default class NewVm extends BaseComponent {
             />
           </Item>
           <Item label='newVmDescriptionLabel'>
-            <input ref={`vdiDescription_${vbd.id}`} defaultValue={vbd.vdi && vbd.vdi.name_description} className='form-control' type='text' />
+            <input
+              className='form-control'
+              defaultValue={vbd.vdi && vbd.vdi.name_description}
+              onChange={this._onChange('VBDs', index, 'vdiDescription')}
+              ref={`vdiDescription_${vbd.id}`}
+              type='text'
+            />
           </Item>
           <Item>
             <Button onClick={() => this._removeVdi(index)} bsStyle='secondary'>
@@ -444,27 +458,28 @@ export default class NewVm extends BaseComponent {
       </SectionContent>
     </Section>
   }
-  _isDisksDone = () => {
-    return true
-  }
+  _isDisksDone = () => every(this.state.VBDs, vbd =>
+    (vbd.sr || vbd.vdi && vbd.vdi.$SR) && (vbd.vdiName || vbd.vdi && vbd.vdi.name_label) && (vbd.vdiDescription || vbd.vdi && vbd.vdi.name_description)
+  )
 
   _renderSummary = () => {
+    const { CPUs, memory, VBDs, VIFs } = this.state
     return <Section icon='new-vm-summary' title='newVmSummaryPanel' summary>
       <SectionContent summary>
         <Item>
-          0x{' '}
+          {CPUs || 0}x{' '}
           <Icon icon='cpu' />
         </Item>
         <Item>
-          0B{' '}
+          {memory ? formatSize(memory) : '0 B'}{' '}
           <Icon icon='memory' />
         </Item>
         <Item>
-          0x{' '}
+          {VBDs.length}x{' '}
           <Icon icon='disk' />
         </Item>
         <Item>
-          1x{' '}
+          {VIFs.length}x{' '}
           <Icon icon='network' />
         </Item>
       </SectionContent>
