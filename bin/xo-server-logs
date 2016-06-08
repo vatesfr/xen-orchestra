@@ -7,4 +7,4 @@
 // Better stack traces if possible.
 require('../better-stacks')
 
-require('exec-promise')(require('../dist/logs-cli'))
+require('exec-promise')(require('../dist/logs-cli').default)
