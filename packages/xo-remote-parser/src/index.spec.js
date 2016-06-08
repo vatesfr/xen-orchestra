@@ -14,7 +14,7 @@ const data = deepFreeze({
   file: {
     string: 'file:///var/lib/xoa/backup',
     object: {
-      type: 'local',
+      type: 'file',
       path: '/var/lib/xoa/backup'
     }
   },
@@ -37,13 +37,23 @@ const parseData = deepFreeze({
   'file with missing leading slash (#7)': {
     string: 'file://var/lib/xoa/backup',
     object: {
-      type: 'local',
+      type: 'file',
       path: '/var/lib/xoa/backup'
     }
   }
 })
 
-const formatData = data
+const formatData = deepFreeze({
+  ...data,
+
+  'file with local type': {
+    string: 'file:///var/lib/xoa/backup',
+    object: {
+      type: 'local',
+      path: '/var/lib/xoa/backup'
+    }
+  }
+})
 
 // -------------------------------------------------------------------
 

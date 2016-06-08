@@ -10,7 +10,7 @@ export const parse = string => {
 
   const [type, rest] = string.split('://')
   if (type === 'file') {
-    object.type = 'local'
+    object.type = 'file'
     object.path = `/${trimStart(rest, '/')}` // the leading slash has been forgotten on client side first implementation
   } else if (type === 'nfs') {
     object.type = 'nfs'
