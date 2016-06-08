@@ -60,8 +60,8 @@ const InputByType = {
   string: StringInput,
   vm: XoVmInput,
   xoobject: XoHighLevelObjectInput,
-  xorole: XoRoleInput,
-  xosubject: XoSubjectInput
+  role: XoRoleInput,
+  subject: XoSubjectInput
 }
 
 // ===================================================================
@@ -103,6 +103,7 @@ export default class GenericInput extends Component {
     if (schema.enum) {
       return <EnumInput {...props} />
     }
+
     // $type = Job Creation Schemas && Old XO plugins.
     const type = getXoType(schema) || getType(schema, '$type') || getType(schema)
     const Input = uiSchema.widget || InputByType[type.toLowerCase()]

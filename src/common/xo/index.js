@@ -230,6 +230,8 @@ export const subscribeRoles = createSubscription(invoke(
 
 // System ============================================================
 
+export const apiMethods = _signIn.then(() => call('system.getMethodsInfo'))
+
 export const serverVersion = _signIn.then(() => call('system.getServerVersion'))
 
 // ===================================================================
@@ -1095,8 +1097,6 @@ export const editUser = (user, { email, password, permission }) => (
 )
 
 // Jobs ----------------------------------------------------------
-
-export const apiMethods = _signIn.then(() => xo.call('system.getMethodsInfo'))
 
 export const updateJob = job => (
   xo.call('job.set', {job})::tap(

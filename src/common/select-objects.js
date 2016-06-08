@@ -530,7 +530,6 @@ export const SelectSubject = makeSubscriptionSelect(subscriber => {
 
   const unsubscribeGroups = subscribeGroups(groups => {
     groupsLoaded = true
-    usersLoaded
     set([
       ...filter(subjects, subject => subject.type === 'user'),
       ...groups
@@ -539,7 +538,6 @@ export const SelectSubject = makeSubscriptionSelect(subscriber => {
 
   const unsubscribeUsers = subscribeUsers(users => {
     usersLoaded = true
-    groupsLoaded
     set([
       ...filter(subjects, subject => subject.type === 'group'),
       ...users

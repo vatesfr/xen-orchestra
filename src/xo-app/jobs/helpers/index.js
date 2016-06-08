@@ -19,11 +19,11 @@ export class SelectPlainObject extends Component {
   constructor (props) {
     super(props)
     this.state = {
-      value: this._setValue(props.defaultValue, props)
+      value: this._computeValue(props.defaultValue, props)
     }
   }
 
-  _setValue (value, props = this.props) {
+  _computeValue (value, props = this.props) {
     let { optionKey } = props
     optionKey || (optionKey = 'id')
     const reduceValue = value => value != null ? (value[optionKey] || value) : ''
@@ -80,7 +80,7 @@ export class SelectPlainObject extends Component {
 
   set value (value) {
     this.setState({
-      value: this._setValue(value)
+      value: this._computeValue(value)
     })
   }
 
@@ -88,7 +88,7 @@ export class SelectPlainObject extends Component {
     const { onChange } = this.props
 
     this.setState({
-      value: this._setValue(value)
+      value: this._computeValue(value)
     }, onChange && (() => { onChange(this.value) }))
   }
 

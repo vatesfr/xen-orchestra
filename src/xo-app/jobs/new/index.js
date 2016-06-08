@@ -168,8 +168,8 @@ export default class Jobs extends Component {
             const modifyProperty = (prop, type) => {
               const titles = {
                 XoObject: 'Object(s)',
-                XoRole: 'Role(s)',
-                XoSubject: 'Subject(s)',
+                Role: 'Role(s)',
+                Subject: 'Subject(s)',
                 Host: 'Host(s)',
                 Vm: 'VM(s)',
                 Pool: 'Pool(s)',
@@ -185,9 +185,9 @@ export default class Jobs extends Component {
                 if (key === 'object') {
                   modifyProperty(property, 'XoObject')
                 } else if (key === 'action') {
-                  modifyProperty(property, 'XoRole')
+                  modifyProperty(property, 'Role')
                 } else if (key === 'subject') {
-                  modifyProperty(property, 'XoSubject')
+                  modifyProperty(property, 'Subject')
                 }
               } else if (group === 'host' && key === 'id') {
                 modifyProperty(property, 'Host')
