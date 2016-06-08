@@ -11,6 +11,10 @@ export default class NfsHandler extends LocalHandler {
     return 'nfs'
   }
 
+  _getRealPath () {
+    return `/tmp/xo-server/mounts/${this._remote.id}`
+  }
+
   async _loadRealMounts () {
     let stdout
     const mounted = {}
@@ -37,27 +41,27 @@ export default class NfsHandler extends LocalHandler {
     return mounted
   }
 
-  _matchesRealMount (remote) {
-    return remote.path in this._realMounts
+  _matchesRealMount () {
+    return this._getRealPath() in this._realMounts
   }
 
-  async _mount (remote) {
-    await fs.ensureDir(remote.path)
-    return execa('mount', ['-t', 'nfs', '-o', 'vers=3', `${remote.host}:/${remote.share}`, remote.path])
+  async _mount () {
+    await fs.ensureDir(this._getRealPath())
+    return execa('mount', ['-t', 'nfs', '-o', 'vers=3', `${this._remote.host}:${this._remote.path}`, this._getRealPath()])
   }
 
   async _sync () {
     await this._loadRealMounts()
-    if (this._matchesRealMount(this._remote) && !this._remote.enabled) {
+    if (this._matchesRealMount() && !this._remote.enabled) {
       try {
         await this._umount(this._remote)
       } catch (exc) {
         this._remote.enabled = true
         this._remote.error = exc.message
       }
-    } else if (!this._matchesRealMount(this._remote) && this._remote.enabled) {
+    } else if (!this._matchesRealMount() && this._remote.enabled) {
       try {
-        await this._mount(this._remote)
+        await this._mount()
       } catch (exc) {
         this._remote.enabled = false
         this._remote.error = exc.message

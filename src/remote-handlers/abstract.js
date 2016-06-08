@@ -15,7 +15,7 @@ import {
 
 export default class RemoteHandlerAbstract {
   constructor (remote) {
-    this._remote = parse({...remote})
+    this._remote = {...remote, ...parse(remote.url)}
     if (this._remote.type !== this.type) {
       throw new Error('Incorrect remote type')
     }

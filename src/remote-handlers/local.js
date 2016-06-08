@@ -12,16 +12,21 @@ import {
 
 export default class LocalHandler extends RemoteHandlerAbstract {
   get type () {
-    return 'local'
+    return 'file'
+  }
+
+  _getRealPath () {
+    return this._remote.path
   }
 
   _getFilePath (file) {
-    const parts = [this._remote.path]
+    const realPath = this._getRealPath()
+    const parts = [realPath]
     if (file) {
       parts.push(file)
     }
     const path = resolve.apply(null, parts)
-    if (!startsWith(path, this._remote.path)) {
+    if (!startsWith(path, realPath)) {
       throw new Error('Remote path is unavailable')
     }
     return path
@@ -30,8 +35,9 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   async _sync () {
     if (this._remote.enabled) {
       try {
-        await fs.ensureDir(this._remote.path)
-        await fs.access(this._remote.path, fs.R_OK | fs.W_OK)
+        const path = this._getRealPath()
+        await fs.ensureDir(path)
+        await fs.access(path, fs.R_OK | fs.W_OK)
       } catch (exc) {
         this._remote.enabled = false
         this._remote.error = exc.message
@@ -47,7 +53,7 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   async _outputFile (file, data, options) {
     const path = this._getFilePath(file)
     await fs.ensureDir(dirname(path))
-    await fs.writeFile(this._getFilePath(file), data, options)
+    await fs.writeFile(path, data, options)
   }
 
   async _readFile (file, options) {
