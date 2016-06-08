@@ -15,32 +15,28 @@ import {
   createRemote,
   deleteRemote,
   disableRemote,
+  editRemote,
   enableRemote,
-  setRemoteName,
-  setRemoteUrl,
   subscribeRemotes
 } from 'xo'
 
 const remoteTypes = {
-  local: 'remoteTypeLocal',
+  file: 'remoteTypeLocal',
   nfs: 'remoteTypeNfs',
   smb: 'remoteTypeSmb'
 }
 
 class AbstractRemote extends Component {
   _changeUrlElement = (value, element) => {
-    let { remote } = this.props
-    remote = {...remote}
+    const { remote } = {...this.props.remote}
     remote[element] = value
-    remote.url = format(remote)
-    return setRemoteUrl(remote)
+    const url = format(remote)
+    return editRemote(remote, {url})
   }
 
   _changeName = name => {
-    let { remote } = this.props
-    remote = {...remote}
-    remote.name = name
-    return setRemoteName(remote)
+    const { remote } = this.props
+    return editRemote(remote, {name})
   }
 
   render () {
@@ -74,11 +70,11 @@ class AbstractRemote extends Component {
     </tr>
   }
 
-  _renderRemoteInfo (remote) {
+  _renderRemoteInfo () {
     throw new Error('NOT IMPLEMENTED')
   }
 
-  _renderAuthInfo (remote) {
+  _renderAuthInfo () {
     throw new Error('NOT IMPLEMENTED')
   }
 
@@ -92,18 +88,12 @@ class AbstractRemote extends Component {
 }
 
 class LocalRemote extends AbstractRemote {
-  _changePath = path => {
+  _renderRemoteInfo () {
     const { remote } = this.props
-    remote.path = path
-    remote.url = format(remote)
-    return setRemoteUrl(remote)
-  }
-
-  _renderRemoteInfo (remote) {
     return <Text value={remote.path} onChange={v => this._changeUrlElement(v, 'path')} placeholder='/path/to/backup' />
   }
 
-  _renderAuthInfo (remote) {
+  _renderAuthInfo () {
     return ''
   }
 
@@ -117,15 +107,16 @@ class LocalRemote extends AbstractRemote {
 }
 
 class NfsRemote extends AbstractRemote {
-  _renderRemoteInfo (remote) {
+  _renderRemoteInfo () {
+    const { remote } = this.props
     return <span>
       <Text value={remote.host} onChange={v => this._changeUrlElement(v, 'host')} placeholder='host*' />
       :
-      <Text value={remote.share} onChange={v => this._changeUrlElement(v, 'path')} placeholder='/path/to/backup' />
+      <Text value={remote.path} onChange={v => this._changeUrlElement(v, 'path')} placeholder='/path/to/backup' />
     </span>
   }
 
-  _renderAuthInfo (remote) {
+  _renderAuthInfo () {
     return ''
   }
 
@@ -139,7 +130,8 @@ class NfsRemote extends AbstractRemote {
 }
 
 class SmbRemote extends AbstractRemote {
-  _renderRemoteInfo (remote) {
+  _renderRemoteInfo () {
+    const { remote } = this.props
     return <span>
       <strong className='text-info'>\\</strong>
       <Text value={remote.host} onChange={v => this._changeUrlElement(v, 'host')} />
@@ -150,7 +142,8 @@ class SmbRemote extends AbstractRemote {
     </span>
   }
 
-  _renderAuthInfo (remote) {
+  _renderAuthInfo () {
+    const { remote } = this.props
     return <span>
       <Text value={remote.username} onChange={v => this._changeUrlElement(v, 'username')} />
       :
@@ -171,7 +164,7 @@ class SmbRemote extends AbstractRemote {
 
 @addSubscriptions({
   remotes: cb => subscribeRemotes(rawRemotes => {
-    rawRemotes = map(rawRemotes, parse)
+    rawRemotes = map(rawRemotes, remote => ({...remote, ...parse(remote.url)}))
     const remotes = {}
     for (const remoteType in remoteTypes) {
       remotes[remoteType] = filter(rawRemotes, r => r.type === remoteType)

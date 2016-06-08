@@ -748,14 +748,14 @@ export const createRemote = (name, url) => (
   )
 )
 
-export const deleteRemote = id => (
-  xo.call('remote.delete', {id})::tap(
+export const deleteRemote = remote => (
+  xo.call('remote.delete', {id: resolveId(remote)})::tap(
     subscribeRemotes.forceRefresh
   )
 )
 
-export const enableRemote = id => (
-  xo.call('remote.set', {id, enabled: true})::tap(
+export const enableRemote = remote => (
+  xo.call('remote.set', {id: resolveId(remote), enabled: true})::tap(
     subscribeRemotes.forceRefresh
   )
 )
@@ -766,14 +766,8 @@ export const disableRemote = id => (
   )
 )
 
-export const setRemoteName = ({id, name}) => (
-  xo.call('remote.set', {id, name})::tap(
-    subscribeRemotes.forceRefresh
-  )
-)
-
-export const setRemoteUrl = ({id, url}) => (
-  xo.call('remote.set', {id, url})::tap(
+export const editRemote = (remote, {name, url}) => (
+  xo.call('remote.set', resolveIds({remote, name, url}))::tap(
     subscribeRemotes.forceRefresh
   )
 )
