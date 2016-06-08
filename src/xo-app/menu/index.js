@@ -57,38 +57,38 @@ export default class Menu extends Component {
   render () {
     const { nTasks, user } = this.props
     const items = [
-      { to: '/home', icon: 'home', label: 'homePage' },
-      { to: '/dashboard/overview', icon: 'dashboard', label: 'dashboardPage', subMenu: [
-        { to: '/dashboard/overview', icon: 'dashboard-overview', label: 'overviewDashboardPage' },
-        { to: '/dashboard/visualization', icon: 'dashboard-visualization', label: 'overviewVisualizationDashboardPage' },
-        { to: '/dashboard/stats', icon: 'dashboard-stats', label: 'overviewStatsDashboardPage' },
-        { to: '/dashboard/health', icon: 'dashboard-health', label: 'overviewHealthDashboardPage' }
+      { to: '/home', icon: 'menu-home', label: 'homePage' },
+      { to: '/dashboard/overview', icon: 'menu-dashboard', label: 'dashboardPage', subMenu: [
+        { to: '/dashboard/overview', icon: 'menu-dashboard-overview', label: 'overviewDashboardPage' },
+        { to: '/dashboard/visualization', icon: 'menu-dashboard-visualization', label: 'overviewVisualizationDashboardPage' },
+        { to: '/dashboard/stats', icon: 'menu-dashboard-stats', label: 'overviewStatsDashboardPage' },
+        { to: '/dashboard/health', icon: 'menu-dashboard-health', label: 'overviewHealthDashboardPage' }
       ]},
-      { to: '/self/dashboard', icon: 'self-service', label: 'selfServicePage', subMenu: [
-        { to: '/self/dashboard', icon: 'self-service-dashboard', label: 'selfServiceDashboardPage' },
-        { to: '/self/admin', icon: 'self-service-admin', label: 'selfServiceAdminPage' }
+      { to: '/self/dashboard', icon: 'menu-self-service', label: 'selfServicePage', subMenu: [
+        { to: '/self/dashboard', icon: 'menu-self-service-dashboard', label: 'selfServiceDashboardPage' },
+        { to: '/self/admin', icon: 'menu-self-service-admin', label: 'selfServiceAdminPage' }
       ]},
-      { to: '/backup/overview', icon: 'backup', label: 'backupPage', subMenu: [
-        { to: '/backup/overview', icon: 'backup-overview', label: 'backupOverviewPage' },
-        { to: '/backup/new', icon: 'backup-new', label: 'backupNewPage' },
-        { to: '/backup/restore', icon: 'backup-restore', label: 'backupRestorePage' }
+      { to: '/backup/overview', icon: 'menu-backup', label: 'backupPage', subMenu: [
+        { to: '/backup/overview', icon: 'menu-backup-overview', label: 'backupOverviewPage' },
+        { to: '/backup/new', icon: 'menu-backup-new', label: 'backupNewPage' },
+        { to: '/backup/restore', icon: 'menu-backup-restore', label: 'backupRestorePage' }
       ]},
-      { to: '/xoa-update', icon: 'update', label: 'updatePage' },
-      { to: '/settings/servers', icon: 'settings', label: 'settingsPage', subMenu: [
-        { to: '/settings/servers', icon: 'settings-servers', label: 'settingsServersPage' },
-        { to: '/settings/users', icon: 'settings-users', label: 'settingsUsersPage' },
-        { to: '/settings/groups', icon: 'settings-groups', label: 'settingsGroupsPage' },
-        { to: '/settings/acls', icon: 'settings-acls', label: 'settingsAclsPage' },
-        { to: '/settings/remotes', icon: 'backup-remotes', label: 'backupRemotesPage' },
-        { to: '/settings/plugins', icon: 'settings-plugins', label: 'settingsPluginsPage' }
+      { to: '/xoa-update', icon: 'menu-update', label: 'updatePage' },
+      { to: '/settings/servers', icon: 'menu-settings', label: 'settingsPage', subMenu: [
+        { to: '/settings/servers', icon: 'menu-settings-servers', label: 'settingsServersPage' },
+        { to: '/settings/users', icon: 'menu-settings-users', label: 'settingsUsersPage' },
+        { to: '/settings/groups', icon: 'menu-settings-groups', label: 'settingsGroupsPage' },
+        { to: '/settings/acls', icon: 'menu-settings-acls', label: 'settingsAclsPage' },
+        { to: '/settings/remotes', icon: 'menu-backup-remotes', label: 'backupRemotesPage' },
+        { to: '/settings/plugins', icon: 'menu-settings-plugins', label: 'settingsPluginsPage' }
       ]},
-      { to: '/about', icon: 'about', label: 'aboutPage' },
-      { to: '/tasks', icon: 'tasks', label: 'taskMenu', pill: nTasks },
-      { to: '/new/vm', icon: 'new', label: 'newMenu', subMenu: [
-        { to: '/new/vm', icon: 'new-vm', label: 'newVmPage' },
-        { to: '/new/sr', icon: 'new-sr', label: 'newSrPage' },
-        { to: '/settings/servers', icon: 'settings-servers', label: 'newServerPage' },
-        { to: '/import', icon: 'new-import', label: 'newImport' }
+      { to: '/about', icon: 'menu-about', label: 'aboutPage' },
+      { to: '/tasks', icon: 'task', label: 'taskMenu', pill: nTasks },
+      { to: '/new/vm', icon: 'menu-new', label: 'newMenu', subMenu: [
+        { to: '/new/vm', icon: 'menu-new-vm', label: 'newVmPage' },
+        { to: '/new/sr', icon: 'menu-new-sr', label: 'newSrPage' },
+        { to: '/settings/servers', icon: 'menu-settings-servers', label: 'newServerPage' },
+        { to: '/import', icon: 'menu-new-import', label: 'newImport' }
       ]}
     ]
 
@@ -174,7 +174,7 @@ const MenuLinkItem = props => {
 
   return <li className='nav-item xo-menu-item'>
     <Link activeClassName='active' className={classNames('nav-link', styles.centerCollapsed)} to={to}>
-      <Icon className={classNames(pill && styles.hiddenCollapsed)} icon={`menu-${icon}`} size='lg' fixedWidth />
+      <Icon className={classNames(pill && styles.hiddenCollapsed)} icon={`${icon}`} size='lg' fixedWidth />
       <span className={styles.hiddenCollapsed}>{' '}{_(label)}&nbsp;</span>
       {pill > 0 && <span className='tag tag-pill tag-primary'>{pill}</span>}
     </Link>
@@ -187,7 +187,7 @@ const SubMenu = props => {
     {map(props.items, (item, index) => (
       <li key={index} className='nav-item xo-menu-item'>
         <Link activeClassName='active' className='nav-link' to={item.to}>
-          <Icon icon={`menu-${item.icon}`} size='lg' fixedWidth />
+          <Icon icon={`${item.icon}`} size='lg' fixedWidth />
           {' '}
           {_(item.label)}
         </Link>
