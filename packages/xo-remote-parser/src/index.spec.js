@@ -28,6 +28,14 @@ const data = deepFreeze({
       username: 'Administrator',
       password: 'pas:sw@ord'
     }
+  },
+  NFS: {
+    string: 'nfs://192.168.100.225:media/nfs',
+    object: {
+      type: 'nfs',
+      host: '192.168.100.225',
+      path: 'media/nfs'
+    }
   }
 })
 

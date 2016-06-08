@@ -14,10 +14,9 @@ export const parse = string => {
     object.path = `/${trimStart(rest, '/')}` // the leading slash has been forgotten on client side first implementation
   } else if (type === 'nfs') {
     object.type = 'nfs'
-    const [host, share] = rest.split(':')
-    object.path = `/tmp/xo-server/mounts/${object.id}`
+    const [host, path] = rest.split(':')
     object.host = host
-    object.share = share
+    object.path = path
   } else if (type === 'smb') {
     object.type = 'smb'
     const lastAtSign = rest.lastIndexOf('@')
