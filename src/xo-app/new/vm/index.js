@@ -4,6 +4,7 @@ import cloneDeep from 'lodash/cloneDeep'
 import { Button } from 'react-bootstrap-4/lib'
 import classNames from 'classnames'
 import concat from 'lodash/concat'
+import debounce from 'lodash/debounce'
 import every from 'lodash/every'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
@@ -259,22 +260,34 @@ export default class NewVm extends BaseComponent {
     this.setState({ VIFs })
   }
 
-  _onChange = (prop) => param =>
-    this.setState({ [prop]: param.target
-      ? param.target.value // HTML input (param is an event)
-      : param // React input (param is the new value)
-    })
-  _onChangeObject = (stateElement, key, stateProperty, targetProperty) => param => {
-    const stateValue = cloneDeep(this.state[stateElement])
-    stateValue[key][stateProperty] = param.target
-      ? param.target.value[targetProperty] || param.target.value // HTML input (param is an event)
-      : param[targetProperty] || param // React input (param is the new value)
-    this.setState({ [stateElement]: stateValue })
+  _getOnChange = (prop) => {
+    const debouncer = debounce(param => this.setState({ [prop]: param }), 100)
+    return param => {
+      const _param = param.target ? param.target.value : param
+      debouncer(_param)
+    }
   }
-  _onChangeObjectCheckbox = (stateElement, key, stateProperty, targetProperty) => param => {
-    const stateValue = this.state[stateElement]
-    stateValue[key][stateProperty] = param.target.checked
-    this.setState({ [stateElement]: stateValue })
+  _getOnChangeObject = (stateElement, key, stateProperty, targetProperty) => {
+    const debouncer = debounce(param => {
+      const stateValue = this.state[stateElement]
+      stateValue[key][stateProperty] = param[targetProperty] || param
+      this.setState({ [stateElement]: stateValue })
+    }, 100)
+    return param => {
+      const _param = param.target ? param.target.value : param
+      debouncer(_param)
+    }
+  }
+  _getOnChangeObjectCheckbox = (stateElement, key, stateProperty, targetProperty) => {
+    const debouncer = debounce(param => {
+      const stateValue = this.state[stateElement]
+      stateValue[key][stateProperty] = param
+      this.setState({ [stateElement]: stateValue })
+    }, 100)
+    return event => {
+      const _param = event.target.checked
+      debouncer(_param)
+    }
   }
 
   render () {
@@ -331,7 +344,7 @@ export default class NewVm extends BaseComponent {
     return <Section icon='new-vm-infos' title='newVmInfoPanel' done={this._isInfoDone()}>
       <SectionContent>
         <Item label='newVmNameLabel'>
-          <input ref='name_label' onChange={this._onChange('name_label')} className='form-control' type='text' required />
+          <input ref='name_label' onChange={this._getOnChange('name_label')} className='form-control' type='text' required />
         </Item>
         <Item label='newVmTemplateLabel'>
           <span className={styles.inlineSelect}>
@@ -344,7 +357,7 @@ export default class NewVm extends BaseComponent {
           </span>
         </Item>
         <Item label='newVmDescriptionLabel'>
-          <input ref='name_description' onChange={this._onChange('name_description')} className='form-control' type='text' />
+          <input ref='name_description' onChange={this._getOnChange('name_description')} className='form-control' type='text' />
         </Item>
       </SectionContent>
     </Section>
@@ -358,10 +371,10 @@ export default class NewVm extends BaseComponent {
     return <Section icon='new-vm-perf' title='newVmPerfPanel' done={this._isPerformancesDone()}>
       <SectionContent>
         <Item label='newVmVcpusLabel'>
-          <input ref='CPUs' onChange={this._onChange('CPUs')} className='form-control' type='number' />
+          <input ref='CPUs' onChange={this._getOnChange('CPUs')} className='form-control' type='number' />
         </Item>
         <Item label='newVmRamLabel'>
-          <SizeInput ref='memory' onChange={this._onChange('memory')} className={styles.sizeInput} />
+          <SizeInput ref='memory' onChange={this._getOnChange('memory')} className={styles.sizeInput} />
         </Item>
       </SectionContent>
     </Section>
@@ -375,44 +388,44 @@ export default class NewVm extends BaseComponent {
     const { configDrive, installMethod, pool, template } = this.state
     return <Section icon='new-vm-install-settings' title='newVmInstallSettingsPanel' done={this._isInstallSettingsDone()}>
       {template && (this._isDiskTemplate ? <SectionContent>
-        <Toggle defaultValue={false} onChange={this._onChange('configDrive')} />
-        <input disabled={!configDrive} onChange={this._onChange('installMethod')} name='installMethod' value='SSH' type='radio' />
+        <Toggle defaultValue={false} onChange={this._getOnChange('configDrive')} />
+        <input disabled={!configDrive} onChange={this._getOnChange('installMethod')} name='installMethod' value='SSH' type='radio' />
         <Item label='newVmSshKey'>
-          <input ref='sshKey' onChange={this._onChange('sshKey')} disabled={installMethod !== 'SSH'} className='form-control' type='text' />
+          <input ref='sshKey' onChange={this._getOnChange('sshKey')} disabled={installMethod !== 'SSH'} className='form-control' type='text' />
         </Item>
-        <input disabled={!configDrive} onChange={this._onChange('installMethod')} name='installMethod' value='customConfig' type='radio' />
+        <input disabled={!configDrive} onChange={this._getOnChange('installMethod')} name='installMethod' value='customConfig' type='radio' />
         <Item label='newVmCustomConfig'>
           <textarea
             className='form-control'
             disabled={installMethod !== 'customConfig'}
-            onChange={this._onChange('customConfig')}
+            onChange={this._getOnChange('customConfig')}
             ref='customConfig'
             type='text'
           />
         </Item>
       </SectionContent>
       : <SectionContent>
-        <input onChange={this._onChange('installMethod')} name='installMethod' value='ISO' type='radio' />
+        <input onChange={this._getOnChange('installMethod')} name='installMethod' value='ISO' type='radio' />
         <Item label='newVmIsoDvdLabel'>
           <span className={styles.inlineSelect}>
             <SelectSr
               disabled={installMethod !== 'ISO'}
-              onChange={this._onChange('installIso')}
+              onChange={this._getOnChange('installIso')}
               predicate={sr => sr.$pool === pool.id && sr.content_type !== 'user'}
               ref='installIso'
             />
           </span>
         </Item>
-        <input onChange={this._onChange('installMethod')} name='installMethod' value='network' type='radio' />
+        <input onChange={this._getOnChange('installMethod')} name='installMethod' value='network' type='radio' />
         <Item label='newVmNetworkLabel'>
-          <input ref='installNetwork' onChange={this._onChange('installNetwork')} disabled={installMethod !== 'network'} placeholder='e.g: http://ftp.debian.org/debian' type='text' className='form-control' />
+          <input ref='installNetwork' onChange={this._getOnChange('installNetwork')} disabled={installMethod !== 'network'} placeholder='e.g: http://ftp.debian.org/debian' type='text' className='form-control' />
         </Item>
         {template.virtualizationMode === 'pv'
           ? <Item label='newVmPvArgsLabel'>
-            <input ref='pv_args' onChange={this._onChange('pv_args')} className='form-control' type='text' />
+            <input ref='pv_args' onChange={this._getOnChange('pv_args')} className='form-control' type='text' />
           </Item>
           : <span>
-            <input onChange={this._onChange('installMethod')} name='installMethod' value='PXE' type='radio' />
+            <input onChange={this._getOnChange('installMethod')} name='installMethod' value='PXE' type='radio' />
             <Item label='newVmPxeLabel' />
           </span>
         }
@@ -444,13 +457,13 @@ export default class NewVm extends BaseComponent {
       <SectionContent column>
         {map(this.state.VIFs, (vif, index) => <LineItem key={index}>
           <Item label='newVmMacLabel'>
-            <input ref={`mac_${vif.id}`} onChange={this._onChangeObject('VIFs', index, 'mac')} defaultValue={vif.mac} className='form-control' type='text' />
+            <input ref={`mac_${vif.id}`} onChange={this._getOnChangeObject('VIFs', index, 'mac')} defaultValue={vif.mac} className='form-control' type='text' />
           </Item>
           <Item label='newVmNetworkLabel'>
             <span className={styles.inlineSelect}>
               <SelectNetwork
                 defaultValue={vif.network}
-                onChange={this._onChangeObject('VIFs', index, '$network', 'id')}
+                onChange={this._getOnChangeObject('VIFs', index, '$network', 'id')}
                 predicate={this._isInPool()}
                 ref='network'
               />
@@ -487,7 +500,7 @@ export default class NewVm extends BaseComponent {
             <span className={styles.inlineSelect}>
               <SelectSr
                 defaultValue={disk.$SR}
-                onChange={this._onChangeObject('existingDisks', index, '$SR', 'id')}
+                onChange={this._getOnChangeObject('existingDisks', index, '$SR', 'id')}
                 predicate={this._isInPool()}
                 ref={`sr_${index}`}
               />
@@ -498,7 +511,7 @@ export default class NewVm extends BaseComponent {
             <label>
               <input
                 checked={disk.bootable}
-                onChange={this._onChangeObjectCheckbox('existingDisks', index, 'bootable')}
+                onChange={this._getOnChangeObjectCheckbox('existingDisks', index, 'bootable')}
                 ref={`bootable_${index}`}
                 type='checkbox'
               />
@@ -510,7 +523,7 @@ export default class NewVm extends BaseComponent {
             <input
               className='form-control'
               defaultValue={disk.name_label}
-              onChange={this._onChangeObject('existingDisks', index, 'name_label')}
+              onChange={this._getOnChangeObject('existingDisks', index, 'name_label')}
               ref={`name_label_${index}`}
               type='text'
             />
@@ -519,7 +532,7 @@ export default class NewVm extends BaseComponent {
             <input
               className='form-control'
               defaultValue={disk.name_description}
-              onChange={this._onChangeObject('existingDisks', index, 'name_description')}
+              onChange={this._getOnChangeObject('existingDisks', index, 'name_description')}
               ref={`name_description_${index}`}
               type='text'
             />
@@ -528,8 +541,8 @@ export default class NewVm extends BaseComponent {
             <SizeInput
               className={styles.sizeInput}
               defaultValue={disk.size}
-              onChange={this._onChangeObject('existingDisks', index, 'size')}
-              readOnly
+              onChange={this._getOnChangeObject('existingDisks', index, 'size')}
+              readOnly={!this.state.configDrive}
               ref={`size_${index}`}
             />
           </Item>
@@ -547,7 +560,7 @@ export default class NewVm extends BaseComponent {
             <span className={styles.inlineSelect}>
               <SelectSr
                 defaultValue={vdi.SR}
-                onChange={this._onChangeObject('VDIs', index, 'SR', 'id')}
+                onChange={this._getOnChangeObject('VDIs', index, 'SR', 'id')}
                 predicate={this._isInPool()}
                 ref={`sr_${vdi.device}`}
               />
@@ -558,7 +571,7 @@ export default class NewVm extends BaseComponent {
             <label>
               <input
                 checked={vdi.bootable}
-                onChange={this._onChangeObjectCheckbox('VDIs', index, 'bootable')}
+                onChange={this._getOnChangeObjectCheckbox('VDIs', index, 'bootable')}
                 ref={`bootable_${vdi.device}`}
                 type='checkbox'
               />
@@ -570,7 +583,7 @@ export default class NewVm extends BaseComponent {
             <input
               className='form-control'
               defaultValue={vdi.name_label}
-              onChange={this._onChangeObject('VDIs', index, 'name_label')}
+              onChange={this._getOnChangeObject('VDIs', index, 'name_label')}
               ref={`name_label_${vdi.device}`}
               type='text'
             />
@@ -579,16 +592,16 @@ export default class NewVm extends BaseComponent {
             <input
               className='form-control'
               defaultValue={vdi.name_description}
-              onChange={this._onChangeObject('VDIs', index, 'name_description')}
+              onChange={this._getOnChangeObject('VDIs', index, 'name_description')}
               ref={`name_description_${vdi.device}`}
               type='text'
             />
           </Item>
-          <Item label='newVmSizeLabel'>checkbox
+          <Item label='newVmSizeLabel'>
             <SizeInput
               className={styles.sizeInput}
               defaultValue={vdi.size}
-              onChange={this._onChangeObject('VDIs', index, 'size')}
+              onChange={this._getOnChangeObject('VDIs', index, 'size')}
               ref={`size_${vdi.device}`}
             />
           </Item>
