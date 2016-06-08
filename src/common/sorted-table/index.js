@@ -1,12 +1,13 @@
-import * as complexMatcher from 'complex-matcher'
 import Component from 'base-component'
 import Icon from 'icon'
 import React from 'react'
 import ceil from 'lodash/ceil'
+import debounce from 'lodash/debounce'
 import map from 'lodash/map'
 import { Pagination } from 'react-bootstrap-4/lib'
 import { Portal } from 'react-overlays'
 import { Row, Col } from 'grid'
+import { create as createMatcher } from 'complex-matcher'
 import { propTypes } from 'utils'
 
 import {
@@ -37,24 +38,20 @@ class TableFilter extends Component {
 
   render () {
     return (
-      <Row>
-        <Col mediumSize={4}>
-          <div className='input-group'>
-            <span className='input-group-addon'><Icon icon='search' /></span>
-            <input
-              type='text'
-              ref='filter'
-              onChange={this._onChange}
-              className='form-control'
-            />
-            <div className='input-group-btn'>
-              <button className='btn btn-secondary' onClick={this._cleanFilter}>
-                <Icon icon='clear-search' />
-              </button>
-            </div>
-          </div>
-        </Col>
-      </Row>
+      <div className='input-group'>
+        <span className='input-group-addon'><Icon icon='search' /></span>
+        <input
+          type='text'
+          ref='filter'
+          onChange={this._onChange}
+          className='form-control'
+        />
+        <div className='input-group-btn'>
+          <button className='btn btn-secondary' onClick={this._cleanFilter}>
+            <Icon icon='clear-search' />
+          </button>
+        </div>
+      </div>
     )
   }
 }
@@ -135,12 +132,12 @@ export default class SortedTable extends Component {
     this._getSelectedColumn = () =>
       this.props.columns[this.state.selectedColumn]
 
-    this._getSortedFilteredItems = createSort(
+    this._getAllItems = createSort(
       createFilter(
         this.props.collection,
         createSelector(
           () => this.state.filter || '',
-          complexMatcher.create
+          createMatcher
         )
       ),
       () => this._getSelectedColumn().sortCriteria,
@@ -149,8 +146,8 @@ export default class SortedTable extends Component {
 
     this.state.activePage = 1
 
-    this._getActiveSortedItems = createPager(
-      this._getSortedFilteredItems,
+    this._getVisibleItems = createPager(
+      this._getAllItems,
       () => this.state.activePage,
       this.state.itemsPerPage
     )
@@ -196,6 +193,8 @@ export default class SortedTable extends Component {
     this.setState({ filter })
   }
 
+  _onFilterChange = debounce(filter => { this.setState({ filter }) }, 500)
+
   render () {
     const { props, state } = this
     const {
@@ -212,14 +211,14 @@ export default class SortedTable extends Component {
         ellipsis
         boundaryLinks
         maxButtons={5}
-        items={ceil(this._getSortedFilteredItems().length / state.itemsPerPage)}
+        items={ceil(this._getAllItems().length / state.itemsPerPage)}
         activePage={this.state.activePage}
         onSelect={this._onPageSelection}
       />
     )
 
     const filterInstance = (
-      <TableFilter ref='filter' onChange={this._onFilterChange} />
+      <TableFilter onChange={this._onFilterChange} />
     )
 
     return (
@@ -239,7 +238,7 @@ export default class SortedTable extends Component {
             </tr>
           </thead>
           <tbody>
-            {map(this._getActiveSortedItems(), (item, key) => (
+            {map(this._getVisibleItems(), (item, key) => (
               <tr key={key}>
                 {map(props.columns, (column, key) => (
                   <td key={key}>
@@ -255,7 +254,13 @@ export default class SortedTable extends Component {
           <Portal container={() => filterContainer()}> // Rebuild container function to refresh Portal component.
             {filterInstance}
           </Portal>
-          ) : filterInstance
+          ) : (
+          <Row>
+            <Col mediumSize={4}>
+              {filterInstance}
+            </Col>
+          </Row>
+          )
         }
         {paginationContainer
           ? (
