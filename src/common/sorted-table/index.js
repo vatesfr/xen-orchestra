@@ -1,3 +1,4 @@
+import * as complexMatcher from 'complex-matcher'
 import Component from 'base-component'
 import Icon from 'icon'
 import React from 'react'
@@ -5,14 +6,60 @@ import ceil from 'lodash/ceil'
 import map from 'lodash/map'
 import { Pagination } from 'react-bootstrap-4/lib'
 import { Portal } from 'react-overlays'
+import { Row, Col } from 'grid'
 import { propTypes } from 'utils'
 
 import {
+  createFilter,
   createPager,
+  createSelector,
   createSort
 } from '../selectors'
 
 import styles from './index.css'
+
+// ===================================================================
+
+@propTypes({
+  onChange: propTypes.func.isRequired
+})
+class TableFilter extends Component {
+  _cleanFilter = () => {
+    const { filter } = this.refs
+    filter.value = ''
+    filter.focus()
+    this.props.onChange('')
+  }
+
+  _onChange = event => {
+    this.props.onChange(event.target.value)
+  }
+
+  render () {
+    return (
+      <Row>
+        <Col mediumSize={4}>
+          <div className='input-group'>
+            <span className='input-group-addon'><Icon icon='search' /></span>
+            <input
+              type='text'
+              ref='filter'
+              onChange={this._onChange}
+              className='form-control'
+            />
+            <div className='input-group-btn'>
+              <button className='btn btn-secondary' onClick={this._cleanFilter}>
+                <Icon icon='clear-search' />
+              </button>
+            </div>
+          </div>
+        </Col>
+      </Row>
+    )
+  }
+}
+
+// ===================================================================
 
 @propTypes({
   columnId: propTypes.number.isRequired,
@@ -72,6 +119,7 @@ const DEFAULT_ITEMS_PER_PAGE = 10
     ]),
     sortOrder: propTypes.string
   })).isRequired,
+  filterContainer: propTypes.func,
   itemsPerPage: propTypes.number,
   paginationContainer: propTypes.func
 })
@@ -87,8 +135,14 @@ export default class SortedTable extends Component {
     this._getSelectedColumn = () =>
       this.props.columns[this.state.selectedColumn]
 
-    this._getSortedItems = createSort(
-      () => this.props.collection,
+    this._getSortedFilteredItems = createSort(
+      createFilter(
+        this.props.collection,
+        createSelector(
+          () => this.state.filter || '',
+          complexMatcher.create
+        )
+      ),
       () => this._getSelectedColumn().sortCriteria,
       () => this.state.sortOrder
     )
@@ -96,7 +150,7 @@ export default class SortedTable extends Component {
     this.state.activePage = 1
 
     this._getActiveSortedItems = createPager(
-      this._getSortedItems,
+      this._getSortedFilteredItems,
       () => this.state.activePage,
       this.state.itemsPerPage
     )
@@ -138,9 +192,16 @@ export default class SortedTable extends Component {
     activePage: event.eventKey
   })
 
+  _onFilterChange = filter => {
+    this.setState({ filter })
+  }
+
   render () {
     const { props, state } = this
-    const { paginationContainer } = props
+    const {
+      paginationContainer,
+      filterContainer
+    } = props
 
     const paginationInstance = (
       <Pagination
@@ -151,10 +212,14 @@ export default class SortedTable extends Component {
         ellipsis
         boundaryLinks
         maxButtons={5}
-        items={ceil(this._getSortedItems().length / state.itemsPerPage)}
+        items={ceil(this._getSortedFilteredItems().length / state.itemsPerPage)}
         activePage={this.state.activePage}
         onSelect={this._onPageSelection}
       />
+    )
+
+    const filterInstance = (
+      <TableFilter ref='filter' onChange={this._onFilterChange} />
     )
 
     return (
@@ -185,9 +250,16 @@ export default class SortedTable extends Component {
             ))}
           </tbody>
         </table>
+        {filterContainer
+          ? (
+          <Portal container={() => filterContainer()}> // Rebuild container function to refresh Portal component.
+            {filterInstance}
+          </Portal>
+          ) : filterInstance
+        }
         {paginationContainer
           ? (
-          <Portal container={() => paginationContainer()}> // Rebuild container function to refresh Portal component.
+          <Portal container={() => paginationContainer()}>
             {paginationInstance}
           </Portal>
           ) : paginationInstance
