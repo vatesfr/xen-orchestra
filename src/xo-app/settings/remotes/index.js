@@ -37,7 +37,8 @@ class AbstractRemote extends Component {
   }
 
   _changeName = name => {
-    const { remote } = this.props
+    let { remote } = this.props
+    remote = {...remote}
     remote.name = name
     return setRemoteName(remote)
   }
