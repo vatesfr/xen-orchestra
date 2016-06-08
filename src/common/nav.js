@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import Link from 'react-router/lib/Link'
 import React from 'react'
 
@@ -9,8 +10,8 @@ export const NavLink = ({ children, to }) => (
   </li>
 )
 
-export const NavTabs = ({ children }) => (
-  <ul className='nav nav-tabs' role='tablist'>
+export const NavTabs = ({ children, className }) => (
+  <ul className={classNames(className, 'nav nav-tabs')} role='tablist'>
     {children}
   </ul>
 )

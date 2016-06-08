@@ -13,10 +13,10 @@ import Restore from './restore'
 
 const HEADER = <Container>
   <Row>
-    <Col mediumSize={4}>
+    <Col mediumSize={3}>
       <h2><Icon icon='backup' /> {_('backupPage')}</h2>
     </Col>
-    <Col mediumSize={8}>
+    <Col mediumSize={9}>
       <NavTabs className='pull-xs-right'>
         <NavLink to={'/backup/overview'}><Icon icon='menu-backup-overview' /> {_('backupOverviewPage')}</NavLink>
         <NavLink to={'/backup/new'}><Icon icon='menu-backup-new' /> {_('backupNewPage')}</NavLink>
