@@ -3,6 +3,7 @@ import ActionRowButton from 'action-row-button'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
+import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import React, { Component } from 'react'
 import { confirm } from 'modal'
@@ -20,29 +21,13 @@ import {
   noop
 } from 'utils'
 
-const AlarmMessage = connectStore(() => ({
-  object: createGetObject(
-    (_, props) => props.message.$object
-  ),
-  pool: createGetObject(
-    (_, props) => props.message.$pool
-  )
-}))(({ message, object, pool }) =>
-  <tr>
-    <td><FormattedTime value={message.time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={message.time * 1000} />)</td>
-    <td>{message.body}</td>
-    <td>{object.name_label}</td>
-    <td>{pool.name_label}</td>
-    <td>
-      <ActionRowButton
-        btnStyle='danger'
-        handler={deleteMessage}
-        handlerParam={message}
-        icon='delete'
-      />
-    </td>
-  </tr>
-)
+const AlarmColObject = connectStore(() => ({
+  object: createGetObject()
+}))(({ object }) => <span>{object.name_label}</span>)
+
+const AlarmColPool = connectStore(() => ({
+  pool: createGetObject()
+}))(({ pool }) => <span>{pool.name_label}</span>)
 
 const OrphanVdiSnapshot = connectStore(() => ({
   sr: createGetObject(
@@ -113,6 +98,40 @@ const Sr = connectStore(() => ({
     </td>
   </tr>
 )
+
+const ALARM_COLUMNS = [
+  {
+    name: _('alarmDate'),
+    itemRenderer: message => (
+      <span><FormattedTime value={message.time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={message.time * 1000} />)</span>
+    ),
+    sortCriteria: message => message.time
+  },
+  {
+    name: _('alarmContent'),
+    itemRenderer: message => message.body,
+    sortCriteria: message => message.body
+  },
+  {
+    name: _('alarmObject'),
+    itemRenderer: message => <AlarmColObject id={message.$object} />
+  },
+  {
+    name: _('alarmPool'),
+    itemRenderer: message => <AlarmColPool id={message.$pool} />
+  },
+  {
+    name: _('logAction'),
+    itemRenderer: message => (
+      <ActionRowButton
+        btnStyle='danger'
+        handler={deleteMessage}
+        handlerParam={message}
+        icon='delete'
+      />
+    )
+  }
+]
 
 @connectStore(() => {
   const getOrphanVdiSnapshots = createGetObjectsOfType('VDI-snapshot')
@@ -303,22 +322,9 @@ export default class Health extends Component {
                     </Col>
                   </Row>
                   <Row>
-                    <table className='table'>
-                      <thead className='thead-default'>
-                        <tr>
-                          <th>{_('alarmDate')}</th>
-                          <th>{_('alarmContent')}</th>
-                          <th>{_('alarmObject')}</th>
-                          <th>{_('alarmPool')}</th>
-                          <th>{_('logAction')}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {map(this.props.alertMessages, message =>
-                          <AlarmMessage key={message.id} message={message} />
-                        )}
-                      </tbody>
-                    </table>
+                    <Col>
+                      <SortedTable collection={this.props.alertMessages} columns={ALARM_COLUMNS} />
+                    </Col>
                   </Row>
                 </div>
               }
