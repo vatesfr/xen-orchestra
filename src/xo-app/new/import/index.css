@@ -1,0 +1,32 @@
+.dropzone {
+    border-color: #8f8686;
+    border-radius: 4px;
+    border-style: dashed;
+    border-width: 2px;
+    height: 200px;
+    margin-bottom: 20px;
+    padding: 30px;
+    width: 100%;
+    display: flex;
+}
+
+.activeDropzone {
+    background-color: #f0f0f0;
+    border-style: solid;
+}
+
+.dropzoneText {
+    color: #8f8686;
+    font-size: 1.2em;
+    margin: auto;
+}
+
+.cleanButtonContainer {
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+}
+
+.filesRow {
+    display: flex;
+}

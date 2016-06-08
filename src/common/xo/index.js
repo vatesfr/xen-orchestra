@@ -7,6 +7,7 @@ import map from 'lodash/map'
 import once from 'lodash/once'
 import React from 'react'
 import fpSortBy from 'lodash/fp/sortBy'
+import request from 'superagent'
 import sortBy from 'lodash/sortBy'
 import throttle from 'lodash/throttle'
 import Xo from 'xo-lib'
@@ -471,6 +472,26 @@ export const editVm = ({ id }, props) => (
 export const fetchVmStats = ({ id }, granularity) => (
   xo.call('vm.stats', { id, granularity })
 )
+
+export const importVm = ({ sr, file }) => {
+  const { name } = file
+
+  info(_('startImport'), name)
+
+  return xo.call('vm.import', { sr }).then(({ $sendTo: url }) => {
+    const req = request.post(url)
+
+    req.send(file)
+    req.end((err, res) => {
+      info(
+        _((!err && res.status === 200)
+          ? 'vmImportSuccess'
+          : 'vmImportFailed'),
+        name
+      )
+    })
+  })
+}
 
 // VDI ---------------------------------------------------------------
 

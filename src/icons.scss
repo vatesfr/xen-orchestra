@@ -494,6 +494,10 @@
     @extend .fa;
     @extend .fa-archive;
   }
+  &-import {
+    @extend .fa;
+    @extend .fa-file-archive-o;
+  }
   &-schedule {
     @extend .fa;
     @extend .fa-clock-o;

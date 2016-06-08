@@ -82,13 +82,13 @@ export default class Menu extends Component {
         { to: '/settings/remotes', icon: 'menu-backup-remotes', label: 'backupRemotesPage' },
         { to: '/settings/plugins', icon: 'menu-settings-plugins', label: 'settingsPluginsPage' }
       ]},
-      { to: '/about', icon: 'menu-about', label: 'aboutPage' },
-      { to: '/tasks', icon: 'task', label: 'taskMenu', pill: nTasks },
-      { to: '/new/vm', icon: 'menu-new', label: 'newMenu', subMenu: [
-        { to: '/new/vm', icon: 'menu-new-vm', label: 'newVmPage' },
-        { to: '/new/sr', icon: 'menu-new-sr', label: 'newSrPage' },
-        { to: '/settings/servers', icon: 'menu-settings-servers', label: 'newServerPage' },
-        { to: '/import', icon: 'menu-new-import', label: 'newImport' }
+      { to: '/about', icon: 'about', label: 'aboutPage' },
+      { to: '/tasks', icon: 'tasks', label: 'taskMenu', pill: nTasks },
+      { to: '/new/vm', icon: 'new', label: 'newMenu', subMenu: [
+        { to: '/new/vm', icon: 'new-vm', label: 'newVmPage' },
+        { to: '/new/sr', icon: 'new-sr', label: 'newSrPage' },
+        { to: '/settings/servers', icon: 'settings-servers', label: 'newServerPage' },
+        { to: '/new/import', icon: 'new-import', label: 'newImport' }
       ]}
     ]
 
