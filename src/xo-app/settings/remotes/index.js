@@ -1,5 +1,6 @@
 import _ from 'messages'
 import ActionButton from 'action-button'
+import ActionRowButton from 'action-row-button'
 import filter from 'lodash/filter'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
@@ -8,11 +9,15 @@ import React, { Component } from 'react'
 import { addSubscriptions } from 'utils'
 import { error } from 'notification'
 import { format, parse } from 'xo-remote-parser'
+import { Password, Text } from 'editable'
+
 import {
   createRemote,
   deleteRemote,
   disableRemote,
   enableRemote,
+  setRemoteName,
+  setRemoteUrl,
   subscribeRemotes
 } from 'xo'
 
@@ -23,6 +28,20 @@ const remoteTypes = {
 }
 
 class AbstractRemote extends Component {
+  _changeUrlElement = (value, element) => {
+    let { remote } = this.props
+    remote = {...remote}
+    remote[element] = value
+    remote.url = format(remote)
+    return setRemoteUrl(remote)
+  }
+
+  _changeName = name => {
+    const { remote } = this.props
+    remote.name = name
+    return setRemoteName(remote)
+  }
+
   render () {
     const {
       remote
@@ -30,7 +49,7 @@ class AbstractRemote extends Component {
 
     return <tr>
       <td></td>
-      <td>{remote.name}</td>
+      <td><Text value={remote.name} onChange={this._changeName} placeholder='remote name*' /></td>
       <td>{this._renderRemoteInfo(remote)}</td>
       <td>{this._renderAuthInfo(remote)}</td>
       <td>
@@ -38,19 +57,19 @@ class AbstractRemote extends Component {
         <span>
           <span className='text-success'>{this.accessible} <Icon icon='success' /></span>
           {' '}
-          <ActionButton btnStyle='warning' handler={disableRemote} handlerParam={remote.id} icon='disconnect' />
+          <ActionRowButton btnStyle='warning' handler={disableRemote} handlerParam={remote.id} icon='disconnect' />
         </span>
       }
       {!remote.enabled &&
         <span>
           <span className='text-muted'>{this.unaccessible}</span>
           {' '}
-          <ActionButton btnStyle='primary' handler={enableRemote} handlerParam={remote.id} icon='connect' />
+          <ActionRowButton btnStyle='primary' handler={enableRemote} handlerParam={remote.id} icon='connect' />
         </span>
       }
       </td>
       <td><span className='text-muted'>{remote.error}</span></td>
-      <td><ActionButton btnStyle='danger' handler={deleteRemote} handlerParam={remote.id} icon='delete' /></td>
+      <td><ActionRowButton btnStyle='danger' handler={deleteRemote} handlerParam={remote.id} icon='delete' /></td>
     </tr>
   }
 
@@ -72,8 +91,15 @@ class AbstractRemote extends Component {
 }
 
 class LocalRemote extends AbstractRemote {
+  _changePath = path => {
+    const { remote } = this.props
+    remote.path = path
+    remote.url = format(remote)
+    return setRemoteUrl(remote)
+  }
+
   _renderRemoteInfo (remote) {
-    return remote.path
+    return <Text value={remote.path} onChange={v => this._changeUrlElement(v, 'path')} placeholder='/path/to/backup' />
   }
 
   _renderAuthInfo (remote) {
@@ -91,7 +117,11 @@ class LocalRemote extends AbstractRemote {
 
 class NfsRemote extends AbstractRemote {
   _renderRemoteInfo (remote) {
-    return `${remote.host}:${remote.share}`
+    return <span>
+      <Text value={remote.host} onChange={v => this._changeUrlElement(v, 'host')} placeholder='host*' />
+      :
+      <Text value={remote.share} onChange={v => this._changeUrlElement(v, 'path')} placeholder='/path/to/backup' />
+    </span>
   }
 
   _renderAuthInfo (remote) {
@@ -109,11 +139,24 @@ class NfsRemote extends AbstractRemote {
 
 class SmbRemote extends AbstractRemote {
   _renderRemoteInfo (remote) {
-    return <span><strong className='text-info'>\\</strong>{remote.host}{remote.path && <span><strong className='text-info'>\</strong>{remote.path}</span>}</span>
+    return <span>
+      <strong className='text-info'>\\</strong>
+      <Text value={remote.host} onChange={v => this._changeUrlElement(v, 'host')} />
+      <strong className='text-info'>\</strong>
+      <span>
+        <Text value={remote.path} onChange={v => this._changeUrlElement(v, 'path')} placeholder='subfolder [path\to\backup]' />
+      </span>
+    </span>
   }
 
   _renderAuthInfo (remote) {
-    return <span>{remote.username}@{remote.domain}</span>
+    return <span>
+      <Text value={remote.username} onChange={v => this._changeUrlElement(v, 'username')} />
+      :
+      <Password value='' onChange={v => this._changeUrlElement(v, 'password')} placeholder='password(fill to edit)' />
+      @
+      <Text value={remote.domain} onChange={v => this._changeUrlElement(v, 'domain')} />
+    </span>
   }
 
   get accessible () {

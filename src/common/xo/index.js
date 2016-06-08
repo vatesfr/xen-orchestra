@@ -766,6 +766,18 @@ export const disableRemote = id => (
   )
 )
 
+export const setRemoteName = ({id, name}) => (
+  xo.call('remote.set', {id, name})::tap(
+    subscribeRemotes.forceRefresh
+  )
+)
+
+export const setRemoteUrl = ({id, url}) => (
+  xo.call('remote.set', {id, url})::tap(
+    subscribeRemotes.forceRefresh
+  )
+)
+
 export const listRemote = id => (
   xo.call('remote.list', {id})::tap(
     subscribeRemotes.forceRefresh
