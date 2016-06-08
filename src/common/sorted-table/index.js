@@ -4,6 +4,7 @@ import React from 'react'
 import ceil from 'lodash/ceil'
 import map from 'lodash/map'
 import { Pagination } from 'react-bootstrap-4/lib'
+import { Portal } from 'react-overlays'
 import { propTypes } from 'utils'
 
 import {
@@ -71,7 +72,8 @@ const DEFAULT_ITEMS_PER_PAGE = 10
     ]),
     sortOrder: propTypes.string
   })).isRequired,
-  itemsPerPage: propTypes.number
+  itemsPerPage: propTypes.number,
+  paginationContainer: propTypes.func
 })
 export default class SortedTable extends Component {
   constructor (props) {
@@ -104,6 +106,14 @@ export default class SortedTable extends Component {
     this._sort(this.state.selectedColumn)
   }
 
+  componentDidMount () {
+    // Force one Portal refresh.
+    // Because Portal cannot see the container reference at first rendering.
+    if (this.props.paginationContainer) {
+      this.forceUpdate()
+    }
+  }
+
   _sort = columnId => {
     const { state } = this
     let sortOrder
@@ -130,6 +140,22 @@ export default class SortedTable extends Component {
 
   render () {
     const { props, state } = this
+    const { paginationContainer } = props
+
+    const paginationInstance = (
+      <Pagination
+        first
+        last
+        prev
+        next
+        ellipsis
+        boundaryLinks
+        maxButtons={5}
+        items={ceil(this._getSortedItems().length / state.itemsPerPage)}
+        activePage={this.state.activePage}
+        onSelect={this._onPageSelection}
+      />
+    )
 
     return (
       <div>
@@ -159,18 +185,13 @@ export default class SortedTable extends Component {
             ))}
           </tbody>
         </table>
-        <Pagination
-          first
-          last
-          prev
-          next
-          ellipsis
-          boundaryLinks
-          maxButtons={5}
-          items={ceil(this._getSortedItems().length / this.state.itemsPerPage)}
-          activePage={this.state.activePage}
-          onSelect={this._onPageSelection}
-        />
+        {paginationContainer
+          ? (
+          <Portal container={() => paginationContainer()}> // Rebuild container function to refresh Portal component.
+            {paginationInstance}
+          </Portal>
+          ) : paginationInstance
+        }
       </div>
     )
   }
