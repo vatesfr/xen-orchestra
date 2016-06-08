@@ -186,7 +186,6 @@ export default class Health extends Component {
 
   render () {
     return <Container>
-      <h2><Icon icon='menu-dashboard-health' /> {_('overviewHealthDashboardPage')}</h2>
       <Row>
         <Col>
           <div className='card-dashboard'>

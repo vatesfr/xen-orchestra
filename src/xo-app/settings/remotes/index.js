@@ -183,7 +183,6 @@ export default class Remotes extends Component {
 
     return (
       <div>
-        <h2>{_('remoteList')}</h2>
         <table className='table table-hover'>
           {!isEmpty(remotes.local) &&
             <tbody>

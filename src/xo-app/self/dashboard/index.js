@@ -158,9 +158,6 @@ export default class Dashboard extends Component {
     return (
       <div>
         <Card>
-          <CardHeader>
-            <h5><Icon icon='resource-set' /> {_('selfServiceDashboardPage')}</h5>
-          </CardHeader>
           <CardBlock>
             {map(this.state.resourceSets, (resourceSet, key) => <ResourceSet key={key} resourceSet={resourceSet} />)}
           </CardBlock>

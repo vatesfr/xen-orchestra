@@ -295,125 +295,118 @@ class Edit extends Component {
     const { formatMessage } = this.props.intl
 
     return (
-      <Card>
-        <CardHeader>
-          <Icon icon='administration' /> {_('selfServiceAdminPage')}
-        </CardHeader>
-        <CardBlock>
-          <form id='resource-set-form' className='card-block'>
-            <h5><Icon icon='edition' /> {_('resourceSetCreation')}</h5>
-            <div className='form-group'>
-              <Row>
-                <Col mediumSize={4}>
-                  <input
-                    className='form-control'
-                    placeholder={formatMessage(messages.resourceSetName)}
-                    ref='inputName'
-                    required
-                    type='text'
-                  />
-                </Col>
-                <Col mediumSize={4}>
-                  <SelectSubject
-                    multi
-                    ref='selectSubject'
-                    required
-                  />
-                </Col>
-                <Col mediumSize={4}>
-                  <SelectPool
-                    multi
-                    onChange={this._updateSelectedPools}
-                    ref='selectPool'
-                    required
-                  />
-                </Col>
-              </Row>
+      <form id='resource-set-form' className='card-block'>
+        <h5><Icon icon='edition' /> {_('resourceSetCreation')}</h5>
+        <div className='form-group'>
+          <Row>
+            <Col mediumSize={4}>
+              <input
+                className='form-control'
+                placeholder={formatMessage(messages.resourceSetName)}
+                ref='inputName'
+                required
+                type='text'
+              />
+            </Col>
+            <Col mediumSize={4}>
+              <SelectSubject
+                multi
+                ref='selectSubject'
+                required
+              />
+            </Col>
+            <Col mediumSize={4}>
+              <SelectPool
+                multi
+                onChange={this._updateSelectedPools}
+                ref='selectPool'
+                required
+              />
+            </Col>
+          </Row>
+        </div>
+        <div className='form-group'>
+          <Row>
+            <Col mediumSize={4}>
+              <SelectVmTemplate
+                disabled={!state.nPools}
+                multi
+                predicate={state.vmTemplatePredicate}
+                ref='selectVmTemplate'
+                required
+              />
+            </Col>
+            <Col mediumSize={4}>
+              <SelectSr
+                disabled={!state.nPools}
+                multi
+                onChange={this._updateSelectedSrs}
+                predicate={state.srPredicate}
+                ref='selectSr'
+                required
+              />
+            </Col>
+            <Col mediumSize={4}>
+              <SelectNetwork
+                disabled={!state.nSrs}
+                multi
+                onChange={this._updateSelectedNetworks}
+                predicate={state.networkPredicate}
+                ref='selectNetwork'
+                required
+              />
+            </Col>
+          </Row>
+        </div>
+        <div className='form-group'>
+          <Row>
+            <Col mediumSize={4}>
+              <input
+                className='form-control'
+                min={0}
+                placeholder={formatMessage(messages.maxCpus)}
+                ref='inputMaxCpus'
+                type='number'
+              />
+            </Col>
+            <Col mediumSize={4}>
+              <SizeInput
+                placeholder={formatMessage(messages.maxRam)}
+                ref='inputMaxRam'
+              />
+            </Col>
+            <Col mediumSize={4}>
+              <SizeInput
+                placeholder={formatMessage(messages.maxDiskSpace)}
+                ref='inputMaxDiskSpace'
+              />
+            </Col>
+          </Row>
+        </div>
+        <hr />
+        <Hosts excludedHosts={state.excludedHosts} eligibleHosts={state.eligibleHosts} />
+        <hr />
+        <div className='form-group pull-xs-right'>
+          <div className='btn-toolbar'>
+            <div className='btn-group'>
+              <ActionButton
+                className='btn-primary'
+                form='resource-set-form'
+                handler={this._saveResourceSet}
+                icon='save'
+                type='submit'
+              >
+                {_('saveResourceSet')}
+              </ActionButton>
             </div>
-            <div className='form-group'>
-              <Row>
-                <Col mediumSize={4}>
-                  <SelectVmTemplate
-                    disabled={!state.nPools}
-                    multi
-                    predicate={state.vmTemplatePredicate}
-                    ref='selectVmTemplate'
-                    required
-                  />
-                </Col>
-                <Col mediumSize={4}>
-                  <SelectSr
-                    disabled={!state.nPools}
-                    multi
-                    onChange={this._updateSelectedSrs}
-                    predicate={state.srPredicate}
-                    ref='selectSr'
-                    required
-                  />
-                </Col>
-                <Col mediumSize={4}>
-                  <SelectNetwork
-                    disabled={!state.nSrs}
-                    multi
-                    onChange={this._updateSelectedNetworks}
-                    predicate={state.networkPredicate}
-                    ref='selectNetwork'
-                    required
-                  />
-                </Col>
-              </Row>
+            <div className='btn-group'>
+              <button type='button' className='btn btn-secondary' onClick={this._resetResourceSet}>
+                {_('resetResourceSet')}
+              </button>
             </div>
-            <div className='form-group'>
-              <Row>
-                <Col mediumSize={4}>
-                  <input
-                    className='form-control'
-                    min={0}
-                    placeholder={formatMessage(messages.maxCpus)}
-                    ref='inputMaxCpus'
-                    type='number'
-                  />
-                </Col>
-                <Col mediumSize={4}>
-                  <SizeInput
-                    placeholder={formatMessage(messages.maxRam)}
-                    ref='inputMaxRam'
-                  />
-                </Col>
-                <Col mediumSize={4}>
-                  <SizeInput
-                    placeholder={formatMessage(messages.maxDiskSpace)}
-                    ref='inputMaxDiskSpace'
-                  />
-                </Col>
-              </Row>
-            </div>
-            <hr />
-            <Hosts excludedHosts={state.excludedHosts} eligibleHosts={state.eligibleHosts} />
-            <hr />
-            <div className='form-group pull-xs-right'>
-              <div className='btn-toolbar'>
-                <div className='btn-group'>
-                  <ActionButton
-                    className='btn-primary'
-                    form='resource-set-form'
-                    handler={this._saveResourceSet}
-                    icon='save'
-                    type='submit'
-                  >
-                    {_('saveResourceSet')}
-                  </ActionButton>
-                </div>
-                <div className='btn-group'>
-                  <button type='button' className='btn btn-secondary' onClick={this._resetResourceSet}>
-                    {_('resetResourceSet')}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </form>
-        </CardBlock>
-      </Card>
+          </div>
+        </div>
+      </form>
     )
   }
 }
