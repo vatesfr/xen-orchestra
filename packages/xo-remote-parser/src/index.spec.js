@@ -1,5 +1,6 @@
 /* eslint-env mocha */
 
+import deepFreeze from 'deep-freeze'
 import expect from 'must'
 
 // ===================================================================
@@ -9,56 +10,38 @@ import { parse, format } from './'
 // ===================================================================
 
 // Data used for both parse and format (i.e. correctly formatted).
-const data = {
+const data = deepFreeze({
   file: {
-    in: {
-      url: 'file:///var/lib/xoa/backup',
-      name: 'fileRemote'
-    },
-    out: {
-      url: 'file:///var/lib/xoa/backup',
+    string: 'file:///var/lib/xoa/backup',
+    object: {
       type: 'local',
-      path: '/var/lib/xoa/backup',
-      name: 'fileRemote'
-    },
-    url: 'file:///var/lib/xoa/backup'
+      path: '/var/lib/xoa/backup'
+    }
   },
   SMB: {
-    in: {
-      url: 'smb://Administrator:pas:sw@ord@toto\\\\192.168.100.225\\smb\0',
-      name: 'smbRemote'
-    },
-    out: {
-      url: 'smb://Administrator:pas:sw@ord@toto\\\\192.168.100.225\\smb\0',
+    string: 'smb://Administrator:pas:sw@ord@toto\\\\192.168.100.225\\smb\0',
+    object: {
       type: 'smb',
       host: '192.168.100.225\\smb',
       path: '',
       domain: 'toto',
       username: 'Administrator',
-      password: 'pas:sw@ord',
-      name: 'smbRemote'
-    },
-    url: 'smb://Administrator:pas:sw@ord@toto\\\\192.168.100.225\\smb\0'
+      password: 'pas:sw@ord'
+    }
   }
-}
+})
 
-const parseData = {
+const parseData = deepFreeze({
   ...data,
 
   'file with missing leading slash (#7)': {
-    in: {
-      url: 'file://var/lib/xoa/backup',
-      name: 'fileRemote'
-    },
-    out: {
-      url: 'file://var/lib/xoa/backup',
+    string: 'file://var/lib/xoa/backup',
+    object: {
       type: 'local',
-      path: '/var/lib/xoa/backup',
-      name: 'fileRemote'
-    },
-    url: 'file:///var/lib/xoa/backup'
+      path: '/var/lib/xoa/backup'
+    }
   }
-}
+})
 
 const formatData = data
 
@@ -68,7 +51,7 @@ describe('format', () => {
   for (const name in formatData) {
     const datum = formatData[name]
     it(name, () => {
-      expect(format({...datum.out})).to.equal(datum.url)
+      expect(format(datum.object)).to.equal(datum.string)
     })
   }
 })
@@ -77,7 +60,7 @@ describe('parse', () => {
   for (const name in parseData) {
     const datum = parseData[name]
     it(name, () => {
-      expect(parse({...datum.in})).to.eql(datum.out)
+      expect(parse(datum.string)).to.eql(datum.object)
     })
   }
 })

@@ -5,19 +5,21 @@ import trimStart from 'lodash/trimStart'
 
 const sanitizePath = (...paths) => filter(map(paths, s => s && filter(map(s.split('/'), trim)).join('/'))).join('/')
 
-export const parse = remote => {
-  const [type, rest] = remote.url.split('://')
+export const parse = string => {
+  const object = { }
+
+  const [type, rest] = string.split('://')
   if (type === 'file') {
-    remote.type = 'local'
-    remote.path = `/${trimStart(rest, '/')}` // the leading slash has been forgotten on client side first implementation
+    object.type = 'local'
+    object.path = `/${trimStart(rest, '/')}` // the leading slash has been forgotten on client side first implementation
   } else if (type === 'nfs') {
-    remote.type = 'nfs'
+    object.type = 'nfs'
     const [host, share] = rest.split(':')
-    remote.path = `/tmp/xo-server/mounts/${remote.id}`
-    remote.host = host
-    remote.share = share
+    object.path = `/tmp/xo-server/mounts/${object.id}`
+    object.host = host
+    object.share = share
   } else if (type === 'smb') {
-    remote.type = 'smb'
+    object.type = 'smb'
     const lastAtSign = rest.lastIndexOf('@')
     const smb = rest.slice(lastAtSign + 1)
     const auth = rest.slice(0, lastAtSign)
@@ -26,23 +28,23 @@ export const parse = remote => {
     const password = auth.slice(firstColon + 1)
     const [domain, sh] = smb.split('\\\\')
     const [host, path] = sh.split('\0')
-    remote.host = host
-    remote.path = path
-    remote.domain = domain
-    remote.username = username
-    remote.password = password
+    object.host = host
+    object.path = path
+    object.domain = domain
+    object.username = username
+    object.password = password
   }
-  return remote
+  return object
 }
 
 export const format = ({type, host, path, username, password, domain}) => {
   type === 'local' && (type = 'file')
-  let url = `${type}://`
+  let string = `${type}://`
   if (type === 'nfs') {
-    url += `${host}:`
+    string += `${host}:`
   }
   if (type === 'smb') {
-    url += `${username}:${password}@${domain}\\\\${host}`
+    string += `${username}:${password}@${domain}\\\\${host}`
   }
   path = sanitizePath(path)
   if (type === 'smb') {
@@ -51,6 +53,6 @@ export const format = ({type, host, path, username, password, domain}) => {
   } else {
     type === 'file' && (path = `/${path}`)
   }
-  url += path
-  return url
+  string += path
+  return string
 }
