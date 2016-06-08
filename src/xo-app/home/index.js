@@ -10,6 +10,7 @@ import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import keys from 'lodash/keys'
 import map from 'lodash/map'
+import Page from '../page'
 import SingleLineRow from 'single-line-row'
 import size from 'lodash/size'
 import Tags from 'tags'
@@ -31,7 +32,7 @@ import {
   stopVms
 } from 'xo'
 import { Link } from 'react-router'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import { Text, XoSelect } from 'editable'
 import {
   SelectHost,
@@ -337,7 +338,57 @@ export default class Home extends Component {
     this.forceUpdate()
     this._updateMasterCheckbox()
   }
-
+  header () {
+    return <Container>
+      <Row className={styles.itemRowHeader}>
+        <Col mediumSize={6}>
+          <div className='input-group'>
+            <div className='input-group-btn'>
+              <DropdownButton id='filter' bsStyle='info' title={_('homeFilters')}>
+                <MenuItem onClick={this._filterRunning}>
+                  {_('homeFilterRunningVms')}
+                </MenuItem>
+                <MenuItem onClick={this._filterHalted}>
+                  {_('homeFilterNonRunningVms')}
+                </MenuItem>
+                <MenuItem onClick={this._filterBusy}>
+                  {_('homeFilterPendingVms')}
+                </MenuItem>
+                <MenuItem onClick={this._filterHvm}>
+                  {_('homeFilterHvmGuests')}
+                </MenuItem>
+                <MenuItem onClick={this._filterTags}>
+                  {_('homeFilterTags')}
+                </MenuItem>
+              </DropdownButton>
+            </div>
+            <input
+              autoFocus
+              className='form-control'
+              defaultValue={this.filter}
+              onChange={this._onFilterChange}
+              ref='filter'
+              type='text'
+            />
+            <div className='input-group-btn'>
+              <button
+                className='btn btn-secondary'
+                onClick={this._filterNone}>
+                <Icon icon='clear-search' />
+              </button>
+            </div>
+          </div>
+        </Col>
+        <Col mediumSize={6} className='text-xs-right'>
+          <Link
+            className='btn btn-success'
+            to='/new/vm'>
+            <Icon icon='vm-new' /> {_('homeNewVm')}
+          </Link>
+        </Col>
+      </Row>
+    </Container>
+  }
   render () {
     if (!this.props.fetched) {
       return <CenterPanel>
@@ -416,206 +467,161 @@ export default class Home extends Component {
     const { activePage, sortBy } = this.state
     const filteredVms = this.getFilteredVms()
     const currentPageVms = this.getCurrentPageVms()
-    return <div>
-      <Row className={styles.itemRowHeader}>
-        <Col mediumSize={6}>
-          <div className='input-group'>
-            <div className='input-group-btn'>
-              <DropdownButton id='filter' bsStyle='info' title={_('homeFilters')}>
-                <MenuItem onClick={this._filterRunning}>
-                  {_('homeFilterRunningVms')}
-                </MenuItem>
-                <MenuItem onClick={this._filterHalted}>
-                  {_('homeFilterNonRunningVms')}
-                </MenuItem>
-                <MenuItem onClick={this._filterBusy}>
-                  {_('homeFilterPendingVms')}
-                </MenuItem>
-                <MenuItem onClick={this._filterHvm}>
-                  {_('homeFilterHvmGuests')}
-                </MenuItem>
-                <MenuItem onClick={this._filterTags}>
-                  {_('homeFilterTags')}
-                </MenuItem>
-              </DropdownButton>
-            </div>
-            <input
-              autoFocus
-              className='form-control'
-              defaultValue={this.filter}
-              onChange={this._onFilterChange}
-              ref='filter'
-              type='text'
-            />
-            <div className='input-group-btn'>
-              <button
-                className='btn btn-secondary'
-                onClick={this._filterNone}>
-                <Icon icon='clear-search' />
+    return <Page header={this.header()}>
+      <div>
+        <div className={styles.itemContainer}>
+          <SingleLineRow className={styles.itemContainerHeader}>
+            <Col smallsize={11} mediumSize={3}>
+              <input type='checkbox' onChange={() => this._selectAllVms()} ref='masterCheckbox' />
+              {' '}
+              <span className='text-muted'>
+                {size(this._isSelected)
+                  ? _('homeSelectedVms', { selected: size(this._isSelected), total: nVms, vmIcon: <Icon icon='vm' /> })
+                  : _('homeDisplayedVms', { displayed: filteredVms.length, total: nVms, vmIcon: <Icon icon='vm' /> })
+                }
+              </span>
+            </Col>
+            <Col mediumSize={8} className='text-xs-right hidden-sm-down'>
+            {this.state.displayActions
+              ? <div className='btn-group'>
+                <ActionButton btnStyle='secondary' handler={stopVms} handlerParam={selectedVmsIds} icon='vm-stop' />
+                <ActionButton btnStyle='secondary' handler={startVms} handlerParam={selectedVmsIds} icon='vm-start' />
+                <ActionButton btnStyle='secondary' handler={restartVms} handlerParam={selectedVmsIds} icon='vm-reboot' />
+                <ActionButton btnStyle='secondary' handler={migrateVms} handlerParam={selectedVmsIds} icon='vm-migrate' />
+                <DropdownButton bsStyle='secondary' id='advanced' title={_('homeMore')}>
+                  <MenuItem onClick={() => { restartVms(selectedVmsIds, true) }}>
+                    <Icon icon='vm-force-reboot' fixedWidth /> {_('forceRebootVmLabel')}
+                  </MenuItem>
+                  <MenuItem onClick={() => { stopVms(selectedVmsIds, true) }}>
+                    <Icon icon='vm-force-shutdown' fixedWidth /> {_('forceShutdownVmLabel')}
+                  </MenuItem>
+                  <MenuItem onClick={() => { snapshotVms(selectedVmsIds) }}>
+                    <Icon icon='vm-snapshot' fixedWidth /> {_('snapshotVmLabel')}
+                  </MenuItem>
+                  <MenuItem onClick={() => { deleteVms(selectedVmsIds) }}>
+                    <Icon icon='vm-delete' fixedWidth /> {_('vmRemoveButton')}
+                  </MenuItem>
+                </DropdownButton>
+              </div>
+              : <div>
+                {pools.length && (
+                  <OverlayTrigger
+                    trigger='click'
+                    rootClose
+                    placement='bottom'
+                    overlay={
+                      <Popover className={styles.selectObject} id='poolPopover'>
+                        <SelectPool
+                          autoFocus
+                          multi
+                          onChange={this._updateSelectedPools}
+                          defaultValue={this.state.selectedPools}
+                        />
+                      </Popover>
+                    }
+                  >
+                    <Button className='btn-link'><span><Icon icon='pool' /> {_('homeAllPools')} ({pools.length})</span></Button>
+                  </OverlayTrigger>
+                )}
+                {' '}
+                {hosts.length && (
+                  <OverlayTrigger
+                    trigger='click'
+                    rootClose
+                    placement='bottom'
+                    overlay={
+                      <Popover className={styles.selectObject} id='HostPopover'>
+                        <SelectHost
+                          autoFocus
+                          multi
+                          onChange={this._updateSelectedHosts}
+                          defaultValue={this.state.selectedHosts}
+                        />
+                      </Popover>
+                    }
+                  >
+                    <Button className='btn-link'><span><Icon icon='host' /> {_('homeAllHosts')} ({hosts.length})</span></Button>
+                  </OverlayTrigger>
+                )}
+                {' '}
+                {tags.length && (
+                  <OverlayTrigger
+                    autoFocus
+                    trigger='click'
+                    rootClose
+                    placement='bottom'
+                    overlay={
+                      <Popover className={styles.selectObject} id='tagPopover'>
+                        <SelectTag
+                          multi
+                          onChange={this._updateSelectedTags}
+                          defaultValue={this.state.selectedTags}
+                        />
+                      </Popover>
+                    }
+                  >
+                    <Button className='btn-link'><span><Icon icon='tags' /> {_('homeAllTags')} ({tags.length})</span></Button>
+                  </OverlayTrigger>
+                )}
+                {' '}
+                <DropdownButton bsStyle='link' id='sort' title={_('homeSortBy')}>
+                  <MenuItem onClick={this._sortByName}>
+                    {this._tick(sortBy === 'name_label')}
+                    {sortBy === 'name_label'
+                    ? <strong>{_('homeSortByName')}</strong>
+                    : _('homeSortByName')}
+                  </MenuItem>
+                  <MenuItem onClick={this._sortByPowerState}>
+                    {this._tick(sortBy === 'power_state')}
+                    {sortBy === 'power_state'
+                    ? <strong>{_('homeSortByPowerstate')}</strong>
+                    : _('homeSortByPowerstate')}
+                  </MenuItem>
+                  <MenuItem onClick={this._sortByRam}>
+                    {this._tick(sortBy === 'memory.size')}
+                    {sortBy === 'memory.size'
+                    ? <strong>{_('homeSortByRAM')}</strong>
+                    : _('homeSortByRAM')}
+                  </MenuItem>
+                  <MenuItem onClick={this._sortByVcpus}>
+                    {this._tick(sortBy === 'CPUs.number')}
+                    {sortBy === 'CPUs.number'
+                    ? <strong>{_('homeSortByvCPUs')}</strong>
+                    : _('homeSortByvCPUs')}
+                  </MenuItem>
+                </DropdownButton>
+              </div>
+            }
+            </Col>
+            <Col smallsize={1} mediumSize={1} className='text-xs-right'>
+              <button className='btn btn-secondary'
+                onClick={this._expandAll}>
+                <Icon icon='nav' />
               </button>
-            </div>
-          </div>
-        </Col>
-        <Col mediumSize={6} className='text-xs-right'>
-          <Link
-            className='btn btn-success'
-            to='/new/vm'>
-            <Icon icon='vm-new' /> {_('homeNewVm')}
-          </Link>
-        </Col>
-      </Row>
-      <div className={styles.itemContainer}>
-        <SingleLineRow className={styles.itemContainerHeader}>
-          <Col smallsize={11} mediumSize={3}>
-            <input type='checkbox' onChange={() => this._selectAllVms()} ref='masterCheckbox' />
-            {' '}
-            <span className='text-muted'>
-              {size(this._isSelected)
-                ? _('homeSelectedVms', { selected: size(this._isSelected), total: nVms, vmIcon: <Icon icon='vm' /> })
-                : _('homeDisplayedVms', { displayed: filteredVms.length, total: nVms, vmIcon: <Icon icon='vm' /> })
-              }
-            </span>
-          </Col>
-          <Col mediumSize={8} className='text-xs-right hidden-sm-down'>
-          {this.state.displayActions
-            ? <div className='btn-group'>
-              <ActionButton btnStyle='secondary' handler={stopVms} handlerParam={selectedVmsIds} icon='vm-stop' />
-              <ActionButton btnStyle='secondary' handler={startVms} handlerParam={selectedVmsIds} icon='vm-start' />
-              <ActionButton btnStyle='secondary' handler={restartVms} handlerParam={selectedVmsIds} icon='vm-reboot' />
-              <ActionButton btnStyle='secondary' handler={migrateVms} handlerParam={selectedVmsIds} icon='vm-migrate' />
-              <DropdownButton bsStyle='secondary' id='advanced' title={_('homeMore')}>
-                <MenuItem onClick={() => { restartVms(selectedVmsIds, true) }}>
-                  <Icon icon='vm-force-reboot' fixedWidth /> {_('forceRebootVmLabel')}
-                </MenuItem>
-                <MenuItem onClick={() => { stopVms(selectedVmsIds, true) }}>
-                  <Icon icon='vm-force-shutdown' fixedWidth /> {_('forceShutdownVmLabel')}
-                </MenuItem>
-                <MenuItem onClick={() => { snapshotVms(selectedVmsIds) }}>
-                  <Icon icon='vm-snapshot' fixedWidth /> {_('snapshotVmLabel')}
-                </MenuItem>
-                <MenuItem onClick={() => { deleteVms(selectedVmsIds) }}>
-                  <Icon icon='vm-delete' fixedWidth /> {_('vmRemoveButton')}
-                </MenuItem>
-              </DropdownButton>
-            </div>
-            : <div>
-              {pools.length && (
-                <OverlayTrigger
-                  trigger='click'
-                  rootClose
-                  placement='bottom'
-                  overlay={
-                    <Popover className={styles.selectObject} id='poolPopover'>
-                      <SelectPool
-                        autoFocus
-                        multi
-                        onChange={this._updateSelectedPools}
-                        defaultValue={this.state.selectedPools}
-                      />
-                    </Popover>
-                  }
-                >
-                  <Button className='btn-link'><span><Icon icon='pool' /> {_('homeAllPools')} ({pools.length})</span></Button>
-                </OverlayTrigger>
-              )}
-              {' '}
-              {hosts.length && (
-                <OverlayTrigger
-                  trigger='click'
-                  rootClose
-                  placement='bottom'
-                  overlay={
-                    <Popover className={styles.selectObject} id='HostPopover'>
-                      <SelectHost
-                        autoFocus
-                        multi
-                        onChange={this._updateSelectedHosts}
-                        defaultValue={this.state.selectedHosts}
-                      />
-                    </Popover>
-                  }
-                >
-                  <Button className='btn-link'><span><Icon icon='host' /> {_('homeAllHosts')} ({hosts.length})</span></Button>
-                </OverlayTrigger>
-              )}
-              {' '}
-              {tags.length && (
-                <OverlayTrigger
-                  autoFocus
-                  trigger='click'
-                  rootClose
-                  placement='bottom'
-                  overlay={
-                    <Popover className={styles.selectObject} id='tagPopover'>
-                      <SelectTag
-                        multi
-                        onChange={this._updateSelectedTags}
-                        defaultValue={this.state.selectedTags}
-                      />
-                    </Popover>
-                  }
-                >
-                  <Button className='btn-link'><span><Icon icon='tags' /> {_('homeAllTags')} ({tags.length})</span></Button>
-                </OverlayTrigger>
-              )}
-              {' '}
-              <DropdownButton bsStyle='link' id='sort' title={_('homeSortBy')}>
-                <MenuItem onClick={this._sortByName}>
-                  {this._tick(sortBy === 'name_label')}
-                  {sortBy === 'name_label'
-                  ? <strong>{_('homeSortByName')}</strong>
-                  : _('homeSortByName')}
-                </MenuItem>
-                <MenuItem onClick={this._sortByPowerState}>
-                  {this._tick(sortBy === 'power_state')}
-                  {sortBy === 'power_state'
-                  ? <strong>{_('homeSortByPowerstate')}</strong>
-                  : _('homeSortByPowerstate')}
-                </MenuItem>
-                <MenuItem onClick={this._sortByRam}>
-                  {this._tick(sortBy === 'memory.size')}
-                  {sortBy === 'memory.size'
-                  ? <strong>{_('homeSortByRAM')}</strong>
-                  : _('homeSortByRAM')}
-                </MenuItem>
-                <MenuItem onClick={this._sortByVcpus}>
-                  {this._tick(sortBy === 'CPUs.number')}
-                  {sortBy === 'CPUs.number'
-                  ? <strong>{_('homeSortByvCPUs')}</strong>
-                  : _('homeSortByvCPUs')}
-                </MenuItem>
-              </DropdownButton>
-            </div>
-          }
-          </Col>
-          <Col smallsize={1} mediumSize={1} className='text-xs-right'>
-            <button className='btn btn-secondary'
-              onClick={this._expandAll}>
-              <Icon icon='nav' />
-            </button>
-          </Col>
-        </SingleLineRow>
-        {map(currentPageVms, vm =>
-          <VmItem vm={vm} key={vm.id} expandAll={this.state.expandAll} onSelect={this._selectVm} selected={this._isSelected[vm.id]} />
-        )}
-      </div>
-      {filteredVms.length > VMS_PER_PAGE && <Row>
-        <div style={{display: 'flex', width: '100%'}}>
-          <div style={{margin: 'auto'}}>
-            <Pagination
-              first
-              last
-              prev
-              next
-              ellipsis
-              boundaryLinks
-              maxButtons={5}
-              items={ceil(filteredVms.length / VMS_PER_PAGE)}
-              activePage={activePage}
-              onSelect={this._onPageSelection} />
-          </div>
+            </Col>
+          </SingleLineRow>
+          {map(currentPageVms, vm =>
+            <VmItem vm={vm} key={vm.id} expandAll={this.state.expandAll} onSelect={this._selectVm} selected={this._isSelected[vm.id]} />
+          )}
         </div>
-      </Row>}
-    </div>
+        {filteredVms.length > VMS_PER_PAGE && <Row>
+          <div style={{display: 'flex', width: '100%'}}>
+            <div style={{margin: 'auto'}}>
+              <Pagination
+                first
+                last
+                prev
+                next
+                ellipsis
+                boundaryLinks
+                maxButtons={5}
+                items={ceil(filteredVms.length / VMS_PER_PAGE)}
+                activePage={activePage}
+                onSelect={this._onPageSelection} />
+            </div>
+          </div>
+        </Row>}
+      </div>
+    </Page>
   }
 }

@@ -184,10 +184,6 @@ export default class Plugins extends Component {
   render () {
     return (
       <div>
-        <h2>
-          <Icon icon='menu-settings-plugins' />
-          <span>Plugins</span>
-        </h2>
         <ul style={{'paddingLeft': 0}} >
           {map(this.props.plugins, (plugin, key) =>
             <li key={key} className='list-group-item clearfix'>

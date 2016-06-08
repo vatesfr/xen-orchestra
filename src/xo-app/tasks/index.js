@@ -1,14 +1,27 @@
+import _ from 'messages'
+import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import keys from 'lodash/keys'
 import Link from 'react-router/lib/Link'
 import map from 'lodash/map'
+import Page from '../page'
 import React from 'react'
 import { connectStore } from 'utils'
+import { Container, Row, Col } from 'grid'
+
 import {
   createGetObject,
   createGetObjectsOfType,
   createSelector
 } from 'selectors'
+
+const HEADER = <Container>
+  <Row>
+    <Col mediumSize={12}>
+      <h2><Icon icon='menu-tasks' /> {_('taskMenu')}</h2>
+    </Col>
+  </Row>
+</Container>
 
 export const TaskItem = connectStore(() => ({
   host: createGetObject((_, props) => props.task.$host)
@@ -34,19 +47,23 @@ export default connectStore(() => {
   })
 })(({ pendingTasksByPool, pools }) => {
   if (isEmpty(pendingTasksByPool)) {
-    return <p className='text-muted'>No pending tasks.</p>
+    return <Page header={HEADER}>
+      <p className='text-muted'>No pending tasks.</p>
+    </Page>
   }
 
-  return <ul>
-    {map(pools, pool =>
-      <li key={pool.id}>
-        <Link to={`/pools/${pool.id}`}>{pool.name_label}</Link>
-        <ul>
-          {map(pendingTasksByPool[pool.id], task =>
-            <TaskItem key={task.id} task={task} />
-          )}
-        </ul>
-      </li>
-    )}
-  </ul>
+  return <Page header={HEADER}>
+    <ul>
+      {map(pools, pool =>
+        <li key={pool.id}>
+          <Link to={`/pools/${pool.id}`}>{pool.name_label}</Link>
+          <ul>
+            {map(pendingTasksByPool[pool.id], task =>
+              <TaskItem key={task.id} task={task} />
+            )}
+          </ul>
+        </li>
+      )}
+    </ul>
+  </Page>
 })
