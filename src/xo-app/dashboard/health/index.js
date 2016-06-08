@@ -21,16 +21,12 @@ import {
   noop
 } from 'utils'
 
-const TdObject = connectStore(() => ({
-  object: createGetObject(
-    (_, props) => props.message.$object
-  )
+const AlarmColObject = connectStore(() => ({
+  object: createGetObject()
 }))(({ object }) => <span>{object.name_label}</span>)
 
-const TdPool = connectStore(() => ({
-  pool: createGetObject(
-    (_, props) => props.message.$pool
-  )
+const AlarmColPool = connectStore(() => ({
+  pool: createGetObject()
 }))(({ pool }) => <span>{pool.name_label}</span>)
 
 const OrphanVdiSnapshot = connectStore(() => ({
@@ -118,11 +114,11 @@ const ALARM_COLUMNS = [
   },
   {
     name: _('alarmObject'),
-    itemRenderer: message => <TdObject message={message} />
+    itemRenderer: message => <AlarmColObject id={message.$object} />
   },
   {
     name: _('alarmPool'),
-    itemRenderer: message => <TdPool message={message} />
+    itemRenderer: message => <AlarmColPool id={message.$pool} />
   },
   {
     name: _('logAction'),
