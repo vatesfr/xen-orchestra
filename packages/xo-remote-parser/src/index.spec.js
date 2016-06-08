@@ -30,11 +30,11 @@ const data = deepFreeze({
     }
   },
   NFS: {
-    string: 'nfs://192.168.100.225:media/nfs',
+    string: 'nfs://192.168.100.225:/media/nfs',
     object: {
       type: 'nfs',
       host: '192.168.100.225',
-      path: 'media/nfs'
+      path: '/media/nfs'
     }
   }
 })
@@ -47,6 +47,14 @@ const parseData = deepFreeze({
     object: {
       type: 'file',
       path: '/var/lib/xoa/backup'
+    }
+  },
+  'nfs with missing leading slash': {
+    string: 'nfs://192.168.100.225:media/nfs',
+    object: {
+      type: 'nfs',
+      host: '192.168.100.225',
+      path: '/media/nfs'
     }
   }
 })

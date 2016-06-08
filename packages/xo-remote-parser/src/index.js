@@ -16,7 +16,7 @@ export const parse = string => {
     object.type = 'nfs'
     const [host, path] = rest.split(':')
     object.host = host
-    object.path = path
+    object.path = `/${trimStart(path, '/')}` // takes care of a missing leading slash coming from previous version format
   } else if (type === 'smb') {
     object.type = 'smb'
     const lastAtSign = rest.lastIndexOf('@')
@@ -50,7 +50,7 @@ export const format = ({type, host, path, username, password, domain}) => {
     path = path.split('/')
     path = '\0' + path.join('\\') // FIXME saving with the windows fashion \ was a bad idea :,(
   } else {
-    type === 'file' && (path = `/${path}`)
+    path = `/${path}`
   }
   string += path
   return string
