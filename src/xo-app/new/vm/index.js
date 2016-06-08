@@ -1,5 +1,6 @@
 import _ from 'messages'
 import BaseComponent from 'base-component'
+import cloneDeep from 'lodash/cloneDeep'
 import { Button } from 'react-bootstrap-4/lib'
 import classNames from 'classnames'
 import concat from 'lodash/concat'
@@ -26,7 +27,8 @@ import {
 } from 'select-objects'
 
 import {
-  SizeInput
+  SizeInput,
+  Toggle
 } from 'form'
 
 import {
@@ -89,7 +91,7 @@ export default class NewVm extends BaseComponent {
 
   get _isDiskTemplate () {
     const { template } = this.state
-    return template.template_info.disks === 0 || template.name_label === 'Other install media'
+    return template.template_info.disks.length === 0 && template.name_label !== 'Other install media'
   }
 
   _setRef (key, value) {
@@ -123,13 +125,15 @@ export default class NewVm extends BaseComponent {
       }
     })
     this.setState({
+      CPUs: undefined,
+      configDrive: undefined,
+      existingDisks: {},
+      installMethod: undefined,
+      installIso: undefined,
+      memory: undefined,
+      name_description: undefined,
       name_label: undefined,
       template: undefined,
-      name_description: undefined,
-      CPUs: undefined,
-      memory: undefined,
-      installMethod: undefined,
-      existingDisks: {},
       VDIs: [],
       VIFs: []
     })
@@ -137,9 +141,31 @@ export default class NewVm extends BaseComponent {
 
   _create = () => {
     const { state } = this
+    let installation
+    switch (state.installMethod) {
+      case 'ISO':
+        installation = {
+          method: 'cdrom',
+          repository: state.installIso
+        }
+        break
+      case 'network':
+        const matches = /^(http|ftp|nfs)/i.exec(state.installNetwork)
+        installation = {
+          method: matches[1].toLowerCase(),
+          repository: state.installNetwork
+        }
+        break
+      case 'PXE':
+        installation = {
+          method: 'network',
+          repository: 'pxe'
+        }
+    }
     const args = {
       CPUs: state.CPUs,
       existingDisks: state.existingDisks,
+      installation,
       memory: state.memory,
       name_description: state.name_description,
       name_label: state.name_label,
@@ -168,7 +194,7 @@ export default class NewVm extends BaseComponent {
 
     const state = store.getState()
     console.log('template = ', template)
-    console.log('template = ', template.template_info)
+    console.log('template infos = ', template.template_info)
 
     const existingDisks = {}
     forEach(template.$VBDs, vbdId => {
@@ -178,12 +204,10 @@ export default class NewVm extends BaseComponent {
       }
       const vdi = getObject(state, vbd.VDI)
       existingDisks[this.uniqueId] = {
-        bootable: vbd.bootable,
         name_label: vdi.name_label,
-        name_description: vdi.name_description || 'Created by XO',
+        name_description: vdi.name_description,
         size: vdi.size,
-        $SR: vdi.$SR,
-        type: vdi.type
+        $SR: vdi.$SR
       }
     })
 
@@ -199,12 +223,14 @@ export default class NewVm extends BaseComponent {
 
     this.setState({
       // infos
+      name_label: this.state.name_label || template.name_label,
       template,
-      name_label: '',
-      name_description: template.name_description,
+      name_description: template.name_description || this.state.name_description || 'Created by XO',
       // performances
       memory: template.memory.size,
       CPUs: template.CPUs.number,
+      // installation
+      installMethod: template.install_methods && template.install_methods[0],
       // interfaces
       VIFs,
       // disks
@@ -215,40 +241,40 @@ export default class NewVm extends BaseComponent {
     }))
   }
 
-  _selectInstallMethod = event => this.setState({ installMethod: event.target.value })
-
   _addVdi = () => this.setState({ VDIs: concat(this.state.VDIs, {
-    device: this.uniqueId,
+    device: String(this.uniqueId),
     type: 'system'
   }) })
   _removeVdi = index => {
-    const VDIs = this.state.VDIs.slice(0)
+    const VDIs = cloneDeep(this.state.VDIs)
     pullAt(VDIs, index)
     this.setState({ VDIs })
-  }
-  _removeExistingDisk = device => {
-    const existingDisks = this.state.existingDisks.slice(0)
-    existingDisks[device] = undefined
-    this.setState({ existingDisks })
   }
   _addInterface = () => this.setState({ VIFs: concat(this.state.VIFs, {
     id: this.uniqueId
   }) })
   _removeInterface = index => {
-    const VIFs = this.state.VIFs.slice(0)
+    const VIFs = cloneDeep(this.state.VIFs)
     pullAt(VIFs, index)
     this.setState({ VIFs })
   }
 
-  _onChange = (prop, index, stateProp, targetProp) => event =>
-    this.setState({ [prop]: event.target ? event.target.value[targetProp] || event.target.value : event[targetProp] || event })
+  _onChange = (prop) => param =>
+    this.setState({ [prop]: param.target
+      ? param.target.value // HTML input (param is an event)
+      : param // React input (param is the new value)
+    })
   _onChangeObject = (stateElement, key, stateProperty, targetProperty) => param => {
-    console.log('this.state[stateElement]', this.state[stateElement])
-    const stateValue = this.state[stateElement]
+    const stateValue = cloneDeep(this.state[stateElement])
     stateValue[key][stateProperty] = param.target
       ? param.target.value[targetProperty] || param.target.value // HTML input (param is an event)
-      : param[targetProperty] || param // React input
-    this.setState({ stateValue })
+      : param[targetProperty] || param // React input (param is the new value)
+    this.setState({ [stateElement]: stateValue })
+  }
+  _onChangeObjectCheckbox = (stateElement, key, stateProperty, targetProperty) => param => {
+    const stateValue = this.state[stateElement]
+    stateValue[key][stateProperty] = param.target.checked
+    this.setState({ [stateElement]: stateValue })
   }
 
   render () {
@@ -346,14 +372,15 @@ export default class NewVm extends BaseComponent {
   }
 
   _renderInstallSettings = () => {
-    const { installMethod, pool, template } = this.state
+    const { configDrive, installMethod, pool, template } = this.state
     return <Section icon='new-vm-install-settings' title='newVmInstallSettingsPanel' done={this._isInstallSettingsDone()}>
       {template && (this._isDiskTemplate ? <SectionContent>
-        <input onChange={this._selectInstallMethod} name='installMethod' value='SSH' type='radio' />
+        <Toggle defaultValue={false} onChange={this._onChange('configDrive')} />
+        <input disabled={!configDrive} onChange={this._onChange('installMethod')} name='installMethod' value='SSH' type='radio' />
         <Item label='newVmSshKey'>
           <input ref='sshKey' onChange={this._onChange('sshKey')} disabled={installMethod !== 'SSH'} className='form-control' type='text' />
         </Item>
-        <input onChange={this._selectInstallMethod} name='installMethod' value='customConfig' type='radio' />
+        <input disabled={!configDrive} onChange={this._onChange('installMethod')} name='installMethod' value='customConfig' type='radio' />
         <Item label='newVmCustomConfig'>
           <textarea
             className='form-control'
@@ -365,7 +392,7 @@ export default class NewVm extends BaseComponent {
         </Item>
       </SectionContent>
       : <SectionContent>
-        <input onChange={this._selectInstallMethod} name='installMethod' value='ISO' type='radio' />
+        <input onChange={this._onChange('installMethod')} name='installMethod' value='ISO' type='radio' />
         <Item label='newVmIsoDvdLabel'>
           <span className={styles.inlineSelect}>
             <SelectSr
@@ -376,7 +403,7 @@ export default class NewVm extends BaseComponent {
             />
           </span>
         </Item>
-        <input onChange={this._selectInstallMethod} name='installMethod' value='network' type='radio' />
+        <input onChange={this._onChange('installMethod')} name='installMethod' value='network' type='radio' />
         <Item label='newVmNetworkLabel'>
           <input ref='installNetwork' onChange={this._onChange('installNetwork')} disabled={installMethod !== 'network'} placeholder='e.g: http://ftp.debian.org/debian' type='text' className='form-control' />
         </Item>
@@ -385,7 +412,7 @@ export default class NewVm extends BaseComponent {
             <input ref='pv_args' onChange={this._onChange('pv_args')} className='form-control' type='text' />
           </Item>
           : <span>
-            <input onChange={this._selectInstallMethod} name='installMethod' value='PXE' type='radio' />
+            <input onChange={this._onChange('installMethod')} name='installMethod' value='PXE' type='radio' />
             <Item label='newVmPxeLabel' />
           </span>
         }
@@ -394,11 +421,13 @@ export default class NewVm extends BaseComponent {
   }
   _isInstallSettingsDone = () => {
     const {
+      configDrive,
       customConfig,
       installIso,
       installMethod,
       installNetwork,
-      sshKey
+      sshKey,
+      template
     } = this.state
     switch (installMethod) {
       case 'customConfig': return customConfig
@@ -406,7 +435,7 @@ export default class NewVm extends BaseComponent {
       case 'network': return installNetwork
       case 'PXE': return true
       case 'SSH': return sshKey
-      default: return false
+      default: return template && this._isDiskTemplate && !configDrive
     }
   }
 
@@ -422,7 +451,7 @@ export default class NewVm extends BaseComponent {
               <SelectNetwork
                 defaultValue={vif.network}
                 onChange={this._onChangeObject('VIFs', index, '$network', 'id')}
-                predicate={this._isInPool}
+                predicate={this._isInPool()}
                 ref='network'
               />
             </span>
@@ -459,24 +488,24 @@ export default class NewVm extends BaseComponent {
               <SelectSr
                 defaultValue={disk.$SR}
                 onChange={this._onChangeObject('existingDisks', index, '$SR', 'id')}
-                predicate={this._isInPool}
+                predicate={this._isInPool()}
                 ref={`sr_${index}`}
               />
             </span>
           </Item>
           {' '}
-          <Item className='checkbox'>
+          {/* <Item className='checkbox'>
             <label>
               <input
                 checked={disk.bootable}
-                onChange={this._onChangeObject('existingDisks', index, 'bootable')}
+                onChange={this._onChangeObjectCheckbox('existingDisks', index, 'bootable')}
                 ref={`bootable_${index}`}
                 type='checkbox'
               />
               {' '}
               {_('newVmBootableLabel')}
             </label>
-          </Item>
+          </Item> */}
           <Item label='newVmNameLabel'>
             <input
               className='form-control'
@@ -500,6 +529,7 @@ export default class NewVm extends BaseComponent {
               className={styles.sizeInput}
               defaultValue={disk.size}
               onChange={this._onChangeObject('existingDisks', index, 'size')}
+              readOnly
               ref={`size_${index}`}
             />
           </Item>
@@ -518,7 +548,7 @@ export default class NewVm extends BaseComponent {
               <SelectSr
                 defaultValue={vdi.SR}
                 onChange={this._onChangeObject('VDIs', index, 'SR', 'id')}
-                predicate={this._isInPool}
+                predicate={this._isInPool()}
                 ref={`sr_${vdi.device}`}
               />
             </span>
@@ -528,7 +558,7 @@ export default class NewVm extends BaseComponent {
             <label>
               <input
                 checked={vdi.bootable}
-                onChange={this._onChangeObject('VDIs', index, 'bootable')}
+                onChange={this._onChangeObjectCheckbox('VDIs', index, 'bootable')}
                 ref={`bootable_${vdi.device}`}
                 type='checkbox'
               />
@@ -554,7 +584,7 @@ export default class NewVm extends BaseComponent {
               type='text'
             />
           </Item>
-          <Item label='newVmSizeLabel'>
+          <Item label='newVmSizeLabel'>checkbox
             <SizeInput
               className={styles.sizeInput}
               defaultValue={vdi.size}
@@ -580,14 +610,14 @@ export default class NewVm extends BaseComponent {
     </Section>
   }
   _isDisksDone = () => every(this.state.VDIs, vdi =>
-    vdi.SR && vdi.name_label && vdi.name_description && vdi.size
-  ) &&
-  every(this.state.existingDisks, vdi =>
-    vdi.$SR && vdi.name_label && vdi.name_description && vdi.size
-  )
+      vdi.SR && vdi.name_label && vdi.name_description && vdi.size
+    ) &&
+    every(this.state.existingDisks, (vdi, index) =>
+      vdi.$SR && vdi.name_label && vdi.name_description && vdi.size
+    )
 
   _renderSummary = () => {
-    const { CPUs, memory, VDIs, VIFs } = this.state
+    const { CPUs, memory, template, VDIs, VIFs } = this.state
     return <Section icon='new-vm-summary' title='newVmSummaryPanel' summary>
       <SectionContent summary>
         <Item>
@@ -599,7 +629,7 @@ export default class NewVm extends BaseComponent {
           <Icon icon='memory' />
         </Item>
         <Item>
-          {VDIs.length}x{' '}
+          {template && (template.$VBDs.length + VDIs.length) || 0}x{' '}
           <Icon icon='disk' />
         </Item>
         <Item>
