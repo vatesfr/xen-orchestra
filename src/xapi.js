@@ -841,9 +841,9 @@ export default class Xapi extends XapiBase {
   // If a SR is specified, it will contains the copies of the VDIs,
   // otherwise they will use the SRs they are on.
   async _copyVm (vm, nameLabel = vm.name_label, sr = undefined) {
-    let snapshotRef
+    let snapshot
     if (isVmRunning(vm)) {
-      snapshotRef = await this._snapshotVm(vm)
+      snapshot = await this._snapshotVm(vm)
     }
 
     debug(`Copying VM ${vm.name_label}${
@@ -859,46 +859,15 @@ export default class Xapi extends XapiBase {
     try {
       return await this.call(
         'VM.copy',
-        snapshotRef || vm.$ref,
+        snapshot ? snapshot.$ref : vm.$ref,
         nameLabel,
         sr ? sr.$ref : ''
       )
     } finally {
-      if (snapshotRef) {
-        await this._deleteVm(
-          await this._getOrWaitObject(snapshotRef),
-          true
-        )
+      if (snapshot) {
+        await this._deleteVm(snapshot, true)
       }
     }
-  }
-
-  async _snapshotVm (vm, nameLabel = vm.name_label) {
-    debug(`Snapshotting VM ${vm.name_label}${
-      nameLabel !== vm.name_label
-        ? ` as ${nameLabel}`
-        : ''
-    }`)
-
-    let ref
-    try {
-      ref = await this.call('VM.snapshot_with_quiesce', vm.$ref, nameLabel)
-      this.addTag(ref, 'quiesce')::pCatch(noop) // ignore any failures
-
-      await this._waitObjectState(ref, vm => includes(vm.tags, 'quiesce'))
-    } catch (error) {
-      if (
-        error.code !== 'VM_SNAPSHOT_WITH_QUIESCE_NOT_SUPPORTED' &&
-        error.code !== 'VM_BAD_POWER_STATE' // quiesce only work on a running VM
-      ) {
-        throw error
-      }
-      ref = await this.call('VM.snapshot', vm.$ref, nameLabel)
-    }
-    // Convert the template to a VM.
-    await this.call('VM.set_is_a_template', ref, false)
-
-    return ref
   }
 
   async cloneVm (vmId, {
@@ -1285,7 +1254,7 @@ export default class Xapi extends XapiBase {
     // It's not needed to snapshot the VM to get the metadata
     if (isVmRunning(vm) && !onlyMetadata) {
       host = vm.$resident_on
-      snapshotRef = await this._snapshotVm(vm)
+      snapshotRef = (await this._snapshotVm(vm)).$ref
     } else {
       host = this.pool.$master
     }
@@ -1710,12 +1679,42 @@ export default class Xapi extends XapiBase {
     }
   }
 
+  async _snapshotVm (vm, nameLabel = vm.name_label) {
+    debug(`Snapshotting VM ${vm.name_label}${
+      nameLabel !== vm.name_label
+        ? ` as ${nameLabel}`
+        : ''
+    }`)
+
+    let ref
+    try {
+      ref = await this.call('VM.snapshot_with_quiesce', vm.$ref, nameLabel)
+      this.addTag(ref, 'quiesce')::pCatch(noop) // ignore any failures
+
+      await this._waitObjectState(ref, vm => includes(vm.tags, 'quiesce'))
+    } catch (error) {
+      if (
+        error.code !== 'VM_SNAPSHOT_WITH_QUIESCE_NOT_SUPPORTED' &&
+        error.code !== 'VM_BAD_POWER_STATE' // quiesce only work on a running VM
+      ) {
+        throw error
+      }
+      ref = await this.call('VM.snapshot', vm.$ref, nameLabel)
+    }
+    // Convert the template to a VM and wait to have receive the up-
+    // to-date object.
+    const [ , snapshot ] = await Promise.all([
+      this.call('VM.set_is_a_template', ref, false),
+      this._waitObjectState(ref, snapshot => !snapshot.is_a_template)
+    ])
+
+    return snapshot
+  }
+
   async snapshotVm (vmId, nameLabel = undefined) {
-    return /* await */ this._getOrWaitObject(
-      await this._snapshotVm(
-        this.getObject(vmId),
-        nameLabel
-      )
+    return /* await */ this._snapshotVm(
+      this.getObject(vmId),
+      nameLabel
     )
   }
 
