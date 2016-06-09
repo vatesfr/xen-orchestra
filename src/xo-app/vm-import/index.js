@@ -1,7 +1,7 @@
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import Dropzone from 'react-dropzone'
-import FormGroup from 'form-group'
+import * as FormGrid from 'form-grid'
 import Icon from 'icon'
 import React from 'react'
 import _ from 'messages'
@@ -65,17 +65,23 @@ export default class Import extends Component {
     return (
       <Page header={HEADER}>
         <form id='import-form'>
-          <FormGroup label={_('vmImportToPool')}>
-            <SelectPool onChange={this._handleSelectedPool} required />
-          </FormGroup>
-          <FormGroup label={_('vmImportToSr')}>
-            <SelectSr
-              disabled={!srPredicate}
-              predicate={srPredicate}
-              ref='selectSr'
-              required
-            />
-          </FormGroup>
+          <FormGrid.Row>
+            <FormGrid.LabelCol>{_('vmImportToPool')}</FormGrid.LabelCol>
+            <FormGrid.InputCol>
+              <SelectPool onChange={this._handleSelectedPool} required />
+            </FormGrid.InputCol>
+          </FormGrid.Row>
+          <FormGrid.Row>
+            <FormGrid.LabelCol>{_('vmImportToSr')}</FormGrid.LabelCol>
+            <FormGrid.InputCol>
+              <SelectSr
+                disabled={!srPredicate}
+                predicate={srPredicate}
+                ref='selectSr'
+                required
+              />
+            </FormGrid.InputCol>
+          </FormGrid.Row>
           <Dropzone onDrop={this._onDrop} className={styles.dropzone} activeClassName={styles.activeDropzone}>
             <div className={styles.dropzoneText}>{_('importVmsList')}</div>
           </Dropzone>
