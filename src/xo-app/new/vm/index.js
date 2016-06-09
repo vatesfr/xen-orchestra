@@ -12,6 +12,7 @@ import keys from 'lodash/keys'
 import map from 'lodash/map'
 import pullAt from 'lodash/pullAt'
 import React from 'react'
+import size from 'lodash/size'
 import store from 'store'
 import Wizard, { Section } from 'wizard'
 
@@ -49,7 +50,7 @@ const SectionContent = ({ summary, column, children }) => (
   <div className={classNames(
     'form-inline',
     summary ? styles.summary : styles.sectionContent,
-    column && styles.column
+    column && styles.sectionContentColumn
   )}>
     {children}
   </div>
@@ -63,8 +64,8 @@ const LineItem = ({ children }) => (
 
 const Item = ({ label, children }) => (
   <span className={styles.item}>
-    {label && <span><label>{_(label)}</label>{' '}</span>}
-    {children}
+    {label && <span>{_(label)}&nbsp;</span>}
+    <span className={styles.input}>{children}</span>
   </span>
 )
 
@@ -375,16 +376,36 @@ export default class NewVm extends BaseComponent {
   }
 
   _renderInstallSettings = () => {
-    const { configDrive, installMethod, pool, template } = this.state
+    const { template } = this.state
+    if (!template) {
+      return
+    }
+    const { configDrive, installMethod, pool } = this.state
     return <Section icon='new-vm-install-settings' title='newVmInstallSettingsPanel' done={this._isInstallSettingsDone()}>
-      {template && (this._isDiskTemplate ? <SectionContent>
-        <span>{_('newVmConfigDrive')}</span><Toggle defaultValue={false} onChange={this._getOnChange('configDrive')} />
-        <input disabled={!configDrive} onChange={this._getOnChange('installMethod')} name='installMethod' value='SSH' type='radio' />
-        <Item label='newVmSshKey'>
+      {this._isDiskTemplate ? <SectionContent>
+        <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: '#eee', padding: '1em' }}>
+          <span style={{ marginLeft: 'auto', marginRight: 'auto' }}>
+            {_('newVmConfigDrive')}
+          </span>
+          <span style={{ marginLeft: 'auto', marginRight: 'auto' }}>
+            <Toggle
+              defaultValue={false}
+              onChange={this._getOnChange('configDrive')}
+            />
+          </span>
+        </div>
+        <Item>
+          <input disabled={!configDrive} onChange={this._getOnChange('installMethod')} name='installMethod' value='SSH' type='radio' />
+          {' '}
+          <span>{_('newVmSshKey')}</span>
+          {' '}
           <input ref='sshKey' onChange={this._getOnChange('sshKey')} disabled={installMethod !== 'SSH'} className='form-control' type='text' />
         </Item>
-        <input disabled={!configDrive} onChange={this._getOnChange('installMethod')} name='installMethod' value='customConfig' type='radio' />
-        <Item label='newVmCustomConfig'>
+        <Item>
+          <input disabled={!configDrive} onChange={this._getOnChange('installMethod')} name='installMethod' value='customConfig' type='radio' />
+          {' '}
+          <span>{_('newVmCustomConfig')}</span>
+          {' '}
           <textarea
             className='form-control'
             disabled={installMethod !== 'customConfig'}
@@ -395,8 +416,11 @@ export default class NewVm extends BaseComponent {
         </Item>
       </SectionContent>
       : <SectionContent>
-        <input onChange={this._getOnChange('installMethod')} name='installMethod' value='ISO' type='radio' />
-        <Item label='newVmIsoDvdLabel'>
+        <Item>
+          <input onChange={this._getOnChange('installMethod')} name='installMethod' value='ISO' type='radio' />
+          {' '}
+          <span>{_('newVmIsoDvdLabel')}</span>
+          {' '}
           <span className={styles.inlineSelect}>
             <SelectSr
               disabled={installMethod !== 'ISO'}
@@ -406,8 +430,11 @@ export default class NewVm extends BaseComponent {
             />
           </span>
         </Item>
-        <input onChange={this._getOnChange('installMethod')} name='installMethod' value='network' type='radio' />
-        <Item label='newVmNetworkLabel'>
+        <Item>
+          <input onChange={this._getOnChange('installMethod')} name='installMethod' value='network' type='radio' />
+          {' '}
+          <span>{_('newVmNetworkLabel')}</span>
+          {' '}
           <input ref='installNetwork' onChange={this._getOnChange('installNetwork')} disabled={installMethod !== 'network'} placeholder='e.g: http://ftp.debian.org/debian' type='text' className='form-control' />
         </Item>
         {template.virtualizationMode === 'pv'
@@ -415,11 +442,14 @@ export default class NewVm extends BaseComponent {
             <input ref='pv_args' onChange={this._getOnChange('pv_args')} className='form-control' type='text' />
           </Item>
           : <span>
-            <input onChange={this._getOnChange('installMethod')} name='installMethod' value='PXE' type='radio' />
-            <Item label='newVmPxeLabel' />
+            <Item>
+              <input onChange={this._getOnChange('installMethod')} name='installMethod' value='PXE' type='radio' />
+              {' '}
+              <span>{_('newVmPxeLabel')}</span>
+            </Item>
           </span>
         }
-      </SectionContent>)}
+      </SectionContent>}
     </Section>
   }
   _isInstallSettingsDone = () => {
@@ -445,27 +475,30 @@ export default class NewVm extends BaseComponent {
   _renderInterfaces = () => {
     return <Section icon='new-vm-interfaces' title='newVmInterfacesPanel' done={this._isInterfacesDone()}>
       <SectionContent column>
-        {map(this.state.VIFs, (vif, index) => <LineItem key={index}>
-          <Item label='newVmMacLabel'>
-            <input ref={`mac_${vif.id}`} onChange={this._getOnChangeObject('VIFs', index, 'mac')} defaultValue={vif.mac} className='form-control' type='text' />
-          </Item>
-          <Item label='newVmNetworkLabel'>
-            <span className={styles.inlineSelect}>
-              <SelectNetwork
-                defaultValue={vif.network}
-                onChange={this._getOnChangeObject('VIFs', index, '$network', 'id')}
-                predicate={this._getIsInPool()}
-                ref='network'
-              />
-            </span>
-          </Item>
-          <Item>
-            <Button onClick={() => this._removeInterface(index)} bsStyle='secondary'>
-              <Icon icon='new-vm-remove' />
-            </Button>
-          </Item>
-        </LineItem>
-      )}
+        {map(this.state.VIFs, (vif, index) => <div>
+          <LineItem key={index}>
+            <Item label='newVmMacLabel'>
+              <input ref={`mac_${vif.id}`} onChange={this._getOnChangeObject('VIFs', index, 'mac')} defaultValue={vif.mac} className='form-control' type='text' />
+            </Item>
+            <Item label='newVmNetworkLabel'>
+              <span className={styles.inlineSelect}>
+                <SelectNetwork
+                  defaultValue={vif.network}
+                  onChange={this._getOnChangeObject('VIFs', index, '$network', 'id')}
+                  predicate={this._getIsInPool()}
+                  ref='network'
+                />
+              </span>
+            </Item>
+            <Item>
+              <Button onClick={() => this._removeInterface(index)} bsStyle='secondary'>
+                <Icon icon='new-vm-remove' />
+              </Button>
+            </Item>
+          </LineItem>
+          {index < this.state.VIFs.length - 1 && <hr />}
+        </div>
+        )}
         <Item>
           <Button onClick={this._addInterface} bsStyle='secondary'>
             <Icon icon='new-vm-add' />
@@ -485,110 +518,111 @@ export default class NewVm extends BaseComponent {
       <SectionContent column>
 
         {/* Existing disks */}
-        {map(this.state.existingDisks, (disk, index) => <LineItem key={index}>
-          <Item label='newVmSrLabel'>
-            <span className={styles.inlineSelect}>
-              <SelectSr
-                defaultValue={disk.$SR}
-                onChange={this._getOnChangeObject('existingDisks', index, '$SR', 'id')}
-                predicate={this._getSrPredicate()}
-                ref={`sr_${index}`}
+        {map(this.state.existingDisks, (disk, index) => <div>
+          <LineItem key={index}>
+            <Item label='newVmSrLabel'>
+              <span className={styles.inlineSelect}>
+                <SelectSr
+                  defaultValue={disk.$SR}
+                  onChange={this._getOnChangeObject('existingDisks', index, '$SR', 'id')}
+                  predicate={this._getSrPredicate()}
+                  ref={`sr_${index}`}
+                />
+              </span>
+            </Item>
+            {' '}
+            <Item label='newVmNameLabel'>
+              <input
+                className='form-control'
+                defaultValue={disk.name_label}
+                onChange={this._getOnChangeObject('existingDisks', index, 'name_label')}
+                ref={`name_label_${index}`}
+                type='text'
               />
-            </span>
-          </Item>
-          {' '}
-          <Item label='newVmNameLabel'>
-            <input
-              className='form-control'
-              defaultValue={disk.name_label}
-              onChange={this._getOnChangeObject('existingDisks', index, 'name_label')}
-              ref={`name_label_${index}`}
-              type='text'
-            />
-          </Item>
-          <Item label='newVmDescriptionLabel'>
-            <input
-              className='form-control'
-              defaultValue={disk.name_description}
-              onChange={this._getOnChangeObject('existingDisks', index, 'name_description')}
-              ref={`name_description_${index}`}
-              type='text'
-            />
-          </Item>
-          <Item label='newVmSizeLabel'>
-            <SizeInput
-              className={styles.sizeInput}
-              defaultValue={disk.size}
-              onChange={this._getOnChangeObject('existingDisks', index, 'size')}
-              readOnly={!this.state.configDrive}
-              ref={`size_${index}`}
-            />
-          </Item>
-          <Item>
-            <Button onClick={() => this._removeExistingDisk(index)} bsStyle='secondary'>
-              <Icon icon='new-vm-remove' />
-            </Button>
-          </Item>
-        </LineItem>
+            </Item>
+            <Item label='newVmDescriptionLabel'>
+              <input
+                className='form-control'
+                defaultValue={disk.name_description}
+                onChange={this._getOnChangeObject('existingDisks', index, 'name_description')}
+                ref={`name_description_${index}`}
+                type='text'
+              />
+            </Item>
+            <Item label='newVmSizeLabel'>
+              <SizeInput
+                className={styles.sizeInput}
+                defaultValue={disk.size}
+                onChange={this._getOnChangeObject('existingDisks', index, 'size')}
+                readOnly={!this.state.configDrive}
+                ref={`size_${index}`}
+              />
+            </Item>
+          </LineItem>
+          {index < size(this.state.existingDisks) + this.state.VDIs.length - 1 && <hr />}
+        </div>
         )}
 
         {/* VDIs */}
-        {map(this.state.VDIs, (vdi, index) => <LineItem key={vdi.device}>
-          <Item label='newVmSrLabel'>
-            <span className={styles.inlineSelect}>
-              <SelectSr
-                defaultValue={vdi.SR}
-                onChange={this._getOnChangeObject('VDIs', index, 'SR', 'id')}
-                predicate={this._getSrPredicate()}
-                ref={`sr_${vdi.device}`}
-              />
-            </span>
-          </Item>
-          {' '}
-          <Item className='checkbox'>
-            <label>
+        {map(this.state.VDIs, (vdi, index) => <div>
+          <LineItem key={vdi.device}>
+            <Item label='newVmSrLabel'>
+              <span className={styles.inlineSelect}>
+                <SelectSr
+                  defaultValue={vdi.SR}
+                  onChange={this._getOnChangeObject('VDIs', index, 'SR', 'id')}
+                  predicate={this._getSrPredicate()}
+                  ref={`sr_${vdi.device}`}
+                />
+              </span>
+            </Item>
+            {' '}
+            <Item className='checkbox'>
+              <label>
+                <input
+                  checked={vdi.bootable}
+                  onChange={this._getOnChangeObjectCheckbox('VDIs', index, 'bootable')}
+                  ref={`bootable_${vdi.device}`}
+                  type='checkbox'
+                />
+                {' '}
+                {_('newVmBootableLabel')}
+              </label>
+            </Item>
+            <Item label='newVmNameLabel'>
               <input
-                checked={vdi.bootable}
-                onChange={this._getOnChangeObjectCheckbox('VDIs', index, 'bootable')}
-                ref={`bootable_${vdi.device}`}
-                type='checkbox'
+                className='form-control'
+                defaultValue={vdi.name_label}
+                onChange={this._getOnChangeObject('VDIs', index, 'name_label')}
+                ref={`name_label_${vdi.device}`}
+                type='text'
               />
-              {' '}
-              {_('newVmBootableLabel')}
-            </label>
-          </Item>
-          <Item label='newVmNameLabel'>
-            <input
-              className='form-control'
-              defaultValue={vdi.name_label}
-              onChange={this._getOnChangeObject('VDIs', index, 'name_label')}
-              ref={`name_label_${vdi.device}`}
-              type='text'
-            />
-          </Item>
-          <Item label='newVmDescriptionLabel'>
-            <input
-              className='form-control'
-              defaultValue={vdi.name_description}
-              onChange={this._getOnChangeObject('VDIs', index, 'name_description')}
-              ref={`name_description_${vdi.device}`}
-              type='text'
-            />
-          </Item>
-          <Item label='newVmSizeLabel'>
-            <SizeInput
-              className={styles.sizeInput}
-              defaultValue={vdi.size}
-              onChange={this._getOnChangeObject('VDIs', index, 'size')}
-              ref={`size_${vdi.device}`}
-            />
-          </Item>
-          <Item>
-            <Button onClick={() => this._removeVdi(index)} bsStyle='secondary'>
-              <Icon icon='new-vm-remove' />
-            </Button>
-          </Item>
-        </LineItem>
+            </Item>
+            <Item label='newVmDescriptionLabel'>
+              <input
+                className='form-control'
+                defaultValue={vdi.name_description}
+                onChange={this._getOnChangeObject('VDIs', index, 'name_description')}
+                ref={`name_description_${vdi.device}`}
+                type='text'
+              />
+            </Item>
+            <Item label='newVmSizeLabel'>
+              <SizeInput
+                className={styles.sizeInput}
+                defaultValue={vdi.size}
+                onChange={this._getOnChangeObject('VDIs', index, 'size')}
+                ref={`size_${vdi.device}`}
+              />
+            </Item>
+            <Item>
+              <Button onClick={() => this._removeVdi(index)} bsStyle='secondary'>
+                <Icon icon='new-vm-remove' />
+              </Button>
+            </Item>
+          </LineItem>
+          {index < this.state.VDIs.length - 1 && <hr />}
+        </div>
       )}
         <Item>
           <Button onClick={this._addVdi} bsStyle='secondary'>
@@ -611,22 +645,22 @@ export default class NewVm extends BaseComponent {
     const { CPUs, memory, template, VDIs, VIFs } = this.state
     return <Section icon='new-vm-summary' title='newVmSummaryPanel' summary>
       <SectionContent summary>
-        <Item>
+        <span>
           {CPUs || 0}x{' '}
           <Icon icon='cpu' />
-        </Item>
-        <Item>
+        </span>
+        <span>
           {memory ? formatSize(memory) : '0 B'}{' '}
           <Icon icon='memory' />
-        </Item>
-        <Item>
+        </span>
+        <span>
           {template && (template.$VBDs.length + VDIs.length) || 0}x{' '}
           <Icon icon='disk' />
-        </Item>
-        <Item>
+        </span>
+        <span>
           {VIFs.length}x{' '}
           <Icon icon='network' />
-        </Item>
+        </span>
       </SectionContent>
     </Section>
   }

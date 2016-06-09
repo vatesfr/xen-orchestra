@@ -1,11 +1,15 @@
 .inlineSelect {
   display: inline-block;
-  width: 20rem;
+  width: 20em;
   font-size: 1rem;
 }
 
 .button {
   font-size: 1.8em;
+}
+
+.sizeInput {
+  width: 10rem;
 }
 
 .lineItem {
@@ -15,20 +19,20 @@
 }
 
 .item {
+  display: flex;
+  align-items: center;
   white-space: nowrap;
   margin: 0.5em;
 }
 
-.sizeInput {
-  width: 10em;
+.input {
+  flex: 1 0 20rem;
 }
 
 .sectionContent {
-  align-items: baseline;
   display: flex;
-  flex: 1 1 40em;
+  justify-content: flex-start;
   flex-wrap: wrap;
-  font-size: 1em;
 }
 
 .sectionContentColumn {
@@ -38,7 +42,6 @@
 .summary {
   align-items: baseline;
   display: flex;
-  flex: 1 1 20em;
   flex-wrap: wrap;
   font-size: 2em;
   justify-content: space-around;
