@@ -19,7 +19,7 @@
 // ```
 export default function invoke (fn) {
   const n = arguments.length - 1
-  if (!fn) {
+  if (!n) {
     return fn()
   }
 
