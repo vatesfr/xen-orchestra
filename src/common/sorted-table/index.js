@@ -189,11 +189,12 @@ export default class SortedTable extends Component {
     activePage: event.eventKey
   })
 
-  _onFilterChange = filter => {
-    this.setState({ filter })
-  }
-
-  _onFilterChange = debounce(filter => { this.setState({ filter }) }, 500)
+  _onFilterChange = debounce(filter => {
+    this.setState({
+      filter,
+      activePage: 1
+    })
+  }, 500)
 
   render () {
     const { props, state } = this
