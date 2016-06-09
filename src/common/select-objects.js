@@ -484,7 +484,7 @@ export const SelectRemote = makeSubscriptionSelect(subscriber => {
   const unsubscribeRemotes = subscribeRemotes(remotes => {
     const xoObjects = groupBy(
       map(sortBy(remotes, 'name'), remote => {
-        remote = parseRemote(remote)
+        remote = {...remote, ...parseRemote(remote.url)}
         return { id: remote.id, type: 'remote', value: remote }
       }),
       remote => remote.value.type
