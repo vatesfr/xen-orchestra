@@ -16,7 +16,7 @@ import { resolve } from 'url'
 
 import _ from '../messages'
 import { confirm } from '../modal'
-import { info } from '../notification'
+import { error, info } from '../notification'
 import { invoke, noop, tap } from '../utils'
 import {
   connected,
@@ -473,25 +473,30 @@ export const fetchVmStats = ({ id }, granularity) => (
   xo.call('vm.stats', { id, granularity })
 )
 
-export const importVm = ({ sr, file }) => {
+export const importVm = (file, sr) => {
   const { name } = file
 
-  info(_('startImport'), name)
+  info(_('startVmImport'), name)
 
   return xo.call('vm.import', { sr }).then(({ $sendTo: url }) => {
     const req = request.post(url)
 
     req.send(file)
     req.end((err, res) => {
-      info(
-        _((!err && res.status === 200)
-          ? 'vmImportSuccess'
-          : 'vmImportFailed'),
-        name
-      )
+      if (!err && res.status === 200) {
+        info(_('vmImportSuccess'), name)
+      } else {
+        error(_('vmImportFailed'), name)
+      }
     })
   })
 }
+
+export const importVms = (files, sr) => (
+  Promise.all(map(files, file =>
+    importVm(file, sr).catch(noop)
+  ))
+)
 
 // VDI ---------------------------------------------------------------
 

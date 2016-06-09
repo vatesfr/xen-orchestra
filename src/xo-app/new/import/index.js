@@ -7,23 +7,17 @@ import _ from 'messages'
 import filter from 'lodash/filter'
 import map from 'lodash/map'
 import { Col, Row } from 'grid'
-import { importVm } from 'xo'
-
+import { importVms } from 'xo'
 import {
   Card,
   CardBlock,
   CardHeader
 } from 'card'
-
 import {
   SelectPool,
   SelectSr
 } from 'select-objects'
-
-import {
-  formatSize,
-  noop
-} from 'utils'
+import { formatSize } from 'utils'
 
 import styles from './index.css'
 
@@ -33,9 +27,7 @@ export default class Import extends Component {
     this.state.files = []
   }
 
-  _import = () => Promise.all(map(this.state.files, file =>
-    importVm({ sr: this.refs.selectSr.value.id, file }).catch(noop)
-  ))
+  _import = () => importVms(this.state.files, this.refs.selectSr.value.id)
 
   _onDrop = files => {
     this.setState({
@@ -69,23 +61,23 @@ export default class Import extends Component {
         </CardHeader>
         <CardBlock>
           <form id='import-form'>
-            <div className='form-group row'>
+            <Row className='form-group'>
               <label className='col-sm-2 form-control-label'>{_('vmImportToPool')}</label>
-              <div className='col-sm-10'>
+              <Col mediumSize={10}>
                 <SelectPool onChange={this._handleSelectedPool} required />
-              </div>
-            </div>
-            <div className='form-group row'>
+              </Col>
+            </Row>
+            <Row className='form-group'>
               <label className='col-sm-2 form-control-label'>{_('vmImportToSr')}</label>
-              <div className='col-sm-10'>
+              <Col mediumSize={10}>
                 <SelectSr
                   disabled={!srPredicate}
                   predicate={srPredicate}
                   ref='selectSr'
                   required
                 />
-              </div>
-            </div>
+              </Col>
+            </Row>
             <Dropzone onDrop={this._onDrop} className={styles.dropzone} activeClassName={styles.activeDropzone}>
               <div className={styles.dropzoneText}>{_('importVmsList')}</div>
             </Dropzone>

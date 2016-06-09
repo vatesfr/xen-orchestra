@@ -1503,7 +1503,7 @@ export const messages = {
   vmImportFailed: {
     defaultMessage: 'VM import failed'
   },
-  startImport: {
+  startVmImport: {
     defaultMessage: 'Import starting...'
   },
 
@@ -1917,7 +1917,7 @@ localizedMessages.fr = {
   importVmsCleanList: 'Reset',
   vmImportSuccess: 'Import de VM réussi',
   vmImportFailed: 'Import de VM échoué',
-  startImport: 'Lancement de l\'import...',
+  startVmImport: 'Lancement de l\'import...',
 
   // ----- Modals -----
   startVmsModalTitle: 'Démarrer {vms, plural, one {la} other {les}} VM{vms, plural, one {} other {s}}',
