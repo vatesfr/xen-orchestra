@@ -1,11 +1,15 @@
-import _ from 'messages'
 import findKey from 'lodash/findKey'
-import Icon from 'icon'
 import isFunction from 'lodash/isFunction'
 import isString from 'lodash/isString'
 import map from 'lodash/map'
-import { SizeInput } from 'form'
 import React from 'react'
+
+import _ from './messages'
+import Component from './base-component'
+import Icon from './icon'
+import Tooltip from './tooltip'
+import { formatSize, propTypes } from './utils'
+import { SizeInput } from './form'
 import {
   SelectHost,
   SelectNetwork,
@@ -16,10 +20,7 @@ import {
   SelectTag,
   SelectVm,
   SelectVmTemplate
-} from 'select-objects'
-
-import Component from './base-component'
-import { formatSize, propTypes } from './utils'
+} from './select-objects'
 
 const LONG_CLICK = 400
 const SELECT_STYLE = { padding: '0px' }
@@ -64,6 +65,10 @@ class Hover extends Component {
   value: propTypes.any.isRequired
 })
 class Editable extends Component {
+  get value () {
+    throw new Error('not implemented')
+  }
+
   _onKeyDown = event => {
     const { keyCode } = event
     if (keyCode === 27) {
@@ -71,7 +76,7 @@ class Editable extends Component {
     }
 
     if (keyCode === 13) {
-      return this._save(this.value)
+      return this._save()
     }
   }
 
@@ -88,26 +93,38 @@ class Editable extends Component {
   }
 
   _undo = () => {
-    const { onUndo } = this.props
+    const { props } = this
+    const { onUndo } = props
     if (onUndo === false) {
       return
     }
 
-    return this._save(this.state.previous, isFunction(onUndo) && onUndo)
+    return this.__save(
+      () => this.state.previous,
+      isFunction(onUndo) ? onUndo : props.onChange
+    )
   }
 
-  async _save (value, fn) {
+  _save () {
+    return this.__save(
+      () => this.value,
+      this.props.onChange
+    )
+  }
+
+  async __save (getValue, saveValue) {
     const { props } = this
 
-    const previous = props.value
-    if (value === previous) {
-      return this._closeEdition()
-    }
-
-    this.setState({ saving: true })
-
     try {
-      await (fn || props.onChange)(value)
+      const value = getValue()
+      const previous = props.value
+      if (value === previous) {
+        return this._closeEdition()
+      }
+
+      this.setState({ saving: true })
+
+      await saveValue(value)
 
       this.setState({ previous })
       this._closeEdition()
@@ -119,14 +136,14 @@ class Editable extends Component {
     }
   }
 
-  _startTimer = event => {
+  __startTimer = event => {
     event.persist()
     this._timeout = setTimeout(() => {
       event.preventDefault()
       this._openEdition()
     }, LONG_CLICK)
   }
-  _stopTimer = () => clearTimeout(this._timeout)
+  __stopTimer = () => clearTimeout(this._timeout)
 
   render () {
     const { state, props } = this
@@ -139,8 +156,8 @@ class Editable extends Component {
       return <span style={useLongClick ? null : EDITABLE_STYLE}>
         <span
           onClick={!useLongClick && this._openEdition}
-          onMouseDown={useLongClick && this._startTimer}
-          onMouseUp={useLongClick && this._stopTimer}
+          onMouseDown={useLongClick && this.__startTimer}
+          onMouseUp={useLongClick && this.__stopTimer}
         >
           {this._renderDisplay()}
         </span>
@@ -160,7 +177,9 @@ class Editable extends Component {
     return <span>
       {this._renderEdition()}
       {saving && <span>{' '}<Icon icon='loading' /></span>}
-      {error != null && <span>{' '}<Icon icon='error' title={error} /></span>}
+      {error != null && <span>
+        {' '}<Tooltip content={error}><Icon icon='error' /></Tooltip>
+      </span>}
     </span>
   }
 }
@@ -170,7 +189,15 @@ class Editable extends Component {
 })
 export class Text extends Editable {
   get value () {
-    return this.refs.input.value
+    const { input } = this.refs
+
+    // FIXME: should be properly forwarded to the user.
+    const error = input.validationMessage
+    if (error) {
+      throw new Error(error)
+    }
+
+    return input.value
   }
 
   _onInput = ({ target }) => {
@@ -200,10 +227,12 @@ export class Text extends Editable {
   }
 
   _renderEdition () {
-    const { value } = this.props
+    const { value, ...props } = this.props
     const { saving } = this.state
 
     return <input
+      {...props}
+
       autoFocus
       defaultValue={value}
       onBlur={this._closeEdition}
@@ -263,7 +292,7 @@ export class Select extends Editable {
   }
 
   _onChange = event => {
-    this._save(this.props.options[event.target.value])
+    this._save()
   }
   _optionToJsx = (option, index) => {
     const { labelProp } = this.props
@@ -337,7 +366,7 @@ export class XoSelect extends Editable {
   }
 
   _onChange = object => {
-    object ? this._save(this.value) : this._closeEdition()
+    object ? this._save() : this._closeEdition()
   }
 
   _renderEdition () {
