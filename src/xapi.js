@@ -1340,20 +1340,27 @@ export default class Xapi extends XapiBase {
           other_config: {
             ...vdi.other_config,
             [TAG_BASE_DELTA]: baseVdi.uuid
-          }
+          },
+          $SR$uuid: vdi.$SR.uuid
         }
-        : vdi
+        : {
+          ...vdi,
+          $SR$uuid: vdi.$SR.uuid
+        }
       const stream = streams[`${vdiId}.vhd`] = this._exportVdi(vdi, baseVdi, VDI_FORMAT_VHD)
       $onFailure(() => stream.cancel())
     })
 
     const vifs = {}
     forEach(vm.$VIFs, vif => {
-      vifs[vif.$ref] = vif
+      vifs[vif.$ref] = {
+        ...vif,
+        $network$uuid: vif.$network.uuid
+      }
     })
 
     return Object.defineProperty({
-      version: '1.0.0',
+      version: '1.1.0',
       vbds,
       vdis,
       vifs,
