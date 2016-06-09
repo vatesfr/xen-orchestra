@@ -106,7 +106,7 @@
     "xo-acl-resolver": "0.0.0-0",
     "xo-collection": "^0.4.0",
     "xo-lib": "^0.7.3",
-    "xo-remote-parser": "^0.1.0"
+    "xo-remote-parser": "^0.2.3"
   },
   "repository": {
     "type": "git",

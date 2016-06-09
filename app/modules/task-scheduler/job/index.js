@@ -214,7 +214,7 @@ export default angular.module('xoWebApp.taskscheduler.job', [
                 property.$type = 'Pool'
               } else if (includes(['sr', 'sr_id', 'target_sr_id'], key)) {
                 property.$type = 'Sr'
-              } else if (includes(['host', 'host_id', 'target_host_id'], key)) {
+              } else if (includes(['host', 'host_id', 'target_host_id', 'targetHost'], key)) {
                 property.$type = 'Host'
               } else if (includes(['vm'], key)) {
                 property.$type = 'Vm'
