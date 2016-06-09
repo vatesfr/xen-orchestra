@@ -1478,6 +1478,35 @@ export const messages = {
     defaultMessage: 'Used:'
   },
 
+  // ---- VM import ---
+  importVmsList: {
+    defaultMessage: 'Try dropping some backups here, or click to select backups to upload. Accept only .xva files.'
+  },
+  noSelectedVms: {
+    defaultMessage: 'No selected VMs.'
+  },
+  vmImportToPool: {
+    defaultMessage: 'To Pool:'
+  },
+  vmImportToSr: {
+    defaultMessage: 'To SR:'
+  },
+  vmsToImport: {
+    defaultMessage: 'VMs to import'
+  },
+  importVmsCleanList: {
+    defaultMessage: 'Reset'
+  },
+  vmImportSuccess: {
+    defaultMessage: 'VM import success'
+  },
+  vmImportFailed: {
+    defaultMessage: 'VM import failed'
+  },
+  startVmImport: {
+    defaultMessage: 'Import starting...'
+  },
+
   // ----- Modals -----
   startVmsModalTitle: {
     defaultMessage: 'Start VM{vms, plural, one {} other {s}}'
@@ -1878,6 +1907,18 @@ localizedMessages.fr = {
   newVmSummaryPanel: 'Résumé',
   newVmCreate: 'Créer',
   newVmReset: 'Effacer',
+
+  // ---- VM import ---
+  importVmsList: 'Glissez des backups ici ou cliquez pour sélectionner des backups à envoyer. Accepte seulement les fichiers .xva.',
+  noSelectedVms: 'Pas de VMs sélectionnées.',
+  vmImportToPool: 'Sur le Pool:',
+  vmImportToSr: 'Sur le SR:',
+  vmsToImport: 'VMs à importer',
+  importVmsCleanList: 'Reset',
+  vmImportSuccess: 'Import de VM réussi',
+  vmImportFailed: 'Import de VM échoué',
+  startVmImport: 'Lancement de l\'import...',
+
   // ----- Modals -----
   startVmsModalTitle: 'Démarrer {vms, plural, one {la} other {les}} VM{vms, plural, one {} other {s}}',
   startVmsModalMessage: 'Voulez-vous vraiment démarrer {vms} VM{vms, plural, one {} other {s}} ?',
