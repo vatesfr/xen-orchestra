@@ -176,7 +176,7 @@ export default class Remotes extends Component {
   constructor (props) {
     super(props)
     this.state = {
-      type: 'local'
+      type: 'file'
     }
   }
 
@@ -206,7 +206,7 @@ export default class Remotes extends Component {
 
     const url = format(urlParams)
     return createRemote(name && name.value, url).then(() => {
-      this.setState({type: 'local'})
+      this.setState({type: 'file'})
       path && (path.value = '')
       username && (username.value = '')
       password && (password.value = '')
@@ -221,7 +221,7 @@ export default class Remotes extends Component {
     return (
       <div>
         <table className='table table-hover'>
-          {!isEmpty(remotes.local) &&
+          {!isEmpty(remotes.file) &&
             <tbody>
               <tr>
                 <th className='text-info'>Local</th>
@@ -232,7 +232,7 @@ export default class Remotes extends Component {
                 <th>Error</th>
                 <th></th>
               </tr>
-              {map(remotes.local, (remote, key) => <LocalRemote remote={remote} key={key} />)}
+              {map(remotes.file, (remote, key) => <LocalRemote remote={remote} key={key} />)}
             </tbody>
           }
           {!isEmpty(remotes.nfs) &&
@@ -281,7 +281,7 @@ export default class Remotes extends Component {
           <div className='form-group'>
             <input type='text' ref='name' className='form-control' placeholder='Name *' required />
           </div>
-          {type === 'local' &&
+          {type === 'file' &&
             <fieldset className='form-group'>
               <div className='input-group'>
                 <span className='input-group-addon'>/</span>
