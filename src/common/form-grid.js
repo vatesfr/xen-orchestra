@@ -5,7 +5,7 @@ import { propTypes } from 'utils'
 export const LabelCol = propTypes({
   children: propTypes.any.isRequired
 })(({ children }) => (
-  <label className='col-sm-2 form-control-label'>{children}</label>
+  <label className='col-md-2 form-control-label'>{children}</label>
 ))
 
 export const InputCol = propTypes({
