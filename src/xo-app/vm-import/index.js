@@ -21,7 +21,7 @@ import styles from './index.css'
 const HEADER = (
   <Container>
     <Row>
-      <Col mediumSize={3}>
+      <Col>
         <h2><Icon icon='import' /> {_('newImport')}</h2>
       </Col>
     </Row>
