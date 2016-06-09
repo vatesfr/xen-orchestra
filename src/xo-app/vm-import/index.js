@@ -1,6 +1,7 @@
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import Dropzone from 'react-dropzone'
+import FormGroup from 'form-group'
 import Icon from 'icon'
 import React from 'react'
 import _ from 'messages'
@@ -64,28 +65,22 @@ export default class Import extends Component {
     return (
       <Page header={HEADER}>
         <form id='import-form'>
-          <Row className='form-group'>
-            <label className='col-sm-2 form-control-label'>{_('vmImportToPool')}</label>
-            <Col mediumSize={10}>
-              <SelectPool onChange={this._handleSelectedPool} required />
-            </Col>
-          </Row>
-          <Row className='form-group'>
-            <label className='col-sm-2 form-control-label'>{_('vmImportToSr')}</label>
-            <Col mediumSize={10}>
-              <SelectSr
-                disabled={!srPredicate}
-                predicate={srPredicate}
-                ref='selectSr'
-                required
-              />
-            </Col>
-          </Row>
+          <FormGroup label={_('vmImportToPool')}>
+            <SelectPool onChange={this._handleSelectedPool} required />
+          </FormGroup>
+          <FormGroup label={_('vmImportToSr')}>
+            <SelectSr
+              disabled={!srPredicate}
+              predicate={srPredicate}
+              ref='selectSr'
+              required
+            />
+          </FormGroup>
           <Dropzone onDrop={this._onDrop} className={styles.dropzone} activeClassName={styles.activeDropzone}>
             <div className={styles.dropzoneText}>{_('importVmsList')}</div>
           </Dropzone>
           <hr />
-          <h5><span>{_('vmsToImport')}</span></h5>
+          <h5>{_('vmsToImport')}</h5>
           {files.length ? (
             <Row className={styles.filesRow}>
               <Col mediumSize={10}>
