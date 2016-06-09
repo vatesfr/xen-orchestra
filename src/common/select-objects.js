@@ -294,17 +294,10 @@ const filterPredicate = (state, props) => props.predicate
 export const SelectHost = makeStoreSelect(() => {
   const getHostsByPool = createGetObjectsOfType('host').filter(
     filterPredicate
-  ).sort().groupBy('$pool')
-  const getPools = createGetObjectsOfType('pool').pick(
-    createSelector(
-      getHostsByPool,
-      hostsByPool => keys(hostsByPool)
-    )
   ).sort()
 
   return {
-    xoObjects: getHostsByPool,
-    xoContainers: getPools
+    xoObjects: getHostsByPool
   }
 }, { placeholder: _('selectHosts') })
 

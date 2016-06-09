@@ -290,7 +290,7 @@ export const createSortForType = invoke(() => {
     ]
   }
   const defaults = [
-    [ object => object.name_label ]
+    [ [ object => object.$pool, object => object.name_label ] ]
   ]
   const getOptions = type => optionsByType[type] || defaults
 
