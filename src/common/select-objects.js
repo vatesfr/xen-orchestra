@@ -3,6 +3,7 @@ import React from 'react'
 import Select from 'react-select'
 import _ from 'messages'
 import assign from 'lodash/assign'
+import classNames from 'classnames'
 import filter from 'lodash/filter'
 import forEach from 'lodash/forEach'
 import groupBy from 'lodash/groupBy'
@@ -195,7 +196,11 @@ export class GenericSelect extends Component {
 
   // GroupBy: Display option with margin if not disabled and containers exists.
   _renderOption = option => (
-    <span className={!option.disabled && this.props.xoContainers && 'm-l-1'}>
+    <span
+      className={classNames(
+        !option.disabled && this.props.xoContainers && 'm-l-1'
+      )}
+    >
       {renderXoItem(option.xoItem)}
     </span>
   )
