@@ -111,17 +111,22 @@ class Log extends Component {
         </td>
         <td>{jobKeyToLabel[log.key]}</td>
         <td><FormattedDate value={new Date(log.start)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' /></td>
-        <td><FormattedDate value={new Date(log.end)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' /></td>
-        <td><FormattedDuration duration={log.duration} /></td>
+        <td>{log.end && <FormattedDate value={new Date(log.end)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />}</td>
+        <td>{log.duration && <FormattedDuration duration={log.duration} />}</td>
         <td>
           {log.status === 'Finished' &&
             <span className={classnames('tag', {'tag-success': (!log.error && !log.hasErrors), 'tag-danger': (log.error || log.hasErrors)})}>{_('jobFinished')}</span>
           }
-          {log.status !== 'Finished' &&
-            <span className={classnames('tag', {'tag-warning': log.status === 'Started', 'tag-default': !log.status})}>{_('jobFinished') || _('jobUnknown')}</span>
+          {log.status === 'Started' &&
+            <span className='tag tag-warning'>{_('jobStarted')}</span>
+          }
+          {(log.status !== 'Started' && log.status !== 'Finished') &&
+            <span className='tag tag-default'>{_('jobUnknown')}</span>
           }
           {' '}
-          <ActionRowButton btnStyle='default' handler={deleteJobsLog} handlerParam={log.logKey} icon='delete' />
+          <span className='pull-right'>
+            <ActionRowButton btnStyle='default' handler={deleteJobsLog} handlerParam={log.logKey} icon='delete' />
+          </span>
         </td>
       </tr>
       {seeCalls &&
@@ -222,7 +227,7 @@ export default class Overview extends Component {
 
       forEach(logs, log => {
         if (log.end === undefined) {
-          log.status = _('jobStarted')
+          log.status = 'Started'
         }
         log.calls = orderBy(log.calls, ['time'], ['desc'])
       })
