@@ -353,7 +353,6 @@ const setUpProxies = (express, opts, xo) => {
       if (startsWith(url, prefix)) {
         const target = opts[prefix]
 
-        console.log('proxy.web', url, target + url.slice(prefix.length))
         proxy.web(req, res, {
           target: target + url.slice(prefix.length)
         })
@@ -378,7 +377,6 @@ const setUpProxies = (express, opts, xo) => {
       if (startsWith(url, prefix)) {
         const target = opts[prefix]
 
-        console.log('proxy.ws', url, target + url.slice(prefix.length))
         proxy.ws(req, socket, head, {
           target: target + url.slice(prefix.length)
         })
