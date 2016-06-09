@@ -84,8 +84,8 @@ export default class Menu extends Component {
       ]},
       { to: '/jobs/overview', icon: 'jobs', label: 'jobsPage', subMenu: [
         { to: '/jobs/overview', icon: 'jobs-overview', label: 'jobsOverviewPage' },
-        { to: '/jobs/new', icon: 'jobs-new', label: 'jobsNewPage' },
-        { to: '/jobs/schedule', icon: 'jobs-schedule', label: 'jobsSchedulePage' }
+        { to: '/jobs/creation', icon: 'jobs-new', label: 'jobsCreationPage' },
+        { to: '/jobs/scheduling', icon: 'jobs-schedule', label: 'jobsSchedulingPage' }
       ]},
       { to: '/about', icon: 'menu-about', label: 'aboutPage' },
       { to: '/tasks', icon: 'task', label: 'taskMenu', pill: nTasks },

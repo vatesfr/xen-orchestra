@@ -149,11 +149,11 @@ export const messages = {
   jobsOverviewPage: {
     defaultMessage: 'Overview'
   },
-  jobsNewPage: {
-    defaultMessage: 'New Job'
+  jobsCreationPage: {
+    defaultMessage: 'Creation'
   },
-  jobsSchedulePage: {
-    defaultMessage: 'New Schedule'
+  jobsSchedulingPage: {
+    defaultMessage: 'Scheduling'
   },
   customJob: {
     defaultMessage: 'Custom Job'
