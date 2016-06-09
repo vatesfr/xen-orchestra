@@ -24,6 +24,10 @@ export class Section extends Component {
   componentWillMount () {
     this.setState({isActive: false})
   }
+
+  _onFocus = () => this.setState({ isActive: true })
+  _onBlur = () => this.setState({ isActive: false })
+
   render () {
     const {
       allDone,
@@ -39,8 +43,8 @@ export class Section extends Component {
           styles.bullet,
           (done || allDone) && styles.success
         )}
-        onFocus={() => this.setState({ isActive: true })}
-        onBlur={() => this.setState({ isActive: false })}
+        onFocus={this._onFocus}
+        onBlur={this._onBlur}
       >
         {/* TITLE */}
         <div className={classNames(

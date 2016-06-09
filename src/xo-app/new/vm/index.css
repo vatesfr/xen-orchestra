@@ -43,3 +43,8 @@
   font-size: 2em;
   justify-content: space-around;
 }
+
+.submitSection {
+  display: flex;
+  justify-content: space-around;
+}

@@ -4,7 +4,6 @@ import cloneDeep from 'lodash/cloneDeep'
 import { Button } from 'react-bootstrap-4/lib'
 import classNames from 'classnames'
 import concat from 'lodash/concat'
-import debounce from 'lodash/debounce'
 import every from 'lodash/every'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
@@ -183,9 +182,14 @@ export default class NewVm extends BaseComponent {
     this._reset()
   }
 
-  _isInPool = createSelector(
+  _getIsInPool = createSelector(
     () => this.state.pool,
     pool => object => object.$pool === pool.id
+  )
+
+  _getSrPredicate = createSelector(
+    () => this.state.pool,
+    pool => disk => disk.$pool === pool.id && disk.content_type === 'user'
   )
 
   _initTemplate = template => {
@@ -260,34 +264,20 @@ export default class NewVm extends BaseComponent {
     this.setState({ VIFs })
   }
 
-  _getOnChange = (prop) => {
-    const debouncer = debounce(param => this.setState({ [prop]: param }), 100)
-    return param => {
-      const _param = param.target ? param.target.value : param
-      debouncer(_param)
-    }
+  _getOnChange = (prop) => param => {
+    const _param = param.target ? param.target.value : param
+    this.setState({ [prop]: _param })
   }
-  _getOnChangeObject = (stateElement, key, stateProperty, targetProperty) => {
-    const debouncer = debounce(param => {
-      const stateValue = this.state[stateElement]
-      stateValue[key][stateProperty] = param[targetProperty] || param
-      this.setState({ [stateElement]: stateValue })
-    }, 100)
-    return param => {
-      const _param = param.target ? param.target.value : param
-      debouncer(_param)
-    }
+  _getOnChangeObject = (stateElement, key, stateProperty, targetProperty) => param => {
+    const _param = param.target ? param.target.value : param
+    const stateValue = this.state[stateElement]
+    stateValue[key][stateProperty] = _param[targetProperty] || _param
+    this.setState({ [stateElement]: stateValue })
   }
-  _getOnChangeObjectCheckbox = (stateElement, key, stateProperty, targetProperty) => {
-    const debouncer = debounce(param => {
-      const stateValue = this.state[stateElement]
-      stateValue[key][stateProperty] = param
-      this.setState({ [stateElement]: stateValue })
-    }, 100)
-    return event => {
-      const _param = event.target.checked
-      debouncer(_param)
-    }
+  _getOnChangeObjectCheckbox = (stateElement, key, stateProperty, targetProperty) => event => {
+    const stateValue = this.state[stateElement]
+    stateValue[key][stateProperty] = event.target.checked
+    this.setState({ [stateElement]: stateValue })
   }
 
   render () {
@@ -308,7 +298,7 @@ export default class NewVm extends BaseComponent {
           {this._renderDisks()}
           {this._renderSummary()}
         </Wizard>
-        <div style={{display: 'flex', justifyContent: 'space-around'}}>
+        <div className={styles.submitSection}>
           <Button
             bsStyle='secondary'
             className={styles.button}
@@ -322,7 +312,7 @@ export default class NewVm extends BaseComponent {
             bsStyle='primary'
             className={styles.button}
             disabled={!(
-              this._isInfoDone() &&
+              this._isInfosDone() &&
               this._isPerformancesDone() &&
               this._isInstallSettingsDone() &&
               this._isInterfacesDone() &&
@@ -341,7 +331,7 @@ export default class NewVm extends BaseComponent {
   }
 
   _renderInfos = () => {
-    return <Section icon='new-vm-infos' title='newVmInfoPanel' done={this._isInfoDone()}>
+    return <Section icon='new-vm-infos' title='newVmInfoPanel' done={this._isInfosDone()}>
       <SectionContent>
         <Item label='newVmNameLabel'>
           <input ref='name_label' onChange={this._getOnChange('name_label')} className='form-control' type='text' required />
@@ -351,7 +341,7 @@ export default class NewVm extends BaseComponent {
             <SelectVmTemplate
               onChange={this._initTemplate}
               placeholder={_('newVmSelectTemplate')}
-              predicate={this._isInPool()}
+              predicate={this._getIsInPool()}
               ref='template'
             />
           </span>
@@ -362,7 +352,7 @@ export default class NewVm extends BaseComponent {
       </SectionContent>
     </Section>
   }
-  _isInfoDone = () => {
+  _isInfosDone = () => {
     const { template, name_label, name_description } = this.state
     return name_label && template && name_description
   }
@@ -388,7 +378,7 @@ export default class NewVm extends BaseComponent {
     const { configDrive, installMethod, pool, template } = this.state
     return <Section icon='new-vm-install-settings' title='newVmInstallSettingsPanel' done={this._isInstallSettingsDone()}>
       {template && (this._isDiskTemplate ? <SectionContent>
-        <Toggle defaultValue={false} onChange={this._getOnChange('configDrive')} />
+        <span>{_('newVmConfigDrive')}</span><Toggle defaultValue={false} onChange={this._getOnChange('configDrive')} />
         <input disabled={!configDrive} onChange={this._getOnChange('installMethod')} name='installMethod' value='SSH' type='radio' />
         <Item label='newVmSshKey'>
           <input ref='sshKey' onChange={this._getOnChange('sshKey')} disabled={installMethod !== 'SSH'} className='form-control' type='text' />
@@ -464,7 +454,7 @@ export default class NewVm extends BaseComponent {
               <SelectNetwork
                 defaultValue={vif.network}
                 onChange={this._getOnChangeObject('VIFs', index, '$network', 'id')}
-                predicate={this._isInPool()}
+                predicate={this._getIsInPool()}
                 ref='network'
               />
             </span>
@@ -501,24 +491,12 @@ export default class NewVm extends BaseComponent {
               <SelectSr
                 defaultValue={disk.$SR}
                 onChange={this._getOnChangeObject('existingDisks', index, '$SR', 'id')}
-                predicate={this._isInPool()}
+                predicate={this._getSrPredicate()}
                 ref={`sr_${index}`}
               />
             </span>
           </Item>
           {' '}
-          {/* <Item className='checkbox'>
-            <label>
-              <input
-                checked={disk.bootable}
-                onChange={this._getOnChangeObjectCheckbox('existingDisks', index, 'bootable')}
-                ref={`bootable_${index}`}
-                type='checkbox'
-              />
-              {' '}
-              {_('newVmBootableLabel')}
-            </label>
-          </Item> */}
           <Item label='newVmNameLabel'>
             <input
               className='form-control'
@@ -561,7 +539,7 @@ export default class NewVm extends BaseComponent {
               <SelectSr
                 defaultValue={vdi.SR}
                 onChange={this._getOnChangeObject('VDIs', index, 'SR', 'id')}
-                predicate={this._isInPool()}
+                predicate={this._getSrPredicate()}
                 ref={`sr_${vdi.device}`}
               />
             </span>
