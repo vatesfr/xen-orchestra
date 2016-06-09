@@ -88,7 +88,7 @@ export default class Menu extends Component {
         { to: '/new/vm', icon: 'new-vm', label: 'newVmPage' },
         { to: '/new/sr', icon: 'new-sr', label: 'newSrPage' },
         { to: '/settings/servers', icon: 'settings-servers', label: 'newServerPage' },
-        { to: '/new/import', icon: 'new-import', label: 'newImport' }
+        { to: '/vms/import', icon: 'new-import', label: 'newImport' }
       ]}
     ]
 

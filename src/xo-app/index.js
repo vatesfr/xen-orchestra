@@ -24,6 +24,7 @@ import Sr from './sr'
 import Tasks from './tasks'
 import User from './user'
 import Vm from './vm'
+import Vms from './vms'
 import XoaUpdates from './xoa-updates'
 
 const CONTAINER_STYLE = {
@@ -64,6 +65,7 @@ const BODY_STYLE = {
   'srs/:id': Sr,
   tasks: Tasks,
   user: User,
+  'vms/import': Vms,
   'vms/:id': Vm,
   'xoa-update': XoaUpdates
 })
