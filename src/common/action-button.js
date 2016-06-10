@@ -13,10 +13,10 @@ import { autobind, propTypes } from './utils'
   handler: propTypes.func.isRequired,
   handlerParam: propTypes.any,
   icon: propTypes.string.isRequired,
-  redirectOnSuccess: propTypes.oneOfType(
+  redirectOnSuccess: propTypes.oneOfType([
     propTypes.func,
     propTypes.string
-  ),
+  ]),
   size: propTypes.oneOf([
     'large',
     'small'
