@@ -274,6 +274,9 @@ export const createSortForType = invoke(() => {
     PIF: [
       [ pif => pif.device ]
     ],
+    pool: [
+      [ pool => pool.name_label ]
+    ],
     pool_patch: [
       [ patch => patch.name ]
     ],
