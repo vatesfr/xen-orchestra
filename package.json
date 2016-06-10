@@ -53,6 +53,7 @@
     "classnames": "^2.2.3",
     "connect": "^3.4.1",
     "cookies-js": "^1.2.2",
+    "d3": "^3.5.17",
     "d3-array": "^1.0.0",
     "d3-scale": "^0.9.2",
     "dependency-check": "^2.5.1",
