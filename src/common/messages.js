@@ -319,6 +319,9 @@ export const messages = {
   selectHosts: {
     defaultMessage: 'Select Host(s)…'
   },
+  selectHostsVms: {
+    defaultMessage: 'Select object(s)...'
+  },
   selectNetworks: {
     defaultMessage: 'Select Network(s)…'
   },
@@ -1300,6 +1303,23 @@ export const messages = {
     defaultMessage: 'Top 5 SR Usage (in %)'
   },
 
+  // --- Stats board --
+  weekHeatmapNoData: {
+    defaultMessage: 'No data.'
+  },
+  statsDashboardGenericErrorTitle: {
+    defaultMessage: 'Stats error'
+  },
+  statsDashboardGenericErrorMessage: {
+    defaultMessage: 'There is no stats available for:'
+  },
+  noSelectedMetric: {
+    defaultMessage: 'No selected metric'
+  },
+  statsDashboardSelectObjects: {
+    defaultMessage: 'Select'
+  },
+
   // ----- Health -----
   orphanedVdis: {
     defaultMessage: 'Orphaned VDIs'
@@ -1733,14 +1753,15 @@ localizedMessages.fr = {
   item: 'Objet',
   noSelectedValue: 'Pas de valeur sélectionnée',
   selectSubjects: 'Select. utilisateurs et/ou groupe(s)',
-  selectHosts: 'Selectionner Hôte(s)…',
-  selectNetworks: 'Selectionner Network(s)…',
-  selectPools: 'Selectionner Pool(s)…',
-  selectRemotes: 'Selectionner Remote(s)…',
-  selectSrs: 'Selectionner Stockages(s)…',
-  selectVms: 'Selectionner VM(s)…',
-  selectVmTemplates: 'Selectionner patrons de VM…',
-  selectTags: 'Selectionner tag(s)…',
+  selectHosts: 'Selectionner Hôte(s)...',
+  selectNetworks: 'Selectionner Network(s)...',
+  selectHostsVms: 'Selectionner objet(s)...',
+  selectPools: 'Selectionner Pool(s)...',
+  selectRemotes: 'Selectionner Remote(s)...',
+  selectSrs: 'Selectionner Stockages(s)...',
+  selectVms: 'Selectionner VM(s)...',
+  selectVmTemplates: 'Selectionner patrons de VM...',
+  selectTags: 'Selectionner tag(s)...',
   selectVdis: 'Selectionner disque(s)…',
   fillRequiredInformations: 'Remplir les champs requis.',
   fillOptionalInformations: 'Remplir informations (optionnel)',
@@ -1952,6 +1973,12 @@ localizedMessages.fr = {
   srSize: 'Taille',
   srUsage: 'Utilisation',
   srTopUsageStatePanel: 'Top 5 d\'utilisation des stockages (en %)',
+  // --- Stats board --
+  weekHeatmapNoData: 'Pas de données.',
+  statsDashboardGenericErrorTitle: 'Erreur stats',
+  statsDashboardGenericErrorMessage: 'Pas de stats disponibles pour :',
+  noSelectedMetric: 'Pas de métrique sélectionnée',
+  statsDashboardSelectObjects: 'Valider',
   // ----- Health -----
   orphanedVdis: 'Disques orphelins',
   orphanedVms: 'VM orphelines',

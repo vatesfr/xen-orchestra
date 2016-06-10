@@ -379,6 +379,27 @@ export const SelectVm = makeStoreSelect(() => {
 
 // ===================================================================
 
+export const SelectHostVm = makeStoreSelect(() => {
+  const getHosts = createGetObjectsOfType('host').filter(
+    filterPredicate
+  ).sort()
+  const getVms = createGetObjectsOfType('VM').filter(
+    filterPredicate
+  ).sort()
+
+  const getObjects = createSelector(
+    getHosts,
+    getVms,
+    (hosts, vms) => hosts.concat(vms)
+  )
+
+  return {
+    xoObjects: getObjects
+  }
+}, { placeholder: _('selectHostsVms') })
+
+// ===================================================================
+
 export const SelectVmTemplate = makeStoreSelect(() => {
   const getVmTemplatesByPool = createGetObjectsOfType('VM-template').filter(
     filterPredicate

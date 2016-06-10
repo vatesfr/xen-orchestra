@@ -1,0 +1,16 @@
+.cell {
+    border-radius: 4px;
+    padding: 1px;
+    transition: background-color 300ms linear;
+}
+
+.cellContent {
+    height: 2em;
+}
+
+.table {
+    border-spacing: 2px;
+    border-collapse: separate;
+    table-layout: fixed;
+    width: 100%;
+}
