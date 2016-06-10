@@ -1,10 +1,11 @@
-import _ from 'messages'
+import _, { messages } from 'messages'
 import ActionButton from 'action-button'
 import BaseComponent from 'base-component'
 import cloneDeep from 'lodash/cloneDeep'
 import { Button } from 'react-bootstrap-4/lib'
 import classNames from 'classnames'
 import concat from 'lodash/concat'
+import debounce from 'lodash/debounce'
 import every from 'lodash/every'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
@@ -16,6 +17,7 @@ import React from 'react'
 import size from 'lodash/size'
 import store from 'store'
 import Wizard, { Section } from 'wizard'
+import { injectIntl } from 'react-intl'
 
 import {
   createVm
@@ -80,6 +82,7 @@ const getObject = createGetObject((_, id) => id)
     }
   }
 })
+@injectIntl
 export default class NewVm extends BaseComponent {
   constructor () {
     super()
@@ -166,20 +169,46 @@ export default class NewVm extends BaseComponent {
           repository: 'pxe'
         }
     }
-    const args = {
+
+    let cloudContent
+    if (state.configDrive) {
+      const hostname = state.name_label.replace(/^\s+|\s+$/g, '').replace(/\s+/g, '-')
+      if (this.installMethod === 'SSH') {
+        cloudContent = '#cloud-config\nhostname: ' + hostname + '\nssh_authorized_keys:\n  - ' + state.sshKey + '\n'
+      } else {
+        cloudContent = state.customConfig
+      }
+    }
+
+    if (state.template.name_label === 'CoreOS') {
+      cloudContent = 'CoreOS'
+    }
+
+    const data = {
       clone: state.fastClone,
-      CPUs: state.CPUs,
       existingDisks: state.existingDisks,
       installation,
-      memory: state.memory,
-      name_description: state.name_description,
       name_label: state.name_label,
-      pv_args: state.pv_args,
       template: state.template.id,
       VDIs: state.VDIs,
-      VIFs: state.VIFs
+      VIFs: state.VIFs,
+      // TODO: To be added in xo-server
+      // vm.set parameters
+      CPUs: state.CPUs,
+      cpuWeight: undefined, // TODO: implement UI
+      name_description: state.name_description,
+      memory: state.memory,
+      pv_args: state.pv_args,
+      // Boolean: if true, boot the VM right after its creation
+      bootAfterCreate: state.bootAfterCreate,
+      /* String:
+       * - if 'CoreOS': vm.getCloudInitConfig --> vm.createCloudInitConfigDrive --> docker.register
+       * - else: vm.createCloudInitConfigDrive(..., cloudContent) --> vm.setBootOrder
+       */
+      cloudContent
+
     }
-    createVm(args, this.state.bootAfterCreate)
+    createVm(data)
   }
 
   _selectPool = pool => {
@@ -233,14 +262,14 @@ export default class NewVm extends BaseComponent {
 
     this.setState({
       // infos
-      name_label: this.state.name_label || template.name_label,
+      name_label: template.name_label,
       template,
-      name_description: template.name_description || this.state.name_description || 'Created by XO',
+      name_description: template.name_description || this.state.name_description || '',
       // performances
       memory: template.memory.size,
       CPUs: template.CPUs.number,
       // installation
-      installMethod: template.install_methods && template.install_methods[0],
+      installMethod: template.install_methods && template.install_methods[0] || this.state.installMethod,
       // interfaces
       VIFs,
       // disks
@@ -274,19 +303,29 @@ export default class NewVm extends BaseComponent {
     this.setState({ [prop]: _param })
   }
   _getOnChangeCheckbox = (prop) => event => {
-    console.log('ON CHANGE', event.target.checked)
-    this.setState({ [prop]: event.target.checked }, () => console.log('new state = ', this.state))
+    this.setState({ [prop]: event.target.checked })
   }
-  _getOnChangeObject = (stateElement, key, stateProperty, targetProperty) => param => {
-    const _param = param && param.target ? param.target.value : param
-    const stateValue = this.state[stateElement]
-    stateValue[key][stateProperty] = _param[targetProperty] || _param
-    this.setState({ [stateElement]: stateValue })
+  _getOnChangeObject = (stateElement, key, stateProperty, targetProperty) => {
+    const debouncer = debounce(param => {
+      const stateValue = cloneDeep(this.state[stateElement])
+      stateValue[key][stateProperty] = param[targetProperty] || param
+      this.setState({ [stateElement]: stateValue })
+    }, 100)
+    return param => {
+      const _param = param.target ? param.target.value : param
+      debouncer(_param)
+    }
   }
-  _getOnChangeObjectCheckbox = (stateElement, key, stateProperty, targetProperty) => event => {
-    const stateValue = this.state[stateElement]
-    stateValue[key][stateProperty] = event.target.checked
-    this.setState({ [stateElement]: stateValue })
+  _getOnChangeObjectCheckbox = (stateElement, key, stateProperty, targetProperty) => {
+    const debouncer = debounce(param => {
+      const stateValue = cloneDeep(this.state[stateElement])
+      stateValue[key][stateProperty] = param
+      this.setState({ [stateElement]: stateValue })
+    }, 100)
+    return event => {
+      const _param = event.target.checked
+      debouncer(_param)
+    }
   }
 
   render () {
@@ -361,8 +400,8 @@ export default class NewVm extends BaseComponent {
     </Section>
   }
   _isInfosDone = () => {
-    const { template, name_label, name_description } = this.state
-    return name_label && template && name_description
+    const { template, name_label } = this.state
+    return name_label && template
   }
 
   _renderPerformances = () => {
@@ -379,7 +418,7 @@ export default class NewVm extends BaseComponent {
   }
   _isPerformancesDone = () => {
     const { CPUs, memory } = this.state
-    return CPUs && memory
+    return CPUs && memory !== undefined
   }
 
   _renderInstallSettings = () => {
@@ -480,12 +519,13 @@ export default class NewVm extends BaseComponent {
   }
 
   _renderInterfaces = () => {
+    const { formatMessage } = this.props.intl
     return <Section icon='new-vm-interfaces' title='newVmInterfacesPanel' done={this._isInterfacesDone()}>
       <SectionContent column>
         {map(this.state.VIFs, (vif, index) => <div>
           <LineItem key={index}>
             <Item label='newVmMacLabel'>
-              <input ref={`mac_${vif.id}`} onChange={this._getOnChangeObject('VIFs', index, 'mac')} defaultValue={vif.mac} className='form-control' type='text' />
+              <input ref={`mac_${vif.id}`} onChange={this._getOnChangeObject('VIFs', index, 'mac')} defaultValue={vif.mac} placeholder={formatMessage(messages.newVmMacPlaceholder)} className='form-control' type='text' />
             </Item>
             <Item label='newVmNetworkLabel'>
               <span className={styles.inlineSelect}>
@@ -517,7 +557,7 @@ export default class NewVm extends BaseComponent {
     </Section>
   }
   _isInterfacesDone = () => every(this.state.VIFs, vif =>
-    vif.mac && vif.network
+    vif.network
   )
 
   _renderDisks = () => {
@@ -642,10 +682,10 @@ export default class NewVm extends BaseComponent {
     </Section>
   }
   _isDisksDone = () => every(this.state.VDIs, vdi =>
-      vdi.SR && vdi.name_label && vdi.name_description && vdi.size
+      vdi.SR && vdi.name_label && vdi.size !== undefined
     ) &&
     every(this.state.existingDisks, (vdi, index) =>
-      vdi.$SR && vdi.name_label && vdi.name_description && vdi.size
+      vdi.$SR && vdi.name_label && vdi.size !== undefined
     )
 
   _renderSummary = () => {

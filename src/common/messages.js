@@ -1423,6 +1423,9 @@ export const messages = {
   newVmBootAfterCreate: {
     defaultMessage: 'Boot VM after creation'
   },
+  newVmMacPlaceholder: {
+    defaultMessage: 'Auto-generated if empty'
+  },
 
   // ----- Self -----
   resourceSets: {
@@ -1943,6 +1946,7 @@ localizedMessages.fr = {
   newVmSshKey: 'Clé SSH',
   newVmCustomConfig: 'Configuration personnalisée',
   newVmBootAfterCreate: 'Démarrer la VM après sa création',
+  newVmMacPlaceholder: 'Auto-généré si vide',
 
   // ---- VM import ---
   importVmsList: 'Glissez des backups ici ou cliquez pour sélectionner des backups à envoyer. Accepte seulement les fichiers .xva.',
