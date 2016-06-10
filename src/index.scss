@@ -219,7 +219,8 @@ $select-input-height: 40px; // Bootstrap input height
 
 // MEMORY/DISK BAR STYLE =======================================================
 
-.progress {
+.progress-usage {
+  @extend .progress;
   background-color: #eee;
   height: 2em;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25) inset;

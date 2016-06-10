@@ -6,6 +6,7 @@ import Link from 'react-router/lib/Link'
 import map from 'lodash/map'
 import Page from '../page'
 import React from 'react'
+import { Card, CardBlock, CardHeader } from 'card'
 import { connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
 
@@ -18,16 +19,21 @@ import {
 const HEADER = <Container>
   <Row>
     <Col mediumSize={12}>
-      <h2><Icon icon='menu-tasks' /> {_('taskMenu')}</h2>
+      <h2><Icon icon='task' /> {_('taskMenu')}</h2>
     </Col>
   </Row>
 </Container>
 
 export const TaskItem = connectStore(() => ({
   host: createGetObject((_, props) => props.task.$host)
-}))(({ task, host }) => <li>
-  {task.name_label} @{task.progress} (<Link to={`/hosts/${host.id}`}>{host.name_label}</Link>)
-</li>)
+}))(({ task, host }) => <span>
+  <Col mediumSize={6}>
+    {task.name_label} (on <Link to={`/hosts/${host.id}`}>{host.name_label}</Link>)
+  </Col>
+  <Col mediumSize={6}>
+    <progress className='progress' value={task.progress * 100} max='100'></progress>
+  </Col>
+</span>)
 
 export default connectStore(() => {
   const getPendingTasksByPool = createGetObjectsOfType('task').filter(
@@ -53,17 +59,19 @@ export default connectStore(() => {
   }
 
   return <Page header={HEADER}>
-    <ul>
+    <Card>
       {map(pools, pool =>
-        <li key={pool.id}>
-          <Link to={`/pools/${pool.id}`}>{pool.name_label}</Link>
-          <ul>
-            {map(pendingTasksByPool[pool.id], task =>
-              <TaskItem key={task.id} task={task} />
-            )}
-          </ul>
-        </li>
+        <span>
+          <CardHeader key={pool.id}><Link to={`/pools/${pool.id}`}>{pool.name_label}</Link></CardHeader>
+          <CardBlock>
+            <Row>
+              {map(pendingTasksByPool[pool.id], task =>
+                <TaskItem key={task.id} task={task} />
+              )}
+            </Row>
+          </CardBlock>
+        </span>
       )}
-    </ul>
+    </Card>
   </Page>
 })
