@@ -133,6 +133,7 @@ export default class NewVm extends BaseComponent {
       bootAfterCreate: true,
       fastClone: true,
       CPUs: undefined,
+      cpuWeight: 1,
       configDrive: undefined,
       existingDisks: {},
       installMethod: undefined,
@@ -195,7 +196,7 @@ export default class NewVm extends BaseComponent {
       // TODO: To be added in xo-server
       // vm.set parameters
       CPUs: state.CPUs,
-      cpuWeight: undefined, // TODO: implement UI
+      cpuWeight: state.cpuWeight,
       name_description: state.name_description,
       memory: state.memory,
       pv_args: state.pv_args,
@@ -268,6 +269,7 @@ export default class NewVm extends BaseComponent {
       // performances
       memory: template.memory.size,
       CPUs: template.CPUs.number,
+      cpuWeight: 1,
       // installation
       installMethod: template.install_methods && template.install_methods[0] || this.state.installMethod,
       // interfaces
@@ -298,21 +300,30 @@ export default class NewVm extends BaseComponent {
     this.setState({ VIFs })
   }
 
-  _getOnChange = (prop) => param => {
-    const _param = param && param.target ? param.target.value : param
-    this.setState({ [prop]: _param })
+  _getOnChange = (prop) => {
+    const debouncer = debounce(param => this.setState({ [prop]: param }), 100)
+    return param => {
+      const _param = param && param.target ? param.target.value : param
+      debouncer(_param)
+    }
   }
-  _getOnChangeCheckbox = (prop) => event => {
-    this.setState({ [prop]: event.target.checked })
+  _getOnChangeCheckbox = (prop) => {
+    const debouncer = debounce(event =>
+      this.setState({ [prop]: event.target.checked }), 100
+    )
+    return event => {
+      const _param = event.target.checked
+      debouncer(_param)
+    }
   }
   _getOnChangeObject = (stateElement, key, stateProperty, targetProperty) => {
     const debouncer = debounce(param => {
       const stateValue = cloneDeep(this.state[stateElement])
-      stateValue[key][stateProperty] = param[targetProperty] || param
+      stateValue[key][stateProperty] = param && param[targetProperty] || param
       this.setState({ [stateElement]: stateValue })
     }, 100)
     return param => {
-      const _param = param.target ? param.target.value : param
+      const _param = param && param.target ? param.target.value : param
       debouncer(_param)
     }
   }
@@ -405,6 +416,7 @@ export default class NewVm extends BaseComponent {
   }
 
   _renderPerformances = () => {
+    const { formatMessage } = this.props.intl
     return <Section icon='new-vm-perf' title='newVmPerfPanel' done={this._isPerformancesDone()}>
       <SectionContent>
         <Item label='newVmVcpusLabel'>
@@ -412,6 +424,14 @@ export default class NewVm extends BaseComponent {
         </Item>
         <Item label='newVmRamLabel'>
           <SizeInput ref='memory' onChange={this._getOnChange('memory')} className={styles.sizeInput} />
+        </Item>
+        <Item label='newVmCpuWeightLabel'>
+          <select ref='cpuWeight' onChange={this._getOnChange('cpuWeight')} className='form-control'>
+            <option value={0.25}>{formatMessage(messages.newVmCpuWeightQuarter)}</option>
+            <option value={0.5}>{formatMessage(messages.newVmCpuWeightHalf)}</option>
+            <option value={1}>{formatMessage(messages.newVmCpuWeightNormal)}</option>
+            <option value={2}>{formatMessage(messages.newVmCpuWeightDouble)}</option>
+          </select>
         </Item>
       </SectionContent>
     </Section>
@@ -522,8 +542,8 @@ export default class NewVm extends BaseComponent {
     const { formatMessage } = this.props.intl
     return <Section icon='new-vm-interfaces' title='newVmInterfacesPanel' done={this._isInterfacesDone()}>
       <SectionContent column>
-        {map(this.state.VIFs, (vif, index) => <div>
-          <LineItem key={index}>
+        {map(this.state.VIFs, (vif, index) => <div key={index}>
+          <LineItem>
             <Item label='newVmMacLabel'>
               <input ref={`mac_${vif.id}`} onChange={this._getOnChangeObject('VIFs', index, 'mac')} defaultValue={vif.mac} placeholder={formatMessage(messages.newVmMacPlaceholder)} className='form-control' type='text' />
             </Item>
@@ -565,8 +585,8 @@ export default class NewVm extends BaseComponent {
       <SectionContent column>
 
         {/* Existing disks */}
-        {map(this.state.existingDisks, (disk, index) => <div>
-          <LineItem key={index}>
+        {map(this.state.existingDisks, (disk, index) => <div key={index}>
+          <LineItem>
             <Item label='newVmSrLabel'>
               <span className={styles.inlineSelect}>
                 <SelectSr
@@ -611,8 +631,8 @@ export default class NewVm extends BaseComponent {
         )}
 
         {/* VDIs */}
-        {map(this.state.VDIs, (vdi, index) => <div>
-          <LineItem key={vdi.device}>
+        {map(this.state.VDIs, (vdi, index) => <div key={vdi.device}>
+          <LineItem>
             <Item label='newVmSrLabel'>
               <span className={styles.inlineSelect}>
                 <SelectSr

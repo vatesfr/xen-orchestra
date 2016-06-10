@@ -1426,6 +1426,21 @@ export const messages = {
   newVmMacPlaceholder: {
     defaultMessage: 'Auto-generated if empty'
   },
+  newVmCpuWeightLabel: {
+    defaultMessage: 'CPU weight'
+  },
+  newVmCpuWeightQuarter: {
+    defaultMessage: 'Quarter (1/4)'
+  },
+  newVmCpuWeightHalf: {
+    defaultMessage: 'Half (1/2)'
+  },
+  newVmCpuWeightNormal: {
+    defaultMessage: 'Normal'
+  },
+  newVmCpuWeightDouble: {
+    defaultMessage: 'Double (x2)'
+  },
 
   // ----- Self -----
   resourceSets: {
@@ -1947,6 +1962,11 @@ localizedMessages.fr = {
   newVmCustomConfig: 'Configuration personnalisée',
   newVmBootAfterCreate: 'Démarrer la VM après sa création',
   newVmMacPlaceholder: 'Auto-généré si vide',
+  newVmCpuWeightLabel: 'Poids CPU',
+  newVmCpuWeightQuarter: 'Quart (1/4)',
+  newVmCpuWeightHalf: 'Moitié (1/2)',
+  newVmCpuWeightNormal: 'Normal',
+  newVmCpuWeightDouble: 'Double (x2)',
 
   // ---- VM import ---
   importVmsList: 'Glissez des backups ici ou cliquez pour sélectionner des backups à envoyer. Accepte seulement les fichiers .xva.',
