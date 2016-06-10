@@ -1,4 +1,5 @@
 import _ from 'messages'
+import CenterPanel from 'center-panel'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import keys from 'lodash/keys'
@@ -54,7 +55,18 @@ export default connectStore(() => {
 })(({ pendingTasksByPool, pools }) => {
   if (isEmpty(pendingTasksByPool)) {
     return <Page header={HEADER}>
-      <p className='text-muted'>No pending tasks.</p>
+      <CenterPanel>
+        <Card>
+          <CardHeader>{_('noTasks')}</CardHeader>
+          <CardBlock>
+            <Row>
+              <Col>
+                <p className='text-muted'>{_('xsTasks')}</p>
+              </Col>
+            </Row>
+          </CardBlock>
+        </Card>
+      </CenterPanel>
     </Page>
   }
 
