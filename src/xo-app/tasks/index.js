@@ -26,14 +26,14 @@ const HEADER = <Container>
 
 export const TaskItem = connectStore(() => ({
   host: createGetObject((_, props) => props.task.$host)
-}))(({ task, host }) => <span>
+}))(({ task, host }) => <Row>
   <Col mediumSize={6}>
     {task.name_label} (on <Link to={`/hosts/${host.id}`}>{host.name_label}</Link>)
   </Col>
   <Col mediumSize={6}>
     <progress className='progress' value={task.progress * 100} max='100'></progress>
   </Col>
-</span>)
+</Row>)
 
 export default connectStore(() => {
   const getPendingTasksByPool = createGetObjectsOfType('task').filter(
@@ -64,11 +64,9 @@ export default connectStore(() => {
         <span>
           <CardHeader key={pool.id}><Link to={`/pools/${pool.id}`}>{pool.name_label}</Link></CardHeader>
           <CardBlock>
-            <Row>
-              {map(pendingTasksByPool[pool.id], task =>
-                <TaskItem key={task.id} task={task} />
-              )}
-            </Row>
+            {map(pendingTasksByPool[pool.id], task =>
+              <TaskItem key={task.id} task={task} />
+            )}
           </CardBlock>
         </span>
       )}
