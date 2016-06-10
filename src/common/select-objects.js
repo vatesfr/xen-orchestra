@@ -56,7 +56,10 @@ const getLabel = object =>
   predicate: propTypes.func,
   required: propTypes.bool,
   value: propTypes.any,
-  xoContainers: propTypes.array,
+  xoContainers: propTypes.oneOfType([
+    propTypes.array,
+    propTypes.object
+  ]),
   xoObjects: propTypes.oneOfType([
     propTypes.array,
     propTypes.objectOf(propTypes.array)
@@ -301,13 +304,13 @@ const makeSubscriptionSelect = (subscribe, props) => (
 // XO objects.
 // ===================================================================
 
-const filterPredicate = (state, props) => props.predicate
+const getPredicate = (state, props) => props.predicate
 
 // ===================================================================
 
 export const SelectHost = makeStoreSelect(() => {
   const getHostsByPool = createGetObjectsOfType('host').filter(
-    filterPredicate
+    getPredicate
   ).sort()
 
   return {
@@ -318,7 +321,7 @@ export const SelectHost = makeStoreSelect(() => {
 // ===================================================================
 
 export const SelectPool = makeStoreSelect(() => ({
-  xoObjects: createGetObjectsOfType('pool').filter(filterPredicate).sort()
+  xoObjects: createGetObjectsOfType('pool').filter(getPredicate).sort()
 }), { placeholder: _('selectPools') })
 
 // ===================================================================
@@ -354,7 +357,7 @@ export const SelectSr = makeStoreSelect(() => {
 
 export const SelectVm = makeStoreSelect(() => {
   const getVmsByContainer = createGetObjectsOfType('VM').filter(
-    filterPredicate
+    getPredicate
   ).sort().groupBy('$container')
 
   const getContainerIds = createSelector(
@@ -402,7 +405,7 @@ export const SelectHostVm = makeStoreSelect(() => {
 
 export const SelectVmTemplate = makeStoreSelect(() => {
   const getVmTemplatesByPool = createGetObjectsOfType('VM-template').filter(
-    filterPredicate
+    getPredicate
   ).sort().groupBy('$container')
   const getPools = createGetObjectsOfType('pool').pick(
     createSelector(
@@ -421,7 +424,7 @@ export const SelectVmTemplate = makeStoreSelect(() => {
 
 export const SelectNetwork = makeStoreSelect(() => {
   const getNetworksByPool = createGetObjectsOfType('network').filter(
-    filterPredicate
+    getPredicate
   ).sort().groupBy('$pool')
   const getPools = createGetObjectsOfType('pool').pick(
     createSelector(
@@ -444,10 +447,30 @@ export const SelectTag = makeStoreSelect((_, props) => ({
       'objects' in props
         ? (_, props) => props.objects
         : undefined
-    ).filter(filterPredicate).sort(),
+    ).filter(getPredicate).sort(),
     tags => map(tags, tag => ({ id: tag, type: 'tag', value: tag }))
   )
 }), { placeholder: _('selectTags') })
+
+// ===================================================================
+
+export const SelectVdi = propTypes({
+  containerPredicate: propTypes.func
+})(makeStoreSelect(() => {
+  const getSrs = createGetObjectsOfType('SR').filter((_, props) => props.containerPredicate)
+  const getVdis = createGetObjectsOfType('VDI').filter(createSelector(
+    getSrs,
+    getPredicate,
+    (srs, predicate) => predicate ? vdi => srs[vdi.$SR] && predicate(vdi) : vdi => srs[vdi.$SR]
+  )).sort().groupBy('$SR')
+
+  return {
+    xoObjects: getVdis,
+    xoContainers: getSrs
+  }
+}, { placeholder: _('selectVdis') }))
+
+// ===================================================================
 
 export const SelectHighLevelObjects = makeStoreSelect(() => {
   const getHosts = createGetObjectsOfType('host')
@@ -476,7 +499,7 @@ export const SelectVdi = propTypes({
   const getSrs = createGetObjectsOfType('SR').filter((_, props) => props.srPredicate)
   const getVdis = createGetObjectsOfType('VDI').filter(createSelector(
     getSrs,
-    filterPredicate,
+    getPredicate,
     (srs, predicate) => predicate ? vdi => srs[vdi.$SR] && predicate(vdi) : vdi => srs[vdi.$SR]
   )).sort().groupBy('$SR')
 
