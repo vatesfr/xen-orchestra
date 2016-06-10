@@ -10,6 +10,7 @@ import mapValues from 'lodash/mapValues'
 import React, { Component } from 'react'
 import { error } from 'notification'
 import { SelectPlainObject } from '../helpers'
+import delay from 'lodash/delay'
 
 import {
   apiMethods,
@@ -261,10 +262,10 @@ export default class Jobs extends Component {
     this.setState({
       job,
       action: find(actions, action => action.method === job.method)
-    }, () => this._populateForm(job))
+    }, () => delay(this._populateForm, 250, job)) // Work around. Without the delay, some subscription based selects are not always ready to load a value
   }
 
-  _populateForm (job) {
+  _populateForm = (job) => {
     const data = {}
     const paramsVector = job.paramsVector
     if (paramsVector) {
