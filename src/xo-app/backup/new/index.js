@@ -102,13 +102,13 @@ const DISASTER_RECOVERY_SCHEMA = {
   properties: {
     ...COMMON_SCHEMA.properties,
     depth: DEPTH_PROPERTY,
-    pool: {
+    sr: {
       type: 'string',
-      'xo:type': 'pool',
-      title: 'To Pool'
+      'xo:type': 'sr',
+      title: 'To SR'
     }
   },
-  required: COMMON_SCHEMA.required.concat([ 'depth', 'pool' ])
+  required: COMMON_SCHEMA.required.concat([ 'depth', 'sr' ])
 }
 
 const CONTINUOUS_REPLICATION_SCHEMA = {
@@ -116,7 +116,7 @@ const CONTINUOUS_REPLICATION_SCHEMA = {
   properties: {
     ...COMMON_SCHEMA.properties,
     sr: {
-      type: 'array',
+      type: 'string',
       'xo:type': 'sr',
       title: 'To SR'
     }
