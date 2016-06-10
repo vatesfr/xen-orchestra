@@ -1,6 +1,6 @@
 import Component from 'base-component'
 import React from 'react'
-import Select from 'react-select'
+import { Select } from 'form'
 import _ from 'messages'
 import assign from 'lodash/assign'
 import classNames from 'classnames'

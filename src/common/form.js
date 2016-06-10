@@ -3,7 +3,7 @@ import Icon from 'icon'
 import map from 'lodash/map'
 import randomPassword from 'random-password'
 import React from 'react'
-
+import VirtualizedSelect from './virtualized-select'
 import Component from './base-component'
 import {
   autobind,
@@ -15,6 +15,10 @@ import {
   DropdownButton,
   MenuItem
 } from 'react-bootstrap-4/lib'
+
+// ===================================================================
+
+export { VirtualizedSelect as Select }
 
 // ===================================================================
 
