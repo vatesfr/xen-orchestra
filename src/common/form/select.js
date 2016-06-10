@@ -6,8 +6,6 @@ import {
   VirtualScroll
 } from 'react-virtualized'
 
-import styles from './index.css'
-
 const SELECT_MENU_STYLE = {
   overflow: 'hidden'
 }
@@ -50,7 +48,6 @@ export default class Select extends Component {
       <AutoSizer disableHeight>
         {({ width }) => (
           <VirtualScroll
-            className={styles.selectGrid}
             height={height}
             rowCount={options.length}
             rowHeight={optionHeight}
