@@ -17,7 +17,7 @@ const SELECT_MENU_STYLE = {
   maxHeight: propTypes.number,
   optionHeight: propTypes.number
 })
-export default class VirtualizedSelect extends Component {
+export default class Select extends Component {
   static defaultProps = {
     maxHeight: 200,
     optionHeight: 40,
