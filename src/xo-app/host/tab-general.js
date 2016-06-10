@@ -68,7 +68,7 @@ export default ({
   </Row>
   <Row>
     <Col smallOffset={1} mediumSize={10}>
-      <span className='progress'>
+      <span className='progress-usage'>
         <Tooltip content='XenServer'>
           <span
             className='progress-dom0'

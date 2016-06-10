@@ -31,7 +31,7 @@ export default ({
   </Row>
   <Row>
     <Col smallOffset={1} mediumSize={10}>
-      <span className='progress'>
+      <span className='progress-usage'>
         {map(vdis, vdi => (
           <Tooltip key={vdi.id} content={vdi.name_label}>
             <span

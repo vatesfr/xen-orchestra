@@ -282,7 +282,7 @@ export const messages = {
     defaultMessage: 'More'
   },
   homeMigrateTo: {
-    defaultMessage: 'Migrate to...'
+    defaultMessage: 'Migrate to…'
   },
 
   // ----- Forms -----
@@ -305,34 +305,34 @@ export const messages = {
     defaultMessage: 'Choose user(s) and/or group(s)'
   },
   selectObjects: {
-    defaultMessage: 'Select Object(s)...'
+    defaultMessage: 'Select Object(s)…'
   },
   selectRole: {
     defaultMessage: 'Choose a role'
   },
   selectHosts: {
-    defaultMessage: 'Select Host(s)...'
+    defaultMessage: 'Select Host(s)…'
   },
   selectNetworks: {
-    defaultMessage: 'Select Network(s)...'
+    defaultMessage: 'Select Network(s)…'
   },
   selectPools: {
-    defaultMessage: 'Select Pool(s)...'
+    defaultMessage: 'Select Pool(s)…'
   },
   selectRemotes: {
-    defaultMessage: 'Select Remote(s)...'
+    defaultMessage: 'Select Remote(s)…'
   },
   selectSrs: {
-    defaultMessage: 'Select SR(s)...'
+    defaultMessage: 'Select SR(s)…'
   },
   selectVms: {
-    defaultMessage: 'Select VM(s)...'
+    defaultMessage: 'Select VM(s)…'
   },
   selectVmTemplates: {
-    defaultMessage: 'Select VM template(s)...'
+    defaultMessage: 'Select VM template(s)…'
   },
   selectTags: {
-    defaultMessage: 'Select tag(s)...'
+    defaultMessage: 'Select tag(s)…'
   },
   fillRequiredInformations: {
     defaultMessage: 'Fill required informations.'
@@ -1504,7 +1504,15 @@ export const messages = {
     defaultMessage: 'VM import failed'
   },
   startVmImport: {
-    defaultMessage: 'Import starting...'
+    defaultMessage: 'Import starting…'
+  },
+
+  // ---- Tasks ---
+  noTasks: {
+    defaultMessage: 'No pending tasks'
+  },
+  xsTasks: {
+    defaultMessage: 'Currently, there isn\'t any pending XenServer tasks'
   },
 
   // ----- Modals -----
@@ -1630,7 +1638,7 @@ localizedMessages.fr = {
   // ----- Home view -----
   homeDisplayedVms: '{displayed}x {vmIcon} (sur {total})',
   homeSelectedVms: '{selected}x {vmIcon} sélectionnée{selected, plural, zero {} one {} other {s}} (sur {total})',
-  homeMigrateTo: 'Migrer sur...',
+  homeMigrateTo: 'Migrer sur…',
   // ----- General Stuff -----
   homePage: 'Accueil',
   usernameLabel: 'Nom :',
@@ -1651,14 +1659,14 @@ localizedMessages.fr = {
   item: 'Objet',
   noSelectedValue: 'Pas de valeur sélectionnée',
   selectSubjects: 'Select. utilisateurs et/ou groupe(s)',
-  selectHosts: 'Selectionner Hôte(s)...',
-  selectNetworks: 'Selectionner Network(s)...',
-  selectPools: 'Selectionner Pool(s)...',
-  selectRemotes: 'Selectionner Remote(s)...',
-  selectSrs: 'Selectionner Stockages(s)...',
-  selectVms: 'Selectionner VM(s)...',
-  selectVmTemplates: 'Selectionner patrons de VM...',
-  selectTags: 'Selectionner tag(s)...',
+  selectHosts: 'Selectionner Hôte(s)…',
+  selectNetworks: 'Selectionner Network(s)…',
+  selectPools: 'Selectionner Pool(s)…',
+  selectRemotes: 'Selectionner Remote(s)…',
+  selectSrs: 'Selectionner Stockages(s)…',
+  selectVms: 'Selectionner VM(s)…',
+  selectVmTemplates: 'Selectionner patrons de VM…',
+  selectTags: 'Selectionner tag(s)…',
   fillRequiredInformations: 'Remplir les champs requis.',
   fillOptionalInformations: 'Remplir informations (optionnel)',
   selectTableReset: 'Réinitialiser',
@@ -1917,7 +1925,7 @@ localizedMessages.fr = {
   importVmsCleanList: 'Reset',
   vmImportSuccess: 'Import de VM réussi',
   vmImportFailed: 'Import de VM échoué',
-  startVmImport: 'Lancement de l\'import...',
+  startVmImport: 'Lancement de l\'import…',
 
   // ----- Modals -----
   startVmsModalTitle: 'Démarrer {vms, plural, one {la} other {les}} VM{vms, plural, one {} other {s}}',
