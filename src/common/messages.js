@@ -1420,6 +1420,9 @@ export const messages = {
   newVmCustomConfig: {
     defaultMessage: 'Custom config'
   },
+  newVmBootAfterCreate: {
+    defaultMessage: 'Boot VM after creation'
+  },
 
   // ----- Self -----
   resourceSets: {
@@ -1939,6 +1942,7 @@ localizedMessages.fr = {
   newVmSelectTemplate: 'Sélectionner un template',
   newVmSshKey: 'Clé SSH',
   newVmCustomConfig: 'Configuration personnalisée',
+  newVmBootAfterCreate: 'Démarrer la VM après sa création',
 
   // ---- VM import ---
   importVmsList: 'Glissez des backups ici ou cliquez pour sélectionner des backups à envoyer. Accepte seulement les fichiers .xva.',

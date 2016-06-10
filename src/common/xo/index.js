@@ -433,9 +433,15 @@ export const migrateVms = vms => {
   throw new Error('Not implemented.')
 }
 
-export const createVm = args => {
+export const createVm = (args, bootAfterCreate) => {
   console.log('Create VM with args = ', args)
-  xo.call('vm.create', args)
+  xo.call('vm.create', args).then(
+    id => {
+      if (bootAfterCreate) {
+        xo.call('vm.start', { id })
+      }
+    }
+  )
 }
 
 export const deleteVm = ({ id }) => (

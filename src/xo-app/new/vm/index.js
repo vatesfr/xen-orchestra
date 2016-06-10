@@ -1,4 +1,5 @@
 import _ from 'messages'
+import ActionButton from 'action-button'
 import BaseComponent from 'base-component'
 import cloneDeep from 'lodash/cloneDeep'
 import { Button } from 'react-bootstrap-4/lib'
@@ -126,6 +127,8 @@ export default class NewVm extends BaseComponent {
       }
     })
     this.setState({
+      bootAfterCreate: true,
+      fastClone: true,
       CPUs: undefined,
       configDrive: undefined,
       existingDisks: {},
@@ -164,6 +167,7 @@ export default class NewVm extends BaseComponent {
         }
     }
     const args = {
+      clone: state.fastClone,
       CPUs: state.CPUs,
       existingDisks: state.existingDisks,
       installation,
@@ -175,7 +179,7 @@ export default class NewVm extends BaseComponent {
       VDIs: state.VDIs,
       VIFs: state.VIFs
     }
-    createVm(args)
+    createVm(args, this.state.bootAfterCreate)
   }
 
   _selectPool = pool => {
@@ -266,11 +270,15 @@ export default class NewVm extends BaseComponent {
   }
 
   _getOnChange = (prop) => param => {
-    const _param = param.target ? param.target.value : param
+    const _param = param && param.target ? param.target.value : param
     this.setState({ [prop]: _param })
   }
+  _getOnChangeCheckbox = (prop) => event => {
+    console.log('ON CHANGE', event.target.checked)
+    this.setState({ [prop]: event.target.checked }, () => console.log('new state = ', this.state))
+  }
   _getOnChangeObject = (stateElement, key, stateProperty, targetProperty) => param => {
-    const _param = param.target ? param.target.value : param
+    const _param = param && param.target ? param.target.value : param
     const stateValue = this.state[stateElement]
     stateValue[key][stateProperty] = _param[targetProperty] || _param
     this.setState({ [stateElement]: stateValue })
@@ -300,17 +308,16 @@ export default class NewVm extends BaseComponent {
           {this._renderSummary()}
         </Wizard>
         <div className={styles.submitSection}>
-          <Button
-            bsStyle='secondary'
+          <ActionButton
+            btnStyle='secondary'
             className={styles.button}
-            onClick={this._reset}
+            handler={this._reset}
+            icon='new-vm-reset'
           >
-            <Icon icon='new-vm-reset' />
-            {' '}
             {_('newVmReset')}
-          </Button>
-          <Button
-            bsStyle='primary'
+          </ActionButton>
+          <ActionButton
+            btnStyle='primary'
             className={styles.button}
             disabled={!(
               this._isInfosDone() &&
@@ -319,13 +326,13 @@ export default class NewVm extends BaseComponent {
               this._isInterfacesDone() &&
               this._isDisksDone()
             )}
-            onClick={this._create}
+            handler={this._create}
+            icon='new-vm-create'
+            redirectOnSuccess='/home'
             type='submit'
           >
-            <Icon icon='new-vm-create' />
-            {' '}
             {_('newVmCreate')}
-          </Button>
+          </ActionButton>
         </div>
       </div>}
     </div>
@@ -383,11 +390,11 @@ export default class NewVm extends BaseComponent {
     const { configDrive, installMethod, pool } = this.state
     return <Section icon='new-vm-install-settings' title='newVmInstallSettingsPanel' done={this._isInstallSettingsDone()}>
       {this._isDiskTemplate ? <SectionContent>
-        <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: '#eee', padding: '1em' }}>
-          <span style={{ marginLeft: 'auto', marginRight: 'auto' }}>
+        <div className={styles.configDrive}>
+          <span className={styles.configDriveToggle}>
             {_('newVmConfigDrive')}
           </span>
-          <span style={{ marginLeft: 'auto', marginRight: 'auto' }}>
+          <span className={styles.configDriveToggle}>
             <Toggle
               defaultValue={false}
               onChange={this._getOnChange('configDrive')}
@@ -642,7 +649,7 @@ export default class NewVm extends BaseComponent {
     )
 
   _renderSummary = () => {
-    const { CPUs, memory, template, VDIs, VIFs } = this.state
+    const { bootAfterCreate, CPUs, fastClone, memory, template, VDIs, VIFs } = this.state
     return <Section icon='new-vm-summary' title='newVmSummaryPanel' summary>
       <SectionContent summary>
         <span>
@@ -650,7 +657,8 @@ export default class NewVm extends BaseComponent {
           <Icon icon='cpu' />
         </span>
         <span>
-          {memory ? formatSize(memory) : '0 B'}{' '}
+          {memory ? formatSize(memory) : '0 B'}
+          {' '}
           <Icon icon='memory' />
         </span>
         <span>
@@ -662,6 +670,32 @@ export default class NewVm extends BaseComponent {
           <Icon icon='network' />
         </span>
       </SectionContent>
+      <div style={{display: 'flex'}}>
+        <span style={{margin: 'auto'}}>
+          <input
+            checked={fastClone}
+            onChange={this._getOnChangeCheckbox('fastClone')}
+            ref='fastClone'
+            type='checkbox'
+          />
+          {' '}
+          <Icon icon='vm-fast-clone' />
+          {' '}
+          {_('fastCloneVmLabel')}
+        </span>
+      </div>
+      <div style={{display: 'flex'}}>
+        <span style={{margin: 'auto'}}>
+          <input
+            checked={bootAfterCreate}
+            onChange={this._getOnChangeCheckbox('bootAfterCreate')}
+            ref='bootAfterCreate'
+            type='checkbox'
+          />
+          {' '}
+          {_('newVmBootAfterCreate')}
+        </span>
+      </div>
     </Section>
   }
 }

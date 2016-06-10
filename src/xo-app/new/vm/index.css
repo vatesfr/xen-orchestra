@@ -1,7 +1,7 @@
 .inlineSelect {
   display: inline-block;
-  width: 20em;
   font-size: 1rem;
+  width: 20em;
 }
 
 .button {
@@ -13,16 +13,16 @@
 }
 
 .lineItem {
-  display: flex;
   align-items: baseline;
+  display: flex;
   flex-wrap: wrap;
 }
 
 .item {
-  display: flex;
   align-items: center;
-  white-space: nowrap;
+  display: flex;
   margin: 0.5em;
+  white-space: nowrap;
 }
 
 .input {
@@ -31,8 +31,8 @@
 
 .sectionContent {
   display: flex;
-  justify-content: flex-start;
   flex-wrap: wrap;
+  justify-content: flex-start;
 }
 
 .sectionContentColumn {
@@ -50,4 +50,16 @@
 .submitSection {
   display: flex;
   justify-content: space-around;
+}
+
+.configDrive {
+  display: flex;
+  flex-direction: column;
+  background-color: #eee;
+  padding: 1em;
+}
+
+.configDriveToggle {
+  margin-left: auto;
+  margin-right: auto;
 }
