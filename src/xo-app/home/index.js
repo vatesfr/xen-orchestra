@@ -79,8 +79,7 @@ export default class Home extends Component {
       displayActions: false,
       expandAll: false,
       sortBy: 'name_label',
-      sortOrder: 'asc',
-      type: 'VM'
+      sortOrder: 'asc'
     }
 
     this.getNumberOfVms = createCounter(
@@ -149,9 +148,26 @@ export default class Home extends Component {
     this.setState({ activePage })
   }
 
+  get type () {
+    return this.props.location.query.t
+  }
+
+  set type (value) {
+    this.context.router.push({
+      ...this.props.location,
+      query: { t: value }
+    })
+    this.page = 1
+    this._selectAllVms(false)
+    this.setState({type: value})
+  }
+
   componentWillMount () {
     if (this.filter == null) {
       this.filter = 'power_state:running '
+    }
+    if (this.type == null) {
+      this.type = 'VM'
     }
   }
 
