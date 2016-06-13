@@ -4,7 +4,6 @@ import ActionButton from 'action-button'
 import ceil from 'lodash/ceil'
 import CenterPanel from 'center-panel'
 import debounce from 'lodash/debounce'
-import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
@@ -13,44 +12,31 @@ import map from 'lodash/map'
 import Page from '../page'
 import SingleLineRow from 'single-line-row'
 import size from 'lodash/size'
-import Tags from 'tags'
-import Tooltip from 'tooltip'
 import React, { Component } from 'react'
 import { Card, CardHeader, CardBlock } from 'card'
 import {
-  addTag,
   deleteVms,
-  editVm,
-  migrateVm,
   migrateVms,
-  removeTag,
   restartVms,
   snapshotVms,
-  startVm,
   startVms,
-  stopVm,
   stopVms
 } from 'xo'
 import { Link } from 'react-router'
 import { Container, Row, Col } from 'grid'
-import { Text, XoSelect } from 'editable'
 import {
   SelectHost,
   SelectPool,
   SelectTag
 } from 'select-objects'
 import {
-  BlockLink,
   connectStore,
-  formatSize,
-  invoke,
-  osFamily
+  invoke
 } from 'utils'
 import {
   areObjectsFetched,
   createCounter,
   createFilter,
-  createGetObject,
   createGetObjectsOfType,
   createGetTags,
   createPager,
@@ -68,141 +54,8 @@ import {
 } from 'react-bootstrap-4/lib'
 
 import styles from './index.css'
-
-@connectStore({
-  container: createGetObject((_, props) => props.vm.$container)
-})
-class VmItem extends Component {
-  componentWillMount () {
-    this.setState({ collapsed: true })
-  }
-
-  get _isRunning () {
-    const { vm } = this.props
-    return vm && vm.power_state === 'Running'
-  }
-
-  _getMigrationPredicate = createSelector(
-    () => this.props.container,
-    container => host => host.id !== container.id
-  )
-
-  _addTag = tag => addTag(this.props.vm.id, tag)
-  _migrateVm = host => migrateVm(this.props.vm, host)
-  _removeTag = tag => removeTag(this.props.vm.id, tag)
-  _setNameDescription = nameDescription => editVm(this.props.vm, { name_description: nameDescription })
-  _setNameLabel = nameLabel => editVm(this.props.vm, { name_label: nameLabel })
-  _start = () => startVm(this.props.vm)
-  _stop = () => stopVm(this.props.vm)
-  _toggleCollapse = () => this.setState({ collapsed: !this.state.collapsed })
-  _onSelect = () => this.props.onSelect(this.props.vm.id)
-
-  render () {
-    const { vm, container, expandAll, selected } = this.props
-    return <div className={styles.item}>
-      <BlockLink to={`/vms/${vm.id}`}>
-        <SingleLineRow>
-          <Col smallSize={10} mediumSize={9} largeSize={5}>
-            <EllipsisContainer>
-              <input type='checkbox' checked={selected} onChange={this._onSelect} value={vm.id} />
-              &nbsp;&nbsp;
-              <Tooltip
-                content={isEmpty(vm.current_operations)
-                  ? _(`powerState${vm.power_state}`)
-                  : <div>{_(`powerState${vm.power_state}`)}{' ('}{map(vm.current_operations)[0]}{')'}</div>
-                }
-              >
-                {isEmpty(vm.current_operations)
-                  ? <Icon icon={`${vm.power_state.toLowerCase()}`} />
-                  : <Icon icon='busy' />
-                }
-              </Tooltip>
-              &nbsp;&nbsp;
-              <Ellipsis>
-                <Text value={vm.name_label} onChange={this._setNameLabel} placeholder={_('vmHomeNamePlaceholder')} useLongClick />
-              </Ellipsis>
-            </EllipsisContainer>
-          </Col>
-          <Col mediumSize={4} className='hidden-md-down'>
-            <EllipsisContainer>
-              <span className={styles.itemActionButons}>
-                {this._isRunning
-                  ? <span>
-                    <Tooltip content={_('stopVmLabel')}>
-                      <a onClick={this._stop}>
-                        <Icon icon='vm-stop' size='1' />
-                      </a>
-                    </Tooltip>
-                  </span>
-                  : <span>
-                    <Tooltip content={_('startVmLabel')}>
-                      <a onClick={this._start}>
-                        <Icon icon='vm-start' size='1' />
-                      </a>
-                    </Tooltip>
-                  </span>
-                }
-              </span>
-              <Icon className='text-info' icon={vm.os_version && osFamily(vm.os_version.distro)} fixedWidth />
-              {' '}
-              <Ellipsis>
-                <Text value={vm.name_description} onChange={this._setNameDescription} placeholder={_('vmHomeDescriptionPlaceholder')} useLongClick />
-              </Ellipsis>
-            </EllipsisContainer>
-          </Col>
-          <Col mediumSize={2} className='hidden-sm-down'>
-            {this._isRunning
-              ? <XoSelect
-                labelProp='name_label'
-                onChange={this._migrateVm}
-                placeholder={_('homeMigrateTo')}
-                predicate={this._getMigrationPredicate()}
-                useLongClick
-                value={container}
-                xoType='host'
-              >
-                <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>
-              </XoSelect>
-              : <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>
-            }
-          </Col>
-          <Col mediumSize={1} className={styles.itemExpandRow}>
-            <a className={styles.itemExpandButton}
-              onClick={this._toggleCollapse}>
-              <Icon icon='nav' fixedWidth />&nbsp;&nbsp;&nbsp;
-            </a>
-          </Col>
-        </SingleLineRow>
-      </BlockLink>
-      {!this.state.collapsed || expandAll
-        ? <Row>
-          <Col mediumSize={4} className={styles.itemExpanded}>
-            <span>
-              {vm.CPUs.number}x <Icon icon='cpu' />
-              {' '}&nbsp;{' '}
-              {formatSize(vm.memory.size)} <Icon icon='memory' />
-              {' '}&nbsp;{' '}
-              {isEmpty(vm.snapshots)
-                ? null
-                : <span>{vm.snapshots.length}x <Icon icon='vm-snapshot' /></span>
-              }
-              {vm.docker ? <Icon icon='vm-docker' /> : null}
-            </span>
-          </Col>
-          <Col largeSize={4} className={styles.itemExpanded}>
-            {map(vm.addresses, address => <span key={address} className='tag tag-info tag-ip'>{address}</span>)}
-          </Col>
-          <Col mediumSize={4}>
-            <span style={{fontSize: '1.4em'}}>
-              <Tags labels={vm.tags} onDelete={this._removeTag} onAdd={this._addTag} />
-            </span>
-          </Col>
-        </Row>
-        : null
-      }
-    </div>
-  }
-}
+import VmItem from './vm.js'
+import HostItem from './host.js'
 
 const VMS_PER_PAGE = 20
 
@@ -251,6 +104,28 @@ export default class Home extends Component {
       VMS_PER_PAGE
     )
 
+    this.getNumberOfHosts = createCounter(
+      () => this.props.hosts
+    )
+
+    this.getFilteredHosts = createSort(
+      createFilter(
+        () => this.props.hosts,
+        createSelector(
+          () => this.filter || '',
+          complexMatcher.create
+        )
+      ),
+      () => this.state.sortBy,
+      () => this.state.sortOrder
+    )
+
+    this.getCurrentPageHosts = createPager(
+      this.getFilteredHosts,
+      () => this.state.activePage,
+      VMS_PER_PAGE
+    )
+
     this._isSelected = {}
   }
 
@@ -273,9 +148,26 @@ export default class Home extends Component {
     this.setState({ activePage })
   }
 
+  get type () {
+    return this.props.location.query.t
+  }
+
+  set type (value) {
+    this.context.router.push({
+      ...this.props.location,
+      query: { t: value }
+    })
+    this.page = 1
+    this._selectAllVms(false)
+    this.setState({type: value})
+  }
+
   componentWillMount () {
     if (this.filter == null) {
       this.filter = 'power_state:running '
+    }
+    if (this.type == null) {
+      this.type = 'VM'
     }
   }
 
@@ -300,6 +192,8 @@ export default class Home extends Component {
   _filterTags = () => this.setFilter('tags:')
 
   _onPageSelection = (_, event) => { this.page = event.eventKey }
+
+  _setType = (event) => this.setState({ type: event.target.value })
 
   _sortByName = () => this.setState({ sortBy: 'name_label', sortOrder: 'asc' })
   _sortByPowerState = () => this.setState({ sortBy: 'power_state', sortOrder: 'desc' })
@@ -341,7 +235,13 @@ export default class Home extends Component {
   header () {
     return <Container>
       <Row className={styles.itemRowHeader}>
-        <Col mediumSize={6}>
+        <Col mediumSize={2}>
+          <select className='form-control' onChange={this._setType} value={this.state.type}>
+            <option value='VM'>{_('homeVmType')}</option>
+            <option value='host'>{_('homeHostType')}</option>
+          </select>
+        </Col>
+        <Col mediumSize={8}>
           <div className='input-group'>
             <div className='input-group-btn'>
               <DropdownButton id='filter' bsStyle='info' title={_('homeFilters')}>
@@ -379,7 +279,7 @@ export default class Home extends Component {
             </div>
           </div>
         </Col>
-        <Col mediumSize={6} className='text-xs-right'>
+        <Col mediumSize={2} className='text-xs-right'>
           <Link
             className='btn btn-success'
             to='/new/vm'>
@@ -467,8 +367,9 @@ export default class Home extends Component {
     const { activePage, sortBy } = this.state
     const filteredVms = this.getFilteredVms()
     const currentPageVms = this.getCurrentPageVms()
+    const currentPageHosts = this.getCurrentPageHosts()
     return <Page header={this.header()}>
-      <div>
+      {this.state.type === 'VM' && <div>
         <div className={styles.itemContainer}>
           <SingleLineRow className={styles.itemContainerHeader}>
             <Col smallsize={11} mediumSize={3}>
@@ -621,7 +522,142 @@ export default class Home extends Component {
             </div>
           </div>
         </Row>}
+      </div>}
+      {this.state.type === 'host' && <div>
+        <div className={styles.itemContainer}>
+          <SingleLineRow className={styles.itemContainerHeader}>
+            <Col smallsize={11} mediumSize={3}>
+              <input type='checkbox' onChange={() => this._selectAllHosts()} ref='masterCheckbox' />
+              {' '}
+              <span className='text-muted'>
+                {size(this._isSelected)
+                  ? _('homeSelectedVms', { selected: size(this._isSelected), total: nVms, vmIcon: <Icon icon='host' /> })
+                  : _('homeDisplayedVms', { displayed: filteredVms.length, total: nVms, vmIcon: <Icon icon='host' /> })
+                }
+              </span>
+            </Col>
+            <Col mediumSize={8} className='text-xs-right hidden-sm-down'>
+            {this.state.displayActions
+              ? <div className='btn-group'>
+                <ActionButton btnStyle='secondary' handler={stopVms} handlerParam={selectedVmsIds} icon='vm-stop' />
+                <ActionButton btnStyle='secondary' handler={startVms} handlerParam={selectedVmsIds} icon='vm-start' />
+                <ActionButton btnStyle='secondary' handler={restartVms} handlerParam={selectedVmsIds} icon='vm-reboot' />
+                <ActionButton btnStyle='secondary' handler={migrateVms} handlerParam={selectedVmsIds} icon='vm-migrate' />
+                <DropdownButton bsStyle='secondary' id='advanced' title={_('homeMore')}>
+                  <MenuItem onClick={() => { restartVms(selectedVmsIds, true) }}>
+                    <Icon icon='vm-force-reboot' fixedWidth /> {_('forceRebootVmLabel')}
+                  </MenuItem>
+                  <MenuItem onClick={() => { stopVms(selectedVmsIds, true) }}>
+                    <Icon icon='vm-force-shutdown' fixedWidth /> {_('forceShutdownVmLabel')}
+                  </MenuItem>
+                  <MenuItem onClick={() => { snapshotVms(selectedVmsIds) }}>
+                    <Icon icon='vm-snapshot' fixedWidth /> {_('snapshotVmLabel')}
+                  </MenuItem>
+                  <MenuItem onClick={() => { deleteVms(selectedVmsIds) }}>
+                    <Icon icon='vm-delete' fixedWidth /> {_('vmRemoveButton')}
+                  </MenuItem>
+                </DropdownButton>
+              </div>
+              : <div>
+                {pools.length && (
+                  <OverlayTrigger
+                    trigger='click'
+                    rootClose
+                    placement='bottom'
+                    overlay={
+                      <Popover className={styles.selectObject} id='poolPopover'>
+                        <SelectPool
+                          autoFocus
+                          multi
+                          onChange={this._updateSelectedPools}
+                          defaultValue={this.state.selectedPools}
+                        />
+                      </Popover>
+                    }
+                  >
+                    <Button className='btn-link'><span><Icon icon='pool' /> {_('homeAllPools')} ({pools.length})</span></Button>
+                  </OverlayTrigger>
+                )}
+                {' '}
+                {tags.length && (
+                  <OverlayTrigger
+                    autoFocus
+                    trigger='click'
+                    rootClose
+                    placement='bottom'
+                    overlay={
+                      <Popover className={styles.selectObject} id='tagPopover'>
+                        <SelectTag
+                          multi
+                          onChange={this._updateSelectedTags}
+                          defaultValue={this.state.selectedTags}
+                        />
+                      </Popover>
+                    }
+                  >
+                    <Button className='btn-link'><span><Icon icon='tags' /> {_('homeAllTags')} ({tags.length})</span></Button>
+                  </OverlayTrigger>
+                )}
+                {' '}
+                <DropdownButton bsStyle='link' id='sort' title={_('homeSortBy')}>
+                  <MenuItem onClick={this._sortByName}>
+                    {this._tick(sortBy === 'name_label')}
+                    {sortBy === 'name_label'
+                    ? <strong>{_('homeSortByName')}</strong>
+                    : _('homeSortByName')}
+                  </MenuItem>
+                  <MenuItem onClick={this._sortByPowerState}>
+                    {this._tick(sortBy === 'power_state')}
+                    {sortBy === 'power_state'
+                    ? <strong>{_('homeSortByPowerstate')}</strong>
+                    : _('homeSortByPowerstate')}
+                  </MenuItem>
+                  <MenuItem onClick={this._sortByRam}>
+                    {this._tick(sortBy === 'memory.size')}
+                    {sortBy === 'memory.size'
+                    ? <strong>{_('homeSortByRAM')}</strong>
+                    : _('homeSortByRAM')}
+                  </MenuItem>
+                  <MenuItem onClick={this._sortByVcpus}>
+                    {this._tick(sortBy === 'CPUs.number')}
+                    {sortBy === 'CPUs.number'
+                    ? <strong>{_('homeSortByvCPUs')}</strong>
+                    : _('homeSortByvCPUs')}
+                  </MenuItem>
+                </DropdownButton>
+              </div>
+            }
+            </Col>
+            <Col smallsize={1} mediumSize={1} className='text-xs-right'>
+              <button className='btn btn-secondary'
+                onClick={this._expandAll}>
+                <Icon icon='nav' />
+              </button>
+            </Col>
+          </SingleLineRow>
+          {map(currentPageHosts, host =>
+            <HostItem host={host} key={host.id} expandAll={this.state.expandAll} onSelect={this._selectHost} selected={this._isSelected[host.id]} />
+          )}
+        </div>
+        {filteredVms.length > VMS_PER_PAGE && <Row>
+          <div style={{display: 'flex', width: '100%'}}>
+            <div style={{margin: 'auto'}}>
+              <Pagination
+                first
+                last
+                prev
+                next
+                ellipsis
+                boundaryLinks
+                maxButtons={5}
+                items={ceil(filteredVms.length / VMS_PER_PAGE)}
+                activePage={activePage}
+                onSelect={this._onPageSelection} />
+            </div>
+          </div>
+        </Row>}
       </div>
+      }
     </Page>
   }
 }

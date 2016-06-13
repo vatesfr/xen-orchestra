@@ -167,6 +167,12 @@ export const messages = {
   },
 
   // ----- Home view ------
+  homeVmType: {
+    defaultMessage: 'VMs'
+  },
+  homeHostType: {
+    defaultMessage: 'Hosts'
+  },
   homeFetchingData: {
     defaultMessage: 'Fetching data…'
   },
