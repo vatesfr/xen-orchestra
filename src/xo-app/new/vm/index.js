@@ -101,7 +101,6 @@ export default class NewVm extends BaseComponent {
 
   _setRef (key, value) {
     if (!this.refs[key]) {
-      console.log('Cannot set ref ', key)
       return
     }
     const type = this.refs[key].type
@@ -124,7 +123,7 @@ export default class NewVm extends BaseComponent {
           this.refs[key].value = ''
           break
         case 'select-one':
-          this.refs[key].value = 0
+          this.refs[key].value = 1
           break
         default: this.refs[key].value = undefined
       }
@@ -233,8 +232,6 @@ export default class NewVm extends BaseComponent {
     }
 
     const state = store.getState()
-    console.log('template = ', template)
-    console.log('template infos = ', template.template_info)
 
     const existingDisks = {}
     forEach(template.$VBDs, vbdId => {
@@ -426,7 +423,12 @@ export default class NewVm extends BaseComponent {
           <SizeInput ref='memory' onChange={this._getOnChange('memory')} className={styles.sizeInput} />
         </Item>
         <Item label='newVmCpuWeightLabel'>
-          <select ref='cpuWeight' onChange={this._getOnChange('cpuWeight')} className='form-control'>
+          <select
+            className='form-control'
+            defaultValue={1}
+            onChange={this._getOnChange('cpuWeight')}
+            ref='cpuWeight'
+          >
             <option value={0.25}>{formatMessage(messages.newVmCpuWeightQuarter)}</option>
             <option value={0.5}>{formatMessage(messages.newVmCpuWeightHalf)}</option>
             <option value={1}>{formatMessage(messages.newVmCpuWeightNormal)}</option>
@@ -505,15 +507,17 @@ export default class NewVm extends BaseComponent {
         </Item>
         {template.virtualizationMode === 'pv'
           ? <Item label='newVmPvArgsLabel'>
-            <input ref='pv_args' onChange={this._getOnChange('pv_args')} className='form-control' type='text' />
+            {/* key='pv_args' is needed so React can differentiate this input from the customConfig radio button
+              * (when switching from a disk template to a no-disk template) and doesn't think it is the same input
+              * switching from controlled to uncontrolled and vice versa.
+              */}
+            <input key='pv_args' onChange={this._getOnChange('pv_args')} className='form-control' type='text' />
           </Item>
-          : <span>
-            <Item>
-              <input onChange={this._getOnChange('installMethod')} name='installMethod' value='PXE' type='radio' />
-              {' '}
-              <span>{_('newVmPxeLabel')}</span>
-            </Item>
-          </span>
+          : <Item>
+            <input onChange={this._getOnChange('installMethod')} name='installMethod' value='PXE' type='radio' />
+            {' '}
+            <span>{_('newVmPxeLabel')}</span>
+          </Item>
         }
       </SectionContent>}
     </Section>
