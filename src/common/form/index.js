@@ -3,18 +3,20 @@ import Icon from 'icon'
 import map from 'lodash/map'
 import randomPassword from 'random-password'
 import React from 'react'
+import {
+  DropdownButton,
+  MenuItem
+} from 'react-bootstrap-4/lib'
 
-import Component from './base-component'
+import Component from '../base-component'
 import {
   autobind,
   formatSizeRaw,
   parseSize,
   propTypes
-} from './utils'
-import {
-  DropdownButton,
-  MenuItem
-} from 'react-bootstrap-4/lib'
+} from '../utils'
+
+export Select from './select'
 
 // ===================================================================
 

@@ -1,6 +1,5 @@
 import Component from 'base-component'
 import React from 'react'
-import Select from 'react-select'
 import _ from 'messages'
 import assign from 'lodash/assign'
 import classNames from 'classnames'
@@ -14,6 +13,7 @@ import mapValues from 'lodash/mapValues'
 import renderXoItem from 'render-xo-item'
 import sortBy from 'lodash/sortBy'
 import { parse as parseRemote } from 'xo-remote-parser'
+import { Select } from 'form'
 
 import {
   createFilter,

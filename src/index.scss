@@ -58,6 +58,10 @@ $side-menu-color: white;
   }
 }
 
+// REACT-VIRTUALIZED ===========================================================
+
+@import '../node_modules/react-virtualized/styles';
+
 // REACT-SELECT ================================================================
 
 $select-input-height: 40px; // Bootstrap input height
