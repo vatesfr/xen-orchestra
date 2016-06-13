@@ -14,6 +14,7 @@ import {
   SelectSr
 } from 'select-objects'
 import { formatSize } from 'utils'
+import { Upgrade } from 'xoa-upgrade'
 
 import Page from '../page'
 
@@ -62,8 +63,9 @@ export default class Import extends Component {
   render () {
     const { files, srPredicate } = this.state
 
-    return (
-      <Page header={HEADER}>
+    return <Page header={HEADER}>
+      {process.env.XOA_PLAN > 2
+      ? <Container>
         <form id='import-form'>
           <FormGrid.Row>
             <FormGrid.LabelCol>{_('vmImportToPool')}</FormGrid.LabelCol>
@@ -129,7 +131,9 @@ export default class Import extends Component {
             </div>
           </div>
         </form>
-      </Page>
-    )
+      </Container>
+      : <Container><Upgrade place='vmImport' available={3} /></Container>
+    }
+    </Page>
   }
 }

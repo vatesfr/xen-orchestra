@@ -14,6 +14,7 @@ import { DropdownButton, MenuItem } from 'react-bootstrap-4/lib'
 import { FormattedDate } from 'react-intl'
 import { info, error } from 'notification'
 import { Container, Row, Col } from 'grid'
+import { Upgrade } from 'xoa-upgrade'
 
 import {
   importBackup,
@@ -138,8 +139,8 @@ export default class Restore extends Component {
       writableSrs
     } = this.props
 
-    return (
-      <Container>
+    return process.env.XOA_PLAN > 1
+      ? <Container>
         <h2>Restore Backups</h2>
         {!remotes.length && <span>No remotes</span>}
         {map(remotes, (r, key) =>
@@ -205,6 +206,6 @@ export default class Restore extends Component {
           </div>
         )}
       </Container>
-      )
+      : <Container><Upgrade place='restoreBackup' available={2} /></Container>
   }
 }

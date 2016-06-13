@@ -72,7 +72,7 @@ export default class About extends Component {
             ? <div>
               <Row>
                 <Col>
-                  <Link to={'/update'}>
+                  <Link to={'/xoa-update'}>
                     <h2>Free Trial for Premium Edition!</h2>
                     Request your trial now!
                   </Link>

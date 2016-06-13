@@ -788,4 +788,15 @@
     @extend .fa;
     @extend .fa-refresh;
   }
+
+  // XOA related
+
+  &-plan-upgrade {
+    @extend .fa;
+    @extend .fa-cloud-upload;
+  }
+  &-plan-trial {
+    @extend .fa;
+    @extend .fa-star;
+  }
 }
