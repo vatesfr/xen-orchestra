@@ -21,6 +21,18 @@ import {
   noop
 } from 'utils'
 
+const SrColContainer = connectStore(() => ({
+  container: createGetObject()
+}))(({ container }) => <span>{container.name_label}</span>)
+
+const VdiColSr = connectStore(() => ({
+  sr: createGetObject()
+}))(({ sr }) => <span>{sr.name_label}</span>)
+
+const VmColContainer = connectStore(() => ({
+  container: createGetObject()
+}))(({ container }) => <span>{container.name_label}</span>)
+
 const AlarmColObject = connectStore(() => ({
   object: createGetObject()
 }))(({ object }) => <span>{object.name_label}</span>)
@@ -29,75 +41,103 @@ const AlarmColPool = connectStore(() => ({
   pool: createGetObject()
 }))(({ pool }) => <span>{pool.name_label}</span>)
 
-const OrphanVdiSnapshot = connectStore(() => ({
-  sr: createGetObject(
-    (_, props) => props.vdi.$SR
-  )
-}))(({ vdi, sr }) =>
-  <tr>
-    <td>
-      <FormattedTime
-        value={vdi.snapshot_time * 1000}
-        minute='numeric'
-        hour='numeric'
-        day='numeric'
-        month='long'
-        year='numeric' />
-      (<FormattedRelative value={vdi.snapshot_time * 1000} />)
-    </td>
-    <td>{vdi.name_label}</td>
-    <td>{vdi.name_description}</td>
-    <td>{formatSize(vdi.size)}</td>
-    <td>{sr.name_label}</td>
-    <td>
+const SR_COLUMNS = [
+  {
+    name: _('srName'),
+    itemRenderer: sr => sr.name_label,
+    sortCriteria: sr => sr.name_label
+  },
+  {
+    name: _('srPool'),
+    itemRenderer: sr => <SrColContainer id={sr.$container} />
+  },
+  {
+    name: _('srFormat'),
+    itemRenderer: sr => sr.SR_type,
+    sortCriteria: sr => sr.SR_type
+  },
+  {
+    name: _('srSize'),
+    itemRenderer: sr => formatSize(sr.size),
+    sortCriteria: sr => sr.size
+  },
+  {
+    name: _('srUsage'),
+    itemRenderer: sr => sr.size > 1 && <meter value={(sr.physical_usage / sr.size) * 100} min='0' max='100' optimum='40' low='80' high='90'></meter>,
+    sortCriteria: sr => sr.physical_usage / sr.size
+  }
+]
+
+const VDI_COLUMNS = [
+  {
+    name: _('snapshotDate'),
+    itemRenderer: vdi => <span><FormattedTime value={vdi.snapshot_time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={vdi.snapshot_time * 1000} />)</span>,
+    sortCriteria: vdi => vdi.snapshot_time
+  },
+  {
+    name: _('vdiNameLabel'),
+    itemRenderer: vdi => vdi.name_label,
+    sortCriteria: vdi => vdi.name_label
+  },
+  {
+    name: _('vdiNameDescription'),
+    itemRenderer: vdi => vdi.name_description,
+    sortCriteria: vdi => vdi.name_description
+  },
+  {
+    name: _('vdiSize'),
+    itemRenderer: vdi => formatSize(vdi.size),
+    sortCriteria: vdi => vdi.size
+  },
+  {
+    name: _('vdiSr'),
+    itemRenderer: vdi => <VdiColSr id={vdi.$SR} />
+  },
+  {
+    name: _('logAction'),
+    itemRenderer: vdi => (
       <ActionRowButton
         btnStyle='danger'
         handler={deleteVdi}
         handlerParam={vdi}
         icon='delete'
-        />
-    </td>
-  </tr>
-)
+      />
+    )
+  }
+]
 
-const OrphanVmSnapshot = connectStore(() => ({
-  container: createGetObject(
-    (_, props) => props.vm.$container
-  )
-}))(({ container, vm }) =>
-  <tr>
-    <td><FormattedTime value={vm.snapshot_time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={vm.snapshot_time * 1000} />)</td>
-    <td>{vm.name_label}</td>
-    <td>{vm.name_description}</td>
-    <td>{container.name_label}</td>
-    <td>
+const VM_COLUMNS = [
+  {
+    name: _('snapshotDate'),
+    itemRenderer: vm => <span><FormattedTime value={vm.snapshot_time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={vm.snapshot_time * 1000} />)</span>,
+    sortCriteria: vm => vm.snapshot_time
+  },
+  {
+    name: _('vmNameLabel'),
+    itemRenderer: vm => vm.name_label,
+    sortCriteria: vm => vm.name_label
+  },
+  {
+    name: _('vmNameDescription'),
+    itemRenderer: vm => vm.name_description,
+    sortCriteria: vm => vm.name_description
+  },
+  {
+    name: _('vmContainer'),
+    itemRenderer: vm => <VmColContainer id={vm.$container} />
+  },
+  {
+    name: _('logAction'),
+    itemRenderer: vm => (
       <ActionRowButton
         btnStyle='danger'
         handler={deleteVm}
         handlerParam={vm}
         icon='delete'
       />
-    </td>
-  </tr>
-)
-
-const Sr = connectStore(() => ({
-  container: createGetObject(
-    (_, props) => props.sr.$container
-  )
-}))(({ container, sr }) =>
-  <tr>
-    <td>{sr.name_label}</td>
-    <td>{container.name_label}</td>
-    <td>{sr.SR_type}</td>
-    <td>{formatSize(sr.size)}</td>
-    <td>
-      {sr.size > 1 &&
-        <meter value={(sr.physical_usage / sr.size) * 100} min='0' max='100' optimum='40' low='80' high='90'></meter>
-      }
-    </td>
-  </tr>
-)
+    )
+  }
+]
 
 const ALARM_COLUMNS = [
   {
@@ -190,6 +230,30 @@ export default class Health extends Component {
         <Col>
           <div className='card-dashboard'>
             <div className='card-header-dashboard'>
+              <Icon icon='disk' /> {_('srStatePanel')}
+            </div>
+            <div className='card-block'>
+              {isEmpty(this.props.userSrs)
+                ? <Row>
+                  <Col smallSize={6} className='text-xs-center'>
+                    <br />
+                    <h4>{_('noSrs')}</h4>
+                  </Col>
+                </Row>
+                : <Row>
+                  <Col>
+                    <SortedTable collection={this.props.userSrs} columns={SR_COLUMNS} defaultColumn={4} />
+                  </Col>
+                </Row>
+              }
+            </div>
+          </div>
+        </Col>
+      </Row>
+      <Row>
+        <Col>
+          <div className='card-dashboard'>
+            <div className='card-header-dashboard'>
               <Icon icon='disk' /> {_('orphanedVdis')}
             </div>
             <div className='card-block'>
@@ -202,28 +266,14 @@ export default class Health extends Component {
                         btnStyle='danger'
                         handler={this._deleteOrphanedVdis}
                         icon='delete'
-                        labelId='logRemoveAll'
+                        labelId='removeAllOrphanedObject'
                       />
                     </Col>
                   </Row>
                   <Row>
-                    <table className='table'>
-                      <thead className='thead-default'>
-                        <tr>
-                          <th>{_('snapshotDate')}</th>
-                          <th>{_('vdiNameLabel')}</th>
-                          <th>{_('vdiNameDescription')}</th>
-                          <th>{_('vdiSize')}</th>
-                          <th>{_('vdiSr')}</th>
-                          <th>{_('logAction')}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {map(this.props.vdiOrphaned, vdi =>
-                          <OrphanVdiSnapshot key={vdi.id} vdi={vdi} />
-                        )}
-                      </tbody>
-                    </table>
+                    <Col>
+                      <SortedTable collection={this.props.vdiOrphaned} columns={VDI_COLUMNS} />
+                    </Col>
                   </Row>
                 </div>
               }
@@ -240,61 +290,7 @@ export default class Health extends Component {
             <div className='card-block'>
               {isEmpty(this.props.vmOrphaned)
                 ? <p className='text-xs-center'>{_('noOrphanedObject')}</p>
-                : <table className='table'>
-                  <thead className='thead-default'>
-                    <tr>
-                      <th>{_('snapshotDate')}</th>
-                      <th>{_('vmNameLabel')}</th>
-                      <th>{_('vmNameDescription')}</th>
-                      <th>{_('vmContainer')}</th>
-                      <th>{_('logAction')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {map(this.props.vmOrphaned, vm =>
-                      <OrphanVmSnapshot key={vm.id} vm={vm} />
-                    )}
-                  </tbody>
-                </table>
-              }
-            </div>
-          </div>
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-          <div className='card-dashboard'>
-            <div className='card-header-dashboard'>
-              <Icon icon='disk' /> {_('srStatePanel')}
-            </div>
-            <div className='card-block'>
-              {isEmpty(this.props.userSrs)
-                ? <Row>
-                  <Col smallSize={6} className='text-xs-center'>
-                    <br />
-                    <h4>{_('noSrs')}</h4>
-                  </Col>
-                </Row>
-                : <Row>
-                  <Col>
-                    <table className='table'>
-                      <thead className='thead-default'>
-                        <tr>
-                          <th>{_('srName')}</th>
-                          <th>{_('srPool')}/{_('srHost')}</th>
-                          <th>{_('srFormat')}</th>
-                          <th>{_('srSize')}</th>
-                          <th>{_('srUsage')}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {map(this.props.userSrs, sr =>
-                          <Sr key={sr.id} sr={sr} />
-                        )}
-                      </tbody>
-                    </table>
-                  </Col>
-                </Row>
+                : <SortedTable collection={this.props.vmOrphaned} columns={VM_COLUMNS} />
               }
             </div>
           </div>
