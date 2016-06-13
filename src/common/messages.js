@@ -1301,6 +1301,9 @@ export const messages = {
   noOrphanedObject: {
     defaultMessage: 'No orphans'
   },
+  removeAllOrphanedObject: {
+    defaultMessage: 'Remove all orphaned VDIs'
+  },
   vmNameLabel: {
     defaultMessage: 'Name'
   },
