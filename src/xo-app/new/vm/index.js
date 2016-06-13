@@ -1,14 +1,15 @@
 import _, { messages } from 'messages'
+import { Button } from 'react-bootstrap-4/lib'
 import ActionButton from 'action-button'
 import BaseComponent from 'base-component'
-import cloneDeep from 'lodash/cloneDeep'
-import { Button } from 'react-bootstrap-4/lib'
 import classNames from 'classnames'
+import cloneDeep from 'lodash/cloneDeep'
 import concat from 'lodash/concat'
 import debounce from 'lodash/debounce'
 import every from 'lodash/every'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
+import { injectIntl } from 'react-intl'
 import isArray from 'lodash/isArray'
 import keys from 'lodash/keys'
 import map from 'lodash/map'
@@ -17,29 +18,23 @@ import React from 'react'
 import size from 'lodash/size'
 import store from 'store'
 import Wizard, { Section } from 'wizard'
-import { injectIntl } from 'react-intl'
-
 import {
   createVm
 } from 'xo'
-
 import {
   SelectNetwork,
   SelectPool,
   SelectSr,
   SelectVmTemplate
 } from 'select-objects'
-
 import {
   SizeInput,
   Toggle
 } from 'form'
-
 import {
   connectStore,
   formatSize
 } from 'utils'
-
 import {
   createSelector,
   createGetObject,
@@ -74,14 +69,9 @@ const Item = ({ label, children }) => (
 
 const getObject = createGetObject((_, id) => id)
 
-@connectStore(() => {
-  const getTemplates = createGetObjectsOfType('VM-template').sort()
-  return (state, props) => {
-    return {
-      templates: getTemplates(state, props)
-    }
-  }
-})
+@connectStore(() => ({
+  templates: createGetObjectsOfType('VM-template').sort()
+}))
 @injectIntl
 export default class NewVm extends BaseComponent {
   constructor () {
@@ -90,7 +80,7 @@ export default class NewVm extends BaseComponent {
     this._uniqueId = 0
   }
 
-  get uniqueId () {
+  getUniqueId () {
     return this._uniqueId++
   }
 
@@ -99,16 +89,16 @@ export default class NewVm extends BaseComponent {
     return template.template_info.disks.length === 0 && template.name_label !== 'Other install media'
   }
 
-  _setRef (key, value) {
-    if (!this.refs[key]) {
+  _setInputValue (ref, value) {
+    if (!this.refs[ref]) {
       return
     }
-    const type = this.refs[key].type
+    const type = this.refs[ref].type
     if (type === 'text' || type === 'number') {
-      this.refs[key].value = value || ''
+      this.refs[ref].value = value || ''
       return
     }
-    this.refs[key].value = value
+    this.refs[ref].value = value
   }
 
   _reset = () => {
@@ -122,10 +112,10 @@ export default class NewVm extends BaseComponent {
         case 'number':
           this.refs[key].value = ''
           break
-        case 'select-one':
-          this.refs[key].value = 1
-          break
         default: this.refs[key].value = undefined
+      }
+      if (key === 'cpuWeight') {
+        this.refs[key].value = 1
       }
     })
     this.setState({
@@ -158,6 +148,9 @@ export default class NewVm extends BaseComponent {
         break
       case 'network':
         const matches = /^(http|ftp|nfs)/i.exec(state.installNetwork)
+        if (!matches) {
+          throw new Error('invalid network URL')
+        }
         installation = {
           method: matches[1].toLowerCase(),
           repository: state.installNetwork
@@ -208,7 +201,7 @@ export default class NewVm extends BaseComponent {
       cloudContent
 
     }
-    createVm(data)
+    return createVm(data)
   }
 
   _selectPool = pool => {
@@ -240,7 +233,7 @@ export default class NewVm extends BaseComponent {
         return
       }
       const vdi = getObject(state, vbd.VDI)
-      existingDisks[this.uniqueId] = {
+      existingDisks[this.getUniqueId()] = {
         name_label: vdi.name_label,
         name_description: vdi.name_description,
         size: vdi.size,
@@ -254,7 +247,7 @@ export default class NewVm extends BaseComponent {
       VIFs.push({
         mac: vif.MAC,
         network: vif.$network,
-        id: this.uniqueId
+        id: this.getUniqueId()
       })
     })
 
@@ -273,14 +266,14 @@ export default class NewVm extends BaseComponent {
       VIFs,
       // disks
       existingDisks,
-      VDIs: map(template.template_info.disks, disk => ({ ...disk, device: this.uniqueId }))
+      VDIs: map(template.template_info.disks, disk => ({ ...disk, device: this.getUniqueId() }))
     }, () => forEach(this.state, (element, key) => {
-      !isArray(element) && this._setRef(key, element)
+      !isArray(element) && this._setInputValue(key, element)
     }))
   }
 
   _addVdi = () => this.setState({ VDIs: concat(this.state.VDIs, {
-    device: String(this.uniqueId),
+    device: String(this.getUniqueId()),
     type: 'system'
   }) })
   _removeVdi = index => {
@@ -289,7 +282,7 @@ export default class NewVm extends BaseComponent {
     this.setState({ VDIs })
   }
   _addInterface = () => this.setState({ VIFs: concat(this.state.VIFs, {
-    id: this.uniqueId
+    id: this.getUniqueId()
   }) })
   _removeInterface = index => {
     const VIFs = cloneDeep(this.state.VIFs)
@@ -413,7 +406,6 @@ export default class NewVm extends BaseComponent {
   }
 
   _renderPerformances = () => {
-    const { formatMessage } = this.props.intl
     return <Section icon='new-vm-perf' title='newVmPerfPanel' done={this._isPerformancesDone()}>
       <SectionContent>
         <Item label='newVmVcpusLabel'>
@@ -429,10 +421,10 @@ export default class NewVm extends BaseComponent {
             onChange={this._getOnChange('cpuWeight')}
             ref='cpuWeight'
           >
-            <option value={0.25}>{formatMessage(messages.newVmCpuWeightQuarter)}</option>
-            <option value={0.5}>{formatMessage(messages.newVmCpuWeightHalf)}</option>
-            <option value={1}>{formatMessage(messages.newVmCpuWeightNormal)}</option>
-            <option value={2}>{formatMessage(messages.newVmCpuWeightDouble)}</option>
+            {_('newVmCpuWeightQuarter', message => <option value={0.25}>{message}</option>)}
+            {_('newVmCpuWeightHalf', message => <option value={0.5}>{message}</option>)}
+            {_('newVmCpuWeightNormal', message => <option value={1}>{message}</option>)}
+            {_('newVmCpuWeightDouble', message => <option value={2}>{message}</option>)}
           </select>
         </Item>
       </SectionContent>
@@ -535,7 +527,7 @@ export default class NewVm extends BaseComponent {
     switch (installMethod) {
       case 'customConfig': return customConfig
       case 'ISO': return installIso
-      case 'network': return installNetwork
+      case 'network': return /^(http|ftp|nfs)/i.exec(installNetwork)
       case 'PXE': return true
       case 'SSH': return sshKey
       default: return template && this._isDiskTemplate && !configDrive

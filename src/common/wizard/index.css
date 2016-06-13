@@ -1,4 +1,5 @@
 /* Wizard */
+@value done: #089944;
 
 .wizard {
   margin: 1em;
@@ -16,7 +17,7 @@
   flex: 0 0 15em;
 }
 .title.success {
-  color: #089944;
+  color: done;
 }
 
 .content {
@@ -26,13 +27,13 @@
   padding: 0.5em;
 }
 .content.success {
-  border-color: #089944;
+  border-color: done;
 }
 .content.active {
   box-shadow: 0 0 0 2px;
 }
 .content.success.active {
-  box-shadow: 0 0 0 2px #089944;
+  box-shadow: 0 0 0 2px done;
 }
 
 /* Bulleted list */
@@ -59,5 +60,5 @@
 }
 .bullet.success:after {
   content: '\f058';
-  color: #089944;
+  color: done;
 }
