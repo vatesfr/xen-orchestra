@@ -56,6 +56,7 @@ const getLabel = object =>
   placeholder: propTypes.any.isRequired,
   predicate: propTypes.func,
   required: propTypes.bool,
+  value: propTypes.any,
   xoContainers: propTypes.array,
   xoObjects: propTypes.oneOfType([
     propTypes.array,
@@ -66,7 +67,7 @@ export class GenericSelect extends Component {
   constructor (props) {
     super(props)
     this.state = {
-      value: this._setValue(props.defaultValue, props)
+      value: this._setValue(props.value || props.defaultValue, props)
     }
   }
 
@@ -109,7 +110,7 @@ export class GenericSelect extends Component {
 
   componentWillReceiveProps (newProps) {
     const { props } = this
-    const { xoContainers, xoObjects } = newProps
+    const { value, xoContainers, xoObjects } = newProps
 
     if (
       xoContainers !== props.xoContainers ||
@@ -126,6 +127,12 @@ export class GenericSelect extends Component {
         options,
         value: this._setValue(value, newProps),
         xoObjectsById
+      })
+    }
+
+    if (value !== props.value) {
+      this.setState({
+        value: this._setValue(value, newProps)
       })
     }
   }
