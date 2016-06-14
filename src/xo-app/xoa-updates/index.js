@@ -13,8 +13,11 @@ import { confirm } from 'modal'
 import { Container } from 'grid'
 import { connectStore } from 'utils'
 import { error } from 'notification'
+import { serverVersion } from 'xo'
 import { FormattedDate } from 'react-intl'
 import { Password } from 'form'
+
+import pkg from '../../../package'
 
 const HEADER = <Container>
   <h2><Icon icon='menu-update' /> {_('updatePage')}</h2>
@@ -120,6 +123,11 @@ export default class XoaUpdates extends BaseComponent {
     }
   }
 
+  componentWillMount () {
+    serverVersion.then(serverVersion => {
+      this.setState({ serverVersion })
+    })
+  }
   render () {
     const textClasses = {
       info: 'text-info',
@@ -155,6 +163,7 @@ export default class XoaUpdates extends BaseComponent {
           <p className='text-danger'>Manual update could break your current installation due to dependencies issues, do it with caution</p>
         </div>
         : <div>
+          <p>Current versions: {`xo-server ${this.state.serverVersion}`} / {`xo-web ${pkg.version}`}</p>
           <p>
             <strong>{states[state]}</strong>
             {' '}
