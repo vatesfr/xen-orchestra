@@ -26,8 +26,8 @@ export const Upgrade = propTypes({
 ))
 
 export const ModalUpgrade = propTypes({
-  available: propTypes.number,
-  place: propTypes.string
+  available: propTypes.number.isRequired,
+  place: propTypes.string.isRequired
 })(({
   available,
   place
@@ -36,9 +36,11 @@ export const ModalUpgrade = propTypes({
     <CardHeader>Upgrade needed</CardHeader>
     <CardBlock className='text-xs-center'>
       <p>This feature is available starting from {getXoaPlan(available)} Edition</p>
-      <a href={`https://xen-orchestra.com/#!/pricing?pk_campaign=xoa_${getXoaPlan()}_upgrade&pk_kwd=${place}`} className='btn btn-primary btn-lg'>
-        <Icon icon='plan-upgrade' /> Upgrade now!
-      </a> Or&nbsp;
+      <p>
+        <a href={`https://xen-orchestra.com/#!/pricing?pk_campaign=xoa_${getXoaPlan()}_upgrade&pk_kwd=${place}`} className='btn btn-primary btn-lg'>
+          <Icon icon='plan-upgrade' /> Upgrade now!
+        </a> Or&nbsp;
+      </p>
       <Link className='btn btn-success btn-lg' to={'/xoa-update'}>
         <Icon icon='plan-trial' /> Try it for free!
       </Link>
