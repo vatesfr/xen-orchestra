@@ -2,6 +2,7 @@ import ActionBar from 'action-bar'
 import React from 'react'
 import {
   cloneVm,
+  copyVm,
   exportVm,
   migrateVm,
   restartVm,
@@ -47,7 +48,7 @@ const vmActionBarByState = {
         {
           icon: 'vm-copy',
           label: 'copyVmLabel',
-          handler: NOT_IMPLEMENTED
+          handler: copyVm
         }
       ]}
       display='icon'
@@ -80,7 +81,7 @@ const vmActionBarByState = {
         {
           icon: 'vm-copy',
           label: 'copyVmLabel',
-          handler: NOT_IMPLEMENTED
+          handler: copyVm
         }
       ]}
       display='icon'
@@ -108,7 +109,7 @@ const vmActionBarByState = {
         {
           icon: 'vm-copy',
           label: 'copyVmLabel',
-          handler: NOT_IMPLEMENTED
+          handler: copyVm
         }
       ]}
       display='icon'
