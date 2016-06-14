@@ -1,21 +1,23 @@
+import * as ComplexMatcher from 'complex-matcher'
 import _ from 'messages'
-import * as complexMatcher from 'complex-matcher'
 import ActionButton from 'action-button'
 import ceil from 'lodash/ceil'
 import CenterPanel from 'center-panel'
+import Component from 'base-component'
 import debounce from 'lodash/debounce'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
+import isString from 'lodash/isString'
 import keys from 'lodash/keys'
 import map from 'lodash/map'
 import Page from '../page'
+import React from 'react'
 import SingleLineRow from 'single-line-row'
 import size from 'lodash/size'
 import Tags from 'tags'
 import Tooltip from 'tooltip'
-import React, { Component } from 'react'
 import { Card, CardHeader, CardBlock } from 'card'
 import {
   addTag,
@@ -204,66 +206,23 @@ class VmItem extends Component {
   }
 }
 
+const DEFAULT_FILTER = 'power_state:running'
 const VMS_PER_PAGE = 20
 
-@connectStore({
-  fetched: areObjectsFetched,
-  pools: createGetObjectsOfType('pool').sort(),
-  hosts: createGetObjectsOfType('host').sort(),
-  vms: createGetObjectsOfType('VM'),
-  tags: createGetTags()
+@connectStore(() => {
+  const vms = createGetObjectsOfType('VM')
+
+  return {
+    fetched: areObjectsFetched,
+    pools: createGetObjectsOfType('pool').sort(),
+    hosts: createGetObjectsOfType('host').sort(),
+    vms,
+    tags: createGetTags(vms).sort()
+  }
 })
 export default class Home extends Component {
   static contextTypes = {
     router: React.PropTypes.object
-  }
-
-  constructor (props) {
-    super(props)
-
-    this.state = {
-      activePage: 1,
-      displayActions: false,
-      expandAll: false,
-      sortBy: 'name_label',
-      sortOrder: 'asc'
-    }
-
-    this.getNumberOfVms = createCounter(
-      () => this.props.vms
-    )
-
-    this.getFilteredVms = createSort(
-      createFilter(
-        () => this.props.vms,
-        createSelector(
-          () => this.filter || '',
-          complexMatcher.create
-        )
-      ),
-      () => this.state.sortBy,
-      () => this.state.sortOrder
-    )
-
-    this.getCurrentPageVms = createPager(
-      this.getFilteredVms,
-      () => this.state.activePage,
-      VMS_PER_PAGE
-    )
-
-    this._isSelected = {}
-  }
-
-  get filter () {
-    return this.props.location.query.s
-  }
-  set filter (value) {
-    this.context.router.push({
-      ...this.props.location,
-      query: { s: value }
-    })
-    this.page = 1
-    this._selectAllVms(false)
   }
 
   get page () {
@@ -274,30 +233,102 @@ export default class Home extends Component {
   }
 
   componentWillMount () {
-    if (this.filter == null) {
-      this.filter = 'power_state:running '
+    const filter = this._getFilter()
+    if (filter) {
+      this._initFilter(filter)
+    } else {
+      this._setFilter(DEFAULT_FILTER)
     }
   }
 
-  // Filter
-  _onFilterChange = invoke(
-    debounce(filter => { this.filter = filter }, 500),
-    setFilter => event => setFilter(event.target.value)
-  )
-  setFilter (filter) {
-    this.refs.filter.value = filter
-    this.refs.filter.focus()
-    this.filter = filter
+  componentWillReceiveProps (props) {
+    const filter = this._getFilter(props)
+
+    const previousFilter = this._getFilter()
+    if (filter !== previousFilter) {
+      this._initFilter(filter)
+    }
   }
+
+  _getNumberOfVms = createCounter(() => this.props.vms)
+
+  _initFilter (filter) {
+    const parsed = ComplexMatcher.parse(filter)
+    const properties = parsed::ComplexMatcher.getPropertyClausesStrings()
+
+    this.setState({
+      selectedHosts: properties.$container,
+      selectedPools: properties.$pool,
+      selectedTags: properties.tags
+    })
+
+    const { filterInput } = this.refs
+    if (filterInput && filterInput.value !== filter) {
+      filterInput.value = `${filter} ` // Add a trailing space.
+      filterInput.focus()
+    }
+  }
+
+  // Optionally can take the props to be able to use it in
+  // componentWillReceiveProps().
+  _getFilter (props = this.props) {
+    return props.location.query.s
+  }
+
+  _getParsedFilter = createSelector(
+    props => this._getFilter(),
+    filter => ComplexMatcher.parse(filter)
+  )
+
+  _getFilterFunction = createSelector(
+    this._getParsedFilter,
+    filter => filter && (value => filter::ComplexMatcher.execute(value))
+  )
+
+  // Optionally can take the props to be able to use it in
+  // componentWillReceiveProps().
+  _setFilter (filter, props = this.props) {
+    if (!isString(filter)) {
+      filter = filter::ComplexMatcher.toString()
+    }
+
+    const { pathname, query } = props.location
+    this.context.router.push({
+      pathname,
+      query: { ...query, s: filter }
+    })
+  }
+
+  _onFilterChange = invoke(() => {
+    const setFilter = debounce(filter => {
+      this._setFilter(filter)
+    }, 500)
+
+    return event => setFilter(event.target.value)
+  })
+
+  _getFilteredVms = createSort(
+    createFilter(
+      () => this.props.vms,
+      this._getFilterFunction
+    ),
+    () => this.state.sortBy || 'name_label',
+    () => this.state.sortOrder
+  )
+
+  _getCurrentPageVms = createPager(
+    this._getFilteredVms,
+    () => this.state.activePage || 1
+  )
 
   _expandAll = () => this.setState({ expandAll: !this.state.expandAll })
 
-  _filterBusy = () => this.setFilter('current_operations:"" ')
-  _filterHalted = () => this.setFilter('!power_state:running ')
-  _filterHvm = () => this.setFilter('virtualizationMode:hvm ')
-  _filterNone = () => this.setFilter('')
-  _filterRunning = () => this.setFilter('power_state:running ')
-  _filterTags = () => this.setFilter('tags:')
+  _filterBusy = () => this._setFilter('current_operations:"" ')
+  _filterHalted = () => this._setFilter('!power_state:running ')
+  _filterHvm = () => this._setFilter('virtualizationMode:hvm ')
+  _filterNone = () => this._setFilter('')
+  _filterRunning = () => this._setFilter('power_state:running ')
+  _filterTags = () => this._setFilter('tags:')
 
   _onPageSelection = (_, event) => { this.page = event.eventKey }
 
@@ -308,37 +339,75 @@ export default class Home extends Component {
 
   _tick = isCriteria => <Icon icon={isCriteria ? 'success' : undefined} fixedWidth />
 
-  _updateSelectedPools = pools => { this.setState({ selectedPools: pools }) }
-  _updateSelectedHosts = hosts => { this.setState({ selectedHosts: hosts }) }
-  _updateSelectedTags = tags => { this.setState({ selectedTags: tags }) }
+  _updateSelectedPools = pools => {
+    const filter = this._getParsedFilter()
+
+    this._setFilter(pools.length
+      ? filter::ComplexMatcher.setPropertyClause(
+        '$pool',
+        ComplexMatcher.createOr(map(pools, pool =>
+          ComplexMatcher.createString(pool.id)
+        ))
+      )
+      : filter::ComplexMatcher.removePropertyClause('$pool')
+    )
+  }
+  _updateSelectedHosts = hosts => {
+    const filter = this._getParsedFilter()
+
+    this._setFilter(hosts.length
+      ? filter::ComplexMatcher.setPropertyClause(
+        '$container',
+        ComplexMatcher.createOr(map(hosts, host =>
+          ComplexMatcher.createString(host.id)
+        ))
+      )
+      : filter::ComplexMatcher.removePropertyClause('$container')
+    )
+  }
+  _updateSelectedTags = tags => {
+    const filter = this._getParsedFilter()
+
+    this._setFilter(tags.length
+      ? filter::ComplexMatcher.setPropertyClause(
+        'tags',
+        ComplexMatcher.createOr(map(tags, tag =>
+          ComplexMatcher.createString(tag.id)
+        ))
+      )
+      : filter::ComplexMatcher.removePropertyClause('tags')
+    )
+  }
 
   // Checkboxes
+  _selectedVms = {}
   _updateMasterCheckbox () {
     const masterCheckbox = this.refs.masterCheckbox
     if (!masterCheckbox) {
       return
     }
-    const noneChecked = isEmpty(this._isSelected)
+    const noneChecked = isEmpty(this._selectedVms)
     masterCheckbox.checked = !noneChecked
-    masterCheckbox.indeterminate = !noneChecked && size(this._isSelected) !== this.getFilteredVms().length
+    masterCheckbox.indeterminate = !noneChecked && size(this._selectedVms) !== this.getFilteredVms().length
     this.setState({ displayActions: !noneChecked })
   }
   _selectVm = (id, checked) => {
-    const shouldBeChecked = checked === undefined ? !this._isSelected[id] : checked
-    shouldBeChecked ? this._isSelected[id] = true : delete this._isSelected[id]
+    const shouldBeChecked = checked === undefined ? !this._selectedVms[id] : checked
+    shouldBeChecked ? this._selectedVms[id] = true : delete this._selectedVms[id]
     this.forceUpdate()
     this._updateMasterCheckbox()
   }
   _selectAllVms = (checked) => {
-    const shouldBeChecked = checked === undefined ? !size(this._isSelected) : checked
-    this._isSelected = {}
+    const shouldBeChecked = checked === undefined ? !size(this._selectedVms) : checked
+    this._selectedVms = {}
     forEach(this.getFilteredVms(), vm => {
-      shouldBeChecked && (this._isSelected[vm.id] = true)
+      shouldBeChecked && (this._selectedVms[vm.id] = true)
     })
     this.forceUpdate()
     this._updateMasterCheckbox()
   }
-  header () {
+
+  _renderHeader () {
     return <Container>
       <Row className={styles.itemRowHeader}>
         <Col mediumSize={6}>
@@ -365,9 +434,9 @@ export default class Home extends Component {
             <input
               autoFocus
               className='form-control'
-              defaultValue={this.filter}
+              defaultValue={this._getFilter()}
               onChange={this._onFilterChange}
-              ref='filter'
+              ref='filterInput'
               type='text'
             />
             <div className='input-group-btn'>
@@ -389,12 +458,14 @@ export default class Home extends Component {
       </Row>
     </Container>
   }
+
   render () {
     if (!this.props.fetched) {
       return <CenterPanel>
         <h2><img src='assets/loading.svg' /></h2>
       </CenterPanel>
     }
+
     if (!this.props.hosts.length) {
       return <CenterPanel>
         <Card shadow>
@@ -425,7 +496,8 @@ export default class Home extends Component {
         </Card>
       </CenterPanel>
     }
-    const nVms = this.getNumberOfVms()
+
+    const nVms = this._getNumberOfVms()
     if (!nVms) {
       return <CenterPanel>
         <Card shadow>
@@ -462,12 +534,13 @@ export default class Home extends Component {
       </CenterPanel>
     }
 
-    const selectedVmsIds = keys(this._isSelected)
+    const selectedVmsIds = keys(this._selectedVms)
     const { pools, hosts, tags } = this.props
     const { activePage, sortBy } = this.state
-    const filteredVms = this.getFilteredVms()
-    const currentPageVms = this.getCurrentPageVms()
-    return <Page header={this.header()}>
+    const filteredVms = this._getFilteredVms()
+    const currentPageVms = this._getCurrentPageVms()
+
+    return <Page header={this._renderHeader()}>
       <div>
         <div className={styles.itemContainer}>
           <SingleLineRow className={styles.itemContainerHeader}>
@@ -475,8 +548,8 @@ export default class Home extends Component {
               <input type='checkbox' onChange={() => this._selectAllVms()} ref='masterCheckbox' />
               {' '}
               <span className='text-muted'>
-                {size(this._isSelected)
-                  ? _('homeSelectedVms', { selected: size(this._isSelected), total: nVms, vmIcon: <Icon icon='vm' /> })
+                {size(this._selectedVms)
+                  ? _('homeSelectedVms', { selected: size(this._selectedVms), total: nVms, vmIcon: <Icon icon='vm' /> })
                   : _('homeDisplayedVms', { displayed: filteredVms.length, total: nVms, vmIcon: <Icon icon='vm' /> })
                 }
               </span>
@@ -504,7 +577,7 @@ export default class Home extends Component {
                 </DropdownButton>
               </div>
               : <div>
-                {pools.length && (
+                {!!pools.length && (
                   <OverlayTrigger
                     trigger='click'
                     rootClose
@@ -515,7 +588,7 @@ export default class Home extends Component {
                           autoFocus
                           multi
                           onChange={this._updateSelectedPools}
-                          defaultValue={this.state.selectedPools}
+                          value={this.state.selectedPools}
                         />
                       </Popover>
                     }
@@ -524,7 +597,7 @@ export default class Home extends Component {
                   </OverlayTrigger>
                 )}
                 {' '}
-                {hosts.length && (
+                {!!hosts.length && (
                   <OverlayTrigger
                     trigger='click'
                     rootClose
@@ -535,7 +608,7 @@ export default class Home extends Component {
                           autoFocus
                           multi
                           onChange={this._updateSelectedHosts}
-                          defaultValue={this.state.selectedHosts}
+                          value={this.state.selectedHosts}
                         />
                       </Popover>
                     }
@@ -544,7 +617,7 @@ export default class Home extends Component {
                   </OverlayTrigger>
                 )}
                 {' '}
-                {tags.length && (
+                {!!tags.length && (
                   <OverlayTrigger
                     autoFocus
                     trigger='click'
@@ -553,9 +626,10 @@ export default class Home extends Component {
                     overlay={
                       <Popover className={styles.selectObject} id='tagPopover'>
                         <SelectTag
+                          autoFocus
                           multi
                           onChange={this._updateSelectedTags}
-                          defaultValue={this.state.selectedTags}
+                          value={this.state.selectedTags}
                         />
                       </Popover>
                     }
@@ -601,7 +675,7 @@ export default class Home extends Component {
             </Col>
           </SingleLineRow>
           {map(currentPageVms, vm =>
-            <VmItem vm={vm} key={vm.id} expandAll={this.state.expandAll} onSelect={this._selectVm} selected={this._isSelected[vm.id]} />
+            <VmItem vm={vm} key={vm.id} expandAll={this.state.expandAll} onSelect={this._selectVm} selected={this._selectedVms[vm.id]} />
           )}
         </div>
         {filteredVms.length > VMS_PER_PAGE && <Row>
