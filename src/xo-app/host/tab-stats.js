@@ -2,6 +2,7 @@ import _ from 'messages'
 import Component from 'base-component'
 import Icon from 'icon'
 import React from 'react'
+import Upgrade from 'xoa-upgrade'
 import { autobind } from 'utils'
 import { fetchHostStats } from 'xo'
 import { Container, Row, Col } from 'grid'
@@ -83,44 +84,46 @@ export default class HostStats extends Component {
 
     return !stats
       ? <p>No stats.</p>
-      : <Container>
-        <Row>
-          <Col mediumSize={6} className='text-xs-right'>
-            {selectStatsLoading && <Icon icon='loading' size={2} />}
-          </Col>
-          <Col mediumSize={6}>
-            <div className='btn-tab'>
-              <select className='form-control' onChange={this.handleSelectStats} defaultValue={granularity} >
-                {_('statLastTenMinutes', message => <option value='seconds'>{message}</option>)}
-                {_('statLastTwoHours', message => <option value='minutes'>{message}</option>)}
-                {_('statLastWeek', message => <option value='hours'>{message}</option>)}
-                {_('statLastYear', message => <option value='days'>{message}</option>)}
-              </select>
-            </div>
-          </Col>
-        </Row>
-        <Row>
-          <Col mediumSize={6}>
-            <h5 className='text-xs-center'><Icon icon='cpu' size={1} /> {_('statsCpu')}</h5>
-            <CpuLineChart data={stats} />
-          </Col>
-          <Col mediumSize={6}>
-            <h5 className='text-xs-center'><Icon icon='memory' size={1} /> {_('statsMemory')}</h5>
-            <MemoryLineChart data={stats} />
-          </Col>
-        </Row>
-        <br />
-        <hr />
-        <Row>
-          <Col mediumSize={6}>
-            <h5 className='text-xs-center'><Icon icon='network' size={1} /> {_('statsNetwork')}</h5>
-            <PifLineChart data={stats} />
-          </Col>
-          <Col mediumSize={6}>
-            <h5 className='text-xs-center'><Icon icon='disk' size={1} /> {_('statLoad')}</h5>
-            <LoadLineChart data={stats} />
-          </Col>
-        </Row>
-      </Container>
+      : process.env.XOA_PLAN > 2
+        ? <Container>
+          <Row>
+            <Col mediumSize={6} className='text-xs-right'>
+              {selectStatsLoading && <Icon icon='loading' size={2} />}
+            </Col>
+            <Col mediumSize={6}>
+              <div className='btn-tab'>
+                <select className='form-control' onChange={this.handleSelectStats} defaultValue={granularity} >
+                  {_('statLastTenMinutes', message => <option value='seconds'>{message}</option>)}
+                  {_('statLastTwoHours', message => <option value='minutes'>{message}</option>)}
+                  {_('statLastWeek', message => <option value='hours'>{message}</option>)}
+                  {_('statLastYear', message => <option value='days'>{message}</option>)}
+                </select>
+              </div>
+            </Col>
+          </Row>
+          <Row>
+            <Col mediumSize={6}>
+              <h5 className='text-xs-center'><Icon icon='cpu' size={1} /> {_('statsCpu')}</h5>
+              <CpuLineChart data={stats} />
+            </Col>
+            <Col mediumSize={6}>
+              <h5 className='text-xs-center'><Icon icon='memory' size={1} /> {_('statsMemory')}</h5>
+              <MemoryLineChart data={stats} />
+            </Col>
+          </Row>
+          <br />
+          <hr />
+          <Row>
+            <Col mediumSize={6}>
+              <h5 className='text-xs-center'><Icon icon='network' size={1} /> {_('statsNetwork')}</h5>
+              <PifLineChart data={stats} />
+            </Col>
+            <Col mediumSize={6}>
+              <h5 className='text-xs-center'><Icon icon='disk' size={1} /> {_('statLoad')}</h5>
+              <LoadLineChart data={stats} />
+            </Col>
+          </Row>
+        </Container>
+        : <Container><Upgrade place='hostStats' available={3} /></Container>
   }
 }

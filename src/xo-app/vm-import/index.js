@@ -7,6 +7,7 @@ import React from 'react'
 import _ from 'messages'
 import filter from 'lodash/filter'
 import map from 'lodash/map'
+import Upgrade from 'xoa-upgrade'
 import { Container, Col, Row } from 'grid'
 import { importVms } from 'xo'
 import {
@@ -62,8 +63,9 @@ export default class Import extends Component {
   render () {
     const { files, srPredicate } = this.state
 
-    return (
-      <Page header={HEADER}>
+    return <Page header={HEADER}>
+      {process.env.XOA_PLAN > 2
+      ? <Container>
         <form id='import-form'>
           <FormGrid.Row>
             <FormGrid.LabelCol>{_('vmImportToPool')}</FormGrid.LabelCol>
@@ -129,7 +131,9 @@ export default class Import extends Component {
             </div>
           </div>
         </form>
-      </Page>
-    )
+      </Container>
+      : <Container><Upgrade place='vmImport' available={3} /></Container>
+    }
+    </Page>
   }
 }

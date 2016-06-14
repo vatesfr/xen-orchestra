@@ -3,10 +3,12 @@ import Component from 'base-component'
 import GenericInput from 'json-schema-input'
 import Icon from 'icon'
 import React from 'react'
+import Upgrade from 'xoa-upgrade'
 import Scheduler, { SchedulePreview } from 'scheduling'
 import Wizard, { Section } from 'wizard'
 import _, { messages } from 'messages'
 import map from 'lodash/map'
+import { Container } from 'grid'
 import { injectIntl } from 'react-intl'
 
 import {
@@ -268,7 +270,8 @@ export default class New extends Component {
     const { backupInfo } = this.state
     const { formatMessage } = this.props.intl
 
-    return (
+    return process.env.XOA_PLAN > 1
+      ? (
       <Wizard>
         <Section icon='backup' title={this.props.job ? 'editVmBackup' : 'newVmBackup'}>
           <fieldset className='form-group'>
@@ -323,6 +326,7 @@ export default class New extends Component {
           </div>
         </Section>
       </Wizard>
-    )
+      )
+      : <Container><Upgrade place='newBackup' available={2} /></Container>
   }
 }

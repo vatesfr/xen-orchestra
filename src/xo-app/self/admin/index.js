@@ -10,7 +10,8 @@ import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
 import reduce from 'lodash/reduce'
 import renderXoItem from 'render-xo-item'
-import { Col, Row } from 'grid'
+import Upgrade from 'xoa-upgrade'
+import { Container, Col, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
 import { injectIntl } from 'react-intl'
 import { SizeInput } from 'form'
@@ -483,8 +484,8 @@ export default class Administration extends Component {
   render () {
     const { state } = this
 
-    return (
-      <div>
+    return process.env.XOA_PLAN > 3
+      ? <Container>
         <Edit resourceSet={state.editingResourceSet} onReset={this._resetEditedResourceSet} />
         <Card>
           <CardHeader>
@@ -533,7 +534,7 @@ export default class Administration extends Component {
             ))}
           </CardBlock>
         </Card>
-      </div>
-    )
+      </Container>
+      : <Container><Upgrade place='selfAdmin' available={4} /></Container>
   }
 }

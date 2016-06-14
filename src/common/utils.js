@@ -273,9 +273,9 @@ export const firstDefined = function () {
 }
 // -------------------------------------------------------------------
 
-// Returns the current XOA Plan
-export const getXoaPlan = () => {
-  switch (+process.env.XOA_PLAN) {
+// Returns the current XOA Plan or the Plan name if number given
+export const getXoaPlan = plan => {
+  switch (plan || +process.env.XOA_PLAN) {
     case 1:
       return 'Free'
     case 2:

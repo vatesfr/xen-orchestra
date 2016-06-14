@@ -2,11 +2,12 @@ import BaseComponent from 'base-component'
 import ChartistGraph from 'react-chartist'
 import Collapse from 'collapse'
 import Icon from 'icon'
+import Upgrade from 'xoa-upgrade'
 import React, { Component } from 'react'
 import _ from 'messages'
 import map from 'lodash/map'
 import renderXoItem from 'render-xo-item'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import { formatSize } from 'utils'
 import { subscribeResourceSets } from 'xo'
 
@@ -155,14 +156,14 @@ export default class Dashboard extends Component {
   }
 
   render () {
-    return (
-      <div>
+    return process.env.XOA_PLAN > 3
+      ? <Container>
         <Card>
           <CardBlock>
             {map(this.state.resourceSets, (resourceSet, key) => <ResourceSet key={key} resourceSet={resourceSet} />)}
           </CardBlock>
         </Card>
-      </div>
-    )
+      </Container>
+      : <Container><Upgrade place='selfDashboard' available={4} /></Container>
   }
 }

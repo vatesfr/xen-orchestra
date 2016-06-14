@@ -3,6 +3,7 @@ import ActionRowButton from 'action-row-button'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import TabButton from 'tab-button'
+import Upgrade from 'xoa-upgrade'
 import React, { Component } from 'react'
 import { Container, Row, Col } from 'grid'
 import { formatSize } from 'utils'
@@ -11,8 +12,8 @@ import { FormattedRelative, FormattedTime } from 'react-intl'
 export default class HostPatches extends Component {
   render () {
     const { poolPatches, missingPatches, installAllPatches, installPatch } = this.props
-    return (
-      <Container>
+    return process.env.XOA_PLAN > 2
+      ? <Container>
         <Row>
           <Col>
             {isEmpty(missingPatches)
@@ -108,6 +109,6 @@ export default class HostPatches extends Component {
           </Col>
         </Row>
       </Container>
-    )
+      : <Container><Upgrade place='hostPatches' available={2} /></Container>
   }
 }

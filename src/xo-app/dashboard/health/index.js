@@ -5,6 +5,7 @@ import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
+import Upgrade from 'xoa-upgrade'
 import React, { Component } from 'react'
 import { confirm } from 'modal'
 import { deleteMessage, deleteVdi, deleteVm } from 'xo'
@@ -225,108 +226,110 @@ export default class Health extends Component {
   )
 
   render () {
-    return <Container>
-      <Row>
-        <Col>
-          <div className='card-dashboard'>
-            <div className='card-header-dashboard'>
-              <Icon icon='disk' /> {_('srStatePanel')}
-            </div>
-            <div className='card-block'>
-              {isEmpty(this.props.userSrs)
-                ? <Row>
-                  <Col smallSize={6} className='text-xs-center'>
-                    <br />
-                    <h4>{_('noSrs')}</h4>
-                  </Col>
-                </Row>
-                : <Row>
-                  <Col>
-                    <SortedTable collection={this.props.userSrs} columns={SR_COLUMNS} defaultColumn={4} />
-                  </Col>
-                </Row>
-              }
-            </div>
-          </div>
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-          <div className='card-dashboard'>
-            <div className='card-header-dashboard'>
-              <Icon icon='disk' /> {_('orphanedVdis')}
-            </div>
-            <div className='card-block'>
-              {isEmpty(this.props.vdiOrphaned)
-                ? <p className='text-xs-center'>{_('noOrphanedObject')}</p>
-                : <div>
-                  <Row>
-                    <Col className='text-xs-right'>
-                      <TabButton
-                        btnStyle='danger'
-                        handler={this._deleteOrphanedVdis}
-                        icon='delete'
-                        labelId='removeAllOrphanedObject'
-                      />
+    return process.env.XOA_PLAN > 3
+      ? <Container>
+        <Row>
+          <Col>
+            <div className='card-dashboard'>
+              <div className='card-header-dashboard'>
+                <Icon icon='disk' /> {_('srStatePanel')}
+              </div>
+              <div className='card-block'>
+                {isEmpty(this.props.userSrs)
+                  ? <Row>
+                    <Col smallSize={6} className='text-xs-center'>
+                      <br />
+                      <h4>{_('noSrs')}</h4>
                     </Col>
                   </Row>
-                  <Row>
+                  : <Row>
                     <Col>
-                      <SortedTable collection={this.props.vdiOrphaned} columns={VDI_COLUMNS} />
+                      <SortedTable collection={this.props.userSrs} columns={SR_COLUMNS} defaultColumn={4} />
                     </Col>
                   </Row>
-                </div>
-              }
+                }
+              </div>
             </div>
-          </div>
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-          <div className='card-dashboard'>
-            <div className='card-header-dashboard'>
-              <Icon icon='vm' /> {_('orphanedVms')}
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <div className='card-dashboard'>
+              <div className='card-header-dashboard'>
+                <Icon icon='disk' /> {_('orphanedVdis')}
+              </div>
+              <div className='card-block'>
+                {isEmpty(this.props.vdiOrphaned)
+                  ? <p className='text-xs-center'>{_('noOrphanedObject')}</p>
+                  : <div>
+                    <Row>
+                      <Col className='text-xs-right'>
+                        <TabButton
+                          btnStyle='danger'
+                          handler={this._deleteOrphanedVdis}
+                          icon='delete'
+                          labelId='removeAllOrphanedObject'
+                        />
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col>
+                        <SortedTable collection={this.props.vdiOrphaned} columns={VDI_COLUMNS} />
+                      </Col>
+                    </Row>
+                  </div>
+                }
+              </div>
             </div>
-            <div className='card-block'>
-              {isEmpty(this.props.vmOrphaned)
-                ? <p className='text-xs-center'>{_('noOrphanedObject')}</p>
-                : <SortedTable collection={this.props.vmOrphaned} columns={VM_COLUMNS} />
-              }
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <div className='card-dashboard'>
+              <div className='card-header-dashboard'>
+                <Icon icon='vm' /> {_('orphanedVms')}
+              </div>
+              <div className='card-block'>
+                {isEmpty(this.props.vmOrphaned)
+                  ? <p className='text-xs-center'>{_('noOrphanedObject')}</p>
+                  : <SortedTable collection={this.props.vmOrphaned} columns={VM_COLUMNS} />
+                }
+              </div>
             </div>
-          </div>
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-          <div className='card-dashboard'>
-            <div className='card-header-dashboard'>
-              <Icon icon='alarm' /> {_('alarmMessage')}
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <div className='card-dashboard'>
+              <div className='card-header-dashboard'>
+                <Icon icon='alarm' /> {_('alarmMessage')}
+              </div>
+              <div className='card-block'>
+                {isEmpty(this.props.alertMessages)
+                  ? <p className='text-xs-center'>{_('noAlarms')}</p>
+                  : <div>
+                    <Row>
+                      <Col className='text-xs-right'>
+                        <TabButton
+                          btnStyle='danger'
+                          handler={this._deleteAllLogs}
+                          icon='delete'
+                          labelId='logRemoveAll'
+                        />
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col>
+                        <SortedTable collection={this.props.alertMessages} columns={ALARM_COLUMNS} />
+                      </Col>
+                    </Row>
+                  </div>
+                }
+              </div>
             </div>
-            <div className='card-block'>
-              {isEmpty(this.props.alertMessages)
-                ? <p className='text-xs-center'>{_('noAlarms')}</p>
-                : <div>
-                  <Row>
-                    <Col className='text-xs-right'>
-                      <TabButton
-                        btnStyle='danger'
-                        handler={this._deleteAllLogs}
-                        icon='delete'
-                        labelId='logRemoveAll'
-                      />
-                    </Col>
-                  </Row>
-                  <Row>
-                    <Col>
-                      <SortedTable collection={this.props.alertMessages} columns={ALARM_COLUMNS} />
-                    </Col>
-                  </Row>
-                </div>
-              }
-            </div>
-          </div>
-        </Col>
-      </Row>
-    </Container>
+          </Col>
+        </Row>
+      </Container>
+      : <Container><Upgrade place='health' available={4} /></Container>
   }
 }

@@ -4,8 +4,10 @@ import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
 import orderBy from 'lodash/orderBy'
+import Upgrade from 'xoa-upgrade'
 import React, { Component } from 'react'
 import { addSubscriptions } from 'utils'
+import { Container } from 'grid'
 import { error } from 'notification'
 import { renderXoItemFromId } from 'render-xo-item'
 import { SelectHighLevelObjects, SelectRole, SelectSubject } from 'select-objects'
@@ -73,45 +75,47 @@ export default class Acls extends Component {
       subjects
     } = this.state
 
-    return <div>
-      <form>
-        <div className='form-group'>
-          <SelectSubject multi onChange={this._handleSelectSubject} />
-        </div>
-        <div className='form-group'>
-          <SelectHighLevelObjects multi onChange={this._handleSelectObjects} />
-        </div>
-        <div className='form-group'>
-          <SelectRole onChange={this._handleSelectRole} />
-        </div>
-        <ActionButton icon='add' btnStyle='success' handler={this._addAcl} disabled={isEmpty(subjects) || !role || isEmpty(objects)}>Create</ActionButton>
-      </form>
-      <br />
-      <table className='table'>
-        <thead>
-          <tr>
-            <th>User/Group</th>
-            <th>Object</th>
-            <th>Role</th>
-            <th></th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {isEmpty(acls) &&
-            <tr><td><em>No Acls found</em></td></tr>
-          }
-          {map(acls, (acl, index) =>
-            <tr key={index}>
-              <td><SubjectDisplay id={acl.subject} /></td>
-              <td>{renderXoItemFromId(acl.object)}</td>
-              <td>{acl.action}</td>
-              <td><SelectRole onChange={role => this._handleRoleChange(role, acl.subject, acl.object, acl.action)} placeholder='Change Role' /></td>
-              <td><ActionButton icon='delete' btnStyle='danger' handler={this._removeAcl} handlerParam={{subject: acl.subject, object: acl.object, action: acl.action}} /></td>
+    return process.env.XOA_PLAN > 3
+      ? <Container>
+        <form>
+          <div className='form-group'>
+            <SelectSubject multi onChange={this._handleSelectSubject} />
+          </div>
+          <div className='form-group'>
+            <SelectHighLevelObjects multi onChange={this._handleSelectObjects} />
+          </div>
+          <div className='form-group'>
+            <SelectRole onChange={this._handleSelectRole} />
+          </div>
+          <ActionButton icon='add' btnStyle='success' handler={this._addAcl} disabled={isEmpty(subjects) || !role || isEmpty(objects)}>Create</ActionButton>
+        </form>
+        <br />
+        <table className='table'>
+          <thead>
+            <tr>
+              <th>User/Group</th>
+              <th>Object</th>
+              <th>Role</th>
+              <th></th>
+              <th></th>
             </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {isEmpty(acls) &&
+              <tr><td><em>No Acls found</em></td></tr>
+            }
+            {map(acls, (acl, index) =>
+              <tr key={index}>
+                <td><SubjectDisplay id={acl.subject} /></td>
+                <td>{renderXoItemFromId(acl.object)}</td>
+                <td>{acl.action}</td>
+                <td><SelectRole onChange={role => this._handleRoleChange(role, acl.subject, acl.object, acl.action)} placeholder='Change Role' /></td>
+                <td><ActionButton icon='delete' btnStyle='danger' handler={this._removeAcl} handlerParam={{subject: acl.subject, object: acl.object, action: acl.action}} /></td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </Container>
+    : <Container><Upgrade place='dashboard' available={3} /></Container>
   }
 }

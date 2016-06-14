@@ -5,6 +5,7 @@ import Link from 'react-router/lib/Link'
 import map from 'lodash/map'
 import moment from 'moment'
 import orderBy from 'lodash/orderBy'
+import Upgrade from 'xoa-upgrade'
 import React, { Component } from 'react'
 import renderXoItem, { renderXoItemFromId } from 'render-xo-item'
 import size from 'lodash/size'
@@ -138,8 +139,8 @@ export default class Restore extends Component {
       writableSrs
     } = this.props
 
-    return (
-      <Container>
+    return process.env.XOA_PLAN > 1
+      ? <Container>
         <h2>Restore Backups</h2>
         {!remotes.length && <span>No remotes</span>}
         {map(remotes, (r, key) =>
@@ -205,6 +206,6 @@ export default class Restore extends Component {
           </div>
         )}
       </Container>
-      )
+      : <Container><Upgrade place='restoreBackup' available={2} /></Container>
   }
 }

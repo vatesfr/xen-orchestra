@@ -2,6 +2,7 @@ import _, { messages } from 'messages'
 import Component from 'base-component'
 import Icon from 'icon'
 import React from 'react'
+import Upgrade from 'xoa-upgrade'
 import { autobind } from 'utils'
 import { fetchVmStats } from 'xo'
 import { injectIntl } from 'react-intl'
@@ -88,45 +89,49 @@ export default injectIntl(
 
       return !stats
         ? <p>No stats.</p>
-        : <Container>
-          <Row>
-            <Col mediumSize={6} className='text-xs-right'>
-              {selectStatsLoading && <Icon icon='loading' size={2} />}
-            </Col>
-            <Col mediumSize={6}>
-              <div className='btn-tab'>
-                <select className='form-control' onChange={this.handleSelectStats} defaultValue={granularity} >
-                  <option value='seconds'>{intl.formatMessage(messages.statLastTenMinutes)}</option>
-                  <option value='minutes'>{intl.formatMessage(messages.statLastTwoHours)}</option>
-                  <option value='hours'>{intl.formatMessage(messages.statLastWeek)}</option>
-                  <option value='days'>{intl.formatMessage(messages.statLastYear)}</option>
-                </select>
-              </div>
-            </Col>
-          </Row>
-          <Row>
-            <Col mediumSize={6}>
-              <h5 className='text-xs-center'><Icon icon='cpu' size={1} /> {_('statsCpu')}</h5>
-              <CpuLineChart data={stats} />
-            </Col>
-            <Col mediumSize={6}>
-              <h5 className='text-xs-center'><Icon icon='memory' size={1} /> {_('statsMemory')}</h5>
-              <MemoryLineChart data={stats} />
-            </Col>
-          </Row>
-          <br />
-          <hr />
-          <Row>
-            <Col mediumSize={6}>
-              <h5 className='text-xs-center'><Icon icon='network' size={1} /> {_('statsNetwork')}</h5>
-              <VifLineChart data={stats} />
-            </Col>
-            <Col mediumSize={6}>
-              <h5 className='text-xs-center'><Icon icon='disk' size={1} /> {_('statDisk')}</h5>
-              <XvdLineChart data={stats} />
-            </Col>
-          </Row>
-        </Container>
+        : process.env.XOA_PLAN > 2
+          ? <Container>
+            <Row>
+              <Col mediumSize={6} className='text-xs-right'>
+                {selectStatsLoading && <Icon icon='loading' size={2} />}
+              </Col>
+              <Col mediumSize={6}>
+                <div className='btn-tab'>
+                  <select className='form-control' onChange={this.handleSelectStats} defaultValue={granularity} >
+                    <option value='seconds'>{intl.formatMessage(messages.statLastTenMinutes)}</option>
+                    <option value='minutes'>{intl.formatMessage(messages.statLastTwoHours)}</option>
+                    <option value='hours'>{intl.formatMessage(messages.statLastWeek)}</option>
+                    <option value='days'>{intl.formatMessage(messages.statLastYear)}</option>
+                  </select>
+                </div>
+              </Col>
+            </Row>
+            <Row>
+              <Col mediumSize={6}>
+                <h5 className='text-xs-center'><Icon icon='cpu' size={1} /> {_('statsCpu')}</h5>
+                <CpuLineChart data={stats} />
+              </Col>
+              <Col mediumSize={6}>
+                <h5 className='text-xs-center'><Icon icon='memory' size={1} /> {_('statsMemory')}</h5>
+                <MemoryLineChart data={stats} />
+              </Col>
+            </Row>
+            <br />
+            <hr />
+            <Row>
+              <Col mediumSize={6}>
+                <h5 className='text-xs-center'><Icon icon='network' size={1} /> {_('statsNetwork')}</h5>
+                <VifLineChart data={stats} />
+              </Col>
+              <Col mediumSize={6}>
+                <h5 className='text-xs-center'><Icon icon='disk' size={1} /> {_('statDisk')}</h5>
+                <XvdLineChart data={stats} />
+              </Col>
+            </Row>
+          </Container>
+          : <Container>
+            <Upgrade place='vmStats' available={3} />
+          </Container>
     }
   }
 )
