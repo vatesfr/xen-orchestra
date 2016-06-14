@@ -9,7 +9,7 @@ import renderXoItem from 'render-xo-item'
 import { Container, Row, Col } from 'grid'
 import { formatSize } from 'utils'
 import { subscribeResourceSets } from 'xo'
-import { Upgrade } from 'xoa-upgrade'
+import Upgrade from 'xoa-upgrade'
 
 import {
   Card,

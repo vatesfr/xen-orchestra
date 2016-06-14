@@ -14,7 +14,7 @@ import { Container, Col, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
 import { injectIntl } from 'react-intl'
 import { SizeInput } from 'form'
-import { Upgrade } from 'xoa-upgrade'
+import Upgrade from 'xoa-upgrade'
 
 import {
   Card,

@@ -4,7 +4,7 @@ import React from 'react'
 import { Card, CardHeader, CardBlock } from 'card'
 import { getXoaPlan, propTypes } from 'utils'
 
-export const Upgrade = propTypes({
+const Upgrade = propTypes({
   available: propTypes.number.isRequired,
   place: propTypes.string.isRequired
 })(({
@@ -26,3 +26,5 @@ export const Upgrade = propTypes({
     </CardBlock>
   </Card>
 ))
+
+export { Upgrade as default }

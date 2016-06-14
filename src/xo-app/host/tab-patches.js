@@ -7,7 +7,7 @@ import React, { Component } from 'react'
 import { Container, Row, Col } from 'grid'
 import { formatSize } from 'utils'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { Upgrade } from 'xoa-upgrade'
+import Upgrade from 'xoa-upgrade'
 
 export default class HostPatches extends Component {
   render () {

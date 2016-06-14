@@ -5,7 +5,7 @@ import React from 'react'
 import { autobind } from 'utils'
 import { fetchHostStats } from 'xo'
 import { Container, Row, Col } from 'grid'
-import { Upgrade } from 'xoa-upgrade'
+import Upgrade from 'xoa-upgrade'
 import {
   CpuLineChart,
   MemoryLineChart,

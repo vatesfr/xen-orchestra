@@ -14,7 +14,7 @@ import { DropdownButton, MenuItem } from 'react-bootstrap-4/lib'
 import { FormattedDate } from 'react-intl'
 import { info, error } from 'notification'
 import { Container, Row, Col } from 'grid'
-import { Upgrade } from 'xoa-upgrade'
+import Upgrade from 'xoa-upgrade'
 
 import {
   importBackup,

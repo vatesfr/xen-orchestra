@@ -10,7 +10,7 @@ import { Container } from 'grid'
 import { error } from 'notification'
 import { renderXoItemFromId } from 'render-xo-item'
 import { SelectHighLevelObjects, SelectRole, SelectSubject } from 'select-objects'
-import { Upgrade } from 'xoa-upgrade'
+import Upgrade from 'xoa-upgrade'
 import {
   addAcl,
   removeAcl,

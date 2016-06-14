@@ -10,7 +10,7 @@ import { confirm } from 'modal'
 import { deleteMessage, deleteVdi, deleteVm } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Container, Row, Col } from 'grid'
-import { Upgrade } from 'xoa-upgrade'
+import Upgrade from 'xoa-upgrade'
 import {
   createGetObject,
   createGetObjectsOfType,

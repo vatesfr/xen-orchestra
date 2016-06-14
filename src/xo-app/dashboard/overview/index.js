@@ -5,7 +5,7 @@ import Icon from 'icon'
 import map from 'lodash/map'
 import React, { Component } from 'react'
 import { Container, Row, Col } from 'grid'
-import { Upgrade } from 'xoa-upgrade'
+import Upgrade from 'xoa-upgrade'
 import {
   createCollectionWrapper,
   createCounter,

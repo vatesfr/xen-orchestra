@@ -14,7 +14,7 @@ import {
   SelectSr
 } from 'select-objects'
 import { formatSize } from 'utils'
-import { Upgrade } from 'xoa-upgrade'
+import Upgrade from 'xoa-upgrade'
 
 import Page from '../page'
 

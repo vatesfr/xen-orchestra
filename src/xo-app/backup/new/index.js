@@ -9,7 +9,7 @@ import _, { messages } from 'messages'
 import map from 'lodash/map'
 import { Container } from 'grid'
 import { injectIntl } from 'react-intl'
-import { Upgrade } from 'xoa-upgrade'
+import Upgrade from 'xoa-upgrade'
 
 import {
   createJob,
