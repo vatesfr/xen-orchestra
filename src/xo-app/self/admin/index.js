@@ -32,6 +32,7 @@ import {
 
 import {
   connectStore,
+  formatSize,
   propTypes
 } from 'utils'
 
@@ -425,12 +426,12 @@ const Limits = propTypes({
     )}
     {memory && (
       <div>
-        <Icon icon='memory' /> {_('maxRam')}: {memory.total} ({_('remainingResource')} {memory.available})
+        <Icon icon='memory' /> {_('maxRam')}: {formatSize(memory.total)} ({_('remainingResource')} {formatSize(memory.available)})
       </div>
     )}
     {disk && (
       <div>
-        <Icon icon='disk' /> {_('maxDiskSpace')}: {disk.total} ({_('remainingResource')} {disk.available})
+        <Icon icon='disk' /> {_('maxDiskSpace')}: {formatSize(disk.total)} ({_('remainingResource')} {formatSize(disk.available)})
       </div>
     )}
     {cpus === undefined && memory === undefined && disk === undefined && (
