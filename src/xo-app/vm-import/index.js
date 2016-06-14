@@ -64,7 +64,7 @@ export default class Import extends Component {
     const { files, srPredicate } = this.state
 
     return <Page header={HEADER}>
-      {process.env.XOA_PLAN > 2
+      {process.env.XOA_PLAN > 1
       ? <Container>
         <form id='import-form'>
           <FormGrid.Row>
@@ -132,7 +132,7 @@ export default class Import extends Component {
           </div>
         </form>
       </Container>
-      : <Container><Upgrade place='vmImport' available={3} /></Container>
+      : <Container><Upgrade place='vmImport' available={2} /></Container>
     }
     </Page>
   }

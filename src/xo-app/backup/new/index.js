@@ -126,6 +126,15 @@ const CONTINUOUS_REPLICATION_SCHEMA = {
   required: COMMON_SCHEMA.required.concat('sr')
 }
 
+let DISABLED_BACKUP_TYPES
+if (process.env.XOA_PLAN < 4) {
+  DISABLED_BACKUP_TYPES = {
+    deltaBackup: 3,
+    disasterRecovery: 3,
+    continuousReplication: 4
+  }
+}
+
 // ===================================================================
 
 const BACKUP_METHOD_TO_INFO = {
@@ -307,22 +316,25 @@ export default class New extends Component {
         <Section icon='preview' title='preview' summary>
           <div className='card-block'>
             <SchedulePreview cron={this.state.cronPattern} />
-            <fieldset className='pull-xs-right p-t-1'>
-              <ActionButton
-                btnStyle='primary'
-                className='btn-lg m-r-1'
-                disabled={!backupInfo}
-                form='form-new-vm-backup'
-                handler={this._handleSubmit}
-                icon='save'
-                redirectOnSuccess='/backup/overview'
-              >
-                {_('saveBackupJob')}
-              </ActionButton>
-              <button type='button' className='btn btn-lg btn-secondary' onClick={this._handleReset}>
-                Reset
-              </button>
-            </fieldset>
+            {process.env.XOA_PLAN < 4 && backupInfo && DISABLED_BACKUP_TYPES[backupInfo.jobKey] > process.env.XOA_PLAN
+              ? <Upgrade place='newBackup' available={DISABLED_BACKUP_TYPES[backupInfo.jobKey]} />
+              : <fieldset className='pull-xs-right p-t-1'>
+                <ActionButton
+                  btnStyle='primary'
+                  className='btn-lg m-r-1'
+                  disabled={!backupInfo}
+                  form='form-new-vm-backup'
+                  handler={this._handleSubmit}
+                  icon='save'
+                  redirectOnSuccess='/backup/overview'
+                >
+                  {_('saveBackupJob')}
+                </ActionButton>
+                <button type='button' className='btn btn-lg btn-secondary' onClick={this._handleReset}>
+                  Reset
+                </button>
+              </fieldset>
+            }
           </div>
         </Section>
       </Wizard>
