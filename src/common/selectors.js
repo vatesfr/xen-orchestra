@@ -6,6 +6,7 @@ import groupBy from 'lodash/groupBy'
 import isArray from 'lodash/isArray'
 import isArrayLike from 'lodash/isArrayLike'
 import isFunction from 'lodash/isFunction'
+import keys from 'lodash/keys'
 import orderBy from 'lodash/orderBy'
 import pickBy from 'lodash/pickBy'
 import size from 'lodash/size'
@@ -280,6 +281,9 @@ export const createSortForType = invoke(() => {
     pool_patch: [
       [ patch => patch.name ]
     ],
+    tag: [
+      [ tag => tag ]
+    ],
     VBD: [
       [ vbd => vbd.position ]
     ],
@@ -361,9 +365,28 @@ export const createGetObjectsOfType = type => {
   ), type)
 }
 
-// TODO: implement
-export const createGetTags = () => {
-  const getTags = () => EMPTY_OBJECT
+export const createGetTags = collectionSelectors => {
+  if (!collectionSelectors) {
+    collectionSelectors = [
+      createGetObjectsOfType('host'),
+      createGetObjectsOfType('pool'),
+      createGetObjectsOfType('VM')
+    ]
+  }
+
+  const getTags = create(
+    collectionSelectors,
+    (...collections) => {
+      const tags = {}
+
+      const addTag = tag => { tags[tag] = null }
+      const addItemTags = item => { forEach(item.tags, addTag) }
+      const addCollectionTags = collection => { forEach(collection, addItemTags) }
+      forEach(collections, addCollectionTags)
+
+      return keys(tags)
+    }
+  )
 
   return _extendCollectionSelector(getTags, 'tag')
 }
