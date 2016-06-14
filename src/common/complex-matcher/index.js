@@ -19,6 +19,7 @@ const RAW_STRING_CHARS = invoke(() => {
       chars[String.fromCharCode(i++)] = true
     }
   }
+  add('$')
   add('-')
   add('.')
   add('0', '9')
