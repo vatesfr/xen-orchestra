@@ -498,6 +498,12 @@ export const importVms = (files, sr) => (
   ))
 )
 
+export const exportVm = ({ id }) => {
+  info(_('startVmExport'), id)
+  return xo.call('vm.export', { vm: id })
+    .then(({ $getFrom: url }) => window.open(`.${url}`))
+}
+
 // VDI ---------------------------------------------------------------
 
 export const editVdi = ({ id }, props) => (
