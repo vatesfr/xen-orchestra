@@ -301,7 +301,8 @@ export default class NewVm extends BaseComponent {
   }
   _getOnChangeObject (stateElement, key, stateProperty, targetProperty) {
     const debouncer = debounce(param => {
-      const stateValue = isArray(this.state.state[stateElement]) ? [ ...this.state.state[stateElement] ] : { ...this.state.state[stateElement] }
+      let stateValue = this.state.state[stateElement]
+      stateValue = isArray(stateValue) ? [ ...stateValue ] : { ...stateValue }
       stateValue[key][stateProperty] = param && param[targetProperty] || param
       this._setState({ [stateElement]: stateValue })
     }, 100)
