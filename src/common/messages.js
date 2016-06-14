@@ -1337,7 +1337,7 @@ export const messages = {
 
   // ----- New VM -----
   newVmCreateNewVmOn: {
-    defaultMessage: 'Create a new VM on {host}'
+    defaultMessage: 'Create a new VM on {pool}'
   },
   newVmInfoPanel: {
     defaultMessage: 'Infos'
@@ -1372,6 +1372,9 @@ export const messages = {
   newVmPvArgsLabel: {
     defaultMessage: 'PV Args'
   },
+  newVmPxeLabel: {
+    defaultMessage: 'PXE'
+  },
   newVmInterfacesPanel: {
     defaultMessage: 'Interfaces'
   },
@@ -1405,6 +1408,41 @@ export const messages = {
   newVmReset: {
     defaultMessage: 'Reset'
   },
+  newVmSelectTemplate: {
+    defaultMessage: 'Select template'
+  },
+  newVmSshKey: {
+    defaultMessage: 'SSH key'
+  },
+  newVmConfigDrive: {
+    defaultMessage: 'Config drive'
+  },
+  newVmCustomConfig: {
+    defaultMessage: 'Custom config'
+  },
+  newVmBootAfterCreate: {
+    defaultMessage: 'Boot VM after creation'
+  },
+  newVmMacPlaceholder: {
+    defaultMessage: 'Auto-generated if empty'
+  },
+  newVmCpuWeightLabel: {
+    defaultMessage: 'CPU weight'
+  },
+  newVmCpuWeightQuarter: {
+    defaultMessage: 'Quarter (1/4)'
+  },
+  newVmCpuWeightHalf: {
+    defaultMessage: 'Half (1/2)'
+  },
+  newVmCpuWeightNormal: {
+    defaultMessage: 'Normal'
+  },
+  newVmCpuWeightDouble: {
+    defaultMessage: 'Double (x2)'
+  },
+
+  // ----- Self -----
   resourceSets: {
     defaultMessage: 'Resource sets'
   },
@@ -1895,7 +1933,7 @@ localizedMessages.fr = {
   alarmPool: 'Pool',
   alarmRemoveAll: 'Supprimer toutes les alarmes',
   // ----- New VM -----
-  newVmCreateNewVmOn: 'Créer une nouvelle VM sur {host}',
+  newVmCreateNewVmOn: 'Créer une nouvelle VM sur {pool}',
   newVmInfoPanel: 'Informations',
   newVmNameLabel: 'Nom',
   newVmTemplateLabel: 'Modèle',
@@ -1907,6 +1945,7 @@ localizedMessages.fr = {
   newVmIsoDvdLabel: 'ISO/DVD',
   newVmNetworkLabel: 'Network',
   newVmPvArgsLabel: 'PV Args',
+  newVmPxeLabel: 'PXE',
   newVmInterfacesPanel: 'Interfaces',
   newVmMacLabel: 'MAC',
   newVmAddInterface: 'Ajouter une interface',
@@ -1918,6 +1957,16 @@ localizedMessages.fr = {
   newVmSummaryPanel: 'Résumé',
   newVmCreate: 'Créer',
   newVmReset: 'Effacer',
+  newVmSelectTemplate: 'Sélectionner un template',
+  newVmSshKey: 'Clé SSH',
+  newVmCustomConfig: 'Configuration personnalisée',
+  newVmBootAfterCreate: 'Démarrer la VM après sa création',
+  newVmMacPlaceholder: 'Auto-généré si vide',
+  newVmCpuWeightLabel: 'Poids CPU',
+  newVmCpuWeightQuarter: 'Quart (1/4)',
+  newVmCpuWeightHalf: 'Moitié (1/2)',
+  newVmCpuWeightNormal: 'Normal',
+  newVmCpuWeightDouble: 'Double (x2)',
 
   // ---- VM import ---
   importVmsList: 'Glissez des backups ici ou cliquez pour sélectionner des backups à envoyer. Accepte seulement les fichiers .xva.',

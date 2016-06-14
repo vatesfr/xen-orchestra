@@ -3,6 +3,7 @@ import classNames from 'classnames'
 import every from 'lodash/every'
 import Icon from 'icon'
 import map from 'lodash/map'
+import { propTypes } from 'utils'
 import React, { Component, cloneElement } from 'react'
 
 import styles from './index.css'
@@ -10,15 +11,23 @@ import styles from './index.css'
 const Wizard = ({ children }) => {
   const allDone = every(React.Children.toArray(children), (child) => child.props.done || child.props.summary)
   return <ul className={styles.wizard}>
-    {map(children, (child, key) => cloneElement(child, { allDone, key }))}
+    {map(React.Children.toArray(children), (child, key) => cloneElement(child, { allDone, key }))}
   </ul>
 }
 export { Wizard as default }
 
+@propTypes({
+  icon: propTypes.string.isRequired,
+  title: propTypes.string.isRequired
+})
 export class Section extends Component {
   componentWillMount () {
     this.setState({isActive: false})
   }
+
+  _onFocus = () => this.setState({ isActive: true })
+  _onBlur = () => this.setState({ isActive: false })
+
   render () {
     const {
       allDone,
@@ -34,8 +43,8 @@ export class Section extends Component {
           styles.bullet,
           (done || allDone) && styles.success
         )}
-        onFocus={() => this.setState({ isActive: true })}
-        onBlur={() => this.setState({ isActive: false })}
+        onFocus={this._onFocus}
+        onBlur={this._onBlur}
       >
         {/* TITLE */}
         <div className={classNames(

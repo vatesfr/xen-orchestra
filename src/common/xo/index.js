@@ -433,6 +433,10 @@ export const migrateVms = vms => {
   throw new Error('Not implemented.')
 }
 
+export const createVm = args => (
+  xo.call('vm.create', args)
+)
+
 export const deleteVm = ({ id }) => (
   confirm({
     title: _('deleteVmModalTitle'),

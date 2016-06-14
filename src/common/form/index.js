@@ -192,6 +192,8 @@ export class Toggle extends Component {
 const UNITS = ['kiB', 'MiB', 'GiB']
 const DEFAULT_UNIT = 'GiB'
 @propTypes({
+  autoFocus: propTypes.bool,
+  className: propTypes.string,
   defaultUnit: propTypes.oneOf(UNITS),
   defaultValue: propTypes.number,
   onChange: propTypes.func,
@@ -215,7 +217,7 @@ export class SizeInput extends Component {
 
   set value (newValue) {
     const humanSize = newValue && formatSizeRaw(newValue)
-    this.refs.value.value = humanSize && humanSize.value
+    this.refs.value.value = humanSize ? humanSize.value : ''
     this.setState({ unit: humanSize ? humanSize.prefix + 'B' : DEFAULT_UNIT })
   }
 
@@ -229,17 +231,19 @@ export class SizeInput extends Component {
 
   render () {
     const {
+      autoFocus,
+      className,
       placeholder,
       readOnly,
       style
     } = this.props
 
     return <span
-      className='input-group'
+      className={classNames(className, 'input-group')}
       style={style}
     >
       <input
-        autoFocus
+        autoFocus={autoFocus}
         className='form-control'
         defaultValue={this._defaultValue}
         min={0}
