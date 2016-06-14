@@ -1547,6 +1547,9 @@ export const messages = {
   startVmImport: {
     defaultMessage: 'Import starting…'
   },
+  startVmExport: {
+    defaultMessage: 'Export starting…'
+  },
 
   // ---- Tasks ---
   noTasks: {
@@ -1978,7 +1981,7 @@ localizedMessages.fr = {
   vmImportSuccess: 'Import de VM réussi',
   vmImportFailed: 'Import de VM échoué',
   startVmImport: 'Lancement de l\'import…',
-
+  startVmExport: 'Lancement de l\'export…',
   // ----- Modals -----
   startVmsModalTitle: 'Démarrer {vms, plural, one {la} other {les}} VM{vms, plural, one {} other {s}}',
   startVmsModalMessage: 'Voulez-vous vraiment démarrer {vms} VM{vms, plural, one {} other {s}} ?',
