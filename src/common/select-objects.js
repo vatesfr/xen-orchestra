@@ -426,7 +426,7 @@ export const SelectTag = makeStoreSelect(() => {
   return {
     xoObjects: createSelector(
       getTags,
-      tags => map(tags, tag => ({ id: tag, type: 'tag', value: 'tag' }))
+      tags => map(tags, tag => ({ id: tag, type: 'tag', value: tag }))
     )
   }
 }, { placeholder: _('selectTags') })
