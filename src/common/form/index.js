@@ -212,7 +212,7 @@ export class SizeInput extends Component {
 
   get value () {
     const value = this.refs.value.value
-    return value === '' ? undefined : parseSize(value + ' ' + this.state.unit)
+    return value ? parseSize(value + ' ' + this.state.unit) : undefined
   }
 
   set value (newValue) {

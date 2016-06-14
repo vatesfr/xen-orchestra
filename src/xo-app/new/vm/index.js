@@ -13,6 +13,7 @@ import map from 'lodash/map'
 import React from 'react'
 import size from 'lodash/size'
 import store from 'store'
+import toArray from 'lodash/toArray'
 import Wizard, { Section } from 'wizard'
 import {
   createVm
@@ -75,6 +76,8 @@ export default class NewVm extends BaseComponent {
     super()
 
     this._uniqueId = 0
+    // NewVm's state is stored in this.state.state instead of this.state
+    // so it can be emptied easily with this.setState(state: {})
     this.state = { state: {} }
   }
 
@@ -110,10 +113,13 @@ export default class NewVm extends BaseComponent {
 
   _reset = pool => {
     const { refs } = this
-    // Resets all HTML inputs
-    refs.form && refs.form.reset()
-    // Resets all other inputs (select-objects) except the pool selector
-    forEach(refs, (ref, key) => { key !== 'pool' && !ref.type && (ref.value = undefined) })
+    forEach(refs, (ref, key) => {
+      if (ref.tagName === 'INPUT' && ref.tagName === 'TEXTAREA') {
+        ref.value = ''
+      } else if (key !== 'pool') {
+        ref.value = undefined
+      }
+    })
     // CPU weight should be "Normal" by default
     refs.cpuWeight && (refs.cpuWeight.value = 1)
     const previousPool = this.state.state.pool
@@ -277,14 +283,14 @@ export default class NewVm extends BaseComponent {
     this._setState({ VIFs: [ ...VIFs.slice(0, index), ...VIFs.slice(index + 1) ] })
   }
 
-  _getOnChange = (prop) => {
+  _getOnChange (prop) {
     const debouncer = debounce(param => this._setState({ [prop]: param }), 100)
     return param => {
       const _param = param && param.target ? param.target.value : param
       debouncer(_param)
     }
   }
-  _getOnChangeCheckbox = (prop) => {
+  _getOnChangeCheckbox (prop) {
     const debouncer = debounce(checked =>
       this._setState({ [prop]: checked }), 100
     )
@@ -293,15 +299,15 @@ export default class NewVm extends BaseComponent {
       debouncer(_param)
     }
   }
-  _getOnChangeObject = (stateElement, key, stateProperty, targetProperty) => {
+  _getOnChangeObject (stateElement, key, stateProperty, targetProperty) {
     const debouncer = debounce(param => {
-      const stateValue = { ...this.state.state[stateElement] }
+      const stateValue = isArray(this.state.state[stateElement]) ? [ ...this.state.state[stateElement] ] : { ...this.state.state[stateElement] }
       stateValue[key][stateProperty] = param && param[targetProperty] || param
       this._setState({ [stateElement]: stateValue })
     }, 100)
     return param => debouncer(getEventValue(param))
   }
-  _getOnChangeObjectCheckbox = (stateElement, key, stateProperty, targetProperty) => {
+  _getOnChangeObjectCheckbox (stateElement, key, stateProperty, targetProperty) {
     const debouncer = debounce(param => {
       const stateValue = { ...this.state.state[stateElement] }
       stateValue[key][stateProperty] = param
@@ -354,7 +360,6 @@ export default class NewVm extends BaseComponent {
             handler={this._create}
             icon='new-vm-create'
             redirectOnSuccess='/home'
-            type='submit'
           >
             {_('newVmCreate')}
           </ActionButton>
@@ -427,7 +432,7 @@ export default class NewVm extends BaseComponent {
     }
     const { configDrive, installMethod, pool } = this.state.state
     return <Section icon='new-vm-install-settings' title='newVmInstallSettingsPanel' done={this._isInstallSettingsDone()}>
-      {this._isDiskTemplate ? <SectionContent>
+      {this._isDiskTemplate ? <SectionContent key='diskTemplate'>
         <div className={styles.configDrive}>
           <span className={styles.configDriveToggle}>
             {_('newVmConfigDrive')}
@@ -440,21 +445,20 @@ export default class NewVm extends BaseComponent {
           </span>
         </div>
         <Item>
-          <input key='sshRadio' disabled={!configDrive} onChange={this._getOnChange('installMethod')} name='installMethod' value='SSH' type='radio' />
+          <input disabled={!configDrive} onChange={this._getOnChange('installMethod')} name='installMethod' value='SSH' type='radio' />
           {' '}
           <span>{_('newVmSshKey')}</span>
           {' '}
-          <input key='sshInput' ref='sshKey' onChange={this._getOnChange('sshKey')} disabled={installMethod !== 'SSH'} className='form-control' type='text' />
+          <input onChange={this._getOnChange('sshKey')} disabled={installMethod !== 'SSH'} className='form-control' type='text' />
         </Item>
         <Item>
-          <input key='customRadio' disabled={!configDrive} onChange={this._getOnChange('installMethod')} name='installMethod' value='customConfig' type='radio' />
+          <input disabled={!configDrive} onChange={this._getOnChange('installMethod')} name='installMethod' value='customConfig' type='radio' />
           {' '}
           <span>{_('newVmCustomConfig')}</span>
           {' '}
           <textarea
             className='form-control'
             disabled={installMethod !== 'customConfig'}
-            key='customInput'
             onChange={this._getOnChange('customConfig')}
             ref='customConfig'
             type='text'
@@ -464,7 +468,7 @@ export default class NewVm extends BaseComponent {
       : <SectionContent>
         <Item>
           <span className={styles.item}>
-            <input key='isoRadio' onChange={this._getOnChange('installMethod')} name='installMethod' value='ISO' type='radio' />
+            <input onChange={this._getOnChange('installMethod')} name='installMethod' value='ISO' type='radio' />
             &nbsp;
             <span>{_('newVmIsoDvdLabel')}</span>
             &nbsp;
@@ -479,7 +483,7 @@ export default class NewVm extends BaseComponent {
           </span>
         </Item>
         <Item>
-          <input key='networkRadio' onChange={this._getOnChange('installMethod')} name='installMethod' value='network' type='radio' />
+          <input onChange={this._getOnChange('installMethod')} name='installMethod' value='network' type='radio' />
           {' '}
           <span>{_('newVmNetworkLabel')}</span>
           {' '}
@@ -491,7 +495,7 @@ export default class NewVm extends BaseComponent {
               * (when switching from a disk template to a no-disk template) and doesn't think it is the same input
               * switching from controlled to uncontrolled and vice versa.
               */}
-            <input key='pv_args' onChange={this._getOnChange('pv_args')} className='form-control' type='text' />
+            <input onChange={this._getOnChange('pv_args')} className='form-control' type='text' />
           </Item>
           : <Item>
             <input onChange={this._getOnChange('installMethod')} name='installMethod' value='PXE' type='radio' />
@@ -569,7 +573,7 @@ export default class NewVm extends BaseComponent {
       <SectionContent column>
 
         {/* Existing disks */}
-        {map(this.state.state.existingDisks, (disk, index) => <div key={index}>
+        {map(toArray(this.state.state.existingDisks), (disk, index) => <div key={index}>
           <LineItem>
             <Item label='newVmSrLabel'>
               <span className={styles.inlineSelect}>
@@ -693,7 +697,7 @@ export default class NewVm extends BaseComponent {
     )
 
   _renderSummary = () => {
-    const { bootAfterCreate, CPUs, fastClone, memory, template, VDIs, VIFs } = this.state.state
+    const { bootAfterCreate, CPUs, existingDisks, fastClone, memory, VDIs, VIFs } = this.state.state
     return <Section icon='new-vm-summary' title='newVmSummaryPanel' summary>
       <SectionContent summary>
         <span>
@@ -706,7 +710,7 @@ export default class NewVm extends BaseComponent {
           <Icon icon='memory' />
         </span>
         <span>
-          {template && (template.$VBDs.length + VDIs.length) || 0}x{' '}
+          {size(existingDisks) + VDIs.length || 0}x{' '}
           <Icon icon='disk' />
         </span>
         <span>

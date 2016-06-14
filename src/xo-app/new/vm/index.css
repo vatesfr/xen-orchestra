@@ -13,14 +13,14 @@
 }
 
 .lineItem {
-  align-items: baseline;
+  align-items: center;
   display: flex;
   flex-wrap: wrap;
 }
 
 .item {
   align-items: center;
-  display: flex;
+  display: inline-flex;
   margin: 0.5em;
   white-space: nowrap;
 }
@@ -40,7 +40,7 @@
 }
 
 .summary {
-  align-items: baseline;
+  align-items: center;
   display: flex;
   flex-wrap: wrap;
   font-size: 2em;
