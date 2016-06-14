@@ -126,9 +126,9 @@ const CONTINUOUS_REPLICATION_SCHEMA = {
   required: COMMON_SCHEMA.required.concat('sr')
 }
 
-let DISABLED_BACKUP_TYPES
+let REQUIRED_XOA_PLAN
 if (process.env.XOA_PLAN < 4) {
-  DISABLED_BACKUP_TYPES = {
+  REQUIRED_XOA_PLAN = {
     deltaBackup: 3,
     disasterRecovery: 3,
     continuousReplication: 4
@@ -316,8 +316,8 @@ export default class New extends Component {
         <Section icon='preview' title='preview' summary>
           <div className='card-block'>
             <SchedulePreview cron={this.state.cronPattern} />
-            {process.env.XOA_PLAN < 4 && backupInfo && DISABLED_BACKUP_TYPES[backupInfo.jobKey] > process.env.XOA_PLAN
-              ? <Upgrade place='newBackup' available={DISABLED_BACKUP_TYPES[backupInfo.jobKey]} />
+            {process.env.XOA_PLAN < 4 && backupInfo && process.env.XOA_PLAN < REQUIRED_XOA_PLAN[backupInfo.jobKey]
+              ? <Upgrade place='newBackup' available={REQUIRED_XOA_PLAN[backupInfo.jobKey]} />
               : <fieldset className='pull-xs-right p-t-1'>
                 <ActionButton
                   btnStyle='primary'
