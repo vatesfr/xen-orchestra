@@ -1,5 +1,6 @@
 import _, { messages } from 'messages'
 import { Button } from 'react-bootstrap-4/lib'
+import { injectIntl } from 'react-intl'
 import ActionButton from 'action-button'
 import BaseComponent from 'base-component'
 import classNames from 'classnames'
@@ -7,9 +8,7 @@ import debounce from 'lodash/debounce'
 import every from 'lodash/every'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
-import { injectIntl } from 'react-intl'
 import isArray from 'lodash/isArray'
-import keys from 'lodash/keys'
 import map from 'lodash/map'
 import React from 'react'
 import size from 'lodash/size'
@@ -106,29 +105,19 @@ export default class NewVm extends BaseComponent {
       ...newValues
     }}, callback)
   }
-  _clearState = () =>
-    this.setState({ state: {} })
+  _replaceState = (state, callback) =>
+    this.setState({ state }, callback)
 
   _reset = pool => {
     const { refs } = this
-    forEach(keys(refs), key => {
-      if (key === 'pool') {
-        return
-      }
-      switch (this.refs[key].type) {
-        case 'text':
-        case 'number':
-          this.refs[key].value = ''
-          break
-        default: this.refs[key].value = undefined
-      }
-      if (key === 'cpuWeight') {
-        this.refs[key].value = 1
-      }
-    })
+    // Resets all HTML inputs
+    refs.form && refs.form.reset()
+    // Resets all other inputs (select-objects) except the pool selector
+    forEach(refs, (ref, key) => { key !== 'pool' && !ref.type && (ref.value = undefined) })
+    // CPU weight should be "Normal" by default
+    refs.cpuWeight && (refs.cpuWeight.value = 1)
     const previousPool = this.state.state.pool
-    this._clearState()
-    this._setState({
+    this._replaceState({
       bootAfterCreate: true,
       fastClone: true,
       cpuWeight: 1,
@@ -296,8 +285,8 @@ export default class NewVm extends BaseComponent {
     }
   }
   _getOnChangeCheckbox = (prop) => {
-    const debouncer = debounce(event =>
-      this._setState({ [prop]: event.target.checked }), 100
+    const debouncer = debounce(checked =>
+      this._setState({ [prop]: checked }), 100
     )
     return event => {
       const _param = event.target.checked
@@ -333,7 +322,7 @@ export default class NewVm extends BaseComponent {
           </span>
         })}
       </h1>
-      {this.state.state.pool && <div>
+      {this.state.state.pool && <form id='vmCreation' ref='form'>
         <Wizard>
           {this._renderInfo()}
           {this._renderPerformances()}
@@ -361,14 +350,16 @@ export default class NewVm extends BaseComponent {
               this._isInterfacesDone() &&
               this._isDisksDone()
             )}
+            form='vmCreation'
             handler={this._create}
             icon='new-vm-create'
             redirectOnSuccess='/home'
+            type='submit'
           >
             {_('newVmCreate')}
           </ActionButton>
         </div>
-      </div>}
+      </form>}
     </div>
   }
 
@@ -449,20 +440,21 @@ export default class NewVm extends BaseComponent {
           </span>
         </div>
         <Item>
-          <input disabled={!configDrive} onChange={this._getOnChange('installMethod')} name='installMethod' value='SSH' type='radio' />
+          <input key='sshRadio' disabled={!configDrive} onChange={this._getOnChange('installMethod')} name='installMethod' value='SSH' type='radio' />
           {' '}
           <span>{_('newVmSshKey')}</span>
           {' '}
-          <input ref='sshKey' onChange={this._getOnChange('sshKey')} disabled={installMethod !== 'SSH'} className='form-control' type='text' />
+          <input key='sshInput' ref='sshKey' onChange={this._getOnChange('sshKey')} disabled={installMethod !== 'SSH'} className='form-control' type='text' />
         </Item>
         <Item>
-          <input disabled={!configDrive} onChange={this._getOnChange('installMethod')} name='installMethod' value='customConfig' type='radio' />
+          <input key='customRadio' disabled={!configDrive} onChange={this._getOnChange('installMethod')} name='installMethod' value='customConfig' type='radio' />
           {' '}
           <span>{_('newVmCustomConfig')}</span>
           {' '}
           <textarea
             className='form-control'
             disabled={installMethod !== 'customConfig'}
+            key='customInput'
             onChange={this._getOnChange('customConfig')}
             ref='customConfig'
             type='text'
@@ -471,25 +463,27 @@ export default class NewVm extends BaseComponent {
       </SectionContent>
       : <SectionContent>
         <Item>
-          <input onChange={this._getOnChange('installMethod')} name='installMethod' value='ISO' type='radio' />
-          {' '}
-          <span>{_('newVmIsoDvdLabel')}</span>
-          {' '}
-          <span className={styles.inlineSelect}>
-            <SelectSr
-              disabled={installMethod !== 'ISO'}
-              onChange={this._getOnChange('installIso')}
-              predicate={sr => sr.$pool === pool.id && sr.content_type !== 'user'}
-              ref='installIso'
-            />
+          <span className={styles.item}>
+            <input key='isoRadio' onChange={this._getOnChange('installMethod')} name='installMethod' value='ISO' type='radio' />
+            &nbsp;
+            <span>{_('newVmIsoDvdLabel')}</span>
+            &nbsp;
+            <span className={styles.inlineSelect}>
+              <SelectSr
+                disabled={installMethod !== 'ISO'}
+                onChange={this._getOnChange('installIso')}
+                predicate={sr => sr.$pool === pool.id && sr.content_type !== 'user'}
+                ref='installIso'
+              />
+            </span>
           </span>
         </Item>
         <Item>
-          <input onChange={this._getOnChange('installMethod')} name='installMethod' value='network' type='radio' />
+          <input key='networkRadio' onChange={this._getOnChange('installMethod')} name='installMethod' value='network' type='radio' />
           {' '}
           <span>{_('newVmNetworkLabel')}</span>
           {' '}
-          <input ref='installNetwork' onChange={this._getOnChange('installNetwork')} disabled={installMethod !== 'network'} placeholder='e.g: http://ftp.debian.org/debian' type='text' className='form-control' />
+          <input key='networkInput' ref='installNetwork' onChange={this._getOnChange('installNetwork')} disabled={installMethod !== 'network'} placeholder='e.g: http://ftp.debian.org/debian' type='text' className='form-control' />
         </Item>
         {template.virtualizationMode === 'pv'
           ? <Item label='newVmPvArgsLabel'>
