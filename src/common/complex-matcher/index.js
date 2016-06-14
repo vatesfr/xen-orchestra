@@ -1,11 +1,13 @@
 import every from 'lodash/every'
-import findIndex from 'lodash/findIndex'
+import filter from 'lodash/filter'
+import forEach from 'lodash/forEach'
 import isArray from 'lodash/isArray'
 import isPlainObject from 'lodash/isPlainObject'
 import isString from 'lodash/isString'
 import map from 'lodash/map'
 import some from 'lodash/some'
 
+import filterReduce from '../filter-reduce'
 import invoke from '../invoke'
 
 // ===================================================================
@@ -221,58 +223,107 @@ export const parse = invoke(() => {
 
 // -------------------------------------------------------------------
 
-export const addPropertyClause = invoke(() => {
-  const addAndClause = (node, child) => node.type === 'and'
-    ? createAnd(node.children.concat(child))
-    : createAnd([ node, child ])
-  const addOrClause = (node, child) => node.type === 'or'
-    ? createOr(node.children.concat(child))
-    : createOr([ node, child ])
+const _getPropertyClauseStrings = ({ child }) => {
+  const { type } = child
 
-  const addOrClauseToProperty = (node, child) => createProperty(
-    node.name,
-    addOrClause(node.child, child)
+  if (type === 'or') {
+    const strings = []
+    forEach(child.children, child => {
+      if (child.type === 'string') {
+        strings.push(child.value)
+      }
+    })
+    return strings
+  }
+
+  if (type === 'string') {
+    return [ child.value ]
+  }
+
+  return []
+}
+
+// Find possible values for property clauses in a and clause.
+export const getPropertyClausesStrings = function () {
+  if (!this) {
+    return {}
+  }
+
+  const { type } = this
+
+  if (type === 'property') {
+    return {
+      [this.name]: _getPropertyClauseStrings(this)
+    }
+  }
+
+  if (type === 'and') {
+    const strings = {}
+    forEach(this.children, node => {
+      if (node.type === 'property') {
+        const { name } = node
+        const values = strings[name]
+        if (values) {
+          values.push.apply(values, _getPropertyClauseStrings(node))
+        } else {
+          strings[name] = _getPropertyClauseStrings(node)
+        }
+      }
+    })
+    return strings
+  }
+
+  return {}
+}
+
+// -------------------------------------------------------------------
+
+export const removePropertyClause = function (name) {
+  let type
+  if (
+    !this ||
+    (type = this.type) === 'property' && this.name === name
+  ) {
+    return
+  }
+
+  if (type === 'and') {
+    return createAnd(filter(this.children, node =>
+      node.type !== 'property' || node.name !== name
+    ))
+  }
+
+  return this
+}
+
+// -------------------------------------------------------------------
+
+const _addAndClause = (node, child, predicate, reducer) =>
+  createAnd(filterReduce(
+    node.type === 'and'
+      ? node.children
+      : [ node ],
+    predicate,
+    reducer,
+    child
+  ))
+
+export const setPropertyClause = function (name, child) {
+  const property = createProperty(
+    name,
+    isString(child) ? createString(child) : child
   )
 
-  const addPropertyClause_ = (node, name, child) => {
-    if (!node) {
-      return createProperty(name, child)
-    }
-
-    const { type } = node
-
-    if (type === 'and') {
-      const { children } = node
-      const i = findIndex(children, node =>
-        node.type === 'property' && node.name === name
-      )
-      return i === -1
-        ? createAnd([
-          ...children,
-          createProperty(name, child)
-        ])
-        : createAnd([
-          ...children.slice(0, i),
-          addOrClauseToProperty(children[i], child),
-          ...children.slice(i + 1)
-        ])
-    }
-
-    if (type === 'property' && node.name === name) {
-      return addOrClauseToProperty(node, child)
-    }
-
-    return addAndClause(node, createProperty(name, child))
+  if (!this) {
+    return property
   }
 
-  return function addPropertyClause (name, child) {
-    if (isString(child)) {
-      child = createString(child)
-    }
-
-    return addPropertyClause_(this, name, child)
-  }
-})
+  return _addAndClause(
+    this,
+    property,
+    node => node.type === 'property' && node.name === name,
+  )
+}
 
 // -------------------------------------------------------------------
 
@@ -324,7 +375,7 @@ export const toString = invoke(() => {
     and: ({ children }) => toStringGroup(children),
     not: ({ child }) => `!${toString(child)}`,
     or: ({ children }) => `|${toStringGroup(children)}`,
-    property: ({ name, child }) => `${name}:${toString(child)}`,
+    property: ({ name, child }) => `${toString(createString(name))}:${toString(child)}`,
     string: ({ value }) => isRawString(value)
       ? value
       : `"${value.replace(/\\|"/g, match => `\\${match}`)}"`
@@ -334,9 +385,11 @@ export const toString = invoke(() => {
 
   // Special case for a root “and”: do not add braces.
   return function () {
-    return this.type === 'and'
-      ? toStringTerms(this.children)
-      : toString(this)
+    return !this
+      ? ''
+      : this.type === 'and'
+        ? toStringTerms(this.children)
+        : toString(this)
   }
 })
 

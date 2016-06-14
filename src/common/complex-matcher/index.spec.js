@@ -1,8 +1,9 @@
 import test from 'ava'
 
 import {
-  addPropertyClause,
+  getPropertyClausesStrings,
   parse,
+  setPropertyClause,
   toString
 } from './'
 import {
@@ -10,30 +11,41 @@ import {
   pattern
 } from './index.fixtures'
 
-test('addPropertyClause', t => {
-  t.is(
-    null::addPropertyClause('foo', 'bar')::toString(),
-    'foo:bar'
-  )
-
-  t.is(
-    parse('baz')::addPropertyClause('foo', 'bar')::toString(),
-    'baz foo:bar'
-  )
-
-  t.is(
-    parse('plip foo:baz plop')::addPropertyClause('foo', 'bar')::toString(),
-    'plip foo:|(baz bar) plop'
-  )
-
-  t.is(
-    parse('foo:|(baz plop)')::addPropertyClause('foo', 'bar')::toString(),
-    'foo:|(baz plop bar)'
+test('getPropertyClausesStrings', t => {
+  let tmp = parse('foo bar:baz baz:|(foo bar)')::getPropertyClausesStrings()
+  t.deepEqual(
+    tmp,
+    {
+      bar: [ 'baz' ],
+      baz: [ 'foo', 'bar' ]
+    }
   )
 })
 
 test('parse', t => {
   t.deepEqual(parse(pattern), ast)
+})
+
+test('setPropertyClause', t => {
+  t.is(
+    null::setPropertyClause('foo', 'bar')::toString(),
+    'foo:bar'
+  )
+
+  t.is(
+    parse('baz')::setPropertyClause('foo', 'bar')::toString(),
+    'baz foo:bar'
+  )
+
+  t.is(
+    parse('plip foo:baz plop')::setPropertyClause('foo', 'bar')::toString(),
+    'plip plop foo:bar'
+  )
+
+  t.is(
+    parse('foo:|(baz plop)')::setPropertyClause('foo', 'bar')::toString(),
+    'foo:bar'
+  )
 })
 
 test('toString', t => {
