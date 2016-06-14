@@ -84,8 +84,8 @@ export default class Menu extends Component {
       ]},
       { to: '/about', icon: 'menu-about', label: 'aboutPage' },
       { to: '/tasks', icon: 'task', label: 'taskMenu', pill: nTasks },
-      { to: '/new/vm', icon: 'menu-new', label: 'newMenu', subMenu: [
-        { to: '/new/vm', icon: 'menu-new-vm', label: 'newVmPage' },
+      { to: '/vms/new', icon: 'menu-new', label: 'newMenu', subMenu: [
+        { to: '/vms/new', icon: 'menu-new-vm', label: 'newVmPage' },
         { to: '/new/sr', icon: 'menu-new-sr', label: 'newSrPage' },
         { to: '/settings/servers', icon: 'menu-settings-servers', label: 'newServerPage' },
         { to: '/vms/import', icon: 'menu-new-import', label: 'newImport' }
