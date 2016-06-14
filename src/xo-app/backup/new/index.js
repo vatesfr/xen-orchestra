@@ -3,13 +3,13 @@ import Component from 'base-component'
 import GenericInput from 'json-schema-input'
 import Icon from 'icon'
 import React from 'react'
+import Upgrade from 'xoa-upgrade'
 import Scheduler, { SchedulePreview } from 'scheduling'
 import Wizard, { Section } from 'wizard'
 import _, { messages } from 'messages'
 import map from 'lodash/map'
 import { Container } from 'grid'
 import { injectIntl } from 'react-intl'
-import Upgrade from 'xoa-upgrade'
 
 import {
   createJob,

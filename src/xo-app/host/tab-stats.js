@@ -2,10 +2,10 @@ import _ from 'messages'
 import Component from 'base-component'
 import Icon from 'icon'
 import React from 'react'
+import Upgrade from 'xoa-upgrade'
 import { autobind } from 'utils'
 import { fetchHostStats } from 'xo'
 import { Container, Row, Col } from 'grid'
-import Upgrade from 'xoa-upgrade'
 import {
   CpuLineChart,
   MemoryLineChart,

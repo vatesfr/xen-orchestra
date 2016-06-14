@@ -2,6 +2,7 @@ import BaseComponent from 'base-component'
 import ChartistGraph from 'react-chartist'
 import Collapse from 'collapse'
 import Icon from 'icon'
+import Upgrade from 'xoa-upgrade'
 import React, { Component } from 'react'
 import _ from 'messages'
 import map from 'lodash/map'
@@ -9,7 +10,6 @@ import renderXoItem from 'render-xo-item'
 import { Container, Row, Col } from 'grid'
 import { formatSize } from 'utils'
 import { subscribeResourceSets } from 'xo'
-import Upgrade from 'xoa-upgrade'
 
 import {
   Card,

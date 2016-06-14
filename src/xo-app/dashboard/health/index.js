@@ -5,12 +5,12 @@ import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
+import Upgrade from 'xoa-upgrade'
 import React, { Component } from 'react'
 import { confirm } from 'modal'
 import { deleteMessage, deleteVdi, deleteVm } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Container, Row, Col } from 'grid'
-import Upgrade from 'xoa-upgrade'
 import {
   createGetObject,
   createGetObjectsOfType,

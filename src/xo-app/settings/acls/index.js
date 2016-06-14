@@ -4,13 +4,13 @@ import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
 import orderBy from 'lodash/orderBy'
+import Upgrade from 'xoa-upgrade'
 import React, { Component } from 'react'
 import { addSubscriptions } from 'utils'
 import { Container } from 'grid'
 import { error } from 'notification'
 import { renderXoItemFromId } from 'render-xo-item'
 import { SelectHighLevelObjects, SelectRole, SelectSubject } from 'select-objects'
-import Upgrade from 'xoa-upgrade'
 import {
   addAcl,
   removeAcl,

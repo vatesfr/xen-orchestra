@@ -7,6 +7,7 @@ import React from 'react'
 import _ from 'messages'
 import filter from 'lodash/filter'
 import map from 'lodash/map'
+import Upgrade from 'xoa-upgrade'
 import { Container, Col, Row } from 'grid'
 import { importVms } from 'xo'
 import {
@@ -14,7 +15,6 @@ import {
   SelectSr
 } from 'select-objects'
 import { formatSize } from 'utils'
-import Upgrade from 'xoa-upgrade'
 
 import Page from '../page'
 

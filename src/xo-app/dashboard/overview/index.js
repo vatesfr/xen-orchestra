@@ -3,9 +3,9 @@ import ChartistGraph from 'react-chartist'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import map from 'lodash/map'
+import Upgrade from 'xoa-upgrade'
 import React, { Component } from 'react'
 import { Container, Row, Col } from 'grid'
-import Upgrade from 'xoa-upgrade'
 import {
   createCollectionWrapper,
   createCounter,

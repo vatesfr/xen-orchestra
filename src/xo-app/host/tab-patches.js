@@ -3,11 +3,11 @@ import ActionRowButton from 'action-row-button'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import TabButton from 'tab-button'
+import Upgrade from 'xoa-upgrade'
 import React, { Component } from 'react'
 import { Container, Row, Col } from 'grid'
 import { formatSize } from 'utils'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import Upgrade from 'xoa-upgrade'
 
 export default class HostPatches extends Component {
   render () {

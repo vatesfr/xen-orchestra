@@ -5,6 +5,7 @@ import Link from 'react-router/lib/Link'
 import map from 'lodash/map'
 import moment from 'moment'
 import orderBy from 'lodash/orderBy'
+import Upgrade from 'xoa-upgrade'
 import React, { Component } from 'react'
 import renderXoItem, { renderXoItemFromId } from 'render-xo-item'
 import size from 'lodash/size'
@@ -14,7 +15,6 @@ import { DropdownButton, MenuItem } from 'react-bootstrap-4/lib'
 import { FormattedDate } from 'react-intl'
 import { info, error } from 'notification'
 import { Container, Row, Col } from 'grid'
-import Upgrade from 'xoa-upgrade'
 
 import {
   importBackup,

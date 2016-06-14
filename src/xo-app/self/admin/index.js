@@ -10,11 +10,11 @@ import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
 import reduce from 'lodash/reduce'
 import renderXoItem from 'render-xo-item'
+import Upgrade from 'xoa-upgrade'
 import { Container, Col, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
 import { injectIntl } from 'react-intl'
 import { SizeInput } from 'form'
-import Upgrade from 'xoa-upgrade'
 
 import {
   Card,
