@@ -475,3 +475,11 @@ export function tap (cb) {
     Promise.resolve(cb(value)).then(() => value)
   )
 }
+
+// -------------------------------------------------------------------
+
+// If param is an event: returns the value associated to it
+// Otherwise: returns param
+export function getEventValue (param) {
+  return param && param.target ? param.target.value : param
+}

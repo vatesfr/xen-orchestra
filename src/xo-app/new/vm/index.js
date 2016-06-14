@@ -3,8 +3,6 @@ import { Button } from 'react-bootstrap-4/lib'
 import ActionButton from 'action-button'
 import BaseComponent from 'base-component'
 import classNames from 'classnames'
-import cloneDeep from 'lodash/cloneDeep'
-import concat from 'lodash/concat'
 import debounce from 'lodash/debounce'
 import every from 'lodash/every'
 import forEach from 'lodash/forEach'
@@ -13,7 +11,6 @@ import { injectIntl } from 'react-intl'
 import isArray from 'lodash/isArray'
 import keys from 'lodash/keys'
 import map from 'lodash/map'
-import pullAt from 'lodash/pullAt'
 import React from 'react'
 import size from 'lodash/size'
 import store from 'store'
@@ -33,7 +30,8 @@ import {
 } from 'form'
 import {
   connectStore,
-  formatSize
+  formatSize,
+  getEventValue
 } from 'utils'
 import {
   createSelector,
@@ -78,6 +76,7 @@ export default class NewVm extends BaseComponent {
     super()
 
     this._uniqueId = 0
+    this.state = { state: {} }
   }
 
   getUniqueId () {
@@ -85,7 +84,7 @@ export default class NewVm extends BaseComponent {
   }
 
   get _isDiskTemplate () {
-    const { template } = this.state
+    const { template } = this.state.state
     return template.template_info.disks.length === 0 && template.name_label !== 'Other install media'
   }
 
@@ -101,7 +100,16 @@ export default class NewVm extends BaseComponent {
     this.refs[ref].value = value
   }
 
-  _reset = () => {
+  _setState = (newValues, callback) => {
+    this.setState({ state: {
+      ...this.state.state,
+      ...newValues
+    }}, callback)
+  }
+  _clearState = () =>
+    this.setState({ state: {} })
+
+  _reset = pool => {
     const { refs } = this
     forEach(keys(refs), key => {
       if (key === 'pool') {
@@ -118,26 +126,21 @@ export default class NewVm extends BaseComponent {
         this.refs[key].value = 1
       }
     })
-    this.setState({
+    const previousPool = this.state.state.pool
+    this._clearState()
+    this._setState({
       bootAfterCreate: true,
       fastClone: true,
-      CPUs: undefined,
       cpuWeight: 1,
-      configDrive: undefined,
       existingDisks: {},
-      installMethod: undefined,
-      installIso: undefined,
-      memory: undefined,
-      name_description: undefined,
-      name_label: undefined,
-      template: undefined,
+      pool: pool || previousPool,
       VDIs: [],
       VIFs: []
     })
   }
 
   _create = () => {
-    const { state } = this
+    const { state } = this.state
     let installation
     switch (state.installMethod) {
       case 'ISO':
@@ -204,19 +207,17 @@ export default class NewVm extends BaseComponent {
     return createVm(data)
   }
 
-  _selectPool = pool => {
-    this.setState({ pool })
-    this._reset()
-  }
+  _selectPool = pool =>
+    this._reset(pool)
 
   _getIsInPool = createSelector(
-    () => this.state.pool,
-    pool => object => object.$pool === pool.id
+    () => this.state.state.pool.id,
+    poolId => object => object.$pool === poolId
   )
 
   _getSrPredicate = createSelector(
-    () => this.state.pool,
-    pool => disk => disk.$pool === pool.id && disk.content_type === 'user'
+    () => this.state.state.pool.id,
+    poolId => disk => disk.$pool === poolId && disk.content_type === 'user'
   )
 
   _initTemplate = template => {
@@ -250,48 +251,45 @@ export default class NewVm extends BaseComponent {
         id: this.getUniqueId()
       })
     })
-
-    this.setState({
+    this._setState({
       // infos
       name_label: template.name_label,
       template,
-      name_description: template.name_description || this.state.name_description || '',
+      name_description: template.name_description || this.state.state.name_description || '',
       // performances
       memory: template.memory.size,
       CPUs: template.CPUs.number,
       cpuWeight: 1,
       // installation
-      installMethod: template.install_methods && template.install_methods[0] || this.state.installMethod,
+      installMethod: template.install_methods && template.install_methods[0] || this.state.state.installMethod,
       // interfaces
       VIFs,
       // disks
       existingDisks,
       VDIs: map(template.template_info.disks, disk => ({ ...disk, device: this.getUniqueId() }))
-    }, () => forEach(this.state, (element, key) => {
+    }, () => forEach(this.state.state, (element, key) => {
       !isArray(element) && this._setInputValue(key, element)
     }))
   }
 
-  _addVdi = () => this.setState({ VDIs: concat(this.state.VDIs, {
+  _addVdi = () => this._setState({ VDIs: [ ...this.state.state.VDIs, {
     device: String(this.getUniqueId()),
     type: 'system'
-  }) })
+  }] })
   _removeVdi = index => {
-    const VDIs = cloneDeep(this.state.VDIs)
-    pullAt(VDIs, index)
-    this.setState({ VDIs })
+    const { VDIs } = this.state.state
+    this._setState({ VDIs: [ ...VDIs.slice(0, index), ...VDIs.slice(index + 1) ] })
   }
-  _addInterface = () => this.setState({ VIFs: concat(this.state.VIFs, {
+  _addInterface = () => this._setState({ VIFs: [ ...this.state.state.VIFs, {
     id: this.getUniqueId()
-  }) })
+  }] })
   _removeInterface = index => {
-    const VIFs = cloneDeep(this.state.VIFs)
-    pullAt(VIFs, index)
-    this.setState({ VIFs })
+    const { VIFs } = this.state.state
+    this._setState({ VIFs: [ ...VIFs.slice(0, index), ...VIFs.slice(index + 1) ] })
   }
 
   _getOnChange = (prop) => {
-    const debouncer = debounce(param => this.setState({ [prop]: param }), 100)
+    const debouncer = debounce(param => this._setState({ [prop]: param }), 100)
     return param => {
       const _param = param && param.target ? param.target.value : param
       debouncer(_param)
@@ -299,7 +297,7 @@ export default class NewVm extends BaseComponent {
   }
   _getOnChangeCheckbox = (prop) => {
     const debouncer = debounce(event =>
-      this.setState({ [prop]: event.target.checked }), 100
+      this._setState({ [prop]: event.target.checked }), 100
     )
     return event => {
       const _param = event.target.checked
@@ -308,20 +306,17 @@ export default class NewVm extends BaseComponent {
   }
   _getOnChangeObject = (stateElement, key, stateProperty, targetProperty) => {
     const debouncer = debounce(param => {
-      const stateValue = cloneDeep(this.state[stateElement])
+      const stateValue = { ...this.state.state[stateElement] }
       stateValue[key][stateProperty] = param && param[targetProperty] || param
-      this.setState({ [stateElement]: stateValue })
+      this._setState({ [stateElement]: stateValue })
     }, 100)
-    return param => {
-      const _param = param && param.target ? param.target.value : param
-      debouncer(_param)
-    }
+    return param => debouncer(getEventValue(param))
   }
   _getOnChangeObjectCheckbox = (stateElement, key, stateProperty, targetProperty) => {
     const debouncer = debounce(param => {
-      const stateValue = cloneDeep(this.state[stateElement])
+      const stateValue = { ...this.state.state[stateElement] }
       stateValue[key][stateProperty] = param
-      this.setState({ [stateElement]: stateValue })
+      this._setState({ [stateElement]: stateValue })
     }, 100)
     return event => {
       const _param = event.target.checked
@@ -338,9 +333,9 @@ export default class NewVm extends BaseComponent {
           </span>
         })}
       </h1>
-      {this.state.pool && <div>
+      {this.state.state.pool && <div>
         <Wizard>
-          {this._renderInfos()}
+          {this._renderInfo()}
           {this._renderPerformances()}
           {this._renderInstallSettings()}
           {this._renderInterfaces()}
@@ -360,7 +355,7 @@ export default class NewVm extends BaseComponent {
             btnStyle='primary'
             className={styles.button}
             disabled={!(
-              this._isInfosDone() &&
+              this._isInfoDone() &&
               this._isPerformancesDone() &&
               this._isInstallSettingsDone() &&
               this._isInterfacesDone() &&
@@ -369,7 +364,6 @@ export default class NewVm extends BaseComponent {
             handler={this._create}
             icon='new-vm-create'
             redirectOnSuccess='/home'
-            type='submit'
           >
             {_('newVmCreate')}
           </ActionButton>
@@ -378,8 +372,8 @@ export default class NewVm extends BaseComponent {
     </div>
   }
 
-  _renderInfos = () => {
-    return <Section icon='new-vm-infos' title='newVmInfoPanel' done={this._isInfosDone()}>
+  _renderInfo = () => {
+    return <Section icon='new-vm-infos' title='newVmInfoPanel' done={this._isInfoDone()}>
       <SectionContent>
         <Item label='newVmNameLabel'>
           <input ref='name_label' onChange={this._getOnChange('name_label')} className='form-control' type='text' required />
@@ -400,8 +394,8 @@ export default class NewVm extends BaseComponent {
       </SectionContent>
     </Section>
   }
-  _isInfosDone = () => {
-    const { template, name_label } = this.state
+  _isInfoDone = () => {
+    const { template, name_label } = this.state.state
     return name_label && template
   }
 
@@ -431,16 +425,16 @@ export default class NewVm extends BaseComponent {
     </Section>
   }
   _isPerformancesDone = () => {
-    const { CPUs, memory } = this.state
+    const { CPUs, memory } = this.state.state
     return CPUs && memory !== undefined
   }
 
   _renderInstallSettings = () => {
-    const { template } = this.state
+    const { template } = this.state.state
     if (!template) {
       return
     }
-    const { configDrive, installMethod, pool } = this.state
+    const { configDrive, installMethod, pool } = this.state.state
     return <Section icon='new-vm-install-settings' title='newVmInstallSettingsPanel' done={this._isInstallSettingsDone()}>
       {this._isDiskTemplate ? <SectionContent>
         <div className={styles.configDrive}>
@@ -523,7 +517,7 @@ export default class NewVm extends BaseComponent {
       installNetwork,
       sshKey,
       template
-    } = this.state
+    } = this.state.state
     switch (installMethod) {
       case 'customConfig': return customConfig
       case 'ISO': return installIso
@@ -538,7 +532,7 @@ export default class NewVm extends BaseComponent {
     const { formatMessage } = this.props.intl
     return <Section icon='new-vm-interfaces' title='newVmInterfacesPanel' done={this._isInterfacesDone()}>
       <SectionContent column>
-        {map(this.state.VIFs, (vif, index) => <div key={index}>
+        {map(this.state.state.VIFs, (vif, index) => <div key={index}>
           <LineItem>
             <Item label='newVmMacLabel'>
               <input ref={`mac_${vif.id}`} onChange={this._getOnChangeObject('VIFs', index, 'mac')} defaultValue={vif.mac} placeholder={formatMessage(messages.newVmMacPlaceholder)} className='form-control' type='text' />
@@ -559,7 +553,7 @@ export default class NewVm extends BaseComponent {
               </Button>
             </Item>
           </LineItem>
-          {index < this.state.VIFs.length - 1 && <hr />}
+          {index < this.state.state.VIFs.length - 1 && <hr />}
         </div>
         )}
         <Item>
@@ -572,7 +566,7 @@ export default class NewVm extends BaseComponent {
       </SectionContent>
     </Section>
   }
-  _isInterfacesDone = () => every(this.state.VIFs, vif =>
+  _isInterfacesDone = () => every(this.state.state.VIFs, vif =>
     vif.network
   )
 
@@ -581,7 +575,7 @@ export default class NewVm extends BaseComponent {
       <SectionContent column>
 
         {/* Existing disks */}
-        {map(this.state.existingDisks, (disk, index) => <div key={index}>
+        {map(this.state.state.existingDisks, (disk, index) => <div key={index}>
           <LineItem>
             <Item label='newVmSrLabel'>
               <span className={styles.inlineSelect}>
@@ -617,17 +611,17 @@ export default class NewVm extends BaseComponent {
                 className={styles.sizeInput}
                 defaultValue={disk.size}
                 onChange={this._getOnChangeObject('existingDisks', index, 'size')}
-                readOnly={!this.state.configDrive}
+                readOnly={!this.state.state.configDrive}
                 ref={`size_${index}`}
               />
             </Item>
           </LineItem>
-          {index < size(this.state.existingDisks) + this.state.VDIs.length - 1 && <hr />}
+          {index < size(this.state.state.existingDisks) + this.state.state.VDIs.length - 1 && <hr />}
         </div>
         )}
 
         {/* VDIs */}
-        {map(this.state.VDIs, (vdi, index) => <div key={vdi.device}>
+        {map(this.state.state.VDIs, (vdi, index) => <div key={vdi.device}>
           <LineItem>
             <Item label='newVmSrLabel'>
               <span className={styles.inlineSelect}>
@@ -684,7 +678,7 @@ export default class NewVm extends BaseComponent {
               </Button>
             </Item>
           </LineItem>
-          {index < this.state.VDIs.length - 1 && <hr />}
+          {index < this.state.state.VDIs.length - 1 && <hr />}
         </div>
       )}
         <Item>
@@ -697,15 +691,15 @@ export default class NewVm extends BaseComponent {
       </SectionContent>
     </Section>
   }
-  _isDisksDone = () => every(this.state.VDIs, vdi =>
+  _isDisksDone = () => every(this.state.state.VDIs, vdi =>
       vdi.SR && vdi.name_label && vdi.size !== undefined
     ) &&
-    every(this.state.existingDisks, (vdi, index) =>
+    every(this.state.state.existingDisks, (vdi, index) =>
       vdi.$SR && vdi.name_label && vdi.size !== undefined
     )
 
   _renderSummary = () => {
-    const { bootAfterCreate, CPUs, fastClone, memory, template, VDIs, VIFs } = this.state
+    const { bootAfterCreate, CPUs, fastClone, memory, template, VDIs, VIFs } = this.state.state
     return <Section icon='new-vm-summary' title='newVmSummaryPanel' summary>
       <SectionContent summary>
         <span>
