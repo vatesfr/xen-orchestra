@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import { createBackoff } from 'jsonrpc-websocket-client'
 import { propTypes } from 'utils'
 import { RFB } from 'novnc-node'
 import {
@@ -27,8 +28,8 @@ const fixProtocol = url => {
 export default class NoVnc extends Component {
   constructor (props) {
     super(props)
-
     this._rfb = null
+    this._retryGen = createBackoff(Infinity)
   }
 
   _clean () {
@@ -39,7 +40,7 @@ export default class NoVnc extends Component {
     }
   }
 
-  componentDidMount () {
+  _connect = () => {
     this._clean()
 
     const url = parseRelativeUrl(this.props.url)
@@ -56,7 +57,29 @@ export default class NoVnc extends Component {
         onClipboardChange(text)
       })
     })
+
+    rfb._onUpdateState = (rfb, state) => {
+      if (state !== 'disconnected') {
+        return
+      }
+
+      if (state === 'normal') {
+        if (this._retryTimeout) {
+          clearTimeout(this._retryTimeout)
+          this._retryTimeout = undefined
+          this._retryGen = createBackoff(Infinity)
+        }
+      }
+
+      clearTimeout(this._retryTimeout)
+      this._retryTimeout = setTimeout(this._connect, this._retryGen.next().value)
+    }
+
     rfb.connect(formatUrl(url))
+  }
+
+  componentDidMount () {
+    this._connect()
   }
 
   componentWillUnmount () {
