@@ -115,7 +115,7 @@ export default class Home extends Component {
 
     const { filterInput } = this.refs
     if (filterInput && filterInput.value !== filter) {
-      filterInput.value = `${filter} ` // Add a trailing space.
+      filterInput.value = filter
       filterInput.focus()
     }
   }
