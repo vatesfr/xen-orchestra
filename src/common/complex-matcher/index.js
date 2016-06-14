@@ -203,6 +203,10 @@ export const parse = invoke(() => {
   }
 
   return input_ => {
+    if (!input_) {
+      return
+    }
+
     i = 0
     input = input_.split('')
     n = input.length
