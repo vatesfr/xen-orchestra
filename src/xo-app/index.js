@@ -17,6 +17,7 @@ import Host from './host'
 import Menu from './menu'
 import Modal, { alert } from 'modal'
 import New from './new'
+import NewVm from './new-vm'
 import Pool from './pool'
 import Self from './self'
 import Settings from './settings'
@@ -66,6 +67,7 @@ const BODY_STYLE = {
   tasks: Tasks,
   user: User,
   'vms/import': VmImport,
+  'vms/new': NewVm,
   'vms/:id': Vm,
   'xoa-update': XoaUpdates
 })
