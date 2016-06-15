@@ -136,7 +136,11 @@ export class BlockLink extends React.Component {
       element = element.parentNode
     }
     event.stopPropagation()
-    this.context.router.push(this.props.to)
+    if (event.ctrlKey || event.button === 1) {
+      window.open(this.context.router.createHref(this.props.to))
+    } else {
+      this.context.router.push(this.props.to)
+    }
   }
 
   render () {
