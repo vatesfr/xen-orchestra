@@ -10,7 +10,7 @@ import isPlainObject from 'lodash/isPlainObject'
 import isString from 'lodash/isString'
 import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
-import propTypes from 'proptypes'
+import propTypes from 'prop-types'
 import React, { cloneElement } from 'react'
 import { connect } from 'react-redux'
 
