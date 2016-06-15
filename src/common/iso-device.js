@@ -71,6 +71,8 @@ export default class IsoDevice extends Component {
   }
 
   render () {
+    const { mountedIso } = this.props
+
     return (
       <div className='input-group'>
         <SelectVdi
@@ -78,12 +80,12 @@ export default class IsoDevice extends Component {
           onChange={this._handleInsert}
           predicate={this._predicate}
           ref='selectIso'
-          value={this.props.mountedIso}
+          value={mountedIso}
         />
         <span className='input-group-btn'>
           <ActionButton
             btnStyle='secondary'
-            disabled={!this.props.mountedIso}
+            disabled={!mountedIso}
             handler={this._handleEject}
             icon='vm-eject'
           />
