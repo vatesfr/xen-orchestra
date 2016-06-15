@@ -12,10 +12,6 @@ import {
   stopVm
 } from 'xo'
 
-const NOT_IMPLEMENTED = () => {
-  throw new Error('not implemented')
-}
-
 const vmActionBarByState = {
   Running: ({ vm }) => (
     <ActionBar

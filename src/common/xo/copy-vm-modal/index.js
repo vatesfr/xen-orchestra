@@ -7,8 +7,7 @@ import { SelectSr } from '../../select-objects'
 import { Toggle } from '../../form'
 import { injectIntl } from 'react-intl'
 
-export default class CopyVmModalBody extends Component {
-
+class CopyVmModalBody extends Component {
   get value () {
     const { state } = this
     return {
