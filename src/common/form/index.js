@@ -152,7 +152,8 @@ const TOGGLE_STYLE = { visibility: 'hidden' }
 
 @propTypes({
   defaultValue: propTypes.bool,
-  onChange: propTypes.func
+  onChange: propTypes.func,
+  value: propTypes.bool
 })
 export class Toggle extends Component {
   get value () {
@@ -161,6 +162,13 @@ export class Toggle extends Component {
 
   set value (value) {
     this.refs.input.checked = Boolean(value)
+  }
+
+  componentWillReceiveProps (nextProps) {
+    const { value } = nextProps
+    if (value !== this.props.value) {
+      this.value = value
+    }
   }
 
   _onChange = () => {
@@ -173,17 +181,21 @@ export class Toggle extends Component {
   render () {
     const { props, refs } = this
     const { input } = refs
-    const value = input ? input.checked : props.defaultValue
+    const {
+      defaultValue = false,
+      value = input ? input.checked : defaultValue
+    } = props
 
     return <label className={props.disabled ? 'text-muted' : value ? 'text-success' : null}>
       <Icon icon={`toggle-${value ? 'on' : 'off'}`} size={2} />
       <input
-        defaultChecked={props.defaultValue}
+        defaultChecked={defaultValue}
         disabled={props.disabled}
         onChange={this._onChange}
         ref='input'
         style={TOGGLE_STYLE}
         type='checkbox'
+        value={value}
       />
     </label>
   }
