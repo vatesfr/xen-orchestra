@@ -30,6 +30,23 @@ export default class NoVnc extends Component {
     super(props)
     this._rfb = null
     this._retryGen = createBackoff(Infinity)
+
+    this._onUpdateState = (rfb, state) => {
+      if (state === 'normal') {
+        if (this._retryTimeout) {
+          clearTimeout(this._retryTimeout)
+          this._retryTimeout = undefined
+          this._retryGen = createBackoff(Infinity)
+        }
+      }
+
+      if (state !== 'disconnected') {
+        return
+      }
+
+      clearTimeout(this._retryTimeout)
+      this._retryTimeout = setTimeout(this._connect, this._retryGen.next().value)
+    }
   }
 
   _clean () {
@@ -55,25 +72,9 @@ export default class NoVnc extends Component {
       wsProtocols: [ 'chat' ],
       onClipboardChange: onClipboardChange && ((_, text) => {
         onClipboardChange(text)
-      })
+      }),
+      onUpdateState: this._onUpdateState
     })
-
-    rfb._onUpdateState = (rfb, state) => {
-      if (state !== 'disconnected') {
-        return
-      }
-
-      if (state === 'normal') {
-        if (this._retryTimeout) {
-          clearTimeout(this._retryTimeout)
-          this._retryTimeout = undefined
-          this._retryGen = createBackoff(Infinity)
-        }
-      }
-
-      clearTimeout(this._retryTimeout)
-      this._retryTimeout = setTimeout(this._connect, this._retryGen.next().value)
-    }
 
     rfb.connect(formatUrl(url))
   }
