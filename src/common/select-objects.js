@@ -451,6 +451,24 @@ export const SelectHighLevelObjects = makeStoreSelect(() => {
 }, { placeholder: _('selectObjects') })
 
 // ===================================================================
+
+export const SelectVdi = propTypes({
+  containerPredicate: propTypes.func
+})(makeStoreSelect(() => {
+  const getSrs = createGetObjectsOfType('SR').filter((_, props) => props.containerPredicate)
+  const getVdis = createGetObjectsOfType('VDI').filter(createSelector(
+    getSrs,
+    filterPredicate,
+    (srs, predicate) => predicate ? vdi => srs[vdi.$SR] && predicate(vdi) : vdi => srs[vdi.$SR]
+  )).sort().groupBy('$SR')
+
+  return {
+    xoObjects: getVdis,
+    xoContainers: getSrs
+  }
+}, { placeholder: _('selectVdis') }))
+
+// ===================================================================
 // Objects from subscriptions.
 // ===================================================================
 
