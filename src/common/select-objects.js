@@ -122,7 +122,7 @@ export class GenericSelect extends Component {
 
       const value = this._getValue(xoObjectsById, newProps)
 
-      return this.setState({
+      this.setState({
         options,
         value: this._setValue(value, newProps),
         xoObjectsById
@@ -446,6 +446,24 @@ export const SelectHighLevelObjects = makeStoreSelect(() => {
 
   return {xoObjects: getHighLevelObjects}
 }, { placeholder: _('selectObjects') })
+
+// ===================================================================
+
+export const SelectVdi = propTypes({
+  srPredicate: propTypes.func
+})(makeStoreSelect(() => {
+  const getSrs = createGetObjectsOfType('SR').filter((_, props) => props.srPredicate)
+  const getVdis = createGetObjectsOfType('VDI').filter(createSelector(
+    getSrs,
+    filterPredicate,
+    (srs, predicate) => predicate ? vdi => srs[vdi.$SR] && predicate(vdi) : vdi => srs[vdi.$SR]
+  )).sort().groupBy('$SR')
+
+  return {
+    xoObjects: getVdis,
+    xoContainers: getSrs
+  }
+}, { placeholder: _('selectVdis') }))
 
 // ===================================================================
 // Objects from subscriptions.

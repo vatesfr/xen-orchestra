@@ -334,6 +334,9 @@ export const messages = {
   selectTags: {
     defaultMessage: 'Select tag(s)…'
   },
+  selectVdis: {
+    defaultMessage: 'Select disk(s)…'
+  },
   fillRequiredInformations: {
     defaultMessage: 'Fill required informations.'
   },
@@ -1731,6 +1734,7 @@ localizedMessages.fr = {
   selectVms: 'Selectionner VM(s)…',
   selectVmTemplates: 'Selectionner patrons de VM…',
   selectTags: 'Selectionner tag(s)…',
+  selectVdis: 'Selectionner disque(s)…',
   fillRequiredInformations: 'Remplir les champs requis.',
   fillOptionalInformations: 'Remplir informations (optionnel)',
   selectTableReset: 'Réinitialiser',

@@ -115,6 +115,12 @@ const xoItemToRender = {
     </span>
   ),
 
+  VDI: vdi => (
+    <span>
+      <Icon icon='disk' /> {vdi.name_label} {vdi.name_description && <span> ({vdi.name_description})</span>}
+    </span>
+  ),
+
   // Pool objects.
   'VM-template': vmTemplate => <PoolObjectItem object={vmTemplate} />,
   host: host => <PoolObjectItem object={host} />,

@@ -526,6 +526,18 @@ export const exportVm = ({ id }) => {
     .then(({ $getFrom: url }) => window.open(`.${url}`))
 }
 
+export const insertCd = (vm, cd, force = false) => (
+  xo.call('vm.insertCd', {
+    id: resolveId(vm),
+    cd_id: resolveId(cd),
+    force
+  })
+)
+
+export const ejectCd = vm => (
+  xo.call('vm.ejectCd', { id: resolveId(vm) })
+)
+
 // VDI ---------------------------------------------------------------
 
 export const editVdi = ({ id }, props) => (
