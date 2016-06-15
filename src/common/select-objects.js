@@ -233,12 +233,10 @@ export class GenericSelect extends Component {
   }
 }
 
-const makeStoreSelect = (createSelectors, props) => connectStore(() => {
-  const selectors = createSelectors()
-
-  return (state, props) =>
-    mapValues(selectors, selector => selector(state, props))
-}, { withRef: true })(
+const makeStoreSelect = (createSelectors, props) => connectStore(
+  createSelectors,
+  { withRef: true }
+)(
   class extends Component {
     get value () {
       return this.refs.select.value
@@ -420,16 +418,16 @@ export const SelectNetwork = makeStoreSelect(() => {
 
 // ===================================================================
 
-export const SelectTag = makeStoreSelect(() => {
-  const getTags = createGetTags().filter(filterPredicate).sort()
-
-  return {
-    xoObjects: createSelector(
-      getTags,
-      tags => map(tags, tag => ({ id: tag, type: 'tag', value: tag }))
-    )
-  }
-}, { placeholder: _('selectTags') })
+export const SelectTag = makeStoreSelect((_, props) => ({
+  xoObjects: createSelector(
+    createGetTags(
+      'objects' in props
+        ? (_, props) => props.objects
+        : undefined
+    ).filter(filterPredicate).sort(),
+    tags => map(tags, tag => ({ id: tag, type: 'tag', value: tag }))
+  )
+}), { placeholder: _('selectTags') })
 
 export const SelectHighLevelObjects = makeStoreSelect(() => {
   const getHosts = createGetObjectsOfType('host')
