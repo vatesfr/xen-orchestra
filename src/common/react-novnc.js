@@ -49,6 +49,13 @@ export default class NoVnc extends Component {
     }
   }
 
+  sendCtrlAltDel () {
+    const rfb = this._rfb
+    if (rfb) {
+      rfb.sendCtrlAltDel()
+    }
+  }
+
   _clean () {
     const rfb = this._rfb
     if (rfb) {
