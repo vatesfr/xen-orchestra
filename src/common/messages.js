@@ -1631,7 +1631,27 @@ export const messages = {
   serverHost: 'Host',
   serverUsername: 'Username',
   serverPassword: 'Password',
-  serverAction: 'Action'
+  serverAction: 'Action',
+
+  // ----- Copy VM -----
+  copyVm: {
+    defaultMessage: 'Copy VM'
+  },
+  copyVmConfirm: {
+    defaultMessage: 'Are you sure you want to copy this VM to {SR}?'
+  },
+  copyVmName: {
+    defaultMessage: 'Name'
+  },
+  copyVmNamePlaceholder: {
+    defaultMessage: 'If empty: name of the copied VM'
+  },
+  copyVmSelectSr: {
+    defaultMessage: 'Select SR'
+  },
+  copyVmCompress: {
+    defaultMessage: 'Use compression'
+  }
 }
 forEach(messages, (message, id) => {
   if (isString(message)) {
@@ -2025,7 +2045,14 @@ localizedMessages.fr = {
   totalResource: 'Total :',
   remainingResource: 'Restants :',
   usedResource: 'Utilisés :',
-  noResourceSetLimits: 'Pas de limites.'
+  noResourceSetLimits: 'Pas de limites.',
+  // ----- Copy VM -----
+  copyVm: 'Copier la VM',
+  copyVmConfirm: 'Voulez-vous vraiment copier cette VM sur {SR} ?',
+  copyVmName: 'Nom',
+  copyVmNamePlaceholder: 'Si vide : nom de la VM copiée',
+  copyVmSelectSr: 'Sélectionnez un SR',
+  copyVmCompress: 'Utiliser la compression'
 }
 
 // ===================================================================

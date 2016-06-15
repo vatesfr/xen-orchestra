@@ -376,6 +376,24 @@ export const cloneVm = ({ id, name_label: nameLabel }, fullCopy = false) => (
   })
 )
 
+import CopyVmModalBody from './copy-vm-modal'
+export const copyVm = (vm, sr, name, compress) => {
+  if (sr) {
+    return confirm({
+      title: _('copyVm'),
+      body: _('copyVmConfirm', { SR: sr.name_label })
+    }).then(() => xo.call('vm.copy', { vm: vm.id, sr: sr.id, name: name || vm.name_label + '_COPY', compress }))
+  } else {
+    return confirm({
+      title: _('copyVm'),
+      body: <CopyVmModalBody vm={vm} />
+    }).then(
+      params => xo.call('vm.copy', { vm: vm.id, ...params }),
+      noop
+    )
+  }
+}
+
 export const convertVmToTemplate = ({ id }) => (
   confirm({
     title: 'Convert to template',

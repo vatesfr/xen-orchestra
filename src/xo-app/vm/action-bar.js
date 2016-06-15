@@ -2,6 +2,7 @@ import ActionBar from 'action-bar'
 import React from 'react'
 import {
   cloneVm,
+  copyVm,
   exportVm,
   migrateVm,
   restartVm,
@@ -10,10 +11,6 @@ import {
   startVm,
   stopVm
 } from 'xo'
-
-const NOT_IMPLEMENTED = () => {
-  throw new Error('not implemented')
-}
 
 const vmActionBarByState = {
   Running: ({ vm }) => (
@@ -47,7 +44,7 @@ const vmActionBarByState = {
         {
           icon: 'vm-copy',
           label: 'copyVmLabel',
-          handler: NOT_IMPLEMENTED
+          handler: copyVm
         }
       ]}
       display='icon'
@@ -80,7 +77,7 @@ const vmActionBarByState = {
         {
           icon: 'vm-copy',
           label: 'copyVmLabel',
-          handler: NOT_IMPLEMENTED
+          handler: copyVm
         }
       ]}
       display='icon'
@@ -108,7 +105,7 @@ const vmActionBarByState = {
         {
           icon: 'vm-copy',
           label: 'copyVmLabel',
-          handler: NOT_IMPLEMENTED
+          handler: copyVm
         }
       ]}
       display='icon'
