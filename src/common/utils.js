@@ -1,5 +1,4 @@
 import * as actions from 'store/actions'
-import assign from 'lodash/assign'
 import every from 'lodash/every'
 import forEach from 'lodash/forEach'
 import humanFormat from 'human-format'
@@ -11,16 +10,19 @@ import isPlainObject from 'lodash/isPlainObject'
 import isString from 'lodash/isString'
 import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
-import React, { cloneElement, PropTypes } from 'react'
+import propTypes from 'prop-types'
+import React, { cloneElement } from 'react'
 import { connect } from 'react-redux'
 
 import BaseComponent from './base-component'
 import invoke from './invoke'
 
-// ===================================================================
-
 export const EMPTY_ARRAY = Object.freeze([ ])
 export const EMPTY_OBJECT = Object.freeze({ })
+
+export { propTypes }
+
+// ===================================================================
 
 export const ensureArray = (value) => {
   if (value === undefined) {
@@ -120,6 +122,9 @@ export const autobind = (target, key, {
 
 // -------------------------------------------------------------------
 
+@propTypes({
+  tagName: propTypes.string
+})
 export class BlockLink extends React.Component {
   static contextTypes = {
     router: React.PropTypes.object
@@ -144,14 +149,15 @@ export class BlockLink extends React.Component {
   }
 
   render () {
-    const { children } = this.props
+    const { children, tagName = 'div' } = this.props
+    const Component = tagName
     return (
-      <div
+      <Component
         style={this._style}
         onClickCapture={this._onClickCapture}
       >
         {children}
-      </div>
+      </Component>
     )
   }
 }
@@ -353,27 +359,6 @@ export const If = ({ cond, children }) => cond && children
 // -------------------------------------------------------------------
 
 export { invoke }
-
-// -------------------------------------------------------------------
-
-// Decorators to help declaring on React components without using the
-// tedious static properties syntax.
-//
-// ```js
-// @propTypes({
-//   children: propTypes.node.isRequired
-// })
-// class MyComponent extends React.Component {}
-// ```
-export const propTypes = types => target => {
-  target.propTypes = {
-    ...target.propTypes,
-    ...types
-  }
-
-  return target
-}
-assign(propTypes, PropTypes)
 
 // -------------------------------------------------------------------
 
