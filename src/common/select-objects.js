@@ -453,9 +453,9 @@ export const SelectHighLevelObjects = makeStoreSelect(() => {
 // ===================================================================
 
 export const SelectVdi = propTypes({
-  containerPredicate: propTypes.func
+  srPredicate: propTypes.func
 })(makeStoreSelect(() => {
-  const getSrs = createGetObjectsOfType('SR').filter((_, props) => props.containerPredicate)
+  const getSrs = createGetObjectsOfType('SR').filter((_, props) => props.srPredicate)
   const getVdis = createGetObjectsOfType('VDI').filter(createSelector(
     getSrs,
     filterPredicate,

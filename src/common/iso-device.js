@@ -6,7 +6,8 @@ import { SelectVdi } from './select-objects'
 import {
   createGetObjectsOfType,
   createFinder,
-  createGetObject
+  createGetObject,
+  createSelector
 } from './selectors'
 import {
   connectStore,
@@ -17,8 +18,6 @@ import {
   insertCd
 } from './xo'
 
-const isoContainerPredicate = sr => sr.SR_type === 'iso'
-
 @propTypes({
   vm: propTypes.object.isRequired
 })
@@ -27,7 +26,7 @@ const isoContainerPredicate = sr => sr.SR_type === 'iso'
     createGetObjectsOfType('VBD').pick(
       (_, { vm }) => vm.$VBDs
     ),
-    vbd => vbd.is_cd_drive
+    [ vbd => vbd.is_cd_drive ]
   )
 
   const getMountedIso = createGetObject(
@@ -45,30 +44,26 @@ const isoContainerPredicate = sr => sr.SR_type === 'iso'
   }
 })
 export default class IsoDevice extends Component {
-  constructor (props) {
-    super(props)
-    this._predicate = vdi => vdi.$pool === props.vm.$pool
-  }
+  _getPredicate = createSelector(
+    () => this.props.vm.$pool,
+    poolId => sr => sr.$pool === poolId && sr.SR_type === 'iso'
+  )
 
-  _handleInsert = async iso => {
-    const { mountedIso, vm } = this.props
+  _handleInsert = iso => {
+    const { vm } = this.props
 
-    if (mountedIso) {
-      await ejectCd(vm)
-    }
-
-    insertCd(vm, iso.id)
-  }
-
-  _handleEject = () => {
-    const { props } = this
-
-    if (props.mountedIso) {
-      ejectCd(props.vm).then(() => {
-        this.refs.selectIso.value = undefined
-      })
+    if (iso) {
+      insertCd(vm, iso.id, true)
+    } else {
+      ejectCd(vm)
     }
   }
+
+  _handleEject = () => (
+    ejectCd(this.props.vm).then(() => {
+      this.refs.selectIso.value = undefined
+    })
+  )
 
   render () {
     const { mountedIso } = this.props
@@ -76,9 +71,8 @@ export default class IsoDevice extends Component {
     return (
       <div className='input-group'>
         <SelectVdi
-          containerPredicate={isoContainerPredicate}
+          srPredicate={this._getPredicate()}
           onChange={this._handleInsert}
-          predicate={this._predicate}
           ref='selectIso'
           value={mountedIso}
         />
