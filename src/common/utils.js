@@ -17,6 +17,25 @@ import { connect } from 'react-redux'
 import BaseComponent from './base-component'
 import invoke from './invoke'
 
+// Decorators to help declaring on React components without using the
+// tedious static properties syntax.
+//
+// ```js
+// @propTypes({
+//   children: propTypes.node.isRequired
+// })
+// class MyComponent extends React.Component {}
+// ```
+export const propTypes = types => target => {
+  target.propTypes = {
+    ...target.propTypes,
+    ...types
+  }
+
+  return target
+}
+assign(propTypes, PropTypes)
+
 // ===================================================================
 
 export const EMPTY_ARRAY = Object.freeze([ ])
@@ -120,6 +139,9 @@ export const autobind = (target, key, {
 
 // -------------------------------------------------------------------
 
+@propTypes({
+  tagName: propTypes.string
+})
 export class BlockLink extends React.Component {
   static contextTypes = {
     router: React.PropTypes.object
@@ -354,27 +376,6 @@ export const If = ({ cond, children }) => cond && children
 // -------------------------------------------------------------------
 
 export { invoke }
-
-// -------------------------------------------------------------------
-
-// Decorators to help declaring on React components without using the
-// tedious static properties syntax.
-//
-// ```js
-// @propTypes({
-//   children: propTypes.node.isRequired
-// })
-// class MyComponent extends React.Component {}
-// ```
-export const propTypes = types => target => {
-  target.propTypes = {
-    ...target.propTypes,
-    ...types
-  }
-
-  return target
-}
-assign(propTypes, PropTypes)
 
 // -------------------------------------------------------------------
 
