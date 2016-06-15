@@ -354,7 +354,9 @@ const _extendCollectionSelector = (selector, objectsType) => {
 // - sort: returns a selector which returns the objects appropriately
 //         sorted (groupBy can be chained)
 export const createGetObjectsOfType = type => {
-  const getObjects = state => state.objects.byType[type] || EMPTY_OBJECT
+  const getObjects = isFunction(type)
+    ? (state, props) => state.objects.byType[type(state, props)] || EMPTY_OBJECT
+    : state => state.objects.byType[type] || EMPTY_OBJECT
 
   return _extendCollectionSelector(createFilter(
     getObjects,
