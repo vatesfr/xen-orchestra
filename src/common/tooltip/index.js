@@ -13,7 +13,7 @@ const Tooltip = ({ children, content, tagName: Component = 'span' }) => (
 )
 
 Tooltip.propTypes = {
-  children: PropTypes.any.isRequired,
+  children: PropTypes.any,
   content: PropTypes.any.isRequired,
   tagName: PropTypes.string
 }
