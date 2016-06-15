@@ -53,8 +53,7 @@ export class SelectPlainObject extends Component {
   }
 
   _computeOptions (options) {
-    let { optionKey } = this.props
-    optionKey || (optionKey = 'id')
+    const { optionKey = 'id' } = this.props
     return map(options, option => ({
       value: option[optionKey] || option,
       label: option.label || option[optionKey] || option
@@ -62,8 +61,7 @@ export class SelectPlainObject extends Component {
   }
 
   get value () {
-    let { optionKey } = this.props
-    optionKey || (optionKey = 'id')
+    const { optionKey = 'id' } = this.props
     const { value } = this.state
     const { options } = this.props
     const pickValue = value => {

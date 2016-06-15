@@ -49,7 +49,7 @@ const LOGS_PER_PAGE = 10
 
 @connectStore(() => {
   const object = createGetObject((_, props) => props.value)
-  return (state, props) => ({object: object(state, props)})
+  return {object}
 })
 class JobValue extends Component {}
 
@@ -72,8 +72,11 @@ class JobReturn extends JobValue {
       object,
       returnValue
     } = this.props
-    let xoName = object && (object.name_label || object.name) && (xoName += object.type && ` (${object.type})` || '')
-    return <span> <Icon icon='arrow-right' /> {xoName || String(returnValue)}</span>
+    let display = object && (object.name_label || object.name) || String(returnValue)
+    if (object && object.type) {
+      display += ` (${object.type})`
+    }
+    return <span><Icon icon='arrow-right' />{' '}{display}</span>
   }
 }
 
@@ -119,7 +122,7 @@ class Log extends Component {
               {map(log.calls, call => <li key={call.callKey} className='list-group-item'>
                 <strong className='text-info'>{call.method}: </strong>
                 {map(call.params, (value, key) => <JobParam paramValue={value} paramKey={key} key={key} />)}
-                {call.returnedValue && <JobReturn returnValue={call.returnedValue} />}
+                {call.returnedValue && <span>{' '}<JobReturn returnValue={call.returnedValue} /></span>}
                 {call.error && <Icon icon='error' />}
               </li>)}
             </ul>

@@ -1,5 +1,6 @@
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
+import delay from 'lodash/delay'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
 import GenericInput from 'json-schema-input/generic-input'
@@ -8,9 +9,9 @@ import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
 import React, { Component } from 'react'
+import size from 'lodash/size'
 import { error } from 'notification'
 import { SelectPlainObject } from '../helpers'
-import delay from 'lodash/delay'
 
 import {
   apiMethods,
@@ -30,11 +31,11 @@ const getType = function (param) {
   if (Array.isArray(param.type)) {
     if (includes(param.type, 'integer')) {
       return 'integer'
-    } else if (includes(param.type, 'number')) {
-      return 'number'
-    } else {
-      return 'string'
     }
+    if (includes(param.type, 'number')) {
+      return 'number'
+    }
+    return 'string'
   }
   return param.type
 }
@@ -42,9 +43,7 @@ const getType = function (param) {
 /**
  * Tries extracting Object targeted property
  */
-const reduceObject = function (value, propertyName = 'id') {
-  return value && value[propertyName] || value
-}
+const reduceObject = (value, propertyName = 'id') => value && value[propertyName] || value
 
 /**
  * Adapts all data "arrayed" by UI-multiple-selectors to job's cross-product trick
@@ -70,7 +69,7 @@ const dataToParamVectorItems = function (params, data) {
       }
     }
   })
-  if (Object.keys(data).length) {
+  if (size(data)) {
     items.push({
       type: 'set',
       values: [mapValues(data, reduceObject)]
@@ -89,7 +88,7 @@ export default class Jobs extends Component {
       job: undefined,
       jobs: undefined
     }
-    this.loaded = new Promise((resolve, reject) => {
+    new Promise((resolve, reject) => {
       this._resolveLoaded = resolve
     })
       .then(() => {
@@ -152,13 +151,13 @@ export default class Jobs extends Component {
     apiMethods.then(methods => {
       const actions = []
 
-      for (let method in methods) {
+      for (const method in methods) {
         if (includes(jobCompliantMethods, method)) {
           let [group, command] = method.split('.')
-          const info = methods[method]
+          const info = {...methods[method]}
           info.type = 'object'
 
-          const properties = {...methods[method].params}
+          const properties = {...info.params}
           delete info.params
 
           const required = []
