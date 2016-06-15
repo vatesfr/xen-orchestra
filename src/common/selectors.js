@@ -267,41 +267,38 @@ export const createGetObject = (idSelector = _getId) =>
 
 // Specialized createSort() configured for a given type.
 export const createSortForType = invoke(() => {
-  const optionsByType = {
-    message: [
-      [ message => message.time ],
-      'desc'
-    ],
-    PIF: [
-      [ pif => pif.device ]
-    ],
-    pool: [
-      [ pool => pool.name_label ]
-    ],
-    pool_patch: [
-      [ patch => patch.name ]
-    ],
-    tag: [
-      [ tag => tag ]
-    ],
-    VBD: [
-      [ vbd => vbd.position ]
-    ],
-    'VDI-snapshot': [
-      [ snapshot => snapshot.snapshot_time ],
-      'desc'
-    ],
-    'VM-snapshot': [
-      [ snapshot => snapshot.snapshot_time ],
-      'desc'
-    ]
+  const iterateesByType = {
+    message: message => message.time,
+    PIF: pif => pif.device,
+    pool: pool => pool.name_label,
+    pool_patch: patch => patch.name,
+    tag: tag => tag,
+    VBD: vbd => vbd.position,
+    'VDI-snapshot': snapshot => snapshot.snapshot_time,
+    'VM-snapshot': snapshot => snapshot.snapshot_time
   }
-  const defaults = [
-    [ [ object => object.$pool, object => object.name_label ] ]
+  const defaultIteratees = [
+    object => object.$pool,
+    object => object.name_label
   ]
-  const getOptions = type => optionsByType[type] || defaults
+  const getIteratees = type => iterateesByType[type] || defaultIteratees
 
-  return (type, collection) => createSort(collection, ...getOptions(type))
+  const ordersByType = {
+    message: 'desc',
+    'VDI-snapshot': 'desc',
+    'VM-snapshot': 'desc'
+  }
+  const getOrders = type => ordersByType[type]
+
+  const autoSelector = (type, fn) => isFunction(type)
+    ? (state, props) => fn(type(state, props))
+    : [ fn(type) ]
+
+  return (type, collection) => createSort(
+    collection,
+    autoSelector(type, getIteratees),
+    autoSelector(type, getOrders),
+  )
 })
 
 // Add utility methods to a collection selector.
