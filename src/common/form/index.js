@@ -189,13 +189,13 @@ export class Toggle extends Component {
     return <label className={props.disabled ? 'text-muted' : value ? 'text-success' : null}>
       <Icon icon={`toggle-${value ? 'on' : 'off'}`} size={2} />
       <input
+        checked={value}
         defaultChecked={defaultValue}
         disabled={props.disabled}
         onChange={this._onChange}
         ref='input'
         style={TOGGLE_STYLE}
         type='checkbox'
-        value={value}
       />
     </label>
   }

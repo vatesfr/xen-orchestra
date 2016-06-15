@@ -6,7 +6,7 @@ import React, { Component } from 'react'
 import { addSubscriptions } from 'utils'
 import { Container } from 'grid'
 import { Password as EditablePassword, Text } from 'editable'
-import { Password } from 'form'
+import { Password, Toggle } from 'form'
 import {
   addServer,
   editServer,
@@ -39,6 +39,7 @@ export default class Servers extends Component {
             <td>{_('serverUsername')}</td>
             <td>{_('serverPassword')}</td>
             <td>{_('serverAction')}</td>
+            <td>{_('serverReadOnly')}</td>
           </tr>
         </thead>
         <tbody>
@@ -96,6 +97,7 @@ export default class Servers extends Component {
                   }}
                 />
               </td>
+              <td><Toggle value={!!server.readOnly} onChange={readOnly => editServer(server, { readOnly })} /></td>
             </tr>
           ))}
         </tbody>
