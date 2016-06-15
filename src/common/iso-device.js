@@ -74,11 +74,11 @@ export default class IsoDevice extends Component {
     return (
       <div className='input-group'>
         <SelectVdi
-          defaultValue={this.props.mountedIso}
           containerPredicate={isoContainerPredicate}
           onChange={this._handleInsert}
           predicate={this._predicate}
           ref='selectIso'
+          value={this.props.mountedIso}
         />
         <span className='input-group-btn'>
           <ActionButton
