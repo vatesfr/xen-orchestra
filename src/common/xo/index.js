@@ -238,8 +238,8 @@ export const addServer = (host, username, password) => (
   )
 )
 
-export const editServer = ({ id }, { host, username, password }) => (
-  xo.call('server.set', { id, host, username, password })::tap(
+export const editServer = ({ id }, { host, username, password, readOnly }) => (
+  xo.call('server.set', { id, host, username, password, readOnly })::tap(
     subscribeServers.forceRefresh
   )
 )

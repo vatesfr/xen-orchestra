@@ -1632,6 +1632,7 @@ export const messages = {
   serverUsername: 'Username',
   serverPassword: 'Password',
   serverAction: 'Action',
+  serverReadOnly: 'Read Only',
 
   // ----- Copy VM -----
   copyVm: {
