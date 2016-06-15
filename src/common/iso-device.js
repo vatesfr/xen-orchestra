@@ -59,11 +59,7 @@ export default class IsoDevice extends Component {
     }
   }
 
-  _handleEject = () => (
-    ejectCd(this.props.vm).then(() => {
-      this.refs.selectIso.value = undefined
-    })
-  )
+  _handleEject = () => ejectCd(this.props.vm)
 
   render () {
     const { mountedIso } = this.props

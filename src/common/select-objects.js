@@ -123,7 +123,7 @@ export class GenericSelect extends Component {
 
       const value = this._getValue(xoObjectsById, newProps)
 
-      return this.setState({
+      this.setState({
         options,
         value: this._setValue(value, newProps),
         xoObjectsById
