@@ -144,14 +144,15 @@ export class BlockLink extends React.Component {
   }
 
   render () {
-    const { children } = this.props
+    const { children, tagName } = this.props
+    const Component = tagName || 'div'
     return (
-      <div
+      <Component
         style={this._style}
         onClickCapture={this._onClickCapture}
       >
         {children}
-      </div>
+      </Component>
     )
   }
 }

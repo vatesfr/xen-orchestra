@@ -4,9 +4,8 @@ import map from 'lodash/map'
 import React from 'react'
 import ActionRowButton from 'action-row-button'
 import TabButton from 'tab-button'
-import { Link } from 'react-router'
 import { Container, Row, Col } from 'grid'
-import { formatSize } from 'utils'
+import { BlockLink, formatSize } from 'utils'
 import { Text } from 'editable'
 import { connectPbd, disconnectPbd, deletePbd, editSr } from 'xo'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
@@ -43,11 +42,9 @@ export default ({
             <tbody>
               {map(pbds, pbd => {
                 const sr = srs[pbd.SR]
-                return <tr key={pbd.id}>
+                return <BlockLink key={pbd.id} to={`/srs/${sr.id}/general`} tagName='tr'>
                   <td>
-                    <Link to={`/srs/${sr.id}/general`}>
-                      <Text value={sr.name_label} onChange={value => editSr(sr, { name_label: value })} />
-                    </Link>
+                    <Text value={sr.name_label} onChange={value => editSr(sr, { name_label: value })} />
                   </td>
                   <td>{sr.SR_type}</td>
                   <td>{formatSize(sr.size)}</td>
@@ -98,7 +95,7 @@ export default ({
                       </span>
                     }
                   </td>
-                </tr>
+                </BlockLink>
               })}
             </tbody>
           </table>
