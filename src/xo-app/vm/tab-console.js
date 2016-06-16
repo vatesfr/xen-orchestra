@@ -1,6 +1,9 @@
 import _ from 'messages'
 import Component from 'base-component'
+import CopyToClipboard from 'react-copy-to-clipboard'
+import debounce from 'lodash/debounce'
 import Icon from 'icon'
+import invoke from 'invoke'
 import IsoDevice from 'iso-device'
 import NoVnc from 'react-novnc'
 import React from 'react'
@@ -17,6 +20,21 @@ export default class TabConsole extends Component {
   _sendCtrlAltDel = () => {
     this.refs.noVnc.sendCtrlAltDel()
   }
+
+  _getRemoteClipboard = clipboard => {
+    this.setState({ clipboard })
+    this.refs.clipboard.value = clipboard
+  }
+  _setRemoteClipboard = invoke(() => {
+    const setRemoteClipboard = debounce(value => {
+      this.setState({ clipboard: value })
+      this.refs.noVnc.setClipboard(value)
+    }, 200)
+    return event => setRemoteClipboard(event.target.value)
+  })
+
+  _getClipboardContent = () =>
+    this.refs.clipboard && this.refs.clipboard.value
 
   render () {
     const {
@@ -68,11 +86,13 @@ export default class TabConsole extends Component {
           </Col>
           <Col mediumSize={5}>
             <div className='input-group'>
-              <input type='text' className='form-control'></input>
+              <input type='text' className='form-control' ref='clipboard' onChange={this._setRemoteClipboard} />
               <span className='input-group-btn'>
-                <button className='btn btn-secondary'>
-                  <Icon icon='clipboard' /> {_('copyToClipboardLabel')}
-                </button>
+                <CopyToClipboard text={this.state.clipboard || ''}>
+                  <button className='btn btn-secondary'>
+                    <Icon icon='clipboard' /> {_('copyToClipboardLabel')}
+                  </button>
+                </CopyToClipboard>
               </span>
             </div>
           </Col>
@@ -87,7 +107,7 @@ export default class TabConsole extends Component {
         </Row>
         <Row className='console'>
           <Col>
-            <NoVnc ref='noVnc' url={resolveUrl(`consoles/${vm.id}`)} />
+            <NoVnc ref='noVnc' url={resolveUrl(`consoles/${vm.id}`)} onClipboardChange={this._getRemoteClipboard} />
             <p><em><Icon icon='info' /> {_('tipLabel')} {_('tipConsoleLabel')}</em></p>
           </Col>
         </Row>

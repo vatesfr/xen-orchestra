@@ -56,6 +56,13 @@ export default class NoVnc extends Component {
     }
   }
 
+  setClipboard (text) {
+    const rfb = this._rfb
+    if (rfb) {
+      rfb.clipboardPasteFrom(text)
+    }
+  }
+
   _clean () {
     const rfb = this._rfb
     if (rfb) {
@@ -77,7 +84,7 @@ export default class NoVnc extends Component {
       encrypt: isSecure,
       target: this.refs.canvas,
       wsProtocols: [ 'chat' ],
-      onClipboardChange: onClipboardChange && ((_, text) => {
+      onClipboard: onClipboardChange && ((_, text) => {
         onClipboardChange(text)
       }),
       onUpdateState: this._onUpdateState
