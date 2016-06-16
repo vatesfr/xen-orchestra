@@ -4,6 +4,7 @@ import Icon from 'icon'
 import React from 'react'
 import XoWeekHeatmap from 'xo-week-heatmap'
 import _ from 'messages'
+import cloneDeep from 'lodash/cloneDeep'
 import forEach from 'lodash/forEach'
 import map from 'lodash/map'
 import renderXoItem from 'render-xo-item'
@@ -93,7 +94,7 @@ const computeCpusAverage = (cpus, params) => {
   }
 
   const { metrics } = params
-  const cpusAvg = map(metrics['CPU 0'].values, ({ ...attr }) => attr)
+  const cpusAvg = cloneDeep(metrics['CPU 0'].values)
 
   for (let i = 1; i < nCpus; i++) {
     forEach(metrics[`CPU ${i}`].values, (value, index) => {
@@ -363,7 +364,9 @@ export default class Stats extends Component {
             <Col mediumSize={6}>
               {metricsState === METRICS_LOADING
                 ? (
-                <div>Loading…</div>
+                <div>
+                  <Icon icon='loading' /> {_('metricsLoading')}
+                </div>
                 ) : (metricsState === METRICS_LOADED &&
                   <select className='form-control' onChange={this._handleSelectedMetric}>
                     {_('noSelectedMetric', message => <option value=''>{message}</option>)}

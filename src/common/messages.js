@@ -1319,6 +1319,9 @@ export const messages = {
   statsDashboardSelectObjects: {
     defaultMessage: 'Select'
   },
+  metricsLoading: {
+    defaultMessage: 'Loading...'
+  },
 
   // ----- Health -----
   orphanedVdis: {
@@ -1979,6 +1982,7 @@ localizedMessages.fr = {
   statsDashboardGenericErrorMessage: 'Pas de stats disponibles pour :',
   noSelectedMetric: 'Pas de métrique sélectionnée',
   statsDashboardSelectObjects: 'Valider',
+  metricsLoading: 'Chargement...',
   // ----- Health -----
   orphanedVdis: 'Disques orphelins',
   orphanedVms: 'VM orphelines',
