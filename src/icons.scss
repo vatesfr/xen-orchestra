@@ -63,6 +63,10 @@
     @extend .fa-chevron-down;
   }
 
+  &-grab {
+    @extend .fa;
+    @extend .fa-ellipsis-v;
+  },
   &-caret {
     @extend .fa;
     @extend .fa-caret-down;

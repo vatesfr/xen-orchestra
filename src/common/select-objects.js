@@ -454,24 +454,6 @@ export const SelectTag = makeStoreSelect((_, props) => ({
 
 // ===================================================================
 
-export const SelectVdi = propTypes({
-  containerPredicate: propTypes.func
-})(makeStoreSelect(() => {
-  const getSrs = createGetObjectsOfType('SR').filter((_, props) => props.containerPredicate)
-  const getVdis = createGetObjectsOfType('VDI').filter(createSelector(
-    getSrs,
-    getPredicate,
-    (srs, predicate) => predicate ? vdi => srs[vdi.$SR] && predicate(vdi) : vdi => srs[vdi.$SR]
-  )).sort().groupBy('$SR')
-
-  return {
-    xoObjects: getVdis,
-    xoContainers: getSrs
-  }
-}, { placeholder: _('selectVdis') }))
-
-// ===================================================================
-
 export const SelectHighLevelObjects = makeStoreSelect(() => {
   const getHosts = createGetObjectsOfType('host')
   const getNetworks = createGetObjectsOfType('network')

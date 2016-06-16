@@ -12,6 +12,7 @@ const ActionBar = ({ actions, param }) => (
       {map(actions, ({ handler, handlerParam = param, label, icon }, index) => (
         /* <Tooltip key={index} content={_(label)}> TODO: fix tooltip */
         <ActionButton
+          key={index}
           btnStyle='secondary'
           handler={handler}
           handlerParam={handlerParam}
