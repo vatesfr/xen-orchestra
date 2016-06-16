@@ -1,6 +1,9 @@
 import _ from 'messages'
 import Component from 'base-component'
+import CopyToClipboard from 'react-copy-to-clipboard'
+import debounce from 'lodash/debounce'
 import Icon from 'icon'
+import invoke from 'invoke'
 import NoVnc from 'react-novnc'
 import React from 'react'
 import { resolveUrl } from 'xo'
@@ -17,6 +20,21 @@ export default class extends Component {
   _sendCtrlAltDel = () => {
     this.refs.noVnc.sendCtrlAltDel()
   }
+
+  _getRemoteClipboard = clipboard => {
+    this.setState({ clipboard })
+    this.refs.clipboard.value = clipboard
+  }
+  _setRemoteClipboard = invoke(() => {
+    const setRemoteClipboard = debounce(value => {
+      this.setState({ clipboard: value })
+      this.refs.noVnc.setClipboard(value)
+    }, 200)
+    return event => setRemoteClipboard(event.target.value)
+  })
+
+  _getClipboardContent = () =>
+    this.refs.clipboard && this.refs.clipboard.value
 
   render () {
     const {
@@ -67,11 +85,13 @@ export default class extends Component {
           </Col>
           <Col mediumSize={5}>
             <div className='input-group'>
-              <input type='text' className='form-control'></input>
+              <input type='text' className='form-control' ref='clipboard' onChange={this._setRemoteClipboard} />
               <span className='input-group-btn'>
-                <button className='btn btn-secondary'>
-                  <Icon icon='clipboard' /> {_('copyToClipboardLabel')}
-                </button>
+                <CopyToClipboard text={this.state.clipboard || ''}>
+                  <button className='btn btn-secondary'>
+                    <Icon icon='clipboard' /> {_('copyToClipboardLabel')}
+                  </button>
+                </CopyToClipboard>
               </span>
             </div>
           </Col>
