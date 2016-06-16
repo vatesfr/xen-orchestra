@@ -1450,6 +1450,9 @@ export const messages = {
   newVmCpuWeightDouble: {
     defaultMessage: 'Double (x2)'
   },
+  newVmCloudConfig: {
+    defaultMessage: 'Cloud config'
+  },
 
   // ----- Self -----
   resourceSets: {

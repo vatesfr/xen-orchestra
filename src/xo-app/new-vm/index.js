@@ -16,7 +16,8 @@ import store from 'store'
 import toArray from 'lodash/toArray'
 import Wizard, { Section } from 'wizard'
 import {
-  createVm
+  createVm,
+  getCloudInitConfig
 } from 'xo'
 import {
   SelectNetwork,
@@ -114,7 +115,7 @@ export default class NewVm extends BaseComponent {
   _reset = pool => {
     const { refs } = this
     forEach(refs, (ref, key) => {
-      if (ref.tagName === 'INPUT' && ref.tagName === 'TEXTAREA') {
+      if (ref.tagName === 'INPUT' || ref.tagName === 'TEXTAREA') {
         ref.value = ''
       } else if (key !== 'pool') {
         ref.value = undefined
@@ -192,8 +193,9 @@ export default class NewVm extends BaseComponent {
       pv_args: state.pv_args,
       // Boolean: if true, boot the VM right after its creation
       bootAfterCreate: state.bootAfterCreate,
+      cloudConfig: state.cloudConfig,
       /* String:
-       * - if 'CoreOS': vm.getCloudInitConfig --> vm.createCloudInitConfigDrive --> docker.register
+       * - if 'CoreOS': vm.createCloudInitConfigDrive --> docker.register
        * - else: vm.createCloudInitConfigDrive(..., cloudContent) --> vm.setBootOrder
        */
       cloudContent
@@ -265,6 +267,12 @@ export default class NewVm extends BaseComponent {
     }, () => forEach(this.state.state, (element, key) => {
       !isArray(element) && this._setInputValue(key, element)
     }))
+
+    getCloudInitConfig(template.id).then(cloudConfig => {
+      this._setState({ cloudConfig }, () => {
+        this.refs.cloudConfig.value = cloudConfig
+      })
+    })
   }
 
   _addVdi = () => this._setState({ VDIs: [ ...this.state.state.VDIs, {
@@ -492,10 +500,6 @@ export default class NewVm extends BaseComponent {
         </Item>
         {template.virtualizationMode === 'pv'
           ? <Item label='newVmPvArgsLabel'>
-            {/* key='pv_args' is needed so React can differentiate this input from the customConfig radio button
-              * (when switching from a disk template to a no-disk template) and doesn't think it is the same input
-              * switching from controlled to uncontrolled and vice versa.
-              */}
             <input onChange={this._getOnChange('pv_args')} className='form-control' type='text' />
           </Item>
           : <Item>
@@ -505,6 +509,15 @@ export default class NewVm extends BaseComponent {
           </Item>
         }
       </SectionContent>}
+      {template.name_label === 'CoreOS' && <div>
+        <label>{_('newVmCloudConfig')}</label>
+        <textarea
+          className='form-control'
+          onChange={this._getOnChange('cloudConfig')}
+          ref='cloudConfig'
+          rows={7}
+        />
+      </div>}
     </Section>
   }
   _isInstallSettingsDone = () => {
