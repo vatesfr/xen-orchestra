@@ -63,7 +63,7 @@ const computeStatsAverage = (stats, {
     if (values[key] === undefined) {
       values.push({
         value: mapValue(value),
-        date: (timestampStart + 3600 * key) * 1000
+        date: timestampStart + 3600000 * key
       })
     } else {
       values[key].value = (values[key].value * (layer - 1) + value) / layer
@@ -276,7 +276,7 @@ export default class Stats extends Component {
               layers,
               metrics,
               object,
-              timestampStart: result.endTimestamp - 3600 * (stats.memory.length - 1)
+              timestampStart: (result.endTimestamp - 3600 * (stats.memory.length - 1)) * 1000
             }
 
             forEach(stats, (stats, type) => {

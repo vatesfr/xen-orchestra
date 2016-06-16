@@ -6,7 +6,7 @@ import maxBy from 'lodash/maxBy'
 import minBy from 'lodash/minBy'
 import times from 'lodash/times'
 import { injectIntl } from 'react-intl'
-import { scaleLinear } from 'd3-scale'
+import { scaleQuantize } from 'd3-scale'
 
 import Component from '../base-component'
 import Tooltip from '../tooltip'
@@ -43,7 +43,13 @@ export default class XoWeekHeatmap extends Component {
   static defaultProps = {
     cellRenderer: value => value,
     colors: [
-      '#cccccc',
+      '#edf8b1',
+      '#c7e9b4',
+      '#7fcdbb',
+      '#41b6c4',
+      '#1d91c0',
+      '#225ea8',
+      '#253494',
       '#081d58'
     ]
   }
@@ -57,7 +63,7 @@ export default class XoWeekHeatmap extends Component {
   }
 
   _computeColorGen = data => (
-    scaleLinear()
+    scaleQuantize()
       .domain([
         minBy(data, 'value').value,
         maxBy(data, 'value').value
