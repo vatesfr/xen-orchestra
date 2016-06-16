@@ -107,21 +107,11 @@ export default class Home extends Component {
   }
 
   componentWillMount () {
-    const filter = this._getFilter()
-    if (filter) {
-      this._initFilter(filter)
-    } else {
-      this._setFilter(OPTIONS[this.props.type].defaultFilter || '')
-    }
+    this._initFilter(this.props)
   }
 
   componentWillReceiveProps (props) {
-    const filter = this._getFilter(props)
-
-    const previousFilter = this._getFilter()
-    if (filter !== previousFilter) {
-      this._initFilter(filter)
-    }
+    this._initFilter(props)
   }
 
   _getNumberOfItems = createCounter(() => this.props.items)
@@ -138,7 +128,23 @@ export default class Home extends Component {
     })
   }
 
-  _initFilter (filter) {
+  _initFilter (props) {
+    const filter = this._getFilter(props)
+
+    // If filter is null, set a default filter.
+    if (filter == null) {
+      const defaultFilter = OPTIONS[props.type].defaultFilter
+      if (defaultFilter) {
+        this._setFilter(defaultFilter, props)
+      }
+      return
+    }
+
+    // If the filter is already set, do nothing.
+    if (filter === this.props.filter) {
+      return
+    }
+
     const parsed = ComplexMatcher.parse(filter)
     const properties = parsed::ComplexMatcher.getPropertyClausesStrings()
 
