@@ -215,7 +215,7 @@ export default class Stats extends Component {
       selectedMetric: undefined,
       objects: [],
       predicate: runningObjectsPredicate
-    }, () => { this.refs.selectHostVm.value = undefined })
+    })
   }
 
   _handleSelection = objects => {
@@ -238,7 +238,7 @@ export default class Stats extends Component {
       selectedMetric: undefined,
       objects,
       predicate: object => runningObjectsPredicate(object) && object.type === 'host'
-    }, () => { this.refs.selectHostVm.value = objects })
+    })
   }
 
   _selectAllVms = () => {
@@ -249,7 +249,7 @@ export default class Stats extends Component {
       selectedMetric: undefined,
       objects,
       predicate: object => runningObjectsPredicate(object) && object.type === 'VM'
-    }, () => { this.refs.selectHostVm.value = objects })
+    })
   }
 
   _validSelection = async () => {
@@ -328,7 +328,7 @@ export default class Stats extends Component {
                 multi
                 onChange={this._handleSelection}
                 predicate={predicate}
-                ref='selectHostVm'
+                value={objects}
               />
               <div className='btn-group m-t-1' role='group'>
                 <button
