@@ -2,6 +2,8 @@ import React from 'react'
 import _ from 'messages'
 import forEach from 'lodash/forEach'
 import map from 'lodash/map'
+import moment from 'moment'
+import sortBy from 'lodash/sortBy'
 import times from 'lodash/times'
 import { extent } from 'd3-array'
 import {
@@ -49,6 +51,40 @@ const computeColorGen = days => {
   return scaleSequential(interpolateViridis).domain([max, min])
 }
 
+const computeMissingDays = days => {
+  const correctedDays = days.slice()
+  const end = days.length - 1
+  const hours = new Array(24)
+
+  let a = moment(days[end].timestamp)
+  let b
+
+  for (let i = end; i > 0; i--) {
+    b = moment(days[i - 1].timestamp)
+
+    const diff = a.diff(b, 'days')
+
+    if (diff > 1) {
+      const days = times(diff - 1, id => {
+        a.subtract(1, 'days')
+
+        return {
+          legend: a.format('DD'),
+          hours
+        }
+      }).reverse()
+
+      correctedDays.splice.apply(
+        correctedDays, [i, 0].concat(days)
+      )
+    }
+
+    a = b
+  }
+
+  return correctedDays
+}
+
 // ===================================================================
 
 @propTypes({
@@ -86,16 +122,16 @@ export default class XoWeekHeatmap extends Component {
     // 1. Compute average per day.
     forEach(data, elem => {
       const date = new Date(elem.date)
-      const monthDay = formatTime(date, { day: '2-digit' })
-      const dayId = `${formatTime(date, { month: '2-digit' })}${monthDay}`
+      const dayId = moment(date).format('YYYYMMDD')
       const hourId = date.getHours()
 
       const { value } = elem
 
       if (!days[dayId]) {
         days[dayId] = {
-          legend: monthDay,
-          hours: new Array(24)
+          legend: moment(date).format('DD'),
+          hours: new Array(24),
+          timestamp: elem.date
         }
       }
 
@@ -126,7 +162,11 @@ export default class XoWeekHeatmap extends Component {
       })
     })
 
-    this.setState({ days })
+    this.setState({
+      days: computeMissingDays(
+        sortBy(days, 'timestamp')
+      )
+    })
   }
 
   render () {
