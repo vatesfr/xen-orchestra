@@ -2,11 +2,13 @@ import React from 'react'
 import _ from 'messages'
 import forEach from 'lodash/forEach'
 import map from 'lodash/map'
-import maxBy from 'lodash/maxBy'
-import minBy from 'lodash/minBy'
 import times from 'lodash/times'
+import { extent } from 'd3-array'
+import {
+  interpolateViridis,
+  scaleSequential
+} from 'd3-scale'
 import { injectIntl } from 'react-intl'
-import { scaleQuantize } from 'd3-scale'
 
 import Component from '../base-component'
 import Tooltip from '../tooltip'
@@ -28,9 +30,6 @@ const TIME_FORMAT = {
 
 @propTypes({
   cellRenderer: propTypes.func,
-  colors: propTypes.arrayOf(
-    propTypes.string
-  ),
   data: propTypes.arrayOf(
     propTypes.shape({
       date: propTypes.number.isRequired,
@@ -41,17 +40,7 @@ const TIME_FORMAT = {
 @injectIntl
 export default class XoWeekHeatmap extends Component {
   static defaultProps = {
-    cellRenderer: value => value,
-    colors: [
-      '#edf8b1',
-      '#c7e9b4',
-      '#7fcdbb',
-      '#41b6c4',
-      '#1d91c0',
-      '#225ea8',
-      '#253494',
-      '#081d58'
-    ]
+    cellRenderer: value => value
   }
 
   componentWillReceiveProps (nextProps) {
@@ -62,14 +51,8 @@ export default class XoWeekHeatmap extends Component {
     this._updateState()
   }
 
-  _computeColorGen = data => (
-    scaleQuantize()
-      .domain([
-        minBy(data, 'value').value,
-        maxBy(data, 'value').value
-      ])
-      .range(this.props.colors)
-  )
+  _computeColorGen = data => scaleSequential(interpolateViridis)
+    .domain(extent(data, value => value.value).reverse())
 
   _updateState (props = this.props) {
     const {
