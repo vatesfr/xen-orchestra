@@ -3,6 +3,7 @@ import Component from 'base-component'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import debounce from 'lodash/debounce'
 import Icon from 'icon'
+import invoke from 'invoke'
 import IsoDevice from 'iso-device'
 import NoVnc from 'react-novnc'
 import React from 'react'
@@ -24,13 +25,13 @@ export default class TabConsole extends Component {
     this.setState({ clipboard })
     this.refs.clipboard.value = clipboard
   }
-  __setRemoteClipboard = debounce(value => {
-    this.setState({ clipboard: value })
-    this.refs.noVnc.setClipboard(value)
-  }, 200)
-  _setRemoteClipboard = event => {
-    this.__setRemoteClipboard(event.target.value)
-  }
+  _setRemoteClipboard = invoke(() => {
+    const setRemoteClipboard = debounce(value => {
+      this.setState({ clipboard: value })
+      this.refs.noVnc.setClipboard(value)
+    }, 200)
+    return event => setRemoteClipboard(event.target.value)
+  })
 
   _getClipboardContent = () =>
     this.refs.clipboard && this.refs.clipboard.value
