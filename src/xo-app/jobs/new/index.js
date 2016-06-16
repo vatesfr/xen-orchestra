@@ -100,7 +100,7 @@ export default class Jobs extends Component {
   }
 
   componentWillMount () {
-    const unsubscribeJobs = subscribeJobs(jobs => {
+    this.componentWillUnmount = subscribeJobs(jobs => {
       const j = {}
       for (const id in jobs) {
         const job = jobs[id]
@@ -108,10 +108,6 @@ export default class Jobs extends Component {
       }
       this.setState({jobs: j}, this._resolveLoaded)
     })
-
-    this.componentWillUnmount = () => {
-      unsubscribeJobs()
-    }
 
     const jobCompliantMethods = [
       'acl.add',
@@ -167,13 +163,13 @@ export default class Jobs extends Component {
 
             const modifyProperty = (prop, type) => {
               const titles = {
-                XoObject: 'Object(s)',
-                Role: 'Role(s)',
-                Subject: 'Subject(s)',
                 Host: 'Host(s)',
-                Vm: 'VM(s)',
                 Pool: 'Pool(s)',
-                Sr: 'Storage(s)'
+                Role: 'Role(s)',
+                Sr: 'Storage(s)',
+                Subject: 'Subject(s)',
+                Vm: 'VM(s)',
+                XoObject: 'Object(s)'
               }
               prop.$type = type
               prop.type = 'array'

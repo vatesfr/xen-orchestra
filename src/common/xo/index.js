@@ -819,8 +819,8 @@ export const disableSchedule = id => (
 
 export const deleteBackupSchedule = async schedule => {
   await confirm({
-    title: _('deleteBackupJob'),
-    body: _('deleteBackupJobQuestion')
+    title: _('deleteBackupSchedule'),
+    body: _('deleteBackupScheduleQuestion')
   })
   await call('schedule.delete', { id: schedule.id })
   await call('job.delete', { id: schedule.job })
@@ -1098,12 +1098,6 @@ export const editUser = (user, { email, password, permission }) => (
 
 // Jobs ----------------------------------------------------------
 
-export const updateJob = job => (
-  xo.call('job.set', {job})::tap(
-    subscribeJobs.forceRefresh
-  )
-)
-
 export const deleteJob = job => (
   xo.call('job.delete', resolveIds({id: job}))::tap(
     subscribeJobs.forceRefresh
@@ -1113,6 +1107,12 @@ export const deleteJob = job => (
 export const deleteSchedule = schedule => (
   xo.call('schedule.delete', resolveIds({id: schedule}))::tap(
     subscribeSchedules.forceRefresh
+  )
+)
+
+export const updateJob = job => (
+  xo.call('job.set', {job})::tap(
+    subscribeJobs.forceRefresh
   )
 )
 

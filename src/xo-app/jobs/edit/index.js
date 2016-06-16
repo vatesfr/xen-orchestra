@@ -1,4 +1,4 @@
-import Creation from '../creation'
+import New from '../new'
 import React from 'react'
 
-export default props => <Creation id={props.routeParams} />
+export default props => <New id={props.routeParams} />

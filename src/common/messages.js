@@ -149,8 +149,8 @@ export const messages = {
   jobsOverviewPage: {
     defaultMessage: 'Overview'
   },
-  jobsCreationPage: {
-    defaultMessage: 'Creation'
+  jobsNewPage: {
+    defaultMessage: 'New'
   },
   jobsSchedulingPage: {
     defaultMessage: 'Scheduling'
@@ -460,11 +460,11 @@ export const messages = {
   saveBackupJob: {
     defaultMessage: 'Save'
   },
-  deleteBackupJob: {
-    defaultMessage: 'Remove Job'
+  deleteBackupSchedule: {
+    defaultMessage: 'Remove backup job'
   },
-  deleteBackupJobQuestion: {
-    defaultMessage: 'Are you sure you want to delete this job?'
+  deleteBackupScheduleQuestion: {
+    defaultMessage: 'Are you sure you want to delete this backup job?'
   },
   noScheduledJobs: {
     defaultMessage: 'No scheduled jobs.'
