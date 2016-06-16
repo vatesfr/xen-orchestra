@@ -231,23 +231,21 @@ export default class Stats extends Component {
   }
 
   _selectAllHosts = () => {
-    const objects = this.props.hosts
     this.setState({
       metricsState: undefined,
       metrics: undefined,
       selectedMetric: undefined,
-      objects,
+      objects: this.props.hosts,
       predicate: object => runningObjectsPredicate(object) && object.type === 'host'
     })
   }
 
   _selectAllVms = () => {
-    const objects = this.props.vms
     this.setState({
       metricsState: undefined,
       metrics: undefined,
       selectedMetric: undefined,
-      objects,
+      objects: this.props.vms,
       predicate: object => runningObjectsPredicate(object) && object.type === 'VM'
     })
   }
@@ -354,7 +352,7 @@ export default class Stats extends Component {
                 </button>
                 <ActionButton
                   btnStyle='secondary'
-                  disabled={!this.state.objects.length}
+                  disabled={!objects.length}
                   handler={this._validSelection}
                   icon='success'
                 >
