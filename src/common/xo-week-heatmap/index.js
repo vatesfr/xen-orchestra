@@ -16,7 +16,9 @@ import { propTypes } from '../utils'
 
 import styles from './index.css'
 
-const TIME_FORMAT = {
+// ===================================================================
+
+const CELL_TIME_FORMAT = {
   day: 'numeric',
   hour: 'numeric',
   minute: 'numeric',
@@ -24,6 +26,27 @@ const TIME_FORMAT = {
   second: 'numeric',
   weekday: 'short',
   year: 'numeric'
+}
+
+// ===================================================================
+
+const computeColorGen = days => {
+  let min = Number.MAX_VALUE
+  let max = Number.MIN_VALUE
+
+  forEach(days, day => {
+    const [ _min, _max ] = extent(day.hours, value => value && value.value)
+
+    if (_min < min) {
+      min = _min
+    }
+
+    if (_max > max) {
+      max = _max
+    }
+  })
+
+  return scaleSequential(interpolateViridis).domain([max, min])
 }
 
 // ===================================================================
@@ -44,66 +67,66 @@ export default class XoWeekHeatmap extends Component {
   }
 
   componentWillReceiveProps (nextProps) {
-    this._updateState(nextProps)
+    this._updateDays(nextProps)
   }
 
   componentWillMount () {
-    this._updateState()
+    this._updateDays()
   }
 
-  _computeColorGen = data => scaleSequential(interpolateViridis)
-    .domain(extent(data, value => value.value).reverse())
-
-  _updateState (props = this.props) {
+  _updateDays (props = this.props) {
     const {
       data,
       intl: {
         formatTime
       }
     } = props
-    const colorGen = this._computeColorGen(props.data)
-    const matrix = {}
+    const days = {}
 
+    // 1. Compute average per day.
     forEach(data, elem => {
       const date = new Date(elem.date)
-      const day = date.getDate()
-      const hour = date.getHours()
+      const monthDay = formatTime(date, { day: '2-digit' })
+      const dayId = `${formatTime(date, { month: '2-digit' })}${monthDay}`
+      const hourId = date.getHours()
 
       const { value } = elem
-      let cell
 
-      if (!matrix[day]) {
-        matrix[day] = []
+      if (!days[dayId]) {
+        days[dayId] = {
+          legend: monthDay,
+          hours: new Array(24)
+        }
       }
 
-      if (!matrix[day][hour]) {
-        cell = matrix[day][hour] = {
+      const { hours } = days[dayId]
+
+      if (!hours[hourId]) {
+        hours[hourId] = {
           value,
           nb: 1,
-          date: formatTime(date, TIME_FORMAT)
+          date: formatTime(date, CELL_TIME_FORMAT)
         }
       } else {
-        cell = matrix[day][hour]
-        cell.value += value
-        cell.nb++
+        const hour = hours[hourId]
+        hour.value = (hour.value * hour.nb + value) / (hour.nb + 1)
+        hour.nb++
       }
-
-      cell.color = colorGen(cell.value / cell.nb)
     })
 
-    // Add missing hours.
-    forEach(matrix, day => {
-      for (let hour = 0; hour < 24; hour++) {
-        if (!day[hour]) {
-          day[hour] = {
-            nb: 1,
-            color: '#ffffff'
-          }
+    // 2. Compute color gen.
+    const colorGen = computeColorGen(days)
+
+    // 3. Define color cells.
+    forEach(days, day => {
+      forEach(day.hours, hour => {
+        if (hour) {
+          hour.color = colorGen(hour.value)
         }
-      }
+      })
     })
 
-    this.setState({ matrix })
+    this.setState({ days })
   }
 
   render () {
@@ -114,16 +137,16 @@ export default class XoWeekHeatmap extends Component {
             <th />
             {times(24, hour => <th key={hour} className='text-xs-center'>{hour}</th>)}
           </tr>
-          {map(this.state.matrix, (hours, day) => (
-            <tr key={day}>
-              <th>{day}</th>
-              {map(hours, (hour, key) => (
+          {map(this.state.days, (day, key) => (
+            <tr key={key}>
+              <th>{day.legend}</th>
+              {map(day.hours, (hour, key) => (
                 <Tooltip
                   className={styles.cell}
                   key={key}
-                  style={{ backgroundColor: hour.color }}
+                  style={{ backgroundColor: hour ? hour.color : '#ffffff' }}
                   tagName='td'
-                  content={hour.value != null
+                  content={hour
                     ? `${this.props.cellRenderer(hour.value / hour.nb)} (${hour.date})`
                     : _('weekHeatmapNoData')}
                 />
