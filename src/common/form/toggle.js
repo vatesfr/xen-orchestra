@@ -13,40 +13,48 @@ const TOGGLE_STYLE = { visibility: 'hidden' }
 })
 export default class Toggle extends Component {
   get value () {
-    return this.refs.input.checked
+    const { props } = this
+
+    const { value } = props
+    if (value != null) {
+      return value
+    }
+
+    const { input } = this.refs
+    if (input) {
+      return input.checked
+    }
+
+    return props.defaultValue || false
   }
 
   set value (value) {
+    if (process.env.NODE_ENV !== 'production') {
+      if (this.props.value != null) {
+        throw new Error('cannot set value of controlled Toggle')
+      }
+    }
+
     this.refs.input.checked = Boolean(value)
   }
 
-  componentWillReceiveProps (nextProps) {
-    const { value } = nextProps
-    if (value !== this.props.value) {
-      this.value = value
+  _onChange = event => {
+    if (this.props.value == null) {
+      this.forceUpdate()
     }
-  }
-
-  _onChange = () => {
-    this.forceUpdate()
 
     const { onChange } = this.props
-    onChange && onChange(this.value)
+    onChange && onChange(event.target.checked)
   }
 
   render () {
-    const { props, refs } = this
-    const { input } = refs
-    const {
-      defaultValue = false,
-      value = input ? input.checked : defaultValue
-    } = props
+    const { props, value } = this
 
     return <label className={props.disabled ? 'text-muted' : value ? 'text-success' : null}>
       <Icon icon={`toggle-${value ? 'on' : 'off'}`} size={2} />
       <input
         checked={props.value}
-        defaultChecked={defaultValue}
+        defaultChecked={props.defaultChecked}
         disabled={props.disabled}
         onChange={this._onChange}
         ref='input'
