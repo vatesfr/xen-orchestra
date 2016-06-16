@@ -20,21 +20,20 @@ export default class TabConsole extends Component {
     this.refs.noVnc.sendCtrlAltDel()
   }
 
-  _storeVmClipboard = clipboard => {
+  _getRemoteClipboard = clipboard => {
     this.setState({ clipboard })
     this.refs.clipboard.value = clipboard
   }
-  _setClipboard = event => {
-    const { value } = event.target
-    debounce(value => {
-      this.setState({ clipboard: value })
-      this.refs.noVnc.setClipboard(value)
-    }, 200)(value)
+  __setRemoteClipboard = debounce(value => {
+    this.setState({ clipboard: value })
+    this.refs.noVnc.setClipboard(value)
+  }, 200)
+  _setRemoteClipboard = event => {
+    this.__setRemoteClipboard(event.target.value)
   }
 
-  _getClipboardContent = () => {
-    return this.refs.clipboard && this.refs.clipboard.value
-  }
+  _getClipboardContent = () =>
+    this.refs.clipboard && this.refs.clipboard.value
 
   render () {
     const {
@@ -86,7 +85,7 @@ export default class TabConsole extends Component {
           </Col>
           <Col mediumSize={5}>
             <div className='input-group'>
-              <input type='text' className='form-control' ref='clipboard' onChange={this._setClipboard} />
+              <input type='text' className='form-control' ref='clipboard' onChange={this._setRemoteClipboard} />
               <span className='input-group-btn'>
                 <CopyToClipboard text={this.state.clipboard || ''}>
                   <button className='btn btn-secondary'>
@@ -107,7 +106,7 @@ export default class TabConsole extends Component {
         </Row>
         <Row className='console'>
           <Col>
-            <NoVnc ref='noVnc' url={resolveUrl(`consoles/${vm.id}`)} onClipboardChange={this._storeVmClipboard} />
+            <NoVnc ref='noVnc' url={resolveUrl(`consoles/${vm.id}`)} onClipboardChange={this._getRemoteClipboard} />
             <p><em><Icon icon='info' /> {_('tipLabel')} {_('tipConsoleLabel')}</em></p>
           </Col>
         </Row>
