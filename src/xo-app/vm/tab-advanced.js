@@ -142,11 +142,11 @@ export default ({
           </tr>
           <tr>
             <th>{_('autoPowerOn')}</th>
-            <td><Toggle defaultValue={vm.auto_poweron} onChange={value => editVm(vm, { auto_poweron: value })} /></td>
+            <td><Toggle value={vm.auto_poweron} onChange={value => editVm(vm, { auto_poweron: value })} /></td>
           </tr>
           <tr>
             <th>{_('ha')}</th>
-            <td><Toggle defaultValue={vm.high_availability} onChange={value => editVm(vm, { high_availability: value })} /></td>
+            <td><Toggle value={vm.high_availability} onChange={value => editVm(vm, { high_availability: value })} /></td>
           </tr>
         </tbody>
       </table>

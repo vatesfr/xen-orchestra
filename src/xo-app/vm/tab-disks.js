@@ -93,7 +93,7 @@ export default ({
                     </td>
                     <td>
                       <Toggle
-                        defaultValue={vbd.bootable}
+                        value={vbd.bootable}
                         onChange={bootable => setBootableVbd(vbd, bootable)}
                       />
                     </td>

@@ -70,7 +70,7 @@ export default ({
           <tr>
             <th>{_('hostPowerOnMode')}</th>
             <td>
-              <Toggle defaultValue={host.powerOnMode} disabled />
+              <Toggle value={host.powerOnMode} disabled />
             </td>
           </tr>
           <tr>
