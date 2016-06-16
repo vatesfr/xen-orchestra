@@ -65,7 +65,7 @@ const computeMissingDays = days => {
     const diff = a.diff(b, 'days')
 
     if (diff > 1) {
-      const days = times(diff - 1, id => {
+      const days = times(diff - 1, () => {
         a.subtract(1, 'days')
 
         return {
