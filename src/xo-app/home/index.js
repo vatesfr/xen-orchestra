@@ -40,7 +40,6 @@ import {
   createCounter,
   createFilter,
   createGetObjectsOfType,
-  createGetTags,
   createPager,
   createSelector,
   createSort
@@ -55,20 +54,44 @@ import {
 } from 'react-bootstrap-4/lib'
 
 import styles from './index.css'
+import HostItem from './host-item'
 import VmItem from './vm-item'
 
-const DEFAULT_FILTER = 'power_state:running'
-const VMS_PER_PAGE = 20
+const ITEMS_PER_PAGE = 20
+
+const OPTIONS = {
+  host: {
+    defaultFilter: 'power_state:running ',
+    filters: {},
+    Item: HostItem
+  },
+  VM: {
+    defaultFilter: 'power_state:running ',
+    filters: {
+      homeFilterPendingVms: 'current_operations:"" ',
+      homeFilterNonRunningVms: '!power_state:running ',
+      homeFilterHvmGuests: 'virtualizationMode:hvm ',
+      homeFilterRunningVms: 'power_state:running ',
+      homeFilterTags: 'tags:'
+    },
+    Item: VmItem
+  }
+}
+
+const DEFAULT_TYPE = 'VM'
 
 @connectStore(() => {
-  const vms = createGetObjectsOfType('VM')
+  const noServersConnected = invoke(
+    createGetObjectsOfType('host'),
+    hosts => state => isEmpty(hosts(state))
+  )
+  const type = (_, props) => props.location.query.t || DEFAULT_TYPE
 
   return {
-    fetched: areObjectsFetched,
-    pools: createGetObjectsOfType('pool').sort(),
-    hosts: createGetObjectsOfType('host').sort(),
-    vms,
-    tags: createGetTags(vms).sort()
+    areObjectsFetched,
+    items: createGetObjectsOfType(type),
+    noServersConnected,
+    type
   }
 })
 export default class Home extends Component {
@@ -88,7 +111,7 @@ export default class Home extends Component {
     if (filter) {
       this._initFilter(filter)
     } else {
-      this._setFilter(DEFAULT_FILTER)
+      this._setFilter(OPTIONS[this.props.type].defaultFilter || '')
     }
   }
 
@@ -101,7 +124,19 @@ export default class Home extends Component {
     }
   }
 
-  _getNumberOfVms = createCounter(() => this.props.vms)
+  _getNumberOfItems = createCounter(() => this.props.items)
+
+  _getType () {
+    return this.props.type
+  }
+
+  _setType (type) {
+    const { pathname, query } = this.props.location
+    this.context.router.push({
+      pathname,
+      query: { ...query, t: type }
+    })
+  }
 
   _initFilter (filter) {
     const parsed = ComplexMatcher.parse(filter)
@@ -150,6 +185,8 @@ export default class Home extends Component {
     })
   }
 
+  _clearFilter = () => this._setFilter('')
+
   _onFilterChange = invoke(() => {
     const setFilter = debounce(filter => {
       this._setFilter(filter)
@@ -158,28 +195,21 @@ export default class Home extends Component {
     return event => setFilter(event.target.value)
   })
 
-  _getFilteredVms = createSort(
+  _getFilteredItems = createSort(
     createFilter(
-      () => this.props.vms,
+      () => this.props.items,
       this._getFilterFunction
     ),
     () => this.state.sortBy || 'name_label',
     () => this.state.sortOrder
   )
 
-  _getCurrentPageVms = createPager(
-    this._getFilteredVms,
+  _getVisibleItems = createPager(
+    this._getFilteredItems,
     () => this.state.activePage || 1
   )
 
   _expandAll = () => this.setState({ expandAll: !this.state.expandAll })
-
-  _filterBusy = () => this._setFilter('current_operations:"" ')
-  _filterHalted = () => this._setFilter('!power_state:running ')
-  _filterHvm = () => this._setFilter('virtualizationMode:hvm ')
-  _filterNone = () => this._setFilter('')
-  _filterRunning = () => this._setFilter('power_state:running ')
-  _filterTags = () => this._setFilter('tags:')
 
   _onPageSelection = (_, event) => { this.page = event.eventKey }
 
@@ -231,57 +261,59 @@ export default class Home extends Component {
   }
 
   // Checkboxes
-  _selectedVms = {}
+  _selectedItems = {}
   _updateMasterCheckbox () {
     const masterCheckbox = this.refs.masterCheckbox
     if (!masterCheckbox) {
       return
     }
-    const noneChecked = isEmpty(this._selectedVms)
+    const noneChecked = isEmpty(this._selectedItems)
     masterCheckbox.checked = !noneChecked
-    masterCheckbox.indeterminate = !noneChecked && size(this._selectedVms) !== this.getFilteredVms().length
+    masterCheckbox.indeterminate = !noneChecked && size(this._selectedItems) !== this._getFilteredItems().length
     this.setState({ displayActions: !noneChecked })
   }
-  _selectVm = (id, checked) => {
-    const shouldBeChecked = checked === undefined ? !this._selectedVms[id] : checked
-    shouldBeChecked ? this._selectedVms[id] = true : delete this._selectedVms[id]
+  _selectItem = (id, checked) => {
+    const shouldBeChecked = checked === undefined ? !this._selectedItems[id] : checked
+    shouldBeChecked ? this._selectedItems[id] = true : delete this._selectedItems[id]
     this.forceUpdate()
     this._updateMasterCheckbox()
   }
-  _selectAllVms = (checked) => {
-    const shouldBeChecked = checked === undefined ? !size(this._selectedVms) : checked
-    this._selectedVms = {}
-    forEach(this.getFilteredVms(), vm => {
-      shouldBeChecked && (this._selectedVms[vm.id] = true)
+  _selectAllItems = (checked) => {
+    const shouldBeChecked = checked === undefined ? !size(this._selectedItems) : checked
+    this._selectedItems = {}
+    forEach(this._getFilteredItems(), item => {
+      shouldBeChecked && (this._selectedItems[item.id] = true)
     })
     this.forceUpdate()
     this._updateMasterCheckbox()
   }
 
   _renderHeader () {
+    const { filters } = OPTIONS[this.props.type]
+
     return <Container>
       <Row className={styles.itemRowHeader}>
+        <Col mediumSize={3}>
+          <DropdownButton id='typeMenu' bsStyle='info' title='Type'>
+            <MenuItem onClick={() => this._setType('VM')}>
+              VM
+            </MenuItem>
+            <MenuItem onClick={() => this._setType('host')}>
+              Host
+            </MenuItem>
+          </DropdownButton>
+        </Col>
         <Col mediumSize={6}>
           <div className='input-group'>
-            <div className='input-group-btn'>
+            {!isEmpty(filters) && <div className='input-group-btn'>
               <DropdownButton id='filter' bsStyle='info' title={_('homeFilters')}>
-                <MenuItem onClick={this._filterRunning}>
-                  {_('homeFilterRunningVms')}
-                </MenuItem>
-                <MenuItem onClick={this._filterHalted}>
-                  {_('homeFilterNonRunningVms')}
-                </MenuItem>
-                <MenuItem onClick={this._filterBusy}>
-                  {_('homeFilterPendingVms')}
-                </MenuItem>
-                <MenuItem onClick={this._filterHvm}>
-                  {_('homeFilterHvmGuests')}
-                </MenuItem>
-                <MenuItem onClick={this._filterTags}>
-                  {_('homeFilterTags')}
-                </MenuItem>
+                {map(filters, (filter, label) =>
+                  <MenuItem onClick={() => this._setFilter(filter)}>
+                    {_(label)}
+                  </MenuItem>
+                )}
               </DropdownButton>
-            </div>
+            </div>}
             <input
               autoFocus
               className='form-control'
@@ -293,16 +325,16 @@ export default class Home extends Component {
             <div className='input-group-btn'>
               <button
                 className='btn btn-secondary'
-                onClick={this._filterNone}>
+                onClick={this._clearFilter}>
                 <Icon icon='clear-search' />
               </button>
             </div>
           </div>
         </Col>
-        <Col mediumSize={6} className='text-xs-right'>
+        <Col mediumSize={3} className='text-xs-right'>
           <Link
             className='btn btn-success'
-            to='/vms/new'>
+            to='/new/vm'>
             <Icon icon='vm-new' /> {_('homeNewVm')}
           </Link>
         </Col>
@@ -311,13 +343,15 @@ export default class Home extends Component {
   }
 
   render () {
-    if (!this.props.fetched) {
+    const { props } = this
+
+    if (!props.areObjectsFetched) {
       return <CenterPanel>
         <h2><img src='assets/loading.svg' /></h2>
       </CenterPanel>
     }
 
-    if (!this.props.hosts.length) {
+    if (props.noServersConnected) {
       return <CenterPanel>
         <Card shadow>
           <CardHeader>{_('homeWelcome')}</CardHeader>
@@ -348,15 +382,15 @@ export default class Home extends Component {
       </CenterPanel>
     }
 
-    const nVms = this._getNumberOfVms()
-    if (!nVms) {
+    const nItems = this._getNumberOfItems()
+    if (!nItems) {
       return <CenterPanel>
         <Card shadow>
           <CardHeader>{_('homeNoVms')}</CardHeader>
           <CardBlock>
             <Row>
               <Col>
-                <Link to='/vms/new'>
+                <Link to='/new/vm'>
                   <Icon icon='vm' size={4} />
                   <h4>{_('homeNewVm')}</h4>
                 </Link>
@@ -385,109 +419,106 @@ export default class Home extends Component {
       </CenterPanel>
     }
 
-    const selectedVmsIds = keys(this._selectedVms)
-    const { pools, hosts, tags } = this.props
+    const filteredItems = this._getFilteredItems()
+    const selectedItemsIds = keys(this._selectedItems)
+    const visibleItems = this._getVisibleItems()
     const { activePage, sortBy } = this.state
-    const filteredVms = this._getFilteredVms()
-    const currentPageVms = this._getCurrentPageVms()
+    const Item = props.type === 'VM'
+      ? VmItem
+      : HostItem
 
     return <Page header={this._renderHeader()}>
       <div>
         <div className={styles.itemContainer}>
           <SingleLineRow className={styles.itemContainerHeader}>
             <Col smallsize={11} mediumSize={3}>
-              <input type='checkbox' onChange={() => this._selectAllVms()} ref='masterCheckbox' />
+              <input type='checkbox' onChange={() => this._selectAllItems()} ref='masterCheckbox' />
               {' '}
               <span className='text-muted'>
-                {size(this._selectedVms)
-                  ? _('homeSelectedVms', { selected: size(this._selectedVms), total: nVms, vmIcon: <Icon icon='vm' /> })
-                  : _('homeDisplayedVms', { displayed: filteredVms.length, total: nVms, vmIcon: <Icon icon='vm' /> })
+                {size(this._selectedItems)
+                  ? _('homeSelectedVms', { selected: size(this._selectedItems), total: nItems, vmIcon: <Icon icon='vm' /> })
+                  : _('homeDisplayedVms', { displayed: filteredItems.length, total: nItems, vmIcon: <Icon icon='vm' /> })
                 }
               </span>
             </Col>
             <Col mediumSize={8} className='text-xs-right hidden-sm-down'>
             {this.state.displayActions
               ? <div className='btn-group'>
-                <ActionButton btnStyle='secondary' handler={stopVms} handlerParam={selectedVmsIds} icon='vm-stop' />
-                <ActionButton btnStyle='secondary' handler={startVms} handlerParam={selectedVmsIds} icon='vm-start' />
-                <ActionButton btnStyle='secondary' handler={restartVms} handlerParam={selectedVmsIds} icon='vm-reboot' />
-                <ActionButton btnStyle='secondary' handler={migrateVms} handlerParam={selectedVmsIds} icon='vm-migrate' />
+                <ActionButton btnStyle='secondary' handler={stopVms} handlerParam={selectedItemsIds} icon='vm-stop' />
+                <ActionButton btnStyle='secondary' handler={startVms} handlerParam={selectedItemsIds} icon='vm-start' />
+                <ActionButton btnStyle='secondary' handler={restartVms} handlerParam={selectedItemsIds} icon='vm-reboot' />
+                <ActionButton btnStyle='secondary' handler={migrateVms} handlerParam={selectedItemsIds} icon='vm-migrate' />
                 <DropdownButton bsStyle='secondary' id='advanced' title={_('homeMore')}>
-                  <MenuItem onClick={() => { restartVms(selectedVmsIds, true) }}>
+                  <MenuItem onClick={() => { restartVms(selectedItemsIds, true) }}>
                     <Icon icon='vm-force-reboot' fixedWidth /> {_('forceRebootVmLabel')}
                   </MenuItem>
-                  <MenuItem onClick={() => { stopVms(selectedVmsIds, true) }}>
+                  <MenuItem onClick={() => { stopVms(selectedItemsIds, true) }}>
                     <Icon icon='vm-force-shutdown' fixedWidth /> {_('forceShutdownVmLabel')}
                   </MenuItem>
-                  <MenuItem onClick={() => { snapshotVms(selectedVmsIds) }}>
+                  <MenuItem onClick={() => { snapshotVms(selectedItemsIds) }}>
                     <Icon icon='vm-snapshot' fixedWidth /> {_('snapshotVmLabel')}
                   </MenuItem>
-                  <MenuItem onClick={() => { deleteVms(selectedVmsIds) }}>
+                  <MenuItem onClick={() => { deleteVms(selectedItemsIds) }}>
                     <Icon icon='vm-delete' fixedWidth /> {_('vmRemoveButton')}
                   </MenuItem>
                 </DropdownButton>
               </div>
               : <div>
-                {!!pools.length && (
-                  <OverlayTrigger
-                    trigger='click'
-                    rootClose
-                    placement='bottom'
-                    overlay={
-                      <Popover className={styles.selectObject} id='poolPopover'>
-                        <SelectPool
-                          autoFocus
-                          multi
-                          onChange={this._updateSelectedPools}
-                          value={this.state.selectedPools}
-                        />
-                      </Popover>
-                    }
-                  >
-                    <Button className='btn-link'><span><Icon icon='pool' /> {_('homeAllPools')} ({pools.length})</span></Button>
-                  </OverlayTrigger>
-                )}
+                <OverlayTrigger
+                  trigger='click'
+                  rootClose
+                  placement='bottom'
+                  overlay={
+                    <Popover className={styles.selectObject} id='poolPopover'>
+                      <SelectPool
+                        autoFocus
+                        multi
+                        onChange={this._updateSelectedPools}
+                        value={this.state.selectedPools}
+                      />
+                    </Popover>
+                  }
+                >
+                  <Button className='btn-link'><Icon icon='pool' /> {_('homeAllPools')}</Button>
+                </OverlayTrigger>
                 {' '}
-                {!!hosts.length && (
-                  <OverlayTrigger
-                    trigger='click'
-                    rootClose
-                    placement='bottom'
-                    overlay={
-                      <Popover className={styles.selectObject} id='HostPopover'>
-                        <SelectHost
-                          autoFocus
-                          multi
-                          onChange={this._updateSelectedHosts}
-                          value={this.state.selectedHosts}
-                        />
-                      </Popover>
-                    }
-                  >
-                    <Button className='btn-link'><span><Icon icon='host' /> {_('homeAllHosts')} ({hosts.length})</span></Button>
-                  </OverlayTrigger>
-                )}
+                <OverlayTrigger
+                  trigger='click'
+                  rootClose
+                  placement='bottom'
+                  overlay={
+                    <Popover className={styles.selectObject} id='HostPopover'>
+                      <SelectHost
+                        autoFocus
+                        multi
+                        onChange={this._updateSelectedHosts}
+                        value={this.state.selectedHosts}
+                      />
+                    </Popover>
+                  }
+                >
+                  <Button className='btn-link'><Icon icon='host' /> {_('homeAllHosts')}</Button>
+                </OverlayTrigger>
                 {' '}
-                {!!tags.length && (
-                  <OverlayTrigger
-                    autoFocus
-                    trigger='click'
-                    rootClose
-                    placement='bottom'
-                    overlay={
-                      <Popover className={styles.selectObject} id='tagPopover'>
-                        <SelectTag
-                          autoFocus
-                          multi
-                          onChange={this._updateSelectedTags}
-                          value={this.state.selectedTags}
-                        />
-                      </Popover>
-                    }
-                  >
-                    <Button className='btn-link'><span><Icon icon='tags' /> {_('homeAllTags')} ({tags.length})</span></Button>
-                  </OverlayTrigger>
-                )}
+                <OverlayTrigger
+                  autoFocus
+                  trigger='click'
+                  rootClose
+                  placement='bottom'
+                  overlay={
+                    <Popover className={styles.selectObject} id='tagPopover'>
+                      <SelectTag
+                        autoFocus
+                        multi
+                        objects={props.items}
+                        onChange={this._updateSelectedTags}
+                        value={this.state.selectedTags}
+                      />
+                    </Popover>
+                  }
+                >
+                  <Button className='btn-link'><Icon icon='tags' /> {_('homeAllTags')}</Button>
+                </OverlayTrigger>
                 {' '}
                 <DropdownButton bsStyle='link' id='sort' title={_('homeSortBy')}>
                   <MenuItem onClick={this._sortByName}>
@@ -525,11 +556,17 @@ export default class Home extends Component {
               </button>
             </Col>
           </SingleLineRow>
-          {map(currentPageVms, vm =>
-            <VmItem vm={vm} key={vm.id} expandAll={this.state.expandAll} onSelect={this._selectVm} selected={this._selectedVms[vm.id]} />
+          {map(visibleItems, item =>
+            <Item
+              expandAll={this.state.expandAll}
+              item={item}
+              key={item.id}
+              onSelect={this._selectItem}
+              selected={this._selectedItems[item.id]}
+            />
           )}
         </div>
-        {filteredVms.length > VMS_PER_PAGE && <Row>
+        {filteredItems.length > ITEMS_PER_PAGE && <Row>
           <div style={{display: 'flex', width: '100%'}}>
             <div style={{margin: 'auto'}}>
               <Pagination
@@ -540,7 +577,7 @@ export default class Home extends Component {
                 ellipsis
                 boundaryLinks
                 maxButtons={5}
-                items={ceil(filteredVms.length / VMS_PER_PAGE)}
+                items={ceil(filteredItems.length / ITEMS_PER_PAGE)}
                 activePage={activePage}
                 onSelect={this._onPageSelection} />
             </div>

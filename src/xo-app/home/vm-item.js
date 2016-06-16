@@ -33,15 +33,11 @@ import {
 import styles from './index.css'
 
 @connectStore({
-  container: createGetObject((_, props) => props.vm.$container)
+  container: createGetObject((_, props) => props.item.$container)
 })
 export default class VmItem extends Component {
-  componentWillMount () {
-    this.setState({ collapsed: true })
-  }
-
   get _isRunning () {
-    const { vm } = this.props
+    const vm = this.props.item
     return vm && vm.power_state === 'Running'
   }
 
@@ -50,18 +46,18 @@ export default class VmItem extends Component {
     container => host => host.id !== container.id
   )
 
-  _addTag = tag => addTag(this.props.vm.id, tag)
-  _migrateVm = host => migrateVm(this.props.vm, host)
-  _removeTag = tag => removeTag(this.props.vm.id, tag)
-  _setNameDescription = nameDescription => editVm(this.props.vm, { name_description: nameDescription })
-  _setNameLabel = nameLabel => editVm(this.props.vm, { name_label: nameLabel })
-  _start = () => startVm(this.props.vm)
-  _stop = () => stopVm(this.props.vm)
-  _toggleCollapse = () => this.setState({ collapsed: !this.state.collapsed })
-  _onSelect = () => this.props.onSelect(this.props.vm.id)
+  _addTag = tag => addTag(this.props.item.id, tag)
+  _migrateVm = host => migrateVm(this.props.item, host)
+  _removeTag = tag => removeTag(this.props.item.id, tag)
+  _setNameDescription = nameDescription => editVm(this.props.item, { name_description: nameDescription })
+  _setNameLabel = nameLabel => editVm(this.props.item, { name_label: nameLabel })
+  _start = () => startVm(this.props.item)
+  _stop = () => stopVm(this.props.item)
+  _toggleExpanded = () => this.setState({ expanded: !this.state.expanded })
+  _onSelect = () => this.props.onSelect(this.props.item.id)
 
   render () {
-    const { vm, container, expandAll, selected } = this.props
+    const { item: vm, container, expandAll, selected } = this.props
     return <div className={styles.item}>
       <BlockLink to={`/vms/${vm.id}`}>
         <SingleLineRow>
@@ -131,14 +127,14 @@ export default class VmItem extends Component {
           </Col>
           <Col mediumSize={1} className={styles.itemExpandRow}>
             <a className={styles.itemExpandButton}
-              onClick={this._toggleCollapse}>
+              onClick={this._toggleExpanded}>
               <Icon icon='nav' fixedWidth />&nbsp;&nbsp;&nbsp;
             </a>
           </Col>
         </SingleLineRow>
       </BlockLink>
-      {!this.state.collapsed || expandAll
-        ? <Row>
+      {(this.state.expanded || expandAll) &&
+        <Row>
           <Col mediumSize={4} className={styles.itemExpanded}>
             <span>
               {vm.CPUs.number}x <Icon icon='cpu' />
@@ -161,7 +157,6 @@ export default class VmItem extends Component {
             </span>
           </Col>
         </Row>
-        : null
       }
     </div>
   }
