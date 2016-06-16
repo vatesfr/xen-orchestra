@@ -6,6 +6,7 @@ import maxBy from 'lodash/maxBy'
 import minBy from 'lodash/minBy'
 import times from 'lodash/times'
 import { injectIntl } from 'react-intl'
+import { scaleLinear } from 'd3-scale'
 
 import Component from '../base-component'
 import Tooltip from '../tooltip'
@@ -42,50 +43,27 @@ export default class XoWeekHeatmap extends Component {
   static defaultProps = {
     cellRenderer: value => value,
     colors: [
-      '#ffffee',
-      '#ffffd9',
-      '#edf8b1',
-      '#c7e9b4',
-      '#7fcdbb',
-      '#41b6c4',
-      '#1d91c0',
-      '#225ea8',
-      '#253494',
+      '#cccccc',
       '#081d58'
     ]
   }
 
-  componentWillReceiveProps = nextProps => this._updateState(nextProps)
-  componentWillMount = this._updateState
-
-  _computeIntervals = ({ colors, data }) => {
-    const min = minBy(data, 'value').value
-    const max = maxBy(data, 'value').value
-
-    const nSteps = max - min
-    const nColors = colors.length
-
-    return map(colors, (color, index) => ({
-      start: min + index * nSteps / nColors,
-      end: min + (1 + index) * nSteps / nColors,
-      color
-    }))
+  componentWillReceiveProps (nextProps) {
+    this._updateState(nextProps)
   }
 
-  _getColor = (intervals, value) => {
-    let color = '#ffffff'
-
-    forEach(intervals, (interval, pos) => {
-      if (
-        interval.start <= value && value < interval.end ||
-        (pos === intervals.length - 1 && value === interval.end)
-      ) {
-        color = interval.color
-      }
-    })
-
-    return color
+  componentWillMount () {
+    this._updateState()
   }
+
+  _computeColorGen = data => (
+    scaleLinear()
+      .domain([
+        minBy(data, 'value').value,
+        maxBy(data, 'value').value
+      ])
+      .range(this.props.colors)
+  )
 
   _updateState (props = this.props) {
     const {
@@ -94,11 +72,11 @@ export default class XoWeekHeatmap extends Component {
         formatTime
       }
     } = props
-    const intervals = this._computeIntervals(props)
+    const colorGen = this._computeColorGen(props.data)
     const matrix = {}
 
     forEach(data, elem => {
-      const date = new Date(elem.date * 1000)
+      const date = new Date(elem.date)
       const day = date.getDate()
       const hour = date.getHours()
 
@@ -121,7 +99,7 @@ export default class XoWeekHeatmap extends Component {
         cell.nb++
       }
 
-      cell.color = this._getColor(intervals, cell.value / cell.nb)
+      cell.color = colorGen(cell.value / cell.nb)
     })
 
     // Add missing hours.
@@ -147,24 +125,22 @@ export default class XoWeekHeatmap extends Component {
             <th />
             {times(24, hour => <th key={hour} className='text-xs-center'>{hour}</th>)}
           </tr>
-          {map(this.state.matrix, (hours, day) => {
-            return (
-              <tr key={day}>
-                <th>{day}</th>
-                {map(hours, (hour, key) => (
-                  <td key={key} className={styles.cell} style={{ backgroundColor: hour.color }}>
-                    <Tooltip
-                      content={hour.value != null
-                       ? `${this.props.cellRenderer(hour.value / hour.nb)} (${hour.date})`
-                       : _('weekHeatmapNoData')}
-                    >
-                      <div className={styles.cellContent} />
-                    </Tooltip>
-                  </td>
-                ))}
-              </tr>
-            )
-          })}
+          {map(this.state.matrix, (hours, day) => (
+            <tr key={day}>
+              <th>{day}</th>
+              {map(hours, (hour, key) => (
+                <Tooltip
+                  className={styles.cell}
+                  key={key}
+                  style={{ backgroundColor: hour.color }}
+                  tagName='td'
+                  content={hour.value != null
+                    ? `${this.props.cellRenderer(hour.value / hour.nb)} (${hour.date})`
+                    : _('weekHeatmapNoData')}
+                />
+              ))}
+            </tr>
+          ))}
         </tbody>
       </table>
     )

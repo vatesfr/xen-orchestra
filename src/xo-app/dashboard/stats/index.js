@@ -63,7 +63,7 @@ const computeStatsAverage = (stats, {
     if (values[key] === undefined) {
       values.push({
         value: mapValue(value),
-        date: timestampStart + 3600 * key
+        date: (timestampStart + 3600 * key) * 1000
       })
     } else {
       values[key].value = (values[key].value * (layer - 1) + value) / layer
