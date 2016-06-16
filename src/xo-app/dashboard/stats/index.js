@@ -10,7 +10,6 @@ import renderXoItem from 'render-xo-item'
 import sortBy from 'lodash/sortBy'
 import { Container, Row, Col } from 'grid'
 import { error } from 'notification'
-import { reflect } from 'promise-toolbox'
 import { SelectHostVm } from 'select-objects'
 import { createGetObjectsOfType } from 'selectors'
 import {
@@ -189,10 +188,10 @@ const STATS_TYPE_TO_COMPUTE_FNC = {
 
 @connectStore(() => {
   const getRunningHosts = createGetObjectsOfType('host').filter(
-    () => runningObjectsPredicate
+    [ runningObjectsPredicate ]
   ).sort()
   const getRunningVms = createGetObjectsOfType('VM').filter(
-    () => runningObjectsPredicate
+    [ runningObjectsPredicate ]
   ).sort()
 
   return {
@@ -262,7 +261,7 @@ export default class Stats extends Component {
 
     const getStats = (objects[0].type === 'host' && fetchHostStats) || fetchVmStats
 
-    const promises = await Promise.all(
+    await Promise.all(
       map(objects, object => {
         return getStats(object, 'hours')
           .then(result => {
@@ -287,24 +286,16 @@ export default class Stats extends Component {
               }
             })
           })
-          .catch(error => {
-            error.object = object
-            throw error
-          })::reflect()
+          .catch(() => {
+            error(
+              _('statsDashboardGenericErrorTitle'),
+              <span>
+                {_('statsDashboardGenericErrorMessage')} {object.name_label || object.id}
+              </span>
+            )
+          })
       })
     )
-
-    forEach(promises, inspection => {
-      if (!inspection.isFulfilled()) {
-        const { object } = inspection.reason()
-        error(
-          _('statsDashboardGenericErrorTitle'),
-          <span>
-            {_('statsDashboardGenericErrorMessage')} {object.name_label || object.id}
-          </span>
-        )
-      }
-    })
 
     this.setState({
       metricsState: METRICS_LOADED,
