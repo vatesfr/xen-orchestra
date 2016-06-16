@@ -1,7 +1,7 @@
 import find from 'lodash/find'
 import map from 'lodash/map'
 import React, { Component } from 'react'
-import Select from 'react-select'
+import { Select } from 'form'
 import { propTypes } from 'utils'
 
 @propTypes({
