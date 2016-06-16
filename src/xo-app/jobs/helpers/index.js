@@ -90,7 +90,7 @@ export class SelectPlainObject extends Component {
     }, onChange && (() => { onChange(this.value) }))
   }
 
-  _renderOption = option => <span>{option.label}</span>
+  _renderOption = option => option.label
 
   render () {
     const { props, state } = this

@@ -10,12 +10,13 @@ import filter from 'lodash/filter'
 import forEach from 'lodash/forEach'
 import map from 'lodash/map'
 import orderBy from 'lodash/orderBy'
-import { FormattedDate } from 'react-intl'
+import renderXoItem from 'render-xo-item'
 import { ButtonGroup, Pagination } from 'react-bootstrap-4/lib'
-import { Link } from 'react-router'
 import { confirm } from 'modal'
 import { connectStore } from 'utils'
 import { createGetObject, createPager } from 'selectors'
+import { FormattedDate } from 'react-intl'
+import { Link } from 'react-router'
 
 import {
   Card,
@@ -47,36 +48,30 @@ const jobKeyToLabel = {
 
 const LOGS_PER_PAGE = 10
 
-@connectStore(() => {
-  const object = createGetObject((_, props) => props.value)
-  return {object}
-})
-class JobValue extends Component {}
-
-class JobParam extends JobValue {
+@connectStore(() => ({object: createGetObject()}))
+class JobParam extends Component {
   render () {
     const {
       object,
       paramKey,
-      paramValue
+      id
     } = this.props
-    const displayKey = object && object.type || paramKey
-    const displayValue = object && (object.name_label || object.name) || paramValue
-    return <span><strong>{displayKey}:</strong> {displayValue} </span>
+
+    return object
+    ? <span><strong>{object.type || paramKey}</strong>: {renderXoItem(object)} </span>
+    : <span><strong>{paramKey}:</strong> {id} </span>
   }
 }
 
-class JobReturn extends JobValue {
+@connectStore(() => ({object: createGetObject()}))
+class JobReturn extends Component {
   render () {
     const {
       object,
-      returnValue
+      id
     } = this.props
-    let display = object && (object.name_label || object.name) || String(returnValue)
-    if (object && object.type) {
-      display += ` (${object.type})`
-    }
-    return <span><Icon icon='arrow-right' />{' '}{display}</span>
+
+    return <span><Icon icon='arrow-right' />{' '}{object ? renderXoItem(object) : id}</span>
   }
 }
 
@@ -121,8 +116,8 @@ class Log extends Component {
             <ul className='list-group'>
               {map(log.calls, call => <li key={call.callKey} className='list-group-item'>
                 <strong className='text-info'>{call.method}: </strong>
-                {map(call.params, (value, key) => <JobParam paramValue={value} paramKey={key} key={key} />)}
-                {call.returnedValue && <span>{' '}<JobReturn returnValue={call.returnedValue} /></span>}
+                {map(call.params, (value, key) => <JobParam id={value} paramKey={key} key={key} />)}
+                {call.returnedValue && <span>{' '}<JobReturn id={call.returnedValue} /></span>}
                 {call.error && <Icon icon='error' />}
               </li>)}
             </ul>
