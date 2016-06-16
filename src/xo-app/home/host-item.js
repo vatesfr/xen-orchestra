@@ -53,7 +53,7 @@ export default class HostItem extends Component {
     return <div className={styles.item}>
       <BlockLink to={`/hosts/${host.id}`}>
         <SingleLineRow>
-          <Col smallSize={10} mediumSize={9} largeSize={5}>
+          <Col smallSize={10} mediumSize={9} largeSize={3}>
             <EllipsisContainer>
               <input type='checkbox' checked={selected} onChange={this._onSelect} value={host.id} />
               &nbsp;&nbsp;
@@ -101,6 +101,16 @@ export default class HostItem extends Component {
               </Ellipsis>
             </EllipsisContainer>
           </Col>
+          <Col largeSize={2} className='hidden-lg-down'>
+            <span>
+              {host.cpus.cores}x <Icon icon='cpu' />
+              {' '}
+              {formatSize(host.memory.size)}
+            </span>
+          </Col>
+          <Col largeSize={2} className='hidden-lg-down'>
+            <span className='tag tag-info tag-ip'>{host.address}</span>
+          </Col>
           <Col mediumSize={2} className='hidden-sm-down'>
             <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>
           </Col>
@@ -116,13 +126,13 @@ export default class HostItem extends Component {
         <Row>
           <Col mediumSize={4} className={styles.itemExpanded}>
             <span>
-              {host.CPUs.number}x <Icon icon='cpu' />
+              {host.cpus.cores}x <Icon icon='cpu' />
               {' '}&nbsp;{' '}
               {formatSize(host.memory.size)} <Icon icon='memory' />
             </span>
           </Col>
           <Col largeSize={4} className={styles.itemExpanded}>
-            {map(host.addresses, address => <span key={address} className='tag tag-info tag-ip'>{address}</span>)}
+            <span className='tag tag-info tag-ip'>{host.address}</span>
           </Col>
           <Col mediumSize={4}>
             <span style={{fontSize: '1.4em'}}>

@@ -62,7 +62,9 @@ const ITEMS_PER_PAGE = 20
 const OPTIONS = {
   host: {
     defaultFilter: 'power_state:running ',
-    filters: {},
+    filters: {
+      homeFilterRunningHosts: 'power_state:running '
+    },
     Item: HostItem
   },
   VM: {

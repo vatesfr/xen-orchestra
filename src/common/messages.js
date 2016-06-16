@@ -242,6 +242,12 @@ export const messages = {
   homeNewVm: {
     defaultMessage: 'New VM'
   },
+  homeFilterRunningHosts: {
+    defaultMessage: 'Running hosts'
+  },
+  homeFilterDisabledHosts: {
+    defaultMessage: 'Disabled hosts'
+  },
   homeFilterRunningVms: {
     defaultMessage: 'Running VMs'
   },
