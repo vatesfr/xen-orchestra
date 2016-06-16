@@ -65,7 +65,7 @@ const computeMissingDays = days => {
     const diff = a.diff(b, 'days')
 
     if (diff > 1) {
-      const days = times(diff - 1, () => {
+      const missingDays = times(diff - 1, () => {
         a.subtract(1, 'days')
 
         return {
@@ -75,7 +75,7 @@ const computeMissingDays = days => {
       }).reverse()
 
       correctedDays.splice.apply(
-        correctedDays, [i, 0].concat(days)
+        correctedDays, [i, 0].concat(missingDays)
       )
     }
 

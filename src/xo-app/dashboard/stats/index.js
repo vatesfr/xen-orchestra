@@ -44,7 +44,6 @@ const getMetricValues = (metrics, metricKey) => (
 
 const computeStatsAverage = (stats, {
   layers,
-  mapValue = value => value,
   metricKey,
   metrics,
   timestampStart,
@@ -62,7 +61,7 @@ const computeStatsAverage = (stats, {
 
     if (values[key] === undefined) {
       values.push({
-        value: mapValue(value),
+        value,
         date: timestampStart + 3600000 * key
       })
     } else {
@@ -160,14 +159,8 @@ const computeLoadAverage = (load, params) => {
   })
 }
 
-const computeMemoryUsedAverage = (memoryUsed, {
-  object,
-  ...params
-}) => {
-  const factor = object.type === 'host' ? 1024 : 1
-
+const computeMemoryUsedAverage = (memoryUsed, params) => {
   computeStatsAverage(memoryUsed, {
-    mapValue: value => value * factor,
     metricKey: 'RAM used',
     valuesRenderer: formatSize,
     ...params
@@ -273,7 +266,6 @@ export default class Stats extends Component {
             const params = {
               layers,
               metrics,
-              object,
               timestampStart: (result.endTimestamp - 3600 * (stats.memory.length - 1)) * 1000
             }
 
