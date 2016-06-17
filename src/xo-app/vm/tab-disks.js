@@ -32,8 +32,6 @@ import {
   setVmBootOrder
 } from 'xo'
 
-const writableSrPredicate = sr => sr.content_type !== 'iso'
-
 const parseBootOrder = bootOrder => {
   const bootOptions = {
     c: 'Hard-Drive',
@@ -82,10 +80,19 @@ class NewDisk extends Component {
 
   _selectSr = sr => this.setState({sr})
 
+  // FIXME: duplicate code
+  _getSrPredicate = createSelector(
+    () => {
+      const { vm } = this.props
+      return vm && vm.$pool
+    },
+    poolId => sr => sr.$pool === poolId && sr.content_type === 'user'
+  )
+
   render () {
     return <form id='newDiskForm'>
       <div className='form-group'>
-        <SelectSr predicate={writableSrPredicate} onChange={this._selectSr} required />
+        <SelectSr predicate={this._getSrPredicate()} onChange={this._selectSr} required />
       </div>
       <fieldset className='form-inline'>
         <div className='form-group'>
@@ -121,12 +128,13 @@ class AttachDisk extends Component {
     poolId => vdi => vdi.$pool === poolId
   )
 
+  // FIXME: duplicate code
   _getSrPredicate = createSelector(
     () => {
       const { vm } = this.props
       return vm && vm.$pool
     },
-    poolId => sr => sr.$pool === poolId && sr.SR_type !== ''
+    poolId => sr => sr.$pool === poolId && sr.content_type === 'user'
   )
 
   _selectVdi = vdi => this.setState({vdi})
@@ -153,7 +161,7 @@ class AttachDisk extends Component {
       <div className='form-group'>
         <SelectVdi
           predicate={this._getVdiPredicate()}
-          containerPredicate={this._getSrPredicate()}
+          srPredicate={this._getSrPredicate()}
           onChange={this._selectVdi}
         />
       </div>
@@ -368,90 +376,90 @@ export default class TabDisks extends Component {
         <Col>
           {!isEmpty(vbds)
             ? <table className='table'>
-                <thead className='thead-default'>
-                  <tr>
-                    <th>{_('vdiNameLabel')}</th>
-                    <th>{_('vdiNameDescription')}</th>
-                    <th>{_('vdiSize')}</th>
-                    <th>{_('vdiSr')}</th>
-                    <th>{_('vdbBootableStatus')}</th>
-                    <th>{_('vdbStatus')}</th>
+              <thead className='thead-default'>
+                <tr>
+                  <th>{_('vdiNameLabel')}</th>
+                  <th>{_('vdiNameDescription')}</th>
+                  <th>{_('vdiSize')}</th>
+                  <th>{_('vdiSr')}</th>
+                  <th>{_('vdbBootableStatus')}</th>
+                  <th>{_('vdbStatus')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {map(vbds, vbd => {
+                  const vdi = vdis[vbd.VDI]
+                  if (vbd.is_cd_drive || !vdi) {
+                    return
+                  }
+
+                  const sr = srs[vdi.$SR]
+
+                  return <tr key={vbd.id}>
+                    <td>
+                      <Text value={vdi.name_label} onChange={value => editVdi(vdi, { name_label: value })} />
+                    </td>
+                    <td>
+                      <Text value={vdi.name_description} onChange={value => editVdi(vdi, { name_description: value })} />
+                    </td>
+                    <td><Size value={vdi.size} onChange={size => editVdi(vdi, { size })} /></td>
+                    <td>
+                      <XoSelect
+                        onChange={sr => migrateVdi(vdi, sr)}
+                        xoType='SR'
+                        predicate={sr => (sr.$pool === vm.$pool) && (sr.content_type === 'user')}
+                        labelProp='name_label'
+                        value={sr}
+                        useLongClick
+                      >
+                        <Link to={`/srs/${sr.id}`}>{sr.name_label}</Link>
+                      </XoSelect>
+                    </td>
+                    <td>
+                      <Toggle
+                        value={vbd.bootable}
+                        onChange={bootable => setBootableVbd(vbd, bootable)}
+                      />
+                    </td>
+                    <td>
+                      {vbd.attached
+                        ? <span>
+                          <span className='tag tag-success'>
+                              {_('vbdStatusConnected')}
+                          </span>
+                          <ButtonGroup className='pull-xs-right'>
+                            <ActionRowButton
+                              btnStyle='default'
+                              icon='disconnect'
+                              handler={disconnectVbd}
+                              handlerParam={vbd}
+                            />
+                          </ButtonGroup>
+                        </span>
+                        : <span>
+                          <span className='tag tag-default'>
+                              {_('vbdStatusDisconnected')}
+                          </span>
+                          <ButtonGroup className='pull-xs-right'>
+                            <ActionRowButton
+                              btnStyle='default'
+                              icon='vdi-forget'
+                              handler={deleteVbd}
+                              handlerParam={vbd}
+                            />
+                            <ActionRowButton
+                              btnStyle='default'
+                              icon='vdi-remove'
+                              handler={deleteVdi}
+                              handlerParam={vdi}
+                            />
+                          </ButtonGroup>
+                        </span>
+                      }
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {map(vbds, vbd => {
-                    const vdi = vdis[vbd.VDI]
-                    if (vbd.is_cd_drive || !vdi) {
-                      return
-                    }
-
-                    const sr = srs[vdi.$SR]
-
-                    return <tr key={vbd.id}>
-                      <td>
-                        <Text value={vdi.name_label} onChange={value => editVdi(vdi, { name_label: value })} />
-                      </td>
-                      <td>
-                        <Text value={vdi.name_description} onChange={value => editVdi(vdi, { name_description: value })} />
-                      </td>
-                      <td><Size value={vdi.size} onChange={size => editVdi(vdi, { size })} /></td>
-                      <td>
-                        <XoSelect
-                          onChange={sr => migrateVdi(vdi, sr)}
-                          xoType='SR'
-                          predicate={sr => (sr.$pool === vm.$pool) && (sr.content_type === 'user')}
-                          labelProp='name_label'
-                          value={sr}
-                          useLongClick
-                        >
-                          <Link to={`/srs/${sr.id}`}>{sr.name_label}</Link>
-                        </XoSelect>
-                      </td>
-                      <td>
-                        <Toggle
-                          value={vbd.bootable}
-                          onChange={bootable => setBootableVbd(vbd, bootable)}
-                        />
-                      </td>
-                      <td>
-                        {vbd.attached
-                          ? <span>
-                            <span className='tag tag-success'>
-                                {_('vbdStatusConnected')}
-                            </span>
-                            <ButtonGroup className='pull-xs-right'>
-                              <ActionRowButton
-                                btnStyle='default'
-                                icon='disconnect'
-                                handler={disconnectVbd}
-                                handlerParam={vbd}
-                              />
-                            </ButtonGroup>
-                          </span>
-                          : <span>
-                            <span className='tag tag-default'>
-                                {_('vbdStatusDisconnected')}
-                            </span>
-                            <ButtonGroup className='pull-xs-right'>
-                              <ActionRowButton
-                                btnStyle='default'
-                                icon='vdi-forget'
-                                handler={deleteVbd}
-                                handlerParam={vbd}
-                              />
-                              <ActionRowButton
-                                btnStyle='default'
-                                icon='vdi-remove'
-                                handler={deleteVdi}
-                                handlerParam={vdi}
-                              />
-                            </ButtonGroup>
-                          </span>
-                        }
-                      </td>
-                    </tr>
-                  })}
-                </tbody>
+                })}
+              </tbody>
             </table>
             : <h4 className='text-xs-center'>{_('vbdNoVbd')}</h4>
           }
