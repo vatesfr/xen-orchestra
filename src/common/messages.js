@@ -1304,6 +1304,9 @@ export const messages = {
   },
 
   // --- Stats board --
+  weekHeatmapData: {
+    defaultMessage: '{value} {date, date, medium}'
+  },
   weekHeatmapNoData: {
     defaultMessage: 'No data.'
   },

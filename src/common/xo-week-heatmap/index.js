@@ -20,14 +20,9 @@ import styles from './index.css'
 
 // ===================================================================
 
-const CELL_TIME_FORMAT = {
+const DAY_TIME_FORMAT = {
   day: 'numeric',
-  hour: 'numeric',
-  minute: 'numeric',
-  month: 'short',
-  second: 'numeric',
-  weekday: 'short',
-  year: 'numeric'
+  month: 'numeric'
 }
 
 // ===================================================================
@@ -65,14 +60,10 @@ const computeMissingDays = days => {
     const diff = a.diff(b, 'days')
 
     if (diff > 1) {
-      const missingDays = times(diff - 1, () => {
-        a.subtract(1, 'days')
-
-        return {
-          legend: a.format('DD'),
-          hours
-        }
-      }).reverse()
+      const missingDays = times(diff - 1, () => ({
+        hours,
+        timestamp: a.subtract(1, 'days').toDate().getTime()
+      })).reverse()
 
       correctedDays.splice.apply(
         correctedDays, [i, 0].concat(missingDays)
@@ -103,20 +94,14 @@ export default class XoWeekHeatmap extends Component {
   }
 
   componentWillReceiveProps (nextProps) {
-    this._updateDays(nextProps)
+    this._updateDays(nextProps.data)
   }
 
   componentWillMount () {
-    this._updateDays()
+    this._updateDays(this.props.data)
   }
 
-  _updateDays (props = this.props) {
-    const {
-      data,
-      intl: {
-        formatTime
-      }
-    } = props
+  _updateDays (data) {
     const days = {}
 
     // 1. Compute average per day.
@@ -129,7 +114,6 @@ export default class XoWeekHeatmap extends Component {
 
       if (!days[dayId]) {
         days[dayId] = {
-          legend: moment(date).format('DD'),
           hours: new Array(24),
           timestamp: elem.date
         }
@@ -139,9 +123,9 @@ export default class XoWeekHeatmap extends Component {
 
       if (!hours[hourId]) {
         hours[hourId] = {
-          value,
+          date,
           nb: 1,
-          date: formatTime(date, CELL_TIME_FORMAT)
+          value
         }
       } else {
         const hour = hours[hourId]
@@ -170,6 +154,13 @@ export default class XoWeekHeatmap extends Component {
   }
 
   render () {
+    const {
+      cellRenderer,
+      intl: {
+        formatTime
+      }
+    } = this.props
+
     return (
       <table className={styles.table}>
         <tbody>
@@ -179,16 +170,17 @@ export default class XoWeekHeatmap extends Component {
           </tr>
           {map(this.state.days, (day, key) => (
             <tr key={key}>
-              <th>{day.legend}</th>
+              <th>{formatTime(day.timestamp, DAY_TIME_FORMAT)}</th>
               {map(day.hours, (hour, key) => (
                 <Tooltip
                   className={styles.cell}
                   key={key}
-                  style={{ backgroundColor: hour ? hour.color : '#ffffff' }}
+                  style={{ background: hour ? hour.color : '#ffffff' }}
                   tagName='td'
                   content={hour
-                    ? `${this.props.cellRenderer(hour.value / hour.nb)} (${hour.date})`
-                    : _('weekHeatmapNoData')}
+                    ? _('weekHeatmapData', { date: hour.date, value: cellRenderer(hour.value) })
+                    : _('weekHeatmapNoData')
+                  }
                 />
               ))}
             </tr>
