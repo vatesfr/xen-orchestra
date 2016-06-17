@@ -455,6 +455,10 @@ export const createVm = args => (
   xo.call('vm.create', args)
 )
 
+export const getCloudInitConfig = template => (
+  xo.call('vm.getCloudInitConfig', { template })
+)
+
 export const deleteVm = ({ id }) => (
   confirm({
     title: _('deleteVmModalTitle'),
