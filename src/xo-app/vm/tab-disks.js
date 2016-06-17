@@ -1,12 +1,13 @@
 import _ from 'messages'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
+import Component from 'base-component'
 import forEach from 'lodash/forEach'
 import HTML5Backend from 'react-dnd-html5-backend'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
-import React, { Component } from 'react'
+import React from 'react'
 import TabButton from 'tab-button'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Container, Row, Col } from 'grid'
@@ -16,6 +17,8 @@ import { noop, propTypes } from 'utils'
 import { SelectSr, SelectVdi } from 'select-objects'
 import { SizeInput, Toggle } from 'form'
 import { XoSelect, Size, Text } from 'editable'
+import some from 'lodash/some'
+import { createSelector } from 'selectors'
 
 import {
   attachDiskToVM,
@@ -31,10 +34,27 @@ import {
 
 const writableSrPredicate = sr => sr.content_type !== 'iso'
 
+const parseBootOrder = bootOrder => {
+  const bootOptions = {
+    c: 'Hard-Drive',
+    d: 'DVD-Drive',
+    n: 'Network'
+  }
+  const order = []
+  if (bootOrder) {
+    for (const id of bootOrder) {
+      if (id in bootOptions) {
+        order.push({id, text: bootOptions[id], active: true})
+        delete bootOptions[id]
+      }
+    }
+  }
+  forEach(bootOptions, (text, id) => { order.push({id, text, active: false}) })
+  return order
+}
+
 @propTypes({
   onClose: propTypes.func,
-  vbds: propTypes.array.isRequired,
-  vdis: propTypes.object.isRequired,
   vm: propTypes.object.isRequired
 })
 class NewDisk extends Component {
@@ -46,22 +66,15 @@ class NewDisk extends Component {
   }
 
   _createDisk = () => {
-    const { vm, vbds, vdis, onClose = noop } = this.props
+    const { vm, onClose = noop } = this.props
     const {name, size, bootable, readOnly} = this.refs
     const { sr } = this.state
     return createDisk(name.value, size.value, sr)
       .then(diskId => {
         const mode = readOnly.value ? 'RO' : 'RW'
-        let lastPos = 0
-        forEach(vbds, vbd => {
-          if (vdis[vbd.VDI]) {
-            lastPos = Math.max(lastPos, +vbd.position)
-          }
-        })
         return attachDiskToVM(vm, diskId, {
           bootable: bootable.value,
-          mode,
-          position: lastPos + 1
+          mode
         })
           .then(onClose)
       })
@@ -97,50 +110,39 @@ class NewDisk extends Component {
 @propTypes({
   onClose: propTypes.func,
   vbds: propTypes.array.isRequired,
-  vdis: propTypes.object.isRequired,
   vm: propTypes.object.isRequired
 })
 class AttachDisk extends Component {
-  constructor (props) {
-    super(props)
-    this.state = {}
-  }
+  _getVdiPredicate = createSelector(
+    () => {
+      const { vm } = this.props
+      return vm && vm.$pool
+    },
+    poolId => vdi => vdi.$pool === poolId
+  )
 
-  _vdiPredicate = vdi => {
-    const { vm } = this.props
-    return vdi.$pool === vm.$pool
-  }
-
-  _srPredicate = sr => {
-    const { vm } = this.props
-    return sr.$pool === vm.$pool && sr.SR_type !== 'iso'
-  }
+  _getSrPredicate = createSelector(
+    () => {
+      const { vm } = this.props
+      return vm && vm.$pool
+    },
+    poolId => sr => sr.$pool === poolId && sr.SR_type !== ''
+  )
 
   _selectVdi = vdi => this.setState({vdi})
 
   _addVdi = () => {
-    const { vm, vbds, vdis, onClose = noop } = this.props
+    const { vm, vbds, onClose = noop } = this.props
     const { vdi } = this.state
     const { bootable, readOnly } = this.refs
-    const _isFreeForWriting = (vdi) => {
-      let free = true
-      forEach(vdi.$VBDs, id => {
-        const vbd = vbds[id]
-        free = free && (!vbd || !vbd.attached || vbd.read_only)
-      })
-      return free
-    }
-    let lastPos = 0
-    forEach(vbds, vbd => {
-      if (vdis[vbd.VDI]) {
-        lastPos = Math.max(lastPos, +vbd.position)
-      }
+    const _isFreeForWriting = vdi => some(vdi.$VBDs, id => {
+      const vbd = vbds[id]
+      return !vbd || !vbd.attached || vbd.read_only
     })
     const mode = readOnly.value || !_isFreeForWriting(vdi) ? 'RO' : 'RW'
     return attachDiskToVM(vm, vdi, {
       bootable: bootable.value,
-      mode,
-      position: lastPos + 1
+      mode
     })
       .then(onClose)
   }
@@ -150,8 +152,8 @@ class AttachDisk extends Component {
     return <form id='attachDiskForm'>
       <div className='form-group'>
         <SelectVdi
-          predicate={this._vdiPredicate}
-          containerPredicate={this._srPredicate}
+          predicate={this._getVdiPredicate()}
+          containerPredicate={this._getSrPredicate()}
           onChange={this._selectVdi}
         />
       </div>
@@ -238,30 +240,11 @@ class BootOrder extends Component {
   constructor (props) {
     super(props)
     const { vm } = props
-    const order = this._parseBootOrder(vm.boot && vm.boot.order)
+    const order = parseBootOrder(vm.boot && vm.boot.order)
     this.state = {order}
   }
 
-  _parseBootOrder (bootOrder) {
-    const bootOptions = {
-      c: 'Hard-Drive',
-      d: 'DVD-Drive',
-      n: 'Network'
-    }
-    const order = []
-    if (bootOrder) {
-      for (let id of bootOrder) {
-        if (id in bootOptions) {
-          order.push({id, text: bootOptions[id], active: true})
-          delete bootOptions[id]
-        }
-      }
-    }
-    forEach(bootOptions, (text, id) => order.push({id, text, active: false}))
-    return order
-  }
-
-  moveOrderItem = (dragIndex, hoverIndex) => {
+  _moveOrderItem = (dragIndex, hoverIndex) => {
     const order = this.state.order.slice()
     const dragItem = order.splice(dragIndex, 1)
     if (dragItem.length) {
@@ -272,7 +255,7 @@ class BootOrder extends Component {
 
   _reset = () => {
     const { vm } = this.props
-    const order = this._parseBootOrder(vm.boot && vm.boot.order)
+    const order = parseBootOrder(vm.boot && vm.boot.order)
     this.setState({order})
   }
 
@@ -295,14 +278,14 @@ class BootOrder extends Component {
           index={index}
           id={item.id}
           item={item}
-          move={this.moveOrderItem}
+          move={this._moveOrderItem}
         />)}
       </ul>
       <fieldset className='form-inline'>
         <span className='pull-right'>
           <ActionButton icon='save' btnStyle='primary' handler={this._save}>Save</ActionButton>
           {' '}
-          <ActionButton icon='reset' btnStyle='default' handler={this._reset}>Reset</ActionButton>
+          <ActionButton icon='reset' handler={this._reset}>Reset</ActionButton>
         </span>
       </fieldset>
     </form>
@@ -375,11 +358,13 @@ export default class TabDisks extends Component {
         </Col>
       </Row>
       <Row>
-        {newDisk && <div><NewDisk vm={vm} vbds={vbds} vdis={vdis} onClose={this._toggleNewDisk} /><hr /></div>}
-        {attachDisk && <div><AttachDisk vm={vm} vbds={vbds} vdis={vdis} onClose={this._toggleAttachDisk} /><hr /></div>}
-        {bootOrder && <div><BootOrder vm={vm} onClose={this._toggleBootOrder} /><hr /></div>}
+        <Col>
+          {newDisk && <div><NewDisk vm={vm} onClose={this._toggleNewDisk} /><hr /></div>}
+          {attachDisk && <div><AttachDisk vm={vm} vbds={vbds} onClose={this._toggleAttachDisk} /><hr /></div>}
+          {bootOrder && <div><BootOrder vm={vm} onClose={this._toggleBootOrder} /><hr /></div>}
+        </Col>
       </Row>
-      <Row style={{ minWidth: '0' }}>
+      <Row>
         <Col>
           {!isEmpty(vbds)
             ? <table className='table'>
