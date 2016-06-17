@@ -6,12 +6,9 @@ import fatfs from 'fatfs'
 import fatfsBuffer, { init as fatfsBufferInit } from './fatfs-buffer'
 import find from 'lodash.find'
 import includes from 'lodash.includes'
-// import isFinite from 'lodash.isfinite'
-import pickBy from 'lodash.pickby'
 import sortBy from 'lodash.sortby'
 import unzip from 'julien-f-unzip'
 import { defer } from 'promise-toolbox'
-import { utcFormat, utcParse } from 'd3-time-format'
 import {
   wrapError as wrapXapiError,
   Xapi as XapiBase
@@ -20,24 +17,20 @@ import {
   satisfies as versionSatisfies
 } from 'semver'
 
-import httpRequest from './http-request'
-import mixins from './xapi-mixins'
+import httpRequest from '../http-request'
 import {
   debounce,
   deferrable,
   mixin
-} from './decorators'
-import httpProxy from './http-proxy'
+} from '../decorators'
+import httpProxy from '../http-proxy'
 import {
   bufferToStream,
   camelToSnakeCase,
   createRawObject,
   ensureArray,
   forEach,
-  isBoolean,
   isFunction,
-  isInteger,
-  isObject,
   map,
   mapToArray,
   noop,
@@ -48,11 +41,24 @@ import {
   pFinally,
   promisifyAll,
   pSettle
-} from './utils'
+} from '../utils'
 import {
   GenericError,
   ForbiddenOperation
-} from './api-errors'
+} from '../api-errors'
+
+import mixins from './mixins'
+import {
+  asBoolean,
+  asInteger,
+  extractOpaqueRef,
+  filterUndefineds,
+  getNamespaceForType,
+  isVmHvm,
+  isVmRunning,
+  optional,
+  prepareXapiParam
+} from './utils'
 
 const debug = createDebug('xo:xapi')
 
@@ -62,15 +68,6 @@ const TAG_BASE_DELTA = 'xo:base_delta'
 const TAG_COPY_SRC = 'xo:copy_of'
 
 // ===================================================================
-
-const OPAQUE_REF_RE = /OpaqueRef:[0-9a-z-]+/
-function extractOpaqueRef (str) {
-  const matches = OPAQUE_REF_RE.exec(str)
-  if (!matches) {
-    throw new Error('no opaque ref found')
-  }
-  return matches[0]
-}
 
 // HTTP put, use an ugly hack if the length is not known because XAPI
 // does not support chunk encoding.
@@ -109,92 +106,9 @@ const put = (stream, {
   return makeRequest().readAll()
 }
 
-const asBoolean = value => Boolean(value)
-// const asFloat = value => {
-//   value = String(value)
-//   return value.indexOf('.') === -1
-//     ? `${value}.0`
-//     : value
-// }
-const asInteger = value => String(value)
-
-const optional = (value, fn) => value == null
-  ? undefined
-  : fn ? fn(value) : value
-
-const filterUndefineds = obj => pickBy(obj, value => value !== undefined)
-
-const prepareXapiParam = param => {
-  // if (isFinite(param) && !isInteger(param)) {
-  //   return asFloat(param)
-  // }
-  if (isInteger(param)) {
-    return asInteger(param)
-  }
-  if (isBoolean(param)) {
-    return asBoolean(param)
-  }
-  if (isObject(param)) {
-    return map(filterUndefineds(param), prepareXapiParam)
-  }
-
-  return param
-}
 // ===================================================================
 
-const typeToNamespace = createRawObject()
-forEach([
-  'Bond',
-  'DR_task',
-  'GPU_group',
-  'PBD',
-  'PCI',
-  'PGPU',
-  'PIF',
-  'PIF_metrics',
-  'SM',
-  'SR',
-  'VBD',
-  'VBD_metrics',
-  'VDI',
-  'VGPU',
-  'VGPU_type',
-  'VLAN',
-  'VM',
-  'VM_appliance',
-  'VM_guest_metrics',
-  'VM_metrics',
-  'VMPP',
-  'VTPM'
-], namespace => {
-  typeToNamespace[namespace.toLowerCase()] = namespace
-})
-
-// Object types given by `xen-api` are always lowercase but the
-// namespaces in the Xen API can have a different casing.
-const getNamespaceForType = (type) => typeToNamespace[type] || type
-
-// ===================================================================
-
-// Format a date (pseudo ISO 8601) from one XenServer get by
-// xapi.call('host.get_servertime', host.$ref) for example
-export const formatDateTime = utcFormat('%Y%m%dT%H:%M:%SZ')
-
-export const parseDateTime = utcParse('%Y%m%dT%H:%M:%SZ')
-
-export const isHostRunning = (host) => {
-  const {$metrics: metrics} = host
-
-  return metrics && metrics.live
-}
-
-const VM_RUNNING_POWER_STATES = {
-  Running: true,
-  Paused: true
-}
-export const isVmRunning = (vm) => VM_RUNNING_POWER_STATES[vm.power_state]
-
-export const isVmHvm = (vm) => Boolean(vm.HVM_boot_policy)
+export * from './utils'
 
 // VDI formats. (Raw is not available for delta vdi.)
 export const VDI_FORMAT_VHD = 'vhd'

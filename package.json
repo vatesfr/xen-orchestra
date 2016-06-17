@@ -156,7 +156,7 @@
   "scripts": {
     "build": "npm run build-indexes && gulp build --production",
     "depcheck": "dependency-check ./package.json",
-    "build-indexes": "./tools/generate-index src/api src/xapi-mixins src/xo-mixins",
+    "build-indexes": "./tools/generate-index src/api src/xapi/mixins src/xo-mixins",
     "dev": "npm run build-indexes && gulp build",
     "dev-test": "mocha --opts .mocha.opts --watch --reporter=min \"dist/**/*.spec.js\"",
     "lint": "standard",

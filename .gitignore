@@ -2,7 +2,7 @@
 /dist/
 /node_modules/
 /src/api/index.js
-/src/xapi-mixins/index.js
+/src/xapi/mixins/index.js
 /src/xo-mixins/index.js
 
 npm-debug.log
