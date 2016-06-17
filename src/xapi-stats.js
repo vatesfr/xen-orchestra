@@ -285,9 +285,10 @@ export default class XapiStats {
     // Load
     hostStats.load.push(convertNanToNull(values[hostLegends.load]))
 
-    // Memory
-    const memory = values[hostLegends.memory]
-    const memoryFree = values[hostLegends.memoryFree]
+    // Memory.
+    // WARNING! memory/memoryFree are in kB.
+    const memory = values[hostLegends.memory] * 1024
+    const memoryFree = values[hostLegends.memoryFree] * 1024
 
     hostStats.memory.push(memory)
 
