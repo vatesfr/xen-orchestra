@@ -10,7 +10,7 @@ import {
   interpolateViridis,
   scaleSequential
 } from 'd3-scale'
-import { injectIntl } from 'react-intl'
+import { FormattedTime } from 'react-intl'
 
 import Component from '../base-component'
 import Tooltip from '../tooltip'
@@ -87,7 +87,6 @@ const computeMissingDays = days => {
     })
   ).isRequired
 })
-@injectIntl
 export default class XoWeekHeatmap extends Component {
   static defaultProps = {
     cellRenderer: value => value
@@ -154,13 +153,6 @@ export default class XoWeekHeatmap extends Component {
   }
 
   render () {
-    const {
-      cellRenderer,
-      intl: {
-        formatTime
-      }
-    } = this.props
-
     return (
       <table className={styles.table}>
         <tbody>
@@ -170,7 +162,7 @@ export default class XoWeekHeatmap extends Component {
           </tr>
           {map(this.state.days, (day, key) => (
             <tr key={key}>
-              <th>{formatTime(day.timestamp, DAY_TIME_FORMAT)}</th>
+              <th><FormattedTime value={day.timestamp} {...DAY_TIME_FORMAT} /></th>
               {map(day.hours, (hour, key) => (
                 <Tooltip
                   className={styles.cell}
@@ -178,7 +170,7 @@ export default class XoWeekHeatmap extends Component {
                   style={{ background: hour ? hour.color : '#ffffff' }}
                   tagName='td'
                   content={hour
-                    ? _('weekHeatmapData', { date: hour.date, value: cellRenderer(hour.value) })
+                    ? _('weekHeatmapData', { date: hour.date, value: this.props.cellRenderer(hour.value) })
                     : _('weekHeatmapNoData')
                   }
                 />
