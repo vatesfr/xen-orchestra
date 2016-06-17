@@ -549,13 +549,13 @@ export const setVmBootOrder = (vm, order) => (
   })
 )
 
-export const addVdi = (vm, vdi, position, mode, bootable) => (
+export const attachDiskToVM = (vm, vdi, {bootable, mode, position}) => (
   xo.call('vm.attachDisk', {
-    vm: resolveId(vm),
-    vdi: resolveId(vdi),
-    position: String(position),
+    bootable,
     mode,
-    bootable
+    position: position && String(position) || undefined,
+    vdi: resolveId(vdi),
+    vm: resolveId(vm)
   })
 )
 

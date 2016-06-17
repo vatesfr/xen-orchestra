@@ -56,10 +56,7 @@ const getLabel = object =>
   predicate: propTypes.func,
   required: propTypes.bool,
   value: propTypes.any,
-  xoContainers: propTypes.oneOfType([
-    propTypes.array,
-    propTypes.object
-  ]),
+  xoContainers: propTypes.array,
   xoObjects: propTypes.oneOfType([
     propTypes.array,
     propTypes.objectOf(propTypes.array)
@@ -487,7 +484,7 @@ export const SelectVdi = propTypes({
 
   return {
     xoObjects: getVdis,
-    xoContainers: getSrs
+    xoContainers: getSrs.sort()
   }
 }, { placeholder: _('selectVdis') }))
 

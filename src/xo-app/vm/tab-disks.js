@@ -18,7 +18,7 @@ import { SizeInput, Toggle } from 'form'
 import { XoSelect, Size, Text } from 'editable'
 
 import {
-  addVdi,
+  attachDiskToVM,
   createDisk,
   deleteVbd,
   deleteVdi,
@@ -50,17 +50,21 @@ class NewDisk extends Component {
     const {name, size, bootable, readOnly} = this.refs
     const { sr } = this.state
     return createDisk(name.value, size.value, sr)
-    .then(diskId => {
-      const mode = readOnly.value ? 'RO' : 'RW'
-      let lastPos = 0
-      forEach(vbds, vbd => {
-        if (vdis[vbd.VDI]) {
-          lastPos = Math.max(lastPos, +vbd.position)
-        }
+      .then(diskId => {
+        const mode = readOnly.value ? 'RO' : 'RW'
+        let lastPos = 0
+        forEach(vbds, vbd => {
+          if (vdis[vbd.VDI]) {
+            lastPos = Math.max(lastPos, +vbd.position)
+          }
+        })
+        return attachDiskToVM(vm, diskId, {
+          bootable: bootable.value,
+          mode,
+          position: lastPos + 1
+        })
+          .then(onClose)
       })
-      return addVdi(vm, diskId, lastPos + 1, mode, bootable.value)
-        .then(onClose)
-    })
   }
 
   _selectSr = sr => this.setState({sr})
@@ -133,7 +137,11 @@ class AttachDisk extends Component {
       }
     })
     const mode = readOnly.value || !_isFreeForWriting(vdi) ? 'RO' : 'RW'
-    return addVdi(vm, vdi, lastPos + 1, mode, bootable.value)
+    return attachDiskToVM(vm, vdi, {
+      bootable: bootable.value,
+      mode,
+      position: lastPos + 1
+    })
       .then(onClose)
   }
 
