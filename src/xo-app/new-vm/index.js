@@ -162,18 +162,16 @@ export default class NewVm extends BaseComponent {
         }
     }
 
-    let cloudContent
+    let cloudConfig
     if (state.configDrive) {
       const hostname = state.name_label.replace(/^\s+|\s+$/g, '').replace(/\s+/g, '-')
       if (this.installMethod === 'SSH') {
-        cloudContent = '#cloud-config\nhostname: ' + hostname + '\nssh_authorized_keys:\n  - ' + state.sshKey + '\n'
+        cloudConfig = '#cloud-config\nhostname: ' + hostname + '\nssh_authorized_keys:\n  - ' + state.sshKey + '\n'
       } else {
-        cloudContent = state.customConfig
+        cloudConfig = state.customConfig
       }
-    }
-
-    if (state.template.name_label === 'CoreOS') {
-      cloudContent = 'CoreOS'
+    } else if (state.template.name_label === 'CoreOS') {
+      cloudConfig = state.cloudConfig
     }
 
     const data = {
@@ -193,12 +191,8 @@ export default class NewVm extends BaseComponent {
       pv_args: state.pv_args,
       // Boolean: if true, boot the VM right after its creation
       bootAfterCreate: state.bootAfterCreate,
-      cloudConfig: state.cloudConfig,
-      /* String:
-       * - if 'CoreOS': vm.createCloudInitConfigDrive --> docker.register
-       * - else: vm.createCloudInitConfigDrive(..., cloudContent) --> vm.setBootOrder
-       */
-      cloudContent
+      cloudConfig,
+      coreOs: state.template.name_label === 'CoreOS'
 
     }
     return createVm(data)
