@@ -10,6 +10,10 @@ const SELECT_MENU_STYLE = {
   overflow: 'hidden'
 }
 
+const SELECT_STYLE = {
+  minWidth: '10em'
+}
+
 // See: https://github.com/bvaughn/react-virtualized-select/blob/master/source/VirtualizedSelect/VirtualizedSelect.js
 @propTypes({
   maxHeight: propTypes.number,
@@ -99,6 +103,7 @@ export default class Select extends Component {
         {...this.props}
         menuRenderer={this._renderMenu}
         menuStyle={SELECT_MENU_STYLE}
+        style={SELECT_STYLE}
       />
     )
   }

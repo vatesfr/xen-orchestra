@@ -18,8 +18,6 @@ import { Link } from 'react-router'
 import { XoSelect, Size, Text } from 'editable'
 import { Toggle } from 'form'
 
-const LARGE_TD = { minWidth: '10em' }
-
 export default ({
   srs,
   vbds,
@@ -81,7 +79,7 @@ export default ({
                       <Text value={vdi.name_description} onChange={value => editVdi(vdi, { name_description: value })} />
                     </td>
                     <td><Size value={vdi.size} onChange={size => editVdi(vdi, { size })} /></td>
-                    <td style={LARGE_TD}>
+                    <td>
                       <XoSelect
                         onChange={sr => migrateVdi(vdi, sr)}
                         xoType='SR'
