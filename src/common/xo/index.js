@@ -542,6 +542,33 @@ export const ejectCd = vm => (
   xo.call('vm.ejectCd', { id: resolveId(vm) })
 )
 
+export const setVmBootOrder = (vm, order) => (
+  xo.call('vm.setBootOrder', {
+    vm: resolveId(vm),
+    order
+  })
+)
+
+export const attachDiskToVM = (vm, vdi, {bootable, mode, position}) => (
+  xo.call('vm.attachDisk', {
+    bootable,
+    mode,
+    position: position && String(position) || undefined,
+    vdi: resolveId(vdi),
+    vm: resolveId(vm)
+  })
+)
+
+// DISK ---------------------------------------------------------------
+
+export const createDisk = (name, size, sr) => (
+  xo.call('disk.create', {
+    name,
+    size,
+    sr: resolveId(sr)
+  })
+)
+
 // VDI ---------------------------------------------------------------
 
 export const editVdi = ({ id }, props) => (

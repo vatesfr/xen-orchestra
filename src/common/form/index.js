@@ -160,6 +160,7 @@ const DEFAULT_UNIT = 'GiB'
   onChange: propTypes.func,
   placeholder: propTypes.string,
   readOnly: propTypes.bool,
+  required: propTypes.bool,
   style: propTypes.object
 })
 export class SizeInput extends Component {
@@ -196,6 +197,7 @@ export class SizeInput extends Component {
       className,
       placeholder,
       readOnly,
+      required,
       style
     } = this.props
 
@@ -211,6 +213,7 @@ export class SizeInput extends Component {
         onChange={this._onChange}
         placeholder={placeholder}
         readOnly={readOnly}
+        required={required}
         ref='value'
         type='number'
       />
