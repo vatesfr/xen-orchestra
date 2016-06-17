@@ -49,39 +49,37 @@ export default class TabNetwork extends Component {
         <Col>
           {!isEmpty(vifs)
             ? <span>
-              <div className='table-responsive'>
-                <table className='table' style={{ minWidth: '0' }}>
-                  <thead>
-                    <tr>
-                      <th>{_('vifDeviceLabel')}</th>
-                      <th>{_('vifMacLabel')}</th>
-                      <th>{_('vifMtuLabel')}</th>
-                      <th>{_('vifNetworkLabel')}</th>
-                      <th>{_('vifStatusLabel')}</th>
+              <table className='table' style={{ minWidth: '0' }}>
+                <thead>
+                  <tr>
+                    <th>{_('vifDeviceLabel')}</th>
+                    <th>{_('vifMacLabel')}</th>
+                    <th>{_('vifMtuLabel')}</th>
+                    <th>{_('vifNetworkLabel')}</th>
+                    <th>{_('vifStatusLabel')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {map(vifs, vif =>
+                    <tr key={vif.id}>
+                      <td>VIF #{vif.device}</td>
+                      <td><pre>{vif.MAC}</pre></td>
+                      <td>{vif.MTU}</td>
+                      <td>{networks[vif.$network].name_label}</td>
+                      <td>
+                        {vif.attached
+                          ? <span className='tag tag-success'>
+                              {_('vifStatusConnected')}
+                          </span>
+                          : <span className='tag tag-default'>
+                              {_('vifStatusDisconnected')}
+                          </span>
+                        }
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {map(vifs, vif =>
-                      <tr key={vif.id}>
-                        <td>VIF #{vif.device}</td>
-                        <td><pre>{vif.MAC}</pre></td>
-                        <td>{vif.MTU}</td>
-                        <td>{networks[vif.$network].name_label}</td>
-                        <td>
-                          {vif.attached
-                            ? <span className='tag tag-success'>
-                                {_('vifStatusConnected')}
-                            </span>
-                            : <span className='tag tag-default'>
-                                {_('vifStatusDisconnected')}
-                            </span>
-                          }
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                  )}
+                </tbody>
+              </table>
               {vm.addresses && !isEmpty(vm.addresses)
                 ? <span>
                   <h4>{_('vifIpAddresses')}</h4>
