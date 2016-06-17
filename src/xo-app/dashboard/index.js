@@ -8,6 +8,7 @@ import { NavLink, NavTabs } from 'nav'
 
 import Overview from './overview'
 import Health from './health'
+import Stats from './stats'
 
 const HEADER = <Container>
   <Row>
@@ -27,7 +28,8 @@ const HEADER = <Container>
 
 const Dashboard = routes('overview', {
   health: Health,
-  overview: Overview
+  overview: Overview,
+  stats: Stats
 })(
   ({ children }) => <Page header={HEADER}>{children}</Page>
 )

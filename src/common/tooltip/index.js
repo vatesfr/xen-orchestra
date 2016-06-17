@@ -7,9 +7,10 @@ const Tooltip = ({
   children,
   className,
   content,
+  style,
   tagName: Component = 'span'
 }) => (
-  <Component className={classNames(className, styles.container)}>
+  <Component className={classNames(className, styles.container)} style={style}>
     <div className={styles.arrow} />
     <div className={styles.tooltip}>
       {content}
@@ -22,6 +23,7 @@ Tooltip.propTypes = {
   children: PropTypes.node,
   className: PropTypes.string,
   content: PropTypes.any.isRequired,
+  style: PropTypes.object,
   tagName: PropTypes.string
 }
 
