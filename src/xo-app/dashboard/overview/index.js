@@ -174,12 +174,10 @@ export default class Overview extends Component {
                 </div>
                 <div className='card-block'>
                   <ChartistGraph
-                    data={
-                      {
-                        labels: ['Used Memory', 'Total Memory'],
-                        series: [this.props.hostMetrics.memoryUsage, this.props.hostMetrics.memoryTotal - this.props.hostMetrics.memoryUsage]
-                      }
-                    }
+                    data={{
+                      labels: ['Used Memory', 'Total Memory'],
+                      series: [this.props.hostMetrics.memoryUsage, this.props.hostMetrics.memoryTotal - this.props.hostMetrics.memoryUsage]
+                    }}
                     options={{ donut: true, donutWidth: 40, showLabel: false }}
                     type='Pie' />
                   <p className='text-xs-center'>{formatSize(this.props.hostMetrics.memoryUsage)} ({_('ofUsage')} {formatSize(this.props.hostMetrics.memoryTotal)})</p>
@@ -194,12 +192,10 @@ export default class Overview extends Component {
                 <div className='card-block'>
                   <div className='ct-chart'>
                     <ChartistGraph
-                      data={
-                        {
-                          labels: ['vCPUs', 'CPUs'],
-                          series: [this.props.vmMetrics.vcpus, this.props.hostMetrics.cpus]
-                        }
-                      }
+                      data={{
+                        labels: ['vCPUs', 'CPUs'],
+                        series: [this.props.vmMetrics.vcpus, this.props.hostMetrics.cpus]
+                      }}
                       options={{ showLabel: false, showGrid: false, distributeSeries: true }}
                       type='Bar' />
                     <p className='text-xs-center'>{this.props.vmMetrics.vcpus} vCPUS ({_('ofUsage')} {this.props.hostMetrics.cpus} CPUs)</p>
@@ -215,12 +211,10 @@ export default class Overview extends Component {
                 <div className='card-block'>
                   <div className='ct-chart'>
                     <ChartistGraph
-                      data={
-                        {
-                          labels: ['Used Space', 'Total Space'],
-                          series: [this.props.srMetrics.srUsage, this.props.srMetrics.srTotal - this.props.srMetrics.srUsage]
-                        }
-                      }
+                      data={{
+                        labels: ['Used Space', 'Total Space'],
+                        series: [this.props.srMetrics.srUsage, this.props.srMetrics.srTotal - this.props.srMetrics.srUsage]
+                      }}
                       options={{ donut: true, donutWidth: 40, showLabel: false }}
                       type='Pie' />
                     <p className='text-xs-center'>{formatSize(this.props.srMetrics.srUsage)} ({_('ofUsage')} {formatSize(this.props.srMetrics.srTotal)})</p>
@@ -269,12 +263,10 @@ export default class Overview extends Component {
                 </div>
                 <div className='card-block'>
                   <ChartistGraph
-                    data={
-                      {
-                        labels: ['Running', 'Halted', 'Other'],
-                        series: [this.props.vmMetrics.running, this.props.vmMetrics.halted, this.props.vmMetrics.other]
-                      }
-                    }
+                    data={{
+                      labels: ['Running', 'Halted', 'Other'],
+                      series: [this.props.vmMetrics.running, this.props.vmMetrics.halted, this.props.vmMetrics.other]
+                    }}
                     options={{ showLabel: false }}
                     type='Pie' />
                   <p className='text-xs-center'>{this.props.vmMetrics.running} running ({this.props.vmMetrics.halted} halted)</p>
@@ -289,12 +281,10 @@ export default class Overview extends Component {
                 <div className='card-block'>
                   <ChartistGraph
                     style={{strokeWidth: '30px'}}
-                    data={
-                      {
-                        labels: map(this.props.userSrs, 'name_label'),
-                        series: map(this.props.userSrs, sr => (sr.physical_usage / sr.size) * 100)
-                      }
-                    }
+                    data={{
+                      labels: map(this.props.userSrs, 'name_label'),
+                      series: map(this.props.userSrs, sr => (sr.physical_usage / sr.size) * 100)
+                    }}
                     options={{ showLabel: false, showGrid: false, distributeSeries: true, high: 100 }}
                     type='Bar' />
                 </div>
