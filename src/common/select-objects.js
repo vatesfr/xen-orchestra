@@ -381,10 +381,10 @@ export const SelectVm = makeStoreSelect(() => {
 
 export const SelectHostVm = makeStoreSelect(() => {
   const getHosts = createGetObjectsOfType('host').filter(
-    filterPredicate
+    getPredicate
   ).sort()
   const getVms = createGetObjectsOfType('VM').filter(
-    filterPredicate
+    getPredicate
   ).sort()
 
   const getObjects = createSelector(

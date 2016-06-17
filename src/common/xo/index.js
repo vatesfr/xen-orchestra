@@ -544,7 +544,7 @@ export const ejectCd = vm => (
 
 export const setVmBootOrder = (vm, order) => (
   xo.call('vm.setBootOrder', {
-    id: resolveId(vm),
+    vm: resolveId(vm),
     order
   })
 )
