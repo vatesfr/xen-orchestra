@@ -6,9 +6,10 @@ import { routes } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { NavLink, NavTabs } from 'nav'
 
-import Overview from './overview'
 import Health from './health'
+import Overview from './overview'
 import Stats from './stats'
+import Visualizations from './visualizations'
 
 const HEADER = <Container>
   <Row>
@@ -18,7 +19,7 @@ const HEADER = <Container>
     <Col mediumSize={9}>
       <NavTabs className='pull-xs-right'>
         <NavLink to={'/dashboard/overview'}><Icon icon='menu-dashboard-overview' /> {_('overviewDashboardPage')}</NavLink>
-        <NavLink to={'/dashboard/visualization'}><Icon icon='menu-dashboard-visualization' /> {_('overviewVisualizationDashboardPage')}</NavLink>
+        <NavLink to={'/dashboard/visualizations'}><Icon icon='menu-dashboard-visualization' /> {_('overviewVisualizationDashboardPage')}</NavLink>
         <NavLink to={'/dashboard/stats'}><Icon icon='menu-dashboard-stats' /> {_('overviewStatsDashboardPage')}</NavLink>
         <NavLink to={'/dashboard/health'}><Icon icon='menu-dashboard-health' /> {_('overviewHealthDashboardPage')}</NavLink>
       </NavTabs>
@@ -29,7 +30,8 @@ const HEADER = <Container>
 const Dashboard = routes('overview', {
   health: Health,
   overview: Overview,
-  stats: Stats
+  stats: Stats,
+  visualizations: Visualizations
 })(
   ({ children }) => <Page header={HEADER}>{children}</Page>
 )

@@ -60,7 +60,7 @@ export default class Menu extends Component {
       { to: '/home', icon: 'menu-home', label: 'homePage' },
       { to: '/dashboard/overview', icon: 'menu-dashboard', label: 'dashboardPage', subMenu: [
         { to: '/dashboard/overview', icon: 'menu-dashboard-overview', label: 'overviewDashboardPage' },
-        { to: '/dashboard/visualization', icon: 'menu-dashboard-visualization', label: 'overviewVisualizationDashboardPage' },
+        { to: '/dashboard/visualizations', icon: 'menu-dashboard-visualization', label: 'overviewVisualizationDashboardPage' },
         { to: '/dashboard/stats', icon: 'menu-dashboard-stats', label: 'overviewStatsDashboardPage' },
         { to: '/dashboard/health', icon: 'menu-dashboard-health', label: 'overviewHealthDashboardPage' }
       ]},
