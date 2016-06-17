@@ -632,6 +632,18 @@ export const editNetwork = ({ id }, props) => (
   call('network.set', { ...props, id })
 )
 
+import CreateNetworkModalBody from './create-network-modal'
+export const createNetwork = container => (
+  confirm({
+    icon: 'network',
+    title: _('newNetworkCreate'),
+    body: <CreateNetworkModalBody container={container} />
+  }).then(
+    params => xo.call('network.create', params),
+    noop
+  )
+)
+
 // SR ----------------------------------------------------------------
 
 export const deleteSr = ({ id }) => (

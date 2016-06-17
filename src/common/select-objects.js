@@ -201,15 +201,17 @@ export class GenericSelect extends Component {
   }
 
   // GroupBy: Display option with margin if not disabled and containers exists.
-  _renderOption = option => (
-    <span
-      className={classNames(
-        !option.disabled && this.props.xoContainers && 'm-l-1'
-      )}
-    >
-      {renderXoItem(option.xoItem)}
-    </span>
-  )
+  _renderOption = option => {
+    return (
+      <span
+        className={classNames(
+          !option.disabled && this.props.xoContainers && 'm-l-1'
+        )}
+      >
+        {renderXoItem(option.xoItem)}
+      </span>
+    )
+  }
 
   render () {
     const { props, state } = this
@@ -435,6 +437,25 @@ export const SelectNetwork = makeStoreSelect(() => {
     xoContainers: getPools
   }
 }, { placeholder: _('selectNetworks') })
+
+// ===================================================================
+
+export const SelectPif = makeStoreSelect(() => {
+  const getPifsByHost = createGetObjectsOfType('PIF').filter(
+    getPredicate
+  ).sort().groupBy('$host')
+  const getHosts = createGetObjectsOfType('host').pick(
+    createSelector(
+      getPifsByHost,
+      networksByPool => keys(networksByPool)
+    )
+  ).sort()
+
+  return {
+    xoObjects: getPifsByHost,
+    xoContainers: getHosts
+  }
+}, { placeholder: _('selectPifs') })
 
 // ===================================================================
 

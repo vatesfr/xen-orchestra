@@ -325,6 +325,9 @@ export const messages = {
   selectNetworks: {
     defaultMessage: 'Select Network(s)…'
   },
+  selectPifs: {
+    defaultMessage: 'Select PIF(s)...'
+  },
   selectPools: {
     defaultMessage: 'Select Pool(s)…'
   },
@@ -1690,6 +1693,32 @@ export const messages = {
   },
   copyVmCompress: {
     defaultMessage: 'Use compression'
+  },
+
+  // ----- Network -----
+  newNetworkCreate: {
+    defaultMessage: 'Create network'
+  },
+  newNetworkInterface: {
+    defaultMessage: 'Interface'
+  },
+  newNetworkName: {
+    defaultMessage: 'Name'
+  },
+  newNetworkDescription: {
+    defaultMessage: 'Description'
+  },
+  newNetworkVlan: {
+    defaultMessage: 'VLAN'
+  },
+  newNetworkDefaultVlan: {
+    defaultMessage: 'No VLAN if empty'
+  },
+  newNetworkMtu: {
+    defaultMessage: 'MTU'
+  },
+  newNetworkDefaultMtu: {
+    defaultMessage: 'Default: 1500'
   }
 }
 forEach(messages, (message, id) => {
@@ -1764,6 +1793,7 @@ localizedMessages.fr = {
   selectSubjects: 'Select. utilisateurs et/ou groupe(s)',
   selectHosts: 'Selectionner Hôte(s)...',
   selectNetworks: 'Selectionner Network(s)...',
+  selectPifs: 'Sélectionner PIF(s)...',
   selectHostsVms: 'Selectionner objet(s)...',
   selectPools: 'Selectionner Pool(s)...',
   selectRemotes: 'Selectionner Remote(s)...',
@@ -2100,7 +2130,9 @@ localizedMessages.fr = {
   copyVmName: 'Nom',
   copyVmNamePlaceholder: 'Si vide : nom de la VM copiée',
   copyVmSelectSr: 'Sélectionnez un SR',
-  copyVmCompress: 'Utiliser la compression'
+  copyVmCompress: 'Utiliser la compression',
+  // ----- Network -----
+  networkCreate: 'Créer un réseau'
 }
 
 // ===================================================================

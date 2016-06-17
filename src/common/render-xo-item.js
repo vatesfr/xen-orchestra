@@ -132,6 +132,13 @@ const xoItemToRender = {
   // VM.
   VM: vm => <VmItem vm={vm} />,
 
+  // PIF.
+  PIF: pif => (
+    <span>
+      <Icon icon='network' /> {pif.device}
+    </span>
+  ),
+
   // Tags.
   tag: tag => (
     <span>
