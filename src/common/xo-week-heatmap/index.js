@@ -62,7 +62,7 @@ const computeMissingDays = days => {
     if (diff > 1) {
       const missingDays = times(diff - 1, () => ({
         hours,
-        timestamp: a.subtract(1, 'days').toDate().getTime()
+        timestamp: a.subtract(1, 'days').valueOf()
       })).reverse()
 
       correctedDays.splice.apply(
