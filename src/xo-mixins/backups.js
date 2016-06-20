@@ -106,7 +106,8 @@ export default class {
     const stream = await handler.createReadStream(file)
     const xapi = this._xo.getXapi(sr)
 
-    await xapi.importVm(stream, { srId: sr._xapiId })
+    const vm = await xapi.importVm(stream, { srId: sr._xapiId })
+    return xapiObjectToXo(vm).id
   }
 
   // -----------------------------------------------------------------

@@ -804,9 +804,7 @@ exports.backup = backup
 
 #---------------------------------------------------------------------
 
-importBackup = $coroutine ({remote, file, sr}) ->
-  yield @importVmBackup(remote, file, sr)
-  return
+importBackup = ({remote, file, sr}) -> @importVmBackup(remote, file, sr)
 
 importBackup.permission = 'admin'
 importBackup.description = 'Imports a VM into host, from a file found in the chosen remote'
