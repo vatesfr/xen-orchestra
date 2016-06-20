@@ -548,7 +548,7 @@ export default class NewVm extends BaseComponent {
               <span className={styles.inlineSelect}>
                 <SelectNetwork
                   defaultValue={vif.network}
-                  onChange={this._getOnChangeObject('VIFs', index, '$network', 'id')}
+                  onChange={this._getOnChangeObject('VIFs', index, 'network', 'id')}
                   predicate={this._getIsInPool()}
                   ref='network'
                 />
