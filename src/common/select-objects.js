@@ -201,17 +201,15 @@ export class GenericSelect extends Component {
   }
 
   // GroupBy: Display option with margin if not disabled and containers exists.
-  _renderOption = option => {
-    return (
-      <span
-        className={classNames(
-          !option.disabled && this.props.xoContainers && 'm-l-1'
-        )}
-      >
-        {renderXoItem(option.xoItem)}
-      </span>
-    )
-  }
+  _renderOption = option => (
+    <span
+      className={classNames(
+        !option.disabled && this.props.xoContainers && 'm-l-1'
+      )}
+    >
+      {renderXoItem(option.xoItem)}
+    </span>
+  )
 
   render () {
     const { props, state } = this

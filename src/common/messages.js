@@ -1719,6 +1719,32 @@ export const messages = {
   },
   newNetworkDefaultMtu: {
     defaultMessage: 'Default: 1500'
+  },
+  deleteNetwork: {
+    defaultMessage: 'Delete network'
+  },
+  deleteNetworkConfirm: {
+    defaultMessage: 'Are you sure you want to delete this network?'
+  },
+
+  // ----- PIF -----
+  connectPif: {
+    defaultMessage: 'Connect PIF'
+  },
+  connectPifConfirm: {
+    defaultMessage: 'Are you sure you want to connect this PIF?'
+  },
+  disconnectPif: {
+    defaultMessage: 'Disconnect PIF'
+  },
+  disconnectPifConfirm: {
+    defaultMessage: 'Are you sure you want to disconnect this PIF?'
+  },
+  deletePif: {
+    defaultMessage: 'Delete PIF'
+  },
+  deletePifConfirm: {
+    defaultMessage: 'Are you sure you want to delete this PIF?'
   }
 }
 forEach(messages, (message, id) => {
@@ -2132,7 +2158,16 @@ localizedMessages.fr = {
   copyVmSelectSr: 'Sélectionnez un SR',
   copyVmCompress: 'Utiliser la compression',
   // ----- Network -----
-  networkCreate: 'Créer un réseau'
+  networkCreate: 'Créer un réseau',
+  deleteNetwork: 'Supprimer le réseau',
+  deleteNetworkConfirm: 'Etes-vous sûr de vouloir supprimer ce réseau ?',
+  // ----- PIF -----
+  connectPif: 'Connecter la PIF',
+  connectPifConfirm: 'Etes-vous sûr de vouloir connecter cette PIF ?',
+  disconnectPif: 'Déconnecter la PIF',
+  disconnectPifConfirm: 'Etes-vous sûr de vouloir déconnecter cette PIF ?',
+  deletePif: 'Supprimer la PIF',
+  deletePifConfirm: 'Etes-vous sûr de vouloir supprimer cette PIF ?'
 }
 
 // ===================================================================

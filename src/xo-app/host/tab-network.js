@@ -1,9 +1,11 @@
 import _ from 'messages'
-import { createNetwork } from 'xo'
+import ActionRowButton from 'action-row-button'
+import { connectPif, createNetwork, deletePif, disconnectPif } from 'xo'
 import React from 'react'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import TabButton from 'tab-button'
+import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Container, Row, Col } from 'grid'
 
 export default ({
@@ -12,6 +14,11 @@ export default ({
   pifs
 }) => {
   const _createNetwork = () => createNetwork(host)
+  const _disableUnplug = pif =>
+    pif.attached && (pif.management || pif.disallowUnplug)
+  const _disableDelete = pif =>
+    pif.physical || pif.disallowUnplug || pif.management
+
   return <Container>
     <Row>
       <Col className='text-xs-right'>
@@ -37,6 +44,7 @@ export default ({
                   <th>{_('pifMacLabel')}</th>
                   <th>{_('pifMtuLabel')}</th>
                   <th>{_('pifStatusLabel')}</th>
+                  <th />
                 </tr>
               </thead>
               <tbody>
@@ -60,6 +68,24 @@ export default ({
                             {_('pifStatusDisconnected')}
                         </span>
                       }
+                    </td>
+                    <td>
+                      <ButtonGroup className='pull-xs-right'>
+                        <ActionRowButton
+                          btnStyle='default'
+                          disabled={_disableUnplug(pif)}
+                          icon={pif.attached ? 'disconnect' : 'connect'}
+                          handler={pif.attached ? disconnectPif : connectPif}
+                          handlerParam={{ pif: pif.id }}
+                        />
+                        <ActionRowButton
+                          btnStyle='default'
+                          disabled={_disableDelete(pif)}
+                          icon='delete'
+                          handler={deletePif}
+                          handlerParam={{ pif: pif.id }}
+                        />
+                      </ButtonGroup>
                     </td>
                   </tr>
                 )}

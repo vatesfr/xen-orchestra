@@ -644,6 +644,48 @@ export const createNetwork = container => (
   )
 )
 
+export const deleteNetwork = ({ network }) => (
+  confirm({
+    title: _('deleteNetwork'),
+    body: _('deleteNetworkConfirm')
+  }).then(
+    () => xo.call('network.delete', { network }),
+    noop
+  )
+)
+
+// PIF ---------------------------------------------------------------
+
+export const connectPif = ({ pif }) => (
+  confirm({
+    title: _('connectPif'),
+    body: _('connectPifConfirm')
+  }).then(
+    () => xo.call('pif.connect', { pif }),
+    noop
+  )
+)
+
+export const disconnectPif = ({ pif }) => (
+  confirm({
+    title: _('disconnectPif'),
+    body: _('disconnectPifConfirm')
+  }).then(
+    () => xo.call('pif.disconnect', { pif }),
+    noop
+  )
+)
+
+export const deletePif = ({ pif }) => (
+  confirm({
+    title: _('deletePif'),
+    body: _('deletePifConfirm')
+  }).then(
+    () => xo.call('pif.delete', { pif }),
+    noop
+  )
+)
+
 // SR ----------------------------------------------------------------
 
 export const deleteSr = ({ id }) => (
