@@ -143,7 +143,7 @@ export default class NewVm extends BaseComponent {
       case 'ISO':
         installation = {
           method: 'cdrom',
-          repository: state.installIso
+          repository: state.installIso.id
         }
         break
       case 'network':
@@ -258,7 +258,7 @@ export default class NewVm extends BaseComponent {
       VIFs,
       // disks
       existingDisks,
-      VDIs: map(template.template_info.disks, disk => ({ ...disk, device: this.getUniqueId() }))
+      VDIs: map(template.template_info.disks, disk => ({ ...disk, device: String(this.getUniqueId()) }))
     }, () => forEach(this.state.state, (element, key) => {
       !isArray(element) && this._setInputValue(key, element)
     }))
