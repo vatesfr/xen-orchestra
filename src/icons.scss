@@ -211,6 +211,12 @@
     @extend .fa-map-signs;
   }
 
+  // Jobs
+  &-jobs {
+    @extend .fa;
+    @extend .fa-cogs;
+  }
+
   // VM
   &-vm {
     // States
