@@ -54,7 +54,7 @@ const xo = invoke(() => {
   connect()
 
   xo.on('scheduledAttempt', ({ delay }) => {
-    console.log('next attempt in %s ms', delay)
+    console.warn('next attempt in %s ms', delay)
   })
 
   xo.on('closed', connect)
