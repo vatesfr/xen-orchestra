@@ -283,8 +283,6 @@ export const removeServer = ({ id }) => (
   )
 )
 
-export const plop = () => call('vm.start')
-
 // Host --------------------------------------------------------------
 
 export const editHost = ({ id }, props) => (
