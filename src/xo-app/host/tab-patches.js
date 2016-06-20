@@ -1,13 +1,65 @@
 import _ from 'messages'
 import ActionRowButton from 'action-row-button'
 import isEmpty from 'lodash/isEmpty'
-import map from 'lodash/map'
+import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import Upgrade from 'xoa-upgrade'
 import React, { Component } from 'react'
 import { Container, Row, Col } from 'grid'
 import { formatSize } from 'utils'
 import { FormattedRelative, FormattedTime } from 'react-intl'
+
+const MISSING_PATCH_COLUMNS = [
+  {
+    name: _('patchNameLabel'),
+    itemRenderer: patch => patch.name,
+    sortCriteria: patch => patch.name
+  },
+  {
+    name: _('patchDescription'),
+    itemRenderer: patch => patch.description,
+    sortCriteria: patch => patch.description
+  },
+  {
+    name: _('patchReleaseDate'),
+    itemRenderer: patch => <span><FormattedTime value={patch.date} day='numeric' month='long' year='numeric' /> (<FormattedRelative value={patch.date} />)</span>,
+    sortCriteria: patch => patch.date
+  },
+  {
+    name: _('patchGuidance'),
+    itemRenderer: patch => patch.guidance,
+    sortCriteria: patch => patch.guidance
+  },
+  {
+    name: _('patchAction'),
+    itemRenderer: (patch, installPatch) => (
+      <ActionRowButton
+        btnStyle='primary'
+        handler={installPatch}
+        handlerParam={patch}
+        icon='host-patch-update'
+      />
+    )
+  }
+]
+
+const INSTALLED_PATCH_COLUMNS = [
+  {
+    name: _('patchNameLabel'),
+    itemRenderer: patch => patch.name,
+    sortCriteria: patch => patch.name
+  },
+  {
+    name: _('patchDescription'),
+    itemRenderer: patch => patch.description,
+    sortCriteria: patch => patch.description
+  },
+  {
+    name: _('patchSize'),
+    itemRenderer: patch => formatSize(patch.size),
+    sortCriteria: patch => patch.size
+  }
+]
 
 export default class HostPatches extends Component {
   render () {
@@ -32,35 +84,7 @@ export default class HostPatches extends Component {
                 <Row>
                   <Col>
                     <h3>{_('hostMissingPatches')}</h3>
-                    <table className='table'>
-                      <thead className='thead-default'>
-                        <tr>
-                          <th>{_('patchNameLabel')}</th>
-                          <th>{_('patchDescription')}</th>
-                          <th>{_('patchReleaseDate')}</th>
-                          <th>{_('patchGuidance')}</th>
-                          <th>{_('patchAction')}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {map(missingPatches, missingPatch => {
-                          return <tr key={missingPatch.uuid}>
-                            <td>{missingPatch.name}</td>
-                            <td><a href={missingPatch.documentationUrl} target='_blank'>{missingPatch.description}</a></td>
-                            <td><FormattedTime value={missingPatch.date} day='numeric' month='long' year='numeric' /> (<FormattedRelative value={missingPatch.date} />)</td>
-                            <td>{missingPatch.guidance}</td>
-                            <td>
-                              <ActionRowButton
-                                btnStyle='primary'
-                                handler={installPatch}
-                                handlerParam={missingPatch}
-                                icon='host-patch-update'
-                              />
-                            </td>
-                          </tr>
-                        })}
-                      </tbody>
-                    </table>
+                    <SortedTable collection={missingPatches} userData={installPatch} columns={MISSING_PATCH_COLUMNS} />
                   </Col>
                 </Row>
               </span>
@@ -72,37 +96,7 @@ export default class HostPatches extends Component {
             {!isEmpty(poolPatches)
               ? <span>
                 <h3>{_('hostInstalledPatches')}</h3>
-                <table className='table'>
-                  <thead className='thead-default'>
-                    <tr>
-                      <th>{_('patchNameLabel')}</th>
-                      <th>{_('patchDescription')}</th>
-                      {/* <th>{_('patchApplied')}</th> */}
-                      <th>{_('patchSize')}</th>
-                      {/* <th>{_('patchStatus')}</th> */}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {map(poolPatches, poolPatch => {
-                      return <tr key={poolPatch.id}>
-                        <td>{poolPatch.name}</td>
-                        <td>{poolPatch.description}</td>
-                        {/* <td><FormattedTime value={patch.time * 1000} day='numeric' month='long' year='numeric' /> (<FormattedRelative value={patch.time * 1000} />)</td> */}
-                        <td>{formatSize(poolPatch.size)}</td>
-                        {/* <td>
-                          {patch.applied
-                            ? <span className='tag tag-success'>
-                                {_('patchStatusApplied')}
-                            </span>
-                            : <span className='tag tag-default'>
-                                {_('patchStatusNotApplied')}
-                            </span>
-                          }
-                        </td> */}
-                      </tr>
-                    })}
-                  </tbody>
-                </table>
+                <SortedTable collection={poolPatches} columns={INSTALLED_PATCH_COLUMNS} />
               </span>
               : <h4 className='text-xs-center'>{_('patchNothing')}</h4>
             }

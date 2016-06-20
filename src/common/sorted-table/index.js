@@ -118,7 +118,8 @@ const DEFAULT_ITEMS_PER_PAGE = 10
   })).isRequired,
   filterContainer: propTypes.func,
   itemsPerPage: propTypes.number,
-  paginationContainer: propTypes.func
+  paginationContainer: propTypes.func,
+  userData: propTypes.any
 })
 export default class SortedTable extends Component {
   constructor (props) {
@@ -200,7 +201,8 @@ export default class SortedTable extends Component {
     const { props, state } = this
     const {
       paginationContainer,
-      filterContainer
+      filterContainer,
+      userData
     } = props
 
     const paginationInstance = (
@@ -243,7 +245,7 @@ export default class SortedTable extends Component {
               <tr key={key}>
                 {map(props.columns, (column, key) => (
                   <td key={key}>
-                    {column.itemRenderer(item)}
+                    {column.itemRenderer(item, userData)}
                   </td>
                 ))}
               </tr>
