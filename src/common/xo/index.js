@@ -62,6 +62,26 @@ const xo = invoke(() => {
   return xo
 })
 
+const call = (method, params) => {
+  let promise = xo.call(method, params)
+
+  if (process.env.NODE_ENV !== 'production') {
+    promise = promise.catch(error => {
+      console.error('XO error', {
+        method,
+        params,
+        code: error.code,
+        message: error.message,
+        data: error.data
+      })
+
+      throw error
+    })
+  }
+
+  return promise
+}
+
 // ===================================================================
 
 export const connectStore = store => {
@@ -79,7 +99,7 @@ export const connectStore = store => {
   xo.on('authenticated', () => {
     store.dispatch(signedIn(xo.user))
 
-    xo.call('xo.getAllObjects').then(objects => store.dispatch(updateObjects(objects)))
+    call('xo.getAllObjects').then(objects => store.dispatch(updateObjects(objects)))
   })
   xo.on('notification', notification => {
     if (notification.method !== 'all') {
@@ -166,30 +186,30 @@ const createSubscription = cb => {
 
 // Subscriptions -----------------------------------------------------
 
-export const subscribeAcls = createSubscription(() => xo.call('acl.get'))
+export const subscribeAcls = createSubscription(() => call('acl.get'))
 
-export const subscribeJobs = createSubscription(() => xo.call('job.getAll'))
+export const subscribeJobs = createSubscription(() => call('job.getAll'))
 
-export const subscribeJobsLogs = createSubscription(() => xo.call('log.get', {namespace: 'jobs'}))
+export const subscribeJobsLogs = createSubscription(() => call('log.get', {namespace: 'jobs'}))
 
-export const subscribePermissions = createSubscription(() => xo.call('acl.getCurrentPermissions'))
+export const subscribePermissions = createSubscription(() => call('acl.getCurrentPermissions'))
 
-export const subscribePlugins = createSubscription(() => xo.call('plugin.get'))
+export const subscribePlugins = createSubscription(() => call('plugin.get'))
 
-export const subscribeRemotes = createSubscription(() => xo.call('remote.getAll'))
+export const subscribeRemotes = createSubscription(() => call('remote.getAll'))
 
-export const subscribeResourceSets = createSubscription(() => xo.call('resourceSet.getAll'))
+export const subscribeResourceSets = createSubscription(() => call('resourceSet.getAll'))
 
-export const subscribeScheduleTable = createSubscription(() => xo.call('scheduler.getScheduleTable'))
+export const subscribeScheduleTable = createSubscription(() => call('scheduler.getScheduleTable'))
 
-export const subscribeSchedules = createSubscription(() => xo.call('schedule.getAll'))
+export const subscribeSchedules = createSubscription(() => call('schedule.getAll'))
 
 export const subscribeServers = createSubscription(invoke(
   fpSortBy('host'),
-  sort => () => xo.call('server.getAll').then(sort)
+  sort => () => call('server.getAll').then(sort)
 ))
 
-export const subscribeUsers = createSubscription(() => xo.call('user.getAll').then(users => {
+export const subscribeUsers = createSubscription(() => call('user.getAll').then(users => {
   forEach(users, user => {
     user.type = 'user'
   })
@@ -197,7 +217,7 @@ export const subscribeUsers = createSubscription(() => xo.call('user.getAll').th
   return sortBy(users, 'email')
 }))
 
-export const subscribeGroups = createSubscription(() => xo.call('group.getAll').then(groups => {
+export const subscribeGroups = createSubscription(() => call('group.getAll').then(groups => {
   forEach(groups, group => {
     group.type = 'group'
   })
@@ -207,12 +227,12 @@ export const subscribeGroups = createSubscription(() => xo.call('group.getAll').
 
 export const subscribeRoles = createSubscription(invoke(
   sortBy('name'),
-  sort => () => xo.call('role.getAll').then(sort)
+  sort => () => call('role.getAll').then(sort)
 ))
 
 // System ============================================================
 
-export const serverVersion = _signIn.then(() => xo.call('system.getServerVersion'))
+export const serverVersion = _signIn.then(() => call('system.getServerVersion'))
 
 // ===================================================================
 
@@ -234,89 +254,91 @@ const resolveIds = params => {
 // Server ------------------------------------------------------------
 
 export const addServer = (host, username, password) => (
-  xo.call('server.add', { host, username, password })::tap(
+  call('server.add', { host, username, password })::tap(
     subscribeServers.forceRefresh
   )
 )
 
 export const editServer = ({ id }, { host, username, password, readOnly }) => (
-  xo.call('server.set', { id, host, username, password, readOnly })::tap(
+  call('server.set', { id, host, username, password, readOnly })::tap(
     subscribeServers.forceRefresh
   )
 )
 
 export const connectServer = ({ id }) => (
-  xo.call('server.connect', { id })::tap(
+  call('server.connect', { id })::tap(
     subscribeServers.forceRefresh
   )
 )
 
 export const disconnectServer = ({ id }) => (
-  xo.call('server.disconnect', { id })::tap(
+  call('server.disconnect', { id })::tap(
     subscribeServers.forceRefresh
   )
 )
 
 export const removeServer = ({ id }) => (
-  xo.call('server.remove', { id })::tap(
+  call('server.remove', { id })::tap(
     subscribeServers.forceRefresh
   )
 )
 
+export const plop = () => call('vm.start')
+
 // Host --------------------------------------------------------------
 
 export const editHost = ({ id }, props) => (
-  xo.call('host.set', { ...props, id })
+  call('host.set', { ...props, id })
 )
 
 export const fetchHostStats = ({ id }, granularity) => (
-  xo.call('host.stats', { host: id, granularity })
+  call('host.stats', { host: id, granularity })
 )
 
 export const restartHost = ({ id }, force = false) => (
-  xo.call('host.restart', { id, force })
+  call('host.restart', { id, force })
 )
 
 export const restartHostAgent = ({ id }) => (
-  xo.call('host.restart_agent', { id })
+  call('host.restart_agent', { id })
 )
 
 export const startHost = ({ id }) => (
-  xo.call('host.start', { id })
+  call('host.start', { id })
 )
 
 export const stopHost = ({ id }) => (
-  xo.call('host.stop', { id })
+  call('host.stop', { id })
 )
 
 export const enableHost = ({ id }) => (
-  xo.call('host.enable', { id })
+  call('host.enable', { id })
 )
 
 export const disableHost = ({ id }) => (
-  xo.call('host.disable', { id })
+  call('host.disable', { id })
 )
 
 export const getHostMissingPatches = ({ id }) => (
-  xo.call('host.listMissingPatches', { host: id })
+  call('host.listMissingPatches', { host: id })
 )
 
 export const emergencyShutdownHost = ({ id }) => (
-  xo.call('host.emergencyShutdownHost', { host: id })
+  call('host.emergencyShutdownHost', { host: id })
 )
 
 export const installHostPatch = ({ id }, { uuid }) => (
-  xo.call('host.installPatch', { host: id, patch: uuid })
+  call('host.installPatch', { host: id, patch: uuid })
 )
 
 export const installAllHostPatches = ({ id }) => (
-  xo.call('host.installAllPatches', { host: id })
+  call('host.installAllPatches', { host: id })
 )
 
 // VM ----------------------------------------------------------------
 
 export const startVm = ({ id }) => (
-  xo.call('vm.start', { id })
+  call('vm.start', { id })
 )
 
 export const startVms = vms => (
@@ -330,7 +352,7 @@ export const startVms = vms => (
 )
 
 export const stopVm = ({ id }, force = false) => (
-  xo.call('vm.stop', { id, force })
+  call('vm.stop', { id, force })
 )
 
 export const stopVms = (vms, force) => (
@@ -344,19 +366,19 @@ export const stopVms = (vms, force) => (
 )
 
 export const suspendVm = ({ id }) => (
-  xo.call('vm.suspend', { id })
+  call('vm.suspend', { id })
 )
 
 export const resumeVm = ({ id }) => (
-  xo.call('vm.resume', { id })
+  call('vm.resume', { id })
 )
 
 export const recoveryStartVm = ({ id }) => (
-  xo.call('vm.recoveryStart', { id })
+  call('vm.recoveryStart', { id })
 )
 
 export const restartVm = ({ id }, force = false) => (
-  xo.call('vm.restart', { id, force })
+  call('vm.restart', { id, force })
 )
 
 export const restartVms = (vms, force) => (
@@ -370,7 +392,7 @@ export const restartVms = (vms, force) => (
 )
 
 export const cloneVm = ({ id, name_label: nameLabel }, fullCopy = false) => (
-  xo.call('vm.clone', {
+  call('vm.clone', {
     id,
     name: `${nameLabel}_clone`,
     full_copy: fullCopy
@@ -383,13 +405,13 @@ export const copyVm = (vm, sr, name, compress) => {
     return confirm({
       title: _('copyVm'),
       body: _('copyVmConfirm', { SR: sr.name_label })
-    }).then(() => xo.call('vm.copy', { vm: vm.id, sr: sr.id, name: name || vm.name_label + '_COPY', compress }))
+    }).then(() => call('vm.copy', { vm: vm.id, sr: sr.id, name: name || vm.name_label + '_COPY', compress }))
   } else {
     return confirm({
       title: _('copyVm'),
       body: <CopyVmModalBody vm={vm} />
     }).then(
-      params => xo.call('vm.copy', { vm: vm.id, ...params }),
+      params => call('vm.copy', { vm: vm.id, ...params }),
       noop
     )
   }
@@ -403,13 +425,13 @@ export const convertVmToTemplate = ({ id }) => (
       <p>This operation is definitive.</p>
     </div>
   }).then(
-    () => xo.call('vm.convert', { id }),
+    () => call('vm.convert', { id }),
     noop
   )
 )
 
 export const snapshotVm = ({ id }) => (
-  xo.call('vm.snapshot', { id })
+  call('vm.snapshot', { id })
 )
 
 export const snapshotVms = vms => (
@@ -439,9 +461,9 @@ export const migrateVm = (vm, host) => {
         throw new Error('A target host is required to migrate a VM')
       }
       if (params) {
-        xo.call('vm.migrate', { vm: vm.id, ...params })
+        call('vm.migrate', { vm: vm.id, ...params })
       } else {
-        xo.call('vm.migrate', { vm: vm.id, targetHost: host.id })
+        call('vm.migrate', { vm: vm.id, targetHost: host.id })
       }
     },
     noop
@@ -453,11 +475,11 @@ export const migrateVms = vms => {
 }
 
 export const createVm = args => (
-  xo.call('vm.create', args)
+  call('vm.create', args)
 )
 
 export const getCloudInitConfig = template => (
-  xo.call('vm.getCloudInitConfig', { template })
+  call('vm.getCloudInitConfig', { template })
 )
 
 export const deleteVm = ({ id }) => (
@@ -465,7 +487,7 @@ export const deleteVm = ({ id }) => (
     title: _('deleteVmModalTitle'),
     body: _('deleteVmModalMessage')
   }).then(
-    () => xo.call('vm.delete', { id, delete_disks: true }),
+    () => call('vm.delete', { id, delete_disks: true }),
     noop
   )
 )
@@ -475,29 +497,29 @@ export const deleteVms = vms => (
     title: _('deleteVmsModalTitle', { vms: vms.length }),
     body: _('deleteVmsModalMessage', { vms: vms.length })
   }).then(
-    () => map(vms, vmId => xo.call('vm.delete', { id: vmId })),
+    () => map(vms, vmId => call('vm.delete', { id: vmId })),
     noop
   )
 )
 
 export const importBackup = ({remote, file, sr}) => (
-  xo.call('vm.importBackup', {remote, file, sr})
+  call('vm.importBackup', {remote, file, sr})
 )
 
 export const importDeltaBackup = ({sr, remote, filePath}) => (
-  xo.call('vm.importDeltaBackup', {sr, remote, filePath})
+  call('vm.importDeltaBackup', {sr, remote, filePath})
 )
 
 export const revertSnapshot = ({ id }) => (
-  xo.call('vm.revert', { id })
+  call('vm.revert', { id })
 )
 
 export const editVm = ({ id }, props) => (
-  xo.call('vm.set', { ...props, id })
+  call('vm.set', { ...props, id })
 )
 
 export const fetchVmStats = ({ id }, granularity) => (
-  xo.call('vm.stats', { id, granularity })
+  call('vm.stats', { id, granularity })
 )
 
 export const importVm = (file, sr) => {
@@ -505,7 +527,7 @@ export const importVm = (file, sr) => {
 
   info(_('startVmImport'), name)
 
-  return xo.call('vm.import', { sr }).then(({ $sendTo: url }) => {
+  return call('vm.import', { sr }).then(({ $sendTo: url }) => {
     const req = request.post(url)
 
     req.send(file)
@@ -527,12 +549,12 @@ export const importVms = (files, sr) => (
 
 export const exportVm = ({ id }) => {
   info(_('startVmExport'), id)
-  return xo.call('vm.export', { vm: id })
+  return call('vm.export', { vm: id })
     .then(({ $getFrom: url }) => window.open(`.${url}`))
 }
 
 export const insertCd = (vm, cd, force = false) => (
-  xo.call('vm.insertCd', {
+  call('vm.insertCd', {
     id: resolveId(vm),
     cd_id: resolveId(cd),
     force
@@ -540,7 +562,7 @@ export const insertCd = (vm, cd, force = false) => (
 )
 
 export const ejectCd = vm => (
-  xo.call('vm.ejectCd', { id: resolveId(vm) })
+  call('vm.ejectCd', { id: resolveId(vm) })
 )
 
 export const setVmBootOrder = (vm, order) => (
@@ -573,43 +595,43 @@ export const createDisk = (name, size, sr) => (
 // VDI ---------------------------------------------------------------
 
 export const editVdi = ({ id }, props) => (
-  xo.call('vdi.set', { ...props, id })
+  call('vdi.set', { ...props, id })
 )
 
 export const deleteVdi = ({ id }) => (
-  xo.call('vdi.delete', { id })
+  call('vdi.delete', { id })
 )
 
 export const migrateVdi = (vdi, sr) => (
-  xo.call('vdi.migrate', { id: vdi.id, sr_id: sr.id })
+  call('vdi.migrate', { id: vdi.id, sr_id: sr.id })
 )
 
 // VDB ---------------------------------------------------------------
 
 export const connectVbd = ({ id }) => (
-  xo.call('vbd.connect', { id })
+  call('vbd.connect', { id })
 )
 
 export const disconnectVbd = ({ id }) => (
-  xo.call('vbd.disconnect', { id })
+  call('vbd.disconnect', { id })
 )
 
 export const deleteVbd = ({ id }) => (
-  xo.call('vbd.delete', { id })
+  call('vbd.delete', { id })
 )
 
 export const editVbd = ({ id }, props) => (
-  xo.call('vbd.set', { ...props, id })
+  call('vbd.set', { ...props, id })
 )
 
 export const setBootableVbd = ({ id }, bootable) => (
-  xo.call('vbd.setBootable', { vbd: id, bootable })
+  call('vbd.setBootable', { vbd: id, bootable })
 )
 
 // Network -----------------------------------------------------------
 
 export const editNetwork = ({ id }, props) => (
-  xo.call('network.set', { ...props, id })
+  call('network.set', { ...props, id })
 )
 
 // SR ----------------------------------------------------------------
@@ -622,7 +644,7 @@ export const deleteSr = ({ id }) => (
       <p>This operation is definitive, and ALL DISKS WILL BE LOST FOREVER.</p>
     </div>
   }).then(
-    () => xo.call('sr.destroy', { id }),
+    () => call('sr.destroy', { id }),
     noop
   )
 )
@@ -635,7 +657,7 @@ export const forgetSr = ({ id }) => (
       <p>VDIs on this storage wont be removed.</p>
     </div>
   }).then(
-    () => xo.call('sr.forget', { id }),
+    () => call('sr.forget', { id }),
     noop
   )
 )
@@ -647,7 +669,7 @@ export const reconnectAllHostsSr = ({ id }) => (
       <p>This will reconnect this SR to all its hosts</p>
     </div>
   }).then(
-    () => xo.call('sr.connectAllPbds', { id }),
+    () => call('sr.connectAllPbds', { id }),
     noop
   )
 )
@@ -659,86 +681,86 @@ export const disconnectAllHostsSr = ({ id }) => (
       <p>This will disconnect this SR to all its hosts</p>
     </div>
   }).then(
-    () => xo.call('sr.disconnectAllPbds', { id }),
+    () => call('sr.disconnectAllPbds', { id }),
     noop
   )
 )
 
 export const editSr = ({ id }, props) => (
-  xo.call('sr.set', { ...props, id })
+  call('sr.set', { ...props, id })
 )
 
 export const rescanSr = ({ id }) => (
-  xo.call('sr.scan', { id })
+  call('sr.scan', { id })
 )
 
 // PBDs --------------------------------------------------------------
 
 export const connectPbd = ({ id }) => (
-  xo.call('pbd.connect', { id })
+  call('pbd.connect', { id })
 )
 
 export const disconnectPbd = ({ id }) => (
-  xo.call('pbd.disconnect', { id })
+  call('pbd.disconnect', { id })
 )
 
 export const deletePbd = ({ id }) => (
-  xo.call('pbd.delete', { id })
+  call('pbd.delete', { id })
 )
 
 // Messages ----------------------------------------------------------
 
 export const deleteMessage = ({ id }) => (
-  xo.call('message.delete', { id })
+  call('message.delete', { id })
 )
 
 // Tags --------------------------------------------------------------
 
 export const addTag = (id, tag) => (
-  xo.call('tag.add', { id, tag })
+  call('tag.add', { id, tag })
 )
 
 export const removeTag = (id, tag) => (
-  xo.call('tag.remove', { id, tag })
+  call('tag.remove', { id, tag })
 )
 
 // Backups -----------------------------------------------------------
 
 export const createSchedule = (jobId, cron, enabled) => (
-  xo.call('schedule.create', { jobId, cron, enabled })::tap(
+  call('schedule.create', { jobId, cron, enabled })::tap(
     subscribeSchedules.forceRefresh
   )
 )
 
 export const createJob = job => (
-  xo.call('job.create', { job })::tap(
+  call('job.create', { job })::tap(
     subscribeJobs.forceRefresh
   )
 )
 
 export const runJob = id => {
   info(_('runJob'), _('runJobVerbose'))
-  return xo.call('job.runSequence', { idSequence: [id] })
+  return call('job.runSequence', { idSequence: [id] })
 }
 
 export const getJob = id => (
-  xo.call('job.get', { id })
+  call('job.get', { id })
 )
 
 export const setJob = job => (
-  xo.call('job.set', { job })::tap(
+  call('job.set', { job })::tap(
     subscribeJobs.forceRefresh
   )
 )
 
 export const enableSchedule = id => (
-  xo.call('scheduler.enable', { id })::tap(
+  call('scheduler.enable', { id })::tap(
     subscribeScheduleTable.forceRefresh
   )
 )
 
 export const disableSchedule = id => (
-  xo.call('scheduler.disable', { id })::tap(
+  call('scheduler.disable', { id })::tap(
     subscribeScheduleTable.forceRefresh
   )
 )
@@ -748,8 +770,8 @@ export const deleteSchedule = async schedule => {
     title: _('deleteJob'),
     body: _('deleteJobQuestion')
   })
-  await xo.call('schedule.delete', { id: schedule.id })
-  await xo.call('job.delete', { id: schedule.job })
+  await call('schedule.delete', { id: schedule.id })
+  await call('job.delete', { id: schedule.job })
 
   subscribeSchedules.forceRefresh()
 }
@@ -758,7 +780,7 @@ export const deleteSchedule = async schedule => {
 
 export const loadPlugin = async id => {
   try {
-    await xo.call('plugin.load', { id })
+    await call('plugin.load', { id })
 
     subscribePlugins.forceRefresh()
   } catch (error) {
@@ -768,7 +790,7 @@ export const loadPlugin = async id => {
 
 export const unloadPlugin = async id => {
   try {
-    await xo.call('plugin.unload', { id })
+    await call('plugin.unload', { id })
 
     subscribePlugins.forceRefresh()
   } catch (error) {
@@ -777,20 +799,20 @@ export const unloadPlugin = async id => {
 }
 
 export const enablePluginAutoload = id => (
-  xo.call('plugin.enableAutoload', { id })::tap(
+  call('plugin.enableAutoload', { id })::tap(
     subscribePlugins.forceRefresh
   )
 )
 
 export const disablePluginAutoload = id => (
-  xo.call('plugin.disableAutoload', { id })::tap(
+  call('plugin.disableAutoload', { id })::tap(
     subscribePlugins.forceRefresh
   )
 )
 
 export const configurePlugin = async (id, configuration) => {
   try {
-    await xo.call('plugin.configure', { id, configuration })
+    await call('plugin.configure', { id, configuration })
     info(_('pluginConfigurationSuccess'), _('pluginConfigurationChanges'))
 
     subscribePlugins.forceRefresh()
@@ -806,7 +828,7 @@ export const purgePluginConfiguration = async id => {
       title: _('purgePluginConfiguration'),
       body: _('purgePluginConfigurationQuestion')
     })
-    await xo.call('plugin.purgeConfiguration', { id })
+    await call('plugin.purgeConfiguration', { id })
 
     subscribePlugins.forceRefresh()
   } catch (error) {
@@ -817,13 +839,13 @@ export const purgePluginConfiguration = async id => {
 // Resource set ------------------------------------------------------
 
 export const createResourceSet = (name, { subjects, objects, limits } = {}) => (
-  xo.call('resourceSet.create', { name, subjects, objects, limits })::tap(
+  call('resourceSet.create', { name, subjects, objects, limits })::tap(
     subscribeResourceSets.forceRefresh
   )
 )
 
 export const editRessourceSet = (id, { name, subjects, objects, limits } = {}) => (
-  xo.call('resourceSet.set', { id, name, subjects, objects, limits })::tap(
+  call('resourceSet.set', { id, name, subjects, objects, limits })::tap(
     subscribeResourceSets.forceRefresh
   )
 )
@@ -833,7 +855,7 @@ export const deleteResourceSet = async id => {
     title: _('deleteResourceSetWarning'),
     body: _('deleteResourceSetQuestion')
   })
-  await xo.call('resourceSet.delete', { id })
+  await call('resourceSet.delete', { id })
 
   subscribeResourceSets.forceRefresh()
 }
@@ -841,37 +863,37 @@ export const deleteResourceSet = async id => {
 // Remote ------------------------------------------------------------
 
 export const createRemote = (name, url) => (
-  xo.call('remote.create', {name, url})::tap(
+  call('remote.create', {name, url})::tap(
     subscribeRemotes.forceRefresh
   )
 )
 
 export const deleteRemote = remote => (
-  xo.call('remote.delete', {id: resolveId(remote)})::tap(
+  call('remote.delete', {id: resolveId(remote)})::tap(
     subscribeRemotes.forceRefresh
   )
 )
 
 export const enableRemote = remote => (
-  xo.call('remote.set', {id: resolveId(remote), enabled: true})::tap(
+  call('remote.set', {id: resolveId(remote), enabled: true})::tap(
     subscribeRemotes.forceRefresh
   )
 )
 
 export const disableRemote = id => (
-  xo.call('remote.set', {id, enabled: false})::tap(
+  call('remote.set', {id, enabled: false})::tap(
     subscribeRemotes.forceRefresh
   )
 )
 
 export const editRemote = (remote, {name, url}) => (
-  xo.call('remote.set', resolveIds({remote, name, url}))::tap(
+  call('remote.set', resolveIds({remote, name, url}))::tap(
     subscribeRemotes.forceRefresh
   )
 )
 
 export const listRemote = id => (
-  xo.call('remote.list', {id})::tap(
+  call('remote.list', {id})::tap(
     subscribeRemotes.forceRefresh
   )
 )
@@ -879,11 +901,11 @@ export const listRemote = id => (
 // -------------------------------------------------------------------
 
 export const probeSrNfs = (host, server) => (
-  xo.call('sr.probeNfs', {host, server})
+  call('sr.probeNfs', {host, server})
 )
 
 export const probeSrNfsExists = (host, server, serverPath) => (
-  xo.call('sr.probeNfsExists', {host, server, serverPath})
+  call('sr.probeNfsExists', {host, server, serverPath})
 )
 
 export const probeSrIscsiIqns = (host, target, port = undefined, chapUser = undefined, chapPassword) => {
@@ -891,14 +913,14 @@ export const probeSrIscsiIqns = (host, target, port = undefined, chapUser = unde
   port && (params.port = port)
   chapUser && (params.chapUser = chapUser)
   chapPassword && (params.chapPassword = chapPassword)
-  return xo.call('sr.probeIscsiIqns', params)
+  return call('sr.probeIscsiIqns', params)
 }
 
 export const probeSrIscsiLuns = (host, target, targetIqn, chapUser = undefined, chapPassword) => {
   const params = {host, target, targetIqn}
   chapUser && (params.chapUser = chapUser)
   chapPassword && (params.chapPassword = chapPassword)
-  return xo.call('sr.probeIscsiLuns', params)
+  return call('sr.probeIscsiLuns', params)
 }
 
 export const probeSrIscsiExists = (host, target, targetIqn, scsiId, port = undefined, chapUser = undefined, chapPassword) => {
@@ -906,21 +928,21 @@ export const probeSrIscsiExists = (host, target, targetIqn, scsiId, port = undef
   port && (params.port = port)
   chapUser && (params.chapUser = chapUser)
   chapPassword && (params.chapPassword = chapPassword)
-  return xo.call('sr.probeIscsiExists', params)
+  return call('sr.probeIscsiExists', params)
 }
 
 export const reattachSr = (host, uuid, nameLabel, nameDescription, type) => (
-  xo.call('sr.reattach', {host, uuid, nameLabel, nameDescription, type})
+  call('sr.reattach', {host, uuid, nameLabel, nameDescription, type})
 )
 
 export const reattachSrIso = (host, uuid, nameLabel, nameDescription, type) => (
-  xo.call('sr.reattachIso', {host, uuid, nameLabel, nameDescription, type})
+  call('sr.reattachIso', {host, uuid, nameLabel, nameDescription, type})
 )
 
 export const createSrNfs = (host, nameLabel, nameDescription, server, serverPath, nfsVersion = undefined) => {
   const params = {host, nameLabel, nameDescription, server, serverPath}
   nfsVersion && (params.nfsVersion = nfsVersion)
-  return xo.call('sr.createNfs', params)
+  return call('sr.createNfs', params)
 }
 
 export const createSrIscsi = (host, nameLabel, nameDescription, target, targetIqn, scsiId, port = undefined, chapUser = undefined, chapPassword = undefined) => {
@@ -928,24 +950,24 @@ export const createSrIscsi = (host, nameLabel, nameDescription, target, targetIq
   port && (params.port = port)
   chapUser && (params.chapUser = chapUser)
   chapPassword && (params.chapPassword = chapPassword)
-  return xo.call('sr.createIscsi', params)
+  return call('sr.createIscsi', params)
 }
 
 export const createSrIso = (host, nameLabel, nameDescription, path, type, user = undefined, password = undefined) => {
   const params = {host, nameLabel, nameDescription, path, type}
   user && (params.user = user)
   password && (params.password = password)
-  return xo.call('sr.createIso', params)
+  return call('sr.createIso', params)
 }
 
 export const createSrLvm = (host, nameLabel, nameDescription, device) => (
-  xo.call('sr.createLvm', {host, nameLabel, nameDescription, device})
+  call('sr.createLvm', {host, nameLabel, nameDescription, device})
 )
 
 // Job logs ----------------------------------------------------------
 
 export const deleteJobsLog = id => (
-  xo.call('log.delete', {namespace: 'jobs', id})::tap(
+  call('log.delete', {namespace: 'jobs', id})::tap(
     subscribeJobsLogs.forceRefresh
   )
 )
@@ -953,61 +975,61 @@ export const deleteJobsLog = id => (
 // Acls, users, groups ----------------------------------------------------------
 
 export const addAcl = ({subject, object, action}) => (
-  xo.call('acl.add', resolveIds({subject, object, action}))::tap(
+  call('acl.add', resolveIds({subject, object, action}))::tap(
     subscribeAcls.forceRefresh
   )
 )
 
 export const removeAcl = ({subject, object, action}) => (
-  xo.call('acl.remove', resolveIds({subject, object, action}))::tap(
+  call('acl.remove', resolveIds({subject, object, action}))::tap(
     subscribeAcls.forceRefresh
   )
 )
 
 export const createGroup = name => (
-  xo.call('group.create', {name})::tap(
+  call('group.create', {name})::tap(
     subscribeGroups.forceRefresh
   )
 )
 
 export const setGroupName = (group, name) => (
-  xo.call('group.set', resolveIds({group, name}))::tap(
+  call('group.set', resolveIds({group, name}))::tap(
     subscribeGroups.forceRefresh
   )
 )
 
 export const deleteGroup = group => (
-  xo.call('group.delete', resolveIds({id: group}))::tap(
+  call('group.delete', resolveIds({id: group}))::tap(
     subscribeGroups.forceRefresh
   )
 )
 
 export const removeUserFromGroup = (user, group) => (
-  xo.call('group.removeUser', resolveIds({id: group, userId: user}))::tap(
+  call('group.removeUser', resolveIds({id: group, userId: user}))::tap(
     subscribeGroups.forceRefresh
   )
 )
 
 export const addUserToGroup = (user, group) => (
-  xo.call('group.addUser', resolveIds({id: group, userId: user}))::tap(
+  call('group.addUser', resolveIds({id: group, userId: user}))::tap(
     subscribeGroups.forceRefresh
   )
 )
 
 export const createUser = (email, password, permission) => (
-  xo.call('user.create', {email, password, permission})::tap(
+  call('user.create', {email, password, permission})::tap(
     subscribeUsers.forceRefresh
   )
 )
 
 export const deleteUser = user => (
-  xo.call('user.delete', resolveIds({id: user}))::tap(
+  call('user.delete', resolveIds({id: user}))::tap(
     subscribeUsers.forceRefresh
   )
 )
 
 export const editUser = (user, { email, password, permission }) => (
-  xo.call('user.set', { id: resolveId(user), email, password, permission })::tap(
+  call('user.set', { id: resolveId(user), email, password, permission })::tap(
     subscribeUsers.forceRefresh
   )
 )
