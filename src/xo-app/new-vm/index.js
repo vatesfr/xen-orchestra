@@ -245,9 +245,9 @@ export default class NewVm extends BaseComponent {
     })
     this._setState({
       // infos
-      name_label: template.name_label,
+      name_label: this.state.state.name_label === '' || !this.state.state.name_labelHasChanged ? template.name_label : this.state.state.name_label,
       template,
-      name_description: template.name_description || this.state.state.name_description || '',
+      name_description: this.state.state.name_description === '' || !this.state.state.name_descriptionHasChanged ? template.name_description || '' : this.state.state.name_description,
       // performances
       memory: template.memory.size,
       CPUs: template.CPUs.number,
@@ -287,7 +287,13 @@ export default class NewVm extends BaseComponent {
   }
 
   _getOnChange (prop) {
-    const debouncer = debounce(param => this._setState({ [prop]: param }), 100)
+    const debouncer = debounce(param => {
+      this._setState({
+        [prop]: param,
+        name_labelHasChanged: this.state.state.name_labelHasChanged || prop === 'name_label',
+        name_descriptionHasChanged: this.state.state.name_descriptionHasChanged || prop === 'name_description'
+      })
+    }, 100)
     return param => {
       const _param = param && param.target ? param.target.value : param
       debouncer(_param)
