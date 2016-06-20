@@ -381,9 +381,6 @@ export default class NewVm extends BaseComponent {
   _renderInfo = () => {
     return <Section icon='new-vm-infos' title='newVmInfoPanel' done={this._isInfoDone()}>
       <SectionContent>
-        <Item label='newVmNameLabel'>
-          <input ref='name_label' onChange={this._getOnChange('name_label')} className='form-control' type='text' required />
-        </Item>
         <Item label='newVmTemplateLabel'>
           <span className={styles.inlineSelect}>
             <SelectVmTemplate
@@ -393,6 +390,9 @@ export default class NewVm extends BaseComponent {
               ref='template'
             />
           </span>
+        </Item>
+        <Item label='newVmNameLabel'>
+          <input ref='name_label' onChange={this._getOnChange('name_label')} className='form-control' type='text' required />
         </Item>
         <Item label='newVmDescriptionLabel'>
           <input ref='name_description' onChange={this._getOnChange('name_description')} className='form-control' type='text' />
