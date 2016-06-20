@@ -135,7 +135,7 @@ export default class SortedTable extends Component {
 
     this._getAllItems = createSort(
       createFilter(
-        this.props.collection,
+        () => this.props.collection,
         createSelector(
           () => this.state.filter || '',
           createMatcher
