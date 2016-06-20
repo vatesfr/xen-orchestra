@@ -20,6 +20,7 @@ import {
   getCloudInitConfig
 } from 'xo'
 import {
+  SelectVdi,
   SelectNetwork,
   SelectPool,
   SelectSr,
@@ -264,7 +265,7 @@ export default class NewVm extends BaseComponent {
 
     getCloudInitConfig(template.id).then(cloudConfig => {
       this._setState({ cloudConfig }, () => {
-        this.refs.cloudConfig.value = cloudConfig
+        this.refs.cloudConfig && (this.refs.cloudConfig.value = cloudConfig)
       })
     })
   }
@@ -476,10 +477,10 @@ export default class NewVm extends BaseComponent {
             <span>{_('newVmIsoDvdLabel')}</span>
             &nbsp;
             <span className={styles.inlineSelect}>
-              <SelectSr
+              <SelectVdi
                 disabled={installMethod !== 'ISO'}
                 onChange={this._getOnChange('installIso')}
-                predicate={sr => sr.$pool === pool.id && sr.content_type !== 'user'}
+                srPredicate={sr => sr.$pool === pool.id && sr.SR_type === 'iso'}
                 ref='installIso'
               />
             </span>
