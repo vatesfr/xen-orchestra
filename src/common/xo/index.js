@@ -501,11 +501,11 @@ export const deleteVms = vms => (
 )
 
 export const importBackup = ({remote, file, sr}) => (
-  call('vm.importBackup', {remote, file, sr})
+  call('vm.importBackup', resolveIds({remote, file, sr}))
 )
 
 export const importDeltaBackup = ({remote, file, sr}) => (
-  xo.call('vm.importDeltaBackup', {remote, filePath: file, sr})
+  xo.call('vm.importDeltaBackup', resolveIds({remote, filePath: file, sr}))
 )
 
 export const revertSnapshot = ({ id }) => (

@@ -1,6 +1,5 @@
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
-import filter from 'lodash/filter'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
 import Link from 'react-router/lib/Link'
@@ -30,7 +29,9 @@ import {
   subscribeRemotes
 } from 'xo'
 
-const isEmptyRemote = remote => !remote.backups || !size(remote.backups)
+const parseDate = date => +moment(date, 'YYYYMMDDTHHmmssZ').format('x')
+
+const isEmptyRemote = remote => !remote.lastVmbackups || !size(remote.lastVmbackups)
 
 const backupOptionRenderer = backup => <span>
     {backup.type === 'delta' && <span><span className='tag tag-info'>delta</span>{' '}</span>}
@@ -59,7 +60,7 @@ export default class Restore extends Component {
         remotes: orderBy(map(rawRemotes, r => {
           r = {...r}
           const older = find(remotes, {id: r.id})
-          older && older.backups && (r.backups = older.backups)
+          older && older.lastVmbackups && (r.backups = older.lastVmbackups)
           return r
         }), ['name'])
       })
@@ -67,7 +68,6 @@ export default class Restore extends Component {
   }
 
   _list = async id => {
-    const parseDate = date => +moment(date, 'YYYYMMDDTHHmmssZ').format('x')
     let files
     try {
       files = await listRemote(id)
@@ -78,7 +78,6 @@ export default class Restore extends Component {
     const { remotes } = this.state
     const remote = find(remotes, {id})
     if (remote) {
-      const backups = []
       const lastVmbackups = {}
       forEach(files, file => {
         let backup
@@ -92,7 +91,7 @@ export default class Restore extends Component {
             name,
             path: file,
             tag,
-            remote
+            remoteId: remote.id
           }
         } else {
           const backupInfo = /^([^_]+)_([^_]+)_(.*)\.xva$/.exec(file)
@@ -104,12 +103,10 @@ export default class Restore extends Component {
               name,
               path: file,
               tag,
-              remote
+              remoteId: remote.id
             }
           }
         }
-        backup.label = backupOptionRenderer(backup)
-        backups.push(backup)
         lastVmbackups[backup.name] || (lastVmbackups[backup.name] = [])
         lastVmbackups[backup.name].push(backup)
       })
@@ -117,7 +114,6 @@ export default class Restore extends Component {
         const bks = lastVmbackups[vm]
         lastVmbackups[vm] = reduce(bks, (last, b) => b.date > last.date ? b : last)
       }
-      remote.backups = backups
       remote.lastVmbackups = map(lastVmbackups)
     }
     this.setState({remotes})
@@ -156,22 +152,23 @@ export default class Restore extends Component {
 
 const openImportModal = backup => confirm({
   title: `Import a ${backup.name} Backup`,
-  body: <ImportModalBody vmName={backup.name} remote={backup.remote} />
+  body: <ImportModalBody vmName={backup.name} remoteId={backup.remoteId} />
 }).then(doImport)
 
-const doImport = ({ sr, backup, start }) => {
+const doImport = ({ backup, remoteId, sr, start }) => {
   if (!sr || !backup) {
     error('Missing Parameters', 'Choose a SR and a backup')
     return
   }
-  const { remote } = backup
   const importMethods = {
     delta: importDeltaBackup,
     simple: importBackup
   }
   notifyImportStart()
   try {
-    const importPromise = importMethods[backup.type]({remote, sr, file: backup.path})
+    const importPromise = importMethods[backup.type]({remote: remoteId, sr, file: backup.path}).then(id => {
+      return id
+    })
     if (start) {
       importPromise.then(id => startVm({id}))
     }
@@ -218,16 +215,57 @@ const notifyImportStart = () => info('VM import', 'Starting your backup import')
 class ImportModalBody extends Component {
   constructor (props) {
     super(props)
-    const { vmName, remote } = props
-    this.options = filter(remote.backups, b => b.name === vmName)
+    this.state = {}
+    const { vmName, remoteId } = props
+    if (remoteId) {
+      listRemote(remoteId)
+        .then(files => {
+          const options = []
+          forEach(files, file => {
+            let backup
+            const deltaInfo = /^vm_delta_(.*)_([^\/]+)\/([^_]+)_(.*)$/.exec(file)
+            if (deltaInfo) {
+              const [ , tag, , date, name ] = deltaInfo
+              if (name !== vmName) {
+                return
+              }
+              backup = {
+                type: 'delta',
+                date: parseDate(date),
+                path: file,
+                tag
+              }
+            } else {
+              const backupInfo = /^([^_]+)_([^_]+)_(.*)\.xva$/.exec(file)
+              if (backupInfo) {
+                const [ , date, tag, name ] = backupInfo
+                if (name !== vmName) {
+                  return
+                }
+                backup = {
+                  type: 'simple',
+                  date: parseDate(date),
+                  path: file,
+                  tag
+                }
+              }
+            }
+            backup.label = backupOptionRenderer(backup)
+            options.push(backup)
+          })
+          this.setState({options})
+        })
+    }
   }
 
   get value () {
     const { sr, backup, start } = this.refs
+    const { remoteId } = this.props
     return {
       sr: sr.value,
       backup: backup.value,
-      start: start.value
+      start: start.value,
+      remoteId
     }
   }
 
@@ -235,7 +273,7 @@ class ImportModalBody extends Component {
     return <div>
       <SelectSr ref='sr' predicate={srWritablePredicate} />
       <br />
-      <SelectPlainObject ref='backup' options={this.options} optionKey='path' placeholder='Select your backup' />
+      <SelectPlainObject ref='backup' options={this.state.options} optionKey='path' placeholder='Select your backup' />
       <br />
       <Toggle ref='start' /> Start VM after restore
     </div>
