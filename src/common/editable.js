@@ -6,6 +6,7 @@ import React from 'react'
 
 import _ from './messages'
 import Component from './base-component'
+import logError from './log-error'
 import Icon from './icon'
 import Tooltip from './tooltip'
 import { formatSize, propTypes } from './utils'
@@ -133,6 +134,7 @@ class Editable extends Component {
         error: isString(error) ? error : error.message,
         saving: false
       })
+      logError(error)
     }
   }
 

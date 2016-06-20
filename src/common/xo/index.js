@@ -15,6 +15,7 @@ import { createBackoff } from 'jsonrpc-websocket-client'
 import { resolve } from 'url'
 
 import _ from '../messages'
+import logError from '../log-error'
 import { confirm } from '../modal'
 import { error, info } from '../notification'
 import { invoke, noop, tap } from '../utils'
@@ -47,7 +48,7 @@ const xo = invoke(() => {
 
   const connect = () => {
     xo.open(createBackoff()).catch(error => {
-      console.error('failed to connect to xo-server', error)
+      logError(error, 'failed to connect to xo-server')
     })
   }
   connect()

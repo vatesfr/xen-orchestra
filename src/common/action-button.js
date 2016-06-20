@@ -4,6 +4,7 @@ import React from 'react'
 import { Button } from 'react-bootstrap-4/lib'
 
 import Component from './base-component'
+import logError from './log-error'
 import { autobind, propTypes } from './utils'
 
 @propTypes({
@@ -62,7 +63,7 @@ export default class ActionButton extends Component {
         error,
         working: false
       })
-      console.error(error && error.stack || error.message || error)
+      logError(error)
     }
   }
 
