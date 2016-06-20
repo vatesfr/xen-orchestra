@@ -823,17 +823,13 @@ export const configurePlugin = async (id, configuration) => {
 }
 
 export const purgePluginConfiguration = async id => {
-  try {
-    await confirm({
-      title: _('purgePluginConfiguration'),
-      body: _('purgePluginConfigurationQuestion')
-    })
-    await call('plugin.purgeConfiguration', { id })
+  await confirm({
+    title: _('purgePluginConfiguration'),
+    body: _('purgePluginConfigurationQuestion')
+  })
+  await call('plugin.purgeConfiguration', { id })
 
-    subscribePlugins.forceRefresh()
-  } catch (error) {
-    throw error
-  }
+  subscribePlugins.forceRefresh()
 }
 
 // Resource set ------------------------------------------------------
