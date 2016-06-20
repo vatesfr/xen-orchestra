@@ -12,7 +12,7 @@ import reduce from 'lodash/reduce'
 import size from 'lodash/size'
 import SortedTable from 'sorted-table'
 import Upgrade from 'xoa-upgrade'
-import { alert } from 'modal'
+import { confirm } from 'modal'
 import { connectStore } from 'utils'
 import { Container } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
@@ -20,11 +20,13 @@ import { FormattedDate } from 'react-intl'
 import { info, error } from 'notification'
 import { SelectPlainObject } from 'form/select-plain-object'
 import { SelectSr } from 'select-objects'
+import { Toggle } from 'form'
 
 import {
   importBackup,
   importDeltaBackup,
   listRemote,
+  startVm,
   subscribeRemotes
 } from 'xo'
 
@@ -152,7 +154,31 @@ export default class Restore extends Component {
   }
 }
 
-const openImportModal = backup => alert(`Import a ${backup.name} Backup`, <BackupImport vmName={backup.name} remote={backup.remote} />)
+const openImportModal = backup => confirm({
+  title: `Import a ${backup.name} Backup`,
+  body: <ImportModalBody vmName={backup.name} remote={backup.remote} />
+}).then(doImport)
+
+const doImport = ({ sr, backup, start }) => {
+  if (!sr || !backup) {
+    error('Missing Parameters', 'Choose a SR and a backup')
+    return
+  }
+  const { remote } = backup
+  const importMethods = {
+    delta: importDeltaBackup,
+    simple: importBackup
+  }
+  notifyImportStart()
+  try {
+    const importPromise = importMethods[backup.type]({remote, sr, file: backup.path})
+    if (start) {
+      importPromise.then(id => startVm({id}))
+    }
+  } catch (err) {
+    error('VM import', err.message || String(err))
+  }
+}
 
 const BK_COLUMNS = [
   {
@@ -188,47 +214,30 @@ const notifyImportStart = () => info('VM import', 'Starting your backup import')
   writableSrs: createGetObjectsOfType('SR').filter(
     [ sr => sr.content_type !== 'iso' ]
   ).sort()
-}))
-class BackupImport extends Component {
+}), { withRef: true })
+class ImportModalBody extends Component {
   constructor (props) {
     super(props)
     const { vmName, remote } = props
     this.options = filter(remote.backups, b => b.name === vmName)
   }
 
-  _import = () => {
-    const { sr, backup } = this.refs
-    const { remote } = this.props
-    const methods = {
-      delta: this._importDeltaBackup,
-      simple: this._importBackup
-    }
-    methods[backup.type](remote, sr, backup.path)
-  }
-
-  _importDeltaBackup = async (remote, sr, filePath) => {
-    notifyImportStart()
-    try {
-      await importDeltaBackup({remote, sr, filePath})
-    } catch (err) {
-      error('VM import', err.message || String(err))
-    }
-  }
-
-  _importBackup = async (remote, sr, file) => {
-    notifyImportStart()
-    try {
-      await importBackup({remote, sr, file})
-    } catch (err) {
-      error('VM import', err.message || String(err))
+  get value () {
+    const { sr, backup, start } = this.refs
+    return {
+      sr: sr.value,
+      backup: backup.value,
+      start: start.value
     }
   }
 
   render () {
     return <div>
       <SelectSr ref='sr' predicate={srWritablePredicate} />
-      <SelectPlainObject ref='backup' options={this.options} optionKey='path' />
-      <ActionButton icon='import' handler={this._import}>Import</ActionButton>
+      <br />
+      <SelectPlainObject ref='backup' options={this.options} optionKey='path' placeholder='Select your backup' />
+      <br />
+      <Toggle ref='start' /> Start VM after restore
     </div>
   }
 }
