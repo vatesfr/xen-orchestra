@@ -1634,9 +1634,16 @@ export default class Xapi extends XapiBase {
 
       await this._waitObjectState(ref, vm => includes(vm.tags, 'quiesce'))
     } catch (error) {
+      const { code } = error
       if (
-        error.code !== 'VM_SNAPSHOT_WITH_QUIESCE_NOT_SUPPORTED' &&
-        error.code !== 'VM_BAD_POWER_STATE' // quiesce only work on a running VM
+        code !== 'VM_SNAPSHOT_WITH_QUIESCE_NOT_SUPPORTED' &&
+
+        // quiesce only work on a running VM
+        code !== 'VM_BAD_POWER_STATE' &&
+
+        // quiesce failed, fallback on standard snapshot
+        // TODO: emit warning
+        code !== 'VM_SNAPSHOT_WITH_QUIESCE_FAILED'
       ) {
         throw error
       }
