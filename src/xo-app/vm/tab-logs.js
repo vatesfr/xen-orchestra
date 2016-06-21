@@ -9,11 +9,11 @@ import { deleteMessage } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Container, Row, Col } from 'grid'
 import {
-  createGetObjectsOfType
+  createGetObjectMessages
 } from 'selectors'
 
 @connectStore(() => {
-  const logs = createGetObjectsOfType(
+  const logs = createGetObjectMessages(
     (_, props) => props.vm
   )
 
