@@ -6,6 +6,7 @@ import forEach from 'lodash/forEach'
 import HTML5Backend from 'react-dnd-html5-backend'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
+import IsoDevice from 'iso-device'
 import map from 'lodash/map'
 import React from 'react'
 import TabButton from 'tab-button'
@@ -463,6 +464,11 @@ export default class TabDisks extends Component {
             </table>
             : <h4 className='text-xs-center'>{_('vbdNoVbd')}</h4>
           }
+        </Col>
+      </Row>
+      <Row>
+        <Col mediumSize={5}>
+          <IsoDevice vm={vm} />
         </Col>
       </Row>
     </Container>
