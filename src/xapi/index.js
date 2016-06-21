@@ -3,7 +3,6 @@
 import createDebug from 'debug'
 import every from 'lodash.every'
 import fatfs from 'fatfs'
-import fatfsBuffer, { init as fatfsBufferInit } from './fatfs-buffer'
 import find from 'lodash.find'
 import includes from 'lodash.includes'
 import sortBy from 'lodash.sortby'
@@ -18,6 +17,7 @@ import {
 } from 'semver'
 
 import httpRequest from '../http-request'
+import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer'
 import {
   debounce,
   deferrable,
