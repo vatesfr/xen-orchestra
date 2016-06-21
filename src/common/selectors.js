@@ -393,7 +393,7 @@ export const createGetTags = collectionSelectors => {
 export const createGetObjectMessages = objectSelector =>
   createGetObjectsOfType('message').filter(
     create(
-      objectSelector,
-      ({ id }) => message => message.$object === id
+      (...args) => objectSelector(...args).id,
+      id => message => message.$object === id
     )
   ).sort()
