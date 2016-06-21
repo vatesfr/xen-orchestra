@@ -239,7 +239,6 @@ export default class NewVm extends BaseComponent {
     forEach(template.VIFs, vifId => {
       const vif = getObject(storeState, vifId)
       VIFs.push({
-        mac: vif.MAC,
         network: vif.$network,
         id: this.getUniqueId()
       })
