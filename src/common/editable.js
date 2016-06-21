@@ -2,6 +2,7 @@ import findKey from 'lodash/findKey'
 import isFunction from 'lodash/isFunction'
 import isString from 'lodash/isString'
 import map from 'lodash/map'
+import pick from 'lodash/pick'
 import React from 'react'
 
 import _ from './messages'
@@ -187,6 +188,10 @@ class Editable extends Component {
 }
 
 @propTypes({
+  autoComplete: propTypes.string,
+  maxLength: propTypes.number,
+  minLength: propTypes.number,
+  pattern: propTypes.string,
   value: propTypes.string.isRequired
 })
 export class Text extends Editable {
@@ -229,11 +234,19 @@ export class Text extends Editable {
   }
 
   _renderEdition () {
-    const { value, ...props } = this.props
+    const { value } = this.props
     const { saving } = this.state
 
+    // Optional props that the user may set on the input.
+    const extraProps = pick(this.props, [
+      'autoComplete',
+      'maxLength',
+      'minLength',
+      'pattern'
+    ])
+
     return <input
-      {...props}
+      {...extraProps}
 
       autoFocus
       defaultValue={value}
