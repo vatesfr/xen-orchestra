@@ -6,6 +6,8 @@ import BaseComponent from 'base-component'
 import classNames from 'classnames'
 import debounce from 'lodash/debounce'
 import every from 'lodash/every'
+import filter from 'lodash/filter'
+import find from 'lodash/find'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import isArray from 'lodash/isArray'
@@ -71,7 +73,8 @@ const Item = ({ label, children }) => (
 const getObject = createGetObject((_, id) => id)
 
 @connectStore(() => ({
-  templates: createGetObjectsOfType('VM-template').sort()
+  templates: createGetObjectsOfType('VM-template').sort(),
+  networks: createGetObjectsOfType('network').sort()
 }))
 @injectIntl
 export default class NewVm extends BaseComponent {
@@ -83,6 +86,12 @@ export default class NewVm extends BaseComponent {
     // so it can be emptied easily with this.setState(state: {})
     this.state = { state: {} }
   }
+
+  getPoolNetworks = createSelector(
+    () => this.props.networks,
+    () => this.state.state.pool && this.state.state.pool.id,
+    (networks, poolId) => filter(networks, network => network.$pool === poolId)
+  )
 
   getUniqueId () {
     return this._uniqueId++
@@ -214,6 +223,7 @@ export default class NewVm extends BaseComponent {
   )
 
   _initTemplate = template => {
+    console.log('template', template)
     if (!template) {
       return this._reset()
     }
@@ -239,11 +249,17 @@ export default class NewVm extends BaseComponent {
     forEach(template.VIFs, vifId => {
       const vif = getObject(storeState, vifId)
       VIFs.push({
-        network: vif.$network,
-        id: this.getUniqueId()
+        id: this.getUniqueId(),
+        network: vif.$network
       })
     })
-
+    if (VIFs.length === 0) {
+      const network = find(this.getPoolNetworks(), network => network.name_label === 'Host internal management network')
+      VIFs.push({
+        id: this.getUniqueId(),
+        network: network && network.id
+      })
+    }
     const { state } = this.state
     const name_label = state.name_label === '' || !state.name_labelHasChanged ? template.name_label : state.name_label
     this._setState({
@@ -298,9 +314,13 @@ export default class NewVm extends BaseComponent {
     const { VDIs } = this.state.state
     this._setState({ VDIs: [ ...VDIs.slice(0, index), ...VDIs.slice(index + 1) ] })
   }
-  _addInterface = () => this._setState({ VIFs: [ ...this.state.state.VIFs, {
-    id: this.getUniqueId()
-  }] })
+  _addInterface = () => {
+    const network = find(this.getPoolNetworks(), network => network.name_label === 'Host internal management network')
+    this._setState({ VIFs: [ ...this.state.state.VIFs, {
+      id: this.getUniqueId(),
+      network: network && network.id
+    }] })
+  }
   _removeInterface = index => {
     const { VIFs } = this.state.state
     this._setState({ VIFs: [ ...VIFs.slice(0, index), ...VIFs.slice(index + 1) ] })
