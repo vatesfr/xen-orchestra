@@ -1,14 +1,17 @@
 import React, { Component } from 'react'
-
-import _, { messages } from '../../messages'
-import SingleLineRow from '../../single-line-row'
-import { SelectPif } from '../../select-objects'
-import { Col } from '../../grid'
 import { injectIntl } from 'react-intl'
 
+import SingleLineRow from '../../single-line-row'
+import _, { messages } from '../../messages'
+import { SelectPif } from '../../select-objects'
+import { Col } from '../../grid'
+import { createSelector } from 'selectors'
+
 class CreateNetworkModalBody extends Component {
-  _host = this.props.container.type === 'pool' ? this.props.container.master : this.props.container.id
-  _pifPredicate = pif => pif.$host === this._host && pif.vlan === -1
+  _getPifPredicate = createSelector(
+    () => this.props.container,
+    container => pif => pif.$host === (container.type === 'pool' ? container.master : container.id) && pif.vlan === -1
+  )
 
   get value () {
     const { refs } = this
@@ -30,7 +33,7 @@ class CreateNetworkModalBody extends Component {
         <Col size={6}>{_('newNetworkInterface')}</Col>
         <Col size={6}>
           <SelectPif
-            predicate={this._pifPredicate}
+            predicate={this._getPifPredicate()}
             ref='pif'
           />
         </Col>

@@ -649,7 +649,7 @@ export const deleteNetwork = ({ network }) => (
     title: _('deleteNetwork'),
     body: _('deleteNetworkConfirm')
   }).then(
-    () => xo.call('network.delete', { network }),
+    () => xo.call('network.delete', { network: resolveId(network) }),
     noop
   )
 )
@@ -661,7 +661,7 @@ export const connectPif = ({ pif }) => (
     title: _('connectPif'),
     body: _('connectPifConfirm')
   }).then(
-    () => xo.call('pif.connect', { pif }),
+    () => xo.call('pif.connect', { pif: resolveId(pif) }),
     noop
   )
 )
@@ -671,7 +671,7 @@ export const disconnectPif = ({ pif }) => (
     title: _('disconnectPif'),
     body: _('disconnectPifConfirm')
   }).then(
-    () => xo.call('pif.disconnect', { pif }),
+    () => xo.call('pif.disconnect', { pif: resolveId(pif) }),
     noop
   )
 )
@@ -681,7 +681,7 @@ export const deletePif = ({ pif }) => (
     title: _('deletePif'),
     body: _('deletePifConfirm')
   }).then(
-    () => xo.call('pif.delete', { pif }),
+    () => xo.call('pif.delete', { pif: resolveId(pif) }),
     noop
   )
 )
