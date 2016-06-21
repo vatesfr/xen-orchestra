@@ -5,9 +5,11 @@ import Icon from 'icon'
 import Link from 'react-router/lib/Link'
 import Page from '../page'
 import React from 'react'
+import { getUser } from 'selectors'
 import { serverVersion } from 'xo'
 import { Container, Row, Col } from 'grid'
-import { getXoaPlan } from 'utils'
+import { connectStore, getXoaPlan } from 'utils'
+
 import pkg from '../../../package'
 
 const HEADER = <Container>
@@ -18,6 +20,9 @@ const HEADER = <Container>
   </Row>
 </Container>
 
+@connectStore(() => ({
+  user: getUser
+}))
 export default class About extends Component {
   componentWillMount () {
     serverVersion.then(serverVersion => {
@@ -25,9 +30,12 @@ export default class About extends Component {
     })
   }
   render () {
+    const { user } = this.props
+    const isAdmin = user && user.permission === 'admin'
+
     return <Page header={HEADER}>
       <Container className='text-xs-center'>
-        <Row>
+        {isAdmin && <Row>
           <Col mediumSize={6}>
             <Icon icon='host' size={4} />
             <Copiable tagName='h4' data={`xo-server ${this.state.serverVersion}`}>
@@ -42,6 +50,7 @@ export default class About extends Component {
             <p className='text-muted'>Xen Orchestra web client</p>
           </Col>
         </Row>
+      }
         {process.env.XOA_PLAN > 4
           ? <div>
             <Row>
