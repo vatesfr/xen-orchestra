@@ -157,9 +157,11 @@ export default ({
           <tr>
             <th>{_('vmCpuLimitsLabel')}</th>
             <td>
+              <Number value={vm.CPUs.number} onChange={cpus => editVm(vm, { cpus })} />
+              /
               {vm.power_state === 'Running'
                 ? vm.CPUs.max
-                : <Number value={vm.CPUs.max} onChange={value => editVm(vm, { cpusMax: value })} />
+                : <Number value={vm.CPUs.max} onChange={cpusStaticMax => editVm(vm, { cpusStaticMax })} />
               }
             </td>
           </tr>
