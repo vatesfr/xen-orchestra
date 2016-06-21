@@ -263,7 +263,7 @@ export default class NewVm extends BaseComponent {
       existingDisks,
       VDIs: map(template.template_info.disks, disk => {
         const device = String(this.getUniqueId())
-        return { ...disk, device, name_label: (name_label || 'disk') + '_' + device }
+        return { ...disk, device, name_label: (name_label || 'disk') + '_' + device, name_description: disk.name_description || 'Created by XO' }
       })
     }, () => forEach(state, (element, key) => {
       !isArray(element) && this._setInputValue(key, element)
@@ -281,6 +281,7 @@ export default class NewVm extends BaseComponent {
     const device = String(this.getUniqueId())
     this._setState({ VDIs: [ ...state.VDIs, {
       name_label: (state.name_label || 'disk') + '_' + device,
+      name_description: 'Created by XO',
       device,
       type: 'system'
     }] })
