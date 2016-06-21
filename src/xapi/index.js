@@ -123,6 +123,15 @@ export default class Xapi extends XapiBase {
   constructor (...args) {
     super(...args)
 
+    // Patch getObject to resolve _xapiId property.
+    this.getObject = (getObject => (...args) => {
+      let tmp
+      if ((tmp = args[0]) != null && (tmp = tmp._xapiId) != null) {
+        args[0] = tmp
+      }
+      return getObject.apply(this, args)
+    })(this.getObject)
+
     const genericWatchers = this._genericWatchers = createRawObject()
     const objectsWatchers = this._objectWatchers = createRawObject()
     const taskWatchers = this._taskWatchers = createRawObject()
