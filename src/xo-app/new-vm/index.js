@@ -166,7 +166,7 @@ export default class NewVm extends BaseComponent {
     let cloudConfig
     if (state.configDrive) {
       const hostname = state.name_label.replace(/^\s+|\s+$/g, '').replace(/\s+/g, '-')
-      if (this.installMethod === 'SSH') {
+      if (state.installMethod === 'SSH') {
         cloudConfig = '#cloud-config\nhostname: ' + hostname + '\nssh_authorized_keys:\n  - ' + state.sshKey + '\n'
       } else {
         cloudConfig = state.customConfig
