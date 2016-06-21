@@ -108,7 +108,9 @@ const put = (stream, {
 
 // ===================================================================
 
-export * from './utils'
+// FIXME: remove this work around when fixed, https://phabricator.babeljs.io/T2877
+//  export * from './utils'
+require('lodash.assign')(module.exports, require('./utils'))
 
 // VDI formats. (Raw is not available for delta vdi.)
 export const VDI_FORMAT_VHD = 'vhd'
