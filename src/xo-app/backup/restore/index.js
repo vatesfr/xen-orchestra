@@ -139,8 +139,10 @@ export default class Restore extends Component {
             </span>
             {r.lastVmbackups && <div>
               <br />
-              {isEmptyRemote(r) && <span>No backups available</span>}
-              {!isEmptyRemote(r) && <SortedTable collection={r.lastVmbackups} columns={BK_COLUMNS} />}
+              {isEmptyRemote(r)
+                ? <span>No backups available</span>
+                : <SortedTable collection={r.lastVmbackups} columns={BK_COLUMNS} />
+              }
             </div>}
             <hr />
           </div>
