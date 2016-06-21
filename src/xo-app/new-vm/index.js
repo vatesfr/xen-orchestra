@@ -33,7 +33,8 @@ import {
 import {
   connectStore,
   formatSize,
-  getEventValue
+  getEventValue,
+  noop
 } from 'utils'
 import {
   createSelector,
@@ -263,9 +264,15 @@ export default class NewVm extends BaseComponent {
       existingDisks,
       VDIs: map(template.template_info.disks, disk => {
         const device = String(this.getUniqueId())
-        return { ...disk, device, name_label: (name_label || 'disk') + '_' + device, name_description: disk.name_description || 'Created by XO' }
+        return {
+          ...disk,
+          device,
+          name_description: disk.name_description || 'Created by XO',
+          name_label: (name_label || 'disk') + '_' + device,
+          SR: state.pool.default_SR
+        }
       })
-    }, () => forEach(state, (element, key) => {
+    }, () => forEach(this.state.state, (element, key) => {
       !isArray(element) && this._setInputValue(key, element)
     }))
 
@@ -273,16 +280,18 @@ export default class NewVm extends BaseComponent {
       this._setState({ cloudConfig }, () => {
         this.refs.cloudConfig && (this.refs.cloudConfig.value = cloudConfig)
       })
-    })
+    },
+    noop)
   }
 
   _addVdi = () => {
     const { state } = this.state
     const device = String(this.getUniqueId())
     this._setState({ VDIs: [ ...state.VDIs, {
-      name_label: (state.name_label || 'disk') + '_' + device,
-      name_description: 'Created by XO',
       device,
+      name_description: 'Created by XO',
+      name_label: (state.name_label || 'disk') + '_' + device,
+      SR: state.pool.default_SR,
       type: 'system'
     }] })
   }
