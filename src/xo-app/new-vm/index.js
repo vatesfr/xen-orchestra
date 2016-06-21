@@ -217,15 +217,15 @@ export default class NewVm extends BaseComponent {
       return this._reset()
     }
 
-    const state = store.getState()
+    const storeState = store.getState()
 
     const existingDisks = {}
     forEach(template.$VBDs, vbdId => {
-      const vbd = getObject(state, vbdId)
+      const vbd = getObject(storeState, vbdId)
       if (vbd.is_cd_drive) {
         return
       }
-      const vdi = getObject(state, vbd.VDI)
+      const vdi = getObject(storeState, vbd.VDI)
       existingDisks[this.getUniqueId()] = {
         name_label: vdi.name_label,
         name_description: vdi.name_description,
@@ -236,30 +236,36 @@ export default class NewVm extends BaseComponent {
 
     const VIFs = []
     forEach(template.VIFs, vifId => {
-      const vif = getObject(state, vifId)
+      const vif = getObject(storeState, vifId)
       VIFs.push({
         mac: vif.MAC,
         network: vif.$network,
         id: this.getUniqueId()
       })
     })
+
+    const { state } = this.state
+    const name_label = state.name_label === '' || !state.name_labelHasChanged ? template.name_label : state.name_label
     this._setState({
       // infos
-      name_label: this.state.state.name_label === '' || !this.state.state.name_labelHasChanged ? template.name_label : this.state.state.name_label,
+      name_label,
       template,
-      name_description: this.state.state.name_description === '' || !this.state.state.name_descriptionHasChanged ? template.name_description || '' : this.state.state.name_description,
+      name_description: state.name_description === '' || !state.name_descriptionHasChanged ? template.name_description || '' : state.name_description,
       // performances
       memory: template.memory.size,
       CPUs: template.CPUs.number,
       cpuWeight: 1,
       // installation
-      installMethod: template.install_methods && template.install_methods[0] || this.state.state.installMethod,
+      installMethod: template.install_methods && template.install_methods[0] || state.installMethod,
       // interfaces
       VIFs,
       // disks
       existingDisks,
-      VDIs: map(template.template_info.disks, disk => ({ ...disk, device: String(this.getUniqueId()) }))
-    }, () => forEach(this.state.state, (element, key) => {
+      VDIs: map(template.template_info.disks, disk => {
+        const device = String(this.getUniqueId())
+        return { ...disk, device, name_label: (name_label || 'disk') + '_' + device }
+      })
+    }, () => forEach(state, (element, key) => {
       !isArray(element) && this._setInputValue(key, element)
     }))
 
@@ -270,10 +276,15 @@ export default class NewVm extends BaseComponent {
     })
   }
 
-  _addVdi = () => this._setState({ VDIs: [ ...this.state.state.VDIs, {
-    device: String(this.getUniqueId()),
-    type: 'system'
-  }] })
+  _addVdi = () => {
+    const { state } = this.state
+    const device = String(this.getUniqueId())
+    this._setState({ VDIs: [ ...state.VDIs, {
+      name_label: (state.name_label || 'disk') + '_' + device,
+      device,
+      type: 'system'
+    }] })
+  }
   _removeVdi = index => {
     const { VDIs } = this.state.state
     this._setState({ VDIs: [ ...VDIs.slice(0, index), ...VDIs.slice(index + 1) ] })
