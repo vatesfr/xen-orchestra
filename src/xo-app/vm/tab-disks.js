@@ -22,7 +22,7 @@ import some from 'lodash/some'
 import { createSelector } from 'selectors'
 
 import {
-  attachDiskToVM,
+  attachDiskToVm,
   createDisk,
   deleteVbd,
   deleteVdi,
@@ -71,7 +71,7 @@ class NewDisk extends Component {
     return createDisk(name.value, size.value, sr)
       .then(diskId => {
         const mode = readOnly.value ? 'RO' : 'RW'
-        return attachDiskToVM(vm, diskId, {
+        return attachDiskToVm(diskId, vm, {
           bootable: bootable.value,
           mode
         })
@@ -149,7 +149,7 @@ class AttachDisk extends Component {
       return !vbd || !vbd.attached || vbd.read_only
     })
     const mode = readOnly.value || !_isFreeForWriting(vdi) ? 'RO' : 'RW'
-    return attachDiskToVM(vm, vdi, {
+    return attachDiskToVm(vdi, vm, {
       bootable: bootable.value,
       mode
     })
