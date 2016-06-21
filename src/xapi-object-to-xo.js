@@ -174,6 +174,25 @@ const TRANSFORMS = {
 
     const isHvm = isVmHvm(obj)
     const isRunning = isVmRunning(obj)
+    const xenTools = (() => {
+      if (!isRunning || !metrics) {
+        // Unknown status, returns nothing.
+        return
+      }
+
+      if (!guestMetrics) {
+        return false
+      }
+
+      const { PV_drivers_version: { major, minor } } = guestMetrics
+      if (major === undefined || minor === undefined) {
+        return false
+      }
+
+      return guestMetrics.PV_drivers_up_to_date
+        ? 'up to date'
+        : 'out of date'
+    })()
 
     const vm = {
       // type is redefined after for controllers/, templates &
@@ -186,7 +205,7 @@ const TRANSFORMS = {
       CPUs: {
         max: +obj.VCPUs_max,
         number: (
-          isRunning && metrics
+          isRunning && metrics && xenTools
             ? +metrics.VCPUs_number
             : +obj.VCPUs_at_startup
         )
@@ -264,25 +283,7 @@ const TRANSFORMS = {
       // - false: not optimized
       // - 'out of date': optimized but drivers should be updated
       // - 'up to date': optimized
-      xenTools: (() => {
-        if (!isRunning || !metrics) {
-          // Unknown status, returns nothing.
-          return
-        }
-
-        if (!guestMetrics) {
-          return false
-        }
-
-        const { PV_drivers_version: { major, minor } } = guestMetrics
-        if (major === undefined || minor === undefined) {
-          return false
-        }
-
-        return guestMetrics.PV_drivers_up_to_date
-          ? 'up to date'
-          : 'out of date'
-      })(),
+      xenTools,
 
       $container: (
         isRunning
