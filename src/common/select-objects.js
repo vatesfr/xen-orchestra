@@ -213,20 +213,16 @@ export class GenericSelect extends Component {
 
   render () {
     const { props, state } = this
-
+    const copyProps = {...props}
+    copyProps.onChange = this._handleChange
+    copyProps.openOnFocus = true
+    copyProps.optionRenderer = this._renderOption
+    copyProps.options = state.options
+    copyProps.value = state.value
+    copyProps.valueRenderer = this._renderOption
     return (
       <Select
-        autofocus={props.autoFocus}
-        disabled={props.disabled}
-        multi={props.multi}
-        onChange={this._handleChange}
-        openOnFocus
-        optionRenderer={this._renderOption}
-        options={state.options}
-        placeholder={props.placeholder}
-        required={props.required}
-        value={state.value}
-        valueRenderer={this._renderOption}
+        {...copyProps}
       />
     )
   }
@@ -546,7 +542,6 @@ export const SelectSubject = makeSubscriptionSelect(subscriber => {
 export const SelectRole = makeSubscriptionSelect(subscriber => {
   const unsubscribeRoles = subscribeRoles(roles => {
     const xoObjects = map(sortBy(roles, 'name'), role => ({...role, type: 'role'}))
-    console.log('ROLES', xoObjects)
     subscriber({xoObjects})
   })
   return unsubscribeRoles
