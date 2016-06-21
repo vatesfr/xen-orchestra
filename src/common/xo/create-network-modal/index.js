@@ -1,16 +1,19 @@
 import React, { Component } from 'react'
 import { injectIntl } from 'react-intl'
+import { createSelector } from 'selectors'
 
 import SingleLineRow from '../../single-line-row'
 import _, { messages } from '../../messages'
 import { SelectPif } from '../../select-objects'
 import { Col } from '../../grid'
-import { createSelector } from 'selectors'
 
 class CreateNetworkModalBody extends Component {
   _getPifPredicate = createSelector(
-    () => this.props.container,
-    container => pif => pif.$host === (container.type === 'pool' ? container.master : container.id) && pif.vlan === -1
+    () => {
+      const container = this.props.container
+      return container.type === 'pool' ? container.master : container.id
+    },
+    hostId => pif => pif.$host === hostId && pif.vlan === -1
   )
 
   get value () {

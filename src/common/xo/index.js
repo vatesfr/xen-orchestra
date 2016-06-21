@@ -644,7 +644,7 @@ export const createNetwork = container => (
   )
 )
 
-export const deleteNetwork = ({ network }) => (
+export const deleteNetwork = network => (
   confirm({
     title: _('deleteNetwork'),
     body: _('deleteNetworkConfirm')
@@ -656,7 +656,7 @@ export const deleteNetwork = ({ network }) => (
 
 // PIF ---------------------------------------------------------------
 
-export const connectPif = ({ pif }) => (
+export const connectPif = pif => (
   confirm({
     title: _('connectPif'),
     body: _('connectPifConfirm')
@@ -666,7 +666,7 @@ export const connectPif = ({ pif }) => (
   )
 )
 
-export const disconnectPif = ({ pif }) => (
+export const disconnectPif = pif => (
   confirm({
     title: _('disconnectPif'),
     body: _('disconnectPifConfirm')
@@ -676,7 +676,7 @@ export const disconnectPif = ({ pif }) => (
   )
 )
 
-export const deletePif = ({ pif }) => (
+export const deletePif = pif => (
   confirm({
     title: _('deletePif'),
     body: _('deletePifConfirm')
