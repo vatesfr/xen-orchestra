@@ -304,7 +304,7 @@ export default class Xapi extends XapiBase {
     // properties that failed to be set.
     await Promise.all(mapToArray(props, (value, name) => {
       if (value != null) {
-        return this.call(`${namespace}.set_${camelToSnakeCase(name)}`, ref, value)
+        return this.call(`${namespace}.set_${camelToSnakeCase(name)}`, ref, prepareXapiParam(value))
       }
     }))
   }
