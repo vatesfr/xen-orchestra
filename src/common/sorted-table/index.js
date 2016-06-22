@@ -6,7 +6,7 @@ import debounce from 'lodash/debounce'
 import map from 'lodash/map'
 import { Pagination } from 'react-bootstrap-4/lib'
 import { Portal } from 'react-overlays'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import { create as createMatcher } from 'complex-matcher'
 import { propTypes } from 'utils'
 
@@ -207,13 +207,14 @@ export default class SortedTable extends Component {
 
     const paginationInstance = (
       <Pagination
+        className={styles.pagination}
         first
         last
         prev
         next
         ellipsis
         boundaryLinks
-        maxButtons={5}
+        maxButtons={10}
         items={ceil(this._getAllItems().length / state.itemsPerPage)}
         activePage={this.state.activePage}
         onSelect={this._onPageSelection}
@@ -252,26 +253,28 @@ export default class SortedTable extends Component {
             ))}
           </tbody>
         </table>
-        {filterContainer
-          ? (
-          <Portal container={() => filterContainer()}> // Rebuild container function to refresh Portal component.
-            {filterInstance}
-          </Portal>
-          ) : (
+        <Container>
           <Row>
+            <Col mediumSize={8}>
+              {paginationContainer
+                ? (
+                <Portal container={() => paginationContainer()}>
+                  {paginationInstance}
+                </Portal>
+                ) : paginationInstance
+              }
+            </Col>
             <Col mediumSize={4}>
-              {filterInstance}
+              {filterContainer
+                ? (
+                <Portal container={() => filterContainer()}> // Rebuild container function to refresh Portal component.
+                  {filterInstance}
+                </Portal>
+                ) : filterInstance
+              }
             </Col>
           </Row>
-          )
-        }
-        {paginationContainer
-          ? (
-          <Portal container={() => paginationContainer()}>
-            {paginationInstance}
-          </Portal>
-          ) : paginationInstance
-        }
+        </Container>
       </div>
     )
   }
