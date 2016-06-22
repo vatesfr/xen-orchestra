@@ -1815,6 +1815,23 @@ export const messages = {
     defaultMessage: 'Problem? Open a ticket !'
   },
 
+  // ----- Upgrade Panel -----
+  upgradeNeeded: {
+    defaultMessage: 'Upgrade needed'
+  },
+  upgradeNow: {
+    defaultMessage: 'Upgrade now!'
+  },
+  or: {
+    defaultMessage: 'Or'
+  },
+  tryIt: {
+    defaultMessage: 'Try it for free!'
+  },
+  availableIn: {
+    defaultMessage: 'This feature is available starting from {plan} Edition'
+  },
+
   // ----- PIF -----
   connectPif: {
     defaultMessage: 'Connect PIF'

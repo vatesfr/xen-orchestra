@@ -1,3 +1,4 @@
+import _ from 'messages'
 import Icon from 'icon'
 import Link from 'react-router/lib/Link'
 import React from 'react'
@@ -12,15 +13,15 @@ const Upgrade = propTypes({
   place
 }) => (
   <Card>
-    <CardHeader>Upgrade needed</CardHeader>
+    <CardHeader>{_('upgradeNeeded')}</CardHeader>
     <CardBlock className='text-xs-center'>
-      <p>This feature is available starting from {getXoaPlan(available)} Edition</p>
+      <p>{_('availableIn', {plan: getXoaPlan(available)})}</p>
       <p>
         <a href={`https://xen-orchestra.com/#!/pricing?pk_campaign=xoa_${getXoaPlan()}_upgrade&pk_kwd=${place}`} className='btn btn-primary btn-lg'>
-          <Icon icon='plan-upgrade' /> Upgrade now!
-        </a> Or&nbsp;
+          <Icon icon='plan-upgrade' /> {_('upgradeNow')}
+        </a> {_('or')}&nbsp;
         <Link className='btn btn-success btn-lg' to={'/xoa-update'}>
-          <Icon icon='plan-trial' /> Try it for free!
+          <Icon icon='plan-trial' /> {_('tryIt')}
         </Link>
       </p>
     </CardBlock>
