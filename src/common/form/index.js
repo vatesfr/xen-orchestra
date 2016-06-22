@@ -17,6 +17,7 @@ import {
 } from '../utils'
 
 export Select from './select'
+export SelectPlainObject from './select-plain-object'
 
 // ===================================================================
 

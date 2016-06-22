@@ -230,6 +230,8 @@ export const subscribeRoles = createSubscription(invoke(
 
 // System ============================================================
 
+export const apiMethods = _signIn.then(() => call('system.getMethodsInfo'))
+
 export const serverVersion = _signIn.then(() => call('system.getServerVersion'))
 
 // ===================================================================
@@ -776,8 +778,8 @@ export const removeTag = (id, tag) => (
 
 // Backups -----------------------------------------------------------
 
-export const createSchedule = (jobId, cron, enabled) => (
-  call('schedule.create', { jobId, cron, enabled })::tap(
+export const createSchedule = (jobId, cron, enabled, name = undefined) => (
+  call('schedule.create', { jobId, cron, enabled, name })::tap(
     subscribeSchedules.forceRefresh
   )
 )
@@ -815,15 +817,16 @@ export const disableSchedule = id => (
   )
 )
 
-export const deleteSchedule = async schedule => {
+export const deleteBackupSchedule = async schedule => {
   await confirm({
-    title: _('deleteJob'),
-    body: _('deleteJobQuestion')
+    title: _('deleteBackupSchedule'),
+    body: _('deleteBackupScheduleQuestion')
   })
   await call('schedule.delete', { id: schedule.id })
   await call('job.delete', { id: schedule.job })
 
   subscribeSchedules.forceRefresh()
+  subscribeJobs.forceRefresh()
 }
 
 // Plugins -----------------------------------------------------------
@@ -1090,5 +1093,31 @@ export const deleteUser = user => (
 export const editUser = (user, { email, password, permission }) => (
   call('user.set', { id: resolveId(user), email, password, permission })::tap(
     subscribeUsers.forceRefresh
+  )
+)
+
+// Jobs ----------------------------------------------------------
+
+export const deleteJob = job => (
+  xo.call('job.delete', resolveIds({id: job}))::tap(
+    subscribeJobs.forceRefresh
+  )
+)
+
+export const deleteSchedule = schedule => (
+  xo.call('schedule.delete', resolveIds({id: schedule}))::tap(
+    subscribeSchedules.forceRefresh
+  )
+)
+
+export const updateJob = job => (
+  xo.call('job.set', {job})::tap(
+    subscribeJobs.forceRefresh
+  )
+)
+
+export const updateSchedule = ({id, job: jobId, cron, enabled, name}) => (
+  xo.call('schedule.set', {id, jobId, cron, enabled, name})::tap(
+    subscribeSchedules.forceRefresh
   )
 )

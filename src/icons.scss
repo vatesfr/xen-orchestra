@@ -211,6 +211,12 @@
     @extend .fa-map-signs;
   }
 
+  // Jobs
+  &-jobs {
+    @extend .fa;
+    @extend .fa-cogs;
+  }
+
   // VM
   &-vm {
     // States
@@ -592,6 +598,22 @@
     &-restore {
       @extend .fa;
       @extend .fa-upload;
+    }
+  }
+  &-menu-jobs {
+    @extend .fa;
+    @extend .fa-cogs;
+    &-overview {
+      @extend .fa;
+      @extend .fa-eye;
+    }
+    &-new {
+      @extend .fa;
+      @extend .fa-plus;
+    }
+    &-schedule {
+      @extend .fa;
+      @extend .fa-clock-o;
     }
   }
   &-menu-update {

@@ -6,7 +6,6 @@ import {
   propTypes
 } from 'utils'
 
-// TODO: XoEntity, XoRole, XoObject?
 import ArrayInput from './array-input'
 import BooleanInput from './boolean-input'
 import EnumInput from './enum-input'
@@ -14,10 +13,13 @@ import IntegerInput from './integer-input'
 import NumberInput from './number-input'
 import ObjectInput from './object-input'
 import StringInput from './string-input'
+import XoHighLevelObjectInput from './xo-highlevel-object-input'
 import XoHostInput from './xo-host-input'
 import XoPoolInput from './xo-pool-input'
 import XoRemoteInput from './xo-remote-input'
+import XoRoleInput from './xo-role-input'
 import XoSrInput from './xo-sr-input'
+import XoSubjectInput from './xo-subject-input'
 import XoVmInput from './xo-vm-input'
 
 // ===================================================================
@@ -56,7 +58,10 @@ const InputByType = {
   remote: XoRemoteInput,
   sr: XoSrInput,
   string: StringInput,
-  vm: XoVmInput
+  vm: XoVmInput,
+  xoobject: XoHighLevelObjectInput,
+  role: XoRoleInput,
+  subject: XoSubjectInput
 }
 
 // ===================================================================
@@ -99,7 +104,7 @@ export default class GenericInput extends Component {
       return <EnumInput {...props} />
     }
 
-    // $type = Old XO plugins.
+    // $type = Job Creation Schemas && Old XO plugins.
     const type = getXoType(schema) || getType(schema, '$type') || getType(schema)
     const Input = uiSchema.widget || InputByType[type.toLowerCase()]
 

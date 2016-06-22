@@ -14,6 +14,7 @@ import Backup from './backup'
 import Dashboard from './dashboard'
 import Home from './home'
 import Host from './host'
+import Jobs from './jobs'
 import Menu from './menu'
 import Modal, { alert } from 'modal'
 import New from './new'
@@ -59,6 +60,7 @@ const BODY_STYLE = {
   dashboard: Dashboard,
   home: Home,
   'hosts/:id': Host,
+  jobs: Jobs,
   new: New,
   'pools/:id': Pool,
   self: Self,

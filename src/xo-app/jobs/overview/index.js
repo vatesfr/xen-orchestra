@@ -18,7 +18,7 @@ import {
 } from 'card'
 
 import {
-  deleteBackupSchedule,
+  deleteSchedule,
   disableSchedule,
   enableSchedule,
   runJob,
@@ -27,16 +27,10 @@ import {
   subscribeScheduleTable
 } from 'xo'
 
-import { getJobValues } from '../helpers'
-
 // ===================================================================
 
 const jobKeyToLabel = {
-  continuousReplication: _('continuousReplication'),
-  deltaBackup: _('deltaBackup'),
-  disasterRecovery: _('disasterRecovery'),
-  rollingBackup: _('backup'),
-  rollingSnapshot: _('rollingSnapshot')
+  genericTask: _('customJob')
 }
 
 // ===================================================================
@@ -91,22 +85,11 @@ export default class Overview extends Component {
   }
 
   _getJobLabel (job = {}) {
-    return jobKeyToLabel[job.key] || _('unknownSchedule')
+    return `${job.name} - ${job.method} (${job.id})`
   }
 
-  _getScheduleTag (schedule, job = {}) {
-    try {
-      const { paramsVector } = job
-      const values = getJobValues(paramsVector)
-
-      // Old versions of XenOrchestra uses values[0]
-      return (
-        getJobValues(values[0])[0].tag ||
-        getJobValues(values[1])[0].tag
-      )
-    } catch (_) {}
-
-    return schedule.id
+  _getScheduleLabel (schedule) {
+    return `${schedule.name} (${schedule.id})`
   }
 
   _getScheduleToggle (schedule) {
@@ -117,8 +100,7 @@ export default class Overview extends Component {
         value={this.state.scheduleTable[id]}
         handler={this._updateScheduleState}
         handlerParam={id}
-        size='small'
-      />
+        size='small' />
     )
   }
 
@@ -138,15 +120,15 @@ export default class Overview extends Component {
       <div>
         <Card>
           <CardHeader>
-            <h5><Icon icon='schedule' /> Schedules</h5>
+            <Icon icon='schedule' /> Schedules
           </CardHeader>
           <CardBlock>
             {schedules.length ? (
               <table className='table'>
                 <thead className='thead-default'>
                   <tr>
+                    <th>{_('schedule')}</th>
                     <th>{_('job')}</th>
-                    <th>{_('jobTag')}</th>
                     <th className='hidden-xs-down'>{_('jobScheduling')}</th>
                     <th>{_('jobState')}</th>
                   </tr>
@@ -157,20 +139,27 @@ export default class Overview extends Component {
 
                     return (
                       <tr key={key}>
-                        <td>{this._getJobLabel(job)}</td>
-                        <td>{this._getScheduleTag(schedule, job)}</td>
+                        <td>
+                          {this._getScheduleLabel(schedule)}
+                          <Link className='btn btn-sm btn-primary m-r-1' to={`/jobs/schedule/${schedule.id}/edit`}>
+                            <Icon icon='edit' />
+                          </Link>
+                        </td>
+                        <td>
+                          {this._getJobLabel(job)}
+                          <Link className='btn btn-sm btn-primary m-r-1' to={`/jobs/${job.id}/edit`}>
+                            <Icon icon='edit' />
+                          </Link>
+                        </td>
                         <td className='hidden-xs-down'>{schedule.cron}</td>
                         <td>
                           {this._getScheduleToggle(schedule)}
                           <fieldset className='pull-xs-right'>
-                            <Link className='btn btn-sm btn-primary m-r-1' to={`/backup/${job.id}/edit`}>
-                              <Icon icon='edit' />
-                            </Link>
                             <ButtonGroup>
                               <ActionRowButton
                                 icon='delete'
                                 btnStyle='danger'
-                                handler={deleteBackupSchedule}
+                                handler={deleteSchedule}
                                 handlerParam={schedule}
                               />
                               <ActionRowButton

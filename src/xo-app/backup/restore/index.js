@@ -18,9 +18,8 @@ import { Container } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
 import { FormattedDate } from 'react-intl'
 import { info, error } from 'notification'
-import { SelectPlainObject } from 'form/select-plain-object'
+import { SelectPlainObject, Toggle } from 'form'
 import { SelectSr } from 'select-objects'
-import { Toggle } from 'form'
 
 import {
   importBackup,

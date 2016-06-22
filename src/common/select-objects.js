@@ -470,9 +470,7 @@ export const SelectTag = makeStoreSelect((_, props) => ({
   )
 }), { placeholder: _('selectTags') })
 
-// ===================================================================
-
-export const SelectHighLevelObjects = makeStoreSelect(() => {
+export const SelectHighLevelObject = makeStoreSelect(() => {
   const getHosts = createGetObjectsOfType('host')
   const getNetworks = createGetObjectsOfType('network')
   const getPools = createGetObjectsOfType('pool')
@@ -516,14 +514,22 @@ export const SelectVdi = propTypes({
 export const SelectSubject = makeSubscriptionSelect(subscriber => {
   let subjects = {}
 
+  let usersLoaded, groupsLoaded
   const set = newSubjects => {
     subjects = newSubjects
-    subscriber({
-      xoObjects: subjects
-    })
+    /* We must wait for groups AND users options to be loaded,
+     * or a previously setted value belonging to one type or another might be discarded
+     * by the internal <GenericSelect>
+     */
+    if (usersLoaded && groupsLoaded) {
+      subscriber({
+        xoObjects: subjects
+      })
+    }
   }
 
   const unsubscribeGroups = subscribeGroups(groups => {
+    groupsLoaded = true
     set([
       ...filter(subjects, subject => subject.type === 'user'),
       ...groups
@@ -531,6 +537,7 @@ export const SelectSubject = makeSubscriptionSelect(subscriber => {
   })
 
   const unsubscribeUsers = subscribeUsers(users => {
+    usersLoaded = true
     set([
       ...filter(subjects, subject => subject.type === 'group'),
       ...users

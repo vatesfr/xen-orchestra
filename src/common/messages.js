@@ -65,6 +65,9 @@ export const messages = {
   backupPage: {
     defaultMessage: 'Backup'
   },
+  jobsPage: {
+    defaultMessage: 'Jobs'
+  },
   updatePage: {
     defaultMessage: 'Updates'
   },
@@ -142,6 +145,18 @@ export const messages = {
   },
   continuousReplication: {
     defaultMessage: 'Continuous Replication'
+  },
+  jobsOverviewPage: {
+    defaultMessage: 'Overview'
+  },
+  jobsNewPage: {
+    defaultMessage: 'New'
+  },
+  jobsSchedulingPage: {
+    defaultMessage: 'Scheduling'
+  },
+  customJob: {
+    defaultMessage: 'Custom Job'
   },
 
   // ----- Languages -----
@@ -445,11 +460,11 @@ export const messages = {
   saveBackupJob: {
     defaultMessage: 'Save'
   },
-  deleteJob: {
-    defaultMessage: 'Remove Job'
+  deleteBackupSchedule: {
+    defaultMessage: 'Remove backup job'
   },
-  deleteJobQuestion: {
-    defaultMessage: 'Are you sure you want to delete this job?'
+  deleteBackupScheduleQuestion: {
+    defaultMessage: 'Are you sure you want to delete this backup job?'
   },
   noScheduledJobs: {
     defaultMessage: 'No scheduled jobs.'

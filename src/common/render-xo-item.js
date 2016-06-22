@@ -131,6 +131,7 @@ const xoItemToRender = {
 
   // VM.
   VM: vm => <VmItem vm={vm} />,
+  'VM-snapshot': vm => <VmItem vm={vm} />,
 
   // PIF.
   PIF: pif => (
