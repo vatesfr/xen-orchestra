@@ -6,6 +6,7 @@ import map from 'lodash/map'
 import React, { Component } from 'react'
 import TabButton from 'tab-button'
 import { connectStore } from 'utils'
+import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Container, Row, Col } from 'grid'
 import { Text } from 'editable'
@@ -69,18 +70,20 @@ export default class TabSnapshot extends Component {
                       <Text value={snapshot.name_label} onChange={value => editVm(snapshot, {name_label: value})} />
                     </td>
                     <td>
-                      <ActionRowButton
-                        btnStyle='warning'
-                        handler={revertSnapshot}
-                        handlerParam={snapshot}
-                        icon='snapshot-revert'
-                      />
-                      <ActionRowButton
-                        btnStyle='danger'
-                        handler={deleteVm}
-                        handlerParam={snapshot}
-                        icon='delete'
-                      />
+                      <ButtonGroup>
+                        <ActionRowButton
+                          btnStyle='warning'
+                          handler={revertSnapshot}
+                          handlerParam={snapshot}
+                          icon='snapshot-revert'
+                        />
+                        <ActionRowButton
+                          btnStyle='danger'
+                          handler={deleteVm}
+                          handlerParam={snapshot}
+                          icon='delete'
+                        />
+                      </ButtonGroup>
                     </td>
                   </tr>
                 )}
