@@ -1753,6 +1753,68 @@ export const messages = {
     defaultMessage: 'Are you sure you want to delete this network?'
   },
 
+  // ----- About View -----
+  xenOrchestra: {
+    defaultMessage: 'Xen Orchestra'
+  },
+  xenOrchestraServer: {
+    defaultMessage: 'Xen Orchestra'
+  },
+  xenOrchestraWeb: {
+    defaultMessage: 'web client'
+  },
+  noProSupport: {
+    defaultMessage: 'No pro support provided!'
+  },
+  noProductionUse: {
+    defaultMessage: 'Use in production at your own risks'
+  },
+  downloadXoa: {
+    defaultMessage: 'You can download our turnkey appliance at'
+  },
+  bugTracker: {
+    defaultMessage: 'Bug Tracker'
+  },
+  bugTrackerText: {
+    defaultMessage: 'Issues? Report it!'
+  },
+  community: {
+    defaultMessage: 'Community'
+  },
+  communityText: {
+    defaultMessage: 'Join our community forum!'
+  },
+  freeTrial: {
+    defaultMessage: 'Free Trial for Premium Edition!'
+  },
+  freeTrialNow: {
+    defaultMessage: 'Request your trial now!'
+  },
+  issues: {
+    defaultMessage: 'Any issue?'
+  },
+  issuesText: {
+    defaultMessage: 'Problem? Contact us!'
+  },
+  documentation: {
+    defaultMessage: 'Documentation'
+  },
+  documentationText: {
+    defaultMessage: 'Read our official doc'
+  },
+  proSupportIncluded: {
+    defaultMessage: 'Pro support included'
+  },
+  xoAccount: {
+    defaultMessage: 'Acces your XO Account'
+  },
+  openTicket: {
+    defaultMessage: 'Report a problem'
+  },
+  openTicketText: {
+    defaultMessage: 'Problem? Open a ticket !'
+  },
+
   // ----- PIF -----
   connectPif: {
     defaultMessage: 'Connect PIF'
