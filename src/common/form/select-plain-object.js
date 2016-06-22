@@ -8,6 +8,7 @@ import { propTypes } from 'utils'
   autoFocus: propTypes.bool,
   defaultValue: propTypes.any,
   disabled: propTypes.bool,
+  optionRenderer: propTypes.func,
   multi: propTypes.bool,
   onChange: propTypes.func,
   options: propTypes.array,
@@ -54,9 +55,10 @@ export class SelectPlainObject extends Component {
 
   _computeOptions (options) {
     const { optionKey = 'id' } = this.props
+    const { optionRenderer = o => o.label || o[optionKey] || o } = this.props
     return map(options, option => ({
       value: option[optionKey] || option,
-      label: option.label || option[optionKey] || option
+      label: optionRenderer(option)
     }))
   }
 

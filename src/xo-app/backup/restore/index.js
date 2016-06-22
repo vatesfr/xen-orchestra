@@ -252,7 +252,6 @@ class ImportModalBody extends Component {
                 }
               }
             }
-            backup.label = backupOptionRenderer(backup)
             options.push(backup)
           })
           this.setState({options})
@@ -275,7 +274,7 @@ class ImportModalBody extends Component {
     return <div>
       <SelectSr ref='sr' predicate={srWritablePredicate} />
       <br />
-      <SelectPlainObject ref='backup' options={this.state.options} optionKey='path' placeholder='Select your backup' />
+      <SelectPlainObject ref='backup' options={this.state.options} optionKey='path' optionRenderer={backupOptionRenderer} placeholder='Select your backup' />
       <br />
       <Toggle ref='start' /> Start VM after restore
     </div>
