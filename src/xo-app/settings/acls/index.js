@@ -1,6 +1,6 @@
 import _ from 'messages'
 import ActionButton from 'action-button'
-import assign from 'lodash/assign'
+import ActionRowButton from 'action-row-button'
 import Component from 'base-component'
 import forEach from 'lodash/forEach'
 import isEmpty from 'lodash/isEmpty'
@@ -23,6 +23,7 @@ import {
 
 import {
   addAcl,
+  editAcl,
   removeAcl,
   subscribeAcls,
   subscribeGroups,
@@ -34,31 +35,45 @@ const handleRoleChange = (role, {subject, object, action}) => {
   if (!role) {
     return
   }
-  return removeAcl({subject, object, action}).then(() => addAcl({subject, object, action: role.id}))
+  return editAcl({subject, object, action}, {action: role})
 }
-const handleRemoveAcl = ({subject, object, action}) => removeAcl({subject, object, action}).catch(err => error('Remove ACL', err.message || String(err)))
+
+const ACL_COLUMS = [
+  {
+    name: _('subjectName'),
+    itemRenderer: acl => acl.subject.id ? renderXoItem(acl.subject) : renderXoItemFromId(acl.subject),
+    sortCriteria: acl => (acl.subject.name || acl.subject.email || '').toLowerCase()
+  },
+  {
+    name: _('objectName'),
+    itemRenderer: acl => acl.object.id ? renderXoItem(acl.object) : renderXoItemFromId(acl.object),
+    sortCriteria: acl => (acl.object.name || acl.object.name_label || '').toLowerCase()
+  },
+  {
+    name: _('roleName'),
+    itemRenderer: acl => <SelectRole clearable={false} onChange={role => handleRoleChange(role, acl)} placeholder='Change Role' value={acl.action} />,
+    sortCriteria: acl => (acl.action.name || '').toLowerCase()
+  },
+  {
+    name: '',
+    itemRenderer: acl => <ActionRowButton icon='delete' btnStyle='danger' handler={removeAcl} handlerParam={acl} />
+  }
+]
 
 @connectStore(() => {
-  const getHosts = createGetObjectsOfType('host')
-  const getNetworks = createGetObjectsOfType('network')
-  const getPools = createGetObjectsOfType('pool')
-  const getSrs = createGetObjectsOfType('SR')
-  const getVms = createGetObjectsOfType('VM')
-
   const getHighLevelObjects = createSelector(
-    getHosts,
-    getNetworks,
-    getPools,
-    getSrs,
-    getVms,
-    (hosts, networks, pools, srs, vms) => assign(
-      {},
-      keyBy(hosts, 'id'),
-      keyBy(networks, 'id'),
-      keyBy(pools, 'id'),
-      keyBy(srs, 'id'),
-      keyBy(vms, 'id')
-    )
+    createGetObjectsOfType('host'),
+    createGetObjectsOfType('network'),
+    createGetObjectsOfType('pool'),
+    createGetObjectsOfType('SR'),
+    createGetObjectsOfType('VM'),
+    (hosts, networks, pools, srs, vms) => ({
+      ...keyBy(hosts, 'id'),
+      ...keyBy(networks, 'id'),
+      ...keyBy(pools, 'id'),
+      ...keyBy(srs, 'id'),
+      ...keyBy(vms, 'id')
+    })
   )
   return {xoObjects: getHighLevelObjects}
 })
@@ -80,7 +95,7 @@ class AclTable extends Component {
     }
 
     const unsubscribeAcls = subscribeAcls(acls => this.setState({acls}, refresh))
-    const unsubscribeRoles = subscribeRoles(roles => this.setState({roles: (keyBy(roles, 'id'))}, refresh))
+    const unsubscribeRoles = subscribeRoles(roles => this.setState({roles: keyBy(roles, 'id')}, refresh))
     const unsubscribeGroups = subscribeGroups(groups => {
       groups = keyBy(groups, 'id')
       refresh({
@@ -106,31 +121,10 @@ class AclTable extends Component {
 
   render () {
     const { resolvedAcls = [] } = this.state
-    const ACL_COLUMS = [
-      {
-        name: _('subjectName'),
-        itemRenderer: acl => acl.subject.id ? renderXoItem(acl.subject) : renderXoItemFromId(acl.subject),
-        sortCriteria: acl => (acl.subject.name || acl.subject.email || '').toLowerCase()
-      },
-      {
-        name: _('objectName'),
-        itemRenderer: acl => acl.object.id ? renderXoItem(acl.object) : renderXoItemFromId(acl.object),
-        sortCriteria: acl => (acl.object.name || acl.object.name_label || '').toLowerCase()
-      },
-      {
-        name: _('roleName'),
-        itemRenderer: acl => <SelectRole clearable={false} onChange={role => handleRoleChange(role, acl)} placeholder='Change Role' value={acl.action} />,
-        sortCriteria: acl => (acl.action.name || '').toLowerCase()
-      },
-      {
-        name: '',
-        itemRenderer: acl => <ActionButton icon='delete' btnStyle='danger' handler={handleRemoveAcl} handlerParam={acl} />
-      }
-    ]
 
     return isEmpty(resolvedAcls)
-    ? <p><em>No acls found</em></p>
-    : <SortedTable collection={resolvedAcls} columns={ACL_COLUMS} />
+      ? <p><em>No acls found</em></p>
+      : <SortedTable collection={resolvedAcls} columns={ACL_COLUMS} />
   }
 }
 
@@ -156,7 +150,11 @@ export default class Acls extends Component {
     } = this.state
     try {
       const promises = []
-      forEach(subjects, subject => promises.push(...map(objects, object => addAcl({subject: subject.id, object: object.id, action: role.id}))))
+      forEach(subjects, subject => {
+        forEach(objects, object => {
+          promises.push(addAcl({subject, object, action: role}))
+        })
+      })
       await Promise.all(promises)
       const { subject, object, action } = this.refs
       subject.value = []

@@ -1026,12 +1026,19 @@ export const addAcl = ({subject, object, action}) => (
   call('acl.add', resolveIds({subject, object, action}))::tap(
     subscribeAcls.forceRefresh
   )
-)
+).catch(err => error('Add ACL', err.message || String(err)))
 
 export const removeAcl = ({subject, object, action}) => (
   call('acl.remove', resolveIds({subject, object, action}))::tap(
     subscribeAcls.forceRefresh
-  )
+  ).catch(err => error('Remove ACL', err.message || String(err)))
+)
+
+export const editAcl = ({subject, object, action}, {subject: newSubject = subject, object: newObject = object, action: newAction = action}) => (
+  call('acl.remove', resolveIds({subject, object, action}))
+    .then(() => call('acl.add', resolveIds({subject: newSubject, object: newObject, action: newAction})))::tap(
+    subscribeAcls.forceRefresh
+  ).catch(err => error('Edit ACL', err.message || String(err)))
 )
 
 export const createGroup = name => (
