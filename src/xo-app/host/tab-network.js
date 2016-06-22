@@ -67,14 +67,14 @@ export default ({
                     <ButtonGroup className='pull-xs-right'>
                       <ActionRowButton
                         btnStyle='default'
-                        disabled={pif => pif.attached && (pif.management || pif.disallowUnplug)}
+                        disabled={pif.attached && (pif.management || pif.disallowUnplug)}
                         icon={pif.attached ? 'disconnect' : 'connect'}
                         handler={pif.attached ? disconnectPif : connectPif}
                         handlerParam={pif}
                       />
                       <ActionRowButton
                         btnStyle='default'
-                        disabled={pif => pif.physical || pif.disallowUnplug || pif.management}
+                        disabled={pif.physical || pif.disallowUnplug || pif.management}
                         icon='delete'
                         handler={deletePif}
                         handlerParam={{ pif }}

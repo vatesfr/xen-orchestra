@@ -10,7 +10,7 @@ import { Col } from '../../grid'
 class CreateNetworkModalBody extends Component {
   _getPifPredicate = createSelector(
     () => {
-      const container = this.props.container
+      const { container } = this.props
       return container.type === 'pool' ? container.master : container.id
     },
     hostId => pif => pif.$host === hostId && pif.vlan === -1
