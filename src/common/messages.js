@@ -325,6 +325,9 @@ export const messages = {
   selectNetworks: {
     defaultMessage: 'Select Network(s)…'
   },
+  selectPifs: {
+    defaultMessage: 'Select PIF(s)...'
+  },
   selectPools: {
     defaultMessage: 'Select Pool(s)…'
   },
@@ -1690,6 +1693,58 @@ export const messages = {
   },
   copyVmCompress: {
     defaultMessage: 'Use compression'
+  },
+
+  // ----- Network -----
+  newNetworkCreate: {
+    defaultMessage: 'Create network'
+  },
+  newNetworkInterface: {
+    defaultMessage: 'Interface'
+  },
+  newNetworkName: {
+    defaultMessage: 'Name'
+  },
+  newNetworkDescription: {
+    defaultMessage: 'Description'
+  },
+  newNetworkVlan: {
+    defaultMessage: 'VLAN'
+  },
+  newNetworkDefaultVlan: {
+    defaultMessage: 'No VLAN if empty'
+  },
+  newNetworkMtu: {
+    defaultMessage: 'MTU'
+  },
+  newNetworkDefaultMtu: {
+    defaultMessage: 'Default: 1500'
+  },
+  deleteNetwork: {
+    defaultMessage: 'Delete network'
+  },
+  deleteNetworkConfirm: {
+    defaultMessage: 'Are you sure you want to delete this network?'
+  },
+
+  // ----- PIF -----
+  connectPif: {
+    defaultMessage: 'Connect PIF'
+  },
+  connectPifConfirm: {
+    defaultMessage: 'Are you sure you want to connect this PIF?'
+  },
+  disconnectPif: {
+    defaultMessage: 'Disconnect PIF'
+  },
+  disconnectPifConfirm: {
+    defaultMessage: 'Are you sure you want to disconnect this PIF?'
+  },
+  deletePif: {
+    defaultMessage: 'Delete PIF'
+  },
+  deletePifConfirm: {
+    defaultMessage: 'Are you sure you want to delete this PIF?'
   }
 }
 forEach(messages, (message, id) => {
@@ -1764,6 +1819,7 @@ localizedMessages.fr = {
   selectSubjects: 'Select. utilisateurs et/ou groupe(s)',
   selectHosts: 'Selectionner Hôte(s)...',
   selectNetworks: 'Selectionner Network(s)...',
+  selectPifs: 'Sélectionner PIF(s)...',
   selectHostsVms: 'Selectionner objet(s)...',
   selectPools: 'Selectionner Pool(s)...',
   selectRemotes: 'Selectionner Remote(s)...',
@@ -2100,7 +2156,18 @@ localizedMessages.fr = {
   copyVmName: 'Nom',
   copyVmNamePlaceholder: 'Si vide : nom de la VM copiée',
   copyVmSelectSr: 'Sélectionnez un SR',
-  copyVmCompress: 'Utiliser la compression'
+  copyVmCompress: 'Utiliser la compression',
+  // ----- Network -----
+  networkCreate: 'Créer un réseau',
+  deleteNetwork: 'Supprimer le réseau',
+  deleteNetworkConfirm: 'Etes-vous sûr de vouloir supprimer ce réseau ?',
+  // ----- PIF -----
+  connectPif: 'Connecter la PIF',
+  connectPifConfirm: 'Etes-vous sûr de vouloir connecter cette PIF ?',
+  disconnectPif: 'Déconnecter la PIF',
+  disconnectPifConfirm: 'Etes-vous sûr de vouloir déconnecter cette PIF ?',
+  deletePif: 'Supprimer la PIF',
+  deletePifConfirm: 'Etes-vous sûr de vouloir supprimer cette PIF ?'
 }
 
 // ===================================================================

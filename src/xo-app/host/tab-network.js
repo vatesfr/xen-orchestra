@@ -1,8 +1,11 @@
 import _ from 'messages'
+import ActionRowButton from 'action-row-button'
 import React from 'react'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import TabButton from 'tab-button'
+import { connectPif, createNetwork, deletePif, disconnectPif } from 'xo'
+import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Container, Row, Col } from 'grid'
 
 export default ({
@@ -14,7 +17,8 @@ export default ({
     <Col className='text-xs-right'>
       <TabButton
         btnStyle='primary'
-        handler={() => null(host)} // TODO: add network
+        handler={createNetwork}
+        handlerParam={host}
         icon='add'
         labelId='networkCreateButton'
       />
@@ -34,6 +38,7 @@ export default ({
                 <th>{_('pifMacLabel')}</th>
                 <th>{_('pifMtuLabel')}</th>
                 <th>{_('pifStatusLabel')}</th>
+                <th />
               </tr>
             </thead>
             <tbody>
@@ -57,6 +62,24 @@ export default ({
                           {_('pifStatusDisconnected')}
                       </span>
                     }
+                  </td>
+                  <td>
+                    <ButtonGroup className='pull-xs-right'>
+                      <ActionRowButton
+                        btnStyle='default'
+                        disabled={pif.attached && (pif.management || pif.disallowUnplug)}
+                        icon={pif.attached ? 'disconnect' : 'connect'}
+                        handler={pif.attached ? disconnectPif : connectPif}
+                        handlerParam={pif}
+                      />
+                      <ActionRowButton
+                        btnStyle='default'
+                        disabled={pif.physical || pif.disallowUnplug || pif.management}
+                        icon='delete'
+                        handler={deletePif}
+                        handlerParam={{ pif }}
+                      />
+                    </ButtonGroup>
                   </td>
                 </tr>
               )}

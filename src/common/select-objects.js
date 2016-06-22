@@ -438,6 +438,25 @@ export const SelectNetwork = makeStoreSelect(() => {
 
 // ===================================================================
 
+export const SelectPif = makeStoreSelect(() => {
+  const getPifsByHost = createGetObjectsOfType('PIF').filter(
+    getPredicate
+  ).sort().groupBy('$host')
+  const getHosts = createGetObjectsOfType('host').pick(
+    createSelector(
+      getPifsByHost,
+      networksByPool => keys(networksByPool)
+    )
+  ).sort()
+
+  return {
+    xoObjects: getPifsByHost,
+    xoContainers: getHosts
+  }
+}, { placeholder: _('selectPifs') })
+
+// ===================================================================
+
 export const SelectTag = makeStoreSelect((_, props) => ({
   xoObjects: createSelector(
     createGetTags(

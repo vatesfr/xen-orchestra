@@ -632,6 +632,60 @@ export const editNetwork = ({ id }, props) => (
   call('network.set', { ...props, id })
 )
 
+import CreateNetworkModalBody from './create-network-modal'
+export const createNetwork = container => (
+  confirm({
+    icon: 'network',
+    title: _('newNetworkCreate'),
+    body: <CreateNetworkModalBody container={container} />
+  }).then(
+    params => xo.call('network.create', params),
+    noop
+  )
+)
+
+export const deleteNetwork = network => (
+  confirm({
+    title: _('deleteNetwork'),
+    body: _('deleteNetworkConfirm')
+  }).then(
+    () => xo.call('network.delete', { network: resolveId(network) }),
+    noop
+  )
+)
+
+// PIF ---------------------------------------------------------------
+
+export const connectPif = pif => (
+  confirm({
+    title: _('connectPif'),
+    body: _('connectPifConfirm')
+  }).then(
+    () => xo.call('pif.connect', { pif: resolveId(pif) }),
+    noop
+  )
+)
+
+export const disconnectPif = pif => (
+  confirm({
+    title: _('disconnectPif'),
+    body: _('disconnectPifConfirm')
+  }).then(
+    () => xo.call('pif.disconnect', { pif: resolveId(pif) }),
+    noop
+  )
+)
+
+export const deletePif = pif => (
+  confirm({
+    title: _('deletePif'),
+    body: _('deletePifConfirm')
+  }).then(
+    () => xo.call('pif.delete', { pif: resolveId(pif) }),
+    noop
+  )
+)
+
 // SR ----------------------------------------------------------------
 
 export const deleteSr = ({ id }) => (
