@@ -436,8 +436,23 @@ export const messages = {
   job: {
     defaultMessage: 'Job'
   },
+  jobId: {
+    defaultMessage: 'Job ID'
+  },
   jobName: {
     defaultMessage: 'Name'
+  },
+  jobStart: {
+    defaultMessage: 'Start'
+  },
+  jobEnd: {
+    defaultMessage: 'End'
+  },
+  jobDuration: {
+    defaultMessage: 'Duration'
+  },
+  jobStatus: {
+    defaultMessage: 'Status'
   },
   jobAction: {
     defaultMessage: 'Action'

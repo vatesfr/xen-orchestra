@@ -210,8 +210,8 @@ export default class LogList extends Component {
 
   _deleteAllLogs = () => {
     return confirm({
-      title: 'Delete All Logs',
-      body: <p>Are you sure you want to delete all Job Logs ?</p>
+      title: _('removeAllLogsModalTitle'),
+      body: <p>{_('removeAllLogsModalWarning')}</p>
     }).then(() => deleteJobsLog(this.state.logsToClear))
   }
 
@@ -233,12 +233,12 @@ export default class LogList extends Component {
               <table className='table'>
                 <thead className='thead-default'>
                   <tr>
-                    <th>Job ID</th>
-                    <th>Job</th>
-                    <th>Start</th>
-                    <th>End</th>
-                    <th>Duration</th>
-                    <th>Status</th>
+                    <th>{_('jobId')}</th>
+                    <th>{_('job')}</th>
+                    <th>{_('jobStart')}</th>
+                    <th>{_('jobEnd')}</th>
+                    <th>{_('jobDuration')}</th>
+                    <th>{_('jobStatus')}</th>
                   </tr>
                 </thead>
                 {map(activePageLogs, log => <Log key={log.logKey} log={log} />)}
