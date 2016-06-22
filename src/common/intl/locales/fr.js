@@ -344,6 +344,8 @@ export default {
   newVmCpuWeightHalf: 'Moitié (1/2)',
   newVmCpuWeightNormal: 'Normal',
   newVmCpuWeightDouble: 'Double (x2)',
+  newVmCreateVms: 'Créer plusieurs VMs',
+  newVmCreateVmsConfirm: 'Etes-vous sûr de vouloir créer {nbVms} VMs ?',
 
   // ---- VM import ---
   importVmsList: 'Glissez des backups ici ou cliquez pour sélectionner des backups à envoyer. Accepte seulement les fichiers .xva.',

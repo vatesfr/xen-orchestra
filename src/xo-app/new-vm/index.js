@@ -142,6 +142,25 @@ export default class NewVm extends BaseComponent {
     })
   }
 
+  _updateNbVms = event => {
+    const nameLabels = []
+    for (let i = 1; i <= Math.max(Math.min(this.refs.nbVms.value, 100), 2); i++) {
+      nameLabels.push(`${this.state.state.name_label || 'VM'}_${i}`)
+    }
+    this._setState({ nameLabels })
+  }
+
+  _updateNameLabels = () => {
+    const nbVms = this.state.state.nameLabels.length
+    this._setState({ nameLabels: [] }, () => {
+      const nameLabels = []
+      for (let i = 1; i <= nbVms; i++) {
+        nameLabels.push(`${this.state.state.name_label || 'VM'}_${i}`)
+      }
+      this._setState({ nameLabels })
+    })
+  }
+
   _setState = (newValues, callback) => {
     this.setState({ state: {
       ...this.state.state,
@@ -165,9 +184,10 @@ export default class NewVm extends BaseComponent {
     const previousPool = this.state.state.pool
     this._replaceState({
       bootAfterCreate: true,
-      fastClone: true,
       cpuWeight: 1,
       existingDisks: {},
+      fastClone: true,
+      nameLabels: ['VM_1', 'VM_2'],
       pool: pool || previousPool,
       VDIs: [],
       VIFs: []
@@ -294,6 +314,7 @@ export default class NewVm extends BaseComponent {
       name_label,
       template,
       name_description: state.name_description === '' || !state.name_descriptionHasChanged ? template.name_description || '' : state.name_description,
+      nameLabels: [`${name_label}_1`, `${name_label}_2`],
       // performances
       memory: template.memory.size,
       CPUs: template.CPUs.number,
@@ -448,6 +469,7 @@ export default class NewVm extends BaseComponent {
   }
 
   _renderInfo = () => {
+    const { multipleVms, nameLabels } = this.state.state
     return <Section icon='new-vm-infos' title='newVmInfoPanel' done={this._isInfoDone()}>
       <SectionContent>
         <Item label='newVmTemplateLabel'>
@@ -466,6 +488,27 @@ export default class NewVm extends BaseComponent {
         <Item label='newVmDescriptionLabel'>
           <input ref='name_description' onChange={this._getOnChange('name_description')} className='form-control' type='text' />
         </Item>
+      </SectionContent>
+      <SectionContent column>
+        <LineItem>
+          <Item>
+            <Toggle ref='multipleVms' onChange={this._getOnChange('multipleVms')} />
+            <div className='input-group'>
+              <input type='number' min={2} max={100} ref='nbVms' className='form-control' defaultValue={2} />
+              <span className='input-group-btn'>
+                <Button bsStyle='secondary' onClick={this._updateNbVms}><Icon icon='arrow-right' /></Button>
+              </span>
+            </div>
+            <a style={{cursor: 'pointer'}} onClick={this._updateNameLabels}><Icon icon='refresh' /></a>
+          </Item>
+        </LineItem>
+        {multipleVms && <LineItem>
+          {map(nameLabels, (nameLabel, index) =>
+            <Item key={`nameLabel_${index}`}>
+              <input type='text' className='form-control' defaultValue={nameLabel} ref={`nameLabel_${index}`} />
+            </Item>
+          )}
+        </LineItem>}
       </SectionContent>
     </Section>
   }

@@ -595,6 +595,8 @@ var messages = {
   newVmCpuWeightNormal: 'Normal',
   newVmCpuWeightDouble: 'Double (x2)',
   newVmCloudConfig: 'Cloud config',
+  newVmCreateVms: 'Create VMs',
+  newVmCreateVmsConfirm: 'Are you sure you want to create {nbVms} VMs?',
 
   // ----- Self -----
   resourceSets: 'Resource sets',

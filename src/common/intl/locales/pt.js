@@ -1535,6 +1535,12 @@ export default {
   // Original text: "Cloud config"
   newVmCloudConfig: 'Configuração do Cloud',
 
+  // Origingal text: "Create VMs"
+  newVmCreateVms: undefined,
+
+  // Original text : "Are you sure you want to create {nbVms} VMs?"
+  newVmCreateVmsConfirm: undefined,
+
   // Original text: "Resource sets"
   resourceSets: 'Ajustes dos recursos',
 
