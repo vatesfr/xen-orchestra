@@ -1,3 +1,4 @@
+import _ from 'messages'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import find from 'lodash/find'
@@ -34,7 +35,7 @@ const parseDate = date => +moment(date, 'YYYYMMDDTHHmmssZ').format('x')
 const isEmptyRemote = remote => !remote.lastVmbackups || !size(remote.lastVmbackups)
 
 const backupOptionRenderer = backup => <span>
-    {backup.type === 'delta' && <span><span className='tag tag-info'>delta</span>{' '}</span>}
+    {backup.type === 'delta' && <span><span className='tag tag-info'>{_('delta')}</span>{' '}</span>}
     {backup.tag}
     {' '}
   <FormattedDate value={new Date(backup.date)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />
@@ -126,21 +127,21 @@ export default class Restore extends Component {
 
     return process.env.XOA_PLAN > 1
       ? <Container>
-        <h2>Restore Backups</h2>
-        {!remotes.length && <span>No remotes</span>}
+        <h2>{_('restoreBackups')}</h2>
+        {!remotes.length && <span>{_('noRemotes')}</span>}
         {map(remotes, (r, key) =>
           <div key={key}>
             <Link to='/settings/remotes'>{r.name}</Link>
             {' '}
-            {r.enabled && <span className='tag tag-success'>enabled</span>}
-            {r.error && <span className='tag tag-danger'>on error</span>}
+            {r.enabled && <span className='tag tag-success'>{_('remoteEnabled')}</span>}
+            {r.error && <span className='tag tag-danger'>{_('remoteError')}</span>}
             <span className='pull-right'>
               <ActionButton disabled={!r.enabled} icon='refresh' btnStyle='default' handler={this._list} handlerParam={r.id} />
             </span>
             {r.lastVmbackups && <div>
               <br />
               {isEmptyRemote(r)
-                ? <span>No backups available</span>
+                ? <span>{_('noBackup')}</span>
                 : <SortedTable collection={r.lastVmbackups} columns={BK_COLUMNS} />
               }
             </div>}
@@ -153,7 +154,8 @@ export default class Restore extends Component {
 }
 
 const openImportModal = backup => confirm({
-  title: `Import a ${backup.name} Backup`,
+  title: _('importBackupModalTitle', {name: backup.name}),
+  // title: `Import a ${backup.name} Backup`,
   body: <ImportModalBody vmName={backup.name} remoteId={backup.remoteId} />
 }).then(doImport)
 
@@ -274,9 +276,9 @@ class ImportModalBody extends Component {
     return <div>
       <SelectSr ref='sr' predicate={srWritablePredicate} />
       <br />
-      <SelectPlainObject ref='backup' options={this.state.options} optionKey='path' optionRenderer={backupOptionRenderer} placeholder='Select your backup' />
+      <SelectPlainObject ref='backup' options={this.state.options} optionKey='path' optionRenderer={backupOptionRenderer} placeholder={_('importBackupModalSelectBackup')} />
       <br />
-      <Toggle ref='start' /> Start VM after restore
+      <Toggle ref='start' /> {_('importBackupModalStart')}
     </div>
   }
 }

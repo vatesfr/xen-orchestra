@@ -335,13 +335,13 @@ export const messages = {
     defaultMessage: 'Select Host(s)…'
   },
   selectHostsVms: {
-    defaultMessage: 'Select object(s)...'
+    defaultMessage: 'Select object(s)…'
   },
   selectNetworks: {
     defaultMessage: 'Select Network(s)…'
   },
   selectPifs: {
-    defaultMessage: 'Select PIF(s)...'
+    defaultMessage: 'Select PIF(s)…'
   },
   selectPools: {
     defaultMessage: 'Select Pool(s)…'
@@ -1352,7 +1352,7 @@ export const messages = {
     defaultMessage: 'Select'
   },
   metricsLoading: {
-    defaultMessage: 'Loading...'
+    defaultMessage: 'Loading…'
   },
 
   // ----- Health -----
@@ -1626,6 +1626,26 @@ export const messages = {
     defaultMessage: 'Currently, there isn\'t any pending XenServer tasks'
   },
 
+  // ---- Backup views ---
+  delta: {
+    defaultMessage: 'delta'
+  },
+  restoreBackups: {
+    defaultMessage: 'Restore Backups'
+  },
+  noRemotes: {
+    defaultMessage: 'No remotes'
+  },
+  remoteEnabled: {
+    defaultMessage: 'enabled'
+  },
+  remoteError: {
+    defaultMessage: 'error'
+  },
+  noBackup: {
+    defaultMessage: 'No backups available'
+  },
+
   // ----- Modals -----
   startVmsModalTitle: {
     defaultMessage: 'Start VM{vms, plural, one {} other {s}}'
@@ -1692,6 +1712,15 @@ export const messages = {
   },
   migrateVmAdvancedModalNetwork: {
     defaultMessage: 'Network'
+  },
+  importBackupModalTitle: {
+    defaultMessage: 'Import a {name} Backup'
+  },
+  importBackupModalStart: {
+    defaultMessage: 'Start VM after restore'
+  },
+  importBackupModalSelectBackup: {
+    defaultMessage: 'Select your backup…'
   },
 
   // ----- Servers -----
@@ -1922,16 +1951,16 @@ localizedMessages.fr = {
   item: 'Objet',
   noSelectedValue: 'Pas de valeur sélectionnée',
   selectSubjects: 'Select. utilisateurs et/ou groupe(s)',
-  selectHosts: 'Selectionner Hôte(s)...',
-  selectNetworks: 'Selectionner Network(s)...',
-  selectPifs: 'Sélectionner PIF(s)...',
-  selectHostsVms: 'Selectionner objet(s)...',
-  selectPools: 'Selectionner Pool(s)...',
-  selectRemotes: 'Selectionner Remote(s)...',
-  selectSrs: 'Selectionner Stockages(s)...',
-  selectVms: 'Selectionner VM(s)...',
-  selectVmTemplates: 'Selectionner patrons de VM...',
-  selectTags: 'Selectionner tag(s)...',
+  selectHosts: 'Selectionner Hôte(s)…',
+  selectNetworks: 'Selectionner Network(s)…',
+  selectPifs: 'Sélectionner PIF(s)…',
+  selectHostsVms: 'Selectionner objet(s)…',
+  selectPools: 'Selectionner Pool(s)…',
+  selectRemotes: 'Selectionner Remote(s)…',
+  selectSrs: 'Selectionner Stockages(s)…',
+  selectVms: 'Selectionner VM(s)…',
+  selectVmTemplates: 'Selectionner patrons de VM…',
+  selectTags: 'Selectionner tag(s)…',
   selectVdis: 'Selectionner disque(s)…',
   fillRequiredInformations: 'Remplir les champs requis.',
   fillOptionalInformations: 'Remplir informations (optionnel)',
@@ -2149,7 +2178,7 @@ localizedMessages.fr = {
   statsDashboardGenericErrorMessage: 'Pas de stats disponibles pour :',
   noSelectedMetric: 'Pas de métrique sélectionnée',
   statsDashboardSelectObjects: 'Valider',
-  metricsLoading: 'Chargement...',
+  metricsLoading: 'Chargement…',
   // ----- Health -----
   orphanedVdis: 'Disques orphelins',
   orphanedVms: 'VM orphelines',
