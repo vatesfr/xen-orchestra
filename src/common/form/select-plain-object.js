@@ -16,7 +16,7 @@ import { propTypes } from 'utils'
   predicate: propTypes.func,
   required: propTypes.bool
 })
-export class SelectPlainObject extends Component {
+export default class SelectPlainObject extends Component {
   constructor (props) {
     super(props)
     this.state = {

@@ -6,8 +6,7 @@ import map from 'lodash/map'
 import React, { Component } from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
 import { error } from 'notification'
-import { SelectPlainObject } from '../helpers'
-import { Toggle } from 'form'
+import { SelectPlainObject, Toggle } from 'form'
 
 import {
   createSchedule,

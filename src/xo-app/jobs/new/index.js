@@ -11,7 +11,7 @@ import mapValues from 'lodash/mapValues'
 import React, { Component } from 'react'
 import size from 'lodash/size'
 import { error } from 'notification'
-import { SelectPlainObject } from '../helpers'
+import { SelectPlainObject } from 'form'
 
 import {
   apiMethods,
