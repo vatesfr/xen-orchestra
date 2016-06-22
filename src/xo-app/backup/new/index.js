@@ -331,7 +331,7 @@ export default class New extends Component {
                   {_('saveBackupJob')}
                 </ActionButton>
                 <button type='button' className='btn btn-lg btn-secondary' onClick={this._handleReset}>
-                  Reset
+                  {_('selectTableReset')}
                 </button>
               </fieldset>
             }
