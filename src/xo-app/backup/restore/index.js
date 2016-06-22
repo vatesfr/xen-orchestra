@@ -10,6 +10,7 @@ import React, { Component } from 'react'
 import reduce from 'lodash/reduce'
 import size from 'lodash/size'
 import SortedTable from 'sorted-table'
+import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
 import { confirm } from 'modal'
 import { connectStore } from 'utils'
@@ -186,10 +187,6 @@ const BK_COLUMNS = [
     sortCriteria: bk => bk.name
   },
   {
-    name: '',
-    itemRenderer: bk => <ActionRowButton icon='import' handler={openImportModal} handlerParam={bk} />
-  },
-  {
     name: 'Backup Tag',
     itemRenderer: bk => bk.tag,
     sortCriteria: bk => bk.tag
@@ -203,6 +200,10 @@ const BK_COLUMNS = [
     name: 'Backup Type',
     itemRenderer: bk => bk.type,
     sortCriteria: bk => bk.type
+  },
+  {
+    name: 'Action',
+    itemRenderer: bk => <Tooltip content='Restore VM'><ActionRowButton icon='menu-backup-restore' btnStyle='success' handler={openImportModal} handlerParam={bk} /></Tooltip>
   }
 ]
 
