@@ -18,7 +18,7 @@ import _ from '../messages'
 import logError from '../log-error'
 import { confirm } from '../modal'
 import { error, info } from '../notification'
-import { invoke, noop, tap } from '../utils'
+import { invoke, noop, rethrow, tap } from '../utils'
 import {
   connected,
   disconnected,
@@ -66,7 +66,7 @@ const call = (method, params) => {
   let promise = xo.call(method, params)
 
   if (process.env.NODE_ENV !== 'production') {
-    promise = promise.catch(error => {
+    promise = promise::rethrow(error => {
       console.error('XO error', {
         method,
         params,
@@ -74,8 +74,6 @@ const call = (method, params) => {
         message: error.message,
         data: error.data
       })
-
-      throw error
     })
   }
 
@@ -830,25 +828,21 @@ export const deleteSchedule = async schedule => {
 
 // Plugins -----------------------------------------------------------
 
-export const loadPlugin = async id => {
-  try {
-    await call('plugin.load', { id })
-
+export const loadPlugin = async id => (
+  call('plugin.load', { id })::tap(
     subscribePlugins.forceRefresh()
-  } catch (error) {
-    info(_('pluginError'), JSON.stringify(error.data) || _('unknownPluginError'))
-  }
-}
+  )::rethrow(
+    err => error(_('pluginError'), JSON.stringify(err.data) || _('unknownPluginError'))
+  )
+)
 
-export const unloadPlugin = async id => {
-  try {
-    await call('plugin.unload', { id })
-
+export const unloadPlugin = id => (
+  call('plugin.unload', { id })::tap(
     subscribePlugins.forceRefresh()
-  } catch (error) {
-    info(_('pluginError'), JSON.stringify(error.data) || _('unknownPluginError'))
-  }
-}
+  )::rethrow(
+    err => error(_('pluginError'), JSON.stringify(err.data) || _('unknownPluginError'))
+  )
+)
 
 export const enablePluginAutoload = id => (
   call('plugin.enableAutoload', { id })::tap(
@@ -862,16 +856,15 @@ export const disablePluginAutoload = id => (
   )
 )
 
-export const configurePlugin = async (id, configuration) => {
-  try {
-    await call('plugin.configure', { id, configuration })
-    info(_('pluginConfigurationSuccess'), _('pluginConfigurationChanges'))
-
-    subscribePlugins.forceRefresh()
-  } catch (error) {
-    info(_('pluginError'), JSON.stringify(error.data) || _('unknownPluginError'))
-    throw error
-  }
+export const configurePlugin = (id, configuration) => {
+  call('plugin.configure', { id, configuration })::tap(
+    () => {
+      info(_('pluginConfigurationSuccess'), _('pluginConfigurationChanges'))
+      subscribePlugins.forceRefresh()
+    }
+  )::rethrow(
+    err => error(_('pluginError'), JSON.stringify(err.data) || _('unknownPluginError'))
+  )
 }
 
 export const purgePluginConfiguration = async id => {
@@ -1025,20 +1018,33 @@ export const deleteJobsLog = id => (
 export const addAcl = ({subject, object, action}) => (
   call('acl.add', resolveIds({subject, object, action}))::tap(
     subscribeAcls.forceRefresh
+  )::rethrow(
+    err => error('Add ACL', err.message || String(err))
   )
-).catch(err => error('Add ACL', err.message || String(err)))
+)
 
 export const removeAcl = ({subject, object, action}) => (
   call('acl.remove', resolveIds({subject, object, action}))::tap(
     subscribeAcls.forceRefresh
-  ).catch(err => error('Remove ACL', err.message || String(err)))
+  )::rethrow(
+    err => error('Remove ACL', err.message || String(err))
+  )
 )
 
-export const editAcl = ({subject, object, action}, {subject: newSubject = subject, object: newObject = object, action: newAction = action}) => (
+export const editAcl = (
+  {subject, object, action},
+  {
+    subject: newSubject = subject,
+    object: newObject = object,
+    action: newAction = action
+  }
+) => (
   call('acl.remove', resolveIds({subject, object, action}))
     .then(() => call('acl.add', resolveIds({subject: newSubject, object: newObject, action: newAction})))::tap(
-    subscribeAcls.forceRefresh
-  ).catch(err => error('Edit ACL', err.message || String(err)))
+      subscribeAcls.forceRefresh
+    )::rethrow(
+    err => error('Edit ACL', err.message || String(err))
+  )
 )
 
 export const createGroup = name => (

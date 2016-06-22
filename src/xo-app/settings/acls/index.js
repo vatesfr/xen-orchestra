@@ -31,13 +31,6 @@ import {
   subscribeUsers
 } from 'xo'
 
-const handleRoleChange = (role, {subject, object, action}) => {
-  if (!role) {
-    return
-  }
-  return editAcl({subject, object, action}, {action: role})
-}
-
 const ACL_COLUMS = [
   {
     name: _('subjectName'),
@@ -51,7 +44,7 @@ const ACL_COLUMS = [
   },
   {
     name: _('roleName'),
-    itemRenderer: acl => <SelectRole clearable={false} onChange={role => handleRoleChange(role, acl)} placeholder='Change Role' value={acl.action} />,
+    itemRenderer: acl => <SelectRole clearable={false} onChange={action => action && editAcl(acl, { action })} placeholder='Change Role' value={acl.action} />,
     sortCriteria: acl => (acl.action.name || '').toLowerCase()
   },
   {
@@ -139,27 +132,27 @@ export default class Acls extends Component {
   }
 
   _handleSelectObjects = objects => this.setState({objects})
-  _handleSelectRole = role => this.setState({role})
+  _handleSelectRole = action => this.setState({action})
   _handleSelectSubject = subjects => this.setState({subjects})
 
   _addAcl = async () => {
     const {
       subjects,
       objects,
-      role
+      action
     } = this.state
     try {
       const promises = []
       forEach(subjects, subject => {
         forEach(objects, object => {
-          promises.push(addAcl({subject, object, action: role}))
+          promises.push(addAcl({subject, object, action}))
         })
       })
       await Promise.all(promises)
-      const { subject, object, action } = this.refs
-      subject.value = []
-      object.value = []
-      action.value = ''
+      const { selectSubject, selectObject, selectAction } = this.refs
+      selectSubject.value = []
+      selectObject.value = []
+      selectAction.value = ''
     } catch (err) {
       error('Add ACL(s)', err.message || String(err))
     }
@@ -168,7 +161,7 @@ export default class Acls extends Component {
   render () {
     const {
       objects,
-      role,
+      action,
       subjects
     } = this.state
 
@@ -176,15 +169,15 @@ export default class Acls extends Component {
       ? <Container>
         <form>
           <div className='form-group'>
-            <SelectSubject ref='subject' multi onChange={this._handleSelectSubject} />
+            <SelectSubject ref='selectSubject' multi onChange={this._handleSelectSubject} />
           </div>
           <div className='form-group'>
-            <SelectHighLevelObjects ref='object' multi onChange={this._handleSelectObjects} />
+            <SelectHighLevelObjects ref='selectObject' multi onChange={this._handleSelectObjects} />
           </div>
           <div className='form-group'>
-            <SelectRole ref='action' onChange={this._handleSelectRole} />
+            <SelectRole ref='selectAction' onChange={this._handleSelectRole} />
           </div>
-          <ActionButton icon='add' btnStyle='success' handler={this._addAcl} disabled={isEmpty(subjects) || !role || isEmpty(objects)}>Create</ActionButton>
+          <ActionButton icon='add' btnStyle='success' handler={this._addAcl} disabled={isEmpty(subjects) || isEmpty(objects) || !action}>Create</ActionButton>
         </form>
         <br />
         <AclTable />

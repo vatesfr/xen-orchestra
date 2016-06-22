@@ -465,6 +465,12 @@ export function tap (cb) {
   )
 }
 
+export function rethrow (cb) {
+  return this.catch(error =>
+    Promise.resolve(cb(error)).then(() => { throw error })
+  )
+}
+
 // -------------------------------------------------------------------
 
 // If param is an event: returns the value associated to it
