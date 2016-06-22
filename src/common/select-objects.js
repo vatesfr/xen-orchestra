@@ -48,6 +48,7 @@ const getLabel = object =>
 
 @propTypes({
   autoFocus: propTypes.bool,
+  clearable: propTypes.bool,
   defaultValue: propTypes.any,
   disabled: propTypes.bool,
   multi: propTypes.bool,
@@ -217,6 +218,7 @@ export class GenericSelect extends Component {
     return (
       <Select
         autofocus={props.autoFocus}
+        clearable={props.clearable}
         disabled={props.disabled}
         multi={props.multi}
         onChange={this._handleChange}
@@ -546,7 +548,6 @@ export const SelectSubject = makeSubscriptionSelect(subscriber => {
 export const SelectRole = makeSubscriptionSelect(subscriber => {
   const unsubscribeRoles = subscribeRoles(roles => {
     const xoObjects = map(sortBy(roles, 'name'), role => ({...role, type: 'role'}))
-    console.log('ROLES', xoObjects)
     subscriber({xoObjects})
   })
   return unsubscribeRoles

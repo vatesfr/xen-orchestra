@@ -542,6 +542,17 @@ export const messages = {
     defaultMessage: 'Create'
   },
 
+  // ----- Acls ------
+  subjectName: {
+    defaultMessage: 'Users/Groups'
+  },
+  objectName: {
+    defaultMessage: 'Object'
+  },
+  roleName: {
+    defaultMessage: 'Role'
+  },
+
   // ----- Plugins ------
   autoloadPlugin: {
     defaultMessage: 'Auto-load at server start'

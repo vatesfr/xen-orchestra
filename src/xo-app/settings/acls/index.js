@@ -1,39 +1,126 @@
+import _ from 'messages'
 import ActionButton from 'action-button'
+import ActionRowButton from 'action-row-button'
+import Component from 'base-component'
 import forEach from 'lodash/forEach'
 import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
-import orderBy from 'lodash/orderBy'
+import pickBy from 'lodash/pickBy'
+import React from 'react'
+import renderXoItem, { renderXoItemFromId } from 'render-xo-item'
+import SortedTable from 'sorted-table'
 import Upgrade from 'xoa-upgrade'
-import React, { Component } from 'react'
-import { addSubscriptions } from 'utils'
+import { connectStore } from 'utils'
 import { Container } from 'grid'
 import { error } from 'notification'
-import { renderXoItemFromId } from 'render-xo-item'
 import { SelectHighLevelObjects, SelectRole, SelectSubject } from 'select-objects'
+
+import {
+  createGetObjectsOfType,
+  createSelector
+} from 'selectors'
+
 import {
   addAcl,
+  editAcl,
   removeAcl,
   subscribeAcls,
   subscribeGroups,
+  subscribeRoles,
   subscribeUsers
 } from 'xo'
 
-@addSubscriptions({
-  groups: cb => subscribeGroups(groups => cb(keyBy(groups, 'id'))),
-  users: cb => subscribeUsers(users => cb(keyBy(users, 'id')))
-})
-class SubjectDisplay extends Component {
-  render () {
-    const { id, groups, users } = this.props
+const ACL_COLUMS = [
+  {
+    name: _('subjectName'),
+    itemRenderer: acl => acl.subject.id ? renderXoItem(acl.subject) : renderXoItemFromId(acl.subject),
+    sortCriteria: acl => (acl.subject.name || acl.subject.email || '').toLowerCase()
+  },
+  {
+    name: _('objectName'),
+    itemRenderer: acl => acl.object.id ? renderXoItem(acl.object) : renderXoItemFromId(acl.object),
+    sortCriteria: acl => (acl.object.name || acl.object.name_label || '').toLowerCase()
+  },
+  {
+    name: _('roleName'),
+    itemRenderer: acl => <SelectRole clearable={false} onChange={action => action && editAcl(acl, { action })} placeholder='Change Role' value={acl.action} />,
+    sortCriteria: acl => (acl.action.name || '').toLowerCase()
+  },
+  {
+    name: '',
+    itemRenderer: acl => <ActionRowButton icon='delete' btnStyle='danger' handler={removeAcl} handlerParam={acl} />
+  }
+]
 
-    return <span>{(users && users[id] && users[id].email) || (groups && groups[id] && groups[id].name)}</span>
+@connectStore(() => {
+  const getHighLevelObjects = createSelector(
+    createGetObjectsOfType('host'),
+    createGetObjectsOfType('network'),
+    createGetObjectsOfType('pool'),
+    createGetObjectsOfType('SR'),
+    createGetObjectsOfType('VM'),
+    (hosts, networks, pools, srs, vms) => ({
+      ...keyBy(hosts, 'id'),
+      ...keyBy(networks, 'id'),
+      ...keyBy(pools, 'id'),
+      ...keyBy(srs, 'id'),
+      ...keyBy(vms, 'id')
+    })
+  )
+  return {xoObjects: getHighLevelObjects}
+})
+class AclTable extends Component {
+  componentWillMount () {
+    let subjects = {}
+    const refresh = (newSubjects = undefined) => {
+      newSubjects && (subjects = newSubjects)
+      const { xoObjects } = this.props
+      const { acls, roles } = this.state
+      const resolvedAcls = map(acls, ({subject, object, action}) => ({
+        subject: subjects[subject] || subject,
+        object: xoObjects[object] || object,
+        action: roles[action] || action
+      }))
+      this.setState({
+        resolvedAcls
+      })
+    }
+
+    const unsubscribeAcls = subscribeAcls(acls => this.setState({acls}, refresh))
+    const unsubscribeRoles = subscribeRoles(roles => this.setState({roles: keyBy(roles, 'id')}, refresh))
+    const unsubscribeGroups = subscribeGroups(groups => {
+      groups = keyBy(groups, 'id')
+      refresh({
+        ...pickBy(subjects, subject => subject.type === 'user'),
+        ...groups
+      })
+    })
+    const unsubscribeUsers = subscribeUsers(users => {
+      users = keyBy(users, 'id')
+      refresh({
+        ...pickBy(subjects, subject => subject.type === 'group'),
+        ...users
+      })
+    })
+
+    this.componentWillUnmount = () => {
+      unsubscribeAcls()
+      unsubscribeGroups()
+      unsubscribeRoles()
+      unsubscribeUsers()
+    }
+  }
+
+  render () {
+    const { resolvedAcls = [] } = this.state
+
+    return isEmpty(resolvedAcls)
+      ? <p><em>No acls found</em></p>
+      : <SortedTable collection={resolvedAcls} columns={ACL_COLUMS} />
   }
 }
 
-@addSubscriptions({
-  acls: cb => subscribeAcls(acls => cb(orderBy(acls, ['subject', 'object'])))
-})
 export default class Acls extends Component {
   constructor (props) {
     super(props)
@@ -45,33 +132,36 @@ export default class Acls extends Component {
   }
 
   _handleSelectObjects = objects => this.setState({objects})
-  _handleSelectRole = role => this.setState({role})
+  _handleSelectRole = action => this.setState({action})
   _handleSelectSubject = subjects => this.setState({subjects})
-
-  _handleRoleChange = (role, subject, object, action) => removeAcl({subject, object, action}).then(() => addAcl({subject, object, action: role.id}))
 
   _addAcl = async () => {
     const {
       subjects,
       objects,
-      role
+      action
     } = this.state
     try {
       const promises = []
-      forEach(subjects, subject => promises.push(...map(objects, object => addAcl({subject: subject.id, object: object.id, action: role.id}))))
+      forEach(subjects, subject => {
+        forEach(objects, object => {
+          promises.push(addAcl({subject, object, action}))
+        })
+      })
       await Promise.all(promises)
+      const { selectSubject, selectObject, selectAction } = this.refs
+      selectSubject.value = []
+      selectObject.value = []
+      selectAction.value = ''
     } catch (err) {
       error('Add ACL(s)', err.message || String(err))
     }
   }
 
-  _removeAcl = async ({subject, object, action}) => removeAcl({subject, object, action}).catch(err => error('Remove ACL', err.message || String(err)))
-
   render () {
-    const { acls } = this.props
     const {
       objects,
-      role,
+      action,
       subjects
     } = this.state
 
@@ -79,42 +169,18 @@ export default class Acls extends Component {
       ? <Container>
         <form>
           <div className='form-group'>
-            <SelectSubject multi onChange={this._handleSelectSubject} />
+            <SelectSubject ref='selectSubject' multi onChange={this._handleSelectSubject} />
           </div>
           <div className='form-group'>
-            <SelectHighLevelObjects multi onChange={this._handleSelectObjects} />
+            <SelectHighLevelObjects ref='selectObject' multi onChange={this._handleSelectObjects} />
           </div>
           <div className='form-group'>
-            <SelectRole onChange={this._handleSelectRole} />
+            <SelectRole ref='selectAction' onChange={this._handleSelectRole} />
           </div>
-          <ActionButton icon='add' btnStyle='success' handler={this._addAcl} disabled={isEmpty(subjects) || !role || isEmpty(objects)}>Create</ActionButton>
+          <ActionButton icon='add' btnStyle='success' handler={this._addAcl} disabled={isEmpty(subjects) || isEmpty(objects) || !action}>Create</ActionButton>
         </form>
         <br />
-        <table className='table'>
-          <thead>
-            <tr>
-              <th>User/Group</th>
-              <th>Object</th>
-              <th>Role</th>
-              <th></th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {isEmpty(acls) &&
-              <tr><td><em>No Acls found</em></td></tr>
-            }
-            {map(acls, (acl, index) =>
-              <tr key={index}>
-                <td><SubjectDisplay id={acl.subject} /></td>
-                <td>{renderXoItemFromId(acl.object)}</td>
-                <td>{acl.action}</td>
-                <td><SelectRole onChange={role => this._handleRoleChange(role, acl.subject, acl.object, acl.action)} placeholder='Change Role' /></td>
-                <td><ActionButton icon='delete' btnStyle='danger' handler={this._removeAcl} handlerParam={{subject: acl.subject, object: acl.object, action: acl.action}} /></td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+        <AclTable />
       </Container>
     : <Container><Upgrade place='dashboard' available={3} /></Container>
   }
