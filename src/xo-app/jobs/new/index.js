@@ -1,3 +1,4 @@
+import _ from 'messages'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import delay from 'lodash/delay'
@@ -321,8 +322,8 @@ export default class Jobs extends Component {
       <table className='table'>
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Action</th>
+            <th>{_('jobName')}</th>
+            <th>{_('jobAction')}</th>
             <th></th>
             <th></th>
           </tr>

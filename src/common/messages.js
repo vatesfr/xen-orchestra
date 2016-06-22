@@ -436,6 +436,12 @@ export const messages = {
   job: {
     defaultMessage: 'Job'
   },
+  jobName: {
+    defaultMessage: 'Name'
+  },
+  jobAction: {
+    defaultMessage: 'Action'
+  },
   jobTag: {
     defaultMessage: 'Tag'
   },
@@ -466,8 +472,17 @@ export const messages = {
   deleteBackupScheduleQuestion: {
     defaultMessage: 'Are you sure you want to delete this backup job?'
   },
+  scheduleEnableAfterCreation: {
+    defaultMessage: 'Enable immediately after creation'
+  },
+  scheduleEditMessage: {
+    defaultMessage: 'You are editing Schedule {name} ({id}). Saving will override previous schedule state.'
+  },
   noScheduledJobs: {
     defaultMessage: 'No scheduled jobs.'
+  },
+  noSchedules: {
+    defaultMessage: 'No schedules found'
   },
 
   // ------ New backup -----

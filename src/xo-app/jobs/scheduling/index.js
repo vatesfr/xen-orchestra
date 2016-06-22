@@ -1,3 +1,4 @@
+import _ from 'messages'
 import ActionButton from 'action-button'
 import find from 'lodash/find'
 import Icon from 'icon'
@@ -145,7 +146,7 @@ export default class Schedules extends Component {
         </div>
         {!schedule &&
           <div className='form-group'>
-            <label>Enable immediately after creation</label>
+            <label>{_('scheduleEnableAfterCreation')}</label>
             {' '}
             <Toggle ref='enabled' />
           </div>
@@ -157,22 +158,22 @@ export default class Schedules extends Component {
       </fieldset>
       <br />
       <div className='form-group'>
-        {schedule && <p className='text-warning'>You are editing Schedule {schedule.name}({schedule.id}). Saving will override previous schedule state.</p>}
-        <ActionButton form='newScheduleForm' handler={this._handleSubmit} icon='save' btnStyle='primary'>Save</ActionButton>
+        {schedule && <p className='text-warning'>{_('scheduleEditMessage', {name: schedule.name, id: schedule.id})}</p>}
+        <ActionButton form='newScheduleForm' handler={this._handleSubmit} icon='save' btnStyle='primary'>{_('saveBackupJob')}</ActionButton>
         {' '}
-        <button type='button' className='btn btn-default' onClick={this._reset}>Reset</button>
+        <button type='button' className='btn btn-default' onClick={this._reset}>{_('selectTableReset')}</button>
       </div>
       <table className='table'>
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Job</th>
-            <th>Scheduling</th>
+            <th>{_('jobName')}</th>
+            <th>{_('job')}</th>
+            <th>{_('jobScheduling')}</th>
             <th></th>
           </tr>
         </thead>
         <tbody>
-          {isEmpty(schedules) && <tr><td><em>No schedules found</em></td></tr>}
+          {isEmpty(schedules) && <tr><td><em>{_('noSchedules')}</em></td></tr>}
           {map(schedules, schedule => <tr key={schedule.id}>
             <td>
               <span>{schedule.name} <span className='text-muted'>({schedule.id})</span></span>
