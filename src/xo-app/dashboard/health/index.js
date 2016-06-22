@@ -202,10 +202,10 @@ const ALARM_COLUMNS = [
 export default class Health extends Component {
   _deleteOrphanedVdis = () => (
     confirm({
-      title: 'Remove all orphaned VDIs',
+      title: _('removeAllOrphanedObject'),
       body: <div>
-        <p>Are you sure you want to remove all orphaned VDIs?</p>
-        <p>This operation is definitive.</p>
+        <p>{_('removeAllOrphanedModalWarning')}</p>
+        <p>{_('definitiveMessageModal')}</p>
       </div>
     }).then(
       () => map(this.props.vdiOrphaned, deleteVdi),
@@ -214,10 +214,10 @@ export default class Health extends Component {
   )
   _deleteAllLogs = () => (
     confirm({
-      title: 'Remove all logs',
+      title: _('removeAllLogsModalTitle'),
       body: <div>
-        <p>Are you sure you want to remove all logs?</p>
-        <p>This operation is definitive.</p>
+        <p>{_('removeAllLogsModalWarning')}</p>
+        <p>{_('definitiveMessageModal')}</p>
       </div>
     }).then(
       () => map(this.props.alertMessages, deleteMessage),

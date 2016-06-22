@@ -1355,6 +1355,11 @@ export const messages = {
     defaultMessage: 'Loading…'
   },
 
+  // ----- Visualizations -----
+  comingSoon: {
+    defaultMessage: 'Coming soon!'
+  },
+
   // ----- Health -----
   orphanedVdis: {
     defaultMessage: 'Orphaned VDIs'
@@ -1721,6 +1726,18 @@ export const messages = {
   },
   importBackupModalSelectBackup: {
     defaultMessage: 'Select your backup…'
+  },
+  removeAllOrphanedModalWarning: {
+    defaultMessage: 'Are you sure you want to remove all orphaned VDIs?'
+  },
+  removeAllLogsModalTitle: {
+    defaultMessage: 'Remove all logs'
+  },
+  removeAllLogsModalWarning: {
+    defaultMessage: 'Are you sure you want to remove all logs?'
+  },
+  definitiveMessageModal: {
+    defaultMessage: 'This operation is definitive.'
   },
 
   // ----- Servers -----
