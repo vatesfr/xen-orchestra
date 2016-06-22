@@ -11,6 +11,7 @@ import find from 'lodash/find'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import isArray from 'lodash/isArray'
+import isObject from 'lodash/isObject'
 import map from 'lodash/map'
 import React from 'react'
 import size from 'lodash/size'
@@ -112,6 +113,33 @@ export default class NewVm extends BaseComponent {
       return
     }
     this.refs[ref].value = value
+  }
+
+  _setInterfacesInputValues () {
+    const { VIFs } = this.state.state
+    const { refs } = this
+    forEach(VIFs, vif => {
+      refs[`mac_${vif.id}`].value = vif.mac
+      refs[`network_${vif.id}`].value = vif.network
+    })
+  }
+
+  _setDisksInputValues () {
+    const { existingDisks, VDIs } = this.state.state
+    const { refs } = this
+    forEach(toArray(existingDisks), (disk, index) => {
+      refs[`sr_${index}`].value = disk.$SR
+      refs[`name_label_${index}`].value = disk.name_label
+      refs[`name_description_${index}`].value = disk.name_description
+      refs[`size_${index}`].value = disk.size
+    })
+    forEach(VDIs, vdi => {
+      refs[`sr_${vdi.device}`].value = vdi.SR
+      refs[`bootable_${vdi.device}`].value = vdi.bootable
+      refs[`name_label_${vdi.device}`].value = vdi.name_label
+      refs[`name_description_${vdi.device}`].value = vdi.name_description
+      refs[`size_${vdi.device}`].value = vdi.size
+    })
   }
 
   _setState = (newValues, callback) => {
@@ -223,7 +251,6 @@ export default class NewVm extends BaseComponent {
   )
 
   _initTemplate = template => {
-    console.log('template', template)
     if (!template) {
       return this._reset()
     }
@@ -288,7 +315,9 @@ export default class NewVm extends BaseComponent {
         }
       })
     }, () => forEach(this.state.state, (element, key) => {
-      !isArray(element) && this._setInputValue(key, element)
+      !isArray(element) && !isObject(element) && this._setInputValue(key, element)
+      this._setInterfacesInputValues()
+      this._setDisksInputValues()
     }))
 
     getCloudInitConfig(template.id).then(cloudConfig => {
@@ -583,9 +612,10 @@ export default class NewVm extends BaseComponent {
 
   _renderInterfaces = () => {
     const { formatMessage } = this.props.intl
+    const { VIFs } = this.state.state
     return <Section icon='new-vm-interfaces' title='newVmInterfacesPanel' done={this._isInterfacesDone()}>
       <SectionContent column>
-        {map(this.state.state.VIFs, (vif, index) => <div key={index}>
+        {map(VIFs, (vif, index) => <div key={index}>
           <LineItem>
             <Item label='newVmMacLabel'>
               <input ref={`mac_${vif.id}`} onChange={this._getOnChangeObject('VIFs', index, 'mac')} defaultValue={vif.mac} placeholder={formatMessage(messages.newVmMacPlaceholder)} className='form-control' type='text' />
@@ -596,7 +626,7 @@ export default class NewVm extends BaseComponent {
                   defaultValue={vif.network}
                   onChange={this._getOnChangeObject('VIFs', index, 'network', 'id')}
                   predicate={this._getIsInPool()}
-                  ref='network'
+                  ref={`network_${vif.id}`}
                 />
               </span>
             </Item>
@@ -606,7 +636,7 @@ export default class NewVm extends BaseComponent {
               </Button>
             </Item>
           </LineItem>
-          {index < this.state.state.VIFs.length - 1 && <hr />}
+          {index < VIFs.length - 1 && <hr />}
         </div>
         )}
         <Item>
@@ -624,11 +654,12 @@ export default class NewVm extends BaseComponent {
   )
 
   _renderDisks = () => {
+    const { configDrive, existingDisks, VDIs } = this.state.state
     return <Section icon='new-vm-disks' title='newVmDisksPanel' done={this._isDisksDone()}>
       <SectionContent column>
 
         {/* Existing disks */}
-        {map(toArray(this.state.state.existingDisks), (disk, index) => <div key={index}>
+        {map(toArray(existingDisks), (disk, index) => <div key={index}>
           <LineItem>
             <Item label='newVmSrLabel'>
               <span className={styles.inlineSelect}>
@@ -664,17 +695,16 @@ export default class NewVm extends BaseComponent {
                 className={styles.sizeInput}
                 defaultValue={disk.size}
                 onChange={this._getOnChangeObject('existingDisks', index, 'size')}
-                readOnly={!this.state.state.configDrive}
+                readOnly={!configDrive}
                 ref={`size_${index}`}
               />
             </Item>
           </LineItem>
-          {index < size(this.state.state.existingDisks) + this.state.state.VDIs.length - 1 && <hr />}
-        </div>
-        )}
+          {index < size(existingDisks) + VDIs.length - 1 && <hr />}
+        </div>)}
 
         {/* VDIs */}
-        {map(this.state.state.VDIs, (vdi, index) => <div key={vdi.device}>
+        {map(VDIs, (vdi, index) => <div key={vdi.device}>
           <LineItem>
             <Item label='newVmSrLabel'>
               <span className={styles.inlineSelect}>
@@ -731,9 +761,8 @@ export default class NewVm extends BaseComponent {
               </Button>
             </Item>
           </LineItem>
-          {index < this.state.state.VDIs.length - 1 && <hr />}
-        </div>
-      )}
+          {index < VDIs.length - 1 && <hr />}
+        </div>)}
         <Item>
           <Button onClick={this._addVdi} bsStyle='secondary'>
             <Icon icon='new-vm-add' />
