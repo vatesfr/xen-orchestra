@@ -6,7 +6,8 @@ import debounce from 'lodash/debounce'
 import map from 'lodash/map'
 import { Pagination } from 'react-bootstrap-4/lib'
 import { Portal } from 'react-overlays'
-import { Container, Row, Col } from 'grid'
+import SingleLineRow from 'single-line-row'
+import { Container, Col } from 'grid'
 import { create as createMatcher } from 'complex-matcher'
 import { propTypes } from 'utils'
 
@@ -207,7 +208,6 @@ export default class SortedTable extends Component {
 
     const paginationInstance = (
       <Pagination
-        className={styles.pagination}
         first
         last
         prev
@@ -254,7 +254,7 @@ export default class SortedTable extends Component {
           </tbody>
         </table>
         <Container>
-          <Row>
+          <SingleLineRow>
             <Col mediumSize={8}>
               {paginationContainer
                 ? (
@@ -273,7 +273,7 @@ export default class SortedTable extends Component {
                 ) : filterInstance
               }
             </Col>
-          </Row>
+          </SingleLineRow>
         </Container>
       </div>
     )
