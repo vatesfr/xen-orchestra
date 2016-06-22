@@ -342,7 +342,7 @@ export default class Home extends Component {
         <Col mediumSize={3} className='text-xs-right'>
           <Link
             className='btn btn-success'
-            to='/new/vm'>
+            to='/vms/new'>
             <Icon icon='vm-new' /> {_('homeNewVm')}
           </Link>
         </Col>
@@ -398,7 +398,7 @@ export default class Home extends Component {
           <CardBlock>
             <Row>
               <Col>
-                <Link to='/new/vm'>
+                <Link to='/vms/new'>
                   <Icon icon='vm' size={4} />
                   <h4>{_('homeNewVm')}</h4>
                 </Link>
