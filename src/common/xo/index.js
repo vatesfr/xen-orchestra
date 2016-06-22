@@ -1040,11 +1040,9 @@ export const editAcl = (
   }
 ) => (
   call('acl.remove', resolveIds({subject, object, action}))
-    .then(() => call('acl.add', resolveIds({subject: newSubject, object: newObject, action: newAction})))::tap(
-      subscribeAcls.forceRefresh
-    )::rethrow(
-    err => error('Edit ACL', err.message || String(err))
-  )
+    .then(() => call('acl.add', resolveIds({subject: newSubject, object: newObject, action: newAction})))
+    ::tap(subscribeAcls.forceRefresh)
+    ::rethrow(err => error('Edit ACL', err.message || String(err)))
 )
 
 export const createGroup = name => (
