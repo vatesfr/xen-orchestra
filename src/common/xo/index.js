@@ -62,8 +62,10 @@ const xo = invoke(() => {
   return xo
 })
 
+const _signIn = new Promise(resolve => xo.once('authenticated', resolve))
+
 const call = (method, params) => {
-  let promise = xo.call(method, params)
+  let promise = _signIn.then(() => xo.call(method, params))
 
   if (process.env.NODE_ENV !== 'production') {
     promise = promise::rethrow(error => {
@@ -118,8 +120,6 @@ export const resolveUrl = invoke(
 )
 
 // -------------------------------------------------------------------
-
-const _signIn = new Promise(resolve => xo.once('authenticated', resolve))
 
 const createSubscription = cb => {
   const delay = 5e3
@@ -230,9 +230,9 @@ export const subscribeRoles = createSubscription(invoke(
 
 // System ============================================================
 
-export const apiMethods = _signIn.then(() => call('system.getMethodsInfo'))
+export const apiMethods = call('system.getMethodsInfo')
 
-export const serverVersion = _signIn.then(() => call('system.getServerVersion'))
+export const serverVersion = call('system.getServerVersion')
 
 // ===================================================================
 
