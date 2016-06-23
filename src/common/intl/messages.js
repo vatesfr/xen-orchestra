@@ -480,8 +480,10 @@ var messages = {
   defaultCpuWeight: 'Default',
   pvArgsLabel: 'PV args',
   xenToolsStatus: 'Xen tools status',
-  xenToolsStatusValue: '{status}',
-    description: 'status can be `not-installed`, `unknown`, `out-of-date` & `up-to-date`',
+  xenToolsStatusValue: {
+    defaultMessage: '{status}',
+    description: 'status can be `not-installed`, `unknown`, `out-of-date` & `up-to-date`'
+  },
   osName: 'OS name',
   osKernel: 'OS kernel',
   autoPowerOn: 'Auto power on',
