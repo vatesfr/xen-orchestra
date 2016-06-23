@@ -88,14 +88,13 @@ export default class Users extends Component {
         </div>
         {' '}
         <div className='form-group'>
-          <select
-            className='form-control'
-            defaultValue={permissions.user}
+          <Select
+            clearable={false}
             ref='permission'
+            options={map(permissions)}
+            placeholder={intl.formatMessage(messages.selectPermission)}
             required
-          >
-            {map(permissions, (p, k) => <option key={k} value={p.value}>{p.label}</option>)}
-          </select>
+          />
         </div>
         {' '}
         <div className='form-group'>

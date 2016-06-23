@@ -669,6 +669,9 @@ export const messages = {
   countUsers: {
     defaultMessage: '{users} user{users, plural, one {} other {s}}'
   },
+  selectPermission: {
+    defaultMessage: 'Select Permission'
+  },
 
   // ----- Plugins ------
   autoloadPlugin: {
