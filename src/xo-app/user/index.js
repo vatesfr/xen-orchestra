@@ -20,6 +20,8 @@ export default class User extends Component {
       <select className='form-control' onChange={this.handleSelectLang} defaultValue={'en'} style={{width: '10em'}}>
         <option value='en'>English</option>
         <option value='fr'>Français</option>
+        <option value='he'>עברי</option>
+        <option value='pt'>Português</option>
       </select>
     </div>
   }
