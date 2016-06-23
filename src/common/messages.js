@@ -1858,7 +1858,7 @@ export const messages = {
     defaultMessage: 'Xen Orchestra'
   },
   xenOrchestraServer: {
-    defaultMessage: 'Xen Orchestra'
+    defaultMessage: 'server'
   },
   xenOrchestraWeb: {
     defaultMessage: 'web client'

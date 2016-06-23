@@ -9,8 +9,9 @@ import includes from 'lodash/includes'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
-import React, { Component } from 'react'
 import size from 'lodash/size'
+import Upgrade from 'xoa-upgrade'
+import React, { Component } from 'react'
 import { error } from 'notification'
 import { SelectPlainObject } from 'form'
 
@@ -313,9 +314,12 @@ export default class Jobs extends Component {
         {action && <fieldset>
           <GenericInput ref='params' schema={action.info} label={action.method} required />
           {job && <p className='text-warning'>You are editing job {job.name}({job.id}). Saving will override previous job state.</p>}
-          <ActionButton form='newJobForm' handler={this._handleSubmit} icon='save' btnStyle='primary'>Save</ActionButton>
-          {' '}
-          <button type='button' className='btn btn-default' onClick={this._reset}>Reset</button>
+          {process.env.XOA_PLAN > 3
+            ? <span><ActionButton form='newJobForm' handler={this._handleSubmit} icon='save' btnStyle='primary'>Save</ActionButton>
+              {' '}
+              <button type='button' className='btn btn-default' onClick={this._reset}>Reset</button></span>
+            : <span><Upgrade place='health' available={4} /></span>
+          }
         </fieldset>
         }
       </form>

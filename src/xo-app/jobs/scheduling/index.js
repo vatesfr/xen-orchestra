@@ -4,6 +4,7 @@ import find from 'lodash/find'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
+import Upgrade from 'xoa-upgrade'
 import React, { Component } from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
 import { error } from 'notification'
@@ -159,9 +160,12 @@ export default class Schedules extends Component {
       <br />
       <div className='form-group'>
         {schedule && <p className='text-warning'>{_('scheduleEditMessage', {name: schedule.name, id: schedule.id})}</p>}
-        <ActionButton form='newScheduleForm' handler={this._handleSubmit} icon='save' btnStyle='primary'>{_('saveBackupJob')}</ActionButton>
-        {' '}
-        <button type='button' className='btn btn-default' onClick={this._reset}>{_('selectTableReset')}</button>
+        {process.env.XOA_PLAN > 3
+          ? <span><ActionButton form='newScheduleForm' handler={this._handleSubmit} icon='save' btnStyle='primary'>{_('saveBackupJob')}</ActionButton>
+            {' '}
+            <button type='button' className='btn btn-default' onClick={this._reset}>{_('selectTableReset')}</button></span>
+          : <span><Upgrade place='health' available={4} /></span>
+        }
       </div>
       <table className='table'>
         <thead>

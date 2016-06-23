@@ -7,8 +7,10 @@ import Icon from 'icon'
 import LogList from '../../logs'
 import map from 'lodash/map'
 import orderBy from 'lodash/orderBy'
+import Upgrade from 'xoa-upgrade'
 import React, { Component } from 'react'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
+import { Container } from 'grid'
 import { Link } from 'react-router'
 
 import {
@@ -116,8 +118,8 @@ export default class Overview extends Component {
       schedules
     } = this.state
 
-    return (
-      <div>
+    return (process.env.XOA_PLAN > 3
+      ? <Container>
         <Card>
           <CardHeader>
             <Icon icon='schedule' /> Schedules
@@ -180,7 +182,8 @@ export default class Overview extends Component {
           </CardBlock>
         </Card>
         <LogList jobKeys={Object.keys(jobKeyToLabel)} />
-      </div>
+      </Container>
+      : <Container><Upgrade place='health' available={4} /></Container>
     )
   }
 }

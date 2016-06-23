@@ -21,7 +21,7 @@ const HEADER = <Container>
       <NavTabs className='pull-xs-right'>
         <NavLink to={'/jobs/overview'}><Icon icon='menu-jobs-overview' /> {_('jobsOverviewPage')}</NavLink>
         <NavLink to={'/jobs/new'}><Icon icon='menu-jobs-new' /> {_('jobsNewPage')}</NavLink>
-        <NavLink to={'/jobs/scheduling'}><Icon icon='menu-jobs-restore' /> {_('jobsSchedulingPage')}</NavLink>
+        <NavLink to={'/jobs/scheduling'}><Icon icon='menu-jobs-schedule' /> {_('jobsSchedulingPage')}</NavLink>
       </NavTabs>
     </Col>
   </Row>
