@@ -1,12 +1,13 @@
 import Component from 'base-component'
 import Icon from 'icon'
 import React from 'react'
+import SingleLineRow from 'single-line-row'
 import ceil from 'lodash/ceil'
 import debounce from 'lodash/debounce'
 import map from 'lodash/map'
 import { Pagination } from 'react-bootstrap-4/lib'
 import { Portal } from 'react-overlays'
-import { Row, Col } from 'grid'
+import { Container, Col } from 'grid'
 import { create as createMatcher } from 'complex-matcher'
 import { propTypes } from 'utils'
 
@@ -213,7 +214,7 @@ export default class SortedTable extends Component {
         next
         ellipsis
         boundaryLinks
-        maxButtons={5}
+        maxButtons={10}
         items={ceil(this._getAllItems().length / state.itemsPerPage)}
         activePage={this.state.activePage}
         onSelect={this._onPageSelection}
@@ -252,26 +253,31 @@ export default class SortedTable extends Component {
             ))}
           </tbody>
         </table>
-        {filterContainer
-          ? (
-          <Portal container={() => filterContainer()}> // Rebuild container function to refresh Portal component.
-            {filterInstance}
-          </Portal>
-          ) : (
-          <Row>
-            <Col mediumSize={4}>
-              {filterInstance}
-            </Col>
-          </Row>
-          )
-        }
-        {paginationContainer
-          ? (
-          <Portal container={() => paginationContainer()}>
-            {paginationInstance}
-          </Portal>
-          ) : paginationInstance
-        }
+        {(!paginationContainer || !filterContainer) && (
+          <Container>
+            <SingleLineRow>
+              <Col mediumSize={8}>
+                {paginationContainer
+                  ? (
+                  // Rebuild container function to refresh Portal component.
+                  <Portal container={() => paginationContainer()}>
+                    {paginationInstance}
+                  </Portal>
+                  ) : paginationInstance
+                }
+              </Col>
+              <Col mediumSize={4}>
+                {filterContainer
+                  ? (
+                  <Portal container={() => filterContainer()}>
+                    {filterInstance}
+                  </Portal>
+                  ) : filterInstance
+                }
+              </Col>
+            </SingleLineRow>
+          </Container>
+        )}
       </div>
     )
   }
