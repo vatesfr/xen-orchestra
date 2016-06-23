@@ -1,6 +1,4 @@
 import _, { messages } from 'intl'
-import { Button } from 'react-bootstrap-4/lib'
-import { injectIntl } from 'react-intl'
 import ActionButton from 'action-button'
 import BaseComponent from 'base-component'
 import classNames from 'classnames'
@@ -18,8 +16,11 @@ import size from 'lodash/size'
 import store from 'store'
 import toArray from 'lodash/toArray'
 import Wizard, { Section } from 'wizard'
+import { Button } from 'react-bootstrap-4/lib'
+import { injectIntl } from 'react-intl'
 import {
   createVm,
+  createVms,
   getCloudInitConfig
 } from 'xo'
 import {
@@ -119,7 +120,7 @@ export default class NewVm extends BaseComponent {
     const { VIFs } = this.state.state
     const { refs } = this
     forEach(VIFs, vif => {
-      refs[`mac_${vif.id}`].value = vif.mac
+      refs[`mac_${vif.id}`].value = vif.mac || ''
       refs[`network_${vif.id}`].value = vif.network
     })
   }
@@ -144,7 +145,8 @@ export default class NewVm extends BaseComponent {
 
   _updateNbVms = event => {
     const nameLabels = []
-    for (let i = 1; i <= Math.max(Math.min(this.refs.nbVms.value, 100), 2); i++) {
+    this.refs.nbVms.value = Math.max(Math.min(this.refs.nbVms.value, 100), 2)
+    for (let i = 1; i <= this.refs.nbVms.value; i++) {
       nameLabels.push(`${this.state.state.name_label || 'VM'}_${i}`)
     }
     this._setState({ nameLabels })
@@ -181,6 +183,8 @@ export default class NewVm extends BaseComponent {
     })
     // CPU weight should be "Normal" by default
     refs.cpuWeight && (refs.cpuWeight.value = 1)
+    // Number of VMs should be 2 by default
+    refs.nbVms && (refs.nbVms.value = 2)
     const previousPool = this.state.state.pool
     this._replaceState({
       bootAfterCreate: true,
@@ -254,7 +258,11 @@ export default class NewVm extends BaseComponent {
       coreOs: state.template.name_label === 'CoreOS'
 
     }
-    return createVm(data)
+    if (state.multipleVms) {
+      return createVms(data, state.nameLabels)
+    } else {
+      return createVm(data)
+    }
   }
 
   _selectPool = pool =>
@@ -398,7 +406,15 @@ export default class NewVm extends BaseComponent {
       debouncer(_param)
     }
   }
-  _getOnChangeObject (stateElement, key, stateProperty, targetProperty) {
+  _getOnChangeArrayValue (stateElement, index) {
+    const debouncer = debounce(param => {
+      let stateValue = this.state.state[stateElement]
+      stateValue[index] = param
+      this._setState({ [stateElement]: stateValue })
+    }, 100)
+    return param => debouncer(getEventValue(param))
+  }
+  _getOnChangeArrayObject (stateElement, key, stateProperty, targetProperty) {
     const debouncer = debounce(param => {
       let stateValue = this.state.state[stateElement]
       stateValue = isArray(stateValue) ? [ ...stateValue ] : { ...stateValue }
@@ -407,7 +423,7 @@ export default class NewVm extends BaseComponent {
     }, 100)
     return param => debouncer(getEventValue(param))
   }
-  _getOnChangeObjectCheckbox (stateElement, key, stateProperty, targetProperty) {
+  _getOnChangeArrayObjectCheckbox (stateElement, key, stateProperty, targetProperty) {
     const debouncer = debounce(param => {
       const stateValue = { ...this.state.state[stateElement] }
       stateValue[key][stateProperty] = param
@@ -418,6 +434,9 @@ export default class NewVm extends BaseComponent {
       debouncer(_param)
     }
   }
+
+  _getRedirectionUrl = id =>
+    this.state.state.multipleVms ? '/home' : `/vms/${id}`
 
   render () {
     return <div>
@@ -459,7 +478,7 @@ export default class NewVm extends BaseComponent {
             form='vmCreation'
             handler={this._create}
             icon='new-vm-create'
-            redirectOnSuccess='/home'
+            redirectOnSuccess={this._getRedirectionUrl}
           >
             {_('newVmCreate')}
           </ActionButton>
@@ -494,9 +513,9 @@ export default class NewVm extends BaseComponent {
           <Item>
             <Toggle ref='multipleVms' onChange={this._getOnChange('multipleVms')} />
             <div className='input-group'>
-              <input type='number' min={2} max={100} ref='nbVms' className='form-control' defaultValue={2} />
+              <input type='number' disabled={!multipleVms} min={2} max={100} ref='nbVms' className='form-control' defaultValue={2} />
               <span className='input-group-btn'>
-                <Button bsStyle='secondary' onClick={this._updateNbVms}><Icon icon='arrow-right' /></Button>
+                <Button bsStyle='secondary' disabled={!multipleVms} onClick={this._updateNbVms}><Icon icon='arrow-right' /></Button>
               </span>
             </div>
             <a style={{cursor: 'pointer'}} onClick={this._updateNameLabels}><Icon icon='refresh' /></a>
@@ -505,7 +524,7 @@ export default class NewVm extends BaseComponent {
         {multipleVms && <LineItem>
           {map(nameLabels, (nameLabel, index) =>
             <Item key={`nameLabel_${index}`}>
-              <input type='text' className='form-control' defaultValue={nameLabel} ref={`nameLabel_${index}`} />
+              <input type='text' className='form-control' defaultValue={nameLabel} onChange={this._getOnChangeArrayValue('nameLabels', index)} ref={`nameLabel_${index}`} />
             </Item>
           )}
         </LineItem>}
@@ -612,7 +631,7 @@ export default class NewVm extends BaseComponent {
           <input key='networkInput' ref='installNetwork' onChange={this._getOnChange('installNetwork')} disabled={installMethod !== 'network'} placeholder='e.g: http://ftp.debian.org/debian' type='text' className='form-control' />
         </Item>
         {template.virtualizationMode === 'pv'
-          ? <Item label='newVmPvArgsLabel'>
+          ? <Item label='newVmPvArgsLabel' key='pv'>
             <input onChange={this._getOnChange('pv_args')} className='form-control' type='text' />
           </Item>
           : <Item>
@@ -661,13 +680,13 @@ export default class NewVm extends BaseComponent {
         {map(VIFs, (vif, index) => <div key={index}>
           <LineItem>
             <Item label='newVmMacLabel'>
-              <input ref={`mac_${vif.id}`} onChange={this._getOnChangeObject('VIFs', index, 'mac')} defaultValue={vif.mac} placeholder={formatMessage(messages.newVmMacPlaceholder)} className='form-control' type='text' />
+              <input ref={`mac_${vif.id}`} onChange={this._getOnChangeArrayObject('VIFs', index, 'mac')} defaultValue={vif.mac} placeholder={formatMessage(messages.newVmMacPlaceholder)} className='form-control' type='text' />
             </Item>
             <Item label='newVmNetworkLabel'>
               <span className={styles.inlineSelect}>
                 <SelectNetwork
                   defaultValue={vif.network}
-                  onChange={this._getOnChangeObject('VIFs', index, 'network', 'id')}
+                  onChange={this._getOnChangeArrayObject('VIFs', index, 'network', 'id')}
                   predicate={this._getIsInPool()}
                   ref={`network_${vif.id}`}
                 />
@@ -708,7 +727,7 @@ export default class NewVm extends BaseComponent {
               <span className={styles.inlineSelect}>
                 <SelectSr
                   defaultValue={disk.$SR}
-                  onChange={this._getOnChangeObject('existingDisks', index, '$SR', 'id')}
+                  onChange={this._getOnChangeArrayObject('existingDisks', index, '$SR', 'id')}
                   predicate={this._getSrPredicate()}
                   ref={`sr_${index}`}
                 />
@@ -719,7 +738,7 @@ export default class NewVm extends BaseComponent {
               <input
                 className='form-control'
                 defaultValue={disk.name_label}
-                onChange={this._getOnChangeObject('existingDisks', index, 'name_label')}
+                onChange={this._getOnChangeArrayObject('existingDisks', index, 'name_label')}
                 ref={`name_label_${index}`}
                 type='text'
               />
@@ -728,7 +747,7 @@ export default class NewVm extends BaseComponent {
               <input
                 className='form-control'
                 defaultValue={disk.name_description}
-                onChange={this._getOnChangeObject('existingDisks', index, 'name_description')}
+                onChange={this._getOnChangeArrayObject('existingDisks', index, 'name_description')}
                 ref={`name_description_${index}`}
                 type='text'
               />
@@ -737,7 +756,7 @@ export default class NewVm extends BaseComponent {
               <SizeInput
                 className={styles.sizeInput}
                 defaultValue={disk.size}
-                onChange={this._getOnChangeObject('existingDisks', index, 'size')}
+                onChange={this._getOnChangeArrayObject('existingDisks', index, 'size')}
                 readOnly={!configDrive}
                 ref={`size_${index}`}
               />
@@ -753,7 +772,7 @@ export default class NewVm extends BaseComponent {
               <span className={styles.inlineSelect}>
                 <SelectSr
                   defaultValue={vdi.SR}
-                  onChange={this._getOnChangeObject('VDIs', index, 'SR', 'id')}
+                  onChange={this._getOnChangeArrayObject('VDIs', index, 'SR', 'id')}
                   predicate={this._getSrPredicate()}
                   ref={`sr_${vdi.device}`}
                 />
@@ -764,7 +783,7 @@ export default class NewVm extends BaseComponent {
               <label>
                 <input
                   checked={vdi.bootable}
-                  onChange={this._getOnChangeObjectCheckbox('VDIs', index, 'bootable')}
+                  onChange={this._getOnChangeArrayObjectCheckbox('VDIs', index, 'bootable')}
                   ref={`bootable_${vdi.device}`}
                   type='checkbox'
                 />
@@ -776,7 +795,7 @@ export default class NewVm extends BaseComponent {
               <input
                 className='form-control'
                 defaultValue={vdi.name_label}
-                onChange={this._getOnChangeObject('VDIs', index, 'name_label')}
+                onChange={this._getOnChangeArrayObject('VDIs', index, 'name_label')}
                 ref={`name_label_${vdi.device}`}
                 type='text'
               />
@@ -785,7 +804,7 @@ export default class NewVm extends BaseComponent {
               <input
                 className='form-control'
                 defaultValue={vdi.name_description}
-                onChange={this._getOnChangeObject('VDIs', index, 'name_description')}
+                onChange={this._getOnChangeArrayObject('VDIs', index, 'name_description')}
                 ref={`name_description_${vdi.device}`}
                 type='text'
               />
@@ -794,7 +813,7 @@ export default class NewVm extends BaseComponent {
               <SizeInput
                 className={styles.sizeInput}
                 defaultValue={vdi.size}
-                onChange={this._getOnChangeObject('VDIs', index, 'size')}
+                onChange={this._getOnChangeArrayObject('VDIs', index, 'size')}
                 ref={`size_${vdi.device}`}
               />
             </Item>
