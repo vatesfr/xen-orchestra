@@ -51,6 +51,8 @@ const getMessage = (props, messageId, values, render) => {
 
 export { getMessage as default }
 
+export { messages }
+
 @connect(({ lang }) => ({ lang }))
 export class IntlProvider extends Component {
   static propTypes = {
