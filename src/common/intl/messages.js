@@ -769,6 +769,12 @@ var messages = {
   trialAvailableUntil: 'You can use a trial version until {date, date, medium}. Upgrade your appliance to get it.',
   trialConsumed: 'Your trial has been ended. Contact us or downgrade to Free version',
   trialLocked: 'Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service.',
+  noUpdateInfo: 'No update information available',
+  waitingUpdateInfo: 'Update information may be available',
+  upToDate: 'Your XOA is up-to-date',
+  mustUpgrade: 'You need to update your XOA (new version is available)',
+  registerNeeded: 'Your XOA is not registered for updates',
+  updaterError: 'Can\'t fetch update information',
 
   // ----- OS Disclaimer -----
   disclaimerTitle: 'Xen Orchestra from the sources',

@@ -796,6 +796,18 @@
     @extend .fa;
     @extend .fa-cog;
   }
+  &-update-unknown {
+    @extend .fa;
+    @extend .fa-question-circle;
+  }
+  &-update-ready {
+    @extend .fa;
+    @extend .fa-bell;
+  }
+  &-not-registered {
+    @extend .fa;
+    @extend .fa-bell-slash;
+  }
 
   // Generic actions
 
