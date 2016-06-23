@@ -117,12 +117,12 @@ export default class TabNetworks extends Component {
                       {!isEmpty(network.PIFs) && <table className='table'>
                         <thead className='thead-default'>
                           <tr>
-                            <th>Device</th>
-                            <th>Host</th>
-                            <th>VLAN</th>
-                            <th>Address</th>
-                            <th>MAC</th>
-                            <th>Link status</th>
+                            <th>{_('pifDeviceLabel')}</th>
+                            <th>{_('homeTypeHost')}</th>
+                            <th>{_('pifVlanLabel')}</th>
+                            <th>{_('pifAddressLabel')}</th>
+                            <th>{_('pifMacLabel')}</th>
+                            <th>{_('pifStatusLabel')}</th>
                             <th />
                           </tr>
                         </thead>
