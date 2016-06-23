@@ -44,9 +44,7 @@ const USER_COLUMNS = [
       onChange={permission => editUser(user, {permission: permission.value})}
       options={map(permissions)}
     />,
-    sortCriteria: user => {
-      return permissions[user.permission].label.toLowerCase()
-    }
+    sortCriteria: user => user.permission
   },
   {
     name: _('userPasswordColumn'),
