@@ -156,11 +156,16 @@ export default class Dashboard extends Component {
   }
 
   render () {
+    const { resourceSets } = this
+
     return process.env.XOA_PLAN > 3
       ? <Container>
         <Card>
           <CardBlock>
-            {map(this.state.resourceSets, (resourceSet, key) => <ResourceSet key={key} resourceSet={resourceSet} />)}
+            {resourceSets
+              ? map(resourceSets, (resourceSet, key) => <ResourceSet key={key} resourceSet={resourceSet} />)
+              : _('noResourceSets')
+            }
           </CardBlock>
         </Card>
       </Container>
