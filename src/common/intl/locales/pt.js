@@ -1,4 +1,4 @@
-// See http://momentjs.com/docs/#/use-it/browserify/
+﻿// See http://momentjs.com/docs/#/use-it/browserify/
 import 'moment/locale/pt'
 
 import reactIntlData from 'react-intl/locale-data/pt'
@@ -84,13 +84,13 @@ export default {
   newMenu: 'Novo(a)',
 
   // Original text: "Tasks"
-  taskMenu: 'Atividades',
+  taskMenu: 'Tarefas',
 
   // Original text: "VM"
   newVmPage: 'VM',
 
   // Original text: "Storage"
-  newSrPage: 'Armazenamento (Storage)',
+  newSrPage: 'Storage',
 
   // Original text: "Server"
   newServerPage: 'Servidor',
@@ -145,6 +145,12 @@ export default {
 
   // Original text: "Custom Job"
   customJob: 'Personalização do Trabalho',
+
+  // Original text: "EN"
+  enLang: 'Inglês',
+
+  // Original text: "FR"
+  frLang: 'Francês',
 
   // Original text: "Username:"
   usernameLabel: 'Usuário',
@@ -269,11 +275,11 @@ export default {
   // Original text: "vCPUs"
   homeSortByvCPUs: 'vCPUs',
 
-  // Original text: "{displayed, number}x {icon} (on {total, number})"
-  homeDisplayedItems: '{displayed, number}x {icon} (sobre {total, number})',
+  // Original text: "{displayed, number}x {vmIcon} (on {total, number})"
+  homeDisplayedVms: '{displayed, number}x {vmIcon} (sobre {total, number})',
 
-  // Original text: "{selected, number}x {icon} selected (on {total, number})"
-  homeSelectedItems: '{selected, number}x {icon} selected (sobre {total, number})',
+  // Original text: "{selected, number}x {vmIcon} selected (on {total, number})"
+  homeSelectedVms: '{selected, number}x {vmIcon} selected (sobre {total, number})',
 
   // Original text: "More"
   homeMore: 'Mais',
@@ -504,13 +510,13 @@ export default {
   newSrGeneral: 'Geral',
 
   // Original text: "Select Storage Type:"
-  newSrTypeSelection: 'Selecionar o tipo de armazenamento (storage)',
+  newSrTypeSelection: 'Selecionar o tipo de estocagem',
 
   // Original text: "Settings"
-  newSrSettings: 'Configuraçõesé',
+  newSrSettings: 'Configuraçõesé,
 
   // Original text: "Storage Usage"
-  newSrUsage: 'Uso de armazenamento (storage)',
+  newSrUsage: 'Uso de estocagem',
 
   // Original text: "Summary"
   newSrSummary: 'Sumário',
@@ -744,7 +750,7 @@ export default {
   srRemoveButton: 'Remover esta SR',
 
   // Original text: "No VDIs in this storage"
-  srNoVdis: 'Nenhuma VDI neste armazenamento',
+  srNoVdis: 'Nenhuma VDI em estocagem',
 
   // Original text: "Hosts"
   hostsTabName: 'Hosts',
@@ -828,7 +834,7 @@ export default {
   emergencyModeLabel: 'Modo de emergência',
 
   // Original text: "Storage"
-  storageTabName: 'Armazenamento',
+  storageTabName: 'Estocagem',
 
   // Original text: "Patches"
   patchesTabName: 'Correções',
@@ -927,7 +933,7 @@ export default {
   pifNoInterface: 'Nenhuma interface física foi detectada',
 
   // Original text: "Add a storage"
-  addSrDeviceButton: 'Adicionar um armazenamento',
+  addSrDeviceButton: 'Adicionar uma estocagem',
 
   // Original text: "Name"
   srNameLabel: 'Nome',
@@ -951,7 +957,7 @@ export default {
   srNotShared: 'Não compartilhado',
 
   // Original text: "No storage detected"
-  pbdNoSr: 'Nenhum armazenamento detectado',
+  pbdNoSr: 'Nenhuma estocagem detectada',
 
   // Original text: "Name"
   patchNameLabel: 'Nome',
