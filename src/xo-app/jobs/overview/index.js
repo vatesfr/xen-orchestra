@@ -1,4 +1,4 @@
-import _ from 'messages'
+import _ from 'intl'
 import ActionRowButton from 'action-row-button'
 import ActionToggle from 'action-toggle'
 import filter from 'lodash/filter'

@@ -1,4 +1,4 @@
-import _ from 'messages'
+import _ from 'intl'
 import ActionButton from 'action-button'
 import ansiUp from 'ansi_up'
 import assign from 'lodash/assign'

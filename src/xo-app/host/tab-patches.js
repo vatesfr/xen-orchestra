@@ -1,4 +1,4 @@
-import _ from 'messages'
+import _ from 'intl'
 import ActionRowButton from 'action-row-button'
 import isEmpty from 'lodash/isEmpty'
 import SortedTable from 'sorted-table'

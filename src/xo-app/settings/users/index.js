@@ -1,5 +1,5 @@
 import * as Editable from 'editable'
-import _, { messages } from 'messages'
+import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import isEmpty from 'lodash/isEmpty'

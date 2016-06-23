@@ -1,5 +1,5 @@
 import * as ComplexMatcher from 'complex-matcher'
-import _ from 'messages'
+import _ from 'intl'
 import ActionButton from 'action-button'
 import ceil from 'lodash/ceil'
 import CenterPanel from 'center-panel'

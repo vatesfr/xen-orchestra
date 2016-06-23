@@ -1,4 +1,4 @@
-import _ from 'messages'
+import _ from 'intl'
 import ChartistGraph from 'react-chartist'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'

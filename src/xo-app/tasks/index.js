@@ -1,4 +1,4 @@
-import _ from 'messages'
+import _ from 'intl'
 import CenterPanel from 'center-panel'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'

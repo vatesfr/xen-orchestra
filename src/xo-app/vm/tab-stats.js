@@ -1,4 +1,4 @@
-import _, { messages } from 'messages'
+import _, { messages } from 'intl'
 import Component from 'base-component'
 import Icon from 'icon'
 import React from 'react'

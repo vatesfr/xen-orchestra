@@ -1,4 +1,4 @@
-import _ from 'messages'
+import _ from 'intl'
 import Icon from 'icon'
 import isArray from 'lodash/isArray'
 import isString from 'lodash/isString'

@@ -1,6 +1,6 @@
 import Component from 'base-component'
 import React from 'react'
-import _ from 'messages'
+import _ from 'intl'
 import assign from 'lodash/assign'
 import classNames from 'classnames'
 import filter from 'lodash/filter'

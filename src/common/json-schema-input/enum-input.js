@@ -1,5 +1,5 @@
 import React from 'react'
-import _ from 'messages'
+import _ from 'intl'
 import map from 'lodash/map'
 
 import AbstractInput from './abstract-input'

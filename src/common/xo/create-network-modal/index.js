@@ -3,7 +3,7 @@ import { injectIntl } from 'react-intl'
 import { createSelector } from 'selectors'
 
 import SingleLineRow from '../../single-line-row'
-import _, { messages } from '../../messages'
+import _, { messages } from '../../intl'
 import { SelectPif } from '../../select-objects'
 import { Col } from '../../grid'
 

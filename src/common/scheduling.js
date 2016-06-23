@@ -1,6 +1,6 @@
 import Component from 'base-component'
 import React from 'react'
-import _ from 'messages'
+import _ from 'intl'
 import forEach from 'lodash/forEach'
 import includes from 'lodash/includes'
 import join from 'lodash/join'

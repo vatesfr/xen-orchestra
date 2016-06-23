@@ -1,4 +1,4 @@
-import _ from 'messages'
+import _ from 'intl'
 import Component from 'base-component'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import debounce from 'lodash/debounce'

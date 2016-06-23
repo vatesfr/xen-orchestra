@@ -3,7 +3,7 @@ import find from 'lodash/find'
 import map from 'lodash/map'
 import React, { Component } from 'react'
 
-import _ from '../../messages'
+import _ from '../../intl'
 import SingleLineRow from '../../single-line-row'
 import { Col } from '../../grid'
 import {

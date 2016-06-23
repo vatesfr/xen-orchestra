@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 
-import _, { messages } from '../../messages'
+import _, { messages } from '../../intl'
 import SingleLineRow from '../../single-line-row'
 import Upgrade from 'xoa-upgrade'
 import { Col } from '../../grid'

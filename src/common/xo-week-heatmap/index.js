@@ -1,5 +1,5 @@
 import React from 'react'
-import _ from 'messages'
+import _ from 'intl'
 import forEach from 'lodash/forEach'
 import map from 'lodash/map'
 import moment from 'moment'

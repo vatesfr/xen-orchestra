@@ -1,4 +1,4 @@
-import _, { messages } from 'messages'
+import _, { messages } from 'intl'
 import { Button } from 'react-bootstrap-4/lib'
 import { injectIntl } from 'react-intl'
 import ActionButton from 'action-button'

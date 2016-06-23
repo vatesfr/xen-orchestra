@@ -1,4 +1,4 @@
-import _ from 'messages'
+import _ from 'intl'
 import classNames from 'classnames'
 import every from 'lodash/every'
 import Icon from 'icon'

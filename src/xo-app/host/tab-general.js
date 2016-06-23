@@ -1,4 +1,4 @@
-import _ from 'messages'
+import _ from 'intl'
 import Copiable from 'copiable'
 import Icon from 'icon'
 import map from 'lodash/map'

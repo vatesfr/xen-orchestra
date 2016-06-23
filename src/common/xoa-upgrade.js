@@ -1,4 +1,4 @@
-import _ from 'messages'
+import _ from 'intl'
 import Icon from 'icon'
 import Link from 'react-router/lib/Link'
 import React from 'react'

@@ -14,7 +14,7 @@ import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
 import { resolve } from 'url'
 
-import _ from '../messages'
+import _ from '../intl'
 import logError from '../log-error'
 import { confirm } from '../modal'
 import { error, info } from '../notification'

@@ -5,7 +5,7 @@ import map from 'lodash/map'
 import pick from 'lodash/pick'
 import React from 'react'
 
-import _ from './messages'
+import _ from './intl'
 import Component from './base-component'
 import logError from './log-error'
 import Icon from './icon'

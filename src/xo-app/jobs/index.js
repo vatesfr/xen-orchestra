@@ -1,4 +1,4 @@
-import _ from 'messages'
+import _ from 'intl'
 import Icon from 'icon'
 import Page from '../page'
 import React from 'react'

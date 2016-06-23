@@ -1,4 +1,4 @@
-// import _ from 'messages' TODO: fix tooltip
+// import _ from 'intl' TODO: fix tooltip
 import ActionButton from 'action-button'
 import map from 'lodash/map'
 import React from 'react'

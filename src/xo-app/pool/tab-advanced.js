@@ -1,4 +1,4 @@
-import _ from 'messages'
+import _ from 'intl'
 import Copiable from 'copiable'
 import React from 'react'
 import { Container, Row, Col } from 'grid'

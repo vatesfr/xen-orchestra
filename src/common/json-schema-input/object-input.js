@@ -1,4 +1,4 @@
-import _ from 'messages'
+import _ from 'intl'
 import React, { Component, cloneElement } from 'react'
 import forEach from 'lodash/forEach'
 import includes from 'lodash/includes'

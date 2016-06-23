@@ -1,4 +1,4 @@
-import _ from 'messages'
+import _ from 'intl'
 import React from 'react'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'

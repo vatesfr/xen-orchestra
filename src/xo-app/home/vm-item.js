@@ -1,4 +1,4 @@
-import _ from 'messages'
+import _ from 'intl'
 import Component from 'base-component'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import Icon from 'icon'

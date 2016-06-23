@@ -117,8 +117,9 @@
   },
   "scripts": {
     "benchmarks": "./tools/run-benchmarks.js 'src/**/*.bench.js'",
-    "build": "NODE_ENV=production gulp build",
-    "dev": "gulp build server",
+    "build": "npm run build-indexes && NODE_ENV=production gulp build",
+    "build-indexes": "./tools/generate-index src/common/intl/locales",
+    "dev": "npm run build-indexes && gulp build server",
     "dev-test": "ava --watch",
     "lint": "standard",
     "posttest": "npm run lint",

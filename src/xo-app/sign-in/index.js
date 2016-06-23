@@ -1,4 +1,4 @@
-import _ from 'messages'
+import _ from 'intl'
 import React, {
   Component
 } from 'react'

@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import _ from 'messages'
+import _ from 'intl'
 import forEach from 'lodash/forEach'
 import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'

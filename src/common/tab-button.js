@@ -1,4 +1,4 @@
-import _ from 'messages'
+import _ from 'intl'
 import ActionButton from 'action-button'
 import React from 'react'
 

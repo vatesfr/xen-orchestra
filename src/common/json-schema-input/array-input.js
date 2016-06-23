@@ -1,4 +1,4 @@
-import _ from 'messages'
+import _ from 'intl'
 import React, { Component, cloneElement } from 'react'
 import map from 'lodash/map'
 import filter from 'lodash/filter'

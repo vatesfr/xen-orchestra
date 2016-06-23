@@ -3,7 +3,7 @@ import cookies from 'cookies-js'
 import React from 'react'
 import { blockXoaAccess } from 'xoa-updater'
 import { connectStore, routes } from 'utils'
-import { _, IntlProvider } from 'messages'
+import { _, IntlProvider } from 'intl'
 import { Notification } from 'notification'
 // import {
 //   keyHandler

@@ -1,4 +1,4 @@
-import _, { messages } from 'messages'
+import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import filter from 'lodash/filter'
 import Icon from 'icon'

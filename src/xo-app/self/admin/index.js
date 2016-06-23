@@ -1,7 +1,7 @@
 import ActionButton from 'action-button'
 import Icon from 'icon'
 import React, { Component } from 'react'
-import _, { messages } from 'messages'
+import _, { messages } from 'intl'
 import differenceBy from 'lodash/differenceBy'
 import filter from 'lodash/filter'
 import forEach from 'lodash/forEach'

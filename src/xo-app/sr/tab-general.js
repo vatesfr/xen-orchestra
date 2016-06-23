@@ -1,4 +1,4 @@
-import _ from 'messages'
+import _ from 'intl'
 import Icon from 'icon'
 import map from 'lodash/map'
 import React from 'react'
