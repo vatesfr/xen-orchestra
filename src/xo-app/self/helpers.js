@@ -5,17 +5,13 @@ import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
 import renderXoItem from 'render-xo-item'
 import store from 'store'
-import { createGetObject } from 'selectors'
+import { getObject } from 'selectors'
 import { propTypes } from 'utils'
 
 import {
   subscribeGroups,
   subscribeUsers
 } from 'xo'
-
-// ===================================================================
-
-const getObject = createGetObject((_, id) => id)
 
 // ===================================================================
 

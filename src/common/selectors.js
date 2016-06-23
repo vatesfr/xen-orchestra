@@ -397,3 +397,5 @@ export const createGetObjectMessages = objectSelector =>
       id => message => message.$object === id
     )
   ).sort()
+
+export const getObject = createGetObject((_, id) => id)

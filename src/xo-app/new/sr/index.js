@@ -7,11 +7,17 @@ import info, { error } from 'notification'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React, { Component } from 'react'
+import store from 'store'
 import trim from 'lodash/trim'
 import Wizard, { Section } from 'wizard'
 import { confirm } from 'modal'
 import { connectStore, formatSize } from 'utils'
-import { createGetObjectsOfType, createFilter, createSelector } from 'selectors'
+import {
+  createFilter,
+  createGetObjectsOfType,
+  createSelector,
+  getObject
+} from 'selectors'
 import { GenericSelect, SelectHost } from 'select-objects'
 import { injectIntl } from 'react-intl'
 import { Password } from 'form'
@@ -89,9 +95,12 @@ const getSrPath = id => `/srs/${id}`
 export default class New extends Component {
   constructor (props) {
     super(props)
+
+    const hostId = props.location.query.host
+
     this.state = {
       description: undefined,
-      host: undefined,
+      host: hostId && getObject(store.getState(), hostId),
       iqn: undefined,
       iqns: undefined,
       lockCreation: undefined,
@@ -368,6 +377,7 @@ export default class New extends Component {
             <fieldset className='form-group'>
               <label>{_('newSrHost')}</label>
               <SelectHost
+                value={host}
                 options={hosts}
                 onChange={this._handleSrHostSelection}
               />
