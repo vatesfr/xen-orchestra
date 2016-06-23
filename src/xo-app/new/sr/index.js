@@ -139,10 +139,8 @@ export default class New extends Component {
         const previous = await probeSrNfsExists(host.id, server.value, path)
         if (previous && previous.length > 0) {
           try {
-            await confirm({title: 'Previous Path Usage',
-              body: <p>
-              This path has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.
-              </p>
+            await confirm({title: _('existingSrModalTitle'),
+              body: <p>{_('existingSrModalText')}</p>
             })
           } catch (error) {
             return
@@ -154,10 +152,8 @@ export default class New extends Component {
         const previous = await probeSrIscsiExists(host.id, iqn.ip, iqn.iqn, lun.scsiId, port.value, username && username.value, password && password.value)
         if (previous && previous.length > 0) {
           try {
-            await confirm({title: 'Previous LUN Usage',
-              body: <p>
-              This LUN has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.
-              </p>
+            await confirm({title: _('existingLunModalTitle'),
+              body: <p>{_('existingLunModalText')}</p>
             })
           } catch (error) {
             return

@@ -1769,6 +1769,30 @@ export const messages = {
   definitiveMessageModal: {
     defaultMessage: 'This operation is definitive.'
   },
+  existingSrModalTitle: {
+    defaultMessage: 'Previous SR Usage'
+  },
+  existingSrModalText: {
+    defaultMessage: 'This path has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.'
+  },
+  existingLunModalTitle: {
+    defaultMessage: 'Previous LUN Usage'
+  },
+  existingLunModalText: {
+    defaultMessage: 'This LUN has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.'
+  },
+  alreadyRegisteredModal: {
+    defaultMessage: 'Replace current registration?'
+  },
+  alreadyRegisteredModalText: {
+    defaultMessage: 'Your XO appliance is already registered to {email}, do you want to forget and replace this registration ?'
+  },
+  trialReadyModal: {
+    defaultMessage: 'Ready for trial?'
+  },
+  trialReadyModalText: {
+    defaultMessage: 'During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans!'
+  },
 
   // ----- Servers -----
   serverHost: 'Host',
@@ -1906,6 +1930,67 @@ export const messages = {
   },
   availableIn: {
     defaultMessage: 'This feature is available starting from {plan} Edition'
+  },
+
+  // ----- Updates View -----
+  registration: {
+    defaultMessage: 'Registration'
+  },
+  trial: {
+    defaultMessage: 'Trial'
+  },
+  settings: {
+    defaultMessage: 'Settings'
+  },
+  update: {
+    defaultMessage: 'Update'
+  },
+  upgrade: {
+    defaultMessage: 'Upgrade'
+  },
+  noUpdaterCommunity: {
+    defaultMessage: 'No updater available for Community Edition'
+  },
+  noUpdaterSubscribe: {
+    defaultMessage: 'Please consider subscribe and try it with all features for free during 15 days on'
+  },
+  noUpdaterWarning: {
+    defaultMessage: 'Manual update could break your current installation due to dependencies issues, do it with caution'
+  },
+  currentVersion: {
+    defaultMessage: 'Current version:'
+  },
+  register: {
+    defaultMessage: 'Register'
+  },
+  trialRegistration: {
+    defaultMessage: 'Please, take time to register in order to enjoy your trial.'
+  },
+  trialStartButton: {
+    defaultMessage: 'Start trial'
+  },
+  trialAvailableUntil: {
+    defaultMessage: 'You can use a trial version until {date, date, medium}. Upgrade your appliance to get it.'
+  },
+  trialConsumed: {
+    defaultMessage: 'Your trial has been ended. Contact us or downgrade to Free version'
+  },
+  trialLocked: {
+    defaultMessage: 'Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service.'
+  },
+
+  // ----- OS Disclaimer -----
+  disclaimerTitle: {
+    defaultMessage: 'Xen Orchestra from the sources'
+  },
+  disclaimerText1: {
+    defaultMessage: 'You are using XO from the sources! That\'s great for a personal/non-profit usage.'
+  },
+  disclaimerText2: {
+    defaultMessage: 'If you are a company, it\'s better to use it with our appliance + pro support included:'
+  },
+  disclaimerText3: {
+    defaultMessage: 'This version is not bundled with any support nor updates. Use it with caution for critical tasks.'
   },
 
   // ----- PIF -----

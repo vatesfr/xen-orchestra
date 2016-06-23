@@ -1,3 +1,4 @@
+import _ from 'messages'
 import React from 'react'
 import { Container, Row, Col } from 'grid'
 
@@ -6,7 +7,7 @@ export default ({
 }) => <Container>
   <Row>
     <Col className='text-xs-right'>
-      TODO
+      {_('comingSoon')}
     </Col>
   </Row>
 </Container>

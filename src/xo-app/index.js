@@ -3,7 +3,7 @@ import cookies from 'cookies-js'
 import React from 'react'
 import { blockXoaAccess } from 'xoa-updater'
 import { connectStore, routes } from 'utils'
-import { IntlProvider } from 'messages'
+import { _, IntlProvider } from 'messages'
 import { Notification } from 'notification'
 // import {
 //   keyHandler
@@ -85,10 +85,10 @@ export default class XoApp extends Component {
     const now = Math.floor(Date.now() / 1e3)
     const oneWeekAgo = now - 7 * 24 * 3600
     if (!previousDisclaimer || previousDisclaimer < oneWeekAgo) {
-      alert('Xen Orchestra from the sources', <div>
-        <p>You are using XO from the sources! That's great for a personal/non-profit usage.</p>
-        <p>If you are a company, it's better to use it with <a href='https://xen-orchestra.com/#!/xoa'>XOA (turnkey appliance)</a> and our dedicated pro support!</p>
-        <p>This version is <strong>not bundled with any support nor updates</strong>. Use it with caution for critical tasks.</p>
+      alert(_('disclaimerTitle'), <div>
+        <p>{_('disclaimerText1')}</p>
+        <p>{_('disclaimerText2')} <a href='https://xen-orchestra.com/#!/xoa?pk_campaign=xoa_source_upgrade&pk_kwd=ossmodal'>XOA (turnkey appliance)</a></p>
+        <p>{_('disclaimerText3')}</p>
       </div>)
       cookies.set('previousDisclaimer', now)
     }

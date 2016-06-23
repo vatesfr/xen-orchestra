@@ -14,7 +14,6 @@ import { Container } from 'grid'
 import { connectStore } from 'utils'
 import { error } from 'notification'
 import { serverVersion } from 'xo'
-import { FormattedDate } from 'react-intl'
 import { Password } from 'form'
 
 import pkg from '../../../package'
@@ -69,10 +68,8 @@ export default class XoaUpdates extends BaseComponent {
     if (alreadyRegistered) {
       try {
         await confirm({
-          title: 'Replace registration ?',
-          body: <p>
-          Your XO appliance is already registered to {registration.email}, do you want to forget and replace this registration ?
-          </p>})
+          title: _('alreadyRegisteredModal'),
+          body: <p>{_('alreadyRegisteredModalText', {email: registration.email})}</p>})
       } catch (error) {
         return
       }
@@ -112,8 +109,8 @@ export default class XoaUpdates extends BaseComponent {
   _startTrial = async () => {
     try {
       await confirm({
-        title: 'Ready for trial ?',
-        body: <p>During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans!</p>
+        title: _('trialReadyModal'),
+        body: <p>{_('trialReadyModalText')}</p>
       })
       return xoaUpdater.requestTrial()
         .then(() => xoaUpdater.update())
@@ -158,12 +155,12 @@ export default class XoaUpdates extends BaseComponent {
     return <Page header={HEADER}>
       <Container>{+process.env.XOA_PLAN === 5
         ? <div>
-          <h2 className='text-danger'>No updater available for Community Edition</h2>
-          <p>Please consider subscribe on xen-orchestra.com and try it with all features for free during 15 days!</p>
-          <p className='text-danger'>Manual update could break your current installation due to dependencies issues, do it with caution</p>
+          <h2 className='text-danger'>{_('noUpdaterCommunity')}</h2>
+          <p>{_('noUpdaterSubscribe')} <a href='https://xen-orchestra.com'>https://xen-orchestra.com</a></p>
+          <p className='text-danger'>{_('noUpdaterWarning')}</p>
         </div>
         : <div>
-          <p>Current versions: {`xo-server ${this.state.serverVersion}`} / {`xo-web ${pkg.version}`}</p>
+          <p>{_('currentVersion')} {`xo-server ${this.state.serverVersion}`} / {`xo-web ${pkg.version}`}</p>
           <p>
             <strong>{states[state]}</strong>
             {' '}
@@ -171,14 +168,14 @@ export default class XoaUpdates extends BaseComponent {
               btnStyle='info'
               handler={update}
               icon='refresh'>
-              Update
+              {_('update')}
             </ActionButton>
             {' '}
             <ActionButton
               btnStyle='primary'
               handler={upgrade}
               icon='upgrade'>
-              Upgrade
+              {_('upgrade')}
             </ActionButton>
           </p>
           <div>
@@ -188,7 +185,7 @@ export default class XoaUpdates extends BaseComponent {
               </p>
               ))}
           </div>
-          <h2>Settings {configEdited ? '*' : ''}</h2>
+          <h2>{_('settings')} {configEdited ? '*' : ''}</h2>
           <form className='form-inline'>
             <fieldset>
               <div className='form-group'>
@@ -230,12 +227,12 @@ export default class XoaUpdates extends BaseComponent {
             </fieldset>
             <br />
             <fieldset>
-              <ActionButton icon='save' btnStyle='primary' handler={this._configure}>Save</ActionButton>
+              <ActionButton icon='save' btnStyle='primary' handler={this._configure}>{_('saveResourceSet')}</ActionButton>
               {' '}
-              <button type='button' className='btn btn-default' onClick={this._handleConfigReset} disabled={!configEdited}>Reset</button>
+              <button type='button' className='btn btn-default' onClick={this._handleConfigReset} disabled={!configEdited}>{_('resetResourceSet')}</button>
             </fieldset>
           </form>
-          <h2>Registration</h2>
+          <h2>{_('registration')}</h2>
           <p>
             <strong>{registration.state}</strong>
             {registration.email && <span> to {registration.email}</span>}
@@ -260,24 +257,24 @@ export default class XoaUpdates extends BaseComponent {
               />
             </div>
             {' '}
-            <ActionButton form='registrationForm' icon='success' btnStyle='primary' handler={this._register}>Register</ActionButton>
+            <ActionButton form='registrationForm' icon='success' btnStyle='primary' handler={this._register}>{_('register')}</ActionButton>
           </form>
           {process.env.XOA_PLAN === 1 &&
             <div>
-              <h2>Trial</h2>
+              <h2>{_('trial')}</h2>
               {this._trialAllowed(trial) &&
                 <div>
-                  {registration.state !== 'registered' && <p>Please, take time to register to enjoy your trial.</p>}
+                  {registration.state !== 'registered' && <p>{_('trialRegistration')}</p>}
                   {registration.state === 'registered' &&
-                    <ActionButton btnStyle='success' handler={this._startTrial} icon='trial'>Start trial</ActionButton>
+                    <ActionButton btnStyle='success' handler={this._startTrial} icon='trial'>{_('trialStartButton')}</ActionButton>
                   }
                 </div>
               }
               {this._trialAvailable(trial) &&
-                <p className='text-success'>You can use a trial version until <FormattedDate value={new Date(trial.trial.end)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />. Upgrade your appliance to get it.</p>
+                <p className='text-success'>{_('trialAvailableUntil', {date: new Date(trial.trial.end)})}</p>
               }
               {this._trialConsumed(trial) &&
-                <p>Your trial has been consumed and period is over</p>
+                <p>{_('trialConsumed')}</p>
               }
             </div>
           }
@@ -294,9 +291,7 @@ export default class XoaUpdates extends BaseComponent {
           {process.env.XOA_PLAN < 5 &&
             <div>
               {this._updaterDown(trial) &&
-                <p className='text-danger'>
-                  Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service.
-                </p>
+                <p className='text-danger'>{_('trialLocked')}</p>
               }
             </div>
           }
