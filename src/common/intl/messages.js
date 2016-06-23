@@ -56,10 +56,6 @@ var messages = {
   jobsSchedulingPage: 'Scheduling',
   customJob: 'Custom Job',
 
-  // ----- Languages -----
-  enLang: 'EN',
-  frLang: 'FR',
-
   // ----- Sign in/out -----
   usernameLabel: 'Username:',
   passwordLabel: 'Password:',

@@ -146,12 +146,6 @@ export default {
   // Original text: "Custom Job"
   customJob: undefined,
 
-  // Original text: "EN"
-  enLang: undefined,
-
-  // Original text: "FR"
-  frLang: undefined,
-
   // Original text: "Username:"
   usernameLabel: undefined,
 
