@@ -41,10 +41,11 @@ export default class Toggle extends Component {
   }
 
   set value (value) {
-    if (process.env.NODE_ENV !== 'production') {
-      if (this.props.value != null) {
-        throw new Error('cannot set value of controlled Toggle')
-      }
+    if (
+      process.env.NODE_ENV !== 'production' &&
+      this.props.value != null
+    ) {
+      throw new Error('cannot set value of controlled Toggle')
     }
 
     this.refs.input.checked = Boolean(value)
@@ -75,11 +76,11 @@ export default class Toggle extends Component {
         />
         <input
           checked={props.value}
+          className={styles.toggle}
           defaultChecked={props.defaultValue}
           disabled={props.disabled}
           onChange={this._onChange}
           ref='input'
-          className={styles.toggle}
           type='checkbox'
         />
       </label>
