@@ -253,28 +253,31 @@ export default class SortedTable extends Component {
             ))}
           </tbody>
         </table>
-        <Container>
-          <SingleLineRow>
-            <Col mediumSize={8}>
-              {paginationContainer
-                ? (
-                <Portal container={() => paginationContainer()}>
-                  {paginationInstance}
-                </Portal>
-                ) : paginationInstance
-              }
-            </Col>
-            <Col mediumSize={4}>
-              {filterContainer
-                ? (
-                <Portal container={() => filterContainer()}> // Rebuild container function to refresh Portal component.
-                  {filterInstance}
-                </Portal>
-                ) : filterInstance
-              }
-            </Col>
-          </SingleLineRow>
-        </Container>
+        {(!paginationContainer || !filterContainer) && (
+          <Container>
+            <SingleLineRow>
+              <Col mediumSize={8}>
+                {paginationContainer
+                  ? (
+                  // Rebuild container function to refresh Portal component.
+                  <Portal container={() => paginationContainer()}>
+                    {paginationInstance}
+                  </Portal>
+                  ) : paginationInstance
+                }
+              </Col>
+              <Col mediumSize={4}>
+                {filterContainer
+                  ? (
+                  <Portal container={() => filterContainer()}>
+                    {filterInstance}
+                  </Portal>
+                  ) : filterInstance
+                }
+              </Col>
+            </SingleLineRow>
+          </Container>
+        )}
       </div>
     )
   }
