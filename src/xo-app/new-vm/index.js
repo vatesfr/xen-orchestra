@@ -4,6 +4,7 @@ import BaseComponent from 'base-component'
 import clamp from 'lodash/clamp'
 import classNames from 'classnames'
 import debounce from 'lodash/debounce'
+import DebounceInput from 'react-debounce-input'
 import every from 'lodash/every'
 import filter from 'lodash/filter'
 import find from 'lodash/find'
@@ -150,22 +151,23 @@ export default class NewVm extends BaseComponent {
     })
   }
 
-  _updateNbVms = event => {
-    const nbVms = clamp(this.refs.nbVms.value, NB_VMS_MIN, NB_VMS_MAX)
-    this.refs.nbVms.value = nbVms
+  _updateNbVms = () => {
+    const { nbVms, name_label } = this.state.state
+    const nbVmsClamped = clamp(nbVms, NB_VMS_MIN, NB_VMS_MAX)
     const nameLabels = []
-    for (let i = 1; i <= nbVms; i++) {
-      nameLabels.push(`${this.state.state.name_label || 'VM'}_${i}`)
+    for (let i = 1; i <= nbVmsClamped; i++) {
+      nameLabels.push(`${name_label || 'VM'}_${i}`)
     }
     this._setState({ nameLabels })
   }
 
   _updateNameLabels = () => {
-    const nbVms = this.state.state.nameLabels.length
+    const { name_label, nameLabels } = this.state.state
+    const nbVms = nameLabels.length
     this._setState({ nameLabels: [] }, () => {
       const nameLabels = []
       for (let i = 1; i <= nbVms; i++) {
-        nameLabels.push(`${this.state.state.name_label || 'VM'}_${i}`)
+        nameLabels.push(`${name_label || 'VM'}_${i}`)
       }
       this._setState({ nameLabels })
     })
@@ -295,6 +297,8 @@ export default class NewVm extends BaseComponent {
       return this._reset()
     }
 
+    this._setState({ template }, () => console.log('template = ', this.state.state.template))
+
     const storeState = store.getState()
 
     const existingDisks = {}
@@ -396,28 +400,28 @@ export default class NewVm extends BaseComponent {
     this._setState({ VIFs: [ ...VIFs.slice(0, index), ...VIFs.slice(index + 1) ] })
   }
 
-  _getOnChange (prop) {
-    const debouncer = debounce(param => {
-      this._setState({
-        [prop]: param,
-        name_labelHasChanged: this.state.state.name_labelHasChanged || prop === 'name_label',
-        name_descriptionHasChanged: this.state.state.name_descriptionHasChanged || prop === 'name_description'
-      })
-    }, 100)
-    return param => {
-      const _param = param && param.target ? param.target.value : param
-      debouncer(_param)
-    }
-  }
-  _getOnChangeCheckbox (prop) {
-    const debouncer = debounce(checked =>
-      this._setState({ [prop]: checked }), 100
-    )
-    return event => {
-      const _param = event.target.checked
-      debouncer(_param)
-    }
-  }
+  // _getOnChange (prop) {
+  //   const debouncer = debounce(param => {
+  //     this._setState({
+  //       [prop]: param,
+  //       name_labelHasChanged: this.state.state.name_labelHasChanged || prop === 'name_label',
+  //       name_descriptionHasChanged: this.state.state.name_descriptionHasChanged || prop === 'name_description'
+  //     })
+  //   }, 100)
+  //   return param => {
+  //     const _param = param && param.target ? param.target.value : param
+  //     debouncer(_param)
+  //   }
+  // }
+  // _getOnChangeCheckbox (prop) {
+  //   const debouncer = debounce(checked =>
+  //     this._setState({ [prop]: checked }), 100
+  //   )
+  //   return event => {
+  //     const _param = event.target.checked
+  //     debouncer(_param)
+  //   }
+  // }
   _getOnChangeArrayValue (stateElement, index) {
     const debouncer = debounce(param => {
       let stateValue = this.state.state[stateElement]
@@ -444,6 +448,33 @@ export default class NewVm extends BaseComponent {
     return event => {
       const _param = event.target.checked
       debouncer(_param)
+    }
+  }
+
+  // if index: the element to be modified is an array/object
+  _getOnChange (prop, index) {
+    return event => {
+      let value
+      if (index) {
+        value = this.state.state[prop]
+        value = isArray(value) ? [ ...value ] : { ...value }
+        value[index] = getEventValue(event)
+      } else {
+        value = getEventValue(event)
+      }
+      console.log('CHANGING: ', prop)
+      this._setState({ [prop]: value })
+    }
+  }
+  _getOnChangeCheckbox (prop) {
+    return event => {
+      console.log('CHANGING: ', prop)
+      this._setState({ [prop]: event.target.checked })
+    }
+  }
+  _getOnChangeArray (prop, index) {
+    return event => {
+
     }
   }
 
@@ -500,7 +531,13 @@ export default class NewVm extends BaseComponent {
   }
 
   _renderInfo = () => {
-    const { multipleVms, nameLabels } = this.state.state
+    const {
+      multipleVms,
+      name_description,
+      name_label,
+      nameLabels,
+      template
+    } = this.state.state
     return <Section icon='new-vm-infos' title='newVmInfoPanel' done={this._isInfoDone()}>
       <SectionContent>
         <Item label='newVmTemplateLabel'>
@@ -509,23 +546,39 @@ export default class NewVm extends BaseComponent {
               onChange={this._initTemplate}
               placeholder={_('newVmSelectTemplate')}
               predicate={this._getIsInPool()}
-              ref='template'
+              value={template}
             />
           </span>
         </Item>
         <Item label='newVmNameLabel'>
-          <input ref='name_label' onChange={this._getOnChange('name_label')} className='form-control' type='text' required />
+          <DebounceInput
+            className='form-control'
+            onChange={this._getOnChange('name_label')}
+            value={name_label}
+          />
         </Item>
         <Item label='newVmDescriptionLabel'>
-          <input ref='name_description' onChange={this._getOnChange('name_description')} className='form-control' type='text' />
+          <DebounceInput
+            className='form-control'
+            onChange={this._getOnChange('name_description')}
+            value={name_description}
+          />
         </Item>
       </SectionContent>
       <SectionContent column>
         <LineItem>
           <Item>
-            <Toggle ref='multipleVms' onChange={this._getOnChange('multipleVms')} />
+            <Toggle value={multipleVms} onChange={this._getOnChange('multipleVms')} />
             <div className='input-group'>
-              <input type='number' disabled={!multipleVms} min={NB_VMS_MIN} max={NB_VMS_MAX} ref='nbVms' className='form-control' defaultValue={NB_VMS_MIN} />
+              <DebounceInput
+                className='form-control'
+                disabled={!multipleVms}
+                max={NB_VMS_MAX}
+                min={NB_VMS_MIN}
+                onChange={this._getOnChange('name_description')}
+                type='number'
+                value={name_description}
+              />
               <span className='input-group-btn'>
                 <Button bsStyle='secondary' disabled={!multipleVms} onClick={this._updateNbVms}><Icon icon='arrow-right' /></Button>
               </span>
@@ -536,7 +589,7 @@ export default class NewVm extends BaseComponent {
         {multipleVms && <LineItem>
           {map(nameLabels, (nameLabel, index) =>
             <Item key={`nameLabel_${index}`}>
-              <input type='text' className='form-control' defaultValue={nameLabel} onChange={this._getOnChangeArrayValue('nameLabels', index)} />
+              <input type='text' className='form-control' value={nameLabel} onChange={this._getOnChange('nameLabels', index)} />
             </Item>
           )}
         </LineItem>}
@@ -552,7 +605,7 @@ export default class NewVm extends BaseComponent {
     return <Section icon='new-vm-perf' title='newVmPerfPanel' done={this._isPerformancesDone()}>
       <SectionContent>
         <Item label='newVmVcpusLabel'>
-          <input ref='CPUs' onChange={this._getOnChange('CPUs')} className='form-control' type='number' />
+          <input onChange={this._getOnChange('CPUs')} className='form-control' type='number' />
         </Item>
         <Item label='newVmRamLabel'>
           <SizeInput ref='memory' onChange={this._getOnChange('memory')} className={styles.sizeInput} />
