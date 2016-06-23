@@ -1,20 +1,19 @@
+import _, { FormattedDuration } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
-import Icon from 'icon'
-import React, { Component } from 'react'
-import _, { FormattedDuration } from 'intl'
-import ceil from 'lodash/ceil'
 import classnames from 'classnames'
 import forEach from 'lodash/forEach'
+import Icon from 'icon'
+import includes from 'lodash/includes'
 import map from 'lodash/map'
 import orderBy from 'lodash/orderBy'
+import React, { Component } from 'react'
 import renderXoItem from 'render-xo-item'
-import { Pagination } from 'react-bootstrap-4/lib'
-import { confirm } from 'modal'
+import SortedTable from 'sorted-table'
+import { alert, confirm } from 'modal'
 import { connectStore, propTypes } from 'utils'
-import { createGetObject, createPager } from 'selectors'
+import { createGetObject } from 'selectors'
 import { FormattedDate } from 'react-intl'
-import includes from 'lodash/includes'
 
 import {
   Card,
@@ -39,8 +38,6 @@ const jobKeyToLabel = {
 }
 
 // ===================================================================
-
-const LOGS_PER_PAGE = 10
 
 @connectStore(() => ({object: createGetObject()}))
 class JobParam extends Component {
@@ -69,58 +66,61 @@ class JobReturn extends Component {
   }
 }
 
-class Log extends Component {
-  constructor (props) {
-    super(props)
-    this.state = {
-      seeCalls: false
-    }
-  }
+const Log = props => <ul className='list-group'>
+  {map(props.log.calls, call => <li key={call.callKey} className='list-group-item'>
+    <strong className='text-info'>{call.method}: </strong>
+    {map(call.params, (value, key) => <JobParam id={value} paramKey={key} key={key} />)}
+    {call.returnedValue && <span>{' '}<JobReturn id={call.returnedValue} /></span>}
+    {call.error && <Icon icon='error' />}
+  </li>)}
+</ul>
 
-  _toggleCalls = () => this.setState({seeCalls: !this.state.seeCalls})
+const showCalls = log => alert(<span>{_('job')} {log.jobId}</span>, <Log log={log} />)
 
-  render () {
-    const { log } = this.props
-    const { seeCalls } = this.state
-    return <tbody>
-      <tr>
-        <td>
-          <button type='button' onClick={this._toggleCalls} className={classnames('btn', 'btn-sm', {'btn-default': !log.hasErrors, 'btn-danger': log.hasErrors})}><Icon icon={seeCalls ? 'caret-up' : 'caret'} /></button>
-          {' '}
-          {log.jobId}
-        </td>
-        <td>{jobKeyToLabel[log.key]}</td>
-        <td><FormattedDate value={new Date(log.start)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' /></td>
-        <td><FormattedDate value={new Date(log.end)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' /></td>
-        <td><FormattedDuration duration={log.duration} /></td>
-        <td>
-          {log.status === 'Finished' &&
-            <span className={classnames('tag', {'tag-success': (!log.error && !log.hasErrors), 'tag-danger': (log.error || log.hasErrors)})}>{_('jobFinished')}</span>
-          }
-          {log.status !== 'Finished' &&
-            <span className={classnames('tag', {'tag-warning': log.status === 'Started', 'tag-default': !log.status})}>{_('jobFinished') || _('jobUnknown')}</span>
-          }
-          {' '}
-          <ActionRowButton btnStyle='default' handler={deleteJobsLog} handlerParam={log.logKey} icon='delete' />
-        </td>
-      </tr>
-      {seeCalls &&
-        <tr>
-          <td colSpan='6'>
-            <ul className='list-group'>
-              {map(log.calls, call => <li key={call.callKey} className='list-group-item'>
-                <strong className='text-info'>{call.method}: </strong>
-                {map(call.params, (value, key) => <JobParam id={value} paramKey={key} key={key} />)}
-                {call.returnedValue && <span>{' '}<JobReturn id={call.returnedValue} /></span>}
-                {call.error && <Icon icon='error' />}
-              </li>)}
-            </ul>
-          </td>
-        </tr>
+const LOG_COLUMNS = [
+  {
+    name: '',
+    itemRenderer: log => <ActionRowButton icon='preview' handler={showCalls} handlerParam={log} />
+  },
+  {
+    name: _('jobId'),
+    itemRenderer: log => log.jobId
+  },
+  {
+    name: _('job'),
+    itemRenderer: log => jobKeyToLabel[log.key]
+  },
+  {
+    name: _('jobStart'),
+    itemRenderer: log => log.start && <FormattedDate value={new Date(log.start)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />
+  },
+  {
+    name: _('jobEnd'),
+    itemRenderer: log => log.end && <FormattedDate value={new Date(log.end)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />
+  },
+  {
+    name: _('jobDuration'),
+    itemRenderer: log => log.duration && <FormattedDuration duration={log.duration} />
+  },
+  {
+    name: _('jobStatus'),
+    itemRenderer: log => <span>
+      {log.status === 'finished' &&
+        <span className={classnames('tag', {'tag-success': (!log.error && !log.hasErrors), 'tag-danger': (log.error || log.hasErrors)})}>{_('jobFinished')}</span>
       }
-    </tbody>
+      {log.status === 'started' &&
+        <span className='tag tag-warning'>{_('jobStarted')}</span>
+      }
+      {(log.status !== 'started' && log.status !== 'finished') &&
+        <span className='tag tag-default'>{_('jobUnknown')}</span>
+      }
+      {' '}
+      <span className='pull-right'>
+        <ActionRowButton btnStyle='default' handler={deleteJobsLog} handlerParam={log.logKey} icon='delete' />
+      </span>
+    </span>
   }
-}
+]
 
 @propTypes({
   jobKeys: propTypes.array.isRequired
@@ -130,14 +130,8 @@ export default class LogList extends Component {
     super(props)
     this.state = {
       logs: [],
-      logsToClear: [],
-      activePage: 1
+      logsToClear: []
     }
-    this.getActivePageLogs = createPager(
-      () => this.state.logs,
-      () => this.state.activePage,
-      LOGS_PER_PAGE
-    )
   }
 
   componentWillMount () {
@@ -171,7 +165,7 @@ export default class LogList extends Component {
             }
             entry.end = time
             entry.duration = time - entry.start
-            entry.status = 'Finished'
+            entry.status = 'finished'
           } else if (data.event === 'jobCall.start') {
             entry.calls[logKey] = {
               callKey: logKey,
@@ -194,7 +188,7 @@ export default class LogList extends Component {
 
       forEach(logs, log => {
         if (log.end === undefined) {
-          log.status = _('jobStarted')
+          log.status = 'started'
         }
         log.calls = orderBy(log.calls, ['time'], ['desc'])
       })
@@ -206,8 +200,6 @@ export default class LogList extends Component {
     })
   }
 
-  _onPageSelection = (_, event) => this.setState({activePage: event.eventKey})
-
   _deleteAllLogs = () => {
     return confirm({
       title: _('removeAllLogsModalTitle'),
@@ -216,47 +208,17 @@ export default class LogList extends Component {
   }
 
   render () {
-    const {
-      activePage,
-      logs
-    } = this.state
-    const activePageLogs = this.getActivePageLogs()
+    const { logs } = this.state
 
     return (
       <Card>
         <CardHeader>
-          <Icon icon='log' /> Logs<span className='pull-right'><ActionButton btnStyle='danger' handler={this._deleteAllLogs} icon='delete' /></span>
+          <Icon icon='log' /> Logs<span className='pull-right'><ActionButton disabled={!logs.length} btnStyle='danger' handler={this._deleteAllLogs} icon='delete' /></span>
         </CardHeader>
         <CardBlock>
-          {logs.length ? (
-            <div>
-              <table className='table'>
-                <thead className='thead-default'>
-                  <tr>
-                    <th>{_('jobId')}</th>
-                    <th>{_('job')}</th>
-                    <th>{_('jobStart')}</th>
-                    <th>{_('jobEnd')}</th>
-                    <th>{_('jobDuration')}</th>
-                    <th>{_('jobStatus')}</th>
-                  </tr>
-                </thead>
-                {map(activePageLogs, log => <Log key={log.logKey} log={log} />)}
-              </table>
-              {logs.length > LOGS_PER_PAGE &&
-                <Pagination
-                  first
-                  last
-                  prev
-                  next
-                  ellipsis
-                  boundaryLinks
-                  maxButtons={5}
-                  items={ceil(logs.length / LOGS_PER_PAGE)}
-                  activePage={activePage}
-                  onSelect={this._onPageSelection} />}
-            </div>
-          ) : <p>{_('noLogs')}</p>}
+          {logs.length
+            ? <SortedTable collection={logs} columns={LOG_COLUMNS} />
+            : <p>{_('noLogs')}</p>}
         </CardBlock>
       </Card>
     )
