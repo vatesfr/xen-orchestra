@@ -1,0 +1,44 @@
+#!/usr/bin/env node
+
+var join = require('path').join
+var writeFile = require('fs').writeFileSync
+
+// ===================================================================
+
+// ===================================================================
+
+var messages = require('../src/common/intl/messages')
+var lang = process.argv[2]
+
+var content = [
+  '// See http://momentjs.com/docs/#/use-it/browserify/',
+  'import \'moment/locale/' + lang + '\'',
+  '',
+  'import reactIntlData from \'react-intl/locale-data/' + lang + '\'',
+  'import { addLocaleData } from \'react-intl\'',
+  'addLocaleData(reactIntlData)',
+  '',
+  '// ===================================================================',
+  '',
+  'export default {'
+]
+
+var id, message
+for (id in messages) {
+  message = messages[id]
+
+  content.push(
+    '  // Original text: ' + JSON.stringify(message.defaultMessage, null),
+    '  ' + id + ': TODO(),'
+  )
+}
+
+content.push('}', '')
+
+writeFile(
+  join(__dirname, '../src/common/intl/locales/', lang + '.js'),
+  content.join('\n'),
+  {
+    flag: 'wx'
+  }
+)
