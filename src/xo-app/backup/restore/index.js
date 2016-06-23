@@ -197,9 +197,9 @@ const BK_COLUMNS = [
   {
     name: _('availableBackupsColumn'),
     itemRenderer: info => <span>
-      {!!info.simpleCount && <span>simple <span className='tag tag-pill tag-primary'>{info.simpleCount}</span></span>}
+      {!!info.simpleCount && <span>{_('simpleBackup')} <span className='tag tag-pill tag-primary'>{info.simpleCount}</span></span>}
       {' '}
-      {!!info.deltaCount && <span>simple <span className='tag tag-pill tag-primary'>{info.deltaCount}</span></span>}
+      {!!info.deltaCount && <span>{_('delta')} <span className='tag tag-pill tag-primary'>{info.deltaCount}</span></span>}
     </span>
   },
   {
