@@ -31,7 +31,7 @@ export const alert = (title, body) => {
             resolve()
             instance.close()
           }}>
-            {_('ok')}
+            {_('alertOk')}
           </Button>
         </Footer>
       </div>,
@@ -92,13 +92,13 @@ class Confirm extends Component {
           onClick={this._resolve}
           style={this._style}
         >
-          {_('ok')}
+          {_('confirmOk')}
         </Button>
         <Button
           bsStyle='secondary'
           onClick={this._reject}
         >
-          {_('cancel')}
+          {_('confirmCancel')}
         </Button>
       </Footer>
     </div>
