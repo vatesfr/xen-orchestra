@@ -7,7 +7,7 @@ curl -o /usr/local/bin/n https://raw.githubusercontent.com/visionmedia/n/master/
 sudo chmod +x /usr/local/bin/n
 sudo n stable
 sudo apt-get install --yes build-essential redis-server libpng12-dev git python-minimal
-git clone -b v5.x https://github.com/vatesfr/xo-server
+git clone -b next-release https://github.com/vatesfr/xo-server
 git clone -b v5.x https://github.com/OpenSoftIL/xo-web
 cd xo-server
 sudo npm install && npm run build
