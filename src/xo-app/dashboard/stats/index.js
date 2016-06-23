@@ -47,16 +47,10 @@ const computeMetricArray = (stats, {
   }
 
   // Stats of one object.
-  const values = []
-
-  forEach(stats, (value, i) => {
-    values.push({
-      value: +value,
-      date: timestampStart + 3600000 * i
-    })
-  })
-
-  metrics[metricKey].values[objectId] = values
+  metrics[metricKey].values[objectId] = map(stats, (value, i) => ({
+    value: +value,
+    date: timestampStart + 3600000 * i
+  }))
 }
 
 // ===================================================================

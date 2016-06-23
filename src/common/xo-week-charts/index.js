@@ -1,6 +1,6 @@
 import React from 'react'
 import _ from 'messages'
-import d3 from 'd3'
+import * as d3 from 'd3'
 import forEach from 'lodash/forEach'
 import map from 'lodash/map'
 import { Toggle } from 'form'
@@ -27,7 +27,7 @@ const X_AXIS_STYLE = {
 }
 
 const X_AXIS_TEXT_STYLE = {
-  'font-size': '80%',
+  'font-size': '125%',
   fill: 'black',
   stroke: 'transparent'
 }
@@ -42,7 +42,7 @@ const MOUSE_AREA_STYLE = {
 }
 
 const HOVER_LINE_STYLE = {
-  'stroke-width': '2',
+  'stroke-width': '2px',
   'stroke-dasharray': '5 5',
   stroke: 'red',
   fill: 'none'
@@ -59,6 +59,16 @@ const HORIZON_AREA_PATH_STYLE = {
   'stroke-opacity': 0.3,
   fill: 'darkgreen',
   stroke: 'transparent'
+}
+
+// ===================================================================
+
+function applyStyle (style) {
+  forEach(style, (value, key) => {
+    this.style(key, value)
+  })
+
+  return this
 }
 
 // ===================================================================
@@ -95,6 +105,18 @@ class XoWeekChart extends Component {
     valueRenderer: value => value
   }
 
+  _x = d3.scaleTime()
+  _y = d3.scaleLinear()
+
+  _bisectDate = d3.bisector(elem => elem.date).left
+
+  _xAxis = d3.axisBottom()
+    .scale(this._x)
+
+  _line = d3.line()
+    .x(elem => this._x(elem.date))
+    .y(elem => this._y(elem.value))
+
   _drawHorizonArea (data, max = d3.max(data, elem => elem.value)) {
     const intervalSize = max / HORIZON_AREA_N_STEPS
     const splittedData = []
@@ -128,24 +150,23 @@ class XoWeekChart extends Component {
       })
     }
 
-    this.x.domain(d3.extent(splittedData[0], elem => elem.date))
-    this.y.domain([0, max / HORIZON_AREA_N_STEPS])
+    this._x.domain(d3.extent(splittedData[0], elem => elem.date))
+    this._y.domain([0, max / HORIZON_AREA_N_STEPS])
 
-    const { svg } = this
+    const svg = this._svg
 
     svg.select('.horizon-area').selectAll('path').remove()
     forEach(splittedData, data => {
-      svg
-        .select('.horizon-area')
-          .append('path')
-            .datum(data)
-            .style(HORIZON_AREA_PATH_STYLE)
-            .attr('d', this.line)
+      svg.select('.horizon-area')
+        .append('path')
+          .datum(data)
+          .attr('d', this._line)
+          ::applyStyle(HORIZON_AREA_PATH_STYLE)
     })
   }
 
-  _draw = (props = this.props) => {
-    const { svg } = this
+  _draw (props = this.props) {
+    const svg = this._svg
 
     // 1. Update dimensions.
     const width = props.chartWidth
@@ -154,8 +175,8 @@ class XoWeekChart extends Component {
     const horizonAreaHeight = props.chartHeight
     const height = horizonAreaHeight + HORIZON_AREA_MARGIN
 
-    this.x.range([0, horizonAreaWidth])
-    this.y.range([horizonAreaHeight, 0])
+    this._x.range([0, horizonAreaWidth])
+    this._y.range([horizonAreaHeight, 0])
 
     svg
       .attr('width', width)
@@ -164,28 +185,25 @@ class XoWeekChart extends Component {
         .attr('width', horizonAreaWidth)
         .attr('height', horizonAreaHeight)
 
-    svg
-      .select('.hover-container')
-        .select('.hover-line')
-          .attr('y2', horizonAreaHeight)
+    svg.select('.hover-container')
+      .select('.hover-line')
+        .attr('y2', horizonAreaHeight)
 
     // 2. Draw horizon area.
     this._drawHorizonArea(props.data, props.maxValue)
 
     // 3. Update x axis.
-    svg
-      .select('.x-axis')
-        .call(this.xAxis)
-        .attr('transform', `translate(0, ${props.chartHeight})`)
-        .selectAll('text')
-          .style(X_AXIS_TEXT_STYLE)
+    svg.select('.x-axis')
+      .call(this._xAxis)
+      .attr('transform', `translate(0, ${props.chartHeight})`)
+      .selectAll('text')
+        ::applyStyle(X_AXIS_TEXT_STYLE)
 
     // 4. Update label.
-    svg
-      .select('.label')
+    svg.select('.label')
       .attr('dx', 5)
       .attr('dy', 20)
-        .text(props.label)
+      .text(props.label)
   }
 
   _handleMouseMove = () => {
@@ -196,9 +214,9 @@ class XoWeekChart extends Component {
 
   // Update hover area position and text.
   _updateTooltip (tooltipX) {
-    const date = this.x.invert(tooltipX)
+    const date = this._x.invert(tooltipX)
     const { data } = this.props
-    const index = this.bisectDate(data, date, 1)
+    const index = this._bisectDate(data, date, 1)
 
     const d0 = data[index - 1]
     const d1 = data[index]
@@ -209,75 +227,58 @@ class XoWeekChart extends Component {
     }
 
     const elem = date - d0.date > d1.date - date ? d1 : d0
-    const x = this.x(elem.date)
+    const x = this._x(elem.date)
 
     const { props } = this
-    const hover = this.svg.select('.hover-container')
+    const hover = this._svg.select('.hover-container')
 
-    hover
-      .select('.hover-line')
-        .attr('x1', x)
-        .attr('x2', x)
+    hover.select('.hover-line')
+      .attr('x1', x)
+      .attr('x2', x)
 
-    hover
-      .select('.hover-text')
-        .attr('dx', x + 5)
-        .attr('dy', props.chartHeight / 2)
-        .text(props.valueRenderer(elem.value))
+    hover.select('.hover-text')
+      .attr('dx', x + 5)
+      .attr('dy', props.chartHeight / 2)
+      .text(props.valueRenderer(elem.value))
   }
 
   componentDidMount () {
     // Horizon area ----------------------------------------
 
-    const svg = this.svg = d3
-      .select(this.refs.chart)
-        .append('svg')
-          .attr('transform', `translate(${HORIZON_AREA_MARGIN}, 0)`)
+    const svg = this._svg = d3.select(this.refs.chart)
+      .append('svg')
+      .attr('transform', `translate(${HORIZON_AREA_MARGIN}, 0)`)
 
-    svg.append('g').attr('class', 'x-axis').style(X_AXIS_STYLE)
-    svg.append('g').attr('class', 'horizon-area')
-    svg.append('text').attr('class', 'label').style(LABEL_STYLE)
+    svg.append('g')
+      .attr('class', 'x-axis')
+      ::applyStyle(X_AXIS_STYLE)
 
-    this.x = d3.time.scale()
-    this.y = d3.scale.linear()
+    svg.append('g')
+      .attr('class', 'horizon-area')
 
-    this.bisectDate = d3.bisector(elem => elem.date).left
-
-    this.xAxis = d3
-      .svg
-      .axis()
-      .scale(this.x)
-      .orient('bottom')
-
-    this.line = d3
-      .svg
-      .line()
-      .x(elem => this.x(elem.date))
-      .y(elem => this.y(elem.value))
+    svg.append('text')
+      .attr('class', 'label')
+      ::applyStyle(LABEL_STYLE)
 
     // Tooltip ---------------------------------------------
 
-    svg
-      .append('rect')
-        .attr('class', 'mouse-area')
-        .style(MOUSE_AREA_STYLE)
-        .on('mousemove', this._handleMouseMove)
+    svg.append('rect')
+      .attr('class', 'mouse-area')
+      .on('mousemove', this._handleMouseMove)
+      ::applyStyle(MOUSE_AREA_STYLE)
 
-    const hover = svg
-      .append('g')
-        .attr('class', 'hover-container')
-        .style('pointer-events', 'none')
+    const hover = svg.append('g')
+      .attr('class', 'hover-container')
+      ::applyStyle('pointer-events', 'none')
 
-    hover
-      .append('line')
-        .attr('class', 'hover-line')
-        .attr('y1', 0)
-        .style(HOVER_LINE_STYLE)
+    hover.append('line')
+      .attr('class', 'hover-line')
+      .attr('y1', 0)
+      ::applyStyle(HOVER_LINE_STYLE)
 
-    hover
-      .append('text')
-        .attr('class', 'hover-text')
-        .style(HOVER_TEXT_STYLE)
+    hover.append('text')
+      .attr('class', 'hover-text')
+      ::applyStyle(HOVER_TEXT_STYLE)
 
     this._draw()
   }
@@ -324,7 +325,7 @@ export default class XoWeekCharts extends Component {
   _handleResize = () => {
     const { container } = this.refs
     this.setState({
-      chartsWidth: container && container.offsetWidth || undefined
+      chartsWidth: container && container.offsetWidth
     })
   }
 
@@ -337,8 +338,8 @@ export default class XoWeekCharts extends Component {
 
     if (useScale) {
       max = 0
-      forEach(series, serie => {
-        forEach(serie.data, elem => {
+      forEach(series, series => {
+        forEach(series.data, elem => {
           max = Math.max(elem.value, max)
         })
       })
@@ -396,9 +397,9 @@ export default class XoWeekCharts extends Component {
           ref='container'
           className={styles.container}
         >
-          {chartsWidth && map(props.series, (serie, key) => (
+          {chartsWidth && map(props.series, (series, key) => (
             <XoWeekChart
-              {...serie}
+              {...series}
               chartWidth={chartsWidth}
               key={key}
               maxValue={maxValue}

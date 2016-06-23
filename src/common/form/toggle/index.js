@@ -76,7 +76,7 @@ export default class Toggle extends Component {
         />
         <input
           checked={props.value}
-          className={styles.toggle}
+          className={styles.checkbox}
           defaultChecked={props.defaultValue}
           disabled={props.disabled}
           onChange={this._onChange}
