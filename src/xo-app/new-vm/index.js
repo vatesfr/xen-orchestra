@@ -1,6 +1,7 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import BaseComponent from 'base-component'
+import clamp from 'lodash/clamp'
 import classNames from 'classnames'
 import debounce from 'lodash/debounce'
 import every from 'lodash/every'
@@ -48,6 +49,9 @@ import {
 
 import styles from './index.css'
 
+const NB_VMS_MIN = 2
+const NB_VMS_MAX = 100
+
 /* eslint-disable camelcase */
 const SectionContent = ({ summary, column, children }) => (
   <div className={classNames(
@@ -75,8 +79,8 @@ const Item = ({ label, children }) => (
 const getObject = createGetObject((_, id) => id)
 
 @connectStore(() => ({
-  templates: createGetObjectsOfType('VM-template').sort(),
-  networks: createGetObjectsOfType('network').sort()
+  networks: createGetObjectsOfType('network').sort(),
+  templates: createGetObjectsOfType('VM-template').sort()
 }))
 @injectIntl
 export default class NewVm extends BaseComponent {
@@ -91,7 +95,10 @@ export default class NewVm extends BaseComponent {
 
   getPoolNetworks = createSelector(
     () => this.props.networks,
-    () => this.state.state.pool && this.state.state.pool.id,
+    () => {
+      const { pool } = this.state.state
+      return pool && pool.id
+    },
     (networks, poolId) => filter(networks, network => network.$pool === poolId)
   )
 
@@ -144,9 +151,10 @@ export default class NewVm extends BaseComponent {
   }
 
   _updateNbVms = event => {
+    const nbVms = clamp(this.refs.nbVms.value, NB_VMS_MIN, NB_VMS_MAX)
+    this.refs.nbVms.value = nbVms
     const nameLabels = []
-    this.refs.nbVms.value = Math.max(Math.min(this.refs.nbVms.value, 100), 2)
-    for (let i = 1; i <= this.refs.nbVms.value; i++) {
+    for (let i = 1; i <= nbVms; i++) {
       nameLabels.push(`${this.state.state.name_label || 'VM'}_${i}`)
     }
     this._setState({ nameLabels })
@@ -184,14 +192,14 @@ export default class NewVm extends BaseComponent {
     // CPU weight should be "Normal" by default
     refs.cpuWeight && (refs.cpuWeight.value = 1)
     // Number of VMs should be 2 by default
-    refs.nbVms && (refs.nbVms.value = 2)
+    refs.nbVms && (refs.nbVms.value = NB_VMS_MIN)
     const previousPool = this.state.state.pool
     this._replaceState({
       bootAfterCreate: true,
       cpuWeight: 1,
       existingDisks: {},
       fastClone: true,
-      nameLabels: ['VM_1', 'VM_2'],
+      nameLabels: map(Array(NB_VMS_MIN), (_, index) => `VM_${index}`),
       pool: pool || previousPool,
       VDIs: [],
       VIFs: []
@@ -256,13 +264,9 @@ export default class NewVm extends BaseComponent {
       bootAfterCreate: state.bootAfterCreate,
       cloudConfig,
       coreOs: state.template.name_label === 'CoreOS'
+    }
 
-    }
-    if (state.multipleVms) {
-      return createVms(data, state.nameLabels)
-    } else {
-      return createVm(data)
-    }
+    return state.multipleVms ? createVms(data, state.nameLabels) : createVm(data)
   }
 
   _selectPool = pool =>
@@ -277,6 +281,14 @@ export default class NewVm extends BaseComponent {
     () => this.state.state.pool.id,
     poolId => disk => disk.$pool === poolId && disk.content_type === 'user'
   )
+
+  _getDefaultNetworkId = () => {
+    const network = find(this.getPoolNetworks(), network => {
+      const pif = getObject(store.getState(), network.PIFs[0])
+      return pif && pif.management
+    })
+    return network && network.id
+  }
 
   _initTemplate = template => {
     if (!template) {
@@ -309,10 +321,10 @@ export default class NewVm extends BaseComponent {
       })
     })
     if (VIFs.length === 0) {
-      const network = find(this.getPoolNetworks(), network => network.name_label === 'Host internal management network')
+      const networkId = this._getDefaultNetworkId()
       VIFs.push({
         id: this.getUniqueId(),
-        network: network && network.id
+        network: networkId
       })
     }
     const { state } = this.state
@@ -322,7 +334,7 @@ export default class NewVm extends BaseComponent {
       name_label,
       template,
       name_description: state.name_description === '' || !state.name_descriptionHasChanged ? template.name_description || '' : state.name_description,
-      nameLabels: [`${name_label}_1`, `${name_label}_2`],
+      nameLabels: map(Array(NB_VMS_MIN), (_, index) => `${name_label}_${index}`),
       // performances
       memory: template.memory.size,
       CPUs: template.CPUs.number,
@@ -373,10 +385,10 @@ export default class NewVm extends BaseComponent {
     this._setState({ VDIs: [ ...VDIs.slice(0, index), ...VDIs.slice(index + 1) ] })
   }
   _addInterface = () => {
-    const network = find(this.getPoolNetworks(), network => network.name_label === 'Host internal management network')
+    const networkId = this._getDefaultNetworkId()
     this._setState({ VIFs: [ ...this.state.state.VIFs, {
       id: this.getUniqueId(),
-      network: network && network.id
+      network: networkId
     }] })
   }
   _removeInterface = index => {
@@ -513,18 +525,18 @@ export default class NewVm extends BaseComponent {
           <Item>
             <Toggle ref='multipleVms' onChange={this._getOnChange('multipleVms')} />
             <div className='input-group'>
-              <input type='number' disabled={!multipleVms} min={2} max={100} ref='nbVms' className='form-control' defaultValue={2} />
+              <input type='number' disabled={!multipleVms} min={NB_VMS_MIN} max={NB_VMS_MAX} ref='nbVms' className='form-control' defaultValue={NB_VMS_MIN} />
               <span className='input-group-btn'>
                 <Button bsStyle='secondary' disabled={!multipleVms} onClick={this._updateNbVms}><Icon icon='arrow-right' /></Button>
               </span>
             </div>
-            <a style={{cursor: 'pointer'}} onClick={this._updateNameLabels}><Icon icon='refresh' /></a>
+            <a className={styles.refreshNames} onClick={this._updateNameLabels}><Icon icon='refresh' /></a>
           </Item>
         </LineItem>
         {multipleVms && <LineItem>
           {map(nameLabels, (nameLabel, index) =>
             <Item key={`nameLabel_${index}`}>
-              <input type='text' className='form-control' defaultValue={nameLabel} onChange={this._getOnChangeArrayValue('nameLabels', index)} ref={`nameLabel_${index}`} />
+              <input type='text' className='form-control' defaultValue={nameLabel} onChange={this._getOnChangeArrayValue('nameLabels', index)} />
             </Item>
           )}
         </LineItem>}
