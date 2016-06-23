@@ -5,6 +5,14 @@ var writeFile = require('fs').writeFileSync
 
 // ===================================================================
 
+function mapIn (object, iteratee) {
+  var result = []
+  for (var key in object) {
+    result.push(iteratee(object[key], key, object))
+  }
+  return result
+}
+
 // ===================================================================
 
 var messages = require('../src/common/intl/messages')
@@ -23,15 +31,12 @@ var content = [
   'export default {'
 ]
 
-var id, message
-for (id in messages) {
-  message = messages[id]
-
-  content.push(
-    '  // Original text: ' + JSON.stringify(message.defaultMessage, null),
-    '  ' + id + ': TODO(),'
-  )
-}
+content.push(mapIn(messages, function (message, id) {
+  return [
+    '  // Original text: ', JSON.stringify(message.defaultMessage, null), '\n',
+    '  ', id, ': undefined'
+  ].join('')
+}).join(',\n\n'))
 
 content.push('}', '')
 
