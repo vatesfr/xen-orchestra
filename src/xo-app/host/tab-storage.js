@@ -1,27 +1,29 @@
+import ActionRowButton from 'action-row-button'
+import Icon from 'icon'
+import React from 'react'
 import _ from 'intl'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
-import React from 'react'
-import ActionRowButton from 'action-row-button'
-import TabButton from 'tab-button'
-import { Container, Row, Col } from 'grid'
 import { BlockLink, formatSize } from 'utils'
+import { ButtonGroup } from 'react-bootstrap-4/lib'
+import { Container, Row, Col } from 'grid'
+import { Link } from 'react-router'
 import { Text } from 'editable'
 import { connectPbd, disconnectPbd, deletePbd, editSr } from 'xo'
-import { ButtonGroup } from 'react-bootstrap-4/lib'
 
 export default ({
+  host,
   srs,
   pbds
 }) => <Container>
   <Row>
     <Col className='text-xs-right'>
-      <TabButton
-        btnStyle='primary'
-        handler={() => null()} // TODO: add SR
-        icon='add'
-        labelId='addSrDeviceButton'
-      />
+      <Link
+        className='btn btn-primary'
+        to={`/new/sr?host=${host.id}`}
+      >
+        <Icon icon='add' />
+      </Link>
     </Col>
   </Row>
   <Row>
