@@ -1,8 +1,9 @@
 import React, { Component } from 'react'
 import { autobind, connectStore } from 'utils'
-import { getUser } from 'selectors'
+import { getLang, getUser } from 'selectors'
 
 @connectStore({
+  lang: getLang,
   user: getUser
 })
 export default class User extends Component {
@@ -12,12 +13,13 @@ export default class User extends Component {
   }
   render () {
     const {
+      lang,
       user
     } = this.props
 
     return <div>
       {user && user.email}
-      <select className='form-control' onChange={this.handleSelectLang} defaultValue={'en'} style={{width: '10em'}}>
+      <select className='form-control' onChange={this.handleSelectLang} value={lang} style={{width: '10em'}}>
         <option value='en'>English</option>
         <option value='fr'>Français</option>
         <option value='he'>עברי</option>
