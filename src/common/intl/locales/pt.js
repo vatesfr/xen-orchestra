@@ -513,7 +513,7 @@ export default {
   newSrTypeSelection: 'Selecionar o tipo de estocagem',
 
   // Original text: "Settings"
-  newSrSettings: 'Configuraçõesé,
+  newSrSettings: 'Configuraçõesé',
 
   // Original text: "Storage Usage"
   newSrUsage: 'Uso de estocagem',
