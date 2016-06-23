@@ -112,7 +112,7 @@ var messages = {
   // ----- Forms -----
   add: 'Add',
   remove: 'Remove',
-  preview: 'Aperçu',
+  preview: 'Preview',
   item: 'Item',
   noSelectedValue: 'No selected value',
   selectSubjects: 'Choose user(s) and/or group(s)',
@@ -642,7 +642,7 @@ var messages = {
 
   // ---- Tasks ---
   noTasks: 'No pending tasks',
-  xsTasks: 'Currently, there isn\'t any pending XenServer tasks',
+  xsTasks: 'Currently, there are not any pending XenServer tasks',
 
   // ---- Backup views ---
   listRemote: 'List Remote',
