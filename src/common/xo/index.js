@@ -1051,6 +1051,8 @@ export const editAcl = (
 export const createGroup = name => (
   call('group.create', {name})::tap(
     subscribeGroups.forceRefresh
+  ):: rethrow(
+    err => error(_('createGroup'), err.message || String(err))
   )
 )
 
@@ -1062,16 +1064,18 @@ export const setGroupName = (group, name) => (
 
 export const deleteGroup = group => (
   confirm({
-    title: 'Delete group',
-    body: <p>Are you sure you want to delete this group ?</p>
+    title: _('deleteGroup'),
+    body: <p>{_('deleteGroupConfirm')}</p>
   }).then(() => call('group.delete', resolveIds({id: group})))
     ::tap(subscribeGroups.forceRefresh)
-    ::rethrow(err => error('Delete Group', err.message || String(err)))
+    ::rethrow(err => error(_('deleteGroup'), err.message || String(err)))
 )
 
 export const removeUserFromGroup = (user, group) => (
   call('group.removeUser', resolveIds({id: group, userId: user}))::tap(
     subscribeGroups.forceRefresh
+  )::rethrow(
+    err => error(_('removeUserFromGroup'), err.message || String(err))
   )
 )
 
@@ -1093,11 +1097,11 @@ export const createUser = (email, password, permission) => (
 
 export const deleteUser = user => (
   confirm({
-    title: 'Delete user',
-    body: <p>Are you sure you want to delete this user ?</p>
+    title: _('deleteUser'),
+    body: <p>{_('deleteUserConfirm')}</p>
   }).then(() => call('user.delete', resolveIds({id: user})))
     ::tap(subscribeUsers.forceRefresh)
-    ::rethrow(err => error('Modify user', err.message || String(err)))
+    ::rethrow(err => error(_('deleteUser'), err.message || String(err)))
 )
 
 export const editUser = (user, { email, password, permission }) => (

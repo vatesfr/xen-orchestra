@@ -1,4 +1,5 @@
 import * as Editable from 'editable'
+import _, { messages } from 'messages'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import isEmpty from 'lodash/isEmpty'
@@ -7,6 +8,7 @@ import map from 'lodash/map'
 import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
 import { addSubscriptions } from 'utils'
+import { injectIntl } from 'react-intl'
 import { Password, Select } from 'form'
 
 import {
@@ -18,23 +20,23 @@ import {
 
 const permissions = {
   none: {
-    label: 'User',
+    label: _('userLabel'),
     value: 'none'
   },
   admin: {
-    label: 'Admin',
+    label: _('adminLabel'),
     value: 'admin'
   }
 }
 
 const USER_COLUMNS = [
   {
-    name: 'Email',
-    itemRenderer: user => <Editable.Text onChange={email => editUser(user, {email})} placeholder='email' value={user.email} />,
+    name: _('userNameColumn'),
+    itemRenderer: user => <Editable.Text onChange={email => editUser(user, {email})} value={user.email} />,
     sortCriteria: user => user.email
   },
   {
-    name: 'Permissions',
+    name: _('userPermissionColumn'),
     itemRenderer: user => <Select
       clearable={false}
       value={user.permission}
@@ -47,8 +49,8 @@ const USER_COLUMNS = [
     }
   },
   {
-    name: 'Password',
-    itemRenderer: user => <Editable.Password onChange={password => editUser(user, { password })} placeholder='password' value='' />
+    name: _('userPasswordColumn'),
+    itemRenderer: user => <Editable.Password onChange={password => editUser(user, { password })} value='' />
   },
   {
     name: '',
@@ -59,6 +61,7 @@ const USER_COLUMNS = [
 @addSubscriptions({
   users: cb => subscribeUsers(users => cb(keyBy(users, 'id')))
 })
+@injectIntl
 export default class Users extends Component {
   _create = () => {
     const {email, permission, password} = this.refs
@@ -70,7 +73,7 @@ export default class Users extends Component {
   }
 
   render () {
-    const { users } = this.props
+    const { users, intl } = this.props
 
     return <div>
       <form id='newUserForm' className='form-inline'>
@@ -79,7 +82,7 @@ export default class Users extends Component {
             type='text'
             ref='email'
             className='form-control'
-            placeholder='email'
+            placeholder={intl.formatMessage(messages.userName)}
             required
           />
         </div>
@@ -98,17 +101,17 @@ export default class Users extends Component {
         <div className='form-group'>
           <Password
             enableGenerator
-            placeholder='password'
+            placeholder={intl.formatMessage(messages.userPassword)}
             ref='password'
             required
           />
         </div>
         {' '}
-        <ActionButton form='newUserForm' icon='add' btnStyle='success' handler={this._create}>Create</ActionButton>
+        <ActionButton form='newUserForm' icon='add' btnStyle='success' handler={this._create}>{_('createUserButton')}</ActionButton>
       </form>
       <hr />
       {isEmpty(users)
-        ? <p><em>No users found</em></p>
+        ? <p><em>{_('noUserFound')}</em></p>
         : <SortedTable collection={users} columns={USER_COLUMNS} />}
     </div>
   }
