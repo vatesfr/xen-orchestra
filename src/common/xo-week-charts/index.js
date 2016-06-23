@@ -63,7 +63,7 @@ const HORIZON_AREA_PATH_STYLE = {
 
 // ===================================================================
 
-function applyStyle (style) {
+function setStyles (style) {
   forEach(style, (value, key) => {
     this.style(key, value)
   })
@@ -161,7 +161,7 @@ class XoWeekChart extends Component {
         .append('path')
           .datum(data)
           .attr('d', this._line)
-          ::applyStyle(HORIZON_AREA_PATH_STYLE)
+          ::setStyles(HORIZON_AREA_PATH_STYLE)
     })
   }
 
@@ -197,7 +197,7 @@ class XoWeekChart extends Component {
       .call(this._xAxis)
       .attr('transform', `translate(0, ${props.chartHeight})`)
       .selectAll('text')
-        ::applyStyle(X_AXIS_TEXT_STYLE)
+        ::setStyles(X_AXIS_TEXT_STYLE)
 
     // 4. Update label.
     svg.select('.label')
@@ -251,34 +251,34 @@ class XoWeekChart extends Component {
 
     svg.append('g')
       .attr('class', 'x-axis')
-      ::applyStyle(X_AXIS_STYLE)
+      ::setStyles(X_AXIS_STYLE)
 
     svg.append('g')
       .attr('class', 'horizon-area')
 
     svg.append('text')
       .attr('class', 'label')
-      ::applyStyle(LABEL_STYLE)
+      ::setStyles(LABEL_STYLE)
 
     // Tooltip ---------------------------------------------
 
     svg.append('rect')
       .attr('class', 'mouse-area')
       .on('mousemove', this._handleMouseMove)
-      ::applyStyle(MOUSE_AREA_STYLE)
+      ::setStyles(MOUSE_AREA_STYLE)
 
     const hover = svg.append('g')
       .attr('class', 'hover-container')
-      ::applyStyle('pointer-events', 'none')
+      ::setStyles('pointer-events', 'none')
 
     hover.append('line')
       .attr('class', 'hover-line')
       .attr('y1', 0)
-      ::applyStyle(HOVER_LINE_STYLE)
+      ::setStyles(HOVER_LINE_STYLE)
 
     hover.append('text')
       .attr('class', 'hover-text')
-      ::applyStyle(HOVER_TEXT_STYLE)
+      ::setStyles(HOVER_TEXT_STYLE)
 
     this._draw()
   }
