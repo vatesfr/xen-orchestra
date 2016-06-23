@@ -491,7 +491,7 @@ export default class Administration extends Component {
             <h5><Icon icon='resource-set' /> {_('resourceSets')}</h5>
           </CardHeader>
           <CardBlock>
-            {isEmpty(resourceSets)
+            {!isEmpty(resourceSets)
               ? map(resourceSets, (resourceSet, key) => (
                 <div key={key} className='p-b-1'>
                   <h5 className='form-inline clearfix'>
