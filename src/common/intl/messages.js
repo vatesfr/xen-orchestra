@@ -599,6 +599,7 @@ var messages = {
 
   // ----- Self -----
   resourceSets: 'Resource sets',
+  noResourceSets: 'No resource sets.',
   resourceSetName: 'Resource set name',
   resourceSetCreation: 'Creation and edition',
   saveResourceSet: 'Save',
