@@ -310,14 +310,14 @@ export default class Jobs extends Component {
         <div className='form-group'>
           <input type='text' ref='name' className='form-control' placeholder='Name of your Job' required />
         </div>
-        <SelectPlainObject ref='method' options={actions} optionKey='method' onChange={this._handleSelectMethod} placeholder='Select a xo-server API command' />
+        <SelectPlainObject ref='method' options={actions} optionKey='method' onChange={this._handleSelectMethod} placeholder={_('jobActionPlaceHolder')} />
         {action && <fieldset>
           <GenericInput ref='params' schema={action.info} label={action.method} required />
-          {job && <p className='text-warning'>You are editing job {job.name}({job.id}). Saving will override previous job state.</p>}
+          {job && <p className='text-warning'>{_('jobEditMessage', { name: job.name, id: job.id })}</p>}
           {process.env.XOA_PLAN > 3
-            ? <span><ActionButton form='newJobForm' handler={this._handleSubmit} icon='save' btnStyle='primary'>Save</ActionButton>
+            ? <span><ActionButton form='newJobForm' handler={this._handleSubmit} icon='save' btnStyle='primary'>{_('saveResourceSet')}</ActionButton>
               {' '}
-              <button type='button' className='btn btn-default' onClick={this._reset}>Reset</button></span>
+              <button type='button' className='btn btn-default' onClick={this._reset}>{_('resetResourceSet')}</button></span>
             : <span><Upgrade place='health' available={4} /></span>
           }
         </fieldset>
@@ -333,7 +333,7 @@ export default class Jobs extends Component {
           </tr>
         </thead>
         <tbody>
-          {isEmpty(jobs) && <tr><td><em>No jobs found</em></td></tr>}
+          {isEmpty(jobs) && <tr><td><em>{_('noJobs')}</em></td></tr>}
           {map(jobs, job => <tr key={job.id}>
             <td>
               <span>{job.name} <span className='text-muted'>({job.id})</span></span>

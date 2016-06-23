@@ -493,11 +493,20 @@ export const messages = {
   scheduleEditMessage: {
     defaultMessage: 'You are editing Schedule {name} ({id}). Saving will override previous schedule state.'
   },
+  jobEditMessage: {
+    defaultMessage: 'You are editing job {name} ({id}). Saving will override previous job state.'
+  },
   noScheduledJobs: {
     defaultMessage: 'No scheduled jobs.'
   },
+  noJobs: {
+    defaultMessage: 'No jobs found.'
+  },
   noSchedules: {
     defaultMessage: 'No schedules found'
+  },
+  jobActionPlaceHolder: {
+    defaultMessage: 'Select a xo-server API command'
   },
 
   // ------ New backup -----
