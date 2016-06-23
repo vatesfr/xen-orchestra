@@ -1,4 +1,4 @@
-import _ from 'intl'
+import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import find from 'lodash/find'
@@ -17,7 +17,7 @@ import { confirm } from 'modal'
 import { connectStore } from 'utils'
 import { Container } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
-import { FormattedDate } from 'react-intl'
+import { FormattedDate, injectIntl } from 'react-intl'
 import { info, error } from 'notification'
 import { SelectPlainObject, Toggle } from 'form'
 import { SelectSr } from 'select-objects'
@@ -32,7 +32,7 @@ import {
 
 const parseDate = date => +moment(date, 'YYYYMMDDTHHmmssZ').format('x')
 
-const isEmptyRemote = remote => !remote.lastVmbackups || !size(remote.lastVmbackups)
+const isEmptyRemote = remote => !remote.backupInfoByVm || !size(remote.backupInfoByVm)
 
 const backupOptionRenderer = backup => <span>
     {backup.type === 'delta' && <span><span className='tag tag-info'>{_('delta')}</span>{' '}</span>}
@@ -61,7 +61,7 @@ export default class Restore extends Component {
         remotes: orderBy(map(rawRemotes, r => {
           r = {...r}
           const older = find(remotes, {id: r.id})
-          older && older.lastVmbackups && (r.backups = older.lastVmbackups)
+          older && older.backupInfoByVm && (r.backupInfoByVm = older.backupInfoByVm)
           return r
         }), ['name'])
       })
@@ -69,17 +69,11 @@ export default class Restore extends Component {
   }
 
   _list = async id => {
-    let files
-    try {
-      files = await listRemote(id)
-    } catch (err) {
-      error('List Remote', err.message || String(err))
-      return
-    }
+    const files = await listRemote(id)
     const { remotes } = this.state
     const remote = find(remotes, {id})
     if (remote) {
-      const lastVmbackups = {}
+      const backupInfoByVm = {}
       forEach(files, file => {
         let backup
         const deltaInfo = /^vm_delta_(.*)_([^\/]+)\/([^_]+)_(.*)$/.exec(file)
@@ -108,14 +102,18 @@ export default class Restore extends Component {
             }
           }
         }
-        lastVmbackups[backup.name] || (lastVmbackups[backup.name] = [])
-        lastVmbackups[backup.name].push(backup)
+        backupInfoByVm[backup.name] || (backupInfoByVm[backup.name] = [])
+        backupInfoByVm[backup.name].push(backup)
       })
-      for (let vm in lastVmbackups) {
-        const bks = lastVmbackups[vm]
-        lastVmbackups[vm] = reduce(bks, (last, b) => b.date > last.date ? b : last)
+      for (let vm in backupInfoByVm) {
+        const bks = backupInfoByVm[vm]
+        backupInfoByVm[vm] = {
+          last: reduce(bks, (last, b) => b.date > last.date ? b : last),
+          simpleCount: reduce(bks, (sum, b) => b.type === 'simple' ? ++sum : sum, 0),
+          deltaCount: reduce(bks, (sum, b) => b.type === 'delta' ? ++sum : sum, 0)
+        }
       }
-      remote.lastVmbackups = map(lastVmbackups)
+      remote.backupInfoByVm = map(backupInfoByVm)
     }
     this.setState({remotes})
   }
@@ -138,11 +136,11 @@ export default class Restore extends Component {
             <span className='pull-right'>
               <ActionButton disabled={!r.enabled} icon='refresh' btnStyle='default' handler={this._list} handlerParam={r.id} />
             </span>
-            {r.lastVmbackups && <div>
+            {r.backupInfoByVm && <div>
               <br />
               {isEmptyRemote(r)
                 ? <span>{_('noBackup')}</span>
-                : <SortedTable collection={r.lastVmbackups} columns={BK_COLUMNS} />
+                : <SortedTable collection={r.backupInfoByVm} columns={BK_COLUMNS} />
               }
             </div>}
             <hr />
@@ -155,7 +153,6 @@ export default class Restore extends Component {
 
 const openImportModal = backup => confirm({
   title: _('importBackupModalTitle', {name: backup.name}),
-  // title: `Import a ${backup.name} Backup`,
   body: <ImportModalBody vmName={backup.name} remoteId={backup.remoteId} />
 }).then(doImport)
 
@@ -183,40 +180,43 @@ const doImport = ({ backup, remoteId, sr, start }) => {
 
 const BK_COLUMNS = [
   {
-    name: 'VM name',
-    itemRenderer: bk => bk.name,
-    sortCriteria: bk => bk.name
+    name: _('backupVmNameColumn'),
+    itemRenderer: info => info.last.name,
+    sortCriteria: info => info.last.name
   },
   {
-    name: 'Backup Tag',
-    itemRenderer: bk => bk.tag,
-    sortCriteria: bk => bk.tag
+    name: _('backupTagColumn'),
+    itemRenderer: info => info.last.tag,
+    sortCriteria: info => info.last.tag
   },
   {
-    name: 'Last Backup date',
-    itemRenderer: bk => <FormattedDate value={bk.date} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />,
-    sortCriteria: bk => bk.date
+    name: _('lastBackupColumn'),
+    itemRenderer: info => <span><FormattedDate value={info.last.date} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' /> ({info.last.type})</span>,
+    sortCriteria: info => info.last.date
   },
   {
-    name: 'Backup Type',
-    itemRenderer: bk => bk.type,
-    sortCriteria: bk => bk.type
+    name: _('availableBackupsColumn'),
+    itemRenderer: info => <span>
+      {!!info.simpleCount && <span>simple <span className='tag tag-pill tag-primary'>{info.simpleCount}</span></span>}
+      {' '}
+      {!!info.deltaCount && <span>simple <span className='tag tag-pill tag-primary'>{info.deltaCount}</span></span>}
+    </span>
   },
   {
-    name: 'Action',
-    itemRenderer: bk => <Tooltip content='Restore VM'><ActionRowButton icon='menu-backup-restore' btnStyle='success' handler={openImportModal} handlerParam={bk} /></Tooltip>
+    name: _('restoreColumn'),
+    itemRenderer: info => <Tooltip content={_('restoreTip')}><ActionRowButton icon='menu-backup-restore' btnStyle='success' handler={openImportModal} handlerParam={info.last} /></Tooltip>
   }
 ]
 
 const srWritablePredicate = sr => sr.content_type !== 'iso'
-const notifyImportStart = () => info('VM import', 'Starting your backup import')
+const notifyImportStart = () => info(_('importBackupTitle'), _('importBackupMessage'))
 
 @connectStore(() => ({
   writableSrs: createGetObjectsOfType('SR').filter(
     [ sr => sr.content_type !== 'iso' ]
   ).sort()
 }), { withRef: true })
-class ImportModalBody extends Component {
+class _ModalBody extends Component {
   constructor (props) {
     super(props)
     this.state = {}
@@ -276,9 +276,11 @@ class ImportModalBody extends Component {
     return <div>
       <SelectSr ref='sr' predicate={srWritablePredicate} />
       <br />
-      <SelectPlainObject ref='backup' options={this.state.options} optionKey='path' optionRenderer={backupOptionRenderer} placeholder={_('importBackupModalSelectBackup')} />
+      <SelectPlainObject ref='backup' options={this.state.options} optionKey='path' optionRenderer={backupOptionRenderer} placeholder={this.props.intl.formatMessage(messages.importBackupModalSelectBackup)} />
       <br />
       <Toggle ref='start' /> {_('importBackupModalStart')}
     </div>
   }
 }
+
+const ImportModalBody = injectIntl(_ModalBody, {withRef: true})

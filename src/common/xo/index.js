@@ -939,6 +939,8 @@ export const editRemote = (remote, {name, url}) => (
 export const listRemote = id => (
   call('remote.list', {id})::tap(
     subscribeRemotes.forceRefresh
+  )::rethrow(
+    err => error(_('listRemote'), err.message || String(err))
   )
 )
 

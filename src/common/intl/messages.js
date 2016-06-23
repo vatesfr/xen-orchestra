@@ -641,12 +641,22 @@ var messages = {
   xsTasks: 'Currently, there isn\'t any pending XenServer tasks',
 
   // ---- Backup views ---
+  listRemote: 'List Remote',
+  simpleBackup: 'simple',
   delta: 'delta',
   restoreBackups: 'Restore Backups',
   noRemotes: 'No remotes',
   remoteEnabled: 'enabled',
   remoteError: 'error',
-  noBackup: 'No backups available',
+  noBackup: 'No backup available',
+  backupVmNameColumn: 'VM Name',
+  backupTagColumn: 'Backup Tag',
+  lastBackupColumn: 'Last Backup',
+  availableBackupsColumn: 'Available Backups',
+  restoreColumn: 'Restore',
+  restoreTip: 'Restore VM',
+  importBackupTitle: 'Import VM',
+  importBackupMessage: 'Starting your backup import',
 
   // ----- Modals -----
   startVmsModalTitle: 'Start VM{vms, plural, one {} other {s}}',
