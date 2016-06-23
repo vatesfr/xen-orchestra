@@ -1,4 +1,6 @@
-import { invoke } from 'utils'
+import cookies from 'cookies-js'
+
+import invoke from '../invoke'
 
 import * as actions from './actions'
 
@@ -72,8 +74,12 @@ const combineActionHandlers = invoke(
 // ===================================================================
 
 export default {
-  lang: combineActionHandlers('en', {
-    [actions.selectLang]: (_, lang) => lang
+  lang: combineActionHandlers(cookies.get('lang') || 'en', {
+    [actions.selectLang]: (_, lang) => {
+      cookies.set('lang', lang)
+
+      return lang
+    }
   }),
 
   permissions: combineActionHandlers({}, {
