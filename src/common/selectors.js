@@ -398,4 +398,8 @@ export const createGetObjectMessages = objectSelector =>
     )
   ).sort()
 
+// Example of use:
+// import store from 'store'
+// const object = getObject(store.getState(), objectId)
+// ...
 export const getObject = createGetObject((_, id) => id)

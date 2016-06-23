@@ -12,15 +12,15 @@ import trim from 'lodash/trim'
 import Wizard, { Section } from 'wizard'
 import { confirm } from 'modal'
 import { connectStore, formatSize } from 'utils'
+import { GenericSelect, SelectHost } from 'select-objects'
+import { injectIntl } from 'react-intl'
+import { Password } from 'form'
 import {
   createFilter,
   createGetObjectsOfType,
   createSelector,
   getObject
 } from 'selectors'
-import { GenericSelect, SelectHost } from 'select-objects'
-import { injectIntl } from 'react-intl'
-import { Password } from 'form'
 
 class SelectIqn extends GenericSelect {
   _computeOptions (props) {

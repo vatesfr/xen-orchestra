@@ -4,11 +4,11 @@ import React from 'react'
 import _ from 'intl'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
-import { Text } from 'editable'
-import { Link } from 'react-router'
-import { Container, Row, Col } from 'grid'
-import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { BlockLink, formatSize } from 'utils'
+import { ButtonGroup } from 'react-bootstrap-4/lib'
+import { Container, Row, Col } from 'grid'
+import { Link } from 'react-router'
+import { Text } from 'editable'
 import { connectPbd, disconnectPbd, deletePbd, editSr } from 'xo'
 
 export default ({
@@ -20,7 +20,7 @@ export default ({
     <Col className='text-xs-right'>
       <Link
         className='btn btn-primary'
-        to={{ pathname: '/new/sr', query: { host: host.id } }}
+        to={`/new/sr?host=${host.id}`}
       >
         <Icon icon='add' />
       </Link>
