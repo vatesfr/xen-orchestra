@@ -587,7 +587,7 @@ export const messages = {
     defaultMessage: 'Create'
   },
 
-  // ----- Acls ------
+  // ----- Acls, Users, Groups ------
   subjectName: {
     defaultMessage: 'Users/Groups'
   },
@@ -596,6 +596,81 @@ export const messages = {
   },
   roleName: {
     defaultMessage: 'Role'
+  },
+  newGroupName: {
+    defaultMessage: 'New Group Name'
+  },
+  createGroup: {
+    defaultMessage: 'Create Group'
+  },
+  createGroupButton: {
+    defaultMessage: 'Create'
+  },
+  deleteGroup: {
+    defaultMessage: 'Delete Group'
+  },
+  deleteGroupConfirm: {
+    defaultMessage: 'Are you sure you want to delete this group?'
+  },
+  deleteUSer: {
+    defaultMessage: 'Delete User'
+  },
+  removeUserFromGroup: {
+    defaultMessage: 'Remove user from Group'
+  },
+  deleteUserConfirm: {
+    defaultMessage: 'Are you sure you want to delete this user?'
+  },
+  unknownUser: {
+    defaultMessage: 'unknown user'
+  },
+  noGroupFound: {
+    defaultMessage: 'No group found'
+  },
+  groupNameColumn: {
+    defaultMessage: 'Name'
+  },
+  groupUsersColumn: {
+    defaultMessage: 'Users'
+  },
+  addUserToGroupColumn: {
+    defaultMessage: 'Add User'
+  },
+  userNameColumn: {
+    defaultMessage: 'Email'
+  },
+  userPermissionColumn: {
+    defaultMessage: 'Permissions'
+  },
+  userPasswordColumn: {
+    defaultMessage: 'Password'
+  },
+  userName: {
+    defaultMessage: 'Email'
+  },
+  userPassword: {
+    defaultMessage: 'Password'
+  },
+  createUserButton: {
+    defaultMessage: 'Create'
+  },
+  noUserFound: {
+    defaultMessage: 'No user found'
+  },
+  userLabel: {
+    defaultMessage: 'User'
+  },
+  adminLabel: {
+    defaultMessage: 'Admin'
+  },
+  noUserInGroup: {
+    defaultMessage: 'No user in group'
+  },
+  countUsers: {
+    defaultMessage: '{users} user{users, plural, one {} other {s}}'
+  },
+  selectPermission: {
+    defaultMessage: 'Select Permission'
   },
 
   // ----- Plugins ------
