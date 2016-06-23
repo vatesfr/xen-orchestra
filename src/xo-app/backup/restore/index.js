@@ -1,4 +1,4 @@
-import _ from 'intl'
+import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import find from 'lodash/find'
@@ -17,7 +17,7 @@ import { confirm } from 'modal'
 import { connectStore } from 'utils'
 import { Container } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
-import { FormattedDate } from 'react-intl'
+import { FormattedDate, injectIntl } from 'react-intl'
 import { info, error } from 'notification'
 import { SelectPlainObject, Toggle } from 'form'
 import { SelectSr } from 'select-objects'
@@ -69,13 +69,7 @@ export default class Restore extends Component {
   }
 
   _list = async id => {
-    let files
-    try {
-      files = await listRemote(id)
-    } catch (err) {
-      error('List Remote', err.message || String(err))
-      return
-    }
+    const files = await listRemote(id)
     const { remotes } = this.state
     const remote = find(remotes, {id})
     if (remote) {
@@ -159,7 +153,6 @@ export default class Restore extends Component {
 
 const openImportModal = backup => confirm({
   title: _('importBackupModalTitle', {name: backup.name}),
-  // title: `Import a ${backup.name} Backup`,
   body: <ImportModalBody vmName={backup.name} remoteId={backup.remoteId} />
 }).then(doImport)
 
@@ -187,22 +180,22 @@ const doImport = ({ backup, remoteId, sr, start }) => {
 
 const BK_COLUMNS = [
   {
-    name: 'VM name',
+    name: _('backupVmNameColumn'),
     itemRenderer: info => info.last.name,
     sortCriteria: info => info.last.name
   },
   {
-    name: 'Backup Tag',
+    name: _('backupTagColumn'),
     itemRenderer: info => info.last.tag,
     sortCriteria: info => info.last.tag
   },
   {
-    name: 'Last Backup',
+    name: _('lastBackupColumn'),
     itemRenderer: info => <span><FormattedDate value={info.last.date} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' /> ({info.last.type})</span>,
     sortCriteria: info => info.last.date
   },
   {
-    name: 'Available backups',
+    name: _('availableBackupsColumn'),
     itemRenderer: info => <span>
       {!!info.simpleCount && <span>simple <span className='tag tag-pill tag-primary'>{info.simpleCount}</span></span>}
       {' '}
@@ -210,20 +203,20 @@ const BK_COLUMNS = [
     </span>
   },
   {
-    name: 'Import',
-    itemRenderer: info => <Tooltip content='Restore VM'><ActionRowButton icon='menu-backup-restore' btnStyle='success' handler={openImportModal} handlerParam={info.last} /></Tooltip>
+    name: _('restoreColumn'),
+    itemRenderer: info => <Tooltip content={_('restoreTip')}><ActionRowButton icon='menu-backup-restore' btnStyle='success' handler={openImportModal} handlerParam={info.last} /></Tooltip>
   }
 ]
 
 const srWritablePredicate = sr => sr.content_type !== 'iso'
-const notifyImportStart = () => info('VM import', 'Starting your backup import')
+const notifyImportStart = () => info(_('importBackupTitle'), _('importBackupMessage'))
 
 @connectStore(() => ({
   writableSrs: createGetObjectsOfType('SR').filter(
     [ sr => sr.content_type !== 'iso' ]
   ).sort()
 }), { withRef: true })
-class ImportModalBody extends Component {
+class _ModalBody extends Component {
   constructor (props) {
     super(props)
     this.state = {}
@@ -283,9 +276,11 @@ class ImportModalBody extends Component {
     return <div>
       <SelectSr ref='sr' predicate={srWritablePredicate} />
       <br />
-      <SelectPlainObject ref='backup' options={this.state.options} optionKey='path' optionRenderer={backupOptionRenderer} placeholder={_('importBackupModalSelectBackup')} />
+      <SelectPlainObject ref='backup' options={this.state.options} optionKey='path' optionRenderer={backupOptionRenderer} placeholder={this.props.intl.formatMessage(messages.importBackupModalSelectBackup)} />
       <br />
       <Toggle ref='start' /> {_('importBackupModalStart')}
     </div>
   }
 }
+
+const ImportModalBody = injectIntl(_ModalBody, {withRef: true})
