@@ -5,10 +5,13 @@ var forEach = require('lodash/forEach')
 var isString = require('lodash/isString')
 
 var messages = {
-  ok: 'OK',
-  cancel: 'Cancel',
   editableLongClickPlaceholder: 'Long click to edit',
   editableClickPlaceholder: 'Click to edit',
+
+  // ----- Modals -----
+  alertOk: 'OK',
+  confirmOk: 'OK',
+  confirmCancel: 'Cancel',
 
   // ----- Titles -----
   homePage: 'Home',

@@ -9,10 +9,13 @@ addLocaleData(reactIntlData)
 
 export default {
   // Original text: "OK"
-  ok: undefined,
+  confirmOk: undefined,
 
   // Original text: "Cancel"
-  cancel: undefined,
+  confirmCancel: undefined,
+
+  // Original text: "OK"
+  alertOk: undefined,
 
   // Original text: "Long click to edit"
   editableLongClickPlaceholder: undefined,

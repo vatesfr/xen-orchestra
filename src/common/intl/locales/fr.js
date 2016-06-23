@@ -8,10 +8,14 @@ addLocaleData(reactIntlData)
 // ===================================================================
 
 export default {
-  ok: 'OK',
-  cancel: 'Annuler',
   editableLongClickPlaceholder: 'Clic long pour éditer',
   editableClickPlaceholder: 'Cliquer pour éditer',
+
+  // ----- Modals -----
+  alertOk: 'OK',
+  confirmOk: 'OK',
+  confirmCancel: 'Annuler',
+
   // ----- General Menu -----
   dashboardPage: 'Tableau de bord',
   overviewDashboardPage: 'Vue d\'ensemble',
