@@ -1,5 +1,5 @@
 import React from 'react'
-import _ from 'messages'
+import _ from 'intl'
 import * as d3 from 'd3'
 import forEach from 'lodash/forEach'
 import map from 'lodash/map'
