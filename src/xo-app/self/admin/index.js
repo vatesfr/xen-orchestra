@@ -1,11 +1,13 @@
 import ActionButton from 'action-button'
+import Component from 'base-component'
 import Icon from 'icon'
-import React, { Component } from 'react'
+import React from 'react'
 import _, { messages } from 'intl'
 import differenceBy from 'lodash/differenceBy'
 import filter from 'lodash/filter'
 import forEach from 'lodash/forEach'
 import intersection from 'lodash/intersection'
+import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
 import reduce from 'lodash/reduce'
@@ -443,13 +445,6 @@ const Limits = propTypes({
 // ===================================================================
 
 export default class Administration extends Component {
-  constructor (props) {
-    super(props)
-    this.state = {
-      resourceSets: []
-    }
-  }
-
   componentWillMount () {
     this.componentWillUnmount = subscribeResourceSets(resourceSets => {
       this.setState({
@@ -496,7 +491,7 @@ export default class Administration extends Component {
             <h5><Icon icon='resource-set' /> {_('resourceSets')}</h5>
           </CardHeader>
           <CardBlock>
-            {resourceSets.length
+            {isEmpty(resourceSets)
               ? map(resourceSets, (resourceSet, key) => (
                 <div key={key} className='p-b-1'>
                   <h5 className='form-inline clearfix'>
