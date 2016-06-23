@@ -5,11 +5,11 @@ import map from 'lodash/map'
 import moment from 'moment'
 import sortBy from 'lodash/sortBy'
 import times from 'lodash/times'
-import { extent } from 'd3-array'
 import {
+  extent,
   interpolateViridis,
   scaleSequential
-} from 'd3-scale'
+} from 'd3'
 import { FormattedTime } from 'react-intl'
 
 import Component from '../base-component'

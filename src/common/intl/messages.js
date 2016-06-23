@@ -531,6 +531,9 @@ var messages = {
   // --- Stats board --
   weekHeatmapData: '{value} {date, date, medium}',
   weekHeatmapNoData: 'No data.',
+  weeklyHeatmap: 'Weekly Heatmap',
+  weeklyCharts: 'Weekly Charts',
+  weeklyChartsScaleInfo: 'Synchronize scale:',
   statsDashboardGenericErrorTitle: 'Stats error',
   statsDashboardGenericErrorMessage: 'There is no stats available for:',
   noSelectedMetric: 'No selected metric',

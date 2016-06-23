@@ -129,6 +129,11 @@
     @extend .fa-toggle-off;
   }
 
+  &-scale {
+    @extend .fa;
+    @extend .fa-balance-scale;
+  }
+
   &-asc {
     @extend .fa;
     @extend .fa-arrow-up;
