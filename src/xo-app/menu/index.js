@@ -10,6 +10,7 @@ import { Button } from 'react-bootstrap-4/lib'
 import { connectStore, noop, getXoaPlan } from 'utils'
 import { createGetObjectsOfType, getLang, getUser } from 'selectors'
 import { signOut } from 'xo'
+import { UpdateTag } from '../xoa-updates'
 
 import styles from './index.css'
 
@@ -73,7 +74,7 @@ export default class Menu extends Component {
         { to: '/backup/new', icon: 'menu-backup-new', label: 'backupNewPage' },
         { to: '/backup/restore', icon: 'menu-backup-restore', label: 'backupRestorePage' }
       ]},
-      { to: '/xoa-update', icon: 'menu-update', label: 'updatePage' },
+      { to: '/xoa-update', icon: 'menu-update', label: 'updatePage', extra: <UpdateTag /> },
       { to: '/settings/servers', icon: 'menu-settings', label: 'settingsPage', subMenu: [
         { to: '/settings/servers', icon: 'menu-settings-servers', label: 'settingsServersPage' },
         { to: '/settings/users', icon: 'menu-settings-users', label: 'settingsUsersPage' },
@@ -175,13 +176,14 @@ export default class Menu extends Component {
 
 const MenuLinkItem = props => {
   const { item } = props
-  const { to, icon, label, subMenu, pill } = item
+  const { to, icon, label, subMenu, pill, extra } = item
 
   return <li className='nav-item xo-menu-item'>
     <Link activeClassName='active' className={classNames('nav-link', styles.centerCollapsed)} to={to}>
       <Icon className={classNames(pill && styles.hiddenCollapsed)} icon={`${icon}`} size='lg' fixedWidth />
       <span className={styles.hiddenCollapsed}>{' '}{_(label)}&nbsp;</span>
       {pill > 0 && <span className='tag tag-pill tag-primary'>{pill}</span>}
+      {extra}
     </Link>
     {subMenu && <SubMenu items={subMenu} />}
   </li>

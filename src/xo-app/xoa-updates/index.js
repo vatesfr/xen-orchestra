@@ -2,21 +2,26 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import ansiUp from 'ansi_up'
 import assign from 'lodash/assign'
-import BaseComponent from 'base-component'
+import Component from 'base-component'
 import Icon from 'icon'
-import Page from '../page'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
+import Page from '../page'
 import React from 'react'
+import Tooltip from 'tooltip'
 import xoaUpdater, { exposeTrial, isTrialRunning } from 'xoa-updater'
 import { confirm } from 'modal'
-import { Container } from 'grid'
 import { connectStore } from 'utils'
+import { Container } from 'grid'
 import { error } from 'notification'
-import { serverVersion } from 'xo'
 import { Password } from 'form'
+import { serverVersion } from 'xo'
 
 import pkg from '../../../package'
+
+if (+process.env.XOA_PLAN < 5) {
+  xoaUpdater.start()
+}
 
 const HEADER = <Container>
   <h2><Icon icon='menu-update' /> {_('updatePage')}</h2>
@@ -44,7 +49,7 @@ const upgrade = () => xoaUpdater.upgrade()
     trial: state.xoaTrialState
   }
 })
-export default class XoaUpdates extends BaseComponent {
+export default class XoaUpdates extends Component {
   // These 3 inputs are "controlled" http://facebook.github.io/react/docs/forms.html#controlled-components
   _handleProxyHostChange = event => this.setState({proxyHost: event.target.value || ''})
   _handleProxyPortChange = event => this.setState({proxyPort: event.target.value || ''})
@@ -301,3 +306,40 @@ export default class XoaUpdates extends BaseComponent {
     </Page>
   }
 }
+
+export const UpdateTag = connectStore((state) => {
+  return {
+    configuration: state.xoaConfiguration,
+    log: state.xoaUpdaterLog,
+    registration: state.xoaRegisterState,
+    state: state.xoaUpdaterState,
+    trial: state.xoaTrialState
+  }
+})(props => {
+  const { state } = props
+  const icons = {
+    'disconnected': 'update-unknown',
+    'connected': 'update-unknown',
+    'upToDate': 'check',
+    'upgradeNeeded': 'update-ready',
+    'registerNeeded': 'not-registered',
+    'error': 'alarm'
+  }
+  const classNames = {
+    'disconnected': 'text-warning',
+    'connected': 'text-info',
+    'upToDate': 'text-success',
+    'upgradeNeeded': 'text-primary',
+    'registerNeeded': 'text-warning',
+    'error': 'text-danger'
+  }
+  const tooltips = {
+    'disconnected': _('noUpdateInfo'),
+    'connected': _('waitingUpdateInfo'),
+    'upToDate': _('upToDate'),
+    'upgradeNeeded': _('mustUpgrade'),
+    'registerNeeded': _('registerNeeded'),
+    'error': _('updaterError')
+  }
+  return <Tooltip content={tooltips[state]}><Icon className={classNames[state]} icon={icons[state]} /></Tooltip>
+})
