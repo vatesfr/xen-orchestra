@@ -2,10 +2,11 @@ import * as Editable from 'editable'
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
+import Component from 'base-component'
 import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
-import React, { Component } from 'react'
+import React from 'react'
 import SortedTable from 'sorted-table'
 import { addSubscriptions } from 'utils'
 import { injectIntl } from 'react-intl'
@@ -62,13 +63,16 @@ const USER_COLUMNS = [
 @injectIntl
 export default class Users extends Component {
   _create = () => {
-    const {email, permission, password} = this.refs
+    const {email, password} = this.refs
+    const { permission } = this.state
     return createUser(email.value, password.value, permission.value)
       .then(() => {
         email.value = password.value = ''
-        permission.value = permissions.none.value
+        this.setState({permission: undefined})
       })
   }
+
+  _selectPermission = permission => this.setState({permission})
 
   render () {
     const { users, intl } = this.props
@@ -90,7 +94,9 @@ export default class Users extends Component {
             clearable={false}
             ref='permission'
             options={map(permissions)}
+            value={this.state.permission || permissions.none}
             placeholder={intl.formatMessage(messages.selectPermission)}
+            onChange={this._selectPermission}
             required
           />
         </div>
