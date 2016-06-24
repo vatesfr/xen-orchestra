@@ -84,7 +84,7 @@ export default {
   newMenu: 'Novo(a)',
 
   // Original text: "Tasks"
-  taskMenu: 'Tarefas',
+  taskMenu: 'Atividades',
 
   // Original text: "VM"
   newVmPage: 'VM',
