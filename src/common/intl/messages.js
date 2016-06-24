@@ -150,6 +150,8 @@ var messages = {
   schedulingEachSelectedMinute: 'Each selected minute',
   schedulingReset: 'Reset',
   unknownSchedule: 'Unknown',
+  backupEditNotFoundTitle: 'Cannot edit backup',
+  backupEditNotFoundMessage: 'Missing required info for edition',
   job: 'Job',
   jobId: 'Job ID',
   jobName: 'Name',
