@@ -1,9 +1,9 @@
 import Component from 'base-component'
 import cookies from 'cookies-js'
 import React from 'react'
+import _, { IntlProvider } from 'intl'
 import { blockXoaAccess } from 'xoa-updater'
 import { connectStore, routes } from 'utils'
-import { _, IntlProvider } from 'intl'
 import { Notification } from 'notification'
 // import {
 //   keyHandler
