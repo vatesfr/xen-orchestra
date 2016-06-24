@@ -109,7 +109,7 @@ export default class VmItem extends Component {
               </Ellipsis>
             </EllipsisContainer>
           </Col>
-          <Col mediumSize={2} className='hidden-sm-down'>
+          {container && <Col mediumSize={2} className='hidden-sm-down'>
             {this._isRunning
               ? <XoSelect
                 labelProp='name_label'
@@ -124,7 +124,7 @@ export default class VmItem extends Component {
               </XoSelect>
               : <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>
             }
-          </Col>
+          </Col>}
           <Col mediumSize={1} className={styles.itemExpandRow}>
             <a className={styles.itemExpandButton}
               onClick={this._toggleExpanded}>
