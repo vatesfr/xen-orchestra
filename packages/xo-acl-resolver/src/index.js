@@ -81,6 +81,8 @@ const checkAuthorizationByTypes = {
 
   VM: or(checkSelf, checkMember('$container')),
 
+  'VM-controller': checkMember('$container'),
+
   'VM-snapshot': checkMember('$snapshot_of'),
 
   'VM-template': authorized
