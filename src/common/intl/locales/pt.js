@@ -90,7 +90,7 @@ export default {
   newVmPage: 'VM',
 
   // Original text: "Storage"
-  newSrPage: 'Storage',
+  newSrPage: 'Armazenamento (Storage)',
 
   // Original text: "Server"
   newServerPage: 'Servidor',
@@ -510,13 +510,13 @@ export default {
   newSrGeneral: 'Geral',
 
   // Original text: "Select Storage Type:"
-  newSrTypeSelection: 'Selecionar o tipo de estocagem',
+  newSrTypeSelection: 'Selecionar o tipo de armazenamento (storage)',
 
   // Original text: "Settings"
   newSrSettings: 'Configuraçõesé',
 
   // Original text: "Storage Usage"
-  newSrUsage: 'Uso de estocagem',
+  newSrUsage: 'Uso de armazenamento (storage)',
 
   // Original text: "Summary"
   newSrSummary: 'Sumário',
@@ -750,7 +750,7 @@ export default {
   srRemoveButton: 'Remover esta SR',
 
   // Original text: "No VDIs in this storage"
-  srNoVdis: 'Nenhuma VDI em estocagem',
+  srNoVdis: 'Nenhuma VDI neste armazenamento',
 
   // Original text: "Hosts"
   hostsTabName: 'Hosts',
@@ -834,7 +834,7 @@ export default {
   emergencyModeLabel: 'Modo de emergência',
 
   // Original text: "Storage"
-  storageTabName: 'Estocagem',
+  storageTabName: 'Armazenamento',
 
   // Original text: "Patches"
   patchesTabName: 'Correções',
@@ -933,7 +933,7 @@ export default {
   pifNoInterface: 'Nenhuma interface física foi detectada',
 
   // Original text: "Add a storage"
-  addSrDeviceButton: 'Adicionar uma estocagem',
+  addSrDeviceButton: 'Adicionar um armazenamento',
 
   // Original text: "Name"
   srNameLabel: 'Nome',
@@ -957,7 +957,7 @@ export default {
   srNotShared: 'Não compartilhado',
 
   // Original text: "No storage detected"
-  pbdNoSr: 'Nenhuma estocagem detectada',
+  pbdNoSr: 'Nenhum armazenamento detectado',
 
   // Original text: "Name"
   patchNameLabel: 'Nome',
@@ -1332,7 +1332,7 @@ export default {
   srStatePanel: 'Data do armazenamento (storage)',
 
   // Original text: "of"
-  ofUsage: '{usage} (de {total})',
+  ofUsage: 'de',
 
   // Original text: "No storage"
   noSrs: 'Nenhum armazenamento (storage)',
@@ -1542,13 +1542,13 @@ export default {
   newVmCloudConfig: 'Configuração do Cloud',
 
   // Origingal text: "Create VMs"
-  newVmCreateVms: undefined,
+  newVmCreateVms: 'Criar VMs',
 
   // Original text : "Are you sure you want to create {nbVms} VMs?"
-  newVmCreateVmsConfirm: undefined,
+  newVmCreateVmsConfirm: 'Você tem certeza que deseja criar {nbVms} VMs?',
 
   // Original text : "Multiple VMs"
-  newVmMultipleVms: undefined,
+  newVmMultipleVms: 'Multiplas VMs',
 
   // Original text: "Resource sets"
   resourceSets: 'Ajustes dos recursos',
@@ -1575,7 +1575,7 @@ export default {
   deleteResourceSetWarning: 'Deletar grupo de recurso',
 
   // Original text: "Are you sure you want to delete this resource set?"
-  deleteResourceSetQuestion: 'Você tem certeza que deseja deletar este grupo de recurso?',
+  deleteResourceSetQuestion: 'Você tem certeza que deseja deletar este ajuste?',
 
   // Original text: "Missing objects:"
   resourceSetMissingObjects: 'Objetos faltando',
@@ -1680,28 +1680,28 @@ export default {
   noBackup: 'Nenhum backup disponível',
 
   // Original text: "Shutdown host"
-  stopHostModalTitle: undefined,
+  stopHostModalTitle: 'Desligar host',
 
   // Original text: "This will shutdown your host. Do you want to continue?"
-  stopHostModalMessage: undefined,
+  stopHostModalMessage: 'O host será desligado. Você tem certeza que deseja continuar?',
 
   // Original text: "Restart host"
-  restartHostModalTitle: undefined,
+  restartHostModalTitle: 'Reiniciar host',
 
   // Original text: "This will restart your host. Do you want to continue?"
-  restartHostModalMessage: undefined,
+  restartHostModalMessage: 'O host será reiniciado. Você tem certeza que deseja continuar?',
 
   // Original text: "Restart VM"
-  restartVmModalTitle: undefined,
+  restartVmModalTitle: 'Reiniciar VM',
 
   // Original text: "Are you sure you want to restart {name}?"
-  restartVmModalMessage: undefined,
+  restartVmModalMessage: 'Você tem certeza que deseja reiniciar {name}?',
 
   // Original text: "Stop VM"
-  stopVmModalTitle: undefined,
+  stopVmModalTitle: 'Parar VM',
 
   // Original text: "Are you sure you want to stop {name}?"
-  stopVmModalMessage: undefined,
+  stopVmModalMessage: 'Você tem certeza que deseja parar {name}?',
 
   // Original text: "Start VM{vms, plural, one {} other {s}}"
   startVmsModalTitle: 'Iniciar VM{vms, plural, one {} other {s}}',
@@ -1741,6 +1741,9 @@ export default {
 
   // Original text: "Migrate VM"
   migrateVmModalTitle: 'Migrar VM',
+
+  // Original text: "Are you sure you want to migrate this VM to {hostName}?"
+  migrateVmModalBody: 'Você tem certeza que deseja migrar esta VM para {hostName}?',
 
   // Original text: "Select a destination host:"
   migrateVmAdvancedModalSelectHost: 'Selecionar um host de destino:',
