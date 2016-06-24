@@ -1,20 +1,23 @@
+import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
+import delay from 'lodash/delay'
 import GenericInput from 'json-schema-input'
 import Icon from 'icon'
-import React from 'react'
-import Upgrade from 'xoa-upgrade'
-import Scheduler, { SchedulePreview } from 'scheduling'
-import Wizard, { Section } from 'wizard'
-import _, { messages } from 'intl'
 import map from 'lodash/map'
+import React from 'react'
+import Scheduler, { SchedulePreview } from 'scheduling'
+import Upgrade from 'xoa-upgrade'
+import Wizard, { Section } from 'wizard'
 import { Container } from 'grid'
+import { error } from 'notification'
 import { injectIntl } from 'react-intl'
 
 import {
   createJob,
   createSchedule,
-  setJob
+  setJob,
+  setSchedule
 } from 'xo'
 
 import { getJobValues } from '../helpers'
@@ -183,31 +186,33 @@ export default class New extends Component {
     super(props)
 
     const { state } = this
-    const { job } = props
-
     state.cronPattern = '* * * * *'
+  }
 
-    if (!job) {
+  componentWillMount () {
+    const { job, schedule } = this.props
+    if ((!job && schedule) || (job && !schedule)) {
+      error(_('backupEditNotFoundTitle'), _('backupEditNotFoundMessage'))
+    }
+    if (!job || !schedule) {
       return
     }
+    this.setState({
+      backupInfo: BACKUP_METHOD_TO_INFO[job.method],
+      cronPattern: schedule.cron
+    }, () => delay(this._populateForm, 250, job)) // Work around.
+    // Without the delay, some selects are not always ready to load a value
+    // Values are displayed, but html5 compliant browsers say the value is required and empty on submit
+  }
 
+  _populateForm = (job) => {
     let values = getJobValues(job.paramsVector)
-    state.backupInfo = BACKUP_METHOD_TO_INFO[job.method]
-
     if (values.length !== 1) {
-      state.defaultValue = {
+      const { backupInput } = this.refs
+      backupInput.value = {
         ...getJobValues(values[1])[0],
         vms: getJobValues(values[0])
       }
-
-      return
-    }
-
-    // Older versions of XenOrchestra uses only values[0].
-    values = getJobValues(values[0])
-    state.defaultValue = {
-      ...values[0],
-      vms: map(values, value => value.id)
     }
   }
 
@@ -236,15 +241,16 @@ export default class New extends Component {
       }
     }
 
-    // Update one job.
-    const oldJob = this.props.job
+    // Update backup schedule.
+    const { job: oldJob, schedule: oldSchedule } = this.props
 
-    if (oldJob) {
+    if (oldJob && oldSchedule) {
       job.id = oldJob.id
-      return setJob(job)
+      oldSchedule.cron = this.state.cronPattern
+      return setJob(job).then(() => setSchedule(oldSchedule))
     }
 
-    // Create job.
+    // Create backup schedule.
     return createJob(job).then(jobId => {
       createSchedule(jobId, this.state.cronPattern, enabled)
     })
@@ -276,7 +282,7 @@ export default class New extends Component {
   }
 
   render () {
-    const { backupInfo } = this.state
+    const { backupInfo, defaultValue } = this.state
     const { formatMessage } = this.props.intl
 
     return process.env.XOA_PLAN > 1
@@ -301,7 +307,7 @@ export default class New extends Component {
           <form className='card-block' id='form-new-vm-backup'>
             {backupInfo &&
               <GenericInput
-                defaultValue={this.state.defaultValue}
+                defaultValue={defaultValue}
                 label={<span><Icon icon={backupInfo.icon} /> {formatMessage(messages[backupInfo.label])}</span>}
                 required
                 schema={backupInfo.schema}

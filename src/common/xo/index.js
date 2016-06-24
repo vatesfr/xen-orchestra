@@ -805,6 +805,16 @@ export const setJob = job => (
   )
 )
 
+export const getSchedule = id => (
+  call('schedule.get', { id })
+)
+
+export const setSchedule = schedule => (
+  call('schedule.set', schedule)::tap(
+    subscribeSchedules.forceRefresh
+  )
+)
+
 export const enableSchedule = id => (
   call('scheduler.enable', { id })::tap(
     subscribeScheduleTable.forceRefresh

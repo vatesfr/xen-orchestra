@@ -259,7 +259,9 @@ export default class Jobs extends Component {
     this.setState({
       job,
       action: find(actions, action => action.method === job.method)
-    }, () => delay(this._populateForm, 250, job)) // Work around. Without the delay, some subscription based selects are not always ready to load a value
+    }, () => delay(this._populateForm, 250, job)) // Work around.
+    // Without the delay, some selects are not always ready to load a value
+    // Values are displayed, but html5 compliant browsers say the value is required and empty on submit
   }
 
   _populateForm = (job) => {

@@ -1,14 +1,10 @@
-import React, { Component } from 'react'
-import { getJob } from 'xo'
+import Component from 'base-component'
+import React from 'react'
+import { getJob, getSchedule } from 'xo'
 
 import New from '../new'
 
 export default class Edit extends Component {
-  constructor (props) {
-    super(props)
-    this.state = {}
-  }
-
   componentWillMount () {
     const { id } = this.props.routeParams
 
@@ -16,18 +12,20 @@ export default class Edit extends Component {
       return
     }
 
-    getJob(id).then(job => {
-      this.setState({ job })
+    getSchedule(id).then(schedule => {
+      getJob(schedule.job).then(job => {
+        this.setState({ job, schedule })
+      })
     })
   }
 
   render () {
-    const { job } = this.state
+    const { job, schedule } = this.state
 
-    if (!job) {
+    if (!job || !schedule) {
       return <h1>Loading…</h1>
     }
 
-    return <New job={job} />
+    return <New job={job} schedule={schedule} />
   }
 }

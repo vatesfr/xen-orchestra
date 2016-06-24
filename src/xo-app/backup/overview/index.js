@@ -163,7 +163,7 @@ export default class Overview extends Component {
                         <td>
                           {this._getScheduleToggle(schedule)}
                           <fieldset className='pull-xs-right'>
-                            <Link className='btn btn-sm btn-primary m-r-1' to={`/backup/${job.id}/edit`}>
+                            <Link className='btn btn-sm btn-primary m-r-1' to={`/backup/${schedule.id}/edit`}>
                               <Icon icon='edit' />
                             </Link>
                             <ButtonGroup>
