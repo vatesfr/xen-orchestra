@@ -9,238 +9,241 @@ addLocaleData(reactIntlData)
 
 export default {
   // Original text: "OK"
-  confirmOk: undefined,
+  ok:'אישור',
 
   // Original text: "Cancel"
-  confirmCancel: undefined,
-
-  // Original text: "OK"
-  alertOk: undefined,
+  cancel: 'ביטול',
 
   // Original text: "Long click to edit"
-  editableLongClickPlaceholder: undefined,
+  editableLongClickPlaceholder: 'לחץ כאן לחיצה ערוכה לעריכה',
 
   // Original text: "Click to edit"
-  editableClickPlaceholder: undefined,
+  editableClickPlaceholder: 'לחץ לעריכה',
 
   // Original text: "Home"
-  homePage: undefined,
+  homePage: 'בית',
 
   // Original text: "Dashboard"
   dashboardPage: 'לוח מכוונים',
 
   // Original text: "Overview"
-  overviewDashboardPage: undefined,
+  overviewDashboardPage: 'איזור אישי',
 
   // Original text: "Visualizations"
-  overviewVisualizationDashboardPage: undefined,
+  overviewVisualizationDashboardPage: 'וירטואליזציה',
 
   // Original text: "Statistics"
-  overviewStatsDashboardPage: undefined,
+  overviewStatsDashboardPage: 'סטטיסטיקה',
 
   // Original text: "Health"
-  overviewHealthDashboardPage: undefined,
+  overviewHealthDashboardPage: 'בדיקת ביצועים',
 
   // Original text: "Self service"
-  selfServicePage: undefined,
+  selfServicePage: 'שירות עצמי',
 
   // Original text: "Dashboard"
-  selfServiceDashboardPage: undefined,
+  selfServiceDashboardPage: 'בית',
 
   // Original text: "Administration"
-  selfServiceAdminPage: undefined,
+  selfServiceAdminPage: 'ניהול ממשק',
 
   // Original text: "Backup"
-  backupPage: undefined,
+  backupPage: 'גיבוי',
 
   // Original text: "Jobs"
-  jobsPage: undefined,
+  jobsPage: 'משימות',
 
   // Original text: "Updates"
-  updatePage: undefined,
+  updatePage: 'עדכונים',
 
   // Original text: "Settings"
-  settingsPage: undefined,
+  settingsPage: 'הגדרות',
 
   // Original text: "Servers"
-  settingsServersPage: undefined,
+  settingsServersPage: 'שרתים',
 
   // Original text: "Users"
-  settingsUsersPage: undefined,
+  settingsUsersPage: 'משתמשים',
 
   // Original text: "Groups"
-  settingsGroupsPage: undefined,
+  settingsGroupsPage: 'קבוצות',
 
   // Original text: "ACLs"
-  settingsAclsPage: undefined,
+  settingsAclsPage: 'רמות גישה',
 
   // Original text: "Plugins"
-  settingsPluginsPage: undefined,
+  settingsPluginsPage: 'פלאגינים',
 
   // Original text: "About"
-  aboutPage: undefined,
+  aboutPage: 'אודות',
 
   // Original text: "New"
-  newMenu: undefined,
+  newMenu: 'חדש',
 
   // Original text: "Tasks"
-  taskMenu: undefined,
+  taskMenu: 'משימות',
 
   // Original text: "VM"
-  newVmPage: undefined,
+  newVmPage: 'מכונה',
 
   // Original text: "Storage"
-  newSrPage: undefined,
+  newSrPage: 'אחסון',
 
   // Original text: "Server"
-  newServerPage: undefined,
+  newServerPage: 'שרת',
 
   // Original text: "Import"
-  newImport: undefined,
+  newImport: 'ההלעה',
 
   // Original text: "Overview"
-  backupOverviewPage: undefined,
+  backupOverviewPage: 'הרחבה',
 
   // Original text: "New"
-  backupNewPage: undefined,
+  backupNewPage: 'חדש',
 
   // Original text: "Remotes"
-  backupRemotesPage: undefined,
+  backupRemotesPage: 'גישה מרחוק',
 
   // Original text: "Restore"
-  backupRestorePage: undefined,
+  backupRestorePage: 'שחזור',
 
   // Original text: "Schedule"
-  schedule: undefined,
+  schedule: 'תזמון',
 
   // Original text: "New VM backup"
-  newVmBackup: undefined,
+  newVmBackup: 'גיבוי חדש למכונה',
 
   // Original text: "Edit VM backup"
-  editVmBackup: undefined,
+  editVmBackup: 'ערוך הגדרות גיבוי למכונה',
 
   // Original text: "Backup"
-  backup: undefined,
+  backup: 'גיבוי',
 
   // Original text: "Rolling Snapshot"
-  rollingSnapshot: undefined,
+  rollingSnapshot: 'גיבוי סנאפשוט',
 
   // Original text: "Delta Backup"
-  deltaBackup: undefined,
+  deltaBackup: 'גיבוי חלקי',
 
   // Original text: "Disaster Recovery"
-  disasterRecovery: undefined,
+  disasterRecovery: 'חזרה מDR',
 
   // Original text: "Continuous Replication"
-  continuousReplication: undefined,
+  continuousReplication: 'רפליקציה מתממשכת',
 
   // Original text: "Overview"
-  jobsOverviewPage: undefined,
+  jobsOverviewPage: 'רשימת משימות',
 
   // Original text: "New"
-  jobsNewPage: undefined,
+  jobsNewPage: 'משימה חדשה',
 
   // Original text: "Scheduling"
-  jobsSchedulingPage: undefined,
+  jobsSchedulingPage: 'תזמון משימות',
 
   // Original text: "Custom Job"
-  customJob: undefined,
+  customJob: 'משימה קסטומית',
+
+  // Original text: "EN"
+  enLang: 'אנגלית',
+
+  // Original text: "FR"
+  frLang: 'צרפתית',
 
   // Original text: "Username:"
-  usernameLabel: undefined,
+  usernameLabel: 'שם משתמש',
 
   // Original text: "Password:"
-  passwordLabel: undefined,
+  passwordLabel: 'סיסמה',
 
   // Original text: "Sign in"
-  signInButton: undefined,
+  signInButton: 'כניסה',
 
   // Original text: "Sign out"
-  signOut: undefined,
+  signOut: 'יציאה',
 
   // Original text: "Fetching data…"
-  homeFetchingData: undefined,
+  homeFetchingData: 'מקבל נתונים, נא להמתין...',
 
   // Original text: "Welcome on Xen Orchestra!"
-  homeWelcome: undefined,
+  homeWelcome: 'ברוכים הבאים',
 
   // Original text: "Add your XenServer hosts or pools"
-  homeWelcomeText: undefined,
+  homeWelcomeText: 'נא להוסיף שרתים או משאבים',
 
   // Original text: "Want some help?"
-  homeHelp: undefined,
+  homeHelp: 'צריך עזרה?',
 
   // Original text: "Add server"
-  homeAddServer: undefined,
+  homeAddServer: 'הוספת שרת',
 
   // Original text: "Online Doc"
-  homeOnlineDoc: undefined,
+  homeOnlineDoc: 'דוקומנטציה',
 
   // Original text: "Pro Support"
-  homeProSupport: undefined,
+  homeProSupport: 'תמיכה מקצועית',
 
   // Original text: "There are no VMs!"
-  homeNoVms: undefined,
+  homeNoVms: 'אין מכונות',
 
   // Original text: "Or…"
-  homeNoVmsOr: undefined,
+  homeNoVmsOr: 'או...',
 
   // Original text: "Import VM"
-  homeImportVm: undefined,
+  homeImportVm: 'ההלעה של מכונה',
 
   // Original text: "Import an existing VM in xva format"
-  homeImportVmMessage: undefined,
+  homeImportVmMessage: 'להלעות מכונה חדשה בפורמת XVA',
 
   // Original text: "Restore a backup"
-  homeRestoreBackup: undefined,
+  homeRestoreBackup: 'שחזור מגיבוי',
 
   // Original text: "Restore a backup from a remote store"
-  homeRestoreBackupMessage: undefined,
+  homeRestoreBackupMessage: 'שחזור מגיבוי ממכונה אחרת',
 
   // Original text: "This will create a new VM"
-  homeNewVmMessage: undefined,
+  homeNewVmMessage: 'זה יצור מכונה חדשה',
 
   // Original text: "Filters"
-  homeFilters: undefined,
+  homeFilters: 'מסננים',
 
   // Original text: "Pool"
-  homeTypePool: undefined,
+  homeTypePool: 'משאבים',
 
   // Original text: "Host"
-  homeTypeHost: undefined,
+  homeTypeHost: 'מכונה',
 
   // Original text: "VM"
-  homeTypeVm: undefined,
+  homeTypeVm: 'שרת',
 
   // Original text: "SR"
-  homeTypeSr: undefined,
+  homeTypeSr: 'SR',
 
   // Original text: "VDI"
-  homeTypeVdi: undefined,
+  homeTypeVdi: 'VDI',
 
   // Original text: "Sort"
-  homeSort: undefined,
+  homeSort: 'סינון',
 
   // Original text: "Pools"
-  homeAllPools: undefined,
+  homeAllPools: 'POOLS',
 
   // Original text: "Hosts"
-  homeAllHosts: undefined,
+  homeAllHosts: 'מכונות',
 
   // Original text: "Tags"
-  homeAllTags: undefined,
+  homeAllTags: 'מילות מפתח',
 
   // Original text: "New VM"
-  homeNewVm: undefined,
+  homeNewVm: 'מכונה חדשה',
 
   // Original text: "Running hosts"
-  homeFilterRunningHosts: undefined,
+  homeFilterRunningHosts: 'מערכות פעילות',
 
   // Original text: "Disabled hosts"
-  homeFilterDisabledHosts: undefined,
+  homeFilterDisabledHosts: 'מערכות לא פעילות',
 
   // Original text: "Running VMs"
-  homeFilterRunningVms: undefined,
+  homeFilterRunningVms: 'מכונות פעילות',
 
   // Original text: "Non running VMs"
   homeFilterNonRunningVms: undefined,
@@ -252,22 +255,22 @@ export default {
   homeFilterHvmGuests: undefined,
 
   // Original text: "Tags"
-  homeFilterTags: undefined,
+  homeFilterTags: 'מילות מפתח',
 
   // Original text: "Sort by"
-  homeSortBy: undefined,
+  homeSortBy: 'סנן לפי',
 
   // Original text: "Name"
-  homeSortByName: undefined,
+  homeSortByName: 'שם',
 
   // Original text: "Power state"
-  homeSortByPowerstate: undefined,
+  homeSortByPowerstate: 'מצב',
 
   // Original text: "RAM"
-  homeSortByRAM: undefined,
+  homeSortByRAM: 'זכרון RAM',
 
   // Original text: "vCPUs"
-  homeSortByvCPUs: undefined,
+  homeSortByvCPUs: 'כמות המאבדים',
 
   // Original text: "{displayed, number}x {vmIcon} (on {total, number})"
   homeDisplayedVms: undefined,
@@ -276,28 +279,28 @@ export default {
   homeSelectedVms: undefined,
 
   // Original text: "More"
-  homeMore: undefined,
+  homeMore: 'עוד',
 
   // Original text: "Migrate to…"
-  homeMigrateTo: undefined,
+  homeMigrateTo: 'העבר ל...',
 
   // Original text: "Add"
-  add: undefined,
+  add: 'הוסף',
 
   // Original text: "Remove"
-  remove: undefined,
+  remove: 'הסר',
 
   // Original text: "Aperçu"
   preview: undefined,
 
   // Original text: "Item"
-  item: undefined,
+  item: 'פריט',
 
   // Original text: "No selected value"
-  noSelectedValue: undefined,
+  noSelectedValue: 'לא נבחר כלום',
 
   // Original text: "Choose user(s) and/or group(s)"
-  selectSubjects: undefined,
+  selectSubjects: 'בחר משתמש או קבוצה להוספה',
 
   // Original text: "Select Object(s)…"
   selectObjects: undefined,
@@ -600,25 +603,25 @@ export default {
   noGroupFound: undefined,
 
   // Original text: "Name"
-  groupNameColumn: undefined,
+  groupNameColumn: 'שם',
 
   // Original text: "Users"
-  groupUsersColumn: undefined,
+  groupUsersColumn: 'משתמשים',
 
   // Original text: "Add User"
-  addUserToGroupColumn: undefined,
+  addUserToGroupColumn: 'הוסף משתמש',
 
   // Original text: "Email"
-  userNameColumn: undefined,
+  userNameColumn: 'מייל',
 
   // Original text: "Permissions"
-  userPermissionColumn: undefined,
+  userPermissionColumn: 'הרשאות',
 
   // Original text: "Password"
-  userPasswordColumn: undefined,
+  userPasswordColumn: 'סיסמא',
 
   // Original text: "Email"
-  userName: undefined,
+  userName: 'שם משתמש',
 
   // Original text: "Password"
   userPassword: undefined,
@@ -678,28 +681,28 @@ export default {
   pluginConfigurationChanges: undefined,
 
   // Original text: "Start"
-  startVmLabel: undefined,
+  startVmLabel: 'הפעל מכונה',
 
   // Original text: "Recovery start"
   recoveryModeLabel: undefined,
 
   // Original text: "Suspend"
-  suspendVmLabel: undefined,
+  suspendVmLabel: 'הקפא מכונה',
 
   // Original text: "Stop"
-  stopVmLabel: undefined,
+  stopVmLabel: 'עצור מכונה',
 
   // Original text: "Force shutdown"
-  forceShutdownVmLabel: undefined,
+  forceShutdownVmLabel: 'עצירה בכוח',
 
   // Original text: "Reboot"
-  rebootVmLabel: undefined,
+  rebootVmLabel: 'הפעלה מחדש',
 
   // Original text: "Force reboot"
-  forceRebootVmLabel: undefined,
+  forceRebootVmLabel: 'הפעלה מחדש בכוח',
 
   // Original text: "Delete"
-  deleteVmLabel: undefined,
+  deleteVmLabel: 'מחיקה',
 
   // Original text: "Migrate"
   migrateVmLabel: undefined,
@@ -726,7 +729,7 @@ export default {
   convertVmToTemplateLabel: undefined,
 
   // Original text: "Console"
-  vmConsoleLabel: undefined,
+  vmConsoleLabel: 'קונסול',
 
   // Original text: "Rescan all disks"
   srRescan: undefined,
