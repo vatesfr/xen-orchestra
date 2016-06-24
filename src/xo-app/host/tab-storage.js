@@ -19,10 +19,10 @@ export default ({
   <Row>
     <Col className='text-xs-right'>
       <Link
-        className='btn btn-primary'
+        className='btn btn-lg btn-primary'
         to={`/new/sr?host=${host.id}`}
       >
-        <Icon icon='add' />
+        <Icon icon='add' /> {_('addSrDeviceButton')}
       </Link>
     </Col>
   </Row>
