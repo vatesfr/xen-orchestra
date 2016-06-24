@@ -352,6 +352,8 @@ export default class Home extends Component {
 
   render () {
     const { props } = this
+    const { user } = this.props
+    const isAdmin = user && user.permission === 'admin'
 
     if (!props.areObjectsFetched) {
       return <CenterPanel>
@@ -359,7 +361,7 @@ export default class Home extends Component {
       </CenterPanel>
     }
 
-    if (props.noServersConnected) {
+    if (props.noServersConnected && isAdmin) {
       return <CenterPanel>
         <Card shadow>
           <CardHeader>{_('homeWelcome')}</CardHeader>

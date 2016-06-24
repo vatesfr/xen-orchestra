@@ -404,7 +404,7 @@ export default class TabDisks extends Component {
                       <Text value={vdi.name_description} onChange={value => editVdi(vdi, { name_description: value })} />
                     </td>
                     <td><Size value={vdi.size} onChange={size => editVdi(vdi, { size })} /></td>
-                    <td>
+                    <td> {sr &&
                       <XoSelect
                         onChange={sr => migrateVdi(vdi, sr)}
                         xoType='SR'
@@ -415,6 +415,7 @@ export default class TabDisks extends Component {
                       >
                         <Link to={`/srs/${sr.id}`}>{sr.name_label}</Link>
                       </XoSelect>
+                    }
                     </td>
                     <td>
                       <Toggle
