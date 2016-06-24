@@ -65,7 +65,7 @@ export default class TabNetwork extends Component {
                       <td>VIF #{vif.device}</td>
                       <td><pre>{vif.MAC}</pre></td>
                       <td>{vif.MTU}</td>
-                      <td>{networks[vif.$network].name_label}</td>
+                      <td>{networks[vif.$network] && networks[vif.$network].name_label}</td>
                       <td>
                         {vif.attached
                           ? <span className='tag tag-success'>

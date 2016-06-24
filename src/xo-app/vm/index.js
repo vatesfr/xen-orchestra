@@ -178,7 +178,7 @@ export default class Vm extends Component {
 
   header () {
     const { vm, container, pool, hosts } = this.props
-    if (!vm || !pool) {
+    if (!vm) {
       return <Icon icon='loading' />
     }
     return <Container>
@@ -201,7 +201,7 @@ export default class Vm extends Component {
               onChange={this._setNameDescription}
             />
             <span className='text-muted'>
-              {vm.power_state === 'Running' &&
+              {vm.power_state === 'Running' && container &&
                 <span>
                   <span> - </span>
                   <Select
@@ -216,7 +216,7 @@ export default class Vm extends Component {
                 </span>
               }
               {' '}
-              (<Link to={`/pools/${pool.id}`}>{pool.name_label}</Link>)
+              {pool && (<Link to={`/pools/${pool.id}`}>{pool.name_label}</Link>)}
             </span>
           </span>
         </Col>
