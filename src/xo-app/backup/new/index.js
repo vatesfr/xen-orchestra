@@ -207,8 +207,15 @@ export default class New extends Component {
 
   _populateForm = (job) => {
     let values = getJobValues(job.paramsVector)
-    if (values.length !== 1) {
-      const { backupInput } = this.refs
+    const { backupInput } = this.refs
+    if (values.length === 1) {
+      // Older versions of XenOrchestra uses only values[0].
+      values = getJobValues(values[0])
+      backupInput.value = {
+        ...values[0],
+        vms: map(values, value => value.id)
+      }
+    } else {
       backupInput.value = {
         ...getJobValues(values[1])[0],
         vms: getJobValues(values[0])
