@@ -476,6 +476,18 @@ export const createVm = args => (
   call('vm.create', args)
 )
 
+export const createVms = (args, nameLabels) => (
+  confirm({
+    title: _('newVmCreateVms'),
+    body: _('newVmCreateVmsConfirm', {nbVms: nameLabels.length})
+  }).then(
+    () => Promise.all(map(nameLabels, name_label => // eslint-disable-line camelcase
+      call('vm.create', { ...args, name_label })
+    )),
+    noop
+  )
+)
+
 export const getCloudInitConfig = template => (
   call('vm.getCloudInitConfig', { template })
 )

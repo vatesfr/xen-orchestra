@@ -50,6 +50,10 @@
     @extend .fa;
     @extend .fa-pencil;
   }
+  &-refresh {
+    @extend .fa;
+    @extend .fa-refresh;
+  }
   &-administration {
     @extend .fa;
     @extend .fa-wrench;
