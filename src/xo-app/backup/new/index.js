@@ -191,10 +191,10 @@ export default class New extends Component {
 
   componentWillMount () {
     const { job, schedule } = this.props
-    if ((!job && schedule) || (job && !schedule)) {
-      error(_('backupEditNotFoundTitle'), _('backupEditNotFoundMessage'))
-    }
     if (!job || !schedule) {
+      if (job || schedule) { // Having only one of them is unexpected incomplete information
+        error(_('backupEditNotFoundTitle'), _('backupEditNotFoundMessage'))
+      }
       return
     }
     this.setState({
