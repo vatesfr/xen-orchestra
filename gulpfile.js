@@ -108,23 +108,25 @@ var src = lazyFn(function () {
   }
 
   return PRODUCTION
-    ? function src (pattern, base) {
-      base = resolve(base)
+    ? function src (pattern, opts) {
+      var base = resolve(opts && opts.base)
 
       return gulp.src(pattern, {
         base: base,
         cwd: base,
-        sourcemaps: true
+        passthrough: opts && opts.passthrough,
+        sourcemaps: opts && opts.sourcemaps
       })
     }
-    : function src (pattern, base) {
-      base = resolve(base)
+    : function src (pattern, opts) {
+      var base = resolve(opts && opts.base)
 
       return pipe(
         gulp.src(pattern, {
           base: base,
           cwd: base,
-          sourcemaps: true
+          passthrough: opts && opts.passthrough,
+          sourcemaps: opts && opts.sourcemaps
         }),
         require('gulp-watch')(pattern, {
           base: base,
@@ -247,7 +249,7 @@ function browserify (path, opts) {
 
 gulp.task(function buildPages () {
   return pipe(
-    src('index.jade'),
+    src('index.jade', { sourcemaps: true }),
     require('gulp-jade')(),
     DEVELOPMENT && require('gulp-embedlr')({
       port: LIVERELOAD_PORT
@@ -273,7 +275,7 @@ gulp.task(function buildScripts () {
 
 gulp.task(function buildStyles () {
   return pipe(
-    src('index.scss'),
+    src('index.scss', { sourcemaps: true }),
     require('gulp-sass')(),
     require('gulp-autoprefixer')([
       'last 1 version',
@@ -287,14 +289,14 @@ gulp.task(function buildStyles () {
 gulp.task(function copyAssets () {
   return pipe(
     src(['assets/**/*', 'favicon.*']),
-    src(
-      'fontawesome-webfont.*',
-      __dirname + '/node_modules/font-awesome/fonts' // eslint-disable-line no-path-concat
-    ),
-    src(
-      ['!*.css', 'font-mfizz.*'],
-      __dirname + '/node_modules/font-mfizz/dist' // eslint-disable-line no-path-concat
-    ),
+    src('fontawesome-webfont.*', {
+      base: __dirname + '/node_modules/font-awesome/fonts', // eslint-disable-line no-path-concat
+      passthrough: true
+    }),
+    src(['!*.css', 'font-mfizz.*'], {
+      base: __dirname + '/node_modules/font-mfizz/dist', // eslint-disable-line no-path-concat
+      passthrough: true
+    }),
     dest()
   )
 })
