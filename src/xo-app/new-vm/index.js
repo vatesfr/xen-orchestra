@@ -49,6 +49,7 @@ import {
 
 import styles from './index.css'
 
+const DEBOUNCE_TIMEOUT = 300
 const NB_VMS_MIN = 2
 const NB_VMS_MAX = 100
 
@@ -458,6 +459,7 @@ export default class NewVm extends BaseComponent {
         <Item label='newVmNameLabel'>
           <DebounceInput
             className='form-control'
+            debounceTimeout={DEBOUNCE_TIMEOUT}
             onChange={this._getOnChange('name_label')}
             value={name_label}
           />
@@ -465,6 +467,7 @@ export default class NewVm extends BaseComponent {
         <Item label='newVmDescriptionLabel'>
           <DebounceInput
             className='form-control'
+            debounceTimeout={DEBOUNCE_TIMEOUT}
             onChange={this._getOnChange('name_description')}
             value={name_description}
           />
@@ -480,6 +483,7 @@ export default class NewVm extends BaseComponent {
             <div className='input-group'>
               <DebounceInput
                 className='form-control'
+                debounceTimeout={DEBOUNCE_TIMEOUT}
                 disabled={!multipleVms}
                 max={NB_VMS_MAX}
                 min={NB_VMS_MIN}
@@ -516,6 +520,8 @@ export default class NewVm extends BaseComponent {
         <Item label='newVmVcpusLabel'>
           <DebounceInput
             className='form-control'
+            debounceTimeout={DEBOUNCE_TIMEOUT}
+            min={0}
             onChange={this._getOnChange('CPUs')}
             type='number'
             value={CPUs}
@@ -580,6 +586,7 @@ export default class NewVm extends BaseComponent {
           {' '}
           <DebounceInput
             className='form-control'
+            debounceTimeout={DEBOUNCE_TIMEOUT}
             disabled={installMethod !== 'SSH'}
             onChange={this._getOnChange('sshKey')}
             type='text'
@@ -593,6 +600,7 @@ export default class NewVm extends BaseComponent {
           {' '}
           <DebounceInput
             className='form-control'
+            debounceTimeout={DEBOUNCE_TIMEOUT}
             disabled={installMethod !== 'customConfig'}
             element='textarea'
             onChange={this._getOnChange('customConfig')}
@@ -624,6 +632,7 @@ export default class NewVm extends BaseComponent {
           {' '}
           <DebounceInput
             className='form-control'
+            debounceTimeout={DEBOUNCE_TIMEOUT}
             disabled={installMethod !== 'network'}
             key='networkInput'
             onChange={this._getOnChange('installNetwork')}
@@ -635,6 +644,7 @@ export default class NewVm extends BaseComponent {
           ? <Item label='newVmPvArgsLabel' key='pv'>
             <DebounceInput
               className='form-control'
+              debounceTimeout={DEBOUNCE_TIMEOUT}
               onChange={this._getOnChange('pv_args')}
               value={pv_args}
             />
@@ -650,6 +660,7 @@ export default class NewVm extends BaseComponent {
         <label>{_('newVmCloudConfig')}</label>
         <DebounceInput
           className='form-control'
+          debounceTimeout={DEBOUNCE_TIMEOUT}
           element='textarea'
           onChange={this._getOnChange('cloudConfig')}
           rows={7}
@@ -690,6 +701,7 @@ export default class NewVm extends BaseComponent {
             <Item label='newVmMacLabel'>
               <DebounceInput
                 className='form-control'
+                debounceTimeout={DEBOUNCE_TIMEOUT}
                 onChange={this._getOnChange('VIFs', index, 'mac')}
                 placeholder={formatMessage(messages.newVmMacPlaceholder)}
                 rows={7}
@@ -753,6 +765,7 @@ export default class NewVm extends BaseComponent {
             <Item label='newVmNameLabel'>
               <DebounceInput
                 className='form-control'
+                debounceTimeout={DEBOUNCE_TIMEOUT}
                 onChange={this._getOnChange('existingDisks', index, 'name_label')}
                 value={disk.name_label}
               />
@@ -760,6 +773,7 @@ export default class NewVm extends BaseComponent {
             <Item label='newVmDescriptionLabel'>
               <DebounceInput
                 className='form-control'
+                debounceTimeout={DEBOUNCE_TIMEOUT}
                 onChange={this._getOnChange('existingDisks', index, 'name_description')}
                 value={disk.name_description}
               />
@@ -803,6 +817,7 @@ export default class NewVm extends BaseComponent {
             <Item label='newVmNameLabel'>
               <DebounceInput
                 className='form-control'
+                debounceTimeout={DEBOUNCE_TIMEOUT}
                 onChange={this._getOnChange('VDIs', index, 'name_label')}
                 value={vdi.name_label}
               />
@@ -810,6 +825,7 @@ export default class NewVm extends BaseComponent {
             <Item label='newVmDescriptionLabel'>
               <DebounceInput
                 className='form-control'
+                debounceTimeout={DEBOUNCE_TIMEOUT}
                 onChange={this._getOnChange('VDIs', index, 'name_description')}
                 value={vdi.name_description}
               />
