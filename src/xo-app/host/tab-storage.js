@@ -1,13 +1,12 @@
 import ActionRowButton from 'action-row-button'
-import Icon from 'icon'
 import React from 'react'
 import _ from 'intl'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
+import TabButtonLink from 'tab-button-link'
 import { BlockLink, formatSize } from 'utils'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Container, Row, Col } from 'grid'
-import { Link } from 'react-router'
 import { Text } from 'editable'
 import { connectPbd, disconnectPbd, deletePbd, editSr } from 'xo'
 
@@ -18,12 +17,11 @@ export default ({
 }) => <Container>
   <Row>
     <Col className='text-xs-right'>
-      <Link
-        className='btn btn-lg btn-primary'
+      <TabButtonLink
+        icon='add'
+        labelId='addSrDeviceButton'
         to={`/new/sr?host=${host.id}`}
-      >
-        <Icon icon='add' /> {_('addSrDeviceButton')}
-      </Link>
+      />
     </Col>
   </Row>
   <Row>
