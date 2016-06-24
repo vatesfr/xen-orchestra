@@ -57,6 +57,8 @@ export default class Menu extends Component {
 
   render () {
     const { nTasks, user } = this.props
+    const isAdmin = user && user.permission === 'admin'
+
     const items = [
       { to: '/home', icon: 'menu-home', label: 'homePage' },
       { to: '/dashboard/overview', icon: 'menu-dashboard', label: 'dashboardPage', subMenu: [
@@ -65,7 +67,7 @@ export default class Menu extends Component {
         { to: '/dashboard/stats', icon: 'menu-dashboard-stats', label: 'overviewStatsDashboardPage' },
         { to: '/dashboard/health', icon: 'menu-dashboard-health', label: 'overviewHealthDashboardPage' }
       ]},
-      { to: '/self/dashboard', icon: 'menu-self-service', label: 'selfServicePage', subMenu: [
+      isAdmin && { to: '/self/dashboard', icon: 'menu-self-service', label: 'selfServicePage', subMenu: [
         { to: '/self/dashboard', icon: 'menu-self-service-dashboard', label: 'selfServiceDashboardPage' },
         { to: '/self/admin', icon: 'menu-self-service-admin', label: 'selfServiceAdminPage' }
       ]},
@@ -92,8 +94,8 @@ export default class Menu extends Component {
       { to: '/tasks', icon: 'task', label: 'taskMenu', pill: nTasks },
       { to: '/vms/new', icon: 'menu-new', label: 'newMenu', subMenu: [
         { to: '/vms/new', icon: 'menu-new-vm', label: 'newVmPage' },
-        { to: '/new/sr', icon: 'menu-new-sr', label: 'newSrPage' },
-        { to: '/settings/servers', icon: 'menu-settings-servers', label: 'newServerPage' },
+        isAdmin && { to: '/new/sr', icon: 'menu-new-sr', label: 'newSrPage' },
+        isAdmin && { to: '/settings/servers', icon: 'menu-settings-servers', label: 'newServerPage' },
         { to: '/vms/import', icon: 'menu-new-import', label: 'newImport' }
       ]}
     ]
@@ -117,7 +119,7 @@ export default class Menu extends Component {
           </Button>
         </li>
         {map(items, (item, index) =>
-          <MenuLinkItem key={index} item={item} />
+          item && <MenuLinkItem key={index} item={item} />
         )}
         <li>&nbsp;</li>
         <li>&nbsp;</li>
@@ -192,7 +194,7 @@ const MenuLinkItem = props => {
 const SubMenu = props => {
   return <ul className='nav nav-pills nav-stacked xo-sub-menu'>
     {map(props.items, (item, index) => (
-      <li key={index} className='nav-item xo-menu-item'>
+      item && <li key={index} className='nav-item xo-menu-item'>
         <Link activeClassName='active' className='nav-link' to={item.to}>
           <Icon icon={`${item.icon}`} size='lg' fixedWidth />
           {' '}
