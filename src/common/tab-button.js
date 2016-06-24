@@ -4,20 +4,19 @@ import Icon from 'icon'
 import React from 'react'
 import { Link } from 'react-router'
 
-const COMMON_PROPS = {
-  size: 'large',
-  style: {
-    marginBottom: '1em',
-    marginLeft: '1em'
-  }
+const STYLE = {
+  marginBottom: '1em',
+  marginLeft: '1em'
 }
+
 const TabButton = ({
   labelId,
   ...props
 }) => (
   <ActionButton
     {...props}
-    {...COMMON_PROPS}
+    size='large'
+    style={STYLE}
   ><span className='hidden-md-down'>{_(labelId)}</span></ActionButton>
 )
 export { TabButton as default }
@@ -29,8 +28,8 @@ export const TabButtonLink = ({
 }) => (
   <Link
     {...props}
-    {...COMMON_PROPS}
     className='btn btn-lg btn-primary'
+    style={STYLE}
   >
     <span className='hidden-md-down'>
       {icon && (
