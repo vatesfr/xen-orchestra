@@ -9,7 +9,7 @@ addLocaleData(reactIntlData)
 
 export default {
   // Original text: "OK"
-  ok:'אישור',
+  ok: 'אישור',
 
   // Original text: "Cancel"
   cancel: 'ביטול',
