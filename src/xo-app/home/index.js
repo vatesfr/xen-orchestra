@@ -316,7 +316,7 @@ export default class Home extends Component {
             {!isEmpty(filters) && <div className='input-group-btn'>
               <DropdownButton id='filter' bsStyle='info' title={_('homeFilters')}>
                 {map(filters, (filter, label) =>
-                  <MenuItem onClick={() => this._setFilter(filter)}>
+                  <MenuItem key={label} onClick={() => this._setFilter(filter)}>
                     {_(label)}
                   </MenuItem>
                 )}
