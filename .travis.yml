@@ -1,10 +1,12 @@
 language: node_js
 node_js:
   - 'stable'
+  #- '4' # Disabled for now because npm 2 cannot properly handled broken peer dependencies.
+
+cache:
+  directories:
+    - node_modules
 
 # Use containers.
 # http://docs.travis-ci.com/user/workers/container-based-infrastructure/
 sudo: false
-
-before_install:
-  - npm i -g npm

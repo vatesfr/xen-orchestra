@@ -1,0 +1,9 @@
+.container {
+  display: flex;
+  min-height: 100%;
+}
+
+.content {
+  margin: auto;
+  text-align: center;
+}

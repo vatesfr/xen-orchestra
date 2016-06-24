@@ -1,0 +1,64 @@
+/* Wizard */
+@value done: #089944;
+
+.wizard {
+  margin: 1em;
+}
+
+/* Section */
+
+.section {
+  padding-bottom: 1em;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.title {
+  flex: 0 0 15em;
+}
+.title.success {
+  color: done;
+}
+
+.content {
+  border: solid 2px;
+  flex: 1 1 40em;
+  min-width: 15em;
+  padding: 0.5em;
+}
+.content.success {
+  border-color: done;
+}
+.content.active {
+  box-shadow: 0 0 0 2px;
+}
+.content.success.active {
+  box-shadow: 0 0 0 2px done;
+}
+
+/* Bulleted list */
+
+.bullet {
+  position:relative;
+  margin-bottom: 0;
+}
+.bullet:after {
+  font-family: FontAwesome;
+  content: '\f111';
+  position: absolute;
+  left: -25px;
+  top: 5px;
+}
+.bullet:not(:last-child):before {
+  content: '';
+  position: absolute;
+  left: -19px;
+  border-left: 1px solid;
+  height: calc(100% - 11px);
+  width: 1px;
+  top: 22px;
+}
+.bullet.success:after {
+  content: '\f058';
+  color: done;
+}

@@ -1,0 +1,97 @@
+import _ from 'intl'
+import ActionRowButton from 'action-row-button'
+import Icon from 'icon'
+import isEmpty from 'lodash/isEmpty'
+import map from 'lodash/map'
+import React, { Component } from 'react'
+import TabButton from 'tab-button'
+import { connectStore } from 'utils'
+import { ButtonGroup } from 'react-bootstrap-4/lib'
+import { FormattedRelative, FormattedTime } from 'react-intl'
+import { Container, Row, Col } from 'grid'
+import { Text } from 'editable'
+import {
+  createGetObjectsOfType
+} from 'selectors'
+import {
+  deleteVm,
+  editVm,
+  revertSnapshot,
+  snapshotVm
+} from 'xo'
+
+@connectStore(() => {
+  const snapshots = createGetObjectsOfType('VM-snapshot').pick(
+    (_, props) => props.vm.snapshots
+  ).sort()
+
+  return (state, props) => ({
+    snapshots: snapshots(state, props)
+  })
+})
+export default class TabSnapshot extends Component {
+  render () {
+    const { snapshots, vm } = this.props
+
+    return <Container>
+      <Row>
+        <Col className='text-xs-right'>
+          <TabButton
+            btnStyle='primary'
+            handler={snapshotVm}
+            handlerParam={vm}
+            icon='add'
+            labelId='snapshotCreateButton'
+          />
+        </Col>
+      </Row>
+      {isEmpty(snapshots)
+        ? <Row>
+          <Col className='text-xs-center'>
+            <h4>{_('noSnapshots')}</h4>
+            <p><em><Icon icon='info' size={1} /> {_('tipLabel')} {_('tipCreateSnapshotLabel')}</em></p>
+          </Col>
+        </Row>
+        : <Row>
+          <Col>
+            <table className='table'>
+              <thead className='thead-default'>
+                <tr>
+                  <th>{_('snapshotDate')}</th>
+                  <th>{_('snapshotName')}</th>
+                  <th>{_('snapshotAction')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {map(snapshots, snapshot =>
+                  <tr key={snapshot.id}>
+                    <td><FormattedTime value={snapshot.snapshot_time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={snapshot.snapshot_time * 1000} />)</td>
+                    <td>
+                      <Text value={snapshot.name_label} onChange={value => editVm(snapshot, {name_label: value})} />
+                    </td>
+                    <td>
+                      <ButtonGroup>
+                        <ActionRowButton
+                          btnStyle='warning'
+                          handler={revertSnapshot}
+                          handlerParam={snapshot}
+                          icon='snapshot-revert'
+                        />
+                        <ActionRowButton
+                          btnStyle='danger'
+                          handler={deleteVm}
+                          handlerParam={snapshot}
+                          icon='delete'
+                        />
+                      </ButtonGroup>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </Col>
+        </Row>
+      }
+    </Container>
+  }
+}

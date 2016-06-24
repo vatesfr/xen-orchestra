@@ -1,10 +1,9 @@
+/.nyc_output/
 /bower_components/
 /dist/
 
-/node_modules/*
-!/node_modules/*.js
-/node_modules/*.js/
-
-jsconfig.json
-.idea
 npm-debug.log
+npm-debug.log.*
+
+!node_modules/*
+node_modules/*/

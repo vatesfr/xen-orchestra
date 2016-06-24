@@ -23,6 +23,6 @@ If from the sources:
 
 <!-- What you expect to happen -->
 
-### Actual behavior
+### Current behavior
 
 <!-- What is actually happening -->
