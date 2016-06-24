@@ -1,5 +1,5 @@
-import filter from 'lodash.filter'
-import includes from 'lodash.includes'
+import filter from 'lodash/filter'
+import includes from 'lodash/includes'
 import {
   hash,
   needsRehash,

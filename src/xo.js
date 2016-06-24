@@ -1,4 +1,4 @@
-import includes from 'lodash.includes'
+import includes from 'lodash/includes'
 import XoCollection from 'xo-collection'
 import XoUniqueIndex from 'xo-collection/unique-index'
 import {createClient as createRedisClient} from 'redis'

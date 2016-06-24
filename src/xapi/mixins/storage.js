@@ -1,6 +1,6 @@
 import {
   mapToArray
-} from '../utils'
+} from '../../utils'
 
 export default {
   _connectAllSrPbds (sr) {

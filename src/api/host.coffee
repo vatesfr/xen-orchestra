@@ -1,9 +1,9 @@
 $debug = (require 'debug') 'xo:api:vm'
-$find = require 'lodash.find'
-$findIndex = require 'lodash.findindex'
-$forEach = require 'lodash.foreach'
-endsWith = require 'lodash.endswith'
-startsWith = require 'lodash.startswith'
+$find = require 'lodash/find'
+$findIndex = require 'lodash/findIndex'
+$forEach = require 'lodash/forEach'
+endsWith = require 'lodash/endsWith'
+startsWith = require 'lodash/startsWith'
 {coroutine: $coroutine} = require 'bluebird'
 {
   extractProperty,

@@ -1,4 +1,4 @@
-import assign from 'lodash.assign'
+import assign from 'lodash/assign'
 import JobExecutor from '../job-executor'
 import { Jobs } from '../models/job'
 import {

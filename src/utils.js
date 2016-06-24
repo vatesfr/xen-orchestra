@@ -1,13 +1,13 @@
 import base64url from 'base64url'
 import eventToPromise from 'event-to-promise'
-import forEach from 'lodash.foreach'
+import forEach from 'lodash/forEach'
 import getStream from 'get-stream'
-import has from 'lodash.has'
+import has from 'lodash/has'
 import highland from 'highland'
 import humanFormat from 'human-format'
-import invert from 'lodash.invert'
-import isArray from 'lodash.isarray'
-import isString from 'lodash.isstring'
+import invert from 'lodash/invert'
+import isArray from 'lodash/isArray'
+import isString from 'lodash/isString'
 import kindOf from 'kindof'
 import multiKeyHashInt from 'multikey-hash'
 import xml2js from 'xml2js'
@@ -356,16 +356,16 @@ export const safeDateFormat = d3TimeFormat('%Y%m%dT%H%M%SZ')
 
 // This functions are often used throughout xo-server.
 //
-// Exports them from here to avoid direct dependencies on lodash.
-export { default as forEach } from 'lodash.foreach' // eslint-disable-line no-duplicate-imports
-export { default as isArray } from 'lodash.isarray' // eslint-disable-line no-duplicate-imports
-export { default as isBoolean } from 'lodash.isboolean'
-export { default as isEmpty } from 'lodash.isempty'
-export { default as isFunction } from 'lodash.isfunction'
-export { default as isInteger } from 'lodash.isinteger'
-export { default as isObject } from 'lodash.isobject'
-export { default as isString } from 'lodash.isstring' // eslint-disable-line no-duplicate-imports
-export { default as mapToArray } from 'lodash.map'
+// Exports them from here to avoid direct dependencies on lodash/
+export { default as forEach } from 'lodash/forEach' // eslint-disable-line no-duplicate-imports
+export { default as isArray } from 'lodash/isArray' // eslint-disable-line no-duplicate-imports
+export { default as isBoolean } from 'lodash/isBoolean'
+export { default as isEmpty } from 'lodash/isEmpty'
+export { default as isFunction } from 'lodash/isFunction'
+export { default as isInteger } from 'lodash/isInteger'
+export { default as isObject } from 'lodash/isObject'
+export { default as isString } from 'lodash/isString' // eslint-disable-line no-duplicate-imports
+export { default as mapToArray } from 'lodash/map'
 
 // -------------------------------------------------------------------
 

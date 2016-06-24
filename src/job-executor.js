@@ -1,4 +1,4 @@
-import assign from 'lodash.assign'
+import assign from 'lodash/assign'
 import {BaseError} from 'make-error'
 
 import {

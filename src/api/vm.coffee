@@ -1,14 +1,13 @@
-$assign = require 'lodash.assign'
+$assign = require 'lodash/assign'
 $debug = (require 'debug') 'xo:api:vm'
-$filter = require 'lodash.filter'
-$findIndex = require 'lodash.findindex'
-$findWhere = require 'lodash.find'
-$isArray = require 'lodash.isarray'
-endsWith = require 'lodash.endswith'
+$filter = require 'lodash/filter'
+$findIndex = require 'lodash/findIndex'
+$findWhere = require 'lodash/find'
+endsWith = require 'lodash/endsWith'
 escapeStringRegexp = require 'escape-string-regexp'
 eventToPromise = require 'event-to-promise'
-sortBy = require 'lodash.sortby'
-startsWith = require 'lodash.startswith'
+sortBy = require 'lodash/sortBy'
+startsWith = require 'lodash/startsWith'
 {coroutine: $coroutine} = require 'bluebird'
 {format} = require 'json-rpc-peer'
 
@@ -19,6 +18,7 @@ startsWith = require 'lodash.startswith'
 {
   forEach,
   formatXml: $js2xml,
+  isArray: $isArray,
   map,
   mapToArray,
   noop,
@@ -53,34 +53,40 @@ checkPermissionOnSrs = (vm, permission = 'operate') -> (
 
 #=====================================================================
 
-# TODO: Implement ACLs
-create = $coroutine ({
-  clone
-  resourceSet
-  installation
-  name_description
-  name_label
-  template
-  pv_args
-  VDIs
-  VIFs
-  existingDisks
-}) ->
-  { user } = this
-  unless user
-    throw new Unauthorized()
+extract = (obj, prop) ->
+  value = obj[prop]
+  delete obj[prop]
+  return value
 
+# TODO: Implement ACLs
+create = $coroutine (params) ->
+  template = extract(params, 'template')
+  params.template = template._xapiId
+
+  xapi = this.getXapi(template)
+
+  objectIds = [
+    template.id
+  ]
   limits = {
     cpus: template.CPUs.number,
     disk: 0,
     memory: template.memory.dynamic[1],
     vms: 1
   }
-  objectIds = [
-    template.id
-  ]
+  vdiSizesByDevice = {}
+  forEach(xapi.getObject(template._xapiId).$VBDs, (vbd) =>
+    if (
+      vbd.type is 'Disk' and
+      (vdi = vbd.$VDI)
+    )
+      vdiSizesByDevice[vbd.device] = +vdi.virtual_size
 
-  xapiVdis = VDIs and map(VDIs, (vdi) =>
+    return
+  )
+
+  vdis = extract(params, 'VDIs')
+  params.vdis = vdis and map(vdis, (vdi) =>
     sr = @getObject(vdi.SR)
     size = parseSize(vdi.size)
 
@@ -95,24 +101,11 @@ create = $coroutine ({
     })
   )
 
-  xapi = @getXapi(template)
-
-  diskSizesByDevice = {}
-
-  forEach(xapi.getObject(template._xapiId).$VBDs, (vbd) =>
-    if (
-      vbd.type is 'Disk' and
-      (vdi = vbd.$VDI)
-    )
-      diskSizesByDevice[vbd.device] = +vdi.virtual_size
-
-    return
-  )
-
-  xapiExistingVdis = existingDisks and map(existingDisks, (vdi, device) =>
+  existingVdis = extract(params, 'existingDisks')
+  params.existingVdis = existingVdis and map(existingVdis, (vdi, device) =>
     if vdi.size?
       size = parseSize(vdi.size)
-      diskSizesByDevice[device] = size
+      vdiSizesByDevice[device] = size
 
     if vdi.$SR
       sr = @getObject(vdi.$SR)
@@ -124,9 +117,10 @@ create = $coroutine ({
     })
   )
 
-  forEach(diskSizesByDevice, (size) => limits.disk += size)
+  forEach(vdiSizesByDevice, (size) => limits.disk += size)
 
-  xapiVifs = VIFs and map(VIFs, (vif) =>
+  vifs = extract(params, 'VIFs')
+  params.vifs = vifs and map(vifs, (vif) =>
     network = @getObject(vif.network)
 
     objectIds.push(network.id)
@@ -137,34 +131,40 @@ create = $coroutine ({
     }
   )
 
+  installation = extract(params, 'installation')
+  params.installRepository = installation && installation.repository
+
+  resourceSet = extract(params, resourceSet)
+
+  xapiVm = yield xapi.createVm(template._xapiId, params)
+  vm = xapi.xo.addObject(xapiVm)
+
+  { user } = this
   if resourceSet
     yield this.checkResourceSetConstraints(resourceSet, user.id, objectIds)
     yield this.allocateLimitsInResourceSet(limits, resourceSet)
   else unless user.permission is 'admin'
     throw new Unauthorized()
 
-  xapiVm = yield xapi.createVm(template._xapiId, {
-    clone,
-    installRepository: installation && installation.repository,
-    nameDescription: name_description,
-    nameLabel: name_label,
-    pvArgs: pv_args,
-    vdis: xapiVdis,
-    vifs: xapiVifs,
-    existingVdis: xapiExistingVdis
-  })
-
-  vm = xapi.xo.addObject(xapiVm)
-
   if resourceSet
     yield Promise.all([
-      @addAcl(user.id, vm.id, 'admin'),
-      xapi.xo.setData(xapiVm.$id, 'resourceSet', resourceSet)
+      @addAcl(user.id, vm.id, 'admin')
+      xapi.xo.setData(xapiVm.$id, 'resourceSet')
     ])
 
   return vm.id
 
 create.params = {
+  cloudConfig: {
+    type: 'string'
+    optional: true
+  }
+
+  coreOs: {
+    type: 'boolean'
+    optional: true
+  }
+
   clone: {
     type: 'boolean'
     optional: true
@@ -405,121 +405,19 @@ exports.migrate = migrate
 
 #---------------------------------------------------------------------
 
-# FIXME: human readable strings should be handled.
-set = $coroutine (params) ->
-  {VM} = params
-  xapi = @getXapi VM
+set = (params) ->
+  VM = extract(params, 'VM')
+  xapi = @getXapi(VM)
 
-  {_xapiRef: ref} = VM
+  return xapi.editVm(VM._xapiId, params, (limits, vm) =>
+    resourceSet = xapi.xo.getData(vm, 'resourceSet')
 
-  resourceSet = xapi.xo.getData(ref, 'resourceSet')
+    if (resourceSet)
+      return @allocateLimitsInResourceSet(limits, resourceSet)
 
-  if 'memoryMin' of params
-    memoryMin = parseSize(params.memoryMin)
-    yield xapi.call 'VM.set_memory_dynamic_min', ref, "#{memoryMin}"
-
-  if 'memoryMax' of params
-    memoryMax = parseSize(params.memoryMax)
-    if memoryMax > VM.memory.static[1]
-      yield xapi.call 'VM.set_memory_static_max', ref, "#{memoryMax}"
-    if resourceSet?
-      yield @allocateLimitsInResourceSet({
-        memory: memory - VM.memory.dynamic[1]
-      }, resourceSet)
-    yield xapi.call 'VM.set_memory_dynamic_max', ref, "#{memoryMax}"
-  if 'memoryStaticMax' of params
-    memoryStaticMax = parseSize(params.memoryStaticMax)
-    yield xapi.call 'VM.set_memory_static_max', ref, "#{memoryStaticMax}"
-
-
-  # Memory.
-  if 'memory' of params
-    memory = parseSize(params.memory)
-
-    if memory < VM.memory.static[0]
-      @throw(
-        'INVALID_PARAMS'
-        "cannot set memory below the static minimum (#{VM.memory.static[0]})"
-      )
-
-    if memory < VM.memory.dynamic[0]
-      yield xapi.call 'VM.set_memory_dynamic_min', ref, "#{memory}"
-    else if memory > VM.memory.static[1]
-      if $isVmRunning VM
-        @throw(
-          'INVALID_PARAMS'
-          "cannot set memory above the static maximum (#{VM.memory.static[1]}) "+
-            "for a running VM"
-        )
-
-      yield xapi.call 'VM.set_memory_static_max', ref, "#{memory}"
-
-    if resourceSet?
-      yield @allocateLimitsInResourceSet({
-        memory: memory - VM.memory.dynamic[1]
-      }, resourceSet)
-    yield xapi.call 'VM.set_memory_dynamic_max', ref, "#{memory}"
-
-  # Number of CPUs.
-  if 'CPUs' of params
-    {CPUs} = params
-
-    if resourceSet?
-      yield @allocateLimitsInResourceSet({
-        cpus: CPUs - VM.CPUs.number
-      }, resourceSet)
-    if $isVmRunning VM
-      if CPUs > VM.CPUs.max
-        @throw(
-          'INVALID_PARAMS'
-          "cannot set CPUs above the static maximum (#{VM.CPUs.max}) "+
-            "for a running VM"
-        )
-      yield xapi.call 'VM.set_VCPUs_number_live', ref, "#{CPUs}"
-    else
-      if CPUs > VM.CPUs.max
-        yield xapi.call 'VM.set_VCPUs_max', ref, "#{CPUs}"
-      yield xapi.call 'VM.set_VCPUs_at_startup', ref, "#{CPUs}"
-
-  if 'cpusMax' of params
-    yield xapi.call 'VM.set_VCPUs_max', ref, "#{params.cpusMax}"
-
-  # HA policy
-  # TODO: also handle "best-effort" case
-  if 'high_availability' of params
-    {high_availability} = params
-
-    if high_availability
-      yield xapi.call 'VM.set_ha_restart_priority', ref, "restart"
-    else
-      yield xapi.call 'VM.set_ha_restart_priority', ref, ""
-
-  if 'auto_poweron' of params
-    {auto_poweron} = params
-
-    if auto_poweron
-      yield xapi.call 'VM.add_to_other_config', ref, 'auto_poweron', 'true'
-      yield xapi.setPoolProperties({autoPoweron: true})
-    else
-      yield xapi.call 'VM.remove_from_other_config', ref, 'auto_poweron'
-
-  if 'cpuWeight' of params
-    if resourceSet? and this.user.permission isnt 'admin'
+    if (limits.cpuWeight && this.user.permission != 'admin')
       throw new Unauthorized()
-    yield xapi.setVcpuWeight(VM._xapiId, params.cpuWeight)
-
-  # Other fields.
-  for param, fields of {
-    'name_label'
-    'name_description'
-    'PV_args'
-  }
-    continue unless param of params
-
-    for field in (if $isArray fields then fields else [fields])
-      yield xapi.call "VM.set_#{field}", ref, "#{params[param]}"
-
-  return true
+  )
 
 set.params = {
   # Identifier of the VM to update.

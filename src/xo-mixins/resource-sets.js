@@ -1,6 +1,6 @@
-import every from 'lodash.every'
-import remove from 'lodash.remove'
-import some from 'lodash.some'
+import every from 'lodash/every'
+import remove from 'lodash/remove'
+import some from 'lodash/some'
 
 import {
   NoSuchObject,

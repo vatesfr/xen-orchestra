@@ -1,7 +1,7 @@
 import Collection, {ModelAlreadyExists} from '../collection'
-import difference from 'lodash.difference'
-import filter from 'lodash.filter'
-import getKey from 'lodash.keys'
+import difference from 'lodash/difference'
+import filter from 'lodash/filter'
+import getKey from 'lodash/keys'
 import {createClient as createRedisClient} from 'redis'
 
 import {

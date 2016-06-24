@@ -1,5 +1,5 @@
-import assign from 'lodash.assign'
-import startsWith from 'lodash.startswith'
+import assign from 'lodash/assign'
+import startsWith from 'lodash/startsWith'
 import { parse as parseUrl } from 'url'
 import { request as httpRequest } from 'http'
 import { request as httpsRequest } from 'https'

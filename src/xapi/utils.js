@@ -1,14 +1,19 @@
-// import isFinite from 'lodash.isfinite'
-import pickBy from 'lodash.pickby'
+// import isFinite from 'lodash/isFinite'
+import pickBy from 'lodash/pickBy'
 import { utcFormat, utcParse } from 'd3-time-format'
 
 import {
   createRawObject,
   forEach,
+  isArray,
   isBoolean,
+  isFunction,
   isInteger,
   isObject,
-  map
+  isString,
+  map,
+  mapToArray,
+  noop
 } from '../utils'
 
 // ===================================================================
@@ -117,3 +122,175 @@ const VM_RUNNING_POWER_STATES = {
   Paused: true
 }
 export const isVmRunning = vm => VM_RUNNING_POWER_STATES[vm.power_state]
+
+// -------------------------------------------------------------------
+
+const _DEFAULT_ADD_TO_LIMITS = (next, current) => next - current
+
+const _mapFilter = (collection, iteratee) => {
+  const result = []
+  forEach(collection, (...args) => {
+    const value = iteratee(...args)
+    if (value) {
+      result.push(value)
+    }
+  })
+  return result
+}
+
+export const makeEditObject = specs => {
+  const normalizeGet = get => {
+    if (isString(get)) {
+      return object => object[get]
+    }
+
+    return get
+  }
+  const normalizeSet = set => {
+    if (isFunction(set)) {
+      return set
+    }
+
+    if (isString(set)) {
+      const index = set.indexOf('.')
+      if (index === -1) {
+        return function (value) {
+          return this._set(set, value)
+        }
+      }
+
+      const map = set.slice(0, index)
+      const prop = set.slice(index + 1)
+
+      return function (value, object) {
+        return this._updateObjectMapProperty(object, map, { [prop]: value })
+      }
+    }
+
+    if (!isArray(set)) {
+      throw new Error('must be an array, a function or a string')
+    }
+
+    set = mapToArray(set, normalizeSet)
+
+    const { length } = set
+    if (!length) {
+      throw new Error('invalid setter')
+    }
+
+    if (length === 1) {
+      return set[0]
+    }
+
+    return function (value, object) {
+      return Promise.all(mapToArray(set, set => set.call(this, value, object)))
+    }
+  }
+
+  const normalizeSpec = spec => {
+    if (isString(spec)) {
+      return normalizeSpec(specs[spec])
+    }
+
+    if (spec.addToLimits === true) {
+      spec.addToLimits = _DEFAULT_ADD_TO_LIMITS
+    }
+
+    forEach(spec.constraints, (constraint, constraintName) => {
+      if (!isFunction(constraint)) {
+        throw new Error('constraint must be a function')
+      }
+
+      const constraintSpec = specs[constraintName]
+      if (!constraintSpec.get) {
+        throw new Error('constraint values must have a get')
+      }
+    })
+
+    const { get } = spec
+    if (get) {
+      spec.get = normalizeGet(get)
+    } else if (spec.addToLimits) {
+      throw new Error('addToLimits cannot be defined without get')
+    }
+
+    spec.set = normalizeSet(spec.set)
+
+    return spec
+  }
+  forEach(specs, (spec, name) => {
+    specs[name] = normalizeSpec(spec)
+  })
+
+  return async function _editObject_ (id, values, checkLimits) {
+    const limits = checkLimits && {}
+    const object = this.getObject(id)
+
+    const _objectRef = object.$ref
+    const _setMethodPrefix = `${getNamespaceForType(object.$type)}.set_`
+
+    // Context used to execute functions.
+    const context = {
+      __proto__: this,
+      _set: (prop, value) => this.call(_setMethodPrefix + prop, _objectRef, prepareXapiParam(value))
+    }
+
+    const set = (value, name) => {
+      const spec = specs[name]
+      if (!spec) {
+        return
+      }
+
+      const { preprocess } = spec
+      if (preprocess) {
+        value = preprocess(value)
+      }
+
+      const { get } = spec
+      if (get) {
+        const current = get(object)
+        if (value === current) {
+          return
+        }
+
+        let addToLimits
+        if (limits && (addToLimits = spec.addToLimits)) {
+          limits[name] = addToLimits(value, current)
+        }
+      }
+
+      const cb = () => spec.set.call(context, value, object)
+
+      const { constraints } = spec
+      if (constraints) {
+        const cbs = []
+
+        forEach(constraints, (constraint, constraintName) => {
+          // This constraint value is already defined: bypass the constraint.
+          if (values[constraintName] != null) {
+            return
+          }
+
+          if (!constraint(specs[constraintName].get(object), value)) {
+            const cb = set(value, constraintName)
+            cbs.push(cb)
+          }
+        })
+
+        if (cbs.length) {
+          return () => Promise.all(mapToArray(cbs, cb => cb())).then(cb)
+        }
+      }
+
+      return cb
+    }
+
+    const cbs = _mapFilter(values, set)
+
+    if (checkLimits) {
+      await checkLimits(limits, object)
+    }
+
+    return Promise.all(mapToArray(cbs, cb => cb())).then(noop)
+  }
+}

@@ -1,11 +1,11 @@
 /* eslint-disable camelcase */
 
 import createDebug from 'debug'
-import every from 'lodash.every'
+import every from 'lodash/every'
 import fatfs from 'fatfs'
-import find from 'lodash.find'
-import includes from 'lodash.includes'
-import sortBy from 'lodash.sortby'
+import find from 'lodash/find'
+import includes from 'lodash/includes'
+import sortBy from 'lodash/sortBy'
 import unzip from 'julien-f-unzip'
 import { defer } from 'promise-toolbox'
 import {
@@ -110,7 +110,7 @@ const put = (stream, {
 
 // FIXME: remove this work around when fixed, https://phabricator.babeljs.io/T2877
 //  export * from './utils'
-require('lodash.assign')(module.exports, require('./utils'))
+require('lodash/assign')(module.exports, require('./utils'))
 
 // VDI formats. (Raw is not available for delta vdi.)
 export const VDI_FORMAT_VHD = 'vhd'
@@ -255,7 +255,7 @@ export default class Xapi extends XapiBase {
   // Returns the objects if already presents or waits for it.
   async _getOrWaitObject (idOrUuidOrRef) {
     return (
-      this.getObject(idOrUuidOrRef, undefined) ||
+      this.getObject(idOrUuidOrRef, null) ||
       this._waitObject(idOrUuidOrRef)
     )
   }
@@ -292,7 +292,15 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
-  async _setObjectProperties (object, props) {
+  _setObjectProperty (object, name, value) {
+    return this.call(
+      `${getNamespaceForType(object.$type)}.set_${camelToSnakeCase(name)}`,
+      object.$ref,
+      prepareXapiParam(value)
+    )
+  }
+
+  _setObjectProperties (object, props) {
     const {
       $ref: ref,
       $type: type
@@ -302,11 +310,11 @@ export default class Xapi extends XapiBase {
 
     // TODO: the thrown error should contain the name of the
     // properties that failed to be set.
-    await Promise.all(mapToArray(props, (value, name) => {
+    return Promise.all(mapToArray(props, (value, name) => {
       if (value != null) {
         return this.call(`${namespace}.set_${camelToSnakeCase(name)}`, ref, prepareXapiParam(value))
       }
-    }))
+    }))::pCatch(noop)
   }
 
   async _updateObjectMapProperty (object, prop, values) {
@@ -856,7 +864,7 @@ export default class Xapi extends XapiBase {
   }
 
   // Low level create VM.
-  _createVm ({
+  _createVmRecord ({
     actions_after_crash,
     actions_after_reboot,
     actions_after_shutdown,
@@ -948,161 +956,6 @@ export default class Xapi extends XapiBase {
       version: asInteger(version),
       xenstore_data
     }))
-  }
-
-  // TODO: clean up on error.
-  async createVm (templateId, {
-    clone = true,
-    nameDescription = undefined,
-    nameLabel = undefined,
-    pvArgs = undefined,
-    cpus = undefined,
-    installRepository = undefined,
-    vdis = undefined,
-    vifs = undefined,
-    existingVdis = undefined
-  } = {}) {
-    const installMethod = (() => {
-      if (installRepository == null) {
-        return 'none'
-      }
-
-      try {
-        installRepository = this.getObject(installRepository)
-        return 'cd'
-      } catch (_) {
-        return 'network'
-      }
-    })()
-    const template = this.getObject(templateId)
-
-    // Clones the template.
-    const vm = await this._getOrWaitObject(
-      await this[clone ? '_cloneVm' : '_copyVm'](template, nameLabel)
-    )
-
-    // TODO: copy BIOS strings?
-
-    // Removes disks from the provision XML, we will create them by
-    // ourselves.
-    await this.call('VM.remove_from_other_config', vm.$ref, 'disks')::pCatch(noop)
-
-    // Creates the VDIs and executes the initial steps of the
-    // installation.
-    await this.call('VM.provision', vm.$ref)
-
-    // Set VMs params.
-    this._setObjectProperties(vm, {
-      nameDescription,
-      PV_args: pvArgs,
-      VCPUs_at_startup: cpus
-    })
-
-    // Sets boot parameters.
-    {
-      const isHvm = isVmHvm(vm)
-
-      if (isHvm) {
-        if (!vdis.length || installMethod === 'network') {
-          const { HVM_boot_params: bootParams } = vm
-          let order = bootParams.order
-          if (order) {
-            order = 'n' + order.replace('n', '')
-          } else {
-            order = 'ncd'
-          }
-
-          this._setObjectProperties(vm, {
-            HVM_boot_params: { ...bootParams, order }
-          })
-        }
-      } else { // PV
-        if (vm.PV_bootloader === 'eliloader') {
-          if (installMethod === 'network') {
-            // TODO: normalize RHEL URL?
-
-            await this._updateObjectMapProperty(vm, 'other_config', {
-              'install-repository': installRepository
-            })
-          } else if (installMethod === 'cd') {
-            await this._updateObjectMapProperty(vm, 'other_config', {
-              'install-repository': 'cdrom'
-            })
-          }
-        }
-      }
-    }
-
-    // Inserts the CD if necessary.
-    if (installMethod === 'cd') {
-      // When the VM is started, if PV, the CD drive will become not
-      // bootable and the first disk bootable.
-      await this._insertCdIntoVm(installRepository, vm, {
-        bootable: true
-      })
-    }
-
-    // Modify existing (previous template) disks if necessary
-    existingVdis && await Promise.all(mapToArray(existingVdis, async ({ size, $SR: srId, ...properties }, userdevice) => {
-      const vbd = find(vm.$VBDs, { userdevice })
-      if (!vbd) {
-        return
-      }
-      const vdi = vbd.$VDI
-      await this._setObjectProperties(vdi, properties)
-
-      // if the disk is bigger
-      if (
-        size != null &&
-        size > vdi.virtual_size
-      ) {
-        await this.resizeVdi(vdi.$id, size)
-      }
-      // if another SR is set, move it there
-      if (srId) {
-        await this.moveVdi(vdi.$id, srId)
-      }
-    }))
-
-    // Creates the user defined VDIs.
-    //
-    // TODO: set vm.suspend_SR
-    vdis && await Promise.all(mapToArray(vdis, (vdiDescription, i) => {
-      return this._createVdi(
-        vdiDescription.size, // FIXME: Should not be done in Xapi.
-        {
-          name_label: vdiDescription.name_label,
-          name_description: vdiDescription.name_description,
-          sr: vdiDescription.sr || vdiDescription.SR
-        }
-      )
-        .then(ref => this._getOrWaitObject(ref))
-        .then(vdi => this._createVbd(vm, vdi, {
-          // Only the first VBD if installMethod is not cd is bootable.
-          bootable: installMethod !== 'cd' && !i
-        }))
-    }))
-
-    // Destroys the VIFs cloned from the template.
-    await Promise.all(mapToArray(vm.$VIFs, vif => this._deleteVif(vif)))
-
-    // Creates the VIFs specified by the user.
-    {
-      let position = 0
-      vifs && await Promise.all(mapToArray(vifs, vif => this._createVif(
-        vm,
-        this.getObject(vif.network),
-        {
-          position: position++,
-          mac: vif.mac,
-          mtu: vif.mtu
-        }
-      )))
-    }
-
-    // TODO: Assign VGPUs.
-
-    return this._waitObject(vm.$id)
   }
 
   async _deleteVm (vm, deleteDisks) {
@@ -1340,7 +1193,7 @@ export default class Xapi extends XapiBase {
 
     // 1. Create the VMs.
     const vm = await this._getOrWaitObject(
-      await this._createVm({
+      await this._createVmRecord({
         ...delta.vm,
         affinity: null,
         is_a_template: false

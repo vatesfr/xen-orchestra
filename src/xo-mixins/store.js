@@ -1,6 +1,6 @@
-import endsWith from 'lodash.endswith'
+import endsWith from 'lodash/endsWith'
 import levelup from 'level-party'
-import startsWith from 'lodash.startswith'
+import startsWith from 'lodash/startsWith'
 import sublevel from 'level-sublevel'
 import { ensureDir } from 'fs-promise'
 

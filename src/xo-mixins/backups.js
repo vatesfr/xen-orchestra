@@ -1,11 +1,11 @@
-import endsWith from 'lodash.endswith'
+import endsWith from 'lodash/endsWith'
 import escapeStringRegexp from 'escape-string-regexp'
 import eventToPromise from 'event-to-promise'
-import filter from 'lodash.filter'
-import find from 'lodash.find'
-import findIndex from 'lodash.findindex'
-import sortBy from 'lodash.sortby'
-import startsWith from 'lodash.startswith'
+import filter from 'lodash/filter'
+import find from 'lodash/find'
+import findIndex from 'lodash/findIndex'
+import sortBy from 'lodash/sortBy'
+import startsWith from 'lodash/startsWith'
 import {
   basename,
   dirname

@@ -1,4 +1,4 @@
-import endsWith from 'lodash.endswith'
+import endsWith from 'lodash/endsWith'
 import JSON5 from 'json5'
 import { BaseError } from 'make-error'
 

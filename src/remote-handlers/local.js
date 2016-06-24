@@ -1,5 +1,5 @@
 import fs from 'fs-promise'
-import startsWith from 'lodash.startswith'
+import startsWith from 'lodash/startsWith'
 import {
   dirname,
   resolve

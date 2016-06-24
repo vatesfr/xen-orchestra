@@ -1,7 +1,7 @@
 import createDebug from 'debug'
 const debug = createDebug('xo:api')
 
-import getKeys from 'lodash.keys'
+import getKeys from 'lodash/keys'
 import kindOf from 'kindof'
 import ms from 'ms'
 import schemaInspector from 'schema-inspector'
