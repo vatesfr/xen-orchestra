@@ -597,6 +597,7 @@ var messages = {
   newVmCloudConfig: 'Cloud config',
   newVmCreateVms: 'Create VMs',
   newVmCreateVmsConfirm: 'Are you sure you want to create {nbVms} VMs?',
+  newVmMultipleVms: 'Multiple VMs:',
 
   // ----- Self -----
   resourceSets: 'Resource sets',

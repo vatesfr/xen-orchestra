@@ -173,6 +173,10 @@ export class SizeInput extends Component {
     this.state = { unit: humanSize ? humanSize.prefix + 'B' : props.defaultUnit || DEFAULT_UNIT }
   }
 
+  componentWillReceiveProps (newProps) {
+    this.value = newProps.value
+  }
+
   get value () {
     const value = this.refs.value.value
     return value ? parseSize(value + ' ' + this.state.unit) : undefined

@@ -1541,6 +1541,9 @@ export default {
   // Original text : "Are you sure you want to create {nbVms} VMs?"
   newVmCreateVmsConfirm: undefined,
 
+  // Original text : "Multiple VMs"
+  newVmMultipleVms: undefined,
+
   // Original text: "Resource sets"
   resourceSets: 'Ajustes dos recursos',
 
