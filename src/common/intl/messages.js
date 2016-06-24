@@ -150,6 +150,8 @@ var messages = {
   schedulingEachSelectedMinute: 'Each selected minute',
   schedulingReset: 'Reset',
   unknownSchedule: 'Unknown',
+  backupEditNotFoundTitle: 'Cannot edit backup',
+  backupEditNotFoundMessage: 'Missing required info for edition',
   job: 'Job',
   jobId: 'Job ID',
   jobName: 'Name',
@@ -595,6 +597,9 @@ var messages = {
   newVmCpuWeightNormal: 'Normal',
   newVmCpuWeightDouble: 'Double (x2)',
   newVmCloudConfig: 'Cloud config',
+  newVmCreateVms: 'Create VMs',
+  newVmCreateVmsConfirm: 'Are you sure you want to create {nbVms} VMs?',
+  newVmMultipleVms: 'Multiple VMs:',
 
   // ----- Self -----
   resourceSets: 'Resource sets',

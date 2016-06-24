@@ -476,6 +476,18 @@ export const createVm = args => (
   call('vm.create', args)
 )
 
+export const createVms = (args, nameLabels) => (
+  confirm({
+    title: _('newVmCreateVms'),
+    body: _('newVmCreateVmsConfirm', {nbVms: nameLabels.length})
+  }).then(
+    () => Promise.all(map(nameLabels, name_label => // eslint-disable-line camelcase
+      call('vm.create', { ...args, name_label })
+    )),
+    noop
+  )
+)
+
 export const getCloudInitConfig = template => (
   call('vm.getCloudInitConfig', { template })
 )
@@ -802,6 +814,16 @@ export const getJob = id => (
 export const setJob = job => (
   call('job.set', { job })::tap(
     subscribeJobs.forceRefresh
+  )
+)
+
+export const getSchedule = id => (
+  call('schedule.get', { id })
+)
+
+export const setSchedule = schedule => (
+  call('schedule.set', schedule)::tap(
+    subscribeSchedules.forceRefresh
   )
 )
 

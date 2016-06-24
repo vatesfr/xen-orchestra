@@ -86,6 +86,7 @@
     "react-bootstrap-4": "^0.29.1",
     "react-chartist": "^0.10.1",
     "react-copy-to-clipboard": "^4.0.2",
+    "react-debounce-input": "^2.4.0",
     "react-dnd": "^2.1.4",
     "react-dnd-html5-backend": "^2.1.2",
     "react-dom": "^15.0.0",

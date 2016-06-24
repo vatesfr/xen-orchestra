@@ -66,6 +66,7 @@ export default ({
           <TabButton
             btnStyle='primary'
             handler={fullCopy}
+            handlerParam={vm}
             icon='vm-clone'
             labelId='cloneVmLabel'
           />
