@@ -236,12 +236,7 @@ export default class Health extends Component {
               </div>
               <div className='card-block'>
                 {isEmpty(this.props.userSrs)
-                  ? <Row>
-                    <Col smallSize={6} className='text-xs-center'>
-                      <br />
-                      <h4>{_('noSrs')}</h4>
-                    </Col>
-                  </Row>
+                  ? <p className='text-xs-center'>{_('noSrs')}</p>
                   : <Row>
                     <Col>
                       <SortedTable collection={this.props.userSrs} columns={SR_COLUMNS} defaultColumn={4} />
