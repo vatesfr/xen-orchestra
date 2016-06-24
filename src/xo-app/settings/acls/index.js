@@ -165,7 +165,7 @@ export default class Acls extends Component {
       subjects
     } = this.state
 
-    return process.env.XOA_PLAN > 3
+    return process.env.XOA_PLAN > 2
       ? <Container>
         <form>
           <div className='form-group'>
