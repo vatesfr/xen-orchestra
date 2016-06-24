@@ -13,6 +13,6 @@ const SingleLineRow = propTypes({
   className={`${className || ''} row`}
   style={SINGLE_LINE_STYLE}
 >
-  {React.Children.map(children, child => cloneElement(child, { style: COL_STYLE }))}
+  {React.Children.map(children, child => child && cloneElement(child, { style: COL_STYLE }))}
 </div>)
 export { SingleLineRow as default }
