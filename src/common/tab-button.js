@@ -2,6 +2,8 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import React from 'react'
 
+export TabButtonLink from 'tab-button-link'
+
 const COMMON_PROPS = {
   size: 'large',
   style: {

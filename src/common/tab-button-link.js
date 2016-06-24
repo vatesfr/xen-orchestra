@@ -1,7 +1,7 @@
 import _ from 'intl'
+import Icon from 'icon'
 import React from 'react'
 import { Link } from 'react-router'
-import Icon from 'icon'
 
 const COMMON_PROPS = {
   style: {
