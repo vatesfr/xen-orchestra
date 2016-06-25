@@ -44,7 +44,7 @@ export default ({
                 const sr = srs[pbd.SR]
                 return <BlockLink key={pbd.id} to={`/srs/${sr.id}/general`} tagName='tr'>
                   <td>
-                    <Text value={sr.name_label} onChange={nameLabel => editSr(sr, { nameLabel })} />
+                    <Text value={sr.name_label} onChange={nameLabel => editSr(sr, { nameLabel })} useLongClick />
                   </td>
                   <td>{sr.SR_type}</td>
                   <td>{formatSize(sr.size)}</td>
