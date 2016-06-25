@@ -750,8 +750,12 @@ export const disconnectAllHostsSr = ({ id }) => (
   )
 )
 
-export const editSr = ({ id }, props) => (
-  call('sr.set', { ...props, id })
+export const editSr = (sr, { nameDescription, nameLabel }) => (
+  call('sr.set', {
+    id: resolveId(sr),
+    name_description: nameDescription,
+    name_label: nameLabel
+  })
 )
 
 export const rescanSr = ({ id }) => (
