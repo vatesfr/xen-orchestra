@@ -7,6 +7,7 @@ var gulp = require('gulp')
 var babel = require('gulp-babel')
 var coffee = require('gulp-coffee')
 var plumber = require('gulp-plumber')
+var rimraf = require('rimraf')
 var sourceMaps = require('gulp-sourcemaps')
 var watch = require('gulp-watch')
 
@@ -38,6 +39,10 @@ function src (patterns) {
 
 // ===================================================================
 
+gulp.task(function clean (cb) {
+  rimraf(DIST_DIR, cb)
+})
+
 gulp.task(function buildCoffee () {
   return src('**/*.coffee')
     .pipe(sourceMaps.init())
@@ -62,4 +67,4 @@ gulp.task(function buildEs6 () {
 
 // ===================================================================
 
-gulp.task('build', gulp.parallel('buildCoffee', 'buildEs6'))
+gulp.task('build', gulp.series('clean', gulp.parallel('buildCoffee', 'buildEs6')))
