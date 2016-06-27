@@ -1715,9 +1715,6 @@ export default {
   // Original text: "Migrate VM"
   migrateVmModalTitle: undefined,
 
-  // Original text: "Are you sure you want to migrate this VM to {hostName}?"
-  migrateVmModalBody: undefined,
-
   // Original text: "Select a destination host:"
   migrateVmAdvancedModalSelectHost: undefined,
 

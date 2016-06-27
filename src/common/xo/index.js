@@ -447,16 +447,10 @@ export const snapshotVms = vms => (
 )
 
 import MigrateVmModalBody from './migrate-vm-modal'
-export const migrateVm = (vm, host) => {
-  let body
-  if (!host) {
-    body = <MigrateVmModalBody vm={vm} />
-  } else {
-    body = _('migrateVmModalBody', { hostName: host.name_label })
-  }
-  return confirm({
+export const migrateVm = (vm, host) => (
+  confirm({
     title: _('migrateVmModalTitle'),
-    body
+    body: <MigrateVmModalBody vm={vm} host={host} />
   }).then(
     params => {
       if (!params && !host) {
@@ -470,7 +464,7 @@ export const migrateVm = (vm, host) => {
     },
     noop
   )
-}
+)
 
 export const migrateVms = vms => {
   throw new Error('Not implemented.')
