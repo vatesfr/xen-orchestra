@@ -21,6 +21,8 @@ import {
   createSelector
 } from '../../selectors'
 
+import { isSrWritable } from '../'
+
 import styles from './index.css'
 
 @connectStore(() => {
@@ -76,7 +78,7 @@ export default class MigrateVmModalBody extends Component {
     this._getSrPredicate = createSelector(
       () => this.state.host,
       host => (host
-        ? sr => sr.content_type !== 'iso' && sr.size > 0 && (sr.$container === host.id || sr.$container === host.$pool)
+        ? sr => isSrWritable(sr) && (sr.$container === host.id || sr.$container === host.$pool)
         : () => false
       )
     )

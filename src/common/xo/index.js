@@ -30,6 +30,10 @@ import {
 
 // ===================================================================
 
+export const isSrWritable = sr => sr.content_type !== 'iso' && sr.size > 0
+
+// ===================================================================
+
 export const signOut = () => {
   cookies.expire('token')
   window.location.reload(true)
