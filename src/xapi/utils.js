@@ -1,4 +1,5 @@
 // import isFinite from 'lodash/isFinite'
+import isEqual from 'lodash/isEqual'
 import pickBy from 'lodash/pickBy'
 import { utcFormat, utcParse } from 'd3-time-format'
 
@@ -249,7 +250,7 @@ export const makeEditObject = specs => {
       const { get } = spec
       if (get) {
         const current = get(object)
-        if (value === current) {
+        if (isEqual(value, current)) {
           return
         }
 
