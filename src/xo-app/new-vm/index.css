@@ -67,3 +67,7 @@
 .refreshNames {
   cursor: pointer;
 }
+
+.customConfig {
+  resize: both;
+}

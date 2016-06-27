@@ -301,6 +301,7 @@ export default class NewVm extends BaseComponent {
       cpuWeight: 1,
       // installation
       installMethod: template.install_methods && template.install_methods[0] || state.installMethod,
+      customConfig: '#cloud-config\n#hostname: myhostname\n#ssh_authorized_keys:\n#  - ssh-rsa <myKey>\n#packages:\n#  - htop\n',
       // interfaces
       VIFs,
       // disks
@@ -599,7 +600,7 @@ export default class NewVm extends BaseComponent {
           <span>{_('newVmCustomConfig')}</span>
           {' '}
           <DebounceInput
-            className='form-control'
+            className={classNames('form-control', styles.customConfig)}
             debounceTimeout={DEBOUNCE_TIMEOUT}
             disabled={installMethod !== 'customConfig'}
             element='textarea'
