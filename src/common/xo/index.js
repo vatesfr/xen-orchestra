@@ -68,7 +68,7 @@ const xo = invoke(() => {
 
 const _signIn = new Promise(resolve => xo.once('authenticated', resolve))
 
-const call = (method, params) => {
+const _call = (method, params) => {
   let promise = _signIn.then(() => xo.call(method, params))
 
   if (process.env.NODE_ENV !== 'production') {
@@ -103,7 +103,7 @@ export const connectStore = store => {
   xo.on('authenticated', () => {
     store.dispatch(signedIn(xo.user))
 
-    call('xo.getAllObjects').then(objects => store.dispatch(updateObjects(objects)))
+    _call('xo.getAllObjects').then(objects => store.dispatch(updateObjects(objects)))
   })
   xo.on('notification', notification => {
     if (notification.method !== 'all') {
@@ -188,30 +188,30 @@ const createSubscription = cb => {
 
 // Subscriptions -----------------------------------------------------
 
-export const subscribeAcls = createSubscription(() => call('acl.get'))
+export const subscribeAcls = createSubscription(() => _call('acl.get'))
 
-export const subscribeJobs = createSubscription(() => call('job.getAll'))
+export const subscribeJobs = createSubscription(() => _call('job.getAll'))
 
-export const subscribeJobsLogs = createSubscription(() => call('log.get', {namespace: 'jobs'}))
+export const subscribeJobsLogs = createSubscription(() => _call('log.get', {namespace: 'jobs'}))
 
-export const subscribePermissions = createSubscription(() => call('acl.getCurrentPermissions'))
+export const subscribePermissions = createSubscription(() => _call('acl.getCurrentPermissions'))
 
-export const subscribePlugins = createSubscription(() => call('plugin.get'))
+export const subscribePlugins = createSubscription(() => _call('plugin.get'))
 
-export const subscribeRemotes = createSubscription(() => call('remote.getAll'))
+export const subscribeRemotes = createSubscription(() => _call('remote.getAll'))
 
-export const subscribeResourceSets = createSubscription(() => call('resourceSet.getAll'))
+export const subscribeResourceSets = createSubscription(() => _call('resourceSet.getAll'))
 
-export const subscribeScheduleTable = createSubscription(() => call('scheduler.getScheduleTable'))
+export const subscribeScheduleTable = createSubscription(() => _call('scheduler.getScheduleTable'))
 
-export const subscribeSchedules = createSubscription(() => call('schedule.getAll'))
+export const subscribeSchedules = createSubscription(() => _call('schedule.getAll'))
 
 export const subscribeServers = createSubscription(invoke(
   fpSortBy('host'),
-  sort => () => call('server.getAll').then(sort)
+  sort => () => _call('server.getAll').then(sort)
 ))
 
-export const subscribeUsers = createSubscription(() => call('user.getAll').then(users => {
+export const subscribeUsers = createSubscription(() => _call('user.getAll').then(users => {
   forEach(users, user => {
     user.type = 'user'
   })
@@ -219,7 +219,7 @@ export const subscribeUsers = createSubscription(() => call('user.getAll').then(
   return sortBy(users, 'email')
 }))
 
-export const subscribeGroups = createSubscription(() => call('group.getAll').then(groups => {
+export const subscribeGroups = createSubscription(() => _call('group.getAll').then(groups => {
   forEach(groups, group => {
     group.type = 'group'
   })
@@ -229,14 +229,14 @@ export const subscribeGroups = createSubscription(() => call('group.getAll').the
 
 export const subscribeRoles = createSubscription(invoke(
   sortBy('name'),
-  sort => () => call('role.getAll').then(sort)
+  sort => () => _call('role.getAll').then(sort)
 ))
 
 // System ============================================================
 
-export const apiMethods = call('system.getMethodsInfo')
+export const apiMethods = _call('system.getMethodsInfo')
 
-export const serverVersion = call('system.getServerVersion')
+export const serverVersion = _call('system.getServerVersion')
 
 // ===================================================================
 
@@ -258,31 +258,31 @@ const resolveIds = params => {
 // Server ------------------------------------------------------------
 
 export const addServer = (host, username, password) => (
-  call('server.add', { host, username, password })::tap(
+  _call('server.add', { host, username, password })::tap(
     subscribeServers.forceRefresh
   )
 )
 
 export const editServer = ({ id }, { host, username, password, readOnly }) => (
-  call('server.set', { id, host, username, password, readOnly })::tap(
+  _call('server.set', { id, host, username, password, readOnly })::tap(
     subscribeServers.forceRefresh
   )
 )
 
 export const connectServer = ({ id }) => (
-  call('server.connect', { id })::tap(
+  _call('server.connect', { id })::tap(
     subscribeServers.forceRefresh
   )
 )
 
 export const disconnectServer = ({ id }) => (
-  call('server.disconnect', { id })::tap(
+  _call('server.disconnect', { id })::tap(
     subscribeServers.forceRefresh
   )
 )
 
 export const removeServer = ({ id }) => (
-  call('server.remove', { id })::tap(
+  _call('server.remove', { id })::tap(
     subscribeServers.forceRefresh
   )
 )
@@ -290,57 +290,57 @@ export const removeServer = ({ id }) => (
 // Host --------------------------------------------------------------
 
 export const editHost = ({ id }, props) => (
-  call('host.set', { ...props, id })
+  _call('host.set', { ...props, id })
 )
 
 export const fetchHostStats = ({ id }, granularity) => (
-  call('host.stats', { host: id, granularity })
+  _call('host.stats', { host: id, granularity })
 )
 
 export const restartHost = ({ id }, force = false) => (
-  call('host.restart', { id, force })
+  _call('host.restart', { id, force })
 )
 
 export const restartHostAgent = ({ id }) => (
-  call('host.restart_agent', { id })
+  _call('host.restart_agent', { id })
 )
 
 export const startHost = ({ id }) => (
-  call('host.start', { id })
+  _call('host.start', { id })
 )
 
 export const stopHost = ({ id }) => (
-  call('host.stop', { id })
+  _call('host.stop', { id })
 )
 
 export const enableHost = ({ id }) => (
-  call('host.enable', { id })
+  _call('host.enable', { id })
 )
 
 export const disableHost = ({ id }) => (
-  call('host.disable', { id })
+  _call('host.disable', { id })
 )
 
 export const getHostMissingPatches = ({ id }) => (
-  call('host.listMissingPatches', { host: id })
+  _call('host.listMissingPatches', { host: id })
 )
 
 export const emergencyShutdownHost = ({ id }) => (
-  call('host.emergencyShutdownHost', { host: id })
+  _call('host.emergencyShutdownHost', { host: id })
 )
 
 export const installHostPatch = ({ id }, { uuid }) => (
-  call('host.installPatch', { host: id, patch: uuid })
+  _call('host.installPatch', { host: id, patch: uuid })
 )
 
 export const installAllHostPatches = ({ id }) => (
-  call('host.installAllPatches', { host: id })
+  _call('host.installAllPatches', { host: id })
 )
 
 // VM ----------------------------------------------------------------
 
 export const startVm = ({ id }) => (
-  call('vm.start', { id })
+  _call('vm.start', { id })
 )
 
 export const startVms = vms => (
@@ -354,7 +354,7 @@ export const startVms = vms => (
 )
 
 export const stopVm = ({ id }, force = false) => (
-  call('vm.stop', { id, force })
+  _call('vm.stop', { id, force })
 )
 
 export const stopVms = (vms, force) => (
@@ -368,19 +368,19 @@ export const stopVms = (vms, force) => (
 )
 
 export const suspendVm = ({ id }) => (
-  call('vm.suspend', { id })
+  _call('vm.suspend', { id })
 )
 
 export const resumeVm = ({ id }) => (
-  call('vm.resume', { id })
+  _call('vm.resume', { id })
 )
 
 export const recoveryStartVm = ({ id }) => (
-  call('vm.recoveryStart', { id })
+  _call('vm.recoveryStart', { id })
 )
 
 export const restartVm = ({ id }, force = false) => (
-  call('vm.restart', { id, force })
+  _call('vm.restart', { id, force })
 )
 
 export const restartVms = (vms, force) => (
@@ -394,7 +394,7 @@ export const restartVms = (vms, force) => (
 )
 
 export const cloneVm = ({ id, name_label: nameLabel }, fullCopy = false) => (
-  call('vm.clone', {
+  _call('vm.clone', {
     id,
     name: `${nameLabel}_clone`,
     full_copy: fullCopy
@@ -407,13 +407,13 @@ export const copyVm = (vm, sr, name, compress) => {
     return confirm({
       title: _('copyVm'),
       body: _('copyVmConfirm', { SR: sr.name_label })
-    }).then(() => call('vm.copy', { vm: vm.id, sr: sr.id, name: name || vm.name_label + '_COPY', compress }))
+    }).then(() => _call('vm.copy', { vm: vm.id, sr: sr.id, name: name || vm.name_label + '_COPY', compress }))
   } else {
     return confirm({
       title: _('copyVm'),
       body: <CopyVmModalBody vm={vm} />
     }).then(
-      params => call('vm.copy', { vm: vm.id, ...params }),
+      params => _call('vm.copy', { vm: vm.id, ...params }),
       noop
     )
   }
@@ -427,13 +427,13 @@ export const convertVmToTemplate = ({ id }) => (
       <p>This operation is definitive.</p>
     </div>
   }).then(
-    () => call('vm.convert', { id }),
+    () => _call('vm.convert', { id }),
     noop
   )
 )
 
 export const snapshotVm = ({ id }) => (
-  call('vm.snapshot', { id })
+  _call('vm.snapshot', { id })
 )
 
 export const snapshotVms = vms => (
@@ -463,9 +463,9 @@ export const migrateVm = (vm, host) => {
         throw new Error('A target host is required to migrate a VM')
       }
       if (params) {
-        call('vm.migrate', { vm: vm.id, ...params })
+        _call('vm.migrate', { vm: vm.id, ...params })
       } else {
-        call('vm.migrate', { vm: vm.id, targetHost: host.id })
+        _call('vm.migrate', { vm: vm.id, targetHost: host.id })
       }
     },
     noop
@@ -477,7 +477,7 @@ export const migrateVms = vms => {
 }
 
 export const createVm = args => (
-  call('vm.create', args)
+  _call('vm.create', args)
 )
 
 export const createVms = (args, nameLabels) => (
@@ -486,14 +486,14 @@ export const createVms = (args, nameLabels) => (
     body: _('newVmCreateVmsConfirm', {nbVms: nameLabels.length})
   }).then(
     () => Promise.all(map(nameLabels, name_label => // eslint-disable-line camelcase
-      call('vm.create', { ...args, name_label })
+      _call('vm.create', { ...args, name_label })
     )),
     noop
   )
 )
 
 export const getCloudInitConfig = template => (
-  call('vm.getCloudInitConfig', { template })
+  _call('vm.getCloudInitConfig', { template })
 )
 
 export const deleteVm = ({ id }) => (
@@ -501,7 +501,7 @@ export const deleteVm = ({ id }) => (
     title: _('deleteVmModalTitle'),
     body: _('deleteVmModalMessage')
   }).then(
-    () => call('vm.delete', { id, delete_disks: true }),
+    () => _call('vm.delete', { id, delete_disks: true }),
     noop
   )
 )
@@ -511,29 +511,29 @@ export const deleteVms = vms => (
     title: _('deleteVmsModalTitle', { vms: vms.length }),
     body: _('deleteVmsModalMessage', { vms: vms.length })
   }).then(
-    () => map(vms, vmId => call('vm.delete', { id: vmId })),
+    () => map(vms, vmId => _call('vm.delete', { id: vmId })),
     noop
   )
 )
 
 export const importBackup = ({remote, file, sr}) => (
-  call('vm.importBackup', resolveIds({remote, file, sr}))
+  _call('vm.importBackup', resolveIds({remote, file, sr}))
 )
 
 export const importDeltaBackup = ({remote, file, sr}) => (
-  call('vm.importDeltaBackup', resolveIds({remote, filePath: file, sr}))
+  _call('vm.importDeltaBackup', resolveIds({remote, filePath: file, sr}))
 )
 
 export const revertSnapshot = ({ id }) => (
-  call('vm.revert', { id })
+  _call('vm.revert', { id })
 )
 
 export const editVm = ({ id }, props) => (
-  call('vm.set', { ...props, id })
+  _call('vm.set', { ...props, id })
 )
 
 export const fetchVmStats = ({ id }, granularity) => (
-  call('vm.stats', { id, granularity })
+  _call('vm.stats', { id, granularity })
 )
 
 export const importVm = (file, sr) => {
@@ -541,7 +541,7 @@ export const importVm = (file, sr) => {
 
   info(_('startVmImport'), name)
 
-  return call('vm.import', { sr }).then(({ $sendTo: url }) => {
+  return _call('vm.import', { sr }).then(({ $sendTo: url }) => {
     const req = request.post(url)
 
     req.send(file)
@@ -563,12 +563,12 @@ export const importVms = (files, sr) => (
 
 export const exportVm = ({ id }) => {
   info(_('startVmExport'), id)
-  return call('vm.export', { vm: id })
+  return _call('vm.export', { vm: id })
     .then(({ $getFrom: url }) => window.open(`.${url}`))
 }
 
 export const insertCd = (vm, cd, force = false) => (
-  call('vm.insertCd', {
+  _call('vm.insertCd', {
     id: resolveId(vm),
     cd_id: resolveId(cd),
     force
@@ -576,18 +576,18 @@ export const insertCd = (vm, cd, force = false) => (
 )
 
 export const ejectCd = vm => (
-  call('vm.ejectCd', { id: resolveId(vm) })
+  _call('vm.ejectCd', { id: resolveId(vm) })
 )
 
 export const setVmBootOrder = (vm, order) => (
-  xo.call('vm.setBootOrder', {
+  _call('vm.setBootOrder', {
     vm: resolveId(vm),
     order
   })
 )
 
 export const attachDiskToVm = (vdi, vm, {bootable, mode, position}) => (
-  xo.call('vm.attachDisk', {
+  _call('vm.attachDisk', {
     bootable,
     mode,
     position: position && String(position) || undefined,
@@ -599,7 +599,7 @@ export const attachDiskToVm = (vdi, vm, {bootable, mode, position}) => (
 // DISK ---------------------------------------------------------------
 
 export const createDisk = (name, size, sr) => (
-  xo.call('disk.create', {
+  _call('disk.create', {
     name,
     size,
     sr: resolveId(sr)
@@ -609,43 +609,43 @@ export const createDisk = (name, size, sr) => (
 // VDI ---------------------------------------------------------------
 
 export const editVdi = ({ id }, props) => (
-  call('vdi.set', { ...props, id })
+  _call('vdi.set', { ...props, id })
 )
 
 export const deleteVdi = ({ id }) => (
-  call('vdi.delete', { id })
+  _call('vdi.delete', { id })
 )
 
 export const migrateVdi = (vdi, sr) => (
-  call('vdi.migrate', { id: vdi.id, sr_id: sr.id })
+  _call('vdi.migrate', { id: vdi.id, sr_id: sr.id })
 )
 
 // VDB ---------------------------------------------------------------
 
 export const connectVbd = ({ id }) => (
-  call('vbd.connect', { id })
+  _call('vbd.connect', { id })
 )
 
 export const disconnectVbd = ({ id }) => (
-  call('vbd.disconnect', { id })
+  _call('vbd.disconnect', { id })
 )
 
 export const deleteVbd = ({ id }) => (
-  call('vbd.delete', { id })
+  _call('vbd.delete', { id })
 )
 
 export const editVbd = ({ id }, props) => (
-  call('vbd.set', { ...props, id })
+  _call('vbd.set', { ...props, id })
 )
 
 export const setBootableVbd = ({ id }, bootable) => (
-  call('vbd.setBootable', { vbd: id, bootable })
+  _call('vbd.setBootable', { vbd: id, bootable })
 )
 
 // Network -----------------------------------------------------------
 
 export const editNetwork = ({ id }, props) => (
-  call('network.set', { ...props, id })
+  _call('network.set', { ...props, id })
 )
 
 import CreateNetworkModalBody from './create-network-modal'
@@ -655,7 +655,7 @@ export const createNetwork = container => (
     title: _('newNetworkCreate'),
     body: <CreateNetworkModalBody container={container} />
   }).then(
-    params => xo.call('network.create', params),
+    params => _call('network.create', params),
     noop
   )
 )
@@ -665,7 +665,7 @@ export const deleteNetwork = network => (
     title: _('deleteNetwork'),
     body: _('deleteNetworkConfirm')
   }).then(
-    () => xo.call('network.delete', { network: resolveId(network) }),
+    () => _call('network.delete', { network: resolveId(network) }),
     noop
   )
 )
@@ -677,7 +677,7 @@ export const connectPif = pif => (
     title: _('connectPif'),
     body: _('connectPifConfirm')
   }).then(
-    () => xo.call('pif.connect', { pif: resolveId(pif) }),
+    () => _call('pif.connect', { pif: resolveId(pif) }),
     noop
   )
 )
@@ -687,7 +687,7 @@ export const disconnectPif = pif => (
     title: _('disconnectPif'),
     body: _('disconnectPifConfirm')
   }).then(
-    () => xo.call('pif.disconnect', { pif: resolveId(pif) }),
+    () => _call('pif.disconnect', { pif: resolveId(pif) }),
     noop
   )
 )
@@ -697,7 +697,7 @@ export const deletePif = pif => (
     title: _('deletePif'),
     body: _('deletePifConfirm')
   }).then(
-    () => xo.call('pif.delete', { pif: resolveId(pif) }),
+    () => _call('pif.delete', { pif: resolveId(pif) }),
     noop
   )
 )
@@ -712,7 +712,7 @@ export const deleteSr = ({ id }) => (
       <p>This operation is definitive, and ALL DISKS WILL BE LOST FOREVER.</p>
     </div>
   }).then(
-    () => call('sr.destroy', { id }),
+    () => _call('sr.destroy', { id }),
     noop
   )
 )
@@ -725,7 +725,7 @@ export const forgetSr = ({ id }) => (
       <p>VDIs on this storage wont be removed.</p>
     </div>
   }).then(
-    () => call('sr.forget', { id }),
+    () => _call('sr.forget', { id }),
     noop
   )
 )
@@ -737,7 +737,7 @@ export const reconnectAllHostsSr = ({ id }) => (
       <p>This will reconnect this SR to all its hosts</p>
     </div>
   }).then(
-    () => call('sr.connectAllPbds', { id }),
+    () => _call('sr.connectAllPbds', { id }),
     noop
   )
 )
@@ -749,13 +749,13 @@ export const disconnectAllHostsSr = ({ id }) => (
       <p>This will disconnect this SR to all its hosts</p>
     </div>
   }).then(
-    () => call('sr.disconnectAllPbds', { id }),
+    () => _call('sr.disconnectAllPbds', { id }),
     noop
   )
 )
 
 export const editSr = (sr, { nameDescription, nameLabel }) => (
-  call('sr.set', {
+  _call('sr.set', {
     id: resolveId(sr),
     name_description: nameDescription,
     name_label: nameLabel
@@ -763,86 +763,86 @@ export const editSr = (sr, { nameDescription, nameLabel }) => (
 )
 
 export const rescanSr = ({ id }) => (
-  call('sr.scan', { id })
+  _call('sr.scan', { id })
 )
 
 // PBDs --------------------------------------------------------------
 
 export const connectPbd = ({ id }) => (
-  call('pbd.connect', { id })
+  _call('pbd.connect', { id })
 )
 
 export const disconnectPbd = ({ id }) => (
-  call('pbd.disconnect', { id })
+  _call('pbd.disconnect', { id })
 )
 
 export const deletePbd = ({ id }) => (
-  call('pbd.delete', { id })
+  _call('pbd.delete', { id })
 )
 
 // Messages ----------------------------------------------------------
 
 export const deleteMessage = ({ id }) => (
-  call('message.delete', { id })
+  _call('message.delete', { id })
 )
 
 // Tags --------------------------------------------------------------
 
 export const addTag = (id, tag) => (
-  call('tag.add', { id, tag })
+  _call('tag.add', { id, tag })
 )
 
 export const removeTag = (id, tag) => (
-  call('tag.remove', { id, tag })
+  _call('tag.remove', { id, tag })
 )
 
 // Backups -----------------------------------------------------------
 
 export const createSchedule = (jobId, cron, enabled, name = undefined) => (
-  call('schedule.create', { jobId, cron, enabled, name })::tap(
+  _call('schedule.create', { jobId, cron, enabled, name })::tap(
     subscribeSchedules.forceRefresh
   )
 )
 
 export const createJob = job => (
-  call('job.create', { job })::tap(
+  _call('job.create', { job })::tap(
     subscribeJobs.forceRefresh
   )
 )
 
 export const runJob = id => {
   info(_('runJob'), _('runJobVerbose'))
-  return call('job.runSequence', { idSequence: [id] })
+  return _call('job.runSequence', { idSequence: [id] })
 }
 
 export const getJob = id => (
-  call('job.get', { id })
+  _call('job.get', { id })
 )
 
 export const setJob = job => (
-  call('job.set', { job })::tap(
+  _call('job.set', { job })::tap(
     subscribeJobs.forceRefresh
   )
 )
 
 export const getSchedule = id => (
-  call('schedule.get', { id })
+  _call('schedule.get', { id })
 )
 
 export const setSchedule = schedule => (
-  call('schedule.set', schedule)::tap(
+  _call('schedule.set', schedule)::tap(
     subscribeSchedules.forceRefresh
   )
 )
 
 export const enableSchedule = id => (
-  call('scheduler.enable', { id })::tap(
+  _call('scheduler.enable', { id })::tap(
     subscribeScheduleTable.forceRefresh
   )
 )
 
 export const disableSchedule = id => (
-  call('scheduler.disable', { id })::tap(
+  _call('scheduler.disable', { id })::tap(
     subscribeScheduleTable.forceRefresh
   )
 )
@@ -852,8 +852,8 @@ export const deleteBackupSchedule = async schedule => {
     title: _('deleteBackupSchedule'),
     body: _('deleteBackupScheduleQuestion')
   })
-  await call('schedule.delete', { id: schedule.id })
-  await call('job.delete', { id: schedule.job })
+  await _call('schedule.delete', { id: schedule.id })
+  await _call('job.delete', { id: schedule.job })
 
   subscribeSchedules.forceRefresh()
   subscribeJobs.forceRefresh()
@@ -862,7 +862,7 @@ export const deleteBackupSchedule = async schedule => {
 // Plugins -----------------------------------------------------------
 
 export const loadPlugin = async id => (
-  call('plugin.load', { id })::tap(
+  _call('plugin.load', { id })::tap(
     subscribePlugins.forceRefresh()
   )::rethrow(
     err => error(_('pluginError'), JSON.stringify(err.data) || _('unknownPluginError'))
@@ -870,7 +870,7 @@ export const loadPlugin = async id => (
 )
 
 export const unloadPlugin = id => (
-  call('plugin.unload', { id })::tap(
+  _call('plugin.unload', { id })::tap(
     subscribePlugins.forceRefresh()
   )::rethrow(
     err => error(_('pluginError'), JSON.stringify(err.data) || _('unknownPluginError'))
@@ -878,19 +878,19 @@ export const unloadPlugin = id => (
 )
 
 export const enablePluginAutoload = id => (
-  call('plugin.enableAutoload', { id })::tap(
+  _call('plugin.enableAutoload', { id })::tap(
     subscribePlugins.forceRefresh
   )
 )
 
 export const disablePluginAutoload = id => (
-  call('plugin.disableAutoload', { id })::tap(
+  _call('plugin.disableAutoload', { id })::tap(
     subscribePlugins.forceRefresh
   )
 )
 
 export const configurePlugin = (id, configuration) => {
-  call('plugin.configure', { id, configuration })::tap(
+  _call('plugin.configure', { id, configuration })::tap(
     () => {
       info(_('pluginConfigurationSuccess'), _('pluginConfigurationChanges'))
       subscribePlugins.forceRefresh()
@@ -905,7 +905,7 @@ export const purgePluginConfiguration = async id => {
     title: _('purgePluginConfiguration'),
     body: _('purgePluginConfigurationQuestion')
   })
-  await call('plugin.purgeConfiguration', { id })
+  await _call('plugin.purgeConfiguration', { id })
 
   subscribePlugins.forceRefresh()
 }
@@ -913,13 +913,13 @@ export const purgePluginConfiguration = async id => {
 // Resource set ------------------------------------------------------
 
 export const createResourceSet = (name, { subjects, objects, limits } = {}) => (
-  call('resourceSet.create', { name, subjects, objects, limits })::tap(
+  _call('resourceSet.create', { name, subjects, objects, limits })::tap(
     subscribeResourceSets.forceRefresh
   )
 )
 
 export const editRessourceSet = (id, { name, subjects, objects, limits } = {}) => (
-  call('resourceSet.set', { id, name, subjects, objects, limits })::tap(
+  _call('resourceSet.set', { id, name, subjects, objects, limits })::tap(
     subscribeResourceSets.forceRefresh
   )
 )
@@ -929,7 +929,7 @@ export const deleteResourceSet = async id => {
     title: _('deleteResourceSetWarning'),
     body: _('deleteResourceSetQuestion')
   })
-  await call('resourceSet.delete', { id })
+  await _call('resourceSet.delete', { id })
 
   subscribeResourceSets.forceRefresh()
 }
@@ -937,37 +937,37 @@ export const deleteResourceSet = async id => {
 // Remote ------------------------------------------------------------
 
 export const createRemote = (name, url) => (
-  call('remote.create', {name, url})::tap(
+  _call('remote.create', {name, url})::tap(
     subscribeRemotes.forceRefresh
   )
 )
 
 export const deleteRemote = remote => (
-  call('remote.delete', {id: resolveId(remote)})::tap(
+  _call('remote.delete', {id: resolveId(remote)})::tap(
     subscribeRemotes.forceRefresh
   )
 )
 
 export const enableRemote = remote => (
-  call('remote.set', {id: resolveId(remote), enabled: true})::tap(
+  _call('remote.set', {id: resolveId(remote), enabled: true})::tap(
     subscribeRemotes.forceRefresh
   )
 )
 
 export const disableRemote = id => (
-  call('remote.set', {id, enabled: false})::tap(
+  _call('remote.set', {id, enabled: false})::tap(
     subscribeRemotes.forceRefresh
   )
 )
 
 export const editRemote = (remote, {name, url}) => (
-  call('remote.set', resolveIds({remote, name, url}))::tap(
+  _call('remote.set', resolveIds({remote, name, url}))::tap(
     subscribeRemotes.forceRefresh
   )
 )
 
 export const listRemote = id => (
-  call('remote.list', {id})::tap(
+  _call('remote.list', {id})::tap(
     subscribeRemotes.forceRefresh
   )::rethrow(
     err => error(_('listRemote'), err.message || String(err))
@@ -977,11 +977,11 @@ export const listRemote = id => (
 // -------------------------------------------------------------------
 
 export const probeSrNfs = (host, server) => (
-  call('sr.probeNfs', {host, server})
+  _call('sr.probeNfs', {host, server})
 )
 
 export const probeSrNfsExists = (host, server, serverPath) => (
-  call('sr.probeNfsExists', {host, server, serverPath})
+  _call('sr.probeNfsExists', {host, server, serverPath})
 )
 
 export const probeSrIscsiIqns = (host, target, port = undefined, chapUser = undefined, chapPassword) => {
@@ -989,14 +989,14 @@ export const probeSrIscsiIqns = (host, target, port = undefined, chapUser = unde
   port && (params.port = port)
   chapUser && (params.chapUser = chapUser)
   chapPassword && (params.chapPassword = chapPassword)
-  return call('sr.probeIscsiIqns', params)
+  return _call('sr.probeIscsiIqns', params)
 }
 
 export const probeSrIscsiLuns = (host, target, targetIqn, chapUser = undefined, chapPassword) => {
   const params = {host, target, targetIqn}
   chapUser && (params.chapUser = chapUser)
   chapPassword && (params.chapPassword = chapPassword)
-  return call('sr.probeIscsiLuns', params)
+  return _call('sr.probeIscsiLuns', params)
 }
 
 export const probeSrIscsiExists = (host, target, targetIqn, scsiId, port = undefined, chapUser = undefined, chapPassword) => {
@@ -1004,21 +1004,21 @@ export const probeSrIscsiExists = (host, target, targetIqn, scsiId, port = undef
   port && (params.port = port)
   chapUser && (params.chapUser = chapUser)
   chapPassword && (params.chapPassword = chapPassword)
-  return call('sr.probeIscsiExists', params)
+  return _call('sr.probeIscsiExists', params)
 }
 
 export const reattachSr = (host, uuid, nameLabel, nameDescription, type) => (
-  call('sr.reattach', {host, uuid, nameLabel, nameDescription, type})
+  _call('sr.reattach', {host, uuid, nameLabel, nameDescription, type})
 )
 
 export const reattachSrIso = (host, uuid, nameLabel, nameDescription, type) => (
-  call('sr.reattachIso', {host, uuid, nameLabel, nameDescription, type})
+  _call('sr.reattachIso', {host, uuid, nameLabel, nameDescription, type})
 )
 
 export const createSrNfs = (host, nameLabel, nameDescription, server, serverPath, nfsVersion = undefined) => {
   const params = {host, nameLabel, nameDescription, server, serverPath}
   nfsVersion && (params.nfsVersion = nfsVersion)
-  return call('sr.createNfs', params)
+  return _call('sr.createNfs', params)
 }
 
 export const createSrIscsi = (host, nameLabel, nameDescription, target, targetIqn, scsiId, port = undefined, chapUser = undefined, chapPassword = undefined) => {
@@ -1026,24 +1026,24 @@ export const createSrIscsi = (host, nameLabel, nameDescription, target, targetIq
   port && (params.port = port)
   chapUser && (params.chapUser = chapUser)
   chapPassword && (params.chapPassword = chapPassword)
-  return call('sr.createIscsi', params)
+  return _call('sr.createIscsi', params)
 }
 
 export const createSrIso = (host, nameLabel, nameDescription, path, type, user = undefined, password = undefined) => {
   const params = {host, nameLabel, nameDescription, path, type}
   user && (params.user = user)
   password && (params.password = password)
-  return call('sr.createIso', params)
+  return _call('sr.createIso', params)
 }
 
 export const createSrLvm = (host, nameLabel, nameDescription, device) => (
-  call('sr.createLvm', {host, nameLabel, nameDescription, device})
+  _call('sr.createLvm', {host, nameLabel, nameDescription, device})
 )
 
 // Job logs ----------------------------------------------------------
 
 export const deleteJobsLog = id => (
-  call('log.delete', {namespace: 'jobs', id})::tap(
+  _call('log.delete', {namespace: 'jobs', id})::tap(
     subscribeJobsLogs.forceRefresh
   )
 )
@@ -1051,7 +1051,7 @@ export const deleteJobsLog = id => (
 // Acls, users, groups ----------------------------------------------------------
 
 export const addAcl = ({subject, object, action}) => (
-  call('acl.add', resolveIds({subject, object, action}))::tap(
+  _call('acl.add', resolveIds({subject, object, action}))::tap(
     subscribeAcls.forceRefresh
   )::rethrow(
     err => error('Add ACL', err.message || String(err))
@@ -1059,7 +1059,7 @@ export const addAcl = ({subject, object, action}) => (
 )
 
 export const removeAcl = ({subject, object, action}) => (
-  call('acl.remove', resolveIds({subject, object, action}))::tap(
+  _call('acl.remove', resolveIds({subject, object, action}))::tap(
     subscribeAcls.forceRefresh
   )::rethrow(
     err => error('Remove ACL', err.message || String(err))
@@ -1074,14 +1074,14 @@ export const editAcl = (
     action: newAction = action
   }
 ) => (
-  call('acl.remove', resolveIds({subject, object, action}))
-    .then(() => call('acl.add', resolveIds({subject: newSubject, object: newObject, action: newAction})))
+  _call('acl.remove', resolveIds({subject, object, action}))
+    .then(() => _call('acl.add', resolveIds({subject: newSubject, object: newObject, action: newAction})))
     ::tap(subscribeAcls.forceRefresh)
     ::rethrow(err => error('Edit ACL', err.message || String(err)))
 )
 
 export const createGroup = name => (
-  call('group.create', {name})::tap(
+  _call('group.create', {name})::tap(
     subscribeGroups.forceRefresh
   ):: rethrow(
     err => error(_('createGroup'), err.message || String(err))
@@ -1089,7 +1089,7 @@ export const createGroup = name => (
 )
 
 export const setGroupName = (group, name) => (
-  call('group.set', resolveIds({group, name}))::tap(
+  _call('group.set', resolveIds({group, name}))::tap(
     subscribeGroups.forceRefresh
   )
 )
@@ -1098,13 +1098,13 @@ export const deleteGroup = group => (
   confirm({
     title: _('deleteGroup'),
     body: <p>{_('deleteGroupConfirm')}</p>
-  }).then(() => call('group.delete', resolveIds({id: group})))
+  }).then(() => _call('group.delete', resolveIds({id: group})))
     ::tap(subscribeGroups.forceRefresh)
     ::rethrow(err => error(_('deleteGroup'), err.message || String(err)))
 )
 
 export const removeUserFromGroup = (user, group) => (
-  call('group.removeUser', resolveIds({id: group, userId: user}))::tap(
+  _call('group.removeUser', resolveIds({id: group, userId: user}))::tap(
     subscribeGroups.forceRefresh
   )::rethrow(
     err => error(_('removeUserFromGroup'), err.message || String(err))
@@ -1112,7 +1112,7 @@ export const removeUserFromGroup = (user, group) => (
 )
 
 export const addUserToGroup = (user, group) => (
-  call('group.addUser', resolveIds({id: group, userId: user}))::tap(
+  _call('group.addUser', resolveIds({id: group, userId: user}))::tap(
     subscribeGroups.forceRefresh
   )::rethrow(
     err => error('Add User', err.message || String(err))
@@ -1120,7 +1120,7 @@ export const addUserToGroup = (user, group) => (
 )
 
 export const createUser = (email, password, permission) => (
-  call('user.create', {email, password, permission})::tap(
+  _call('user.create', {email, password, permission})::tap(
     subscribeUsers.forceRefresh
   )::rethrow(
     err => error('Create user', err.message || String(err))
@@ -1131,13 +1131,13 @@ export const deleteUser = user => (
   confirm({
     title: _('deleteUser'),
     body: <p>{_('deleteUserConfirm')}</p>
-  }).then(() => call('user.delete', resolveIds({id: user})))
+  }).then(() => _call('user.delete', resolveIds({id: user})))
     ::tap(subscribeUsers.forceRefresh)
     ::rethrow(err => error(_('deleteUser'), err.message || String(err)))
 )
 
 export const editUser = (user, { email, password, permission }) => (
-  call('user.set', { id: resolveId(user), email, password, permission })::tap(
+  _call('user.set', { id: resolveId(user), email, password, permission })::tap(
     subscribeUsers.forceRefresh
   )
 )
@@ -1145,25 +1145,25 @@ export const editUser = (user, { email, password, permission }) => (
 // Jobs ----------------------------------------------------------
 
 export const deleteJob = job => (
-  xo.call('job.delete', resolveIds({id: job}))::tap(
+  _call('job.delete', resolveIds({id: job}))::tap(
     subscribeJobs.forceRefresh
   )
 )
 
 export const deleteSchedule = schedule => (
-  xo.call('schedule.delete', resolveIds({id: schedule}))::tap(
+  _call('schedule.delete', resolveIds({id: schedule}))::tap(
     subscribeSchedules.forceRefresh
   )
 )
 
 export const updateJob = job => (
-  xo.call('job.set', {job})::tap(
+  _call('job.set', {job})::tap(
     subscribeJobs.forceRefresh
   )
 )
 
 export const updateSchedule = ({id, job: jobId, cron, enabled, name}) => (
-  xo.call('schedule.set', {id, jobId, cron, enabled, name})::tap(
+  _call('schedule.set', {id, jobId, cron, enabled, name})::tap(
     subscribeSchedules.forceRefresh
   )
 )
