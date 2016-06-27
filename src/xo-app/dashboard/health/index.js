@@ -8,7 +8,7 @@ import TabButton from 'tab-button'
 import Upgrade from 'xoa-upgrade'
 import React, { Component } from 'react'
 import { confirm } from 'modal'
-import { deleteMessage, deleteVdi, deleteVm } from 'xo'
+import { deleteMessage, deleteVdi, deleteVm, isSrWritable } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Container, Row, Col } from 'grid'
 import {
@@ -182,7 +182,7 @@ const ALARM_COLUMNS = [
     .filter([ snapshot => !snapshot.$snapshot_of ])
     .sort()
   const getUserSrs = createGetObjectsOfType('SR')
-    .filter([ sr => sr.content_type === 'user' ])
+    .filter([ isSrWritable ])
   const getVdiSrs = createGetObjectsOfType('SR')
     .pick(createSelector(
       getOrphanVdiSnapshots,

@@ -25,6 +25,7 @@ import { SelectSr } from 'select-objects'
 import {
   importBackup,
   importDeltaBackup,
+  isSrWritable,
   listRemote,
   startVm,
   subscribeRemotes
@@ -43,7 +44,7 @@ const backupOptionRenderer = backup => <span>
 
 @connectStore(() => ({
   writableSrs: createGetObjectsOfType('SR').filter(
-    [ sr => sr.content_type !== 'iso' ]
+    [ isSrWritable ]
   ).sort()
 }))
 export default class Restore extends Component {
@@ -208,12 +209,11 @@ const BK_COLUMNS = [
   }
 ]
 
-const srWritablePredicate = sr => sr.content_type !== 'iso'
 const notifyImportStart = () => info(_('importBackupTitle'), _('importBackupMessage'))
 
 @connectStore(() => ({
   writableSrs: createGetObjectsOfType('SR').filter(
-    [ sr => sr.content_type !== 'iso' ]
+    [ isSrWritable ]
   ).sort()
 }), { withRef: true })
 class _ModalBody extends Component {
@@ -274,7 +274,7 @@ class _ModalBody extends Component {
 
   render () {
     return <div>
-      <SelectSr ref='sr' predicate={srWritablePredicate} />
+      <SelectSr ref='sr' predicate={isSrWritable} />
       <br />
       <SelectPlainObject ref='backup' options={this.state.options} optionKey='path' optionRenderer={backupOptionRenderer} placeholder={this.props.intl.formatMessage(messages.importBackupModalSelectBackup)} />
       <br />

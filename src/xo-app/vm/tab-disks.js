@@ -28,6 +28,7 @@ import {
   deleteVdi,
   disconnectVbd,
   editVdi,
+  isSrWritable,
   migrateVdi,
   setBootableVbd,
   setVmBootOrder
@@ -87,7 +88,7 @@ class NewDisk extends Component {
       const { vm } = this.props
       return vm && vm.$pool
     },
-    poolId => sr => sr.$pool === poolId && sr.content_type === 'user'
+    poolId => sr => sr.$pool === poolId && isSrWritable(sr)
   )
 
   render () {
@@ -135,7 +136,7 @@ class AttachDisk extends Component {
       const { vm } = this.props
       return vm && vm.$pool
     },
-    poolId => sr => sr.$pool === poolId && sr.content_type === 'user'
+    poolId => sr => sr.$pool === poolId && isSrWritable(sr)
   )
 
   _selectVdi = vdi => this.setState({vdi})
@@ -408,7 +409,7 @@ export default class TabDisks extends Component {
                       <XoSelect
                         onChange={sr => migrateVdi(vdi, sr)}
                         xoType='SR'
-                        predicate={sr => (sr.$pool === vm.$pool) && (sr.content_type === 'user')}
+                        predicate={sr => sr.$pool === vm.$pool && isSrWritable(sr)}
                         labelProp='name_label'
                         value={sr}
                         useLongClick

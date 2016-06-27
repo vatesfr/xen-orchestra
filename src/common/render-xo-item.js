@@ -1,7 +1,7 @@
 import Icon from 'icon'
 import React, { Component } from 'react'
 import { createGetObject } from 'selectors'
-
+import { isSrWritable } from 'xo'
 import {
   connectStore,
   formatSize,
@@ -53,7 +53,7 @@ export const SrItem = propTypes({
 })(({ sr, container }) => {
   let label = `${sr.name_label || sr.id}`
 
-  if (sr.content_type === 'user') {
+  if (isSrWritable(sr)) {
     label += ` (${formatSize(sr.size)})`
   }
 

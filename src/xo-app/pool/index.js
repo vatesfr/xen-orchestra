@@ -7,7 +7,7 @@ import pick from 'lodash/pick'
 import React, { cloneElement, Component } from 'react'
 import { NavLink, NavTabs } from 'nav'
 import { Text } from 'editable'
-import { editPool } from 'xo'
+import { editPool, isSrWritable } from 'xo'
 import { Container, Row, Col } from 'grid'
 import {
   connectStore,
@@ -63,7 +63,7 @@ import TabStorage from './tab-storage'
   const getPoolSrs = createGetObjectsOfType('SR').filter(
     createSelector(
       getPool,
-      ({ id }) => sr => sr.content_type === 'user' && sr.$pool === id
+      ({ id }) => sr => isSrWritable(sr) && sr.$pool === id
     )
   ).sort()
 

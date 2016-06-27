@@ -28,6 +28,7 @@ import {
 } from 'utils'
 
 import {
+  isSrWritable,
   subscribeGroups,
   subscribeRemotes,
   subscribeRoles,
@@ -325,11 +326,9 @@ export const SelectPool = makeStoreSelect(() => ({
 
 // ===================================================================
 
-const userSrPredicate = sr => sr.content_type === 'user'
-
 export const SelectSr = makeStoreSelect(() => {
   const getSrsByContainer = createGetObjectsOfType('SR').filter(
-    (_, { predicate }) => predicate || userSrPredicate
+    (_, { predicate }) => predicate || isSrWritable
   ).sort().groupBy('$container')
 
   const getContainerIds = createSelector(

@@ -9,7 +9,7 @@ import filter from 'lodash/filter'
 import map from 'lodash/map'
 import Upgrade from 'xoa-upgrade'
 import { Container, Col, Row } from 'grid'
-import { importVms } from 'xo'
+import { importVms, isSrWritable } from 'xo'
 import {
   SelectPool,
   SelectSr
@@ -52,7 +52,7 @@ export default class Import extends Component {
 
   _handleSelectedPool = pool => {
     const srPredicate = pool !== ''
-      ? sr => sr.$pool === pool.id && sr.content_type === 'user'
+      ? sr => sr.$pool === pool.id && isSrWritable(sr)
       : undefined
 
     this.setState({
