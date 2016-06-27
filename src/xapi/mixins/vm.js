@@ -200,7 +200,6 @@ export default {
   //
   // Params do not correspond directly to XAPI props.
   _editVm: makeEditObject({
-    auto_poweron: 'autoPoweron',
     autoPoweron: {
       set (value, vm) {
         return Promise.all([
@@ -287,20 +286,11 @@ export default {
       set: 'memory_static_max'
     },
 
-    name_description: 'nameDescription',
-    nameDescription: {
-      set: 'name_description'
-    },
+    nameDescription: true,
 
-    name_label: 'nameLabel',
-    nameLabel: {
-      set: 'name_label'
-    },
+    nameLabel: true,
 
-    pvArgs: {
-      get: 'PV_args',
-      set: 'PV_args'
-    }
+    PV_args: true
   }),
 
   async editVm (id, props) {
