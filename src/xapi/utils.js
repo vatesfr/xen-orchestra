@@ -1,4 +1,5 @@
 // import isFinite from 'lodash/isFinite'
+import camelCase from 'lodash/camelCase'
 import isEqual from 'lodash/isEqual'
 import pickBy from 'lodash/pickBy'
 import { utcFormat, utcParse } from 'd3-time-format'
@@ -202,10 +203,6 @@ export const makeEditObject = specs => {
   }
 
   const normalizeSpec = (spec, name) => {
-    if (isString(spec)) {
-      return normalizeSpec(specs[spec], spec)
-    }
-
     if (spec === true) {
       spec = {
         get: true,
@@ -240,7 +237,21 @@ export const makeEditObject = specs => {
     return spec
   }
   forEach(specs, (spec, name) => {
-    specs[name] = normalizeSpec(spec, name)
+    isString(spec) || (specs[name] = normalizeSpec(spec, name))
+  })
+
+  // Resolves aliases and add camelCase and snake_case aliases.
+  forEach(specs, (spec, name) => {
+    if (isString(spec)) {
+      do {
+        spec = specs[spec]
+      } while (isString(spec))
+      specs[name] = spec
+    }
+
+    let tmp
+    specs[tmp = camelCase(name)] || (specs[tmp] = spec)
+    specs[tmp = camelToSnakeCase(name)] || (specs[tmp] = spec)
   })
 
   return async function _editObject_ (id, values, checkLimits) {
