@@ -4,6 +4,7 @@ import pickBy from 'lodash/pickBy'
 import { utcFormat, utcParse } from 'd3-time-format'
 
 import {
+  camelToSnakeCase,
   createRawObject,
   forEach,
   isArray,
@@ -140,16 +141,28 @@ const _mapFilter = (collection, iteratee) => {
 }
 
 export const makeEditObject = specs => {
-  const normalizeGet = get => {
+  const normalizeGet = (get, name) => {
+    if (get === true) {
+      const prop = camelToSnakeCase(name)
+      return object => object[prop]
+    }
+
     if (isString(get)) {
       return object => object[get]
     }
 
     return get
   }
-  const normalizeSet = set => {
+  const normalizeSet = (set, name) => {
     if (isFunction(set)) {
       return set
+    }
+
+    if (set === true) {
+      const prop = camelToSnakeCase(name)
+      return function (value) {
+        return this._set(prop, value)
+      }
     }
 
     if (isString(set)) {
@@ -188,9 +201,16 @@ export const makeEditObject = specs => {
     }
   }
 
-  const normalizeSpec = spec => {
+  const normalizeSpec = (spec, name) => {
     if (isString(spec)) {
-      return normalizeSpec(specs[spec])
+      return normalizeSpec(specs[spec], spec)
+    }
+
+    if (spec === true) {
+      spec = {
+        get: true,
+        set: true
+      }
     }
 
     if (spec.addToLimits === true) {
@@ -210,17 +230,17 @@ export const makeEditObject = specs => {
 
     const { get } = spec
     if (get) {
-      spec.get = normalizeGet(get)
+      spec.get = normalizeGet(get, name)
     } else if (spec.addToLimits) {
       throw new Error('addToLimits cannot be defined without get')
     }
 
-    spec.set = normalizeSet(spec.set)
+    spec.set = normalizeSet(spec.set, name)
 
     return spec
   }
   forEach(specs, (spec, name) => {
-    specs[name] = normalizeSpec(spec)
+    specs[name] = normalizeSpec(spec, name)
   })
 
   return async function _editObject_ (id, values, checkLimits) {
