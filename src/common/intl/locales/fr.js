@@ -367,7 +367,6 @@ export default {
   restartVmsModalTitle: 'Redémarrer {vms, plural, one {la} other {les}} VM{vms, plural, one {} other {s}}',
   restartVmsModalMessage: 'Voulez-vous vraiment redémarrer {vms} VM{vms, plural, one {} other {s}} ?',
   migrateVmModalTitle: 'Migrer la VM',
-  migrateVmModalBody: 'Voulez-vous vraiment migrer cette VM sur {hostName} ?',
   migrateVmAdvancedModalSelectHost: 'Sélectionnez un hôte de destination:',
   migrateVmAdvancedModalSelectNetwork: 'Sélectionnez un réseau pour la migration:',
   migrateVmAdvancedModalSelectSrs: 'Pour chaque VDI, sélectionnez un SR:',

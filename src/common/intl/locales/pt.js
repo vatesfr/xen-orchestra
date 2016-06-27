@@ -1712,9 +1712,6 @@ export default {
   // Original text: "Migrate VM"
   migrateVmModalTitle: 'Migrar VM',
 
-  // Original text: "Are you sure you want to migrate this VM to {hostName}?"
-  migrateVmModalBody: 'Você tem certeza que deseja migrar esta VM para {hostName}?',
-
   // Original text: "Select a destination host:"
   migrateVmAdvancedModalSelectHost: 'Selecionar um host de destino:',
 

@@ -677,7 +677,6 @@ var messages = {
   deleteVmModalMessage: 'Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED',
   deleteVmsModalMessage: 'Are you sure you want to delete {vms} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED',
   migrateVmModalTitle: 'Migrate VM',
-  migrateVmModalBody: 'Are you sure you want to migrate this VM to {hostName}?',
   migrateVmAdvancedModalSelectHost: 'Select a destination host:',
   migrateVmAdvancedModalSelectNetwork: 'Select a migration network:',
   migrateVmAdvancedModalSelectSrs: 'For each VDI, select an SR:',

@@ -103,6 +103,10 @@ export default class MigrateVmModalBody extends Component {
     )
   }
 
+  componentDidMount () {
+    this._selectHost(this.props.host)
+  }
+
   get value () {
     return {
       targetHost: this.state.host && this.state.host.id,
@@ -156,13 +160,14 @@ export default class MigrateVmModalBody extends Component {
   _selectMigrationNetwork = network => this.setState({ network })
 
   render () {
-    const { vdis, vifs, networks } = this.props
+    const { host, vdis, vifs, networks } = this.props
     return <div>
       <div className={styles.firstBlock}>
         <SingleLineRow>
           <Col size={6}>{_('migrateVmAdvancedModalSelectHost')}</Col>
           <Col size={6}>
             <SelectHost
+              defaultValue={host}
               onChange={this._selectHost}
               predicate={this._getHostPredicate()}
             />
