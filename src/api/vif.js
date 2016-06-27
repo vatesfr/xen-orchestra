@@ -41,3 +41,31 @@ connect.params = {
 connect.resolve = {
   vif: ['id', 'VIF', 'operate']
 }
+
+// -------------------------------------------------------------------
+
+export const set = ({ vif, allowedIpv4Addresses, allowedIpv6Addresses }) => (
+  this.getXapi(vif._xapiId).editVif({
+    ipv4Allowed: allowedIpv4Addresses,
+    ipv6Allowed: allowedIpv6Addresses
+  })
+)
+
+set.params = {
+  allowedIpv4Addresses: {
+    type: 'array',
+    items: {
+      type: 'string'
+    }
+  },
+  allowedIpv6Addresses: {
+    type: 'array',
+    items: {
+      type: 'string'
+    }
+  }
+}
+
+set.resolve = {
+  vif: ['id', 'VIF', 'operate']
+}
