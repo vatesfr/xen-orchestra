@@ -260,15 +260,17 @@ export default class NewVm extends BaseComponent {
     const existingDisks = {}
     forEach(template.$VBDs, vbdId => {
       const vbd = getObject(storeState, vbdId)
-      if (vbd.is_cd_drive) {
+      if (!vbd || vbd.is_cd_drive) {
         return
       }
       const vdi = getObject(storeState, vbd.VDI)
-      existingDisks[this.getUniqueId()] = {
-        name_label: vdi.name_label,
-        name_description: vdi.name_description,
-        size: vdi.size,
-        $SR: vdi.$SR
+      if (vdi) {
+        existingDisks[this.getUniqueId()] = {
+          name_label: vdi.name_label,
+          name_description: vdi.name_description,
+          size: vdi.size,
+          $SR: vdi.$SR
+        }
       }
     })
 
@@ -361,7 +363,11 @@ export default class NewVm extends BaseComponent {
         value = isArray(value) ? [ ...value ] : { ...value }
         let eventValue = getEventValue(event)
         eventValue = targetObjectProp ? eventValue[targetObjectProp] : eventValue
-        stateObjectProp ? value[index][stateObjectProp] = eventValue : value[index] = eventValue
+        if (value[index] && stateObjectProp) {
+          value[index][stateObjectProp] = eventValue
+        } else {
+          value[index] = eventValue
+        }
       } else {
         value = getEventValue(event)
       }

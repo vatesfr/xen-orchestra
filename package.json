@@ -111,7 +111,7 @@
     "superagent": "^2.0.0",
     "vinyl": "^1.1.1",
     "watchify": "^3.7.0",
-    "xo-acl-resolver": "^0.2.0",
+    "xo-acl-resolver": "^0.2.1",
     "xo-lib": "^0.8.0-1",
     "xo-remote-parser": "^0.3"
   },
