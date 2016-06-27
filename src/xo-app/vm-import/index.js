@@ -52,7 +52,7 @@ export default class Import extends Component {
 
   _handleSelectedPool = pool => {
     const srPredicate = pool !== ''
-      ? sr => sr.$pool === pool.id && sr.content_type === 'user'
+      ? sr => sr.$pool === pool.id && sr.content_type !== 'iso' && sr.size > 0
       : undefined
 
     this.setState({

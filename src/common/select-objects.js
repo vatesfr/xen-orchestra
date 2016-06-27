@@ -325,7 +325,7 @@ export const SelectPool = makeStoreSelect(() => ({
 
 // ===================================================================
 
-const userSrPredicate = sr => sr.content_type === 'user'
+const userSrPredicate = sr => sr.content_type !== 'iso' && sr.size > 0
 
 export const SelectSr = makeStoreSelect(() => {
   const getSrsByContainer = createGetObjectsOfType('SR').filter(

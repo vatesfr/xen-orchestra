@@ -63,7 +63,7 @@ import TabStorage from './tab-storage'
   const getPoolSrs = createGetObjectsOfType('SR').filter(
     createSelector(
       getPool,
-      ({ id }) => sr => sr.content_type === 'user' && sr.$pool === id
+      ({ id }) => sr => sr.content_type !== 'iso' && sr.size > 0 && sr.$pool === id
     )
   ).sort()
 

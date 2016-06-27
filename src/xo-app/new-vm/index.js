@@ -237,7 +237,7 @@ export default class NewVm extends BaseComponent {
 
   _getSrPredicate = createSelector(
     () => this.state.state.pool.id,
-    poolId => disk => disk.$pool === poolId && disk.content_type === 'user'
+    poolId => disk => disk.$pool === poolId && disk.content_type !== 'iso' && disk.size > 0
   )
 
   _getDefaultNetworkId = () => {

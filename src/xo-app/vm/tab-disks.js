@@ -87,7 +87,7 @@ class NewDisk extends Component {
       const { vm } = this.props
       return vm && vm.$pool
     },
-    poolId => sr => sr.$pool === poolId && sr.content_type === 'user'
+    poolId => sr => sr.$pool === poolId && sr.content_type !== 'iso' && sr.size > 0
   )
 
   render () {
@@ -135,7 +135,7 @@ class AttachDisk extends Component {
       const { vm } = this.props
       return vm && vm.$pool
     },
-    poolId => sr => sr.$pool === poolId && sr.content_type === 'user'
+    poolId => sr => sr.$pool === poolId && sr.content_type !== 'iso' && sr.size > 0
   )
 
   _selectVdi = vdi => this.setState({vdi})
@@ -408,7 +408,7 @@ export default class TabDisks extends Component {
                       <XoSelect
                         onChange={sr => migrateVdi(vdi, sr)}
                         xoType='SR'
-                        predicate={sr => (sr.$pool === vm.$pool) && (sr.content_type === 'user')}
+                        predicate={sr => (sr.$pool === vm.$pool) && (sr.content_type !== 'iso' && sr.size > 0)}
                         labelProp='name_label'
                         value={sr}
                         useLongClick

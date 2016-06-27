@@ -43,7 +43,7 @@ const backupOptionRenderer = backup => <span>
 
 @connectStore(() => ({
   writableSrs: createGetObjectsOfType('SR').filter(
-    [ sr => sr.content_type !== 'iso' ]
+    [ sr => sr.content_type !== 'iso' && sr.size > 0 ]
   ).sort()
 }))
 export default class Restore extends Component {
@@ -208,12 +208,12 @@ const BK_COLUMNS = [
   }
 ]
 
-const srWritablePredicate = sr => sr.content_type !== 'iso'
+const srWritablePredicate = sr => sr.content_type !== 'iso' && sr.size > 0
 const notifyImportStart = () => info(_('importBackupTitle'), _('importBackupMessage'))
 
 @connectStore(() => ({
   writableSrs: createGetObjectsOfType('SR').filter(
-    [ sr => sr.content_type !== 'iso' ]
+    [ sr => sr.content_type !== 'iso' && sr.size > 0 ]
   ).sort()
 }), { withRef: true })
 class _ModalBody extends Component {

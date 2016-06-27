@@ -53,7 +53,7 @@ export const SrItem = propTypes({
 })(({ sr, container }) => {
   let label = `${sr.name_label || sr.id}`
 
-  if (sr.content_type === 'user') {
+  if (sr.content_type !== 'iso' && sr.size > 0) {
     label += ` (${formatSize(sr.size)})`
   }
 

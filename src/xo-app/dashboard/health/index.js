@@ -182,7 +182,7 @@ const ALARM_COLUMNS = [
     .filter([ snapshot => !snapshot.$snapshot_of ])
     .sort()
   const getUserSrs = createGetObjectsOfType('SR')
-    .filter([ sr => sr.content_type === 'user' ])
+    .filter([ sr => sr.content_type !== 'iso' && sr.size > 0 ])
   const getVdiSrs = createGetObjectsOfType('SR')
     .pick(createSelector(
       getOrphanVdiSnapshots,
