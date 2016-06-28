@@ -6,24 +6,23 @@ import isEmpty from 'lodash/isEmpty'
 import keys from 'lodash/keys'
 import Link from 'react-router/lib/Link'
 import map from 'lodash/map'
-import Page from '../page'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Card, CardBlock, CardHeader } from 'card'
 import { connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
-
 import {
   createGetObject,
   createGetObjectsOfType,
   createSelector
 } from 'selectors'
-
 import {
   cancelTask,
   destroyTask
 } from 'xo'
+
+import Page from '../page'
 
 const HEADER = <Container>
   <Row>
@@ -33,6 +32,11 @@ const HEADER = <Container>
   </Row>
 </Container>
 
+const TASK_ITEM_STYLE = {
+  // Remove all margin, otherwise it breaks vertical alignment.
+  margin: 0
+}
+
 export const TaskItem = connectStore(() => ({
   host: createGetObject((_, props) => props.task.$host)
 }))(({ task, host }) => <SingleLineRow>
@@ -41,7 +45,7 @@ export const TaskItem = connectStore(() => ({
     {' ' + Math.round(task.progress * 100)}%
   </Col>
   <Col mediumSize={4}>
-    <progress className='progress' value={task.progress * 100} max='100'></progress>
+    <progress style={TASK_ITEM_STYLE} className='progress' value={task.progress * 100} max='100'></progress>
   </Col>
   <Col mediumSize={2}>
     <ButtonGroup>
