@@ -5,7 +5,7 @@ import { Button } from 'react-bootstrap-4/lib'
 
 import Component from './base-component'
 import logError from './log-error'
-import { autobind, propTypes } from './utils'
+import { propTypes } from './utils'
 
 @propTypes({
   btnStyle: propTypes.string,
@@ -28,7 +28,6 @@ export default class ActionButton extends Component {
     router: React.PropTypes.object
   }
 
-  @autobind
   async _execute () {
     if (this.state.working) {
       return
@@ -66,6 +65,7 @@ export default class ActionButton extends Component {
       logError(error)
     }
   }
+  _execute = ::this._execute
 
   _eventListener = event => {
     event.preventDefault()

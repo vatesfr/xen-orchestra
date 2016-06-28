@@ -4,7 +4,7 @@ import BaseComponent from 'base-component'
 import Icon from 'icon'
 import React from 'react'
 import { alert } from 'modal'
-import { autobind, connectStore } from 'utils'
+import { connectStore } from 'utils'
 import { changePassword } from 'xo'
 import { Container, Row, Col } from 'grid'
 import { getLang, getUser } from 'selectors'
@@ -26,10 +26,10 @@ const HEADER = <Container>
 })
 @injectIntl
 export default class User extends BaseComponent {
-  @autobind
-  handleSelectLang (event) {
+  handleSelectLang = event => {
     this.props.selectLang(event.target.value)
   }
+
   _handleSavePassword = () => {
     const { oldPassword, newPassword, confirmPassword } = this.state
     if (newPassword !== confirmPassword) {

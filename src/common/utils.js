@@ -78,50 +78,6 @@ export const addSubscriptions = subscriptions => Component => {
 
 // -------------------------------------------------------------------
 
-const _bind = (fn, thisArg) => function bound () {
-  return fn.apply(thisArg, arguments)
-}
-const _defineProperty = Object.defineProperty
-
-export const autobind = (target, key, {
-  configurable,
-  enumerable,
-  value: fn,
-  writable
-}) => ({
-  configurable,
-  enumerable,
-
-  get () {
-    if (this === target) {
-      return fn
-    }
-
-    const bound = _bind(fn, this)
-
-    _defineProperty(this, key, {
-      configurable: true,
-      enumerable: false,
-      value: bound,
-      writable: true
-    })
-
-    return bound
-  },
-  set (newValue) {
-    // Cannot use assignment because it will call the setter on
-    // the prototype.
-    _defineProperty(this, key, {
-      configurable: true,
-      enumerable: true,
-      value: newValue,
-      writable: true
-    })
-  }
-})
-
-// -------------------------------------------------------------------
-
 @propTypes({
   tagName: propTypes.string
 })

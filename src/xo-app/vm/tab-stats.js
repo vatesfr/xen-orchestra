@@ -3,7 +3,6 @@ import Component from 'base-component'
 import Icon from 'icon'
 import React from 'react'
 import Upgrade from 'xoa-upgrade'
-import { autobind } from 'utils'
 import { fetchVmStats } from 'xo'
 import { injectIntl } from 'react-intl'
 import { Container, Row, Col } from 'grid'
@@ -16,7 +15,6 @@ import {
 
 export default injectIntl(
   class VmStats extends Component {
-    @autobind
     loop (vm = this.props.vm) {
       if (this.cancel) {
         this.cancel()
@@ -44,6 +42,7 @@ export default injectIntl(
         })
       })
     }
+    loop = ::this.loop
 
     componentWillMount () {
       this.loop()
@@ -66,7 +65,6 @@ export default injectIntl(
       }
     }
 
-    @autobind
     handleSelectStats (event) {
       const granularity = event.target.value
       clearTimeout(this.timeout)
@@ -76,6 +74,7 @@ export default injectIntl(
         selectStatsLoading: true
       }, this.loop)
     }
+    handleSelectStats = ::this.handleSelectStats
 
     render () {
       const {

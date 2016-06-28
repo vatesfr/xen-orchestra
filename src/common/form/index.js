@@ -10,7 +10,6 @@ import {
 
 import Component from '../base-component'
 import {
-  autobind,
   formatSizeRaw,
   parseSize,
   propTypes
@@ -33,16 +32,14 @@ export class Password extends Component {
     this.refs.field.value = value
   }
 
-  @autobind
-  _generate () {
+  _generate = () => {
     this.refs.field.value = randomPassword(8)
     this.setState({
       visible: true
     })
   }
 
-  @autobind
-  _toggleVisibility () {
+  _toggleVisibility = () => {
     this.setState({
       visible: !this.state.visible
     })
@@ -107,8 +104,7 @@ export class Range extends Component {
     }
   }
 
-  @autobind
-  _handleChange (event) {
+  _handleChange = event => {
     const { onChange } = this.props
     const { value } = event.target
 

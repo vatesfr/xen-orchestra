@@ -18,7 +18,6 @@ import {
 } from 'xo'
 import { Container, Row, Col } from 'grid'
 import {
-  autobind,
   connectStore,
   mapPlus,
   routes
@@ -119,7 +118,6 @@ export default class Vm extends Component {
     router: React.PropTypes.object
   }
 
-  @autobind
   loop (vm = this.props.vm) {
     if (this.cancel) {
       this.cancel()
@@ -146,6 +144,7 @@ export default class Vm extends Component {
       })
     })
   }
+  loop = ::this.loop
 
   componentWillMount () {
     this.loop()

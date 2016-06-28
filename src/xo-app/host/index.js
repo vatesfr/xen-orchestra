@@ -14,7 +14,6 @@ import { Text } from 'editable'
 import { editHost, fetchHostStats, getHostMissingPatches, installAllHostPatches, installHostPatch } from 'xo'
 import { Container, Row, Col } from 'grid'
 import {
-  autobind,
   connectStore,
   routes
 } from 'utils'
@@ -129,7 +128,6 @@ const isRunning = host => host && host.power_state === 'Running'
   }
 })
 export default class Host extends Component {
-  @autobind
   loop (host = this.props.host) {
     if (this.cancel) {
       this.cancel()
@@ -156,6 +154,7 @@ export default class Host extends Component {
       })
     })
   }
+  loop = ::this.loop
 
   _getMissingPatches (host) {
     getHostMissingPatches(host).then(missingPatches => {

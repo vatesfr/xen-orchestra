@@ -4,7 +4,6 @@ import map from 'lodash/map'
 import filter from 'lodash/filter'
 
 import {
-  autobind,
   propsEqual,
   propTypes
 } from 'utils'
@@ -76,15 +75,13 @@ export default class ArrayInput extends Component {
     })
   }
 
-  @autobind
-  _handleOptionalChange (event) {
+  _handleOptionalChange = event => {
     this.setState({
       use: event.target.checked
     })
   }
 
-  @autobind
-  _handleAdd () {
+  _handleAdd = () => {
     const { children } = this.state
     this.setState({
       children: children.concat(this._makeChild(this.props))

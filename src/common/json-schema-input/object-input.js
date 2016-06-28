@@ -5,7 +5,6 @@ import includes from 'lodash/includes'
 import map from 'lodash/map'
 
 import {
-  autobind,
   propsEqual,
   propTypes
 } from 'utils'
@@ -81,8 +80,7 @@ export default class ObjectInput extends Component {
     })
   }
 
-  @autobind
-  _handleOptionalChange (event) {
+  _handleOptionalChange = event => {
     const { checked } = event.target
 
     this.setState({

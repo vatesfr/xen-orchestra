@@ -3,7 +3,6 @@ import Component from 'base-component'
 import Icon from 'icon'
 import React from 'react'
 import Upgrade from 'xoa-upgrade'
-import { autobind } from 'utils'
 import { fetchHostStats } from 'xo'
 import { Container, Row, Col } from 'grid'
 import {
@@ -14,7 +13,6 @@ import {
 } from 'xo-line-chart'
 
 export default class HostStats extends Component {
-  @autobind
   loop (host = this.props.host) {
     if (this.cancel) {
       this.cancel()
@@ -42,6 +40,7 @@ export default class HostStats extends Component {
       })
     })
   }
+  loop = ::this.loop
 
   componentWillMount () {
     this.loop()
@@ -64,7 +63,6 @@ export default class HostStats extends Component {
     }
   }
 
-  @autobind
   handleSelectStats (event) {
     const granularity = event.target.value
     clearTimeout(this.timeout)
@@ -74,6 +72,7 @@ export default class HostStats extends Component {
       selectStatsLoading: true
     }, this.loop)
   }
+  handleSelectStats = ::this.handleSelectStats
 
   render () {
     const {
