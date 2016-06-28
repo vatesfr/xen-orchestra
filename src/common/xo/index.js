@@ -451,25 +451,33 @@ import MigrateVmModalBody from './migrate-vm-modal'
 export const migrateVm = (vm, host) => (
   confirm({
     title: _('migrateVmModalTitle'),
-    body: <MigrateVmModalBody vm={vm} host={host} />
+    body: <MigrateVmModalBody vms={vm} host={host} />
   }).then(
     params => {
-      if (!params && !host) {
-        throw new Error('A target host is required to migrate a VM')
+      if (!params) {
+        throw new Error('a target host is required to migrate a VM')
       }
-      if (params) {
-        _call('vm.migrate', { vm: vm.id, ...params })
-      } else {
-        _call('vm.migrate', { vm: vm.id, targetHost: host.id })
-      }
+      _call('vm.migrate', { vm: vm.id, ...params })
     },
     noop
   )
 )
-
-export const migrateVms = vms => {
-  throw new Error('Not implemented.')
-}
+export const migrateVms = vms => (
+  confirm({
+    title: _('migrateVmModalTitle'),
+    body: <MigrateVmModalBody vms={vms} />
+  }).then(
+    params => {
+      if (!params) {
+        throw new Error('a target host is required to migrate a VM')
+      }
+      Promise.all(map(vms, vm =>
+        _call('vm.migrate', { vm: vm.id, ...params })
+      ))
+    },
+    noop
+  )
+)
 
 export const createVm = args => (
   _call('vm.create', args)
