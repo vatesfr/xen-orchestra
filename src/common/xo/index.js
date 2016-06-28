@@ -15,10 +15,11 @@ import { createBackoff } from 'jsonrpc-websocket-client'
 import { resolve } from 'url'
 
 import _ from '../intl'
+import invoke from '../invoke'
 import logError from '../log-error'
 import { confirm } from '../modal'
 import { error, info, success } from '../notification'
-import { invoke, noop, rethrow, tap } from '../utils'
+import { noop, rethrow, tap } from '../utils'
 import {
   connected,
   disconnected,

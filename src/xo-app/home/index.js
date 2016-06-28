@@ -7,6 +7,7 @@ import Component from 'base-component'
 import debounce from 'lodash/debounce'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
+import invoke from 'invoke'
 import isEmpty from 'lodash/isEmpty'
 import isString from 'lodash/isString'
 import keys from 'lodash/keys'
@@ -32,8 +33,7 @@ import {
   SelectTag
 } from 'select-objects'
 import {
-  connectStore,
-  invoke
+  connectStore
 } from 'utils'
 import {
   areObjectsFetched,

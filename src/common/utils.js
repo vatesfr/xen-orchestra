@@ -344,11 +344,6 @@ export const osFamily = invoke({
 
 // -------------------------------------------------------------------
 
-
-export { invoke }
-
-// -------------------------------------------------------------------
-
 export const formatSize = bytes => humanFormat(bytes, { scale: 'binary', unit: 'B' })
 
 export const formatSizeRaw = bytes => humanFormat.raw(bytes, { scale: 'binary', unit: 'B' })

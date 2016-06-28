@@ -13,8 +13,9 @@ import size from 'lodash/size'
 import slice from 'lodash/slice'
 import { createSelector as create } from 'reselect'
 
+import invoke from './invoke'
 import shallowEqual from './shallow-equal'
-import { EMPTY_ARRAY, EMPTY_OBJECT, invoke } from './utils'
+import { EMPTY_ARRAY, EMPTY_OBJECT } from './utils'
 
 // ===================================================================
 
