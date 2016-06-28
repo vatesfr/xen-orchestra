@@ -470,11 +470,3 @@ export function rethrow (cb) {
     Promise.resolve(cb(error)).then(() => { throw error })
   )
 }
-
-// -------------------------------------------------------------------
-
-// If param is an event: returns the value associated to it
-// Otherwise: returns param
-export function getEventValue (param) {
-  return param && param.target ? param.target.value : param
-}

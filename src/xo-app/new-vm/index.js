@@ -8,6 +8,7 @@ import every from 'lodash/every'
 import filter from 'lodash/filter'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
+import getEventValue from 'get-event-value'
 import Icon from 'icon'
 import isArray from 'lodash/isArray'
 import map from 'lodash/map'
@@ -38,7 +39,6 @@ import {
 import {
   connectStore,
   formatSize,
-  getEventValue,
   noop
 } from 'utils'
 import {
