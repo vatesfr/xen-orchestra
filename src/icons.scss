@@ -37,10 +37,6 @@
     @extend .fa-check;
     @extend .text-success;
   }
-  &-ok {
-    @extend .fa;
-    @extend .fa-check;
-  }
   &-undo {
     @extend .fa;
     @extend .fa-undo;

@@ -16,8 +16,8 @@ import { resolve } from 'url'
 
 import _ from '../intl'
 import logError from '../log-error'
-import { alert, confirm } from '../modal'
-import { error, info } from '../notification'
+import { confirm } from '../modal'
+import { error, info, success } from '../notification'
 import { invoke, noop, rethrow, tap } from '../utils'
 import {
   connected,
@@ -1151,8 +1151,8 @@ export const changePassword = (oldPassword, newPassword) => (
     oldPassword,
     newPassword
   }).then(
-    () => alert(_('pwdChangeSuccess'), _('pwdChangeSuccessBody')),
-    () => alert(_('pwdChangeError'), _('pwdChangeErrorBody'))
+    () => success(_('pwdChangeSuccess'), _('pwdChangeSuccessBody')),
+    () => error(_('pwdChangeError'), _('pwdChangeErrorBody'))
   )
 )
 
