@@ -282,7 +282,7 @@ export const LoadLineChart = injectIntl(propTypes({
           nValues: length,
           endTimestamp: data.endTimestamp,
           interval: data.interval,
-          valueTransform: value => `${value}`
+          valueTransform: value => `${value.toPrecision(3)}`
         }),
         ...options
       }}
