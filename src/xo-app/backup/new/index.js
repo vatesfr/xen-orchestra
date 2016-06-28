@@ -34,7 +34,10 @@ const COMMON_SCHEMA = {
     },
     vms: {
       type: 'array',
-      'xo:type': 'vm',
+      items: {
+        type: 'string',
+        'xo:type': 'vm'
+      },
       title: 'VMs',
       description: 'Choose VMs to backup.'
     },

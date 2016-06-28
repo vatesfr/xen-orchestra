@@ -94,6 +94,7 @@ export default class ObjectInput extends Component {
       defaultValue = {}
     } = props
     const obj = {}
+    const { properties } = uiSchema
 
     forEach(schema.properties, (childSchema, key) => {
       obj[key] = (
@@ -104,7 +105,7 @@ export default class ObjectInput extends Component {
             label={childSchema.title || key}
             required={includes(schema.required, key)}
             schema={childSchema}
-            uiSchema={uiSchema.properties}
+            uiSchema={properties && properties[key]}
             defaultValue={defaultValue[key]}
           />
         </ObjectItem>

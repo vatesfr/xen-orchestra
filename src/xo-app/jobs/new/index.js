@@ -4,7 +4,7 @@ import ActionRowButton from 'action-row-button'
 import delay from 'lodash/delay'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
-import GenericInput from 'json-schema-input/generic-input'
+import GenericInput from 'json-schema-input/'
 import includes from 'lodash/includes'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
@@ -53,7 +53,7 @@ const reduceObject = (value, propertyName = 'id') => value && value[propertyName
 const dataToParamVectorItems = function (params, data) {
   const items = []
   forEach(params, (param, name) => {
-    if (Array.isArray(data[name]) && param.$type) { // We have an array for building cross product, the "real" type was $type
+    if (Array.isArray(data[name]) && param.items) { // We have an array for building cross product, the "real" type was $type
       const values = []
       if (data[name].length === 1) { // One value, no need to engage cross-product
         data[name] = data[name].pop()
@@ -173,8 +173,11 @@ export default class Jobs extends Component {
                 Vm: 'VM(s)',
                 XoObject: 'Object(s)'
               }
-              prop.$type = type
               prop.type = 'array'
+              prop.items = {
+                type: 'string',
+                $type: type
+              }
               prop.title = titles[type]
             }
 
