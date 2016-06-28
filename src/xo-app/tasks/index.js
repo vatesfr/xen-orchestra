@@ -8,6 +8,7 @@ import Link from 'react-router/lib/Link'
 import map from 'lodash/map'
 import Page from '../page'
 import React from 'react'
+import SingleLineRow from 'single-line-row'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Card, CardBlock, CardHeader } from 'card'
 import { connectStore } from 'utils'
@@ -34,13 +35,13 @@ const HEADER = <Container>
 
 export const TaskItem = connectStore(() => ({
   host: createGetObject((_, props) => props.task.$host)
-}))(({ task, host }) => <Row>
+}))(({ task, host }) => <SingleLineRow>
   <Col mediumSize={6}>
     {task.name_label} (on <Link to={`/hosts/${host.id}`}>{host.name_label}</Link>)
     {' ' + Math.round(task.progress * 100)}%
   </Col>
   <Col mediumSize={4}>
-    <progress style={{marginTop: '0.4rem'}} className='progress' value={task.progress * 100} max='100'></progress>
+    <progress className='progress' value={task.progress * 100} max='100'></progress>
   </Col>
   <Col mediumSize={2}>
     <ButtonGroup>
@@ -58,7 +59,7 @@ export const TaskItem = connectStore(() => ({
       />
     </ButtonGroup>
   </Col>
-</Row>)
+</SingleLineRow>)
 
 export default connectStore(() => {
   const getPendingTasksByPool = createGetObjectsOfType('task').filter(
