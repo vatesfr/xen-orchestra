@@ -11,7 +11,7 @@ import isString from 'lodash/isString'
 import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
 import propTypes from 'prop-types'
-import React, { cloneElement } from 'react'
+import React from 'react'
 import { connect } from 'react-redux'
 
 import BaseComponent from './base-component'
@@ -344,19 +344,6 @@ export const osFamily = invoke({
 
 // -------------------------------------------------------------------
 
-// Experimental!
-//
-// ```js
-// <If cond={user}>
-//   <p>user.name</p>
-//   <p>user.email</p>
-// </If>
-// ```
-export const If = ({ cond, children }) => cond && children
-  ? map(children, (child, key) => cloneElement(child, { key }))
-  : null
-
-// -------------------------------------------------------------------
 
 export { invoke }
 
