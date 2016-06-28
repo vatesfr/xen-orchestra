@@ -1997,7 +1997,7 @@ export default class Xapi extends XapiBase {
     mtu = 1500,
     position = undefined,
 
-    device = position != null && String(position),
+    device = position != null ? String(position) : undefined,
     ipv4_allowed = undefined,
     ipv6_allowed = undefined,
     locking_mode = undefined,
