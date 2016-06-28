@@ -343,6 +343,18 @@
     @extend .xo-status-busy;
   }
 
+  // Task
+  &-task {
+    &-cancel {
+      @extend .fa;
+      @extend .fa-ban;
+    }
+    &-destroy {
+      @extend .fa;
+      @extend .fa-trash;
+    }
+  }
+
   // SR
   &-sr, &-vdi {
     &-reconnect-all {

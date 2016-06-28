@@ -790,6 +790,16 @@ export const removeTag = (id, tag) => (
   _call('tag.remove', { id, tag })
 )
 
+// Tasks --------------------------------------------------------------
+
+export const cancelTask = ({ id }) => (
+  _call('task.cancel', { id })
+)
+
+export const destroyTask = ({ id }) => (
+  _call('task.destroy', { id })
+)
+
 // Backups -----------------------------------------------------------
 
 export const createSchedule = (jobId, cron, enabled, name = undefined) => (

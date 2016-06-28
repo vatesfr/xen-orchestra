@@ -1,4 +1,5 @@
 import _ from 'intl'
+import ActionRowButton from 'action-row-button'
 import CenterPanel from 'center-panel'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
@@ -7,6 +8,7 @@ import Link from 'react-router/lib/Link'
 import map from 'lodash/map'
 import Page from '../page'
 import React from 'react'
+import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Card, CardBlock, CardHeader } from 'card'
 import { connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
@@ -16,6 +18,11 @@ import {
   createGetObjectsOfType,
   createSelector
 } from 'selectors'
+
+import {
+  cancelTask,
+  destroyTask
+} from 'xo'
 
 const HEADER = <Container>
   <Row>
@@ -30,9 +37,26 @@ export const TaskItem = connectStore(() => ({
 }))(({ task, host }) => <Row>
   <Col mediumSize={6}>
     {task.name_label} (on <Link to={`/hosts/${host.id}`}>{host.name_label}</Link>)
+    {' ' + Math.round(task.progress * 100)}%
   </Col>
-  <Col mediumSize={6}>
-    <progress className='progress' value={task.progress * 100} max='100'></progress>
+  <Col mediumSize={4}>
+    <progress style={{marginTop: '0.4rem'}} className='progress' value={task.progress * 100} max='100'></progress>
+  </Col>
+  <Col mediumSize={2}>
+    <ButtonGroup>
+      <ActionRowButton
+        btnStyle='default'
+        handler={cancelTask}
+        handlerParam={task}
+        icon='task-cancel'
+      />
+      <ActionRowButton
+        btnStyle='default'
+        handler={destroyTask}
+        handlerParam={task}
+        icon='task-destroy'
+      />
+    </ButtonGroup>
   </Col>
 </Row>)
 
@@ -71,17 +95,19 @@ export default connectStore(() => {
   }
 
   return <Page header={HEADER}>
-    <Card>
+    <Container>
       {map(pools, pool =>
-        <span>
-          <CardHeader key={pool.id}><Link to={`/pools/${pool.id}`}>{pool.name_label}</Link></CardHeader>
-          <CardBlock>
-            {map(pendingTasksByPool[pool.id], task =>
-              <TaskItem key={task.id} task={task} />
-            )}
-          </CardBlock>
-        </span>
+        <Row>
+          <Card>
+            <CardHeader key={pool.id}><Link to={`/pools/${pool.id}`}>{pool.name_label}</Link></CardHeader>
+            <CardBlock>
+              {map(pendingTasksByPool[pool.id], task =>
+                <TaskItem key={task.id} task={task} />
+              )}
+            </CardBlock>
+          </Card>
+        </Row>
       )}
-    </Card>
+    </Container>
   </Page>
 })
