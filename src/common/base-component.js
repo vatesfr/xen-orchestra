@@ -12,7 +12,7 @@ export default class BaseComponent extends Component {
     // It really should have been done in React.Component!
     this.state = {}
 
-    this._stateCallbacks = {}
+    this._linkedState = null
 
     if (process.env.NODE_ENV !== 'production') {
       this.render = invoke(this.render, render => () => {
@@ -25,14 +25,15 @@ export default class BaseComponent extends Component {
 
   // See https://preactjs.com/guide/linked-state
   linkState (name) {
-    const cbs = this._stateCallbacks
-
-    const cb = cbs[name]
-    if (cb) {
+    let linkedState = this._linkedState
+    let cb
+    if (!linkedState) {
+      linkedState = this._linkedState = {}
+    } else if ((cb = linkedState[name])) {
       return cb
     }
 
-    return (cbs[name] = event => {
+    return (linkedState[name] = event => {
       this.setState({
         [name]: getEventValue(event)
       })
