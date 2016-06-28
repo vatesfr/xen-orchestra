@@ -447,11 +447,11 @@ export const snapshotVms = vms => (
   )
 )
 
-import MigrateVmModalBody from './migrate-vm-modal'
+import MigrateVmModalBody, { MigrateVmsModalBody } from './migrate-vm-modal'
 export const migrateVm = (vm, host) => (
   confirm({
     title: _('migrateVmModalTitle'),
-    body: <MigrateVmModalBody vms={vm} host={host} />
+    body: <MigrateVmModalBody vm={vm} host={host} />
   }).then(
     params => {
       if (!params) {
@@ -465,7 +465,7 @@ export const migrateVm = (vm, host) => (
 export const migrateVms = vms => (
   confirm({
     title: _('migrateVmModalTitle'),
-    body: <MigrateVmModalBody vms={vms} />
+    body: <MigrateVmsModalBody vms={vms} />
   }).then(
     params => {
       if (!params) {

@@ -1,8 +1,10 @@
+import BaseComponent from 'base-component'
+import every from 'lodash/every'
 import forEach from 'lodash/forEach'
 import find from 'lodash/find'
-import isArray from 'lodash/isArray'
 import map from 'lodash/map'
-import React, { Component } from 'react'
+import React from 'react'
+import some from 'lodash/some'
 
 import _ from '../../intl'
 import SingleLineRow from '../../single-line-row'
@@ -19,7 +21,8 @@ import {
 import {
   createGetObjectsOfType,
   createPicker,
-  createSelector
+  createSelector,
+  getObject
 } from '../../selectors'
 
 import { isSrWritable } from '../'
@@ -27,22 +30,16 @@ import { isSrWritable } from '../'
 import styles from './index.css'
 
 @connectStore(() => {
-  const getVms = (_, props) => props.vms
-
-  const multipleVms = (state, props) => {
-    console.log('state', state)
-    console.log('props', props)
-    return isArray(getVms(state, props))
-  }
+  const getVm = (_, props) => props.vm
 
   const getVbds = createGetObjectsOfType('VBD').pick(
-    (state, props) => !multipleVms(state, props) && getVms(state, props).$VBDs
+    (state, props) => getVm(state, props).$VBDs
   ).sort()
 
   const getVdis = createGetObjectsOfType('VDI').pick(
     createSelector(
       getVbds,
-      vbds => !multipleVms() && mapPlus(vbds, (vbd, push) => {
+      vbds => mapPlus(vbds, (vbd, push) => {
         if (!vbd.is_cd_drive && vbd.VDI) {
           push(vbd.VDI)
         }
@@ -51,7 +48,7 @@ import styles from './index.css'
   )
 
   const getVifs = createGetObjectsOfType('VIF').pick(
-    createSelector(getVms, vm => !multipleVms() && vm.VIFs)
+    createSelector(getVm, vm => vm.VIFs)
   ).sort()
 
   const getPifs = createGetObjectsOfType('PIF')
@@ -60,7 +57,6 @@ import styles from './index.css'
   const getPools = createGetObjectsOfType('pool')
 
   return {
-    multipleVms,
     networks: getNetworks,
     pifs: getPifs,
     pools: getPools,
@@ -69,7 +65,7 @@ import styles from './index.css'
     vifs: getVifs
   }
 }, { withRef: true })
-export default class MigrateVmModalBody extends Component {
+export default class MigrateVmModalBody extends BaseComponent {
   constructor (props) {
     super(props)
 
@@ -168,13 +164,7 @@ export default class MigrateVmModalBody extends Component {
   _selectMigrationNetwork = network => this.setState({ network })
 
   render () {
-    const {
-      host,
-      multipleVms,
-      networks,
-      vdis,
-      vifs
-    } = this.props
+    const { host, vdis, vifs, networks } = this.props
     return <div>
       <div className={styles.firstBlock}>
         <SingleLineRow>
@@ -204,69 +194,185 @@ export default class MigrateVmModalBody extends Component {
                 </Col>
               </SingleLineRow>
             </div>
-            {multipleVms ? <div className={styles.block}>
+            <div className={styles.block}>
               <SingleLineRow>
-                <Col size={6}>SELECT SR</Col>
-                <Col size={6}>
-                  <SelectSr
-                    ref='sr'
-                    defaultValue={this.state.defaultSr}
-                    onChange={sr => console.log(sr)}
-                    predicate={this._getSrPredicate()}
-                  />
-                </Col>
+                <Col>{_('migrateVmAdvancedModalSelectSrs')}</Col>
               </SingleLineRow>
+              <br />
+              <SingleLineRow>
+                <Col size={6}><span className={styles.listTitle}>{_('migrateVmAdvancedModalName')}</span></Col>
+                <Col size={6}><span className={styles.listTitle}>{_('migrateVmAdvancedModalSr')}</span></Col>
+              </SingleLineRow>
+              {map(vdis, vdi => <div className={styles.listItem} key={vdi.id}>
+                <SingleLineRow>
+                  <Col size={6}>{vdi.name_label}</Col>
+                  <Col size={6}>
+                    <SelectSr
+                      ref={'sr_' + vdi.id}
+                      defaultValue={this.state.defaultSr}
+                      onChange={sr => this.setState({ mapVdisSrs: { ...this.state.mapVdisSrs, [vdi.id]: sr.id } })}
+                      predicate={this._getSrPredicate()}
+                    />
+                  </Col>
+                </SingleLineRow>
+              </div>)}
             </div>
-            : [
-              <div className={styles.block}>
+            <div className={styles.block}>
+              <SingleLineRow>
+                <Col>{_('migrateVmAdvancedModalSelectNetworks')}</Col>
+              </SingleLineRow>
+              <br />
+              <SingleLineRow>
+                <Col size={6}><span className={styles.listTitle}>{_('migrateVmAdvancedModalVif')}</span></Col>
+                <Col size={6}><span className={styles.listTitle}>{_('migrateVmAdvancedModalNetwork')}</span></Col>
+              </SingleLineRow>
+              {map(vifs, vif => <div className={styles.listItem} key={vif.id}>
                 <SingleLineRow>
-                  <Col>{_('migrateVmAdvancedModalSelectSrs')}</Col>
+                  <Col size={6}>{vif.MAC} ({networks[vif.$network].name_label})</Col>
+                  <Col size={6}>
+                    <SelectNetwork
+                      ref={'network_' + vif.id}
+                      defaultValue={this.state.defaultNetworks[vif.id]}
+                      onChange={network => this.setState({ mapVifsNetworks: { ...this.state.mapVifsNetworks, [vif.id]: network.id } })}
+                      predicate={this._getNetworkPredicate()}
+                    />
+                  </Col>
                 </SingleLineRow>
-                <br />
-                <SingleLineRow>
-                  <Col size={6}><span className={styles.listTitle}>{_('migrateVmAdvancedModalName')}</span></Col>
-                  <Col size={6}><span className={styles.listTitle}>{_('migrateVmAdvancedModalSr')}</span></Col>
-                </SingleLineRow>
-                {map(vdis, vdi => <div className={styles.listItem} key={vdi.id}>
-                  <SingleLineRow>
-                    <Col size={6}>{vdi.name_label}</Col>
-                    <Col size={6}>
-                      <SelectSr
-                        ref={'sr_' + vdi.id}
-                        defaultValue={this.state.defaultSr}
-                        onChange={sr => this.setState({ mapVdisSrs: { ...this.state.mapVdisSrs, [vdi.id]: sr.id } })}
-                        predicate={this._getSrPredicate()}
-                      />
-                    </Col>
-                  </SingleLineRow>
-                </div>)}
-              </div>,
-              <div className={styles.block}>
-                <SingleLineRow>
-                  <Col>{_('migrateVmAdvancedModalSelectNetworks')}</Col>
-                </SingleLineRow>
-                <br />
-                <SingleLineRow>
-                  <Col size={6}><span className={styles.listTitle}>{_('migrateVmAdvancedModalVif')}</span></Col>
-                  <Col size={6}><span className={styles.listTitle}>{_('migrateVmAdvancedModalNetwork')}</span></Col>
-                </SingleLineRow>
-                {map(vifs, vif => <div className={styles.listItem} key={vif.id}>
-                  <SingleLineRow>
-                    <Col size={6}>{vif.MAC} ({networks[vif.$network].name_label})</Col>
-                    <Col size={6}>
-                      <SelectNetwork
-                        ref={'network_' + vif.id}
-                        defaultValue={this.state.defaultNetworks[vif.id]}
-                        onChange={network => this.setState({ mapVifsNetworks: { ...this.state.mapVifsNetworks, [vif.id]: network.id } })}
-                        predicate={this._getNetworkPredicate()}
-                      />
-                    </Col>
-                  </SingleLineRow>
-                </div>)}
-              </div>
-            ]}
+              </div>)}
+            </div>
           </div>
         )}
+    </div>
+  }
+}
+
+@connectStore(() => {
+  const getNetworks = createGetObjectsOfType('network')
+  const getPifs = createGetObjectsOfType('PIF')
+  const getPools = createGetObjectsOfType('pool')
+  const getSrs = createGetObjectsOfType('SR')
+  const getVms = (state, props) => map(props.vms, vmId => getObject(state, vmId))
+
+  return {
+    networks: getNetworks,
+    pifs: getPifs,
+    pools: getPools,
+    srs: getSrs,
+    vms: getVms
+  }
+}, { withRef: true })
+export class MigrateVmsModalBody extends BaseComponent {
+  constructor (props) {
+    super(props)
+
+    this._getHostPredicate = createSelector(
+      () => this.props.vms,
+      vms => host => some(vms, vm => host.id !== vm.$container)
+    )
+
+    this._getSrPredicate = createSelector(
+      () => this.state.host,
+      host => (host
+        ? sr => isSrWritable(sr) && (sr.$container === host.id || sr.$container === host.$pool)
+        : () => false
+      )
+    )
+
+    this._getNetworkPredicate = createSelector(
+      createPicker(
+        () => this.props.pifs,
+        () => this.state.host.$PIFs
+      ),
+      pifs => {
+        if (!pifs) {
+          return () => false
+        }
+
+        const networks = {}
+        forEach(pifs, pif => {
+          pif.ip && (networks[pif.$network] = true)
+        })
+
+        return network => networks[network.id]
+      }
+    )
+  }
+
+  componentDidMount () {
+    this._selectHost(this.props.host)
+  }
+
+  get value () {
+    return {
+      targetHost: this.state.host && this.state.host.id
+    }
+  }
+
+  _selectHost = host => {
+    if (!host) {
+      this.setState({ targetHost: undefined })
+      return
+    }
+    const { networks, pools, pifs, srs } = this.props
+    const defaultMigrationNetwork = networks[find(pifs, pif => pif.$host === host.id && pif.management).$network]
+    const defaultSr = srs[pools[host.$pool].default_SR]
+    this.setState({
+      intraPool: every(this.props.vms, vm => vm.$pool === host.$pool),
+      network: defaultMigrationNetwork,
+      defaultSr,
+      host
+    }, () => {
+      if (!this.state.intraPool) {
+        this.refs.network.value = defaultMigrationNetwork
+      }
+    })
+  }
+  _selectMigrationNetwork = network => this.setState({ network })
+  _selectSr = sr => this.setState({ sr })
+
+  render () {
+    const { host } = this.props
+    return <div>
+      <div className={styles.firstBlock}>
+        <SingleLineRow>
+          <Col size={6}>{_('migrateVmAdvancedModalSelectHost')}</Col>
+          <Col size={6}>
+            <SelectHost
+              defaultValue={host}
+              onChange={this._selectHost}
+              predicate={this._getHostPredicate()}
+            />
+          </Col>
+        </SingleLineRow>
+      </div>
+      <div className={styles.firstBlock}>
+        <SingleLineRow>
+          <Col size={6}>SELECT SR</Col>
+          <Col size={6}>
+            <SelectSr
+              ref='sr'
+              defaultValue={this.state.defaultSr}
+              onChange={this._selectSr}
+              predicate={this._getSrPredicate()}
+            />
+          </Col>
+        </SingleLineRow>
+      </div>
+      {this.state.intraPool === false &&
+        <div className={styles.block}>
+          <SingleLineRow>
+            <Col size={6}>{_('migrateVmAdvancedModalSelectNetwork')}</Col>
+            <Col size={6}>
+              <SelectNetwork
+                ref='network'
+                defaultValue={this.state.network}
+                onChange={this._selectMigrationNetwork}
+                predicate={this._getNetworkPredicate()}
+              />
+            </Col>
+          </SingleLineRow>
+        </div>
+      }
     </div>
   }
 }
