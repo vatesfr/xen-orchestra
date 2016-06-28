@@ -1,15 +1,16 @@
-import ActionButton from 'action-button'
-import Component from 'base-component'
-import Icon from 'icon'
-import React from 'react'
-import XoWeekCharts from 'xo-week-charts'
-import XoWeekHeatmap from 'xo-week-heatmap'
 import _ from 'intl'
+import ActionButton from 'action-button'
 import cloneDeep from 'lodash/cloneDeep'
+import Component from 'base-component'
 import forEach from 'lodash/forEach'
+import Icon from 'icon'
 import map from 'lodash/map'
+import propTypes from 'prop-types'
+import React from 'react'
 import renderXoItem from 'render-xo-item'
 import sortBy from 'lodash/sortBy'
+import XoWeekCharts from 'xo-week-charts'
+import XoWeekHeatmap from 'xo-week-heatmap'
 import { Container, Row, Col } from 'grid'
 import { error } from 'notification'
 import { SelectHostVm } from 'select-objects'
@@ -17,8 +18,7 @@ import { createGetObjectsOfType } from 'selectors'
 import {
   connectStore,
   formatSize,
-  mapPlus,
-  propTypes
+  mapPlus
 } from 'utils'
 import {
   fetchHostStats,

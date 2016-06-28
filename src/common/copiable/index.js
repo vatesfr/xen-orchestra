@@ -3,7 +3,7 @@ import classNames from 'classnames'
 import React, { createElement } from 'react'
 
 import Icon from '../icon'
-import { propTypes } from '../utils'
+import propTypes from '../prop-types'
 
 import styles from './index.css'
 

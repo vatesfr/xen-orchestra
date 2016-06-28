@@ -2,6 +2,8 @@ import React from 'react'
 
 import ActionButton from './action-button'
 import Component from './base-component'
+import propTypes from './prop-types'
+import { connectStore } from './utils'
 import { SelectVdi } from './select-objects'
 import {
   createGetObjectsOfType,
@@ -9,10 +11,6 @@ import {
   createGetObject,
   createSelector
 } from './selectors'
-import {
-  connectStore,
-  propTypes
-} from './utils'
 import {
   ejectCd,
   insertCd

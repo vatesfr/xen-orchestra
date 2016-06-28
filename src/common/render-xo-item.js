@@ -1,12 +1,13 @@
-import Icon from 'icon'
 import React, { Component } from 'react'
-import { createGetObject } from 'selectors'
-import { isSrWritable } from 'xo'
+
+import Icon from './icon'
+import propTypes from './prop-types'
+import { createGetObject } from './selectors'
+import { isSrWritable } from './xo'
 import {
   connectStore,
-  formatSize,
-  propTypes
-} from 'utils'
+  formatSize
+} from './utils'
 
 // ===================================================================
 

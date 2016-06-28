@@ -1,10 +1,11 @@
 import React, { Component } from 'react'
 import ReactSelect from 'react-select'
-import { propTypes } from 'utils'
 import {
   AutoSizer,
   VirtualScroll
 } from 'react-virtualized'
+
+import propTypes from '../prop-types'
 
 const SELECT_MENU_STYLE = {
   overflow: 'hidden'

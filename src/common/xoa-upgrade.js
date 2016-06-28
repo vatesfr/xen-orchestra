@@ -1,9 +1,11 @@
-import _ from 'intl'
-import Icon from 'icon'
 import Link from 'react-router/lib/Link'
 import React from 'react'
-import { Card, CardHeader, CardBlock } from 'card'
-import { getXoaPlan, propTypes } from 'utils'
+
+import _ from './intl'
+import Icon from './icon'
+import propTypes from './prop-types'
+import { Card, CardHeader, CardBlock } from './card'
+import { getXoaPlan } from './utils'
 
 const Upgrade = propTypes({
   available: propTypes.number.isRequired,

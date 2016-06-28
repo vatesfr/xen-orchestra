@@ -1,16 +1,16 @@
-import Component from 'base-component'
-import Icon from 'icon'
 import React from 'react'
-import SingleLineRow from 'single-line-row'
 import ceil from 'lodash/ceil'
 import debounce from 'lodash/debounce'
 import map from 'lodash/map'
 import { Pagination } from 'react-bootstrap-4/lib'
 import { Portal } from 'react-overlays'
-import { Container, Col } from 'grid'
-import { create as createMatcher } from 'complex-matcher'
-import { propTypes } from 'utils'
 
+import Component from '../base-component'
+import Icon from '../icon'
+import propTypes from '../prop-types'
+import SingleLineRow from '../single-line-row'
+import { Container, Col } from '../grid'
+import { create as createMatcher } from '../complex-matcher'
 import {
   createFilter,
   createPager,

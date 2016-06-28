@@ -4,7 +4,8 @@ import isArray from 'lodash/isArray'
 import isString from 'lodash/isString'
 import React, { Component, cloneElement } from 'react'
 import { Button, Modal as ReactModal } from 'react-bootstrap-4/lib'
-import { propTypes } from './utils'
+
+import propTypes from './prop-types'
 
 let instance
 

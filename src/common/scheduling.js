@@ -1,24 +1,22 @@
-import Component from 'base-component'
-import React from 'react'
-import _ from 'intl'
 import forEach from 'lodash/forEach'
 import includes from 'lodash/includes'
 import join from 'lodash/join'
 import later from 'later'
 import map from 'lodash/map'
+import React from 'react'
 import sortedIndex from 'lodash/sortedIndex'
-import { Range } from 'form'
 import { FormattedTime } from 'react-intl'
-
-import { Col, Row } from 'grid'
 import {
   Panel,
   Tab,
   Tabs
 } from 'react-bootstrap-4/lib'
-import {
-  propTypes
-} from 'utils'
+
+import _ from './intl'
+import Component from './base-component'
+import propTypes from './prop-types'
+import { Col, Row } from './grid'
+import { Range } from './form'
 
 // ===================================================================
 

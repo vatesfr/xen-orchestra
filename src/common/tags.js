@@ -1,9 +1,9 @@
 import React from 'react'
-import Icon from 'icon'
 import map from 'lodash/map'
 
 import Component from './base-component'
-import { propTypes } from './utils'
+import Icon from './icon'
+import propTypes from './prop-types'
 
 @propTypes({
   labels: propTypes.arrayOf(React.PropTypes.string).isRequired,

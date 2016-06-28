@@ -1,19 +1,19 @@
 import React from 'react'
-import _ from 'intl'
 import * as d3 from 'd3'
 import forEach from 'lodash/forEach'
 import map from 'lodash/map'
-import { Toggle } from 'form'
 
+import _ from '../intl'
 import Component from '../base-component'
+import propTypes from '../prop-types'
+import { Toggle } from '../form'
 import {
   createGetObject,
   createSelector
 } from '../selectors'
 import {
   connectStore,
-  propsEqual,
-  propTypes
+  propsEqual
 } from '../utils'
 
 import styles from './index.css'

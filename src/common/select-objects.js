@@ -1,6 +1,4 @@
-import Component from 'base-component'
 import React from 'react'
-import _ from 'intl'
 import assign from 'lodash/assign'
 import classNames from 'classnames'
 import filter from 'lodash/filter'
@@ -9,31 +7,31 @@ import groupBy from 'lodash/groupBy'
 import keyBy from 'lodash/keyBy'
 import keys from 'lodash/keys'
 import map from 'lodash/map'
-import renderXoItem from 'render-xo-item'
 import sortBy from 'lodash/sortBy'
 import { parse as parseRemote } from 'xo-remote-parser'
-import { Select } from 'form'
 
+import _ from './intl'
+import Component from './base-component'
+import propTypes from './prop-types'
+import renderXoItem from './render-xo-item'
+import { Select } from './form'
 import {
   createFilter,
   createGetObjectsOfType,
   createGetTags,
   createSelector
-} from 'selectors'
-
+} from './selectors'
 import {
   connectStore,
-  mapPlus,
-  propTypes
-} from 'utils'
-
+  mapPlus
+} from './utils'
 import {
   isSrWritable,
   subscribeGroups,
   subscribeRemotes,
   subscribeRoles,
   subscribeUsers
-} from 'xo'
+} from './xo'
 
 // ===================================================================
 

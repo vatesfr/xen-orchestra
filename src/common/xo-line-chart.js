@@ -3,10 +3,9 @@ import ChartistLegend from 'chartist-plugin-legend'
 import ChartistTooltip from 'chartist-plugin-tooltip'
 import React from 'react'
 import { injectIntl } from 'react-intl'
-import {
-  formatSize,
-  propTypes
-} from 'utils'
+
+import propTypes from './prop-types'
+import { formatSize } from './utils'
 
 // Number of labels on axis X.
 const N_LABELS_X = 5

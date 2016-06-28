@@ -1,5 +1,4 @@
 import React from 'react'
-import _ from 'intl'
 import forEach from 'lodash/forEach'
 import map from 'lodash/map'
 import moment from 'moment'
@@ -12,9 +11,10 @@ import {
 } from 'd3'
 import { FormattedTime } from 'react-intl'
 
+import _ from '../intl'
 import Component from '../base-component'
+import propTypes from '../prop-types'
 import Tooltip from '../tooltip'
-import { propTypes } from '../utils'
 
 import styles from './index.css'
 

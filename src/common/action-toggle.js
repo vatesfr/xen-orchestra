@@ -1,6 +1,7 @@
-import ActionButton from 'action-button'
 import React from 'react'
-import { propTypes } from 'utils'
+
+import ActionButton from './action-button'
+import propTypes from './prop-types'
 
 const ActionToggle = ({ className, value, ...props }) =>
   <ActionButton

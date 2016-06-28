@@ -4,10 +4,8 @@ import forEach from 'lodash/forEach'
 import includes from 'lodash/includes'
 import map from 'lodash/map'
 
-import {
-  propsEqual,
-  propTypes
-} from 'utils'
+import propTypes from '../prop-types'
+import { propsEqual } from '../utils'
 
 import GenericInput from './generic-input'
 

@@ -1,8 +1,10 @@
 import find from 'lodash/find'
 import map from 'lodash/map'
 import React, { Component } from 'react'
-import { Select } from 'form'
-import { propTypes } from 'utils'
+
+import propTypes from '../prop-types'
+
+import Select from './select'
 
 @propTypes({
   autoFocus: propTypes.bool,

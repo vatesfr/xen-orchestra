@@ -1,10 +1,8 @@
 import React, { Component } from 'react'
 import includes from 'lodash/includes'
 
-import {
-  EMPTY_OBJECT,
-  propTypes
-} from 'utils'
+import propTypes from '../prop-types'
+import { EMPTY_OBJECT } from '../utils'
 
 import ArrayInput from './array-input'
 import BooleanInput from './boolean-input'

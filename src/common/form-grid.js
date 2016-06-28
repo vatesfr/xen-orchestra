@@ -1,6 +1,7 @@
 import React from 'react'
-import * as Grid from 'grid'
-import { propTypes } from 'utils'
+
+import * as Grid from './grid'
+import propTypes from './prop-types'
 
 export const LabelCol = propTypes({
   children: propTypes.any.isRequired

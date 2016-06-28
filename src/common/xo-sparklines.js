@@ -5,7 +5,8 @@ import {
   SparklinesLine,
   SparklinesSpots
 } from 'react-sparklines'
-import { propTypes } from 'utils'
+
+import propTypes from './prop-types'
 
 const STYLE = {}
 

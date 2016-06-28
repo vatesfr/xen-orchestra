@@ -1,15 +1,12 @@
-import _ from 'intl'
 import React, { Component, cloneElement } from 'react'
 import map from 'lodash/map'
 import filter from 'lodash/filter'
 
-import {
-  propsEqual,
-  propTypes
-} from 'utils'
+import _ from '../intl'
+import propTypes from '../prop-types'
+import { propsEqual } from '../utils'
 
 import GenericInput from './generic-input'
-
 import {
   descriptionRender,
   forceDisplayOptionalAttr

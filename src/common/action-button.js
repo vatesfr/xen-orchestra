@@ -5,7 +5,7 @@ import { Button } from 'react-bootstrap-4/lib'
 
 import Component from './base-component'
 import logError from './log-error'
-import { propTypes } from './utils'
+import propTypes from './prop-types'
 
 @propTypes({
   btnStyle: propTypes.string,

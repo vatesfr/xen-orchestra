@@ -7,10 +7,11 @@ import React from 'react'
 
 import _ from './intl'
 import Component from './base-component'
-import logError from './log-error'
 import Icon from './icon'
+import logError from './log-error'
+import propTypes from './prop-types'
 import Tooltip from './tooltip'
-import { formatSize, propTypes } from './utils'
+import { formatSize } from './utils'
 import { SizeInput } from './form'
 import {
   SelectHost,

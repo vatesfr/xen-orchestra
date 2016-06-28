@@ -8,19 +8,19 @@ import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import IsoDevice from 'iso-device'
 import map from 'lodash/map'
+import propTypes from 'prop-types'
 import React from 'react'
+import some from 'lodash/some'
 import TabButton from 'tab-button'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Container, Row, Col } from 'grid'
+import { createSelector } from 'selectors'
 import { DragDropContext, DragSource, DropTarget } from 'react-dnd'
 import { Link } from 'react-router'
-import { noop, propTypes } from 'utils'
+import { noop } from 'utils'
 import { SelectSr, SelectVdi } from 'select-objects'
 import { SizeInput, Toggle } from 'form'
 import { XoSelect, Size, Text } from 'editable'
-import some from 'lodash/some'
-import { createSelector } from 'selectors'
-
 import {
   attachDiskToVm,
   createDisk,

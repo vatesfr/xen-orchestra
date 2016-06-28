@@ -1,12 +1,12 @@
-import React, { Component } from 'react'
 import _ from 'intl'
 import forEach from 'lodash/forEach'
 import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
+import propTypes from 'prop-types'
+import React, { Component } from 'react'
 import renderXoItem from 'render-xo-item'
 import store from 'store'
 import { getObject } from 'selectors'
-import { propTypes } from 'utils'
 
 import {
   subscribeGroups,

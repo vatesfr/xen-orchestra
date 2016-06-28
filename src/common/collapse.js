@@ -1,7 +1,8 @@
-import Component from 'base-component'
-import Icon from 'icon'
 import React from 'react'
-import { propTypes } from 'utils'
+
+import Component from './base-component'
+import Icon from './icon'
+import propTypes from './prop-types'
 
 @propTypes({
   children: propTypes.any.isRequired,

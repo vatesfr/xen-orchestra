@@ -1,12 +1,13 @@
 import React, { Component } from 'react'
 import { createBackoff } from 'jsonrpc-websocket-client'
-import { propTypes } from 'utils'
 import { RFB } from 'novnc-node'
 import {
   format as formatUrl,
   parse as parseUrl,
   resolve as resolveUrl
 } from 'url'
+
+import propTypes from './prop-types'
 
 const parseRelativeUrl = url => parseUrl(resolveUrl(String(window.location), url))
 

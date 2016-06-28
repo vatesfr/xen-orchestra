@@ -1,15 +1,16 @@
+import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
-import Icon from 'icon'
-import React from 'react'
-import _, { messages } from 'intl'
 import differenceBy from 'lodash/differenceBy'
 import filter from 'lodash/filter'
 import forEach from 'lodash/forEach'
+import Icon from 'icon'
 import intersection from 'lodash/intersection'
 import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
+import propTypes from 'prop-types'
+import React from 'react'
 import reduce from 'lodash/reduce'
 import renderXoItem from 'render-xo-item'
 import Upgrade from 'xoa-upgrade'
@@ -17,13 +18,11 @@ import { Container, Col, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
 import { injectIntl } from 'react-intl'
 import { SizeInput } from 'form'
-
 import {
   Card,
   CardBlock,
   CardHeader
 } from 'card'
-
 import {
   SelectSubject,
   SelectNetwork,
@@ -31,13 +30,10 @@ import {
   SelectSr,
   SelectVmTemplate
 } from 'select-objects'
-
 import {
   connectStore,
-  formatSize,
-  propTypes
+  formatSize
 } from 'utils'
-
 import {
   createResourceSet,
   deleteResourceSet,

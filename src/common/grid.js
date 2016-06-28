@@ -1,6 +1,7 @@
 import classNames from 'classnames'
 import React from 'react'
-import { propTypes } from 'utils'
+
+import propTypes from './prop-types'
 
 export const Col = propTypes({
   className: propTypes.string,

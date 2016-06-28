@@ -1,10 +1,11 @@
-import _ from 'intl'
 import classNames from 'classnames'
 import every from 'lodash/every'
-import Icon from 'icon'
 import map from 'lodash/map'
-import { propTypes } from 'utils'
 import React, { Component, cloneElement } from 'react'
+
+import _ from '../intl'
+import Icon from '../icon'
+import propTypes from '../prop-types'
 
 import styles from './index.css'
 
