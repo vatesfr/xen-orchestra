@@ -792,11 +792,11 @@ export const removeTag = (id, tag) => (
 
 // Tasks --------------------------------------------------------------
 
-export const cancelTask = (task) => (
+export const cancelTask = task => (
   _call('task.cancel', { id: resolveId(task) })
 )
 
-export const destroyTask = (task) => (
+export const destroyTask = task => (
   _call('task.destroy', { id: resolveId(task) })
 )
 
