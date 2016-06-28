@@ -211,18 +211,6 @@ export const connectStore = (mapStateToProps, opts = {}) => {
 
 // -------------------------------------------------------------------
 
-// Simple matcher to use in object filtering.
-export const createSimpleMatcher = (pattern, valueGetter) => {
-  if (!pattern) {
-    return
-  }
-
-  pattern = pattern.toLowerCase()
-  return item => valueGetter(item).toLowerCase().indexOf(pattern) !== -1
-}
-
-// -------------------------------------------------------------------
-
 export { default as Debug } from './debug'
 
 // -------------------------------------------------------------------
