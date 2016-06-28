@@ -43,7 +43,7 @@ class NewVif extends Component {
     const { vm, onClose = noop } = this.props
     const { mac, mtu } = this.refs
     const { network } = this.state
-    return createVmInterface(vm, network, mac.value || undefined, mtu.value || undefined)
+    return createVmInterface(vm, network, mac.value || undefined, mtu.value || String(network.MTU))
       .then(onClose)
   }
 
