@@ -103,8 +103,10 @@ export default class Restore extends Component {
             }
           }
         }
-        backupInfoByVm[backup.name] || (backupInfoByVm[backup.name] = [])
-        backupInfoByVm[backup.name].push(backup)
+        if (backup) {
+          backupInfoByVm[backup.name] || (backupInfoByVm[backup.name] = [])
+          backupInfoByVm[backup.name].push(backup)
+        }
       })
       for (let vm in backupInfoByVm) {
         const bks = backupInfoByVm[vm]
