@@ -1,6 +1,7 @@
 import classNames from 'classnames'
-import Link from 'react-router/lib/Link'
 import React from 'react'
+
+import Link from './link'
 
 export const NavLink = ({ children, to }) => (
   <li className='nav-item' role='tab'>

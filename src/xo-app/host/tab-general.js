@@ -6,12 +6,10 @@ import React from 'react'
 import Tags from 'tags'
 import Tooltip from 'tooltip'
 import { addTag, removeTag } from 'xo'
-import { FormattedRelative } from 'react-intl'
+import { BlockLink } from 'link'
 import { Container, Row, Col } from 'grid'
-import {
-  BlockLink,
-  formatSize
-} from 'utils'
+import { FormattedRelative } from 'react-intl'
+import { formatSize } from 'utils'
 import {
   CpuSparkLines,
   MemorySparkLines,

@@ -1,8 +1,9 @@
-import _ from 'intl'
-import ActionButton from 'action-button'
-import Icon from 'icon'
 import React from 'react'
-import { Link } from 'react-router'
+
+import _ from './intl'
+import ActionButton from './action-button'
+import Icon from './icon'
+import Link from './link'
 
 const STYLE = {
   marginBottom: '1em',

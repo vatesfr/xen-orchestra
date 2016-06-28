@@ -3,12 +3,12 @@ import Component from 'base-component'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
+import Link, { BlockLink } from 'link'
 import map from 'lodash/map'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import Tags from 'tags'
 import Tooltip from 'tooltip'
-import { Link } from 'react-router'
 import { Row, Col } from 'grid'
 import { Text, XoSelect } from 'editable'
 import {
@@ -20,7 +20,6 @@ import {
   stopVm
 } from 'xo'
 import {
-  BlockLink,
   connectStore,
   formatSize,
   osFamily

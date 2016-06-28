@@ -4,19 +4,17 @@ import ActionToggle from 'action-toggle'
 import filter from 'lodash/filter'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
+import Link from 'link'
 import LogList from '../../logs'
 import map from 'lodash/map'
 import orderBy from 'lodash/orderBy'
 import React, { Component } from 'react'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
-import { Link } from 'react-router'
-
 import {
   Card,
   CardHeader,
   CardBlock
 } from 'card'
-
 import {
   deleteBackupSchedule,
   disableSchedule,

@@ -6,11 +6,11 @@ import map from 'lodash/map'
 import React from 'react'
 import Tags from 'tags'
 import { addTag, editVm, removeTag } from 'xo'
+import { BlockLink } from 'link'
 import { FormattedRelative } from 'react-intl'
 import { Container, Row, Col } from 'grid'
 import { Number, Size } from 'editable'
 import {
-  BlockLink,
   formatSize,
   osFamily
 } from 'utils'

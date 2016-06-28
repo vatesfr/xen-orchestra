@@ -11,6 +11,7 @@ import invoke from 'invoke'
 import isEmpty from 'lodash/isEmpty'
 import isString from 'lodash/isString'
 import keys from 'lodash/keys'
+import Link from 'link'
 import map from 'lodash/map'
 import Page from '../page'
 import React from 'react'
@@ -25,7 +26,6 @@ import {
   startVms,
   stopVms
 } from 'xo'
-import { Link } from 'react-router'
 import { Container, Row, Col } from 'grid'
 import {
   SelectHost,

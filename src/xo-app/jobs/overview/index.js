@@ -4,21 +4,19 @@ import ActionToggle from 'action-toggle'
 import filter from 'lodash/filter'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
+import Link from 'link'
 import LogList from '../../logs'
 import map from 'lodash/map'
 import orderBy from 'lodash/orderBy'
-import Upgrade from 'xoa-upgrade'
 import React, { Component } from 'react'
+import Upgrade from 'xoa-upgrade'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Container } from 'grid'
-import { Link } from 'react-router'
-
 import {
   Card,
   CardHeader,
   CardBlock
 } from 'card'
-
 import {
   deleteSchedule,
   disableSchedule,

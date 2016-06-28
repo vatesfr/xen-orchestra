@@ -2,7 +2,6 @@ import * as actions from 'store/actions'
 import every from 'lodash/every'
 import forEach from 'lodash/forEach'
 import humanFormat from 'human-format'
-import includes from 'lodash/includes'
 import isArray from 'lodash/isArray'
 import isEmpty from 'lodash/isEmpty'
 import isFunction from 'lodash/isFunction'
@@ -10,7 +9,6 @@ import isPlainObject from 'lodash/isPlainObject'
 import isString from 'lodash/isString'
 import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
-import propTypes from 'prop-types'
 import React from 'react'
 import { connect } from 'react-redux'
 
@@ -72,48 +70,6 @@ export const addSubscriptions = subscriptions => Component => {
   }
 
   return SubscriptionWrapper
-}
-
-// -------------------------------------------------------------------
-
-@propTypes({
-  tagName: propTypes.string
-})
-export class BlockLink extends React.Component {
-  static contextTypes = {
-    router: React.PropTypes.object
-  }
-
-  _style = { cursor: 'pointer' }
-  _onClickCapture = event => {
-    const { currentTarget } = event
-    let element = event.target
-    while (element !== currentTarget) {
-      if (includes(['A', 'INPUT', 'BUTTON', 'SELECT'], element.tagName)) {
-        return
-      }
-      element = element.parentNode
-    }
-    event.stopPropagation()
-    if (event.ctrlKey || event.button === 1) {
-      window.open(this.context.router.createHref(this.props.to))
-    } else {
-      this.context.router.push(this.props.to)
-    }
-  }
-
-  render () {
-    const { children, tagName = 'div' } = this.props
-    const Component = tagName
-    return (
-      <Component
-        style={this._style}
-        onClickCapture={this._onClickCapture}
-      >
-        {children}
-      </Component>
-    )
-  }
 }
 
 // -------------------------------------------------------------------
