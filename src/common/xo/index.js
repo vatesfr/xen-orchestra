@@ -664,6 +664,12 @@ export const deleteNetwork = network => (
   )
 )
 
+// VIF ---------------------------------------------------------------
+
+export const createVmInterface = (vm, network, mac, mtu) => (
+  _call('vm.createInterface', resolveIds({vm, network, mtu, mac}))
+)
+
 // PIF ---------------------------------------------------------------
 
 export const connectPif = pif => (

@@ -453,6 +453,7 @@ var messages = {
   vifStatusConnected: 'Connected',
   vifStatusDisconnected: 'Disconnected',
   vifIpAddresses: 'IP addresses',
+  vifMacAutoGenerate: 'Auto-generated if empty',
 
   // ----- VM snapshot tab -----
   noSnapshots: 'No snapshots',
