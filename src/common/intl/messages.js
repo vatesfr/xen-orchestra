@@ -57,10 +57,7 @@ var messages = {
   customJob: 'Custom Job',
   userPage: 'User',
 
-  // ----- Sign in/out -----
-  usernameLabel: 'Username:',
-  passwordLabel: 'Password:',
-  signInButton: 'Sign in',
+  // ----- Sign out -----
   signOut: 'Sign out',
 
   // ----- Home view ------
