@@ -55,6 +55,7 @@ var messages = {
   jobsNewPage: 'New',
   jobsSchedulingPage: 'Scheduling',
   customJob: 'Custom Job',
+  userPage: 'User',
 
   // ----- Sign in/out -----
   usernameLabel: 'Username:',
@@ -792,7 +793,22 @@ var messages = {
   disconnectPif: 'Disconnect PIF',
   disconnectPifConfirm: 'Are you sure you want to disconnect this PIF?',
   deletePif: 'Delete PIF',
-  deletePifConfirm: 'Are you sure you want to delete this PIF?'
+  deletePifConfirm: 'Are you sure you want to delete this PIF?',
+
+  // ----- User -----
+  username: 'Username',
+  password: 'Password',
+  language: 'Language',
+  oldPasswordPlaceholder: 'Old password',
+  newPasswordPlaceholder: 'New password',
+  confirmPasswordPlaceholder: 'Confirm new password',
+  confirmationPasswordError: 'Confirmation password incorrect',
+  confirmationPasswordErrorBody: 'Password does not match the confirm password.',
+  pwdChangeSuccess: 'Password changed',
+  pwdChangeSuccessBody: 'Your password has been successfully changed.',
+  pwdChangeError: 'Incorrect password',
+  pwdChangeErrorBody: 'The old password provided is incorrect. Your password has not been changed.',
+  changePasswordOk: 'OK'
 }
 forEach(messages, function (message, id) {
   if (isString(message)) {

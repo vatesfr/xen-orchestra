@@ -17,7 +17,7 @@ import { resolve } from 'url'
 import _ from '../intl'
 import logError from '../log-error'
 import { confirm } from '../modal'
-import { error, info } from '../notification'
+import { error, info, success } from '../notification'
 import { invoke, noop, rethrow, tap } from '../utils'
 import {
   connected,
@@ -541,7 +541,7 @@ export const importVm = (file, sr) => {
     req.send(file)
     req.end((err, res) => {
       if (!err && res.status === 200) {
-        info(_('vmImportSuccess'), name)
+        success(_('vmImportSuccess'), name)
       } else {
         error(_('vmImportFailed'), name)
       }
@@ -1143,6 +1143,16 @@ export const deleteUser = user => (
 export const editUser = (user, { email, password, permission }) => (
   _call('user.set', { id: resolveId(user), email, password, permission })::tap(
     subscribeUsers.forceRefresh
+  )
+)
+
+export const changePassword = (oldPassword, newPassword) => (
+  _call('user.changePassword', {
+    oldPassword,
+    newPassword
+  }).then(
+    () => success(_('pwdChangeSuccess'), _('pwdChangeSuccessBody')),
+    () => error(_('pwdChangeError'), _('pwdChangeErrorBody'))
   )
 )
 
