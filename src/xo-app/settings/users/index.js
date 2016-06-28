@@ -40,7 +40,7 @@ const USER_COLUMNS = [
     name: _('userPermissionColumn'),
     itemRenderer: user => <Select
       clearable={false}
-      value={user.permission}
+      value={user.permission || permissions.none.value}
       ref='permission'
       onChange={permission => editUser(user, {permission: permission.value})}
       options={map(permissions)}
@@ -62,13 +62,17 @@ const USER_COLUMNS = [
 })
 @injectIntl
 export default class Users extends Component {
+  componentWillMount () {
+    this._selectPermission(permissions.none)
+  }
+
   _create = () => {
     const {email, password} = this.refs
     const { permission } = this.state
     return createUser(email.value, password.value, permission.value)
       .then(() => {
         email.value = password.value = ''
-        this.setState({permission: undefined})
+        this._selectPermission(permissions.none)
       })
   }
 
@@ -94,7 +98,7 @@ export default class Users extends Component {
             clearable={false}
             ref='permission'
             options={map(permissions)}
-            value={this.state.permission || permissions.none}
+            value={this.state.permission}
             placeholder={intl.formatMessage(messages.selectPermission)}
             onChange={this._selectPermission}
             required
