@@ -16,7 +16,7 @@ import { resolve } from 'url'
 
 import _ from '../intl'
 import logError from '../log-error'
-import { confirm } from '../modal'
+import { alert, confirm } from '../modal'
 import { error, info } from '../notification'
 import { invoke, noop, rethrow, tap } from '../utils'
 import {
@@ -1143,6 +1143,16 @@ export const deleteUser = user => (
 export const editUser = (user, { email, password, permission }) => (
   _call('user.set', { id: resolveId(user), email, password, permission })::tap(
     subscribeUsers.forceRefresh
+  )
+)
+
+export const changePassword = (oldPassword, newPassword) => (
+  _call('user.changePassword', {
+    oldPassword,
+    newPassword
+  }).then(
+    () => alert(_('pwdChangeSuccess'), _('pwdChangeSuccessBody')),
+    () => alert(_('pwdChangeError'), _('pwdChangeErrorBody'))
   )
 )
 
