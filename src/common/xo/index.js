@@ -541,7 +541,7 @@ export const importVm = (file, sr) => {
     req.send(file)
     req.end((err, res) => {
       if (!err && res.status === 200) {
-        info(_('vmImportSuccess'), name)
+        success(_('vmImportSuccess'), name)
       } else {
         error(_('vmImportFailed'), name)
       }
