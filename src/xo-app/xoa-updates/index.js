@@ -19,8 +19,14 @@ import { serverVersion } from 'xo'
 
 import pkg from '../../../package'
 
+const promptForReload = () => confirm({
+  title: _('promptUpgradeReloadTitle'),
+  body: <p>{_('promptUpgradeReloadMessage')}</p>
+}).then(() => window.location.reload())
+
 if (+process.env.XOA_PLAN < 5) {
   xoaUpdater.start()
+  xoaUpdater.on('promptForReload', promptForReload)
 }
 
 const HEADER = <Container>
@@ -78,9 +84,9 @@ export default class XoaUpdates extends Component {
       } catch (error) {
         return
       }
-      return xoaUpdater.register(email.value, password.value, alreadyRegistered)
-      .then(() => { email.value = password.value = '' })
     }
+    return xoaUpdater.register(email.value, password.value, alreadyRegistered)
+    .then(() => { email.value = password.value = '' })
   }
 
   _configure = async () => {
@@ -129,6 +135,7 @@ export default class XoaUpdates extends Component {
     serverVersion.then(serverVersion => {
       this.setState({ serverVersion })
     })
+    update()
   }
   render () {
     const textClasses = {
@@ -320,17 +327,17 @@ export const UpdateTag = connectStore((state) => {
   const icons = {
     'disconnected': 'update-unknown',
     'connected': 'update-unknown',
-    'upToDate': 'check',
+    'upToDate': 'success',
     'upgradeNeeded': 'update-ready',
     'registerNeeded': 'not-registered',
     'error': 'alarm'
   }
   const classNames = {
-    'disconnected': 'text-warning',
-    'connected': 'text-info',
+    'disconnected': 'text-danger',
+    'connected': 'text-success',
     'upToDate': 'text-success',
-    'upgradeNeeded': 'text-primary',
-    'registerNeeded': 'text-warning',
+    'upgradeNeeded': 'text-warning',
+    'registerNeeded': 'text-danger',
     'error': 'text-danger'
   }
   const tooltips = {
