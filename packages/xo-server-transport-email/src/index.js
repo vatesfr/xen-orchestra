@@ -1,6 +1,6 @@
-import pify from 'pify'
 import { createTransport } from 'nodemailer'
 import { markdown as nodemailerMarkdown } from 'nodemailer-markdown'
+import { promisify } from 'promise-toolbox'
 
 // ===================================================================
 
@@ -130,7 +130,7 @@ class TransportEmailPlugin {
     transport.use('compile', markdownCompiler)
 
     this._conf = conf
-    this._send = pify(::transport.sendMail, Promise)
+    this._send = transport.sendMail::promisify(transport)
   }
 
   load () {
@@ -141,15 +141,15 @@ class TransportEmailPlugin {
     this._unset()
   }
 
-  async _sendEmail ({
-    from,
+  _sendEmail ({
+    from = this._conf.from,
     to, cc, bcc,
     subject,
     markdown
   }) {
     // TODO: handle errors
-    await this._send({
-      from: from || this._conf.from,
+    return this._send({
+      from,
       to, cc, bcc,
       subject,
       markdown
