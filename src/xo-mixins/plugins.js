@@ -53,13 +53,6 @@ export default class {
     version
   ) {
     const id = name
-
-    // See: https://github.com/mafintosh/is-my-json-valid/issues/116
-    configurationSchema = {
-      required: true,
-      ...configurationSchema
-    }
-
     const plugin = this._plugins[id] = {
       configured: !configurationSchema,
       configurationSchema,
@@ -139,11 +132,21 @@ export default class {
 
   // Validate the configuration and configure the plugin instance.
   async _configurePlugin (plugin, configuration) {
-    if (!plugin.configurationSchema) {
+    const { configurationSchema } = plugin
+
+    if (!configurationSchema) {
       throw new InvalidParameters('plugin not configurable')
     }
 
-    const validate = createJsonSchemaValidator(plugin.configurationSchema)
+    // See: https://github.com/mafintosh/is-my-json-valid/issues/116
+    if (configuration == null) {
+      throw new InvalidParameters([{
+        field: 'data',
+        message: 'is the wrong type'
+      }])
+    }
+
+    const validate = createJsonSchemaValidator(configurationSchema)
     if (!validate(configuration)) {
       throw new InvalidParameters(validate.errors)
     }
