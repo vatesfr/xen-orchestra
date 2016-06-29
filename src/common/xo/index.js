@@ -471,8 +471,21 @@ export const migrateVms = vms => (
       if (!params) {
         throw new Error('a target host is required to migrate a VM')
       }
-      Promise.all(map(vms, vm =>
-        _call('vm.migrate', { vm: vm.id, ...params })
+      const vmsIds = resolveIds(vms)
+      const {
+        mapVmsMapVdisSrs,
+        mapVmsMapVifsNetworks,
+        migrationNetwork,
+        targetHost
+      } = params
+      Promise.all(map(vmsIds, vm =>
+        _call('vm.migrate', {
+          mapVdisSrs: mapVmsMapVdisSrs[vm],
+          mapVifsNetworks: mapVmsMapVifsNetworks[vm],
+          migrationNetwork,
+          targetHost,
+          vm
+        })
       ))
     },
     noop
