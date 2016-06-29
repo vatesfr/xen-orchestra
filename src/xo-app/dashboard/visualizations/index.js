@@ -2,6 +2,7 @@ import Component from 'base-component'
 import React from 'react'
 import XoParallelChart from 'xo-parallel-chart'
 import forEach from 'lodash/forEach'
+import invoke from 'invoke'
 import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
 import { Container, Row, Col } from 'grid'
@@ -13,8 +14,7 @@ import {
 } from 'selectors'
 import {
   connectStore,
-  formatSize,
-  invoke
+  formatSize
 } from 'utils'
 
 // ===================================================================
