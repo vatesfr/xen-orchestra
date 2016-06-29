@@ -264,7 +264,7 @@ export default class XoaUpdates extends Component {
             {' '}
             <ActionButton form='registrationForm' icon='success' btnStyle='primary' handler={this._register}>{_('register')}</ActionButton>
           </form>
-          {process.env.XOA_PLAN === 1 &&
+          {+process.env.XOA_PLAN === 1 &&
             <div>
               <h2>{_('trial')}</h2>
               {this._trialAllowed(trial) &&
