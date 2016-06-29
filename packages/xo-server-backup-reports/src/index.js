@@ -1,4 +1,4 @@
-import forEach from 'lodash.foreach'
+import forEach from 'lodash/forEach'
 import moment from 'moment'
 
 export const configurationSchema = {
@@ -30,6 +30,10 @@ export const configurationSchema = {
 
 // ===================================================================
 
+const logError = e => {
+  console.error('backup report error:', e)
+}
+
 class BackupReportsXoPlugin {
   constructor (xo) {
     this._xo = xo
@@ -49,15 +53,11 @@ class BackupReportsXoPlugin {
     this._xo.removeListener('job:terminated', this._report)
   }
 
-  async _wrapper (status) {
-    try {
-      await this._listener(status)
-    } catch (e) {
-      console.error('backup report error: ' + e)
-    }
+  _wrapper (status) {
+    return new Promise(resolve => resolve(this._listener(status))).catch(logError)
   }
 
-  async _listener (status) {
+  _listener (status) {
     let nSuccess = 0
     let nCalls = 0
     let reportWhen
@@ -116,7 +116,7 @@ class BackupReportsXoPlugin {
       return
     }
 
-    const globalStatus = nSuccess === nCalls ? 'Success' : 'Fail'
+    const globalSuccess = nSuccess === nCalls
     const start = moment(status.start)
     const end = moment(status.end)
     const duration = moment.duration(end - start).humanize()
@@ -125,13 +125,13 @@ class BackupReportsXoPlugin {
       .replace(/([A-Z])/g, ' $1').replace(/^./, letter => letter.toUpperCase()) // humanize
     const tag = status.calls[Object.keys(status.calls)[0]].params.tag
 
-    if (reportWhen === 'fail' && globalStatus === 'Success') {
+    if (globalSuccess && reportWhen === 'fail') {
       return
     }
 
     // Global status.
     text.unshift([
-      `## Global status for "${tag}" (${method}): ${globalStatus}`,
+      `## Global status for "${tag}" (${method}): ${globalSuccess ? 'Success' : 'Fail'}`,
       `  - Start time: ${String(start)}`,
       `  - End time: ${String(end)}`,
       `  - Duration: ${duration}`,
@@ -143,23 +143,21 @@ class BackupReportsXoPlugin {
 
     // TODO : Handle errors when `sendEmail` isn't present. (Plugin dependencies)
 
-    if (this._xo.sendEmail) {
-      await this._xo.sendEmail({
+    const xo = this._xo
+    return Promise.all([
+      xo.sendEmail && xo.sendEmail({
         to: this._mailsReceivers,
-        subject: `Backup Reports for "${tag}" (XenOrchestra)`,
+        subject: `Backup Reports for "${tag}" (Xen Orchestra)`,
         markdown
-      })
-    }
-
-    if (this._xo.sendToXmppClient) {
-      this._xo.sendToXmppClient({
+      }),
+      xo.sendToXmppClient && xo.sendToXmppClient({
         to: this._xmppReceivers,
         message: markdown
       })
-    }
+    ])
   }
 }
 
 // ===================================================================
 
-export default ({xo}) => new BackupReportsXoPlugin(xo)
+export default ({ xo }) => new BackupReportsXoPlugin(xo)

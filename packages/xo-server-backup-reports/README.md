@@ -6,25 +6,16 @@ XO-Server plugin which sends email reports and Xmpp messages when backup jobs ar
 
 ## Install
 
-Go inside your `xo-server` folder and install it:
+Installation of the [npm package](https://npmjs.org/package/xo-server-backup-reports):
 
 ```
-> npm install xo-server-backup-reports
+> npm install --global xo-server-backup-reports
 ```
 
 ## Usage
 
-### Prerequisite
-
-You must have the [xo-server-transport-email](https://github.com/vatesfr/xo-server-transport-email) plugin enabled to use xo-server-backup-reports or/and the [xo-server-transport-xmpp](https://github.com/vatesfr/xo-server-transport-xmpp) plugin.
-
-### Add the plugin to XO-Server config
-
-```yaml
-plugins:
-
-  xo-server-backup-reports:
-```
+Like all other xo-server plugins, it can be configured directly via
+the web iterface, see [the plugin documentation](https://xen-orchestra.com/docs/plugins.html).
 
 ## Development
 
