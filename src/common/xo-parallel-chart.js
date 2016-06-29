@@ -6,7 +6,7 @@ import map from 'lodash/map'
 import times from 'lodash/times'
 
 import Component from './base-component'
-import { propTypes } from './utils'
+import propTypes from './prop-types'
 import { setStyles } from './d3-utils'
 
 // ===================================================================
@@ -76,9 +76,9 @@ const TOOLTIP_STYLE = {
 @propTypes({
   dataSet: propTypes.arrayOf(
     propTypes.shape({
-      objectId: propTypes.string.isRequired,
+      data: propTypes.object.isRequired,
       label: propTypes.string.isRequired,
-      data: propTypes.object.isRequired
+      objectId: propTypes.string.isRequired
     })
   ).isRequired,
   labels: propTypes.object.isRequired,
