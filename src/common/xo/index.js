@@ -637,6 +637,20 @@ export const setBootableVbd = ({ id }, bootable) => (
   _call('vbd.setBootable', { vbd: id, bootable })
 )
 
+// VIF ---------------------------------------------------------------
+
+export const connectVif = (vif) => (
+  _call('vif.connect', { id: resolveId(vif) })
+)
+
+export const disconnectVif = (vif) => (
+  _call('vif.disconnect', { id: resolveId(vif) })
+)
+
+export const deleteVif = (vif) => (
+  _call('vif.delete', { id: resolveId(vif) })
+)
+
 // Network -----------------------------------------------------------
 
 export const editNetwork = ({ id }, props) => (
