@@ -26,7 +26,7 @@ export const alert = (title, body) => {
         <Header closeButton>
           <Title>{title}</Title>
         </Header>
-        {body && <Body>{body}</Body>}
+        <Body>{body}</Body>
         <Footer>
           <Button bsStyle='primary' onClick={() => {
             resolve()

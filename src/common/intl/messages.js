@@ -193,6 +193,7 @@ var messages = {
   remoteTestError: 'Error',
   remoteTestStep: 'Test Step',
   remoteTestFile: 'Test file',
+  remoteTestSuccessMessage: 'The remote appears to work correctly',
 
   // ------ New Storage -----
   newSrGeneral: 'General',

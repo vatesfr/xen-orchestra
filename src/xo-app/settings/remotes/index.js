@@ -6,12 +6,12 @@ import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React, { Component } from 'react'
+import Tooltip from 'tooltip'
 import { addSubscriptions } from 'utils'
+import { alert } from 'modal'
 import { error } from 'notification'
 import { format, parse } from 'xo-remote-parser'
 import { Password, Text } from 'editable'
-import Tooltip from 'tooltip'
-import { alert } from 'modal'
 
 import {
   createRemote,
@@ -50,16 +50,16 @@ class AbstractRemote extends Component {
         {' '}
         {answer.success ? _('remoteTestSuccess') : _('remoteTestFailure')} {remote.name}
       </span>
-      let body = ''
-      if (!answer.success) {
+      let body
+      if (answer.success) {
+        body = _('remoteTestSuccessMessage')
+      } else {
         body = <p>
           <dl className='dl-horizontal'>
             <dt>{_('remoteTestError')}</dt>
             <dd>{answer.error}</dd>
             <dt>{_('remoteTestStep')}</dt>
             <dd>{answer.step}</dd>
-            <dt>{_('remoteTestFile')}</dt>
-            <dd>{answer.file}</dd>
           </dl>
         </p>
       }
@@ -84,19 +84,19 @@ class AbstractRemote extends Component {
             {' '}
             <Tooltip content={_('remoteTestTip')}><ActionRowButton btnStyle='primary' handler={this._test} icon='diagnosis' /></Tooltip>
             {' '}
-            <ActionRowButton btnStyle='warning' handler={disableRemote} handlerParam={remote.id} icon='disconnect' />
+            <ActionRowButton btnStyle='warning' handler={disableRemote} handlerParam={remote} icon='disconnect' />
           </span>
         }
         {!remote.enabled &&
           <span>
             <span className='text-muted'>{this.unaccessible}</span>
             {' '}
-            <ActionRowButton btnStyle='primary' handler={enableRemote} handlerParam={remote.id} icon='connect' />
+            <ActionRowButton btnStyle='primary' handler={enableRemote} handlerParam={remote} icon='connect' />
           </span>
         }
       </td>
       <td><span className='text-muted'>{remote.error}</span></td>
-      <td><ActionRowButton btnStyle='danger' handler={deleteRemote} handlerParam={remote.id} icon='delete' /></td>
+      <td><ActionRowButton btnStyle='danger' handler={deleteRemote} handlerParam={remote} icon='delete' /></td>
     </tr>
   }
 
