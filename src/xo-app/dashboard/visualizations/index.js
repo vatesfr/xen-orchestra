@@ -137,3 +137,25 @@ export default class Visualizations extends Component {
     )
   }
 }
+
+// @connectStore(() => {
+//   const getVdisBySr = createGetObjectsOfType('VDI').groupBy('$SR')
+//   const getSrsByPool = createGetObjectsOfType('SR').pick(
+//     createSelector(
+//       getVdisBySr,
+//       vdisBySr => keys(vdisBySr)
+//     )
+//   ).groupBy('$pool')
+//   const getPools = createGetObjectsOfType('pool').pick(
+//     createSelector(
+//       getSrsByPool,
+//       srs => keys(srs)
+//     )
+//   )
+
+//   return {
+//     vdisBy: getVdisBySr,
+//     srsByPool: getSrsByPool,
+//     pools: getPools
+//   }
+// })

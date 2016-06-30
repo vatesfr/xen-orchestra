@@ -2,9 +2,10 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
+import propTypes from 'prop-types'
 import React, { Component } from 'react'
 import TabButton from 'tab-button'
-import { connectStore, noop, propTypes } from 'utils'
+import { connectStore, noop } from 'utils'
 import { Container, Row, Col } from 'grid'
 import {
   createGetObjectsOfType,
