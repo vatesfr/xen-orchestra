@@ -156,7 +156,6 @@ export default class TabNetwork extends Component {
                             </span>
                             <ButtonGroup className='pull-xs-right'>
                               <ActionRowButton
-                                btnStyle='default'
                                 icon='disconnect'
                                 handler={disconnectVif}
                                 handlerParam={vif}
@@ -169,13 +168,11 @@ export default class TabNetwork extends Component {
                             </span>
                             <ButtonGroup className='pull-xs-right'>
                               <ActionRowButton
-                                btnStyle='default'
                                 icon='connect'
                                 handler={connectVif}
                                 handlerParam={vif}
                               />
                               <ActionRowButton
-                                btnStyle='default'
                                 icon='remove'
                                 handler={deleteVif}
                                 handlerParam={vif}
