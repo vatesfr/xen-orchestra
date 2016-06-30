@@ -182,7 +182,7 @@ const MenuLinkItem = props => {
 
   return <li className='nav-item xo-menu-item'>
     <Link activeClassName='active' className={classNames('nav-link', styles.centerCollapsed)} to={to}>
-      <Icon className={classNames(pill && styles.hiddenCollapsed)} icon={`${icon}`} size='lg' fixedWidth />
+      <Icon className={classNames((pill || extra) && styles.hiddenCollapsed)} icon={`${icon}`} size='lg' fixedWidth />
       <span className={styles.hiddenCollapsed}>{' '}{_(label)}&nbsp;</span>
       {pill > 0 && <span className='tag tag-pill tag-primary'>{pill}</span>}
       {extra}

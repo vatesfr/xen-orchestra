@@ -349,5 +349,5 @@ export const UpdateTag = connectStore((state) => {
     'registerNeeded': _('registerNeeded'),
     'error': _('updaterError')
   }
-  return <Tooltip content={tooltips[state]}><Icon className={classNames[state]} icon={icons[state]} /></Tooltip>
+  return <Tooltip content={tooltips[state]}><Icon className={classNames[state]} icon={icons[state]} size='lg' /></Tooltip>
 })
