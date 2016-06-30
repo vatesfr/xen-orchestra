@@ -54,6 +54,11 @@ export default class {
     return new Handler[type](remote)
   }
 
+  async testRemote (remote) {
+    const handler = await this.getRemoteHandler(remote)
+    return handler.test()
+  }
+
   async getAllRemotes () {
     return this._remotes.get()
   }

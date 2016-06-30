@@ -7,6 +7,7 @@ import {
 
 import {
   addChecksumToReadStream,
+  getPseudoRandomBytes,
   noop,
   pCatch,
   streamToBuffer,
@@ -45,6 +46,32 @@ export default class RemoteHandlerAbstract {
 
   async _forget () {
     throw new Error('Not implemented')
+  }
+
+  async test () {
+    const testFileName = `${Date.now()}.test`
+    const data = getPseudoRandomBytes(1024 * 1024)
+    let step = 'write'
+    try {
+      await this.outputFile(testFileName, data)
+      step = 'read'
+      const read = await this.readFile(testFileName)
+      if (data.compare(read) !== 0) {
+        throw new Error('output and input did not match')
+      }
+      return {
+        success: true
+      }
+    } catch (error) {
+      return {
+        success: false,
+        step,
+        file: testFileName,
+        error: error.message || String(error)
+      }
+    } finally {
+      this.unlink(testFileName).catch(noop)
+    }
   }
 
   async outputFile (file, data, options) {
