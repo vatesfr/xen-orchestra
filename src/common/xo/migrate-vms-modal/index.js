@@ -67,7 +67,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
       () => this.state.host,
       host => (host
         ? sr => isSrWritable(sr) && (sr.$container === host.id || sr.$container === host.$pool)
-        : () => false
+        : false
       )
     )
 
@@ -78,7 +78,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
       ),
       pifs => {
         if (!pifs) {
-          return () => false
+          return false
         }
 
         const networks = {}
