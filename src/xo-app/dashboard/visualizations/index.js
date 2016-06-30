@@ -83,36 +83,33 @@ const DATA_RENDERERS = {
   }
 })
 export default class Visualizations extends Component {
-  constructor (props) {
-    super(props)
-    this._getData = createSelector(
-      () => this.props.vms,
-      () => this.props.vdisByVm,
-      (vms, vdisByVm) => (
-        map(vms, (vm, vmId) => {
-          let vdisSize = 0
-          let nVdis = 0
+  _getData = createSelector(
+    () => this.props.vms,
+    () => this.props.vdisByVm,
+    (vms, vdisByVm) => (
+      map(vms, (vm, vmId) => {
+        let vdisSize = 0
+        let nVdis = 0
 
-          forEach(vdisByVm[vmId], vdi => {
-            vdisSize += vdi.size
-            nVdis++
-          })
-
-          return {
-            objectId: vmId,
-            label: vm.name_label,
-            data: {
-              nVCpus: vm.CPUs.number,
-              nVdis,
-              nVifs: vm.VIFs.length,
-              ram: vm.memory.size,
-              vdisSize
-            }
-          }
+        forEach(vdisByVm[vmId], vdi => {
+          vdisSize += vdi.size
+          nVdis++
         })
-      )
+
+        return {
+          objectId: vmId,
+          label: vm.name_label,
+          data: {
+            nVCpus: vm.CPUs.number,
+            nVdis,
+            nVifs: vm.VIFs.length,
+            ram: vm.memory.size,
+            vdisSize
+          }
+        }
+      })
     )
-  }
+  )
 
   render () {
     return (
