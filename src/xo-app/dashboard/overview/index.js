@@ -5,7 +5,6 @@ import Component from 'base-component'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
-import keys from 'lodash/keys'
 import map from 'lodash/map'
 import Upgrade from 'xoa-upgrade'
 import React from 'react'
@@ -15,8 +14,8 @@ import { Container, Row, Col } from 'grid'
 import {
   createCollectionWrapper,
   createCounter,
+  createFilter,
   createGetObjectsOfType,
-  createPicker,
   createSelector,
   createTop
 } from 'selectors'
@@ -45,12 +44,14 @@ import styles from './index.css'
   }
 })
 class MissingPatchesPanel extends Component {
-  _getHosts = createPicker(
+  constructor (props) {
+    super(props)
+    this.state.missingPatches = {}
+  }
+
+  _getHosts = createFilter(
     () => this.props.hosts,
-    createSelector(
-      () => this.state.missingPatches,
-      missingPatches => keys(missingPatches)
-    )
+    [ host => this.state.missingPatches[host.id] ]
   )
 
   _refreshMissingPatches = async () => {
@@ -58,11 +59,7 @@ class MissingPatchesPanel extends Component {
     await Promise.all(
       map(this.props.hosts, host => (
         getHostMissingPatches(host).then(patches => {
-          const { length } = patches
-
-          if (length) {
-            missingPatches[host.id] = length
-          }
+          missingPatches[host.id] = patches.length
         })
       ))
     )
@@ -76,8 +73,32 @@ class MissingPatchesPanel extends Component {
   )
 
   componentWillMount () {
-    this.setState({
-      missingPatches: {}
+    this._refreshMissingPatches()
+  }
+
+  componentWillReceiveProps (nextProps) {
+    forEach(nextProps.hosts, (host, push) => {
+      const { id } = host
+
+      if (this.state.missingPatches[id] !== undefined) {
+        return
+      }
+
+      this.setState({
+        missingPatches: {
+          ...this.state.missingPatches,
+          [id]: 0
+        }
+      })
+
+      getHostMissingPatches(host).then(patches => {
+        this.setState({
+          missingPatches: {
+            ...this.state.missingPatches,
+            [id]: patches.length
+          }
+        })
+      })
     })
   }
 
