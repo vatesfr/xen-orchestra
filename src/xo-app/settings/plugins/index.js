@@ -44,7 +44,8 @@ class Plugin extends Component {
 
       if (this.refs.pluginInput) {
         // TODO: Compare values!!!
-        this.refs.pluginInput.value = nextProps.configuration
+        // `|| undefined` because old configs can be null.
+        this.refs.pluginInput.value = nextProps.configuration || undefined
       }
     }
   }
@@ -148,7 +149,7 @@ class Plugin extends Component {
               uiSchema={state.uiSchema}
               required
               ref='pluginInput'
-              defaultValue={props.configuration}
+              defaultValue={props.configuration || undefined}
             />
             <div className='form-group pull-xs-right'>
               <div className='btn-toolbar'>
