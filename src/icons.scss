@@ -839,6 +839,10 @@
     @extend .fa;
     @extend .fa-server;
   }
+  &-connect {
+    @extend .fa;
+    @extend .fa-link;
+  }
   &-disconnect {
     @extend .fa;
     @extend .fa-unlink;

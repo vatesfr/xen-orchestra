@@ -1,10 +1,12 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
+import ActionRowButton from 'action-row-button'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import propTypes from 'prop-types'
 import React, { Component } from 'react'
 import TabButton from 'tab-button'
+import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { connectStore, noop } from 'utils'
 import { Container, Row, Col } from 'grid'
 import {
@@ -15,7 +17,10 @@ import { injectIntl } from 'react-intl'
 import { SelectNetwork } from 'select-objects'
 
 import {
-  createVmInterface
+  connectVif,
+  createVmInterface,
+  deleteVif,
+  disconnectVif
 } from 'xo'
 
 @propTypes({
@@ -145,11 +150,34 @@ export default class TabNetwork extends Component {
                       <td>{networks[vif.$network] && networks[vif.$network].name_label}</td>
                       <td>
                         {vif.attached
-                          ? <span className='tag tag-success'>
+                          ? <span>
+                            <span className='tag tag-success'>
                               {_('vifStatusConnected')}
+                            </span>
+                            <ButtonGroup className='pull-xs-right'>
+                              <ActionRowButton
+                                icon='disconnect'
+                                handler={disconnectVif}
+                                handlerParam={vif}
+                              />
+                            </ButtonGroup>
                           </span>
-                          : <span className='tag tag-default'>
+                          : <span>
+                            <span className='tag tag-default'>
                               {_('vifStatusDisconnected')}
+                            </span>
+                            <ButtonGroup className='pull-xs-right'>
+                              <ActionRowButton
+                                icon='connect'
+                                handler={connectVif}
+                                handlerParam={vif}
+                              />
+                              <ActionRowButton
+                                icon='remove'
+                                handler={deleteVif}
+                                handlerParam={vif}
+                              />
+                            </ButtonGroup>
                           </span>
                         }
                       </td>
