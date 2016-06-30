@@ -114,7 +114,7 @@ export default class MigrateVmModalBody extends BaseComponent {
       targetHost: this.state.host && this.state.host.id,
       mapVdisSrs: this.state.mapVdisSrs,
       mapVifsNetworks: this.state.mapVifsNetworks,
-      migrationNetwork: this.state.migrationNetwork && this.state.migrationNetwork.id
+      migrationNetwork: this.state.migrationNetworkId
     }
   }
 
@@ -124,7 +124,7 @@ export default class MigrateVmModalBody extends BaseComponent {
       return
     }
     const { networks, pools, pifs, vdis, vifs } = this.props
-    const defaultMigrationNetwork = networks[find(pifs, pif => pif.$host === host.id && pif.management).$network]
+    const defaultMigrationNetworkId = find(pifs, pif => pif.$host === host.id && pif.management).$network
     const defaultSr = pools[host.$pool].default_SR
 
     const defaultNetwork = invoke(() => {
@@ -148,11 +148,11 @@ export default class MigrateVmModalBody extends BaseComponent {
       intraPool: this.props.vm.$pool === host.$pool,
       mapVdisSrs: mapValues(vdis, vdi => defaultSr),
       mapVifsNetworks: defaultNetworksForVif,
-      migrationNetwork: defaultMigrationNetwork
+      migrationNetworkId: defaultMigrationNetworkId
     })
   }
 
-  _selectMigrationNetwork = migrationNetwork => this.setState({ migrationNetwork })
+  _selectMigrationNetwork = migrationNetwork => this.setState({ migrationNetworkId: migrationNetwork.id })
 
   render () {
     const { vdis, vifs, networks } = this.props
@@ -161,7 +161,7 @@ export default class MigrateVmModalBody extends BaseComponent {
       intraPool,
       mapVdisSrs,
       mapVifsNetworks,
-      migrationNetwork
+      migrationNetworkId
     } = this.state
     return <div>
       <div className={styles.block}>
@@ -184,10 +184,9 @@ export default class MigrateVmModalBody extends BaseComponent {
                 <Col size={6}>{_('migrateVmSelectMigrationNetwork')}</Col>
                 <Col size={6}>
                   <SelectNetwork
-                    ref='migrationNetwork'
                     onChange={this._selectMigrationNetwork}
                     predicate={this._getNetworkPredicate()}
-                    value={migrationNetwork}
+                    value={migrationNetworkId}
                   />
                 </Col>
               </SingleLineRow>

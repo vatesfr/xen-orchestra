@@ -29,10 +29,8 @@ import { isSrWritable } from '../'
 const LINE_STYLE = { paddingBottom: '1em' }
 
 @connectStore(() => {
-  const getNetworks = createGetObjectsOfType('network')
   const getPifs = createGetObjectsOfType('PIF')
   const getPools = createGetObjectsOfType('pool')
-  const getSrs = createGetObjectsOfType('SR')
 
   const getVms = createGetObjectsOfType('VM').pick(
     (_, props) => props.vms
@@ -46,10 +44,8 @@ const LINE_STYLE = { paddingBottom: '1em' }
   ).groupBy('VM')
 
   return {
-    networks: getNetworks,
     pifs: getPifs,
     pools: getPools,
-    srs: getSrs,
     vbdsByVm: getVbdsByVm,
     vms: getVms
   }
@@ -102,7 +98,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
       const mapVdisSrs = {}
       forEach(vbds, vbd => {
         if (!vbd.is_cd_drive && vbd.VDI) {
-          mapVdisSrs[vbd.VDI] = this.state.sr.id
+          mapVdisSrs[vbd.VDI] = this.state.srId
         }
       })
       mapVmsMapVdisSrs[vm] = mapVdisSrs
@@ -113,14 +109,14 @@ export default class MigrateVmsModalBody extends BaseComponent {
     forEach(this.props.vms, vm => {
       const mapVifsNetworks = {}
       forEach(vm.VIFs, vif => {
-        mapVifsNetworks[vif] = this.state.network.id
+        mapVifsNetworks[vif] = this.state.networkId
       })
       mapVmsMapVifsNetworks[vm.id] = mapVifsNetworks
     })
     return {
       mapVmsMapVdisSrs,
       mapVmsMapVifsNetworks,
-      migrationNetwork: this.state.migrationNetwork && this.state.migrationNetwork.id,
+      migrationNetwork: this.state.migrationNetworkId,
       targetHost: this.state.host && this.state.host.id
     }
   }
@@ -130,20 +126,20 @@ export default class MigrateVmsModalBody extends BaseComponent {
       this.setState({ targetHost: undefined })
       return
     }
-    const { networks, pools, pifs, srs } = this.props
-    const defaultMigrationNetwork = networks[find(pifs, pif => pif.$host === host.id && pif.management).$network]
-    const defaultSr = srs[pools[host.$pool].default_SR]
+    const { pools, pifs } = this.props
+    const defaultMigrationNetworkId = find(pifs, pif => pif.$host === host.id && pif.management).$network
+    const defaultSrId = pools[host.$pool].default_SR
     this.setState({
       host,
       intraPool: every(this.props.vms, vm => vm.$pool === host.$pool),
-      migrationNetwork: defaultMigrationNetwork,
-      network: defaultMigrationNetwork,
-      sr: defaultSr
+      migrationNetworkId: defaultMigrationNetworkId,
+      networkId: defaultMigrationNetworkId,
+      srId: defaultSrId
     })
   }
-  _selectMigrationNetwork = migrationNetwork => this.setState({ migrationNetwork })
-  _selectNetwork = network => this.setState({ network })
-  _selectSr = sr => this.setState({ sr })
+  _selectMigrationNetwork = migrationNetwork => this.setState({ migrationNetworkId: migrationNetwork.id })
+  _selectNetwork = network => this.setState({ networkId: network.id })
+  _selectSr = sr => this.setState({ srId: sr.id })
 
   render () {
     return <div>
@@ -167,7 +163,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
               <SelectNetwork
                 onChange={this._selectMigrationNetwork}
                 predicate={this._getNetworkPredicate()}
-                value={this.state.migrationNetwork}
+                value={this.state.migrationNetworkId}
               />
             </Col>
           </SingleLineRow>
@@ -181,7 +177,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
               <SelectSr
                 onChange={this._selectSr}
                 predicate={this._getSrPredicate()}
-                value={this.state.sr}
+                value={this.state.srId}
               />
             </Col>
           </SingleLineRow>
@@ -193,7 +189,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
               <SelectNetwork
                 onChange={this._selectNetwork}
                 predicate={this._getNetworkPredicate()}
-                value={this.state.network}
+                value={this.state.networkId}
               />
             </Col>
           </SingleLineRow>
