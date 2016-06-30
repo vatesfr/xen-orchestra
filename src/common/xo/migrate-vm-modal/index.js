@@ -6,8 +6,10 @@ import mapValues from 'lodash/mapValues'
 import React from 'react'
 
 import _ from '../../intl'
+import invoke from '../../invoke'
 import SingleLineRow from '../../single-line-row'
 import { Col } from '../../grid'
+import { getDefaultNetworkForVif } from '../utils'
 import {
   SelectHost,
   SelectNetwork,
@@ -81,7 +83,7 @@ export default class MigrateVmModalBody extends BaseComponent {
       () => this.state.host,
       host => (host
         ? sr => isSrWritable(sr) && (sr.$container === host.id || sr.$container === host.$pool)
-        : () => false
+        : false
       )
     )
 
@@ -92,7 +94,7 @@ export default class MigrateVmModalBody extends BaseComponent {
       ),
       pifs => {
         if (!pifs) {
-          return () => false
+          return false
         }
 
         const networks = {}
@@ -126,27 +128,28 @@ export default class MigrateVmModalBody extends BaseComponent {
     const { networks, pools, pifs, srs, vdis, vifs } = this.props
     const defaultMigrationNetwork = networks[find(pifs, pif => pif.$host === host.id && pif.management).$network]
     const defaultSr = srs[pools[host.$pool].default_SR].id
-    const defaultNetworks = {}
-    // Default network...
-    forEach(vifs, vif => {
-      // ...is the one which has the same name_label as the VIF's previous network (if it has an IP)...
-      const defaultPif = find(host.$PIFs, pifId => {
-        const pif = pifs[pifId]
-        return pif.ip && networks[vif.$network].name_label === networks[pif.$network].name_label
-      })
-      let defaultNetwork = defaultPif && networks[defaultPif.$network]
-      defaultNetworks[vif.id] = defaultPif && defaultNetwork && defaultNetwork.id
-      // ...or the first network in the target host networks list that has an IP.
-      if (!defaultNetworks[vif.id]) {
-        defaultNetwork = networks[pifs[find(host.$PIFs, pif => pifs[pif].ip)].$network]
-        defaultNetworks[vif.id] = defaultNetwork && defaultNetwork.id
-      }
+
+    const defaultNetwork = invoke(() => {
+      // First PIF with an IP.
+      const pifId = find(host.$PIFs, pif => pifs[pif].ip)
+      const pif = pifId && pifs[pifId]
+
+      return pif && pif.$network
     })
+
+    const defaultNetworksForVif = {}
+    forEach(vifs, vif => {
+      defaultNetworksForVif[vif.id] = (
+        getDefaultNetworkForVif(vif, host, pifs, networks) ||
+        defaultNetwork
+      )
+    })
+
     this.setState({
       host,
       intraPool: this.props.vm.$pool === host.$pool,
       mapVdisSrs: mapValues(vdis, vdi => defaultSr),
-      mapVifsNetworks: defaultNetworks,
+      mapVifsNetworks: defaultNetworksForVif,
       migrationNetwork: defaultMigrationNetwork
     })
   }
