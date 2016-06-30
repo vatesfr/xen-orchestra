@@ -47,8 +47,12 @@ export const configurationSchema = {
 
           pools: {
             type: 'array',
-            $type: 'Pool',
-            description: 'list of pools where to apply the policy'
+            description: 'list of pools where to apply the policy',
+
+            items: {
+              type: 'string',
+              $type: 'Pool'
+            }
           },
 
           thresholds: {
@@ -72,8 +76,12 @@ export const configurationSchema = {
           excludedHosts: {
             type: 'array',
             title: 'Excluded hosts',
-            $type: 'Host',
-            description: 'list of hosts that are not affected by the plan'
+            description: 'list of hosts that are not affected by the plan',
+
+            items: {
+              type: 'string',
+              $type: 'Host'
+            }
           }
         },
 
