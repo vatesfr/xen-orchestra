@@ -83,54 +83,47 @@ const DATA_RENDERERS = {
   }
 })
 export default class Visualizations extends Component {
-  _update (props = this.props) {
-    const vmsData = map(props.vms, (vm, vmId) => {
-      let vdisSize = 0
-      let nVdis = 0
+  constructor (props) {
+    super(props)
+    this._getData = createSelector(
+      () => this.props.vms,
+      () => this.props.vdisByVm,
+      (vms, vdisByVm) => (
+        map(vms, (vm, vmId) => {
+          let vdisSize = 0
+          let nVdis = 0
 
-      forEach(props.vdisByVm[vmId], vdi => {
-        vdisSize += vdi.size
-        nVdis++
-      })
+          forEach(vdisByVm[vmId], vdi => {
+            vdisSize += vdi.size
+            nVdis++
+          })
 
-      return {
-        objectId: vmId,
-        label: vm.name_label,
-        data: {
-          nVCpus: vm.CPUs.number,
-          nVdis,
-          nVifs: vm.VIFs.length,
-          ram: vm.memory.size,
-          vdisSize
-        }
-      }
-    })
-
-    this.setState({ vmsData })
-  }
-
-  componentWillMount () {
-    this._update()
-  }
-
-  componentWillReceiveProps (nextProps) {
-    this._update(nextProps)
+          return {
+            objectId: vmId,
+            label: vm.name_label,
+            data: {
+              nVCpus: vm.CPUs.number,
+              nVdis,
+              nVifs: vm.VIFs.length,
+              ram: vm.memory.size,
+              vdisSize
+            }
+          }
+        })
+      )
+    )
   }
 
   render () {
-    const { vmsData } = this.state
-
     return (
       <Container>
         <Row>
           <Col>
-            {vmsData && (
-              <XoParallelChart
-                dataSet={vmsData}
-                labels={DATA_LABELS}
-                renderers={DATA_RENDERERS}
-              />
-            )}
+            <XoParallelChart
+              dataSet={this._getData()}
+              labels={DATA_LABELS}
+              renderers={DATA_RENDERERS}
+            />
           </Col>
         </Row>
       </Container>
