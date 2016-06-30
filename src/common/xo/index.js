@@ -639,15 +639,15 @@ export const setBootableVbd = ({ id }, bootable) => (
 
 // VIF ---------------------------------------------------------------
 
-export const connectVif = (vif) => (
+export const connectVif = vif => (
   _call('vif.connect', { id: resolveId(vif) })
 )
 
-export const disconnectVif = (vif) => (
+export const disconnectVif = vif => (
   _call('vif.disconnect', { id: resolveId(vif) })
 )
 
-export const deleteVif = (vif) => (
+export const deleteVif = vif => (
   _call('vif.delete', { id: resolveId(vif) })
 )
 
