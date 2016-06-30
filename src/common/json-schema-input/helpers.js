@@ -6,12 +6,12 @@ import { Col, Row } from 'grid'
 
 // ===================================================================
 
-export const getType = (schema, attr = 'type') => {
+export const getType = (schema) => {
   if (!schema) {
     return
   }
 
-  const type = schema[attr]
+  const type = schema.type
 
   if (Array.isArray(type)) {
     if (includes(type, 'integer')) {
@@ -28,7 +28,7 @@ export const getType = (schema, attr = 'type') => {
 }
 
 export const getXoType = schema => {
-  const type = getType(schema, 'xo:type') || getType(schema, '$type')
+  const type = schema && (schema['xo:type'] || schema.$type)
 
   if (type) {
     return type.toLowerCase()

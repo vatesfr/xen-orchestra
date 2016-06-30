@@ -6,6 +6,7 @@ import React, { Component } from 'react'
 import _ from 'intl'
 import map from 'lodash/map'
 import { addSubscriptions } from 'utils'
+import { generateUiSchema } from 'xo-json-schema-input'
 import { lastly } from 'promise-toolbox'
 import {
   configurePlugin,
@@ -20,11 +21,13 @@ import {
 class Plugin extends Component {
   constructor (props) {
     super(props)
+    const { configurationSchema } = props
 
     // Don't update input with schema in edit mode!
     // It's always the same!
     this.state = {
-      configurationSchema: props.configurationSchema
+      configurationSchema,
+      uiSchema: generateUiSchema(configurationSchema)
     }
     this.formId = `form-${props.id}`
   }
@@ -32,8 +35,11 @@ class Plugin extends Component {
   componentWillReceiveProps (nextProps) {
     // Don't update input with schema in edit mode!
     if (!this.state.edit) {
+      const { configurationSchema } = nextProps
+
       this.setState({
-        configurationSchema: nextProps.configurationSchema
+        configurationSchema,
+        uiSchema: generateUiSchema(configurationSchema)
       })
 
       if (this.refs.pluginInput) {
@@ -139,6 +145,7 @@ class Plugin extends Component {
               disabled={!edit}
               label='Configuration'
               schema={state.configurationSchema}
+              uiSchema={state.uiSchema}
               required
               ref='pluginInput'
               defaultValue={props.configuration}

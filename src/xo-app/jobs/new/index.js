@@ -13,6 +13,7 @@ import size from 'lodash/size'
 import Upgrade from 'xoa-upgrade'
 import React, { Component } from 'react'
 import { error } from 'notification'
+import { generateUiSchema } from 'xo-json-schema-input'
 import { SelectPlainObject } from 'form'
 
 import {
@@ -218,7 +219,8 @@ export default class Jobs extends Component {
             method,
             group,
             command,
-            info
+            info,
+            uiSchema: generateUiSchema(info)
           })
         }
       }
@@ -317,7 +319,7 @@ export default class Jobs extends Component {
         </div>
         <SelectPlainObject ref='method' options={actions} optionKey='method' onChange={this._handleSelectMethod} placeholder={_('jobActionPlaceHolder')} />
         {action && <fieldset>
-          <GenericInput ref='params' schema={action.info} label={action.method} required />
+          <GenericInput ref='params' schema={action.info} uiSchema={action.uiSchema} label={action.method} required />
           {job && <p className='text-warning'>{_('jobEditMessage', { name: job.name, id: job.id })}</p>}
           {process.env.XOA_PLAN > 3
             ? <span><ActionButton form='newJobForm' handler={this._handleSubmit} icon='save' btnStyle='primary'>{_('saveResourceSet')}</ActionButton>
