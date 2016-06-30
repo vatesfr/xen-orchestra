@@ -1,16 +1,22 @@
 import _ from 'intl'
+import ActionButton from 'action-button'
 import ChartistGraph from 'react-chartist'
+import Component from 'base-component'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
+import isEmpty from 'lodash/isEmpty'
+import keys from 'lodash/keys'
 import map from 'lodash/map'
 import Upgrade from 'xoa-upgrade'
-import React, { Component } from 'react'
+import React from 'react'
+import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Row, Col } from 'grid'
 import {
   createCollectionWrapper,
   createCounter,
   createGetObjectsOfType,
+  createPicker,
   createSelector,
   createTop
 } from 'selectors'
@@ -19,11 +25,130 @@ import {
   formatSize
 } from 'utils'
 import {
+  getHostMissingPatches,
+  installAllHostPatches,
   isSrWritable,
   subscribeUsers
 } from 'xo'
 
 import styles from './index.css'
+
+// ===================================================================
+
+@connectStore(() => {
+  const getPools = createGetObjectsOfType('pool')
+  const getHosts = createGetObjectsOfType('host').sort()
+
+  return {
+    pools: getPools,
+    hosts: getHosts
+  }
+})
+class MissingPatchesPanel extends Component {
+  _getHosts = createPicker(
+    () => this.props.hosts,
+    createSelector(
+      () => this.state.missingPatches,
+      missingPatches => keys(missingPatches)
+    )
+  )
+
+  _refreshMissingPatches = async () => {
+    const missingPatches = {}
+    await Promise.all(
+      map(this.props.hosts, host => (
+        getHostMissingPatches(host).then(patches => {
+          const { length } = patches
+
+          if (length) {
+            missingPatches[host.id] = length
+          }
+        })
+      ))
+    )
+    this.setState({ missingPatches })
+  }
+
+  _installAllMissingPatches = () => (
+    Promise.all(
+      map(this._getHosts(), host => installAllHostPatches(host))
+    )
+  )
+
+  componentWillMount () {
+    this.setState({
+      missingPatches: {}
+    })
+  }
+
+  render () {
+    const { props, state } = this
+    const hosts = this._getHosts()
+    const noPatches = isEmpty(hosts)
+
+    return (
+      <Card>
+        <CardHeader>
+          <Icon icon='host-patch-update' /> {_('update')}
+          <ButtonGroup className='pull-right'>
+            <ActionButton
+              btnStyle='secondary'
+              handler={this._refreshMissingPatches}
+              icon='refresh'
+            />
+            <ActionButton
+              btnStyle='primary'
+              disabled={noPatches}
+              handler={this._installAllMissingPatches}
+              icon='host-patch-update'
+            />
+          </ButtonGroup>
+        </CardHeader>
+        <CardBlock>
+          {!noPatches
+            ? (
+            <table className='table'>
+              <thead className='thead-default'>
+                <tr>
+                  <th>{_('srPool')}</th>
+                  <th>{_('srHost')}</th>
+                  <th>{_('hostDescription')}</th>
+                  <th>{_('hostMissingPatches')}</th>
+                  <th>{_('patchUpdateButton')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {map(hosts, (host, key) => {
+                  const pool = props.pools[host.$pool]
+
+                  return (
+                    <tr key={key}>
+                      <td>{pool && pool.name_label}</td>
+                      <td>{host.name_label}</td>
+                      <td>{host.name_description}</td>
+                      <td>{state.missingPatches[host.id]}</td>
+                      <td>
+                        <ActionButton
+                          btnStyle='primary'
+                          handler={installAllHostPatches}
+                          handlerParam={host}
+                          icon='host-patch-update'
+                        />
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+            ) : <p>{_('patchNothing')}</p>
+          }
+        </CardBlock>
+      </Card>
+    )
+  }
+}
+
+// ===================================================================
 
 @connectStore(() => {
   const getHosts = createGetObjectsOfType('host')
@@ -295,6 +420,11 @@ export default class Overview extends Component {
                     type='Bar' />
                 </CardBlock>
               </Card>
+            </Col>
+          </Row>
+          <Row>
+            <Col>
+              <MissingPatchesPanel />
             </Col>
           </Row>
         </Container>
