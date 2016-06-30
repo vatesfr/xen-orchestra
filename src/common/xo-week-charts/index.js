@@ -3,10 +3,11 @@ import * as d3 from 'd3'
 import forEach from 'lodash/forEach'
 import map from 'lodash/map'
 
-import _ from '../intl'
 import Component from '../base-component'
+import _ from '../intl'
 import propTypes from '../prop-types'
 import { Toggle } from '../form'
+import { setStyles } from '../d3-utils'
 import {
   createGetObject,
   createSelector
@@ -59,16 +60,6 @@ const HORIZON_AREA_PATH_STYLE = {
   'stroke-opacity': 0.3,
   fill: 'darkgreen',
   stroke: 'transparent'
-}
-
-// ===================================================================
-
-function setStyles (style) {
-  forEach(style, (value, key) => {
-    this.style(key, value)
-  })
-
-  return this
 }
 
 // ===================================================================
