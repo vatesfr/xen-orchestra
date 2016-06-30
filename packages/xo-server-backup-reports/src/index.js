@@ -117,6 +117,13 @@ class BackupReportsXoPlugin {
     }
 
     const globalSuccess = nSuccess === nCalls
+    if (globalSuccess && (
+      reportWhen === 'fail' || // xo-web < 5
+      reportWhen === 'failure' // xo-web >= 5
+    )) {
+      return
+    }
+
     const start = moment(status.start)
     const end = moment(status.end)
     const duration = moment.duration(end - start).humanize()
@@ -124,10 +131,6 @@ class BackupReportsXoPlugin {
     method = method.slice(method.indexOf('.') + 1)
       .replace(/([A-Z])/g, ' $1').replace(/^./, letter => letter.toUpperCase()) // humanize
     const tag = status.calls[Object.keys(status.calls)[0]].params.tag
-
-    if (globalSuccess && reportWhen === 'fail') {
-      return
-    }
 
     // Global status.
     text.unshift([
