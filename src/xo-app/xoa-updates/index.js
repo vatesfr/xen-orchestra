@@ -26,7 +26,7 @@ const promptForReload = () => confirm({
 
 if (+process.env.XOA_PLAN < 5) {
   xoaUpdater.start()
-  xoaUpdater.on('promptForReload', promptForReload)
+  xoaUpdater.on('upgradeSuccessful', promptForReload)
 }
 
 const HEADER = <Container>
@@ -86,7 +86,7 @@ export default class XoaUpdates extends Component {
       }
     }
     return xoaUpdater.register(email.value, password.value, alreadyRegistered)
-    .then(() => { email.value = password.value = '' })
+      .then(() => { email.value = password.value = '' })
   }
 
   _configure = async () => {
@@ -137,6 +137,7 @@ export default class XoaUpdates extends Component {
     })
     update()
   }
+
   render () {
     const textClasses = {
       info: 'text-info',

@@ -98,8 +98,8 @@ class XoaUpdater extends EventEmitter {
     await this._update(true)
   }
 
-  _promptForReload () {
-    this.emit('promptForReload')
+  _upgradeSuccessful () {
+    this.emit('upgradeSuccessful')
   }
 
   async _open () {
@@ -158,7 +158,7 @@ class XoaUpdater extends EventEmitter {
         if (this._lowState.state === 'updater-upgraded' || this._lowState.state === 'installer-upgraded') {
           this.update()
         } else if (this._lowState.state === 'xoa-upgraded') {
-          this._promptForReload()
+          this._upgradeSuccessful()
         }
         this.xoaState()
       })
