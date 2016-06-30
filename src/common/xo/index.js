@@ -1002,8 +1002,8 @@ export const enableRemote = remote => (
   )
 )
 
-export const disableRemote = id => (
-  _call('remote.set', {id, enabled: false})::tap(
+export const disableRemote = remote => (
+  _call('remote.set', {id: resolveId(remote), enabled: false})::tap(
     subscribeRemotes.forceRefresh
   )
 )
@@ -1014,11 +1014,17 @@ export const editRemote = (remote, {name, url}) => (
   )
 )
 
-export const listRemote = id => (
-  _call('remote.list', {id})::tap(
+export const listRemote = remote => (
+  _call('remote.list', resolveIds({id: remote}))::tap(
     subscribeRemotes.forceRefresh
   )::rethrow(
     err => error(_('listRemote'), err.message || String(err))
+  )
+)
+
+export const testRemote = remote => (
+  _call('remote.test', resolveIds({id: remote}))::rethrow(
+    err => error(_('testRemote'), err.message || String(err))
   )
 )
 

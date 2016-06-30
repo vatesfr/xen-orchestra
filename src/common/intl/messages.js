@@ -186,6 +186,13 @@ var messages = {
   remoteTypeNfs: 'NFS',
   remoteTypeSmb: 'SMB',
   remoteType: 'Type',
+  remoteTestTip: 'Test your remote',
+  testRemote: 'Test Remote',
+  remoteTestFailure: 'Test failed for',
+  remoteTestSuccess: 'Test passed for',
+  remoteTestError: 'Error',
+  remoteTestStep: 'Test Step',
+  remoteTestFile: 'Test file',
 
   // ------ New Storage -----
   newSrGeneral: 'General',

@@ -58,6 +58,10 @@
     @extend .fa;
     @extend .fa-wrench;
   }
+  &-diagnosis {
+    @extend .fa;
+    @extend .fa-medkit;
+  }
   &-chevron-up {
     @extend .fa;
     @extend .fa-chevron-up;
