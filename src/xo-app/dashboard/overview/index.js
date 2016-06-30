@@ -5,6 +5,7 @@ import Icon from 'icon'
 import map from 'lodash/map'
 import Upgrade from 'xoa-upgrade'
 import React, { Component } from 'react'
+import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Row, Col } from 'grid'
 import {
   createCollectionWrapper,
@@ -21,6 +22,8 @@ import {
   isSrWritable,
   subscribeUsers
 } from 'xo'
+
+import styles from './index.css'
 
 @connectStore(() => {
   const getHosts = createGetObjectsOfType('host')
@@ -137,43 +140,43 @@ export default class Overview extends Component {
         ? <Container>
           <Row>
             <Col mediumSize={4}>
-              <div className='card-dashboard'>
-                <div className='card-header-dashboard'>
+              <Card>
+                <CardHeader>
                   <Icon icon='pool' /> {_('poolPanel', { pools: this.props.nPools })}
-                </div>
-                <div className='card-block-dashboard'>
-                  <p>{this.props.nPools}</p>
-                </div>
-              </div>
+                </CardHeader>
+                <CardBlock>
+                  <p className={styles.bigCardContent}>{this.props.nPools}</p>
+                </CardBlock>
+              </Card>
             </Col>
             <Col mediumSize={4}>
-              <div className='card-dashboard'>
-                <div className='card-header-dashboard'>
+              <Card>
+                <CardHeader>
                   <Icon icon='host' /> {_('hostPanel', { hosts: this.props.nHosts })}
-                </div>
-                <div className='card-block-dashboard'>
-                  <p>{this.props.nHosts}</p>
-                </div>
-              </div>
+                </CardHeader>
+                <CardBlock>
+                  <p className={styles.bigCardContent}>{this.props.nHosts}</p>
+                </CardBlock>
+              </Card>
             </Col>
             <Col mediumSize={4}>
-              <div className='card-dashboard'>
-                <div className='card-header-dashboard'>
+              <Card>
+                <CardHeader>
                   <Icon icon='vm' /> {_('vmPanel', { vms: this.props.nVms })}
-                </div>
-                <div className='card-block-dashboard'>
-                  <p>{this.props.nVms}</p>
-                </div>
-              </div>
+                </CardHeader>
+                <CardBlock>
+                  <p className={styles.bigCardContent}>{this.props.nVms}</p>
+                </CardBlock>
+              </Card>
             </Col>
           </Row>
           <Row>
             <Col mediumSize={4}>
-              <div className='card-dashboard'>
-                <div className='card-header-dashboard'>
+              <Card>
+                <CardHeader>
                   <Icon icon='memory' /> {_('memoryStatePanel')}
-                </div>
-                <div className='card-block'>
+                </CardHeader>
+                <CardBlock>
                   <ChartistGraph
                     data={{
                       labels: ['Used Memory', 'Total Memory'],
@@ -182,15 +185,15 @@ export default class Overview extends Component {
                     options={{ donut: true, donutWidth: 40, showLabel: false }}
                     type='Pie' />
                   <p className='text-xs-center'>{formatSize(this.props.hostMetrics.memoryUsage)} ({_('ofUsage')} {formatSize(this.props.hostMetrics.memoryTotal)})</p>
-                </div>
-              </div>
+                </CardBlock>
+              </Card>
             </Col>
             <Col mediumSize={4}>
-              <div className='card-dashboard'>
-                <div className='card-header-dashboard'>
+              <Card>
+                <CardHeader>
                   <Icon icon='cpu' /> {_('cpuStatePanel')}
-                </div>
-                <div className='card-block'>
+                </CardHeader>
+                <CardBlock>
                   <div className='ct-chart'>
                     <ChartistGraph
                       data={{
@@ -201,15 +204,15 @@ export default class Overview extends Component {
                       type='Bar' />
                     <p className='text-xs-center'>{this.props.vmMetrics.vcpus} vCPUS ({_('ofUsage')} {this.props.hostMetrics.cpus} CPUs)</p>
                   </div>
-                </div>
-              </div>
+                </CardBlock>
+              </Card>
             </Col>
             <Col mediumSize={4}>
-              <div className='card-dashboard'>
-                <div className='card-header-dashboard'>
+              <Card>
+                <CardHeader>
                   <Icon icon='disk' /> {_('srUsageStatePanel')}
-                </div>
-                <div className='card-block'>
+                </CardHeader>
+                <CardBlock>
                   <div className='ct-chart'>
                     <ChartistGraph
                       data={{
@@ -220,49 +223,51 @@ export default class Overview extends Component {
                       type='Pie' />
                     <p className='text-xs-center'>{formatSize(this.props.srMetrics.srUsage)} ({_('ofUsage')} {formatSize(this.props.srMetrics.srTotal)})</p>
                   </div>
-                </div>
-              </div>
+                </CardBlock>
+              </Card>
             </Col>
           </Row>
           <Row>
             <Col mediumSize={4}>
-              <div className='card-dashboard'>
-                <div className='card-header-dashboard'>
+              <Card>
+                <CardHeader>
                   <Icon icon='alarm' /> {_('alarmMessage')}
-                </div>
-                <div className='card-block-dashboard'>
-                  <p className={this.props.nAlarmMessages > 0 ? 'text-warning' : ''}>{this.props.nAlarmMessages}</p>
-                </div>
-              </div>
+                </CardHeader>
+                <CardBlock>
+                  <p className={`${styles.bigCardContent} ${this.props.nAlarmMessages > 0 ? 'text-warning' : ''}`}>
+                    {this.props.nAlarmMessages}
+                  </p>
+                </CardBlock>
+              </Card>
             </Col>
             <Col mediumSize={4}>
-              <div className='card-dashboard'>
-                <div className='card-header-dashboard'>
+              <Card>
+                <CardHeader>
                   <Icon icon='task' /> {_('taskStatePanel')}
-                </div>
-                <div className='card-block-dashboard'>
-                  <p>{this.props.nTasks}</p>
-                </div>
-              </div>
+                </CardHeader>
+                <CardBlock>
+                  <p className={styles.bigCardContent}>{this.props.nTasks}</p>
+                </CardBlock>
+              </Card>
             </Col>
             <Col mediumSize={4}>
-              <div className='card-dashboard'>
-                <div className='card-header-dashboard'>
+              <Card>
+                <CardHeader>
                   <Icon icon='user' /> {_('usersStatePanel')}
-                </div>
-                <div className='card-block-dashboard'>
-                  <p>{nUsers}</p>
-                </div>
-              </div>
+                </CardHeader>
+                <CardBlock>
+                  <p className={styles.bigCardContent}>{nUsers}</p>
+                </CardBlock>
+              </Card>
             </Col>
           </Row>
           <Row>
             <Col mediumSize={4}>
-              <div className='card-dashboard'>
-                <div className='card-header-dashboard'>
+              <Card>
+                <CardHeader>
                   <Icon icon='vm-force-shutdown' /> {_('vmStatePanel')}
-                </div>
-                <div className='card-block'>
+                </CardHeader>
+                <CardBlock>
                   <ChartistGraph
                     data={{
                       labels: ['Running', 'Halted', 'Other'],
@@ -271,15 +276,15 @@ export default class Overview extends Component {
                     options={{ showLabel: false }}
                     type='Pie' />
                   <p className='text-xs-center'>{this.props.vmMetrics.running} running ({this.props.vmMetrics.halted} halted)</p>
-                </div>
-              </div>
+                </CardBlock>
+              </Card>
             </Col>
             <Col mediumSize={8}>
-              <div className='card-dashboard'>
-                <div className='card-header-dashboard'>
+              <Card>
+                <CardHeader>
                   <Icon icon='disk' /> {_('srTopUsageStatePanel')}
-                </div>
-                <div className='card-block'>
+                </CardHeader>
+                <CardBlock>
                   <ChartistGraph
                     style={{strokeWidth: '30px'}}
                     data={{
@@ -288,8 +293,8 @@ export default class Overview extends Component {
                     }}
                     options={{ showLabel: false, showGrid: false, distributeSeries: true, high: 100 }}
                     type='Bar' />
-                </div>
-              </div>
+                </CardBlock>
+              </Card>
             </Col>
           </Row>
         </Container>
