@@ -778,6 +778,8 @@ var messages = {
   mustUpgrade: 'You need to update your XOA (new version is available)',
   registerNeeded: 'Your XOA is not registered for updates',
   updaterError: 'Can\'t fetch update information',
+  promptUpgradeReloadTitle: 'Upgrade successful',
+  promptUpgradeReloadMessage: 'Your XOA has successfully upgraded, and your browser must reload the application. Do you want to reload now ?',
 
   // ----- OS Disclaimer -----
   disclaimerTitle: 'Xen Orchestra from the sources',
