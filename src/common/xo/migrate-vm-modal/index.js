@@ -53,14 +53,12 @@ import styles from './index.css'
 
   const getPifs = createGetObjectsOfType('PIF')
   const getNetworks = createGetObjectsOfType('network')
-  const getSrs = createGetObjectsOfType('SR')
   const getPools = createGetObjectsOfType('pool')
 
   return {
     networks: getNetworks,
     pifs: getPifs,
     pools: getPools,
-    srs: getSrs,
     vdis: getVdis,
     vifs: getVifs
   }
@@ -125,9 +123,9 @@ export default class MigrateVmModalBody extends BaseComponent {
       this.setState({ intraPool: undefined, host: undefined })
       return
     }
-    const { networks, pools, pifs, srs, vdis, vifs } = this.props
+    const { networks, pools, pifs, vdis, vifs } = this.props
     const defaultMigrationNetwork = networks[find(pifs, pif => pif.$host === host.id && pif.management).$network]
-    const defaultSr = srs[pools[host.$pool].default_SR].id
+    const defaultSr = pools[host.$pool].default_SR
 
     const defaultNetwork = invoke(() => {
       // First PIF with an IP.
