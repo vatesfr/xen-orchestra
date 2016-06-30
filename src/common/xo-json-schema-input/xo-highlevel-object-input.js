@@ -1,20 +1,20 @@
 import React from 'react'
-import { SelectVm } from 'select-objects'
+import { SelectHighLevelObject } from 'select-objects'
 
 import XoAbstractInput from './xo-abstract-input'
-import { PrimitiveInputWrapper } from './helpers'
+import { PrimitiveInputWrapper } from '../json-schema-input/helpers'
 
 // ===================================================================
 
-export default class VmInput extends XoAbstractInput {
+export default class HighLevelObjectInput extends XoAbstractInput {
   render () {
     const { props } = this
 
     return (
       <PrimitiveInputWrapper {...props}>
-        <SelectVm
+        <SelectHighLevelObject
           disabled={props.disabled}
-          multi={props.schema.type === 'array'}
+          multi={props.multi}
           onChange={props.onChange}
           ref='input'
           required={props.required}

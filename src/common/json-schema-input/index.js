@@ -1,2 +1,1 @@
-import GenericInput from './generic-input'
-export default GenericInput
+export default from './generic-input'

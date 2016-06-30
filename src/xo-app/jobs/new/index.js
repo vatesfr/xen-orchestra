@@ -4,7 +4,7 @@ import ActionRowButton from 'action-row-button'
 import delay from 'lodash/delay'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
-import GenericInput from 'json-schema-input/generic-input'
+import GenericInput from 'json-schema-input'
 import includes from 'lodash/includes'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
@@ -13,6 +13,7 @@ import size from 'lodash/size'
 import Upgrade from 'xoa-upgrade'
 import React, { Component } from 'react'
 import { error } from 'notification'
+import { generateUiSchema } from 'xo-json-schema-input'
 import { SelectPlainObject } from 'form'
 
 import {
@@ -53,7 +54,7 @@ const reduceObject = (value, propertyName = 'id') => value && value[propertyName
 const dataToParamVectorItems = function (params, data) {
   const items = []
   forEach(params, (param, name) => {
-    if (Array.isArray(data[name]) && param.$type) { // We have an array for building cross product, the "real" type was $type
+    if (Array.isArray(data[name]) && param.items) { // We have an array for building cross product, the "real" type was $type
       const values = []
       if (data[name].length === 1) { // One value, no need to engage cross-product
         data[name] = data[name].pop()
@@ -173,8 +174,11 @@ export default class Jobs extends Component {
                 Vm: 'VM(s)',
                 XoObject: 'Object(s)'
               }
-              prop.$type = type
               prop.type = 'array'
+              prop.items = {
+                type: 'string',
+                $type: type
+              }
               prop.title = titles[type]
             }
 
@@ -215,7 +219,8 @@ export default class Jobs extends Component {
             method,
             group,
             command,
-            info
+            info,
+            uiSchema: generateUiSchema(info)
           })
         }
       }
@@ -314,7 +319,7 @@ export default class Jobs extends Component {
         </div>
         <SelectPlainObject ref='method' options={actions} optionKey='method' onChange={this._handleSelectMethod} placeholder={_('jobActionPlaceHolder')} />
         {action && <fieldset>
-          <GenericInput ref='params' schema={action.info} label={action.method} required />
+          <GenericInput ref='params' schema={action.info} uiSchema={action.uiSchema} label={action.method} required />
           {job && <p className='text-warning'>{_('jobEditMessage', { name: job.name, id: job.id })}</p>}
           {process.env.XOA_PLAN > 3
             ? <span><ActionButton form='newJobForm' handler={this._handleSubmit} icon='save' btnStyle='primary'>{_('saveResourceSet')}</ActionButton>

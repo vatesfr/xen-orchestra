@@ -1,5 +1,5 @@
 import map from 'lodash/map'
-import AbstractInput from './abstract-input'
+import AbstractInput from '../json-schema-input/abstract-input'
 
 // ===================================================================
 

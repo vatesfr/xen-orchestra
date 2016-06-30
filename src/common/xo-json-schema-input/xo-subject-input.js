@@ -2,7 +2,7 @@ import React from 'react'
 import { SelectSubject } from 'select-objects'
 
 import XoAbstractInput from './xo-abstract-input'
-import { PrimitiveInputWrapper } from './helpers'
+import { PrimitiveInputWrapper } from '../json-schema-input/helpers'
 
 // ===================================================================
 
@@ -14,7 +14,7 @@ export default class SubjectInput extends XoAbstractInput {
       <PrimitiveInputWrapper {...props}>
         <SelectSubject
           disabled={props.disabled}
-          multi={props.schema.type === 'array'}
+          multi={props.multi}
           onChange={props.onChange}
           ref='input'
           required={props.required}

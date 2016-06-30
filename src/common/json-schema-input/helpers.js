@@ -1,7 +1,40 @@
 import React from 'react'
+import includes from 'lodash/includes'
+import isArray from 'lodash/isArray'
 import marked from 'marked'
 
 import { Col, Row } from 'grid'
+
+// ===================================================================
+
+export const getType = schema => {
+  if (!schema) {
+    return
+  }
+
+  const type = schema.type
+
+  if (isArray(type)) {
+    if (includes(type, 'integer')) {
+      return 'integer'
+    }
+    if (includes(type, 'number')) {
+      return 'number'
+    }
+
+    return 'string'
+  }
+
+  return type
+}
+
+export const getXoType = schema => {
+  const type = schema && (schema['xo:type'] || schema.$type)
+
+  if (type) {
+    return type.toLowerCase()
+  }
+}
 
 // ===================================================================
 

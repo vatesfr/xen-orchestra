@@ -11,6 +11,7 @@ import Upgrade from 'xoa-upgrade'
 import Wizard, { Section } from 'wizard'
 import { Container } from 'grid'
 import { error } from 'notification'
+import { generateUiSchema } from 'xo-json-schema-input'
 import { injectIntl } from 'react-intl'
 
 import {
@@ -34,7 +35,10 @@ const COMMON_SCHEMA = {
     },
     vms: {
       type: 'array',
-      'xo:type': 'vm',
+      items: {
+        type: 'string',
+        'xo:type': 'vm'
+      },
       title: 'VMs',
       description: 'Choose VMs to backup.'
     },
@@ -83,7 +87,7 @@ const BACKUP_SCHEMA = {
   required: COMMON_SCHEMA.required.concat([ 'depth', 'remoteId' ])
 }
 
-const ROLLING_SNAPHOT_SCHEMA = {
+const ROLLING_SNAPSHOT_SCHEMA = {
   type: 'object',
   properties: {
     ...COMMON_SCHEMA.properties,
@@ -143,13 +147,15 @@ if (process.env.XOA_PLAN < 4) {
 const BACKUP_METHOD_TO_INFO = {
   'vm.rollingBackup': {
     schema: BACKUP_SCHEMA,
+    uiSchema: generateUiSchema(BACKUP_SCHEMA),
     label: 'backup',
     icon: 'backup',
     jobKey: 'rollingBackup',
     method: 'vm.rollingBackup'
   },
   'vm.rollingSnapshot': {
-    schema: ROLLING_SNAPHOT_SCHEMA,
+    schema: ROLLING_SNAPSHOT_SCHEMA,
+    uiSchema: generateUiSchema(ROLLING_SNAPSHOT_SCHEMA),
     label: 'rollingSnapshot',
     icon: 'rolling-snapshot',
     jobKey: 'rollingSnapshot',
@@ -157,6 +163,7 @@ const BACKUP_METHOD_TO_INFO = {
   },
   'vm.rollingDeltaBackup': {
     schema: DELTA_BACKUP_SCHEMA,
+    uiSchema: generateUiSchema(DELTA_BACKUP_SCHEMA),
     label: 'deltaBackup',
     icon: 'delta-backup',
     jobKey: 'deltaBackup',
@@ -164,6 +171,7 @@ const BACKUP_METHOD_TO_INFO = {
   },
   'vm.rollingDrCopy': {
     schema: DISASTER_RECOVERY_SCHEMA,
+    uiSchema: generateUiSchema(DISASTER_RECOVERY_SCHEMA),
     label: 'disasterRecovery',
     icon: 'disaster-recovery',
     jobKey: 'disasterRecovery',
@@ -171,6 +179,7 @@ const BACKUP_METHOD_TO_INFO = {
   },
   'vm.deltaCopy': {
     schema: CONTINUOUS_REPLICATION_SCHEMA,
+    uiSchema: generateUiSchema(CONTINUOUS_REPLICATION_SCHEMA),
     label: 'continuousReplication',
     icon: 'continuous-replication',
     jobKey: 'continuousReplication',
@@ -318,6 +327,7 @@ export default class New extends Component {
                 label={<span><Icon icon={backupInfo.icon} /> {formatMessage(messages[backupInfo.label])}</span>}
                 required
                 schema={backupInfo.schema}
+                uiSchema={backupInfo.uiSchema}
                 ref='backupInput'
               />
             }
