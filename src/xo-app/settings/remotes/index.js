@@ -48,7 +48,7 @@ class AbstractRemote extends Component {
       const title = <span>
         <Icon icon={answer.success ? 'success' : 'error'} />
         {' '}
-        {answer.success ? _('remoteTestSuccess') : _('remoteTestFailure')} {remote.name}
+        {_(answer.success ? 'remoteTestSuccess' : 'remoteTestFailure', {name: remote.name})}
       </span>
       let body
       if (answer.success) {
