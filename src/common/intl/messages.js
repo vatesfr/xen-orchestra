@@ -102,6 +102,7 @@ var messages = {
   homeSelectedVms: '{selected, number}x {vmIcon} selected (on {total, number})',
   homeMore: 'More',
   homeMigrateTo: 'Migrate to…',
+  homeMissingPaths: 'Missing patches',
 
   // ----- Forms -----
   add: 'Add',
