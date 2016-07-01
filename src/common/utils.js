@@ -10,6 +10,7 @@ import isString from 'lodash/isString'
 import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
 import React from 'react'
+import replace from 'lodash/replace'
 import { connect } from 'react-redux'
 
 import BaseComponent from './base-component'
@@ -349,4 +350,44 @@ export function rethrow (cb) {
   return this.catch(error =>
     Promise.resolve(cb(error)).then(() => { throw error })
   )
+}
+
+// -------------------------------------------------------------------
+
+// Generates an array of strings from a pattern and a map of rules.
+//
+// ```js
+// generateStrings('foo_name_bar_index', 3, {
+//    foo: 'baz',
+//    name: [ 'John', 'Jane', 'Jack' ],
+//    index: 1 // if not a string and not an array, replaced by the iteration index (1, 2, 3 ...)
+// })
+// --> [ 'baz_John_bar_1', 'baz_Jane_bar_2', 'baz_Jack_bar_3' ]
+// ```
+export function generateStrings (pattern, n, map) {
+  let _firstPassString = pattern
+  const _map = map
+  // First pass: processes replacements that don't require an iteration (e.g.: { foo: 'baz' })
+  forEach(_map, (value, key) => {
+    if (isString(value)) {
+      _firstPassString = replace(_firstPassString, new RegExp(key, 'g'), value)
+      delete _map[key]
+    }
+  })
+  const strings = []
+  // Second pass: processes replacements that require an iteration (e.g.: { name: [ 'John', 'Jane', 'Jack' ] })
+  for (let i = 1; i <= n; i++) {
+    let _secondPassString = _firstPassString
+    forEach(_map, (values, key) => {
+      _secondPassString = replace(
+        _secondPassString,
+        new RegExp(key, 'g'),
+        isArray(values)
+          ? values[i - 1] || '' // array of explicit substitutes
+          : i // 1, 2, 3 ...
+      )
+    })
+    strings.push(_secondPassString)
+  }
+  return strings
 }

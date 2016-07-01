@@ -19,6 +19,7 @@ import SingleLineRow from 'single-line-row'
 import size from 'lodash/size'
 import { Card, CardHeader, CardBlock } from 'card'
 import {
+  copyVms,
   deleteVms,
   migrateVms,
   restartVms,
@@ -479,6 +480,7 @@ export default class Home extends Component {
                 <ActionButton btnStyle='secondary' handler={startVms} handlerParam={selectedItemsIds} icon='vm-start' />
                 <ActionButton btnStyle='secondary' handler={restartVms} handlerParam={selectedItemsIds} icon='vm-reboot' />
                 <ActionButton btnStyle='secondary' handler={migrateVms} handlerParam={selectedItemsIds} icon='vm-migrate' />
+                <ActionButton btnStyle='secondary' handler={copyVms} handlerParam={selectedItemsIds} icon='vm-copy' />
                 <DropdownButton bsStyle='secondary' id='advanced' title={_('homeMore')}>
                   <MenuItem onClick={() => { restartVms(selectedItemsIds, true) }}>
                     <Icon icon='vm-force-reboot' fixedWidth /> {_('forceRebootVmLabel')}

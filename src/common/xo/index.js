@@ -421,10 +421,41 @@ export const copyVm = (vm, sr, name, compress) => {
       title: _('copyVm'),
       body: <CopyVmModalBody vm={vm} />
     }).then(
-      params => _call('vm.copy', { vm: vm.id, ...params }),
+      params => {
+        if (!params.sr) {
+          error('copyVmsNoTargetSr', 'copyVmsNoTargetSrMessage')
+          return
+        }
+        _call('vm.copy', { vm: vm.id, ...params })
+      },
       noop
     )
   }
+}
+
+import CopyVmsModalBody from './copy-vms-modal'
+export const copyVms = vms => {
+  const _vms = resolveIds(vms)
+  return confirm({
+    title: _('copyVm'),
+    body: <CopyVmsModalBody vms={_vms} />
+  }).then(
+    params => {
+      if (!params.sr) {
+        error(_('copyVmsNoTargetSr'), _('copyVmsNoTargetSrMessage'))
+        return
+      }
+      const {
+        compress,
+        names,
+        sr
+      } = params
+      Promise.all(map(_vms, (vm, index) =>
+        _call('vm.copy', { vm, sr, compress, name: names[index] }),
+      ))
+    },
+    noop
+  )
 }
 
 export const convertVmToTemplate = ({ id }) => (
