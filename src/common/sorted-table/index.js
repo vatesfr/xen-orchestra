@@ -145,9 +145,9 @@ export default class SortedTable extends Component {
       createSelector(
         () => this._getSelectedColumn().sortCriteria,
         () => this.props.userData,
-        (sortCriteria, userData) => object =>
+        (sortCriteria, userData) =>
           (typeof sortCriteria === 'function')
-            ? sortCriteria(object, userData)
+            ? object => sortCriteria(object, userData)
             : sortCriteria
       ),
       () => this.state.sortOrder
