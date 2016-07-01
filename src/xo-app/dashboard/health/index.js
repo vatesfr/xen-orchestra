@@ -7,6 +7,7 @@ import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import Upgrade from 'xoa-upgrade'
 import React, { Component } from 'react'
+import { Card, CardHeader, CardBlock } from 'card'
 import { confirm } from 'modal'
 import { deleteMessage, deleteVdi, deleteVm, isSrWritable } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
@@ -230,11 +231,11 @@ export default class Health extends Component {
       ? <Container>
         <Row>
           <Col>
-            <div className='card-dashboard'>
-              <div className='card-header-dashboard'>
+            <Card>
+              <CardHeader>
                 <Icon icon='disk' /> {_('srStatePanel')}
-              </div>
-              <div className='card-block'>
+              </CardHeader>
+              <CardBlock>
                 {isEmpty(this.props.userSrs)
                   ? <p className='text-xs-center'>{_('noSrs')}</p>
                   : <Row>
@@ -243,17 +244,17 @@ export default class Health extends Component {
                     </Col>
                   </Row>
                 }
-              </div>
-            </div>
+              </CardBlock>
+            </Card>
           </Col>
         </Row>
         <Row>
           <Col>
-            <div className='card-dashboard'>
-              <div className='card-header-dashboard'>
+            <Card>
+              <CardHeader>
                 <Icon icon='disk' /> {_('orphanedVdis')}
-              </div>
-              <div className='card-block'>
+              </CardHeader>
+              <CardBlock>
                 {isEmpty(this.props.vdiOrphaned)
                   ? <p className='text-xs-center'>{_('noOrphanedObject')}</p>
                   : <div>
@@ -274,32 +275,32 @@ export default class Health extends Component {
                     </Row>
                   </div>
                 }
-              </div>
-            </div>
+              </CardBlock>
+            </Card>
           </Col>
         </Row>
         <Row>
           <Col>
-            <div className='card-dashboard'>
-              <div className='card-header-dashboard'>
+            <Card>
+              <CardHeader>
                 <Icon icon='vm' /> {_('orphanedVms')}
-              </div>
-              <div className='card-block'>
+              </CardHeader>
+              <CardBlock>
                 {isEmpty(this.props.vmOrphaned)
                   ? <p className='text-xs-center'>{_('noOrphanedObject')}</p>
                   : <SortedTable collection={this.props.vmOrphaned} columns={VM_COLUMNS} />
                 }
-              </div>
-            </div>
+              </CardBlock>
+            </Card>
           </Col>
         </Row>
         <Row>
           <Col>
-            <div className='card-dashboard'>
-              <div className='card-header-dashboard'>
+            <Card>
+              <CardHeader>
                 <Icon icon='alarm' /> {_('alarmMessage')}
-              </div>
-              <div className='card-block'>
+              </CardHeader>
+              <CardBlock>
                 {isEmpty(this.props.alertMessages)
                   ? <p className='text-xs-center'>{_('noAlarms')}</p>
                   : <div>
@@ -320,8 +321,8 @@ export default class Health extends Component {
                     </Row>
                   </div>
                 }
-              </div>
-            </div>
+              </CardBlock>
+            </Card>
           </Col>
         </Row>
       </Container>
