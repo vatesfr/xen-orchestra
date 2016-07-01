@@ -23,6 +23,8 @@ import styles from './index.css'
 // ===================================================================
 
 @propTypes({
+  nFilteredItems: propTypes.number.isRequired,
+  nItems: propTypes.number.isRequired,
   onChange: propTypes.func.isRequired
 })
 class TableFilter extends Component {
@@ -38,8 +40,11 @@ class TableFilter extends Component {
   }
 
   render () {
+    const { props } = this
+
     return (
       <div className='input-group'>
+        <span className='input-group-addon'>{props.nFilteredItems} / {props.nItems}</span>
         <span className='input-group-addon'><Icon icon='search' /></span>
         <input
           type='text'
@@ -213,6 +218,8 @@ export default class SortedTable extends Component {
       userData
     } = props
 
+    const nFilteredItems = this._getAllItems().length
+
     const paginationInstance = (
       <Pagination
         first
@@ -222,14 +229,18 @@ export default class SortedTable extends Component {
         ellipsis
         boundaryLinks
         maxButtons={10}
-        items={ceil(this._getAllItems().length / state.itemsPerPage)}
+        items={ceil(nFilteredItems / state.itemsPerPage)}
         activePage={this.state.activePage}
         onSelect={this._onPageSelection}
       />
     )
 
     const filterInstance = (
-      <TableFilter onChange={this._onFilterChange} />
+      <TableFilter
+        nFilteredItems={nFilteredItems}
+        nItems={this.props.collection.length}
+        onChange={this._onFilterChange}
+      />
     )
 
     return (
