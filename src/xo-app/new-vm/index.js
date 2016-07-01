@@ -587,7 +587,14 @@ export default class NewVm extends BaseComponent {
           </span>
         </div>
         <Item>
-          <input disabled={!configDrive} onChange={this._getOnChange('installMethod')} name='installMethod' value='SSH' type='radio' />
+          <input
+            checked={installMethod === 'SSH'}
+            disabled={!configDrive}
+            name='installMethod'
+            onChange={this._getOnChange('installMethod')}
+            type='radio'
+            value='SSH'
+          />
           {' '}
           <span>{_('newVmSshKey')}</span>
           {' '}
@@ -601,7 +608,14 @@ export default class NewVm extends BaseComponent {
           />
         </Item>
         <Item>
-          <input disabled={!configDrive} onChange={this._getOnChange('installMethod')} name='installMethod' value='customConfig' type='radio' />
+          <input
+            checked={installMethod === 'customConfig'}
+            disabled={!configDrive}
+            name='installMethod'
+            onChange={this._getOnChange('installMethod')}
+            type='radio'
+            value='customConfig'
+          />
           {' '}
           <span>{_('newVmCustomConfig')}</span>
           {' '}
@@ -618,7 +632,13 @@ export default class NewVm extends BaseComponent {
       : <SectionContent>
         <Item>
           <span className={styles.item}>
-            <input onChange={this._getOnChange('installMethod')} name='installMethod' value='ISO' type='radio' />
+            <input
+              checked={installMethod === 'ISO'}
+              name='installMethod'
+              onChange={this._getOnChange('installMethod')}
+              type='radio'
+              value='ISO'
+            />
             &nbsp;
             <span>{_('newVmIsoDvdLabel')}</span>
             &nbsp;
@@ -633,7 +653,13 @@ export default class NewVm extends BaseComponent {
           </span>
         </Item>
         <Item>
-          <input onChange={this._getOnChange('installMethod')} name='installMethod' value='network' type='radio' />
+          <input
+            checked={installMethod === 'network'}
+            name='installMethod'
+            onChange={this._getOnChange('installMethod')}
+            type='radio'
+            value='network'
+          />
           {' '}
           <span>{_('newVmNetworkLabel')}</span>
           {' '}
@@ -657,7 +683,13 @@ export default class NewVm extends BaseComponent {
             />
           </Item>
           : <Item>
-            <input onChange={this._getOnChange('installMethod')} name='installMethod' value='PXE' type='radio' />
+            <input
+              checked={installMethod === 'PXE'}
+              name='installMethod'
+              onChange={this._getOnChange('installMethod')}
+              type='radio'
+              value='PXE'
+            />
             {' '}
             <span>{_('newVmPxeLabel')}</span>
           </Item>
