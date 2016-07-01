@@ -202,24 +202,6 @@ $select-input-height: 40px; // Bootstrap input height
   background: $gray-lighter;
 }
 
-// DASHBOARD STYLE =============================================================
-
-.card-dashboard {
-  @extend .card;
-}
-
-.card-header-dashboard {
-  @extend .card-header;
-  font-size: 1.2em;
-  text-align: center;
-}
-
-.card-block-dashboard {
-  @extend .card-block;
-  font-size: 4em;
-  text-align: center;
-}
-
 // MEMORY/DISK BAR STYLE =======================================================
 
 .progress-usage {
