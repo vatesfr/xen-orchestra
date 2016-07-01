@@ -105,7 +105,7 @@ class MissingPatchesPanel extends Component {
 
   _installAllMissingPatches = () => (
     Promise.all(
-      map(this._getHosts(), host => installAllHostPatches(host))
+      map(this._getHosts(), installAllHostPatches)
     )
   )
 
