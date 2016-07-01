@@ -289,6 +289,12 @@ export const removeServer = ({ id }) => (
   )
 )
 
+// Pool --------------------------------------------------------------
+
+export const editPool = ({ id }, props) => (
+  _call('pool.set', { ...props, id })
+)
+
 // Host --------------------------------------------------------------
 
 export const editHost = ({ id }, props) => (

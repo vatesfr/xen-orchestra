@@ -20,7 +20,7 @@ export { Ellipsis as default }
 export const EllipsisContainer = ({ children }) => (
   <div style={ellipsisContainerStyle}>
     {React.Children.map(children, child =>
-      child.type === Ellipsis ? child : <span>{child}</span>
+      child == null || child.type === Ellipsis ? child : <span>{child}</span>
     )}
   </div>
 )
