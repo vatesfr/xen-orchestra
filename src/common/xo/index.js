@@ -1,6 +1,7 @@
 import asap from 'asap'
 import assign from 'lodash/assign'
 import cookies from 'cookies-js'
+import isEmpty from 'lodash/isEmpty'
 import isEqual from 'lodash/isEqual'
 import forEach from 'lodash/forEach'
 import map from 'lodash/map'
@@ -470,7 +471,7 @@ export const migrateVms = vms => (
     body: <MigrateVmsModalBody vms={resolveIds(vms)} />
   }).then(
     params => {
-      if (params.badPowerState) {
+      if (isEmpty(params.vms)) {
         return
       }
       if (!params.targetHost) {

@@ -1,10 +1,9 @@
 import BaseComponent from 'base-component'
-import concat from 'lodash/concat'
 import every from 'lodash/every'
+import flatten from 'lodash/flatten'
 import forEach from 'lodash/forEach'
 import find from 'lodash/find'
 import isEmpty from 'lodash/isEmpty'
-import keys from 'lodash/keys'
 import map from 'lodash/map'
 import React from 'react'
 import some from 'lodash/some'
@@ -24,7 +23,7 @@ import {
   connectStore
 } from '../../utils'
 import {
-  createFilter,
+  createFinder,
   createGetObjectsOfType,
   createPicker,
   createSelector
@@ -39,37 +38,36 @@ const LINE_STYLE = { paddingBottom: '1em' }
   const getPifs = createGetObjectsOfType('PIF')
   const getPools = createGetObjectsOfType('pool')
 
-  const getVms = createFilter(
-    createGetObjectsOfType('VM').pick(
+  const getVms = createGetObjectsOfType('VM').pick(
       (_, props) => props.vms
-    ),
-    () => vm => vm.power_state === 'Running'
-  )
+    ).filter(
+      [ vm => vm.power_state === 'Running' ]
+    )
 
-  const getNonRunningVms = createFilter(
+  const getNonRunningVm = createFinder(
     createGetObjectsOfType('VM').pick(
       (_, props) => props.vms
     ),
-    () => vm => vm.power_state !== 'Running'
+    [ vm => vm.power_state !== 'Running' ]
   )
 
   const getVbdsByVm = createGetObjectsOfType('VBD').pick(
     createSelector(
       getVms,
-      vms => concat(...map(vms, vm => vm.$VBDs))
+      vms => flatten(map(vms, vm => vm.$VBDs))
     )
   ).groupBy('VM')
 
   const getVifsByVM = createGetObjectsOfType('VIF').pick(
     createSelector(
       getVms,
-      vms => concat(...map(vms, vm => vm.VIFs))
+      vms => flatten(map(vms, vm => vm.VIFs))
     )
   ).groupBy('$VM')
 
   return {
     networks: getNetworks,
-    nonRunningVms: getNonRunningVms,
+    nonRunningVm: getNonRunningVm,
     pifs: getPifs,
     pools: getPools,
     vbdsByVm: getVbdsByVm,
@@ -120,11 +118,22 @@ export default class MigrateVmsModalBody extends BaseComponent {
 
   get value () {
     const { vms } = this.props
-    if (isEmpty(vms)) {
-      return { badPowerState: true }
+    const { host } = this.state
+    if (!host || isEmpty(vms)) {
+      return { vms }
     }
-    const { networks, pifs, vbdsByVm, vifsByVm } = this.props
-    const { host, migrationNetworkId, networkId, smartVifMapping, srId } = this.state
+    const {
+      networks,
+      pifs,
+      vbdsByVm,
+      vifsByVm
+    } = this.props
+    const {
+      migrationNetworkId,
+      networkId,
+      smartVifMapping,
+      srId
+    } = this.state
 
     // Map VM --> ( Map VDI --> SR )
     const mapVmsMapVdisSrs = {}
@@ -138,9 +147,9 @@ export default class MigrateVmsModalBody extends BaseComponent {
       mapVmsMapVdisSrs[vm] = mapVdisSrs
     })
 
-    const defaultNetwork = invoke(() => {
+    const defaultNetwork = smartVifMapping && invoke(() => {
       // First PIF with an IP.
-      const pifId = host && find(host.$PIFs, pif => pifs[pif].ip)
+      const pifId = find(host.$PIFs, pif => pifs[pif].ip)
       const pif = pifId && pifs[pifId]
 
       return pif && pif.$network
@@ -161,7 +170,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
       mapVmsMapVdisSrs,
       mapVmsMapVifsNetworks,
       migrationNetwork: migrationNetworkId,
-      targetHost: host && host.id,
+      targetHost: host.id,
       vms
     }
   }
@@ -196,7 +205,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
         {_('migrateVmBadPowerState')}
       </div>
     }
-    const { nonRunningVms } = this.props
+    const { nonRunningVm } = this.props
     const {
       host,
       intraPool,
@@ -266,10 +275,10 @@ export default class MigrateVmsModalBody extends BaseComponent {
           </SingleLineRow>
         </div>
       ]}
-      {!isEmpty(nonRunningVms) && <div>
+      {nonRunningVm && <div>
         <Icon icon='error' />
         {' '}
-        {_('migrateVmSomeBadPowerState', { vm: nonRunningVms[keys(nonRunningVms)[0]].name_label })}
+        {_('migrateVmSomeBadPowerState', { vm: nonRunningVm.name_label })}
       </div>}
     </div>
   }
