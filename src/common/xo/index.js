@@ -454,8 +454,8 @@ export const migrateVm = (vm, host) => (
     body: <MigrateVmModalBody vm={vm} host={host} />
   }).then(
     params => {
-      if (!params) {
-        throw new Error('a target host is required to migrate a VM')
+      if (!params.targetHost) {
+        return error(_('migrateVmNoTargetHost'), _('migrateVmNoTargetHostMessage'))
       }
       _call('vm.migrate', { vm: vm.id, ...params })
     },
@@ -467,26 +467,30 @@ import MigrateVmsModalBody from './migrate-vms-modal'
 export const migrateVms = vms => (
   confirm({
     title: _('migrateVmModalTitle'),
-    body: <MigrateVmsModalBody vms={vms} />
+    body: <MigrateVmsModalBody vms={resolveIds(vms)} />
   }).then(
     params => {
-      if (!params) {
-        throw new Error('a target host is required to migrate a VM')
+      if (params.badPowerState) {
+        return
       }
-      const vmsIds = resolveIds(vms)
+      if (!params.targetHost) {
+        return error(_('migrateVmNoTargetHost'), _('migrateVmNoTargetHostMessage'))
+      }
+
       const {
         mapVmsMapVdisSrs,
         mapVmsMapVifsNetworks,
         migrationNetwork,
-        targetHost
+        targetHost,
+        vms
       } = params
-      Promise.all(map(vmsIds, vm =>
+      Promise.all(map(vms, ({ id }) =>
         _call('vm.migrate', {
-          mapVdisSrs: mapVmsMapVdisSrs[vm],
-          mapVifsNetworks: mapVmsMapVifsNetworks[vm],
+          mapVdisSrs: mapVmsMapVdisSrs[id],
+          mapVifsNetworks: mapVmsMapVifsNetworks[id],
           migrationNetwork,
           targetHost,
-          vm
+          vm: id
         })
       ))
     },

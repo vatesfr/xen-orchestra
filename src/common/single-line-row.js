@@ -3,7 +3,7 @@ import React, { cloneElement } from 'react'
 import propTypes from './prop-types'
 
 const SINGLE_LINE_STYLE = { display: 'flex' }
-const COL_STYLE = { margin: 'auto' }
+const COL_STYLE = { marginTop: 'auto', marginBottom: 'auto' }
 
 const SingleLineRow = propTypes({
   className: propTypes.string
