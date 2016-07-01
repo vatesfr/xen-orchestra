@@ -1,4 +1,3 @@
-import map from 'lodash/map'
 import React from 'react'
 import {
   Sparklines,
@@ -7,6 +6,10 @@ import {
 } from 'react-sparklines'
 
 import propTypes from './prop-types'
+import {
+  computeArraysAvg,
+  computeObjectsAvg
+} from './xo-stats'
 
 const STYLE = {}
 
@@ -14,37 +17,6 @@ const WIDTH = 120
 const HEIGHT = 40
 
 // ===================================================================
-
-function computeArraysAvg (arrays) {
-  if (!arrays || !arrays.length || !arrays[0].length) {
-    return []
-  }
-
-  const n = arrays[0].length
-  const m = arrays.length
-
-  const result = new Array(n)
-
-  for (let i = 0; i < n; i++) {
-    result[i] = 0
-
-    for (let j = 0; j < m; j++) {
-      result[i] += arrays[j][i]
-    }
-
-    result[i] /= m
-  }
-
-  return result
-}
-
-function computeObjectsAvg (objects) {
-  return computeArraysAvg(
-    map(objects, object =>
-      computeArraysAvg(map(object, arr => arr))
-    )
-  )
-}
 
 const templateError =
   <div>
