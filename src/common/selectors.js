@@ -325,14 +325,18 @@ const _extendCollectionSelector = (selector, objectsType) => {
   }
   _addSort(selector)
 
-  // groupBy and sort can be chained.
-  selector.pick = idsSelector => _addGroupBy(_addSort(
-    createPicker(selector, idsSelector)
-  ))
-
   // count, groupBy and sort can be chained.
-  selector.filter = predicate => _addCount(_addGroupBy(_addSort(
-    createFilter(selector, predicate)
+  const _addFilter = selector => {
+    selector.filter = predicate => _addCount(_addGroupBy(_addSort(
+      createFilter(selector, predicate)
+    )))
+    return selector
+  }
+  _addFilter(selector)
+
+  // filter, groupBy and sort can be chained.
+  selector.pick = idsSelector => _addFilter(_addGroupBy(_addSort(
+    createPicker(selector, idsSelector)
   )))
 
   return selector
@@ -351,7 +355,7 @@ const _extendCollectionSelector = (selector, objectsType) => {
 // - groupBy: returns a selector which returns the objects grouped by
 //            a value determined by a getter selector
 // - pick: returns a selector which returns only the objects with given
-//         ids (groupBy and sort can be chained)
+//         ids (filter, groupBy and sort can be chained)
 // - sort: returns a selector which returns the objects appropriately
 //         sorted (groupBy can be chained)
 export const createGetObjectsOfType = type => {
