@@ -1,15 +1,19 @@
 import BaseComponent from 'base-component'
-import concat from 'lodash/concat'
 import every from 'lodash/every'
+import flatten from 'lodash/flatten'
 import forEach from 'lodash/forEach'
 import find from 'lodash/find'
+import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React from 'react'
 import some from 'lodash/some'
 
 import _ from '../../intl'
+import Icon from 'icon'
+import invoke from '../../invoke'
 import SingleLineRow from '../../single-line-row'
 import { Col } from '../../grid'
+import { getDefaultNetworkForVif } from '../utils'
 import {
   SelectHost,
   SelectNetwork,
@@ -19,6 +23,7 @@ import {
   connectStore
 } from '../../utils'
 import {
+  createFinder,
   createGetObjectsOfType,
   createPicker,
   createSelector
@@ -29,24 +34,44 @@ import { isSrWritable } from '../'
 const LINE_STYLE = { paddingBottom: '1em' }
 
 @connectStore(() => {
+  const getNetworks = createGetObjectsOfType('network')
   const getPifs = createGetObjectsOfType('PIF')
   const getPools = createGetObjectsOfType('pool')
 
   const getVms = createGetObjectsOfType('VM').pick(
-    (_, props) => props.vms
+      (_, props) => props.vms
+    ).filter(
+      [ vm => vm.power_state === 'Running' ]
+    )
+
+  const getNonRunningVm = createFinder(
+    createGetObjectsOfType('VM').pick(
+      (_, props) => props.vms
+    ),
+    [ vm => vm.power_state !== 'Running' ]
   )
 
   const getVbdsByVm = createGetObjectsOfType('VBD').pick(
     createSelector(
       getVms,
-      vms => concat(...map(vms, vm => vm.$VBDs))
+      vms => flatten(map(vms, vm => vm.$VBDs))
     )
   ).groupBy('VM')
 
+  const getVifsByVM = createGetObjectsOfType('VIF').pick(
+    createSelector(
+      getVms,
+      vms => flatten(map(vms, vm => vm.VIFs))
+    )
+  ).groupBy('$VM')
+
   return {
+    networks: getNetworks,
+    nonRunningVm: getNonRunningVm,
     pifs: getPifs,
     pools: getPools,
     vbdsByVm: getVbdsByVm,
+    vifsByVm: getVifsByVM,
     vms: getVms
   }
 }, { withRef: true })
@@ -92,32 +117,61 @@ export default class MigrateVmsModalBody extends BaseComponent {
   }
 
   get value () {
+    const { vms } = this.props
+    const { host } = this.state
+    if (!host || isEmpty(vms)) {
+      return { vms }
+    }
+    const {
+      networks,
+      pifs,
+      vbdsByVm,
+      vifsByVm
+    } = this.props
+    const {
+      migrationNetworkId,
+      networkId,
+      smartVifMapping,
+      srId
+    } = this.state
+
     // Map VM --> ( Map VDI --> SR )
     const mapVmsMapVdisSrs = {}
-    forEach(this.props.vbdsByVm, (vbds, vm) => {
+    forEach(vbdsByVm, (vbds, vm) => {
       const mapVdisSrs = {}
       forEach(vbds, vbd => {
         if (!vbd.is_cd_drive && vbd.VDI) {
-          mapVdisSrs[vbd.VDI] = this.state.srId
+          mapVdisSrs[vbd.VDI] = srId
         }
       })
       mapVmsMapVdisSrs[vm] = mapVdisSrs
     })
 
+    const defaultNetwork = smartVifMapping && invoke(() => {
+      // First PIF with an IP.
+      const pifId = find(host.$PIFs, pif => pifs[pif].ip)
+      const pif = pifId && pifs[pifId]
+
+      return pif && pif.$network
+    })
+
     // Map VM --> ( Map VIF --> network )
     const mapVmsMapVifsNetworks = {}
-    forEach(this.props.vms, vm => {
+    forEach(vms, vm => {
       const mapVifsNetworks = {}
-      forEach(vm.VIFs, vif => {
-        mapVifsNetworks[vif] = this.state.networkId
+      forEach(vifsByVm[vm.id], vif => {
+        mapVifsNetworks[vif.id] = smartVifMapping
+          ? getDefaultNetworkForVif(vif, host, pifs, networks) || defaultNetwork
+          : networkId
       })
       mapVmsMapVifsNetworks[vm.id] = mapVifsNetworks
     })
     return {
       mapVmsMapVdisSrs,
       mapVmsMapVifsNetworks,
-      migrationNetwork: this.state.migrationNetworkId,
-      targetHost: this.state.host && this.state.host.id
+      migrationNetwork: migrationNetworkId,
+      targetHost: host.id,
+      vms
     }
   }
 
@@ -134,14 +188,32 @@ export default class MigrateVmsModalBody extends BaseComponent {
       intraPool: every(this.props.vms, vm => vm.$pool === host.$pool),
       migrationNetworkId: defaultMigrationNetworkId,
       networkId: defaultMigrationNetworkId,
+      smartVifMapping: true,
       srId: defaultSrId
     })
   }
   _selectMigrationNetwork = migrationNetwork => this.setState({ migrationNetworkId: migrationNetwork.id })
   _selectNetwork = network => this.setState({ networkId: network.id })
   _selectSr = sr => this.setState({ srId: sr.id })
+  _toggleSmartVifMapping = () => this.setState({ smartVifMapping: !this.state.smartVifMapping })
 
   render () {
+    if (isEmpty(this.props.vms)) {
+      return <div>
+        <Icon icon='error' />
+        {' '}
+        {_('migrateVmBadPowerState')}
+      </div>
+    }
+    const { nonRunningVm } = this.props
+    const {
+      host,
+      intraPool,
+      migrationNetworkId,
+      networkId,
+      smartVifMapping,
+      srId
+    } = this.state
     return <div>
       <div style={LINE_STYLE}>
         <SingleLineRow>
@@ -150,12 +222,12 @@ export default class MigrateVmsModalBody extends BaseComponent {
             <SelectHost
               onChange={this._selectHost}
               predicate={this._getHostPredicate()}
-              value={this.state.host}
+              value={host}
             />
           </Col>
         </SingleLineRow>
       </div>
-      {this.state.intraPool === false &&
+      {intraPool === false &&
         <div style={LINE_STYLE}>
           <SingleLineRow>
             <Col size={6}>{_('migrateVmSelectMigrationNetwork')}</Col>
@@ -163,13 +235,13 @@ export default class MigrateVmsModalBody extends BaseComponent {
               <SelectNetwork
                 onChange={this._selectMigrationNetwork}
                 predicate={this._getNetworkPredicate()}
-                value={this.state.migrationNetworkId}
+                value={migrationNetworkId}
               />
             </Col>
           </SingleLineRow>
         </div>
       }
-      {this.state.host && [
+      {host && [
         <div key='sr' style={LINE_STYLE}>
           <SingleLineRow>
             <Col size={6}>{_('migrateVmsSelectSr')}</Col>
@@ -177,7 +249,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
               <SelectSr
                 onChange={this._selectSr}
                 predicate={this._getSrPredicate()}
-                value={this.state.srId}
+                value={srId}
               />
             </Col>
           </SingleLineRow>
@@ -187,14 +259,27 @@ export default class MigrateVmsModalBody extends BaseComponent {
             <Col size={6}>{_('migrateVmsSelectNetwork')}</Col>
             <Col size={6}>
               <SelectNetwork
+                disabled={smartVifMapping}
                 onChange={this._selectNetwork}
                 predicate={this._getNetworkPredicate()}
-                value={this.state.networkId}
+                value={networkId}
               />
+            </Col>
+          </SingleLineRow>
+          <SingleLineRow>
+            <Col size={6} offset={6}>
+              <input type='checkbox' onChange={this._toggleSmartVifMapping} checked={smartVifMapping} />
+              {' '}
+              {_('migrateVmsSmartMapping')}
             </Col>
           </SingleLineRow>
         </div>
       ]}
+      {nonRunningVm && <div>
+        <Icon icon='error' />
+        {' '}
+        {_('migrateVmSomeBadPowerState', { vm: nonRunningVm.name_label })}
+      </div>}
     </div>
   }
 }
