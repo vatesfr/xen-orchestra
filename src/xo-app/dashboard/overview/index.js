@@ -88,7 +88,8 @@ class MissingPatchesPanel extends Component {
 
   _getHosts = createFilter(
     () => this.props.hosts,
-    [ host => this.state.missingPatches[host.id] ]
+    () => this.state.missingPatches,
+    [ (host, missingPatches) => missingPatches[host.id] ]
   )
 
   _refreshMissingPatches = async () => {
