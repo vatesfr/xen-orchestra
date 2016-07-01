@@ -5,6 +5,7 @@ import forEach from 'lodash/forEach'
 import invoke from 'invoke'
 import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
+import Upgrade from 'xoa-upgrade'
 import { Container, Row, Col } from 'grid'
 import {
   createFilter,
@@ -112,8 +113,8 @@ export default class Visualizations extends Component {
   )
 
   render () {
-    return (
-      <Container>
+    return process.env.XOA_PLAN > 3
+      ? <Container>
         <Row>
           <Col>
             <XoParallelChart
@@ -124,6 +125,6 @@ export default class Visualizations extends Component {
           </Col>
         </Row>
       </Container>
-    )
+      : <Container><Upgrade place='health' available={4} /></Container>
   }
 }
