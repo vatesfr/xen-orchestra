@@ -8,6 +8,7 @@ import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import Upgrade from 'xoa-upgrade'
 import React from 'react'
+import SortedTable from 'sorted-table'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Row, Col } from 'grid'
@@ -31,6 +32,42 @@ import {
 } from 'xo'
 
 import styles from './index.css'
+
+// ===================================================================
+
+const MISSING_PATCHES_COLUMNS = [
+  {
+    name: _('srPool'),
+    itemRenderer: (host, { pools }) => pools[host.$pool].name_label,
+    sortCriteria: (host, { pools }) => pools[host.$pool].name_label
+  },
+  {
+    name: _('srHost'),
+    itemRenderer: host => host.name_label,
+    sortCriteria: host => host.name_label
+  },
+  {
+    name: _('hostDescription'),
+    itemRenderer: host => host.name_description,
+    sortCriteria: host => host.name_description
+  },
+  {
+    name: _('hostMissingPatches'),
+    itemRenderer: (host, { missingPatches }) => missingPatches[host.id],
+    sortCriteria: (host, { missingPatches }) => missingPatches[host.id]
+  },
+  {
+    name: _('patchUpdateButton'),
+    itemRenderer: host => (
+      <ActionButton
+        btnStyle='primary'
+        handler={installAllHostPatches}
+        handlerParam={host}
+        icon='host-patch-update'
+      />
+    )
+  }
+]
 
 // ===================================================================
 
@@ -103,7 +140,6 @@ class MissingPatchesPanel extends Component {
   }
 
   render () {
-    const { props, state } = this
     const hosts = this._getHosts()
     const noPatches = isEmpty(hosts)
 
@@ -128,39 +164,14 @@ class MissingPatchesPanel extends Component {
         <CardBlock>
           {!noPatches
             ? (
-            <table className='table'>
-              <thead className='thead-default'>
-                <tr>
-                  <th>{_('srPool')}</th>
-                  <th>{_('srHost')}</th>
-                  <th>{_('hostDescription')}</th>
-                  <th>{_('hostMissingPatches')}</th>
-                  <th>{_('patchUpdateButton')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {map(hosts, (host, key) => {
-                  const pool = props.pools[host.$pool]
-
-                  return (
-                    <tr key={key}>
-                      <td>{pool && pool.name_label}</td>
-                      <td>{host.name_label}</td>
-                      <td>{host.name_description}</td>
-                      <td>{state.missingPatches[host.id]}</td>
-                      <td>
-                        <ActionButton
-                          btnStyle='primary'
-                          handler={installAllHostPatches}
-                          handlerParam={host}
-                          icon='host-patch-update'
-                        />
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+            <SortedTable
+              collection={hosts}
+              columns={MISSING_PATCHES_COLUMNS}
+              userData={{
+                missingPatches: this.state.missingPatches,
+                pools: this.props.pools
+              }}
+            />
             ) : <p>{_('patchNothing')}</p>
           }
         </CardBlock>
