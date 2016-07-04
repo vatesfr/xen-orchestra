@@ -103,6 +103,7 @@ var messages = {
   homeMore: 'More',
   homeMigrateTo: 'Migrate to…',
   homeMissingPaths: 'Missing patches',
+  highAvailability: 'High Availability',
 
   // ----- Forms -----
   add: 'Add',

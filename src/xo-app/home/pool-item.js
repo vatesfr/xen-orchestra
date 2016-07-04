@@ -78,9 +78,22 @@ export default class PoolItem extends Component {
               </Ellipsis>
               &nbsp;&nbsp;
               {(missingPatchCount > 0) &&
-                <Tooltip content={_('homeMissingPaths')}>
-                  <span className='tag tag-pill tag-danger'>{missingPatchCount}</span>
-                </Tooltip>
+                <span>
+                  &nbsp;&nbsp;
+                  <Tooltip content={_('homeMissingPaths')}>
+                    <span className='tag tag-pill tag-danger'>{missingPatchCount}</span>
+                  </Tooltip>
+                </span>}
+              {pool.HA_enabled &&
+                <span>
+                  &nbsp;&nbsp;
+                  <Tooltip content={_('highAvailability')}>
+                    <span className='fa-stack'>
+                      <Icon icon='pool' />
+                      <Icon icon='success' className='fa-stack-1x' />
+                    </span>
+                  </Tooltip>
+                </span>
               }
             </EllipsisContainer>
           </Col>
