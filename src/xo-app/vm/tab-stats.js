@@ -4,6 +4,7 @@ import Icon from 'icon'
 import React from 'react'
 import Upgrade from 'xoa-upgrade'
 import { fetchVmStats } from 'xo'
+import { Toggle } from 'form'
 import { injectIntl } from 'react-intl'
 import { Container, Row, Col } from 'grid'
 import {
@@ -15,6 +16,11 @@ import {
 
 export default injectIntl(
   class VmStats extends Component {
+    constructor (props) {
+      super(props)
+      this.state.useCombinedValues = false
+    }
+
     loop (vm = this.props.vm) {
       if (this.cancel) {
         this.cancel()
@@ -83,7 +89,8 @@ export default injectIntl(
       const {
         granularity,
         selectStatsLoading,
-        stats
+        stats,
+        useCombinedValues
       } = this.state
 
       return !stats
@@ -91,8 +98,17 @@ export default injectIntl(
         : process.env.XOA_PLAN > 2
           ? <Container>
             <Row>
-              <Col mediumSize={6} className='text-xs-right'>
-                {selectStatsLoading && <Icon icon='loading' size={2} />}
+              <Col mediumSize={6}>
+                <div className='form-group'>
+                  <label>{_('useCombinedValuesOnStats')}</label>
+                  {' '}
+                  <Toggle value={useCombinedValues} onChange={this.linkState('useCombinedValues')} />
+                </div>
+                {selectStatsLoading && (
+                  <div className='text-xs-right'>
+                    <Icon icon='loading' size={2} />
+                  </div>
+                )}
               </Col>
               <Col mediumSize={6}>
                 <div className='btn-tab'>
@@ -108,7 +124,7 @@ export default injectIntl(
             <Row>
               <Col mediumSize={6}>
                 <h5 className='text-xs-center'><Icon icon='cpu' size={1} /> {_('statsCpu')}</h5>
-                <CpuLineChart data={stats} />
+                <CpuLineChart addSumSeries={useCombinedValues} data={stats} />
               </Col>
               <Col mediumSize={6}>
                 <h5 className='text-xs-center'><Icon icon='memory' size={1} /> {_('statsMemory')}</h5>
@@ -120,11 +136,11 @@ export default injectIntl(
             <Row>
               <Col mediumSize={6}>
                 <h5 className='text-xs-center'><Icon icon='network' size={1} /> {_('statsNetwork')}</h5>
-                <VifLineChart data={stats} />
+                <VifLineChart addSumSeries={useCombinedValues} data={stats} />
               </Col>
               <Col mediumSize={6}>
                 <h5 className='text-xs-center'><Icon icon='disk' size={1} /> {_('statDisk')}</h5>
-                <XvdLineChart data={stats} />
+                <XvdLineChart addSumSeries={useCombinedValues} data={stats} />
               </Col>
             </Row>
           </Container>

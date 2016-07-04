@@ -3,8 +3,9 @@ import Component from 'base-component'
 import Icon from 'icon'
 import React from 'react'
 import Upgrade from 'xoa-upgrade'
-import { fetchHostStats } from 'xo'
 import { Container, Row, Col } from 'grid'
+import { Toggle } from 'form'
+import { fetchHostStats } from 'xo'
 import {
   CpuLineChart,
   MemoryLineChart,
@@ -13,6 +14,11 @@ import {
 } from 'xo-line-chart'
 
 export default class HostStats extends Component {
+  constructor (props) {
+    super(props)
+    this.state.useCombinedValues = false
+  }
+
   loop (host = this.props.host) {
     if (this.cancel) {
       this.cancel()
@@ -78,7 +84,8 @@ export default class HostStats extends Component {
     const {
       granularity,
       selectStatsLoading,
-      stats
+      stats,
+      useCombinedValues
     } = this.state
 
     return !stats
@@ -86,8 +93,17 @@ export default class HostStats extends Component {
       : process.env.XOA_PLAN > 2
         ? <Container>
           <Row>
-            <Col mediumSize={6} className='text-xs-right'>
-              {selectStatsLoading && <Icon icon='loading' size={2} />}
+            <Col mediumSize={6}>
+              <div className='form-group'>
+                <label>{_('useCombinedValuesOnStats')}</label>
+                {' '}
+                <Toggle value={useCombinedValues} onChange={this.linkState('useCombinedValues')} />
+              </div>
+              {selectStatsLoading && (
+                <div className='text-xs-right'>
+                  <Icon icon='loading' size={2} />
+                </div>
+              )}
             </Col>
             <Col mediumSize={6}>
               <div className='btn-tab'>
@@ -103,7 +119,7 @@ export default class HostStats extends Component {
           <Row>
             <Col mediumSize={6}>
               <h5 className='text-xs-center'><Icon icon='cpu' size={1} /> {_('statsCpu')}</h5>
-              <CpuLineChart data={stats} />
+              <CpuLineChart addSumSeries={useCombinedValues} data={stats} />
             </Col>
             <Col mediumSize={6}>
               <h5 className='text-xs-center'><Icon icon='memory' size={1} /> {_('statsMemory')}</h5>
@@ -115,7 +131,7 @@ export default class HostStats extends Component {
           <Row>
             <Col mediumSize={6}>
               <h5 className='text-xs-center'><Icon icon='network' size={1} /> {_('statsNetwork')}</h5>
-              <PifLineChart data={stats} />
+              <PifLineChart addSumSeries={useCombinedValues} data={stats} />
             </Col>
             <Col mediumSize={6}>
               <h5 className='text-xs-center'><Icon icon='disk' size={1} /> {_('statLoad')}</h5>

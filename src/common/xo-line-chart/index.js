@@ -1,11 +1,16 @@
 import ChartistGraph from 'react-chartist'
 import ChartistLegend from 'chartist-plugin-legend'
 import ChartistTooltip from 'chartist-plugin-tooltip'
+import map from 'lodash/map'
 import React from 'react'
+import values from 'lodash/values'
 import { injectIntl } from 'react-intl'
 
-import propTypes from './prop-types'
-import { formatSize } from './utils'
+import propTypes from '../prop-types'
+import { computeArraysSum } from '../xo-stats'
+import { formatSize } from '../utils'
+
+import styles from './index.css'
 
 // Number of labels on axis X.
 const N_LABELS_X = 5
@@ -61,15 +66,24 @@ const makeLabelInterpolationFnc = (intl, nValues, endTimestamp, interval) => {
       : null
 }
 
-const makeObjectSeries = (data, prefix) => {
+// Supported series: xvds, vifs, pifs.
+const buildSeries = ({ stats, label, addSumSeries }) => {
   const series = []
 
-  for (const io in data) {
-    const ioData = data[io]
+  for (const io in stats) {
+    const ioData = stats[io]
     for (const letter in ioData) {
       series.push({
-        name: `${prefix}${letter} (${io})`,
+        name: `${label}${letter} (${io})`,
         data: ioData[letter]
+      })
+    }
+
+    if (addSumSeries) {
+      series.push({
+        name: `All ${io}`,
+        data: computeArraysSum(values(ioData)),
+        className: styles.dashedLine
       })
     }
   }
@@ -85,9 +99,10 @@ const templateError =
 // ===================================================================
 
 export const CpuLineChart = injectIntl(propTypes({
+  addSumSeries: propTypes.bool,
   data: propTypes.object.isRequired,
   options: propTypes.object
-})(({ data, options = {}, intl }) => {
+})(({ addSumSeries, data, options = {}, intl }) => {
   const stats = data.stats.cpus
   const { length } = (stats && stats[0]) || {}
 
@@ -95,12 +110,16 @@ export const CpuLineChart = injectIntl(propTypes({
     return templateError
   }
 
-  const series = []
+  const series = map(stats, (data, id) => ({
+    name: `Cpu${id}`,
+    data
+  }))
 
-  for (const id in stats) {
+  if (addSumSeries) {
     series.push({
-      name: `Cpu${id}`,
-      data: stats[id]
+      name: 'All Cpus',
+      data: computeArraysSum(stats),
+      className: styles.dashedLine
     })
   }
 
@@ -118,7 +137,7 @@ export const CpuLineChart = injectIntl(propTypes({
           interval: data.interval,
           valueTransform: value => `${value}%`
         }),
-        high: 100,
+        high: !addSumSeries ? 100 : stats.length * 100,
         ...options
       }}
     />
@@ -163,9 +182,10 @@ export const MemoryLineChart = injectIntl(propTypes({
 }))
 
 export const XvdLineChart = injectIntl(propTypes({
+  addSumSeries: propTypes.bool,
   data: propTypes.object.isRequired,
   options: propTypes.object
-})(({ data, options = {}, intl }) => {
+})(({ addSumSeries, data, options = {}, intl }) => {
   const stats = data.stats.xvds
   const { length } = (stats && stats.r.a) || {}
 
@@ -177,7 +197,7 @@ export const XvdLineChart = injectIntl(propTypes({
     <ChartistGraph
       type='Line'
       data={{
-        series: makeObjectSeries(stats, 'Xvd')
+        series: buildSeries({ addSumSeries, stats, label: 'Xvd' })
       }}
       options={{
         ...makeOptions({
@@ -194,9 +214,10 @@ export const XvdLineChart = injectIntl(propTypes({
 }))
 
 export const VifLineChart = injectIntl(propTypes({
+  addSumSeries: propTypes.bool,
   data: propTypes.object.isRequired,
   options: propTypes.object
-})(({ data, options = {}, intl }) => {
+})(({ addSumSeries, data, options = {}, intl }) => {
   const stats = data.stats.vifs
   const { length } = (stats && stats.rx[0]) || {}
 
@@ -208,7 +229,7 @@ export const VifLineChart = injectIntl(propTypes({
     <ChartistGraph
       type='Line'
       data={{
-        series: makeObjectSeries(stats, 'Vif')
+        series: buildSeries({ addSumSeries, stats, label: 'Vif' })
       }}
       options={{
         ...makeOptions({
@@ -225,9 +246,10 @@ export const VifLineChart = injectIntl(propTypes({
 }))
 
 export const PifLineChart = injectIntl(propTypes({
+  addSumSeries: propTypes.bool,
   data: propTypes.object.isRequired,
   options: propTypes.object
-})(({ data, options = {}, intl }) => {
+})(({ addSumSeries, data, options = {}, intl }) => {
   const stats = data.stats.pifs
   const { length } = (stats && stats.rx[0]) || {}
 
@@ -239,7 +261,7 @@ export const PifLineChart = injectIntl(propTypes({
     <ChartistGraph
       type='Line'
       data={{
-        series: makeObjectSeries(stats, 'Pif')
+        series: buildSeries({ addSumSeries, stats, label: 'Pif' })
       }}
       options={{
         ...makeOptions({
