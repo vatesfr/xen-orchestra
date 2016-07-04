@@ -6,10 +6,9 @@ const getEventValue = event => {
     return event
   }
 
-  let type
-  return target.nodeName.toLowerCase() === 'input' && (
-    (type = target.type.toLowerCase()) === 'checkbox' ||
-    type === 'radio'
+  return (
+    target.nodeName.toLowerCase() === 'input' &&
+    target.type.toLowerCase() === 'checkbox'
   )
     ? target.checked
     : target.value

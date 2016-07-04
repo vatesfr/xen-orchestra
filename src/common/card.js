@@ -34,9 +34,9 @@ export const CardHeader = propTypes({
   children,
   className
 }) => (
-  <h3 className={`card-header ${className || ''}`} style={CARD_HEADER_STYLE}>
+  <h4 className={`card-header ${className || ''}`} style={CARD_HEADER_STYLE}>
     {children}
-  </h3>
+  </h4>
 ))
 
 export const CardBlock = propTypes({
