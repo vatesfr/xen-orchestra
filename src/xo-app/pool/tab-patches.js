@@ -72,9 +72,7 @@ export default class TabPatches extends Component {
 
   _refreshMissingPatches = () => (
     Promise.all(
-      map(this.props.hosts, host =>
-        this._refreshHostMissingPatches(host)
-      )
+      map(this.props.hosts, this._refreshHostMissingPatches)
     )
   )
 
@@ -82,8 +80,8 @@ export default class TabPatches extends Component {
     Promise.all(map(this._getHosts(), this._installAllHostPatches))
   )
 
-  _refreshHostMissingPatches (host) {
-    return getHostMissingPatches(host).then(patches => {
+  _refreshHostMissingPatches = host => (
+    getHostMissingPatches(host).then(patches => {
       this.setState({
         missingPatches: {
           ...this.state.missingPatches,
@@ -91,7 +89,7 @@ export default class TabPatches extends Component {
         }
       })
     })
-  }
+  )
 
   _installAllHostPatches = host => (
     installAllHostPatches(host).then(() =>
@@ -118,14 +116,7 @@ export default class TabPatches extends Component {
         }
       })
 
-      getHostMissingPatches(host).then(patches => {
-        this.setState({
-          missingPatches: {
-            ...this.state.missingPatches,
-            [id]: patches.length
-          }
-        })
-      })
+      this._refreshHostMissingPatches(host)
     })
   }
 
