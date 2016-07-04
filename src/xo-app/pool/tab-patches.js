@@ -1,14 +1,14 @@
+import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
-import React from 'react'
-import SortedTable from 'sorted-table'
-import TabButton from 'tab-button'
-import _ from 'intl'
 import forEach from 'lodash/forEach'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
-import { Container, Row, Col } from 'grid'
+import React from 'react'
+import SortedTable from 'sorted-table'
+import TabButton from 'tab-button'
 import { connectStore } from 'utils'
+import { Container, Row, Col } from 'grid'
 import {
   createFilter,
   createGetObjectsOfType
@@ -82,18 +82,22 @@ export default class TabPatches extends Component {
     this.setState({ missingPatches })
   }
 
-  _installAllMissingPatches = () => (
-    Promise.all(
-      map(this._getHosts(), installAllHostPatches)
-    )
-  )
+  _installAllMissingPatches = async () => {
+    try {
+      await Promise.all(
+        map(this._getHosts(), installAllHostPatches)
+      )
+    } finally {
+      await this._refreshMissingPatches()
+    }
+  }
 
   componentWillMount () {
     this._refreshMissingPatches()
   }
 
   componentWillReceiveProps (nextProps) {
-    forEach(nextProps.hosts, (host, push) => {
+    forEach(nextProps.hosts, host => {
       const { id } = host
 
       if (this.state.missingPatches[id] !== undefined) {
