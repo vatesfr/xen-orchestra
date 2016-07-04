@@ -70,33 +70,33 @@ export default class TabPatches extends Component {
     [ (host, missingPatches) => missingPatches[host.id] ]
   )
 
-  _refreshMissingPatches = async () => {
-    const missingPatches = {}
-    await Promise.all(
-      map(this.props.hosts, host => (
-        getHostMissingPatches(host).then(patches => {
-          missingPatches[host.id] = patches.length
-        })
-      ))
+  _refreshMissingPatches = () => (
+    Promise.all(
+      map(this.props.hosts, host =>
+        this._refreshHostMissingPatches(host)
+      )
     )
-    this.setState({ missingPatches })
-  }
-
-  _installAllMissingPatches = () => (
-    map(this._getHosts(), this._installAllHostPatches)
   )
 
-  _installAllHostPatches = host => (
-    installAllHostPatches(host).then(() => (
-      getHostMissingPatches(host).then(patches => {
-        this.setState({
-          missingPatches: {
-            ...this.state.missingPatches,
-            [host.id]: patches.length
-          }
-        })
+  _installAllMissingPatches = () => (
+    Promise.all(map(this._getHosts(), this._installAllHostPatches))
+  )
+
+  _refreshHostMissingPatches (host) {
+    return getHostMissingPatches(host).then(patches => {
+      this.setState({
+        missingPatches: {
+          ...this.state.missingPatches,
+          [host.id]: patches.length
+        }
       })
-    ))
+    })
+  }
+
+  _installAllHostPatches = host => (
+    installAllHostPatches(host).then(() =>
+      this._refreshHostMissingPatches(host)
+    )
   )
 
   componentWillMount () {
