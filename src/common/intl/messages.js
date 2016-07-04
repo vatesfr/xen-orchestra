@@ -384,6 +384,9 @@ var messages = {
   hostInstalledPatches: 'Downloaded patches',
   hostMissingPatches: 'Missing patches',
   hostUpToDate: 'Host up-to-date!',
+  // ----- Pool patch tabs -----
+  refreshPatches: 'Refresh patches',
+  installPoolPatches: 'Install pool patches',
 
   // ----- VM tabs -----
   generalTabName: 'General',
