@@ -60,7 +60,7 @@ const MISSING_PATCHES_COLUMNS = [
   },
   {
     name: _('patchUpdateButton'),
-    itemRenderer: host => (
+    itemRenderer: (host, { installAllHostPatches }) => (
       <ActionButton
         btnStyle='primary'
         handler={installAllHostPatches}
@@ -94,21 +94,30 @@ class MissingPatchesPanel extends Component {
     [ (host, missingPatches) => missingPatches[host.id] ]
   )
 
-  _refreshMissingPatches = async () => {
-    const missingPatches = {}
-    await Promise.all(
-      map(this.props.hosts, host => (
-        getHostMissingPatches(host).then(patches => {
-          missingPatches[host.id] = patches.length
-        })
-      ))
+  _refreshMissingPatches = () => (
+    Promise.all(
+      map(this.props.hosts, this._refreshHostMissingPatches)
     )
-    this.setState({ missingPatches })
-  }
+  )
 
   _installAllMissingPatches = () => (
-    Promise.all(
-      map(this._getHosts(), installAllHostPatches)
+    Promise.all(map(this._getHosts(), this._installAllHostPatches))
+  )
+
+  _refreshHostMissingPatches = host => (
+    getHostMissingPatches(host).then(patches => {
+      this.setState({
+        missingPatches: {
+          ...this.state.missingPatches,
+          [host.id]: patches.length
+        }
+      })
+    })
+  )
+
+  _installAllHostPatches = host => (
+    installAllHostPatches(host).then(() =>
+      this._refreshHostMissingPatches(host)
     )
   )
 
@@ -117,7 +126,7 @@ class MissingPatchesPanel extends Component {
   }
 
   componentWillReceiveProps (nextProps) {
-    forEach(nextProps.hosts, (host, push) => {
+    forEach(nextProps.hosts, host => {
       const { id } = host
 
       if (this.state.missingPatches[id] !== undefined) {
@@ -131,14 +140,7 @@ class MissingPatchesPanel extends Component {
         }
       })
 
-      getHostMissingPatches(host).then(patches => {
-        this.setState({
-          missingPatches: {
-            ...this.state.missingPatches,
-            [id]: patches.length
-          }
-        })
-      })
+      this._refreshHostMissingPatches(host)
     })
   }
 
@@ -171,6 +173,7 @@ class MissingPatchesPanel extends Component {
               collection={hosts}
               columns={MISSING_PATCHES_COLUMNS}
               userData={{
+                installAllHostPatches: this._installAllHostPatches,
                 missingPatches: this.state.missingPatches,
                 pools: this.props.pools
               }}
