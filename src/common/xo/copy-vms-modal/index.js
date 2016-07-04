@@ -1,10 +1,9 @@
 import map from 'lodash/map'
 import React, { Component } from 'react'
-import size from 'lodash/size'
 import { injectIntl } from 'react-intl'
 import {
-  connectStore,
-  generateStrings
+  buildTemplate,
+  connectStore
 } from 'utils'
 
 import SingleLineRow from '../../single-line-row'
@@ -30,18 +29,23 @@ class CopyVmsModalBody extends Component {
       return {}
     }
     const { vms } = this.props
-    const names = state.namePattern
-      ? generateStrings(state.namePattern, size(vms), {
-        '{name}': map(vms, vm => vm.name_label),
-        '{id}': map(vms, vm => vm.id),
-        '%': 1
-      })
-      : generateStrings('{name}_COPY', size(vms), { '{name}': map(vms, vm => vm.name_label) })
+    const { namePattern } = state
+
+    const names = namePattern
+      ? map(vms, buildTemplate(namePattern, {
+        '{name}': vm => vm.name_label,
+        '{id}': vm => vm.id
+      }))
+      : map(vms, vm => vm.name_label)
     return {
       compress: state.compress,
       names,
       sr: state.sr.id
     }
+  }
+
+  componentWillMount () {
+    this.setState({ namePattern: '{name}_COPY' })
   }
 
   _onChangeSr = sr =>
@@ -53,6 +57,7 @@ class CopyVmsModalBody extends Component {
 
   render () {
     const { formatMessage } = this.props.intl
+    const { compress, namePattern, sr } = this.state
     return process.env.XOA_PLAN > 2
       ? <div>
         <SingleLineRow>
@@ -60,6 +65,7 @@ class CopyVmsModalBody extends Component {
           <Col size={6}>
             <SelectSr
               onChange={this._onChangeSr}
+              value={sr}
             />
           </Col>
         </SingleLineRow>
@@ -72,6 +78,7 @@ class CopyVmsModalBody extends Component {
               onChange={this._onChangeNamePattern}
               placeholder={formatMessage(messages.copyVmNamePatternPlaceholder)}
               type='text'
+              value={namePattern}
             />
           </Col>
         </SingleLineRow>
@@ -81,6 +88,7 @@ class CopyVmsModalBody extends Component {
           <Col size={6}>
             <Toggle
               onChange={this._onChangeCompress}
+              value={compress}
             />
           </Col>
         </SingleLineRow>

@@ -734,7 +734,7 @@ var messages = {
   copyVmName: 'Name',
   copyVmNamePattern: 'Name pattern',
   copyVmNamePlaceholder: 'If empty: name of the copied VM',
-  copyVmNamePatternPlaceholder: 'e.g.: "\\{name\\}-copy"',
+  copyVmNamePatternPlaceholder: 'e.g.: "\\{name\\}_COPY"',
   copyVmSelectSr: 'Select SR',
   copyVmCompress: 'Use compression',
   copyVmsNoTargetSr: 'No target SR',
