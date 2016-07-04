@@ -4,6 +4,8 @@
 
 import map from 'lodash/map'
 
+// Returns a new array with arrays sums.
+// Example: computeArraysSum([[1, 2], [3, 4], [5, 0]) = [9, 6]
 export const computeArraysSum = arrays => {
   if (!arrays || !arrays.length || !arrays[0].length) {
     return []
@@ -25,6 +27,8 @@ export const computeArraysSum = arrays => {
   return result
 }
 
+// Returns a new array with arrays avgs.
+// Example: computeArraysAvg([[1, 2], [3, 4], [5, 0]) = [4.5, 2]
 export const computeArraysAvg = arrays => {
   const sums = computeArraysSum(arrays)
 
@@ -38,6 +42,15 @@ export const computeArraysAvg = arrays => {
   return sums
 }
 
+// More complex than computeArraysAvg.
+//
+// Take in parameter one object like:
+// { x: { a: [...], b: [...], c: [...] },
+//   y: { d: [...], e: [...], f: [...] } }
+// and returns the avgs between a, b, c, d, e and f.
+// Useful for vifs, pifs, xvds.
+//
+// Note: The parameter can be also an 3D array.
 export const computeObjectsAvg = objects => {
   return computeArraysAvg(
     map(objects, object =>

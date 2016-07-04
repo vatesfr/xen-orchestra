@@ -66,7 +66,8 @@ const makeLabelInterpolationFnc = (intl, nValues, endTimestamp, interval) => {
       : null
 }
 
-const makeObjectSeries = ({ stats, type, combined }) => {
+// 3d series: xvds, vifs, pifs.
+const build3dSeries = ({ stats, type, combined }) => {
   const series = []
 
   for (const io in stats) {
@@ -196,7 +197,7 @@ export const XvdLineChart = injectIntl(propTypes({
     <ChartistGraph
       type='Line'
       data={{
-        series: makeObjectSeries({ combined, stats, type: 'Xvd' })
+        series: build3dSeries({ combined, stats, type: 'Xvd' })
       }}
       options={{
         ...makeOptions({
@@ -228,7 +229,7 @@ export const VifLineChart = injectIntl(propTypes({
     <ChartistGraph
       type='Line'
       data={{
-        series: makeObjectSeries({ combined, stats, type: 'Vif' })
+        series: build3dSeries({ combined, stats, type: 'Vif' })
       }}
       options={{
         ...makeOptions({
@@ -260,7 +261,7 @@ export const PifLineChart = injectIntl(propTypes({
     <ChartistGraph
       type='Line'
       data={{
-        series: makeObjectSeries({ combined, stats, type: 'Pif' })
+        series: build3dSeries({ combined, stats, type: 'Pif' })
       }}
       options={{
         ...makeOptions({

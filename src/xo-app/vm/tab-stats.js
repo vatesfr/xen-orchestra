@@ -77,8 +77,6 @@ export default injectIntl(
     }
     handleSelectStats = ::this.handleSelectStats
 
-    _handleCombinedValues = useCombinedValues => this.setState({ useCombinedValues })
-
     render () {
       const {
         intl
@@ -99,7 +97,7 @@ export default injectIntl(
                 <div className='form-group'>
                   <label>{_('useCombinedValuesOnStats')}</label>
                   {' '}
-                  <Toggle value={useCombinedValues} onChange={this._handleCombinedValues} />
+                  <Toggle defaultValue={useCombinedValues} onChange={this.linkState('useCombinedValues')} />
                 </div>
                 {selectStatsLoading && (
                   <div className='text-xs-right'>
