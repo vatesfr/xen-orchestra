@@ -2,7 +2,7 @@
   "gitbook": ">=3.0.0",
   "root": "./docs",
   "structure": {
-    "summary": "docs/SUMMARY.md"
+    "summary": "SUMMARY.md"
   },
   "plugins": [
       "anchors",
