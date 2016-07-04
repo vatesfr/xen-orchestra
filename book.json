@@ -1,9 +1,6 @@
 {
   "gitbook": ">=3.0.0",
   "root": "./docs",
-  "structure": {
-    "summary": "SUMMARY.md"
-  },
   "plugins": [
       "anchors",
       "-edit-link"
