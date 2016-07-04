@@ -58,10 +58,7 @@ export default class PoolItem extends Component {
   _onSelect = () => this.props.onSelect(this.props.item.id)
 
   componentWillMount () {
-    this.props.missingPaths.then(patches => {
-      console.log('PATCHES', patches)
-      this.setState({missingPatchCount: size(patches)})
-    })
+    this.props.missingPaths.then(patches => this.setState({missingPatchCount: size(patches)}))
   }
 
   render () {
@@ -96,6 +93,8 @@ export default class PoolItem extends Component {
           </Col>
           <Col largeSize={4} className='hidden-lg-down'>
             <span>
+              {size(hosts)}x <Icon icon='host' />
+              {' '}
               {hostsCpus}x <Icon icon='cpu' />
               {' '}
               {formatSize(hostsMemory)}
@@ -113,6 +112,8 @@ export default class PoolItem extends Component {
         <Row>
           <Col mediumSize={6} className={styles.itemExpanded}>
             <span>
+              {size(hosts)}x <Icon icon='host' />
+              {' '}
               {hostsCpus}x <Icon icon='cpu' />
               {' '}
               {formatSize(hostsMemory)}
