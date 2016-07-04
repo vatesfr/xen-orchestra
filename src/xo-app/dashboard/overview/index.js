@@ -5,6 +5,7 @@ import Component from 'base-component'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
+import Link from 'link'
 import map from 'lodash/map'
 import Upgrade from 'xoa-upgrade'
 import React from 'react'
@@ -303,7 +304,9 @@ export default class Overview extends Component {
                   <Icon icon='pool' /> {_('poolPanel', { pools: this.props.nPools })}
                 </CardHeader>
                 <CardBlock>
-                  <p className={styles.bigCardContent}>{this.props.nPools}</p>
+                  <p className={styles.bigCardContent}>
+                    <Link to={{pathname: '/home', query: {t: 'pool'}}}>{this.props.nPools}</Link>
+                  </p>
                 </CardBlock>
               </Card>
             </Col>
@@ -313,7 +316,9 @@ export default class Overview extends Component {
                   <Icon icon='host' /> {_('hostPanel', { hosts: this.props.nHosts })}
                 </CardHeader>
                 <CardBlock>
-                  <p className={styles.bigCardContent}>{this.props.nHosts}</p>
+                  <p className={styles.bigCardContent}>
+                    <Link to={{pathname: '/home', query: {t: 'host'}}}>{this.props.nHosts}</Link>
+                  </p>
                 </CardBlock>
               </Card>
             </Col>
@@ -323,7 +328,9 @@ export default class Overview extends Component {
                   <Icon icon='vm' /> {_('vmPanel', { vms: this.props.nVms })}
                 </CardHeader>
                 <CardBlock>
-                  <p className={styles.bigCardContent}>{this.props.nVms}</p>
+                  <p className={styles.bigCardContent}>
+                    <Link to={{pathname: '/home', query: {t: 'VM'}}}>{this.props.nVms}</Link>
+                  </p>
                 </CardBlock>
               </Card>
             </Col>

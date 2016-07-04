@@ -44,8 +44,17 @@ import styles from './index.css'
     }
   )
 
+  const getHostMetrics = createSelector(
+    getPoolHosts,
+    hosts => ({
+      count: size(hosts),
+      cpus: reduce(hosts, (total, host) => total + +host.cpus.cores, 0),
+      memory: reduce(hosts, (total, host) => total + +host.memory.size, 0)
+    })
+  )
+
   return {
-    hosts: getPoolHosts,
+    hostMetrics: getHostMetrics,
     missingPaths: getMissingPatches
   }
 })
@@ -62,10 +71,8 @@ export default class PoolItem extends Component {
   }
 
   render () {
-    const { item: pool, expandAll, selected, hosts } = this.props
+    const { item: pool, expandAll, selected, hostMetrics } = this.props
     const { missingPatchCount } = this.state
-    const hostsCpus = reduce(hosts, (total, host) => total + +host.cpus.cores, 0)
-    const hostsMemory = reduce(hosts, (total, host) => total + +host.memory.size, 0)
     return <div className={styles.item}>
       <BlockLink to={`/pools/${pool.id}`}>
         <SingleLineRow>
@@ -106,11 +113,11 @@ export default class PoolItem extends Component {
           </Col>
           <Col largeSize={4} className='hidden-lg-down'>
             <span>
-              {size(hosts)}x <Icon icon='host' />
+              {hostMetrics.count}x <Icon icon='host' />
               {' '}
-              {hostsCpus}x <Icon icon='cpu' />
+              {hostMetrics.cpus}x <Icon icon='cpu' />
               {' '}
-              {formatSize(hostsMemory)}
+              {formatSize(hostMetrics.memory)}
             </span>
           </Col>
           <Col mediumSize={1} className={styles.itemExpandRow}>
@@ -125,11 +132,11 @@ export default class PoolItem extends Component {
         <Row>
           <Col mediumSize={6} className={styles.itemExpanded}>
             <span>
-              {size(hosts)}x <Icon icon='host' />
+              {hostMetrics.count}x <Icon icon='host' />
               {' '}
-              {hostsCpus}x <Icon icon='cpu' />
+              {hostMetrics.cpus}x <Icon icon='cpu' />
               {' '}
-              {formatSize(hostsMemory)}
+              {formatSize(hostMetrics.memory)}
             </span>
           </Col>
           <Col mediumSize={6}>
