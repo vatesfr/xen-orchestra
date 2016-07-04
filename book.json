@@ -3,5 +3,8 @@
         "anchors",
         "-edit-link"
     ],
+    "structure": {
+      "summary": "docs/README.md"
+    },
     "pluginsConfig": {}
 }
