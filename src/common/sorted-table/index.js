@@ -12,6 +12,7 @@ import SingleLineRow from '../single-line-row'
 import { Container, Col } from '../grid'
 import { create as createMatcher } from '../complex-matcher'
 import {
+  createCounter,
   createFilter,
   createPager,
   createSelector,
@@ -139,6 +140,10 @@ export default class SortedTable extends Component {
     this._getSelectedColumn = () =>
       this.props.columns[this.state.selectedColumn]
 
+    this._getTotalNumberOfItems = createCounter(
+      () => this.props.collection
+    )
+
     this._getAllItems = createSort(
       createFilter(
         () => this.props.collection,
@@ -238,7 +243,7 @@ export default class SortedTable extends Component {
     const filterInstance = (
       <TableFilter
         nFilteredItems={nFilteredItems}
-        nItems={this.props.collection.length}
+        nItems={this._getTotalNumberOfItems()}
         onChange={this._onFilterChange}
       />
     )
