@@ -55,6 +55,7 @@ import {
 
 import styles from './index.css'
 import HostItem from './host-item'
+import PoolItem from './pool-item'
 import VmItem from './vm-item'
 
 const ITEMS_PER_PAGE = 20
@@ -63,7 +64,8 @@ const OPTIONS = {
   host: {
     defaultFilter: 'power_state:running ',
     filters: {
-      homeFilterRunningHosts: 'power_state:running '
+      homeFilterRunningHosts: 'power_state:running ',
+      homeFilterTags: 'tags:'
     },
     Item: HostItem
   },
@@ -77,7 +79,20 @@ const OPTIONS = {
       homeFilterTags: 'tags:'
     },
     Item: VmItem
+  },
+  pool: {
+    defaultFilter: '',
+    filters: {
+      homeFilterTags: 'tags:'
+    },
+    Item: PoolItem
   }
+}
+
+const TYPES = {
+  VM: _('homeTypeVm'),
+  host: _('homeTypeHost'),
+  pool: _('homeTypePool')
 }
 
 const DEFAULT_TYPE = 'VM'
@@ -126,7 +141,7 @@ export default class Home extends Component {
     const { pathname, query } = this.props.location
     this.context.router.push({
       pathname,
-      query: { ...query, t: type }
+      query: { ...query, t: type, s: undefined }
     })
   }
 
@@ -136,7 +151,7 @@ export default class Home extends Component {
     // If filter is null, set a default filter.
     if (filter == null) {
       const defaultFilter = OPTIONS[props.type].defaultFilter
-      if (defaultFilter) {
+      if (defaultFilter != null) {
         this._setFilter(defaultFilter, props)
       }
       return
@@ -302,12 +317,15 @@ export default class Home extends Component {
     return <Container>
       <Row className={styles.itemRowHeader}>
         <Col mediumSize={3}>
-          <DropdownButton id='typeMenu' bsStyle='info' title='Type'>
+          <DropdownButton id='typeMenu' bsStyle='info' title={TYPES[this.props.type]}>
             <MenuItem onClick={() => this._setType('VM')}>
               VM
             </MenuItem>
             <MenuItem onClick={() => this._setType('host')}>
               Host
+            </MenuItem>
+            <MenuItem onClick={() => this._setType('pool')}>
+              Pool
             </MenuItem>
           </DropdownButton>
         </Col>
@@ -433,9 +451,12 @@ export default class Home extends Component {
     const selectedItemsIds = keys(this._selectedItems)
     const visibleItems = this._getVisibleItems()
     const { activePage, sortBy } = this.state
-    const Item = props.type === 'VM'
-      ? VmItem
-      : HostItem
+    const items = {
+      'VM': VmItem,
+      'host': HostItem,
+      'pool': PoolItem
+    }
+    const Item = items[props.type] || items[DEFAULT_TYPE]
 
     return <Page header={this._renderHeader()}>
       <div>

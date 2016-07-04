@@ -5,6 +5,7 @@ import Component from 'base-component'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
+import Link from 'link'
 import map from 'lodash/map'
 import Upgrade from 'xoa-upgrade'
 import React from 'react'
@@ -17,6 +18,7 @@ import {
   createCounter,
   createFilter,
   createGetObjectsOfType,
+  createGetHostMetrics,
   createSelector,
   createTop
 } from 'selectors'
@@ -187,24 +189,7 @@ class MissingPatchesPanel extends Component {
   const getHosts = createGetObjectsOfType('host')
   const getVms = createGetObjectsOfType('VM')
 
-  const getHostMetrics = createCollectionWrapper(
-    createSelector(
-      getHosts,
-      hosts => {
-        const metrics = {
-          cpus: 0,
-          memoryTotal: 0,
-          memoryUsage: 0
-        }
-        forEach(hosts, host => {
-          metrics.cpus += host.cpus.cores
-          metrics.memoryTotal += host.memory.size
-          metrics.memoryUsage += host.memory.usage
-        })
-        return metrics
-      }
-    )
-  )
+  const getHostMetrics = createGetHostMetrics(getHosts)
 
   const userSrs = createTop(
     createGetObjectsOfType('SR').filter(
@@ -303,7 +288,9 @@ export default class Overview extends Component {
                   <Icon icon='pool' /> {_('poolPanel', { pools: this.props.nPools })}
                 </CardHeader>
                 <CardBlock>
-                  <p className={styles.bigCardContent}>{this.props.nPools}</p>
+                  <p className={styles.bigCardContent}>
+                    <Link to='/home?t=pool'>{this.props.nPools}</Link>
+                  </p>
                 </CardBlock>
               </Card>
             </Col>
@@ -313,7 +300,9 @@ export default class Overview extends Component {
                   <Icon icon='host' /> {_('hostPanel', { hosts: this.props.nHosts })}
                 </CardHeader>
                 <CardBlock>
-                  <p className={styles.bigCardContent}>{this.props.nHosts}</p>
+                  <p className={styles.bigCardContent}>
+                    <Link to='/home?t=host'>{this.props.nHosts}</Link>
+                  </p>
                 </CardBlock>
               </Card>
             </Col>
@@ -323,7 +312,9 @@ export default class Overview extends Component {
                   <Icon icon='vm' /> {_('vmPanel', { vms: this.props.nVms })}
                 </CardHeader>
                 <CardBlock>
-                  <p className={styles.bigCardContent}>{this.props.nVms}</p>
+                  <p className={styles.bigCardContent}>
+                    <Link to='/home?t=VM'>{this.props.nVms}</Link>
+                  </p>
                 </CardBlock>
               </Card>
             </Col>

@@ -130,7 +130,7 @@ export default class HostItem extends Component {
               {formatSize(host.memory.size)} <Icon icon='memory' />
             </span>
           </Col>
-          <Col largeSize={4} className={styles.itemExpanded}>
+          <Col mediumSize={4} className={styles.itemExpanded}>
             <span className='tag tag-info tag-ip'>{host.address}</span>
           </Col>
           <Col mediumSize={4}>

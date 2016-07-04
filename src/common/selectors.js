@@ -408,3 +408,24 @@ export const createGetObjectMessages = objectSelector =>
 // const object = getObject(store.getState(), objectId)
 // ...
 export const getObject = createGetObject((_, id) => id)
+
+export const createGetHostMetrics = hostSelector => _createCollectionWrapper(
+  create(
+    hostSelector,
+    hosts => {
+      const metrics = {
+        count: 0,
+        cpus: 0,
+        memoryTotal: 0,
+        memoryUsage: 0
+      }
+      forEach(hosts, host => {
+        metrics.count++
+        metrics.cpus += host.cpus.cores
+        metrics.memoryTotal += host.memory.size
+        metrics.memoryUsage += host.memory.usage
+      })
+      return metrics
+    }
+  )
+)
