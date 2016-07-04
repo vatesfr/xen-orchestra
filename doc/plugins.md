@@ -6,7 +6,7 @@ Xen Orchestra plugins allow to extend features without rewriting the core of the
 
 You can see your installed plugins in "Settings" then "Plugins" page:
 
-![](./assets/plugins.png)
+![](../assets/plugins.png)
 
 Every plugin configuration should be done in the web interface.
 

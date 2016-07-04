@@ -12,7 +12,7 @@ When you got your `clientID` and your `clientSecret`, you can configure them in 
 
 Be sure to activate the plugin after you save the configuration (button on top). When it's done, you'll see a link in the log in view, this is where you'll go to authenticate:
 
-![](./assets/githubconfig.png)
+![](../assets/githubconfig.png)
 
 ## Debugging
 

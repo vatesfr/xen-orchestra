@@ -18,7 +18,7 @@ The updater is configurable directly in the web interface, or via the CLI.
 
 By default for a new XOA, you'll have this icon in the top right:
 
-![](./assets/updater_notreg.png)
+![](../assets/updater_notreg.png)
 
 It means your appliance is not registered. Click on this icon and follow the next step.
 
@@ -26,7 +26,7 @@ It means your appliance is not registered. Click on this icon and follow the nex
 
 Updates and trial will be available as soon as you registered your appliance. To register, use your https://xen-orchestra.com credentials you gave to download it previously (your email and your password):
 
-![](./assets/updater_reg.png)
+![](../assets/updater_reg.png)
 
 #### Check for new versions
 
@@ -36,19 +36,19 @@ The updater will check for new versions periodically. Nevertheless, if you want 
 
 If a new version is found, you'll have an upgrade button displayed:
 
-![](./assets/regupdate.png)
+![](../assets/regupdate.png)
 
 **In case where the updater is updated itself, you should have to refresh manually the status panel!**
 
 This could be done by clicking on the refresh white icon:
 
-![](./assets/refreshupdater.png)
+![](../assets/refreshupdater.png)
 
 #### Proxy configuration
 
 If you are behind a proxy, you can edit your proxy settings in this panel:
 
-![](./assets/regproxy.png)
+![](../assets/regproxy.png)
 
 ### From the CLI
 

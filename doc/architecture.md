@@ -16,7 +16,7 @@ Your XOA is connected to all your hosts, or on the pool master only if you are u
 
 ## Xen Orchestra (XO)
 
-![](./assets/xo-arch.jpg)
+![](../assets/xo-arch.jpg)
 
 Xen Orchestra itself is built as a modular solution. Each part has its role:
 - the core is "[xo-server](https://github.com/vatesfr/xo-server)", a daemon dealing directly with XenServer or XAPI capable hosts. This is where users are stored, and it's the center point for talking to your whole Xen infrastructure.

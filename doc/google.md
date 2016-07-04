@@ -28,7 +28,7 @@ In Settings, then Plugins, expand the Google plugin detail and provide:
 * a `clientSecret`, e.g `HTDb8I4jXiLRMaRL15qCffQ`
 * the `callbackURL`, e.g `http://xo.company.net/signin/google/callback`
 
-![](./assets/googleconfig.png)
+![](../assets/googleconfig.png)
 
 Be sure to activate the plugin after you save the configuration (button on top).
 

@@ -12,11 +12,11 @@ In means, there will be:
 
 When you created an account as a purchaser (eg: "purchase.dept@example.com"), you need to go inside the member zone:
 
-![](./assets/member_purchase.png)
+![](../assets/member_purchase.png)
 
 Now, **click on the Purchaser tab**:
 
-![](./assets/purchaser_button.png)
+![](../assets/purchaser_button.png)
 
 Your request will be sent to us, and we'll unlock you the purchaser feature.
 

@@ -10,27 +10,27 @@ As a daemon, XO-server is always up. In this way, it can listen and record every
 
 Contrary to XenCenter, each Xen Orchestra's client is connected to one XO-Server, and not all the Xen servers. With a traditional architecture:
 
-![](./assets/without-xo.jpg)
+![](../assets/without-xo.jpg)
 
 You can see how we avoid a lost of resources and bandwidth waste with a central point:
 
-![](./assets/with-xo.jpg)
+![](../assets/with-xo.jpg)
 
 ### Events
 
 Legacy interfaces use the "pull" model, requesting data every "x" seconds:
 
-![](./assets/noevent.jpg)
+![](../assets/noevent.jpg)
 
 It's **not scalable** and slow.
 
 With XO < 3.4, we used events in this way:
 
-![](./assets/semievent.jpg)
+![](../assets/semievent.jpg)
 
 But interface was still lagging behind the server. With XO 3.4, we got a full event system, allowing instant display of what's happening on your infrastructure:
 
-![](./assets/fullevent.jpg)
+![](../assets/fullevent.jpg)
 
 ### A proxy for your hosts
 
