@@ -1,11 +1,11 @@
 {
-    "gitbook": "2.4.3",
-    "structure": {
-      "summary": "docs/README.md"
-    },
-    "plugins": [
-        "anchors",
-        "-edit-link"
-    ],
-    "pluginsConfig": {}
+  "gitbook": "2.4.3",
+  "structure": {
+    "summary": "docs/README.md"
+  },
+  "plugins": [
+      "anchors",
+      "-edit-link"
+  ],
+  "pluginsConfig": {}
 }
