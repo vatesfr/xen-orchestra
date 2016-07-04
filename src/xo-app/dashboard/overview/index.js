@@ -58,7 +58,7 @@ const MISSING_PATCHES_COLUMNS = [
   },
   {
     name: _('patchUpdateButton'),
-    itemRenderer: host => (
+    itemRenderer: (host, { installAllHostPatches }) => (
       <ActionButton
         btnStyle='primary'
         handler={installAllHostPatches}
@@ -104,10 +104,17 @@ class MissingPatchesPanel extends Component {
     this.setState({ missingPatches })
   }
 
-  _installAllMissingPatches = () => (
-    Promise.all(
-      map(this._getHosts(), installAllHostPatches)
-    )
+  _installAllHostPatches = host => (
+    installAllHostPatches(host).then(() => (
+      getHostMissingPatches(host).then(patches => {
+        this.setState({
+          missingPatches: {
+            ...this.state.missingPatches,
+            [host.id]: patches.length
+          }
+        })
+      })
+    ))
   )
 
   componentWillMount () {
@@ -169,6 +176,7 @@ class MissingPatchesPanel extends Component {
               collection={hosts}
               columns={MISSING_PATCHES_COLUMNS}
               userData={{
+                installAllHostPatches: this._installAllHostPatches,
                 missingPatches: this.state.missingPatches,
                 pools: this.props.pools
               }}

@@ -33,12 +33,12 @@ const MISSING_PATCHES_COLUMNS = [
   },
   {
     name: _('hostMissingPatches'),
-    itemRenderer: (host, missingPatches) => missingPatches[host.id],
-    sortCriteria: (host, missingPatches) => missingPatches[host.id]
+    itemRenderer: (host, { missingPatches }) => missingPatches[host.id],
+    sortCriteria: (host, { missingPatches }) => missingPatches[host.id]
   },
   {
     name: _('patchUpdateButton'),
-    itemRenderer: host => (
+    itemRenderer: (host, { installAllHostPatches }) => (
       <ActionButton
         btnStyle='primary'
         handler={installAllHostPatches}
@@ -82,15 +82,22 @@ export default class TabPatches extends Component {
     this.setState({ missingPatches })
   }
 
-  _installAllMissingPatches = async () => {
-    try {
-      await Promise.all(
-        map(this._getHosts(), installAllHostPatches)
-      )
-    } finally {
-      await this._refreshMissingPatches()
-    }
-  }
+  _installAllMissingPatches = () => (
+    map(this._getHosts(), this._installAllHostPatches)
+  )
+
+  _installAllHostPatches = host => (
+    installAllHostPatches(host).then(() => (
+      getHostMissingPatches(host).then(patches => {
+        this.setState({
+          missingPatches: {
+            ...this.state.missingPatches,
+            [host.id]: patches.length
+          }
+        })
+      })
+    ))
+  )
 
   componentWillMount () {
     this._refreshMissingPatches()
@@ -152,7 +159,10 @@ export default class TabPatches extends Component {
               <SortedTable
                 collection={hosts}
                 columns={MISSING_PATCHES_COLUMNS}
-                userData={this.state.missingPatches}
+                userData={{
+                  installAllHostPatches: this._installAllHostPatches,
+                  missingPatches: this.state.missingPatches
+                }}
               />
             ) : <p>{_('patchNothing')}</p>
           }
