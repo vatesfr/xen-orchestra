@@ -170,7 +170,7 @@ export class SizeInput extends Component {
   }
 
   componentWillReceiveProps (newProps) {
-    this.value = newProps.value
+    this.value = newProps.defaultValue
   }
 
   get value () {
