@@ -3,6 +3,7 @@
 // ===================================================================
 
 import map from 'lodash/map'
+import values from 'lodash/values'
 
 // Returns a new array with arrays sums.
 // Example: computeArraysSum([[1, 2], [3, 4], [5, 0]) = [9, 6]
@@ -54,7 +55,7 @@ export const computeArraysAvg = arrays => {
 export const computeObjectsAvg = objects => {
   return computeArraysAvg(
     map(objects, object =>
-      computeArraysAvg(map(object, arr => arr))
+      computeArraysAvg(values(object))
     )
   )
 }

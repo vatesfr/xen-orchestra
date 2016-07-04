@@ -66,20 +66,20 @@ const makeLabelInterpolationFnc = (intl, nValues, endTimestamp, interval) => {
       : null
 }
 
-// 3d series: xvds, vifs, pifs.
-const build3dSeries = ({ stats, type, combined }) => {
+// Supported series: xvds, vifs, pifs.
+const buildSeries = ({ stats, label, addSumSeries }) => {
   const series = []
 
   for (const io in stats) {
     const ioData = stats[io]
     for (const letter in ioData) {
       series.push({
-        name: `${type}${letter} (${io})`,
+        name: `${label}${letter} (${io})`,
         data: ioData[letter]
       })
     }
 
-    if (combined) {
+    if (addSumSeries) {
       series.push({
         name: `All ${io}`,
         data: computeArraysSum(values(ioData)),
@@ -99,10 +99,10 @@ const templateError =
 // ===================================================================
 
 export const CpuLineChart = injectIntl(propTypes({
-  combined: propTypes.bool,
+  addSumSeries: propTypes.bool,
   data: propTypes.object.isRequired,
   options: propTypes.object
-})(({ combined, data, options = {}, intl }) => {
+})(({ addSumSeries, data, options = {}, intl }) => {
   const stats = data.stats.cpus
   const { length } = (stats && stats[0]) || {}
 
@@ -115,7 +115,7 @@ export const CpuLineChart = injectIntl(propTypes({
     data
   }))
 
-  if (combined) {
+  if (addSumSeries) {
     series.push({
       name: 'All Cpus',
       data: computeArraysSum(stats),
@@ -137,7 +137,7 @@ export const CpuLineChart = injectIntl(propTypes({
           interval: data.interval,
           valueTransform: value => `${value}%`
         }),
-        high: !combined ? 100 : stats.length * 100,
+        high: !addSumSeries ? 100 : stats.length * 100,
         ...options
       }}
     />
@@ -182,10 +182,10 @@ export const MemoryLineChart = injectIntl(propTypes({
 }))
 
 export const XvdLineChart = injectIntl(propTypes({
-  combined: propTypes.bool,
+  addSumSeries: propTypes.bool,
   data: propTypes.object.isRequired,
   options: propTypes.object
-})(({ combined, data, options = {}, intl }) => {
+})(({ addSumSeries, data, options = {}, intl }) => {
   const stats = data.stats.xvds
   const { length } = (stats && stats.r.a) || {}
 
@@ -197,7 +197,7 @@ export const XvdLineChart = injectIntl(propTypes({
     <ChartistGraph
       type='Line'
       data={{
-        series: build3dSeries({ combined, stats, type: 'Xvd' })
+        series: buildSeries({ addSumSeries, stats, label: 'Xvd' })
       }}
       options={{
         ...makeOptions({
@@ -214,10 +214,10 @@ export const XvdLineChart = injectIntl(propTypes({
 }))
 
 export const VifLineChart = injectIntl(propTypes({
-  combined: propTypes.bool,
+  addSumSeries: propTypes.bool,
   data: propTypes.object.isRequired,
   options: propTypes.object
-})(({ combined, data, options = {}, intl }) => {
+})(({ addSumSeries, data, options = {}, intl }) => {
   const stats = data.stats.vifs
   const { length } = (stats && stats.rx[0]) || {}
 
@@ -229,7 +229,7 @@ export const VifLineChart = injectIntl(propTypes({
     <ChartistGraph
       type='Line'
       data={{
-        series: build3dSeries({ combined, stats, type: 'Vif' })
+        series: buildSeries({ addSumSeries, stats, label: 'Vif' })
       }}
       options={{
         ...makeOptions({
@@ -246,10 +246,10 @@ export const VifLineChart = injectIntl(propTypes({
 }))
 
 export const PifLineChart = injectIntl(propTypes({
-  combined: propTypes.bool,
+  addSumSeries: propTypes.bool,
   data: propTypes.object.isRequired,
   options: propTypes.object
-})(({ combined, data, options = {}, intl }) => {
+})(({ addSumSeries, data, options = {}, intl }) => {
   const stats = data.stats.pifs
   const { length } = (stats && stats.rx[0]) || {}
 
@@ -261,7 +261,7 @@ export const PifLineChart = injectIntl(propTypes({
     <ChartistGraph
       type='Line'
       data={{
-        series: build3dSeries({ combined, stats, type: 'Pif' })
+        series: buildSeries({ addSumSeries, stats, label: 'Pif' })
       }}
       options={{
         ...makeOptions({

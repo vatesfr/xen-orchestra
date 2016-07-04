@@ -14,6 +14,11 @@ import {
 } from 'xo-line-chart'
 
 export default class HostStats extends Component {
+  constructor (props) {
+    super(props)
+    this.state.useCombinedValues = false
+  }
+
   loop (host = this.props.host) {
     if (this.cancel) {
       this.cancel()
@@ -75,8 +80,6 @@ export default class HostStats extends Component {
   }
   handleSelectStats = ::this.handleSelectStats
 
-  _handleCombinedValues = useCombinedValues => this.setState({ useCombinedValues })
-
   render () {
     const {
       granularity,
@@ -94,7 +97,7 @@ export default class HostStats extends Component {
               <div className='form-group'>
                 <label>{_('useCombinedValuesOnStats')}</label>
                 {' '}
-                <Toggle value={useCombinedValues} onChange={this._handleCombinedValues} />
+                <Toggle value={useCombinedValues} onChange={this.linkState('useCombinedValues')} />
               </div>
               {selectStatsLoading && (
                 <div className='text-xs-right'>
@@ -116,7 +119,7 @@ export default class HostStats extends Component {
           <Row>
             <Col mediumSize={6}>
               <h5 className='text-xs-center'><Icon icon='cpu' size={1} /> {_('statsCpu')}</h5>
-              <CpuLineChart combined={useCombinedValues} data={stats} />
+              <CpuLineChart addSumSeries={useCombinedValues} data={stats} />
             </Col>
             <Col mediumSize={6}>
               <h5 className='text-xs-center'><Icon icon='memory' size={1} /> {_('statsMemory')}</h5>
@@ -128,7 +131,7 @@ export default class HostStats extends Component {
           <Row>
             <Col mediumSize={6}>
               <h5 className='text-xs-center'><Icon icon='network' size={1} /> {_('statsNetwork')}</h5>
-              <PifLineChart combined={useCombinedValues} data={stats} />
+              <PifLineChart addSumSeries={useCombinedValues} data={stats} />
             </Col>
             <Col mediumSize={6}>
               <h5 className='text-xs-center'><Icon icon='disk' size={1} /> {_('statLoad')}</h5>

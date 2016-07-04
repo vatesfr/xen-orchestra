@@ -16,6 +16,11 @@ import {
 
 export default injectIntl(
   class VmStats extends Component {
+    constructor (props) {
+      super(props)
+      this.state.useCombinedValues = false
+    }
+
     loop (vm = this.props.vm) {
       if (this.cancel) {
         this.cancel()
@@ -97,7 +102,7 @@ export default injectIntl(
                 <div className='form-group'>
                   <label>{_('useCombinedValuesOnStats')}</label>
                   {' '}
-                  <Toggle defaultValue={useCombinedValues} onChange={this.linkState('useCombinedValues')} />
+                  <Toggle value={useCombinedValues} onChange={this.linkState('useCombinedValues')} />
                 </div>
                 {selectStatsLoading && (
                   <div className='text-xs-right'>
@@ -119,7 +124,7 @@ export default injectIntl(
             <Row>
               <Col mediumSize={6}>
                 <h5 className='text-xs-center'><Icon icon='cpu' size={1} /> {_('statsCpu')}</h5>
-                <CpuLineChart combined={useCombinedValues} data={stats} />
+                <CpuLineChart addSumSeries={useCombinedValues} data={stats} />
               </Col>
               <Col mediumSize={6}>
                 <h5 className='text-xs-center'><Icon icon='memory' size={1} /> {_('statsMemory')}</h5>
@@ -131,11 +136,11 @@ export default injectIntl(
             <Row>
               <Col mediumSize={6}>
                 <h5 className='text-xs-center'><Icon icon='network' size={1} /> {_('statsNetwork')}</h5>
-                <VifLineChart combined={useCombinedValues} data={stats} />
+                <VifLineChart addSumSeries={useCombinedValues} data={stats} />
               </Col>
               <Col mediumSize={6}>
                 <h5 className='text-xs-center'><Icon icon='disk' size={1} /> {_('statDisk')}</h5>
-                <XvdLineChart combined={useCombinedValues} data={stats} />
+                <XvdLineChart addSumSeries={useCombinedValues} data={stats} />
               </Col>
             </Row>
           </Container>
