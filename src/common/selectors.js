@@ -414,12 +414,13 @@ export const createGetHostMetrics = hostSelector => _createCollectionWrapper(
     hostSelector,
     hosts => {
       const metrics = {
-        count: size(hosts),
+        count: 0,
         cpus: 0,
         memoryTotal: 0,
         memoryUsage: 0
       }
       forEach(hosts, host => {
+        metrics.count++
         metrics.cpus += host.cpus.cores
         metrics.memoryTotal += host.memory.size
         metrics.memoryUsage += host.memory.usage
