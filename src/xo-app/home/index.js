@@ -89,6 +89,12 @@ const OPTIONS = {
   }
 }
 
+const TYPES = {
+  VM: _('homeTypeVm'),
+  host: _('homeTypeHost'),
+  pool: _('homeTypePool')
+}
+
 const DEFAULT_TYPE = 'VM'
 
 @connectStore(() => {
@@ -311,7 +317,7 @@ export default class Home extends Component {
     return <Container>
       <Row className={styles.itemRowHeader}>
         <Col mediumSize={3}>
-          <DropdownButton id='typeMenu' bsStyle='info' title='Type'>
+          <DropdownButton id='typeMenu' bsStyle='info' title={TYPES[this.props.type]}>
             <MenuItem onClick={() => this._setType('VM')}>
               VM
             </MenuItem>

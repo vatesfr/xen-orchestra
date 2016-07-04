@@ -18,6 +18,7 @@ import {
   createCounter,
   createFilter,
   createGetObjectsOfType,
+  createGetHostMetrics,
   createSelector,
   createTop
 } from 'selectors'
@@ -188,24 +189,7 @@ class MissingPatchesPanel extends Component {
   const getHosts = createGetObjectsOfType('host')
   const getVms = createGetObjectsOfType('VM')
 
-  const getHostMetrics = createCollectionWrapper(
-    createSelector(
-      getHosts,
-      hosts => {
-        const metrics = {
-          cpus: 0,
-          memoryTotal: 0,
-          memoryUsage: 0
-        }
-        forEach(hosts, host => {
-          metrics.cpus += host.cpus.cores
-          metrics.memoryTotal += host.memory.size
-          metrics.memoryUsage += host.memory.usage
-        })
-        return metrics
-      }
-    )
-  )
+  const getHostMetrics = createGetHostMetrics(getHosts)
 
   const userSrs = createTop(
     createGetObjectsOfType('SR').filter(
@@ -305,7 +289,7 @@ export default class Overview extends Component {
                 </CardHeader>
                 <CardBlock>
                   <p className={styles.bigCardContent}>
-                    <Link to={{pathname: '/home', query: {t: 'pool'}}}>{this.props.nPools}</Link>
+                    <Link to='/home?t=pool'>{this.props.nPools}</Link>
                   </p>
                 </CardBlock>
               </Card>
@@ -317,7 +301,7 @@ export default class Overview extends Component {
                 </CardHeader>
                 <CardBlock>
                   <p className={styles.bigCardContent}>
-                    <Link to={{pathname: '/home', query: {t: 'host'}}}>{this.props.nHosts}</Link>
+                    <Link to='/home?t=host'>{this.props.nHosts}</Link>
                   </p>
                 </CardBlock>
               </Card>
@@ -329,7 +313,7 @@ export default class Overview extends Component {
                 </CardHeader>
                 <CardBlock>
                   <p className={styles.bigCardContent}>
-                    <Link to={{pathname: '/home', query: {t: 'VM'}}}>{this.props.nVms}</Link>
+                    <Link to='/home?t=VM'>{this.props.nVms}</Link>
                   </p>
                 </CardBlock>
               </Card>

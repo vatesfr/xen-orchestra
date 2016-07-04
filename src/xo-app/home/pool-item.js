@@ -5,7 +5,6 @@ import flatMap from 'lodash/flatMap'
 import Icon from 'icon'
 import map from 'lodash/map'
 import React from 'react'
-import reduce from 'lodash/reduce'
 import SingleLineRow from 'single-line-row'
 import size from 'lodash/size'
 import Tags from 'tags'
@@ -25,6 +24,7 @@ import {
 } from 'utils'
 import {
   createGetObjectsOfType,
+  createGetHostMetrics,
   createSelector
 } from 'selectors'
 
@@ -44,14 +44,7 @@ import styles from './index.css'
     }
   )
 
-  const getHostMetrics = createSelector(
-    getPoolHosts,
-    hosts => ({
-      count: size(hosts),
-      cpus: reduce(hosts, (total, host) => total + +host.cpus.cores, 0),
-      memory: reduce(hosts, (total, host) => total + +host.memory.size, 0)
-    })
-  )
+  const getHostMetrics = createGetHostMetrics(getPoolHosts)
 
   return {
     hostMetrics: getHostMetrics,
@@ -117,7 +110,7 @@ export default class PoolItem extends Component {
               {' '}
               {hostMetrics.cpus}x <Icon icon='cpu' />
               {' '}
-              {formatSize(hostMetrics.memory)}
+              {formatSize(hostMetrics.memoryTotal)}
             </span>
           </Col>
           <Col mediumSize={1} className={styles.itemExpandRow}>

@@ -9,6 +9,7 @@ import isFunction from 'lodash/isFunction'
 import keys from 'lodash/keys'
 import orderBy from 'lodash/orderBy'
 import pickBy from 'lodash/pickBy'
+import reduce from 'lodash/reduce'
 import size from 'lodash/size'
 import slice from 'lodash/slice'
 import { createSelector as create } from 'reselect'
@@ -408,3 +409,13 @@ export const createGetObjectMessages = objectSelector =>
 // const object = getObject(store.getState(), objectId)
 // ...
 export const getObject = createGetObject((_, id) => id)
+
+export const createGetHostMetrics = hostSelector => create(
+  hostSelector,
+  hosts => ({
+    count: size(hosts),
+    cpus: reduce(hosts, (total, host) => total + +host.cpus.cores, 0),
+    memoryTotal: reduce(hosts, (total, host) => total + +host.memory.size, 0),
+    memoryUsage: reduce(hosts, (total, host) => total + +host.memory.usage, 0)
+  })
+)
