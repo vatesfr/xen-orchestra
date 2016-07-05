@@ -9,6 +9,7 @@ import Link, { BlockLink } from 'link'
 import map from 'lodash/map'
 import Upgrade from 'xoa-upgrade'
 import React from 'react'
+import size from 'lodash/size'
 import SortedTable from 'sorted-table'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Card, CardBlock, CardHeader } from 'card'
@@ -280,7 +281,7 @@ export default class Overview extends Component {
   render () {
     const { props, state } = this
     const users = state && state.users
-    const nUsers = users && Object.keys(users).length
+    const nUsers = size(users)
 
     return process.env.XOA_PLAN > 2
         ? <Container>
