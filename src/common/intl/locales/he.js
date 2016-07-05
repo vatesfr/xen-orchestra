@@ -1676,6 +1676,30 @@ export default {
   // Original text: "No backups available"
   noBackup: undefined,
 
+  // Original text: "Shutdown host"
+  stopHostModalTitle: undefined,
+
+  // Original text: "This will shutdown your host. Do you want to continue?"
+  stopHostModalMessage: undefined,
+
+  // Original text: "Restart host"
+  restartHostModalTitle: undefined,
+
+  // Original text: "This will restart your host. Do you want to continue?"
+  restartHostModalMessage: undefined,
+
+  // Original text: "Restart VM"
+  restartVmModalTitle: undefined,
+
+  // Original text: "Are you sure you want to restart {name}?"
+  restartVmModalMessage: undefined,
+
+  // Original text: "Stop VM"
+  stopVmModalTitle: undefined,
+
+  // Original text: "Are you sure you want to stop {name}?"
+  stopVmModalMessage: undefined,
+
   // Original text: "Start VM{vms, plural, one {} other {s}}"
   startVmsModalTitle: undefined,
 

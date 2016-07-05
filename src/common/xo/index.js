@@ -306,7 +306,13 @@ export const fetchHostStats = ({ id }, granularity) => (
 )
 
 export const restartHost = ({ id }, force = false) => (
-  _call('host.restart', { id, force })
+  confirm({
+    title: _('restartHostModalTitle'),
+    body: _('restartHostModalMessage')
+  }).then(
+    () => _call('host.restart', { id, force }),
+    noop
+  )
 )
 
 export const restartHostAgent = ({ id }) => (
@@ -318,7 +324,13 @@ export const startHost = ({ id }) => (
 )
 
 export const stopHost = ({ id }) => (
-  _call('host.stop', { id })
+  confirm({
+    title: _('stopHostModalTitle'),
+    body: _('stopHostModalMessage')
+  }).then(
+    () => _call('host.stop', { id }),
+    noop
+  )
 )
 
 export const enableHost = ({ id }) => (
@@ -361,8 +373,14 @@ export const startVms = vms => (
   )
 )
 
-export const stopVm = ({ id }, force = false) => (
-  _call('vm.stop', { id, force })
+export const stopVm = (vm, force = false) => (
+  confirm({
+    title: _('stopVmModalTitle'),
+    body: _('stopVmModalMessage', { name: vm.name_label })
+  }).then(
+    () => _call('vm.stop', { id: resolveId(vm), force }),
+    noop
+  )
 )
 
 export const stopVms = (vms, force) => (
@@ -387,8 +405,14 @@ export const recoveryStartVm = ({ id }) => (
   _call('vm.recoveryStart', { id })
 )
 
-export const restartVm = ({ id }, force = false) => (
-  _call('vm.restart', { id, force })
+export const restartVm = (vm, force = false) => (
+  confirm({
+    title: _('restartVmModalTitle'),
+    body: _('restartVmModalMessage', { name: vm.name_label })
+  }).then(
+    () => _call('vm.restart', { id: resolveId(vm), force }),
+    noop
+  )
 )
 
 export const restartVms = (vms, force) => (
