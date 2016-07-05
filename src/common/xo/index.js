@@ -425,10 +425,10 @@ export const restartVms = (vms, force) => (
   )
 )
 
-export const cloneVm = (vm, fullCopy = false) => (
+export const cloneVm = ({ id, name_label: nameLabel }, fullCopy = false) => (
   _call('vm.clone', {
-    id: vm.id,
-    name: `${vm.name_label}_clone`,
+    id,
+    name: `${nameLabel}_clone`,
     full_copy: fullCopy
   })
 )
