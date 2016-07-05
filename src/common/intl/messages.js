@@ -712,8 +712,6 @@ var messages = {
   migrateVmNetwork: 'Network',
   migrateVmNoTargetHost: 'No target host',
   migrateVmNoTargetHostMessage: 'A target host is required to migrate a VM',
-  migrateVmBadPowerState: 'Bad power state: only running VMs can be migrated.',
-  migrateVmSomeBadPowerState: 'Some of the selected VMs are not running (e.g.: {vm}) and therefore will not be migrated.',
   importBackupModalTitle: 'Import a {name} Backup',
   importBackupModalStart: 'Start VM after restore',
   importBackupModalSelectBackup: 'Select your backup…',
