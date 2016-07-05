@@ -8,6 +8,7 @@ import debounce from 'lodash/debounce'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import invoke from 'invoke'
+import keys from 'lodash/keys'
 import isEmpty from 'lodash/isEmpty'
 import isString from 'lodash/isString'
 import Link from 'link'
@@ -510,6 +511,7 @@ export default class Home extends Component {
     const Item = items[type] || items[DEFAULT_TYPE]
     const options = OPTIONS[type]
     const { mainActions, otherActions } = options
+    const selectedItemsIds = keys(this._selectedItems)
 
     return <Page header={this._renderHeader()}>
       <div>
@@ -544,7 +546,7 @@ export default class Home extends Component {
                         btnStyle='secondary'
                         key={key}
                         {...action}
-                        handlerParam={this._selectedItems}
+                        handlerParam={selectedItemsIds}
                       />
                     ))}
                   </div>
@@ -552,7 +554,7 @@ export default class Home extends Component {
                 {otherActions && (
                   <DropdownButton bsStyle='secondary' id='advanced' title={_('homeMore')}>
                     {map(otherActions, (action, key) => (
-                      <MenuItem key={key} onClick={() => { action.handler(this._selectedItems, action.params) }}>
+                      <MenuItem key={key} onClick={() => { action.handler(selectedItemsIds, action.params) }}>
                         <Icon icon={action.icon} fixedWidth /> {_(action.labelId)}
                       </MenuItem>
                     ))}

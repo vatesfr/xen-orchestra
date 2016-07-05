@@ -428,12 +428,12 @@ export const stopVm = (vm, force = false) => (
   )
 )
 
-export const stopVms = (vms, force) => (
+export const stopVms = (vms, force = false) => (
   confirm({
     title: _('stopVmsModalTitle', { vms: vms.length }),
     body: _('stopVmsModalMessage', { vms: vms.length })
   }).then(
-    () => map(vms, vmId => stopVm({ id: vmId }, force)),
+    () => map(vms, vm => _call('vm.stop', { id: resolveId(vm), force })),
     noop
   )
 )
