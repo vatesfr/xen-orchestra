@@ -13,6 +13,7 @@ import {
 import Component from '../base-component'
 import propTypes from '../prop-types'
 import {
+  firstDefined,
   formatSizeRaw,
   parseSize
 } from '../utils'
@@ -167,19 +168,15 @@ export class SizeInput extends BaseComponent {
   constructor (props) {
     super(props)
 
-    const { defaultValue, value } = props
-    this.state = this._createState(
-      formatSizeRaw(defaultValue || value)
-    )
+    this.state = this._createState(formatSizeRaw(firstDefined(props.value, props.defaultValue, 0)))
   }
 
   componentWillReceiveProps (newProps) {
     const { value } = newProps
     if (value !== this.props.value && value !== this.state.bytes || 0) {
-      this.setState(this._createState(
-        formatSizeRaw(value)
-      ), () => {
-        this.refs.input.value = this.state.value
+      this.setState({
+        ...this._createState(formatSizeRaw(value)),
+        bytes: undefined
       })
     }
   }
@@ -206,7 +203,7 @@ export class SizeInput extends BaseComponent {
     }
     this.setState(this._createState(
       formatSizeRaw(newValue || 0)
-    ), () => { this.refs.input.value = this.state.value })
+    ))
   }
 
   _onChange = () =>
@@ -248,14 +245,13 @@ export class SizeInput extends BaseComponent {
       <input
         autoFocus={autoFocus}
         className='form-control'
-        defaultValue={value}
         min={0}
         onChange={this._updateValue}
         placeholder={placeholder}
         readOnly={readOnly}
-        ref='input'
         required={required}
         type='number'
+        value={value || ''}
       />
       <span className='input-group-btn'>
         <DropdownButton
