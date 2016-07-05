@@ -1439,10 +1439,6 @@ export default class Xapi extends XapiBase {
     mapVdisSrs
   } = {}) {
     const vm = this.getObject(vmId)
-    if (!isVmRunning(vm)) {
-      throw new Error('cannot migrate a non-running VM')
-    }
-
     const host = hostXapi.getObject(hostId)
 
     const accrossPools = vm.$pool !== host.$pool
