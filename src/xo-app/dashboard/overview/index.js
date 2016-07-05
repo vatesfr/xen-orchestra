@@ -278,7 +278,7 @@ export default class Overview extends Component {
     })
   }
   render () {
-    const { state } = this
+    const { props, state } = this
     const users = state && state.users
     const nUsers = users && Object.keys(users).length
 
@@ -288,11 +288,11 @@ export default class Overview extends Component {
             <Col mediumSize={4}>
               <Card>
                 <CardHeader>
-                  <Icon icon='pool' /> {_('poolPanel', { pools: this.props.nPools })}
+                  <Icon icon='pool' /> {_('poolPanel', { pools: props.nPools })}
                 </CardHeader>
                 <CardBlock>
                   <p className={styles.bigCardContent}>
-                    <Link to='/home?t=pool'>{this.props.nPools}</Link>
+                    <Link to='/home?t=pool'>{props.nPools}</Link>
                   </p>
                 </CardBlock>
               </Card>
@@ -300,11 +300,11 @@ export default class Overview extends Component {
             <Col mediumSize={4}>
               <Card>
                 <CardHeader>
-                  <Icon icon='host' /> {_('hostPanel', { hosts: this.props.nHosts })}
+                  <Icon icon='host' /> {_('hostPanel', { hosts: props.nHosts })}
                 </CardHeader>
                 <CardBlock>
                   <p className={styles.bigCardContent}>
-                    <Link to='/home?t=host'>{this.props.nHosts}</Link>
+                    <Link to='/home?t=host'>{props.nHosts}</Link>
                   </p>
                 </CardBlock>
               </Card>
@@ -312,11 +312,11 @@ export default class Overview extends Component {
             <Col mediumSize={4}>
               <Card>
                 <CardHeader>
-                  <Icon icon='vm' /> {_('vmPanel', { vms: this.props.nVms })}
+                  <Icon icon='vm' /> {_('vmPanel', { vms: props.nVms })}
                 </CardHeader>
                 <CardBlock>
                   <p className={styles.bigCardContent}>
-                    <Link to='/home?t=VM'>{this.props.nVms}</Link>
+                    <Link to='/home?s=&t=VM'>{props.nVms}</Link>
                   </p>
                 </CardBlock>
               </Card>
@@ -332,11 +332,11 @@ export default class Overview extends Component {
                   <ChartistGraph
                     data={{
                       labels: ['Used Memory', 'Total Memory'],
-                      series: [this.props.hostMetrics.memoryUsage, this.props.hostMetrics.memoryTotal - this.props.hostMetrics.memoryUsage]
+                      series: [props.hostMetrics.memoryUsage, props.hostMetrics.memoryTotal - props.hostMetrics.memoryUsage]
                     }}
                     options={{ donut: true, donutWidth: 40, showLabel: false }}
                     type='Pie' />
-                  <p className='text-xs-center'>{formatSize(this.props.hostMetrics.memoryUsage)} ({_('ofUsage')} {formatSize(this.props.hostMetrics.memoryTotal)})</p>
+                  <p className='text-xs-center'>{formatSize(props.hostMetrics.memoryUsage)} ({_('ofUsage')} {formatSize(props.hostMetrics.memoryTotal)})</p>
                 </CardBlock>
               </Card>
             </Col>
@@ -350,11 +350,11 @@ export default class Overview extends Component {
                     <ChartistGraph
                       data={{
                         labels: ['vCPUs', 'CPUs'],
-                        series: [this.props.vmMetrics.vcpus, this.props.hostMetrics.cpus]
+                        series: [props.vmMetrics.vcpus, props.hostMetrics.cpus]
                       }}
                       options={{ showLabel: false, showGrid: false, distributeSeries: true }}
                       type='Bar' />
-                    <p className='text-xs-center'>{this.props.vmMetrics.vcpus} vCPUS ({_('ofUsage')} {this.props.hostMetrics.cpus} CPUs)</p>
+                    <p className='text-xs-center'>{props.vmMetrics.vcpus} vCPUS ({_('ofUsage')} {props.hostMetrics.cpus} CPUs)</p>
                   </div>
                 </CardBlock>
               </Card>
@@ -366,14 +366,19 @@ export default class Overview extends Component {
                 </CardHeader>
                 <CardBlock>
                   <div className='ct-chart'>
-                    <ChartistGraph
-                      data={{
-                        labels: ['Used Space', 'Total Space'],
-                        series: [this.props.srMetrics.srUsage, this.props.srMetrics.srTotal - this.props.srMetrics.srUsage]
-                      }}
-                      options={{ donut: true, donutWidth: 40, showLabel: false }}
-                      type='Pie' />
-                    <p className='text-xs-center'>{formatSize(this.props.srMetrics.srUsage)} ({_('ofUsage')} {formatSize(this.props.srMetrics.srTotal)})</p>
+                    <Link to='/dashboard/health'>
+                      <ChartistGraph
+                        data={{
+                          labels: ['Used Space', 'Total Space'],
+                          series: [props.srMetrics.srUsage, props.srMetrics.srTotal - props.srMetrics.srUsage]
+                        }}
+                        options={{ donut: true, donutWidth: 40, showLabel: false }}
+                        type='Pie'
+                      />
+                      <p className='text-xs-center'>
+                        {formatSize(props.srMetrics.srUsage)} ({_('ofUsage')} {formatSize(props.srMetrics.srTotal)})
+                      </p>
+                    </Link>
                   </div>
                 </CardBlock>
               </Card>
@@ -386,8 +391,8 @@ export default class Overview extends Component {
                   <Icon icon='alarm' /> {_('alarmMessage')}
                 </CardHeader>
                 <CardBlock>
-                  <p className={`${styles.bigCardContent} ${this.props.nAlarmMessages > 0 ? 'text-warning' : ''}`}>
-                    {this.props.nAlarmMessages}
+                  <p className={styles.bigCardContent}>
+                    <Link to='/dashboard/health' className={props.nAlarmMessages > 0 ? 'text-warning' : ''}>{props.nAlarmMessages}</Link>
                   </p>
                 </CardBlock>
               </Card>
@@ -398,7 +403,9 @@ export default class Overview extends Component {
                   <Icon icon='task' /> {_('taskStatePanel')}
                 </CardHeader>
                 <CardBlock>
-                  <p className={styles.bigCardContent}>{this.props.nTasks}</p>
+                  <p className={styles.bigCardContent}>
+                    <Link to='/dashboard/health'>{props.nTasks}</Link>
+                  </p>
                 </CardBlock>
               </Card>
             </Col>
@@ -408,7 +415,9 @@ export default class Overview extends Component {
                   <Icon icon='user' /> {_('usersStatePanel')}
                 </CardHeader>
                 <CardBlock>
-                  <p className={styles.bigCardContent}>{nUsers}</p>
+                  <p className={styles.bigCardContent}>
+                    <Link to='/settings/users'>{nUsers}</Link>
+                  </p>
                 </CardBlock>
               </Card>
             </Col>
@@ -420,14 +429,17 @@ export default class Overview extends Component {
                   <Icon icon='vm-force-shutdown' /> {_('vmStatePanel')}
                 </CardHeader>
                 <CardBlock>
-                  <ChartistGraph
-                    data={{
-                      labels: ['Running', 'Halted', 'Other'],
-                      series: [this.props.vmMetrics.running, this.props.vmMetrics.halted, this.props.vmMetrics.other]
-                    }}
-                    options={{ showLabel: false }}
-                    type='Pie' />
-                  <p className='text-xs-center'>{this.props.vmMetrics.running} running ({this.props.vmMetrics.halted} halted)</p>
+                  <Link to='/home?s=power_state:running+&t=VM'>
+                    <ChartistGraph
+                      data={{
+                        labels: ['Running', 'Halted', 'Other'],
+                        series: [props.vmMetrics.running, props.vmMetrics.halted, props.vmMetrics.other]
+                      }}
+                      options={{ showLabel: false }}
+                      type='Pie'
+                    />
+                    <p className='text-xs-center'>{props.vmMetrics.running} running ({props.vmMetrics.halted} halted)</p>
+                  </Link>
                 </CardBlock>
               </Card>
             </Col>
@@ -437,14 +449,17 @@ export default class Overview extends Component {
                   <Icon icon='disk' /> {_('srTopUsageStatePanel')}
                 </CardHeader>
                 <CardBlock>
-                  <ChartistGraph
-                    style={{strokeWidth: '30px'}}
-                    data={{
-                      labels: map(this.props.userSrs, 'name_label'),
-                      series: map(this.props.userSrs, sr => (sr.physical_usage / sr.size) * 100)
-                    }}
-                    options={{ showLabel: false, showGrid: false, distributeSeries: true, high: 100 }}
-                    type='Bar' />
+                  <Link to='/dashboard/health'>
+                    <ChartistGraph
+                      style={{strokeWidth: '30px'}}
+                      data={{
+                        labels: map(props.userSrs, 'name_label'),
+                        series: map(props.userSrs, sr => (sr.physical_usage / sr.size) * 100)
+                      }}
+                      options={{ showLabel: false, showGrid: false, distributeSeries: true, high: 100 }}
+                      type='Bar'
+                    />
+                  </Link>
                 </CardBlock>
               </Card>
             </Col>
