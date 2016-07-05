@@ -269,11 +269,11 @@ export default {
   // Original text: "vCPUs"
   homeSortByvCPUs: 'vCPUs',
 
-  // Original text: "{displayed, number}x {vmIcon} (on {total, number})"
-  homeDisplayedVms: '{displayed, number}x {vmIcon} (sobre {total, number})',
+  // Original text: "{displayed, number}x {icon} (on {total, number})"
+  homeDisplayedItems: '{displayed, number}x {icon} (sobre {total, number})',
 
-  // Original text: "{selected, number}x {vmIcon} selected (on {total, number})"
-  homeSelectedVms: '{selected, number}x {vmIcon} selected (sobre {total, number})',
+  // Original text: "{selected, number}x {icon} selected (on {total, number})"
+  homeSelectedItems: '{selected, number}x {icon} selected (sobre {total, number})',
 
   // Original text: "More"
   homeMore: 'Mais',

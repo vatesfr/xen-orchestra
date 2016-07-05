@@ -315,9 +315,31 @@ export const restartHost = (host, force = false) => (
   )
 )
 
+export const restartHosts = (hosts, force) => {
+  const { length } = hosts
+  return confirm({
+    title: _('restartHostsModalTitle', { hosts: length }),
+    body: _('restartHostsModalMessage', { hosts: length })
+  }).then(
+    () => map(hosts, host => _call('host.restart', { id: resolveId(host), force })),
+    noop
+  )
+}
+
 export const restartHostAgent = host => (
   _call('host.restart_agent', { id: resolveId(host) })
 )
+
+export const restartHostsAgents = hosts => {
+  const { length } = hosts
+  return confirm({
+    title: _('restartHostsAgentsModalTitle', { hosts: length }),
+    body: _('restartHostsAgentsModalMessage', { hosts: length })
+  }).then(
+    () => map(hosts, host => restartHostAgent(host)),
+    noop
+  )
+}
 
 export const startHost = host => (
   _call('host.start', { id: resolveId(host) })
@@ -332,6 +354,17 @@ export const stopHost = host => (
     noop
   )
 )
+
+export const stopHosts = hosts => {
+  const { length } = hosts
+  return confirm({
+    title: _('stopHostsModalTitle', { hosts: length }),
+    body: _('stopHostsModalMessage', { hosts: length })
+  }).then(
+    () => map(hosts, host => _call('host.stop', { id: resolveId(host) })),
+    noop
+  )
+}
 
 export const enableHost = host => (
   _call('host.enable', { id: resolveId(host) })
@@ -348,6 +381,17 @@ export const getHostMissingPatches = host => (
 export const emergencyShutdownHost = host => (
   _call('host.emergencyShutdownHost', { host: resolveId(host) })
 )
+
+export const emergencyShutdownHosts = hosts => {
+  const { length } = hosts
+  return confirm({
+    title: _('emergencyShutdownHostsModalTitle', { hosts: length }),
+    body: _('emergencyShutdownHostsModalMessage', { hosts: length })
+  }).then(
+    () => map(hosts, host => emergencyShutdownHost(host)),
+    noop
+  )
+}
 
 export const installHostPatch = (host, { uuid }) => (
   _call('host.installPatch', { host: resolveId(host), patch: uuid })
