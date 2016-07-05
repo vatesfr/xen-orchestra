@@ -72,21 +72,20 @@ const OPTIONS = {
       homeFilterRunningHosts: 'power_state:running ',
       homeFilterTags: 'tags:'
     },
-    mainActions: [{
-      handler: stopHosts,
-      icon: 'host-stop'
-    }, {
-      handler: restartHostsAgents,
-      icon: 'host-restart-agent'
-    }, {
-      handler: emergencyShutdownHosts,
-      icon: 'host-emergency-shutdown'
-    }, {
-      handler: restartHosts,
-      icon: 'host-reboot'
-    }],
+    mainActions: [
+      { handler: stopHosts, icon: 'host-stop' },
+      { handler: restartHostsAgents, icon: 'host-restart-agent' },
+      { handler: emergencyShutdownHosts, icon: 'host-emergency-shutdown' },
+      { handler: restartHosts, icon: 'host-reboot' }
+    ],
     Item: HostItem,
-    showPoolsSelector: true
+    showPoolsSelector: true,
+    sortOptions: [
+      { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' },
+      { labelId: 'homeSortByPowerstate', sortBy: 'power_state', sortOrder: 'desc' },
+      { labelId: 'homeSortByRAM', sortBy: 'memory.size', sortOrder: 'desc' },
+      { labelId: 'homeSortByCpus', sortBy: 'CPUs.cpu_count', sortOrder: 'desc' }
+    ]
   },
   VM: {
     defaultFilter: 'power_state:running ',
@@ -97,22 +96,13 @@ const OPTIONS = {
       homeFilterRunningVms: 'power_state:running ',
       homeFilterTags: 'tags:'
     },
-    mainActions: [{
-      handler: stopVms,
-      icon: 'vm-stop'
-    }, {
-      handler: startVms,
-      icon: 'vm-start'
-    }, {
-      handler: restartVms,
-      icon: 'vm-reboot'
-    }, {
-      handler: migrateVms,
-      icon: 'vm-migrate'
-    }, {
-      handler: copyVms,
-      icon: 'vm-copy'
-    }],
+    mainActions: [
+      { handler: stopVms, icon: 'vm-stop' },
+      { handler: startVms, icon: 'vm-start' },
+      { handler: restartVms, icon: 'vm-reboot' },
+      { handler: migrateVms, icon: 'vm-migrate' },
+      { handler: copyVms, icon: 'vm-copy' }
+    ],
     otherActions: [{
       handler: restartVms,
       icon: 'vm-force-reboot',
@@ -134,7 +124,13 @@ const OPTIONS = {
     }],
     Item: VmItem,
     showPoolsSelector: true,
-    showHostsSelector: true
+    showHostsSelector: true,
+    sortOptions: [
+      { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' },
+      { labelId: 'homeSortByPowerstate', sortBy: 'power_state', sortOrder: 'desc' },
+      { labelId: 'homeSortByRAM', sortBy: 'memory.size', sortOrder: 'desc' },
+      { labelId: 'homeSortByCpus', sortBy: 'CPUs.number', sortOrder: 'desc' }
+    ]
   },
   pool: {
     defaultFilter: '',
@@ -142,7 +138,10 @@ const OPTIONS = {
       homeFilterTags: 'tags:'
     },
     getActions: noop,
-    Item: PoolItem
+    Item: PoolItem,
+    sortOptions: [
+      { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' }
+    ]
   }
 }
 
@@ -292,12 +291,6 @@ export default class Home extends Component {
   _expandAll = () => this.setState({ expandAll: !this.state.expandAll })
 
   _onPageSelection = (_, event) => { this.page = event.eventKey }
-
-  _sortByName = () => this.setState({ sortBy: 'name_label', sortOrder: 'asc' })
-  _sortByPowerState = () => this.setState({ sortBy: 'power_state', sortOrder: 'desc' })
-  _sortByRam = () => this.setState({ sortBy: 'memory.size', sortOrder: 'desc' })
-  _sortByVcpus = () => this.setState({ sortBy: 'CPUs.number', sortOrder: 'desc' })
-  _sortByCpus = () => this.setState({ sortBy: 'CPUs.cpu_count', sortOrder: 'desc' })
 
   _tick = isCriteria => <Icon icon={isCriteria ? 'success' : undefined} fixedWidth />
 
@@ -627,44 +620,17 @@ export default class Home extends Component {
                   <Button className='btn-link'><Icon icon='tags' /> {_('homeAllTags')}</Button>
                 </OverlayTrigger>
                 {' '}
-                {type !== 'pool' && (
-                  <DropdownButton bsStyle='link' id='sort' title={_('homeSortBy')}>
-                    <MenuItem onClick={this._sortByName}>
-                      {this._tick(sortBy === 'name_label')}
-                      {sortBy === 'name_label'
-                      ? <strong>{_('homeSortByName')}</strong>
-                      : _('homeSortByName')}
+                <DropdownButton bsStyle='link' id='sort' title={_('homeSortBy')}>
+                  {map(options.sortOptions, ({ labelId, sortBy: _sortBy, sortOrder }) => (
+                    <MenuItem onClick={() => this.setState({ sortBy: _sortBy, sortOrder })}>
+                      {this._tick(_sortBy === sortBy)}
+                      {_sortBy === sortBy
+                        ? <strong>{_(labelId)}</strong>
+                        : _(labelId)
+                      }
                     </MenuItem>
-                    <MenuItem onClick={this._sortByPowerState}>
-                      {this._tick(sortBy === 'power_state')}
-                      {sortBy === 'power_state'
-                      ? <strong>{_('homeSortByPowerstate')}</strong>
-                      : _('homeSortByPowerstate')}
-                    </MenuItem>
-                    <MenuItem onClick={this._sortByRam}>
-                      {this._tick(sortBy === 'memory.size')}
-                      {sortBy === 'memory.size'
-                      ? <strong>{_('homeSortByRAM')}</strong>
-                      : _('homeSortByRAM')}
-                    </MenuItem>
-                    {type === 'VM'
-                     ? (
-                      <MenuItem onClick={this._sortByVcpus}>
-                        {this._tick(sortBy === 'CPUs.number')}
-                        {sortBy === 'CPUs.number'
-                        ? <strong>{_('homeSortByvCPUs')}</strong>
-                        : _('homeSortByvCPUs')}
-                      </MenuItem>
-                     ) : (
-                      <MenuItem onClick={this._sortByCpus}>
-                        {this._tick(sortBy === 'CPUs.cpu_count')}
-                        {sortBy === 'CPUs.cpu_count'
-                        ? <strong>{_('homeSortByCpus')}</strong>
-                        : _('homeSortByCpus')}
-                      </MenuItem>
-                    )}
-                  </DropdownButton>
-                )}
+                  ))}
+                </DropdownButton>
               </div>
             }
             </Col>
