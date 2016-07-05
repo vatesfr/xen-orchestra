@@ -85,23 +85,28 @@ const LOG_COLUMNS = [
   },
   {
     name: _('jobId'),
-    itemRenderer: log => log.jobId
+    itemRenderer: log => log.jobId,
+    sortCriteria: log => log.jobId
   },
   {
     name: _('job'),
-    itemRenderer: log => jobKeyToLabel[log.key]
+    itemRenderer: log => jobKeyToLabel[log.key],
+    sortCriteria: log => log.key
   },
   {
     name: _('jobStart'),
-    itemRenderer: log => log.start && <FormattedDate value={new Date(log.start)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />
+    itemRenderer: log => log.start && <FormattedDate value={new Date(log.start)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />,
+    sortCriteria: log => log.start
   },
   {
     name: _('jobEnd'),
-    itemRenderer: log => log.end && <FormattedDate value={new Date(log.end)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />
+    itemRenderer: log => log.end && <FormattedDate value={new Date(log.end)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />,
+    sortCriteria: log => log.end
   },
   {
     name: _('jobDuration'),
-    itemRenderer: log => log.duration && <FormattedDuration duration={log.duration} />
+    itemRenderer: log => log.duration && <FormattedDuration duration={log.duration} />,
+    sortCriteria: log => log.duration
   },
   {
     name: _('jobStatus'),
@@ -119,7 +124,8 @@ const LOG_COLUMNS = [
       <span className='pull-right'>
         <ActionRowButton btnStyle='default' handler={deleteJobsLog} handlerParam={log.logKey} icon='delete' />
       </span>
-    </span>
+    </span>,
+    sortCriteria: log => (log.error || log.hasErrors) && ' ' || log.status
   }
 ]
 
