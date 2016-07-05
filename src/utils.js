@@ -8,6 +8,7 @@ import humanFormat from 'human-format'
 import invert from 'lodash/invert'
 import isArray from 'lodash/isArray'
 import isString from 'lodash/isString'
+import keys from 'lodash/keys'
 import kindOf from 'kindof'
 import multiKeyHashInt from 'multikey-hash'
 import xml2js from 'xml2js'
@@ -232,10 +233,12 @@ export const parseXml = (function () {
 // - methods are already bound and chainable
 export const lightSet = collection => {
   const data = createRawObject()
-  collection && forEach(collection, value => {
-    data[value] = true
-  })
-  collection = null
+  if (collection) {
+    forEach(collection, value => {
+      data[value] = true
+    })
+    collection = null
+  }
 
   const set = {
     add: value => {
@@ -252,7 +255,8 @@ export const lightSet = collection => {
       delete data[value]
       return set
     },
-    has: value => data[value]
+    has: value => data[value],
+    toArray: () => keys(data)
   }
   return set
 }

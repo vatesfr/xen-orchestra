@@ -418,7 +418,7 @@ const apiHelpers = {
     // Handles both properties and wrapped models.
     const properties = user.properties || user
 
-    return pick(properties, 'id', 'email', 'groups', 'permission', 'provider')
+    return pick(properties, 'id', 'email', 'groups', 'permission', 'preferences', 'provider')
   },
 
   throw (errorId, data) {

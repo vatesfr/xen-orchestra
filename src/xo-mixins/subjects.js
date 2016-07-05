@@ -17,8 +17,9 @@ import {
   Users
 } from '../models/user'
 import {
-  createRawObject,
   forEach,
+  isEmpty,
+  lightSet,
   mapToArray,
   noop,
   pCatch
@@ -37,6 +38,11 @@ class NoSuchUser extends NoSuchObject {
     super(id, 'user')
   }
 }
+
+const addToArraySet = (set, value) => set && !includes(set, value)
+  ? set.concat(value)
+  : [ value ]
+const removeFromArraySet = (set, value) => set && filter(set, current => current !== value)
 
 // ===================================================================
 
@@ -109,7 +115,8 @@ export default class {
 
     name = email,
     password,
-    permission
+    permission,
+    preferences
   }) {
     const user = await this.getUser(id)
 
@@ -122,6 +129,18 @@ export default class {
     if (password) {
       user.pw_hash = await hash(password)
     }
+
+    const newPreferences = { ...user.preferences }
+    forEach(preferences, (value, name) => {
+      if (value == null) {
+        delete newPreferences[name]
+      } else {
+        newPreferences[name] = value
+      }
+    })
+    user.preferences = isEmpty(newPreferences)
+      ? undefined
+      : newPreferences
 
     // TODO: remove
     user.email = user.name
@@ -264,15 +283,8 @@ export default class {
       this.getGroup(groupId)
     ])
 
-    const {groups} = user
-    if (!includes(groups, groupId)) {
-      user.groups.push(groupId)
-    }
-
-    const {users} = group
-    if (!includes(users, userId)) {
-      group.users.push(userId)
-    }
+    user.groups = addToArraySet(user.groups, groupId)
+    group.users = addToArraySet(group.users, userId)
 
     await Promise.all([
       this._users.save(user),
@@ -281,14 +293,12 @@ export default class {
   }
 
   async _removeUserFromGroup (userId, group) {
-    // TODO: maybe not iterating through the whole arrays?
-    group.users = filter(group.users, id => id !== userId)
+    group.users = removeFromArraySet(group.users, userId)
     return this._groups.save(group)
   }
 
   async _removeGroupFromUser (groupId, user) {
-    // TODO: maybe not iterating through the whole arrays?
-    user.groups = filter(user.groups, id => id !== groupId)
+    user.groups = removeFromArraySet(user.groups, groupId)
     return this._users.save(user)
   }
 
@@ -307,39 +317,36 @@ export default class {
   async setGroupUsers (groupId, userIds) {
     const group = await this.getGroup(groupId)
 
-    const newUsersIds = createRawObject()
-    const oldUsersIds = createRawObject()
-    forEach(userIds, id => {
-      newUsersIds[id] = null
-    })
+    let newUsersIds = lightSet(userIds)
+    const oldUsersIds = []
     forEach(group.users, id => {
-      if (id in newUsersIds) {
-        delete newUsersIds[id]
+      if (newUsersIds.has(id)) {
+        newUsersIds.delete(id)
       } else {
-        oldUsersIds[id] = null
+        oldUsers.push(id)
       }
     })
+    newUsersIds = newUsersIds.toArray()
 
+    const getUser = ::this.getUser
     const [newUsers, oldUsers] = await Promise.all([
-      Promise.all(mapToArray(newUsersIds, (_, id) => this.getUser(id))),
-      Promise.all(mapToArray(oldUsersIds, (_, id) => this.getUser(id)))
+      Promise.all(newUsersIds.map(getUser)),
+      Promise.all(oldUsersIds.map(getUser))
     ])
 
     forEach(newUsers, user => {
-      const {groups} = user
-      if (!includes(groups, groupId)) {
-        user.groups.push(groupId)
-      }
+      user.groups = addToArraySet(user.groups, groupId)
     })
     forEach(oldUsers, user => {
-      user.groups = filter(user.groups, id => id !== groupId)
+      user.groups = removeFromArraySet(user.groups, groupId)
     })
 
     group.users = userIds
 
+    const saveUser = ::this._users.save
     await Promise.all([
-      Promise.all(mapToArray(newUsers, ::this._users.save)),
-      Promise.all(mapToArray(oldUsers, ::this._users.save)),
+      Promise.all(mapToArray(newUsers, saveUser)),
+      Promise.all(mapToArray(oldUsers, saveUser)),
       this._groups.save(group)
     ])
   }

@@ -27,16 +27,19 @@ export default class {
   }
 
   async _getAclsForUser (userId) {
-    const subjects = (await this._xo.getUser(userId)).groups.concat(userId)
+    const user = await this._xo.getUser(userId)
+    const { groups } = user
+
+    const subjects = groups
+      ? groups.concat(userId)
+      : [ userId ]
 
     const acls = []
-    const pushAcls = (function (push) {
-      return function (entries) {
-        push.apply(acls, entries)
-      }
+    const pushAcls = (push => entries => {
+      push.apply(acls, entries)
     })(acls.push)
 
-    const {_acls: collection} = this
+    const collection = this._acls
     await Promise.all(mapToArray(
       subjects,
       subject => collection.get({subject}).then(pushAcls)

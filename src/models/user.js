@@ -1,3 +1,5 @@
+import isEmpty from 'lodash/isEmpty'
+
 import Collection from '../collection/redis'
 import Model from '../model'
 import { forEach } from '../utils'
@@ -11,6 +13,18 @@ User.prototype.default = {
 }
 
 // -------------------------------------------------------------------
+
+const parseProp = (obj, name) => {
+  const value = obj[name]
+  if (value == null) {
+    return
+  }
+  try {
+    return JSON.parse(value)
+  } catch (error) {
+    console.warn('cannot parse user[%s] (%s):', name, value, error)
+  }
+}
 
 export class Users extends Collection {
   get Model () {
@@ -35,7 +49,13 @@ export class Users extends Collection {
 
   async save (user) {
     // Serializes.
-    user.groups = JSON.stringify(user.groups)
+    let tmp
+    if (!isEmpty(tmp = user.groups)) {
+      user.groups = JSON.stringify(tmp)
+    }
+    if (!isEmpty(tmp = user.preferences)) {
+      user.preferences = JSON.stringify(tmp)
+    }
 
     return /* await */ this.update(user)
   }
@@ -45,13 +65,11 @@ export class Users extends Collection {
 
     // Deserializes
     forEach(users, user => {
-      const {groups} = user
-      try {
-        user.groups = groups ? JSON.parse(groups) : []
-      } catch (_) {
-        console.warn('cannot parse user.groups:', groups)
-        user.groups = []
-      }
+      let tmp
+      user.groups = ((tmp = parseProp(user, 'groups')) && tmp.length)
+        ? tmp
+        : undefined
+      user.preferences = parseProp(user, 'preferences')
     })
 
     return users
