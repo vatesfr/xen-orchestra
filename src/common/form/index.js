@@ -168,30 +168,40 @@ export class SizeInput extends BaseComponent {
   constructor (props) {
     super(props)
 
-    this.state = this._createState(formatSizeRaw(firstDefined(props.value, props.defaultValue, 0)))
+    this.state = this._createStateFromBytes(firstDefined(props.value, props.defaultValue, 0))
   }
 
   componentWillReceiveProps (newProps) {
     const { value } = newProps
-    if (value !== this.props.value && value !== this.state.bytes || 0) {
+    if (value == null && value === this.props.value) {
+      return
+    }
+
+    const { _bytes, _unit, _value } = this
+    this._bytes = this._unit = this._value = null
+
+    if (value === _bytes) {
+      // Update input value
       this.setState({
-        ...this._createState(formatSizeRaw(value)),
-        bytes: undefined
+        unit: _unit,
+        value: _value
       })
+    } else {
+      this.setState(this._createStateFromBytes(value))
     }
   }
 
-  _createState = humanSize => {
-    const { defaultUnit } = this.props
+  _createStateFromBytes = bytes => {
+    const humanSize = formatSizeRaw(bytes)
     return {
-      unit: humanSize && humanSize.value ? humanSize.prefix + 'B' : defaultUnit || DEFAULT_UNIT,
+      unit: humanSize && humanSize.value ? humanSize.prefix + 'B' : this.props.defaultUnit || DEFAULT_UNIT,
       value: humanSize ? round(humanSize.value, 3) : ''
     }
   }
 
   get value () {
     const { unit, value } = this.state
-    return value ? parseSize(value + ' ' + unit) : undefined
+    return parseSize(value + ' ' + unit)
   }
 
   set value (newValue) {
@@ -201,27 +211,39 @@ export class SizeInput extends BaseComponent {
     ) {
       throw new Error('cannot set value of controlled SizeInput')
     }
-    this.setState(this._createState(
-      formatSizeRaw(newValue || 0)
-    ))
+    this.setState(this._createStateFromBytes(newValue))
   }
 
-  _onChange = () =>
-    this.props.onChange && this.props.onChange(this.value)
+  _onChange = value =>
+    this.props.onChange && this.props.onChange(value)
 
   _updateValue = event => {
     const { value } = event.target
     if (this.props.value != null) {
-      this.setState({
-        value,
-        bytes: parseSize((value || 0) + ' ' + this.state.unit)
-      }, () => this._onChange())
+      this._value = value
+      this._unit = this.state.unit
+      this._bytes = parseSize((value || 0) + ' ' + this.state.unit)
+
+      this._onChange(this._bytes)
     } else {
-      this._onChange()
+      this.setState({ value }, () => {
+        this._onChange(this.value)
+      })
     }
   }
-  _updateUnit = unit =>
-    this.setState({ unit }, () => this._onChange())
+  _updateUnit = unit => {
+    if (this.props.value != null) {
+      this._value = this.state.value
+      this._unit = unit
+      this._bytes = parseSize(this.state.value + ' ' + unit)
+
+      this._onChange(this._bytes)
+    } else {
+      this.setState({ unit }, () => {
+        this._onChange(this.value)
+      })
+    }
+  }
 
   render () {
     const {
@@ -251,7 +273,7 @@ export class SizeInput extends BaseComponent {
         readOnly={readOnly}
         required={required}
         type='number'
-        value={value || ''}
+        value={value}
       />
       <span className='input-group-btn'>
         <DropdownButton
