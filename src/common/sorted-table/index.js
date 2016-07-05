@@ -1,7 +1,8 @@
-import React from 'react'
 import ceil from 'lodash/ceil'
 import debounce from 'lodash/debounce'
+import isFunction from 'lodash/isFunction'
 import map from 'lodash/map'
+import React from 'react'
 import { Pagination } from 'react-bootstrap-4/lib'
 import { Portal } from 'react-overlays'
 
@@ -9,6 +10,7 @@ import Component from '../base-component'
 import Icon from '../icon'
 import propTypes from '../prop-types'
 import SingleLineRow from '../single-line-row'
+import { BlockLink } from '../link'
 import { Container, Col } from '../grid'
 import { create as createMatcher } from '../complex-matcher'
 import {
@@ -126,6 +128,10 @@ const DEFAULT_ITEMS_PER_PAGE = 10
   filterContainer: propTypes.func,
   itemsPerPage: propTypes.number,
   paginationContainer: propTypes.func,
+  rowLink: propTypes.oneOfType([
+    propTypes.func,
+    propTypes.string
+  ]),
   userData: propTypes.any
 })
 export default class SortedTable extends Component {
@@ -220,6 +226,7 @@ export default class SortedTable extends Component {
     const {
       paginationContainer,
       filterContainer,
+      rowLink,
       userData
     } = props
 
@@ -265,15 +272,23 @@ export default class SortedTable extends Component {
             </tr>
           </thead>
           <tbody>
-            {map(this._getVisibleItems(), (item, key) => (
-              <tr key={key}>
-                {map(props.columns, (column, key) => (
-                  <td key={key}>
-                    {column.itemRenderer(item, userData)}
-                  </td>
-                ))}
-              </tr>
-            ))}
+            {map(this._getVisibleItems(), (item, i) => {
+              const colums = map(props.columns, (column, key) => (
+                <td key={key}>
+                  {column.itemRenderer(item, userData)}
+                </td>
+              ))
+
+              const { id = i } = item
+
+              return rowLink
+                ? <BlockLink
+                  key={id}
+                  tagName='tr'
+                  to={isFunction(rowLink) ? rowLink(item, userData) : rowLink}
+                >{colums}</BlockLink>
+                : <tr key={id}>{colums}</tr>
+            })}
           </tbody>
         </table>
         {(!paginationContainer || !filterContainer) && (
