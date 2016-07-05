@@ -297,70 +297,70 @@ export const editPool = (pool, props) => (
 
 // Host --------------------------------------------------------------
 
-export const editHost = ({ id }, props) => (
-  _call('host.set', { ...props, id })
+export const editHost = (host, props) => (
+  _call('host.set', { ...props, id: resolveId(host) })
 )
 
-export const fetchHostStats = ({ id }, granularity) => (
-  _call('host.stats', { host: id, granularity })
+export const fetchHostStats = (host, granularity) => (
+  _call('host.stats', { host: resolveId(host), granularity })
 )
 
-export const restartHost = ({ id }, force = false) => (
+export const restartHost = (host, force = false) => (
   confirm({
     title: _('restartHostModalTitle'),
     body: _('restartHostModalMessage')
   }).then(
-    () => _call('host.restart', { id, force }),
+    () => _call('host.restart', { id: resolveId(host), force }),
     noop
   )
 )
 
-export const restartHostAgent = ({ id }) => (
-  _call('host.restart_agent', { id })
+export const restartHostAgent = host => (
+  _call('host.restart_agent', { id: resolveId(host) })
 )
 
-export const startHost = ({ id }) => (
-  _call('host.start', { id })
+export const startHost = host => (
+  _call('host.start', { id: resolveId(host) })
 )
 
-export const stopHost = ({ id }) => (
+export const stopHost = host => (
   confirm({
     title: _('stopHostModalTitle'),
     body: _('stopHostModalMessage')
   }).then(
-    () => _call('host.stop', { id }),
+    () => _call('host.stop', { id: resolveId(host) }),
     noop
   )
 )
 
-export const enableHost = ({ id }) => (
-  _call('host.enable', { id })
+export const enableHost = host => (
+  _call('host.enable', { id: resolveId(host) })
 )
 
-export const disableHost = ({ id }) => (
-  _call('host.disable', { id })
+export const disableHost = host => (
+  _call('host.disable', { id: resolveId(host) })
 )
 
-export const getHostMissingPatches = ({ id }) => (
-  _call('host.listMissingPatches', { host: id })
+export const getHostMissingPatches = host => (
+  _call('host.listMissingPatches', { host: resolveId(host) })
 )
 
-export const emergencyShutdownHost = ({ id }) => (
-  _call('host.emergencyShutdownHost', { host: id })
+export const emergencyShutdownHost = host => (
+  _call('host.emergencyShutdownHost', { host: resolveId(host) })
 )
 
-export const installHostPatch = ({ id }, { uuid }) => (
-  _call('host.installPatch', { host: id, patch: uuid })
+export const installHostPatch = (host, { uuid }) => (
+  _call('host.installPatch', { host: resolveId(host), patch: uuid })
 )
 
-export const installAllHostPatches = ({ id }) => (
-  _call('host.installAllPatches', { host: id })
+export const installAllHostPatches = host => (
+  _call('host.installAllPatches', { host: resolveId(host) })
 )
 
 // VM ----------------------------------------------------------------
 
-export const startVm = ({ id }) => (
-  _call('vm.start', { id })
+export const startVm = vm => (
+  _call('vm.start', { id: resolveId(vm) })
 )
 
 export const startVms = vms => (
@@ -393,16 +393,16 @@ export const stopVms = (vms, force) => (
   )
 )
 
-export const suspendVm = ({ id }) => (
-  _call('vm.suspend', { id })
+export const suspendVm = vm => (
+  _call('vm.suspend', { id: resolveId(vm) })
 )
 
-export const resumeVm = ({ id }) => (
-  _call('vm.resume', { id })
+export const resumeVm = vm => (
+  _call('vm.resume', { id: resolveId(vm) })
 )
 
-export const recoveryStartVm = ({ id }) => (
-  _call('vm.recoveryStart', { id })
+export const recoveryStartVm = vm => (
+  _call('vm.recoveryStart', { id: resolveId(vm) })
 )
 
 export const restartVm = (vm, force = false) => (
@@ -482,7 +482,7 @@ export const copyVms = vms => {
   )
 }
 
-export const convertVmToTemplate = ({ id }) => (
+export const convertVmToTemplate = vm => (
   confirm({
     title: 'Convert to template',
     body: <div>
@@ -490,13 +490,13 @@ export const convertVmToTemplate = ({ id }) => (
       <p>This operation is definitive.</p>
     </div>
   }).then(
-    () => _call('vm.convert', { id }),
+    () => _call('vm.convert', { id: resolveId(vm) }),
     noop
   )
 )
 
-export const snapshotVm = ({ id }) => (
-  _call('vm.snapshot', { id })
+export const snapshotVm = vm => (
+  _call('vm.snapshot', { id: resolveId(vm) })
 )
 
 export const snapshotVms = vms => (
@@ -580,12 +580,12 @@ export const getCloudInitConfig = template => (
   _call('vm.getCloudInitConfig', { template })
 )
 
-export const deleteVm = ({ id }) => (
+export const deleteVm = vm => (
   confirm({
     title: _('deleteVmModalTitle'),
     body: _('deleteVmModalMessage')
   }).then(
-    () => _call('vm.delete', { id, delete_disks: true }),
+    () => _call('vm.delete', { id: resolveId(vm), delete_disks: true }),
     noop
   )
 )
@@ -608,16 +608,16 @@ export const importDeltaBackup = ({remote, file, sr}) => (
   _call('vm.importDeltaBackup', resolveIds({remote, filePath: file, sr}))
 )
 
-export const revertSnapshot = ({ id }) => (
-  _call('vm.revert', { id })
+export const revertSnapshot = vm => (
+  _call('vm.revert', { id: resolveId(vm) })
 )
 
-export const editVm = ({ id }, props) => (
-  _call('vm.set', { ...props, id })
+export const editVm = (vm, props) => (
+  _call('vm.set', { ...props, id: resolveId(vm) })
 )
 
-export const fetchVmStats = ({ id }, granularity) => (
-  _call('vm.stats', { id, granularity })
+export const fetchVmStats = (vm, granularity) => (
+  _call('vm.stats', { id: resolveId(vm), granularity })
 )
 
 export const importVm = (file, sr) => {
@@ -645,9 +645,9 @@ export const importVms = (files, sr) => (
   ))
 )
 
-export const exportVm = ({ id }) => {
-  info(_('startVmExport'), id)
-  return _call('vm.export', { vm: id })
+export const exportVm = vm => {
+  info(_('startVmExport'), vm.id)
+  return _call('vm.export', { vm: resolveId(vm) })
     .then(({ $getFrom: url }) => window.open(`.${url}`))
 }
 
@@ -692,38 +692,38 @@ export const createDisk = (name, size, sr) => (
 
 // VDI ---------------------------------------------------------------
 
-export const editVdi = ({ id }, props) => (
-  _call('vdi.set', { ...props, id })
+export const editVdi = (vdi, props) => (
+  _call('vdi.set', { ...props, id: resolveId(vdi) })
 )
 
-export const deleteVdi = ({ id }) => (
-  _call('vdi.delete', { id })
+export const deleteVdi = vdi => (
+  _call('vdi.delete', { id: resolveId(vdi) })
 )
 
 export const migrateVdi = (vdi, sr) => (
-  _call('vdi.migrate', { id: vdi.id, sr_id: sr.id })
+  _call('vdi.migrate', { id: resolveId(vdi), sr_id: resolveId(sr) })
 )
 
 // VDB ---------------------------------------------------------------
 
-export const connectVbd = ({ id }) => (
-  _call('vbd.connect', { id })
+export const connectVbd = vbd => (
+  _call('vbd.connect', { id: resolveId(vbd) })
 )
 
-export const disconnectVbd = ({ id }) => (
-  _call('vbd.disconnect', { id })
+export const disconnectVbd = vbd => (
+  _call('vbd.disconnect', { id: resolveId(vbd) })
 )
 
-export const deleteVbd = ({ id }) => (
-  _call('vbd.delete', { id })
+export const deleteVbd = vbd => (
+  _call('vbd.delete', { id: resolveId(vbd) })
 )
 
-export const editVbd = ({ id }, props) => (
-  _call('vbd.set', { ...props, id })
+export const editVbd = (vbd, props) => (
+  _call('vbd.set', { ...props, id: resolveId(vbd) })
 )
 
-export const setBootableVbd = ({ id }, bootable) => (
-  _call('vbd.setBootable', { vbd: id, bootable })
+export const setBootableVbd = (vbd, bootable) => (
+  _call('vbd.setBootable', { vbd: resolveId(vbd), bootable })
 )
 
 // VIF ---------------------------------------------------------------
@@ -742,8 +742,8 @@ export const deleteVif = vif => (
 
 // Network -----------------------------------------------------------
 
-export const editNetwork = ({ id }, props) => (
-  _call('network.set', { ...props, id })
+export const editNetwork = (network, props) => (
+  _call('network.set', { ...props, id: resolveId(network) })
 )
 
 import CreateNetworkModalBody from './create-network-modal'
@@ -808,7 +808,7 @@ export const deletePif = pif => (
 
 // SR ----------------------------------------------------------------
 
-export const deleteSr = ({ id }) => (
+export const deleteSr = sr => (
   confirm({
     title: 'Delete SR',
     body: <div>
@@ -816,12 +816,12 @@ export const deleteSr = ({ id }) => (
       <p>This operation is definitive, and ALL DISKS WILL BE LOST FOREVER.</p>
     </div>
   }).then(
-    () => _call('sr.destroy', { id }),
+    () => _call('sr.destroy', { id: resolveId(sr) }),
     noop
   )
 )
 
-export const forgetSr = ({ id }) => (
+export const forgetSr = sr => (
   confirm({
     title: 'Forget SR',
     body: <div>
@@ -829,31 +829,31 @@ export const forgetSr = ({ id }) => (
       <p>VDIs on this storage wont be removed.</p>
     </div>
   }).then(
-    () => _call('sr.forget', { id }),
+    () => _call('sr.forget', { id: resolveId(sr) }),
     noop
   )
 )
 
-export const reconnectAllHostsSr = ({ id }) => (
+export const reconnectAllHostsSr = sr => (
   confirm({
     title: 'Reconnect all hosts',
     body: <div>
       <p>This will reconnect this SR to all its hosts</p>
     </div>
   }).then(
-    () => _call('sr.connectAllPbds', { id }),
+    () => _call('sr.connectAllPbds', { id: resolveId(sr) }),
     noop
   )
 )
 
-export const disconnectAllHostsSr = ({ id }) => (
+export const disconnectAllHostsSr = sr => (
   confirm({
     title: 'Disconnect all hosts',
     body: <div>
       <p>This will disconnect this SR to all its hosts</p>
     </div>
   }).then(
-    () => _call('sr.disconnectAllPbds', { id }),
+    () => _call('sr.disconnectAllPbds', { id: resolveId(sr) }),
     noop
   )
 )
@@ -866,38 +866,38 @@ export const editSr = (sr, { nameDescription, nameLabel }) => (
   })
 )
 
-export const rescanSr = ({ id }) => (
-  _call('sr.scan', { id })
+export const rescanSr = sr => (
+  _call('sr.scan', { id: resolveId(sr) })
 )
 
 // PBDs --------------------------------------------------------------
 
-export const connectPbd = ({ id }) => (
-  _call('pbd.connect', { id })
+export const connectPbd = pbd => (
+  _call('pbd.connect', { id: resolveId(pbd) })
 )
 
-export const disconnectPbd = ({ id }) => (
-  _call('pbd.disconnect', { id })
+export const disconnectPbd = pbd => (
+  _call('pbd.disconnect', { id: resolveId(pbd) })
 )
 
-export const deletePbd = ({ id }) => (
-  _call('pbd.delete', { id })
+export const deletePbd = pbd => (
+  _call('pbd.delete', { id: resolveId(pbd) })
 )
 
 // Messages ----------------------------------------------------------
 
-export const deleteMessage = ({ id }) => (
-  _call('message.delete', { id })
+export const deleteMessage = pbd => (
+  _call('message.delete', { id: resolveId(pbd) })
 )
 
 // Tags --------------------------------------------------------------
 
-export const addTag = (id, tag) => (
-  _call('tag.add', { id, tag })
+export const addTag = (object, tag) => (
+  _call('tag.add', { id: resolveId(object), tag })
 )
 
-export const removeTag = (id, tag) => (
-  _call('tag.remove', { id, tag })
+export const removeTag = (object, tag) => (
+  _call('tag.remove', { id: resolveId(object), tag })
 )
 
 // Tasks --------------------------------------------------------------
