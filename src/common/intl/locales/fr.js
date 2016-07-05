@@ -279,7 +279,7 @@ export default {
   srStatePanel: 'État du stockage',
   taskStatePanel: 'Tâches en cours',
   usersStatePanel: 'Utilisateurs',
-  ofUsage: 'sur',
+  ofUsage: '{usage} (sur {total})',
   noSrs: 'Aucun stockage',
   srName: 'Nom',
   srPool: 'Pool',
