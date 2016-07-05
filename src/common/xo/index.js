@@ -373,12 +373,12 @@ export const startVms = vms => (
   )
 )
 
-export const stopVm = ({ id }, force = false) => (
+export const stopVm = (vm, force = false) => (
   confirm({
-    title: _('stopVmsModalTitle'),
-    body: _('stopVmsModalMessage')
+    title: _('stopVmModalTitle'),
+    body: _('stopVmModalMessage', { name: vm.name_label })
   }).then(
-    () => _call('vm.stop', { id, force }),
+    () => _call('vm.stop', { id: resolveId(vm), force }),
     noop
   )
 )
@@ -405,12 +405,12 @@ export const recoveryStartVm = ({ id }) => (
   _call('vm.recoveryStart', { id })
 )
 
-export const restartVm = ({ id }, force = false) => (
+export const restartVm = (vm, force = false) => (
   confirm({
-    title: _('restartVmsModalTitle'),
-    body: _('restartVmsModalMessage')
+    title: _('restartVmModalTitle'),
+    body: _('restartVmModalMessage', { name: vm.name_label })
   }).then(
-    () => _call('vm.restart', { id, force }),
+    () => _call('vm.restart', { id: resolveId(vm), force }),
     noop
   )
 )
