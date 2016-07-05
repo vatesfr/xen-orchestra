@@ -9,7 +9,6 @@ import React from 'react'
 import some from 'lodash/some'
 
 import _ from '../../intl'
-import Icon from 'icon'
 import invoke from '../../invoke'
 import SingleLineRow from '../../single-line-row'
 import { Col } from '../../grid'
@@ -23,7 +22,6 @@ import {
   connectStore
 } from '../../utils'
 import {
-  createFinder,
   createGetObjectsOfType,
   createPicker,
   createSelector
@@ -39,16 +37,7 @@ const LINE_STYLE = { paddingBottom: '1em' }
   const getPools = createGetObjectsOfType('pool')
 
   const getVms = createGetObjectsOfType('VM').pick(
-      (_, props) => props.vms
-    ).filter(
-      [ vm => vm.power_state === 'Running' ]
-    )
-
-  const getNonRunningVm = createFinder(
-    createGetObjectsOfType('VM').pick(
-      (_, props) => props.vms
-    ),
-    [ vm => vm.power_state !== 'Running' ]
+    (_, props) => props.vms
   )
 
   const getVbdsByVm = createGetObjectsOfType('VBD').pick(
@@ -67,7 +56,6 @@ const LINE_STYLE = { paddingBottom: '1em' }
 
   return {
     networks: getNetworks,
-    nonRunningVm: getNonRunningVm,
     pifs: getPifs,
     pools: getPools,
     vbdsByVm: getVbdsByVm,
@@ -198,14 +186,6 @@ export default class MigrateVmsModalBody extends BaseComponent {
   _toggleSmartVifMapping = () => this.setState({ smartVifMapping: !this.state.smartVifMapping })
 
   render () {
-    if (isEmpty(this.props.vms)) {
-      return <div>
-        <Icon icon='error' />
-        {' '}
-        {_('migrateVmBadPowerState')}
-      </div>
-    }
-    const { nonRunningVm } = this.props
     const {
       host,
       intraPool,
@@ -275,11 +255,6 @@ export default class MigrateVmsModalBody extends BaseComponent {
           </SingleLineRow>
         </div>
       ]}
-      {nonRunningVm && <div>
-        <Icon icon='error' />
-        {' '}
-        {_('migrateVmSomeBadPowerState', { vm: nonRunningVm.name_label })}
-      </div>}
     </div>
   }
 }
