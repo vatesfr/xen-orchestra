@@ -360,6 +360,10 @@ export default {
   startVmImport: 'Lancement de l\'import…',
   startVmExport: 'Lancement de l\'export…',
   // ----- Modals -----
+  stopHostModalTitle: 'Arrêter l\'hôte',
+  stopHostModalMessage: 'Cette action va arrêter l\'hôte. Êtes vous sûr de vouloir continuer ?',
+  restartHostModalTitle: 'Redémarrer l\'hôte',
+  restartHostModalMessage: 'Cette action va redémarrer l\'hôte. Êtes vous sûr de vouloir continuer ?',
   startVmsModalTitle: 'Démarrer {vms, plural, one {la} other {les}} VM{vms, plural, one {} other {s}}',
   startVmsModalMessage: 'Voulez-vous vraiment démarrer {vms} VM{vms, plural, one {} other {s}} ?',
   stopVmsModalTitle: 'Arrêter {vms, plural, one {la} other {les}} VM{vms, plural, one {} other {s}}',

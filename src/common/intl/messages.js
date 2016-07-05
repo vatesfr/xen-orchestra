@@ -678,6 +678,10 @@ var messages = {
   importBackupMessage: 'Starting your backup import',
 
   // ----- Modals -----
+  stopHostModalTitle: 'Shutdown host',
+  stopHostModalMessage: 'This will shutdown your host. Do you want to continue?',
+  restartHostModalTitle: 'Restart host',
+  restartHostModalMessage: 'This will restart your host. Do you want to continue?',
   startVmsModalTitle: 'Start VM{vms, plural, one {} other {s}}',
   startVmsModalMessage: 'Are you sure you want to start {vms} VM{vms, plural, one {} other {s}}?',
   stopVmsModalTitle: 'Stop VM{vms, plural, one {} other {s}}',
