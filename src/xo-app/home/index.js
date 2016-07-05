@@ -10,7 +10,6 @@ import Icon from 'icon'
 import invoke from 'invoke'
 import isEmpty from 'lodash/isEmpty'
 import isString from 'lodash/isString'
-import keys from 'lodash/keys'
 import Link from 'link'
 import map from 'lodash/map'
 import Page from '../page'
@@ -38,7 +37,8 @@ import {
   SelectTag
 } from 'select-objects'
 import {
-  connectStore
+  connectStore,
+  noop
 } from 'utils'
 import {
   areObjectsFetched,
@@ -72,7 +72,16 @@ const OPTIONS = {
       homeFilterRunningHosts: 'power_state:running ',
       homeFilterTags: 'tags:'
     },
-    Item: HostItem
+    getActions: selectedItemsIds => (
+      <div className='btn-group'>
+        <ActionButton btnStyle='secondary' handler={stopHosts} handlerParam={selectedItemsIds} icon='host-stop' />
+        <ActionButton btnStyle='secondary' handler={restartHostsAgents} handlerParam={selectedItemsIds} icon='host-restart-agent' />
+        <ActionButton btnStyle='secondary' handler={emergencyShutdownHosts} handlerParam={selectedItemsIds} icon='host-emergency-shutdown' />
+        <ActionButton btnStyle='secondary' handler={restartHosts} handlerParam={selectedItemsIds} icon='host-reboot' />
+      </div>
+    ),
+    Item: HostItem,
+    showPoolsSelector: true
   },
   VM: {
     defaultFilter: 'power_state:running ',
@@ -83,13 +92,39 @@ const OPTIONS = {
       homeFilterRunningVms: 'power_state:running ',
       homeFilterTags: 'tags:'
     },
-    Item: VmItem
+    getActions: selectedItemsIds => (
+      <div className='btn-group'>
+        <ActionButton btnStyle='secondary' handler={stopVms} handlerParam={selectedItemsIds} icon='vm-stop' />
+        <ActionButton btnStyle='secondary' handler={startVms} handlerParam={selectedItemsIds} icon='vm-start' />
+        <ActionButton btnStyle='secondary' handler={restartVms} handlerParam={selectedItemsIds} icon='vm-reboot' />
+        <ActionButton btnStyle='secondary' handler={migrateVms} handlerParam={selectedItemsIds} icon='vm-migrate' />
+        <ActionButton btnStyle='secondary' handler={copyVms} handlerParam={selectedItemsIds} icon='vm-copy' />
+        <DropdownButton bsStyle='secondary' id='advanced' title={_('homeMore')}>
+          <MenuItem onClick={() => { restartVms(selectedItemsIds, true) }}>
+            <Icon icon='vm-force-reboot' fixedWidth /> {_('forceRebootVmLabel')}
+          </MenuItem>
+          <MenuItem onClick={() => { stopVms(selectedItemsIds, true) }}>
+            <Icon icon='vm-force-shutdown' fixedWidth /> {_('forceShutdownVmLabel')}
+          </MenuItem>
+          <MenuItem onClick={() => { snapshotVms(selectedItemsIds) }}>
+            <Icon icon='vm-snapshot' fixedWidth /> {_('snapshotVmLabel')}
+          </MenuItem>
+          <MenuItem onClick={() => { deleteVms(selectedItemsIds) }}>
+            <Icon icon='vm-delete' fixedWidth /> {_('vmRemoveButton')}
+          </MenuItem>
+        </DropdownButton>
+      </div>
+    ),
+    Item: VmItem,
+    showPoolsSelector: true,
+    showHostsSelector: true
   },
   pool: {
     defaultFilter: '',
     filters: {
       homeFilterTags: 'tags:'
     },
+    getActions: noop,
     Item: PoolItem
   }
 }
@@ -374,50 +409,6 @@ export default class Home extends Component {
     </Container>
   }
 
-  _getActions () {
-    const selectedItemsIds = keys(this._selectedItems)
-    const { type } = this.props
-
-    if (type === 'pool') {
-      return
-    }
-
-    if (type === 'host') {
-      return (
-        <div className='btn-group'>
-          <ActionButton btnStyle='secondary' handler={stopHosts} handlerParam={selectedItemsIds} icon='host-stop' />
-          <ActionButton btnStyle='secondary' handler={restartHostsAgents} handlerParam={selectedItemsIds} icon='host-restart-agent' />
-          <ActionButton btnStyle='secondary' handler={emergencyShutdownHosts} handlerParam={selectedItemsIds} icon='host-emergency-shutdown' />
-          <ActionButton btnStyle='secondary' handler={restartHosts} handlerParam={selectedItemsIds} icon='host-reboot' />
-        </div>
-      )
-    }
-
-    return (
-      <div className='btn-group'>
-        <ActionButton btnStyle='secondary' handler={stopVms} handlerParam={selectedItemsIds} icon='vm-stop' />
-        <ActionButton btnStyle='secondary' handler={startVms} handlerParam={selectedItemsIds} icon='vm-start' />
-        <ActionButton btnStyle='secondary' handler={restartVms} handlerParam={selectedItemsIds} icon='vm-reboot' />
-        <ActionButton btnStyle='secondary' handler={migrateVms} handlerParam={selectedItemsIds} icon='vm-migrate' />
-        <ActionButton btnStyle='secondary' handler={copyVms} handlerParam={selectedItemsIds} icon='vm-copy' />
-        <DropdownButton bsStyle='secondary' id='advanced' title={_('homeMore')}>
-          <MenuItem onClick={() => { restartVms(selectedItemsIds, true) }}>
-            <Icon icon='vm-force-reboot' fixedWidth /> {_('forceRebootVmLabel')}
-          </MenuItem>
-          <MenuItem onClick={() => { stopVms(selectedItemsIds, true) }}>
-            <Icon icon='vm-force-shutdown' fixedWidth /> {_('forceShutdownVmLabel')}
-          </MenuItem>
-          <MenuItem onClick={() => { snapshotVms(selectedItemsIds) }}>
-            <Icon icon='vm-snapshot' fixedWidth /> {_('snapshotVmLabel')}
-          </MenuItem>
-          <MenuItem onClick={() => { deleteVms(selectedItemsIds) }}>
-            <Icon icon='vm-delete' fixedWidth /> {_('vmRemoveButton')}
-          </MenuItem>
-        </DropdownButton>
-      </div>
-    )
-  }
-
   render () {
     const { props } = this
     const { user } = this.props
@@ -507,6 +498,7 @@ export default class Home extends Component {
     }
     const { type } = props
     const Item = items[type] || items[DEFAULT_TYPE]
+    const options = OPTIONS[type]
 
     return <Page header={this._renderHeader()}>
       <div>
@@ -532,9 +524,9 @@ export default class Home extends Component {
             </Col>
             <Col mediumSize={8} className='text-xs-right hidden-sm-down'>
             {this.state.displayActions
-             ? this._getActions()
+             ? options.getActions(this._selectedItems)
              : <div>
-               {type !== 'pool' && (
+               {options.showPoolsSelector && (
                  <OverlayTrigger
                    trigger='click'
                    rootClose
@@ -554,7 +546,7 @@ export default class Home extends Component {
                  </OverlayTrigger>
                )}
                {' '}
-               {type === 'VM' && (
+               {options.showHostsSelector && (
                  <OverlayTrigger
                    trigger='click'
                    rootClose

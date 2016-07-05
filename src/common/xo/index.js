@@ -9,6 +9,7 @@ import once from 'lodash/once'
 import React from 'react'
 import fpSortBy from 'lodash/fp/sortBy'
 import request from 'superagent'
+import size from 'lodash/size'
 import sortBy from 'lodash/sortBy'
 import throttle from 'lodash/throttle'
 import Xo from 'xo-lib'
@@ -316,10 +317,10 @@ export const restartHost = (host, force = false) => (
 )
 
 export const restartHosts = (hosts, force) => {
-  const { length } = hosts
+  const nHosts = size(hosts)
   return confirm({
-    title: _('restartHostsModalTitle', { hosts: length }),
-    body: _('restartHostsModalMessage', { hosts: length })
+    title: _('restartHostsModalTitle', { nHosts }),
+    body: _('restartHostsModalMessage', { nHosts })
   }).then(
     () => map(hosts, host => _call('host.restart', { id: resolveId(host), force })),
     noop
@@ -331,10 +332,10 @@ export const restartHostAgent = host => (
 )
 
 export const restartHostsAgents = hosts => {
-  const { length } = hosts
+  const nHosts = size(hosts)
   return confirm({
-    title: _('restartHostsAgentsModalTitle', { hosts: length }),
-    body: _('restartHostsAgentsModalMessage', { hosts: length })
+    title: _('restartHostsAgentsModalTitle', { nHosts }),
+    body: _('restartHostsAgentsModalMessage', { nHosts })
   }).then(
     () => map(hosts, host => restartHostAgent(host)),
     noop
@@ -356,10 +357,10 @@ export const stopHost = host => (
 )
 
 export const stopHosts = hosts => {
-  const { length } = hosts
+  const nHosts = size(hosts)
   return confirm({
-    title: _('stopHostsModalTitle', { hosts: length }),
-    body: _('stopHostsModalMessage', { hosts: length })
+    title: _('stopHostsModalTitle', { nHosts }),
+    body: _('stopHostsModalMessage', { nHosts })
   }).then(
     () => map(hosts, host => _call('host.stop', { id: resolveId(host) })),
     noop
@@ -383,10 +384,10 @@ export const emergencyShutdownHost = host => (
 )
 
 export const emergencyShutdownHosts = hosts => {
-  const { length } = hosts
+  const nHosts = size(hosts)
   return confirm({
-    title: _('emergencyShutdownHostsModalTitle', { hosts: length }),
-    body: _('emergencyShutdownHostsModalMessage', { hosts: length })
+    title: _('emergencyShutdownHostsModalTitle', { nHosts }),
+    body: _('emergencyShutdownHostsModalMessage', { nHosts })
   }).then(
     () => map(hosts, host => emergencyShutdownHost(host)),
     noop
