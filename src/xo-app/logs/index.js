@@ -91,7 +91,7 @@ const LOG_COLUMNS = [
   {
     name: _('job'),
     itemRenderer: log => jobKeyToLabel[log.key],
-    sortCriteria: log => jobKeyToLabel[log.key]
+    sortCriteria: log => log.key
   },
   {
     name: _('jobStart'),
