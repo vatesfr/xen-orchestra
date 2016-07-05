@@ -1,4 +1,5 @@
 import * as actions from 'store/actions'
+import escapeRegExp from 'lodash/escapeRegExp'
 import every from 'lodash/every'
 import forEach from 'lodash/forEach'
 import humanFormat from 'human-format'
@@ -7,9 +8,12 @@ import isEmpty from 'lodash/isEmpty'
 import isFunction from 'lodash/isFunction'
 import isPlainObject from 'lodash/isPlainObject'
 import isString from 'lodash/isString'
+import join from 'lodash/join'
+import keys from 'lodash/keys'
 import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
 import React from 'react'
+import replace from 'lodash/replace'
 import { connect } from 'react-redux'
 
 import BaseComponent from './base-component'
@@ -349,4 +353,30 @@ export function rethrow (cb) {
   return this.catch(error =>
     Promise.resolve(cb(error)).then(() => { throw error })
   )
+}
+
+// -------------------------------------------------------------------
+
+// Creates a string replacer based on a pattern and a list of rules
+//
+// ```js
+// const myReplacer = buildTemplate('{name}_COPY_{name}_{id}_%', {
+//   '{name}': vm => vm.name_label,
+//   '{id}': vm => vm.id,
+//   '%': (_, i) => i
+// })
+//
+// const newString = myReplacer({
+//   name_label: 'foo',
+//   id: 42,
+// }, 32)
+//
+// newString === 'foo_COPY_foo_42_32'
+// ```
+export function buildTemplate (pattern, rules) {
+  const regExp = new RegExp(join(map(keys(rules), escapeRegExp), '|'), 'g')
+  return (...params) => replace(pattern, regExp, match => {
+    const rule = rules[match]
+    return isFunction(rule) ? rule(...params) : rule
+  })
 }

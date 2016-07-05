@@ -732,9 +732,13 @@ var messages = {
   copyVm: 'Copy VM',
   copyVmConfirm: 'Are you sure you want to copy this VM to {SR}?',
   copyVmName: 'Name',
+  copyVmNamePattern: 'Name pattern',
   copyVmNamePlaceholder: 'If empty: name of the copied VM',
+  copyVmNamePatternPlaceholder: 'e.g.: "\\{name\\}_COPY"',
   copyVmSelectSr: 'Select SR',
   copyVmCompress: 'Use compression',
+  copyVmsNoTargetSr: 'No target SR',
+  copyVmsNoTargetSrMessage: 'A target SR is required to copy a VM',
 
   // ----- Network -----
   newNetworkCreate: 'Create network',
