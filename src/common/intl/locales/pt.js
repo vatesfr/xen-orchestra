@@ -1685,6 +1685,18 @@ export default {
   // Original text: "This will restart your host. Do you want to continue?"
   restartHostModalMessage: undefined,
 
+  // Original text: "Restart VM"
+  restartVmModalTitle: undefined,
+
+  // Original text: "Are you sure you want to restart {name}?"
+  restartVmModalMessage: undefined,
+
+  // Original text: "Stop VM"
+  stopVmModalTitle: undefined,
+
+  // Original text: "Are you sure you want to stop {name}?"
+  stopVmModalMessage: undefined,
+
   // Original text: "Start VM{vms, plural, one {} other {s}}"
   startVmsModalTitle: 'Iniciar VM{vms, plural, one {} other {s}}',
 
