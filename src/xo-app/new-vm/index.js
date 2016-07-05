@@ -535,7 +535,7 @@ export default class NewVm extends BaseComponent {
           />
         </Item>
         <Item label='newVmRamLabel'>
-          <SizeInput value={memory} onChange={this._getOnChange('memory')} className={styles.sizeInput} />
+          <SizeInput value={memory || 0} onChange={this._getOnChange('memory')} className={styles.sizeInput} />
         </Item>
         <Item label='newVmCpuWeightLabel'>
           <select
@@ -822,7 +822,7 @@ export default class NewVm extends BaseComponent {
                 className={styles.sizeInput}
                 onChange={this._getOnChange('existingDisks', index, 'size')}
                 readOnly={!configDrive}
-                value={disk.size}
+                value={disk.size || 0}
               />
             </Item>
           </LineItem>
@@ -873,7 +873,7 @@ export default class NewVm extends BaseComponent {
               <SizeInput
                 className={styles.sizeInput}
                 onChange={this._getOnChange('VDIs', index, 'size')}
-                value={vdi.size}
+                value={vdi.size || 0}
               />
             </Item>
             <Item>

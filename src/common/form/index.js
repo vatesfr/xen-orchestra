@@ -1,8 +1,10 @@
+import BaseComponent from 'base-component'
 import classNames from 'classnames'
 import Icon from 'icon'
 import map from 'lodash/map'
 import randomPassword from 'random-password'
 import React from 'react'
+import round from 'lodash/round'
 import {
   DropdownButton,
   MenuItem
@@ -158,39 +160,71 @@ const DEFAULT_UNIT = 'GiB'
   placeholder: propTypes.string,
   readOnly: propTypes.bool,
   required: propTypes.bool,
-  style: propTypes.object
+  style: propTypes.object,
+  value: propTypes.number
 })
-export class SizeInput extends Component {
+export class SizeInput extends BaseComponent {
   constructor (props) {
     super(props)
 
-    const humanSize = props.defaultValue && formatSizeRaw(props.defaultValue)
-    this._defaultValue = humanSize && humanSize.value
-    this.state = { unit: humanSize ? humanSize.prefix + 'B' : props.defaultUnit || DEFAULT_UNIT }
+    const { defaultValue, value } = props
+    this.state = this._createState(
+      formatSizeRaw(defaultValue || value)
+    )
   }
 
   componentWillReceiveProps (newProps) {
-    this.value = newProps.defaultValue
+    const { value } = newProps
+    if (value !== this.props.value && value !== this.state.bytes || 0) {
+      this.setState(this._createState(
+        formatSizeRaw(value)
+      ), () => {
+        this.refs.input.value = this.state.value
+      })
+    }
+  }
+
+  _createState = humanSize => {
+    const { defaultUnit } = this.props
+    return {
+      unit: humanSize && humanSize.value ? humanSize.prefix + 'B' : defaultUnit || DEFAULT_UNIT,
+      value: humanSize ? round(humanSize.value, 3) : ''
+    }
   }
 
   get value () {
-    const value = this.refs.value.value
-    return value ? parseSize(value + ' ' + this.state.unit) : undefined
+    const { unit, value } = this.state
+    return value ? parseSize(value + ' ' + unit) : undefined
   }
 
   set value (newValue) {
-    const humanSize = newValue && formatSizeRaw(newValue)
-    this.refs.value.value = humanSize ? humanSize.value : ''
-    this.setState({ unit: humanSize ? humanSize.prefix + 'B' : DEFAULT_UNIT })
+    if (
+      process.env.NODE_ENV !== 'production' &&
+      this.props.value != null
+    ) {
+      throw new Error('cannot set value of controlled SizeInput')
+    }
+    this.setState(this._createState(
+      formatSizeRaw(newValue || 0)
+    ), () => { this.refs.input.value = this.state.value })
   }
 
   _onChange = () =>
     this.props.onChange && this.props.onChange(this.value)
 
-  _updateUnit = unit => {
-    this.setState({ unit })
-    this._onChange()
+  _updateValue = event => {
+    const { value } = event.target
+    if (this.props.value != null) {
+      this.setState({
+        value,
+        bytes: parseSize((value || 0) + ' ' + this.state.unit)
+      }, () => this._onChange())
+    } else {
+      this._onChange()
+    }
   }
+  _updateUnit = unit =>
+    this.setState({ unit }, () => this._onChange())
 
   render () {
     const {
@@ -202,6 +236,11 @@ export class SizeInput extends Component {
       style
     } = this.props
 
+    const {
+      value,
+      unit
+    } = this.state
+
     return <span
       className={classNames(className, 'input-group')}
       style={style}
@@ -209,13 +248,13 @@ export class SizeInput extends Component {
       <input
         autoFocus={autoFocus}
         className='form-control'
-        defaultValue={this._defaultValue}
+        defaultValue={value}
         min={0}
-        onChange={this._onChange}
+        onChange={this._updateValue}
         placeholder={placeholder}
         readOnly={readOnly}
+        ref='input'
         required={required}
-        ref='value'
         type='number'
       />
       <span className='input-group-btn'>
@@ -224,7 +263,7 @@ export class SizeInput extends Component {
           disabled={readOnly}
           id='size'
           pullRight
-          title={this.state.unit}
+          title={unit}
         >
           {map(UNITS, unit =>
             <MenuItem
