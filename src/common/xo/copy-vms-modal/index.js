@@ -1,18 +1,19 @@
+import _, { messages } from 'intl'
 import map from 'lodash/map'
-import React, { Component } from 'react'
+import React from 'react'
 import { injectIntl } from 'react-intl'
+
+import BaseComponent from 'base-component'
+import SingleLineRow from 'single-line-row'
+import Upgrade from 'xoa-upgrade'
+import { Col } from 'grid'
+import { createGetObjectsOfType } from 'selectors'
+import { SelectSr } from 'select-objects'
+import { Toggle } from 'form'
 import {
   buildTemplate,
   connectStore
 } from 'utils'
-
-import SingleLineRow from '../../single-line-row'
-import Upgrade from 'xoa-upgrade'
-import _, { messages } from '../../intl'
-import { Col } from '../../grid'
-import { createGetObjectsOfType } from '../../selectors'
-import { SelectSr } from '../../select-objects'
-import { Toggle } from '../../form'
 
 @connectStore(() => {
   const getVms = createGetObjectsOfType('VM').pick(
@@ -22,7 +23,7 @@ import { Toggle } from '../../form'
     vms: getVms
   }
 }, { withRef: true })
-class CopyVmsModalBody extends Component {
+class CopyVmsModalBody extends BaseComponent {
   get value () {
     const { state } = this
     if (!state || !state.sr) {
@@ -45,7 +46,10 @@ class CopyVmsModalBody extends Component {
   }
 
   componentWillMount () {
-    this.setState({ namePattern: '{name}_COPY' })
+    this.setState({
+      compress: false,
+      namePattern: '{name}_COPY'
+    })
   }
 
   _onChangeSr = sr =>
@@ -64,7 +68,7 @@ class CopyVmsModalBody extends Component {
           <Col size={6}>{_('copyVmSelectSr')}</Col>
           <Col size={6}>
             <SelectSr
-              onChange={this._onChangeSr}
+              onChange={this.linkState('sr')}
               value={sr}
             />
           </Col>
@@ -75,7 +79,7 @@ class CopyVmsModalBody extends Component {
           <Col size={6}>
             <input
               className='form-control'
-              onChange={this._onChangeNamePattern}
+              onChange={this.linkState('namePattern')}
               placeholder={formatMessage(messages.copyVmNamePatternPlaceholder)}
               type='text'
               value={namePattern}
@@ -87,7 +91,7 @@ class CopyVmsModalBody extends Component {
           <Col size={6}>{_('copyVmCompress')}</Col>
           <Col size={6}>
             <Toggle
-              onChange={this._onChangeCompress}
+              onChange={this.linkState('compress')}
               value={compress}
             />
           </Col>
