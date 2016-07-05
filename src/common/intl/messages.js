@@ -529,7 +529,7 @@ var messages = {
   taskStatePanel: 'Pending tasks',
   usersStatePanel: 'Users',
   srStatePanel: 'Storage state',
-  ofUsage: 'of',
+  ofUsage: '{usage} (of {total})',
   noSrs: 'No storage',
   srName: 'Name',
   srPool: 'Pool',
@@ -541,6 +541,7 @@ var messages = {
   srFree: 'free',
   srUsageStatePanel: 'Storage Usage',
   srTopUsageStatePanel: 'Top 5 SR Usage (in %)',
+  vmsStates: '{running} running ({halted} halted)',
 
   // --- Stats board --
   weekHeatmapData: '{value} {date, date, medium}',

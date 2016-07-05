@@ -5,7 +5,7 @@ import Component from 'base-component'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
-import Link from 'link'
+import Link, { BlockLink } from 'link'
 import map from 'lodash/map'
 import Upgrade from 'xoa-upgrade'
 import React from 'react'
@@ -335,8 +335,14 @@ export default class Overview extends Component {
                       series: [props.hostMetrics.memoryUsage, props.hostMetrics.memoryTotal - props.hostMetrics.memoryUsage]
                     }}
                     options={{ donut: true, donutWidth: 40, showLabel: false }}
-                    type='Pie' />
-                  <p className='text-xs-center'>{formatSize(props.hostMetrics.memoryUsage)} ({_('ofUsage')} {formatSize(props.hostMetrics.memoryTotal)})</p>
+                    type='Pie'
+                  />
+                  <p className='text-xs-center'>
+                    {_('ofUsage', {
+                      total: formatSize(props.hostMetrics.memoryTotal),
+                      usage: formatSize(props.hostMetrics.memoryUsage)
+                    })}
+                  </p>
                 </CardBlock>
               </Card>
             </Col>
@@ -353,8 +359,14 @@ export default class Overview extends Component {
                         series: [props.vmMetrics.vcpus, props.hostMetrics.cpus]
                       }}
                       options={{ showLabel: false, showGrid: false, distributeSeries: true }}
-                      type='Bar' />
-                    <p className='text-xs-center'>{props.vmMetrics.vcpus} vCPUS ({_('ofUsage')} {props.hostMetrics.cpus} CPUs)</p>
+                      type='Bar'
+                    />
+                    <p className='text-xs-center'>
+                      {_('ofUsage', {
+                        total: `${props.vmMetrics.vcpus} vCPUS`,
+                        usage: `${props.hostMetrics.cpus} CPUs`
+                      })}
+                    </p>
                   </div>
                 </CardBlock>
               </Card>
@@ -366,7 +378,7 @@ export default class Overview extends Component {
                 </CardHeader>
                 <CardBlock>
                   <div className='ct-chart'>
-                    <Link to='/dashboard/health'>
+                    <BlockLink to='/dashboard/health'>
                       <ChartistGraph
                         data={{
                           labels: ['Used Space', 'Total Space'],
@@ -376,9 +388,12 @@ export default class Overview extends Component {
                         type='Pie'
                       />
                       <p className='text-xs-center'>
-                        {formatSize(props.srMetrics.srUsage)} ({_('ofUsage')} {formatSize(props.srMetrics.srTotal)})
+                        {_('ofUsage', {
+                          total: formatSize(props.srMetrics.srUsage),
+                          usage: formatSize(props.srMetrics.srTotal)
+                        })}
                       </p>
-                    </Link>
+                    </BlockLink>
                   </div>
                 </CardBlock>
               </Card>
@@ -404,7 +419,7 @@ export default class Overview extends Component {
                 </CardHeader>
                 <CardBlock>
                   <p className={styles.bigCardContent}>
-                    <Link to='/dashboard/health'>{props.nTasks}</Link>
+                    <Link to='/tasks'>{props.nTasks}</Link>
                   </p>
                 </CardBlock>
               </Card>
@@ -429,7 +444,7 @@ export default class Overview extends Component {
                   <Icon icon='vm-force-shutdown' /> {_('vmStatePanel')}
                 </CardHeader>
                 <CardBlock>
-                  <Link to='/home?s=power_state:running+&t=VM'>
+                  <BlockLink to='/home?t=VM'>
                     <ChartistGraph
                       data={{
                         labels: ['Running', 'Halted', 'Other'],
@@ -438,8 +453,10 @@ export default class Overview extends Component {
                       options={{ showLabel: false }}
                       type='Pie'
                     />
-                    <p className='text-xs-center'>{props.vmMetrics.running} running ({props.vmMetrics.halted} halted)</p>
-                  </Link>
+                    <p className='text-xs-center'>
+                      {_('vmsStates', { running: props.vmMetrics.running, halted: props.vmMetrics.halted })}
+                    </p>
+                  </BlockLink>
                 </CardBlock>
               </Card>
             </Col>
@@ -449,7 +466,7 @@ export default class Overview extends Component {
                   <Icon icon='disk' /> {_('srTopUsageStatePanel')}
                 </CardHeader>
                 <CardBlock>
-                  <Link to='/dashboard/health'>
+                  <BlockLink to='/dashboard/health'>
                     <ChartistGraph
                       style={{strokeWidth: '30px'}}
                       data={{
@@ -459,7 +476,7 @@ export default class Overview extends Component {
                       options={{ showLabel: false, showGrid: false, distributeSeries: true, high: 100 }}
                       type='Bar'
                     />
-                  </Link>
+                  </BlockLink>
                 </CardBlock>
               </Card>
             </Col>

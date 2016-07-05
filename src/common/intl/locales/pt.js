@@ -1326,7 +1326,7 @@ export default {
   srStatePanel: 'Data do armazenamento (storage)',
 
   // Original text: "of"
-  ofUsage: 'de',
+  ofUsage: '{usage} (de {total})',
 
   // Original text: "No storage"
   noSrs: 'Nenhum armazenamento (storage)',
