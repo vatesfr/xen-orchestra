@@ -8,9 +8,9 @@ import debounce from 'lodash/debounce'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import invoke from 'invoke'
+import keys from 'lodash/keys'
 import isEmpty from 'lodash/isEmpty'
 import isString from 'lodash/isString'
-import keys from 'lodash/keys'
 import Link from 'link'
 import map from 'lodash/map'
 import Page from '../page'
@@ -21,10 +21,14 @@ import { Card, CardHeader, CardBlock } from 'card'
 import {
   copyVms,
   deleteVms,
+  emergencyShutdownHosts,
   migrateVms,
+  restartHosts,
+  restartHostsAgents,
   restartVms,
   snapshotVms,
   startVms,
+  stopHosts,
   stopVms
 } from 'xo'
 import { Container, Row, Col } from 'grid'
@@ -34,7 +38,8 @@ import {
   SelectTag
 } from 'select-objects'
 import {
-  connectStore
+  connectStore,
+  noop
 } from 'utils'
 import {
   areObjectsFetched,
@@ -68,7 +73,20 @@ const OPTIONS = {
       homeFilterRunningHosts: 'power_state:running ',
       homeFilterTags: 'tags:'
     },
-    Item: HostItem
+    mainActions: [
+      { handler: stopHosts, icon: 'host-stop' },
+      { handler: restartHostsAgents, icon: 'host-restart-agent' },
+      { handler: emergencyShutdownHosts, icon: 'host-emergency-shutdown' },
+      { handler: restartHosts, icon: 'host-reboot' }
+    ],
+    Item: HostItem,
+    showPoolsSelector: true,
+    sortOptions: [
+      { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' },
+      { labelId: 'homeSortByPowerstate', sortBy: 'power_state', sortOrder: 'desc' },
+      { labelId: 'homeSortByRAM', sortBy: 'memory.size', sortOrder: 'desc' },
+      { labelId: 'homeSortByCpus', sortBy: 'CPUs.cpu_count', sortOrder: 'desc' }
+    ]
   },
   VM: {
     defaultFilter: 'power_state:running ',
@@ -79,14 +97,52 @@ const OPTIONS = {
       homeFilterRunningVms: 'power_state:running ',
       homeFilterTags: 'tags:'
     },
-    Item: VmItem
+    mainActions: [
+      { handler: stopVms, icon: 'vm-stop' },
+      { handler: startVms, icon: 'vm-start' },
+      { handler: restartVms, icon: 'vm-reboot' },
+      { handler: migrateVms, icon: 'vm-migrate' },
+      { handler: copyVms, icon: 'vm-copy' }
+    ],
+    otherActions: [{
+      handler: restartVms,
+      icon: 'vm-force-reboot',
+      labelId: 'forceRebootVmLabel',
+      params: true
+    }, {
+      handler: stopVms,
+      icon: 'vm-force-shutdown',
+      labelId: 'forceShutdownVmLabel',
+      params: true
+    }, {
+      handler: snapshotVms,
+      icon: 'vm-snapshot',
+      labelId: 'snapshotVmLabel'
+    }, {
+      handler: deleteVms,
+      icon: 'vm-delete',
+      labelId: 'vmRemoveButton'
+    }],
+    Item: VmItem,
+    showPoolsSelector: true,
+    showHostsSelector: true,
+    sortOptions: [
+      { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' },
+      { labelId: 'homeSortByPowerstate', sortBy: 'power_state', sortOrder: 'desc' },
+      { labelId: 'homeSortByRAM', sortBy: 'memory.size', sortOrder: 'desc' },
+      { labelId: 'homeSortByCpus', sortBy: 'CPUs.number', sortOrder: 'desc' }
+    ]
   },
   pool: {
     defaultFilter: '',
     filters: {
       homeFilterTags: 'tags:'
     },
-    Item: PoolItem
+    getActions: noop,
+    Item: PoolItem,
+    sortOptions: [
+      { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' }
+    ]
   }
 }
 
@@ -236,11 +292,6 @@ export default class Home extends Component {
   _expandAll = () => this.setState({ expandAll: !this.state.expandAll })
 
   _onPageSelection = (_, event) => { this.page = event.eventKey }
-
-  _sortByName = () => this.setState({ sortBy: 'name_label', sortOrder: 'asc' })
-  _sortByPowerState = () => this.setState({ sortBy: 'power_state', sortOrder: 'desc' })
-  _sortByRam = () => this.setState({ sortBy: 'memory.size', sortOrder: 'desc' })
-  _sortByVcpus = () => this.setState({ sortBy: 'CPUs.number', sortOrder: 'desc' })
 
   _tick = isCriteria => <Icon icon={isCriteria ? 'success' : undefined} fixedWidth />
 
@@ -449,7 +500,6 @@ export default class Home extends Component {
     }
 
     const filteredItems = this._getFilteredItems()
-    const selectedItemsIds = keys(this._selectedItems)
     const visibleItems = this._getVisibleItems()
     const { activePage, sortBy } = this.state
     const items = {
@@ -457,7 +507,11 @@ export default class Home extends Component {
       'host': HostItem,
       'pool': PoolItem
     }
-    const Item = items[props.type] || items[DEFAULT_TYPE]
+    const { type } = props
+    const Item = items[type] || items[DEFAULT_TYPE]
+    const options = OPTIONS[type]
+    const { mainActions, otherActions } = options
+    const selectedItemsIds = keys(this._selectedItems)
 
     return <Page header={this._renderHeader()}>
       <div>
@@ -468,70 +522,85 @@ export default class Home extends Component {
               {' '}
               <span className='text-muted'>
                 {size(this._selectedItems)
-                  ? _('homeSelectedVms', { selected: size(this._selectedItems), total: nItems, vmIcon: <Icon icon='vm' /> })
-                  : _('homeDisplayedVms', { displayed: filteredItems.length, total: nItems, vmIcon: <Icon icon='vm' /> })
+                 ? _('homeSelectedItems', {
+                   icon: <Icon icon={type.toLowerCase()} />,
+                   selected: size(this._selectedItems),
+                   total: nItems
+                 })
+                 : _('homeDisplayedItems', {
+                   displayed: filteredItems.length,
+                   icon: <Icon icon={type.toLowerCase()} />,
+                   total: nItems
+                 })
                 }
               </span>
             </Col>
             <Col mediumSize={8} className='text-xs-right hidden-sm-down'>
             {this.state.displayActions
-              ? <div className='btn-group'>
-                <ActionButton btnStyle='secondary' handler={stopVms} handlerParam={selectedItemsIds} icon='vm-stop' />
-                <ActionButton btnStyle='secondary' handler={startVms} handlerParam={selectedItemsIds} icon='vm-start' />
-                <ActionButton btnStyle='secondary' handler={restartVms} handlerParam={selectedItemsIds} icon='vm-reboot' />
-                <ActionButton btnStyle='secondary' handler={migrateVms} handlerParam={selectedItemsIds} icon='vm-migrate' />
-                <ActionButton btnStyle='secondary' handler={copyVms} handlerParam={selectedItemsIds} icon='vm-copy' />
-                <DropdownButton bsStyle='secondary' id='advanced' title={_('homeMore')}>
-                  <MenuItem onClick={() => { restartVms(selectedItemsIds, true) }}>
-                    <Icon icon='vm-force-reboot' fixedWidth /> {_('forceRebootVmLabel')}
-                  </MenuItem>
-                  <MenuItem onClick={() => { stopVms(selectedItemsIds, true) }}>
-                    <Icon icon='vm-force-shutdown' fixedWidth /> {_('forceShutdownVmLabel')}
-                  </MenuItem>
-                  <MenuItem onClick={() => { snapshotVms(selectedItemsIds) }}>
-                    <Icon icon='vm-snapshot' fixedWidth /> {_('snapshotVmLabel')}
-                  </MenuItem>
-                  <MenuItem onClick={() => { deleteVms(selectedItemsIds) }}>
-                    <Icon icon='vm-delete' fixedWidth /> {_('vmRemoveButton')}
-                  </MenuItem>
-                </DropdownButton>
+              ? (
+              <div>
+                {mainActions && (
+                  <div className='btn-group'>
+                    {map(mainActions, (action, key) => (
+                      <ActionButton
+                        btnStyle='secondary'
+                        key={key}
+                        {...action}
+                        handlerParam={selectedItemsIds}
+                      />
+                    ))}
+                  </div>
+                )}
+                {otherActions && (
+                  <DropdownButton bsStyle='secondary' id='advanced' title={_('homeMore')}>
+                    {map(otherActions, (action, key) => (
+                      <MenuItem key={key} onClick={() => { action.handler(selectedItemsIds, action.params) }}>
+                        <Icon icon={action.icon} fixedWidth /> {_(action.labelId)}
+                      </MenuItem>
+                    ))}
+                  </DropdownButton>
+                )}
               </div>
-              : <div>
-                <OverlayTrigger
-                  trigger='click'
-                  rootClose
-                  placement='bottom'
-                  overlay={
-                    <Popover className={styles.selectObject} id='poolPopover'>
-                      <SelectPool
-                        autoFocus
-                        multi
-                        onChange={this._updateSelectedPools}
-                        value={this.state.selectedPools}
-                      />
-                    </Popover>
-                  }
-                >
-                  <Button className='btn-link'><Icon icon='pool' /> {_('homeAllPools')}</Button>
-                </OverlayTrigger>
+              ) : <div>
+                {options.showPoolsSelector && (
+                  <OverlayTrigger
+                    trigger='click'
+                    rootClose
+                    placement='bottom'
+                    overlay={
+                      <Popover className={styles.selectObject} id='poolPopover'>
+                        <SelectPool
+                          autoFocus
+                          multi
+                          onChange={this._updateSelectedPools}
+                          value={this.state.selectedPools}
+                        />
+                      </Popover>
+                    }
+                  >
+                    <Button className='btn-link'><Icon icon='pool' /> {_('homeAllPools')}</Button>
+                  </OverlayTrigger>
+                )}
                 {' '}
-                <OverlayTrigger
-                  trigger='click'
-                  rootClose
-                  placement='bottom'
-                  overlay={
-                    <Popover className={styles.selectObject} id='HostPopover'>
-                      <SelectHost
-                        autoFocus
-                        multi
-                        onChange={this._updateSelectedHosts}
-                        value={this.state.selectedHosts}
-                      />
-                    </Popover>
-                  }
-                >
-                  <Button className='btn-link'><Icon icon='host' /> {_('homeAllHosts')}</Button>
-                </OverlayTrigger>
+                {options.showHostsSelector && (
+                  <OverlayTrigger
+                    trigger='click'
+                    rootClose
+                    placement='bottom'
+                    overlay={
+                      <Popover className={styles.selectObject} id='HostPopover'>
+                        <SelectHost
+                          autoFocus
+                          multi
+                          onChange={this._updateSelectedHosts}
+                          value={this.state.selectedHosts}
+                        />
+                      </Popover>
+                    }
+                  >
+                    <Button className='btn-link'><Icon icon='host' /> {_('homeAllHosts')}</Button>
+                  </OverlayTrigger>
+                )}
                 {' '}
                 <OverlayTrigger
                   autoFocus
@@ -554,30 +623,15 @@ export default class Home extends Component {
                 </OverlayTrigger>
                 {' '}
                 <DropdownButton bsStyle='link' id='sort' title={_('homeSortBy')}>
-                  <MenuItem onClick={this._sortByName}>
-                    {this._tick(sortBy === 'name_label')}
-                    {sortBy === 'name_label'
-                    ? <strong>{_('homeSortByName')}</strong>
-                    : _('homeSortByName')}
-                  </MenuItem>
-                  <MenuItem onClick={this._sortByPowerState}>
-                    {this._tick(sortBy === 'power_state')}
-                    {sortBy === 'power_state'
-                    ? <strong>{_('homeSortByPowerstate')}</strong>
-                    : _('homeSortByPowerstate')}
-                  </MenuItem>
-                  <MenuItem onClick={this._sortByRam}>
-                    {this._tick(sortBy === 'memory.size')}
-                    {sortBy === 'memory.size'
-                    ? <strong>{_('homeSortByRAM')}</strong>
-                    : _('homeSortByRAM')}
-                  </MenuItem>
-                  <MenuItem onClick={this._sortByVcpus}>
-                    {this._tick(sortBy === 'CPUs.number')}
-                    {sortBy === 'CPUs.number'
-                    ? <strong>{_('homeSortByvCPUs')}</strong>
-                    : _('homeSortByvCPUs')}
-                  </MenuItem>
+                  {map(options.sortOptions, ({ labelId, sortBy: _sortBy, sortOrder }) => (
+                    <MenuItem onClick={() => this.setState({ sortBy: _sortBy, sortOrder })}>
+                      {this._tick(_sortBy === sortBy)}
+                      {_sortBy === sortBy
+                        ? <strong>{_(labelId)}</strong>
+                        : _(labelId)
+                      }
+                    </MenuItem>
+                  ))}
                 </DropdownButton>
               </div>
             }

@@ -272,11 +272,11 @@ export default {
   // Original text: "vCPUs"
   homeSortByvCPUs: 'כמות המאבדים',
 
-  // Original text: "{displayed, number}x {vmIcon} (on {total, number})"
-  homeDisplayedVms: undefined,
+  // Original text: "{displayed, number}x {icon} (on {total, number})"
+  homeDisplayedItems: undefined,
 
-  // Original text: "{selected, number}x {vmIcon} selected (on {total, number})"
-  homeSelectedVms: undefined,
+  // Original text: "{selected, number}x {icon} selected (on {total, number})"
+  homeSelectedItems: undefined,
 
   // Original text: "More"
   homeMore: 'עוד',

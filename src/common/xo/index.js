@@ -9,6 +9,7 @@ import once from 'lodash/once'
 import React from 'react'
 import fpSortBy from 'lodash/fp/sortBy'
 import request from 'superagent'
+import size from 'lodash/size'
 import sortBy from 'lodash/sortBy'
 import throttle from 'lodash/throttle'
 import Xo from 'xo-lib'
@@ -315,9 +316,31 @@ export const restartHost = (host, force = false) => (
   )
 )
 
+export const restartHosts = (hosts, force) => {
+  const nHosts = size(hosts)
+  return confirm({
+    title: _('restartHostsModalTitle', { nHosts }),
+    body: _('restartHostsModalMessage', { nHosts })
+  }).then(
+    () => map(hosts, host => _call('host.restart', { id: resolveId(host), force })),
+    noop
+  )
+}
+
 export const restartHostAgent = host => (
   _call('host.restart_agent', { id: resolveId(host) })
 )
+
+export const restartHostsAgents = hosts => {
+  const nHosts = size(hosts)
+  return confirm({
+    title: _('restartHostsAgentsModalTitle', { nHosts }),
+    body: _('restartHostsAgentsModalMessage', { nHosts })
+  }).then(
+    () => map(hosts, host => restartHostAgent(host)),
+    noop
+  )
+}
 
 export const startHost = host => (
   _call('host.start', { id: resolveId(host) })
@@ -332,6 +355,17 @@ export const stopHost = host => (
     noop
   )
 )
+
+export const stopHosts = hosts => {
+  const nHosts = size(hosts)
+  return confirm({
+    title: _('stopHostsModalTitle', { nHosts }),
+    body: _('stopHostsModalMessage', { nHosts })
+  }).then(
+    () => map(hosts, host => _call('host.stop', { id: resolveId(host) })),
+    noop
+  )
+}
 
 export const enableHost = host => (
   _call('host.enable', { id: resolveId(host) })
@@ -348,6 +382,17 @@ export const getHostMissingPatches = host => (
 export const emergencyShutdownHost = host => (
   _call('host.emergencyShutdownHost', { host: resolveId(host) })
 )
+
+export const emergencyShutdownHosts = hosts => {
+  const nHosts = size(hosts)
+  return confirm({
+    title: _('emergencyShutdownHostsModalTitle', { nHosts }),
+    body: _('emergencyShutdownHostsModalMessage', { nHosts })
+  }).then(
+    () => map(hosts, host => emergencyShutdownHost(host)),
+    noop
+  )
+}
 
 export const installHostPatch = (host, { uuid }) => (
   _call('host.installPatch', { host: resolveId(host), patch: uuid })
@@ -383,12 +428,12 @@ export const stopVm = (vm, force = false) => (
   )
 )
 
-export const stopVms = (vms, force) => (
+export const stopVms = (vms, force = false) => (
   confirm({
     title: _('stopVmsModalTitle', { vms: vms.length }),
     body: _('stopVmsModalMessage', { vms: vms.length })
   }).then(
-    () => map(vms, vmId => stopVm({ id: vmId }, force)),
+    () => map(vms, vm => _call('vm.stop', { id: resolveId(vm), force })),
     noop
   )
 )

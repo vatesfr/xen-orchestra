@@ -44,8 +44,8 @@ export default {
   newSrPage: 'Stockage',
   newImport: 'Importer',
   // ----- Home view -----
-  homeDisplayedVms: '{displayed}x {vmIcon} (sur {total})',
-  homeSelectedVms: '{selected}x {vmIcon} sélectionnée{selected, plural, zero {} one {} other {s}} (sur {total})',
+  homeDisplayedItems: '{displayed}x {icon} (sur {total})',
+  homeSelectedItems: '{selected}x {icon} sélectionnée{selected, plural, zero {} one {} other {s}} (sur {total})',
   homeMigrateTo: 'Migrer sur…',
   // ----- General Stuff -----
   homePage: 'Accueil',
