@@ -65,6 +65,11 @@ const vmActionBarByState = {
           handler: cloneVm
         },
         {
+          icon: 'vm-migrate',
+          label: 'migrateVmLabel',
+          handler: migrateVm
+        },
+        {
           icon: 'vm-snapshot',
           label: 'snapshotVmLabel',
           handler: snapshotVm
