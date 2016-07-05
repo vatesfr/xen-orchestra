@@ -64,7 +64,7 @@ const INSTALLED_PATCH_COLUMNS = [
 export default class HostPatches extends Component {
   render () {
     const { poolPatches, missingPatches, installAllPatches, installPatch } = this.props
-    return process.env.XOA_PLAN > 2
+    return process.env.XOA_PLAN > 1
       ? <Container>
         <Row>
           <Col>
