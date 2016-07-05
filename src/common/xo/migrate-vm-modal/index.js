@@ -120,7 +120,21 @@ export default class MigrateVmModalBody extends BaseComponent {
 
   _selectHost = host => {
     if (!host) {
-      this.setState({ intraPool: undefined, host: undefined })
+      this.setState({
+        host: undefined,
+        intraPool: undefined
+      })
+      return
+    }
+    const intraPool = this.props.vm.$pool === host.$pool
+    if (intraPool) {
+      this.setState({
+        host,
+        intraPool,
+        mapVdisSrs: undefined,
+        mapVifsNetworks: undefined,
+        migrationNetwork: undefined
+      })
       return
     }
     const { networks, pools, pifs, vdis, vifs } = this.props
@@ -145,7 +159,7 @@ export default class MigrateVmModalBody extends BaseComponent {
 
     this.setState({
       host,
-      intraPool: this.props.vm.$pool === host.$pool,
+      intraPool,
       mapVdisSrs: mapValues(vdis, vdi => defaultSr),
       mapVifsNetworks: defaultNetworksForVif,
       migrationNetworkId: defaultMigrationNetworkId
