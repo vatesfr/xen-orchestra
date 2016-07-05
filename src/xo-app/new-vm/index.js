@@ -10,25 +10,31 @@ import find from 'lodash/find'
 import forEach from 'lodash/forEach'
 import getEventValue from 'get-event-value'
 import Icon from 'icon'
+import includes from 'lodash/includes'
 import isArray from 'lodash/isArray'
+import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
+import Page from '../page'
 import React from 'react'
 import size from 'lodash/size'
 import slice from 'lodash/slice'
 import store from 'store'
-import toArray from 'lodash/toArray'
 import Wizard, { Section } from 'wizard'
 import { Button } from 'react-bootstrap-4/lib'
+import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
 import {
   createVm,
   createVms,
-  getCloudInitConfig
+  getCloudInitConfig,
+  subscribePermissions,
+  subscribeResourceSets
 } from 'xo'
 import {
   SelectVdi,
   SelectNetwork,
   SelectPool,
+  SelectResourceSet,
   SelectSr,
   SelectVmTemplate
 } from 'select-objects'
@@ -39,12 +45,15 @@ import {
 import {
   connectStore,
   formatSize,
-  noop
+  noop,
+  resolveResourceSets
 } from 'utils'
 import {
+  createFilter,
   createSelector,
   createGetObject,
-  createGetObjectsOfType
+  createGetObjectsOfType,
+  getUser
 } from 'selectors'
 
 import styles from './index.css'
@@ -54,6 +63,9 @@ const NB_VMS_MIN = 2
 const NB_VMS_MAX = 100
 
 /* eslint-disable camelcase */
+
+// Sub-components --------------------------------------------------------------
+
 const SectionContent = ({ summary, column, children }) => (
   <div className={classNames(
     'form-inline',
@@ -63,13 +75,11 @@ const SectionContent = ({ summary, column, children }) => (
     {children}
   </div>
 )
-
 const LineItem = ({ children }) => (
   <div className={styles.lineItem}>
     {children}
   </div>
 )
-
 const Item = ({ label, children }) => (
   <span className={styles.item}>
     {label && <span>{_(label)}&nbsp;</span>}
@@ -77,10 +87,17 @@ const Item = ({ label, children }) => (
   </span>
 )
 
+// -----------------------------------------------------------------------------
+
 const getObject = createGetObject((_, id) => id)
 
 @connectStore(() => ({
+  isAdmin: createSelector(
+    getUser,
+    user => user && user.permission === 'admin'
+  ),
   networks: createGetObjectsOfType('network').sort(),
+  pools: createGetObjectsOfType('pool'),
   templates: createGetObjectsOfType('VM-template').sort()
 }))
 @injectIntl
@@ -89,8 +106,8 @@ export default class NewVm extends BaseComponent {
     super()
 
     this._uniqueId = 0
-    // NewVm's state is stored in this.state.state instead of this.state
-    // so it can be emptied easily with this.setState(state: {})
+    // NewVm's form's state is stored in this.state.state instead of this.state
+    // so it can be emptied easily with this.setState({ state: {} })
     this.state = { state: {} }
   }
 
@@ -98,49 +115,34 @@ export default class NewVm extends BaseComponent {
     this._reset()
   }
 
-  getPoolNetworks = createSelector(
-    () => this.props.networks,
-    () => {
-      const { pool } = this.state.state
-      return pool && pool.id
-    },
-    (networks, poolId) => filter(networks, network => network.$pool === poolId)
-  )
+  componentWillMount () {
+    this._unsubscribeResourceSets = subscribeResourceSets(resourceSets => {
+      this.setState({
+        resourceSets: resolveResourceSets(resourceSets)
+      })
+    })
+    this._unsubscribePermissions = subscribePermissions(permissions => {
+      this.setState({
+        permissions
+      })
+    })
+  }
+
+  componentWillUnmount () {
+    this._unsubscribeResourceSets()
+    this._unsubscribePermissions()
+  }
+
+// Utils -----------------------------------------------------------------------
 
   getUniqueId () {
     return this._uniqueId++
   }
-
   get _isDiskTemplate () {
     const { template } = this.state.state
     return template &&
       template.template_info.disks.length === 0 && template.name_label !== 'Other install media'
   }
-
-  _updateNbVms = () => {
-    const { nbVms, name_label, nameLabels } = this.state.state
-    const nbVmsClamped = clamp(nbVms, NB_VMS_MIN, NB_VMS_MAX)
-    const newNameLabels = [ ...nameLabels ]
-    if (nbVmsClamped < nameLabels.length) {
-      this._setState({ nameLabels: slice(newNameLabels, 0, nbVmsClamped) })
-    } else {
-      for (let i = nameLabels.length + 1; i <= nbVmsClamped; i++) {
-        newNameLabels.push(`${name_label || 'VM'}_${i}`)
-      }
-      this._setState({ nameLabels: newNameLabels })
-    }
-  }
-
-  _updateNameLabels = () => {
-    const { name_label, nameLabels } = this.state.state
-    const nbVms = nameLabels.length
-    const newNameLabels = []
-    for (let i = 1; i <= nbVms; i++) {
-      newNameLabels.push(`${name_label || 'VM'}_${i}`)
-    }
-    this._setState({ nameLabels: newNameLabels })
-  }
-
   _setState = (newValues, callback) => {
     this.setState({ state: {
       ...this.state.state,
@@ -150,17 +152,23 @@ export default class NewVm extends BaseComponent {
   _replaceState = (state, callback) =>
     this.setState({ state }, callback)
 
-  _reset = pool =>
+// Actions ---------------------------------------------------------------------
+
+  _reset = ({ pool, resourceSet } = { pool: this.state.pool, resourceSet: this.state.resourceSet }) => {
+    this.setState({ pool, resourceSet })
     this._replaceState({
       bootAfterCreate: true,
       configDrive: false,
+      CPUs: '',
       cpuWeight: 1,
       existingDisks: {},
       fastClone: true,
       multipleVms: false,
+      name_label: '',
+      name_description: '',
       nameLabels: map(Array(NB_VMS_MIN), (_, index) => `VM_${index + 1}`),
+
       nbVms: NB_VMS_MIN,
-      pool: pool || this.state.state.pool,
       VDIs: [],
       VIFs: []
     })
@@ -205,7 +213,7 @@ export default class NewVm extends BaseComponent {
     }
 
     const data = {
-      clone: this._isDiskTemplate && state.fastClone,
+      clone: !this.isDiskTemplate && state.fastClone,
       existingDisks: state.existingDisks,
       installation,
       name_label: state.name_label,
@@ -227,28 +235,6 @@ export default class NewVm extends BaseComponent {
 
     return state.multipleVms ? createVms(data, state.nameLabels) : createVm(data)
   }
-
-  _selectPool = pool =>
-    this._reset(pool)
-
-  _getIsInPool = createSelector(
-    () => this.state.state.pool.id,
-    poolId => object => object.$pool === poolId
-  )
-
-  _getSrPredicate = createSelector(
-    () => this.state.state.pool.id,
-    poolId => disk => disk.$pool === poolId && disk.content_type !== 'iso' && disk.size > 0
-  )
-
-  _getDefaultNetworkId = () => {
-    const network = find(this.getPoolNetworks(), network => {
-      const pif = getObject(store.getState(), network.PIFs[0])
-      return pif && pif.management
-    })
-    return network && network.id
-  }
-
   _initTemplate = template => {
     if (!template) {
       return this._reset()
@@ -290,7 +276,7 @@ export default class NewVm extends BaseComponent {
         network: networkId
       })
     }
-    const { state } = this.state
+    const { pool, state } = this.state
     const name_label = state.name_label === '' || !state.name_labelHasChanged ? template.name_label : state.name_label
     this._setState({
       // infos
@@ -316,55 +302,164 @@ export default class NewVm extends BaseComponent {
           device,
           name_description: disk.name_description || 'Created by XO',
           name_label: (name_label || 'disk') + '_' + device,
-          SR: state.pool.default_SR
+          SR: pool && pool.default_SR
         }
       })
     })
 
-    getCloudInitConfig(template.id).then(
-      cloudConfig => this._setState({ cloudConfig }),
-      noop
-    )
+    if (template.name_label === 'CoreOS') {
+      getCloudInitConfig(template.id).then(
+        cloudConfig => this._setState({ cloudConfig }),
+        noop
+      )
+    }
   }
-
-  _addVdi = () => {
+  _create = () => {
     const { state } = this.state
-    const device = String(this.getUniqueId())
-    this._setState({ VDIs: [ ...state.VDIs, {
-      device,
-      name_description: 'Created by XO',
-      name_label: (state.name_label || 'disk') + '_' + device,
-      SR: state.pool.default_SR,
-      type: 'system'
-    }] })
-  }
-  _removeVdi = index => {
-    const { VDIs } = this.state.state
-    this._setState({ VDIs: [ ...VDIs.slice(0, index), ...VDIs.slice(index + 1) ] })
-  }
-  _addInterface = () => {
-    const networkId = this._getDefaultNetworkId()
-    this._setState({ VIFs: [ ...this.state.state.VIFs, {
-      id: this.getUniqueId(),
-      network: networkId
-    }] })
-  }
-  _removeInterface = index => {
-    const { VIFs } = this.state.state
-    this._setState({ VIFs: [ ...VIFs.slice(0, index), ...VIFs.slice(index + 1) ] })
+    let installation
+    switch (state.installMethod) {
+      case 'ISO':
+        installation = {
+          method: 'cdrom',
+          repository: state.installIso.id
+        }
+        break
+      case 'network':
+        const matches = /^(http|ftp|nfs)/i.exec(state.installNetwork)
+        if (!matches) {
+          throw new Error('invalid network URL')
+        }
+        installation = {
+          method: matches[1].toLowerCase(),
+          repository: state.installNetwork
+        }
+        break
+      case 'PXE':
+        installation = {
+          method: 'network',
+          repository: 'pxe'
+        }
+    }
+
+    let cloudConfig
+    if (state.configDrive) {
+      const hostname = state.name_label.replace(/^\s+|\s+$/g, '').replace(/\s+/g, '-')
+      if (state.installMethod === 'SSH') {
+        cloudConfig = '#cloud-config\nhostname: ' + hostname + '\nssh_authorized_keys:\n  - ' + state.sshKey + '\n'
+      } else {
+        cloudConfig = state.customConfig
+      }
+    } else if (state.template.name_label === 'CoreOS') {
+      cloudConfig = state.cloudConfig
+    }
+
+    const data = {
+      bootAfterCreate: state.bootAfterCreate,
+      clone: state.fastClone,
+      cloudConfig,
+      coreOs: state.template.name_label === 'CoreOS',
+      CPUs: state.CPUs,
+      cpuWeight: state.cpuWeight,
+      existingDisks: state.existingDisks,
+      installation,
+      memory: state.memory,
+      name_description: state.name_description,
+      name_label: state.name_label,
+      pv_args: state.pv_args,
+      template: state.template.id,
+      VDIs: state.VDIs,
+      VIFs: state.VIFs
+    }
+
+    return state.multipleVms ? createVms(data, state.nameLabels) : createVm(data)
   }
 
-  // if index: the element to be modified is an array/object
-  // if stateObjectProp: the array/object contains objects and stateObjectProp needs to be modified
-  // if targetObjectProp: the event target value is an object and the new value is the targetObjectProp of this object
+// Selectors -------------------------------------------------------------------
+
+  _getIsInPool = createSelector(
+    () => {
+      const { pool } = this.state
+      return pool && pool.id
+    },
+    poolId => ({ $pool }) => $pool === poolId
+  )
+  _getIsInResourceSet = createSelector(
+    () => {
+      const { resourceSet } = this.state
+      return resourceSet && resourceSet.objects
+    },
+    resourceSetObjects => ({ id }) => includes(resourceSetObjects, id)
+  )
+  _getCanOperate = createSelector(
+    () => this.state.permissions,
+    permissions => ({ id }) => this.props.isAdmin || permissions && permissions[id] && permissions[id].operate
+  )
+  _getVmPredicate = createSelector(
+    this._getIsInPool,
+    this._getIsInResourceSet,
+    (isInPool, isInResourceSet) => vm =>
+      isInResourceSet(vm) || isInPool(vm)
+  )
+  _getSrPredicate = createSelector(
+    this._getIsInPool,
+    this._getIsInResourceSet,
+    (isInPool, isInResourceSet) => disk =>
+      (isInResourceSet(disk) || isInPool(disk)) && disk.content_type !== 'iso' && disk.size > 0
+  )
+  _getNetworkPredicate = createSelector(
+    this._getIsInPool,
+    this._getIsInResourceSet,
+    (isInPool, isInResourceSet) => network =>
+      isInResourceSet(network) || isInPool(network)
+  )
+  _getPoolNetworks = createSelector(
+    () => this.props.networks,
+    () => {
+      const { pool } = this.state
+      return pool && pool.id
+    },
+    (networks, poolId) => filter(networks, network => network.$pool === poolId)
+  )
+  _getOperatablePools = createFilter(
+    () => this.props.pools,
+    this._getCanOperate,
+    [ (pool, canOperate) => canOperate(pool) ]
+  )
+  _getDefaultNetworkId = () => {
+    const network = find(this._getPoolNetworks(), network => {
+      const pif = getObject(store.getState(), network.PIFs[0])
+      return pif && pif.management
+    })
+    return network && network.id
+  }
+
+// On change -------------------------------------------------------------------
+  /*
+   * if index: the element to be modified should be an array/object
+   * if stateObjectProp: the array/object contains objects and stateObjectProp needs to be modified
+   * if targetObjectProp: the event target value is an object and the new value is the targetObjectProp of this object
+   *
+   * SCHEMA:                                      EXAMPLE:
+   *
+   * state: {                                     this.state.state: {
+   *   [prop]: {                                    existingDisks: {
+   *     [index]: {                                   0: {
+   *       [stateObjectProp]: TO BE MODIFIED            name_label: TO BE MODIFIED
+   *       ...                                          name_description
+   *     }                                              ...
+   *     ...                                          }
+   *   }                                              1: {...}
+   *   ...                                          }
+   * }                                            }
+   */
   _getOnChange (prop, index, stateObjectProp, targetObjectProp) {
     return event => {
       let value
-      if (index !== undefined) {
+      if (index !== undefined) { // The element should be an array or an object
         value = this.state.state[prop]
-        value = isArray(value) ? [ ...value ] : { ...value }
+        value = isArray(value) ? [ ...value ] : { ...value } // Clone the element
         let eventValue = getEventValue(event)
-        eventValue = targetObjectProp ? eventValue[targetObjectProp] : eventValue
+        eventValue = targetObjectProp ? eventValue[targetObjectProp] : eventValue // Get the new value
         if (value[index] && stateObjectProp) {
           value[index][stateObjectProp] = eventValue
         } else {
@@ -390,20 +485,106 @@ export default class NewVm extends BaseComponent {
       this._setState({ [prop]: value })
     }
   }
+  _updateNbVms = () => {
+    const { nbVms, name_label, nameLabels } = this.state.state
+    const nbVmsClamped = clamp(nbVms, NB_VMS_MIN, NB_VMS_MAX)
+    const newNameLabels = [ ...nameLabels ]
+    if (nbVmsClamped < nameLabels.length) {
+      this._setState({ nameLabels: slice(newNameLabels, 0, nbVmsClamped) })
+    } else {
+      for (let i = nameLabels.length + 1; i <= nbVmsClamped; i++) {
+        newNameLabels.push(`${name_label || 'VM'}_${i}`)
+      }
+      this._setState({ nameLabels: newNameLabels })
+    }
+  }
+  _updateNameLabels = () => {
+    const { name_label, nameLabels } = this.state.state
+    const nbVms = nameLabels.length
+    const newNameLabels = []
+    for (let i = 1; i <= nbVms; i++) {
+      newNameLabels.push(`${name_label || 'VM'}_${i}`)
+    }
+    this._setState({ nameLabels: newNameLabels })
+  }
+  _selectResourceSet = resourceSet =>
+    this._reset({ pool: undefined, resourceSet })
+  _selectPool = pool =>
+    this._reset({ pool, resourceSet: undefined })
+  _addVdi = () => {
+    const { pool, state } = this.state
+    const device = String(this.getUniqueId())
+    this._setState({ VDIs: [ ...state.VDIs, {
+      device,
+      name_description: 'Created by XO',
+      name_label: (state.name_label || 'disk') + '_' + device,
+      SR: pool && pool.default_SR,
+      type: 'system'
+    }] })
+  }
+  _removeVdi = index => {
+    const { VDIs } = this.state.state
+    this._setState({ VDIs: [ ...VDIs.slice(0, index), ...VDIs.slice(index + 1) ] })
+  }
+  _addInterface = () => {
+    const networkId = this._getDefaultNetworkId()
+    this._setState({ VIFs: [ ...this.state.state.VIFs, {
+      id: this.getUniqueId(),
+      network: networkId
+    }] })
+  }
+  _removeInterface = index => {
+    const { VIFs } = this.state.state
+    this._setState({ VIFs: [ ...VIFs.slice(0, index), ...VIFs.slice(index + 1) ] })
+  }
 
   _getRedirectionUrl = id =>
     this.state.state.multipleVms ? '/home' : `/vms/${id}`
 
+// MAIN ------------------------------------------------------------------------
+
+  _renderHeader = () => {
+    const { pool, resourceSet, resourceSets } = this.state
+    const showSelectPool = !isEmpty(this._getOperatablePools())
+    const showSelectResourceSet = !this.props.isAdmin && !isEmpty(resourceSets)
+    const selectPool = <span className={styles.inlineSelect}>
+      <SelectPool
+        onChange={this._selectPool}
+        predicate={this._getCanOperate()}
+        value={pool}
+      />
+    </span>
+    const selectResourceSet = <span className={styles.inlineSelect}>
+      <SelectResourceSet
+        onChange={this._selectResourceSet}
+        value={resourceSet}
+      />
+    </span>
+    return <Container>
+      <Row>
+        <Col mediumSize={12}>
+          <h2>
+            {showSelectPool && showSelectResourceSet
+              ? _('newVmCreateNewVmOn2', {
+                select1: selectPool,
+                select2: selectResourceSet
+              })
+              : showSelectPool || showSelectResourceSet
+              ? _('newVmCreateNewVmOn', {
+                select: isEmpty(this._getOperatablePools()) ? selectResourceSet : selectPool
+              })
+              : _('newVmCreateNewVmNoPermission')
+            }
+          </h2>
+        </Col>
+      </Row>
+    </Container>
+  }
+
   render () {
-    return <div>
-      <h1>
-        {_('newVmCreateNewVmOn', {
-          pool: <span className={styles.inlineSelect}>
-            <SelectPool value={this.state.state.pool} onChange={this._selectPool} />
-          </span>
-        })}
-      </h1>
-      {this.state.state.pool && <form id='vmCreation'>
+    const { resourceSet, pool } = this.state
+    return <Page header={this._renderHeader()}>
+      {(pool || resourceSet) && <form id='vmCreation'>
         <Wizard>
           {this._renderInfo()}
           {this._renderPerformances()}
@@ -440,8 +621,10 @@ export default class NewVm extends BaseComponent {
           </ActionButton>
         </div>
       </form>}
-    </div>
+    </Page>
   }
+
+// INFO ------------------------------------------------------------------------
 
   _renderInfo = () => {
     const {
@@ -459,7 +642,7 @@ export default class NewVm extends BaseComponent {
             <SelectVmTemplate
               onChange={this._initTemplate}
               placeholder={_('newVmSelectTemplate')}
-              predicate={this._getIsInPool()}
+              predicate={this._getVmPredicate()}
               value={template}
             />
           </span>
@@ -558,6 +741,8 @@ export default class NewVm extends BaseComponent {
     return CPUs && memory !== undefined
   }
 
+// INSTALL SETTINGS ------------------------------------------------------------
+
   _renderInstallSettings = () => {
     const { template } = this.state.state
     if (!template) {
@@ -570,7 +755,6 @@ export default class NewVm extends BaseComponent {
       installIso,
       installMethod,
       installNetwork,
-      pool,
       pv_args,
       sshKey
     } = this.state.state
@@ -647,7 +831,7 @@ export default class NewVm extends BaseComponent {
               <SelectVdi
                 disabled={installMethod !== 'ISO'}
                 onChange={this._getOnChange('installIso')}
-                srPredicate={sr => sr.$pool === pool.id && sr.SR_type === 'iso'}
+                srPredicate={this._getSrPredicate()}
                 value={installIso}
               />
             </span>
@@ -729,6 +913,8 @@ export default class NewVm extends BaseComponent {
     }
   }
 
+// INTERFACES ------------------------------------------------------------------
+
   _renderInterfaces = () => {
     const { formatMessage } = this.props.intl
     const {
@@ -752,7 +938,7 @@ export default class NewVm extends BaseComponent {
               <span className={styles.inlineSelect}>
                 <SelectNetwork
                   onChange={this._getOnChange('VIFs', index, 'network', 'id')}
-                  predicate={this._getIsInPool()}
+                  predicate={this._getNetworkPredicate()}
                   value={vif.network}
                 />
               </span>
@@ -780,17 +966,20 @@ export default class NewVm extends BaseComponent {
     vif.network
   )
 
+// DISKS -----------------------------------------------------------------------
+
   _renderDisks = () => {
     const {
       configDrive,
       existingDisks,
       VDIs
     } = this.state.state
+    let i = 0
     return <Section icon='new-vm-disks' title='newVmDisksPanel' done={this._isDisksDone()}>
       <SectionContent column>
 
         {/* Existing disks */}
-        {map(toArray(existingDisks), (disk, index) => <div key={index}>
+        {map(existingDisks, (disk, index) => <div key={i}>
           <LineItem>
             <Item label='newVmSrLabel'>
               <span className={styles.inlineSelect}>
@@ -827,7 +1016,7 @@ export default class NewVm extends BaseComponent {
               />
             </Item>
           </LineItem>
-          {index < size(existingDisks) + VDIs.length - 1 && <hr />}
+          {i++ < size(existingDisks) + VDIs.length - 1 && <hr />}
         </div>)}
 
         {/* VDIs */}
@@ -901,6 +1090,8 @@ export default class NewVm extends BaseComponent {
     every(this.state.state.existingDisks, (vdi, index) =>
       vdi.$SR && vdi.name_label && vdi.size !== undefined
     )
+
+// SUMMARY ---------------------------------------------------------------------
 
   _renderSummary = () => {
     const {

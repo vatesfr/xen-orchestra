@@ -108,6 +108,11 @@ const xoItemToRender = {
       <Icon icon='user' /> {user.email}
     </span>
   ),
+  resourceSet: resourceSet => (
+    <span>
+      <Icon icon='resource-set' /> {resourceSet.name}
+    </span>
+  ),
 
   // XO objects.
   pool: pool => (

@@ -29,6 +29,7 @@ import {
   isSrWritable,
   subscribeGroups,
   subscribeRemotes,
+  subscribeResourceSets,
   subscribeRoles,
   subscribeUsers
 } from './xo'
@@ -580,3 +581,15 @@ export const SelectRemote = makeSubscriptionSelect(subscriber => {
 
   return unsubscribeRemotes
 }, { placeholder: _('selectRemotes') })
+
+// ===================================================================
+
+export const SelectResourceSet = makeSubscriptionSelect(subscriber => {
+  const unsubscribeResourceSets = subscribeResourceSets(resourceSets => {
+    const xoObjects = map(sortBy(resourceSets, 'name'), resourceSet => ({...resourceSet, type: 'resourceSet'}))
+
+    subscriber({xoObjects})
+  })
+
+  return unsubscribeResourceSets
+}, { placeholder: _('selectResourceSets') })

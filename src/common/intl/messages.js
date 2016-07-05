@@ -126,6 +126,7 @@ var messages = {
   selectPifs: 'Select PIF(s)…',
   selectPools: 'Select Pool(s)…',
   selectRemotes: 'Select Remote(s)…',
+  selectResourceSets: 'Select resource set(s)…',
   selectSrs: 'Select SR(s)…',
   selectVms: 'Select VM(s)…',
   selectVmTemplates: 'Select VM template(s)…',
@@ -583,7 +584,9 @@ var messages = {
   alarmRemoveAll: 'Remove all alarms',
 
   // ----- New VM -----
-  newVmCreateNewVmOn: 'Create a new VM on {pool}',
+  newVmCreateNewVmOn: 'Create a new VM on {select}',
+  newVmCreateNewVmOn2: 'Create a new VM on {select1} or {select2}',
+  newVmCreateNewVmNoPermission: 'You have no permission to create a VM',
   newVmInfoPanel: 'Infos',
   newVmNameLabel: 'Name',
   newVmTemplateLabel: 'Template',
@@ -622,6 +625,7 @@ var messages = {
   newVmCreateVms: 'Create VMs',
   newVmCreateVmsConfirm: 'Are you sure you want to create {nbVms} VMs?',
   newVmMultipleVms: 'Multiple VMs:',
+  newVmSelectResourceSet: 'Select a resource set:',
 
   // ----- Self -----
   resourceSets: 'Resource sets',

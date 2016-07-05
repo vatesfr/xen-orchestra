@@ -2,15 +2,22 @@ import _ from 'intl'
 import Component from 'base-component'
 import classNames from 'classnames'
 import Icon from 'icon'
+import isEmpty from 'lodash/isEmpty'
 import Link from 'link'
 import map from 'lodash/map'
 import React from 'react'
 import Tooltip from 'tooltip'
 import { Button } from 'react-bootstrap-4/lib'
 import { connectStore, noop, getXoaPlan } from 'utils'
-import { createGetObjectsOfType, getLang, getUser } from 'selectors'
-import { signOut } from 'xo'
+import { signOut, subscribePermissions, subscribeResourceSets } from 'xo'
 import { UpdateTag } from '../xoa-updates'
+import {
+  createFilter,
+  createGetObjectsOfType,
+  createSelector,
+  getLang,
+  getUser
+} from 'selectors'
 
 import styles from './index.css'
 
@@ -20,10 +27,10 @@ import styles from './index.css'
   // There are currently issues between context updates (used by
   // react-intl) and pure components.
   lang: getLang,
-
   nTasks: createGetObjectsOfType('task').count(
     [ task => task.status === 'pending' ]
   ),
+  pools: createGetObjectsOfType('pool'),
   user: getUser
 }), {
   withRef: true
@@ -40,11 +47,36 @@ export default class Menu extends Component {
       window.removeEventListener('resize', updateCollapsed)
       this._removeListener = noop
     }
+
+    this._unsubscribeResourceSets = subscribeResourceSets(resourceSets => {
+      this.setState({
+        resourceSets
+      })
+    })
+    this._unsubscribePermissions = subscribePermissions(permissions => {
+      this.setState({
+        permissions
+      })
+    })
   }
 
   componentWillUnmount () {
     this._removeListener()
+    this._unsubscribeResourceSets()
+    this._unsubscribePermissions()
   }
+
+  _getNoOperatablePools = createSelector(
+    createFilter(
+      () => this.props.pools,
+      () => this.permissions,
+      [ ({ id }, permissions) => {
+        const { user } = this.props
+        return user && user.permission === 'admin' || permissions && permissions[id] && permissions[id].operate
+      } ]
+    ),
+    isEmpty
+  )
 
   get height () {
     return this.refs.content.offsetHeight
@@ -58,6 +90,8 @@ export default class Menu extends Component {
   render () {
     const { nTasks, user } = this.props
     const isAdmin = user && user.permission === 'admin'
+    const noOperatablePools = this._getNoOperatablePools()
+    const noResourceSets = isEmpty(this.state.resourceSets)
 
     const items = [
       { to: '/home', icon: 'menu-home', label: 'homePage' },
@@ -93,7 +127,7 @@ export default class Menu extends Component {
       { to: '/about', icon: 'menu-about', label: 'aboutPage' },
       { to: '/tasks', icon: 'task', label: 'taskMenu', pill: nTasks },
       { to: '/vms/new', icon: 'menu-new', label: 'newMenu', subMenu: [
-        { to: '/vms/new', icon: 'menu-new-vm', label: 'newVmPage' },
+        !(noOperatablePools && noResourceSets) && { to: '/vms/new', icon: 'menu-new-vm', label: 'newVmPage' },
         isAdmin && { to: '/new/sr', icon: 'menu-new-sr', label: 'newSrPage' },
         isAdmin && { to: '/settings/servers', icon: 'menu-settings-servers', label: 'newServerPage' },
         { to: '/vms/import', icon: 'menu-new-import', label: 'newImport' }

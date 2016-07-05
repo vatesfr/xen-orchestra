@@ -8,8 +8,12 @@ import _ from 'intl'
 import map from 'lodash/map'
 import renderXoItem from 'render-xo-item'
 import { Container, Row, Col } from 'grid'
-import { formatSize } from 'utils'
 import { subscribeResourceSets } from 'xo'
+
+import {
+  formatSize,
+  resolveResourceSets
+} from 'utils'
 
 import {
   Card,
@@ -18,8 +22,7 @@ import {
 } from 'card'
 
 import {
-  Subjects,
-  resolveResourceSets
+  Subjects
 } from '../helpers'
 
 // ===================================================================

@@ -14,7 +14,9 @@ import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
 import React from 'react'
 import replace from 'lodash/replace'
+import store from 'store'
 import { connect } from 'react-redux'
+import { getObject } from 'selectors'
 
 import BaseComponent from './base-component'
 import invoke from './invoke'
@@ -354,6 +356,41 @@ export function rethrow (cb) {
     Promise.resolve(cb(error)).then(() => { throw error })
   )
 }
+
+// ===================================================================
+
+export const resolveResourceSets = resourceSets => (
+  map(resourceSets, resourceSet => {
+    const { objects, ...attrs } = resourceSet
+    const resolvedObjects = {}
+    const resolvedSet = {
+      ...attrs,
+      missingObjects: [],
+      objectsByType: resolvedObjects
+    }
+    const state = store.getState()
+
+    forEach(objects, id => {
+      const object = getObject(state, id)
+
+      // Error, missing resource.
+      if (!object) {
+        resolvedSet.missingObjects.push(id)
+        return
+      }
+
+      const { type } = object
+
+      if (!resolvedObjects[type]) {
+        resolvedObjects[type] = [ object ]
+      } else {
+        resolvedObjects[type].push(object)
+      }
+    })
+
+    return resolvedSet
+  })
+)
 
 // -------------------------------------------------------------------
 
