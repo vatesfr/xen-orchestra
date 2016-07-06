@@ -48,7 +48,7 @@ export default ({
       <p className='text-xs-center'>{_('started', { ago: <FormattedRelative value={host.startTime * 1000} /> })}</p>
     </Col>
     <Col mediumSize={3}>
-      <p>{host.license_params.sku_marketing_name} {host.license_params.version} ({host.license_params.sku_type})</p>
+      <p>{host.license_params.sku_marketing_name} {host.version} ({host.license_params.sku_type})</p>
     </Col>
     <Col mediumSize={3}>
       <Copiable tagName='p'>
