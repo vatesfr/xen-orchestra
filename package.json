@@ -75,7 +75,7 @@
     "lodash": "^4.6.1",
     "loose-envify": "^1.1.0",
     "marked": "^0.3.5",
-    "modular-css": "^0.22.1",
+    "modular-css": "^0.23.2",
     "moment": "^2.13.0",
     "notifyjs": "^2.0.1",
     "novnc-node": "^0.5.3",
