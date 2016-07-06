@@ -179,7 +179,9 @@ export default class SortedTable extends Component {
   }
 
   componentWillMount () {
-    this._sort(this.state.selectedColumn)
+    this.setState({
+      sortOrder: this.props.columns[this.state.selectedColumn].sortOrder === 'desc' ? 'desc' : 'asc'
+    })
   }
 
   componentDidMount () {

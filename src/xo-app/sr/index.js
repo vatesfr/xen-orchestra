@@ -1,15 +1,19 @@
 import _ from 'intl'
 import assign from 'lodash/assign'
+import Component from 'base-component'
+import find from 'lodash/find'
+import flatten from 'lodash/flatten'
 import Icon from 'icon'
 import map from 'lodash/map'
+import mapValues from 'lodash/mapValues'
 import Page from '../page'
 import pick from 'lodash/pick'
+import React, { cloneElement } from 'react'
 import SrActionBar from './action-bar'
-import React, { cloneElement, Component } from 'react'
+import { Container, Row, Col } from 'grid'
+import { editSr } from 'xo'
 import { NavLink, NavTabs } from 'nav'
 import { Text } from 'editable'
-import { editSr } from 'xo'
-import { Container, Row, Col } from 'grid'
 import {
   connectStore,
   routes
@@ -60,6 +64,23 @@ import TabDisks from './tab-disks'
 
   const getLogs = createGetObjectMessages(getSr)
 
+  const getVbdsByVdi = createGetObjectsOfType('VBD').pick(
+    createSelector(
+      getVdis,
+      vdis => flatten(map(vdis, vdi => vdi.$VBDs))
+    )
+  ).groupBy('VDI')
+
+  const getVdisToVmIds = createSelector(
+    getVbdsByVdi,
+    vbdsByVdi => mapValues(vbdsByVdi, vbds => {
+      const vbd = find(vbds, 'VM')
+      if (vbd) {
+        return vbd.VM
+      }
+    })
+  )
+
   return (state, props) => {
     const sr = getSr(state, props)
     if (!sr) {
@@ -72,6 +93,7 @@ import TabDisks from './tab-disks'
       pbds: getPbds(state, props),
       logs: getLogs(state, props),
       vdis: getVdis(state, props),
+      vdisToVmIds: getVdisToVmIds(state, props),
       sr
     }
   }
@@ -134,7 +156,8 @@ export default class Sr extends Component {
       'logs',
       'pbds',
       'sr',
-      'vdis'
+      'vdis',
+      'vdisToVmIds'
     ])
    )
     return <Page header={this.header()}>
