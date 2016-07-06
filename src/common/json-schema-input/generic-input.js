@@ -48,12 +48,14 @@ export default class GenericInput extends Component {
   render () {
     const {
       schema,
+      defaultValue = schema.default,
       uiSchema = EMPTY_OBJECT,
       ...opts
     } = this.props
 
     const props = {
       ...opts,
+      defaultValue,
       schema,
       uiSchema,
       ref: 'input'

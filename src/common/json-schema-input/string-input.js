@@ -1,6 +1,7 @@
 import React from 'react'
 
 import AbstractInput from './abstract-input'
+import Combobox from '../combobox'
 import propTypes from '../prop-types'
 import { PrimitiveInputWrapper } from './helpers'
 
@@ -12,19 +13,18 @@ import { PrimitiveInputWrapper } from './helpers'
 export default class StringInput extends AbstractInput {
   render () {
     const { props } = this
-    const { onChange } = props
 
     return (
       <PrimitiveInputWrapper {...props}>
-        <input
-          className='form-control'
-          defaultValue={props.defaultValue || ''}
+        <Combobox
+          defaultValue={props.defaultValue}
           disabled={props.disabled}
-          onChange={onChange && (event => onChange(event.target.value))}
+          onChange={props.onChange}
+          options={props.schema.defaults || props.defaultValue}
           placeholder={props.placeholder}
           ref='input'
           required={props.required}
-          type={props.password ? 'password' : 'text'}
+          type={props.password && 'password'}
         />
       </PrimitiveInputWrapper>
     )

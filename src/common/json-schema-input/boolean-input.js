@@ -23,7 +23,7 @@ export default class BooleanInput extends AbstractInput {
       <PrimitiveInputWrapper {...props}>
         <div className='checkbox form-control'>
           <Toggle
-            defaultValue={props.defaultValue || props.schema.default}
+            defaultValue={props.defaultValue}
             disabled={props.disabled}
             onChange={props.onChange}
             ref='input'
