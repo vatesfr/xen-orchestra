@@ -9,2054 +9,2054 @@ addLocaleData(reactIntlData)
 
 export default {
   // Original text: "Long click to edit"
-  editableLongClickPlaceholder: undefined,
+  editableLongClickPlaceholder: 'Click largo para editar',
 
   // Original text: "Click to edit"
-  editableClickPlaceholder: undefined,
+  editableClickPlaceholder: 'Click para editar',
 
   // Original text: "OK"
-  alertOk: undefined,
+  alertOk: 'OK',
 
   // Original text: "OK"
-  confirmOk: undefined,
+  confirmOk: 'OK',
 
   // Original text: "Cancel"
-  confirmCancel: undefined,
+  confirmCancel: 'Cancelar',
 
   // Original text: "Home"
-  homePage: undefined,
+  homePage: 'Inicio',
 
   // Original text: "Dashboard"
-  dashboardPage: undefined,
+  dashboardPage: 'Resumen',
 
   // Original text: "Overview"
-  overviewDashboardPage: undefined,
+  overviewDashboardPage: 'Vista General',
 
   // Original text: "Visualizations"
-  overviewVisualizationDashboardPage: undefined,
+  overviewVisualizationDashboardPage: 'Visualizaciones',
 
   // Original text: "Statistics"
-  overviewStatsDashboardPage: undefined,
+  overviewStatsDashboardPage: 'Estadísticas',
 
   // Original text: "Health"
-  overviewHealthDashboardPage: undefined,
+  overviewHealthDashboardPage: 'Estado',
 
   // Original text: "Self service"
-  selfServicePage: undefined,
+  selfServicePage: 'Auto servicio',
 
   // Original text: "Dashboard"
-  selfServiceDashboardPage: undefined,
+  selfServiceDashboardPage: 'Resumen',
 
   // Original text: "Administration"
-  selfServiceAdminPage: undefined,
+  selfServiceAdminPage: 'Administracion',
 
   // Original text: "Backup"
-  backupPage: undefined,
+  backupPage: 'Backup',
 
   // Original text: "Jobs"
-  jobsPage: undefined,
+  jobsPage: 'Trabajos',
 
   // Original text: "Updates"
-  updatePage: undefined,
+  updatePage: 'Actualizaciones',
 
   // Original text: "Settings"
-  settingsPage: undefined,
+  settingsPage: 'Configuración',
 
   // Original text: "Servers"
-  settingsServersPage: undefined,
+  settingsServersPage: 'Servidores',
 
   // Original text: "Users"
-  settingsUsersPage: undefined,
+  settingsUsersPage: 'Usuarios',
 
   // Original text: "Groups"
-  settingsGroupsPage: undefined,
+  settingsGroupsPage: 'Grupos',
 
   // Original text: "ACLs"
-  settingsAclsPage: undefined,
+  settingsAclsPage: 'Control de acceso',
 
   // Original text: "Plugins"
-  settingsPluginsPage: undefined,
+  settingsPluginsPage: 'Plugins',
 
   // Original text: "About"
-  aboutPage: undefined,
+  aboutPage: 'Acerca de',
 
   // Original text: "New"
-  newMenu: undefined,
+  newMenu: 'Nuevo',
 
   // Original text: "Tasks"
-  taskMenu: undefined,
+  taskMenu: 'Tareas',
 
   // Original text: "VM"
-  newVmPage: undefined,
+  newVmPage: 'VM',
 
   // Original text: "Storage"
-  newSrPage: undefined,
+  newSrPage: 'Almacenamiento',
 
   // Original text: "Server"
-  newServerPage: undefined,
+  newServerPage: 'Servidor',
 
   // Original text: "Import"
-  newImport: undefined,
+  newImport: 'Importar',
 
   // Original text: "Overview"
-  backupOverviewPage: undefined,
+  backupOverviewPage: 'Visión General',
 
   // Original text: "New"
-  backupNewPage: undefined,
+  backupNewPage: 'Nuevo',
 
   // Original text: "Remotes"
-  backupRemotesPage: undefined,
+  backupRemotesPage: 'Remotos',
 
   // Original text: "Restore"
-  backupRestorePage: undefined,
+  backupRestorePage: 'Restaurar',
 
   // Original text: "Schedule"
-  schedule: undefined,
+  schedule: 'Programación',
 
   // Original text: "New VM backup"
-  newVmBackup: undefined,
+  newVmBackup: 'Nuevo backup de VM',
 
   // Original text: "Edit VM backup"
-  editVmBackup: undefined,
+  editVmBackup: 'Editar backup de VM',
 
   // Original text: "Backup"
-  backup: undefined,
+  backup: 'Backup',
 
   // Original text: "Rolling Snapshot"
-  rollingSnapshot: undefined,
+  rollingSnapshot: 'Snapshot rotatorio',
 
   // Original text: "Delta Backup"
-  deltaBackup: undefined,
+  deltaBackup: 'Backup diferencial',
 
   // Original text: "Disaster Recovery"
-  disasterRecovery: undefined,
+  disasterRecovery: 'Recuperación de desastres',
 
   // Original text: "Continuous Replication"
-  continuousReplication: undefined,
+  continuousReplication: 'Replicación continua',
 
   // Original text: "Overview"
-  jobsOverviewPage: undefined,
+  jobsOverviewPage: 'Vistazo',
 
   // Original text: "New"
-  jobsNewPage: undefined,
+  jobsNewPage: 'Nuevo',
 
   // Original text: "Scheduling"
-  jobsSchedulingPage: undefined,
+  jobsSchedulingPage: 'Programación',
 
   // Original text: "Custom Job"
-  customJob: undefined,
+  customJob: 'Trabajo personalizado',
 
   // Original text: "Username:"
-  usernameLabel: undefined,
+  usernameLabel: 'Usuario:',
 
   // Original text: "Password:"
-  passwordLabel: undefined,
+  passwordLabel: 'Calave:',
 
   // Original text: "Sign in"
-  signInButton: undefined,
+  signInButton: 'Entrar',
 
   // Original text: "Sign out"
-  signOut: undefined,
+  signOut: 'Salir',
 
   // Original text: "Fetching data…"
-  homeFetchingData: undefined,
+  homeFetchingData: 'Recuperando datos...',
 
   // Original text: "Welcome on Xen Orchestra!"
-  homeWelcome: undefined,
+  homeWelcome: '¡Bienvenido a Xen Orchestra!',
 
   // Original text: "Add your XenServer hosts or pools"
-  homeWelcomeText: undefined,
+  homeWelcomeText: 'Añade tus hosts/pools de XenServer',
 
   // Original text: "Want some help?"
-  homeHelp: undefined,
+  homeHelp: '¿Necesitas ayuda?',
 
   // Original text: "Add server"
-  homeAddServer: undefined,
+  homeAddServer: 'Añadir servidor',
 
   // Original text: "Online Doc"
-  homeOnlineDoc: undefined,
+  homeOnlineDoc: 'Documentación en línea',
 
   // Original text: "Pro Support"
-  homeProSupport: undefined,
+  homeProSupport: 'Soporte Pro',
 
   // Original text: "There are no VMs!"
-  homeNoVms: undefined,
+  homeNoVms: '¡No hay VMs!',
 
   // Original text: "Or…"
-  homeNoVmsOr: undefined,
+  homeNoVmsOr: 'O...',
 
   // Original text: "Import VM"
-  homeImportVm: undefined,
+  homeImportVm: 'Importar VM',
 
   // Original text: "Import an existing VM in xva format"
-  homeImportVmMessage: undefined,
+  homeImportVmMessage: 'Importar una VM existente en formato xva',
 
   // Original text: "Restore a backup"
-  homeRestoreBackup: undefined,
+  homeRestoreBackup: 'Restaurar un backup',
 
   // Original text: "Restore a backup from a remote store"
-  homeRestoreBackupMessage: undefined,
+  homeRestoreBackupMessage: 'Restaurar un backup de un almacenamiento remoto',
 
   // Original text: "This will create a new VM"
-  homeNewVmMessage: undefined,
+  homeNewVmMessage: 'Esto creará una nueva VM',
 
   // Original text: "Filters"
-  homeFilters: undefined,
+  homeFilters: 'Filtros',
 
   // Original text: "Pool"
-  homeTypePool: undefined,
+  homeTypePool: 'Pool',
 
   // Original text: "Host"
-  homeTypeHost: undefined,
+  homeTypeHost: 'Host',
 
   // Original text: "VM"
-  homeTypeVm: undefined,
+  homeTypeVm: 'VM',
 
   // Original text: "SR"
-  homeTypeSr: undefined,
+  homeTypeSr: 'SR',
 
   // Original text: "VDI"
-  homeTypeVdi: undefined,
+  homeTypeVdi: 'VDI',
 
   // Original text: "Sort"
-  homeSort: undefined,
+  homeSort: 'Ordenar',
 
   // Original text: "Pools"
-  homeAllPools: undefined,
+  homeAllPools: 'Pools',
 
   // Original text: "Hosts"
-  homeAllHosts: undefined,
+  homeAllHosts: 'Hosts',
 
   // Original text: "Tags"
-  homeAllTags: undefined,
+  homeAllTags: 'Etiquetas',
 
   // Original text: "New VM"
-  homeNewVm: undefined,
+  homeNewVm: 'Nueva VM',
 
   // Original text: "Running hosts"
-  homeFilterRunningHosts: undefined,
+  homeFilterRunningHosts: 'Hosts en funcionamiento',
 
   // Original text: "Disabled hosts"
-  homeFilterDisabledHosts: undefined,
+  homeFilterDisabledHosts: 'Hosts inhabilitados',
 
   // Original text: "Running VMs"
-  homeFilterRunningVms: undefined,
+  homeFilterRunningVms: 'VMs en funcionamiento',
 
   // Original text: "Non running VMs"
-  homeFilterNonRunningVms: undefined,
+  homeFilterNonRunningVms: 'VMs paradas',
 
   // Original text: "Pending VMs"
-  homeFilterPendingVms: undefined,
+  homeFilterPendingVms: 'VMs pendientes',
 
   // Original text: "HVM guests"
-  homeFilterHvmGuests: undefined,
+  homeFilterHvmGuests: 'Invitados HVM',
 
   // Original text: "Tags"
-  homeFilterTags: undefined,
+  homeFilterTags: 'Etiquetas',
 
   // Original text: "Sort by"
-  homeSortBy: undefined,
+  homeSortBy: 'Ordenar por',
 
   // Original text: "Name"
-  homeSortByName: undefined,
+  homeSortByName: 'Nombre',
 
   // Original text: "Power state"
-  homeSortByPowerstate: undefined,
+  homeSortByPowerstate: 'Estado alimentación',
 
   // Original text: "RAM"
-  homeSortByRAM: undefined,
+  homeSortByRAM: 'RAM',
 
   // Original text: "vCPUs"
-  homeSortByvCPUs: undefined,
+  homeSortByvCPUs: 'vCPUs',
 
   // Original text: "{displayed, number}x {icon} (on {total, number})"
-  homeDisplayedItems: undefined,
+  homeDisplayedItems: '{displayed, number}x {icon} (sobre {total, number})',
 
   // Original text: "{selected, number}x {icon} selected (on {total, number})"
-  homeSelectedItems: undefined,
+  homeSelectedItems: '{selected, number}x {icon} seleccionados (sobre {total, number})',
 
   // Original text: "More"
-  homeMore: undefined,
+  homeMore: 'Más',
 
   // Original text: "Migrate to…"
-  homeMigrateTo: undefined,
+  homeMigrateTo: 'Migrar a...',
 
   // Original text: "Add"
-  add: undefined,
+  add: 'Añadir',
 
   // Original text: "Remove"
-  remove: undefined,
+  remove: 'Quitar',
 
   // Original text: "Preview"
-  preview: undefined,
+  preview: 'Vista previa',
 
   // Original text: "Item"
-  item: undefined,
+  item: 'Elemento',
 
   // Original text: "No selected value"
-  noSelectedValue: undefined,
+  noSelectedValue: 'No se ha seleccionado un valor',
 
   // Original text: "Choose user(s) and/or group(s)"
-  selectSubjects: undefined,
+  selectSubjects: 'Elegir usuario(s) y/o grupo(s)',
 
   // Original text: "Select Object(s)…"
-  selectObjects: undefined,
+  selectObjects: 'Elegir Objeto(s)...',
 
   // Original text: "Choose a role"
-  selectRole: undefined,
+  selectRole: 'Elegir un rol',
 
   // Original text: "Select Host(s)…"
-  selectHosts: undefined,
+  selectHosts: 'Elegir Host(s)...',
 
   // Original text: "Select object(s)…"
-  selectHostsVms: undefined,
+  selectHostsVms: 'Elegir objeto(s)...',
 
   // Original text: "Select Network(s)…"
-  selectNetworks: undefined,
+  selectNetworks: 'Elegir Red(es)...',
 
   // Original text: "Select PIF(s)…"
-  selectPifs: undefined,
+  selectPifs: 'Elegir PIF(s)...',
 
   // Original text: "Select Pool(s)…"
-  selectPools: undefined,
+  selectPools: 'Elegir Pool(s)...',
 
   // Original text: "Select Remote(s)…"
-  selectRemotes: undefined,
+  selectRemotes: 'Elegir almacenamiento(s) remoto(s)...',
 
   // Original text: "Select SR(s)…"
-  selectSrs: undefined,
+  selectSrs: 'Elegir SR(s)...',
 
   // Original text: "Select VM(s)…"
-  selectVms: undefined,
+  selectVms: 'Elegir VM(s)...',
 
   // Original text: "Select VM template(s)…"
-  selectVmTemplates: undefined,
+  selectVmTemplates: 'Elegir plantilla(s) de VM...',
 
   // Original text: "Select tag(s)…"
-  selectTags: undefined,
+  selectTags: 'Elegir etiqueta(s)...',
 
   // Original text: "Select disk(s)…"
-  selectVdis: undefined,
+  selectVdis: 'Elegir disco(s)...',
 
   // Original text: "Fill required informations."
-  fillRequiredInformations: undefined,
+  fillRequiredInformations: 'Introducir la información requerida',
 
   // Original text: "Fill informations (optional)"
-  fillOptionalInformations: undefined,
+  fillOptionalInformations: 'Introducir datos (opcional)',
 
   // Original text: "Reset"
-  selectTableReset: undefined,
+  selectTableReset: 'Reiniciar',
 
   // Original text: "Month"
-  schedulingMonth: undefined,
+  schedulingMonth: 'Mes',
 
   // Original text: "Every month"
-  schedulingEveryMonth: undefined,
+  schedulingEveryMonth: 'Cada mes',
 
   // Original text: "Each selected month"
-  schedulingEachSelectedMonth: undefined,
+  schedulingEachSelectedMonth: 'Cada mes seleccionado',
 
   // Original text: "Day of the month"
-  schedulingMonthDay: undefined,
+  schedulingMonthDay: 'Día del mes',
 
   // Original text: "Every day"
-  schedulingEveryMonthDay: undefined,
+  schedulingEveryMonthDay: 'Cada día',
 
   // Original text: "Each selected day"
-  schedulingEachSelectedMonthDay: undefined,
+  schedulingEachSelectedMonthDay: 'Cada día seleccionado',
 
   // Original text: "Day of the week"
-  schedulingWeekDay: undefined,
+  schedulingWeekDay: 'Día de la semana',
 
   // Original text: "Every day"
-  schedulingEveryWeekDay: undefined,
+  schedulingEveryWeekDay: 'Cada día',
 
   // Original text: "Each selected day"
-  schedulingEachSelectedWeekDay: undefined,
+  schedulingEachSelectedWeekDay: 'Cada día seleccionado',
 
   // Original text: "Hour"
-  schedulingHour: undefined,
+  schedulingHour: 'Hora',
 
   // Original text: "Every hour"
-  schedulingEveryHour: undefined,
+  schedulingEveryHour: 'Cada hora',
 
   // Original text: "Every N hour"
-  schedulingEveryNHour: undefined,
+  schedulingEveryNHour: 'Cada N horas',
 
   // Original text: "Each selected hour"
-  schedulingEachSelectedHour: undefined,
+  schedulingEachSelectedHour: 'Cada hora seleccionada',
 
   // Original text: "Minute"
-  schedulingMinute: undefined,
+  schedulingMinute: 'Minuto',
 
   // Original text: "Every minute"
-  schedulingEveryMinute: undefined,
+  schedulingEveryMinute: 'Cada minuto',
 
   // Original text: "Every N minute"
-  schedulingEveryNMinute: undefined,
+  schedulingEveryNMinute: 'Cada N minutos',
 
   // Original text: "Each selected minute"
-  schedulingEachSelectedMinute: undefined,
+  schedulingEachSelectedMinute: 'Cada minuto seleccionado',
 
   // Original text: "Reset"
-  schedulingReset: undefined,
+  schedulingReset: 'Reiniciar',
 
   // Original text: "Unknown"
-  unknownSchedule: undefined,
+  unknownSchedule: 'Desconocido',
 
   // Original text: "Cannot edit backup"
-  backupEditNotFoundTitle: undefined,
+  backupEditNotFoundTitle: 'Imposible editar backup',
 
   // Original text: "Missing required info for edition"
-  backupEditNotFoundMessage: undefined,
+  backupEditNotFoundMessage: 'Falta información requerida para la edición',
 
   // Original text: "Job"
-  job: undefined,
+  job: 'Tarea',
 
   // Original text: "Job ID"
-  jobId: undefined,
+  jobId: 'ID de Tarea',
 
   // Original text: "Name"
-  jobName: undefined,
+  jobName: 'Nombre',
 
   // Original text: "Start"
-  jobStart: undefined,
+  jobStart: 'Comenzar',
 
   // Original text: "End"
-  jobEnd: undefined,
+  jobEnd: 'Finalizar',
 
   // Original text: "Duration"
-  jobDuration: undefined,
+  jobDuration: 'Duración',
 
   // Original text: "Status"
-  jobStatus: undefined,
+  jobStatus: 'Estado',
 
   // Original text: "Action"
-  jobAction: undefined,
+  jobAction: 'Acción',
 
   // Original text: "Tag"
-  jobTag: undefined,
+  jobTag: 'Etiqueta',
 
   // Original text: "Scheduling"
-  jobScheduling: undefined,
+  jobScheduling: 'Programación',
 
   // Original text: "State"
-  jobState: undefined,
+  jobState: 'Estado',
 
   // Original text: "Run job"
-  runJob: undefined,
+  runJob: 'Ejecutar tarea',
 
   // Original text: "One shot running started. See overview for logs."
-  runJobVerbose: undefined,
+  runJobVerbose: 'Comienzo del backup manual. Ir a Resumen para ver logs',
 
   // Original text: "Started"
-  jobStarted: undefined,
+  jobStarted: 'Comenzado',
 
   // Original text: "Finished"
-  jobFinished: undefined,
+  jobFinished: 'Finalizado',
 
   // Original text: "Save"
-  saveBackupJob: undefined,
+  saveBackupJob: 'Guardar',
 
   // Original text: "Remove backup job"
-  deleteBackupSchedule: undefined,
+  deleteBackupSchedule: 'Eliminar tarea de backup',
 
   // Original text: "Are you sure you want to delete this backup job?"
-  deleteBackupScheduleQuestion: undefined,
+  deleteBackupScheduleQuestion: '¿Estás seguro de querer borrar esta tarea de backup?',
 
   // Original text: "Enable immediately after creation"
-  scheduleEnableAfterCreation: undefined,
+  scheduleEnableAfterCreation: 'Activar inmediatamente tras la creación',
 
   // Original text: "You are editing Schedule {name} ({id}). Saving will override previous schedule state."
-  scheduleEditMessage: undefined,
+  scheduleEditMessage: 'Estás editando la Programación {name} ({id}). Se sobreescribirá el estado actual al guardar.',
 
   // Original text: "You are editing job {name} ({id}). Saving will override previous job state."
-  jobEditMessage: undefined,
+  jobEditMessage: 'Estás editando la Tarea {name} ({id}). Se sobreescribirá el estado actual al guardar.',
 
   // Original text: "No scheduled jobs."
-  noScheduledJobs: undefined,
+  noScheduledJobs: 'No hay tareas programadas',
 
   // Original text: "No jobs found."
-  noJobs: undefined,
+  noJobs: 'No se han encontrado tareas',
 
   // Original text: "No schedules found"
-  noSchedules: undefined,
+  noSchedules: 'No se han encontrado programaciones',
 
   // Original text: "Select a xo-server API command"
-  jobActionPlaceHolder: undefined,
+  jobActionPlaceHolder: 'Elige un comando de la API de xo-server',
 
   // Original text: "Select your backup type:"
-  newBackupSelection: undefined,
+  newBackupSelection: 'Elige el tipo de backup',
 
   // Original text: "Remote stores for backup"
-  remoteList: undefined,
+  remoteList: 'Almacenamientos remotos para el backup',
 
   // Original text: "New File System Remote"
-  newRemote: undefined,
+  newRemote: 'Nuevo Sistema de Archivos Remoto',
 
   // Original text: "Local"
-  remoteTypeLocal: undefined,
+  remoteTypeLocal: 'Local',
 
   // Original text: "NFS"
-  remoteTypeNfs: undefined,
+  remoteTypeNfs: 'NFS',
 
   // Original text: "SMB"
-  remoteTypeSmb: undefined,
+  remoteTypeSmb: 'Samba',
 
   // Original text: "Type"
-  remoteType: undefined,
+  remoteType: 'Tipo',
 
   // Original text: "General"
-  newSrGeneral: undefined,
+  newSrGeneral: 'General',
 
   // Original text: "Select Strorage Type:"
-  newSrTypeSelection: undefined,
+  newSrTypeSelection: 'Elige el tipo de almacenamiento',
 
   // Original text: "Settings"
-  newSrSettings: undefined,
+  newSrSettings: 'Configuración',
 
   // Original text: "Storage Usage"
-  newSrUsage: undefined,
+  newSrUsage: 'Utilización del almacenamiento',
 
   // Original text: "Summary"
-  newSrSummary: undefined,
+  newSrSummary: 'Sumario',
 
   // Original text: "Host"
-  newSrHost: undefined,
+  newSrHost: 'Host',
 
   // Original text: "Type"
-  newSrType: undefined,
+  newSrType: 'Tipo',
 
   // Original text: "Name"
-  newSrName: undefined,
+  newSrName: 'Nombre',
 
   // Original text: "Description"
-  newSrDescription: undefined,
+  newSrDescription: 'Descripción',
 
   // Original text: "Server"
-  newSrServer: undefined,
+  newSrServer: 'Servidor',
 
   // Original text: "Path"
-  newSrPath: undefined,
+  newSrPath: 'Ruta',
 
   // Original text: "IQN"
-  newSrIqn: undefined,
+  newSrIqn: 'IQN',
 
   // Original text: "LUN"
-  newSrLun: undefined,
+  newSrLun: 'LUN',
 
   // Original text: "with auth."
-  newSrAuth: undefined,
+  newSrAuth: 'con autenticación',
 
   // Original text: "User Name"
-  newSrUsername: undefined,
+  newSrUsername: 'Nombre de usuario',
 
   // Original text: "Password"
-  newSrPassword: undefined,
+  newSrPassword: 'Clave',
 
   // Original text: "Device"
-  newSrDevice: undefined,
+  newSrDevice: 'Dispositivo',
 
   // Original text: "in use"
-  newSrInUse: undefined,
+  newSrInUse: 'en uso',
 
   // Original text: "Size"
-  newSrSize: undefined,
+  newSrSize: 'Tamaño',
 
   // Original text: "Create"
-  newSrCreate: undefined,
+  newSrCreate: 'Crear',
 
   // Original text: "Users/Groups"
-  subjectName: undefined,
+  subjectName: 'Usuarios/Grupos',
 
   // Original text: "Object"
-  objectName: undefined,
+  objectName: 'Objeto',
 
   // Original text: "Role"
-  roleName: undefined,
+  roleName: 'Rol',
 
   // Original text: "New Group Name"
-  newGroupName: undefined,
+  newGroupName: 'Nuevo nombre del Grupo',
 
   // Original text: "Create Group"
-  createGroup: undefined,
+  createGroup: 'Crear grupo',
 
   // Original text: "Create"
-  createGroupButton: undefined,
+  createGroupButton: 'Crear',
 
   // Original text: "Delete Group"
-  deleteGroup: undefined,
+  deleteGroup: 'Borrar grupo',
 
   // Original text: "Are you sure you want to delete this group?"
-  deleteGroupConfirm: undefined,
+  deleteGroupConfirm: '¿Estás seguro de querer borrar este grupo?',
 
   // Original text: "Remove user from Group"
-  removeUserFromGroup: undefined,
+  removeUserFromGroup: '¿Quitar usuario del grupo?',
 
   // Original text: "Are you sure you want to delete this user?"
-  deleteUserConfirm: undefined,
+  deleteUserConfirm: '¿Estás seguro de querer borrar este usuario?',
 
   // Original text: "Delete User"
-  deleteUser: undefined,
+  deleteUser: 'Borrar usuario',
 
   // Original text: "unknown user"
-  unknownUser: undefined,
+  unknownUser: 'usuario desconocido',
 
   // Original text: "No group found"
-  noGroupFound: undefined,
+  noGroupFound: 'Grupo no encontrado',
 
   // Original text: "Name"
-  groupNameColumn: undefined,
+  groupNameColumn: 'Nombre',
 
   // Original text: "Users"
-  groupUsersColumn: undefined,
+  groupUsersColumn: 'Usuarios',
 
   // Original text: "Add User"
-  addUserToGroupColumn: undefined,
+  addUserToGroupColumn: 'Añadir usuario',
 
   // Original text: "Email"
-  userNameColumn: undefined,
+  userNameColumn: 'Email',
 
   // Original text: "Permissions"
-  userPermissionColumn: undefined,
+  userPermissionColumn: 'Permisos',
 
   // Original text: "Password"
-  userPasswordColumn: undefined,
+  userPasswordColumn: 'Clave',
 
   // Original text: "Email"
-  userName: undefined,
+  userName: 'Email',
 
   // Original text: "Password"
-  userPassword: undefined,
+  userPassword: 'Clave',
 
   // Original text: "Create"
-  createUserButton: undefined,
+  createUserButton: 'Crear',
 
   // Original text: "No user found"
-  noUserFound: undefined,
+  noUserFound: 'Usuario no encontrado',
 
   // Original text: "User"
-  userLabel: undefined,
+  userLabel: 'Usuario',
 
   // Original text: "Admin"
-  adminLabel: undefined,
+  adminLabel: 'Admin',
 
   // Original text: "No user in group"
-  noUserInGroup: undefined,
+  noUserInGroup: 'Grupo sin usuarios',
 
   // Original text: "{users} user{users, plural, one {} other {s}}"
-  countUsers: undefined,
+  countUsers: '{users} user{users, plural, one {} other {s}}',
 
   // Original text: "Select Permission"
-  selectPermission: undefined,
+  selectPermission: 'Seleccionar permiso',
 
   // Original text: "Auto-load at server start"
-  autoloadPlugin: undefined,
+  autoloadPlugin: 'Cargar al iniciar el servidor',
 
   // Original text: "Save configuration"
-  savePluginConfiguration: undefined,
+  savePluginConfiguration: 'Guardar configuración',
 
   // Original text: "Delete configuration"
-  deletePluginConfiguration: undefined,
+  deletePluginConfiguration: 'Borrar configuración',
 
   // Original text: "Plugin error"
-  pluginError: undefined,
+  pluginError: 'Error del Plugin',
 
   // Original text: "Unknown error"
-  unknownPluginError: undefined,
+  unknownPluginError: 'Error desconocido',
 
   // Original text: "Purge plugin configuration"
-  purgePluginConfiguration: undefined,
+  purgePluginConfiguration: 'Purgar la configuración de plugins',
 
   // Original text: "Are you sure you want to purge this configuration ?"
-  purgePluginConfigurationQuestion: undefined,
+  purgePluginConfigurationQuestion: '¿Estás seguro de querer purgar esta configuración?',
 
   // Original text: "Edit"
-  editPluginConfiguration: undefined,
+  editPluginConfiguration: 'Editar',
 
   // Original text: "Cancel"
-  cancelPluginEdition: undefined,
+  cancelPluginEdition: 'Cancelar',
 
   // Original text: "Plugin configuration"
-  pluginConfigurationSuccess: undefined,
+  pluginConfigurationSuccess: 'Configuración del Plugin',
 
   // Original text: "Plugin configuration successfully saved!"
-  pluginConfigurationChanges: undefined,
+  pluginConfigurationChanges: '¡Configuración del Plugin guardada correctamente!',
 
   // Original text: "Start"
-  startVmLabel: undefined,
+  startVmLabel: 'Iniciar',
 
   // Original text: "Recovery start"
-  recoveryModeLabel: undefined,
+  recoveryModeLabel: 'Inicio de rescate',
 
   // Original text: "Suspend"
-  suspendVmLabel: undefined,
+  suspendVmLabel: 'Suspender',
 
   // Original text: "Stop"
-  stopVmLabel: undefined,
+  stopVmLabel: 'Parar',
 
   // Original text: "Force shutdown"
-  forceShutdownVmLabel: undefined,
+  forceShutdownVmLabel: 'Forzar apagado',
 
   // Original text: "Reboot"
-  rebootVmLabel: undefined,
+  rebootVmLabel: 'Reiniciar',
 
   // Original text: "Force reboot"
-  forceRebootVmLabel: undefined,
+  forceRebootVmLabel: 'Forzar reinicio',
 
   // Original text: "Delete"
-  deleteVmLabel: undefined,
+  deleteVmLabel: 'Borrar',
 
   // Original text: "Migrate"
-  migrateVmLabel: undefined,
+  migrateVmLabel: 'Migrar',
 
   // Original text: "Snapshot"
-  snapshotVmLabel: undefined,
+  snapshotVmLabel: 'Snapshot',
 
   // Original text: "Export"
-  exportVmLabel: undefined,
+  exportVmLabel: 'Exportar',
 
   // Original text: "Resume"
-  resumeVmLabel: undefined,
+  resumeVmLabel: 'Reanudar',
 
   // Original text: "Copy"
-  copyVmLabel: undefined,
+  copyVmLabel: 'Copiar',
 
   // Original text: "Clone"
-  cloneVmLabel: undefined,
+  cloneVmLabel: 'Clonar',
 
   // Original text: "Fast clone"
-  fastCloneVmLabel: undefined,
+  fastCloneVmLabel: 'Clonado rápido',
 
   // Original text: "Convert to template"
-  convertVmToTemplateLabel: undefined,
+  convertVmToTemplateLabel: 'Convertir en plantilla',
 
   // Original text: "Console"
-  vmConsoleLabel: undefined,
+  vmConsoleLabel: 'Consola',
 
   // Original text: "Rescan all disks"
-  srRescan: undefined,
+  srRescan: 'Releer todos los discos',
 
   // Original text: "Connect to all hosts"
-  srReconnectAll: undefined,
+  srReconnectAll: 'Conectar a todos los hosts',
 
   // Original text: "Disconnect to all hosts"
-  srDisconnectAll: undefined,
+  srDisconnectAll: 'Desconectar de todos los hosts',
 
   // Original text: "Forget this SR"
-  srForget: undefined,
+  srForget: 'Olvidar este SR',
 
   // Original text: "Remove this SR"
-  srRemoveButton: undefined,
+  srRemoveButton: 'Borrar este SR',
 
   // Original text: "No VDIs in this storage"
-  srNoVdis: undefined,
+  srNoVdis: 'No hay VDIs en éste almancenamiento',
 
   // Original text: "Hosts"
-  hostsTabName: undefined,
+  hostsTabName: 'Hosts',
 
   // Original text: "High Availability"
-  poolHaStatus: undefined,
+  poolHaStatus: 'Alta Disponibilidad',
 
   // Original text: "Enabled"
-  poolHaEnabled: undefined,
+  poolHaEnabled: 'Activado',
 
   // Original text: "Disabled"
-  poolHaDisabled: undefined,
+  poolHaDisabled: 'Desactivado',
 
   // Original text: "Name"
-  hostNameLabel: undefined,
+  hostNameLabel: 'Nombre',
 
   // Original text: "Description"
-  hostDescription: undefined,
+  hostDescription: 'Descripción',
 
   // Original text: "Memory"
-  hostMemory: undefined,
+  hostMemory: 'Memoria',
 
   // Original text: "No hosts"
-  noHost: undefined,
+  noHost: 'Sin hosts',
 
   // Original text: "Name"
-  poolNetworkNameLabel: undefined,
+  poolNetworkNameLabel: 'Nombre',
 
   // Original text: "Description"
-  poolNetworkDescription: undefined,
+  poolNetworkDescription: 'Descripción',
 
   // Original text: "PIFs"
-  poolNetworkPif: undefined,
+  poolNetworkPif: 'PIFs',
 
   // Original text: "No networks"
-  poolNoNetwork: undefined,
+  poolNoNetwork: 'Sin redes',
 
   // Original text: "MTU"
-  poolNetworkMTU: undefined,
+  poolNetworkMTU: 'MTU',
 
   // Original text: "Connected"
-  poolNetworkPifAttached: undefined,
+  poolNetworkPifAttached: 'Conectado',
 
   // Original text: "Disconnected"
-  poolNetworkPifDetached: undefined,
+  poolNetworkPifDetached: 'Desconectado',
 
   // Original text: "Add SR"
-  addSrLabel: undefined,
+  addSrLabel: 'Añadir SR',
 
   // Original text: "Add VM"
-  addVmLabel: undefined,
+  addVmLabel: 'Añadir VM',
 
   // Original text: "Add Host"
-  addHostLabel: undefined,
+  addHostLabel: 'Añadir host',
 
   // Original text: "Disconnect"
-  disconnectServer: undefined,
+  disconnectServer: 'Desconectar',
 
   // Original text: "Start"
-  startHostLabel: undefined,
+  startHostLabel: 'Arrancar',
 
   // Original text: "Stop"
-  stopHostLabel: undefined,
+  stopHostLabel: 'Parar',
 
   // Original text: "Enable"
-  enableHostLabel: undefined,
+  enableHostLabel: 'Activar',
 
   // Original text: "Disable"
-  disableHostLabel: undefined,
+  disableHostLabel: 'Desactivar',
 
   // Original text: "Restart toolstack"
-  restartHostAgent: undefined,
+  restartHostAgent: 'Reiniciar toolstack',
 
   // Original text: "Force reboot"
-  forceRebootHostLabel: undefined,
+  forceRebootHostLabel: 'Forzar reinicio',
 
   // Original text: "Reboot"
-  rebootHostLabel: undefined,
+  rebootHostLabel: 'Reiniciar',
 
   // Original text: "Emergency mode"
-  emergencyModeLabel: undefined,
+  emergencyModeLabel: 'Modo de Emergencia',
 
   // Original text: "Storage"
-  storageTabName: undefined,
+  storageTabName: 'Almacenamiento',
 
   // Original text: "Patches"
-  patchesTabName: undefined,
+  patchesTabName: 'Parches',
 
   // Original text: "Load average"
-  statLoad: undefined,
+  statLoad: 'Carga',
 
   // Original text: "Hardware"
-  hardwareHostSettingsLabel: undefined,
+  hardwareHostSettingsLabel: 'Hardware',
 
   // Original text: "Address"
-  hostAddress: undefined,
+  hostAddress: 'Dirección',
 
   // Original text: "Status"
-  hostStatus: undefined,
+  hostStatus: 'Estado',
 
   // Original text: "Build number"
-  hostBuildNumber: undefined,
+  hostBuildNumber: 'Número de compilación',
 
   // Original text: "iSCSI name"
-  hostIscsiName: undefined,
+  hostIscsiName: 'Nombre iSCSI',
 
   // Original text: "Version"
-  hostXenServerVersion: undefined,
+  hostXenServerVersion: 'Versión',
 
   // Original text: "Enabled"
-  hostStatusEnabled: undefined,
+  hostStatusEnabled: 'Activado',
 
   // Original text: "Disabled"
-  hostStatusDisabled: undefined,
+  hostStatusDisabled: 'Desactivado',
 
   // Original text: "Power on mode"
-  hostPowerOnMode: undefined,
+  hostPowerOnMode: 'Modo de encendido',
 
   // Original text: "Host uptime"
-  hostStartedSince: undefined,
+  hostStartedSince: 'Tiempo encendido',
 
   // Original text: "Toolstack uptime"
-  hostStackStartedSince: undefined,
+  hostStackStartedSince: 'Tiempo de encendido del toolstack',
 
   // Original text: "CPU model"
-  hostCpusModel: undefined,
+  hostCpusModel: 'Modelo de CPU',
 
   // Original text: "Core (socket)"
-  hostCpusNumber: undefined,
+  hostCpusNumber: 'Core (socket)',
 
   // Original text: "Manufacturer info"
-  hostManufacturerinfo: undefined,
+  hostManufacturerinfo: 'Información del fabricante',
 
   // Original text: "BIOS info"
-  hostBiosinfo: undefined,
+  hostBiosinfo: 'Información de BIOS',
 
   // Original text: "Licence"
-  licenseHostSettingsLabel: undefined,
+  licenseHostSettingsLabel: 'Licencia',
 
   // Original text: "Type"
-  hostLicenseType: undefined,
+  hostLicenseType: 'Tipo',
 
   // Original text: "Socket"
-  hostLicenseSocket: undefined,
+  hostLicenseSocket: 'Socket',
 
   // Original text: "Expiry"
-  hostLicenseExpiry: undefined,
+  hostLicenseExpiry: 'Expiración',
 
   // Original text: "Add a network"
-  networkCreateButton: undefined,
+  networkCreateButton: 'Añadir red',
 
   // Original text: "Device"
-  pifDeviceLabel: undefined,
+  pifDeviceLabel: 'Dispositivo',
 
   // Original text: "Network"
-  pifNetworkLabel: undefined,
+  pifNetworkLabel: 'Red',
 
   // Original text: "VLAN"
-  pifVlanLabel: undefined,
+  pifVlanLabel: 'VLAN',
 
   // Original text: "Address"
-  pifAddressLabel: undefined,
+  pifAddressLabel: 'Dirección',
 
   // Original text: "MAC"
-  pifMacLabel: undefined,
+  pifMacLabel: 'MAC',
 
   // Original text: "MTU"
-  pifMtuLabel: undefined,
+  pifMtuLabel: 'MTU',
 
   // Original text: "Status"
-  pifStatusLabel: undefined,
+  pifStatusLabel: 'Estado',
 
   // Original text: "Connected"
-  pifStatusConnected: undefined,
+  pifStatusConnected: 'Conectado',
 
   // Original text: "Disconnected"
-  pifStatusDisconnected: undefined,
+  pifStatusDisconnected: 'Desconectado',
 
   // Original text: "No physical interface detected"
-  pifNoInterface: undefined,
+  pifNoInterface: 'No se ha detectado ningún interface físico',
 
   // Original text: "Add a storage"
-  addSrDeviceButton: undefined,
+  addSrDeviceButton: 'Añadir un almacenamiento',
 
   // Original text: "Name"
-  srNameLabel: undefined,
+  srNameLabel: 'Nombre',
 
   // Original text: "Type"
-  srType: undefined,
+  srType: 'Tipo',
 
   // Original text: "Status"
-  pdbStatus: undefined,
+  pdbStatus: 'Estado',
 
   // Original text: "Connected"
-  pbdStatusConnected: undefined,
+  pbdStatusConnected: 'Conectado',
 
   // Original text: "Disconnected"
-  pbdStatusDisconnected: undefined,
+  pbdStatusDisconnected: 'Desconectado',
 
   // Original text: "Shared"
-  srShared: undefined,
+  srShared: 'Compartido',
 
   // Original text: "Not shared"
-  srNotShared: undefined,
+  srNotShared: 'No compartido',
 
   // Original text: "No storage detected"
-  pbdNoSr: undefined,
+  pbdNoSr: 'No se han detectado almacenamientos',
 
   // Original text: "Name"
-  patchNameLabel: undefined,
+  patchNameLabel: 'Nombre',
 
   // Original text: "Install all patches"
-  patchUpdateButton: undefined,
+  patchUpdateButton: 'Instalar todos los parches',
 
   // Original text: "Description"
-  patchDescription: undefined,
+  patchDescription: 'Descripción',
 
   // Original text: "Release date"
-  patchApplied: undefined,
+  patchApplied: 'Fecha de publicación',
 
   // Original text: "Size"
-  patchSize: undefined,
+  patchSize: 'Tamaño',
 
   // Original text: "Status"
-  patchStatus: undefined,
+  patchStatus: 'Estado',
 
   // Original text: "Applied"
-  patchStatusApplied: undefined,
+  patchStatusApplied: 'Aplicado',
 
   // Original text: "Missing patches"
-  patchStatusNotApplied: undefined,
+  patchStatusNotApplied: 'Parches pendientes',
 
   // Original text: "No patch detected"
-  patchNothing: undefined,
+  patchNothing: 'No se ha detectado el parche',
 
   // Original text: "Release date"
-  patchReleaseDate: undefined,
+  patchReleaseDate: 'Fecha de publicación',
 
   // Original text: "Guidance"
-  patchGuidance: undefined,
+  patchGuidance: 'Guía',
 
   // Original text: "Action"
-  patchAction: undefined,
+  patchAction: 'Acción',
 
   // Original text: "Downloaded patches"
-  hostInstalledPatches: undefined,
+  hostInstalledPatches: 'Parches descargados',
 
   // Original text: "Missing patches"
-  hostMissingPatches: undefined,
+  hostMissingPatches: 'Parches pendientes',
 
   // Original text: "Host up-to-date!"
-  hostUpToDate: undefined,
+  hostUpToDate: '¡Host al día!',
 
   // Original text: "General"
-  generalTabName: undefined,
+  generalTabName: 'General',
 
   // Original text: "Stats"
-  statsTabName: undefined,
+  statsTabName: 'Estadísticas',
 
   // Original text: "Console"
-  consoleTabName: undefined,
+  consoleTabName: 'Consola',
 
   // Original text: "Snapshots"
-  snapshotsTabName: undefined,
+  snapshotsTabName: 'Snapshots',
 
   // Original text: "Logs"
-  logsTabName: undefined,
+  logsTabName: 'Logs',
 
   // Original text: "Advanced"
-  advancedTabName: undefined,
+  advancedTabName: 'Avanzado',
 
   // Original text: "Network"
-  networkTabName: undefined,
+  networkTabName: 'Red',
 
   // Original text: "Disk{disks, plural, one {} other {s}}"
-  disksTabName: undefined,
+  disksTabName: 'Disco{disks, plural, one {} other {s}}',
 
   // Original text: "halted"
-  powerStateHalted: undefined,
+  powerStateHalted: 'parada',
 
   // Original text: "running"
-  powerStateRunning: undefined,
+  powerStateRunning: 'corriendo',
 
   // Original text: "suspended"
-  powerStateSuspended: undefined,
+  powerStateSuspended: 'suspendida',
 
   // Original text: "No Xen tools detected"
-  vmStatus: undefined,
+  vmStatus: 'Xen Tools no detectado',
 
   // Original text: "No IPv4 record"
-  vmName: undefined,
+  vmName: 'Sin registro IPv4',
 
   // Original text: "No IP record"
-  vmDescription: undefined,
+  vmDescription: 'Sin registro IP',
 
   // Original text: "Started {ago}"
-  vmSettings: undefined,
+  vmSettings: 'Arrancada {ago}',
 
   // Original text: "Current status:"
-  vmCurrentStatus: undefined,
+  vmCurrentStatus: 'Estado actual',
 
   // Original text: "Not running"
-  vmNotRunning: undefined,
+  vmNotRunning: 'No está corriendo',
 
   // Original text: "No Xen tools detected"
-  noToolsDetected: undefined,
+  noToolsDetected: 'Xen Tools no detectado',
 
   // Original text: "No IPv4 record"
-  noIpv4Record: undefined,
+  noIpv4Record: 'Sin registro IPv4',
 
   // Original text: "No IP record"
-  noIpRecord: undefined,
+  noIpRecord: 'Sin  registro IP',
 
   // Original text: "Started {ago}"
-  started: undefined,
+  started: 'Arrancada {ago}',
 
   // Original text: "Paravirtualization (PV)"
-  paraVirtualizedMode: undefined,
+  paraVirtualizedMode: 'Paravirtualización (PV)',
 
   // Original text: "Hardware virtualization (HVM)"
-  hardwareVirtualizedMode: undefined,
+  hardwareVirtualizedMode: 'Paravirtualización por Hardware (HVM)',
 
   // Original text: "CPU usage"
-  statsCpu: undefined,
+  statsCpu: 'Uso de CPU',
 
   // Original text: "Memory usage"
-  statsMemory: undefined,
+  statsMemory: 'Uso de Memoria',
 
   // Original text: "Network throughput"
-  statsNetwork: undefined,
+  statsNetwork: 'Actividad de Red',
 
   // Original text: "Disk throughput"
-  statDisk: undefined,
+  statDisk: 'Actividad de Disco',
 
   // Original text: "Last 10 minutes"
-  statLastTenMinutes: undefined,
+  statLastTenMinutes: 'Últimos 10 minutos',
 
   // Original text: "Last 2 hours"
-  statLastTwoHours: undefined,
+  statLastTwoHours: 'Últimas 2 horas',
 
   // Original text: "Last week"
-  statLastWeek: undefined,
+  statLastWeek: 'Última semana',
 
   // Original text: "Last year"
-  statLastYear: undefined,
+  statLastYear: 'Último año',
 
   // Original text: "Copy"
-  copyToClipboardLabel: undefined,
+  copyToClipboardLabel: 'Copiar',
 
   // Original text: "Ctrl+Alt+Del"
-  ctrlAltDelButtonLabel: undefined,
+  ctrlAltDelButtonLabel: 'Ctrl+Alt+Del',
 
   // Original text: "Tip:"
-  tipLabel: undefined,
+  tipLabel: 'Consejo:',
 
   // Original text: "non-US keyboard could have issues with console: switch your own layout to US."
-  tipConsoleLabel: undefined,
+  tipConsoleLabel: 'Cambia la distribución del teclado a US para no tener problemas con la consola',
 
   // Original text: "Action"
-  vdiAction: undefined,
+  vdiAction: 'Acción',
 
   // Original text: "Attach disk"
-  vdiAttachDeviceButton: undefined,
+  vdiAttachDeviceButton: 'Adjuntar disco',
 
   // Original text: "New disk"
-  vbdCreateDeviceButton: undefined,
+  vbdCreateDeviceButton: 'Nuevo disco',
 
   // Original text: "Boot order"
-  vdiBootOrder: undefined,
+  vdiBootOrder: 'Order de arranque',
 
   // Original text: "Name"
-  vdiNameLabel: undefined,
+  vdiNameLabel: 'Nombre',
 
   // Original text: "Description"
-  vdiNameDescription: undefined,
+  vdiNameDescription: 'Descripción',
 
   // Original text: "Tags"
-  vdiTags: undefined,
+  vdiTags: 'Tareas',
 
   // Original text: "Size"
-  vdiSize: undefined,
+  vdiSize: 'Tamaño',
 
   // Original text: "SR"
-  vdiSr: undefined,
+  vdiSr: 'SR',
 
   // Original text: "Boot flag"
-  vdbBootableStatus: undefined,
+  vdbBootableStatus: 'Etiqueta de Inicio',
 
   // Original text: "Status"
-  vdbStatus: undefined,
+  vdbStatus: 'Estado',
 
   // Original text: "Connected"
-  vbdStatusConnected: undefined,
+  vbdStatusConnected: 'Conectado',
 
   // Original text: "Disconnected"
-  vbdStatusDisconnected: undefined,
+  vbdStatusDisconnected: 'Desconectado',
 
   // Original text: "No disks"
-  vbdNoVbd: undefined,
+  vbdNoVbd: 'Sin discos',
 
   // Original text: "New device"
-  vifCreateDeviceButton: undefined,
+  vifCreateDeviceButton: 'Nuevo dispositivo',
 
   // Original text: "No interface"
-  vifNoInterface: undefined,
+  vifNoInterface: 'Sin interface',
 
   // Original text: "Device"
-  vifDeviceLabel: undefined,
+  vifDeviceLabel: 'Dispositivo',
 
   // Original text: "MAC address"
-  vifMacLabel: undefined,
+  vifMacLabel: 'Dirección MAC',
 
   // Original text: "MTU"
-  vifMtuLabel: undefined,
+  vifMtuLabel: 'MTU',
 
   // Original text: "Network"
-  vifNetworkLabel: undefined,
+  vifNetworkLabel: 'Red',
 
   // Original text: "Status"
-  vifStatusLabel: undefined,
+  vifStatusLabel: 'Estado',
 
   // Original text: "Connected"
-  vifStatusConnected: undefined,
+  vifStatusConnected: 'Conectado',
 
   // Original text: "Disconnected"
-  vifStatusDisconnected: undefined,
+  vifStatusDisconnected: 'Desconectado',
 
   // Original text: "IP addresses"
-  vifIpAddresses: undefined,
+  vifIpAddresses: 'Dirección IP',
 
   // Original text: "No snapshots"
-  noSnapshots: undefined,
+  noSnapshots: 'Sin snapshots',
 
   // Original text: "New snapshot"
-  snapshotCreateButton: undefined,
+  snapshotCreateButton: 'Nuevo snapshot',
 
   // Original text: "Just click on the snapshot button to create one!"
-  tipCreateSnapshotLabel: undefined,
+  tipCreateSnapshotLabel: '¡Haz click en el botón de snapshot para crear uno!',
 
   // Original text: "Creation date"
-  snapshotDate: undefined,
+  snapshotDate: 'Fecha de creación',
 
   // Original text: "Name"
-  snapshotName: undefined,
+  snapshotName: 'Nombre',
 
   // Original text: "Action"
-  snapshotAction: undefined,
+  snapshotAction: 'Acción',
 
   // Original text: "Remove all logs"
-  logRemoveAll: undefined,
+  logRemoveAll: 'Elimintar todos los logs',
 
   // Original text: "No logs so far"
-  noLogs: undefined,
+  noLogs: 'No hay logs',
 
   // Original text: "Creation date"
-  logDate: undefined,
+  logDate: 'Fecha de creación',
 
   // Original text: "Name"
-  logName: undefined,
+  logName: 'Nombre',
 
   // Original text: "Content"
-  logContent: undefined,
+  logContent: 'Contenido',
 
   // Original text: "Action"
-  logAction: undefined,
+  logAction: 'Acción',
 
   // Original text: "Remove"
-  vmRemoveButton: undefined,
+  vmRemoveButton: 'Quitar',
 
   // Original text: "Convert"
-  vmConvertButton: undefined,
+  vmConvertButton: 'Convertir',
 
   // Original text: "Xen settings"
-  xenSettingsLabel: undefined,
+  xenSettingsLabel: 'Configuraciones de Xen',
 
   // Original text: "Guest OS"
-  guestOsLabel: undefined,
+  guestOsLabel: 'SO Invitado',
 
   // Original text: "Misc"
-  miscLabel: undefined,
+  miscLabel: 'Varuis',
 
   // Original text: "UUID"
-  uuid: undefined,
+  uuid: 'UUID',
 
   // Original text: "Virtualization mode"
-  virtualizationMode: undefined,
+  virtualizationMode: 'Modo de virtualización',
 
   // Original text: "CPU weight"
-  cpuWeightLabel: undefined,
+  cpuWeightLabel: 'Peso de CPU',
 
   // Original text: "Default"
-  defaultCpuWeight: undefined,
+  defaultCpuWeight: 'Por defecto',
 
   // Original text: "PV args"
-  pvArgsLabel: undefined,
+  pvArgsLabel: 'Argumentos PV',
 
   // Original text: "Xen tools status"
-  xenToolsStatus: undefined,
+  xenToolsStatus: 'Estado de Xen Tools',
 
   // Original text: "{status}"
-  xenToolsStatusValue: undefined,
+  xenToolsStatusValue: '{status}',
 
   // Original text: "OS name"
-  osName: undefined,
+  osName: 'Nombre del OS',
 
   // Original text: "OS kernel"
-  osKernel: undefined,
+  osKernel: 'Kernel del OS',
 
   // Original text: "Auto power on"
-  autoPowerOn: undefined,
+  autoPowerOn: 'Auto encendido',
 
   // Original text: "HA"
-  ha: undefined,
+  ha: 'HA',
 
   // Original text: "Original template"
-  originalTemplate: undefined,
+  originalTemplate: 'Plantilla original',
 
   // Original text: "Unknown"
-  unknownOsName: undefined,
+  unknownOsName: 'Desconocido',
 
   // Original text: "Unknown"
-  unknownOsKernel: undefined,
+  unknownOsKernel: 'Desconocido',
 
   // Original text: "Unknown"
-  unknownOriginalTemplate: undefined,
+  unknownOriginalTemplate: 'Desconocido',
 
   // Original text: "VM limits"
-  vmLimitsLabel: undefined,
+  vmLimitsLabel: 'Límites de VM',
 
   // Original text: "CPU limits"
-  vmCpuLimitsLabel: undefined,
+  vmCpuLimitsLabel: 'Límites de CPU',
 
   // Original text: "Memory limits (min/max)"
-  vmMemoryLimitsLabel: undefined,
+  vmMemoryLimitsLabel: 'Límites de memoria (min/max)',
 
   // Original text: "vCPUs max:"
-  vmMaxVcpus: undefined,
+  vmMaxVcpus: 'Max vCPUs:',
 
   // Original text: "Memory max:"
-  vmMaxRam: undefined,
+  vmMaxRam: 'Max Memoria:',
 
   // Original text: "Long click to add a name"
-  vmHomeNamePlaceholder: undefined,
+  vmHomeNamePlaceholder: 'Click largo para poner el nombre',
 
   // Original text: "Long click to add a description"
-  vmHomeDescriptionPlaceholder: undefined,
+  vmHomeDescriptionPlaceholder: 'Click largo para poner la descripción',
 
   // Original text: "Click to add a name"
-  vmViewNamePlaceholder: undefined,
+  vmViewNamePlaceholder: 'Click para definir el nombre',
 
   // Original text: "Click to add a description"
-  vmViewDescriptionPlaceholder: undefined,
+  vmViewDescriptionPlaceholder: 'Click para definir la descripción',
 
   // Original text: "Pool{pools, plural, one {} other {s}}"
-  poolPanel: undefined,
+  poolPanel: 'Pool{pools, plural, one {} other {s}}',
 
   // Original text: "Host{hosts, plural, one {} other {s}}"
-  hostPanel: undefined,
+  hostPanel: 'Host{hosts, plural, one {} other {s}}',
 
   // Original text: "VM{vms, plural, one {} other {s}}"
-  vmPanel: undefined,
+  vmPanel: 'VM{vms, plural, one {} other {s}}',
 
   // Original text: "RAM Usage"
-  memoryStatePanel: undefined,
+  memoryStatePanel: 'Uso de RAM',
 
   // Original text: "CPUs Usage"
-  cpuStatePanel: undefined,
+  cpuStatePanel: 'Uso de CPU',
 
   // Original text: "VMs Power state"
-  vmStatePanel: undefined,
+  vmStatePanel: 'Estado alimentación de las VMs',
 
   // Original text: "Pending tasks"
-  taskStatePanel: undefined,
+  taskStatePanel: 'Tareas pendientes',
 
   // Original text: "Users"
-  usersStatePanel: undefined,
+  usersStatePanel: 'Usuarios',
 
   // Original text: "Storage state"
-  srStatePanel: undefined,
+  srStatePanel: 'Estado del almacenamiento',
 
   // Original text: "of"
-  ofUsage: undefined,
+  ofUsage: 'de',
 
   // Original text: "No storage"
-  noSrs: undefined,
+  noSrs: 'Sin almacenamiento',
 
   // Original text: "Name"
-  srName: undefined,
+  srName: 'Nombre',
 
   // Original text: "Pool"
-  srPool: undefined,
+  srPool: 'Pool',
 
   // Original text: "Host"
-  srHost: undefined,
+  srHost: 'Host',
 
   // Original text: "Type"
-  srFormat: undefined,
+  srFormat: 'Tipo',
 
   // Original text: "Size"
-  srSize: undefined,
+  srSize: 'Tamaño',
 
   // Original text: "Usage"
-  srUsage: undefined,
+  srUsage: 'Uso',
 
   // Original text: "used"
-  srUsed: undefined,
+  srUsed: 'Usado',
 
   // Original text: "free"
-  srFree: undefined,
+  srFree: 'libre',
 
   // Original text: "Storage Usage"
-  srUsageStatePanel: undefined,
+  srUsageStatePanel: 'Uso del almacenamiento',
 
   // Original text: "Top 5 SR Usage (in %)"
-  srTopUsageStatePanel: undefined,
+  srTopUsageStatePanel: 'Top 5 de uso de SR (en %)',
 
   // Original text: "{value} {date, date, medium}"
-  weekHeatmapData: undefined,
+  weekHeatmapData: '{value} {date, date, medium}',
 
   // Original text: "No data."
-  weekHeatmapNoData: undefined,
+  weekHeatmapNoData: 'Sin datos.',
 
   // Original text: "Weekly Heatmap"
-  weeklyHeatmap: undefined,
+  weeklyHeatmap: 'Heatmap Semanal',
 
   // Original text: "Weekly Charts"
-  weeklyCharts: undefined,
+  weeklyCharts: 'Gráficos Semanales',
 
   // Original text: "Synchronize scale:"
-  weeklyChartsScaleInfo: undefined,
+  weeklyChartsScaleInfo: 'Sincronizar escala',
 
   // Original text: "Stats error"
-  statsDashboardGenericErrorTitle: undefined,
+  statsDashboardGenericErrorTitle: 'Error de stats',
 
   // Original text: "There is no stats available for:"
-  statsDashboardGenericErrorMessage: undefined,
+  statsDashboardGenericErrorMessage: 'No hay stats disponibles para:',
 
   // Original text: "No selected metric"
-  noSelectedMetric: undefined,
+  noSelectedMetric: 'Métrica no seleccionada',
 
   // Original text: "Select"
-  statsDashboardSelectObjects: undefined,
+  statsDashboardSelectObjects: 'Seleccionar',
 
   // Original text: "Loading…"
-  metricsLoading: undefined,
+  metricsLoading: 'Cargando...',
 
   // Original text: "Coming soon!"
-  comingSoon: undefined,
+  comingSoon: '¡Próximamente!',
 
   // Original text: "Orphaned VDIs"
-  orphanedVdis: undefined,
+  orphanedVdis: 'VIDs huérfanos',
 
   // Original text: "Orphaned VMs"
-  orphanedVms: undefined,
+  orphanedVms: 'VMs huérfanas',
 
   // Original text: "No orphans"
-  noOrphanedObject: undefined,
+  noOrphanedObject: 'Sin huérfanos',
 
   // Original text: "Remove all orphaned VDIs"
-  removeAllOrphanedObject: undefined,
+  removeAllOrphanedObject: 'Eliminar todos los VDIs huérfanos',
 
   // Original text: "Name"
-  vmNameLabel: undefined,
+  vmNameLabel: 'Nombre',
 
   // Original text: "Description"
-  vmNameDescription: undefined,
+  vmNameDescription: 'Descripción',
 
   // Original text: "Resident on"
-  vmContainer: undefined,
+  vmContainer: 'Residente en',
 
   // Original text: "Alarms"
-  alarmMessage: undefined,
+  alarmMessage: 'Alarmas',
 
   // Original text: "No alarms"
-  noAlarms: undefined,
+  noAlarms: 'Sin alarmas',
 
   // Original text: "Date"
-  alarmDate: undefined,
+  alarmDate: 'Fecha',
 
   // Original text: "Content"
-  alarmContent: undefined,
+  alarmContent: 'Contenido',
 
   // Original text: "Issue on"
-  alarmObject: undefined,
+  alarmObject: 'Producido el',
 
   // Original text: "Pool"
-  alarmPool: undefined,
+  alarmPool: 'Pool',
 
   // Original text: "Remove all alarms"
-  alarmRemoveAll: undefined,
+  alarmRemoveAll: 'Eliminar todas las alarmas',
 
   // Original text: "Create a new VM on {pool}"
-  newVmCreateNewVmOn: undefined,
+  newVmCreateNewVmOn: 'Crear una nueva VM en {pool}',
 
   // Original text: "Infos"
-  newVmInfoPanel: undefined,
+  newVmInfoPanel: 'Información',
 
   // Original text: "Name"
-  newVmNameLabel: undefined,
+  newVmNameLabel: 'Nombre',
 
   // Original text: "Template"
-  newVmTemplateLabel: undefined,
+  newVmTemplateLabel: 'Plantilla',
 
   // Original text: "Description"
-  newVmDescriptionLabel: undefined,
+  newVmDescriptionLabel: 'Descripción',
 
   // Original text: "Performances"
-  newVmPerfPanel: undefined,
+  newVmPerfPanel: 'Rendimiento',
 
   // Original text: "vCPUs"
-  newVmVcpusLabel: undefined,
+  newVmVcpusLabel: 'vCPUs',
 
   // Original text: "RAM"
-  newVmRamLabel: undefined,
+  newVmRamLabel: 'RAM',
 
   // Original text: "Install settings"
-  newVmInstallSettingsPanel: undefined,
+  newVmInstallSettingsPanel: 'Opciones de instalación',
 
   // Original text: "ISO/DVD"
-  newVmIsoDvdLabel: undefined,
+  newVmIsoDvdLabel: 'ISO/DVD',
 
   // Original text: "Network"
-  newVmNetworkLabel: undefined,
+  newVmNetworkLabel: 'Red',
 
   // Original text: "PV Args"
-  newVmPvArgsLabel: undefined,
+  newVmPvArgsLabel: 'Detalles del PV',
 
   // Original text: "PXE"
-  newVmPxeLabel: undefined,
+  newVmPxeLabel: 'PXE',
 
   // Original text: "Interfaces"
-  newVmInterfacesPanel: undefined,
+  newVmInterfacesPanel: 'Interfaces',
 
   // Original text: "MAC"
-  newVmMacLabel: undefined,
+  newVmMacLabel: 'MAC',
 
   // Original text: "Add interface"
-  newVmAddInterface: undefined,
+  newVmAddInterface: 'Añadir interface',
 
   // Original text: "Disks"
-  newVmDisksPanel: undefined,
+  newVmDisksPanel: 'Discos',
 
   // Original text: "SR"
-  newVmSrLabel: undefined,
+  newVmSrLabel: 'SR',
 
   // Original text: "Bootable"
-  newVmBootableLabel: undefined,
+  newVmBootableLabel: 'Arrancable',
 
   // Original text: "Size"
-  newVmSizeLabel: undefined,
+  newVmSizeLabel: 'Tamaño',
 
   // Original text: "Add disk"
-  newVmAddDisk: undefined,
+  newVmAddDisk: 'Añadir disco',
 
   // Original text: "Summary"
-  newVmSummaryPanel: undefined,
+  newVmSummaryPanel: 'Sumario',
 
   // Original text: "Create"
-  newVmCreate: undefined,
+  newVmCreate: 'Crear',
 
   // Original text: "Reset"
-  newVmReset: undefined,
+  newVmReset: 'Reiniciar',
 
   // Original text: "Select template"
-  newVmSelectTemplate: undefined,
+  newVmSelectTemplate: 'Elegir plantilla',
 
   // Original text: "SSH key"
-  newVmSshKey: undefined,
+  newVmSshKey: 'Clave SSH',
 
   // Original text: "Config drive"
-  newVmConfigDrive: undefined,
+  newVmConfigDrive: 'Config drive',
 
   // Original text: "Custom config"
-  newVmCustomConfig: undefined,
+  newVmCustomConfig: 'Configuración personalizada',
 
   // Original text: "Boot VM after creation"
-  newVmBootAfterCreate: undefined,
+  newVmBootAfterCreate: 'Arrancar la VM tras crearla',
 
   // Original text: "Auto-generated if empty"
-  newVmMacPlaceholder: undefined,
+  newVmMacPlaceholder: 'Auto generada si se deja vacío',
 
   // Original text: "CPU weight"
-  newVmCpuWeightLabel: undefined,
+  newVmCpuWeightLabel: 'Peso de CPU',
 
   // Original text: "Quarter (1/4)"
-  newVmCpuWeightQuarter: undefined,
+  newVmCpuWeightQuarter: 'Un cuarto (1/4)',
 
   // Original text: "Half (1/2)"
-  newVmCpuWeightHalf: undefined,
+  newVmCpuWeightHalf: 'Un medio (1/2)',
 
   // Original text: "Normal"
-  newVmCpuWeightNormal: undefined,
+  newVmCpuWeightNormal: 'Normal',
 
   // Original text: "Double (x2)"
-  newVmCpuWeightDouble: undefined,
+  newVmCpuWeightDouble: 'Doble (x2)',
 
   // Original text: "Cloud config"
-  newVmCloudConfig: undefined,
+  newVmCloudConfig: 'Cloud config',
 
   // Original text: "Create VMs"
-  newVmCreateVms: undefined,
+  newVmCreateVms: 'VMs creadas',
 
   // Original text: "Are you sure you want to create {nbVms} VMs?"
-  newVmCreateVmsConfirm: undefined,
+  newVmCreateVmsConfirm: '¿Estás seguro de querer crear {nbVms} VMs?',
 
   // Original text: "Multiple VMs:"
-  newVmMultipleVms: undefined,
+  newVmMultipleVms: 'Múltiple VMs:',
 
   // Original text: "Resource sets"
-  resourceSets: undefined,
+  resourceSets: 'Conjunto de recursos',
 
   // Original text: "No resource sets."
-  noResourceSets: undefined,
+  noResourceSets: 'No hay conjuntos de recursos',
 
   // Original text: "Resource set name"
-  resourceSetName: undefined,
+  resourceSetName: 'Nombre del conjunto de recursos',
 
   // Original text: "Creation and edition"
-  resourceSetCreation: undefined,
+  resourceSetCreation: 'Creación y edición',
 
   // Original text: "Save"
-  saveResourceSet: undefined,
+  saveResourceSet: 'Guardar',
 
   // Original text: "Reset"
-  resetResourceSet: undefined,
+  resetResourceSet: 'Reiniciar',
 
   // Original text: "Edit"
-  editResourceSet: undefined,
+  editResourceSet: 'Editar',
 
   // Original text: "Delete"
-  deleteResourceSet: undefined,
+  deleteResourceSet: 'Bprrar',
 
   // Original text: "Delete resource set"
-  deleteResourceSetWarning: undefined,
+  deleteResourceSetWarning: 'Borrar conjunto de recursos',
 
   // Original text: "Are you sure you want to delete this resource set?"
-  deleteResourceSetQuestion: undefined,
+  deleteResourceSetQuestion: '¿Estás seguro de querer borrar este conjunto de recursos?',
 
   // Original text: "Missing objects:"
-  resourceSetMissingObjects: undefined,
+  resourceSetMissingObjects: 'Objetos perdidos:',
 
   // Original text: "vCPUs"
-  resourceSetVcpus: undefined,
+  resourceSetVcpus: 'vCPUs',
 
   // Original text: "Memory"
-  resourceSetMemory: undefined,
+  resourceSetMemory: 'Memoria',
 
   // Original text: "Storage"
-  resourceSetStorage: undefined,
+  resourceSetStorage: 'Almacenamiento',
 
   // Original text: "Unknown"
-  unknownResourceSetValue: undefined,
+  unknownResourceSetValue: 'Desconocido',
 
   // Original text: "Available hosts"
-  availableHosts: undefined,
+  availableHosts: 'Hosts disponibles',
 
   // Original text: "Excluded hosts"
-  excludedHosts: undefined,
+  excludedHosts: 'Hosts excluídos',
 
   // Original text: "No hosts available."
-  noHostsAvailable: undefined,
+  noHostsAvailable: 'No hay hosts disponibles',
 
   // Original text: "VMs created from this resource set shall run on the following hosts."
-  availableHostsDescription: undefined,
+  availableHostsDescription: 'Las VMs creadas con este conjunto de recursos correrán en los siguientes hosts.',
 
   // Original text: "Maximum CPUs"
-  maxCpus: undefined,
+  maxCpus: 'Máximas CPUs',
 
   // Original text: "Maximum RAM (GiB)"
-  maxRam: undefined,
+  maxRam: 'Máxima RAM (GiB)',
 
   // Original text: "Maximum disk space"
-  maxDiskSpace: undefined,
+  maxDiskSpace: 'Máximo espacio en disco',
 
   // Original text: "No limits."
-  noResourceSetLimits: undefined,
+  noResourceSetLimits: 'Sin límites',
 
   // Original text: "Total:"
-  totalResource: undefined,
+  totalResource: 'Total:',
 
   // Original text: "Remaining:"
-  remainingResource: undefined,
+  remainingResource: 'Restante:',
 
   // Original text: "Used:"
-  usedResource: undefined,
+  usedResource: 'Utilizado:',
 
   // Original text: "Try dropping some backups here, or click to select backups to upload. Accept only .xva files."
-  importVmsList: undefined,
+  importVmsList: 'Haz drag & drop de backups aquí, o haz click para seleccionar qué backups subir. Sólo se aceptan ficheros .xva',
 
   // Original text: "No selected VMs."
-  noSelectedVms: undefined,
+  noSelectedVms: 'No se han seleccionado VMs',
 
   // Original text: "To Pool:"
-  vmImportToPool: undefined,
+  vmImportToPool: 'Al Pool:',
 
   // Original text: "To SR:"
-  vmImportToSr: undefined,
+  vmImportToSr: 'al SR:',
 
   // Original text: "VMs to import"
-  vmsToImport: undefined,
+  vmsToImport: 'VMs para importar',
 
   // Original text: "Reset"
-  importVmsCleanList: undefined,
+  importVmsCleanList: 'Reiniciar',
 
   // Original text: "VM import success"
-  vmImportSuccess: undefined,
+  vmImportSuccess: 'Importación de VM satisfactoria',
 
   // Original text: "VM import failed"
-  vmImportFailed: undefined,
+  vmImportFailed: 'Falló la importación de VM',
 
   // Original text: "Import starting…"
-  startVmImport: undefined,
+  startVmImport: 'Comenzando importación...',
 
   // Original text: "Export starting…"
-  startVmExport: undefined,
+  startVmExport: 'Comenzando export...',
 
   // Original text: "No pending tasks"
-  noTasks: undefined,
+  noTasks: 'No hay tareas pendientes',
 
   // Original text: "Currently, there are not any pending XenServer tasks"
-  xsTasks: undefined,
+  xsTasks: 'Ahora mismo no hay tareas de XenServer pendientes',
 
   // Original text: "List Remote"
-  listRemote: undefined,
+  listRemote: 'Listar backups remotos',
 
   // Original text: "simple"
-  simpleBackup: undefined,
+  simpleBackup: 'simple',
 
   // Original text: "delta"
-  delta: undefined,
+  delta: 'diferencial',
 
   // Original text: "Restore Backups"
-  restoreBackups: undefined,
+  restoreBackups: 'Restaurar backups',
 
   // Original text: "No remotes"
-  noRemotes: undefined,
+  noRemotes: 'No hay backups remotos',
 
   // Original text: "enabled"
-  remoteEnabled: undefined,
+  remoteEnabled: 'activado',
 
   // Original text: "error"
-  remoteError: undefined,
+  remoteError: 'error',
 
   // Original text: "No backup available"
-  noBackup: undefined,
+  noBackup: 'No hay backups disponibles',
 
   // Original text: "VM Name"
-  backupVmNameColumn: undefined,
+  backupVmNameColumn: 'Nombre VM',
 
   // Original text: "Backup Tag"
-  backupTagColumn: undefined,
+  backupTagColumn: 'Etiqueta de Backup',
 
   // Original text: "Last Backup"
-  lastBackupColumn: undefined,
+  lastBackupColumn: 'Último backup',
 
   // Original text: "Available Backups"
-  availableBackupsColumn: undefined,
+  availableBackupsColumn: 'Backups disponibles',
 
   // Original text: "Restore"
-  restoreColumn: undefined,
+  restoreColumn: 'Restaurar',
 
   // Original text: "Restore VM"
-  restoreTip: undefined,
+  restoreTip: 'Restaurar VM',
 
   // Original text: "Import VM"
-  importBackupTitle: undefined,
+  importBackupTitle: 'Importar VM',
 
   // Original text: "Starting your backup import"
-  importBackupMessage: undefined,
+  importBackupMessage: 'Comenzando importación del backup',
 
   // Original text: "Start VM{vms, plural, one {} other {s}}"
-  startVmsModalTitle: undefined,
+  startVmsModalTitle: 'Arrancar VM{vms, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to start {vms} VM{vms, plural, one {} other {s}}?"
-  startVmsModalMessage: undefined,
+  startVmsModalMessage: '¿Estás seguro de querar arrancar {vms} VM{vms, plural, one {} other {s}}?',
 
   // Original text: "Stop VM{vms, plural, one {} other {s}}"
-  stopVmsModalTitle: undefined,
+  stopVmsModalTitle: 'Parar VM{vms, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to stop {vms} VM{vms, plural, one {} other {s}}?"
-  stopVmsModalMessage: undefined,
+  stopVmsModalMessage: '¿Estás seguro de querer parar {vms} VM{vms, plural, one {} other {s}}?',
 
   // Original text: "Restart VM{vms, plural, one {} other {s}}"
-  restartVmsModalTitle: undefined,
+  restartVmsModalTitle: 'Reiniciar VM{vms, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to restart {vms} VM{vms, plural, one {} other {s}}?"
-  restartVmsModalMessage: undefined,
+  restartVmsModalMessage: '¿Estás seguro de querer reiniciar {vms} VM{vms, plural, one {} other {s}}?',
 
   // Original text: "Snapshot VM{vms, plural, one {} other {s}}"
-  snapshotVmsModalTitle: undefined,
+  snapshotVmsModalTitle: 'Snapshot VM{vms, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to snapshot {vms} VM{vms, plural, one {} other {s}}?"
-  snapshotVmsModalMessage: undefined,
+  snapshotVmsModalMessage: '¿Estás seguro de querer hacer snapshot de {vms} VM{vms, plural, one {} other {s}}?',
 
   // Original text: "Delete VM"
-  deleteVmModalTitle: undefined,
+  deleteVmModalTitle: 'Borrar VM',
 
   // Original text: "Delete VM{vms, plural, one {} other {s}}"
-  deleteVmsModalTitle: undefined,
+  deleteVmsModalTitle: 'Borrar VM{vms, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED"
-  deleteVmModalMessage: undefined,
+  deleteVmModalMessage: '¿Estás seguro de querer borrar esta VM? TODOS SUS DISCOS SERAN ELIMINADOS',
 
   // Original text: "Are you sure you want to delete {vms} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED"
-  deleteVmsModalMessage: undefined,
+  deleteVmsModalMessage: '¿Estás seguro de querar borrar {vms} VM{vms, plural, one {} other {s}}? TODOS SUS DISCOS SERAN ELIMINADOS',
 
   // Original text: "Migrate VM"
-  migrateVmModalTitle: undefined,
+  migrateVmModalTitle: 'Migrar VM',
 
   // Original text: "Select a destination host:"
-  migrateVmAdvancedModalSelectHost: undefined,
+  migrateVmAdvancedModalSelectHost: 'Elige el host de destino:',
 
   // Original text: "Select a migration network:"
-  migrateVmAdvancedModalSelectNetwork: undefined,
+  migrateVmAdvancedModalSelectNetwork: 'Elige la red de la migración',
 
   // Original text: "For each VDI, select an SR:"
-  migrateVmAdvancedModalSelectSrs: undefined,
+  migrateVmAdvancedModalSelectSrs: 'Para cada VDI, elige un SR:',
 
   // Original text: "For each VIF, select a network:"
-  migrateVmAdvancedModalSelectNetworks: undefined,
+  migrateVmAdvancedModalSelectNetworks: 'Para cada VIF, elige una red:',
 
   // Original text: "Name"
-  migrateVmAdvancedModalName: undefined,
+  migrateVmAdvancedModalName: 'Nombre',
 
   // Original text: "SR"
-  migrateVmAdvancedModalSr: undefined,
+  migrateVmAdvancedModalSr: 'SR',
 
   // Original text: "VIF"
-  migrateVmAdvancedModalVif: undefined,
+  migrateVmAdvancedModalVif: 'VIF',
 
   // Original text: "Network"
-  migrateVmAdvancedModalNetwork: undefined,
+  migrateVmAdvancedModalNetwork: 'Red',
 
   // Original text: "Import a {name} Backup"
-  importBackupModalTitle: undefined,
+  importBackupModalTitle: 'Importar un backup {name}',
 
   // Original text: "Start VM after restore"
-  importBackupModalStart: undefined,
+  importBackupModalStart: 'Arrancar la VM tras la restauración',
 
   // Original text: "Select your backup…"
-  importBackupModalSelectBackup: undefined,
+  importBackupModalSelectBackup: 'Elige el backup...',
 
   // Original text: "Are you sure you want to remove all orphaned VDIs?"
-  removeAllOrphanedModalWarning: undefined,
+  removeAllOrphanedModalWarning: '¿Estás seguro de querer borrar todos los VDIs huérfanos?',
 
   // Original text: "Remove all logs"
-  removeAllLogsModalTitle: undefined,
+  removeAllLogsModalTitle: 'Borrar todos los logs',
 
   // Original text: "Are you sure you want to remove all logs?"
-  removeAllLogsModalWarning: undefined,
+  removeAllLogsModalWarning: '¿Estás seguro de querar borrar todos los logs?',
 
   // Original text: "This operation is definitive."
-  definitiveMessageModal: undefined,
+  definitiveMessageModal: 'Esta operación es definitiva',
 
   // Original text: "Previous SR Usage"
-  existingSrModalTitle: undefined,
+  existingSrModalTitle: 'Uso anterior del SR',
 
   // Original text: "This path has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation."
-  existingSrModalText: undefined,
+  existingSrModalText: 'Esta ruta ya ha sido utilizada anteriormente como Almacenamiento por un host XenServer. Todos los datos existentes se perderán si continuas con la creación del SR.',
 
   // Original text: "Previous LUN Usage"
-  existingLunModalTitle: undefined,
+  existingLunModalTitle: 'Uso anterior de la LUN',
 
   // Original text: "This LUN has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation."
-  existingLunModalText: undefined,
+  existingLunModalText: 'Esta LUN ya ha sido utilizada anteriormente como Almacenamiento por un host XenServer. Todos los datos existentes se perderán si continuas con la creación del SR.',
 
   // Original text: "Replace current registration?"
-  alreadyRegisteredModal: undefined,
+  alreadyRegisteredModal: '¿Reemplazar el registro actual?',
 
   // Original text: "Your XO appliance is already registered to {email}, do you want to forget and replace this registration ?"
-  alreadyRegisteredModalText: undefined,
+  alreadyRegisteredModalText: 'Tu XOA ya está registrado en {email}, ¿quieres olvidar y reemplazar este registro?',
 
   // Original text: "Ready for trial?"
-  trialReadyModal: undefined,
+  trialReadyModal: '¿Preparado para el periodo de prueba?',
 
   // Original text: "During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans!"
-  trialReadyModalText: undefined,
+  trialReadyModalText: 'Durante el periodo de prueba, XOA necesita conexión a Internet. Esta limitación no aplica a los planes de pago',
 
   // Original text: "Host"
-  serverHost: undefined,
+  serverHost: 'Host',
 
   // Original text: "Username"
-  serverUsername: undefined,
+  serverUsername: 'Usuario',
 
   // Original text: "Password"
-  serverPassword: undefined,
+  serverPassword: 'Clave',
 
   // Original text: "Action"
-  serverAction: undefined,
+  serverAction: 'Acción',
 
   // Original text: "Read Only"
-  serverReadOnly: undefined,
+  serverReadOnly: 'Sólo lectura',
 
   // Original text: "Copy VM"
-  copyVm: undefined,
+  copyVm: 'Copiar VM',
 
   // Original text: "Are you sure you want to copy this VM to {SR}?"
-  copyVmConfirm: undefined,
+  copyVmConfirm: '¿Estás seguro de querer copiar esta VM a {SR}?',
 
   // Original text: "Name"
-  copyVmName: undefined,
+  copyVmName: 'Nombre',
 
   // Original text: "If empty: name of the copied VM"
-  copyVmNamePlaceholder: undefined,
+  copyVmNamePlaceholder: 'Vacío: nombre de la VM copiada',
 
   // Original text: "Select SR"
-  copyVmSelectSr: undefined,
+  copyVmSelectSr: 'Elegir SR',
 
   // Original text: "Use compression"
-  copyVmCompress: undefined,
+  copyVmCompress: 'Usar compresión',
 
   // Original text: "Create network"
-  newNetworkCreate: undefined,
+  newNetworkCreate: 'Crear red',
 
   // Original text: "Interface"
-  newNetworkInterface: undefined,
+  newNetworkInterface: 'Interface',
 
   // Original text: "Name"
-  newNetworkName: undefined,
+  newNetworkName: 'Nombre',
 
   // Original text: "Description"
-  newNetworkDescription: undefined,
+  newNetworkDescription: 'Descripción',
 
   // Original text: "VLAN"
-  newNetworkVlan: undefined,
+  newNetworkVlan: 'VLAN',
 
   // Original text: "No VLAN if empty"
-  newNetworkDefaultVlan: undefined,
+  newNetworkDefaultVlan: 'Sin VLAN si se deja vacío',
 
   // Original text: "MTU"
-  newNetworkMtu: undefined,
+  newNetworkMtu: 'MTU',
 
   // Original text: "Default: 1500"
-  newNetworkDefaultMtu: undefined,
+  newNetworkDefaultMtu: 'Por defecto: 1500',
 
   // Original text: "Delete network"
-  deleteNetwork: undefined,
+  deleteNetwork: 'Borrar red',
 
   // Original text: "Are you sure you want to delete this network?"
-  deleteNetworkConfirm: undefined,
+  deleteNetworkConfirm: '¿Estás seguro de querer borrar esta red?',
 
   // Original text: "Xen Orchestra"
-  xenOrchestra: undefined,
+  xenOrchestra: 'Xen Orchestra',
 
   // Original text: "server"
-  xenOrchestraServer: undefined,
+  xenOrchestraServer: 'servidor',
 
   // Original text: "web client"
-  xenOrchestraWeb: undefined,
+  xenOrchestraWeb: 'cliente web',
 
   // Original text: "No pro support provided!"
-  noProSupport: undefined,
+  noProSupport: '¡Sin soporte Pro!',
 
   // Original text: "Use in production at your own risks"
-  noProductionUse: undefined,
+  noProductionUse: 'Usar en producción bajo tu propia cuenta y riesgo',
 
   // Original text: "You can download our turnkey appliance at"
-  downloadXoa: undefined,
+  downloadXoa: 'Puedes descargar nuestro appliance en',
 
   // Original text: "Bug Tracker"
-  bugTracker: undefined,
+  bugTracker: 'Bug Tracker',
 
   // Original text: "Issues? Report it!"
-  bugTrackerText: undefined,
+  bugTrackerText: '¿Problemas? ¡Repórtalos!',
 
   // Original text: "Community"
-  community: undefined,
+  community: 'Comunidad',
 
   // Original text: "Join our community forum!"
-  communityText: undefined,
+  communityText: '¡Únete al foro de nuestra comunidad!',
 
   // Original text: "Free Trial for Premium Edition!"
-  freeTrial: undefined,
+  freeTrial: 'Prueba gratis de la Edición Premium',
 
   // Original text: "Request your trial now!"
-  freeTrialNow: undefined,
+  freeTrialNow: '¡Pide la prueba gratuíta ahora!',
 
   // Original text: "Any issue?"
-  issues: undefined,
+  issues: '¿Algún problema?',
 
   // Original text: "Problem? Contact us!"
-  issuesText: undefined,
+  issuesText: '¿Problemas? ¡Ponte en contacto con nosotros!',
 
   // Original text: "Documentation"
-  documentation: undefined,
+  documentation: 'Documentación',
 
   // Original text: "Read our official doc"
-  documentationText: undefined,
+  documentationText: 'Lee nuestra documentación oficial',
 
   // Original text: "Pro support included"
-  proSupportIncluded: undefined,
+  proSupportIncluded: 'Soporte Pro incluído',
 
   // Original text: "Acces your XO Account"
-  xoAccount: undefined,
+  xoAccount: 'Entra en tu cuenta XO',
 
   // Original text: "Report a problem"
-  openTicket: undefined,
+  openTicket: 'Reportar un problema',
 
   // Original text: "Problem? Open a ticket !"
-  openTicketText: undefined,
+  openTicketText: '¿Problemas? ¡Abre un ticket!',
 
   // Original text: "Upgrade needed"
-  upgradeNeeded: undefined,
+  upgradeNeeded: 'Actualización necesaria',
 
   // Original text: "Upgrade now!"
-  upgradeNow: undefined,
+  upgradeNow: '¡Actualiza ahora!',
 
   // Original text: "Or"
-  or: undefined,
+  or: 'O',
 
   // Original text: "Try it for free!"
-  tryIt: undefined,
+  tryIt: '¡Pruébalo gratis!',
 
   // Original text: "This feature is available starting from {plan} Edition"
-  availableIn: undefined,
+  availableIn: 'Esta característica está sólo disponible a partir de la Edición {plan}',
 
   // Original text: "Registration"
-  registration: undefined,
+  registration: 'Registro',
 
   // Original text: "Trial"
-  trial: undefined,
+  trial: 'Prueba',
 
   // Original text: "Settings"
-  settings: undefined,
+  settings: 'Configuración',
 
   // Original text: "Update"
-  update: undefined,
+  update: 'Refrescar',
 
   // Original text: "Upgrade"
-  upgrade: undefined,
+  upgrade: 'Actualizar',
 
   // Original text: "No updater available for Community Edition"
-  noUpdaterCommunity: undefined,
+  noUpdaterCommunity: 'No hay actualizador para la Edición Community',
 
   // Original text: "Please consider subscribe and try it with all features for free during 15 days on"
-  noUpdaterSubscribe: undefined,
+  noUpdaterSubscribe: 'Por favor plantéate la suscripción y pruébala con todas las características gratis durante 15 días',
 
   // Original text: "Manual update could break your current installation due to dependencies issues, do it with caution"
-  noUpdaterWarning: undefined,
+  noUpdaterWarning: 'La actualización manual podría romper tu instalación actual debido a problemas de dependencias, hazlo con precaución',
 
   // Original text: "Current version:"
-  currentVersion: undefined,
+  currentVersion: 'Versión actual',
 
   // Original text: "Register"
-  register: undefined,
+  register: 'Registrar',
 
   // Original text: "Please, take time to register in order to enjoy your trial."
-  trialRegistration: undefined,
+  trialRegistration: 'Por favor, regístrate para poder disfrutar del periodo de prueba',
 
   // Original text: "Start trial"
-  trialStartButton: undefined,
+  trialStartButton: 'Comenzar prueba',
 
   // Original text: "You can use a trial version until {date, date, medium}. Upgrade your appliance to get it."
-  trialAvailableUntil: undefined,
+  trialAvailableUntil: 'Puedes usar la versión de prueba hasta {date, date, medium}. Actualiza tu instalación para obtenerla.',
 
   // Original text: "Your trial has been ended. Contact us or downgrade to Free version"
-  trialConsumed: undefined,
+  trialConsumed: 'Tu periodo de prueba ha terminado. Contacta con nosotros o vuelve a la Edición Libre',
 
   // Original text: "Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service."
-  trialLocked: undefined,
+  trialLocked: 'Tu servicio xoa-updater parece estar caído. XOA no puede funcionar correctamente sin contactar con este servicio',
 
   // Original text: "No update information available"
-  noUpdateInfo: undefined,
+  noUpdateInfo: 'No hay información de actualización',
 
   // Original text: "Update information may be available"
-  waitingUpdateInfo: undefined,
+  waitingUpdateInfo: 'Podría haber información de actualización disponible',
 
   // Original text: "Your XOA is up-to-date"
-  upToDate: undefined,
+  upToDate: 'Tu XOA está al día',
 
   // Original text: "You need to update your XOA (new version is available)"
-  mustUpgrade: undefined,
+  mustUpgrade: 'Necesitas actualizar tu XOA (hay disponible una nueva versión)',
 
   // Original text: "Your XOA is not registered for updates"
-  registerNeeded: undefined,
+  registerNeeded: 'Tu XOA no está registrado para recibir actualizaciones',
 
   // Original text: "Can't fetch update information"
-  updaterError: undefined,
+  updaterError: 'No se puede obtener la información de actualización',
 
   // Original text: "Xen Orchestra from the sources"
-  disclaimerTitle: undefined,
+  disclaimerTitle: 'Xen Orchestra desde código fuente',
 
   // Original text: "You are using XO from the sources! That's great for a personal/non-profit usage."
-  disclaimerText1: undefined,
+  disclaimerText1: '¡Estás utilizando XO a partir del código fuente! Estupendo para un uso personal/sin ánimo de lucro',
 
   // Original text: "If you are a company, it's better to use it with our appliance + pro support included:"
-  disclaimerText2: undefined,
+  disclaimerText2: 'Si eres una empresa, es mejor utilizarlo con nuestro appliance con soporte Pro incluído',
 
   // Original text: "This version is not bundled with any support nor updates. Use it with caution for critical tasks."
-  disclaimerText3: undefined,
+  disclaimerText3: 'Esta versión no está creada para recibir soporte ni actualizaciones. Úsala con precaución para tareas críticas.',
 
   // Original text: "Connect PIF"
-  connectPif: undefined,
+  connectPif: 'Conectar PIF',
 
   // Original text: "Are you sure you want to connect this PIF?"
-  connectPifConfirm: undefined,
+  connectPifConfirm: '¿Estás seguro de querer conectar este PIF?',
 
   // Original text: "Disconnect PIF"
-  disconnectPif: undefined,
+  disconnectPif: 'Desconectar PIF',
 
   // Original text: "Are you sure you want to disconnect this PIF?"
-  disconnectPifConfirm: undefined,
+  disconnectPifConfirm: '¿Estás seguro de querer desconectar este PIF?',
 
   // Original text: "Delete PIF"
-  deletePif: undefined,
+  deletePif: 'Borrar PIF',
 
   // Original text: "Are you sure you want to delete this PIF?"
-  deletePifConfirm: undefined
+  deletePifConfirm: '¿Estás seguro de querer borrar este PIF?'
 }
