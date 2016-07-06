@@ -7,6 +7,7 @@ import _ from 'intl'
 import map from 'lodash/map'
 import { addSubscriptions } from 'utils'
 import { generateUiSchema } from 'xo-json-schema-input'
+import { Row, Col } from 'grid'
 import { lastly } from 'promise-toolbox'
 import {
   configurePlugin,
@@ -121,25 +122,31 @@ class Plugin extends Component {
 
     return (
       <div className='card-block'>
-        <h4 className='form-inline clearfix'>
-          <ActionToggle disabled={loaded && props.unloadable} value={loaded} handler={this._updateLoad} />
-          <span className='text-primary'>
-            {` ${props.name} `}
-          </span>
-          <span>
-            {`(v${props.version}) `}
-          </span>
-          <div className='checkbox small'>
-            <label className='text-muted'>
-              {_('autoloadPlugin')} <input type='checkbox' checked={props.autoload} onChange={this._setAutoload} />
-            </label>
-          </div>
-          <div className='form-group pull-right small'>
-            <button type='button' className='btn btn-primary' onClick={this._updateExpanded}>
-              <Icon icon={expanded ? 'minus' : 'plus'} />
-            </button>
-          </div>
-        </h4>
+        <Row>
+          <Col mediumSize={8}>
+            <h5 className='form-inline clearfix'>
+              <ActionToggle disabled={loaded && props.unloadable} value={loaded} handler={this._updateLoad} />
+              <span className='text-primary'>
+                {` ${props.name} `}
+              </span>
+              <span>
+                {`(v${props.version}) `}
+              </span>
+              <div className='checkbox small'>
+                <label className='text-muted'>
+                  {_('autoloadPlugin')} <input type='checkbox' checked={props.autoload} onChange={this._setAutoload} />
+                </label>
+              </div>
+            </h5>
+          </Col>
+          <Col mediumSize={4}>
+            <div className='form-group pull-right small'>
+              <button type='button' className='btn btn-primary' onClick={this._updateExpanded}>
+                <Icon icon={expanded ? 'minus' : 'plus'} />
+              </button>
+            </div>
+          </Col>
+        </Row>
         {expanded &&
           <form id={formId}>
             <GenericInput
