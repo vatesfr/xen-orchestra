@@ -1,10 +1,33 @@
 import _ from 'intl'
-import React from 'react'
 import isEmpty from 'lodash/isEmpty'
-import map from 'lodash/map'
-import { Text } from 'editable'
+import Link from 'link'
+import React from 'react'
+import SortedTable from 'sorted-table'
 import { Container, Row, Col } from 'grid'
 import { editHost } from 'xo'
+import { Text } from 'editable'
+
+const HOST_COLUMNS = [
+  {
+    name: _('hostNameLabel'),
+    itemRenderer: host => (
+      <Link to={`/hosts/${host.id}`}>
+        <Text value={host.name_label} onChange={value => editHost(host, { name_label: value })} useLongClick />
+      </Link>
+    ),
+    sortCriteria: 'name_label'
+  },
+  {
+    name: _('hostDescription'),
+    itemRenderer: host => <Text value={host.name_description} onChange={value => editHost(host, { name_description: value })} />,
+    sortCriteria: 'name_description'
+  },
+  {
+    name: _('hostMemory'),
+    itemRenderer: ({ memory }) => <meter value={memory.usage} min='0' max={memory.size}></meter>,
+    sortCriteria: ({ memory }) => memory.usage / memory.size
+  }
+]
 
 export default ({
   hosts
@@ -12,32 +35,7 @@ export default ({
   <Row>
     <Col>
       {!isEmpty(hosts)
-        ? <div>
-          <table className='table'>
-            <thead className='thead-default'>
-              <tr>
-                <th>{_('hostNameLabel')}</th>
-                <th>{_('hostDescription')}</th>
-                <th>{_('hostMemory')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {map(hosts, host => {
-                return <tr key={host.id}>
-                  <td>
-                    <Text value={host.name_label} onChange={value => editHost(host, { name_label: value })} />
-                  </td>
-                  <td>
-                    <Text value={host.name_description} onChange={value => editHost(host, { name_description: value })} />
-                  </td>
-                  <td>
-                    <meter value={host.memory.usage} min='0' max={host.memory.size}></meter>
-                  </td>
-                </tr>
-              })}
-            </tbody>
-          </table>
-        </div>
+        ? <SortedTable collection={hosts} columns={HOST_COLUMNS} />
         : <h4 className='text-xs-center'>{_('noHost')}</h4>
       }
     </Col>
