@@ -92,6 +92,7 @@ export default class User extends BaseComponent {
               <option value='fr'>Français</option>
               <option value='he'>עברי</option>
               <option value='pt'>Português</option>
+              <option value='es'>Español</option>
             </select>
           </Col>
         </Row>
