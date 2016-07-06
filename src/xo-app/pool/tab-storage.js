@@ -4,7 +4,7 @@ import Link from 'link'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import { Container, Row, Col } from 'grid'
-import { editSr } from 'xo'
+import { editSr, isSrShared } from 'xo'
 import { formatSize } from 'utils'
 import { Text } from 'editable'
 
@@ -35,8 +35,8 @@ const SR_COLUMNS = [
   },
   {
     name: _('srType'),
-    itemRenderer: sr => sr.$PBDs.length > 1 ? _('srShared') : _('srNotShared'),
-    sortCriteria: sr => sr.$PBDs.length > 1
+    itemRenderer: sr => isSrShared(sr) ? _('srShared') : _('srNotShared'),
+    sortCriteria: isSrShared
   }
 ]
 
