@@ -601,7 +601,7 @@ export default class NewVm extends BaseComponent {
           <DebounceInput
             className='form-control'
             debounceTimeout={DEBOUNCE_TIMEOUT}
-            disabled={installMethod !== 'SSH'}
+            disabled={!configDrive || installMethod !== 'SSH'}
             onChange={this._getOnChange('sshKey')}
             type='text'
             value={sshKey}
@@ -622,7 +622,7 @@ export default class NewVm extends BaseComponent {
           <DebounceInput
             className={classNames('form-control', styles.customConfig)}
             debounceTimeout={DEBOUNCE_TIMEOUT}
-            disabled={installMethod !== 'customConfig'}
+            disabled={!configDrive || installMethod !== 'customConfig'}
             element='textarea'
             onChange={this._getOnChange('customConfig')}
             value={customConfig}
@@ -719,11 +719,11 @@ export default class NewVm extends BaseComponent {
       template
     } = this.state.state
     switch (installMethod) {
-      case 'customConfig': return customConfig
+      case 'customConfig': return customConfig || !configDrive
       case 'ISO': return installIso
       case 'network': return /^(http|ftp|nfs)/i.exec(installNetwork)
       case 'PXE': return true
-      case 'SSH': return sshKey
+      case 'SSH': return sshKey || !configDrive
       default: return template && this._isDiskTemplate && !configDrive
     }
   }
