@@ -44,6 +44,7 @@
 * [Recipes](recipes.md)
    * [Reverse proxy](reverse_proxy.md)
 * [How to contribute?](contributing.md)
+* [Support](support.md)
 * [Roadmap](roadmap.md)
 * [Purchase](purchase.md)
    * [Direct purchase](directpurchase.md)

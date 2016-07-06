@@ -12,7 +12,7 @@ This is the easiest way to try Xen Orchestra in a minute.
 
 Your XOA is connected to all your hosts, or on the pool master only if you are using Pools in XenServer:
 
-![](./assets/partner2.jpg)
+![](https://xen-orchestra.com/assets/partner2.jpg)
 
 ## Xen Orchestra (XO)
 

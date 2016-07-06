@@ -8,7 +8,7 @@ The reseller/partner program allows you to buy XOAs and to assign them to your f
 
 You need to be registered first. Then go on [the partner page here](https://xen-orchestra.com/#!/partner) and click on the "Register button":
 
-![](../assets/partner_request.png)
+![](./assets/partner_request.png)
 
 Now, you just have to wait for us to accept your request. As soon it's done, you access to your partner zone, [at the same partner page](https://xen-orchestra.com/#!/partner).
 

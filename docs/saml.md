@@ -10,7 +10,7 @@ The first time a user signs in, XO will create a new XO user with the same ident
 
 In the "Settings" then "Plugins" view, expand the SAML plugin configuration. Then provide the needed fields:
 
-![](../assets/samlconfig.png)
+![](./assets/samlconfig.png)
 
 Save the configuration and then activate the plugin (button on top).
 

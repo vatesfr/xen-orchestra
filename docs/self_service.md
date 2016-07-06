@@ -8,7 +8,7 @@ The self-service feature is the possibility for users to create new VMs. That's 
 
 To create a new set of resources, go inside the "Self Service" section in the main menu:
 
-![](../assets/selfservice_menu.png)
+![](./assets/selfservice_menu.png)
 
 ### Create a set
 
@@ -46,11 +46,11 @@ When you click on create, you can see the resource set and remove or edit it:
 
 As soon a user is inside a resource set, it displays a new button in its main view: the gree icon with the "plus" sign:
 
-![](../assets/selfservice_newvm.png)
+![](./assets/selfservice_newvm.png)
 
 Now, the user can create a VM with only the resources given in the set:
 
-![](../assets/selfservice_createvm.png)
+![](./assets/selfservice_createvm.png)
 
 And the recap before creation:
 

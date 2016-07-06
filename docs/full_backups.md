@@ -30,7 +30,7 @@ Just read twice the UI when you add a SMB store. If you have:
 
 You'll have to fill it like this:
 
-![](../assets/smb_fill.png)
+![](./assets/smb_fill.png)
 
 **PATH TO BACKUP is only needed if you have subfolders in your share.**
 

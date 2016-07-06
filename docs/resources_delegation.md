@@ -21,4 +21,4 @@ Groups can be created and managed in the "Groups" view inside "Settings" menu.
 
 Any group can be edited as you like after its creation.
 
-![](../assets/groups.png)
+![](./assets/groups.png)

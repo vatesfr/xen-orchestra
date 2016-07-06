@@ -197,7 +197,7 @@ You can change the CPU Weight in the VM view. Values are:
 * Normal
 * Double (x2)
 
-![](../assets/cpu_weight.png)
+![](./assets/cpu_weight.png)
 
 By default, each VM has a weight of 256.
 
