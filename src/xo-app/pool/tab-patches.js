@@ -11,7 +11,8 @@ import { connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
 import {
   createFilter,
-  createGetObjectsOfType
+  createGetObjectsOfType,
+  createSelector
 } from 'selectors'
 import {
   getHostMissingPatches,
@@ -66,8 +67,10 @@ export default class TabPatches extends Component {
 
   _getHosts = createFilter(
     () => this.props.hosts,
-    () => this.state.missingPatches,
-    [ (host, missingPatches) => missingPatches[host.id] ]
+    createSelector(
+      () => this.state.missingPatches,
+      missingPatches => host => missingPatches[host.id]
+    )
   )
 
   _refreshMissingPatches = () => (
