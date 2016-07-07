@@ -23,7 +23,8 @@ const MISSING_PATCH_COLUMNS = [
   {
     name: _('patchReleaseDate'),
     itemRenderer: patch => <span><FormattedTime value={patch.date} day='numeric' month='long' year='numeric' /> (<FormattedRelative value={patch.date} />)</span>,
-    sortCriteria: patch => patch.date
+    sortCriteria: patch => patch.date,
+    sortOrder: 'desc'
   },
   {
     name: _('patchGuidance'),

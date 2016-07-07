@@ -20,8 +20,7 @@ const HOST_COLUMNS = [
         </Link>
       )
     },
-    sortCriteria: (pbd, hosts) => hosts[pbd.host].name_label,
-    sortOrder: 'asc'
+    sortCriteria: (pbd, hosts) => hosts[pbd.host].name_label
   },
   {
     name: _('hostDescription'),

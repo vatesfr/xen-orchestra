@@ -195,7 +195,8 @@ const BK_COLUMNS = [
   {
     name: _('lastBackupColumn'),
     itemRenderer: info => <span><FormattedDate value={info.last.date} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' /> ({info.last.type})</span>,
-    sortCriteria: info => info.last.date
+    sortCriteria: info => info.last.date,
+    sortOrder: 'desc'
   },
   {
     name: _('availableBackupsColumn'),

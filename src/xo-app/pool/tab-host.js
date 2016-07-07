@@ -25,7 +25,8 @@ const HOST_COLUMNS = [
   {
     name: _('hostMemory'),
     itemRenderer: ({ memory }) => <meter value={memory.usage} min='0' max={memory.size}></meter>,
-    sortCriteria: ({ memory }) => memory.usage / memory.size
+    sortCriteria: ({ memory }) => memory.usage / memory.size,
+    sortOrder: 'desc'
   }
 ]
 

@@ -66,7 +66,8 @@ const SR_COLUMNS = [
   {
     name: _('srUsage'),
     itemRenderer: sr => sr.size > 1 && <meter value={(sr.physical_usage / sr.size) * 100} min='0' max='100' optimum='40' low='80' high='90'></meter>,
-    sortCriteria: sr => sr.physical_usage / sr.size
+    sortCriteria: sr => sr.physical_usage / sr.size,
+    sortOrder: 'desc'
   }
 ]
 
@@ -74,7 +75,8 @@ const VDI_COLUMNS = [
   {
     name: _('snapshotDate'),
     itemRenderer: vdi => <span><FormattedTime value={vdi.snapshot_time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={vdi.snapshot_time * 1000} />)</span>,
-    sortCriteria: vdi => vdi.snapshot_time
+    sortCriteria: vdi => vdi.snapshot_time,
+    sortOrder: 'desc'
   },
   {
     name: _('vdiNameLabel'),
@@ -112,7 +114,8 @@ const VM_COLUMNS = [
   {
     name: _('snapshotDate'),
     itemRenderer: vm => <span><FormattedTime value={vm.snapshot_time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={vm.snapshot_time * 1000} />)</span>,
-    sortCriteria: vm => vm.snapshot_time
+    sortCriteria: vm => vm.snapshot_time,
+    sortOrder: 'desc'
   },
   {
     name: _('vmNameLabel'),
@@ -147,7 +150,8 @@ const ALARM_COLUMNS = [
     itemRenderer: message => (
       <span><FormattedTime value={message.time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={message.time * 1000} />)</span>
     ),
-    sortCriteria: message => message.time
+    sortCriteria: message => message.time,
+    sortOrder: 'desc'
   },
   {
     name: _('alarmContent'),

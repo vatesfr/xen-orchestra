@@ -144,11 +144,11 @@
 
   &-asc {
     @extend .fa;
-    @extend .fa-arrow-up;
+    @extend .fa-arrow-down;
   }
   &-desc {
     @extend .fa;
-    @extend .fa-arrow-down;
+    @extend .fa-arrow-up;
   }
   &-sort {
     @extend .fa;
