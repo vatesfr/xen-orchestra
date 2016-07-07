@@ -63,7 +63,7 @@ class JobReturn extends Component {
       id
     } = this.props
 
-    return <span><Icon icon='arrow-right' />{' '}{object ? renderXoItem(object) : id}</span>
+    return <span><Icon icon='arrow-right' />{' '}{object ? renderXoItem(object) : String(id)}</span>
   }
 }
 
@@ -72,7 +72,7 @@ const Log = props => <ul className='list-group'>
     <strong className='text-info'>{call.method}: </strong>
     {map(call.params, (value, key) => <JobParam id={value} paramKey={key} key={key} />)}
     {call.returnedValue && <span>{' '}<JobReturn id={call.returnedValue} /></span>}
-    {call.error && <Icon icon='error' />}
+    {call.error && <span className='text-danger'><Icon icon='error' />{' '}{JSON.stringify(call.error)}</span>}
   </li>)}
 </ul>
 
@@ -112,7 +112,7 @@ const LOG_COLUMNS = [
     name: _('jobStatus'),
     itemRenderer: log => <span>
       {log.status === 'finished' &&
-        <span className={classnames('tag', {'tag-success': (!log.error && !log.hasErrors), 'tag-danger': (log.error || log.hasErrors)})}>{_('jobFinished')}</span>
+        <span className={classnames('tag', {'tag-success': !log.hasErrors, 'tag-danger': log.hasErrors})}>{_('jobFinished')}</span>
       }
       {log.status === 'started' &&
         <span className='tag tag-warning'>{_('jobStarted')}</span>
@@ -125,7 +125,7 @@ const LOG_COLUMNS = [
         <ActionRowButton btnStyle='default' handler={deleteJobsLog} handlerParam={log.logKey} icon='delete' />
       </span>
     </span>,
-    sortCriteria: log => (log.error || log.hasErrors) && ' ' || log.status
+    sortCriteria: log => log.hasErrors && ' ' || log.status
   }
 ]
 
@@ -167,9 +167,6 @@ export default class LogList extends Component {
           }
           logsToClear.push(logKey)
           if (data.event === 'job.end') {
-            if (data.error) {
-              entry.error = data.error
-            }
             entry.end = time
             entry.duration = time - entry.start
             entry.status = 'finished'
