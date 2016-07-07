@@ -1,9 +1,13 @@
+import _ from 'intl'
 import ceil from 'lodash/ceil'
 import debounce from 'lodash/debounce'
+import isEmpty from 'lodash/isEmpty'
 import isFunction from 'lodash/isFunction'
 import map from 'lodash/map'
 import React from 'react'
-import { Pagination } from 'react-bootstrap-4/lib'
+import { Dropdown, MenuItem, Pagination } from 'react-bootstrap-4/lib'
+import DropdownMenu from 'react-bootstrap-4/lib/DropdownMenu' // https://phabricator.babeljs.io/T6662 so Dropdown.Menu won't work like https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
+import DropdownToggle from 'react-bootstrap-4/lib/DropdownToggle' // https://phabricator.babeljs.io/T6662 so Dropdown.Toggle won't work https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
 import { Portal } from 'react-overlays'
 
 import Component from '../base-component'
@@ -26,16 +30,19 @@ import styles from './index.css'
 // ===================================================================
 
 @propTypes({
+  filters: propTypes.object,
   nFilteredItems: propTypes.number.isRequired,
   nItems: propTypes.number.isRequired,
   onChange: propTypes.func.isRequired
 })
 class TableFilter extends Component {
-  _cleanFilter = () => {
+  _cleanFilter = () => this._setFilter('')
+
+  _setFilter = filterValue => {
     const { filter } = this.refs
-    filter.value = ''
+    filter.value = filterValue
     filter.focus()
-    this.props.onChange('')
+    this.props.onChange(filterValue)
   }
 
   _onChange = event => {
@@ -48,7 +55,22 @@ class TableFilter extends Component {
     return (
       <div className='input-group'>
         <span className='input-group-addon'>{props.nFilteredItems} / {props.nItems}</span>
-        <span className='input-group-addon'><Icon icon='search' /></span>
+        {isEmpty(props.filters)
+          ? <span className='input-group-addon'><Icon icon='search' /></span>
+          : <div className='input-group-btn'>
+            <Dropdown id='filter'>
+              <DropdownToggle bsStyle='info'>
+                <Icon icon='search' />
+              </DropdownToggle>
+              <DropdownMenu>
+                {map(props.filters, (filter, label) =>
+                  <MenuItem key={label} onClick={() => this._setFilter(filter)}>
+                    {_(label)}
+                  </MenuItem>
+                )}
+              </DropdownMenu>
+            </Dropdown>
+          </div>}
         <input
           type='text'
           ref='filter'
@@ -126,6 +148,7 @@ const DEFAULT_ITEMS_PER_PAGE = 10
     sortOrder: propTypes.string
   })).isRequired,
   filterContainer: propTypes.func,
+  filters: propTypes.object,
   itemsPerPage: propTypes.number,
   paginationContainer: propTypes.func,
   rowLink: propTypes.oneOfType([
@@ -228,6 +251,7 @@ export default class SortedTable extends Component {
     const {
       paginationContainer,
       filterContainer,
+      filters,
       rowLink,
       userData
     } = props
@@ -251,6 +275,7 @@ export default class SortedTable extends Component {
 
     const filterInstance = (
       <TableFilter
+        filters={filters}
         nFilteredItems={nFilteredItems}
         nItems={this._getTotalNumberOfItems()}
         onChange={this._onFilterChange}

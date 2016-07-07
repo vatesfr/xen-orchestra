@@ -13,6 +13,10 @@ var messages = {
   confirmOk: 'OK',
   confirmCancel: 'Cancel',
 
+  // ----- Filters -----
+  onError: 'On error',
+  successful: 'Successful',
+
   // ----- Titles -----
   homePage: 'Home',
   dashboardPage: 'Dashboard',
