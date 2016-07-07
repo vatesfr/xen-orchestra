@@ -6,6 +6,8 @@ import isFunction from 'lodash/isFunction'
 import map from 'lodash/map'
 import React from 'react'
 import { Dropdown, MenuItem, Pagination } from 'react-bootstrap-4/lib'
+import DropdownMenu from 'react-bootstrap-4/lib/DropdownMenu' // https://phabricator.babeljs.io/T6662 so Dropdown.Menu won't work like https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
+import DropdownToggle from 'react-bootstrap-4/lib/DropdownToggle' // https://phabricator.babeljs.io/T6662 so Dropdown.Toggle won't work https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
 import { Portal } from 'react-overlays'
 
 import Component from '../base-component'
@@ -57,16 +59,16 @@ class TableFilter extends Component {
           ? <span className='input-group-addon'><Icon icon='search' /></span>
           : <div className='input-group-btn'>
             <Dropdown id='filter'>
-              <Dropdown.Toggle bsStyle='info'>
+              <DropdownToggle bsStyle='info'>
                 <Icon icon='search' />
-              </Dropdown.Toggle>
-              <Dropdown.Menu>
+              </DropdownToggle>
+              <DropdownMenu>
                 {map(props.filters, (filter, label) =>
                   <MenuItem key={label} onClick={() => this._setFilter(filter)}>
                     {_(label)}
                   </MenuItem>
                 )}
-              </Dropdown.Menu>
+              </DropdownMenu>
             </Dropdown>
           </div>}
         <input
