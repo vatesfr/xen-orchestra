@@ -249,7 +249,7 @@ export default class XoaUpdates extends Component {
           <p>
             <strong>{registration.state}</strong>
             {registration.email && <span> to {registration.email}</span>}
-            <span className='text-danger'>{registration.error}</span>
+            <span className='text-danger'> {registration.error}</span>
           </p>
           <form id='registrationForm' className='form-inline'>
             <div className='form-group'>
@@ -315,6 +315,30 @@ export default class XoaUpdates extends Component {
   }
 }
 
+const UpdateAlarm = () => <span className='fa-stack'>
+  <i className='fa fa-circle fa-stack-2x text-danger' />
+  <i className='fa fa-exclamation fa-stack-1x' />
+</span>
+
+const UpdateError = () => <span className='fa-stack'>
+  <i className='fa fa-circle fa-stack-2x text-danger' />
+  <i className='fa fa-question fa-stack-1x' />
+</span>
+
+const UpdateWarning = () => <span className='fa-stack'>
+  <i className='fa fa-circle fa-stack-2x text-warning' />
+  <i className='fa fa-question fa-stack-1x' />
+</span>
+
+const UpdateSuccess = () => <Icon icon='success' />
+
+const UpdateAlert = () => <span className='fa-stack'>
+  <i className='fa fa-circle fa-stack-2x text-success' />
+  <i className='fa fa-bell fa-stack-1x' />
+</span>
+
+const RegisterAlarm = () => <Icon icon='not-registered' className='text-warning' />
+
 export const UpdateTag = connectStore((state) => {
   return {
     configuration: state.xoaConfiguration,
@@ -325,21 +349,13 @@ export const UpdateTag = connectStore((state) => {
   }
 })(props => {
   const { state } = props
-  const icons = {
-    'disconnected': 'update-unknown',
-    'connected': 'update-unknown',
-    'upToDate': 'success',
-    'upgradeNeeded': 'update-ready',
-    'registerNeeded': 'not-registered',
-    'error': 'alarm'
-  }
-  const classNames = {
-    'disconnected': 'text-danger',
-    'connected': 'text-success',
-    'upToDate': 'text-success',
-    'upgradeNeeded': 'text-warning',
-    'registerNeeded': 'text-danger',
-    'error': 'text-danger'
+  const components = {
+    'disconnected': <UpdateError />,
+    'connected': <UpdateWarning />,
+    'upToDate': <UpdateSuccess />,
+    'upgradeNeeded': <UpdateAlert />,
+    'registerNeeded': <RegisterAlarm />,
+    'error': <UpdateAlarm />
   }
   const tooltips = {
     'disconnected': _('noUpdateInfo'),
@@ -349,5 +365,5 @@ export const UpdateTag = connectStore((state) => {
     'registerNeeded': _('registerNeeded'),
     'error': _('updaterError')
   }
-  return <Tooltip content={tooltips[state]}><Icon className={classNames[state]} icon={icons[state]} size='lg' /></Tooltip>
+  return <Tooltip content={tooltips[state]}>{components[state]}</Tooltip>
 })
