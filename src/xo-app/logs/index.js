@@ -186,6 +186,7 @@ export default class LogList extends Component {
             if (data.error) {
               call.error = data.error
               entry.hasErrors = true
+              entry.meta = 'error'
             } else {
               call.returnedValue = data.returnedValue
             }
@@ -196,6 +197,8 @@ export default class LogList extends Component {
       forEach(logs, log => {
         if (log.end === undefined) {
           log.status = 'started'
+        } else if (!log.meta) {
+          log.meta = 'success'
         }
         log.calls = orderBy(log.calls, ['time'], ['desc'])
       })
