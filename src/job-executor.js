@@ -141,7 +141,7 @@ export default class JobExecutor {
               event: 'jobCall.end',
               runJobId,
               runCallId,
-              error: reason
+              error: {...reason, message: reason.message}
             })
 
             call.error = reason
