@@ -448,6 +448,7 @@ var messages = {
   vdiTags: 'Tags',
   vdiSize: 'Size',
   vdiSr: 'SR',
+  vdiVm: 'VM',
   vdbBootableStatus: 'Boot flag',
   vdbStatus: 'Status',
   vbdStatusConnected: 'Connected',

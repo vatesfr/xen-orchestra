@@ -1,13 +1,15 @@
+import _ from 'intl'
 import ActionRow from 'action-row-button'
 import Icon from 'icon'
+import isEmpty from 'lodash/isEmpty'
+import Link from 'link'
 import React from 'react'
 import SortedTable from 'sorted-table'
-import _ from 'intl'
-import isEmpty from 'lodash/isEmpty'
-import { Container, Row, Col } from 'grid'
-import { Text } from 'editable'
-import { deleteVdi, editVdi } from 'xo'
 import { formatSize } from 'utils'
+import { Container, Row, Col } from 'grid'
+import { deleteVdi, editVdi } from 'xo'
+import { renderXoItemFromId } from 'render-xo-item'
+import { Text } from 'editable'
 
 // ===================================================================
 
@@ -34,6 +36,23 @@ const COLUMNS = [
     )
   },
   {
+    name: _('vdiVm'),
+    itemRenderer: (vdi, vdisToVmIds) => {
+      const id = vdisToVmIds[vdi.id]
+      const Item = renderXoItemFromId(id)
+
+      if (id) {
+        return (
+          <Link to={`/vms/${id}`}>
+            {Item}
+          </Link>
+        )
+      }
+
+      return Item
+    }
+  },
+  {
     name: _('vdiTags'),
     itemRenderer: vdi => vdi.tags
   },
@@ -57,16 +76,15 @@ const COLUMNS = [
 
 // ===================================================================
 
-export default ({
-  sr,
-  vdis
-}) => <Container>
-  <Row>
-    <Col>
-      {!isEmpty(vdis)
-        ? <SortedTable collection={vdis} columns={COLUMNS} />
-        : <h4 className='text-xs-center'>{_('srNoVdis')}</h4>
-      }
-    </Col>
-  </Row>
-</Container>
+export default ({ vdis, vdisToVmIds }) => (
+  <Container>
+    <Row>
+      <Col>
+        {!isEmpty(vdis)
+          ? <SortedTable collection={vdis} userData={vdisToVmIds} columns={COLUMNS} />
+          : <h4 className='text-xs-center'>{_('srNoVdis')}</h4>
+        }
+      </Col>
+    </Row>
+  </Container>
+)

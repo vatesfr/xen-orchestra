@@ -7,10 +7,12 @@ import Tooltip from 'tooltip'
 import { addTag, removeTag } from 'xo'
 import { Container, Row, Col } from 'grid'
 import { formatSize } from 'utils'
+import { renderXoItemFromId } from 'render-xo-item'
 
 export default ({
   sr,
-  vdis
+  vdis,
+  vdisToVmIds
 }) => <Container>
   <Row className='text-xs-center'>
     <Col mediumSize={4}>
@@ -32,16 +34,27 @@ export default ({
   <Row>
     <Col smallOffset={1} mediumSize={10}>
       <span className='progress-usage'>
-        {map(vdis, vdi => (
-          <Tooltip key={vdi.id} content={vdi.name_label}>
-            <span
-              key={vdi.id}
-              className='progress-object'
-              style={{ width: (vdi.usage / sr.size) * 100 + '%' }}>
-            </span>
-          </Tooltip>
+        {map(vdis, vdi => {
+          const { id } = vdi
+          return (
+            <Tooltip
+              key={id}
+              content={
+                <span>
+                  {vdi.name_label}
+                  <br />
+                  {renderXoItemFromId(vdisToVmIds[vdi.id])}
+                </span>
+              }
+            >
+              <span
+                key={id}
+                className='progress-object'
+                style={{ width: (vdi.usage / sr.size) * 100 + '%' }}>
+              </span>
+            </Tooltip>
           )
-        )}
+        })}
       </span>
     </Col>
   </Row>
