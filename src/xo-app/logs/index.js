@@ -96,12 +96,14 @@ const LOG_COLUMNS = [
   {
     name: _('jobStart'),
     itemRenderer: log => log.start && <FormattedDate value={new Date(log.start)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />,
-    sortCriteria: log => log.start
+    sortCriteria: log => log.start,
+    sortOrder: 'desc'
   },
   {
     name: _('jobEnd'),
     itemRenderer: log => log.end && <FormattedDate value={new Date(log.end)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />,
-    sortCriteria: log => log.end
+    sortCriteria: log => log.end,
+    sortOrder: 'desc'
   },
   {
     name: _('jobDuration'),

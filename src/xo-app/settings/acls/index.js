@@ -31,7 +31,7 @@ import {
   subscribeUsers
 } from 'xo'
 
-const ACL_COLUMS = [
+const ACL_COLUMNS = [
   {
     name: _('subjectName'),
     itemRenderer: acl => acl.subject.id ? renderXoItem(acl.subject) : renderXoItemFromId(acl.subject),
@@ -117,7 +117,7 @@ class AclTable extends Component {
 
     return isEmpty(resolvedAcls)
       ? <p><em>No acls found</em></p>
-      : <SortedTable collection={resolvedAcls} columns={ACL_COLUMS} />
+      : <SortedTable collection={resolvedAcls} columns={ACL_COLUMNS} />
   }
 }
 
