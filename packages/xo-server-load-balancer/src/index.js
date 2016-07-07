@@ -63,12 +63,12 @@ export const configurationSchema = {
               cpu: {
                 type: 'integer',
                 title: 'CPU (%)',
-                description: 'default: 90%'
+                default: 90
               },
               memoryFree: {
                 type: 'integer',
                 title: 'RAM, Free memory (MB)',
-                description: 'default: 64MB'
+                default: 64
               }
             }
           },
