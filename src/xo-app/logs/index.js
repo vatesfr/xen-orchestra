@@ -72,7 +72,15 @@ const Log = props => <ul className='list-group'>
     <strong className='text-info'>{call.method}: </strong>
     {map(call.params, (value, key) => <JobParam id={value} paramKey={key} key={key} />)}
     {call.returnedValue && <span>{' '}<JobReturn id={call.returnedValue} /></span>}
-    {call.error && <span className='text-danger'><Icon icon='error' />{' '}{JSON.stringify(call.error)}</span>}
+    {call.error &&
+      <span className='text-danger'>
+        <Icon icon='error' />
+        {' '}
+        {call.error.message
+          ? <strong>{call.error.message}</strong>
+          : JSON.stringify(call.error)
+        }
+      </span>}
   </li>)}
 </ul>
 
