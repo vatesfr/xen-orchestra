@@ -139,6 +139,10 @@ export default class LogList extends Component {
       logs: [],
       logsToClear: []
     }
+    this.filters = {
+      onError: 'error',
+      successful: 'success'
+    }
   }
 
   componentWillMount () {
@@ -227,7 +231,7 @@ export default class LogList extends Component {
         </CardHeader>
         <CardBlock>
           {logs.length
-            ? <SortedTable collection={logs} columns={LOG_COLUMNS} />
+            ? <SortedTable collection={logs} columns={LOG_COLUMNS} filters={this.filters} />
             : <p>{_('noLogs')}</p>}
         </CardBlock>
       </Card>

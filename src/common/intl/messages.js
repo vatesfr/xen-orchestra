@@ -13,6 +13,10 @@ var messages = {
   confirmOk: 'OK',
   confirmCancel: 'Cancel',
 
+  // ----- Filters -----
+  onError: 'On error',
+  successful: 'Successful',
+
   // ----- Titles -----
   homePage: 'Home',
   dashboardPage: 'Dashboard',
@@ -178,8 +182,6 @@ var messages = {
   noJobs: 'No jobs found.',
   noSchedules: 'No schedules found',
   jobActionPlaceHolder: 'Select a xo-server API command',
-  jobLogMetaError: 'failure error',
-  jobLogMetaSuccess: 'success achieved accomplished passed done',
 
   // ------ New backup -----
   newBackupSelection: 'Select your backup type:',
