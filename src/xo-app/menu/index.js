@@ -126,11 +126,11 @@ export default class Menu extends Component {
       ]},
       { to: '/about', icon: 'menu-about', label: 'aboutPage' },
       { to: '/tasks', icon: 'task', label: 'taskMenu', pill: nTasks },
-      { to: '/vms/new', icon: 'menu-new', label: 'newMenu', subMenu: [
-        !(noOperatablePools && noResourceSets) && { to: '/vms/new', icon: 'menu-new-vm', label: 'newVmPage' },
+      !(noOperatablePools && noResourceSets) && { to: '/vms/new', icon: 'menu-new', label: 'newMenu', subMenu: [
+        { to: '/vms/new', icon: 'menu-new-vm', label: 'newVmPage' },
         isAdmin && { to: '/new/sr', icon: 'menu-new-sr', label: 'newSrPage' },
         isAdmin && { to: '/settings/servers', icon: 'menu-settings-servers', label: 'newServerPage' },
-        { to: '/vms/import', icon: 'menu-new-import', label: 'newImport' }
+        !noOperatablePools && { to: '/vms/import', icon: 'menu-new-import', label: 'newImport' }
       ]}
     ]
 
