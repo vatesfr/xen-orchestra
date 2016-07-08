@@ -1,4 +1,5 @@
 import * as ComplexMatcher from 'complex-matcher'
+import * as homeFilters from 'home-filters'
 import _ from 'intl'
 import ActionButton from 'action-button'
 import ceil from 'lodash/ceil'
@@ -19,6 +20,7 @@ import SingleLineRow from 'single-line-row'
 import size from 'lodash/size'
 import { Card, CardHeader, CardBlock } from 'card'
 import {
+  saveNewUserFilter,
   copyVms,
   deleteVms,
   emergencyShutdownHosts,
@@ -29,6 +31,7 @@ import {
   snapshotVms,
   startVms,
   stopHosts,
+  subscribeCurrentUser,
   stopVms
 } from 'xo'
 import { Container, Row, Col } from 'grid'
@@ -38,6 +41,7 @@ import {
   SelectTag
 } from 'select-objects'
 import {
+  addSubscriptions,
   connectStore,
   noop
 } from 'utils'
@@ -69,10 +73,7 @@ const ITEMS_PER_PAGE = 20
 const OPTIONS = {
   host: {
     defaultFilter: 'power_state:running ',
-    filters: {
-      homeFilterRunningHosts: 'power_state:running ',
-      homeFilterTags: 'tags:'
-    },
+    filters: homeFilters.host,
     mainActions: [
       { handler: stopHosts, icon: 'host-stop' },
       { handler: restartHostsAgents, icon: 'host-restart-agent' },
@@ -90,13 +91,7 @@ const OPTIONS = {
   },
   VM: {
     defaultFilter: 'power_state:running ',
-    filters: {
-      homeFilterPendingVms: 'current_operations:"" ',
-      homeFilterNonRunningVms: '!power_state:running ',
-      homeFilterHvmGuests: 'virtualizationMode:hvm ',
-      homeFilterRunningVms: 'power_state:running ',
-      homeFilterTags: 'tags:'
-    },
+    filters: homeFilters.VM,
     mainActions: [
       { handler: stopVms, icon: 'vm-stop' },
       { handler: startVms, icon: 'vm-start' },
@@ -135,9 +130,7 @@ const OPTIONS = {
   },
   pool: {
     defaultFilter: '',
-    filters: {
-      homeFilterTags: 'tags:'
-    },
+    filters: homeFilters.pool,
     getActions: noop,
     Item: PoolItem,
     sortOptions: [
@@ -154,6 +147,9 @@ const TYPES = {
 
 const DEFAULT_TYPE = 'VM'
 
+@addSubscriptions({
+  user: subscribeCurrentUser
+})
 @connectStore(() => {
   const noServersConnected = invoke(
     createGetObjectsOfType('host'),
@@ -207,9 +203,20 @@ export default class Home extends Component {
     const filter = this._getFilter(props)
 
     // If filter is null, set a default filter.
-    if (filter == null) {
-      const defaultFilter = OPTIONS[props.type].defaultFilter
-      if (defaultFilter != null) {
+    if (filter == null || (this.props.user == null && props.user != null)) {
+      const { type, user } = props
+      const defaultFilter = (({ defaultFilters = {}, filters = {} }) => {
+        let filter
+
+        if (defaultFilters[type] && filters[type]) {
+          filter = defaultFilters[type]
+          filter = !filter.isCustom ? homeFilters[type][filter.name] : filters[type][filter.name]
+        }
+
+        return filter || OPTIONS[type].defaultFilter
+      })((user && user.preferences) || {})
+
+      if (defaultFilter != null && filter !== defaultFilter) {
         this._setFilter(defaultFilter, props)
       }
       return
@@ -366,13 +373,30 @@ export default class Home extends Component {
 
   _focusFilterInput = () => this.refs.filterInput.focus()
 
+  _saveNewUserFilter = () => {
+    return saveNewUserFilter({
+      type: this.props.type,
+      value: this._getFilter()
+    })
+  }
+
   _renderHeader () {
-    const { filters } = OPTIONS[this.props.type]
+    const { type } = this.props
+    const { filters } = OPTIONS[type]
+
+    const customFilters = (({ preferences } = {}) => {
+      if (!preferences) {
+        return
+      }
+
+      const customFilters = preferences.filters || {}
+      return customFilters[type]
+    })(this.props.user)
 
     return <Container>
       <Row className={styles.itemRowHeader}>
         <Col mediumSize={3}>
-          <DropdownButton id='typeMenu' bsStyle='info' title={TYPES[this.props.type]}>
+          <DropdownButton id='typeMenu' bsStyle='info' title={TYPES[type]}>
             <MenuItem onClick={() => this._setType('VM')}>
               VM
             </MenuItem>
@@ -386,15 +410,25 @@ export default class Home extends Component {
         </Col>
         <Col mediumSize={6}>
           <div className='input-group'>
-            {!isEmpty(filters) && <div className='input-group-btn'>
-              <DropdownButton id='filter' bsStyle='info' title={_('homeFilters')}>
-                {map(filters, (filter, label) =>
-                  <MenuItem key={label} onClick={() => this._setFilter(filter)}>
-                    {_(label)}
-                  </MenuItem>
-                )}
-              </DropdownButton>
-            </div>}
+            {!isEmpty(filters) && (
+              <div className='input-group-btn'>
+                <DropdownButton id='filter' bsStyle='info' title={_('homeFilters')}>
+                  {size(customFilters) > 0 && [
+                    map(customFilters, (filter, name) =>
+                      <MenuItem key={`custom-${name}`} onClick={() => this._setFilter(filter)}>
+                        {name}
+                      </MenuItem>
+                    ),
+                    <hr key='separator' className={styles.filtersListSeparator} />
+                  ]}
+                  {map(filters, (filter, label) =>
+                    <MenuItem key={label} onClick={() => this._setFilter(filter)}>
+                      {_(label)}
+                    </MenuItem>
+                  )}
+                </DropdownButton>
+              </div>
+            )}
             <input
               autoFocus
               className='form-control'
@@ -409,6 +443,13 @@ export default class Home extends Component {
                 onClick={this._clearFilter}>
                 <Icon icon='clear-search' />
               </a>
+            </div>
+            <div className='input-group-btn'>
+              <ActionButton
+                btnStyle='primary'
+                handler={this._saveNewUserFilter}
+                icon='save'
+              />
             </div>
           </div>
         </Col>

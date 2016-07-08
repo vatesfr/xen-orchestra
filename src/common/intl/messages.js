@@ -282,6 +282,22 @@ var messages = {
   pluginConfigurationChoosePreset: 'Choose a predefined configuration.',
   applyPluginPreset: 'Apply',
 
+  // ----- User preferences -----
+  saveNewUserFilterErrorTitle: 'Save filter error',
+  saveNewUserFilterErrorBody: 'Bad parameter: name must be given.',
+  filterName: 'Name:',
+  filterValue: 'Value:',
+  saveNewFilterTitle: 'Save new filter',
+  setUserFiltersTitle: 'Set custom filters',
+  setUserFiltersBody: 'Are you sure you want to set custom filters?',
+  removeUserFilterTitle: 'Remove custom filter',
+  removeUserFilterBody: 'Are you sure you want to remove custom filter?',
+  defaultFilter: 'Default filter',
+  defaultFilters: 'Default filters',
+  customFilters: 'Custom filters',
+  customizeFilters: 'Customize filters',
+  saveCustomFilters: 'Save custom filters',
+
   // ----- VM actions ------
   startVmLabel: 'Start',
   recoveryModeLabel: 'Recovery start',

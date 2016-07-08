@@ -1378,6 +1378,77 @@ export const deleteSshKey = key => (
   )
 )
 
+// User filters --------------------------------------------------
+
+export const setDefaultUserFilter = ({ name, type, isCustom }) => {
+  const { user } = xo
+  const { preferences } = user
+  const defaultFilters = (preferences && preferences.defaultFilters) || {}
+
+  return _setUserPreferences({
+    defaultFilters: {
+      ...defaultFilters,
+      [type]: {
+        name,
+        isCustom
+      }
+    }
+  })
+}
+
+export const removeUserFilter = ({ name, type }) => (
+  confirm({
+    title: _('removeUserFilterTitle'),
+    body: <p>{_('removeUserFilterBody')}</p>
+  }).then(() => {
+    const { user } = xo
+    const { filters } = user.preferences
+
+    return _setUserPreferences({
+      filters: {
+        ...filters,
+        [type]: {
+          ...filters[type],
+          [name]: undefined
+        }
+      }
+    })
+  })
+)
+
+export const setUserFilters = filters => (
+  confirm({
+    title: _('setUserFiltersTitle'),
+    body: <p>{_('setUserFiltersBody')}</p>
+  }).then(() => _setUserPreferences({ filters }))
+)
+
+import SaveNewUserFilterModalBody from './save-new-user-filter-modal'
+export const saveNewUserFilter = ({ type, value }) => {
+  const { user } = xo
+  return confirm({
+    title: _('saveNewFilterTitle'),
+    body: <SaveNewUserFilterModalBody user={user} type={type} value={value} />
+  }).then(name => {
+    if (name.length === 0) {
+      return error(_('saveNewUserFilterErrorTitle'), _('saveNewUserFilterErrorBody'))
+    }
+
+    const { preferences } = user
+    const filters = (preferences && preferences.filters) || {}
+
+    return _setUserPreferences({
+      filters: {
+        ...filters,
+        [type]: {
+          ...filters[type],
+          [name]: value
+        }
+      }
+    })
+  })
+}
+
 // Jobs ----------------------------------------------------------
 
 export const deleteJob = job => (

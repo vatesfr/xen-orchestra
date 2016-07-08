@@ -13,7 +13,6 @@ import {
 import styles from './index.css'
 
 @propTypes({
-  buttonTitle: propTypes.any,
   defaultValue: propTypes.any,
   disabled: propTypes.bool,
   options: propTypes.oneOfType([
@@ -31,7 +30,6 @@ import styles from './index.css'
 })
 export default class Combobox extends Component {
   static defaultProps = {
-    buttonTitle: 'Presets',
     type: 'text'
   }
 
@@ -45,7 +43,10 @@ export default class Combobox extends Component {
 
   _handleChange = event => {
     const { onChange } = this.props
-    onChange && (() => onChange(event.target.value))
+
+    if (onChange) {
+      onChange(event.target.value)
+    }
   }
 
   _setText (value) {
@@ -59,7 +60,7 @@ export default class Combobox extends Component {
     const Input = (
       <input
         className='form-control'
-        defaultValue={props.defaultValue || ''}
+        defaultValue={props.defaultValue}
         disabled={props.disabled}
         options={options}
         onChange={this._handleChange}
@@ -84,7 +85,7 @@ export default class Combobox extends Component {
             className={styles.button}
             disabled={props.disabled}
             id='selectInput'
-            title={props.buttonTitle}
+            title=''
           >
             {map(options, option => (
               <MenuItem key={option} onClick={() => this._setText(option)}>
