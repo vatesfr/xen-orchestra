@@ -1,23 +1,21 @@
 import _ from 'intl'
-import ActionButton from 'action-button'
 import ChartistGraph from 'react-chartist'
 import Component from 'base-component'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
-import isEmpty from 'lodash/isEmpty'
+import propTypes from 'prop-types'
 import Link, { BlockLink } from 'link'
 import map from 'lodash/map'
-import Upgrade from 'xoa-upgrade'
+import HostsPatchesTable from 'hosts-patches-table'
 import React from 'react'
 import size from 'lodash/size'
-import SortedTable from 'sorted-table'
+import Upgrade from 'xoa-upgrade'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Row, Col } from 'grid'
 import {
   createCollectionWrapper,
   createCounter,
-  createFilter,
   createGetObjectsOfType,
   createGetHostMetrics,
   createSelector,
@@ -28,8 +26,6 @@ import {
   formatSize
 } from 'utils'
 import {
-  getHostMissingPatches,
-  installAllHostPatches,
   isSrWritable,
   subscribeUsers
 } from 'xo'
@@ -38,149 +34,26 @@ import styles from './index.css'
 
 // ===================================================================
 
-const MISSING_PATCHES_COLUMNS = [
-  {
-    name: _('srPool'),
-    itemRenderer: (host, { pools }) => pools[host.$pool].name_label,
-    sortCriteria: (host, { pools }) => pools[host.$pool].name_label
-  },
-  {
-    name: _('srHost'),
-    itemRenderer: host => host.name_label,
-    sortCriteria: host => host.name_label
-  },
-  {
-    name: _('hostDescription'),
-    itemRenderer: host => host.name_description,
-    sortCriteria: host => host.name_description
-  },
-  {
-    name: _('hostMissingPatches'),
-    itemRenderer: (host, { missingPatches }) => missingPatches[host.id],
-    sortCriteria: (host, { missingPatches }) => missingPatches[host.id]
-  },
-  {
-    name: _('patchUpdateButton'),
-    itemRenderer: (host, { installAllHostPatches }) => (
-      <ActionButton
-        btnStyle='primary'
-        handler={installAllHostPatches}
-        handlerParam={host}
-        icon='host-patch-update'
-      />
-    )
-  }
-]
-
-// ===================================================================
-
-@connectStore(() => {
-  const getPools = createGetObjectsOfType('pool')
-  const getHosts = createGetObjectsOfType('host').sort()
-
-  return {
-    pools: getPools,
-    hosts: getHosts
-  }
+@propTypes({
+  hosts: propTypes.object.isRequired
 })
-class MissingPatchesPanel extends Component {
-  constructor (props) {
-    super(props)
-    this.state.missingPatches = {}
-  }
-
-  _getHosts = createFilter(
-    () => this.props.hosts,
-    () => this.state.missingPatches,
-    [ (host, missingPatches) => missingPatches[host.id] ]
-  )
-
-  _refreshMissingPatches = () => (
-    Promise.all(
-      map(this.props.hosts, this._refreshHostMissingPatches)
-    )
-  )
-
-  _installAllMissingPatches = () => (
-    Promise.all(map(this._getHosts(), this._installAllHostPatches))
-  )
-
-  _refreshHostMissingPatches = host => (
-    getHostMissingPatches(host).then(patches => {
-      this.setState({
-        missingPatches: {
-          ...this.state.missingPatches,
-          [host.id]: patches.length
-        }
-      })
-    })
-  )
-
-  _installAllHostPatches = host => (
-    installAllHostPatches(host).then(() =>
-      this._refreshHostMissingPatches(host)
-    )
-  )
-
-  componentWillMount () {
-    this._refreshMissingPatches()
-  }
-
-  componentWillReceiveProps (nextProps) {
-    forEach(nextProps.hosts, host => {
-      const { id } = host
-
-      if (this.state.missingPatches[id] !== undefined) {
-        return
-      }
-
-      this.setState({
-        missingPatches: {
-          ...this.state.missingPatches,
-          [id]: 0
-        }
-      })
-
-      this._refreshHostMissingPatches(host)
-    })
-  }
+class PatchesCard extends Component {
+  _getContainer = () => this.refs.container
 
   render () {
-    const hosts = this._getHosts()
-    const noPatches = isEmpty(hosts)
-
     return (
       <Card>
         <CardHeader>
           <Icon icon='host-patch-update' /> {_('update')}
-          <ButtonGroup className='pull-right'>
-            <ActionButton
-              btnStyle='secondary'
-              handler={this._refreshMissingPatches}
-              icon='refresh'
-            />
-            <ActionButton
-              btnStyle='primary'
-              disabled={noPatches}
-              handler={this._installAllMissingPatches}
-              icon='host-patch-update'
-            />
-          </ButtonGroup>
+          <div ref='container' className='pull-right' />
         </CardHeader>
         <CardBlock>
-          {!noPatches
-            ? (
-            <SortedTable
-              collection={hosts}
-              columns={MISSING_PATCHES_COLUMNS}
-              userData={{
-                installAllHostPatches: this._installAllHostPatches,
-                missingPatches: this.state.missingPatches,
-                pools: this.props.pools
-              }}
-            />
-            ) : <p>{_('patchNothing')}</p>
-          }
+          <HostsPatchesTable
+            buttonsGroupContainer={this._getContainer}
+            container={ButtonGroup}
+            displayPools
+            hosts={this.props.hosts}
+          />
         </CardBlock>
       </Card>
     )
@@ -262,6 +135,7 @@ class MissingPatchesPanel extends Component {
 
   return {
     hostMetrics: getHostMetrics,
+    hosts: getHosts,
     nAlarmMessages: getNumberOfAlarmMessages,
     nHosts: getNumberOfHosts,
     nPools: getNumberOfPools,
@@ -484,7 +358,7 @@ export default class Overview extends Component {
           </Row>
           <Row>
             <Col>
-              <MissingPatchesPanel />
+              <PatchesCard hosts={props.hosts} />
             </Col>
           </Row>
         </Container>

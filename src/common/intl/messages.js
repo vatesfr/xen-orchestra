@@ -379,7 +379,7 @@ var messages = {
   patchNameLabel: 'Name',
   patchUpdateButton: 'Install all patches',
   patchDescription: 'Description',
-  patchApplied: 'Release date',
+  patchApplied: 'Applied date',
   patchSize: 'Size',
   patchStatus: 'Status',
   patchStatusApplied: 'Applied',
@@ -388,7 +388,7 @@ var messages = {
   patchReleaseDate: 'Release date',
   patchGuidance: 'Guidance',
   patchAction: 'Action',
-  hostInstalledPatches: 'Downloaded patches',
+  hostAppliedPatches: 'Applied patches',
   hostMissingPatches: 'Missing patches',
   hostUpToDate: 'Host up-to-date!',
   // ----- Pool patch tabs -----

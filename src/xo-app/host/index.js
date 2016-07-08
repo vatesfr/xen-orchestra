@@ -86,15 +86,16 @@ const isRunning = host => host && host.power_state === 'Running'
     )
   )
 
-  const getPoolPatches = createGetObjectsOfType('pool_patch').pick(
-    createSelector(
-      createGetObjectsOfType(
-        'host_patch',
-        createSelector(getHost, host => host.patches)
-      ),
-      hostPatches => map(hostPatches, patch => patch.pool_patch)
-    )
-  ).sort()
+  const getHostPatches = createSelector(
+    createGetObjectsOfType('pool_patch'),
+    createGetObjectsOfType('host_patch').pick(
+      createSelector(getHost, host => host.patches)
+    ),
+    (poolsPatches, hostsPatches) => map(hostsPatches, hostPatch => ({
+      ...hostPatch,
+      poolPatch: poolsPatches[hostPatch.pool_patch]
+    }))
+  )
 
   const getPbds = createGetObjectsOfType('PBD').pick(
     createSelector(getHost, host => host.$PBDs)
@@ -115,12 +116,12 @@ const isRunning = host => host && host.power_state === 'Running'
 
     return {
       host,
+      hostPatches: getHostPatches(state, props),
       logs: getLogs(state, props),
       networks: getNetworks(state, props),
       pbds: getPbds(state, props),
       pifs: getPifs(state, props),
       pool: getPool(state, props),
-      poolPatches: getPoolPatches(state, props),
       srs: getSrs(state, props),
       vmController: getVmController(state, props),
       vms: getHostVms(state, props)
@@ -267,11 +268,11 @@ export default class Host extends Component {
     }
     const childProps = assign(pick(this.props, [
       'host',
+      'hostPatches',
       'logs',
       'networks',
       'pbds',
       'pifs',
-      'poolPatches',
       'srs',
       'vmController',
       'vms'
