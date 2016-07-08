@@ -173,6 +173,7 @@ export default class NewVm extends BaseComponent {
       VDIs: [],
       VIFs: []
     })
+  }
 
   _create = () => {
     const { state } = this.state
