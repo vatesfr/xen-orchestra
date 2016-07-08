@@ -3,8 +3,10 @@ import ChartistLegend from 'chartist-plugin-legend'
 import ChartistTooltip from 'chartist-plugin-tooltip'
 import map from 'lodash/map'
 import React from 'react'
+import size from 'lodash/size'
 import values from 'lodash/values'
 import { injectIntl } from 'react-intl'
+import find from 'lodash/find'
 
 import propTypes from '../prop-types'
 import { computeArraysSum } from '../xo-stats'
@@ -17,6 +19,14 @@ const N_LABELS_X = 5
 
 const LABEL_OFFSET_X = 40
 const LABEL_OFFSET_Y = 75
+
+// ===================================================================
+
+// See xo-stats.js, data can be null.
+// Return the size of the first non-null object.
+const getStatsLength = stats => size(find(stats, stats => stats != null))
+
+// ===================================================================
 
 const makeOptions = ({ intl, nValues, endTimestamp, interval, valueTransform }) => ({
   showPoint: true,
@@ -73,10 +83,15 @@ const buildSeries = ({ stats, label, addSumSeries }) => {
   for (const io in stats) {
     const ioData = stats[io]
     for (const letter in ioData) {
-      series.push({
-        name: `${label}${letter} (${io})`,
-        data: ioData[letter]
-      })
+      const data = ioData[letter]
+
+      // See xo-stats.js, data can be null.
+      if (data) {
+        series.push({
+          name: `${label}${letter} (${io})`,
+          data
+        })
+      }
     }
 
     if (addSumSeries) {
@@ -104,7 +119,7 @@ export const CpuLineChart = injectIntl(propTypes({
   options: propTypes.object
 })(({ addSumSeries, data, options = {}, intl }) => {
   const stats = data.stats.cpus
-  const { length } = (stats && stats[0]) || {}
+  const length = getStatsLength(stats)
 
   if (!length) {
     return templateError
@@ -187,7 +202,7 @@ export const XvdLineChart = injectIntl(propTypes({
   options: propTypes.object
 })(({ addSumSeries, data, options = {}, intl }) => {
   const stats = data.stats.xvds
-  const { length } = (stats && stats.r.a) || {}
+  const length = stats && getStatsLength(stats.r)
 
   if (!length) {
     return templateError
@@ -219,7 +234,7 @@ export const VifLineChart = injectIntl(propTypes({
   options: propTypes.object
 })(({ addSumSeries, data, options = {}, intl }) => {
   const stats = data.stats.vifs
-  const { length } = (stats && stats.rx[0]) || {}
+  const length = stats && getStatsLength(stats.rx)
 
   if (!length) {
     return templateError
@@ -251,7 +266,7 @@ export const PifLineChart = injectIntl(propTypes({
   options: propTypes.object
 })(({ addSumSeries, data, options = {}, intl }) => {
   const stats = data.stats.pifs
-  const { length } = (stats && stats.rx[0]) || {}
+  const length = stats && getStatsLength(stats.rx)
 
   if (!length) {
     return templateError

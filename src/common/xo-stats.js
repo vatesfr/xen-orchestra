@@ -4,10 +4,11 @@
 
 import map from 'lodash/map'
 import values from 'lodash/values'
+import { mapPlus } from 'utils'
 
 // Returns a new array with arrays sums.
 // Example: computeArraysSum([[1, 2], [3, 4], [5, 0]) = [9, 6]
-export const computeArraysSum = arrays => {
+const _computeArraysSum = arrays => {
   if (!arrays || !arrays.length || !arrays[0].length) {
     return []
   }
@@ -30,8 +31,8 @@ export const computeArraysSum = arrays => {
 
 // Returns a new array with arrays avgs.
 // Example: computeArraysAvg([[1, 2], [3, 4], [5, 0]) = [4.5, 2]
-export const computeArraysAvg = arrays => {
-  const sums = computeArraysSum(arrays)
+const _computeArraysAvg = arrays => {
+  const sums = _computeArraysSum(arrays)
 
   const n = arrays && arrays[0].length
   const m = arrays.length
@@ -43,6 +44,20 @@ export const computeArraysAvg = arrays => {
   return sums
 }
 
+// Arrays can be null.
+// See: https://github.com/vatesfr/xo-web/issues/969
+//
+// It's a fix to avoid error like `Uncaught TypeError: Cannot read property 'length' of null`.
+// FIXME: Repare this bug in xo-server. (Warning: Can break the stats of xo-web v4.)
+const removeUndefinedArrays = arrays => mapPlus(arrays, (array, push) => {
+  if (array != null) {
+    push(array)
+  }
+})
+
+export const computeArraysSum = arrays => _computeArraysSum(removeUndefinedArrays(arrays))
+export const computeArraysAvg = arrays => _computeArraysAvg(removeUndefinedArrays(arrays))
+
 // More complex than computeArraysAvg.
 //
 // Take in parameter one object like:
@@ -53,7 +68,7 @@ export const computeArraysAvg = arrays => {
 //
 // Note: The parameter can be also an 3D array.
 export const computeObjectsAvg = objects => {
-  return computeArraysAvg(
+  return _computeArraysAvg(
     map(objects, object =>
       computeArraysAvg(values(object))
     )
