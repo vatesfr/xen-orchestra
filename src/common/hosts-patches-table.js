@@ -202,14 +202,14 @@ class HostsPatchesTableByPool extends Component {
 // ===================================================================
 
 export default propTypes({
-  button: propTypes.any,
+  buttonsGroupContainer: propTypes.func.isRequired,
   container: propTypes.any,
   displayPools: propTypes.bool,
   hosts: propTypes.oneOfType([
     propTypes.arrayOf(propTypes.object),
     propTypes.objectOf(propTypes.object)
   ]).isRequired,
-  buttonsGroupContainer: propTypes.func.isRequired
+  useTabButton: propTypes.bool
 })(props => props.displayPools
   ? <HostsPatchesTableByPool {...props} />
   : <HostsPatchesTable {...props} />

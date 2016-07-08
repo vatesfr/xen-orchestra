@@ -1,7 +1,6 @@
 import _ from 'intl'
 import ActionRowButton from 'action-row-button'
 import isEmpty from 'lodash/isEmpty'
-import Link from 'link'
 import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
