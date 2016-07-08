@@ -36,7 +36,8 @@ import {
   SelectPool,
   SelectResourceSet,
   SelectSr,
-  SelectVmTemplate
+  SelectVmTemplate,
+  SelectResourceSetsVmTemplate
 } from 'select-objects'
 import {
   SizeInput,
@@ -397,7 +398,8 @@ export default class NewVm extends BaseComponent {
   _getVmPredicate = createSelector(
     this._getIsInPool,
     this._getIsInResourceSet,
-    (isInPool, isInResourceSet) => vm => isInResourceSet(vm) || isInPool(vm)
+    (isInPool, isInResourceSet) => vm =>
+      isInResourceSet(vm)
   )
   _getSrPredicate = createSelector(
     this._getIsInPool,
@@ -638,12 +640,19 @@ export default class NewVm extends BaseComponent {
       <SectionContent>
         <Item label='newVmTemplateLabel'>
           <span className={styles.inlineSelect}>
-            <SelectVmTemplate
+            {this.state.pool ? <SelectVmTemplate
               onChange={this._initTemplate}
               placeholder={_('newVmSelectTemplate')}
               predicate={this._getVmPredicate()}
               value={template}
             />
+            : <SelectResourceSetsVmTemplate
+              onChange={this._initTemplate}
+              placeholder={_('newVmSelectTemplate')}
+              predicate={this._getVmPredicate()}
+              resourceSet={this.state.resourceSet}
+              value={template}
+            />}
           </span>
         </Item>
         <Item label='newVmNameLabel'>

@@ -127,6 +127,7 @@ var messages = {
   selectPools: 'Select Pool(s)…',
   selectRemotes: 'Select Remote(s)…',
   selectResourceSets: 'Select resource set(s)…',
+  selectResourceSetsVmTemplate: 'Select template(s)…',
   selectSrs: 'Select SR(s)…',
   selectVms: 'Select VM(s)…',
   selectVmTemplates: 'Select VM template(s)…',

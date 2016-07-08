@@ -594,3 +594,39 @@ export const SelectResourceSet = makeSubscriptionSelect(subscriber => {
 
   return unsubscribeResourceSets
 }, { placeholder: _('selectResourceSets') })
+
+// ===================================================================
+
+export class SelectResourceSetsVmTemplate extends Component {
+  get value () {
+    return this.refs.select.value
+  }
+
+  set value (value) {
+    this.refs.select.value = value
+  }
+
+  componentWillMount () {
+    this.componentWillUnmount = subscribeResourceSets(resourceSets => {
+      this.setState({
+        resourceSets: resolveResourceSets(resourceSets)
+      })
+    })
+  }
+
+  _getTemplates = createSelector(
+    () => this.props.resourceSet,
+    ({ objectsByType }) => objectsByType['VM-template']
+  )
+
+  render () {
+    return (
+      <GenericSelect
+        ref='select'
+        placeholder={_('selectResourceSetsVmTemplate')}
+        {...this.props}
+        xoObjects={this._getTemplates()}
+      />
+    )
+  }
+}
