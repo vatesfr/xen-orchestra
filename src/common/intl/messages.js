@@ -429,7 +429,7 @@ var messages = {
   statsCpu: 'CPU usage',
   statsMemory: 'Memory usage',
   statsNetwork: 'Network throughput',
-  useCombinedValuesOnStats: 'Use combined values:',
+  useStackedValuesOnStats: 'Stacked values',
   statDisk: 'Disk throughput',
   statLastTenMinutes: 'Last 10 minutes',
   statLastTwoHours: 'Last 2 hours',

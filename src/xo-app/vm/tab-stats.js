@@ -2,6 +2,7 @@ import _, { messages } from 'intl'
 import Component from 'base-component'
 import Icon from 'icon'
 import React from 'react'
+import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
 import { fetchVmStats } from 'xo'
 import { Toggle } from 'form'
@@ -100,9 +101,9 @@ export default injectIntl(
             <Row>
               <Col mediumSize={6}>
                 <div className='form-group'>
-                  <label>{_('useCombinedValuesOnStats')}</label>
-                  {' '}
-                  <Toggle value={useCombinedValues} onChange={this.linkState('useCombinedValues')} />
+                  <Tooltip content={_('useStackedValuesOnStats')}>
+                    <Toggle value={useCombinedValues} onChange={this.linkState('useCombinedValues')} />
+                  </Tooltip>
                 </div>
                 {selectStatsLoading && (
                   <div className='text-xs-right'>
