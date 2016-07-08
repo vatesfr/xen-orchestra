@@ -13,6 +13,7 @@ import { PrimitiveInputWrapper } from './helpers'
 export default class StringInput extends AbstractInput {
   render () {
     const { props } = this
+    const { schema } = props
 
     return (
       <PrimitiveInputWrapper {...props}>
@@ -20,7 +21,7 @@ export default class StringInput extends AbstractInput {
           defaultValue={props.defaultValue}
           disabled={props.disabled}
           onChange={props.onChange}
-          options={props.schema.defaults || props.defaultValue}
+          options={schema.defaults || schema.default}
           placeholder={props.placeholder}
           ref='input'
           required={props.required}
