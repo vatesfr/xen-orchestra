@@ -113,7 +113,8 @@ export default class NewVm extends BaseComponent {
 
   get _isDiskTemplate () {
     const { template } = this.state.state
-    return template.template_info.disks.length === 0 && template.name_label !== 'Other install media'
+    return template &&
+      template.template_info.disks.length === 0 && template.name_label !== 'Other install media'
   }
 
   _updateNbVms = () => {
@@ -204,7 +205,7 @@ export default class NewVm extends BaseComponent {
     }
 
     const data = {
-      clone: state.fastClone,
+      clone: this._isDiskTemplate && state.fastClone,
       existingDisks: state.existingDisks,
       installation,
       name_label: state.name_label,
@@ -931,7 +932,7 @@ export default class NewVm extends BaseComponent {
           <Icon icon='network' />
         </span>
       </SectionContent>
-      <div style={{display: 'flex'}}>
+      {this._isDiskTemplate && <div style={{display: 'flex'}}>
         <span style={{margin: 'auto'}}>
           <input
             checked={fastClone}
@@ -943,7 +944,7 @@ export default class NewVm extends BaseComponent {
           {' '}
           {_('fastCloneVmLabel')}
         </span>
-      </div>
+      </div>}
       <div style={{display: 'flex'}}>
         <span style={{margin: 'auto'}}>
           <input
