@@ -400,7 +400,7 @@ export default class NewVm extends BaseComponent {
     this._getIsInPool,
     this._getIsInResourceSet,
     (isInPool, isInResourceSet) => vm =>
-      isInResourceSet(vm)
+      isInResourceSet(vm) || isInPool(vm)
   )
   _getSrPredicate = createSelector(
     this._getIsInPool,
