@@ -23,7 +23,8 @@ import {
 } from './selectors'
 import {
   connectStore,
-  mapPlus
+  mapPlus,
+  resolveResourceSets
 } from './utils'
 import {
   isSrWritable,
@@ -586,7 +587,7 @@ export const SelectRemote = makeSubscriptionSelect(subscriber => {
 
 export const SelectResourceSet = makeSubscriptionSelect(subscriber => {
   const unsubscribeResourceSets = subscribeResourceSets(resourceSets => {
-    const xoObjects = map(sortBy(resourceSets, 'name'), resourceSet => ({...resourceSet, type: 'resourceSet'}))
+    const xoObjects = map(sortBy(resolveResourceSets(resourceSets), 'name'), resourceSet => ({...resourceSet, type: 'resourceSet'}))
 
     subscriber({xoObjects})
   })

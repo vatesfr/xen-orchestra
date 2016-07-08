@@ -386,9 +386,9 @@ export default class NewVm extends BaseComponent {
   _getIsInResourceSet = createSelector(
     () => {
       const { resourceSet } = this.state
-      return resourceSet && resourceSet.objects
+      return resourceSet && resourceSet.objectsByType
     },
-    resourceSetObjects => ({ id }) => includes(resourceSetObjects, id)
+    objectsByType => ({ id, type }) => objectsByType && includes(map(objectsByType[type], object => object.id), id)
   )
   _getCanOperate = createSelector(
     () => this.state.permissions,
@@ -397,8 +397,7 @@ export default class NewVm extends BaseComponent {
   _getVmPredicate = createSelector(
     this._getIsInPool,
     this._getIsInResourceSet,
-    (isInPool, isInResourceSet) => vm =>
-      isInResourceSet(vm) || isInPool(vm)
+    (isInPool, isInResourceSet) => vm => isInResourceSet(vm) || isInPool(vm)
   )
   _getSrPredicate = createSelector(
     this._getIsInPool,
