@@ -31,13 +31,15 @@ import {
   subscribeResourceSets
 } from 'xo'
 import {
-  SelectVdi,
   SelectNetwork,
   SelectPool,
   SelectResourceSet,
+  SelectResourceSetsNetwork,
+  SelectResourceSetsSr,
+  SelectResourceSetsVmTemplate,
   SelectSr,
-  SelectVmTemplate,
-  SelectResourceSetsVmTemplate
+  SelectVdi,
+  SelectVmTemplate
 } from 'select-objects'
 import {
   SizeInput,
@@ -383,18 +385,21 @@ export default class NewVm extends BaseComponent {
       const { pool } = this.state
       return pool && pool.id
     },
-    poolId => ({ $pool }) => $pool === poolId
+    poolId => ({ $pool }) =>
+      $pool === poolId
   )
   _getIsInResourceSet = createSelector(
     () => {
       const { resourceSet } = this.state
       return resourceSet && resourceSet.objectsByType
     },
-    objectsByType => ({ id, type }) => objectsByType && includes(map(objectsByType[type], object => object.id), id)
+    objectsByType => ({ id, type }) =>
+      objectsByType && includes(map(objectsByType[type], object => object.id), id)
   )
   _getCanOperate = createSelector(
     () => this.state.permissions,
-    permissions => ({ id }) => this.props.isAdmin || permissions && permissions[id] && permissions[id].operate
+    permissions => ({ id }) =>
+      this.props.isAdmin || permissions && permissions[id] && permissions[id].operate
   )
   _getVmPredicate = createSelector(
     this._getIsInPool,
@@ -650,7 +655,6 @@ export default class NewVm extends BaseComponent {
             : <SelectResourceSetsVmTemplate
               onChange={this._initTemplate}
               placeholder={_('newVmSelectTemplate')}
-              predicate={this._getVmPredicate()}
               resourceSet={this.state.resourceSet}
               value={template}
             />}
@@ -927,8 +931,9 @@ export default class NewVm extends BaseComponent {
   _renderInterfaces = () => {
     const { formatMessage } = this.props.intl
     const {
-      VIFs
-    } = this.state.state
+      state: { VIFs },
+      pool
+    } = this.state
     return <Section icon='new-vm-interfaces' title='newVmInterfacesPanel' done={this._isInterfacesDone()}>
       <SectionContent column>
         {map(VIFs, (vif, index) => <div key={index}>
@@ -945,11 +950,16 @@ export default class NewVm extends BaseComponent {
             </Item>
             <Item label='newVmNetworkLabel'>
               <span className={styles.inlineSelect}>
-                <SelectNetwork
+                {pool ? <SelectNetwork
                   onChange={this._getOnChange('VIFs', index, 'network', 'id')}
                   predicate={this._getNetworkPredicate()}
                   value={vif.network}
                 />
+                : <SelectResourceSetsNetwork
+                  onChange={this._getOnChange('VIFs', index, 'network', 'id')}
+                  resourceSet={this.state.resourceSet}
+                  value={vif.network}
+                />}
               </span>
             </Item>
             <Item>
@@ -979,10 +989,11 @@ export default class NewVm extends BaseComponent {
 
   _renderDisks = () => {
     const {
-      configDrive,
+      state: { configDrive,
       existingDisks,
-      VDIs
-    } = this.state.state
+      VDIs },
+      pool
+    } = this.state
     let i = 0
     return <Section icon='new-vm-disks' title='newVmDisksPanel' done={this._isDisksDone()}>
       <SectionContent column>
@@ -992,11 +1003,17 @@ export default class NewVm extends BaseComponent {
           <LineItem>
             <Item label='newVmSrLabel'>
               <span className={styles.inlineSelect}>
-                <SelectSr
+                {pool ? <SelectSr
                   onChange={this._getOnChange('existingDisks', index, '$SR', 'id')}
                   predicate={this._getSrPredicate()}
                   value={disk.$SR}
                 />
+                : <SelectResourceSetsSr
+                  onChange={this._getOnChange('existingDisks', index, '$SR', 'id')}
+                  predicate={this._getSrPredicate()}
+                  resourceSet={this.state.resourceSet}
+                  value={disk.$SR}
+                />}
               </span>
             </Item>
             {' '}
@@ -1033,11 +1050,17 @@ export default class NewVm extends BaseComponent {
           <LineItem>
             <Item label='newVmSrLabel'>
               <span className={styles.inlineSelect}>
-                <SelectSr
+                {pool ? <SelectSr
                   onChange={this._getOnChange('VDIs', index, 'SR', 'id')}
                   predicate={this._getSrPredicate()}
                   value={vdi.SR}
                 />
+                : <SelectResourceSetsSr
+                  onChange={this._getOnChange('VDIs', index, 'SR', 'id')}
+                  predicate={this._getSrPredicate()}
+                  resourceSet={this.state.resourceSet}
+                  value={vdi.SR}
+                />}
               </span>
             </Item>
             {' '}

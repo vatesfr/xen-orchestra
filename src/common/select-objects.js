@@ -630,3 +630,75 @@ export class SelectResourceSetsVmTemplate extends Component {
     )
   }
 }
+
+// ===================================================================
+
+export class SelectResourceSetsSr extends Component {
+  get value () {
+    return this.refs.select.value
+  }
+
+  set value (value) {
+    this.refs.select.value = value
+  }
+
+  componentWillMount () {
+    this.componentWillUnmount = subscribeResourceSets(resourceSets => {
+      this.setState({
+        resourceSets: resolveResourceSets(resourceSets)
+      })
+    })
+  }
+
+  _getSrs = createSelector(
+    () => this.props.resourceSet,
+    ({ objectsByType }) => objectsByType['SR']
+  )
+
+  render () {
+    return (
+      <GenericSelect
+        ref='select'
+        placeholder={_('selectResourceSetsSr')}
+        {...this.props}
+        xoObjects={this._getSrs()}
+      />
+    )
+  }
+}
+
+// ===================================================================
+
+export class SelectResourceSetsNetwork extends Component {
+  get value () {
+    return this.refs.select.value
+  }
+
+  set value (value) {
+    this.refs.select.value = value
+  }
+
+  componentWillMount () {
+    this.componentWillUnmount = subscribeResourceSets(resourceSets => {
+      this.setState({
+        resourceSets: resolveResourceSets(resourceSets)
+      })
+    })
+  }
+
+  _getNetworks = createSelector(
+    () => this.props.resourceSet,
+    ({ objectsByType }) => objectsByType['network']
+  )
+
+  render () {
+    return (
+      <GenericSelect
+        ref='select'
+        placeholder={_('selectResourceSetsNetwork')}
+        {...this.props}
+        xoObjects={this._getNetworks()}
+      />
+    )
+  }
+}
