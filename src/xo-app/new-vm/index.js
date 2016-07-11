@@ -13,6 +13,7 @@ import Icon from 'icon'
 import includes from 'lodash/includes'
 import isArray from 'lodash/isArray'
 import isEmpty from 'lodash/isEmpty'
+import isObject from 'lodash/isObject'
 import map from 'lodash/map'
 import Page from '../page'
 import React from 'react'
@@ -247,6 +248,8 @@ export default class NewVm extends BaseComponent {
     this._setState({ template })
 
     const storeState = store.getState()
+    const _isInResourceSet = this._getIsInResourceSet()
+    const { pool, resourceSet, state } = this.state
 
     const existingDisks = {}
     forEach(template.$VBDs, vbdId => {
@@ -260,7 +263,9 @@ export default class NewVm extends BaseComponent {
           name_label: vdi.name_label,
           name_description: vdi.name_description,
           size: vdi.size,
-          $SR: vdi.$SR
+          $SR: pool || _isInResourceSet(vdi.$SR, 'SR')
+            ? vdi.$SR
+            : resourceSet.objectsByType['SR'][0].id
         }
       }
     })
@@ -270,7 +275,9 @@ export default class NewVm extends BaseComponent {
       const vif = getObject(storeState, vifId)
       VIFs.push({
         id: this.getUniqueId(),
-        network: vif.$network
+        network: pool || _isInResourceSet(vif.$network, 'network')
+          ? vif.$network
+          : resourceSet.objectsByType['network'][0].id
       })
     })
     if (VIFs.length === 0) {
@@ -280,7 +287,6 @@ export default class NewVm extends BaseComponent {
         network: networkId
       })
     }
-    const { pool, state } = this.state
     const name_label = state.name_label === '' || !state.name_labelHasChanged ? template.name_label : state.name_label
     this._setState({
       // infos
@@ -306,7 +312,9 @@ export default class NewVm extends BaseComponent {
           device,
           name_description: disk.name_description || 'Created by XO',
           name_label: (name_label || 'disk') + '_' + device,
-          SR: pool && pool.default_SR
+          SR: pool
+            ? pool.default_SR
+            : resourceSet.objectsByType['SR'][0].id
         }
       })
     })
@@ -393,8 +401,10 @@ export default class NewVm extends BaseComponent {
       const { resourceSet } = this.state
       return resourceSet && resourceSet.objectsByType
     },
-    objectsByType => ({ id, type }) =>
+    objectsByType => (obj, objType) => {
+      const [id, type] = isObject(obj) ? [obj.id, obj.type] : [obj, objType]
       objectsByType && includes(map(objectsByType[type], object => object.id), id)
+    }
   )
   _getCanOperate = createSelector(
     () => this.state.permissions,
@@ -433,6 +443,10 @@ export default class NewVm extends BaseComponent {
     [ (pool, canOperate) => canOperate(pool) ]
   )
   _getDefaultNetworkId = () => {
+    const { resourceSet } = this.state
+    if (resourceSet) {
+      return resourceSet.objectsByType['network'][0].id
+    }
     const network = find(this._getPoolNetworks(), network => {
       const pif = getObject(store.getState(), network.PIFs[0])
       return pif && pif.management
