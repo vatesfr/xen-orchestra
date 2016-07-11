@@ -147,7 +147,7 @@ export default class Sr extends Component {
   }
 
   render () {
-    const { sr } = this.props
+    const { container, sr } = this.props
     if (!sr) {
       return <h1>Loading…</h1>
     }
@@ -160,7 +160,7 @@ export default class Sr extends Component {
       'vdisToVmIds'
     ])
    )
-    return <Page header={this.header()}>
+    return <Page header={this.header()} title={`${sr.name_label} (${container.name_label})`}>
       {cloneElement(this.props.children, childProps)}
     </Page>
   }

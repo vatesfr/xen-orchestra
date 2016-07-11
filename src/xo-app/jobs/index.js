@@ -34,7 +34,7 @@ const Jobs = routes('overview', {
   scheduling: Scheduling,
   'scheduling/:id/edit': SchedulingEdit
 })(
-  ({ children }) => <Page header={HEADER}>{children}</Page>
+  ({ children }) => <Page header={HEADER} title='jobsPage' formatTitle>{children}</Page>
 )
 
 export default Jobs

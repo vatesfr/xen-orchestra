@@ -1,4 +1,4 @@
-import _ from 'intl'
+import _, { messages } from 'intl'
 import ActionRowButton from 'action-row-button'
 import CenterPanel from 'center-panel'
 import Icon from 'icon'
@@ -8,6 +8,7 @@ import Link from 'link'
 import map from 'lodash/map'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
+import { injectIntl } from 'react-intl'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Card, CardBlock, CardHeader } from 'card'
 import { connectStore } from 'utils'
@@ -65,54 +66,64 @@ export const TaskItem = connectStore(() => ({
   </Col>
 </SingleLineRow>)
 
-export default connectStore(() => {
-  const getPendingTasksByPool = createGetObjectsOfType('task').filter(
-    [ task => task.status === 'pending' ]
-  ).sort().groupBy('$pool')
+export default injectIntl(
+  connectStore(() => {
+    const getTasks = createGetObjectsOfType('task')
 
-  const getPools = createGetObjectsOfType('pool').pick(
-    createSelector(
-      getPendingTasksByPool,
-      pendingTasksByPool => keys(pendingTasksByPool)
+    const getNPendingTasks = getTasks.count(
+      [ task => task.status === 'pending' ]
     )
-  ).sort()
 
-  return (state, props) => ({
-    pendingTasksByPool: getPendingTasksByPool(state, props),
-    pools: getPools(state, props)
-  })
-})(({ pendingTasksByPool, pools }) => {
-  if (isEmpty(pendingTasksByPool)) {
-    return <Page header={HEADER}>
-      <CenterPanel>
-        <Card>
-          <CardHeader>{_('noTasks')}</CardHeader>
-          <CardBlock>
-            <Row>
-              <Col>
-                <p className='text-muted'>{_('xsTasks')}</p>
-              </Col>
-            </Row>
-          </CardBlock>
-        </Card>
-      </CenterPanel>
-    </Page>
-  }
+    const getPendingTasksByPool = getTasks.filter(
+      [ task => task.status === 'pending' ]
+    ).sort().groupBy('$pool')
 
-  return <Page header={HEADER}>
-    <Container>
-      {map(pools, pool =>
-        <Row>
+    const getPools = createGetObjectsOfType('pool').pick(
+      createSelector(
+        getPendingTasksByPool,
+        pendingTasksByPool => keys(pendingTasksByPool)
+      )
+    ).sort()
+
+    return (state, props) => ({
+      nTasks: getNPendingTasks(state, props),
+      pendingTasksByPool: getPendingTasksByPool(state, props),
+      pools: getPools(state, props)
+    })
+  })(({ intl, nTasks, pendingTasksByPool, pools }) => {
+    if (isEmpty(pendingTasksByPool)) {
+      return <Page header={HEADER} title='taskPage' formatTitle>
+        <CenterPanel>
           <Card>
-            <CardHeader key={pool.id}><Link to={`/pools/${pool.id}`}>{pool.name_label}</Link></CardHeader>
+            <CardHeader>{_('noTasks')}</CardHeader>
             <CardBlock>
-              {map(pendingTasksByPool[pool.id], task =>
-                <TaskItem key={task.id} task={task} />
-              )}
+              <Row>
+                <Col>
+                  <p className='text-muted'>{_('xsTasks')}</p>
+                </Col>
+              </Row>
             </CardBlock>
           </Card>
-        </Row>
-      )}
-    </Container>
-  </Page>
-})
+        </CenterPanel>
+      </Page>
+    }
+
+    const { formatMessage } = intl
+    return <Page header={HEADER} title={`(${nTasks}) ${formatMessage(messages.taskPage)}`}>
+      <Container>
+        {map(pools, pool =>
+          <Row>
+            <Card>
+              <CardHeader key={pool.id}><Link to={`/pools/${pool.id}`}>{pool.name_label}</Link></CardHeader>
+              <CardBlock>
+                {map(pendingTasksByPool[pool.id], task =>
+                  <TaskItem key={task.id} task={task} />
+                )}
+              </CardBlock>
+            </Card>
+          </Row>
+        )}
+      </Container>
+    </Page>
+  })
+)

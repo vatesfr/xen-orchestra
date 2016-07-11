@@ -27,7 +27,7 @@ const Settings = routes('dashboard', {
   admin: Admin,
   dashboard: Dashboard
 })(
-  ({ children }) => <Page header={HEADER}>{children}</Page>
+  ({ children }) => <Page header={HEADER} title='selfServicePage' formatTitle>{children}</Page>
 )
 
 export default Settings

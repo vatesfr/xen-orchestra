@@ -156,7 +156,7 @@ export default class Pool extends Component {
       'srs'
     ])
    )
-    return <Page header={this.header()}>
+    return <Page header={this.header()} title={pool.name_label}>
       {cloneElement(this.props.children, childProps)}
     </Page>
   }

@@ -262,7 +262,7 @@ export default class Host extends Component {
   }
 
   render () {
-    const { host } = this.props
+    const { host, pool } = this.props
     if (!host) {
       return <h1>Loading…</h1>
     }
@@ -284,7 +284,7 @@ export default class Host extends Component {
       installPatch: this._installPatch
     }
    )
-    return <Page header={this.header()}>
+    return <Page header={this.header()} title={`${host.name_label} (${pool.name_label})`}>
       {cloneElement(this.props.children, childProps)}
     </Page>
   }

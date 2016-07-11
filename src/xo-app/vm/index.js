@@ -244,7 +244,7 @@ export default class Vm extends Component {
   }
 
   render () {
-    const { vm } = this.props
+    const { container, vm } = this.props
 
     if (!vm) {
       return <h1>Loading…</h1>
@@ -262,7 +262,7 @@ export default class Vm extends Component {
     ]), pick(this.state, [
       'statsOverview'
     ]))
-    return <Page header={this.header()}>
+    return <Page header={this.header()} title={`${vm.name_label} (${container.name_label})`}>
       {cloneElement(this.props.children, childProps)}
     </Page>
   }

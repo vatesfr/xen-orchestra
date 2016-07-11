@@ -63,7 +63,7 @@ export default class Import extends Component {
   render () {
     const { files, srPredicate } = this.state
 
-    return <Page header={HEADER}>
+    return <Page header={HEADER} title='newImport' formatTitle>
       {process.env.XOA_PLAN > 1
       ? <Container>
         <form id='import-form'>

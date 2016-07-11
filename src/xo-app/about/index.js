@@ -33,7 +33,7 @@ export default class About extends Component {
     const { user } = this.props
     const isAdmin = user && user.permission === 'admin'
 
-    return <Page header={HEADER}>
+    return <Page header={HEADER} title='aboutPage' formatTitle>
       <Container className='text-xs-center'>
         {isAdmin && <Row>
           <Col mediumSize={6}>
