@@ -6,10 +6,12 @@ import includes from 'lodash/includes'
 import info, { error } from 'notification'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
+import Page from '../../page'
 import React, { Component } from 'react'
 import store from 'store'
 import trim from 'lodash/trim'
 import Wizard, { Section } from 'wizard'
+import { Container, Row, Col } from 'grid'
 import { confirm } from 'modal'
 import { connectStore, formatSize } from 'utils'
 import { GenericSelect, SelectHost } from 'select-objects'
@@ -350,6 +352,16 @@ export default class New extends Component {
     }
   }
 
+  _renderHeader () {
+    return <Container>
+      <Row>
+        <Col>
+          <h2><Icon icon='sr' /> {_('newSrTitle')}</h2>
+        </Col>
+      </Row>
+    </Container>
+  }
+
   render () {
     const { hosts } = this.props
     const {
@@ -371,276 +383,278 @@ export default class New extends Component {
     const { formatMessage } = this.props.intl
 
     return (
-      <form id='newSrForm'>
-        <Wizard>
-          <Section icon='sr' title='newSrGeneral'>
-            <fieldset className='form-group'>
-              <label>{_('newSrHost')}</label>
-              <SelectHost
-                value={host}
-                options={hosts}
-                onChange={this._handleSrHostSelection}
-              />
-              <label htmlFor='srName'>{_('newSrName')}</label>
-              <input
-                id='srName'
-                className='form-control'
-                placeholder='storage name'
-                ref='name'
-                onBlur={this._handleNameChange}
-                required
-                type='text'
-              />
-              <label htmlFor='srDescription'>{_('newSrDescription')}</label>
-              <input
-                id='srDescription'
-                className='form-control'
-                placeholder='storage description'
-                ref='description'
-                onBlur={this._handleDescriptionChange}
-                required
-                type='text'
-              />
-              <label htmlFor='selectSrType'>{_('newSrTypeSelection')}</label>
-              <select
-                className='form-control'
-                defaultValue={null}
-                id='selectSrType'
-                onChange={this._handleSrTypeSelection}
-                required
-              >
-                <option value={null}>{formatMessage(messages.noSelectedValue)}</option>
-                {map(typeGroups, (types, group) =>
-                  <optgroup label={SR_GROUP_TO_LABEL[group]}>
-                    {map(types, type =>
-                      <option key={type} value={type}>{SR_TYPE_TO_LABEL[type]}</option>
-                    )}
-                  </optgroup>)}
-              </select>
-            </fieldset>
-          </Section>
-          <Section icon='settings' title='newSrSettings'>
-            {host &&
-              <fieldset>
-                {(type === 'nfs' || type === 'nfsiso') &&
-                  <fieldset>
-                    <label htmlFor='srServer'>{_('newSrServer')}</label>
-                    <div className='input-group'>
-                      <input
-                        id='srServer'
-                        className='form-control'
-                        placeholder='address'
-                        ref='server'
-                        required
-                        type='text'
-                      />
-                      <span className='input-group-btn'>
-                        <ActionButton icon='search' btnStyle='default' handler={this._handleSearchServer} />
-                      </span>
-                    </div>
-                  </fieldset>
-                }
-                {paths &&
-                  <fieldset>
-                    <label htmlFor='selectSrPath'>{_('newSrPath')}</label>
-                    <select
-                      className='form-control'
-                      defaultValue={null}
-                      id='selectSrPath'
-                      onChange={event => { this._handleSrPathSelection(event.target.value) }}
-                      ref='path'
-                      required
-                    >
-                      <option value={null}>{formatMessage(messages.noSelectedValue)}</option>
-                      {map(paths, (item, key) =>
-                        <option key={key} value={item.path}>{item.path}</option>
+      <Page header={this._renderHeader()}>
+        <form id='newSrForm'>
+          <Wizard>
+            <Section icon='sr' title='newSrGeneral'>
+              <fieldset className='form-group'>
+                <label>{_('newSrHost')}</label>
+                <SelectHost
+                  value={host}
+                  options={hosts}
+                  onChange={this._handleSrHostSelection}
+                />
+                <label htmlFor='srName'>{_('newSrName')}</label>
+                <input
+                  id='srName'
+                  className='form-control'
+                  placeholder='storage name'
+                  ref='name'
+                  onBlur={this._handleNameChange}
+                  required
+                  type='text'
+                />
+                <label htmlFor='srDescription'>{_('newSrDescription')}</label>
+                <input
+                  id='srDescription'
+                  className='form-control'
+                  placeholder='storage description'
+                  ref='description'
+                  onBlur={this._handleDescriptionChange}
+                  required
+                  type='text'
+                />
+                <label htmlFor='selectSrType'>{_('newSrTypeSelection')}</label>
+                <select
+                  className='form-control'
+                  defaultValue={null}
+                  id='selectSrType'
+                  onChange={this._handleSrTypeSelection}
+                  required
+                >
+                  <option value={null}>{formatMessage(messages.noSelectedValue)}</option>
+                  {map(typeGroups, (types, group) =>
+                    <optgroup label={SR_GROUP_TO_LABEL[group]}>
+                      {map(types, type =>
+                        <option key={type} value={type}>{SR_TYPE_TO_LABEL[type]}</option>
                       )}
-                    </select>
-                  </fieldset>
-                }
-                {type === 'iscsi' &&
-                  <fieldset>
-                    <label htmlFor='srServer'>
-                      {_('newSrServer')} ({_('newSrAuth')}<input type='checkbox' ref='auth' onChange={event => { this._handleAuthChoice() }} />)
-                    </label>
-                    <div className='form-inline'>
-                      <input
-                        id='srServer'
-                        className='form-control'
-                        placeholder='address'
-                        ref='server'
-                        required
-                        type='text'
-                      />
-                      {' : '}
-                      <input
-                        id='srServer'
-                        className='form-control'
-                        placeholder='[port]'
-                        ref='port'
-                        type='text'
-                      />
-                      <ActionButton icon='search' btnStyle='default' handler={this._handleSearchServer} />
-                    </div>
-                    {auth &&
-                      <fieldset>
-                        <label htmlFor='srServerUser'>{_('newSrUsername')}</label>
+                    </optgroup>)}
+                </select>
+              </fieldset>
+            </Section>
+            <Section icon='settings' title='newSrSettings'>
+              {host &&
+                <fieldset>
+                  {(type === 'nfs' || type === 'nfsiso') &&
+                    <fieldset>
+                      <label htmlFor='srServer'>{_('newSrServer')}</label>
+                      <div className='input-group'>
                         <input
-                          id='srServerUser'
+                          id='srServer'
                           className='form-control'
-                          placeholder='user'
-                          ref='username'
+                          placeholder='address'
+                          ref='server'
                           required
                           type='text'
                         />
-                        <label>{_('newSrPassword')}</label>
-                        <Password
-                          placeholder='password'
-                          ref='password'
+                        <span className='input-group-btn'>
+                          <ActionButton icon='search' btnStyle='default' handler={this._handleSearchServer} />
+                        </span>
+                      </div>
+                    </fieldset>
+                  }
+                  {paths &&
+                    <fieldset>
+                      <label htmlFor='selectSrPath'>{_('newSrPath')}</label>
+                      <select
+                        className='form-control'
+                        defaultValue={null}
+                        id='selectSrPath'
+                        onChange={event => { this._handleSrPathSelection(event.target.value) }}
+                        ref='path'
+                        required
+                      >
+                        <option value={null}>{formatMessage(messages.noSelectedValue)}</option>
+                        {map(paths, (item, key) =>
+                          <option key={key} value={item.path}>{item.path}</option>
+                        )}
+                      </select>
+                    </fieldset>
+                  }
+                  {type === 'iscsi' &&
+                    <fieldset>
+                      <label htmlFor='srServer'>
+                        {_('newSrServer')} ({_('newSrAuth')}<input type='checkbox' ref='auth' onChange={event => { this._handleAuthChoice() }} />)
+                      </label>
+                      <div className='form-inline'>
+                        <input
+                          id='srServer'
+                          className='form-control'
+                          placeholder='address'
+                          ref='server'
                           required
+                          type='text'
                         />
-                      </fieldset>
-                    }
-                  </fieldset>
-                }
-                {iqns &&
-                  <fieldset>
-                    <label>{_('newSrIqn')}</label>
-                    <SelectIqn
-                      options={iqns}
-                      onChange={this._handleSrIqnSelection}
-                    />
-                  </fieldset>
-                }
-                {luns &&
-                  <fieldset>
-                    <label>{_('newSrLun')}</label>
-                    <SelectLun
-                      options={luns}
-                      onChange={this._handleSrLunSelection}
-                    />
-                  </fieldset>
-                }
-                {type === 'smb' &&
-                  <fieldset>
-                    <label htmlFor='srServer'>{_('newSrServer')}</label>
-                    <input
-                      id='srServer'
-                      className='form-control'
-                      placeholder='address'
-                      ref='server'
-                      required
-                      type='text'
-                    />
-                    <label htmlFor='srServerUser'>{_('newSrUsername')}</label>
-                    <input
-                      id='srServerUser'
-                      className='form-control'
-                      placeholder='user'
-                      ref='username'
-                      required
-                      type='text'
-                    />
-                    <label>{_('newSrPassword')}</label>
-                    <Password
-                      placeholder='password'
-                      ref='password'
-                      required
-                    />
-                  </fieldset>
-                }
-                {type === 'lvm' &&
-                  <fieldset>
-                    <label htmlFor='srDevice'>{_('newSrDevice')}</label>
-                    <input
-                      id='srDevice'
-                      className='form-control'
-                      placeholder='Device, e.g /dev/sda...'
-                      ref='device'
-                      required
-                      type='text'
-                    />
-                  </fieldset>
-                }
-                {type === 'local' &&
-                  <fieldset>
-                    <label htmlFor='srPath'>{_('newSrPath')}</label>
-                    <input
-                      id='srPath'
-                      className='form-control'
-                      placeholder=''
-                      ref='localPath'
-                      required
-                      type='text'
-                    />
-                  </fieldset>
-                }
-              </fieldset>
-            }
-            {loading &&
-              <Icon icon='loading' />
-            }
-          </Section>
-          <Section icon='shown' title='newSrUsage'>
-            {usage &&
-              <div>
-                {map(unused, (sr, key) =>
-                  <p key={key}>
-                    {sr.uuid}
-                    <span className='pull-right'>
-                      <ActionButton btnStyle='primary' handler={this._reattach} handlerParam={sr.uuid} icon='connect' />
-                    </span>
-                  </p>
-                )}
-                {map(used, (sr, key) =>
-                  <p key={key}>
-                    {sr.uuid}
-                    <span className='pull-right'>
-                      <a className='btn btn-warning'>{_('newSrInUse')}</a> // FIXME Goes to sr view
-                    </span>
-                  </p>
-                )}
-              </div>
-            }
-          </Section>
-          <Section icon='summary' title='newSrSummary'>
-            {summary &&
-              <div>
-                <dl className='dl-horizontal'>
-                  <dt>{_('newSrName')}</dt>
-                  <dd>{this.refs.name && this.refs.name.value}</dd>
-                  <dt>{_('newSrDescription')}</dt>
-                  <dd>{this.refs.description && this.refs.description.value}</dd>
-                  <dt>{_('newSrType')}</dt>
-                  <dd>{type}</dd>
-                </dl>
-                {type === 'iscsi' &&
+                        {' : '}
+                        <input
+                          id='srServer'
+                          className='form-control'
+                          placeholder='[port]'
+                          ref='port'
+                          type='text'
+                        />
+                        <ActionButton icon='search' btnStyle='default' handler={this._handleSearchServer} />
+                      </div>
+                      {auth &&
+                        <fieldset>
+                          <label htmlFor='srServerUser'>{_('newSrUsername')}</label>
+                          <input
+                            id='srServerUser'
+                            className='form-control'
+                            placeholder='user'
+                            ref='username'
+                            required
+                            type='text'
+                          />
+                          <label>{_('newSrPassword')}</label>
+                          <Password
+                            placeholder='password'
+                            ref='password'
+                            required
+                          />
+                        </fieldset>
+                      }
+                    </fieldset>
+                  }
+                  {iqns &&
+                    <fieldset>
+                      <label>{_('newSrIqn')}</label>
+                      <SelectIqn
+                        options={iqns}
+                        onChange={this._handleSrIqnSelection}
+                      />
+                    </fieldset>
+                  }
+                  {luns &&
+                    <fieldset>
+                      <label>{_('newSrLun')}</label>
+                      <SelectLun
+                        options={luns}
+                        onChange={this._handleSrLunSelection}
+                      />
+                    </fieldset>
+                  }
+                  {type === 'smb' &&
+                    <fieldset>
+                      <label htmlFor='srServer'>{_('newSrServer')}</label>
+                      <input
+                        id='srServer'
+                        className='form-control'
+                        placeholder='address'
+                        ref='server'
+                        required
+                        type='text'
+                      />
+                      <label htmlFor='srServerUser'>{_('newSrUsername')}</label>
+                      <input
+                        id='srServerUser'
+                        className='form-control'
+                        placeholder='user'
+                        ref='username'
+                        required
+                        type='text'
+                      />
+                      <label>{_('newSrPassword')}</label>
+                      <Password
+                        placeholder='password'
+                        ref='password'
+                        required
+                      />
+                    </fieldset>
+                  }
+                  {type === 'lvm' &&
+                    <fieldset>
+                      <label htmlFor='srDevice'>{_('newSrDevice')}</label>
+                      <input
+                        id='srDevice'
+                        className='form-control'
+                        placeholder='Device, e.g /dev/sda...'
+                        ref='device'
+                        required
+                        type='text'
+                      />
+                    </fieldset>
+                  }
+                  {type === 'local' &&
+                    <fieldset>
+                      <label htmlFor='srPath'>{_('newSrPath')}</label>
+                      <input
+                        id='srPath'
+                        className='form-control'
+                        placeholder=''
+                        ref='localPath'
+                        required
+                        type='text'
+                      />
+                    </fieldset>
+                  }
+                </fieldset>
+              }
+              {loading &&
+                <Icon icon='loading' />
+              }
+            </Section>
+            <Section icon='shown' title='newSrUsage'>
+              {usage &&
+                <div>
+                  {map(unused, (sr, key) =>
+                    <p key={key}>
+                      {sr.uuid}
+                      <span className='pull-right'>
+                        <ActionButton btnStyle='primary' handler={this._reattach} handlerParam={sr.uuid} icon='connect' />
+                      </span>
+                    </p>
+                  )}
+                  {map(used, (sr, key) =>
+                    <p key={key}>
+                      {sr.uuid}
+                      <span className='pull-right'>
+                        <a className='btn btn-warning'>{_('newSrInUse')}</a> // FIXME Goes to sr view
+                      </span>
+                    </p>
+                  )}
+                </div>
+              }
+            </Section>
+            <Section icon='summary' title='newSrSummary'>
+              {summary &&
+                <div>
                   <dl className='dl-horizontal'>
-                    <dt>{_('newSrSize')}</dt>
-                    <dd>{formatSize(+lun.size)}</dd>
+                    <dt>{_('newSrName')}</dt>
+                    <dd>{this.refs.name && this.refs.name.value}</dd>
+                    <dt>{_('newSrDescription')}</dt>
+                    <dd>{this.refs.description && this.refs.description.value}</dd>
+                    <dt>{_('newSrType')}</dt>
+                    <dd>{type}</dd>
                   </dl>
-                }
-                {type === 'nfs' &&
-                  <dl className='dl-horizontal'>
-                    <dt>{_('newSrPath')}</dt>
-                    <dd>{path}</dd>
-                  </dl>
-                }
-                <ActionButton
-                  btnStyle='primary'
-                  disabled={lockCreation}
-                  form='newSrForm'
-                  handler={this._handleSubmit}
-                  icon='run'
-                  redirectOnSuccess={getSrPath}
-                >
-                  {_('newSrCreate')}
-                </ActionButton>
-              </div>
-            }
-          </Section>
-        </Wizard>
-      </form>
+                  {type === 'iscsi' &&
+                    <dl className='dl-horizontal'>
+                      <dt>{_('newSrSize')}</dt>
+                      <dd>{formatSize(+lun.size)}</dd>
+                    </dl>
+                  }
+                  {type === 'nfs' &&
+                    <dl className='dl-horizontal'>
+                      <dt>{_('newSrPath')}</dt>
+                      <dd>{path}</dd>
+                    </dl>
+                  }
+                  <ActionButton
+                    btnStyle='primary'
+                    disabled={lockCreation}
+                    form='newSrForm'
+                    handler={this._handleSubmit}
+                    icon='run'
+                    redirectOnSuccess={getSrPath}
+                  >
+                    {_('newSrCreate')}
+                  </ActionButton>
+                </div>
+              }
+            </Section>
+          </Wizard>
+        </form>
+      </Page>
     )
   }
 }

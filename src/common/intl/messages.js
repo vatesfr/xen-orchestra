@@ -203,6 +203,7 @@ var messages = {
   remoteTestSuccessMessage: 'The remote appears to work correctly',
 
   // ------ New Storage -----
+  newSrTitle: 'Create a new SR',
   newSrGeneral: 'General',
   newSrTypeSelection: 'Select Strorage Type:',
   newSrSettings: 'Settings',
