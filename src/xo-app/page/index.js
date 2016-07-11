@@ -1,17 +1,37 @@
+import { messages } from 'intl'
+import DocumentTitle from 'react-document-title'
 import React from 'react'
+import { injectIntl } from 'react-intl'
 
 import styles from './index.css'
 
-const Page = ({ children, header }) => {
+const Page = ({
+  children,
+  formatTitle,
+  header,
+  intl,
+  title = 'Xen Orchestra'
+}) => {
+  const { formatMessage } = intl
   return (
-    <div className={styles.container}>
-      <nav className={'page-header ' + styles.header}>
-        {header}
-      </nav>
-      <div className={styles.content}>
-        {children}
+    <DocumentTitle title={formatTitle ? formatMessage(messages[title]) : title}>
+      <div className={styles.container}>
+        <nav className={'page-header ' + styles.header}>
+          {header}
+        </nav>
+        <div className={styles.content}>
+          {children}
+        </div>
       </div>
-    </div>
+    </DocumentTitle>
   )
 }
-export { Page as default }
+
+Page.propTypes = {
+  children: React.PropTypes.node,
+  formatTitle: React.PropTypes.bool,
+  header: React.PropTypes.node,
+  title: React.PropTypes.string
+}
+
+export default injectIntl(Page)

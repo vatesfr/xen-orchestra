@@ -39,7 +39,7 @@ const Settings = routes('servers', {
   servers: Servers,
   users: Users
 })(
-  ({ children }) => <Page header={HEADER}>{children}</Page>
+  ({ children }) => <Page header={HEADER} title='settingsPage' formatTitle>{children}</Page>
 )
 
 export default Settings

@@ -33,7 +33,7 @@ const Dashboard = routes('overview', {
   stats: Stats,
   visualizations: Visualizations
 })(
-  ({ children }) => <Page header={HEADER}>{children}</Page>
+  ({ children }) => <Page header={HEADER} title='dashboardPage' formatTitle>{children}</Page>
 )
 
 export default Dashboard

@@ -39,6 +39,7 @@ var messages = {
   aboutPage: 'About',
   newMenu: 'New',
   taskMenu: 'Tasks',
+  taskPage: 'Tasks',
   newVmPage: 'VM',
   newSrPage: 'Storage',
   newServerPage: 'Server',
@@ -803,6 +804,7 @@ var messages = {
   availableIn: 'This feature is available starting from {plan} Edition',
 
   // ----- Updates View -----
+  updateTitle: 'Updates',
   registration: 'Registration',
   trial: 'Trial',
   settings: 'Settings',

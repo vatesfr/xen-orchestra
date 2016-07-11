@@ -32,7 +32,7 @@ const Backup = routes('overview', {
   overview: Overview,
   restore: Restore
 })(
-  ({ children }) => <Page header={HEADER}>{children}</Page>
+  ({ children }) => <Page header={HEADER} title='backupPage' formatTitle>{children}</Page>
 )
 
 export default Backup

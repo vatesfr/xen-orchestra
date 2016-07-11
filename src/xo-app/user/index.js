@@ -58,7 +58,7 @@ export default class User extends BaseComponent {
       oldPassword
     } = this.state
 
-    return <Page header={HEADER}>
+    return <Page header={HEADER} title={user.email}>
       <Container>
         <Row>
           <Col smallSize={2}><strong>{_('username')}</strong></Col>

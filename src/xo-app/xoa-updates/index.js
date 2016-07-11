@@ -165,7 +165,7 @@ export default class XoaUpdates extends Component {
     proxyPort !== undefined && (configuration.proxyPort = proxyPort) && (configEdited = true)
     proxyUser !== undefined && (configuration.proxyUser = proxyUser) && (configEdited = true)
 
-    return <Page header={HEADER}>
+    return <Page header={HEADER} title='updateTitle' formatTitle>
       <Container>{+process.env.XOA_PLAN === 5
         ? <div>
           <h2 className='text-danger'>{_('noUpdaterCommunity')}</h2>
