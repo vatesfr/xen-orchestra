@@ -371,7 +371,7 @@ export const resolveResourceSets = resourceSets => (
     const state = store.getState()
 
     forEach(objects, id => {
-      const object = getObject(state, id)
+      const object = getObject(state, id, true) // true: useResourceSet to bypass permissions
 
       // Error, missing resource.
       if (!object) {
