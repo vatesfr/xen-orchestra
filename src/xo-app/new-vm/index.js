@@ -48,6 +48,7 @@ import {
   Toggle
 } from 'form'
 import {
+  buildTemplate,
   connectStore,
   formatSize,
   noop,
@@ -172,7 +173,7 @@ export default class NewVm extends BaseComponent {
       name_label: '',
       name_description: '',
       nameLabels: map(Array(NB_VMS_MIN), (_, index) => `VM_${index + 1}`),
-
+      namePattern: '{name}_%',
       nbVms: NB_VMS_MIN,
       VDIs: [],
       VIFs: []
@@ -290,12 +291,14 @@ export default class NewVm extends BaseComponent {
       })
     }
     const name_label = state.name_label === '' || !state.name_labelHasChanged ? template.name_label : state.name_label
+    const name_description = state.name_description === '' || !state.name_descriptionHasChanged ? template.name_description || '' : state.name_description
+    const replacer = this._buildTemplate()
     this._setState({
       // infos
       name_label,
       template,
-      name_description: state.name_description === '' || !state.name_descriptionHasChanged ? template.name_description || '' : state.name_description,
-      nameLabels: map(Array(+state.nbVms), (_, index) => `${name_label}_${index + 1}`),
+      name_description,
+      nameLabels: map(Array(+state.nbVms), (_, index) => replacer({ name_label, name_description, template }, index + 1)),
       // performances
       memory: template.memory.size,
       CPUs: template.CPUs.number,
@@ -451,25 +454,34 @@ export default class NewVm extends BaseComponent {
       this._setState({ [prop]: value })
     }
   }
+  _buildTemplate = () => buildTemplate(this.state.state.namePattern, {
+    '{name}': state => state.name_label || '',
+    '{description}': state => state.name_description || '',
+    '{template}': state => state.template ? state.template.name_label : '',
+    '{pool}': () => this.state.pool ? this.state.pool.name_label : '',
+    '%': (_, i) => i
+  })
   _updateNbVms = () => {
-    const { nbVms, name_label, nameLabels } = this.state.state
+    const { nbVms, nameLabels } = this.state.state
     const nbVmsClamped = clamp(nbVms, NB_VMS_MIN, NB_VMS_MAX)
     const newNameLabels = [ ...nameLabels ]
     if (nbVmsClamped < nameLabels.length) {
       this._setState({ nameLabels: slice(newNameLabels, 0, nbVmsClamped) })
     } else {
+      const replacer = this._buildTemplate()
       for (let i = nameLabels.length + 1; i <= nbVmsClamped; i++) {
-        newNameLabels.push(`${name_label || 'VM'}_${i}`)
+        newNameLabels.push(replacer(this.state.state, i))
       }
       this._setState({ nameLabels: newNameLabels })
     }
   }
   _updateNameLabels = () => {
-    const { name_label, nameLabels } = this.state.state
+    const { nameLabels } = this.state.state
     const nbVms = nameLabels.length
     const newNameLabels = []
+    const replacer = this._buildTemplate()
     for (let i = 1; i <= nbVms; i++) {
-      newNameLabels.push(`${name_label || 'VM'}_${i}`)
+      newNameLabels.push(replacer(this.state.state, i))
     }
     this._setState({ nameLabels: newNameLabels })
   }
@@ -599,8 +611,10 @@ export default class NewVm extends BaseComponent {
       name_label,
       nameLabels,
       nbVms,
+      namePattern,
       template
     } = this.state.state
+    const { formatMessage } = this.props.intl
     return <Section icon='new-vm-infos' title='newVmInfoPanel' done={this._isInfoDone()}>
       <SectionContent>
         <Item label='newVmTemplateLabel'>
@@ -642,7 +656,20 @@ export default class NewVm extends BaseComponent {
             {_('newVmMultipleVms')}
             &nbsp;&nbsp;
             <Toggle value={multipleVms} onChange={this._getOnChange('multipleVms')} />
-            <br />
+          </Item>
+          <Item>
+            {_('newVmMultipleVmsPattern')}
+            &nbsp;&nbsp;
+            <DebounceInput
+              className='form-control'
+              debounceTimeout={DEBOUNCE_TIMEOUT}
+              disabled={!multipleVms}
+              onChange={this._getOnChange('namePattern')}
+              placeholder={formatMessage(messages.newVmMultipleVmsPatternPlaceholder)}
+              value={namePattern}
+            />
+          </Item>
+          <Item>
             <div className='input-group'>
               <DebounceInput
                 className='form-control'
