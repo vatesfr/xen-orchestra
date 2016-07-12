@@ -403,7 +403,7 @@ export default class NewVm extends BaseComponent {
     },
     objectsByType => (obj, objType) => {
       const [id, type] = isObject(obj) ? [obj.id, obj.type] : [obj, objType]
-      objectsByType && includes(map(objectsByType[type], object => object.id), id)
+      return objectsByType && includes(map(objectsByType[type], object => object.id), id)
     }
   )
   _getCanOperate = createSelector(

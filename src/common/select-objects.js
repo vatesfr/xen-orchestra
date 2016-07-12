@@ -616,7 +616,11 @@ export class SelectResourceSetsVmTemplate extends Component {
 
   _getTemplates = createSelector(
     () => this.props.resourceSet,
-    ({ objectsByType }) => objectsByType['VM-template']
+    ({ objectsByType }) => {
+      const { predicate } = this.props
+      const templates = objectsByType['VM-template']
+      return predicate ? filter(templates, predicate) : templates
+    }
   )
 
   render () {
@@ -652,7 +656,11 @@ export class SelectResourceSetsSr extends Component {
 
   _getSrs = createSelector(
     () => this.props.resourceSet,
-    ({ objectsByType }) => objectsByType['SR']
+    ({ objectsByType }) => {
+      const { predicate } = this.props
+      const srs = objectsByType['SR']
+      return predicate ? filter(srs, predicate) : srs
+    }
   )
 
   render () {
@@ -688,7 +696,11 @@ export class SelectResourceSetsNetwork extends Component {
 
   _getNetworks = createSelector(
     () => this.props.resourceSet,
-    ({ objectsByType }) => objectsByType['network']
+    ({ objectsByType }) => {
+      const { predicate } = this.props
+      const networks = objectsByType['network']
+      return predicate ? filter(networks, predicate) : networks
+    }
   )
 
   render () {
