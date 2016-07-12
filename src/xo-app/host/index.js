@@ -284,7 +284,7 @@ export default class Host extends Component {
       installPatch: this._installPatch
     }
    )
-    return <Page header={this.header()} title={`${host.name_label} (${pool.name_label})`}>
+    return <Page header={this.header()} title={`${host.name_label}${pool ? ` (${pool.name_label})` : ''}`}>
       {cloneElement(this.props.children, childProps)}
     </Page>
   }
