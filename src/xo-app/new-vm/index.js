@@ -37,6 +37,7 @@ import {
   SelectResourceSet,
   SelectResourceSetsNetwork,
   SelectResourceSetsSr,
+  SelectResourceSetsVdi,
   SelectResourceSetsVmTemplate,
   SelectSr,
   SelectVdi,
@@ -423,6 +424,8 @@ export default class NewVm extends BaseComponent {
     (isInPool, isInResourceSet) => disk =>
       (isInResourceSet(disk) || isInPool(disk)) && disk.content_type !== 'iso' && disk.size > 0
   )
+  _getIsoPredicate = () => disk =>
+    disk.content_type === 'iso'
   _getNetworkPredicate = createSelector(
     this._getIsInPool,
     this._getIsInResourceSet,
@@ -855,12 +858,19 @@ export default class NewVm extends BaseComponent {
             <span>{_('newVmIsoDvdLabel')}</span>
             &nbsp;
             <span className={styles.inlineSelect}>
-              <SelectVdi
+              {this.state.pool ? <SelectVdi
                 disabled={installMethod !== 'ISO'}
                 onChange={this._getOnChange('installIso')}
-                srPredicate={this._getSrPredicate()}
+                srPredicate={this._getIsoPredicate()}
                 value={installIso}
               />
+              : <SelectResourceSetsVdi
+                disabled={installMethod !== 'ISO'}
+                onChange={this._getOnChange('installIso')}
+                resourceSet={this.state.resourceSet}
+                srPredicate={this._getIsoPredicate()}
+                value={installIso}
+              />}
             </span>
           </span>
         </Item>

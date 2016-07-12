@@ -2,12 +2,14 @@ import React from 'react'
 import assign from 'lodash/assign'
 import classNames from 'classnames'
 import filter from 'lodash/filter'
+import flatten from 'lodash/flatten'
 import forEach from 'lodash/forEach'
 import groupBy from 'lodash/groupBy'
 import keyBy from 'lodash/keyBy'
 import keys from 'lodash/keys'
 import map from 'lodash/map'
 import sortBy from 'lodash/sortBy'
+import store from 'store'
 import { parse as parseRemote } from 'xo-remote-parser'
 
 import _ from './intl'
@@ -19,7 +21,8 @@ import {
   createFilter,
   createGetObjectsOfType,
   createGetTags,
-  createSelector
+  createSelector,
+  getObject
 } from './selectors'
 import {
   connectStore,
@@ -670,6 +673,55 @@ export class SelectResourceSetsSr extends Component {
         placeholder={_('selectResourceSetsSr')}
         {...this.props}
         xoObjects={this._getSrs()}
+      />
+    )
+  }
+}
+
+// ===================================================================
+
+export class SelectResourceSetsVdi extends Component {
+  get value () {
+    return this.refs.select.value
+  }
+
+  set value (value) {
+    this.refs.select.value = value
+  }
+
+  componentWillMount () {
+    this.componentWillUnmount = subscribeResourceSets(resourceSets => {
+      this.setState({
+        resourceSets: resolveResourceSets(resourceSets)
+      })
+    })
+  }
+
+  _getObject (id) {
+    return getObject(store.getState(), id, true)
+  }
+
+  _getSrs = createSelector(
+    () => this.props.resourceSet,
+    ({ objectsByType }) => {
+      const { srPredicate } = this.props
+      const srs = objectsByType['SR']
+      return srPredicate ? filter(srs, srPredicate) : srs
+    }
+  )
+
+  _getVdis = createSelector(
+    this._getSrs,
+    srs => map(flatten(map(srs, sr => sr.VDIs)), this._getObject)
+  )
+
+  render () {
+    return (
+      <GenericSelect
+        ref='select'
+        placeholder={_('selectResourceSetsVdi')}
+        {...this.props}
+        xoObjects={this._getVdis()}
       />
     )
   }

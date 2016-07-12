@@ -130,6 +130,7 @@ var messages = {
   selectResourceSetsVmTemplate: 'Select template(s)…',
   selectResourceSetsSr: 'Select SR(s)…',
   selectResourceSetsNetwork: 'Select network(s)…',
+  selectResourceSetsVdi: 'Select disk(s)…',
   selectSrs: 'Select SR(s)…',
   selectVms: 'Select VM(s)…',
   selectVmTemplates: 'Select VM template(s)…',
