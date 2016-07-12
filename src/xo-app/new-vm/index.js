@@ -180,7 +180,7 @@ export default class NewVm extends BaseComponent {
   }
 
   _create = () => {
-    const { state } = this.state
+    const { resourceSet, state } = this.state
     let installation
     switch (state.installMethod) {
       case 'ISO':
@@ -226,6 +226,7 @@ export default class NewVm extends BaseComponent {
       template: state.template.id,
       VDIs: state.VDIs,
       VIFs: state.VIFs,
+      resourceSet: resourceSet && resourceSet.id,
       // TODO: To be added in xo-server
       // vm.set parameters
       CPUs: state.CPUs,
@@ -326,65 +327,6 @@ export default class NewVm extends BaseComponent {
         noop
       )
     }
-  }
-  _create = () => {
-    const { state } = this.state
-    let installation
-    switch (state.installMethod) {
-      case 'ISO':
-        installation = {
-          method: 'cdrom',
-          repository: state.installIso.id
-        }
-        break
-      case 'network':
-        const matches = /^(http|ftp|nfs)/i.exec(state.installNetwork)
-        if (!matches) {
-          throw new Error('invalid network URL')
-        }
-        installation = {
-          method: matches[1].toLowerCase(),
-          repository: state.installNetwork
-        }
-        break
-      case 'PXE':
-        installation = {
-          method: 'network',
-          repository: 'pxe'
-        }
-    }
-
-    let cloudConfig
-    if (state.configDrive) {
-      const hostname = state.name_label.replace(/^\s+|\s+$/g, '').replace(/\s+/g, '-')
-      if (state.installMethod === 'SSH') {
-        cloudConfig = '#cloud-config\nhostname: ' + hostname + '\nssh_authorized_keys:\n  - ' + state.sshKey + '\n'
-      } else {
-        cloudConfig = state.customConfig
-      }
-    } else if (state.template.name_label === 'CoreOS') {
-      cloudConfig = state.cloudConfig
-    }
-
-    const data = {
-      bootAfterCreate: state.bootAfterCreate,
-      clone: state.fastClone,
-      cloudConfig,
-      coreOs: state.template.name_label === 'CoreOS',
-      CPUs: state.CPUs,
-      cpuWeight: state.cpuWeight,
-      existingDisks: state.existingDisks,
-      installation,
-      memory: state.memory,
-      name_description: state.name_description,
-      name_label: state.name_label,
-      pv_args: state.pv_args,
-      template: state.template.id,
-      VDIs: state.VDIs,
-      VIFs: state.VIFs
-    }
-
-    return state.multipleVms ? createVms(data, state.nameLabels) : createVm(data)
   }
 
 // Selectors -------------------------------------------------------------------

@@ -622,7 +622,7 @@ export class SelectResourceSetsVmTemplate extends Component {
     ({ objectsByType }) => {
       const { predicate } = this.props
       const templates = objectsByType['VM-template']
-      return predicate ? filter(templates, predicate) : templates
+      return sortBy(predicate ? filter(templates, predicate) : templates, 'name_label')
     }
   )
 
@@ -662,7 +662,7 @@ export class SelectResourceSetsSr extends Component {
     ({ objectsByType }) => {
       const { predicate } = this.props
       const srs = objectsByType['SR']
-      return predicate ? filter(srs, predicate) : srs
+      return sortBy(predicate ? filter(srs, predicate) : srs, 'name_label')
     }
   )
 
@@ -712,7 +712,7 @@ export class SelectResourceSetsVdi extends Component {
 
   _getVdis = createSelector(
     this._getSrs,
-    srs => map(flatten(map(srs, sr => sr.VDIs)), this._getObject)
+    srs => sortBy(map(flatten(map(srs, sr => sr.VDIs)), this._getObject), 'name_label')
   )
 
   render () {
@@ -751,7 +751,7 @@ export class SelectResourceSetsNetwork extends Component {
     ({ objectsByType }) => {
       const { predicate } = this.props
       const networks = objectsByType['network']
-      return predicate ? filter(networks, predicate) : networks
+      return sortBy(predicate ? filter(networks, predicate) : networks, 'name_label')
     }
   )
 
