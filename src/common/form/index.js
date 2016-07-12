@@ -192,7 +192,7 @@ export class SizeInput extends BaseComponent {
   }
 
   _createStateFromBytes = bytes => {
-    const humanSize = formatSizeRaw(bytes)
+    const humanSize = bytes && formatSizeRaw(bytes)
     return {
       unit: humanSize && humanSize.value ? humanSize.prefix + 'B' : this.props.defaultUnit || DEFAULT_UNIT,
       value: humanSize ? round(humanSize.value, 3) : ''
@@ -235,7 +235,7 @@ export class SizeInput extends BaseComponent {
     if (this.props.value != null) {
       this._value = this.state.value
       this._unit = unit
-      this._bytes = parseSize(this.state.value + ' ' + unit)
+      this._bytes = parseSize((this.state.value || 0) + ' ' + unit)
 
       this._onChange(this._bytes)
     } else {
