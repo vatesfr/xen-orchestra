@@ -3,11 +3,11 @@ import Icon from 'icon'
 import map from 'lodash/map'
 import React from 'react'
 import Tags from 'tags'
-import Tooltip from 'tooltip'
 import { addTag, removeTag } from 'xo'
 import { Container, Row, Col } from 'grid'
 import { formatSize } from 'utils'
 import { renderXoItemFromId } from 'render-xo-item'
+import Usage, { UsageElement } from 'usage'
 
 export default ({
   sr,
@@ -33,29 +33,17 @@ export default ({
   </Row>
   <Row>
     <Col smallOffset={1} mediumSize={10}>
-      <span className='progress-usage'>
-        {map(vdis, vdi => {
-          const { id } = vdi
-          return (
-            <Tooltip
-              key={id}
-              content={
-                <span>
-                  {vdi.name_label}
-                  <br />
-                  {renderXoItemFromId(vdisToVmIds[vdi.id])}
-                </span>
-              }
-            >
-              <span
-                key={id}
-                className='progress-object'
-                style={{ width: (vdi.usage / sr.size) * 100 + '%' }}>
-              </span>
-            </Tooltip>
-          )
-        })}
-      </span>
+      <Usage total={sr.size}>
+        {map(vdis, vdi => <UsageElement
+          key={vdi.id}
+          tooltip={<span>
+            {vdi.name_label}
+            <br />
+            {vdisToVmIds[vdi.id] && renderXoItemFromId(vdisToVmIds[vdi.id])}
+          </span>}
+          value={vdi.usage}
+        />)}
+      </Usage>
     </Col>
   </Row>
   <Row className='text-xs-center'>

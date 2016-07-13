@@ -865,7 +865,10 @@ var messages = {
   pwdChangeSuccessBody: 'Your password has been successfully changed.',
   pwdChangeError: 'Incorrect password',
   pwdChangeErrorBody: 'The old password provided is incorrect. Your password has not been changed.',
-  changePasswordOk: 'OK'
+  changePasswordOk: 'OK',
+
+  // ----- Usage -----
+  others: 'Others'
 }
 forEach(messages, function (message, id) {
   if (isString(message)) {
