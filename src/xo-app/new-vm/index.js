@@ -691,7 +691,7 @@ export default class NewVm extends BaseComponent {
           />
         </Item>
         <Item label='newVmRamLabel'>
-          <SizeInput value={memory || 0} onChange={this._getOnChange('memory')} className={styles.sizeInput} />
+          <SizeInput value={memory} onChange={this._getOnChange('memory')} className={styles.sizeInput} />
         </Item>
         <Item label='newVmCpuWeightLabel'>
           <select
