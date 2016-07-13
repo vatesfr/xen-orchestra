@@ -204,7 +204,7 @@ $select-input-height: 40px; // Bootstrap input height
 
 // MEMORY/DISK BAR STYLE =======================================================
 
-.progress-usage {
+.usage {
   @extend .progress;
   background-color: #eee;
   height: 2em;
@@ -213,22 +213,24 @@ $select-input-height: 40px; // Bootstrap input height
   margin-bottom: 2em;
 }
 
-.progress-dom0 {
-  display: inline-block;
-  background-color: #337ab7;
-  height: 2em;
-}
-
-.progress-object {
+.usage-element {
   background-color: #5cb85c;
+  box-shadow: -1px 0 0 0 white;
   height: 2em;
-  margin-right: 0px;
   display: inline-block;
   transition: all 0.3s ease 0s;
 }
 
-.progress-object:hover {
-  opacity: 0.5;
+.usage-element-highlight {
+  background-color: $brand-primary;
+}
+
+.usage-element-others {
+  background-color: $brand-info;
+}
+
+.usage-element:hover {
+  opacity: 0.6;
 }
 
 // NOTIFICATIONS STYLE =========================================================

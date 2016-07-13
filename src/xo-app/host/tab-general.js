@@ -4,12 +4,12 @@ import Icon from 'icon'
 import map from 'lodash/map'
 import React from 'react'
 import Tags from 'tags'
-import Tooltip from 'tooltip'
 import { addTag, removeTag } from 'xo'
 import { BlockLink } from 'link'
 import { Container, Row, Col } from 'grid'
 import { FormattedRelative } from 'react-intl'
 import { formatSize } from 'utils'
+import Usage, { UsageElement } from 'usage'
 import {
   CpuSparkLines,
   MemorySparkLines,
@@ -66,24 +66,19 @@ export default ({
   </Row>
   <Row>
     <Col smallOffset={1} mediumSize={10}>
-      <span className='progress-usage'>
-        <Tooltip content='XenServer'>
-          <span
-            className='progress-dom0'
-            style={{ width: (vmController.memory.size / host.memory.size) * 100 + '%' }}>
-          </span>
-        </Tooltip>
-        {map(vms, vm => (
-          <Tooltip key={vm.id} content={vm.name_label}>
-            <a
-              href={`#/vms/${vm.id}`}
-              className='progress-object'
-              style={{ width: (vm.memory.size / host.memory.size) * 100 + '%' }}>
-            </a>
-          </Tooltip>
-          )
-        )}
-      </span>
+      <Usage total={host.memory.size}>
+        <UsageElement
+          highlight
+          tooltip='XenServer'
+          value={vmController.memory.size}
+        />
+        {map(vms, vm => <UsageElement
+          tooltip={vm.name_label}
+          key={vm.id}
+          value={vm.memory.size}
+          href={`#/vms/${vm.id}`}
+        />)}
+      </Usage>
     </Col>
   </Row>
   <Row>
