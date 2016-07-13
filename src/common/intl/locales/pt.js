@@ -1,4 +1,4 @@
-// See http://momentjs.com/docs/#/use-it/browserify/
+﻿// See http://momentjs.com/docs/#/use-it/browserify/
 import 'moment/locale/pt'
 
 import reactIntlData from 'react-intl/locale-data/pt'
@@ -84,7 +84,7 @@ export default {
   newMenu: 'Novo(a)',
 
   // Original text: "Tasks"
-  taskMenu: 'Atividades',
+  taskMenu: 'Tarefas',
 
   // Original text: "VM"
   newVmPage: 'VM',
@@ -145,6 +145,12 @@ export default {
 
   // Original text: "Custom Job"
   customJob: 'Personalização do Trabalho',
+
+  // Original text: "EN"
+  enLang: 'Inglês',
+
+  // Original text: "FR"
+  frLang: 'Francês',
 
   // Original text: "Username:"
   usernameLabel: 'Usuário',
@@ -240,7 +246,7 @@ export default {
   homeFilterDisabledHosts: 'Hosts Desativados',
 
   // Original text: "Running VMs"
-  homeFilterRunningVms: 'Vms Ativas',
+  homeFilterRunningVms: 'VMs Ativas',
 
   // Original text: "Non running VMs"
   homeFilterNonRunningVms: 'VMs Paradas',
@@ -269,11 +275,11 @@ export default {
   // Original text: "vCPUs"
   homeSortByvCPUs: 'vCPUs',
 
-  // Original text: "{displayed, number}x {icon} (on {total, number})"
-  homeDisplayedItems: '{displayed, number}x {icon} (sobre {total, number})',
+  // Original text: "{displayed, number}x {vmIcon} (on {total, number})"
+  homeDisplayedVms: '{displayed, number}x {vmIcon} (de {total, number})',
 
-  // Original text: "{selected, number}x {icon} selected (on {total, number})"
-  homeSelectedItems: '{selected, number}x {icon} selected (sobre {total, number})',
+  // Original text: "{selected, number}x {vmIcon} selected (on {total, number})"
+  homeSelectedVms: '{selected, number}x {vmIcon} selected (de {total, number})',
 
   // Original text: "More"
   homeMore: 'Mais',
@@ -405,7 +411,7 @@ export default {
   unknownSchedule: 'Desconhecido',
 
   // Original text: "Job"
-  job: 'tarefa',
+  job: 'Tarefa',
 
   // Original text: "Job ID"
   jobId: 'ID tarefa',
@@ -414,10 +420,10 @@ export default {
   jobName: 'Nome',
 
   // Original text: "Start"
-  jobStart: 'Iniciar',
+  jobStart: 'Inicia',
 
   // Original text: "End"
-  jobEnd: 'Terminar',
+  jobEnd: 'Termina',
 
   // Original text: "Duration"
   jobDuration: 'Duração',
@@ -507,7 +513,7 @@ export default {
   newSrTypeSelection: 'Selecionar o tipo de armazenamento (storage)',
 
   // Original text: "Settings"
-  newSrSettings: 'Configuraçõesé',
+  newSrSettings: 'Configurações',
 
   // Original text: "Storage Usage"
   newSrUsage: 'Uso de armazenamento (storage)',
@@ -1308,7 +1314,7 @@ export default {
   vmPanel: 'VM{vms, plural, one {} other {s}}',
 
   // Original text: "RAM Usage"
-  memoryStatePanel: 'Utilização da RAM',
+  memoryStatePanel: 'Utilização RAM',
 
   // Original text: "CPUs Usage"
   cpuStatePanel: 'Utilização de CPU',
@@ -1326,7 +1332,7 @@ export default {
   srStatePanel: 'Data do armazenamento (storage)',
 
   // Original text: "of"
-  ofUsage: '{usage} (de {total})',
+  ofUsage: 'de',
 
   // Original text: "No storage"
   noSrs: 'Nenhum armazenamento (storage)',
@@ -1392,10 +1398,10 @@ export default {
   orphanedVms: 'VMs órfãs',
 
   // Original text: "No orphans"
-  noOrphanedObject: 'Sem órfãos',
+  noOrphanedObject: 'Sem órfãs',
 
   // Original text: "Remove all orphaned VDIs"
-  removeAllOrphanedObject: 'Remover todos os VDIs órfãos',
+  removeAllOrphanedObject: 'Remover todos as VDIs órfãs',
 
   // Original text: "Name"
   vmNameLabel: 'Nome',
@@ -1536,16 +1542,16 @@ export default {
   newVmCloudConfig: 'Configuração do Cloud',
 
   // Origingal text: "Create VMs"
-  newVmCreateVms: undefined,
+  newVmCreateVms: 'Criar VMs',
 
   // Original text : "Are you sure you want to create {nbVms} VMs?"
-  newVmCreateVmsConfirm: undefined,
+  newVmCreateVmsConfirm: 'Você tem certeza que deseja criar {nbVms} VMs?',
 
   // Original text : "Multiple VMs"
-  newVmMultipleVms: undefined,
+  newVmMultipleVms: 'Multiplas VMs',
 
   // Original text: "Resource sets"
-  resourceSets: 'Ajustes dos recursos',
+  resourceSets: 'Ajustes de recursos',
 
   // Original text: "Resource set name"
   resourceSetName: 'Ajuste de nome do recurso',
@@ -1569,7 +1575,7 @@ export default {
   deleteResourceSetWarning: 'Deletar grupo de recurso',
 
   // Original text: "Are you sure you want to delete this resource set?"
-  deleteResourceSetQuestion: 'Você tem certeza que deseja deletar este grupo de recurso?',
+  deleteResourceSetQuestion: 'Você tem certeza que deseja deletar este ajuste?',
 
   // Original text: "Missing objects:"
   resourceSetMissingObjects: 'Objetos faltando',
@@ -1596,7 +1602,7 @@ export default {
   noHostsAvailable: 'Sem hosts disponiveis',
 
   // Original text: "VMs created from this resource set shall run on the following hosts."
-  availableHostsDescription: 'VMs criadas a partir desse conjunto de recursos deve ser executado nos seguintes hosts.',
+  availableHostsDescription: 'VMs criadas a partir desse conjunto de recursos deve ser executado nos hosts indicados.',
 
   // Original text: "Maximum CPUs"
   maxCpus: 'Limite de CPUs',
@@ -1605,7 +1611,7 @@ export default {
   maxRam: 'Limite de RAM (GiB)',
 
   // Original text: "Maximum disk space"
-  maxDiskSpace: 'Limite de espaço do disco',
+  maxDiskSpace: 'Limite de espaço de disco',
 
   // Original text: "No limits."
   noResourceSetLimits: 'Sem limites',
@@ -1620,7 +1626,7 @@ export default {
   usedResource: 'Usado:',
 
   // Original text: "Try dropping some backups here, or click to select backups to upload. Accept only .xva files."
-  importVmsList: 'Tente soltar alguns backups aqui, ou clique para selecionar backups que seja feito o upload. Apenas arquivos .xva são aceitos.',
+  importVmsList: 'Tente soltar alguns backups aqui, ou clique para selecionar os backups para que seja feito o upload. Apenas arquivos .xva são aceitos.',
 
   // Original text: "No selected VMs."
   noSelectedVms: 'Nenhuma VM selecionada',
@@ -1674,28 +1680,28 @@ export default {
   noBackup: 'Nenhum backup disponível',
 
   // Original text: "Shutdown host"
-  stopHostModalTitle: undefined,
+  stopHostModalTitle: 'Desligar host',
 
   // Original text: "This will shutdown your host. Do you want to continue?"
-  stopHostModalMessage: undefined,
+  stopHostModalMessage: 'O host será desligado. Você tem certeza que deseja continuar?',
 
   // Original text: "Restart host"
-  restartHostModalTitle: undefined,
+  restartHostModalTitle: 'Reiniciar host',
 
   // Original text: "This will restart your host. Do you want to continue?"
-  restartHostModalMessage: undefined,
+  restartHostModalMessage: 'O host será reiniciado. Você tem certeza que deseja continuar?',
 
   // Original text: "Restart VM"
-  restartVmModalTitle: undefined,
+  restartVmModalTitle: 'Reiniciar VM',
 
   // Original text: "Are you sure you want to restart {name}?"
-  restartVmModalMessage: undefined,
+  restartVmModalMessage: 'Você tem certeza que deseja reiniciar {name}?',
 
   // Original text: "Stop VM"
-  stopVmModalTitle: undefined,
+  stopVmModalTitle: 'Parar VM',
 
   // Original text: "Are you sure you want to stop {name}?"
-  stopVmModalMessage: undefined,
+  stopVmModalMessage: 'Você tem certeza que deseja parar {name}?',
 
   // Original text: "Start VM{vms, plural, one {} other {s}}"
   startVmsModalTitle: 'Iniciar VM{vms, plural, one {} other {s}}',
@@ -1736,6 +1742,9 @@ export default {
   // Original text: "Migrate VM"
   migrateVmModalTitle: 'Migrar VM',
 
+  // Original text: "Are you sure you want to migrate this VM to {hostName}?"
+  migrateVmModalBody: 'Você tem certeza que deseja migrar esta VM para {hostName}?',
+
   // Original text: "Select a destination host:"
   migrateVmAdvancedModalSelectHost: 'Selecionar um host de destino:',
 
@@ -1770,7 +1779,7 @@ export default {
   importBackupModalSelectBackup: 'Selecionar backup...',
 
   // Original text: "Are you sure you want to remove all orphaned VDIs?"
-  removeAllOrphanedModalWarning: 'Você tem certeza que deseja remover todos os VDIs orfãos?',
+  removeAllOrphanedModalWarning: 'Você tem certeza que deseja remover todos as VDIs orfãs?',
 
   // Original text: "Remove all logs"
   removeAllLogsModalTitle: 'Remover todos os logs',
