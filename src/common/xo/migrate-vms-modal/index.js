@@ -2,11 +2,14 @@ import BaseComponent from 'base-component'
 import every from 'lodash/every'
 import flatten from 'lodash/flatten'
 import forEach from 'lodash/forEach'
+import filter from 'lodash/filter'
 import find from 'lodash/find'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
+import mapValues from 'lodash/mapValues'
 import React from 'react'
 import some from 'lodash/some'
+import store from 'store'
 
 import _ from '../../intl'
 import invoke from '../../invoke'
@@ -24,8 +27,12 @@ import {
 import {
   createGetObjectsOfType,
   createPicker,
-  createSelector
+  createSelector,
+  getObject
 } from '../../selectors'
+import {
+  isSrShared
+} from 'xo'
 
 import { isSrWritable } from '../'
 
@@ -105,8 +112,8 @@ export default class MigrateVmsModalBody extends BaseComponent {
   }
 
   get value () {
-    const { vms } = this.props
     const { host } = this.state
+    const vms = filter(this.props.vms, vm => vm.$container !== host.id)
     if (!host || isEmpty(vms)) {
       return { vms }
     }
@@ -117,6 +124,9 @@ export default class MigrateVmsModalBody extends BaseComponent {
       vifsByVm
     } = this.props
     const {
+      intraPool,
+      doNotMigrateVdi,
+      doNotMigrateVmVdis,
       migrationNetworkId,
       networkId,
       smartVifMapping,
@@ -126,10 +136,14 @@ export default class MigrateVmsModalBody extends BaseComponent {
     // Map VM --> ( Map VDI --> SR )
     const mapVmsMapVdisSrs = {}
     forEach(vbdsByVm, (vbds, vm) => {
+      if (doNotMigrateVmVdis[vm]) {
+        return
+      }
       const mapVdisSrs = {}
       forEach(vbds, vbd => {
-        if (!vbd.is_cd_drive && vbd.VDI) {
-          mapVdisSrs[vbd.VDI] = srId
+        const vdi = vbd.VDI
+        if (!vbd.is_cd_drive && vdi) {
+          mapVdisSrs[vdi] = intraPool && doNotMigrateVdi[vdi] ? this._getObject(vdi).SR : srId
         }
       })
       mapVmsMapVdisSrs[vm] = mapVdisSrs
@@ -146,6 +160,9 @@ export default class MigrateVmsModalBody extends BaseComponent {
     // Map VM --> ( Map VIF --> network )
     const mapVmsMapVifsNetworks = {}
     forEach(vms, vm => {
+      if (vm.$pool === host.$pool) {
+        return
+      }
       const mapVifsNetworks = {}
       forEach(vifsByVm[vm.id], vif => {
         mapVifsNetworks[vif.id] = smartVifMapping
@@ -154,13 +171,23 @@ export default class MigrateVmsModalBody extends BaseComponent {
       })
       mapVmsMapVifsNetworks[vm.id] = mapVifsNetworks
     })
+
+    // Map VM --> migration network
+    const mapVmsMigrationNetwork = mapValues(doNotMigrateVmVdis, doNotMigrateVdis =>
+      doNotMigrateVdis ? undefined : migrationNetworkId
+    )
+
     return {
       mapVmsMapVdisSrs,
       mapVmsMapVifsNetworks,
-      migrationNetwork: migrationNetworkId,
+      mapVmsMigrationNetwork,
       targetHost: host.id,
       vms
     }
+  }
+
+  _getObject (id) {
+    return getObject(store.getState(), id)
   }
 
   _selectHost = host => {
@@ -171,11 +198,30 @@ export default class MigrateVmsModalBody extends BaseComponent {
     const { pools, pifs } = this.props
     const defaultMigrationNetworkId = find(pifs, pif => pif.$host === host.id && pif.management).$network
     const defaultSrId = pools[host.$pool].default_SR
+    const doNotMigrateVmVdis = {}
+    const doNotMigrateVdi = {}
+    forEach(this.props.vbdsByVm, (vbds, vm) => {
+      if (this._getObject(vm).$container === host.id) {
+        doNotMigrateVmVdis[vm] = true
+        return
+      }
+      const _doNotMigrateVdi = {}
+      forEach(vbds, vbd => {
+        if (vbd.VDI != null) {
+          doNotMigrateVdi[vbd.VDI] = _doNotMigrateVdi[vbd.VDI] = isSrShared(this._getObject(this._getObject(vbd.VDI).$SR))
+        }
+      })
+      doNotMigrateVmVdis[vm] = every(_doNotMigrateVdi)
+    })
+    const noVdisMigration = every(doNotMigrateVmVdis)
     this.setState({
       host,
       intraPool: every(this.props.vms, vm => vm.$pool === host.$pool),
+      doNotMigrateVdi,
+      doNotMigrateVmVdis,
       migrationNetworkId: defaultMigrationNetworkId,
       networkId: defaultMigrationNetworkId,
+      noVdisMigration,
       smartVifMapping: true,
       srId: defaultSrId
     })
@@ -191,6 +237,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
       intraPool,
       migrationNetworkId,
       networkId,
+      noVdisMigration,
       smartVifMapping,
       srId
     } = this.state
@@ -221,10 +268,10 @@ export default class MigrateVmsModalBody extends BaseComponent {
           </SingleLineRow>
         </div>
       }
-      {host && [
+      {host && (!intraPool || !noVdisMigration) &&
         <div key='sr' style={LINE_STYLE}>
           <SingleLineRow>
-            <Col size={6}>{_('migrateVmsSelectSr')}</Col>
+            <Col size={6}>{!intraPool ? _('migrateVmsSelectSr') : _('migrateVmsSelectSrIntraPool')}</Col>
             <Col size={6}>
               <SelectSr
                 onChange={this._selectSr}
@@ -233,7 +280,9 @@ export default class MigrateVmsModalBody extends BaseComponent {
               />
             </Col>
           </SingleLineRow>
-        </div>,
+        </div>
+      }
+      {host && !intraPool &&
         <div key='network' style={LINE_STYLE}>
           <SingleLineRow>
             <Col size={6}>{_('migrateVmsSelectNetwork')}</Col>
@@ -254,7 +303,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
             </Col>
           </SingleLineRow>
         </div>
-      ]}
+      }
     </div>
   }
 }

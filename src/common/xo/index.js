@@ -588,7 +588,7 @@ export const migrateVms = vms => (
       const {
         mapVmsMapVdisSrs,
         mapVmsMapVifsNetworks,
-        migrationNetwork,
+        mapVmsMigrationNetwork,
         targetHost,
         vms
       } = params
@@ -596,7 +596,7 @@ export const migrateVms = vms => (
         _call('vm.migrate', {
           mapVdisSrs: mapVmsMapVdisSrs[id],
           mapVifsNetworks: mapVmsMapVifsNetworks[id],
-          migrationNetwork,
+          migrationNetwork: mapVmsMigrationNetwork[id],
           targetHost,
           vm: id
         })
