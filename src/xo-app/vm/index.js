@@ -262,7 +262,7 @@ export default class Vm extends Component {
     ]), pick(this.state, [
       'statsOverview'
     ]))
-    return <Page header={this.header()} title={`${vm.name_label} (${container.name_label})`}>
+    return <Page header={this.header()} title={`${vm.name_label}${container ? ` (${container.name_label})` : ''}`}>
       {cloneElement(this.props.children, childProps)}
     </Page>
   }

@@ -160,7 +160,7 @@ export default class Sr extends Component {
       'vdisToVmIds'
     ])
    )
-    return <Page header={this.header()} title={`${sr.name_label} (${container.name_label})`}>
+    return <Page header={this.header()} title={`${sr.name_label}${container ? ` (${container.name_label})` : ''}`}>
       {cloneElement(this.props.children, childProps)}
     </Page>
   }
