@@ -134,7 +134,7 @@ create = $coroutine (params) ->
   installation = extract(params, 'installation')
   params.installRepository = installation && installation.repository
 
-  resourceSet = extract(params, resourceSet)
+  resourceSet = extract(params, 'resourceSet')
 
   xapiVm = yield xapi.createVm(template._xapiId, params)
   vm = xapi.xo.addObject(xapiVm)
