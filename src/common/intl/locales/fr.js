@@ -310,7 +310,8 @@ export default {
   alarmPool: 'Pool',
   alarmRemoveAll: 'Supprimer toutes les alarmes',
   // ----- New VM -----
-  newVmCreateNewVmOn: 'Créer une nouvelle VM sur {pool}',
+  newVmCreateNewVmOn: 'Créer une nouvelle VM sur {select}',
+  newVmCreateNewVmOn2: 'Créer une nouvelle VM sur {select1} ou {select2}',
   newVmInfoPanel: 'Informations',
   newVmNameLabel: 'Nom',
   newVmTemplateLabel: 'Modèle',

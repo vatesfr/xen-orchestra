@@ -1,52 +1,14 @@
 import _ from 'intl'
-import forEach from 'lodash/forEach'
 import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
 import propTypes from 'prop-types'
 import React, { Component } from 'react'
 import renderXoItem from 'render-xo-item'
-import store from 'store'
-import { getObject } from 'selectors'
 
 import {
   subscribeGroups,
   subscribeUsers
 } from 'xo'
-
-// ===================================================================
-
-export const resolveResourceSets = resourceSets => (
-  map(resourceSets, resourceSet => {
-    const { objects, ...attrs } = resourceSet
-    const resolvedObjects = {}
-    const resolvedSet = {
-      ...attrs,
-      missingObjects: [],
-      objectsByType: resolvedObjects
-    }
-    const state = store.getState()
-
-    forEach(objects, id => {
-      const object = getObject(state, id)
-
-      // Error, missing resource.
-      if (!object) {
-        resolvedSet.missingObjects.push(id)
-        return
-      }
-
-      const { type } = object
-
-      if (!resolvedObjects[type]) {
-        resolvedObjects[type] = [ object ]
-      } else {
-        resolvedObjects[type].push(object)
-      }
-    })
-
-    return resolvedSet
-  })
-)
 
 // ===================================================================
 

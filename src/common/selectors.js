@@ -245,13 +245,18 @@ const _getPermissionsPredicate = invoke(() => {
 
 // Creates an object selector from an id selector.
 export const createGetObject = (idSelector = _getId) =>
-  (state, props) => {
+  (state, props, useResourceSet) => {
     const object = state.objects.all[idSelector(state, props)]
     if (!object) {
       return
     }
 
+    if (useResourceSet) {
+      return object
+    }
+
     const predicate = _getPermissionsPredicate(state)
+
     if (!predicate) {
       if (predicate == null) {
         return object // no filtering

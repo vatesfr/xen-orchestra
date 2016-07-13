@@ -32,7 +32,8 @@ import {
 } from 'select-objects'
 import {
   connectStore,
-  formatSize
+  formatSize,
+  resolveResourceSets
 } from 'utils'
 import {
   createResourceSet,
@@ -42,8 +43,7 @@ import {
 } from 'xo'
 
 import {
-  Subjects,
-  resolveResourceSets
+  Subjects
 } from '../helpers'
 
 // ===================================================================
