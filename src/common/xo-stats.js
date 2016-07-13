@@ -34,6 +34,9 @@ const _computeArraysSum = arrays => {
 const _computeArraysAvg = arrays => {
   const sums = _computeArraysSum(arrays)
 
+  if (!arrays[0]) {
+    return []
+  }
   const n = arrays && arrays[0].length
   const m = arrays.length
 
