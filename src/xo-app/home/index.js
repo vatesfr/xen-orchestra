@@ -623,8 +623,8 @@ export default class Home extends Component {
                 </OverlayTrigger>
                 {' '}
                 <DropdownButton bsStyle='link' id='sort' title={_('homeSortBy')}>
-                  {map(options.sortOptions, ({ labelId, sortBy: _sortBy, sortOrder }) => (
-                    <MenuItem onClick={() => this.setState({ sortBy: _sortBy, sortOrder })}>
+                  {map(options.sortOptions, ({ labelId, sortBy: _sortBy, sortOrder }, key) => (
+                    <MenuItem key={key} onClick={() => this.setState({ sortBy: _sortBy, sortOrder })}>
                       {this._tick(_sortBy === sortBy)}
                       {_sortBy === sortBy
                         ? <strong>{_(labelId)}</strong>
