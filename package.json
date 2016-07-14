@@ -38,7 +38,7 @@
     "@marsaud/smb2-promise": "^0.2.0",
     "app-conf": "^0.4.0",
     "babel-runtime": "^6.5.0",
-    "base64url": "^1.0.5",
+    "base64url": "^2.0.0",
     "blocked": "^1.1.0",
     "bluebird": "^3.1.1",
     "body-parser": "^1.13.3",
