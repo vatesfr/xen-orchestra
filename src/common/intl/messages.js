@@ -728,6 +728,7 @@ var messages = {
   migrateVmSelectSrs: 'For each VDI, select an SR:',
   migrateVmSelectNetworks: 'For each VIF, select a network:',
   migrateVmsSelectSr: 'Select a destination SR:',
+  migrateVmsSelectSrIntraPool: 'Select a destination SR for local disks:',
   migrateVmsSelectNetwork: 'Select a network on which to connect each VIF:',
   migrateVmsSmartMapping: 'Smart mapping',
   migrateVmName: 'Name',
