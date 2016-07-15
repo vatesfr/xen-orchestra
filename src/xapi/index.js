@@ -455,10 +455,7 @@ export default class Xapi extends XapiBase {
     const resolveVersionPatches = function (uuids) {
       const versionPatches = createRawObject()
 
-      if (uuids && !Array.isArray(uuids)) {
-        uuids = [uuids]
-      }
-      forEach(uuids, ({uuid}) => {
+      forEach(ensureArray(uuids), ({uuid}) => {
         versionPatches[uuid] = patches[uuid]
       })
 
