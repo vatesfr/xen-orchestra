@@ -41,7 +41,7 @@
     "dependency-check": "^2.5.1",
     "mocha": "^2.3.4",
     "must": "^0.13.1",
-    "nyc": "^6.1.1",
+    "nyc": "^7.0.0",
     "source-map-support": "^0.4.0",
     "standard": "^7.0.0",
     "trace": "^2.0.1"
