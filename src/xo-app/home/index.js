@@ -230,7 +230,7 @@ export default class Home extends Component {
     })
 
     const { filterInput } = this.refs
-    if (filterInput && filterInput.value !== filter) {
+    if (filterInput) {
       filterInput.value = filter
       filterInput.focus()
     }
@@ -266,10 +266,7 @@ export default class Home extends Component {
     })
   }
 
-  _clearFilter = () => {
-    this._setFilter('')
-    this._focusFilterInput()
-  }
+  _clearFilter = () => this._setFilter('')
 
   _onFilterChange = invoke(() => {
     const setFilter = debounce(filter => {
@@ -407,11 +404,11 @@ export default class Home extends Component {
               type='text'
             />
             <div className='input-group-btn'>
-              <button
+              <a
                 className='btn btn-secondary'
                 onClick={this._clearFilter}>
                 <Icon icon='clear-search' />
-              </button>
+              </a>
             </div>
           </div>
         </Col>
