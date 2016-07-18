@@ -630,6 +630,9 @@ var messages = {
   newVmCreateVmsConfirm: 'Are you sure you want to create {nbVms} VMs?',
   newVmMultipleVms: 'Multiple VMs:',
   newVmSelectResourceSet: 'Select a resource set:',
+  newVmMultipleVmsPattern: 'Name pattern:',
+  newVmMultipleVmsPatternPlaceholder: 'e.g.: \\{name\\}_%',
+  newVmFirstIndex: 'First index:',
 
   // ----- Self -----
   resourceSets: 'Resource sets',

@@ -48,6 +48,7 @@ import {
   Toggle
 } from 'form'
 import {
+  buildTemplate,
   connectStore,
   formatSize,
   noop,
@@ -85,10 +86,10 @@ const LineItem = ({ children }) => (
     {children}
   </div>
 )
-const Item = ({ label, children }) => (
+const Item = ({ label, children, className }) => (
   <span className={styles.item}>
     {label && <span>{_(label)}&nbsp;</span>}
-    <span className={styles.input}>{children}</span>
+    <span className={classNames(styles.input, className)}>{children}</span>
   </span>
 )
 
@@ -172,10 +173,11 @@ export default class NewVm extends BaseComponent {
       name_label: '',
       name_description: '',
       nameLabels: map(Array(NB_VMS_MIN), (_, index) => `VM_${index + 1}`),
-
+      namePattern: '{name}_%',
       nbVms: NB_VMS_MIN,
       VDIs: [],
-      VIFs: []
+      VIFs: [],
+      seqStart: 1
     })
   }
 
@@ -290,12 +292,14 @@ export default class NewVm extends BaseComponent {
       })
     }
     const name_label = state.name_label === '' || !state.name_labelHasChanged ? template.name_label : state.name_label
+    const name_description = state.name_description === '' || !state.name_descriptionHasChanged ? template.name_description || '' : state.name_description
+    const replacer = this._buildTemplate()
     this._setState({
       // infos
       name_label,
       template,
-      name_description: state.name_description === '' || !state.name_descriptionHasChanged ? template.name_description || '' : state.name_description,
-      nameLabels: map(Array(+state.nbVms), (_, index) => `${name_label}_${index + 1}`),
+      name_description,
+      nameLabels: map(Array(+state.nbVms), (_, index) => replacer({ name_label, name_description, template }, index + 1)),
       // performances
       memory: template.memory.size,
       CPUs: template.CPUs.number,
@@ -398,6 +402,13 @@ export default class NewVm extends BaseComponent {
     })
     return network && network.id
   }
+  _buildTemplate = createSelector(
+    () => this.state.state.namePattern,
+    namePattern => buildTemplate(namePattern, {
+      '{name}': state => state.name_label || '',
+      '%': (_, i) => i
+    })
+  )
 
 // On change -------------------------------------------------------------------
   /*
@@ -451,25 +462,28 @@ export default class NewVm extends BaseComponent {
       this._setState({ [prop]: value })
     }
   }
+
   _updateNbVms = () => {
-    const { nbVms, name_label, nameLabels } = this.state.state
+    const { nbVms, nameLabels, seqStart } = this.state.state
     const nbVmsClamped = clamp(nbVms, NB_VMS_MIN, NB_VMS_MAX)
     const newNameLabels = [ ...nameLabels ]
     if (nbVmsClamped < nameLabels.length) {
       this._setState({ nameLabels: slice(newNameLabels, 0, nbVmsClamped) })
     } else {
-      for (let i = nameLabels.length + 1; i <= nbVmsClamped; i++) {
-        newNameLabels.push(`${name_label || 'VM'}_${i}`)
+      const replacer = this._buildTemplate()
+      for (let i = +seqStart + nameLabels.length; i <= +seqStart + nbVmsClamped - 1; i++) {
+        newNameLabels.push(replacer(this.state.state, i))
       }
       this._setState({ nameLabels: newNameLabels })
     }
   }
   _updateNameLabels = () => {
-    const { name_label, nameLabels } = this.state.state
+    const { nameLabels, seqStart } = this.state.state
     const nbVms = nameLabels.length
     const newNameLabels = []
-    for (let i = 1; i <= nbVms; i++) {
-      newNameLabels.push(`${name_label || 'VM'}_${i}`)
+    const replacer = this._buildTemplate()
+    for (let i = +seqStart; i <= +seqStart + nbVms - 1; i++) {
+      newNameLabels.push(replacer(this.state.state, i))
     }
     this._setState({ nameLabels: newNameLabels })
   }
@@ -599,8 +613,11 @@ export default class NewVm extends BaseComponent {
       name_label,
       nameLabels,
       nbVms,
+      namePattern,
+      seqStart,
       template
     } = this.state.state
+    const { formatMessage } = this.props.intl
     return <Section icon='new-vm-infos' title='newVmInfoPanel' done={this._isInfoDone()}>
       <SectionContent>
         <Item label='newVmTemplateLabel'>
@@ -636,31 +653,54 @@ export default class NewVm extends BaseComponent {
           />
         </Item>
       </SectionContent>
-      <SectionContent column>
-        <LineItem>
-          <Item>
-            {_('newVmMultipleVms')}
-            &nbsp;&nbsp;
-            <Toggle value={multipleVms} onChange={this._getOnChange('multipleVms')} />
-            <br />
-            <div className='input-group'>
-              <DebounceInput
-                className='form-control'
-                debounceTimeout={DEBOUNCE_TIMEOUT}
-                disabled={!multipleVms}
-                max={NB_VMS_MAX}
-                min={NB_VMS_MIN}
-                onChange={this._getOnChange('nbVms')}
-                type='number'
-                value={nbVms}
-              />
-              <span className='input-group-btn'>
-                <Button bsStyle='secondary' disabled={!multipleVms} onClick={this._updateNbVms}><Icon icon='arrow-right' /></Button>
-              </span>
-            </div>
-            <a className={styles.refreshNames} onClick={this._updateNameLabels}><Icon icon='refresh' /></a>
-          </Item>
-        </LineItem>
+      <SectionContent>
+        <Item>
+          {_('newVmMultipleVms')}
+          &nbsp;&nbsp;
+          <Toggle value={multipleVms} onChange={this._getOnChange('multipleVms')} />
+        </Item>
+        <Item>
+          {_('newVmMultipleVmsPattern')}
+          &nbsp;&nbsp;
+          <DebounceInput
+            className='form-control'
+            debounceTimeout={DEBOUNCE_TIMEOUT}
+            disabled={!multipleVms}
+            onChange={this._getOnChange('namePattern')}
+            placeholder={formatMessage(messages.newVmMultipleVmsPatternPlaceholder)}
+            value={namePattern}
+          />
+        </Item>
+        <Item>
+          {_('newVmFirstIndex')}
+          &nbsp;&nbsp;
+          <DebounceInput
+            className={'form-control'}
+            debounceTimeout={DEBOUNCE_TIMEOUT}
+            disabled={!multipleVms}
+            onChange={this._getOnChange('seqStart')}
+            type='number'
+            value={seqStart}
+          />
+        </Item>
+        <Item className='input-group'>
+          <DebounceInput
+            className='form-control'
+            debounceTimeout={DEBOUNCE_TIMEOUT}
+            disabled={!multipleVms}
+            max={NB_VMS_MAX}
+            min={NB_VMS_MIN}
+            onChange={this._getOnChange('nbVms')}
+            type='number'
+            value={nbVms}
+          />
+          <span className='input-group-btn'>
+            <Button bsStyle='secondary' disabled={!multipleVms} onClick={this._updateNbVms}><Icon icon='arrow-right' /></Button>
+          </span>
+        </Item>
+        <Item>
+          <a className={styles.refreshNames} onClick={this._updateNameLabels}><Icon icon='refresh' /></a>
+        </Item>
         {multipleVms && <LineItem>
           {map(nameLabels, (nameLabel, index) =>
             <Item key={`nameLabel_${index}`}>
