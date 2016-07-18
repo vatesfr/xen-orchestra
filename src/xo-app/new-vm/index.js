@@ -675,10 +675,7 @@ export default class NewVm extends BaseComponent {
           {_('newVmFirstIndex')}
           &nbsp;&nbsp;
           <DebounceInput
-            className={classNames(
-              styles.small,
-              'form-control'
-            )}
+            className={'form-control'}
             debounceTimeout={DEBOUNCE_TIMEOUT}
             disabled={!multipleVms}
             onChange={this._getOnChange('seqStart')}
