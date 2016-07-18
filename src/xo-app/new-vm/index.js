@@ -86,10 +86,10 @@ const LineItem = ({ children }) => (
     {children}
   </div>
 )
-const Item = ({ label, children }) => (
+const Item = ({ label, children, className }) => (
   <span className={styles.item}>
     {label && <span>{_(label)}&nbsp;</span>}
-    <span className={styles.input}>{children}</span>
+    <span className={classNames(styles.input, className)}>{children}</span>
   </span>
 )
 
@@ -650,44 +650,42 @@ export default class NewVm extends BaseComponent {
           />
         </Item>
       </SectionContent>
-      <SectionContent column>
-        <LineItem>
-          <Item>
-            {_('newVmMultipleVms')}
-            &nbsp;&nbsp;
-            <Toggle value={multipleVms} onChange={this._getOnChange('multipleVms')} />
-          </Item>
-          <Item>
-            {_('newVmMultipleVmsPattern')}
-            &nbsp;&nbsp;
-            <DebounceInput
-              className='form-control'
-              debounceTimeout={DEBOUNCE_TIMEOUT}
-              disabled={!multipleVms}
-              onChange={this._getOnChange('namePattern')}
-              placeholder={formatMessage(messages.newVmMultipleVmsPatternPlaceholder)}
-              value={namePattern}
-            />
-          </Item>
-          <Item>
-            <div className='input-group'>
-              <DebounceInput
-                className='form-control'
-                debounceTimeout={DEBOUNCE_TIMEOUT}
-                disabled={!multipleVms}
-                max={NB_VMS_MAX}
-                min={NB_VMS_MIN}
-                onChange={this._getOnChange('nbVms')}
-                type='number'
-                value={nbVms}
-              />
-              <span className='input-group-btn'>
-                <Button bsStyle='secondary' disabled={!multipleVms} onClick={this._updateNbVms}><Icon icon='arrow-right' /></Button>
-              </span>
-            </div>
-            <a className={styles.refreshNames} onClick={this._updateNameLabels}><Icon icon='refresh' /></a>
-          </Item>
-        </LineItem>
+      <SectionContent>
+        <Item>
+          {_('newVmMultipleVms')}
+          &nbsp;&nbsp;
+          <Toggle value={multipleVms} onChange={this._getOnChange('multipleVms')} />
+        </Item>
+        <Item>
+          {_('newVmMultipleVmsPattern')}
+          &nbsp;&nbsp;
+          <DebounceInput
+            className='form-control'
+            debounceTimeout={DEBOUNCE_TIMEOUT}
+            disabled={!multipleVms}
+            onChange={this._getOnChange('namePattern')}
+            placeholder={formatMessage(messages.newVmMultipleVmsPatternPlaceholder)}
+            value={namePattern}
+          />
+        </Item>
+        <Item className='input-group'>
+          <DebounceInput
+            className='form-control'
+            debounceTimeout={DEBOUNCE_TIMEOUT}
+            disabled={!multipleVms}
+            max={NB_VMS_MAX}
+            min={NB_VMS_MIN}
+            onChange={this._getOnChange('nbVms')}
+            type='number'
+            value={nbVms}
+          />
+          <span className='input-group-btn'>
+            <Button bsStyle='secondary' disabled={!multipleVms} onClick={this._updateNbVms}><Icon icon='arrow-right' /></Button>
+          </span>
+        </Item>
+        <Item>
+          <a className={styles.refreshNames} onClick={this._updateNameLabels}><Icon icon='refresh' /></a>
+        </Item>
         {multipleVms && <LineItem>
           {map(nameLabels, (nameLabel, index) =>
             <Item key={`nameLabel_${index}`}>
