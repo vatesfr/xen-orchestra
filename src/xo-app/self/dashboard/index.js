@@ -159,7 +159,7 @@ export default class Dashboard extends Component {
   }
 
   render () {
-    const { resourceSets } = this
+    const { resourceSets } = this.state
 
     return process.env.XOA_PLAN > 3
       ? <Container>
