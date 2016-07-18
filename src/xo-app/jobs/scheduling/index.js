@@ -26,9 +26,10 @@ export default class Schedules extends Component {
     this.state = {
       action: undefined,
       actions: undefined,
+      cronPattern: '* * * * *',
       job: undefined,
       jobs: undefined,
-      cron: '* * * * *'
+      timezone: undefined
     }
     this.loaded = new Promise((resolve, reject) => {
       this._resolveLoaded = resolve
@@ -80,16 +81,16 @@ export default class Schedules extends Component {
   _handleSubmit = () => {
     const {name, job, enabled} = this.refs
     console.log(job)
-    const { cron, schedule } = this.state
+    const { cronPattern, schedule } = this.state
     let save
     if (schedule) {
       console.log('JOB', job, job.value)
       schedule.job = job.value.id
-      schedule.cron = cron
+      schedule.cron = cronPattern
       schedule.name = name.value
       save = updateSchedule(schedule)
     } else {
-      save = createSchedule(job.value.id, { cron, enabled: enabled.value, name: name.value })
+      save = createSchedule(job.value.id, { cron: cronPattern, enabled: enabled.value, name: name.value })
     }
     return save.then(this._reset).catch(err => error('Save Schedule', err.message || String(err)))
   }
@@ -102,39 +103,38 @@ export default class Schedules extends Component {
       return
     }
 
-    const {name, job, scheduler} = this.refs
+    const { name, job } = this.refs
     name.value = schedule.name
     job.value = schedule.job
-    scheduler.value = schedule.cron
     this.setState({
-      schedule
+      schedule,
+      cronPattern: schedule.cron
     })
   }
 
   _reset = () => {
     this.setState({
-      schedule: undefined
+      schedule: undefined,
+      cronPattern: undefined
     }, () => {
-      const {name, job, enabled, scheduler} = this.refs
+      const { name, job, enabled } = this.refs
       name.value = ''
       enabled.value = false
       job.value = undefined
-      scheduler.value = undefined
     })
   }
 
-  _updateCronPattern = cron => {
-    this.setState({
-      cron
-    })
+  _updateCronPattern = value => {
+    this.setState(value)
   }
 
   render () {
     const {
-      cron,
+      cronPattern,
       jobs,
       schedule,
-      schedules
+      schedules,
+      timezone
     } = this.state
     return <div>
       <h1>Schedules</h1>
@@ -154,8 +154,12 @@ export default class Schedules extends Component {
         }
       </form>
       <fieldset>
-        <Scheduler ref='scheduler' onChange={this._updateCronPattern} />
-        <SchedulePreview cron={cron} />
+        <Scheduler
+          cronPattern={cronPattern}
+          onChange={this._updateCronPattern}
+          timezone={timezone}
+        />
+        <SchedulePreview cronPattern={cronPattern} />
       </fieldset>
       <br />
       <div className='form-group'>
