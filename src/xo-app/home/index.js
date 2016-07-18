@@ -200,6 +200,7 @@ export default class Home extends Component {
       pathname,
       query: { ...query, t: type, s: undefined }
     })
+    this._focusFilterInput()
   }
 
   _initFilter (props) {
@@ -265,7 +266,10 @@ export default class Home extends Component {
     })
   }
 
-  _clearFilter = () => this._setFilter('')
+  _clearFilter = () => {
+    this._setFilter('')
+    this._focusFilterInput()
+  }
 
   _onFilterChange = invoke(() => {
     const setFilter = debounce(filter => {
@@ -362,6 +366,8 @@ export default class Home extends Component {
     this.forceUpdate()
     this._updateMasterCheckbox()
   }
+
+  _focusFilterInput = () => this.refs.filterInput.focus()
 
   _renderHeader () {
     const { filters } = OPTIONS[this.props.type]
@@ -624,7 +630,10 @@ export default class Home extends Component {
                 {' '}
                 <DropdownButton bsStyle='link' id='sort' title={_('homeSortBy')}>
                   {map(options.sortOptions, ({ labelId, sortBy: _sortBy, sortOrder }, key) => (
-                    <MenuItem key={key} onClick={() => this.setState({ sortBy: _sortBy, sortOrder })}>
+                    <MenuItem key={key} onClick={() => {
+                      this.setState({ sortBy: _sortBy, sortOrder })
+                      this._focusFilterInput()
+                    }}>
                       {this._tick(_sortBy === sortBy)}
                       {_sortBy === sortBy
                         ? <strong>{_(labelId)}</strong>
