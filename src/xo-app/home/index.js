@@ -230,7 +230,7 @@ export default class Home extends Component {
     })
 
     const { filterInput } = this.refs
-    if (filterInput) {
+    if (filterInput && filterInput.value !== filter) {
       filterInput.value = filter
       filterInput.focus()
     }
