@@ -632,6 +632,7 @@ var messages = {
   newVmSelectResourceSet: 'Select a resource set:',
   newVmMultipleVmsPattern: 'Name pattern:',
   newVmMultipleVmsPatternPlaceholder: 'e.g.: \\{name\\}_%',
+  newVmFirstIndex: 'First index:',
 
   // ----- Self -----
   resourceSets: 'Resource sets',

@@ -176,7 +176,8 @@ export default class NewVm extends BaseComponent {
       namePattern: '{name}_%',
       nbVms: NB_VMS_MIN,
       VDIs: [],
-      VIFs: []
+      VIFs: [],
+      seqStart: 1
     })
   }
 
@@ -401,6 +402,13 @@ export default class NewVm extends BaseComponent {
     })
     return network && network.id
   }
+  _buildTemplate = createSelector(
+    () => this.state.state.namePattern,
+    namePattern => buildTemplate(namePattern, {
+      '{name}': state => state.name_label || '',
+      '%': (_, i) => i
+    })
+  )
 
 // On change -------------------------------------------------------------------
   /*
@@ -454,33 +462,27 @@ export default class NewVm extends BaseComponent {
       this._setState({ [prop]: value })
     }
   }
-  _buildTemplate = () => buildTemplate(this.state.state.namePattern, {
-    '{name}': state => state.name_label || '',
-    '{description}': state => state.name_description || '',
-    '{template}': state => state.template ? state.template.name_label : '',
-    '{pool}': () => this.state.pool ? this.state.pool.name_label : '',
-    '%': (_, i) => i
-  })
+
   _updateNbVms = () => {
-    const { nbVms, nameLabels } = this.state.state
+    const { nbVms, nameLabels, seqStart } = this.state.state
     const nbVmsClamped = clamp(nbVms, NB_VMS_MIN, NB_VMS_MAX)
     const newNameLabels = [ ...nameLabels ]
     if (nbVmsClamped < nameLabels.length) {
       this._setState({ nameLabels: slice(newNameLabels, 0, nbVmsClamped) })
     } else {
       const replacer = this._buildTemplate()
-      for (let i = nameLabels.length + 1; i <= nbVmsClamped; i++) {
+      for (let i = +seqStart + nameLabels.length; i <= +seqStart + nbVmsClamped - 1; i++) {
         newNameLabels.push(replacer(this.state.state, i))
       }
       this._setState({ nameLabels: newNameLabels })
     }
   }
   _updateNameLabels = () => {
-    const { nameLabels } = this.state.state
+    const { nameLabels, seqStart } = this.state.state
     const nbVms = nameLabels.length
     const newNameLabels = []
     const replacer = this._buildTemplate()
-    for (let i = 1; i <= nbVms; i++) {
+    for (let i = +seqStart; i <= +seqStart + nbVms - 1; i++) {
       newNameLabels.push(replacer(this.state.state, i))
     }
     this._setState({ nameLabels: newNameLabels })
@@ -612,6 +614,7 @@ export default class NewVm extends BaseComponent {
       nameLabels,
       nbVms,
       namePattern,
+      seqStart,
       template
     } = this.state.state
     const { formatMessage } = this.props.intl
@@ -666,6 +669,21 @@ export default class NewVm extends BaseComponent {
             onChange={this._getOnChange('namePattern')}
             placeholder={formatMessage(messages.newVmMultipleVmsPatternPlaceholder)}
             value={namePattern}
+          />
+        </Item>
+        <Item>
+          {_('newVmFirstIndex')}
+          &nbsp;&nbsp;
+          <DebounceInput
+            className={classNames(
+              styles.small,
+              'form-control'
+            )}
+            debounceTimeout={DEBOUNCE_TIMEOUT}
+            disabled={!multipleVms}
+            onChange={this._getOnChange('seqStart')}
+            type='number'
+            value={seqStart}
           />
         </Item>
         <Item className='input-group'>
