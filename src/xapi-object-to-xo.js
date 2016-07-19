@@ -335,9 +335,10 @@ const TRANSFORMS = {
       }
     }
 
-    if (obj.VCPUs_params && obj.VCPUs_params.weight) {
-      vm.cpuCap = obj.VCPUs_params.cap
-      vm.cpuWeight = obj.VCPUs_params.weight
+    let tmp
+    if ((tmp = obj.VCPUs_params)) {
+      tmp.cap && (vm.cpuCap = tmp.cap)
+      tmp.weight && (vm.cpuWeight = tmp.weight)
     }
 
     if (!isHvm) {
