@@ -50,11 +50,13 @@ export default class {
     name,
     instance,
     configurationSchema,
+    configurationPresets,
     version
   ) {
     const id = name
     const plugin = this._plugins[id] = {
       configured: !configurationSchema,
+      configurationPresets,
       configurationSchema,
       id,
       instance,
@@ -101,6 +103,7 @@ export default class {
 
   async _getPlugin (id) {
     const {
+      configurationPresets,
       configurationSchema,
       loaded,
       name,
@@ -120,6 +123,7 @@ export default class {
       unloadable,
       version,
       configuration,
+      configurationPresets,
       configurationSchema
     }
   }

@@ -224,7 +224,8 @@ async function registerPlugin (pluginPath, pluginName) {
   // Supports both “normal” CommonJS and Babel's ES2015 modules.
   const {
     default: factory = plugin,
-    configurationSchema
+    configurationSchema,
+    configurationPresets
   } = plugin
 
   // The default export can be either a factory or directly a plugin
@@ -237,6 +238,7 @@ async function registerPlugin (pluginPath, pluginName) {
     pluginName,
     instance,
     configurationSchema,
+    configurationPresets,
     version
   )
 }
