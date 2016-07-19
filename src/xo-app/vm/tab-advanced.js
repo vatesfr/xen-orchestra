@@ -140,7 +140,7 @@ export default ({
           <tr>
             <th>{_('cpuWeightLabel')}</th>
             <td>
-              <Number value={+vm.cpuWeight || ''} onChange={value => editVm(vm, { cpuWeight: value })} nullable>
+              <Number value={vm.cpuWeight === undefined ? null : vm.cpuWeight} onChange={value => editVm(vm, { cpuWeight: value })} nullable>
                 {vm.cpuWeight == null ? _('defaultCpuWeight', { value: XEN_DEFAULT_WEIGHT }) : vm.cpuWeight}
               </Number>
             </td>
@@ -148,7 +148,7 @@ export default ({
           <tr>
             <th>{_('cpuCapLabel')}</th>
             <td>
-              <Number value={+vm.cpuCap || ''} onChange={value => editVm(vm, { cpuCap: value })} nullable>
+              <Number value={vm.cpuCap === undefined ? null : vm.cpuCap} onChange={value => editVm(vm, { cpuCap: value })} nullable>
                 {vm.cpuCap == null ? _('defaultCpuCap', { value: XEN_DEFAULT_CAP }) : vm.cpuCap}
               </Number>
             </td>
