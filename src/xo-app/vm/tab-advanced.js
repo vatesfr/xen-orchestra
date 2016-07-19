@@ -17,11 +17,10 @@ import {
   restartVm,
   resumeVm,
   stopVm,
-  suspendVm
+  suspendVm,
+  XEN_DEFAULT_CPU_CAP,
+  XEN_DEFAULT_CPU_WEIGHT
 } from 'xo'
-
-const XEN_DEFAULT_WEIGHT = 256
-const XEN_DEFAULT_CAP = 0
 
 const forceReboot = vm => restartVm(vm, true)
 const forceShutdown = vm => stopVm(vm, true)
@@ -141,7 +140,7 @@ export default ({
             <th>{_('cpuWeightLabel')}</th>
             <td>
               <Number value={vm.cpuWeight == null ? null : vm.cpuWeight} onChange={value => editVm(vm, { cpuWeight: value })} nullable>
-                {vm.cpuWeight == null ? _('defaultCpuWeight', { value: XEN_DEFAULT_WEIGHT }) : vm.cpuWeight}
+                {vm.cpuWeight == null ? _('defaultCpuWeight', { value: XEN_DEFAULT_CPU_WEIGHT }) : vm.cpuWeight}
               </Number>
             </td>
           </tr>
@@ -149,7 +148,7 @@ export default ({
             <th>{_('cpuCapLabel')}</th>
             <td>
               <Number value={vm.cpuCap == null ? null : vm.cpuCap} onChange={value => editVm(vm, { cpuCap: value })} nullable>
-                {vm.cpuCap == null ? _('defaultCpuCap', { value: XEN_DEFAULT_CAP }) : vm.cpuCap}
+                {vm.cpuCap == null ? _('defaultCpuCap', { value: XEN_DEFAULT_CPU_CAP }) : vm.cpuCap}
               </Number>
             </td>
           </tr>

@@ -33,6 +33,11 @@ import {
 
 // ===================================================================
 
+export const XEN_DEFAULT_CPU_WEIGHT = 256
+export const XEN_DEFAULT_CPU_CAP = 0
+
+// ===================================================================
+
 export const isSrWritable = sr => sr.content_type !== 'iso' && sr.size > 0
 export const isSrShared = sr => sr.$PBDs.length > 1
 
