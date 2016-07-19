@@ -234,6 +234,14 @@ export default {
       ]
     },
 
+    cpuCap: {
+      addToLimits: true,
+      get: vm => +(vm.VCPUs_params.cap || 0),
+      set (cap, vm) {
+        return this._updateObjectMapProperty(vm, 'VCPUs_params', { cap })
+      }
+    },
+
     cpusMax: 'cpusStaticMax',
     cpusStaticMax: {
       constraints: {
