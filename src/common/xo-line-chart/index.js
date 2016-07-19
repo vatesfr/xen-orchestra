@@ -18,7 +18,7 @@ import styles from './index.css'
 const N_LABELS_X = 5
 
 const LABEL_OFFSET_X = 40
-const LABEL_OFFSET_Y = 75
+const LABEL_OFFSET_Y = 85
 
 // ===================================================================
 
