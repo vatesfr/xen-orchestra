@@ -273,6 +273,9 @@ var messages = {
   cancelPluginEdition: 'Cancel',
   pluginConfigurationSuccess: 'Plugin configuration',
   pluginConfigurationChanges: 'Plugin configuration successfully saved!',
+  pluginConfigurationPresetTitle: 'Predefined configuration',
+  pluginConfigurationChoosePreset: 'Choose a predefined configuration.',
+  applyPluginPreset: 'Apply',
 
   // ----- VM actions ------
   startVmLabel: 'Start',
