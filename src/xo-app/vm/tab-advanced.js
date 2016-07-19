@@ -20,6 +20,9 @@ import {
   suspendVm
 } from 'xo'
 
+const XEN_DEFAULT_WEIGHT = 256
+const XEN_DEFAULT_CAP = 0
+
 const forceReboot = vm => restartVm(vm, true)
 const forceShutdown = vm => stopVm(vm, true)
 const fullCopy = vm => cloneVm(vm, true)
@@ -136,10 +139,19 @@ export default ({
           }
           <tr>
             <th>{_('cpuWeightLabel')}</th>
-            {vm.cpuWeight
-              ? <td>{vm.cpuWeight}</td>
-              : <td>{_('defaultCpuWeight')}</td>
-            }
+            <td>
+              <Number value={+vm.cpuWeight || ''} onChange={value => editVm(vm, { cpuWeight: value })} nullable>
+                {vm.cpuWeight == null ? _('defaultCpuWeight', { value: XEN_DEFAULT_WEIGHT }) : vm.cpuWeight}
+              </Number>
+            </td>
+          </tr>
+          <tr>
+            <th>{_('cpuCapLabel')}</th>
+            <td>
+              <Number value={+vm.cpuCap || ''} onChange={value => editVm(vm, { cpuCap: value })} nullable>
+                {vm.cpuCap == null ? _('defaultCpuCap', { value: XEN_DEFAULT_CAP }) : vm.cpuCap}
+              </Number>
+            </td>
           </tr>
           <tr>
             <th>{_('autoPowerOn')}</th>

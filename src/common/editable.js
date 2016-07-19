@@ -1,5 +1,6 @@
 import findKey from 'lodash/findKey'
 import isFunction from 'lodash/isFunction'
+import isNumber from 'lodash/isNumber'
 import isString from 'lodash/isString'
 import map from 'lodash/map'
 import pick from 'lodash/pick'
@@ -277,20 +278,35 @@ export class Password extends Text {
 }
 
 @propTypes({
-  value: propTypes.number.isRequired
+  nullable: propTypes.bool,
+  value: function (props, propName, componentName) {
+    const { nullable, value } = props
+    if (nullable && !isNumber(value) && !isString(value)) {
+      return new Error(`Invalid prop \`${propName}\` supplied to \`${componentName}, expected \`number\` or \`string\`.`)
+    }
+    if (!nullable && !isNumber(value)) {
+      return new Error(`Invalid prop \`${propName}\` supplied to \`${componentName}, expected \`number\` when prop \`nullable\` is false.`)
+    }
+  }
 })
 export class Number extends Component {
   get value () {
     return +this.refs.input.value
   }
 
-  _onChange = value => this.props.onChange(+value)
+  _onChange = value => {
+    if (value === '' && !this.props.nullable) {
+      return
+    }
+    this.props.onChange(value === '' ? null : +value)
+  }
 
   render () {
+    const { nullable, value } = this.props
     return <Text
       {...this.props}
       onChange={this._onChange}
-      value={String(this.props.value)}
+      value={nullable && value === '' ? '' : String(this.props.value)}
     />
   }
 }

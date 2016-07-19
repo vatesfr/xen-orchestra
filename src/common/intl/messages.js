@@ -504,7 +504,9 @@ var messages = {
   uuid: 'UUID',
   virtualizationMode: 'Virtualization mode',
   cpuWeightLabel: 'CPU weight',
-  defaultCpuWeight: 'Default',
+  defaultCpuWeight: 'Default ({value, number})',
+  cpuCapLabel: 'CPU cap',
+  defaultCpuCap: 'Default ({value, number})',
   pvArgsLabel: 'PV args',
   xenToolsStatus: 'Xen tools status',
   xenToolsStatusValue: {
