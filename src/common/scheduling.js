@@ -100,12 +100,12 @@ const TIME_FORMAT = {
 
 // monthNum: [ 0 : 11 ]
 const getMonthName = (monthNum) =>
-  <FormattedTime value={new Date(1970, monthNum)} month='long' timeZone='UTC' />
+  <FormattedTime value={new Date(1970, monthNum)} month='long' />
 
 // dayNum: [ 0 : 6 ]
 const getDayName = (dayNum) =>
   // January, 1970, 5th => Monday
-  <FormattedTime value={new Date(1970, 0, 4 + dayNum)} weekday='long' timeZone='UTC' />
+  <FormattedTime value={new Date(1970, 0, 4 + dayNum)} weekday='long' />
 
 // ===================================================================
 
