@@ -336,6 +336,7 @@ const TRANSFORMS = {
     }
 
     if (obj.VCPUs_params && obj.VCPUs_params.weight) {
+      vm.cpuCap = obj.VCPUs_params.cap
       vm.cpuWeight = obj.VCPUs_params.weight
     }
 
