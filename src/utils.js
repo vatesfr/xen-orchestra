@@ -12,6 +12,12 @@ import keys from 'lodash/keys'
 import kindOf from 'kindof'
 import multiKeyHashInt from 'multikey-hash'
 import xml2js from 'xml2js'
+
+// Moment timezone can be loaded only one time, it's a workaround to load
+// the latest version because cron module uses an old version of moment which
+// does not implement `guess` function for example.
+import 'moment-timezone'
+
 import { CronJob } from 'cron'
 import {
   all as pAll,
@@ -439,26 +445,29 @@ export const streamToArray = (stream, {
 
 // -------------------------------------------------------------------
 
-export const scheduleFn = (cronPattern, fn) => {
+export const scheduleFn = (cronTime, fn, timeZone) => {
   let running = false
 
-  const job = new CronJob(cronPattern, async () => {
-    if (running) {
-      return
-    }
+  const job = new CronJob({
+    cronTime,
+    onTick: async () => {
+      if (running) {
+        return
+      }
 
-    running = true
+      running = true
 
-    try {
-      await fn()
-    } catch (error) {
-      console.error('[WARN] scheduled function:', error && error.stack || error)
-    } finally {
-      running = false
-    }
+      try {
+        await fn()
+      } catch (error) {
+        console.error('[WARN] scheduled function:', error && error.stack || error)
+      } finally {
+        running = false
+      }
+    },
+    start: true,
+    timeZone
   })
-
-  job.start()
 
   return () => {
     job.stop()

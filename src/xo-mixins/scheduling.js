@@ -74,8 +74,10 @@ export default class {
   _enable (schedule) {
     const { id } = schedule
 
-    const stopSchedule = scheduleFn(schedule.cron, () =>
-      this.xo.runJobSequence([ schedule.job ])
+    const stopSchedule = scheduleFn(
+      schedule.cron,
+      () => this.xo.runJobSequence([ schedule.job ]),
+      schedule.timezone
     )
 
     this._cronJobs[id] = stopSchedule
@@ -137,8 +139,8 @@ export default class {
     return /* await */ this._redisSchedules.get()
   }
 
-  async createSchedule (userId, {job, cron, enabled, name}) {
-    const schedule_ = await this._redisSchedules.create(userId, job, cron, enabled, name)
+  async createSchedule (userId, { job, cron, enabled, name, timezone }) {
+    const schedule_ = await this._redisSchedules.create(userId, job, cron, enabled, name, timezone)
     const schedule = schedule_.properties
 
     this._add(schedule)
@@ -146,13 +148,14 @@ export default class {
     return schedule
   }
 
-  async updateSchedule (id, {job, cron, enabled, name}) {
+  async updateSchedule (id, { job, cron, enabled, name, timezone }) {
     const schedule = await this._getSchedule(id)
 
     if (job) schedule.set('job', job)
     if (cron) schedule.set('cron', cron)
     if (enabled !== undefined) schedule.set('enabled', enabled)
     if (name !== undefined) schedule.set('name', name)
+    if (timezone !== undefined) schedule.set('timezone', timezone)
 
     await this._redisSchedules.save(schedule)
 

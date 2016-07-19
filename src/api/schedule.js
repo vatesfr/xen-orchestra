@@ -17,8 +17,8 @@ get.params = {
   id: {type: 'string'}
 }
 
-export async function create ({jobId, cron, enabled, name}) {
-  return /* await */ this.createSchedule(this.session.get('user_id'), {job: jobId, cron, enabled, name})
+export async function create ({ jobId, cron, enabled, name, timezone }) {
+  return /* await */ this.createSchedule(this.session.get('user_id'), { job: jobId, cron, enabled, name, timezone })
 }
 
 create.permission = 'admin'
@@ -30,8 +30,8 @@ create.params = {
   name: {type: 'string', optional: true}
 }
 
-export async function set ({id, jobId, cron, enabled, name}) {
-  await this.updateSchedule(id, {job: jobId, cron, enabled, name})
+export async function set ({ id, jobId, cron, enabled, name, timezone }) {
+  await this.updateSchedule(id, { job: jobId, cron, enabled, name, timezone })
 }
 
 set.permission = 'admin'

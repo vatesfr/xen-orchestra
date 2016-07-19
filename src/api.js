@@ -3,6 +3,7 @@ const debug = createDebug('xo:api')
 
 import getKeys from 'lodash/keys'
 import kindOf from 'kindof'
+import moment from 'moment-timezone'
 import ms from 'ms'
 import schemaInspector from 'schema-inspector'
 
@@ -188,6 +189,11 @@ methodSignature.description = 'returns the signature of an API method'
 
 // ===================================================================
 
+const getServerTimezone = (tz => () => tz)(moment.tz.guess())
+getServerTimezone.description = 'return the timezone server'
+
+// ===================================================================
+
 export default class Api {
   constructor ({
     context,
@@ -201,6 +207,7 @@ export default class Api {
       system: {
         getMethodsInfo,
         getServerVersion,
+        getServerTimezone,
         getVersion,
         listMethods,
         methodSignature
