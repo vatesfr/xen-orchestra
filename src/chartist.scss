@@ -22,6 +22,11 @@ $ct-series-colors: (
 @import "../node_modules/chartist/dist/scss/settings/_chartist-settings";
 @import "../node_modules/chartist/dist/scss/chartist";
 
+.ct-chart {
+  display: flex;
+  flex-direction: column-reverse;
+}
+
 // Line in charts with only 2px in width
 .ct-line {
   stroke-width: 2px;
@@ -55,7 +60,6 @@ $ct-series-colors: (
 
   // Arrow!
   &:before {
-    position: absolute;
     bottom: -14px;
     top: 100%;
     left: 50%;
@@ -80,28 +84,27 @@ $ct-series-colors: (
 // CHARTIST LEGEND =============================================================
 
 .ct-legend {
-  position: absolute;
   bottom: 0;
   margin-bottom: -1em;
 
   li {
     position: relative;
-    padding-left: 1.4em;
+    padding-left: 0.5em;
     list-style-type: none;
-    display: inline;
+    display: inline-block;
     margin-right: 0.5em;
     font-size: 0.8em;
   }
 
   li:before {
+    display: inline-block;
     width: 1em;
     height: 1em;
-    position: absolute;
     left: 0;
     content: '';
     border: 3px solid transparent;
     border-radius: 2px;
-    margin-top: 0.5em;
+    margin-right: 0.2em;
   }
 
   li.inactive:before {
