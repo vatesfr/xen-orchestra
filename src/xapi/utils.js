@@ -268,6 +268,10 @@ export const makeEditObject = specs => {
     }
 
     const set = (value, name) => {
+      if (value === undefined) {
+        return
+      }
+
       const spec = specs[name]
       if (!spec) {
         return

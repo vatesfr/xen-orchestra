@@ -455,7 +455,9 @@ set.params = {
   # Kernel arguments for PV VM.
   PV_args: { type: 'string', optional: true }
 
-  cpuWeight: { type: 'integer', optional: true}
+  cpuWeight: { type: ['integer', 'null'], optional: true }
+
+  cpuCap: { type: ['integer', 'null'], optional: true }
 }
 
 set.resolve = {

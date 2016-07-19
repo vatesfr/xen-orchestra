@@ -236,7 +236,7 @@ export default {
 
     cpuCap: {
       addToLimits: true,
-      get: vm => +(vm.VCPUs_params.cap || 0),
+      get: vm => vm.VCPUs_params.cap && +vm.VCPUs_params.cap,
       set (cap, vm) {
         return this._updateObjectMapProperty(vm, 'VCPUs_params', { cap })
       }
@@ -253,7 +253,7 @@ export default {
 
     cpuWeight: {
       addToLimits: true,
-      get: vm => +(vm.VCPUs_params.weight || 0),
+      get: vm => vm.VCPUs_params.weight && +vm.VCPUs_params.weight,
       set (weight, vm) {
         return this._updateObjectMapProperty(vm, 'VCPUs_params', { weight })
       }
