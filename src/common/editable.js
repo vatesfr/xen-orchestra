@@ -28,7 +28,13 @@ import {
 const LONG_CLICK = 400
 const SELECT_STYLE = { padding: '0px' }
 const SIZE_STYLE = { width: '10rem' }
-const EDITABLE_STYLE = { borderBottom: '1px dashed #ccc' }
+const EDITABLE_STYLE = {
+  borderBottom: '1px dashed #ccc',
+  cursor: 'context-menu'
+}
+const LONG_EDITABLE_STYLE = {
+  cursor: 'context-menu'
+}
 
 @propTypes({
   alt: propTypes.node.isRequired
@@ -157,7 +163,7 @@ class Editable extends Component {
       const { useLongClick } = props
 
       const success = <Icon icon='success' />
-      return <span style={useLongClick ? null : EDITABLE_STYLE}>
+      return <span style={useLongClick ? LONG_EDITABLE_STYLE : EDITABLE_STYLE}>
         <span
           onClick={!useLongClick && this._openEdition}
           onMouseDown={useLongClick && this.__startTimer}
