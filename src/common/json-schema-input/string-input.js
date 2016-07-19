@@ -21,8 +21,8 @@ export default class StringInput extends AbstractInput {
           defaultValue={props.defaultValue}
           disabled={props.disabled}
           onChange={props.onChange}
-          options={schema.defaults || schema.default}
-          placeholder={props.placeholder}
+          options={schema.defaults}
+          placeholder={props.placeholder || schema.default}
           ref='input'
           required={props.required}
           type={props.password && 'password'}
