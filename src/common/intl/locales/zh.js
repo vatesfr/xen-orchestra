@@ -1,5 +1,5 @@
 // See http://momentjs.com/docs/#/use-it/browserify/
-import 'moment/locale/zh'
+import 'moment/locale/zh-cn'
 
 import reactIntlData from 'react-intl/locale-data/zh'
 import { addLocaleData } from 'react-intl'
