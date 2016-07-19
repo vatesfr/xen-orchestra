@@ -86,6 +86,13 @@ const TIME_FORMAT = {
   day: 'numeric',
   hour: 'numeric',
   minute: 'numeric',
+
+  // The scheduling previews use the UTC format,
+  // because the cron patterns are relative to timezones.
+  //
+  // The cron patterns are used with timezones because it exists
+  // differents xo-server configurations, it gives a better control
+  // on jobs execution.
   timeZone: 'UTC'
 }
 
