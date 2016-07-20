@@ -277,20 +277,34 @@ export class Password extends Text {
 }
 
 @propTypes({
-  value: propTypes.number.isRequired
+  nullable: propTypes.bool,
+  value: propTypes.number
 })
 export class Number extends Component {
   get value () {
     return +this.refs.input.value
   }
 
-  _onChange = value => this.props.onChange(+value)
+  _onChange = value => {
+    if (value === '') {
+      if (this.props.nullable) {
+        value = null
+      } else {
+        return
+      }
+    } else {
+      value = +value
+    }
+
+    this.props.onChange(value)
+  }
 
   render () {
+    const { value } = this.props
     return <Text
       {...this.props}
       onChange={this._onChange}
-      value={String(this.props.value)}
+      value={value === null ? '' : String(value)}
     />
   }
 }
