@@ -55,6 +55,12 @@ export default class Xo extends JsonRpcWebSocketClient {
     return promise
   }
 
+  refreshUser () {
+    return super.call('session.getUser').then(user => {
+      return (this._user = user)
+    })
+  }
+
   signIn (credentials) {
     // Register this credentials for future use.
     this._credentials = credentials
