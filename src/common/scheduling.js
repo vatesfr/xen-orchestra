@@ -368,6 +368,9 @@ class TimePicker extends Component {
 
 // ===================================================================
 
+const HOURS_RANGE = [2, 12]
+const MINUTES_RANGE = [2, 30]
+
 @propTypes({
   cronPattern: propTypes.string.isRequired,
   onChange: propTypes.func,
@@ -450,14 +453,14 @@ export default class Scheduler extends Component {
             <TimePicker
               labelId='Hour'
               options={HOURS}
-              range={[2, 12]}
+              range={HOURS_RANGE}
               onChange={this._onHourChange}
               value={cronPatternArr[PICKTIME_TO_ID['hour']]}
             />
             <TimePicker
               labelId='Minute'
               options={MINS}
-              range={[2, 30]}
+              range={MINUTES_RANGE}
               onChange={this._onMinuteChange}
               value={cronPatternArr[PICKTIME_TO_ID['minute']]}
             />
