@@ -1,14 +1,15 @@
+import _ from 'intl'
 import ActionButton from 'action-button'
 import ActionToggle from 'action-toggle'
 import GenericInput from 'json-schema-input'
 import Icon from 'icon'
-import React, { Component } from 'react'
-import _ from 'intl'
 import map from 'lodash/map'
+import React, { Component } from 'react'
+import size from 'lodash/size'
 import { addSubscriptions } from 'utils'
 import { generateUiSchema } from 'xo-json-schema-input'
-import { Row, Col } from 'grid'
 import { lastly } from 'promise-toolbox'
+import { Row, Col } from 'grid'
 import {
   configurePlugin,
   disablePluginAutoload,
@@ -111,13 +112,21 @@ class Plugin extends Component {
     })
   }
 
+  _applyPredefinedConfiguration = () => {
+    const configName = this.refs.selectPredefinedConfiguration.value
+    this.refs.pluginInput.value = this.props.configurationPresets[configName]
+  }
+
   render () {
     const {
       props,
       state
     } = this
     const { expanded, edit } = state
-    const { loaded } = props
+    const {
+      configurationPresets,
+      loaded
+    } = props
     const { formId } = this
 
     return (
@@ -149,6 +158,34 @@ class Plugin extends Component {
         </Row>
         {expanded &&
           <form id={formId}>
+            {size(configurationPresets) > 0 && (
+              <div>
+                <legend>{_('pluginConfigurationPresetTitle')}</legend>
+                <span className='text-muted'>
+                  <p>{_('pluginConfigurationChoosePreset')}</p>
+                </span>
+                <div className='input-group'>
+                  <select className='form-control' disabled={!edit} ref='selectPredefinedConfiguration'>
+                    {map(configurationPresets, (_, name) => (
+                      <option key={name} value={name}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                  <span className='input-group-btn'>
+                    <button
+                      className='btn btn-primary'
+                      disabled={!edit}
+                      onClick={this._applyPredefinedConfiguration}
+                      type='button'
+                    >
+                      {_('applyPluginPreset')}
+                    </button>
+                  </span>
+                </div>
+                <hr />
+              </div>
+            )}
             <GenericInput
               disabled={!edit}
               label='Configuration'
