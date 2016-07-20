@@ -112,6 +112,10 @@
     @extend .fa;
     @extend .fa-play;
   }
+  &-ssh-key {
+    @extend .fa;
+    @extend .fa-key;
+  }
 
   &-shown {
     @extend .fa;

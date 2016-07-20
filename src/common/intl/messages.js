@@ -877,6 +877,17 @@ var messages = {
   pwdChangeError: 'Incorrect password',
   pwdChangeErrorBody: 'The old password provided is incorrect. Your password has not been changed.',
   changePasswordOk: 'OK',
+  sshKeys: 'SSH keys',
+  newSshKey: 'New SSH key',
+  deleteSshKey: 'Delete',
+  noSshKeys: 'No SSH keys',
+  newSshKeyModalTitle: 'New SSH key',
+  sshKeyErrorTitle: 'Invalid key',
+  sshKeyErrorMessage: 'An SSH key requires both a title and a key.',
+  title: 'Title',
+  key: 'Key',
+  deleteSshKeyConfirm: 'Delete SSH key',
+  deleteSshKeyConfirmMessage: 'Are you sure you want to delete the SSH key {title}?',
 
   // ----- Usage -----
   others: 'Others'

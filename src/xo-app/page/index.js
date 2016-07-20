@@ -10,9 +10,12 @@ const Page = ({
   formatTitle,
   header,
   intl,
-  title = 'Xen Orchestra'
+  title
 }) => {
   const { formatMessage } = intl
+  if (title == null) {
+    title = 'Xen Orchestra'
+  }
   return (
     <DocumentTitle title={formatTitle ? formatMessage(messages[title]) : title}>
       <div className={styles.container}>

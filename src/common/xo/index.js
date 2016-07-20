@@ -3,6 +3,7 @@ import assign from 'lodash/assign'
 import cookies from 'cookies-js'
 import isEmpty from 'lodash/isEmpty'
 import isEqual from 'lodash/isEqual'
+import filter from 'lodash/filter'
 import forEach from 'lodash/forEach'
 import map from 'lodash/map'
 import once from 'lodash/once'
@@ -196,6 +197,8 @@ const createSubscription = cb => {
 }
 
 // Subscriptions -----------------------------------------------------
+
+export const subscribeCurrentUser = createSubscription(() => xo.refreshUser())
 
 export const subscribeAcls = createSubscription(() => _call('acl.get'))
 
@@ -1325,6 +1328,53 @@ export const changePassword = (oldPassword, newPassword) => (
   }).then(
     () => success(_('pwdChangeSuccess'), _('pwdChangeSuccessBody')),
     () => error(_('pwdChangeError'), _('pwdChangeErrorBody'))
+  )
+)
+
+const _mergeUserPreferences = (user, preferences) => (
+  _call('user.set', {
+    id: resolveId(user),
+    preferences: {
+      ...user.preferences,
+      ...preferences
+    }
+  })::tap(
+    subscribeCurrentUser.forceRefresh
+  )
+)
+
+import NewSshKeyModalBody from './new-ssh-key-modal'
+export const addSshKey = user => (
+  confirm({
+    icon: 'ssh-key',
+    title: _('newSshKeyModalTitle'),
+    body: <NewSshKeyModalBody />
+  }).then(
+    newKey => {
+      if (!newKey.title || !newKey.key) {
+        error(_('sshKeyErrorTitle'), _('sshKeyErrorMessage'))
+        return
+      }
+      _mergeUserPreferences(user, { sshKeys: [
+        ...(user.preferences && user.preferences.sshKeys),
+        newKey
+      ]})
+    },
+    noop
+  )
+)
+
+export const deleteSshKey = (user, key) => (
+  confirm({
+    title: _('deleteSshKeyConfirm'),
+    body: _('deleteSshKeyConfirmMessage', { title: <strong>{key.title}</strong> })
+  }).then(
+    () => {
+      _mergeUserPreferences(user, {
+        sshKeys: filter(user.preferences && user.preferences.sshKeys, k => !isEqual(k, key))
+      })
+    },
+    noop
   )
 )
 
