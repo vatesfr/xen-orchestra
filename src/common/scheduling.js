@@ -21,6 +21,11 @@ import { Range } from './form'
 
 // ===================================================================
 
+// By default later use UTC but we use this line for futures versions.
+later.date.UTC()
+
+// ===================================================================
+
 const NAV_EVERY = 1
 const NAV_EACH_SELECTED = 2
 const NAV_EVERY_N = 3
@@ -87,12 +92,12 @@ const TIME_FORMAT = {
   hour: 'numeric',
   minute: 'numeric',
 
-  // The scheduling previews use the UTC format,
-  // because the cron patterns are relative to timezones.
-  //
-  // The cron patterns are used with timezones because it exists
-  // differents xo-server configurations, it gives a better control
-  // on jobs execution.
+  // The timezone is not significant for displaying the date previews
+  // as long as it is the same used to generate the next occurrences
+  // from the cron patterns.
+
+  // Therefore we can use UTC everywhere and say to the user that the
+  // previews are in the configured timezone.
   timeZone: 'UTC'
 }
 
