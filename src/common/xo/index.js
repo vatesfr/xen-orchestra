@@ -1100,6 +1100,10 @@ export const deleteResourceSet = async id => {
   subscribeResourceSets.forceRefresh()
 }
 
+export const recomputeResourceSetsLimits = () => (
+  _call('resourceSet.recomputeAllLimits')
+)
+
 // Remote ------------------------------------------------------------
 
 export const createRemote = (name, url) => (

@@ -39,6 +39,7 @@ import {
   createResourceSet,
   deleteResourceSet,
   editRessourceSet,
+  recomputeResourceSetsLimits,
   subscribeResourceSets
 } from 'xo'
 
@@ -488,47 +489,60 @@ export default class Administration extends Component {
           </CardHeader>
           <CardBlock>
             {!isEmpty(resourceSets)
-              ? map(resourceSets, (resourceSet, key) => (
-                <div key={key} className='p-b-1'>
-                  <h5 className='form-inline clearfix'>
-                    {resourceSet.name}
-                    <div className='form-group pull-xs-right'>
-                      <div className='btn-toolbar'>
-                        <div className='btn-group'>
-                          <button className='btn btn-primary' type='button' onClick={() => { this._editResourceSet(resourceSet) }}>
-                            <Icon icon='edit' /> {_('editResourceSet')}
-                          </button>
-                        </div>
-                        <div className='btn-group'>
-                          <button className='btn btn-danger' type='button' onClick={() => { this._deleteResourceSet(resourceSet) }}>
-                            <Icon icon='delete' /> {_('deleteResourceSet')}
-                          </button>
+              ? [
+                <div style={{display: 'flex'}}>
+                  <ActionButton
+                    className='btn btn-secondary'
+                    handler={recomputeResourceSetsLimits}
+                    icon='refresh'
+                    style={{margin: 'auto'}}
+                  >
+                    {_('recomputeResourceSets')}
+                  </ActionButton>
+                </div>,
+                <br />,
+                map(resourceSets, (resourceSet, key) => (
+                  <div key={key} className='p-b-1'>
+                    <h5 className='form-inline clearfix'>
+                      {resourceSet.name}
+                      <div className='form-group pull-xs-right'>
+                        <div className='btn-toolbar'>
+                          <div className='btn-group'>
+                            <button className='btn btn-primary' type='button' onClick={() => { this._editResourceSet(resourceSet) }}>
+                              <Icon icon='edit' /> {_('editResourceSet')}
+                            </button>
+                          </div>
+                          <div className='btn-group'>
+                            <button className='btn btn-danger' type='button' onClick={() => { this._deleteResourceSet(resourceSet) }}>
+                              <Icon icon='delete' /> {_('deleteResourceSet')}
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </h5>
-                  <ul key={key} className='list-group'>
-                    <li className='list-group-item'>
-                      <Subjects subjects={resourceSet.subjects} />
-                    </li>
-                    {map(resourceSet.objectsByType, (objectsSet, type) => (
-                      <li key={type} className='list-group-item'>
-                        {map(objectsSet, object => renderXoItem(object, { className: 'm-r-1' }))}
+                    </h5>
+                    <ul key={key} className='list-group'>
+                      <li className='list-group-item'>
+                        <Subjects subjects={resourceSet.subjects} />
                       </li>
-                    ))}
-                    <li className='list-group-item'>
-                      <Limits limits={resourceSet.limits} />
-                    </li>
-                  </ul>
-                  {resourceSet.missingObjects.length > 0 &&
-                    <div className='alert alert-danger m-t-1' role='alert'>
-                      <strong>{_('resourceSetMissingObjects')}</strong> {resourceSet.missingObjects.join(', ')}
-                    </div>
-                  }
-                  <hr />
-                </div>
-              ))
-             : _('noResourceSets')
+                      {map(resourceSet.objectsByType, (objectsSet, type) => (
+                        <li key={type} className='list-group-item'>
+                          {map(objectsSet, object => renderXoItem(object, { className: 'm-r-1' }))}
+                        </li>
+                      ))}
+                      <li className='list-group-item'>
+                        <Limits limits={resourceSet.limits} />
+                      </li>
+                    </ul>
+                    {resourceSet.missingObjects.length > 0 &&
+                      <div className='alert alert-danger m-t-1' role='alert'>
+                        <strong>{_('resourceSetMissingObjects')}</strong> {resourceSet.missingObjects.join(', ')}
+                      </div>
+                    }
+                    <hr />
+                  </div>
+                ))
+              ]
+              : _('noResourceSets')
             }
           </CardBlock>
         </Card>

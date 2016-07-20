@@ -649,6 +649,7 @@ var messages = {
   noResourceSets: 'No resource sets.',
   resourceSetName: 'Resource set name',
   resourceSetCreation: 'Creation and edition',
+  recomputeResourceSets: 'Recompute all limits',
   saveResourceSet: 'Save',
   resetResourceSet: 'Reset',
   editResourceSet: 'Edit',
