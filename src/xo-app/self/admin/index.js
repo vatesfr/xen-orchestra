@@ -490,12 +490,11 @@ export default class Administration extends Component {
           <CardBlock>
             {!isEmpty(resourceSets)
               ? [
-                <div style={{display: 'flex'}}>
+                <div className='text-xs-center'>
                   <ActionButton
                     className='btn btn-secondary'
                     handler={recomputeResourceSetsLimits}
                     icon='refresh'
-                    style={{margin: 'auto'}}
                   >
                     {_('recomputeResourceSets')}
                   </ActionButton>
