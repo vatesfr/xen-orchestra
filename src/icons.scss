@@ -537,6 +537,10 @@
     @extend .fa;
     @extend .fa-clock-o;
   }
+  &-time {
+    @extend .fa;
+    @extend .fa-clock-o;
+  }
   &-database {
     @extend .fa;
     @extend .fa-database;

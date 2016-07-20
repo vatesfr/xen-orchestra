@@ -18,7 +18,7 @@ import {
   createJob,
   createSchedule,
   setJob,
-  setSchedule
+  updateSchedule
 } from 'xo'
 
 import { getJobValues } from '../helpers'
@@ -240,7 +240,8 @@ export default class New extends Component {
       ...callArgs
     } = backup
 
-    const { backupInfo } = this.state
+    const { backupInfo, timezone } = this.state
+
     const job = {
       type: 'call',
       key: backupInfo.jobKey,
@@ -262,13 +263,16 @@ export default class New extends Component {
 
     if (oldJob && oldSchedule) {
       job.id = oldJob.id
-      oldSchedule.cron = this.state.cronPattern
-      return setJob(job).then(() => setSchedule(oldSchedule))
+      return setJob(job).then(() => updateSchedule({
+        ...oldSchedule,
+        cron: this.state.cronPattern,
+        timezone
+      }))
     }
 
     // Create backup schedule.
     return createJob(job).then(jobId => {
-      createSchedule(jobId, this.state.cronPattern, enabled)
+      createSchedule(jobId, { cron: this.state.cronPattern, enabled, timezone })
     })
   }
 
@@ -286,9 +290,7 @@ export default class New extends Component {
   }
 
   _updateCronPattern = value => {
-    this.setState({
-      cronPattern: value
-    })
+    this.setState(value)
   }
 
   _handleBackupSelection = event => {
@@ -298,8 +300,16 @@ export default class New extends Component {
   }
 
   render () {
-    const { backupInfo, defaultValue } = this.state
+    const {
+      backupInfo,
+      cronPattern,
+      defaultValue
+    } = this.state
     const { formatMessage } = this.props.intl
+    const {
+      cron: defaultCronPattern,
+      timezone: defaultTimezone
+    } = this.props.schedule || {}
 
     return process.env.XOA_PLAN > 1
       ? (
@@ -334,11 +344,16 @@ export default class New extends Component {
           </form>
         </Section>
         <Section icon='schedule' title='schedule'>
-          <Scheduler ref='scheduler' onChange={this._updateCronPattern} />
+          <Scheduler
+            defaultCronPattern={defaultCronPattern}
+            defaultTimezone={defaultTimezone}
+            onChange={this._updateCronPattern}
+            ref='scheduler'
+          />
         </Section>
         <Section icon='preview' title='preview' summary>
           <div className='card-block'>
-            <SchedulePreview cron={this.state.cronPattern} />
+            <SchedulePreview cronPattern={cronPattern} />
             {process.env.XOA_PLAN < 4 && backupInfo && process.env.XOA_PLAN < REQUIRED_XOA_PLAN[backupInfo.jobKey]
               ? <Upgrade place='newBackup' available={REQUIRED_XOA_PLAN[backupInfo.jobKey]} />
               : <fieldset className='pull-xs-right p-t-1'>

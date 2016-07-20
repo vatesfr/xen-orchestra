@@ -242,6 +242,8 @@ export const apiMethods = _call('system.getMethodsInfo')
 
 export const serverVersion = _call('system.getServerVersion')
 
+export const getXoServerTimezone = _call('system.getServerTimezone')
+
 // ===================================================================
 
 const resolveId = value =>
@@ -958,8 +960,13 @@ export const destroyTask = task => (
 
 // Backups -----------------------------------------------------------
 
-export const createSchedule = (jobId, cron, enabled, name = undefined) => (
-  _call('schedule.create', { jobId, cron, enabled, name })::tap(
+export const createSchedule = (jobId, {
+  cron,
+  enabled,
+  name = undefined,
+  timezone = undefined
+}) => (
+  _call('schedule.create', { jobId, cron, enabled, name, timezone })::tap(
     subscribeSchedules.forceRefresh
   )
 )
@@ -987,12 +994,6 @@ export const setJob = job => (
 
 export const getSchedule = id => (
   _call('schedule.get', { id })
-)
-
-export const setSchedule = schedule => (
-  _call('schedule.set', schedule)::tap(
-    subscribeSchedules.forceRefresh
-  )
 )
 
 export const enableSchedule = id => (
@@ -1338,8 +1339,8 @@ export const updateJob = job => (
   )
 )
 
-export const updateSchedule = ({id, job: jobId, cron, enabled, name}) => (
-  _call('schedule.set', {id, jobId, cron, enabled, name})::tap(
+export const updateSchedule = ({ id, job: jobId, cron, enabled, name, timezone }) => (
+  _call('schedule.set', { id, jobId, cron, enabled, name, timezone })::tap(
     subscribeSchedules.forceRefresh
   )
 )

@@ -146,6 +146,7 @@ export default class Overview extends Component {
                     <th>{_('job')}</th>
                     <th>{_('jobTag')}</th>
                     <th className='hidden-xs-down'>{_('jobScheduling')}</th>
+                    <th className='hidden-xs-down'>{_('jobTimezone')}</th>
                     <th>{_('jobState')}</th>
                   </tr>
                 </thead>
@@ -158,6 +159,7 @@ export default class Overview extends Component {
                         <td>{this._getJobLabel(job)}</td>
                         <td>{this._getScheduleTag(schedule, job)}</td>
                         <td className='hidden-xs-down'>{schedule.cron}</td>
+                        <td className='hidden-xs-down'>{schedule.timezone || _('jobServerTimezone')}</td>
                         <td>
                           {this._getScheduleToggle(schedule)}
                           <fieldset className='pull-xs-right'>

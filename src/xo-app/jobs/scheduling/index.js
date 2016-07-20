@@ -89,7 +89,7 @@ export default class Schedules extends Component {
       schedule.name = name.value
       save = updateSchedule(schedule)
     } else {
-      save = createSchedule(job.value.id, cron, enabled.value, name.value)
+      save = createSchedule(job.value.id, { cron, enabled: enabled.value, name: name.value })
     }
     return save.then(this._reset).catch(err => error('Save Schedule', err.message || String(err)))
   }

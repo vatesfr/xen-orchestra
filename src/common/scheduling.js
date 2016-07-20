@@ -7,7 +7,6 @@ import React from 'react'
 import sortedIndex from 'lodash/sortedIndex'
 import { FormattedTime } from 'react-intl'
 import {
-  Panel,
   Tab,
   Tabs
 } from 'react-bootstrap-4/lib'
@@ -15,8 +14,15 @@ import {
 import _ from './intl'
 import Component from './base-component'
 import propTypes from './prop-types'
+import TimezonePicker from './timezone-picker'
+import { Card, CardHeader, CardBlock } from './card'
 import { Col, Row } from './grid'
 import { Range } from './form'
+
+// ===================================================================
+
+// By default later use UTC but we use this line for futures versions.
+later.date.UTC()
 
 // ===================================================================
 
@@ -84,7 +90,15 @@ const TIME_FORMAT = {
   month: 'long',
   day: 'numeric',
   hour: 'numeric',
-  minute: 'numeric'
+  minute: 'numeric',
+
+  // The timezone is not significant for displaying the date previews
+  // as long as it is the same used to generate the next occurrences
+  // from the cron patterns.
+
+  // Therefore we can use UTC everywhere and say to the user that the
+  // previews are in the configured timezone.
+  timeZone: 'UTC'
 }
 
 // ===================================================================
@@ -101,7 +115,7 @@ const getDayName = (dayNum) =>
 // ===================================================================
 
 @propTypes({
-  cron: propTypes.string.isRequired
+  cronPattern: propTypes.string.isRequired
 })
 export class SchedulePreview extends Component {
   _handleChange = value => {
@@ -112,7 +126,7 @@ export class SchedulePreview extends Component {
 
   render () {
     const { props } = this
-    const cronSched = later.parse.cron(props.cron)
+    const cronSched = later.parse.cron(props.cronPattern)
     const dates = later.schedule(cronSched).next(this.state.value || MIN_PREVIEWS)
 
     return (
@@ -313,12 +327,6 @@ class TimePicker extends Component {
     }
   }
 
-  _updateOpen = () => {
-    this.setState({
-      open: !this.state.open
-    })
-  }
-
   _selectTab = activeKey => {
     const { onChange } = this.props
 
@@ -340,25 +348,23 @@ class TimePicker extends Component {
     } = props
 
     return (
-      <div className='card'>
-        <button className='card-header btn btn-lg btn-block' onClick={this._updateOpen}>
+      <Card>
+        <CardHeader>
           {_(`scheduling${type}`)}
-        </button>
-        <Panel collapsible expanded={state.open}>
-          <div className='card-block'>
-            <Tabs bsStyle='tabs' activeKey={state.activeKey} onSelect={this._selectTab}>
-              <Tab tabClassName='nav-item' eventKey={NAV_EVERY} title={_(`schedulingEvery${type}`)} />
-              <Tab tabClassName='nav-item' eventKey={NAV_EACH_SELECTED} title={_(`schedulingEachSelected${type}`)}>
-                <TableSelect ref='select' data={props.data} dataRender={props.dataRender} onChange={onChange} />
-              </Tab>
-              {range &&
-                <Tab tabClassName='nav-item' eventKey={NAV_EVERY_N} title={_(`schedulingEveryN${type}`)}>
-                  <Range ref='range' min={range[0]} max={range[1]} onChange={onChange} />
-                </Tab>}
-            </Tabs>
-          </div>
-        </Panel>
-      </div>
+        </CardHeader>
+        <CardBlock>
+          <Tabs bsStyle='tabs' activeKey={state.activeKey} onSelect={this._selectTab}>
+            <Tab tabClassName='nav-item' eventKey={NAV_EVERY} title={_(`schedulingEvery${type}`)} />
+            <Tab tabClassName='nav-item' eventKey={NAV_EACH_SELECTED} title={_(`schedulingEachSelected${type}`)}>
+              <TableSelect ref='select' data={props.data} dataRender={props.dataRender} onChange={onChange} />
+            </Tab>
+            {range &&
+              <Tab tabClassName='nav-item' eventKey={NAV_EVERY_N} title={_(`schedulingEveryN${type}`)}>
+                <Range ref='range' min={range[0]} max={range[1]} onChange={onChange} />
+              </Tab>}
+          </Tabs>
+        </CardBlock>
+      </Card>
     )
   }
 }
@@ -374,12 +380,14 @@ const ID_TO_PICKTIME = [
 ]
 
 @propTypes({
+  defaultCronPattern: propTypes.string,
+  defaultTimezone: propTypes.string,
   onChange: propTypes.func
 })
 export default class Scheduler extends Component {
   constructor () {
     super()
-    this.cron = {
+    this.cronPattern = {
       minute: '*',
       hour: '*',
       monthDay: '*',
@@ -388,9 +396,16 @@ export default class Scheduler extends Component {
     }
   }
 
+  _getCronPattern () {
+    const { cronPattern } = this
+    return `${cronPattern.minute} ${cronPattern.hour} ${cronPattern.monthDay} ${cronPattern.month} ${cronPattern.weekDay}`
+  }
+
   get value () {
-    const { cron } = this
-    return `${cron.minute} ${cron.hour} ${cron.monthDay} ${cron.month} ${cron.weekDay}`
+    return {
+      cronPattern: this._getCronPattern(),
+      timezone: this.refs.timezonePicker.value
+    }
   }
 
   set value (value) {
@@ -412,16 +427,16 @@ export default class Scheduler extends Component {
   }
 
   _update (type, value) {
-    const { cron } = this
+    const { cronPattern } = this
     const { onChange } = this.props
 
     if (value === 'all') {
-      cron[type] = '*'
+      cronPattern[type] = '*'
     } else if (Array.isArray(value)) {
       if (!value.length) {
-        cron[type] = '*'
+        cronPattern[type] = '*'
       } else {
-        cron[type] = join(
+        cronPattern[type] = join(
           (type === 'monthDay' || type === 'month')
             ? map(value, (n) => n + 1)
             : value,
@@ -429,7 +444,7 @@ export default class Scheduler extends Component {
         )
       }
     } else {
-      cron[type] = `*/${value}`
+      cronPattern[type] = `*/${value}`
     }
 
     if (onChange) {
@@ -443,7 +458,25 @@ export default class Scheduler extends Component {
   _onMonthDayChange = value => this._update('monthDay', value)
   _onWeekDayChange = value => this._update('weekDay', value)
 
+  _onTimezoneChange = timezone => {
+    const { onChange } = this.props
+
+    if (onChange) {
+      onChange(this.value)
+    }
+  }
+
+  componentDidMount () {
+    const { defaultCronPattern } = this.props
+
+    if (defaultCronPattern) {
+      this.value = defaultCronPattern
+    }
+  }
+
   render () {
+    const { defaultTimezone } = this.props
+
     return (
       <div className='card-block'>
         <Row>
@@ -484,6 +517,12 @@ export default class Scheduler extends Component {
               range={[2, 30]}
               onChange={this._onMinuteChange}
             />
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <hr />
+            <TimezonePicker ref='timezonePicker' defaultValue={defaultTimezone} onChange={this._onTimezoneChange} />
           </Col>
         </Row>
       </div>
