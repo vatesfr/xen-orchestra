@@ -29,7 +29,9 @@ import {
   createVms,
   getCloudInitConfig,
   subscribePermissions,
-  subscribeResourceSets
+  subscribeResourceSets,
+  XEN_DEFAULT_CPU_CAP,
+  XEN_DEFAULT_CPU_WEIGHT
 } from 'xo'
 import {
   SelectNetwork,
@@ -166,7 +168,8 @@ export default class NewVm extends BaseComponent {
       bootAfterCreate: true,
       configDrive: false,
       CPUs: '',
-      cpuWeight: 1,
+      cpuCap: '',
+      cpuWeight: '',
       existingDisks: {},
       fastClone: true,
       multipleVms: false,
@@ -232,7 +235,8 @@ export default class NewVm extends BaseComponent {
       // TODO: To be added in xo-server
       // vm.set parameters
       CPUs: state.CPUs,
-      cpuWeight: state.cpuWeight,
+      cpuWeight: state.cpuWeight === '' ? null : state.cpuWeight,
+      cpuCap: state.cpuCap === '' ? null : state.cpuCap,
       name_description: state.name_description,
       memory: state.memory,
       pv_args: state.pv_args,
@@ -303,7 +307,8 @@ export default class NewVm extends BaseComponent {
       // performances
       memory: template.memory.size,
       CPUs: template.CPUs.number,
-      cpuWeight: 1,
+      cpuCap: '',
+      cpuWeight: '',
       // installation
       installMethod: template.install_methods && template.install_methods[0] || state.installMethod,
       customConfig: '#cloud-config\n#hostname: myhostname\n#ssh_authorized_keys:\n#  - ssh-rsa <myKey>\n#packages:\n#  - htop\n',
@@ -717,7 +722,8 @@ export default class NewVm extends BaseComponent {
   }
 
   _renderPerformances = () => {
-    const { CPUs, cpuWeight, memory } = this.state.state
+    const { CPUs, cpuCap, cpuWeight, memory } = this.state.state
+    const { formatMessage } = this.props.intl
     return <Section icon='new-vm-perf' title='newVmPerfPanel' done={this._isPerformancesDone()}>
       <SectionContent>
         <Item label='newVmVcpusLabel'>
@@ -734,16 +740,27 @@ export default class NewVm extends BaseComponent {
           <SizeInput value={memory} onChange={this._getOnChange('memory')} className={styles.sizeInput} />
         </Item>
         <Item label='newVmCpuWeightLabel'>
-          <select
+          <DebounceInput
             className='form-control'
+            debounceTimeout={DEBOUNCE_TIMEOUT}
+            min={0}
+            max={65535}
             onChange={this._getOnChange('cpuWeight')}
+            placeholder={formatMessage(messages.newVmDefaultCpuWeight, { value: XEN_DEFAULT_CPU_WEIGHT })}
+            type='number'
             value={cpuWeight}
-          >
-            {_('newVmCpuWeightQuarter', message => <option value={0.25}>{message}</option>)}
-            {_('newVmCpuWeightHalf', message => <option value={0.5}>{message}</option>)}
-            {_('newVmCpuWeightNormal', message => <option value={1}>{message}</option>)}
-            {_('newVmCpuWeightDouble', message => <option value={2}>{message}</option>)}
-          </select>
+          />
+        </Item>
+        <Item label='newVmCpuCapLabel'>
+          <DebounceInput
+            className='form-control'
+            debounceTimeout={DEBOUNCE_TIMEOUT}
+            min={0}
+            onChange={this._getOnChange('cpuCap')}
+            placeholder={formatMessage(messages.newVmDefaultCpuCap, { value: XEN_DEFAULT_CPU_CAP })}
+            type='number'
+            value={cpuCap}
+          />
         </Item>
       </SectionContent>
     </Section>
