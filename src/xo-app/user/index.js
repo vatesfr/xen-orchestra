@@ -2,13 +2,25 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import BaseComponent from 'base-component'
 import Icon from 'icon'
+import isEmpty from 'lodash/isEmpty'
+import map from 'lodash/map'
 import React from 'react'
 import { alert } from 'modal'
-import { connectStore } from 'utils'
-import { changePassword } from 'xo'
+import { addSubscriptions, connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
-import { getLang, getUser } from 'selectors'
+import { getLang } from 'selectors'
 import { injectIntl } from 'react-intl'
+import {
+  Card,
+  CardBlock,
+  CardHeader
+} from 'card'
+import {
+  addSshKey,
+  changePassword,
+  deleteSshKey,
+  subscribeCurrentUser
+} from 'xo'
 
 import Page from '../page'
 
@@ -20,9 +32,11 @@ const HEADER = <Container>
   </Row>
 </Container>
 
+@addSubscriptions({
+  user: subscribeCurrentUser
+})
 @connectStore({
-  lang: getLang,
-  user: getUser
+  lang: getLang
 })
 @injectIntl
 export default class User extends BaseComponent {
@@ -58,7 +72,9 @@ export default class User extends BaseComponent {
       oldPassword
     } = this.state
 
-    return <Page header={HEADER} title={user.email}>
+    const sshKeys = user && user.preferences && user.preferences.sshKeys
+
+    return <Page header={HEADER} title={user && user.email}>
       <Container>
         <Row>
           <Col smallSize={2}><strong>{_('username')}</strong></Col>
@@ -97,6 +113,47 @@ export default class User extends BaseComponent {
           </Col>
         </Row>
       </Container>
+      <br />
+      <div>
+        <Card>
+          <CardHeader>
+            <Icon icon='ssh-key' /> {_('sshKeys')}
+            <ActionButton
+              className='btn-success pull-xs-right'
+              icon='add'
+              handler={addSshKey}
+            >
+              {_('newSshKey')}
+            </ActionButton>
+          </CardHeader>
+          <CardBlock>
+            {!isEmpty(sshKeys)
+              ? <Container>
+                {map(sshKeys, (sshKey, key) => (
+                  <Row key={key} className='p-b-1'>
+                    <Col size={2}>
+                      <strong>{sshKey.title}</strong>
+                    </Col>
+                    <Col size={8} style={{overflowWrap: 'break-word'}}>
+                      {sshKey.key}
+                    </Col>
+                    <Col size={2}>
+                      <ActionButton
+                        className='btn-secondary pull-xs-right'
+                        icon='delete'
+                        handler={() => deleteSshKey(sshKey)}
+                      >
+                        {_('deleteSshKey')}
+                      </ActionButton>
+                    </Col>
+                  </Row>
+                ))}
+              </Container>
+              : _('noSshKeys')
+            }
+          </CardBlock>
+        </Card>
+      </div>
     </Page>
   }
 }
