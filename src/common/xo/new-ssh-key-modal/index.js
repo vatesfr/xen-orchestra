@@ -48,7 +48,6 @@ export default class NewSshKeyModalBody extends BaseComponent {
               className='form-control'
               onChange={this._onKeyChange}
               rows={10}
-              type='text'
               value={key || ''}
             />
           </Col>

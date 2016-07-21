@@ -1331,20 +1331,17 @@ export const changePassword = (oldPassword, newPassword) => (
   )
 )
 
-const _mergeUserPreferences = (user, preferences) => (
+const _setUserPreferences = preferences => (
   _call('user.set', {
-    id: resolveId(user),
-    preferences: {
-      ...user.preferences,
-      ...preferences
-    }
+    id: xo.user.id,
+    preferences
   })::tap(
     subscribeCurrentUser.forceRefresh
   )
 )
 
 import NewSshKeyModalBody from './new-ssh-key-modal'
-export const addSshKey = user => (
+export const addSshKey = () => (
   confirm({
     icon: 'ssh-key',
     title: _('newSshKeyModalTitle'),
@@ -1355,8 +1352,10 @@ export const addSshKey = user => (
         error(_('sshKeyErrorTitle'), _('sshKeyErrorMessage'))
         return
       }
-      _mergeUserPreferences(user, { sshKeys: [
-        ...(user.preferences && user.preferences.sshKeys),
+      const { preferences } = xo.user
+      const otherKeys = preferences && preferences.sshKeys || []
+      return _setUserPreferences({ sshKeys: [
+        ...otherKeys,
         newKey
       ]})
     },
@@ -1364,14 +1363,15 @@ export const addSshKey = user => (
   )
 )
 
-export const deleteSshKey = (user, key) => (
+export const deleteSshKey = key => (
   confirm({
     title: _('deleteSshKeyConfirm'),
     body: _('deleteSshKeyConfirmMessage', { title: <strong>{key.title}</strong> })
   }).then(
     () => {
-      _mergeUserPreferences(user, {
-        sshKeys: filter(user.preferences && user.preferences.sshKeys, k => !isEqual(k, key))
+      const { preferences } = xo.user
+      return _setUserPreferences({
+        sshKeys: filter(preferences && preferences.sshKeys, k => !isEqual(k, key))
       })
     },
     noop

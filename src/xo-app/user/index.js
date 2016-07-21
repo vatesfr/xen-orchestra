@@ -6,7 +6,7 @@ import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React from 'react'
 import { alert } from 'modal'
-import { connectStore } from 'utils'
+import { addSubscriptions, connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { getLang } from 'selectors'
 import { injectIntl } from 'react-intl'
@@ -32,6 +32,9 @@ const HEADER = <Container>
   </Row>
 </Container>
 
+@addSubscriptions({
+  user: subscribeCurrentUser
+})
 @connectStore({
   lang: getLang
 })
@@ -39,10 +42,6 @@ const HEADER = <Container>
 export default class User extends BaseComponent {
   handleSelectLang = event => {
     this.props.selectLang(event.target.value)
-  }
-
-  componentWillMount () {
-    this.componentWillUnmount = subscribeCurrentUser(user => this.setState({ user }))
   }
 
   _handleSavePassword = () => {
@@ -61,19 +60,16 @@ export default class User extends BaseComponent {
   _handleNewPasswordChange = event => this.setState({ newPassword: event.target.value })
   _handleConfirmPasswordChange = event => this.setState({ confirmPassword: event.target.value })
 
-  _addSshKey = () => addSshKey(this.state.user)
-  _deleteSshKey = key => deleteSshKey(this.state.user, key)
-
   render () {
     const { formatMessage } = this.props.intl
     const {
-      lang
+      lang,
+      user
     } = this.props
     const {
       confirmPassword,
       newPassword,
-      oldPassword,
-      user
+      oldPassword
     } = this.state
 
     const sshKeys = user && user.preferences && user.preferences.sshKeys
@@ -125,7 +121,7 @@ export default class User extends BaseComponent {
             <ActionButton
               className='btn-success pull-xs-right'
               icon='add'
-              handler={this._addSshKey}
+              handler={addSshKey}
             >
               {_('newSshKey')}
             </ActionButton>
@@ -145,7 +141,7 @@ export default class User extends BaseComponent {
                       <ActionButton
                         className='btn-secondary pull-xs-right'
                         icon='delete'
-                        handler={() => this._deleteSshKey(sshKey)}
+                        handler={() => deleteSshKey(sshKey)}
                       >
                         {_('deleteSshKey')}
                       </ActionButton>
