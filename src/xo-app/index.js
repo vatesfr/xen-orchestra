@@ -28,6 +28,7 @@ import User from './user'
 import Vm from './vm'
 import VmImport from './vm-import'
 import XoaUpdates from './xoa-updates'
+import Plop from './plop'
 
 const CONTAINER_STYLE = {
   display: 'flex',
@@ -71,7 +72,8 @@ const BODY_STYLE = {
   'vms/import': VmImport,
   'vms/new': NewVm,
   'vms/:id': Vm,
-  'xoa-update': XoaUpdates
+  'xoa-update': XoaUpdates,
+  'plop': Plop
 })
 @connectStore((state) => {
   return {
