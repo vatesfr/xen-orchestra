@@ -1,8 +1,7 @@
-import find from 'lodash/find'
+import ActionButton from 'action-button'
 import map from 'lodash/map'
 import moment from 'moment-timezone'
 import React from 'react'
-import ActionButton from 'action-button'
 
 import _ from './intl'
 import Component from './base-component'
@@ -12,35 +11,26 @@ import { Select } from './form'
 
 @propTypes({
   defaultValue: propTypes.string,
-  onChange: propTypes.func
+  onChange: propTypes.func.isRequired,
+  value: propTypes.string
 })
 export default class TimezonePicker extends Component {
   constructor (props) {
     super(props)
-    this.state = {
-      value: props.defaultValue,
-      options: map(moment.tz.names(), value => ({ label: value, value }))
-    }
+    this.state.options = map(moment.tz.names(), value => ({ label: value, value }))
   }
 
   get value () {
-    return this.state.value
+    return this.refs.select.value
   }
 
   set value (value) {
-    this.setState({
-      value: (value && find(this.state.options, option => option.value === value))
-    })
+    this.refs.select.value = value
   }
 
   _updateTimezone (value) {
-    const { onChange } = this.props
-
-    this.setState({
-      value
-    }, onChange && (() => onChange(value)))
+    this.props.onChange(value)
   }
-
   _handleChange = option => {
     this._updateTimezone(option && option.value)
   }
@@ -62,7 +52,7 @@ export default class TimezonePicker extends Component {
   }
 
   render () {
-    const { state } = this
+    const { props, state } = this
 
     return (
       <div>
@@ -73,11 +63,13 @@ export default class TimezonePicker extends Component {
           {_('timezonePickerServerValue')} <strong>{state.serverTimezone}</strong>
         </div>
         <Select
+          defaultValue={props.defaultValue}
           className='m-b-1'
           onChange={this._handleChange}
           options={state.options}
           placeholder={_('selectTimezone')}
-          value={state.value}
+          ref='select'
+          value={props.value}
         />
         <div className='pull-right'>
           <ActionButton

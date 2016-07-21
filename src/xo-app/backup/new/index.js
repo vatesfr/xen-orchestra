@@ -189,13 +189,13 @@ const BACKUP_METHOD_TO_INFO = {
 
 // ===================================================================
 
+const DEFAULT_CRON_PATTERN = '0 0 * * *'
+
 @injectIntl
 export default class New extends Component {
   constructor (props) {
     super(props)
-
-    const { state } = this
-    state.cronPattern = '* * * * *'
+    this.state.cronPattern = DEFAULT_CRON_PATTERN
   }
 
   componentWillMount () {
@@ -208,7 +208,8 @@ export default class New extends Component {
     }
     this.setState({
       backupInfo: BACKUP_METHOD_TO_INFO[job.method],
-      cronPattern: schedule.cron
+      cronPattern: schedule.cron,
+      timezone: schedule.timezone
     }, () => delay(this._populateForm, 250, job)) // Work around.
     // Without the delay, some selects are not always ready to load a value
     // Values are displayed, but html5 compliant browsers say the value is required and empty on submit
@@ -277,16 +278,15 @@ export default class New extends Component {
   }
 
   _handleReset = () => {
-    const {
-      backupInput,
-      scheduler
-    } = this.refs
+    const { backupInput } = this.refs
 
     if (backupInput) {
       backupInput.value = undefined
     }
 
-    scheduler.value = '* * * * *'
+    this.setState({
+      cronPattern: DEFAULT_CRON_PATTERN
+    })
   }
 
   _updateCronPattern = value => {
@@ -303,13 +303,10 @@ export default class New extends Component {
     const {
       backupInfo,
       cronPattern,
-      defaultValue
+      defaultValue,
+      timezone
     } = this.state
     const { formatMessage } = this.props.intl
-    const {
-      cron: defaultCronPattern,
-      timezone: defaultTimezone
-    } = this.props.schedule || {}
 
     return process.env.XOA_PLAN > 1
       ? (
@@ -345,10 +342,9 @@ export default class New extends Component {
         </Section>
         <Section icon='schedule' title='schedule'>
           <Scheduler
-            defaultCronPattern={defaultCronPattern}
-            defaultTimezone={defaultTimezone}
+            cronPattern={cronPattern}
+            timezone={timezone}
             onChange={this._updateCronPattern}
-            ref='scheduler'
           />
         </Section>
         <Section icon='preview' title='preview' summary>
