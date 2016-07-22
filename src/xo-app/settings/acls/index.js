@@ -13,6 +13,7 @@ import renderXoItem, { renderXoItemFromId } from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import toArray from 'lodash/toArray'
 import Upgrade from 'xoa-upgrade'
+import store from 'store'
 import { connectStore } from 'utils'
 import { Container } from 'grid'
 import { error } from 'notification'
@@ -132,15 +133,6 @@ class AclTable extends Component {
   }
 }
 
-@connectStore(() => {
-  return {
-    hosts: createGetObjectsOfType('host'),
-    networks: createGetObjectsOfType('network'),
-    pools: createGetObjectsOfType('pool'),
-    srs: createGetObjectsOfType('SR'),
-    vms: createGetObjectsOfType('VM')
-  }
-})
 export default class Acls extends Component {
   constructor (props) {
     super(props)
@@ -160,7 +152,7 @@ export default class Acls extends Component {
     const { isAllSelected, objects } = this.state
     let newObjects
     if (!isAllSelected[type]) {
-      newObjects = [ ...objects, ...toArray(this.props[type.toLowerCase() + 's']) ]
+      newObjects = [ ...objects, ...toArray(createGetObjectsOfType(type)(store.getState())) ]
     } else {
       newObjects = filter(objects, object => object.type !== type)
     }
