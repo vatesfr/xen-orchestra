@@ -19,6 +19,9 @@ var messages = {
 
   // ----- Titles -----
   homePage: 'Home',
+  homeVmPage: 'VMs',
+  homeHostPage: 'Hosts',
+  homePoolPage: 'Pools',
   dashboardPage: 'Dashboard',
   overviewDashboardPage: 'Overview',
   overviewVisualizationDashboardPage: 'Visualizations',

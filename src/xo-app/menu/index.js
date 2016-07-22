@@ -94,7 +94,11 @@ export default class Menu extends Component {
     const noResourceSets = isEmpty(this.state.resourceSets)
 
     const items = [
-      { to: '/home', icon: 'menu-home', label: 'homePage' },
+      { to: '/home', icon: 'menu-home', label: 'homePage', subMenu: [
+        { to: '/home?t=VM', icon: 'vm', label: 'homeVmPage' },
+        { to: '/home?t=host', icon: 'host', label: 'homeHostPage' },
+        { to: '/home?t=pool', icon: 'pool', label: 'homePoolPage' }
+      ]},
       { to: '/dashboard/overview', icon: 'menu-dashboard', label: 'dashboardPage', subMenu: [
         { to: '/dashboard/overview', icon: 'menu-dashboard-overview', label: 'overviewDashboardPage' },
         { to: '/dashboard/visualizations', icon: 'menu-dashboard-visualization', label: 'overviewVisualizationDashboardPage' },
