@@ -95,9 +95,9 @@ export default class Menu extends Component {
 
     const items = [
       { to: '/home', icon: 'menu-home', label: 'homePage', subMenu: [
-        { to: '/home', icon: 'vm', label: 'homeVmPage', query: { t: 'VM' } },
-        { to: '/home', icon: 'host', label: 'homeHostPage', query: { t: 'host' } },
-        { to: '/home', icon: 'pool', label: 'homePoolPage', query: { t: 'pool' } }
+        { to: '/home?t=VM', icon: 'vm', label: 'homeVmPage' },
+        { to: '/home?t=host', icon: 'host', label: 'homeHostPage' },
+        { to: '/home?t=pool', icon: 'pool', label: 'homePoolPage' }
       ]},
       { to: '/dashboard/overview', icon: 'menu-dashboard', label: 'dashboardPage', subMenu: [
         { to: '/dashboard/overview', icon: 'menu-dashboard-overview', label: 'overviewDashboardPage' },
@@ -216,10 +216,10 @@ export default class Menu extends Component {
 
 const MenuLinkItem = props => {
   const { item } = props
-  const { to, icon, label, subMenu, pill, extra, query } = item
+  const { to, icon, label, subMenu, pill, extra } = item
 
   return <li className='nav-item xo-menu-item'>
-    <Link activeClassName='active' className={classNames('nav-link', styles.centerCollapsed)} to={{ pathname: to, query }}>
+    <Link activeClassName='active' className={classNames('nav-link', styles.centerCollapsed)} to={to}>
       <Icon className={classNames((pill || extra) && styles.hiddenCollapsed)} icon={`${icon}`} size='lg' fixedWidth />
       <span className={styles.hiddenCollapsed}>{' '}{_(label)}&nbsp;</span>
       {pill > 0 && <span className='tag tag-pill tag-primary'>{pill}</span>}
@@ -233,7 +233,7 @@ const SubMenu = props => {
   return <ul className='nav nav-pills nav-stacked xo-sub-menu'>
     {map(props.items, (item, index) => (
       item && <li key={index} className='nav-item xo-menu-item'>
-        <Link activeClassName='active' className='nav-link' to={{ pathname: item.to, query: item.query }}>
+        <Link activeClassName='active' className='nav-link' to={item.to}>
           <Icon icon={`${item.icon}`} size='lg' fixedWidth />
           {' '}
           {_(item.label)}
