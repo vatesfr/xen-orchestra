@@ -156,7 +156,7 @@ export default class Acls extends Component {
   _handleSelectRole = action => this.setState({action})
   _handleSelectSubject = subjects => this.setState({subjects})
 
-  _getToggleAll = type => () => {
+  _toggleAll = type => {
     const { isAllSelected, objects } = this.state
     let newObjects
     if (!isAllSelected[type]) {
@@ -215,7 +215,7 @@ export default class Acls extends Component {
           </div>
           <ButtonGroup className='p-b-1'>
             {map(TYPES, type =>
-              <ActionButton key={type} btnStyle={isAllSelected[type] ? 'success' : 'secondary'} size='small' icon={type.toLowerCase()} handler={this._getToggleAll(type)} />
+              <ActionButton key={type} btnStyle={isAllSelected[type] ? 'success' : 'secondary'} size='small' icon={type.toLowerCase()} handler={this._toggleAll} handlerParam={type} />
             )}
           </ButtonGroup>
           <div className='form-group'>
