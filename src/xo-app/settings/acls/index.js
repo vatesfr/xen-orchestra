@@ -2,6 +2,7 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import Component from 'base-component'
+import filter from 'lodash/filter'
 import forEach from 'lodash/forEach'
 import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
@@ -10,11 +11,13 @@ import pickBy from 'lodash/pickBy'
 import React from 'react'
 import renderXoItem, { renderXoItemFromId } from 'render-xo-item'
 import SortedTable from 'sorted-table'
+import toArray from 'lodash/toArray'
 import Upgrade from 'xoa-upgrade'
 import { connectStore } from 'utils'
 import { Container } from 'grid'
 import { error } from 'notification'
 import { SelectHighLevelObject, SelectRole, SelectSubject } from 'select-objects'
+import { ButtonGroup } from 'react-bootstrap-4/lib'
 
 import {
   createGetObjectsOfType,
@@ -30,6 +33,14 @@ import {
   subscribeRoles,
   subscribeUsers
 } from 'xo'
+
+const TYPES = [
+  'VM',
+  'host',
+  'pool',
+  'SR',
+  'network'
+]
 
 const ACL_COLUMNS = [
   {
@@ -121,10 +132,20 @@ class AclTable extends Component {
   }
 }
 
+@connectStore(() => {
+  return {
+    hosts: createGetObjectsOfType('host'),
+    networks: createGetObjectsOfType('network'),
+    pools: createGetObjectsOfType('pool'),
+    srs: createGetObjectsOfType('SR'),
+    vms: createGetObjectsOfType('VM')
+  }
+})
 export default class Acls extends Component {
   constructor (props) {
     super(props)
     this.state = {
+      isAllSelected: {},
       subjects: [],
       objects: [],
       role: undefined
@@ -134,6 +155,23 @@ export default class Acls extends Component {
   _handleSelectObjects = objects => this.setState({objects})
   _handleSelectRole = action => this.setState({action})
   _handleSelectSubject = subjects => this.setState({subjects})
+
+  _getToggleAll = type => () => {
+    const { isAllSelected, objects } = this.state
+    let newObjects
+    if (!isAllSelected[type]) {
+      newObjects = [ ...objects, ...toArray(this.props[type.toLowerCase() + 's']) ]
+    } else {
+      newObjects = filter(objects, object => object.type !== type)
+    }
+    this.refs.selectObject.value = newObjects
+    this.setState({
+      objects: newObjects,
+      isAllSelected: {
+        ...isAllSelected,
+        [type]: !isAllSelected[type] }
+    })
+  }
 
   _addAcl = async () => {
     const {
@@ -160,6 +198,7 @@ export default class Acls extends Component {
 
   render () {
     const {
+      isAllSelected,
       objects,
       action,
       subjects
@@ -174,6 +213,11 @@ export default class Acls extends Component {
           <div className='form-group'>
             <SelectHighLevelObject ref='selectObject' multi onChange={this._handleSelectObjects} />
           </div>
+          <ButtonGroup className='p-b-1'>
+            {map(TYPES, type =>
+              <ActionButton key={type} btnStyle={isAllSelected[type] ? 'success' : 'secondary'} size='small' icon={type.toLowerCase()} handler={this._getToggleAll(type)} />
+            )}
+          </ButtonGroup>
           <div className='form-group'>
             <SelectRole ref='selectAction' onChange={this._handleSelectRole} />
           </div>
