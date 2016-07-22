@@ -3,13 +3,12 @@ import * as homeFilters from 'home-filters'
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
-import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import propTypes from 'prop-types'
 import React from 'react'
-import size from 'lodash/size'
+import { Text } from 'editable'
 import { alert } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { getLang } from 'selectors'
@@ -29,9 +28,9 @@ import {
   addSshKey,
   changePassword,
   deleteSshKey,
-  removeUserFilter,
-  setDefaultUserFilter,
-  setUserFilters,
+  editCustomFilter,
+  removeCustomFilter,
+  setDefaultHomeFilter,
   subscribeCurrentUser
 } from 'xo'
 
@@ -60,8 +59,7 @@ const getDefaultFilter = (defaultFilters, type) => {
     return ''
   }
 
-  const defaultFilter = defaultFilters[type]
-  return defaultFilter ? `${defaultFilter.isCustom ? 'C' : 'D'}${defaultFilter.name}` : ''
+  return defaultFilters[type] || ''
 }
 
 const getUserPreferences = user => user.preferences || {}
@@ -89,7 +87,7 @@ class DefaultFilterPicker extends Component {
 
     options.push.apply(options, map(customFilters, (filter, name) => ({
       label: name,
-      value: `C${name}`
+      value: name
     })))
 
     // Default filters
@@ -100,27 +98,18 @@ class DefaultFilterPicker extends Component {
 
     options.push.apply(options, map(filters, (filter, labelId) => ({
       label: _(labelId),
-      value: `D${labelId}`
+      value: labelId
     })))
 
     this.setState({ options })
   }
 
-  _handleDefaultFilter = value => {
-    const { type } = this.props
-
-    if (value == null) {
-      return setDefaultUserFilter({ type }).catch(noop)
-    }
-
-    value = value.value
-
-    return setDefaultUserFilter({
-      isCustom: value.charAt(0) === 'C',
-      name: value.slice(1),
-      type
-    }).catch(noop)
-  }
+  _handleDefaultFilter = value => (
+    setDefaultHomeFilter(
+      this.props.type,
+      value && value.value
+    ).catch(noop)
+  )
 
   componentWillMount () {
     this._computeOptions(this.props)
@@ -158,40 +147,23 @@ class DefaultFilterPicker extends Component {
   user: propTypes.object.isRequired
 })
 class UserFilters extends Component {
-  _saveFilters = () => {
-    const newFilters = {}
-    const { refs } = this
-
-    forEach(getUserPreferences(this.props.user).filters, (filters, type) => {
-      const _filters = newFilters[type] = {}
-      forEach(filters, (_, name) => {
-        _filters[refs[`filter-${name}`].value] = refs[`value-${name}`].value
-      })
-    })
-
-    return setUserFilters(newFilters)
-  }
-
-  _removeFilter = filter => removeUserFilter(filter)
+  _removeFilter = ({ name, type }) => removeCustomFilter(type, name)
 
   render () {
     const {
-      defaultFilters,
+      defaultHomeFilters,
       filters: customFiltersByType
     } = getUserPreferences(this.props.user)
-    let nCustomFilters = 0
 
     return (
       <Container>
         <Row>
           <Col>
             <h4>{_('customizeFilters')}</h4>
-            <form id='filters-form'>
+            <div>
               {map(homeFilters, (filters, type) => {
                 const customFilters = customFiltersByType[type]
-                const defaultFilter = getDefaultFilter(defaultFilters, type)
-
-                nCustomFilters += size(customFilters)
+                const defaultFilter = getDefaultFilter(defaultHomeFilters, type)
 
                 return (
                   <div key={type}>
@@ -207,23 +179,17 @@ class UserFilters extends Component {
                       <Row key={name} className='p-b-1'>
                         <Col mediumSize={4}>
                           <div className='input-group'>
-                            <input
-                              className='form-control'
-                              defaultValue={name}
-                              ref={`filter-${name}`}
-                              required
-                              type='text'
+                            <Text
+                              onChange={newName => editCustomFilter(type, name, { newName })}
+                              value={name}
                             />
                           </div>
                         </Col>
                         <Col mediumSize={7}>
                           <div className='input-group'>
-                            <input
-                              className='form-control'
-                              defaultValue={filter}
-                              ref={`value-${name}`}
-                              required
-                              type='text'
+                            <Text
+                              onChange={newValue => editCustomFilter(type, name, { newValue })}
+                              value={filter}
                             />
                           </div>
                         </Col>
@@ -241,18 +207,7 @@ class UserFilters extends Component {
                   </div>
                 )
               })}
-            </form>
-            {nCustomFilters > 0 &&
-              <ActionButton
-                btnStyle='primary'
-                className='pull-right'
-                form='filters-form'
-                handler={this._saveFilters}
-                icon='save'
-              >
-                {_('saveCustomFilters')}
-              </ActionButton>
-            }
+            </div>
           </Col>
         </Row>
       </Container>

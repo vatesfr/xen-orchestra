@@ -20,7 +20,7 @@ import SingleLineRow from 'single-line-row'
 import size from 'lodash/size'
 import { Card, CardHeader, CardBlock } from 'card'
 import {
-  saveNewUserFilter,
+  addCustomFilter,
   copyVms,
   deleteVms,
   emergencyShutdownHosts,
@@ -31,8 +31,8 @@ import {
   snapshotVms,
   startVms,
   stopHosts,
-  subscribeCurrentUser,
-  stopVms
+  stopVms,
+  subscribeCurrentUser
 } from 'xo'
 import { Container, Row, Col } from 'grid'
 import {
@@ -199,24 +199,29 @@ export default class Home extends Component {
     this._focusFilterInput()
   }
 
+  _getDefaultFilter (props = this.props) {
+    const { type, user } = props
+
+    if (!user) {
+      return OPTIONS[type].defaultFilter
+    }
+
+    const { defaultHomeFilters = {}, filters = {} } = user.preferences || {}
+    const filterName = defaultHomeFilters[type]
+
+    return homeFilters[type][filterName] ||
+      filters[type][filterName] ||
+      OPTIONS[type].defaultFilter
+  }
+
   _initFilter (props) {
     const filter = this._getFilter(props)
 
     // If filter is null, set a default filter.
     if (filter == null || (this.props.user == null && props.user != null)) {
-      const { type, user } = props
-      const defaultFilter = (({ defaultFilters = {}, filters = {} }) => {
-        let filter
+      const defaultFilter = this._getDefaultFilter(props)
 
-        if (defaultFilters[type] && filters[type]) {
-          filter = defaultFilters[type]
-          filter = !filter.isCustom ? homeFilters[type][filter.name] : filters[type][filter.name]
-        }
-
-        return filter || OPTIONS[type].defaultFilter
-      })((user && user.preferences) || {})
-
-      if (defaultFilter != null && filter !== defaultFilter) {
+      if (defaultFilter != null) {
         this._setFilter(defaultFilter, props)
       }
       return
@@ -373,30 +378,33 @@ export default class Home extends Component {
 
   _focusFilterInput = () => this.refs.filterInput.focus()
 
-  _saveNewUserFilter = () => {
-    return saveNewUserFilter({
-      type: this.props.type,
-      value: this._getFilter()
-    })
+  _addCustomFilter = () => {
+    return addCustomFilter(
+      this._getType(),
+      this._getFilter()
+    )
+  }
+
+  _getCustomFilters () {
+    const { preferences } = this.props.user || {}
+
+    if (!preferences) {
+      return
+    }
+
+    const customFilters = preferences.filters || {}
+    return customFilters[this._getType()]
   }
 
   _renderHeader () {
     const { type } = this.props
     const { filters } = OPTIONS[type]
-
-    const customFilters = (({ preferences } = {}) => {
-      if (!preferences) {
-        return
-      }
-
-      const customFilters = preferences.filters || {}
-      return customFilters[type]
-    })(this.props.user)
+    const customFilters = this._getCustomFilters()
 
     return <Container>
       <Row className={styles.itemRowHeader}>
         <Col mediumSize={3}>
-          <DropdownButton id='typeMenu' bsStyle='info' title={TYPES[type]}>
+          <DropdownButton id='typeMenu' bsStyle='info' title={TYPES[this._getType()]}>
             <MenuItem onClick={() => this._setType('VM')}>
               VM
             </MenuItem>
@@ -413,13 +421,13 @@ export default class Home extends Component {
             {!isEmpty(filters) && (
               <div className='input-group-btn'>
                 <DropdownButton id='filter' bsStyle='info' title={_('homeFilters')}>
-                  {size(customFilters) > 0 && [
+                  {!isEmpty(customFilters) && [
                     map(customFilters, (filter, name) =>
                       <MenuItem key={`custom-${name}`} onClick={() => this._setFilter(filter)}>
                         {name}
                       </MenuItem>
                     ),
-                    <hr key='separator' className={styles.filtersListSeparator} />
+                    <MenuItem divider />
                   ]}
                   {map(filters, (filter, label) =>
                     <MenuItem key={label} onClick={() => this._setFilter(filter)}>
@@ -447,7 +455,7 @@ export default class Home extends Component {
             <div className='input-group-btn'>
               <ActionButton
                 btnStyle='primary'
-                handler={this._saveNewUserFilter}
+                handler={this._addCustomFilter}
                 icon='save'
               />
             </div>

@@ -1380,23 +1380,33 @@ export const deleteSshKey = key => (
 
 // User filters --------------------------------------------------
 
-export const setDefaultUserFilter = ({ name, type, isCustom }) => {
+import AddUserFilterModalBody from './add-user-filter-modal'
+export const addCustomFilter = (type, value) => {
   const { user } = xo
-  const { preferences } = user
-  const defaultFilters = (preferences && preferences.defaultFilters) || {}
-
-  return _setUserPreferences({
-    defaultFilters: {
-      ...defaultFilters,
-      [type]: {
-        name,
-        isCustom
-      }
+  return confirm({
+    title: _('saveNewFilterTitle'),
+    body: <AddUserFilterModalBody user={user} type={type} value={value} />
+  }).then(name => {
+    if (name.length === 0) {
+      return error(_('saveNewUserFilterErrorTitle'), _('saveNewUserFilterErrorBody'))
     }
+
+    const { preferences } = user
+    const filters = (preferences && preferences.filters) || {}
+
+    return _setUserPreferences({
+      filters: {
+        ...filters,
+        [type]: {
+          ...filters[type],
+          [name]: value
+        }
+      }
+    })
   })
 }
 
-export const removeUserFilter = ({ name, type }) => (
+export const removeCustomFilter = (type, name) => (
   confirm({
     title: _('removeUserFilterTitle'),
     body: <p>{_('removeUserFilterBody')}</p>
@@ -1416,36 +1426,30 @@ export const removeUserFilter = ({ name, type }) => (
   })
 )
 
-export const setUserFilters = filters => (
-  confirm({
-    title: _('setUserFiltersTitle'),
-    body: <p>{_('setUserFiltersBody')}</p>
-  }).then(() => _setUserPreferences({ filters }))
-)
-
-import SaveNewUserFilterModalBody from './save-new-user-filter-modal'
-export const saveNewUserFilter = ({ type, value }) => {
-  const { user } = xo
-  return confirm({
-    title: _('saveNewFilterTitle'),
-    body: <SaveNewUserFilterModalBody user={user} type={type} value={value} />
-  }).then(name => {
-    if (name.length === 0) {
-      return error(_('saveNewUserFilterErrorTitle'), _('saveNewUserFilterErrorBody'))
-    }
-
-    const { preferences } = user
-    const filters = (preferences && preferences.filters) || {}
-
-    return _setUserPreferences({
-      filters: {
-        ...filters,
-        [type]: {
-          ...filters[type],
-          [name]: value
-        }
+export const editCustomFilter = (type, name, { newName = name, newValue }) => {
+  const { filters } = xo.user.preferences
+  return _setUserPreferences({
+    filters: {
+      ...filters,
+      [type]: {
+        ...filters[type],
+        [name]: undefined,
+        [newName]: newValue || filters[type][name]
       }
-    })
+    }
+  })
+}
+
+export const setDefaultHomeFilter = (type, name) => {
+  const { user } = xo
+  const { preferences } = user
+  const defaultFilters = (preferences && preferences.defaultHomeFilters) || {}
+
+  return _setUserPreferences({
+    defaultHomeFilters: {
+      ...defaultFilters,
+      [type]: name
+    }
   })
 }
 
