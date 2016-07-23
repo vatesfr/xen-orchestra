@@ -137,21 +137,26 @@ export default {
     // Creates the user defined VDIs.
     //
     // TODO: set vm.suspend_SR
-    vdis && await Promise.all(mapToArray(vdis, (vdiDescription, i) => {
-      return this._createVdi(
-        vdiDescription.size, // FIXME: Should not be done in Xapi.
-        {
-          name_label: vdiDescription.name_label,
-          name_description: vdiDescription.name_description,
-          sr: vdiDescription.sr || vdiDescription.SR
-        }
-      )
-        .then(ref => this._getOrWaitObject(ref))
-        .then(vdi => this._createVbd(vm, vdi, {
-          // Only the first VBD if installMethod is not cd is bootable.
-          bootable: installMethod !== 'cd' && !i
-        }))
-    }))
+    if (vdis) {
+      const devices = await this.call('VM.get_allowed_VBD_devices')
+      await Promise.all(mapToArray(vdis, (vdiDescription, i) => {
+        return this._createVdi(
+          vdiDescription.size, // FIXME: Should not be done in Xapi.
+          {
+            name_label: vdiDescription.name_label,
+            name_description: vdiDescription.name_description,
+            sr: vdiDescription.sr || vdiDescription.SR
+          }
+        )
+          .then(ref => this._getOrWaitObject(ref))
+          .then(vdi => this._createVbd(vm, vdi, {
+            // Only the first VBD if installMethod is not cd is bootable.
+            bootable: installMethod !== 'cd' && !i,
+
+            userdevice: devices[i]
+          }))
+      }))
+    }
 
     // Destroys the VIFs cloned from the template.
     await Promise.all(mapToArray(vm.$VIFs, vif => this._deleteVif(vif)))
