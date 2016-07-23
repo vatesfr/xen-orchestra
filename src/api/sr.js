@@ -1,3 +1,4 @@
+import { asInteger } from '../xapi/utils'
 import {
   ensureArray,
   forEach,
@@ -344,7 +345,7 @@ export async function createIscsi ({
 
   //  if we give another port than default iSCSI
   if (port) {
-    deviceConfig.port = port
+    deviceConfig.port = asInteger(port)
   }
 
   const srRef = await xapi.call(
@@ -405,7 +406,7 @@ export async function probeIscsiIqns ({
 
   //  if we give another port than default iSCSI
   if (port) {
-    deviceConfig.port = port
+    deviceConfig.port = asInteger(port)
   }
 
   let xml
@@ -483,7 +484,7 @@ export async function probeIscsiLuns ({
 
   //  if we give another port than default iSCSI
   if (port) {
-    deviceConfig.port = port
+    deviceConfig.port = asInteger(port)
   }
 
   let xml
@@ -562,7 +563,7 @@ export async function probeIscsiExists ({
 
   //  if we give another port than default iSCSI
   if (port) {
-    deviceConfig.port = port
+    deviceConfig.port = asInteger(port)
   }
 
   const xml = parseXml(await xapi.call('SR.probe', host._xapiRef, deviceConfig, 'lvmoiscsi', {}))
