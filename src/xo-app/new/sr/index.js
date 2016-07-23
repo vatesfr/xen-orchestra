@@ -160,7 +160,7 @@ export default class New extends Component {
         return createSrNfs(host.id, name.value, description.value, server.value, path)
       },
       iscsi: async () => {
-        const previous = await probeSrIscsiExists(host.id, iqn.ip, iqn.iqn, lun.scsiId, port.value, username && username.value, password && password.value)
+        const previous = await probeSrIscsiExists(host.id, iqn.ip, iqn.iqn, lun.scsiId, +port.value, username && username.value, password && password.value)
         if (previous && previous.length > 0) {
           try {
             await confirm({title: _('existingLunModalTitle'),
@@ -170,7 +170,7 @@ export default class New extends Component {
             return
           }
         }
-        return createSrIscsi(host.id, name.value, description.value, iqn.ip, iqn.iqn, lun.scsiId, port.value, username && username.value, password && password.value)
+        return createSrIscsi(host.id, name.value, description.value, iqn.ip, iqn.iqn, lun.scsiId, +port.value, username && username.value, password && password.value)
       },
       lvm: () => createSrLvm(host.id, name.value, description.value, device.value),
       local: () => createSrIso(host.id, name.value, description.value, localPath.value, 'local'),
@@ -238,7 +238,7 @@ export default class New extends Component {
 
     try {
       this.setState({loading: true})
-      const list = await probeSrIscsiExists(host.id, iqn.ip, iqn.iqn, lun.scsiId, port.value, username && username.value, password && password.value)
+      const list = await probeSrIscsiExists(host.id, iqn.ip, iqn.iqn, lun.scsiId, +port.value, username && username.value, password && password.value)
       const srIds = map(this.getHostSrs(), sr => sr.id)
       const used = filter(list, item => includes(srIds, item.id))
       const unused = filter(list, item => !includes(srIds, item.id))
@@ -284,7 +284,7 @@ export default class New extends Component {
           paths
         })
       } else if (type === 'iscsi') {
-        const iqns = await probeSrIscsiIqns(host.id, server.value, port.value, username && username.value, password && password.value)
+        const iqns = await probeSrIscsiIqns(host.id, server.value, +port.value, username && username.value, password && password.value)
         if (!iqns.length) {
           info('iSCSI Detection', 'No IQNs found')
         } else {
