@@ -86,16 +86,22 @@ export default class VmItem extends Component {
               <span className={styles.itemActionButons}>
                 {this._isRunning
                   ? <span>
+                    <Tooltip content={_('vmConsoleLabel')}>
+                      <Link to={`/vms/${vm.id}/console`}>
+                        <Icon icon='vm-console' size='1' fixedWidth />
+                      </Link>
+                    </Tooltip>
                     <Tooltip content={_('stopVmLabel')}>
                       <a onClick={this._stop}>
-                        <Icon icon='vm-stop' size='1' />
+                        <Icon icon='vm-stop' size='1' fixedWidth />
                       </a>
                     </Tooltip>
                   </span>
                   : <span>
+                    <Icon fixedWidth />
                     <Tooltip content={_('startVmLabel')}>
                       <a onClick={this._start}>
-                        <Icon icon='vm-start' size='1' />
+                        <Icon icon='vm-start' size='1' fixedWidth />
                       </a>
                     </Tooltip>
                   </span>
