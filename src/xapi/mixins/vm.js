@@ -138,7 +138,7 @@ export default {
     //
     // TODO: set vm.suspend_SR
     if (vdis) {
-      const devices = await this.call('VM.get_allowed_VBD_devices')
+      const devices = await this.call('VM.get_allowed_VBD_devices', vm.$ref)
       await Promise.all(mapToArray(vdis, (vdiDescription, i) => {
         return this._createVdi(
           vdiDescription.size, // FIXME: Should not be done in Xapi.
