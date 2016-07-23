@@ -67,7 +67,7 @@ const getUserPreferences = user => user.preferences || {}
 // ===================================================================
 
 @propTypes({
-  customFilters: propTypes.object.isRequired,
+  customFilters: propTypes.object,
   defaultFilter: propTypes.string.isRequired,
   filters: propTypes.object.isRequired,
   type: propTypes.string.isRequired
@@ -162,7 +162,7 @@ class UserFilters extends Component {
             <h4>{_('customizeFilters')}</h4>
             <div>
               {map(homeFilters, (filters, type) => {
-                const customFilters = customFiltersByType[type]
+                const customFilters = customFiltersByType && customFiltersByType[type]
                 const defaultFilter = getDefaultFilter(defaultHomeFilters, type)
 
                 return (

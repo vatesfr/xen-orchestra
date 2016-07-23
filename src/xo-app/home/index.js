@@ -202,16 +202,25 @@ export default class Home extends Component {
   _getDefaultFilter (props = this.props) {
     const { type, user } = props
 
+    const defaultFilter = OPTIONS[type].defaultFilter
+
+    // No user.
     if (!user) {
-      return OPTIONS[type].defaultFilter
+      return defaultFilter
     }
 
     const { defaultHomeFilters = {}, filters = {} } = user.preferences || {}
     const filterName = defaultHomeFilters[type]
 
+    // No filter defined in preferences.
+    if (!filterName) {
+      return defaultFilter
+    }
+
+    // Filter defined.
     return homeFilters[type][filterName] ||
       filters[type][filterName] ||
-      OPTIONS[type].defaultFilter
+      defaultFilter
   }
 
   _initFilter (props) {
