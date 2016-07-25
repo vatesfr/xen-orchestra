@@ -9,6 +9,8 @@ import propTypes from './prop-types'
 import { getXoServerTimezone } from './xo'
 import { Select } from './form'
 
+const XO_SERVER_TIMEZONE = 'xo-server'
+
 @propTypes({
   defaultValue: propTypes.string,
   onChange: propTypes.func.isRequired,
@@ -21,18 +23,23 @@ export default class TimezonePicker extends Component {
   }
 
   get value () {
-    return this.refs.select.value
+    const value = this.refs.select.value
+    return (value === XO_SERVER_TIMEZONE) ? null : value
   }
 
   set value (value) {
-    this.refs.select.value = value
+    this.refs.select.value = value || XO_SERVER_TIMEZONE
   }
 
   _updateTimezone (value) {
     this.props.onChange(value)
   }
   _handleChange = option => {
-    this._updateTimezone(option && option.value)
+    return this._updateTimezone(
+      !option || option.value === XO_SERVER_TIMEZONE
+        ? null
+        : option.value
+    )
   }
   _useLocalTime = () => {
     this._updateTimezone(moment.tz.guess())
@@ -40,12 +47,18 @@ export default class TimezonePicker extends Component {
 
   componentWillMount () {
     // Use local timezone (Web browser) if no default value.
-    if (!this.state.value) {
+    if (this.props.value === undefined) {
       this._useLocalTime()
     }
 
     getXoServerTimezone.then(serverTimezone => {
       this.setState({
+        options: [{
+          label: _('serverTimezoneOption', {
+            value: serverTimezone
+          }),
+          value: XO_SERVER_TIMEZONE
+        }].concat(this.state.options),
         serverTimezone
       })
     })
@@ -53,23 +66,19 @@ export default class TimezonePicker extends Component {
 
   render () {
     const { props, state } = this
-
     return (
       <div>
-        <div className='alert alert-warning' role='alert'>
-          {_('timezonePickerWarning')}
-        </div>
         <div className='alert alert-info' role='alert'>
           {_('timezonePickerServerValue')} <strong>{state.serverTimezone}</strong>
         </div>
         <Select
-          defaultValue={props.defaultValue}
           className='m-b-1'
+          defaultValue={props.defaultValue}
           onChange={this._handleChange}
           options={state.options}
           placeholder={_('selectTimezone')}
           ref='select'
-          value={props.value}
+          value={props.value || XO_SERVER_TIMEZONE}
         />
         <div className='pull-right'>
           <ActionButton
