@@ -162,7 +162,6 @@ var messages = {
   unknownSchedule: 'Unknown',
   timezonePickerServerValue: 'Xo-server timezone:',
   timezonePickerUseLocal: 'Use local timezone',
-  timezonePickerWarning: 'If empty the xo-server timezone is used.',
   cronPattern: 'Cron Pattern:',
   backupEditNotFoundTitle: 'Cannot edit backup',
   backupEditNotFoundMessage: 'Missing required info for edition',
