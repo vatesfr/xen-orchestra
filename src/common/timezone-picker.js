@@ -41,6 +41,9 @@ export default class TimezonePicker extends Component {
         : option.value
     )
   }
+  _useServerTime = () => {
+    this._updateTimezone(null)
+  }
   _useLocalTime = () => {
     this._updateTimezone(moment.tz.guess())
   }
@@ -83,10 +86,18 @@ export default class TimezonePicker extends Component {
         <div className='pull-right'>
           <ActionButton
             btnStyle='primary'
+            className='m-r-1'
+            handler={this._useServerTime}
+            icon='time'
+          >
+            {_('timezonePickerUseServerTime')}
+          </ActionButton>
+          <ActionButton
+            btnStyle='secondary'
             handler={this._useLocalTime}
             icon='time'
           >
-            {_('timezonePickerUseLocal')}
+            {_('timezonePickerUseLocalTime')}
           </ActionButton>
         </div>
       </div>
