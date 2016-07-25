@@ -6,6 +6,7 @@ import _ from '../../intl'
 import Combobox from '../../combobox'
 import Component from '../../base-component'
 import propTypes from '../../prop-types'
+import { createSelector } from '../../selectors'
 
 @propTypes({
   type: propTypes.string.isRequired,
@@ -17,13 +18,15 @@ export default class SaveNewUserFilterModalBody extends Component {
     return this.state.name || ''
   }
 
-  _getFilterOptions () {
-    const { type } = this.props
-    const preferences = this.props.user.preferences || {}
-    const filters = preferences.filters || {}
-
-    return keys(filters[type])
-  }
+  _getFilterOptions = createSelector(
+    tmp => (
+      (tmp = this.props.user) &&
+      (tmp = tmp.preferences) &&
+      (tmp = tmp.filters) &&
+      tmp[this.props.type]
+    ),
+    keys
+  )
 
   render () {
     const { value } = this.props
