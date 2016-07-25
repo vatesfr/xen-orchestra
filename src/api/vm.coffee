@@ -149,7 +149,7 @@ create = $coroutine (params) ->
   if resourceSet
     yield Promise.all([
       @addAcl(user.id, vm.id, 'admin')
-      xapi.xo.setData(xapiVm.$id, 'resourceSet')
+      xapi.xo.setData(xapiVm.$id, 'resourceSet', resourceSet)
     ])
 
   return vm.id
