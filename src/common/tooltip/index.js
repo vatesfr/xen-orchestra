@@ -1,85 +1,53 @@
-// -----------------------------------------------------------------------------
-// RC TOOLTIP ------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+import React from 'react'
+import ReactTooltip from 'react-tooltip'
 
-import React, { Component } from 'react'
-import RcTooltip from 'rc-tooltip'
+import Component from '../base-component'
+import propTypes from '../prop-types'
 
-// This doesn't work if children is a React component
+const generateId = (() => {
+  let id = Number.MIN_SAFE_INTEGER
 
+  return () => {
+    if (id === Number.MAX_SAFE_INTEGER) {
+      id = Number.MIN_SAFE_INTEGER
+    }
+
+    return id++
+  }
+})()
+
+@propTypes({
+  children: propTypes.any.isRequired,
+  className: propTypes.string,
+  content: propTypes.any.isRequired,
+  style: propTypes.object,
+  tagName: propTypes.string
+})
 export default class Tooltip extends Component {
+  constructor (props) {
+    super(props)
+    this.state.id = generateId()
+  }
+
   render () {
-    return <RcTooltip placement='bottom' overlay={this.props.content} animation='zoom'>
-      {this.props.children}
-    </RcTooltip>
+    const {
+      className,
+      children,
+      content,
+      style,
+      tagName: Component = 'span'
+    } = this.props
+    const { id } = this.state
+
+    return (
+      <Component className={className || ''} style={style}>
+        <a data-tip data-for={id}>
+          {children}
+        </a>
+        <ReactTooltip id={id}>
+          <div>{content}</div>
+        </ReactTooltip>
+      </Component>
+    )
   }
 }
-
-// This always works but wrapping children can be a problem (AcionBar)
-
-// import React, { Component } from 'react'
-// import RcTooltip from 'rc-tooltip'
-//
-// export default class Tooltip extends Component {
-//   render () {
-//     return <RcTooltip placement='bottom' overlay={this.props.content} animation='zoom'>
-//       <span>{this.props.children}</span>
-//     </RcTooltip>
-//   }
-// }
-
-// -----------------------------------------------------------------------------
-// TETHER ----------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
-// import React, { Component, cloneElement } from 'react'
-// import tether from 'react-tether2'
-//
-// @tether(
-//   function (props) {
-//     return {
-//       target: props.target(),
-//       attachment: 'top right',
-//       targetAttachment: 'bottom right'
-//     }
-//   }
-// )
-// class Source extends Component {
-//   render () {
-//     return (
-//       <div>
-//         {this.props.children}
-//       </div>
-//     )
-//   }
-// }
-//
-// export default class Tooltip extends Component {
-//   getTarget = () => this.refs.target;
-//
-//   render () {
-//     const child = cloneElement(this.props.children, { ref: 'target' })
-//     return (
-//       <div>
-//         {child}
-//         <Source target={this.getTarget}>{this.props.content}</Source>
-//       </div>
-//     )
-//   }
-// }
-
-// -----------------------------------------------------------------------------
-// REACT TOOLTIP ---------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
-// import React, { Component } from 'react'
-// import ReacTooltip from 'react-tooltip'
-//
-// export default class Tooltip extends Component {
-//   render () {
-//     return <div>
-//       <div data-tip='hello world'>Tooltip</div>
-//       <ReacTooltip />
-//     </div>
-//   }
-// }
