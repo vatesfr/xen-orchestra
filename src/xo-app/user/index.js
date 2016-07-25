@@ -1,28 +1,42 @@
+import * as FormGrid from 'form-grid'
+import * as homeFilters from 'home-filters'
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
-import BaseComponent from 'base-component'
+import Component from 'base-component'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
+import propTypes from 'prop-types'
 import React from 'react'
+import { Text } from 'editable'
 import { alert } from 'modal'
-import { addSubscriptions, connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { getLang } from 'selectors'
 import { injectIntl } from 'react-intl'
+import { Select } from 'form'
 import {
   Card,
   CardBlock,
   CardHeader
 } from 'card'
 import {
+  addSubscriptions,
+  connectStore,
+  noop
+} from 'utils'
+import {
   addSshKey,
   changePassword,
   deleteSshKey,
+  editCustomFilter,
+  removeCustomFilter,
+  setDefaultHomeFilter,
   subscribeCurrentUser
 } from 'xo'
 
 import Page from '../page'
+
+// ===================================================================
 
 const HEADER = <Container>
   <Row>
@@ -32,6 +46,177 @@ const HEADER = <Container>
   </Row>
 </Container>
 
+// ===================================================================
+
+const FILTER_TYPE_TO_LABEL_ID = {
+  VM: 'homeTypeVm',
+  host: 'homeTypeHost',
+  pool: 'homeTypePool'
+}
+
+const getDefaultFilter = (defaultFilters, type) => {
+  if (defaultFilters == null) {
+    return ''
+  }
+
+  return defaultFilters[type] || ''
+}
+
+const getUserPreferences = user => user.preferences || {}
+
+// ===================================================================
+
+@propTypes({
+  customFilters: propTypes.object,
+  defaultFilter: propTypes.string.isRequired,
+  filters: propTypes.object.isRequired,
+  type: propTypes.string.isRequired
+})
+class DefaultFilterPicker extends Component {
+  _computeOptions (props) {
+    const {
+      customFilters,
+      filters
+    } = props
+
+    // Custom filters.
+    const options = [{
+      label: _('customFilters'),
+      disabled: true
+    }]
+
+    options.push.apply(options, map(customFilters, (filter, name) => ({
+      label: name,
+      value: name
+    })))
+
+    // Default filters
+    options.push({
+      label: _('defaultFilters'),
+      disabled: true
+    })
+
+    options.push.apply(options, map(filters, (filter, labelId) => ({
+      label: _(labelId),
+      value: labelId
+    })))
+
+    this.setState({ options })
+  }
+
+  _handleDefaultFilter = value => (
+    setDefaultHomeFilter(
+      this.props.type,
+      value && value.value
+    ).catch(noop)
+  )
+
+  componentWillMount () {
+    this._computeOptions(this.props)
+  }
+
+  componentWillReceiveProps (props) {
+    this._computeOptions(props)
+  }
+
+  render () {
+    return (
+      <Row>
+        <Col>
+          <FormGrid.Row>
+            <FormGrid.LabelCol>
+              <strong>{_('defaultFilter')}</strong>
+            </FormGrid.LabelCol>
+            <FormGrid.InputCol>
+              <Select
+                onChange={this._handleDefaultFilter}
+                options={this.state.options}
+                value={this.props.defaultFilter}
+              />
+            </FormGrid.InputCol>
+          </FormGrid.Row>
+        </Col>
+      </Row>
+    )
+  }
+}
+
+// ===================================================================
+
+@propTypes({
+  user: propTypes.object.isRequired
+})
+class UserFilters extends Component {
+  _removeFilter = ({ name, type }) => removeCustomFilter(type, name)
+
+  render () {
+    const {
+      defaultHomeFilters,
+      filters: customFiltersByType
+    } = getUserPreferences(this.props.user)
+
+    return (
+      <Container>
+        <Row>
+          <Col>
+            <h4>{_('customizeFilters')}</h4>
+            <div>
+              {map(homeFilters, (filters, type) => {
+                const customFilters = customFiltersByType && customFiltersByType[type]
+                const defaultFilter = getDefaultFilter(defaultHomeFilters, type)
+
+                return (
+                  <div key={type}>
+                    <h5>{_(FILTER_TYPE_TO_LABEL_ID[type])}</h5>
+                    <hr />
+                    <DefaultFilterPicker
+                      customFilters={customFilters}
+                      defaultFilter={defaultFilter}
+                      filters={filters}
+                      type={type}
+                    />
+                    {map(customFilters, (filter, name) => (
+                      <Row key={name} className='p-b-1'>
+                        <Col mediumSize={4}>
+                          <div className='input-group'>
+                            <Text
+                              onChange={newName => editCustomFilter(type, name, { newName })}
+                              value={name}
+                            />
+                          </div>
+                        </Col>
+                        <Col mediumSize={7}>
+                          <div className='input-group'>
+                            <Text
+                              onChange={newValue => editCustomFilter(type, name, { newValue })}
+                              value={filter}
+                            />
+                          </div>
+                        </Col>
+                        <Col mediumSize={1}>
+                          <ActionButton
+                            btnStyle='danger'
+                            className='pull-right'
+                            handler={this._removeFilter}
+                            handlerParam={{ name, type }}
+                            icon='delete'
+                          />
+                        </Col>
+                      </Row>
+                    ))}
+                  </div>
+                )
+              })}
+            </div>
+          </Col>
+        </Row>
+      </Container>
+    )
+  }
+}
+
+// ===================================================================
+
 @addSubscriptions({
   user: subscribeCurrentUser
 })
@@ -39,7 +224,7 @@ const HEADER = <Container>
   lang: getLang
 })
 @injectIntl
-export default class User extends BaseComponent {
+export default class User extends Component {
   handleSelectLang = event => {
     this.props.selectLang(event.target.value)
   }
@@ -61,11 +246,13 @@ export default class User extends BaseComponent {
   _handleConfirmPasswordChange = event => this.setState({ confirmPassword: event.target.value })
 
   render () {
+    const { lang, user } = this.props
+
+    if (!user) {
+      return <p>Loading…</p>
+    }
+
     const { formatMessage } = this.props.intl
-    const {
-      lang,
-      user
-    } = this.props
     const {
       confirmPassword,
       newPassword,
@@ -74,12 +261,12 @@ export default class User extends BaseComponent {
 
     const sshKeys = user && user.preferences && user.preferences.sshKeys
 
-    return <Page header={HEADER} title={user && user.email}>
+    return <Page header={HEADER} title={user.email}>
       <Container>
         <Row>
           <Col smallSize={2}><strong>{_('username')}</strong></Col>
           <Col smallSize={10}>
-            {user && user.email}
+            {user.email}
           </Col>
         </Row>
         <br />
@@ -87,11 +274,34 @@ export default class User extends BaseComponent {
           <Col smallSize={2}><strong>{_('password')}</strong></Col>
           <Col smallSize={10}>
             <form className='form-inline' id='changePassword'>
-              <input type='password' onChange={this._handleOldPasswordChange} value={oldPassword} placeholder={formatMessage(messages.oldPasswordPlaceholder)} className='form-control' required />
+              <input
+                autocomplete='off'
+                className='form-control'
+                onChange={this._handleOldPasswordChange}
+                placeholder={formatMessage(messages.oldPasswordPlaceholder)}
+                required
+                type='password'
+                value={oldPassword || ''}
+              />
               {' '}
-              <input type='password' onChange={this._handleNewPasswordChange} value={newPassword} placeholder={formatMessage(messages.newPasswordPlaceholder)} className='form-control' required />
+              <input type='password'
+                autocomplete='off'
+                className='form-control'
+                onChange={this._handleNewPasswordChange}
+                placeholder={formatMessage(messages.newPasswordPlaceholder)}
+                required
+                value={newPassword}
+              />
               {' '}
-              <input type='password' onChange={this._handleConfirmPasswordChange} value={confirmPassword} placeholder={formatMessage(messages.confirmPasswordPlaceholder)} className='form-control' required />
+              <input
+                autocomplete='off'
+                className='form-control'
+                onChange={this._handleConfirmPasswordChange}
+                placeholder={formatMessage(messages.confirmPasswordPlaceholder)}
+                required
+                type='password'
+                value={confirmPassword}
+              />
               {' '}
               <ActionButton icon='save' form='changePassword' btnStyle='primary' handler={this._handleSavePassword}>
                 {_('changePasswordOk')}
@@ -154,6 +364,8 @@ export default class User extends BaseComponent {
           </CardBlock>
         </Card>
       </div>
+      <hr />
+      <UserFilters user={user} />
     </Page>
   }
 }

@@ -1378,6 +1378,81 @@ export const deleteSshKey = key => (
   )
 )
 
+// User filters --------------------------------------------------
+
+import AddUserFilterModalBody from './add-user-filter-modal'
+export const addCustomFilter = (type, value) => {
+  const { user } = xo
+  return confirm({
+    title: _('saveNewFilterTitle'),
+    body: <AddUserFilterModalBody user={user} type={type} value={value} />
+  }).then(name => {
+    if (name.length === 0) {
+      return error(_('saveNewUserFilterErrorTitle'), _('saveNewUserFilterErrorBody'))
+    }
+
+    const { preferences } = user
+    const filters = (preferences && preferences.filters) || {}
+
+    return _setUserPreferences({
+      filters: {
+        ...filters,
+        [type]: {
+          ...filters[type],
+          [name]: value
+        }
+      }
+    })
+  })
+}
+
+export const removeCustomFilter = (type, name) => (
+  confirm({
+    title: _('removeUserFilterTitle'),
+    body: <p>{_('removeUserFilterBody')}</p>
+  }).then(() => {
+    const { user } = xo
+    const { filters } = user.preferences
+
+    return _setUserPreferences({
+      filters: {
+        ...filters,
+        [type]: {
+          ...filters[type],
+          [name]: undefined
+        }
+      }
+    })
+  })
+)
+
+export const editCustomFilter = (type, name, { newName = name, newValue }) => {
+  const { filters } = xo.user.preferences
+  return _setUserPreferences({
+    filters: {
+      ...filters,
+      [type]: {
+        ...filters[type],
+        [name]: undefined,
+        [newName]: newValue || filters[type][name]
+      }
+    }
+  })
+}
+
+export const setDefaultHomeFilter = (type, name) => {
+  const { user } = xo
+  const { preferences } = user
+  const defaultFilters = (preferences && preferences.defaultHomeFilters) || {}
+
+  return _setUserPreferences({
+    defaultHomeFilters: {
+      ...defaultFilters,
+      [type]: name
+    }
+  })
+}
+
 // Jobs ----------------------------------------------------------
 
 export const deleteJob = job => (

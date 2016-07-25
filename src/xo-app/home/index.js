@@ -1,4 +1,5 @@
 import * as ComplexMatcher from 'complex-matcher'
+import * as homeFilters from 'home-filters'
 import _ from 'intl'
 import ActionButton from 'action-button'
 import ceil from 'lodash/ceil'
@@ -19,6 +20,7 @@ import SingleLineRow from 'single-line-row'
 import size from 'lodash/size'
 import { Card, CardHeader, CardBlock } from 'card'
 import {
+  addCustomFilter,
   copyVms,
   deleteVms,
   emergencyShutdownHosts,
@@ -29,7 +31,8 @@ import {
   snapshotVms,
   startVms,
   stopHosts,
-  stopVms
+  stopVms,
+  subscribeCurrentUser
 } from 'xo'
 import { Container, Row, Col } from 'grid'
 import {
@@ -38,6 +41,7 @@ import {
   SelectTag
 } from 'select-objects'
 import {
+  addSubscriptions,
   connectStore,
   noop
 } from 'utils'
@@ -69,10 +73,7 @@ const ITEMS_PER_PAGE = 20
 const OPTIONS = {
   host: {
     defaultFilter: 'power_state:running ',
-    filters: {
-      homeFilterRunningHosts: 'power_state:running ',
-      homeFilterTags: 'tags:'
-    },
+    filters: homeFilters.host,
     mainActions: [
       { handler: stopHosts, icon: 'host-stop' },
       { handler: restartHostsAgents, icon: 'host-restart-agent' },
@@ -90,13 +91,7 @@ const OPTIONS = {
   },
   VM: {
     defaultFilter: 'power_state:running ',
-    filters: {
-      homeFilterPendingVms: 'current_operations:"" ',
-      homeFilterNonRunningVms: '!power_state:running ',
-      homeFilterHvmGuests: 'virtualizationMode:hvm ',
-      homeFilterRunningVms: 'power_state:running ',
-      homeFilterTags: 'tags:'
-    },
+    filters: homeFilters.VM,
     mainActions: [
       { handler: stopVms, icon: 'vm-stop' },
       { handler: startVms, icon: 'vm-start' },
@@ -135,9 +130,7 @@ const OPTIONS = {
   },
   pool: {
     defaultFilter: '',
-    filters: {
-      homeFilterTags: 'tags:'
-    },
+    filters: homeFilters.pool,
     getActions: noop,
     Item: PoolItem,
     sortOptions: [
@@ -154,6 +147,9 @@ const TYPES = {
 
 const DEFAULT_TYPE = 'VM'
 
+@addSubscriptions({
+  user: subscribeCurrentUser
+})
 @connectStore(() => {
   const noServersConnected = invoke(
     createGetObjectsOfType('host'),
@@ -203,12 +199,37 @@ export default class Home extends Component {
     this._focusFilterInput()
   }
 
+  _getDefaultFilter (props = this.props) {
+    const { type, user } = props
+
+    const defaultFilter = OPTIONS[type].defaultFilter
+
+    // No user.
+    if (!user) {
+      return defaultFilter
+    }
+
+    const { defaultHomeFilters = {}, filters = {} } = user.preferences || {}
+    const filterName = defaultHomeFilters[type]
+
+    // No filter defined in preferences.
+    if (!filterName) {
+      return defaultFilter
+    }
+
+    // Filter defined.
+    return homeFilters[type][filterName] ||
+      filters[type][filterName] ||
+      defaultFilter
+  }
+
   _initFilter (props) {
     const filter = this._getFilter(props)
 
     // If filter is null, set a default filter.
-    if (filter == null) {
-      const defaultFilter = OPTIONS[props.type].defaultFilter
+    if (filter == null || (this.props.user == null && props.user != null)) {
+      const defaultFilter = this._getDefaultFilter(props)
+
       if (defaultFilter != null) {
         this._setFilter(defaultFilter, props)
       }
@@ -366,13 +387,33 @@ export default class Home extends Component {
 
   _focusFilterInput = () => this.refs.filterInput.focus()
 
+  _addCustomFilter = () => {
+    return addCustomFilter(
+      this._getType(),
+      this._getFilter()
+    )
+  }
+
+  _getCustomFilters () {
+    const { preferences } = this.props.user || {}
+
+    if (!preferences) {
+      return
+    }
+
+    const customFilters = preferences.filters || {}
+    return customFilters[this._getType()]
+  }
+
   _renderHeader () {
-    const { filters } = OPTIONS[this.props.type]
+    const { type } = this.props
+    const { filters } = OPTIONS[type]
+    const customFilters = this._getCustomFilters()
 
     return <Container>
       <Row className={styles.itemRowHeader}>
         <Col mediumSize={3}>
-          <DropdownButton id='typeMenu' bsStyle='info' title={TYPES[this.props.type]}>
+          <DropdownButton id='typeMenu' bsStyle='info' title={TYPES[this._getType()]}>
             <MenuItem onClick={() => this._setType('VM')}>
               VM
             </MenuItem>
@@ -386,15 +427,25 @@ export default class Home extends Component {
         </Col>
         <Col mediumSize={6}>
           <div className='input-group'>
-            {!isEmpty(filters) && <div className='input-group-btn'>
-              <DropdownButton id='filter' bsStyle='info' title={_('homeFilters')}>
-                {map(filters, (filter, label) =>
-                  <MenuItem key={label} onClick={() => this._setFilter(filter)}>
-                    {_(label)}
-                  </MenuItem>
-                )}
-              </DropdownButton>
-            </div>}
+            {!isEmpty(filters) && (
+              <div className='input-group-btn'>
+                <DropdownButton id='filter' bsStyle='info' title={_('homeFilters')}>
+                  {!isEmpty(customFilters) && [
+                    map(customFilters, (filter, name) =>
+                      <MenuItem key={`custom-${name}`} onClick={() => this._setFilter(filter)}>
+                        {name}
+                      </MenuItem>
+                    ),
+                    <MenuItem divider />
+                  ]}
+                  {map(filters, (filter, label) =>
+                    <MenuItem key={label} onClick={() => this._setFilter(filter)}>
+                      {_(label)}
+                    </MenuItem>
+                  )}
+                </DropdownButton>
+              </div>
+            )}
             <input
               autoFocus
               className='form-control'
@@ -409,6 +460,13 @@ export default class Home extends Component {
                 onClick={this._clearFilter}>
                 <Icon icon='clear-search' />
               </a>
+            </div>
+            <div className='input-group-btn'>
+              <ActionButton
+                btnStyle='primary'
+                handler={this._addCustomFilter}
+                icon='save'
+              />
             </div>
           </div>
         </Col>
