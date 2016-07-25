@@ -1,5 +1,6 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
+import Component from 'base-component'
 import filter from 'lodash/filter'
 import Icon from 'icon'
 import includes from 'lodash/includes'
@@ -7,49 +8,23 @@ import info, { error } from 'notification'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import Page from '../../page'
-import React, { Component } from 'react'
+import propTypes from 'prop-types'
+import React from 'react'
 import store from 'store'
 import trim from 'lodash/trim'
 import Wizard, { Section } from 'wizard'
-import { Container, Row, Col } from 'grid'
 import { confirm } from 'modal'
 import { connectStore, formatSize } from 'utils'
-import { GenericSelect, SelectHost } from 'select-objects'
+import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
-import { Password } from 'form'
+import { Password, Select } from 'form'
+import { SelectHost } from 'select-objects'
 import {
   createFilter,
   createGetObjectsOfType,
   createSelector,
   getObject
 } from 'selectors'
-
-class SelectIqn extends GenericSelect {
-  _computeOptions (props) {
-    return map(props.options, iqn => ({
-      value: iqn,
-      label: `${iqn.iqn} (${iqn.ip})`
-    }))
-  }
-  get value () {
-    const value = this.state.value
-    return value && value.value || value
-  }
-}
-
-class SelectLun extends GenericSelect {
-  _computeOptions (props) {
-    return map(props.options, lun => ({
-      value: lun,
-      label: `LUN ${lun.id}: ${lun.serial} - ${formatSize(+lun.size)} - (${lun.vendor})`
-    }))
-  }
-  get value () {
-    const value = this.state.value
-    return value && value.value || value
-  }
-}
-
 import {
   createSrIso,
   createSrIscsi,
@@ -63,6 +38,98 @@ import {
   reattachSrIso,
   reattachSr
 } from 'xo'
+
+// ===================================================================
+
+@propTypes({
+  onChange: propTypes.func.isRequired,
+  options: propTypes.array.isRequired
+})
+class SelectIqn extends Component {
+  _computeOptions (props = this.props) {
+    this.setState({
+      options: map(props.options, (iqn, id) => ({
+        value: `${iqn.ip}$${iqn.iqn}`,
+        label: `${iqn.iqn} (${iqn.ip})`
+      }))
+    })
+  }
+
+  _handleChange = value => {
+    const { onChange } = this.props
+
+    value = value.value
+    const index = value.indexOf('$')
+
+    this.setState({
+      value
+    }, () => onChange({
+      ip: value.slice(0, index),
+      iqn: value.slice(index + 1)
+    }))
+  }
+
+  componentWillMount () {
+    this._computeOptions()
+  }
+
+  componentWillReceiveProps (props) {
+    this._computeOptions(props)
+  }
+
+  render () {
+    const { state } = this
+    return (
+      <Select
+        clearable={false}
+        onChange={this._handleChange}
+        options={state.options}
+        value={state.value}
+      />
+    )
+  }
+}
+
+@propTypes({
+  onChange: propTypes.func.isRequired,
+  options: propTypes.array.isRequired
+})
+class SelectLun extends Component {
+  _computeOptions (props = this.props) {
+    this.setState({
+      options: map(props.options, lun => ({
+        value: lun.id,
+        label: `LUN ${lun.id}: ${lun.serial} - ${formatSize(+lun.size)} - (${lun.vendor})`
+      }))
+    })
+  }
+
+  _handleChange = value => {
+    const { onChange, options } = this.props
+    value = value.value
+    this.setState({ value }, () => onChange(options[value]))
+  }
+
+  componentWillMount () {
+    this._computeOptions()
+  }
+
+  componentWillReceiveProps (props) {
+    this._computeOptions(props)
+  }
+
+  render () {
+    const { state } = this
+    return (
+      <Select
+        clearable={false}
+        onChange={this._handleChange}
+        options={state.options}
+        value={state.value}
+      />
+    )
+  }
+}
 
 // ===================================================================
 
