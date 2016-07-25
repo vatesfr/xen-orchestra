@@ -274,11 +274,34 @@ export default class User extends Component {
           <Col smallSize={2}><strong>{_('password')}</strong></Col>
           <Col smallSize={10}>
             <form className='form-inline' id='changePassword'>
-              <input type='password' onChange={this._handleOldPasswordChange} value={oldPassword || ''} placeholder={formatMessage(messages.oldPasswordPlaceholder)} className='form-control' required />
+              <input
+                autocomplete='off'
+                className='form-control'
+                onChange={this._handleOldPasswordChange}
+                placeholder={formatMessage(messages.oldPasswordPlaceholder)}
+                required
+                type='password'
+                value={oldPassword || ''}
+              />
               {' '}
-              <input type='password' onChange={this._handleNewPasswordChange} value={newPassword} placeholder={formatMessage(messages.newPasswordPlaceholder)} className='form-control' required />
+              <input type='password'
+                autocomplete='off'
+                className='form-control'
+                onChange={this._handleNewPasswordChange}
+                placeholder={formatMessage(messages.newPasswordPlaceholder)}
+                required
+                value={newPassword}
+              />
               {' '}
-              <input type='password' onChange={this._handleConfirmPasswordChange} value={confirmPassword} placeholder={formatMessage(messages.confirmPasswordPlaceholder)} className='form-control' required />
+              <input
+                autocomplete='off'
+                className='form-control'
+                onChange={this._handleConfirmPasswordChange}
+                placeholder={formatMessage(messages.confirmPasswordPlaceholder)}
+                required
+                type='password'
+                value={confirmPassword}
+              />
               {' '}
               <ActionButton icon='save' form='changePassword' btnStyle='primary' handler={this._handleSavePassword}>
                 {_('changePasswordOk')}

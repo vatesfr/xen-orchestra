@@ -1,5 +1,5 @@
-import React from 'react'
 import keys from 'lodash/keys'
+import React from 'react'
 
 import * as FormGrid from '../../form-grid'
 import _ from '../../intl'
@@ -17,11 +17,17 @@ export default class SaveNewUserFilterModalBody extends Component {
     return this.state.name || ''
   }
 
-  render () {
-    const { type, value } = this.props
+  _getFilterOptions () {
+    const { type } = this.props
     const preferences = this.props.user.preferences || {}
     const filters = preferences.filters || {}
-    const options = keys(filters[type])
+
+    return keys(filters[type])
+  }
+
+  render () {
+    const { value } = this.props
+    const options = this._getFilterOptions()
 
     return (
       <div>
