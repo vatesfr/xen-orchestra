@@ -209,7 +209,7 @@ export default class New extends Component {
     this.setState({
       backupInfo: BACKUP_METHOD_TO_INFO[job.method],
       cronPattern: schedule.cron,
-      timezone: schedule.timezone
+      timezone: schedule.timezone || null
     }, () => delay(this._populateForm, 250, job)) // Work around.
     // Without the delay, some selects are not always ready to load a value
     // Values are displayed, but html5 compliant browsers say the value is required and empty on submit

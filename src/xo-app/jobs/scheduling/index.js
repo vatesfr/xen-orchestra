@@ -20,13 +20,15 @@ import {
 
 const JOB_KEY = 'genericTask'
 
+const DEFAULT_CRON_PATTERN = '0 0 * * *'
+
 export default class Schedules extends Component {
   constructor (props) {
     super(props)
     this.state = {
       action: undefined,
       actions: undefined,
-      cronPattern: '* * * * *',
+      cronPattern: DEFAULT_CRON_PATTERN,
       job: undefined,
       jobs: undefined,
       timezone: undefined
@@ -80,14 +82,13 @@ export default class Schedules extends Component {
 
   _handleSubmit = () => {
     const {name, job, enabled} = this.refs
-    console.log(job)
-    const { cronPattern, schedule } = this.state
+    const { cronPattern, schedule, timezone } = this.state
     let save
     if (schedule) {
-      console.log('JOB', job, job.value)
       schedule.job = job.value.id
       schedule.cron = cronPattern
       schedule.name = name.value
+      schedule.timezone = timezone
       save = updateSchedule(schedule)
     } else {
       save = createSchedule(job.value.id, { cron: cronPattern, enabled: enabled.value, name: name.value })
@@ -107,15 +108,17 @@ export default class Schedules extends Component {
     name.value = schedule.name
     job.value = schedule.job
     this.setState({
+      cronPattern: schedule.cron,
       schedule,
-      cronPattern: schedule.cron
+      timezone: schedule.timezone || null
     })
   }
 
   _reset = () => {
     this.setState({
+      cronPattern: DEFAULT_CRON_PATTERN,
       schedule: undefined,
-      cronPattern: undefined
+      timezone: undefined
     }, () => {
       const { name, job, enabled } = this.refs
       name.value = ''
@@ -167,7 +170,7 @@ export default class Schedules extends Component {
         {process.env.XOA_PLAN > 3
           ? <span><ActionButton form='newScheduleForm' handler={this._handleSubmit} icon='save' btnStyle='primary'>{_('saveBackupJob')}</ActionButton>
             {' '}
-            <button type='button' className='btn btn-default' onClick={this._reset}>{_('selectTableReset')}</button></span>
+            <button type='button' className='btn btn-secondary' onClick={this._reset}>{_('selectTableReset')}</button></span>
           : <span><Upgrade place='health' available={4} /></span>
         }
       </div>
@@ -176,7 +179,8 @@ export default class Schedules extends Component {
           <tr>
             <th>{_('jobName')}</th>
             <th>{_('job')}</th>
-            <th>{_('jobScheduling')}</th>
+            <th className='hidden-xs-down'>{_('jobScheduling')}</th>
+            <th className='hidden-xs-down'>{_('jobTimezone')}</th>
             <th></th>
           </tr>
         </thead>
@@ -187,7 +191,8 @@ export default class Schedules extends Component {
               <span>{schedule.name} <span className='text-muted'>({schedule.id})</span></span>
             </td>
             <td>{jobs[schedule.job] && <span>{jobs[schedule.job].name} - {jobs[schedule.job].method} <span className='text-muted'>({schedule.job})</span></span>}</td>
-            <td>{schedule.cron}</td>
+            <td className='hidden-xs-down'>{schedule.cron}</td>
+            <td className='hidden-xs-down'>{schedule.timezone || _('jobServerTimezone')}</td>
             <td>
               <button type='button' className='btn btn-primary' onClick={() => this._edit(schedule.id)}><Icon icon='edit' /></button>
               {' '}
