@@ -19,10 +19,7 @@ const XO_SERVER_TIMEZONE = 'xo-server'
 export default class TimezonePicker extends Component {
   constructor (props) {
     super(props)
-    this.state.options = [{
-      label: 'Server Timezone',
-      value: XO_SERVER_TIMEZONE
-    }].concat(map(moment.tz.names(), value => ({ label: value, value })))
+    this.state.options = map(moment.tz.names(), value => ({ label: value, value }))
   }
 
   get value () {
@@ -56,6 +53,12 @@ export default class TimezonePicker extends Component {
 
     getXoServerTimezone.then(serverTimezone => {
       this.setState({
+        options: [{
+          label: _('serverTimezoneOption', {
+            value: serverTimezone
+          }),
+          value: XO_SERVER_TIMEZONE
+        }].concat(this.state.options),
         serverTimezone
       })
     })
