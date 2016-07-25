@@ -155,7 +155,11 @@ export default class {
     if (cron) schedule.set('cron', cron)
     if (enabled !== undefined) schedule.set('enabled', enabled)
     if (name !== undefined) schedule.set('name', name)
-    if (timezone !== undefined) schedule.set('timezone', timezone)
+    if (timezone === null) {
+      schedule.set('timezone', undefined) // Remove current timezone
+    } else if (timezone !== undefined) {
+      schedule.set('timezone', timezone)
+    }
 
     await this._redisSchedules.save(schedule)
 
