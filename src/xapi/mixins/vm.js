@@ -281,6 +281,7 @@ export default {
 
     memory: 'memoryMax',
     memoryMax: {
+      addToLimits: true,
       constraints: {
         memoryMin: lte,
         memoryStaticMax: gte
