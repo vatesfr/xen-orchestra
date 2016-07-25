@@ -1,4 +1,5 @@
 import every from 'lodash/every'
+import keyBy from 'lodash/keyBy'
 import remove from 'lodash/remove'
 import some from 'lodash/some'
 
@@ -12,6 +13,7 @@ import {
   isObject,
   lightSet,
   map,
+  mapToArray,
   streamToArray
 } from '../utils'
 
@@ -20,6 +22,33 @@ import {
 class NoSuchResourceSet extends NoSuchObject {
   constructor (id) {
     super(id, 'resource set')
+  }
+}
+
+const computeVmResourcesUsage = vm => {
+  const processed = {}
+  let disks = 0
+  let disk = 0
+
+  forEach(vm.$VBDs, vbd => {
+    let vdi, vdiId
+    if (
+      vbd.type === 'Disk' &&
+      !processed[vdiId = vbd.VDI] &&
+      (vdi = vbd.$VDI)
+    ) {
+      processed[vdiId] = true
+      ++disks
+      disk += +vdi.virtual_size
+    }
+  })
+
+  return {
+    cpus: vm.VCPUs_at_startup,
+    disk,
+    disks,
+    memory: vm.memory_dynamic_max,
+    vms: 1
   }
 }
 
@@ -84,29 +113,9 @@ export default class {
   }
 
   computeVmResourcesUsage (vm) {
-    const processed = {}
-    let disks = 0
-    let disk = 0
-    forEach(this._xo.getXapi(vm).getObject(vm._xapiId).$VBDs, (vbd) => {
-      let vdi, vdiId
-      if (
-        vbd.type === 'Disk' &&
-        !processed[vdiId = vbd.VDI] &&
-        (vdi = vbd.$VDI)
-      ) {
-        processed[vdiId] = true
-        ++disks
-        disk += +vdi.virtual_size
-      }
-    })
-
-    return {
-      cpus: vm.CPUs.number,
-      disk,
-      disks,
-      memory: vm.memory.size,
-      vms: 1
-    }
+    return computeVmResourcesUsage(
+      this._xo.getXapi(vm).getObject(vm._xapiId)
+    )
   }
 
   async createResourceSet (name, subjects = undefined, objects = undefined, limits = undefined) {
@@ -268,7 +277,7 @@ export default class {
   }
 
   async recomputeResourceSetsLimits () {
-    const sets = await this.getAllResourceSets()
+    const sets = keyBy(await this.getAllResourceSets(), 'id')
     forEach(sets, ({ limits }) => {
       forEach(limits, (limit, id) => {
         limit.available = limit.total
@@ -292,13 +301,15 @@ export default class {
         }
 
         const { limits } = set
-        forEach(this.computeVmResourcesUsage(object), (usage, resource) => {
+        forEach(computeVmResourcesUsage(object), (usage, resource) => {
           const limit = limits[resource]
-          limit.available -= usage
+          if (limit) {
+            limit.available -= usage
+          }
         })
       })
     })
 
-    await Promise.all(map(sets, (set) => this._save(set)))
+    await Promise.all(mapToArray(sets, set => this._save(set)))
   }
 }
