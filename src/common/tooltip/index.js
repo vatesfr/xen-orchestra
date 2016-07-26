@@ -116,7 +116,7 @@ export default class Tooltip extends Component {
 
   _updateTooltip = event => {
     const node = ReactDOM.findDOMNode(instance)
-    const result = getPosition(event, event.currentTarget, node, instance.state.place, 'float', {})
+    const result = getPosition(event, event.currentTarget, node, instance.state.place, 'solid', {})
 
     if (result.isNewState) {
       return instance.setState(result.newState, () => this._updateTooltip(event))
