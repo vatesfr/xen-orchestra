@@ -124,7 +124,7 @@ export default class Tooltip extends Component {
 
     const { position } = result
     node.style.left = `${position.left}px`
-    node.style.right = `${position.right}px`
+    node.style.top = `${position.top}px`
   }
 
   render () {
