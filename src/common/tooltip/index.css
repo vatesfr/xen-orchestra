@@ -1,45 +1,21 @@
-.container {
-  position: relative;
-}
-
-.common {
-  opacity: 0;
-  transition: opacity .3s;
-  visibility: hidden;
-}
-
-.container:hover .common {
-  visibility: visible;
-  opacity: 1;
-  z-index: 9999;
-}
-
-.arrow {
-  composes: common;
-
-  border-bottom: .5em solid rgba(0, 0, 0, .8);
-  border-left: .5em solid transparent;
-  border-right: .5em solid transparent;
-  font-size: 1rem;
-  left: 25%;
-  margin-left: 1em;
-  position: absolute;
-  top: 100%;
-}
-
-.tooltip {
-  composes: common;
-
-  background: #333;
-  background: rgba(0, 0, 0, .8);
-  border-radius: .25em;
+.tooltipEnabled {
+  background-color: #222;
+  border-radius: 3px;
+  border: 1px solid $fff;
   color: #fff;
-  font-size: 1rem;
-  left: 25%;
-  margin-top: .5em;
-  padding: .5em;
-  position: absolute;
-  top: 100%;
-  min-width: fit-content;
-  max-width: 20em;
+  display: inline-block;
+  font-size: 13px;
+  margin-left: 0px;
+  margin-top: 0px;
+  opacity: 0.9;
+  padding: 8px 21px;
+  pointer-events: none;
+  position: fixed;
+  transition: opacity 0.3s ease-out, margin-top 0.3s ease-out, margin-left 0.3s ease-out;
+  z-index: 999;
+}
+
+.tooltipDisabled {
+  opacity: 0;
+  visibility: hidden;
 }
