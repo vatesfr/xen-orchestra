@@ -5,6 +5,7 @@ import _, { IntlProvider } from 'intl'
 import { blockXoaAccess } from 'xoa-updater'
 import { connectStore, routes } from 'utils'
 import { Notification } from 'notification'
+import { TooltipViewer } from 'tooltip'
 // import {
 //   keyHandler
 // } from 'react-key-handler'
@@ -113,6 +114,7 @@ export default class XoApp extends Component {
             {blocked ? <XoaUpdates /> : this.props.children}
           </div>
         </div>
+        <TooltipViewer />
         <Modal />
         <Notification />
       </div>
