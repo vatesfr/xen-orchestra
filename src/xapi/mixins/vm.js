@@ -50,7 +50,7 @@ export default {
     const template = this.getObject(templateId)
 
     // Clones the template.
-    const vm = await this._getOrWaitObject(
+    let vm = await this._getOrWaitObject(
       await this[clone ? '_cloneVm' : '_copyVm'](template, nameLabel)
     )
 
@@ -178,6 +178,9 @@ export default {
     // TODO: Assign VGPUs.
 
     if (cloudConfig != null) {
+      // Refresh the record.
+      vm = this.getObject(vm.$id)
+
       // Find the SR of the first VDI.
       let srRef
       forEach(vm.$VBDs, vbd => {
