@@ -25,8 +25,6 @@ import {
   subscribeScheduleTable
 } from 'xo'
 
-import { getJobValues } from '../helpers'
-
 // ===================================================================
 
 const jobKeyToLabel = {
@@ -95,12 +93,12 @@ export default class Overview extends Component {
   _getScheduleTag (schedule, job = {}) {
     try {
       const { paramsVector } = job
-      const values = getJobValues(paramsVector)
+      const values = paramsVector.items
 
       // Old versions of XenOrchestra uses values[0]
       return (
-        getJobValues(values[0])[0].tag ||
-        getJobValues(values[1])[0].tag
+        values[0].values[0].tag ||
+        values[1].values[0].tag
       )
     } catch (_) {}
 
