@@ -51,9 +51,12 @@ export class TooltipViewer extends Component {
 // ===================================================================
 
 @propTypes({
-  children: propTypes.element,
+  children: propTypes.oneOfType([
+    propTypes.element,
+    propTypes.string
+  ]),
   className: propTypes.string,
-  content: propTypes.element,
+  content: propTypes.node,
   style: propTypes.object,
   tagName: propTypes.string
 })
