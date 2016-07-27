@@ -165,15 +165,17 @@ export default class XoWeekHeatmap extends Component {
               <th><FormattedTime value={day.timestamp} {...DAY_TIME_FORMAT} /></th>
               {map(day.hours, (hour, key) => (
                 <Tooltip
-                  className={styles.cell}
-                  key={key}
-                  style={{ background: hour ? hour.color : '#ffffff' }}
-                  tagName='td'
                   content={hour
                     ? _('weekHeatmapData', { date: hour.date, value: this.props.cellRenderer(hour.value) })
                     : _('weekHeatmapNoData')
                   }
-                />
+                  key={key}
+                >
+                  <td
+                    className={styles.cell}
+                    style={{ background: hour ? hour.color : '#ffffff' }}
+                  />
+                </Tooltip>
               ))}
             </tr>
           ))}
