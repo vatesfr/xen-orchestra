@@ -95,8 +95,7 @@ export default class {
     this._xo.getAuthenticationTokensForUser(id)
       .then(tokens => {
         forEach(tokens, token => {
-          this._xo._tokens.remove(token.id)
-            ::pCatch(noop)
+          this._xo.deleteAuthenticationToken(id)::pCatch(noop)
         })
       })
       ::pCatch(noop) // Ignore any failures.
