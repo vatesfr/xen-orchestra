@@ -50,9 +50,9 @@ export class TooltipViewer extends Component {
 // ===================================================================
 
 @propTypes({
-  children: propTypes.any.isRequired,
+  children: propTypes.node.isRequired,
   className: propTypes.string,
-  content: propTypes.any.isRequired,
+  content: propTypes.node.isRequired,
   style: propTypes.object,
   tagName: propTypes.string
 })
