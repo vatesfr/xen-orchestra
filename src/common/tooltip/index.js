@@ -1,4 +1,5 @@
 import classNames from 'classnames'
+import isString from 'lodash/isString'
 import React from 'react'
 import ReactDOM from 'react-dom'
 
@@ -50,9 +51,9 @@ export class TooltipViewer extends Component {
 // ===================================================================
 
 @propTypes({
-  children: propTypes.node.isRequired,
+  children: propTypes.element,
   className: propTypes.string,
-  content: propTypes.node.isRequired,
+  content: propTypes.element,
   style: propTypes.object,
   tagName: propTypes.string
 })
@@ -128,6 +129,16 @@ export default class Tooltip extends Component {
   }
 
   render () {
-    return this.props.children
+    const { children } = this.props
+
+    if (!children) {
+      return <span />
+    }
+
+    if (isString(children)) {
+      return <span>{children}</span>
+    }
+
+    return children
   }
 }
