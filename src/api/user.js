@@ -59,7 +59,7 @@ getAll.permission = 'admin'
 
 export async function set ({id, email, password, permission, preferences}) {
   if (permission && id === this.session.get('user_id')) {
-    throw new InvalidParameters('a user cannot change it\'s own permission')
+    throw new InvalidParameters('a user cannot change its own permission')
   }
   await this.updateUser(id, {email, password, permission, preferences})
 }
