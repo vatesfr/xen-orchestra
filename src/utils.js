@@ -11,6 +11,7 @@ import isString from 'lodash/isString'
 import keys from 'lodash/keys'
 import kindOf from 'kindof'
 import multiKeyHashInt from 'multikey-hash'
+import pick from 'lodash/pick'
 import xml2js from 'xml2js'
 
 // Moment timezone can be loaded only one time, it's a workaround to load
@@ -174,6 +175,13 @@ export function extractProperty (obj, prop) {
   delete obj[prop]
   return value
 }
+
+// -------------------------------------------------------------------
+
+export const getUserPublicProperties = user => pick(
+  user.properties || user,
+  'id', 'email', 'groups', 'permission', 'preferences', 'provider'
+)
 
 // -------------------------------------------------------------------
 

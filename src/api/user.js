@@ -1,5 +1,5 @@
 import {InvalidParameters} from '../api-errors'
-import { mapToArray } from '../utils'
+import { getUserPublicProperties, mapToArray } from '../utils'
 
 // ===================================================================
 
@@ -48,7 +48,7 @@ export async function getAll () {
   const users = await this.getAllUsers()
 
   // Filters out private properties.
-  return mapToArray(users, this.getUserPublicProperties)
+  return mapToArray(users, getUserPublicProperties)
 }
 
 getAll.description = 'returns all the existing users'

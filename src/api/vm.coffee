@@ -819,8 +819,7 @@ stop = $coroutine ({vm, force}) ->
     yield xapi.call 'VM.clean_shutdown', vm._xapiRef
   catch error
     if error.code is 'VM_MISSING_PV_DRIVERS' or error.code is 'VM_LACKS_FEATURE_SHUTDOWN'
-      # TODO: Improve reporting: this message is unclear.
-      @throw 'INVALID_PARAMS'
+      throw new InvalidParameters('clean shutdown requires PV drivers')
     else
       throw error
 
@@ -1116,10 +1115,7 @@ setBootOrder = $coroutine ({vm, order}) ->
     yield xapi.call 'VM.set_HVM_boot_params', vm._xapiRef, order
     return true
 
-  @throw(
-    'INVALID_PARAMS'
-    'You can only set the boot order on a HVM guest'
-  )
+  throw new InvalidParameters('You can only set the boot order on a HVM guest')
 
 setBootOrder.params = {
   vm: { type: 'string' },

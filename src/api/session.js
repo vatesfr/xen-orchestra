@@ -1,4 +1,4 @@
-import {deprecate} from 'util'
+import { deprecate, getUserPublicProperties } from 'util'
 
 import {InvalidCredential, AlreadyAuthenticated} from '../api-errors'
 
@@ -15,7 +15,7 @@ export async function signIn (credentials) {
   }
   this.session.set('user_id', user.id)
 
-  return this.getUserPublicProperties(user)
+  return getUserPublicProperties(user)
 }
 
 signIn.description = 'sign in'
@@ -55,7 +55,7 @@ export async function getUser () {
 
   return userId === undefined
     ? null
-    : this.getUserPublicProperties(await this.getUser(userId))
+    : getUserPublicProperties(await this.getUser(userId))
 }
 
 getUser.description = 'return the currently connected user'

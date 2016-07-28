@@ -9,7 +9,6 @@ import eventToPromise from 'event-to-promise'
 import has from 'lodash/has'
 import helmet from 'helmet'
 import includes from 'lodash/includes'
-import pick from 'lodash/pick'
 import proxyConsole from './proxy-console'
 import serveStatic from 'serve-static'
 import startsWith from 'lodash/startsWith'
@@ -18,14 +17,8 @@ import { compile as compilePug } from 'pug'
 import { createServer as createProxyServer } from 'http-proxy'
 import { join as joinPath } from 'path'
 
-import {
-  AlreadyAuthenticated,
-  InvalidCredential,
-  InvalidParameters,
-  NoSuchObject,
-  NotImplemented
-} from './api-errors'
 import JsonRpcPeer from 'json-rpc-peer'
+import { InvalidCredential } from './api-errors'
 import {
   readFile,
   readdir
@@ -407,27 +400,6 @@ const setUpStaticFiles = (express, opts) => {
 
 // ===================================================================
 
-const errorClasses = {
-  ALREADY_AUTHENTICATED: AlreadyAuthenticated,
-  INVALID_CREDENTIAL: InvalidCredential,
-  INVALID_PARAMS: InvalidParameters,
-  NO_SUCH_OBJECT: NoSuchObject,
-  NOT_IMPLEMENTED: NotImplemented
-}
-
-const apiHelpers = {
-  getUserPublicProperties (user) {
-    // Handles both properties and wrapped models.
-    const properties = user.properties || user
-
-    return pick(properties, 'id', 'email', 'groups', 'permission', 'preferences', 'provider')
-  },
-
-  throw (errorId, data) {
-    throw new (errorClasses[errorId])(data)
-  }
-}
-
 const setUpApi = (webServer, xo, verboseLogsOnErrors) => {
   const webSocketServer = new WebSocket.Server({
     server: webServer,
@@ -437,7 +409,7 @@ const setUpApi = (webServer, xo, verboseLogsOnErrors) => {
 
   // FIXME: it can cause issues if there any property assignments in
   // XO methods called from the API.
-  const context = { __proto__: xo, ...apiHelpers }
+  const context = { __proto__: xo }
 
   const api = new Api({
     context,
