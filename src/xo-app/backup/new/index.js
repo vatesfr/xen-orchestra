@@ -270,7 +270,7 @@ export default class New extends Component {
         // Smart backup.
         const {
           $pool: { __or: pools },
-          tags: { __or: tags },
+          tags: { __or: tags } = {},
           power_state: status = 'All'
         } = values[1].collection.pattern
 
