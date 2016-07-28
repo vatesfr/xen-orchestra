@@ -71,6 +71,12 @@ In XO:
 
 1. Edit the replication job and select the new destination SR
 
+On the destination host; to avoid data corruption, you need to avoid any VM start:
+
+```
+xe vm-param-set blocked-operations:start uuid=<DestinationVM_UUID>
+```
+
 ### Enable
 
 Run manually a first time to check if everything is OK. Then, enable the job. **Now, only the delta's are sent, your initial seed saved you a LOT of time.**
