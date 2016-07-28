@@ -62,3 +62,17 @@ You can change the CPU Weight in the VM advanced view. Values are:
 By default, each VM has a weight of 256.
 
 If one VM got for example, "Double", it will have double priority for the Xen scheduler. [Read more on the official Citrix XenServer documentation](http://support.citrix.com/article/CTX117960).
+
+### VM Copy
+
+VM copy allow to make an export and an import in streaming. You can target any SR in your whole XenServer infrastructure (even across different pools!)
+
+### Snapshots management
+
+You can create a snapshot in one click. It will be named automatically. After the snapshot is created, you can either:
+
+* export it on your computer
+* revert your VM to this snapshot (it will restart the VM)
+* delete this snapshot
+
+> By default, XOA will try to make a snapshot with quiesce. If the VM do not support it, it will fallback to the default snapshot system.
