@@ -13,6 +13,7 @@ startsWith = require 'lodash/startsWith'
 
 {
   GenericError,
+  InvalidParameters,
   Unauthorized
 } = require('../api-errors')
 {
