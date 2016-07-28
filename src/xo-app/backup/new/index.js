@@ -269,8 +269,8 @@ export default class New extends Component {
       if (values[1].type === 'map') {
         // Smart backup.
         const {
-          $pool: pools,
-          tags,
+          $pool: { __or: pools },
+          tags: { __or: tags },
           power_state: status = 'All'
         } = values[1].collection.pattern
 
@@ -278,7 +278,13 @@ export default class New extends Component {
 
         this.setState({
           smartBackupMode: true
-        }, () => { vmsInput.value = { pools, status, tags } })
+        }, () => {
+          vmsInput.value = {
+            pools,
+            status,
+            tags: map(tags, tag => tag[0])
+          }
+        })
       } else {
         // Normal backup.
         backupInput.value = values[1].values[0]
@@ -320,9 +326,9 @@ export default class New extends Component {
           collection: {
             type: 'fetchObjects',
             pattern: {
-              $pool: vmsInputValue.pools.length === 0 ? undefined : vmsInputValue.pools,
+              $pool: !vmsInputValue.pools.length ? undefined : { __or: vmsInputValue.pools },
               power_state: vmsInputValue.status === 'All' ? undefined : vmsInputValue.status,
-              tags: vmsInputValue.tags.length === 0 ? undefined : vmsInputValue.tags,
+              tags: !vmsInputValue.tags.length ? undefined : { __or: map(vmsInputValue.tags, tag => [ tag ]) },
               type: 'VM'
             }
           },
