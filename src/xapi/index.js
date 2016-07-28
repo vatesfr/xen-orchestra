@@ -1074,11 +1074,16 @@ export default class Xapi extends XapiBase {
 
     const baseVm = baseVmId && this.getObject(baseVmId)
 
+    // refs of VM's VDIs → base's VDIs.
     const baseVdis = {}
     baseVm && forEach(baseVm.$VBDs, vbd => {
-      const vdi = vbd.$VDI
-      if (vdi && !find(fullVdisRequired, id => vdi.$snapshot_of.$id === id)) {
-        baseVdis[vbd.VDI] = vdi
+      let vdi, snapshotOf
+      if (
+        (vdi = vbd.$VDI) &&
+        (snapshotOf = vdi.$snapshot_of) &&
+        !find(fullVdisRequired, id => snapshotOf.$id === id)
+      ) {
+        baseVdis[vdi.snapshot_of] = vdi
       }
     })
 
@@ -1102,15 +1107,7 @@ export default class Xapi extends XapiBase {
       const vdi = vbd.$VDI
 
       // Look for a snapshot of this vdi in the base VM.
-      let baseVdi
-      baseVm && forEach(vdi.$snapshot_of.$snapshots, vdi => {
-        if (baseVdis[vdi.$ref]) {
-          baseVdi = vdi
-
-          // Stop iterating.
-          return false
-        }
-      })
+      const baseVdi = baseVdis[vdi.snapshot_of]
 
       vdis[vdiId] = baseVdi && !disableBaseTags
         ? {
