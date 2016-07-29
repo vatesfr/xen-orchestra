@@ -419,10 +419,7 @@ const setUpApi = (webServer, xo, verboseLogsOnErrors) => {
     // Create the JSON-RPC server for this connection.
     const jsonRpc = new JsonRpcPeer(message => {
       if (message.type === 'request') {
-        return xo.callApiMethod(connection, message.method, message.params).catch(error => {
-          console.log(error.stack)
-          throw error
-        })
+        return xo.callApiMethod(connection, message.method, message.params)
       }
     })
     connection.notify = bind(jsonRpc.notify, jsonRpc)
