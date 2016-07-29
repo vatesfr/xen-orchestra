@@ -124,6 +124,8 @@ export default class JobExecutor {
         runJobId,
         error: serializeError(error)
       })
+
+      throw error
     }
   }
 
