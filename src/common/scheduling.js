@@ -263,9 +263,14 @@ class TableSelect extends Component {
   onChange: propTypes.func.isRequired,
   range: propTypes.array,
   labelId: propTypes.string.isRequired,
-  value: propTypes.any.isRequired
+  value: propTypes.any.isRequired,
+  valueRenderer: propTypes.func.isRequired
 })
 class TimePicker extends Component {
+  static defaultProps = {
+    valueRenderer: e => +e
+  }
+
   constructor () {
     super()
     this.state = {
@@ -276,7 +281,7 @@ class TimePicker extends Component {
 
   _update (props) {
     const { refs } = this
-    const { value } = props
+    const { value, valueRenderer } = props
 
     if (value.indexOf('/') === 1) {
       this.setState({
@@ -288,7 +293,7 @@ class TimePicker extends Component {
         activeKey: NAV_EACH_SELECTED,
         tableValue: value === '*'
           ? []
-          : map(value.split(','), e => +e)
+          : map(value.split(','), valueRenderer)
       })
     }
   }
@@ -371,6 +376,8 @@ class TimePicker extends Component {
 const HOURS_RANGE = [2, 12]
 const MINUTES_RANGE = [2, 30]
 
+const decrement = e => e - 1
+
 @propTypes({
   cronPattern: propTypes.string.isRequired,
   onChange: propTypes.func,
@@ -434,12 +441,14 @@ export default class Scheduler extends Component {
               options={MONTHS}
               onChange={this._onMonthChange}
               value={cronPatternArr[PICKTIME_TO_ID['month']]}
+              valueRenderer={decrement}
             />
             <TimePicker
               labelId='MonthDay'
               options={DAYS}
               onChange={this._onMonthDayChange}
               value={cronPatternArr[PICKTIME_TO_ID['monthDay']]}
+              valueRenderer={decrement}
             />
             <TimePicker
               labelId='WeekDay'
