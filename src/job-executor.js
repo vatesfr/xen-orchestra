@@ -61,15 +61,10 @@ const paramsVectorActionsMap = {
   fetchObjects ({ pattern }) {
     return filter(this.xo.getObjects(), object => match(pattern, object))
   },
-  map ({ collection, iteratee }) {
+  map ({ collection, iteratee, paramName = 'value' }) {
     return map(resolveParamsVector.call(this, collection), value => {
-      const {
-        paramName = 'value',
-        ...iterateeConf
-      } = iteratee
-
       return resolveParamsVector.call(this, {
-        ...iterateeConf,
+        ...iteratee,
         [paramName]: value
       })
     })
