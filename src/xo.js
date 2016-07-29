@@ -330,7 +330,7 @@ export default class Xo extends EventEmitter {
 
       forEach(connections, connection => {
         // Notifies only authenticated clients.
-        if (connection.has('user_id')) {
+        if (connection.has('user_id') && connection.notify) {
           if (enteredMessage) {
             connection.notify('all', enteredMessage)
           }
