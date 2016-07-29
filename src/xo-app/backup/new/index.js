@@ -445,13 +445,24 @@ export default class New extends Component {
                           {_('smartBackup', message => <option value='smart'>{message}</option>)}
                         </select>
                       </fieldset>
-                      <GenericInput
-                        label={<span><Icon icon='vm' /> {_('vmsToBackup')}</span>}
-                        ref='vmsInput'
-                        required
-                        schema={smartBackupMode ? SMART_SCHEMA : NO_SMART_SCHEMA}
-                        uiSchema={smartBackupMode ? SMART_UI_SCHEMA : NO_SMART_UI_SCHEMA}
-                      />
+                      {smartBackupMode
+                        ? (process.env.XOA_PLAN > 2
+                          ? <GenericInput
+                            label={<span><Icon icon='vm' /> {_('vmsToBackup')}</span>}
+                            ref='vmsInput'
+                            required
+                            schema={SMART_SCHEMA}
+                            uiSchema={SMART_UI_SCHEMA}
+                            />
+                          : <Container><Upgrade place='newBackup' available={3} /></Container>
+                        ) : <GenericInput
+                          label={<span><Icon icon='vm' /> {_('vmsToBackup')}</span>}
+                          ref='vmsInput'
+                          required
+                          schema={NO_SMART_SCHEMA}
+                          uiSchema={NO_SMART_UI_SCHEMA}
+                          />
+                      }
                     </div>
                   )}
                 </form>
@@ -473,22 +484,24 @@ export default class New extends Component {
                 <SchedulePreview cronPattern={cronPattern} />
                 {process.env.XOA_PLAN < 4 && backupInfo && process.env.XOA_PLAN < REQUIRED_XOA_PLAN[backupInfo.jobKey]
                   ? <Upgrade place='newBackup' available={REQUIRED_XOA_PLAN[backupInfo.jobKey]} />
-                  : <fieldset className='pull-xs-right p-t-1'>
-                    <ActionButton
-                      btnStyle='primary'
-                      className='btn-lg m-r-1'
-                      disabled={!backupInfo}
-                      form='form-new-vm-backup'
-                      handler={this._handleSubmit}
-                      icon='save'
-                      redirectOnSuccess='/backup/overview'
-                    >
-                      {_('saveBackupJob')}
-                    </ActionButton>
-                    <button type='button' className='btn btn-lg btn-secondary' onClick={this._handleReset}>
-                      {_('selectTableReset')}
-                    </button>
-                  </fieldset>
+                  : (!smartBackupMode || process.env.XOA_PLAN >= 3
+                    ? <fieldset className='pull-xs-right p-t-1'>
+                      <ActionButton
+                        btnStyle='primary'
+                        className='btn-lg m-r-1'
+                        disabled={!backupInfo}
+                        form='form-new-vm-backup'
+                        handler={this._handleSubmit}
+                        icon='save'
+                        redirectOnSuccess='/backup/overview'
+                      >
+                        {_('saveBackupJob')}
+                      </ActionButton>
+                      <button type='button' className='btn btn-lg btn-secondary' onClick={this._handleReset}>
+                        {_('selectTableReset')}
+                      </button>
+                    </fieldset>
+                    : <Upgrade place='newBackup' available={3} />)
                 }
               </Col>
             </Row>
