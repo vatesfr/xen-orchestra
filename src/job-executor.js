@@ -1,9 +1,18 @@
 import assign from 'lodash/assign'
-import {BaseError} from 'make-error'
+import every from 'lodash/every'
+import filter from 'lodash/filter'
+import isArray from 'lodash/isArray'
+import isPlainObject from 'lodash/isPlainObject'
+import map from 'lodash/map'
+import mapValues from 'lodash/mapValues'
+import size from 'lodash/size'
+import some from 'lodash/some'
+import { BaseError } from 'make-error'
 
+import { crossProduct } from './math'
 import {
-  createRawObject,
-  forEach
+  forEach,
+  thunkToArray
 } from './utils'
 
 export class JobExecutorError extends BaseError {}
@@ -18,29 +27,66 @@ export class UnsupportedVectorType extends JobExecutorError {
   }
 }
 
-export const productParams = (...args) => {
-  let product = createRawObject()
-  assign(product, ...args)
-  return product
+// ===================================================================
+
+const match = (pattern, value) => {
+  if (isPlainObject(pattern)) {
+    if (pattern.__or && size(pattern) === 1) {
+      return some(pattern.__or, subpattern => match(subpattern, value))
+    }
+
+    return isPlainObject(value) && every(pattern, (subpattern, key) => (
+      value[key] !== undefined && match(subpattern, value[key])
+    ))
+  }
+
+  if (isArray(pattern)) {
+    return isArray(value) && every(pattern, subpattern =>
+      some(value, subvalue => match(subpattern, subvalue))
+    )
+  }
+
+  return pattern === value
 }
 
-export function _computeCrossProduct (items, productCb, extractValueMap = {}) {
-  const upstreamValues = []
-  const itemsCopy = items.slice()
-  const item = itemsCopy.pop()
-  const values = extractValueMap[item.type] && extractValueMap[item.type](item) || item
-  forEach(values, value => {
-    if (itemsCopy.length) {
-      let downstreamValues = _computeCrossProduct(itemsCopy, productCb, extractValueMap)
-      forEach(downstreamValues, downstreamValue => {
-        upstreamValues.push(productCb(value, downstreamValue))
+const paramsVectorActionsMap = {
+  extractProperties ({ mapping, value }) {
+    return mapValues(mapping, key => value[key])
+  },
+  crossProduct ({ items }) {
+    return thunkToArray(crossProduct(
+      map(items, value => resolveParamsVector.call(this, value))
+    ))
+  },
+  fetchObjects ({ pattern }) {
+    return filter(this.xo.getObjects(), object => match(pattern, object))
+  },
+  map ({ collection, iteratee }) {
+    return map(resolveParamsVector.call(this, collection), value => {
+      const {
+        paramName = 'value',
+        ...iterateeConf
+      } = iteratee
+
+      return resolveParamsVector.call(this, {
+        ...iterateeConf,
+        [paramName]: value
       })
-    } else {
-      upstreamValues.push(value)
-    }
-  })
-  return upstreamValues
+    })
+  },
+  set: ({ values }) => values
 }
+
+export function resolveParamsVector (paramsVector) {
+  const visitor = paramsVectorActionsMap[paramsVector.type]
+  if (!visitor) {
+    throw new Error(`Unsupported function '${paramsVector.type}'.`)
+  }
+
+  return visitor.call(this, paramsVector)
+}
+
+// ===================================================================
 
 export default class JobExecutor {
   constructor (xo) {
@@ -86,17 +132,10 @@ export default class JobExecutor {
   }
 
   async _execCall (job, runJobId) {
-    let paramsFlatVector
-
-    if (job.paramsVector) {
-      if (job.paramsVector.type === 'crossProduct') {
-        paramsFlatVector = _computeCrossProduct(job.paramsVector.items, productParams, this._extractValueCb)
-      } else {
-        throw new UnsupportedVectorType(job.paramsVector)
-      }
-    } else {
-      paramsFlatVector = [{}] // One call with no parameters
-    }
+    const { paramsVector } = job
+    const paramsFlatVector = paramsVector
+      ? resolveParamsVector.call(this, paramsVector)
+      : [{}] // One call with no parameters
 
     const connection = this.xo.createUserConnection()
     const promises = []

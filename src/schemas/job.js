@@ -1,5 +1,3 @@
-import paramsVector from 'job/params-vector'
-
 export default {
   $schema: 'http://json-schema.org/draft-04/schema#',
   type: 'object',
@@ -27,7 +25,9 @@ export default {
       type: 'string',
       description: 'called method'
     },
-    paramsVector
+    paramsVector: {
+      type: 'object'
+    }
   },
   required: [
     'type',

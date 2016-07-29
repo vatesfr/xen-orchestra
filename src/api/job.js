@@ -38,14 +38,7 @@ create.params = {
           items: {
             type: 'array',
             items: {
-              type: 'object',
-              properties: {
-                type: {type: 'string'},
-                values: {
-                  type: 'array',
-                  items: {type: 'object'}
-                }
-              }
+              type: 'object'
             }
           }
         },
@@ -77,14 +70,7 @@ set.params = {
           items: {
             type: 'array',
             items: {
-              type: 'object',
-              properties: {
-                type: {type: 'string'},
-                values: {
-                  type: 'array',
-                  items: {type: 'object'}
-                }
-              }
+              type: 'object'
             }
           }
         },
