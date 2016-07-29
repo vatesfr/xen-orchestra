@@ -332,9 +332,9 @@ export default class New extends Component {
               type: 'VM'
             }
           },
-          iteratee: 'extractProperties',
-          iterateeArgs: {
-            pattern: { id: 'id' }
+          iteratee: {
+            type: 'extractProperties',
+            mapping: { id: 'id' }
           }
         }]
       }
