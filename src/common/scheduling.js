@@ -264,7 +264,7 @@ class TableSelect extends Component {
   range: propTypes.array,
   labelId: propTypes.string.isRequired,
   value: propTypes.any.isRequired,
-  valueRenderer: propTypes.func.isRequired
+  valueRenderer: propTypes.func
 })
 class TimePicker extends Component {
   static defaultProps = {
