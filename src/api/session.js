@@ -1,5 +1,6 @@
-import { deprecate, getUserPublicProperties } from 'util'
+import {deprecate} from 'util'
 
+import { getUserPublicProperties } from '../utils'
 import {InvalidCredential, AlreadyAuthenticated} from '../api-errors'
 
 // ===================================================================

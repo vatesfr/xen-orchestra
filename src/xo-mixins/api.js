@@ -1,27 +1,22 @@
 import createDebug from 'debug'
 const debug = createDebug('xo:api')
 
-import getKeys from 'lodash/keys'
 import kindOf from 'kindof'
-import moment from 'moment-timezone'
 import ms from 'ms'
 import schemaInspector from 'schema-inspector'
 
+import * as methods from '../api'
 import {
-  InvalidParameters,
   MethodNotFound,
-  NoSuchObject,
+  InvalidParameters,
   Unauthorized
-} from './api-errors'
-import {
-  version as xoServerVersion
-} from '../package.json'
+} from '../api-errors'
 import {
   createRawObject,
   forEach,
   isFunction,
   noop
-} from './utils'
+} from '../utils'
 
 // ===================================================================
 
@@ -36,8 +31,22 @@ const hasPermission = (user, permission) => (
   PERMISSIONS[user.permission] >= PERMISSIONS[permission]
 )
 
-// FIXME: this function is specific to XO and should not be defined in
-// this file.
+function checkParams (method, params) {
+  const schema = method.params
+  if (!schema) {
+    return
+  }
+
+  const result = schemaInspector.validate({
+    type: 'object',
+    properties: schema
+  }, params)
+
+  if (!result.valid) {
+    throw new InvalidParameters(result.error)
+  }
+}
+
 function checkPermission (method) {
   /* jshint validthis: true */
 
@@ -62,26 +71,6 @@ function checkPermission (method) {
     throw new Unauthorized()
   }
 }
-
-// -------------------------------------------------------------------
-
-function checkParams (method, params) {
-  const schema = method.params
-  if (!schema) {
-    return
-  }
-
-  const result = schemaInspector.validate({
-    type: 'object',
-    properties: schema
-  }, params)
-
-  if (!result.valid) {
-    throw new InvalidParameters(result.error)
-  }
-}
-
-// -------------------------------------------------------------------
 
 function resolveParams (method, params) {
   const resolve = method.resolve
@@ -133,89 +122,23 @@ function resolveParams (method, params) {
 
 // ===================================================================
 
-function getMethodsInfo () {
-  const methods = {}
-
-  forEach(this.api._methods, (method, name) => {
-    methods[name] = {
-      description: method.description,
-      params: method.params || {},
-      permission: method.permission
-    }
-  })
-
-  return methods
-}
-getMethodsInfo.description = 'returns the signatures of all available API methods'
-
-// -------------------------------------------------------------------
-
-const getServerVersion = () => xoServerVersion
-getServerVersion.description = 'return the version of xo-server'
-
-// -------------------------------------------------------------------
-
-const getVersion = () => '0.1'
-getVersion.description = 'API version (unstable)'
-
-// -------------------------------------------------------------------
-
-function listMethods () {
-  return getKeys(this.api._methods)
-}
-listMethods.description = 'returns the name of all available API methods'
-
-// -------------------------------------------------------------------
-
-function methodSignature ({method: name}) {
-  const method = this.api.getMethod(name)
-
-  if (!method) {
-    throw new NoSuchObject()
-  }
-
-  // Return an array for compatibility with XML-RPC.
-  return [
-    // XML-RPC require the name of the method.
-    {
-      name,
-      description: method.description,
-      params: method.params || {},
-      permission: method.permission
-    }
-  ]
-}
-methodSignature.description = 'returns the signature of an API method'
-
-// ===================================================================
-
-const getServerTimezone = (tz => () => tz)(moment.tz.guess())
-getServerTimezone.description = 'return the timezone server'
-
-// ===================================================================
-
 export default class Api {
-  constructor ({
-    context,
-    verboseLogsOnErrors
-  } = {}) {
+  constructor (xo) {
+    this._logger = null
     this._methods = createRawObject()
-    this._verboseLogsOnErrors = verboseLogsOnErrors
-    this.context = context
+    this._xo = xo
 
-    this.addMethods({
-      system: {
-        getMethodsInfo,
-        getServerVersion,
-        getServerTimezone,
-        getVersion,
-        listMethods,
-        methodSignature
-      }
+    this.addApiMethods(methods)
+    xo.on('start', async () => {
+      this._logger = await xo.getLogger('api')
     })
   }
 
-  addMethod (name, method) {
+  get apiMethods () {
+    return this._methods
+  }
+
+  addApiMethod (name, method) {
     const methods = this._methods
 
     if (name in methods) {
@@ -224,21 +147,22 @@ export default class Api {
 
     methods[name] = method
 
-    let unset = () => {
+    let remove = () => {
       delete methods[name]
-      unset = noop
+      remove = noop
     }
-    return () => unset()
+    return () => remove()
   }
 
-  addMethods (methods) {
+  addApiMethods (methods) {
     let base = ''
+    const removes = []
 
     const addMethod = (method, name) => {
       name = base + name
 
       if (isFunction(method)) {
-        this.addMethod(name, method)
+        removes.push(this.addApiMethod(name, method))
         return
       }
 
@@ -247,20 +171,35 @@ export default class Api {
       forEach(method, addMethod)
       base = oldBase
     }
-    forEach(methods, addMethod)
+
+    try {
+      forEach(methods, addMethod)
+    } catch (error) {
+      // Remove all added methods.
+      forEach(removes, remove => remove())
+
+      // Forward the error
+      throw error
+    }
+
+    let remove = () => {
+      forEach(removes, remove => remove())
+      remove = noop
+    }
+    return remove
   }
 
-  async call (session, name, params) {
+  async callApiMethod (session, name, params) {
     const startTime = Date.now()
 
-    const method = this.getMethod(name)
+    const method = this._methods[name]
     if (!method) {
       throw new MethodNotFound(name)
     }
 
     // FIXME: it can cause issues if there any property assignments in
     // XO methods called from the API.
-    const context = Object.create(this.context, {
+    const context = Object.create(this._xo, {
       api: { // Used by system.*().
         value: this
       },
@@ -269,10 +208,9 @@ export default class Api {
       }
     })
 
-    // FIXME: too coupled with XO.
     // Fetch and inject the current user.
     const userId = session.get('user_id', undefined)
-    context.user = userId && await context.getUser(userId)
+    context.user = userId && await this._xo.getUser(userId)
     const userName = context.user
       ? context.user.email
       : '(unknown user)'
@@ -293,7 +231,7 @@ export default class Api {
         params.id = params[namespace]
       }
 
-      checkParams(method, params)
+      checkParams.call(context, method, params)
 
       const resolvedParams = await resolveParams.call(context, method, params)
 
@@ -315,15 +253,23 @@ export default class Api {
 
       return result
     } catch (error) {
-      if (this._verboseLogsOnErrors) {
-        debug(
-          '%s | %s(%j) [%s] =!> %s',
-          userName,
-          name,
-          params,
-          ms(Date.now() - startTime),
-          error
-        )
+      const data = {
+        userId,
+        method: name,
+        params,
+        duration: Date.now() - startTime,
+        error: {
+          message: error.message,
+          stack: error.stack,
+          ...error // Copy enumerable properties.
+        }
+      }
+      const message = `${userName} | ${name}(${JSON.stringify(params)}) [${ms(Date.now() - startTime)}] =!> ${error}`
+
+      this._logger.error(message, data)
+
+      if (this._xo._config.verboseLogsOnErrors) {
+        debug(message)
 
         const stack = error && error.stack
         if (stack) {
@@ -341,9 +287,5 @@ export default class Api {
 
       throw error
     }
-  }
-
-  getMethod (name) {
-    return this._methods[name]
   }
 }

@@ -24,8 +24,6 @@ import {
   readdir
 } from 'fs-promise'
 
-import * as apiMethods from './api/index'
-import Api from './api'
 import WebServer from 'http-server-plus'
 import Xo from './xo'
 import {
@@ -407,18 +405,6 @@ const setUpApi = (webServer, xo, verboseLogsOnErrors) => {
   })
   xo.on('stop', () => pFromCallback(cb => webSocketServer.close(cb)))
 
-  // FIXME: it can cause issues if there any property assignments in
-  // XO methods called from the API.
-  const context = { __proto__: xo }
-
-  const api = new Api({
-    context,
-    verboseLogsOnErrors
-  })
-  xo.defineProperty('api', api)
-
-  api.addMethods(apiMethods)
-
   webSocketServer.on('connection', socket => {
     const { remoteAddress } = socket.upgradeReq.socket
 
@@ -433,7 +419,10 @@ const setUpApi = (webServer, xo, verboseLogsOnErrors) => {
     // Create the JSON-RPC server for this connection.
     const jsonRpc = new JsonRpcPeer(message => {
       if (message.type === 'request') {
-        return api.call(connection, message.method, message.params)
+        return xo.callApiMethod(connection, message.method, message.params).catch(error => {
+          console.log(error.stack)
+          throw error
+        })
       }
     })
     connection.notify = bind(jsonRpc.notify, jsonRpc)
