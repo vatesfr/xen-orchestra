@@ -33,7 +33,7 @@ We'll consider at this point that you've got a working node on your box. E.g:
 
 ```
 $ node -v
-v4.2.4
+v4.4.7
 ```
 
 Be sure to have a recent version of `npm` by using `npm i -g npm`:
@@ -67,7 +67,7 @@ git clone -b stable http://github.com/vatesfr/xo-web
 Once you have it, use `npm`, as the non-root user owning the fetched code, to install the other dependencies: go into XO-Server directory and launch the following command:
 
 ```
-npm install && npm run build
+npm install
 ```
 
 Then, you have to create a config file for XO-Server:
@@ -102,13 +102,6 @@ First, we'll also install dependencies:
 ```
 $ npm install
 ```
-
-You can now install `bower` dependencies and build the application:
-
-```
-$ npm run build
-```
-
 ## Running XO
 
 The sole part you have to launch is XO-Server which is quite easy to do, just launch the `xo-server` script, which is in the root of XO-Server's directory:
