@@ -12,6 +12,7 @@ import { BaseError } from 'make-error'
 import { crossProduct } from './math'
 import {
   forEach,
+  serializeError,
   thunkToArray
 } from './utils'
 
@@ -117,11 +118,11 @@ export default class JobExecutor {
         event: 'job.end',
         runJobId
       })
-    } catch (e) {
+    } catch (error) {
       this._logger.error(`The execution of ${job.id} has failed.`, {
         event: 'job.end',
         runJobId,
-        error: e
+        error: serializeError(error)
       })
     }
   }

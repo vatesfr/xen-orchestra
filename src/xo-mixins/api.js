@@ -15,7 +15,8 @@ import {
   createRawObject,
   forEach,
   isFunction,
-  noop
+  noop,
+  serializeError
 } from '../utils'
 
 // ===================================================================
@@ -258,11 +259,7 @@ export default class Api {
         method: name,
         params,
         duration: Date.now() - startTime,
-        error: {
-          message: error.message,
-          stack: error.stack,
-          ...error // Copy enumerable properties.
-        }
+        error: serializeError(error)
       }
       const message = `${userName} | ${name}(${JSON.stringify(params)}) [${ms(Date.now() - startTime)}] =!> ${error}`
 

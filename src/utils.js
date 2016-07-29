@@ -484,6 +484,15 @@ export const scheduleFn = (cronTime, fn, timeZone) => {
 
 // -------------------------------------------------------------------
 
+// Create a serializable object from an error.
+export const serializeError = error => ({
+  message: error.message,
+  stack: error.stack,
+  ...error // Copy enumerable properties.
+})
+
+// -------------------------------------------------------------------
+
 // Create an array which contains the results of one thunk function.
 // Only works with synchronous thunks.
 export const thunkToArray = thunk => {
