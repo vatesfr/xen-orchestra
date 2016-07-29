@@ -484,8 +484,9 @@ export default class New extends Component {
                 <SchedulePreview cronPattern={cronPattern} />
                 {process.env.XOA_PLAN < 4 && backupInfo && process.env.XOA_PLAN < REQUIRED_XOA_PLAN[backupInfo.jobKey]
                   ? <Upgrade place='newBackup' available={REQUIRED_XOA_PLAN[backupInfo.jobKey]} />
-                  : (!smartBackupMode || process.env.XOA_PLAN >= 3
-                    ? <fieldset className='pull-xs-right p-t-1'>
+                  : (smartBackupMode && process.env.XOA_PLAN < 3
+                    ? <Upgrade place='newBackup' available={3} />
+                    : <fieldset className='pull-xs-right p-t-1'>
                       <ActionButton
                         btnStyle='primary'
                         className='btn-lg m-r-1'
@@ -500,8 +501,7 @@ export default class New extends Component {
                       <button type='button' className='btn btn-lg btn-secondary' onClick={this._handleReset}>
                         {_('selectTableReset')}
                       </button>
-                    </fieldset>
-                    : <Upgrade place='newBackup' available={3} />)
+                    </fieldset>)
                 }
               </Col>
             </Row>
