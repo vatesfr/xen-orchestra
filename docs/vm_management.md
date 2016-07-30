@@ -8,7 +8,7 @@ Any object with a dotted underline can be editer on mouse click: VM title, descr
 
 In advanced tab, you have extra options:
 
-![](./assets/xo5editvmadvanced.png)
+![](./assets/xo5vmadvanced.png)
 
 ### XenServer limitations
 
