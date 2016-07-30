@@ -714,7 +714,7 @@ export default class Xapi extends XapiBase {
       await this.call('host.evacuate', ref)
     } catch (error) {
       if (!force) {
-        await this.call('host.enabled', ref)
+        await this.call('host.enable', ref)
 
         throw error
       }
