@@ -7,6 +7,7 @@ import XoRemoteInput from './xo-remote-input'
 import XoRoleInput from './xo-role-input'
 import XoSrInput from './xo-sr-input'
 import XoSubjectInput from './xo-subject-input'
+import XoTagInput from './xo-tag-input'
 import XoVmInput from './xo-vm-input'
 import { getType, getXoType } from '../json-schema-input/helpers'
 
@@ -14,13 +15,14 @@ import { getType, getXoType } from '../json-schema-input/helpers'
 
 const XO_TYPE_TO_COMPONENT = {
   host: XoHostInput,
-  xoobject: XoHighLevelObjectInput,
   pool: XoPoolInput,
   remote: XoRemoteInput,
   role: XoRoleInput,
   sr: XoSrInput,
   subject: XoSubjectInput,
-  vm: XoVmInput
+  tag: XoTagInput,
+  vm: XoVmInput,
+  xoobject: XoHighLevelObjectInput
 }
 
 // ===================================================================

@@ -197,6 +197,9 @@ var messages = {
 
   // ------ New backup -----
   newBackupSelection: 'Select your backup type:',
+  smartBackupModeSelection: 'Select backup mode:',
+  normalBackup: 'Normal backup',
+  smartBackup: 'Smart backup',
 
   // ------ New Remote -----
   remoteList: 'Remote stores for backup',
@@ -722,6 +725,7 @@ var messages = {
   restoreTip: 'Restore VM',
   importBackupTitle: 'Import VM',
   importBackupMessage: 'Starting your backup import',
+  vmsToBackup: 'VMs to backup',
 
   // ----- Modals -----
   emergencyShutdownHostsModalTitle: 'Emergency shutdown Host{nHosts, plural, one {} other {s}}',

@@ -1,4 +1,4 @@
-import _, { messages } from 'intl'
+import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import delay from 'lodash/delay'
@@ -9,10 +9,9 @@ import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
 import Upgrade from 'xoa-upgrade'
 import Wizard, { Section } from 'wizard'
-import { Container } from 'grid'
+import { Container, Row, Col } from 'grid'
 import { error } from 'notification'
 import { generateUiSchema } from 'xo-json-schema-input'
-import { injectIntl } from 'react-intl'
 
 import {
   createJob,
@@ -21,7 +20,55 @@ import {
   updateSchedule
 } from 'xo'
 
-import { getJobValues } from '../helpers'
+// ===================================================================
+
+const NO_SMART_SCHEMA = {
+  type: 'object',
+  properties: {
+    vms: {
+      type: 'array',
+      items: {
+        type: 'string',
+        'xo:type': 'vm'
+      },
+      title: 'VMs',
+      description: 'Choose VMs to backup.'
+    }
+  },
+  required: [ 'vms' ]
+}
+const NO_SMART_UI_SCHEMA = generateUiSchema(NO_SMART_SCHEMA)
+
+const SMART_SCHEMA = {
+  type: 'object',
+  properties: {
+    status: {
+      default: 'All',
+      enum: [ 'All', 'Running', 'Halted' ],
+      title: 'VMs statuses',
+      description: 'The statuses of VMs to backup.'
+    },
+    pools: {
+      type: 'array',
+      items: {
+        type: 'string',
+        'xo:type': 'pool'
+      },
+      title: 'Resident on'
+    },
+    tags: {
+      type: 'array',
+      items: {
+        type: 'string',
+        'xo:type': 'tag'
+      },
+      title: 'VMs Tags',
+      description: 'VMs which contains at least one of these tags. Not used if empty.'
+    }
+  },
+  required: [ 'status', 'pools' ]
+}
+const SMART_UI_SCHEMA = generateUiSchema(SMART_SCHEMA)
 
 // ===================================================================
 
@@ -32,15 +79,6 @@ const COMMON_SCHEMA = {
       type: 'string',
       title: 'Tag',
       description: 'Back-up tag.'
-    },
-    vms: {
-      type: 'array',
-      items: {
-        type: 'string',
-        'xo:type': 'vm'
-      },
-      title: 'VMs',
-      description: 'Choose VMs to backup.'
     },
     _reportWhen: {
       enum: [ 'never', 'always', 'failure' ],
@@ -191,7 +229,6 @@ const BACKUP_METHOD_TO_INFO = {
 
 const DEFAULT_CRON_PATTERN = '0 0 * * *'
 
-@injectIntl
 export default class New extends Component {
   constructor (props) {
     super(props)
@@ -215,48 +252,98 @@ export default class New extends Component {
     // Values are displayed, but html5 compliant browsers say the value is required and empty on submit
   }
 
-  _populateForm = (job) => {
-    let values = getJobValues(job.paramsVector)
-    const { backupInput } = this.refs
+  _populateForm = job => {
+    let values = job.paramsVector.items
+    const {
+      backupInput,
+      vmsInput
+    } = this.refs
+
     if (values.length === 1) {
       // Older versions of XenOrchestra uses only values[0].
-      values = getJobValues(values[0])
-      backupInput.value = {
-        ...values[0],
-        vms: map(values, value => value.id)
-      }
+      values = values[0].values
+
+      backupInput.value = values[0]
+      vmsInput.value = { vms: values }
     } else {
-      backupInput.value = {
-        ...getJobValues(values[1])[0],
-        vms: getJobValues(values[0])
+      if (values[1].type === 'map') {
+        // Smart backup.
+        const {
+          $pool: { __or: pools },
+          tags: { __or: tags } = {},
+          power_state: status = 'All'
+        } = values[1].collection.pattern
+
+        backupInput.value = values[0].values[0]
+
+        this.setState({
+          smartBackupMode: true
+        }, () => {
+          vmsInput.value = {
+            pools,
+            status,
+            tags: map(tags, tag => tag[0])
+          }
+        })
+      } else {
+        // Normal backup.
+        backupInput.value = values[1].values[0]
+        vmsInput.value = { vms: values[0].values }
       }
     }
   }
 
   _handleSubmit = () => {
-    const backup = this.refs.backupInput.value
     const {
-      vms,
       enabled,
       ...callArgs
-    } = backup
+    } = this.refs.backupInput.value
+    const vmsInputValue = this.refs.vmsInput.value
 
-    const { backupInfo, timezone } = this.state
+    const {
+      backupInfo,
+      smartBackupMode,
+      timezone
+    } = this.state
+
+    const paramsVector = !smartBackupMode
+      ? {
+        type: 'crossProduct',
+        items: [{
+          type: 'set',
+          values: map(vmsInputValue.vms, vm => ({ id: vm }))
+        }, {
+          type: 'set',
+          values: [ callArgs ]
+        }]
+      } : {
+        type: 'crossProduct',
+        items: [{
+          type: 'set',
+          values: [ callArgs ]
+        }, {
+          type: 'map',
+          collection: {
+            type: 'fetchObjects',
+            pattern: {
+              $pool: !vmsInputValue.pools.length ? undefined : { __or: vmsInputValue.pools },
+              power_state: vmsInputValue.status === 'All' ? undefined : vmsInputValue.status,
+              tags: !vmsInputValue.tags.length ? undefined : { __or: map(vmsInputValue.tags, tag => [ tag ]) },
+              type: 'VM'
+            }
+          },
+          iteratee: {
+            type: 'extractProperties',
+            mapping: { id: 'id' }
+          }
+        }]
+      }
 
     const job = {
       type: 'call',
       key: backupInfo.jobKey,
       method: backupInfo.method,
-      paramsVector: {
-        type: 'crossProduct',
-        items: [{
-          type: 'set',
-          values: map(vms, vm => ({ id: vm }))
-        }, {
-          type: 'set',
-          values: [ callArgs ]
-        }]
-      }
+      paramsVector
     }
 
     // Update backup schedule.
@@ -299,77 +386,126 @@ export default class New extends Component {
     })
   }
 
+  _handleSmartBackupMode = event => {
+    this.setState({
+      smartBackupMode: event.target.value === 'smart'
+    })
+  }
+
   render () {
     const {
       backupInfo,
       cronPattern,
-      defaultValue,
+      smartBackupMode,
       timezone
     } = this.state
-    const { formatMessage } = this.props.intl
 
     return process.env.XOA_PLAN > 1
       ? (
       <Wizard>
         <Section icon='backup' title={this.props.job ? 'editVmBackup' : 'newVmBackup'}>
-          <fieldset className='form-group'>
-            <label htmlFor='selectBackup'>{_('newBackupSelection')}</label>
-            <select
-              className='form-control'
-              defaultValue={(backupInfo && backupInfo.method) || null}
-              id='selectBackup'
-              onChange={this._handleBackupSelection}
-              required
-            >
-              <option value={null}>{formatMessage(messages.noSelectedValue)}</option>
-              {map(BACKUP_METHOD_TO_INFO, (info, key) =>
-                <option key={key} value={key}>{formatMessage(messages[info.label])}</option>
-              )}
-            </select>
-          </fieldset>
-          <form className='card-block' id='form-new-vm-backup'>
-            {backupInfo &&
-              <GenericInput
-                defaultValue={defaultValue}
-                label={<span><Icon icon={backupInfo.icon} /> {formatMessage(messages[backupInfo.label])}</span>}
-                required
-                schema={backupInfo.schema}
-                uiSchema={backupInfo.uiSchema}
-                ref='backupInput'
-              />
-            }
-          </form>
+          <Container>
+            <Row>
+              <Col>
+                <fieldset className='form-group'>
+                  <label htmlFor='selectBackup'>{_('newBackupSelection')}</label>
+                  <select
+                    className='form-control'
+                    value={(backupInfo && backupInfo.method) || ''}
+                    id='selectBackup'
+                    onChange={this._handleBackupSelection}
+                    required
+                  >
+                    {_('noSelectedValue', message => <option value=''>{message}</option>)}
+                    {map(BACKUP_METHOD_TO_INFO, (info, key) =>
+                      _(info.label, message => <option key={key} value={key}>{message}</option>)
+                    )}
+                  </select>
+                </fieldset>
+                <form id='form-new-vm-backup'>
+                  {backupInfo && (
+                    <div>
+                      <GenericInput
+                        label={<span><Icon icon={backupInfo.icon} /> {_(backupInfo.label)}</span>}
+                        ref='backupInput'
+                        required
+                        schema={backupInfo.schema}
+                        uiSchema={backupInfo.uiSchema}
+                      />
+                      <fieldset className='form-group'>
+                        <label htmlFor='smartMode'>{_('smartBackupModeSelection')}</label>
+                        <select
+                          className='form-control'
+                          id='smartMode'
+                          onChange={this._handleSmartBackupMode}
+                          required
+                          value={smartBackupMode ? 'smart' : 'normal'}
+                        >
+                          {_('normalBackup', message => <option value='normal'>{message}</option>)}
+                          {_('smartBackup', message => <option value='smart'>{message}</option>)}
+                        </select>
+                      </fieldset>
+                      {smartBackupMode
+                        ? (process.env.XOA_PLAN > 2
+                          ? <GenericInput
+                            label={<span><Icon icon='vm' /> {_('vmsToBackup')}</span>}
+                            ref='vmsInput'
+                            required
+                            schema={SMART_SCHEMA}
+                            uiSchema={SMART_UI_SCHEMA}
+                            />
+                          : <Container><Upgrade place='newBackup' available={3} /></Container>
+                        ) : <GenericInput
+                          label={<span><Icon icon='vm' /> {_('vmsToBackup')}</span>}
+                          ref='vmsInput'
+                          required
+                          schema={NO_SMART_SCHEMA}
+                          uiSchema={NO_SMART_UI_SCHEMA}
+                          />
+                      }
+                    </div>
+                  )}
+                </form>
+              </Col>
+            </Row>
+          </Container>
         </Section>
         <Section icon='schedule' title='schedule'>
           <Scheduler
             cronPattern={cronPattern}
-            timezone={timezone}
             onChange={this._updateCronPattern}
+            timezone={timezone}
           />
         </Section>
         <Section icon='preview' title='preview' summary>
-          <div className='card-block'>
-            <SchedulePreview cronPattern={cronPattern} />
-            {process.env.XOA_PLAN < 4 && backupInfo && process.env.XOA_PLAN < REQUIRED_XOA_PLAN[backupInfo.jobKey]
-              ? <Upgrade place='newBackup' available={REQUIRED_XOA_PLAN[backupInfo.jobKey]} />
-              : <fieldset className='pull-xs-right p-t-1'>
-                <ActionButton
-                  btnStyle='primary'
-                  className='btn-lg m-r-1'
-                  disabled={!backupInfo}
-                  form='form-new-vm-backup'
-                  handler={this._handleSubmit}
-                  icon='save'
-                  redirectOnSuccess='/backup/overview'
-                >
-                  {_('saveBackupJob')}
-                </ActionButton>
-                <button type='button' className='btn btn-lg btn-secondary' onClick={this._handleReset}>
-                  {_('selectTableReset')}
-                </button>
-              </fieldset>
-            }
-          </div>
+          <Container>
+            <Row>
+              <Col>
+                <SchedulePreview cronPattern={cronPattern} />
+                {process.env.XOA_PLAN < 4 && backupInfo && process.env.XOA_PLAN < REQUIRED_XOA_PLAN[backupInfo.jobKey]
+                  ? <Upgrade place='newBackup' available={REQUIRED_XOA_PLAN[backupInfo.jobKey]} />
+                  : (smartBackupMode && process.env.XOA_PLAN < 3
+                    ? <Upgrade place='newBackup' available={3} />
+                    : <fieldset className='pull-xs-right p-t-1'>
+                      <ActionButton
+                        btnStyle='primary'
+                        className='btn-lg m-r-1'
+                        disabled={!backupInfo}
+                        form='form-new-vm-backup'
+                        handler={this._handleSubmit}
+                        icon='save'
+                        redirectOnSuccess='/backup/overview'
+                      >
+                        {_('saveBackupJob')}
+                      </ActionButton>
+                      <button type='button' className='btn btn-lg btn-secondary' onClick={this._handleReset}>
+                        {_('selectTableReset')}
+                      </button>
+                    </fieldset>)
+                }
+              </Col>
+            </Row>
+          </Container>
         </Section>
       </Wizard>
       )
