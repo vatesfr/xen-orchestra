@@ -20,12 +20,9 @@
     margin: auto;
 }
 
-.cleanButtonContainer {
-    align-items: flex-end;
-    display: flex;
-    justify-content: flex-end;
-}
-
-.filesRow {
-    display: flex;
+.vmContainer {
+  margin-bottom: 1em;
+  border-radius: 0.25rem;
+  border: Solid 0.05em dropzoneColor;
+  padding: 1em;
 }

@@ -2,6 +2,7 @@ import * as actions from 'store/actions'
 import escapeRegExp from 'lodash/escapeRegExp'
 import every from 'lodash/every'
 import forEach from 'lodash/forEach'
+import getStream from 'get-stream'
 import humanFormat from 'human-format'
 import isArray from 'lodash/isArray'
 import isEmpty from 'lodash/isEmpty'
@@ -13,6 +14,7 @@ import keys from 'lodash/keys'
 import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
 import React from 'react'
+import ReadableStream from 'readable-stream'
 import replace from 'lodash/replace'
 import store from 'store'
 import { connect } from 'react-redux'
@@ -209,7 +211,7 @@ export const getXoaPlan = plan => {
 export const mapPlus = (collection, cb) => {
   const result = []
   const push = ::result.push
-  forEach(collection, value => cb(value, push))
+  forEach(collection, (value, index) => cb(value, push, index))
   return result
 }
 
@@ -416,4 +418,37 @@ export function buildTemplate (pattern, rules) {
     const rule = rules[match]
     return isFunction(rule) ? rule(...params) : rule
   })
+}
+
+// ===================================================================
+
+export const streamToString = getStream
+
+// ===================================================================
+
+/* global FileReader */
+
+// Creates a readable stream from a HTML file.
+export const htmlFileToStream = file => {
+  const reader = new FileReader()
+  const stream = new ReadableStream()
+  let offset = 0
+
+  reader.onloadend = evt => {
+    stream.push(evt.target.result)
+  }
+  reader.onerror = error => {
+    stream.emit('error', error)
+  }
+
+  stream._read = function (size) {
+    if (offset >= file.size) {
+      stream.push(null)
+    } else {
+      reader.readAsBinaryString(file.slice(offset, offset + size))
+      offset += size
+    }
+  }
+
+  return stream
 }
