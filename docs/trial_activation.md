@@ -6,14 +6,30 @@ The procedure is really simple:
 
 * register and download a Free Edition [on our website](https://xen-orchestra.com/#/member)
 * [deploy the virtual appliance](xoa.md)
-* request a Trial in the "Settings" and "Update" view
+* activate the Trial via the "Update" view (details below)
 
-The trial panel in "Settings"/"Update":
+## Activate the trial
 
-![](https://xen-orchestra.com/blog/content/images/2015/05/updater.png)
+In your current Free XOA, go register it in the "Updates" view in the main menu:
 
-![](https://xen-orchestra.com/blog/content/images/2015/05/trial.png)
+![](./assets/xo5updatemenu.png)
 
-As soon you clicked on "Start trial", you'll have a new update available, which will unlock all the features.
+**To register, please use your email/password from your previous registration on xen-orchestra.com**:
 
-At the end of the trial, you'll be rollback to the Free version.
+![](./assets/xo5register.png)
+
+There, you can click on "Start Trial" green button:
+
+![](./assets/xo5starttrial.png)
+
+Remember to click on Upgrade button after requesting the trial, to download the **Premium Edition** for 15 days!
+
+![](./assets/xo5updatebutton.png)
+
+## Trial availability
+
+In this update view, you can see when your trial will end:
+
+![](./assets/xo5trialend.png)
+
+> **Don't worry! XOA will still work after the trial: you'll be forced to downgrade to Free version, but you won't lose any configuration.**
