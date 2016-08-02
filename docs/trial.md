@@ -6,14 +6,26 @@ The trial is valid for 15 days. You'll have a **fully featured XOA** in Premium 
 
 ## Activate the trial
 
-In your current Free XOA, go register it in the "Settings/Update" view.
+In your current Free XOA, go register it in the "Updates" view in the main menu:
+
+![](./assets/xo5updatemenu.png)
 
 **To register, please use your email/password from your previous registration on xen-orchestra.com**:
 
-![](https://camo.githubusercontent.com/a8d804a7055deb81c88f1de0f3b5b0124d3fb1a2/68747470733a2f2f78656e2d6f72636865737472612e636f6d2f626c6f672f636f6e74656e742f696d616765732f323031352f30352f757064617465722e706e67)
+![](./assets/xo5register.png)
 
-There, you can click on "Start Trial":
+There, you can click on "Start Trial" green button:
 
-![](https://camo.githubusercontent.com/435026d3bad8c096e10b6e8ea3fcdabe1b52462c/68747470733a2f2f78656e2d6f72636865737472612e636f6d2f626c6f672f636f6e74656e742f696d616765732f323031352f30352f747269616c2e706e67)
+![](./assets/xo5starttrial.png)
 
-Remember to "Check for updates" after requesting the trial, to be sure you'll download the **Premium Edition** for 15 days!
+Remember to click on Upgrade button after requesting the trial, to download the **Premium Edition** for 15 days!
+
+![](./assets/xo5updatebutton.png)
+
+## Trial availability
+
+In this update view, you can see when your trial will end:
+
+![](./assets/xo5trialend.png)
+
+> **Don't worry! XOA will still work after the trial: you'll be forced to downgrade to Free version, but you won't lose any configuration.**
