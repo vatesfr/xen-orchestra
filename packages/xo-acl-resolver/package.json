@@ -30,7 +30,7 @@
     "babel-preset-stage-0": "^6.3.13",
     "clarify": "^1.0.5",
     "dependency-check": "^2.5.1",
-    "mocha": "^2.4.5",
+    "mocha": "^3.0.0",
     "must": "^0.13.1",
     "nyc": "^7.0.0",
     "source-map-support": "^0.4.0",
