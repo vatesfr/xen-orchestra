@@ -16,39 +16,41 @@ The updater is configurable directly in the web interface, or via the CLI.
 
 ### From the web interface
 
-By default for a new XOA, you'll have this icon in the top right:
+The updater is available in the "Update" menu:
 
-![](./assets/updater_notreg.png)
+![](./assets/xo5updatemenu.png)
 
-It means your appliance is not registered. Click on this icon and follow the next step.
+You can see the yellow bell icon: it means your appliance is not registered. You **must register in order to have updates and trial**.
+
+![](./assets/xo5updatetooltip.png)
 
 #### Register
 
 Updates and trial will be available as soon as you registered your appliance. To register, use your https://xen-orchestra.com credentials you gave to download it previously (your email and your password):
 
-![](./assets/updater_reg.png)
+![](./assets/xo5register.png)
 
 #### Check for new versions
 
-The updater will check for new versions periodically. Nevertheless, if you want to start a manual check, you can do it by clicking on the "Check for updates" icon.
+The updater will check for new versions periodically. A green tick in the menu means your version is up to date:
+
+![](./assets/xo5updatetooltipok.png)
+
+However, if you want to start a manual check, you can do it by clicking on the "Update" button:
+
+![](./assets/xo5updatebutton.png)
 
 #### Upgrade
 
-If a new version is found, you'll have an upgrade button displayed:
+If a new version is found, you'll have an upgrade button and its tooltip displayed:
 
-![](./assets/regupdate.png)
-
-**In case where the updater is updated itself, you should have to refresh manually the status panel!**
-
-This could be done by clicking on the refresh white icon:
-
-![](./assets/refreshupdater.png)
+![](./assets/xo5updatetooltipneedupdate.png)
 
 #### Proxy configuration
 
 If you are behind a proxy, you can edit your proxy settings in this panel:
 
-![](./assets/regproxy.png)
+![](./assets/xo5proxysettings.png)
 
 ### From the CLI
 

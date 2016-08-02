@@ -23,6 +23,8 @@ Once you've got the XVA file, you can import it with `xe vm-import filename=xoa_
 
 After the VM is imported, you just need to start it with a `xe vm-start vm=XOA` or with XenCenter.
 
+### Network configuration
+
 XOA is in **DHCP** by default, so if you need to configure the IP, you need to edit `/etc/network/interfaces` as explained in the [Debian documentation](https://wiki.debian.org/NetworkConfiguration#Configuring_the_interface_manually). You can access the VM console through XenCenter or using VNC through a SSH tunnel.
 
 Xen Orchestra is now accessible in your browser on ` http://your-vm-ip` or in HTTPS on the same URL.
