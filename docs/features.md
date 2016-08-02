@@ -18,4 +18,4 @@ We made multiple categories to help you to find what you need:
 * [Auto scalability](auto_scalability.html)
 * [Forecaster](forecaster.html)
 
-![](smartphone1.jpg)
+![](./assets/xo5tablet.jpg)

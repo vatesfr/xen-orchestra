@@ -98,7 +98,9 @@ Installing new packages...
 
 ## Troubleshooting
 
-Connect to your XOA in SSH then:
+If your updater is down, you can restart it with `systemctl restart xoa-updater`.
+
+If you can't fetch updates, make some checks from your XOA:
 
 * you should be able to successfully `ping xen-orchestra.com`
 * if not, check your `/etc/resolv.conf` file and modify it if necessary (give a correct DNS server)
