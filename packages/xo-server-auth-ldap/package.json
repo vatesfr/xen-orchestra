@@ -45,7 +45,7 @@
     "clarify": "^1.0.5",
     "dependency-check": "^2.5.1",
     "ghooks": "^1.2.1",
-    "mocha": "^2.2.5",
+    "mocha": "^3.0.0",
     "must": "^0.13.1",
     "nyc": "^7.0.0",
     "sinon": "^1.15.3",
