@@ -64,7 +64,7 @@
     "babel-preset-stage-0": "^6.5.0",
     "dependency-check": "^2.5.1",
     "ghooks": "^1.2.1",
-    "mocha": "^2.2.5",
+    "mocha": "^3.0.0",
     "must": "^0.13.1",
     "nyc": "^7.0.0",
     "standard": "^7.0.0"
