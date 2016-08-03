@@ -5,6 +5,7 @@ import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React, { Component } from 'react'
 import TabButton from 'tab-button'
+import Tooltip from 'tooltip'
 import { connectStore } from 'utils'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { FormattedRelative, FormattedTime } from 'react-intl'
@@ -71,18 +72,22 @@ export default class TabSnapshot extends Component {
                     </td>
                     <td>
                       <ButtonGroup>
-                        <ActionRowButton
-                          btnStyle='warning'
-                          handler={revertSnapshot}
-                          handlerParam={snapshot}
-                          icon='snapshot-revert'
-                        />
-                        <ActionRowButton
-                          btnStyle='danger'
-                          handler={deleteVm}
-                          handlerParam={snapshot}
-                          icon='delete'
-                        />
+                        <Tooltip content={_('revertSnapshot')}>
+                          <ActionRowButton
+                            btnStyle='warning'
+                            handler={revertSnapshot}
+                            handlerParam={snapshot}
+                            icon='snapshot-revert'
+                          />
+                        </Tooltip>
+                        <Tooltip content={_('deleteSnapshot')}>
+                          <ActionRowButton
+                            btnStyle='danger'
+                            handler={deleteVm}
+                            handlerParam={snapshot}
+                            icon='delete'
+                          />
+                        </Tooltip>
                       </ButtonGroup>
                     </td>
                   </tr>

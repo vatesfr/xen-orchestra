@@ -665,7 +665,13 @@ export const importDeltaBackup = ({remote, file, sr}) => (
 )
 
 export const revertSnapshot = vm => (
-  _call('vm.revert', { id: resolveId(vm) })
+  confirm({
+    title: _('revertVmModalTitle'),
+    body: _('revertVmModalMessage')
+  }).then(
+    () => _call('vm.revert', { id: resolveId(vm) }),
+    noop
+  )
 )
 
 export const editVm = (vm, props) => (
