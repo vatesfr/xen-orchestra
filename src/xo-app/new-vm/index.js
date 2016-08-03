@@ -873,36 +873,38 @@ export default class NewVm extends BaseComponent {
             </span>
           </span>
         </Item>
-        <Item>
-          <input
-            checked={installMethod === 'network'}
-            name='installMethod'
-            onChange={this._getOnChange('installMethod')}
-            type='radio'
-            value='network'
-          />
-          {' '}
-          <span>{_('newVmNetworkLabel')}</span>
-          {' '}
-          <DebounceInput
-            className='form-control'
-            debounceTimeout={DEBOUNCE_TIMEOUT}
-            disabled={installMethod !== 'network'}
-            key='networkInput'
-            onChange={this._getOnChange('installNetwork')}
-            placeholder='e.g: http://ftp.debian.org/debian'
-            value={installNetwork}
-          />
-        </Item>
         {template.virtualizationMode === 'pv'
-          ? <Item label='newVmPvArgsLabel' key='pv'>
-            <DebounceInput
-              className='form-control'
-              debounceTimeout={DEBOUNCE_TIMEOUT}
-              onChange={this._getOnChange('pv_args')}
-              value={pv_args}
-            />
-          </Item>
+          ? <span>
+            <Item>
+              <input
+                checked={installMethod === 'network'}
+                name='installMethod'
+                onChange={this._getOnChange('installMethod')}
+                type='radio'
+                value='network'
+              />
+              {' '}
+              <span>{_('newVmNetworkLabel')}</span>
+              {' '}
+              <DebounceInput
+                className='form-control'
+                debounceTimeout={DEBOUNCE_TIMEOUT}
+                disabled={installMethod !== 'network'}
+                key='networkInput'
+                onChange={this._getOnChange('installNetwork')}
+                placeholder='e.g: http://ftp.debian.org/debian'
+                value={installNetwork}
+              />
+            </Item>
+            <Item label='newVmPvArgsLabel' key='pv'>
+              <DebounceInput
+                className='form-control'
+                debounceTimeout={DEBOUNCE_TIMEOUT}
+                onChange={this._getOnChange('pv_args')}
+                value={pv_args}
+              />
+            </Item>
+          </span>
           : <Item>
             <input
               checked={installMethod === 'PXE'}
