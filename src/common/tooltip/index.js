@@ -91,6 +91,7 @@ export default class Tooltip extends Component {
 
   _removeListeners () {
     const node = this._node
+    this._hideTooltip()
 
     if (!node) {
       return
