@@ -60,7 +60,7 @@ const RESOURCE_TYPE_TO_HANDLER = {
     const disk = disks[diskId]
     if (disk) {
       disk.descriptionLabel = description
-      disk.name = name
+      disk.nameLabel = name
       disk.position = +position
     }
   }

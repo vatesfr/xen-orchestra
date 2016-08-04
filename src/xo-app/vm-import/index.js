@@ -61,6 +61,7 @@ const HEADER = (
     propTypes.shape({
       capacity: propTypes.number.isRequired,
       descriptionLabel: propTypes.string.isRequired,
+      nameLabel: propTypes.string.isRequired,
       path: propTypes.string.isRequired
     })
   ),
@@ -97,6 +98,7 @@ class VmData extends Component {
       disks: map(props.disks, ({ capacity, path, position }, diskId) => ({
         capacity,
         descriptionLabel: refs[`disk-description-${diskId}`].value,
+        id: diskId,
         nameLabel: refs[`disk-name-${diskId}`].value,
         path,
         position
@@ -161,7 +163,7 @@ class VmData extends Component {
                           capacity: formatSize(disk.capacity)
                         })}
                       </label>
-                      <input className='form-control' ref={`disk-name-${diskId}`} defaultValue={diskId} type='text' required />
+                      <input className='form-control' ref={`disk-name-${diskId}`} defaultValue={disk.nameLabel} type='text' required />
                     </div>
                   </Col>
                   <Col mediumSize={6}>
