@@ -264,8 +264,8 @@ export default class Overview extends Component {
                       />
                       <p className='text-xs-center'>
                         {_('ofUsage', {
-                          total: formatSize(props.srMetrics.srUsage),
-                          usage: formatSize(props.srMetrics.srTotal)
+                          total: formatSize(props.srMetrics.srTotal),
+                          usage: formatSize(props.srMetrics.srUsage)
                         })}
                       </p>
                     </BlockLink>
