@@ -98,7 +98,6 @@ class VmData extends Component {
       disks: map(props.disks, ({ capacity, path, position }, diskId) => ({
         capacity,
         descriptionLabel: refs[`disk-description-${diskId}`].value,
-        id: diskId,
         nameLabel: refs[`disk-name-${diskId}`].value,
         path,
         position
