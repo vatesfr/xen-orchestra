@@ -3,6 +3,7 @@ import forEach from 'lodash/forEach'
 import tar from 'tar-stream'
 import xml2js from 'xml2js'
 import {
+  ensureArray,
   htmlFileToStream,
   streamToString
 } from 'utils'
@@ -25,21 +26,21 @@ const MEMORY_UNIT_TO_FACTOR = {
 const RESOURCE_TYPE_TO_HANDLER = {
   // CPU.
   '3': (data, {
-    'rasd:VirtualQuantity': [ nCpus ]
+    'rasd:VirtualQuantity': nCpus
   }) => {
     data.nCpus = +nCpus
   },
   // RAM.
   '4': (data, {
-    'rasd:AllocationUnits': [ unit ],
-    'rasd:VirtualQuantity': [ quantity ]
+    'rasd:AllocationUnits': unit,
+    'rasd:VirtualQuantity': quantity
   }) => {
     data.memory = quantity * allocationUnitsToFactor(unit)
   },
   // Network.
   '10': ({ networks }, {
-    'rasd:AutomaticAllocation': [ enabled ],
-    'rasd:Connection': [ name ]
+    'rasd:AutomaticAllocation': enabled,
+    'rasd:Connection': name
   }) => {
     if (enabled) {
       networks.push(name)
@@ -47,13 +48,13 @@ const RESOURCE_TYPE_TO_HANDLER = {
   },
   // Disk.
   '17': ({ disks }, {
-    'rasd:AddressOnParent': [ position ],
-    'rasd:Description': [ description ],
-    'rasd:ElementName': [ name ],
-    'rasd:HostResource': [ resource ]
+    'rasd:AddressOnParent': position,
+    'rasd:Description': description = 'No description',
+    'rasd:ElementName': name,
+    'rasd:HostResource': resource
   }) => {
     let diskId
-    if ((diskId = resource.match(/^\/disk\/(.+)$/))) {
+    if ((diskId = resource.match(/^(?:ovf\:)?\/disk\/(.+)$/))) {
       diskId = diskId[1]
     }
 
@@ -98,7 +99,10 @@ const parseOvaFile = file => (
 
       // XML file.
       streamToString(stream).then(xmlString => {
-        xml2js.parseString(xmlString, (err, res) => {
+        xml2js.parseString(xmlString, {
+          mergeAttrs: true,
+          explicitArray: false
+        }, (err, res) => {
           if (err) {
             reject(err)
             return
@@ -106,9 +110,9 @@ const parseOvaFile = file => (
 
           const {
             Envelope: {
-              DiskSection: [ { Disk: disks } ],
-              References: [ { File: files } ],
-              VirtualSystem: [ system ]
+              DiskSection: { Disk: disks },
+              References: { File: files },
+              VirtualSystem: system
             }
           } = res
 
@@ -116,27 +120,27 @@ const parseOvaFile = file => (
             disks: {},
             networks: []
           }
-          const hardware = system.VirtualHardwareSection[0]
+          const hardware = system.VirtualHardwareSection
 
           // Get VM name/description.
-          data.nameLabel = hardware.System[0]['vssd:VirtualSystemIdentifier'][0]
+          data.nameLabel = hardware.System['vssd:VirtualSystemIdentifier']
           data.descriptionLabel =
-            (system.AnnotationSection && system.AnnotationSection[0].Annotation[0]) ||
-            (system.OperatingSystemSection && system.OperatingSystemSection[0].Description[0])
+            (system.AnnotationSection && system.AnnotationSection.Annotation) ||
+            (system.OperatingSystemSection && system.OperatingSystemSection.Description)
 
           // Get disks.
-          forEach(disks, ({ $: disk }) => {
-            const file = find(files, ({ $: file }) => file['ovf:id'] === disk['ovf:fileRef'])
+          forEach(ensureArray(disks), disk => {
+            const file = find(ensureArray(files), file => file['ovf:id'] === disk['ovf:fileRef'])
             const unit = disk['ovf:capacityAllocationUnits']
 
             data.disks[disk['ovf:diskId']] = {
               capacity: disk['ovf:capacity'] * ((unit && allocationUnitsToFactor(unit)) || 1),
-              path: file && file.$['ovf:href']
+              path: file && file['ovf:href']
             }
           })
 
           // Get hardware info: CPU, RAM, disks, networks...
-          forEach(hardware.Item, item => {
+          forEach(ensureArray(hardware.Item), item => {
             const handler = RESOURCE_TYPE_TO_HANDLER[item['rasd:ResourceType']]
             if (!handler) {
               return
