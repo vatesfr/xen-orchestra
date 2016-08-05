@@ -98,11 +98,10 @@ const parseOvaFile = file => (
     extract.on('finish', () => { reject(new Error('No ovf file found.')) })
     extract.on('error', reject)
     extract.on('entry', ({ name }, stream, cb) => {
-      stream.on('end', cb)
-
       // Not a XML file.
       const extIndex = name.lastIndexOf('.')
       if (extIndex === -1 || name.substring(extIndex + 1) !== 'ovf') {
+        stream.on('end', cb)
         stream.resume()
         return
       }
@@ -164,6 +163,7 @@ const parseOvaFile = file => (
 
           // Done!
           resolve(data)
+          cb()
         })
       })
     })
