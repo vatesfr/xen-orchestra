@@ -511,6 +511,16 @@ export class Xapi extends EventEmitter {
   _addObject (type, ref, object) {
     const {_objectsByRefs: objectsByRefs} = this
 
+    const reservedKeys = {
+      id: true,
+      pool: true,
+      ref: true,
+      type: true
+    }
+    const getKey = (key, obj) => reservedKeys[key] && obj === object
+      ? `$$${key}`
+      : `$${key}`
+
     // Creates resolved properties.
     forEach(object, function resolveObject (value, key, object) {
       if (isArray(value)) {
@@ -518,7 +528,7 @@ export class Xapi extends EventEmitter {
           // If the array is empty, it isn't possible to be sure that
           // it is not supposed to contain links, therefore, in
           // benefice of the doubt, a resolved property is defined.
-          defineProperty(object, '$' + key, {
+          defineProperty(object, getKey(key, object), {
             value: EMPTY_ARRAY
           })
 
@@ -527,7 +537,7 @@ export class Xapi extends EventEmitter {
           object[key] = EMPTY_ARRAY
         } else if (isOpaqueRef(value[0])) {
           // This is an array of refs.
-          defineProperty(object, '$' + key, {
+          defineProperty(object, getKey(key, object), {
             get: () => freezeObject(map(value, (ref) => objectsByRefs[ref]))
           })
 
@@ -538,7 +548,7 @@ export class Xapi extends EventEmitter {
 
         freezeObject(value)
       } else if (isOpaqueRef(value)) {
-        defineProperty(object, '$' + key, {
+        defineProperty(object, getKey(key, object), {
           get: () => objectsByRefs[value]
         })
       }
