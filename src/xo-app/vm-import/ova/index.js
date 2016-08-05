@@ -53,25 +53,35 @@ const RESOURCE_TYPE_TO_HANDLER = {
     'rasd:ElementName': name,
     'rasd:HostResource': resource
   }) => {
-    let diskId
-    if ((diskId = resource.match(/^(?:ovf\:)?\/disk\/(.+)$/))) {
-      diskId = diskId[1]
-    }
+    const diskId = resource.match(/^(?:ovf:)?\/disk\/(.+)$/)
+    const disk = diskId && disks[diskId[1]]
 
-    const disk = disks[diskId]
     if (disk) {
       disk.descriptionLabel = description
       disk.nameLabel = name
       disk.position = +position
+    } else {
+      // TODO: Log error in U.I.
+      console.error(`No disk found: '${diskId}'.`)
     }
   }
 }
 
 const allocationUnitsToFactor = unit => {
-  let intValue
-  return (intValue = unit.match(/\^([0-9]+)$/))
+  const intValue = unit.match(/\^([0-9]+)$/)
+  return intValue != null
     ? Math.pow(2, intValue[1])
     : MEMORY_UNIT_TO_FACTOR[unit.charAt(0).toLowerCase()]
+}
+
+const filterDisks = disks => {
+  for (const diskId in disks) {
+    if (disks[diskId].position == null) {
+      // TODO: Log error in U.I.
+      console.error(`No position specified for '${diskId}'.`)
+      delete disks[diskId]
+    }
+  }
 }
 
 // ===================================================================
@@ -147,6 +157,10 @@ const parseOvaFile = file => (
             }
             handler(data, item)
           })
+
+          // Remove disks which not have a position.
+          // (i.e. no info in hardware.Item section.)
+          filterDisks(data.disks)
 
           // Done!
           resolve(data)
