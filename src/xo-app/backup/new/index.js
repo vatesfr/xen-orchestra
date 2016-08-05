@@ -261,10 +261,19 @@ export default class New extends Component {
 
     if (values.length === 1) {
       // Older versions of XenOrchestra uses only values[0].
-      values = values[0].values
+      const array = values[0].values
+      const config = array[0]
+      const reportWhen = config._reportWhen
 
-      backupInput.value = values[0]
-      vmsInput.value = { vms: values }
+      backupInput.value = {
+        ...config,
+        _reportWhen:
+          // Fix old reportWhen values...
+          (reportWhen === 'fail' && 'failure') ||
+          (reportWhen === 'alway' && 'always') ||
+          reportWhen
+      }
+      vmsInput.value = { vms: map(array, ({ id, vm }) => id || vm) }
     } else {
       if (values[1].type === 'map') {
         // Smart backup.
