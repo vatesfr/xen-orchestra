@@ -99,12 +99,9 @@ export class Range extends Component {
   }
 
   set value (value) {
-    const { onChange } = this.props
-    this.state.value = +value
-
-    if (onChange) {
-      onChange(value)
-    }
+    this.setState({
+      value: +value
+    })
   }
 
   _handleChange = event => {

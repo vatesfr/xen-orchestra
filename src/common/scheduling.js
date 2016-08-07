@@ -280,14 +280,12 @@ class TimePicker extends Component {
   }
 
   _update (props) {
-    const { refs } = this
     const { value, valueRenderer } = props
 
     if (value.indexOf('/') === 1) {
       this.setState({
         activeKey: NAV_EVERY_N
-      })
-      refs.range.value = value.split('/')[1]
+      }, () => { this.refs.range.value = value.split('/')[1] })
     } else {
       this.setState({
         activeKey: NAV_EACH_SELECTED,
