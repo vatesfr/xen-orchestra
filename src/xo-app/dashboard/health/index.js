@@ -2,6 +2,7 @@ import _ from 'intl'
 import ActionRowButton from 'action-row-button'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
+import Link from 'link'
 import map from 'lodash/map'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
@@ -25,7 +26,7 @@ import {
 
 const SrColContainer = connectStore(() => ({
   container: createGetObject()
-}))(({ container }) => <span>{container.name_label}</span>)
+}))(({ container }) => <Link to={`pools/${container.id}`}>{container.name_label}</Link>)
 
 const VdiColSr = connectStore(() => ({
   sr: createGetObject()
@@ -230,6 +231,8 @@ export default class Health extends Component {
     )
   )
 
+  _getSrUrl = sr => `srs/${sr.id}`
+
   render () {
     return process.env.XOA_PLAN > 3
       ? <Container>
@@ -244,7 +247,12 @@ export default class Health extends Component {
                   ? <p className='text-xs-center'>{_('noSrs')}</p>
                   : <Row>
                     <Col>
-                      <SortedTable collection={this.props.userSrs} columns={SR_COLUMNS} defaultColumn={4} />
+                      <SortedTable
+                        collection={this.props.userSrs}
+                        columns={SR_COLUMNS}
+                        defaultColumn={4}
+                        rowLink={this._getSrUrl}
+                      />
                     </Col>
                   </Row>
                 }

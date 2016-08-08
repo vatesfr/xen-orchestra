@@ -300,7 +300,7 @@ export default class SortedTable extends Component {
           </thead>
           <tbody>
             {map(this._getVisibleItems(), (item, i) => {
-              const colums = map(props.columns, (column, key) => (
+              const columns = map(props.columns, (column, key) => (
                 <td key={key}>
                   {column.itemRenderer(item, userData)}
                 </td>
@@ -313,8 +313,8 @@ export default class SortedTable extends Component {
                   key={id}
                   tagName='tr'
                   to={isFunction(rowLink) ? rowLink(item, userData) : rowLink}
-                >{colums}</BlockLink>
-                : <tr key={id}>{colums}</tr>
+                >{columns}</BlockLink>
+                : <tr key={id}>{columns}</tr>
             })}
           </tbody>
         </table>
