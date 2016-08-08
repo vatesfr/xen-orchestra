@@ -12,7 +12,8 @@ import Tooltip from 'tooltip'
 import xoaUpdater, { exposeTrial, isTrialRunning } from 'xoa-updater'
 import { confirm } from 'modal'
 import { connectStore } from 'utils'
-import { Container } from 'grid'
+import { Card, CardBlock, CardHeader } from 'card'
+import { Container, Row, Col } from 'grid'
 import { error } from 'notification'
 import { Password } from 'form'
 import { serverVersion } from 'xo'
@@ -76,6 +77,7 @@ export default class XoaUpdates extends Component {
 
     const { registration } = this.props
     const alreadyRegistered = (registration.state === 'registered')
+
     if (alreadyRegistered) {
       try {
         await confirm({
@@ -85,6 +87,7 @@ export default class XoaUpdates extends Component {
         return
       }
     }
+    this.setState({ askRegisterAgain: false })
     return xoaUpdater.register(email.value, password.value, alreadyRegistered)
       .then(() => { email.value = password.value = '' })
   }
@@ -116,6 +119,7 @@ export default class XoaUpdates extends Component {
   _trialAvailable = trial => trial.state === 'default' && isTrialRunning(trial.trial)
   _trialConsumed = trial => trial.state === 'default' && !isTrialRunning(trial.trial) && !exposeTrial(trial.trial)
   _updaterDown = trial => isEmpty(trial) || trial.state === 'ERROR'
+  _toggleAskRegisterAgain = () => this.setState({ askRegisterAgain: !this.state.askRegisterAgain })
 
   _startTrial = async () => {
     try {
@@ -132,6 +136,7 @@ export default class XoaUpdates extends Component {
   }
 
   componentWillMount () {
+    this.setState({ askRegisterAgain: false })
     serverVersion.then(serverVersion => {
       this.setState({ serverVersion })
     })
@@ -154,6 +159,8 @@ export default class XoaUpdates extends Component {
     } = this.props
     let { configuration } = this.props // Configuration from the store
 
+    const alreadyRegistered = (registration.state === 'registered')
+
     configuration = assign({}, configuration)
     const {
       proxyHost,
@@ -173,141 +180,168 @@ export default class XoaUpdates extends Component {
           <p className='text-danger'>{_('noUpdaterWarning')}</p>
         </div>
         : <div>
-          <p>{_('currentVersion')} {`xo-server ${this.state.serverVersion}`} / {`xo-web ${pkg.version}`}</p>
-          <p>
-            <strong>{states[state]}</strong>
-            {' '}
-            <ActionButton
-              btnStyle='info'
-              handler={update}
-              icon='refresh'>
-              {_('update')}
-            </ActionButton>
-            {' '}
-            <ActionButton
-              btnStyle='primary'
-              handler={upgrade}
-              icon='upgrade'>
-              {_('upgrade')}
-            </ActionButton>
-          </p>
-          <div>
-            {map(log, (log, key) => (
-              <p key={key}>
-                <span className={textClasses[log.level]} >{log.date}</span>: <span dangerouslySetInnerHTML={{__html: ansiUp.ansi_to_html(log.message)}} />
-              </p>
-              ))}
-          </div>
-          <h2>{_('settings')} {configEdited ? '*' : ''}</h2>
-          <form className='form-inline'>
-            <fieldset>
-              <div className='form-group'>
-                <input
-                  className='form-control'
-                  placeholder='Host (myproxy.example.org)'
-                  type='text'
-                  value={configuration.proxyHost}
-                  onChange={this._handleProxyHostChange}
-                />
-              </div>
-              {' '}
-              <div className='form-group'>
-                <input
-                  className='form-control'
-                  placeholder='Port (3128 ?...)'
-                  type='text'
-                  value={configuration.proxyPort}
-                  onChange={this._handleProxyPortChange}
-                />
-              </div>
-              {' '}
-              <div className='form-group'>
-                <input
-                  className='form-control'
-                  placeholder='User name'
-                  type='text'
-                  value={configuration.proxyUser}
-                  onChange={this._handleProxyUserChange}
-                />
-              </div>
-              {' '}
-              <div className='form-group'>
-                <Password
-                  placeholder='password'
-                  ref='proxyPassword'
-                />
-              </div>
-            </fieldset>
-            <br />
-            <fieldset>
-              <ActionButton icon='save' btnStyle='primary' handler={this._configure}>{_('saveResourceSet')}</ActionButton>
-              {' '}
-              <button type='button' className='btn btn-default' onClick={this._handleConfigReset} disabled={!configEdited}>{_('resetResourceSet')}</button>
-            </fieldset>
-          </form>
-          <h2>{_('registration')}</h2>
-          <p>
-            <strong>{registration.state}</strong>
-            {registration.email && <span> to {registration.email}</span>}
-            <span className='text-danger'> {registration.error}</span>
-          </p>
-          <form id='registrationForm' className='form-inline'>
-            <div className='form-group'>
-              <input
-                className='form-control'
-                placeholder='account email'
-                ref='email'
-                required
-                type='text'
-              />
-            </div>
-            {' '}
-            <div className='form-group'>
-              <Password
-                placeholder='password'
-                ref='password'
-                required
-              />
-            </div>
-            {' '}
-            <ActionButton form='registrationForm' icon='success' btnStyle='primary' handler={this._register}>{_('register')}</ActionButton>
-          </form>
-          {+process.env.XOA_PLAN === 1 &&
-            <div>
-              <h2>{_('trial')}</h2>
-              {this._trialAllowed(trial) &&
-                <div>
-                  {registration.state !== 'registered' && <p>{_('trialRegistration')}</p>}
-                  {registration.state === 'registered' &&
-                    <ActionButton btnStyle='success' handler={this._startTrial} icon='trial'>{_('trialStartButton')}</ActionButton>
+          <Row>
+            <Col mediumSize={12}>
+              <Card>
+                <CardHeader>
+                  <UpdateTag /> {states[state]}
+                </CardHeader>
+                <CardBlock>
+                  <p>{_('currentVersion')} {`xo-server ${this.state.serverVersion}`} / {`xo-web ${pkg.version}`}</p>
+                  <ActionButton
+                    btnStyle='info'
+                    handler={update}
+                    icon='refresh'>
+                    {_('refresh')}
+                  </ActionButton>
+                  {' '}
+                  <ActionButton
+                    btnStyle='success'
+                    handler={upgrade}
+                    icon='upgrade'>
+                    {_('upgrade')}
+                  </ActionButton>
+                  <hr />
+                  <div>
+                    {map(log, (log, key) => (
+                      <p key={key}>
+                        <span className={textClasses[log.level]} >{log.date}</span>: <span dangerouslySetInnerHTML={{__html: ansiUp.ansi_to_html(log.message)}} />
+                      </p>
+                      ))}
+                  </div>
+                </CardBlock>
+              </Card>
+            </Col>
+          </Row>
+          <Row>
+            <Col mediumSize={6}>
+              <Card>
+                <CardHeader>
+                  {_('proxySettings')} {configEdited ? '*' : ''}
+                </CardHeader>
+                <CardBlock>
+                  <form>
+                    <fieldset>
+                      <div className='form-group'>
+                        <input
+                          className='form-control'
+                          placeholder='Host (myproxy.example.org)'
+                          type='text'
+                          value={configuration.proxyHost}
+                          onChange={this._handleProxyHostChange}
+                        />
+                      </div>
+                      {' '}
+                      <div className='form-group'>
+                        <input
+                          className='form-control'
+                          placeholder='Port (eg: 3128)'
+                          type='text'
+                          value={configuration.proxyPort}
+                          onChange={this._handleProxyPortChange}
+                        />
+                      </div>
+                      {' '}
+                      <div className='form-group'>
+                        <input
+                          className='form-control'
+                          placeholder='Username'
+                          type='text'
+                          value={configuration.proxyUser}
+                          onChange={this._handleProxyUserChange}
+                        />
+                      </div>
+                      {' '}
+                      <div className='form-group'>
+                        <Password
+                          placeholder='Password'
+                          ref='proxyPassword'
+                        />
+                      </div>
+                    </fieldset>
+                    <br />
+                    <fieldset>
+                      <ActionButton icon='save' btnStyle='primary' handler={this._configure}>{_('saveResourceSet')}</ActionButton>
+                      {' '}
+                      <button type='button' className='btn btn-default' onClick={this._handleConfigReset} disabled={!configEdited}>{_('resetResourceSet')}</button>
+                    </fieldset>
+                  </form>
+                </CardBlock>
+              </Card>
+            </Col>
+            <Col mediumSize={6}>
+              <Card>
+                <CardHeader>
+                  {_('registration')}
+                </CardHeader>
+                <CardBlock>
+                  <strong>{registration.state}</strong>
+                  {registration.email && <span> to {registration.email}</span>}
+                  <span className='text-danger'> {registration.error}</span>
+                  {(!alreadyRegistered || this.state.askRegisterAgain)
+                    ? <form id='registrationForm'>
+                      <div className='form-group'>
+                        <input
+                          className='form-control'
+                          placeholder='Your email account'
+                          ref='email'
+                          required
+                          type='text'
+                        />
+                      </div>
+                      {' '}
+                      <div className='form-group'>
+                        <Password
+                          placeholder='Your password'
+                          ref='password'
+                          required
+                        />
+                      </div>
+                      {' '}
+                      <ActionButton form='registrationForm' icon='success' btnStyle='primary' handler={this._register}>{_('register')}</ActionButton>
+                    </form>
+                    : <ActionButton icon='edit' btnStyle='primary' handler={this._toggleAskRegisterAgain}>{_('editRegistration')}</ActionButton>
                   }
-                </div>
-              }
-              {this._trialAvailable(trial) &&
-                <p className='text-success'>{_('trialAvailableUntil', {date: new Date(trial.trial.end)})}</p>
-              }
-              {this._trialConsumed(trial) &&
-                <p>{_('trialConsumed')}</p>
-              }
-            </div>
-          }
-          {(process.env.XOA_PLAN > 1 && process.env.XOA_PLAN < 5) &&
-            <div>
-              {trial.state === 'trustedTrial' &&
-                <p>{trial.message}</p>
-              }
-              {trial.state === 'untrustedTrial' &&
-                <p className='text-danger'>{trial.message}</p>
-              }
-            </div>
-          }
-          {process.env.XOA_PLAN < 5 &&
-            <div>
-              {this._updaterDown(trial) &&
-                <p className='text-danger'>{_('trialLocked')}</p>
-              }
-            </div>
-          }
+                  {+process.env.XOA_PLAN === 1 &&
+                    <div>
+                      <h2>{_('trial')}</h2>
+                      {this._trialAllowed(trial) &&
+                        <div>
+                          {registration.state !== 'registered' && <p>{_('trialRegistration')}</p>}
+                          {registration.state === 'registered' &&
+                            <ActionButton btnStyle='success' handler={this._startTrial} icon='trial'>{_('trialStartButton')}</ActionButton>
+                          }
+                        </div>
+                      }
+                      {this._trialAvailable(trial) &&
+                        <p className='text-success'>{_('trialAvailableUntil', {date: new Date(trial.trial.end)})}</p>
+                      }
+                      {this._trialConsumed(trial) &&
+                        <p>{_('trialConsumed')}</p>
+                      }
+                    </div>
+                  }
+                  {(process.env.XOA_PLAN > 1 && process.env.XOA_PLAN < 5) &&
+                    <div>
+                      {trial.state === 'trustedTrial' &&
+                        <p>{trial.message}</p>
+                      }
+                      {trial.state === 'untrustedTrial' &&
+                        <p className='text-danger'>{trial.message}</p>
+                      }
+                    </div>
+                  }
+                  {process.env.XOA_PLAN < 5 &&
+                    <div>
+                      {this._updaterDown(trial) &&
+                        <p className='text-danger'>{_('trialLocked')}</p>
+                      }
+                    </div>
+                  }
+                </CardBlock>
+              </Card>
+            </Col>
+          </Row>
         </div>
       }
       </Container>
