@@ -110,7 +110,7 @@ export default class TabNetworks extends Component {
                       <Text value={network.name_label} onChange={value => editNetwork(network, { name_label: value })} />
                     </td>
                     <td>
-                      <Text value={network.name_description} onChange={value => editNetwork(network, { name_label: value })} />
+                      <Text value={network.name_description} onChange={value => editNetwork(network, { name_description: value })} />
                     </td>
                     <td>{network.MTU}</td>
                     <td>
