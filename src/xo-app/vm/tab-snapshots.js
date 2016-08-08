@@ -15,7 +15,9 @@ import {
   createGetObjectsOfType
 } from 'selectors'
 import {
+  copyVm,
   deleteVm,
+  exportVm,
   editVm,
   revertSnapshot,
   snapshotVm
@@ -72,6 +74,22 @@ export default class TabSnapshot extends Component {
                     </td>
                     <td>
                       <ButtonGroup>
+                        <Tooltip content={_('copySnapshot')}>
+                          <ActionRowButton
+                            btnStyle='primary'
+                            handler={copyVm}
+                            handlerParam={snapshot}
+                            icon='vm-copy'
+                          />
+                        </Tooltip>
+                        <Tooltip content={_('exportSnapshot')}>
+                          <ActionRowButton
+                            btnStyle='primary'
+                            handler={exportVm}
+                            handlerParam={snapshot}
+                            icon='vm-export'
+                          />
+                        </Tooltip>
                         <Tooltip content={_('revertSnapshot')}>
                           <ActionRowButton
                             btnStyle='warning'

@@ -513,6 +513,8 @@ var messages = {
   tipCreateSnapshotLabel: 'Just click on the snapshot button to create one!',
   revertSnapshot: 'Revert VM to this snapshot',
   deleteSnapshot: 'Remove this snapshot',
+  copySnapshot: 'Create a VM from this snapshot',
+  exportSnapshot: 'Export this snapshot',
   snapshotDate: 'Creation date',
   snapshotName: 'Name',
   snapshotAction: 'Action',
