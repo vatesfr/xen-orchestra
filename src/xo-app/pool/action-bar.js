@@ -11,7 +11,7 @@ const PoolActionBar = ({ pool }) => (
       {
         icon: 'add-sr',
         label: 'addSrLabel',
-        handler: NOT_IMPLEMENTED // TODO add sr
+        redirectOnSuccess: `new/sr?host=${pool.master}`
       },
       {
         icon: 'add-vm',
