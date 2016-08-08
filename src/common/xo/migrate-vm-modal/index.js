@@ -1,9 +1,11 @@
 import BaseComponent from 'base-component'
+import every from 'lodash/every'
 import forEach from 'lodash/forEach'
 import find from 'lodash/find'
 import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
 import React from 'react'
+import store from 'store'
 
 import _ from '../../intl'
 import invoke from '../../invoke'
@@ -22,8 +24,12 @@ import {
 import {
   createGetObjectsOfType,
   createPicker,
-  createSelector
+  createSelector,
+  getObject
 } from '../../selectors'
+import {
+  isSrShared
+} from 'xo'
 
 import { isSrWritable } from '../'
 
@@ -59,6 +65,7 @@ import styles from './index.css'
     networks: getNetworks,
     pifs: getPifs,
     pools: getPools,
+    vbds: getVbds,
     vdis: getVdis,
     vifs: getVifs
   }
@@ -118,7 +125,12 @@ export default class MigrateVmModalBody extends BaseComponent {
     }
   }
 
+  _getObject (id) {
+    return getObject(store.getState(), id)
+  }
+
   _selectHost = host => {
+    // No host selected
     if (!host) {
       this.setState({
         host: undefined,
@@ -126,20 +138,40 @@ export default class MigrateVmModalBody extends BaseComponent {
       })
       return
     }
-    const intraPool = this.props.vm.$pool === host.$pool
+
+    const { pools, vbds, vm } = this.props
+    const intraPool = vm.$pool === host.$pool
+
+    // Intra-pool
+    const defaultSr = pools[host.$pool].default_SR
     if (intraPool) {
+      let doNotMigrateVdis
+      if (vm.$container === host.id) {
+        doNotMigrateVdis = true
+      } else {
+        const _doNotMigrateVdi = {}
+        forEach(vbds, vbd => {
+          if (vbd.VDI != null) {
+            _doNotMigrateVdi[vbd.VDI] = isSrShared(this._getObject(this._getObject(vbd.VDI).$SR))
+          }
+        })
+        doNotMigrateVdis = every(_doNotMigrateVdi)
+      }
+
       this.setState({
+        doNotMigrateVdis,
         host,
         intraPool,
-        mapVdisSrs: undefined,
-        mapVifsNetworks: undefined,
+        mapVdisSrs: mapValues(vdis, vdi => defaultSr),
+        mapVifsNetworks: {},
         migrationNetwork: undefined
       })
       return
     }
-    const { networks, pools, pifs, vdis, vifs } = this.props
+
+    // Inter-pool
+    const { networks, pifs, vdis, vifs } = this.props
     const defaultMigrationNetworkId = find(pifs, pif => pif.$host === host.id && pif.management).$network
-    const defaultSr = pools[host.$pool].default_SR
 
     const defaultNetwork = invoke(() => {
       // First PIF with an IP.
@@ -171,6 +203,7 @@ export default class MigrateVmModalBody extends BaseComponent {
   render () {
     const { vdis, vifs, networks } = this.props
     const {
+      doNotMigrateVdis,
       host,
       intraPool,
       mapVdisSrs,
@@ -190,6 +223,28 @@ export default class MigrateVmModalBody extends BaseComponent {
           </Col>
         </SingleLineRow>
       </div>
+      {host && !doNotMigrateVdis && <div className={styles.groupBlock}>
+        <SingleLineRow>
+          <Col>{_('migrateVmSelectSrs')}</Col>
+        </SingleLineRow>
+        <br />
+        <SingleLineRow>
+          <Col size={6}><span className={styles.listTitle}>{_('migrateVmName')}</span></Col>
+          <Col size={6}><span className={styles.listTitle}>{_('migrateVmSr')}</span></Col>
+        </SingleLineRow>
+        {map(vdis, vdi => <div className={styles.listItem} key={vdi.id}>
+          <SingleLineRow>
+            <Col size={6}>{vdi.name_label}</Col>
+            <Col size={6}>
+              <SelectSr
+                onChange={sr => this.setState({ mapVdisSrs: { ...mapVdisSrs, [vdi.id]: sr.id } })}
+                predicate={this._getSrPredicate()}
+                value={mapVdisSrs[vdi.id]}
+              />
+            </Col>
+          </SingleLineRow>
+        </div>)}
+      </div>}
       {intraPool !== undefined &&
         (!intraPool &&
           <div>
@@ -204,28 +259,6 @@ export default class MigrateVmModalBody extends BaseComponent {
                   />
                 </Col>
               </SingleLineRow>
-            </div>
-            <div className={styles.groupBlock}>
-              <SingleLineRow>
-                <Col>{_('migrateVmSelectSrs')}</Col>
-              </SingleLineRow>
-              <br />
-              <SingleLineRow>
-                <Col size={6}><span className={styles.listTitle}>{_('migrateVmName')}</span></Col>
-                <Col size={6}><span className={styles.listTitle}>{_('migrateVmSr')}</span></Col>
-              </SingleLineRow>
-              {map(vdis, vdi => <div className={styles.listItem} key={vdi.id}>
-                <SingleLineRow>
-                  <Col size={6}>{vdi.name_label}</Col>
-                  <Col size={6}>
-                    <SelectSr
-                      onChange={sr => this.setState({ mapVdisSrs: { ...mapVdisSrs, [vdi.id]: sr.id } })}
-                      predicate={this._getSrPredicate()}
-                      value={mapVdisSrs[vdi.id]}
-                    />
-                  </Col>
-                </SingleLineRow>
-              </div>)}
             </div>
             <div className={styles.groupBlock}>
               <SingleLineRow>
