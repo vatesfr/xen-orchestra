@@ -550,7 +550,7 @@ copy.params = {
 }
 
 copy.resolve = {
-  vm: [ 'vm', 'VM', 'administrate' ]
+  vm: [ 'vm', ['VM', 'VM-snapshot'], 'administrate' ]
   sr: [ 'sr', 'SR', 'operate' ]
 }
 
