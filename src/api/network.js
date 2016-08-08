@@ -24,6 +24,41 @@ create.permission = 'admin'
 
 // =================================================================
 
+// ===================================================================
+
+export async function set ({
+  network,
+
+  name_description: nameDescription,
+  name_label: nameLabel,
+  id
+}) {
+  await this.getXapi(network).setNetworkProperties(network._xapiId, {
+    nameDescription,
+    nameLabel
+  })
+}
+
+set.params = {
+  id: {
+    type: 'string'
+  },
+  name_label: {
+    type: 'string',
+    optional: true
+  },
+  name_description: {
+    type: 'string',
+    optional: true
+  }
+}
+
+set.resolve = {
+  network: ['id', 'network', 'administrate']
+}
+
+// =================================================================
+
 export async function delete_ ({ network }) {
   return this.getXapi(network).deleteNetwork(network._xapiId)
 }

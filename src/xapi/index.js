@@ -379,6 +379,16 @@ export default class Xapi extends XapiBase {
     })
   }
 
+  async setNetworkProperties (id, {
+    nameLabel,
+    nameDescription
+  }) {
+    await this._setObjectProperties(this.getObject(id), {
+      nameLabel,
+      nameDescription
+    })
+  }
+
   // =================================================================
 
   async addTag (id, tag) {
