@@ -16,7 +16,7 @@ const PoolActionBar = ({ pool }) => (
       {
         icon: 'add-vm',
         label: 'addVmLabel',
-        handler: NOT_IMPLEMENTED // TODO add VM
+        redirectOnSuccess: `vms/new?pool=${pool.id}`
       },
       {
         icon: 'add-host',

@@ -6,17 +6,21 @@ import Tooltip from 'tooltip'
 import {
   ButtonGroup
 } from 'react-bootstrap-4/lib'
+import {
+  noop
+} from 'utils'
 
 const ActionBar = ({ actions, param }) => (
   <ButtonGroup>
-      {map(actions, ({ handler, handlerParam = param, label, icon }, index) => (
+      {map(actions, ({ handler, handlerParam = param, label, icon, redirectOnSuccess }, index) => (
         <Tooltip key={index} content={_(label)}>
           <ActionButton
             key={index}
             btnStyle='secondary'
-            handler={handler}
+            handler={handler || noop}
             handlerParam={handlerParam}
             icon={icon}
+            redirectOnSuccess={redirectOnSuccess}
             size='large'
           />
         </Tooltip>
@@ -28,7 +32,8 @@ ActionBar.propTypes = {
     React.PropTypes.shape({
       label: React.PropTypes.string.isRequired,
       icon: React.PropTypes.string.isRequired,
-      handler: React.PropTypes.func
+      handler: React.PropTypes.func,
+      redirectOnSuccess: React.PropTypes.string
     })
   ).isRequired,
   display: React.PropTypes.oneOf(['icon', 'text', 'both'])

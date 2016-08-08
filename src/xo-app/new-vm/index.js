@@ -105,11 +105,16 @@ const getObject = createGetObject((_, id) => id)
     user => user && user.permission === 'admin'
   ),
   networks: createGetObjectsOfType('network').sort(),
+  pool: createGetObject((_, props) => props.location.query.pool),
   pools: createGetObjectsOfType('pool'),
   templates: createGetObjectsOfType('VM-template').sort()
 }))
 @injectIntl
 export default class NewVm extends BaseComponent {
+  static contextTypes = {
+    router: React.PropTypes.object
+  }
+
   constructor () {
     super()
 
@@ -163,6 +168,10 @@ export default class NewVm extends BaseComponent {
 // Actions ---------------------------------------------------------------------
 
   _reset = ({ pool, resourceSet } = { pool: this.state.pool, resourceSet: this.state.resourceSet }) => {
+    if (!pool) {
+      pool = this.props.pool
+    }
+
     this.setState({ pool, resourceSet })
     this._replaceState({
       bootAfterCreate: true,
@@ -494,8 +503,14 @@ export default class NewVm extends BaseComponent {
   }
   _selectResourceSet = resourceSet =>
     this._reset({ pool: undefined, resourceSet })
-  _selectPool = pool =>
+  _selectPool = pool => {
+    const { pathname, query } = this.props.location
+    this.context.router.push({
+      pathname,
+      query: { ...query, pool: pool.id }
+    })
     this._reset({ pool, resourceSet: undefined })
+  }
   _addVdi = () => {
     const { pool, state } = this.state
     const device = String(this.getUniqueId())
