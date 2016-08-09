@@ -139,7 +139,7 @@ export default class MigrateVmModalBody extends BaseComponent {
       return
     }
 
-    const { pools, vbds, vm } = this.props
+    const { pools, vbds, vdis, vm } = this.props
     const intraPool = vm.$pool === host.$pool
 
     // Intra-pool
@@ -162,15 +162,15 @@ export default class MigrateVmModalBody extends BaseComponent {
         doNotMigrateVdis,
         host,
         intraPool,
-        mapVdisSrs: mapValues(vdis, vdi => defaultSr),
-        mapVifsNetworks: {},
+        mapVdisSrs: doNotMigrateVdis ? undefined : mapValues(vdis, vdi => defaultSr),
+        mapVifsNetworks: undefined,
         migrationNetwork: undefined
       })
       return
     }
 
     // Inter-pool
-    const { networks, pifs, vdis, vifs } = this.props
+    const { networks, pifs, vifs } = this.props
     const defaultMigrationNetworkId = find(pifs, pif => pif.$host === host.id && pif.management).$network
 
     const defaultNetwork = invoke(() => {
@@ -190,6 +190,7 @@ export default class MigrateVmModalBody extends BaseComponent {
     })
 
     this.setState({
+      doNotMigrateVdis: false,
       host,
       intraPool,
       mapVdisSrs: mapValues(vdis, vdi => defaultSr),
