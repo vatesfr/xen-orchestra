@@ -6,10 +6,6 @@
 // error for usage > 90%
 
 meter {
-    /* Reset the default appearance */
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
     /* For Firefox */
     background: #EEE;
     box-shadow: 0 2px 3px rgba(0,0,0,0.2) inset;
