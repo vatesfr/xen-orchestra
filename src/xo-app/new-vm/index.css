@@ -54,14 +54,13 @@
 
 .configDrive {
   display: flex;
-  flex-direction: column;
   background-color: #eee;
   padding: 1em;
+  margin-bottom: 0.5em;
 }
 
 .configDriveToggle {
-  margin-left: auto;
-  margin-right: auto;
+  margin: auto;
 }
 
 .refreshNames {
@@ -70,4 +69,8 @@
 
 .customConfig {
   resize: both;
+}
+
+.fixedWidth {
+  width: 20em;
 }

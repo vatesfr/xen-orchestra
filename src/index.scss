@@ -72,17 +72,19 @@ $select-input-height: 40px; // Bootstrap input height
   width: 100%;
 }
 
+.Select-value-label {
+  color: #373a3c;
+}
+
 .Select-control {
   border-radius: unset;
 }
 
 // Disabled option style.
-.Select-menu-outer {
-  .Select-option.is-disabled {
-    cursor: default;
-    font-weight: bold;
-    color: #777;
-  }
+.Select-menu-outer .Select-option.is-disabled {
+  cursor: default;
+  font-weight: bold;
+  color: #777;
 }
 
 .Select-placeholder {

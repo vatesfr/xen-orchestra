@@ -1357,8 +1357,16 @@ const _setUserPreferences = preferences => (
 )
 
 import NewSshKeyModalBody from './new-ssh-key-modal'
-export const addSshKey = () => (
-  confirm({
+export const addSshKey = key => {
+  const { preferences } = xo.user
+  const otherKeys = preferences && preferences.sshKeys || []
+  if (key) {
+    return _setUserPreferences({ sshKeys: [
+      ...otherKeys,
+      key
+    ]})
+  }
+  return confirm({
     icon: 'ssh-key',
     title: _('newSshKeyModalTitle'),
     body: <NewSshKeyModalBody />
@@ -1368,8 +1376,6 @@ export const addSshKey = () => (
         error(_('sshKeyErrorTitle'), _('sshKeyErrorMessage'))
         return
       }
-      const { preferences } = xo.user
-      const otherKeys = preferences && preferences.sshKeys || []
       return _setUserPreferences({ sshKeys: [
         ...otherKeys,
         newKey
@@ -1377,7 +1383,7 @@ export const addSshKey = () => (
     },
     noop
   )
-)
+}
 
 export const deleteSshKey = key => (
   confirm({
