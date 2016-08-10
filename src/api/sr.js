@@ -136,7 +136,7 @@ export async function createIso ({
     nameDescription,
     'iso', // SR type ISO
     'iso', // SR content type ISO
-    true,
+    type !== 'local',
     {}
   )
 
