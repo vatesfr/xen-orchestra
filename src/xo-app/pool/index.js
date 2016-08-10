@@ -95,6 +95,9 @@ import TabStorage from './tab-storage'
 })
 export default class Pool extends Component {
 
+  _setNameDescription = nameDescription => editPool(this.props.pool, { name_description: nameDescription })
+  _setNameLabel = nameLabel => editPool(this.props.pool, { name_label: nameLabel })
+
   header () {
     const { pool } = this.props
     if (!pool) {
@@ -108,13 +111,13 @@ export default class Pool extends Component {
             {' '}
             <Text
               value={pool.name_label}
-              onChange={nameLabel => editPool(pool, { nameLabel })}
+              onChange={this._setNameLabel}
             />
           </h2>
           <span>
             <Text
               value={pool.name_description}
-              onChange={nameDescription => editPool(pool, { nameDescription })}
+              onChange={this._setNameDescription}
             />
           </span>
         </Col>
