@@ -759,7 +759,13 @@ export const editVdi = (vdi, props) => (
 )
 
 export const deleteVdi = vdi => (
-  _call('vdi.delete', { id: resolveId(vdi) })
+  confirm({
+    title: _('deleteVdiModalTitle'),
+    body: _('deleteVdiModalMessage')
+  }).then(
+    () => _call('vdi.delete', { id: resolveId(vdi) }),
+    noop
+  )
 )
 
 export const migrateVdi = (vdi, sr) => (
