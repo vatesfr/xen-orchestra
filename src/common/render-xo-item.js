@@ -55,13 +55,12 @@ export const SrItem = propTypes({
   let label = `${sr.name_label || sr.id}`
 
   if (isSrWritable(sr)) {
-    label += ` (${formatSize(sr.size)})`
+    label += ` (${formatSize(sr.size - sr.physical_usage)} free)`
   }
 
   return (
     <span>
       <Icon icon='sr' /> {label}
-      {container && ` (${container.name_label || container.id})`}
     </span>
   )
 }))
