@@ -137,7 +137,7 @@ export default class Restore extends Component {
             {r.enabled && <span className='tag tag-success'>{_('remoteEnabled')}</span>}
             {r.error && <span className='tag tag-danger'>{_('remoteError')}</span>}
             <span className='pull-right'>
-              <ActionButton disabled={!r.enabled} icon='refresh' btnStyle='default' handler={this._list} handlerParam={r.id} />
+              <Tooltip content={_('displayBackup')}><ActionButton disabled={!r.enabled} icon='refresh' btnStyle='default' handler={this._list} handlerParam={r.id} /></Tooltip>
             </span>
             {r.backupInfoByVm && <div>
               <br />
