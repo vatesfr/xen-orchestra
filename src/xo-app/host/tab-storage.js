@@ -3,6 +3,7 @@ import React from 'react'
 import _ from 'intl'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
+import Tooltip from 'tooltip'
 import { BlockLink } from 'link'
 import { TabButtonLink } from 'tab-button'
 import { formatSize } from 'utils'
@@ -51,7 +52,9 @@ export default ({
                   <td>{formatSize(sr.size)}</td>
                   <td>
                     {sr.size > 1 &&
-                      <meter value={(sr.physical_usage / sr.size) * 100} min='0' max='100' optimum='40' low='80' high='90'></meter>
+                      <Tooltip content={_('spaceLeftTooltip', {used: Math.round((sr.physical_usage / sr.size) * 100), free: formatSize(sr.size - sr.physical_usage)})}>
+                        <meter value={(sr.physical_usage / sr.size) * 100} min='0' max='100' optimum='40' low='80' high='90'></meter>
+                      </Tooltip>
                     }
                   </td>
                   <td>

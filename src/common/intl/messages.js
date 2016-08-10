@@ -340,6 +340,7 @@ var messages = {
   hostDescription: 'Description',
   hostMemory: 'Memory',
   noHost: 'No hosts',
+  memoryLeftTooltip: '{used}% used ({free} free)',
   // ----- Pool network tab -----
   poolNetworkNameLabel: 'Name',
   poolNetworkDescription: 'Description',
@@ -620,6 +621,7 @@ var messages = {
   alarmObject: 'Issue on',
   alarmPool: 'Pool',
   alarmRemoveAll: 'Remove all alarms',
+  spaceLeftTooltip: '{used}% used ({free} left)',
 
   // ----- New VM -----
   newVmCreateNewVmOn: 'Create a new VM on {select}',

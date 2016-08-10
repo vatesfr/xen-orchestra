@@ -3,9 +3,11 @@ import isEmpty from 'lodash/isEmpty'
 import Link from 'link'
 import React from 'react'
 import SortedTable from 'sorted-table'
+import Tooltip from 'tooltip'
 import { Container, Row, Col } from 'grid'
 import { editHost } from 'xo'
 import { Text } from 'editable'
+import { formatSize } from 'utils'
 
 const HOST_COLUMNS = [
   {
@@ -24,7 +26,10 @@ const HOST_COLUMNS = [
   },
   {
     name: _('hostMemory'),
-    itemRenderer: ({ memory }) => <meter value={memory.usage} min='0' max={memory.size}></meter>,
+    itemRenderer: ({ memory }) =>
+      <Tooltip content={_('memoryLeftTooltip', {used: Math.round((memory.usage / memory.size) * 100), free: formatSize(memory.size - memory.usage)})}>
+        <meter value={memory.usage} min='0' max={memory.size}></meter>
+      </Tooltip>,
     sortCriteria: ({ memory }) => memory.usage / memory.size,
     sortOrder: 'desc'
   }
