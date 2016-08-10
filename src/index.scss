@@ -85,6 +85,14 @@ $select-input-height: 40px; // Bootstrap input height
   }
 }
 
+.Select-placeholder {
+  color: #999;
+}
+
+.Select--single > .Select-control .Select-value {
+  color: #333;
+}
+
 // COLORS ======================================================================
 
 .xo-status-running {
