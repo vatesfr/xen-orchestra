@@ -145,7 +145,7 @@ class AttachDisk extends Component {
     const { vm, vbds, onClose = noop } = this.props
     const { vdi } = this.state
     const { bootable, readOnly } = this.refs
-    const _isFreeForWriting = vdi => some(vdi.$VBDs, id => {
+    const _isFreeForWriting = vdi => vdi.$VBDs.length === 0 || some(vdi.$VBDs, id => {
       const vbd = vbds[id]
       return !vbd || !vbd.attached || vbd.read_only
     })
