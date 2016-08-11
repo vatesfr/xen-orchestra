@@ -240,8 +240,8 @@ export default class NewVm extends BaseComponent {
       const hostname = state.name_label.replace(/^\s+|\s+$/g, '').replace(/\s+/g, '-')
       if (state.installMethod === 'SSH') {
         cloudConfig = `#cloud-config\nhostname: ${hostname}\nssh_authorized_keys:\n${
-          join(map(state.sshKeys, key =>
-            `  - ${this.props.userSshKeys[key.id].key}\n`
+          join(map(state.sshKeys, keyId =>
+            this.props.userSshKeys[keyId] ? `  - ${this.props.userSshKeys[keyId].key}\n` : ''
           ))
         }`
       } else {
@@ -338,7 +338,8 @@ export default class NewVm extends BaseComponent {
       cpuCap: '',
       cpuWeight: '',
       // installation
-      installMethod: template.install_methods && template.install_methods[0] || state.installMethod,
+      installMethod: template.install_methods && template.install_methods[0] || 'SSH',
+      sshKeys: this.props.userSshKeys.length && [ 0 ],
       customConfig: '#cloud-config\n#hostname: myhostname\n#ssh_authorized_keys:\n#  - ssh-rsa <myKey>\n#packages:\n#  - htop\n',
       // interfaces
       VIFs,
@@ -1026,7 +1027,7 @@ export default class NewVm extends BaseComponent {
       case 'ISO': return installIso
       case 'network': return /^(http|ftp|nfs)/i.exec(installNetwork)
       case 'PXE': return true
-      case 'SSH': return sshKeys || !configDrive
+      case 'SSH': return !isEmpty(sshKeys) || !configDrive
       default: return template && this._isDiskTemplate && !configDrive
     }
   }
