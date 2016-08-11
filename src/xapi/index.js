@@ -1839,9 +1839,16 @@ export default class Xapi extends XapiBase {
     await this.call('VBD.plug', vbdId)
   }
 
-  _disconnectVbd (vbd) {
+  async _disconnectVbd (vbd) {
     // TODO: check if VBD is attached before
-    return this.call('VBD.unplug_force', vbd.$ref)
+    try {
+      await this.call('VBD.unplug_force', vbd.$ref)
+    } catch (error) {
+      if (error.code === 'VBD_NOT_UNPLUGGABLE') {
+        await this.call('VBD.set_unpluggable', vbd.$ref, true)
+        return this.call('VBD.unplug_force', vbd.$ref)
+      }
+    }
   }
 
   async disconnectVbd (vbdId) {
