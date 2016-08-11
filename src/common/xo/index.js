@@ -307,6 +307,10 @@ export const editPool = (pool, props) => (
   _call('pool.set', { id: resolveId(pool), ...props })
 )
 
+export const addHostToPool = (pool, host) => (
+  _call('pool.mergeInto', { source: resolveId(pool), taget: resolveId(host), force: true })
+)
+
 // Host --------------------------------------------------------------
 
 export const editHost = (host, props) => (
