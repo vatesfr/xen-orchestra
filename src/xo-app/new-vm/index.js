@@ -240,9 +240,9 @@ export default class NewVm extends BaseComponent {
       const hostname = state.name_label.replace(/^\s+|\s+$/g, '').replace(/\s+/g, '-')
       if (state.installMethod === 'SSH') {
         cloudConfig = `#cloud-config\nhostname: ${hostname}\nssh_authorized_keys:\n${
-          join(map(state.sshKeys, keyId =>
-            this.props.userSshKeys[keyId] ? `  - ${this.props.userSshKeys[keyId].key}\n` : ''
-          ))
+          join(map(state.sshKeys, keyId => {
+            return this.props.userSshKeys[keyId] ? `  - ${this.props.userSshKeys[keyId].key}\n` : ''
+          }), '')
         }`
       } else {
         cloudConfig = state.customConfig
@@ -496,6 +496,7 @@ export default class NewVm extends BaseComponent {
       this._setState({ [prop]: value })
     }
   }
+  _onChangeSshKeys = keys => this._setState({ sshKeys: map(keys, key => key.id) })
 
   _updateNbVms = () => {
     const { nbVms, nameLabels, seqStart } = this.state.state
@@ -569,7 +570,7 @@ export default class NewVm extends BaseComponent {
     const { newSshKey, sshKeys } = this.state.state
     const { userSshKeys } = this.props
     const splitKey = newSshKey.split(' ')
-    const title = splitKey.length === 3 ? splitKey[2].split('\n')[0] : newSshKey.substring(0, 9)
+    const title = splitKey.length === 3 ? splitKey[2].split('\n')[0] : newSshKey.substring(newSshKey.length - 10, newSshKey.length)
 
     // save key
     addSshKey({
@@ -896,7 +897,7 @@ export default class NewVm extends BaseComponent {
           {this.props.userSshKeys.length > 0 && <span className={styles.fixedWidth}>
             <SelectSshKey
               disabled={!configDrive || installMethod !== 'SSH'}
-              onChange={this._getOnChange('sshKeys')}
+              onChange={this._onChangeSshKeys}
               multi
               value={sshKeys || []}
             />
