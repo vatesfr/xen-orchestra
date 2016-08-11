@@ -822,6 +822,11 @@ var messages = {
   copyVmsNoTargetSr: 'No target SR',
   copyVmsNoTargetSrMessage: 'A target SR is required to copy a VM',
 
+  // ----- Detach host -----
+  detachHostModalTitle: 'Detach host',
+  detachHostModalMessage: 'Are you sure you want to detach {host}?',
+  detachHost: 'Detach',
+
   // ----- Network -----
   newNetworkCreate: 'Create network',
   newNetworkInterface: 'Interface',

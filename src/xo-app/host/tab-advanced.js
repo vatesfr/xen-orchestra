@@ -3,7 +3,7 @@ import Copiable from 'copiable'
 import React from 'react'
 import TabButton from 'tab-button'
 import { Toggle } from 'form'
-import { enableHost, disableHost, restartHost } from 'xo'
+import { enableHost, detachHost, disableHost, restartHost } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Container, Row, Col } from 'grid'
 
@@ -39,6 +39,14 @@ export default ({
           labelId='enableHostLabel'
         />
       }
+      <TabButton
+        btnStyle='danger'
+        handler={detachHost}
+        handlerParam={host}
+        icon='host-eject'
+        labelId='detachHost'
+        redirectOnSuccess='/'
+      />
     </Col>
   </Row>
   <Row>
