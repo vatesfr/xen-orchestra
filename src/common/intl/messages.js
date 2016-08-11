@@ -824,7 +824,7 @@ var messages = {
 
   // ----- Detach host -----
   detachHostModalTitle: 'Detach host',
-  detachHostModalMessage: 'Are you sure you want to detach {host}?',
+  detachHostModalMessage: 'Are you sure you want to detach {host} from its pool? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND REBOOT THE HOST.',
   detachHost: 'Detach',
 
   // ----- Network -----
