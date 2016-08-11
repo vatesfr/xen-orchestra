@@ -1,0 +1,50 @@
+{
+  "name": "xo-vmdk-to-vhd",
+  "version": "0.0.1",
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/vatesfr/xo-vmdk-to-vhd/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/vatesfr/xo-vmdk-to-vhd.git"
+  },
+  "preferGlobal": true,
+  "engines": {
+    "node": ">=0.12"
+  },
+  "scripts": {
+    "build": "babel src -d lib",
+    "test": "mocha --compilers js:babel-core/register --reporter spec --require babel-polyfill && npm run lint && npm run build",
+    "lint": "standard"
+  },
+  "devDependencies": {
+    "babel-polyfill": "^6.9.1",
+    "babel-cli": "^6.0.0",
+    "babel-core": "^6.3.17",
+    "babel-eslint": "^6.1.2",
+    "babel-preset-es2015": "^6.9.0",
+    "babel-preset-stage-0": "^6.5.0",
+    "babel-register": "^6.11.6",
+    "chai": "^3.5.0",
+    "mocha": "^3.0.0",
+    "standard": "^7.0.0"
+  },
+  "dependencies": {
+    "child-process-promise": "^2.0.3",
+    "deflate-js": "^0.2.3",
+    "fs-promise": "^0.4.1"
+  },
+  "babel": {
+    "presets": [
+      "stage-0",
+      "es2015"
+    ]
+  },
+  "standard": {
+    "ignore": [
+      "lib"
+    ],
+    "parser": "babel-eslint"
+  }
+}

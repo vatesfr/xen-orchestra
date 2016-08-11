@@ -1,0 +1,65 @@
+# http://EditorConfig.org
+#
+# Julien Fontanet's configuration
+# https://gist.github.com/julien-f/8096213
+
+# Top-most EditorConfig file.
+root = true
+
+# Common config.
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespaces = true
+
+# CoffeeScript
+#
+# https://github.com/polarmobile/coffeescript-style-guide/blob/master/README.md
+[*.{,lit}coffee]
+indent_size = 2
+indent_style = space
+
+# Markdown
+[*.{md,mdwn,mdown,markdown}]
+indent_size = 4
+indent_style = space
+
+# Package.json
+#
+# This indentation style is the one used by npm.
+[/package.json]
+indent_size = 2
+indent_style = space
+
+# Jade
+[*.jade]
+indent_size = 2
+indent_style = space
+
+# JavaScript
+#
+# Two spaces seems to be the standard most common style, at least in
+# Node.js (http://nodeguide.com/style.html#tabs-vs-spaces).
+[*.js]
+indent_size = 2
+indent_style = space
+
+# Less
+[*.less]
+indent_size = 2
+indent_style = space
+
+# Sass
+#
+# Style used for http://libsass.com
+[*.s[ac]ss]
+indent_size = 2
+indent_style = space
+
+# YAML
+#
+# Only spaces are allowed.
+[*.yaml]
+indent_size = 2
+indent_style = space
