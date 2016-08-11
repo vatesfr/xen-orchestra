@@ -338,6 +338,16 @@ export const addHostToPool = (pool, host) => {
   )
 }
 
+export const detachHost = host => (
+  confirm({
+    icon: 'host-eject',
+    title: _('detachHostModalTitle'),
+    body: _('detachHostModalMessage', {host: <strong>{host.name_label}</strong>})
+  }).then(
+    () => _call('host.detach', { host: resolveId(host) })
+  )
+)
+
 // Host --------------------------------------------------------------
 
 export const editHost = (host, props) => (
