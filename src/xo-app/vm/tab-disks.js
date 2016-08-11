@@ -24,6 +24,7 @@ import { XoSelect, Size, Text } from 'editable'
 import {
   attachDiskToVm,
   createDisk,
+  connectVbd,
   deleteVbd,
   deleteVdi,
   disconnectVbd,
@@ -444,6 +445,14 @@ export default class TabDisks extends Component {
                               {_('vbdStatusDisconnected')}
                           </span>
                           <ButtonGroup className='pull-xs-right'>
+                            {vm.power_state === 'Running' &&
+                              <ActionRowButton
+                                btnStyle='default'
+                                icon='connect'
+                                handler={connectVbd}
+                                handlerParam={vbd}
+                              />
+                            }
                             <ActionRowButton
                               btnStyle='default'
                               icon='vdi-forget'
