@@ -313,9 +313,30 @@ export const editPool = (pool, props) => (
   _call('pool.set', { id: resolveId(pool), ...props })
 )
 
-export const addHostToPool = (pool, host) => (
-  _call('pool.mergeInto', { source: resolveId(pool), taget: resolveId(host), force: true })
-)
+import AddHostModalBody from './add-host-modal'
+export const addHostToPool = (pool, host) => {
+  if (host) {
+    return confirm({
+      title: _('addHostModalTitle'),
+      body: _('addHostModalMessage', { pool: pool.name_label, host: host.name_label })
+    }).then(() =>
+      _call('pool.mergeInto', { source: host.$pool, target: resolveId(pool), force: true })
+    )
+  }
+  return confirm({
+    title: _('addHostModalTitle'),
+    body: <AddHostModalBody pool={pool} />
+  }).then(
+    params => {
+      if (!params.host) {
+        error(_('addHostNoHost'), _('addHostNoHostMessage'))
+        return
+      }
+      _call('pool.mergeInto', { source: params.host.$pool, target: resolveId(pool), force: true })
+    },
+    noop
+  )
+}
 
 // Host --------------------------------------------------------------
 

@@ -742,6 +742,8 @@ var messages = {
   emergencyShutdownHostsModalMessage: 'Are you sure you want to shutdown {nHosts} Host{nHosts, plural, one {} other {s}}?',
   stopHostModalTitle: 'Shutdown host',
   stopHostModalMessage: 'This will shutdown your host. Do you want to continue?',
+  addHostModalTitle: 'Add host',
+  addHostModalMessage: 'Are you sure you want to add {host} to {pool}?',
   restartHostModalTitle: 'Restart host',
   restartHostModalMessage: 'This will restart your host. Do you want to continue?',
   restartHostsAgentsModalTitle: 'Restart Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}',
@@ -831,6 +833,11 @@ var messages = {
   newNetworkDefaultMtu: 'Default: 1500',
   deleteNetwork: 'Delete network',
   deleteNetworkConfirm: 'Are you sure you want to delete this network?',
+
+  // ----- Add host -----
+  addHostSelectHost: 'Host',
+  addHostNoHost: 'No host',
+  addHostNoHostMessage: 'No host selected to be added',
 
   // ----- About View -----
   xenOrchestra: 'Xen Orchestra',

@@ -1,5 +1,8 @@
 import ActionBar from 'action-bar'
 import React from 'react'
+import {
+  addHostToPool
+} from 'xo'
 
 const NOT_IMPLEMENTED = () => {
   throw new Error('not implemented')
@@ -21,7 +24,7 @@ const PoolActionBar = ({ pool }) => (
       {
         icon: 'add-host',
         label: 'addHostLabel',
-        handler: NOT_IMPLEMENTED // TODO add host
+        handler: addHostToPool
       },
       {
         icon: 'disconnect',
