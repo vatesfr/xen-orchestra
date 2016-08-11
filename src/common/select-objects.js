@@ -31,6 +31,7 @@ import {
 } from './utils'
 import {
   isSrWritable,
+  subscribeCurrentUser,
   subscribeGroups,
   subscribeRemotes,
   subscribeResourceSets,
@@ -82,7 +83,7 @@ export class GenericSelect extends Component {
       // Returns the values of the selected objects
       // if they are contained in xoObjectsById.
       return mapPlus(value, (value, push) => {
-        const o = xoObjectsById[value.value || value]
+        const o = xoObjectsById[value.value !== undefined ? value.value : value]
 
         if (o) {
           push(o)
@@ -96,11 +97,11 @@ export class GenericSelect extends Component {
   // Supports id strings and objects.
   _setValue (value, props = this.props) {
     if (props.multi) {
-      return map(value, object => object.id || object)
+      return map(value, object => object.id !== undefined ? object.id : object)
     }
 
     return (value != null)
-      ? value.id || value
+      ? value.id !== undefined ? value.id : value
       : ''
   }
 
@@ -202,7 +203,7 @@ export class GenericSelect extends Component {
 
     this.setState({
       value: this._setValue(value)
-    }, onChange && (() => { onChange(this.value) }))
+    }, onChange && (() => onChange(this.value)))
   }
 
   // GroupBy: Display option with margin if not disabled and containers exists.
@@ -762,6 +763,41 @@ export class SelectResourceSetsNetwork extends Component {
         placeholder={_('selectResourceSetsNetwork')}
         {...this.props}
         xoObjects={this._getNetworks()}
+      />
+    )
+  }
+}
+
+// ===================================================================
+
+export class SelectSshKey extends Component {
+  get value () {
+    return this.refs.select.value
+  }
+
+  set value (value) {
+    this.refs.select.value = value
+  }
+
+  componentWillMount () {
+    this.componentWillUnmount = subscribeCurrentUser(user => {
+      this.setState({
+        sshKeys: user && user.preferences && map(user.preferences.sshKeys, (key, id) => ({
+          id,
+          label: key.title,
+          type: 'sshKey'
+        }))
+      })
+    })
+  }
+
+  render () {
+    return (
+      <GenericSelect
+        ref='select'
+        placeholder={_('selectSshKey')}
+        {...this.props}
+        xoObjects={this.state.sshKeys || []}
       />
     )
   }

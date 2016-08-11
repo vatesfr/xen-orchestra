@@ -112,6 +112,11 @@ const xoItemToRender = {
       <Icon icon='resource-set' /> {resourceSet.name}
     </span>
   ),
+  sshKey: key => (
+    <span>
+      <Icon icon='ssh-key' /> {key.label}
+    </span>
+  ),
 
   // XO objects.
   pool: pool => (

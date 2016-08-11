@@ -14,6 +14,7 @@ import includes from 'lodash/includes'
 import isArray from 'lodash/isArray'
 import isEmpty from 'lodash/isEmpty'
 import isObject from 'lodash/isObject'
+import join from 'lodash/join'
 import map from 'lodash/map'
 import Page from '../page'
 import React from 'react'
@@ -25,9 +26,11 @@ import { Button } from 'react-bootstrap-4/lib'
 import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
 import {
+  addSshKey,
   createVm,
   createVms,
   getCloudInitConfig,
+  subscribeCurrentUser,
   subscribePermissions,
   subscribeResourceSets,
   XEN_DEFAULT_CPU_CAP,
@@ -42,6 +45,7 @@ import {
   SelectResourceSetsVdi,
   SelectResourceSetsVmTemplate,
   SelectSr,
+  SelectSshKey,
   SelectVdi,
   SelectVmTemplate
 } from 'select-objects'
@@ -50,6 +54,7 @@ import {
   Toggle
 } from 'form'
 import {
+  addSubscriptions,
   buildTemplate,
   connectStore,
   formatSize,
@@ -99,6 +104,9 @@ const Item = ({ label, children, className }) => (
 
 const getObject = createGetObject((_, id) => id)
 
+@addSubscriptions({
+  user: subscribeCurrentUser
+})
 @connectStore(() => ({
   isAdmin: createSelector(
     getUser,
@@ -107,7 +115,14 @@ const getObject = createGetObject((_, id) => id)
   networks: createGetObjectsOfType('network').sort(),
   pool: createGetObject((_, props) => props.location.query.pool),
   pools: createGetObjectsOfType('pool'),
-  templates: createGetObjectsOfType('VM-template').sort()
+  templates: createGetObjectsOfType('VM-template').sort(),
+  userSshKeys: createSelector(
+    (_, props) => {
+      const user = props.user
+      return user && user.preferences && user.preferences.sshKeys
+    },
+    keys => keys
+  )
 }))
 @injectIntl
 export default class NewVm extends BaseComponent {
@@ -224,7 +239,11 @@ export default class NewVm extends BaseComponent {
     if (state.configDrive) {
       const hostname = state.name_label.replace(/^\s+|\s+$/g, '').replace(/\s+/g, '-')
       if (state.installMethod === 'SSH') {
-        cloudConfig = '#cloud-config\nhostname: ' + hostname + '\nssh_authorized_keys:\n  - ' + state.sshKey + '\n'
+        cloudConfig = `#cloud-config\nhostname: ${hostname}\nssh_authorized_keys:\n${
+          join(map(state.sshKeys, keyId => {
+            return this.props.userSshKeys[keyId] ? `  - ${this.props.userSshKeys[keyId].key}\n` : ''
+          }), '')
+        }`
       } else {
         cloudConfig = state.customConfig
       }
@@ -319,7 +338,8 @@ export default class NewVm extends BaseComponent {
       cpuCap: '',
       cpuWeight: '',
       // installation
-      installMethod: template.install_methods && template.install_methods[0] || state.installMethod,
+      installMethod: template.install_methods && template.install_methods[0] || 'SSH',
+      sshKeys: this.props.userSshKeys.length && [ 0 ],
       customConfig: '#cloud-config\n#hostname: myhostname\n#ssh_authorized_keys:\n#  - ssh-rsa <myKey>\n#packages:\n#  - htop\n',
       // interfaces
       VIFs,
@@ -476,11 +496,13 @@ export default class NewVm extends BaseComponent {
       this._setState({ [prop]: value })
     }
   }
+  _onChangeSshKeys = keys => this._setState({ sshKeys: map(keys, key => key.id) })
 
   _updateNbVms = () => {
     const { nbVms, nameLabels, seqStart } = this.state.state
     const nbVmsClamped = clamp(nbVms, NB_VMS_MIN, NB_VMS_MAX)
     const newNameLabels = [ ...nameLabels ]
+
     if (nbVmsClamped < nameLabels.length) {
       this._setState({ nameLabels: slice(newNameLabels, 0, nbVmsClamped) })
     } else {
@@ -496,6 +518,7 @@ export default class NewVm extends BaseComponent {
     const nbVms = nameLabels.length
     const newNameLabels = []
     const replacer = this._buildTemplate()
+
     for (let i = +seqStart; i <= +seqStart + nbVms - 1; i++) {
       newNameLabels.push(replacer(this.state.state, i))
     }
@@ -505,6 +528,7 @@ export default class NewVm extends BaseComponent {
     this._reset({ pool: undefined, resourceSet })
   _selectPool = pool => {
     const { pathname, query } = this.props.location
+
     this.context.router.push({
       pathname,
       query: { ...query, pool: pool.id }
@@ -514,6 +538,7 @@ export default class NewVm extends BaseComponent {
   _addVdi = () => {
     const { pool, state } = this.state
     const device = String(this.getUniqueId())
+
     this._setState({ VDIs: [ ...state.VDIs, {
       device,
       name_description: 'Created by XO',
@@ -524,10 +549,12 @@ export default class NewVm extends BaseComponent {
   }
   _removeVdi = index => {
     const { VDIs } = this.state.state
+
     this._setState({ VDIs: [ ...VDIs.slice(0, index), ...VDIs.slice(index + 1) ] })
   }
   _addInterface = () => {
     const networkId = this._getDefaultNetworkId()
+
     this._setState({ VIFs: [ ...this.state.state.VIFs, {
       id: this.getUniqueId(),
       network: networkId
@@ -535,7 +562,27 @@ export default class NewVm extends BaseComponent {
   }
   _removeInterface = index => {
     const { VIFs } = this.state.state
+
     this._setState({ VIFs: [ ...VIFs.slice(0, index), ...VIFs.slice(index + 1) ] })
+  }
+
+  _addNewSshKey = () => {
+    const { newSshKey, sshKeys } = this.state.state
+    const { userSshKeys } = this.props
+    const splitKey = newSshKey.split(' ')
+    const title = splitKey.length === 3 ? splitKey[2].split('\n')[0] : newSshKey.substring(newSshKey.length - 10, newSshKey.length)
+
+    // save key
+    addSshKey({
+      title,
+      key: newSshKey
+    }).then(() => {
+      // select key
+      this._setState({
+        sshKeys: [ ...(sshKeys || []), userSshKeys ? userSshKeys.length : 0 ],
+        newSshKey: ''
+      })
+    })
   }
 
   _getRedirectionUrl = id =>
@@ -799,44 +846,64 @@ export default class NewVm extends BaseComponent {
       installIso,
       installMethod,
       installNetwork,
+      newSshKey,
       pv_args,
-      sshKey
+      sshKeys
     } = this.state.state
     return <Section icon='new-vm-install-settings' title='newVmInstallSettingsPanel' done={this._isInstallSettingsDone()}>
-      {this._isDiskTemplate ? <SectionContent key='diskTemplate'>
-        <div className={styles.configDrive}>
-          <span className={styles.configDriveToggle}>
-            {_('newVmConfigDrive')}
-          </span>
-          <span className={styles.configDriveToggle}>
-            <Toggle
-              value={configDrive}
-              onChange={this._getOnChange('configDrive')}
+      {this._isDiskTemplate ? <SectionContent key='diskTemplate' column>
+        <LineItem>
+          <div className={styles.configDrive}>
+            <span className={styles.configDriveToggle}>
+              {_('newVmConfigDrive')}
+            </span>
+            &nbsp;
+            <span className={styles.configDriveToggle}>
+              <Toggle
+                value={configDrive}
+                onChange={this._getOnChange('configDrive')}
+              />
+            </span>
+          </div>
+        </LineItem>
+        <LineItem>
+          <span>
+            <input
+              checked={installMethod === 'SSH'}
+              disabled={!configDrive}
+              name='installMethod'
+              onChange={this._getOnChange('installMethod')}
+              type='radio'
+              value='SSH'
             />
+            {' '}
+            <span>{_('newVmSshKey')}</span>
           </span>
-        </div>
-        <Item>
-          <input
-            checked={installMethod === 'SSH'}
-            disabled={!configDrive}
-            name='installMethod'
-            onChange={this._getOnChange('installMethod')}
-            type='radio'
-            value='SSH'
-          />
-          {' '}
-          <span>{_('newVmSshKey')}</span>
-          {' '}
-          <DebounceInput
-            className='form-control'
-            debounceTimeout={DEBOUNCE_TIMEOUT}
-            disabled={!configDrive || installMethod !== 'SSH'}
-            onChange={this._getOnChange('sshKey')}
-            type='text'
-            value={sshKey}
-          />
-        </Item>
-        <Item>
+          &nbsp;
+          <span className={classNames('input-group', styles.fixedWidth)}>
+            <DebounceInput
+              className='form-control'
+              disabled={!configDrive || installMethod !== 'SSH'}
+              debounceTimeout={DEBOUNCE_TIMEOUT}
+              onChange={this._getOnChange('newSshKey')}
+              value={newSshKey}
+            />
+            <span className='input-group-btn'>
+              <Button className='btn btn-secondary' onClick={this._addNewSshKey} disabled={!newSshKey}>
+                <Icon icon='add' />
+              </Button>
+            </span>
+          </span>
+          {this.props.userSshKeys.length > 0 && <span className={styles.fixedWidth}>
+            <SelectSshKey
+              disabled={!configDrive || installMethod !== 'SSH'}
+              onChange={this._onChangeSshKeys}
+              multi
+              value={sshKeys || []}
+            />
+          </span>}
+        </LineItem>
+        <LineItem>
           <input
             checked={installMethod === 'customConfig'}
             disabled={!configDrive}
@@ -845,9 +912,9 @@ export default class NewVm extends BaseComponent {
             type='radio'
             value='customConfig'
           />
-          {' '}
+          &nbsp;
           <span>{_('newVmCustomConfig')}</span>
-          {' '}
+          &nbsp;
           <DebounceInput
             className={classNames('form-control', styles.customConfig)}
             debounceTimeout={DEBOUNCE_TIMEOUT}
@@ -856,7 +923,7 @@ export default class NewVm extends BaseComponent {
             onChange={this._getOnChange('customConfig')}
             value={customConfig}
           />
-        </Item>
+        </LineItem>
       </SectionContent>
       : <SectionContent>
         <Item>
@@ -953,7 +1020,7 @@ export default class NewVm extends BaseComponent {
       installIso,
       installMethod,
       installNetwork,
-      sshKey,
+      sshKeys,
       template
     } = this.state.state
     switch (installMethod) {
@@ -961,7 +1028,7 @@ export default class NewVm extends BaseComponent {
       case 'ISO': return installIso
       case 'network': return /^(http|ftp|nfs)/i.exec(installNetwork)
       case 'PXE': return true
-      case 'SSH': return sshKey || !configDrive
+      case 'SSH': return !isEmpty(sshKeys) || !configDrive
       default: return template && this._isDiskTemplate && !configDrive
     }
   }

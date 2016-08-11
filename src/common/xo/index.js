@@ -159,6 +159,12 @@ const createSubscription = cb => {
       if (!isEqual(result, cache)) {
         cache = result
 
+        /* FIXME: Edge case:
+         * 1) MyComponent has a subscription with subscribers[1]
+         * 2) subscribers[0] causes the MyComponent unmounting (and thus its unsubscription)
+         * When subscribers[1] will be executed, it will no longer exist,
+         * which will throw an error (Uncaught (in promise) TypeError: subscriber is not a function)
+         */
         forEach(subscribers, subscriber => {
           subscriber(result)
         })
@@ -1357,8 +1363,16 @@ const _setUserPreferences = preferences => (
 )
 
 import NewSshKeyModalBody from './new-ssh-key-modal'
-export const addSshKey = () => (
-  confirm({
+export const addSshKey = key => {
+  const { preferences } = xo.user
+  const otherKeys = preferences && preferences.sshKeys || []
+  if (key) {
+    return _setUserPreferences({ sshKeys: [
+      ...otherKeys,
+      key
+    ]})
+  }
+  return confirm({
     icon: 'ssh-key',
     title: _('newSshKeyModalTitle'),
     body: <NewSshKeyModalBody />
@@ -1368,8 +1382,6 @@ export const addSshKey = () => (
         error(_('sshKeyErrorTitle'), _('sshKeyErrorMessage'))
         return
       }
-      const { preferences } = xo.user
-      const otherKeys = preferences && preferences.sshKeys || []
       return _setUserPreferences({ sshKeys: [
         ...otherKeys,
         newKey
@@ -1377,7 +1389,7 @@ export const addSshKey = () => (
     },
     noop
   )
-)
+}
 
 export const deleteSshKey = key => (
   confirm({

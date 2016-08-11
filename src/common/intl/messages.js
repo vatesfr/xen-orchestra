@@ -134,6 +134,7 @@ var messages = {
   selectResourceSetsSr: 'Select SR(s)…',
   selectResourceSetsNetwork: 'Select network(s)…',
   selectResourceSetsVdi: 'Select disk(s)…',
+  selectSshKey: 'Select SSH key(s)…',
   selectSrs: 'Select SR(s)…',
   selectVms: 'Select VM(s)…',
   selectVmTemplates: 'Select VM template(s)…',
