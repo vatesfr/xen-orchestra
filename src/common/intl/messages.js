@@ -329,6 +329,8 @@ var messages = {
   srForget: 'Forget this SR',
   srRemoveButton: 'Remove this SR',
   srNoVdis: 'No VDIs in this storage',
+  // ----- Pool general -----
+  poolRamUsage: '{used} used on {total}',
   // ----- Pool tabs -----
   hostsTabName: 'Hosts',
   // ----- Pool advanced tab -----
