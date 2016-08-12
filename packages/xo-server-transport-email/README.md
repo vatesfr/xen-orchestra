@@ -7,7 +7,7 @@
 Installation of the [npm package](https://npmjs.org/package/xo-server-transport-email):
 
 ```
-> npm install --global xo-server-auth-email
+> npm install --global xo-server-transport-email
 ```
 
 ## Usage
