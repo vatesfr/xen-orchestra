@@ -1,6 +1,7 @@
 import Component from 'base-component'
 import cookies from 'cookies-js'
 import React from 'react'
+import ShortcutsManager from 'react-shortcuts'
 import _, { IntlProvider } from 'intl'
 import { blockXoaAccess } from 'xoa-updater'
 import { connectStore, routes } from 'utils'
@@ -29,6 +30,10 @@ import User from './user'
 import Vm from './vm'
 import VmImport from './vm-import'
 import XoaUpdates from './xoa-updates'
+
+import keymap from '../keymap'
+
+const shortcutManager = new ShortcutsManager(keymap)
 
 const CONTAINER_STYLE = {
   display: 'flex',
@@ -81,6 +86,11 @@ const BODY_STYLE = {
   }
 })
 export default class XoApp extends Component {
+  static childContextTypes = {
+    shortcuts: React.PropTypes.object.isRequired
+  }
+  getChildContext = () => ({ shortcuts: shortcutManager })
+
   displayOpenSourceDisclaimer () {
     const previousDisclaimer = cookies.get('previousDisclaimer')
     const now = Math.floor(Date.now() / 1e3)
