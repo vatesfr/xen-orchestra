@@ -39,6 +39,7 @@ var messages = {
   settingsGroupsPage: 'Groups',
   settingsAclsPage: 'ACLs',
   settingsPluginsPage: 'Plugins',
+  settingsLogsPage: 'Logs',
   aboutPage: 'About',
   newMenu: 'New',
   taskMenu: 'Tasks',
@@ -943,7 +944,19 @@ var messages = {
   deleteSshKeyConfirmMessage: 'Are you sure you want to delete the SSH key {title}?',
 
   // ----- Usage -----
-  others: 'Others'
+  others: 'Others',
+
+  // ----- Logs -----
+  loadingLogs: 'Loading logs...',
+  logUser: 'User',
+  logMethod: 'Method',
+  logMessage: 'Message',
+  logStack: 'Stack trace',
+  logTime: 'Date',
+  logNoStackTrace: 'No stack trace',
+  logDeleteAll: 'Delete all logs',
+  logDeleteAllTitle: 'Delete all logs',
+  logDeleteAllMessage: 'Are you sure you want to delete all the logs?'
 }
 forEach(messages, function (message, id) {
   if (isString(message)) {

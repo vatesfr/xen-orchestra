@@ -676,6 +676,10 @@
       @extend .fa;
       @extend .fa-puzzle-piece;
     }
+    &-logs {
+      @extend .fa;
+      @extend .fa-list;
+    }
   }
   &-menu-about {
     @extend .fa;

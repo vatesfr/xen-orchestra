@@ -1,0 +1,4 @@
+.message {
+  overflow-wrap: break-word;
+  max-width: 20em;
+}
