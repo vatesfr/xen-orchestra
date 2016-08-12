@@ -212,6 +212,8 @@ export const subscribeJobs = createSubscription(() => _call('job.getAll'))
 
 export const subscribeJobsLogs = createSubscription(() => _call('log.get', {namespace: 'jobs'}))
 
+export const subscribeApiLogs = createSubscription(() => _call('log.get', {namespace: 'api'}))
+
 export const subscribePermissions = createSubscription(() => _call('acl.getCurrentPermissions'))
 
 export const subscribePlugins = createSubscription(() => _call('plugin.get'))
@@ -1277,6 +1279,14 @@ export const createSrLvm = (host, nameLabel, nameDescription, device) => (
 export const deleteJobsLog = id => (
   _call('log.delete', {namespace: 'jobs', id})::tap(
     subscribeJobsLogs.forceRefresh
+  )
+)
+
+// Logs
+
+export const deleteApiLog = id => (
+  _call('log.delete', {namespace: 'api', id})::tap(
+    subscribeApiLogs.forceRefresh
   )
 )
 
