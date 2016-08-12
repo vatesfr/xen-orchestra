@@ -1,6 +1,6 @@
 {
   "name": "xo-vmdk-to-vhd",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "license": "AGPL-3.0",
   "bugs": {
     "url": "https://github.com/vatesfr/xo-vmdk-to-vhd/issues"
@@ -9,17 +9,30 @@
     "type": "git",
     "url": "git://github.com/vatesfr/xo-vmdk-to-vhd.git"
   },
+  "keywords": [
+    "xen",
+    "orchestra",
+    "xen-orchestra"
+  ],
   "preferGlobal": true,
   "engines": {
     "node": ">=0.12"
   },
+  "files": [
+    "lib",
+    "config.json",
+    "index.js"
+  ],
+  "main": "index.js",
   "scripts": {
-    "build": "babel src -d lib",
+    "build": "NODE_ENV=production babel --source-maps --out-dir=lib/ src/",
+    "depcheck": "dependency-check ./package.json",
+    "dev": "babel --watch --source-maps --out-dir=dist/ src/",
     "test": "mocha --compilers js:babel-core/register --reporter spec --require babel-polyfill && npm run lint && npm run build",
-    "lint": "standard"
+    "lint": "standard",
+    "prepublish": "npm run build"
   },
   "devDependencies": {
-    "babel-polyfill": "^6.9.1",
     "babel-cli": "^6.0.0",
     "babel-core": "^6.3.17",
     "babel-eslint": "^6.1.2",
@@ -31,6 +44,7 @@
     "standard": "^7.0.0"
   },
   "dependencies": {
+    "babel-polyfill": "^6.9.1",
     "child-process-promise": "^2.0.3",
     "deflate-js": "^0.2.3",
     "fs-promise": "^0.4.1"
