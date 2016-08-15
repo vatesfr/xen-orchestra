@@ -114,9 +114,9 @@ export default class XoApp extends Component {
             {blocked ? <XoaUpdates /> : this.props.children}
           </div>
         </div>
-        <TooltipViewer />
         <Modal />
         <Notification />
+        <TooltipViewer />
       </div>
     </IntlProvider>
   }

@@ -22,7 +22,7 @@ import styles from './index.css'
   users: subscribeUsers
 })
 export default class Logs extends BaseComponent {
-  _showStack = log => alert(_('logStack'), <Copiable tagName='div'>{log.data.error.stack}</Copiable>)
+  _showStack = log => alert(_('logStack'), <Copiable tagName='pre'>{log.data.error.stack}</Copiable>)
   _deleteAllLogs = () =>
     confirm({
       title: _('logDeleteAllTitle'),
