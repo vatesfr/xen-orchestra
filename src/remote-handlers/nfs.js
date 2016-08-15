@@ -79,6 +79,6 @@ export default class NfsHandler extends LocalHandler {
   }
 
   async _umount (remote) {
-    await execa('umount', [remote.path])
+    await execa('umount', [this._getRealPath()])
   }
 }
