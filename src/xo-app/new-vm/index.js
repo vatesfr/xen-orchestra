@@ -763,7 +763,7 @@ export default class NewVm extends BaseComponent {
             value={nbVms}
           />
           <span className='input-group-btn'>
-            <Tooltip content={_('newVmNumberRecalcultate')}><Button bsStyle='secondary' disabled={!multipleVms} onClick={this._updateNbVms}><Icon icon='arrow-right' /></Button></Tooltip>
+            <Tooltip content={_('newVmNumberRecalculate')}><Button bsStyle='secondary' disabled={!multipleVms} onClick={this._updateNbVms}><Icon icon='arrow-right' /></Button></Tooltip>
           </span>
         </Item>
         <Item>
