@@ -87,7 +87,26 @@ export default class MigrateVmsModalBody extends BaseComponent {
       )
     )
 
-    this._getNetworkPredicate = createSelector(
+    this._getTargetNetworkPredicate = createSelector(
+      createPicker(
+        () => this.props.pifs,
+        () => this.state.host.$PIFs
+      ),
+      pifs => {
+        if (!pifs) {
+          return false
+        }
+
+        const networks = {}
+        forEach(pifs, pif => {
+          networks[pif.$network] = true
+        })
+
+        return network => networks[network.id]
+      }
+    )
+
+    this._getMigrationNetworkPredicate = createSelector(
       createPicker(
         () => this.props.pifs,
         () => this.state.host.$PIFs
@@ -261,7 +280,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
             <Col size={6}>
               <SelectNetwork
                 onChange={this._selectMigrationNetwork}
-                predicate={this._getNetworkPredicate()}
+                predicate={this._getMigrationNetworkPredicate()}
                 value={migrationNetworkId}
               />
             </Col>
@@ -290,7 +309,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
               <SelectNetwork
                 disabled={smartVifMapping}
                 onChange={this._selectNetwork}
-                predicate={this._getNetworkPredicate()}
+                predicate={this._getTargetNetworkPredicate()}
                 value={networkId}
               />
             </Col>
