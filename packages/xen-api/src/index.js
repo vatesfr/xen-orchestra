@@ -418,8 +418,9 @@ export class Xapi extends EventEmitter {
   }
 
   // Low level call: handle transport errors.
-  _transportCall (method, args, startTime = Date.now(), tries = 1) {
-    return this._rawCall(method, args)
+  _transportCall (method, args) {
+    let tries = 1
+    const loop = () => this._rawCall(method, args)
       ::pCatch(isNetworkError, isXapiNetworkError, error => {
         debug('%s: network error %s', this._humanId, error.code)
 
@@ -447,28 +448,30 @@ export class Xapi extends EventEmitter {
 
         return this._transportCall(method, args, startTime)
       })
-      .then(
-        result => {
-          debug(
-            '%s: %s(...) [%s] ==> %s',
-            this._humanId,
-            method,
-            ms(Date.now() - startTime),
-            kindOf(result)
-          )
-          return result
-        },
-        error => {
-          debug(
-            '%s: %s(...) [%s] =!> %s',
-            this._humanId,
-            method,
-            ms(Date.now() - startTime),
-            error
-          )
-          throw error
-        }
-      )
+
+    const startTime = Date.now()
+    return loop().then(
+      result => {
+        debug(
+          '%s: %s(...) [%s] ==> %s',
+          this._humanId,
+          method,
+          ms(Date.now() - startTime),
+          kindOf(result)
+        )
+        return result
+      },
+      error => {
+        debug(
+          '%s: %s(...) [%s] =!> %s',
+          this._humanId,
+          method,
+          ms(Date.now() - startTime),
+          error
+        )
+        throw error
+      }
+    )
   }
 
   // Lowest level call: do not handle any errors.
