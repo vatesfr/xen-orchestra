@@ -1,12 +1,11 @@
-'use strict'
-
 import {assert} from 'chai'
+import {createReadStream} from 'fs-promise'
 import {describe, it} from 'mocha'
 import {exec} from 'child-process-promise'
-import {createReadStream} from 'fs-promise'
-import {VMDKDirectParser} from '../src/vmdk-read'
 
-describe('VMDK reading', function () {
+import {VMDKDirectParser} from './vmdk-read'
+
+describe('VMDK reading', () => {
   it('VMDKDirectParser reads OK', async () => {
     let rawFileName = 'random-data'
     let fileName = 'random-data.vmdk'

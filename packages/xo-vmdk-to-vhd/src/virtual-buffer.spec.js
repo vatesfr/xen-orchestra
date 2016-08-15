@@ -1,10 +1,9 @@
-'use strict'
-
 import {assert} from 'chai'
+import {createReadStream, readFile} from 'fs-promise'
 import {describe, it} from 'mocha'
 import {exec} from 'child-process-promise'
-import {createReadStream, readFile} from 'fs-promise'
-import {VirtualBuffer} from '../src/virtual-buffer'
+
+import {VirtualBuffer} from './virtual-buffer'
 
 describe('Virtual Buffer', function () {
   it('can read a file correctly', async () => {

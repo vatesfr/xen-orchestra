@@ -4,10 +4,11 @@ import {assert} from 'chai'
 import {describe, it} from 'mocha'
 import {exec} from 'child-process-promise'
 import {readFile, createReadStream, createWriteStream} from 'fs-promise'
-import {readRawContent} from '../src/vmdk-read'
-import {VHDFile, convertFromVMDK} from '../src/vhd-write'
 
-describe('VMDK to VHD conversion', function () {
+import {readRawContent} from './vmdk-read'
+import {VHDFile, convertFromVMDK} from './vhd-write'
+
+describe('VMDK to VHD conversion', () => {
   it('can convert a random data file with readRawContent()', async () => {
     let inputRawFileName = 'random-data.raw'
     let vmdkFileName = 'random-data.vmdk'
