@@ -672,6 +672,8 @@ var messages = {
   newVmMultipleVmsPattern: 'Name pattern:',
   newVmMultipleVmsPatternPlaceholder: 'e.g.: \\{name\\}_%',
   newVmFirstIndex: 'First index:',
+  newVmNumberRecalcultate: 'Recalculate VMs number',
+  newVmNameRefresh: 'Refresh VMs name',
 
   // ----- Self -----
   resourceSets: 'Resource sets',

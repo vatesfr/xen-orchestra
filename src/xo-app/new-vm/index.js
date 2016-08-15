@@ -21,6 +21,7 @@ import React from 'react'
 import size from 'lodash/size'
 import slice from 'lodash/slice'
 import store from 'store'
+import Tooltip from 'tooltip'
 import Wizard, { Section } from 'wizard'
 import { Button } from 'react-bootstrap-4/lib'
 import { Container, Row, Col } from 'grid'
@@ -762,11 +763,11 @@ export default class NewVm extends BaseComponent {
             value={nbVms}
           />
           <span className='input-group-btn'>
-            <Button bsStyle='secondary' disabled={!multipleVms} onClick={this._updateNbVms}><Icon icon='arrow-right' /></Button>
+            <Tooltip content={_('newVmNumberRecalcultate')}><Button bsStyle='secondary' disabled={!multipleVms} onClick={this._updateNbVms}><Icon icon='arrow-right' /></Button></Tooltip>
           </span>
         </Item>
         <Item>
-          <a className={styles.refreshNames} onClick={this._updateNameLabels}><Icon icon='refresh' /></a>
+          <Tooltip content={_('newVmNameRefresh')}><a className={styles.refreshNames} onClick={this._updateNameLabels}><Icon icon='refresh' /></a></Tooltip>
         </Item>
         {multipleVms && <LineItem>
           {map(nameLabels, (nameLabel, index) =>
