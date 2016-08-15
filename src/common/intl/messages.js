@@ -17,6 +17,9 @@ var messages = {
   onError: 'On error',
   successful: 'Successful',
 
+  // ----- Copiable component -----
+  copyToClipboard: 'Copy to clipboard',
+
   // ----- Titles -----
   homePage: 'Home',
   homeVmPage: 'VMs',
