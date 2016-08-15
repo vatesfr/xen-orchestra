@@ -2,6 +2,7 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import map from 'lodash/map'
+import Tooltip from 'tooltip'
 import React, { Component } from 'react'
 import { addSubscriptions } from 'utils'
 import { Container } from 'grid'
@@ -68,24 +69,28 @@ export default class Servers extends Component {
               </td>
               <td>
                 {server.status === 'disconnected'
-                  ? <ActionRowButton
-                    btnStyle='secondary'
-                    handler={connectServer}
-                    handlerParam={server}
-                    icon='connect'
-                    style={{
-                      marginRight: '0.5em'
-                    }}
-                  />
-                  : <ActionRowButton
-                    btnStyle='warning'
-                    handler={disconnectServer}
-                    handlerParam={server}
-                    icon='disconnect'
-                    style={{
-                      marginRight: '0.5em'
-                    }}
-                  />
+                  ? <Tooltip content={_('serverConnect')}>
+                    <ActionRowButton
+                      btnStyle='secondary'
+                      handler={connectServer}
+                      handlerParam={server}
+                      icon='connect'
+                      style={{
+                        marginRight: '0.5em'
+                      }}
+                    />
+                  </Tooltip>
+                  : <Tooltip content={_('serverDisconnect')}>
+                    <ActionRowButton
+                      btnStyle='warning'
+                      handler={disconnectServer}
+                      handlerParam={server}
+                      icon='disconnect'
+                      style={{
+                        marginRight: '0.5em'
+                      }}
+                    />
+                  </Tooltip>
                 }
                 <ActionRowButton
                   btnStyle='danger'

@@ -815,6 +815,8 @@ var messages = {
   serverPassword: 'Password',
   serverAction: 'Action',
   serverReadOnly: 'Read Only',
+  serverConnect: 'Connect server',
+  serverDisconnect: 'Disconnect server',
 
   // ----- Copy VM -----
   copyVm: 'Copy VM',
