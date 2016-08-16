@@ -13,7 +13,8 @@ import { EventEmitter } from 'events'
 import {
   catchPlus as pCatch,
   delay as pDelay,
-  promisify
+  promisify,
+  timeout as pTimeout
 } from 'promise-toolbox'
 import {
   createClient as createXmlRpcClient,
@@ -610,11 +611,13 @@ export class Xapi extends EventEmitter {
   }
 
   _watchEvents () {
-    const loop = () => this._sessionCall('event.from', [
+    const call = () => this._sessionCall('event.from', [
       ['*'],
       this._fromToken,
       1e3 + 0.1 // Force float.
-    ]).then(onSuccess, onFailure)
+    ])::pTimeout(600, call)
+
+    const loop = () => call().then(onSuccess, onFailure)
 
     const onSuccess = ({token, events}) => {
       this._fromToken = token

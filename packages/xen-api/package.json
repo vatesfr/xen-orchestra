@@ -50,7 +50,7 @@
     "make-error": "^1.0.2",
     "minimist": "^1.1.1",
     "ms": "^0.7.1",
-    "promise-toolbox": "^0.5.0",
+    "promise-toolbox": "^0.5.1",
     "pw": "0.0.4",
     "source-map-support": "^0.4.0",
     "trace": "^2.0.1",
