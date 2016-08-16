@@ -7,6 +7,7 @@ import styles from './index.css'
 
 const Page = ({
   children,
+  collapsedHeader,
   formatTitle,
   header,
   intl,
@@ -16,9 +17,9 @@ const Page = ({
   return (
     <DocumentTitle title={formatTitle ? formatMessage(messages[title]) : title}>
       <div className={styles.container}>
-        <nav className={'page-header ' + styles.header}>
+        {!collapsedHeader && <nav className={'page-header ' + styles.header}>
           {header}
-        </nav>
+        </nav>}
         <div className={styles.content}>
           {children}
         </div>
@@ -29,6 +30,7 @@ const Page = ({
 
 Page.propTypes = {
   children: React.PropTypes.node,
+  collapsedHeader: React.PropTypes.bool,
   formatTitle: React.PropTypes.bool,
   header: React.PropTypes.node,
   title: React.PropTypes.string

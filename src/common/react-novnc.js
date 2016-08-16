@@ -102,6 +102,14 @@ export default class NoVnc extends Component {
     this._clean()
   }
 
+  componentWillReceiveProps (props) {
+    const rfb = this._rfb
+    if (rfb) {
+      rfb.get_display().set_scale(props.scale || 1)
+      rfb.get_mouse().set_scale(props.scale || 1)
+    }
+  }
+
   _focus = () => {
     const rfb = this._rfb
     if (rfb) {

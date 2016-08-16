@@ -7,8 +7,10 @@ import invoke from 'invoke'
 import IsoDevice from 'iso-device'
 import NoVnc from 'react-novnc'
 import React from 'react'
+import { Button } from 'react-bootstrap-4/lib'
 import { resolveUrl } from 'xo'
 import { Container, Row, Col } from 'grid'
+import { Range } from 'form'
 import {
   CpuSparkLines,
   MemorySparkLines,
@@ -36,11 +38,23 @@ export default class TabConsole extends Component {
   _getClipboardContent = () =>
     this.refs.clipboard && this.refs.clipboard.value
 
+  _toggleMinimalLayout = () => {
+    this.props.toggleHeader()
+    this.setState({ minimalLayout: !this.state.minimalLayout })
+  }
+
+  _handleResize = scale =>
+    this.setState({ scale })
+
   render () {
     const {
       statsOverview,
       vm
     } = this.props
+    const {
+      minimalLayout,
+      scale
+    } = this.state
 
     if (vm.power_state !== 'Running') {
       return (
@@ -50,7 +64,7 @@ export default class TabConsole extends Component {
 
     return (
       <Container>
-        {statsOverview && <Row className='text-xs-center'>
+        {!minimalLayout && statsOverview && <Row className='text-xs-center'>
           <Col mediumSize={3}>
             <p>
               <Icon icon='cpu' size={2} />
@@ -81,10 +95,10 @@ export default class TabConsole extends Component {
           </Col>
         </Row>}
         <Row>
-          <Col mediumSize={5}>
+          <Col mediumSize={3}>
             <IsoDevice vm={vm} />
           </Col>
-          <Col mediumSize={5}>
+          <Col mediumSize={3}>
             <div className='input-group'>
               <input type='text' className='form-control' ref='clipboard' onChange={this._setRemoteClipboard} />
               <span className='input-group-btn'>
@@ -104,11 +118,30 @@ export default class TabConsole extends Component {
               <Icon icon='vm-keyboard' /> {_('ctrlAltDelButtonLabel')}
             </button>
           </Col>
+          <Col mediumSize={3}>
+            <Range
+              min={0.1}
+              max={3}
+              defaultValue={1}
+              onChange={this._handleResize}
+              step={0.1}
+            />
+          </Col>
+          <Col mediumSize={1}>
+            <Button bsStyle='secondary' onClick={this._toggleMinimalLayout}>
+              <Icon icon={this.state.minimalLayout ? 'caret' : 'caret-up'} />
+            </Button>
+          </Col>
         </Row>
         <Row className='console'>
           <Col>
-            <NoVnc ref='noVnc' url={resolveUrl(`consoles/${vm.id}`)} onClipboardChange={this._getRemoteClipboard} />
-            <p><em><Icon icon='info' /> {_('tipLabel')} {_('tipConsoleLabel')}</em></p>
+            <NoVnc
+              onClipboardChange={this._getRemoteClipboard}
+              ref='noVnc'
+              scale={scale}
+              url={resolveUrl(`consoles/${vm.id}`)}
+            />
+            {!minimalLayout && <p><em><Icon icon='info' /> {_('tipLabel')} {_('tipConsoleLabel')}</em></p>}
           </Col>
         </Row>
       </Container>
