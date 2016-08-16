@@ -86,7 +86,7 @@
     "partial-stream": "0.0.0",
     "passport": "^0.3.0",
     "passport-local": "^1.0.0",
-    "promise-toolbox": "^0.3.2",
+    "promise-toolbox": "^0.5.0",
     "proxy-agent": "^2.0.0",
     "pug": "^2.0.0-alpha6",
     "redis": "^2.0.1",
