@@ -81,7 +81,6 @@ export class Password extends Component {
 
 @propTypes({
   defaultValue: propTypes.number,
-  hideValue: propTypes.bool,
   max: propTypes.number.isRequired,
   min: propTypes.number.isRequired,
   step: propTypes.number,
@@ -127,10 +126,10 @@ export class Range extends Component {
 
     return (
       <div className='form-group row'>
-        {!props.hideValue && <label className='col-sm-2 control-label'>
+        <label className='col-sm-2 control-label'>
           {value}
-        </label>}
-        <div className={props.hideValue ? 'col-sm-12' : 'col-sm-10'}>
+        </label>
+        <div className='col-sm-10'>
           <input
             className='form-control'
             type='range'

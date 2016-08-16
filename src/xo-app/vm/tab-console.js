@@ -11,7 +11,6 @@ import Tooltip from 'tooltip'
 import { Button } from 'react-bootstrap-4/lib'
 import { resolveUrl } from 'xo'
 import { Container, Row, Col } from 'grid'
-import { Range } from 'form'
 import {
   CpuSparkLines,
   MemorySparkLines,
@@ -43,9 +42,6 @@ export default class TabConsole extends Component {
     this.props.toggleHeader()
     this.setState({ minimalLayout: !this.state.minimalLayout })
   }
-
-  _handleResize = scale =>
-    this.setState({ scale })
 
   render () {
     const {
@@ -120,13 +116,14 @@ export default class TabConsole extends Component {
             </button>
           </Col>
           <Col mediumSize={3}>
-            <Range
-              hideValue
-              min={0.1}
+            <input
+              className='form-control'
               max={3}
-              defaultValue={1}
-              onChange={this._handleResize}
+              min={0.1}
+              onChange={this.linkState('scale')}
               step={0.1}
+              type='range'
+              value={scale}
             />
           </Col>
           <Col mediumSize={1}>
