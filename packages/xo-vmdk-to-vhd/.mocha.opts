@@ -1,1 +1,2 @@
 --require ./.mocha.js
+--timeout 5000

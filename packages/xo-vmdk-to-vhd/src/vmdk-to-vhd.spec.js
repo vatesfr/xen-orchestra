@@ -3,7 +3,7 @@
 import {assert} from 'chai'
 import {describe, it} from 'mocha'
 import {exec} from 'child-process-promise'
-import {readFile, createReadStream, createWriteStream} from 'fs-promise'
+import {createReadStream, createWriteStream} from 'fs-promise'
 
 import {readRawContent} from './vmdk-read'
 import {VHDFile, convertFromVMDK} from './vhd-write'
@@ -18,8 +18,7 @@ describe('VMDK to VHD conversion', () => {
     await exec('rm -f ' + [inputRawFileName, vmdkFileName, vhdFileName, reconvertedRawFilemane].join(' '))
     await exec('base64 /dev/urandom | head -c ' + dataSize + ' > ' + inputRawFileName)
     await exec('VBoxManage convertfromraw --format VMDK --variant Stream ' + inputRawFileName + ' ' + vmdkFileName)
-    const result = await Promise.all([readRawContent(createReadStream(vmdkFileName)), readFile(inputRawFileName)])
-    const rawContent = result[0].rawFile
+    const rawContent = (await readRawContent(createReadStream(vmdkFileName))).rawFile
     const f = new VHDFile(rawContent.length, 523557791)
     await f.writeBuffer(rawContent)
     await f.writeFile(vhdFileName)

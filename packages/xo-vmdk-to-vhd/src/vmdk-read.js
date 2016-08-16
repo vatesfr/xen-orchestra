@@ -182,7 +182,7 @@ export async function readRawContent (readStream) {
   const descriptorBuffer = await virtualBuffer.readChunk(descriptorStart, descriptorLength)
   const descriptor = parseDescriptor(descriptorBuffer)
 
-  // TODO: we concat them back for now so that indices match, well have to introduce a bias later
+  // TODO: we concat them back for now so that the indices match, we'll have to introduce a bias later
   const remainingBuffer = await virtualBuffer.readChunk(descriptorEnd, -1)
   const buffer = Buffer.concat([headerBuffer, descriptorBuffer, remainingBuffer])
   if (header.grainDirectoryOffsetSectors === -1) {
@@ -202,9 +202,7 @@ export async function readRawContent (readStream) {
         const l2Entry = buffer.readUInt32LE(l1Entry * sectorSize + 4 * j)
         if (l2Entry !== 0 && l2Entry !== 1) {
           const grain = await readGrain(l2Entry, buffer, header['flags']['compressedGrains'])
-          for (let k = 0; k < grain.grain.byteLength; k++) {
-            rawOutputBuffer[grain.lba * sectorSize + k] = grain.grain[k]
-          }
+          grain.grain.copy(rawOutputBuffer, grain.lba * sectorSize)
           l2[j] = grain
         }
       }

@@ -161,16 +161,16 @@ export function computeGeometryForSize (size) {
 }
 
 export function createFooter (size, timestamp, geometry, diskType, dataOffsetLow = 0xFFFFFFFF, dataOffsetHigh = 0xFFFFFFFF) {
-  let view = new Uint8Array(512)
-  let footer = new Buffer(view.buffer)
-  view.set(new Buffer(footerCookie, 'ascii'), 0)
+  let footer = new Buffer(512)
+  footer.fill(0)
+  new Buffer(footerCookie, 'ascii').copy(footer)
   footer.writeUInt32BE(2, 8)
   footer.writeUInt32BE(0x00010000, 12)
   footer.writeUInt32BE(dataOffsetHigh, 16)
   footer.writeUInt32BE(dataOffsetLow, 20)
   footer.writeUInt32BE(timestamp, 24)
-  view.set(new Buffer(creatorApp, 'ascii'), 28)
-  view.set(new Buffer(osString, 'ascii'), 36)
+  new Buffer(creatorApp, 'ascii').copy(footer, 28)
+  new Buffer(osString, 'ascii').copy(footer, 36)
   const sizeHigh = Math.floor(size / Math.pow(2, 32)) & 0xFFFFFFFF
   const sizeLow = size & 0xFFFFFFFF
   footer.writeUInt32BE(sizeHigh, 40)
@@ -187,9 +187,9 @@ export function createFooter (size, timestamp, geometry, diskType, dataOffsetLow
 }
 
 export function createDynamicDiskHeader (tableEntries, blockSize) {
-  let view = new Uint8Array(1024)
-  let header = new Buffer(view.buffer)
-  view.set(new Buffer(headerCookie, 'ascii'), 0)
+  let header = new Buffer(1024)
+  header.fill(0)
+  new Buffer(headerCookie, 'ascii').copy(header)
   // hard code no next data
   header.writeUInt32BE(0xFFFFFFFF, 8)
   header.writeUInt32BE(0xFFFFFFFF, 12)
