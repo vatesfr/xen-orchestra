@@ -13,6 +13,7 @@ import Icon from 'icon'
 import includes from 'lodash/includes'
 import isArray from 'lodash/isArray'
 import isEmpty from 'lodash/isEmpty'
+import isIp from 'is-ip'
 import isObject from 'lodash/isObject'
 import join from 'lodash/join'
 import map from 'lodash/map'
@@ -38,6 +39,7 @@ import {
   XEN_DEFAULT_CPU_WEIGHT
 } from 'xo'
 import {
+  SelectIp,
   SelectNetwork,
   SelectPool,
   SelectResourceSet,
@@ -500,6 +502,23 @@ export default class NewVm extends BaseComponent {
     }
   }
   _onChangeSshKeys = keys => this._setState({ sshKeys: map(keys, key => key.id) })
+  _getOnChangeIps = index => ips => {
+    const VIFs = this.state.state.VIFs
+    const vif = VIFs[index]
+    vif.allowedIpv4Addresses = []
+    vif.allowedIpv6Addresses = []
+    forEach(ips, ip => {
+      if (!isIp(ip.id)) {
+        return
+      }
+      if (isIp.v4(ip.id)) {
+        vif.allowedIpv4Addresses.push(ip.id)
+      } else {
+        vif.allowedIpv6Addresses.push(ip.id)
+      }
+    })
+    this._setState({ VIFs })
+  }
 
   _updateNbVms = () => {
     const { nbVms, nameLabels, seqStart } = this.state.state
@@ -1072,6 +1091,15 @@ export default class NewVm extends BaseComponent {
                 />}
               </span>
             </Item>
+            <LineItem>
+              <span className={styles.inlineSelect}>
+                <SelectIp
+                  multi
+                  onChange={this._getOnChangeIps(index)}
+                  value={vif.ip}
+                />
+              </span>
+            </LineItem>
             <Item>
               <Button onClick={() => this._removeInterface(index)} bsStyle='secondary'>
                 <Icon icon='new-vm-remove' />

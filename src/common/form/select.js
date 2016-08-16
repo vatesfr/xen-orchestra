@@ -102,6 +102,7 @@ export default class Select extends Component {
     return (
       <ReactSelect
         {...this.props}
+        backspaceToRemoveMessage=''
         menuRenderer={this._renderMenu}
         menuStyle={SELECT_MENU_STYLE}
         style={SELECT_STYLE}

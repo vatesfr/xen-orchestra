@@ -116,6 +116,10 @@
     @extend .fa;
     @extend .fa-key;
   }
+  &-ip {
+    @extend .fa;
+    @extend .fa-map-marker;
+  }
 
   &-shown {
     @extend .fa;
@@ -679,6 +683,10 @@
     &-logs {
       @extend .fa;
       @extend .fa-list;
+    }
+    &-ips {
+      @extend .fa;
+      @extend .fa-map-marker;
     }
   }
   &-menu-about {

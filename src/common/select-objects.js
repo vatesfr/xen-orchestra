@@ -33,6 +33,7 @@ import {
   isSrWritable,
   subscribeCurrentUser,
   subscribeGroups,
+  subscribeIpPools,
   subscribeRemotes,
   subscribeResourceSets,
   subscribeRoles,
@@ -798,6 +799,59 @@ export class SelectSshKey extends Component {
         placeholder={_('selectSshKey')}
         {...this.props}
         xoObjects={this.state.sshKeys || []}
+      />
+    )
+  }
+}
+
+// ===================================================================
+
+export class SelectIp extends Component {
+  get value () {
+    return this.refs.select.value
+  }
+
+  set value (value) {
+    this.refs.select.value = value
+  }
+
+  _formatIps = ipPools => {
+    const addresses = {}
+    const { predicate } = this.props
+    forEach(ipPools, ipPool => {
+      addresses[ipPool.id] = mapPlus(ipPool.addresses, (ip, push, key) => {
+        if (!predicate || predicate(ip, key)) {
+          push({
+            id: key,
+            label: key
+          })
+        }
+      })
+    })
+    return addresses
+  }
+
+  componentWillMount () {
+    this.componentWillUnmount = subscribeIpPools(ipPools => {
+      this.setState({
+        ipPools: map(ipPools, ipPool => ({
+          id: ipPool.id,
+          label: ipPool.name,
+          type: 'ipPool'
+        })),
+        addresses: this._formatIps(ipPools)
+      })
+    })
+  }
+
+  render () {
+    return (
+      <GenericSelect
+        ref='select'
+        placeholder={_('selectIp')}
+        {...this.props}
+        xoContainers={this.state.ipPools || []}
+        xoObjects={this.state.addresses}
       />
     )
   }

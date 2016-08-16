@@ -8,6 +8,7 @@ import { NavLink, NavTabs } from 'nav'
 
 import Acls from './acls'
 import Groups from './groups'
+import Ips from './ips'
 import Logs from './logs'
 import Plugins from './plugins'
 import Remotes from './remotes'
@@ -28,6 +29,7 @@ const HEADER = <Container>
         <NavLink to={'/settings/remotes'}><Icon icon='menu-backup-remotes' /> {_('backupRemotesPage')}</NavLink>
         <NavLink to={'/settings/plugins'}><Icon icon='menu-settings-plugins' /> {_('settingsPluginsPage')}</NavLink>
         <NavLink to={'/settings/logs'}><Icon icon='menu-settings-logs' /> {_('settingsLogsPage')}</NavLink>
+        <NavLink to={'/settings/ips'}><Icon icon='menu-settings-ips' /> {_('settingsIpsPage')}</NavLink>
       </NavTabs>
     </Col>
   </Row>
@@ -36,6 +38,7 @@ const HEADER = <Container>
 const Settings = routes('servers', {
   acls: Acls,
   groups: Groups,
+  ips: Ips,
   logs: Logs,
   plugins: Plugins,
   remotes: Remotes,

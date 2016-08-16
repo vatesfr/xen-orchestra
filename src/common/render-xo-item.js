@@ -117,6 +117,11 @@ const xoItemToRender = {
       <Icon icon='ssh-key' /> {key.label}
     </span>
   ),
+  ipPool: ipPool => (
+    <span>
+      <Icon icon='ip' /> {ipPool.label}
+    </span>
+  ),
 
   // XO objects.
   pool: pool => (
