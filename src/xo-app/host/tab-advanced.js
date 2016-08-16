@@ -45,7 +45,6 @@ export default ({
         handlerParam={host}
         icon='host-eject'
         labelId='detachHost'
-        redirectOnSuccess='/'
       />
     </Col>
   </Row>

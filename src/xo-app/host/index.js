@@ -129,6 +129,10 @@ const isRunning = host => host && host.power_state === 'Running'
   }
 })
 export default class Host extends Component {
+  static contextTypes = {
+    router: React.PropTypes.object
+  }
+
   loop (host = this.props.host) {
     if (this.cancel) {
       this.cancel()
@@ -182,6 +186,10 @@ export default class Host extends Component {
     }
 
     const hostCur = this.props.host
+    if (hostCur && !hostNext) {
+      this.context.router.push('/')
+    }
+
     if (!hostCur) {
       this._getMissingPatches(hostNext)
     }
