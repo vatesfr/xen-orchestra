@@ -38,7 +38,7 @@ export default ({
       <BlockLink to={`/hosts/${host.id}/stats`}>{statsOverview && <PifSparkLines data={statsOverview} />}</BlockLink>
     </Col>
     <Col mediumSize={3}>
-      <BlockLink to={`/hosts/${host.id}/disks`}><h2>{host.$PBDs.length}x <Icon icon='disk' size='lg' /></h2></BlockLink>
+      <BlockLink to={`/hosts/${host.id}/storage`}><h2>{host.$PBDs.length}x <Icon icon='disk' size='lg' /></h2></BlockLink>
       <BlockLink to={`/hosts/${host.id}/stats`}>{statsOverview && <LoadSparkLines data={statsOverview} />}</BlockLink>
     </Col>
   </Row>
