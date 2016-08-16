@@ -615,7 +615,7 @@ export class Xapi extends EventEmitter {
       ['*'],
       this._fromToken,
       1e3 + 0.1 // Force float.
-    ])::pTimeout(600, call)
+    ])::pTimeout(600000, call)
 
     const loop = () => call().then(onSuccess, onFailure)
 
