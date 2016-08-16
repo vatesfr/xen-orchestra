@@ -98,7 +98,7 @@
     "through2": "^2.0.0",
     "trace": "^2.0.1",
     "ws": "^1.1.1",
-    "xen-api": "^0.9.1",
+    "xen-api": "^0.9.2",
     "xml2js": "~0.4.6",
     "xo-acl-resolver": "^0.2.1",
     "xo-collection": "^0.4.0",
