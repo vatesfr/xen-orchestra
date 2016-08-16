@@ -1,5 +1,6 @@
 import _ from 'intl'
 import assign from 'lodash/assign'
+import BaseComponent from 'base-component'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
@@ -8,7 +9,7 @@ import map from 'lodash/map'
 import { NavLink, NavTabs } from 'nav'
 import Page from '../page'
 import pick from 'lodash/pick'
-import React, { cloneElement, Component } from 'react'
+import React, { cloneElement } from 'react'
 import VmActionBar from './action-bar'
 import { Select, Text } from 'editable'
 import {
@@ -113,7 +114,7 @@ const isRunning = vm => vm && vm.power_state === 'Running'
     }
   }
 })
-export default class Vm extends Component {
+export default class Vm extends BaseComponent {
   static contextTypes = {
     router: React.PropTypes.object
   }
@@ -243,6 +244,8 @@ export default class Vm extends Component {
     </Container>
   }
 
+  _toggleHeader = () => this.setState({ collapsedHeader: !this.state.collapsedHeader })
+
   render () {
     const { container, vm } = this.props
 
@@ -262,8 +265,8 @@ export default class Vm extends Component {
     ]), pick(this.state, [
       'statsOverview'
     ]))
-    return <Page header={this.header()} title={`${vm.name_label}${container ? ` (${container.name_label})` : ''}`}>
-      {cloneElement(this.props.children, childProps)}
+    return <Page header={this.header()} collapsedHeader={this.state.collapsedHeader} title={`${vm.name_label}${container ? ` (${container.name_label})` : ''}`}>
+      {cloneElement(this.props.children, { ...childProps, toggleHeader: this._toggleHeader })}
     </Page>
   }
 }

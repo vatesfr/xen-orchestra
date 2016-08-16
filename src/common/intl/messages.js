@@ -484,6 +484,8 @@ var messages = {
   ctrlAltDelButtonLabel: 'Ctrl+Alt+Del',
   tipLabel: 'Tip:',
   tipConsoleLabel: 'non-US keyboard could have issues with console: switch your own layout to US.',
+  hideHeaderTooltip: 'Hide infos',
+  showHeaderTooltip: 'Show infos',
 
   // ----- VM disk tab -----
   vdiAction: 'Action',
