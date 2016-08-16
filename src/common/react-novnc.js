@@ -104,10 +104,9 @@ export default class NoVnc extends Component {
 
   componentWillReceiveProps (props) {
     const rfb = this._rfb
-    const newScale = props.scale || 1
-    if (rfb && this.props.scale !== newScale) {
-      rfb.get_display().set_scale(newScale)
-      rfb.get_mouse().set_scale(newScale)
+    if (rfb && this.props.scale !== props.scale) {
+      rfb.get_display().set_scale(props.scale || 1)
+      rfb.get_mouse().set_scale(props.scale || 1)
     }
   }
 
