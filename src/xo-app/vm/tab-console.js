@@ -7,6 +7,7 @@ import invoke from 'invoke'
 import IsoDevice from 'iso-device'
 import NoVnc from 'react-novnc'
 import React from 'react'
+import Tooltip from 'tooltip'
 import { Button } from 'react-bootstrap-4/lib'
 import { resolveUrl } from 'xo'
 import { Container, Row, Col } from 'grid'
@@ -120,6 +121,7 @@ export default class TabConsole extends Component {
           </Col>
           <Col mediumSize={3}>
             <Range
+              hideValue
               min={0.1}
               max={3}
               defaultValue={1}
@@ -128,9 +130,11 @@ export default class TabConsole extends Component {
             />
           </Col>
           <Col mediumSize={1}>
-            <Button bsStyle='secondary' onClick={this._toggleMinimalLayout}>
-              <Icon icon={this.state.minimalLayout ? 'caret' : 'caret-up'} />
-            </Button>
+            <Tooltip content={minimalLayout ? _('showHeaderTooltip') : _('hideHeaderTooltip')}>
+              <Button bsStyle='secondary' onClick={this._toggleMinimalLayout}>
+                <Icon icon={minimalLayout ? 'caret' : 'caret-up'} />
+              </Button>
+            </Tooltip>
           </Col>
         </Row>
         <Row className='console'>
