@@ -60,14 +60,6 @@ Duration: a few seconds
 
 ```
 
-If you don't find the plugins, check you have these two in your `xo-server` configuration:
-
-```
-plugins:
-  backup-reports:
-  transport-email:
-```
-
 ## XMPP nofications
 
 > This feature is available since 4.11
@@ -85,11 +77,3 @@ Then, parameter the XMPP server:
 That's it: your next scheduled jobs will be recap in a message:
 
 ![](https://xen-orchestra.com/blog/content/images/2015/12/xmpp.png)
-
-If you don't find the plugins, check you have these two in your `xo-server` configuration:
-
-```
-plugins:
-  backup-reports:
-  transport-xmpp:
-```

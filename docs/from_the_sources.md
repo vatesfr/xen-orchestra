@@ -36,7 +36,7 @@ $ node -v
 v4.4.7
 ```
 
-Be sure to have a recent version of `npm` by using `npm i -g npm`:
+Be sure to use `npm` **version 3** by using `npm i -g npm`, for example:
 
 ```
 $ npm -v
