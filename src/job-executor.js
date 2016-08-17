@@ -11,7 +11,7 @@ import { BaseError } from 'make-error'
 
 import { crossProduct } from './math'
 import {
-  forEach,
+  mapToArray,
   serializeError,
   thunkToArray
 } from './utils'
@@ -136,7 +136,6 @@ export default class JobExecutor {
       : [{}] // One call with no parameters
 
     const connection = this.xo.createUserConnection()
-    const promises = []
 
     connection.set('user_id', job.userId)
 
@@ -146,7 +145,7 @@ export default class JobExecutor {
       calls: {}
     }
 
-    forEach(paramsFlatVector, params => {
+    const promises = mapToArray(paramsFlatVector, params => {
       const runCallId = this._logger.notice(`Starting ${job.method} call. (${job.id})`, {
         event: 'jobCall.start',
         runJobId,
@@ -160,31 +159,29 @@ export default class JobExecutor {
         start: Date.now()
       }
 
-      promises.push(
-        this.xo.callApiMethod(connection, job.method, assign({}, params)).then(
-          value => {
-            this._logger.notice(`Call ${job.method} (${runCallId}) is a success. (${job.id})`, {
-              event: 'jobCall.end',
-              runJobId,
-              runCallId,
-              returnedValue: value
-            })
+      return this.xo.callApiMethod(connection, job.method, assign({}, params)).then(
+        value => {
+          this._logger.notice(`Call ${job.method} (${runCallId}) is a success. (${job.id})`, {
+            event: 'jobCall.end',
+            runJobId,
+            runCallId,
+            returnedValue: value
+          })
 
-            call.returnedValue = value
-            call.end = Date.now()
-          },
-          reason => {
-            this._logger.notice(`Call ${job.method} (${runCallId}) has failed. (${job.id})`, {
-              event: 'jobCall.end',
-              runJobId,
-              runCallId,
-              error: {...reason, message: reason.message}
-            })
+          call.returnedValue = value
+          call.end = Date.now()
+        },
+        reason => {
+          this._logger.notice(`Call ${job.method} (${runCallId}) has failed. (${job.id})`, {
+            event: 'jobCall.end',
+            runJobId,
+            runCallId,
+            error: {...reason, message: reason.message}
+          })
 
-            call.error = reason
-            call.end = Date.now()
-          }
-        )
+          call.error = reason
+          call.end = Date.now()
+        }
       )
     })
 
