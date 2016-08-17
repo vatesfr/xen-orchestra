@@ -232,8 +232,11 @@ export class ReadableRawVHDStream extends stream.Readable {
     } else {
       const offset = next.lbaBytes
       const buffer = next.grain
-
-      const paddingBuffer = new Buffer(offset - this.position)
+      var paddingLength = offset - this.position
+      if (paddingLength < 0) {
+        process.nextTick(() => this.emit('error', 'This VMDK file does not have its blocks in the correct order'))
+      }
+      const paddingBuffer = new Buffer(paddingLength)
       paddingBuffer.fill(0)
       if (paddingBuffer.length !== 0) {
         this.push(paddingBuffer)

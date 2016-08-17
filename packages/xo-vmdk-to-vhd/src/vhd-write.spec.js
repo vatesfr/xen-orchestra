@@ -1,6 +1,8 @@
 'use strict'
 
-import {assert} from 'chai'
+import chai, {assert} from 'chai'
+import chaiAsPromised from 'chai-as-promised'
+chai.use(chaiAsPromised)
 import {createWriteStream} from 'fs'
 import {describe, it} from 'mocha'
 import {exec} from 'child-process-promise'
@@ -36,18 +38,16 @@ describe('VHD writing', () => {
       lbaBytes: 100,
       grain: new Buffer('azerzaerazeraze', 'ascii')
     }, {
-      offset: 700,
+      lbaBytes: 700,
       grain: new Buffer('gdfslkdfguer', 'ascii')
     }]
     let index = 0
     const mockParser = {
       next: async () => {
         if (index < data.length) {
-          const promise = await new Promise((resolve) => {
-            resolve(data[index])
-          })
+          const result = data[index]
           index++
-          return promise
+          return result
         } else {
           return null
         }
@@ -59,6 +59,34 @@ describe('VHD writing', () => {
       pipe.on('finish', resolve)
       pipe.on('error', reject)
     })
+  })
+  it('ReadableRawVHDStream detects when blocks are out of order', async () => {
+    const data = [{
+      lbaBytes: 700,
+      grain: new Buffer('azerzaerazeraze', 'ascii')
+    }, {
+      lbaBytes: 100,
+      grain: new Buffer('gdfslkdfguer', 'ascii')
+    }]
+    let index = 0
+    const mockParser = {
+      next: async () => {
+        if (index < data.length) {
+          const result = data[index]
+          index++
+          return result
+        } else {
+          return null
+        }
+      }
+    }
+    return assert.isRejected(new Promise((resolve, reject) => {
+      const stream = new ReadableRawVHDStream(100000, mockParser)
+      stream.on('error', reject)
+      const pipe = stream.pipe(createWriteStream('outputStream'))
+      pipe.on('finish', resolve)
+      pipe.on('error', reject)
+    }))
   })
   it('writing a known file is successful', async () => {
     const fileName = 'output.vhd'
