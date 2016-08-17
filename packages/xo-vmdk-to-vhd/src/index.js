@@ -1,1 +1,1 @@
-export convertFromVMDK from './vhd-write'
+export { convertFromVMDK as default } from './vhd-write'
