@@ -58,15 +58,21 @@ getAll.permission = 'admin'
 // -------------------------------------------------------------------
 
 export async function set ({id, email, password, permission, preferences}) {
-  if (permission && id === this.session.get('user_id')) {
-    throw new InvalidParameters('a user cannot change its own permission')
+  const isAdmin = this.user && this.user.permission === 'admin'
+  if (isAdmin) {
+    if (permission && id === this.session.get('user_id')) {
+      throw new InvalidParameters('a user cannot change its own permission')
+    }
+  } else if (email || password || permission) {
+    throw new InvalidParameters('this properties can only changed by an administrator')
   }
+
   await this.updateUser(id, {email, password, permission, preferences})
 }
 
 set.description = 'changes the properties of an existing user'
 
-set.permission = 'admin'
+set.permission = ''
 
 set.params = {
   id: { type: 'string' },
