@@ -120,7 +120,7 @@
     "gulp-sourcemaps": "^1.5.1",
     "gulp-watch": "^4.2.2",
     "leche": "^2.1.1",
-    "mocha": "^2.2.1",
+    "mocha": "^3.0.2",
     "must": "^0.13.1",
     "nyc": "^8.1.0",
     "rimraf": "^2.5.2",
