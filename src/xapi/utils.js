@@ -1,6 +1,7 @@
 // import isFinite from 'lodash/isFinite'
 import camelCase from 'lodash/camelCase'
 import isEqual from 'lodash/isEqual'
+import isPlainObject from 'lodash/isPlainObject'
 import pickBy from 'lodash/pickBy'
 import { utcFormat, utcParse } from 'd3-time-format'
 
@@ -12,7 +13,6 @@ import {
   isBoolean,
   isFunction,
   isInteger,
-  isPlainObject,
   isString,
   map,
   mapToArray,
