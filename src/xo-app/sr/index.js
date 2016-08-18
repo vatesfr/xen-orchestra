@@ -120,9 +120,11 @@ export default class Sr extends Component {
               value={sr.name_description}
               onChange={nameDescription => editSr(sr, { nameDescription })}
             />
-            <span className='text-muted'>
-              {' - '}{container.name_label}
-            </span>
+            {container &&
+              <span className='text-muted'>
+                {' - '}{container.name_label}
+              </span>
+            }
           </span>
         </Col>
         <Col mediumSize={6}>
