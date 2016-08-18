@@ -340,7 +340,7 @@ export default class NewVm extends BaseComponent {
       cpuWeight: '',
       // installation
       installMethod: template.install_methods && template.install_methods[0] || 'SSH',
-      sshKeys: this.props.userSshKeys.length && [ 0 ],
+      sshKeys: this.props.userSshKeys && this.props.userSshKeys.length && [ 0 ],
       customConfig: '#cloud-config\n#hostname: myhostname\n#ssh_authorized_keys:\n#  - ssh-rsa <myKey>\n#packages:\n#  - htop\n',
       // interfaces
       VIFs,
@@ -895,7 +895,7 @@ export default class NewVm extends BaseComponent {
               </Button>
             </span>
           </span>
-          {this.props.userSshKeys.length > 0 && <span className={styles.fixedWidth}>
+          {this.props.userSshKeys && this.props.userSshKeys.length > 0 && <span className={styles.fixedWidth}>
             <SelectSshKey
               disabled={!configDrive || installMethod !== 'SSH'}
               onChange={this._onChangeSshKeys}
