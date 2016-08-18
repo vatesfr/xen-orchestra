@@ -13,8 +13,7 @@ import { EventEmitter } from 'events'
 import {
   catchPlus as pCatch,
   delay as pDelay,
-  promisify,
-  timeout as pTimeout
+  promisify
 } from 'promise-toolbox'
 import {
   createClient as createXmlRpcClient,
@@ -401,21 +400,23 @@ export class Xapi extends EventEmitter {
 
   // Medium level call: handle session errors.
   _sessionCall (method, args) {
-    if (startsWith(method, 'session.')) {
-      return Promise.reject(
-        new Error('session.*() methods are disabled from this interface')
-      )
+    try {
+      if (startsWith(method, 'session.')) {
+        throw new Error('session.*() methods are disabled from this interface')
+      }
+
+      return this._transportCall(method, [this.sessionId].concat(args))
+        ::pCatch(isSessionInvalid, () => {
+          // XAPI is sometimes reinitialized and sessions are lost.
+          // Try to login again.
+          debug('%s: the session has been reinitialized', this._humanId)
+
+          this._sessionId = null
+          return this.connect().then(() => this._sessionCall(method, args))
+        })
+    } catch (error) {
+      return Promise.reject(error)
     }
-
-    return this._transportCall(method, [this.sessionId].concat(args))
-    ::pCatch(isSessionInvalid, () => {
-      // XAPI is sometimes reinitialized and sessions are lost.
-      // Try to login again.
-      debug('%s: the session has been reinitialized', this._humanId)
-
-      this._sessionId = null
-      return this.connect().then(() => this._sessionCall(method, args))
-    })
   }
 
   // Low level call: handle transport errors.
@@ -611,13 +612,25 @@ export class Xapi extends EventEmitter {
   }
 
   _watchEvents () {
-    const call = () => this._sessionCall('event.from', [
-      ['*'],
-      this._fromToken,
-      1e3 + 0.1 // Force float.
-    ])::pTimeout(600000, call)
+    const injectEvent = () => {
+      const { pool } = this
+      if (pool) {
+        this._sessionCall('event.inject', [ 'pool', pool.$ref ]).catch(console.error)
+      }
+    }
 
-    const loop = () => call().then(onSuccess, onFailure)
+    let timeout
+    const loop = () => {
+      // Keep alive: force at least one event per minute.
+      clearTimeout(timeout)
+      timeout = setTimeout(injectEvent, 60e3)
+
+      return this._sessionCall('event.from', [
+        ['*'],
+        this._fromToken,
+        1e3 + 0.1 // Force float.
+      ]).then(onSuccess, onFailure)
+    }
 
     const onSuccess = ({token, events}) => {
       this._fromToken = token
