@@ -85,6 +85,7 @@ forEach([
   'VDI',
   'VGPU',
   'VGPU_type',
+  'VIF',
   'VLAN',
   'VM',
   'VM_appliance',
