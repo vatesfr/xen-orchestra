@@ -45,7 +45,7 @@ connect.resolve = {
 // -------------------------------------------------------------------
 
 export function set ({ vif, allowedIpv4Addresses, allowedIpv6Addresses }) {
-  return this.getXapi(vif._xapiId).editVif({
+  return this.getXapi(vif).editVif(vif._xapiId, {
     ipv4Allowed: allowedIpv4Addresses,
     ipv6Allowed: allowedIpv6Addresses
   })
