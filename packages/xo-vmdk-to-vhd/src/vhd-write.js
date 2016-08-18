@@ -222,29 +222,30 @@ export class ReadableRawVHDStream extends stream.Readable {
     this.vmdkParser = vmdkParser
   }
 
-  async _read () {
-    const next = await this.vmdkParser.next()
-    if (next === null) {
-      const paddingBuffer = new Buffer(this.size - this.position)
-      paddingBuffer.fill(0)
-      this.push(paddingBuffer)
-      this.push(this.footer)
-      this.push(null)
-    } else {
-      const offset = next.lbaBytes
-      const buffer = next.grain
-      var paddingLength = offset - this.position
-      if (paddingLength < 0) {
-        process.nextTick(() => this.emit('error', 'This VMDK file does not have its blocks in the correct order'))
-      }
-      const paddingBuffer = new Buffer(paddingLength)
-      paddingBuffer.fill(0)
-      if (paddingBuffer.length !== 0) {
+  _read () {
+    this.vmdkParser.next().then((next) => {
+      if (next === null) {
+        const paddingBuffer = new Buffer(this.size - this.position)
+        paddingBuffer.fill(0)
         this.push(paddingBuffer)
+        this.push(this.footer)
+        this.push(null)
+      } else {
+        const offset = next.lbaBytes
+        const buffer = next.grain
+        var paddingLength = offset - this.position
+        if (paddingLength < 0) {
+          process.nextTick(() => this.emit('error', 'This VMDK file does not have its blocks in the correct order'))
+        }
+        if (paddingLength !== 0) {
+          const paddingBuffer = new Buffer(paddingLength)
+          paddingBuffer.fill(0)
+          this.push(paddingBuffer)
+        }
+        this.push(buffer)
+        this.position = offset + buffer.length
       }
-      this.push(buffer)
-      this.position = offset + buffer.length
-    }
+    })
   }
 }
 
