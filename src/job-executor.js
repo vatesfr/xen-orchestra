@@ -1,4 +1,5 @@
 import assign from 'lodash/assign'
+import Bluebird from 'bluebird'
 import every from 'lodash/every'
 import filter from 'lodash/filter'
 import isArray from 'lodash/isArray'
@@ -11,7 +12,6 @@ import { BaseError } from 'make-error'
 
 import { crossProduct } from './math'
 import {
-  mapToArray,
   serializeError,
   thunkToArray
 } from './utils'
@@ -145,7 +145,7 @@ export default class JobExecutor {
       calls: {}
     }
 
-    const promises = mapToArray(paramsFlatVector, params => {
+    await Bluebird.map(paramsFlatVector, params => {
       const runCallId = this._logger.notice(`Starting ${job.method} call. (${job.id})`, {
         event: 'jobCall.start',
         runJobId,
@@ -183,10 +183,11 @@ export default class JobExecutor {
           call.end = Date.now()
         }
       )
+    }, {
+      concurrency: 2
     })
 
     connection.close()
-    await Promise.all(promises)
     execStatus.end = Date.now()
 
     return execStatus
