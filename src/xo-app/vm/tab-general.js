@@ -5,6 +5,7 @@ import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React from 'react'
 import Tags from 'tags'
+import Tooltip from 'tooltip'
 import { addTag, editVm, removeTag } from 'xo'
 import { BlockLink } from 'link'
 import { FormattedRelative } from 'react-intl'
@@ -79,8 +80,7 @@ export default ({
       </BlockLink>
     </Col>
     <Col mediumSize={3}>
-      {/* TODO: tooltip and better icon usage */}
-      <BlockLink to={`/vms/${vm.id}/advanced`}><h1><Icon className='text-info' icon={vm.os_version && vm.os_version.distro && osFamily(vm.os_version.distro)} /></h1></BlockLink>
+      <BlockLink to={`/vms/${vm.id}/advanced`}><Tooltip content={vm.os_version ? vm.os_version.name : _('unknownOsName')}><h1><Icon className='text-info' icon={vm.os_version && vm.os_version.distro && osFamily(vm.os_version.distro)} /></h1></Tooltip></BlockLink>
     </Col>
   </Row>
   {!vm.xenTools && vm.power_state === 'Running' &&

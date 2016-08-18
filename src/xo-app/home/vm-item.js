@@ -107,7 +107,7 @@ export default class VmItem extends Component {
                   </span>
                 }
               </span>
-              <Icon className='text-info' icon={vm.os_version && osFamily(vm.os_version.distro)} fixedWidth />
+              <Tooltip content={vm.os_version ? vm.os_version.name : _('unknownOsName')}><Icon className='text-info' icon={vm.os_version && osFamily(vm.os_version.distro)} fixedWidth /></Tooltip>
               {' '}
               <Ellipsis>
                 <Text value={vm.name_description} onChange={this._setNameDescription} placeholder={_('vmHomeDescriptionPlaceholder')} useLongClick />
