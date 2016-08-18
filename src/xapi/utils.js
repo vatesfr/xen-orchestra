@@ -12,7 +12,7 @@ import {
   isBoolean,
   isFunction,
   isInteger,
-  isObject,
+  isPlainObject,
   isString,
   map,
   mapToArray,
@@ -48,7 +48,10 @@ export const prepareXapiParam = param => {
   if (isBoolean(param)) {
     return asBoolean(param)
   }
-  if (isObject(param)) {
+  if (isArray(param)) {
+    return map(param, prepareXapiParam)
+  }
+  if (isPlainObject(param)) {
     return map(filterUndefineds(param), prepareXapiParam)
   }
 
