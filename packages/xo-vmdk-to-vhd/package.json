@@ -26,7 +26,8 @@
     "babel-runtime": "^6.11.6",
     "child-process-promise": "^2.0.3",
     "deflate-js": "^0.2.3",
-    "fs-promise": "^0.4.1"
+    "fs-promise": "^0.4.1",
+    "pipette": "^0.9.3"
   },
   "devDependencies": {
     "babel-cli": "^6.11.4",

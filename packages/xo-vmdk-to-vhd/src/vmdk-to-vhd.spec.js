@@ -6,7 +6,7 @@ import {exec} from 'child-process-promise'
 import {createReadStream, createWriteStream} from 'fs-promise'
 
 import {readRawContent} from './vmdk-read'
-import {VHDFile, convertFromVMDK} from './vhd-write'
+import {VHDFile, convertFromVMDK, computeGeometryForSize} from './vhd-write'
 
 describe('VMDK to VHD conversion', () => {
   it('can convert a random data file with readRawContent()', async () => {
@@ -36,7 +36,7 @@ describe('VMDK to VHD conversion', () => {
     let vhdFileName = 'from-vmdk-VMDKDirectParser.vhd'
     let reconvertedRawFilemane = 'from-vhd.raw'
     let reconvertedByVBoxRawFilemane = 'from-vhd-by-vbox.raw'
-    let dataSize = 5222400
+    let dataSize = computeGeometryForSize(8 * 1024 * 1024).actualSize
     await exec('rm -f ' + [inputRawFileName, vmdkFileName, vhdFileName, reconvertedRawFilemane, reconvertedByVBoxRawFilemane].join(' '))
     await exec('base64 /dev/urandom | head -c ' + dataSize + ' > ' + inputRawFileName)
     await exec('VBoxManage convertfromraw --format VMDK --variant Stream ' + inputRawFileName + ' ' + vmdkFileName)

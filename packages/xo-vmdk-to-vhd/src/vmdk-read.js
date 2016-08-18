@@ -9,7 +9,7 @@ const compressionMap = ['COMPRESSION_NONE', 'COMPRESSION_DEFLATE']
 function parseS64b (buffer, offset, valueName) {
   const low = buffer.readInt32LE(offset)
   const high = buffer.readInt32LE(offset + 4)
-  // here there might be a surprise here because we are reading 64 integers into double floats (53 bits mantissa)
+  // here there might be a surprise because we are reading 64 integers into double floats (53 bits mantissa)
   const value = low | high << 32
   if ((value & (Math.pow(2, 32) - 1)) !== low) {
     throw new Error('Unsupported VMDK, ' + valueName + ' is too big')
@@ -20,7 +20,7 @@ function parseS64b (buffer, offset, valueName) {
 function parseU64b (buffer, offset, valueName) {
   const low = buffer.readUInt32LE(offset)
   const high = buffer.readUInt32LE(offset + 4)
-  // here there might be a surprise here because we are reading 64 integers into double floats (53 bits mantissa)
+  // here there might be a surprise because we are reading 64 integers into double floats (53 bits mantissa)
   const value = low | high << 32
   if ((value & (Math.pow(2, 32) - 1)) !== low) {
     throw new Error('Unsupported VMDK, ' + valueName + ' is too big')
@@ -122,7 +122,7 @@ export class VMDKDirectParser {
   }
 
   async readHeader () {
-    const headerBuffer = await this.virtualBuffer.readChunk(0, 512)
+    const headerBuffer = await this.virtualBuffer.readChunk(512)
     const magicString = headerBuffer.slice(0, 4).toString('ascii')
     if (magicString !== 'KDMV') {
       throw new Error('not a VMDK file')
@@ -133,26 +133,28 @@ export class VMDKDirectParser {
     }
     this.header = parseHeader(headerBuffer)
     // I think the multiplications are OK, because the descriptor is always at the beginning of the file
-    const descriptorStart = this.header.descriptorOffsetSectors * sectorSize
     const descriptorLength = this.header.descriptorSizeSectors * sectorSize
-    const descriptorBuffer = await this.virtualBuffer.readChunk(descriptorStart, descriptorLength)
+    const descriptorBuffer = await this.virtualBuffer.readChunk(descriptorLength)
     this.descriptor = parseDescriptor(descriptorBuffer)
     return this.header
   }
 
   async next () {
     while (!this.virtualBuffer.isDepleted) {
-      const sector = await this.virtualBuffer.readChunk(this.virtualBuffer.position, 512)
+      const sector = await this.virtualBuffer.readChunk(512)
+      if (sector.length === 0) {
+        break
+      }
       const marker = tryToParseMarker(sector)
       if (marker.size === 0) {
         if (marker.value !== 0) {
-          await this.virtualBuffer.readChunk(this.virtualBuffer.position, marker.value * sectorSize)
+          await this.virtualBuffer.readChunk(marker.value * sectorSize)
         }
       } else if (marker.size > 10) {
         const grainDiskSize = marker.size + 12
         const alignedGrainDiskSize = Math.ceil(grainDiskSize / sectorSize) * sectorSize
         const remainOfBufferSize = alignedGrainDiskSize - sectorSize
-        const remainderOfGrainBuffer = await this.virtualBuffer.readChunk(this.virtualBuffer.position, remainOfBufferSize)
+        const remainderOfGrainBuffer = await this.virtualBuffer.readChunk(remainOfBufferSize)
         const grainBuffer = Buffer.concat([sector, remainderOfGrainBuffer])
         return readGrain(0, grainBuffer, true)
       }
@@ -163,7 +165,7 @@ export class VMDKDirectParser {
 
 export async function readRawContent (readStream) {
   const virtualBuffer = new VirtualBuffer(readStream)
-  const headerBuffer = await virtualBuffer.readChunk(0, 512)
+  const headerBuffer = await virtualBuffer.readChunk(512)
   const magicString = headerBuffer.slice(0, 4).toString('ascii')
   if (magicString !== 'KDMV') {
     throw new Error('not a VMDK file')
@@ -176,14 +178,12 @@ export async function readRawContent (readStream) {
   let header = parseHeader(headerBuffer)
 
   // I think the multiplications are OK, because the descriptor is always at the beginning of the file
-  const descriptorStart = header.descriptorOffsetSectors * sectorSize
   const descriptorLength = header.descriptorSizeSectors * sectorSize
-  const descriptorEnd = descriptorStart + descriptorLength
-  const descriptorBuffer = await virtualBuffer.readChunk(descriptorStart, descriptorLength)
+  const descriptorBuffer = await virtualBuffer.readChunk(descriptorLength)
   const descriptor = parseDescriptor(descriptorBuffer)
 
   // TODO: we concat them back for now so that the indices match, we'll have to introduce a bias later
-  const remainingBuffer = await virtualBuffer.readChunk(descriptorEnd, -1)
+  const remainingBuffer = await virtualBuffer.readChunk(-1)
   const buffer = Buffer.concat([headerBuffer, descriptorBuffer, remainingBuffer])
   if (header.grainDirectoryOffsetSectors === -1) {
     header = parseHeader(buffer.slice(-1024, -1024 + sectorSize))

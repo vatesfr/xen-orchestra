@@ -88,7 +88,7 @@ describe('VHD writing', () => {
       pipe.on('error', reject)
     }))
   })
-  it('writing a known file is successful', async () => {
+  it('writing a known file with VHDFile is successful', async () => {
     const fileName = 'output.vhd'
     const rawFilename = 'output.raw'
     const randomFileName = 'random.raw'

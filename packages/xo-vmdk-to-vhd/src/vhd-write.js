@@ -171,8 +171,9 @@ export function createFooter (size, timestamp, geometry, diskType, dataOffsetLow
   footer.writeUInt32BE(timestamp, 24)
   new Buffer(creatorApp, 'ascii').copy(footer, 28)
   new Buffer(osString, 'ascii').copy(footer, 36)
-  const sizeHigh = Math.floor(size / Math.pow(2, 32)) & 0xFFFFFFFF
-  const sizeLow = size & 0xFFFFFFFF
+  // do not use & 0xFFFFFFFF to extract lower bits, that would propagate a negative sign if the 2^31 bit is one
+  const sizeHigh = Math.floor(size / Math.pow(2, 32)) % Math.pow(2, 32)
+  const sizeLow = size % Math.pow(2, 32)
   footer.writeUInt32BE(sizeHigh, 40)
   footer.writeUInt32BE(sizeLow, 44)
   footer.writeUInt32BE(sizeHigh, 48)
