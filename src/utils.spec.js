@@ -20,10 +20,12 @@ import {
 describe('camelToSnakeCase()', function () {
   it('converts a string from camelCase to snake_case', function () {
     expect(camelToSnakeCase('fooBar')).to.equal('foo_bar')
+    expect(camelToSnakeCase('ipv4Allowed')).to.equal('ipv4_allowed')
   })
 
   it('does not alter snake_case strings', function () {
     expect(camelToSnakeCase('foo_bar')).to.equal('foo_bar')
+    expect(camelToSnakeCase('ipv4_allowed')).to.equal('ipv4_allowed')
   })
 
   it('does not alter upper case letters expect those from the camelCase', function () {

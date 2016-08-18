@@ -60,7 +60,7 @@ export const streamToBuffer = getStream.buffer
 
 export function camelToSnakeCase (string) {
   return string.replace(
-    /([a-z])([A-Z])/g,
+    /([a-z0-9])([A-Z])/g,
     (_, prevChar, currChar) => `${prevChar}_${currChar.toLowerCase()}`
   )
 }
