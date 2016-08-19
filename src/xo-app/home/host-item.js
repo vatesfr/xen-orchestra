@@ -110,10 +110,10 @@ export default class HostItem extends Component {
           <Col largeSize={2} className='hidden-lg-down'>
             <span className='tag tag-info tag-ip'>{host.address}</span>
           </Col>
-          <Col mediumSize={2} className='hidden-sm-down'>
+          {container && <Col mediumSize={2} className='hidden-sm-down'>
             <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>
-          </Col>
-          <Col mediumSize={1} className={styles.itemExpandRow}>
+          </Col>}
+          <Col mediumSize={1} offset={container ? undefined : 2} className={styles.itemExpandRow}>
             <a className={styles.itemExpandButton}
               onClick={this._toggleExpanded}>
               <Icon icon='nav' fixedWidth />&nbsp;&nbsp;&nbsp;

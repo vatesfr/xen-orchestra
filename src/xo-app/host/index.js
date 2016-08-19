@@ -242,7 +242,7 @@ export default class Host extends Component {
               value={host.name_description}
               onChange={this._setNameDescription}
             />
-            <span className='text-muted'> - <Link to={`/pools/${pool.id}`}>{pool.name_label}</Link></span>
+            {pool && <span className='text-muted'> - <Link to={`/pools/${pool.id}`}>{pool.name_label}</Link></span>}
           </span>
         </Col>
         <Col mediumSize={6}>
