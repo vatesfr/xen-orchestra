@@ -44,12 +44,16 @@ export default class Logs extends BaseComponent {
       },
       {
         name: _('logMethod'),
-        itemRenderer: log => log.data.method,
+        itemRenderer: log => <pre>{log.data.method}</pre>,
         sortCriteria: log => log.data.method
       },
       {
+        name: _('logParams'),
+        itemRenderer: log => <pre className={styles.widthLimit}>{JSON.stringify(log.data.params, null, 2)}</pre>
+      },
+      {
         name: _('logMessage'),
-        itemRenderer: log => <div className={styles.message}>{log.data.error && log.data.error.message}</div>,
+        itemRenderer: log => <pre className={styles.widthLimit}>{log.data.error && log.data.error.message}</pre>,
         sortCriteria: log => log.data.error && log.data.error.message
       },
       {
@@ -60,13 +64,12 @@ export default class Logs extends BaseComponent {
         name: _('logTime'),
         itemRenderer: log => <span>
           {log.time && <FormattedDate value={new Date(log.time)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />}
-          {' '}
-          <span className='pull-right'>
-            <ActionRowButton btnStyle='default' handler={deleteApiLog} handlerParam={log.id} icon='delete' />
-          </span>
         </span>,
         sortCriteria: log => log.time,
         sortOrder: 'desc'
+      },
+      {
+        itemRenderer: log => <ActionRowButton btnStyle='default' handler={deleteApiLog} handlerParam={log.id} icon='delete' />
       }
     ]
     const { logs } = this.props
