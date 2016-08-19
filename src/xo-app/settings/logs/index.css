@@ -1,4 +1,5 @@
-.message {
+.widthLimit {
   overflow-wrap: break-word;
-  max-width: 20em;
+  width: 100%;
+  max-width: 30em;
 }

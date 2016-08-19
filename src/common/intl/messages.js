@@ -959,6 +959,7 @@ var messages = {
   loadingLogs: 'Loading logs...',
   logUser: 'User',
   logMethod: 'Method',
+  logParams: 'Params',
   logMessage: 'Message',
   logStack: 'Stack trace',
   logTime: 'Date',
