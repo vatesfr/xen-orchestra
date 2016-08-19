@@ -5,6 +5,9 @@ var forEach = require('lodash/forEach')
 var isString = require('lodash/isString')
 
 var messages = {
+  statusConnecting: 'Connecting',
+  statusDisconnected: 'Disconnected',
+
   editableLongClickPlaceholder: 'Long click to edit',
   editableClickPlaceholder: 'Click to edit',
 

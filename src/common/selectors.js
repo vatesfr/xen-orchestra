@@ -212,6 +212,8 @@ const _getId = (state, { routeParams, id }) => routeParams
 
 export const getLang = state => state.lang
 
+export const getStatus = state => state.status
+
 export const getUser = state => state.user
 
 const _getPermissionsPredicate = invoke(() => {

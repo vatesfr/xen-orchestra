@@ -9,13 +9,19 @@ import React from 'react'
 import Tooltip from 'tooltip'
 import { Button } from 'react-bootstrap-4/lib'
 import { connectStore, noop, getXoaPlan } from 'utils'
-import { signOut, subscribePermissions, subscribeResourceSets } from 'xo'
 import { UpdateTag } from '../xoa-updates'
+import {
+  connect,
+  signOut,
+  subscribePermissions,
+  subscribeResourceSets
+} from 'xo'
 import {
   createFilter,
   createGetObjectsOfType,
   createSelector,
   getLang,
+  getStatus,
   getUser
 } from 'selectors'
 
@@ -31,6 +37,7 @@ import styles from './index.css'
     [ task => task.status === 'pending' ]
   ),
   pools: createGetObjectsOfType('pool'),
+  status: getStatus,
   user: getUser
 }), {
   withRef: true
@@ -88,7 +95,7 @@ export default class Menu extends Component {
   }
 
   render () {
-    const { nTasks, user } = this.props
+    const { nTasks, status, user } = this.props
     const isAdmin = user && user.permission === 'admin'
     const noOperatablePools = this._getNoOperatablePools()
     const noResourceSets = isEmpty(this.state.resourceSets)
@@ -201,15 +208,24 @@ export default class Menu extends Component {
             <span className={styles.hiddenCollapsed}>{' '}{_('signOut')}</span>
           </Button>
         </li>
-        <li className='nav-item'>
-          <Link className='nav-link' style={{display: 'flex'}} to={'/user'}>
-            <div style={{margin: 'auto'}}>
-              <Tooltip content={user ? user.email : ''}>
-                <Icon icon='user' size='lg' />
-              </Tooltip>
-            </div>
+        <li className='nav-item xo-menu-item'>
+          <Link className='nav-link text-xs-center' to={'/user'}>
+            <Tooltip content={user ? user.email : ''}>
+              <Icon icon='user' size='lg' />
+            </Tooltip>
           </Link>
         </li>
+        <li>&nbsp;</li>
+        <li>&nbsp;</li>
+        {status === 'connecting'
+          ? <li className='nav-item text-xs-center'>{_('statusConnecting')}</li>
+          : status === 'disconnected' &&
+            <li className='nav-item text-xs-center xo-menu-item'>
+              <Button className='nav-link' onClick={connect}>
+                {_('statusDisconnected')}
+              </Button>
+            </li>
+        }
       </ul>
     </div>
   }

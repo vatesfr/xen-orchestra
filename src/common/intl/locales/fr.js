@@ -8,6 +8,9 @@ addLocaleData(reactIntlData)
 // ===================================================================
 
 export default {
+  statusConnecting: 'Connexion…',
+  statusDisconnected: 'Déconnecté',
+
   editableLongClickPlaceholder: 'Clic long pour éditer',
   editableClickPlaceholder: 'Cliquer pour éditer',
 

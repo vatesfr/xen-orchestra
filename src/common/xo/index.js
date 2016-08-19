@@ -49,6 +49,12 @@ export const signOut = () => {
   window.location.reload(true)
 }
 
+export const connect = () => {
+  xo.open(createBackoff()).catch(error => {
+    logError(error, 'failed to connect to xo-server')
+  })
+}
+
 const xo = invoke(() => {
   const token = cookies.get('token')
   if (!token) {
@@ -60,13 +66,6 @@ const xo = invoke(() => {
     credentials: { token }
   })
 
-  const connect = () => {
-    xo.open(createBackoff()).catch(error => {
-      logError(error, 'failed to connect to xo-server')
-    })
-  }
-  connect()
-
   xo.on('scheduledAttempt', ({ delay }) => {
     console.warn('next attempt in %s ms', delay)
   })
@@ -75,6 +74,7 @@ const xo = invoke(() => {
 
   return xo
 })
+connect()
 
 const _signIn = new Promise(resolve => xo.once('authenticated', resolve))
 
