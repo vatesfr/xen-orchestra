@@ -9,8 +9,8 @@ import SingleLineRow from 'single-line-row'
 import size from 'lodash/size'
 import Tags from 'tags'
 import Tooltip from 'tooltip'
-import { BlockLink } from 'link'
-import { Row, Col } from 'grid'
+import Link, { BlockLink } from 'link'
+import { Col } from 'grid'
 import { Text } from 'editable'
 import {
   addTag,
@@ -48,7 +48,8 @@ import styles from './index.css'
 
   return {
     hostMetrics: getHostMetrics,
-    missingPaths: getMissingPatches
+    missingPaths: getMissingPatches,
+    poolHosts: getPoolHosts
   }
 })
 export default class PoolItem extends Component {
@@ -64,7 +65,7 @@ export default class PoolItem extends Component {
   }
 
   render () {
-    const { item: pool, expandAll, selected, hostMetrics } = this.props
+    const { item: pool, expandAll, selected, hostMetrics, poolHosts } = this.props
     const { missingPatchCount } = this.state
     return <div className={styles.item}>
       <BlockLink to={`/pools/${pool.id}`}>
@@ -122,8 +123,8 @@ export default class PoolItem extends Component {
         </SingleLineRow>
       </BlockLink>
       {(this.state.expanded || expandAll) &&
-        <Row>
-          <Col mediumSize={6} className={styles.itemExpanded}>
+        <SingleLineRow>
+          <Col mediumSize={3} className={styles.itemExpanded}>
             <span>
               {hostMetrics.count}x <Icon icon='host' />
               {' '}
@@ -132,12 +133,17 @@ export default class PoolItem extends Component {
               {formatSize(hostMetrics.memoryTotal)}
             </span>
           </Col>
-          <Col mediumSize={6}>
+          <Col mediumSize={4} className={styles.itemExpanded}>
+            <span>
+              {_('homePoolMaster')} <Link to={`/hosts/${pool.master}`}>{poolHosts && poolHosts[pool.master].name_label}</Link>
+            </span>
+          </Col>
+          <Col mediumSize={5}>
             <span style={{fontSize: '1.4em'}}>
               <Tags labels={pool.tags} onDelete={this._removeTag} onAdd={this._addTag} />
             </span>
           </Col>
-        </Row>
+        </SingleLineRow>
       }
     </div>
   }

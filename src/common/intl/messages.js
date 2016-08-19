@@ -23,6 +23,9 @@ var messages = {
   // ----- Copiable component -----
   copyToClipboard: 'Copy to clipboard',
 
+  // ----- Pills -----
+  pillMaster: 'Master',
+
   // ----- Titles -----
   homePage: 'Home',
   homeVmPage: 'VMs',
@@ -119,6 +122,7 @@ var messages = {
   homeMore: 'More',
   homeMigrateTo: 'Migrate to…',
   homeMissingPaths: 'Missing patches',
+  homePoolMaster: 'Master:',
   highAvailability: 'High Availability',
 
   // ----- Forms -----
@@ -339,6 +343,7 @@ var messages = {
   srNoVdis: 'No VDIs in this storage',
   // ----- Pool general -----
   poolRamUsage: '{used} used on {total}',
+  poolMaster: 'Master:',
   // ----- Pool tabs -----
   hostsTabName: 'Hosts',
   // ----- Pool advanced tab -----
