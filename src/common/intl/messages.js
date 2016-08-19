@@ -965,8 +965,11 @@ var messages = {
   logParams: 'Params',
   logMessage: 'Message',
   logStack: 'Stack trace',
+  logShowStackTrace: 'Show stack',
+  logShowParams: 'ShowParams',
   logTime: 'Date',
   logNoStackTrace: 'No stack trace',
+  logNoParams: 'No params',
   logDeleteAll: 'Delete all logs',
   logDeleteAllTitle: 'Delete all logs',
   logDeleteAllMessage: 'Are you sure you want to delete all the logs?'
