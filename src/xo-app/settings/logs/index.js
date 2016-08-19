@@ -23,6 +23,7 @@ import styles from './index.css'
 })
 export default class Logs extends BaseComponent {
   _showStack = log => alert(_('logStack'), <Copiable tagName='pre'>{log.data.error.stack}</Copiable>)
+  _showParams = log => alert(_('logParams'), <Copiable tagName='pre'>{JSON.stringify(log.data.params, null, 2)}</Copiable>)
   _deleteAllLogs = () =>
     confirm({
       title: _('logDeleteAllTitle'),
@@ -49,7 +50,7 @@ export default class Logs extends BaseComponent {
       },
       {
         name: _('logParams'),
-        itemRenderer: log => <pre className={styles.widthLimit}>{JSON.stringify(log.data.params, null, 2)}</pre>
+        itemRenderer: log => log.data.params ? <Button onClick={() => this._showParams(log)} bsStyle='secondary'>{_('logShowParams')}</Button> : <em>{_('logNoParams')}</em>
       },
       {
         name: _('logMessage'),
@@ -58,7 +59,7 @@ export default class Logs extends BaseComponent {
       },
       {
         name: _('logStack'),
-        itemRenderer: log => log.data.error && log.data.error.stack ? <Button onClick={() => this._showStack(log)} bsStyle='secondary'>Show stack</Button> : _('logNoStackTrace')
+        itemRenderer: log => log.data.error && log.data.error.stack ? <Button onClick={() => this._showStack(log)} bsStyle='secondary'>{_('logShowStackTrace')}</Button> : <em>{_('logNoStackTrace')}</em>
       },
       {
         name: _('logTime'),
