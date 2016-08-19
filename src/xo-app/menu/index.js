@@ -222,7 +222,7 @@ export default class Menu extends Component {
           : status === 'disconnected' &&
             <li className='nav-item text-xs-center xo-menu-item'>
               <Button className='nav-link' onClick={connect}>
-                {_('statusDisconnected')}
+                <Icon icon='alarm' size='lg' fixedWidth /> {_('statusDisconnected')}
               </Button>
             </li>
         }
