@@ -831,14 +831,18 @@ export class SelectIp extends Component {
     return addresses
   }
 
-  componentWillMount () {
+  componentWillReceiveProps ({ poolPredicate }) {
     this.componentWillUnmount = subscribeIpPools(ipPools => {
       this.setState({
-        ipPools: map(ipPools, ipPool => ({
-          id: ipPool.id,
-          label: ipPool.name,
-          type: 'ipPool'
-        })),
+        ipPools: mapPlus(ipPools, (ipPool, push) => {
+          if (!poolPredicate || poolPredicate(ipPool)) {
+            push({
+              id: ipPool.id,
+              label: ipPool.name,
+              type: 'ipPool'
+            })
+          }
+        }),
         addresses: this._formatIps(ipPools)
       })
     })

@@ -3,6 +3,7 @@ import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import concat from 'lodash/concat'
 import every from 'lodash/every'
+import find from 'lodash/find'
 import isEmpty from 'lodash/isEmpty'
 import isIp from 'is-ip'
 import map from 'lodash/map'
@@ -182,6 +183,8 @@ export default class TabNetwork extends Component {
 
   _getIpPredicate = vifIndex => (_, selectedIp) =>
     every(this._concatIps(this.props.vifs[vifIndex]), vifIp => vifIp !== selectedIp)
+  _getIpPoolPredicate = vifNetwork => pool =>
+    find(pool.networks, network => network.id === vifNetwork)
 
   _noIps = vif => isEmpty(vif.allowedIpv4Addresses) && isEmpty(vif.allowedIpv6Addresses)
   _concatIps = vif => concat(vif.allowedIpv4Addresses, vif.allowedIpv6Addresses)
@@ -262,6 +265,7 @@ export default class TabNetwork extends Component {
                                 <SelectIp
                                   autoFocus
                                   onChange={ip => this._addIp(vifIndex, ip)}
+                                  poolPredicate={this._getIpPoolPredicate(vif.$network)}
                                   predicate={this._getIpPredicate(vifIndex)}
                                   required
                                 />

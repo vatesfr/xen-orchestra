@@ -13,6 +13,7 @@ import { injectIntl } from 'react-intl'
 import { Text } from 'editable'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
+import { SelectNetwork } from 'select-objects'
 import {
   createIpPool,
   deleteIpPool,
@@ -26,8 +27,8 @@ import {
 @injectIntl
 export default class Ips extends BaseComponent {
   _create = () => {
-    const { name, ips } = this.refs
-    return createIpPool({ name: name.value, ips: ips.value.split(';') }).then(() => {
+    const { name, ips, networks } = this.refs
+    return createIpPool({ name: name.value, ips: ips.value.split(';'), networks: map(networks, network => network.id) }).then(() => {
       name.value = ips.value = ''
     })
   }
@@ -139,7 +140,12 @@ export default class Ips extends BaseComponent {
                 placeholder={intl.formatMessage(messages.ipsPoolIps)}
                 required
               />
-              {' '}
+              <br /><br />
+              <SelectNetwork
+                multi
+                ref='networks'
+              />
+              <br />
               <ActionButton form='newIpPoolForm' icon='add' btnStyle='success' handler={this._create}>{_('ipsCreate')}</ActionButton>
             </div>
           </Col>

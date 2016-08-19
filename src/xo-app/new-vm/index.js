@@ -1057,6 +1057,9 @@ export default class NewVm extends BaseComponent {
 
 // INTERFACES ------------------------------------------------------------------
 
+  _getIpPoolPredicate = vifNetwork =>
+    pool => find(pool.networks, network => network.id === vifNetwork)
+
   _renderInterfaces = () => {
     const { formatMessage } = this.props.intl
     const {
@@ -1096,6 +1099,7 @@ export default class NewVm extends BaseComponent {
                 <SelectIp
                   multi
                   onChange={this._getOnChangeIps(index)}
+                  poolPredicate={this._getIpPoolPredicate(vif.network)}
                   value={vif.ip}
                 />
               </span>
