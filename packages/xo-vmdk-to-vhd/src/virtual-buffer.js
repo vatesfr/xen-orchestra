@@ -35,11 +35,11 @@ export class VirtualBuffer {
       return Buffer.concat(chunks)
     } else {
       return new Promise((resolve, reject) => {
-        this.slicer.read(length, (error, length, data, offset) => {
-          this.position = offset + length
+        this.slicer.read(length, (error, actualLength, data, offset) => {
           if (error !== false && error !== true) {
             reject(error)
           } else {
+            this.position += actualLength
             resolve(data)
           }
         })
