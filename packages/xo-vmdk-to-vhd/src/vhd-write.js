@@ -217,23 +217,39 @@ export class ReadableRawVHDStream extends stream.Readable {
   constructor (size, vmdkParser) {
     super()
     this.size = size
-    this.footer = createFooter(size, Math.floor(Date.now() / 1000), computeGeometryForSize(size), fixedHardDiskType)
+    var geometry = computeGeometryForSize(size)
+    this.footer = createFooter(size, Math.floor(Date.now() / 1000), geometry, fixedHardDiskType)
     this.position = 0
     this.vmdkParser = vmdkParser
+    this.done = false
   }
 
   _read () {
     this.vmdkParser.next().then((next) => {
+      if (this.done) {
+        return
+      }
       if (next === null) {
-        const paddingBuffer = new Buffer(this.size - this.position)
-        paddingBuffer.fill(0)
-        this.push(paddingBuffer)
+        const paddingLength = this.size - this.position
+        if (paddingLength !== 0) {
+          const chunkSize = 10 * 1024 * 1024
+          const chunkCount = Math.floor(paddingLength / chunkSize)
+          for (let i = 0; i < chunkCount; i++) {
+            const paddingBuffer = new Buffer(chunkSize)
+            paddingBuffer.fill(0)
+            this.push(paddingBuffer)
+          }
+          const paddingBuffer = new Buffer(paddingLength % chunkSize)
+          paddingBuffer.fill(0)
+          this.push(paddingBuffer)
+        }
         this.push(this.footer)
         this.push(null)
+        this.done = true
       } else {
         const offset = next.lbaBytes
         const buffer = next.grain
-        var paddingLength = offset - this.position
+        const paddingLength = offset - this.position
         if (paddingLength < 0) {
           process.nextTick(() => this.emit('error', 'This VMDK file does not have its blocks in the correct order'))
         }
@@ -245,6 +261,8 @@ export class ReadableRawVHDStream extends stream.Readable {
         this.push(buffer)
         this.position = offset + buffer.length
       }
+    }).catch((error) => {
+      this.emit('error', error)
     })
   }
 }
@@ -252,5 +270,5 @@ export class ReadableRawVHDStream extends stream.Readable {
 export async function convertFromVMDK (vmdkReadStream) {
   const parser = new VMDKDirectParser(vmdkReadStream)
   const header = await parser.readHeader()
-  return new ReadableRawVHDStream(header.capacitySectors * 512, parser)
+  return new ReadableRawVHDStream(header.capacitySectors * sectorSize, parser)
 }
