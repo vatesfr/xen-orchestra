@@ -1290,4 +1290,4 @@ export default class NewVm extends BaseComponent {
     </Section>
   }
 }
-/* eslint-enable camelcase*/
+/* eslint-enable camelcase */

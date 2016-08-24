@@ -335,8 +335,8 @@ export default class Jobs extends Component {
           <tr>
             <th>{_('jobName')}</th>
             <th>{_('jobAction')}</th>
-            <th></th>
-            <th></th>
+            <th />
+            <th />
           </tr>
         </thead>
         <tbody>

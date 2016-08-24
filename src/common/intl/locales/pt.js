@@ -1,4 +1,4 @@
-﻿// See http://momentjs.com/docs/#/use-it/browserify/
+// See http://momentjs.com/docs/#/use-it/browserify/
 import 'moment/locale/pt'
 
 import reactIntlData from 'react-intl/locale-data/pt'

@@ -46,7 +46,7 @@ export const TaskItem = connectStore(() => ({
     {' ' + Math.round(task.progress * 100)}%
   </Col>
   <Col mediumSize={4}>
-    <progress style={TASK_ITEM_STYLE} className='progress' value={task.progress * 100} max='100'></progress>
+    <progress style={TASK_ITEM_STYLE} className='progress' value={task.progress * 100} max='100' />
   </Col>
   <Col mediumSize={2}>
     <ButtonGroup>
