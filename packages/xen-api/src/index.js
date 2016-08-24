@@ -115,7 +115,9 @@ function parseUrl (url) {
 
   return {
     isSecure,
-    protocol, hostname, port,
+    protocol,
+    hostname,
+    port,
     path: '/json',
     pathname: '/json'
   }
