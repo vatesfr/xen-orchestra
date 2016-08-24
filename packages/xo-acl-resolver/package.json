@@ -34,7 +34,7 @@
     "must": "^0.13.1",
     "nyc": "^8.0.0",
     "source-map-support": "^0.4.0",
-    "standard": "^7.0.0",
+    "standard": "^8.0.0",
     "trace": "^2.0.2"
   },
   "scripts": {
