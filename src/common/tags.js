@@ -58,7 +58,7 @@ export default class Tags extends Component {
                   }
                 }}
                 onBlur={this._stopEdit}
-              ></input>
+              />
             </span>
           : []
         }

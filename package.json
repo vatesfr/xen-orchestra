@@ -109,7 +109,7 @@
     "redux-thunk": "^2.0.1",
     "reselect": "^2.2.1",
     "serve-static": "^1.10.2",
-    "standard": "^7.0.0",
+    "standard": "^8.0.0",
     "superagent": "^2.0.0",
     "vinyl": "^1.1.1",
     "watchify": "^3.7.0",

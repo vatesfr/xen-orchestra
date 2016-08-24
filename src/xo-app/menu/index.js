@@ -100,6 +100,7 @@ export default class Menu extends Component {
     const noOperatablePools = this._getNoOperatablePools()
     const noResourceSets = isEmpty(this.state.resourceSets)
 
+    /* eslint-disable object-property-newline */
     const items = [
       { to: '/home', icon: 'menu-home', label: 'homePage', subMenu: [
         { to: '/home?t=VM', icon: 'vm', label: 'homeVmPage' },
@@ -145,6 +146,7 @@ export default class Menu extends Component {
         !noOperatablePools && { to: '/vms/import', icon: 'menu-new-import', label: 'newImport' }
       ]}
     ]
+    /* eslint-enable object-property-newline */
 
     return <div className={classNames(
       'xo-menu',

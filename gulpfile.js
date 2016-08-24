@@ -330,7 +330,6 @@ gulp.task(function server (done) {
         address = '[' + address + ']'
       }
 
-      /* jshint devel: true*/
       console.log('Listening on http://' + address + ':' + port)
     })
     .on('error', done)

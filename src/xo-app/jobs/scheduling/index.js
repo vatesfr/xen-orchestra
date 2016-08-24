@@ -181,7 +181,7 @@ export default class Schedules extends Component {
             <th>{_('job')}</th>
             <th className='hidden-xs-down'>{_('jobScheduling')}</th>
             <th className='hidden-xs-down'>{_('jobTimezone')}</th>
-            <th></th>
+            <th />
           </tr>
         </thead>
         <tbody>

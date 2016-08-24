@@ -73,7 +73,7 @@ class AbstractRemote extends Component {
     } = this.props
 
     return <tr>
-      <td></td>
+      <td />
       <td><Text value={remote.name} onChange={this._changeName} placeholder='remote name*' /></td>
       <td>{this._renderRemoteInfo(remote)}</td>
       <td>{this._renderAuthInfo(remote)}</td>
@@ -257,10 +257,10 @@ export default class Remotes extends Component {
                 <th className='text-info'>Local</th>
                 <th>Name</th>
                 <th>Path</th>
-                <th></th>
+                <th />
                 <th>State</th>
                 <th>Error</th>
-                <th></th>
+                <th />
               </tr>
               {map(remotes.file, (remote, key) => <LocalRemote remote={remote} key={key} />)}
             </tbody>
@@ -271,10 +271,10 @@ export default class Remotes extends Component {
                 <th className='text-info'>NFS</th>
                 <th>Name</th>
                 <th>Device</th>
-                <th></th>
+                <th />
                 <th>State</th>
                 <th>Error</th>
-                <th></th>
+                <th />
               </tr>
               {map(remotes.nfs, (remote, key) => <NfsRemote remote={remote} key={key} />)}
             </tbody>
@@ -288,7 +288,7 @@ export default class Remotes extends Component {
                 <th>Auth</th>
                 <th>State</th>
                 <th>Error</th>
-                <th></th>
+                <th />
               </tr>
               {map(remotes.smb, (remote, key) => <SmbRemote remote={remote} key={key} />)}
             </tbody>
