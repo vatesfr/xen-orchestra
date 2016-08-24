@@ -13,13 +13,10 @@ describe('VMDK reading', () => {
     await exec('rm -f ' + fileName + '&& VBoxManage convertfromraw --format VMDK --variant Stream ' + rawFileName + ' ' + fileName)
     const parser = new VMDKDirectParser(createReadStream(fileName))
     const header = await parser.readHeader()
-    let grain
     const harvested = []
     while (true) {
-      grain = parser.next()
-      const res = await grain
+      const res = await parser.next()
       if (res === null) {
-        console.log('VMDK reading got null')
         break
       }
       harvested.push(res)

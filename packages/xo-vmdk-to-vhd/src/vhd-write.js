@@ -222,48 +222,84 @@ export class ReadableRawVHDStream extends stream.Readable {
     this.position = 0
     this.vmdkParser = vmdkParser
     this.done = false
+    this.busy = false
+    this.currentFile = []
+  }
+
+  filePadding (paddingLength) {
+    if (paddingLength !== 0) {
+      const chunkSize = 1024 * 1024 // 1Mo
+      const chunkCount = Math.floor(paddingLength / chunkSize)
+      for (let i = 0; i < chunkCount; i++) {
+        this.currentFile.push(() => {
+          const paddingBuffer = new Buffer(chunkSize)
+          paddingBuffer.fill(0)
+          return paddingBuffer
+        })
+      }
+      this.currentFile.push(() => {
+        const paddingBuffer = new Buffer(paddingLength % chunkSize)
+        paddingBuffer.fill(0)
+        return paddingBuffer
+      })
+    }
+  }
+
+  async pushNextBlock () {
+    const next = await this.vmdkParser.next()
+    if (next === null) {
+      const paddingLength = this.size - this.position
+      this.filePadding(paddingLength)
+      this.currentFile.push(() => this.footer)
+      this.currentFile.push(() => {
+        this.done = true
+        return null
+      })
+    } else {
+      const offset = next.lbaBytes
+      const buffer = next.grain
+      const paddingLength = offset - this.position
+      if (paddingLength < 0) {
+        process.nextTick(() => this.emit('error', 'This VMDK file does not have its blocks in the correct order'))
+      }
+      this.filePadding(paddingLength)
+      this.currentFile.push(() => buffer)
+      this.position = offset + buffer.length
+    }
+    return this.pushFileUntilFull()
+  }
+
+  // returns true if the file is empty
+  pushFileUntilFull () {
+    while (true) {
+      if (this.currentFile.length === 0) {
+        break
+      }
+      const result = this.push(this.currentFile.shift()())
+      if (!result) {
+        break
+      }
+    }
+    return this.currentFile.length === 0
+  }
+
+  async pushNextUntilFull () {
+    while (!this.done && await this.pushNextBlock()) {
+    }
   }
 
   _read () {
-    this.vmdkParser.next().then((next) => {
-      if (this.done) {
-        return
-      }
-      if (next === null) {
-        const paddingLength = this.size - this.position
-        if (paddingLength !== 0) {
-          const chunkSize = 10 * 1024 * 1024
-          const chunkCount = Math.floor(paddingLength / chunkSize)
-          for (let i = 0; i < chunkCount; i++) {
-            const paddingBuffer = new Buffer(chunkSize)
-            paddingBuffer.fill(0)
-            this.push(paddingBuffer)
-          }
-          const paddingBuffer = new Buffer(paddingLength % chunkSize)
-          paddingBuffer.fill(0)
-          this.push(paddingBuffer)
-        }
-        this.push(this.footer)
-        this.push(null)
-        this.done = true
-      } else {
-        const offset = next.lbaBytes
-        const buffer = next.grain
-        const paddingLength = offset - this.position
-        if (paddingLength < 0) {
-          process.nextTick(() => this.emit('error', 'This VMDK file does not have its blocks in the correct order'))
-        }
-        if (paddingLength !== 0) {
-          const paddingBuffer = new Buffer(paddingLength)
-          paddingBuffer.fill(0)
-          this.push(paddingBuffer)
-        }
-        this.push(buffer)
-        this.position = offset + buffer.length
-      }
-    }).catch((error) => {
-      this.emit('error', error)
-    })
+    if (this.busy || this.done) {
+      return
+    }
+    if (this.pushFileUntilFull()) {
+      this.busy = true
+      this.pushNextUntilFull().then(() => {
+        this.busy = false
+      }).catch((error) => {
+        process.nextTick(() => this.emit('error', error))
+      })
+    }
   }
 }
 

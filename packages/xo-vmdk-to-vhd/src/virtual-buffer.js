@@ -8,6 +8,7 @@ export class VirtualBuffer {
   constructor (readStream) {
     this.slicer = new Slicer(readStream)
     this.position = 0
+    this.promise = null
   }
 
   get isDepleted () {
@@ -15,7 +16,11 @@ export class VirtualBuffer {
   }
 
   // length = -1 means 'until the end'
-  async readChunk (length) {
+  async readChunk (length, label) {
+    const _this = this
+    if (this.promise !== null) {
+      throw new Error('pomise already there !!!', this.promise)
+    }
     if (length === -1) {
       const chunks = []
       let error = false
@@ -34,12 +39,15 @@ export class VirtualBuffer {
       } while (error === false)
       return Buffer.concat(chunks)
     } else {
+      this.promise = label
       return new Promise((resolve, reject) => {
         this.slicer.read(length, (error, actualLength, data, offset) => {
           if (error !== false && error !== true) {
+            _this.promise = null
             reject(error)
           } else {
-            this.position += actualLength
+            _this.promise = null
+            _this.position += data.length
             resolve(data)
           }
         })

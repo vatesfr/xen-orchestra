@@ -66,6 +66,14 @@ function parseFlags (flagBuffer) {
 }
 
 function parseHeader (buffer) {
+  const magicString = buffer.slice(0, 4).toString('ascii')
+  if (magicString !== 'KDMV') {
+    throw new Error('not a VMDK file')
+  }
+  const version = buffer.readUInt32LE(4)
+  if (version !== 1 && version !== 3) {
+    throw new Error('unsupported VMDK version ' + version + ', only version 1 and 3 are supported')
+  }
   const flags = parseFlags(buffer.slice(8, 12))
   const capacitySectors = parseU64b(buffer, 12, 'capacitySectors')
   const grainSizeSectors = parseU64b(buffer, 20, 'grainSizeSectors')
@@ -122,7 +130,7 @@ export class VMDKDirectParser {
   }
 
   async readHeader () {
-    const headerBuffer = await this.virtualBuffer.readChunk(512)
+    const headerBuffer = await this.virtualBuffer.readChunk(512, 'readHeader')
     const magicString = headerBuffer.slice(0, 4).toString('ascii')
     if (magicString !== 'KDMV') {
       throw new Error('not a VMDK file')
@@ -134,27 +142,27 @@ export class VMDKDirectParser {
     this.header = parseHeader(headerBuffer)
     // I think the multiplications are OK, because the descriptor is always at the beginning of the file
     const descriptorLength = this.header.descriptorSizeSectors * sectorSize
-    const descriptorBuffer = await this.virtualBuffer.readChunk(descriptorLength)
+    const descriptorBuffer = await this.virtualBuffer.readChunk(descriptorLength, 'descriptor')
     this.descriptor = parseDescriptor(descriptorBuffer)
     return this.header
   }
 
   async next () {
     while (!this.virtualBuffer.isDepleted) {
-      const sector = await this.virtualBuffer.readChunk(512)
+      const sector = await this.virtualBuffer.readChunk(512, 'marker start ' + this.virtualBuffer.position)
       if (sector.length === 0) {
         break
       }
       const marker = tryToParseMarker(sector)
       if (marker.size === 0) {
         if (marker.value !== 0) {
-          await this.virtualBuffer.readChunk(marker.value * sectorSize)
+          await this.virtualBuffer.readChunk(marker.value * sectorSize, 'other marker value ' + this.virtualBuffer.position)
         }
       } else if (marker.size > 10) {
         const grainDiskSize = marker.size + 12
         const alignedGrainDiskSize = Math.ceil(grainDiskSize / sectorSize) * sectorSize
         const remainOfBufferSize = alignedGrainDiskSize - sectorSize
-        const remainderOfGrainBuffer = await this.virtualBuffer.readChunk(remainOfBufferSize)
+        const remainderOfGrainBuffer = await this.virtualBuffer.readChunk(remainOfBufferSize, 'grain remainder ' + this.virtualBuffer.position)
         const grainBuffer = Buffer.concat([sector, remainderOfGrainBuffer])
         return readGrain(0, grainBuffer, true)
       }
@@ -165,25 +173,16 @@ export class VMDKDirectParser {
 
 export async function readRawContent (readStream) {
   const virtualBuffer = new VirtualBuffer(readStream)
-  const headerBuffer = await virtualBuffer.readChunk(512)
-  const magicString = headerBuffer.slice(0, 4).toString('ascii')
-  if (magicString !== 'KDMV') {
-    throw new Error('not a VMDK file')
-  }
-  const version = headerBuffer.readUInt32LE(4)
-  if (version !== 1 && version !== 3) {
-    throw new Error('unsupported VMDK version ' + version + ', only version 1 and 3 are supported')
-  }
-
+  const headerBuffer = await virtualBuffer.readChunk(512, 'header')
   let header = parseHeader(headerBuffer)
 
   // I think the multiplications are OK, because the descriptor is always at the beginning of the file
   const descriptorLength = header.descriptorSizeSectors * sectorSize
-  const descriptorBuffer = await virtualBuffer.readChunk(descriptorLength)
+  const descriptorBuffer = await virtualBuffer.readChunk(descriptorLength, 'descriptor')
   const descriptor = parseDescriptor(descriptorBuffer)
 
   // TODO: we concat them back for now so that the indices match, we'll have to introduce a bias later
-  const remainingBuffer = await virtualBuffer.readChunk(-1)
+  const remainingBuffer = await virtualBuffer.readChunk(-1, 'remainder')
   const buffer = Buffer.concat([headerBuffer, descriptorBuffer, remainingBuffer])
   if (header.grainDirectoryOffsetSectors === -1) {
     header = parseHeader(buffer.slice(-1024, -1024 + sectorSize))
