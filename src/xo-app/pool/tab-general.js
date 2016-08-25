@@ -1,11 +1,12 @@
 import _ from 'intl'
+import find from 'lodash/find'
 import Icon from 'icon'
 import map from 'lodash/map'
 import React from 'react'
 import sumBy from 'lodash/sumBy'
 import Tags from 'tags'
 import { addTag, removeTag } from 'xo'
-import { BlockLink } from 'link'
+import Link, { BlockLink } from 'link'
 import { Container, Row, Col } from 'grid'
 import Usage, { UsageElement } from 'usage'
 import { formatSize } from 'utils'
@@ -53,7 +54,12 @@ export default ({
   </Row>
   <Row className='text-xs-center'>
     <Col>
-      <h2 className='text-xs-center'>
+      {_('poolMaster')} <Link to={`/hosts/${pool.master}`}>{find(hosts, host => host.id === pool.master).name_label}</Link>
+    </Col>
+  </Row>
+  <Row className='text-xs-center'>
+    <Col>
+      <h2>
         <Tags labels={pool.tags} onDelete={tag => removeTag(pool.id, tag)} onAdd={tag => addTag(pool.id, tag)} />
       </h2>
     </Col>

@@ -71,6 +71,8 @@ export default class HostItem extends Component {
               <Ellipsis>
                 <Text value={host.name_label} onChange={this._setNameLabel} useLongClick />
               </Ellipsis>
+              &nbsp;
+              {container && host.id === container.master && <span className='tag tag-pill tag-info'>{_('pillMaster')}</span>}
             </EllipsisContainer>
           </Col>
           <Col mediumSize={4} className='hidden-md-down'>

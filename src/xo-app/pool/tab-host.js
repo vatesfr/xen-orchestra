@@ -3,19 +3,24 @@ import isEmpty from 'lodash/isEmpty'
 import Link from 'link'
 import React from 'react'
 import SortedTable from 'sorted-table'
+import store from 'store'
 import Tooltip from 'tooltip'
 import { Container, Row, Col } from 'grid'
 import { editHost } from 'xo'
 import { Text } from 'editable'
 import { formatSize } from 'utils'
+import { getObject } from 'selectors'
 
 const HOST_COLUMNS = [
   {
     name: _('hostNameLabel'),
     itemRenderer: host => (
-      <Link to={`/hosts/${host.id}`}>
-        <Text value={host.name_label} onChange={value => editHost(host, { name_label: value })} useLongClick />
-      </Link>
+      <span>
+        <Link to={`/hosts/${host.id}`}>
+          <Text value={host.name_label} onChange={value => editHost(host, { name_label: value })} useLongClick />
+        </Link>
+        {host.id === getObject(store.getState(), host.$pool).master && <span className='tag tag-pill tag-info'>{_('pillMaster')}</span>}
+      </span>
     ),
     sortCriteria: 'name_label'
   },
