@@ -285,26 +285,26 @@ export const addServer = (host, username, password) => (
   )
 )
 
-export const editServer = ({ id }, { host, username, password, readOnly }) => (
-  _call('server.set', { id, host, username, password, readOnly })::tap(
+export const editServer = (server, { host, username, password, readOnly }) => (
+  _call('server.set', { id: resolveId(server), host, username, password, readOnly })::tap(
     subscribeServers.forceRefresh
   )
 )
 
-export const connectServer = ({ id }) => (
-  _call('server.connect', { id })::tap(
+export const connectServer = server => (
+  _call('server.connect', { id: resolveId(server) })::tap(
     subscribeServers.forceRefresh
   )
 )
 
-export const disconnectServer = ({ id }) => (
-  _call('server.disconnect', { id })::tap(
+export const disconnectServer = server => (
+  _call('server.disconnect', { id: resolveId(server) })::tap(
     subscribeServers.forceRefresh
   )
 )
 
-export const removeServer = ({ id }) => (
-  _call('server.remove', { id })::tap(
+export const removeServer = server => (
+  _call('server.remove', { id: resolveId(server) })::tap(
     subscribeServers.forceRefresh
   )
 )
@@ -322,9 +322,10 @@ export const addHostToPool = (pool, host) => {
       title: _('addHostModalTitle'),
       body: _('addHostModalMessage', { pool: pool.name_label, host: host.name_label })
     }).then(() =>
-      _call('pool.mergeInto', { source: host.$pool, target: resolveId(pool), force: true })
+      _call('pool.mergeInto', { source: host.$pool, target: pool.id, force: true })
     )
   }
+
   return confirm({
     title: _('addHostModalTitle'),
     body: <AddHostModalBody pool={pool} />
@@ -334,7 +335,7 @@ export const addHostToPool = (pool, host) => {
         error(_('addHostNoHost'), _('addHostNoHostMessage'))
         return
       }
-      _call('pool.mergeInto', { source: params.host.$pool, target: resolveId(pool), force: true })
+      _call('pool.mergeInto', { source: params.host.$pool, target: pool.id, force: true })
     },
     noop
   )
@@ -346,7 +347,7 @@ export const detachHost = host => (
     title: _('detachHostModalTitle'),
     body: _('detachHostModalMessage', {host: <strong>{host.name_label}</strong>})
   }).then(
-    () => _call('host.detach', { host: resolveId(host) })
+    () => _call('host.detach', { host: host.id })
   )
 )
 
@@ -391,7 +392,7 @@ export const restartHostsAgents = hosts => {
     title: _('restartHostsAgentsModalTitle', { nHosts }),
     body: _('restartHostsAgentsModalMessage', { nHosts })
   }).then(
-    () => map(hosts, host => restartHostAgent(host)),
+    () => map(hosts, restartHostAgent),
     noop
   )
 }
@@ -1527,13 +1528,13 @@ export const setDefaultHomeFilter = (type, name) => {
 // Jobs ----------------------------------------------------------
 
 export const deleteJob = job => (
-  _call('job.delete', resolveIds({id: job}))::tap(
+  _call('job.delete', { id: resolveId(job) })::tap(
     subscribeJobs.forceRefresh
   )
 )
 
 export const deleteSchedule = schedule => (
-  _call('schedule.delete', resolveIds({id: schedule}))::tap(
+  _call('schedule.delete', { id: resolveIds(schedule) })::tap(
     subscribeSchedules.forceRefresh
   )
 )
