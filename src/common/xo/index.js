@@ -1373,9 +1373,11 @@ export const deleteUser = user => (
   confirm({
     title: _('deleteUser'),
     body: <p>{_('deleteUserConfirm')}</p>
-  }).then(() => _call('user.delete', resolveIds({id: user})))
-    ::tap(subscribeUsers.forceRefresh)
-    ::rethrow(err => error(_('deleteUser'), err.message || String(err)))
+  }).then(() =>
+    _call('user.delete', { id: resolveId(user) })
+      ::tap(subscribeUsers.forceRefresh)
+      ::rethrow(err => error(_('deleteUser'), err.message || String(err)))
+  )
 )
 
 export const editUser = (user, { email, password, permission }) => (
