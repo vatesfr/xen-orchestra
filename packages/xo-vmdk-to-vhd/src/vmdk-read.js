@@ -4,7 +4,9 @@ import zlib from 'zlib'
 import {VirtualBuffer} from './virtual-buffer'
 
 const sectorSize = 512
-const compressionMap = ['COMPRESSION_NONE', 'COMPRESSION_DEFLATE']
+const compressionDeflate = 'COMPRESSION_DEFLATE'
+const compressionNone = 'COMPRESSION_NONE'
+const compressionMap = [compressionNone, compressionDeflate]
 
 function parseS64b (buffer, offset, valueName) {
   const low = buffer.readInt32LE(offset)
@@ -82,14 +84,14 @@ function parseHeader (buffer) {
   const numGTEsPerGT = buffer.readUInt32LE(44)
   const rGrainDirectoryOffsetSectors = parseS64b(buffer, 48, 'rGrainDirectoryOffsetSectors')
   const grainDirectoryOffsetSectors = parseS64b(buffer, 56, 'grainDirectoryOffsetSectors')
-  const overHeadSectors = parseS64b(buffer, 64, 'overHeadSectors')
+  const overheadSectors = parseS64b(buffer, 64, 'overheadSectors')
   const compressionMethod = compressionMap[buffer.readUInt16LE(77)]
   const l1EntrySectors = numGTEsPerGT * grainSizeSectors
   return {
     flags,
     compressionMethod,
     grainSizeSectors,
-    overHeadSectors,
+    overheadSectors,
     capacitySectors,
     descriptorOffsetSectors,
     descriptorSizeSectors,
@@ -124,9 +126,66 @@ function tryToParseMarker (buffer) {
   return {value, size, type}
 }
 
+function alignSectors (number) {
+  return Math.ceil(number / sectorSize) * sectorSize
+}
+
 export class VMDKDirectParser {
   constructor (readStream) {
     this.virtualBuffer = new VirtualBuffer(readStream)
+    this.header = null
+  }
+
+  // I found a VMDK file whose L1 and L2 table did not have a marker, but they were at the top
+  // I detect this case and eat those tables first then let the normal loop go over the grains.
+  async _readL1 () {
+    const position = this.virtualBuffer.position
+    const l1entries = Math.floor((this.header.capacitySectors + this.header.l1EntrySectors - 1) / this.header.l1EntrySectors)
+    const sectorAlignedL1Bytes = alignSectors(l1entries * 4)
+    const l1Buffer = await this.virtualBuffer.readChunk(sectorAlignedL1Bytes, 'L1 table ' + position)
+    let l2Start = 0
+    let l2IsContiguous = true
+    for (let i = 0; i < l1entries; i++) {
+      const l1Entry = l1Buffer.readUInt32LE(i * 4)
+      if (i > 0) {
+        const previousL1Entry = l1Buffer.readUInt32LE((i - 1) * 4)
+        l2IsContiguous = l2IsContiguous && ((l1Entry - previousL1Entry) === 4)
+      } else {
+        l2IsContiguous = (l1Entry * sectorSize === this.virtualBuffer.position) || (l1Entry * sectorSize === this.virtualBuffer.position + 512)
+        l2Start = l1Entry * sectorSize
+      }
+    }
+    if (!l2IsContiguous) {
+      return null
+    }
+    const l1L2FreeSpace = l2Start - this.virtualBuffer.position
+    if (l1L2FreeSpace > 0) {
+      await this.virtualBuffer.readChunk(l1L2FreeSpace, 'freeSpace between L1 and L2')
+    }
+    const l2entries = Math.ceil(this.header.capacitySectors / this.header.grainSizeSectors)
+    const l2ByteSize = alignSectors(l1entries * this.header.numGTEsPerGT * 4)
+    const l2Buffer = await this.virtualBuffer.readChunk(l2ByteSize, 'L2 table ' + position)
+    let grainsAreInAscendingOrder = true
+    let previousL2Entry = 0
+    let firstGrain = null
+    for (let i = 0; i < l2entries; i++) {
+      const l2Entry = l2Buffer.readUInt32LE(i * 4)
+      if (i > 0 && previousL2Entry !== 0 && l2Entry !== 0) {
+        grainsAreInAscendingOrder = grainsAreInAscendingOrder && (previousL2Entry < l2Entry)
+      }
+      previousL2Entry = l2Entry
+      if (firstGrain === null) {
+        firstGrain = l2Entry
+      }
+    }
+    if (!grainsAreInAscendingOrder) {
+      // TODO: here we could transform the file to a sparse VHD on the fly because we have the complete table
+      throw new Error('Unsupported file format')
+    }
+    const freeSpace = firstGrain * sectorSize - this.virtualBuffer.position
+    if (freeSpace > 0) {
+      await this.virtualBuffer.readChunk(freeSpace, 'freeSpace after L2')
+    }
   }
 
   async readHeader () {
@@ -144,12 +203,24 @@ export class VMDKDirectParser {
     const descriptorLength = this.header.descriptorSizeSectors * sectorSize
     const descriptorBuffer = await this.virtualBuffer.readChunk(descriptorLength, 'descriptor')
     this.descriptor = parseDescriptor(descriptorBuffer)
+    let l1PositionBytes = null
+    if (this.header.grainDirectoryOffsetSectors !== -1 && this.header.grainDirectoryOffsetSectors !== 0) {
+      l1PositionBytes = this.header.grainDirectoryOffsetSectors * sectorSize
+    }
+    const endOfDescriptor = this.virtualBuffer.position
+    if (l1PositionBytes !== null && (l1PositionBytes === endOfDescriptor || l1PositionBytes === endOfDescriptor + sectorSize)) {
+      if (l1PositionBytes === endOfDescriptor + sectorSize) {
+        await this.virtualBuffer.readChunk(sectorSize, 'skipping L1 marker')
+      }
+      await this._readL1()
+    }
     return this.header
   }
 
   async next () {
     while (!this.virtualBuffer.isDepleted) {
-      const sector = await this.virtualBuffer.readChunk(512, 'marker start ' + this.virtualBuffer.position)
+      const position = this.virtualBuffer.position
+      const sector = await this.virtualBuffer.readChunk(512, 'marker start ' + position)
       if (sector.length === 0) {
         break
       }
@@ -160,11 +231,11 @@ export class VMDKDirectParser {
         }
       } else if (marker.size > 10) {
         const grainDiskSize = marker.size + 12
-        const alignedGrainDiskSize = Math.ceil(grainDiskSize / sectorSize) * sectorSize
+        const alignedGrainDiskSize = alignSectors(grainDiskSize)
         const remainOfBufferSize = alignedGrainDiskSize - sectorSize
         const remainderOfGrainBuffer = await this.virtualBuffer.readChunk(remainOfBufferSize, 'grain remainder ' + this.virtualBuffer.position)
         const grainBuffer = Buffer.concat([sector, remainderOfGrainBuffer])
-        return readGrain(0, grainBuffer, true)
+        return readGrain(0, grainBuffer, this.header.compressionMethod === compressionDeflate && this.header.flags.compressedGrains)
       }
     }
     return new Promise((resolve) => resolve(null))

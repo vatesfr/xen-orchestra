@@ -219,6 +219,7 @@ export class ReadableRawVHDStream extends stream.Readable {
     this.size = size
     var geometry = computeGeometryForSize(size)
     this.footer = createFooter(size, Math.floor(Date.now() / 1000), geometry, fixedHardDiskType)
+    this.length = size + this.footer.length
     this.position = 0
     this.vmdkParser = vmdkParser
     this.done = false
