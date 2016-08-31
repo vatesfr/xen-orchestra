@@ -405,8 +405,10 @@ export default class NewVm extends BaseComponent {
     (isInPool, isInResourceSet) => disk =>
       (isInResourceSet(disk) || isInPool(disk)) && disk.content_type !== 'iso' && disk.size > 0
   )
-  _getIsoPredicate = () => sr =>
-    this.state.pool ? sr.$pool === this.state.pool.id && sr.SR_type === 'iso' : sr.SR_type === 'iso'
+  _getIsoPredicate = createSelector(
+    () => this.state.pool && this.state.pool.id,
+    poolId => sr => (poolId == null || poolId === sr.$pool) && sr.SR_type === 'iso'
+  )
   _getNetworkPredicate = createSelector(
     this._getIsInPool,
     this._getIsInResourceSet,
