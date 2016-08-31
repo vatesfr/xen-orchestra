@@ -81,7 +81,7 @@ const HEADER = (
   const getDefaultNetworkId = createSelector(
     createFinder(
       getPifs,
-      pif => pif.management
+      [ pif => pif.management ]
     ),
     pif => pif.$network
   )
