@@ -6,7 +6,9 @@ import fatfs from 'fatfs'
 import find from 'lodash/find'
 import includes from 'lodash/includes'
 import sortBy from 'lodash/sortBy'
+import tarStream from 'tar-stream'
 import unzip from 'julien-f-unzip'
+import vmdkToVhd from 'xo-vmdk-to-vhd'
 import { defer } from 'promise-toolbox'
 import {
   wrapError as wrapXapiError,
@@ -48,6 +50,7 @@ import {
 } from '../api-errors'
 
 import mixins from './mixins'
+import OTHER_CONFIG_TEMPLATE from './other-config-template'
 import {
   asBoolean,
   asInteger,
@@ -1428,16 +1431,112 @@ export default class Xapi extends XapiBase {
     return vmRef
   }
 
+  @deferrable.onFailure
+  async _importOvaVm ($onFailure, stream, {
+    descriptionLabel,
+    disks,
+    memory,
+    nameLabel,
+    networks,
+    nCpus
+  }, sr) {
+    // 1. Create VM.
+    const vm = await this._getOrWaitObject(
+      await this._createVmRecord({
+        ...OTHER_CONFIG_TEMPLATE,
+        memory_dynamic_max: memory,
+        memory_dynamic_min: memory,
+        memory_static_max: memory,
+        name_description: descriptionLabel,
+        name_label: nameLabel,
+        VCPUs_at_startup: nCpus,
+        VCPUs_max: nCpus
+      })
+    )
+    $onFailure(() => this._deleteVm(vm))
+    // Disable start and change the VM name label during import.
+    await Promise.all([
+      this.addForbiddenOperationToVm(vm.$id, 'start', 'OVA import in progress...'),
+      this._setObjectProperties(vm, { name_label: `[Importing...] ${nameLabel}` })
+    ])
+
+    // 2. Create VDIs & Vifs.
+    const vdis = {}
+    const vifDevices = await this.call('VM.get_allowed_VIF_devices', vm.$ref)
+    await Promise.all(
+      map(disks, async disk => {
+        const vdi = vdis[disk.path] = await this.createVdi(disk.capacity, {
+          name_description: disk.descriptionLabel,
+          name_label: disk.nameLabel,
+          sr: sr.$ref
+        })
+        $onFailure(() => this._deleteVdi(vdi)::pCatch(noop))
+
+        return this._createVbd(vm, vdi, { position: disk.position })
+      }).concat(map(networks, (networkId, i) => (
+        this._createVif(vm, this.getObject(networkId), {
+          device: vifDevices[i]
+        })
+      )))
+    )
+
+    // 3. Import VDIs contents.
+    await new Promise((resolve, reject) => {
+      const extract = tarStream.extract()
+
+      stream.on('error', reject)
+
+      extract.on('finish', resolve)
+      extract.on('error', reject)
+      extract.on('entry', async (entry, stream, cb) => {
+        // Not a disk to import.
+        const vdi = vdis[entry.name]
+        if (!vdi) {
+          stream.on('end', cb)
+          stream.resume()
+          return
+        }
+
+        const vhdStream = await vmdkToVhd(stream)
+        await this._importVdiContent(vdi, vhdStream, VDI_FORMAT_RAW)
+
+        // See: https://github.com/mafintosh/tar-stream#extracting
+        // No import parallelization.
+        cb()
+      })
+      stream.pipe(extract)
+    })
+
+    // Enable start and restore the VM name label after import.
+    await Promise.all([
+      this.removeForbiddenOperationFromVm(vm.$id, 'start'),
+      this._setObjectProperties(vm, { name_label: nameLabel })
+    ])
+    return vm
+  }
+
   // TODO: an XVA can contain multiple VMs
   async importVm (stream, {
+    data,
     onlyMetadata = false,
-    srId
+    srId,
+    type = 'xva'
   } = {}) {
-    return /* await */ this._getOrWaitObject(await this._importVm(
-      stream,
-      srId && this.getObject(srId),
-      onlyMetadata
-    ))
+    const sr = srId && this.getObject(srId)
+
+    if (type === 'xva') {
+      return /* await */ this._getOrWaitObject(await this._importVm(
+        stream,
+        sr,
+        onlyMetadata
+      ))
+    }
+
+    if (type === 'ova') {
+      return this._getOrWaitObject(await this._importOvaVm(stream, data, sr))
+    }
+
+    throw new Error(`unsupported type: '${type}'`)
   }
 
   async migrateVm (vmId, hostXapi, hostId, {

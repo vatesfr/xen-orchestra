@@ -943,13 +943,13 @@ exports.export = export_;
 
 #---------------------------------------------------------------------
 
-handleVmImport = $coroutine (req, res, { xapi, srId }) ->
+handleVmImport = $coroutine (req, res, { data, srId, type, xapi }) ->
   # Timeout seems to be broken in Node 4.
   # See https://github.com/nodejs/node/issues/3319
   req.setTimeout(43200000) # 12 hours
 
   try
-    vm = yield xapi.importVm(req, { srId })
+    vm = yield xapi.importVm(req, { data, srId, type })
     res.end(format.response(0, vm.$id))
   catch e
     res.writeHead(500)
@@ -958,7 +958,7 @@ handleVmImport = $coroutine (req, res, { xapi, srId }) ->
   return
 
 # TODO: "sr_id" can be passed in URL to target a specific SR
-import_ = $coroutine ({host, sr}) ->
+import_ = $coroutine ({ data, host, sr, type }) ->
   if not sr
     if not host
       throw new InvalidParameters('you must provide either host or SR')
@@ -974,13 +974,45 @@ import_ = $coroutine ({host, sr}) ->
 
   return {
     $sendTo: yield @registerHttpRequest(handleVmImport, {
+      data,
       srId: sr._xapiId,
+      type,
       xapi
     })
   }
 
 import_.params = {
+  data: {
+    type: 'object',
+    optional: true,
+    properties: {
+      descriptionLabel: { type: 'string' },
+      disks: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            capacity: { type: 'integer' },
+            descriptionLabel: { type: 'string' },
+            nameLabel: { type: 'string' },
+            path: { type: 'string' },
+            position: { type: 'integer' }
+          }
+        },
+        optional: true
+      },
+      memory: { type: 'integer' },
+      nameLabel: { type: 'string' },
+      nCpus: { type: 'integer' },
+      networks: {
+        type: 'array',
+        items: { type: 'string' },
+        optional: true
+      },
+    }
+  },
   host: { type: 'string', optional: true },
+  type: { type: 'string', optional: true },
   sr: { type: 'string', optional: true }
 }
 
