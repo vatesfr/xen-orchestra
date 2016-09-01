@@ -4,7 +4,7 @@ import later from 'later'
 import map from 'lodash/map'
 import React from 'react'
 import sortedIndex from 'lodash/sortedIndex'
-import { FormattedTime } from 'react-intl'
+import { FormattedDate, FormattedTime } from 'react-intl'
 import {
   Tab,
   Tabs
@@ -111,12 +111,12 @@ const TIME_FORMAT = {
 
 // monthNum: [ 0 : 11 ]
 const getMonthName = (monthNum) =>
-  <FormattedTime value={new Date(1970, monthNum)} month='long' />
+  <FormattedDate value={Date.UTC(1970, monthNum)} month='long' timeZone='UTC' />
 
 // dayNum: [ 0 : 6 ]
 const getDayName = (dayNum) =>
   // January, 1970, 5th => Monday
-  <FormattedTime value={new Date(1970, 0, 4 + dayNum)} weekday='long' />
+  <FormattedDate value={Date.UTC(1970, 0, 4 + dayNum)} weekday='long' timeZone='UTC' />
 
 // ===================================================================
 
