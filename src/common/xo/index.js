@@ -1564,10 +1564,10 @@ export const updateSchedule = ({ id, job: jobId, cron, enabled, name, timezone }
 
 // IP pools --------------------------------------------------------------------
 
-export const createIpPool = ({ name, ips }) => {
+export const createIpPool = ({ name, ips, networks }) => {
   const addresses = {}
   forEach(ips, ip => { addresses[ip] = {} })
-  return _call('ipPool.create', { name, addresses })::tap(
+  return _call('ipPool.create', { name, addresses, networks })::tap(
     subscribeIpPools.forceRefresh
   )
 }
@@ -1578,8 +1578,8 @@ export const deleteIpPool = id => (
   )
 )
 
-export const setIpPool = ({ id, name, addresses }) => (
-  _call('ipPool.set', { id, name, addresses })::tap(
+export const setIpPool = ({ id, name, addresses, networks }) => (
+  _call('ipPool.set', { id, name, addresses, networks })::tap(
     subscribeIpPools.forceRefresh
   )
 )

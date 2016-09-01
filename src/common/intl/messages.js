@@ -998,7 +998,7 @@ var messages = {
   ipsPoolName: 'IP pool name',
   ipsPoolIps: 'IPs',
   ipsName: 'Name',
-  ipsNoIpPool: 'No IP pool',
+  ipsNoIpPool: 'No IP pools',
   ipsCreate: 'Create',
   ipsDeleteAllTitle: 'Delete all IP pools',
   ipsDeleteAllMessage: 'Are you sure you want to delete all the IP pools?',

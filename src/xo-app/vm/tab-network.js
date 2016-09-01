@@ -5,12 +5,12 @@ import concat from 'lodash/concat'
 import every from 'lodash/every'
 import find from 'lodash/find'
 import isEmpty from 'lodash/isEmpty'
-import isIp from 'is-ip'
 import map from 'lodash/map'
 import propTypes from 'prop-types'
 import React, { Component } from 'react'
 import remove from 'lodash/remove'
 import TabButton from 'tab-button'
+import { isIp, isIpV4 } from 'ip'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { connectStore, noop } from 'utils'
 import { Container, Row, Col } from 'grid'
@@ -145,11 +145,11 @@ export default class TabNetwork extends Component {
 
   _saveIp = (vifIndex, ipIndex, newIp) => {
     if (!isIp(newIp.id)) {
-      return
+      throw new Error('Not a valid IP')
     }
     const vif = this.props.vifs[vifIndex]
     const { allowedIpv4Addresses, allowedIpv6Addresses } = vif
-    if (isIp.v4(newIp.id)) {
+    if (isIpV4(newIp.id)) {
       allowedIpv4Addresses[ipIndex] = newIp.id
     } else {
       allowedIpv6Addresses[ipIndex - allowedIpv4Addresses.length] = newIp.id
@@ -163,7 +163,7 @@ export default class TabNetwork extends Component {
     }
     const vif = this.props.vifs[vifIndex]
     let { allowedIpv4Addresses, allowedIpv6Addresses } = vif
-    if (isIp.v4(ip.id)) {
+    if (isIpV4(ip.id)) {
       allowedIpv4Addresses = [ ...allowedIpv4Addresses, ip.id ]
     } else {
       allowedIpv6Addresses = [ ...allowedIpv6Addresses, ip.id ]
@@ -183,8 +183,9 @@ export default class TabNetwork extends Component {
 
   _getIpPredicate = vifIndex => (_, selectedIp) =>
     every(this._concatIps(this.props.vifs[vifIndex]), vifIp => vifIp !== selectedIp)
-  _getIpPoolPredicate = vifNetwork => pool =>
-    find(pool.networks, network => network.id === vifNetwork)
+  _getIpPoolPredicate = vifNetwork => ipPool => {
+    return !ipPool.networks || find(ipPool.networks, network => network.id === vifNetwork)
+  }
 
   _noIps = vif => isEmpty(vif.allowedIpv4Addresses) && isEmpty(vif.allowedIpv6Addresses)
   _concatIps = vif => concat(vif.allowedIpv4Addresses, vif.allowedIpv6Addresses)
