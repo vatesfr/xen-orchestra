@@ -483,6 +483,7 @@ const TRANSFORMS = {
   network (obj) {
     return {
       bridge: obj.bridge,
+      defaultIsLocked: obj.default_locking_mode === 'disabled',
       MTU: +obj.MTU,
       name_description: obj.name_description,
       name_label: obj.name_label,

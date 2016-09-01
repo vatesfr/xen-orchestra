@@ -31,11 +31,13 @@ export async function set ({
 
   name_description: nameDescription,
   name_label: nameLabel,
+  defaultIsLocked,
   id
 }) {
   await this.getXapi(network).setNetworkProperties(network._xapiId, {
     nameDescription,
-    nameLabel
+    nameLabel,
+    defaultIsLocked
   })
 }
 
@@ -49,6 +51,10 @@ set.params = {
   },
   name_description: {
     type: 'string',
+    optional: true
+  },
+  defaultIsLocked: {
+    type: 'boolean',
     optional: true
   }
 }
