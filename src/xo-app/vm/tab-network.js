@@ -10,6 +10,8 @@ import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { connectStore, noop } from 'utils'
 import { Container, Row, Col } from 'grid'
 import {
+  createFinder,
+  createGetObject,
   createGetObjectsOfType,
   createSelector
 } from 'selectors'
@@ -26,6 +28,27 @@ import {
 @propTypes({
   onClose: propTypes.func,
   vm: propTypes.object.isRequired
+})
+@connectStore(() => {
+  const getHostMaster = createGetObject(
+    (_, props) => props.pool && props.pool.master
+  )
+  const getPifs = createGetObjectsOfType('PIF').pick(
+    (state, props) => {
+      const hostMaster = getHostMaster(state, props)
+      return hostMaster && hostMaster.$PIFs
+    }
+  )
+  const getDefaultNetworkId = createSelector(
+    createFinder(
+      getPifs,
+      [ pif => pif.management ]
+    ),
+    pif => pif && pif.$network
+  )
+  return {
+    defaultNetworkId: getDefaultNetworkId
+  }
 })
 @injectIntl
 class NewVif extends Component {
@@ -57,7 +80,7 @@ class NewVif extends Component {
     const formatMessage = this.props.intl.formatMessage
     return <form id='newVifForm'>
       <div className='form-group'>
-        <SelectNetwork predicate={this._getNetworkPredicate()} onChange={this._selectNetwork} required />
+        <SelectNetwork defaultValue={this.props.defaultNetworkId} predicate={this._getNetworkPredicate()} onChange={this._selectNetwork} required />
       </div>
       <fieldset className='form-inline'>
         <div className='form-group'>
@@ -107,6 +130,7 @@ export default class TabNetwork extends Component {
     const { newVif } = this.state
     const {
       networks,
+      pool,
       vifs,
       vm
     } = this.props
@@ -124,7 +148,7 @@ export default class TabNetwork extends Component {
       </Row>
       <Row>
         <Col>
-          {newVif && <div><NewVif vm={vm} onClose={this._toggleNewVif} /><hr /></div>}
+          {newVif && <div><NewVif vm={vm} pool={pool} onClose={this._toggleNewVif} /><hr /></div>}
         </Col>
       </Row>
       <Row>
