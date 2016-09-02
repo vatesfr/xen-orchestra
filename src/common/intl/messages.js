@@ -527,6 +527,7 @@ var messages = {
   vifIpAddresses: 'IP addresses',
   vifMacAutoGenerate: 'Auto-generated if empty',
   vifAllowedIps: 'Allowed IPs',
+  vifDefaultLockingMode: 'Default locking mode',
   vifNoIps: 'No IPs',
 
   // ----- VM snapshot tab -----
@@ -997,6 +998,7 @@ var messages = {
   // ----- IPs ------
   ipsPoolName: 'IP pool name',
   ipsPoolIps: 'IPs',
+  ipsPoolNetworks: 'Networks',
   ipsName: 'Name',
   ipsNoIpPool: 'No IP pools',
   ipsCreate: 'Create',

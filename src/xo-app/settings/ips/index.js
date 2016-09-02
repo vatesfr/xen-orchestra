@@ -82,6 +82,7 @@ export default class Ips extends BaseComponent {
         toBeRemoved[currentIp] = null
         currentIp = getNextIpV4(currentIp)
       }
+      toBeRemoved[currentIp] = null
     } else {
       toBeRemoved[ip] = null
     }
@@ -91,12 +92,13 @@ export default class Ips extends BaseComponent {
     this.setState({ newIp: { ...this.state.newIp, [ipPoolId]: newIp } })
 
   _deleteNetwork = ({ id, networks, networkId }) => {
-    const index = findIndex(networks, network => network === networkId)
+    const _networks = [ ...networks ]
+    const index = findIndex(_networks, network => network === networkId)
     if (index !== -1) {
-      networks.splice(index, 1)
+      _networks.splice(index, 1)
       setIpPool({
         id,
-        networks
+        networks: _networks
       })
     }
   }

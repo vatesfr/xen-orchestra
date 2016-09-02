@@ -14,6 +14,7 @@ import { isIp, isIpV4 } from 'ip'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { connectStore, noop } from 'utils'
 import { Container, Row, Col } from 'grid'
+import { Toggle } from 'form'
 import {
   createFinder,
   createGetObject,
@@ -29,7 +30,7 @@ import {
   createVmInterface,
   deleteVif,
   disconnectVif,
-  isVmRunning,
+  editNetwork,
   setVif
 } from 'xo'
 
@@ -183,9 +184,8 @@ export default class TabNetwork extends Component {
 
   _getIpPredicate = vifIndex => (_, selectedIp) =>
     every(this._concatIps(this.props.vifs[vifIndex]), vifIp => vifIp !== selectedIp)
-  _getIpPoolPredicate = vifNetwork => ipPool => {
-    return !ipPool.networks || find(ipPool.networks, network => network.id === vifNetwork)
-  }
+  _getIpPoolPredicate = vifNetwork => ipPool =>
+    find(ipPool.networks, network => network === vifNetwork)
 
   _noIps = vif => isEmpty(vif.allowedIpv4Addresses) && isEmpty(vif.allowedIpv6Addresses)
   _concatIps = vif => concat(vif.allowedIpv4Addresses, vif.allowedIpv6Addresses)
@@ -227,6 +227,7 @@ export default class TabNetwork extends Component {
                     <th>{_('vifMtuLabel')}</th>
                     <th>{_('vifNetworkLabel')}</th>
                     <th>{_('vifAllowedIps')}</th>
+                    <th>{_('vifDefaultLockingMode')}</th>
                     <th>{_('vifStatusLabel')}</th>
                   </tr>
                 </thead>
@@ -275,6 +276,13 @@ export default class TabNetwork extends Component {
                             </Col>
                           </Row>
                         </Container>
+                      </td>
+                      <td className='text-xs-center'>
+                        <Toggle
+                          disabled={vm.power_state === 'Running'}
+                          onChange={() => editNetwork(vif.$network, { defaultIsLocked: !networks[vif.$network].defaultIsLocked })}
+                          value={networks[vif.$network].defaultIsLocked}
+                        />
                       </td>
                       <td>
                         {vif.attached

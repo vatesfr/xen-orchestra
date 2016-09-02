@@ -815,38 +815,47 @@ export class SelectIp extends Component {
     this.refs.select.value = value
   }
 
-  _formatIps = ipPools => {
-    const addresses = {}
-    const { predicate } = this.props
-    forEach(ipPools, ipPool => {
-      addresses[ipPool.id] = mapPlus(ipPool.addresses, (ip, push, key) => {
-        if (!predicate || predicate(ip, key)) {
+  componentWillMount () {
+    this.componentWillUnmount = subscribeIpPools(ipPools => {
+      this.setState({
+        ipPools
+      })
+    })
+  }
+
+  _getIps = createSelector(
+    () => this.state.ipPools,
+    ipPools => {
+      const addresses = {}
+      const { predicate } = this.props
+      forEach(ipPools, ipPool => {
+        addresses[ipPool.id] = mapPlus(ipPool.addresses, (ip, push, key) => {
+          if (!predicate || predicate(ip, key)) {
+            push({
+              id: key,
+              label: key
+            })
+          }
+        })
+      })
+      return addresses
+    }
+  )
+
+  _getPools = createSelector(
+    () => this.state.ipPools,
+    ipPools => {
+      const { poolPredicate } = this.props
+      return mapPlus(ipPools, (ipPool, push, key) => {
+        if (!poolPredicate || poolPredicate(ipPool, key)) {
           push({
-            id: key,
-            label: key
+            id: ipPool.id,
+            label: ipPool.name
           })
         }
       })
-    })
-    return addresses
-  }
-
-  componentWillReceiveProps ({ poolPredicate }) {
-    this.componentWillUnmount = subscribeIpPools(ipPools => {
-      this.setState({
-        ipPools: mapPlus(ipPools, (ipPool, push) => {
-          if (!poolPredicate || poolPredicate(ipPool)) {
-            push({
-              id: ipPool.id,
-              label: ipPool.name,
-              type: 'ipPool'
-            })
-          }
-        }),
-        addresses: this._formatIps(ipPools)
-      })
-    })
-  }
+    }
+  )
 
   render () {
     return (
@@ -854,8 +863,8 @@ export class SelectIp extends Component {
         ref='select'
         placeholder={_('selectIp')}
         {...this.props}
-        xoContainers={this.state.ipPools || []}
-        xoObjects={this.state.addresses}
+        xoContainers={this._getPools() || []}
+        xoObjects={this._getIps() || []}
       />
     )
   }
