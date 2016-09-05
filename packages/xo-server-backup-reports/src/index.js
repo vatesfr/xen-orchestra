@@ -150,7 +150,7 @@ class BackupReportsXoPlugin {
     return Promise.all([
       xo.sendEmail && xo.sendEmail({
         to: this._mailsReceivers,
-        subject: `Backup Reports for "${tag}" (Xen Orchestra)`,
+        subject: `[Xen Orchestra][${globalSuccess ? 'Success' : 'Failure'}] Backup report for ${tag}`,
         markdown
       }),
       xo.sendToXmppClient && xo.sendToXmppClient({
