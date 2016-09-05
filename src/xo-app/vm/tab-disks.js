@@ -30,6 +30,7 @@ import {
   disconnectVbd,
   editVdi,
   isSrWritable,
+  isVmRunning,
   migrateVdi,
   setBootableVbd,
   setVmBootOrder
@@ -445,7 +446,7 @@ export default class TabDisks extends Component {
                               {_('vbdStatusDisconnected')}
                           </span>
                           <ButtonGroup className='pull-xs-right'>
-                            {vm.power_state === 'Running' &&
+                            {isVmRunning(vm) &&
                               <ActionRowButton
                                 btnStyle='default'
                                 icon='connect'

@@ -22,7 +22,8 @@ import {
   connectVif,
   createVmInterface,
   deleteVif,
-  disconnectVif
+  disconnectVif,
+  isVmRunning
 } from 'xo'
 
 @propTypes({
@@ -191,11 +192,13 @@ export default class TabNetwork extends Component {
                               {_('vifStatusDisconnected')}
                             </span>
                             <ButtonGroup className='pull-xs-right'>
-                              <ActionRowButton
-                                icon='connect'
-                                handler={connectVif}
-                                handlerParam={vif}
-                              />
+                              {isVmRunning(vm) &&
+                                <ActionRowButton
+                                  icon='connect'
+                                  handler={connectVif}
+                                  handlerParam={vif}
+                                />
+                              }
                               <ActionRowButton
                                 icon='remove'
                                 handler={deleteVif}
