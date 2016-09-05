@@ -9,12 +9,11 @@ import React from 'react'
 import size from 'lodash/size'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
+import Tooltip from 'tooltip'
 import { addSubscriptions } from 'utils'
 import { subscribeApiLogs, subscribeUsers, deleteApiLog } from 'xo'
 import { FormattedDate } from 'react-intl'
-import { Button } from 'react-bootstrap-4/lib'
 import { alert, confirm } from 'modal'
-
 import styles from './index.css'
 
 @addSubscriptions({
@@ -22,7 +21,9 @@ import styles from './index.css'
   users: subscribeUsers
 })
 export default class Logs extends BaseComponent {
-  _showStack = log => alert(_('logStack'), <Copiable tagName='pre'>{log.data.error.stack}</Copiable>)
+  _showStack = log => alert(_('logStack'), <Copiable tagName='pre'>{`${log.data.method}
+${JSON.stringify(log.data.params, null, 2)}
+${log.data.error.stack}`}</Copiable>)
   _showParams = log => alert(_('logParams'), <Copiable tagName='pre'>{JSON.stringify(log.data.params, null, 2)}</Copiable>)
   _deleteAllLogs = () =>
     confirm({
@@ -34,6 +35,10 @@ export default class Logs extends BaseComponent {
   render () {
     const columns = [
       {
+        name: '',
+        itemRenderer: log => <Tooltip content={_('logDisplayDetails')}><ActionRowButton icon='preview' handler={this._showStack} handlerParam={log} /></Tooltip>
+      },
+      {
         name: _('logUser'),
         itemRenderer: log => {
           if (log.data.userId == null) {
@@ -44,22 +49,9 @@ export default class Logs extends BaseComponent {
         sortCriteria: log => log.data.userId
       },
       {
-        name: _('logMethod'),
-        itemRenderer: log => <pre>{log.data.method}</pre>,
-        sortCriteria: log => log.data.method
-      },
-      {
-        name: _('logParams'),
-        itemRenderer: log => log.data.params ? <Button onClick={() => this._showParams(log)} bsStyle='secondary'>{_('logShowParams')}</Button> : <em>{_('logNoParams')}</em>
-      },
-      {
         name: _('logMessage'),
         itemRenderer: log => <pre className={styles.widthLimit}>{log.data.error && log.data.error.message}</pre>,
         sortCriteria: log => log.data.error && log.data.error.message
-      },
-      {
-        name: _('logStack'),
-        itemRenderer: log => log.data.error && log.data.error.stack ? <Button onClick={() => this._showStack(log)} bsStyle='secondary'>{_('logShowStackTrace')}</Button> : <em>{_('logNoStackTrace')}</em>
       },
       {
         name: _('logTime'),

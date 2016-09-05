@@ -970,7 +970,7 @@ var messages = {
   logParams: 'Params',
   logMessage: 'Message',
   logStack: 'Stack trace',
-  logShowStackTrace: 'Show stack',
+  logDisplayDetails: 'Display details',
   logShowParams: 'ShowParams',
   logTime: 'Date',
   logNoStackTrace: 'No stack trace',

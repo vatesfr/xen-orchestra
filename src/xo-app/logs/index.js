@@ -11,6 +11,7 @@ import propTypes from 'prop-types'
 import React, { Component } from 'react'
 import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
+import Tooltip from 'tooltip'
 import { alert, confirm } from 'modal'
 import { connectStore } from 'utils'
 import { createGetObject } from 'selectors'
@@ -89,7 +90,7 @@ const showCalls = log => alert(<span>{_('job')} {log.jobId}</span>, <Log log={lo
 const LOG_COLUMNS = [
   {
     name: '',
-    itemRenderer: log => <ActionRowButton icon='preview' handler={showCalls} handlerParam={log} />
+    itemRenderer: log => <Tooltip content={_('logDisplayDetails')}><ActionRowButton icon='preview' handler={showCalls} handlerParam={log} /></Tooltip>
   },
   {
     name: _('jobId'),
