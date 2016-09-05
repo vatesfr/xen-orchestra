@@ -3,6 +3,8 @@ import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import BaseComponent from 'base-component'
 import DebounceInput from 'react-debounce-input'
+import includes from 'lodash/includes'
+import find from 'lodash/find'
 import findIndex from 'lodash/findIndex'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
@@ -31,6 +33,7 @@ import {
 } from 'xo'
 
 const FULL_WIDTH = { width: '100%' }
+const NETWORK_FORM_STYLE = { maxWidth: '40em' }
 
 @addSubscriptions({
   ipPools: subscribeIpPools
@@ -57,19 +60,19 @@ export default class Ips extends BaseComponent {
     )
 
   // IPs
-  _toggleNewIp = id => {
+  _toggleNewIps = id => {
     const { showNewIpForm } = this.state
     this.setState({
       showNewIpForm: { ...showNewIpForm, [id]: !(showNewIpForm && showNewIpForm[id]) }
     })
   }
-  _addIp = ({ id }) => {
+  _addIps = ({ id }) => {
     const addresses = {}
     forEach(parseIpPattern(this.state.newIp[id]), ip => {
       addresses[ip] = {}
     })
     setIpPool({
-      id: id,
+      id,
       addresses
     })
     this.setState({ newIp: { ...this.state.newIp, [id]: '' } })
@@ -88,9 +91,23 @@ export default class Ips extends BaseComponent {
     }
     setIpPool({ id, addresses: toBeRemoved })
   }
-  _onChangeNewIp = (newIp, ipPoolId) =>
+  _onChangeNewIps = (newIp, ipPoolId) =>
     this.setState({ newIp: { ...this.state.newIp, [ipPoolId]: newIp } })
 
+  // Networks
+  _toggleNewNetworks = id => {
+    const { showNewNetworkForm } = this.state
+    this.setState({
+      showNewNetworkForm: { ...showNewNetworkForm, [id]: !(showNewNetworkForm && showNewNetworkForm[id]) }
+    })
+  }
+  _addNetworks = ({ id }) => {
+    setIpPool({
+      id,
+      networks: [ ...find(this.props.ipPools, ipPool => ipPool.id === id).networks, ...this.state.newNetworks[id] ]
+    })
+    this._toggleNewNetworks(id)
+  }
   _deleteNetwork = ({ id, networks, networkId }) => {
     const _networks = [ ...networks ]
     const index = findIndex(_networks, network => network === networkId)
@@ -102,6 +119,10 @@ export default class Ips extends BaseComponent {
       })
     }
   }
+  _onChangeNewNetworks = (newNetworks, ipPoolId) =>
+    this.setState({ newNetworks: { ...this.state.newNetworks, [ipPoolId]: map(newNetworks, network => network.id) } })
+  _getNetworkPredicate = ipPoolId => network =>
+    !includes(find(this.props.ipPools, ipPool => ipPool.id === ipPoolId).networks, network.id)
 
   _ipColumns = () => [
     {
@@ -156,20 +177,20 @@ export default class Ips extends BaseComponent {
           <Col>
             {this.state.showNewIpForm && this.state.showNewIpForm[ipPool.id]
             ? <form id={`newIpForm_${ipPool.id}`} className='form-inline'>
-              <ActionButton btnStyle='danger' handler={this._toggleNewIp} handlerParam={ipPool.id} icon='remove' />
+              <ActionButton btnStyle='danger' handler={this._toggleNewIps} handlerParam={ipPool.id} icon='remove' />
               {' '}
               <DebounceInput
                 autoFocus
-                onChange={event => this._onChangeNewIp(event.target.value, ipPool.id)}
+                onChange={event => this._onChangeNewIps(event.target.value, ipPool.id)}
                 type='text'
                 className='form-control'
                 required
                 value={this.state.newIp && this.state.newIp[ipPool.id] || ''}
               />
               {' '}
-              <ActionButton form={`newIpForm_${ipPool.id}`} icon='save' btnStyle='primary' handler={this._addIp} handlerParam={ipPool} />
+              <ActionButton form={`newIpForm_${ipPool.id}`} icon='save' btnStyle='primary' handler={this._addIps} handlerParam={ipPool} />
             </form>
-            : <ActionButton btnStyle='success' size='small' handler={this._toggleNewIp} handlerParam={ipPool.id} icon='add' />}
+            : <ActionButton btnStyle='success' size='small' handler={this._toggleNewIps} handlerParam={ipPool.id} icon='add' />}
           </Col>
         </Row>
       </Container>
@@ -187,6 +208,19 @@ export default class Ips extends BaseComponent {
               <ActionButton btnStyle='default' size='small' handler={this._deleteNetwork} handlerParam={{ ...ipPool, networkId }} icon='delete' />
             </Col>
           </Row>)}
+          <Row>
+            {this.state.showNewNetworkForm && this.state.showNewNetworkForm[ipPool.id]
+              ? <form id={`newIpForm_${ipPool.id}`} style={NETWORK_FORM_STYLE}>
+                <Col mediumSize={10}>
+                  <SelectNetwork multi onChange={networks => this._onChangeNewNetworks(networks, ipPool.id)} predicate={this._getNetworkPredicate(ipPool.id)} />
+                </Col>
+                <Col mediumSize={2}>
+                  <ActionButton form={`newIpForm_${ipPool.id}`} icon='save' btnStyle='primary' handler={this._addNetworks} handlerParam={ipPool} />
+                </Col>
+              </form>
+              : <Col><ActionButton btnStyle='success' size='small' handler={this._toggleNewNetworks} handlerParam={ipPool.id} icon='add' /></Col>
+            }
+          </Row>
         </Container>
       }
     },
