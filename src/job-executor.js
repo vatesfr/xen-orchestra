@@ -176,7 +176,7 @@ export default class JobExecutor {
             event: 'jobCall.end',
             runJobId,
             runCallId,
-            error: {...reason, message: reason.message}
+            error: serializeError(reason)
           })
 
           call.error = reason
