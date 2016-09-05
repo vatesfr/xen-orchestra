@@ -690,12 +690,12 @@ export default class {
     const sourceXapi = this._xo.getXapi(vm)
     vm = sourceXapi.getObject(vm._xapiId)
 
-    const vms = []
+    const vms = {}
     forEach(sr.$VDIs, vdi => {
       const vbds = vdi.$VBDs
       const vm = vbds && vbds[0] && vbds[0].$VM
       if (vm && reg.test(vm.name_label)) {
-        vms.push(vm)
+        vms[vm.$id] = vm
       }
     })
     const olderCopies = sortBy(vms, 'name_label')
@@ -706,7 +706,7 @@ export default class {
     })
     await targetXapi.addTag(drCopy.$id, 'Disaster Recovery')
 
-    await Promise.all(mapToArray(olderCopies.slice(0, -depth), vm =>
+    await Promise.all(mapToArray(olderCopies.slice(0, 1 - depth), vm =>
       // Do not consider a failure to delete an old copy as a fatal error.
       targetXapi.deleteVm(vm.$id)::pCatch(noop)
     ))
