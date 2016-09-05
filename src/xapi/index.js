@@ -1345,13 +1345,13 @@ export default class Xapi extends XapiBase {
   }) {
     // VDIs/SRs mapping
     const vdis = {}
-    const defaultSrRef = host.$pool.$default_SR.$ref
+    const defaultSr = host.$pool.$default_SR
     for (const vbd of vm.$VBDs) {
       const vdi = vbd.$VDI
       if (vbd.type === 'Disk') {
         vdis[vdi.$ref] = mapVdisSrs && mapVdisSrs[vdi.$id]
           ? hostXapi.getObject(mapVdisSrs[vdi.$id]).$ref
-          : defaultSrRef
+          : defaultSr.$ref // Will error if there are no default SR.
       }
     }
 
