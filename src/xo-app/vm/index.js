@@ -15,6 +15,7 @@ import { Select, Text } from 'editable'
 import {
   editVm,
   fetchVmStats,
+  isVmRunning,
   migrateVm
 } from 'xo'
 import { Container, Row, Col } from 'grid'
@@ -37,8 +38,6 @@ import TabNetwork from './tab-network'
 import TabSnapshots from './tab-snapshots'
 import TabLogs from './tab-logs'
 import TabAdvanced from './tab-advanced'
-
-const isRunning = vm => vm && vm.power_state === 'Running'
 
 // ===================================================================
 
@@ -124,7 +123,7 @@ export default class Vm extends BaseComponent {
       this.cancel()
     }
 
-    if (!isRunning(vm)) {
+    if (!isVmRunning(vm)) {
       return
     }
 
@@ -163,9 +162,9 @@ export default class Vm extends BaseComponent {
       this.context.router.push('/')
     }
 
-    if (!isRunning(vmCur) && isRunning(vmNext)) {
+    if (!isVmRunning(vmCur) && isVmRunning(vmNext)) {
       this.loop(vmNext)
-    } else if (isRunning(vmCur) && !isRunning(vmNext)) {
+    } else if (isVmRunning(vmCur) && !isVmRunning(vmNext)) {
       this.setState({
         statsOverview: undefined
       })

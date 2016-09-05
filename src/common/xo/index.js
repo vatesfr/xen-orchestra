@@ -39,8 +39,9 @@ export const XEN_DEFAULT_CPU_CAP = 0
 
 // ===================================================================
 
-export const isSrWritable = sr => sr.content_type !== 'iso' && sr.size > 0
-export const isSrShared = sr => sr.$PBDs.length > 1
+export const isSrWritable = sr => sr && sr.content_type !== 'iso' && sr.size > 0
+export const isSrShared = sr => sr && sr.$PBDs.length > 1
+export const isVmRunning = vm => vm && vm.power_state === 'Running'
 
 // ===================================================================
 
