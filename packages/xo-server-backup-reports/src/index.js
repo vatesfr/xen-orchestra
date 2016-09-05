@@ -80,16 +80,10 @@ class BackupReportsXoPlugin {
         return
       }
 
-      let vmStatus
-
-      if (call.error) {
-        vmStatus = 'Fail'
-      } else {
-        nSuccess++
-        vmStatus = 'Success'
-      }
-
       nCalls++
+      if (!call.error) {
+        nSuccess++
+      }
 
       let vm
 
@@ -104,7 +98,9 @@ class BackupReportsXoPlugin {
       text.push([
         `### VM : ${vm ? vm.name_label : 'undefined'}`,
         `  - UUID: ${vm ? vm.uuid : 'undefined'}`,
-        `  - Status: ${vmStatus}`,
+        call.error
+          ? `  - Status: Failure\n  - Error: ${call.error.message}`
+          : '  - Status: Success',
         `  - Start time: ${String(start)}`,
         `  - End time: ${String(end)}`,
         `  - Duration: ${duration}`
