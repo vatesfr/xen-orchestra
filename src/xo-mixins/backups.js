@@ -706,11 +706,9 @@ export default class {
     })
     await targetXapi.addTag(drCopy.$id, 'Disaster Recovery')
 
-    const promises = []
-    for (let surplus = olderCopies.length - (depth - 1); surplus > 0; surplus--) {
-      const oldDRVm = olderCopies.shift()
-      promises.push(targetXapi.deleteVm(oldDRVm.$id, true))
-    }
-    await Promise.all(promises)
+    await Promise.all(mapToArray(olderCopies.slice(0, -depth), vm =>
+      // Do not consider a failure to delete an old copy as a fatal error.
+      targetXapi.deleteVm(vm.$id)::pCatch(noop)
+    ))
   }
 }
