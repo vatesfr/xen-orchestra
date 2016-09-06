@@ -119,7 +119,7 @@ const xoItemToRender = {
   ),
   ipPool: ipPool => (
     <span>
-      <Icon icon='ip' /> {ipPool.label}
+      <Icon icon='ip' /> {ipPool.name}
     </span>
   ),
 

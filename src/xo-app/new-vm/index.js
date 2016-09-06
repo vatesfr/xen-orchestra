@@ -1099,7 +1099,7 @@ export default class NewVm extends BaseComponent {
                 <SelectIp
                   multi
                   onChange={this._getOnChangeIps(index)}
-                  poolPredicate={this._getIpPoolPredicate(vif.network)}
+                  containerPredicate={this._getIpPoolPredicate(vif.network)}
                   value={vif.ip}
                 />
               </span>

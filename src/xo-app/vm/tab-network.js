@@ -182,8 +182,8 @@ export default class TabNetwork extends Component {
     setVif({ vif, allowedIpv4Addresses, allowedIpv6Addresses })
   }
 
-  _getIpPredicate = vifIndex => (_, selectedIp) =>
-    every(this._concatIps(this.props.vifs[vifIndex]), vifIp => vifIp !== selectedIp)
+  _getIpPredicate = vifIndex => selectedIp =>
+    every(this._concatIps(this.props.vifs[vifIndex]), vifIp => vifIp !== selectedIp.id)
   _getIpPoolPredicate = vifNetwork => ipPool =>
     find(ipPool.networks, network => network === vifNetwork)
 
@@ -267,7 +267,7 @@ export default class TabNetwork extends Component {
                                 <SelectIp
                                   autoFocus
                                   onChange={ip => this._addIp(vifIndex, ip)}
-                                  poolPredicate={this._getIpPoolPredicate(vif.$network)}
+                                  containerPredicate={this._getIpPoolPredicate(vif.$network)}
                                   predicate={this._getIpPredicate(vifIndex)}
                                   required
                                 />
