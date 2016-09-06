@@ -131,7 +131,7 @@ export default class Menu extends Component {
         { to: '/settings/remotes', icon: 'menu-backup-remotes', label: 'backupRemotesPage' },
         { to: '/settings/plugins', icon: 'menu-settings-plugins', label: 'settingsPluginsPage' },
         { to: '/settings/logs', icon: 'menu-settings-logs', label: 'settingsLogsPage' },
-        { to: '/settings/ips', icon: 'menu-settings-ips', label: 'settingsIpsPage' }
+        { to: '/settings/ips', icon: 'ip', label: 'settingsIpsPage' }
       ]},
       { to: '/jobs/overview', icon: 'menu-jobs', label: 'jobsPage', subMenu: [
         { to: '/jobs/overview', icon: 'menu-jobs-overview', label: 'jobsOverviewPage' },

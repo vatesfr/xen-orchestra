@@ -859,7 +859,7 @@ export const deleteVif = vif => (
   _call('vif.delete', { id: resolveId(vif) })
 )
 
-export const setVif = ({ vif, allowedIpv4Addresses, allowedIpv6Addresses }) => (
+export const setVif = (vif, { allowedIpv4Addresses, allowedIpv6Addresses }) => (
   _call('vif.set', { id: resolveId(vif), allowedIpv4Addresses, allowedIpv6Addresses })
 )
 
@@ -1567,19 +1567,19 @@ export const updateSchedule = ({ id, job: jobId, cron, enabled, name, timezone }
 export const createIpPool = ({ name, ips, networks }) => {
   const addresses = {}
   forEach(ips, ip => { addresses[ip] = {} })
-  return _call('ipPool.create', { name, addresses, networks })::tap(
+  return _call('ipPool.create', { name, addresses, networks: resolveIds(networks) })::tap(
     subscribeIpPools.forceRefresh
   )
 }
 
-export const deleteIpPool = id => (
-  _call('ipPool.delete', { id })::tap(
+export const deleteIpPool = ipPool => (
+  _call('ipPool.delete', { id: resolveId(ipPool) })::tap(
     subscribeIpPools.forceRefresh
   )
 )
 
-export const setIpPool = ({ id, name, addresses, networks }) => (
-  _call('ipPool.set', { id, name, addresses, networks })::tap(
+export const setIpPool = (ipPool, { name, addresses, networks }) => (
+  _call('ipPool.set', { id: resolveId(ipPool), name, addresses, networks: resolveIds(networks) })::tap(
     subscribeIpPools.forceRefresh
   )
 )

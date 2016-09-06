@@ -6,11 +6,13 @@ import React, { Component } from 'react'
 import some from 'lodash/some'
 import store from 'store'
 import TabButton from 'tab-button'
+import Tooltip from 'tooltip'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Text } from 'editable'
 import { Container, Row, Col } from 'grid'
 import { connectStore } from 'utils'
 import { createGetObject, createSelector } from 'selectors'
+import { Toggle } from 'form'
 import {
   connectPif,
   createNetwork,
@@ -76,7 +78,7 @@ export default class TabNetworks extends Component {
   }
 
   render () {
-    const { networks } = this.props
+    const { networks, vifsByNetwork } = this.props
 
     return <Container>
       <Row>
@@ -99,12 +101,15 @@ export default class TabNetworks extends Component {
                   <th>{_('poolNetworkNameLabel')}</th>
                   <th>{_('poolNetworkDescription')}</th>
                   <th>{_('poolNetworkMTU')}</th>
+                  <th>{_('defaultLockingMode')}</th>
                   <th>{_('poolNetworkPif')}</th>
                   <th />
                 </tr>
               </thead>
               <tbody>
                 {map(networks, network => {
+                  const networkInUse = some(vifsByNetwork[network.id], vif => vif.attached)
+
                   return <tr key={network.id}>
                     <td>
                       <Text value={network.name_label} onChange={value => editNetwork(network, { name_label: value })} />
@@ -113,6 +118,15 @@ export default class TabNetworks extends Component {
                       <Text value={network.name_description} onChange={value => editNetwork(network, { name_description: value })} />
                     </td>
                     <td>{network.MTU}</td>
+                    <td className='text-xs-center'>
+                      <Tooltip content={networkInUse && _('networkInUse')}>
+                        <Toggle
+                          disabled={networkInUse}
+                          onChange={() => editNetwork(network.id, { defaultIsLocked: !network.defaultIsLocked })}
+                          value={network.defaultIsLocked}
+                        />
+                      </Tooltip>
+                    </td>
                     <td>
                       {!isEmpty(network.PIFs) && <table className='table'>
                         <thead className='thead-default'>

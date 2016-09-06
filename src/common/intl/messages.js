@@ -418,6 +418,8 @@ var messages = {
   pifStatusConnected: 'Connected',
   pifStatusDisconnected: 'Disconnected',
   pifNoInterface: 'No physical interface detected',
+  pifInUse: 'This interface is currently in use',
+  defaultLockingMode: 'Default locking mode',
   // ----- Host storage tabs -----
   addSrDeviceButton: 'Add a storage',
   srNameLabel: 'Name',
@@ -527,8 +529,9 @@ var messages = {
   vifIpAddresses: 'IP addresses',
   vifMacAutoGenerate: 'Auto-generated if empty',
   vifAllowedIps: 'Allowed IPs',
-  vifDefaultLockingMode: 'Default locking mode',
   vifNoIps: 'No IPs',
+  vifLockedNetwork: 'Network is locked',
+  vifLockedNetworkNoIps: 'Network is locked and no IPs are allowed for this interface',
 
   // ----- VM snapshot tab -----
   noSnapshots: 'No snapshots',
@@ -872,6 +875,7 @@ var messages = {
   newNetworkDefaultMtu: 'Default: 1500',
   deleteNetwork: 'Delete network',
   deleteNetworkConfirm: 'Are you sure you want to delete this network?',
+  networkInUse: 'This network is currently in use',
 
   // ----- Add host -----
   addHostSelectHost: 'Host',
@@ -996,10 +1000,10 @@ var messages = {
   logDeleteAllMessage: 'Are you sure you want to delete all the logs?',
 
   // ----- IPs ------
-  ipsPoolName: 'IP pool name',
-  ipsPoolIps: 'IPs',
-  ipsPoolNetworks: 'Networks',
-  ipsName: 'Name',
+  ipPoolName: 'Name',
+  ipPoolIps: 'IPs',
+  ipPoolIpsPlaceholder: 'IPs (e.g.: 1.0.0.12-1.0.0.17;1.0.0.23)',
+  ipPoolNetworks: 'Networks',
   ipsNoIpPool: 'No IP pools',
   ipsCreate: 'Create',
   ipsDeleteAllTitle: 'Delete all IP pools',

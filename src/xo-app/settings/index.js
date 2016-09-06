@@ -29,7 +29,7 @@ const HEADER = <Container>
         <NavLink to={'/settings/remotes'}><Icon icon='menu-backup-remotes' /> {_('backupRemotesPage')}</NavLink>
         <NavLink to={'/settings/plugins'}><Icon icon='menu-settings-plugins' /> {_('settingsPluginsPage')}</NavLink>
         <NavLink to={'/settings/logs'}><Icon icon='menu-settings-logs' /> {_('settingsLogsPage')}</NavLink>
-        <NavLink to={'/settings/ips'}><Icon icon='menu-settings-ips' /> {_('settingsIpsPage')}</NavLink>
+        <NavLink to={'/settings/ips'}><Icon icon='ip' /> {_('settingsIpsPage')}</NavLink>
       </NavTabs>
     </Col>
   </Row>

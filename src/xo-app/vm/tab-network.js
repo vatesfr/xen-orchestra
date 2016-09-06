@@ -4,17 +4,18 @@ import ActionRowButton from 'action-row-button'
 import concat from 'lodash/concat'
 import every from 'lodash/every'
 import find from 'lodash/find'
+import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import propTypes from 'prop-types'
 import React, { Component } from 'react'
 import remove from 'lodash/remove'
 import TabButton from 'tab-button'
+import Tooltip from 'tooltip'
 import { isIp, isIpV4 } from 'ip'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { connectStore, noop } from 'utils'
 import { Container, Row, Col } from 'grid'
-import { Toggle } from 'form'
 import {
   createFinder,
   createGetObject,
@@ -30,7 +31,6 @@ import {
   createVmInterface,
   deleteVif,
   disconnectVif,
-  editNetwork,
   setVif
 } from 'xo'
 
@@ -155,7 +155,7 @@ export default class TabNetwork extends Component {
     } else {
       allowedIpv6Addresses[ipIndex - allowedIpv4Addresses.length] = newIp.id
     }
-    setVif({ vif, allowedIpv4Addresses, allowedIpv6Addresses })
+    setVif(vif, { allowedIpv4Addresses, allowedIpv6Addresses })
   }
   _addIp = (vifIndex, ip) => {
     this._toggleNewIp(vifIndex)
@@ -169,7 +169,7 @@ export default class TabNetwork extends Component {
     } else {
       allowedIpv6Addresses = [ ...allowedIpv6Addresses, ip.id ]
     }
-    setVif({ vif, allowedIpv4Addresses, allowedIpv6Addresses })
+    setVif(vif, { allowedIpv4Addresses, allowedIpv6Addresses })
   }
   _deleteIp = ({ vifIndex, ipIndex }) => {
     const vif = this.props.vifs[vifIndex]
@@ -179,7 +179,7 @@ export default class TabNetwork extends Component {
     } else {
       remove(allowedIpv6Addresses, (_, i) => i === ipIndex - allowedIpv4Addresses.length)
     }
-    setVif({ vif, allowedIpv4Addresses, allowedIpv6Addresses })
+    setVif(vif, { allowedIpv4Addresses, allowedIpv6Addresses })
   }
 
   _getIpPredicate = vifIndex => selectedIp =>
@@ -227,13 +227,14 @@ export default class TabNetwork extends Component {
                     <th>{_('vifMtuLabel')}</th>
                     <th>{_('vifNetworkLabel')}</th>
                     <th>{_('vifAllowedIps')}</th>
-                    <th>{_('vifDefaultLockingMode')}</th>
                     <th>{_('vifStatusLabel')}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {map(vifs, (vif, vifIndex) =>
-                    <tr key={vif.id}>
+                  {map(vifs, (vif, vifIndex) => {
+                    const lockedNetwork = networks[vif.$network].defaultIsLocked
+
+                    return <tr key={vif.id}>
                       <td>VIF #{vif.device}</td>
                       <td><pre>{vif.MAC}</pre></td>
                       <td>{vif.MTU}</td>
@@ -277,13 +278,6 @@ export default class TabNetwork extends Component {
                           </Row>
                         </Container>
                       </td>
-                      <td className='text-xs-center'>
-                        <Toggle
-                          disabled={vm.power_state === 'Running'}
-                          onChange={() => editNetwork(vif.$network, { defaultIsLocked: !networks[vif.$network].defaultIsLocked })}
-                          value={networks[vif.$network].defaultIsLocked}
-                        />
-                      </td>
                       <td>
                         {vif.attached
                           ? <span>
@@ -316,9 +310,17 @@ export default class TabNetwork extends Component {
                             </ButtonGroup>
                           </span>
                         }
+                        {' '}
+                        {lockedNetwork && isEmpty(this._concatIps(vif))
+                        ? <Tooltip content={_('vifLockedNetworkNoIps')}>
+                          <Icon icon='error' />
+                        </Tooltip>
+                        : <Tooltip content={lockedNetwork && _('vifLockedNetwork')}>
+                          <Icon icon={lockedNetwork ? 'lock' : 'unlock'} />
+                        </Tooltip>}
                       </td>
                     </tr>
-                  )}
+                  })}
                 </tbody>
               </table>
               {vm.addresses && !isEmpty(vm.addresses)

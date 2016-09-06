@@ -86,6 +86,8 @@ const isRunning = host => host && host.power_state === 'Running'
     )
   )
 
+  const getVifsByNetwork = createGetObjectsOfType('VIF').groupBy('$network')
+
   const getHostPatches = createSelector(
     createGetObjectsOfType('pool_patch'),
     createGetObjectsOfType('host_patch').pick(
@@ -123,6 +125,7 @@ const isRunning = host => host && host.power_state === 'Running'
       pifs: getPifs(state, props),
       pool: getPool(state, props),
       srs: getSrs(state, props),
+      vifsByNetwork: getVifsByNetwork(state, props),
       vmController: getVmController(state, props),
       vms: getHostVms(state, props)
     }
@@ -282,6 +285,7 @@ export default class Host extends Component {
       'pbds',
       'pifs',
       'srs',
+      'vifsByNetwork',
       'vmController',
       'vms'
     ]), pick(this.state, [

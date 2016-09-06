@@ -3,28 +3,26 @@ import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import BaseComponent from 'base-component'
 import DebounceInput from 'react-debounce-input'
-import includes from 'lodash/includes'
 import find from 'lodash/find'
 import findIndex from 'lodash/findIndex'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
+import includes from 'lodash/includes'
 import isEmpty from 'lodash/isEmpty'
 import isObject from 'lodash/isObject'
 import keys from 'lodash/keys'
 import map from 'lodash/map'
 import React from 'react'
+import SingleLineRow from 'single-line-row'
 import SortedTable from 'sorted-table'
 import store from 'store'
-import TabButton from 'tab-button'
 import { addSubscriptions } from 'utils'
-import { injectIntl } from 'react-intl'
-import { Text } from 'editable'
-import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
-import SingleLineRow from 'single-line-row'
-import { SelectNetwork } from 'select-objects'
 import { formatIps, getNextIpV4, parseIpPattern } from 'ip'
 import { getObject } from 'selectors'
+import { injectIntl } from 'react-intl'
+import { SelectNetwork } from 'select-objects'
+import { Text } from 'editable'
 import {
   createIpPool,
   deleteIpPool,
@@ -43,21 +41,16 @@ export default class Ips extends BaseComponent {
   _create = () => {
     const { name, ips: { value: pattern }, networks } = this.refs
 
+    this.setState({ creatingIpPool: true })
     return createIpPool({
       ips: parseIpPattern(pattern),
       name: name.value,
       networks: map(networks.value, network => network.id)
     }).then(() => {
       name.value = this.refs.ips.value = networks.value = ''
+      this.setState({ creatingIpPool: false })
     })
   }
-  _deleteAllIpPools = () =>
-    confirm({
-      title: _('ipsDeleteAllTitle'),
-      body: _('ipsDeleteAllMessage')
-    }).then(() =>
-      forEach(this.props.ipPools, ipPool => deleteIpPool(ipPool.id))
-    )
 
   // IPs
   _toggleNewIps = id => {
@@ -71,10 +64,7 @@ export default class Ips extends BaseComponent {
     forEach(parseIpPattern(this.state.newIp[id]), ip => {
       addresses[ip] = {}
     })
-    setIpPool({
-      id,
-      addresses
-    })
+    setIpPool(id, { addresses })
     this.setState({ newIp: { ...this.state.newIp, [id]: '' } })
   }
   _deleteIp = ({ id, ip }) => {
@@ -89,7 +79,7 @@ export default class Ips extends BaseComponent {
     } else {
       toBeRemoved[ip] = null
     }
-    setIpPool({ id, addresses: toBeRemoved })
+    setIpPool(id, { addresses: toBeRemoved })
   }
   _onChangeNewIps = (newIp, ipPoolId) =>
     this.setState({ newIp: { ...this.state.newIp, [ipPoolId]: newIp } })
@@ -102,10 +92,7 @@ export default class Ips extends BaseComponent {
     })
   }
   _addNetworks = ({ id }) => {
-    setIpPool({
-      id,
-      networks: [ ...find(this.props.ipPools, ipPool => ipPool.id === id).networks, ...this.state.newNetworks[id] ]
-    })
+    setIpPool(id, { networks: [ ...find(this.props.ipPools, ipPool => ipPool.id === id).networks, ...this.state.newNetworks[id] ] })
     this._toggleNewNetworks(id)
   }
   _deleteNetwork = ({ id, networks, networkId }) => {
@@ -113,10 +100,7 @@ export default class Ips extends BaseComponent {
     const index = findIndex(_networks, network => network === networkId)
     if (index !== -1) {
       _networks.splice(index, 1)
-      setIpPool({
-        id,
-        networks: _networks
-      })
+      setIpPool(id, { networks: _networks })
     }
   }
   _onChangeNewNetworks = (newNetworks, ipPoolId) =>
@@ -126,12 +110,12 @@ export default class Ips extends BaseComponent {
 
   _ipColumns = () => [
     {
-      name: _('ipsName'),
-      itemRenderer: ipPool => <Text onChange={name => setIpPool({ id: ipPool.id, name })} value={ipPool.name} />,
+      name: _('ipPoolName'),
+      itemRenderer: ipPool => <Text onChange={name => setIpPool(ipPool, { name })} value={ipPool.name} />,
       sortCriteria: ipPool => ipPool.name
     },
     {
-      name: _('ipsPoolIps'),
+      name: _('ipPoolIps'),
       itemRenderer: ipPool => <Container>
         <Row>
           <Col mediumSize={6} offset={5}><strong>{_('ipsVifs')}</strong></Col>
@@ -196,7 +180,7 @@ export default class Ips extends BaseComponent {
       </Container>
     },
     {
-      name: _('ipsPoolNetworks'),
+      name: _('ipPoolNetworks'),
       itemRenderer: ipPool => {
         const state = store.getState()
         return <Container>
@@ -233,6 +217,7 @@ export default class Ips extends BaseComponent {
 
   render () {
     const { ipPools, intl } = this.props
+    const { creatingIpPool } = this.state
     return <div>
       <Row>
         <Col size={6}>
@@ -241,7 +226,8 @@ export default class Ips extends BaseComponent {
               <Col mediumSize={6}>
                 <input
                   className='form-control'
-                  placeholder={intl.formatMessage(messages.ipsPoolName)}
+                  disabled={creatingIpPool}
+                  placeholder={intl.formatMessage(messages.ipPoolName)}
                   ref='name'
                   required
                   style={FULL_WIDTH}
@@ -251,7 +237,8 @@ export default class Ips extends BaseComponent {
               <Col mediumSize={6}>
                 <input
                   className='form-control'
-                  placeholder={intl.formatMessage(messages.ipsPoolIps)}
+                  disabled={creatingIpPool}
+                  placeholder={intl.formatMessage(messages.ipPoolIps)}
                   ref='ips'
                   required
                   style={FULL_WIDTH}
@@ -263,6 +250,7 @@ export default class Ips extends BaseComponent {
             <SingleLineRow>
               <Col mediumSize={12}>
                 <SelectNetwork
+                  disabled={creatingIpPool}
                   multi
                   ref='networks'
                 />
@@ -281,17 +269,6 @@ export default class Ips extends BaseComponent {
               </Col>
             </SingleLineRow>
           </form>
-        </Col>
-        <Col size={6}>
-          <span className='pull-xs-right'>
-            <TabButton
-              btnStyle='danger'
-              disabled={isEmpty(ipPools)}
-              handler={this._deleteAllIpPools}
-              icon='delete'
-              labelId='ipsDeleteAllTitle'
-            />
-          </span>
         </Col>
       </Row>
       <hr />
