@@ -1,4 +1,5 @@
 import isEmpty from 'lodash/isEmpty'
+import keys from 'lodash/keys'
 import map from 'lodash/map'
 import React from 'react'
 import { Portal } from 'react-overlays'
@@ -19,7 +20,8 @@ import {
 } from './selectors'
 import {
   getHostMissingPatches,
-  installAllHostPatches
+  installAllHostPatches,
+  installAllPatchesOnPool
 } from './xo'
 
 // ===================================================================
@@ -84,9 +86,17 @@ class HostsPatchesTable extends Component {
     )
   )
 
-  _installAllMissingPatches = () => (
-    Promise.all(map(this._getHosts(), this._installAllHostPatches))
-  )
+  _installAllMissingPatches = () => {
+    const pools = {}
+    forEach(this._getHosts(), host => {
+      pools[host.$pool] = true
+    })
+
+    return Promise.all(map(
+      keys(pools),
+      installAllPatchesOnPool
+    )).then(this._refreshMissingPatches)
+  }
 
   _refreshHostMissingPatches = host => (
     getHostMissingPatches(host).then(patches => {
