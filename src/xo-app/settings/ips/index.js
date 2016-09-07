@@ -15,6 +15,7 @@ import map from 'lodash/map'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import SortedTable from 'sorted-table'
+import Upgrade from 'xoa-upgrade'
 import { addSubscriptions, connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { formatIps, getNextIpV4, parseIpPattern } from 'ip'
@@ -54,8 +55,10 @@ export default class Ips extends BaseComponent {
   // IPs
   _toggleNewIps = id => {
     const { showNewIpForm } = this.state
+    const isCurrentlyShown = showNewIpForm && showNewIpForm[id]
     this.setState({
-      showNewIpForm: { ...showNewIpForm, [id]: !(showNewIpForm && showNewIpForm[id]) }
+      // Toggle this specific form and keep the others as they are
+      showNewIpForm: { ...showNewIpForm, [id]: !isCurrentlyShown }
     })
   }
   _addIps = ({ id }) => {
@@ -86,8 +89,10 @@ export default class Ips extends BaseComponent {
   // Networks
   _toggleNewNetworks = id => {
     const { showNewNetworkForm } = this.state
+    const isCurrentlyShown = showNewNetworkForm && showNewNetworkForm[id]
     this.setState({
-      showNewNetworkForm: { ...showNewNetworkForm, [id]: !(showNewNetworkForm && showNewNetworkForm[id]) }
+      // Toggle this specific form and keep the others as they are
+      showNewNetworkForm: { ...showNewNetworkForm, [id]: !isCurrentlyShown }
     })
   }
   _addNetworks = ({ id }) => {
@@ -236,6 +241,10 @@ export default class Ips extends BaseComponent {
   ]
 
   render () {
+    if (process.env.XOA_PLAN < 4) {
+      return <Container><Upgrade place='health' available={4} /></Container>
+    }
+
     const { ipPools, intl } = this.props
     const { creatingIpPool } = this.state
     return <div>
