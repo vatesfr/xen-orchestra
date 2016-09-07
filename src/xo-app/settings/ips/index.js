@@ -15,11 +15,10 @@ import map from 'lodash/map'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import SortedTable from 'sorted-table'
-import store from 'store'
-import { addSubscriptions } from 'utils'
+import { addSubscriptions, connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { formatIps, getNextIpV4, parseIpPattern } from 'ip'
-import { getObject } from 'selectors'
+import { createGetObjectsOfType } from 'selectors'
 import { injectIntl } from 'react-intl'
 import { SelectNetwork } from 'select-objects'
 import { Text } from 'editable'
@@ -116,17 +115,49 @@ export default class Ips extends BaseComponent {
     },
     {
       name: _('ipPoolIps'),
-      itemRenderer: ipPool => <Container>
-        <Row>
-          <Col mediumSize={6} offset={5}><strong>{_('ipsVifs')}</strong></Col>
-        </Row>
-        {ipPool.addresses && map(formatIps(keys(ipPool.addresses)), ip => {
-          if (isObject(ip)) {
+      itemRenderer: (() => {
+        const Ips = connectStore(() => {
+          const getNetworks = createGetObjectsOfType('network').groupBy('id')
+          const getVifs = createGetObjectsOfType('VIF').groupBy('id')
+
+          return (state, props) => ({
+            networks: getNetworks(state, props),
+            vifs: getVifs(state, props)
+          })
+        })(({ ipPool, networks, vifs }) => <Container>
+          <Row>
+            <Col mediumSize={6} offset={5}><strong>{_('ipsVifs')}</strong></Col>
+          </Row>
+          {ipPool.addresses && map(formatIps(keys(ipPool.addresses)), ip => {
+            if (isObject(ip)) { // Range of IPs
+              return <Row>
+                <Col mediumSize={5}>
+                  <strong>{ip.first} <Icon icon='arrow-right' /> {ip.last}</strong>
+                </Col>
+                <Col mediumSize={1} offset={6}>
+                  <ActionRowButton
+                    handler={this._deleteIp}
+                    handlerParam={{ ...ipPool, ip }}
+                    icon='delete'
+                  />
+                </Col>
+              </Row>
+            }
+            const addressVifs = ipPool.addresses[ip].vifs
             return <Row>
               <Col mediumSize={5}>
-                <strong>{ip.first} <Icon icon='arrow-right' /> {ip.last}</strong>
+                <strong>{ip}</strong>
               </Col>
-              <Col mediumSize={1} offset={6}>
+              <Col mediumSize={6}>{!isEmpty(addressVifs)
+                ? map(addressVifs, vifId => {
+                  const vif = vifs[vifId][0]
+                  const network = networks[vif.$network][0]
+
+                  return `${network.name_label} #${vif.device}`
+                }).join(', ')
+                : <em>{_('ipsNotUsed')}</em>
+              }</Col>
+              <Col mediumSize={1}>
                 <ActionRowButton
                   handler={this._deleteIp}
                   handlerParam={{ ...ipPool, ip }}
@@ -134,59 +165,45 @@ export default class Ips extends BaseComponent {
                 />
               </Col>
             </Row>
-          }
-          return <Row>
-            <Col mediumSize={5}>
-              <strong>{ip}</strong>
-            </Col>
-            <Col mediumSize={6}>{!isEmpty(ipPool.addresses[ip].vifs)
-              ? map(ipPool.addresses[ip].vifs, vifId => {
-                const state = store.getState()
-                const vif = getObject(state, vifId)
-                const network = getObject(state, vif.$network)
-                return `${network.name_label} #${vif.device}`
-              }).join(', ')
-              : <em>{_('ipsNotUsed')}</em>
-            }</Col>
-            <Col mediumSize={1}>
-              <ActionRowButton
-                handler={this._deleteIp}
-                handlerParam={{ ...ipPool, ip }}
-                icon='delete'
-              />
+          })}
+          <Row>
+            <Col>
+              {this.state.showNewIpForm && this.state.showNewIpForm[ipPool.id]
+              ? <form id={`newIpForm_${ipPool.id}`} className='form-inline'>
+                <ActionButton btnStyle='danger' handler={this._toggleNewIps} handlerParam={ipPool.id} icon='remove' />
+                {' '}
+                <DebounceInput
+                  autoFocus
+                  onChange={event => this._onChangeNewIps(event.target.value, ipPool.id)}
+                  type='text'
+                  className='form-control'
+                  required
+                  value={this.state.newIp && this.state.newIp[ipPool.id] || ''}
+                />
+                {' '}
+                <ActionButton form={`newIpForm_${ipPool.id}`} icon='save' btnStyle='primary' handler={this._addIps} handlerParam={ipPool} />
+              </form>
+              : <ActionButton btnStyle='success' size='small' handler={this._toggleNewIps} handlerParam={ipPool.id} icon='add' />}
             </Col>
           </Row>
-        })}
-        <Row>
-          <Col>
-            {this.state.showNewIpForm && this.state.showNewIpForm[ipPool.id]
-            ? <form id={`newIpForm_${ipPool.id}`} className='form-inline'>
-              <ActionButton btnStyle='danger' handler={this._toggleNewIps} handlerParam={ipPool.id} icon='remove' />
-              {' '}
-              <DebounceInput
-                autoFocus
-                onChange={event => this._onChangeNewIps(event.target.value, ipPool.id)}
-                type='text'
-                className='form-control'
-                required
-                value={this.state.newIp && this.state.newIp[ipPool.id] || ''}
-              />
-              {' '}
-              <ActionButton form={`newIpForm_${ipPool.id}`} icon='save' btnStyle='primary' handler={this._addIps} handlerParam={ipPool} />
-            </form>
-            : <ActionButton btnStyle='success' size='small' handler={this._toggleNewIps} handlerParam={ipPool.id} icon='add' />}
-          </Col>
-        </Row>
-      </Container>
+        </Container>)
+
+        return ipPool => <Ips ipPool={ipPool} />
+      })()
     },
     {
       name: _('ipPoolNetworks'),
-      itemRenderer: ipPool => {
-        const state = store.getState()
-        return <Container>
+      itemRenderer: (() => {
+        const Networks = connectStore(() => {
+          const getNetworks = createGetObjectsOfType('network')
+
+          return (state, props) => ({
+            networks: getNetworks(state, props)
+          })
+        })(({ ipPool, networks }) => <Container>
           {map(ipPool.networks, networkId => <Row>
             <Col mediumSize={11}>
-              {getObject(state, networkId).name_label}
+              {networks[networkId].name_label}
             </Col>
             <Col mediumSize={1}>
               <ActionButton btnStyle='default' size='small' handler={this._deleteNetwork} handlerParam={{ ...ipPool, networkId }} icon='delete' />
@@ -205,10 +222,13 @@ export default class Ips extends BaseComponent {
               : <Col><ActionButton btnStyle='success' size='small' handler={this._toggleNewNetworks} handlerParam={ipPool.id} icon='add' /></Col>
             }
           </Row>
-        </Container>
-      }
+        </Container>)
+
+        return ipPool => <Networks ipPool={ipPool} />
+      })()
     },
     {
+      name: '',
       itemRenderer: ipPool => <span className='pull-right'>
         <ActionButton btnStyle='default' handler={deleteIpPool} handlerParam={ipPool.id} icon='delete' />
       </span>

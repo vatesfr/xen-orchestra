@@ -122,7 +122,7 @@ export default class TabNetworks extends Component {
                       <Tooltip content={networkInUse && _('networkInUse')}>
                         <Toggle
                           disabled={networkInUse}
-                          onChange={() => editNetwork(network.id, { defaultIsLocked: !network.defaultIsLocked })}
+                          onChange={() => editNetwork(network, { defaultIsLocked: !network.defaultIsLocked })}
                           value={network.defaultIsLocked}
                         />
                       </Tooltip>
