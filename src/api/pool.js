@@ -70,6 +70,21 @@ installPatch.params = {
 installPatch.resolve = {
   pool: ['pool', 'pool', 'administrate']
 }
+// -------------------------------------------------------------------
+
+export async function installAllPatches ({ pool }) {
+  await this.getXapi(pool).installAllPoolPatchesOnAllHosts()
+}
+
+installPatch.params = {
+  pool: {
+    type: 'string'
+  }
+}
+
+installPatch.resolve = {
+  pool: ['pool', 'pool', 'administrate']
+}
 
 // -------------------------------------------------------------------
 

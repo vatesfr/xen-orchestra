@@ -1,10 +1,12 @@
 // import isFinite from 'lodash/isFinite'
 import camelCase from 'lodash/camelCase'
+import createDebug from 'debug'
 import isEqual from 'lodash/isEqual'
 import isPlainObject from 'lodash/isPlainObject'
 import pickBy from 'lodash/pickBy'
 import { utcFormat, utcParse } from 'd3-time-format'
 
+import httpRequest from '../http-request'
 import {
   camelToSnakeCase,
   createRawObject,
@@ -16,7 +18,8 @@ import {
   isString,
   map,
   mapToArray,
-  noop
+  noop,
+  pFinally
 } from '../utils'
 
 // ===================================================================
@@ -57,6 +60,10 @@ export const prepareXapiParam = param => {
 
   return param
 }
+
+// -------------------------------------------------------------------
+
+export const debug = createDebug('xo:xapi')
 
 // -------------------------------------------------------------------
 
@@ -333,4 +340,43 @@ export const makeEditObject = specs => {
 
     return Promise.all(mapToArray(cbs, cb => cb())).then(noop)
   }
+}
+
+// ===================================================================
+
+// HTTP put, use an ugly hack if the length is not known because XAPI
+// does not support chunk encoding.
+export const put = (stream, {
+  headers: { ...headers } = {},
+  ...opts
+}, task) => {
+  const makeRequest = () => httpRequest({
+    ...opts,
+    body: stream,
+    headers,
+    method: 'put'
+  })
+
+  // Xen API does not support chunk encoding.
+  if (stream.length == null) {
+    headers['transfer-encoding'] = null
+
+    const promise = makeRequest()
+
+    if (task) {
+      // Some connections need the task to resolve (VDI import).
+      task::pFinally(() => {
+        promise.cancel()
+      })
+    } else {
+      // Some tasks need the connection to close (VM import).
+      promise.request.once('finish', () => {
+        promise.cancel()
+      })
+    }
+
+    return promise.readAll()
+  }
+
+  return makeRequest().readAll()
 }

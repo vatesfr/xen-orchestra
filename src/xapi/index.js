@@ -1,13 +1,10 @@
 /* eslint-disable camelcase */
 
-import createDebug from 'debug'
 import every from 'lodash/every'
 import fatfs from 'fatfs'
 import find from 'lodash/find'
 import includes from 'lodash/includes'
-import sortBy from 'lodash/sortBy'
 import tarStream from 'tar-stream'
-import unzip from 'julien-f-unzip'
 import vmdkToVhd from 'xo-vmdk-to-vhd'
 import { defer } from 'promise-toolbox'
 import {
@@ -21,11 +18,9 @@ import {
 import httpRequest from '../http-request'
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer'
 import {
-  debounce,
   deferrable,
   mixin
 } from '../decorators'
-import httpProxy from '../http-proxy'
 import {
   bufferToStream,
   camelToSnakeCase,
@@ -37,7 +32,6 @@ import {
   mapToArray,
   noop,
   pAll,
-  parseXml,
   pCatch,
   pDelay,
   pFinally,
@@ -45,7 +39,6 @@ import {
   pSettle
 } from '../utils'
 import {
-  GenericError,
   ForbiddenOperation
 } from '../api-errors'
 
@@ -54,60 +47,21 @@ import OTHER_CONFIG_TEMPLATE from './other-config-template'
 import {
   asBoolean,
   asInteger,
+  debug,
   extractOpaqueRef,
   filterUndefineds,
   getNamespaceForType,
   isVmHvm,
   isVmRunning,
   optional,
-  prepareXapiParam
+  prepareXapiParam,
+  put
 } from './utils'
-
-const debug = createDebug('xo:xapi')
 
 // ===================================================================
 
 const TAG_BASE_DELTA = 'xo:base_delta'
 const TAG_COPY_SRC = 'xo:copy_of'
-
-// ===================================================================
-
-// HTTP put, use an ugly hack if the length is not known because XAPI
-// does not support chunk encoding.
-const put = (stream, {
-  headers: { ...headers } = {},
-  ...opts
-}, task) => {
-  const makeRequest = () => httpRequest({
-    ...opts,
-    body: stream,
-    headers,
-    method: 'put'
-  })
-
-  // Xen API does not support chunk encoding.
-  if (stream.length == null) {
-    headers['transfer-encoding'] = null
-
-    const promise = makeRequest()
-
-    if (task) {
-      // Some connections need the task to resolve (VDI import).
-      task::pFinally(() => {
-        promise.cancel()
-      })
-    } else {
-      // Some tasks need the connection to close (VM import).
-      promise.request.once('finish', () => {
-        promise.cancel()
-      })
-    }
-
-    return promise.readAll()
-  }
-
-  return makeRequest().readAll()
-}
 
 // ===================================================================
 
@@ -430,82 +384,6 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
-  // FIXME: should be static
-  @debounce(24 * 60 * 60 * 1000)
-  async _getXenUpdates () {
-    const { readAll, statusCode } = await httpRequest(
-      'http://updates.xensource.com/XenServer/updates.xml',
-      { agent: httpProxy }
-    )
-
-    if (statusCode !== 200) {
-      throw new GenericError('cannot fetch patches list from Citrix')
-    }
-
-    const data = parseXml(await readAll()).patchdata
-
-    const patches = createRawObject()
-    forEach(data.patches.patch, patch => {
-      patches[patch.uuid] = {
-        date: patch.timestamp,
-        description: patch['name-description'],
-        documentationUrl: patch.url,
-        guidance: patch['after-apply-guidance'],
-        name: patch['name-label'],
-        url: patch['patch-url'],
-        uuid: patch.uuid,
-        conflicts: mapToArray(ensureArray(patch.conflictingpatches), patch => {
-          return patch.conflictingpatch.uuid
-        }),
-        requirements: mapToArray(ensureArray(patch.requiredpatches), patch => {
-          return patch.requiredpatch.uuid
-        })
-        // TODO: what does it mean, should we handle it?
-        // version: patch.version,
-      }
-      if (patches[patch.uuid].conflicts[0] === undefined) {
-        patches[patch.uuid].conflicts.length = 0
-      }
-      if (patches[patch.uuid].requirements[0] === undefined) {
-        patches[patch.uuid].requirements.length = 0
-      }
-    })
-
-    const resolveVersionPatches = function (uuids) {
-      const versionPatches = createRawObject()
-
-      forEach(ensureArray(uuids), ({uuid}) => {
-        versionPatches[uuid] = patches[uuid]
-      })
-
-      return versionPatches
-    }
-
-    const versions = createRawObject()
-    let latestVersion
-    forEach(data.serverversions.version, version => {
-      versions[version.value] = {
-        date: version.timestamp,
-        name: version.name,
-        id: version.value,
-        documentationUrl: version.url,
-        patches: resolveVersionPatches(version.patch)
-      }
-
-      if (version.latest) {
-        latestVersion = versions[version.value]
-      }
-    })
-
-    return {
-      patches,
-      latestVersion,
-      versions
-    }
-  }
-
-  // =================================================================
-
   async joinPool (masterAddress, masterUsername, masterPassword, force = false) {
     await this.call(
       force ? 'pool.join_force' : 'pool.join',
@@ -516,194 +394,6 @@ export default class Xapi extends XapiBase {
   }
 
   // =================================================================
-
-  // Returns installed and not installed patches for a given host.
-  async _getPoolPatchesForHost (host) {
-    const versions = (await this._getXenUpdates()).versions
-
-    const hostVersions = host.software_version
-    const version =
-      versions[hostVersions.product_version] ||
-      versions[hostVersions.product_version_text]
-
-    return version
-      ? version.patches
-      : []
-  }
-
-  _getInstalledPoolPatchesOnHost (host) {
-    const installed = createRawObject()
-
-    forEach(host.$patches, hostPatch => {
-      installed[hostPatch.$pool_patch.uuid] = true
-    })
-
-    return installed
-  }
-
-  async _listMissingPoolPatchesOnHost (host) {
-    const all = await this._getPoolPatchesForHost(host)
-    const installed = this._getInstalledPoolPatchesOnHost(host)
-
-    const installable = createRawObject()
-    forEach(all, (patch, uuid) => {
-      if (installed[uuid]) {
-        return
-      }
-
-      for (const uuid of patch.conflicts) {
-        if (uuid in installed) {
-          return
-        }
-      }
-
-      installable[uuid] = patch
-    })
-
-    return installable
-  }
-
-  async listMissingPoolPatchesOnHost (hostId) {
-    // Returns an array to not break compatibility.
-    return mapToArray(
-      await this._listMissingPoolPatchesOnHost(this.getObject(hostId))
-    )
-  }
-
-  // -----------------------------------------------------------------
-
-  _isPoolPatchInstallableOnHost (patchUuid, host) {
-    const installed = this._getInstalledPoolPatchesOnHost(host)
-
-    if (installed[patchUuid]) {
-      return false
-    }
-
-    let installable = true
-
-    forEach(installed, patch => {
-      if (includes(patch.conflicts, patchUuid)) {
-        installable = false
-
-        return false
-      }
-    })
-
-    return installable
-  }
-
-  // -----------------------------------------------------------------
-
-  async uploadPoolPatch (stream, patchName = 'unknown') {
-    const taskRef = await this._createTask('Patch upload', patchName)
-
-    const task = this._watchTask(taskRef)
-    const [ patchRef ] = await Promise.all([
-      task,
-      put(stream, {
-        hostname: this.pool.$master.address,
-        path: '/pool_patch_upload',
-        query: {
-          session_id: this.sessionId,
-          task_id: taskRef
-        }
-      }, task)
-    ])
-
-    return this._getOrWaitObject(patchRef)
-  }
-
-  async _getOrUploadPoolPatch (uuid) {
-    try {
-      return this.getObjectByUuid(uuid)
-    } catch (error) {}
-
-    debug('downloading patch %s', uuid)
-
-    const patchInfo = (await this._getXenUpdates()).patches[uuid]
-    if (!patchInfo) {
-      throw new Error('no such patch ' + uuid)
-    }
-
-    let stream = await httpRequest(patchInfo.url, { agent: httpProxy })
-    stream = await new Promise((resolve, reject) => {
-      const PATCH_RE = /\.xsupdate$/
-      stream.pipe(unzip.Parse()).on('entry', entry => {
-        if (PATCH_RE.test(entry.path)) {
-          entry.length = entry.size
-          resolve(entry)
-        } else {
-          entry.autodrain()
-        }
-      }).on('error', reject)
-    })
-
-    return this.uploadPoolPatch(stream, patchInfo.name)
-  }
-
-  // -----------------------------------------------------------------
-
-  async _installPoolPatchOnHost (patchUuid, host) {
-    debug('installing patch %s', patchUuid)
-
-    const patch = await this._getOrUploadPoolPatch(patchUuid)
-    await this.call('pool_patch.apply', patch.$ref, host.$ref)
-  }
-
-  async installPoolPatchOnHost (patchUuid, hostId) {
-    return /* await */ this._installPoolPatchOnHost(
-      patchUuid,
-      this.getObject(hostId)
-    )
-  }
-
-  // -----------------------------------------------------------------
-
-  async installPoolPatchOnAllHosts (patchUuid) {
-    const patch = await this._getOrUploadPoolPatch(patchUuid)
-
-    await this.call('pool_patch.pool_apply', patch.$ref)
-  }
-
-  // -----------------------------------------------------------------
-
-  async _installPoolPatchOnHostAndRequirements (patch, host, patchesByUuid) {
-    const { requirements } = patch
-    if (requirements.length) {
-      for (const requirementUuid of requirements) {
-        if (this._isPoolPatchInstallableOnHost(requirementUuid, host)) {
-          const requirement = patchesByUuid[requirementUuid]
-          await this._installPoolPatchOnHostAndRequirements(requirement, host, patchesByUuid)
-
-          host = this.getObject(host.$id)
-        }
-      }
-    }
-
-    await this._installPoolPatchOnHost(patch.uuid, host)
-  }
-
-  async installAllPoolPatchesOnHost (hostId) {
-    let host = this.getObject(hostId)
-
-    const installableByUuid = await this._listMissingPoolPatchesOnHost(host)
-
-    // List of all installable patches sorted from the newest to the
-    // oldest.
-    const installable = sortBy(
-      installableByUuid,
-      patch => -Date.parse(patch.date)
-    )
-
-    for (let i = 0, n = installable.length; i < n; ++i) {
-      const patch = installable[i]
-
-      if (this._isPoolPatchInstallableOnHost(patch.uuid, host)) {
-        await this._installPoolPatchOnHostAndRequirements(patch, host, installableByUuid)
-        host = this.getObject(host.$id)
-      }
-    }
-  }
 
   async emergencyShutdownHost (hostId) {
     const host = this.getObject(hostId)
