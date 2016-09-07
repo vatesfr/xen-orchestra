@@ -458,6 +458,10 @@ export const installAllHostPatches = host => (
   _call('host.installAllPatches', { host: resolveId(host) })
 )
 
+export const installAllPatchesOnPool = pool => (
+  _call('pool.installAllPatches', { pool: resolveId(pool) })
+)
+
 // VM ----------------------------------------------------------------
 
 export const startVm = vm => (
