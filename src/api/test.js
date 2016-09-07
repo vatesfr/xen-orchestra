@@ -36,9 +36,9 @@ hasPermission.params = {
 
 export function wait ({duration, returnValue}) {
   return new Promise(resolve => {
-    setTimeout(+duration, () => {
+    setTimeout(() => {
       resolve(returnValue)
-    })
+    }, +duration)
   })
 }
 
