@@ -22,6 +22,13 @@ Just configure your VirtualHost as usual (or your default site), with a section 
 
 ```nginx
 location /[<path>] {
+  # Add some headers
+  proxy_set_header        Host $host;
+  proxy_set_header        X-Real-IP $remote_addr;
+  proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_set_header        X-Forwarded-Proto $scheme;
+
+  # Proxy configuration
   proxy_pass http://<XOA ip address>[:<port>]/;
 
   proxy_http_version 1.1;
@@ -29,6 +36,13 @@ location /[<path>] {
   proxy_set_header Upgrade $http_upgrade;
 
   proxy_redirect default;
+
+  # Issue https://github.com/vatesfr/xo-web/issues/1471
+  proxy_read_timeout 1800; # Error will be only every 30m
+
+  # For the VM import feature, this size must be larger than the file we want to upload.
+  # Without a proper value, nginx will have error "client intended to send too large body"
+  client_max_body_size 4G;
 }
 ```
 
