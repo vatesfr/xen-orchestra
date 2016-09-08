@@ -700,7 +700,7 @@ export const deleteVms = vms => (
     title: _('deleteVmsModalTitle', { vms: vms.length }),
     body: _('deleteVmsModalMessage', { vms: vms.length })
   }).then(
-    () => map(vms, vmId => _call('vm.delete', { id: vmId })),
+    () => map(vms, vmId => _call('vm.delete', { id: vmId, delete_disks: true })),
     noop
   )
 )
