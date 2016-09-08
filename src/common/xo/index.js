@@ -731,12 +731,12 @@ export const fetchVmStats = (vm, granularity) => (
   _call('vm.stats', { id: resolveId(vm), granularity })
 )
 
-export const importVm = (file, sr) => {
+export const importVm = (file, type = 'xva', data = undefined, sr) => {
   const { name } = file
 
   info(_('startVmImport'), name)
 
-  return _call('vm.import', { sr }).then(({ $sendTo: url }) => {
+  return _call('vm.import', { type, data, sr: resolveId(sr) }).then(({ $sendTo: url }) => {
     const req = request.post(url)
 
     req.send(file)
@@ -750,9 +750,9 @@ export const importVm = (file, sr) => {
   })
 }
 
-export const importVms = (files, sr) => (
-  Promise.all(map(files, file =>
-    importVm(file, sr).catch(noop)
+export const importVms = (vms, sr) => (
+  Promise.all(map(vms, ({ file, type, data }) =>
+    importVm(file, type, data, sr).catch(noop)
   ))
 )
 

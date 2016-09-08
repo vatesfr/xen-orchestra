@@ -57,6 +57,7 @@
     "dependency-check": "^2.5.1",
     "font-awesome": "^4.5.0",
     "font-mfizz": "github:fizzed/font-mfizz",
+    "get-stream": "^2.3.0",
     "ghooks": "^1.1.1",
     "globby": "^6.0.0",
     "gulp": "github:gulpjs/gulp#4.0",
@@ -111,8 +112,10 @@
     "serve-static": "^1.10.2",
     "standard": "^8.0.0",
     "superagent": "^2.0.0",
+    "tar-stream": "^1.5.2",
     "vinyl": "^1.1.1",
     "watchify": "^3.7.0",
+    "xml2js": "^0.4.17",
     "xo-acl-resolver": "^0.2.1",
     "xo-lib": "^0.8.0",
     "xo-remote-parser": "^0.3"
