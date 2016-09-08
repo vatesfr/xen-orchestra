@@ -39,11 +39,8 @@ import {
   XEN_DEFAULT_CPU_WEIGHT
 } from 'xo'
 import {
-  SelectIp,
-  SelectNetwork,
   SelectPool,
   SelectResourceSet,
-  SelectResourceSetsNetwork,
   SelectResourceSetsSr,
   SelectResourceSetsVdi,
   SelectResourceSetsVmTemplate,
@@ -72,38 +69,19 @@ import {
   getUser
 } from 'selectors'
 
+import Interface from './interface'
 import styles from './index.css'
+import {
+  Item,
+  LineItem,
+  SectionContent
+} from './item'
 
 const DEBOUNCE_TIMEOUT = 300
 const NB_VMS_MIN = 2
 const NB_VMS_MAX = 100
 
 /* eslint-disable camelcase */
-
-// Sub-components --------------------------------------------------------------
-
-const SectionContent = ({ summary, column, children }) => (
-  <div className={classNames(
-    'form-inline',
-    summary ? styles.summary : styles.sectionContent,
-    column && styles.sectionContentColumn
-  )}>
-    {children}
-  </div>
-)
-const LineItem = ({ children }) => (
-  <div className={styles.lineItem}>
-    {children}
-  </div>
-)
-const Item = ({ label, children, className }) => (
-  <span className={styles.item}>
-    {label && <span>{_(label)}&nbsp;</span>}
-    <span className={classNames(styles.input, className)}>{children}</span>
-  </span>
-)
-
-// -----------------------------------------------------------------------------
 
 const getObject = createGetObject((_, id) => id)
 
@@ -182,6 +160,8 @@ export default class NewVm extends BaseComponent {
   }
   _replaceState = (state, callback) =>
     this.setState({ state }, callback)
+  _linkState = (path, targetPath) =>
+    this.linkState(`state.${path}`, targetPath)
 
 // Actions ---------------------------------------------------------------------
 
@@ -254,6 +234,26 @@ export default class NewVm extends BaseComponent {
       cloudConfig = state.cloudConfig
     }
 
+    // Split allowed IPs into IPv4 and IPv6
+    const { VIFs } = state
+    const _VIFs = map(VIFs, vif => {
+      const _vif = { ...vif }
+      delete _vif.addresses
+      _vif.allowedIpv4Addresses = []
+      _vif.allowedIpv6Addresses = []
+      forEach(vif.addresses, ip => {
+        if (!isIp(ip)) {
+          return
+        }
+        if (isIp.v4(ip)) {
+          _vif.allowedIpv4Addresses.push(ip)
+        } else {
+          _vif.allowedIpv6Addresses.push(ip)
+        }
+      })
+      return _vif
+    })
+
     const data = {
       clone: !this.isDiskTemplate && state.fastClone,
       existingDisks: state.existingDisks,
@@ -261,9 +261,8 @@ export default class NewVm extends BaseComponent {
       name_label: state.name_label,
       template: state.template.id,
       VDIs: state.VDIs,
-      VIFs: state.VIFs,
+      VIFs: _VIFs,
       resourceSet: resourceSet && resourceSet.id,
-      // TODO: To be added in xo-server
       // vm.set parameters
       CPUs: state.CPUs,
       cpuWeight: state.cpuWeight === '' ? null : state.cpuWeight,
@@ -502,23 +501,6 @@ export default class NewVm extends BaseComponent {
     }
   }
   _onChangeSshKeys = keys => this._setState({ sshKeys: map(keys, key => key.id) })
-  _getOnChangeIps = index => ips => {
-    const VIFs = this.state.state.VIFs
-    const vif = VIFs[index]
-    vif.allowedIpv4Addresses = []
-    vif.allowedIpv6Addresses = []
-    forEach(ips, ip => {
-      if (!isIp(ip.id)) {
-        return
-      }
-      if (isIp.v4(ip.id)) {
-        vif.allowedIpv4Addresses.push(ip.id)
-      } else {
-        vif.allowedIpv6Addresses.push(ip.id)
-      }
-    })
-    this._setState({ VIFs })
-  }
 
   _updateNbVms = () => {
     const { nbVms, nameLabels, seqStart } = this.state.state
@@ -1057,11 +1039,7 @@ export default class NewVm extends BaseComponent {
 
 // INTERFACES ------------------------------------------------------------------
 
-  _getIpPoolPredicate = vifNetwork =>
-    pool => find(pool.networks, network => network.id === vifNetwork)
-
   _renderInterfaces = () => {
-    const { formatMessage } = this.props.intl
     const {
       state: { VIFs },
       pool
@@ -1069,50 +1047,18 @@ export default class NewVm extends BaseComponent {
     return <Section icon='new-vm-interfaces' title='newVmInterfacesPanel' done={this._isInterfacesDone()}>
       <SectionContent column>
         {map(VIFs, (vif, index) => <div key={index}>
-          <LineItem>
-            <Item label='newVmMacLabel'>
-              <DebounceInput
-                className='form-control'
-                debounceTimeout={DEBOUNCE_TIMEOUT}
-                onChange={this._getOnChange('VIFs', index, 'mac')}
-                placeholder={formatMessage(messages.newVmMacPlaceholder)}
-                rows={7}
-                value={vif.mac}
-              />
-            </Item>
-            <Item label='newVmNetworkLabel'>
-              <span className={styles.inlineSelect}>
-                {pool ? <SelectNetwork
-                  onChange={this._getOnChange('VIFs', index, 'network', 'id')}
-                  predicate={this._getNetworkPredicate()}
-                  value={vif.network}
-                />
-                : <SelectResourceSetsNetwork
-                  onChange={this._getOnChange('VIFs', index, 'network', 'id')}
-                  resourceSet={this.state.resourceSet}
-                  value={vif.network}
-                />}
-              </span>
-            </Item>
-            <LineItem>
-              <span className={styles.inlineSelect}>
-                <SelectIp
-                  multi
-                  onChange={this._getOnChangeIps(index)}
-                  containerPredicate={this._getIpPoolPredicate(vif.network)}
-                  value={vif.ip}
-                />
-              </span>
-            </LineItem>
-            <Item>
-              <Button onClick={() => this._removeInterface(index)} bsStyle='secondary'>
-                <Icon icon='new-vm-remove' />
-              </Button>
-            </Item>
-          </LineItem>
+          <Interface
+            index={index}
+            ips={vif.addresses}
+            linkState={this._linkState}
+            mac={vif.mac}
+            network={vif.network}
+            networkPredicate={this._getNetworkPredicate()}
+            removeInterface={() => this._removeInterface(index)}
+            useResourceSet={!pool}
+          />
           {index < VIFs.length - 1 && <hr />}
-        </div>
-        )}
+        </div>)}
         <Item>
           <Button onClick={this._addInterface} bsStyle='secondary'>
             <Icon icon='new-vm-add' />
