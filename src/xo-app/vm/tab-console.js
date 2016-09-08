@@ -9,7 +9,7 @@ import NoVnc from 'react-novnc'
 import React from 'react'
 import Tooltip from 'tooltip'
 import { Button } from 'react-bootstrap-4/lib'
-import { resolveUrl } from 'xo'
+import { resolveUrl, isVmRunning } from 'xo'
 import { Container, Row, Col } from 'grid'
 import {
   CpuSparkLines,
@@ -19,6 +19,11 @@ import {
 } from 'xo-sparklines'
 
 export default class TabConsole extends Component {
+  componentWillReceiveProps (props) {
+    if (isVmRunning(this.props.vm) && !isVmRunning(props.vm)) {
+      this.props.minimalLayout && this._toggleMinimalLayout()
+    }
+  }
   _sendCtrlAltDel = () => {
     this.refs.noVnc.sendCtrlAltDel()
   }
@@ -53,9 +58,11 @@ export default class TabConsole extends Component {
       scale
     } = this.state
 
-    if (vm.power_state !== 'Running') {
+    if (!isVmRunning(vm)) {
       return (
-        <p>Console is only available for running VMs.</p>
+        <Container>
+          <p>Console is only available for running VMs.</p>
+        </Container>
       )
     }
 
