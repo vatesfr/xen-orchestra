@@ -1,6 +1,7 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
+import BaseComponent from 'base-component'
 import concat from 'lodash/concat'
 import every from 'lodash/every'
 import find from 'lodash/find'
@@ -52,25 +53,39 @@ const TABLE_STYLE = { minWidth: '0' }
       return hostMaster && hostMaster.$PIFs
     }
   )
-  const getDefaultNetworkId = createSelector(
-    createFinder(
-      getPifs,
-      [ pif => pif.management ]
-    ),
-    pif => pif && pif.$network
+  const getDefaultNetwork = createGetObject(
+    createSelector(
+      createFinder(
+        getPifs,
+        [ pif => pif.management ]
+      ),
+      pif => pif && pif.$network
+    )
   )
   return {
-    defaultNetworkId: getDefaultNetworkId
+    defaultNetwork: getDefaultNetwork
   }
 })
 @injectIntl
-class NewVif extends Component {
-  constructor (props) {
-    super(props)
-    this.state = {
-      network: undefined
+class NewVif extends BaseComponent {
+  componentWillMount () {
+    this._autoFill(this.props)
+  }
+
+  componentWillReceiveProps (props) {
+    this._autoFill(props)
+  }
+
+  _autoFill = props => {
+    const { defaultNetwork } = props
+    if (defaultNetwork && !this.state.network) {
+      this.setState({
+        mtu: String(defaultNetwork.MTU),
+        network: defaultNetwork
+      })
     }
   }
+
   _getNetworkPredicate = createSelector(
     () => {
       const { vm } = this.props
@@ -79,29 +94,38 @@ class NewVif extends Component {
     poolId => network => network.$pool === poolId
   )
 
-  _selectNetwork = network => this.setState({network})
+  _selectNetwork = network => {
+    this.setState({
+      mtu: String(network.MTU),
+      network
+    })
+  }
 
   _createVif = () => {
     const { vm, onClose = noop } = this.props
-    const { mac, mtu } = this.refs
-    const { network } = this.state
-    return createVmInterface(vm, network, mac.value || undefined, mtu.value || String(network.MTU))
+    const { mac, mtu, network } = this.state
+    return createVmInterface(vm, network, mac, mtu || String(network.MTU))
       .then(onClose)
   }
 
   render () {
     const formatMessage = this.props.intl.formatMessage
+    const {
+      mac,
+      mtu,
+      network
+    } = this.state
     return <form id='newVifForm'>
       <div className='form-group'>
-        <SelectNetwork defaultValue={this.props.defaultNetworkId} predicate={this._getNetworkPredicate()} onChange={this._selectNetwork} required />
+        <SelectNetwork value={network} predicate={this._getNetworkPredicate()} onChange={this._selectNetwork} required />
       </div>
       <fieldset className='form-inline'>
         <div className='form-group'>
-          <input type='text' ref='mac' placeholder={formatMessage(messages.vifMacLabel)} className='form-control' /> ({_('vifMacAutoGenerate')})
+          <input type='text' value={mac || ''} onChange={this.linkState('mac')} placeholder={formatMessage(messages.vifMacLabel)} className='form-control' /> ({_('vifMacAutoGenerate')})
         </div>
         {' '}
         <div className='form-group'>
-          <input type='text' ref='mtu' placeholder={formatMessage(messages.vifMtuLabel)} className='form-control' />
+          <input type='text' value={mtu || ''} onChange={this.linkState('mtu')} placeholder={formatMessage(messages.vifMtuLabel)} className='form-control' />
         </div>
         <span className='pull-right'>
           <ActionButton form='newVifForm' icon='add' btnStyle='primary' handler={this._createVif}>Create</ActionButton>
@@ -318,9 +342,10 @@ export default class TabNetwork extends Component {
                         ? <Tooltip content={_('vifLockedNetworkNoIps')}>
                           <Icon icon='error' />
                         </Tooltip>
-                        : <Tooltip content={lockedNetwork && _('vifLockedNetwork')}>
-                          <Icon icon={lockedNetwork ? 'lock' : 'unlock'} />
-                        </Tooltip>}
+                        : lockedNetwork ? <Tooltip content={_('vifLockedNetwork')}>
+                          <Icon icon={'lock'} />
+                        </Tooltip>
+                        : <Icon icon={'unlock'} />}
                       </td>
                     </tr>
                   })}
