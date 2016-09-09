@@ -306,7 +306,6 @@ export const makeEditObject = specs => {
 
         let addToLimits
         if (limits && (addToLimits = spec.addToLimits)) {
-          console.log(spec.limitName, value, current, addToLimits(value, current))
           limits[spec.limitName] = addToLimits(value, current)
         }
       }

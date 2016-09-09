@@ -61,8 +61,6 @@ extract = (obj, prop) ->
 
 # TODO: Implement ACLs
 create = $coroutine (params) ->
-  console.log(params)
-
   checkLimits = limits = null
 
   { user } = this
@@ -70,7 +68,6 @@ create = $coroutine (params) ->
   if resourceSet
     yield this.checkResourceSetConstraints(resourceSet, user.id, objectIds)
     checkLimits = $coroutine (limits2) =>
-      console.log('limits', limits, limits2)
       yield this.allocateLimitsInResourceSet(limits, resourceSet)
       yield this.allocateLimitsInResourceSet(limits2, resourceSet)
   else unless user.permission is 'admin'
@@ -133,7 +130,6 @@ create = $coroutine (params) ->
     })
   )
 
-  console.log(vdiSizesByDevice)
   forEach(vdiSizesByDevice, (size) => limits.disk += size)
 
   vifs = extract(params, 'VIFs')
