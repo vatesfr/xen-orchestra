@@ -39,8 +39,11 @@ import {
   XEN_DEFAULT_CPU_WEIGHT
 } from 'xo'
 import {
+  SelectIp,
+  SelectNetwork,
   SelectPool,
   SelectResourceSet,
+  SelectResourceSetsNetwork,
   SelectResourceSetsSr,
   SelectResourceSetsVdi,
   SelectResourceSetsVmTemplate,
@@ -69,13 +72,7 @@ import {
   getUser
 } from 'selectors'
 
-import Interface from './interface'
 import styles from './index.css'
-import {
-  Item,
-  LineItem,
-  SectionContent
-} from './item'
 
 const DEBOUNCE_TIMEOUT = 300
 const NB_VMS_MIN = 2
@@ -84,6 +81,31 @@ const NB_VMS_MAX = 100
 /* eslint-disable camelcase */
 
 const getObject = createGetObject((_, id) => id)
+
+// Sub-components
+
+const Item = ({ label, children, className }) => (
+  <span className={styles.item}>
+    {label && <span>{_(label)}&nbsp;</span>}
+    <span className={classNames(styles.input, className)}>{children}</span>
+  </span>
+)
+
+const SectionContent = ({ summary, column, children }) => (
+  <div className={classNames(
+    'form-inline',
+    summary ? styles.summary : styles.sectionContent,
+    column && styles.sectionContentColumn
+  )}>
+    {children}
+  </div>
+)
+
+const LineItem = ({ children }) => (
+  <div className={styles.lineItem}>
+    {children}
+  </div>
+)
 
 @addSubscriptions({
   user: subscribeCurrentUser
@@ -1044,19 +1066,52 @@ export default class NewVm extends BaseComponent {
       state: { VIFs },
       pool
     } = this.state
+    const { formatMessage } = this.props.intl
+
     return <Section icon='new-vm-interfaces' title='newVmInterfacesPanel' done={this._isInterfacesDone()}>
       <SectionContent column>
         {map(VIFs, (vif, index) => <div key={index}>
-          <Interface
-            index={index}
-            ips={vif.addresses}
-            linkState={this._linkState}
-            mac={vif.mac}
-            network={vif.network}
-            networkPredicate={this._getNetworkPredicate()}
-            removeInterface={() => this._removeInterface(index)}
-            useResourceSet={!pool}
-          />
+          <LineItem>
+            <Item label='newVmMacLabel'>
+              <DebounceInput
+                className='form-control'
+                debounceTimeout={DEBOUNCE_TIMEOUT}
+                onChange={this._linkState(`VIFs.${index}.mac`)}
+                placeholder={formatMessage(messages.newVmMacPlaceholder)}
+                rows={7}
+                value={vif.mac}
+              />
+            </Item>
+            <Item label='newVmNetworkLabel'>
+              <span className={styles.inlineSelect}>
+                {pool ? <SelectNetwork
+                  onChange={this._linkState(`VIFs.${index}.network`, 'id')}
+                  predicate={this._getNetworkPredicate()}
+                  value={vif.network}
+                />
+                : <SelectResourceSetsNetwork
+                  onChange={this._linkState(`VIFs.${index}.network`, 'id')}
+                  resourceSet={this.state.resourceSet}
+                  value={vif.network}
+                />}
+              </span>
+            </Item>
+            <LineItem>
+              <span className={styles.inlineSelect}>
+                <SelectIp
+                  containerPredicate={pool => find(pool.networks, poolNetwork => poolNetwork === vif.network)}
+                  multi
+                  onChange={this._linkState(`VIFs.${index}.addresses`, '*.id')}
+                  value={vif.addresses}
+                />
+              </span>
+            </LineItem>
+            <Item>
+              <Button onClick={() => this._removeInterface(index)} bsStyle='secondary'>
+                <Icon icon='new-vm-remove' />
+              </Button>
+            </Item>
+          </LineItem>
           {index < VIFs.length - 1 && <hr />}
         </div>)}
         <Item>

@@ -9,22 +9,26 @@ import getEventValue from './get-event-value'
 import invoke from './invoke'
 import shallowEqual from './shallow-equal'
 
-const cowSet = (object, path, value, depth = 0) => {
+const cowSet = (object, path, value, depth) => {
   if (depth >= path.length) {
     return value
   }
 
   object = clone(object)
-  object[path[depth]] = cowSet(object[path[depth]], path, value, depth + 1)
+  const prop = path[depth]
+  object[prop] = cowSet(object[prop], path, value, depth + 1)
   return object
 }
 
-const deepFind = (object, path, depth = 0) => {
-  if (!path || depth >= path.length) {
+const get = (object, path, depth) => {
+  if (depth >= path.length) {
     return object
   }
 
-  return deepFind(object[path[depth]], path, depth + 1)
+  const prop = path[depth++]
+  return isArray(object) && prop === '*'
+    ? map(object, value => get(value, path, depth))
+    : get(object[prop], path, depth)
 }
 
 export default class BaseComponent extends Component {
@@ -47,38 +51,36 @@ export default class BaseComponent extends Component {
 
   // See https://preactjs.com/guide/linked-state
   linkState (name, targetPath) {
+    const key = targetPath
+      ? `${name}##${targetPath}`
+      : name
+
     let linkedState = this._linkedState
     let cb
     if (!linkedState) {
       linkedState = this._linkedState = {}
-    } else if ((cb = linkedState[name])) {
+    } else if ((cb = linkedState[key])) {
       return cb
     }
 
-    targetPath = targetPath && targetPath.split('.')
+    let getValue
+    if (targetPath) {
+      const path = targetPath.split('.')
+      getValue = event => get(getEventValue(event), path, 0)
+    } else {
+      getValue = getEventValue
+    }
 
     if (includes(name, '.')) {
       const path = name.split('.')
-      return (linkedState[name] = event => {
-        const rawValue = getEventValue(event)
-
-        if (!targetPath) {
-          return this.setState(cowSet(this.state, path, rawValue))
-        }
-
-        let value
-        if (isArray(rawValue)) {
-          value = map(rawValue, v => deepFind(v, targetPath))
-        } else {
-          value = deepFind(rawValue, targetPath)
-        }
-        this.setState(cowSet(this.state, path, value))
+      return (linkedState[key] = event => {
+        this.setState(cowSet(this.state, path, getValue(event), 0))
       })
     }
 
-    return (linkedState[name] = event => {
+    return (linkedState[key] = event => {
       this.setState({
-        [name]: deepFind(getEventValue(event), targetPath)
+        [name]: get(getEventValue(event), targetPath)
       })
     })
   }
