@@ -1,5 +1,22 @@
+import forEach from 'lodash/forEach'
+
+import {
+  diffItems,
+  noop,
+  pCatch
+} from '../utils'
+
+// ===================================================================
+
 // TODO: move into vm and rename to removeInterface
 async function delete_ ({vif}) {
+  const { id } = vif
+  const dealloc = address => {
+    this.deallocIpAddress(address, id)::pCatch(noop)
+  }
+  forEach(vif.allowedIpv4Addresses, dealloc)
+  forEach(vif.allowedIpv6Addresses, dealloc)
+
   await this.getXapi(vif).deleteVif(vif._xapiId)
 }
 export {delete_ as delete}
@@ -13,6 +30,7 @@ delete_.resolve = {
 }
 
 // -------------------------------------------------------------------
+
 // TODO: move into vm and rename to disconnectInterface
 export async function disconnect ({vif}) {
   // TODO: check if VIF is attached before
@@ -45,6 +63,18 @@ connect.resolve = {
 // -------------------------------------------------------------------
 
 export function set ({ vif, allowedIpv4Addresses, allowedIpv6Addresses }) {
+  const { id } = vif
+  const handle = ([ newAddresses, oldAddresses ]) => {
+    forEach(newAddresses, address => {
+      this.allocIpAddress(address, id)::pCatch(noop)
+    })
+    forEach(oldAddresses, address => {
+      this.deallocIpAddress(address, id)::pCatch(noop)
+    })
+  }
+  handle(diffItems(allowedIpv4Addresses, vif.allowedIpv4Addresses))
+  handle(diffItems(allowedIpv6Addresses, vif.allowedIpv6Addresses))
+
   return this.getXapi(vif).editVif(vif._xapiId, {
     ipv4Allowed: allowedIpv4Addresses,
     ipv6Allowed: allowedIpv6Addresses
@@ -56,13 +86,15 @@ set.params = {
     type: 'array',
     items: {
       type: 'string'
-    }
+    },
+    optional: true
   },
   allowedIpv6Addresses: {
     type: 'array',
     items: {
       type: 'string'
-    }
+    },
+    optional: true
   }
 }
 

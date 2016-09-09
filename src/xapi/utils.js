@@ -180,8 +180,9 @@ export const makeEditObject = specs => {
     if (isString(set)) {
       const index = set.indexOf('.')
       if (index === -1) {
+        const prop = camelToSnakeCase(set)
         return function (value) {
-          return this._set(set, value)
+          return this._set(prop, value)
         }
       }
 

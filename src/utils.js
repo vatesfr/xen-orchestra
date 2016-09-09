@@ -74,6 +74,27 @@ export const createRawObject = Object.create
 
 // -------------------------------------------------------------------
 
+// Only works with string items!
+export const diffItems = (coll1, coll2) => {
+  const removed = createRawObject()
+  forEach(coll2, value => {
+    removed[value] = true
+  })
+
+  const added = []
+  forEach(coll1, value => {
+    if (value in removed) {
+      delete removed[value]
+    } else {
+      added.push(value)
+    }
+  })
+
+  return [ added, keys(removed) ]
+}
+
+// -------------------------------------------------------------------
+
 const ALGORITHM_TO_ID = {
   md5: '1',
   sha256: '5',
@@ -499,6 +520,23 @@ export const thunkToArray = thunk => {
   const values = []
   thunk(::values.push)
   return values
+}
+
+// -------------------------------------------------------------------
+
+// Creates a new function which throws an error.
+//
+// ```js
+// promise.catch(throwFn('an error has occured'))
+//
+// function foo (param = throwFn('param is required')) {}
+// ```
+export const throwFn = error => () => {
+  throw (
+    isString(error)
+      ? new Error(error)
+      : error
+  )
 }
 
 // -------------------------------------------------------------------

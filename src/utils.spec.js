@@ -7,6 +7,7 @@ import expect from 'must'
 import {
   camelToSnakeCase,
   createRawObject,
+  diffItems,
   ensureArray,
   extractProperty,
   formatXml,
@@ -53,6 +54,20 @@ describe('createRawObject()', () => {
       expect(Object.getPrototypeOf(createRawObject())).to.be.null()
     })
   }
+})
+
+// -------------------------------------------------------------------
+
+describe('diffItems', () => {
+  it('computes the added/removed items between 2 iterables', () => {
+    expect(diffItems(
+      ['foo', 'bar'],
+      ['baz', 'foo']
+    )).to.eql([
+      ['bar'],
+      ['baz']
+    ])
+  })
 })
 
 // -------------------------------------------------------------------
