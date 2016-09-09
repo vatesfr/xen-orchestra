@@ -178,7 +178,6 @@ export default class Ips extends BaseComponent {
                 <ActionButton btnStyle='danger' handler={this._toggleNewIps} handlerParam={ipPool.id} icon='remove' />
                 {' '}
                 <DebounceInput
-                  autoFocus
                   onChange={event => this._onChangeNewIps(event.target.value, ipPool.id)}
                   type='text'
                   className='form-control'
