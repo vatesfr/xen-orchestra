@@ -224,6 +224,9 @@ export const makeEditObject = specs => {
     if (spec.addToLimits === true) {
       spec.addToLimits = _DEFAULT_ADD_TO_LIMITS
     }
+    if (!spec.limitName) {
+      spec.limitName = name
+    }
 
     forEach(spec.constraints, (constraint, constraintName) => {
       if (!isFunction(constraint)) {
@@ -302,7 +305,8 @@ export const makeEditObject = specs => {
 
         let addToLimits
         if (limits && (addToLimits = spec.addToLimits)) {
-          limits[name] = addToLimits(value, current)
+          console.log(spec.limitName, value, current, addToLimits(value, current))
+          limits[spec.limitName] = addToLimits(value, current)
         }
       }
 

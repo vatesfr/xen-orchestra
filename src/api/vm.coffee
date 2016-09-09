@@ -61,6 +61,21 @@ extract = (obj, prop) ->
 
 # TODO: Implement ACLs
 create = $coroutine (params) ->
+  console.log(params)
+
+  checkLimits = limits = null
+
+  { user } = this
+  resourceSet = extract(params, 'resourceSet')
+  if resourceSet
+    yield this.checkResourceSetConstraints(resourceSet, user.id, objectIds)
+    checkLimits = $coroutine (limits2) =>
+      console.log('limits', limits, limits2)
+      yield this.allocateLimitsInResourceSet(limits, resourceSet)
+      yield this.allocateLimitsInResourceSet(limits2, resourceSet)
+  else unless user.permission is 'admin'
+    throw new Unauthorized()
+
   template = extract(params, 'template')
   params.template = template._xapiId
 
@@ -81,7 +96,7 @@ create = $coroutine (params) ->
       vbd.type is 'Disk' and
       (vdi = vbd.$VDI)
     )
-      vdiSizesByDevice[vbd.device] = +vdi.virtual_size
+      vdiSizesByDevice[vbd.userdevice] = +vdi.virtual_size
 
     return
   )
@@ -95,7 +110,7 @@ create = $coroutine (params) ->
     limits.disk += size
 
     return $assign({}, vdi, {
-      device: vdi.device ? vdi.position,
+      device: vdi.userdevice ? vdi.device ? vdi.position,
       size,
       SR: sr._xapiId,
       type: vdi.type
@@ -103,10 +118,10 @@ create = $coroutine (params) ->
   )
 
   existingVdis = extract(params, 'existingDisks')
-  params.existingVdis = existingVdis and map(existingVdis, (vdi, device) =>
+  params.existingVdis = existingVdis and map(existingVdis, (vdi, userdevice) =>
     if vdi.size?
       size = parseSize(vdi.size)
-      vdiSizesByDevice[device] = size
+      vdiSizesByDevice[userdevice] = size
 
     if vdi.$SR
       sr = @getObject(vdi.$SR)
@@ -118,6 +133,7 @@ create = $coroutine (params) ->
     })
   )
 
+  console.log(vdiSizesByDevice)
   forEach(vdiSizesByDevice, (size) => limits.disk += size)
 
   vifs = extract(params, 'VIFs')
@@ -135,17 +151,8 @@ create = $coroutine (params) ->
   installation = extract(params, 'installation')
   params.installRepository = installation && installation.repository
 
-  resourceSet = extract(params, 'resourceSet')
-
-  xapiVm = yield xapi.createVm(template._xapiId, params)
+  xapiVm = yield xapi.createVm(template._xapiId, params, checkLimits)
   vm = xapi.xo.addObject(xapiVm)
-
-  { user } = this
-  if resourceSet
-    yield this.checkResourceSetConstraints(resourceSet, user.id, objectIds)
-    yield this.allocateLimitsInResourceSet(limits, resourceSet)
-  else unless user.permission is 'admin'
-    throw new Unauthorized()
 
   if resourceSet
     yield Promise.all([

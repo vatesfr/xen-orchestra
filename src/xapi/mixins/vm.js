@@ -3,6 +3,9 @@ import gte from 'lodash/gte'
 import lte from 'lodash/lte'
 
 import {
+  deferrable
+} from '../../decorators'
+import {
   forEach,
   mapToArray,
   noop,
@@ -18,7 +21,8 @@ import {
 
 export default {
   // TODO: clean up on error.
-  async createVm (templateId, {
+  @deferrable.onFailure
+  async createVm ($onFailure, templateId, {
     name_label, // deprecated
     nameLabel = name_label, // eslint-disable-line camelcase
 
@@ -34,7 +38,7 @@ export default {
     cloudConfig = undefined,
 
     ...props
-  } = {}) {
+  } = {}, checkLimits) {
     const installMethod = (() => {
       if (installRepository == null) {
         return 'none'
@@ -50,23 +54,23 @@ export default {
     const template = this.getObject(templateId)
 
     // Clones the template.
-    let vm = await this._getOrWaitObject(
-      await this[clone ? '_cloneVm' : '_copyVm'](template, nameLabel)
-    )
+    const vmRef = await this[clone ? '_cloneVm' : '_copyVm'](template, nameLabel)
+    $onFailure(() => this.deleteVm(vmRef, true)::pCatch(noop))
 
     // TODO: copy BIOS strings?
 
     // Removes disks from the provision XML, we will create them by
     // ourselves.
-    await this.call('VM.remove_from_other_config', vm.$ref, 'disks')::pCatch(noop)
+    await this.call('VM.remove_from_other_config', vmRef, 'disks')::pCatch(noop)
 
     // Creates the VDIs and executes the initial steps of the
     // installation.
-    await this.call('VM.provision', vm.$ref)
+    await this.call('VM.provision', vmRef)
+
+    let vm = await this._getOrWaitObject(vmRef)
 
     // Set VMs params.
-    // TODO: checkLimits
-    this._editVm(vm, props)
+    await this._editVm(vm, props, checkLimits)
 
     // Sets boot parameters.
     {
@@ -243,7 +247,6 @@ export default {
     },
 
     cpuCap: {
-      addToLimits: true,
       get: vm => vm.VCPUs_params.cap && +vm.VCPUs_params.cap,
       set (cap, vm) {
         return this._updateObjectMapProperty(vm, 'VCPUs_params', { cap })
@@ -260,7 +263,6 @@ export default {
     },
 
     cpuWeight: {
-      addToLimits: true,
       get: vm => vm.VCPUs_params.weight && +vm.VCPUs_params.weight,
       set (weight, vm) {
         return this._updateObjectMapProperty(vm, 'VCPUs_params', { weight })
@@ -285,6 +287,7 @@ export default {
     memory: 'memoryMax',
     memoryMax: {
       addToLimits: true,
+      limitName: 'memory',
       constraints: {
         memoryMin: lte,
         memoryStaticMax: gte
