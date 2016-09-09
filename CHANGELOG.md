@@ -4,6 +4,7 @@
 
 ### Enhancements
 
+- IP management [\#1350](https://github.com/vatesfr/xo-web/issues/1350), [\#988](https://github.com/vatesfr/xo-web/issues/988), [\#1427](https://github.com/vatesfr/xo-web/issues/1427) and [\#240](https://github.com/vatesfr/xo-web/issues/240)
 - Update reverse proxy example [\#1474](https://github.com/vatesfr/xo-web/issues/1474)
 - Improve log view [\#1467](https://github.com/vatesfr/xo-web/issues/1467)
 - Backup Reports: e-mail subject [\#1463](https://github.com/vatesfr/xo-web/issues/1463)
