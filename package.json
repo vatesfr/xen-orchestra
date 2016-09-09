@@ -71,7 +71,6 @@
     "gulp-uglify": "^2.0.0",
     "gulp-watch": "^4.3.5",
     "human-format": "^0.6.0",
-    "ip-range-generator": "^1.0.1",
     "is-ip": "^1.0.0",
     "jsonrpc-websocket-client": "0.0.1-5",
     "later": "^1.2.0",
