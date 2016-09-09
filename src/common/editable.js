@@ -15,6 +15,7 @@ import { formatSize } from './utils'
 import { SizeInput } from './form'
 import {
   SelectHost,
+  SelectIp,
   SelectNetwork,
   SelectPool,
   SelectRemote,
@@ -373,6 +374,7 @@ export class Select extends Editable {
 
 const MAP_TYPE_SELECT = {
   host: SelectHost,
+  ip: SelectIp,
   network: SelectNetwork,
   pool: SelectPool,
   remote: SelectRemote,

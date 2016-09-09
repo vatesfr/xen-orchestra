@@ -13,6 +13,7 @@ import Icon from 'icon'
 import includes from 'lodash/includes'
 import isArray from 'lodash/isArray'
 import isEmpty from 'lodash/isEmpty'
+import isIp from 'is-ip'
 import isObject from 'lodash/isObject'
 import join from 'lodash/join'
 import map from 'lodash/map'
@@ -38,6 +39,7 @@ import {
   XEN_DEFAULT_CPU_WEIGHT
 } from 'xo'
 import {
+  SelectIp,
   SelectNetwork,
   SelectPool,
   SelectResourceSet,
@@ -78,7 +80,9 @@ const NB_VMS_MAX = 100
 
 /* eslint-disable camelcase */
 
-// Sub-components --------------------------------------------------------------
+const getObject = createGetObject((_, id) => id)
+
+// Sub-components
 
 const SectionContent = ({ summary, column, children }) => (
   <div className={classNames(
@@ -89,21 +93,19 @@ const SectionContent = ({ summary, column, children }) => (
     {children}
   </div>
 )
+
 const LineItem = ({ children }) => (
   <div className={styles.lineItem}>
     {children}
   </div>
 )
+
 const Item = ({ label, children, className }) => (
   <span className={styles.item}>
     {label && <span>{_(label)}&nbsp;</span>}
     <span className={classNames(styles.input, className)}>{children}</span>
   </span>
 )
-
-// -----------------------------------------------------------------------------
-
-const getObject = createGetObject((_, id) => id)
 
 @addSubscriptions({
   user: subscribeCurrentUser
@@ -180,6 +182,8 @@ export default class NewVm extends BaseComponent {
   }
   _replaceState = (state, callback) =>
     this.setState({ state }, callback)
+  _linkState = (path, targetPath) =>
+    this.linkState(`state.${path}`, targetPath)
 
 // Actions ---------------------------------------------------------------------
 
@@ -252,6 +256,26 @@ export default class NewVm extends BaseComponent {
       cloudConfig = state.cloudConfig
     }
 
+    // Split allowed IPs into IPv4 and IPv6
+    const { VIFs } = state
+    const _VIFs = map(VIFs, vif => {
+      const _vif = { ...vif }
+      delete _vif.addresses
+      _vif.allowedIpv4Addresses = []
+      _vif.allowedIpv6Addresses = []
+      forEach(vif.addresses, ip => {
+        if (!isIp(ip)) {
+          return
+        }
+        if (isIp.v4(ip)) {
+          _vif.allowedIpv4Addresses.push(ip)
+        } else {
+          _vif.allowedIpv6Addresses.push(ip)
+        }
+      })
+      return _vif
+    })
+
     const data = {
       clone: !this.isDiskTemplate && state.fastClone,
       existingDisks: state.existingDisks,
@@ -259,9 +283,8 @@ export default class NewVm extends BaseComponent {
       name_label: state.name_label,
       template: state.template.id,
       VDIs: state.VDIs,
-      VIFs: state.VIFs,
+      VIFs: _VIFs,
       resourceSet: resourceSet && resourceSet.id,
-      // TODO: To be added in xo-server
       // vm.set parameters
       CPUs: state.CPUs,
       cpuWeight: state.cpuWeight === '' ? null : state.cpuWeight,
@@ -1039,11 +1062,12 @@ export default class NewVm extends BaseComponent {
 // INTERFACES ------------------------------------------------------------------
 
   _renderInterfaces = () => {
-    const { formatMessage } = this.props.intl
     const {
       state: { VIFs },
       pool
     } = this.state
+    const { formatMessage } = this.props.intl
+
     return <Section icon='new-vm-interfaces' title='newVmInterfacesPanel' done={this._isInterfacesDone()}>
       <SectionContent column>
         {map(VIFs, (vif, index) => <div key={index}>
@@ -1052,7 +1076,7 @@ export default class NewVm extends BaseComponent {
               <DebounceInput
                 className='form-control'
                 debounceTimeout={DEBOUNCE_TIMEOUT}
-                onChange={this._getOnChange('VIFs', index, 'mac')}
+                onChange={this._linkState(`VIFs.${index}.mac`)}
                 placeholder={formatMessage(messages.newVmMacPlaceholder)}
                 rows={7}
                 value={vif.mac}
@@ -1061,17 +1085,27 @@ export default class NewVm extends BaseComponent {
             <Item label='newVmNetworkLabel'>
               <span className={styles.inlineSelect}>
                 {pool ? <SelectNetwork
-                  onChange={this._getOnChange('VIFs', index, 'network', 'id')}
+                  onChange={this._linkState(`VIFs.${index}.network`, 'id')}
                   predicate={this._getNetworkPredicate()}
                   value={vif.network}
                 />
                 : <SelectResourceSetsNetwork
-                  onChange={this._getOnChange('VIFs', index, 'network', 'id')}
+                  onChange={this._linkState(`VIFs.${index}.network`, 'id')}
                   resourceSet={this.state.resourceSet}
                   value={vif.network}
                 />}
               </span>
             </Item>
+            <LineItem>
+              <span className={styles.inlineSelect}>
+                <SelectIp
+                  containerPredicate={pool => find(pool.networks, poolNetwork => poolNetwork === vif.network)}
+                  multi
+                  onChange={this._linkState(`VIFs.${index}.addresses`, '*.id')}
+                  value={vif.addresses}
+                />
+              </span>
+            </LineItem>
             <Item>
               <Button onClick={() => this._removeInterface(index)} bsStyle='secondary'>
                 <Icon icon='new-vm-remove' />
@@ -1079,8 +1113,7 @@ export default class NewVm extends BaseComponent {
             </Item>
           </LineItem>
           {index < VIFs.length - 1 && <hr />}
-        </div>
-        )}
+        </div>)}
         <Item>
           <Button onClick={this._addInterface} bsStyle='secondary'>
             <Icon icon='new-vm-add' />

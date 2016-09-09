@@ -253,6 +253,8 @@ export const subscribeRoles = createSubscription(invoke(
   sort => () => _call('role.getAll').then(sort)
 ))
 
+export const subscribeIpPools = createSubscription(() => _call('ipPool.getAll'))
+
 // System ============================================================
 
 export const apiMethods = _call('system.getMethodsInfo')
@@ -855,6 +857,10 @@ export const disconnectVif = vif => (
 
 export const deleteVif = vif => (
   _call('vif.delete', { id: resolveId(vif) })
+)
+
+export const setVif = (vif, { allowedIpv4Addresses, allowedIpv6Addresses }) => (
+  _call('vif.set', { id: resolveId(vif), allowedIpv4Addresses, allowedIpv6Addresses })
 )
 
 // Network -----------------------------------------------------------
@@ -1553,5 +1559,27 @@ export const updateJob = job => (
 export const updateSchedule = ({ id, job: jobId, cron, enabled, name, timezone }) => (
   _call('schedule.set', { id, jobId, cron, enabled, name, timezone })::tap(
     subscribeSchedules.forceRefresh
+  )
+)
+
+// IP pools --------------------------------------------------------------------
+
+export const createIpPool = ({ name, ips, networks }) => {
+  const addresses = {}
+  forEach(ips, ip => { addresses[ip] = {} })
+  return _call('ipPool.create', { name, addresses, networks: resolveIds(networks) })::tap(
+    subscribeIpPools.forceRefresh
+  )
+}
+
+export const deleteIpPool = ipPool => (
+  _call('ipPool.delete', { id: resolveId(ipPool) })::tap(
+    subscribeIpPools.forceRefresh
+  )
+)
+
+export const setIpPool = (ipPool, { name, addresses, networks }) => (
+  _call('ipPool.set', { id: resolveId(ipPool), name, addresses, networks: resolveIds(networks) })::tap(
+    subscribeIpPools.forceRefresh
   )
 )

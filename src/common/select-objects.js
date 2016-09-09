@@ -8,6 +8,8 @@ import groupBy from 'lodash/groupBy'
 import keyBy from 'lodash/keyBy'
 import keys from 'lodash/keys'
 import map from 'lodash/map'
+import mapValues from 'lodash/mapValues'
+import pick from 'lodash/pick'
 import sortBy from 'lodash/sortBy'
 import store from 'store'
 import { parse as parseRemote } from 'xo-remote-parser'
@@ -33,6 +35,7 @@ import {
   isSrWritable,
   subscribeCurrentUser,
   subscribeGroups,
+  subscribeIpPools,
   subscribeRemotes,
   subscribeResourceSets,
   subscribeRoles,
@@ -51,6 +54,32 @@ const getLabel = object =>
 
 // ===================================================================
 
+/*
+ * WITHOUT xoContainers :
+ *
+ * xoObjects: [
+ *  { type: 'myType', id: 'abc', label: 'First object' },
+ *  { type: 'myType', id: 'def', label: 'Second object' }
+ * ]
+ *
+ *
+ * WITH xoContainers :
+ *
+ * xoContainers: [
+ *  { type: 'containerType', id: 'ghi', label: 'First container' },
+ *  { type: 'containerType', id: 'jkl', label: 'Second container' }
+ * ]
+ *
+ * xoObjects: {
+ *  ghi: [
+ *    { type: 'objectType', id: 'mno', label: 'First object' }
+ *    { type: 'objectType', id: 'pqr', label: 'Second object' }
+ *  ],
+ *  jkl: [
+ *    { type: 'objectType', id: 'stu', label: 'Third object' }
+ *  ]
+ * }
+ */
 @propTypes({
   autoFocus: propTypes.bool,
   clearable: propTypes.bool,
@@ -268,13 +297,28 @@ const makeSubscriptionSelect = (subscribe, props) => (
   class extends Component {
     constructor (props) {
       super(props)
-      this.state = {
-        xoObjects: []
-      }
 
-      this._getFilteredXoObjects = createFilter(
+      this._getFilteredXoContainers = createFilter(
+        () => this.state.xoContainers,
+        () => this.props.containerPredicate
+      )
+
+      this._getFilteredXoObjects = createSelector(
         () => this.state.xoObjects,
-        () => this.props.predicate
+        () => this.state.xoContainers && this._getFilteredXoContainers(),
+        () => this.props.predicate,
+        (xoObjects, xoContainers, predicate) => {
+          if (xoContainers == null) {
+            return filter(xoObjects, predicate)
+          } else {
+            // Filter xoObjects with `predicate`...
+            const filteredObjects = mapValues(xoObjects, xoObjectsGroup =>
+              filter(xoObjectsGroup, predicate)
+            )
+            // ...and keep only those whose xoContainer hasn't been filtered out
+            return pick(filteredObjects, map(xoContainers, container => container.id))
+          }
+        }
       )
     }
 
@@ -297,7 +341,7 @@ const makeSubscriptionSelect = (subscribe, props) => (
           {...props}
           {...this.props}
           xoObjects={this._getFilteredXoObjects()}
-          xoContainers={this.state.xoContainers}
+          xoContainers={this.state.xoContainers && this._getFilteredXoContainers()}
         />
       )
     }
@@ -802,3 +846,26 @@ export class SelectSshKey extends Component {
     )
   }
 }
+
+// ===================================================================
+
+export const SelectIp = makeSubscriptionSelect(subscriber => {
+  const unsubscribeIpPools = subscribeIpPools(ipPools => {
+    const sortedIpPools = sortBy(ipPools, 'name')
+    const xoObjects = mapValues(
+      groupBy(sortedIpPools, 'id'),
+      ipPools => map(ipPools[0].addresses, (address, ip) => ({
+        ...address,
+        id: ip,
+        label: ip
+      }))
+    )
+    const xoContainers = map(sortedIpPools, ipPool => ({
+      ...ipPool,
+      type: 'ipPool'
+    }))
+    subscriber({ xoObjects, xoContainers })
+  })
+
+  return unsubscribeIpPools
+}, { placeholder: _('selectIp') })

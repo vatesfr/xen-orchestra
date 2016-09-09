@@ -116,6 +116,10 @@
     @extend .fa;
     @extend .fa-key;
   }
+  &-ip {
+    @extend .fa;
+    @extend .fa-map-marker;
+  }
 
   &-shown {
     @extend .fa;
@@ -163,10 +167,18 @@
     @extend .fa;
     @extend .fa-link;
   }
-
   &-disconnect {
     @extend .fa;
     @extend .fa-chain-broken;
+  }
+
+  &-lock {
+    @extend .fa;
+    @extend .fa-lock;
+  }
+  &-unlock {
+    @extend .fa;
+    @extend .fa-unlock;
   }
 
   &-cpu {

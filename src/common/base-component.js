@@ -1,9 +1,35 @@
+import clone from 'lodash/clone'
+import includes from 'lodash/includes'
+import isArray from 'lodash/isArray'
 import forEach from 'lodash/forEach'
+import map from 'lodash/map'
 import { Component } from 'react'
 
 import getEventValue from './get-event-value'
 import invoke from './invoke'
 import shallowEqual from './shallow-equal'
+
+const cowSet = (object, path, value, depth) => {
+  if (depth >= path.length) {
+    return value
+  }
+
+  object = clone(object)
+  const prop = path[depth]
+  object[prop] = cowSet(object[prop], path, value, depth + 1)
+  return object
+}
+
+const get = (object, path, depth) => {
+  if (depth >= path.length) {
+    return object
+  }
+
+  const prop = path[depth++]
+  return isArray(object) && prop === '*'
+    ? map(object, value => get(value, path, depth))
+    : get(object[prop], path, depth)
+}
 
 export default class BaseComponent extends Component {
   constructor (props, context) {
@@ -24,7 +50,42 @@ export default class BaseComponent extends Component {
   }
 
   // See https://preactjs.com/guide/linked-state
-  linkState (name) {
+  linkState (name, targetPath) {
+    const key = targetPath
+      ? `${name}##${targetPath}`
+      : name
+
+    let linkedState = this._linkedState
+    let cb
+    if (!linkedState) {
+      linkedState = this._linkedState = {}
+    } else if ((cb = linkedState[key])) {
+      return cb
+    }
+
+    let getValue
+    if (targetPath) {
+      const path = targetPath.split('.')
+      getValue = event => get(getEventValue(event), path, 0)
+    } else {
+      getValue = getEventValue
+    }
+
+    if (includes(name, '.')) {
+      const path = name.split('.')
+      return (linkedState[key] = event => {
+        this.setState(cowSet(this.state, path, getValue(event), 0))
+      })
+    }
+
+    return (linkedState[key] = event => {
+      this.setState({
+        [name]: getValue(event)
+      })
+    })
+  }
+
+  toggleState (name) {
     let linkedState = this._linkedState
     let cb
     if (!linkedState) {
@@ -33,9 +94,16 @@ export default class BaseComponent extends Component {
       return cb
     }
 
-    return (linkedState[name] = event => {
+    if (includes(name, '.')) {
+      const path = name.split('.')
+      return (linkedState[path] = event => {
+        this.setState(cowSet(this.state, path, !get(this.state, path), 0))
+      })
+    }
+
+    return (linkedState[name] = () => {
       this.setState({
-        [name]: getEventValue(event)
+        [name]: !this.state[name]
       })
     })
   }

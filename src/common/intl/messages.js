@@ -49,6 +49,7 @@ var messages = {
   settingsAclsPage: 'ACLs',
   settingsPluginsPage: 'Plugins',
   settingsLogsPage: 'Logs',
+  settingsIpsPage: 'IPs',
   aboutPage: 'About',
   newMenu: 'New',
   taskMenu: 'Tasks',
@@ -152,6 +153,7 @@ var messages = {
   selectTags: 'Select tag(s)…',
   selectVdis: 'Select disk(s)…',
   selectTimezone: 'Select timezone…',
+  selectIp: 'Select IP(s)...',
   fillRequiredInformations: 'Fill required informations.',
   fillOptionalInformations: 'Fill informations (optional)',
   selectTableReset: 'Reset',
@@ -416,6 +418,8 @@ var messages = {
   pifStatusConnected: 'Connected',
   pifStatusDisconnected: 'Disconnected',
   pifNoInterface: 'No physical interface detected',
+  pifInUse: 'This interface is currently in use',
+  defaultLockingMode: 'Default locking mode',
   // ----- Host storage tabs -----
   addSrDeviceButton: 'Add a storage',
   srNameLabel: 'Name',
@@ -524,6 +528,10 @@ var messages = {
   vifStatusDisconnected: 'Disconnected',
   vifIpAddresses: 'IP addresses',
   vifMacAutoGenerate: 'Auto-generated if empty',
+  vifAllowedIps: 'Allowed IPs',
+  vifNoIps: 'No IPs',
+  vifLockedNetwork: 'Network is locked',
+  vifLockedNetworkNoIps: 'Network is locked and no IPs are allowed for this interface',
 
   // ----- VM snapshot tab -----
   noSnapshots: 'No snapshots',
@@ -867,6 +875,7 @@ var messages = {
   newNetworkDefaultMtu: 'Default: 1500',
   deleteNetwork: 'Delete network',
   deleteNetworkConfirm: 'Are you sure you want to delete this network?',
+  networkInUse: 'This network is currently in use',
 
   // ----- Add host -----
   addHostSelectHost: 'Host',
@@ -988,7 +997,20 @@ var messages = {
   logNoParams: 'No params',
   logDeleteAll: 'Delete all logs',
   logDeleteAllTitle: 'Delete all logs',
-  logDeleteAllMessage: 'Are you sure you want to delete all the logs?'
+  logDeleteAllMessage: 'Are you sure you want to delete all the logs?',
+
+  // ----- IPs ------
+  ipPoolName: 'Name',
+  ipPoolIps: 'IPs',
+  ipPoolIpsPlaceholder: 'IPs (e.g.: 1.0.0.12-1.0.0.17;1.0.0.23)',
+  ipPoolNetworks: 'Networks',
+  ipsNoIpPool: 'No IP pools',
+  ipsCreate: 'Create',
+  ipsDeleteAllTitle: 'Delete all IP pools',
+  ipsDeleteAllMessage: 'Are you sure you want to delete all the IP pools?',
+  ipsVifs: 'VIFs',
+  ipsNotUsed: 'Not used'
+
 }
 forEach(messages, function (message, id) {
   if (isString(message)) {
