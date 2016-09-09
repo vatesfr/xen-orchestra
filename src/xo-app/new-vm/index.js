@@ -84,13 +84,6 @@ const getObject = createGetObject((_, id) => id)
 
 // Sub-components
 
-const Item = ({ label, children, className }) => (
-  <span className={styles.item}>
-    {label && <span>{_(label)}&nbsp;</span>}
-    <span className={classNames(styles.input, className)}>{children}</span>
-  </span>
-)
-
 const SectionContent = ({ summary, column, children }) => (
   <div className={classNames(
     'form-inline',
@@ -105,6 +98,13 @@ const LineItem = ({ children }) => (
   <div className={styles.lineItem}>
     {children}
   </div>
+)
+
+const Item = ({ label, children, className }) => (
+  <span className={styles.item}>
+    {label && <span>{_(label)}&nbsp;</span>}
+    <span className={classNames(styles.input, className)}>{children}</span>
+  </span>
 )
 
 @addSubscriptions({

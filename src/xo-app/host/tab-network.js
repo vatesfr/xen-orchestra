@@ -9,6 +9,8 @@ import Tooltip from 'tooltip'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Container, Row, Col } from 'grid'
 import { Toggle } from 'form'
+import { connectStore } from 'utils'
+import { createGetObjectsOfType } from 'selectors'
 import {
   connectPif,
   createNetwork,
@@ -17,7 +19,15 @@ import {
   editNetwork
 } from 'xo'
 
-export default ({
+const _toggleDefaultLockingMode = (component, tooltip) => tooltip
+  ? <Tooltip content={tooltip}>
+    {component}
+  </Tooltip>
+  : component
+
+export default connectStore(() => ({
+  vifsByNetwork: createGetObjectsOfType('VIF').groupBy('$network')
+}))(({
   host,
   networks,
   pifs,
@@ -67,13 +77,14 @@ export default ({
                   <td><pre>{pif.mac}</pre></td>
                   <td>{pif.mtu}</td>
                   <td className='text-xs-center'>
-                    <Tooltip content={pifInUse && _('pifInUse')}>
+                    {_toggleDefaultLockingMode(
                       <Toggle
                         disabled={pifInUse}
                         onChange={() => editNetwork(pif.$network, { defaultIsLocked: !networks[pif.$network].defaultIsLocked })}
                         value={networks[pif.$network].defaultIsLocked}
-                      />
-                    </Tooltip>
+                      />,
+                      pifInUse && _('pifInUse')
+                    )}
                   </td>
                   <td>
                     {pif.attached
@@ -112,4 +123,4 @@ export default ({
       }
     </Col>
   </Row>
-</Container>
+</Container>)

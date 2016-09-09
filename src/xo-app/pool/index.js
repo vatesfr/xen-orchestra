@@ -53,8 +53,6 @@ import TabStorage from './tab-storage'
     )
   ).sort()
 
-  const getVifsByNetwork = createGetObjectsOfType('VIF').groupBy('$network')
-
   const getHosts = createGetObjectsOfType('host').filter(
     createSelector(
       getPool,
@@ -91,8 +89,7 @@ import TabStorage from './tab-storage'
       networks: getNetworks(state, props),
       nVms: getNumberOfVms(state, props),
       pool,
-      srs: getPoolSrs(state, props),
-      vifsByNetwork: getVifsByNetwork(state, props)
+      srs: getPoolSrs(state, props)
     }
   }
 })
@@ -159,8 +156,7 @@ export default class Pool extends Component {
       'networks',
       'nVms',
       'pool',
-      'srs',
-      'vifsByNetwork'
+      'srs'
     ])
    )
     return <Page header={this.header()} title={pool.name_label}>

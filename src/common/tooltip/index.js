@@ -62,9 +62,7 @@ export class TooltipViewer extends Component {
 })
 export default class Tooltip extends Component {
   componentDidMount () {
-    if (this.props.content) {
-      this._addListeners()
-    }
+    this._addListeners()
   }
 
   componentWillUnmount () {
@@ -78,7 +76,7 @@ export default class Tooltip extends Component {
   }
 
   componentDidUpdate (prevProps) {
-    if (this.props.content && prevProps.children !== this.props.children) {
+    if (prevProps.children !== this.props.children) {
       this._addListeners()
     }
   }

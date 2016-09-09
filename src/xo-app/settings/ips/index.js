@@ -18,7 +18,7 @@ import Upgrade from 'xoa-upgrade'
 import { addSubscriptions, connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { formatIps, getNextIpV4, parseIpPattern } from 'ip'
-import { createGetObjectsOfType } from 'selectors'
+import { createGetObjectsOfType, createSelector } from 'selectors'
 import { injectIntl } from 'react-intl'
 import { SelectNetwork } from 'select-objects'
 import { Text } from 'editable'
@@ -32,15 +32,10 @@ import {
 const FULL_WIDTH = { width: '100%' }
 const NETWORK_FORM_STYLE = { maxWidth: '40em' }
 
-@connectStore(() => {
-  const getNetworks = createGetObjectsOfType('network').groupBy('id')
-  const getVifs = createGetObjectsOfType('VIF').groupBy('id')
-
-  return (state, props) => ({
-    networks: getNetworks(state, props),
-    vifs: getVifs(state, props)
-  })
-})
+@connectStore(() => ({
+  networks: createGetObjectsOfType('network').groupBy('id'),
+  vifs: createGetObjectsOfType('VIF').groupBy('id')
+}))
 class IpsCell extends BaseComponent {
   _addIps = () => {
     const addresses = {}
@@ -65,9 +60,6 @@ class IpsCell extends BaseComponent {
     }
     setIpPool(this.props.ipPool.id, { addresses: toBeRemoved })
   }
-
-  _toggleNewIps = () => this.setState({ showNewIpForm: !this.state.showNewIpForm })
-  _onChangeNewIps = newIps => this.setState({ newIps })
 
   render () {
     const {
@@ -126,11 +118,11 @@ class IpsCell extends BaseComponent {
         <Col>
           {showNewIpForm
           ? <form id='newIpForm' className='form-inline'>
-            <ActionButton btnStyle='danger' handler={this._toggleNewIps} icon='remove' />
+            <ActionButton btnStyle='danger' handler={this.toggleState('showNewIpForm')} icon='remove' />
             {' '}
             <DebounceInput
               autoFocus
-              onChange={event => this._onChangeNewIps(event.target.value, ipPool.id)}
+              onChange={this.linkState('newIps')}
               type='text'
               className='form-control'
               required
@@ -139,7 +131,7 @@ class IpsCell extends BaseComponent {
             {' '}
             <ActionButton form={`newIpForm`} icon='save' btnStyle='primary' handler={this._addIps} />
           </form>
-          : <ActionButton btnStyle='success' size='small' handler={this._toggleNewIps} icon='add' />}
+          : <ActionButton btnStyle='success' size='small' handler={this.toggleState('showNewIpForm')} icon='add' />}
         </Col>
       </Row>
     </Container>
@@ -154,6 +146,8 @@ class IpsCell extends BaseComponent {
   })
 })
 class NetworksCell extends BaseComponent {
+  state = { newNetworks: [] }
+
   _addNetworks = () => {
     if (isEmpty(this.state.newNetworks)) {
       return this._toggleNewNetworks()
@@ -163,7 +157,7 @@ class NetworksCell extends BaseComponent {
       networks: [ ...ipPool.networks, ...this.state.newNetworks ]
     })
     this._toggleNewNetworks()
-    this.setState({ newNetworks: undefined })
+    this.setState({ newNetworks: [] })
   }
 
   _deleteNetwork = networkId => {
@@ -177,10 +171,11 @@ class NetworksCell extends BaseComponent {
 
   _toggleNewNetworks = () =>
     this.setState({ showNewNetworkForm: !this.state.showNewNetworkForm })
-  _onChangeNewNetworks = newNetworks =>
-    this.setState({ newNetworks: map(newNetworks, network => network.id) })
-  _networkPredicate = network =>
-    !includes(this.props.ipPool.networks, network.id)
+  _getNetworkPredicate = createSelector(
+    () => this.props.ipPool && this.props.ipPool.networks,
+    networks => network =>
+      !includes(networks, network.id)
+  )
 
   render () {
     const { ipPool, networks } = this.props
@@ -202,9 +197,9 @@ class NetworksCell extends BaseComponent {
               <SelectNetwork
                 autoFocus
                 multi
-                onChange={networks => this._onChangeNewNetworks(networks)}
-                predicate={this._networkPredicate}
-                value={newNetworks || []}
+                onChange={this.linkState('newNetworks', '*.id')}
+                predicate={this._getNetworkPredicate()}
+                value={newNetworks}
               />
             </Col>
             <Col mediumSize={2}>

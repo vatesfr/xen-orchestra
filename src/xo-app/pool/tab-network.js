@@ -11,7 +11,7 @@ import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Text } from 'editable'
 import { Container, Row, Col } from 'grid'
 import { connectStore } from 'utils'
-import { createGetObject, createSelector } from 'selectors'
+import { createGetObject, createGetObjectsOfType, createSelector } from 'selectors'
 import { Toggle } from 'form'
 import {
   connectPif,
@@ -25,6 +25,12 @@ const getObject = createGetObject((_, id) => id)
 
 const disableUnplug = pif =>
   pif.attached && (pif.management || pif.disallowUnplug)
+
+const _toggleDefaultLockingMode = (component, tooltip) => tooltip
+  ? <Tooltip content={tooltip}>
+    {component}
+  </Tooltip>
+  : component
 
 @connectStore(() => {
   const pif = createGetObject()
@@ -71,6 +77,9 @@ class PifItem extends Component {
   }
 }
 
+@connectStore(() => ({
+  vifsByNetwork: createGetObjectsOfType('VIF').groupBy('$network')
+}))
 export default class TabNetworks extends Component {
   _disableDelete = network => {
     const state = store.getState()
@@ -119,13 +128,14 @@ export default class TabNetworks extends Component {
                     </td>
                     <td>{network.MTU}</td>
                     <td className='text-xs-center'>
-                      <Tooltip content={networkInUse && _('networkInUse')}>
+                      {_toggleDefaultLockingMode(
                         <Toggle
                           disabled={networkInUse}
                           onChange={() => editNetwork(network, { defaultIsLocked: !network.defaultIsLocked })}
                           value={network.defaultIsLocked}
-                        />
-                      </Tooltip>
+                        />,
+                        networkInUse && _('networkInUse')
+                      )}
                     </td>
                     <td>
                       {!isEmpty(network.PIFs) && <table className='table'>

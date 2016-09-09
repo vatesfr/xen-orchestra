@@ -80,7 +80,30 @@ export default class BaseComponent extends Component {
 
     return (linkedState[key] = event => {
       this.setState({
-        [name]: get(getEventValue(event), targetPath)
+        [name]: getValue(event)
+      })
+    })
+  }
+
+  toggleState (name) {
+    let linkedState = this._linkedState
+    let cb
+    if (!linkedState) {
+      linkedState = this._linkedState = {}
+    } else if ((cb = linkedState[name])) {
+      return cb
+    }
+
+    if (includes(name, '.')) {
+      const path = name.split('.')
+      return (linkedState[path] = event => {
+        this.setState(cowSet(this.state, path, !get(this.state, path), 0))
+      })
+    }
+
+    return (linkedState[name] = () => {
+      this.setState({
+        [name]: !this.state[name]
       })
     })
   }

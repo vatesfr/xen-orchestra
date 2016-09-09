@@ -851,15 +851,16 @@ export class SelectSshKey extends Component {
 
 export const SelectIp = makeSubscriptionSelect(subscriber => {
   const unsubscribeIpPools = subscribeIpPools(ipPools => {
+    const sortedIpPools = sortBy(ipPools, 'name')
     const xoObjects = mapValues(
-      groupBy(sortBy(ipPools, 'name'), 'id'),
+      groupBy(sortedIpPools, 'id'),
       ipPools => map(ipPools[0].addresses, (address, ip) => ({
         ...address,
         id: ip,
         label: ip
       }))
     )
-    const xoContainers = map(sortBy(ipPools, 'name'), ipPool => ({
+    const xoContainers = map(sortedIpPools, ipPool => ({
       ...ipPool,
       type: 'ipPool'
     }))
