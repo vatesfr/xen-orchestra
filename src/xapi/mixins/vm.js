@@ -116,8 +116,12 @@ export default {
       })
     }
 
+    let nDisks = 0
+
     // Modify existing (previous template) disks if necessary
     existingVdis && await Promise.all(mapToArray(existingVdis, async ({ size, $SR: srId, ...properties }, userdevice) => {
+      ++nDisks
+
       const vbd = find(vm.$VBDs, { userdevice })
       if (!vbd) {
         return
@@ -144,6 +148,8 @@ export default {
     if (vdis) {
       const devices = await this.call('VM.get_allowed_VBD_devices', vm.$ref)
       await Promise.all(mapToArray(vdis, (vdiDescription, i) => {
+        ++nDisks
+
         return this._createVdi(
           vdiDescription.size, // FIXME: Should not be done in Xapi.
           {
@@ -183,13 +189,16 @@ export default {
 
     if (cloudConfig != null) {
       // Refresh the record.
-      vm = this.getObject(vm.$id)
+      vm = await this._waitObject(vm.$id, vm => vm.VBDs.length === nDisks)
 
       // Find the SR of the first VDI.
       let srRef
       forEach(vm.$VBDs, vbd => {
-        const vdi = vbd.$VDI
-        if (vdi) {
+        let vdi
+        if (
+          vbd.type === 'Disk' &&
+          (vdi = vbd.$VDI)
+        ) {
           srRef = vdi.SR
           return false
         }

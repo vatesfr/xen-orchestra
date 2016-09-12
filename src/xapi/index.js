@@ -1948,6 +1948,7 @@ export default class Xapi extends XapiBase {
       sruuid: sr.uuid,
       configuration: config
     })
+    await this.registerDockerContainer(vmId)
   }
 
   // Generic Config Drive
