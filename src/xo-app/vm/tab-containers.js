@@ -4,7 +4,6 @@ import isEmpty from 'lodash/isEmpty'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
 import React, { Component } from 'react'
-import { connectStore } from 'utils'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Container, Row, Col } from 'grid'
@@ -12,12 +11,9 @@ import {
   startContainer,
   stopContainer,
   pauseContainer,
-  resumeContainer,
+  unpauseContainer,
   restartContainer
 } from 'xo'
-import {
-  createGetObjectMessages
-} from 'selectors'
 
 const CONTAINER_COLUMNS = [
   {
@@ -79,7 +75,7 @@ const CONTAINER_COLUMNS = [
         {container.entry.status === 'Up (Paused)' && <Tooltip content={_('containerResume')}>
           <ActionRowButton
             btnStyle='primary'
-            handler={() => resumeContainer(vm, container.entry.container)}
+            handler={() => unpauseContainer(vm, container.entry.container)}
             icon='vm-start'
           />
         </Tooltip>}
@@ -88,15 +84,6 @@ const CONTAINER_COLUMNS = [
   }
 ]
 
-@connectStore(() => {
-  const logs = createGetObjectMessages(
-    (_, props) => props.vm
-  )
-
-  return (state, props) => ({
-    logs: logs(state, props)
-  })
-})
 export default class TabContainers extends Component {
 
   render () {

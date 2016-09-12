@@ -478,8 +478,8 @@ export const pauseContainer = (vm, container) => (
   _call('docker.pause', { vm: resolveId(vm), container })
 )
 
-export const resumeContainer = (vm, container) => (
-  _call('docker.resume', { vm: resolveId(vm), container })
+export const unpauseContainer = (vm, container) => (
+  _call('docker.unpause', { vm: resolveId(vm), container })
 )
 
 export const restartContainer = (vm, container) => (
