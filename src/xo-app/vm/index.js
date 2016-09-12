@@ -33,6 +33,7 @@ import {
 import TabGeneral from './tab-general'
 import TabStats from './tab-stats'
 import TabConsole from './tab-console'
+import TabContainers from './tab-containers'
 import TabDisks from './tab-disks'
 import TabNetwork from './tab-network'
 import TabSnapshots from './tab-snapshots'
@@ -44,6 +45,7 @@ import TabAdvanced from './tab-advanced'
 @routes('general', {
   advanced: TabAdvanced,
   console: TabConsole,
+  containers: TabContainers,
   disks: TabDisks,
   general: TabGeneral,
   logs: TabLogs,
@@ -236,6 +238,7 @@ export default class Vm extends BaseComponent {
             <NavLink to={`/vms/${vm.id}/disks`}>{_('disksTabName', { disks: vm.$VBDs.length })}</NavLink>
             <NavLink to={`/vms/${vm.id}/snapshots`}>{_('snapshotsTabName')} {vm.snapshots.length !== 0 && <span className='tag tag-pill tag-default'>{vm.snapshots.length}</span>}</NavLink>
             <NavLink to={`/vms/${vm.id}/logs`}>{_('logsTabName')}</NavLink>
+            {vm.docker && <NavLink to={`/vms/${vm.id}/containers`}>{_('containersTabName')}</NavLink>}
             <NavLink to={`/vms/${vm.id}/advanced`}>{_('advancedTabName')}</NavLink>
           </NavTabs>
         </Col>

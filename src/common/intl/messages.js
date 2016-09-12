@@ -454,6 +454,7 @@ var messages = {
   generalTabName: 'General',
   statsTabName: 'Stats',
   consoleTabName: 'Console',
+  containersTabName: 'Docker',
   snapshotsTabName: 'Snapshots',
   logsTabName: 'Logs',
   advancedTabName: 'Advanced',
@@ -491,13 +492,26 @@ var messages = {
   statLastWeek: 'Last week',
   statLastYear: 'Last year',
 
-  // ----- VM console tab -----
+  // ----- VM container tab -----
   copyToClipboardLabel: 'Copy',
   ctrlAltDelButtonLabel: 'Ctrl+Alt+Del',
   tipLabel: 'Tip:',
   tipConsoleLabel: 'non-US keyboard could have issues with console: switch your own layout to US.',
   hideHeaderTooltip: 'Hide infos',
   showHeaderTooltip: 'Show infos',
+
+  // ----- VM console tab -----
+  containerName: 'Name',
+  containerCommand: 'Command',
+  containerCreated: 'Creation date',
+  containerStatus: 'Status',
+  containerAction: 'Action',
+  noContainers: 'No existing containers',
+  containerStop: 'Stop this container',
+  containerStart: 'Start this container',
+  containerPause: 'Pause this container',
+  containerResume: 'Resume this container',
+  containerRestart: 'Restart this container',
 
   // ----- VM disk tab -----
   vdiAction: 'Action',
