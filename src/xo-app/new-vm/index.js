@@ -184,6 +184,8 @@ export default class NewVm extends BaseComponent {
     this.setState({ state }, callback)
   _linkState = (path, targetPath) =>
     this.linkState(`state.${path}`, targetPath)
+  _toggleState = path =>
+    this.toggleState(`state.${path}`)
 
 // Actions ---------------------------------------------------------------------
 
@@ -1198,7 +1200,7 @@ export default class NewVm extends BaseComponent {
     const { formatMessage } = this.props.intl
     return <Section icon='new-vm-advanced' title='newVmAdvancedPanel' done>
       <SectionContent column>
-        <Button bsStyle='secondary' onClick={() => this._setState({ showAdvanced: !showAdvanced })}>
+        <Button bsStyle='secondary' onClick={this._toggleState('showAdvanced')}>
           {showAdvanced ? _('newVmHideAdvanced') : _('newVmShowAdvanced')}
         </Button>
       </SectionContent>
