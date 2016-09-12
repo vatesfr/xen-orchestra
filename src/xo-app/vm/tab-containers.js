@@ -103,8 +103,7 @@ export default class TabContainers extends Component {
     const { vm } = this.props
     if (isEmpty(vm.docker.containers)) {
       return <Row>
-        <Col className='text-xs-center'>
-          <br />
+        <Col className='text-xs-center m-b-1'>
           <h4>{_('noContainers')}</h4>
         </Col>
       </Row>
