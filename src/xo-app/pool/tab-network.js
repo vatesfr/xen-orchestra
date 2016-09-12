@@ -1,13 +1,16 @@
 import _ from 'intl'
 import ActionRowButton from 'action-row-button'
+import BaseComponent from 'base-component'
+import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React, { Component } from 'react'
 import some from 'lodash/some'
+import SortedTable from 'sorted-table'
 import store from 'store'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
-import { ButtonGroup } from 'react-bootstrap-4/lib'
+import { Button, ButtonGroup } from 'react-bootstrap-4/lib'
 import { Text } from 'editable'
 import { Container, Row, Col } from 'grid'
 import { connectStore } from 'utils'
@@ -31,6 +34,11 @@ const _toggleDefaultLockingMode = (component, tooltip) => tooltip
     {component}
   </Tooltip>
   : component
+
+const _disableNetworkDelete = network => {
+  const state = store.getState()
+  return some(network.PIFs, pif => disableUnplug(getObject(state, pif))) || network.name_label === 'Host internal management network'
+}
 
 @connectStore(() => {
   const pif = createGetObject()
@@ -77,15 +85,93 @@ class PifItem extends Component {
   }
 }
 
+class PifsItem extends BaseComponent {
+  render () {
+    const { network } = this.props
+    const { showPifs } = this.state
+
+    return <div>
+      <Tooltip content={showPifs ? _('hidePifs') : _('showPifs')}>
+        <Button bsSize='small' bsStyle='secondary' className='m-b-1 pull-xs-right' onClick={this.toggleState('showPifs')}>
+          <Icon icon={showPifs ? 'hidden' : 'shown'} />
+        </Button>
+      </Tooltip>
+      {showPifs && <table className='table'>
+        <thead className='thead-default'>
+          <tr>
+            <th>{_('pifDeviceLabel')}</th>
+            <th>{_('homeTypeHost')}</th>
+            <th>{_('pifVlanLabel')}</th>
+            <th>{_('pifAddressLabel')}</th>
+            <th>{_('pifMacLabel')}</th>
+            <th>{_('pifStatusLabel')}</th>
+            <th />
+          </tr>
+        </thead>
+        <tbody>
+          {map(network.PIFs, pifId => <PifItem key={pifId} id={pifId} />)}
+        </tbody>
+      </table>}
+    </div>
+  }
+}
+
+const NETWORKS_COLUMNS = [
+  {
+    name: _('poolNetworkNameLabel'),
+    itemRenderer: network => <Text value={network.name_label} onChange={value => editNetwork(network, { name_label: value })} />,
+    sortCriteria: network => network.name_label
+  },
+  {
+    name: _('poolNetworkDescription'),
+    itemRenderer: network => <Text value={network.name_description} onChange={value => editNetwork(network, { name_description: value })} />,
+    sortCriteria: network => network.name_description
+  },
+  {
+    name: _('poolNetworkMTU'),
+    itemRenderer: network => network.MTU
+  },
+  {
+    name: <div className='text-xs-center'>
+      <Tooltip content={_('defaultLockingMode')}>
+        <Icon size='lg' icon='lock' />
+      </Tooltip>
+    </div>,
+    itemRenderer: (network, vifsByNetwork) => {
+      const networkInUse = some(vifsByNetwork[network.id], vif => vif.attached)
+      return _toggleDefaultLockingMode(
+        <Toggle
+          disabled={networkInUse}
+          onChange={() => editNetwork(network, { defaultIsLocked: !network.defaultIsLocked })}
+          value={network.defaultIsLocked}
+        />,
+        networkInUse && _('networkInUse')
+      )
+    }
+  },
+  {
+    name: _('poolNetworkPif'),
+    itemRenderer: network => !isEmpty(network.PIFs) && <PifsItem network={network} />,
+    sortCriteria: network => network.PIFs.length
+  },
+  {
+    name: '',
+    itemRenderer: network => <ButtonGroup className='pull-xs-right'>
+      <ActionRowButton
+        btnStyle='default'
+        disabled={_disableNetworkDelete(network)}
+        handler={deleteNetwork}
+        handlerParam={network}
+        icon='delete'
+      />
+    </ButtonGroup>
+  }
+]
+
 @connectStore(() => ({
   vifsByNetwork: createGetObjectsOfType('VIF').groupBy('$network')
 }))
 export default class TabNetworks extends Component {
-  _disableDelete = network => {
-    const state = store.getState()
-    return some(network.PIFs, pif => disableUnplug(getObject(state, pif))) || network.name_label === 'Host internal management network'
-  }
-
   render () {
     const { networks, vifsByNetwork } = this.props
 
@@ -104,72 +190,7 @@ export default class TabNetworks extends Component {
       <Row>
         <Col>
           {!isEmpty(networks)
-            ? <table className='table'>
-              <thead className='thead-default'>
-                <tr>
-                  <th>{_('poolNetworkNameLabel')}</th>
-                  <th>{_('poolNetworkDescription')}</th>
-                  <th>{_('poolNetworkMTU')}</th>
-                  <th>{_('defaultLockingMode')}</th>
-                  <th>{_('poolNetworkPif')}</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {map(networks, network => {
-                  const networkInUse = some(vifsByNetwork[network.id], vif => vif.attached)
-
-                  return <tr key={network.id}>
-                    <td>
-                      <Text value={network.name_label} onChange={value => editNetwork(network, { name_label: value })} />
-                    </td>
-                    <td>
-                      <Text value={network.name_description} onChange={value => editNetwork(network, { name_description: value })} />
-                    </td>
-                    <td>{network.MTU}</td>
-                    <td className='text-xs-center'>
-                      {_toggleDefaultLockingMode(
-                        <Toggle
-                          disabled={networkInUse}
-                          onChange={() => editNetwork(network, { defaultIsLocked: !network.defaultIsLocked })}
-                          value={network.defaultIsLocked}
-                        />,
-                        networkInUse && _('networkInUse')
-                      )}
-                    </td>
-                    <td>
-                      {!isEmpty(network.PIFs) && <table className='table'>
-                        <thead className='thead-default'>
-                          <tr>
-                            <th>{_('pifDeviceLabel')}</th>
-                            <th>{_('homeTypeHost')}</th>
-                            <th>{_('pifVlanLabel')}</th>
-                            <th>{_('pifAddressLabel')}</th>
-                            <th>{_('pifMacLabel')}</th>
-                            <th>{_('pifStatusLabel')}</th>
-                            <th />
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {map(network.PIFs, pifId => <PifItem key={pifId} id={pifId} />)}
-                        </tbody>
-                      </table>}
-                    </td>
-                    <td>
-                      <ButtonGroup className='pull-xs-right'>
-                        <ActionRowButton
-                          btnStyle='default'
-                          disabled={this._disableDelete(network)}
-                          icon='delete'
-                          handler={deleteNetwork}
-                          handlerParam={network}
-                        />
-                      </ButtonGroup>
-                    </td>
-                  </tr>
-                })}
-              </tbody>
-            </table>
+            ? <SortedTable collection={networks} columns={NETWORKS_COLUMNS} userData={vifsByNetwork} />
             : <h4 className='text-xs-center'>{_('poolNoNetwork')}</h4>
           }
         </Col>
