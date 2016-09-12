@@ -1799,7 +1799,7 @@ export default class Xapi extends XapiBase {
 
   async _createVif (vm, network, {
     mac = '',
-    mtu = 1500,
+    mtu = network.MTU,
     position = undefined,
 
     device = position != null ? String(position) : undefined,
