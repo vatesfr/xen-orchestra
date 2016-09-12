@@ -232,7 +232,8 @@ const TRANSFORMS = {
         return {
           enabled: true,
           info: info && parseXml(info).docker_info,
-          process: process && parseXml(process).docker_ps,
+          containers: ensureArray(process && process.items),
+          process: process && parseXml(process).docker_ps, // deprecated (only used in v4)
           version: version && parseXml(version).docker_version
         }
       })(),
