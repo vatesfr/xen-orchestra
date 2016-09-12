@@ -454,7 +454,7 @@ var messages = {
   generalTabName: 'General',
   statsTabName: 'Stats',
   consoleTabName: 'Console',
-  containersTabName: 'Docker',
+  containersTabName: 'Container',
   snapshotsTabName: 'Snapshots',
   logsTabName: 'Logs',
   advancedTabName: 'Advanced',
