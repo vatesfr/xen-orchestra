@@ -1070,7 +1070,7 @@ createInterface.params = {
   vm: { type: 'string' }
   network: { type: 'string' }
   position: { type: ['integer', 'string'], optional: true }
-  mtu: { type: ['integer', 'string', optional: true }
+  mtu: { type: ['integer', 'string'], optional: true }
   mac: { type: 'string', optional: true }
 }
 
