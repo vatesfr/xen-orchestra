@@ -53,7 +53,7 @@ All other operations are forbidden.
 
 ### Viewer
 
-A viewer can only access the object console (if any) and see the object metrics. That's all!
+A viewer can only see the VM state and its metrics. That's all!
 
 ## Inheritance
 
