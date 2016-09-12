@@ -628,6 +628,16 @@ export const snapshotVm = vm => (
   _call('vm.snapshot', { id: resolveId(vm) })
 )
 
+export const deleteSnapshot = vm => (
+  confirm({
+    title: _('deleteSnapshotModalTitle'),
+    body: _('deleteSnapshotModalMessage')
+  }).then(
+    () => _call('vm.delete', { id: resolveId(vm), delete_disks: true }),
+    noop
+  )
+)
+
 export const snapshotVms = vms => (
   confirm({
     title: _('snapshotVmsModalTitle', { vms: vms.length }),
