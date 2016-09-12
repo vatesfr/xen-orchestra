@@ -158,11 +158,6 @@ $select-input-height: 40px; // Bootstrap input height
 
 // GENERAL STYLES ==============================================================
 
-// Remove red box on required inputs in Firefox
-input:required {
-  box-shadow: none;
-}
-
 .tag-ip {
   margin-left: 1em;
 }

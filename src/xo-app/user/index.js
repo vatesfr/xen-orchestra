@@ -54,6 +54,8 @@ const FILTER_TYPE_TO_LABEL_ID = {
   pool: 'homeTypePool'
 }
 
+const SSH_KEY_STYLE = { wordWrap: 'break-word' }
+
 const getDefaultFilter = (defaultFilters, type) => {
   if (defaultFilters == null) {
     return ''
@@ -220,7 +222,6 @@ class UserFilters extends Component {
 const SshKeys = addSubscriptions({
   user: subscribeCurrentUser
 })(({ user }) => {
-  const STYLE = { wordWrap: 'break-word' }
   const sshKeys = user && user.preferences && user.preferences.sshKeys
 
   return <div>
@@ -243,7 +244,7 @@ const SshKeys = addSubscriptions({
                 <Col size={2}>
                   <strong>{sshKey.title}</strong>
                 </Col>
-                <Col size={8} style={STYLE}>
+                <Col size={8} style={SSH_KEY_STYLE}>
                   {sshKey.key}
                 </Col>
                 <Col size={2}>
