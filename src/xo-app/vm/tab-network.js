@@ -80,7 +80,7 @@ class NewVif extends BaseComponent {
     const { defaultNetwork } = props
     if (defaultNetwork && !this.state.network) {
       this.setState({
-        mtu: String(defaultNetwork.MTU),
+        mtu: defaultNetwork.MTU,
         network: defaultNetwork
       })
     }
@@ -96,7 +96,7 @@ class NewVif extends BaseComponent {
 
   _selectNetwork = network => {
     this.setState({
-      mtu: String(network.MTU),
+      mtu: network.MTU,
       network
     })
   }
@@ -104,7 +104,7 @@ class NewVif extends BaseComponent {
   _createVif = () => {
     const { vm, onClose = noop } = this.props
     const { mac, mtu, network } = this.state
-    return createVmInterface(vm, network, mac, mtu || String(network.MTU))
+    return createVmInterface(vm, network, mac, mtu)
       .then(onClose)
   }
 
@@ -125,7 +125,7 @@ class NewVif extends BaseComponent {
         </div>
         {' '}
         <div className='form-group'>
-          <input type='text' value={mtu || ''} onChange={this.linkState('mtu')} placeholder={formatMessage(messages.vifMtuLabel)} className='form-control' />
+          <input type='number' value={mtu || ''} onChange={this.linkState('mtu')} placeholder={formatMessage(messages.vifMtuLabel)} className='form-control' />
         </div>
         <span className='pull-right'>
           <ActionButton form='newVifForm' icon='add' btnStyle='primary' handler={this._createVif}>Create</ActionButton>
@@ -338,14 +338,16 @@ export default class TabNetwork extends Component {
                           </span>
                         }
                         {' '}
-                        {lockedNetwork && isEmpty(this._concatIps(vif))
-                        ? <Tooltip content={_('vifLockedNetworkNoIps')}>
-                          <Icon icon='error' />
-                        </Tooltip>
-                        : lockedNetwork ? <Tooltip content={_('vifLockedNetwork')}>
-                          <Icon icon={'lock'} />
-                        </Tooltip>
-                        : <Icon icon={'unlock'} />}
+                        {lockedNetwork
+                        ? (
+                          isEmpty(this._concatIps(vif))
+                          ? <Tooltip content={_('vifLockedNetworkNoIps')}>
+                            <Icon icon='error' />
+                          </Tooltip>
+                          : <Tooltip content={_('vifLockedNetwork')}>
+                            <Icon icon='lock' />
+                          </Tooltip>
+                        ) : <Icon icon='unlock' />}
                       </td>
                     </tr>
                   })}
