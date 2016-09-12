@@ -467,23 +467,23 @@ export const installAllPatchesOnPool = pool => (
 // Containers --------------------------------------------------------
 
 export const startContainer = (vm, container) => (
-  _call('docker.start', { vm: resolveId(vm), container: container })
+  _call('docker.start', { vm: resolveId(vm), container })
 )
 
 export const stopContainer = (vm, container) => (
-  _call('docker.stop', { vm: resolveId(vm), container: container })
+  _call('docker.stop', { vm: resolveId(vm), container })
 )
 
 export const pauseContainer = (vm, container) => (
-  _call('docker.pause', { vm: resolveId(vm), container: container })
+  _call('docker.pause', { vm: resolveId(vm), container })
 )
 
 export const resumeContainer = (vm, container) => (
-  _call('docker.resume', { vm: resolveId(vm), container: container })
+  _call('docker.resume', { vm: resolveId(vm), container })
 )
 
 export const restartContainer = (vm, container) => (
-  _call('docker.restart', { vm: resolveId(vm), container: container })
+  _call('docker.restart', { vm: resolveId(vm), container })
 )
 
 // VM ----------------------------------------------------------------
