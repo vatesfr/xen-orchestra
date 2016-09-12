@@ -695,6 +695,9 @@ var messages = {
   newVmFirstIndex: 'First index:',
   newVmNumberRecalculate: 'Recalculate VMs number',
   newVmNameRefresh: 'Refresh VMs name',
+  newVmAdvancedPanel: 'Advanced',
+  newVmShowAdvanced: 'Show advanced settings',
+  newVmHideAdvanced: 'Hide advanced settings',
 
   // ----- Self -----
   resourceSets: 'Resource sets',

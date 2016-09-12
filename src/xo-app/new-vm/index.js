@@ -184,6 +184,8 @@ export default class NewVm extends BaseComponent {
     this.setState({ state }, callback)
   _linkState = (path, targetPath) =>
     this.linkState(`state.${path}`, targetPath)
+  _toggleState = path =>
+    this.toggleState(`state.${path}`)
 
 // Actions ---------------------------------------------------------------------
 
@@ -664,6 +666,7 @@ export default class NewVm extends BaseComponent {
           {this._renderInstallSettings()}
           {this._renderInterfaces()}
           {this._renderDisks()}
+          {this._renderAdvanced()}
           {this._renderSummary()}
         </Wizard>
         <div className={styles.submitSection}>
@@ -701,16 +704,10 @@ export default class NewVm extends BaseComponent {
 
   _renderInfo = () => {
     const {
-      multipleVms,
       name_description,
       name_label,
-      nameLabels,
-      nbVms,
-      namePattern,
-      seqStart,
       template
     } = this.state.state
-    const { formatMessage } = this.props.intl
     return <Section icon='new-vm-infos' title='newVmInfoPanel' done={this._isInfoDone()}>
       <SectionContent>
         <Item label='newVmTemplateLabel'>
@@ -746,62 +743,6 @@ export default class NewVm extends BaseComponent {
           />
         </Item>
       </SectionContent>
-      <SectionContent>
-        <Item>
-          {_('newVmMultipleVms')}
-          &nbsp;&nbsp;
-          <Toggle value={multipleVms} onChange={this._getOnChange('multipleVms')} />
-        </Item>
-        <Item>
-          {_('newVmMultipleVmsPattern')}
-          &nbsp;&nbsp;
-          <DebounceInput
-            className='form-control'
-            debounceTimeout={DEBOUNCE_TIMEOUT}
-            disabled={!multipleVms}
-            onChange={this._getOnChange('namePattern')}
-            placeholder={formatMessage(messages.newVmMultipleVmsPatternPlaceholder)}
-            value={namePattern}
-          />
-        </Item>
-        <Item>
-          {_('newVmFirstIndex')}
-          &nbsp;&nbsp;
-          <DebounceInput
-            className={'form-control'}
-            debounceTimeout={DEBOUNCE_TIMEOUT}
-            disabled={!multipleVms}
-            onChange={this._getOnChange('seqStart')}
-            type='number'
-            value={seqStart}
-          />
-        </Item>
-        <Item className='input-group'>
-          <DebounceInput
-            className='form-control'
-            debounceTimeout={DEBOUNCE_TIMEOUT}
-            disabled={!multipleVms}
-            max={NB_VMS_MAX}
-            min={NB_VMS_MIN}
-            onChange={this._getOnChange('nbVms')}
-            type='number'
-            value={nbVms}
-          />
-          <span className='input-group-btn'>
-            <Tooltip content={_('newVmNumberRecalculate')}><Button bsStyle='secondary' disabled={!multipleVms} onClick={this._updateNbVms}><Icon icon='arrow-right' /></Button></Tooltip>
-          </span>
-        </Item>
-        <Item>
-          <Tooltip content={_('newVmNameRefresh')}><a className={styles.refreshNames} onClick={this._updateNameLabels}><Icon icon='refresh' /></a></Tooltip>
-        </Item>
-        {multipleVms && <LineItem>
-          {map(nameLabels, (nameLabel, index) =>
-            <Item key={`nameLabel_${index}`}>
-              <input type='text' className='form-control' value={nameLabel} onChange={this._getOnChange('nameLabels', index)} />
-            </Item>
-          )}
-        </LineItem>}
-      </SectionContent>
     </Section>
   }
   _isInfoDone = () => {
@@ -810,8 +751,7 @@ export default class NewVm extends BaseComponent {
   }
 
   _renderPerformances = () => {
-    const { CPUs, cpuCap, cpuWeight, memory } = this.state.state
-    const { formatMessage } = this.props.intl
+    const { CPUs, memory } = this.state.state
     return <Section icon='new-vm-perf' title='newVmPerfPanel' done={this._isPerformancesDone()}>
       <SectionContent>
         <Item label='newVmVcpusLabel'>
@@ -826,29 +766,6 @@ export default class NewVm extends BaseComponent {
         </Item>
         <Item label='newVmRamLabel'>
           <SizeInput value={memory} onChange={this._getOnChange('memory')} className={styles.sizeInput} />
-        </Item>
-        <Item label='newVmCpuWeightLabel'>
-          <DebounceInput
-            className='form-control'
-            debounceTimeout={DEBOUNCE_TIMEOUT}
-            min={0}
-            max={65535}
-            onChange={this._getOnChange('cpuWeight')}
-            placeholder={formatMessage(messages.newVmDefaultCpuWeight, { value: XEN_DEFAULT_CPU_WEIGHT })}
-            type='number'
-            value={cpuWeight}
-          />
-        </Item>
-        <Item label='newVmCpuCapLabel'>
-          <DebounceInput
-            className='form-control'
-            debounceTimeout={DEBOUNCE_TIMEOUT}
-            min={0}
-            onChange={this._getOnChange('cpuCap')}
-            placeholder={formatMessage(messages.newVmDefaultCpuCap, { value: XEN_DEFAULT_CPU_CAP })}
-            type='number'
-            value={cpuCap}
-          />
         </Item>
       </SectionContent>
     </Section>
@@ -1266,11 +1183,135 @@ export default class NewVm extends BaseComponent {
       vdi.$SR && vdi.name_label && vdi.size !== undefined
     )
 
+// ADVANCED --------------------------------------------------------------------
+
+  _renderAdvanced = () => {
+    const {
+      bootAfterCreate,
+      cpuCap,
+      cpuWeight,
+      multipleVms,
+      nameLabels,
+      namePattern,
+      nbVms,
+      seqStart,
+      showAdvanced
+    } = this.state.state
+    const { formatMessage } = this.props.intl
+    return <Section icon='new-vm-advanced' title='newVmAdvancedPanel' done>
+      <SectionContent column>
+        <Button bsStyle='secondary' onClick={this._toggleState('showAdvanced')}>
+          {showAdvanced ? _('newVmHideAdvanced') : _('newVmShowAdvanced')}
+        </Button>
+      </SectionContent>
+      {showAdvanced && [
+        <hr />,
+        <SectionContent>
+          <Item>
+            <input
+              checked={bootAfterCreate}
+              onChange={this._getOnChangeCheckbox('bootAfterCreate')}
+              type='checkbox'
+            />
+            &nbsp;
+            {_('newVmBootAfterCreate')}
+          </Item>
+        </SectionContent>,
+        <SectionContent>
+          <Item label='newVmCpuWeightLabel'>
+            <DebounceInput
+              className='form-control'
+              debounceTimeout={DEBOUNCE_TIMEOUT}
+              min={0}
+              max={65535}
+              onChange={this._getOnChange('cpuWeight')}
+              placeholder={formatMessage(messages.newVmDefaultCpuWeight, { value: XEN_DEFAULT_CPU_WEIGHT })}
+              type='number'
+              value={cpuWeight}
+            />
+          </Item>
+          <Item label='newVmCpuCapLabel'>
+            <DebounceInput
+              className='form-control'
+              debounceTimeout={DEBOUNCE_TIMEOUT}
+              min={0}
+              onChange={this._getOnChange('cpuCap')}
+              placeholder={formatMessage(messages.newVmDefaultCpuCap, { value: XEN_DEFAULT_CPU_CAP })}
+              type='number'
+              value={cpuCap}
+            />
+          </Item>
+        </SectionContent>,
+        <SectionContent>
+          <Item>
+            {_('newVmMultipleVms')}
+            &nbsp;&nbsp;
+            <Toggle value={multipleVms} onChange={this._getOnChange('multipleVms')} />
+          </Item>
+          <Item>
+            {_('newVmMultipleVmsPattern')}
+            &nbsp;&nbsp;
+            <DebounceInput
+              className='form-control'
+              debounceTimeout={DEBOUNCE_TIMEOUT}
+              disabled={!multipleVms}
+              onChange={this._getOnChange('namePattern')}
+              placeholder={formatMessage(messages.newVmMultipleVmsPatternPlaceholder)}
+              value={namePattern}
+            />
+          </Item>
+          <Item>
+            {_('newVmFirstIndex')}
+            &nbsp;&nbsp;
+            <DebounceInput
+              className={'form-control'}
+              debounceTimeout={DEBOUNCE_TIMEOUT}
+              disabled={!multipleVms}
+              onChange={this._getOnChange('seqStart')}
+              type='number'
+              value={seqStart}
+            />
+          </Item>
+          <Item className='input-group'>
+            <DebounceInput
+              className='form-control'
+              debounceTimeout={DEBOUNCE_TIMEOUT}
+              disabled={!multipleVms}
+              max={NB_VMS_MAX}
+              min={NB_VMS_MIN}
+              onChange={this._getOnChange('nbVms')}
+              type='number'
+              value={nbVms}
+            />
+            <span className='input-group-btn'>
+              <Tooltip content={_('newVmNumberRecalculate')}>
+                <Button bsStyle='secondary' disabled={!multipleVms} onClick={this._updateNbVms}>
+                  <Icon icon='arrow-right' />
+                </Button>
+              </Tooltip>
+            </span>
+          </Item>
+          <Item>
+            <Tooltip content={_('newVmNameRefresh')}>
+              <a className={styles.refreshNames} onClick={this._updateNameLabels}><Icon icon='refresh' /></a>
+            </Tooltip>
+          </Item>
+          {multipleVms && <LineItem>
+            {map(nameLabels, (nameLabel, index) =>
+              <Item key={`nameLabel_${index}`}>
+                <input type='text' className='form-control' value={nameLabel} onChange={this._getOnChange('nameLabels', index)} />
+              </Item>
+            )}
+          </LineItem>}
+        </SectionContent>
+      ]}
+    </Section>
+  }
+
 // SUMMARY ---------------------------------------------------------------------
 
   _renderSummary = () => {
     const {
-      bootAfterCreate,
       CPUs,
       existingDisks,
       fastClone,
@@ -1311,17 +1352,6 @@ export default class NewVm extends BaseComponent {
           {_('fastCloneVmLabel')}
         </span>
       </div>}
-      <div style={{display: 'flex'}}>
-        <span style={{margin: 'auto'}}>
-          <input
-            checked={bootAfterCreate}
-            onChange={this._getOnChangeCheckbox('bootAfterCreate')}
-            type='checkbox'
-          />
-          {' '}
-          {_('newVmBootAfterCreate')}
-        </span>
-      </div>
     </Section>
   }
 }

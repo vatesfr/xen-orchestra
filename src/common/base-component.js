@@ -97,7 +97,7 @@ export default class BaseComponent extends Component {
     if (includes(name, '.')) {
       const path = name.split('.')
       return (linkedState[path] = event => {
-        this.setState(cowSet(this.state, path, !get(this.state, path), 0))
+        this.setState(cowSet(this.state, path, !get(this.state, path, 0), 0))
       })
     }
 
