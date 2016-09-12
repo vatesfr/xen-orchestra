@@ -42,9 +42,13 @@ ${log.data.error.stack}`}</Copiable>)
         name: _('logUser'),
         itemRenderer: log => {
           if (log.data.userId == null) {
-            return _('unknownUser')
+            return _('noUser')
           }
-          return this.props.users ? find(this.props.users, user => user.id === log.data.userId).email : '...'
+          if (!this.props.users) {
+            return '...'
+          }
+          const user = find(this.props.users, user => user.id === log.data.userId)
+          return user ? user.email : _('unknownUser')
         },
         sortCriteria: log => log.data.userId
       },

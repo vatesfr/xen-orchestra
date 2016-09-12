@@ -266,6 +266,7 @@ var messages = {
   removeUserFromGroup: 'Remove user from Group',
   deleteUserConfirm: 'Are you sure you want to delete this user?',
   deleteUser: 'Delete User',
+  noUser: 'no user',
   unknownUser: 'unknown user',
   noGroupFound: 'No group found',
   groupNameColumn: 'Name',
