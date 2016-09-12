@@ -492,7 +492,7 @@ var messages = {
   statLastWeek: 'Last week',
   statLastYear: 'Last year',
 
-  // ----- VM container tab -----
+  // ----- VM console tab -----
   copyToClipboardLabel: 'Copy',
   ctrlAltDelButtonLabel: 'Ctrl+Alt+Del',
   tipLabel: 'Tip:',
@@ -500,7 +500,7 @@ var messages = {
   hideHeaderTooltip: 'Hide infos',
   showHeaderTooltip: 'Show infos',
 
-  // ----- VM console tab -----
+  // ----- VM container tab -----
   containerName: 'Name',
   containerCommand: 'Command',
   containerCreated: 'Creation date',
