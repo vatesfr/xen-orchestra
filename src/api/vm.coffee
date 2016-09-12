@@ -1069,8 +1069,8 @@ createInterface = $coroutine ({vm, network, position, mtu, mac}) ->
 createInterface.params = {
   vm: { type: 'string' }
   network: { type: 'string' }
-  position: { type: 'string', optional: true }
-  mtu: { type: 'string', optional: true }
+  position: { type: ['integer', 'string'], optional: true }
+  mtu: { type: ['integer', 'string', optional: true }
   mac: { type: 'string', optional: true }
 }
 
