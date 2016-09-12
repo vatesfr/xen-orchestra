@@ -8,7 +8,7 @@ This category is dedicated on creating VM with Docker support.
 
 ## Prerequisite
 
-* XenServer 6.5
+* XenServer 6.5 or higher
 * Plugin installation (see below)
 * CoreOS ISO ([download it here](http://stable.release.core-os.net/amd64-usr/current/coreos_production_iso_image.iso)) for CoreOS installations
 * Xen Orchestra 4.10 or newer
@@ -20,8 +20,8 @@ This first step is needed until Docker is supported nativly in the XenServer API
 > The plugin should be installed in every hosts, even if they are on the same pool.
 
 1. SSH on your XenServer
-1. Download the plugin: `wget http://downloadns.citrix.com.edgesuite.net/10343/XenServer-6.5.0-SP1-xscontainer.iso`
-1. Install it: `xe-install-supplemental-pack XenServer-6.5.0-SP1-xscontainer.iso`
+1. Download the plugin: `wget http://downloadns.citrix.com.edgesuite.net/10343/XenServer-6.5.0-SP1-xscontainer.iso` for XenServer 6.5 or `wget http://downloadns.citrix.com.edgesuite.net/11621/XenServer-7.0.0-xscontainer.iso` for 7.
+1. Install it: `xe-install-supplemental-pack XenServer-*-xscontainer.iso`
 
 That's it! You are ready for enjoying Docker support!
 
@@ -40,21 +40,17 @@ There is two ways to use the newest exposed Docker features:
 
 #### Create the VM
 
-First thing first, create a new VM as usual:
-
-![](https://xen-orchestra.com/blog/content/images/2015/11/createvm.png)
+First thing first, [create a new VM as usual](vm_creation.md).
 
 Then, select the "CoreOS" template in the list and name it as you want:
 
-![](https://xen-orchestra.com/blog/content/images/2015/11/coreostemplate.png)
+![](./assets/xo5coreos.png)
 
-Select the [CoreOS ISO](http://stable.release.core-os.net/amd64-usr/current/coreos_production_iso_image.iso) as source for the installation:
-
-![](https://xen-orchestra.com/blog/content/images/2015/11/coreosiso.png)
+Select the [CoreOS ISO](http://stable.release.core-os.net/amd64-usr/current/coreos_production_iso_image.iso) as source for the installation.
 
 You will also notice Cloud Config panel:
 
-![](https://xen-orchestra.com/blog/content/images/2015/11/cloudconfig.png)
+![](./assets/xo5coreosconfig.png)
 
 You'll have to uncomment the line:
 
@@ -65,23 +61,19 @@ And replace it with your actual SSH public key:
 `- ssh-rsa AAAA....kuGgQ me@mypc`
 
 
-The rest of the configuration is identical to any other VM. Just click on "Create VM" and you are done:
+The rest of the configuration is identical to any other VM. Just click on "Create VM" and you are done. After few seconds, your VM is ready. Nothing else to do!
 
-![](https://xen-orchestra.com/blog/content/images/2015/11/createdockereadyvm.png)
+You can see it thanks to the docker logo in the main view:
 
-Your VM is now ready. Nothing else to do. You can see it thanks to the ship logo in the main view:
+![](./assets/xo5docker3.png)
 
-![](https://xen-orchestra.com/blog/content/images/2015/11/dockerenable.png)
+But also in the VM view, you'll have a container tab:
 
-But also in the VM view, you'll have a Docker panel:
+![](./assets/xo5dockerempty.png)
 
-![](https://xen-orchestra.com/blog/content/images/2015/11/dockerpanel.png)
+It's empty obviously, because you don't have any Docker container running. So now, let's boot the VM, and create some Docker containers!
 
-It's empty, for sure, because you don't have any Docker container running. So now, let's boot the VM, and create some Docker containers!
-
-You should be able to access the VM with the user `core` and your SSH key (so no password to write!). Oh and the good news: because Xen tools are installed automatically, you already have the IP address displayed in Xen Orchetra:
-
-![](https://xen-orchestra.com/blog/content/images/2015/11/dockerip.png)
+You should be able to access the VM with the user `core` and your SSH key (so no password to write!). Oh and the good news: because Xen tools are installed automatically, you already have the IP address displayed in Xen Orchetra.
 
 So in our example (use the `core` user):
 
@@ -96,27 +88,33 @@ Last login: Sun Nov 22 21:00:05 2015
 CoreOS stable (607.0.0)
 Update Strategy: No Reboots
 
-core@core1 ~ $ 
+core@core1 ~ $
 ```
 
-You are now connected! Let's make some tests before installing it on the disks.
+You are now connected! Let's make some tests before installing it on the disks, with a container named "hello" (doing just a small infinite loop):
 
 ```
-core@core1 ~ $ docker run --name hello -d busybox /bin/sh -c "while true; do echo Hello World; sleep 1; done"
+core@core1 ~ $ docker run --name nginx -d hello /bin/sh -c "while true; do echo Hello World; sleep 1; done"
 Unable to find image 'busybox:latest' locally
 Pulling repository busybox
-17583c7dd0da: Download complete 
-d1592a710ac3: Download complete 
+17583c7dd0da: Download complete
+d1592a710ac3: Download complete
 Status: Downloaded newer image for busybox:latest
 150bc05a84971489b2dd5dc99fe0169cdbd23599d6fac55a6a8756a3c6f52853
 
 ```
 
+You can create any number of those!
+
 Guess what? Check in Xen Orchestra, in the VM view:
 
-![](https://xen-orchestra.com/blog/content/images/2015/11/dockerlist.png)
+![](./assets/xo5docker1.png)
 
 You can now "cycle" this container: stop, pause or reboot it!
+
+Don't forget that you can sort the table and even search inside it:
+
+![](./assets/xo5docker2.png)
 
 #### CoreOS installation
 
