@@ -18,6 +18,7 @@ import Page from '../page'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import size from 'lodash/size'
+import Tooltip from 'tooltip'
 import { Card, CardHeader, CardBlock } from 'card'
 import {
   addCustomFilter,
@@ -75,10 +76,10 @@ const OPTIONS = {
     defaultFilter: 'power_state:running ',
     filters: homeFilters.host,
     mainActions: [
-      { handler: stopHosts, icon: 'host-stop' },
-      { handler: restartHostsAgents, icon: 'host-restart-agent' },
-      { handler: emergencyShutdownHosts, icon: 'host-emergency-shutdown' },
-      { handler: restartHosts, icon: 'host-reboot' }
+      { handler: stopHosts, icon: 'host-stop', tooltip: _('stopHostLabel') },
+      { handler: restartHostsAgents, icon: 'host-restart-agent', tooltip: _('restartHostAgent') },
+      { handler: emergencyShutdownHosts, icon: 'host-emergency-shutdown', tooltip: _('emergencyModeLabel') },
+      { handler: restartHosts, icon: 'host-reboot', tooltip: _('rebootHostLabel') }
     ],
     Item: HostItem,
     showPoolsSelector: true,
@@ -93,11 +94,11 @@ const OPTIONS = {
     defaultFilter: 'power_state:running ',
     filters: homeFilters.VM,
     mainActions: [
-      { handler: stopVms, icon: 'vm-stop' },
-      { handler: startVms, icon: 'vm-start' },
-      { handler: restartVms, icon: 'vm-reboot' },
-      { handler: migrateVms, icon: 'vm-migrate' },
-      { handler: copyVms, icon: 'vm-copy' }
+      { handler: stopVms, icon: 'vm-stop', tooltip: _('stopVmLabel') },
+      { handler: startVms, icon: 'vm-start', tooltip: _('startVmLabel') },
+      { handler: restartVms, icon: 'vm-reboot', tooltip: _('rebootVmLabel') },
+      { handler: migrateVms, icon: 'vm-migrate', tooltip: _('migrateVmLabel') },
+      { handler: copyVms, icon: 'vm-copy', tooltip: _('copyVmLabel') }
     ],
     otherActions: [{
       handler: restartVms,
@@ -603,12 +604,13 @@ export default class Home extends Component {
                 {mainActions && (
                   <div className='btn-group'>
                     {map(mainActions, (action, key) => (
-                      <ActionButton
-                        btnStyle='secondary'
-                        key={key}
-                        {...action}
-                        handlerParam={selectedItemsIds}
-                      />
+                      <Tooltip content={action.tooltip} key={key}>
+                        <ActionButton
+                          btnStyle='secondary'
+                          {...action}
+                          handlerParam={selectedItemsIds}
+                        />
+                      </Tooltip>
                     ))}
                   </div>
                 )}
