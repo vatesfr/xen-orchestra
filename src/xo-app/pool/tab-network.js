@@ -29,7 +29,7 @@ const getObject = createGetObject((_, id) => id)
 const disableUnplug = pif =>
   pif.attached && (pif.management || pif.disallowUnplug)
 
-const _toggleDefaultLockingMode = (component, tooltip) => tooltip
+const _conditionalTooltip = (component, tooltip) => tooltip
   ? <Tooltip content={tooltip}>
     {component}
   </Tooltip>
@@ -139,7 +139,7 @@ const NETWORKS_COLUMNS = [
     </div>,
     itemRenderer: (network, vifsByNetwork) => {
       const networkInUse = some(vifsByNetwork[network.id], vif => vif.attached)
-      return _toggleDefaultLockingMode(
+      return _conditionalTooltip(
         <Toggle
           disabled={networkInUse}
           onChange={() => editNetwork(network, { defaultIsLocked: !network.defaultIsLocked })}
