@@ -217,6 +217,56 @@ class UserFilters extends Component {
 
 // ===================================================================
 
+const SshKeys = addSubscriptions({
+  user: subscribeCurrentUser
+})(({ user }) => {
+  const STYLE = { wordWrap: 'break-word' }
+  const sshKeys = user && user.preferences && user.preferences.sshKeys
+
+  return <div>
+    <Card>
+      <CardHeader>
+        <Icon icon='ssh-key' /> {_('sshKeys')}
+        <ActionButton
+          className='btn-success pull-xs-right'
+          icon='add'
+          handler={addSshKey}
+        >
+          {_('newSshKey')}
+        </ActionButton>
+      </CardHeader>
+      <CardBlock>
+        {!isEmpty(sshKeys)
+          ? <Container>
+            {map(sshKeys, (sshKey, key) => (
+              <Row key={key} className='p-b-1'>
+                <Col size={2}>
+                  <strong>{sshKey.title}</strong>
+                </Col>
+                <Col size={8} style={STYLE}>
+                  {sshKey.key}
+                </Col>
+                <Col size={2}>
+                  <ActionButton
+                    className='btn-secondary pull-xs-right'
+                    icon='delete'
+                    handler={() => deleteSshKey(sshKey)}
+                  >
+                    {_('deleteSshKey')}
+                  </ActionButton>
+                </Col>
+              </Row>
+            ))}
+          </Container>
+          : _('noSshKeys')
+        }
+      </CardBlock>
+    </Card>
+  </div>
+})
+
+// ===================================================================
+
 @addSubscriptions({
   user: subscribeCurrentUser
 })
@@ -258,8 +308,6 @@ export default class User extends Component {
       newPassword,
       oldPassword
     } = this.state
-
-    const sshKeys = user && user.preferences && user.preferences.sshKeys
 
     return <Page header={HEADER} title={user.email}>
       <Container>
@@ -323,47 +371,8 @@ export default class User extends Component {
           </Col>
         </Row>
       </Container>
-      <br />
-      <div>
-        <Card>
-          <CardHeader>
-            <Icon icon='ssh-key' /> {_('sshKeys')}
-            <ActionButton
-              className='btn-success pull-xs-right'
-              icon='add'
-              handler={addSshKey}
-            >
-              {_('newSshKey')}
-            </ActionButton>
-          </CardHeader>
-          <CardBlock>
-            {!isEmpty(sshKeys)
-              ? <Container>
-                {map(sshKeys, (sshKey, key) => (
-                  <Row key={key} className='p-b-1'>
-                    <Col size={2}>
-                      <strong>{sshKey.title}</strong>
-                    </Col>
-                    <Col size={8} style={{overflowWrap: 'break-word'}}>
-                      {sshKey.key}
-                    </Col>
-                    <Col size={2}>
-                      <ActionButton
-                        className='btn-secondary pull-xs-right'
-                        icon='delete'
-                        handler={() => deleteSshKey(sshKey)}
-                      >
-                        {_('deleteSshKey')}
-                      </ActionButton>
-                    </Col>
-                  </Row>
-                ))}
-              </Container>
-              : _('noSshKeys')
-            }
-          </CardBlock>
-        </Card>
-      </div>
+      <hr />
+      <SshKeys />
       <hr />
       <UserFilters user={user} />
     </Page>
