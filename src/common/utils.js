@@ -224,10 +224,10 @@ export const noop = () => {}
 export const osFamily = invoke({
   centos: [ 'centos' ],
   debian: [ 'debian' ],
+  docker: [ 'coreos' ],
   fedora: [ 'fedora' ],
   freebsd: [ 'freebsd' ],
   gentoo: [ 'gentoo' ],
-  linux: [ 'coreos' ],
   'linux-mint': [ 'linux-mint' ],
   netbsd: [ 'netbsd' ],
   oracle: [ 'oracle' ],

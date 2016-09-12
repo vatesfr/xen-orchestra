@@ -765,6 +765,10 @@
     @extend .fa;
     @extend .icon-debian;
   }
+  &-docker {
+    @extend .fa;
+    @extend .icon-docker;
+  }
   &-fedora {
     @extend .fa;
     @extend .icon-fedora;
