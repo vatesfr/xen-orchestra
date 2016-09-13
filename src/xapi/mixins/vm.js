@@ -319,7 +319,9 @@ export default {
 
     nameLabel: true,
 
-    PV_args: true
+    PV_args: true,
+
+    tags: true
   }),
 
   async editVm (id, props) {
