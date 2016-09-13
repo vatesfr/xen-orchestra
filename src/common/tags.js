@@ -57,10 +57,6 @@ export default class Tags extends Component {
     }
   }
   _deleteTag = tag => {
-    if (!includes(this.props.labels, tag)) {
-      return
-    }
-
     const { onChange, onDelete } = this.props
 
     onDelete && onDelete(tag)
@@ -70,16 +66,18 @@ export default class Tags extends Component {
   _onKeyDown = event => {
     const { keyCode, target } = event
 
-    if (keyCode === 13 || keyCode === 27) {
-      event.preventDefault()
-    }
-
-    if (keyCode === 13 && target.value) {
-      this._addTag(target.value)
-      target.value = ''
+    if (keyCode === 13) {
+      if (target.value) {
+        this._addTag(target.value)
+        target.value = ''
+      }
     } else if (keyCode === 27) {
       this._stopEdit()
+    } else {
+      return
     }
+
+    event.preventDefault()
   }
 
   render () {
@@ -90,7 +88,7 @@ export default class Tags extends Component {
       onDelete
     } = this.props
 
-    const __deleteTag = (onDelete || onChange) && this._deleteTag
+    const _deleteTag = (onDelete || onChange) && this._deleteTag
 
     return (
       <span className='form-group' style={{ color: '#999' }}>
@@ -98,7 +96,7 @@ export default class Tags extends Component {
         {' '}
         <span>
           {map(labels.sort(), (label, index) =>
-            <Tag label={label} onDelete={__deleteTag} key={index} />
+            <Tag label={label} onDelete={_deleteTag} key={index} />
           )}
         </span>
         {(onAdd || onChange) && !this.state.editing
