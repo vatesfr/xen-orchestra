@@ -1,12 +1,8 @@
 # Continuous Replication
 
-> This feature is released since 4.12
-
 > WARNING: it works only on XenServer 6.5 or later
 
-> WARNING 2: this feature is very new, use it with caution until 4.13
-
-This feature allow continuous replication system for your XenServer VMs without any storage vendor lock-in. You can now replicate a VM every xx minutes/hours on a any storage repository. It could be on a distant XenServer host or just another local storage.
+This feature allow continuous replication system for your XenServer VMs **without any storage vendor lock-in**. You can replicate a VM every xx minutes/hours on a any storage repository. It could be on a distant XenServer host or just another local storage.
 
 This feature covers multiple objectives:
 
@@ -26,9 +22,7 @@ If you lose your main pool, you can start the copy on the other side, with very 
 
 ## Configure it
 
-As you'll see, this is trivial to configure. Inside the "Backup" section, select "Continuous Replication":
-
-![](https://xen-orchestra.com/blog/content/images/2016/01/continuous_replication.png)
+As you'll see, this is trivial to configure. Inside the "Backup/new" section, select "Continuous Replication".
 
 Then:
 
@@ -36,18 +30,13 @@ Then:
 1. Schedule the replication interval
 1. Select the destination storage (could be any storage connected to any XenServer host!)
 
-![](https://xen-orchestra.com/blog/content/images/2016/01/continuous_replication2.png)
-
-> In this case, we'll replicate 2 VMs to "NFS" SR which is a pool called "Other Pool". Replication will happen every 20 minutes.
-
 That's it! Your VMs are protected and replicated as requested.
 
 To protect the replication, we removed the possibility to boot your copied VM directly, because if you do that, it will break the next delta. The solution is to clone it if you need it (a clone is really quick). You can do whatever you want with this clone!
 
-## Initial seed
+## Manual initial seed
 
 If you can't transfer the first backup through your network, you can make a seed locally. In order to do this, follow this procedure (until we made it accessible directly in XO):
-
 
 ### Preparation
 

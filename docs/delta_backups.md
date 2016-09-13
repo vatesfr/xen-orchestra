@@ -1,10 +1,8 @@
 # Continuous Delta backups
 
-> This feature is released since 4.11 and "Continuous" feature since 4.12
-
 > WARNING: it works only on XenServer 6.5 or later
 
-You can export only the delta between your current VM disks and a previous snapshot (called here the *reference*). They are called continuous because you'll **never export a full backup** after the first one.
+You can export only the delta between your current VM disks and a previous snapshot (called here the *reference*). They are called *continuous* because you'll **never export a full backup** after the first one.
 
 ## Introduction
 
@@ -16,9 +14,7 @@ It means huge files for each backups. Delta backups will only export the differe
 
 ![](https://xen-orchestra.com/blog/content/images/2015/12/delta_final.png)
 
-Basically, you'll create "key" backups (full backup) and use delta from those. It's the same principle for [MPEG compression and key frame](https://en.wikipedia.org/wiki/Key_frame#Video_compression).
-
-You can imagine to make a full backup during a weekend, and only delta backups every night. It combines the flexibility of snapshots and the power of full backups, because:
+You can imagine to make your first initial full backup during a weekend, and then only delta backups every night. It combines the flexibility of snapshots and the power of full backups, because:
 
 * delta are stored somewhere else than the current VM storage
 * they are small
@@ -43,8 +39,4 @@ This way we can go "forward" and remove this oldest VHD after the merge:
 
 ## Create Delta backup
 
-Just go inside your "Backup" view, and select Delta Backup:
-
-![](https://xen-orchestra.com/blog/content/images/2015/12/delta_menu.png)
-
-Then, create in like a normal backup.
+Just go inside your "Backup" view, and select Delta Backup. Then, it's like a normal backup.

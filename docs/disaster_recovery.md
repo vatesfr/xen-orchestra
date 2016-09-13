@@ -1,7 +1,5 @@
 # Disaster recovery
 
-> DR is available since 4.9
-
 Disaster Recovery (DR) regroup all the means to recover after losing hosts or storage repositories.
 
 In this documentation, we'll only see the technical aspect of DR, which is a small part of this vast topic.
@@ -16,15 +14,9 @@ To avoid a potentially very long import process (restoring all your backup VMs),
 
 ![](https://xen-orchestra.com/blog/content/images/2015/10/newsolution.png)
 
-
-
 ## Schedule a DR task
 
-Planning a DR task is very similar to plan a backup or a snapshot. The only difference is that you choose a destination pool.
-
-![](https://xen-orchestra.com/blog/content/images/2015/11/DRexample.png)
-
-**Warning**: you should have a default SR configured on your targeted pool.
+Planning a DR task is very similar to plan a backup or a snapshot. The only difference is that you choose a destination storage.
 
 You DR VMs will be visible "on the other side" as soon the task is done.
 
