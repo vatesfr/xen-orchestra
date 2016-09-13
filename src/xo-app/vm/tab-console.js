@@ -20,8 +20,8 @@ import {
 
 export default class TabConsole extends Component {
   componentWillReceiveProps (props) {
-    if (isVmRunning(this.props.vm) && !isVmRunning(props.vm)) {
-      this.props.minimalLayout && this._toggleMinimalLayout()
+    if (isVmRunning(this.props.vm) && !isVmRunning(props.vm) && this.state.minimalLayout) {
+      this._toggleMinimalLayout()
     }
   }
   _sendCtrlAltDel = () => {
