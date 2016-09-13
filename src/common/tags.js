@@ -88,7 +88,7 @@ export default class Tags extends Component {
       onDelete
     } = this.props
 
-    const _deleteTag = (onDelete || onChange) && this._deleteTag
+    const deleteTag = (onDelete || onChange) && this._deleteTag
 
     return (
       <span className='form-group' style={{ color: '#999' }}>
@@ -96,7 +96,7 @@ export default class Tags extends Component {
         {' '}
         <span>
           {map(labels.sort(), (label, index) =>
-            <Tag label={label} onDelete={_deleteTag} key={index} />
+            <Tag label={label} onDelete={deleteTag} key={index} />
           )}
         </span>
         {(onAdd || onChange) && !this.state.editing
