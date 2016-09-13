@@ -31,7 +31,7 @@ const remoteTypes = {
 
 class AbstractRemote extends Component {
   _changeUrlElement = (value, element) => {
-    const { remote } = {...this.props.remote}
+    const remote = {...this.props.remote}
     remote[element] = value
     const url = format(remote)
     return editRemote(remote, {url})
