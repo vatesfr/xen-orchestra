@@ -19,7 +19,6 @@ import join from 'lodash/join'
 import map from 'lodash/map'
 import Page from '../page'
 import React from 'react'
-import remove from 'lodash/remove'
 import size from 'lodash/size'
 import slice from 'lodash/slice'
 import store from 'store'
@@ -1189,19 +1188,6 @@ export default class NewVm extends BaseComponent {
 
 // ADVANCED --------------------------------------------------------------------
 
-  _addTag = tag => {
-    const { tags } = this.state.state
-    if (!includes(tags, tag)) {
-      this._setState({ tags: [ ...tags, tag ] })
-    }
-  }
-
-  _removeTag = tag => {
-    const tags = [ ...this.state.state.tags ]
-    remove(tags, t => t === tag)
-    this._setState({ tags })
-  }
-
   _renderAdvanced = () => {
     const {
       bootAfterCreate,
@@ -1235,7 +1221,7 @@ export default class NewVm extends BaseComponent {
             {_('newVmBootAfterCreate')}
           </Item>
           <Item className={styles.tags}>
-            <Tags labels={tags} onDelete={this._removeTag} onAdd={this._addTag} />
+            <Tags labels={tags} onChange={this._linkState('tags')} />
           </Item>
         </SectionContent>,
         <SectionContent>
