@@ -1,5 +1,25 @@
 # ChangeLog
 
+## **5.2.1** (2016-09-13)
+
+### Enhancements
+
+- On pool view: collapse network list [\#1461](https://github.com/vatesfr/xo-web/issues/1461)
+- Alert when trying to reboot/halt the pool master XS [\#1458](https://github.com/vatesfr/xo-web/issues/1458)
+- Adding tooltip on Home page [\#1456](https://github.com/vatesfr/xo-web/issues/1456)
+- Docker container management functionality missing from v5 [\#1442](https://github.com/vatesfr/xo-web/issues/1442)
+- bad error message - delete snapshot [\#1433](https://github.com/vatesfr/xo-web/issues/1433)
+- Create tag during VM creation [\#1431](https://github.com/vatesfr/xo-web/issues/1431)
+
+### Bug fixes
+
+- SMB remote empty domain fails [\#1499](https://github.com/vatesfr/xo-web/issues/1499)
+- Can't edit a remote password [\#1498](https://github.com/vatesfr/xo-web/issues/1498)
+- Issue in VM create with CoreOS [\#1493](https://github.com/vatesfr/xo-web/issues/1493)
+- Overlapping months in backup view [\#1488](https://github.com/vatesfr/xo-web/issues/1488)
+- No line break for SSH key in user view [\#1475](https://github.com/vatesfr/xo-web/issues/1475)
+- Create VIF UI issues [\#1472](https://github.com/vatesfr/xo-web/issues/1472)
+
 ## **5.2.0** (2016-09-09)
 
 ### Enhancements
