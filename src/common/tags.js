@@ -1,14 +1,34 @@
+import filter from 'lodash/filter'
 import includes from 'lodash/includes'
 import map from 'lodash/map'
 import React from 'react'
-import remove from 'lodash/remove'
 
 import Component from './base-component'
 import Icon from './icon'
 import propTypes from './prop-types'
 
-const POINTER = { cursor: 'pointer' }
-const INPUT_STYLE = { maxWidth: '4em', margin: '2px' }
+const INPUT_STYLE = {
+  margin: '2px',
+  maxWidth: '4em'
+}
+const TAG_STYLE = {
+  backgroundColor: '#2598d9',
+  borderRadius: '0.5em',
+  color: 'white',
+  fontSize: '0.6em',
+  margin: '0.2em',
+  marginTop: '-0.1em',
+  padding: '0.3em',
+  verticalAlign: 'middle'
+}
+const ADD_TAG_STYLE = {
+  cursor: 'pointer',
+  fontSize: '0.8em',
+  marginLeft: '0.2em'
+}
+const REMOVE_TAG_STYLE = {
+  cursor: 'pointer'
+}
 
 @propTypes({
   labels: propTypes.arrayOf(React.PropTypes.string).isRequired,
@@ -41,13 +61,25 @@ export default class Tags extends Component {
       return
     }
 
-    const labels = [ ...this.props.labels ]
     const { onChange, onDelete } = this.props
 
-    remove(labels, t => t === tag)
-
     onDelete && onDelete(tag)
-    onChange && onChange(labels)
+    onChange && onChange(filter(this.props.labels, t => t !== tag))
+  }
+
+  _onKeyDown = event => {
+    const { keyCode, target } = event
+
+    if (keyCode === 13 || keyCode === 27) {
+      event.preventDefault()
+    }
+
+    if (keyCode === 13 && target.value) {
+      this._addTag(target.value)
+      target.value = ''
+    } else if (keyCode === 27) {
+      this._stopEdit()
+    }
   }
 
   render () {
@@ -58,17 +90,19 @@ export default class Tags extends Component {
       onDelete
     } = this.props
 
+    const __deleteTag = (onDelete || onChange) && this._deleteTag
+
     return (
       <span className='form-group' style={{ color: '#999' }}>
         <Icon icon='tags' />
         {' '}
         <span>
           {map(labels.sort(), (label, index) =>
-            <Tag label={label} onDelete={(onDelete || onChange) && this._deleteTag} key={index} />
+            <Tag label={label} onDelete={__deleteTag} key={index} />
           )}
         </span>
         {(onAdd || onChange) && !this.state.editing
-          ? <span className='add-tag-action' onClick={this._startEdit} style={POINTER}>
+          ? <span onClick={this._startEdit} style={ADD_TAG_STYLE}>
             <Icon icon='add-tag' />
           </span>
           : <span>
@@ -76,20 +110,7 @@ export default class Tags extends Component {
               type='text'
               autoFocus
               style={INPUT_STYLE}
-              onKeyDown={event => {
-                const { keyCode, target } = event
-
-                if (keyCode === 13 || keyCode === 27) {
-                  event.preventDefault()
-                }
-
-                if (keyCode === 13 && target.value) {
-                  this._addTag(target.value)
-                  target.value = ''
-                } else if (keyCode === 27) {
-                  this._stopEdit()
-                }
-              }}
+              onKeyDown={this._onKeyDown}
               onBlur={this._stopEdit}
             />
           </span>
@@ -100,10 +121,10 @@ export default class Tags extends Component {
 }
 
 export const Tag = ({ label, onDelete }) => (
-  <span className='xo-tag'>
+  <span style={TAG_STYLE}>
     {label}{' '}
     {onDelete
-      ? <span onClick={onDelete && (() => onDelete(label))} style={POINTER}>
+      ? <span onClick={onDelete && (() => onDelete(label))} style={REMOVE_TAG_STYLE}>
         <Icon icon='remove-tag' />
       </span>
       : []
