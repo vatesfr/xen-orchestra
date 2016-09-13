@@ -22,6 +22,7 @@ import React from 'react'
 import size from 'lodash/size'
 import slice from 'lodash/slice'
 import store from 'store'
+import Tags from 'tags'
 import Tooltip from 'tooltip'
 import Wizard, { Section } from 'wizard'
 import { Button } from 'react-bootstrap-4/lib'
@@ -211,7 +212,8 @@ export default class NewVm extends BaseComponent {
       nbVms: NB_VMS_MIN,
       VDIs: [],
       VIFs: [],
-      seqStart: 1
+      seqStart: 1,
+      tags: []
     })
   }
 
@@ -297,7 +299,8 @@ export default class NewVm extends BaseComponent {
       // Boolean: if true, boot the VM right after its creation
       bootAfterCreate: state.bootAfterCreate,
       cloudConfig,
-      coreOs: state.template.name_label === 'CoreOS'
+      coreOs: state.template.name_label === 'CoreOS',
+      tags: state.tags
     }
 
     return state.multipleVms ? createVms(data, state.nameLabels) : createVm(data)
@@ -1195,7 +1198,8 @@ export default class NewVm extends BaseComponent {
       namePattern,
       nbVms,
       seqStart,
-      showAdvanced
+      showAdvanced,
+      tags
     } = this.state.state
     const { formatMessage } = this.props.intl
     return <Section icon='new-vm-advanced' title='newVmAdvancedPanel' done>
@@ -1215,6 +1219,9 @@ export default class NewVm extends BaseComponent {
             />
             &nbsp;
             {_('newVmBootAfterCreate')}
+          </Item>
+          <Item className={styles.tags}>
+            <Tags labels={tags} onChange={this._linkState('tags')} />
           </Item>
         </SectionContent>,
         <SectionContent>
