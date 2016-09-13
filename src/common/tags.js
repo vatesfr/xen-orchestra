@@ -48,12 +48,16 @@ export default class Tags extends Component {
                 autoFocus
                 style={{maxWidth: '4em', margin: '2px'}}
                 onKeyDown={event => {
-                  const { target } = event
+                  const { keyCode, target } = event
 
-                  if (event.keyCode === 13 && target.value) {
+                  if (keyCode === 13 || keyCode === 27) {
+                    event.preventDefault()
+                  }
+
+                  if (keyCode === 13 && target.value) {
                     onAdd(target.value)
                     target.value = ''
-                  } else if (event.keyCode === 27) {
+                  } else if (keyCode === 27) {
                     this._stopEdit()
                   }
                 }}
