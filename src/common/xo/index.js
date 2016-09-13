@@ -638,6 +638,16 @@ export const snapshotVms = vms => (
   )
 )
 
+export const deleteSnapshot = vm => (
+  confirm({
+    title: _('deleteSnapshotModalTitle'),
+    body: _('deleteSnapshotModalMessage')
+  }).then(
+    () => _call('vm.delete', { id: resolveId(vm), delete_disks: true }),
+    noop
+  )
+)
+
 import MigrateVmModalBody from './migrate-vm-modal'
 export const migrateVm = (vm, host) => (
   confirm({

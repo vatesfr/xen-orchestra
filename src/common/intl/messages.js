@@ -841,6 +841,8 @@ var messages = {
   deleteVdiModalTitle: 'Delete VDI',
   deleteVdiModalMessage: 'Are you sure you want to delete this disk? ALL DATA ON THIS DISK WILL BE LOST',
   revertVmModalTitle: 'Revert your VM',
+  deleteSnapshotModalTitle: 'Delete snapshot',
+  deleteSnapshotModalMessage: 'Are you sure you want to delete this snapshot?',
   revertVmModalMessage: 'You are about to revert your VM to the snapshot state. This operation is irreversible',
   importBackupModalTitle: 'Import a {name} Backup',
   importBackupModalStart: 'Start VM after restore',

@@ -16,7 +16,7 @@ import {
 } from 'selectors'
 import {
   copyVm,
-  deleteVm,
+  deleteSnapshot,
   exportVm,
   editVm,
   revertSnapshot,
@@ -101,7 +101,7 @@ export default class TabSnapshot extends Component {
                         <Tooltip content={_('deleteSnapshot')}>
                           <ActionRowButton
                             btnStyle='danger'
-                            handler={deleteVm}
+                            handler={deleteSnapshot}
                             handlerParam={snapshot}
                             icon='delete'
                           />
