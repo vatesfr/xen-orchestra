@@ -44,6 +44,7 @@ import {
 import {
   addSubscriptions,
   connectStore,
+  firstDefined,
   noop
 } from 'utils'
 import {
@@ -219,9 +220,11 @@ export default class Home extends Component {
     }
 
     // Filter defined.
-    return homeFilters[type][filterName] ||
-      filters[type][filterName] ||
+    return firstDefined(
+      homeFilters[type][filterName],
+      filters[type][filterName],
       defaultFilter
+    )
   }
 
   _initFilter (props) {
