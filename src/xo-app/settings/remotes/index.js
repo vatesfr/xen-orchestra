@@ -345,7 +345,7 @@ export default class Remotes extends Component {
                 <input type='text' ref='password' className='form-control' placeholder='Password' />
               </div>
               <div className='form-group'>
-                <input type='text' ref='domain' className='form-control' placeholder='Domain' />
+                <input type='text' ref='domain' className='form-control' placeholder='Domain' required />
               </div>
             </fieldset>
           }
