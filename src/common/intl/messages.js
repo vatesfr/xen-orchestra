@@ -796,7 +796,7 @@ var messages = {
   emergencyShutdownHostsModalTitle: 'Emergency shutdown Host{nHosts, plural, one {} other {s}}',
   emergencyShutdownHostsModalMessage: 'Are you sure you want to shutdown {nHosts} Host{nHosts, plural, one {} other {s}}?',
   stopHostModalTitle: 'Shutdown host',
-  stopHostModalMessage: 'This will shutdown your host. Do you want to continue?',
+  stopHostModalMessage: 'This will shutdown your host. Do you want to continue? If it\'s the pool master, your connection to the pool will be lost',
   addHostModalTitle: 'Add host',
   addHostModalMessage: 'Are you sure you want to add {host} to {pool}?',
   restartHostModalTitle: 'Restart host',
