@@ -2,20 +2,25 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import delay from 'lodash/delay'
+import forEach from 'lodash/forEach'
 import GenericInput from 'json-schema-input'
 import Icon from 'icon'
 import map from 'lodash/map'
 import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
+import startsWith from 'lodash/startsWith'
 import Upgrade from 'xoa-upgrade'
 import Wizard, { Section } from 'wizard'
 import { Container, Row, Col } from 'grid'
 import { error } from 'notification'
 import { generateUiSchema } from 'xo-json-schema-input'
+import { confirm } from 'modal'
+import { noop } from 'utils'
 
 import {
   createJob,
   createSchedule,
+  getRemote,
   setJob,
   updateSchedule
 } from 'xo'
@@ -367,10 +372,42 @@ export default class New extends Component {
       }))
     }
 
-    // Create backup schedule.
-    return createJob(job).then(jobId => {
+    const create = () => this.setState({ redirect: true }, () => createJob(job).then(jobId => {
       createSchedule(jobId, { cron: this.state.cronPattern, enabled, timezone })
-    })
+    }))
+
+    // Create backup schedule.
+    let remoteId
+    if (job.type === 'call') {
+      const { paramsVector } = job
+      if (paramsVector.type === 'crossProduct') {
+        const { items } = paramsVector
+        forEach(items, item => {
+          if (item.type !== 'set') {
+            return false
+          }
+          forEach(item.values, value => {
+            if (value.remoteId) {
+              remoteId = value.remoteId
+              return false
+            }
+          })
+        })
+      }
+    }
+
+    if (remoteId) {
+      return getRemote(remoteId).then(remote => {
+        if (startsWith(remote.url, 'file:')) {
+          return confirm({
+            title: _('localRemoteWarningTitle'),
+            body: _('localRemoteWarningMessage')
+          }).then(create).catch(noop)
+        }
+        return create()
+      })
+    }
+    return create()
   }
 
   _handleReset = () => {
@@ -405,6 +442,7 @@ export default class New extends Component {
     const {
       backupInfo,
       cronPattern,
+      redirect,
       smartBackupMode,
       timezone
     } = this.state
@@ -503,7 +541,7 @@ export default class New extends Component {
                         form='form-new-vm-backup'
                         handler={this._handleSubmit}
                         icon='save'
-                        redirectOnSuccess='/backup/overview'
+                        redirectOnSuccess={redirect && '/backup/overview'}
                       >
                         {_('saveBackupJob')}
                       </ActionButton>

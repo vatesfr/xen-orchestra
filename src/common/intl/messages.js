@@ -214,6 +214,8 @@ var messages = {
   smartBackupModeSelection: 'Select backup mode:',
   normalBackup: 'Normal backup',
   smartBackup: 'Smart backup',
+  localRemoteWarningTitle: 'Local remote selected',
+  localRemoteWarningMessage: 'Warning: local remotes will use limited XOA disk space. Only for advanced users.',
 
   // ------ New Remote -----
   remoteList: 'Remote stores for backup',
@@ -773,6 +775,7 @@ var messages = {
   xsTasks: 'Currently, there are not any pending XenServer tasks',
 
   // ---- Backup views ---
+  getRemote: 'Get remote',
   listRemote: 'List Remote',
   simpleBackup: 'simple',
   delta: 'delta',
