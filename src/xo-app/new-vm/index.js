@@ -296,7 +296,7 @@ export default class NewVm extends BaseComponent {
       name_description: state.name_description,
       memory: state.memory,
       pv_args: state.pv_args,
-      // Boolean: if true, boot the VM right after its creation
+      autoPoweron: state.autoPoweron,
       bootAfterCreate: state.bootAfterCreate,
       cloudConfig,
       coreOs: state.template.name_label === 'CoreOS',
@@ -1190,6 +1190,7 @@ export default class NewVm extends BaseComponent {
 
   _renderAdvanced = () => {
     const {
+      autoPoweron,
       bootAfterCreate,
       cpuCap,
       cpuWeight,
@@ -1219,6 +1220,15 @@ export default class NewVm extends BaseComponent {
             />
             &nbsp;
             {_('newVmBootAfterCreate')}
+          </Item>
+          <Item>
+            <input
+              checked={autoPoweron}
+              onChange={this._getOnChangeCheckbox('autoPoweron')}
+              type='checkbox'
+            />
+            &nbsp;
+            {_('newVmAutoPowerOn')}
           </Item>
           <Item className={styles.tags}>
             <Tags labels={tags} onChange={this._linkState('tags')} />
@@ -1250,14 +1260,10 @@ export default class NewVm extends BaseComponent {
           </Item>
         </SectionContent>,
         <SectionContent>
-          <Item>
-            {_('newVmMultipleVms')}
-            &nbsp;&nbsp;
+          <Item label='newVmMultipleVms'>
             <Toggle value={multipleVms} onChange={this._getOnChange('multipleVms')} />
           </Item>
-          <Item>
-            {_('newVmMultipleVmsPattern')}
-            &nbsp;&nbsp;
+          <Item label='newVmMultipleVmsPattern'>
             <DebounceInput
               className='form-control'
               debounceTimeout={DEBOUNCE_TIMEOUT}
@@ -1267,9 +1273,7 @@ export default class NewVm extends BaseComponent {
               value={namePattern}
             />
           </Item>
-          <Item>
-            {_('newVmFirstIndex')}
-            &nbsp;&nbsp;
+          <Item label='newVmFirstIndex'>
             <DebounceInput
               className={'form-control'}
               debounceTimeout={DEBOUNCE_TIMEOUT}
