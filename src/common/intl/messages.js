@@ -1014,7 +1014,7 @@ var messages = {
   logMethod: 'Method',
   logParams: 'Params',
   logMessage: 'Message',
-  logStack: 'Stack trace',
+  logError: 'Error',
   logDisplayDetails: 'Display details',
   logShowParams: 'ShowParams',
   logTime: 'Date',

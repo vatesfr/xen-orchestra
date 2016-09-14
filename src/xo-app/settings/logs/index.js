@@ -21,9 +21,9 @@ import styles from './index.css'
   users: subscribeUsers
 })
 export default class Logs extends BaseComponent {
-  _showStack = log => alert(_('logStack'), <Copiable tagName='pre'>{`${log.data.method}
+  _showError = log => alert(_('logError'), <Copiable tagName='pre'>{`${log.data.method}
 ${JSON.stringify(log.data.params, null, 2)}
-${log.data.error.stack}`}</Copiable>)
+${JSON.stringify(log.data.error, null, 2)}`}</Copiable>)
   _showParams = log => alert(_('logParams'), <Copiable tagName='pre'>{JSON.stringify(log.data.params, null, 2)}</Copiable>)
   _deleteAllLogs = () =>
     confirm({
@@ -36,7 +36,7 @@ ${log.data.error.stack}`}</Copiable>)
     const columns = [
       {
         name: '',
-        itemRenderer: log => <Tooltip content={_('logDisplayDetails')}><ActionRowButton icon='preview' handler={this._showStack} handlerParam={log} /></Tooltip>
+        itemRenderer: log => <Tooltip content={_('logDisplayDetails')}><ActionRowButton icon='preview' handler={this._showError} handlerParam={log} /></Tooltip>
       },
       {
         name: _('logUser'),
