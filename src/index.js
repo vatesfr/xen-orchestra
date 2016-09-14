@@ -179,7 +179,7 @@ async function setUpPassport (express, xo) {
       next()
     } else if (req.cookies.token) {
       next()
-    } else if (/favicon|fontawesome|images|styles/.test(url)) {
+    } else if (/favicon|fontawesome|images|styles|\.(?:css|jpg|png)$/.test(url)) {
       next()
     } else {
       req.flash('return-url', url)

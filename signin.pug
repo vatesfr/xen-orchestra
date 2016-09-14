@@ -6,55 +6,45 @@ html
     meta(name = 'viewport' content = 'width=device-width, initial-scale=1.0')
     title Xen Orchestra
     meta(name = 'author' content = 'Vates SAS')
-    link(rel = 'stylesheet' href = 'styles/main.css')
-    link(rel = 'stylesheet' href = 'v4/styles/main.css')
-  body
-    .container
-      .row-login
-        .page-header
-          img(src = 'images/logo_small.png')
-          h2 Xen Orchestra
-          form.form-horizontal(action = 'signin/local' method = 'post')
-            fieldset
-              legend.login
-                h3 Sign in
-              if error
-                p.text-danger #{error}
-              .form-group
-                .col-sm-12
-                  .input-group
-                    span.input-group-addon
-                      i.xo-icon-user.fa-fw
-                    input.form-control.input-sm(
-                      name = 'username'
-                      type = 'text'
-                      placeholder = 'Username'
-                      required
-                    )
-              .form-group
-                .col-sm-12
-                  .input-group
-                    span.input-group-addon
-                      i.fa.fa-key.fa-fw
-                    input.form-control.input-sm(
-                      name = 'password'
-                      type = 'password'
-                      placeholder = 'Password'
-                      required
-                    )
-              .form-group
-                .col-sm-5
-                  .checkbox
-                    label
-                      input(
-                        name = 'remember-me'
-                        type = 'checkbox'
-                      )
-                      | Remember me
-              .form-group
-                .col-sm-12
-                  button.btn.btn-login.btn-block.btn-success
-                    i.fa.fa-sign-in
-                    |  Sign in
-              each label, id in strategies
-                div: a(href = 'signin/' + id) Sign in with #{label}
+    link(rel = 'stylesheet' href = 'index.css')
+  body(style = 'display: flex; height: 100vh;')
+    div(style = 'margin: auto; width: 20em;')
+      div.m-b-2(style = 'display: flex;')
+        img(src = 'assets/logo.png' style = 'margin: auto;')
+      h2.text-xs-center.m-b-2 Xen Orchestra
+      form(action = 'signin/local' method = 'post')
+        fieldset
+          if error
+            p.text-danger #{error}
+          .input-group.m-b-1
+            span.input-group-addon
+              i.xo-icon-user.fa-fw
+            input.form-control(
+              name = 'username'
+              type = 'text'
+              placeholder = 'Username'
+              required
+            )
+          .input-group.m-b-1
+            span.input-group-addon
+              i.fa.fa-key.fa-fw
+            input.form-control(
+              name = 'password'
+              type = 'password'
+              placeholder = 'Password'
+              required
+            )
+          .checkbox
+            label
+              input(
+                name = 'remember-me'
+                type = 'checkbox'
+              )
+              | &nbsp;
+              | Remember me
+          div
+            button.btn.btn-block.btn-info
+              i.fa.fa-sign-in
+              |  Sign in
+          each label, id in strategies
+            div: a(href = 'signin/' + id) Sign in with #{label}
