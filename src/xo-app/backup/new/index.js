@@ -2,20 +2,24 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import delay from 'lodash/delay'
+import forEach from 'lodash/forEach'
 import GenericInput from 'json-schema-input'
 import Icon from 'icon'
 import map from 'lodash/map'
 import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
+import startsWith from 'lodash/startsWith'
 import Upgrade from 'xoa-upgrade'
 import Wizard, { Section } from 'wizard'
 import { Container, Row, Col } from 'grid'
 import { error } from 'notification'
 import { generateUiSchema } from 'xo-json-schema-input'
+import { confirm } from 'modal'
 
 import {
   createJob,
   createSchedule,
+  getRemote,
   setJob,
   updateSchedule
 } from 'xo'
@@ -302,7 +306,7 @@ export default class New extends Component {
     }
   }
 
-  _handleSubmit = () => {
+  _handleSubmit = async () => {
     const {
       enabled,
       ...callArgs
@@ -367,10 +371,39 @@ export default class New extends Component {
       }))
     }
 
+    let remoteId
+    if (job.type === 'call') {
+      const { paramsVector } = job
+      if (paramsVector.type === 'crossProduct') {
+        const { items } = paramsVector
+        forEach(items, item => {
+          if (item.type === 'set') {
+            forEach(item.values, value => {
+              if (value.remoteId) {
+                remoteId = value.remoteId
+                return false
+              }
+            })
+            if (remoteId) {
+              return false
+            }
+          }
+        })
+      }
+    }
+
+    if (remoteId) {
+      const remote = await getRemote(remoteId)
+      if (startsWith(remote.url, 'file:')) {
+        await confirm({
+          title: _('localRemoteWarningTitle'),
+          body: _('localRemoteWarningMessage')
+        })
+      }
+    }
+
     // Create backup schedule.
-    return createJob(job).then(jobId => {
-      createSchedule(jobId, { cron: this.state.cronPattern, enabled, timezone })
-    })
+    return createSchedule(await createJob(job), { cron: this.state.cronPattern, enabled, timezone })
   }
 
   _handleReset = () => {

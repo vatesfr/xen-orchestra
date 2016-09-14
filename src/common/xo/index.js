@@ -1208,6 +1208,12 @@ export const recomputeResourceSetsLimits = () => (
 
 // Remote ------------------------------------------------------------
 
+export const getRemote = remote => (
+  _call('remote.get', resolveIds({id: remote}))::rethrow(
+    err => error(_('getRemote'), err.message || String(err))
+  )
+)
+
 export const createRemote = (name, url) => (
   _call('remote.create', {name, url})::tap(
     subscribeRemotes.forceRefresh

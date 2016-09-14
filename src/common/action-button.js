@@ -62,7 +62,11 @@ export default class ActionButton extends Component {
         error,
         working: false
       })
-      logError(error)
+
+      // ignore when undefined because it usually means that the action has been canceled
+      if (error !== undefined) {
+        logError(error)
+      }
     }
   }
   _execute = ::this._execute
