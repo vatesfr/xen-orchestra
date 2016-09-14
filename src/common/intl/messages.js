@@ -699,7 +699,6 @@ var messages = {
   newVmConfigDrive: 'Config drive',
   newVmCustomConfig: 'Custom config',
   newVmBootAfterCreate: 'Boot VM after creation',
-  newVmAutoPowerOn: 'Auto power ON',
   newVmMacPlaceholder: 'Auto-generated if empty',
   newVmCpuWeightLabel: 'CPU weight',
   newVmDefaultCpuWeight: 'Default: {value, number}',
