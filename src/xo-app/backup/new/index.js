@@ -15,7 +15,6 @@ import { Container, Row, Col } from 'grid'
 import { error } from 'notification'
 import { generateUiSchema } from 'xo-json-schema-input'
 import { confirm } from 'modal'
-import { noop } from 'utils'
 
 import {
   createJob,
@@ -307,7 +306,7 @@ export default class New extends Component {
     }
   }
 
-  _handleSubmit = () => {
+  _handleSubmit = async () => {
     const {
       enabled,
       ...callArgs
@@ -372,42 +371,39 @@ export default class New extends Component {
       }))
     }
 
-    const create = () => this.setState({ redirect: true }, () => createJob(job).then(jobId => {
-      createSchedule(jobId, { cron: this.state.cronPattern, enabled, timezone })
-    }))
-
-    // Create backup schedule.
     let remoteId
     if (job.type === 'call') {
       const { paramsVector } = job
       if (paramsVector.type === 'crossProduct') {
         const { items } = paramsVector
         forEach(items, item => {
-          if (item.type !== 'set') {
-            return false
-          }
-          forEach(item.values, value => {
-            if (value.remoteId) {
-              remoteId = value.remoteId
+          if (item.type === 'set') {
+            forEach(item.values, value => {
+              if (value.remoteId) {
+                remoteId = value.remoteId
+                return false
+              }
+            })
+            if (remoteId) {
               return false
             }
-          })
+          }
         })
       }
     }
 
     if (remoteId) {
-      return getRemote(remoteId).then(remote => {
-        if (startsWith(remote.url, 'file:')) {
-          return confirm({
-            title: _('localRemoteWarningTitle'),
-            body: _('localRemoteWarningMessage')
-          }).then(create).catch(noop)
-        }
-        return create()
-      })
+      const remote = await getRemote(remoteId)
+      if (startsWith(remote.url, 'file:')) {
+        await confirm({
+          title: _('localRemoteWarningTitle'),
+          body: _('localRemoteWarningMessage')
+        })
+      }
     }
-    return create()
+
+    // Create backup schedule.
+    return createSchedule(await createJob(job), { cron: this.state.cronPattern, enabled, timezone })
   }
 
   _handleReset = () => {
@@ -442,7 +438,6 @@ export default class New extends Component {
     const {
       backupInfo,
       cronPattern,
-      redirect,
       smartBackupMode,
       timezone
     } = this.state
@@ -541,7 +536,7 @@ export default class New extends Component {
                         form='form-new-vm-backup'
                         handler={this._handleSubmit}
                         icon='save'
-                        redirectOnSuccess={redirect && '/backup/overview'}
+                        redirectOnSuccess='/backup/overview'
                       >
                         {_('saveBackupJob')}
                       </ActionButton>
