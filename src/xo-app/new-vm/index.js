@@ -103,7 +103,7 @@ const LineItem = ({ children }) => (
 
 const Item = ({ label, children, className }) => (
   <span className={styles.item}>
-    {label && <span>{_(label)}&nbsp;</span>}
+    {label && <span>{label}&nbsp;</span>}
     <span className={classNames(styles.input, className)}>{children}</span>
   </span>
 )
@@ -296,7 +296,7 @@ export default class NewVm extends BaseComponent {
       name_description: state.name_description,
       memory: state.memory,
       pv_args: state.pv_args,
-      // Boolean: if true, boot the VM right after its creation
+      autoPoweron: state.autoPoweron,
       bootAfterCreate: state.bootAfterCreate,
       cloudConfig,
       coreOs: state.template.name_label === 'CoreOS',
@@ -713,7 +713,7 @@ export default class NewVm extends BaseComponent {
     } = this.state.state
     return <Section icon='new-vm-infos' title='newVmInfoPanel' done={this._isInfoDone()}>
       <SectionContent>
-        <Item label='newVmTemplateLabel'>
+        <Item label={_('newVmTemplateLabel')}>
           <span className={styles.inlineSelect}>
             {this.state.pool ? <SelectVmTemplate
               onChange={this._initTemplate}
@@ -729,7 +729,7 @@ export default class NewVm extends BaseComponent {
             />}
           </span>
         </Item>
-        <Item label='newVmNameLabel'>
+        <Item label={_('newVmNameLabel')}>
           <DebounceInput
             className='form-control'
             debounceTimeout={DEBOUNCE_TIMEOUT}
@@ -737,7 +737,7 @@ export default class NewVm extends BaseComponent {
             value={name_label}
           />
         </Item>
-        <Item label='newVmDescriptionLabel'>
+        <Item label={_('newVmDescriptionLabel')}>
           <DebounceInput
             className='form-control'
             debounceTimeout={DEBOUNCE_TIMEOUT}
@@ -757,7 +757,7 @@ export default class NewVm extends BaseComponent {
     const { CPUs, memory } = this.state.state
     return <Section icon='new-vm-perf' title='newVmPerfPanel' done={this._isPerformancesDone()}>
       <SectionContent>
-        <Item label='newVmVcpusLabel'>
+        <Item label={_('newVmVcpusLabel')}>
           <DebounceInput
             className='form-control'
             debounceTimeout={DEBOUNCE_TIMEOUT}
@@ -767,7 +767,7 @@ export default class NewVm extends BaseComponent {
             value={CPUs}
           />
         </Item>
-        <Item label='newVmRamLabel'>
+        <Item label={_('newVmRamLabel')}>
           <SizeInput value={memory} onChange={this._getOnChange('memory')} className={styles.sizeInput} />
         </Item>
       </SectionContent>
@@ -924,7 +924,7 @@ export default class NewVm extends BaseComponent {
                 value={installNetwork}
               />
             </Item>
-            <Item label='newVmPvArgsLabel' key='pv'>
+            <Item label={_('newVmPvArgsLabel')} key='pv'>
               <DebounceInput
                 className='form-control'
                 debounceTimeout={DEBOUNCE_TIMEOUT}
@@ -992,7 +992,7 @@ export default class NewVm extends BaseComponent {
       <SectionContent column>
         {map(VIFs, (vif, index) => <div key={index}>
           <LineItem>
-            <Item label='newVmMacLabel'>
+            <Item label={_('newVmMacLabel')}>
               <DebounceInput
                 className='form-control'
                 debounceTimeout={DEBOUNCE_TIMEOUT}
@@ -1002,7 +1002,7 @@ export default class NewVm extends BaseComponent {
                 value={vif.mac}
               />
             </Item>
-            <Item label='newVmNetworkLabel'>
+            <Item label={_('newVmNetworkLabel')}>
               <span className={styles.inlineSelect}>
                 {pool ? <SelectNetwork
                   onChange={this._linkState(`VIFs.${index}.network`, 'id')}
@@ -1064,7 +1064,7 @@ export default class NewVm extends BaseComponent {
         {/* Existing disks */}
         {map(existingDisks, (disk, index) => <div key={i}>
           <LineItem>
-            <Item label='newVmSrLabel'>
+            <Item label={_('newVmSrLabel')}>
               <span className={styles.inlineSelect}>
                 {pool ? <SelectSr
                   onChange={this._getOnChange('existingDisks', index, '$SR', 'id')}
@@ -1080,7 +1080,7 @@ export default class NewVm extends BaseComponent {
               </span>
             </Item>
             {' '}
-            <Item label='newVmNameLabel'>
+            <Item label={_('newVmNameLabel')}>
               <DebounceInput
                 className='form-control'
                 debounceTimeout={DEBOUNCE_TIMEOUT}
@@ -1088,7 +1088,7 @@ export default class NewVm extends BaseComponent {
                 value={disk.name_label}
               />
             </Item>
-            <Item label='newVmDescriptionLabel'>
+            <Item label={_('newVmDescriptionLabel')}>
               <DebounceInput
                 className='form-control'
                 debounceTimeout={DEBOUNCE_TIMEOUT}
@@ -1096,7 +1096,7 @@ export default class NewVm extends BaseComponent {
                 value={disk.name_description}
               />
             </Item>
-            <Item label='newVmSizeLabel'>
+            <Item label={_('newVmSizeLabel')}>
               <SizeInput
                 className={styles.sizeInput}
                 onChange={this._getOnChange('existingDisks', index, 'size')}
@@ -1111,7 +1111,7 @@ export default class NewVm extends BaseComponent {
         {/* VDIs */}
         {map(VDIs, (vdi, index) => <div key={vdi.device}>
           <LineItem>
-            <Item label='newVmSrLabel'>
+            <Item label={_('newVmSrLabel')}>
               <span className={styles.inlineSelect}>
                 {pool ? <SelectSr
                   onChange={this._getOnChange('VDIs', index, 'SR', 'id')}
@@ -1138,7 +1138,7 @@ export default class NewVm extends BaseComponent {
                 {_('newVmBootableLabel')}
               </label>
             </Item>
-            <Item label='newVmNameLabel'>
+            <Item label={_('newVmNameLabel')}>
               <DebounceInput
                 className='form-control'
                 debounceTimeout={DEBOUNCE_TIMEOUT}
@@ -1146,7 +1146,7 @@ export default class NewVm extends BaseComponent {
                 value={vdi.name_label}
               />
             </Item>
-            <Item label='newVmDescriptionLabel'>
+            <Item label={_('newVmDescriptionLabel')}>
               <DebounceInput
                 className='form-control'
                 debounceTimeout={DEBOUNCE_TIMEOUT}
@@ -1154,7 +1154,7 @@ export default class NewVm extends BaseComponent {
                 value={vdi.name_description}
               />
             </Item>
-            <Item label='newVmSizeLabel'>
+            <Item label={_('newVmSizeLabel')}>
               <SizeInput
                 className={styles.sizeInput}
                 onChange={this._getOnChange('VDIs', index, 'size')}
@@ -1190,6 +1190,7 @@ export default class NewVm extends BaseComponent {
 
   _renderAdvanced = () => {
     const {
+      autoPoweron,
       bootAfterCreate,
       cpuCap,
       cpuWeight,
@@ -1220,12 +1221,21 @@ export default class NewVm extends BaseComponent {
             &nbsp;
             {_('newVmBootAfterCreate')}
           </Item>
+          <Item>
+            <input
+              checked={autoPoweron}
+              onChange={this._getOnChangeCheckbox('autoPoweron')}
+              type='checkbox'
+            />
+            &nbsp;
+            {_('autoPowerOn')}
+          </Item>
           <Item className={styles.tags}>
             <Tags labels={tags} onChange={this._linkState('tags')} />
           </Item>
         </SectionContent>,
         <SectionContent>
-          <Item label='newVmCpuWeightLabel'>
+          <Item label={_('newVmCpuWeightLabel')}>
             <DebounceInput
               className='form-control'
               debounceTimeout={DEBOUNCE_TIMEOUT}
@@ -1237,7 +1247,7 @@ export default class NewVm extends BaseComponent {
               value={cpuWeight}
             />
           </Item>
-          <Item label='newVmCpuCapLabel'>
+          <Item label={_('newVmCpuCapLabel')}>
             <DebounceInput
               className='form-control'
               debounceTimeout={DEBOUNCE_TIMEOUT}
@@ -1250,14 +1260,10 @@ export default class NewVm extends BaseComponent {
           </Item>
         </SectionContent>,
         <SectionContent>
-          <Item>
-            {_('newVmMultipleVms')}
-            &nbsp;&nbsp;
+          <Item label={_('newVmMultipleVms')}>
             <Toggle value={multipleVms} onChange={this._getOnChange('multipleVms')} />
           </Item>
-          <Item>
-            {_('newVmMultipleVmsPattern')}
-            &nbsp;&nbsp;
+          <Item label={_('newVmMultipleVmsPattern')}>
             <DebounceInput
               className='form-control'
               debounceTimeout={DEBOUNCE_TIMEOUT}
@@ -1267,9 +1273,7 @@ export default class NewVm extends BaseComponent {
               value={namePattern}
             />
           </Item>
-          <Item>
-            {_('newVmFirstIndex')}
-            &nbsp;&nbsp;
+          <Item label={_('newVmFirstIndex')}>
             <DebounceInput
               className={'form-control'}
               debounceTimeout={DEBOUNCE_TIMEOUT}
