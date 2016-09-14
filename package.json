@@ -34,7 +34,7 @@
     "node": ">=0.12"
   },
   "dependencies": {
-    "@marsaud/smb2-promise": "^0.2.0",
+    "@marsaud/smb2-promise": "^0.2.1",
     "app-conf": "^0.4.0",
     "babel-runtime": "^6.5.0",
     "base64url": "^2.0.0",
