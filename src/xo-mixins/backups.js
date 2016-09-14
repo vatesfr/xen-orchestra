@@ -709,7 +709,7 @@ export default class {
     const n = 1 - depth
     await Promise.all(mapToArray(n ? olderCopies.slice(0, n) : olderCopies, vm =>
       // Do not consider a failure to delete an old copy as a fatal error.
-      targetXapi.deleteVm(vm.$id)::pCatch(noop)
+      targetXapi.deleteVm(vm.$id, true)::pCatch(noop)
     ))
   }
 }
