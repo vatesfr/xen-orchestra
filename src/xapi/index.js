@@ -905,7 +905,7 @@ export default class Xapi extends XapiBase {
         is_a_template: false
       })
     )
-    $onFailure(() => this._deleteVm(vm))
+    $onFailure(() => this._deleteVm(vm, true))
 
     await Promise.all([
       this._setObjectProperties(vm, {
@@ -1149,7 +1149,7 @@ export default class Xapi extends XapiBase {
         VCPUs_max: nCpus
       })
     )
-    $onFailure(() => this._deleteVm(vm))
+    $onFailure(() => this._deleteVm(vm, true))
     // Disable start and change the VM name label during import.
     await Promise.all([
       this.addForbiddenOperationToVm(vm.$id, 'start', 'OVA import in progress...'),
