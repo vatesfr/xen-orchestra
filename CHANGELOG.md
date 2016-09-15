@@ -71,7 +71,7 @@
 - Giving resource set to end-user ends with error [\#1448](https://github.com/vatesfr/xo-web/issues/1448)
 - Error thrown when cancelling out of Delete User confirmation dialog [\#1439](https://github.com/vatesfr/xo-web/issues/1439)
 - Wrong month label shown in Backup and Job scheduler [\#1438](https://github.com/vatesfr/xo-web/issues/1438)
-- Bug on Self service creation/edition [\#1438](https://github.com/vatesfr/xo-web/issues/1428)
+- Bug on Self service creation/edition [\#1428](https://github.com/vatesfr/xo-web/issues/1428)
 - ISO selection during VM create is not mounted after [\#1415](https://github.com/vatesfr/xo-web/issues/1415)
 - Hosts general view: bad link for storage [\#1408](https://github.com/vatesfr/xo-web/issues/1408)
 - Backup Schedule - "Month" and "Day of Week" display error [\#1404](https://github.com/vatesfr/xo-web/issues/1404)
