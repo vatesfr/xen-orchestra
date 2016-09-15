@@ -393,6 +393,10 @@
       @extend .fa;
       @extend .fa-trash;
     }
+    &-migrate {
+      @extend .fa;
+      @extend .fa-share;
+    }
   }
   // Host
   &-host {

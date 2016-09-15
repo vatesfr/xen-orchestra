@@ -11,6 +11,7 @@ import Link from 'link'
 import map from 'lodash/map'
 import propTypes from 'prop-types'
 import React from 'react'
+import SingleLineRow from 'single-line-row'
 import some from 'lodash/some'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
@@ -22,6 +23,8 @@ import { noop } from 'utils'
 import { SelectSr, SelectVdi } from 'select-objects'
 import { SizeInput, Toggle } from 'form'
 import { XoSelect, Size, Text } from 'editable'
+import { confirm } from 'modal'
+import { error } from 'notification'
 import {
   attachDiskToVm,
   createDisk,
@@ -305,6 +308,37 @@ class BootOrder extends Component {
   }
 }
 
+class MigrateVdiModalBody extends Component {
+  get value () {
+    return this.state
+  }
+
+  render () {
+    return <Container>
+      <SingleLineRow>
+        <Col size={6}>
+          {_('vdiMigrateSelectSr')}
+        </Col>
+        <Col size={6}>
+          <SelectSr
+            onChange={this.linkState('sr')}
+            required
+          />
+        </Col>
+      </SingleLineRow>
+      <SingleLineRow className='m-t-1'>
+        <Col>
+          <label>
+            <input type='checkbox' onChange={this.linkState('migrateAll')} />
+            {' '}
+            {_('vdiMigrateAll')}
+          </label>
+        </Col>
+      </SingleLineRow>
+    </Container>
+  }
+}
+
 export default class TabDisks extends Component {
   constructor (props) {
     super(props)
@@ -332,6 +366,23 @@ export default class TabDisks extends Component {
     attachDisk: false,
     newDisk: false
   })
+
+  _migrateVdi = vdi => {
+    return confirm({
+      title: _('vdiMigrate'),
+      body: <MigrateVdiModalBody />
+    }).then(({ sr, migrateAll }) => {
+      if (!sr) {
+        return error(_('vdiMigrateNoSr'), _('vdiMigrateNoSrMessage'))
+      }
+      if (!migrateAll) {
+        return migrateVdi(vdi, sr)
+      }
+      forEach(this.props.vdis, vdi => {
+        migrateVdi(vdi, sr)
+      })
+    })
+  }
 
   render () {
     const {
@@ -417,9 +468,7 @@ export default class TabDisks extends Component {
                         value={sr}
                         useLongClick
                       >
-                        <Tooltip content={_('longClickToMigrate')}>
-                          <Link to={`/srs/${sr.id}`}>{sr.name_label}</Link>
-                        </Tooltip>
+                        <Link to={`/srs/${sr.id}`}>{sr.name_label}</Link>
                       </XoSelect>
                     }
                     </td>
@@ -433,42 +482,66 @@ export default class TabDisks extends Component {
                       {vbd.attached
                         ? <span>
                           <span className='tag tag-success'>
-                              {_('vbdStatusConnected')}
+                            {_('vbdStatusConnected')}
                           </span>
                           <ButtonGroup className='pull-xs-right'>
-                            <ActionRowButton
-                              btnStyle='default'
-                              icon='disconnect'
-                              handler={disconnectVbd}
-                              handlerParam={vbd}
-                            />
+                            <Tooltip content={_('vdiMigrate')}>
+                              <ActionRowButton
+                                btnStyle='default'
+                                icon='vdi-migrate'
+                                handler={this._migrateVdi}
+                                handlerParam={vdi}
+                              />
+                            </Tooltip>
+                            <Tooltip content={_('vbdDisconnect')}>
+                              <ActionRowButton
+                                btnStyle='default'
+                                icon='disconnect'
+                                handler={disconnectVbd}
+                                handlerParam={vbd}
+                              />
+                            </Tooltip>
                           </ButtonGroup>
                         </span>
                         : <span>
                           <span className='tag tag-default'>
-                              {_('vbdStatusDisconnected')}
+                            {_('vbdStatusDisconnected')}
                           </span>
                           <ButtonGroup className='pull-xs-right'>
-                            {isVmRunning(vm) &&
+                            <Tooltip content={_('vdiMigrate')}>
                               <ActionRowButton
                                 btnStyle='default'
-                                icon='connect'
-                                handler={connectVbd}
+                                icon='vdi-migrate'
+                                handler={this._migrateVdi}
+                                handlerParam={vdi}
+                              />
+                            </Tooltip>
+                            {isVmRunning(vm) &&
+                              <Tooltip content={_('vbdConnect')}>
+                                <ActionRowButton
+                                  btnStyle='default'
+                                  icon='connect'
+                                  handler={connectVbd}
+                                  handlerParam={vbd}
+                                />
+                              </Tooltip>
+                            }
+                            <Tooltip content={_('vdiForget')}>
+                              <ActionRowButton
+                                btnStyle='default'
+                                icon='vdi-forget'
+                                handler={deleteVbd}
                                 handlerParam={vbd}
                               />
-                            }
-                            <ActionRowButton
-                              btnStyle='default'
-                              icon='vdi-forget'
-                              handler={deleteVbd}
-                              handlerParam={vbd}
-                            />
-                            <ActionRowButton
-                              btnStyle='default'
-                              icon='vdi-remove'
-                              handler={deleteVdi}
-                              handlerParam={vdi}
-                            />
+                            </Tooltip>
+                            <Tooltip content={_('vdiRemove')}>
+                              <ActionRowButton
+                                btnStyle='default'
+                                icon='vdi-remove'
+                                handler={deleteVdi}
+                                handlerParam={vdi}
+                              />
+                            </Tooltip>
                           </ButtonGroup>
                         </span>
                       }

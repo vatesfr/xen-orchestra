@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import findKey from 'lodash/findKey'
 import isFunction from 'lodash/isFunction'
 import isString from 'lodash/isString'
@@ -5,14 +6,14 @@ import map from 'lodash/map'
 import pick from 'lodash/pick'
 import React from 'react'
 
-import _ from './intl'
-import Component from './base-component'
-import Icon from './icon'
-import logError from './log-error'
-import propTypes from './prop-types'
-import Tooltip from './tooltip'
-import { formatSize } from './utils'
-import { SizeInput } from './form'
+import _ from '../intl'
+import Component from '../base-component'
+import Icon from '../icon'
+import logError from '../log-error'
+import propTypes from '../prop-types'
+import Tooltip from '../tooltip'
+import { formatSize } from '../utils'
+import { SizeInput } from '../form'
 import {
   SelectHost,
   SelectIp,
@@ -24,18 +25,11 @@ import {
   SelectTag,
   SelectVm,
   SelectVmTemplate
-} from './select-objects'
+} from '../select-objects'
+
+import styles from './index.css'
 
 const LONG_CLICK = 400
-const SELECT_STYLE = { padding: '0px' }
-const SIZE_STYLE = { width: '10rem' }
-const EDITABLE_STYLE = {
-  borderBottom: '1px dashed #ccc',
-  cursor: 'context-menu'
-}
-const LONG_EDITABLE_STYLE = {
-  cursor: 'context-menu'
-}
 
 @propTypes({
   alt: propTypes.node.isRequired
@@ -164,7 +158,7 @@ class Editable extends Component {
       const { useLongClick } = props
 
       const success = <Icon icon='success' />
-      return <span style={useLongClick ? LONG_EDITABLE_STYLE : EDITABLE_STYLE}>
+      return <span className={classNames(styles.clickToEdit, !useLongClick && styles.shortClick)}>
         <span
           onClick={!useLongClick && this._openEdition}
           onMouseDown={useLongClick && this.__startTimer}
@@ -358,14 +352,13 @@ export class Select extends Editable {
 
     return <select
       autoFocus
-      className='form-control'
+      className={classNames('form-control', styles.select)}
       defaultValue={this._defaultValue}
       onBlur={this._closeEdition}
       onChange={this._onChange}
       onKeyDown={this._onKeyDown}
       readOnly={saving}
       ref={this._onEditionMount}
-      style={SELECT_STYLE}
     >
       {map(options, this._optionToJsx)}
     </select>
@@ -469,9 +462,9 @@ export class Size extends Editable {
     >
       <SizeInput
         autoFocus
+        className={styles.size}
         ref='input'
         readOnly={saving}
-        style={SIZE_STYLE}
         defaultValue={value}
       />
     </span>
