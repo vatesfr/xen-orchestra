@@ -13,6 +13,7 @@ import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
 import { alert, confirm } from 'modal'
+import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { connectStore } from 'utils'
 import { createGetObject } from 'selectors'
 import { FormattedDate } from 'react-intl'
@@ -89,10 +90,6 @@ const showCalls = log => alert(<span>{_('job')} {log.jobId}</span>, <Log log={lo
 
 const LOG_COLUMNS = [
   {
-    name: '',
-    itemRenderer: log => <Tooltip content={_('logDisplayDetails')}><ActionRowButton icon='preview' handler={showCalls} handlerParam={log} /></Tooltip>
-  },
-  {
     name: _('jobId'),
     itemRenderer: log => log.jobId,
     sortCriteria: log => log.jobId
@@ -133,7 +130,10 @@ const LOG_COLUMNS = [
       }
       {' '}
       <span className='pull-right'>
-        <ActionRowButton btnStyle='default' handler={deleteJobsLog} handlerParam={log.logKey} icon='delete' />
+        <ButtonGroup>
+          <Tooltip content={_('logDisplayDetails')}><ActionRowButton icon='preview' handler={showCalls} handlerParam={log} /></Tooltip>
+          <Tooltip content={_('remove')}><ActionRowButton btnStyle='default' handler={deleteJobsLog} handlerParam={log.logKey} icon='delete' /></Tooltip>
+        </ButtonGroup>
       </span>
     </span>,
     sortCriteria: log => log.hasErrors && ' ' || log.status
