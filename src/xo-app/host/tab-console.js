@@ -68,22 +68,7 @@ export default class extends Component {
         </Row>}
         <br />
         <Row>
-          <Col mediumSize={5}>
-            {/* TODO: insert real ISO selector, CtrlAltSuppr button and Clipboard */}
-            <div className='input-group'>
-              <select className='form-control'>
-                <option>-- CD Drive (empty) --</option>
-                <option>Debian-8.iso</option>
-                <option>Windows7.iso</option>
-              </select>
-              <span className='input-group-btn'>
-                <button className='btn btn-secondary'>
-                  <Icon icon='vm-eject' />
-                </button>
-              </span>
-            </div>
-          </Col>
-          <Col mediumSize={5}>
+          <Col mediumSize={10}>
             <div className='input-group'>
               <input type='text' className='form-control' ref='clipboard' onChange={this._setRemoteClipboard} />
               <span className='input-group-btn'>
