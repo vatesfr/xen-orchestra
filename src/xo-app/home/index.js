@@ -69,6 +69,7 @@ import styles from './index.css'
 import HostItem from './host-item'
 import PoolItem from './pool-item'
 import VmItem from './vm-item'
+import TemplateItem from './template-item'
 
 const ITEMS_PER_PAGE = 20
 
@@ -138,11 +139,21 @@ const OPTIONS = {
     sortOptions: [
       { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' }
     ]
+  },
+  'VM-template': {
+    defaultFilter: '',
+    filters: homeFilters.template,
+    getActions: noop,
+    Item: TemplateItem,
+    sortOptions: [
+      { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' }
+    ]
   }
 }
 
 const TYPES = {
   VM: _('homeTypeVm'),
+  'VM-template': _('homeTypeTemplate'),
   host: _('homeTypeHost'),
   pool: _('homeTypePool')
 }
@@ -428,6 +439,9 @@ export default class Home extends Component {
             <MenuItem onClick={() => this._setType('pool')}>
               Pool
             </MenuItem>
+            <MenuItem onClick={() => this._setType('VM-template')}>
+              Template
+            </MenuItem>
           </DropdownButton>
         </Col>
         <Col mediumSize={6}>
@@ -570,14 +584,9 @@ export default class Home extends Component {
     const filteredItems = this._getFilteredItems()
     const visibleItems = this._getVisibleItems()
     const { activePage, sortBy } = this.state
-    const items = {
-      'VM': VmItem,
-      'host': HostItem,
-      'pool': PoolItem
-    }
     const { type } = props
-    const Item = items[type] || items[DEFAULT_TYPE]
     const options = OPTIONS[type]
+    const { Item } = options
     const { mainActions, otherActions } = options
     const selectedItemsIds = keys(this._selectedItems)
 

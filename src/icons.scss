@@ -19,6 +19,10 @@
     @extend .fa;
     @extend .fa-tasks;
   }
+  &-template {
+    @extend .fa;
+    @extend .fa-thumb-tack;
+  }
   &-message {
     @extend .fa;
     @extend .fa-envelope-o;
