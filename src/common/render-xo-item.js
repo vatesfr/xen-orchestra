@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React from 'react'
 
 import Icon from './icon'
 import propTypes from './prop-types'
