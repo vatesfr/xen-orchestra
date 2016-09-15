@@ -464,7 +464,7 @@ export const SelectVmTemplate = makeStoreSelect(() => {
     xoObjects: getVmTemplatesByPool,
     xoContainers: getPools
   }
-}, { placeholder: _('selectVms') })
+}, { placeholder: _('selectVmTemplates') })
 
 // ===================================================================
 
