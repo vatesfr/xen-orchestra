@@ -542,7 +542,7 @@ export default class Home extends Component {
                 <p className='text-muted'>{_('homeNewVmMessage')}</p>
               </Col>
             </Row>
-            {isAdmin && <span>
+            {isAdmin && <div>
               <h2>{_('homeNoVmsOr')}</h2>
               <Row>
                 <Col mediumSize={6}>
@@ -560,7 +560,7 @@ export default class Home extends Component {
                   <p className='text-muted'>{_('homeRestoreBackupMessage')}</p>
                 </Col>
               </Row>
-            </span>}
+            </div>}
           </CardBlock>
         </Card>
       </CenterPanel>

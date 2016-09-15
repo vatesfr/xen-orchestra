@@ -37,7 +37,7 @@ import styles from './index.css'
     [ task => task.status === 'pending' ]
   ),
   pools: createGetObjectsOfType('pool'),
-  hosts: createGetObjectsOfType('host'),
+  nHosts: createGetObjectsOfType('host').count(),
   status: getStatus,
   user: getUser
 }), {
@@ -96,7 +96,7 @@ export default class Menu extends Component {
   }
 
   render () {
-    const { nTasks, status, user, pools, hosts } = this.props
+    const { nTasks, status, user, pools, nHosts } = this.props
     const isAdmin = user && user.permission === 'admin'
     const noOperatablePools = this._getNoOperatablePools()
     const noResourceSets = isEmpty(this.state.resourceSets)
@@ -105,7 +105,7 @@ export default class Menu extends Component {
     const items = [
       { to: '/home', icon: 'menu-home', label: 'homePage', subMenu: [
         { to: '/home?t=VM', icon: 'vm', label: 'homeVmPage' },
-        !isEmpty(hosts) && { to: '/home?t=host', icon: 'host', label: 'homeHostPage' },
+        nHosts !== 0 && { to: '/home?t=host', icon: 'host', label: 'homeHostPage' },
         !isEmpty(pools) && { to: '/home?t=pool', icon: 'pool', label: 'homePoolPage' }
       ]},
       { to: '/dashboard/overview', icon: 'menu-dashboard', label: 'dashboardPage', subMenu: [
