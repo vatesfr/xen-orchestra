@@ -258,7 +258,8 @@ export class Text extends Editable {
       readOnly={saving}
       ref='input'
       style={{
-        width: `${value.length + 1}ex`
+        width: `${value.length + 1}ex`,
+        maxWidth: '50ex'
       }}
       type={this._isPassword ? 'password' : 'text'}
     />
