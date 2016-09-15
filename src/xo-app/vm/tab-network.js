@@ -257,7 +257,8 @@ export default class TabNetwork extends Component {
                 </thead>
                 <tbody>
                   {map(vifs, (vif, vifIndex) => {
-                    const lockedNetwork = networks[vif.$network].defaultIsLocked
+                    const network = networks[vif.$network]
+                    const lockedNetwork = network && network.defaultIsLocked
 
                     return <tr key={vif.id}>
                       <td>VIF #{vif.device}</td>
