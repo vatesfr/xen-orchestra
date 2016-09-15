@@ -534,6 +534,7 @@ var messages = {
   vbdStatusConnected: 'Connected',
   vbdStatusDisconnected: 'Disconnected',
   vbdNoVbd: 'No disks',
+  longClickToMigrate: 'Long click to migrate',
 
   // ----- VM network tab -----
   vifCreateDeviceButton: 'New device',

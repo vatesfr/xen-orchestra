@@ -13,6 +13,7 @@ import propTypes from 'prop-types'
 import React from 'react'
 import some from 'lodash/some'
 import TabButton from 'tab-button'
+import Tooltip from 'tooltip'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Container, Row, Col } from 'grid'
 import { createSelector } from 'selectors'
@@ -416,7 +417,9 @@ export default class TabDisks extends Component {
                         value={sr}
                         useLongClick
                       >
-                        <Link to={`/srs/${sr.id}`}>{sr.name_label}</Link>
+                        <Tooltip content={_('longClickToMigrate')}>
+                          <Link to={`/srs/${sr.id}`}>{sr.name_label}</Link>
+                        </Tooltip>
                       </XoSelect>
                     }
                     </td>
