@@ -878,15 +878,12 @@ exports.resume = resume
 
 #---------------------------------------------------------------------
 
-# revert a snapshot to its parent VM
-revert = $coroutine ({snapshot}) ->
-  # Attempts a revert from this snapshot to its parent VM
-  yield @getXapi(snapshot).call 'VM.revert', snapshot._xapiRef
-
-  return true
+revert = ({snapshot, snapshotBefore}) ->
+  return @getXapi(snapshot).revertVm(snapshot._xapiId, snapshotBefore)
 
 revert.params = {
-  id: { type: 'string' }
+  id: { type: 'string' },
+  snapshotBefore: { type: 'boolean', optional: true }
 }
 
 revert.resolve = {

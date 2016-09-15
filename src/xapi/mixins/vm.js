@@ -326,5 +326,13 @@ export default {
 
   async editVm (id, props) {
     return /* await */ this._editVm(this.getObject(id), props)
+  },
+
+  async revertVm (snapshotId, snapshotBefore = true) {
+    const snapshot = this.getObject(snapshotId)
+    if (snapshotBefore) {
+      await this._snapshotVm(snapshot.$snapshot_of)
+    }
+    return this.call('VM.revert', snapshot.$ref)
   }
 }
