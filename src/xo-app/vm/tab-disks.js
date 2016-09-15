@@ -378,9 +378,9 @@ export default class TabDisks extends Component {
       if (!migrateAll) {
         return migrateVdi(vdi, sr)
       }
-      forEach(this.props.vdis, vdi => {
+      Promise.all(map(this.props.vdis, vdi =>
         migrateVdi(vdi, sr)
-      })
+      ))
     })
   }
 
