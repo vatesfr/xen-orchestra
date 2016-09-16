@@ -750,12 +750,13 @@ export const importDeltaBackup = ({remote, file, sr}) => (
   _call('vm.importDeltaBackup', resolveIds({remote, filePath: file, sr}))
 )
 
+import RevertSnapshotModalBody from './revert-snapshot-modal'
 export const revertSnapshot = vm => (
   confirm({
     title: _('revertVmModalTitle'),
-    body: _('revertVmModalMessage')
+    body: <RevertSnapshotModalBody />
   }).then(
-    () => _call('vm.revert', { id: resolveId(vm) }),
+    ({ snapshotBefore }) => _call('vm.revert', { id: resolveId(vm), snapshotBefore }),
     noop
   )
 )
