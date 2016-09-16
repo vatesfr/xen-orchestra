@@ -170,7 +170,10 @@ const createSubscription = cb => {
           subscriber(result)
         })
       }
-    }, ::console.error)
+    }, error => {
+      running = false
+      console.error(error)
+    })
   }
 
   const subscribe = cb => {
