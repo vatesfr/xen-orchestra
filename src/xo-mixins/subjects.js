@@ -100,6 +100,13 @@ export default class {
       })
       ::pCatch(noop) // Ignore any failures.
 
+    // Remove ACLs for this user.
+    this._xo.getAclsForSubject(id).then(acls => {
+      forEach(acls, acl => {
+        this._xo.removeAcl(id, acl.object, acl.action)::pCatch(noop)
+      })
+    })
+
     // Remove the user from all its groups.
     forEach(user.groups, groupId => {
       this.getGroup(groupId)

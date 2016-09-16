@@ -39,10 +39,9 @@ export default class {
       push.apply(acls, entries)
     })(acls.push)
 
-    const collection = this._acls
     await Promise.all(mapToArray(
       subjects,
-      subject => collection.get({subject}).then(pushAcls)
+      subject => this.getAclsForSubject(subject).then(pushAcls)
     ))
 
     return acls
@@ -65,6 +64,10 @@ export default class {
   // TODO: remove when new collection.
   async getAllAcls () {
     return this._acls.get()
+  }
+
+  async getAclsForSubject (subjectId) {
+    return this._acls.get({ subject: subjectId })
   }
 
   async getPermissionsForUser (userId) {
