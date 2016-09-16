@@ -37,8 +37,6 @@ var messages = {
   overviewStatsDashboardPage: 'Statistics',
   overviewHealthDashboardPage: 'Health',
   selfServicePage: 'Self service',
-  selfServiceDashboardPage: 'Dashboard',
-  selfServiceAdminPage: 'Administration',
   backupPage: 'Backup',
   jobsPage: 'Jobs',
   updatePage: 'Updates',
@@ -730,8 +728,8 @@ var messages = {
   // ----- Self -----
   resourceSets: 'Resource sets',
   noResourceSets: 'No resource sets.',
+  loadingResourceSets: 'Loading resource sets...',
   resourceSetName: 'Resource set name',
-  resourceSetCreation: 'Creation and edition',
   recomputeResourceSets: 'Recompute all limits',
   saveResourceSet: 'Save',
   resetResourceSet: 'Reset',
@@ -755,6 +753,7 @@ var messages = {
   totalResource: 'Total:',
   remainingResource: 'Remaining:',
   usedResource: 'Used:',
+  resourceSetNew: 'New',
 
   // ---- VM import ---
   importVmsList: 'Try dropping some VMs files here, or click to select VMs to upload. Accept only .xva/.ova files.',

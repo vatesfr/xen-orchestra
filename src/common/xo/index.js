@@ -1197,7 +1197,7 @@ export const deleteResourceSet = async id => {
     title: _('deleteResourceSetWarning'),
     body: _('deleteResourceSetQuestion')
   })
-  await _call('resourceSet.delete', { id })
+  await _call('resourceSet.delete', { id: resolveId(id) })
 
   subscribeResourceSets.forceRefresh()
 }

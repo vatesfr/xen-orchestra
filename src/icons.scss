@@ -516,6 +516,10 @@
     @extend .fa;
     @extend .fa-sort;
   }
+  &-reset {
+    @extend .fa;
+    @extend .fa-undo;
+  }
   &-save {
     @extend .fa;
     @extend .fa-floppy-o;
@@ -620,14 +624,6 @@
   &-menu-self-service {
     @extend .fa;
     @extend .fa-cloud;
-    &-dashboard {
-      @extend .fa;
-      @extend .fa-dashboard;
-    }
-    &-admin {
-      @extend .fa;
-      @extend .fa-wrench;
-    }
   }
   &-menu-backup {
     @extend .fa;

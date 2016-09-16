@@ -114,10 +114,7 @@ export default class Menu extends Component {
         { to: '/dashboard/stats', icon: 'menu-dashboard-stats', label: 'overviewStatsDashboardPage' },
         { to: '/dashboard/health', icon: 'menu-dashboard-health', label: 'overviewHealthDashboardPage' }
       ]},
-      isAdmin && { to: '/self/dashboard', icon: 'menu-self-service', label: 'selfServicePage', subMenu: [
-        { to: '/self/dashboard', icon: 'menu-self-service-dashboard', label: 'selfServiceDashboardPage' },
-        { to: '/self/admin', icon: 'menu-self-service-admin', label: 'selfServiceAdminPage' }
-      ]},
+      isAdmin && { to: '/self', icon: 'menu-self-service', label: 'selfServicePage' },
       { to: '/backup/overview', icon: 'menu-backup', label: 'backupPage', subMenu: [
         { to: '/backup/overview', icon: 'menu-backup-overview', label: 'backupOverviewPage' },
         { to: '/backup/new', icon: 'menu-backup-new', label: 'backupNewPage' },
