@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "outDir": "dist/",
+    "removeComments": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "newLine": "lf",
+    "noImplicitAny": true,
+    "sourceMap": true,
+    "strictNullChecks": true,
+    "target": "es5"
+  },
+  "includes": "src/**/*"
+}
