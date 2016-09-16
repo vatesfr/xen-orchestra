@@ -254,6 +254,13 @@ export default class {
 
     await this._groups.remove(id)
 
+    // Remove ACLs for this group.
+    this._xo.getAclsForSubject(id).then(acls => {
+      forEach(acls, acl => {
+        this._xo.removeAcl(id, acl.object, acl.action)::pCatch(noop)
+      })
+    })
+
     // Remove the group from all its users.
     forEach(group.users, userId => {
       this.getUser(userId)
