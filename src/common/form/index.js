@@ -197,8 +197,10 @@ export class SizeInput extends BaseComponent {
   }
 
   get value () {
-    const { unit, value } = this.state
-    return parseSize(value + ' ' + unit)
+    try {
+      const { unit, value } = this.state
+      return parseSize(value + ' ' + unit)
+    } catch (_) {}
   }
 
   set value (newValue) {
