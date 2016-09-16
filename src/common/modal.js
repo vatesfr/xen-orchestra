@@ -60,9 +60,9 @@ const _addRef = (component, ref) => {
 class Confirm extends Component {
   _resolve = () => {
     const { body } = this.refs
-    this.props.resolve(body && ('value' in body
-      ? body.value
-      : body.getWrappedInstance && body.getWrappedInstance().value
+    this.props.resolve(body && (body.getWrappedInstance
+      ? body.getWrappedInstance().value
+      : body.value
     ))
     instance.close()
   }
