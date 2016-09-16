@@ -756,7 +756,7 @@ export const revertSnapshot = vm => (
     title: _('revertVmModalTitle'),
     body: <RevertSnapshotModalBody />
   }).then(
-    ({ snapshotBefore }) => _call('vm.revert', { id: resolveId(vm), snapshotBefore }),
+    snapshotBefore => _call('vm.revert', { id: resolveId(vm), snapshotBefore }),
     noop
   )
 )
