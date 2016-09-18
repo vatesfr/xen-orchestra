@@ -182,7 +182,7 @@ export default class {
     try {
       this._disable(id)
     } catch (exc) {
-      if (!exc instanceof SchedulerError) {
+      if (!(exc instanceof SchedulerError)) {
         throw exc
       }
     } finally {
