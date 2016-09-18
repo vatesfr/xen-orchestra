@@ -126,7 +126,7 @@
     "nyc": "^8.1.0",
     "rimraf": "^2.5.2",
     "sinon": "^1.14.1",
-    "standard": "^7.0.0"
+    "standard": "^8.1.0"
   },
   "scripts": {
     "build": "npm run build-indexes && gulp build --production",
