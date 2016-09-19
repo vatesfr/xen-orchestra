@@ -239,7 +239,7 @@ export default class LogList extends Component {
         </CardHeader>
         <CardBlock>
           {logs.length
-            ? <SortedTable collection={logs} columns={LOG_COLUMNS} filters={this.filters} />
+            ? <SortedTable defaultColumn={3} collection={logs} columns={LOG_COLUMNS} filters={this.filters} />
             : <p>{_('noLogs')}</p>}
         </CardBlock>
       </Card>
