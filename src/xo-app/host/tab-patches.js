@@ -1,13 +1,16 @@
 import _ from 'intl'
 import ActionRowButton from 'action-row-button'
+import find from 'lodash/find'
 import isEmpty from 'lodash/isEmpty'
+import map from 'lodash/map'
 import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import Upgrade from 'xoa-upgrade'
 import { Container, Row, Col } from 'grid'
-import { formatSize } from 'utils'
+import { connectStore, formatSize } from 'utils'
 import { FormattedRelative, FormattedTime } from 'react-intl'
+import { createGetObjectsOfType, createSelector } from 'selectors'
 
 const MISSING_PATCH_COLUMNS = [
   {
@@ -82,11 +85,42 @@ const INSTALLED_PATCH_COLUMNS = [
   }
 ]
 
+@connectStore(() => {
+  const needsRestart = (() => {
+    // Returns the first patch of the host which requires it to be
+    // restarted.
+    const restartPoolPatch = createGetObjectsOfType('pool_patch').pick(
+      createSelector(
+        createGetObjectsOfType('host_patch').pick(
+          (_, props) => props.host && props.host.patches
+        ).filter(createSelector(
+          (_, props) => props.host && props.host.startTime,
+          startTime => patch => patch.time > startTime
+        )),
+        hostPatches => map(hostPatches, hostPatch => hostPatch.pool_patch)
+      )
+    ).find([ ({ guidance }) => find(guidance, action =>
+      action === 'restartHost' || action === 'restartXapi'
+    ) ])
+
+    return (...args) => restartPoolPatch(...args) !== undefined
+  })()
+
+  return {
+    needsRestart
+  }
+})
 export default class HostPatches extends Component {
   render () {
     const { hostPatches, missingPatches, installAllPatches, installPatch } = this.props
     return process.env.XOA_PLAN > 1
       ? <Container>
+        <Row><Col>
+          <p>{this.props.needsRestart
+            ? 'this host needs to be restarted'
+            : 'this host does not need to be restarted'
+          }</p>
+        </Col></Row>
         <Row>
           <Col>
             {isEmpty(missingPatches)
