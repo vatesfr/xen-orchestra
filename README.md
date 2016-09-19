@@ -1,4 +1,4 @@
-# xo-import-servers-csv [![Build Status](https://travis-ci.org/julien-f/xo-import-servers-csv.png?branch=master)](https://travis-ci.org/julien-f/xo-import-servers-csv)
+# xo-import-servers-csv [![Build Status](https://travis-ci.org/vatesfr/xo-import-servers-csv.png?branch=master)](https://travis-ci.org/vatesfr/xo-import-servers-csv)
 
 > CLI to import servers in XO from a CSV file
 
@@ -23,7 +23,7 @@ the code.
 
 You may:
 
-- report any [issue](https://github.com/julien-f/xo-import-servers-csv/issues)
+- report any [issue](https://github.com/vatesfr/xo-import-servers-csv/issues)
   you've encountered;
 - fork and create a pull request.
 

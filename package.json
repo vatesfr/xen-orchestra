@@ -13,11 +13,11 @@
     "xen",
     "xen-orchestra"
   ],
-  "homepage": "https://github.com/julien-f/xo-import-servers-csv#readme",
-  "bugs": "https://github.com/julien-f/xo-import-servers-csv/issues",
+  "homepage": "https://github.com/vatesfr/xo-import-servers-csv#readme",
+  "bugs": "https://github.com/vatesfr/xo-import-servers-csv/issues",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/julien-f/xo-import-servers-csv.git"
+    "url": "git+https://github.com/vatesfr/xo-import-servers-csv.git"
   },
   "author": {
     "name": "Julien Fontanet",
