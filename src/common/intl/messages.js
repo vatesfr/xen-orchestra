@@ -182,6 +182,7 @@ var messages = {
   job: 'Job',
   jobId: 'Job ID',
   jobName: 'Name',
+  jobNamePlaceholder: 'Name of your job (forbidden: "_")',
   jobStart: 'Start',
   jobEnd: 'End',
   jobDuration: 'Duration',

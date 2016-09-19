@@ -1,4 +1,4 @@
-import _ from 'intl'
+import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import delay from 'lodash/delay'
@@ -15,6 +15,7 @@ import React, { Component } from 'react'
 import { error } from 'notification'
 import { generateUiSchema } from 'xo-json-schema-input'
 import { SelectPlainObject } from 'form'
+import { injectIntl } from 'react-intl'
 
 import {
   apiMethods,
@@ -81,6 +82,7 @@ const dataToParamVectorItems = function (params, data) {
   return items
 }
 
+@injectIntl
 export default class Jobs extends Component {
   constructor (props) {
     super(props)
@@ -311,11 +313,13 @@ export default class Jobs extends Component {
       job,
       jobs
     } = this.state
+    const { formatMessage } = this.props.intl
+
     return <div>
       <h1>Jobs</h1>
       <form id='newJobForm'>
         <div className='form-group'>
-          <input type='text' ref='name' className='form-control' placeholder='Name of your Job' required />
+          <input type='text' ref='name' className='form-control' placeholder={formatMessage(messages.jobNamePlaceholder)} pattern='[^_]+' required />
         </div>
         <SelectPlainObject ref='method' options={actions} optionKey='method' onChange={this._handleSelectMethod} placeholder={_('jobActionPlaceHolder')} />
         {action && <fieldset>
