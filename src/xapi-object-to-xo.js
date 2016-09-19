@@ -194,7 +194,7 @@ const TRANSFORMS = {
         : 'out of date'
     })()
 
-    let resourceSet = otherConfig['resource_set']
+    let resourceSet = otherConfig['xo:resource_set']
     if (resourceSet) {
       try {
         resourceSet = JSON.parse(resourceSet)
