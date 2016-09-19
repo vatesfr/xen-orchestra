@@ -234,6 +234,7 @@ export default class Ips extends BaseComponent {
 
   _ipColumns = [
     {
+      default: true,
       name: _('ipPoolName'),
       itemRenderer: ipPool => <Text onChange={name => setIpPool(ipPool, { name })} value={ipPool.name} />,
       sortCriteria: ipPool => ipPool.name
@@ -317,7 +318,7 @@ export default class Ips extends BaseComponent {
       <hr />
       {isEmpty(ipPools)
         ? <p><em>{_('ipsNoIpPool')}</em></p>
-        : <SortedTable collection={ipPools} columns={this._ipColumns} defaultColumn={0} />
+        : <SortedTable collection={ipPools} columns={this._ipColumns} />
       }
     </div>
   }

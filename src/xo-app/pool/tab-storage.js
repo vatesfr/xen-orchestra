@@ -30,6 +30,7 @@ const SR_COLUMNS = [
     sortCriteria: 'size'
   },
   {
+    default: true,
     name: _('srUsage'),
     itemRenderer: sr => sr.size > 1 &&
       <Tooltip content={_('spaceLeftTooltip', {used: Math.round((sr.physical_usage / sr.size) * 100), free: formatSize(sr.size - sr.physical_usage)})}>
@@ -52,7 +53,7 @@ export default ({
   <Row>
     <Col>
       {!isEmpty(srs)
-       ? <SortedTable collection={srs} columns={SR_COLUMNS} defaultColumn={3} />
+       ? <SortedTable collection={srs} columns={SR_COLUMNS} />
        : <h4 className='text-xs-center'>{_('srNoSr')}</h4>
       }
     </Col>

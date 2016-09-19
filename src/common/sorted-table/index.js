@@ -1,6 +1,7 @@
 import _ from 'intl'
 import ceil from 'lodash/ceil'
 import debounce from 'lodash/debounce'
+import findIndex from 'lodash/findIndex'
 import isEmpty from 'lodash/isEmpty'
 import isFunction from 'lodash/isFunction'
 import map from 'lodash/map'
@@ -139,6 +140,7 @@ const DEFAULT_ITEMS_PER_PAGE = 10
     propTypes.object
   ]).isRequired,
   columns: propTypes.arrayOf(propTypes.shape({
+    default: propTypes.bool,
     name: propTypes.node.isRequired,
     itemRenderer: propTypes.func.isRequired,
     sortCriteria: propTypes.oneOfType([
@@ -161,8 +163,17 @@ export default class SortedTable extends Component {
   constructor (props) {
     super(props)
 
+    let selectedColumn = props.defaultColumn
+    if (selectedColumn == null) {
+      selectedColumn = findIndex(props.columns, 'default')
+
+      if (selectedColumn === -1) {
+        selectedColumn = 0
+      }
+    }
+
     this.state = {
-      selectedColumn: props.defaultColumn || 0,
+      selectedColumn,
       itemsPerPage: props.itemsPerPage || DEFAULT_ITEMS_PER_PAGE
     }
 

@@ -66,6 +66,7 @@ const SR_COLUMNS = [
     sortCriteria: sr => sr.size
   },
   {
+    default: true,
     name: _('srUsage'),
     itemRenderer: sr => sr.size > 1 &&
       <Tooltip content={_('spaceLeftTooltip', {used: Math.round((sr.physical_usage / sr.size) * 100), free: formatSize(sr.size - sr.physical_usage)})}>
@@ -254,7 +255,6 @@ export default class Health extends Component {
                       <SortedTable
                         collection={this.props.userSrs}
                         columns={SR_COLUMNS}
-                        defaultColumn={4}
                         rowLink={this._getSrUrl}
                       />
                     </Col>

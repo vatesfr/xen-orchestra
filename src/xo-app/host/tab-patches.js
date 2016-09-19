@@ -60,6 +60,7 @@ const INSTALLED_PATCH_COLUMNS = [
     sortCriteria: patch => patch.poolPatch.description
   },
   {
+    default: true,
     name: _('patchApplied'),
     itemRenderer: patch => {
       const time = patch.time * 1000
@@ -117,7 +118,7 @@ export default class HostPatches extends Component {
               ? (
               <span>
                 <h3>{_('hostAppliedPatches')}</h3>
-                <SortedTable collection={hostPatches} columns={INSTALLED_PATCH_COLUMNS} defaultColumn={2} />
+                <SortedTable collection={hostPatches} columns={INSTALLED_PATCH_COLUMNS} />
               </span>
               ) : <h4 className='text-xs-center'>{_('patchNothing')}</h4>
             }

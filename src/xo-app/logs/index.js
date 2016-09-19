@@ -106,6 +106,7 @@ const LOG_COLUMNS = [
     sortOrder: 'desc'
   },
   {
+    default: true,
     name: _('jobEnd'),
     itemRenderer: log => log.end && <FormattedDate value={new Date(log.end)} month='short' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />,
     sortCriteria: log => log.end,
@@ -239,7 +240,7 @@ export default class LogList extends Component {
         </CardHeader>
         <CardBlock>
           {logs.length
-            ? <SortedTable defaultColumn={3} collection={logs} columns={LOG_COLUMNS} filters={this.filters} />
+            ? <SortedTable collection={logs} columns={LOG_COLUMNS} filters={this.filters} />
             : <p>{_('noLogs')}</p>}
         </CardBlock>
       </Card>

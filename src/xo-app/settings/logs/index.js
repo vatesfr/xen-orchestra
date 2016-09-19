@@ -42,6 +42,7 @@ export default class Logs extends BaseComponent {
       sortCriteria: log => log.data.error && log.data.error.message
     },
     {
+      default: true,
       name: _('logTime'),
       itemRenderer: log => <span>
         {log.time && <FormattedDate value={new Date(log.time)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />}
@@ -105,7 +106,6 @@ ${JSON.stringify(log.data.error, null, 2)}`}</Copiable>)
           <SortedTable
             collection={logs}
             columns={this._columns}
-            defaultColumn={2}
           />
         </div>
       }
