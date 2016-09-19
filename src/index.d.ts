@@ -13,15 +13,18 @@ declare class Promise {
 }
 
 declare module 'csv-parser' {
-  export = (opts?: Object) => any
+  function csvParser (opts?: Object): any
+  export = csvParser
 }
 
 declare module 'end-of-stream' {
-  export = (stream: any, callback: (error?: any) => void)
+  function endOfStream (stream: any, callback: (error: any) => void): void
+  export = endOfStream
 }
 
 declare module 'exec-promise' {
-  export = (cb: (args: string[]) => any) => void
+  function execPromise (cb: (args: string[]) => any): void
+  export = execPromise
 }
 
 declare module 'xo-lib' {
