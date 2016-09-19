@@ -632,7 +632,7 @@ export const deleteTemplates = templates => (
     title: _('templateDeleteModalTitle', { templates: templates.length }),
     body: _('templateDeleteModalBody', { templates: templates.length })
   }).then(
-    () => Promise.all(map(resolveIds(templates), id => _call('vm.delete', { id }))),
+    () => Promise.all(map(resolveIds(templates), id => _call('vm.delete', { id, delete_disks: true }))),
     noop
   )
 )
