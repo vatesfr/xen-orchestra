@@ -312,7 +312,8 @@ export default class Home extends Component {
 
   _getVisibleItems = createPager(
     this._getFilteredItems,
-    () => this.state.activePage || 1
+    () => this.state.activePage || 1,
+    ITEMS_PER_PAGE
   )
 
   _expandAll = () => this.setState({ expandAll: !this.state.expandAll })
