@@ -148,6 +148,7 @@ const OPTIONS = {
       { handler: deleteTemplates, icon: 'delete', tooltip: _('templateDelete') }
     ],
     Item: TemplateItem,
+    showPoolsSelector: true,
     sortOptions: [
       { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' },
       { labelId: 'homeSortByRAM', sortBy: 'memory.size', sortOrder: 'desc' },
