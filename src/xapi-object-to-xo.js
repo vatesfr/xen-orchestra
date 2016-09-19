@@ -194,6 +194,15 @@ const TRANSFORMS = {
         : 'out of date'
     })()
 
+    let resourceSet = otherConfig['resource_set']
+    if (resourceSet) {
+      try {
+        resourceSet = JSON.parse(resourceSet)
+      } catch (_) {
+        resourceSet = undefined
+      }
+    }
+
     const vm = {
       // type is redefined after for controllers/, templates &
       // snapshots.
@@ -272,6 +281,7 @@ const TRANSFORMS = {
       other: otherConfig,
       os_version: guestMetrics && guestMetrics.os_version || null,
       power_state: obj.power_state,
+      resourceSet,
       snapshots: link(obj, 'snapshots'),
       startTime: metrics && toTimestamp(metrics.start_time),
       tags: obj.tags,
