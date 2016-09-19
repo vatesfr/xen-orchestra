@@ -9,7 +9,9 @@ import Xo from 'xo-lib'
 import { EventEmitter } from 'events'
 
 const requiredParam = (name: string) => {
-  throw `missing param: ${name}`
+  throw `missing param: ${name}
+
+Usage: xo-import-servers-csv $url $username $password < $csvFile`
 }
 
 execPromise(async ([
