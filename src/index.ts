@@ -3,10 +3,10 @@
 /// <reference path="./index.d.ts" />
 
 import csvParser = require('csv-parser')
-import endOfStream = require('end-of-stream')
 import execPromise = require('exec-promise')
 import through2 = require('through2')
 import Xo from 'xo-lib'
+import { EventEmitter } from 'events'
 
 const requiredParam = (name: string) => {
   throw `missing param: ${name}`
@@ -14,38 +14,44 @@ const requiredParam = (name: string) => {
 
 execPromise(async ([
   url = requiredParam('url'),
-  user = requiredParam('user'),
+  username = requiredParam('username'),
   password = requiredParam('password')
 ]): any => {
   const xo = new Xo({ url })
 
   await xo.open()
-  await xo.signIn({ user, password })
-  console.log('connected', xo.user)
+  await xo.signIn({ username, password })
+  console.log('connected as', xo.user!.email)
 
   const errors: any[] = []
 
   const stream = process.stdin
-    .pipe(csvParser())
-    .pipe(through2.obj((chunk, _, next) => {
-      const [ host, username, password ] = chunk as string[]
-      xo.call('server.add', { host, username, password, autoConnect: false })
-        .then(
-          () => next(),
-          (error: any) => {
-            errors.push({ host, error })
-            return next()
-          }
-        )
+    .pipe(csvParser({
+      headers: [ 'host', 'username', 'password' ]
+    }))
+    .pipe(through2.obj(({ host, username, password }, _, next) => {
+      console.log('server', host)
+
+      xo.call('server.add', {
+        autoConnect: false,
+        host,
+        password,
+        username
+      }).then(
+        () => next(),
+        (error: any) => {
+          errors.push({ host, error })
+          return next()
+        }
+      )
     }))
 
-  return new Promise((resolve, reject) => {
-    endOfStream(stream, error => {
-      if (error) {
-        reject(error)
-      } else {
-        resolve()
-      }
-    })
+  await new Promise((resolve, reject) => {
+    stream.on('error', reject)
+    stream.on('finish', resolve)
   })
+
+  if (errors.length) {
+    console.log(errors)
+  }
 })

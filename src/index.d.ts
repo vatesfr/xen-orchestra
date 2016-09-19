@@ -17,11 +17,6 @@ declare module 'csv-parser' {
   export = csvParser
 }
 
-declare module 'end-of-stream' {
-  function endOfStream (stream: any, callback: (error: any) => void): void
-  export = endOfStream
-}
-
 declare module 'exec-promise' {
   function execPromise (cb: (args: string[]) => any): void
   export = execPromise
@@ -29,7 +24,7 @@ declare module 'exec-promise' {
 
 declare module 'xo-lib' {
   export default class Xo {
-    user: string
+    user?: { email: string }
 
     constructor (opts?: {
       credentials?: {},
