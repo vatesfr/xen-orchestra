@@ -242,6 +242,12 @@ const _getPermissionsPredicate = invoke(() => {
   }
 })
 
+export const isAdmin = (...args) => {
+  const user = getUser(...args)
+
+  return user && user.permission === 'admin'
+}
+
 // ===================================================================
 // Common selector creators.
 

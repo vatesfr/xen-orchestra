@@ -12,8 +12,13 @@ import {
 
 const ActionBar = ({ actions, param }) => (
   <ButtonGroup>
-      {map(actions, ({ handler, handlerParam = param, label, icon, redirectOnSuccess }, index) => (
-        <Tooltip key={index} content={_(label)}>
+      {map(actions, (button, index) => {
+        if (!button) {
+          return
+        }
+
+        const { handler, handlerParam = param, label, icon, redirectOnSuccess } = button
+        return <Tooltip key={index} content={_(label)}>
           <ActionButton
             key={index}
             btnStyle='secondary'
@@ -24,7 +29,8 @@ const ActionBar = ({ actions, param }) => (
             size='large'
           />
         </Tooltip>
-    ))}
+      }
+    )}
   </ButtonGroup>
 )
 ActionBar.propTypes = {

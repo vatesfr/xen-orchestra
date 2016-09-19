@@ -27,7 +27,8 @@ import {
 import {
   createGetObject,
   createGetObjectsOfType,
-  createSelector
+  createSelector,
+  isAdmin
 } from 'selectors'
 
 import TabGeneral from './tab-general'
@@ -106,6 +107,7 @@ import TabAdvanced from './tab-advanced'
     return {
       container: getContainer(state, props),
       hosts: getHosts(state, props),
+      isAdmin: isAdmin(state, props),
       pool: getPool(state, props),
       srs: getSrs(state, props),
       vbds: getVbds(state, props),
@@ -178,7 +180,7 @@ export default class Vm extends BaseComponent {
   _migrateVm = host => migrateVm(this.props.vm, host)
 
   header () {
-    const { vm, container, pool, hosts } = this.props
+    const { vm, container, pool, hosts, isAdmin } = this.props
     if (!vm) {
       return <Icon icon='loading' />
     }
@@ -236,7 +238,7 @@ export default class Vm extends BaseComponent {
             <NavLink to={`/vms/${vm.id}/console`}>{_('consoleTabName')}</NavLink>
             <NavLink to={`/vms/${vm.id}/network`}>{_('networkTabName')}</NavLink>
             <NavLink to={`/vms/${vm.id}/disks`}>{_('disksTabName', { disks: vm.$VBDs.length })}</NavLink>
-            <NavLink to={`/vms/${vm.id}/snapshots`}>{_('snapshotsTabName')} {vm.snapshots.length !== 0 && <span className='tag tag-pill tag-default'>{vm.snapshots.length}</span>}</NavLink>
+            {(isAdmin || !vm.resourceSet) && <NavLink to={`/vms/${vm.id}/snapshots`}>{_('snapshotsTabName')} {vm.snapshots.length !== 0 && <span className='tag tag-pill tag-default'>{vm.snapshots.length}</span>}</NavLink>}
             <NavLink to={`/vms/${vm.id}/logs`}>{_('logsTabName')}</NavLink>
             {vm.docker && <NavLink to={`/vms/${vm.id}/containers`}>{_('containersTabName')}</NavLink>}
             <NavLink to={`/vms/${vm.id}/advanced`}>{_('advancedTabName')}</NavLink>
