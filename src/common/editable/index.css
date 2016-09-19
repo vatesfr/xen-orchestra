@@ -11,3 +11,7 @@
 .size {
   width: 10rem;
 }
+
+.edition {
+  display: inline-block;
+}

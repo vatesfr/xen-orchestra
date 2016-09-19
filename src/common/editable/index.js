@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import findKey from 'lodash/findKey'
 import isFunction from 'lodash/isFunction'
 import isString from 'lodash/isString'
@@ -178,7 +179,7 @@ class Editable extends Component {
 
     const { error, saving } = state
 
-    return <span>
+    return <span className={styles.edition}>
       {this._renderEdition()}
       {saving && <span>{' '}<Icon icon='loading' /></span>}
       {error != null && <span>
