@@ -621,6 +621,14 @@ var messages = {
   vmViewNamePlaceholder: 'Click to add a name',
   vmViewDescriptionPlaceholder: 'Click to add a description',
 
+  // ----- Templates -----
+
+  templateHomeNamePlaceholder: 'Click to add a name',
+  templateHomeDescriptionPlaceholder: 'Click to add a description',
+  templateDelete: 'Delete template',
+  templateDeleteModalTitle: 'Delete VM template{templates, plural, one {} other {s}}',
+  templateDeleteModalBody: 'Are you sure you want to delete {templates, plural, one {this} other {these}} template{templates, plural, one {} other {s}}?',
+
   // ----- Dashboard -----
   poolPanel: 'Pool{pools, plural, one {} other {s}}',
   hostPanel: 'Host{hosts, plural, one {} other {s}}',

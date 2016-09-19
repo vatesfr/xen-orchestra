@@ -1,4 +1,3 @@
-import classNames from 'classnames'
 import findKey from 'lodash/findKey'
 import isFunction from 'lodash/isFunction'
 import isString from 'lodash/isString'

@@ -23,6 +23,7 @@ import { Card, CardHeader, CardBlock } from 'card'
 import {
   addCustomFilter,
   copyVms,
+  deleteTemplates,
   deleteVms,
   emergencyShutdownHosts,
   migrateVms,
@@ -143,10 +144,14 @@ const OPTIONS = {
   'VM-template': {
     defaultFilter: '',
     filters: homeFilters.template,
-    getActions: noop,
+    mainActions: [
+      { handler: deleteTemplates, icon: 'delete', tooltip: _('templateDelete') }
+    ],
     Item: TemplateItem,
     sortOptions: [
-      { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' }
+      { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' },
+      { labelId: 'homeSortByRAM', sortBy: 'memory.size', sortOrder: 'desc' },
+      { labelId: 'homeSortByCpus', sortBy: 'CPUs.number', sortOrder: 'desc' }
     ]
   }
 }
