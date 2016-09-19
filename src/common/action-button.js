@@ -6,6 +6,7 @@ import { Button } from 'react-bootstrap-4/lib'
 import Component from './base-component'
 import logError from './log-error'
 import propTypes from './prop-types'
+import Tooltip from './tooltip'
 
 @propTypes({
   btnStyle: propTypes.string,
@@ -21,7 +22,8 @@ import propTypes from './prop-types'
   size: propTypes.oneOf([
     'large',
     'small'
-  ])
+  ]),
+  tooltip: propTypes.node
 })
 export default class ActionButton extends Component {
   static contextTypes = {
@@ -102,12 +104,13 @@ export default class ActionButton extends Component {
         form,
         icon,
         size: bsSize,
-        style
+        style,
+        tooltip
       },
       state: { error, working }
     } = this
 
-    return <Button
+    const button = <Button
       bsStyle={error ? 'warning' : btnStyle}
       form={form}
       onClick={!form && this._execute}
@@ -119,5 +122,9 @@ export default class ActionButton extends Component {
       {children && ' '}
       {children}
     </Button>
+
+    return tooltip
+      ? <Tooltip content={tooltip}>{button}</Tooltip>
+      : button
   }
 }
