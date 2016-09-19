@@ -36,7 +36,6 @@
   "dependencies": {
     "csv-parser": "^1.11.0",
     "end-of-stream": "^1.1.0",
-    "event-to-promise": "^0.7.0",
     "exec-promise": "^0.6.1",
     "highland": "^2.10.0",
     "through2": "^2.0.1",
