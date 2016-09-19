@@ -2,8 +2,17 @@
   "name": "xo-import-servers-csv",
   "version": "1.0.0",
   "license": "ISC",
-  "description": "",
-  "keywords": [],
+  "description": "CLI to import servers in XO from a CSV file",
+  "keywords": [
+    "csv",
+    "host",
+    "import",
+    "orchestra",
+    "pool",
+    "server",
+    "xen",
+    "xen-orchestra"
+  ],
   "homepage": "https://github.com/julien-f/xo-import-servers-csv#readme",
   "bugs": "https://github.com/julien-f/xo-import-servers-csv/issues",
   "repository": {
