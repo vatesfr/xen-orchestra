@@ -23,19 +23,14 @@ import {
   snapshotVm
 } from 'xo'
 
-@connectStore(() => {
-  const snapshots = createGetObjectsOfType('VM-snapshot').pick(
+@connectStore(() => ({
+  snapshots: createGetObjectsOfType('VM-snapshot').pick(
     (_, props) => props.vm.snapshots
   ).sort()
-
-  return (state, props) => ({
-    snapshots: snapshots(state, props)
-  })
-})
+}))
 export default class TabSnapshot extends Component {
   render () {
     const { snapshots, vm } = this.props
-
     return <Container>
       <Row>
         <Col className='text-xs-right'>
