@@ -319,7 +319,7 @@ export default class Jobs extends Component {
       <h1>Jobs</h1>
       <form id='newJobForm'>
         <div className='form-group'>
-          <input type='text' ref='name' className='form-control' placeholder={formatMessage(messages.jobNamePlaceholder)} pattern='/^((?!_).)*$/' required />
+          <input type='text' ref='name' className='form-control' placeholder={formatMessage(messages.jobNamePlaceholder)} pattern='[^_]+' required />
         </div>
         <SelectPlainObject ref='method' options={actions} optionKey='method' onChange={this._handleSelectMethod} placeholder={_('jobActionPlaceHolder')} />
         {action && <fieldset>
