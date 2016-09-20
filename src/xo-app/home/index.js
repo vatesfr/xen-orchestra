@@ -23,6 +23,7 @@ import { Card, CardHeader, CardBlock } from 'card'
 import {
   addCustomFilter,
   copyVms,
+  deleteTemplates,
   deleteVms,
   emergencyShutdownHosts,
   migrateVms,
@@ -69,6 +70,7 @@ import styles from './index.css'
 import HostItem from './host-item'
 import PoolItem from './pool-item'
 import VmItem from './vm-item'
+import TemplateItem from './template-item'
 
 const ITEMS_PER_PAGE = 20
 
@@ -138,11 +140,26 @@ const OPTIONS = {
     sortOptions: [
       { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' }
     ]
+  },
+  'VM-template': {
+    defaultFilter: '',
+    filters: homeFilters.vmTemplate,
+    mainActions: [
+      { handler: deleteTemplates, icon: 'delete', tooltip: _('templateDelete') }
+    ],
+    Item: TemplateItem,
+    showPoolsSelector: true,
+    sortOptions: [
+      { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' },
+      { labelId: 'homeSortByRAM', sortBy: 'memory.size', sortOrder: 'desc' },
+      { labelId: 'homeSortByCpus', sortBy: 'CPUs.number', sortOrder: 'desc' }
+    ]
   }
 }
 
 const TYPES = {
   VM: _('homeTypeVm'),
+  'VM-template': _('homeTypeTemplate'),
   host: _('homeTypeHost'),
   pool: _('homeTypePool')
 }
@@ -410,6 +427,12 @@ export default class Home extends Component {
     return customFilters[this._getType()]
   }
 
+  _typesDropdown = <DropdownButton id='typeMenu' bsStyle='info' title={TYPES[this._getType()]}>
+    {map(TYPES, (label, type) =>
+      <MenuItem onClick={() => this._setType(type)}>{label}</MenuItem>
+    )}
+  </DropdownButton>
+
   _renderHeader () {
     const { type } = this.props
     const { filters } = OPTIONS[type]
@@ -418,17 +441,7 @@ export default class Home extends Component {
     return <Container>
       <Row className={styles.itemRowHeader}>
         <Col mediumSize={3}>
-          <DropdownButton id='typeMenu' bsStyle='info' title={TYPES[this._getType()]}>
-            <MenuItem onClick={() => this._setType('VM')}>
-              VM
-            </MenuItem>
-            <MenuItem onClick={() => this._setType('host')}>
-              Host
-            </MenuItem>
-            <MenuItem onClick={() => this._setType('pool')}>
-              Pool
-            </MenuItem>
-          </DropdownButton>
+          {this._typesDropdown}
         </Col>
         <Col mediumSize={6}>
           <div className='input-group'>
@@ -570,14 +583,9 @@ export default class Home extends Component {
     const filteredItems = this._getFilteredItems()
     const visibleItems = this._getVisibleItems()
     const { activePage, sortBy } = this.state
-    const items = {
-      'VM': VmItem,
-      'host': HostItem,
-      'pool': PoolItem
-    }
     const { type } = props
-    const Item = items[type] || items[DEFAULT_TYPE]
     const options = OPTIONS[type]
+    const { Item } = options
     const { mainActions, otherActions } = options
     const selectedItemsIds = keys(this._selectedItems)
 

@@ -31,6 +31,7 @@ var messages = {
   homeVmPage: 'VMs',
   homeHostPage: 'Hosts',
   homePoolPage: 'Pools',
+  homeTemplatePage: 'Templates',
   dashboardPage: 'Dashboard',
   overviewDashboardPage: 'Overview',
   overviewVisualizationDashboardPage: 'Visualizations',
@@ -98,6 +99,7 @@ var messages = {
   homeTypeVm: 'VM',
   homeTypeSr: 'SR',
   homeTypeVdi: 'VDI',
+  homeTypeTemplate: 'Template',
   homeSort: 'Sort',
   homeAllPools: 'Pools',
   homeAllHosts: 'Hosts',
@@ -621,6 +623,14 @@ var messages = {
   vmHomeDescriptionPlaceholder: 'Long click to add a description',
   vmViewNamePlaceholder: 'Click to add a name',
   vmViewDescriptionPlaceholder: 'Click to add a description',
+
+  // ----- Templates -----
+
+  templateHomeNamePlaceholder: 'Click to add a name',
+  templateHomeDescriptionPlaceholder: 'Click to add a description',
+  templateDelete: 'Delete template',
+  templateDeleteModalTitle: 'Delete VM template{templates, plural, one {} other {s}}',
+  templateDeleteModalBody: 'Are you sure you want to delete {templates, plural, one {this} other {these}} template{templates, plural, one {} other {s}}?',
 
   // ----- Dashboard -----
   poolPanel: 'Pool{pools, plural, one {} other {s}}',

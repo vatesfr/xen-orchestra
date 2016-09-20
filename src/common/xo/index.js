@@ -631,6 +631,16 @@ export const convertVmToTemplate = vm => (
   )
 )
 
+export const deleteTemplates = templates => (
+  confirm({
+    title: _('templateDeleteModalTitle', { templates: templates.length }),
+    body: _('templateDeleteModalBody', { templates: templates.length })
+  }).then(
+    () => Promise.all(map(resolveIds(templates), id => _call('vm.delete', { id, delete_disks: true }))),
+    noop
+  )
+)
+
 export const snapshotVm = vm => (
   _call('vm.snapshot', { id: resolveId(vm) })
 )
