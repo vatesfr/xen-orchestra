@@ -453,6 +453,9 @@ var messages = {
   // ----- Pool patch tabs -----
   refreshPatches: 'Refresh patches',
   installPoolPatches: 'Install pool patches',
+  // ----- Pool storage tabs -----
+  defaultSr: 'Default SR',
+  setAsDefaultSr: 'Set as default SR',
 
   // ----- VM tabs -----
   generalTabName: 'General',

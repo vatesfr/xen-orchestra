@@ -357,6 +357,10 @@ export const detachHost = host => (
   )
 )
 
+export const setDefaultSr = sr => (
+  _call('pool.setDefaultSr', {sr: resolveId(sr)})
+)
+
 // Host --------------------------------------------------------------
 
 export const editHost = (host, props) => (
