@@ -726,7 +726,7 @@ export default class Home extends Component {
           {isEmpty(filteredItems)
             ? <p className='text-xs-center m-t-1'>
               <a className='btn btn-link' onClick={this._clearFilter}>
-                <Icon icon='info' /> {_('homeNoResultFilters')}
+                <Icon icon='info' /> {_('homeNoMatches')}
               </a>
             </p>
             : map(visibleItems, item =>
