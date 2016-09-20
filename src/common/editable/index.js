@@ -457,6 +457,8 @@ export class Size extends Editable {
     const { value } = this.props
 
     return <span
+      // SizeInput uses `input-group` which makes it behave as a block element (display: table).
+      // `form-inline` to use it as an inline element
       className='form-inline'
       onBlur={this._closeEditionIfUnfocused}
       onFocus={this._focus}

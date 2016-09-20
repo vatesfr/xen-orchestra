@@ -143,7 +143,7 @@ const OPTIONS = {
   },
   'VM-template': {
     defaultFilter: '',
-    filters: homeFilters.template,
+    filters: homeFilters.vmTemplate,
     mainActions: [
       { handler: deleteTemplates, icon: 'delete', tooltip: _('templateDelete') }
     ],

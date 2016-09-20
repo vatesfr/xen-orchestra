@@ -15,6 +15,6 @@ export const pool = {
   homeFilterTags: 'tags:'
 }
 
-export const template = {
+export const vmTemplate = {
   homeFilterTags: 'tags:'
 }
