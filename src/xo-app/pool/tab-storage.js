@@ -70,7 +70,7 @@ export default ({
   <Row>
     <Col>
       {!isEmpty(srs)
-       ? <SortedTable collection={srs} columns={SR_COLUMNS} defaultColumn={3} />
+       ? <SortedTable collection={srs} columns={SR_COLUMNS} userData={pool} />
        : <h4 className='text-xs-center'>{_('srNoSr')}</h4>
       }
     </Col>
