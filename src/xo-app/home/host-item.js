@@ -1,6 +1,7 @@
 import _ from 'intl'
 import Component from 'base-component'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
+import find from 'lodash/find'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import Link, { BlockLink } from 'link'
@@ -24,13 +25,38 @@ import {
   osFamily
 } from 'utils'
 import {
-  createGetObject
+  createGetObject,
+  createGetObjectsOfType,
+  createSelector
 } from 'selectors'
 
 import styles from './index.css'
 
-@connectStore({
-  container: createGetObject((_, props) => props.item.$pool)
+@connectStore(() => {
+  const needsRestart = (() => {
+    // Returns the first patch of the host which requires it to be
+    // restarted.
+    const restartPoolPatch = createGetObjectsOfType('pool_patch').pick(
+      createSelector(
+        createGetObjectsOfType('host_patch').pick(
+          (_, props) => props.item && props.item.patches
+        ).filter(createSelector(
+          (_, props) => props.item && props.item.startTime,
+          startTime => patch => patch.time > startTime
+        )),
+        hostPatches => map(hostPatches, hostPatch => hostPatch.pool_patch)
+      )
+    ).find([ ({ guidance }) => find(guidance, action =>
+      action === 'restartHost' || action === 'restartXapi'
+    ) ])
+
+    return (...args) => restartPoolPatch(...args) !== undefined
+  })()
+
+  return {
+    container: createGetObject((_, props) => props.item.$pool),
+    needsRestart
+  }
 })
 export default class HostItem extends Component {
   get _isRunning () {
@@ -73,6 +99,8 @@ export default class HostItem extends Component {
               </Ellipsis>
               &nbsp;
               {container && host.id === container.master && <span className='tag tag-pill tag-info'>{_('pillMaster')}</span>}
+              &nbsp;
+              {this.props.needsRestart && <Tooltip content={_('rebootUpdateHostLabel')}><Link to={`/hosts/${host.id}/patches`}><Icon icon='alarm' /></Link></Tooltip>}
             </EllipsisContainer>
           </Col>
           <Col mediumSize={4} className='hidden-md-down'>
