@@ -94,6 +94,7 @@ var messages = {
   homeRestoreBackupMessage: 'Restore a backup from a remote store',
   homeNewVmMessage: 'This will create a new VM',
   homeFilters: 'Filters',
+  homeNoResultFilters: 'No results! Click here to reset your filters',
   homeTypePool: 'Pool',
   homeTypeHost: 'Host',
   homeTypeVm: 'VM',
