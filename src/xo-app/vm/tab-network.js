@@ -258,13 +258,12 @@ export default class TabNetwork extends Component {
                 <tbody>
                   {map(vifs, (vif, vifIndex) => {
                     const network = networks[vif.$network]
-                    const lockedNetwork = network && network.defaultIsLocked
 
                     return <tr key={vif.id}>
                       <td>VIF #{vif.device}</td>
                       <td><pre>{vif.MAC}</pre></td>
                       <td>{vif.MTU}</td>
-                      <td>{networks[vif.$network] && networks[vif.$network].name_label}</td>
+                      <td>{network && network.name_label}</td>
                       <td style={IP_COLUMN_STYLE}>
                         <Container>
                           {this._noIps(vif)
@@ -339,7 +338,7 @@ export default class TabNetwork extends Component {
                           </span>
                         }
                         {' '}
-                        {lockedNetwork
+                        {network && network.defaultIsLocked
                         ? (
                           isEmpty(this._concatIps(vif))
                           ? <Tooltip content={_('vifLockedNetworkNoIps')}>
