@@ -35,21 +35,21 @@ set.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function setDefaultSr ({pool, sr}) {
-  await this.getXapi(pool).setDefaultSr(sr._xapiId)
+export async function setDefaultSr ({ sr }) {
+  await this.hasPermissions(this.user.id, [ [ sr.$pool, 'administrate' ] ])
+
+  await this.getXapi(sr).setDefaultSr(sr._xapiId)
 }
 
+setDefaultSr.permission = '' // signed in
+
 setDefaultSr.params = {
-  pool: {
-    type: 'string'
-  },
   sr: {
     type: 'string'
   }
 }
 
 setDefaultSr.resolve = {
-  pool: ['pool', 'pool', 'administrate'],
   sr: ['sr', 'SR']
 }
 // -------------------------------------------------------------------
