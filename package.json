@@ -103,7 +103,7 @@
     "xo-acl-resolver": "^0.2.1",
     "xo-collection": "^0.4.0",
     "xo-remote-parser": "^0.3",
-    "xo-vmdk-to-vhd": "0.0.5"
+    "xo-vmdk-to-vhd": "0.0.12"
   },
   "devDependencies": {
     "babel-eslint": "^6.0.4",
