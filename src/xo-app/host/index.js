@@ -1,5 +1,6 @@
 import _ from 'intl'
 import assign from 'lodash/assign'
+import find from 'lodash/find'
 import HostActionBar from './action-bar'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
@@ -10,6 +11,7 @@ import Page from '../page'
 import pick from 'lodash/pick'
 import React, { cloneElement, Component } from 'react'
 import sortBy from 'lodash/sortBy'
+import Tooltip from 'tooltip'
 import { Text } from 'editable'
 import { editHost, fetchHostStats, getHostMissingPatches, installAllHostPatches, installHostPatch } from 'xo'
 import { Container, Row, Col } from 'grid'
@@ -108,6 +110,26 @@ const isRunning = host => host && host.power_state === 'Running'
     )
   )
 
+  const needsRestart = (() => {
+    // Returns the first patch of the host which requires it to be
+    // restarted.
+    const restartPoolPatch = createGetObjectsOfType('pool_patch').pick(
+      createSelector(
+        createGetObjectsOfType('host_patch').pick(
+          (_, props) => props.host && props.host.patches
+        ).filter(createSelector(
+          (_, props) => props.host && props.host.startTime,
+          startTime => patch => patch.time > startTime
+        )),
+        hostPatches => map(hostPatches, hostPatch => hostPatch.pool_patch)
+      )
+    ).find([ ({ guidance }) => find(guidance, action =>
+      action === 'restartHost' || action === 'restartXapi'
+    ) ])
+
+    return (...args) => restartPoolPatch(...args) !== undefined
+  })()
+
   return (state, props) => {
     const host = getHost(state, props)
     if (!host) {
@@ -118,6 +140,7 @@ const isRunning = host => host && host.power_state === 'Running'
       host,
       hostPatches: getHostPatches(state, props),
       logs: getLogs(state, props),
+      needsRestart: needsRestart,
       networks: getNetworks(state, props),
       pbds: getPbds(state, props),
       pifs: getPifs(state, props),
@@ -260,7 +283,10 @@ export default class Host extends Component {
             <NavLink to={`/hosts/${host.id}/console`}>{_('consoleTabName')}</NavLink>
             <NavLink to={`/hosts/${host.id}/network`}>{_('networkTabName')}</NavLink>
             <NavLink to={`/hosts/${host.id}/storage`}>{_('storageTabName')}</NavLink>
-            <NavLink to={`/hosts/${host.id}/patches`}>{_('patchesTabName')} {isEmpty(missingPatches) ? null : <span className='tag tag-pill tag-danger'>{missingPatches.length}</span>}</NavLink>
+            <NavLink to={`/hosts/${host.id}/patches`}>
+              {_('patchesTabName')} {isEmpty(missingPatches) ? null : <span className='tag tag-pill tag-danger'>{missingPatches.length}</span>}
+              {(this.props.needsRestart && isEmpty(missingPatches)) && <Tooltip content={_('rebootUpdateHostLabel')}><Icon icon='alarm' /></Tooltip>}
+            </NavLink>
             <NavLink to={`/hosts/${host.id}/logs`}>{_('logsTabName')}</NavLink>
             <NavLink to={`/hosts/${host.id}/advanced`}>{_('advancedTabName')}</NavLink>
           </NavTabs>
