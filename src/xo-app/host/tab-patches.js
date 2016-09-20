@@ -118,7 +118,7 @@ export default class HostPatches extends Component {
       ? <Container>
         <Row>
           <Col className='text-xs-right'>
-            {this.props.needsRestart && <TabButton
+            {(this.props.needsRestart && isEmpty(missingPatches)) && <TabButton
               btnStyle='warning'
               handler={restartHost}
               handlerParam={host}
