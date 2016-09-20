@@ -231,7 +231,7 @@ export default class Home extends Component {
     const filter = this._getFilter(props)
 
     // If filter is null, set a default filter.
-    if (filter == null || (this.props.user == null && props.user != null)) {
+    if (filter == null) {
       const defaultFilter = this._getDefaultFilter(props)
 
       if (defaultFilter != null) {
