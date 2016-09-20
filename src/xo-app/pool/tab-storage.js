@@ -51,8 +51,8 @@ const SR_COLUMNS = [
       <ButtonGroup className='pull-xs-right'>
         {(pool.default_SR !== sr.id && sr.size > 1) && <Tooltip key={sr.id} content={_('setAsDefaultSr')}>
           <ActionRowButton
-            btnStyle='default'
-            handler={() => setDefaultSr(pool, sr)}
+            handler={setDefaultSr}
+            handlerParam={sr}
             icon='disk'
           />
         </Tooltip>}
