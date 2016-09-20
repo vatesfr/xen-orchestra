@@ -1,21 +1,26 @@
 import _ from 'intl'
+import ActionRowButton from 'action-row-button'
 import isEmpty from 'lodash/isEmpty'
 import Link from 'link'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
+import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Container, Row, Col } from 'grid'
-import { editSr, isSrShared } from 'xo'
+import { editSr, isSrShared, setDefaultSr } from 'xo'
 import { formatSize } from 'utils'
 import { Text } from 'editable'
 
 const SR_COLUMNS = [
   {
     name: _('srName'),
-    itemRenderer: sr => (
-      <Link to={`/srs/${sr.id}`}>
-        <Text value={sr.name_label} onChange={value => editSr(sr, { name_label: value })} useLongClick />
-      </Link>
+    itemRenderer: (sr, pool) => (
+      <div>
+        <Link to={`/srs/${sr.id}`}>
+          <Text value={sr.name_label} onChange={value => editSr(sr, { name_label: value })} useLongClick />
+        </Link>
+        {pool.default_SR === sr.id && <span className='tag tag-pill tag-info'>{_('defaultSr')}</span>}
+      </div>
     ),
     sortCriteria: 'name_label'
   },
@@ -41,19 +46,31 @@ const SR_COLUMNS = [
   },
   {
     name: _('srType'),
-    itemRenderer: sr => isSrShared(sr) ? _('srShared') : _('srNotShared'),
+    itemRenderer: (sr, pool) => <div>
+      {isSrShared(sr) ? _('srShared') : _('srNotShared')}
+      <ButtonGroup className='pull-xs-right'>
+        {(pool.default_SR !== sr.id && sr.size > 1) && <Tooltip key={sr.id} content={_('setAsDefaultSr')}>
+          <ActionRowButton
+            btnStyle='default'
+            handler={() => setDefaultSr(pool, sr)}
+            icon='disk'
+          />
+        </Tooltip>}
+      </ButtonGroup>
+    </div>,
     sortCriteria: isSrShared
   }
 ]
 
 export default ({
+  pool,
   hosts,
   srs
 }) => <Container>
   <Row>
     <Col>
       {!isEmpty(srs)
-       ? <SortedTable collection={srs} columns={SR_COLUMNS} />
+       ? <SortedTable collection={srs} columns={SR_COLUMNS} defaultColumn={3} />
        : <h4 className='text-xs-center'>{_('srNoSr')}</h4>
       }
     </Col>
