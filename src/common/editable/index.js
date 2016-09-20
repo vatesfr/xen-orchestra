@@ -179,7 +179,7 @@ class Editable extends Component {
 
     const { error, saving } = state
 
-    return <span className={styles.edition}>
+    return <span>
       {this._renderEdition()}
       {saving && <span>{' '}<Icon icon='loading' /></span>}
       {error != null && <span>
@@ -457,6 +457,7 @@ export class Size extends Editable {
     const { value } = this.props
 
     return <span
+      className='form-inline'
       onBlur={this._closeEditionIfUnfocused}
       onFocus={this._focus}
       onKeyDown={this._onKeyDown}

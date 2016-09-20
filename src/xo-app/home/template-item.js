@@ -29,14 +29,13 @@ import styles from './index.css'
   container: createGetObject((_, props) => props.item.$container)
 })
 export default class TemplateItem extends Component {
-
   _addTag = tag => addTag(this.props.item.id, tag)
+  _onSelect = () => this.props.onSelect(this.props.item.id)
   _removeTag = tag => removeTag(this.props.item.id, tag)
   _setNameDescription = nameDescription => editVm(this.props.item, { name_description: nameDescription })
   _setNameLabel = nameLabel => editVm(this.props.item, { name_label: nameLabel })
   _setCpus = nCpus => editVm(this.props.item, { CPUs: nCpus })
   _setMemory = memory => editVm(this.props.item, { memory })
-  _onSelect = () => this.props.onSelect(this.props.item.id)
 
   render () {
     const { item: vm, container, expandAll, selected } = this.props
