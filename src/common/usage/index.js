@@ -50,3 +50,23 @@ Element.propTypes = {
   value: PropTypes.number.isRequired
 }
 export { Element as UsageElement }
+
+export const Limits = ({ used, toBeUsed, limit }) => {
+  const available = limit - used
+
+  return <span className='limits'>
+    <span
+      className='limits-used'
+      style={{ width: ((used || 0) / limit) * 100 + '%' }}
+    />
+    <span
+      className={toBeUsed > available ? 'limits-over-used' : 'limits-to-be-used'}
+      style={{ width: (Math.min((toBeUsed || 0), available) / limit) * 100 + '%' }}
+    />
+  </span>
+}
+Limits.propTypes = {
+  used: PropTypes.number,
+  toBeUsed: PropTypes.number,
+  limit: PropTypes.number.isRequired
+}

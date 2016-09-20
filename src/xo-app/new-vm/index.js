@@ -22,12 +22,14 @@ import React from 'react'
 import size from 'lodash/size'
 import slice from 'lodash/slice'
 import store from 'store'
+import sumBy from 'lodash/sumBy'
 import Tags from 'tags'
 import Tooltip from 'tooltip'
 import Wizard, { Section } from 'wizard'
 import { Button } from 'react-bootstrap-4/lib'
 import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
+import { Limits } from 'usage'
 import {
   addSshKey,
   createVm,
@@ -63,7 +65,7 @@ import {
   connectStore,
   formatSize,
   noop,
-  resolveResourceSets
+  resolveResourceSet
 } from 'utils'
 import {
   createFilter,
@@ -85,10 +87,10 @@ const getObject = createGetObject((_, id) => id)
 
 // Sub-components
 
-const SectionContent = ({ summary, column, children }) => (
+const SectionContent = ({ column, children }) => (
   <div className={classNames(
     'form-inline',
-    summary ? styles.summary : styles.sectionContent,
+    styles.sectionContent,
     column && styles.sectionContentColumn
   )}>
     {children}
@@ -109,6 +111,8 @@ const Item = ({ label, children, className }) => (
 )
 
 @addSubscriptions({
+  resourceSets: subscribeResourceSets,
+  permissions: subscribePermissions,
   user: subscribeCurrentUser
 })
 @connectStore(() => ({
@@ -147,23 +151,31 @@ export default class NewVm extends BaseComponent {
     this._reset()
   }
 
-  componentWillMount () {
-    this._unsubscribeResourceSets = subscribeResourceSets(resourceSets => {
-      this.setState({
-        resourceSets: resolveResourceSets(resourceSets)
-      })
-    })
-    this._unsubscribePermissions = subscribePermissions(permissions => {
-      this.setState({
-        permissions
-      })
-    })
+  componentWillReceiveProps (newProps) {
+    const { pool, resourceSet } = this.state
+
+    // The user hasn't selected a resource set yet and the URL query resource set has been received
+    if (!resourceSet && !this.props.resourceSets && newProps.resourceSets) {
+      this.setState({ resourceSet: this._getQueryResourceSet(undefined, newProps) })
+      return
+    }
+
+    // Idem with the pool
+    if (!pool && !this.props.pool && newProps.pool) {
+      this.setState({ pool: newProps.pool })
+    }
   }
 
-  componentWillUnmount () {
-    this._unsubscribeResourceSets()
-    this._unsubscribePermissions()
+  componentWillMount () {
+    this.setState({ resourceSet: this._getQueryResourceSet(undefined, this.props) })
   }
+
+  _getQueryResourceSet = createSelector(
+    (_, props) => props.location.query.resourceSet,
+    (_, props) => props.resourceSets,
+    (resourceSetId, resourceSets) =>
+      resourceSetId && resourceSets && resolveResourceSet(find(resourceSets, set => set.id === resourceSetId))
+  )
 
 // Utils -----------------------------------------------------------------------
 
@@ -191,11 +203,8 @@ export default class NewVm extends BaseComponent {
 // Actions ---------------------------------------------------------------------
 
   _reset = ({ pool, resourceSet } = { pool: this.state.pool, resourceSet: this.state.resourceSet }) => {
-    if (!pool) {
-      pool = this.props.pool
-    }
-
     this.setState({ pool, resourceSet })
+
     this._replaceState({
       bootAfterCreate: true,
       configDrive: false,
@@ -417,7 +426,7 @@ export default class NewVm extends BaseComponent {
     }
   )
   _getCanOperate = createSelector(
-    () => this.state.permissions,
+    () => this.props.permissions,
     permissions => ({ id }) =>
       this.props.isAdmin || permissions && permissions[id] && permissions[id].operate
   )
@@ -555,14 +564,21 @@ export default class NewVm extends BaseComponent {
     }
     this._setState({ nameLabels: newNameLabels })
   }
-  _selectResourceSet = resourceSet =>
-    this._reset({ pool: undefined, resourceSet })
-  _selectPool = pool => {
-    const { pathname, query } = this.props.location
+  _selectResourceSet = resourceSet => {
+    const { pathname } = this.props.location
 
     this.context.router.push({
       pathname,
-      query: { ...query, pool: pool.id }
+      query: { resourceSet: resourceSet.id }
+    })
+    this._reset({ pool: undefined, resourceSet })
+  }
+  _selectPool = pool => {
+    const { pathname } = this.props.location
+
+    this.context.router.push({
+      pathname,
+      query: { pool: pool.id }
     })
     this._reset({ pool, resourceSet: undefined })
   }
@@ -622,9 +638,9 @@ export default class NewVm extends BaseComponent {
 // MAIN ------------------------------------------------------------------------
 
   _renderHeader = () => {
-    const { pool, resourceSet, resourceSets } = this.state
+    const { pool, resourceSet } = this.state
     const showSelectPool = !isEmpty(this._getOperatablePools())
-    const showSelectResourceSet = !this.props.isAdmin && !isEmpty(resourceSets)
+    const showSelectResourceSet = !this.props.isAdmin && !isEmpty(this.props.resourceSets)
     const selectPool = <span className={styles.inlineSelect}>
       <SelectPool
         onChange={this._selectPool}
@@ -649,7 +665,7 @@ export default class NewVm extends BaseComponent {
               })
               : showSelectPool || showSelectResourceSet
               ? _('newVmCreateNewVmOn', {
-                select: isEmpty(this._getOperatablePools()) ? selectResourceSet : selectPool
+                select: showSelectPool ? selectPool : selectResourceSet
               })
               : _('newVmCreateNewVmNoPermission')
             }
@@ -690,7 +706,7 @@ export default class NewVm extends BaseComponent {
               this._isInstallSettingsDone() &&
               this._isInterfacesDone() &&
               this._isDisksDone()
-            )}
+            ) || !this._availableResources()}
             form='vmCreation'
             handler={this._create}
             icon='new-vm-create'
@@ -1330,26 +1346,58 @@ export default class NewVm extends BaseComponent {
       VDIs,
       VIFs
     } = this.state.state
+
+    const { resourceSet } = this.state
+    const limits = resourceSet && resourceSet.limits
+    const cpusLimits = limits && limits.cpus
+    const memoryLimits = limits && limits.memory
+    const diskLimits = limits && limits.disk
+
     return <Section icon='new-vm-summary' title='newVmSummaryPanel' summary>
-      <SectionContent summary>
-        <span>
-          {CPUs || 0}x{' '}
-          <Icon icon='cpu' />
-        </span>
-        <span>
-          {memory ? formatSize(memory) : '0 B'}
-          {' '}
-          <Icon icon='memory' />
-        </span>
-        <span>
-          {size(existingDisks) + VDIs.length || 0}x{' '}
-          <Icon icon='disk' />
-        </span>
-        <span>
-          {VIFs.length}x{' '}
-          <Icon icon='network' />
-        </span>
-      </SectionContent>
+      <Container>
+        <Row>
+          <Col size={3} className='text-xs-center' style={{ fontSize: '2em' }}>
+            {CPUs || 0}x{' '}
+            <Icon icon='cpu' />
+          </Col>
+          <Col size={3} className='text-xs-center' style={{ fontSize: '2em' }}>
+            {memory ? formatSize(memory) : '0 B'}
+            {' '}
+            <Icon icon='memory' />
+          </Col>
+          <Col size={3} className='text-xs-center' style={{ fontSize: '2em' }}>
+            {size(existingDisks) + VDIs.length || 0}x{' '}
+            <Icon icon='disk' />
+          </Col>
+          <Col size={3} className='text-xs-center' style={{ fontSize: '2em' }}>
+            {VIFs.length}x{' '}
+            <Icon icon='network' />
+          </Col>
+        </Row>
+        {resourceSet && <Row>
+          <Col size={3}>
+            <Limits
+              limit={cpusLimits.total}
+              toBeUsed={CPUs}
+              used={cpusLimits.total - cpusLimits.available}
+            />
+          </Col>
+          <Col size={3}>
+            <Limits
+              limit={memoryLimits.total}
+              toBeUsed={memory}
+              used={memoryLimits.total - memoryLimits.available}
+            />
+          </Col>
+          <Col size={3}>
+            <Limits
+              limit={diskLimits.total}
+              toBeUsed={sumBy(VDIs, 'size')}
+              used={diskLimits.total - diskLimits.available}
+            />
+          </Col>
+        </Row>}
+      </Container>
       {this._isDiskTemplate && <div style={{display: 'flex'}}>
         <span style={{margin: 'auto'}}>
           <input
@@ -1364,6 +1412,26 @@ export default class NewVm extends BaseComponent {
         </span>
       </div>}
     </Section>
+  }
+
+  _availableResources = () => {
+    const { resourceSet } = this.state
+
+    if (!resourceSet) {
+      return true
+    }
+
+    const { CPUs, memory, VDIs } = this.state.state
+    const {
+      cpus: { available: availableCpus },
+      memory: { available: availableMemory },
+      disk: { available: availableDisk }
+    } = resourceSet.limits
+    return (
+      CPUs <= availableCpus &&
+      memory <= availableMemory &&
+      sumBy(VDIs, 'size') <= availableDisk
+    )
   }
 }
 /* eslint-enable camelcase */

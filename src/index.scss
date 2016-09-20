@@ -225,6 +225,38 @@ $select-input-height: 40px; // Bootstrap input height
   opacity: 0.6;
 }
 
+// LIMITS STYLE ================================================================
+
+.limits {
+  @extend .progress;
+  background-color: #eee;
+  height: 1.1em;
+  width: 100%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25) inset;
+}
+
+.limits-element {
+  background-color: #5cb85c;
+  height: 100%;
+  display: inline-block;
+  transition: all 0.3s ease 0s;
+}
+
+.limits-used {
+  @extend .limits-element;
+  background-color: $brand-primary;
+}
+
+.limits-to-be-used {
+  @extend .limits-element;
+  background-color: $brand-success;
+}
+
+.limits-over-used {
+  @extend .limits-element;
+  background-color: $brand-danger;
+}
+
 // NOTIFICATIONS STYLE =========================================================
 
 .notify-container {
