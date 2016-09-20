@@ -37,11 +37,11 @@ const SR_COLUMNS = [
   {
     default: true,
     name: _('srUsage'),
-    itemRenderer: sr => sr.size > 1 &&
+    itemRenderer: sr => sr.size > 0 &&
       <Tooltip content={_('spaceLeftTooltip', {used: Math.round((sr.physical_usage / sr.size) * 100), free: formatSize(sr.size - sr.physical_usage)})}>
         <meter value={(sr.physical_usage / sr.size) * 100} min='0' max='100' optimum='40' low='80' high='90' />
       </Tooltip>,
-    sortCriteria: sr => sr.physical_usage / sr.size,
+    sortCriteria: ({ physical_usage: usage, size }) => size > 0 ? usage / size : 0,
     sortOrder: 'desc'
   },
   {
