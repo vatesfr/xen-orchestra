@@ -723,15 +723,22 @@ export default class Home extends Component {
               </button>
             </Col>
           </SingleLineRow>
-          {map(visibleItems, item =>
-            <Item
-              expandAll={this.state.expandAll}
-              item={item}
-              key={item.id}
-              onSelect={this._selectItem}
-              selected={this._selectedItems[item.id]}
-            />
-          )}
+          {isEmpty(filteredItems)
+            ? <p className='text-xs-center m-t-1'>
+              <a className='btn btn-link' onClick={this._clearFilter}>
+                <Icon icon='info' /> {_('homeNoMatches')}
+              </a>
+            </p>
+            : map(visibleItems, item =>
+              <Item
+                expandAll={this.state.expandAll}
+                item={item}
+                key={item.id}
+                onSelect={this._selectItem}
+                selected={this._selectedItems[item.id]}
+              />
+            )
+          }
         </div>
         {filteredItems.length > ITEMS_PER_PAGE && <Row>
           <div style={{display: 'flex', width: '100%'}}>
