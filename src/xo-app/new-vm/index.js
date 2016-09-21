@@ -1390,7 +1390,7 @@ export default class NewVm extends BaseComponent {
           <Col size={3}>
             {diskLimits && <Limits
               limit={diskLimits.total}
-              toBeUsed={sumBy(VDIs, 'size') * factor}
+              toBeUsed={(sumBy(VDIs, 'size') + sumBy(map(existingDisks, disk => disk.size))) * factor}
               used={diskLimits.total - diskLimits.available}
             />}
           </Col>
@@ -1421,6 +1421,7 @@ export default class NewVm extends BaseComponent {
 
     const {
       CPUs,
+      existingDisks,
       memory,
       VDIs,
       multipleVms,
@@ -1431,7 +1432,7 @@ export default class NewVm extends BaseComponent {
     return !(
       CPUs * factor > get(resourceSet, 'limits.cpus.available') ||
       memory * factor > get(resourceSet, 'limits.memory.available') ||
-      sumBy(VDIs, 'size') * factor > get(resourceSet, 'limits.disk.available')
+      (sumBy(VDIs, 'size') + sumBy(map(existingDisks, disk => disk.size))) * factor > get(resourceSet, 'limits.disk.available')
     )
   }
 }
