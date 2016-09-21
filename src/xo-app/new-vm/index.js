@@ -155,6 +155,11 @@ export default class NewVm extends BaseComponent {
     return resourceSets && find(resourceSets, ({ id }) => id === resourceSetId)
   }
 
+  _getResolvedResourceSet = createSelector(
+    this._getResourceSet,
+    resourceSet => resolveResourceSet(resourceSet)
+  )
+
 // Utils -----------------------------------------------------------------------
 
   getUniqueId () {
@@ -304,7 +309,7 @@ export default class NewVm extends BaseComponent {
     const _isInResourceSet = this._getIsInResourceSet()
     const { state } = this.state
     const { pool } = this.props
-    const resourceSet = resolveResourceSet(this._getResourceSet())
+    const resourceSet = this._getResolvedResourceSet()
 
     const existingDisks = {}
     forEach(template.$VBDs, vbdId => {
@@ -444,7 +449,7 @@ export default class NewVm extends BaseComponent {
     [ (pool, canOperate) => canOperate(pool) ]
   )
   _getDefaultNetworkId = () => {
-    const resourceSet = resolveResourceSet(this._getResourceSet())
+    const resourceSet = this._getResolvedResourceSet()
     if (resourceSet) {
       return resourceSet.objectsByType['network'][0].id
     }
@@ -719,7 +724,7 @@ export default class NewVm extends BaseComponent {
             : <SelectResourceSetsVmTemplate
               onChange={this._initTemplate}
               placeholder={_('newVmSelectTemplate')}
-              resourceSet={resolveResourceSet(this._getResourceSet())}
+              resourceSet={this._getResolvedResourceSet()}
               value={template}
             />}
           </span>
@@ -889,7 +894,7 @@ export default class NewVm extends BaseComponent {
               : <SelectResourceSetsVdi
                 disabled={installMethod !== 'ISO'}
                 onChange={this._getOnChange('installIso')}
-                resourceSet={resolveResourceSet(this._getResourceSet())}
+                resourceSet={this._getResolvedResourceSet()}
                 srPredicate={this._getIsoPredicate()}
                 value={installIso}
               />}
@@ -1004,7 +1009,7 @@ export default class NewVm extends BaseComponent {
                 />
                 : <SelectResourceSetsNetwork
                   onChange={this._linkState(`VIFs.${index}.network`, 'id')}
-                  resourceSet={resolveResourceSet(this._getResourceSet())}
+                  resourceSet={this._getResolvedResourceSet()}
                   value={vif.network}
                 />}
               </span>
@@ -1053,7 +1058,7 @@ export default class NewVm extends BaseComponent {
     } = this.state
     const { pool } = this.props
     let i = 0
-    const resourceSet = resolveResourceSet(this._getResourceSet())
+    const resourceSet = this._getResolvedResourceSet()
 
     return <Section icon='new-vm-disks' title='newVmDisksPanel' done={this._isDisksDone()}>
       <SectionContent column>
