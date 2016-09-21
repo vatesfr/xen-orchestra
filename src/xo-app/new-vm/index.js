@@ -13,7 +13,6 @@ import Icon from 'icon'
 import includes from 'lodash/includes'
 import isArray from 'lodash/isArray'
 import isEmpty from 'lodash/isEmpty'
-import isEqual from 'lodash/isEqual'
 import isIp from 'is-ip'
 import join from 'lodash/join'
 import map from 'lodash/map'
@@ -151,12 +150,6 @@ export default class NewVm extends BaseComponent {
     this._reset()
   }
 
-  componentWillReceiveProps (newProps) {
-    if (!isEqual(this.state.pool, newProps.pool)) {
-      this.setState({ pool: newProps.pool })
-    }
-  }
-
   _getResourceSet = () => {
     const { location: { query: { resourceSet: resourceSetId } }, resourceSets } = this.props
     return resourceSets && find(resourceSets, ({ id }) => id === resourceSetId)
@@ -187,9 +180,7 @@ export default class NewVm extends BaseComponent {
 
 // Actions ---------------------------------------------------------------------
 
-  _reset = (pool = this.state.pool) => {
-    this.setState({ pool })
-
+  _reset = () => {
     this._replaceState({
       bootAfterCreate: true,
       configDrive: false,
@@ -311,7 +302,8 @@ export default class NewVm extends BaseComponent {
 
     const storeState = store.getState()
     const _isInResourceSet = this._getIsInResourceSet()
-    const { pool, state } = this.state
+    const { state } = this.state
+    const { pool } = this.props
     const resourceSet = resolveResourceSet(this._getResourceSet())
 
     const existingDisks = {}
@@ -398,7 +390,7 @@ export default class NewVm extends BaseComponent {
 
   _getIsInPool = createSelector(
     () => {
-      const { pool } = this.state
+      const { pool } = this.props
       return pool && pool.id
     },
     poolId => ({ $pool }) =>
@@ -429,7 +421,7 @@ export default class NewVm extends BaseComponent {
       (isInResourceSet(disk.id) || isInPool(disk)) && disk.content_type !== 'iso' && disk.size > 0
   )
   _getIsoPredicate = createSelector(
-    () => this.state.pool && this.state.pool.id,
+    () => this.props.pool && this.props.pool.id,
     poolId => sr => (poolId == null || poolId === sr.$pool) && sr.SR_type === 'iso'
   )
   _getNetworkPredicate = createSelector(
@@ -441,7 +433,7 @@ export default class NewVm extends BaseComponent {
   _getPoolNetworks = createSelector(
     () => this.props.networks,
     () => {
-      const { pool } = this.state
+      const { pool } = this.props
       return pool && pool.id
     },
     (networks, poolId) => filter(networks, network => network.$pool === poolId)
@@ -566,10 +558,11 @@ export default class NewVm extends BaseComponent {
       pathname,
       query: { pool: pool.id }
     })
-    this._reset(pool)
+    this._reset()
   }
   _addVdi = () => {
-    const { pool, state } = this.state
+    const { state } = this.state
+    const { pool } = this.props
     const device = String(this.getUniqueId())
 
     this._setState({ VDIs: [ ...state.VDIs, {
@@ -624,7 +617,7 @@ export default class NewVm extends BaseComponent {
 // MAIN ------------------------------------------------------------------------
 
   _renderHeader = () => {
-    const { pool } = this.state
+    const { pool } = this.props
     const showSelectPool = !isEmpty(this._getOperatablePools())
     const showSelectResourceSet = !this.props.isAdmin && !isEmpty(this.props.resourceSets)
     const selectPool = <span className={styles.inlineSelect}>
@@ -662,9 +655,9 @@ export default class NewVm extends BaseComponent {
   }
 
   render () {
-    const { pool } = this.state
+    const { pool } = this.props
     return <Page header={this._renderHeader()}>
-      {(pool || this.props.location.query.resourceSet) && <form id='vmCreation'>
+      {(pool || this._getResourceSet()) && <form id='vmCreation'>
         <Wizard>
           {this._renderInfo()}
           {this._renderPerformances()}
@@ -713,23 +706,22 @@ export default class NewVm extends BaseComponent {
       name_label,
       template
     } = this.state.state
-    const resourceSet = resolveResourceSet(this._getResourceSet())
     return <Section icon='new-vm-infos' title='newVmInfoPanel' done={this._isInfoDone()}>
       <SectionContent>
         <Item label={_('newVmTemplateLabel')}>
           <span className={styles.inlineSelect}>
-            {this.state.pool ? <SelectVmTemplate
+            {this.props.pool ? <SelectVmTemplate
               onChange={this._initTemplate}
               placeholder={_('newVmSelectTemplate')}
               predicate={this._getVmPredicate()}
               value={template}
             />
-            : (resourceSet && <SelectResourceSetsVmTemplate
+            : <SelectResourceSetsVmTemplate
               onChange={this._initTemplate}
               placeholder={_('newVmSelectTemplate')}
-              resourceSet={resourceSet}
+              resourceSet={resolveResourceSet(this._getResourceSet())}
               value={template}
-            />)}
+            />}
           </span>
         </Item>
         <Item label={_('newVmNameLabel')}>
@@ -799,7 +791,6 @@ export default class NewVm extends BaseComponent {
       pv_args,
       sshKeys
     } = this.state.state
-    const resourceSet = resolveResourceSet(this._getResourceSet())
     return <Section icon='new-vm-install-settings' title='newVmInstallSettingsPanel' done={this._isInstallSettingsDone()}>
       {this._isDiskTemplate ? <SectionContent key='diskTemplate' column>
         <LineItem>
@@ -889,19 +880,19 @@ export default class NewVm extends BaseComponent {
             <span>{_('newVmIsoDvdLabel')}</span>
             &nbsp;
             <span className={styles.inlineSelect}>
-              {this.state.pool ? <SelectVdi
+              {this.props.pool ? <SelectVdi
                 disabled={installMethod !== 'ISO'}
                 onChange={this._getOnChange('installIso')}
                 srPredicate={this._getIsoPredicate()}
                 value={installIso}
               />
-              : (resourceSet && <SelectResourceSetsVdi
+              : <SelectResourceSetsVdi
                 disabled={installMethod !== 'ISO'}
                 onChange={this._getOnChange('installIso')}
-                resourceSet={resourceSet}
+                resourceSet={resolveResourceSet(this._getResourceSet())}
                 srPredicate={this._getIsoPredicate()}
                 value={installIso}
-              />)}
+              />}
             </span>
           </span>
         </Item>
@@ -986,12 +977,9 @@ export default class NewVm extends BaseComponent {
 // INTERFACES ------------------------------------------------------------------
 
   _renderInterfaces = () => {
-    const {
-      state: { VIFs },
-      pool
-    } = this.state
+    const { state: { VIFs } } = this.state
+    const { pool } = this.props
     const { formatMessage } = this.props.intl
-    const resourceSet = resolveResourceSet(this._getResourceSet())
 
     return <Section icon='new-vm-interfaces' title='newVmInterfacesPanel' done={this._isInterfacesDone()}>
       <SectionContent column>
@@ -1014,11 +1002,11 @@ export default class NewVm extends BaseComponent {
                   predicate={this._getNetworkPredicate()}
                   value={vif.network}
                 />
-                : (resourceSet && <SelectResourceSetsNetwork
+                : <SelectResourceSetsNetwork
                   onChange={this._linkState(`VIFs.${index}.network`, 'id')}
-                  resourceSet={resourceSet}
+                  resourceSet={resolveResourceSet(this._getResourceSet())}
                   value={vif.network}
-                />)}
+                />}
               </span>
             </Item>
             <LineItem>
@@ -1057,11 +1045,13 @@ export default class NewVm extends BaseComponent {
 
   _renderDisks = () => {
     const {
-      state: { configDrive,
-      existingDisks,
-      VDIs },
-      pool
+      state: {
+        configDrive,
+        existingDisks,
+        VDIs
+      }
     } = this.state
+    const { pool } = this.props
     let i = 0
     const resourceSet = resolveResourceSet(this._getResourceSet())
 
@@ -1078,12 +1068,12 @@ export default class NewVm extends BaseComponent {
                   predicate={this._getSrPredicate()}
                   value={disk.$SR}
                 />
-                : (resourceSet && <SelectResourceSetsSr
+                : <SelectResourceSetsSr
                   onChange={this._getOnChange('existingDisks', index, '$SR', 'id')}
                   predicate={this._getSrPredicate()}
                   resourceSet={resourceSet}
                   value={disk.$SR}
-                />)}
+                />}
               </span>
             </Item>
             {' '}
@@ -1125,12 +1115,12 @@ export default class NewVm extends BaseComponent {
                   predicate={this._getSrPredicate()}
                   value={vdi.SR}
                 />
-                : (resourceSet && <SelectResourceSetsSr
+                : <SelectResourceSetsSr
                   onChange={this._getOnChange('VDIs', index, 'SR', 'id')}
                   predicate={this._getSrPredicate()}
                   resourceSet={resourceSet}
                   value={vdi.SR}
-                />)}
+                />}
               </span>
             </Item>
             {' '}
