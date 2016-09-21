@@ -24,8 +24,8 @@ import {
   osFamily
 } from 'utils'
 import {
-  createGetObject,
-  createDoesHostNeedRestart
+  createDoesHostNeedRestart,
+  createGetObject
 } from 'selectors'
 
 import styles from './index.css'
