@@ -551,12 +551,14 @@ export const restartVm = (vm, force = false) => (
   )
 )
 
-export const restartVms = (vms, force) => (
+export const restartVms = (vms, force = false) => (
   confirm({
     title: _('restartVmsModalTitle', { vms: vms.length }),
     body: _('restartVmsModalMessage', { vms: vms.length })
   }).then(
-    () => map(vms, vmId => restartVm({ id: vmId }, force)),
+    () => Promise.all(map(vms, vmId =>
+      _call('vm.restart', { id: resolveId(vmId), force })
+    )),
     noop
   )
 )
