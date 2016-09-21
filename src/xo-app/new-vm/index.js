@@ -8,6 +8,7 @@ import every from 'lodash/every'
 import filter from 'lodash/filter'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
+import get from 'lodash/get'
 import getEventValue from 'get-event-value'
 import Icon from 'icon'
 import includes from 'lodash/includes'
@@ -146,7 +147,7 @@ export default class NewVm extends BaseComponent {
     this.state = { state: {} }
   }
 
-  componentWillMount () {
+  componentDidMount () {
     this._reset()
   }
 
@@ -157,7 +158,7 @@ export default class NewVm extends BaseComponent {
 
   _getResolvedResourceSet = createSelector(
     this._getResourceSet,
-    resourceSet => resolveResourceSet(resourceSet)
+    resolveResourceSet
   )
 
 // Utils -----------------------------------------------------------------------
@@ -306,7 +307,7 @@ export default class NewVm extends BaseComponent {
     this._setState({ template })
 
     const storeState = store.getState()
-    const _isInResourceSet = this._getIsInResourceSet()
+    const isInResourceSet = this._getIsInResourceSet()
     const { state } = this.state
     const { pool } = this.props
     const resourceSet = this._getResolvedResourceSet()
@@ -323,7 +324,7 @@ export default class NewVm extends BaseComponent {
           name_label: vdi.name_label,
           name_description: vdi.name_description,
           size: vdi.size,
-          $SR: pool || _isInResourceSet(vdi.$SR)
+          $SR: pool || isInResourceSet(vdi.$SR)
             ? vdi.$SR
             : resourceSet.objectsByType['SR'][0].id
         }
@@ -335,7 +336,7 @@ export default class NewVm extends BaseComponent {
       const vif = getObject(storeState, vifId)
       VIFs.push({
         id: this.getUniqueId(),
-        network: pool || _isInResourceSet(vif.$network)
+        network: pool || isInResourceSet(vif.$network)
           ? vif.$network
           : resourceSet.objectsByType['network'][0].id
       })
@@ -1368,27 +1369,27 @@ export default class NewVm extends BaseComponent {
             </h2>
           </Col>
         </Row>
-        {resourceSet && <Row>
+        {limits && <Row>
           <Col size={3}>
-            <Limits
+            {cpusLimits && <Limits
               limit={cpusLimits.total}
               toBeUsed={CPUs}
               used={cpusLimits.total - cpusLimits.available}
-            />
+            />}
           </Col>
           <Col size={3}>
-            <Limits
+            {memoryLimits && <Limits
               limit={memoryLimits.total}
               toBeUsed={memory}
               used={memoryLimits.total - memoryLimits.available}
-            />
+            />}
           </Col>
           <Col size={3}>
-            <Limits
+            {diskLimits && <Limits
               limit={diskLimits.total}
               toBeUsed={sumBy(VDIs, 'size')}
               used={diskLimits.total - diskLimits.available}
-            />
+            />}
           </Col>
         </Row>}
       </Container>
@@ -1416,15 +1417,11 @@ export default class NewVm extends BaseComponent {
     }
 
     const { CPUs, memory, VDIs } = this.state.state
-    const {
-      cpus: { available: availableCpus },
-      memory: { available: availableMemory },
-      disk: { available: availableDisk }
-    } = resourceSet.limits
-    return (
-      CPUs <= availableCpus &&
-      memory <= availableMemory &&
-      sumBy(VDIs, 'size') <= availableDisk
+
+    return !(
+      CPUs > get(resourceSet, 'limits.cpus.available') ||
+      memory > get(resourceSet, 'limits.memory.available') ||
+      sumBy(VDIs, 'size') > get(resourceSet, 'limits.disk.available')
     )
   }
 }
