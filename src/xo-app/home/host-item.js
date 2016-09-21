@@ -24,14 +24,16 @@ import {
   osFamily
 } from 'utils'
 import {
+  createDoesHostNeedRestart,
   createGetObject
 } from 'selectors'
 
 import styles from './index.css'
 
-@connectStore({
-  container: createGetObject((_, props) => props.item.$pool)
-})
+@connectStore(({
+  container: createGetObject((_, props) => props.item.$pool),
+  needsRestart: createDoesHostNeedRestart((_, props) => props.item)
+}))
 export default class HostItem extends Component {
   get _isRunning () {
     const host = this.props.item
@@ -73,6 +75,8 @@ export default class HostItem extends Component {
               </Ellipsis>
               &nbsp;
               {container && host.id === container.master && <span className='tag tag-pill tag-info'>{_('pillMaster')}</span>}
+              &nbsp;
+              {this.props.needsRestart && <Tooltip content={_('rebootUpdateHostLabel')}><Link to={`/hosts/${host.id}/patches`}><Icon icon='alarm' /></Link></Tooltip>}
             </EllipsisContainer>
           </Col>
           <Col mediumSize={4} className='hidden-md-down'>

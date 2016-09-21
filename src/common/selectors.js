@@ -7,6 +7,7 @@ import isArray from 'lodash/isArray'
 import isArrayLike from 'lodash/isArrayLike'
 import isFunction from 'lodash/isFunction'
 import keys from 'lodash/keys'
+import map from 'lodash/map'
 import orderBy from 'lodash/orderBy'
 import pickBy from 'lodash/pickBy'
 import size from 'lodash/size'
@@ -328,7 +329,11 @@ const _extendCollectionSelector = (selector, objectsType) => {
     return selector
   }
   _addGroupBy(selector)
-  selector.find = predicate => createFinder(selector, predicate)
+  const _addFind = selector => {
+    selector.find = predicate => createFinder(selector, predicate)
+    return selector
+  }
+  _addFind(selector)
 
   // groupBy can be chained.
   const _addSort = selector => {
@@ -348,9 +353,9 @@ const _extendCollectionSelector = (selector, objectsType) => {
   _addFilter(selector)
 
   // filter, groupBy and sort can be chained.
-  selector.pick = idsSelector => _addFilter(_addGroupBy(_addSort(
+  selector.pick = idsSelector => _addFind(_addFilter(_addGroupBy(_addSort(
     createPicker(selector, idsSelector)
-  )))
+  ))))
 
   return selector
 }
@@ -368,7 +373,7 @@ const _extendCollectionSelector = (selector, objectsType) => {
 // - groupBy: returns a selector which returns the objects grouped by
 //            a value determined by a getter selector
 // - pick: returns a selector which returns only the objects with given
-//         ids (filter, groupBy and sort can be chained)
+//         ids (filter, find, groupBy and sort can be chained)
 // - sort: returns a selector which returns the objects appropriately
 //         sorted (groupBy can be chained)
 export const createGetObjectsOfType = type => {
@@ -421,6 +426,32 @@ export const createGetObjectMessages = objectSelector =>
 // const object = getObject(store.getState(), objectId)
 // ...
 export const getObject = createGetObject((_, id) => id)
+
+export const createDoesHostNeedRestart = hostSelector => {
+  // Returns the first patch of the host which requires it to be
+  // restarted.
+  const restartPoolPatch = createGetObjectsOfType('pool_patch').pick(
+    create(
+      createGetObjectsOfType('host_patch').pick(
+        (state, props) => {
+          const host = hostSelector(state, props)
+          return host && host.patches
+        }
+      ).filter(create(
+        (state, props) => {
+          const host = hostSelector(state, props)
+          return host && host.startTime
+        },
+        startTime => patch => patch.time > startTime
+      )),
+      hostPatches => map(hostPatches, hostPatch => hostPatch.pool_patch)
+    )
+  ).find([ ({ guidance }) => find(guidance, action =>
+    action === 'restartHost' || action === 'restartXapi'
+  ) ])
+
+  return (state, props) => restartPoolPatch(state, props) !== undefined
+}
 
 export const createGetHostMetrics = hostSelector => _createCollectionWrapper(
   create(

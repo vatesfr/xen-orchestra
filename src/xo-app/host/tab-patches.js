@@ -5,9 +5,11 @@ import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import Upgrade from 'xoa-upgrade'
+import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
-import { formatSize } from 'utils'
+import { createDoesHostNeedRestart } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
+import { restartHost } from 'xo'
 
 const MISSING_PATCH_COLUMNS = [
   {
@@ -82,36 +84,45 @@ const INSTALLED_PATCH_COLUMNS = [
   }
 ]
 
+@connectStore(() => ({
+  needsRestart: createDoesHostNeedRestart((_, props) => props.host)
+}))
 export default class HostPatches extends Component {
   render () {
-    const { hostPatches, missingPatches, installAllPatches, installPatch } = this.props
+    const { host, hostPatches, missingPatches, installAllPatches, installPatch } = this.props
     return process.env.XOA_PLAN > 1
       ? <Container>
         <Row>
-          <Col>
+          <Col className='text-xs-right'>
+            {(this.props.needsRestart && isEmpty(missingPatches)) && <TabButton
+              btnStyle='warning'
+              handler={restartHost}
+              handlerParam={host}
+              icon='host-reboot'
+              labelId='rebootUpdateHostLabel'
+            />}
             {isEmpty(missingPatches)
-              ? <h4>{_('hostUpToDate')}</h4>
-              : <span>
-                <Row>
-                  <Col className='text-xs-right'>
-                    <TabButton
-                      btnStyle='primary'
-                      handler={installAllPatches}
-                      icon='host-patch-update'
-                      labelId='patchUpdateButton'
-                    />
-                  </Col>
-                </Row>
-                <Row>
-                  <Col>
-                    <h3>{_('hostMissingPatches')}</h3>
-                    <SortedTable collection={missingPatches} userData={installPatch} columns={MISSING_PATCH_COLUMNS} />
-                  </Col>
-                </Row>
-              </span>
+              ? <TabButton
+                disabled
+                handler={installAllPatches}
+                icon='success'
+                labelId='hostUpToDate'
+              />
+              : <TabButton
+                btnStyle='primary'
+                handler={installAllPatches}
+                icon='host-patch-update'
+                labelId='patchUpdateButton'
+              />
             }
           </Col>
         </Row>
+        {!isEmpty(missingPatches) && <Row>
+          <Col>
+            <h3>{_('hostMissingPatches')}</h3>
+            <SortedTable collection={missingPatches} userData={installPatch} columns={MISSING_PATCH_COLUMNS} />
+          </Col>
+        </Row>}
         <Row>
           <Col>
             {!isEmpty(hostPatches)

@@ -387,6 +387,7 @@ var messages = {
   restartHostAgent: 'Restart toolstack',
   forceRebootHostLabel: 'Force reboot',
   rebootHostLabel: 'Reboot',
+  rebootUpdateHostLabel: 'Reboot for applying updates',
   emergencyModeLabel: 'Emergency mode',
   // ----- Host tabs -----
   storageTabName: 'Storage',
