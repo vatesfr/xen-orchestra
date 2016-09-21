@@ -1,5 +1,43 @@
 # ChangeLog
 
+## **5.2.2** (2016-09-21)
+
+### Enhancements
+
+- `pool.setDefaultSr\(\)` should not require `pool` param [\#1558](https://github.com/vatesfr/xo-web/issues/1558)
+- Select default SR [\#1554](https://github.com/vatesfr/xo-web/issues/1554)
+- No error message when I exceed my resource set quota [\#1541](https://github.com/vatesfr/xo-web/issues/1541)
+- Hide some buttons for self service VMs [\#1539](https://github.com/vatesfr/xo-web/issues/1539)
+- Add Job ID to backup schedules [\#1534](https://github.com/vatesfr/xo-web/issues/1534)
+- Correct name for VM selector with templates [\#1530](https://github.com/vatesfr/xo-web/issues/1530)
+- Help text when no matches for a filter [\#1517](https://github.com/vatesfr/xo-web/issues/1517)
+- Icon or tooltip to allow VDI migration in VM disk view [\#1512](https://github.com/vatesfr/xo-web/issues/1512)
+- Create a snapshot before restoring one [\#1445](https://github.com/vatesfr/xo-web/issues/1445)
+- Auto power on setting at creation time [\#1444](https://github.com/vatesfr/xo-web/issues/1444)
+- local remotes should be avoided if possible [\#1441](https://github.com/vatesfr/xo-web/issues/1441)
+- Self service edition unclear [\#1429](https://github.com/vatesfr/xo-web/issues/1429)
+- Avoid "\_" char in job tag name [\#1414](https://github.com/vatesfr/xo-web/issues/1414)
+- Display message if host reboot needed to apply patches [\#1352](https://github.com/vatesfr/xo-web/issues/1352)
+- Color code on host PIF stats can be misleading [\#1265](https://github.com/vatesfr/xo-web/issues/1265)
+- Sign in page is not rendered correctly [\#1161](https://github.com/vatesfr/xo-web/issues/1161)
+- Template management [\#1091](https://github.com/vatesfr/xo-web/issues/1091)
+
+### Bug fixes
+
+- Server logs should be displayed in reverse chonological order [\#1547](https://github.com/vatesfr/xo-web/issues/1547)
+- Cannot create resource sets without limits [\#1537](https://github.com/vatesfr/xo-web/issues/1537)
+- UI - Weird display when editing long VM desc [\#1528](https://github.com/vatesfr/xo-web/issues/1528)
+- Useless iso selector in host console [\#1527](https://github.com/vatesfr/xo-web/issues/1527)
+- Pool and Host dummy welcome message [\#1519](https://github.com/vatesfr/xo-web/issues/1519)
+- Bug on Network VM tab [\#1518](https://github.com/vatesfr/xo-web/issues/1518)
+- Link to home with filter in query does not work [\#1513](https://github.com/vatesfr/xo-web/issues/1513)
+- VHD merge fails with "RangeError: index out of range" on SMB remote [\#1511](https://github.com/vatesfr/xo-web/issues/1511)
+- DR: previous VDIs are not removed [\#1510](https://github.com/vatesfr/xo-web/issues/1510)
+- DR: previous copies not removed when same number as depth [\#1509](https://github.com/vatesfr/xo-web/issues/1509)
+- Empty Saved Search doesn't load when set to default filter [\#1354](https://github.com/vatesfr/xo-web/issues/1354)
+- Removing a user/group should delete its ACLs [\#899](https://github.com/vatesfr/xo-web/issues/899)
+- OVA Import - XO stuck during import [\#1551](https://github.com/vatesfr/xo-web/issues/1551)
+
 ## **5.2.1** (2016-09-13)
 
 ### Enhancements
