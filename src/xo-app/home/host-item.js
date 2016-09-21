@@ -1,7 +1,6 @@
 import _ from 'intl'
 import Component from 'base-component'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
-import find from 'lodash/find'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import Link, { BlockLink } from 'link'
@@ -26,38 +25,15 @@ import {
 } from 'utils'
 import {
   createGetObject,
-  createGetObjectsOfType,
-  createSelector
+  createDoesHostNeedRestart
 } from 'selectors'
 
 import styles from './index.css'
 
-@connectStore(() => {
-  const needsRestart = (() => {
-    // Returns the first patch of the host which requires it to be
-    // restarted.
-    const restartPoolPatch = createGetObjectsOfType('pool_patch').pick(
-      createSelector(
-        createGetObjectsOfType('host_patch').pick(
-          (_, props) => props.item && props.item.patches
-        ).filter(createSelector(
-          (_, props) => props.item && props.item.startTime,
-          startTime => patch => patch.time > startTime
-        )),
-        hostPatches => map(hostPatches, hostPatch => hostPatch.pool_patch)
-      )
-    ).find([ ({ guidance }) => find(guidance, action =>
-      action === 'restartHost' || action === 'restartXapi'
-    ) ])
-
-    return (...args) => restartPoolPatch(...args) !== undefined
-  })()
-
-  return {
-    container: createGetObject((_, props) => props.item.$pool),
-    needsRestart
-  }
-})
+@connectStore(({
+  container: createGetObject((_, props) => props.item.$pool),
+  needsRestart: createDoesHostNeedRestart((_, props) => props.item)
+}))
 export default class HostItem extends Component {
   get _isRunning () {
     const host = this.props.item

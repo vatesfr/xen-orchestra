@@ -7,6 +7,7 @@ import isArray from 'lodash/isArray'
 import isArrayLike from 'lodash/isArrayLike'
 import isFunction from 'lodash/isFunction'
 import keys from 'lodash/keys'
+import map from 'lodash/map'
 import orderBy from 'lodash/orderBy'
 import pickBy from 'lodash/pickBy'
 import size from 'lodash/size'
@@ -425,6 +426,32 @@ export const createGetObjectMessages = objectSelector =>
 // const object = getObject(store.getState(), objectId)
 // ...
 export const getObject = createGetObject((_, id) => id)
+
+export const createDoesHostNeedRestart = hostSelector => {
+  // Returns the first patch of the host which requires it to be
+  // restarted.
+  const restartPoolPatch = createGetObjectsOfType('pool_patch').pick(
+    create(
+      createGetObjectsOfType('host_patch').pick(
+        (state, props) => {
+          const host = hostSelector(state, props)
+          return host && host.patches
+        }
+      ).filter(create(
+        (state, props) => {
+          const host = hostSelector(state, props)
+          return host && host.startTime
+        },
+        startTime => patch => patch.time > startTime
+      )),
+      hostPatches => map(hostPatches, hostPatch => hostPatch.pool_patch)
+    )
+  ).find([ ({ guidance }) => find(guidance, action =>
+    action === 'restartHost' || action === 'restartXapi'
+  ) ])
+
+  return (state, props) => restartPoolPatch(state, props) !== undefined
+}
 
 export const createGetHostMetrics = hostSelector => _createCollectionWrapper(
   create(
