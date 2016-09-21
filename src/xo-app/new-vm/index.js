@@ -1330,10 +1330,13 @@ export default class NewVm extends BaseComponent {
       existingDisks,
       fastClone,
       memory,
+      multipleVms,
+      nameLabels,
       VDIs,
       VIFs
     } = this.state.state
 
+    const factor = multipleVms ? nameLabels.length : 1
     const resourceSet = this._getResourceSet()
     const limits = resourceSet && resourceSet.limits
     const cpusLimits = limits && limits.cpus
@@ -1373,21 +1376,21 @@ export default class NewVm extends BaseComponent {
           <Col size={3}>
             {cpusLimits && <Limits
               limit={cpusLimits.total}
-              toBeUsed={CPUs}
+              toBeUsed={CPUs * factor}
               used={cpusLimits.total - cpusLimits.available}
             />}
           </Col>
           <Col size={3}>
             {memoryLimits && <Limits
               limit={memoryLimits.total}
-              toBeUsed={memory}
+              toBeUsed={memory * factor}
               used={memoryLimits.total - memoryLimits.available}
             />}
           </Col>
           <Col size={3}>
             {diskLimits && <Limits
               limit={diskLimits.total}
-              toBeUsed={sumBy(VDIs, 'size')}
+              toBeUsed={sumBy(VDIs, 'size') * factor}
               used={diskLimits.total - diskLimits.available}
             />}
           </Col>
@@ -1416,12 +1419,19 @@ export default class NewVm extends BaseComponent {
       return true
     }
 
-    const { CPUs, memory, VDIs } = this.state.state
+    const {
+      CPUs,
+      memory,
+      VDIs,
+      multipleVms,
+      nameLabels
+    } = this.state.state
+    const factor = multipleVms ? nameLabels.length : 1
 
     return !(
-      CPUs > get(resourceSet, 'limits.cpus.available') ||
-      memory > get(resourceSet, 'limits.memory.available') ||
-      sumBy(VDIs, 'size') > get(resourceSet, 'limits.disk.available')
+      CPUs * factor > get(resourceSet, 'limits.cpus.available') ||
+      memory * factor > get(resourceSet, 'limits.memory.available') ||
+      sumBy(VDIs, 'size') * factor > get(resourceSet, 'limits.disk.available')
     )
   }
 }
