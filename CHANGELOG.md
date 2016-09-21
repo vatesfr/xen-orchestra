@@ -24,6 +24,7 @@
 
 ### Bug fixes
 
+- Multiple reboot selection doesn't work [\#1562](https://github.com/vatesfr/xo-web/issues/1562)
 - Server logs should be displayed in reverse chonological order [\#1547](https://github.com/vatesfr/xo-web/issues/1547)
 - Cannot create resource sets without limits [\#1537](https://github.com/vatesfr/xo-web/issues/1537)
 - UI - Weird display when editing long VM desc [\#1528](https://github.com/vatesfr/xo-web/issues/1528)
