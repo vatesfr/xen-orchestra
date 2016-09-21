@@ -8,13 +8,13 @@ import every from 'lodash/every'
 import filter from 'lodash/filter'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
+import get from 'lodash/get'
 import getEventValue from 'get-event-value'
 import Icon from 'icon'
 import includes from 'lodash/includes'
 import isArray from 'lodash/isArray'
 import isEmpty from 'lodash/isEmpty'
 import isIp from 'is-ip'
-import isObject from 'lodash/isObject'
 import join from 'lodash/join'
 import map from 'lodash/map'
 import Page from '../page'
@@ -22,12 +22,14 @@ import React from 'react'
 import size from 'lodash/size'
 import slice from 'lodash/slice'
 import store from 'store'
+import sumBy from 'lodash/sumBy'
 import Tags from 'tags'
 import Tooltip from 'tooltip'
 import Wizard, { Section } from 'wizard'
 import { Button } from 'react-bootstrap-4/lib'
 import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
+import { Limits } from 'usage'
 import {
   addSshKey,
   createVm,
@@ -63,7 +65,7 @@ import {
   connectStore,
   formatSize,
   noop,
-  resolveResourceSets
+  resolveResourceSet
 } from 'utils'
 import {
   createFilter,
@@ -85,10 +87,10 @@ const getObject = createGetObject((_, id) => id)
 
 // Sub-components
 
-const SectionContent = ({ summary, column, children }) => (
+const SectionContent = ({ column, children }) => (
   <div className={classNames(
     'form-inline',
-    summary ? styles.summary : styles.sectionContent,
+    styles.sectionContent,
     column && styles.sectionContentColumn
   )}>
     {children}
@@ -109,6 +111,8 @@ const Item = ({ label, children, className }) => (
 )
 
 @addSubscriptions({
+  resourceSets: subscribeResourceSets,
+  permissions: subscribePermissions,
   user: subscribeCurrentUser
 })
 @connectStore(() => ({
@@ -147,23 +151,15 @@ export default class NewVm extends BaseComponent {
     this._reset()
   }
 
-  componentWillMount () {
-    this._unsubscribeResourceSets = subscribeResourceSets(resourceSets => {
-      this.setState({
-        resourceSets: resolveResourceSets(resourceSets)
-      })
-    })
-    this._unsubscribePermissions = subscribePermissions(permissions => {
-      this.setState({
-        permissions
-      })
-    })
+  _getResourceSet = () => {
+    const { location: { query: { resourceSet: resourceSetId } }, resourceSets } = this.props
+    return resourceSets && find(resourceSets, ({ id }) => id === resourceSetId)
   }
 
-  componentWillUnmount () {
-    this._unsubscribeResourceSets()
-    this._unsubscribePermissions()
-  }
+  _getResolvedResourceSet = createSelector(
+    this._getResourceSet,
+    resolveResourceSet
+  )
 
 // Utils -----------------------------------------------------------------------
 
@@ -190,12 +186,7 @@ export default class NewVm extends BaseComponent {
 
 // Actions ---------------------------------------------------------------------
 
-  _reset = ({ pool, resourceSet } = { pool: this.state.pool, resourceSet: this.state.resourceSet }) => {
-    if (!pool) {
-      pool = this.props.pool
-    }
-
-    this.setState({ pool, resourceSet })
+  _reset = () => {
     this._replaceState({
       bootAfterCreate: true,
       configDrive: false,
@@ -218,7 +209,7 @@ export default class NewVm extends BaseComponent {
   }
 
   _create = () => {
-    const { resourceSet, state } = this.state
+    const { state } = this.state
     let installation
     switch (state.installMethod) {
       case 'ISO':
@@ -280,6 +271,8 @@ export default class NewVm extends BaseComponent {
       return _vif
     })
 
+    const resourceSet = this._getResourceSet()
+
     const data = {
       clone: !this.isDiskTemplate && state.fastClone,
       existingDisks: state.existingDisks,
@@ -305,6 +298,7 @@ export default class NewVm extends BaseComponent {
 
     return state.multipleVms ? createVms(data, state.nameLabels) : createVm(data)
   }
+
   _initTemplate = template => {
     if (!template) {
       return this._reset()
@@ -313,8 +307,10 @@ export default class NewVm extends BaseComponent {
     this._setState({ template })
 
     const storeState = store.getState()
-    const _isInResourceSet = this._getIsInResourceSet()
-    const { pool, resourceSet, state } = this.state
+    const isInResourceSet = this._getIsInResourceSet()
+    const { state } = this.state
+    const { pool } = this.props
+    const resourceSet = this._getResolvedResourceSet()
 
     const existingDisks = {}
     forEach(template.$VBDs, vbdId => {
@@ -328,7 +324,7 @@ export default class NewVm extends BaseComponent {
           name_label: vdi.name_label,
           name_description: vdi.name_description,
           size: vdi.size,
-          $SR: pool || _isInResourceSet(vdi.$SR, 'SR')
+          $SR: pool || isInResourceSet(vdi.$SR)
             ? vdi.$SR
             : resourceSet.objectsByType['SR'][0].id
         }
@@ -340,7 +336,7 @@ export default class NewVm extends BaseComponent {
       const vif = getObject(storeState, vifId)
       VIFs.push({
         id: this.getUniqueId(),
-        network: pool || _isInResourceSet(vif.$network, 'network')
+        network: pool || isInResourceSet(vif.$network)
           ? vif.$network
           : resourceSet.objectsByType['network'][0].id
       })
@@ -400,7 +396,7 @@ export default class NewVm extends BaseComponent {
 
   _getIsInPool = createSelector(
     () => {
-      const { pool } = this.state
+      const { pool } = this.props
       return pool && pool.id
     },
     poolId => ({ $pool }) =>
@@ -408,16 +404,13 @@ export default class NewVm extends BaseComponent {
   )
   _getIsInResourceSet = createSelector(
     () => {
-      const { resourceSet } = this.state
-      return resourceSet && resourceSet.objectsByType
+      const resourceSet = this._getResourceSet()
+      return resourceSet && resourceSet.objects
     },
-    objectsByType => (obj, objType) => {
-      const [id, type] = isObject(obj) ? [obj.id, obj.type] : [obj, objType]
-      return objectsByType && includes(map(objectsByType[type], object => object.id), id)
-    }
+    objectsIds => id => includes(objectsIds, id)
   )
   _getCanOperate = createSelector(
-    () => this.state.permissions,
+    () => this.props.permissions,
     permissions => ({ id }) =>
       this.props.isAdmin || permissions && permissions[id] && permissions[id].operate
   )
@@ -425,28 +418,28 @@ export default class NewVm extends BaseComponent {
     this._getIsInPool,
     this._getIsInResourceSet,
     (isInPool, isInResourceSet) => vm =>
-      isInResourceSet(vm) || isInPool(vm)
+      isInResourceSet(vm.id) || isInPool(vm)
   )
   _getSrPredicate = createSelector(
     this._getIsInPool,
     this._getIsInResourceSet,
     (isInPool, isInResourceSet) => disk =>
-      (isInResourceSet(disk) || isInPool(disk)) && disk.content_type !== 'iso' && disk.size > 0
+      (isInResourceSet(disk.id) || isInPool(disk)) && disk.content_type !== 'iso' && disk.size > 0
   )
   _getIsoPredicate = createSelector(
-    () => this.state.pool && this.state.pool.id,
+    () => this.props.pool && this.props.pool.id,
     poolId => sr => (poolId == null || poolId === sr.$pool) && sr.SR_type === 'iso'
   )
   _getNetworkPredicate = createSelector(
     this._getIsInPool,
     this._getIsInResourceSet,
     (isInPool, isInResourceSet) => network =>
-      isInResourceSet(network) || isInPool(network)
+      isInResourceSet(network.id) || isInPool(network)
   )
   _getPoolNetworks = createSelector(
     () => this.props.networks,
     () => {
-      const { pool } = this.state
+      const { pool } = this.props
       return pool && pool.id
     },
     (networks, poolId) => filter(networks, network => network.$pool === poolId)
@@ -457,7 +450,7 @@ export default class NewVm extends BaseComponent {
     [ (pool, canOperate) => canOperate(pool) ]
   )
   _getDefaultNetworkId = () => {
-    const { resourceSet } = this.state
+    const resourceSet = this._getResolvedResourceSet()
     if (resourceSet) {
       return resourceSet.objectsByType['network'][0].id
     }
@@ -555,19 +548,27 @@ export default class NewVm extends BaseComponent {
     }
     this._setState({ nameLabels: newNameLabels })
   }
-  _selectResourceSet = resourceSet =>
-    this._reset({ pool: undefined, resourceSet })
-  _selectPool = pool => {
-    const { pathname, query } = this.props.location
+  _selectResourceSet = resourceSet => {
+    const { pathname } = this.props.location
 
     this.context.router.push({
       pathname,
-      query: { ...query, pool: pool.id }
+      query: { resourceSet: resourceSet.id }
     })
-    this._reset({ pool, resourceSet: undefined })
+    this._reset()
+  }
+  _selectPool = pool => {
+    const { pathname } = this.props.location
+
+    this.context.router.push({
+      pathname,
+      query: { pool: pool.id }
+    })
+    this._reset()
   }
   _addVdi = () => {
-    const { pool, state } = this.state
+    const { state } = this.state
+    const { pool } = this.props
     const device = String(this.getUniqueId())
 
     this._setState({ VDIs: [ ...state.VDIs, {
@@ -622,9 +623,9 @@ export default class NewVm extends BaseComponent {
 // MAIN ------------------------------------------------------------------------
 
   _renderHeader = () => {
-    const { pool, resourceSet, resourceSets } = this.state
+    const { pool } = this.props
     const showSelectPool = !isEmpty(this._getOperatablePools())
-    const showSelectResourceSet = !this.props.isAdmin && !isEmpty(resourceSets)
+    const showSelectResourceSet = !this.props.isAdmin && !isEmpty(this.props.resourceSets)
     const selectPool = <span className={styles.inlineSelect}>
       <SelectPool
         onChange={this._selectPool}
@@ -635,7 +636,7 @@ export default class NewVm extends BaseComponent {
     const selectResourceSet = <span className={styles.inlineSelect}>
       <SelectResourceSet
         onChange={this._selectResourceSet}
-        value={resourceSet}
+        value={this.props.location.query.resourceSet}
       />
     </span>
     return <Container>
@@ -649,7 +650,7 @@ export default class NewVm extends BaseComponent {
               })
               : showSelectPool || showSelectResourceSet
               ? _('newVmCreateNewVmOn', {
-                select: isEmpty(this._getOperatablePools()) ? selectResourceSet : selectPool
+                select: showSelectPool ? selectPool : selectResourceSet
               })
               : _('newVmCreateNewVmNoPermission')
             }
@@ -660,9 +661,9 @@ export default class NewVm extends BaseComponent {
   }
 
   render () {
-    const { resourceSet, pool } = this.state
+    const { pool } = this.props
     return <Page header={this._renderHeader()}>
-      {(pool || resourceSet) && <form id='vmCreation'>
+      {(pool || this._getResourceSet()) && <form id='vmCreation'>
         <Wizard>
           {this._renderInfo()}
           {this._renderPerformances()}
@@ -690,7 +691,7 @@ export default class NewVm extends BaseComponent {
               this._isInstallSettingsDone() &&
               this._isInterfacesDone() &&
               this._isDisksDone()
-            )}
+            ) || !this._availableResources()}
             form='vmCreation'
             handler={this._create}
             icon='new-vm-create'
@@ -715,7 +716,7 @@ export default class NewVm extends BaseComponent {
       <SectionContent>
         <Item label={_('newVmTemplateLabel')}>
           <span className={styles.inlineSelect}>
-            {this.state.pool ? <SelectVmTemplate
+            {this.props.pool ? <SelectVmTemplate
               onChange={this._initTemplate}
               placeholder={_('newVmSelectTemplate')}
               predicate={this._getVmPredicate()}
@@ -724,7 +725,7 @@ export default class NewVm extends BaseComponent {
             : <SelectResourceSetsVmTemplate
               onChange={this._initTemplate}
               placeholder={_('newVmSelectTemplate')}
-              resourceSet={this.state.resourceSet}
+              resourceSet={this._getResolvedResourceSet()}
               value={template}
             />}
           </span>
@@ -885,7 +886,7 @@ export default class NewVm extends BaseComponent {
             <span>{_('newVmIsoDvdLabel')}</span>
             &nbsp;
             <span className={styles.inlineSelect}>
-              {this.state.pool ? <SelectVdi
+              {this.props.pool ? <SelectVdi
                 disabled={installMethod !== 'ISO'}
                 onChange={this._getOnChange('installIso')}
                 srPredicate={this._getIsoPredicate()}
@@ -894,7 +895,7 @@ export default class NewVm extends BaseComponent {
               : <SelectResourceSetsVdi
                 disabled={installMethod !== 'ISO'}
                 onChange={this._getOnChange('installIso')}
-                resourceSet={this.state.resourceSet}
+                resourceSet={this._getResolvedResourceSet()}
                 srPredicate={this._getIsoPredicate()}
                 value={installIso}
               />}
@@ -982,10 +983,8 @@ export default class NewVm extends BaseComponent {
 // INTERFACES ------------------------------------------------------------------
 
   _renderInterfaces = () => {
-    const {
-      state: { VIFs },
-      pool
-    } = this.state
+    const { state: { VIFs } } = this.state
+    const { pool } = this.props
     const { formatMessage } = this.props.intl
 
     return <Section icon='new-vm-interfaces' title='newVmInterfacesPanel' done={this._isInterfacesDone()}>
@@ -1011,7 +1010,7 @@ export default class NewVm extends BaseComponent {
                 />
                 : <SelectResourceSetsNetwork
                   onChange={this._linkState(`VIFs.${index}.network`, 'id')}
-                  resourceSet={this.state.resourceSet}
+                  resourceSet={this._getResolvedResourceSet()}
                   value={vif.network}
                 />}
               </span>
@@ -1052,12 +1051,16 @@ export default class NewVm extends BaseComponent {
 
   _renderDisks = () => {
     const {
-      state: { configDrive,
-      existingDisks,
-      VDIs },
-      pool
+      state: {
+        configDrive,
+        existingDisks,
+        VDIs
+      }
     } = this.state
+    const { pool } = this.props
     let i = 0
+    const resourceSet = this._getResolvedResourceSet()
+
     return <Section icon='new-vm-disks' title='newVmDisksPanel' done={this._isDisksDone()}>
       <SectionContent column>
 
@@ -1074,7 +1077,7 @@ export default class NewVm extends BaseComponent {
                 : <SelectResourceSetsSr
                   onChange={this._getOnChange('existingDisks', index, '$SR', 'id')}
                   predicate={this._getSrPredicate()}
-                  resourceSet={this.state.resourceSet}
+                  resourceSet={resourceSet}
                   value={disk.$SR}
                 />}
               </span>
@@ -1121,7 +1124,7 @@ export default class NewVm extends BaseComponent {
                 : <SelectResourceSetsSr
                   onChange={this._getOnChange('VDIs', index, 'SR', 'id')}
                   predicate={this._getSrPredicate()}
-                  resourceSet={this.state.resourceSet}
+                  resourceSet={resourceSet}
                   value={vdi.SR}
                 />}
               </span>
@@ -1327,29 +1330,72 @@ export default class NewVm extends BaseComponent {
       existingDisks,
       fastClone,
       memory,
+      multipleVms,
+      nameLabels,
       VDIs,
       VIFs
     } = this.state.state
+
+    const factor = multipleVms ? nameLabels.length : 1
+    const resourceSet = this._getResourceSet()
+    const limits = resourceSet && resourceSet.limits
+    const cpusLimits = limits && limits.cpus
+    const memoryLimits = limits && limits.memory
+    const diskLimits = limits && limits.disk
+
     return <Section icon='new-vm-summary' title='newVmSummaryPanel' summary>
-      <SectionContent summary>
-        <span>
-          {CPUs || 0}x{' '}
-          <Icon icon='cpu' />
-        </span>
-        <span>
-          {memory ? formatSize(memory) : '0 B'}
-          {' '}
-          <Icon icon='memory' />
-        </span>
-        <span>
-          {size(existingDisks) + VDIs.length || 0}x{' '}
-          <Icon icon='disk' />
-        </span>
-        <span>
-          {VIFs.length}x{' '}
-          <Icon icon='network' />
-        </span>
-      </SectionContent>
+      <Container>
+        <Row>
+          <Col size={3} className='text-xs-center'>
+            <h2>
+              {CPUs || 0}x{' '}
+              <Icon icon='cpu' />
+            </h2>
+          </Col>
+          <Col size={3} className='text-xs-center'>
+            <h2>
+              {memory ? formatSize(memory) : '0 B'}
+              {' '}
+              <Icon icon='memory' />
+            </h2>
+          </Col>
+          <Col size={3} className='text-xs-center'>
+            <h2>
+              {size(existingDisks) + VDIs.length || 0}x{' '}
+              <Icon icon='disk' />
+            </h2>
+          </Col>
+          <Col size={3} className='text-xs-center'>
+            <h2>
+              {VIFs.length}x{' '}
+              <Icon icon='network' />
+            </h2>
+          </Col>
+        </Row>
+        {limits && <Row>
+          <Col size={3}>
+            {cpusLimits && <Limits
+              limit={cpusLimits.total}
+              toBeUsed={CPUs * factor}
+              used={cpusLimits.total - cpusLimits.available}
+            />}
+          </Col>
+          <Col size={3}>
+            {memoryLimits && <Limits
+              limit={memoryLimits.total}
+              toBeUsed={memory * factor}
+              used={memoryLimits.total - memoryLimits.available}
+            />}
+          </Col>
+          <Col size={3}>
+            {diskLimits && <Limits
+              limit={diskLimits.total}
+              toBeUsed={(sumBy(VDIs, 'size') + sumBy(map(existingDisks, disk => disk.size))) * factor}
+              used={diskLimits.total - diskLimits.available}
+            />}
+          </Col>
+        </Row>}
+      </Container>
       {this._isDiskTemplate && <div style={{display: 'flex'}}>
         <span style={{margin: 'auto'}}>
           <input
@@ -1364,6 +1410,30 @@ export default class NewVm extends BaseComponent {
         </span>
       </div>}
     </Section>
+  }
+
+  _availableResources = () => {
+    const resourceSet = this._getResourceSet()
+
+    if (!resourceSet) {
+      return true
+    }
+
+    const {
+      CPUs,
+      existingDisks,
+      memory,
+      VDIs,
+      multipleVms,
+      nameLabels
+    } = this.state.state
+    const factor = multipleVms ? nameLabels.length : 1
+
+    return !(
+      CPUs * factor > get(resourceSet, 'limits.cpus.available') ||
+      memory * factor > get(resourceSet, 'limits.memory.available') ||
+      (sumBy(VDIs, 'size') + sumBy(map(existingDisks, disk => disk.size))) * factor > get(resourceSet, 'limits.disk.available')
+    )
   }
 }
 /* eslint-enable camelcase */

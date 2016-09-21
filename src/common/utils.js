@@ -361,38 +361,43 @@ export function rethrow (cb) {
 
 // ===================================================================
 
-export const resolveResourceSets = resourceSets => (
-  map(resourceSets, resourceSet => {
-    const { objects, ...attrs } = resourceSet
-    const resolvedObjects = {}
-    const resolvedSet = {
-      ...attrs,
-      missingObjects: [],
-      objectsByType: resolvedObjects
+export const resolveResourceSet = resourceSet => {
+  if (!resourceSet) {
+    return
+  }
+
+  const { objects, ...attrs } = resourceSet
+  const resolvedObjects = {}
+  const resolvedSet = {
+    ...attrs,
+    missingObjects: [],
+    objectsByType: resolvedObjects
+  }
+  const state = store.getState()
+
+  forEach(objects, id => {
+    const object = getObject(state, id, true) // true: useResourceSet to bypass permissions
+
+    // Error, missing resource.
+    if (!object) {
+      resolvedSet.missingObjects.push(id)
+      return
     }
-    const state = store.getState()
 
-    forEach(objects, id => {
-      const object = getObject(state, id, true) // true: useResourceSet to bypass permissions
+    const { type } = object
 
-      // Error, missing resource.
-      if (!object) {
-        resolvedSet.missingObjects.push(id)
-        return
-      }
-
-      const { type } = object
-
-      if (!resolvedObjects[type]) {
-        resolvedObjects[type] = [ object ]
-      } else {
-        resolvedObjects[type].push(object)
-      }
-    })
-
-    return resolvedSet
+    if (!resolvedObjects[type]) {
+      resolvedObjects[type] = [ object ]
+    } else {
+      resolvedObjects[type].push(object)
+    }
   })
-)
+
+  return resolvedSet
+}
+
+export const resolveResourceSets = resourceSets =>
+  map(resourceSets, resolveResourceSet)
 
 // -------------------------------------------------------------------
 
