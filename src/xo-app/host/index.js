@@ -1,6 +1,5 @@
 import _ from 'intl'
 import assign from 'lodash/assign'
-import find from 'lodash/find'
 import HostActionBar from './action-bar'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
@@ -20,6 +19,7 @@ import {
   routes
 } from 'utils'
 import {
+  createDoesHostNeedRestart,
   createGetObject,
   createGetObjectsOfType,
   createSelector
@@ -110,25 +110,7 @@ const isRunning = host => host && host.power_state === 'Running'
     )
   )
 
-  const needsRestart = (() => {
-    // Returns the first patch of the host which requires it to be
-    // restarted.
-    const restartPoolPatch = createGetObjectsOfType('pool_patch').pick(
-      createSelector(
-        createGetObjectsOfType('host_patch').pick(
-          (_, props) => props.host && props.host.patches
-        ).filter(createSelector(
-          (_, props) => props.host && props.host.startTime,
-          startTime => patch => patch.time > startTime
-        )),
-        hostPatches => map(hostPatches, hostPatch => hostPatch.pool_patch)
-      )
-    ).find([ ({ guidance }) => find(guidance, action =>
-      action === 'restartHost' || action === 'restartXapi'
-    ) ])
-
-    return (...args) => restartPoolPatch(...args) !== undefined
-  })()
+  const doesNeedRestart = createDoesHostNeedRestart(getHost)
 
   return (state, props) => {
     const host = getHost(state, props)
@@ -140,7 +122,7 @@ const isRunning = host => host && host.power_state === 'Running'
       host,
       hostPatches: getHostPatches(state, props),
       logs: getLogs(state, props),
-      needsRestart: needsRestart,
+      needsRestart: doesNeedRestart(state, props),
       networks: getNetworks(state, props),
       pbds: getPbds(state, props),
       pifs: getPifs(state, props),
