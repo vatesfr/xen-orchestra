@@ -99,11 +99,6 @@ class VifItem extends BaseComponent {
     concat
   )
 
-  _noIps = createSelector(
-    this._getIps,
-    isEmpty
-  )
-
   _ipPredicate = selectedIp =>
     every(this._getIps(), vifIp => vifIp !== selectedIp.id)
   _ipPoolPredicate = ipPool =>
@@ -111,6 +106,28 @@ class VifItem extends BaseComponent {
 
   _toggleNewIp = () =>
     this.setState({ showNewIpForm: !this.state.showNewIpForm })
+
+  _getNetworkStatus = () => {
+    if (!isEmpty(this._getIps())) {
+      return <Tooltip content={_('vifLockedNetwork')}>
+        <Icon icon='lock' />
+      </Tooltip>
+    }
+    const { network } = this.props
+    if (!network) {
+      return <Tooltip content={_('vifUnknownNetwork')}>
+        <Icon icon='unknown-status' />
+      </Tooltip>
+    }
+    if (network.defaultIsLocked) {
+      return <Tooltip content={_('vifLockedNetworkNoIps')}>
+        <Icon icon='error' />
+      </Tooltip>
+    }
+    return <Tooltip content={_('vifUnLockedNetwork')}>
+      <Icon icon='unlock' />
+    </Tooltip>
+  }
 
   render () {
     const { showNewIpForm } = this.state
@@ -127,7 +144,7 @@ class VifItem extends BaseComponent {
       <td>{network && network.name_label}</td>
       <td style={IP_COLUMN_STYLE}>
         <Container>
-          {this._noIps()
+          {isEmpty(this._getIps())
             ? <Row>
               <Col><em>{_('vifNoIps')}</em></Col>
             </Row>
@@ -202,23 +219,7 @@ class VifItem extends BaseComponent {
           </span>
         }
         {' '}
-        {this._noIps()
-        ? (
-          network
-          ? (
-            network.defaultIsLocked
-            ? <Tooltip content={_('vifLockedNetworkNoIps')}>
-              <Icon icon='error' />
-            </Tooltip>
-            : <Tooltip content={_('vifUnLockedNetwork')}>
-              <Icon icon='unlock' />
-            </Tooltip>
-          ) : <Tooltip content={_('vifUnknownNetwork')}>
-            <Icon icon='unknown-status' />
-          </Tooltip>
-        ) : <Tooltip content={_('vifLockedNetwork')}>
-          <Icon icon='lock' />
-        </Tooltip>}
+        {this._getNetworkStatus()}
       </td>
     </tr>
   }
