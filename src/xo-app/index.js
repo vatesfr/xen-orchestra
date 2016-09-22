@@ -1,11 +1,11 @@
 import Component from 'base-component'
 import cookies from 'cookies-js'
 import React from 'react'
-import ShortcutsManager from 'react-shortcuts'
 import _, { IntlProvider } from 'intl'
 import { blockXoaAccess } from 'xoa-updater'
 import { connectStore, routes } from 'utils'
 import { Notification } from 'notification'
+import { ShortcutManager } from 'react-shortcuts'
 import { TooltipViewer } from 'tooltip'
 // import {
 //   keyHandler
@@ -33,7 +33,7 @@ import XoaUpdates from './xoa-updates'
 
 import keymap from '../keymap'
 
-const shortcutManager = new ShortcutsManager(keymap)
+const shortcutManager = new ShortcutManager(keymap)
 
 const CONTAINER_STYLE = {
   display: 'flex',

@@ -16,11 +16,11 @@ import Link from 'link'
 import map from 'lodash/map'
 import Page from '../page'
 import React from 'react'
-import Shortcuts from 'react-shortcuts/component'
 import SingleLineRow from 'single-line-row'
 import size from 'lodash/size'
 import Tooltip from 'tooltip'
 import { Card, CardHeader, CardBlock } from 'card'
+import { Shortcuts } from 'react-shortcuts'
 import {
   addCustomFilter,
   copyVms,
@@ -612,7 +612,7 @@ export default class Home extends Component {
     const selectedItemsIds = keys(this._selectedItems)
 
     return <Page header={this._renderHeader()}>
-      <Shortcuts name='Home' handler={this._shortcutsHandler} targetNode={document.getElementById('xo-app')} />
+      <Shortcuts name='Home' handler={this._shortcutsHandler} targetNodeSelector='#xo-app' />
       <div>
         <div className={styles.itemContainer}>
           <SingleLineRow className={styles.itemContainerHeader}>
