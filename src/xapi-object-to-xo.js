@@ -393,7 +393,7 @@ const TRANSFORMS = {
     return {
       type: 'PBD',
 
-      attached: obj.currently_attached,
+      attached: Boolean(obj.currently_attached),
       host: link(obj, 'host'),
       SR: link(obj, 'SR')
     }
