@@ -49,7 +49,7 @@ const SR_COLUMNS = [
   },
   {
     name: _('srType'),
-    itemRenderer: storage => storage.shared,
+    itemRenderer: storage => storage.shared ? _('srShared') : _('srNotShared'),
     sortCriteria: 'shared'
   },
   {
