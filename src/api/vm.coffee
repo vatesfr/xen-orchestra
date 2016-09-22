@@ -465,7 +465,7 @@ set.params = {
 }
 
 set.resolve = {
-  VM: ['id', ['VM', 'VM-snapshot'], 'administrate']
+  VM: ['id', ['VM', 'VM-snapshot', 'VM-template'], 'administrate']
 }
 
 exports.set = set
