@@ -9,7 +9,7 @@ import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import propTypes from 'prop-types'
-import React, { Component } from 'react'
+import React from 'react'
 import remove from 'lodash/remove'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
@@ -38,6 +38,192 @@ import {
 
 const IP_COLUMN_STYLE = { maxWidth: '20em' }
 const TABLE_STYLE = { minWidth: '0' }
+
+@connectStore(() => {
+  const getVif = createGetObject(
+    (_, props) => props.vifId
+  )
+  const getNetwork = createGetObject(
+    createSelector(
+      getVif,
+      vif => vif.$network
+    )
+  )
+
+  return (state, props) => ({
+    vif: getVif(state, props),
+    network: getNetwork(state, props)
+  })
+})
+class VifItem extends BaseComponent {
+  _saveIp = (ipIndex, newIp) => {
+    if (!isIp(newIp.id)) {
+      throw new Error('Not a valid IP')
+    }
+    const { vif } = this.props
+    const { allowedIpv4Addresses, allowedIpv6Addresses } = vif
+    if (isIpV4(newIp.id)) {
+      allowedIpv4Addresses[ipIndex] = newIp.id
+    } else {
+      allowedIpv6Addresses[ipIndex - allowedIpv4Addresses.length] = newIp.id
+    }
+    setVif(vif, { allowedIpv4Addresses, allowedIpv6Addresses })
+  }
+  _addIp = ip => {
+    if (!isIp(ip.id)) {
+      return
+    }
+    const { vif } = this.props
+    let { allowedIpv4Addresses, allowedIpv6Addresses } = vif
+    if (isIpV4(ip.id)) {
+      allowedIpv4Addresses = [ ...allowedIpv4Addresses, ip.id ]
+    } else {
+      allowedIpv6Addresses = [ ...allowedIpv6Addresses, ip.id ]
+    }
+    setVif(vif, { allowedIpv4Addresses, allowedIpv6Addresses })
+  }
+  _deleteIp = ipIndex => {
+    const { vif } = this.props
+    const { allowedIpv4Addresses, allowedIpv6Addresses } = vif
+    if (ipIndex < allowedIpv4Addresses.length) {
+      remove(allowedIpv4Addresses, (_, i) => i === ipIndex)
+    } else {
+      remove(allowedIpv6Addresses, (_, i) => i === ipIndex - allowedIpv4Addresses.length)
+    }
+    setVif(vif, { allowedIpv4Addresses, allowedIpv6Addresses })
+  }
+
+  _getIps = createSelector(
+    () => this.props.vif.allowedIpv4Addresses,
+    () => this.props.vif.allowedIpv6Addresses,
+    concat
+  )
+
+  _ipPredicate = selectedIp =>
+    every(this._getIps(), vifIp => vifIp !== selectedIp.id)
+  _ipPoolPredicate = ipPool =>
+    find(ipPool.networks, network => network === this.props.networks[this.props.vif.$network])
+
+  _toggleNewIp = () =>
+    this.setState({ showNewIpForm: !this.state.showNewIpForm })
+
+  _getNetworkStatus = () => {
+    if (!isEmpty(this._getIps())) {
+      return <Tooltip content={_('vifLockedNetwork')}>
+        <Icon icon='lock' />
+      </Tooltip>
+    }
+    const { network } = this.props
+    if (!network) {
+      return <Tooltip content={_('vifUnknownNetwork')}>
+        <Icon icon='unknown-status' />
+      </Tooltip>
+    }
+    if (network.defaultIsLocked) {
+      return <Tooltip content={_('vifLockedNetworkNoIps')}>
+        <Icon icon='error' />
+      </Tooltip>
+    }
+    return <Tooltip content={_('vifUnLockedNetwork')}>
+      <Icon icon='unlock' />
+    </Tooltip>
+  }
+
+  render () {
+    const { showNewIpForm } = this.state
+    const { isVmRunning, network, vif } = this.props
+
+    if (!vif) {
+      return null
+    }
+
+    return <tr key={vif.id}>
+      <td>VIF #{vif.device}</td>
+      <td><pre>{vif.MAC}</pre></td>
+      <td>{vif.MTU}</td>
+      <td>{network && network.name_label}</td>
+      <td style={IP_COLUMN_STYLE}>
+        <Container>
+          {isEmpty(this._getIps())
+            ? <Row>
+              <Col><em>{_('vifNoIps')}</em></Col>
+            </Row>
+            : map(this._getIps(), (ip, ipIndex) => <Row>
+              <Col size={10}>
+                <XoSelect
+                  onChange={newIp => this._saveIp(ipIndex, newIp)}
+                  predicate={this._ipPredicate}
+                  value={ip}
+                  xoType='ip'
+                >
+                  {ip}
+                </XoSelect>
+              </Col>
+              <Col size={1}>
+                <ActionRowButton handler={this._deleteIp} handlerParam={ipIndex} icon='delete' />
+              </Col>
+            </Row>)
+          }
+          <Row>
+            <Col size={10}>
+              {showNewIpForm
+              ? <span onBlur={this._toggleNewIp}>
+                <SelectIp
+                  autoFocus
+                  onChange={ip => this._addIp(ip)}
+                  containerPredicate={this.ipPoolPredicate}
+                  predicate={this._ipPredicate}
+                  required
+                />
+              </span>
+              : <ActionButton btnStyle='success' size='small' handler={this._toggleNewIp} icon='add' />}
+            </Col>
+          </Row>
+        </Container>
+      </td>
+      <td>
+        {vif.attached
+          ? <span>
+            <span className='tag tag-success'>
+              {_('vifStatusConnected')}
+            </span>
+            <ButtonGroup className='pull-xs-right'>
+              <ActionRowButton
+                handler={disconnectVif}
+                handlerParam={vif}
+                icon='disconnect'
+                tooltip={_('vifDisconnect')}
+              />
+            </ButtonGroup>
+          </span>
+          : <span>
+            <span className='tag tag-default'>
+              {_('vifStatusDisconnected')}
+            </span>
+            <ButtonGroup className='pull-xs-right'>
+              {isVmRunning &&
+                <ActionRowButton
+                  handler={connectVif}
+                  handlerParam={vif}
+                  icon='connect'
+                  tooltip={_('vifConnect')}
+                />
+              }
+              <ActionRowButton
+                handler={deleteVif}
+                handlerParam={vif}
+                icon='remove'
+                tooltip={_('vifRemove')}
+              />
+            </ButtonGroup>
+          </span>
+        }
+        {' '}
+        {this._getNetworkStatus()}
+      </td>
+    </tr>
+  }
+}
 
 @propTypes({
   onClose: propTypes.func,
@@ -135,94 +321,14 @@ class NewVif extends BaseComponent {
   }
 }
 
-@connectStore(() => {
-  const vifs = createGetObjectsOfType('VIF').pick(
-    (_, props) => props.vm.VIFs
-  ).sort()
-  const networks = createGetObjectsOfType('network').pick(
-    createSelector(
-      vifs,
-      vifs => map(vifs, vif => vif.$network)
-    )
-  )
-
-  return (state, props) => ({
-    networks: networks(state, props),
-    vifs: vifs(state, props)
-  })
-})
-export default class TabNetwork extends Component {
-  constructor (props) {
-    super(props)
-    this.state = {
-      newVif: false
-    }
-  }
-
+export default class TabNetwork extends BaseComponent {
   _toggleNewVif = () => this.setState({
     newVif: !this.state.newVif
   })
-  _toggleNewIp = vifIndex => {
-    const { showNewIpForm } = this.state
-    this.setState({
-      showNewIpForm: { ...showNewIpForm, [vifIndex]: !(showNewIpForm && showNewIpForm[vifIndex]) }
-    })
-  }
-
-  _saveIp = (vifIndex, ipIndex, newIp) => {
-    if (!isIp(newIp.id)) {
-      throw new Error('Not a valid IP')
-    }
-    const vif = this.props.vifs[vifIndex]
-    const { allowedIpv4Addresses, allowedIpv6Addresses } = vif
-    if (isIpV4(newIp.id)) {
-      allowedIpv4Addresses[ipIndex] = newIp.id
-    } else {
-      allowedIpv6Addresses[ipIndex - allowedIpv4Addresses.length] = newIp.id
-    }
-    setVif(vif, { allowedIpv4Addresses, allowedIpv6Addresses })
-  }
-  _addIp = (vifIndex, ip) => {
-    this._toggleNewIp(vifIndex)
-    if (!isIp(ip.id)) {
-      return
-    }
-    const vif = this.props.vifs[vifIndex]
-    let { allowedIpv4Addresses, allowedIpv6Addresses } = vif
-    if (isIpV4(ip.id)) {
-      allowedIpv4Addresses = [ ...allowedIpv4Addresses, ip.id ]
-    } else {
-      allowedIpv6Addresses = [ ...allowedIpv6Addresses, ip.id ]
-    }
-    setVif(vif, { allowedIpv4Addresses, allowedIpv6Addresses })
-  }
-  _deleteIp = ({ vifIndex, ipIndex }) => {
-    const vif = this.props.vifs[vifIndex]
-    const { allowedIpv4Addresses, allowedIpv6Addresses } = vif
-    if (ipIndex < allowedIpv4Addresses.length) {
-      remove(allowedIpv4Addresses, (_, i) => i === ipIndex)
-    } else {
-      remove(allowedIpv6Addresses, (_, i) => i === ipIndex - allowedIpv4Addresses.length)
-    }
-    setVif(vif, { allowedIpv4Addresses, allowedIpv6Addresses })
-  }
-
-  _getIpPredicate = vifIndex => selectedIp =>
-    every(this._concatIps(this.props.vifs[vifIndex]), vifIp => vifIp !== selectedIp.id)
-  _getIpPoolPredicate = vifNetwork => ipPool =>
-    find(ipPool.networks, network => network === vifNetwork)
-
-  _noIps = vif => isEmpty(vif.allowedIpv4Addresses) && isEmpty(vif.allowedIpv6Addresses)
-  _concatIps = vif => concat(vif.allowedIpv4Addresses, vif.allowedIpv6Addresses)
 
   render () {
-    const { newVif, showNewIpForm } = this.state
-    const {
-      networks,
-      pool,
-      vifs,
-      vm
-    } = this.props
+    const { newVif } = this.state
+    const { pool, vm } = this.props
 
     return <Container>
       <Row>
@@ -235,14 +341,14 @@ export default class TabNetwork extends Component {
           />
         </Col>
       </Row>
-      <Row>
+      {newVif && <Row className='m-b-1'>
         <Col>
-          {newVif && <div><NewVif vm={vm} pool={pool} onClose={this._toggleNewVif} /><hr /></div>}
+          <NewVif vm={vm} pool={pool} onClose={this._toggleNewVif} />
         </Col>
-      </Row>
+      </Row>}
       <Row>
         <Col>
-          {!isEmpty(vifs)
+          {!isEmpty(vm.VIFs)
             ? <span>
               <table className='table' style={TABLE_STYLE}>
                 <thead>
@@ -256,106 +362,7 @@ export default class TabNetwork extends Component {
                   </tr>
                 </thead>
                 <tbody>
-                  {map(vifs, (vif, vifIndex) => {
-                    const network = networks[vif.$network]
-
-                    return <tr key={vif.id}>
-                      <td>VIF #{vif.device}</td>
-                      <td><pre>{vif.MAC}</pre></td>
-                      <td>{vif.MTU}</td>
-                      <td>{network && network.name_label}</td>
-                      <td style={IP_COLUMN_STYLE}>
-                        <Container>
-                          {this._noIps(vif)
-                            ? <Row>
-                              <Col><em>{_('vifNoIps')}</em></Col>
-                            </Row>
-                            : map(this._concatIps(vif), (ip, ipIndex) => <Row>
-                              <Col size={10}>
-                                <XoSelect
-                                  onChange={newIp => this._saveIp(vifIndex, ipIndex, newIp)}
-                                  predicate={this._getIpPredicate(vifIndex)}
-                                  value={ip}
-                                  xoType='ip'
-                                >
-                                  {ip}
-                                </XoSelect>
-                              </Col>
-                              <Col size={1}>
-                                <ActionRowButton handler={this._deleteIp} handlerParam={{ vifIndex, ipIndex }} icon='delete' />
-                              </Col>
-                            </Row>)
-                          }
-                          <Row>
-                            <Col size={10}>
-                              {showNewIpForm && showNewIpForm[vifIndex]
-                              ? <span onBlur={() => this._toggleNewIp(vifIndex)}>
-                                <SelectIp
-                                  autoFocus
-                                  onChange={ip => this._addIp(vifIndex, ip)}
-                                  containerPredicate={this._getIpPoolPredicate(vif.$network)}
-                                  predicate={this._getIpPredicate(vifIndex)}
-                                  required
-                                />
-                              </span>
-                              : <ActionButton btnStyle='success' size='small' handler={this._toggleNewIp} handlerParam={vifIndex} icon='add' />}
-                            </Col>
-                          </Row>
-                        </Container>
-                      </td>
-                      <td>
-                        {vif.attached
-                          ? <span>
-                            <span className='tag tag-success'>
-                              {_('vifStatusConnected')}
-                            </span>
-                            <ButtonGroup className='pull-xs-right'>
-                              <ActionRowButton
-                                handler={disconnectVif}
-                                handlerParam={vif}
-                                icon='disconnect'
-                                tooltip={_('vifDisconnect')}
-                              />
-                            </ButtonGroup>
-                          </span>
-                          : <span>
-                            <span className='tag tag-default'>
-                              {_('vifStatusDisconnected')}
-                            </span>
-                            <ButtonGroup className='pull-xs-right'>
-                              {isVmRunning(vm) &&
-                                <ActionRowButton
-                                  handler={connectVif}
-                                  handlerParam={vif}
-                                  icon='connect'
-                                  tooltip={_('vifConnect')}
-                                />
-                              }
-                              <ActionRowButton
-                                handler={deleteVif}
-                                handlerParam={vif}
-                                icon='remove'
-                                tooltip={_('vifRemove')}
-                              />
-                            </ButtonGroup>
-                          </span>
-                        }
-                        {' '}
-                        {network && network.defaultIsLocked
-                        ? (
-                          isEmpty(this._concatIps(vif))
-                          ? <Tooltip content={_('vifLockedNetworkNoIps')}>
-                            <Icon icon='error' />
-                          </Tooltip>
-                          : <Tooltip content={_('vifLockedNetwork')}>
-                            <Icon icon='lock' />
-                          </Tooltip>
-                        ) : <Tooltip content={_('vifUnLockedNetwork')}>
-                          <Icon icon='unlock' />
-                        </Tooltip>}
-                      </td>
-                    </tr>
-                  })}
+                  {map(vm.VIFs, vif => <VifItem vifId={vif} isVmRunning={isVmRunning(vm)} />)}
                 </tbody>
               </table>
               {vm.addresses && !isEmpty(vm.addresses)

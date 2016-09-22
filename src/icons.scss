@@ -184,6 +184,10 @@
     @extend .fa;
     @extend .fa-unlock;
   }
+  &-unknown-status {
+    @extend .fa;
+    @extend .fa-question-circle;
+  }
 
   &-cpu {
     @extend .fa;
