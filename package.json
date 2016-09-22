@@ -101,6 +101,7 @@
     "react-redux": "^4.4.0",
     "react-router": "^3.0.0-alpha.1",
     "react-select": "^1.0.0-beta13",
+    "react-shortcuts": "^1.0.7",
     "react-sparklines": "^1.5.0",
     "react-virtualized": "^7.4.0",
     "readable-stream": "^2.0.6",

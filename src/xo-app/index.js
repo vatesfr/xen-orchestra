@@ -5,6 +5,7 @@ import _, { IntlProvider } from 'intl'
 import { blockXoaAccess } from 'xoa-updater'
 import { connectStore, routes } from 'utils'
 import { Notification } from 'notification'
+import { ShortcutManager, Shortcuts } from 'react-shortcuts'
 import { TooltipViewer } from 'tooltip'
 // import {
 //   keyHandler
@@ -29,6 +30,10 @@ import User from './user'
 import Vm from './vm'
 import VmImport from './vm-import'
 import XoaUpdates from './xoa-updates'
+
+import keymap from '../keymap'
+
+const shortcutManager = new ShortcutManager(keymap)
 
 const CONTAINER_STYLE = {
   display: 'flex',
@@ -81,6 +86,14 @@ const BODY_STYLE = {
   }
 })
 export default class XoApp extends Component {
+  static contextTypes = {
+    router: React.PropTypes.object
+  }
+  static childContextTypes = {
+    shortcuts: React.PropTypes.object.isRequired
+  }
+  getChildContext = () => ({ shortcuts: shortcutManager })
+
   displayOpenSourceDisclaimer () {
     const previousDisclaimer = cookies.get('previousDisclaimer')
     const now = Math.floor(Date.now() / 1e3)
@@ -102,12 +115,36 @@ export default class XoApp extends Component {
     }
   }
 
+  _shortcutsHandler = (command, event) => {
+    event.preventDefault()
+    switch (command) {
+      case 'GO_TO_HOSTS':
+        this.context.router.push('home?t=host')
+        break
+      case 'GO_TO_POOLS':
+        this.context.router.push('home?t=pool')
+        break
+      case 'GO_TO_VMS':
+        this.context.router.push('home?t=VM')
+        break
+      case 'CREATE_VM':
+        this.context.router.push('vms/new')
+        break
+      case 'UNFOCUS':
+        if (event.target.tagName === 'INPUT') {
+          event.target.blur()
+        }
+        break
+    }
+  }
+
   render () {
     const { signedUp, trial } = this.props
     const blocked = signedUp && blockXoaAccess(trial) // If we are under expired or unstable trial (signed up only)
 
     return <IntlProvider>
       <div style={CONTAINER_STYLE}>
+        <Shortcuts name='XoApp' handler={this._shortcutsHandler} targetNodeSelector='body' />
         <Menu ref='menu' />
         <div ref='bodyWrapper' style={BODY_WRAPPER_STYLE}>
           <div style={BODY_STYLE}>
