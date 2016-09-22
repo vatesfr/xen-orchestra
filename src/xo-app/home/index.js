@@ -427,11 +427,9 @@ export default class Home extends Component {
     return customFilters[this._getType()]
   }
 
-  _typesDropdown = <DropdownButton id='typeMenu' bsStyle='info' title={TYPES[this._getType()]}>
-    {map(TYPES, (label, type) =>
-      <MenuItem onClick={() => this._setType(type)}>{label}</MenuItem>
-    )}
-  </DropdownButton>
+  _typesDropdownItems = map(TYPES, (label, type) =>
+    <MenuItem onClick={() => this._setType(type)}>{label}</MenuItem>
+  )
 
   _renderHeader () {
     const { type } = this.props
@@ -441,7 +439,9 @@ export default class Home extends Component {
     return <Container>
       <Row className={styles.itemRowHeader}>
         <Col mediumSize={3}>
-          {this._typesDropdown}
+          <DropdownButton id='typeMenu' bsStyle='info' title={TYPES[this._getType()]}>
+            {this._typesDropdownItems}
+          </DropdownButton>
         </Col>
         <Col mediumSize={6}>
           <div className='input-group'>
