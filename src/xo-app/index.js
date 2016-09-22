@@ -5,7 +5,7 @@ import _, { IntlProvider } from 'intl'
 import { blockXoaAccess } from 'xoa-updater'
 import { connectStore, routes } from 'utils'
 import { Notification } from 'notification'
-import { ShortcutManager } from 'react-shortcuts'
+import { ShortcutManager, Shortcuts } from 'react-shortcuts'
 import { TooltipViewer } from 'tooltip'
 // import {
 //   keyHandler
@@ -86,6 +86,9 @@ const BODY_STYLE = {
   }
 })
 export default class XoApp extends Component {
+  static contextTypes = {
+    router: React.PropTypes.object
+  }
   static childContextTypes = {
     shortcuts: React.PropTypes.object.isRequired
   }
@@ -112,12 +115,36 @@ export default class XoApp extends Component {
     }
   }
 
+  _shortcutsHandler = (command, event) => {
+    event.preventDefault()
+    switch (command) {
+      case 'HOST':
+        this.context.router.push('home?t=host')
+        break
+      case 'POOL':
+        this.context.router.push('home?t=pool')
+        break
+      case 'VM':
+        this.context.router.push('home?t=VM')
+        break
+      case 'NEW_VM':
+        this.context.router.push('vms/new')
+        break
+      case 'UNFOCUS':
+        if (event.target.tagName === 'INPUT') {
+          event.target.blur()
+        }
+        break
+    }
+  }
+
   render () {
     const { signedUp, trial } = this.props
     const blocked = signedUp && blockXoaAccess(trial) // If we are under expired or unstable trial (signed up only)
 
     return <IntlProvider>
       <div style={CONTAINER_STYLE}>
+        <Shortcuts name='XoApp' handler={this._shortcutsHandler} targetNodeSelector='body' />
         <Menu ref='menu' />
         <div ref='bodyWrapper' style={BODY_WRAPPER_STYLE}>
           <div style={BODY_STYLE}>
