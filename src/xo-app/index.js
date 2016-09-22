@@ -118,16 +118,16 @@ export default class XoApp extends Component {
   _shortcutsHandler = (command, event) => {
     event.preventDefault()
     switch (command) {
-      case 'HOST':
+      case 'GO_TO_HOSTS':
         this.context.router.push('home?t=host')
         break
-      case 'POOL':
+      case 'GO_TO_POOLS':
         this.context.router.push('home?t=pool')
         break
-      case 'VM':
+      case 'GO_TO_VMS':
         this.context.router.push('home?t=VM')
         break
-      case 'NEW_VM':
+      case 'CREATE_VM':
         this.context.router.push('vms/new')
         break
       case 'UNFOCUS':
