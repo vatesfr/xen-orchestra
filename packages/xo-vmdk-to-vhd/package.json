@@ -26,7 +26,7 @@
     "babel-runtime": "^6.11.6",
     "child-process-promise": "^2.0.3",
     "deflate-js": "^0.2.3",
-    "fs-promise": "^0.4.1",
+    "fs-promise": "^0.5.0",
     "pipette": "^0.9.3"
   },
   "devDependencies": {
@@ -43,7 +43,7 @@
     "mocha": "^3.0.2",
     "nyc": "^8.1.0",
     "source-map-support": "^0.4.2",
-    "standard": "^7.1.2",
+    "standard": "^8.1.0",
     "trace": "^2.3.3"
   },
   "scripts": {
