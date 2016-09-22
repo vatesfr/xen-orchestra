@@ -99,17 +99,6 @@ const isRunning = host => host && host.power_state === 'Running'
     }))
   )
 
-  const getPbds = createGetObjectsOfType('PBD').pick(
-    createSelector(getHost, host => host.$PBDs)
-  )
-
-  const getSrs = createGetObjectsOfType('SR').pick(
-    createSelector(
-      getPbds,
-      pbds => map(pbds, pbd => pbd.SR)
-    )
-  )
-
   const doesNeedRestart = createDoesHostNeedRestart(getHost)
 
   return (state, props) => {
@@ -124,10 +113,8 @@ const isRunning = host => host && host.power_state === 'Running'
       logs: getLogs(state, props),
       needsRestart: doesNeedRestart(state, props),
       networks: getNetworks(state, props),
-      pbds: getPbds(state, props),
       pifs: getPifs(state, props),
       pool: getPool(state, props),
-      srs: getSrs(state, props),
       vmController: getVmController(state, props),
       vms: getHostVms(state, props)
     }

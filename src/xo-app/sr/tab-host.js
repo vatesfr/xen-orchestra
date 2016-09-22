@@ -33,7 +33,7 @@ const HOST_COLUMNS = [
     sortCriteria: (pbd, hosts) => hosts[pbd.host].name_description
   },
   {
-    name: _('pdbStatus'),
+    name: _('pbdStatus'),
     itemRenderer: pbd => {
       if (pbd.attached) {
         return (

@@ -942,7 +942,7 @@ export default {
   srType: 'Tipo',
 
   // Original text: "Status"
-  pdbStatus: 'Estado',
+  pbdStatus: 'Estado',
 
   // Original text: "Connected"
   pbdStatusConnected: 'Conectado',
