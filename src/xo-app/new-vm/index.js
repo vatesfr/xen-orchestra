@@ -22,6 +22,7 @@ import React from 'react'
 import size from 'lodash/size'
 import slice from 'lodash/slice'
 import store from 'store'
+import sum from 'lodash/sum'
 import sumBy from 'lodash/sumBy'
 import Tags from 'tags'
 import Tooltip from 'tooltip'
@@ -1390,7 +1391,7 @@ export default class NewVm extends BaseComponent {
           <Col size={3}>
             {diskLimits && <Limits
               limit={diskLimits.total}
-              toBeUsed={(sumBy(VDIs, 'size') + sumBy(map(existingDisks, disk => disk.size))) * factor}
+              toBeUsed={(sumBy(VDIs, 'size') + sum(map(existingDisks, disk => disk.size))) * factor}
               used={diskLimits.total - diskLimits.available}
             />}
           </Col>
@@ -1432,7 +1433,7 @@ export default class NewVm extends BaseComponent {
     return !(
       CPUs * factor > get(resourceSet, 'limits.cpus.available') ||
       memory * factor > get(resourceSet, 'limits.memory.available') ||
-      (sumBy(VDIs, 'size') + sumBy(map(existingDisks, disk => disk.size))) * factor > get(resourceSet, 'limits.disk.available')
+      (sumBy(VDIs, 'size') + sum(map(existingDisks, disk => disk.size))) * factor > get(resourceSet, 'limits.disk.available')
     )
   }
 }
