@@ -101,16 +101,18 @@ export default connectStore(() => ({
                       <ActionRowButton
                         btnStyle='default'
                         disabled={pif.attached && (pif.management || pif.disallowUnplug)}
-                        icon={pif.attached ? 'disconnect' : 'connect'}
                         handler={pif.attached ? disconnectPif : connectPif}
                         handlerParam={pif}
+                        icon={pif.attached ? 'disconnect' : 'connect'}
+                        tooltip={pif.attached ? _('disconnectPif') : _('connectPif')}
                       />
                       <ActionRowButton
                         btnStyle='default'
                         disabled={pif.physical || pif.disallowUnplug || pif.management}
-                        icon='delete'
                         handler={deletePif}
                         handlerParam={{ pif }}
+                        icon='delete'
+                        tooltip={_('deletePif')}
                       />
                     </ButtonGroup>
                   </td>

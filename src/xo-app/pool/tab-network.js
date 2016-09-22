@@ -75,9 +75,10 @@ class PifItem extends Component {
           <ActionRowButton
             btnStyle='default'
             disabled={disableUnplug(pif)}
-            icon={pif.attached ? 'disconnect' : 'connect'}
             handler={pif.attached ? disconnectPif : connectPif}
             handlerParam={pif}
+            icon={pif.attached ? 'disconnect' : 'connect'}
+            tooltip={pif.attached ? _('disconnectPif') : _('connectPif')}
           />
         </ButtonGroup>
       </td>
@@ -163,6 +164,7 @@ const NETWORKS_COLUMNS = [
         handler={deleteNetwork}
         handlerParam={network}
         icon='delete'
+        tooltip={_('deleteNetwork')}
       />
     </ButtonGroup>
   }

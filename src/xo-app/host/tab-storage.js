@@ -72,9 +72,10 @@ export default ({
                         <ButtonGroup className='pull-xs-right'>
                           <ActionRowButton
                             btnStyle='default'
-                            icon='disconnect'
                             handler={disconnectPbd}
                             handlerParam={pbd}
+                            icon='disconnect'
+                            tooltip={_('pbdDisconnect')}
                           />
                         </ButtonGroup>
                       </span>
@@ -85,15 +86,17 @@ export default ({
                         <ButtonGroup className='pull-xs-right'>
                           <ActionRowButton
                             btnStyle='default'
-                            icon='connect'
                             handler={connectPbd}
                             handlerParam={pbd}
+                            icon='connect'
+                            tooltip={_('pbdConnect')}
                           />
                           <ActionRowButton
                             btnStyle='default'
-                            icon='sr-forget'
                             handler={deletePbd}
                             handlerParam={pbd}
+                            icon='sr-forget'
+                            tooltip={_('pbdForget')}
                           />
                         </ButtonGroup>
                       </span>

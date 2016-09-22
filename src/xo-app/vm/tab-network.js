@@ -311,9 +311,10 @@ export default class TabNetwork extends Component {
                             </span>
                             <ButtonGroup className='pull-xs-right'>
                               <ActionRowButton
-                                icon='disconnect'
                                 handler={disconnectVif}
                                 handlerParam={vif}
+                                icon='disconnect'
+                                tooltip={_('vifDisconnect')}
                               />
                             </ButtonGroup>
                           </span>
@@ -324,15 +325,17 @@ export default class TabNetwork extends Component {
                             <ButtonGroup className='pull-xs-right'>
                               {isVmRunning(vm) &&
                                 <ActionRowButton
-                                  icon='connect'
                                   handler={connectVif}
                                   handlerParam={vif}
+                                  icon='connect'
+                                  tooltip={_('vifConnect')}
                                 />
                               }
                               <ActionRowButton
-                                icon='remove'
                                 handler={deleteVif}
                                 handlerParam={vif}
+                                icon='remove'
+                                tooltip={_('vifRemove')}
                               />
                             </ButtonGroup>
                           </span>
@@ -347,7 +350,9 @@ export default class TabNetwork extends Component {
                           : <Tooltip content={_('vifLockedNetwork')}>
                             <Icon icon='lock' />
                           </Tooltip>
-                        ) : <Icon icon='unlock' />}
+                        ) : <Tooltip content={_('vifUnLockedNetwork')}>
+                          <Icon icon='unlock' />
+                        </Tooltip>}
                       </td>
                     </tr>
                   })}
