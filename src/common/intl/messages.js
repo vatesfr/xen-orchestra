@@ -573,6 +573,7 @@ var messages = {
   vifLockedNetwork: 'Network locked',
   vifLockedNetworkNoIps: 'Network locked and no IPs are allowed for this interface',
   vifUnLockedNetwork: 'Network not locked',
+  vifUnknownNetwork: 'Unknown network',
 
   // ----- VM snapshot tab -----
   noSnapshots: 'No snapshots',
