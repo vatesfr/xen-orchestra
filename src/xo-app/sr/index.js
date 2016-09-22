@@ -4,6 +4,7 @@ import Component from 'base-component'
 import find from 'lodash/find'
 import flatten from 'lodash/flatten'
 import Icon from 'icon'
+import Link from 'link'
 import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
 import Page from '../page'
@@ -122,7 +123,7 @@ export default class Sr extends Component {
             />
             {container &&
               <span className='text-muted'>
-                {' - '}{container.name_label}
+                {' - '}<Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>
               </span>
             }
           </span>

@@ -17,7 +17,7 @@ const SR_COLUMNS = [
     itemRenderer: (sr, pool) => (
       <div>
         <Link to={`/srs/${sr.id}`}>
-          <Text value={sr.name_label} onChange={value => editSr(sr, { name_label: value })} useLongClick />
+          <Text value={sr.name_label} onChange={nameLabel => editSr(sr, { nameLabel })} useLongClick />
         </Link>
         {pool.default_SR === sr.id && <span className='tag tag-pill tag-info'>{_('defaultSr')}</span>}
       </div>

@@ -939,7 +939,7 @@ export default {
   srType: undefined,
 
   // Original text: "Status"
-  pdbStatus: undefined,
+  pbdStatus: undefined,
 
   // Original text: "Connected"
   pbdStatusConnected: undefined,

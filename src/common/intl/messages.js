@@ -432,7 +432,7 @@ var messages = {
   addSrDeviceButton: 'Add a storage',
   srNameLabel: 'Name',
   srType: 'Type',
-  pdbStatus: 'Status',
+  pbdStatus: 'Status',
   pbdStatusConnected: 'Connected',
   pbdStatusDisconnected: 'Disconnected',
   pbdConnect: 'Connect',
