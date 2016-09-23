@@ -70,6 +70,7 @@ class VifItem extends BaseComponent {
     setVif(vif, { allowedIpv4Addresses, allowedIpv6Addresses })
   }
   _addIp = ip => {
+    this._toggleNewIp()
     if (!isIp(ip.id)) {
       return
     }
@@ -98,11 +99,16 @@ class VifItem extends BaseComponent {
     () => this.props.vif.allowedIpv6Addresses,
     concat
   )
-
-  _ipPredicate = selectedIp =>
-    every(this._getIps(), vifIp => vifIp !== selectedIp.id)
-  _ipPoolPredicate = ipPool =>
-    find(ipPool.networks, network => network === this.props.networks[this.props.vif.$network])
+  _getIsIpNotUsed = createSelector(
+    this._getIps,
+    ips =>
+      selectedIp => every(ips, vifIp => vifIp !== selectedIp.id)
+  )
+  _getIsNetworkAllowed = createSelector(
+    () => this.props.network,
+    vifNetwork =>
+      ipPool => find(ipPool.networks, ipPoolNetwork => ipPoolNetwork === vifNetwork.id)
+  )
 
   _toggleNewIp = () =>
     this.setState({ showNewIpForm: !this.state.showNewIpForm })
@@ -151,8 +157,9 @@ class VifItem extends BaseComponent {
             : map(this._getIps(), (ip, ipIndex) => <Row>
               <Col size={10}>
                 <XoSelect
+                  containerPredicate={this._getIsNetworkAllowed()}
                   onChange={newIp => this._saveIp(ipIndex, newIp)}
-                  predicate={this._ipPredicate}
+                  predicate={this._getIsIpNotUsed()}
                   value={ip}
                   xoType='ip'
                 >
@@ -170,9 +177,9 @@ class VifItem extends BaseComponent {
               ? <span onBlur={this._toggleNewIp}>
                 <SelectIp
                   autoFocus
+                  containerPredicate={this._getIsNetworkAllowed()}
                   onChange={ip => this._addIp(ip)}
-                  containerPredicate={this.ipPoolPredicate}
-                  predicate={this._ipPredicate}
+                  predicate={this._getIsIpNotUsed()}
                   required
                 />
               </span>
