@@ -11,7 +11,7 @@ const keymap = {
     HELP: ['h', '?']
   },
   Home: {
-    SEARCH: 's',
+    SEARCH: '/',
     NAV_DOWN: 'j',
     NAV_UP: 'k',
     SELECT: 'x',

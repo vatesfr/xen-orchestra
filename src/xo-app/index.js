@@ -152,7 +152,13 @@ export default class XoApp extends Component {
               ...map(context.shortcuts, ({ message, keys }) => message &&
                 <Row>
                   <Col size={2} className='text-xs-right'>
-                    <strong>{isArray(keys) ? keys.join(', ') : keys}</strong>
+                    {isArray(keys)
+                      ? map(keys, (key, index) => <span>
+                        {index > 0 && _('shortcutOr')}
+                        <strong>{key}</strong>
+                      </span>)
+                      : <strong>{keys}</strong>
+                    }
                   </Col>
                   <Col size={10}>{message}</Col>
                 </Row>

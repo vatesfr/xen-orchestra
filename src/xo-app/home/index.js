@@ -10,6 +10,7 @@ import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import invoke from 'invoke'
 import keys from 'lodash/keys'
+import includes from 'lodash/includes'
 import isEmpty from 'lodash/isEmpty'
 import isString from 'lodash/isString'
 import Link from 'link'
@@ -202,6 +203,9 @@ export default class Home extends Component {
 
   componentWillReceiveProps (props) {
     this._initFilter(props)
+    if (props.type !== this.props.type) {
+      this.setState({ highlighted: undefined })
+    }
   }
 
   _getNumberOfItems = createCounter(() => this.props.items)
@@ -216,7 +220,6 @@ export default class Home extends Component {
       pathname,
       query: { ...query, t: type, s: undefined }
     })
-    this._focusFilterInput()
     this.setState({ highlighted: undefined })
   }
 
@@ -276,7 +279,6 @@ export default class Home extends Component {
     const { filterInput } = this.refs
     if (filterInput && filterInput.value !== filter) {
       filterInput.value = filter
-      filterInput.focus()
     }
   }
 
@@ -409,8 +411,6 @@ export default class Home extends Component {
     this._updateMasterCheckbox()
   }
 
-  _focusFilterInput = () => this.refs.filterInput.focus()
-
   _addCustomFilter = () => {
     return addCustomFilter(
       this._getType(),
@@ -435,7 +435,7 @@ export default class Home extends Component {
       event.preventDefault()
       switch (command) {
         case 'SEARCH':
-          this._focusFilterInput()
+          this.refs.filterInput.focus()
           break
         case 'NAV_DOWN':
           this.setState({ highlighted: (this.state.highlighted + items.length + 1) % items.length || 0 })
@@ -448,9 +448,11 @@ export default class Home extends Component {
           break
         case 'JUMP_INTO':
           const item = items[this.state.highlighted]
-          this.context.router.push({
-            pathname: `${item.type.toLowerCase()}s/${item.id}`
-          })
+          if (includes(['VM', 'host', 'pool'], item.type)) {
+            this.context.router.push({
+              pathname: `${item.type.toLowerCase()}s/${item.id}`
+            })
+          }
       }
     }
   )
@@ -493,7 +495,6 @@ export default class Home extends Component {
               </div>
             )}
             <input
-              autoFocus
               className='form-control'
               defaultValue={this._getFilter()}
               onChange={this._onFilterChange}
@@ -730,10 +731,7 @@ export default class Home extends Component {
                 {' '}
                 <DropdownButton bsStyle='link' id='sort' title={_('homeSortBy')}>
                   {map(options.sortOptions, ({ labelId, sortBy: _sortBy, sortOrder }, key) => (
-                    <MenuItem key={key} onClick={() => {
-                      this.setState({ sortBy: _sortBy, sortOrder })
-                      this._focusFilterInput()
-                    }}>
+                    <MenuItem key={key} onClick={() => this.setState({ sortBy: _sortBy, sortOrder })}>
                       {this._tick(_sortBy === sortBy)}
                       {_sortBy === sortBy
                         ? <strong>{_(labelId)}</strong>
