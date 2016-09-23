@@ -122,7 +122,7 @@ const xoItemToRender = {
       <Icon icon='ip' /> {ipPool.name}
     </span>
   ),
-  ip: ({label, used}) => {
+  ipAddress: ({label, used}) => {
     if (used) {
       return <strong className='text-warning'>{label}</strong>
     }

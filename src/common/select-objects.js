@@ -859,7 +859,7 @@ export const SelectIp = makeSubscriptionSelect(subscriber => {
         ...address,
         id: ip,
         label: ip,
-        type: 'ip',
+        type: 'ipAddress',
         used: !isEmpty(address.vifs)
       }))
     )
