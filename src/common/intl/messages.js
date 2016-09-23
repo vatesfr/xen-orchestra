@@ -1083,8 +1083,7 @@ var messages = {
   shortcut_NAV_DOWN: 'Next item',
   shortcut_NAV_UP: 'Previous item',
   shortcut_SELECT: 'Select item',
-  shortcut_JUMP_INTO: 'Open',
-  shortcutOr: ' or '
+  shortcut_JUMP_INTO: 'Open'
 
 }
 forEach(messages, function (message, id) {

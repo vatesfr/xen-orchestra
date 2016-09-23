@@ -8,7 +8,7 @@ const keymap = {
     GO_TO_VMS: 'g v',
     CREATE_VM: 'c v',
     UNFOCUS: 'esc',
-    HELP: ['h', '?']
+    HELP: ['?', 'h']
   },
   Home: {
     SEARCH: '/',
