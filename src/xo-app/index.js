@@ -144,7 +144,7 @@ export default class XoApp extends Component {
 
     return <IntlProvider>
       <div style={CONTAINER_STYLE}>
-        <Shortcuts name='XoApp' handler={this._shortcutsHandler} targetNodeSelector='body' />
+        <Shortcuts name='XoApp' handler={this._shortcutsHandler} targetNodeSelector='body' stopPropagation={false} />
         <Menu ref='menu' />
         <div ref='bodyWrapper' style={BODY_WRAPPER_STYLE}>
           <div style={BODY_STYLE}>
