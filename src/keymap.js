@@ -11,26 +11,19 @@ const keymap = {
     HELP: ['h', '?']
   },
   Home: {
-    SEARCH: ['/', 's']
+    SEARCH: 's',
+    NAV_DOWN: 'j',
+    NAV_UP: 'k',
+    SELECT: 'x',
+    JUMP_INTO: 'enter'
   }
 }
 export { keymap as default }
 
-const labelToMessage = {
-  XoApp: _('shortcutGlobal'),
-  GO_TO_HOSTS: _('shortcutHosts'),
-  GO_TO_POOLS: _('shortcutPools'),
-  GO_TO_VMS: _('shortcutVms'),
-  CREATE_VM: _('shortcutCreateVm'),
-  HELP: _('shortcutHelp'),
-  Home: _('shortcutHome'),
-  SEARCH: _('shortcutSearch')
-}
-
 export const help = mapValues(keymap, (shortcuts, contextLabel) => ({
-  name: labelToMessage[contextLabel],
+  name: _(`shortcut_${contextLabel}`),
   shortcuts: mapValues(shortcuts, (shortcut, label) => ({
     keys: shortcuts[label],
-    message: labelToMessage[label]
+    message: _(`shortcut_${label}`)
   }))
 }))

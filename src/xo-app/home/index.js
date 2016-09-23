@@ -217,6 +217,7 @@ export default class Home extends Component {
       query: { ...query, t: type, s: undefined }
     })
     this._focusFilterInput()
+    this.setState({ highlighted: undefined })
   }
 
   _getDefaultFilter (props = this.props) {
@@ -428,14 +429,31 @@ export default class Home extends Component {
     return customFilters[this._getType()]
   }
 
-  _shortcutsHandler = (command, event) => {
-    event.preventDefault()
-    switch (command) {
-      case 'SEARCH':
-        this.refs.filterInput.focus()
-        break
+  _getShortcutsHandler = createSelector(
+    () => this._getVisibleItems(),
+    items => (command, event) => {
+      event.preventDefault()
+      switch (command) {
+        case 'SEARCH':
+          this._focusFilterInput()
+          break
+        case 'NAV_DOWN':
+          this.setState({ highlighted: (this.state.highlighted + items.length + 1) % items.length || 0 })
+          break
+        case 'NAV_UP':
+          this.setState({ highlighted: (this.state.highlighted + items.length - 1) % items.length || 0 })
+          break
+        case 'SELECT':
+          this._selectItem(items[this.state.highlighted].id)
+          break
+        case 'JUMP_INTO':
+          const item = items[this.state.highlighted]
+          this.context.router.push({
+            pathname: `${item.type.toLowerCase()}s/${item.id}`
+          })
+      }
     }
-  }
+  )
 
   _typesDropdownItems = map(TYPES, (label, type) =>
     <MenuItem onClick={() => this._setType(type)}>{label}</MenuItem>
@@ -592,7 +610,7 @@ export default class Home extends Component {
 
     const filteredItems = this._getFilteredItems()
     const visibleItems = this._getVisibleItems()
-    const { activePage, sortBy } = this.state
+    const { activePage, sortBy, highlighted } = this.state
     const { type } = props
     const options = OPTIONS[type]
     const { Item } = options
@@ -600,7 +618,7 @@ export default class Home extends Component {
     const selectedItemsIds = keys(this._selectedItems)
 
     return <Page header={this._renderHeader()}>
-      <Shortcuts name='Home' handler={this._shortcutsHandler} targetNodeSelector='body' stopPropagation={false} />
+      <Shortcuts name='Home' handler={this._getShortcutsHandler()} targetNodeSelector='body' stopPropagation={false} />
       <div>
         <div className={styles.itemContainer}>
           <SingleLineRow className={styles.itemContainerHeader}>
@@ -740,15 +758,17 @@ export default class Home extends Component {
                 <Icon icon='info' /> {_('homeNoMatches')}
               </a>
             </p>
-            : map(visibleItems, item =>
-              <Item
-                expandAll={this.state.expandAll}
-                item={item}
-                key={item.id}
-                onSelect={this._selectItem}
-                selected={this._selectedItems[item.id]}
-              />
-            )
+            : map(visibleItems, (item, index) => (
+              <div className={highlighted === index && styles.highlight}>
+                <Item
+                  expandAll={this.state.expandAll}
+                  item={item}
+                  key={item.id}
+                  onSelect={this._selectItem}
+                  selected={this._selectedItems[item.id]}
+                />
+              </div>
+            ))
           }
         </div>
         {filteredItems.length > ITEMS_PER_PAGE && <Row>

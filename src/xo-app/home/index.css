@@ -56,3 +56,7 @@
 .selectObject {
   width: 20em;
 }
+
+.highlight {
+  outline: 2px solid #366e98;
+}
