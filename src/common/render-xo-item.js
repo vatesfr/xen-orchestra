@@ -122,6 +122,12 @@ const xoItemToRender = {
       <Icon icon='ip' /> {ipPool.name}
     </span>
   ),
+  ip: ({label, used}) => {
+    if (used) {
+      return <strong className='text-warning'>{label}</strong>
+    }
+    return <span>{label}</span>
+  },
 
   // XO objects.
   pool: pool => (
@@ -175,7 +181,10 @@ const renderXoItem = (item, {
 } = {}) => {
   const { id, type, label } = item
 
-  if (!type && label) {
+  if (!type) {
+    if (process.env.NODE_ENV !== 'production' && !label) {
+      throw new Error(`an item must have at least either a type or a label`)
+    }
     return (
       <span key={id} className={className}>
         {label}

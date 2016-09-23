@@ -70,6 +70,7 @@ class VifItem extends BaseComponent {
     setVif(vif, { allowedIpv4Addresses, allowedIpv6Addresses })
   }
   _addIp = ip => {
+    this._toggleNewIp()
     if (!isIp(ip.id)) {
       return
     }
@@ -151,6 +152,7 @@ class VifItem extends BaseComponent {
             : map(this._getIps(), (ip, ipIndex) => <Row>
               <Col size={10}>
                 <XoSelect
+                  containerPredicate={this.ipPoolPredicate}
                   onChange={newIp => this._saveIp(ipIndex, newIp)}
                   predicate={this._ipPredicate}
                   value={ip}
@@ -170,8 +172,8 @@ class VifItem extends BaseComponent {
               ? <span onBlur={this._toggleNewIp}>
                 <SelectIp
                   autoFocus
-                  onChange={ip => this._addIp(ip)}
                   containerPredicate={this.ipPoolPredicate}
+                  onChange={ip => this._addIp(ip)}
                   predicate={this._ipPredicate}
                   required
                 />

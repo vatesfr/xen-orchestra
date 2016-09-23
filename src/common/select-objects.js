@@ -5,6 +5,7 @@ import filter from 'lodash/filter'
 import flatten from 'lodash/flatten'
 import forEach from 'lodash/forEach'
 import groupBy from 'lodash/groupBy'
+import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
 import keys from 'lodash/keys'
 import map from 'lodash/map'
@@ -857,7 +858,9 @@ export const SelectIp = makeSubscriptionSelect(subscriber => {
       ipPools => map(ipPools[0].addresses, (address, ip) => ({
         ...address,
         id: ip,
-        label: ip
+        label: ip,
+        type: 'ip',
+        used: !isEmpty(address.vifs)
       }))
     )
     const xoContainers = map(sortedIpPools, ipPool => ({
