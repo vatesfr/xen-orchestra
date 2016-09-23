@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import ReactSelect from 'react-select'
 import {
   AutoSizer,
-  VirtualScroll
+  List
 } from 'react-virtualized'
 
 import propTypes from '../prop-types'
@@ -40,19 +40,21 @@ export default class Select extends Component {
     const focusedOptionIndex = options.indexOf(focusedOption)
     const height = Math.min(maxHeight, options.length * optionHeight)
 
-    const wrappedRowRenderer = ({ index }) =>
+    const wrappedRowRenderer = ({ index, key, style }) =>
       this._optionRenderer({
         ...otherOptions,
         focusedOption,
         focusedOptionIndex,
+        key,
         option: options[index],
-        options
+        options,
+        style
       })
 
     return (
       <AutoSizer disableHeight>
         {({ width }) => (
-          <VirtualScroll
+          <List
             height={height}
             rowCount={options.length}
             rowHeight={optionHeight}
@@ -68,8 +70,10 @@ export default class Select extends Component {
   _optionRenderer = ({
     focusedOption,
     focusOption,
+    key,
     labelKey,
     option,
+    style,
     selectValue
   }) => {
     let className = 'Select-option'
@@ -91,7 +95,8 @@ export default class Select extends Component {
         className={className}
         onClick={!disabled && (() => selectValue(option))}
         onMouseOver={!disabled && (() => focusOption(option))}
-        style={{ height: props.optionHeight }}
+        style={{ ...style, height: props.optionHeight }}
+        key={key}
       >
         {props.optionRenderer(option, labelKey)}
       </div>
