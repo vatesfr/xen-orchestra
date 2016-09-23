@@ -144,13 +144,13 @@ export default class XoApp extends Component {
           <span><Icon icon='shortcuts' />{' '}{_('shortcutModalTitle')}</span>,
           <Container>
             {map(help, context => context.name && [
-              <Row className='m-t-1'>
+              <Row className='m-t-1' key={context.name}>
                 <Col>
                   <h4>{context.name}</h4>
                 </Col>
               </Row>,
               ...map(context.shortcuts, ({ message, keys }, key) => message &&
-                <Row key={key}>
+                <Row key={`${context.name}_${key}`}>
                   <Col size={2} className='text-xs-right'>
                     <strong>
                       {isArray(keys) ? keys[0] : keys}
