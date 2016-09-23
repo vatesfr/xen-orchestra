@@ -96,6 +96,10 @@
     @extend .fa;
     @extend .fa-clipboard;
   }
+  &-shortcuts {
+    @extend .fa;
+    @extend .fa-keyboard-o;
+  }
   &-info {
     @extend .fa;
     @extend .fa-info-circle;
