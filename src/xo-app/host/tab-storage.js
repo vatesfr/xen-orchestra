@@ -25,7 +25,7 @@ const SR_COLUMNS = [
           value={storage.nameLabel}
         />
       </Link>,
-    sortCriteria: 'name_label'
+    sortCriteria: 'nameLabel'
   },
   {
     name: _('srFormat'),
