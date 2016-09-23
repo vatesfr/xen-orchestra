@@ -10,6 +10,7 @@ import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import invoke from 'invoke'
 import keys from 'lodash/keys'
+import includes from 'lodash/includes'
 import isEmpty from 'lodash/isEmpty'
 import isString from 'lodash/isString'
 import Link from 'link'
@@ -20,6 +21,7 @@ import SingleLineRow from 'single-line-row'
 import size from 'lodash/size'
 import Tooltip from 'tooltip'
 import { Card, CardHeader, CardBlock } from 'card'
+import { Shortcuts } from 'react-shortcuts'
 import {
   addCustomFilter,
   copyVms,
@@ -201,6 +203,9 @@ export default class Home extends Component {
 
   componentWillReceiveProps (props) {
     this._initFilter(props)
+    if (props.type !== this.props.type) {
+      this.setState({ highlighted: undefined })
+    }
   }
 
   _getNumberOfItems = createCounter(() => this.props.items)
@@ -215,7 +220,7 @@ export default class Home extends Component {
       pathname,
       query: { ...query, t: type, s: undefined }
     })
-    this._focusFilterInput()
+    this.setState({ highlighted: undefined })
   }
 
   _getDefaultFilter (props = this.props) {
@@ -274,7 +279,6 @@ export default class Home extends Component {
     const { filterInput } = this.refs
     if (filterInput && filterInput.value !== filter) {
       filterInput.value = filter
-      filterInput.focus()
     }
   }
 
@@ -407,8 +411,6 @@ export default class Home extends Component {
     this._updateMasterCheckbox()
   }
 
-  _focusFilterInput = () => this.refs.filterInput.focus()
-
   _addCustomFilter = () => {
     return addCustomFilter(
       this._getType(),
@@ -426,6 +428,34 @@ export default class Home extends Component {
     const customFilters = preferences.filters || {}
     return customFilters[this._getType()]
   }
+
+  _getShortcutsHandler = createSelector(
+    () => this._getVisibleItems(),
+    items => (command, event) => {
+      event.preventDefault()
+      switch (command) {
+        case 'SEARCH':
+          this.refs.filterInput.focus()
+          break
+        case 'NAV_DOWN':
+          this.setState({ highlighted: (this.state.highlighted + items.length + 1) % items.length || 0 })
+          break
+        case 'NAV_UP':
+          this.setState({ highlighted: (this.state.highlighted + items.length - 1) % items.length || 0 })
+          break
+        case 'SELECT':
+          this._selectItem(items[this.state.highlighted].id)
+          break
+        case 'JUMP_INTO':
+          const item = items[this.state.highlighted]
+          if (includes(['VM', 'host', 'pool'], item.type)) {
+            this.context.router.push({
+              pathname: `${item.type.toLowerCase()}s/${item.id}`
+            })
+          }
+      }
+    }
+  )
 
   _typesDropdownItems = map(TYPES, (label, type) =>
     <MenuItem onClick={() => this._setType(type)}>{label}</MenuItem>
@@ -465,7 +495,6 @@ export default class Home extends Component {
               </div>
             )}
             <input
-              autoFocus
               className='form-control'
               defaultValue={this._getFilter()}
               onChange={this._onFilterChange}
@@ -582,7 +611,7 @@ export default class Home extends Component {
 
     const filteredItems = this._getFilteredItems()
     const visibleItems = this._getVisibleItems()
-    const { activePage, sortBy } = this.state
+    const { activePage, sortBy, highlighted } = this.state
     const { type } = props
     const options = OPTIONS[type]
     const { Item } = options
@@ -590,6 +619,7 @@ export default class Home extends Component {
     const selectedItemsIds = keys(this._selectedItems)
 
     return <Page header={this._renderHeader()}>
+      <Shortcuts name='Home' handler={this._getShortcutsHandler()} targetNodeSelector='body' stopPropagation={false} />
       <div>
         <div className={styles.itemContainer}>
           <SingleLineRow className={styles.itemContainerHeader}>
@@ -701,10 +731,7 @@ export default class Home extends Component {
                 {' '}
                 <DropdownButton bsStyle='link' id='sort' title={_('homeSortBy')}>
                   {map(options.sortOptions, ({ labelId, sortBy: _sortBy, sortOrder }, key) => (
-                    <MenuItem key={key} onClick={() => {
-                      this.setState({ sortBy: _sortBy, sortOrder })
-                      this._focusFilterInput()
-                    }}>
+                    <MenuItem key={key} onClick={() => this.setState({ sortBy: _sortBy, sortOrder })}>
                       {this._tick(_sortBy === sortBy)}
                       {_sortBy === sortBy
                         ? <strong>{_(labelId)}</strong>
@@ -729,15 +756,17 @@ export default class Home extends Component {
                 <Icon icon='info' /> {_('homeNoMatches')}
               </a>
             </p>
-            : map(visibleItems, item =>
-              <Item
-                expandAll={this.state.expandAll}
-                item={item}
-                key={item.id}
-                onSelect={this._selectItem}
-                selected={this._selectedItems[item.id]}
-              />
-            )
+            : map(visibleItems, (item, index) => (
+              <div className={highlighted === index && styles.highlight}>
+                <Item
+                  expandAll={this.state.expandAll}
+                  item={item}
+                  key={item.id}
+                  onSelect={this._selectItem}
+                  selected={this._selectedItems[item.id]}
+                />
+              </div>
+            ))
           }
         </div>
         {filteredItems.length > ITEMS_PER_PAGE && <Row>

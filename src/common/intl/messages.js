@@ -1067,7 +1067,23 @@ var messages = {
   ipsDeleteAllTitle: 'Delete all IP pools',
   ipsDeleteAllMessage: 'Are you sure you want to delete all the IP pools?',
   ipsVifs: 'VIFs',
-  ipsNotUsed: 'Not used'
+  ipsNotUsed: 'Not used',
+
+  // ----- Shortcuts -----
+  shortcutModalTitle: 'Keyboard shortcuts',
+  shortcut_XoApp: 'Global',
+  shortcut_GO_TO_HOSTS: 'Go to hosts list',
+  shortcut_GO_TO_POOLS: 'Go to pools list',
+  shortcut_GO_TO_VMS: 'Go to VMs list',
+  shortcut_CREATE_VM: 'Create a new VM',
+  shortcut_UNFOCUS: 'Unfocus field',
+  shortcut_HELP: 'Show shortcuts key bindings',
+  shortcut_Home: 'Home',
+  shortcut_SEARCH: 'Focus search bar',
+  shortcut_NAV_DOWN: 'Next item',
+  shortcut_NAV_UP: 'Previous item',
+  shortcut_SELECT: 'Select item',
+  shortcut_JUMP_INTO: 'Open'
 
 }
 forEach(messages, function (message, id) {
