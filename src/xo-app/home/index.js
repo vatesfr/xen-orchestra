@@ -20,6 +20,7 @@ import SingleLineRow from 'single-line-row'
 import size from 'lodash/size'
 import Tooltip from 'tooltip'
 import { Card, CardHeader, CardBlock } from 'card'
+import { Shortcuts } from 'react-shortcuts'
 import {
   addCustomFilter,
   copyVms,
@@ -427,6 +428,15 @@ export default class Home extends Component {
     return customFilters[this._getType()]
   }
 
+  _shortcutsHandler = (command, event) => {
+    event.preventDefault()
+    switch (command) {
+      case 'SEARCH':
+        this.refs.filterInput.focus()
+        break
+    }
+  }
+
   _typesDropdownItems = map(TYPES, (label, type) =>
     <MenuItem onClick={() => this._setType(type)}>{label}</MenuItem>
   )
@@ -590,6 +600,7 @@ export default class Home extends Component {
     const selectedItemsIds = keys(this._selectedItems)
 
     return <Page header={this._renderHeader()}>
+      <Shortcuts name='Home' handler={this._shortcutsHandler} targetNodeSelector='body' stopPropagation={false} />
       <div>
         <div className={styles.itemContainer}>
           <SingleLineRow className={styles.itemContainerHeader}>

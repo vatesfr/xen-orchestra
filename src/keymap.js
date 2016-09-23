@@ -9,6 +9,9 @@ const keymap = {
     CREATE_VM: 'c v',
     UNFOCUS: 'esc',
     HELP: ['h', '?']
+  },
+  Home: {
+    SEARCH: ['/', 's']
   }
 }
 export { keymap as default }
@@ -20,7 +23,8 @@ const labelToMessage = {
   GO_TO_VMS: _('shortcutVms'),
   CREATE_VM: _('shortcutCreateVm'),
   HELP: _('shortcutHelp'),
-  Home: _('shortcutHome')
+  Home: _('shortcutHome'),
+  SEARCH: _('shortcutSearch')
 }
 
 export const help = mapValues(keymap, (shortcuts, contextLabel) => ({

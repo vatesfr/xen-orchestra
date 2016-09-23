@@ -1077,7 +1077,8 @@ var messages = {
   shortcutVms: 'Go to VMs list',
   shortcutCreateVm: 'Create a new VM',
   shortcutHelp: 'Show shortcuts key bindings',
-  shortcutHome: 'Home'
+  shortcutHome: 'Home',
+  shortcutSearch: 'Focus search bar'
 
 }
 forEach(messages, function (message, id) {
