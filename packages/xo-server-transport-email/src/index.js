@@ -150,7 +150,9 @@ class TransportEmailPlugin {
     // TODO: handle errors
     return this._send({
       from,
-      to, cc, bcc,
+      to,
+      cc,
+      bcc,
       subject,
       markdown
     }).catch(logAndRethrow)
