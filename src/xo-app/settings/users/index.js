@@ -62,55 +62,52 @@ const USER_COLUMNS = [
 })
 @injectIntl
 export default class Users extends Component {
-  componentWillMount () {
-    this._selectPermission(permissions.none)
-  }
+  state = { permission: permissions.none }
 
   _create = () => {
-    const {email, password} = this.refs
-    const { permission } = this.state
-    return createUser(email.value, password.value, permission.value)
+    const { email, password, permission } = this.state
+    return createUser(email, password, permission.value)
       .then(() => {
-        email.value = password.value = ''
-        this._selectPermission(permissions.none)
+        this.setState({ email: '', password: '', permission: permissions.none })
       })
   }
 
-  _selectPermission = permission => this.setState({permission})
-
   render () {
     const { users, intl } = this.props
+    const { email, password, permission } = this.state
 
     return <div>
       <form id='newUserForm' className='form-inline'>
         <div className='form-group'>
           <input
-            type='text'
-            ref='email'
             className='form-control'
+            onChange={this.linkState('email')}
             placeholder={intl.formatMessage(messages.userName)}
             required
+            type='text'
+            value={email}
           />
         </div>
         {' '}
         <div className='form-group'>
           <Select
             clearable={false}
-            ref='permission'
+            onChange={this.linkState('permission')}
             options={map(permissions)}
-            value={this.state.permission}
             placeholder={intl.formatMessage(messages.selectPermission)}
-            onChange={this._selectPermission}
             required
+            value={permission}
           />
         </div>
         {' '}
         <div className='form-group'>
           <Password
+            disabled={!this.state.email}
             enableGenerator
+            onChange={this.linkState('password')}
             placeholder={intl.formatMessage(messages.userPassword)}
-            ref='password'
             required
+            value={password}
           />
         </div>
         {' '}
