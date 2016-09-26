@@ -85,7 +85,7 @@ export default ({
   </Row>
   {!vm.xenTools && vm.power_state === 'Running' &&
     <Row className='text-xs-center'>
-      <Col><em>{_('noToolsDetected')}.</em></Col>
+      <Col><Icon icon='error' /><em> {_('noToolsDetected')}.</em></Col>
     </Row>
   }
   {/* TODO: use CSS style */}
