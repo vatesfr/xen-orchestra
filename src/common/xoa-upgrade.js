@@ -6,16 +6,13 @@ import Link from './link'
 import propTypes from './prop-types'
 import { Card, CardHeader, CardBlock } from './card'
 import { connectStore, getXoaPlan } from './utils'
-import { createSelector, getUser } from 'selectors'
+import { isAdmin } from 'selectors'
 
 const Upgrade = propTypes({
   available: propTypes.number.isRequired,
   place: propTypes.string.isRequired
 })(connectStore({
-  isAdmin: createSelector(
-    getUser,
-    user => user && user.permission === 'admin'
-  )
+  isAdmin
 }))(({
   available,
   isAdmin,
