@@ -11,17 +11,6 @@ var DIST_DIR = __dirname + '/dist' // eslint-disable-line no-path-concat
 // http://www.random.org/integers/?num=1&min=1024&max=65535&col=1&base=10&format=plain&rnd=new
 var LIVERELOAD_PORT = 26242
 
-// Port to use for the embedded web server.
-//
-// Set to 0 to choose a random port at each run.
-var SERVER_PORT = LIVERELOAD_PORT + 1
-
-// Address the server should bind to.
-//
-// - `'localhost'` to make it accessible from this host only
-// - `null` to make it accessible for the whole network
-var SERVER_ADDR = 'localhost'
-
 var PRODUCTION = process.env.NODE_ENV === 'production'
 var DEVELOPMENT = !PRODUCTION
 
@@ -312,28 +301,4 @@ gulp.task('build', gulp.parallel(
 
 gulp.task(function clean (done) {
   require('rimraf')(DIST_DIR, done)
-})
-
-// -------------------------------------------------------------------
-
-gulp.task(function server (done) {
-  require('connect')()
-    .use(require('serve-static')(DIST_DIR))
-    .listen(SERVER_PORT, SERVER_ADDR, function onListen () {
-      var address = this.address()
-
-      var port = address.port
-      address = address.address
-
-      // Correctly handle IPv6 addresses.
-      if (address.indexOf(':') !== -1) {
-        address = '[' + address + ']'
-      }
-
-      console.log('Listening on http://' + address + ':' + port)
-    })
-    .on('error', done)
-    .on('close', function onClose () {
-      done()
-    })
 })
