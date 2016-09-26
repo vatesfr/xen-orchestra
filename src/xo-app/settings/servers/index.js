@@ -24,7 +24,6 @@ import {
 export default class Servers extends Component {
   _addServer = async () => {
     const { host, password, username } = this.state
-    console.log('this.state', this.state)
 
     await addServer(host, username, password)
 
