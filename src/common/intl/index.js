@@ -66,7 +66,7 @@ export class IntlProvider extends Component {
       locale={lang}
       messages={locales[lang]}
     >
-     {children}
+      {children}
     </IntlProvider_>
   }
 }

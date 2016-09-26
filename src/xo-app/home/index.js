@@ -642,106 +642,106 @@ export default class Home extends Component {
               </span>
             </Col>
             <Col mediumSize={8} className='text-xs-right hidden-sm-down'>
-            {this.state.displayActions
-              ? (
-              <div>
-                {mainActions && (
-                  <div className='btn-group'>
-                    {map(mainActions, (action, key) => (
-                      <Tooltip content={action.tooltip} key={key}>
-                        <ActionButton
-                          btnStyle='secondary'
-                          {...action}
-                          handlerParam={selectedItemsIds}
+              {this.state.displayActions
+                ? (
+                <div>
+                  {mainActions && (
+                    <div className='btn-group'>
+                      {map(mainActions, (action, key) => (
+                        <Tooltip content={action.tooltip} key={key}>
+                          <ActionButton
+                            btnStyle='secondary'
+                            {...action}
+                            handlerParam={selectedItemsIds}
+                          />
+                        </Tooltip>
+                      ))}
+                    </div>
+                  )}
+                  {otherActions && (
+                    <DropdownButton bsStyle='secondary' id='advanced' title={_('homeMore')}>
+                      {map(otherActions, (action, key) => (
+                        <MenuItem key={key} onClick={() => { action.handler(selectedItemsIds, action.params) }}>
+                          <Icon icon={action.icon} fixedWidth /> {_(action.labelId)}
+                        </MenuItem>
+                      ))}
+                    </DropdownButton>
+                  )}
+                </div>
+                ) : <div>
+                  {options.showPoolsSelector && (
+                    <OverlayTrigger
+                      trigger='click'
+                      rootClose
+                      placement='bottom'
+                      overlay={
+                        <Popover className={styles.selectObject} id='poolPopover'>
+                          <SelectPool
+                            autoFocus
+                            multi
+                            onChange={this._updateSelectedPools}
+                            value={this.state.selectedPools}
+                          />
+                        </Popover>
+                      }
+                    >
+                      <Button className='btn-link'><Icon icon='pool' /> {_('homeAllPools')}</Button>
+                    </OverlayTrigger>
+                  )}
+                  {' '}
+                  {options.showHostsSelector && (
+                    <OverlayTrigger
+                      trigger='click'
+                      rootClose
+                      placement='bottom'
+                      overlay={
+                        <Popover className={styles.selectObject} id='HostPopover'>
+                          <SelectHost
+                            autoFocus
+                            multi
+                            onChange={this._updateSelectedHosts}
+                            value={this.state.selectedHosts}
+                          />
+                        </Popover>
+                      }
+                    >
+                      <Button className='btn-link'><Icon icon='host' /> {_('homeAllHosts')}</Button>
+                    </OverlayTrigger>
+                  )}
+                  {' '}
+                  <OverlayTrigger
+                    autoFocus
+                    trigger='click'
+                    rootClose
+                    placement='bottom'
+                    overlay={
+                      <Popover className={styles.selectObject} id='tagPopover'>
+                        <SelectTag
+                          autoFocus
+                          multi
+                          objects={props.items}
+                          onChange={this._updateSelectedTags}
+                          value={this.state.selectedTags}
                         />
-                      </Tooltip>
-                    ))}
-                  </div>
-                )}
-                {otherActions && (
-                  <DropdownButton bsStyle='secondary' id='advanced' title={_('homeMore')}>
-                    {map(otherActions, (action, key) => (
-                      <MenuItem key={key} onClick={() => { action.handler(selectedItemsIds, action.params) }}>
-                        <Icon icon={action.icon} fixedWidth /> {_(action.labelId)}
+                      </Popover>
+                    }
+                  >
+                    <Button className='btn-link'><Icon icon='tags' /> {_('homeAllTags')}</Button>
+                  </OverlayTrigger>
+                  {' '}
+                  <DropdownButton bsStyle='link' id='sort' title={_('homeSortBy')}>
+                    {map(options.sortOptions, ({ labelId, sortBy: _sortBy, sortOrder }, key) => (
+                      <MenuItem key={key} onClick={() => this.setState({ sortBy: _sortBy, sortOrder })}>
+                        {this._tick(_sortBy === sortBy)}
+                        {_sortBy === sortBy
+                          ? <strong>{_(labelId)}</strong>
+                          : _(labelId)
+                        }
                       </MenuItem>
                     ))}
                   </DropdownButton>
-                )}
-              </div>
-              ) : <div>
-                {options.showPoolsSelector && (
-                  <OverlayTrigger
-                    trigger='click'
-                    rootClose
-                    placement='bottom'
-                    overlay={
-                      <Popover className={styles.selectObject} id='poolPopover'>
-                        <SelectPool
-                          autoFocus
-                          multi
-                          onChange={this._updateSelectedPools}
-                          value={this.state.selectedPools}
-                        />
-                      </Popover>
-                    }
-                  >
-                    <Button className='btn-link'><Icon icon='pool' /> {_('homeAllPools')}</Button>
-                  </OverlayTrigger>
-                )}
-                {' '}
-                {options.showHostsSelector && (
-                  <OverlayTrigger
-                    trigger='click'
-                    rootClose
-                    placement='bottom'
-                    overlay={
-                      <Popover className={styles.selectObject} id='HostPopover'>
-                        <SelectHost
-                          autoFocus
-                          multi
-                          onChange={this._updateSelectedHosts}
-                          value={this.state.selectedHosts}
-                        />
-                      </Popover>
-                    }
-                  >
-                    <Button className='btn-link'><Icon icon='host' /> {_('homeAllHosts')}</Button>
-                  </OverlayTrigger>
-                )}
-                {' '}
-                <OverlayTrigger
-                  autoFocus
-                  trigger='click'
-                  rootClose
-                  placement='bottom'
-                  overlay={
-                    <Popover className={styles.selectObject} id='tagPopover'>
-                      <SelectTag
-                        autoFocus
-                        multi
-                        objects={props.items}
-                        onChange={this._updateSelectedTags}
-                        value={this.state.selectedTags}
-                      />
-                    </Popover>
-                  }
-                >
-                  <Button className='btn-link'><Icon icon='tags' /> {_('homeAllTags')}</Button>
-                </OverlayTrigger>
-                {' '}
-                <DropdownButton bsStyle='link' id='sort' title={_('homeSortBy')}>
-                  {map(options.sortOptions, ({ labelId, sortBy: _sortBy, sortOrder }, key) => (
-                    <MenuItem key={key} onClick={() => this.setState({ sortBy: _sortBy, sortOrder })}>
-                      {this._tick(_sortBy === sortBy)}
-                      {_sortBy === sortBy
-                        ? <strong>{_(labelId)}</strong>
-                        : _(labelId)
-                      }
-                    </MenuItem>
-                  ))}
-                </DropdownButton>
-              </div>
-            }
+                </div>
+              }
             </Col>
             <Col smallsize={1} mediumSize={1} className='text-xs-right'>
               <button className='btn btn-secondary'

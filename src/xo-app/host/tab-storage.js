@@ -57,7 +57,7 @@ const SR_COLUMNS = [
     itemRenderer: storage => storage.attached
       ? <span>
         <span className='tag tag-success'>
-            {_('pbdStatusConnected')}
+          {_('pbdStatusConnected')}
         </span>
         <ButtonGroup className='pull-xs-right'>
           <ActionRowButton

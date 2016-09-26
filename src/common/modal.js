@@ -82,9 +82,10 @@ class Confirm extends Component {
     return <div>
       <Header closeButton>
         <Title>
-        {icon
-          ? <span><Icon icon={icon} /> {title}</span>
-          : title}
+          {icon
+            ? <span><Icon icon={icon} /> {title}</span>
+            : title
+          }
         </Title>
       </Header>
       <Body>
