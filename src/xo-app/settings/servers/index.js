@@ -1,9 +1,10 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
+import Component from 'base-component'
 import map from 'lodash/map'
 import Tooltip from 'tooltip'
-import React, { Component } from 'react'
+import React from 'react'
 import { addSubscriptions } from 'utils'
 import { Container } from 'grid'
 import { Password as EditablePassword, Text } from 'editable'
@@ -22,15 +23,16 @@ import {
 })
 export default class Servers extends Component {
   _addServer = async () => {
-    const { host, password, username } = this.refs
+    const { host, password, username } = this.state
 
-    await addServer(host.value, username.value, password.value)
+    await addServer(host, username, password)
 
-    host.value = username.value = password.value = ''
+    this.setState({ host: '', password: '', username: '' })
   }
 
   render () {
     const { servers } = this.props
+    const { host, password, username } = this.state
 
     return <Container>
       <table className='table table-striped'>
@@ -114,28 +116,32 @@ export default class Servers extends Component {
         <div className='form-group'>
           <input
             className='form-control'
+            onChange={this.linkState('host')}
             placeholder='address[:port]'
-            ref='host'
             required
             type='text'
+            value={host}
           />
         </div>
         {' '}
         <div className='form-group'>
           <input
             className='form-control'
+            onChange={this.linkState('username')}
             placeholder='user'
-            ref='username'
             required
             type='text'
+            value={username}
           />
         </div>
         {' '}
         <div className='form-group'>
           <Password
+            disabled={!this.state.username}
+            onChange={this.linkState('password')}
             placeholder='password'
-            ref='password'
             required
+            value={password}
           />
         </div>
         {' '}

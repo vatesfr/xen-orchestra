@@ -73,7 +73,7 @@ export default class XoaUpdates extends Component {
     const {
       email,
       password
-    } = this.refs
+    } = this.state
 
     const { registration } = this.props
     const alreadyRegistered = (registration.state === 'registered')
@@ -88,8 +88,8 @@ export default class XoaUpdates extends Component {
       }
     }
     this.setState({ askRegisterAgain: false })
-    return xoaUpdater.register(email.value, password.value, alreadyRegistered)
-      .then(() => { email.value = password.value = '' })
+    return xoaUpdater.register(email, password, alreadyRegistered)
+      .then(() => this.setState({ email: '', password: '' }))
   }
 
   _configure = async () => {
@@ -283,8 +283,8 @@ export default class XoaUpdates extends Component {
                       <div className='form-group'>
                         <input
                           className='form-control'
+                          onChange={this.linkState('email')}
                           placeholder='Your email account'
-                          ref='email'
                           required
                           type='text'
                         />
@@ -292,8 +292,9 @@ export default class XoaUpdates extends Component {
                       {' '}
                       <div className='form-group'>
                         <Password
+                          disabled={!this.state.email}
+                          onChange={this.linkState('password')}
                           placeholder='Your password'
-                          ref='password'
                           required
                         />
                       </div>
