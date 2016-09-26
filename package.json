@@ -120,6 +120,7 @@
     "gulp-plumber": "^1.0.0",
     "gulp-sourcemaps": "^1.5.1",
     "gulp-watch": "^4.2.2",
+    "index-modules": "0.0.0",
     "leche": "^2.1.1",
     "mocha": "^3.0.2",
     "must": "^0.13.1",
@@ -131,7 +132,7 @@
   "scripts": {
     "build": "npm run build-indexes && gulp build --production",
     "depcheck": "dependency-check ./package.json",
-    "build-indexes": "./tools/generate-index src/api src/xapi/mixins src/xo-mixins",
+    "build-indexes": "index-modules src/api src/xapi/mixins src/xo-mixins",
     "dev": "npm run build-indexes && gulp build",
     "dev-test": "mocha --opts .mocha.opts --watch --reporter=min \"dist/**/*.spec.js\"",
     "lint": "standard",
