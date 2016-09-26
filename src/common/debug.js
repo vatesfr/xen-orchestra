@@ -35,8 +35,8 @@ class DebugAsync extends Component {
 
     return <pre>
       {'Promise { '}
-        {status === 'rejected' && '<rejected> '}
-        {toString(value)}
+      {status === 'rejected' && '<rejected> '}
+      {toString(value)}
       {' }'}
     </pre>
   }

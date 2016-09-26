@@ -36,9 +36,9 @@ const parseDate = date => +moment(date, 'YYYYMMDDTHHmmssZ').format('x')
 const isEmptyRemote = remote => !remote.backupInfoByVm || !size(remote.backupInfoByVm)
 
 const backupOptionRenderer = backup => <span>
-    {backup.type === 'delta' && <span><span className='tag tag-info'>{_('delta')}</span>{' '}</span>}
-    {backup.tag}
-    {' '}
+  {backup.type === 'delta' && <span><span className='tag tag-info'>{_('delta')}</span>{' '}</span>}
+  {backup.tag}
+  {' '}
   <FormattedDate value={new Date(backup.date)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />
 </span>
 

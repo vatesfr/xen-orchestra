@@ -89,10 +89,10 @@ export default connectStore(() => ({
                   <td>
                     {pif.attached
                       ? <span className='tag tag-success'>
-                          {_('pifStatusConnected')}
+                        {_('pifStatusConnected')}
                       </span>
                       : <span className='tag tag-default'>
-                          {_('pifStatusDisconnected')}
+                        {_('pifStatusDisconnected')}
                       </span>
                     }
                   </td>
