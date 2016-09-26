@@ -968,6 +968,7 @@ var messages = {
   or: 'Or',
   tryIt: 'Try it for free!',
   availableIn: 'This feature is available starting from {plan} Edition',
+  notAvailable: 'This feature is not available in your version, contact your administrator to know more.',
 
   // ----- Updates View -----
   updateTitle: 'Updates',
