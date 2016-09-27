@@ -899,6 +899,10 @@ export const setBootableVbd = (vbd, bootable) => (
 
 // VIF ---------------------------------------------------------------
 
+export const createVmInterface = (vm, network, mac) => (
+  _call('vm.createInterface', resolveIds({vm, network, mac}))
+)
+
 export const connectVif = vif => (
   _call('vif.connect', { id: resolveId(vif) })
 )
@@ -911,8 +915,8 @@ export const deleteVif = vif => (
   _call('vif.delete', { id: resolveId(vif) })
 )
 
-export const setVif = (vif, { allowedIpv4Addresses, allowedIpv6Addresses }) => (
-  _call('vif.set', { id: resolveId(vif), allowedIpv4Addresses, allowedIpv6Addresses })
+export const setVif = (vif, { network, mac, allowedIpv4Addresses, allowedIpv6Addresses }) => (
+  _call('vif.set', { id: resolveId(vif), network: resolveId(network), mac, allowedIpv4Addresses, allowedIpv6Addresses })
 )
 
 // Network -----------------------------------------------------------
@@ -941,12 +945,6 @@ export const deleteNetwork = network => (
     () => _call('network.delete', { network: resolveId(network) }),
     noop
   )
-)
-
-// VIF ---------------------------------------------------------------
-
-export const createVmInterface = (vm, network, mac, mtu) => (
-  _call('vm.createInterface', resolveIds({vm, network, mtu, mac}))
 )
 
 // PIF ---------------------------------------------------------------
