@@ -21,27 +21,8 @@ Installation of the [npm package](https://npmjs.org/package/xo-server-auth-saml)
 > see [its documentation](https://github.com/bergie/passport-saml#configure-strategy)
 > for more information about the configuration.
 
-To enable this plugin you have to add the following lines into the
-configuration file of XO-Server:
-
-```yaml
-plugins:
-
-  auth-saml:
-      # Server certificate used to validate in Base64 (no comments, no line breaks).
-      cert: 'MIIFBjCCAu4CCQDBMhqko5KQODANBgkqhkiG9w0BAQ ...'
-
-      # Identity provider entry point (sign in URL).
-      entryPoint: 'https://saml.example.org/signin/'
-
-      # Issuer string to supply the identity provider.
-      issuer: 'xen-orchestra'
-
-      # Field to use as the name of the user.
-      #
-      # Default: uid.
-      usernameField: 'uid'
-```
+Like all other xo-server plugins, it can be configured directly via
+the web iterface, see [the plugin documentation](https://xen-orchestra.com/docs/plugins.html).
 
 > Important: When registering your instance to your identity provider,
 > you must configure its callback URL to
