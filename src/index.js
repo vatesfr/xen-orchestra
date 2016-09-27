@@ -608,16 +608,24 @@ export default async function main (args) {
     await registerPlugins(xo)
   }
 
+  // Gracefully shutdown on signals.
+  //
   // TODO: implements a timeout? (or maybe it is the services launcher
   // responsibility?)
-  const shutdown = signal => {
-    debug('%s caught, closing…', signal)
-    xo.stop()
-  }
+  forEach([ 'SIGINT', 'SIGTERM' ], signal => {
+    let alreadyCalled = false
 
-  // Gracefully shutdown on signals.
-  process.on('SIGINT', () => shutdown('SIGINT'))
-  process.on('SIGTERM', () => shutdown('SIGTERM'))
+    process.on(signal, () => {
+      if (alreadyCalled) {
+        warn('forced exit')
+        process.exit(1)
+      }
+      alreadyCalled = true
+
+      debug('%s caught, closing…', signal)
+      xo.stop()
+    })
+  })
 
   await eventToPromise(xo, 'stopped')
 
