@@ -62,7 +62,7 @@
     "highland": "^2.5.1",
     "http-proxy": "^1.13.2",
     "http-server-plus": "^0.7.0",
-    "human-format": "^0.6.0",
+    "human-format": "^0.7.0",
     "is-my-json-valid": "^2.13.1",
     "js-yaml": "^3.2.7",
     "json-rpc-peer": "^0.12.0",
