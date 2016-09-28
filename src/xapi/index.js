@@ -1799,15 +1799,14 @@ export default class Xapi extends XapiBase {
 
   async _createVif (vm, network, {
     mac = '',
-    mtu = network.MTU,
     position = undefined,
 
+    currently_attached = true,
     device = position != null ? String(position) : undefined,
     ipv4_allowed = undefined,
     ipv6_allowed = undefined,
     locking_mode = undefined,
     MAC = mac,
-    MTU = mtu,
     other_config = {},
     qos_algorithm_params = {},
     qos_algorithm_type = ''
@@ -1824,7 +1823,7 @@ export default class Xapi extends XapiBase {
       ipv6_allowed,
       locking_mode,
       MAC,
-      MTU: asInteger(MTU),
+      MTU: asInteger(network.MTU),
       network: network.$ref,
       other_config,
       qos_algorithm_params,
@@ -1832,16 +1831,11 @@ export default class Xapi extends XapiBase {
       VM: vm.$ref
     }))
 
-    if (isVmRunning(vm)) {
+    if (currently_attached && isVmRunning(vm)) {
       await this.call('VIF.plug', vifRef)
     }
 
     return vifRef
-  }
-
-  // TODO: check whether the VIF was unplugged before.
-  async _deleteVif (vif) {
-    await this.call('VIF.destroy', vif.$ref)
   }
 
   async createVif (vmId, networkId, opts = undefined) {
@@ -1852,10 +1846,6 @@ export default class Xapi extends XapiBase {
         opts
       )
     )
-  }
-
-  async deleteVif (vifId) {
-    await this._deleteVif(this.getObject(vifId))
   }
 
   async createNetwork ({

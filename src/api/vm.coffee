@@ -1054,12 +1054,25 @@ exports.attachDisk = attachDisk
 #---------------------------------------------------------------------
 
 # TODO: implement resource sets
-createInterface = $coroutine ({vm, network, position, mtu, mac}) ->
+createInterface = $coroutine ({
+  vm,
+  network,
+  position,
+  mac,
+  allowedIpv4Addresses,
+  allowedIpv6Addresses
+}) ->
   vif = yield @getXapi(vm).createVif(vm._xapiId, network._xapiId, {
     mac,
-    mtu,
-    position
+    position,
+    ipv4_allowed: allowedIpv4Addresses,
+    ipv6_allowed: allowedIpv6Addresses
   })
+
+  alloc = (address) =>
+    @allocIpAddress(address, vif.$id)::pCatch(noop)
+  forEach(allowedIpv4Addresses, alloc)
+  forEach(allowedIpv6Addresses, alloc)
 
   return vif.$id
 
@@ -1067,8 +1080,21 @@ createInterface.params = {
   vm: { type: 'string' }
   network: { type: 'string' }
   position: { type: ['integer', 'string'], optional: true }
-  mtu: { type: ['integer', 'string'], optional: true }
   mac: { type: 'string', optional: true }
+  allowedIpv4Addresses: {
+    type: 'array',
+    items: {
+      type: 'string'
+    },
+    optional: true
+  },
+  allowedIpv6Addresses: {
+    type: 'array',
+    items: {
+      type: 'string'
+    },
+    optional: true
+  }
 }
 
 createInterface.resolve = {

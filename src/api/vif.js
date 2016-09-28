@@ -34,7 +34,7 @@ delete_.resolve = {
 // TODO: move into vm and rename to disconnectInterface
 export async function disconnect ({vif}) {
   // TODO: check if VIF is attached before
-  await this.getXapi(vif).call('VIF.unplug_force', vif._xapiRef)
+  await this.getXapi(vif).disconnectVif(vif._xapiId)
 }
 
 disconnect.params = {
@@ -49,7 +49,7 @@ disconnect.resolve = {
 // TODO: move into vm and rename to connectInterface
 export async function connect ({vif}) {
   // TODO: check if VIF is attached before
-  await this.getXapi(vif).call('VIF.plug', vif._xapiRef)
+  await this.getXapi(vif).connectVif(vif._xapiId)
 }
 
 connect.params = {
@@ -62,7 +62,41 @@ connect.resolve = {
 
 // -------------------------------------------------------------------
 
-export function set ({ vif, allowedIpv4Addresses, allowedIpv6Addresses }) {
+export async function set ({
+  vif,
+  network,
+  mac,
+  allowedIpv4Addresses,
+  allowedIpv6Addresses,
+  attached
+}) {
+  if (network || mac) {
+    const xapi = this.getXapi(vif)
+
+    const vm = xapi.getObject(vif.$VM)
+    mac == null && (mac = vif.MAC)
+    network = xapi.getObject(network && network.id || vif.$network)
+    allowedIpv4Addresses == null && (allowedIpv4Addresses = vif.allowedIpv4Addresses)
+    allowedIpv6Addresses == null && (allowedIpv6Addresses = vif.allowedIpv6Addresses)
+    attached == null && (attached = vif.attached)
+
+    // remove previous VIF
+    const dealloc = address => {
+      this.deallocIpAddress(address, vif.id)::pCatch(noop)
+    }
+    forEach(vif.allowedIpv4Addresses, dealloc)
+    forEach(vif.allowedIpv6Addresses, dealloc)
+    xapi.deleteVif(vif._xapiId)::pCatch(noop)
+
+    // create new VIF with new parameters
+    await xapi.createVif(vm.$id, network.$id, {
+      mac,
+      currently_attached: attached
+    })
+
+    return
+  }
+
   const { id } = vif
   const handle = ([ newAddresses, oldAddresses ]) => {
     forEach(newAddresses, address => {
@@ -82,6 +116,9 @@ export function set ({ vif, allowedIpv4Addresses, allowedIpv6Addresses }) {
 }
 
 set.params = {
+  id: { type: 'string' },
+  network: { type: 'string', optional: true },
+  mac: { type: 'string', optional: true },
   allowedIpv4Addresses: {
     type: 'array',
     items: {
@@ -95,9 +132,11 @@ set.params = {
       type: 'string'
     },
     optional: true
-  }
+  },
+  attached: { type: 'boolean', optional: true }
 }
 
 set.resolve = {
-  vif: ['id', 'VIF', 'operate']
+  vif: ['id', 'VIF', 'operate'],
+  network: ['network', 'network', 'operate']
 }
