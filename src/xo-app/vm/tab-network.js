@@ -112,6 +112,12 @@ class VifItem extends BaseComponent {
     vifNetwork =>
       ipPool => find(ipPool.networks, ipPoolNetwork => ipPoolNetwork === vifNetwork.id)
   )
+  _getNetworkPredicate = createSelector(
+    () => this.props.vif && this.props.vif.$pool,
+    () => this.props.vif && this.props.vif.$network,
+    (vifPool, vifNetwork) => network =>
+      network.$pool === vifPool && network.id !== vifNetwork
+  )
 
   _toggleNewIp = () =>
     this.setState({ showNewIpForm: !this.state.showNewIpForm })
@@ -153,6 +159,7 @@ class VifItem extends BaseComponent {
       <td>{network &&
         <XoSelect
           onChange={this._setNetwork}
+          predicate={this._getNetworkPredicate()}
           value={network}
           xoType='network'
         >
