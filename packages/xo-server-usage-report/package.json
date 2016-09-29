@@ -57,6 +57,7 @@
   },
   "babel": {
     "plugins": [
+      "transform-runtime",
       "lodash"
     ],
     "presets": [
