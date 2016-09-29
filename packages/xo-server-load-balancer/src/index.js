@@ -1,9 +1,7 @@
 import EventEmitter from 'events'
 import eventToPromise from 'event-to-promise'
-import intersection from 'lodash.intersection'
-import uniq from 'lodash.uniq'
 import { CronJob } from 'cron'
-import { default as mapToArray } from 'lodash.map'
+import { intersection, map as mapToArray, uniq } from 'lodash'
 
 import DensityPlan from './density-plan'
 import PerformancePlan from './performance-plan'

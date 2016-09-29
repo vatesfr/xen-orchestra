@@ -1,6 +1,4 @@
-import filter from 'lodash.filter'
-import find from 'lodash.find'
-import { default as mapToArray } from 'lodash.map'
+import { filter, find, map as mapToArray } from 'lodash'
 
 import Plan from './plan'
 import { debug } from './utils'
@@ -21,10 +19,6 @@ function searchBestObject (objects, fun) {
 // ===================================================================
 
 export default class PerformancePlan extends Plan {
-  constructor (xo, name, poolIds, options) {
-    super(xo, name, poolIds, options)
-  }
-
   _checkRessourcesThresholds (objects, averages) {
     return filter(objects, object => {
       const objectAverages = averages[object.id]

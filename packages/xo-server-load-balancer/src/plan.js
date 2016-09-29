@@ -1,6 +1,4 @@
-import filter from 'lodash.filter'
-import includes from 'lodash.includes'
-import { default as mapToArray } from 'lodash.map'
+import { filter, includes, map as mapToArray } from 'lodash'
 
 import {
   EXECUTION_DELAY,

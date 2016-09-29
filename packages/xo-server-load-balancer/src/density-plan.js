@@ -1,6 +1,4 @@
-import filter from 'lodash.filter'
-import clone from 'lodash.clonedeep'
-import { default as mapToArray } from 'lodash.map'
+import { clone, filter, map as mapToArray } from 'lodash'
 
 import Plan from './plan'
 import { debug } from './utils'
@@ -8,10 +6,6 @@ import { debug } from './utils'
 // ===================================================================
 
 export default class DensityPlan extends Plan {
-  constructor (xo, name, poolIds, options) {
-    super(xo, name, poolIds, options)
-  }
-
   _checkRessourcesThresholds (objects, averages) {
     return filter(objects, object =>
       averages[object.id].memoryFree > this._thresholds.memoryFree.low

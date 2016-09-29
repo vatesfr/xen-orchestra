@@ -7,18 +7,13 @@ XO-Server plugin that allows load balancing.
 Go inside your `xo-server` folder and install it:
 
 ```
-> npm install xo-server-load-balancer
+> npm install --global xo-server-load-balancer
 ```
 
 ## Usage
 
-Edit your `xo-server` configuration and add the plugin name in the `plugins` section.
-
-```yaml
-plugins:
-
-  xo-server-load-balancer:
-```
+Like all other xo-server plugins, it can be configured directly via
+the web iterface, see [the plugin documentation](https://xen-orchestra.com/docs/plugins.html).
 
 ## Development
 
