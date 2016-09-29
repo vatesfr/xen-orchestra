@@ -39,21 +39,8 @@ Add OAuth 2.0 credentials:
 
 ### Add the plugin to XO-Server config
 
-```yaml
-plugins:
-
-  auth-google:
-
-    # Both these values will be given to you when your instance of XO
-    # is registered in Google
-    # (https://google.com/settings/developers).
-    clientID: 326211154583-nt2s112d3t7f4f1hh49oo9164nivvbnu.apps.googleusercontent.com
-    clientSecret: -HTDb8I4jXiLRMaRL15qCffQ
-
-    # Must be exactly the same as specified on the Google developer
-    # console.
-    callbackURL: 'http://xo.company.net/signin/google/callback'
-```
+Like all other xo-server plugins, it can be configured directly via
+the web iterface, see [the plugin documentation](https://xen-orchestra.com/docs/plugins.html).
 
 ## Development
 
