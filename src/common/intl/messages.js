@@ -238,7 +238,7 @@ var messages = {
   // ------ New Storage -----
   newSrTitle: 'Create a new SR',
   newSrGeneral: 'General',
-  newSrTypeSelection: 'Select Strorage Type:',
+  newSrTypeSelection: 'Select Storage Type:',
   newSrSettings: 'Settings',
   newSrUsage: 'Storage Usage',
   newSrSummary: 'Summary',
