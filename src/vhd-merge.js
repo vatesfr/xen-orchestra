@@ -1,4 +1,4 @@
-import fu from 'struct-fu'
+import fu from '@nraynaud/struct-fu'
 
 import {
   noop,
@@ -91,7 +91,7 @@ const fuHeader = fu.struct([
   fu.uint8('parentUuid', 16),
   fu.uint32('parentTimestamp'),
   fu.uint32('reserved1'),
-  fu.char('parentUnicodeName', 512),
+  fu.char16be('parentUnicodeName', 512),
   fu.struct('parentLocatorEntry', [
     fu.uint32('platformCode'),
     fu.uint32('platformDataSpace'),
@@ -144,24 +144,22 @@ const unpackField = (field, buf) => {
 }
 // ===================================================================
 
-// Returns the checksum of a raw footer.
-// The raw footer is altered with the new sum.
-function checksumFooter (rawFooter) {
-  const checksumField = fuFooter.fields.checksum
-
+// Returns the checksum of a raw struct.
+// The raw struct (footer or header) is altered with the new sum.
+function checksumStruct (rawStruct, checksumField) {
   let sum = 0
 
   // Reset current sum.
-  packField(checksumField, 0, rawFooter)
+  packField(checksumField, 0, rawStruct)
 
   for (let i = 0; i < VHD_FOOTER_SIZE; i++) {
-    sum = (sum + rawFooter[i]) & 0xFFFFFFFF
+    sum = (sum + rawStruct[i]) & 0xFFFFFFFF
   }
 
   sum = 0xFFFFFFFF - sum
 
   // Write new sum.
-  packField(checksumField, sum, rawFooter)
+  packField(checksumField, sum, rawStruct)
 
   return sum
 }
@@ -257,7 +255,7 @@ class Vhd {
     )
 
     const sum = unpackField(fuFooter.fields.checksum, buf)
-    const sumToTest = checksumFooter(buf)
+    const sumToTest = checksumStruct(buf, fuFooter.fields.checksum)
 
     // Checksum child & parent.
     if (sumToTest !== sum) {
@@ -494,18 +492,27 @@ class Vhd {
     }
   }
 
-  // Write a context footer. (At the end and beggining of a vhd file.)
+  // Write a context footer. (At the end and beginning of a vhd file.)
   async writeFooter () {
     const { footer } = this
 
     const offset = this.getEndOfData()
     const rawFooter = fuFooter.pack(footer)
 
-    footer.checksum = checksumFooter(rawFooter)
+    footer.checksum = checksumStruct(rawFooter, fuFooter.fields.checksum)
     debug(`Write footer at: ${offset} (checksum=${footer.checksum}). (data=${rawFooter.toString('hex')})`)
 
     await this._write(rawFooter, 0)
     await this._write(rawFooter, offset)
+  }
+
+  async writeHeader () {
+    const { header } = this
+    const rawHeader = fuHeader.pack(header)
+    header.checksum = checksumStruct(rawHeader, fuHeader.fields.checksum)
+    const offset = VHD_FOOTER_SIZE
+    debug(`Write header at: ${offset} (checksum=${header.checksum}). (data=${rawHeader.toString('hex')})`)
+    await this._write(rawHeader, offset)
   }
 }
 
@@ -563,4 +570,23 @@ export default async function vhdMerge (
   }
 
   await parentVhd.writeFooter()
+}
+
+export async function chainVhd (
+  parentHandler, parentPath,
+  childHandler, childPath
+) {
+  const parentVhd = new Vhd(parentHandler, parentPath)
+  const childVhd = new Vhd(childHandler, childPath)
+  await Promise.all([
+    parentVhd.readHeaderAndFooter(),
+    childVhd.readHeaderAndFooter()
+  ])
+  const parentName = parentPath.split('/').pop()
+  const parentUuid = parentVhd.footer.uuid
+  if (childVhd.header.parentUuid !== parentUuid || childVhd.header.parentUnicodeName !== parentName) {
+    childVhd.header.parentUuid = parentUuid
+    childVhd.header.parentUnicodeName = parentName
+    await childVhd.writeHeader()
+  }
 }

@@ -12,7 +12,7 @@ import {
 } from 'path'
 import { satisfies as versionSatisfies } from 'semver'
 
-import vhdMerge from '../vhd-merge'
+import vhdMerge, { chainVhd } from '../vhd-merge'
 import xapiObjectToXo from '../xapi-object-to-xo'
 import {
   deferrable
@@ -291,6 +291,14 @@ export default class {
     return backups.slice(i)
   }
 
+  // fix the parent UUID and filename in delta files after download from xapi or backup compression
+  async _chainDeltaVdiBackups ({handler, dir}) {
+    const backups = await this._listVdiBackups(handler, dir)
+    for (let i = 1; i < backups.length; i++) {
+      await chainVhd(handler, dir + '/' + backups[i - 1], handler, dir + '/' + backups[i])
+    }
+  }
+
   async _mergeDeltaVdiBackups ({handler, dir, depth}) {
     const backups = await this._listVdiBackups(handler, dir)
     let i = backups.length - depth
@@ -553,7 +561,9 @@ export default class {
       mapToArray(vdiBackups, vdiBackup => {
         const backupName = vdiBackup.value()
         const backupDirectory = backupName.slice(0, backupName.lastIndexOf('/'))
-        return this._mergeDeltaVdiBackups({ handler, dir: `${dir}/${backupDirectory}`, depth })
+        const backupDir = `${dir}/${backupDirectory}`
+        return this._mergeDeltaVdiBackups({ handler, dir: backupDir, depth })
+          .then(() => { this._chainDeltaVdiBackups({ handler, dir: backupDir }) })
       })
     )
 
