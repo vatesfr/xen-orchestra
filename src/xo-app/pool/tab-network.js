@@ -17,8 +17,8 @@ import { createGetObject, createGetObjectsOfType, createSelector } from 'selecto
 import { Toggle } from 'form'
 import {
   connectPif,
-  createNetwork,
   createBondedNetwork,
+  createNetwork,
   deleteNetwork,
   disconnectPif,
   editNetwork
@@ -82,40 +82,47 @@ class PifItem extends Component {
   }
 }
 
-@connectStore({
+@connectStore(() => ({
   isBonded: createSelector(
     createGetObjectsOfType('PIF').pick(
       (_, props) => props && props.network.PIFs
     ),
     pifs => some(pifs, pif => !isEmpty(pif.bondMasterOf))
   )
-})
+}))
 class NetworkName extends Component {
+  _editName = value => editNetwork(this.props.network, { name_label: value })
+
   render () {
     const { isBonded, network } = this.props
     return <span>
-      <Text value={network.name_label} onChange={value => editNetwork(network, { name_label: value })} />
+      <Text value={network.name_label} onChange={this._editName} />
       {' '}
       {isBonded && <span className='tag tag-pill tag-info'>{_('pillBonded')}</span>}
     </span>
   }
 }
 
-@connectStore({
+@connectStore(() => ({
   isInUse: createSelector(
     createGetObjectsOfType('VIF').pick(
       (_, props) => props && props.network.VIFs
     ),
     vifs => some(vifs, 'attached')
   )
-})
+}))
 class ToggleDefaultLockingMode extends Component {
+  _editDefaultIsLocked = () => {
+    const { network } = this.props
+    editNetwork(network, { defaultIsLocked: !network.defaultIsLocked })
+  }
+
   render () {
     const { isInUse, network } = this.props
     return _conditionalTooltip(
       <Toggle
         disabled={isInUse}
-        onChange={() => editNetwork(network, { defaultIsLocked: !network.defaultIsLocked })}
+        onChange={this._editDefaultIsLocked}
         value={network.defaultIsLocked}
       />,
       isInUse && _('networkInUse')

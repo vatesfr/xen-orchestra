@@ -1,24 +1,24 @@
 import Component from 'base-component'
 import map from 'lodash/map'
 import React from 'react'
-import { injectIntl } from 'react-intl'
 import { createGetObject, createSelector } from 'selectors'
 import { getBondModes } from 'xo'
+import { injectIntl } from 'react-intl'
 
-import SingleLineRow from '../../single-line-row'
 import _, { messages } from '../../intl'
-import { SelectPif } from '../../select-objects'
 import { Col } from '../../grid'
 import { connectStore } from '../../utils'
+import { SelectPif } from '../../select-objects'
+import SingleLineRow from '../../single-line-row'
 
-@connectStore({
+@connectStore(() => ({
   poolMaster: createSelector(
     createGetObject(
       (_, props) => props.pool
     ),
     pool => pool.master
   )
-}, { withRef: true })
+}), { withRef: true })
 class CreateBondedNetworkModalBody extends Component {
   componentWillMount () {
     getBondModes().then(
