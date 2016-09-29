@@ -25,7 +25,7 @@ import {
 } from 'selectors'
 import { injectIntl } from 'react-intl'
 import { SelectNetwork, SelectIp } from 'select-objects'
-import { XoSelect } from 'editable'
+import { XoSelect, Text } from 'editable'
 
 import {
   connectVif,
@@ -56,6 +56,9 @@ const TABLE_STYLE = { minWidth: '0' }
   })
 })
 class VifItem extends BaseComponent {
+  _setMac = mac => setVif(this.props.vif, { mac })
+  _setNetwork = network => setVif(this.props.vif, { network })
+
   _saveIp = (ipIndex, newIp) => {
     if (!isIp(newIp.id)) {
       throw new Error('Not a valid IP')
@@ -109,6 +112,12 @@ class VifItem extends BaseComponent {
     vifNetwork =>
       ipPool => find(ipPool.networks, ipPoolNetwork => ipPoolNetwork === vifNetwork.id)
   )
+  _getNetworkPredicate = createSelector(
+    () => this.props.vif && this.props.vif.$pool,
+    () => this.props.vif && this.props.vif.$network,
+    (vifPool, vifNetwork) => network =>
+      network.$pool === vifPool && network.id !== vifNetwork
+  )
 
   _toggleNewIp = () =>
     this.setState({ showNewIpForm: !this.state.showNewIpForm })
@@ -145,9 +154,18 @@ class VifItem extends BaseComponent {
 
     return <tr key={vif.id}>
       <td>VIF #{vif.device}</td>
-      <td><pre>{vif.MAC}</pre></td>
+      <td><pre><Text value={vif.MAC} onChange={this._setMac} /></pre></td>
       <td>{vif.MTU}</td>
-      <td>{network && network.name_label}</td>
+      <td>{network &&
+        <XoSelect
+          onChange={this._setNetwork}
+          predicate={this._getNetworkPredicate()}
+          value={network}
+          xoType='network'
+        >
+          {network.name_label}
+        </XoSelect>
+      }</td>
       <td style={IP_COLUMN_STYLE}>
         <Container>
           {isEmpty(this._getIps())
@@ -273,7 +291,6 @@ class NewVif extends BaseComponent {
     const { defaultNetwork } = props
     if (defaultNetwork && !this.state.network) {
       this.setState({
-        mtu: defaultNetwork.MTU,
         network: defaultNetwork
       })
     }
@@ -289,15 +306,14 @@ class NewVif extends BaseComponent {
 
   _selectNetwork = network => {
     this.setState({
-      mtu: network.MTU,
       network
     })
   }
 
   _createVif = () => {
     const { vm, onClose = noop } = this.props
-    const { mac, mtu, network } = this.state
-    return createVmInterface(vm, network, mac, mtu)
+    const { mac, network } = this.state
+    return createVmInterface(vm, network, mac)
       .then(onClose)
   }
 
@@ -305,7 +321,6 @@ class NewVif extends BaseComponent {
     const formatMessage = this.props.intl.formatMessage
     const {
       mac,
-      mtu,
       network
     } = this.state
     return <form id='newVifForm'>
@@ -315,10 +330,6 @@ class NewVif extends BaseComponent {
       <fieldset className='form-inline'>
         <div className='form-group'>
           <input type='text' value={mac || ''} onChange={this.linkState('mac')} placeholder={formatMessage(messages.vifMacLabel)} className='form-control' /> ({_('vifMacAutoGenerate')})
-        </div>
-        {' '}
-        <div className='form-group'>
-          <input type='number' value={mtu || ''} onChange={this.linkState('mtu')} placeholder={formatMessage(messages.vifMtuLabel)} className='form-control' />
         </div>
         <span className='pull-right'>
           <ActionButton form='newVifForm' icon='add' btnStyle='primary' handler={this._createVif}>Create</ActionButton>
