@@ -20,7 +20,7 @@ class CreateNetworkModalBody extends Component {
     const { refs } = this
     const { container } = this.props
     return {
-      pool: container === 'pool' ? container.id : container.$pool,
+      pool: container.$pool,
       name: refs.name.value,
       description: refs.description.value,
       pif: refs.pif.value.id,
