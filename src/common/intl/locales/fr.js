@@ -394,7 +394,7 @@ export default {
   emergencyModeLabel: 'Emergency mode',
   // ----- Host tabs -----
   storageTabName: 'Stockage',
-  patchsTabName: 'Patches',
+  patchesTabName: 'Patches',
     // ----- host stat tab -----
   statLoad: 'Charge (load) moyenne :',
     // ----- host advanced tab -----
