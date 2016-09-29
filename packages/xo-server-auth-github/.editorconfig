@@ -41,7 +41,7 @@ indent_style = space
 #
 # Two spaces seems to be the standard most common style, at least in
 # Node.js (http://nodeguide.com/style.html#tabs-vs-spaces).
-[*.js]
+[*.{js,jsx,ts,tsx}]
 indent_size = 2
 indent_style = space
 

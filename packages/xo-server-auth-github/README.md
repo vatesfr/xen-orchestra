@@ -21,22 +21,10 @@ Installation of the [npm package](https://npmjs.org/package/xo-server-auth-githu
 > see [its documentation](https://github.com/jaredhanson/passport-github#configure-strategy)
 > for more information about the configuration.
 
+Like all other xo-server plugins, it can be configured directly via
+the web iterface, see [the plugin documentation](https://xen-orchestra.com/docs/plugins.html).
+
 ![Registering XO instance in GitHub](github.png)
-
-To enable this plugin you have to add it into the configuration file
-of XO-Server:
-
-```yaml
-plugins:
-
-  auth-github:
-
-    # Both these values will be given to you when your instance of XO
-    # is registered in GitHub
-    # (https://github.com/settings/developers).
-    clientID: c2f2f881062f170e2ec3
-    clientSecret: 4335e70f62e2dbb7917df0126b1015b5617bceea
-```
 
 ## Development
 
