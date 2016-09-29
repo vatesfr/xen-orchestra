@@ -1,8 +1,5 @@
-import forEach from 'lodash.foreach'
 import { all } from 'promise-toolbox'
-import sortBy from 'lodash.sortby'
-import map from 'lodash.map'
-import isFinite from 'lodash.isfinite'
+import { forEach, isFinite, map, sortBy } from 'lodash'
 
 export const configurationSchema = {
   type: 'object',
