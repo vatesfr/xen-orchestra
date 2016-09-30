@@ -419,6 +419,7 @@ export default {
   hostLicenseExpiry: 'Expiry',
   // ----- Host net tabs -----
   networkCreateButton: 'Ajouter un réseau',
+  networkCreateBondedButton: 'Ajouter un réseau agrégé',
   pifDeviceLabel: 'Device',
   pifNetworkLabel: 'Réseau',
   pifVlanLabel: 'VLAN',
@@ -927,6 +928,7 @@ export default {
 
   // ----- Network -----
   newNetworkCreate: 'Créer un réseau',
+  newBondedNetworkCreate: 'Créer un réseau agrégé',
   newNetworkInterface: 'Interface',
   newNetworkName: 'Nom',
   newNetworkDescription: 'Description',
@@ -934,9 +936,13 @@ export default {
   newNetworkDefaultVlan: 'Si vide, pas de VLAN',
   newNetworkMtu: 'MTU',
   newNetworkDefaultMtu: 'Défaut: 1500',
+  newNetworkNoNameErrorTitle: 'Un nom est nécessaire',
+  newNetworkNoNameErrorMessage: 'Un nom est nécessaire pour créer un réseau',
+  newNetworkBondMode: 'Mode agrégé',
   deleteNetwork: 'Supprimer le réseau',
   deleteNetworkConfirm: 'Êtes-vous sûr de vouloir supprimer ce réseau ?',
   networkInUse: 'Ce réseau est en cours d\'utilisation',
+  pillBonded: 'Agrégé',
 
   // ----- Add host -----
   addHostSelectHost: 'Hôte',
