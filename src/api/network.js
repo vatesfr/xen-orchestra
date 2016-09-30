@@ -1,3 +1,9 @@
+import { mapToArray } from '../utils'
+
+export function getBondModes () {
+  return ['balance-slb', 'active-backup', 'lacp']
+}
+
 export async function create ({ pool, name, description, pif, mtu = 1500, vlan = 0 }) {
   return this.getXapi(pool).createNetwork({
     name,
@@ -23,6 +29,39 @@ create.resolve = {
 create.permission = 'admin'
 
 // =================================================================
+
+export async function createBonded ({ pool, name, description, pifs, mtu = 1500, mac, bondMode }) {
+  return this.getXapi(pool).createBondedNetwork({
+    name,
+    description,
+    pifIds: mapToArray(pifs, pif =>
+      this.getObject(pif, 'PIF')._xapiId
+    ),
+    mtu: +mtu,
+    mac,
+    bondMode
+  })
+}
+
+createBonded.params = {
+  pool: { type: 'string' },
+  name: { type: 'string' },
+  description: { type: 'string', optional: true },
+  pifs: {
+    type: 'array',
+    items: {
+      type: 'string'
+    }
+  },
+  mtu: { type: ['integer', 'string'], optional: true },
+  // RegExp since schema-inspector does not provide a param check based on an enumeration
+  bondMode: { type: 'string', pattern: new RegExp(`^(${getBondModes().join('|')})$`) }
+}
+
+createBonded.resolve = {
+  pool: ['pool', 'pool', 'administrate']
+}
+createBonded.permission = 'admin'
 
 // ===================================================================
 

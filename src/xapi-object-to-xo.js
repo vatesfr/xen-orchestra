@@ -3,6 +3,7 @@ import {
   extractProperty,
   forEach,
   isArray,
+  isEmpty,
   mapToArray,
   parseXml
 } from './utils'
@@ -406,6 +407,7 @@ const TRANSFORMS = {
       type: 'PIF',
 
       attached: Boolean(obj.currently_attached),
+      isBondMaster: !isEmpty(obj.bond_master_of),
       device: obj.device,
       dns: obj.DNS,
       disallowUnplug: Boolean(obj.disallow_unplug),

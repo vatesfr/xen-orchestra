@@ -3,8 +3,10 @@
 import every from 'lodash/every'
 import fatfs from 'fatfs'
 import find from 'lodash/find'
+import flatten from 'lodash/flatten'
 import includes from 'lodash/includes'
 import tarStream from 'tar-stream'
+import uniq from 'lodash/uniq'
 import vmdkToVhd from 'xo-vmdk-to-vhd'
 import { defer } from 'promise-toolbox'
 import {
@@ -53,6 +55,7 @@ import {
   getNamespaceForType,
   isVmHvm,
   isVmRunning,
+  NULL_REF,
   optional,
   prepareXapiParam,
   put
@@ -624,7 +627,7 @@ export default class Xapi extends XapiBase {
       actions_after_crash,
       actions_after_reboot,
       actions_after_shutdown,
-      affinity: affinity == null ? 'OpaqueRef:NULL' : affinity,
+      affinity: affinity == null ? NULL_REF : affinity,
       HVM_boot_params,
       HVM_boot_policy,
       is_a_template: asBoolean(is_a_template),
@@ -1868,10 +1871,33 @@ export default class Xapi extends XapiBase {
     return this._getOrWaitObject(networkRef)
   }
 
+  async createBondedNetwork ({
+    bondMode,
+    mac,
+    pifIds,
+    ...params
+  }) {
+    const network = await this.createNetwork(params)
+    // TODO: test and confirm:
+    // Bond.create is called here with PIFs from one host but XAPI should then replicate the
+    // bond on each host in the same pool with the corresponding PIFs (ie same interface names?).
+    await this.call('Bond.create', network.$ref, map(pifIds, pifId => this.getObject(pifId).$ref), mac, bondMode)
+
+    return network
+  }
+
   async deleteNetwork (networkId) {
     const network = this.getObject(networkId)
+    const pifs = network.$PIFs
+
+    const vlans = uniq(mapToArray(pifs, pif => pif.VLAN_master_of))
     await Promise.all(
-      mapToArray(network.$PIFs, (pif) => this.call('VLAN.destroy', pif.$VLAN_master_of.$ref))
+      mapToArray(vlans, vlan => vlan !== NULL_REF && this.call('VLAN.destroy', vlan))
+    )
+
+    const bonds = uniq(flatten(mapToArray(pifs, pif => pif.bond_master_of)))
+    await Promise.all(
+      mapToArray(bonds, bond => this.call('Bond.destroy', bond))
     )
 
     await this.call('network.destroy', network.$ref)

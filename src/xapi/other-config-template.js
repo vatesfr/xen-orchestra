@@ -1,3 +1,5 @@
+import { NULL_REF } from './utils'
+
 const OTHER_CONFIG_TEMPLATE = {
   actions_after_crash: 'restart',
   actions_after_reboot: 'restart',
@@ -32,7 +34,7 @@ const OTHER_CONFIG_TEMPLATE = {
     hpet: 'true',
     viridian: 'true'
   },
-  protection_policy: 'OpaqueRef:NULL',
+  protection_policy: NULL_REF,
   PV_args: '',
   PV_bootloader: '',
   PV_bootloader_args: '',

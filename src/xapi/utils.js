@@ -348,6 +348,10 @@ export const makeEditObject = specs => {
 
 // ===================================================================
 
+export const NULL_REF = 'OpaqueRef:NULL'
+
+// ===================================================================
+
 // HTTP put, use an ugly hack if the length is not known because XAPI
 // does not support chunk encoding.
 export const put = (stream, {
