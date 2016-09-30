@@ -17,6 +17,7 @@
 .item {
   padding: 0.5em;
   border-bottom: 1px solid #eee;
+  white-space: nowrap;
 }
 
 .item:hover {
