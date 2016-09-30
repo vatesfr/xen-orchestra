@@ -115,7 +115,7 @@
     "standard": "^8.2.0",
     "superagent": "^2.0.0",
     "tar-stream": "^1.5.2",
-    "vinyl": "^1.1.1",
+    "vinyl": "^2.0.0",
     "watchify": "^3.7.0",
     "xml2js": "^0.4.17",
     "xo-acl-resolver": "^0.2.1",
