@@ -416,6 +416,7 @@ var messages = {
   hostLicenseExpiry: 'Expiry',
   // ----- Host net tabs -----
   networkCreateButton: 'Add a network',
+  networkCreateBondedButton: 'Add a bonded network',
   pifDeviceLabel: 'Device',
   pifNetworkLabel: 'Network',
   pifVlanLabel: 'VLAN',
@@ -924,6 +925,7 @@ var messages = {
 
   // ----- Network -----
   newNetworkCreate: 'Create network',
+  newBondedNetworkCreate: 'Create bonded network',
   newNetworkInterface: 'Interface',
   newNetworkName: 'Name',
   newNetworkDescription: 'Description',
@@ -931,9 +933,13 @@ var messages = {
   newNetworkDefaultVlan: 'No VLAN if empty',
   newNetworkMtu: 'MTU',
   newNetworkDefaultMtu: 'Default: 1500',
+  newNetworkNoNameErrorTitle: 'Name required',
+  newNetworkNoNameErrorMessage: 'A name is required to create a network',
+  newNetworkBondMode: 'Bond mode',
   deleteNetwork: 'Delete network',
   deleteNetworkConfirm: 'Are you sure you want to delete this network?',
   networkInUse: 'This network is currently in use',
+  pillBonded: 'Bonded',
 
   // ----- Add host -----
   addHostSelectHost: 'Host',

@@ -932,7 +932,32 @@ export const createNetwork = container => (
     title: _('newNetworkCreate'),
     body: <CreateNetworkModalBody container={container} />
   }).then(
-    params => _call('network.create', params),
+    params => {
+      if (!params.name) {
+        return error(_('newNetworkNoNameErrorTitle'), _('newNetworkNoNameErrorMessage'))
+      }
+      return _call('network.create', params)
+    },
+    noop
+  )
+)
+
+export const getBondModes = () =>
+  _call('network.getBondModes')
+
+import CreateBondedNetworkModalBody from './create-bonded-network-modal'
+export const createBondedNetwork = container => (
+  confirm({
+    icon: 'network',
+    title: _('newBondedNetworkCreate'),
+    body: <CreateBondedNetworkModalBody pool={container.$pool} />
+  }).then(
+    params => {
+      if (!params.name) {
+        return error(_('newNetworkNoNameErrorTitle'), _('newNetworkNoNameErrorMessage'))
+      }
+      return _call('network.createBonded', params)
+    },
     noop
   )
 )
