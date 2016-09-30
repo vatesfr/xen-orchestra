@@ -40,7 +40,7 @@ class CreateBondedNetworkModalBody extends Component {
       description,
       pifs: map(pifs, pif => pif.id),
       mtu,
-      bond_mode: bondMode
+      bondMode
     }
   }
 

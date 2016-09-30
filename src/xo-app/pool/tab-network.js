@@ -41,7 +41,7 @@ const _conditionalTooltip = (component, tooltip) => tooltip
   const disableUnplug = createSelector(
     pif,
     pif =>
-      pif.attached && !pif.bondMasterOf && (pif.management || pif.disallowUnplug)
+      pif.attached && !pif.isBondMaster && (pif.management || pif.disallowUnplug)
   )
 
   return { host, pif, disableUnplug }
@@ -87,7 +87,7 @@ class PifItem extends Component {
     createGetObjectsOfType('PIF').pick(
       (_, props) => props && props.network.PIFs
     ),
-    pifs => some(pifs, pif => !isEmpty(pif.bondMasterOf))
+    pifs => some(pifs, 'isBondMaster')
   )
 }))
 class NetworkName extends Component {
@@ -167,7 +167,7 @@ class PifsItem extends BaseComponent {
   )
 
   const disablePifUnplug = pif =>
-      pif.attached && !pif.bondMasterOf && (pif.management || pif.disallowUnplug)
+      pif.attached && !pif.isBondMaster && (pif.management || pif.disallowUnplug)
 
   const getDisableNetworkDelete = createSelector(
     getPifs,
