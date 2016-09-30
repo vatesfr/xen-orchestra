@@ -295,7 +295,11 @@ export default class {
   async _chainDeltaVdiBackups ({handler, dir}) {
     const backups = await this._listVdiBackups(handler, dir)
     for (let i = 1; i < backups.length; i++) {
-      await chainVhd(handler, dir + '/' + backups[i - 1], handler, dir + '/' + backups[i])
+      const childPath = dir + '/' + backups[i]
+      const modified = await chainVhd(handler, dir + '/' + backups[i - 1], handler, childPath)
+      if (modified) {
+        await handler.refreshChecksum(childPath)
+      }
     }
   }
 

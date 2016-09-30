@@ -154,6 +154,13 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
+  async refreshChecksum (path) {
+    const stream = addChecksumToReadStream(await this.createReadStream(path))
+    stream.resume() // start reading the whole file
+    const checksum = await stream.checksum
+    await this.outputFile(`${path}.checksum`, checksum)
+  }
+
   async createOutputStream (file, {
     checksum = false,
     ...options

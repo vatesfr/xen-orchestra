@@ -572,6 +572,7 @@ export default async function vhdMerge (
   await parentVhd.writeFooter()
 }
 
+// returns true if the child was actually modified
 export async function chainVhd (
   parentHandler, parentPath,
   childHandler, childPath
@@ -588,5 +589,7 @@ export async function chainVhd (
     childVhd.header.parentUuid = parentUuid
     childVhd.header.parentUnicodeName = parentName
     await childVhd.writeHeader()
+    return true
   }
+  return false
 }
