@@ -10,7 +10,7 @@ ___
 
 ## Installation
 
-XOA or manual install procedure is [available here](https://github.com/vatesfr/xo/blob/master/doc/installation/README.md)
+XOA or manual install procedure is [available here](https://xen-orchestra.com/docs/installation.html)
 
 ## Compilation
 
