@@ -100,6 +100,16 @@ import TabDisks from './tab-disks'
   }
 })
 export default class Sr extends Component {
+  static contextTypes = {
+    router: React.PropTypes.object
+  }
+
+  componentWillReceiveProps (props) {
+    if (this.props.sr && !props.sr) {
+      this.context.router.push('/')
+    }
+  }
+
   header () {
     const { sr, container } = this.props
     if (!sr) {
