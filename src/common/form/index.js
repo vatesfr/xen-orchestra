@@ -165,12 +165,12 @@ export class SizeInput extends BaseComponent {
   constructor (props) {
     super(props)
 
-    this.state = this._createStateFromBytes(firstDefined(props.value, props.defaultValue, 0))
+    this.state = this._createStateFromBytes(firstDefined(props.value, props.defaultValue))
   }
 
   componentWillReceiveProps (newProps) {
     const { value } = newProps
-    if (value == null && value === this.props.value) {
+    if (value === this.props.value) {
       return
     }
 
@@ -189,7 +189,7 @@ export class SizeInput extends BaseComponent {
   }
 
   _createStateFromBytes = bytes => {
-    const humanSize = bytes && formatSizeRaw(bytes)
+    const humanSize = bytes != null && formatSizeRaw(bytes)
     return {
       unit: humanSize && humanSize.value ? humanSize.prefix + 'B' : this.props.defaultUnit || DEFAULT_UNIT,
       value: humanSize ? round(humanSize.value, 3) : ''
@@ -221,7 +221,7 @@ export class SizeInput extends BaseComponent {
     if (this.props.value != null) {
       this._value = value
       this._unit = this.state.unit
-      this._bytes = parseSize((value || 0) + ' ' + this.state.unit)
+      this._bytes = value ? parseSize(value + ' ' + this.state.unit) : undefined
 
       this._onChange(this._bytes)
     } else {
@@ -271,6 +271,7 @@ export class SizeInput extends BaseComponent {
         placeholder={placeholder}
         readOnly={readOnly}
         required={required}
+        step={10e-3}
         type='number'
         value={value}
       />
