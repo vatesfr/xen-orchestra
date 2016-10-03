@@ -16,7 +16,8 @@ import {
   editHost,
   removeTag,
   startHost,
-  stopHost
+  stopHost,
+  fetchHostStats
 } from 'xo'
 import {
   connectStore,
@@ -27,6 +28,11 @@ import {
   createDoesHostNeedRestart,
   createGetObject
 } from 'selectors'
+import {
+  MiniCpuSparkLines,
+  MiniPifSparkLines,
+  MiniLoadSparkLines
+} from 'xo-sparklines'
 
 import styles from './index.css'
 
@@ -48,6 +54,14 @@ export default class HostItem extends Component {
   _stop = () => stopHost(this.props.item)
   _toggleExpanded = () => this.setState({ expanded: !this.state.expanded })
   _onSelect = () => this.props.onSelect(this.props.item.id)
+
+  componentWillMount () {
+    fetchHostStats(this.props.item).then(stats => {
+      this.setState({
+        statsOverview: stats
+      })
+    })
+  }
 
   render () {
     const { item: host, container, expandAll, selected } = this.props
@@ -79,7 +93,7 @@ export default class HostItem extends Component {
               {this.props.needsRestart && <Tooltip content={_('rebootUpdateHostLabel')}><Link to={`/hosts/${host.id}/patches`}><Icon icon='alarm' /></Link></Tooltip>}
             </EllipsisContainer>
           </Col>
-          <Col mediumSize={4} className='hidden-lg-down'>
+          <Col mediumSize={3} className='hidden-lg-down'>
             <EllipsisContainer>
               <span className={styles.itemActionButons}>
                 {this._isRunning
@@ -129,15 +143,21 @@ export default class HostItem extends Component {
       </BlockLink>
       {(this.state.expanded || expandAll) &&
         <Row>
-          <Col mediumSize={4} className={styles.itemExpanded}>
+          <Col mediumSize={2} className={styles.itemExpanded}>
+            {this.state.statsOverview && <MiniCpuSparkLines data={this.state.statsOverview} />}
+          </Col>
+          <Col mediumSize={2} className={styles.itemExpanded}>
+            {this.state.statsOverview && <MiniPifSparkLines data={this.state.statsOverview} />}
+          </Col>
+          <Col mediumSize={2} className={styles.itemExpanded}>
+            {this.state.statsOverview && <MiniLoadSparkLines data={this.state.statsOverview} />}
+          </Col>
+          <Col mediumSize={2} className={styles.itemExpanded}>
             <span>
               {host.cpus.cores}x <Icon icon='cpu' />
               {' '}&nbsp;{' '}
               {formatSize(host.memory.size)} <Icon icon='memory' />
             </span>
-          </Col>
-          <Col mediumSize={4} className={styles.itemExpanded}>
-            <span className='tag tag-info tag-ip'>{host.address}</span>
           </Col>
           <Col mediumSize={4}>
             <span style={{fontSize: '1.4em'}}>
