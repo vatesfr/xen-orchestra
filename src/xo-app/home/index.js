@@ -161,7 +161,7 @@ const OPTIONS = {
 
 const TYPES = {
   VM: _('homeTypeVm'),
-  'VM-template': _('homeTypeTemplate'),
+  'VM-template': _('homeTypeVmTemplate'),
   host: _('homeTypeHost'),
   pool: _('homeTypePool')
 }

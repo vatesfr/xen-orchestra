@@ -99,7 +99,7 @@ var messages = {
   homeTypeHost: 'Host',
   homeTypeVm: 'VM',
   homeTypeSr: 'SR',
-  homeTypeTemplate: 'Template',
+  homeTypeVmTemplate: 'Template',
   homeSort: 'Sort',
   homeAllPools: 'Pools',
   homeAllHosts: 'Hosts',
