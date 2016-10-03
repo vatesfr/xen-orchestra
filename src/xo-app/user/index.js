@@ -49,9 +49,10 @@ const HEADER = <Container>
 // ===================================================================
 
 const FILTER_TYPE_TO_LABEL_ID = {
-  VM: 'homeTypeVm',
   host: 'homeTypeHost',
-  pool: 'homeTypePool'
+  pool: 'homeTypePool',
+  VM: 'homeTypeVm',
+  vmTemplate: 'homeTypeVmTemplate'
 }
 
 const SSH_KEY_STYLE = { wordWrap: 'break-word' }
