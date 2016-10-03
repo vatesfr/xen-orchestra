@@ -79,7 +79,7 @@ export default class HostItem extends Component {
               {this.props.needsRestart && <Tooltip content={_('rebootUpdateHostLabel')}><Link to={`/hosts/${host.id}/patches`}><Icon icon='alarm' /></Link></Tooltip>}
             </EllipsisContainer>
           </Col>
-          <Col mediumSize={4} className='hidden-md-down'>
+          <Col mediumSize={4} className='hidden-lg-down'>
             <EllipsisContainer>
               <span className={styles.itemActionButons}>
                 {this._isRunning
@@ -106,11 +106,11 @@ export default class HostItem extends Component {
               </Ellipsis>
             </EllipsisContainer>
           </Col>
-          <Col largeSize={2} className='hidden-lg-down'>
+          <Col largeSize={2} className='hidden-md-down'>
             <span>
-              {host.cpus.cores}x <Icon icon='cpu' />
-              {' '}
-              {formatSize(host.memory.size)}
+              <Tooltip content={_('memoryLeftTooltip', {used: Math.round((host.memory.usage / host.memory.size) * 100), free: formatSize(host.memory.size - host.memory.usage)})}>
+                <progress style={{margin: 0}} className='progress' value={host.memory.usage / host.memory.size * 100} max='100' />
+              </Tooltip>
             </span>
           </Col>
           <Col largeSize={2} className='hidden-lg-down'>
