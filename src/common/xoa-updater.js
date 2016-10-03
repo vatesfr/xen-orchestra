@@ -208,7 +208,7 @@ class XoaUpdater extends EventEmitter {
       return c
     } else {
       return eventToPromise.multi(c, ['open'], ['closed', 'error'])
-      .then(() => handleOpen(c), openFailure)
+      .return(c)
     }
   }
 
