@@ -164,12 +164,17 @@ class UserFilters extends Component {
             <h4>{_('customizeFilters')}</h4>
             <div>
               {map(homeFilters, (filters, type) => {
+                const labelId = FILTER_TYPE_TO_LABEL_ID[type]
+                if (!labelId) {
+                  return
+                }
+
                 const customFilters = customFiltersByType && customFiltersByType[type]
                 const defaultFilter = getDefaultFilter(defaultHomeFilters, type)
 
                 return (
                   <div key={type}>
-                    <h5>{_(FILTER_TYPE_TO_LABEL_ID[type])}</h5>
+                    <h5>{_(labelId)}</h5>
                     <hr />
                     <DefaultFilterPicker
                       customFilters={customFilters}
