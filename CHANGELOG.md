@@ -1,5 +1,32 @@
 # ChangeLog
 
+## **5.2.3** (2016-10-03)
+
+### Enhancements
+
+- Improve keyboard navigation [\#1578](https://github.com/vatesfr/xo-web/issues/1578)
+- Strongly suggest to install the guest tools [\#1575](https://github.com/vatesfr/xo-web/issues/1575)
+- Missing tooltip [\#1568](https://github.com/vatesfr/xo-web/issues/1568)
+- Emphasize already used ips in ipPools [\#1566](https://github.com/vatesfr/xo-web/issues/1566)
+- Change "missing feature message" for non-admins [\#1564](https://github.com/vatesfr/xo-web/issues/1564)
+- Allow VIF edition [\#1446](https://github.com/vatesfr/xo-web/issues/1446)
+- Disable browser autocomplete on credentials on the Update page [\#1304](https://github.com/vatesfr/xo-web/issues/1304)
+- keyboard shortcuts [\#1279](https://github.com/vatesfr/xo-web/issues/1279)
+- Add network bond creation [\#876](https://github.com/vatesfr/xo-web/issues/876)
+
+### Bug fixes
+
+- Profile page is broken [\#1612](https://github.com/vatesfr/xo-web/issues/1612)
+- SR delete should redirect to home [\#1611](https://github.com/vatesfr/xo-web/issues/1611)
+- Delta VHD backup checksum is invalidated by chaining [\#1606](https://github.com/vatesfr/xo-web/issues/1606)
+- VM with long description break on 2 lines [\#1580](https://github.com/vatesfr/xo-web/issues/1580)
+- Network status on VM edition [\#1573](https://github.com/vatesfr/xo-web/issues/1573)
+- VM template deletion fails [\#1571](https://github.com/vatesfr/xo-web/issues/1571)
+- Template edition - "no such object" [\#1569](https://github.com/vatesfr/xo-web/issues/1569)
+- missing links / element not displayed as links [\#1567](https://github.com/vatesfr/xo-web/issues/1567)
+- Backup restore stalled on some SMB shares [\#1412](https://github.com/vatesfr/xo-web/issues/1412)
+- Wrong bond display [\#1156](https://github.com/vatesfr/xo-web/issues/1156)
+
 ## **5.2.2** (2016-09-21)
 
 ### Enhancements
