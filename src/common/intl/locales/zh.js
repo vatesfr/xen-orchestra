@@ -218,9 +218,6 @@ export default {
   // Original text: "SR"
   homeTypeSr: undefined,
 
-  // Original text: "VDI"
-  homeTypeVdi: undefined,
-
   // Original text: "Sort"
   homeSort: undefined,
 

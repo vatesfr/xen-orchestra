@@ -215,9 +215,6 @@ export default {
   // Original text: "SR"
   homeTypeSr: 'SR',
 
-  // Original text: "VDI"
-  homeTypeVdi: 'VDI',
-
   // Original text: "Sort"
   homeSort: 'Ordenar',
 
