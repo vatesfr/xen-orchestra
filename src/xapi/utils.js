@@ -317,14 +317,20 @@ export const makeEditObject = specs => {
         const cbs = []
 
         forEach(constraints, (constraint, constraintName) => {
-          // This constraint value is already defined: bypass the constraint.
-          if (values[constraintName] != null) {
-            return
-          }
+          // Before setting a property to a new value, if the constraint check fails (e.g. memoryMin > memoryMax):
+          //    - if the user wants to set the constraint (ie constraintNewValue is defined):
+          //        constraint <-- constraintNewValue THEN property <-- value (e.g. memoryMax <-- 2048 THEN memoryMin <-- 1024)
+          //    - if the user DOES NOT want to set the constraint (ie constraintNewValue is NOT defined):
+          //        constraint <-- value THEN property <-- value (e.g. memoryMax <-- 1024 THEN memoryMin <-- 1024)
+          // FIXME: Some values combinations will lead to setting the same property twice, which is not perfect but works for now.
+          const constraintCurrentValue = specs[constraintName].get(object)
+          const constraintNewValue = values[constraintName]
 
-          if (!constraint(specs[constraintName].get(object), value)) {
-            const cb = set(value, constraintName)
-            cbs.push(cb)
+          if (!constraint(constraintCurrentValue, value)) {
+            const cb = set(constraintNewValue == null ? value : constraintNewValue, constraintName)
+            if (cb) {
+              cbs.push(cb)
+            }
           }
         })
 
