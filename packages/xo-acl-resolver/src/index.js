@@ -85,7 +85,7 @@ const checkAuthorizationByTypes = {
 
   'VM-snapshot': checkMember('$snapshot_of'),
 
-  'VM-template': authorized
+  'VM-template': or(checkSelf, checkMember('$pool'))
 }
 
 // Hoisting is important for this function.
