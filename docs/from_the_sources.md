@@ -67,7 +67,7 @@ git clone -b stable http://github.com/vatesfr/xo-web
 Once you have it, use `npm`, as the non-root user owning the fetched code, to install the other dependencies: go into XO-Server directory and launch the following command:
 
 ```
-npm install
+npm install && npm run build
 ```
 
 Then, you have to create a config file for XO-Server:
@@ -100,7 +100,7 @@ WebServer listening on localhost:80
 First, we'll also install dependencies:
 
 ```
-$ npm install
+$ npm install && npm run build
 ```
 ## Running XO
 
@@ -135,16 +135,11 @@ $ npm run build
 
 ## Troubleshooting
 
-If you have problem during the buiding phase in `xo-web`, follow these steps:
+If you have problem during the buiding phase in `xo-web` or `xo-server`, follow these steps:
 
 1. `rm -rf node_modules`
 1. `npm install`
 1. `npm run build`
-
-Same principle for `xo-server`:
-
-1. `rm -rf node_modules`
-1. `npm install`
 
 ## FreeBSD
 
