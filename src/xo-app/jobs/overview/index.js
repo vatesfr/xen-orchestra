@@ -120,7 +120,7 @@ export default class Overview extends Component {
       ? <Container>
         <Card>
           <CardHeader>
-            <Icon icon='schedule' /> Schedules
+            <Icon icon='schedule' /> {_('backupSchedules')}
           </CardHeader>
           <CardBlock>
             {schedules.length ? (

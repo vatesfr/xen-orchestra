@@ -807,6 +807,7 @@ var messages = {
   xsTasks: 'Currently, there are not any pending XenServer tasks',
 
   // ---- Backup views ---
+  backupSchedules: 'Schedules',
   getRemote: 'Get remote',
   listRemote: 'List Remote',
   simpleBackup: 'simple',

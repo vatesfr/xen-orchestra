@@ -810,6 +810,7 @@ export default {
   xsTasks: 'Actuellement, il n\'y a aucune tâches en attente',
 
   // ---- Backup views ---
+  backupSchedules: 'Planifier',
   getRemote: 'Récupérer les emplacements',
   listRemote: 'Lister les emplacements',
   simpleBackup: 'simple',
