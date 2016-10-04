@@ -666,7 +666,7 @@ export default {
   srUsed: 'utilisé',
   srFree: 'libre',
   srUsageStatePanel: 'Utilisation du stockage',
-  srTopUsageStatePanel: 'Top 5 d\'utilisation des SR (in %)',
+  srTopUsageStatePanel: 'Top 5 d\'utilisation des SR (en %)',
   vmsStates: '{running} en cours ({halted} stoppés)',
 
   // --- Stats board --
