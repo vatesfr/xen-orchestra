@@ -152,7 +152,7 @@ export default class HostItem extends Component {
           <Col mediumSize={2} className={styles.itemExpanded}>
             {this.state.statsOverview && <MiniLoadSparkLines data={this.state.statsOverview} />}
           </Col>
-          <Col mediumSize={2} className={styles.itemExpanded}>
+          <Col mediumSize={2} className={styles.itemExpanded} style={{ marginTop: '0.3rem' }}>
             <span>
               {host.cpus.cores}x <Icon icon='cpu' />
               {' '}&nbsp;{' '}
