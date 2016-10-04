@@ -50,7 +50,7 @@ export default {
   settingsGroupsPage: 'Groupes',
   settingsAclsPage: 'Droits',
   settingsPluginsPage: 'Plugins',
-  settingsLogsPage: 'Logs',
+  settingsLogsPage: 'Journaux',
   settingsIpsPage: 'IPs',
   aboutPage: 'À propos',
   newMenu: 'Nouveau',
@@ -473,7 +473,7 @@ export default {
   consoleTabName: 'Console',
   containersTabName: 'Conteneur',
   snapshotsTabName: 'Instantannés',
-  logsTabName: 'Logs',
+  logsTabName: 'Journaux',
   advancedTabName: 'Avancés',
   networkTabName: 'Réseaux',
   disksTabName: 'Disque{disks, plural, one {} other {s}}',
@@ -591,8 +591,8 @@ export default {
   snapshotAction: 'Action',
 
   // ----- VM log tab -----
-  logRemoveAll: 'Supprimer tout les logs',
-  noLogs: 'Pas de logs jusque là',
+  logRemoveAll: 'Supprimer tout les journaux',
+  noLogs: 'Pas de journaux jusque là',
   logDate: 'Date de création',
   logName: 'Nom',
   logContent: 'Contenu',
@@ -888,8 +888,8 @@ export default {
   importBackupModalStart: 'Démarrer la VM après la restauration',
   importBackupModalSelectBackup: 'Sélectionnez votre sauvegarde…',
   removeAllOrphanedModalWarning: 'Êtes-vous sûr de vouloir supprimer tout les VDIs orphelin ?',
-  removeAllLogsModalTitle: 'Supprimer tout les logs',
-  removeAllLogsModalWarning: 'Êtes-vous sûr de vouloir supprimer tout les logs ?',
+  removeAllLogsModalTitle: 'Supprimer tout les journaux',
+  removeAllLogsModalWarning: 'Êtes-vous sûr de vouloir supprimer tout les journaux ?',
   definitiveMessageModal: 'Cette action est irréversible.',
   existingSrModalTitle: 'Previous SR Usage',
   existingSrModalText: 'Cet emplacement avait été utilisé auparavant comme un Stockage par un hôte XenServer. Toute les données présente seront perdue sur vous décider de continuer la création du SR.',
@@ -1052,7 +1052,7 @@ export default {
   others: 'Autres',
 
   // ----- Logs -----
-  loadingLogs: 'Chargement des logs...',
+  loadingLogs: 'Chargement des journaux...',
   logUser: 'Utilisateur',
   logMethod: 'Méthode',
   logParams: 'Paramètres',
@@ -1063,9 +1063,9 @@ export default {
   logNoStackTrace: 'No stack trace',
   logNoParams: 'No params',
   logDelete: 'Supprimer le log',
-  logDeleteAll: 'Supprimer tout les logs',
-  logDeleteAllTitle: 'Supprimer tout les logs',
-  logDeleteAllMessage: 'Êtes-vous sûr de vouloir supprimer tout les logs ?',
+  logDeleteAll: 'Supprimer tout les journaux',
+  logDeleteAllTitle: 'Supprimer tout les journaux',
+  logDeleteAllMessage: 'Êtes-vous sûr de vouloir supprimer tout les journaux ?',
 
   // ----- IPs ------
   ipPoolName: 'Nom',
