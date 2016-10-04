@@ -61,16 +61,9 @@ extract = (obj, prop) ->
 
 # TODO: Implement ACLs
 create = $coroutine (params) ->
-  checkLimits = limits = null
-
   { user } = this
   resourceSet = extract(params, 'resourceSet')
-  if resourceSet
-    yield this.checkResourceSetConstraints(resourceSet, user.id, objectIds)
-    checkLimits = $coroutine (limits2) =>
-      yield this.allocateLimitsInResourceSet(limits, resourceSet)
-      yield this.allocateLimitsInResourceSet(limits2, resourceSet)
-  else unless user.permission is 'admin'
+  if not resourceSet and user.permission isnt 'admin'
     throw new Unauthorized()
 
   template = extract(params, 'template')
@@ -146,6 +139,13 @@ create = $coroutine (params) ->
 
   installation = extract(params, 'installation')
   params.installRepository = installation && installation.repository
+
+  checkLimits = null
+  if resourceSet
+    yield this.checkResourceSetConstraints(resourceSet, user.id, objectIds)
+    checkLimits = $coroutine (limits2) =>
+      yield this.allocateLimitsInResourceSet(limits, resourceSet)
+      yield this.allocateLimitsInResourceSet(limits2, resourceSet)
 
   xapiVm = yield xapi.createVm(template._xapiId, params, checkLimits)
   vm = xapi.xo.addObject(xapiVm)
@@ -257,7 +257,7 @@ create.params = {
 }
 
 create.resolve = {
-  template: ['template', 'VM-template', 'administrate'],
+  template: ['template', 'VM-template'],
 }
 
 exports.create = create
