@@ -21,7 +21,7 @@ import SingleLineRow from 'single-line-row'
 import size from 'lodash/size'
 import Tooltip from 'tooltip'
 import { Card, CardHeader, CardBlock } from 'card'
-import { Shortcuts } from 'react-shortcuts'
+import Shortcuts from 'shortcuts'
 import {
   addCustomFilter,
   copyVms,
