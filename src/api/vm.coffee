@@ -257,7 +257,7 @@ create.params = {
 }
 
 create.resolve = {
-  template: ['template', 'VM-template'],
+  template: ['template', 'VM-template', ''],
 }
 
 exports.create = create
