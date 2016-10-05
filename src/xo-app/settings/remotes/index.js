@@ -315,18 +315,18 @@ export default class Remotes extends Component {
             <fieldset className='form-group'>
               <div className='input-group'>
                 <span className='input-group-addon'>/</span>
-                <input type='text' ref='path' pattern='^(([^/]+)+(/[^/]+)*)?$' className='form-control' placeholder='path/to/backup' />
+                <input type='text' ref='path' pattern='^(([^/]+)+(/[^/]+)*)?$' className='form-control' placeholder={_('remoteLocalPlaceHolderPath')} />
               </div>
             </fieldset>
           }
           {type === 'nfs' &&
             <fieldset className='form-group'>
               <div className='form-group'>
-                <input type='text' ref='host' className='form-control' placeholder='host *' required />
+                <input type='text' ref='host' className='form-control' placeholder={_('remoteNfsPlaceHolderHost')} required />
               </div>
               <div className='input-group'>
                 <span className='input-group-addon'>/</span>
-                <input type='text' ref='path' pattern='^(([^/]+)+(/[^/]+)*)?$' className='form-control' placeholder='path/to/backup' />
+                <input type='text' ref='path' pattern='^(([^/]+)+(/[^/]+)*)?$' className='form-control' placeholder={_('remoteNfsPlaceHolderPath'} />
               </div>
             </fieldset>
           }
@@ -334,18 +334,18 @@ export default class Remotes extends Component {
             <fieldset className='form-group'>
               <div className='input-group form-group'>
                 <span className='input-group-addon'>\\</span>
-                <input type='text' ref='host' pattern='^([^\\/]+)\\([^\\/]+)$' className='form-control' placeholder='<address>\<share> *' required />
+                <input type='text' ref='host' pattern='^([^\\/]+)\\([^\\/]+)$' className='form-control' placeholder={_('remoteSmbPlaceHolderAddressShare')} required />
                 <span className='input-group-addon'>\</span>
-                <input type='text' ref='path' pattern='^(([^\\/]+)+(\\[^\\/]+)*)?$' className='form-control' placeholder='subfolder [path\to\backup]' />
+                <input type='text' ref='path' pattern='^(([^\\/]+)+(\\[^\\/]+)*)?$' className='form-control' placeholder={_('remoteSmbPlaceHolderRemotePath')} />
               </div>
               <div className='form-group'>
-                <input type='text' ref='username' className='form-control' placeholder='User Name' />
+                <input type='text' ref='username' className='form-control' placeholder={_('remoteSmbPlaceHolderUsername')} />
               </div>
               <div className='form-group'>
-                <input type='text' ref='password' className='form-control' placeholder='Password' />
+                <input type='text' ref='password' className='form-control' placeholder={_('remoteSmbPlaceHolderPassword')} />
               </div>
               <div className='form-group'>
-                <input type='text' ref='domain' className='form-control' placeholder='Domain' required />
+                <input type='text' ref='domain' className='form-control' placeholder={_('remoteSmbPlaceHolderDomain')} required />
               </div>
             </fieldset>
           }

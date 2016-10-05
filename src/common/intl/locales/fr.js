@@ -265,6 +265,10 @@ export default {
   remoteNfsPlaceHolderHost: 'hôte*',
   remoteNfsPlaceHolderPath: '/chemin/de/la/sauvegarde',
   remoteSmbPlaceHolderRemotePath: 'sous-répertoire [chemin\vers\la\sauvegarde]',
+  remoteSmbPlaceHolderUsername: 'Nom d\'utilisateur',
+  remoteSmbPlaceHolderPassword: 'Mot de passe',
+  remoteSmbPlaceHolderDomain: 'Domaine',
+  remoteSmbPlaceHolderAddressShare: '<adresse>\<partage> *',
   remotePlaceHolderPassword: 'mot de passe (saisir ici pour éditer)',
 
   // ------ New Storage -----
@@ -293,6 +297,7 @@ export default {
   // ----- Acls, Users, Groups ------
   subjectName: 'Utilisateurs/Groupes',
   objectName: 'Objet',
+  aclNoneFound: 'Aucun droits existants',
   roleName: 'Rôle',
   aclCreate: 'Créer',
   newGroupName: 'Nouveau nom de groupe',
@@ -850,7 +855,7 @@ export default {
   restoreBackups: 'Restauration de sauvegardes',
   noRemotes: 'Pas d\'emplacements',
   remoteEnabled: 'activé',
-  remoteError: 'erreur',
+  remoteError: 'Erreur',
   noBackup: 'Pas de sauvegarde disponible',
   backupVmNameColumn: 'Nom de la VM',
   backupTagColumn: 'Tag de sauvegarde',

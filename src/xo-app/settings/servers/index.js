@@ -66,7 +66,7 @@ export default class Servers extends Component {
                 <EditablePassword
                   value=''
                   onChange={password => editServer(server, { password })}
-                  placeholder={_('serverPlaceHolderAddress')}
+                  placeholder={_('serverPlaceHolderPassword')}
                 />
               </td>
               <td>
@@ -117,7 +117,7 @@ export default class Servers extends Component {
           <input
             className='form-control'
             onChange={this.linkState('host')}
-            placeholder='address[:port]'
+            placeholder={_('serverPlaceHolderAddress')}
             required
             type='text'
             value={host}
@@ -128,7 +128,7 @@ export default class Servers extends Component {
           <input
             className='form-control'
             onChange={this.linkState('username')}
-            placeholder='user'
+            placeholder={_('serverPlaceHolderUser')}
             required
             type='text'
             value={username}
@@ -139,7 +139,7 @@ export default class Servers extends Component {
           <Password
             disabled={!this.state.username}
             onChange={this.linkState('password')}
-            placeholder='password'
+            placeholder={_('serverPlaceHolderPassword')}
             required
             value={password}
           />

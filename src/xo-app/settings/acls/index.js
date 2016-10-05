@@ -128,7 +128,7 @@ class AclTable extends Component {
     const { resolvedAcls = [] } = this.state
 
     return isEmpty(resolvedAcls)
-      ? <p><em>No acls found</em></p>
+      ? <p><em>{_('aclNoneFound')}</em></p>
       : <SortedTable collection={resolvedAcls} columns={ACL_COLUMNS} />
   }
 }

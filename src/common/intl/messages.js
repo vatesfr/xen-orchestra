@@ -257,11 +257,15 @@ var messages = {
   remoteConnectTip: 'Connect',
   remoteDisconnectTip: 'Disconnect',
   remoteDeleteTip: 'Delete',
-  remoteNamePlaceHolder: 'remote name*',
+  remoteNamePlaceHolder: 'remote name *',
   remoteLocalPlaceHolderPath: '/path/to/backup',
-  remoteNfsPlaceHolderHost: 'host*',
+  remoteNfsPlaceHolderHost: 'host *',
   remoteNfsPlaceHolderPath: '/path/to/backup',
   remoteSmbPlaceHolderRemotePath: 'subfolder [path\to\backup]',
+  remoteSmbPlaceHolderUsername: 'Username',
+  remoteSmbPlaceHolderPassword: 'Password',
+  remoteSmbPlaceHolderDomain: 'Domain',
+  remoteSmbPlaceHolderAddressShare: '<address>\<share> *',
   remotePlaceHolderPassword: 'password(fill to edit)',
 
   // ------ New Storage -----
@@ -290,6 +294,7 @@ var messages = {
   // ----- Acls, Users, Groups ------
   subjectName: 'Users/Groups',
   objectName: 'Object',
+  aclNoneFound: 'No acls found',
   roleName: 'Role',
   aclCreate: 'Create',
   newGroupName: 'New Group Name',
