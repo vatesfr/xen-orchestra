@@ -12,6 +12,7 @@ import { alert } from 'modal'
 import { error } from 'notification'
 import { format, parse } from 'xo-remote-parser'
 import { Password, Text } from 'editable'
+import { injectIntl } from 'react-intl'
 
 import {
   createRemote,
