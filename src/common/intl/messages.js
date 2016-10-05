@@ -75,6 +75,10 @@ var messages = {
   customJob: 'Custom Job',
   userPage: 'User',
 
+  // ----- Support -----
+  noSupport: 'No support',
+  freeUpgrade: 'Free upgrade!',
+
   // ----- Sign out -----
   signOut: 'Sign out',
 
