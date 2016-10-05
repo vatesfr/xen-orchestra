@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xo-web",
-  "version": "5.2.3",
+  "version": "5.2.4",
   "license": "AGPL-3.0",
   "description": "Web interface client for Xen-Orchestra",
   "keywords": [
@@ -56,6 +56,7 @@
     "cookies-js": "^1.2.2",
     "d3": "^4.0.0-alpha.50",
     "dependency-check": "^2.5.1",
+    "event-to-promise": "^0.7.0",
     "font-awesome": "^4.5.0",
     "font-mfizz": "github:fizzed/font-mfizz",
     "get-stream": "^2.3.0",
@@ -77,6 +78,7 @@
     "later": "^1.2.0",
     "lodash": "^4.6.1",
     "loose-envify": "^1.1.0",
+    "make-error": "^1.2.1",
     "marked": "^0.3.5",
     "modular-css": "^0.27.1",
     "moment": "^2.13.0",
@@ -118,7 +120,7 @@
     "vinyl": "^2.0.0",
     "watchify": "^3.7.0",
     "xml2js": "^0.4.17",
-    "xo-acl-resolver": "^0.2.1",
+    "xo-acl-resolver": "^0.2.2",
     "xo-lib": "^0.8.0",
     "xo-remote-parser": "^0.3"
   },
