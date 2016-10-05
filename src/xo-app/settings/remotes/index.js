@@ -151,11 +151,11 @@ class NfsRemote extends AbstractRemote {
   }
 
   get accessible () {
-    return 'Mounted'
+    return _('remoteMounted')
   }
 
   get unaccessible () {
-    return 'Unmounted'
+    return _('remoteUnmounted')
   }
 }
 
@@ -254,12 +254,12 @@ export default class Remotes extends Component {
           {!isEmpty(remotes.file) &&
             <tbody>
               <tr>
-                <th className='text-info'>Local</th>
-                <th>Name</th>
-                <th>Path</th>
+                <th className='text-info'>{_('remoteTypeLocal')}</th>
+                <th>{_('remoteName')}</th>
+                <th>{_('remotePath')}</th>
                 <th />
-                <th>State</th>
-                <th>Error</th>
+                <th>{_('remoteState')}</th>
+                <th>{_('remoteError')}</th>
                 <th />
               </tr>
               {map(remotes.file, (remote, key) => <LocalRemote remote={remote} key={key} />)}
@@ -268,12 +268,12 @@ export default class Remotes extends Component {
           {!isEmpty(remotes.nfs) &&
             <tbody>
               <tr>
-                <th className='text-info'>NFS</th>
-                <th>Name</th>
-                <th>Device</th>
+                <th className='text-info'>{_('remoteTypeNfs')}</th>
+                <th>{_('remoteName')}</th>
+                <th>{_('remoteDevice')}</th>
                 <th />
-                <th>State</th>
-                <th>Error</th>
+                <th>{_('remoteState')}</th>
+                <th>{_('remoteError')}</th>
                 <th />
               </tr>
               {map(remotes.nfs, (remote, key) => <NfsRemote remote={remote} key={key} />)}
@@ -282,12 +282,12 @@ export default class Remotes extends Component {
           {!isEmpty(remotes.smb) &&
             <tbody>
               <tr>
-                <th className='text-info'>SMB</th>
-                <th>Name</th>
-                <th>Share</th>
-                <th>Auth</th>
-                <th>State</th>
-                <th>Error</th>
+                <th className='text-info'>{_('remoteTypeSmb')}</th>
+                <th>{_('remoteName')}</th>
+                <th>{_('remoteShare')}</th>
+                <th>{_('remoteAuth')}</th>
+                <th>{_('remoteState')}</th>
+                <th>{_('remoteError')}</th>
                 <th />
               </tr>
               {map(remotes.smb, (remote, key) => <SmbRemote remote={remote} key={key} />)}

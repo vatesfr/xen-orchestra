@@ -241,6 +241,17 @@ var messages = {
   remoteTestFile: 'Test file',
   remoteTestSuccessMessage: 'The remote appears to work correctly',
 
+  // ------ Remote -----
+  remoteName: 'Name',
+  remotePath: 'Path',
+  remoteState: 'State',
+  remoteError: 'Error',
+  remoteDevice: 'Device',
+  remoteShare: 'Share',
+  remoteAuth: 'Auth',
+  remoteMounted: 'Mounted',
+  remoteUnmounted: 'Unmounted',
+
   // ------ New Storage -----
   newSrTitle: 'Create a new SR',
   newSrGeneral: 'General',
