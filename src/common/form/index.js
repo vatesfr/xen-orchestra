@@ -1,7 +1,6 @@
 import BaseComponent from 'base-component'
 import classNames from 'classnames'
 import Icon from 'icon'
-import isNaN from 'lodash/isNaN'
 import map from 'lodash/map'
 import randomPassword from 'random-password'
 import React from 'react'
@@ -14,7 +13,6 @@ import {
 import Component from '../base-component'
 import propTypes from '../prop-types'
 import {
-  firstDefined,
   formatSizeRaw,
   parseSize
 } from '../utils'
@@ -162,112 +160,125 @@ const DEFAULT_UNIT = 'GiB'
   style: propTypes.object,
   value: propTypes.oneOfType([
     propTypes.number,
-    propTypes.oneOf([ null, NaN ])
+    propTypes.oneOf([ null ])
   ])
 })
 export class SizeInput extends BaseComponent {
   constructor (props) {
     super(props)
 
-    this.state = this._createStateFromBytes(firstDefined(props.value, props.defaultValue))
+    this.state = this._createStateFromBytes(props.value || props.defaultValue || null)
   }
 
-  componentWillReceiveProps (newProps) {
-    const { value } = newProps
-    if (value === undefined || value === this.props.value || isNaN(value) && isNaN(this.props.value)) {
+  componentWillReceiveProps (props) {
+    const { value } = props
+    if (value === undefined || value === this.props.value) {
       return
     }
 
-    const { _bytes, _unit, _number } = this
-    this._bytes = this._unit = this._number = null
-    // No value
-    if (value === null) {
-      this.setState({
-        unit: firstDefined(_unit, this.props.defaultUnit, DEFAULT_UNIT),
-        number: ''
-      })
-      return
-    }
-
-    if (isNaN(value) || value === _bytes) {
-      // value has changed because the SizeInput has been edited: no formatting
-      this.setState({
-        unit: _unit,
-        number: _number
-      })
-    } else {
-      // value has changed because the prop has been set: formatting
-      this.setState(this._createStateFromBytes(value))
-    }
+    this.setState(this._createStateFromBytes(value))
   }
 
-  _createStateFromBytes = bytes => {
-    const humanSize = bytes != null && formatSizeRaw(bytes)
+  _createStateFromBytes (bytes) {
+    if (bytes === this._bytes) {
+      return {
+        input: this._input,
+        unit: this._unit
+      }
+    }
+
+    if (bytes === null) {
+      return {
+        input: '',
+        unit: this.props.defaultUnit || DEFAULT_UNIT
+      }
+    }
+
+    const { prefix, value } = formatSizeRaw(bytes)
     return {
-      unit: humanSize && humanSize.value ? humanSize.prefix + 'B' : this.props.defaultUnit || DEFAULT_UNIT,
-      number: humanSize ? round(humanSize.value, 3) : ''
+      input: String(round(value, 2)),
+      unit: `${prefix}B`
     }
   }
 
   get value () {
-    const { unit, number } = this.state
-    return this._parseSize(number, unit)
+    const { input, unit } = this.state
+
+    if (!input) {
+      return 0
+    }
+
+    return parseSize(`${+input} ${unit}`)
   }
 
-  _parseSize = (number, unit) => {
-    try {
-      return parseSize(number + ' ' + unit)
-    } catch (_) {}
-  }
-
-  set value (newValue) {
+  set value (value) {
     if (
       process.env.NODE_ENV !== 'production' &&
-      this.props.value != null
+      this.props.value !== undefined
     ) {
       throw new Error('cannot set value of controlled SizeInput')
     }
-    this.setState(this._createStateFromBytes(newValue))
+    this.setState(this._createStateFromBytes(value))
   }
 
-  _onChange = value =>
-    this.props.onChange && this.props.onChange(value)
+  _onChange (input, unit) {
+    const { onChange } = this.props
 
-  _updateValue = event => {
-    const newNumber = event.target.value
-    if (this.props.value !== undefined) {
-      this._number = newNumber
-      this._unit = this.state.unit
-      if (newNumber === '') {
-        this._bytes = null
-      } else {
-        const bytes = this._parseSize(newNumber, this.state.unit)
-        this._bytes = bytes === undefined ? NaN : bytes
-      }
+    // Empty input equals null.
+    const bytes = input
+      ? parseSize(`${+input} ${unit}`)
+      : null
 
-      this._onChange(this._bytes)
+    const isControlled = this.props.value !== undefined
+    if (isControlled) {
+      // Store input and unit for this change to update correctly on new
+      // props.
+      this._bytes = bytes
+      this._input = input
+      this._unit = unit
     } else {
-      this.setState({ number: newNumber }, () => {
-        this._onChange(this.value)
-      })
+      this.setState({ input, unit })
+
+      // onChange is optional in uncontrolled mode.
+      if (!onChange) {
+        return
+      }
     }
-  }
-  _updateUnit = newUnit => {
-    if (this.props.value !== undefined) {
-      this._number = this.state.number
-      this._unit = newUnit
-      if (this.state.number === '') {
-        this._bytes = null
-      } else {
-        const bytes = this._parseSize(this.state.number, newUnit)
-        this._bytes = bytes === undefined ? NaN : bytes
-      }
 
-      this._onChange(this._bytes)
+    onChange(bytes)
+  }
+
+  _updateNumber = event => {
+    const input = event.target.value
+
+    if (!input) {
+      return this._onChange(input, this.state.unit)
+    }
+
+    const number = +input
+
+    // NaN: do not ack this change.
+    if (number !== number) { // eslint-disable-line no-self-compare
+      return
+    }
+
+    // Same numeric value: simply update the input.
+    const prevInput = this.state.input
+    if (prevInput && +prevInput === number) {
+      return this.setState({ input })
+    }
+
+    this._onChange(input, this.state.unit)
+  }
+
+  _updateUnit = unit => {
+    const { input } = this.state
+
+    // 0 is always 0, no matter the unit.
+    if (+input) {
+      this._onChange(input, unit)
     } else {
-      this.setState({ unit: newUnit }, () => {
-        this._onChange(this.value)
-      })
+      this.setState({ unit })
     }
   }
 
@@ -275,39 +286,30 @@ export class SizeInput extends BaseComponent {
     const {
       autoFocus,
       className,
-      placeholder,
       readOnly,
+      placeholder,
       required,
       style
     } = this.props
 
-    const {
-      number,
-      unit
-    } = this.state
-
-    return <span
-      className={classNames(className, 'input-group')}
-      style={style}
-    >
+    return <span className={classNames('input-group', className)} style={style}>
       <input
         autoFocus={autoFocus}
         className='form-control'
-        min={0}
-        onChange={this._updateValue}
-        pattern='[0-9.]+'
+        disabled={readOnly}
+        onChange={this._updateNumber}
         placeholder={placeholder}
-        readOnly={readOnly}
         required={required}
-        value={number}
+        type='text'
+        value={this.state.input}
       />
       <span className='input-group-btn'>
         <DropdownButton
           bsStyle='secondary'
-          disabled={readOnly}
           id='size'
           pullRight
-          title={unit}
+          disabled={readOnly}
+          title={this.state.unit}
         >
           {map(UNITS, unit =>
             <MenuItem
