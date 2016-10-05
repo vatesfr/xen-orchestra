@@ -326,7 +326,7 @@ export default class Remotes extends Component {
               </div>
               <div className='input-group'>
                 <span className='input-group-addon'>/</span>
-                <input type='text' ref='path' pattern='^(([^/]+)+(/[^/]+)*)?$' className='form-control' placeholder={_('remoteNfsPlaceHolderPath'} />
+                <input type='text' ref='path' pattern='^(([^/]+)+(/[^/]+)*)?$' className='form-control' placeholder={_('remoteNfsPlaceHolderPath')} />
               </div>
             </fieldset>
           }
