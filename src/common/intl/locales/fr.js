@@ -78,8 +78,15 @@ export default {
   customJob: 'Job personnalisé',
   userPage: 'Utilisateur',
 
+  // ----- Support -----
+  noSupport: 'Pas de support',
+  freeUpgrade: 'Mise à jour gratuite !',
+
   // ----- Sign out -----
   signOut: 'Se déconnecter',
+
+  // ----- User Profile -----
+  editUserProfile: 'Éditer mes options {username}',
 
   // ----- Home view ------
   homeFetchingData: 'Récupération des données…',
@@ -212,6 +219,9 @@ export default {
   noJobs: 'Pas de job trouvé.',
   noSchedules: 'Pas de planification trouvé',
   jobActionPlaceHolder: 'Sélectionnez une commande de l\'API xo-server',
+  jobSchedules: 'Planning',
+  jobScheduleNamePlaceHolder: 'Nom de votre plannification',
+  jobScheduleJobPlaceHolder: 'Choisir un Job',
 
   // ------ New backup -----
   newBackupSelection: 'Choisissez votre type de sauvegarde :',
@@ -236,6 +246,26 @@ export default {
   remoteTestStep: 'Étape de test',
   remoteTestFile: 'Fichier de test',
   remoteTestSuccessMessage: 'L\'emplacement distant semble marcher correctement',
+
+  // ------ Remote -----
+  remoteName: 'Nom',
+  remotePath: 'Chemin',
+  remoteState: 'État',
+  remoteError: 'Erreur',
+  remoteDevice: 'Équipement',
+  remoteShare: 'Partage',
+  remoteAuth: 'Accès',
+  remoteMounted: 'Monté',
+  remoteUnmounted: 'Démonté',
+  remoteConnectTip: 'Connecter',
+  remoteDisconnectTip: 'Déconnecter',
+  remoteDeleteTip: 'Supprimer',
+  remoteNamePlaceHolder: 'nom distant*',
+  remoteLocalPlaceHolderPath: '/chemin/de/la/sauvegarde',
+  remoteNfsPlaceHolderHost: 'hôte*',
+  remoteNfsPlaceHolderPath: '/chemin/de/la/sauvegarde',
+  remoteSmbPlaceHolderRemotePath: 'sous-répertoire [chemin\vers\la\sauvegarde]'',
+  remotePlaceHolderPassword: 'mot de passe (saisir ici pour éditer)',
 
   // ------ New Storage -----
   newSrTitle: 'Créer un nouvel SR',
@@ -264,6 +294,7 @@ export default {
   subjectName: 'Utilisateurs/Groupes',
   objectName: 'Objet',
   roleName: 'Rôle',
+  aclCreate: 'Créer',
   newGroupName: 'Nouveau nom de groupe',
   createGroup: 'Créer un groupe',
   createGroupButton: 'Créer',
@@ -351,6 +382,7 @@ export default {
   srRemoveButton: 'Supprimer ce SR',
   srNoVdis: 'Pas de VDIs sur ce stockage',
   // ----- Pool general -----
+  poolTitleRamUsage: 'Utilisation RAM du groupe :',
   poolRamUsage: '{used} utilisé sur {total}',
   poolMaster: 'Maître:',
   // ----- Pool tabs -----
@@ -908,6 +940,10 @@ export default {
   serverReadOnly: 'Lecture seule',
   serverConnect: 'Connecter le serveur',
   serverDisconnect: 'Déconnecter le serveur',
+  serverPlaceHolderUser: 'nom d\'utilisateur',
+  serverPlaceHolderPassword: 'mot de passe',
+  serverPlaceHolderAddress: 'adresse[:port]',
+  serverConnect: 'Connecter',
 
   // ----- Copy VM -----
   copyVm: 'Copier la VM',
