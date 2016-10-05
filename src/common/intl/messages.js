@@ -268,6 +268,7 @@ var messages = {
   subjectName: 'Users/Groups',
   objectName: 'Object',
   roleName: 'Role',
+  aclCreate: 'Create',
   newGroupName: 'New Group Name',
   createGroup: 'Create Group',
   createGroupButton: 'Create',
@@ -355,6 +356,7 @@ var messages = {
   srRemoveButton: 'Remove this SR',
   srNoVdis: 'No VDIs in this storage',
   // ----- Pool general -----
+  poolTitleRamUsage: 'Pool RAM usage:',
   poolRamUsage: '{used} used on {total}',
   poolMaster: 'Master:',
   // ----- Pool tabs -----
@@ -912,6 +914,10 @@ var messages = {
   serverReadOnly: 'Read Only',
   serverConnect: 'Connect server',
   serverDisconnect: 'Disconnect server',
+  serverPlaceHolderUser: 'username',
+  serverPlaceHolderPassword: 'password',
+  serverPlaceHolderAddress: 'address[:port]',
+  serverConnect: 'Connect',
 
   // ----- Copy VM -----
   copyVm: 'Copy VM',

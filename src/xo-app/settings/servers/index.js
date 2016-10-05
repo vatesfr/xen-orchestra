@@ -52,21 +52,21 @@ export default class Servers extends Component {
                 <Text
                   value={server.host}
                   onChange={host => editServer(server, { host })}
-                  placeholder='address[:port]'
+                  placeholder=_('serverPlaceHolderAddress')
                 />
               </td>
               <td>
                 <Text
                   value={server.username}
                   onChange={username => editServer(server, { username })}
-                  placeholder='user'
+                  placeholder=_('serverPlaceHolderUser')
                 />
               </td>
               <td>
                 <EditablePassword
                   value=''
                   onChange={password => editServer(server, { password })}
-                  placeholder='password'
+                  placeholder=_('serverPlaceHolderAddress')
                 />
               </td>
               <td>
@@ -151,7 +151,7 @@ export default class Servers extends Component {
           handler={this._addServer}
           icon='save'
         >
-          Connect
+          {_('serverConnect')}
         </ActionButton>
       </form>
     </Container>

@@ -32,7 +32,7 @@ export default ({
   <br />
   <Row>
     <Col className='text-xs-center'>
-      <h5>Pool RAM usage:</h5>
+      <h5>{_('poolTitleRamUsage')}</h5>
     </Col>
   </Row>
   <Row>

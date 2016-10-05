@@ -213,7 +213,7 @@ export default class Acls extends Component {
           <div className='form-group'>
             <SelectRole ref='selectAction' onChange={this._handleSelectRole} />
           </div>
-          <ActionButton icon='add' btnStyle='success' handler={this._addAcl} disabled={isEmpty(subjects) || isEmpty(objects) || !action}>Create</ActionButton>
+          <ActionButton icon='add' btnStyle='success' handler={this._addAcl} disabled={isEmpty(subjects) || isEmpty(objects) || !action}>{_('aclCreate')}</ActionButton>
         </form>
         <br />
         <AclTable />
