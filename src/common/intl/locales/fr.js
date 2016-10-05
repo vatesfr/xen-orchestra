@@ -815,7 +815,7 @@ export default {
   listRemote: 'Lister les emplacements',
   simpleBackup: 'simple',
   delta: 'delta',
-  restoreBackups: 'Restauration de sauvegares',
+  restoreBackups: 'Restauration de sauvegardes',
   noRemotes: 'Pas d\'emplacements',
   remoteEnabled: 'activé',
   remoteError: 'erreur',
