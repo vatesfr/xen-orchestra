@@ -257,6 +257,12 @@ var messages = {
   remoteConnectTip: 'Connect',
   remoteDisconnectTip: 'Disconnect',
   remoteDeleteTip: 'Delete',
+  remoteNamePlaceHolder: 'remote name*',
+  remoteLocalPlaceHolderPath: '/path/to/backup',
+  remoteNfsPlaceHolderHost: 'host*',
+  remoteNfsPlaceHolderPath: '/path/to/backup',
+  remoteSmbPlaceHolderRemotePath: 'subfolder [path\to\backup]'',
+  remotePlaceHolderPassword: 'password(fill to edit)',
 
   // ------ New Storage -----
   newSrTitle: 'Create a new SR',

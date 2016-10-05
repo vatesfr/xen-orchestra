@@ -74,7 +74,7 @@ class AbstractRemote extends Component {
 
     return <tr>
       <td />
-      <td><Text value={remote.name} onChange={this._changeName} placeholder='remote name*' /></td>
+      <td><Text value={remote.name} onChange={this._changeName} placeholder={_('remoteNamePlaceHolder')} /></td>
       <td>{this._renderRemoteInfo(remote)}</td>
       <td>{this._renderAuthInfo(remote)}</td>
       <td>
@@ -120,7 +120,7 @@ class AbstractRemote extends Component {
 class LocalRemote extends AbstractRemote {
   _renderRemoteInfo () {
     const { remote } = this.props
-    return <Text value={remote.path} onChange={v => this._changeUrlElement(v, 'path')} placeholder='/path/to/backup' />
+    return <Text value={remote.path} onChange={v => this._changeUrlElement(v, 'path')} placeholder={_('remoteLocalPlaceHolderPath')} />
   }
 
   _renderAuthInfo () {
@@ -140,9 +140,9 @@ class NfsRemote extends AbstractRemote {
   _renderRemoteInfo () {
     const { remote } = this.props
     return <span>
-      <Text value={remote.host} onChange={v => this._changeUrlElement(v, 'host')} placeholder='host*' />
+      <Text value={remote.host} onChange={v => this._changeUrlElement(v, 'host')} placeholder={_('remoteNfsPlaceHolderHost')} />
       :
-      <Text value={remote.path} onChange={v => this._changeUrlElement(v, 'path')} placeholder='/path/to/backup' />
+      <Text value={remote.path} onChange={v => this._changeUrlElement(v, 'path')} placeholder={_('remoteNfsPlaceHolderPath')} />
     </span>
   }
 
@@ -167,7 +167,7 @@ class SmbRemote extends AbstractRemote {
       <Text value={remote.host} onChange={v => this._changeUrlElement(v, 'host')} />
       <strong className='text-info'>\</strong>
       <span>
-        <Text value={remote.path} onChange={v => this._changeUrlElement(v, 'path')} placeholder='subfolder [path\to\backup]' />
+        <Text value={remote.path} onChange={v => this._changeUrlElement(v, 'path')} placeholder={_('remoteSmbPlaceHolderRemotePath')} />
       </span>
     </span>
   }
@@ -177,7 +177,7 @@ class SmbRemote extends AbstractRemote {
     return <span>
       <Text value={remote.username} onChange={v => this._changeUrlElement(v, 'username')} />
       :
-      <Password value='' onChange={v => this._changeUrlElement(v, 'password')} placeholder='password(fill to edit)' />
+      <Password value='' onChange={v => this._changeUrlElement(v, 'password')} placeholder={_('remotePlaceHolderPassword')} />
       @
       <Text value={remote.domain} onChange={v => this._changeUrlElement(v, 'domain')} />
     </span>
