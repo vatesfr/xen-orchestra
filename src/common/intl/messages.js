@@ -81,6 +81,9 @@ var messages = {
 
   // ----- Sign out -----
   signOut: 'Sign out',
+  
+  // ----- User Profile -----
+  editUserProfile: 'Edit my settings {username}',
 
   // ----- Home view ------
   homeFetchingData: 'Fetching data…',
