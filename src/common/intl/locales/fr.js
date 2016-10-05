@@ -264,7 +264,7 @@ export default {
   remoteLocalPlaceHolderPath: '/chemin/de/la/sauvegarde',
   remoteNfsPlaceHolderHost: 'hôte*',
   remoteNfsPlaceHolderPath: '/chemin/de/la/sauvegarde',
-  remoteSmbPlaceHolderRemotePath: 'sous-répertoire [chemin\vers\la\sauvegarde]'',
+  remoteSmbPlaceHolderRemotePath: 'sous-répertoire [chemin\vers\la\sauvegarde]',
   remotePlaceHolderPassword: 'mot de passe (saisir ici pour éditer)',
 
   // ------ New Storage -----

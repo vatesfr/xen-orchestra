@@ -261,7 +261,7 @@ var messages = {
   remoteLocalPlaceHolderPath: '/path/to/backup',
   remoteNfsPlaceHolderHost: 'host*',
   remoteNfsPlaceHolderPath: '/path/to/backup',
-  remoteSmbPlaceHolderRemotePath: 'subfolder [path\to\backup]'',
+  remoteSmbPlaceHolderRemotePath: 'subfolder [path\to\backup]',
   remotePlaceHolderPassword: 'password(fill to edit)',
 
   // ------ New Storage -----
