@@ -647,7 +647,7 @@ export default {
 
   // ----- Dashboard -----
   poolPanel: 'Pool{pools, plural, one {} other {s}}',
-  hostPanel: 'Host{hosts, plural, one {} other {s}}',
+  hostPanel: 'Hôte{hosts, plural, one {} other {s}}',
   vmPanel: 'VM{vms, plural, one {} other {s}}',
   memoryStatePanel: 'Utilisation RAM',
   cpuStatePanel: 'Utilisation CPUs',
