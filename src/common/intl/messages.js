@@ -237,7 +237,7 @@ var messages = {
   // ------ New Storage -----
   newSrTitle: 'Create a new SR',
   newSrGeneral: 'General',
-  newSrTypeSelection: 'Select Strorage Type:',
+  newSrTypeSelection: 'Select Storage Type:',
   newSrSettings: 'Settings',
   newSrUsage: 'Storage Usage',
   newSrSummary: 'Summary',
@@ -807,6 +807,7 @@ var messages = {
   xsTasks: 'Currently, there are not any pending XenServer tasks',
 
   // ---- Backup views ---
+  backupSchedules: 'Schedules',
   getRemote: 'Get remote',
   listRemote: 'List Remote',
   simpleBackup: 'simple',
