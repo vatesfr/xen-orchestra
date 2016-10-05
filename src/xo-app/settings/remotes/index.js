@@ -1,4 +1,4 @@
-import _ from 'intl'
+import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import filter from 'lodash/filter'
@@ -202,6 +202,8 @@ class SmbRemote extends AbstractRemote {
     cb(remotes)
   })
 })
+
+@injectIntl
 export default class Remotes extends Component {
   constructor (props) {
     super(props)
@@ -309,7 +311,7 @@ export default class Remotes extends Component {
             </select>
           </div>
           <div className='form-group'>
-            <input type='text' ref='name' className='form-control' placeholder='Name *' required />
+            <input type='text' ref='name' className='form-control' placeholder={intl.formatMessage(messages.remoteMyNamePlaceHolder)} required />
           </div>
           {type === 'file' &&
             <fieldset className='form-group'>
