@@ -13,6 +13,7 @@ import { Container, Row, Col } from 'grid'
 import { Number, Size } from 'editable'
 import {
   formatSize,
+  nullify,
   osFamily
 } from 'utils'
 import {
@@ -36,7 +37,7 @@ export default ({
     </Col>
     <Col mediumSize={3}>
       <h2 className='form-inline'>
-        <Size value={vm.memory.dynamic[1]} onChange={memory => editVm(vm, { memory })} />
+        <Size value={nullify(vm.memory.dynamic[1])} onChange={memory => editVm(vm, { memory })} />
         &nbsp;<span><Icon icon='memory' size='lg' /></span>
       </h2>
       <BlockLink to={`/vms/${vm.id}/stats`}>{statsOverview && <MemorySparkLines data={statsOverview} />}</BlockLink>

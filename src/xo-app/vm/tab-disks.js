@@ -455,7 +455,7 @@ export default class TabDisks extends Component {
                     <td>
                       <Text value={vdi.name_description} onChange={value => editVdi(vdi, { name_description: value })} />
                     </td>
-                    <td><Size value={vdi.size} onChange={size => editVdi(vdi, { size })} /></td>
+                    <td><Size value={vdi.size || null} onChange={size => editVdi(vdi, { size })} /></td>
                     <td> {sr &&
                       <XoSelect
                         onChange={sr => migrateVdi(vdi, sr)}

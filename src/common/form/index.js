@@ -1,6 +1,7 @@
 import BaseComponent from 'base-component'
 import classNames from 'classnames'
 import Icon from 'icon'
+import isNaN from 'lodash/isNaN'
 import map from 'lodash/map'
 import randomPassword from 'random-password'
 import React from 'react'
@@ -159,7 +160,10 @@ const DEFAULT_UNIT = 'GiB'
   readOnly: propTypes.bool,
   required: propTypes.bool,
   style: propTypes.object,
-  value: propTypes.number
+  value: propTypes.oneOfType([
+    propTypes.number,
+    propTypes.oneOf([ null, NaN ])
+  ])
 })
 export class SizeInput extends BaseComponent {
   constructor (props) {
@@ -170,20 +174,29 @@ export class SizeInput extends BaseComponent {
 
   componentWillReceiveProps (newProps) {
     const { value } = newProps
-    if (value === this.props.value) {
+    if (value === undefined || value === this.props.value || isNaN(value) && isNaN(this.props.value)) {
       return
     }
 
-    const { _bytes, _unit, _value } = this
-    this._bytes = this._unit = this._value = null
+    const { _bytes, _unit, _number } = this
+    this._bytes = this._unit = this._number = null
+    // No value
+    if (value === null) {
+      this.setState({
+        unit: firstDefined(_unit, this.props.defaultUnit, DEFAULT_UNIT),
+        number: ''
+      })
+      return
+    }
 
-    if (value === _bytes) {
-      // Update input value
+    if (isNaN(value) || value === _bytes) {
+      // value has changed because the SizeInput has been edited: no formatting
       this.setState({
         unit: _unit,
-        value: _value
+        number: _number
       })
     } else {
+      // value has changed because the prop has been set: formatting
       this.setState(this._createStateFromBytes(value))
     }
   }
@@ -192,14 +205,18 @@ export class SizeInput extends BaseComponent {
     const humanSize = bytes != null && formatSizeRaw(bytes)
     return {
       unit: humanSize && humanSize.value ? humanSize.prefix + 'B' : this.props.defaultUnit || DEFAULT_UNIT,
-      value: humanSize ? round(humanSize.value, 3) : ''
+      number: humanSize ? round(humanSize.value, 3) : ''
     }
   }
 
   get value () {
+    const { unit, number } = this.state
+    return this._parseSize(number, unit)
+  }
+
+  _parseSize = (number, unit) => {
     try {
-      const { unit, value } = this.state
-      return parseSize(value + ' ' + unit)
+      return parseSize(number + ' ' + unit)
     } catch (_) {}
   }
 
@@ -217,28 +234,38 @@ export class SizeInput extends BaseComponent {
     this.props.onChange && this.props.onChange(value)
 
   _updateValue = event => {
-    const { value } = event.target
-    if (this.props.value != null) {
-      this._value = value
+    const newNumber = event.target.value
+    if (this.props.value !== undefined) {
+      this._number = newNumber
       this._unit = this.state.unit
-      this._bytes = value ? parseSize(value + ' ' + this.state.unit) : undefined
+      if (newNumber === '') {
+        this._bytes = null
+      } else {
+        const bytes = this._parseSize(newNumber, this.state.unit)
+        this._bytes = bytes === undefined ? NaN : bytes
+      }
 
       this._onChange(this._bytes)
     } else {
-      this.setState({ value }, () => {
+      this.setState({ number: newNumber }, () => {
         this._onChange(this.value)
       })
     }
   }
-  _updateUnit = unit => {
-    if (this.props.value != null) {
-      this._value = this.state.value
-      this._unit = unit
-      this._bytes = parseSize((this.state.value || 0) + ' ' + unit)
+  _updateUnit = newUnit => {
+    if (this.props.value !== undefined) {
+      this._number = this.state.number
+      this._unit = newUnit
+      if (this.state.number === '') {
+        this._bytes = null
+      } else {
+        const bytes = this._parseSize(this.state.number, newUnit)
+        this._bytes = bytes === undefined ? NaN : bytes
+      }
 
       this._onChange(this._bytes)
     } else {
-      this.setState({ unit }, () => {
+      this.setState({ unit: newUnit }, () => {
         this._onChange(this.value)
       })
     }
@@ -255,7 +282,7 @@ export class SizeInput extends BaseComponent {
     } = this.props
 
     const {
-      value,
+      number,
       unit
     } = this.state
 
@@ -268,12 +295,11 @@ export class SizeInput extends BaseComponent {
         className='form-control'
         min={0}
         onChange={this._updateValue}
+        pattern='[0-9.]+'
         placeholder={placeholder}
         readOnly={readOnly}
         required={required}
-        step={10e-3}
-        type='number'
-        value={value}
+        value={number}
       />
       <span className='input-group-btn'>
         <DropdownButton

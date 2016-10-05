@@ -7,7 +7,7 @@ import TabButton from 'tab-button'
 import { Toggle } from 'form'
 import { Number, Size, Text } from 'editable'
 import { Container, Row, Col } from 'grid'
-import { formatSize, normalizeXenToolsStatus, osFamily } from 'utils'
+import { formatSize, normalizeXenToolsStatus, nullify, osFamily } from 'utils'
 import {
   cloneVm,
   convertVmToTemplate,
@@ -180,8 +180,8 @@ export default ({
           <tr>
             <th>{_('vmMemoryLimitsLabel')}</th>
             <td>
-              <p>Static: {formatSize(vm.memory.static[0])}/<Size value={vm.memory.static[1]} onChange={memoryStaticMax => editVm(vm, { memoryStaticMax })} /></p>
-              <p>Dynamic: <Size value={vm.memory.dynamic[0]} onChange={memoryMin => editVm(vm, { memoryMin })} />/<Size value={vm.memory.dynamic[1]} onChange={memoryMax => editVm(vm, { memoryMax })} /></p>
+              <p>Static: {formatSize(vm.memory.static[0])}/<Size value={nullify(vm.memory.static[1])} onChange={memoryStaticMax => editVm(vm, { memoryStaticMax })} /></p>
+              <p>Dynamic: <Size value={nullify(vm.memory.dynamic[0])} onChange={memoryMin => editVm(vm, { memoryMin })} />/<Size value={nullify(vm.memory.dynamic[1])} onChange={memoryMax => editVm(vm, { memoryMax })} /></p>
             </td>
           </tr>
         </tbody>

@@ -187,6 +187,11 @@ export const firstDefined = function () {
     }
   }
 }
+
+export const nullify = function (value) {
+  return value === undefined ? null : value
+}
+
 // -------------------------------------------------------------------
 
 // Returns the current XOA Plan or the Plan name if number given
