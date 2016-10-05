@@ -17,7 +17,7 @@ import {
 } from 'xo'
 import {
   connectStore,
-  nullify,
+  firstDefined,
   osFamily
 } from 'utils'
 import {
@@ -74,7 +74,7 @@ export default class TemplateItem extends Component {
           <Col mediumSize={4} className={styles.itemExpanded}>
             <span>
               <Number value={vm.CPUs.number} onChange={this._setCpus} />x <Icon icon='cpu' className='m-r-1' />
-              <Size value={nullify(vm.memory.size)} onChange={this._setMemory} /> <Icon icon='memory' />
+              <Size value={firstDefined(vm.memory.size, null)} onChange={this._setMemory} /> <Icon icon='memory' />
             </span>
           </Col>
           <Col largeSize={4} className={styles.itemExpanded}>

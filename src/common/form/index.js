@@ -13,6 +13,7 @@ import {
 import Component from '../base-component'
 import propTypes from '../prop-types'
 import {
+  firstDefined,
   formatSizeRaw,
   parseSize
 } from '../utils'
@@ -167,16 +168,14 @@ export class SizeInput extends BaseComponent {
   constructor (props) {
     super(props)
 
-    this.state = this._createStateFromBytes(props.value || props.defaultValue || null)
+    this.state = this._createStateFromBytes(firstDefined(props.value, props.defaultValue, null))
   }
 
   componentWillReceiveProps (props) {
     const { value } = props
-    if (value === undefined || value === this.props.value) {
-      return
+    if (value !== undefined && value !== this.props.value) {
+      this.setState(this._createStateFromBytes(value))
     }
-
-    this.setState(this._createStateFromBytes(value))
   }
 
   _createStateFromBytes (bytes) {
@@ -205,7 +204,7 @@ export class SizeInput extends BaseComponent {
     const { input, unit } = this.state
 
     if (!input) {
-      return 0
+      return null
     }
 
     return parseSize(`${+input} ${unit}`)

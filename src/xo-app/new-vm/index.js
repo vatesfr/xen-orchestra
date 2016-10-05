@@ -64,9 +64,9 @@ import {
   addSubscriptions,
   buildTemplate,
   connectStore,
+  firstDefined,
   formatSize,
   noop,
-  nullify,
   resolveResourceSet
 } from 'utils'
 import {
@@ -777,7 +777,7 @@ export default class NewVm extends BaseComponent {
           <SizeInput
             className={styles.sizeInput}
             onChange={this._linkState('memoryDynamicMax')}
-            value={nullify(memoryDynamicMax)}
+            value={firstDefined(memoryDynamicMax, null)}
           />
         </Item>
       </SectionContent>
@@ -1113,7 +1113,7 @@ export default class NewVm extends BaseComponent {
                 className={styles.sizeInput}
                 onChange={this._getOnChange('existingDisks', index, 'size')}
                 readOnly={!configDrive}
-                value={nullify(disk.size)}
+                value={firstDefined(disk.size, null)}
               />
             </Item>
           </LineItem>
@@ -1170,7 +1170,7 @@ export default class NewVm extends BaseComponent {
               <SizeInput
                 className={styles.sizeInput}
                 onChange={this._getOnChange('VDIs', index, 'size')}
-                value={nullify(vdi.size)}
+                value={firstDefined(vdi.size, null)}
               />
             </Item>
             <Item>
@@ -1276,13 +1276,13 @@ export default class NewVm extends BaseComponent {
         </SectionContent>,
         <SectionContent>
           <Item label={_('newVmDynamicMinLabel')}>
-            <SizeInput value={nullify(memoryDynamicMin)} onChange={this._linkState('memoryDynamicMin')} className={styles.sizeInput} />
+            <SizeInput value={firstDefined(memoryDynamicMin, null)} onChange={this._linkState('memoryDynamicMin')} className={styles.sizeInput} />
           </Item>
           <Item label={_('newVmDynamicMaxLabel')}>
-            <SizeInput value={nullify(memoryDynamicMax)} onChange={this._linkState('memoryDynamicMax')} className={styles.sizeInput} />
+            <SizeInput value={firstDefined(memoryDynamicMax, null)} onChange={this._linkState('memoryDynamicMax')} className={styles.sizeInput} />
           </Item>
           <Item label={_('newVmStaticMaxLabel')}>
-            <SizeInput value={nullify(memoryStaticMax)} onChange={this._linkState('memoryStaticMax')} className={styles.sizeInput} />
+            <SizeInput value={firstDefined(memoryStaticMax, null)} onChange={this._linkState('memoryStaticMax')} className={styles.sizeInput} />
           </Item>
         </SectionContent>,
         <SectionContent>
