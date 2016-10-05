@@ -107,11 +107,9 @@ export default class PoolItem extends Component {
           </Col>
           <Col largeSize={4} className='hidden-lg-down'>
             <span>
-              {hostMetrics.count}x <Icon icon='host' />
-              {' '}
-              {hostMetrics.cpus}x <Icon icon='cpu' />
-              {' '}
-              {formatSize(hostMetrics.memoryTotal)}
+              <Tooltip content={_('memoryLeftTooltip', {used: Math.round((hostMetrics.memoryUsage / hostMetrics.memoryTotal) * 100), free: formatSize(hostMetrics.memoryTotal - hostMetrics.memoryUsage)})}>
+                <progress style={{margin: 0}} className='progress' value={(hostMetrics.memoryUsage / hostMetrics.memoryTotal) * 100} max='100' />
+              </Tooltip>
             </span>
           </Col>
           <Col mediumSize={1} className={styles.itemExpandRow}>
