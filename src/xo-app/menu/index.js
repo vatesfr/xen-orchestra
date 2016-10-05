@@ -212,7 +212,7 @@ export default class Menu extends Component {
         </li>
         <li className='nav-item xo-menu-item'>
           <Link className='nav-link text-xs-center' to={'/user'}>
-            <Tooltip content={_('editUserProfile', {username: {user ? user.email : ''} })}>
+            <Tooltip content={_('editUserProfile', {username: (user ? user.email : '') })}>
               <Icon icon='user' size='lg' />
             </Tooltip>
           </Link>
