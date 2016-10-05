@@ -216,6 +216,9 @@ var messages = {
   noJobs: 'No jobs found.',
   noSchedules: 'No schedules found',
   jobActionPlaceHolder: 'Select a xo-server API command',
+  jobSchedules: 'Schedules',
+  jobScheduleNamePlaceHolder: 'Name of your schedule',
+  jobScheduleJobPlaceHolder: 'Select a Job',
 
   // ------ New backup -----
   newBackupSelection: 'Select your backup type:',
@@ -251,6 +254,9 @@ var messages = {
   remoteAuth: 'Auth',
   remoteMounted: 'Mounted',
   remoteUnmounted: 'Unmounted',
+  remoteConnectTip: 'Connect',
+  remoteDisconnectTip: 'Disconnect',
+  remoteDeleteTip: 'Delete',
 
   // ------ New Storage -----
   newSrTitle: 'Create a new SR',

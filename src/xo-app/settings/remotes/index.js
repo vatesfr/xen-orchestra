@@ -84,19 +84,19 @@ class AbstractRemote extends Component {
             {' '}
             <Tooltip content={_('remoteTestTip')}><ActionRowButton btnStyle='primary' handler={this._test} icon='diagnosis' /></Tooltip>
             {' '}
-            <ActionRowButton btnStyle='warning' handler={disableRemote} handlerParam={remote} icon='disconnect' />
+            <Tooltip content={_('remoteDisconnectTip')}><ActionRowButton btnStyle='warning' handler={disableRemote} handlerParam={remote} icon='disconnect' /></Tooltip>
           </span>
         }
         {!remote.enabled &&
           <span>
             <span className='text-muted'>{this.unaccessible}</span>
             {' '}
-            <ActionRowButton btnStyle='primary' handler={enableRemote} handlerParam={remote} icon='connect' />
+            <Tooltip content={_('remoteConnectTip')}><ActionRowButton btnStyle='primary' handler={enableRemote} handlerParam={remote} icon='connect' /></Tooltip>
           </span>
         }
       </td>
       <td><span className='text-muted'>{remote.error}</span></td>
-      <td><ActionRowButton btnStyle='danger' handler={deleteRemote} handlerParam={remote} icon='delete' /></td>
+      <td><Tooltip content={_('remoteDeleteTip')}><ActionRowButton btnStyle='danger' handler={deleteRemote} handlerParam={remote} icon='delete' /></Tooltip></td>
     </tr>
   }
 

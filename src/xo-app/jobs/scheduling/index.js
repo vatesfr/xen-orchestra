@@ -140,13 +140,13 @@ export default class Schedules extends Component {
       timezone
     } = this.state
     return <div>
-      <h1>Schedules</h1>
+      <h1>{_('jobSchedules')}</h1>
       <form id='newScheduleForm'>
         <div className='form-group'>
-          <input type='text' ref='name' className='form-control' placeholder='Name of your schedule' required />
+          <input type='text' ref='name' className='form-control' placeholder={_('jobScheduleNamePlaceHolder')} required />
         </div>
         <div className='form-group'>
-          <SelectPlainObject ref='job' options={map(jobs)} optionKey='id' placeholder='Select a Job' />
+          <SelectPlainObject ref='job' options={map(jobs)} optionKey='id' placeholder={_('jobScheduleJobPlaceHolder')} />
         </div>
         {!schedule &&
           <div className='form-group'>
