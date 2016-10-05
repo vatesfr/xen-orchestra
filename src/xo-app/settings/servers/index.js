@@ -52,21 +52,21 @@ export default class Servers extends Component {
                 <Text
                   value={server.host}
                   onChange={host => editServer(server, { host })}
-                  placeholder=_('serverPlaceHolderAddress')
+                  placeholder={_('serverPlaceHolderAddress')}
                 />
               </td>
               <td>
                 <Text
                   value={server.username}
                   onChange={username => editServer(server, { username })}
-                  placeholder=_('serverPlaceHolderUser')
+                  placeholder={_('serverPlaceHolderUser')}
                 />
               </td>
               <td>
                 <EditablePassword
                   value=''
                   onChange={password => editServer(server, { password })}
-                  placeholder=_('serverPlaceHolderAddress')
+                  placeholder={_('serverPlaceHolderAddress')}
                 />
               </td>
               <td>
