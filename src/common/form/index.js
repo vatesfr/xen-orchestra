@@ -159,88 +159,125 @@ const DEFAULT_UNIT = 'GiB'
   readOnly: propTypes.bool,
   required: propTypes.bool,
   style: propTypes.object,
-  value: propTypes.number
+  value: propTypes.oneOfType([
+    propTypes.number,
+    propTypes.oneOf([ null ])
+  ])
 })
 export class SizeInput extends BaseComponent {
   constructor (props) {
     super(props)
 
-    this.state = this._createStateFromBytes(firstDefined(props.value, props.defaultValue, 0))
+    this.state = this._createStateFromBytes(firstDefined(props.value, props.defaultValue, null))
   }
 
-  componentWillReceiveProps (newProps) {
-    const { value } = newProps
-    if (value == null && value === this.props.value) {
-      return
-    }
-
-    const { _bytes, _unit, _value } = this
-    this._bytes = this._unit = this._value = null
-
-    if (value === _bytes) {
-      // Update input value
-      this.setState({
-        unit: _unit,
-        value: _value
-      })
-    } else {
+  componentWillReceiveProps (props) {
+    const { value } = props
+    if (value !== undefined && value !== this.props.value) {
       this.setState(this._createStateFromBytes(value))
     }
   }
 
-  _createStateFromBytes = bytes => {
-    const humanSize = bytes && formatSizeRaw(bytes)
+  _createStateFromBytes (bytes) {
+    if (bytes === this._bytes) {
+      return {
+        input: this._input,
+        unit: this._unit
+      }
+    }
+
+    if (bytes === null) {
+      return {
+        input: '',
+        unit: this.props.defaultUnit || DEFAULT_UNIT
+      }
+    }
+
+    const { prefix, value } = formatSizeRaw(bytes)
     return {
-      unit: humanSize && humanSize.value ? humanSize.prefix + 'B' : this.props.defaultUnit || DEFAULT_UNIT,
-      value: humanSize ? round(humanSize.value, 3) : ''
+      input: String(round(value, 2)),
+      unit: `${prefix}B`
     }
   }
 
   get value () {
-    try {
-      const { unit, value } = this.state
-      return parseSize(value + ' ' + unit)
-    } catch (_) {}
+    const { input, unit } = this.state
+
+    if (!input) {
+      return null
+    }
+
+    return parseSize(`${+input} ${unit}`)
   }
 
-  set value (newValue) {
+  set value (value) {
     if (
       process.env.NODE_ENV !== 'production' &&
-      this.props.value != null
+      this.props.value !== undefined
     ) {
       throw new Error('cannot set value of controlled SizeInput')
     }
-    this.setState(this._createStateFromBytes(newValue))
+    this.setState(this._createStateFromBytes(value))
   }
 
-  _onChange = value =>
-    this.props.onChange && this.props.onChange(value)
+  _onChange (input, unit) {
+    const { onChange } = this.props
 
-  _updateValue = event => {
-    const { value } = event.target
-    if (this.props.value != null) {
-      this._value = value
-      this._unit = this.state.unit
-      this._bytes = parseSize((value || 0) + ' ' + this.state.unit)
+    // Empty input equals null.
+    const bytes = input
+      ? parseSize(`${+input} ${unit}`)
+      : null
 
-      this._onChange(this._bytes)
-    } else {
-      this.setState({ value }, () => {
-        this._onChange(this.value)
-      })
-    }
-  }
-  _updateUnit = unit => {
-    if (this.props.value != null) {
-      this._value = this.state.value
+    const isControlled = this.props.value !== undefined
+    if (isControlled) {
+      // Store input and unit for this change to update correctly on new
+      // props.
+      this._bytes = bytes
+      this._input = input
       this._unit = unit
-      this._bytes = parseSize((this.state.value || 0) + ' ' + unit)
-
-      this._onChange(this._bytes)
     } else {
-      this.setState({ unit }, () => {
-        this._onChange(this.value)
-      })
+      this.setState({ input, unit })
+
+      // onChange is optional in uncontrolled mode.
+      if (!onChange) {
+        return
+      }
+    }
+
+    onChange(bytes)
+  }
+
+  _updateNumber = event => {
+    const input = event.target.value
+
+    if (!input) {
+      return this._onChange(input, this.state.unit)
+    }
+
+    const number = +input
+
+    // NaN: do not ack this change.
+    if (number !== number) { // eslint-disable-line no-self-compare
+      return
+    }
+
+    // Same numeric value: simply update the input.
+    const prevInput = this.state.input
+    if (prevInput && +prevInput === number) {
+      return this.setState({ input })
+    }
+
+    this._onChange(input, this.state.unit)
+  }
+
+  _updateUnit = unit => {
+    const { input } = this.state
+
+    // 0 is always 0, no matter the unit.
+    if (+input) {
+      this._onChange(input, unit)
+    } else {
+      this.setState({ unit })
     }
   }
 
@@ -248,39 +285,30 @@ export class SizeInput extends BaseComponent {
     const {
       autoFocus,
       className,
-      placeholder,
       readOnly,
+      placeholder,
       required,
       style
     } = this.props
 
-    const {
-      value,
-      unit
-    } = this.state
-
-    return <span
-      className={classNames(className, 'input-group')}
-      style={style}
-    >
+    return <span className={classNames('input-group', className)} style={style}>
       <input
         autoFocus={autoFocus}
         className='form-control'
-        min={0}
-        onChange={this._updateValue}
+        disabled={readOnly}
+        onChange={this._updateNumber}
         placeholder={placeholder}
-        readOnly={readOnly}
         required={required}
-        type='number'
-        value={value}
+        type='text'
+        value={this.state.input}
       />
       <span className='input-group-btn'>
         <DropdownButton
           bsStyle='secondary'
-          disabled={readOnly}
           id='size'
           pullRight
-          title={unit}
+          disabled={readOnly}
+          title={this.state.unit}
         >
           {map(UNITS, unit =>
             <MenuItem

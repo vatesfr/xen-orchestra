@@ -12,6 +12,7 @@ import { FormattedRelative } from 'react-intl'
 import { Container, Row, Col } from 'grid'
 import { Number, Size } from 'editable'
 import {
+  firstDefined,
   formatSize,
   osFamily
 } from 'utils'
@@ -36,7 +37,7 @@ export default ({
     </Col>
     <Col mediumSize={3}>
       <h2 className='form-inline'>
-        <Size value={vm.memory.dynamic[1]} onChange={memory => editVm(vm, { memory })} />
+        <Size value={firstDefined(vm.memory.dynamic[1], null)} onChange={memory => editVm(vm, { memory })} />
         &nbsp;<span><Icon icon='memory' size='lg' /></span>
       </h2>
       <BlockLink to={`/vms/${vm.id}/stats`}>{statsOverview && <MemorySparkLines data={statsOverview} />}</BlockLink>

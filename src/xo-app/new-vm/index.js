@@ -64,6 +64,7 @@ import {
   addSubscriptions,
   buildTemplate,
   connectStore,
+  firstDefined,
   formatSize,
   noop,
   resolveResourceSet
@@ -288,7 +289,9 @@ export default class NewVm extends BaseComponent {
       cpuWeight: state.cpuWeight === '' ? null : state.cpuWeight,
       cpuCap: state.cpuCap === '' ? null : state.cpuCap,
       name_description: state.name_description,
-      memory: state.memory,
+      memoryStaticMax: state.memoryStaticMax,
+      memoryMin: state.memoryDynamicMin,
+      memoryMax: state.memoryDynamicMax,
       pv_args: state.pv_args,
       autoPoweron: state.autoPoweron,
       bootAfterCreate: state.bootAfterCreate,
@@ -359,10 +362,10 @@ export default class NewVm extends BaseComponent {
       name_description,
       nameLabels: map(Array(+state.nbVms), (_, index) => replacer({ name_label, name_description, template }, index + 1)),
       // performances
-      memory: template.memory.size,
       CPUs: template.CPUs.number,
       cpuCap: '',
       cpuWeight: '',
+      memoryDynamicMax: template.memory.dynamic[1],
       // installation
       installMethod: template.install_methods && template.install_methods[0] || 'SSH',
       sshKeys: this.props.userSshKeys && this.props.userSshKeys.length && [ 0 ],
@@ -691,7 +694,8 @@ export default class NewVm extends BaseComponent {
               this._isPerformancesDone() &&
               this._isInstallSettingsDone() &&
               this._isInterfacesDone() &&
-              this._isDisksDone()
+              this._isDisksDone() &&
+              this._isAdvancedDone()
             ) || !this._availableResources()}
             form='vmCreation'
             handler={this._create}
@@ -756,7 +760,7 @@ export default class NewVm extends BaseComponent {
   }
 
   _renderPerformances = () => {
-    const { CPUs, memory } = this.state.state
+    const { CPUs, memoryDynamicMax } = this.state.state
     return <Section icon='new-vm-perf' title='newVmPerfPanel' done={this._isPerformancesDone()}>
       <SectionContent>
         <Item label={_('newVmVcpusLabel')}>
@@ -770,14 +774,18 @@ export default class NewVm extends BaseComponent {
           />
         </Item>
         <Item label={_('newVmRamLabel')}>
-          <SizeInput value={memory} onChange={this._getOnChange('memory')} className={styles.sizeInput} />
+          <SizeInput
+            className={styles.sizeInput}
+            onChange={this._linkState('memoryDynamicMax')}
+            value={firstDefined(memoryDynamicMax, null)}
+          />
         </Item>
       </SectionContent>
     </Section>
   }
   _isPerformancesDone = () => {
-    const { CPUs, memory } = this.state.state
-    return CPUs && memory !== undefined
+    const { CPUs, memoryDynamicMax } = this.state.state
+    return CPUs && memoryDynamicMax != null
   }
 
 // INSTALL SETTINGS ------------------------------------------------------------
@@ -1105,7 +1113,7 @@ export default class NewVm extends BaseComponent {
                 className={styles.sizeInput}
                 onChange={this._getOnChange('existingDisks', index, 'size')}
                 readOnly={!configDrive}
-                value={disk.size || 0}
+                value={firstDefined(disk.size, null)}
               />
             </Item>
           </LineItem>
@@ -1162,7 +1170,7 @@ export default class NewVm extends BaseComponent {
               <SizeInput
                 className={styles.sizeInput}
                 onChange={this._getOnChange('VDIs', index, 'size')}
-                value={vdi.size || 0}
+                value={firstDefined(vdi.size, null)}
               />
             </Item>
             <Item>
@@ -1198,6 +1206,9 @@ export default class NewVm extends BaseComponent {
       bootAfterCreate,
       cpuCap,
       cpuWeight,
+      memoryDynamicMin,
+      memoryDynamicMax,
+      memoryStaticMax,
       multipleVms,
       nameLabels,
       namePattern,
@@ -1207,7 +1218,7 @@ export default class NewVm extends BaseComponent {
       tags
     } = this.state.state
     const { formatMessage } = this.props.intl
-    return <Section icon='new-vm-advanced' title='newVmAdvancedPanel' done>
+    return <Section icon='new-vm-advanced' title='newVmAdvancedPanel' done={this._isAdvancedDone()}>
       <SectionContent column>
         <Button bsStyle='secondary' onClick={this._toggleState('showAdvanced')}>
           {showAdvanced ? _('newVmHideAdvanced') : _('newVmShowAdvanced')}
@@ -1261,6 +1272,17 @@ export default class NewVm extends BaseComponent {
               type='number'
               value={cpuCap}
             />
+          </Item>
+        </SectionContent>,
+        <SectionContent>
+          <Item label={_('newVmDynamicMinLabel')}>
+            <SizeInput value={firstDefined(memoryDynamicMin, null)} onChange={this._linkState('memoryDynamicMin')} className={styles.sizeInput} />
+          </Item>
+          <Item label={_('newVmDynamicMaxLabel')}>
+            <SizeInput value={firstDefined(memoryDynamicMax, null)} onChange={this._linkState('memoryDynamicMax')} className={styles.sizeInput} />
+          </Item>
+          <Item label={_('newVmStaticMaxLabel')}>
+            <SizeInput value={firstDefined(memoryStaticMax, null)} onChange={this._linkState('memoryStaticMax')} className={styles.sizeInput} />
           </Item>
         </SectionContent>,
         <SectionContent>
@@ -1322,6 +1344,12 @@ export default class NewVm extends BaseComponent {
       ]}
     </Section>
   }
+  _isAdvancedDone = () => {
+    const { memoryDynamicMin, memoryDynamicMax, memoryStaticMax } = this.state.state
+    return memoryDynamicMax != null &&
+      (memoryDynamicMin == null || memoryDynamicMin <= memoryDynamicMax) &&
+      (memoryStaticMax == null || memoryDynamicMax <= memoryStaticMax)
+  }
 
 // SUMMARY ---------------------------------------------------------------------
 
@@ -1330,7 +1358,7 @@ export default class NewVm extends BaseComponent {
       CPUs,
       existingDisks,
       fastClone,
-      memory,
+      memoryDynamicMax,
       multipleVms,
       nameLabels,
       VDIs,
@@ -1355,7 +1383,7 @@ export default class NewVm extends BaseComponent {
           </Col>
           <Col size={3} className='text-xs-center'>
             <h2>
-              {memory ? formatSize(memory) : '0 B'}
+              {memoryDynamicMax ? formatSize(memoryDynamicMax) : '0 B'}
               {' '}
               <Icon icon='memory' />
             </h2>
@@ -1384,7 +1412,7 @@ export default class NewVm extends BaseComponent {
           <Col size={3}>
             {memoryLimits && <Limits
               limit={memoryLimits.total}
-              toBeUsed={memory * factor}
+              toBeUsed={memoryDynamicMax * factor}
               used={memoryLimits.total - memoryLimits.available}
             />}
           </Col>
@@ -1423,7 +1451,7 @@ export default class NewVm extends BaseComponent {
     const {
       CPUs,
       existingDisks,
-      memory,
+      memoryDynamicMax,
       VDIs,
       multipleVms,
       nameLabels
@@ -1432,7 +1460,7 @@ export default class NewVm extends BaseComponent {
 
     return !(
       CPUs * factor > get(resourceSet, 'limits.cpus.available') ||
-      memory * factor > get(resourceSet, 'limits.memory.available') ||
+      memoryDynamicMax * factor > get(resourceSet, 'limits.memory.available') ||
       (sumBy(VDIs, 'size') + sum(map(existingDisks, disk => disk.size))) * factor > get(resourceSet, 'limits.disk.available')
     )
   }

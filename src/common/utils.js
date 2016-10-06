@@ -182,11 +182,12 @@ export const firstDefined = function () {
   const n = arguments.length
   for (let i = 0; i < n; ++i) {
     const arg = arguments[i]
-    if (arg != null) {
+    if (arg !== undefined) {
       return arg
     }
   }
 }
+
 // -------------------------------------------------------------------
 
 // Returns the current XOA Plan or the Plan name if number given
