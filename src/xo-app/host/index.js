@@ -267,7 +267,7 @@ export default class Host extends Component {
   render () {
     const { host, pool } = this.props
     if (!host) {
-      return <h1>Loading…</h1>
+      return <h1>{_('statusLoading')}</h1>
     }
     const childProps = assign(pick(this.props, [
       'host',

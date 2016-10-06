@@ -7,6 +7,7 @@ var isString = require('lodash/isString')
 var messages = {
   statusConnecting: 'Connecting',
   statusDisconnected: 'Disconnected',
+  statusLoading: 'Loading…',
 
   editableLongClickPlaceholder: 'Long click to edit',
   editableClickPlaceholder: 'Click to edit',
@@ -248,7 +249,6 @@ var messages = {
   remoteName: 'Name',
   remotePath: 'Path',
   remoteState: 'State',
-  remoteError: 'Error',
   remoteDevice: 'Device',
   remoteShare: 'Share',
   remoteAuth: 'Auth',
@@ -262,11 +262,11 @@ var messages = {
   remoteLocalPlaceHolderPath: '/path/to/backup',
   remoteNfsPlaceHolderHost: 'host *',
   remoteNfsPlaceHolderPath: '/path/to/backup',
-  remoteSmbPlaceHolderRemotePath: 'subfolder [path\to\backup]',
+  remoteSmbPlaceHolderRemotePath: 'subfolder [path\\to\\backup]',
   remoteSmbPlaceHolderUsername: 'Username',
   remoteSmbPlaceHolderPassword: 'Password',
   remoteSmbPlaceHolderDomain: 'Domain',
-  remoteSmbPlaceHolderAddressShare: '<address>\<share> *',
+  remoteSmbPlaceHolderAddressShare: '<address>\\<share> *',
   remotePlaceHolderPassword: 'password(fill to edit)',
 
   // ------ New Storage -----
@@ -944,7 +944,6 @@ var messages = {
   serverPassword: 'Password',
   serverAction: 'Action',
   serverReadOnly: 'Read Only',
-  serverConnect: 'Connect server',
   serverDisconnect: 'Disconnect server',
   serverPlaceHolderUser: 'username',
   serverPlaceHolderPassword: 'password',

@@ -147,7 +147,7 @@ export default class Pool extends Component {
   render () {
     const { pool } = this.props
     if (!pool) {
-      return <h1>Loading…</h1>
+      return <h1>{_('statusLoading')}</h1>
     }
     const childProps = assign(pick(this.props, [
       'hosts',

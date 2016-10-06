@@ -10,6 +10,7 @@ addLocaleData(reactIntlData)
 export default {
   statusConnecting: 'Connexion…',
   statusDisconnected: 'Déconnecté',
+  statusLoading: 'Chargement…',
 
   editableLongClickPlaceholder: 'Clic long pour éditer',
   editableClickPlaceholder: 'Cliquer pour éditer',
@@ -607,7 +608,7 @@ export default {
   vifConnect: 'Connecter',
   vifDisconnect: 'Déconnecter',
   vifRemove: 'Supprimer',
-  vifIpAddresses: 'IP addresses',
+  vifIpAddresses: 'Addresses IP',
   vifMacAutoGenerate: 'Si vide, généré automatiquement',
   vifAllowedIps: 'IPs autorisé',
   vifNoIps: 'Pas d\'IPs',
