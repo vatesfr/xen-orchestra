@@ -11,6 +11,7 @@ export default {
   statusConnecting: 'Connexion…',
   statusDisconnected: 'Déconnecté',
   statusLoading: 'Chargement…',
+  errorPageNotFound: 'Page introuvable',
 
   editableLongClickPlaceholder: 'Clic long pour éditer',
   editableClickPlaceholder: 'Cliquer pour éditer',
