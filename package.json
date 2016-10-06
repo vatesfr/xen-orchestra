@@ -73,6 +73,7 @@
     "gulp-uglify": "^2.0.0",
     "gulp-watch": "^4.3.5",
     "human-format": "^0.6.0",
+    "index-modules": "0.0.0",
     "is-ip": "^1.0.0",
     "jsonrpc-websocket-client": "0.0.1-5",
     "later": "^1.2.0",
@@ -127,7 +128,7 @@
   "scripts": {
     "benchmarks": "./tools/run-benchmarks.js 'src/**/*.bench.js'",
     "build": "npm run build-indexes && NODE_ENV=production gulp build",
-    "build-indexes": "./tools/generate-index src/common/intl/locales",
+    "build-indexes": "index-modules --auto src",
     "dev": "npm run build-indexes && NODE_ENV=development gulp build",
     "dev-test": "ava --watch",
     "lint": "standard",
