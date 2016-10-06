@@ -1,4 +1,4 @@
-import _ from 'intl'
+import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import find from 'lodash/find'
 import Icon from 'icon'
@@ -9,6 +9,7 @@ import React, { Component } from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
 import { error } from 'notification'
 import { SelectPlainObject, Toggle } from 'form'
+import { injectIntl } from 'react-intl'
 
 import {
   createSchedule,
@@ -22,6 +23,7 @@ const JOB_KEY = 'genericTask'
 
 const DEFAULT_CRON_PATTERN = '0 0 * * *'
 
+@injectIntl
 export default class Schedules extends Component {
   constructor (props) {
     super(props)
@@ -143,10 +145,10 @@ export default class Schedules extends Component {
       <h1>{_('jobSchedules')}</h1>
       <form id='newScheduleForm'>
         <div className='form-group'>
-          <input type='text' ref='name' className='form-control' placeholder={_('jobScheduleNamePlaceHolder')} required />
+          <input type='text' ref='name' className='form-control' placeholder={this.props.intl.formatMessage(messages.jobScheduleNamePlaceHolder)} required />
         </div>
         <div className='form-group'>
-          <SelectPlainObject ref='job' options={map(jobs)} optionKey='id' placeholder={_('jobScheduleJobPlaceHolder')} />
+          <SelectPlainObject ref='job' options={map(jobs)} optionKey='id' placeholder={this.props.intl.formatMessage(jobScheduleJobPlaceHolder)} />
         </div>
         {!schedule &&
           <div className='form-group'>
