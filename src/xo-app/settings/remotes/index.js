@@ -30,7 +30,6 @@ const remoteTypes = {
   smb: 'remoteTypeSmb'
 }
 
-@injectIntl
 class AbstractRemote extends Component {
   _changeUrlElement = (value, element) => {
     const remote = {...this.props.remote}
