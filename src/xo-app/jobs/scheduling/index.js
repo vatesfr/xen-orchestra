@@ -8,8 +8,8 @@ import Upgrade from 'xoa-upgrade'
 import React, { Component } from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
 import { error } from 'notification'
-import { SelectPlainObject, Toggle } from 'form'
 import { injectIntl } from 'react-intl'
+import { SelectPlainObject, Toggle } from 'form'
 
 import {
   createSchedule,

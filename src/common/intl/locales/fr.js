@@ -390,7 +390,7 @@ export default {
   srRemoveButton: 'Supprimer ce SR',
   srNoVdis: 'Pas de VDIs sur ce stockage',
   // ----- Pool general -----
-  poolTitleRamUsage: 'Utilisation RAM du groupe :',
+  poolTitleRamUsage: 'Utilisation RAM du pool :',
   poolRamUsage: '{used} utilisé sur {total}',
   poolMaster: 'Maître:',
   // ----- Pool tabs -----
@@ -1120,8 +1120,8 @@ export default {
   ipPoolNetworks: 'Réseaux',
   ipsNoIpPool: 'Pas de plages d\'IPs',
   ipsCreate: 'Créer',
-  ipsDeleteAllTitle: 'Supprimer toute les plages d\'IPs',
-  ipsDeleteAllMessage: 'Êtes-vous sûr de vouloir supprimer toute les plages d\'IP ?',
+  ipsDeleteAllTitle: 'Supprimer toutes les plages d\'IPs',
+  ipsDeleteAllMessage: 'Êtes-vous sûr de vouloir supprimer toutes les plages d\'IP ?',
   ipsVifs: 'VIFs',
   ipsNotUsed: 'Non utilisé',
 
