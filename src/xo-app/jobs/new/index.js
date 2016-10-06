@@ -316,7 +316,7 @@ export default class Jobs extends Component {
     const { formatMessage } = this.props.intl
 
     return <div>
-      <h1>Jobs</h1>
+      <h1>{_('jobsPage')}</h1>
       <form id='newJobForm'>
         <div className='form-group'>
           <input type='text' ref='name' className='form-control' placeholder={formatMessage(messages.jobNamePlaceholder)} pattern='[^_]+' required />
