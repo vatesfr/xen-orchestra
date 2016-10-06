@@ -652,10 +652,7 @@ export default {
   defaultCpuCap: 'Défaut ({value, number})',
   pvArgsLabel: 'PV params',
   xenToolsStatus: 'État du Xen tools',
-  xenToolsStatusValue: {
-    defaultMessage: '{status}',
-    description: 'l\'état peut être `not-installed`, `unknown`, `out-of-date` & `up-to-date`'
-  },
+  xenToolsStatusValue: undefined,
   osName: 'Nom de l\'OS',
   osKernel: 'Kernel de l\'OS',
   autoPowerOn: 'Allumage automatique',
