@@ -148,7 +148,7 @@ export default class Schedules extends Component {
           <input type='text' ref='name' className='form-control' placeholder={this.props.intl.formatMessage(messages.jobScheduleNamePlaceHolder)} required />
         </div>
         <div className='form-group'>
-          <SelectPlainObject ref='job' options={map(jobs)} optionKey='id' placeholder={this.props.intl.formatMessage(jobScheduleJobPlaceHolder)} />
+          <SelectPlainObject ref='job' options={map(jobs)} optionKey='id' placeholder={this.props.intl.formatMessage(messages.jobScheduleJobPlaceHolder)} />
         </div>
         {!schedule &&
           <div className='form-group'>

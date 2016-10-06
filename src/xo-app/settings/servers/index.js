@@ -1,4 +1,4 @@
-import _ from 'intl'
+import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import Component from 'base-component'
@@ -9,6 +9,7 @@ import { addSubscriptions } from 'utils'
 import { Container } from 'grid'
 import { Password as EditablePassword, Text } from 'editable'
 import { Password, Toggle } from 'form'
+import { injectIntl } from 'react-intl'
 import {
   addServer,
   editServer,
@@ -21,6 +22,8 @@ import {
 @addSubscriptions({
   servers: subscribeServers
 })
+
+@injectIntl
 export default class Servers extends Component {
   _addServer = async () => {
     const { host, password, username } = this.state
@@ -52,21 +55,21 @@ export default class Servers extends Component {
                 <Text
                   value={server.host}
                   onChange={host => editServer(server, { host })}
-                  placeholder={_('serverPlaceHolderAddress')}
+                  placeholder={this.props.intl.formatMessage(messages.serverPlaceHolderAddress)}
                 />
               </td>
               <td>
                 <Text
                   value={server.username}
                   onChange={username => editServer(server, { username })}
-                  placeholder={_('serverPlaceHolderUser')}
+                  placeholder={this.props.intl.formatMessage(messages.serverPlaceHolderUser)}
                 />
               </td>
               <td>
                 <EditablePassword
                   value=''
                   onChange={password => editServer(server, { password })}
-                  placeholder={_('serverPlaceHolderPassword')}
+                  placeholder={this.props.intl.formatMessage(messages.serverPlaceHolderPassword)}
                 />
               </td>
               <td>
@@ -117,7 +120,7 @@ export default class Servers extends Component {
           <input
             className='form-control'
             onChange={this.linkState('host')}
-            placeholder={_('serverPlaceHolderAddress')}
+            placeholder={this.props.intl.formatMessage(messages.serverPlaceHolderAddress)}
             required
             type='text'
             value={host}
@@ -128,7 +131,7 @@ export default class Servers extends Component {
           <input
             className='form-control'
             onChange={this.linkState('username')}
-            placeholder={_('serverPlaceHolderUser')}
+            placeholder={this.props.intl.formatMessage(messages.serverPlaceHolderUser)}
             required
             type='text'
             value={username}
@@ -139,7 +142,7 @@ export default class Servers extends Component {
           <Password
             disabled={!this.state.username}
             onChange={this.linkState('password')}
-            placeholder={_('serverPlaceHolderPassword')}
+            placeholder={this.props.intl.formatMessage(messages.serverPlaceHolderPassword)}
             required
             value={password}
           />
