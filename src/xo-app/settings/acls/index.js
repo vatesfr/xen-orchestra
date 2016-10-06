@@ -128,7 +128,7 @@ class AclTable extends Component {
     const { resolvedAcls = [] } = this.state
 
     return isEmpty(resolvedAcls)
-      ? <p><em>No acls found</em></p>
+      ? <p><em>{_('aclNoneFound')}</em></p>
       : <SortedTable collection={resolvedAcls} columns={ACL_COLUMNS} />
   }
 }
@@ -213,7 +213,7 @@ export default class Acls extends Component {
           <div className='form-group'>
             <SelectRole ref='selectAction' onChange={this._handleSelectRole} />
           </div>
-          <ActionButton icon='add' btnStyle='success' handler={this._addAcl} disabled={isEmpty(subjects) || isEmpty(objects) || !action}>Create</ActionButton>
+          <ActionButton icon='add' btnStyle='success' handler={this._addAcl} disabled={isEmpty(subjects) || isEmpty(objects) || !action}>{_('aclCreate')}</ActionButton>
         </form>
         <br />
         <AclTable />

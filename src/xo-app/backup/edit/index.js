@@ -23,7 +23,7 @@ export default class Edit extends Component {
     const { job, schedule } = this.state
 
     if (!job || !schedule) {
-      return <h1>Loading…</h1>
+      return <h1>{_('statusLoading')}</h1>
     }
 
     return <New job={job} schedule={schedule} />

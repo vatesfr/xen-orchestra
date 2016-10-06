@@ -65,7 +65,7 @@ export default ({
     </Row>
     <Row>
       <Col className='text-xs-center'>
-        <h5>RAM usage:</h5>
+        <h5>{_('memoryStatePanel')}</h5>
       </Col>
     </Row>
     <Row>

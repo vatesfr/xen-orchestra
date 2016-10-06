@@ -7,6 +7,8 @@ var isString = require('lodash/isString')
 var messages = {
   statusConnecting: 'Connecting',
   statusDisconnected: 'Disconnected',
+  statusLoading: 'Loading…',
+  errorPageNotFound: 'Page not found',
 
   editableLongClickPlaceholder: 'Long click to edit',
   editableClickPlaceholder: 'Click to edit',
@@ -75,8 +77,15 @@ var messages = {
   customJob: 'Custom Job',
   userPage: 'User',
 
+  // ----- Support -----
+  noSupport: 'No support',
+  freeUpgrade: 'Free upgrade!',
+
   // ----- Sign out -----
   signOut: 'Sign out',
+  
+  // ----- User Profile -----
+  editUserProfile: 'Edit my settings {username}',
 
   // ----- Home view ------
   homeFetchingData: 'Fetching data…',
@@ -209,6 +218,9 @@ var messages = {
   noJobs: 'No jobs found.',
   noSchedules: 'No schedules found',
   jobActionPlaceHolder: 'Select a xo-server API command',
+  jobSchedules: 'Schedules',
+  jobScheduleNamePlaceHolder: 'Name of your schedule',
+  jobScheduleJobPlaceHolder: 'Select a Job',
 
   // ------ New backup -----
   newBackupSelection: 'Select your backup type:',
@@ -233,6 +245,30 @@ var messages = {
   remoteTestStep: 'Test Step',
   remoteTestFile: 'Test file',
   remoteTestSuccessMessage: 'The remote appears to work correctly',
+
+  // ------ Remote -----
+  remoteName: 'Name',
+  remotePath: 'Path',
+  remoteState: 'State',
+  remoteDevice: 'Device',
+  remoteShare: 'Share',
+  remoteAuth: 'Auth',
+  remoteMounted: 'Mounted',
+  remoteUnmounted: 'Unmounted',
+  remoteConnectTip: 'Connect',
+  remoteDisconnectTip: 'Disconnect',
+  remoteDeleteTip: 'Delete',
+  remoteNamePlaceHolder: 'remote name *',
+  remoteMyNamePlaceHolder: 'Name *',
+  remoteLocalPlaceHolderPath: '/path/to/backup',
+  remoteNfsPlaceHolderHost: 'host *',
+  remoteNfsPlaceHolderPath: '/path/to/backup',
+  remoteSmbPlaceHolderRemotePath: 'subfolder [path\\to\\backup]',
+  remoteSmbPlaceHolderUsername: 'Username',
+  remoteSmbPlaceHolderPassword: 'Password',
+  remoteSmbPlaceHolderDomain: 'Domain',
+  remoteSmbPlaceHolderAddressShare: '<address>\\<share> *',
+  remotePlaceHolderPassword: 'password(fill to edit)',
 
   // ------ New Storage -----
   newSrTitle: 'Create a new SR',
@@ -260,7 +296,9 @@ var messages = {
   // ----- Acls, Users, Groups ------
   subjectName: 'Users/Groups',
   objectName: 'Object',
+  aclNoneFound: 'No acls found',
   roleName: 'Role',
+  aclCreate: 'Create',
   newGroupName: 'New Group Name',
   createGroup: 'Create Group',
   createGroupButton: 'Create',
@@ -348,6 +386,7 @@ var messages = {
   srRemoveButton: 'Remove this SR',
   srNoVdis: 'No VDIs in this storage',
   // ----- Pool general -----
+  poolTitleRamUsage: 'Pool RAM usage:',
   poolRamUsage: '{used} used on {total}',
   poolMaster: 'Master:',
   // ----- Pool tabs -----
@@ -817,8 +856,8 @@ var messages = {
   delta: 'delta',
   restoreBackups: 'Restore Backups',
   noRemotes: 'No remotes',
-  remoteEnabled: 'enabled',
-  remoteError: 'error',
+  remoteEnabled: 'Enabled',
+  remoteError: 'Error',
   noBackup: 'No backup available',
   backupVmNameColumn: 'VM Name',
   backupTagColumn: 'Backup Tag',
@@ -906,8 +945,11 @@ var messages = {
   serverPassword: 'Password',
   serverAction: 'Action',
   serverReadOnly: 'Read Only',
-  serverConnect: 'Connect server',
   serverDisconnect: 'Disconnect server',
+  serverPlaceHolderUser: 'username',
+  serverPlaceHolderPassword: 'password',
+  serverPlaceHolderAddress: 'address[:port]',
+  serverConnect: 'Connect',
 
   // ----- Copy VM -----
   copyVm: 'Copy VM',

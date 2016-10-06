@@ -162,7 +162,7 @@ export default class Sr extends Component {
   render () {
     const { container, sr } = this.props
     if (!sr) {
-      return <h1>Loading…</h1>
+      return <h1>{_('statusLoading')}</h1>
     }
     const childProps = assign(pick(this.props, [
       'hosts',

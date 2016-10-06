@@ -10,6 +10,8 @@ addLocaleData(reactIntlData)
 export default {
   statusConnecting: 'Connexion…',
   statusDisconnected: 'Déconnecté',
+  statusLoading: 'Chargement…',
+  errorPageNotFound: 'Page introuvable',
 
   editableLongClickPlaceholder: 'Clic long pour éditer',
   editableClickPlaceholder: 'Cliquer pour éditer',
@@ -78,8 +80,15 @@ export default {
   customJob: 'Job personnalisé',
   userPage: 'Utilisateur',
 
+  // ----- Support -----
+  noSupport: 'Pas de support',
+  freeUpgrade: 'Mise à jour gratuite !',
+
   // ----- Sign out -----
   signOut: 'Se déconnecter',
+
+  // ----- User Profile -----
+  editUserProfile: 'Éditer mes options {username}',
 
   // ----- Home view ------
   homeFetchingData: 'Récupération des données…',
@@ -142,7 +151,7 @@ export default {
   selectHostsVms: 'Choisir un/des object(s)…',
   selectNetworks: 'Choisir un/des réseau(x)…',
   selectPifs: 'Sélectionner la/les PIF(s)…',
-  selectPools: 'Sélection le(s) Pool(s)…',
+  selectPools: 'Sélectionner le(s) Pool(s)…',
   selectRemotes: 'Choisir un/des emplacement(s)…',
   selectResourceSets: 'Choisir un jeu de ressource(s)…',
   selectResourceSetsVmTemplate: 'Sélectionner le(s) template(s)…',
@@ -150,11 +159,11 @@ export default {
   selectResourceSetsNetwork: 'Sélectionner le(s) réseau(x)…',
   selectResourceSetsVdi: 'Sélectionner le(s) disque(s)…',
   selectSshKey: 'Sélectionner la/les clef(s) SSH…',
-  selectSrs: 'Sélection le(s) SR(s)…',
+  selectSrs: 'Sélectionner le(s) SR(s)…',
   selectVms: 'Sélectionner la/les VM(s)…',
   selectVmTemplates: 'Sélectionner le(s) template(s) de VM…',
   selectTags: 'Sélectionner le(s) tag(s)…',
-  selectVdis: 'Sélection le(s) disque(s)…',
+  selectVdis: 'Sélectionner le(s) disque(s)…',
   selectTimezone: 'Sélectionner le fuseau horaire…',
   selectIp: 'Sélectionner la/les IP(s)...',
   fillRequiredInformations: 'Saisir les informations obligatoire.',
@@ -212,6 +221,9 @@ export default {
   noJobs: 'Pas de job trouvé.',
   noSchedules: 'Pas de planification trouvé',
   jobActionPlaceHolder: 'Sélectionnez une commande de l\'API xo-server',
+  jobSchedules: 'Planning',
+  jobScheduleNamePlaceHolder: 'Nom de votre plannification',
+  jobScheduleJobPlaceHolder: 'Choisir un Job',
 
   // ------ New backup -----
   newBackupSelection: 'Choisissez votre type de sauvegarde :',
@@ -236,6 +248,31 @@ export default {
   remoteTestStep: 'Étape de test',
   remoteTestFile: 'Fichier de test',
   remoteTestSuccessMessage: 'L\'emplacement distant semble marcher correctement',
+
+  // ------ Remote -----
+  remoteName: 'Nom',
+  remotePath: 'Chemin',
+  remoteState: 'État',
+  remoteError: 'Erreur',
+  remoteDevice: 'Équipement',
+  remoteShare: 'Partage',
+  remoteAuth: 'Accès',
+  remoteMounted: 'Monté',
+  remoteUnmounted: 'Démonté',
+  remoteConnectTip: 'Connecter',
+  remoteDisconnectTip: 'Déconnecter',
+  remoteDeleteTip: 'Supprimer',
+  remoteNamePlaceHolder: 'nom distant*',
+  remoteMyNamePlaceHolder: 'Nom *',
+  remoteLocalPlaceHolderPath: '/chemin/de/la/sauvegarde',
+  remoteNfsPlaceHolderHost: 'hôte*',
+  remoteNfsPlaceHolderPath: '/chemin/de/la/sauvegarde',
+  remoteSmbPlaceHolderRemotePath: 'sous-répertoire [chemin\\vers\\la\\sauvegarde]',
+  remoteSmbPlaceHolderUsername: 'Nom d\'utilisateur',
+  remoteSmbPlaceHolderPassword: 'Mot de passe',
+  remoteSmbPlaceHolderDomain: 'Domaine',
+  remoteSmbPlaceHolderAddressShare: '<adresse>\\<partage> *',
+  remotePlaceHolderPassword: 'mot de passe (saisir ici pour éditer)',
 
   // ------ New Storage -----
   newSrTitle: 'Créer un nouvel SR',
@@ -263,7 +300,9 @@ export default {
   // ----- Acls, Users, Groups ------
   subjectName: 'Utilisateurs/Groupes',
   objectName: 'Objet',
+  aclNoneFound: 'Aucun droits existants',
   roleName: 'Rôle',
+  aclCreate: 'Créer',
   newGroupName: 'Nouveau nom de groupe',
   createGroup: 'Créer un groupe',
   createGroupButton: 'Créer',
@@ -351,6 +390,7 @@ export default {
   srRemoveButton: 'Supprimer ce SR',
   srNoVdis: 'Pas de VDIs sur ce stockage',
   // ----- Pool general -----
+  poolTitleRamUsage: 'Utilisation RAM du pool :',
   poolRamUsage: '{used} utilisé sur {total}',
   poolMaster: 'Maître:',
   // ----- Pool tabs -----
@@ -569,7 +609,7 @@ export default {
   vifConnect: 'Connecter',
   vifDisconnect: 'Déconnecter',
   vifRemove: 'Supprimer',
-  vifIpAddresses: 'IP addresses',
+  vifIpAddresses: 'Addresses IP',
   vifMacAutoGenerate: 'Si vide, généré automatiquement',
   vifAllowedIps: 'IPs autorisé',
   vifNoIps: 'Pas d\'IPs',
@@ -647,7 +687,7 @@ export default {
 
   // ----- Dashboard -----
   poolPanel: 'Pool{pools, plural, one {} other {s}}',
-  hostPanel: 'Host{hosts, plural, one {} other {s}}',
+  hostPanel: 'Hôte{hosts, plural, one {} other {s}}',
   vmPanel: 'VM{vms, plural, one {} other {s}}',
   memoryStatePanel: 'Utilisation RAM',
   cpuStatePanel: 'Utilisation CPUs',
@@ -712,6 +752,10 @@ export default {
   newVmPerfPanel: 'Performances',
   newVmVcpusLabel: 'vCPUs',
   newVmRamLabel: 'RAM',
+  newVmStaticMaxLabel: 'Mémoire fixe max',
+  newVmInstallSettingsPanel: 'Paramètres d\'installation',
+  newVmDynamicMinLabel: 'Mémoire dynamique min',
+  newVmDynamicMaxLabel: 'Mémoire dynamique max',
   newVmInstallSettingsPanel: 'Paramètres d\'installation',
   newVmIsoDvdLabel: 'ISO/DVD',
   newVmNetworkLabel: 'Réseau',
@@ -815,10 +859,9 @@ export default {
   listRemote: 'Lister les emplacements',
   simpleBackup: 'simple',
   delta: 'delta',
-  restoreBackups: 'Restauration de sauvegares',
+  restoreBackups: 'Restauration de sauvegardes',
   noRemotes: 'Pas d\'emplacements',
   remoteEnabled: 'activé',
-  remoteError: 'erreur',
   noBackup: 'Pas de sauvegarde disponible',
   backupVmNameColumn: 'Nom de la VM',
   backupTagColumn: 'Tag de sauvegarde',
@@ -906,8 +949,11 @@ export default {
   serverPassword: 'Mot de passe',
   serverAction: 'Action',
   serverReadOnly: 'Lecture seule',
-  serverConnect: 'Connecter le serveur',
   serverDisconnect: 'Déconnecter le serveur',
+  serverPlaceHolderUser: 'nom d\'utilisateur',
+  serverPlaceHolderPassword: 'mot de passe',
+  serverPlaceHolderAddress: 'adresse[:port]',
+  serverConnect: 'Connecter',
 
   // ----- Copy VM -----
   copyVm: 'Copier la VM',
@@ -955,7 +1001,7 @@ export default {
   xenOrchestraWeb: 'web client',
   noProSupport: 'Pas de support professionel fourni !',
   noProductionUse: 'Utilisez en production à vos risques et périls',
-  downloadXoa: 'Télécharger notre édition clef en main sur',
+  downloadXoa: 'Téléchargez notre édition clef en main sur',
   bugTracker: 'Gestionnaire de ticket',
   bugTrackerText: 'Un soucis ? Dites-le !',
   community: 'Communauté',
@@ -1072,10 +1118,10 @@ export default {
   ipPoolIps: 'IPs',
   ipPoolIpsPlaceholder: 'IPs (e.g.: 1.0.0.12-1.0.0.17;1.0.0.23)',
   ipPoolNetworks: 'Réseaux',
-  ipsNoIpPool: 'Pas de pool d\'IPs',
+  ipsNoIpPool: 'Pas de plages d\'IPs',
   ipsCreate: 'Créer',
-  ipsDeleteAllTitle: 'Supprimer tout les pools d\'IPs',
-  ipsDeleteAllMessage: 'Êtes-vous sûr de vouloir supprimer tout les pools d\'IP ?',
+  ipsDeleteAllTitle: 'Supprimer toutes les plages d\'IPs',
+  ipsDeleteAllMessage: 'Êtes-vous sûr de vouloir supprimer toutes les plages d\'IP ?',
   ipsVifs: 'VIFs',
   ipsNotUsed: 'Non utilisé',
 

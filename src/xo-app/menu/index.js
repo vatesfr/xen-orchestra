@@ -176,7 +176,7 @@ export default class Menu extends Component {
             {+process.env.XOA_PLAN === 5
               ? <span>
                 <span className={classNames(styles.hiddenCollapsed, 'text-warning')}>
-                  <Icon icon='alarm' size='lg' fixedWidth /> No support
+                  <Icon icon='alarm' size='lg' fixedWidth /> {_('noSupport')}
                 </span>
                 <span className={classNames(styles.hiddenUncollapsed, 'text-warning')}>
                   <Icon icon='alarm' size='lg' fixedWidth />
@@ -185,7 +185,7 @@ export default class Menu extends Component {
               : +process.env.XOA_PLAN === 1
                 ? <span>
                   <span className={classNames(styles.hiddenCollapsed, 'text-warning')}>
-                    <Icon icon='info' size='lg' fixedWidth /> Free upgrade!
+                    <Icon icon='info' size='lg' fixedWidth /> {_('freeUpgrade')}
                   </span>
                   <span className={classNames(styles.hiddenUncollapsed, 'text-warning')}>
                     <Icon icon='info' size='lg' fixedWidth />
@@ -212,7 +212,7 @@ export default class Menu extends Component {
         </li>
         <li className='nav-item xo-menu-item'>
           <Link className='nav-link text-xs-center' to={'/user'}>
-            <Tooltip content={user ? user.email : ''}>
+            <Tooltip content={_('editUserProfile', {username: (user ? user.email : '') })}>
               <Icon icon='user' size='lg' />
             </Tooltip>
           </Link>

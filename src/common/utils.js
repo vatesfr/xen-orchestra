@@ -284,7 +284,7 @@ export const normalizeXenToolsStatus = status => {
 
 // -------------------------------------------------------------------
 
-const _NotFound = () => <h1>Page not found</h1>
+const _NotFound = () => <h1>{_('errorPageNotFound')}</h1>
 
 // Decorator to declare routes on a component.
 //

@@ -1,4 +1,4 @@
-import _ from 'intl'
+import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import filter from 'lodash/filter'
@@ -12,6 +12,7 @@ import { alert } from 'modal'
 import { error } from 'notification'
 import { format, parse } from 'xo-remote-parser'
 import { Password, Text } from 'editable'
+import { injectIntl } from 'react-intl'
 
 import {
   createRemote,
@@ -74,7 +75,7 @@ class AbstractRemote extends Component {
 
     return <tr>
       <td />
-      <td><Text value={remote.name} onChange={this._changeName} placeholder='remote name*' /></td>
+      <td><Text value={remote.name} onChange={this._changeName} placeholder={this.props.intl.formatMessage(messages.remoteNamePlaceHolder)} /></td>
       <td>{this._renderRemoteInfo(remote)}</td>
       <td>{this._renderAuthInfo(remote)}</td>
       <td>
@@ -84,19 +85,19 @@ class AbstractRemote extends Component {
             {' '}
             <Tooltip content={_('remoteTestTip')}><ActionRowButton btnStyle='primary' handler={this._test} icon='diagnosis' /></Tooltip>
             {' '}
-            <ActionRowButton btnStyle='warning' handler={disableRemote} handlerParam={remote} icon='disconnect' />
+            <Tooltip content={_('remoteDisconnectTip')}><ActionRowButton btnStyle='warning' handler={disableRemote} handlerParam={remote} icon='disconnect' /></Tooltip>
           </span>
         }
         {!remote.enabled &&
           <span>
             <span className='text-muted'>{this.unaccessible}</span>
             {' '}
-            <ActionRowButton btnStyle='primary' handler={enableRemote} handlerParam={remote} icon='connect' />
+            <Tooltip content={_('remoteConnectTip')}><ActionRowButton btnStyle='primary' handler={enableRemote} handlerParam={remote} icon='connect' /></Tooltip>
           </span>
         }
       </td>
       <td><span className='text-muted'>{remote.error}</span></td>
-      <td><ActionRowButton btnStyle='danger' handler={deleteRemote} handlerParam={remote} icon='delete' /></td>
+      <td><Tooltip content={_('remoteDeleteTip')}><ActionRowButton btnStyle='danger' handler={deleteRemote} handlerParam={remote} icon='delete' /></Tooltip></td>
     </tr>
   }
 
@@ -117,10 +118,11 @@ class AbstractRemote extends Component {
   }
 }
 
+@injectIntl
 class LocalRemote extends AbstractRemote {
   _renderRemoteInfo () {
     const { remote } = this.props
-    return <Text value={remote.path} onChange={v => this._changeUrlElement(v, 'path')} placeholder='/path/to/backup' />
+    return <Text value={remote.path} onChange={v => this._changeUrlElement(v, 'path')} placeholder={this.props.intl.formatMessage(messages.remoteLocalPlaceHolderPath)} />
   }
 
   _renderAuthInfo () {
@@ -136,13 +138,14 @@ class LocalRemote extends AbstractRemote {
   }
 }
 
+@injectIntl
 class NfsRemote extends AbstractRemote {
   _renderRemoteInfo () {
     const { remote } = this.props
     return <span>
-      <Text value={remote.host} onChange={v => this._changeUrlElement(v, 'host')} placeholder='host*' />
+      <Text value={remote.host} onChange={v => this._changeUrlElement(v, 'host')} placeholder={this.props.intl.formatMessage(messages.remoteNfsPlaceHolderHost)} />
       :
-      <Text value={remote.path} onChange={v => this._changeUrlElement(v, 'path')} placeholder='/path/to/backup' />
+      <Text value={remote.path} onChange={v => this._changeUrlElement(v, 'path')} placeholder={this.props.intl.formatMessage(messages.remoteNfsPlaceHolderPath)} />
     </span>
   }
 
@@ -151,14 +154,15 @@ class NfsRemote extends AbstractRemote {
   }
 
   get accessible () {
-    return 'Mounted'
+    return _('remoteMounted')
   }
 
   get unaccessible () {
-    return 'Unmounted'
+    return _('remoteUnmounted')
   }
 }
 
+@injectIntl
 class SmbRemote extends AbstractRemote {
   _renderRemoteInfo () {
     const { remote } = this.props
@@ -167,7 +171,7 @@ class SmbRemote extends AbstractRemote {
       <Text value={remote.host} onChange={v => this._changeUrlElement(v, 'host')} />
       <strong className='text-info'>\</strong>
       <span>
-        <Text value={remote.path} onChange={v => this._changeUrlElement(v, 'path')} placeholder='subfolder [path\to\backup]' />
+        <Text value={remote.path} onChange={v => this._changeUrlElement(v, 'path')} placeholder={this.props.intl.formatMessage(messages.remoteSmbPlaceHolderRemotePath)} />
       </span>
     </span>
   }
@@ -177,7 +181,7 @@ class SmbRemote extends AbstractRemote {
     return <span>
       <Text value={remote.username} onChange={v => this._changeUrlElement(v, 'username')} />
       :
-      <Password value='' onChange={v => this._changeUrlElement(v, 'password')} placeholder='password(fill to edit)' />
+      <Password value='' onChange={v => this._changeUrlElement(v, 'password')} placeholder={this.props.intl.formatMessage(messages.remotePlaceHolderPassword)} />
       @
       <Text value={remote.domain} onChange={v => this._changeUrlElement(v, 'domain')} />
     </span>
@@ -202,6 +206,8 @@ class SmbRemote extends AbstractRemote {
     cb(remotes)
   })
 })
+
+@injectIntl
 export default class Remotes extends Component {
   constructor (props) {
     super(props)
@@ -254,12 +260,12 @@ export default class Remotes extends Component {
           {!isEmpty(remotes.file) &&
             <tbody>
               <tr>
-                <th className='text-info'>Local</th>
-                <th>Name</th>
-                <th>Path</th>
+                <th className='text-info'>{_('remoteTypeLocal')}</th>
+                <th>{_('remoteName')}</th>
+                <th>{_('remotePath')}</th>
                 <th />
-                <th>State</th>
-                <th>Error</th>
+                <th>{_('remoteState')}</th>
+                <th>{_('remoteError')}</th>
                 <th />
               </tr>
               {map(remotes.file, (remote, key) => <LocalRemote remote={remote} key={key} />)}
@@ -268,12 +274,12 @@ export default class Remotes extends Component {
           {!isEmpty(remotes.nfs) &&
             <tbody>
               <tr>
-                <th className='text-info'>NFS</th>
-                <th>Name</th>
-                <th>Device</th>
+                <th className='text-info'>{_('remoteTypeNfs')}</th>
+                <th>{_('remoteName')}</th>
+                <th>{_('remoteDevice')}</th>
                 <th />
-                <th>State</th>
-                <th>Error</th>
+                <th>{_('remoteState')}</th>
+                <th>{_('remoteError')}</th>
                 <th />
               </tr>
               {map(remotes.nfs, (remote, key) => <NfsRemote remote={remote} key={key} />)}
@@ -282,12 +288,12 @@ export default class Remotes extends Component {
           {!isEmpty(remotes.smb) &&
             <tbody>
               <tr>
-                <th className='text-info'>SMB</th>
-                <th>Name</th>
-                <th>Share</th>
-                <th>Auth</th>
-                <th>State</th>
-                <th>Error</th>
+                <th className='text-info'>{_('remoteTypeSmb')}</th>
+                <th>{_('remoteName')}</th>
+                <th>{_('remoteShare')}</th>
+                <th>{_('remoteAuth')}</th>
+                <th>{_('remoteState')}</th>
+                <th>{_('remoteError')}</th>
                 <th />
               </tr>
               {map(remotes.smb, (remote, key) => <SmbRemote remote={remote} key={key} />)}
@@ -309,24 +315,24 @@ export default class Remotes extends Component {
             </select>
           </div>
           <div className='form-group'>
-            <input type='text' ref='name' className='form-control' placeholder='Name *' required />
+            <input type='text' ref='name' className='form-control' placeholder={this.props.intl.formatMessage(messages.remoteMyNamePlaceHolder)} required />
           </div>
           {type === 'file' &&
             <fieldset className='form-group'>
               <div className='input-group'>
                 <span className='input-group-addon'>/</span>
-                <input type='text' ref='path' pattern='^(([^/]+)+(/[^/]+)*)?$' className='form-control' placeholder='path/to/backup' />
+                <input type='text' ref='path' pattern='^(([^/]+)+(/[^/]+)*)?$' className='form-control' placeholder={this.props.intl.formatMessage(messages.remoteLocalPlaceHolderPath)} />
               </div>
             </fieldset>
           }
           {type === 'nfs' &&
             <fieldset className='form-group'>
               <div className='form-group'>
-                <input type='text' ref='host' className='form-control' placeholder='host *' required />
+                <input type='text' ref='host' className='form-control' placeholder={this.props.intl.formatMessage(messages.remoteNfsPlaceHolderHost)} required />
               </div>
               <div className='input-group'>
                 <span className='input-group-addon'>/</span>
-                <input type='text' ref='path' pattern='^(([^/]+)+(/[^/]+)*)?$' className='form-control' placeholder='path/to/backup' />
+                <input type='text' ref='path' pattern='^(([^/]+)+(/[^/]+)*)?$' className='form-control' placeholder={this.props.intl.formatMessage(messages.remoteNfsPlaceHolderPath)} />
               </div>
             </fieldset>
           }
@@ -334,18 +340,18 @@ export default class Remotes extends Component {
             <fieldset className='form-group'>
               <div className='input-group form-group'>
                 <span className='input-group-addon'>\\</span>
-                <input type='text' ref='host' pattern='^([^\\/]+)\\([^\\/]+)$' className='form-control' placeholder='<address>\<share> *' required />
+                <input type='text' ref='host' pattern='^([^\\/]+)\\([^\\/]+)$' className='form-control' placeholder={this.props.intl.formatMessage(messages.remoteSmbPlaceHolderAddressShare)} required />
                 <span className='input-group-addon'>\</span>
-                <input type='text' ref='path' pattern='^(([^\\/]+)+(\\[^\\/]+)*)?$' className='form-control' placeholder='subfolder [path\to\backup]' />
+                <input type='text' ref='path' pattern='^(([^\\/]+)+(\\[^\\/]+)*)?$' className='form-control' placeholder={this.props.intl.formatMessage(messages.remoteSmbPlaceHolderRemotePath)} />
               </div>
               <div className='form-group'>
-                <input type='text' ref='username' className='form-control' placeholder='User Name' />
+                <input type='text' ref='username' className='form-control' placeholder={this.props.intl.formatMessage(messages.remoteSmbPlaceHolderUsername)} />
               </div>
               <div className='form-group'>
-                <input type='text' ref='password' className='form-control' placeholder='Password' />
+                <input type='text' ref='password' className='form-control' placeholder={this.props.intl.formatMessage(messages.remoteSmbPlaceHolderPassword)} />
               </div>
               <div className='form-group'>
-                <input type='text' ref='domain' className='form-control' placeholder='Domain' required />
+                <input type='text' ref='domain' className='form-control' placeholder={this.props.intl.formatMessage(messages.remoteSmbPlaceHolderDomain)} required />
               </div>
             </fieldset>
           }

@@ -254,7 +254,7 @@ export default class Vm extends BaseComponent {
     const { container, vm } = this.props
 
     if (!vm) {
-      return <h1>Loading…</h1>
+      return <h1>{_('statusLoading')}</h1>
     }
 
     const childProps = assign(pick(this.props, [
