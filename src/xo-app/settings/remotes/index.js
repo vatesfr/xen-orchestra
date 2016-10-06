@@ -30,6 +30,7 @@ const remoteTypes = {
   smb: 'remoteTypeSmb'
 }
 
+@injectIntl
 class AbstractRemote extends Component {
   _changeUrlElement = (value, element) => {
     const remote = {...this.props.remote}
@@ -118,6 +119,7 @@ class AbstractRemote extends Component {
   }
 }
 
+@injectIntl
 class LocalRemote extends AbstractRemote {
   _renderRemoteInfo () {
     const { remote } = this.props
@@ -137,6 +139,7 @@ class LocalRemote extends AbstractRemote {
   }
 }
 
+@injectIntl
 class NfsRemote extends AbstractRemote {
   _renderRemoteInfo () {
     const { remote } = this.props
@@ -160,6 +163,7 @@ class NfsRemote extends AbstractRemote {
   }
 }
 
+@injectIntl
 class SmbRemote extends AbstractRemote {
   _renderRemoteInfo () {
     const { remote } = this.props
