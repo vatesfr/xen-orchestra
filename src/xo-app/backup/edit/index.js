@@ -1,3 +1,4 @@
+import _ from 'intl'
 import Component from 'base-component'
 import React from 'react'
 import { getJob, getSchedule } from 'xo'

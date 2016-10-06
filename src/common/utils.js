@@ -20,6 +20,7 @@ import store from 'store'
 import { connect } from 'react-redux'
 import { getObject } from 'selectors'
 
+import _ from './intl'
 import BaseComponent from './base-component'
 import invoke from './invoke'
 

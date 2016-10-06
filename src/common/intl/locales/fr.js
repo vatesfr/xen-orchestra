@@ -753,7 +753,6 @@ export default {
   newVmInstallSettingsPanel: 'Paramètres d\'installation',
   newVmDynamicMinLabel: 'Mémoire dynamique min',
   newVmDynamicMaxLabel: 'Mémoire dynamique max',
-  newVmInstallSettingsPanel: 'Paramètres d\'installation',
   newVmIsoDvdLabel: 'ISO/DVD',
   newVmNetworkLabel: 'Réseau',
   newVmPvArgsLabel: 'PV Args',
