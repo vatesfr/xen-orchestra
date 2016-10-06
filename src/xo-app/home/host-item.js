@@ -14,10 +14,10 @@ import { Text } from 'editable'
 import {
   addTag,
   editHost,
+  fetchHostStats,
   removeTag,
   startHost,
-  stopHost,
-  fetchHostStats
+  stopHost
 } from 'xo'
 import {
   connectStore,
@@ -29,12 +29,53 @@ import {
   createGetObject
 } from 'selectors'
 import {
-  MiniCpuSparkLines,
-  MiniPifSparkLines,
-  MiniLoadSparkLines
+  CpuSparkLines,
+  LoadSparkLines,
+  PifSparkLines
 } from 'xo-sparklines'
 
 import styles from './index.css'
+
+const MINI_STATS_PROPS = {
+  height: 10,
+  strokeWidth: 0.2,
+  width: 50
+}
+class MiniStats extends Component {
+  _fetch = () => {
+    fetchHostStats(this.props.hostId).then(stats => {
+      this.setState({ stats })
+    })
+  }
+
+  componentWillMount () {
+    this._fetch()
+    this.subscriptionId = setInterval(this._fetch, 5e3)
+  }
+  componentWillUnmount () {
+    clearInterval(this.subscriptionId)
+  }
+
+  render () {
+    const { stats } = this.state
+
+    if (!stats) {
+      return <Icon icon='loading' />
+    }
+
+    return <Row>
+      <Col mediumSize={4} className={styles.itemExpanded}>
+        <CpuSparkLines data={stats} {...MINI_STATS_PROPS} />
+      </Col>
+      <Col mediumSize={4} className={styles.itemExpanded}>
+        <PifSparkLines data={stats} {...MINI_STATS_PROPS} />
+      </Col>
+      <Col mediumSize={4} className={styles.itemExpanded}>
+        <LoadSparkLines data={stats} {...MINI_STATS_PROPS} />
+      </Col>
+    </Row>
+  }
+}
 
 @connectStore(({
   container: createGetObject((_, props) => props.item.$pool),
@@ -54,14 +95,6 @@ export default class HostItem extends Component {
   _stop = () => stopHost(this.props.item)
   _toggleExpanded = () => this.setState({ expanded: !this.state.expanded })
   _onSelect = () => this.props.onSelect(this.props.item.id)
-
-  componentWillMount () {
-    fetchHostStats(this.props.item).then(stats => {
-      this.setState({
-        statsOverview: stats
-      })
-    })
-  }
 
   render () {
     const { item: host, container, expandAll, selected } = this.props
@@ -143,14 +176,8 @@ export default class HostItem extends Component {
       </BlockLink>
       {(this.state.expanded || expandAll) &&
         <Row>
-          <Col mediumSize={2} className={styles.itemExpanded}>
-            {this.state.statsOverview && <MiniCpuSparkLines data={this.state.statsOverview} />}
-          </Col>
-          <Col mediumSize={2} className={styles.itemExpanded}>
-            {this.state.statsOverview && <MiniPifSparkLines data={this.state.statsOverview} />}
-          </Col>
-          <Col mediumSize={2} className={styles.itemExpanded}>
-            {this.state.statsOverview && <MiniLoadSparkLines data={this.state.statsOverview} />}
+          <Col mediumSize={6} className={styles.itemExpanded}>
+            <MiniStats hostId={this.props.item} />
           </Col>
           <Col mediumSize={2} className={styles.itemExpanded} style={{ marginTop: '0.3rem' }}>
             <span>
