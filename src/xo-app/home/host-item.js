@@ -14,6 +14,7 @@ import { Text } from 'editable'
 import {
   addTag,
   editHost,
+  fetchHostStats,
   removeTag,
   startHost,
   stopHost
@@ -27,8 +28,54 @@ import {
   createDoesHostNeedRestart,
   createGetObject
 } from 'selectors'
+import {
+  CpuSparkLines,
+  LoadSparkLines,
+  PifSparkLines
+} from 'xo-sparklines'
 
 import styles from './index.css'
+
+const MINI_STATS_PROPS = {
+  height: 10,
+  strokeWidth: 0.2,
+  width: 50
+}
+class MiniStats extends Component {
+  _fetch = () => {
+    fetchHostStats(this.props.hostId).then(stats => {
+      this.setState({ stats })
+    })
+  }
+
+  componentWillMount () {
+    this._fetch()
+    this.subscriptionId = setInterval(this._fetch, 5e3)
+  }
+  componentWillUnmount () {
+    clearInterval(this.subscriptionId)
+  }
+
+  render () {
+    const { stats } = this.state
+
+    if (!stats) {
+      return <Icon icon='loading' />
+    }
+
+    return <Row>
+      <Col mediumSize={4} className={styles.itemExpanded}>
+        <CpuSparkLines data={stats} {...MINI_STATS_PROPS} />
+      </Col>
+      <Col mediumSize={4} className={styles.itemExpanded}>
+        <PifSparkLines data={stats} {...MINI_STATS_PROPS} />
+      </Col>
+      <Col mediumSize={4} className={styles.itemExpanded}>
+        <LoadSparkLines data={stats} {...MINI_STATS_PROPS} />
+      </Col>
+    </Row>
+  }
+}
 
 @connectStore(({
   container: createGetObject((_, props) => props.item.$pool),
@@ -79,7 +126,7 @@ export default class HostItem extends Component {
               {this.props.needsRestart && <Tooltip content={_('rebootUpdateHostLabel')}><Link to={`/hosts/${host.id}/patches`}><Icon icon='alarm' /></Link></Tooltip>}
             </EllipsisContainer>
           </Col>
-          <Col mediumSize={4} className='hidden-lg-down'>
+          <Col mediumSize={3} className='hidden-lg-down'>
             <EllipsisContainer>
               <span className={styles.itemActionButons}>
                 {this._isRunning
@@ -129,15 +176,15 @@ export default class HostItem extends Component {
       </BlockLink>
       {(this.state.expanded || expandAll) &&
         <Row>
-          <Col mediumSize={4} className={styles.itemExpanded}>
+          <Col mediumSize={6} className={styles.itemExpanded}>
+            <MiniStats hostId={this.props.item} />
+          </Col>
+          <Col mediumSize={2} className={styles.itemExpanded} style={{ marginTop: '0.3rem' }}>
             <span>
               {host.cpus.cores}x <Icon icon='cpu' />
               {' '}&nbsp;{' '}
               {formatSize(host.memory.size)} <Icon icon='memory' />
             </span>
-          </Col>
-          <Col mediumSize={4} className={styles.itemExpanded}>
-            <span className='tag tag-info tag-ip'>{host.address}</span>
           </Col>
           <Col mediumSize={4}>
             <span style={{fontSize: '1.4em'}}>
