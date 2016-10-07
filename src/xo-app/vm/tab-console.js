@@ -19,6 +19,8 @@ import {
 } from 'xo-sparklines'
 
 export default class TabConsole extends Component {
+  state = { scale: 1 }
+
   componentWillReceiveProps (props) {
     if (isVmRunning(this.props.vm) && !isVmRunning(props.vm) && this.state.minimalLayout) {
       this._toggleMinimalLayout()
