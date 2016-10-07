@@ -1135,7 +1135,14 @@ var messages = {
   shortcut_NAV_DOWN: 'Next item',
   shortcut_NAV_UP: 'Previous item',
   shortcut_SELECT: 'Select item',
-  shortcut_JUMP_INTO: 'Open'
+  shortcut_JUMP_INTO: 'Open',
+
+  // ----- Magic Translation -----
+  autoTradButtonVM: 'VM',
+  autoTradButtonhost: 'Hosts',
+  autoTradButtonpool: 'Pool',
+  autoTradButtonSR: 'SR',
+  autoTradButtonnetwork: 'Network'
 
 }
 forEach(messages, function (message, id) {

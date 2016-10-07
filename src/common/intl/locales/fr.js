@@ -1135,5 +1135,13 @@ export default {
   shortcut_NAV_DOWN: 'Élément suivant',
   shortcut_NAV_UP: 'Élément précédent',
   shortcut_SELECT: 'Sélectionné l\'élément',
-  shortcut_JUMP_INTO: 'Ouvrir'
+  shortcut_JUMP_INTO: 'Ouvrir',
+
+  // ----- Magic Translation -----
+  autoTradButtonVM: 'VM',
+  autoTradButtonhost: 'Hôtes',
+  autoTradButtonpool: 'Pool',
+  autoTradButtonSR: 'SR',
+  autoTradButtonnetwork: 'Réseaux'
+
 }
