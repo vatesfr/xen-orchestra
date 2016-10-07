@@ -6,6 +6,7 @@ import {
   parse as parseUrl,
   resolve as resolveUrl
 } from 'url'
+import { enable as enableShortcuts, disable as disableShortcuts } from 'shortcuts'
 
 import propTypes from './prop-types'
 
@@ -70,6 +71,7 @@ export default class NoVnc extends Component {
       this._rfb = null
       rfb.disconnect()
     }
+    enableShortcuts()
   }
 
   _connect = () => {
@@ -92,6 +94,7 @@ export default class NoVnc extends Component {
     })
 
     rfb.connect(formatUrl(url))
+    disableShortcuts()
   }
 
   componentDidMount () {
@@ -120,6 +123,8 @@ export default class NoVnc extends Component {
 
       rfb.get_keyboard().grab()
       rfb.get_mouse().grab()
+
+      disableShortcuts()
     }
   }
 
@@ -128,6 +133,8 @@ export default class NoVnc extends Component {
     if (rfb) {
       rfb.get_keyboard().ungrab()
       rfb.get_mouse().ungrab()
+
+      enableShortcuts()
     }
   }
 
