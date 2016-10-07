@@ -42,7 +42,7 @@ export default {
   overviewVisualizationDashboardPage: 'Visualisations',
   overviewStatsDashboardPage: 'Statistiques',
   overviewHealthDashboardPage: 'État de santé',
-  selfServicePage: 'Self service',
+  selfServicePage: 'Libre service',
   backupPage: 'Sauvegardes',
   jobsPage: 'Jobs',
   updatePage: 'Mises à jour',
