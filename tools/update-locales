@@ -3,7 +3,6 @@
 var filter = require('lodash/filter')
 var forEach = require('lodash/forEach')
 var join = require('path').join
-var jsesc = require('jsesc')
 var map = require('lodash/map')
 var readDir = require('fs').readdirSync
 var writeFile = require('fs').writeFileSync
