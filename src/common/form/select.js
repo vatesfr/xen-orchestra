@@ -18,6 +18,8 @@ const SELECT_STYLE = {
   minWidth: '10em'
 }
 
+const MAX_OPTIONS = 5
+
 // See: https://github.com/bvaughn/react-virtualized-select/blob/master/source/VirtualizedSelect/VirtualizedSelect.js
 @propTypes({
   maxHeight: propTypes.number
@@ -36,7 +38,7 @@ export default class Select extends Component {
     const { maxHeight } = this.props
 
     const focusedOptionIndex = options.indexOf(focusedOption)
-    let height = options.length > 5 && maxHeight
+    let height = options.length > MAX_OPTIONS && maxHeight
 
     const wrappedRowRenderer = ({ index, key, style }) =>
       this._optionRenderer({
@@ -63,7 +65,10 @@ export default class Select extends Component {
               width={width - 16}
             >
               {({ getRowHeight }) => {
-                height = height || sum(map(options, (_, index) => getRowHeight({ index })))
+                if (options.length <= MAX_OPTIONS) {
+                  height = sum(map(options, (_, index) => getRowHeight({ index })))
+                }
+
                 return <List
                   height={height}
                   rowCount={options.length}
