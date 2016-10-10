@@ -704,6 +704,9 @@ var messages = {
   srUsageStatePanel: 'Storage Usage',
   srTopUsageStatePanel: 'Top 5 SR Usage (in %)',
   vmsStates: '{running} running ({halted} halted)',
+  dashboardStatsButtonRemoveAll: 'Clear selection',
+  dashboardStatsButtonAddAllHost: 'Add all hosts',
+  dashboardStatsButtonAddAllVM: 'Add all VMs',
 
   // --- Stats board --
   weekHeatmapData: '{value} {date, date, medium}',

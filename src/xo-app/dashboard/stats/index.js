@@ -305,6 +305,7 @@ class SelectMetric extends Component {
               <button
                 className='btn btn-secondary'
                 onClick={this._resetSelection}
+                tooltip={_('dashboardStatsButtonRemoveAll')}
                 type='button'
               >
                 <Icon icon='remove' />
@@ -312,6 +313,7 @@ class SelectMetric extends Component {
               <button
                 className='btn btn-secondary'
                 onClick={this._selectAllHosts}
+                tooltip={_('dashboardStatsButtonAddAllHost')}
                 type='button'
               >
                 <Icon icon='host' />
@@ -319,6 +321,7 @@ class SelectMetric extends Component {
               <button
                 className='btn btn-secondary'
                 onClick={this._selectAllVms}
+                tooltip={_('dashboardStatsButtonAddAllVM')}
                 type='button'
               >
                 <Icon icon='vm' />

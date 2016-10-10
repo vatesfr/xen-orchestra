@@ -705,6 +705,9 @@ export default {
   srUsageStatePanel: 'Utilisation du stockage',
   srTopUsageStatePanel: 'Top 5 d\'utilisation des SR (en %)',
   vmsStates: '{running} en cours ({halted} stoppés)',
+  dashboardStatsButtonRemoveAll: 'Vider la sélection',
+  dashboardStatsButtonAddAllHost: 'Ajouter tout les hôtes',
+  dashboardStatsButtonAddAllVM: 'Ajouter toutes les VMs',
 
   // --- Stats board --
   weekHeatmapData: '{value} {date, date, medium}',
