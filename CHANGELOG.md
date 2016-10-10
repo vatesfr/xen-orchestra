@@ -1,5 +1,28 @@
 # ChangeLog
 
+## **5.2.5** (2016-10-07)
+
+### Enhancements
+
+- Stats in home/host view when expanded [\#1634](https://github.com/vatesfr/xo-web/issues/1634)
+- Bar for used and total RAM on home pool view [\#1625](https://github.com/vatesfr/xo-web/issues/1625)
+- Can't translate some text [\#1624](https://github.com/vatesfr/xo-web/issues/1624)
+- Dynamic RAM allocation at creation time [\#1603](https://github.com/vatesfr/xo-web/issues/1603)
+
+### Bug fixes
+
+- Do not expose shortcuts while console is focused [\#1614](https://github.com/vatesfr/xo-web/issues/1614)
+
+## **5.2.4** (2016-10-04)
+
+### Enhancements
+
+- Display memory bar in home/host view [\#1616](https://github.com/vatesfr/xo-web/issues/1616)
+
+### Bug fixes
+
+- All users can see VM templates [\#1621](https://github.com/vatesfr/xo-web/issues/1621)
+
 ## **5.2.3** (2016-10-03)
 
 ### Enhancements
