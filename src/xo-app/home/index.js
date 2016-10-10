@@ -17,11 +17,11 @@ import Link from 'link'
 import map from 'lodash/map'
 import Page from '../page'
 import React from 'react'
+import Shortcuts from 'shortcuts'
 import SingleLineRow from 'single-line-row'
 import size from 'lodash/size'
 import Tooltip from 'tooltip'
 import { Card, CardHeader, CardBlock } from 'card'
-import { Shortcuts } from 'react-shortcuts'
 import {
   addCustomFilter,
   copyVms,
