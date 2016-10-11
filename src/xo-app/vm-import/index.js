@@ -288,27 +288,27 @@ export default class Import extends Component {
     return <Page header={HEADER} title='newImport' formatTitle>
       {process.env.XOA_PLAN > 1
         ? (
-        <Container>
-          <form id='import-form'>
-            <FormGrid.Row>
-              <FormGrid.LabelCol>{_('vmImportToPool')}</FormGrid.LabelCol>
-              <FormGrid.InputCol>
-                <SelectPool value={pool} onChange={this._handleSelectedPool} required />
-              </FormGrid.InputCol>
-            </FormGrid.Row>
-            <FormGrid.Row>
-              <FormGrid.LabelCol>{_('vmImportToSr')}</FormGrid.LabelCol>
-              <FormGrid.InputCol>
-                <SelectSr
-                  disabled={!sr}
-                  onChange={this._handleSelectedSr}
-                  predicate={srPredicate}
-                  required
-                  value={sr}
+          <Container>
+            <form id='import-form'>
+              <FormGrid.Row>
+                <FormGrid.LabelCol>{_('vmImportToPool')}</FormGrid.LabelCol>
+                <FormGrid.InputCol>
+                  <SelectPool value={pool} onChange={this._handleSelectedPool} required />
+                </FormGrid.InputCol>
+              </FormGrid.Row>
+              <FormGrid.Row>
+                <FormGrid.LabelCol>{_('vmImportToSr')}</FormGrid.LabelCol>
+                <FormGrid.InputCol>
+                  <SelectSr
+                    disabled={!sr}
+                    onChange={this._handleSelectedSr}
+                    predicate={srPredicate}
+                    required
+                    value={sr}
                 />
-              </FormGrid.InputCol>
-            </FormGrid.Row>
-            {sr && (
+                </FormGrid.InputCol>
+              </FormGrid.Row>
+              {sr && (
               <div>
                 <Dropzone onDrop={this._handleDrop} className={styles.dropzone} activeClassName={styles.activeDropzone}>
                   <div className={styles.dropzoneText}>{_('importVmsList')}</div>
@@ -317,34 +317,34 @@ export default class Import extends Component {
                 <h5>{_('vmsToImport')}</h5>
                 {vms.length > 0
                   ? (
-                  <div>
-                    {map(vms, ({ data, error, file, type }, vmIndex) => (
-                      <div key={file.preview} className={styles.vmContainer}>
-                        <strong>{file.name}</strong>
-                        <span className='pull-xs-right'>
-                          <strong>{`(${formatSize(file.size)})`}</strong>
-                        </span>
-                        {!error
-                          ? (data &&
-                            <div>
-                              <hr />
-                              <div className='alert alert-info' role='alert'>
-                                <strong>{_('vmImportFileType', { type })}</strong> {_('vmImportConfigAlert')}
+                    <div>
+                      {map(vms, ({ data, error, file, type }, vmIndex) => (
+                        <div key={file.preview} className={styles.vmContainer}>
+                          <strong>{file.name}</strong>
+                          <span className='pull-xs-right'>
+                            <strong>{`(${formatSize(file.size)})`}</strong>
+                          </span>
+                          {!error
+                            ? (data &&
+                              <div>
+                                <hr />
+                                <div className='alert alert-info' role='alert'>
+                                  <strong>{_('vmImportFileType', { type })}</strong> {_('vmImportConfigAlert')}
+                                </div>
+                                <VmData {...data} ref={`vm-data-${vmIndex}`} pool={pool} />
                               </div>
-                              <VmData {...data} ref={`vm-data-${vmIndex}`} pool={pool} />
-                            </div>
-                          ) : (
-                          <div>
-                            <hr />
-                            <div className='alert alert-danger' role='alert'>
-                              <strong>{_('vmImportError')}</strong> {(error && error.message) || _('noVmImportErrorDescription')}
-                            </div>
-                          </div>
-                          )
+                            ) : (
+                              <div>
+                                <hr />
+                                <div className='alert alert-danger' role='alert'>
+                                  <strong>{_('vmImportError')}</strong> {(error && error.message) || _('noVmImportErrorDescription')}
+                                </div>
+                              </div>
+                            )
                         }
-                      </div>
+                        </div>
                     ))}
-                  </div>
+                    </div>
                   ) : <p>{_('noSelectedVms')}</p>
                 }
                 <hr />
@@ -371,8 +371,8 @@ export default class Import extends Component {
                 </div>
               </div>
             )}
-          </form>
-        </Container>
+            </form>
+          </Container>
       ) : <Container><Upgrade place='vmImport' available={2} /></Container>
     }
     </Page>

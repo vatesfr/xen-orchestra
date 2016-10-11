@@ -127,10 +127,10 @@ export default class HostPatches extends Component {
           <Col>
             {!isEmpty(hostPatches)
               ? (
-              <span>
-                <h3>{_('hostAppliedPatches')}</h3>
-                <SortedTable collection={hostPatches} columns={INSTALLED_PATCH_COLUMNS} />
-              </span>
+                <span>
+                  <h3>{_('hostAppliedPatches')}</h3>
+                  <SortedTable collection={hostPatches} columns={INSTALLED_PATCH_COLUMNS} />
+                </span>
               ) : <h4 className='text-xs-center'>{_('patchNothing')}</h4>
             }
           </Col>

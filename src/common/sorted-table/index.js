@@ -335,19 +335,19 @@ export default class SortedTable extends Component {
               <Col mediumSize={8}>
                 {paginationContainer
                   ? (
-                  // Rebuild container function to refresh Portal component.
-                  <Portal container={() => paginationContainer()}>
-                    {paginationInstance}
-                  </Portal>
+                    // Rebuild container function to refresh Portal component.
+                    <Portal container={() => paginationContainer()}>
+                      {paginationInstance}
+                    </Portal>
                   ) : paginationInstance
                 }
               </Col>
               <Col mediumSize={4}>
                 {filterContainer
                   ? (
-                  <Portal container={() => filterContainer()}>
-                    {filterInstance}
-                  </Portal>
+                    <Portal container={() => filterContainer()}>
+                      {filterInstance}
+                    </Portal>
                   ) : filterInstance
                 }
               </Col>
