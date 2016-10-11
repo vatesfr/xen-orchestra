@@ -58,6 +58,9 @@
     "test": "mocha --opts .mocha.opts \"dist/**/*.spec.js\""
   },
   "babel": {
+    "plugins": [
+      "transform-runtime"
+    ],
     "presets": [
       "es2015",
       "stage-0"
