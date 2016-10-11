@@ -512,7 +512,7 @@ export class Xapi extends EventEmitter {
       timeout: 10
     })
 
-    this._xmlRpcCall = client.methodCall::promisify(client)
+    this._xmlRpcCall = promisify(client.methodCall, client)
   }
 
   _addObject (type, ref, object) {
