@@ -173,8 +173,8 @@ export class Edit extends Component {
           refs.inputMaxCpus.value = refs.inputMaxDiskSpace.value = refs.inputMaxRam.value = ''
         } else {
           refs.inputMaxCpus.value = (limits.cpus && limits.cpus.total) || ''
-          refs.inputMaxDiskSpace.value = (limits.disk && limits.disk.total) || ''
-          refs.inputMaxRam.value = (limits.memory && limits.memory.total) || ''
+          refs.inputMaxDiskSpace.value = (limits.disk && limits.disk.total) || null
+          refs.inputMaxRam.value = (limits.memory && limits.memory.total) || null
         }
       })
     }
@@ -198,8 +198,8 @@ export class Edit extends Component {
       name: refs.inputName.value,
       limits: {
         cpus: cpus === '' ? undefined : +cpus,
-        memory,
-        disk
+        memory: memory === null ? undefined : memory,
+        disk: disk === null ? undefined : disk
       },
       objects: map(objects, object => object.id),
       subjects: map(refs.selectSubject.value, object => object.id)
@@ -219,8 +219,8 @@ export class Edit extends Component {
       refs.selectSr.value = undefined
       refs.selectNetwork.value = undefined
       refs.inputMaxCpus.value = ''
-      refs.inputMaxDiskSpace.value = ''
-      refs.inputMaxRam.value = ''
+      refs.inputMaxDiskSpace.value = null
+      refs.inputMaxRam.value = null
     })
   }
 
