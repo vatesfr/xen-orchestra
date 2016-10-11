@@ -1140,11 +1140,11 @@ export default {
   shortcut_SELECT: 'Sélectionné l\'élément',
   shortcut_JUMP_INTO: 'Ouvrir',
 
-  // ----- Magic Translation -----
-  autoTradButtonVM: 'VM',
-  autoTradButtonhost: 'Hôtes',
-  autoTradButtonpool: 'Pool',
-  autoTradButtonSR: 'SR',
-  autoTradButtonnetwork: 'Réseaux'
+  // ----- Settings/ACLs -----
+  settingsAclsButtonTooltipVM: 'VM',
+  settingsAclsButtonTooltiphost: 'Hôtes',
+  settingsAclsButtonTooltippool: 'Pool',
+  settingsAclsButtonTooltipSR: 'SR',
+  settingsAclsButtonTooltipnetwork: 'Réseaux'
 
 }

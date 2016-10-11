@@ -1140,12 +1140,12 @@ var messages = {
   shortcut_SELECT: 'Select item',
   shortcut_JUMP_INTO: 'Open',
 
-  // ----- Magic Translation -----
-  autoTradButtonVM: 'VM',
-  autoTradButtonhost: 'Hosts',
-  autoTradButtonpool: 'Pool',
-  autoTradButtonSR: 'SR',
-  autoTradButtonnetwork: 'Network'
+  // ----- Settings/ACLs -----
+  settingsAclsButtonTooltipVM: 'VM',
+  settingsAclsButtonTooltiphost: 'Hosts',
+  settingsAclsButtonTooltippool: 'Pool',
+  settingsAclsButtonTooltipSR: 'SR',
+  settingsAclsButtonTooltipnetwork: 'Network'
 
 }
 forEach(messages, function (message, id) {
