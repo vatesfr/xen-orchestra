@@ -174,15 +174,15 @@ class HostsPatchesTable extends Component {
       <div>
         {!noPatches
           ? (
-          <SortedTable
-            collection={hosts}
-            columns={props.displayPools ? POOLS_MISSING_PATCHES_COLUMNS : MISSING_PATCHES_COLUMNS}
-            userData={{
-              installAllHostPatches: this._installAllHostPatches,
-              missingPatches: this.state.missingPatches,
-              pools: props.pools
-            }}
-          />
+            <SortedTable
+              collection={hosts}
+              columns={props.displayPools ? POOLS_MISSING_PATCHES_COLUMNS : MISSING_PATCHES_COLUMNS}
+              userData={{
+                installAllHostPatches: this._installAllHostPatches,
+                missingPatches: this.state.missingPatches,
+                pools: props.pools
+              }}
+            />
           ) : <p>{_('patchNothing')}</p>
         }
         <Portal container={() => props.buttonsGroupContainer()}>

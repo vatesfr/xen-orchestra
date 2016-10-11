@@ -644,9 +644,8 @@ export default class Home extends Component {
             <Col mediumSize={8} className='text-xs-right hidden-sm-down'>
               {this.state.displayActions
                 ? (
-                <div>
-                  {mainActions && (
-                    <div className='btn-group'>
+                  <div>
+                    {mainActions && <div className='btn-group'>
                       {map(mainActions, (action, key) => (
                         <Tooltip content={action.tooltip} key={key}>
                           <ActionButton
@@ -656,9 +655,8 @@ export default class Home extends Component {
                           />
                         </Tooltip>
                       ))}
-                    </div>
-                  )}
-                  {otherActions && (
+                    </div>}
+                    {otherActions && (
                     <DropdownButton bsStyle='secondary' id='advanced' title={_('homeMore')}>
                       {map(otherActions, (action, key) => (
                         <MenuItem key={key} onClick={() => { action.handler(selectedItemsIds, action.params) }}>
@@ -667,7 +665,7 @@ export default class Home extends Component {
                       ))}
                     </DropdownButton>
                   )}
-                </div>
+                  </div>
                 ) : <div>
                   {options.showPoolsSelector && (
                     <OverlayTrigger

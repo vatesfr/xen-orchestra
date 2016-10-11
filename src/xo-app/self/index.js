@@ -91,9 +91,9 @@ const Hosts = propTypes({
               </li>
             ))
             : (
-            <li className='list-group-item'>
-              {_('noHostsAvailable')}
-            </li>
+              <li className='list-group-item'>
+                {_('noHostsAvailable')}
+              </li>
             )
           }
         </ul>
@@ -107,9 +107,9 @@ const Hosts = propTypes({
               </li>
             ))
             : (
-            <li className='list-group-item'>
-              <s>{_('noHostsAvailable')}</s>
-            </li>
+              <li className='list-group-item'>
+                <s>{_('noHostsAvailable')}</s>
+              </li>
             )
           }
         </ul>

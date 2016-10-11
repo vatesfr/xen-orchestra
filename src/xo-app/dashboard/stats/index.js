@@ -339,9 +339,9 @@ class SelectMetric extends Component {
           <Col mediumSize={6}>
             {metricsState === METRICS_LOADING
               ? (
-              <div>
-                <Icon icon='loading' /> {_('metricsLoading')}
-              </div>
+                <div>
+                  <Icon icon='loading' /> {_('metricsLoading')}
+                </div>
               ) : (metricsState === METRICS_LOADED &&
                 <select className='form-control' onChange={this._handleSelectedMetric}>
                   {_('noSelectedMetric', message => <option value=''>{message}</option>)}

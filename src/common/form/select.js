@@ -1,7 +1,10 @@
+import map from 'lodash/map'
 import React, { Component } from 'react'
 import ReactSelect from 'react-select'
+import sum from 'lodash/sum'
 import {
   AutoSizer,
+  CellMeasurer,
   List
 } from 'react-virtualized'
 
@@ -15,15 +18,15 @@ const SELECT_STYLE = {
   minWidth: '10em'
 }
 
+const MAX_OPTIONS = 5
+
 // See: https://github.com/bvaughn/react-virtualized-select/blob/master/source/VirtualizedSelect/VirtualizedSelect.js
 @propTypes({
-  maxHeight: propTypes.number,
-  optionHeight: propTypes.number
+  maxHeight: propTypes.number
 })
 export default class Select extends Component {
   static defaultProps = {
     maxHeight: 200,
-    optionHeight: 40,
     optionRenderer: (option, labelKey) => option[labelKey]
   }
 
@@ -32,13 +35,10 @@ export default class Select extends Component {
     options,
     ...otherOptions
   }) => {
-    const {
-      maxHeight,
-      optionHeight
-    } = this.props
+    const { maxHeight } = this.props
 
     const focusedOptionIndex = options.indexOf(focusedOption)
-    const height = Math.min(maxHeight, options.length * optionHeight)
+    let height = options.length > MAX_OPTIONS && maxHeight
 
     const wrappedRowRenderer = ({ index, key, style }) =>
       this._optionRenderer({
@@ -54,14 +54,32 @@ export default class Select extends Component {
     return (
       <AutoSizer disableHeight>
         {({ width }) => (
-          <List
-            height={height}
-            rowCount={options.length}
-            rowHeight={optionHeight}
-            rowRenderer={wrappedRowRenderer}
-            scrollToIndex={focusedOptionIndex}
-            width={width}
-          />
+          width ? (
+            <CellMeasurer
+              cellRenderer={({ rowIndex }) => wrappedRowRenderer({ index: rowIndex })}
+              columnCount={1}
+              rowCount={options.length}
+              // FIXME: 16 px: ugly workaround to take into account the scrollbar
+              // during the offscreen render to measure the row height
+              // See https://github.com/bvaughn/react-virtualized/issues/401
+              width={width - 16}
+            >
+              {({ getRowHeight }) => {
+                if (options.length <= MAX_OPTIONS) {
+                  height = sum(map(options, (_, index) => getRowHeight({ index })))
+                }
+
+                return <List
+                  height={height}
+                  rowCount={options.length}
+                  rowHeight={getRowHeight}
+                  rowRenderer={wrappedRowRenderer}
+                  scrollToIndex={focusedOptionIndex}
+                  width={width}
+                />
+              }}
+            </CellMeasurer>
+          ) : null
         )}
       </AutoSizer>
     )
@@ -95,7 +113,7 @@ export default class Select extends Component {
         className={className}
         onClick={!disabled && (() => selectValue(option))}
         onMouseOver={!disabled && (() => focusOption(option))}
-        style={{ ...style, height: props.optionHeight }}
+        style={style}
         key={key}
       >
         {props.optionRenderer(option, labelKey)}
