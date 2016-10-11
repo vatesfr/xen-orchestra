@@ -1229,8 +1229,8 @@ export const createResourceSet = (name, { subjects, objects, limits } = {}) => (
   )
 )
 
-export const editRessourceSet = (id, { name, subjects, objects, limits } = {}) => (
-  _call('resourceSet.set', { id, name, subjects, objects, limits })::tap(
+export const editResourceSet = (id, { name, subjects, objects, limits, ipPools } = {}) => (
+  _call('resourceSet.set', { id, name, subjects, objects, limits, ipPools })::tap(
     subscribeResourceSets.forceRefresh
   )
 )

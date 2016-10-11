@@ -6,14 +6,18 @@ import Component from 'base-component'
 import differenceBy from 'lodash/differenceBy'
 import filter from 'lodash/filter'
 import forEach from 'lodash/forEach'
+import get from 'lodash/get'
 import Icon from 'icon'
+import includes from 'lodash/includes'
 import intersection from 'lodash/intersection'
 import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
+import mapKeys from 'lodash/mapKeys'
 import propTypes from 'prop-types'
 import React from 'react'
 import reduce from 'lodash/reduce'
+import remove from 'lodash/remove'
 import renderXoItem from 'render-xo-item'
 import Upgrade from 'xoa-upgrade'
 import { Container, Row, Col } from 'grid'
@@ -24,12 +28,14 @@ import { SizeInput } from 'form'
 import {
   createResourceSet,
   deleteResourceSet,
-  editRessourceSet,
+  editResourceSet,
   recomputeResourceSetsLimits,
+  subscribeIpPools,
   subscribeResourceSets
 } from 'xo'
 
 import {
+  addSubscriptions,
   connectStore,
   formatSize,
   resolveResourceSets
@@ -42,6 +48,7 @@ import {
 } from 'card'
 
 import {
+  SelectIpPool,
   SelectNetwork,
   SelectPool,
   SelectSr,
@@ -135,9 +142,22 @@ const Hosts = propTypes({
 export class Edit extends Component {
   constructor (props) {
     super(props)
+    const { resourceSet } = props
+
+    const ipPools = []
+    if (resourceSet) {
+      forEach(resourceSet.ipPools, ipPool => {
+        ipPools.push({
+          pool: ipPool,
+          quantity: get(resourceSet, `limits[ipPool:${ipPool}].total`)
+        })
+      })
+    }
+
     this.state = {
       eligibleHosts: [],
-      excludedHosts: props.hosts
+      excludedHosts: props.hosts,
+      ipPools
     }
   }
 
@@ -194,15 +214,26 @@ export class Edit extends Component {
       ...refs.selectNetwork.value
     ]
 
-    await editRessourceSet(set.id, {
+    const ipPoolsLimits = {}
+    const ipPools = []
+    forEach(this.state.ipPools, ipPool => {
+      if (ipPool.quantity) {
+        ipPoolsLimits[`ipPool:${ipPool.pool}`] = +ipPool.quantity
+      }
+      ipPools.push(ipPool.pool)
+    })
+
+    await editResourceSet(set.id, {
       name: refs.inputName.value,
       limits: {
         cpus: cpus === '' ? undefined : +cpus,
         memory: memory === null ? undefined : memory,
-        disk: disk === null ? undefined : disk
+        disk: disk === null ? undefined : disk,
+        ...ipPoolsLimits
       },
       objects: map(objects, object => object.id),
-      subjects: map(refs.selectSubject.value, object => object.id)
+      subjects: map(refs.selectSubject.value, object => object.id),
+      ipPools
     })
 
     this.props.onSave()
@@ -222,6 +253,8 @@ export class Edit extends Component {
       refs.inputMaxDiskSpace.value = null
       refs.inputMaxRam.value = null
     })
+
+    this.setState({ ipPools: [], newIpPool: undefined, newQuantity: '' })
   }
 
   _updateSelectedPools = (pools, srs, networks, onChange) => {
@@ -295,6 +328,23 @@ export class Edit extends Component {
       selectedNetworks: networks
     }, onChange)
   }
+
+  _addIpPool = () => {
+    const { ipPools, newIpPool, newQuantity } = this.state
+    this.setState({
+      ipPools: [ ...ipPools, { pool: newIpPool.id, quantity: newQuantity } ],
+      newIpPool: undefined,
+      newQuantity: ''
+    })
+  }
+  _removeIpPool = index => {
+    const ipPools = [ ...this.state.ipPools ]
+    remove(ipPools, (_, i) => index === i)
+    this.setState({ ipPools })
+  }
+
+  _ipPoolPredicate = ipPool =>
+    !includes(map(this.state.ipPools, 'pool'), ipPool.id)
 
   render () {
     const { state } = this
@@ -390,6 +440,42 @@ export class Edit extends Component {
               </Col>
             </Row>
           </div>
+          <div>
+            <Row>
+              <Col mediumSize={4}>
+                <Row>
+                  <Col mediumSize={7}>
+                    <strong>{_('ipPool')}</strong>
+                  </Col>
+                  <Col mediumSize={3}>
+                    <strong>{_('quantity')}</strong>
+                  </Col>
+                </Row>
+                {map(state.ipPools, (ipPool, index) => <Row className='m-b-1' key={index}>
+                  <Col mediumSize={7}>
+                    <SelectIpPool onChange={this.linkState(`ipPools.${index}.pool`, 'id')} value={ipPool.pool} />
+                  </Col>
+                  <Col mediumSize={3}>
+                    <input className='form-control' type='number' onChange={this.linkState(`ipPools.${index}.quantity`)} value={ipPool.quantity || ''} placeholder='∞' />
+                  </Col>
+                  <Col mediumSize={2}>
+                    <ActionButton btnStyle='secondary' icon='delete' handler={this._removeIpPool} handlerParam={index} />
+                  </Col>
+                </Row>)}
+                <Row>
+                  <Col mediumSize={7}>
+                    <SelectIpPool onChange={this.linkState('newIpPool')} value={state.newIpPool} predicate={this._ipPoolPredicate} />
+                  </Col>
+                  <Col mediumSize={3}>
+                    <input className='form-control' type='number' onChange={this.linkState('newQuantity')} value={state.newQuantity || ''} placeholder='∞' />
+                  </Col>
+                  <Col mediumSize={2}>
+                    <ActionButton btnStyle='secondary' icon='add' handler={this._addIpPool} />
+                  </Col>
+                </Row>
+              </Col>
+            </Row>
+          </div>
           <hr />
           <Hosts excludedHosts={state.excludedHosts} eligibleHosts={state.eligibleHosts} />
         </form>
@@ -405,15 +491,20 @@ export class Edit extends Component {
   }
 }
 
+@addSubscriptions({
+  ipPools: subscribeIpPools
+})
 class ResourceSet extends Component {
   _renderDisplay = () => {
     const { resourceSet } = this.props
+    const resolvedIpPools = mapKeys(this.props.ipPools, 'id')
     const {
       limits: {
         cpus,
         disk,
         memory
-      } = {}
+      } = {},
+      ipPools
     } = resourceSet
 
     return [
@@ -425,6 +516,22 @@ class ResourceSet extends Component {
           {map(objectsSet, object => renderXoItem(object, { className: 'm-r-1' }))}
         </li>
       )),
+      !isEmpty(ipPools) && <li className='list-group-item'>
+        {map(ipPools, pool => {
+          const resolvedIpPool = resolvedIpPools[pool]
+          const limits = get(resourceSet, `limits[ipPool:${pool}]`)
+          const available = limits && limits.available
+          const total = limits && limits.total
+          return <span className='m-r-1'>
+            {renderXoItem({
+              name: resolvedIpPool && resolvedIpPool.name,
+              type: 'ipPool'
+            })}
+            {limits && <span> ({available}/{total})</span>}
+          </span>
+        }
+      )}
+      </li>,
       <li className='list-group-item'>
         <Row>
           <Col mediumSize={4}>

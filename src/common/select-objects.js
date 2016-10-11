@@ -872,3 +872,15 @@ export const SelectIp = makeSubscriptionSelect(subscriber => {
 
   return unsubscribeIpPools
 }, { placeholder: _('selectIp') })
+
+// ===================================================================
+
+export const SelectIpPool = makeSubscriptionSelect(subscriber => {
+  const unsubscribeIpPools = subscribeIpPools(ipPools => {
+    subscriber({
+      xoObjects: mapValues(sortBy(ipPools, 'name'), ipPool => ({ ...ipPool, type: 'ipPool' }))
+    })
+  })
+
+  return unsubscribeIpPools
+}, { placeholder: _('selectIpPool') })
