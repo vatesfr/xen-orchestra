@@ -332,7 +332,7 @@ class NewVif extends BaseComponent {
           <input type='text' value={mac || ''} onChange={this.linkState('mac')} placeholder={formatMessage(messages.vifMacLabel)} className='form-control' /> ({_('vifMacAutoGenerate')})
         </div>
         <span className='pull-right'>
-          <ActionButton form='newVifForm' icon='add' btnStyle='primary' handler={this._createVif}>Create</ActionButton>
+          <ActionButton form='newVifForm' icon='add' btnStyle='primary' handler={this._createVif}>{_('vifCreate')}</ActionButton>
         </span>
       </fieldset>
     </form>

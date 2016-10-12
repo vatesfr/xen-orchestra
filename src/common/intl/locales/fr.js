@@ -625,6 +625,7 @@ export default {
   vifLockedNetworkNoIps: 'Le réseau est verrouillé et aucune IP n\'est autorisé sur cette interface',
   vifUnLockedNetwork: 'Réseau non verrouillé',
   vifUnknownNetwork: 'Réseau inconnu',
+  vifCreate: 'Créer',
 
   // ----- VM snapshot tab -----
   noSnapshots: 'Pas d\'instantanné',
