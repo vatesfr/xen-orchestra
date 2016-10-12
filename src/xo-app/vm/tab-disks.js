@@ -42,9 +42,9 @@ import {
 
 const parseBootOrder = bootOrder => {
   const bootOptions = {
-    c: 'Hard-Drive',
-    d: 'DVD-Drive',
-    n: 'Network'
+    c: {_('vdbBootOptionc')},
+    d: {_('vdbBootOptiond')},
+    n: {_('vdbBootOptionn')},
   }
   const order = []
   if (bootOrder) {
@@ -104,18 +104,20 @@ class NewDisk extends Component {
       </div>
       <fieldset className='form-inline'>
         <div className='form-group'>
+          // FIXME Placholder translation
           <input type='text' ref='name' placeholder='Disk Name' className='form-control' required />
         </div>
         {' '}
         <div className='form-group'>
+          // FIXME Placholder translation
           <SizeInput ref='size' placeholder='Size' required />
         </div>
         {' '}
         <div className='form-group'>
-          Bootable <Toggle ref='bootable' /> Readonly <Toggle ref='readOnly' />
+          {_('vdbBootable')} <Toggle ref='bootable' /> {_('vdbReadonly')} <Toggle ref='readOnly' />
         </div>
         <span className='pull-right'>
-          <ActionButton form='newDiskForm' icon='add' btnStyle='primary' handler={this._createDisk}>Create</ActionButton>
+          <ActionButton form='newDiskForm' icon='add' btnStyle='primary' handler={this._createDisk}>{_('vdbCreate')}</ActionButton>
         </span>
       </fieldset>
     </form>
@@ -175,10 +177,10 @@ class AttachDisk extends Component {
       </div>
       {vdi && <fieldset className='form-inline'>
         <div className='form-group'>
-          Bootable <Toggle ref='bootable' /> Readonly <Toggle ref='readOnly' />
+          {_('vdbBootable')} <Toggle ref='bootable' /> {_('vdbReadonly')} <Toggle ref='readOnly' />
         </div>
         <span className='pull-right'>
-          <ActionButton icon='add' form='attachDiskForm' btnStyle='primary' handler={this._addVdi}>Create</ActionButton>
+          <ActionButton icon='add' form='attachDiskForm' btnStyle='primary' handler={this._addVdi}>{_('vdbCreate')}</ActionButton>
         </span>
       </fieldset>
       }
@@ -299,9 +301,9 @@ class BootOrder extends Component {
       </ul>
       <fieldset className='form-inline'>
         <span className='pull-right'>
-          <ActionButton icon='save' btnStyle='primary' handler={this._save}>Save</ActionButton>
+          <ActionButton icon='save' btnStyle='primary' handler={this._save}>{_('saveBootOption')}</ActionButton>
           {' '}
-          <ActionButton icon='reset' handler={this._reset}>Reset</ActionButton>
+          <ActionButton icon='reset' handler={this._reset}>{_('resetBootOption')}</ActionButton>
         </span>
       </fieldset>
     </form>

@@ -591,6 +591,14 @@ var messages = {
   vbdNoVbd: 'No disks',
   vbdConnect: 'Connect VBD',
   vbdDisconnect: 'Disconnect VBD',
+  vdbBootable: 'Bootable',
+  vdbReadonly: 'Readonly',
+  vdbCreate: 'Create',
+  vdbBootOptionc: 'Hard-Drive',
+  vdbBootOptiond: 'DVD-Drive',
+  vdbBootOptionn: 'Network',
+  saveBootOption: 'Save',
+  resetBootOption: 'Reset',
 
   // ----- VM network tab -----
   vifCreateDeviceButton: 'New device',

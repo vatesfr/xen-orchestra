@@ -595,6 +595,14 @@ export default {
   vbdNoVbd: 'Pas de disques',
   vbdConnect: 'Connecter un VBD',
   vbdDisconnect: 'Déconnecter un VBD',
+  vdbBootable: 'Bootable',
+  vdbReadonly: 'Lecture seule',
+  vdbCreate: 'Créer',
+  vdbBootOptionc: 'Disque dur',
+  vdbBootOptiond: 'Lecteur DVD',
+  vdbBootOptionn: 'Réseau',
+  saveBootOption: 'Enregistrer',
+  resetBootOption: 'Réinitialiser',
 
   // ----- VM network tab -----
   vifCreateDeviceButton: 'Nouvelle interface',
