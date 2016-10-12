@@ -130,7 +130,7 @@ class TransportEmailPlugin {
     transport.use('compile', markdownCompiler)
 
     this._conf = conf
-    this._send = transport.sendMail::promisify(transport)
+    this._send = promisify(transport.sendMail, transport)
   }
 
   load () {
