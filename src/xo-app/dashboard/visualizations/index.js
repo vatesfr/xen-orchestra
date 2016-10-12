@@ -21,6 +21,7 @@ import {
 // ===================================================================
 
 // Columns order is defined by the attributes declaration order.
+// FIXME translation
 const DATA_LABELS = {
   nVCpus: 'vCPUs number',
   ram: 'RAM quantity',
