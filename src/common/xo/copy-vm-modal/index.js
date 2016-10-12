@@ -9,6 +9,8 @@ import { Toggle } from '../../form'
 import { injectIntl } from 'react-intl'
 
 class CopyVmModalBody extends Component {
+  state = { compress: false }
+
   get value () {
     const { state } = this
     return {
