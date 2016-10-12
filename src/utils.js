@@ -226,7 +226,7 @@ export const generateUnsecureToken = (n = 32) => base64url(getPseudoRandomBytes(
 // Generate a secure random Base64 string.
 export const generateToken = (randomBytes => {
   return (n = 32) => randomBytes(n).then(base64url)
-})(randomBytes::promisify())
+})(promisify(randomBytes))
 
 // -------------------------------------------------------------------
 

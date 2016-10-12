@@ -7,8 +7,7 @@ startsWith = require 'lodash/startsWith'
 {coroutine: $coroutine} = require 'bluebird'
 {
   extractProperty,
-  parseXml,
-  promisify
+  parseXml
 } = require '../utils'
 
 #=====================================================================

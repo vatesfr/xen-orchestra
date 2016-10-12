@@ -54,7 +54,7 @@ const levelPromise = db => {
       dbP[name] = db::value
     } else {
       dbP[`${name}Sync`] = db::value
-      dbP[name] = value::promisify(db)
+      dbP[name] = promisify(value, db)
     }
   })
 

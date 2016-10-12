@@ -41,7 +41,7 @@ export default class Redis extends Collection {
 
     this.indexes = indexes
     this.prefix = prefix
-    this.redis = promisifyAll.call(connection || createRedisClient(uri))
+    this.redis = promisifyAll(connection || createRedisClient(uri))
   }
 
   _extract (ids) {
