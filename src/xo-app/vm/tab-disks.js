@@ -100,9 +100,10 @@ class NewDisk extends Component {
     poolId => sr => sr.$pool === poolId && isSrWritable(sr)
   )
 
-  const { formatMessage } = this.props.intl
 
   render () {
+    const { formatMessage } = this.props.intl
+
     return <form id='newDiskForm'>
       <div className='form-group'>
         <SelectSr predicate={this._getSrPredicate()} onChange={this._selectSr} required />
