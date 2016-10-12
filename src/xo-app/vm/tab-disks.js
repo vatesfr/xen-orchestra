@@ -1,4 +1,4 @@
-import _, { messages } from 'intl' 
+import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import Component from 'base-component'
@@ -46,7 +46,7 @@ const parseBootOrder = bootOrder => {
   const bootOptions = {
     c: 'Hard-Drive',
     d: 'DVD-Drive',
-    n: 'Network',
+    n: 'Network'
   }
   const order = []
   if (bootOrder) {
