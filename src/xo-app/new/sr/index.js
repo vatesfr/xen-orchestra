@@ -465,7 +465,7 @@ export default class New extends Component {
                 <input
                   id='srName'
                   className='form-control'
-                  placeholder='storage name'
+                  placeholder={_('newSrNamePlaceHolder')}
                   ref='name'
                   onBlur={this._handleNameChange}
                   required
@@ -475,7 +475,7 @@ export default class New extends Component {
                 <input
                   id='srDescription'
                   className='form-control'
-                  placeholder='storage description'
+                  placeholder={_('newSrDescPlaceHolder')}
                   ref='description'
                   onBlur={this._handleDescriptionChange}
                   required

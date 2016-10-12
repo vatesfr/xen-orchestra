@@ -292,6 +292,8 @@ var messages = {
   newSrInUse: 'in use',
   newSrSize: 'Size',
   newSrCreate: 'Create',
+  newSrNamePlaceHolder: 'Storage name',
+  newSrDescPlaceHolder: 'Storage description',
 
   // ----- Acls, Users, Groups ------
   subjectName: 'Users/Groups',

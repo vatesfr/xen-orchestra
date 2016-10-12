@@ -296,6 +296,8 @@ export default {
   newSrInUse: 'utilisé',
   newSrSize: 'Taille',
   newSrCreate: 'Créer',
+  newSrNamePlaceHolder: 'Nom de l\'emplacement',
+  newSrDescPlaceHolder: 'Description de l\'emplacement',
 
   // ----- Acls, Users, Groups ------
   subjectName: 'Utilisateurs/Groupes',
