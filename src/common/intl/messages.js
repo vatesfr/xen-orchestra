@@ -602,9 +602,8 @@ var messages = {
   vdbBootable: 'Bootable',
   vdbReadonly: 'Readonly',
   vdbCreate: 'Create',
-  vdbBootOptionc: 'Hard-Drive',
-  vdbBootOptiond: 'DVD-Drive',
-  vdbBootOptionn: 'Network',
+  vdbNamePlaceHolder: 'Disk name',
+  vdbSizePlaceHolder: 'Size',
   saveBootOption: 'Save',
   resetBootOption: 'Reset',
 

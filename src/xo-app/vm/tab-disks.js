@@ -1,4 +1,4 @@
-import _ from 'intl'
+import _, { messages } from 'intl' 
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import Component from 'base-component'
@@ -19,6 +19,7 @@ import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Container, Row, Col } from 'grid'
 import { createSelector } from 'selectors'
 import { DragDropContext, DragSource, DropTarget } from 'react-dnd'
+import { injectIntl } from 'react-intl'
 import { noop } from 'utils'
 import { SelectSr, SelectVdi } from 'select-objects'
 import { SizeInput, Toggle } from 'form'
@@ -60,6 +61,7 @@ const parseBootOrder = bootOrder => {
   return order
 }
 
+@injectIntl
 @propTypes({
   onClose: propTypes.func,
   vm: propTypes.object.isRequired
@@ -98,7 +100,8 @@ class NewDisk extends Component {
     poolId => sr => sr.$pool === poolId && isSrWritable(sr)
   )
 
-  // FIXME: placeholder DiskName and Size
+  const { formatMessage } = this.props.intl
+
   render () {
     return <form id='newDiskForm'>
       <div className='form-group'>
@@ -106,11 +109,11 @@ class NewDisk extends Component {
       </div>
       <fieldset className='form-inline'>
         <div className='form-group'>
-          <input type='text' ref='name' placeholder='Disk Name' className='form-control' required />
+          <input type='text' ref='name' placeholder={formatMessage(messages.vdbNamePlaceHolder)} className='form-control' required />
         </div>
         {' '}
         <div className='form-group'>
-          <SizeInput ref='size' placeholder='Size' required />
+          <SizeInput ref='size' placeholder={formatMessage(messages.vdbSizePlaceHolder)} required />
         </div>
         {' '}
         <div className='form-group'>
