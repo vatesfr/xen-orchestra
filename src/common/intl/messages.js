@@ -294,6 +294,12 @@ var messages = {
   newSrCreate: 'Create',
   newSrNamePlaceHolder: 'Storage name',
   newSrDescPlaceHolder: 'Storage description',
+  newSrAddressPlaceHolder: 'Address',
+  newSrPortPlaceHolder: '[port]',
+  newSrUsernamePlaceHolder: 'Username',
+  newSrPasswordPlaceHolder: 'Password',
+  newSrLvmDevicePlaceHolder: 'Device, e.g /dev/sda...',
+  newSrLocalPathPlaceHolder: '/path/to/directory',
 
   // ----- Acls, Users, Groups ------
   subjectName: 'Users/Groups',

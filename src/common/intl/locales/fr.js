@@ -253,7 +253,6 @@ export default {
   remoteName: 'Nom',
   remotePath: 'Chemin',
   remoteState: 'État',
-  remoteError: 'Erreur',
   remoteDevice: 'Équipement',
   remoteShare: 'Partage',
   remoteAuth: 'Accès',
@@ -298,6 +297,12 @@ export default {
   newSrCreate: 'Créer',
   newSrNamePlaceHolder: 'Nom de l\'emplacement',
   newSrDescPlaceHolder: 'Description de l\'emplacement',
+  newSrAddressPlaceHolder: 'Adresse',
+  newSrPortPlaceHolder: '[port]',
+  newSrUsernamePlaceHolder: 'Nom d\'utilisateur',
+  newSrPasswordPlaceHolder: 'Mot de passe',
+  newSrLvmDevicePlaceHolder: 'Matériel, par exemple /dev/sda...',
+  newSrLocalPathPlaceHolder: '/chemin/du/répertoire',
 
   // ----- Acls, Users, Groups ------
   subjectName: 'Utilisateurs/Groupes',
