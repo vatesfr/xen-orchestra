@@ -41,10 +41,11 @@ import {
 } from 'xo'
 
 const parseBootOrder = bootOrder => {
+  // FIXME missing translation
   const bootOptions = {
-    c: 'vdbBootOptionc',
-    d: 'vdbBootOptiond',
-    n: 'vdbBootOptionn',
+    c: 'Hard-Drive',
+    d: 'DVD-Drive',
+    n: 'Network',
   }
   const order = []
   if (bootOrder) {
@@ -295,7 +296,8 @@ class BootOrder extends Component {
           key={index}
           index={index}
           id={item.id}
-          item={_(item)}
+          // FIXME missing translation
+          item={item}
           move={this._moveOrderItem}
         />)}
       </ul>
