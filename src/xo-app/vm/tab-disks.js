@@ -98,6 +98,7 @@ class NewDisk extends Component {
     poolId => sr => sr.$pool === poolId && isSrWritable(sr)
   )
 
+  // FIXME: placeholder DiskName and Size
   render () {
     return <form id='newDiskForm'>
       <div className='form-group'>
@@ -105,12 +106,10 @@ class NewDisk extends Component {
       </div>
       <fieldset className='form-inline'>
         <div className='form-group'>
-          // FIXME Placholder translation
           <input type='text' ref='name' placeholder='Disk Name' className='form-control' required />
         </div>
         {' '}
         <div className='form-group'>
-          // FIXME Placholder translation
           <SizeInput ref='size' placeholder='Size' required />
         </div>
         {' '}
