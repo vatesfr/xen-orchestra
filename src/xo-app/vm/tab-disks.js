@@ -42,9 +42,9 @@ import {
 
 const parseBootOrder = bootOrder => {
   const bootOptions = {
-    c: {_('vdbBootOptionc')},
-    d: {_('vdbBootOptiond')},
-    n: {_('vdbBootOptionn')},
+    c: 'vdbBootOptionc',
+    d: 'vdbBootOptiond',
+    n: 'vdbBootOptionn',
   }
   const order = []
   if (bootOrder) {
@@ -295,7 +295,7 @@ class BootOrder extends Component {
           key={index}
           index={index}
           id={item.id}
-          item={item}
+          item={_(item)}
           move={this._moveOrderItem}
         />)}
       </ul>
