@@ -1,4 +1,5 @@
 import fu from '@nraynaud/struct-fu'
+import isEqual from 'lodash/isEqual'
 
 import {
   noop,
@@ -146,13 +147,15 @@ const unpackField = (field, buf) => {
 
 // Returns the checksum of a raw struct.
 // The raw struct (footer or header) is altered with the new sum.
-function checksumStruct (rawStruct, checksumField) {
+function checksumStruct (rawStruct, struct) {
+  const checksumField = struct.fields.checksum
+
   let sum = 0
 
   // Reset current sum.
   packField(checksumField, 0, rawStruct)
 
-  for (let i = 0; i < VHD_FOOTER_SIZE; i++) {
+  for (let i = 0, n = struct.size; i < n; i++) {
     sum = (sum + rawStruct[i]) & 0xFFFFFFFF
   }
 
@@ -255,7 +258,7 @@ class Vhd {
     )
 
     const sum = unpackField(fuFooter.fields.checksum, buf)
-    const sumToTest = checksumStruct(buf, fuFooter.fields.checksum)
+    const sumToTest = checksumStruct(buf, fuFooter)
 
     // Checksum child & parent.
     if (sumToTest !== sum) {
@@ -499,7 +502,7 @@ class Vhd {
     const offset = this.getEndOfData()
     const rawFooter = fuFooter.pack(footer)
 
-    footer.checksum = checksumStruct(rawFooter, fuFooter.fields.checksum)
+    footer.checksum = checksumStruct(rawFooter, fuFooter)
     debug(`Write footer at: ${offset} (checksum=${footer.checksum}). (data=${rawFooter.toString('hex')})`)
 
     await this._write(rawFooter, 0)
@@ -509,7 +512,7 @@ class Vhd {
   async writeHeader () {
     const { header } = this
     const rawHeader = fuHeader.pack(header)
-    header.checksum = checksumStruct(rawHeader, fuHeader.fields.checksum)
+    header.checksum = checksumStruct(rawHeader, fuHeader)
     const offset = VHD_FOOTER_SIZE
     debug(`Write header at: ${offset} (checksum=${header.checksum}). (data=${rawHeader.toString('hex')})`)
     await this._write(rawHeader, offset)
@@ -520,6 +523,8 @@ class Vhd {
 //
 // Child must be a delta backup !
 // Parent must be a full backup !
+//
+// TODO: update the identifier of the parent VHD.
 export default async function vhdMerge (
   parentHandler, parentPath,
   childHandler, childPath
@@ -583,13 +588,34 @@ export async function chainVhd (
     parentVhd.readHeaderAndFooter(),
     childVhd.readHeaderAndFooter()
   ])
+
+  const { header } = childVhd
+
   const parentName = parentPath.split('/').pop()
   const parentUuid = parentVhd.footer.uuid
-  if (childVhd.header.parentUuid !== parentUuid || childVhd.header.parentUnicodeName !== parentName) {
-    childVhd.header.parentUuid = parentUuid
-    childVhd.header.parentUnicodeName = parentName
+  if (
+    header.parentUnicodeName !== parentName ||
+    !isEqual(header.parentUuid, parentUuid)
+  ) {
+    header.parentUuid = parentUuid
+    header.parentUnicodeName = parentName
     await childVhd.writeHeader()
     return true
   }
+
+  // The checksum was broken between xo-server v5.2.4 and v5.2.5
+  //
+  // Replace by a correct checksum if necessary.
+  //
+  // TODO: remove when enough time as passed (6 months).
+  {
+    const rawHeader = fuHeader.pack(header)
+    const checksum = checksumStruct(rawHeader, fuHeader)
+    if (checksum !== header.checksum) {
+      childVhd._write(rawHeader, VHD_FOOTER_SIZE)
+      return true
+    }
+  }
+
   return false
 }
