@@ -47,6 +47,7 @@ import {
   SelectNetwork,
   SelectPool,
   SelectResourceSet,
+  SelectResourceSetIp,
   SelectResourceSetsNetwork,
   SelectResourceSetsSr,
   SelectResourceSetsVdi,
@@ -456,7 +457,8 @@ export default class NewVm extends BaseComponent {
   _getDefaultNetworkId = () => {
     const resourceSet = this._getResolvedResourceSet()
     if (resourceSet) {
-      return resourceSet.objectsByType['network'][0].id
+      const { network } = resourceSet.objectsByType
+      return !isEmpty(network) && network[0].id
     }
     const network = find(this._getPoolNetworks(), network => {
       const pif = getObject(store.getState(), network.PIFs[0])
@@ -995,53 +997,70 @@ export default class NewVm extends BaseComponent {
     const { state: { VIFs } } = this.state
     const { pool } = this.props
     const { formatMessage } = this.props.intl
+    const resourceSet = this._getResolvedResourceSet()
 
     return <Section icon='new-vm-interfaces' title='newVmInterfacesPanel' done={this._isInterfacesDone()}>
       <SectionContent column>
-        {map(VIFs, (vif, index) => <div key={index}>
-          <LineItem>
-            <Item label={_('newVmMacLabel')}>
-              <DebounceInput
-                className='form-control'
-                debounceTimeout={DEBOUNCE_TIMEOUT}
-                onChange={this._linkState(`VIFs.${index}.mac`)}
-                placeholder={formatMessage(messages.newVmMacPlaceholder)}
-                rows={7}
-                value={vif.mac}
-              />
-            </Item>
-            <Item label={_('newVmNetworkLabel')}>
-              <span className={styles.inlineSelect}>
-                {pool ? <SelectNetwork
-                  onChange={this._linkState(`VIFs.${index}.network`, 'id')}
-                  predicate={this._getNetworkPredicate()}
-                  value={vif.network}
-                />
-                : <SelectResourceSetsNetwork
-                  onChange={this._linkState(`VIFs.${index}.network`, 'id')}
-                  resourceSet={this._getResolvedResourceSet()}
-                  value={vif.network}
-                />}
-              </span>
-            </Item>
+        {map(VIFs, (vif, index) => {
+          const ipPoolPredicate = ipPool => {
+            if (!ipPool) {
+              return false
+            }
+            return (pool || resourceSet && includes(resourceSet.ipPools, ipPool.id)) &&
+            find(ipPool.networks, ipPoolNetwork => ipPoolNetwork === vif.network)
+          }
+          return <div key={index}>
             <LineItem>
-              <span className={styles.inlineSelect}>
-                <SelectIp
-                  containerPredicate={pool => find(pool.networks, poolNetwork => poolNetwork === vif.network)}
-                  multi
-                  onChange={this._linkState(`VIFs.${index}.addresses`, '*.id')}
-                  value={vif.addresses}
+              <Item label={_('newVmMacLabel')}>
+                <DebounceInput
+                  className='form-control'
+                  debounceTimeout={DEBOUNCE_TIMEOUT}
+                  onChange={this._linkState(`VIFs.${index}.mac`)}
+                  placeholder={formatMessage(messages.newVmMacPlaceholder)}
+                  rows={7}
+                  value={vif.mac}
                 />
-              </span>
+              </Item>
+              <Item label={_('newVmNetworkLabel')}>
+                <span className={styles.inlineSelect}>
+                  {pool ? <SelectNetwork
+                    onChange={this._linkState(`VIFs.${index}.network`, 'id')}
+                    predicate={this._getNetworkPredicate()}
+                    value={vif.network}
+                  />
+                  : <SelectResourceSetsNetwork
+                    onChange={this._linkState(`VIFs.${index}.network`, 'id')}
+                    resourceSet={this._getResolvedResourceSet()}
+                    value={vif.network}
+                  />}
+                </span>
+              </Item>
+              <LineItem>
+                <span className={styles.inlineSelect}>
+                  {pool ? <SelectIp
+                    containerPredicate={ipPoolPredicate}
+                    multi
+                    onChange={this._linkState(`VIFs.${index}.addresses`, '*.id')}
+                    value={vif.addresses}
+                  />
+                  : <SelectResourceSetIp
+                    containerPredicate={ipPoolPredicate}
+                    multi
+                    onChange={this._linkState(`VIFs.${index}.addresses`, '*.id')}
+                    resourceSet={this._getResolvedResourceSet()}
+                    value={vif.addresses}
+                  />}
+                </span>
+              </LineItem>
+              <Item>
+                <Button onClick={() => this._removeInterface(index)} bsStyle='secondary'>
+                  <Icon icon='new-vm-remove' />
+                </Button>
+              </Item>
             </LineItem>
-            <Item>
-              <Button onClick={() => this._removeInterface(index)} bsStyle='secondary'>
-                <Icon icon='new-vm-remove' />
-              </Button>
-            </Item>
-          </LineItem>
-          {index < VIFs.length - 1 && <hr />}
-        </div>)}
+            {index < VIFs.length - 1 && <hr />}
+          </div>
+        })}
         <Item>
           <Button onClick={this._addInterface} bsStyle='secondary'>
             <Icon icon='new-vm-add' />

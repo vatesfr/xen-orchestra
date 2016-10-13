@@ -20,6 +20,7 @@ import {
   SelectNetwork,
   SelectPool,
   SelectRemote,
+  SelectResourceSetIp,
   SelectSr,
   SelectSubject,
   SelectTag,
@@ -372,6 +373,7 @@ const MAP_TYPE_SELECT = {
   network: SelectNetwork,
   pool: SelectPool,
   remote: SelectRemote,
+  resourceSetIp: SelectResourceSetIp,
   SR: SelectSr,
   subject: SelectSubject,
   tag: SelectTag,
@@ -380,8 +382,10 @@ const MAP_TYPE_SELECT = {
 }
 
 @propTypes({
+  containerPredicate: propTypes.func,
   labelProp: propTypes.string.isRequired,
   predicate: propTypes.func,
+  resourceSet: propTypes.object,
   value: propTypes.oneOfType([
     propTypes.string,
     propTypes.object
@@ -403,8 +407,10 @@ export class XoSelect extends Editable {
 
   _renderEdition () {
     const {
+      containerPredicate,
       placeholder,
       predicate,
+      resourceSet,
       saving,
       xoType
     } = this.props
@@ -421,10 +427,12 @@ export class XoSelect extends Editable {
     return <a onBlur={this._closeEdition}>
       <Select
         autoFocus
+        containerPredicate={containerPredicate}
         disabled={saving}
         onChange={this._onChange}
         placeholder={placeholder}
         predicate={predicate}
+        resourceSet={resourceSet}
         ref='select'
       />
     </a>

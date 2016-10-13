@@ -497,21 +497,26 @@ export class Edit extends Component {
 class ResourceSet extends Component {
   _renderDisplay = () => {
     const { resourceSet } = this.props
+    console.log('resourceSet', resourceSet)
     const resolvedIpPools = mapKeys(this.props.ipPools, 'id')
+    console.log('resolvedIpPools', resolvedIpPools)
     const {
       limits: {
         cpus,
         disk,
         memory
       } = {},
-      ipPools
+      ipPools,
+      subjects,
+      objectsByType
     } = resourceSet
+    console.log('ipPools', ipPools)
 
     return [
       <li className='list-group-item'>
-        <Subjects subjects={resourceSet.subjects} />
+        <Subjects subjects={subjects} />
       </li>,
-      ...map(resourceSet.objectsByType, (objectsSet, type) => (
+      ...map(objectsByType, (objectsSet, type) => (
         <li key={type} className='list-group-item'>
           {map(objectsSet, object => renderXoItem(object, { className: 'm-r-1' }))}
         </li>

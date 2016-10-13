@@ -368,12 +368,13 @@ export const resolveResourceSet = resourceSet => {
     return
   }
 
-  const { objects, ...attrs } = resourceSet
+  const { objects, ipPools, ...attrs } = resourceSet
   const resolvedObjects = {}
   const resolvedSet = {
     ...attrs,
     missingObjects: [],
-    objectsByType: resolvedObjects
+    objectsByType: resolvedObjects,
+    ipPools
   }
   const state = store.getState()
 
