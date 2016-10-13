@@ -444,29 +444,28 @@ export default class New extends Component {
 
     return process.env.XOA_PLAN > 1
       ? (
-      <Wizard>
-        <Section icon='backup' title={this.props.job ? 'editVmBackup' : 'newVmBackup'}>
-          <Container>
-            <Row>
-              <Col>
-                <fieldset className='form-group'>
-                  <label htmlFor='selectBackup'>{_('newBackupSelection')}</label>
-                  <select
-                    className='form-control'
-                    value={(backupInfo && backupInfo.method) || ''}
-                    id='selectBackup'
-                    onChange={this._handleBackupSelection}
-                    required
-                  >
-                    {_('noSelectedValue', message => <option value=''>{message}</option>)}
-                    {map(BACKUP_METHOD_TO_INFO, (info, key) =>
+        <Wizard>
+          <Section icon='backup' title={this.props.job ? 'editVmBackup' : 'newVmBackup'}>
+            <Container>
+              <Row>
+                <Col>
+                  <fieldset className='form-group'>
+                    <label htmlFor='selectBackup'>{_('newBackupSelection')}</label>
+                    <select
+                      className='form-control'
+                      value={(backupInfo && backupInfo.method) || ''}
+                      id='selectBackup'
+                      onChange={this._handleBackupSelection}
+                      required
+                    >
+                      {_('noSelectedValue', message => <option value=''>{message}</option>)}
+                      {map(BACKUP_METHOD_TO_INFO, (info, key) =>
                       _(info.label, message => <option key={key} value={key}>{message}</option>)
-                    )}
-                  </select>
-                </fieldset>
-                <form id='form-new-vm-backup'>
-                  {backupInfo && (
-                    <div>
+                      )}
+                    </select>
+                  </fieldset>
+                  <form id='form-new-vm-backup'>
+                    {backupInfo && <div>
                       <GenericInput
                         label={<span><Icon icon={backupInfo.icon} /> {_(backupInfo.label)}</span>}
                         ref='backupInput'
@@ -505,51 +504,50 @@ export default class New extends Component {
                           uiSchema={NO_SMART_UI_SCHEMA}
                           />
                       }
-                    </div>
-                  )}
-                </form>
-              </Col>
-            </Row>
-          </Container>
-        </Section>
-        <Section icon='schedule' title='schedule'>
-          <Scheduler
-            cronPattern={cronPattern}
-            onChange={this._updateCronPattern}
-            timezone={timezone}
-          />
-        </Section>
-        <Section icon='preview' title='preview' summary>
-          <Container>
-            <Row>
-              <Col>
-                <SchedulePreview cronPattern={cronPattern} />
-                {process.env.XOA_PLAN < 4 && backupInfo && process.env.XOA_PLAN < REQUIRED_XOA_PLAN[backupInfo.jobKey]
-                  ? <Upgrade place='newBackup' available={REQUIRED_XOA_PLAN[backupInfo.jobKey]} />
-                  : (smartBackupMode && process.env.XOA_PLAN < 3
-                    ? <Upgrade place='newBackup' available={3} />
-                    : <fieldset className='pull-xs-right p-t-1'>
-                      <ActionButton
-                        btnStyle='primary'
-                        className='btn-lg m-r-1'
-                        disabled={!backupInfo}
-                        form='form-new-vm-backup'
-                        handler={this._handleSubmit}
-                        icon='save'
-                        redirectOnSuccess='/backup/overview'
-                      >
-                        {_('saveBackupJob')}
-                      </ActionButton>
-                      <button type='button' className='btn btn-lg btn-secondary' onClick={this._handleReset}>
-                        {_('selectTableReset')}
-                      </button>
-                    </fieldset>)
+                    </div>}
+                  </form>
+                </Col>
+              </Row>
+            </Container>
+          </Section>
+          <Section icon='schedule' title='schedule'>
+            <Scheduler
+              cronPattern={cronPattern}
+              onChange={this._updateCronPattern}
+              timezone={timezone}
+            />
+          </Section>
+          <Section icon='preview' title='preview' summary>
+            <Container>
+              <Row>
+                <Col>
+                  <SchedulePreview cronPattern={cronPattern} />
+                  {process.env.XOA_PLAN < 4 && backupInfo && process.env.XOA_PLAN < REQUIRED_XOA_PLAN[backupInfo.jobKey]
+                    ? <Upgrade place='newBackup' available={REQUIRED_XOA_PLAN[backupInfo.jobKey]} />
+                    : (smartBackupMode && process.env.XOA_PLAN < 3
+                      ? <Upgrade place='newBackup' available={3} />
+                      : <fieldset className='pull-xs-right p-t-1'>
+                        <ActionButton
+                          btnStyle='primary'
+                          className='btn-lg m-r-1'
+                          disabled={!backupInfo}
+                          form='form-new-vm-backup'
+                          handler={this._handleSubmit}
+                          icon='save'
+                          redirectOnSuccess='/backup/overview'
+                        >
+                          {_('saveBackupJob')}
+                        </ActionButton>
+                        <button type='button' className='btn btn-lg btn-secondary' onClick={this._handleReset}>
+                          {_('selectTableReset')}
+                        </button>
+                      </fieldset>)
                 }
-              </Col>
-            </Row>
-          </Container>
-        </Section>
-      </Wizard>
+                </Col>
+              </Row>
+            </Container>
+          </Section>
+        </Wizard>
       )
       : <Container><Upgrade place='newBackup' available={2} /></Container>
   }

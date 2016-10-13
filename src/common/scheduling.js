@@ -359,14 +359,14 @@ class TimePicker extends Component {
         <CardBlock>
           {range
             ? (
-            <Tabs bsStyle='tabs' activeKey={this.state.activeKey} onSelect={this._selectTab}>
-              <Tab tabClassName='nav-item' eventKey={NAV_EACH_SELECTED} title={_(`schedulingEachSelected${labelId}`)}>
-                {tableSelect}
-              </Tab>
-              <Tab tabClassName='nav-item' eventKey={NAV_EVERY_N} title={_(`schedulingEveryN${labelId}`)}>
-                <Range ref='range' min={range[0]} max={range[1]} onChange={onChange} />
-              </Tab>
-            </Tabs>
+              <Tabs bsStyle='tabs' activeKey={this.state.activeKey} onSelect={this._selectTab}>
+                <Tab tabClassName='nav-item' eventKey={NAV_EACH_SELECTED} title={_(`schedulingEachSelected${labelId}`)}>
+                  {tableSelect}
+                </Tab>
+                <Tab tabClassName='nav-item' eventKey={NAV_EVERY_N} title={_(`schedulingEveryN${labelId}`)}>
+                  <Range ref='range' min={range[0]} max={range[1]} onChange={onChange} />
+                </Tab>
+              </Tabs>
             ) : tableSelect
           }
         </CardBlock>
