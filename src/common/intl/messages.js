@@ -9,6 +9,7 @@ var messages = {
   statusDisconnected: 'Disconnected',
   statusLoading: 'Loading…',
   errorPageNotFound: 'Page not found',
+  errorNoSuchItem: 'no such item',
 
   editableLongClickPlaceholder: 'Long click to edit',
   editableClickPlaceholder: 'Click to edit',

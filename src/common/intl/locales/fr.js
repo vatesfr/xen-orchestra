@@ -12,6 +12,7 @@ export default {
   statusDisconnected: 'Déconnecté',
   statusLoading: 'Chargement…',
   errorPageNotFound: 'Page introuvable',
+  errorNoSuchItem: 'aucune correspondance',
 
   editableLongClickPlaceholder: 'Clic long pour éditer',
   editableClickPlaceholder: 'Cliquer pour éditer',
