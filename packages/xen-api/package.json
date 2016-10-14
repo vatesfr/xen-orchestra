@@ -10,11 +10,11 @@
     "xenapi",
     "xapi"
   ],
-  "homepage": "https://github.com/julien-f/js-xen-api",
-  "bugs": "https://github.com/julien-f/js-xen-api/issues",
+  "homepage": "https://github.com/vatesfr/xen-api",
+  "bugs": "https://github.com/vatesfr/xen-api/issues",
   "repository": {
     "type": "git",
-    "url": "https://github.com/julien-f/js-xen-api.git"
+    "url": "https://github.com/vatesfr/xen-api.git"
   },
   "author": {
     "name": "Julien Fontanet",

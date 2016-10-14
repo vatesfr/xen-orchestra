@@ -1,4 +1,4 @@
-# xen-api [![Build Status](https://travis-ci.org/julien-f/js-xen-api.png?branch=master)](https://travis-ci.org/julien-f/js-xen-api)
+# xen-api [![Build Status](https://travis-ci.org/vatesfr/xen-api.png?branch=master)](https://travis-ci.org/vatesfr/xen-api)
 
 > Connector to the Xen API
 
@@ -119,7 +119,7 @@ the code.
 
 You may:
 
-- report any [issue](https://github.com/julien-f/js-xen-api/issues)
+- report any [issue](https://github.com/pbdxen-api/issues)
   you've encountered;
 - fork and create a pull request.
 
