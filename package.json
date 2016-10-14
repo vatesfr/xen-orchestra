@@ -119,7 +119,7 @@
     "gulp-babel": "^6",
     "gulp-coffee": "^2.3.1",
     "gulp-plumber": "^1.0.0",
-    "gulp-sourcemaps": "^1.5.1",
+    "gulp-sourcemaps": "^2.1.1",
     "gulp-watch": "^4.2.2",
     "index-modules": "0.0.0",
     "leche": "^2.1.1",
