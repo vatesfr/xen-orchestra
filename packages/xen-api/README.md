@@ -7,6 +7,7 @@ Tested with:
 - Xen Server 5.6
 - Xen Server 6.2
 - Xen Server 6.5
+- Xen Server 7
 
 ## Install
 

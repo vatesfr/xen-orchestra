@@ -2,18 +2,14 @@
 
 import 'babel-polyfill'
 
-// Imports utils for better stacktraces.
-import '../.mocha'
-
 import blocked from 'blocked'
 import createDebug from 'debug'
 import eventToPromise from 'event-to-promise'
 import execPromise from 'exec-promise'
-import filter from 'lodash.filter'
-import find from 'lodash.find'
 import minimist from 'minimist'
 import pw from 'pw'
 import { asCallback, fromCallback } from 'promise-toolbox'
+import { filter, find } from 'lodash'
 import { start as createRepl } from 'repl'
 
 import { createClient } from './'

@@ -30,60 +30,60 @@
     ".mocha.js"
   ],
   "engines": {
-    "node": ">=0.12"
+    "node": ">=4"
   },
   "dependencies": {
     "babel-polyfill": "^6.8.0",
     "blocked": "^1.1.0",
-    "clarify": "^2.0.0",
     "debug": "^2.1.3",
     "event-to-promise": "^0.7.0",
     "exec-promise": "^0.6.1",
     "kindof": "^2.0.0",
-    "lodash.filter": "^4.3.0",
-    "lodash.find": "^4.3.0",
-    "lodash.foreach": "^4.2.0",
-    "lodash.isarray": "^4.0.0",
-    "lodash.isobject": "^3.0.1",
-    "lodash.map": "^4.3.0",
-    "lodash.startswith": "^4.0.1",
+    "lodash": "^4.16.4",
     "make-error": "^1.0.2",
     "minimist": "^1.1.1",
     "ms": "^0.7.1",
     "promise-toolbox": "^0.6.0",
     "pw": "0.0.4",
-    "source-map-support": "^0.4.0",
-    "trace": "^2.0.1",
     "xmlrpc": "^1.3.0",
     "xo-collection": "^0.4.0"
   },
   "devDependencies": {
     "babel-cli": "^6.8.0",
     "babel-eslint": "^7.0.0",
-    "babel-preset-es2015": "^6.6.0",
+    "babel-plugin-lodash": "^3.2.9",
+    "babel-preset-babili": "^0.0.5",
+    "babel-preset-latest": "^6.16.0",
     "babel-preset-stage-0": "^6.5.0",
+    "cross-env": "^3.1.2",
     "dependency-check": "^2.5.1",
     "ghooks": "^1.2.1",
-    "mocha": "^3.0.0",
-    "must": "^0.13.1",
-    "nyc": "^8.1.0",
     "standard": "^8.0.0"
   },
   "scripts": {
-    "build": "NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
     "depcheck": "dependency-check ./package.json",
-    "dev": "babel --watch --source-maps --out-dir=dist/ src/",
-    "dev-test": "mocha --opts .mocha.opts --watch --reporter=min \"dist/**/*.spec.js\"",
+    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "lint": "standard",
     "plot": "gnuplot -p memory-test.gnu",
     "posttest": "npm run lint && npm run depcheck",
-    "prepublish": "npm run build",
-    "test": "nyc mocha --opts .mocha.opts \"dist/**/*.spec.js\""
+    "prepublish": "npm run build"
   },
   "babel": {
+    "env": {
+      "production": {
+        "comments": false,
+        "presets": [
+          "babili"
+        ]
+      }
+    },
+    "plugins": [
+      "lodash"
+    ],
     "presets": [
-      "stage-0",
-      "es2015"
+      "latest",
+      "stage-0"
     ]
   },
   "standard": {

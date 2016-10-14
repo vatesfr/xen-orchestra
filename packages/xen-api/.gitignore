@@ -1,10 +1,9 @@
-/.nyc_output/
-/bower_components/
 /dist/
+/node_modules/
 
 npm-debug.log
 npm-debug.log.*
+pnpm-debug.log
+pnpm-debug.log.*
 
-!node_modules/*
-node_modules/*/
 /plot.dat

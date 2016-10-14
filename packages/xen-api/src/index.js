@@ -1,15 +1,10 @@
 import Collection from 'xo-collection'
 import createDebug from 'debug'
-import filter from 'lodash.filter'
-import forEach from 'lodash.foreach'
-import isArray from 'lodash.isarray'
-import isObject from 'lodash.isobject'
 import kindOf from 'kindof'
-import map from 'lodash.map'
 import ms from 'ms'
-import startsWith from 'lodash.startswith'
 import { BaseError } from 'make-error'
 import { EventEmitter } from 'events'
+import { filter, forEach, isArray, isObject, map, startsWith } from 'lodash'
 import {
   catchPlus as pCatch,
   delay as pDelay,
