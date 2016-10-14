@@ -100,7 +100,6 @@ class NewDisk extends Component {
     poolId => sr => sr.$pool === poolId && isSrWritable(sr)
   )
 
-
   render () {
     const { formatMessage } = this.props.intl
 
