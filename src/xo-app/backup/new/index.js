@@ -25,6 +25,7 @@ import {
 } from 'xo'
 
 // ===================================================================
+// FIXME: missing most of translation. Can't be done in a dumb way, some of the word are keyword for XO-Server parameters...
 
 const NO_SMART_SCHEMA = {
   type: 'object',

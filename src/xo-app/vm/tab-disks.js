@@ -1,4 +1,4 @@
-import _ from 'intl'
+import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import Component from 'base-component'
@@ -19,6 +19,7 @@ import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Container, Row, Col } from 'grid'
 import { createSelector } from 'selectors'
 import { DragDropContext, DragSource, DropTarget } from 'react-dnd'
+import { injectIntl } from 'react-intl'
 import { noop } from 'utils'
 import { SelectSr, SelectVdi } from 'select-objects'
 import { SizeInput, Toggle } from 'form'
@@ -41,6 +42,7 @@ import {
 } from 'xo'
 
 const parseBootOrder = bootOrder => {
+  // FIXME missing translation
   const bootOptions = {
     c: 'Hard-Drive',
     d: 'DVD-Drive',
@@ -59,6 +61,7 @@ const parseBootOrder = bootOrder => {
   return order
 }
 
+@injectIntl
 @propTypes({
   onClose: propTypes.func,
   vm: propTypes.object.isRequired
@@ -97,25 +100,28 @@ class NewDisk extends Component {
     poolId => sr => sr.$pool === poolId && isSrWritable(sr)
   )
 
+
   render () {
+    const { formatMessage } = this.props.intl
+
     return <form id='newDiskForm'>
       <div className='form-group'>
         <SelectSr predicate={this._getSrPredicate()} onChange={this._selectSr} required />
       </div>
       <fieldset className='form-inline'>
         <div className='form-group'>
-          <input type='text' ref='name' placeholder='Disk Name' className='form-control' required />
+          <input type='text' ref='name' placeholder={formatMessage(messages.vdbNamePlaceHolder)} className='form-control' required />
         </div>
         {' '}
         <div className='form-group'>
-          <SizeInput ref='size' placeholder='Size' required />
+          <SizeInput ref='size' placeholder={formatMessage(messages.vdbSizePlaceHolder)} required />
         </div>
         {' '}
         <div className='form-group'>
-          Bootable <Toggle ref='bootable' /> Readonly <Toggle ref='readOnly' />
+          {_('vdbBootable')} <Toggle ref='bootable' /> {_('vdbReadonly')} <Toggle ref='readOnly' />
         </div>
         <span className='pull-right'>
-          <ActionButton form='newDiskForm' icon='add' btnStyle='primary' handler={this._createDisk}>Create</ActionButton>
+          <ActionButton form='newDiskForm' icon='add' btnStyle='primary' handler={this._createDisk}>{_('vdbCreate')}</ActionButton>
         </span>
       </fieldset>
     </form>
@@ -175,10 +181,10 @@ class AttachDisk extends Component {
       </div>
       {vdi && <fieldset className='form-inline'>
         <div className='form-group'>
-          Bootable <Toggle ref='bootable' /> Readonly <Toggle ref='readOnly' />
+          {_('vdbBootable')} <Toggle ref='bootable' /> {_('vdbReadonly')} <Toggle ref='readOnly' />
         </div>
         <span className='pull-right'>
-          <ActionButton icon='add' form='attachDiskForm' btnStyle='primary' handler={this._addVdi}>Create</ActionButton>
+          <ActionButton icon='add' form='attachDiskForm' btnStyle='primary' handler={this._addVdi}>{_('vdbCreate')}</ActionButton>
         </span>
       </fieldset>
       }
@@ -293,15 +299,16 @@ class BootOrder extends Component {
           key={index}
           index={index}
           id={item.id}
+          // FIXME missing translation
           item={item}
           move={this._moveOrderItem}
         />)}
       </ul>
       <fieldset className='form-inline'>
         <span className='pull-right'>
-          <ActionButton icon='save' btnStyle='primary' handler={this._save}>Save</ActionButton>
+          <ActionButton icon='save' btnStyle='primary' handler={this._save}>{_('saveBootOption')}</ActionButton>
           {' '}
-          <ActionButton icon='reset' handler={this._reset}>Reset</ActionButton>
+          <ActionButton icon='reset' handler={this._reset}>{_('resetBootOption')}</ActionButton>
         </span>
       </fieldset>
     </form>

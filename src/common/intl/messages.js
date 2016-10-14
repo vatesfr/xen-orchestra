@@ -9,6 +9,7 @@ var messages = {
   statusDisconnected: 'Disconnected',
   statusLoading: 'Loading…',
   errorPageNotFound: 'Page not found',
+  errorNoSuchItem: 'no such item',
 
   editableLongClickPlaceholder: 'Long click to edit',
   editableClickPlaceholder: 'Click to edit',
@@ -292,6 +293,14 @@ var messages = {
   newSrInUse: 'in use',
   newSrSize: 'Size',
   newSrCreate: 'Create',
+  newSrNamePlaceHolder: 'Storage name',
+  newSrDescPlaceHolder: 'Storage description',
+  newSrAddressPlaceHolder: 'Address',
+  newSrPortPlaceHolder: '[port]',
+  newSrUsernamePlaceHolder: 'Username',
+  newSrPasswordPlaceHolder: 'Password',
+  newSrLvmDevicePlaceHolder: 'Device, e.g /dev/sda...',
+  newSrLocalPathPlaceHolder: '/path/to/directory',
 
   // ----- Acls, Users, Groups ------
   subjectName: 'Users/Groups',
@@ -591,6 +600,13 @@ var messages = {
   vbdNoVbd: 'No disks',
   vbdConnect: 'Connect VBD',
   vbdDisconnect: 'Disconnect VBD',
+  vdbBootable: 'Bootable',
+  vdbReadonly: 'Readonly',
+  vdbCreate: 'Create',
+  vdbNamePlaceHolder: 'Disk name',
+  vdbSizePlaceHolder: 'Size',
+  saveBootOption: 'Save',
+  resetBootOption: 'Reset',
 
   // ----- VM network tab -----
   vifCreateDeviceButton: 'New device',
@@ -613,6 +629,7 @@ var messages = {
   vifLockedNetworkNoIps: 'Network locked and no IPs are allowed for this interface',
   vifUnLockedNetwork: 'Network not locked',
   vifUnknownNetwork: 'Unknown network',
+  vifCreate: 'Create',
 
   // ----- VM snapshot tab -----
   noSnapshots: 'No snapshots',
@@ -704,6 +721,9 @@ var messages = {
   srUsageStatePanel: 'Storage Usage',
   srTopUsageStatePanel: 'Top 5 SR Usage (in %)',
   vmsStates: '{running} running ({halted} halted)',
+  dashboardStatsButtonRemoveAll: 'Clear selection',
+  dashboardStatsButtonAddAllHost: 'Add all hosts',
+  dashboardStatsButtonAddAllVM: 'Add all VMs',
 
   // --- Stats board --
   weekHeatmapData: '{value} {date, date, medium}',
@@ -1135,7 +1155,14 @@ var messages = {
   shortcut_NAV_DOWN: 'Next item',
   shortcut_NAV_UP: 'Previous item',
   shortcut_SELECT: 'Select item',
-  shortcut_JUMP_INTO: 'Open'
+  shortcut_JUMP_INTO: 'Open',
+
+  // ----- Settings/ACLs -----
+  settingsAclsButtonTooltipVM: 'VM',
+  settingsAclsButtonTooltiphost: 'Hosts',
+  settingsAclsButtonTooltippool: 'Pool',
+  settingsAclsButtonTooltipSR: 'SR',
+  settingsAclsButtonTooltipnetwork: 'Network'
 
 }
 forEach(messages, function (message, id) {

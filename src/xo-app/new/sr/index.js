@@ -465,7 +465,7 @@ export default class New extends Component {
                 <input
                   id='srName'
                   className='form-control'
-                  placeholder='storage name'
+                  placeholder={formatMessage(messages.newSrNamePlaceHolder)}
                   ref='name'
                   onBlur={this._handleNameChange}
                   required
@@ -475,7 +475,7 @@ export default class New extends Component {
                 <input
                   id='srDescription'
                   className='form-control'
-                  placeholder='storage description'
+                  placeholder={formatMessage(messages.newSrDescPlaceHolder)}
                   ref='description'
                   onBlur={this._handleDescriptionChange}
                   required
@@ -509,7 +509,7 @@ export default class New extends Component {
                         <input
                           id='srServer'
                           className='form-control'
-                          placeholder='address'
+                          placeholder={formatMessage(messages.newSrAddressPlaceHolder)}
                           ref='server'
                           required
                           type='text'
@@ -547,7 +547,7 @@ export default class New extends Component {
                         <input
                           id='srServer'
                           className='form-control'
-                          placeholder='address'
+                          placeholder={formatMessage(messages.newSrAddressPlaceHolder)}
                           ref='server'
                           required
                           type='text'
@@ -556,7 +556,7 @@ export default class New extends Component {
                         <input
                           id='srServer'
                           className='form-control'
-                          placeholder='[port]'
+                          placeholder={formatMessage(messages.newSrPortPlaceHolder)}
                           ref='port'
                           type='text'
                         />
@@ -569,13 +569,13 @@ export default class New extends Component {
                             id='srServerUser'
                             className='form-control'
                             placeholder='user'
-                            ref='username'
+                            ref={formatMessage(messages.newSrUsernamePlaceHolder)}
                             required
                             type='text'
                           />
                           <label>{_('newSrPassword')}</label>
                           <Password
-                            placeholder='password'
+                            placeholder={formatMessage(messages.newSrPasswordPlaceHolder)}
                             ref='password'
                             required
                           />
@@ -607,7 +607,7 @@ export default class New extends Component {
                       <input
                         id='srServer'
                         className='form-control'
-                        placeholder='address'
+                        placeholder={formatMessage(messages.newSrAddressPlaceHolder)}
                         ref='server'
                         required
                         type='text'
@@ -616,14 +616,14 @@ export default class New extends Component {
                       <input
                         id='srServerUser'
                         className='form-control'
-                        placeholder='user'
+                        placeholder={formatMessage(messages.newSrUsernamePlaceHolder)}
                         ref='username'
                         required
                         type='text'
                       />
                       <label>{_('newSrPassword')}</label>
                       <Password
-                        placeholder='password'
+                        placeholder={formatMessage(messages.newSrPasswordPlaceHolder)}
                         ref='password'
                         required
                       />
@@ -635,7 +635,7 @@ export default class New extends Component {
                       <input
                         id='srDevice'
                         className='form-control'
-                        placeholder='Device, e.g /dev/sda...'
+                        placeholder={formatMessage(messages.newSrLvmDevicePlaceHolder)}
                         ref='device'
                         required
                         type='text'
@@ -648,7 +648,7 @@ export default class New extends Component {
                       <input
                         id='srPath'
                         className='form-control'
-                        placeholder=''
+                        placeholder={formatMessage(messages.newSrLocalPathPlaceHolder)}
                         ref='localPath'
                         required
                         type='text'

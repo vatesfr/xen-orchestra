@@ -12,6 +12,7 @@ export default {
   statusDisconnected: 'Déconnecté',
   statusLoading: 'Chargement…',
   errorPageNotFound: 'Page introuvable',
+  errorNoSuchItem: 'aucune correspondance',
 
   editableLongClickPlaceholder: 'Clic long pour éditer',
   editableClickPlaceholder: 'Cliquer pour éditer',
@@ -253,7 +254,6 @@ export default {
   remoteName: 'Nom',
   remotePath: 'Chemin',
   remoteState: 'État',
-  remoteError: 'Erreur',
   remoteDevice: 'Équipement',
   remoteShare: 'Partage',
   remoteAuth: 'Accès',
@@ -296,6 +296,14 @@ export default {
   newSrInUse: 'utilisé',
   newSrSize: 'Taille',
   newSrCreate: 'Créer',
+  newSrNamePlaceHolder: 'Nom de l\'emplacement',
+  newSrDescPlaceHolder: 'Description de l\'emplacement',
+  newSrAddressPlaceHolder: 'Adresse',
+  newSrPortPlaceHolder: '[port]',
+  newSrUsernamePlaceHolder: 'Nom d\'utilisateur',
+  newSrPasswordPlaceHolder: 'Mot de passe',
+  newSrLvmDevicePlaceHolder: 'Matériel, par exemple /dev/sda...',
+  newSrLocalPathPlaceHolder: '/chemin/du/répertoire',
 
   // ----- Acls, Users, Groups ------
   subjectName: 'Utilisateurs/Groupes',
@@ -595,6 +603,13 @@ export default {
   vbdNoVbd: 'Pas de disques',
   vbdConnect: 'Connecter un VBD',
   vbdDisconnect: 'Déconnecter un VBD',
+  vdbBootable: 'Bootable',
+  vdbReadonly: 'Lecture seule',
+  vdbCreate: 'Créer',
+  vdbNamePlaceHolder: 'Nom du disque',
+  vdbSizePlaceHolder: 'Taille',
+  saveBootOption: 'Enregistrer',
+  resetBootOption: 'Réinitialiser',
 
   // ----- VM network tab -----
   vifCreateDeviceButton: 'Nouvelle interface',
@@ -617,6 +632,7 @@ export default {
   vifLockedNetworkNoIps: 'Le réseau est verrouillé et aucune IP n\'est autorisé sur cette interface',
   vifUnLockedNetwork: 'Réseau non verrouillé',
   vifUnknownNetwork: 'Réseau inconnu',
+  vifCreate: 'Créer',
 
   // ----- VM snapshot tab -----
   noSnapshots: 'Pas d\'instantané',
@@ -705,6 +721,9 @@ export default {
   srUsageStatePanel: 'Utilisation du stockage',
   srTopUsageStatePanel: 'Top 5 d\'utilisation des SR (en %)',
   vmsStates: '{running} en cours ({halted} stoppés)',
+  dashboardStatsButtonRemoveAll: 'Vider la sélection',
+  dashboardStatsButtonAddAllHost: 'Ajouter tout les hôtes',
+  dashboardStatsButtonAddAllVM: 'Ajouter toutes les VMs',
 
   // --- Stats board --
   weekHeatmapData: '{value} {date, date, medium}',
@@ -858,6 +877,7 @@ export default {
   restoreBackups: 'Restauration de sauvegardes',
   noRemotes: 'Pas d\'emplacements',
   remoteEnabled: 'activé',
+  remoteError: 'Erreur',
   noBackup: 'Pas de sauvegarde disponible',
   backupVmNameColumn: 'Nom de la VM',
   backupTagColumn: 'Tag de sauvegarde',
@@ -1135,5 +1155,13 @@ export default {
   shortcut_NAV_DOWN: 'Élément suivant',
   shortcut_NAV_UP: 'Élément précédent',
   shortcut_SELECT: 'Sélectionné l\'élément',
-  shortcut_JUMP_INTO: 'Ouvrir'
+  shortcut_JUMP_INTO: 'Ouvrir',
+
+  // ----- Settings/ACLs -----
+  settingsAclsButtonTooltipVM: 'VM',
+  settingsAclsButtonTooltiphost: 'Hôtes',
+  settingsAclsButtonTooltippool: 'Pool',
+  settingsAclsButtonTooltipSR: 'SR',
+  settingsAclsButtonTooltipnetwork: 'Réseaux'
+
 }

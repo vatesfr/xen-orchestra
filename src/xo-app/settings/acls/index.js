@@ -207,7 +207,7 @@ export default class Acls extends Component {
           </div>
           <ButtonGroup className='p-b-1'>
             {map(TYPES, type =>
-              <ActionButton key={type} btnStyle={isAllSelected[type] ? 'success' : 'secondary'} size='small' icon={type.toLowerCase()} handler={this._toggleAll} handlerParam={type} />
+              <ActionButton tooltip={_('settingsAclsButtonTooltip'+type)} key={type} btnStyle={isAllSelected[type] ? 'success' : 'secondary'} size='small' icon={type.toLowerCase()} handler={this._toggleAll} handlerParam={type} />
             )}
           </ButtonGroup>
           <div className='form-group'>
