@@ -230,6 +230,15 @@ var messages = {
   smartBackup: 'Smart backup',
   localRemoteWarningTitle: 'Local remote selected',
   localRemoteWarningMessage: 'Warning: local remotes will use limited XOA disk space. Only for advanced users.',
+  editBackupVmsTitle: 'VMs',
+  editBackupSmartStatusTitle: 'VMs statuses',
+  editBackupSmartResidentOn: 'Resident on',
+  editBackupSmartTagsTitle: 'VMs Tags',
+  editBackupTagTitle: 'Tag',
+  editBackupReportTitle: 'Report',
+  editBackupReportEnable: 'Enable immediately after creation',
+  editBackupDepthTitle: 'Depth',
+  editBackupRemoteTitle: 'Remote',
 
   // ------ New Remote -----
   remoteList: 'Remote stores for backup',

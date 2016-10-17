@@ -36,8 +36,8 @@ const NO_SMART_SCHEMA = {
         type: 'string',
         'xo:type': 'vm'
       },
-      title: 'VMs',
-      description: 'Choose VMs to backup.'
+      title: _('editBackupVmsTitle'),
+      description: 'Choose VMs to backup.' // FIXME: can't translate
     }
   },
   required: [ 'vms' ]
@@ -48,10 +48,10 @@ const SMART_SCHEMA = {
   type: 'object',
   properties: {
     status: {
-      default: 'All',
-      enum: [ 'All', 'Running', 'Halted' ],
-      title: 'VMs statuses',
-      description: 'The statuses of VMs to backup.'
+      default: 'All', // FIXME: can't translate
+      enum: [ 'All', 'Running', 'Halted' ], // FIXME: can't translate
+      title: _('editBackupSmartStatusTitle'),
+      description: 'The statuses of VMs to backup.' // FIXME: can't translate
     },
     pools: {
       type: 'array',
@@ -59,7 +59,7 @@ const SMART_SCHEMA = {
         type: 'string',
         'xo:type': 'pool'
       },
-      title: 'Resident on'
+      title: _('editBackupSmartResidentOn')
     },
     tags: {
       type: 'array',
@@ -67,8 +67,8 @@ const SMART_SCHEMA = {
         type: 'string',
         'xo:type': 'tag'
       },
-      title: 'VMs Tags',
-      description: 'VMs which contains at least one of these tags. Not used if empty.'
+      title: _('editBackupSmartTagsTitle'),
+      description: 'VMs which contains at least one of these tags. Not used if empty.' // FIXME: can't translate
     }
   },
   required: [ 'status', 'pools' ]
@@ -82,17 +82,17 @@ const COMMON_SCHEMA = {
   properties: {
     tag: {
       type: 'string',
-      title: 'Tag',
-      description: 'Back-up tag.'
+      title: _('editBackupTagTitle'),
+      description: 'Back-up tag.' // FIXME: can't translate
     },
     _reportWhen: {
-      enum: [ 'never', 'always', 'failure' ],
-      title: 'Report',
-      description: 'When to send reports.'
+      enum: [ 'never', 'always', 'failure' ], // FIXME: can't translate
+      title: _('editBackupReportTitle'),
+      description: 'When to send reports.' // FIXME: can't translate
     },
     enabled: {
       type: 'boolean',
-      title: 'Enable immediately after creation'
+      title: _('editBackupReportEnable')
     }
   },
   required: [ 'tag', 'vms', '_reportWhen' ]
@@ -100,14 +100,14 @@ const COMMON_SCHEMA = {
 
 const DEPTH_PROPERTY = {
   type: 'integer',
-  title: 'Depth',
-  description: 'How many backups to rollover.'
+  title: _('editBackupDepthTitle'),
+  description: 'How many backups to rollover.' // FIXME: can't translate
 }
 
 const REMOTE_PROPERTY = {
   type: 'string',
   'xo:type': 'remote',
-  title: 'Remote'
+  title: _('editBackupRemoteTitle')
 }
 
 const BACKUP_SCHEMA = {
