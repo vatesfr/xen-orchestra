@@ -36,8 +36,8 @@ const NO_SMART_SCHEMA = {
         type: 'string',
         'xo:type': 'vm'
       },
-      title: {_('editBackupVmsTitle')},
-      description: {_('editBackupVmChooseDesc')}
+      title: _('editBackupVmsTitle'),
+      description: _('editBackupVmChooseDesc')
     }
   },
   required: [ 'vms' ]
@@ -50,8 +50,8 @@ const SMART_SCHEMA = {
     status: {
       default: 'All', // FIXME: can't translate
       enum: [ 'All', 'Running', 'Halted' ], // FIXME: can't translate
-      title: {_('editBackupSmartStatusTitle')},
-      description: {_('editBackupSmartStatusDesc')}
+      title: _('editBackupSmartStatusTitle'),
+      description: _('editBackupSmartStatusDesc')
     },
     pools: {
       type: 'array',
@@ -59,7 +59,7 @@ const SMART_SCHEMA = {
         type: 'string',
         'xo:type': 'pool'
       },
-      title: {_('editBackupSmartResidentOn')}
+      title: _('editBackupSmartResidentOn')
     },
     tags: {
       type: 'array',
@@ -67,8 +67,8 @@ const SMART_SCHEMA = {
         type: 'string',
         'xo:type': 'tag'
       },
-      title: {_('editBackupSmartTagsTitle')},
-      description: {_('editBackupSmartTagsDesc')}
+      title: _('editBackupSmartTagsTitle'),
+      description: _('editBackupSmartTagsDesc')
     }
   },
   required: [ 'status', 'pools' ]
@@ -82,17 +82,17 @@ const COMMON_SCHEMA = {
   properties: {
     tag: {
       type: 'string',
-      title: {_('editBackupTagTitle')},
-      description: {_('editBackupTagDesc')}
+      title: _('editBackupTagTitle'),
+      description: _('editBackupTagDesc')
     },
     _reportWhen: {
       enum: [ 'never', 'always', 'failure' ], // FIXME: can't translate
-      title: {_('editBackupReportTitle')},
-      description: {_('editBackupReportDesc')}
+      title: _('editBackupReportTitle'),
+      description: _('editBackupReportDesc')
     },
     enabled: {
       type: 'boolean',
-      title: {_('editBackupReportEnable')}
+      title: _('editBackupReportEnable')
     }
   },
   required: [ 'tag', 'vms', '_reportWhen' ]
@@ -100,14 +100,14 @@ const COMMON_SCHEMA = {
 
 const DEPTH_PROPERTY = {
   type: 'integer',
-  title: {_('editBackupDepthTitle')},
-  description: {_('editBackupDepthDesc')}
+  title: _('editBackupDepthTitle'),
+  description: _('editBackupDepthDesc')
 }
 
 const REMOTE_PROPERTY = {
   type: 'string',
   'xo:type': 'remote',
-  title: {_('editBackupRemoteTitle')}
+  title: _('editBackupRemoteTitle')
 }
 
 const BACKUP_SCHEMA = {

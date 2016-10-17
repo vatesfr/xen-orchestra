@@ -235,7 +235,6 @@ var messages = {
   editBackupSmartStatusTitle: 'VMs statuses',
   editBackupSmartStatusDesc: 'The statuses of VMs to backup.',
   editBackupSmartResidentOn: 'Resident on',
-  editBackupSmartStatusTitle: 'VMs statuses',
   editBackupSmartTagsTitle: 'VMs Tags',
   editBackupSmartTagsDesc: 'VMs which contains at least one of these tags. Not used if empty.',
   editBackupTagTitle: 'Tag',
