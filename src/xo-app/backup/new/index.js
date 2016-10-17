@@ -36,8 +36,8 @@ const NO_SMART_SCHEMA = {
         type: 'string',
         'xo:type': 'vm'
       },
-      title: _('editBackupVmsTitle'),
-      description: _('editBackupVmChooseDesc')
+      title: 'VMs',
+      description: 'Choose VMs to backup.'
     }
   },
   required: [ 'vms' ]
@@ -48,10 +48,10 @@ const SMART_SCHEMA = {
   type: 'object',
   properties: {
     status: {
-      default: 'All', // FIXME: can't translate
-      enum: [ 'All', 'Running', 'Halted' ], // FIXME: can't translate
-      title: _('editBackupSmartStatusTitle'),
-      description: _('editBackupSmartStatusDesc')
+      default: 'All',
+      enum: [ 'All', 'Running', 'Halted' ],
+      title: 'VMs statuses',
+      description: 'The statuses of VMs to backup.'
     },
     pools: {
       type: 'array',
@@ -59,7 +59,7 @@ const SMART_SCHEMA = {
         type: 'string',
         'xo:type': 'pool'
       },
-      title: _('editBackupSmartResidentOn')
+      title: 'Resident on'
     },
     tags: {
       type: 'array',
@@ -67,8 +67,8 @@ const SMART_SCHEMA = {
         type: 'string',
         'xo:type': 'tag'
       },
-      title: _('editBackupSmartTagsTitle'),
-      description: _('editBackupSmartTagsDesc')
+      title: 'VMs Tags',
+      description: 'VMs which contains at least one of these tags. Not used if empty.'
     }
   },
   required: [ 'status', 'pools' ]
@@ -82,17 +82,17 @@ const COMMON_SCHEMA = {
   properties: {
     tag: {
       type: 'string',
-      title: _('editBackupTagTitle'),
-      description: _('editBackupTagDesc')
+      title: 'Tag',
+      description: 'Back-up tag.'
     },
     _reportWhen: {
-      enum: [ 'never', 'always', 'failure' ], // FIXME: can't translate
-      title: _('editBackupReportTitle'),
-      description: _('editBackupReportDesc')
+      enum: [ 'never', 'always', 'failure' ],
+      title: 'Report',
+      description: 'When to send reports.'
     },
     enabled: {
       type: 'boolean',
-      title: _('editBackupReportEnable')
+      title: 'Enable immediately after creation'
     }
   },
   required: [ 'tag', 'vms', '_reportWhen' ]
@@ -100,14 +100,14 @@ const COMMON_SCHEMA = {
 
 const DEPTH_PROPERTY = {
   type: 'integer',
-  title: _('editBackupDepthTitle'),
-  description: _('editBackupDepthDesc')
+  title: 'Depth',
+  description: 'How many backups to rollover.'
 }
 
 const REMOTE_PROPERTY = {
   type: 'string',
   'xo:type': 'remote',
-  title: _('editBackupRemoteTitle')
+  title: 'Remote'
 }
 
 const BACKUP_SCHEMA = {
