@@ -233,6 +233,15 @@ export default {
   smartBackup: 'Smart backup',
   localRemoteWarningTitle: 'Emplacement local sélectionné',
   localRemoteWarningMessage: 'Attention : utilisé un emplacement local limite l\'espace pour XO. Restreignez ceci aux utilisateurs avancés.',
+  editBackupVmsTitle: 'VMs',
+  editBackupSmartStatusTitle: 'État des VMs',
+  editBackupSmartResidentOn: 'Situé sur',
+  editBackupSmartTagsTitle: 'Tags des VMs',
+  editBackupTagTitle: 'Tag',
+  editBackupReportTitle: 'Rapport',
+  editBackupReportEnable: 'Activé aussitôt après la création',
+  editBackupDepthTitle: 'Profondeur',
+  editBackupRemoteTitle: 'Emplacement',
 
   // ------ New Remote -----
   remoteList: 'Emplacement de stockage de backup',
