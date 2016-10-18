@@ -8,10 +8,10 @@ import {
 const MINUTES_OF_HISTORICAL_DATA = 30
 
 // CPU threshold in percent.
-const DEFAULT_CRITICAL_THRESHOLD_CPU = 90.0
+export const DEFAULT_CRITICAL_THRESHOLD_CPU = 90.0
 
 // Memory threshold in MB.
-const DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE = 64.0
+export const DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE = 64.0
 
 // Thresholds factors.
 const HIGH_THRESHOLD_FACTOR = 0.85

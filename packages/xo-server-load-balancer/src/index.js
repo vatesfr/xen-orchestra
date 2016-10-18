@@ -6,6 +6,10 @@ import { intersection, map as mapToArray, uniq } from 'lodash'
 import DensityPlan from './density-plan'
 import PerformancePlan from './performance-plan'
 import {
+  DEFAULT_CRITICAL_THRESHOLD_CPU,
+  DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE
+} from './plan'
+import {
   EXECUTION_DELAY,
   debug
 } from './utils'
@@ -61,12 +65,12 @@ export const configurationSchema = {
               cpu: {
                 type: 'integer',
                 title: 'CPU (%)',
-                default: 90
+                default: DEFAULT_CRITICAL_THRESHOLD_CPU
               },
               memoryFree: {
                 type: 'integer',
                 title: 'RAM, Free memory (MB)',
-                default: 64
+                default: DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE
               }
             }
           },
