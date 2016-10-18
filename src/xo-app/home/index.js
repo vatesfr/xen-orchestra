@@ -35,8 +35,7 @@ import {
   snapshotVms,
   startVms,
   stopHosts,
-  stopVms,
-  subscribeCurrentUser
+  stopVms
 } from 'xo'
 import { Container, Row, Col } from 'grid'
 import {
@@ -45,7 +44,6 @@ import {
   SelectTag
 } from 'select-objects'
 import {
-  addSubscriptions,
   connectStore,
   firstDefined,
   noop
@@ -57,7 +55,8 @@ import {
   createGetObjectsOfType,
   createPager,
   createSelector,
-  createSort
+  createSort,
+  getUser
 } from 'selectors'
 import {
   Button,
@@ -168,9 +167,6 @@ const TYPES = {
 
 const DEFAULT_TYPE = 'VM'
 
-@addSubscriptions({
-  user: subscribeCurrentUser
-})
 @connectStore(() => {
   const noServersConnected = invoke(
     createGetObjectsOfType('host'),
@@ -182,7 +178,8 @@ const DEFAULT_TYPE = 'VM'
     areObjectsFetched,
     items: createGetObjectsOfType(type),
     noServersConnected,
-    type
+    type,
+    user: getUser
   }
 })
 export default class Home extends Component {
@@ -242,9 +239,10 @@ export default class Home extends Component {
     }
 
     // Filter defined.
+    let tmp
     return firstDefined(
-      homeFilters[type][filterName],
-      filters[type][filterName],
+      (tmp = homeFilters[type]) && tmp[filterName],
+      (tmp = filters[type]) && tmp[filterName],
       defaultFilter
     )
   }
