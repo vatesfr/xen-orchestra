@@ -114,26 +114,24 @@ class VifItem extends BaseComponent {
     this._getIps,
     () => this.props.ipPools,
     () => this.props.resourceSet,
-    (ips, ipPools, resourceSet) => {
+    (ips, ipPools, resourceSetId) => {
       return selectedIp => {
         const isNotUsed = every(ips, vifIp => vifIp !== selectedIp.id)
         let enoughResources
-        if (resourceSet) {
-          const resolvedResourceSet = find(this.props.resourceSets, set => set.id === resourceSet)
+        if (resourceSetId) {
+          const resourceSet = find(this.props.resourceSets, set => set.id === resourceSetId)
           const ipPool = find(ipPools, ipPool => includes(keys(ipPool.addresses), selectedIp.id))
-          const ipPoolLimits = resolvedResourceSet && resolvedResourceSet.limits[`ipPool:${ipPool.id}`]
-          enoughResources = resolvedResourceSet && ipPool && (!ipPoolLimits || ipPoolLimits.available)
+          const ipPoolLimits = resourceSet && resourceSet.limits[`ipPool:${ipPool.id}`]
+          enoughResources = resourceSet && ipPool && (!ipPoolLimits || ipPoolLimits.available)
         }
-        return isNotUsed && (!resourceSet || enoughResources)
+        return isNotUsed && (!resourceSetId || enoughResources)
       }
     }
   )
   _getIsNetworkAllowed = createSelector(
     () => this.props.networkId,
     vifNetworkId =>
-      ipPool => {
-        return find(ipPool.networks, ipPoolNetwork => ipPoolNetwork === vifNetworkId)
-      }
+      ipPool => find(ipPool.networks, ipPoolNetwork => ipPoolNetwork === vifNetworkId)
   )
   _getNetworkPredicate = createSelector(
     () => this.props.vif && this.props.vif.$pool,

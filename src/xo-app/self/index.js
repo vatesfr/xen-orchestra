@@ -21,7 +21,7 @@ import remove from 'lodash/remove'
 import renderXoItem from 'render-xo-item'
 import Upgrade from 'xoa-upgrade'
 import { Container, Row, Col } from 'grid'
-import { createGetObjectsOfType } from 'selectors'
+import { createGetObjectsOfType, createSelector } from 'selectors'
 import { injectIntl } from 'react-intl'
 import { SizeInput } from 'form'
 
@@ -37,6 +37,7 @@ import {
 import {
   addSubscriptions,
   connectStore,
+  firstDefined,
   formatSize,
   resolveResourceSets
 } from 'utils'
@@ -148,7 +149,7 @@ export class Edit extends Component {
     if (resourceSet) {
       forEach(resourceSet.ipPools, ipPool => {
         ipPools.push({
-          pool: ipPool,
+          id: ipPool,
           quantity: get(resourceSet, `limits[ipPool:${ipPool}].total`)
         })
       })
@@ -218,9 +219,9 @@ export class Edit extends Component {
     const ipPools = []
     forEach(this.state.ipPools, ipPool => {
       if (ipPool.quantity) {
-        ipPoolsLimits[`ipPool:${ipPool.pool}`] = +ipPool.quantity
+        ipPoolsLimits[`ipPool:${ipPool.id}`] = +ipPool.quantity
       }
-      ipPools.push(ipPool.pool)
+      ipPools.push(ipPool.id)
     })
 
     await editResourceSet(set.id, {
@@ -332,7 +333,7 @@ export class Edit extends Component {
   _addIpPool = () => {
     const { ipPools, newIpPool, newQuantity } = this.state
     this.setState({
-      ipPools: [ ...ipPools, { pool: newIpPool.id, quantity: newQuantity } ],
+      ipPools: [ ...ipPools, { id: newIpPool.id, quantity: newQuantity } ],
       newIpPool: undefined,
       newQuantity: ''
     })
@@ -343,8 +344,11 @@ export class Edit extends Component {
     this.setState({ ipPools })
   }
 
-  _ipPoolPredicate = ipPool =>
-    !includes(map(this.state.ipPools, 'pool'), ipPool.id)
+  _getIpPoolPredicate = createSelector(
+    () => map(this.state.ipPools, 'id'),
+    ipPoolsIds => ipPool =>
+      !includes(ipPoolsIds, ipPool.id)
+  )
 
   render () {
     const { state } = this
@@ -453,10 +457,10 @@ export class Edit extends Component {
                 </Row>
                 {map(state.ipPools, (ipPool, index) => <Row className='m-b-1' key={index}>
                   <Col mediumSize={7}>
-                    <SelectIpPool onChange={this.linkState(`ipPools.${index}.pool`, 'id')} value={ipPool.pool} />
+                    <SelectIpPool onChange={this.linkState(`ipPools.${index}.id`, 'id')} value={ipPool.id} />
                   </Col>
                   <Col mediumSize={3}>
-                    <input className='form-control' type='number' onChange={this.linkState(`ipPools.${index}.quantity`)} value={ipPool.quantity || ''} placeholder='∞' />
+                    <input className='form-control' type='number' onChange={this.linkState(`ipPools.${index}.quantity`)} value={firstDefined(ipPool.quantity, '')} placeholder='∞' />
                   </Col>
                   <Col mediumSize={2}>
                     <ActionButton btnStyle='secondary' icon='delete' handler={this._removeIpPool} handlerParam={index} />
@@ -464,7 +468,7 @@ export class Edit extends Component {
                 </Row>)}
                 <Row>
                   <Col mediumSize={7}>
-                    <SelectIpPool onChange={this.linkState('newIpPool')} value={state.newIpPool} predicate={this._ipPoolPredicate} />
+                    <SelectIpPool onChange={this.linkState('newIpPool')} value={state.newIpPool} predicate={this._getIpPoolPredicate()} />
                   </Col>
                   <Col mediumSize={3}>
                     <input className='form-control' type='number' onChange={this.linkState('newQuantity')} value={state.newQuantity || ''} placeholder='∞' />
@@ -497,9 +501,7 @@ export class Edit extends Component {
 class ResourceSet extends Component {
   _renderDisplay = () => {
     const { resourceSet } = this.props
-    console.log('resourceSet', resourceSet)
     const resolvedIpPools = mapKeys(this.props.ipPools, 'id')
-    console.log('resolvedIpPools', resolvedIpPools)
     const {
       limits: {
         cpus,
@@ -510,7 +512,6 @@ class ResourceSet extends Component {
       subjects,
       objectsByType
     } = resourceSet
-    console.log('ipPools', ipPools)
 
     return [
       <li className='list-group-item'>

@@ -1,4 +1,3 @@
-import * as actions from 'store/actions'
 import escapeRegExp from 'lodash/escapeRegExp'
 import every from 'lodash/every'
 import forEach from 'lodash/forEach'
@@ -16,13 +15,14 @@ import mapValues from 'lodash/mapValues'
 import React from 'react'
 import ReadableStream from 'readable-stream'
 import replace from 'lodash/replace'
-import store from 'store'
 import { connect } from 'react-redux'
-import { getObject } from 'selectors'
 
 import _ from './intl'
+import * as actions from './store/actions'
 import BaseComponent from './base-component'
 import invoke from './invoke'
+import store from './store'
+import { getObject } from './selectors'
 
 export const EMPTY_ARRAY = Object.freeze([ ])
 export const EMPTY_OBJECT = Object.freeze({ })
@@ -60,7 +60,7 @@ export const addSubscriptions = subscriptions => Component => {
     }
 
     componentWillMount () {
-      this._unsubscribes = map(subscriptions, (subscribe, prop) =>
+      this._unsubscribes = map(isFunction(subscriptions) ? subscriptions() : subscriptions, (subscribe, prop) =>
         subscribe(value => this.setState({ [prop]: value }))
       )
     }

@@ -2,7 +2,6 @@ import React from 'react'
 import assign from 'lodash/assign'
 import classNames from 'classnames'
 import filter from 'lodash/filter'
-import find from 'lodash/find'
 import flatten from 'lodash/flatten'
 import forEach from 'lodash/forEach'
 import groupBy from 'lodash/groupBy'
@@ -31,6 +30,7 @@ import {
   getObject
 } from './selectors'
 import {
+  addSubscriptions,
   connectStore,
   mapPlus,
   resolveResourceSets
@@ -785,6 +785,10 @@ export class SelectResourceSetsNetwork extends Component {
 
 // ===================================================================
 
+@addSubscriptions(() => ({
+  ipPools: subscribeIpPools,
+  resourceSets: subscribeResourceSets
+}))
 export class SelectResourceSetIp extends Component {
   get value () {
     return this.refs.select.value
@@ -794,48 +798,28 @@ export class SelectResourceSetIp extends Component {
     this.refs.select.value = value
   }
 
-  _updateIpPools = () => {
-    const { resourceSet, allIpPools } = this.state
-    this.setState({
-      ipPools: resourceSet && filter(allIpPools, ipPool => includes(resourceSet.ipPools, ipPool.id))
-    })
-  }
-
-  componentWillMount () {
-    this.unsubscribeIpPools = subscribeIpPools(ipPools => {
-      this.setState({
-        allIpPools: ipPools
-      }, this._updateIpPools)
-    })
-    this.unsubscribeResourceSets = subscribeResourceSets(resourceSets => {
-      const { resourceSet } = this.props
-      this.setState({
-        resourceSet: isObject(resourceSet)
-          ? resourceSet
-          : find(resourceSets, set => set.id === resourceSet)
-      }, this._updateIpPools)
-    })
-  }
-
-  componentWillUnmount () {
-    this.unsubscribeIpPools()
-    this.unsubscribeResourceSets()
-  }
+  _getResourceSetIpPools = createSelector(
+    () => this.props.ipPools,
+    () => !isObject(this.props.resourceSet) && this.props.resourceSets,
+    () => this.props.resourceSet,
+    (allIpPools, allResourceSets, resourceSet) => {
+      const { ipPools } = allResourceSets ? allResourceSets[resourceSet] : resourceSet
+      return filter(allIpPools, ({ id }) => includes(ipPools, id))
+    }
+  )
 
   _getIpPools = createSelector(
-    () => this.state.ipPools,
+    () => this.props.ipPools,
     () => this.props.containerPredicate,
-    (ipPools, predicate) => {
-      return predicate
-        ? filter(ipPools, predicate)
-        : ipPools
-    }
+    (ipPools, predicate) => predicate
+      ? filter(ipPools, predicate)
+      : ipPools
   )
 
   _getIps = createSelector(
     this._getIpPools,
     () => this.props.predicate,
-    () => this.state.ipPools,
+    () => this.props.ipPools,
     (ipPools, predicate, resolvedIpPools) => {
       return flatten(
         map(ipPools, ipPool => {
@@ -929,7 +913,7 @@ export const SelectIp = makeSubscriptionSelect(subscriber => {
 export const SelectIpPool = makeSubscriptionSelect(subscriber => {
   const unsubscribeIpPools = subscribeIpPools(ipPools => {
     subscriber({
-      xoObjects: mapValues(sortBy(ipPools, 'name'), ipPool => ({ ...ipPool, type: 'ipPool' }))
+      xoObjects: map(sortBy(ipPools, 'name'), ipPool => ({ ...ipPool, type: 'ipPool' }))
     })
   })
 
