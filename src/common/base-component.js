@@ -9,6 +9,11 @@ import getEventValue from './get-event-value'
 import invoke from './invoke'
 import shallowEqual from './shallow-equal'
 
+// Should components logs every renders?
+//
+// Usually set to process.env.NODE_ENV !== 'production'.
+const VERBOSE = false
+
 const cowSet = (object, path, value, depth) => {
   if (depth >= path.length) {
     return value
@@ -40,7 +45,7 @@ export default class BaseComponent extends Component {
 
     this._linkedState = null
 
-    if (process.env.NODE_ENV !== 'production') {
+    if (VERBOSE) {
       this.render = invoke(this.render, render => () => {
         console.log('render', this.constructor.name)
 
@@ -116,7 +121,7 @@ export default class BaseComponent extends Component {
   }
 }
 
-if (process.env.NODE_ENV !== 'production') {
+if (VERBOSE) {
   const diff = (name, old, cur) => {
     const keys = []
 
