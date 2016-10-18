@@ -99,10 +99,10 @@ export default class Plan {
     this._excludedHosts = excludedHosts
     this._thresholds = {
       cpu: {
-        critical: numberOrDefault(thresholds.cpu, DEFAULT_CRITICAL_THRESHOLD_CPU)
+        critical: numberOrDefault(thresholds && thresholds.cpu, DEFAULT_CRITICAL_THRESHOLD_CPU)
       },
       memoryFree: {
-        critical: numberOrDefault(thresholds.memoryFree, DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE) * 1024
+        critical: numberOrDefault(thresholds && thresholds.memoryFree, DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE) * 1024
       }
     }
 
