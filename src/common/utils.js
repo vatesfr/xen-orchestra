@@ -51,6 +51,8 @@ export const propsEqual = (o1, o2, props) => {
 
 // ===================================================================
 
+// `subscriptions` can be a function if we want to ensure that the subscription callbacks
+// have been correctly imported before calling them (for instance when using @addSubscriptions decorator)
 export const addSubscriptions = subscriptions => Component => {
   class SubscriptionWrapper extends BaseComponent {
     constructor () {

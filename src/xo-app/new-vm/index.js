@@ -115,55 +115,15 @@ const Item = ({ label, children, className }) => (
 
 @injectIntl
 class Vif extends BaseComponent {
-  _getIsInPool = createSelector(
-    () => {
-      const { pool } = this.props
-      return pool && pool.id
-    },
-    poolId => ({ $pool }) =>
-      $pool === poolId
-  )
-  _getIsInResourceSet = createSelector(
-    () => {
-      const { resourceSet } = this.props
-      return resourceSet && resourceSet.objects
-    },
-    objectsIds => id => includes(objectsIds, id)
-  )
-
-  _getIpPoolPredicate = createSelector(
-    () => !!this.props.pool,
-    () => {
-      const { resourceSet } = this.props
-      return resourceSet && resourceSet.ipPools
-    },
-    () => this.props.vif,
-    (pool, ipPools, vif) => ipPool => {
-      if (!ipPool) {
-        return false
-      }
-      return pool || (
-        ipPools &&
-        includes(ipPools, ipPool.id) &&
-        find(ipPool.networks, ipPoolNetwork => ipPoolNetwork === vif.network)
-      )
-    }
-  )
-
-  _getNetworkPredicate = createSelector(
-    this._getIsInPool,
-    this._getIsInResourceSet,
-    (isInPool, isInResourceSet) => network =>
-      isInResourceSet(network.id) || isInPool(network)
-  )
-
-  _remove = () => this.props.onDelete(this.props.index)
-
   render () {
     const {
-      index,
       intl: { formatMessage },
-      linkState,
+      ipPoolPredicate,
+      networkPredicate,
+      onChangeAddresses,
+      onChangeMac,
+      onChangeNetwork,
+      onDelete,
       pool,
       resourceSet,
       vif
@@ -174,7 +134,7 @@ class Vif extends BaseComponent {
         <DebounceInput
           className='form-control'
           debounceTimeout={DEBOUNCE_TIMEOUT}
-          onChange={linkState(`VIFs.${index}.mac`)}
+          onChange={onChangeMac}
           placeholder={formatMessage(messages.newVmMacPlaceholder)}
           rows={7}
           value={vif.mac}
@@ -183,12 +143,12 @@ class Vif extends BaseComponent {
       <Item label={_('newVmNetworkLabel')}>
         <span className={styles.inlineSelect}>
           {pool ? <SelectNetwork
-            onChange={linkState(`VIFs.${index}.network`, 'id')}
-            predicate={this._getNetworkPredicate()}
+            onChange={onChangeNetwork}
+            predicate={networkPredicate}
             value={vif.network}
           />
           : <SelectResourceSetsNetwork
-            onChange={linkState(`VIFs.${index}.network`, 'id')}
+            onChange={onChangeNetwork}
             resourceSet={resourceSet}
             value={vif.network}
           />}
@@ -197,22 +157,22 @@ class Vif extends BaseComponent {
       <LineItem>
         <span className={styles.inlineSelect}>
           {pool ? <SelectIp
-            containerPredicate={this._getIpPoolPredicate()}
+            containerPredicate={ipPoolPredicate}
             multi
-            onChange={linkState(`VIFs.${index}.addresses`, '*.id')}
+            onChange={onChangeAddresses}
             value={vif.addresses}
           />
           : <SelectResourceSetIp
-            containerPredicate={this._getIpPoolPredicate()}
+            containerPredicate={ipPoolPredicate}
             multi
-            onChange={linkState(`VIFs.${index}.addresses`, '*.id')}
-            resourceSet={resourceSet}
+            onChange={onChangeAddresses}
+            resourceSetId={resourceSet.id}
             value={vif.addresses}
           />}
         </span>
       </LineItem>
       <Item>
-        <Button onClick={this._remove} bsStyle='secondary'>
+        <Button onClick={onDelete} bsStyle='secondary'>
           <Icon icon='new-vm-remove' />
         </Button>
       </Item>
@@ -523,6 +483,7 @@ export default class NewVm extends BaseComponent {
     },
     objectsIds => id => includes(objectsIds, id)
   )
+
   _getCanOperate = createSelector(
     () => this.props.permissions,
     permissions => ({ id }) =>
@@ -543,6 +504,30 @@ export default class NewVm extends BaseComponent {
   _getIsoPredicate = createSelector(
     () => this.props.pool && this.props.pool.id,
     poolId => sr => (poolId == null || poolId === sr.$pool) && sr.SR_type === 'iso'
+  )
+  _getIpPoolPredicate = createSelector(
+    () => !!this.props.pool,
+    () => {
+      const { resourceSet } = this.props
+      return resourceSet && resourceSet.ipPools
+    },
+    () => this.props.vif,
+    (pool, ipPools, vif) => ipPool => {
+      if (!ipPool) {
+        return false
+      }
+      return pool || (
+        ipPools &&
+        includes(ipPools, ipPool.id) &&
+        find(ipPool.networks, ipPoolNetwork => ipPoolNetwork === vif.network)
+      )
+    }
+  )
+  _getNetworkPredicate = createSelector(
+    this._getIsInPool,
+    this._getIsInResourceSet,
+    (isInPool, isInResourceSet) => network =>
+      isInResourceSet(network.id) || isInPool(network)
   )
   _getPoolNetworks = createSelector(
     () => this.props.networks,
@@ -1103,9 +1088,10 @@ export default class NewVm extends BaseComponent {
       <SectionContent column>
         {map(VIFs, (vif, index) => <div key={index}>
           <Vif
-            index={index}
-            linkState={this._linkState}
-            onDelete={this._removeInterface}
+            onChangeAddresses={this._linkState(`VIFs.${index}.addresses`, '*.id')}
+            onChangeMac={this._linkState(`VIFs.${index}.mac`)}
+            onChangeNetwork={this._linkState(`VIFs.${index}.network`, 'id')}
+            onDelete={() => this._removeInterface(index)}
             pool={this.props.pool}
             resourceSet={this._getResolvedResourceSet()}
             vif={vif}

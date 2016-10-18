@@ -405,7 +405,8 @@ export class XoSelect extends Editable {
   _renderEdition () {
     const {
       saving,
-      xoType
+      xoType,
+      ...props
     } = this.props
 
     const Select = MAP_TYPE_SELECT[xoType]
@@ -419,7 +420,7 @@ export class XoSelect extends Editable {
     // when this element is clicked.
     return <a onBlur={this._closeEdition}>
       <Select
-        {...this.props}
+        {...props}
         autoFocus
         disabled={saving}
         onChange={this._onChange}

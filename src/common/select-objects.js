@@ -7,7 +7,6 @@ import forEach from 'lodash/forEach'
 import groupBy from 'lodash/groupBy'
 import includes from 'lodash/includes'
 import isEmpty from 'lodash/isEmpty'
-import isObject from 'lodash/isObject'
 import keyBy from 'lodash/keyBy'
 import keys from 'lodash/keys'
 import map from 'lodash/map'
@@ -785,10 +784,17 @@ export class SelectResourceSetsNetwork extends Component {
 
 // ===================================================================
 
+// Pass a function to @addSubscriptions to ensure subscribeIpPools and subscribeResourceSets
+// are correctly imported before they are called
 @addSubscriptions(() => ({
   ipPools: subscribeIpPools,
   resourceSets: subscribeResourceSets
 }))
+@propTypes({
+  containerPredicate: propTypes.func,
+  predicate: propTypes.func,
+  resourceSetId: propTypes.string.isRequired
+})
 export class SelectResourceSetIp extends Component {
   get value () {
     return this.refs.select.value
@@ -800,10 +806,10 @@ export class SelectResourceSetIp extends Component {
 
   _getResourceSetIpPools = createSelector(
     () => this.props.ipPools,
-    () => !isObject(this.props.resourceSet) && this.props.resourceSets,
-    () => this.props.resourceSet,
-    (allIpPools, allResourceSets, resourceSet) => {
-      const { ipPools } = allResourceSets ? allResourceSets[resourceSet] : resourceSet
+    () => this.props.resourceSets,
+    () => this.props.resourceSetId,
+    (allIpPools, allResourceSets, resourceSetId) => {
+      const { ipPools } = allResourceSets[resourceSetId]
       return filter(allIpPools, ({ id }) => includes(ipPools, id))
     }
   )

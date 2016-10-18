@@ -114,12 +114,13 @@ class VifItem extends BaseComponent {
     this._getIps,
     () => this.props.ipPools,
     () => this.props.resourceSet,
-    (ips, ipPools, resourceSetId) => {
+    () => this.props.resourceSets,
+    (ips, ipPools, resourceSetId, resourceSets) => {
       return selectedIp => {
         const isNotUsed = every(ips, vifIp => vifIp !== selectedIp.id)
         let enoughResources
         if (resourceSetId) {
-          const resourceSet = find(this.props.resourceSets, set => set.id === resourceSetId)
+          const resourceSet = find(resourceSets, set => set.id === resourceSetId)
           const ipPool = find(ipPools, ipPool => includes(keys(ipPool.addresses), selectedIp.id))
           const ipPoolLimits = resourceSet && resourceSet.limits[`ipPool:${ipPool.id}`]
           enoughResources = resourceSet && ipPool && (!ipPoolLimits || ipPoolLimits.available)
@@ -199,7 +200,7 @@ class VifItem extends BaseComponent {
                   containerPredicate={this._getIsNetworkAllowed()}
                   onChange={newIp => this._saveIp(ipIndex, newIp)}
                   predicate={this._getIpPredicate()}
-                  resourceSet={resourceSet}
+                  resourceSetId={resourceSet}
                   value={ip}
                   xoType={resourceSet ? 'resourceSetIp' : 'ip'}
                 >
@@ -221,7 +222,7 @@ class VifItem extends BaseComponent {
                   onChange={ip => this._addIp(ip)}
                   predicate={this._getIpPredicate()}
                   required
-                  resourceSet={resourceSet}
+                  resourceSetId={resourceSet}
                 />
                 : <SelectIp
                   autoFocus
