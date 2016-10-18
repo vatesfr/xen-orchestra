@@ -238,8 +238,8 @@ function browserify (path, opts) {
 
 gulp.task(function buildPages () {
   return pipe(
-    src('index.jade', { sourcemaps: true }),
-    require('gulp-jade')(),
+    src('index.pug', { sourcemaps: true }),
+    require('gulp-pug')(),
     DEVELOPMENT && require('gulp-embedlr')({
       port: LIVERELOAD_PORT
     }),
