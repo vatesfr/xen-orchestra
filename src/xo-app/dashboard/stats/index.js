@@ -295,12 +295,14 @@ class SelectMetric extends Component {
       <Container>
         <Row>
           <Col mediumSize={6}>
-            <SelectHostVm
-              multi
-              onChange={this._handleSelection}
-              predicate={predicate}
-              value={objects}
-            />
+            <div className='form-group'>
+              <SelectHostVm
+                multi
+                onChange={this._handleSelection}
+                predicate={predicate}
+                value={objects}
+              />
+            </div>
             <div className='btn-group m-t-1' role='group'>
               <button
                 className='btn btn-secondary'
