@@ -47,6 +47,7 @@ import {
   SelectNetwork,
   SelectPool,
   SelectResourceSet,
+  SelectResourceSetIp,
   SelectResourceSetsNetwork,
   SelectResourceSetsSr,
   SelectResourceSetsVdi,
@@ -111,6 +112,75 @@ const Item = ({ label, children, className }) => (
     <span className={classNames(styles.input, className)}>{children}</span>
   </span>
 )
+
+@injectIntl
+class Vif extends BaseComponent {
+  render () {
+    const {
+      intl: { formatMessage },
+      ipPoolPredicate,
+      networkPredicate,
+      onChangeAddresses,
+      onChangeMac,
+      onChangeNetwork,
+      onDelete,
+      pool,
+      resourceSet,
+      vif
+    } = this.props
+
+    return <LineItem>
+      <Item label={_('newVmMacLabel')}>
+        <DebounceInput
+          className='form-control'
+          debounceTimeout={DEBOUNCE_TIMEOUT}
+          onChange={onChangeMac}
+          placeholder={formatMessage(messages.newVmMacPlaceholder)}
+          rows={7}
+          value={vif.mac}
+        />
+      </Item>
+      <Item label={_('newVmNetworkLabel')}>
+        <span className={styles.inlineSelect}>
+          {pool ? <SelectNetwork
+            onChange={onChangeNetwork}
+            predicate={networkPredicate}
+            value={vif.network}
+          />
+          : <SelectResourceSetsNetwork
+            onChange={onChangeNetwork}
+            resourceSet={resourceSet}
+            value={vif.network}
+          />}
+        </span>
+      </Item>
+      <LineItem>
+        <span className={styles.inlineSelect}>
+          {pool ? <SelectIp
+            containerPredicate={ipPoolPredicate}
+            multi
+            onChange={onChangeAddresses}
+            value={vif.addresses}
+          />
+          : <SelectResourceSetIp
+            containerPredicate={ipPoolPredicate}
+            multi
+            onChange={onChangeAddresses}
+            resourceSetId={resourceSet.id}
+            value={vif.addresses}
+          />}
+        </span>
+      </LineItem>
+      <Item>
+        <Button onClick={onDelete} bsStyle='secondary'>
+          <Icon icon='new-vm-remove' />
+        </Button>
+      </Item>
+    </LineItem>
+  }
+}
+
+// =============================================================================
 
 @addSubscriptions({
   resourceSets: subscribeResourceSets,
@@ -413,6 +483,7 @@ export default class NewVm extends BaseComponent {
     },
     objectsIds => id => includes(objectsIds, id)
   )
+
   _getCanOperate = createSelector(
     () => this.props.permissions,
     permissions => ({ id }) =>
@@ -433,6 +504,24 @@ export default class NewVm extends BaseComponent {
   _getIsoPredicate = createSelector(
     () => this.props.pool && this.props.pool.id,
     poolId => sr => (poolId == null || poolId === sr.$pool) && sr.SR_type === 'iso'
+  )
+  _getIpPoolPredicate = createSelector(
+    () => !!this.props.pool,
+    () => {
+      const { resourceSet } = this.props
+      return resourceSet && resourceSet.ipPools
+    },
+    () => this.props.vif,
+    (pool, ipPools, vif) => ipPool => {
+      if (!ipPool) {
+        return false
+      }
+      return pool || (
+        ipPools &&
+        includes(ipPools, ipPool.id) &&
+        find(ipPool.networks, ipPoolNetwork => ipPoolNetwork === vif.network)
+      )
+    }
   )
   _getNetworkPredicate = createSelector(
     this._getIsInPool,
@@ -456,7 +545,8 @@ export default class NewVm extends BaseComponent {
   _getDefaultNetworkId = () => {
     const resourceSet = this._getResolvedResourceSet()
     if (resourceSet) {
-      return resourceSet.objectsByType['network'][0].id
+      const { network } = resourceSet.objectsByType
+      return !isEmpty(network) && network[0].id
     }
     const network = find(this._getPoolNetworks(), network => {
       const pif = getObject(store.getState(), network.PIFs[0])
@@ -993,53 +1083,19 @@ export default class NewVm extends BaseComponent {
 
   _renderInterfaces = () => {
     const { state: { VIFs } } = this.state
-    const { pool } = this.props
-    const { formatMessage } = this.props.intl
 
     return <Section icon='new-vm-interfaces' title='newVmInterfacesPanel' done={this._isInterfacesDone()}>
       <SectionContent column>
         {map(VIFs, (vif, index) => <div key={index}>
-          <LineItem>
-            <Item label={_('newVmMacLabel')}>
-              <DebounceInput
-                className='form-control'
-                debounceTimeout={DEBOUNCE_TIMEOUT}
-                onChange={this._linkState(`VIFs.${index}.mac`)}
-                placeholder={formatMessage(messages.newVmMacPlaceholder)}
-                rows={7}
-                value={vif.mac}
-              />
-            </Item>
-            <Item label={_('newVmNetworkLabel')}>
-              <span className={styles.inlineSelect}>
-                {pool ? <SelectNetwork
-                  onChange={this._linkState(`VIFs.${index}.network`, 'id')}
-                  predicate={this._getNetworkPredicate()}
-                  value={vif.network}
-                />
-                : <SelectResourceSetsNetwork
-                  onChange={this._linkState(`VIFs.${index}.network`, 'id')}
-                  resourceSet={this._getResolvedResourceSet()}
-                  value={vif.network}
-                />}
-              </span>
-            </Item>
-            <LineItem>
-              <span className={styles.inlineSelect}>
-                <SelectIp
-                  containerPredicate={pool => find(pool.networks, poolNetwork => poolNetwork === vif.network)}
-                  multi
-                  onChange={this._linkState(`VIFs.${index}.addresses`, '*.id')}
-                  value={vif.addresses}
-                />
-              </span>
-            </LineItem>
-            <Item>
-              <Button onClick={() => this._removeInterface(index)} bsStyle='secondary'>
-                <Icon icon='new-vm-remove' />
-              </Button>
-            </Item>
-          </LineItem>
+          <Vif
+            onChangeAddresses={this._linkState(`VIFs.${index}.addresses`, '*.id')}
+            onChangeMac={this._linkState(`VIFs.${index}.mac`)}
+            onChangeNetwork={this._linkState(`VIFs.${index}.network`, 'id')}
+            onDelete={() => this._removeInterface(index)}
+            pool={this.props.pool}
+            resourceSet={this._getResolvedResourceSet()}
+            vif={vif}
+          />
           {index < VIFs.length - 1 && <hr />}
         </div>)}
         <Item>

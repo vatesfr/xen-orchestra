@@ -5,6 +5,7 @@ import filter from 'lodash/filter'
 import flatten from 'lodash/flatten'
 import forEach from 'lodash/forEach'
 import groupBy from 'lodash/groupBy'
+import includes from 'lodash/includes'
 import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
 import keys from 'lodash/keys'
@@ -28,6 +29,7 @@ import {
   getObject
 } from './selectors'
 import {
+  addSubscriptions,
   connectStore,
   mapPlus,
   resolveResourceSets
@@ -655,14 +657,6 @@ export class SelectResourceSetsVmTemplate extends Component {
     this.refs.select.value = value
   }
 
-  componentWillMount () {
-    this.componentWillUnmount = subscribeResourceSets(resourceSets => {
-      this.setState({
-        resourceSets: resolveResourceSets(resourceSets)
-      })
-    })
-  }
-
   _getTemplates = createSelector(
     () => this.props.resourceSet,
     ({ objectsByType }) => {
@@ -694,15 +688,6 @@ export class SelectResourceSetsSr extends Component {
   set value (value) {
     this.refs.select.value = value
   }
-
-  componentWillMount () {
-    this.componentWillUnmount = subscribeResourceSets(resourceSets => {
-      this.setState({
-        resourceSets: resolveResourceSets(resourceSets)
-      })
-    })
-  }
-
   _getSrs = createSelector(
     () => this.props.resourceSet,
     ({ objectsByType }) => {
@@ -733,14 +718,6 @@ export class SelectResourceSetsVdi extends Component {
 
   set value (value) {
     this.refs.select.value = value
-  }
-
-  componentWillMount () {
-    this.componentWillUnmount = subscribeResourceSets(resourceSets => {
-      this.setState({
-        resourceSets: resolveResourceSets(resourceSets)
-      })
-    })
   }
 
   _getObject (id) {
@@ -784,14 +761,6 @@ export class SelectResourceSetsNetwork extends Component {
     this.refs.select.value = value
   }
 
-  componentWillMount () {
-    this.componentWillUnmount = subscribeResourceSets(resourceSets => {
-      this.setState({
-        resourceSets: resolveResourceSets(resourceSets)
-      })
-    })
-  }
-
   _getNetworks = createSelector(
     () => this.props.resourceSet,
     ({ objectsByType }) => {
@@ -808,6 +777,78 @@ export class SelectResourceSetsNetwork extends Component {
         placeholder={_('selectResourceSetsNetwork')}
         {...this.props}
         xoObjects={this._getNetworks()}
+      />
+    )
+  }
+}
+
+// ===================================================================
+
+// Pass a function to @addSubscriptions to ensure subscribeIpPools and subscribeResourceSets
+// are correctly imported before they are called
+@addSubscriptions(() => ({
+  ipPools: subscribeIpPools,
+  resourceSets: subscribeResourceSets
+}))
+@propTypes({
+  containerPredicate: propTypes.func,
+  predicate: propTypes.func,
+  resourceSetId: propTypes.string.isRequired
+})
+export class SelectResourceSetIp extends Component {
+  get value () {
+    return this.refs.select.value
+  }
+
+  set value (value) {
+    this.refs.select.value = value
+  }
+
+  _getResourceSetIpPools = createSelector(
+    () => this.props.ipPools,
+    () => this.props.resourceSets,
+    () => this.props.resourceSetId,
+    (allIpPools, allResourceSets, resourceSetId) => {
+      const { ipPools } = allResourceSets[resourceSetId]
+      return filter(allIpPools, ({ id }) => includes(ipPools, id))
+    }
+  )
+
+  _getIpPools = createSelector(
+    () => this.props.ipPools,
+    () => this.props.containerPredicate,
+    (ipPools, predicate) => predicate
+      ? filter(ipPools, predicate)
+      : ipPools
+  )
+
+  _getIps = createSelector(
+    this._getIpPools,
+    () => this.props.predicate,
+    () => this.props.ipPools,
+    (ipPools, predicate, resolvedIpPools) => {
+      return flatten(
+        map(ipPools, ipPool => {
+          const poolIps = map(ipPool.addresses, (address, ip) => ({
+            ...address,
+            id: ip,
+            label: ip,
+            type: 'ipAddress',
+            used: !isEmpty(address.vifs)
+          }))
+          return predicate ? filter(poolIps, predicate) : poolIps
+        })
+      )
+    }
+  )
+
+  render () {
+    return (
+      <GenericSelect
+        ref='select'
+        placeholder={_('selectIpPool')}
+        {...this.props}
+        xoObjects={this._getIps()}
       />
     )
   }
@@ -872,3 +913,15 @@ export const SelectIp = makeSubscriptionSelect(subscriber => {
 
   return unsubscribeIpPools
 }, { placeholder: _('selectIp') })
+
+// ===================================================================
+
+export const SelectIpPool = makeSubscriptionSelect(subscriber => {
+  const unsubscribeIpPools = subscribeIpPools(ipPools => {
+    subscriber({
+      xoObjects: map(sortBy(ipPools, 'name'), ipPool => ({ ...ipPool, type: 'ipPool' }))
+    })
+  })
+
+  return unsubscribeIpPools
+}, { placeholder: _('selectIpPool') })

@@ -6,16 +6,18 @@ import concat from 'lodash/concat'
 import every from 'lodash/every'
 import find from 'lodash/find'
 import Icon from 'icon'
+import includes from 'lodash/includes'
 import isEmpty from 'lodash/isEmpty'
+import keys from 'lodash/keys'
 import map from 'lodash/map'
 import propTypes from 'prop-types'
 import React from 'react'
 import remove from 'lodash/remove'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
+import { addSubscriptions, connectStore, noop } from 'utils'
 import { isIp, isIpV4 } from 'ip'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
-import { connectStore, noop } from 'utils'
 import { Container, Row, Col } from 'grid'
 import {
   createFinder,
@@ -24,7 +26,7 @@ import {
   createSelector
 } from 'selectors'
 import { injectIntl } from 'react-intl'
-import { SelectNetwork, SelectIp } from 'select-objects'
+import { SelectNetwork, SelectIp, SelectResourceSetIp } from 'select-objects'
 import { XoSelect, Text } from 'editable'
 
 import {
@@ -33,26 +35,32 @@ import {
   deleteVif,
   disconnectVif,
   isVmRunning,
-  setVif
+  setVif,
+  subscribeIpPools,
+  subscribeResourceSets
 } from 'xo'
 
 const IP_COLUMN_STYLE = { maxWidth: '20em' }
 const TABLE_STYLE = { minWidth: '0' }
 
+@addSubscriptions({
+  ipPools: subscribeIpPools,
+  resourceSets: subscribeResourceSets
+})
 @connectStore(() => {
   const getVif = createGetObject(
     (_, props) => props.vifId
   )
-  const getNetwork = createGetObject(
-    createSelector(
-      getVif,
-      vif => vif.$network
-    )
+  const getNetworkId = createSelector(
+    getVif,
+    vif => vif.$network
   )
+  const getNetwork = createGetObject(getNetworkId)
 
   return (state, props) => ({
     vif: getVif(state, props),
-    network: getNetwork(state, props)
+    network: getNetwork(state, props),
+    networkId: getNetworkId(state, props)
   })
 })
 class VifItem extends BaseComponent {
@@ -102,21 +110,35 @@ class VifItem extends BaseComponent {
     () => this.props.vif.allowedIpv6Addresses,
     concat
   )
-  _getIsIpNotUsed = createSelector(
+  _getIpPredicate = createSelector(
     this._getIps,
-    ips =>
-      selectedIp => every(ips, vifIp => vifIp !== selectedIp.id)
+    () => this.props.ipPools,
+    () => this.props.resourceSet,
+    () => this.props.resourceSets,
+    (ips, ipPools, resourceSetId, resourceSets) => {
+      return selectedIp => {
+        const isNotUsed = every(ips, vifIp => vifIp !== selectedIp.id)
+        let enoughResources
+        if (resourceSetId) {
+          const resourceSet = find(resourceSets, set => set.id === resourceSetId)
+          const ipPool = find(ipPools, ipPool => includes(keys(ipPool.addresses), selectedIp.id))
+          const ipPoolLimits = resourceSet && resourceSet.limits[`ipPool:${ipPool.id}`]
+          enoughResources = resourceSet && ipPool && (!ipPoolLimits || ipPoolLimits.available)
+        }
+        return isNotUsed && (!resourceSetId || enoughResources)
+      }
+    }
   )
   _getIsNetworkAllowed = createSelector(
-    () => this.props.network,
-    vifNetwork =>
-      ipPool => find(ipPool.networks, ipPoolNetwork => ipPoolNetwork === vifNetwork.id)
+    () => this.props.networkId,
+    vifNetworkId =>
+      ipPool => find(ipPool.networks, ipPoolNetwork => ipPoolNetwork === vifNetworkId)
   )
   _getNetworkPredicate = createSelector(
     () => this.props.vif && this.props.vif.$pool,
-    () => this.props.vif && this.props.vif.$network,
-    (vifPool, vifNetwork) => network =>
-      network.$pool === vifPool && network.id !== vifNetwork
+    () => this.props.vifNetworkId,
+    (vifPoolId, vifNetworkId) => network =>
+      network.$pool === vifPoolId && network.id !== vifNetworkId
   )
 
   _toggleNewIp = () =>
@@ -146,7 +168,7 @@ class VifItem extends BaseComponent {
 
   render () {
     const { showNewIpForm } = this.state
-    const { isVmRunning, network, vif } = this.props
+    const { isVmRunning, network, resourceSet, vif } = this.props
 
     if (!vif) {
       return null
@@ -177,9 +199,10 @@ class VifItem extends BaseComponent {
                 <XoSelect
                   containerPredicate={this._getIsNetworkAllowed()}
                   onChange={newIp => this._saveIp(ipIndex, newIp)}
-                  predicate={this._getIsIpNotUsed()}
+                  predicate={this._getIpPredicate()}
+                  resourceSetId={resourceSet}
                   value={ip}
-                  xoType='ip'
+                  xoType={resourceSet ? 'resourceSetIp' : 'ip'}
                 >
                   {ip}
                 </XoSelect>
@@ -193,13 +216,21 @@ class VifItem extends BaseComponent {
             <Col size={10}>
               {showNewIpForm
               ? <span onBlur={this._toggleNewIp}>
-                <SelectIp
+                {resourceSet ? <SelectResourceSetIp
                   autoFocus
                   containerPredicate={this._getIsNetworkAllowed()}
                   onChange={ip => this._addIp(ip)}
-                  predicate={this._getIsIpNotUsed()}
+                  predicate={this._getIpPredicate()}
                   required
+                  resourceSetId={resourceSet}
                 />
+                : <SelectIp
+                  autoFocus
+                  containerPredicate={this._getIsNetworkAllowed()}
+                  onChange={ip => this._addIp(ip)}
+                  predicate={this._getIpPredicate()}
+                  required
+                />}
               </span>
               : <ActionButton btnStyle='success' size='small' handler={this._toggleNewIp} icon='add' />}
             </Col>
@@ -380,7 +411,7 @@ export default class TabNetwork extends BaseComponent {
                   </tr>
                 </thead>
                 <tbody>
-                  {map(vm.VIFs, vif => <VifItem vifId={vif} isVmRunning={isVmRunning(vm)} />)}
+                  {map(vm.VIFs, vif => <VifItem vifId={vif} isVmRunning={isVmRunning(vm)} resourceSet={vm.resourceSet} />)}
                 </tbody>
               </table>
               {vm.addresses && !isEmpty(vm.addresses)
