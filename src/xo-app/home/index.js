@@ -532,79 +532,85 @@ export default class Home extends Component {
     const isAdmin = user && user.permission === 'admin'
 
     if (!props.areObjectsFetched) {
-      return <CenterPanel>
-        <h2><img src='assets/loading.svg' /></h2>
-      </CenterPanel>
+      return <Page>
+        <CenterPanel>
+          <h2><img src='assets/loading.svg' /></h2>
+        </CenterPanel>
+      </Page>
     }
 
     if (props.noServersConnected && isAdmin) {
-      return <CenterPanel>
-        <Card shadow>
-          <CardHeader>{_('homeWelcome')}</CardHeader>
-          <CardBlock>
-            <Link to='/settings/servers'>
-              <Icon icon='pool' size={4} />
-              <h4>{_('homeAddServer')}</h4>
-            </Link>
-            <p className='text-muted'>{_('homeWelcomeText')}</p>
-            <br /><br />
-            <h3>{_('homeHelp')}</h3>
-            <Row>
-              <Col mediumSize={6}>
-                <a href='https://xen-orchestra.com/docs/' target='_blank' className='btn btn-link'>
-                  <Icon icon='menu-about' size={4} />
-                  <h4>{_('homeOnlineDoc')}</h4>
-                </a>
-              </Col>
-              <Col mediumSize={6}>
-                <a href='https://xen-orchestra.com/#!/member/support' target='_blank' className='btn btn-link'>
-                  <Icon icon='menu-settings-users' size={4} />
-                  <h4>{_('homeProSupport')}</h4>
-                </a>
-              </Col>
-            </Row>
-          </CardBlock>
-        </Card>
-      </CenterPanel>
+      return <Page>
+        <CenterPanel>
+          <Card shadow>
+            <CardHeader>{_('homeWelcome')}</CardHeader>
+            <CardBlock>
+              <Link to='/settings/servers'>
+                <Icon icon='pool' size={4} />
+                <h4>{_('homeAddServer')}</h4>
+              </Link>
+              <p className='text-muted'>{_('homeWelcomeText')}</p>
+              <br /><br />
+              <h3>{_('homeHelp')}</h3>
+              <Row>
+                <Col mediumSize={6}>
+                  <a href='https://xen-orchestra.com/docs/' target='_blank' className='btn btn-link'>
+                    <Icon icon='menu-about' size={4} />
+                    <h4>{_('homeOnlineDoc')}</h4>
+                  </a>
+                </Col>
+                <Col mediumSize={6}>
+                  <a href='https://xen-orchestra.com/#!/member/support' target='_blank' className='btn btn-link'>
+                    <Icon icon='menu-settings-users' size={4} />
+                    <h4>{_('homeProSupport')}</h4>
+                  </a>
+                </Col>
+              </Row>
+            </CardBlock>
+          </Card>
+        </CenterPanel>
+      </Page>
     }
 
     const nItems = this._getNumberOfItems()
     if (!nItems) {
-      return <CenterPanel>
-        <Card shadow>
-          <CardHeader>{_('homeNoVms')}</CardHeader>
-          <CardBlock>
-            <Row>
-              <Col>
-                <Link to='/vms/new'>
-                  <Icon icon='vm' size={4} />
-                  <h4>{_('homeNewVm')}</h4>
-                </Link>
-                <p className='text-muted'>{_('homeNewVmMessage')}</p>
-              </Col>
-            </Row>
-            {isAdmin && <div>
-              <h2>{_('homeNoVmsOr')}</h2>
+      return <Page>
+        <CenterPanel>
+          <Card shadow>
+            <CardHeader>{_('homeNoVms')}</CardHeader>
+            <CardBlock>
               <Row>
-                <Col mediumSize={6}>
-                  <Link to='/import'>
-                    <Icon icon='menu-new-import' size={4} />
-                    <h4>{_('homeImportVm')}</h4>
+                <Col>
+                  <Link to='/vms/new'>
+                    <Icon icon='vm' size={4} />
+                    <h4>{_('homeNewVm')}</h4>
                   </Link>
-                  <p className='text-muted'>{_('homeImportVmMessage')}</p>
-                </Col>
-                <Col mediumSize={6}>
-                  <Link to='/backup/restore'>
-                    <Icon icon='backup' size={4} />
-                    <h4>{_('homeRestoreBackup')}</h4>
-                  </Link>
-                  <p className='text-muted'>{_('homeRestoreBackupMessage')}</p>
+                  <p className='text-muted'>{_('homeNewVmMessage')}</p>
                 </Col>
               </Row>
-            </div>}
-          </CardBlock>
-        </Card>
-      </CenterPanel>
+              {isAdmin && <div>
+                <h2>{_('homeNoVmsOr')}</h2>
+                <Row>
+                  <Col mediumSize={6}>
+                    <Link to='/import'>
+                      <Icon icon='menu-new-import' size={4} />
+                      <h4>{_('homeImportVm')}</h4>
+                    </Link>
+                    <p className='text-muted'>{_('homeImportVmMessage')}</p>
+                  </Col>
+                  <Col mediumSize={6}>
+                    <Link to='/backup/restore'>
+                      <Icon icon='backup' size={4} />
+                      <h4>{_('homeRestoreBackup')}</h4>
+                    </Link>
+                    <p className='text-muted'>{_('homeRestoreBackupMessage')}</p>
+                  </Col>
+                </Row>
+              </div>}
+            </CardBlock>
+          </Card>
+        </CenterPanel>
+      </Page>
     }
 
     const filteredItems = this._getFilteredItems()
