@@ -751,10 +751,10 @@ var messages = {
   comingSoon: 'Coming soon!',
 
   // ----- Health -----
-  orphanedVdis: 'Orphaned VDIs',
-  orphanedVms: 'Orphaned VMs',
+  orphanedVdis: 'Orphaned snapshot VDIs',
+  orphanedVms: 'Orphaned VMs snapshot',
   noOrphanedObject: 'No orphans',
-  removeAllOrphanedObject: 'Remove all orphaned VDIs',
+  removeAllOrphanedObject: 'Remove all orphaned snapshot VDIs',
   vmNameLabel: 'Name',
   vmNameDescription: 'Description',
   vmContainer: 'Resident on',
@@ -958,7 +958,7 @@ var messages = {
   importBackupModalTitle: 'Import a {name} Backup',
   importBackupModalStart: 'Start VM after restore',
   importBackupModalSelectBackup: 'Select your backup…',
-  removeAllOrphanedModalWarning: 'Are you sure you want to remove all orphaned VDIs?',
+  removeAllOrphanedModalWarning: 'Are you sure you want to remove all orphaned snapshot VDIs?',
   removeAllLogsModalTitle: 'Remove all logs',
   removeAllLogsModalWarning: 'Are you sure you want to remove all logs?',
   definitiveMessageModal: 'This operation is definitive.',

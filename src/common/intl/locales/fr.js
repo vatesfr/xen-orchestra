@@ -750,10 +750,10 @@ export default {
   comingSoon: 'C\'est pour bientôt !',
 
   // ----- Health -----
-  orphanedVdis: 'VDIs orphelins',
-  orphanedVms: 'VMs orpheline',
+  orphanedVdis: 'Instantanés de VDIs orphelins',
+  orphanedVms: 'Instantannés VMs orphelins',
   noOrphanedObject: 'Pas d\'orphelin',
-  removeAllOrphanedObject: 'Supprimer tout les VDIs orphelin',
+  removeAllOrphanedObject: 'Supprimer tout les snapshot de VDIs orphelin',
   vmNameLabel: 'Nom',
   vmNameDescription: 'Description',
   vmContainer: 'Situé sur',
@@ -955,7 +955,7 @@ export default {
   importBackupModalTitle: 'Importer une sauvegarde {name}',
   importBackupModalStart: 'Démarrer la VM après la restauration',
   importBackupModalSelectBackup: 'Sélectionnez votre sauvegarde…',
-  removeAllOrphanedModalWarning: 'Êtes-vous sûr de vouloir supprimer tout les VDIs orphelin ?',
+  removeAllOrphanedModalWarning: 'Êtes-vous sûr de vouloir supprimer tout les instantanés de VDIs orphelin ?',
   removeAllLogsModalTitle: 'Supprimer tout les journaux',
   removeAllLogsModalWarning: 'Êtes-vous sûr de vouloir supprimer tout les journaux ?',
   definitiveMessageModal: 'Cette action est irréversible.',
