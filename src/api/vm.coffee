@@ -3,6 +3,7 @@ $debug = (require 'debug') 'xo:api:vm'
 $filter = require 'lodash/filter'
 $findIndex = require 'lodash/findIndex'
 $findWhere = require 'lodash/find'
+concat = require 'lodash/concat'
 endsWith = require 'lodash/endsWith'
 escapeStringRegexp = require 'escape-string-regexp'
 eventToPromise = require 'event-to-promise'
@@ -134,6 +135,8 @@ create = $coroutine (params) ->
     return {
       mac: vif.mac
       network: network._xapiId
+      ipv4_allowed: vif.allowedIpv4Addresses
+      ipv6_allowed: vif.allowedIpv6Addresses
     }
   )
 
@@ -141,6 +144,7 @@ create = $coroutine (params) ->
   params.installRepository = installation && installation.repository
 
   checkLimits = null
+
   if resourceSet
     yield this.checkResourceSetConstraints(resourceSet, user.id, objectIds)
     checkLimits = $coroutine (limits2) =>
@@ -156,9 +160,23 @@ create = $coroutine (params) ->
       xapi.xo.setData(xapiVm.$id, 'resourceSet', resourceSet)
     ])
 
+  for vifId in vm.VIFs
+    vif = @getObject(vifId, 'VIF')
+    yield this.allocIpAddresses(vifId, concat(vif.allowedIpv4Addresses, vif.allowedIpv6Addresses)).catch(() =>
+      xapi.deleteVif(vif._xapiId)
+    )
+
+  if params.bootAfterCreate
+    pCatch.call(xapi.startVm(vm._xapiId), noop)
+
   return vm.id
 
 create.params = {
+  bootAfterCreate: {
+    type: 'boolean'
+    optional: true
+  }
+
   cloudConfig: {
     type: 'string'
     optional: true
@@ -214,6 +232,18 @@ create.params = {
         mac: {
           optional: true # Auto-generated per default.
           type: 'string'
+        }
+
+        allowedIpv4Addresses: {
+          optional: true
+          type: 'array'
+          items: { type: 'string' }
+        }
+
+        allowedIpv6Addresses: {
+          optional: true
+          type: 'array'
+          items: { type: 'string' }
         }
       }
     }
@@ -1069,10 +1099,10 @@ createInterface = $coroutine ({
     ipv6_allowed: allowedIpv6Addresses
   })
 
-  alloc = (address) =>
-    @allocIpAddress(address, vif.$id)::pCatch(noop)
-  forEach(allowedIpv4Addresses, alloc)
-  forEach(allowedIpv6Addresses, alloc)
+  { push } = ipAddresses = []
+  push.apply(ipAddresses, allowedIpv4Addresses) if allowedIpv4Addresses
+  push.apply(ipAddresses, allowedIpv6Addresses) if allowedIpv6Addresses
+  pCatch.call(@allocIpAddresses(vif.$id, allo), noop) if ipAddresses.length
 
   return vif.$id
 

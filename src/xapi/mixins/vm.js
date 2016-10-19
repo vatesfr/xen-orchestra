@@ -26,8 +26,6 @@ export default {
     name_label, // deprecated
     nameLabel = name_label, // eslint-disable-line camelcase
 
-    bootAfterCreate = false,
-
     clone = true,
     installRepository = undefined,
     vdis = undefined,
@@ -178,6 +176,8 @@ export default {
         vm,
         this.getObject(vif.network),
         {
+          ipv4_allowed: vif.ipv4_allowed,
+          ipv6_allowed: vif.ipv6_allowed,
           device: devices[index],
           mac: vif.mac,
           mtu: vif.mtu
@@ -208,10 +208,6 @@ export default {
         ? 'createCoreOsCloudInitConfigDrive'
         : 'createCloudInitConfigDrive'
       await this[method](vm.$id, srRef, cloudConfig)
-    }
-
-    if (bootAfterCreate) {
-      this._startVm(vm)::pCatch(noop)
     }
 
     return this._waitObject(vm.$id)

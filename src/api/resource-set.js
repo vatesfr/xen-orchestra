@@ -51,11 +51,12 @@ delete_.params = {
 
 // -------------------------------------------------------------------
 
-export function set ({ id, name, subjects, objects, limits }) {
+export function set ({ id, name, subjects, objects, ipPools, limits }) {
   return this.updateResourceSet(id, {
     limits,
     name,
     objects,
+    ipPools,
     subjects
   })
 }
@@ -78,6 +79,13 @@ set.params = {
     optional: true
   },
   objects: {
+    type: 'array',
+    items: {
+      type: 'string'
+    },
+    optional: true
+  },
+  ipPools: {
     type: 'array',
     items: {
       type: 'string'

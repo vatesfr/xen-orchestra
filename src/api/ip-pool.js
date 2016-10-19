@@ -1,3 +1,5 @@
+import { Unauthorized } from '../api-errors'
+
 export function create (props) {
   return this.createIpPool(props)
 }
@@ -15,11 +17,18 @@ delete_.permission = 'admin'
 
 // -------------------------------------------------------------------
 
-export function getAll () {
-  return this.getAllIpPools()
-}
+export function getAll (params) {
+  const { user } = this
 
-getAll.permission = 'admin'
+  if (!user) {
+    throw new Unauthorized()
+  }
+
+  return this.getAllIpPools(user.permission === 'admin'
+    ? params && params.userId
+    : user.id
+  )
+}
 
 // -------------------------------------------------------------------
 

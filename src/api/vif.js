@@ -1,5 +1,3 @@
-import forEach from 'lodash/forEach'
-
 import {
   diffItems,
   noop,
@@ -10,12 +8,12 @@ import {
 
 // TODO: move into vm and rename to removeInterface
 async function delete_ ({vif}) {
-  const { id } = vif
-  const dealloc = address => {
-    this.deallocIpAddress(address, id)::pCatch(noop)
-  }
-  forEach(vif.allowedIpv4Addresses, dealloc)
-  forEach(vif.allowedIpv6Addresses, dealloc)
+  this.allocIpAddresses(
+    vif.id,
+    vif.$network,
+    null,
+    vif.allowedIpv4Addresses.concat(vif.allowedIpv6Addresses)
+  )::pCatch(noop)
 
   await this.getXapi(vif).deleteVif(vif._xapiId)
 }
@@ -70,44 +68,46 @@ export async function set ({
   allowedIpv6Addresses,
   attached
 }) {
+  const oldIpAddresses = vif.allowedIpv4Addresses.concat(vif.allowedIpv6Addresses)
+  const newIpAddresses = []
+  {
+    const { push } = newIpAddresses
+    push.apply(newIpAddresses, allowedIpv4Addresses || vif.allowedIpv4Addresses)
+    push.apply(newIpAddresses, allowedIpv6Addresses || vif.allowedIpv6Addresses)
+  }
+
   if (network || mac) {
     const xapi = this.getXapi(vif)
 
     const vm = xapi.getObject(vif.$VM)
     mac == null && (mac = vif.MAC)
     network = xapi.getObject(network && network.id || vif.$network)
-    allowedIpv4Addresses == null && (allowedIpv4Addresses = vif.allowedIpv4Addresses)
-    allowedIpv6Addresses == null && (allowedIpv6Addresses = vif.allowedIpv6Addresses)
     attached == null && (attached = vif.attached)
 
-    // remove previous VIF
-    const dealloc = address => {
-      this.deallocIpAddress(address, vif.id)::pCatch(noop)
-    }
-    forEach(vif.allowedIpv4Addresses, dealloc)
-    forEach(vif.allowedIpv6Addresses, dealloc)
-    xapi.deleteVif(vif._xapiId)::pCatch(noop)
+    await this.allocIpAddresses(vif.id, null, oldIpAddresses)
 
     // create new VIF with new parameters
     await xapi.createVif(vm.$id, network.$id, {
       mac,
-      currently_attached: attached
+      currently_attached: attached,
+      ipv4Allowed: allowedIpv4Addresses,
+      ipv6Allowed: allowedIpv6Addresses
     })
+
+    await this.allocIpAddresses(vif.id, newIpAddresses)
 
     return
   }
 
-  const { id } = vif
-  const handle = ([ newAddresses, oldAddresses ]) => {
-    forEach(newAddresses, address => {
-      this.allocIpAddress(address, id)::pCatch(noop)
-    })
-    forEach(oldAddresses, address => {
-      this.deallocIpAddress(address, id)::pCatch(noop)
-    })
-  }
-  handle(diffItems(allowedIpv4Addresses, vif.allowedIpv4Addresses))
-  handle(diffItems(allowedIpv6Addresses, vif.allowedIpv6Addresses))
+  const [ addAddresses, removeAddresses ] = diffItems(
+    newIpAddresses,
+    oldIpAddresses
+  )
+  await this.allocIpAddresses(
+    vif.id,
+    addAddresses,
+    removeAddresses
+  )
 
   return this.getXapi(vif).editVif(vif._xapiId, {
     ipv4Allowed: allowedIpv4Addresses,
