@@ -1,5 +1,6 @@
 import _ from 'intl'
 import ceil from 'lodash/ceil'
+import classNames from 'classnames'
 import debounce from 'lodash/debounce'
 import findIndex from 'lodash/findIndex'
 import isEmpty from 'lodash/isEmpty'
@@ -109,19 +110,18 @@ class ColumnHead extends Component {
       return <th>{name}</th>
     }
 
-    let className = styles.clickableColumn
-
-    if (sortIcon === 'asc' || sortIcon === 'desc') {
-      className += ' bg-info'
-    }
+    const isSelected = sortIcon === 'asc' || sortIcon === 'desc'
 
     return (
       <th
-        className={className}
+        className={classNames(
+          styles.clickableColumn,
+          isSelected && classNames('text-white', 'bg-info')
+        )}
         onClick={this._sort}
       >
         {name}
-        <span className='pull-xs-right'>
+        <span className='pull-right'>
           <Icon icon={sortIcon} />
         </span>
       </th>

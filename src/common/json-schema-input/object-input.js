@@ -29,7 +29,7 @@ class ObjectItem extends Component {
     const { props } = this
 
     return (
-      <div className='p-b-1'>
+      <div className='pb-1'>
         {cloneElement(props.children, {
           ref: 'input'
         })}

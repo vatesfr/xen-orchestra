@@ -455,7 +455,7 @@ export class Edit extends Component {
                     <strong>{_('quantity')}</strong>
                   </Col>
                 </Row>
-                {map(state.ipPools, (ipPool, index) => <Row className='m-b-1' key={index}>
+                {map(state.ipPools, (ipPool, index) => <Row className='mb-1' key={index}>
                   <Col mediumSize={7}>
                     <SelectIpPool onChange={this.linkState(`ipPools.${index}.id`, 'id')} value={ipPool.id} />
                   </Col>
@@ -519,7 +519,7 @@ class ResourceSet extends Component {
       </li>,
       ...map(objectsByType, (objectsSet, type) => (
         <li key={type} className='list-group-item'>
-          {map(objectsSet, object => renderXoItem(object, { className: 'm-r-1' }))}
+          {map(objectsSet, object => renderXoItem(object, { className: 'mr-1' }))}
         </li>
       )),
       !isEmpty(ipPools) && <li className='list-group-item'>
@@ -528,7 +528,7 @@ class ResourceSet extends Component {
           const limits = get(resourceSet, `limits[ipPool:${pool}]`)
           const available = limits && limits.available
           const total = limits && limits.total
-          return <span className='m-r-1'>
+          return <span className='mr-1'>
             {renderXoItem({
               name: resolvedIpPool && resolvedIpPool.name,
               type: 'ipPool'
@@ -633,7 +633,7 @@ class ResourceSet extends Component {
     const { resourceSet } = this.props
 
     return (
-      <div className='m-b-1'>
+      <div className='mb-1'>
         <Collapse buttonText={resourceSet.name}>
           <ul className='list-group'>
             {this.state.editionMode
@@ -643,7 +643,7 @@ class ResourceSet extends Component {
           </ul>
         </Collapse>
         {resourceSet.missingObjects.length > 0 &&
-          <div className='alert alert-danger m-b-0' role='alert'>
+          <div className='alert alert-danger mb-0' role='alert'>
             <strong>{_('resourceSetMissingObjects')}</strong> {resourceSet.missingObjects.join(', ')}
           </div>
         }
@@ -678,10 +678,10 @@ export default class Self extends Component {
     >
       {process.env.XOA_PLAN > 3
         ? <div>
-          <div className='m-b-1'>
+          <div className='mb-1'>
             <ActionButton
               btnStyle='primary'
-              className='m-r-1'
+              className='mr-1'
               handler={this.toggleState('showNewResourceSetForm')}
               icon='add'
             >

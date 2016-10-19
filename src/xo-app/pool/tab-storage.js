@@ -48,7 +48,7 @@ const SR_COLUMNS = [
     name: _('srType'),
     itemRenderer: (sr, pool) => <div>
       {isSrShared(sr) ? _('srShared') : _('srNotShared')}
-      <ButtonGroup className='pull-xs-right'>
+      <ButtonGroup className='pull-right'>
         {(pool.default_SR !== sr.id && sr.size > 1) && <Tooltip key={sr.id} content={_('setAsDefaultSr')}>
           <ActionRowButton
             handler={setDefaultSr}

@@ -75,7 +75,7 @@ export default class TimezonePicker extends Component {
           {_('timezonePickerServerValue')} <strong>{state.serverTimezone}</strong>
         </div>
         <Select
-          className='m-b-1'
+          className='mb-1'
           defaultValue={props.defaultValue}
           onChange={this._handleChange}
           options={state.options}
@@ -86,7 +86,7 @@ export default class TimezonePicker extends Component {
         <div className='pull-right'>
           <ActionButton
             btnStyle='primary'
-            className='m-r-1'
+            className='mr-1'
             handler={this._useServerTime}
             icon='time'
           >

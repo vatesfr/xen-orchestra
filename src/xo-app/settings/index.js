@@ -21,7 +21,7 @@ const HEADER = <Container>
       <h2><Icon icon='menu-settings' /> {_('settingsPage')}</h2>
     </Col>
     <Col mediumSize={9}>
-      <NavTabs className='pull-xs-right'>
+      <NavTabs className='pull-right'>
         <NavLink to={'/settings/servers'}><Icon icon='menu-settings-servers' /> {_('settingsServersPage')}</NavLink>
         <NavLink to={'/settings/users'}><Icon icon='menu-settings-users' /> {_('settingsUsersPage')}</NavLink>
         <NavLink to={'/settings/groups'}><Icon icon='menu-settings-groups' /> {_('settingsGroupsPage')}</NavLink>
