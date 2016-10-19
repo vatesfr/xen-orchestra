@@ -242,7 +242,7 @@ export class GenericSelect extends Component {
   _renderOption = option => (
     <span
       className={classNames(
-        !option.disabled && this.props.xoContainers && 'm-l-1'
+        !option.disabled && this.props.xoContainers && 'ml-1'
       )}
     >
       {renderXoItem(option.xoItem)}

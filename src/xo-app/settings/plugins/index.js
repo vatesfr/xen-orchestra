@@ -195,7 +195,7 @@ class Plugin extends Component {
               ref='pluginInput'
               defaultValue={props.configuration || undefined}
             />
-            <div className='form-group pull-xs-right'>
+            <div className='form-group pull-right'>
               <div className='btn-toolbar'>
                 <div className='btn-group'>
                   <ActionButton disabled={!edit} type='submit' form={formId} icon='save' className='btn-primary' handler={this._saveConfiguration}>

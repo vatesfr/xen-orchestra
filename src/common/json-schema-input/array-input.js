@@ -31,7 +31,7 @@ class ArrayItem extends Component {
         {cloneElement(children, {
           ref: 'input'
         })}
-        <button disabled={children.props.disabled} className='btn btn-danger pull-xs-right' type='button' onClick={this.props.onDelete}>
+        <button disabled={children.props.disabled} className='btn btn-danger pull-right' type='button' onClick={this.props.onDelete}>
           {_('remove')}
         </button>
       </li>
@@ -175,7 +175,7 @@ export default class ArrayInput extends Component {
                 cloneElement(child, { ref: index })
               )}
             </ul>
-            <button disabled={disabled} className='btn btn-primary pull-xs-right m-t-1 m-r-1' type='button' onClick={this._handleAdd}>
+            <button disabled={disabled} className='btn btn-primary pull-right mt-1 mr-1' type='button' onClick={this._handleAdd}>
               {_('add')}
             </button>
           </div>

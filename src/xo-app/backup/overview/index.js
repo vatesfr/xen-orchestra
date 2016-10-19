@@ -160,8 +160,8 @@ export default class Overview extends Component {
                         <td className='hidden-xs-down'>{schedule.timezone || _('jobServerTimezone')}</td>
                         <td>
                           {this._getScheduleToggle(schedule)}
-                          <fieldset className='pull-xs-right'>
-                            <Link className='btn btn-sm btn-primary m-r-1' to={`/backup/${schedule.id}/edit`}>
+                          <fieldset className='pull-right'>
+                            <Link className='btn btn-sm btn-primary mr-1' to={`/backup/${schedule.id}/edit`}>
                               <Icon icon='edit' />
                             </Link>
                             <ButtonGroup>

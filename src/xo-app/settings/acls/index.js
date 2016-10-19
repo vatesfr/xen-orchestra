@@ -206,7 +206,7 @@ export default class Acls extends Component {
             <SelectHighLevelObject ref='selectObject' multi onChange={this._handleSelectObjects} />
           </div>
           <div className='form-group'>
-            <ButtonGroup className='p-b-1'>
+            <ButtonGroup className='pb-1'>
               {map(TYPES, type =>
                 <ActionButton tooltip={_('settingsAclsButtonTooltip' + type)} key={type} btnStyle={isAllSelected[type] ? 'success' : 'secondary'} size='small' icon={type.toLowerCase()} handler={this._toggleAll} handlerParam={type} />
               )}

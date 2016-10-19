@@ -332,7 +332,7 @@ class MigrateVdiModalBody extends Component {
           />
         </Col>
       </SingleLineRow>
-      <SingleLineRow className='m-t-1'>
+      <SingleLineRow className='mt-1'>
         <Col>
           <label>
             <input type='checkbox' onChange={this.linkState('migrateAll')} />
@@ -487,7 +487,7 @@ export default class TabDisks extends Component {
                           <span className='tag tag-success'>
                             {_('vbdStatusConnected')}
                           </span>
-                          <ButtonGroup className='pull-xs-right'>
+                          <ButtonGroup className='pull-right'>
                             <Tooltip content={_('vdiMigrate')}>
                               <ActionRowButton
                                 btnStyle='default'
@@ -510,7 +510,7 @@ export default class TabDisks extends Component {
                           <span className='tag tag-default'>
                             {_('vbdStatusDisconnected')}
                           </span>
-                          <ButtonGroup className='pull-xs-right'>
+                          <ButtonGroup className='pull-right'>
                             <Tooltip content={_('vdiMigrate')}>
                               <ActionRowButton
                                 btnStyle='default'

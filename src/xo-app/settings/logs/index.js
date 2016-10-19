@@ -94,7 +94,7 @@ ${JSON.stringify(log.data.error, null, 2)}`}</Copiable>)
       {isEmpty(logs)
         ? <p>{_('noLogs')}</p>
         : <div>
-          <span className='pull-xs-right'>
+          <span className='pull-right'>
             <TabButton
               btnStyle='danger'
               handler={this._deleteAllLogs}

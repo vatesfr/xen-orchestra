@@ -1,8 +1,8 @@
 .clickableColumn {
-    cursor: pointer;
+  cursor: pointer;
 }
 
 .clickableColumn:hover {
-    color: #fff;
-    background-color: #96b8d1;
+  color: #fff;
+  background-color: #96b8d1;
 }

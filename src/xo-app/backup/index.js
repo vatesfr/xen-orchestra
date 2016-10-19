@@ -17,7 +17,7 @@ const HEADER = <Container>
       <h2><Icon icon='backup' /> {_('backupPage')}</h2>
     </Col>
     <Col mediumSize={9}>
-      <NavTabs className='pull-xs-right'>
+      <NavTabs className='pull-right'>
         <NavLink to={'/backup/overview'}><Icon icon='menu-backup-overview' /> {_('backupOverviewPage')}</NavLink>
         <NavLink to={'/backup/new'}><Icon icon='menu-backup-new' /> {_('backupNewPage')}</NavLink>
         <NavLink to={'/backup/restore'}><Icon icon='menu-backup-restore' /> {_('backupRestorePage')}</NavLink>

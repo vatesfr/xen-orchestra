@@ -62,7 +62,7 @@ class GroupMembersDisplay extends Component {
             <ActionButton className='pull-right' size='small' icon={this.state.open ? 'minus' : 'plus'} handler={this._toggle} />
           </div>
           {this.state.open &&
-            <div className='m-t-1'>
+            <div className='mt-1'>
               <ul className='list-group'>
                 {map(group.users, user => <li className='list-group-item' key={user}><UserDisplay id={user} group={group} /></li>)}
               </ul>

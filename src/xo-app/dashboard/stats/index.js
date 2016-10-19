@@ -303,7 +303,7 @@ class SelectMetric extends Component {
                 value={objects}
               />
             </div>
-            <div className='btn-group m-t-1' role='group'>
+            <div className='btn-group mt-1' role='group'>
               <button
                 className='btn btn-secondary'
                 onClick={this._resetSelection}
@@ -391,7 +391,7 @@ class MetricViewer extends Component {
           <Container>
             <Row>
               <Col>
-                {map(objects, object => renderXoItem(object, { className: 'm-r-1' }))}
+                {map(objects, object => renderXoItem(object, { className: 'mr-1' }))}
               </Col>
             </Row>
             <Row>

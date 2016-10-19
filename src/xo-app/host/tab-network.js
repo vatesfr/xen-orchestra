@@ -97,7 +97,7 @@ export default connectStore(() => ({
                     }
                   </td>
                   <td>
-                    <ButtonGroup className='pull-xs-right'>
+                    <ButtonGroup className='pull-right'>
                       <ActionRowButton
                         btnStyle='default'
                         disabled={pif.attached && (pif.management || pif.disallowUnplug)}

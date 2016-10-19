@@ -73,7 +73,7 @@ export default class TemplateItem extends Component {
         <Row>
           <Col mediumSize={4} className={styles.itemExpanded}>
             <span>
-              <Number value={vm.CPUs.number} onChange={this._setCpus} />x <Icon icon='cpu' className='m-r-1' />
+              <Number value={vm.CPUs.number} onChange={this._setCpus} />x <Icon icon='cpu' className='mr-1' />
               <Size value={firstDefined(vm.memory.size, null)} onChange={this._setMemory} /> <Icon icon='memory' />
             </span>
           </Col>

@@ -40,7 +40,7 @@ const TASK_ITEM_STYLE = {
 
 export const TaskItem = connectStore(() => ({
   host: createGetObject((_, props) => props.task.$host)
-}))(({ task, host }) => <SingleLineRow className='m-b-1'>
+}))(({ task, host }) => <SingleLineRow className='mb-1'>
   <Col mediumSize={6}>
     {task.name_label} (on <Link to={`/hosts/${host.id}`}>{host.name_label}</Link>)
     {' ' + Math.round(task.progress * 100)}%

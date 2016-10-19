@@ -146,7 +146,7 @@ export class SchedulePreview extends Component {
         <div className='alert alert-info' role='alert'>
           {_('cronPattern')} <strong>{cronPattern}</strong>
         </div>
-        <div className='form-inline p-b-1'>
+        <div className='form-inline pb-1'>
           <Range min={MIN_PREVIEWS} max={MAX_PREVIEWS} onChange={this._handleChange} />
         </div>
         <ul className='list-group'>
@@ -254,7 +254,7 @@ class TableSelect extends Component {
             ))}
           </tbody>
         </table>
-        <button className='btn btn-secondary pull-xs-right' onClick={this._reset}>
+        <button className='btn btn-secondary pull-right' onClick={this._reset}>
           {_('selectTableReset')}
         </button>
       </div>
