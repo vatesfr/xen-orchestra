@@ -163,8 +163,8 @@ var messages = {
   selectTags: 'Select tag(s)…',
   selectVdis: 'Select disk(s)…',
   selectTimezone: 'Select timezone…',
-  selectIp: 'Select IP(s)...',
-  selectIpPool: 'Select IP pool(s)...',
+  selectIp: 'Select IP(s)…',
+  selectIpPool: 'Select IP pool(s)…',
   fillRequiredInformations: 'Fill required informations.',
   fillOptionalInformations: 'Fill informations (optional)',
   selectTableReset: 'Reset',
@@ -309,7 +309,7 @@ var messages = {
   newSrPortPlaceHolder: '[port]',
   newSrUsernamePlaceHolder: 'Username',
   newSrPasswordPlaceHolder: 'Password',
-  newSrLvmDevicePlaceHolder: 'Device, e.g /dev/sda...',
+  newSrLvmDevicePlaceHolder: 'Device, e.g /dev/sda…',
   newSrLocalPathPlaceHolder: '/path/to/directory',
 
   // ----- Acls, Users, Groups ------
@@ -824,7 +824,7 @@ var messages = {
   // ----- Self -----
   resourceSets: 'Resource sets',
   noResourceSets: 'No resource sets.',
-  loadingResourceSets: 'Loading resource sets...',
+  loadingResourceSets: 'Loading resource sets',
   resourceSetName: 'Resource set name',
   recomputeResourceSets: 'Recompute all limits',
   saveResourceSet: 'Save',
@@ -1126,7 +1126,7 @@ var messages = {
   others: 'Others',
 
   // ----- Logs -----
-  loadingLogs: 'Loading logs...',
+  loadingLogs: 'Loading logs…',
   logUser: 'User',
   logMethod: 'Method',
   logParams: 'Params',
