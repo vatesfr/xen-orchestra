@@ -73,7 +73,7 @@
     "gulp-sass": "^2.2.0",
     "gulp-uglify": "^2.0.0",
     "gulp-watch": "^4.3.5",
-    "human-format": "^0.6.0",
+    "human-format": "^0.7.0",
     "index-modules": "0.0.0",
     "is-ip": "^1.0.0",
     "jsonrpc-websocket-client": "0.0.1-5",
