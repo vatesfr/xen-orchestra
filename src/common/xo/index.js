@@ -1004,6 +1004,12 @@ export const deletePif = pif => (
   )
 )
 
+export const reconfigurePifIp = (pif, { mode, ip, netmask, gateway, dns }) =>
+  _call('pif.reconfigureIp', { pif: resolveId(pif), mode, ip, netmask, gateway, dns })
+
+export const getIpv4ConfigModes = () =>
+  _call('pif.getIpv4ConfigurationModes')
+
 // SR ----------------------------------------------------------------
 
 export const deleteSr = sr => (

@@ -1,5 +1,6 @@
 import classNames from 'classnames'
 import findKey from 'lodash/findKey'
+import isEqual from 'lodash/isEqual'
 import isFunction from 'lodash/isFunction'
 import isString from 'lodash/isString'
 import map from 'lodash/map'
@@ -8,6 +9,7 @@ import React from 'react'
 
 import _ from '../intl'
 import Component from '../base-component'
+import getEventValue from '../get-event-value'
 import Icon from '../icon'
 import logError from '../log-error'
 import propTypes from '../prop-types'
@@ -135,7 +137,7 @@ class Editable extends Component {
       this._closeEdition()
     } catch (error) {
       this.setState({
-        error: isString(error) ? error : error.message,
+        error: error !== undefined && (isString(error) ? error : error.message),
         saving: false
       })
       logError(error)
@@ -307,26 +309,30 @@ export class Number extends Component {
 }
 
 @propTypes({
-  labelProp: propTypes.string.isRequired,
+  labelProp: propTypes.string,
   options: propTypes.oneOfType([
     propTypes.array,
     propTypes.object
   ]).isRequired
 })
 export class Select extends Editable {
-  constructor (props) {
-    super()
-
-    this._defaultValue = findKey(props.options, option => option === props.value)
+  componentWillReceiveProps (props) {
+    if (
+      !isEqual(props.value, this.props.value) ||
+      !isEqual(props.options, this.props.options)
+    ) {
+      this.setState({ value: findKey(props.options, option => option === props.value) })
+    }
   }
 
   get value () {
-    return this.props.options[this._select.value]
+    return this.props.options[this.state.value]
   }
 
   _onChange = event => {
-    this._save()
+    this.setState({ value: getEventValue(event) }, this._save)
   }
+
   _optionToJsx = (option, index) => {
     const { labelProp } = this.props
     return <option
@@ -338,29 +344,31 @@ export class Select extends Editable {
   }
 
   _onEditionMount = ref => {
-    this._select = ref
     // Seems to work in Google Chrome (not in Firefox)
     ref && ref.dispatchEvent(new window.MouseEvent('mousedown'))
   }
 
   _renderDisplay () {
-    return this.props.children ||
-      <span>{this.props.value[this.props.labelProp]}</span>
+    const { value } = this.state
+    const { children, labelProp } = this.props
+
+    return children ||
+      <span>{labelProp ? value[labelProp] : value}</span>
   }
 
   _renderEdition () {
-    const { saving } = this.state
+    const { saving, value } = this.state
     const { options } = this.props
 
     return <select
       autoFocus
       className={classNames('form-control', styles.select)}
-      defaultValue={this._defaultValue}
       onBlur={this._closeEdition}
       onChange={this._onChange}
       onKeyDown={this._onKeyDown}
       readOnly={saving}
       ref={this._onEditionMount}
+      value={value}
     >
       {map(options, this._optionToJsx)}
     </select>
