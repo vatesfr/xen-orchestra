@@ -321,7 +321,7 @@ export default class Import extends Component {
                       {map(vms, ({ data, error, file, type }, vmIndex) => (
                         <div key={file.preview} className={styles.vmContainer}>
                           <strong>{file.name}</strong>
-                          <span className='pull-xs-right'>
+                          <span className='pull-right'>
                             <strong>{`(${formatSize(file.size)})`}</strong>
                           </span>
                           {!error
@@ -348,11 +348,11 @@ export default class Import extends Component {
                   ) : <p>{_('noSelectedVms')}</p>
                 }
                 <hr />
-                <div className='form-group pull-xs-right'>
+                <div className='form-group pull-right'>
                   <ActionButton
                     btnStyle='primary'
                     disabled={!vms.length}
-                    className='m-r-1'
+                    className='mr-1'
                     form='import-form'
                     handler={this._import}
                     icon='import'

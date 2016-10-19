@@ -527,10 +527,10 @@ export default class New extends Component {
                     ? <Upgrade place='newBackup' available={REQUIRED_XOA_PLAN[backupInfo.jobKey]} />
                     : (smartBackupMode && process.env.XOA_PLAN < 3
                       ? <Upgrade place='newBackup' available={3} />
-                      : <fieldset className='pull-xs-right p-t-1'>
+                      : <fieldset className='pull-right pt-1'>
                         <ActionButton
                           btnStyle='primary'
-                          className='btn-lg m-r-1'
+                          className='btn-lg mr-1'
                           disabled={!backupInfo}
                           form='form-new-vm-backup'
                           handler={this._handleSubmit}

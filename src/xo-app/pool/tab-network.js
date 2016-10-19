@@ -67,7 +67,7 @@ class PifItem extends Component {
           }
       </td>
       <td>
-        <ButtonGroup className='pull-xs-right'>
+        <ButtonGroup className='pull-right'>
           <ActionRowButton
             btnStyle='default'
             disabled={disableUnplug}
@@ -137,7 +137,7 @@ class PifsItem extends BaseComponent {
 
     return <div>
       <Tooltip content={showPifs ? _('hidePifs') : _('showPifs')}>
-        <Button bsSize='small' bsStyle='secondary' className='m-b-1 pull-xs-right' onClick={this.toggleState('showPifs')}>
+        <Button bsSize='small' bsStyle='secondary' className='mb-1 pull-right' onClick={this.toggleState('showPifs')}>
           <Icon icon={showPifs ? 'hidden' : 'shown'} />
         </Button>
       </Tooltip>
@@ -184,7 +184,7 @@ class NetworkActions extends Component {
   render () {
     const { network, disableNetworkDelete } = this.props
 
-    return <ButtonGroup className='pull-xs-right'>
+    return <ButtonGroup className='pull-right'>
       <ActionRowButton
         btnStyle='default'
         disabled={disableNetworkDelete}

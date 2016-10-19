@@ -243,7 +243,7 @@ class VifItem extends BaseComponent {
             <span className='tag tag-success'>
               {_('vifStatusConnected')}
             </span>
-            <ButtonGroup className='pull-xs-right'>
+            <ButtonGroup className='pull-right'>
               <ActionRowButton
                 handler={disconnectVif}
                 handlerParam={vif}
@@ -256,7 +256,7 @@ class VifItem extends BaseComponent {
             <span className='tag tag-default'>
               {_('vifStatusDisconnected')}
             </span>
-            <ButtonGroup className='pull-xs-right'>
+            <ButtonGroup className='pull-right'>
               {isVmRunning &&
                 <ActionRowButton
                   handler={connectVif}
@@ -390,7 +390,7 @@ export default class TabNetwork extends BaseComponent {
           />
         </Col>
       </Row>
-      {newVif && <Row className='m-b-1'>
+      {newVif && <Row className='mb-1'>
         <Col>
           <NewVif vm={vm} pool={pool} onClose={this._toggleNewVif} />
         </Col>

@@ -50,17 +50,17 @@ export class Subjects extends Component {
         {map(this.props.subjects, id => {
           if (state.users[id]) {
             return renderXoItem({ type: 'user', ...state.users[id] }, {
-              className: 'm-r-1'
+              className: 'mr-1'
             })
           }
 
           if (state.groups[id]) {
             return renderXoItem({ type: 'group', ...state.groups[id] }, {
-              className: 'm-r-1'
+              className: 'mr-1'
             })
           }
 
-          return <span key={id} className='m-r-1'>{_('unknownResourceSetValue')}</span>
+          return <span key={id} className='mr-1'>{_('unknownResourceSetValue')}</span>
         })}
       </div>
     )

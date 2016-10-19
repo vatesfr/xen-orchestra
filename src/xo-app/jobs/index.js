@@ -18,7 +18,7 @@ const HEADER = <Container>
       <h2><Icon icon='jobs' /> {_('jobsPage')}</h2>
     </Col>
     <Col mediumSize={9}>
-      <NavTabs className='pull-xs-right'>
+      <NavTabs className='pull-right'>
         <NavLink to={'/jobs/overview'}><Icon icon='menu-jobs-overview' /> {_('jobsOverviewPage')}</NavLink>
         <NavLink to={'/jobs/new'}><Icon icon='menu-jobs-new' /> {_('jobsNewPage')}</NavLink>
         <NavLink to={'/jobs/scheduling'}><Icon icon='menu-jobs-schedule' /> {_('jobsSchedulingPage')}</NavLink>

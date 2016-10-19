@@ -27,7 +27,7 @@ export default class NewSshKeyModalBody extends BaseComponent {
     } = this.state
 
     return <div>
-      <div className='p-b-1'>
+      <div className='pb-1'>
         <SingleLineRow>
           <Col size={4}>{_('title')}</Col>
           <Col size={8}>
@@ -40,7 +40,7 @@ export default class NewSshKeyModalBody extends BaseComponent {
           </Col>
         </SingleLineRow>
       </div>
-      <div className='p-b-1'>
+      <div className='pb-1'>
         <SingleLineRow>
           <Col size={4}>{_('key')}</Col>
           <Col size={8}>

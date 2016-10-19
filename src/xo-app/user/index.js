@@ -184,7 +184,7 @@ class UserFilters extends Component {
                       type={type}
                     />
                     {map(customFilters, (filter, name) => (
-                      <Row key={name} className='p-b-1'>
+                      <Row key={name} className='pb-1'>
                         <Col mediumSize={4}>
                           <div className='input-group'>
                             <Text
@@ -235,7 +235,7 @@ const SshKeys = addSubscriptions({
       <CardHeader>
         <Icon icon='ssh-key' /> {_('sshKeys')}
         <ActionButton
-          className='btn-success pull-xs-right'
+          className='btn-success pull-right'
           icon='add'
           handler={addSshKey}
         >
@@ -246,7 +246,7 @@ const SshKeys = addSubscriptions({
         {!isEmpty(sshKeys)
           ? <Container>
             {map(sshKeys, (sshKey, key) => (
-              <Row key={key} className='p-b-1'>
+              <Row key={key} className='pb-1'>
                 <Col size={2}>
                   <strong>{sshKey.title}</strong>
                 </Col>
@@ -255,7 +255,7 @@ const SshKeys = addSubscriptions({
                 </Col>
                 <Col size={2}>
                   <ActionButton
-                    className='btn-secondary pull-xs-right'
+                    className='btn-secondary pull-right'
                     icon='delete'
                     handler={() => deleteSshKey(sshKey)}
                   >

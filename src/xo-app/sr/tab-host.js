@@ -41,7 +41,7 @@ const HOST_COLUMNS = [
             <span className='tag tag-success'>
               {_('pbdStatusConnected')}
             </span>
-            <ButtonGroup className='pull-xs-right'>
+            <ButtonGroup className='pull-right'>
               <ActionRowButton
                 btnStyle='warning'
                 handler={disconnectPbd}
@@ -59,7 +59,7 @@ const HOST_COLUMNS = [
           <span className='tag tag-default'>
             {_('pbdStatusDisconnected')}
           </span>
-          <ButtonGroup className='pull-xs-right'>
+          <ButtonGroup className='pull-right'>
             <ActionRowButton
               btnStyle='default'
               handler={connectPbd}
