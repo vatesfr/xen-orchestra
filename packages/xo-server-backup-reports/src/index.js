@@ -135,7 +135,8 @@ class BackupReportsXoPlugin {
       `  - End time: ${String(end)}`,
       `  - Duration: ${duration}`,
       `  - Successful backed up VM number: ${nSuccess}`,
-      `  - Failed backed up VM: ${nCalls - nSuccess}`
+      `  - Failed backed up VM: ${nCalls - nSuccess}`,
+      ''
     ].join('\n'))
 
     const markdown = text.join('\n')
