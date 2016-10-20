@@ -8,6 +8,7 @@ import React from 'react'
 
 import _ from '../intl'
 import Component from '../base-component'
+import getEventValue from '../get-event-value'
 import Icon from '../icon'
 import logError from '../log-error'
 import propTypes from '../prop-types'
@@ -135,7 +136,8 @@ class Editable extends Component {
       this._closeEdition()
     } catch (error) {
       this.setState({
-        error: isString(error) ? error : error.message,
+        // `error` may be undefined if the action has been cancelled
+        error: error !== undefined && (isString(error) ? error : error.message),
         saving: false
       })
       logError(error)
@@ -307,60 +309,66 @@ export class Number extends Component {
 }
 
 @propTypes({
-  labelProp: propTypes.string.isRequired,
   options: propTypes.oneOfType([
     propTypes.array,
     propTypes.object
-  ]).isRequired
+  ]).isRequired,
+  renderer: propTypes.func
 })
 export class Select extends Editable {
-  constructor (props) {
-    super()
-
-    this._defaultValue = findKey(props.options, option => option === props.value)
+  componentWillReceiveProps (props) {
+    if (
+      props.value !== this.props.value ||
+      props.options !== this.props.options
+    ) {
+      this.setState({ valueKey: findKey(props.options, option => option === props.value) })
+    }
   }
 
   get value () {
-    return this.props.options[this._select.value]
+    return this.props.options[this.state.valueKey]
   }
 
   _onChange = event => {
-    this._save()
+    this.setState({ valueKey: getEventValue(event) }, this._save)
   }
-  _optionToJsx = (option, index) => {
-    const { labelProp } = this.props
+
+  _optionToJsx = (option, key) => {
+    const { renderer } = this.props
+
     return <option
-      key={index}
-      value={index}
+      key={key}
+      value={key}
     >
-      {labelProp ? option[labelProp] : option}
+      {renderer ? renderer(option) : option}
     </option>
   }
 
   _onEditionMount = ref => {
-    this._select = ref
     // Seems to work in Google Chrome (not in Firefox)
     ref && ref.dispatchEvent(new window.MouseEvent('mousedown'))
   }
 
   _renderDisplay () {
-    return this.props.children ||
-      <span>{this.props.value[this.props.labelProp]}</span>
+    const { children, renderer, value } = this.props
+
+    return children ||
+      <span>{renderer ? renderer(value) : value}</span>
   }
 
   _renderEdition () {
-    const { saving } = this.state
+    const { saving, valueKey } = this.state
     const { options } = this.props
 
     return <select
       autoFocus
       className={classNames('form-control', styles.select)}
-      defaultValue={this._defaultValue}
       onBlur={this._closeEdition}
       onChange={this._onChange}
       onKeyDown={this._onKeyDown}
       readOnly={saving}
       ref={this._onEditionMount}
+      value={valueKey}
     >
       {map(options, this._optionToJsx)}
     </select>
