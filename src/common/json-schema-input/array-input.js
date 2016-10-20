@@ -53,11 +53,13 @@ class ArrayItem extends Component {
 export default class ArrayInput extends Component {
   constructor (props) {
     super(props)
+
+    this._nextChildKey = 0
+
     this.state = {
       use: props.required || forceDisplayOptionalAttr(props),
       children: this._makeChildren(props)
     }
-    this._nextChildKey = 0
   }
 
   get value () {
@@ -91,7 +93,7 @@ export default class ArrayInput extends Component {
     })
   }
 
-  _makeChild (props) {
+  _makeChild (props, defaultValue) {
     const key = String(this._nextChildKey++)
     const {
       schema: {
@@ -108,21 +110,16 @@ export default class ArrayInput extends Component {
           required
           schema={items}
           uiSchema={props.uiSchema.items}
-          defaultValue={props.defaultValue}
+          defaultValue={defaultValue}
         />
       </ArrayItem>
     )
   }
 
-  _makeChildren ({ defaultValue, ...props }) {
-    return map(defaultValue, defaultValue => {
-      return (
-        this._makeChild({
-          ...props,
-          defaultValue
-        })
-      )
-    })
+  _makeChildren (props) {
+    return map(props.defaultValue, defaultValue =>
+      this._makeChild(props, defaultValue)
+    )
   }
 
   componentWillReceiveProps (props) {
