@@ -136,7 +136,7 @@ class Editable extends Component {
       this._closeEdition()
     } catch (error) {
       this.setState({
-        // `error` may be undefined if this._save() opens a modal and the user closes it
+        // `error` may be undefined if the action has been cancelled
         error: error !== undefined && (isString(error) ? error : error.message),
         saving: false
       })
