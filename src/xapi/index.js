@@ -76,6 +76,9 @@ require('lodash/assign')(module.exports, require('./utils'))
 export const VDI_FORMAT_VHD = 'vhd'
 export const VDI_FORMAT_RAW = 'raw'
 
+export const IPV4_CONFIG_MODES = ['None', 'DHCP', 'Static']
+export const IPV6_CONFIG_MODES = ['None', 'DHCP', 'Static', 'Autoconf']
+
 // ===================================================================
 
 @mixin(mapToArray(mixins))

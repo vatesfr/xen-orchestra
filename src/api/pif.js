@@ -1,5 +1,15 @@
 // TODO: too low level, move into host.
 
+import { IPV4_CONFIG_MODES, IPV6_CONFIG_MODES } from '../xapi'
+
+export function getIpv4ConfigurationModes () {
+  return IPV4_CONFIG_MODES
+}
+
+export function getIpv6ConfigurationModes () {
+  return IPV6_CONFIG_MODES
+}
+
 // ===================================================================
 // Delete
 
