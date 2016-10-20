@@ -166,7 +166,8 @@ export default {
   selectTags: 'Sélectionner le(s) tag(s)…',
   selectVdis: 'Sélectionner le(s) disque(s)…',
   selectTimezone: 'Sélectionner le fuseau horaire…',
-  selectIp: 'Sélectionner la/les IP(s)...',
+  selectIp: 'Sélectionner la/les IP(s)…',
+  selectIpPool: 'Sélectionner le(s) plage(s) d\'IP(s)…',
   fillRequiredInformations: 'Saisir les informations obligatoire.',
   fillOptionalInformations: 'Saisir les informations (optionelle)',
   selectTableReset: 'Réinitialiser',
@@ -311,7 +312,7 @@ export default {
   newSrPortPlaceHolder: '[port]',
   newSrUsernamePlaceHolder: 'Nom d\'utilisateur',
   newSrPasswordPlaceHolder: 'Mot de passe',
-  newSrLvmDevicePlaceHolder: 'Matériel, par exemple /dev/sda...',
+  newSrLvmDevicePlaceHolder: 'Matériel, par exemple /dev/sda…',
   newSrLocalPathPlaceHolder: '/chemin/du/répertoire',
 
   // ----- Acls, Users, Groups ------
@@ -750,10 +751,10 @@ export default {
   comingSoon: 'C\'est pour bientôt !',
 
   // ----- Health -----
-  orphanedVdis: 'VDIs orphelins',
-  orphanedVms: 'VMs orpheline',
+  orphanedVdis: 'Instantanés de VDIs orphelins',
+  orphanedVms: 'Instantanés VMs orphelins',
   noOrphanedObject: 'Pas d\'orphelin',
-  removeAllOrphanedObject: 'Supprimer tout les VDIs orphelin',
+  removeAllOrphanedObject: 'Supprimer tout les snapshot de VDIs orphelin',
   vmNameLabel: 'Nom',
   vmNameDescription: 'Description',
   vmContainer: 'Situé sur',
@@ -844,6 +845,8 @@ export default {
   maxCpus: 'CPUs maximum',
   maxRam: 'RAM maximum (GiB)',
   maxDiskSpace: 'Espace disque maximum',
+  ipPool: 'Plages IP',
+  quantity: 'Quantité',
   noResourceSetLimits: 'Pas de limites.',
   totalResource: 'Total :',
   remainingResource: 'Restant :',
@@ -955,7 +958,7 @@ export default {
   importBackupModalTitle: 'Importer une sauvegarde {name}',
   importBackupModalStart: 'Démarrer la VM après la restauration',
   importBackupModalSelectBackup: 'Sélectionnez votre sauvegarde…',
-  removeAllOrphanedModalWarning: 'Êtes-vous sûr de vouloir supprimer tout les VDIs orphelin ?',
+  removeAllOrphanedModalWarning: 'Êtes-vous sûr de vouloir supprimer tout les instantanés de VDIs orphelin ?',
   removeAllLogsModalTitle: 'Supprimer tout les journaux',
   removeAllLogsModalWarning: 'Êtes-vous sûr de vouloir supprimer tout les journaux ?',
   definitiveMessageModal: 'Cette action est irréversible.',
@@ -1123,7 +1126,7 @@ export default {
   others: 'Autres',
 
   // ----- Logs -----
-  loadingLogs: 'Chargement des journaux...',
+  loadingLogs: 'Chargement des journaux…',
   logUser: 'Utilisateur',
   logMethod: 'Méthode',
   logParams: 'Paramètres',

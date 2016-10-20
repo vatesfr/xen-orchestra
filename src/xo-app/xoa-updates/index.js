@@ -34,6 +34,7 @@ const HEADER = <Container>
   <h2><Icon icon='menu-update' /> {_('updatePage')}</h2>
 </Container>
 
+// FIXME: can't translate
 const states = {
   disconnected: 'Disconnected',
   updating: 'Updating',
@@ -172,6 +173,7 @@ export default class XoaUpdates extends Component {
     proxyPort !== undefined && (configuration.proxyPort = proxyPort) && (configEdited = true)
     proxyUser !== undefined && (configuration.proxyUser = proxyUser) && (configEdited = true)
 
+    // FIXME: placeholder translation. Can't be tested on build-from-source release
     return <Page header={HEADER} title='updateTitle' formatTitle>
       <Container>{+process.env.XOA_PLAN === 5
         ? <div>
