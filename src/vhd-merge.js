@@ -612,7 +612,7 @@ export async function chainVhd (
     const rawHeader = fuHeader.pack(header)
     const checksum = checksumStruct(rawHeader, fuHeader)
     if (checksum !== header.checksum) {
-      childVhd._write(rawHeader, VHD_FOOTER_SIZE)
+      await childVhd._write(rawHeader, VHD_FOOTER_SIZE)
       return true
     }
   }
