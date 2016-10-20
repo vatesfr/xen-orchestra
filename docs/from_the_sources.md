@@ -33,14 +33,14 @@ We'll consider at this point that you've got a working node on your box. E.g:
 
 ```
 $ node -v
-v4.4.7
+v6.9.1
 ```
 
 Be sure to use `npm` **version 3** by using `npm i -g npm`, for example:
 
 ```
 $ npm -v
-3.5.3
+3.10.8
 ```
 
 ### Packages
