@@ -50,21 +50,28 @@ const getVdiTimestamp = name => {
 const getDeltaBackupNameWithoutExt = name => name.slice(0, -DELTA_BACKUP_EXT_LENGTH)
 const isDeltaBackup = name => endsWith(name, DELTA_BACKUP_EXT)
 
+// Checksums have been corrupted between 5.2.6 and 5.2.7.
+//
+// For a short period of time, bad checksums will be regenerated
+// instead of rejected.
+//
+// TODO: restore when enough time has passed (a week/a month).
 async function checkFileIntegrity (handler, name) {
-  let stream
-
-  try {
-    stream = await handler.createReadStream(name, { checksum: true })
-  } catch (error) {
-    if (error.code === 'ENOENT') {
-      return
-    }
-
-    throw error
-  }
-
-  stream.resume()
-  await eventToPromise(stream, 'finish')
+  await handler.refreshChecksum(name)
+  //  let stream
+  //
+  //  try {
+  //    stream = await handler.createReadStream(name, { checksum: true })
+  //  } catch (error) {
+  //    if (error.code === 'ENOENT') {
+  //      return
+  //    }
+  //
+  //    throw error
+  //  }
+  //
+  //  stream.resume()
+  //  await eventToPromise(stream, 'finish')
 }
 
 // ===================================================================
