@@ -1,32 +1,17 @@
 # ChangeLog
 
-## **5.2.5** (2016-10-07)
+## **5.3.0** (2016-10-20)
 
 ### Enhancements
 
+- Missing favicon [\#1660](https://github.com/vatesfr/xo-web/issues/1660)
+- ipPools quota [\#1565](https://github.com/vatesfr/xo-web/issues/1565)
+- Dashboard - orphaned VDI [\#1654](https://github.com/vatesfr/xo-web/issues/1654)
 - Stats in home/host view when expanded [\#1634](https://github.com/vatesfr/xo-web/issues/1634)
 - Bar for used and total RAM on home pool view [\#1625](https://github.com/vatesfr/xo-web/issues/1625)
 - Can't translate some text [\#1624](https://github.com/vatesfr/xo-web/issues/1624)
 - Dynamic RAM allocation at creation time [\#1603](https://github.com/vatesfr/xo-web/issues/1603)
-
-### Bug fixes
-
-- Do not expose shortcuts while console is focused [\#1614](https://github.com/vatesfr/xo-web/issues/1614)
-
-## **5.2.4** (2016-10-04)
-
-### Enhancements
-
 - Display memory bar in home/host view [\#1616](https://github.com/vatesfr/xo-web/issues/1616)
-
-### Bug fixes
-
-- All users can see VM templates [\#1621](https://github.com/vatesfr/xo-web/issues/1621)
-
-## **5.2.3** (2016-10-03)
-
-### Enhancements
-
 - Improve keyboard navigation [\#1578](https://github.com/vatesfr/xo-web/issues/1578)
 - Strongly suggest to install the guest tools [\#1575](https://github.com/vatesfr/xo-web/issues/1575)
 - Missing tooltip [\#1568](https://github.com/vatesfr/xo-web/issues/1568)
@@ -36,24 +21,6 @@
 - Disable browser autocomplete on credentials on the Update page [\#1304](https://github.com/vatesfr/xo-web/issues/1304)
 - keyboard shortcuts [\#1279](https://github.com/vatesfr/xo-web/issues/1279)
 - Add network bond creation [\#876](https://github.com/vatesfr/xo-web/issues/876)
-
-### Bug fixes
-
-- Profile page is broken [\#1612](https://github.com/vatesfr/xo-web/issues/1612)
-- SR delete should redirect to home [\#1611](https://github.com/vatesfr/xo-web/issues/1611)
-- Delta VHD backup checksum is invalidated by chaining [\#1606](https://github.com/vatesfr/xo-web/issues/1606)
-- VM with long description break on 2 lines [\#1580](https://github.com/vatesfr/xo-web/issues/1580)
-- Network status on VM edition [\#1573](https://github.com/vatesfr/xo-web/issues/1573)
-- VM template deletion fails [\#1571](https://github.com/vatesfr/xo-web/issues/1571)
-- Template edition - "no such object" [\#1569](https://github.com/vatesfr/xo-web/issues/1569)
-- missing links / element not displayed as links [\#1567](https://github.com/vatesfr/xo-web/issues/1567)
-- Backup restore stalled on some SMB shares [\#1412](https://github.com/vatesfr/xo-web/issues/1412)
-- Wrong bond display [\#1156](https://github.com/vatesfr/xo-web/issues/1156)
-
-## **5.2.2** (2016-09-21)
-
-### Enhancements
-
 - `pool.setDefaultSr\(\)` should not require `pool` param [\#1558](https://github.com/vatesfr/xo-web/issues/1558)
 - Select default SR [\#1554](https://github.com/vatesfr/xo-web/issues/1554)
 - No error message when I exceed my resource set quota [\#1541](https://github.com/vatesfr/xo-web/issues/1541)
@@ -71,9 +38,36 @@
 - Color code on host PIF stats can be misleading [\#1265](https://github.com/vatesfr/xo-web/issues/1265)
 - Sign in page is not rendered correctly [\#1161](https://github.com/vatesfr/xo-web/issues/1161)
 - Template management [\#1091](https://github.com/vatesfr/xo-web/issues/1091)
+- On pool view: collapse network list [\#1461](https://github.com/vatesfr/xo-web/issues/1461)
+- Alert when trying to reboot/halt the pool master XS [\#1458](https://github.com/vatesfr/xo-web/issues/1458)
+- Adding tooltip on Home page [\#1456](https://github.com/vatesfr/xo-web/issues/1456)
+- Docker container management functionality missing from v5 [\#1442](https://github.com/vatesfr/xo-web/issues/1442)
+- bad error message - delete snapshot [\#1433](https://github.com/vatesfr/xo-web/issues/1433)
+- Create tag during VM creation [\#1431](https://github.com/vatesfr/xo-web/issues/1431)
 
 ### Bug fixes
 
+- Display issues on plugin array edition [\#1663](https://github.com/vatesfr/xo-web/issues/1663)
+- Import of delta backups fails [\#1656](https://github.com/vatesfr/xo-web/issues/1656)
+- Host - Missing IP config for PIF [\#1651](https://github.com/vatesfr/xo-web/issues/1651)
+- Remote copy is always activating compression [\#1645](https://github.com/vatesfr/xo-web/issues/1645)
+- LB plugin UI problems [\#1630](https://github.com/vatesfr/xo-web/issues/1630)
+- Keyboard shortcuts should not work when a modal is open [\#1589](https://github.com/vatesfr/xo-web/issues/1589)
+- UI small bug in drop-down lists [\#1411](https://github.com/vatesfr/xo-web/issues/1411)
+- md5 delta backup error [\#1672](https://github.com/vatesfr/xo-web/issues/1672)
+- Can't edit VIF network [\#1640](https://github.com/vatesfr/xo-web/issues/1640)
+- Do not expose shortcuts while console is focused [\#1614](https://github.com/vatesfr/xo-web/issues/1614)
+- All users can see VM templates [\#1621](https://github.com/vatesfr/xo-web/issues/1621)
+- Profile page is broken [\#1612](https://github.com/vatesfr/xo-web/issues/1612)
+- SR delete should redirect to home [\#1611](https://github.com/vatesfr/xo-web/issues/1611)
+- Delta VHD backup checksum is invalidated by chaining [\#1606](https://github.com/vatesfr/xo-web/issues/1606)
+- VM with long description break on 2 lines [\#1580](https://github.com/vatesfr/xo-web/issues/1580)
+- Network status on VM edition [\#1573](https://github.com/vatesfr/xo-web/issues/1573)
+- VM template deletion fails [\#1571](https://github.com/vatesfr/xo-web/issues/1571)
+- Template edition - "no such object" [\#1569](https://github.com/vatesfr/xo-web/issues/1569)
+- missing links / element not displayed as links [\#1567](https://github.com/vatesfr/xo-web/issues/1567)
+- Backup restore stalled on some SMB shares [\#1412](https://github.com/vatesfr/xo-web/issues/1412)
+- Wrong bond display [\#1156](https://github.com/vatesfr/xo-web/issues/1156)
 - Multiple reboot selection doesn't work [\#1562](https://github.com/vatesfr/xo-web/issues/1562)
 - Server logs should be displayed in reverse chonological order [\#1547](https://github.com/vatesfr/xo-web/issues/1547)
 - Cannot create resource sets without limits [\#1537](https://github.com/vatesfr/xo-web/issues/1537)
@@ -88,20 +82,6 @@
 - Empty Saved Search doesn't load when set to default filter [\#1354](https://github.com/vatesfr/xo-web/issues/1354)
 - Removing a user/group should delete its ACLs [\#899](https://github.com/vatesfr/xo-web/issues/899)
 - OVA Import - XO stuck during import [\#1551](https://github.com/vatesfr/xo-web/issues/1551)
-
-## **5.2.1** (2016-09-13)
-
-### Enhancements
-
-- On pool view: collapse network list [\#1461](https://github.com/vatesfr/xo-web/issues/1461)
-- Alert when trying to reboot/halt the pool master XS [\#1458](https://github.com/vatesfr/xo-web/issues/1458)
-- Adding tooltip on Home page [\#1456](https://github.com/vatesfr/xo-web/issues/1456)
-- Docker container management functionality missing from v5 [\#1442](https://github.com/vatesfr/xo-web/issues/1442)
-- bad error message - delete snapshot [\#1433](https://github.com/vatesfr/xo-web/issues/1433)
-- Create tag during VM creation [\#1431](https://github.com/vatesfr/xo-web/issues/1431)
-
-### Bug fixes
-
 - SMB remote empty domain fails [\#1499](https://github.com/vatesfr/xo-web/issues/1499)
 - Can't edit a remote password [\#1498](https://github.com/vatesfr/xo-web/issues/1498)
 - Issue in VM create with CoreOS [\#1493](https://github.com/vatesfr/xo-web/issues/1493)
