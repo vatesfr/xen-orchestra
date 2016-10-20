@@ -6,6 +6,10 @@ import React, { Component, cloneElement } from 'react'
 import { Button, Modal as ReactModal } from 'react-bootstrap-4/lib'
 
 import propTypes from './prop-types'
+import {
+  disable as disableShortcuts,
+  enable as enableShortcuts
+} from './shortcuts'
 
 let instance
 
@@ -15,7 +19,7 @@ const modal = (content, onClose) => {
   } else if (instance.state.showModal) {
     throw new Error('Other modal still open.')
   }
-  instance.setState({ content, onClose, showModal: true })
+  instance.setState({ content, onClose, showModal: true }, disableShortcuts)
 }
 
 export const alert = (title, body) => {
@@ -145,7 +149,7 @@ export default class Modal extends Component {
   }
 
   close () {
-    this.setState({ showModal: false })
+    this.setState({ showModal: false }, enableShortcuts)
   }
 
   _onHide = () => {
