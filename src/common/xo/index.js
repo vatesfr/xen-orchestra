@@ -1180,7 +1180,7 @@ export const deleteBackupSchedule = async schedule => {
 
 export const loadPlugin = async id => (
   _call('plugin.load', { id })::tap(
-    subscribePlugins.forceRefresh()
+    subscribePlugins.forceRefresh
   )::rethrow(
     err => error(_('pluginError'), JSON.stringify(err.data) || _('unknownPluginError'))
   )
@@ -1188,7 +1188,7 @@ export const loadPlugin = async id => (
 
 export const unloadPlugin = id => (
   _call('plugin.unload', { id })::tap(
-    subscribePlugins.forceRefresh()
+    subscribePlugins.forceRefresh
   )::rethrow(
     err => error(_('pluginError'), JSON.stringify(err.data) || _('unknownPluginError'))
   )
