@@ -36,7 +36,16 @@ export class Password extends Component {
   }
 
   _generate = () => {
-    this.refs.field.value = randomPassword(8)
+    const value = randomPassword(8)
+    const isControlled = this.props.value !== undefined
+    if (isControlled) {
+      this.props.onChange(value)
+    } else {
+      this.refs.field.value = value
+    }
+
+    // FIXME: in controlled mode, visibility should only be updated
+    // when the value prop is changed according to the emitted value.
     this.setState({
       visible: true
     })

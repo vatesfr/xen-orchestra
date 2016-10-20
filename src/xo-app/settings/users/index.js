@@ -62,7 +62,11 @@ const USER_COLUMNS = [
 })
 @injectIntl
 export default class Users extends Component {
-  state = { permission: permissions.none }
+  state = {
+    email: '',
+    password: '',
+    permission: permissions.none
+  }
 
   _create = () => {
     const { email, password, permission } = this.state
