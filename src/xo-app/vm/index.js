@@ -179,6 +179,8 @@ export default class Vm extends BaseComponent {
   _setNameLabel = nameLabel => editVm(this.props.vm, { name_label: nameLabel })
   _migrateVm = host => migrateVm(this.props.vm, host)
 
+  _selectOptionRenderer = option => option.name_label
+
   header () {
     const { vm, container, pool, hosts, isAdmin } = this.props
     if (!vm) {
@@ -210,9 +212,9 @@ export default class Vm extends BaseComponent {
                   <Select
                     onChange={this._migrateVm}
                     options={hosts}
-                    labelProp='name_label'
-                    value={container}
+                    renderer={this._selectOptionRenderer}
                     useLongClick
+                    value={container}
                   >
                     <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>
                   </Select>

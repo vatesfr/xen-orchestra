@@ -1,6 +1,5 @@
 import classNames from 'classnames'
 import findKey from 'lodash/findKey'
-import isEqual from 'lodash/isEqual'
 import isFunction from 'lodash/isFunction'
 import isString from 'lodash/isString'
 import map from 'lodash/map'
@@ -137,6 +136,7 @@ class Editable extends Component {
       this._closeEdition()
     } catch (error) {
       this.setState({
+        // `error` may be undefined if this._save() opens a modal and the user closes it
         error: error !== undefined && (isString(error) ? error : error.message),
         saving: false
       })
@@ -309,37 +309,38 @@ export class Number extends Component {
 }
 
 @propTypes({
-  labelProp: propTypes.string,
   options: propTypes.oneOfType([
     propTypes.array,
     propTypes.object
-  ]).isRequired
+  ]).isRequired,
+  renderer: propTypes.func
 })
 export class Select extends Editable {
   componentWillReceiveProps (props) {
     if (
-      !isEqual(props.value, this.props.value) ||
-      !isEqual(props.options, this.props.options)
+      props.value !== this.props.value ||
+      props.options !== this.props.options
     ) {
-      this.setState({ value: findKey(props.options, option => option === props.value) })
+      this.setState({ valueKey: findKey(props.options, option => option === props.value) })
     }
   }
 
   get value () {
-    return this.props.options[this.state.value]
+    return this.props.options[this.state.valueKey]
   }
 
   _onChange = event => {
-    this.setState({ value: getEventValue(event) }, this._save)
+    this.setState({ valueKey: getEventValue(event) }, this._save)
   }
 
-  _optionToJsx = (option, index) => {
-    const { labelProp } = this.props
+  _optionToJsx = (option, key) => {
+    const { renderer } = this.props
+
     return <option
-      key={index}
-      value={index}
+      key={key}
+      value={key}
     >
-      {labelProp ? option[labelProp] : option}
+      {renderer ? renderer(option) : option}
     </option>
   }
 
@@ -349,15 +350,14 @@ export class Select extends Editable {
   }
 
   _renderDisplay () {
-    const { value } = this.state
-    const { children, labelProp } = this.props
+    const { children, renderer, value } = this.props
 
     return children ||
-      <span>{labelProp ? value[labelProp] : value}</span>
+      <span>{renderer ? renderer(value) : value}</span>
   }
 
   _renderEdition () {
-    const { saving, value } = this.state
+    const { saving, valueKey } = this.state
     const { options } = this.props
 
     return <select
@@ -368,7 +368,7 @@ export class Select extends Editable {
       onKeyDown={this._onKeyDown}
       readOnly={saving}
       ref={this._onEditionMount}
-      value={value}
+      value={valueKey}
     >
       {map(options, this._optionToJsx)}
     </select>
