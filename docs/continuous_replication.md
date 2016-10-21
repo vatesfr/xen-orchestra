@@ -36,7 +36,9 @@ To protect the replication, we removed the possibility to boot your copied VM di
 
 ## Manual initial seed
 
-If you can't transfer the first backup through your network, you can make a seed locally. In order to do this, follow this procedure (until we made it accessible directly in XO):
+> This is **only** if you need to make the initial copy without making the whole transfer through your network. Otherwise, **you don't need that**.
+
+**If you can't transfer the first backup through your network**, you can make a seed locally. In order to do this, follow this procedure (until we made it accessible directly in XO):
 
 ### Preparation
 
