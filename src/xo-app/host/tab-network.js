@@ -24,7 +24,7 @@ import {
   deletePif,
   disconnectPif,
   editNetwork,
-  editVlan,
+  editPif,
   getIpv4ConfigModes,
   reconfigurePifIp
 } from 'xo'
@@ -117,8 +117,8 @@ class PifItem extends Component {
   }
   _onEditIp = () => this._configIp('Static')
 
-  _editVlan = vlan =>
-    editVlan(this.props.pif, { vlan })
+  _editPif = vlan =>
+    editPif(this.props.pif, { vlan })
 
   render () {
     const { networks, pif, vifsByNetwork } = this.props
@@ -132,7 +132,7 @@ class PifItem extends Component {
       <td>
         {pif.vlan === -1
           ? 'None'
-          : <Number value={pif.vlan} onChange={this._editVlan}>
+          : <Number value={pif.vlan} onChange={this._editPif}>
             {pif.vlan}
           </Number>
         }

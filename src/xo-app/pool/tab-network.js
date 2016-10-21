@@ -22,7 +22,7 @@ import {
   deleteNetwork,
   disconnectPif,
   editNetwork,
-  editVlan
+  editPif
 } from 'xo'
 
 const _conditionalTooltip = (component, tooltip) => tooltip
@@ -48,8 +48,8 @@ const _conditionalTooltip = (component, tooltip) => tooltip
   return { host, pif, disableUnplug }
 })
 class PifItem extends Component {
-  _editVlan = vlan =>
-    editVlan(this.props.pif, { vlan })
+  _editPif = vlan =>
+    editPif(this.props.pif, { vlan })
 
   render () {
     const { pif, host, disableUnplug } = this.props
@@ -60,7 +60,7 @@ class PifItem extends Component {
       <td>
         {pif.vlan === -1
           ? 'None'
-          : <Number value={pif.vlan} onChange={this._editVlan}>
+          : <Number value={pif.vlan} onChange={this._editPif}>
             {pif.vlan}
           </Number>
         }
