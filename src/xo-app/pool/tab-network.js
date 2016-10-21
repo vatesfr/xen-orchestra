@@ -10,7 +10,7 @@ import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import { Button, ButtonGroup } from 'react-bootstrap-4/lib'
-import { Text } from 'editable'
+import { Text, Number } from 'editable'
 import { Container, Row, Col } from 'grid'
 import { connectStore } from 'utils'
 import { createGetObject, createGetObjectsOfType, createSelector } from 'selectors'
@@ -21,7 +21,8 @@ import {
   createNetwork,
   deleteNetwork,
   disconnectPif,
-  editNetwork
+  editNetwork,
+  editVlan
 } from 'xo'
 
 const _conditionalTooltip = (component, tooltip) => tooltip
@@ -47,13 +48,23 @@ const _conditionalTooltip = (component, tooltip) => tooltip
   return { host, pif, disableUnplug }
 })
 class PifItem extends Component {
+  _editVlan = vlan =>
+    editVlan(this.props.pif, { vlan })
+
   render () {
     const { pif, host, disableUnplug } = this.props
 
     return <tr>
       <td>{pif.device}</td>
       <td>{host.name_label}</td>
-      <td>{pif.vlan}</td>
+      <td>
+        {pif.vlan === -1
+          ? 'None'
+          : <Number value={pif.vlan} onChange={this._editVlan}>
+            {pif.vlan}
+          </Number>
+        }
+      </td>
       <td>{pif.ip}</td>
       <td>{pif.mac}</td>
       <td>
