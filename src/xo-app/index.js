@@ -1,5 +1,6 @@
 import Component from 'base-component'
 import cookies from 'cookies-js'
+import DocumentTitle from 'react-document-title'
 import Icon from 'icon'
 import isArray from 'lodash/isArray'
 import map from 'lodash/map'
@@ -172,18 +173,20 @@ export default class XoApp extends Component {
     const blocked = signedUp && blockXoaAccess(trial) // If we are under expired or unstable trial (signed up only)
 
     return <IntlProvider>
-      <div style={CONTAINER_STYLE}>
-        <Shortcuts name='XoApp' handler={this._shortcutsHandler} targetNodeSelector='body' stopPropagation={false} />
-        <Menu ref='menu' />
-        <div ref='bodyWrapper' style={BODY_WRAPPER_STYLE}>
-          <div style={BODY_STYLE}>
-            {blocked ? <XoaUpdates /> : this.props.children}
+      <DocumentTitle title='Xen Orchestra'>
+        <div style={CONTAINER_STYLE}>
+          <Shortcuts name='XoApp' handler={this._shortcutsHandler} targetNodeSelector='body' stopPropagation={false} />
+          <Menu ref='menu' />
+          <div ref='bodyWrapper' style={BODY_WRAPPER_STYLE}>
+            <div style={BODY_STYLE}>
+              {blocked ? <XoaUpdates /> : this.props.children}
+            </div>
           </div>
+          <Modal />
+          <Notification />
+          <TooltipViewer />
         </div>
-        <Modal />
-        <Notification />
-        <TooltipViewer />
-      </div>
+      </DocumentTitle>
     </IntlProvider>
   }
 }
