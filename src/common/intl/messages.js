@@ -792,6 +792,7 @@ var messages = {
   newVmInstallSettingsPanel: 'Install settings',
   newVmIsoDvdLabel: 'ISO/DVD',
   newVmNetworkLabel: 'Network',
+  newVmInstallNetworkPlaceHolder: 'e.g: http://httpredir.debian.org/debian',
   newVmPvArgsLabel: 'PV Args',
   newVmPxeLabel: 'PXE',
   newVmInterfacesPanel: 'Interfaces',

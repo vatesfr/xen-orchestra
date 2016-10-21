@@ -896,6 +896,7 @@ export default class NewVm extends BaseComponent {
       pv_args,
       sshKeys
     } = this.state.state
+    const { formatMessage } = this.props.intl
     return <Section icon='new-vm-install-settings' title='newVmInstallSettingsPanel' done={this._isInstallSettingsDone()}>
       {this._isDiskTemplate ? <SectionContent key='diskTemplate' column>
         <LineItem>
@@ -1020,7 +1021,7 @@ export default class NewVm extends BaseComponent {
                 disabled={installMethod !== 'network'}
                 key='networkInput'
                 onChange={this._getOnChange('installNetwork')}
-                placeholder='e.g: http://ftp.debian.org/debian'
+                placeholder={formatMessage(messages.newVmInstallNetworkPlaceHolder)}
                 value={installNetwork}
               />
             </Item>

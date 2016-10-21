@@ -784,6 +784,7 @@ export default {
   newVmDynamicMaxLabel: 'Mémoire dynamique max',
   newVmIsoDvdLabel: 'ISO/DVD',
   newVmNetworkLabel: 'Réseau',
+  newVmInstallNetworkPlaceHolder: 'ex: http://httpredir.debian.org/debian',
   newVmPvArgsLabel: 'PV Args',
   newVmPxeLabel: 'PXE',
   newVmInterfacesPanel: 'Interfaces',
