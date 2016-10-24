@@ -56,7 +56,7 @@ const ACL_COLUMNS = [
   },
   {
     name: _('roleName'),
-    itemRenderer: acl => <SelectRole clearable={false} onChange={action => action && editAcl(acl, { action })} placeholder='Change Role' value={acl.action} />,
+    itemRenderer: acl => <SelectRole clearable={false} onChange={action => action && editAcl(acl, { action })} value={acl.action} />,
     sortCriteria: acl => (acl.action.name || '').toLowerCase()
   },
   {
