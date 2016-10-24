@@ -57,6 +57,7 @@ function _startsWith (string, search) {
   return string.lastIndexOf(search, 0) === 0
 }
 
+var PARAM_RE = /^([^=]+)=([^]*)$/
 function parseParameters (args) {
   var params = {}
   forEach(args, function (arg) {
@@ -275,7 +276,6 @@ function listObjects (args) {
 }
 exports.listObjects = listObjects
 
-var PARAM_RE = /^([^=]+)=(.*)$/
 function call (args) {
   if (!args.length) {
     throw new Error('missing command name')
