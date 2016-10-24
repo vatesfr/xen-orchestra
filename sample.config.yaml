@@ -1,11 +1,17 @@
-# Example XO-Server configuration.
+# BE *VERY* CAREFUL WHEN EDITING!
+# YAML FILES ARE SUPER SUPER SENSITIVE TO MISTAKES IN WHITESPACE OR ALIGNMENT!
+# visit http://www.yamllint.com/ to validate this file as needed
 
+#=====================================================================
+
+# Example XO-Server configuration.
+#
 # This file is automatically looking for at the following places:
 # - `$HOME/.config/xo-server/config.yaml`
 # - `/etc/xo-server/config.yaml`
 #
 # The first entries have priority.
-
+#
 # Note: paths are relative to the configuration file.
 
 #=====================================================================
