@@ -137,7 +137,7 @@ var help = wrap((function (pkg) {
         Executes a command on the current XO instance.
 
     $name v$version
-  */}).replace(/<([^>]+)>|\$(\w+)/g, function (_, arg, key) {
+  */ }).replace(/<([^>]+)>|\$(\w+)/g, function (_, arg, key) {
     if (arg) {
       return '<' + chalk.yellow(arg) + '>'
     }
