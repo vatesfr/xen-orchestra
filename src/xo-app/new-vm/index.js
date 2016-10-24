@@ -388,11 +388,11 @@ export default class NewVm extends BaseComponent {
 
     const existingDisks = {}
     forEach(template.$VBDs, vbdId => {
-      const vbd = getObject(storeState, vbdId)
+      const vbd = getObject(storeState, vbdId, resourceSet)
       if (!vbd || vbd.is_cd_drive) {
         return
       }
-      const vdi = getObject(storeState, vbd.VDI)
+      const vdi = getObject(storeState, vbd.VDI, resourceSet)
       if (vdi) {
         existingDisks[this.getUniqueId()] = {
           name_label: vdi.name_label,
@@ -407,7 +407,7 @@ export default class NewVm extends BaseComponent {
 
     const VIFs = []
     forEach(template.VIFs, vifId => {
-      const vif = getObject(storeState, vifId)
+      const vif = getObject(storeState, vifId, resourceSet)
       VIFs.push({
         id: this.getUniqueId(),
         network: pool || isInResourceSet(vif.$network)

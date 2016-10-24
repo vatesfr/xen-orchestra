@@ -568,8 +568,8 @@ export default class New extends Component {
                           <input
                             id='srServerUser'
                             className='form-control'
-                            placeholder='user'
-                            ref={formatMessage(messages.newSrUsernamePlaceHolder)}
+                            placeholder={formatMessage(messages.newSrUsernamePlaceHolder)}
+                            ref='username'
                             required
                             type='text'
                           />

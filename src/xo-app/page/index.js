@@ -11,21 +11,24 @@ const Page = ({
   formatTitle,
   header,
   intl,
-  title = 'Xen Orchestra'
+  title
 }) => {
   const { formatMessage } = intl
-  return (
-    <DocumentTitle title={formatTitle ? formatMessage(messages[title]) : title}>
-      <div className={styles.container}>
-        {!collapsedHeader && <nav className={'page-header ' + styles.header}>
-          {header}
-        </nav>}
-        <div className={styles.content}>
-          {children}
-        </div>
-      </div>
+
+  const content = <div className={styles.container}>
+    {!collapsedHeader && <nav className={'page-header ' + styles.header}>
+      {header}
+    </nav>}
+    <div className={styles.content}>
+      {children}
+    </div>
+  </div>
+
+  return title
+    ? <DocumentTitle title={formatTitle ? formatMessage(messages[title]) : title}>
+      {content}
     </DocumentTitle>
-  )
+    : content
 }
 
 Page.propTypes = {
