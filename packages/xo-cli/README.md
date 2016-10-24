@@ -22,6 +22,9 @@ Usage:
   xo-cli --register [<XO-Server URL>] [<username>] [<password>]
     Registers the XO instance to use.
 
+  xo-cli --unregister
+    Remove stored credentials.
+
   xo-cli --list-commands [--json] [<pattern>]...
     Returns the list of available commands on the current XO instance.
 

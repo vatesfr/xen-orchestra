@@ -125,6 +125,9 @@ var help = wrap((function (pkg) {
       $name --register [<XO-Server URL>] [<username>] [<password>]
         Registers the XO instance to use.
 
+      $name --unregister
+        Remove stored credentials.
+
       $name --list-commands [--json] [<pattern>]...
         Returns the list of available commands on the current XO instance.
 
