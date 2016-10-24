@@ -213,11 +213,11 @@ function listCommands (args) {
     var json = false
     var patterns = []
     forEach(args, function (arg) {
-      if (arg === -'--json') {
+      if (arg === '--json') {
         json = true
+      } else {
+        patterns.push(arg)
       }
-
-      patterns.push(arg)
     })
 
     if (patterns.length) {
