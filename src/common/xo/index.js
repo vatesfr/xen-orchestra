@@ -1010,6 +1010,9 @@ export const reconfigurePifIp = (pif, { mode, ip, netmask, gateway, dns }) =>
 export const getIpv4ConfigModes = () =>
   _call('pif.getIpv4ConfigurationModes')
 
+export const editPif = (pif, { vlan }) =>
+  _call('pif.editPif', { pif: resolveId(pif), vlan })
+
 // SR ----------------------------------------------------------------
 
 export const deleteSr = sr => (

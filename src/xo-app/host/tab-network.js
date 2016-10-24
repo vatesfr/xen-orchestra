@@ -16,7 +16,7 @@ import { connectStore, noop } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
 import { error } from 'notification'
-import { Select } from 'editable'
+import { Select, Number } from 'editable'
 import { Toggle } from 'form'
 import {
   connectPif,
@@ -24,6 +24,7 @@ import {
   deletePif,
   disconnectPif,
   editNetwork,
+  editPif,
   getIpv4ConfigModes,
   reconfigurePifIp
 } from 'xo'
@@ -116,6 +117,9 @@ class PifItem extends Component {
   }
   _onEditIp = () => this._configIp('Static')
 
+  _editPif = vlan =>
+    editPif(this.props.pif, { vlan })
+
   render () {
     const { networks, pif, vifsByNetwork } = this.props
     const { configModes } = this.state
@@ -125,9 +129,13 @@ class PifItem extends Component {
     return <tr key={pif.id}>
       <td>{pif.device}</td>
       <td>{networks[pif.$network].name_label}</td>
-      <td>{pif.vlan === -1
-        ? 'None'
-        : pif.vlan}
+      <td>
+        {pif.vlan === -1
+          ? 'None'
+          : <Number value={pif.vlan} onChange={this._editPif}>
+            {pif.vlan}
+          </Number>
+        }
       </td>
       <td>
         {pif.ip}
