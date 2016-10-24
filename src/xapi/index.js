@@ -1874,6 +1874,29 @@ export default class Xapi extends XapiBase {
     return this._getOrWaitObject(networkRef)
   }
 
+  async editPif (
+    pifId,
+    { vlan }
+  ) {
+    const pif = this.getObject(pifId)
+    const physPif = find(this.objects.all, obj => (
+      obj.$type === 'pif' &&
+      (obj.physical || obj.bond_master_of) &&
+      obj.$pool === pif.$pool &&
+      obj.device === pif.device
+    ))
+
+    if (!physPif) {
+      throw new Error('PIF not found')
+    }
+
+    await this.call('VLAN.destroy', pif.VLAN_master_of)
+    const pifs = await this.call('pool.create_VLAN_from_PIF', physPif.$ref, pif.network, asInteger(vlan))
+    if (!pif.currently_attached) {
+      forEach(pifs, pifRef => this.call('PIF.unplug', pifRef)::pCatch(noop))
+    }
+  }
+
   async createBondedNetwork ({
     bondMode,
     mac,

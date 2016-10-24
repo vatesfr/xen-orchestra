@@ -76,3 +76,18 @@ reconfigureIp.params = {
 reconfigureIp.resolve = {
   pif: ['id', 'PIF', 'administrate']
 }
+
+// ===================================================================
+
+export async function editPif ({ pif, vlan }) {
+  await this.getXapi(pif).editPif(pif._xapiId, { vlan })
+}
+
+editPif.params = {
+  id: { type: 'string' },
+  vlan: { type: ['integer', 'string'] }
+}
+
+editPif.resolve = {
+  pif: ['id', 'PIF', 'administrate']
+}
