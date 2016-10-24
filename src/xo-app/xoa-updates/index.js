@@ -1,4 +1,4 @@
-import _ from 'intl'
+import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ansiUp from 'ansi_up'
 import assign from 'lodash/assign'
@@ -15,6 +15,7 @@ import { connectStore } from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Row, Col } from 'grid'
 import { error } from 'notification'
+import { injectIntl } from 'react-intl'
 import { Password } from 'form'
 import { serverVersion } from 'xo'
 
@@ -57,6 +58,8 @@ const upgrade = () => xoaUpdater.upgrade()
     trial: state.xoaTrialState
   }
 })
+
+@injectIntl
 export default class XoaUpdates extends Component {
   // These 3 inputs are "controlled" http://facebook.github.io/react/docs/forms.html#controlled-components
   _handleProxyHostChange = event => this.setState({proxyHost: event.target.value || ''})
@@ -173,7 +176,7 @@ export default class XoaUpdates extends Component {
     proxyPort !== undefined && (configuration.proxyPort = proxyPort) && (configEdited = true)
     proxyUser !== undefined && (configuration.proxyUser = proxyUser) && (configEdited = true)
 
-    // FIXME: placeholder translation. Can't be tested on build-from-source release
+    const { formatMessage } = this.props.intl
     return <Page header={HEADER} title='updateTitle' formatTitle>
       <Container>{+process.env.XOA_PLAN === 5
         ? <div>
@@ -227,7 +230,7 @@ export default class XoaUpdates extends Component {
                       <div className='form-group'>
                         <input
                           className='form-control'
-                          placeholder='Host (myproxy.example.org)'
+                          placeholder={formatMessage(messages.proxySettingsHostPlaceHolder)}
                           type='text'
                           value={configuration.proxyHost}
                           onChange={this._handleProxyHostChange}
@@ -237,7 +240,7 @@ export default class XoaUpdates extends Component {
                       <div className='form-group'>
                         <input
                           className='form-control'
-                          placeholder='Port (eg: 3128)'
+                          placeholder={formatMessage(messages.proxySettingsPortPlaceHolder)}
                           type='text'
                           value={configuration.proxyPort}
                           onChange={this._handleProxyPortChange}
@@ -247,7 +250,7 @@ export default class XoaUpdates extends Component {
                       <div className='form-group'>
                         <input
                           className='form-control'
-                          placeholder='Username'
+                          placeholder={formatMessage(messages.proxySettingsUsernamePlaceHolder)}
                           type='text'
                           value={configuration.proxyUser}
                           onChange={this._handleProxyUserChange}
@@ -256,7 +259,7 @@ export default class XoaUpdates extends Component {
                       {' '}
                       <div className='form-group'>
                         <Password
-                          placeholder='Password'
+                          placeholder={formatMessage(messages.proxySettingsPasswordPlaceHolder)}
                           ref='proxyPassword'
                         />
                       </div>
@@ -286,7 +289,7 @@ export default class XoaUpdates extends Component {
                         <input
                           className='form-control'
                           onChange={this.linkState('email')}
-                          placeholder='Your email account'
+                          placeholder={formatMessage(messages.updateRegistrationEmailPlaceHolder)}
                           required
                           type='text'
                         />
@@ -296,7 +299,7 @@ export default class XoaUpdates extends Component {
                         <Password
                           disabled={!this.state.email}
                           onChange={this.linkState('password')}
-                          placeholder='Your password'
+                          placeholder={formatMessage(messages.updateRegistrationPasswordPlaceHolder)}
                           required
                         />
                       </div>

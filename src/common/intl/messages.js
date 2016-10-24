@@ -1052,7 +1052,7 @@ var messages = {
   proSupportIncluded: 'Pro support included',
   xoAccount: 'Acces your XO Account',
   openTicket: 'Report a problem',
-  openTicketText: 'Problem? Open a ticket !',
+  openTicketText: 'Problem? Open a ticket!',
 
   // ----- Upgrade Panel -----
   upgradeNeeded: 'Upgrade needed',
@@ -1068,6 +1068,12 @@ var messages = {
   trial: 'Trial',
   settings: 'Settings',
   proxySettings: 'Proxy settings',
+  proxySettingsHostPlaceHolder: 'Host (myproxy.example.org)',
+  proxySettingsPortPlaceHolder: 'Port (eg: 3128)',
+  proxySettingsUsernamePlaceHolder: 'Username',
+  proxySettingsPasswordPlaceHolder: 'Password',
+  updateRegistrationEmailPlaceHolder: 'Your email account',
+  updateRegistrationPasswordPlaceHolder: 'Your password',
   update: 'Update',
   refresh: 'Refresh',
   upgrade: 'Upgrade',
