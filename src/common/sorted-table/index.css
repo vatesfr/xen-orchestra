@@ -6,3 +6,7 @@
   color: #fff;
   background-color: #96b8d1;
 }
+
+.clickableRow {
+  cursor: pointer;
+}
