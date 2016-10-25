@@ -153,6 +153,7 @@ const DEFAULT_ITEMS_PER_PAGE = 10
   filters: propTypes.object,
   itemsPerPage: propTypes.number,
   paginationContainer: propTypes.func,
+  rowAction: propTypes.func,
   rowLink: propTypes.oneOfType([
     propTypes.func,
     propTypes.string
@@ -263,6 +264,7 @@ export default class SortedTable extends Component {
       paginationContainer,
       filterContainer,
       filters,
+      rowAction,
       rowLink,
       userData
     } = props
@@ -325,7 +327,13 @@ export default class SortedTable extends Component {
                   tagName='tr'
                   to={isFunction(rowLink) ? rowLink(item, userData) : rowLink}
                 >{columns}</BlockLink>
-                : <tr key={id}>{columns}</tr>
+                : <tr
+                  className={rowAction && styles.clickableRow}
+                  key={id}
+                  onClick={rowAction && (() => rowAction(item, userData))}
+                >
+                  {columns}
+                </tr>
             })}
           </tbody>
         </table>
