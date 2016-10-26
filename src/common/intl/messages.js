@@ -52,6 +52,7 @@ var messages = {
   settingsPluginsPage: 'Plugins',
   settingsLogsPage: 'Logs',
   settingsIpsPage: 'IPs',
+  settingsConfigPage: 'Config',
   aboutPage: 'About',
   newMenu: 'New',
   taskMenu: 'Tasks',
@@ -1078,7 +1079,7 @@ var messages = {
   refresh: 'Refresh',
   upgrade: 'Upgrade',
   noUpdaterCommunity: 'No updater available for Community Edition',
-  noUpdaterSubscribe: 'Please consider subscribe and try it with all features for free during 15 days on',
+  considerSubscribe: 'Please consider subscribe and try it with all features for free during 15 days on {link}.',
   noUpdaterWarning: 'Manual update could break your current installation due to dependencies issues, do it with caution',
   currentVersion: 'Current version:',
   register: 'Register',
@@ -1189,7 +1190,19 @@ var messages = {
   settingsAclsButtonTooltiphost: 'Hosts',
   settingsAclsButtonTooltippool: 'Pool',
   settingsAclsButtonTooltipSR: 'SR',
-  settingsAclsButtonTooltipnetwork: 'Network'
+  settingsAclsButtonTooltipnetwork: 'Network',
+
+  // ----- Config -----
+  noConfigFile: 'No config file selected',
+  importTip: 'Try dropping a config file here, or click to select a config file to upload.',
+  config: 'Config',
+  importConfig: 'Import',
+  importConfigSuccess: 'Config file successfully imported',
+  importConfigError: 'Error while importing config file',
+  parseConfigError: 'Error while parsing config file',
+  exportConfig: 'Export',
+  downloadConfig: 'Download current config',
+  noConfigImportCommunity: 'No config import available for Community Edition'
 
 }
 forEach(messages, function (message, id) {

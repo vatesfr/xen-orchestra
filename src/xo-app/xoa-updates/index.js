@@ -181,7 +181,7 @@ export default class XoaUpdates extends Component {
       <Container>{+process.env.XOA_PLAN === 5
         ? <div>
           <h2 className='text-danger'>{_('noUpdaterCommunity')}</h2>
-          <p>{_('noUpdaterSubscribe')} <a href='https://xen-orchestra.com'>https://xen-orchestra.com</a></p>
+          <p>{_('considerSubscribe', { link: <a href='https://xen-orchestra.com'>https://xen-orchestra.com</a> })}</p>
           <p className='text-danger'>{_('noUpdaterWarning')}</p>
         </div>
         : <div>

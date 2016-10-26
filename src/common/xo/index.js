@@ -283,6 +283,14 @@ const resolveIds = params => {
   return params
 }
 
+// XO --------------------------------------------------------------------------
+
+export const importConfig = config =>
+  _call('xo.importConfig', { config })
+
+export const exportConfig = () =>
+  _call('xo.exportConfig')
+
 // Server ------------------------------------------------------------
 
 export const addServer = (host, username, password) => (

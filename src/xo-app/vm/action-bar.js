@@ -39,7 +39,7 @@ const vmActionBarByState = {
           handler: snapshotVm
         },
         (isAdmin || !vm.resourceSet) && {
-          icon: 'vm-export',
+          icon: 'export',
           label: 'exportVmLabel',
           handler: exportVm
         },
@@ -77,7 +77,7 @@ const vmActionBarByState = {
           handler: snapshotVm
         },
         (isAdmin || !vm.resourceSet) && {
-          icon: 'vm-export',
+          icon: 'export',
           label: 'exportVmLabel',
           handler: exportVm
         },
@@ -105,7 +105,7 @@ const vmActionBarByState = {
           handler: snapshotVm
         },
         (isAdmin || !vm.resourceSet) && {
-          icon: 'vm-export',
+          icon: 'export',
           label: 'exportVmLabel',
           handler: exportVm
         },
