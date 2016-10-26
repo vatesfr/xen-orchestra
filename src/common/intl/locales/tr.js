@@ -20,6 +20,9 @@ export default {
   // Original text: 'Page not found'
   errorPageNotFound: undefined,
 
+  // Original text: 'no such item'
+  errorNoSuchItem: undefined,
+
   // Original text: 'Long click to edit'
   editableLongClickPlaceholder: undefined,
 
@@ -416,8 +419,11 @@ export default {
   // Original text: 'Select timezone…'
   selectTimezone: undefined,
 
-  // Original text: 'Select IP(s)...'
+  // Original text: 'Select IP(s)…'
   selectIp: undefined,
+
+  // Original text: 'Select IP pool(s)…'
+  selectIpPool: undefined,
 
   // Original text: 'Fill required informations.'
   fillRequiredInformations: undefined,
@@ -602,6 +608,33 @@ export default {
   // Original text: 'Warning: local remotes will use limited XOA disk space. Only for advanced users.'
   localRemoteWarningMessage: undefined,
 
+  // Original text: 'VMs'
+  editBackupVmsTitle: undefined,
+
+  // Original text: 'VMs statuses'
+  editBackupSmartStatusTitle: undefined,
+
+  // Original text: 'Resident on'
+  editBackupSmartResidentOn: undefined,
+
+  // Original text: 'VMs Tags'
+  editBackupSmartTagsTitle: undefined,
+
+  // Original text: 'Tag'
+  editBackupTagTitle: undefined,
+
+  // Original text: 'Report'
+  editBackupReportTitle: undefined,
+
+  // Original text: 'Enable immediately after creation'
+  editBackupReportEnable: undefined,
+
+  // Original text: 'Depth'
+  editBackupDepthTitle: undefined,
+
+  // Original text: 'Remote'
+  editBackupRemoteTitle: undefined,
+
   // Original text: 'Remote stores for backup'
   remoteList: undefined,
 
@@ -772,6 +805,30 @@ export default {
 
   // Original text: 'Create'
   newSrCreate: undefined,
+
+  // Original text: 'Storage name'
+  newSrNamePlaceHolder: undefined,
+
+  // Original text: 'Storage description'
+  newSrDescPlaceHolder: undefined,
+
+  // Original text: 'Address'
+  newSrAddressPlaceHolder: undefined,
+
+  // Original text: '[port]'
+  newSrPortPlaceHolder: undefined,
+
+  // Original text: 'Username'
+  newSrUsernamePlaceHolder: undefined,
+
+  // Original text: 'Password'
+  newSrPasswordPlaceHolder: undefined,
+
+  // Original text: 'Device, e.g /dev/sda…'
+  newSrLvmDevicePlaceHolder: undefined,
+
+  // Original text: '/path/to/directory'
+  newSrLocalPathPlaceHolder: undefined,
 
   // Original text: 'Users/Groups'
   subjectName: undefined,
@@ -1205,6 +1262,9 @@ export default {
   // Original text: 'Address'
   pifAddressLabel: undefined,
 
+  // Original text: 'Mode'
+  pifModeLabel: undefined,
+
   // Original text: 'MAC'
   pifMacLabel: undefined,
 
@@ -1228,6 +1288,27 @@ export default {
 
   // Original text: 'Default locking mode'
   defaultLockingMode: undefined,
+
+  // Original text: 'Configure IP address'
+  pifConfigureIp: undefined,
+
+  // Original text: 'Invalid parameters'
+  configIpErrorTitle: undefined,
+
+  // Original text: 'IP address and netmask required'
+  configIpErrorMessage: undefined,
+
+  // Original text: 'Static IP address'
+  staticIp: undefined,
+
+  // Original text: 'Netmask'
+  netmask: undefined,
+
+  // Original text: 'DNS'
+  dns: undefined,
+
+  // Original text: 'Gateway'
+  gateway: undefined,
 
   // Original text: 'Add a storage'
   addSrDeviceButton: undefined,
@@ -1544,6 +1625,27 @@ export default {
   // Original text: 'Disconnect VBD'
   vbdDisconnect: undefined,
 
+  // Original text: 'Bootable'
+  vdbBootable: undefined,
+
+  // Original text: 'Readonly'
+  vdbReadonly: undefined,
+
+  // Original text: 'Create'
+  vdbCreate: undefined,
+
+  // Original text: 'Disk name'
+  vdbNamePlaceHolder: undefined,
+
+  // Original text: 'Size'
+  vdbSizePlaceHolder: undefined,
+
+  // Original text: 'Save'
+  saveBootOption: undefined,
+
+  // Original text: 'Reset'
+  resetBootOption: undefined,
+
   // Original text: 'New device'
   vifCreateDeviceButton: undefined,
 
@@ -1603,6 +1705,9 @@ export default {
 
   // Original text: 'Unknown network'
   vifUnknownNetwork: undefined,
+
+  // Original text: 'Create'
+  vifCreate: undefined,
 
   // Original text: 'No snapshots'
   noSnapshots: undefined,
@@ -1826,6 +1931,15 @@ export default {
   // Original text: '{running} running ({halted} halted)'
   vmsStates: undefined,
 
+  // Original text: 'Clear selection'
+  dashboardStatsButtonRemoveAll: undefined,
+
+  // Original text: 'Add all hosts'
+  dashboardStatsButtonAddAllHost: undefined,
+
+  // Original text: 'Add all VMs'
+  dashboardStatsButtonAddAllVM: undefined,
+
   // Original text: '{value} {date, date, medium}'
   weekHeatmapData: undefined,
 
@@ -1859,16 +1973,16 @@ export default {
   // Original text: 'Coming soon!'
   comingSoon: undefined,
 
-  // Original text: 'Orphaned VDIs'
+  // Original text: 'Orphaned snapshot VDIs'
   orphanedVdis: undefined,
 
-  // Original text: 'Orphaned VMs'
+  // Original text: 'Orphaned VMs snapshot'
   orphanedVms: undefined,
 
   // Original text: 'No orphans'
   noOrphanedObject: undefined,
 
-  // Original text: 'Remove all orphaned VDIs'
+  // Original text: 'Remove all orphaned snapshot VDIs'
   removeAllOrphanedObject: undefined,
 
   // Original text: 'Name'
@@ -1951,6 +2065,9 @@ export default {
 
   // Original text: 'Network'
   newVmNetworkLabel: undefined,
+
+  // Original text: 'e.g: http://httpredir.debian.org/debian'
+  newVmInstallNetworkPlaceHolder: undefined,
 
   // Original text: 'PV Args'
   newVmPvArgsLabel: undefined,
@@ -2066,7 +2183,7 @@ export default {
   // Original text: 'No resource sets.'
   noResourceSets: undefined,
 
-  // Original text: 'Loading resource sets...'
+  // Original text: 'Loading resource sets'
   loadingResourceSets: undefined,
 
   // Original text: 'Resource set name'
@@ -2128,6 +2245,12 @@ export default {
 
   // Original text: 'Maximum disk space'
   maxDiskSpace: undefined,
+
+  // Original text: 'IP pool'
+  ipPool: undefined,
+
+  // Original text: 'Quantity'
+  quantity: undefined,
 
   // Original text: 'No limits.'
   noResourceSetLimits: undefined,
@@ -2231,8 +2354,8 @@ export default {
   // Original text: 'Restore Backups'
   restoreBackups: undefined,
 
-  // Original text: 'No remotes'
-  noRemotes: undefined,
+  // Original text: 'Click on a VM to display restore options'
+  restoreBackupsInfo: undefined,
 
   // Original text: 'Enabled'
   remoteEnabled: undefined,
@@ -2246,8 +2369,8 @@ export default {
   // Original text: 'VM Name'
   backupVmNameColumn: undefined,
 
-  // Original text: 'Backup Tag'
-  backupTagColumn: undefined,
+  // Original text: 'Tags'
+  backupTags: undefined,
 
   // Original text: 'Last Backup'
   lastBackupColumn: undefined,
@@ -2255,11 +2378,11 @@ export default {
   // Original text: 'Available Backups'
   availableBackupsColumn: undefined,
 
-  // Original text: 'Restore'
-  restoreColumn: undefined,
+  // Original text: 'Missing parameters'
+  backupRestoreErrorTitle: undefined,
 
-  // Original text: 'View restore options'
-  restoreTip: undefined,
+  // Original text: 'Choose a SR and a backup'
+  backupRestoreErrorMessage: undefined,
 
   // Original text: 'Display backups'
   displayBackup: undefined,
@@ -2438,7 +2561,7 @@ export default {
   // Original text: 'Select your backup…'
   importBackupModalSelectBackup: undefined,
 
-  // Original text: 'Are you sure you want to remove all orphaned VDIs?'
+  // Original text: 'Are you sure you want to remove all orphaned snapshot VDIs?'
   removeAllOrphanedModalWarning: undefined,
 
   // Original text: 'Remove all logs'
@@ -2657,7 +2780,7 @@ export default {
   // Original text: 'Report a problem'
   openTicket: undefined,
 
-  // Original text: 'Problem? Open a ticket !'
+  // Original text: 'Problem? Open a ticket!'
   openTicketText: undefined,
 
   // Original text: 'Upgrade needed'
@@ -2692,6 +2815,24 @@ export default {
 
   // Original text: 'Proxy settings'
   proxySettings: undefined,
+
+  // Original text: 'Host (myproxy.example.org)'
+  proxySettingsHostPlaceHolder: undefined,
+
+  // Original text: 'Port (eg: 3128)'
+  proxySettingsPortPlaceHolder: undefined,
+
+  // Original text: 'Username'
+  proxySettingsUsernamePlaceHolder: undefined,
+
+  // Original text: 'Password'
+  proxySettingsPasswordPlaceHolder: undefined,
+
+  // Original text: 'Your email account'
+  updateRegistrationEmailPlaceHolder: undefined,
+
+  // Original text: 'Your password'
+  updateRegistrationPasswordPlaceHolder: undefined,
 
   // Original text: 'Update'
   update: undefined,
@@ -2864,7 +3005,7 @@ export default {
   // Original text: 'Others'
   others: undefined,
 
-  // Original text: 'Loading logs...'
+  // Original text: 'Loading logs…'
   loadingLogs: undefined,
 
   // Original text: 'User'
@@ -2976,5 +3117,20 @@ export default {
   shortcut_SELECT: undefined,
 
   // Original text: 'Open'
-  shortcut_JUMP_INTO: undefined
+  shortcut_JUMP_INTO: undefined,
+
+  // Original text: 'VM'
+  settingsAclsButtonTooltipVM: undefined,
+
+  // Original text: 'Hosts'
+  settingsAclsButtonTooltiphost: undefined,
+
+  // Original text: 'Pool'
+  settingsAclsButtonTooltippool: undefined,
+
+  // Original text: 'SR'
+  settingsAclsButtonTooltipSR: undefined,
+
+  // Original text: 'Network'
+  settingsAclsButtonTooltipnetwork: undefined
 }
