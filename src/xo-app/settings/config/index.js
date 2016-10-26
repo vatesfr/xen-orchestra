@@ -2,7 +2,7 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import { Button } from 'react-bootstrap-4/lib'
 import Component from 'base-component'
-import Dropzone from 'react-dropzone'
+import Dropzone from 'dropzone'
 import Icon from 'icon'
 import React from 'react'
 import Upgrade from 'xoa-upgrade'
@@ -13,8 +13,6 @@ import {
   importConfig,
   exportConfig
 } from 'xo'
-
-import styles from './index.css'
 
 // ===================================================================
 
@@ -96,9 +94,7 @@ export default class Config extends Component {
         ? (this.reader && <div className='mb-1'>
           <h2><Icon icon='import' /> {_('importConfig')}</h2>
           <form id='import-form'>
-            <Dropzone onDrop={this._handleDrop} className={styles.dropzone} activeClassName={styles.activeDropzone}>
-              <div className={styles.dropzoneText}>{_('importTip')}</div>
-            </Dropzone>
+            <Dropzone onDrop={this._handleDrop} message={_('importTip')} />
             {this._renderImportStatus()}
             <div className='form-group pull-right'>
               <ActionButton
