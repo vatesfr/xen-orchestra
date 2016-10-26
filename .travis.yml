@@ -1,7 +1,8 @@
 language: node_js
 node_js:
   - '6'
-  - '4'
+  #- '4' # npm 3's flat tree is needed because some packages do not
+         # declare their deps correctly (e.g. chartist-plugin-tooltip)
 
 cache:
   directories:
