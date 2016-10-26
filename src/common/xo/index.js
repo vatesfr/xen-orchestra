@@ -813,7 +813,7 @@ export const importVms = (vms, sr) => (
 export const exportVm = vm => {
   info(_('startVmExport'), vm.id)
   return _call('vm.export', { vm: resolveId(vm) })
-    .then(({ $getFrom: url }) => { window.location.href = `.${url}` })
+    .then(({ $getFrom: url }) => { window.location = `.${url}` })
 }
 
 export const insertCd = (vm, cd, force = false) => (
