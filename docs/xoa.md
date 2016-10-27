@@ -13,8 +13,8 @@ The fastest way to install Xen Orchestra is to use our Appliance. You can [downl
 By default, this VM is configured with:
 
 * 2 vCPUs
-* 2GB or RAM
-* 8GB of disk
+* 2GB of RAM (able to be set in live up to 8GB)
+* 15GB of disk (10GB for `/` and 5GB for `/var`)
 
 For usage on huge infrastructure (more than 500+ VMs), feel free to raise the RAM.
 
