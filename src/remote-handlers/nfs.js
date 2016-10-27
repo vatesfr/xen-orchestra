@@ -12,7 +12,7 @@ export default class NfsHandler extends LocalHandler {
   }
 
   _getRealPath () {
-    return `/tmp/xo-server/mounts/${this._remote.id}`
+    return `/run/xo-server/mounts/${this._remote.id}`
   }
 
   async _loadRealMounts () {
