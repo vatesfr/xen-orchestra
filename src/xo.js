@@ -48,6 +48,24 @@ export default class Xo extends EventEmitter {
 
   // -----------------------------------------------------------------
 
+  async clean () {
+    const handleCleanError = error => {
+      console.error(
+        '[WARN] clean error:',
+        error && error.stack || error
+      )
+    }
+    await Promise.all(mapToArray(
+      this.listeners('clean'),
+
+      listener => new Promise(resolve => {
+        resolve(listener.call(this))
+      }).catch(handleCleanError)
+    ))
+  }
+
+  // -----------------------------------------------------------------
+
   async start () {
     this.start = noop
 

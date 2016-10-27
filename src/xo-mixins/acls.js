@@ -24,6 +24,15 @@ export default class {
       prefix: 'xo:acl',
       indexes: ['subject', 'object']
     })
+
+    xo.on('start', () => {
+      xo.addConfigManager('acls',
+        () => this.getAllAcls(),
+        acls => Promise.all(mapToArray(acls, acl =>
+          this.addAcl(acl.subjectId, acl.objectId, acl.action)
+        ))
+      )
+    })
   }
 
   async _getAclsForUser (userId) {

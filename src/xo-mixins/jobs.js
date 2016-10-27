@@ -1,6 +1,8 @@
 import assign from 'lodash/assign'
+
 import JobExecutor from '../job-executor'
 import { Jobs } from '../models/job'
+import { mapToArray } from '../utils'
 import {
   GenericError,
   NoSuchObject
@@ -19,10 +21,19 @@ class NoSuchJob extends NoSuchObject {
 export default class {
   constructor (xo) {
     this._executor = new JobExecutor(xo)
-    this._jobs = new Jobs({
+    const jobsDb = this._jobs = new Jobs({
       connection: xo._redis,
       prefix: 'xo:job',
       indexes: ['user_id', 'key']
+    })
+
+    xo.on('start', () => {
+      xo.addConfigManager('jobs',
+        () => jobsDb.get(),
+        jobs => Promise.all(mapToArray(jobs, job =>
+          jobsDb.save(job)
+        ))
+      )
     })
   }
 
@@ -39,9 +50,9 @@ export default class {
     return job.properties
   }
 
-  async createJob (userId, job) {
+  async createJob (job) {
     // TODO: use plain objects
-    const job_ = await this._jobs.create(userId, job)
+    const job_ = await this._jobs.create(job)
     return job_.properties
   }
 

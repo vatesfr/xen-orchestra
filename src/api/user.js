@@ -4,7 +4,7 @@ import { getUserPublicProperties, mapToArray } from '../utils'
 // ===================================================================
 
 export async function create ({email, password, permission}) {
-  return (await this.createUser(email, {password, permission})).id
+  return (await this.createUser({email, password, permission})).id
 }
 
 create.description = 'creates a new user'

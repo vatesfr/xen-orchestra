@@ -13,10 +13,6 @@ export class PluginsMetadata extends Collection {
     return PluginMetadata
   }
 
-  get idPrefix () {
-    return 'plugin-metadata:'
-  }
-
   async save ({ id, autoload, configuration }) {
     return /* await */ this.update({
       id,

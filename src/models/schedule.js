@@ -11,10 +11,6 @@ export class Schedules extends Collection {
     return Schedule
   }
 
-  get idPrefix () {
-    return 'schedule:'
-  }
-
   create (userId, job, cron, enabled, name = undefined, timezone = undefined) {
     return this.add(new Schedule({
       userId,

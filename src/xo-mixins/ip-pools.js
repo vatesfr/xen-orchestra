@@ -54,6 +54,11 @@ export default class IpPools {
 
     xo.on('start', async () => {
       this._store = await xo.getStore('ipPools')
+
+      xo.addConfigManager('ipPools',
+        () => this.getAllIpPools(),
+        ipPools => Promise.all(mapToArray(ipPools, ipPool => this._save(ipPool)))
+      )
     })
   }
 

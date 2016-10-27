@@ -4,6 +4,7 @@ import {
 } from '../api-errors'
 import {
   createRawObject,
+  forEach,
   generateToken,
   pCatch,
   noop
@@ -30,7 +31,7 @@ export default class {
     this._providers = new Set()
 
     // Creates persistent collections.
-    this._tokens = new Tokens({
+    const tokensDb = this._tokens = new Tokens({
       connection: xo._redis,
       prefix: 'xo:token',
       indexes: ['user_id']
@@ -64,6 +65,25 @@ export default class {
       } catch (e) {
         return
       }
+    })
+
+    xo.on('clean', async () => {
+      const tokens = await tokensDb.get()
+      const toRemove = []
+      const now = Date.now()
+      forEach(tokens, ({ expiration, id }) => {
+        if (!expiration || expiration < now) {
+          toRemove.push(id)
+        }
+      })
+      await tokensDb.remove(toRemove)
+    })
+
+    xo.on('start', () => {
+      xo.addConfigManager('authTokens',
+        () => tokensDb.get(),
+        tokens => tokensDb.update(tokens)
+      )
     })
   }
 

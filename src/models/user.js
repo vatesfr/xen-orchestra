@@ -31,14 +31,13 @@ export class Users extends Collection {
     return User
   }
 
-  async create (email, properties = {}) {
+  async create (properties) {
+    const { email } = properties
+
     // Avoid duplicates.
     if (await this.exists({email})) {
       throw new Error(`the user ${email} already exists`)
     }
-
-    // Adds the email to the user's properties.
-    properties.email = email
 
     // Create the user object.
     const user = new User(properties)

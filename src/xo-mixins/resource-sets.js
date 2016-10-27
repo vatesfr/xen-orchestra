@@ -85,6 +85,13 @@ export default class {
 
     this._store = null
     xo.on('start', async () => {
+      xo.addConfigManager('resourceSets',
+        () => this.getAllResourceSets(),
+        resourceSets => Promise.all(mapToArray(resourceSets, resourceSet =>
+          this._save(resourceSet)
+        ))
+      )
+
       this._store = await xo.getStore('resourceSets')
     })
   }

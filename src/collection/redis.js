@@ -3,6 +3,7 @@ import difference from 'lodash/difference'
 import filter from 'lodash/filter'
 import getKey from 'lodash/keys'
 import {createClient as createRedisClient} from 'redis'
+import {v4 as generateUuid} from 'uuid'
 
 import {
   forEach,
@@ -68,12 +69,12 @@ export default class Redis extends Collection {
     // TODO: remove “replace” which is a temporary measure, implement
     // “set()” instead.
 
-    const {indexes, prefix, redis, idPrefix = ''} = this
+    const {indexes, prefix, redis} = this
 
     return Promise.all(mapToArray(models, async model => {
       // Generate a new identifier if necessary.
       if (model.id === undefined) {
-        model.id = idPrefix + String(await redis.incr(prefix + '_id'))
+        model.id = generateUuid()
       }
 
       const success = await redis.sadd(prefix + '_ids', model.id)

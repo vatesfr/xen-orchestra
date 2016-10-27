@@ -29,6 +29,15 @@ export default class {
       connection: xo._redis,
       prefix: 'xo:plugin-metadata'
     })
+
+    xo.on('start', () => {
+      xo.addConfigManager('plugins',
+        () => this._pluginsMetadata.get(),
+        plugins => Promise.all(mapToArray(plugins, plugin =>
+          this._pluginsMetadata.save(plugin)
+        ))
+      )
+    })
   }
 
   _getRawPlugin (id) {

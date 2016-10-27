@@ -11,12 +11,7 @@ export class Jobs extends Collection {
     return Job
   }
 
-  get idPrefix () {
-    return 'job:'
-  }
-
-  async create (userId, job) {
-    job.userId = userId
+  async create (job) {
     // Serializes.
     job.paramsVector = JSON.stringify(job.paramsVector)
     return /* await */ this.add(new Job(job))

@@ -52,22 +52,39 @@ export default class {
 
     const redis = xo._redis
 
-    this._groups = new Groups({
+    const groupsDb = this._groups = new Groups({
       connection: redis,
       prefix: 'xo:group'
     })
-    const users = this._users = new Users({
+    const usersDb = this._users = new Users({
       connection: redis,
       prefix: 'xo:user',
       indexes: ['email']
     })
 
     xo.on('start', async () => {
-      if (!await users.exists()) {
+      xo.addConfigManager('groups',
+        () => groupsDb.get(),
+        groups => Promise.all(mapToArray(groups, group => groupsDb.save(group)))
+      )
+      xo.addConfigManager('users',
+        () => usersDb.get(),
+        users => Promise.all(mapToArray(users, async user => {
+          const conflictUsers = await usersDb.get({ email: user.email })
+          if (!isEmpty(conflictUsers)) {
+            await Promise.all(mapToArray(conflictUsers, user =>
+              this.deleteUser(user.id)
+            ))
+          }
+          return usersDb.save(user)
+        }))
+      )
+
+      if (!await usersDb.exists()) {
         const email = 'admin@admin.net'
         const password = 'admin'
 
-        await this.createUser(email, {password, permission: 'admin'})
+        await this.createUser({email, password, permission: 'admin'})
         console.log('[INFO] Default user created:', email, ' with password', password)
       }
     })
@@ -75,13 +92,17 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  async createUser (email, { password, ...properties }) {
+  async createUser ({ name, password, ...properties }) {
+    if (name) {
+      properties.email = name
+    }
+
     if (password) {
       properties.pw_hash = await hash(password)
     }
 
     // TODO: use plain objects
-    const user = await this._users.create(email, properties)
+    const user = await this._users.create(properties)
 
     return user.properties
   }
@@ -210,7 +231,8 @@ export default class {
       throw new Error(`registering ${name} user is forbidden`)
     }
 
-    return /* await */ this.createUser(name, {
+    return /* await */ this.createUser({
+      name,
       _provider: provider
     })
   }

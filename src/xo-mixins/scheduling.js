@@ -4,6 +4,7 @@ import { Schedules } from '../models/schedule'
 
 import {
   forEach,
+  mapToArray,
   scheduleFn
 } from '../utils'
 
@@ -42,14 +43,23 @@ export class ScheduleAlreadyEnabled extends SchedulerError {
 export default class {
   constructor (xo) {
     this.xo = xo
-    this._redisSchedules = new Schedules({
+    const schedules = this._redisSchedules = new Schedules({
       connection: xo._redis,
       prefix: 'xo:schedule',
       indexes: ['user_id', 'job']
     })
     this._scheduleTable = undefined
 
-    xo.on('start', () => this._loadSchedules())
+    xo.on('start', () => {
+      xo.addConfigManager('schedules',
+        () => schedules.get(),
+        schedules_ => Promise.all(mapToArray(schedules_, schedule =>
+          schedules.save(schedule)
+        ))
+      )
+
+      return this._loadSchedules()
+    })
     xo.on('stop', () => this._disableAll())
   }
 

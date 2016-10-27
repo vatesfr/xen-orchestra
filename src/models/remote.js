@@ -13,10 +13,6 @@ export class Remotes extends Collection {
     return Remote
   }
 
-  get idPrefix () {
-    return 'remote-'
-  }
-
   create (name, url) {
     return this.add(new Remote({
       name,

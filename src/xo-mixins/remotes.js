@@ -2,7 +2,8 @@ import RemoteHandlerLocal from '../remote-handlers/local'
 import RemoteHandlerNfs from '../remote-handlers/nfs'
 import RemoteHandlerSmb from '../remote-handlers/smb'
 import {
-  forEach
+  forEach,
+  mapToArray
 } from '../utils'
 import {
   NoSuchObject
@@ -30,6 +31,13 @@ export default class {
     })
 
     xo.on('start', async () => {
+      xo.addConfigManager('remotes',
+        () => this._remotes.get(),
+        remotes => Promise.all(mapToArray(remotes, remote =>
+          this._remotes.save(remote)
+        ))
+      )
+
       await this.initRemotes()
       await this.syncAllRemotes()
     })

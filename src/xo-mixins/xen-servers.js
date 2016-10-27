@@ -32,7 +32,7 @@ class NoSuchXenServer extends NoSuchObject {
 export default class {
   constructor (xo) {
     this._objectConflicts = createRawObject() // TODO: clean when a server is disconnected.
-    this._servers = new Servers({
+    const serversDb = this._servers = new Servers({
       connection: xo._redis,
       prefix: 'xo:server',
       indexes: ['host']
@@ -43,8 +43,13 @@ export default class {
     this._xo = xo
 
     xo.on('start', async () => {
+      xo.addConfigManager('xenServers',
+        () => serversDb.get(),
+        servers => serversDb.update(servers)
+      )
+
       // Connects to existing servers.
-      const servers = await this._servers.get()
+      const servers = await serversDb.get()
       for (let server of servers) {
         if (server.enabled) {
           this.connectXenServer(server.id).catch(error => {

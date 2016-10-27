@@ -18,7 +18,9 @@ get.params = {
 }
 
 export async function create ({job}) {
-  return (await this.createJob(this.session.get('user_id'), job)).id
+  job.userId = this.session.get('user_id')
+
+  return (await this.createJob(job)).id
 }
 
 create.permission = 'admin'
