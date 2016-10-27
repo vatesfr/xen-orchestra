@@ -34,6 +34,7 @@ export default class Config extends Component {
       config = JSON.parse(e.target.result)
     } catch (error) {
       this.setState({ importStatus: 'parseError' })
+      return
     }
 
     return importConfig(config).then(

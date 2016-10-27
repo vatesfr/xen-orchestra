@@ -290,11 +290,12 @@ export const importConfig = config => {
     const req = request.post(url)
 
     req.send(config)
-    req.end((err, res) => {
-      if (err || res.status !== 200) {
-        console.error(err)
-        error('error while importing')
-      }
+    return new Promise((resolve, reject) => {
+      req.end((error, result) =>
+        error || result.status !== 200
+          ? reject(error)
+          : resolve(result)
+      )
     })
   })
 }
