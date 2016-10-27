@@ -25,52 +25,37 @@ export default class Config extends Component {
       this.reader.addEventListener('load', this._parseAndImport)
       this.componentWillUnmount = () => this.reader.removeEventListener('load', this._parseAndImport)
     }
-
-    exportConfig().then(config => {
-      this.setState({
-        url: `data:text/json;fileName=test.json;base64,${window.btoa(unescape(encodeURIComponent(JSON.stringify(config, null, 4))))}`
-      })
-    })
   }
 
-  _parseAndImport = e => {
-    let config
-
-    try {
-      config = JSON.parse(e.target.result)
-    } catch (error) {
-      this.setState({ importStatus: 'parseError' })
-      return
-    }
-
-    return importConfig(config).then(
-      () => this.setState({ config: undefined, importStatus: 'end' }),
-      () => this.setState({ config: undefined, importStatus: 'importError' })
+  _parseAndImport = () => {
+    return importConfig(this.state.configFile).then(
+      () => this.setState({ configFile: undefined, importStatus: 'end' }),
+      () => this.setState({ configFile: undefined, importStatus: 'importError' })
     )
   }
 
   _readFile = () => {
     this.setState({ importStatus: 'start' }, () =>
-      this.reader.readAsBinaryString(this.state.config)
+      this.reader.readAsBinaryString(this.state.configFile)
     )
   }
 
   _handleDrop = files =>
     this.setState({
-      config: files && files[0],
+      configFile: files && files[0],
       importStatus: 'selectedFile'
     })
 
-  _unselectFile = () => this.setState({ config: undefined, importStatus: 'noFile' })
+  _unselectFile = () => this.setState({ configFile: undefined, importStatus: 'noFile' })
 
   _renderImportStatus = () => {
-    const { config, importStatus } = this.state
+    const { configFile, importStatus } = this.state
 
     switch (importStatus) {
       case 'noFile':
         return _('noConfigFile')
       case 'selectedFile':
-        return <span>{`${config.name} (${formatSize(config.size)})`}</span>
+        return <span>{`${configFile.name} (${formatSize(configFile.size)})`}</span>
       case 'start':
         return <Icon icon='loading' />
       case 'end':
@@ -83,7 +68,7 @@ export default class Config extends Component {
   }
 
   render () {
-    const { config } = this.state
+    const { configFile } = this.state
 
     if (process.env.XOA_PLAN < 2) {
       return <div><Upgrade place='vmImport' available={2} /></div>
@@ -100,7 +85,7 @@ export default class Config extends Component {
               <ActionButton
                 btnStyle='primary'
                 className='mr-1'
-                disabled={!config}
+                disabled={!configFile}
                 form='import-form'
                 handler={this._readFile}
                 icon='import'
@@ -125,9 +110,7 @@ export default class Config extends Component {
       <br />
       <div className='mt-1'>
         <h2><Icon icon='export' /> {_('exportConfig')}</h2>
-        <a download='config.json' href={this.state.url}>
-          <Button bsStyle='primary'>{_('downloadConfig')}</Button>
-        </a>
+        <Button bsStyle='primary' onClick={exportConfig}>{_('downloadConfig')}</Button>
       </div>
     </div>
   }

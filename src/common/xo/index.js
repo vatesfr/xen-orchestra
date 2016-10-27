@@ -285,11 +285,20 @@ const resolveIds = params => {
 
 // XO --------------------------------------------------------------------------
 
-export const importConfig = config =>
-  _call('xo.importConfig', { config })
+export const importConfig = configFile =>
+  _call('xo.importConfig').then(({ $sendTo: url }) => {
+    const req = request.post(url)
+
+    req.send(configFile)
+    req.end((err, res) => {
+      if (err || res.status !== 200) {
+        throw new Error()
+      }
+    })
+  })
 
 export const exportConfig = () =>
-  _call('xo.exportConfig')
+  _call('xo.exportConfig').then(({ $getFrom: url }) => { window.location = `.${url}` })
 
 // Server ------------------------------------------------------------
 
