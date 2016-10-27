@@ -1,5 +1,7 @@
 # ACLs
 
+> ACLs are currently working for existing objects. Only a super admin (XO administrator) can create objects.
+
 ACLs are the permissions for your users or groups. The ACLs view can be accessed in the "Settings".
 
 1. Select the user or group you want to apply permissions on it
@@ -29,7 +31,6 @@ There is 3 different roles for your users:
 
 An object admin can do everything on it, even destroy it. E.g with its admin VM:
 
-* create a new VM
 * remove it
 * migrate it (to a host with admin permission on it)
 * modify the VM resources, name and description
