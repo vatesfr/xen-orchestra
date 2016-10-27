@@ -1,7 +1,8 @@
 language: node_js
 node_js:
-  - 'stable'
-  #- '4' # Disabled for now because npm 2 cannot properly handled broken peer dependencies.
+  - '6'
+  #- '4' # npm 3's flat tree is needed because some packages do not
+         # declare their deps correctly (e.g. chartist-plugin-tooltip)
 
 cache:
   directories:
