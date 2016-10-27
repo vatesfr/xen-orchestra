@@ -13,7 +13,7 @@ It aims to be easy to use on any device supporting modern web technologies (HTML
 ### XOA credentials
 
 * Web UI: `admin@admin.net` / `admin`
-* Console/SSH: `root` / `xoa`
+* Console/SSH: `xoa` / `xoa` (first login)
 
 ## Must read
 

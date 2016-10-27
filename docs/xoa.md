@@ -177,7 +177,7 @@ To do that, go into "Settings/Config" of your old XOA. Export the configuration:
 
 ![](./assets/xo5_export.png)
 
-Now, go to your new unified XOA, "Settings/Config" and import the `config.json` file you downloaded previously.
+Now, go to your new unified XOA, "Settings/Config" and import the `config.json` file you downloaded previously, by doing a drag and drop:
 
 ![](./assets/xo5_import.png)
 
