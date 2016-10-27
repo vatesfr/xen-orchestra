@@ -168,3 +168,17 @@ Aug 14 10:59:46 xoa systemd[1]: Starting XO Server...
 Aug 14 10:59:46 xoa systemd[1]: Started XO Server.
 Aug 14 10:59:48 xoa xo-server[394]: WebServer listening on http://0.0.0.0:80
 ```
+
+## Migrate from an older XOA
+
+If you still use the first XOA (which is not the "unified" version), you could migrate easily all your settings (ACLs, users, server, etc.) to the new one painlessly.
+
+To do that, go into "Settings/Config" of your old XOA. Export the configuration: you'll download a `config.json` file.
+
+![](./assets/xo5_export.png)
+
+Now, go to your new unified XOA, "Settings/Config" and import the `config.json` file you downloaded previously.
+
+![](./assets/xo5_import.png)
+
+That's it!
