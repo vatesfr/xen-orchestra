@@ -283,6 +283,26 @@ const resolveIds = params => {
   return params
 }
 
+// XO --------------------------------------------------------------------------
+
+export const importConfig = configFile => {
+  return _call('xo.importConfig').then(({ $sendTo: url }) => {
+    const req = request.post(url)
+
+    req.send(configFile)
+    return new Promise((resolve, reject) => {
+      req.end((error, result) =>
+        error || result.status !== 200
+          ? reject(error)
+          : resolve(result)
+      )
+    })
+  })
+}
+
+export const exportConfig = () =>
+  _call('xo.exportConfig').then(({ $getFrom: url }) => { window.location = `.${url}` })
+
 // Server ------------------------------------------------------------
 
 export const addServer = (host, username, password) => (

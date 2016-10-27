@@ -303,10 +303,6 @@
       @extend .fa;
       @extend .fa-camera;
     }
-    &-export {
-      @extend .fa;
-      @extend .fa-download;
-    }
     &-fast-clone {
       @extend .fa;
       @extend .fa-code-fork;
@@ -569,6 +565,10 @@
     @extend .fa;
     @extend .fa-file-archive-o;
   }
+  &-export {
+    @extend .fa;
+    @extend .fa-download;
+  }
   &-schedule {
     @extend .fa;
     @extend .fa-clock-o;
@@ -703,6 +703,10 @@
     &-logs {
       @extend .fa;
       @extend .fa-list;
+    }
+    &-config {
+      @extend .fa;
+      @extend .fa-file-o;
     }
   }
   &-menu-about {

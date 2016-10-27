@@ -2,7 +2,7 @@ import * as FormGrid from 'form-grid'
 import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
-import Dropzone from 'react-dropzone'
+import Dropzone from 'dropzone'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
@@ -310,9 +310,7 @@ export default class Import extends Component {
               </FormGrid.Row>
               {sr && (
               <div>
-                <Dropzone onDrop={this._handleDrop} className={styles.dropzone} activeClassName={styles.activeDropzone}>
-                  <div className={styles.dropzoneText}>{_('importVmsList')}</div>
-                </Dropzone>
+                <Dropzone onDrop={this._handleDrop} message={_('importVmsList')} />
                 <hr />
                 <h5>{_('vmsToImport')}</h5>
                 {vms.length > 0

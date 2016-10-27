@@ -82,7 +82,7 @@ export default class TabSnapshot extends Component {
                             btnStyle='primary'
                             handler={exportVm}
                             handlerParam={snapshot}
-                            icon='vm-export'
+                            icon='export'
                           />
                         </Tooltip>
                         <Tooltip content={_('revertSnapshot')}>
