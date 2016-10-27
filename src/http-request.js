@@ -1,27 +1,22 @@
-import assign from 'lodash/assign'
-import startsWith from 'lodash/startsWith'
-import { parse as parseUrl } from 'url'
+import isRedirect from 'is-redirect'
+import { assign, isString, startsWith } from 'lodash'
 import { request as httpRequest } from 'http'
 import { request as httpsRequest } from 'https'
 import { stringify as formatQueryString } from 'querystring'
-
 import {
-  isString,
-  streamToBuffer
-} from './utils'
+  format as formatUrl,
+  parse as parseUrl,
+  resolve as resolveUrl
+} from 'url'
+
+import { streamToBuffer } from './utils'
 
 // -------------------------------------------------------------------
 
-export default (...args) => {
+const raw = opts => {
   let req
 
   const pResponse = new Promise((resolve, reject) => {
-    const opts = {}
-    for (let i = 0, length = args.length; i < length; ++i) {
-      const arg = args[i]
-      assign(opts, isString(arg) ? parseUrl(arg) : arg)
-    }
-
     const {
       body,
       headers: { ...headers } = {},
@@ -62,11 +57,16 @@ export default (...args) => {
       }
     }
 
-    req = (
-      protocol && startsWith(protocol.toLowerCase(), 'https')
-        ? httpsRequest
-        : httpRequest
-    )({
+    const secure = protocol && startsWith(protocol.toLowerCase(), 'https')
+    let requestFn
+    if (secure) {
+      requestFn = httpsRequest
+    } else {
+      requestFn = httpRequest
+      delete rest.rejectUnauthorized
+    }
+
+    req = requestFn({
       ...rest,
       headers
     })
@@ -98,6 +98,11 @@ export default (...args) => {
     }
 
     const code = response.statusCode
+    const { location } = response.headers
+    if (isRedirect(code) && location) {
+      assign(opts, parseUrl(resolveUrl(formatUrl(opts), location)))
+      return raw(opts)
+    }
     if (code < 200 || code >= 300) {
       const error = new Error(response.statusMessage)
       error.code = code
@@ -112,13 +117,27 @@ export default (...args) => {
 
     return response
   })
-
-  pResponse.cancel = () => {
-    req.emit('error', new Error('HTTP request canceled!'))
-    req.abort()
-  }
-  pResponse.readAll = () => pResponse.then(response => response.readAll())
   pResponse.request = req
 
   return pResponse
 }
+
+const httpRequestPlus = (...args) => {
+  const opts = {}
+  for (let i = 0, length = args.length; i < length; ++i) {
+    const arg = args[i]
+    assign(opts, isString(arg) ? parseUrl(arg) : arg)
+  }
+
+  const pResponse = raw(opts)
+
+  pResponse.cancel = () => {
+    const { request } = pResponse
+    request.emit('error', new Error('HTTP request canceled!'))
+    request.abort()
+  }
+  pResponse.readAll = () => pResponse.then(response => response.readAll())
+
+  return pResponse
+}
+export { httpRequestPlus as default }

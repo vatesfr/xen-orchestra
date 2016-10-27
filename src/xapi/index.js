@@ -767,7 +767,8 @@ export default class Xapi extends XapiBase {
         session_id: this.sessionId,
         task_id: taskRef,
         use_compression: compress ? 'true' : 'false'
-      }
+      },
+      rejectUnauthorized: false
     })
   }
 
