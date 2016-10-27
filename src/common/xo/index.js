@@ -67,6 +67,7 @@ const xo = invoke(() => {
     credentials: { token }
   })
 
+  xo.on('authenticationFailure', signOut)
   xo.on('scheduledAttempt', ({ delay }) => {
     console.warn('next attempt in %s ms', delay)
   })
