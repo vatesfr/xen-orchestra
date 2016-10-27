@@ -285,17 +285,19 @@ const resolveIds = params => {
 
 // XO --------------------------------------------------------------------------
 
-export const importConfig = configFile =>
-  _call('xo.importConfig').then(({ $sendTo: url }) => {
+export const importConfig = config => {
+  return _call('xo.importConfig').then(({ $sendTo: url }) => {
     const req = request.post(url)
 
-    req.send(configFile)
+    req.send(config)
     req.end((err, res) => {
       if (err || res.status !== 200) {
-        throw new Error()
+        console.error(err)
+        error('error while importing')
       }
     })
   })
+}
 
 export const exportConfig = () =>
   _call('xo.exportConfig').then(({ $getFrom: url }) => { window.location = `.${url}` })

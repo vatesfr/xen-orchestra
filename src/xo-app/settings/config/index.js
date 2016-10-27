@@ -27,8 +27,16 @@ export default class Config extends Component {
     }
   }
 
-  _parseAndImport = () => {
-    return importConfig(this.state.configFile).then(
+  _parseAndImport = e => {
+    let config
+
+    try {
+      config = JSON.parse(e.target.result)
+    } catch (error) {
+      this.setState({ importStatus: 'parseError' })
+    }
+
+    return importConfig(config).then(
       () => this.setState({ configFile: undefined, importStatus: 'end' }),
       () => this.setState({ configFile: undefined, importStatus: 'importError' })
     )
