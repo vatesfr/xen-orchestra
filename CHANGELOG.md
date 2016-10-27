@@ -1,5 +1,20 @@
 # ChangeLog
 
+## **5.3.1** (2016-10-27)
+
+### Enhancements
+
+- Improve backup restore view [\#1609](https://github.com/vatesfr/xo-web/issues/1609)
+- Move location of NFS mount point [\#1405](https://github.com/vatesfr/xo-web/issues/1405)
+- Modify VLAN of an existing network [\#1092](https://github.com/vatesfr/xo-web/issues/1092)
+- Ability to export/import XO config [\#786](https://github.com/vatesfr/xo-web/issues/786)
+
+### Bug fixes
+
+- Not properly sign out on auth token expiration [\#1711](https://github.com/vatesfr/xo-web/issues/1711)
+- Patches application fails "Found : Moved Temporarily" [\#1701](https://github.com/vatesfr/xo-web/issues/1701)
+- Password generation for user creation is not working [\#1678](https://github.com/vatesfr/xo-web/issues/1678)
+
 ## **5.3.0** (2016-10-20)
 
 ### Enhancements
