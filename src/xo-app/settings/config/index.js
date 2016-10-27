@@ -19,33 +19,14 @@ import {
 export default class Config extends Component {
   componentWillMount () {
     this.state = { importStatus: 'noFile' }
-
-    if (window.FileReader) {
-      this.reader = new window.FileReader()
-      this.reader.addEventListener('load', this._parseAndImport)
-      this.componentWillUnmount = () => this.reader.removeEventListener('load', this._parseAndImport)
-    }
   }
 
-  _parseAndImport = e => {
-    let config
-
-    try {
-      config = JSON.parse(e.target.result)
-    } catch (error) {
-      this.setState({ importStatus: 'parseError' })
-      return
-    }
-
-    return importConfig(config).then(
-      () => this.setState({ configFile: undefined, importStatus: 'end' }),
-      () => this.setState({ configFile: undefined, importStatus: 'importError' })
-    )
-  }
-
-  _readFile = () => {
+  _importConfig = () => {
     this.setState({ importStatus: 'start' }, () =>
-      this.reader.readAsBinaryString(this.state.configFile)
+      importConfig(this.state.configFile).then(
+        () => this.setState({ configFile: undefined, importStatus: 'end' }),
+        () => this.setState({ configFile: undefined, importStatus: 'importError' })
+      )
     )
   }
 
@@ -71,8 +52,6 @@ export default class Config extends Component {
         return <span className='text-success'>{_('importConfigSuccess')}</span>
       case 'importError':
         return <span className='text-danger'>{_('importConfigError')}</span>
-      case 'parseError':
-        return <span className='text-danger'>{_('parseConfigError')}</span>
     }
   }
 
@@ -85,7 +64,7 @@ export default class Config extends Component {
 
     return <div>
       {process.env.XOA_PLAN < 5
-        ? (this.reader && <div className='mb-1'>
+        ? <div className='mb-1'>
           <h2><Icon icon='import' /> {_('importConfig')}</h2>
           <form id='import-form'>
             <Dropzone onDrop={this._handleDrop} message={_('importTip')} />
@@ -96,7 +75,7 @@ export default class Config extends Component {
                 className='mr-1'
                 disabled={!configFile}
                 form='import-form'
-                handler={this._readFile}
+                handler={this._importConfig}
                 icon='import'
                 type='submit'
               >
@@ -110,7 +89,7 @@ export default class Config extends Component {
               </Button>
             </div>
           </form>
-        </div>)
+        </div>
         : <div>
           <h2 className='text-danger'>{_('noConfigImportCommunity')}</h2>
           <p>{_('considerSubscribe', { link: <a href='https://xen-orchestra.com'>https://xen-orchestra.com</a> })}</p>

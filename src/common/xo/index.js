@@ -285,11 +285,11 @@ const resolveIds = params => {
 
 // XO --------------------------------------------------------------------------
 
-export const importConfig = config => {
+export const importConfig = configFile => {
   return _call('xo.importConfig').then(({ $sendTo: url }) => {
     const req = request.post(url)
 
-    req.send(config)
+    req.send(configFile)
     return new Promise((resolve, reject) => {
       req.end((error, result) =>
         error || result.status !== 200

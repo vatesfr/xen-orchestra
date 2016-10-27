@@ -1199,7 +1199,6 @@ var messages = {
   importConfig: 'Import',
   importConfigSuccess: 'Config file successfully imported',
   importConfigError: 'Error while importing config file',
-  parseConfigError: 'Error while parsing config file',
   exportConfig: 'Export',
   downloadConfig: 'Download current config',
   noConfigImportCommunity: 'No config import available for Community Edition'
