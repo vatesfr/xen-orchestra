@@ -4,9 +4,12 @@
   "license": "AGPL-3.0",
   "description": "",
   "keywords": [
-    "xo-server",
     "email",
-    "mail"
+    "mail",
+    "orchestra",
+    "xen",
+    "xen-orchestra",
+    "xo-server"
   ],
   "homepage": "https://google.com/vatesfr/xo-server-transport-email",
   "bugs": "https://google.com/vatesfr/xo-server-transport-email/issues",
@@ -25,7 +28,7 @@
     "dist/"
   ],
   "engines": {
-    "node": ">=0.12"
+    "node": ">=4"
   },
   "dependencies": {
     "nodemailer": "^2.4.2",
@@ -35,24 +38,29 @@
   "devDependencies": {
     "babel-cli": "^6.10.1",
     "babel-eslint": "^7.0.0",
-    "babel-preset-es2015": "^6.9.0",
+    "babel-preset-latest": "^6.16.0",
     "babel-preset-stage-0": "^6.5.0",
+    "cross-env": "^3.1.3",
     "dependency-check": "^2.5.1",
     "ghooks": "^1.2.4",
+    "rimraf": "^2.5.4",
     "standard": "^8.1.0"
   },
   "scripts": {
-    "build": "NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "clean": "rimraf dist/",
     "depcheck": "dependency-check ./package.json",
-    "dev": "babel --watch --source-maps --out-dir=dist/ src/",
+    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "lint": "standard",
     "posttest": "npm run lint && npm run depcheck",
+    "prebuild": "npm run clean",
+    "predev": "npm run clean",
     "prepublish": "npm run build"
   },
   "babel": {
     "presets": [
-      "stage-0",
-      "es2015"
+      "latest",
+      "stage-0"
     ]
   },
   "standard": {
