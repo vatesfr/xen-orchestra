@@ -9,14 +9,14 @@ html
     link(rel = 'stylesheet' href = 'index.css')
   body(style = 'display: flex; height: 100vh;')
     div(style = 'margin: auto; width: 20em;')
-      div.m-b-2(style = 'display: flex;')
+      div.mb-2(style = 'display: flex;')
         img(src = 'assets/logo.png' style = 'margin: auto;')
-      h2.text-xs-center.m-b-2 Xen Orchestra
+      h2.text-xs-center.mb-2 Xen Orchestra
       form(action = 'signin/local' method = 'post')
         fieldset
           if error
             p.text-danger #{error}
-          .input-group.m-b-1
+          .input-group.mb-1
             span.input-group-addon
               i.xo-icon-user.fa-fw
             input.form-control(
@@ -25,7 +25,7 @@ html
               placeholder = 'Username'
               required
             )
-          .input-group.m-b-1
+          .input-group.mb-1
             span.input-group-addon
               i.fa.fa-key.fa-fw
             input.form-control(
