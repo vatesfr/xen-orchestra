@@ -52,32 +52,27 @@
     "babel-cli": "^6.8.0",
     "babel-eslint": "^7.0.0",
     "babel-plugin-lodash": "^3.2.9",
-    "babel-preset-babili": "^0.0.5",
     "babel-preset-latest": "^6.16.0",
     "babel-preset-stage-0": "^6.5.0",
     "cross-env": "^3.1.2",
     "dependency-check": "^2.5.1",
     "ghooks": "^1.2.1",
+    "rimraf": "^2.5.4",
     "standard": "^8.0.0"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "clean": "rimraf dist/",
     "depcheck": "dependency-check ./package.json",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "lint": "standard",
     "plot": "gnuplot -p memory-test.gnu",
     "posttest": "npm run lint && npm run depcheck",
+    "prebuild": "npm run clean",
+    "predev": "npm run clean",
     "prepublish": "npm run build"
   },
   "babel": {
-    "env": {
-      "production": {
-        "comments": false,
-        "presets": [
-          "babili"
-        ]
-      }
-    },
     "plugins": [
       "lodash"
     ],
