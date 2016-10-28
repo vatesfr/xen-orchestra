@@ -34,7 +34,7 @@ export const configurationSchema = {
 // ===================================================================
 
 class TransportXmppPlugin {
-  constructor (xo) {
+  constructor ({ xo }) {
     this._sendToXmppClient = ::this._sendToXmppClient
     this._set = ::xo.defineProperty
     this._unset = null
@@ -46,7 +46,7 @@ class TransportXmppPlugin {
     this._client = null
   }
 
-  configure ({...conf}) {
+  configure (conf) {
     this._conf = conf
     this._conf.reconnect = true
   }
@@ -64,17 +64,22 @@ class TransportXmppPlugin {
   unload () {
     this._unset()
     this._client.end()
+
+    this._unset = this._client = null
   }
 
   _sendToXmppClient ({to, message}) {
     for (const receiver of to) {
-      const stanza = new XmppClient.Stanza('message', { to: receiver, type: 'chat' })
-            .c('body').t(message)
-      this._client.send(stanza)
+      this._client.send(
+        new XmppClient.Stanza('message', {
+          to: receiver,
+          type: 'chat'
+        }).c('body').t(message)
+      )
     }
   }
 }
 
 // ===================================================================
 
-export default ({ xo }) => new TransportXmppPlugin(xo)
+export default opts => new TransportXmppPlugin(opts)
