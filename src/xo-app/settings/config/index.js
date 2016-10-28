@@ -5,7 +5,6 @@ import Component from 'base-component'
 import Dropzone from 'dropzone'
 import Icon from 'icon'
 import React from 'react'
-import Upgrade from 'xoa-upgrade'
 import {
   formatSize
 } from 'utils'
@@ -57,10 +56,6 @@ export default class Config extends Component {
 
   render () {
     const { configFile } = this.state
-
-    if (process.env.XOA_PLAN < 2) {
-      return <div><Upgrade place='vmImport' available={2} /></div>
-    }
 
     return <div>
       {process.env.XOA_PLAN < 5
