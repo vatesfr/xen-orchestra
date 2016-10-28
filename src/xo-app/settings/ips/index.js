@@ -97,12 +97,16 @@ class IpsCell extends BaseComponent {
             <strong>{ip}</strong>
           </Col>
           <Col mediumSize={6}>{!isEmpty(addressVifs)
-            ? map(addressVifs, vifId => {
-              const vif = vifs[vifId][0]
-              const network = networks[vif.$network][0]
-
-              return `${network.name_label} #${vif.device}`
-            }).join(', ')
+            ? map(addressVifs, (vifId, index) => {
+              const vif = vifs[vifId] && vifs[vifId][0]
+              const network = vif && networks[vif.$network] && networks[vif.$network][0]
+              return <span className='mr-1'>
+                {network && vif
+                  ? `${network.name_label} #${vif.device}`
+                  : <em>{_('ipPoolUnknownVif')}</em>
+                }
+              </span>
+            })
             : <em>{_('ipsNotUsed')}</em>
           }</Col>
           <Col mediumSize={1}>

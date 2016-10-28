@@ -1168,6 +1168,7 @@ var messages = {
   ipsDeleteAllMessage: 'Are you sure you want to delete all the IP pools?',
   ipsVifs: 'VIFs',
   ipsNotUsed: 'Not used',
+  ipPoolUnknownVif: 'unknown VIF',
 
   // ----- Shortcuts -----
   shortcutModalTitle: 'Keyboard shortcuts',
