@@ -1,5 +1,5 @@
 import assign from 'lodash/assign'
-import Client from 'jsonrpc-websocket-client'
+import Client, {AbortedConnection, ConnectionError} from 'jsonrpc-websocket-client'
 import eventToPromise from 'event-to-promise'
 import forEach from 'lodash/forEach'
 import makeError from 'make-error'
@@ -104,7 +104,16 @@ class XoaUpdater extends EventEmitter {
 
   async _open () {
     const openFailure = error => {
-      this.log('error', error)
+      switch (true) {
+        case error instanceof AbortedConnection:
+          this.log('error', 'AbortedConnection')
+          break
+        case error instanceof ConnectionError:
+          this.log('error', 'ConnectionError')
+          break
+        default:
+          this.log('error', error)
+      }
       delete this._client
       this.state('disconnected')
       throw error
@@ -208,7 +217,7 @@ class XoaUpdater extends EventEmitter {
       return c
     } else {
       return eventToPromise.multi(c, ['open'], ['closed', 'error'])
-      .then(() => handleOpen(c), openFailure)
+        .then(() => c)
     }
   }
 
