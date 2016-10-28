@@ -13,11 +13,6 @@ import {
   xoaUpdaterState
 } from 'store/actions'
 
-export {
-  AbortedConnection,
-  ConnectionError
-}
-
 // ===================================================================
 
 const states = [
@@ -222,7 +217,7 @@ class XoaUpdater extends EventEmitter {
       return c
     } else {
       return eventToPromise.multi(c, ['open'], ['closed', 'error'])
-      .return(c)
+        .then(() => c)
     }
   }
 
