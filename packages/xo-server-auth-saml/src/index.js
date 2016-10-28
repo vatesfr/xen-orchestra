@@ -24,7 +24,9 @@ export const configurationSchema = {
 // ===================================================================
 
 class AuthSamlXoPlugin {
-  constructor (xo) {
+  constructor ({ xo }) {
+    this._conf = null
+    this._usernameField = null
     this._xo = xo
   }
 
@@ -34,7 +36,7 @@ class AuthSamlXoPlugin {
   }
 
   load () {
-    const {_xo: xo} = this
+    const xo = this._xo
 
     xo.registerPassportStrategy(new Strategy(this._conf, async (profile, done) => {
       const name = profile[this._usernameField]
@@ -54,4 +56,4 @@ class AuthSamlXoPlugin {
 
 // ===================================================================
 
-export default ({xo}) => new AuthSamlXoPlugin(xo)
+export default opts => new AuthSamlXoPlugin(opts)
