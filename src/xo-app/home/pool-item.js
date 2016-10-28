@@ -46,10 +46,18 @@ import styles from './index.css'
 
   const getHostMetrics = createGetHostMetrics(getPoolHosts)
 
+  const getNumberOfVms = createGetObjectsOfType('VM').count(
+    createSelector(
+      (_, props) => props.item.id,
+      poolId => obj => obj.$pool === poolId
+    )
+  )
+
   return {
     hostMetrics: getHostMetrics,
     missingPaths: getMissingPatches,
-    poolHosts: getPoolHosts
+    poolHosts: getPoolHosts,
+    nVms: getNumberOfVms
   }
 })
 export default class PoolItem extends Component {
@@ -65,7 +73,7 @@ export default class PoolItem extends Component {
   }
 
   render () {
-    const { item: pool, expandAll, selected, hostMetrics, poolHosts } = this.props
+    const { item: pool, expandAll, selected, hostMetrics, poolHosts, nVms } = this.props
     const { missingPatchCount } = this.state
     return <div className={styles.item}>
       <BlockLink to={`/pools/${pool.id}`}>
@@ -124,7 +132,9 @@ export default class PoolItem extends Component {
         <SingleLineRow>
           <Col mediumSize={3} className={styles.itemExpanded}>
             <span>
-              {hostMetrics.count}x <Icon icon='host' />
+              <Link to={`/home?s=$pool:${pool.id}&t=host`}>{hostMetrics.count}x <Icon icon='host' /></Link>
+              {' '}
+              <Link to={`/home?s=$pool:${pool.id}&t=VM`}>{nVms}x <Icon icon='vm' /></Link>
               {' '}
               {hostMetrics.cpus}x <Icon icon='cpu' />
               {' '}
