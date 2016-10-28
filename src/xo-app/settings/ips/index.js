@@ -15,7 +15,7 @@ import React from 'react'
 import SingleLineRow from 'single-line-row'
 import SortedTable from 'sorted-table'
 import Upgrade from 'xoa-upgrade'
-import { addSubscriptions, connectStore } from 'utils'
+import { addSubscriptions, connectStore, mapPlus } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { formatIps, getNextIpV4, parseIpPattern } from 'ip'
 import { createGetObjectsOfType, createSelector } from 'selectors'
@@ -97,11 +97,12 @@ class IpsCell extends BaseComponent {
             <strong>{ip}</strong>
           </Col>
           <Col mediumSize={6}>{!isEmpty(addressVifs)
-            ? map(addressVifs, vifId => {
-              const vif = vifs[vifId][0]
-              const network = networks[vif.$network][0]
-
-              return `${network.name_label} #${vif.device}`
+            ? mapPlus(addressVifs, (vifId, push) => {
+              const vif = vifs[vifId] && vifs[vifId][0]
+              const network = vif && networks[vif.$network] && networks[vif.$network][0]
+              if (network && vif) {
+                push(`${network.name_label} #${vif.device}`)
+              }
             }).join(', ')
             : <em>{_('ipsNotUsed')}</em>
           }</Col>
