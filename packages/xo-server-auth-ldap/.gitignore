@@ -1,9 +1,8 @@
-/.nyc_output/
-/bower_components/
 /dist/
+/ldap.cache.conf
+/node_modules/
 
 npm-debug.log
 npm-debug.log.*
-
-!node_modules/*
-node_modules/*/
+pnpm-debug.log
+pnpm-debug.log.*
