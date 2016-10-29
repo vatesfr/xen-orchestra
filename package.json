@@ -59,7 +59,7 @@
     "fs-promise": "^0.5.0",
     "get-stream": "^2.1.0",
     "hashy": "~0.4.2",
-    "helmet": "^2.0.0",
+    "helmet": "^3.0.0",
     "highland": "^2.5.1",
     "http-proxy": "^1.13.2",
     "http-server-plus": "^0.7.0",
