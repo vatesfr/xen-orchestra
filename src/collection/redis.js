@@ -150,6 +150,10 @@ export default class Redis extends Collection {
   }
 
   _remove (ids) {
+    if (isEmpty(ids)) {
+      return
+    }
+
     const {prefix, redis} = this
 
     // TODO: handle indexes.

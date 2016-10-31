@@ -19,7 +19,7 @@ export default class {
   constructor (xo) {
     this._xo = xo
 
-    this._acls = new Acls({
+    const aclsDb = this._acls = new Acls({
       connection: xo._redis,
       prefix: 'xo:acl',
       indexes: ['subject', 'object']
@@ -32,6 +32,17 @@ export default class {
           this.addAcl(acl.subjectId, acl.objectId, acl.action)
         ))
       )
+    })
+
+    xo.on('clean', async () => {
+      const acls = await aclsDb.get()
+      const toRemove = []
+      forEach(acls, ({ subject, object, action, id }) => {
+        if (!subject || !object || !action) {
+          toRemove.push(id)
+        }
+      })
+      await aclsDb.remove(toRemove)
     })
   }
 
