@@ -10,7 +10,7 @@ import { forEach, map, orderBy } from 'lodash'
 // ===================================================================
 
 const askPassword = prompt => new Promise(resolve => {
-  prompt && process.stdout.write(`${prompt}: `)
+  prompt && process.stderr.write(`${prompt}: `)
   pw(resolve)
 })
 
