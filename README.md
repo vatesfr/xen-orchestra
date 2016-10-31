@@ -1,18 +1,21 @@
-# ${pkg.name} [![Build Status](https://travis-ci.org/${pkg.shortGitHubPath}.png?branch=master)](https://travis-ci.org/${pkg.shortGitHubPath})
+# xapi-explore-sr [![Build Status](https://travis-ci.org/vatesfr/xapi-explore-sr.png?branch=master)](https://travis-ci.org/vatesfr/xapi-explore-sr)
 
-> ${pkg.description}
+> Display the list of VDIs (unmanaged and snapshots included) of a SR
 
 ## Install
 
-Installation of the [npm package](https://npmjs.org/package/${pkg.name}):
+Installation of the [npm package](https://npmjs.org/package/xapi-explore-sr):
 
 ```
-> npm install --save ${pkg.name}
+> npm install --save xapi-explore-sr
 ```
 
 ## Usage
 
-**TODO**
+```
+> xapi-explore-sr
+Usage: xapi-explore-sr [--full] <SR UUID> <Xen URL> <Xen user> [<Xen password>]
+```
 
 ## Development
 
@@ -40,10 +43,10 @@ the code.
 
 You may:
 
-- report any [issue](${pkg.bugs})
+- report any [issue](https://github.com/vatesfr/xapi-explore-sr/issues)
   you've encountered;
 - fork and create a pull request.
 
 ## License
 
-${pkg.license} © [${pkg.author.name}](${pkg.author.url})
+ISC © [Vates SAS](https://vates.fr)
