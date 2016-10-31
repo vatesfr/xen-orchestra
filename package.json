@@ -1,23 +1,32 @@
 {
-  "private": true,
-  "name": "",
+  "name": "xapi-explore-sr",
   "version": "0.0.0",
   "license": "ISC",
-  "description": "",
-  "keywords": [],
-  "homepage": "",
-  "bugs": "",
+  "description": "display the list of VDIs (unmanaged and snapshots included) of a SR",
+  "keywords": [
+    "api",
+    "sr",
+    "vdi",
+    "vdis",
+    "xen",
+    "xen-api",
+    "xenapi"
+  ],
+  "homepage": "https://github.com/vatesfr/xapi-explore-sr",
+  "bugs": "https://github.com/vatesfr/xapi-explore-sr/issues",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/vatesfr/xapi-explore-sr.git"
   },
   "author": {
     "name": "Julien Fontanet",
     "email": "julien.fontanet@isonoe.net"
   },
-  "preferGlobal": false,
+  "preferGlobal": true,
   "main": "dist/",
-  "bin": {},
+  "bin": {
+    "xapi-explore-sr": "dist/index.j"
+  },
   "files": [
     "dist/"
   ],
