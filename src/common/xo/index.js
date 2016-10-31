@@ -15,12 +15,13 @@ import sortBy from 'lodash/sortBy'
 import throttle from 'lodash/throttle'
 import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
+import { reflect } from 'promise-toolbox'
 import { resolve } from 'url'
 
 import _ from '../intl'
 import invoke from '../invoke'
 import logError from '../log-error'
-import { confirm } from '../modal'
+import { alert, confirm } from '../modal'
 import { error, info, success } from '../notification'
 import { noop, rethrow, tap } from '../utils'
 import {
@@ -393,18 +394,32 @@ export const restartHost = (host, force = false) => (
     title: _('restartHostModalTitle'),
     body: _('restartHostModalMessage')
   }).then(
-    () => _call('host.restart', { id: resolveId(host), force }),
+    () => _call('host.restart', { id: resolveId(host), force }).catch(error => {
+      if (error.code === 7) {
+        alert(_('noHostsAvailableErrorTitle'), _('noHostsAvailableErrorMessage'))
+      }
+    }),
     noop
   )
 )
 
-export const restartHosts = (hosts, force) => {
+export const restartHosts = (hosts, force = false) => {
   const nHosts = size(hosts)
   return confirm({
     title: _('restartHostsModalTitle', { nHosts }),
     body: _('restartHostsModalMessage', { nHosts })
   }).then(
-    () => map(hosts, host => _call('host.restart', { id: resolveId(host), force })),
+    () => Promise.all(
+      map(hosts, host =>
+        _call('host.restart', { id: resolveId(host), force })::reflect()
+      )
+    ).then(results => {
+      const nbErrors = filter(results, result => !result.isFulfilled()).length
+      if (nbErrors) {
+        alert(_('failHostBulkRestartTitle'), _('failHostBulkRestartMessage', { failedHosts: nbErrors, totalHosts: results.length }))
+      }
+      return results
+    }),
     noop
   )
 }
