@@ -72,7 +72,7 @@ export default class View extends Collection {
     forEach(items, (value, key) => {
       if (predicate(value, key, this)) {
         super.set(key, value)
-      } else if (super.has(key)) { // eslint-disable-line space-before-keywords
+      } else if (super.has(key)) {
         super.remove(key)
       }
     })
@@ -80,7 +80,7 @@ export default class View extends Collection {
 
   _onRemove (items) {
     forEach(items, (value, key) => {
-      if (super.has(key)) { // eslint-disable-line space-before-keywords
+      if (super.has(key)) {
         super.remove(key)
       }
     })
