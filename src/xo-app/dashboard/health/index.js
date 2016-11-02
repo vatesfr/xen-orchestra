@@ -31,7 +31,7 @@ const SrColContainer = connectStore(() => ({
 
 const VdiColSr = connectStore(() => ({
   sr: createGetObject()
-}))(({ sr }) => <span>{sr.name_label}</span>)
+}))(({ sr }) => <Link to={`srs/${sr.id}`}>{sr.name_label}</Link>)
 
 const VmColContainer = connectStore(() => ({
   container: createGetObject()
@@ -39,11 +39,11 @@ const VmColContainer = connectStore(() => ({
 
 const AlarmColObject = connectStore(() => ({
   object: createGetObject()
-}))(({ object }) => <span>{object.name_label}</span>)
+}))(({ object }) => object.type === 'VM-controller' ? <Link to={`hosts/${object.$container}`}>{object.name_label}</Link> : <Link to={`vms/${object.id}`}>{object.name_label}</Link>)
 
 const AlarmColPool = connectStore(() => ({
   pool: createGetObject()
-}))(({ pool }) => <span>{pool.name_label}</span>)
+}))(({ pool }) => <Link to={`pools/${pool.id}`}>{pool.name_label}</Link>)
 
 const SR_COLUMNS = [
   {
