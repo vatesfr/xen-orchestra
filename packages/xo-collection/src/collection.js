@@ -319,7 +319,7 @@ export default class Collection extends EventEmitter {
   _remove (key) {
     delete this._items[key]
     this._size--
-    this._touch(ACTION_REMOVE)
+    this._touch(ACTION_REMOVE, key)
   }
 
   _resolveItem (keyOrObjectWithId, valueIfKey = undefined) {
