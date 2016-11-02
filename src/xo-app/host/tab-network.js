@@ -166,7 +166,7 @@ class PifItem extends Component {
         )}
       </td>
       <td>
-        {pif.attached
+        {pif.carrier
           ? <span className='tag tag-success'>
             {_('pifStatusConnected')}
           </span>
