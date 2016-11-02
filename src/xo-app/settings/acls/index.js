@@ -89,11 +89,14 @@ class AclTable extends Component {
       newSubjects && (subjects = newSubjects)
       const { xoObjects } = this.props
       const { acls, roles } = this.state
-      const resolvedAcls = map(acls, ({subject, object, action}) => ({
-        subject: subjects[subject] || subject,
-        object: xoObjects[object] || object,
-        action: roles[action] || action
-      }))
+      const resolvedAcls = filter(
+        map(acls, ({subject, object, action}) => ({
+          subject: subjects[subject] || subject,
+          object: xoObjects[object] || object,
+          action: roles[action] || action
+        })),
+        ({ subject, object, action }) => subject && object && action
+      )
       this.setState({
         resolvedAcls
       })
