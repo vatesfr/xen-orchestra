@@ -44,7 +44,7 @@
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
     "clean": "rimraf dist/",
-    "depcheck": "dependency-check ./package.json",
+    "depcheck": "dependency-check ./package.json --extra '*.js'",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "lint": "standard",
     "posttest": "npm run lint && npm run depcheck",
