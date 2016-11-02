@@ -403,6 +403,8 @@ const TRANSFORMS = {
   // -----------------------------------------------------------------
 
   pif (obj) {
+    const metrics = obj.$metrics
+
     return {
       type: 'PIF',
 
@@ -415,6 +417,7 @@ const TRANSFORMS = {
       ip: obj.IP,
       mac: obj.MAC,
       management: Boolean(obj.management), // TODO: find a better name.
+      carrier: metrics && metrics.carrier,
       mode: obj.ip_configuration_mode,
       mtu: +obj.MTU,
       netmask: obj.netmask,
