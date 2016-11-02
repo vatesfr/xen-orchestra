@@ -11,11 +11,11 @@
     "xen-orchestra",
     "xo-server"
   ],
-  "homepage": "https://google.com/vatesfr/xo-server-transport-email",
-  "bugs": "https://google.com/vatesfr/xo-server-transport-email/issues",
+  "homepage": "https://github.com/vatesfr/xo-server-transport-email",
+  "bugs": "https://github.com/vatesfr/xo-server-transport-email/issues",
   "repository": {
     "type": "git",
-    "url": "https://google.com/vatesfr/xo-server-transport-email"
+    "url": "https://github.com/vatesfr/xo-server-transport-email"
   },
   "author": {
     "name": "Julien Fontanet",

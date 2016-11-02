@@ -41,7 +41,7 @@ the code.
 
 You may:
 
-- report any [issue](https://google.com/vatesfr/xo-server-transport-email/issues)
+- report any [issue](https://github.com/vatesfr/xo-server-transport-email/issues)
   you've encountered;
 - fork and create a pull request.
 
