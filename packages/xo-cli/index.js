@@ -25,7 +25,7 @@ var pairs = require('lodash/toPairs')
 var pick = require('lodash/pick')
 var prettyMs = require('pretty-ms')
 var progressStream = require('progress-stream')
-var Xo = require('xo-lib').Xo
+var Xo = require('xo-lib').default
 
 // -------------------------------------------------------------------
 
@@ -43,10 +43,10 @@ function connect () {
       throw new Error('no token available')
     }
 
-    var xo = new Xo(config.server)
+    var xo = new Xo({ url: config.server })
 
-    return xo.signIn({
-      token: config.token
+    return xo.open().then(function () {
+      return xo.signIn({ token: config.token })
     }).then(function () {
       return xo
     })
@@ -180,10 +180,8 @@ exports = module.exports = main
 exports.help = help
 
 function register (args) {
-  var xo
-  return Bluebird.try(function () {
-    xo = new Xo(args[0])
-
+  var xo = new Xo({ url: args[0] })
+  return xo.open().then(function () {
     return xo.signIn({
       email: args[1],
       password: args[2]
@@ -293,7 +291,7 @@ function call (args) {
   var baseUrl
   return connect().then(function (xo) {
     // FIXME: do not use private properties.
-    baseUrl = xo._api._url.replace(/^ws/, 'http')
+    baseUrl = xo._url.replace(/^ws/, 'http')
 
     return xo.call(method, params)
   }).then(function handleResult (result) {
