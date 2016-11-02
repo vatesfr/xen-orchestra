@@ -1,6 +1,4 @@
-import bind from 'lodash.bind'
-import createCallback from 'lodash.callback'
-import forEach from 'lodash.foreach'
+import { bind, forEach, iteratee as createCallback } from 'lodash'
 
 import Collection, {
   ACTION_ADD,

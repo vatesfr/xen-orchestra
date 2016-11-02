@@ -1,5 +1,4 @@
-import bind from 'lodash.bind'
-import callback from 'lodash.callback'
+import { bind, iteratee } from 'lodash'
 
 import clearObject from './clear-object'
 import NotImplemented from './not-implemented'
@@ -14,7 +13,7 @@ import {
 export default class UniqueIndex {
   constructor (computeHash) {
     if (computeHash) {
-      this.computeHash = callback(computeHash)
+      this.computeHash = iteratee(computeHash)
     }
 
     this._itemByHash = Object.create(null)

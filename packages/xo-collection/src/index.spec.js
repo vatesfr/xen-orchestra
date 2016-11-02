@@ -2,7 +2,7 @@
 
 import eventToPromise from 'event-to-promise'
 import expect from 'must'
-import forEach from 'lodash.foreach'
+import { forEach } from 'lodash'
 
 // ===================================================================
 

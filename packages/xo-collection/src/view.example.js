@@ -1,4 +1,4 @@
-import forEach from 'lodash.foreach'
+import { forEach } from 'lodash'
 
 import Collection from '..'
 import View from '../view'

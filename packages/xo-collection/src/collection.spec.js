@@ -2,8 +2,8 @@
 
 import eventToPromise from 'event-to-promise'
 import expect from 'must'
-import forEach from 'lodash.foreach'
 import sinon from 'sinon'
+import { forEach } from 'lodash'
 
 // ===================================================================
 

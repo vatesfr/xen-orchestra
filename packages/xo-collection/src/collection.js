@@ -1,7 +1,7 @@
-import forEach from 'lodash.foreach'
 import kindOf from 'kindof'
 import {BaseError} from 'make-error'
 import {EventEmitter} from 'events'
+import {forEach} from 'lodash'
 
 import isEmpty from './is-empty'
 import isObject from './is-object'
