@@ -68,7 +68,7 @@ class PifItem extends Component {
       <td>{pif.ip}</td>
       <td>{pif.mac}</td>
       <td>
-        {pif.attached
+        {pif.carrier
           ? <span className='tag tag-success'>
             {_('poolNetworkPifAttached')}
           </span>
