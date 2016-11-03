@@ -154,7 +154,7 @@ export default class Overview extends Component {
 
                     return (
                       <tr key={key}>
-                        <td>{job.id} ({this._getJobLabel(job)})</td>
+                        <td>{job.id.slice(0, 5)} ({this._getJobLabel(job)})</td>
                         <td>{this._getScheduleTag(schedule, job)}</td>
                         <td className='hidden-xs-down'>{schedule.cron}</td>
                         <td className='hidden-xs-down'>{schedule.timezone || _('jobServerTimezone')}</td>
