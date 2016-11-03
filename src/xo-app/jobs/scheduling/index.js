@@ -190,9 +190,9 @@ export default class Schedules extends Component {
           {isEmpty(schedules) && <tr><td><em>{_('noSchedules')}</em></td></tr>}
           {map(schedules, schedule => <tr key={schedule.id}>
             <td>
-              <span>{schedule.name} <span className='text-muted'>({schedule.id})</span></span>
+              <span>{schedule.name} <span className='text-muted'>({schedule.id.slice(0, 5)})</span></span>
             </td>
-            <td>{jobs[schedule.job] && <span>{jobs[schedule.job].name} - {jobs[schedule.job].method} <span className='text-muted'>({schedule.job})</span></span>}</td>
+            <td>{jobs[schedule.job] && <span>{jobs[schedule.job].name} - {jobs[schedule.job].method} <span className='text-muted'>({schedule.job.slice(0, 5)})</span></span>}</td>
             <td className='hidden-xs-down'>{schedule.cron}</td>
             <td className='hidden-xs-down'>{schedule.timezone || _('jobServerTimezone')}</td>
             <td>
