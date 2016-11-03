@@ -324,7 +324,7 @@ export default class Jobs extends Component {
         <SelectPlainObject ref='method' options={actions} optionKey='method' onChange={this._handleSelectMethod} placeholder={_('jobActionPlaceHolder')} />
         {action && <fieldset>
           <GenericInput ref='params' schema={action.info} uiSchema={action.uiSchema} label={action.method} required />
-          {job && <p className='text-warning'>{_('jobEditMessage', { name: job.name, id: job.id })}</p>}
+          {job && <p className='text-warning'>{_('jobEditMessage', { name: job.name, id: job.id.slice(0, 5) })}</p>}
           {process.env.XOA_PLAN > 3
             ? <span><ActionButton form='newJobForm' handler={this._handleSubmit} icon='save' btnStyle='primary'>{_('saveResourceSet')}</ActionButton>
               {' '}
@@ -347,7 +347,7 @@ export default class Jobs extends Component {
           {isEmpty(jobs) && <tr><td><em>{_('noJobs')}</em></td></tr>}
           {map(jobs, job => <tr key={job.id}>
             <td>
-              <span>{job.name} <span className='text-muted'>({job.id})</span></span>
+              <span>{job.name} <span className='text-muted'>({job.id.slice(0, 5)})</span></span>
             </td>
             <td>{job.method}</td>
             <td>
