@@ -19,7 +19,10 @@ import xml2js from 'xml2js'
 // does not implement `guess` function for example.
 import 'moment-timezone'
 
+import through2 from 'through2'
 import { CronJob } from 'cron'
+import { Readable } from 'stream'
+import { utcFormat, utcParse } from 'd3-time-format'
 import {
   all as pAll,
   defer,
@@ -30,9 +33,6 @@ import {
   createHash,
   randomBytes
 } from 'crypto'
-import { Readable } from 'stream'
-import through2 from 'through2'
-import {utcFormat as d3TimeFormat} from 'd3-time-format'
 
 // ===================================================================
 
@@ -391,7 +391,9 @@ export const popProperty = obj => {
 
 // Format a date in ISO 8601 in a safe way to be used in filenames
 // (even on Windows).
-export const safeDateFormat = d3TimeFormat('%Y%m%dT%H%M%SZ')
+export const safeDateFormat = utcFormat('%Y%m%dT%H%M%SZ')
+
+export const safeDateParse = utcParse('%Y%m%dT%H%M%SZ')
 
 // -------------------------------------------------------------------
 

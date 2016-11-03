@@ -11,6 +11,7 @@ import {
   dirname
 } from 'path'
 import { satisfies as versionSatisfies } from 'semver'
+import { utcFormat } from 'd3-time-format'
 
 import vhdMerge, { chainVhd } from '../vhd-merge'
 import xapiObjectToXo from '../xapi-object-to-xo'
@@ -23,7 +24,8 @@ import {
   noop,
   pCatch,
   pSettle,
-  safeDateFormat
+  safeDateFormat,
+  safeDateParse
 } from '../utils'
 import {
   VDI_FORMAT_VHD
@@ -34,12 +36,45 @@ import {
 const DELTA_BACKUP_EXT = '.json'
 const DELTA_BACKUP_EXT_LENGTH = DELTA_BACKUP_EXT.length
 
+const shortDate = utcFormat('%Y-%m-%d')
+
 // Test if a file is a vdi backup. (full or delta)
 const isVdiBackup = name => /^\d+T\d+Z_(?:full|delta)\.vhd$/.test(name)
 
 // Test if a file is a delta/full vdi backup.
 const isDeltaVdiBackup = name => /^\d+T\d+Z_delta\.vhd$/.test(name)
 const isFullVdiBackup = name => /^\d+T\d+Z_full\.vhd$/.test(name)
+
+const parseVmBackupPath = name => {
+  const base = basename(name)
+  let baseMatches
+
+  baseMatches = /^([^_]+)_([^_]+)_(.+)\.xva$/.exec(base)
+  if (baseMatches) {
+    return {
+      datetime: safeDateParse(baseMatches[1]),
+      name: baseMatches[3],
+      tag: baseMatches[2],
+      type: 'xva'
+    }
+  }
+
+  let dirMatches
+  if (
+    (baseMatches = /^([^_]+)_(.+)\.json$/.exec(base)) &&
+    (dirMatches = /^vm_delta_([^_]+)_(.+)$/.exec(basename(dirname(name))))
+  ) {
+    return {
+      datetime: safeDateParse(baseMatches[1]),
+      name: baseMatches[2],
+      uuid: dirMatches[2],
+      tag: dirMatches[1],
+      type: 'delta'
+    }
+  }
+
+  throw new Error('invalid VM backup filename')
+}
 
 // Get the timestamp of a vdi backup. (full or delta)
 const getVdiTimestamp = name => {
@@ -114,6 +149,15 @@ export default class {
     const xapi = this._xo.getXapi(sr)
 
     const vm = await xapi.importVm(stream, { srId: sr._xapiId })
+
+    const { datetime } = parseVmBackupPath(file)
+    await Promise.all([
+      xapi.addTag(vm.$id, 'restored from backup'),
+      xapi.editVm(vm.$id, {
+        name_label: `${vm.name_label} (${shortDate(datetime)})`
+      })
+    ])
+
     return xapiObjectToXo(vm).id
   }
 
@@ -590,10 +634,13 @@ export default class {
   }
 
   async importDeltaVmBackup ({sr, remoteId, filePath}) {
+    filePath = `${filePath}${DELTA_BACKUP_EXT}`
+    const { datetime } = parseVmBackupPath(filePath)
+
     const handler = await this._xo.getRemoteHandler(remoteId)
     const xapi = this._xo.getXapi(sr)
 
-    const delta = JSON.parse(await handler.readFile(`${filePath}${DELTA_BACKUP_EXT}`))
+    const delta = JSON.parse(await handler.readFile(filePath))
     let vm
     const { version } = delta
 
@@ -620,9 +667,12 @@ export default class {
         )
       )
 
+      delta.vm.name_label += ` (${shortDate(datetime)})`
+      delta.vm.tags.push('restored from backup')
+
       vm = await xapi.importDeltaVm(delta, {
-        srId: sr._xapiId,
-        disableStartAfterImport: false
+        disableStartAfterImport: false,
+        srId: sr._xapiId
       })
     } else {
       throw new Error(`Unsupported delta backup version: ${version}`)
