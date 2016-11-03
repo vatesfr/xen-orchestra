@@ -12,15 +12,15 @@ You can choose the edition you want in two places:
 
 From your account zone, click on the Edition you want:
 
-![](member_purchase.png)
+![](./assets/member_purchase.png)
 
 Then you need to fill your information:
 
-![](member_purchase2.png)
+![](./assets/member_purchase2.png)
 
-The default payment method is by **credit card**. But you can also choose the "wire transfer" tab (with the "banknote/bank icon):
+The default payment method is by **credit card**. But you can also choose the "wire transfer" tab (with the "bank" icon):
 
-![](member_purchase3.png)
+![](./assets/member_purchase3.png)
 
 ## Wire transfer process
 
