@@ -121,6 +121,7 @@ export async function createIso ({
     deviceConfig.legacy_mode = 'true'
   } else if (type === 'smb') {
     path = path.replace(/\\/g, '/')
+    deviceConfig.type = 'cifs'
     deviceConfig.username = user
     deviceConfig.cifspassword = password
   }
