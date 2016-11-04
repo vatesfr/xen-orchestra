@@ -27,10 +27,8 @@ export default class {
 
     xo.on('start', () => {
       xo.addConfigManager('acls',
-        () => this.getAllAcls(),
-        acls => Promise.all(mapToArray(acls, acl =>
-          this.addAcl(acl.subjectId, acl.objectId, acl.action)
-        ))
+        () => aclsDb.get(),
+        acls => aclsDb.update(acls)
       )
     })
 
