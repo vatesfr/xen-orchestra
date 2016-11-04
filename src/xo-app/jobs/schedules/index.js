@@ -10,7 +10,6 @@ import Scheduler, { SchedulePreview } from 'scheduling'
 import { error } from 'notification'
 import { injectIntl } from 'react-intl'
 import { SelectPlainObject, Toggle } from 'form'
-
 import {
   createSchedule,
   deleteSchedule,

@@ -141,7 +141,7 @@ export default class Overview extends Component {
                       <tr key={key}>
                         <td>
                           {this._getScheduleLabel(schedule)}
-                          <Link className='btn btn-sm btn-primary mr-1' to={`/jobs/schedule/${schedule.id}/edit`}>
+                          <Link className='btn btn-sm btn-primary mr-1' to={`/jobs/schedules/${schedule.id}/edit`}>
                             <Icon icon='edit' />
                           </Link>
                         </td>

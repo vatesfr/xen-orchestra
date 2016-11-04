@@ -9,8 +9,8 @@ import { routes } from 'utils'
 import Edit from './edit'
 import New from './new'
 import Overview from './overview'
-import Scheduling from './scheduling'
-import SchedulingEdit from './scheduling/edit'
+import Schedules from './schedules'
+import EditSchedule from './schedules/edit'
 
 const HEADER = <Container>
   <Row>
@@ -21,7 +21,7 @@ const HEADER = <Container>
       <NavTabs className='pull-right'>
         <NavLink to={'/jobs/overview'}><Icon icon='menu-jobs-overview' /> {_('jobsOverviewPage')}</NavLink>
         <NavLink to={'/jobs/new'}><Icon icon='menu-jobs-new' /> {_('jobsNewPage')}</NavLink>
-        <NavLink to={'/jobs/scheduling'}><Icon icon='menu-jobs-schedule' /> {_('jobsSchedulingPage')}</NavLink>
+        <NavLink to={'/jobs/schedules'}><Icon icon='menu-jobs-schedule' /> {_('jobsSchedulingPage')}</NavLink>
       </NavTabs>
     </Col>
   </Row>
@@ -31,8 +31,8 @@ const Jobs = routes('overview', {
   ':id/edit': Edit,
   new: New,
   overview: Overview,
-  scheduling: Scheduling,
-  'scheduling/:id/edit': SchedulingEdit
+  schedules: Schedules,
+  'schedules/:id/edit': EditSchedule
 })(
   ({ children }) => <Page header={HEADER} title='jobsPage' formatTitle>{children}</Page>
 )
