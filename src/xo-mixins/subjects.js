@@ -70,10 +70,11 @@ export default class {
       xo.addConfigManager('users',
         () => usersDb.get(),
         users => Promise.all(mapToArray(users, async user => {
+          const userId = user.id
           const conflictUsers = await usersDb.get({ email: user.email })
           if (!isEmpty(conflictUsers)) {
-            await Promise.all(mapToArray(conflictUsers, user =>
-              this.deleteUser(user.id)
+            await Promise.all(mapToArray(conflictUsers, ({ id }) =>
+              (id !== userId) && this.deleteUser(user.id)
             ))
           }
           return usersDb.save(user)
