@@ -1652,7 +1652,7 @@ export const deleteJob = job => (
 )
 
 export const deleteSchedule = schedule => (
-  _call('schedule.delete', { id: resolveIds(schedule) })::tap(
+  _call('schedule.delete', { id: resolveId(schedule) })::tap(
     subscribeSchedules.forceRefresh
   )
 )
