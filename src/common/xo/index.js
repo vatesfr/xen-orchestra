@@ -15,6 +15,7 @@ import sortBy from 'lodash/sortBy'
 import throttle from 'lodash/throttle'
 import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
+import { noHostsAvailable } from 'xo-common/api-errors'
 import { reflect } from 'promise-toolbox'
 import { resolve } from 'url'
 
@@ -395,7 +396,7 @@ export const restartHost = (host, force = false) => (
     body: _('restartHostModalMessage')
   }).then(
     () => _call('host.restart', { id: resolveId(host), force }).catch(error => {
-      if (error.code === 7) {
+      if (noHostsAvailable.is(error)) {
         alert(_('noHostsAvailableErrorTitle'), _('noHostsAvailableErrorMessage'))
       }
     }),
@@ -416,9 +417,8 @@ export const restartHosts = (hosts, force = false) => {
     ).then(results => {
       const nbErrors = filter(results, result => !result.isFulfilled()).length
       if (nbErrors) {
-        alert(_('failHostBulkRestartTitle'), _('failHostBulkRestartMessage', { failedHosts: nbErrors, totalHosts: results.length }))
+        return alert(_('failHostBulkRestartTitle'), _('failHostBulkRestartMessage', { failedHosts: nbErrors, totalHosts: results.length }))
       }
-      return results
     }),
     noop
   )
