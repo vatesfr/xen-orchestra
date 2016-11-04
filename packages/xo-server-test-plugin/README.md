@@ -16,19 +16,19 @@ Or globally:
 
 ## Documentation
 
-### The life cycle of plugins
+### Plugin life cyle
 
-#### First step: Initialising plugins
+#### Initialization
 
-When the xo-server start, he initialize and load plugins. Then, he recuperates the configuration schema and the test schema to store them.
+When xo-server starts, it initializes and loads plugins. Then, he recuperates the configuration schema and the test schema to store them.
 
-#### Second step: Get schemas
+#### Get schemas
 
 The xo-web recuperates the configuration schema and the test schema from xo-server to generate a UI.
 
-#### Third step: Test configuration schema
+#### Test configuration
 
-Xo-web send an object which contains the configuration schema and the test schema to xo-server for testing the configuration and saving it if successful. 
+Xo-web send data to xo-server for testing the configuration and saving it if successful. 
 
 ### Principal Methods
 
@@ -37,23 +37,21 @@ Xo-web send an object which contains the configuration schema and the test schem
 It is  just a factory function which will create an instance of the plugin. Usually it will be called only once, at startup.
 Its only parameter is an object which currently only contains the instance of the currently running xo-server.
 
-#### Configure
+#### `configure(configuration) `
 
-This method is called each time the plugin is (re-configured).
-Its only parameter is an object which contains the values putted on the confirmation form.
-
-#### Load
+This method is called each time the plugin is (re-)configured.
+Its only parameter is an object which contains the configuration values.
+ 
+#### `load() `
 
 This method is called to load the plugin.
 
-#### Unload
+#### `unload() `
 
 This method is called to unload the plugin.
 
-#### Test
+#### `test(data) `
 
 This method is called if the test option is activated.
-Its only parameter is an object which contains the values putted on the test form. 
-
-
+Its only parameter is an object which contains the test values. 
 

@@ -66,12 +66,13 @@ exports.default = function (opts) {
     },
 
     // This (optional) method is called to test the configuration of the plugin.
-    // Note 1: will only be called if the plugin has been successfully configured.
+    // Note 1: will only be called if the plugin has been successfully configured and is loaded.
     // Note 2: before being called, the test configuration is validated
-    // against the provided test configuration schema.
+    // against the provided test data.
     // Note 3: will only be called if the test option is activated.
-    test: function(data){
-      console.log('the configuration is valid')
+    test: function (data) {
+      console.log('the configuration is about to be tested')
+      // TODO: test the configuration, i.e, use the main feature of the plugin and throws any errors.
     }
   }
 }
