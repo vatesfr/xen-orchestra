@@ -290,7 +290,7 @@ export default class Api {
 
       const xoError = XAPI_ERROR_TO_XO_ERROR[error.code]
       if (xoError) {
-        throw xoError.error(error.params)
+        throw xoError(error.params)
       }
 
       throw error
