@@ -1,4 +1,4 @@
-import {InvalidParameters} from '../api-errors'
+import {invalidParameters} from 'xo-common/api-errors'
 import { getUserPublicProperties, mapToArray } from '../utils'
 
 // ===================================================================
@@ -22,7 +22,7 @@ create.params = {
 // Deletes an existing user.
 async function delete_ ({id}) {
   if (id === this.session.get('user_id')) {
-    throw new InvalidParameters('a user cannot delete itself')
+    throw invalidParameters('a user cannot delete itself')
   }
 
   await this.deleteUser(id)
@@ -61,10 +61,10 @@ export async function set ({id, email, password, permission, preferences}) {
   const isAdmin = this.user && this.user.permission === 'admin'
   if (isAdmin) {
     if (permission && id === this.session.get('user_id')) {
-      throw new InvalidParameters('a user cannot change its own permission')
+      throw invalidParameters('a user cannot change its own permission')
     }
   } else if (email || password || permission) {
-    throw new InvalidParameters('this properties can only changed by an administrator')
+    throw invalidParameters('this properties can only changed by an administrator')
   }
 
   await this.updateUser(id, {email, password, permission, preferences})

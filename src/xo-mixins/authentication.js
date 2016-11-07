@@ -1,7 +1,5 @@
 import Token, { Tokens } from '../models/token'
-import {
-  NoSuchObject
-} from '../api-errors'
+import { noSuchObject } from 'xo-common/api-errors'
 import {
   createRawObject,
   forEach,
@@ -12,13 +10,8 @@ import {
 
 // ===================================================================
 
-class NoSuchAuthenticationToken extends NoSuchObject {
-  constructor (id) {
-    super(id, 'authentication token')
-  }
-}
-
-// ===================================================================
+const noSuchAuthenticationToken = id =>
+  noSuchObject(id, 'authenticationToken')
 
 export default class {
   constructor (xo) {
@@ -172,14 +165,14 @@ export default class {
 
   async deleteAuthenticationToken (id) {
     if (!await this._tokens.remove(id)) {
-      throw new NoSuchAuthenticationToken(id)
+      throw noSuchAuthenticationToken(id)
     }
   }
 
   async getAuthenticationToken (id) {
     let token = await this._tokens.first(id)
     if (!token) {
-      throw new NoSuchAuthenticationToken(id)
+      throw noSuchAuthenticationToken(id)
     }
 
     token = token.properties
@@ -189,7 +182,7 @@ export default class {
     )) {
       this._tokens.remove(id)::pCatch(noop)
 
-      throw new NoSuchAuthenticationToken(id)
+      throw noSuchAuthenticationToken(id)
     }
 
     return token

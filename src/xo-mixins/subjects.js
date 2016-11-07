@@ -5,11 +5,11 @@ import {
   needsRehash,
   verify
 } from 'hashy'
-
 import {
-  InvalidCredential,
-  NoSuchObject
-} from '../api-errors'
+  invalidCredentials,
+  noSuchObject
+} from 'xo-common/api-errors'
+
 import {
   Groups
 } from '../models/group'
@@ -26,18 +26,6 @@ import {
 } from '../utils'
 
 // ===================================================================
-
-class NoSuchGroup extends NoSuchObject {
-  constructor (id) {
-    super(id, 'group')
-  }
-}
-
-class NoSuchUser extends NoSuchObject {
-  constructor (id) {
-    super(id, 'user')
-  }
-}
 
 const addToArraySet = (set, value) => set && !includes(set, value)
   ? set.concat(value)
@@ -181,7 +169,7 @@ export default class {
   async _getUser (id) {
     const user = await this._users.first(id)
     if (!user) {
-      throw new NoSuchUser(id)
+      throw noSuchObject(id, 'user')
     }
 
     return user
@@ -214,7 +202,7 @@ export default class {
       return null
     }
 
-    throw new NoSuchUser(username)
+    throw noSuchObject(username, 'user')
   }
 
   // Get or create a user associated with an auth provider.
@@ -240,7 +228,7 @@ export default class {
 
   async changeUserPassword (userId, oldPassword, newPassword) {
     if (!(await this.checkUserPassword(userId, oldPassword, false))) {
-      throw new InvalidCredential()
+      throw invalidCredentials()
     }
 
     await this.updateUser(userId, { password: newPassword })
@@ -303,7 +291,7 @@ export default class {
   async getGroup (id) {
     const group = await this._groups.first(id)
     if (!group) {
-      throw new NoSuchGroup(id)
+      throw noSuchObject(id, 'group')
     }
 
     return group.properties

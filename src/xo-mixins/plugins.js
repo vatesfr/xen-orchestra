@@ -2,22 +2,14 @@ import createJsonSchemaValidator from 'is-my-json-valid'
 
 import { PluginsMetadata } from '../models/plugin-metadata'
 import {
-  InvalidParameters,
-  NoSuchObject
-} from '../api-errors'
+  invalidParameters,
+  noSuchObject
+} from 'xo-common/api-errors'
 import {
   createRawObject,
   isFunction,
   mapToArray
 } from '../utils'
-
-// ===================================================================
-
-class NoSuchPlugin extends NoSuchObject {
-  constructor (id) {
-    super(id, 'plugin')
-  }
-}
 
 // ===================================================================
 
@@ -43,7 +35,7 @@ export default class {
   _getRawPlugin (id) {
     const plugin = this._plugins[id]
     if (!plugin) {
-      throw new NoSuchPlugin(id)
+      throw noSuchObject(id, 'plugin')
     }
     return plugin
   }
@@ -148,12 +140,12 @@ export default class {
     const { configurationSchema } = plugin
 
     if (!configurationSchema) {
-      throw new InvalidParameters('plugin not configurable')
+      throw invalidParameters('plugin not configurable')
     }
 
     // See: https://github.com/mafintosh/is-my-json-valid/issues/116
     if (configuration == null) {
-      throw new InvalidParameters([{
+      throw invalidParameters([{
         field: 'data',
         message: 'is the wrong type'
       }])
@@ -161,7 +153,7 @@ export default class {
 
     const validate = createJsonSchemaValidator(configurationSchema)
     if (!validate(configuration)) {
-      throw new InvalidParameters(validate.errors)
+      throw invalidParameters(validate.errors)
     }
 
     // Sets the plugin configuration.
@@ -200,11 +192,11 @@ export default class {
   async loadPlugin (id) {
     const plugin = this._getRawPlugin(id)
     if (plugin.loaded) {
-      throw new InvalidParameters('plugin already loaded')
+      throw invalidParameters('plugin already loaded')
     }
 
     if (!plugin.configured) {
-      throw new InvalidParameters('plugin not configured')
+      throw invalidParameters('plugin not configured')
     }
 
     await plugin.instance.load()
@@ -214,11 +206,11 @@ export default class {
   async unloadPlugin (id) {
     const plugin = this._getRawPlugin(id)
     if (!plugin.loaded) {
-      throw new InvalidParameters('plugin already unloaded')
+      throw invalidParameters('plugin already unloaded')
     }
 
     if (plugin.unloadable === false) {
-      throw new InvalidParameters('plugin cannot be unloaded')
+      throw invalidParameters('plugin cannot be unloaded')
     }
 
     await plugin.instance.unload()

@@ -1,7 +1,7 @@
 import { BaseError } from 'make-error'
-import { NoSuchObject } from '../api-errors.js'
-import { Schedules } from '../models/schedule'
+import { noSuchObject } from 'xo-common/api-errors.js'
 
+import { Schedules } from '../models/schedule'
 import {
   forEach,
   mapToArray,
@@ -17,12 +17,6 @@ export class SchedulerError extends BaseError {}
 export class ScheduleOverride extends SchedulerError {
   constructor (scheduleOrId) {
     super('Schedule ID ' + _resolveId(scheduleOrId) + ' is already added')
-  }
-}
-
-export class NoSuchSchedule extends NoSuchObject {
-  constructor (scheduleOrId) {
-    super(scheduleOrId, 'schedule')
   }
 }
 
@@ -96,7 +90,7 @@ export default class {
 
   _disable (scheduleOrId) {
     if (!this._exists(scheduleOrId)) {
-      throw new NoSuchSchedule(scheduleOrId)
+      throw noSuchObject(scheduleOrId, 'schedule')
     }
     if (!this._isEnabled(scheduleOrId)) {
       throw new ScheduleNotEnabled(scheduleOrId)
@@ -135,7 +129,7 @@ export default class {
     const schedule = await this._redisSchedules.first(id)
 
     if (!schedule) {
-      throw new NoSuchSchedule(id)
+      throw noSuchObject(id, 'schedule')
     }
 
     return schedule
@@ -176,7 +170,7 @@ export default class {
     const { properties } = schedule
 
     if (!this._exists(properties)) {
-      throw new NoSuchSchedule(properties)
+      throw noSuchObject(properties, 'schedule')
     }
 
     if (this._isEnabled(properties)) {

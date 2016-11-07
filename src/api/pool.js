@@ -1,5 +1,3 @@
-import {GenericError} from '../api-errors'
-
 // ===================================================================
 
 export async function set ({
@@ -121,12 +119,7 @@ export {uploadPatch as patch}
 // -------------------------------------------------------------------
 
 export async function mergeInto ({ source, target, force }) {
-  try {
-    await this.mergeXenPools(source._xapiId, target._xapiId, force)
-  } catch (e) {
-    // FIXME: should we expose plain XAPI error messages?
-    throw new GenericError(e.message)
-  }
+  await this.mergeXenPools(source._xapiId, target._xapiId, force)
 }
 
 mergeInto.params = {

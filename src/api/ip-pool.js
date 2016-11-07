@@ -1,4 +1,4 @@
-import { Unauthorized } from '../api-errors'
+import { unauthorized } from 'xo-common/api-errors'
 
 export function create (props) {
   return this.createIpPool(props)
@@ -21,7 +21,7 @@ export function getAll (params) {
   const { user } = this
 
   if (!user) {
-    throw new Unauthorized()
+    throw unauthorized()
   }
 
   return this.getAllIpPools(user.permission === 'admin'

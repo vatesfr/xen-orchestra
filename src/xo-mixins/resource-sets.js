@@ -2,11 +2,11 @@ import every from 'lodash/every'
 import keyBy from 'lodash/keyBy'
 import remove from 'lodash/remove'
 import some from 'lodash/some'
-
 import {
-  NoSuchObject,
-  Unauthorized
-} from '../api-errors'
+  noSuchObject,
+  unauthorized
+} from 'xo-common/api-errors'
+
 import {
   forEach,
   generateUnsecureToken,
@@ -18,12 +18,6 @@ import {
 } from '../utils'
 
 // ===================================================================
-
-class NoSuchResourceSet extends NoSuchObject {
-  constructor (id) {
-    super(id, 'resource set')
-  }
-}
 
 const VM_RESOURCES = {
   cpus: true,
@@ -124,7 +118,7 @@ export default class {
       // The set does not contains ALL objects.
       !every(objectIds, lightSet(set.objects).has)
     )) {
-      throw new Unauthorized()
+      throw unauthorized()
     }
   }
 
@@ -156,7 +150,7 @@ export default class {
       return store.del(id)
     }
 
-    throw new NoSuchResourceSet(id)
+    throw noSuchObject(id, 'resourceSet')
   }
 
   async updateResourceSet (id, {
@@ -223,7 +217,7 @@ export default class {
   getResourceSet (id) {
     return this._store.get(id).then(normalize, error => {
       if (error.notFound) {
-        throw new NoSuchResourceSet(id)
+        throw noSuchObject(id, 'resourceSet')
       }
 
       throw error

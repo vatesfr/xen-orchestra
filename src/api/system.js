@@ -2,7 +2,7 @@ import forEach from 'lodash/forEach'
 import getKeys from 'lodash/keys'
 import moment from 'moment-timezone'
 
-import { NoSuchObject } from '../api-errors'
+import { noSuchObject } from 'xo-common/api-errors'
 import { version as xoServerVersion } from '../../package.json'
 
 // ===================================================================
@@ -50,7 +50,7 @@ export function methodSignature ({method: name}) {
   const method = this.apiMethods[name]
 
   if (!method) {
-    throw new NoSuchObject()
+    throw noSuchObject()
   }
 
   // Return an array for compatibility with XML-RPC.

@@ -3,6 +3,7 @@ import XoCollection from 'xo-collection'
 import XoUniqueIndex from 'xo-collection/unique-index'
 import {createClient as createRedisClient} from 'redis'
 import {EventEmitter} from 'events'
+import { noSuchObject } from 'xo-common/api-errors'
 
 import mixins from './xo-mixins'
 import Connection from './connection'
@@ -20,9 +21,6 @@ import {
   mapToArray,
   noop
 } from './utils'
-import {
-  NoSuchObject
-} from './api-errors'
 
 // ===================================================================
 
@@ -140,14 +138,14 @@ export default class Xo extends EventEmitter {
 
     const obj = all[key] || byRef[key]
     if (!obj) {
-      throw new NoSuchObject(key, type)
+      throw noSuchObject(key, type)
     }
 
     if (type != null && (
       isString(type) && type !== obj.type ||
       !includes(type, obj.type) // Array
     )) {
-      throw new NoSuchObject(key, type)
+      throw noSuchObject(key, type)
     }
 
     return obj

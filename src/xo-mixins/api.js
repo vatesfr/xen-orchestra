@@ -7,10 +7,8 @@ import schemaInspector from 'schema-inspector'
 
 import * as methods from '../api'
 import {
-  MethodNotFound,
-  InvalidParameters,
-  Unauthorized
-} from '../api-errors'
+  MethodNotFound
+} from 'json-rpc-peer'
 import {
   createRawObject,
   forEach,
@@ -19,6 +17,8 @@ import {
   serializeError
 } from '../utils'
 
+import * as errors from 'xo-common/api-errors'
+
 // ===================================================================
 
 const PERMISSIONS = {
@@ -26,6 +26,12 @@ const PERMISSIONS = {
   read: 1,
   write: 2,
   admin: 3
+}
+
+const XAPI_ERROR_TO_XO_ERROR = {
+  NO_HOSTS_AVAILABLE: errors.noHostsAvailable,
+  SESSION_AUTHENTICATION_FAILED: errors.authenticationFailed,
+  EHOSTUNREACH: errors.hostUnreached
 }
 
 const hasPermission = (user, permission) => (
@@ -44,7 +50,7 @@ function checkParams (method, params) {
   }, params)
 
   if (!result.valid) {
-    throw new InvalidParameters(result.error)
+    throw errors.invalidParameters(result.error)
   }
 }
 
@@ -60,7 +66,7 @@ function checkPermission (method) {
 
   const {user} = this
   if (!user) {
-    throw new Unauthorized()
+    throw errors.unauthorized()
   }
 
   // The only requirement is login.
@@ -69,7 +75,7 @@ function checkPermission (method) {
   }
 
   if (!hasPermission(user, permission)) {
-    throw new Unauthorized()
+    throw errors.unauthorized()
   }
 }
 
@@ -81,7 +87,7 @@ function resolveParams (method, params) {
 
   const {user} = this
   if (!user) {
-    throw new Unauthorized()
+    throw errors.unauthorized()
   }
 
   const userId = user.id
@@ -117,7 +123,7 @@ function resolveParams (method, params) {
       return params
     }
 
-    throw new Unauthorized()
+    throw errors.unauthorized()
   })
 }
 
@@ -280,6 +286,11 @@ export default class Api {
           ms(Date.now() - startTime),
           error
         )
+      }
+
+      const xoError = XAPI_ERROR_TO_XO_ERROR[error.code]
+      if (xoError) {
+        throw xoError.error(error.params)
       }
 
       throw error

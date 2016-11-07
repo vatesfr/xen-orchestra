@@ -8,9 +8,9 @@ import keys from 'lodash/keys'
 import mapValues from 'lodash/mapValues'
 import pick from 'lodash/pick'
 import remove from 'lodash/remove'
+import { noSuchObject } from 'xo-common/api-errors'
 import { fromCallback } from 'promise-toolbox'
 
-import { NoSuchObject } from '../api-errors'
 import {
   forEach,
   generateUnsecureToken,
@@ -22,12 +22,6 @@ import {
 } from '../utils'
 
 // ===================================================================
-
-class NoSuchIpPool extends NoSuchObject {
-  constructor (id) {
-    super(id, 'ip pool')
-  }
-}
 
 const normalize = ({
   addresses,
@@ -90,7 +84,7 @@ export default class IpPools {
       return store.del(id)
     }
 
-    throw new NoSuchIpPool(id)
+    throw noSuchObject(id, 'ipPool')
   }
 
   async getAllIpPools (userId = undefined) {
@@ -112,7 +106,7 @@ export default class IpPools {
 
   getIpPool (id) {
     return this._store.get(id).then(normalize, error => {
-      throw error.notFound ? new NoSuchIpPool(id) : error
+      throw error.notFound ? noSuchObject(id, 'ipPool') : error
     })
   }
 

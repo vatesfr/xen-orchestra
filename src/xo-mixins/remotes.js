@@ -1,3 +1,5 @@
+import { noSuchObject } from 'xo-common/api-errors'
+
 import RemoteHandlerLocal from '../remote-handlers/local'
 import RemoteHandlerNfs from '../remote-handlers/nfs'
 import RemoteHandlerSmb from '../remote-handlers/smb'
@@ -6,19 +8,8 @@ import {
   mapToArray
 } from '../utils'
 import {
-  NoSuchObject
-} from '../api-errors'
-import {
   Remotes
 } from '../models/remote'
-
-// ===================================================================
-
-class NoSuchRemote extends NoSuchObject {
-  constructor (id) {
-    super(id, 'remote')
-  }
-}
 
 // ===================================================================
 
@@ -74,7 +65,7 @@ export default class {
   async _getRemote (id) {
     const remote = await this._remotes.first(id)
     if (!remote) {
-      throw new NoSuchRemote(id)
+      throw noSuchObject(id, 'remote')
     }
 
     return remote

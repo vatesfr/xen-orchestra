@@ -1,6 +1,6 @@
 import {
-  Unauthorized
-} from '../api-errors'
+  unauthorized
+} from 'xo-common/api-errors'
 
 // ===================================================================
 
@@ -117,7 +117,7 @@ get.params = {
 export async function getAll () {
   const { user } = this
   if (!user) {
-    throw new Unauthorized()
+    throw unauthorized()
   }
 
   return this.getAllResourceSets(user.id)

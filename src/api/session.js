@@ -1,18 +1,14 @@
 import {deprecate} from 'util'
 
 import { getUserPublicProperties } from '../utils'
-import {InvalidCredential, AlreadyAuthenticated} from '../api-errors'
+import {invalidCredentials} from 'xo-common/api-errors'
 
 // ===================================================================
 
 export async function signIn (credentials) {
-  if (this.session.has('user_id')) {
-    throw new AlreadyAuthenticated()
-  }
-
   const user = await this.authenticateUser(credentials)
   if (!user) {
-    throw new InvalidCredential()
+    throw invalidCredentials()
   }
   this.session.set('user_id', user.id)
 

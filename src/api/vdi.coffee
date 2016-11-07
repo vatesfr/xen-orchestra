@@ -3,9 +3,9 @@
 {coroutine: $coroutine} = require 'bluebird'
 
 {format} = require 'json-rpc-peer'
-{InvalidParameters} = require '../api-errors'
+{invalidParameters} = require 'xo-common/api-errors'
 {isArray: $isArray, parseSize} = require '../utils'
-{JsonRpcError} = require '../api-errors'
+{JsonRpcError} = require 'json-rpc-peer'
 
 #=====================================================================
 
@@ -38,7 +38,7 @@ set = $coroutine (params) ->
     size = parseSize(params.size)
 
     if size < vdi.size
-      throw new InvalidParameters(
+      throw invalidParameters(
         "cannot set new size (#{size}) below the current size (#{vdi.size})"
       )
     yield xapi.resizeVdi(ref, size)

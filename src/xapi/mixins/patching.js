@@ -6,7 +6,6 @@ import unzip from 'julien-f-unzip'
 import httpProxy from '../../http-proxy'
 import httpRequest from '../../http-request'
 import { debounce } from '../../decorators'
-import { GenericError } from '../../api-errors'
 import {
   createRawObject,
   ensureArray,
@@ -30,7 +29,7 @@ export default {
     )
 
     if (statusCode !== 200) {
-      throw new GenericError('cannot fetch patches list from Citrix')
+      throw new Error('cannot fetch patches list from Citrix')
     }
 
     const data = parseXml(await readAll()).patchdata

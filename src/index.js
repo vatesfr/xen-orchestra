@@ -18,7 +18,7 @@ import { createServer as createProxyServer } from 'http-proxy'
 import { join as joinPath } from 'path'
 
 import JsonRpcPeer from 'json-rpc-peer'
-import { InvalidCredential } from './api-errors'
+import { invalidCredentials } from 'xo-common/api-errors'
 import {
   readFile,
   readdir
@@ -475,7 +475,7 @@ const setUpConsoleProxy = (webServer, xo) => {
 
         const user = await xo.authenticateUser({ token })
         if (!await xo.hasPermissions(user.id, [ [ id, 'operate' ] ])) {
-          throw new InvalidCredential()
+          throw invalidCredentials()
         }
 
         const { remoteAddress } = socket

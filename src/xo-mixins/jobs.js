@@ -3,18 +3,7 @@ import assign from 'lodash/assign'
 import JobExecutor from '../job-executor'
 import { Jobs } from '../models/job'
 import { mapToArray } from '../utils'
-import {
-  GenericError,
-  NoSuchObject
-} from '../api-errors'
-
-// ===================================================================
-
-class NoSuchJob extends NoSuchObject {
-  constructor (id) {
-    super(id, 'job')
-  }
-}
+import { noSuchObject } from 'xo-common/api-errors'
 
 // ===================================================================
 
@@ -44,7 +33,7 @@ export default class {
   async getJob (id) {
     const job = await this._jobs.first(id)
     if (!job) {
-      throw new NoSuchJob(id)
+      throw noSuchObject(id, 'job')
     }
 
     return job.properties
@@ -67,24 +56,10 @@ export default class {
   }
 
   async runJobSequence (idSequence) {
-    const notFound = []
-    for (const id of idSequence) {
-      let job
-      try {
-        job = await this.getJob(id)
-      } catch (error) {
-        if (error instanceof NoSuchJob) {
-          notFound.push(id)
-        } else {
-          throw error
-        }
-      }
-      if (job) {
-        await this._executor.exec(job)
-      }
-    }
-    if (notFound.length > 0) {
-      throw new GenericError(`The following jobs were not found: ${notFound.join()}`)
+    const jobs = await Promise.all(mapToArray(idSequence, id => this.getJob(id)))
+
+    for (const job of jobs) {
+      await this._executor.exec(job)
     }
   }
 }

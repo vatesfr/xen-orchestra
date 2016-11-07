@@ -1,10 +1,8 @@
+import { noSuchObject } from 'xo-common/api-errors'
+
 import Xapi from '../xapi'
 import xapiObjectToXo from '../xapi-object-to-xo'
 import XapiStats from '../xapi-stats'
-import {
-  GenericError,
-  NoSuchObject
-} from '../api-errors'
 import {
   camelToSnakeCase,
   createRawObject,
@@ -18,14 +16,6 @@ import {
 import {
   Servers
 } from '../models/server'
-
-// ===================================================================
-
-class NoSuchXenServer extends NoSuchObject {
-  constructor (id) {
-    super(id, 'xen server')
-  }
-}
 
 // ===================================================================
 
@@ -84,7 +74,7 @@ export default class {
     this.disconnectXenServer(id)::pCatch(noop)
 
     if (!await this._servers.remove(id)) {
-      throw new NoSuchXenServer(id)
+      throw noSuchObject(id, 'xenServer')
     }
   }
 
@@ -115,7 +105,7 @@ export default class {
   async _getXenServer (id) {
     const server = await this._servers.first(id)
     if (!server) {
-      throw new NoSuchXenServer(id)
+      throw noSuchObject(id, 'xenServer')
     }
 
     return server
@@ -288,23 +278,13 @@ export default class {
 
     xapi.xo.install()
 
-    try {
-      await xapi.connect()
-    } catch (error) {
-      if (error.code === 'SESSION_AUTHENTICATION_FAILED') {
-        throw new GenericError('authentication failed')
-      }
-      if (error.code === 'EHOSTUNREACH') {
-        throw new GenericError('host unreachable')
-      }
-      throw error
-    }
+    await xapi.connect()
   }
 
   async disconnectXenServer (id) {
     const xapi = this._xapis[id]
     if (!xapi) {
-      throw new NoSuchXenServer(id)
+      throw noSuchObject(id, 'xenServer')
     }
 
     delete this._xapis[id]

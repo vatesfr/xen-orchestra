@@ -40,9 +40,7 @@ import {
   promisifyAll,
   pSettle
 } from '../utils'
-import {
-  ForbiddenOperation
-} from '../api-errors'
+import { forbiddenOperation } from 'xo-common/api-errors'
 
 import mixins from './mixins'
 import OTHER_CONFIG_TEMPLATE from './other-config-template'
@@ -1346,7 +1344,7 @@ export default class Xapi extends XapiBase {
       await this._startVm(this.getObject(vmId))
     } catch (e) {
       if (e.code === 'OPERATION_BLOCKED') {
-        throw new ForbiddenOperation('Start', e.params[1])
+        throw forbiddenOperation('Start', e.params[1])
       }
 
       throw e

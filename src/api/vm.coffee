@@ -13,10 +13,10 @@ startsWith = require 'lodash/startsWith'
 {format} = require 'json-rpc-peer'
 
 {
-  GenericError,
-  InvalidParameters,
-  Unauthorized
-} = require('../api-errors')
+  forbiddenOperation,
+  invalidParameters,
+  unauthorized
+} = require('xo-common/api-errors')
 {
   forEach,
   formatXml: $js2xml,
@@ -49,7 +49,7 @@ checkPermissionOnSrs = (vm, permission = 'operate') -> (
   )
 
   return @hasPermissions(@session.get('user_id'), permissions).then((success) => (
-    throw new Unauthorized() unless success
+    throw unauthorized() unless success
   ))
 )
 
@@ -65,7 +65,7 @@ create = $coroutine (params) ->
   { user } = this
   resourceSet = extract(params, 'resourceSet')
   if not resourceSet and user.permission isnt 'admin'
-    throw new Unauthorized()
+    throw unauthorized()
 
   template = extract(params, 'template')
   params.template = template._xapiId
@@ -402,7 +402,7 @@ migrate = $coroutine ({
       ])
 
   unless yield @hasPermissions(@session.get('user_id'), permissions)
-    throw new Unauthorized()
+    throw unauthorized()
 
   yield @getXapi(vm).migrateVm(vm._xapiId, @getXapi(host), host._xapiId, {
     migrationNetworkId: migrationNetwork?._xapiId
@@ -450,7 +450,7 @@ set = (params) ->
       return @allocateLimitsInResourceSet(limits, resourceSet)
 
     if (limits.cpuWeight && this.user.permission != 'admin')
-      throw new Unauthorized()
+      throw unauthorized()
   )
 
 set.params = {
@@ -596,7 +596,7 @@ convertToTemplate = $coroutine ({vm}) ->
   unless yield @hasPermissions(@session.get('user_id'), [
     [ vm.$pool, 'administrate' ]
   ])
-    throw new Unauthorized()
+    throw unauthorized()
 
   yield @getXapi(vm).call 'VM.set_is_a_template', vm._xapiRef, true
 
@@ -791,10 +791,10 @@ exports.rollingBackup = rollingBackup
 rollingDrCopy = ({vm, pool, sr, tag, depth}) ->
   unless sr
     unless pool
-      throw new InvalidParameters('either pool or sr param should be specified')
+      throw invalidParameters('either pool or sr param should be specified')
 
     if vm.$pool is pool.id
-      throw new GenericError('Disaster Recovery attempts to copy on the same pool')
+      throw forbiddenOperation('Disaster Recovery attempts to copy on the same pool')
 
     sr = @getObject(pool.default_SR, 'SR')
 
@@ -852,7 +852,7 @@ stop = $coroutine ({vm, force}) ->
     yield xapi.call 'VM.clean_shutdown', vm._xapiRef
   catch error
     if error.code is 'VM_MISSING_PV_DRIVERS' or error.code is 'VM_LACKS_FEATURE_SHUTDOWN'
-      throw new InvalidParameters('clean shutdown requires PV drivers')
+      throw invalidParameters('clean shutdown requires PV drivers')
     else
       throw error
 
@@ -983,7 +983,7 @@ handleVmImport = $coroutine (req, res, { data, srId, type, xapi }) ->
     res.end(format.response(0, vm.$id))
   catch e
     res.writeHead(500)
-    res.end(format.error(0, new GenericError(e.message)))
+    res.end(format.error(0, new Error(e.message)))
 
   return
 
@@ -991,12 +991,12 @@ handleVmImport = $coroutine (req, res, { data, srId, type, xapi }) ->
 import_ = $coroutine ({ data, host, sr, type }) ->
   if not sr
     if not host
-      throw new InvalidParameters('you must provide either host or SR')
+      throw invalidParameters('you must provide either host or SR')
 
     xapi = @getXapi(host)
     sr = xapi.pool.$default_SR
     if not sr
-      throw new InvalidParameters('there is not default SR in this pool')
+      throw invalidParameters('there is not default SR in this pool')
 
     # FIXME: must have administrate permission on default SR.
   else
@@ -1203,7 +1203,7 @@ setBootOrder = $coroutine ({vm, order}) ->
     yield xapi.call 'VM.set_HVM_boot_params', vm._xapiRef, order
     return true
 
-  throw new InvalidParameters('You can only set the boot order on a HVM guest')
+  throw invalidParameters('You can only set the boot order on a HVM guest')
 
 setBootOrder.params = {
   vm: { type: 'string' },
