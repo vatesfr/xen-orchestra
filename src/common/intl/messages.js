@@ -445,6 +445,10 @@ var messages = {
   restartHostAgent: 'Restart toolstack',
   forceRebootHostLabel: 'Force reboot',
   rebootHostLabel: 'Reboot',
+  noHostsAvailableErrorTitle: 'Error while restarting host',
+  noHostsAvailableErrorMessage: 'Some VMs cannot be migrated before restarting this host. Please try force reboot.',
+  failHostBulkRestartTitle: 'Error while restarting hosts',
+  failHostBulkRestartMessage: '{failedHosts}/{totalHosts} host{failedHosts, plural, one {} other {s}} could not be restarted.',
   rebootUpdateHostLabel: 'Reboot for applying updates',
   emergencyModeLabel: 'Emergency mode',
   // ----- Host tabs -----
