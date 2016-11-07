@@ -347,6 +347,7 @@ var messages = {
   selectPermission: 'Select Permission',
 
   // ----- Plugins ------
+  noPlugins: 'No plugins found',
   autoloadPlugin: 'Auto-load at server start',
   savePluginConfiguration: 'Save configuration',
   deletePluginConfiguration: 'Delete configuration',
