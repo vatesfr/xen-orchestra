@@ -25,7 +25,8 @@
   },
   "dependencies": {
     "babel-runtime": "^6.18.0",
-    "lodash": "^4.16.6"
+    "lodash": "^4.16.6",
+    "make-error": "^1.2.1"
   },
   "devDependencies": {
     "babel-cli": "^6.18.0",
