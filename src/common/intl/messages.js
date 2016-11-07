@@ -429,8 +429,11 @@ var messages = {
   poolNetworkMTU: 'MTU',
   poolNetworkPifAttached: 'Connected',
   poolNetworkPifDetached: 'Disconnected',
+  poolNetworkDefaultPif: 'Default PIF',
   showPifs: 'Show PIFs',
   hidePifs: 'Hide PIFs',
+  showDetails: 'Show details',
+  hideDetails: 'Hide details',
   // ----- Pool actions ------
   addSrLabel: 'Add SR',
   addVmLabel: 'Add VM',
