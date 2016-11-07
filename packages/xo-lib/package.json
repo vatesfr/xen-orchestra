@@ -28,7 +28,7 @@
     "node": ">=0.12"
   },
   "dependencies": {
-    "jsonrpc-websocket-client": "0.0.1-5",
+    "jsonrpc-websocket-client": "0.1.1",
     "lodash.startswith": "^4.0.0",
     "make-error": "^1.0.4"
   },
