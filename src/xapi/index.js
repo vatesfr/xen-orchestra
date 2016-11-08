@@ -5,6 +5,7 @@ import fatfs from 'fatfs'
 import find from 'lodash/find'
 import flatten from 'lodash/flatten'
 import includes from 'lodash/includes'
+import isEmpty from 'lodash/isEmpty'
 import tarStream from 'tar-stream'
 import uniq from 'lodash/uniq'
 import vmdkToVhd from 'xo-vmdk-to-vhd'
@@ -1880,7 +1881,7 @@ export default class Xapi extends XapiBase {
     const pif = this.getObject(pifId)
     const physPif = find(this.objects.all, obj => (
       obj.$type === 'pif' &&
-      (obj.physical || obj.bond_master_of) &&
+      (obj.physical || !isEmpty(obj.bond_master_of)) &&
       obj.$pool === pif.$pool &&
       obj.device === pif.device
     ))
@@ -1889,11 +1890,24 @@ export default class Xapi extends XapiBase {
       throw new Error('PIF not found')
     }
 
-    await this.call('VLAN.destroy', pif.VLAN_master_of)
-    const pifs = await this.call('pool.create_VLAN_from_PIF', physPif.$ref, pif.network, asInteger(vlan))
-    if (!pif.currently_attached) {
-      forEach(pifs, pifRef => this.call('PIF.unplug', pifRef)::pCatch(noop))
-    }
+    const pifs = this.getObject(pif.network).$PIFs
+
+    const wasAttached = {}
+    forEach(pifs, pif => {
+      wasAttached[pif.host] = pif.currently_attached
+    })
+
+    const vlans = uniq(mapToArray(pifs, pif => pif.VLAN_master_of))
+    await Promise.all(
+      mapToArray(vlans, vlan => vlan !== NULL_REF && this.call('VLAN.destroy', vlan))
+    )
+
+    const newPifs = await this.call('pool.create_VLAN_from_PIF', physPif.$ref, pif.network, asInteger(vlan))
+    await Promise.all(
+      mapToArray(newPifs, pifRef =>
+        !wasAttached[this.getObject(pifRef).host] && this.call('PIF.unplug', pifRef)::pCatch(noop)
+      )
+    )
   }
 
   async createBondedNetwork ({
