@@ -36,7 +36,7 @@ export default class Redis extends Collection {
     connection,
     indexes = [],
     prefix,
-    uri = 'tcp://localhost:6379'
+    uri
   }) {
     super()
 

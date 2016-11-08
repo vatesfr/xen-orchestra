@@ -41,7 +41,11 @@ export default class Xo extends EventEmitter {
     this._httpRequestWatchers = createRawObject()
 
     // Connects to Redis.
-    this._redis = createRedisClient(config.redis && config.redis.uri)
+    const redisConf = config.redis
+    this._redis = createRedisClient(redisConf && {
+      rename_commands: redisConf.renameCommands,
+      url: redisConf.uri
+    })
   }
 
   // -----------------------------------------------------------------
