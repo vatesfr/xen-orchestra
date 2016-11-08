@@ -97,9 +97,9 @@ class Description extends Component {
 
 // -----------------------------------------------------------------------------
 
-@connectStore({
+@connectStore(() => ({
   defaultPif: _createGetDefaultPif()
-})
+}))
 class DefaultPif extends BaseComponent {
   _editPif = vlan =>
     editPif(this.props.defaultPif, { vlan })
@@ -117,9 +117,9 @@ class DefaultPif extends BaseComponent {
   }
 }
 
-@connectStore({
+@connectStore(() => ({
   defaultPif: _createGetDefaultPif()
-})
+}))
 class Vlan extends BaseComponent {
   _editPif = vlan =>
     editPif(this.props.defaultPif, { vlan })
