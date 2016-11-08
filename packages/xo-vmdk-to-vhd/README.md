@@ -39,24 +39,21 @@ convertFromVMDK(fs.createReadStream(vmdkFileName)).then(function (stream) {
 
 ## Development
 
-### Installing dependencies
-
 ```
+# Install dependencies
 > npm install
-```
 
-### Compilation
+# Run the tests
+> npm test
 
-The sources files are watched and automatically recompiled on changes.
-
-```
+# Continuously compile
 > npm run dev
-```
 
-### Tests
+# Continuously run the tests
+> npm run dev-test
 
-```
-> npm run test-dev
+# Build for production (automatically called by npm install)
+> npm run build
 ```
 
 ## Contributions

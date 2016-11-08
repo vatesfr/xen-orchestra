@@ -1,4 +1,4 @@
-import {assert} from 'chai'
+import expect from 'must'
 import {createReadStream} from 'fs-promise'
 import {describe, it} from 'mocha'
 import {exec} from 'child-process-promise'
@@ -21,8 +21,8 @@ describe('VMDK reading', () => {
       }
       harvested.push(res)
     }
-    assert.equal(harvested.length, 2)
-    assert.equal(harvested[0].lba, 0)
-    assert.equal(harvested[1].lba, header['grainSizeSectors'])
+    expect(harvested.length).to.equal(2)
+    expect(harvested[0].lba).to.equal(0)
+    expect(harvested[1].lba).to.equal(header['grainSizeSectors'])
   }).timeout(10000)
 })

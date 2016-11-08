@@ -1,4 +1,4 @@
-import {assert} from 'chai'
+import expect from 'must'
 import {createReadStream, readFile} from 'fs-promise'
 import {describe, it} from 'mocha'
 import {exec} from 'child-process-promise'
@@ -13,7 +13,7 @@ describe('Virtual Buffer', function () {
     const part1 = await buffer.readChunk(10)
     const part2 = await buffer.readChunk(-1)
     const original = await readFile(rawFileName)
-    assert(buffer.isDepleted, 'virtual buffer is depleted')
-    assert.equal(Buffer.concat([part1, part2]).toString('ascii'), original.toString('ascii'))
+    expect(buffer.isDepleted).to.be.true()
+    expect(Buffer.concat([part1, part2]).toString('ascii')).to.equal(original.toString('ascii'))
   })
 })

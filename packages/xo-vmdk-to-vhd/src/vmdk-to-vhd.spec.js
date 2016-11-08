@@ -1,6 +1,5 @@
 'use strict'
 
-import {assert} from 'chai'
 import {describe, it} from 'mocha'
 import {exec} from 'child-process-promise'
 import {createReadStream, createWriteStream} from 'fs-promise'
@@ -23,13 +22,16 @@ describe('VMDK to VHD conversion', () => {
     await f.writeBuffer(rawContent)
     await f.writeFile(vhdFileName)
     await exec('qemu-img convert -fvpc -Oraw ' + vhdFileName + ' ' + reconvertedRawFilemane)
-    await exec('qemu-img compare ' + vmdkFileName + ' ' + vhdFileName)
+    return exec('qemu-img compare ' + vmdkFileName + ' ' + vhdFileName)
       .catch((error) => {
         console.error(error.stdout)
         console.error(error.stderr)
-        assert.fail(vhdFileName, vmdkFileName, error.message)
+        console.error(vhdFileName, vmdkFileName, error.message)
+
+        throw error
       })
   })
+
   it('can convert a random data file with VMDKDirectParser', async () => {
     let inputRawFileName = 'random-data.raw'
     let vmdkFileName = 'random-data.vmdk'
@@ -51,7 +53,9 @@ describe('VMDK to VHD conversion', () => {
       .catch((error) => {
         console.error(error.stdout)
         console.error(error.stderr)
-        assert.fail(vhdFileName, vmdkFileName, error.message)
+        console.error(vhdFileName, vmdkFileName, error.message)
+
+        throw error
       })
   })
 })

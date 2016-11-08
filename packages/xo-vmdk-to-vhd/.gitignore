@@ -1,6 +1,12 @@
-/.nyc_output/
 /dist/
 /node_modules/
+/output.vhd
+/outputStream
+/random-data
+/random-data.raw
+/random.raw
 
 npm-debug.log
 npm-debug.log.*
+pnpm-debug.log
+pnpm-debug.log.*

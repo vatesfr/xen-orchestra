@@ -20,49 +20,56 @@
     "dist/"
   ],
   "engines": {
-    "node": ">=0.12"
+    "node": ">=4"
   },
   "dependencies": {
-    "babel-runtime": "^6.11.6",
+    "babel-runtime": "^6.18.0",
     "child-process-promise": "^2.0.3",
     "deflate-js": "^0.2.3",
     "fs-promise": "^0.5.0",
     "pipette": "^0.9.3"
   },
   "devDependencies": {
-    "babel-cli": "^6.11.4",
-    "babel-eslint": "^7.0.0",
-    "babel-plugin-transform-runtime": "^6.12.0",
-    "babel-preset-es2015": "^6.13.2",
-    "babel-preset-stage-0": "^6.5.0",
-    "chai": "^3.5.0",
-    "chai-as-promised": "^6.0.0",
-    "clarify": "^2.0.0",
+    "babel-cli": "^6.18.0",
+    "babel-eslint": "^7.1.0",
+    "babel-plugin-transform-runtime": "^6.15.0",
+    "babel-preset-env": "^0.0.7",
+    "babel-preset-stage-0": "^6.16.0",
+    "cross-env": "^3.1.3",
     "dependency-check": "^2.6.0",
     "ghooks": "^1.3.2",
-    "mocha": "^3.0.2",
-    "nyc": "^8.1.0",
-    "source-map-support": "^0.4.2",
-    "standard": "^8.1.0",
-    "trace": "^2.3.3"
+    "mocha": "^3.1.2",
+    "must": "^0.13.2",
+    "rimraf": "^2.5.4",
+    "standard": "^8.5.0"
   },
   "scripts": {
-    "build": "NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "clean": "rimraf dist/",
     "depcheck": "dependency-check ./package.json",
-    "dev": "babel --watch --source-maps --out-dir=dist/ src/",
-    "dev-test": "mocha --opts .mocha.opts --watch --reporter=min \"dist/**/*.spec.js\"",
+    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
+    "dev-test": "mocha --watch --reporter=min \"dist/**/*.spec.js\"",
     "lint": "standard",
     "posttest": "npm run lint && npm run depcheck",
+    "prebuild": "npm run clean",
+    "predev": "npm run clean",
     "prepublish": "npm run build",
-    "test": "nyc mocha --opts .mocha.opts \"dist/**/*.spec.js\""
+    "test": "mocha \"dist/**/*.spec.js\""
   },
   "babel": {
     "plugins": [
       "transform-runtime"
     ],
     "presets": [
-      "stage-0",
-      "es2015"
+      [
+        "env",
+        {
+          "targets": {
+            "node": 4
+          }
+        }
+      ],
+      "stage-0"
     ]
   },
   "standard": {

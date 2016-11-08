@@ -1,8 +1,6 @@
 'use strict'
 
-import chai, {assert} from 'chai'
-import chaiAsPromised from 'chai-as-promised'
-chai.use(chaiAsPromised)
+import expect from 'must'
 import {createWriteStream} from 'fs'
 import {describe, it} from 'mocha'
 import {exec} from 'child-process-promise'
@@ -24,16 +22,19 @@ describe('VHD writing', () => {
     const expectedChecksum1 = 0xFFFFEFB2
     const testValue2 = '6378737061727365FFFFFFFFFFFFFFFF0000000000000600000100000000000100200000'
     const expectedChecksum2 = 0xFFFFF476
-    assert.equal(computeChecksum(new Buffer(testValue1, 'hex')), expectedChecksum1)
-    assert.equal(computeChecksum(new Buffer(testValue2, 'hex')), expectedChecksum2)
+    expect(computeChecksum(new Buffer(testValue1, 'hex'))).to.equal(expectedChecksum1)
+    expect(computeChecksum(new Buffer(testValue2, 'hex'))).to.equal(expectedChecksum2)
   })
+
   it('createFooter() does not crash', () => {
     createFooter(104448, Math.floor(Date.now() / 1000), {cylinders: 3, heads: 4, sectorsPerTrack: 17})
   })
+
   it('createDynamicDiskHeader() does not crash', () => {
     createDynamicDiskHeader(1, 0x00200000)
   })
-  it('ReadableRawVHDStream does not crash', async () => {
+
+  it('ReadableRawVHDStream does not crash', () => {
     const data = [{
       lbaBytes: 100,
       grain: new Buffer('azerzaerazeraze', 'ascii')
@@ -43,7 +44,7 @@ describe('VHD writing', () => {
     }]
     let index = 0
     const mockParser = {
-      next: async () => {
+      next: () => {
         if (index < data.length) {
           const result = data[index]
           index++
@@ -55,12 +56,13 @@ describe('VHD writing', () => {
     }
     const stream = new ReadableRawVHDStream(100000, mockParser)
     const pipe = stream.pipe(createWriteStream('outputStream'))
-    await new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       pipe.on('finish', resolve)
       pipe.on('error', reject)
     })
   })
-  it('ReadableRawVHDStream detects when blocks are out of order', async () => {
+
+  it('ReadableRawVHDStream detects when blocks are out of order', () => {
     const data = [{
       lbaBytes: 700,
       grain: new Buffer('azerzaerazeraze', 'ascii')
@@ -70,7 +72,7 @@ describe('VHD writing', () => {
     }]
     let index = 0
     const mockParser = {
-      next: async () => {
+      next: () => {
         if (index < data.length) {
           const result = data[index]
           index++
@@ -80,14 +82,15 @@ describe('VHD writing', () => {
         }
       }
     }
-    return assert.isRejected(new Promise((resolve, reject) => {
+    return expect(new Promise((resolve, reject) => {
       const stream = new ReadableRawVHDStream(100000, mockParser)
       stream.on('error', reject)
       const pipe = stream.pipe(createWriteStream('outputStream'))
       pipe.on('finish', resolve)
       pipe.on('error', reject)
-    }))
+    })).to.reject.to.equal('This VMDK file does not have its blocks in the correct order')
   })
+
   it('writing a known file with VHDFile is successful', async () => {
     const fileName = 'output.vhd'
     const rawFilename = 'output.raw'
@@ -104,11 +107,9 @@ describe('VHD writing', () => {
     await f.writeFile(fileName)
     await exec('qemu-img convert -fvpc -Oraw ' + fileName + ' ' + rawFilename)
     const fileContent = await readFile(rawFilename)
-    assert.equal(fileContent.length, dataSize)
+    expect(fileContent.length).to.equal(dataSize)
     for (let i = 0; i < fileContent.length; i++) {
-      if (fileContent[i] !== buffer[i]) {
-        assert.fail(fileContent[i], 0)
-      }
+      expect(fileContent[i]).to.equal(buffer[i])
     }
   })
 })
