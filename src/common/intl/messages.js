@@ -422,6 +422,7 @@ var messages = {
   noHost: 'No hosts',
   memoryLeftTooltip: '{used}% used ({free} free)',
   // ----- Pool network tab -----
+  pif: 'PIF',
   poolNetworkNameLabel: 'Name',
   poolNetworkDescription: 'Description',
   poolNetworkPif: 'PIFs',
@@ -431,6 +432,8 @@ var messages = {
   poolNetworkPifDetached: 'Disconnected',
   showPifs: 'Show PIFs',
   hidePifs: 'Hide PIFs',
+  showDetails: 'Show details',
+  hideDetails: 'Hide details',
   // ----- Pool actions ------
   addSrLabel: 'Add SR',
   addVmLabel: 'Add VM',

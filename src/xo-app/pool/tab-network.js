@@ -13,8 +13,13 @@ import { Button, ButtonGroup } from 'react-bootstrap-4/lib'
 import { Text, Number } from 'editable'
 import { Container, Row, Col } from 'grid'
 import { connectStore } from 'utils'
-import { createGetObject, createGetObjectsOfType, createSelector } from 'selectors'
 import { Toggle } from 'form'
+import {
+  createFinder,
+  createGetObject,
+  createGetObjectsOfType,
+  createSelector
+} from 'selectors'
 import {
   connectPif,
   createBondedNetwork,
@@ -25,73 +30,31 @@ import {
   editPif
 } from 'xo'
 
+// =============================================================================
+
 const _conditionalTooltip = (component, tooltip) => tooltip
   ? <Tooltip content={tooltip}>
     {component}
   </Tooltip>
   : component
 
-@connectStore(() => {
-  const pif = createGetObject()
-  const host = createGetObject(
+const _createGetPifs = () => createGetObjectsOfType('PIF').pick(
+  (_, props) => props.network.PIFs
+)
+
+const _createGetDefaultPif = () => createFinder(
+  _createGetPifs(),
+  createSelector(
     createSelector(
-      pif,
-      pif => pif.$host
-    )
+      createGetObject((_, props) => props.network.$pool),
+      pool => pool.master
+    ),
+    poolMaster =>
+      pif => pif.$host === poolMaster
   )
-  const disableUnplug = createSelector(
-    pif,
-    pif =>
-      pif.attached && !pif.isBondMaster && (pif.management || pif.disallowUnplug)
-  )
+)
 
-  return { host, pif, disableUnplug }
-})
-class PifItem extends Component {
-  _editPif = vlan =>
-    editPif(this.props.pif, { vlan })
-
-  render () {
-    const { pif, host, disableUnplug } = this.props
-
-    return <tr>
-      <td>{pif.device}</td>
-      <td>{host.name_label}</td>
-      <td>
-        {pif.vlan === -1
-          ? 'None'
-          : <Number value={pif.vlan} onChange={this._editPif}>
-            {pif.vlan}
-          </Number>
-        }
-      </td>
-      <td>{pif.ip}</td>
-      <td>{pif.mac}</td>
-      <td>
-        {pif.carrier
-          ? <span className='tag tag-success'>
-            {_('poolNetworkPifAttached')}
-          </span>
-          : <span className='tag tag-default'>
-            {_('poolNetworkPifDetached')}
-          </span>
-          }
-      </td>
-      <td>
-        <ButtonGroup className='pull-right'>
-          <ActionRowButton
-            btnStyle='default'
-            disabled={disableUnplug}
-            handler={pif.attached ? disconnectPif : connectPif}
-            handlerParam={pif}
-            icon={pif.attached ? 'disconnect' : 'connect'}
-            tooltip={pif.attached ? _('disconnectPif') : _('connectPif')}
-          />
-        </ButtonGroup>
-      </td>
-    </tr>
-  }
-}
+// =============================================================================
 
 @connectStore(() => ({
   isBonded: createSelector(
@@ -101,11 +64,13 @@ class PifItem extends Component {
     pifs => some(pifs, 'isBondMaster')
   )
 }))
-class NetworkName extends Component {
-  _editName = value => editNetwork(this.props.network, { name_label: value })
+class Name extends Component {
+  _editName = value =>
+    editNetwork(this.props.network, { name_label: value })
 
   render () {
     const { isBonded, network } = this.props
+
     return <span>
       <Text value={network.name_label} onChange={this._editName} />
       {' '}
@@ -113,6 +78,68 @@ class NetworkName extends Component {
     </span>
   }
 }
+
+// -----------------------------------------------------------------------------
+
+class Description extends Component {
+  _editDescription = value =>
+    editNetwork(this.props.network, { name_description: value })
+
+  render () {
+    const { network } = this.props
+
+    return <Text
+      value={network.name_description}
+      onChange={this._editDescription}
+    />
+  }
+}
+
+// -----------------------------------------------------------------------------
+
+@connectStore(() => ({
+  defaultPif: _createGetDefaultPif()
+}))
+class DefaultPif extends BaseComponent {
+  _editPif = vlan =>
+    editPif(this.props.defaultPif, { vlan })
+
+  render () {
+    const { defaultPif } = this.props
+
+    if (!defaultPif) {
+      return null
+    }
+
+    return <span>
+      {defaultPif.device}
+    </span>
+  }
+}
+
+@connectStore(() => ({
+  defaultPif: _createGetDefaultPif()
+}))
+class Vlan extends BaseComponent {
+  _editPif = vlan =>
+    editPif(this.props.defaultPif, { vlan })
+
+  render () {
+    const { defaultPif } = this.props
+
+    if (!defaultPif) {
+      return null
+    }
+
+    return <span>
+      {<Number value={defaultPif.vlan} onChange={this._editPif}>
+        {defaultPif.vlan === -1 ? 'None' : defaultPif.vlan}
+      </Number>}
+    </span>
+  }
+}
+
+// -----------------------------------------------------------------------------
 
 @connectStore(() => ({
   isInUse: createSelector(
@@ -141,6 +168,59 @@ class ToggleDefaultLockingMode extends Component {
   }
 }
 
+// -----------------------------------------------------------------------------
+
+@connectStore(() => {
+  const pif = createGetObject()
+  const host = createGetObject(
+    createSelector(
+      pif,
+      pif => pif.$host
+    )
+  )
+  const disableUnplug = createSelector(
+    pif,
+    pif =>
+      pif.attached && !pif.isBondMaster && (pif.management || pif.disallowUnplug)
+  )
+
+  return { host, pif, disableUnplug }
+})
+class PifItem extends Component {
+  render () {
+    const { pif, host, disableUnplug } = this.props
+
+    return <tr>
+      <td>{pif.device}</td>
+      <td>{host.name_label}</td>
+      <td>{pif.ip}</td>
+      <td>{pif.mac}</td>
+      <td>
+        {pif.carrier
+          ? <span className='tag tag-success'>
+            {_('poolNetworkPifAttached')}
+          </span>
+          : <span className='tag tag-default'>
+            {_('poolNetworkPifDetached')}
+          </span>
+          }
+      </td>
+      <td>
+        <ButtonGroup className='pull-right'>
+          <ActionRowButton
+            btnStyle='default'
+            disabled={disableUnplug}
+            handler={pif.attached ? disconnectPif : connectPif}
+            handlerParam={pif}
+            icon={pif.attached ? 'disconnect' : 'connect'}
+            tooltip={pif.attached ? _('disconnectPif') : _('connectPif')}
+          />
+        </ButtonGroup>
+      </td>
+    </tr>
+  }
+}
+
 class PifsItem extends BaseComponent {
   render () {
     const { network } = this.props
@@ -157,7 +237,6 @@ class PifsItem extends BaseComponent {
           <tr>
             <th>{_('pifDeviceLabel')}</th>
             <th>{_('homeTypeHost')}</th>
-            <th>{_('pifVlanLabel')}</th>
             <th>{_('pifAddressLabel')}</th>
             <th>{_('pifMacLabel')}</th>
             <th>{_('pifStatusLabel')}</th>
@@ -172,16 +251,14 @@ class PifsItem extends BaseComponent {
   }
 }
 
-@connectStore(() => {
-  const getPifs = createGetObjectsOfType('PIF').pick(
-    (_, props) => props && props.network.PIFs
-  )
+// -----------------------------------------------------------------------------
 
+@connectStore(() => {
   const disablePifUnplug = pif =>
       pif.attached && !pif.isBondMaster && (pif.management || pif.disallowUnplug)
 
   const getDisableNetworkDelete = createSelector(
-    getPifs,
+    _createGetPifs(),
     (_, props) => props && props.network.name_label,
     (pifs, nameLabel) =>
       nameLabel === 'Host internal management network' || some(pifs, disablePifUnplug)
@@ -208,16 +285,26 @@ class NetworkActions extends Component {
   }
 }
 
+// =============================================================================
+
 const NETWORKS_COLUMNS = [
   {
     name: _('poolNetworkNameLabel'),
-    itemRenderer: network => <NetworkName network={network} />,
+    itemRenderer: network => <Name network={network} />,
     sortCriteria: network => network.name_label
   },
   {
     name: _('poolNetworkDescription'),
-    itemRenderer: network => <Text value={network.name_description} onChange={value => editNetwork(network, { name_description: value })} />,
+    itemRenderer: network => <Description network={network} />,
     sortCriteria: network => network.name_description
+  },
+  {
+    name: _('pif'),
+    itemRenderer: network => <DefaultPif network={network} />
+  },
+  {
+    name: _('pifVlanLabel'),
+    itemRenderer: network => <Vlan network={network} />
   },
   {
     name: _('poolNetworkMTU'),
@@ -233,14 +320,15 @@ const NETWORKS_COLUMNS = [
   },
   {
     name: _('poolNetworkPif'),
-    itemRenderer: network => !isEmpty(network.PIFs) && <PifsItem network={network} />,
-    sortCriteria: network => network.PIFs.length
+    itemRenderer: network => !isEmpty(network.PIFs) && <PifsItem network={network} />
   },
   {
     name: '',
     itemRenderer: network => <NetworkActions network={network} />
   }
 ]
+
+// =============================================================================
 
 export default class TabNetworks extends Component {
   render () {
