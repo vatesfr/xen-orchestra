@@ -12,6 +12,7 @@ import moment from 'moment'
 import React from 'react'
 import reduce from 'lodash/reduce'
 import SortedTable from 'sorted-table'
+import uniq from 'lodash/uniq'
 import Upgrade from 'xoa-upgrade'
 import { confirm } from 'modal'
 import { connectStore, addSubscriptions, noop } from 'utils'
@@ -190,7 +191,10 @@ export default class Restore extends Component {
         backups,
         last: reduce(backups, (last, b) => b.date > last.date ? b : last),
         tagsByRemote: mapValues(groupBy(backups, 'remoteId'), (backups, remoteId) =>
-          ({ remoteName: find(remotes, remote => remote.id === remoteId).name, tags: map(backups, 'tag') })
+          ({
+            remoteName: find(remotes, remote => remote.id === remoteId).name,
+            tags: uniq(map(backups, 'tag'))
+          })
         ),
         simpleCount: reduce(backups, (sum, b) => b.type === 'simple' ? ++sum : sum, 0),
         deltaCount: reduce(backups, (sum, b) => b.type === 'delta' ? ++sum : sum, 0)
