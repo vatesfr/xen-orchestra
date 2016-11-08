@@ -6,7 +6,6 @@ import csvParser = require('csv-parser')
 import execPromise = require('exec-promise')
 import through2 = require('through2')
 import Xo from 'xo-lib'
-import { EventEmitter } from 'events'
 
 const requiredParam = (name: string) => {
   throw `missing param: ${name}

@@ -31,29 +31,33 @@
     "dist/"
   ],
   "engines": {
-    "node": ">=4.0.0"
+    "node": ">=4"
   },
   "dependencies": {
     "csv-parser": "^1.11.0",
     "end-of-stream": "^1.1.0",
     "exec-promise": "^0.6.1",
-    "highland": "^2.10.0",
+    "highland": "^2.10.1",
     "through2": "^2.0.1",
     "xo-lib": "^0.8.0"
   },
   "devDependencies": {
-    "@types/node": "^6.0.38",
+    "@types/node": "^6.0.46",
     "@types/through2": "^2.0.31",
-    "jest": "^16.0.2",
     "tslint": "^3.15.1",
-    "tslint-config-standard": "^1.3.0",
-    "typescript": "^2.1.0-dev.20161102"
+    "tslint-config-standard": "^1.5.0",
+    "typescript": "^2.0.8"
   },
   "scripts": {
     "build": "tsc",
     "dev": "tsc -w",
-    "lint": "tslint",
+    "lint": "tslint 'src/*.ts'",
     "posttest": "npm run lint",
     "start": "node dist/index.js"
+  },
+  "config": {
+    "ghooks": {
+      "commit-msg": "npm test"
+    }
   }
 }

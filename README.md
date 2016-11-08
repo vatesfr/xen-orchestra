@@ -16,6 +16,25 @@ Installation of the [npm package](https://npmjs.org/package/xo-import-servers-cs
 > xo-import-servers-csv 'https://xo.company.tld' admin@admin.net admin < servers.csv
 ```
 
+## Development
+
+```
+# Install dependencies
+> npm install
+
+# Run the tests
+> npm test
+
+# Continuously compile
+> npm run dev
+
+# Continuously run the tests
+> npm run dev-test
+
+# Build for production (automatically called by npm install)
+> npm run build
+```
+
 ## Contributions
 
 Contributions are *very* welcomed, either on the documentation or on
