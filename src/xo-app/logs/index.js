@@ -168,7 +168,7 @@ export default class LogList extends Component {
           logsToClear.push(logKey)
           logs[logKey] = {
             logKey,
-            jobId: data.jobId.slice(0, 5),
+            jobId: data.jobId.slice(4, 8),
             key: data.key,
             userId: data.userId,
             start: time,

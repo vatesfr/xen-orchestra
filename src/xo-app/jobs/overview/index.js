@@ -85,11 +85,11 @@ export default class Overview extends Component {
   }
 
   _getJobLabel (job = {}) {
-    return `${job.name} - ${job.method} (${job.id.slice(0, 5)})`
+    return `${job.name} - ${job.method} (${job.id.slice(4, 8)})`
   }
 
   _getScheduleLabel (schedule) {
-    return `${schedule.name} (${schedule.id.slice(0, 5)})`
+    return `${schedule.name} (${schedule.id.slice(4, 8)})`
   }
 
   _getScheduleToggle (schedule) {

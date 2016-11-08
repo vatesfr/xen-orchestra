@@ -347,7 +347,7 @@ export default class Jobs extends Component {
           {isEmpty(jobs) && <tr><td><em>{_('noJobs')}</em></td></tr>}
           {map(jobs, job => <tr key={job.id}>
             <td>
-              <span>{job.name} <span className='text-muted'>({job.id.slice(0, 5)})</span></span>
+              <span>{job.name} <span className='text-muted'>({job.id.slice(4, 8)})</span></span>
             </td>
             <td>{job.method}</td>
             <td>
