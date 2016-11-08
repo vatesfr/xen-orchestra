@@ -299,7 +299,7 @@ const NETWORKS_COLUMNS = [
     sortCriteria: network => network.name_description
   },
   {
-    name: _('poolNetworkDefaultPif'),
+    name: _('pif'),
     itemRenderer: network => <DefaultPif network={network} />
   },
   {
