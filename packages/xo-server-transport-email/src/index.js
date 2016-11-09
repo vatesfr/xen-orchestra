@@ -93,6 +93,20 @@ export const configurationSchema = {
   required: ['from', 'transport']
 }
 
+export const testSchema = {
+  type: 'object',
+
+  properties: {
+    to: {
+      type: 'string',
+      description: 'recipient of the test mail'
+    }
+  },
+
+  additionalProperties: false,
+  required: ['to']
+}
+
 // ===================================================================
 
 class TransportEmailPlugin {
@@ -139,6 +153,16 @@ class TransportEmailPlugin {
 
   unload () {
     this._unset()
+  }
+
+  test ({to}) {
+    return this._sendEmail({
+      to,
+      subject: '[Xen Orchestra] Test of transport-email plugin',
+      markdown: `Hi there,
+
+The transport-email plugin for Xen Orchestra server seems to be working fine, nicely done :)`
+    })
   }
 
   _sendEmail ({
