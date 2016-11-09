@@ -216,7 +216,8 @@ async function registerPlugin (pluginPath, pluginName) {
   const {
     default: factory = plugin,
     configurationSchema,
-    configurationPresets
+    configurationPresets,
+    testSchema
   } = plugin
 
   // The default export can be either a factory or directly a plugin
@@ -230,6 +231,7 @@ async function registerPlugin (pluginPath, pluginName) {
     instance,
     configurationSchema,
     configurationPresets,
+    testSchema,
     version
   )
 }

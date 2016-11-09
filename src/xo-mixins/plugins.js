@@ -51,8 +51,8 @@ export default class {
     name,
     instance,
     configurationSchema,
-    testSchema,
     configurationPresets,
+    testSchema,
     version
   ) {
     const id = name
