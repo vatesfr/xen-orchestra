@@ -51,17 +51,20 @@ export default class {
     name,
     instance,
     configurationSchema,
+    testSchema,
     configurationPresets,
     version
   ) {
     const id = name
     const plugin = this._plugins[id] = {
-      configured: !configurationSchema,
       configurationPresets,
       configurationSchema,
+      configured: !configurationSchema,
       id,
       instance,
       name,
+      testable: isFunction(instance.test),
+      testSchema,
       unloadable: isFunction(instance.unload),
       version
     }
@@ -69,7 +72,6 @@ export default class {
     const metadata = await this._getPluginMetadata(id)
     let autoload = true
     let configuration
-
     if (metadata) {
       ({
         autoload,
@@ -108,6 +110,8 @@ export default class {
       configurationSchema,
       loaded,
       name,
+      testable,
+      testSchema,
       unloadable,
       version
     } = this._getRawPlugin(id)
@@ -125,7 +129,9 @@ export default class {
       version,
       configuration,
       configurationPresets,
-      configurationSchema
+      configurationSchema,
+      testable,
+      testSchema
     }
   }
 
@@ -219,5 +225,32 @@ export default class {
 
   async purgePluginConfiguration (id) {
     await this._pluginsMetadata.merge(id, { configuration: undefined })
+  }
+
+  async testPlugin (id, data) {
+    const plugin = this._getRawPlugin(id)
+    if (!plugin.testable) {
+      throw invalidParameters('plugin not testable')
+    }
+    if (!plugin.loaded) {
+      throw invalidParameters('plugin not loaded')
+    }
+
+    const { testSchema } = plugin
+    if (testSchema) {
+      if (data == null) {
+        throw invalidParameters([{
+          field: 'data',
+          message: 'is the wrong type'
+        }])
+      }
+
+      const validate = createJsonSchemaValidator(testSchema)
+      if (!validate(data)) {
+        throw invalidParameters(validate.errors)
+      }
+    }
+
+    await plugin.instance.test(data)
   }
 }

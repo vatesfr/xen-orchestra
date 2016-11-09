@@ -20,7 +20,7 @@ export default {
     },
     unloadable: {
       type: 'boolean',
-      default: 'true',
+      default: true,
       description: 'whether or not this plugin can be unloaded'
     },
     configuration: {
@@ -30,6 +30,14 @@ export default {
     configurationSchema: {
       $ref: 'http://json-schema.org/draft-04/schema#',
       description: 'configuration schema for this plugin (not present if not configurable)'
+    },
+    testable: {
+      type: 'boolean',
+      description: 'whether or not this plugin can be tested'
+    },
+    testSchema: {
+      $ref: 'http://json-schema.org/draft-04/schema#',
+      description: 'test schema for this plugin'
     }
   },
   required: [

@@ -102,3 +102,22 @@ purgeConfiguration.params = {
 }
 
 purgeConfiguration.permission = 'admin'
+
+// ---------------------------------------------------------------------
+
+export async function test ({ id, data }) {
+  await this.testPlugin(id, data)
+}
+
+test.description = 'Test a plugin with its current configuration'
+
+test.params = {
+  id: {
+    type: 'string'
+  },
+  data: {}
+}
+
+test.permission = 'admin'
+
+// ---------------------------------------------------------------------
