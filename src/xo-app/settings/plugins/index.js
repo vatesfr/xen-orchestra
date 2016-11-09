@@ -18,6 +18,7 @@ import {
   loadPlugin,
   purgePluginConfiguration,
   subscribePlugins,
+  testPlugin,
   unloadPlugin
 } from 'xo'
 
@@ -32,7 +33,8 @@ class Plugin extends Component {
       configurationSchema,
       uiSchema: generateUiSchema(configurationSchema)
     }
-    this.formId = `form-${props.id}`
+    this.configFormId = `form-config-${props.id}`
+    this.testFormId = `form-test-${props.id}`
   }
 
   componentWillReceiveProps (nextProps) {
@@ -118,6 +120,8 @@ class Plugin extends Component {
     this.refs.pluginInput.value = this.props.configurationPresets[configName]
   }
 
+  _test = async () => testPlugin(this.props.id, this.refs.testInput.value)
+
   render () {
     const {
       props,
@@ -128,7 +132,6 @@ class Plugin extends Component {
       configurationPresets,
       loaded
     } = props
-    const { formId } = this
 
     return (
       <div className='card-block'>
@@ -161,8 +164,8 @@ class Plugin extends Component {
             </div>
           </Col>
         </Row>
-        {expanded &&
-          <form id={formId}>
+        {expanded && props.configurationSchema &&
+          <form id={this.configFormId}>
             {size(configurationPresets) > 0 && (
               <div>
                 <legend>{_('pluginConfigurationPresetTitle')}</legend>
@@ -203,7 +206,7 @@ class Plugin extends Component {
             <div className='form-group pull-right'>
               <div className='btn-toolbar'>
                 <div className='btn-group'>
-                  <ActionButton disabled={!edit} type='submit' form={formId} icon='save' className='btn-primary' handler={this._saveConfiguration}>
+                  <ActionButton disabled={!edit} form={this.configFormId} icon='save' className='btn-primary' handler={this._saveConfiguration}>
                     {_('savePluginConfiguration')}
                   </ActionButton>
                 </div>
@@ -229,6 +232,23 @@ class Plugin extends Component {
             </div>
           </form>
         }
+        {expanded && props.testable && <form id={this.testFormId}>
+          {props.testSchema && <GenericInput
+            label='Test data'
+            schema={props.testSchema}
+            uiSchema={generateUiSchema(props.testSchema)}
+            required
+            ref='testInput'
+          />}
+          <div className='form-group pull-right'>
+            <ActionButton
+              btnStyle='primary'
+              form={this.testFormId}
+              handler={this._test}
+              icon='diagnosis'
+            >Test plugin</ActionButton>
+          </div>
+        </form>}
       </div>
     )
   }

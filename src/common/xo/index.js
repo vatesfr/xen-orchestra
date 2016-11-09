@@ -1262,6 +1262,9 @@ export const purgePluginConfiguration = async id => {
   subscribePlugins.forceRefresh()
 }
 
+export const testPlugin = async (id, data) =>
+  _call('plugin.test', { id, data })
+
 // Resource set ------------------------------------------------------
 
 export const createResourceSet = (name, { subjects, objects, limits } = {}) => (
