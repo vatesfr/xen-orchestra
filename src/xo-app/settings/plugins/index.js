@@ -3,6 +3,7 @@ import ActionButton from 'action-button'
 import ActionToggle from 'action-toggle'
 import GenericInput from 'json-schema-input'
 import Icon from 'icon'
+import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React, { Component } from 'react'
 import size from 'lodash/size'
@@ -234,7 +235,7 @@ class Plugin extends Component {
 })
 export default class Plugins extends Component {
   render () {
-    if (this.props.plugins) {
+    if (isEmpty(this.props.plugins)) {
       return <p><em>{_('noPlugins')}</em></p>
     }
 
