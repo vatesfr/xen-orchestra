@@ -43,7 +43,7 @@ const COLUMNS = [
 
       if (id) {
         return (
-          <Link to={`/vms/${id}`}>
+          <Link to={`/vms/${id}${vdi.type === 'VDI-snapshot' ? '/snapshots' : ''}`}>
             {Item}
           </Link>
         )
@@ -76,12 +76,12 @@ const COLUMNS = [
 
 // ===================================================================
 
-export default ({ vdis, vdisToVmIds }) => (
+export default ({ vdis, vdiSnapshots, vdisToVmIds }) => (
   <Container>
     <Row>
       <Col>
         {!isEmpty(vdis)
-          ? <SortedTable collection={vdis} userData={vdisToVmIds} columns={COLUMNS} />
+          ? <SortedTable collection={vdis.concat(vdiSnapshots)} userData={vdisToVmIds} columns={COLUMNS} />
           : <h4 className='text-xs-center'>{_('srNoVdis')}</h4>
         }
       </Col>
