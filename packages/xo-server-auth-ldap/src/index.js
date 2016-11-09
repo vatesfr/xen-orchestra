@@ -182,6 +182,10 @@ class AuthLdap {
     return this._authenticate({
       username,
       password
+    }).then(result => {
+      if (result === null) {
+        throw new Error('could not authenticate user')
+      }
     })
   }
 
