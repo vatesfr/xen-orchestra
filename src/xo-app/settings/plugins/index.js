@@ -75,12 +75,12 @@ class Plugin extends Component {
 
   _updateLoad = () => {
     const { props } = this
-    const { id } = props
 
-    const method = (!props.loaded && loadPlugin) || (!props.unloadable && unloadPlugin)
-
-    if (method) {
-      return method(id)
+    if (!props.loaded) {
+      return loadPlugin(props.id)
+    }
+    if (props.unloadable !== false) {
+      return unloadPlugin(props.id)
     }
   }
 
@@ -135,7 +135,11 @@ class Plugin extends Component {
         <Row>
           <Col mediumSize={8}>
             <h5 className='form-inline clearfix'>
-              <ActionToggle disabled={loaded && props.unloadable} value={loaded} handler={this._updateLoad} />
+              <ActionToggle
+                disabled={loaded && props.unloadable === false}
+                handler={this._updateLoad}
+                value={loaded}
+              />
               <span className='text-primary'>
                 {` ${props.name} `}
               </span>
