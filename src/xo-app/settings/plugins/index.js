@@ -234,7 +234,7 @@ class Plugin extends Component {
 })
 export default class Plugins extends Component {
   render () {
-    if (this.props.plugins) {
+    if (!this.props.plugins) {
       return <p><em>{_('noPlugins')}</em></p>
     }
 
