@@ -20,15 +20,15 @@ Or globally:
 
 #### Initialization
 
-When xo-server starts, it initializes and loads plugins. Then, he recuperates the configuration schema and the test schema to store them.
+When xo-server starts, it initializes plugins.
 
-#### Get schemas
+#### Loading plugins
 
-The xo-web recuperates the configuration schema and the test schema from xo-server to generate a UI.
+After initializing the plugins, the xo-server load them.
 
-#### Test configuration
+#### Test
 
-Xo-web send data to xo-server for testing the configuration and saving it if successful. 
+XO clients send data to xo-server for testing the configuration and saving it if successful.
 
 ### Principal Methods
 
@@ -41,7 +41,7 @@ Its only parameter is an object which currently only contains the instance of th
 
 This method is called each time the plugin is (re-)configured.
 Its only parameter is an object which contains the configuration values.
- 
+
 #### `load() `
 
 This method is called to load the plugin.
