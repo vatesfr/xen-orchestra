@@ -1149,21 +1149,16 @@ export const destroyTask = task => (
   _call('task.destroy', { id: resolveId(task) })
 )
 
-// Backups -----------------------------------------------------------
-
-export const createSchedule = (jobId, {
-  cron,
-  enabled,
-  name = undefined,
-  timezone = undefined
-}) => (
-  _call('schedule.create', { jobId, cron, enabled, name, timezone })::tap(
-    subscribeSchedules.forceRefresh
-  )
-)
+// Jobs ----------------------------------------------------------
 
 export const createJob = job => (
   _call('job.create', { job })::tap(
+    subscribeJobs.forceRefresh
+  )
+)
+
+export const deleteJob = job => (
+  _call('job.delete', { id: resolveId(job) })::tap(
     subscribeJobs.forceRefresh
   )
 )
@@ -1183,6 +1178,43 @@ export const setJob = job => (
   )
 )
 
+// Backup/Schedule ---------------------------------------------------------
+
+export const createSchedule = (jobId, {
+  cron,
+  enabled,
+  name = undefined,
+  timezone = undefined
+}) => (
+  _call('schedule.create', { jobId, cron, enabled, name, timezone })::tap(
+    subscribeSchedules.forceRefresh
+  )
+)
+
+export const deleteSchedule = schedule => (
+  _call('schedule.delete', { id: resolveId(schedule) })::tap(
+    subscribeSchedules.forceRefresh
+  )
+)
+
+export const deleteBackupSchedule = async schedule => {
+  await confirm({
+    title: _('deleteBackupSchedule'),
+    body: _('deleteBackupScheduleQuestion')
+  })
+  await _call('schedule.delete', { id: schedule.id })
+  await _call('job.delete', { id: schedule.job })
+
+  subscribeSchedules.forceRefresh()
+  subscribeJobs.forceRefresh()
+}
+
+export const updateSchedule = ({ id, job: jobId, cron, enabled, name, timezone }) => (
+  _call('schedule.set', { id, jobId, cron, enabled, name, timezone })::tap(
+    subscribeSchedules.forceRefresh
+  )
+)
+
 export const getSchedule = id => (
   _call('schedule.get', { id })
 )
@@ -1198,18 +1230,6 @@ export const disableSchedule = id => (
     subscribeScheduleTable.forceRefresh
   )
 )
-
-export const deleteBackupSchedule = async schedule => {
-  await confirm({
-    title: _('deleteBackupSchedule'),
-    body: _('deleteBackupScheduleQuestion')
-  })
-  await _call('schedule.delete', { id: schedule.id })
-  await _call('job.delete', { id: schedule.job })
-
-  subscribeSchedules.forceRefresh()
-  subscribeJobs.forceRefresh()
-}
 
 // Plugins -----------------------------------------------------------
 
@@ -1660,32 +1680,6 @@ export const setDefaultHomeFilter = (type, name) => {
     }
   })
 }
-
-// Jobs ----------------------------------------------------------
-
-export const deleteJob = job => (
-  _call('job.delete', { id: resolveId(job) })::tap(
-    subscribeJobs.forceRefresh
-  )
-)
-
-export const deleteSchedule = schedule => (
-  _call('schedule.delete', { id: resolveId(schedule) })::tap(
-    subscribeSchedules.forceRefresh
-  )
-)
-
-export const updateJob = job => (
-  _call('job.set', {job})::tap(
-    subscribeJobs.forceRefresh
-  )
-)
-
-export const updateSchedule = ({ id, job: jobId, cron, enabled, name, timezone }) => (
-  _call('schedule.set', { id, jobId, cron, enabled, name, timezone })::tap(
-    subscribeSchedules.forceRefresh
-  )
-)
 
 // IP pools --------------------------------------------------------------------
 

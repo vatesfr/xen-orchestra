@@ -2,6 +2,7 @@ import _ from 'intl'
 import ActionRowButton from 'action-row-button'
 import ActionToggle from 'action-toggle'
 import filter from 'lodash/filter'
+import find from 'lodash/find'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import Link from 'link'
@@ -9,9 +10,12 @@ import LogList from '../../logs'
 import map from 'lodash/map'
 import orderBy from 'lodash/orderBy'
 import React, { Component } from 'react'
+import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
+import { addSubscriptions } from 'utils'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Container } from 'grid'
+import { createSelector } from 'selectors'
 import {
   Card,
   CardHeader,
@@ -24,7 +28,8 @@ import {
   runJob,
   subscribeJobs,
   subscribeSchedules,
-  subscribeScheduleTable
+  subscribeScheduleTable,
+  subscribeUsers
 } from 'xo'
 
 // ===================================================================
@@ -35,6 +40,9 @@ const jobKeyToLabel = {
 
 // ===================================================================
 
+@addSubscriptions({
+  users: subscribeUsers
+})
 export default class Overview extends Component {
   constructor (props) {
     super(props)
@@ -111,10 +119,26 @@ export default class Overview extends Component {
     return method(id)
   }
 
+  _getIsRunnableJob = createSelector(
+    () => this.state.schedules,
+    () => this.props.users,
+    (schedules, users) => {
+      const isRunnableJob = {}
+
+      forEach(schedules, schedule => {
+        isRunnableJob[schedule.id] = !!find(users, user => user.id === this._getScheduleJob(schedule).userId)
+      })
+
+      return isRunnableJob
+    }
+  )
+
   render () {
     const {
       schedules
     } = this.state
+
+    const isRunnableJob = this._getIsRunnableJob()
 
     return (process.env.XOA_PLAN > 3
       ? <Container>
@@ -141,13 +165,13 @@ export default class Overview extends Component {
                       <tr key={key}>
                         <td>
                           {this._getScheduleLabel(schedule)}
-                          <Link className='btn btn-sm btn-primary mr-1' to={`/jobs/schedules/${schedule.id}/edit`}>
+                          <Link className='btn btn-sm btn-primary ml-1' to={`/jobs/schedules/${schedule.id}/edit`}>
                             <Icon icon='edit' />
                           </Link>
                         </td>
                         <td>
                           {this._getJobLabel(job)}
-                          <Link className='btn btn-sm btn-primary mr-1' to={`/jobs/${job.id}/edit`}>
+                          <Link className='btn btn-sm btn-primary ml-1' to={`/jobs/${job.id}/edit`}>
                             <Icon icon='edit' />
                           </Link>
                         </td>
@@ -155,6 +179,7 @@ export default class Overview extends Component {
                         <td>
                           {this._getScheduleToggle(schedule)}
                           <fieldset className='pull-right'>
+                            <Tooltip content={_('jobUserNotFound')}>{!isRunnableJob[schedule.id] && <Icon className='mr-1' icon='error' />}</Tooltip>
                             <ButtonGroup>
                               <ActionRowButton
                                 icon='delete'
@@ -163,6 +188,7 @@ export default class Overview extends Component {
                                 handlerParam={schedule}
                               />
                               <ActionRowButton
+                                disabled={!isRunnableJob[schedule.id]}
                                 icon='run-schedule'
                                 btnStyle='warning'
                                 handler={runJob}

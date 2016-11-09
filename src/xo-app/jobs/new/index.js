@@ -1,29 +1,36 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
+import Component from 'base-component'
 import delay from 'lodash/delay'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
 import GenericInput from 'json-schema-input'
+import Icon from 'icon'
 import includes from 'lodash/includes'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
+import React from 'react'
 import size from 'lodash/size'
+import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
-import React, { Component } from 'react'
 import { error } from 'notification'
 import { generateUiSchema } from 'xo-json-schema-input'
-import { SelectPlainObject } from 'form'
 import { injectIntl } from 'react-intl'
+import { SelectPlainObject } from 'form'
+import { SelectSubject } from 'select-objects'
+import { addSubscriptions, connectStore } from 'utils'
+import { createSelector, isAdmin } from 'selectors'
 
 import {
   apiMethods,
   createJob,
   deleteJob,
   runJob,
+  setJob,
   subscribeJobs,
-  updateJob
+  subscribeUsers
 } from 'xo'
 
 const JOB_KEY = 'genericTask'
@@ -82,6 +89,12 @@ const dataToParamVectorItems = function (params, data) {
   return items
 }
 
+@addSubscriptions({
+  users: subscribeUsers
+})
+@connectStore({
+  isAdmin
+})
 @injectIntl
 export default class Jobs extends Component {
   constructor (props) {
@@ -235,6 +248,8 @@ export default class Jobs extends Component {
 
   _handleSubmit = () => {
     const {name, method, params} = this.refs
+    const { job, owner } = this.state
+
     const _job = {
       type: 'call',
       name: name.value,
@@ -243,11 +258,12 @@ export default class Jobs extends Component {
       paramsVector: {
         type: 'crossProduct',
         items: dataToParamVectorItems(method.value.info.properties, params.value)
-      }
+      },
+      userId: owner
     }
-    const { job } = this.state
+
     job && (_job.id = job.id)
-    const saveJob = job ? updateJob : createJob
+    const saveJob = job ? setJob : createJob
 
     return saveJob(_job).then(this._reset).catch(err => error('Create Job', err.message || String(err)))
   }
@@ -294,6 +310,7 @@ export default class Jobs extends Component {
     }
     const { params } = this.refs
     params.value = data
+    this.setState({ owner: job.userId })
   }
 
   _reset = () => {
@@ -302,25 +319,48 @@ export default class Jobs extends Component {
     method.value = undefined
     this.setState({
       action: undefined,
-      job: undefined
+      job: undefined,
+      owner: undefined
     })
   }
+
+  _getIsRunnableJob = createSelector(
+    () => this.state.jobs,
+    () => this.props.users,
+    (jobs, users) => {
+      const isRunnableJob = {}
+      forEach(jobs, job => {
+        isRunnableJob[job.id] = !!find(users, user => user.id === job.userId)
+      })
+
+      return isRunnableJob
+    }
+  )
+
+  _subjectPredicate = ({type}) => type === 'user'
 
   render () {
     const {
       action,
       actions,
       job,
-      jobs
+      jobs,
+      owner
     } = this.state
     const { formatMessage } = this.props.intl
+
+    const isRunnableJob = this._getIsRunnableJob()
 
     return <div>
       <h1>{_('jobsPage')}</h1>
       <form id='newJobForm'>
-        <div className='form-group'>
-          <input type='text' ref='name' className='form-control' placeholder={formatMessage(messages.jobNamePlaceholder)} pattern='[^_]+' required />
-        </div>
+        {this.props.isAdmin && <SelectSubject
+          onChange={this.linkState('owner', 'id')}
+          placeholder={_('jobOwnerPlaceholder')}
+          predicate={this._subjectPredicate}
+          value={owner}
+        />}
+        <input type='text' ref='name' className='form-control mb-1 mt-1' placeholder={formatMessage(messages.jobNamePlaceholder)} pattern='[^_]+' required />
         <SelectPlainObject ref='method' options={actions} optionKey='method' onChange={this._handleSelectMethod} placeholder={_('jobActionPlaceHolder')} />
         {action && <fieldset>
           <GenericInput ref='params' schema={action.info} uiSchema={action.uiSchema} label={action.method} required />
@@ -352,11 +392,13 @@ export default class Jobs extends Component {
             <td>{job.method}</td>
             <td>
               <ActionRowButton
+                disabled={!isRunnableJob[job.id]}
                 icon='run-schedule'
                 btnStyle='warning'
                 handler={runJob}
                 handlerParam={job.id}
               />
+              <Tooltip content={_('jobUserNotFound')}>{!isRunnableJob[job.id] && <Icon className='ml-1' icon='error' />}</Tooltip>
             </td>
             <td>
               <ActionRowButton
