@@ -1,7 +1,9 @@
 import React, { Component, PropTypes } from 'react'
 import { isPromise } from 'promise-toolbox'
 
-const toString = value => JSON.stringify(value, null, 2)
+const toString = value => value === undefined
+  ? 'undefined'
+  : JSON.stringify(value, null, 2)
 
 // This component does not handle changes in its `promise` property.
 class DebugAsync extends Component {
