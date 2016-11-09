@@ -106,6 +106,21 @@ For Microsoft Active Directory, you can try one of the following filters:
   required: ['uri', 'base']
 }
 
+export const testSchema = {
+  type: 'object',
+  properties: {
+    username: {
+      description: 'LDAP username',
+      type: 'string'
+    },
+    password: {
+      description: 'LDAP password',
+      type: 'string'
+    }
+  },
+  required: ['username', 'password']
+}
+
 // ===================================================================
 
 class AuthLdap {
@@ -161,6 +176,13 @@ class AuthLdap {
 
   unload () {
     this._xo.unregisterAuthenticationProvider(this._authenticate)
+  }
+
+  test ({ username, password }) {
+    return this._authenticate({
+      username,
+      password
+    })
   }
 
   async _authenticate ({ username, password }, logger = noop) {
