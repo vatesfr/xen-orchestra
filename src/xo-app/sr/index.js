@@ -3,6 +3,7 @@ import assign from 'lodash/assign'
 import Component from 'base-component'
 import find from 'lodash/find'
 import flatten from 'lodash/flatten'
+import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import Link from 'link'
 import map from 'lodash/map'
@@ -59,6 +60,8 @@ import TabDisks from './tab-disks'
     )
   )
 
+// -----------------------------------------------------------------------------
+
   const getVdis = createGetObjectsOfType('VDI').pick(
     createSelector(getSr, sr => sr.VDIs),
   ).sort()
@@ -72,9 +75,45 @@ import TabDisks from './tab-disks'
     )
   ).groupBy('VDI')
 
+// -----------------------------------------------------------------------------
+
+  const getVdiSnapshots = createGetObjectsOfType('VDI-snapshot').pick(
+    createSelector(getSr, sr => sr.VDIs),
+  ).sort()
+
+  const getVdiSnapshotToVdi = createSelector(
+    getVdis,
+    getVdiSnapshots,
+    (vdis, vdiSnapshots) => {
+      const vdiSnapshotToVdi = {}
+      forEach(vdiSnapshots, vdiSnapshot => {
+        vdiSnapshotToVdi[vdiSnapshot.id] = find(vdis, vdi => vdi.id === vdiSnapshot.$snapshot_of)
+      })
+
+      return vdiSnapshotToVdi
+    }
+  )
+
+  const getVbdsByVdiSnapshot = createSelector(
+    getVbdsByVdi,
+    getVdiSnapshots,
+    getVdiSnapshotToVdi,
+    (vbdsByVdi, vdiSnapshots, vdiSnapshotToVdi) => {
+      const vbdsByVdiSnapshot = {}
+      forEach(vdiSnapshots, vdiSnapshot => {
+        vbdsByVdiSnapshot[vdiSnapshot.id] = vbdsByVdi[vdiSnapshotToVdi[vdiSnapshot.id].id]
+      })
+
+      return vbdsByVdiSnapshot
+    }
+  )
+
+// -----------------------------------------------------------------------------
+
   const getVdisToVmIds = createSelector(
     getVbdsByVdi,
-    vbdsByVdi => mapValues(vbdsByVdi, vbds => {
+    getVbdsByVdiSnapshot,
+    (vbdsByVdi, vbdsByVdiSnapshot) => mapValues({ ...vbdsByVdi, ...vbdsByVdiSnapshot }, vbds => {
       const vbd = find(vbds, 'VM')
       if (vbd) {
         return vbd.VM
@@ -94,6 +133,7 @@ import TabDisks from './tab-disks'
       pbds: getPbds(state, props),
       logs: getLogs(state, props),
       vdis: getVdis(state, props),
+      vdiSnapshots: getVdiSnapshots(state, props),
       vdisToVmIds: getVdisToVmIds(state, props),
       sr
     }
@@ -170,9 +210,9 @@ export default class Sr extends Component {
       'pbds',
       'sr',
       'vdis',
+      'vdiSnapshots',
       'vdisToVmIds'
-    ])
-   )
+    ]))
     return <Page header={this.header()} title={`${sr.name_label}${container ? ` (${container.name_label})` : ''}`}>
       {cloneElement(this.props.children, childProps)}
     </Page>
