@@ -87,7 +87,7 @@ import TabDisks from './tab-disks'
     (vdis, vdiSnapshots) => {
       const vdiSnapshotToVdi = {}
       forEach(vdiSnapshots, vdiSnapshot => {
-        vdiSnapshotToVdi[vdiSnapshot.id] = find(vdis, vdi => vdi.id === vdiSnapshot.$snapshot_of)
+        vdiSnapshotToVdi[vdiSnapshot.id] = vdiSnapshot.$snapshot_of && find(vdis, vdi => vdi.id === vdiSnapshot.$snapshot_of)
       })
 
       return vdiSnapshotToVdi
@@ -101,7 +101,8 @@ import TabDisks from './tab-disks'
     (vbdsByVdi, vdiSnapshots, vdiSnapshotToVdi) => {
       const vbdsByVdiSnapshot = {}
       forEach(vdiSnapshots, vdiSnapshot => {
-        vbdsByVdiSnapshot[vdiSnapshot.id] = vbdsByVdi[vdiSnapshotToVdi[vdiSnapshot.id].id]
+        const vdi = vdiSnapshotToVdi[vdiSnapshot.id]
+        vbdsByVdiSnapshot[vdiSnapshot.id] = vdi && vbdsByVdi[vdi.id]
       })
 
       return vbdsByVdiSnapshot
