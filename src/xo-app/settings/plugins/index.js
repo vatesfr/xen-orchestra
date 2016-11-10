@@ -11,6 +11,7 @@ import { addSubscriptions } from 'utils'
 import { generateUiSchema } from 'xo-json-schema-input'
 import { lastly } from 'promise-toolbox'
 import { Row, Col } from 'grid'
+import { alert } from '../../../common/modal'
 import {
   configurePlugin,
   disablePluginAutoload,
@@ -120,7 +121,13 @@ class Plugin extends Component {
     this.refs.pluginInput.value = this.props.configurationPresets[configName]
   }
 
-  _test = async () => testPlugin(this.props.id, this.refs.testInput.value)
+  _test = async () => {
+    try {
+      await testPlugin(this.props.id, this.refs.testInput.value)
+    } catch (err) {
+      alert('You have an error!', err.stack)
+    }
+  }
 
   render () {
     const {
