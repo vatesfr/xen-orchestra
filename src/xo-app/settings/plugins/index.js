@@ -8,10 +8,10 @@ import map from 'lodash/map'
 import React, { Component } from 'react'
 import size from 'lodash/size'
 import { addSubscriptions } from 'utils'
+import { alert } from 'modal'
 import { generateUiSchema } from 'xo-json-schema-input'
 import { lastly } from 'promise-toolbox'
 import { Row, Col } from 'grid'
-import { alert } from '../../../common/modal'
 import {
   configurePlugin,
   disablePluginAutoload,
@@ -125,7 +125,14 @@ class Plugin extends Component {
     try {
       await testPlugin(this.props.id, this.refs.testInput.value)
     } catch (err) {
-      alert('You have an error!', err.stack)
+      await alert(
+        'You have an error!',
+        <div>
+          <p>Code: {err.code}</p>
+          <p>Message: {err.message}</p>
+          {err.data && <pre>{JSON.stringify(err.data, null, 2)}</pre>}
+        </div>
+      )
     }
   }
 
