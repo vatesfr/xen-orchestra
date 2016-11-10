@@ -1,0 +1,81 @@
+{
+  "private": true,
+  "name": "xo-server-transport-slack",
+  "version": "0.0.0",
+  "license": "ISC",
+  "description": "",
+  "keywords": [
+    "orchestra",
+    "plugin",
+    "slack",
+    "xen",
+    "xen-orchestra",
+    "xo-server"
+  ],
+  "homepage": "https://github.com/vatesfr/xo-server-transport-slack",
+  "bugs": "https://github.com/vatesfr/xo-server-transport-slack/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vatesfr/xo-server-transport-slack.git"
+  },
+  "author": {
+    "name": "Badr Azizbi",
+    "email": "badr.azizbi@vates.fr"
+  },
+  "preferGlobal": false,
+  "main": "dist/",
+  "bin": {},
+  "files": [
+    "dist/"
+  ],
+  "engines": {
+    "node": ">=4"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "babel-cli": "^6.18.0",
+    "babel-eslint": "^7.1.0",
+    "babel-preset-env": "^0.0.7",
+    "babel-preset-stage-0": "^6.16.0",
+    "cross-env": "^3.1.3",
+    "dependency-check": "^2.6.0",
+    "ghooks": "^1.3.2",
+    "rimraf": "^2.5.4",
+    "standard": "^8.5.0"
+  },
+  "scripts": {
+    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "clean": "rimraf dist/",
+    "depcheck": "dependency-check ./package.json",
+    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
+    "lint": "standard",
+    "posttest": "npm run lint && npm run depcheck",
+    "prebuild": "npm run clean",
+    "predev": "npm run clean",
+    "prepublish": "npm run build"
+  },
+  "babel": {
+    "presets": [
+      [
+        "env",
+        {
+          "targets": {
+            "node": 4
+          }
+        }
+      ],
+      "stage-0"
+    ]
+  },
+  "standard": {
+    "ignore": [
+      "dist"
+    ],
+    "parser": "babel-eslint"
+  },
+  "config": {
+    "ghooks": {
+      "commit-msg": "npm test"
+    }
+  }
+}
