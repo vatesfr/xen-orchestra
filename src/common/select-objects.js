@@ -255,7 +255,7 @@ export class GenericSelect extends Component {
     return (
       <Select
         autofocus={props.autoFocus}
-        clearable={props.clearable == null ? !props.required && !props.multi : props.clearable}
+        clearable={props.clearable == null ? props.multi || !props.required : props.clearable}
         disabled={props.disabled}
         multi={props.multi}
         onChange={this._handleChange}
