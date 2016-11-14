@@ -3,6 +3,7 @@ import ActionRowButton from 'action-row-button'
 import ActionToggle from 'action-toggle'
 import Component from 'base-component'
 import filter from 'lodash/filter'
+import find from 'lodash/find'
 import forEach from 'lodash/forEach'
 import get from 'lodash/get'
 import Icon from 'icon'
@@ -12,6 +13,8 @@ import map from 'lodash/map'
 import orderBy from 'lodash/orderBy'
 import React from 'react'
 import SortedTable from 'sorted-table'
+import Tooltip from 'tooltip'
+import { addSubscriptions } from 'utils'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { createSelector } from 'selectors'
 import {
@@ -26,7 +29,8 @@ import {
   runJob,
   subscribeJobs,
   subscribeSchedules,
-  subscribeScheduleTable
+  subscribeScheduleTable,
+  subscribeUsers
 } from 'xo'
 
 // ===================================================================
@@ -70,7 +74,8 @@ const JOB_COLUMNS = [
     sortCriteria: 'scheduleToggleValue'
   },
   {
-    itemRenderer: ({ schedule }) => <fieldset className='pull-right'>
+    itemRenderer: ({ schedule }, isScheduleUserMissing) => <fieldset className='pull-right'>
+      {!isScheduleUserMissing[schedule.id] && <Tooltip content={_('backupUserNotFound')}><Icon className='mr-1' icon='error' /></Tooltip>}
       <Link className='btn btn-sm btn-primary mr-1' to={`/backup/${schedule.id}/edit`}>
         <Icon icon='edit' />
       </Link>
@@ -82,6 +87,7 @@ const JOB_COLUMNS = [
           handlerParam={schedule}
         />
         <ActionRowButton
+          disabled={!isScheduleUserMissing[schedule.id]}
           icon='run-schedule'
           btnStyle='warning'
           handler={runJob}
@@ -94,6 +100,9 @@ const JOB_COLUMNS = [
 
 // ===================================================================
 
+@addSubscriptions({
+  users: subscribeUsers
+})
 export default class Overview extends Component {
   constructor (props) {
     super(props)
@@ -163,10 +172,26 @@ export default class Overview extends Component {
     }
   )
 
+  _getIsScheduleUserMissing = createSelector(
+    () => this.state.schedules,
+    () => this.state.jobs,
+    () => this.props.users,
+    (schedules, jobs, users) => {
+      const isScheduleUserMissing = {}
+      forEach(schedules, schedule => {
+        isScheduleUserMissing[schedule.id] = !!(jobs && find(users, user => user.id === jobs[schedule.job].userId))
+      })
+
+      return isScheduleUserMissing
+    }
+  )
+
   render () {
     const {
       schedules
     } = this.state
+
+    const isScheduleUserMissing = this._getIsScheduleUserMissing()
 
     return (
       <div>
@@ -176,7 +201,7 @@ export default class Overview extends Component {
           </CardHeader>
           <CardBlock>
             {schedules.length ? (
-              <SortedTable columns={JOB_COLUMNS} collection={this._getScheduleCollection()} />
+              <SortedTable columns={JOB_COLUMNS} collection={this._getScheduleCollection()} userData={isScheduleUserMissing} />
             ) : <p>{_('noScheduledJobs')}</p>}
           </CardBlock>
         </Card>

@@ -1,29 +1,37 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
+import Component from 'base-component'
 import delay from 'lodash/delay'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
 import GenericInput from 'json-schema-input'
+import Icon from 'icon'
 import includes from 'lodash/includes'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
+import React from 'react'
 import size from 'lodash/size'
+import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
-import React, { Component } from 'react'
+import { addSubscriptions } from 'utils'
+import { createSelector } from 'selectors'
 import { error } from 'notification'
 import { generateUiSchema } from 'xo-json-schema-input'
-import { SelectPlainObject } from 'form'
 import { injectIntl } from 'react-intl'
+import { SelectPlainObject } from 'form'
+import { SelectSubject } from 'select-objects'
 
 import {
   apiMethods,
   createJob,
   deleteJob,
+  editJob,
   runJob,
+  subscribeCurrentUser,
   subscribeJobs,
-  updateJob
+  subscribeUsers
 } from 'xo'
 
 const JOB_KEY = 'genericTask'
@@ -82,6 +90,10 @@ const dataToParamVectorItems = function (params, data) {
   return items
 }
 
+@addSubscriptions({
+  users: subscribeUsers,
+  currentUser: subscribeCurrentUser
+})
 @injectIntl
 export default class Jobs extends Component {
   constructor (props) {
@@ -104,7 +116,17 @@ export default class Jobs extends Component {
       })
   }
 
+  componentWillReceiveProps (props) {
+    const { currentUser } = props
+    const { owner } = this.state
+
+    if (currentUser && !owner) {
+      this.setState({ owner: currentUser.id })
+    }
+  }
+
   componentWillMount () {
+    this.setState({ owner: this.props.user && this.props.user.id })
     this.componentWillUnmount = subscribeJobs(jobs => {
       const j = {}
       for (const id in jobs) {
@@ -235,6 +257,8 @@ export default class Jobs extends Component {
 
   _handleSubmit = () => {
     const {name, method, params} = this.refs
+    const { job, owner } = this.state
+
     const _job = {
       type: 'call',
       name: name.value,
@@ -243,11 +267,12 @@ export default class Jobs extends Component {
       paramsVector: {
         type: 'crossProduct',
         items: dataToParamVectorItems(method.value.info.properties, params.value)
-      }
+      },
+      userId: owner
     }
-    const { job } = this.state
+
     job && (_job.id = job.id)
-    const saveJob = job ? updateJob : createJob
+    const saveJob = job ? editJob : createJob
 
     return saveJob(_job).then(this._reset).catch(err => error('Create Job', err.message || String(err)))
   }
@@ -294,6 +319,7 @@ export default class Jobs extends Component {
     }
     const { params } = this.refs
     params.value = data
+    this.setState({ owner: job.userId })
   }
 
   _reset = () => {
@@ -302,25 +328,50 @@ export default class Jobs extends Component {
     method.value = undefined
     this.setState({
       action: undefined,
-      job: undefined
+      job: undefined,
+      owner: undefined
     })
   }
+
+  _getIsJobUserMissing = createSelector(
+    () => this.state.jobs,
+    () => this.props.users,
+    (jobs, users) => {
+      const isJobUserMissing = {}
+      forEach(jobs, job => {
+        isJobUserMissing[job.id] = !!find(users, user => user.id === job.userId)
+      })
+
+      return isJobUserMissing
+    }
+  )
+
+  _subjectPredicate = ({ type, permission }) =>
+    type === 'user' && permission === 'admin'
 
   render () {
     const {
       action,
       actions,
       job,
-      jobs
+      jobs,
+      owner
     } = this.state
     const { formatMessage } = this.props.intl
+
+    const isJobUserMissing = this._getIsJobUserMissing()
 
     return <div>
       <h1>{_('jobsPage')}</h1>
       <form id='newJobForm'>
-        <div className='form-group'>
-          <input type='text' ref='name' className='form-control' placeholder={formatMessage(messages.jobNamePlaceholder)} pattern='[^_]+' required />
-        </div>
+        <SelectSubject
+          onChange={this.linkState('owner', 'id')}
+          placeholder={_('jobOwnerPlaceholder')}
+          predicate={this._subjectPredicate}
+          required
+          value={owner}
+        />
+        <input type='text' ref='name' className='form-control mb-1 mt-1' placeholder={formatMessage(messages.jobNamePlaceholder)} pattern='[^_]+' required />
         <SelectPlainObject ref='method' options={actions} optionKey='method' onChange={this._handleSelectMethod} placeholder={_('jobActionPlaceHolder')} />
         {action && <fieldset>
           <GenericInput ref='params' schema={action.info} uiSchema={action.uiSchema} label={action.method} required />
@@ -352,11 +403,13 @@ export default class Jobs extends Component {
             <td>{job.method}</td>
             <td>
               <ActionRowButton
+                disabled={!isJobUserMissing[job.id]}
                 icon='run-schedule'
                 btnStyle='warning'
                 handler={runJob}
                 handlerParam={job.id}
               />
+              {!isJobUserMissing[job.id] && <Tooltip content={_('jobUserNotFound')}><Icon className='ml-1' icon='error' /></Tooltip>}
             </td>
             <td>
               <ActionRowButton

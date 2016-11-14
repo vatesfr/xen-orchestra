@@ -11,17 +11,20 @@ import Scheduler, { SchedulePreview } from 'scheduling'
 import startsWith from 'lodash/startsWith'
 import Upgrade from 'xoa-upgrade'
 import Wizard, { Section } from 'wizard'
-import { Container, Row, Col } from 'grid'
+import { addSubscriptions } from 'utils'
+import { confirm } from 'modal'
 import { error } from 'notification'
 import { generateUiSchema } from 'xo-json-schema-input'
-import { confirm } from 'modal'
+import { SelectSubject } from 'select-objects'
+import { Container, Row, Col } from 'grid'
 
 import {
   createJob,
   createSchedule,
   getRemote,
-  setJob,
-  updateSchedule
+  editJob,
+  editSchedule,
+  subscribeCurrentUser
 } from 'xo'
 
 // ===================================================================
@@ -234,10 +237,22 @@ const BACKUP_METHOD_TO_INFO = {
 
 const DEFAULT_CRON_PATTERN = '0 0 * * *'
 
+@addSubscriptions({
+  currentUser: subscribeCurrentUser
+})
 export default class New extends Component {
   constructor (props) {
     super(props)
     this.state.cronPattern = DEFAULT_CRON_PATTERN
+  }
+
+  componentWillReceiveProps (props) {
+    const { currentUser } = props
+    const { owner } = this.state
+
+    if (currentUser && !owner) {
+      this.setState({ owner: currentUser.id })
+    }
   }
 
   componentWillMount () {
@@ -251,6 +266,7 @@ export default class New extends Component {
     this.setState({
       backupInfo: BACKUP_METHOD_TO_INFO[job.method],
       cronPattern: schedule.cron,
+      owner: job.userId,
       timezone: schedule.timezone || null
     }, () => delay(this._populateForm, 250, job)) // Work around.
     // Without the delay, some selects are not always ready to load a value
@@ -317,7 +333,8 @@ export default class New extends Component {
     const {
       backupInfo,
       smartBackupMode,
-      timezone
+      timezone,
+      owner
     } = this.state
 
     const paramsVector = !smartBackupMode
@@ -357,7 +374,8 @@ export default class New extends Component {
       type: 'call',
       key: backupInfo.jobKey,
       method: backupInfo.method,
-      paramsVector
+      paramsVector,
+      userId: owner
     }
 
     // Update backup schedule.
@@ -365,7 +383,7 @@ export default class New extends Component {
 
     if (oldJob && oldSchedule) {
       job.id = oldJob.id
-      return setJob(job).then(() => updateSchedule({
+      return editJob(job).then(() => editSchedule({
         ...oldSchedule,
         cron: this.state.cronPattern,
         timezone
@@ -435,12 +453,16 @@ export default class New extends Component {
     })
   }
 
+  _subjectPredicate = ({ type, permission }) =>
+    type === 'user' && permission === 'admin'
+
   render () {
     const {
       backupInfo,
       cronPattern,
       smartBackupMode,
-      timezone
+      timezone,
+      owner
     } = this.state
 
     return process.env.XOA_PLAN > 1
@@ -450,6 +472,15 @@ export default class New extends Component {
             <Container>
               <Row>
                 <Col>
+                  <fieldset className='form-group'>
+                    <label>{_('backupOwner')}</label>
+                    <SelectSubject
+                      onChange={this.linkState('owner', 'id')}
+                      predicate={this._subjectPredicate}
+                      required
+                      value={owner}
+                    />
+                  </fieldset>
                   <fieldset className='form-group'>
                     <label htmlFor='selectBackup'>{_('newBackupSelection')}</label>
                     <select

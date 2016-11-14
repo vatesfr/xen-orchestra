@@ -15,7 +15,7 @@ import {
   deleteSchedule,
   subscribeJobs,
   subscribeSchedules,
-  updateSchedule
+  editSchedule
 } from 'xo'
 
 const JOB_KEY = 'genericTask'
@@ -90,7 +90,7 @@ export default class Schedules extends Component {
       schedule.cron = cronPattern
       schedule.name = name.value
       schedule.timezone = timezone
-      save = updateSchedule(schedule)
+      save = editSchedule(schedule)
     } else {
       save = createSchedule(job.value.id, { cron: cronPattern, enabled: enabled.value, name: name.value })
     }
