@@ -118,10 +118,10 @@ export default class Jobs extends Component {
 
   componentWillReceiveProps (props) {
     const { currentUser } = props
-    const { defaultUserHasBeenSet, owner } = this.state
+    const { owner } = this.state
 
-    if (currentUser && !owner && !defaultUserHasBeenSet) {
-      this.setState({ defaultUserHasBeenSet: true, owner: currentUser.id })
+    if (currentUser && !owner) {
+      this.setState({ owner: currentUser.id })
     }
   }
 
