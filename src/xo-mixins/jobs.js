@@ -45,9 +45,9 @@ export default class {
     return job_.properties
   }
 
-  async updateJob ({id, type, name, key, method, paramsVector}) {
+  async updateJob ({id, userId, type, name, key, method, paramsVector}) {
     const oldJob = await this.getJob(id)
-    assign(oldJob, {type, name, key, method, paramsVector})
+    assign(oldJob, {userId, type, name, key, method, paramsVector})
     return /* await */ this._jobs.save(oldJob)
   }
 

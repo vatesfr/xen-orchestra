@@ -18,7 +18,9 @@ get.params = {
 }
 
 export async function create ({job}) {
-  job.userId = this.session.get('user_id')
+  if (!job.userId) {
+    job.userId = this.session.get('user_id')
+  }
 
   return (await this.createJob(job)).id
 }
@@ -29,6 +31,7 @@ create.params = {
   job: {
     type: 'object',
     properties: {
+      userId: {type: 'string', optional: true},
       name: {type: 'string', optional: true},
       type: {type: 'string'},
       key: {type: 'string'},
