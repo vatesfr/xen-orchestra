@@ -119,17 +119,17 @@ export default class Overview extends Component {
     return method(id)
   }
 
-  _getIsRunnableJob = createSelector(
+  _getIsScheduleUserMissing = createSelector(
     () => this.state.schedules,
     () => this.props.users,
     (schedules, users) => {
-      const isRunnableJob = {}
+      const isScheduleUserMissing = {}
 
       forEach(schedules, schedule => {
-        isRunnableJob[schedule.id] = !!find(users, user => user.id === this._getScheduleJob(schedule).userId)
+        isScheduleUserMissing[schedule.id] = !!find(users, user => user.id === this._getScheduleJob(schedule).userId)
       })
 
-      return isRunnableJob
+      return isScheduleUserMissing
     }
   )
 
@@ -138,7 +138,7 @@ export default class Overview extends Component {
       schedules
     } = this.state
 
-    const isRunnableJob = this._getIsRunnableJob()
+    const isScheduleUserMissing = this._getIsScheduleUserMissing()
 
     return (process.env.XOA_PLAN > 3
       ? <Container>
@@ -179,7 +179,7 @@ export default class Overview extends Component {
                         <td>
                           {this._getScheduleToggle(schedule)}
                           <fieldset className='pull-right'>
-                            <Tooltip content={_('jobUserNotFound')}>{!isRunnableJob[schedule.id] && <Icon className='mr-1' icon='error' />}</Tooltip>
+                            {!isScheduleUserMissing[schedule.id] && <Tooltip content={_('jobUserNotFound')}><Icon className='mr-1' icon='error' /></Tooltip>}
                             <ButtonGroup>
                               <ActionRowButton
                                 icon='delete'
@@ -188,7 +188,7 @@ export default class Overview extends Component {
                                 handlerParam={schedule}
                               />
                               <ActionRowButton
-                                disabled={!isRunnableJob[schedule.id]}
+                                disabled={!isScheduleUserMissing[schedule.id]}
                                 icon='run-schedule'
                                 btnStyle='warning'
                                 handler={runJob}

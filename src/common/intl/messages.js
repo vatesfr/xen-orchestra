@@ -224,11 +224,10 @@ var messages = {
   jobSchedules: 'Schedules',
   jobScheduleNamePlaceHolder: 'Name of your schedule',
   jobScheduleJobPlaceHolder: 'Select a Job',
-  jobOwnerPlaceholder: 'Job owner (default is current user)',
+  jobOwnerPlaceholder: 'Job owner',
   jobUserNotFound: 'This job\'s creator no longer exists',
   backupUserNotFound: 'This backup\'s creator no longer exists',
   backupOwner: 'Backup owner',
-  backupOwnerPlaceholder: 'Default is current user',
 
   // ------ New backup -----
   newBackupSelection: 'Select your backup type:',

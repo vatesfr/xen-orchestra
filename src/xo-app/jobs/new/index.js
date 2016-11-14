@@ -15,20 +15,21 @@ import React from 'react'
 import size from 'lodash/size'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
+import { addSubscriptions } from 'utils'
+import { createSelector } from 'selectors'
 import { error } from 'notification'
 import { generateUiSchema } from 'xo-json-schema-input'
 import { injectIntl } from 'react-intl'
 import { SelectPlainObject } from 'form'
 import { SelectSubject } from 'select-objects'
-import { addSubscriptions, connectStore } from 'utils'
-import { createSelector, isAdmin } from 'selectors'
 
 import {
   apiMethods,
   createJob,
   deleteJob,
+  editJob,
   runJob,
-  setJob,
+  subscribeCurrentUser,
   subscribeJobs,
   subscribeUsers
 } from 'xo'
@@ -90,10 +91,8 @@ const dataToParamVectorItems = function (params, data) {
 }
 
 @addSubscriptions({
-  users: subscribeUsers
-})
-@connectStore({
-  isAdmin
+  users: subscribeUsers,
+  currentUser: subscribeCurrentUser
 })
 @injectIntl
 export default class Jobs extends Component {
@@ -117,7 +116,17 @@ export default class Jobs extends Component {
       })
   }
 
+  componentWillReceiveProps (props) {
+    const { currentUser } = props
+    const { defaultUserHasBeenSet, owner } = this.state
+
+    if (currentUser && !owner && !defaultUserHasBeenSet) {
+      this.setState({ defaultUserHasBeenSet: true, owner: currentUser.id })
+    }
+  }
+
   componentWillMount () {
+    this.setState({ owner: this.props.user && this.props.user.id })
     this.componentWillUnmount = subscribeJobs(jobs => {
       const j = {}
       for (const id in jobs) {
@@ -263,7 +272,7 @@ export default class Jobs extends Component {
     }
 
     job && (_job.id = job.id)
-    const saveJob = job ? setJob : createJob
+    const saveJob = job ? editJob : createJob
 
     return saveJob(_job).then(this._reset).catch(err => error('Create Job', err.message || String(err)))
   }
@@ -324,20 +333,21 @@ export default class Jobs extends Component {
     })
   }
 
-  _getIsRunnableJob = createSelector(
+  _getIsJobUserMissing = createSelector(
     () => this.state.jobs,
     () => this.props.users,
     (jobs, users) => {
-      const isRunnableJob = {}
+      const isJobUserMissing = {}
       forEach(jobs, job => {
-        isRunnableJob[job.id] = !!find(users, user => user.id === job.userId)
+        isJobUserMissing[job.id] = !!find(users, user => user.id === job.userId)
       })
 
-      return isRunnableJob
+      return isJobUserMissing
     }
   )
 
-  _subjectPredicate = ({type}) => type === 'user'
+  _subjectPredicate = ({ type, permission }) =>
+    type === 'user' && permission === 'admin'
 
   render () {
     const {
@@ -349,17 +359,18 @@ export default class Jobs extends Component {
     } = this.state
     const { formatMessage } = this.props.intl
 
-    const isRunnableJob = this._getIsRunnableJob()
+    const isJobUserMissing = this._getIsJobUserMissing()
 
     return <div>
       <h1>{_('jobsPage')}</h1>
       <form id='newJobForm'>
-        {this.props.isAdmin && <SelectSubject
+        <SelectSubject
           onChange={this.linkState('owner', 'id')}
           placeholder={_('jobOwnerPlaceholder')}
           predicate={this._subjectPredicate}
+          required
           value={owner}
-        />}
+        />
         <input type='text' ref='name' className='form-control mb-1 mt-1' placeholder={formatMessage(messages.jobNamePlaceholder)} pattern='[^_]+' required />
         <SelectPlainObject ref='method' options={actions} optionKey='method' onChange={this._handleSelectMethod} placeholder={_('jobActionPlaceHolder')} />
         {action && <fieldset>
@@ -392,13 +403,13 @@ export default class Jobs extends Component {
             <td>{job.method}</td>
             <td>
               <ActionRowButton
-                disabled={!isRunnableJob[job.id]}
+                disabled={!isJobUserMissing[job.id]}
                 icon='run-schedule'
                 btnStyle='warning'
                 handler={runJob}
                 handlerParam={job.id}
               />
-              <Tooltip content={_('jobUserNotFound')}>{!isRunnableJob[job.id] && <Icon className='ml-1' icon='error' />}</Tooltip>
+              {!isJobUserMissing[job.id] && <Tooltip content={_('jobUserNotFound')}><Icon className='ml-1' icon='error' /></Tooltip>}
             </td>
             <td>
               <ActionRowButton

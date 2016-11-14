@@ -74,8 +74,8 @@ const JOB_COLUMNS = [
     sortCriteria: 'scheduleToggleValue'
   },
   {
-    itemRenderer: ({ schedule }, isRunnableJob) => <fieldset className='pull-right'>
-      <Tooltip content={_('backupUserNotFound')}>{!isRunnableJob[schedule.id] && <Icon className='mr-1' icon='error' />}</Tooltip>
+    itemRenderer: ({ schedule }, isScheduleUserMissing) => <fieldset className='pull-right'>
+      {!isScheduleUserMissing[schedule.id] && <Tooltip content={_('backupUserNotFound')}><Icon className='mr-1' icon='error' /></Tooltip>}
       <Link className='btn btn-sm btn-primary mr-1' to={`/backup/${schedule.id}/edit`}>
         <Icon icon='edit' />
       </Link>
@@ -87,7 +87,7 @@ const JOB_COLUMNS = [
           handlerParam={schedule}
         />
         <ActionRowButton
-          disabled={!isRunnableJob[schedule.id]}
+          disabled={!isScheduleUserMissing[schedule.id]}
           icon='run-schedule'
           btnStyle='warning'
           handler={runJob}
@@ -172,17 +172,17 @@ export default class Overview extends Component {
     }
   )
 
-  _getIsRunnableJob = createSelector(
+  _getIsScheduleUserMissing = createSelector(
     () => this.state.schedules,
     () => this.state.jobs,
     () => this.props.users,
     (schedules, jobs, users) => {
-      const isRunnableJob = {}
+      const isScheduleUserMissing = {}
       forEach(schedules, schedule => {
-        isRunnableJob[schedule.id] = !!(jobs && find(users, user => user.id === jobs[schedule.job].userId))
+        isScheduleUserMissing[schedule.id] = !!(jobs && find(users, user => user.id === jobs[schedule.job].userId))
       })
 
-      return isRunnableJob
+      return isScheduleUserMissing
     }
   )
 
@@ -191,7 +191,7 @@ export default class Overview extends Component {
       schedules
     } = this.state
 
-    const isRunnableJob = this._getIsRunnableJob()
+    const isScheduleUserMissing = this._getIsScheduleUserMissing()
 
     return (
       <div>
@@ -201,7 +201,7 @@ export default class Overview extends Component {
           </CardHeader>
           <CardBlock>
             {schedules.length ? (
-              <SortedTable columns={JOB_COLUMNS} collection={this._getScheduleCollection()} userData={isRunnableJob} />
+              <SortedTable columns={JOB_COLUMNS} collection={this._getScheduleCollection()} userData={isScheduleUserMissing} />
             ) : <p>{_('noScheduledJobs')}</p>}
           </CardBlock>
         </Card>

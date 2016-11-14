@@ -1149,7 +1149,7 @@ export const destroyTask = task => (
   _call('task.destroy', { id: resolveId(task) })
 )
 
-// Jobs ----------------------------------------------------------
+// Jobs -------------------------------------------------------------
 
 export const createJob = job => (
   _call('job.create', { job })::tap(
@@ -1163,20 +1163,20 @@ export const deleteJob = job => (
   )
 )
 
-export const runJob = id => {
-  info(_('runJob'), _('runJobVerbose'))
-  return _call('job.runSequence', { idSequence: [id] })
-}
+export const editJob = job => (
+  _call('job.set', { job })::tap(
+    subscribeJobs.forceRefresh
+  )
+)
 
 export const getJob = id => (
   _call('job.get', { id })
 )
 
-export const setJob = job => (
-  _call('job.set', { job })::tap(
-    subscribeJobs.forceRefresh
-  )
-)
+export const runJob = id => {
+  info(_('runJob'), _('runJobVerbose'))
+  return _call('job.runSequence', { idSequence: [id] })
+}
 
 // Backup/Schedule ---------------------------------------------------------
 
@@ -1187,12 +1187,6 @@ export const createSchedule = (jobId, {
   timezone = undefined
 }) => (
   _call('schedule.create', { jobId, cron, enabled, name, timezone })::tap(
-    subscribeSchedules.forceRefresh
-  )
-)
-
-export const deleteSchedule = schedule => (
-  _call('schedule.delete', { id: resolveId(schedule) })::tap(
     subscribeSchedules.forceRefresh
   )
 )
@@ -1209,14 +1203,22 @@ export const deleteBackupSchedule = async schedule => {
   subscribeJobs.forceRefresh()
 }
 
-export const updateSchedule = ({ id, job: jobId, cron, enabled, name, timezone }) => (
-  _call('schedule.set', { id, jobId, cron, enabled, name, timezone })::tap(
+export const deleteSchedule = schedule => (
+  _call('schedule.delete', { id: resolveId(schedule) })::tap(
     subscribeSchedules.forceRefresh
   )
 )
 
-export const getSchedule = id => (
-  _call('schedule.get', { id })
+export const disableSchedule = id => (
+  _call('scheduler.disable', { id })::tap(
+    subscribeScheduleTable.forceRefresh
+  )
+)
+
+export const editSchedule = ({ id, job: jobId, cron, enabled, name, timezone }) => (
+  _call('schedule.set', { id, jobId, cron, enabled, name, timezone })::tap(
+    subscribeSchedules.forceRefresh
+  )
 )
 
 export const enableSchedule = id => (
@@ -1225,10 +1227,8 @@ export const enableSchedule = id => (
   )
 )
 
-export const disableSchedule = id => (
-  _call('scheduler.disable', { id })::tap(
-    subscribeScheduleTable.forceRefresh
-  )
+export const getSchedule = id => (
+  _call('schedule.get', { id })
 )
 
 // Plugins -----------------------------------------------------------
