@@ -133,7 +133,7 @@ export default class Menu extends Component {
         { to: '/settings/ips', icon: 'ip', label: 'settingsIpsPage' },
         { to: '/settings/config', icon: 'menu-settings-config', label: 'settingsConfigPage' }
       ]},
-      { to: '/jobs/overview', icon: 'menu-jobs', label: 'jobsPage', subMenu: [
+      isAdmin && { to: '/jobs/overview', icon: 'menu-jobs', label: 'jobsPage', subMenu: [
         { to: '/jobs/overview', icon: 'menu-jobs-overview', label: 'jobsOverviewPage' },
         { to: '/jobs/new', icon: 'menu-jobs-new', label: 'jobsNewPage' },
         { to: '/jobs/schedules', icon: 'menu-jobs-schedule', label: 'jobsSchedulingPage' }
