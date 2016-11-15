@@ -51,7 +51,7 @@
     "bootstrap": "^4.0.0-alpha.5",
     "browserify": "^13.0.0",
     "bundle-collapser": "^1.2.1",
-    "chartist": "^0.9.4",
+    "chartist": "^0.10.1",
     "chartist-plugin-legend": "^0.5.0",
     "chartist-plugin-tooltip": "0.0.11",
     "classnames": "^2.2.3",
@@ -93,7 +93,7 @@
     "react": "^15.0.0",
     "react-addons-shallow-compare": "^15.1.0",
     "react-bootstrap-4": "^0.29.1",
-    "react-chartist": "^0.10.1",
+    "react-chartist": "^0.11.0",
     "react-copy-to-clipboard": "^4.0.2",
     "react-debounce-input": "^2.4.0",
     "react-dnd": "^2.1.4",
@@ -184,11 +184,6 @@
     "ghooks": {
       "commit-msg": "npm test"
     }
-  },
-  "greenkeeper": {
-    "ignore": [
-      "chartist"
-    ]
   },
   "standard": {
     "ignore": [
