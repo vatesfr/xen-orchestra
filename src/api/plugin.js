@@ -115,7 +115,9 @@ test.params = {
   id: {
     type: 'string'
   },
-  data: {}
+  data: {
+    optional: true
+  }
 }
 
 test.permission = 'admin'
