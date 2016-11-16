@@ -104,7 +104,7 @@
     "xml2js": "~0.4.6",
     "xo-acl-resolver": "^0.2.2",
     "xo-collection": "^0.4.0",
-    "xo-common": "0.0.0",
+    "xo-common": "0.1.0",
     "xo-remote-parser": "^0.3",
     "xo-vmdk-to-vhd": "0.0.12"
   },
