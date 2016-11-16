@@ -28,10 +28,24 @@ const PERMISSIONS = {
   admin: 3
 }
 
+// TODO:
+// - error when adding a server to a pool with incompatible version
+// - error when halted VM migration failure is due to XS < 7
 const XAPI_ERROR_TO_XO_ERROR = {
+  EHOSTUNREACH: errors.serverUnreachable,
+  HOST_OFFLINE: ([ host ], getId) => errors.hostOffline({ host: getId(host) }),
   NO_HOSTS_AVAILABLE: errors.noHostsAvailable,
+  NOT_SUPPORTED_DURING_UPGRADE: errors.notSupportedDuringUpgrade,
+  OPERATION_BLOCKED: ([ ref, code ], getId) => errors.operationBlocked({ objectId: getId(ref), code }),
+  PATCH_PRECHECK_FAILED_ISO_MOUNTED: ([ patch ]) => errors.patchPrecheck({ errorType: 'isoMounted', patch }),
+  PIF_VLAN_EXISTS: ([ pif ], getId) => errors.objectAlreadyExists({ objectId: getId(pif), objectType: 'PIF' }),
   SESSION_AUTHENTICATION_FAILED: errors.authenticationFailed,
-  EHOSTUNREACH: errors.hostUnreached
+  VDI_IN_USE: ([ vdi, operation ], getId) => errors.vdiInUse({ vdi: getId(vdi), operation }),
+  VM_BAD_POWER_STATE: ([ vm, expected, actual ], getId) => errors.vmBadPowerState({ vm: getId(vm), expected, actual }),
+  VM_IS_TEMPLATE: errors.vmIsTemplate,
+  VM_LACKS_FEATURE: ([ vm ], getId) => errors.vmLacksFeature({ vm: getId(vm) }),
+  VM_LACKS_FEATURE_SHUTDOWN: ([ vm ], getId) => errors.vmLacksFeature({ vm: getId(vm), feature: 'shutdown' }),
+  VM_MISSING_PV_DRIVERS: ([ vm ], getId) => errors.vmMissingPvDrivers({ vm: getId(vm) })
 }
 
 const hasPermission = (user, permission) => (
@@ -290,7 +304,13 @@ export default class Api {
 
       const xoError = XAPI_ERROR_TO_XO_ERROR[error.code]
       if (xoError) {
-        throw xoError(error.params)
+        throw xoError(error.params, ref => {
+          try {
+            return this._xo.getObject(ref).id
+          } catch (e) {
+            return ref
+          }
+        })
       }
 
       throw error
