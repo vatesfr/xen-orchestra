@@ -123,7 +123,7 @@ class Plugin extends Component {
 
   _test = async () => {
     try {
-      await testPlugin(this.props.id, this.refs.testInput.value)
+      await testPlugin(this.props.id, this.refs.testInput ? this.refs.testInput.value : null)
     } catch (err) {
       await alert(
         'You have an error!',
