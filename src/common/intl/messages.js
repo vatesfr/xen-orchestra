@@ -35,6 +35,7 @@ var messages = {
   homeHostPage: 'Hosts',
   homePoolPage: 'Pools',
   homeTemplatePage: 'Templates',
+  homeSrPage: 'SRs',
   dashboardPage: 'Dashboard',
   overviewDashboardPage: 'Overview',
   overviewVisualizationDashboardPage: 'Visualizations',
@@ -129,6 +130,10 @@ var messages = {
   homeSortByRAM: 'RAM',
   homeSortByvCPUs: 'vCPUs',
   homeSortByCpus: 'CPUs',
+  homeSortByShared: 'Shared/Not shared',
+  homeSortBySize: 'Size',
+  homeSortByUsage: 'Usage',
+  homeSortByType: 'Type',
   homeDisplayedItems: '{displayed, number}x {icon} (on {total, number})',
   homeSelectedItems: '{selected, number}x {icon} selected (on {total, number})',
   homeMore: 'More',
@@ -136,6 +141,8 @@ var messages = {
   homeMissingPaths: 'Missing patches',
   homePoolMaster: 'Master:',
   highAvailability: 'High Availability',
+  srSharedType: 'Shared {type}',
+  srNotSharedType: 'Not shared {type}',
 
   // ----- Forms -----
   add: 'Add',
@@ -406,8 +413,9 @@ var messages = {
   // ----- SR actions -----
   srRescan: 'Rescan all disks',
   srReconnectAll: 'Connect to all hosts',
-  srDisconnectAll: 'Disconnect to all hosts',
+  srDisconnectAll: 'Disconnect from all hosts',
   srForget: 'Forget this SR',
+  srsForget: 'Forget SRs',
   srRemoveButton: 'Remove this SR',
   srNoVdis: 'No VDIs in this storage',
   // ----- Pool general -----
@@ -1188,6 +1196,7 @@ var messages = {
   shortcut_GO_TO_HOSTS: 'Go to hosts list',
   shortcut_GO_TO_POOLS: 'Go to pools list',
   shortcut_GO_TO_VMS: 'Go to VMs list',
+  shortcut_GO_TO_SRS: 'Go to SRs list',
   shortcut_CREATE_VM: 'Create a new VM',
   shortcut_UNFOCUS: 'Unfocus field',
   shortcut_HELP: 'Show shortcuts key bindings',
@@ -1214,7 +1223,22 @@ var messages = {
   importConfigError: 'Error while importing config file',
   exportConfig: 'Export',
   downloadConfig: 'Download current config',
-  noConfigImportCommunity: 'No config import available for Community Edition'
+  noConfigImportCommunity: 'No config import available for Community Edition',
+
+  // ----- SR -----
+  srReconnectAllModalTitle: 'Reconnect all hosts',
+  srReconnectAllModalMessage: 'This will reconnect this SR to all its hosts.',
+  srsReconnectAllModalMessage: 'This will reconnect each selected SR to its host (local SR) or to every hosts of its pool (shared SR).',
+  srDisconnectAllModalTitle: 'Disconnect all hosts',
+  srDisconnectAllModalMessage: 'This will disconnect this SR from all its hosts.',
+  srsDisconnectAllModalMessage: 'This will disconnect each selected SR from its host (local SR) or from every hosts of its pool (shared SR).',
+  srForgetModalTitle: 'Forget SR',
+  srsForgetModalTitle: 'Forget selected SRs',
+  srForgetModalMessage: 'Are you sure you want to forget this SR? VDIs on this storage won\'t be removed.',
+  srsForgetModalMessage: 'Are you sure you want to forget all the selected SRs? VDIs on these storages won\'t be removed.',
+  srAllDisconnected: 'Disconnected',
+  srSomeConnected: 'Partially connected',
+  srAllConnected: 'Connected'
 
 }
 forEach(messages, function (message, id) {

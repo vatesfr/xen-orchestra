@@ -1062,37 +1062,63 @@ export const deleteSr = sr => (
 
 export const forgetSr = sr => (
   confirm({
-    title: 'Forget SR',
-    body: <div>
-      <p>Are you sure you want to forget this SR?</p>
-      <p>VDIs on this storage wont be removed.</p>
-    </div>
+    title: _('srForgetModalTitle'),
+    body: _('srForgetModalMessage')
   }).then(
     () => _call('sr.forget', { id: resolveId(sr) }),
+    noop
+  )
+)
+export const forgetSrs = srs => (
+  confirm({
+    title: _('srsForgetModalTitle'),
+    body: _('srsForgetModalMessage')
+  }).then(
+    () => Promise.all(map(resolveIds(srs), id =>
+      _call('sr.forget', { id })
+    )),
     noop
   )
 )
 
 export const reconnectAllHostsSr = sr => (
   confirm({
-    title: 'Reconnect all hosts',
-    body: <div>
-      <p>This will reconnect this SR to all its hosts</p>
-    </div>
+    title: _('srReconnectAllModalTitle'),
+    body: _('srReconnectAllModalMessage')
   }).then(
     () => _call('sr.connectAllPbds', { id: resolveId(sr) }),
+    noop
+  )
+)
+export const reconnectAllHostsSrs = srs => (
+  confirm({
+    title: _('srReconnectAllModalTitle'),
+    body: _('srReconnectAllModalMessage')
+  }).then(
+    () => Promise.all(resolveIds(srs), id =>
+      _call('sr.connectAllPbds', { id })
+    ),
     noop
   )
 )
 
 export const disconnectAllHostsSr = sr => (
   confirm({
-    title: 'Disconnect all hosts',
-    body: <div>
-      <p>This will disconnect this SR to all its hosts</p>
-    </div>
+    title: _('srDisconnectAllModalTitle'),
+    body: _('srDisconnectAllModalMessage')
   }).then(
     () => _call('sr.disconnectAllPbds', { id: resolveId(sr) }),
+    noop
+  )
+)
+export const disconnectAllHostsSrs = srs => (
+  confirm({
+    title: _('srDisconnectAllModalTitle'),
+    body: _('srsDisconnectAllModalMessage')
+  }).then(
+    () => Promise.all(resolveIds(srs), id =>
+      _call('sr.disconnectAllPbds', { id })
+    ),
     noop
   )
 )
@@ -1107,6 +1133,11 @@ export const editSr = (sr, { nameDescription, nameLabel }) => (
 
 export const rescanSr = sr => (
   _call('sr.scan', { id: resolveId(sr) })
+)
+export const rescanSrs = srs => (
+  Promise.all(map(resolveIds(srs), id =>
+    _call('sr.scan', { id })
+  ))
 )
 
 // PBDs --------------------------------------------------------------

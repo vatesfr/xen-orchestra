@@ -371,6 +371,24 @@
     @extend .xo-status-busy;
   }
 
+  &-all-connected {
+    @extend .fa;
+    @extend .fa-circle;
+    @extend .xo-status-running;
+  }
+
+  &-some-connected {
+    @extend .fa;
+    @extend .fa-circle;
+    @extend .xo-status-busy;
+  }
+
+  &-all-disconnected {
+    @extend .fa;
+    @extend .fa-circle;
+    @extend .xo-status-halted;
+  }
+
   // Task
   &-task {
     &-cancel {
