@@ -133,6 +133,7 @@ class Plugin extends Component {
           {err.data && <pre>{JSON.stringify(err.data, null, 2)}</pre>}
         </div>
       )
+      throw err
     }
   }
 
