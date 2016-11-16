@@ -61,9 +61,11 @@ export const authenticationFailed = create(8, () => ({
   message: 'authentication failed'
 }))
 
-export const hostUnreached = create(9, id => ({
-  data: { id },
-  message: 'host unreached'
+export const serverUnreachable = create(9, objectId => ({
+  data: {
+    objectId
+  },
+  message: 'server unreachable'
 }))
 
 export const invalidParameters = create(10, (message, errors) => {
@@ -77,3 +79,88 @@ export const invalidParameters = create(10, (message, errors) => {
     message: message || 'invalid parameters'
   }
 })
+
+export const vmMissingPvDrivers = create(11, ({ vm }) => ({
+  data: {
+    objectId: vm
+  },
+  message: 'missing PV drivers'
+}))
+
+export const vmIsTemplate = create(12, ({ vm }) => ({
+  data: {
+    objectId: vm
+  },
+  message: 'VM is a template'
+}))
+
+// TODO: We should probably create a more generic error which gathers all incorrect state errors.
+// e.g.:
+// incorrectState {
+//   data: {
+//     objectId: 'af43e227-3deb-4822-a79b-968825de72eb',
+//     property: 'power_state',
+//     actual: 'Running',
+//     expected: 'Halted'
+//   },
+//   message: 'incorrect state'
+// }
+export const vmBadPowerState = create(13, ({ vm, expected, actual }) => ({
+  data: {
+    objectId: vm,
+    expected,
+    actual
+  },
+  message: `VM state is ${actual} but should be ${expected}`
+}))
+
+export const vmLacksFeature = create(14, ({ vm, feature }) => ({
+  data: {
+    objectId: vm,
+    feature
+  },
+  message: `VM lacks feature ${feature || ''}`
+}))
+
+export const notSupportedDuringUpgrade = create(15, () => ({
+  message: 'not supported during upgrade'
+}))
+
+export const objectAlreadyExists = create(16, ({ objectId, objectType }) => ({
+  data: {
+    objectId,
+    objectType
+  },
+  message: `${objectType || 'object'} already exists`
+}))
+
+export const vdiInUse = create(17, ({ vdi, operation }) => ({
+  data: {
+    objectId: vdi,
+    operation
+  },
+  message: 'VDI in use'
+}))
+
+export const hostOffline = create(18, ({ host }) => ({
+  data: {
+    objectId: host
+  },
+  message: 'host offline'
+}))
+
+export const operationBlocked = create(19, ({ objectId, code }) => ({
+  data: {
+    objectId,
+    code
+  },
+  message: 'operation blocked'
+}))
+
+export const patchPrecheckFailed = create(20, ({ errorType, patch }) => ({
+  data: {
+    objectId: patch,
+    errorType
+  },
+  message: `patch precheck failed: ${errorType}`
+}))
