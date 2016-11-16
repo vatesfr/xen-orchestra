@@ -8,6 +8,7 @@ import map from 'lodash/map'
 import React, { Component } from 'react'
 import size from 'lodash/size'
 import { addSubscriptions } from 'utils'
+import { alert } from 'modal'
 import { generateUiSchema } from 'xo-json-schema-input'
 import { lastly } from 'promise-toolbox'
 import { Row, Col } from 'grid'
@@ -120,7 +121,21 @@ class Plugin extends Component {
     this.refs.pluginInput.value = this.props.configurationPresets[configName]
   }
 
-  _test = async () => testPlugin(this.props.id, this.refs.testInput.value)
+  _test = async () => {
+    try {
+      await testPlugin(this.props.id, this.refs.testInput.value)
+    } catch (err) {
+      await alert(
+        'You have an error!',
+        <div>
+          <p>Code: {err.code}</p>
+          <p>Message: {err.message}</p>
+          {err.data && <pre>{JSON.stringify(err.data, null, 2)}</pre>}
+        </div>
+      )
+      throw err
+    }
+  }
 
   render () {
     const {
