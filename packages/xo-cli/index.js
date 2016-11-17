@@ -272,7 +272,15 @@ function listObjects (args) {
   return connect().then(function getXoObjects (xo) {
     return xo.call('xo.getAllObjects')
   }).then(function filterObjects (objects) {
-    return filter(objects, sieve)
+    objects = filter(objects, sieve)
+
+    const stdout = process.stdout
+    stdout.write('[\n')
+    for (var i = 0, n = objects.length; i < n;) {
+      stdout.write(JSON.stringify(objects[i], null, 2))
+      stdout.write(++i < n ? ',\n' : '\n')
+    }
+    stdout.write(']')
   })
 }
 exports.listObjects = listObjects
