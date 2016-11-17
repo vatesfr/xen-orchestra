@@ -176,12 +176,11 @@ const OPTIONS = {
     showPoolsSelector: true,
     sortOptions: [
       { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' },
-      { labelId: 'homeSortBySize', sortBy: 'size', sortOrder: 'desc' },
+      { labelId: 'homeSortBySize', sortBy: 'size', sortOrder: 'desc', default: true },
       { labelId: 'homeSortByShared', sortBy: isSrShared, sortOrder: 'desc' },
       { labelId: 'homeSortByUsage', sortBy: 'physical_usage', sortOrder: 'desc' },
       { labelId: 'homeSortByType', sortBy: 'SR_type', sortOrder: 'asc' }
-    ],
-    defaultSortBy: 'size'
+    ]
   }
 }
 
@@ -275,16 +274,13 @@ export default class Home extends Component {
     )
   }
 
-  _getDefaultSortBy (props = this.props) {
-    const { type } = props
+  _getDefaultSort (props = this.props) {
+    const sortOption = find(OPTIONS[props.type].sortOptions, 'default')
 
-    return firstDefined(OPTIONS[type].defaultSortBy, 'name_label')
-  }
-
-  _getSortOrder (type, sb) {
-    const sort = find(OPTIONS[type].sortOptions, ({ sortBy }) => sortBy === sb)
-
-    return sort && sort.sortOrder
+    return {
+      sortBy: firstDefined(sortOption && sortOption.sortBy, 'name_label'),
+      sortOrder: firstDefined(sortOption && sortOption.sortOrder, 'asc')
+    }
   }
 
   _initFilterAndSortBy (props) {
@@ -308,15 +304,13 @@ export default class Home extends Component {
     const parsed = ComplexMatcher.parse(filter)
     const properties = parsed::ComplexMatcher.getPropertyClausesStrings()
 
-    const sortBy = this._getDefaultSortBy(props)
-    const sortOrder = this._getSortOrder(props.type, sortBy)
+    const sort = this._getDefaultSort(props)
 
     this.setState({
       selectedHosts: properties.$container,
       selectedPools: properties.$pool,
       selectedTags: properties.tags,
-      sortBy,
-      sortOrder
+      ...sort
     })
 
     const { filterInput } = this.refs
