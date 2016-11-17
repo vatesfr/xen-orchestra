@@ -374,6 +374,7 @@ const TRANSFORMS = {
       name_description: obj.name_description,
       name_label: obj.name_label,
       size: +obj.physical_size,
+      shared: Boolean(obj.shared),
       SR_type: obj.type,
       tags: obj.tags,
       usage: +obj.virtual_allocation,
