@@ -227,7 +227,7 @@ export default class Overview extends Component {
                   <Icon icon='cpu' /> {_('cpuStatePanel')}
                 </CardHeader>
                 <CardBlock>
-                  <div className='ct-chart'>
+                  <div className='ct-chart-block'>
                     <ChartistGraph
                       data={{
                         labels: ['vCPUs', 'CPUs'],
@@ -252,7 +252,7 @@ export default class Overview extends Component {
                   <Icon icon='disk' /> {_('srUsageStatePanel')}
                 </CardHeader>
                 <CardBlock>
-                  <div className='ct-chart'>
+                  <div className='ct-chart-block'>
                     <BlockLink to='/dashboard/health'>
                       <ChartistGraph
                         data={{
