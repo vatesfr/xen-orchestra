@@ -158,7 +158,7 @@ export default class VmItem extends Component {
           </Col>
           <Col mediumSize={4}>
             <span style={{fontSize: '1.4em'}}>
-              <Tags labels={vm.tags} onDelete={this._removeTag} onAdd={this._addTag} />
+              <Tags type='VM' labels={vm.tags} onDelete={this._removeTag} onAdd={this._addTag} />
             </span>
           </Col>
         </Row>

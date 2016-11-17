@@ -93,7 +93,7 @@ export default ({
     <Row>
       <Col>
         <h2 className='text-xs-center'>
-          <Tags labels={host.tags} onDelete={tag => removeTag(host.id, tag)} onAdd={tag => addTag(host.id, tag)} />
+          <Tags type='host' labels={host.tags} onDelete={tag => removeTag(host.id, tag)} onAdd={tag => addTag(host.id, tag)} />
         </h2>
       </Col>
     </Row>

@@ -148,7 +148,7 @@ export default class PoolItem extends Component {
           </Col>
           <Col mediumSize={5}>
             <span style={{fontSize: '1.4em'}}>
-              <Tags labels={pool.tags} onDelete={this._removeTag} onAdd={this._addTag} />
+              <Tags type='pool' labels={pool.tags} onDelete={this._removeTag} onAdd={this._addTag} />
             </span>
           </Col>
         </SingleLineRow>

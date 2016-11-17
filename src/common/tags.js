@@ -5,7 +5,9 @@ import React from 'react'
 
 import Component from './base-component'
 import Icon from './icon'
+import Link from './link'
 import propTypes from './prop-types'
+import { createString, createProperty, toString } from './complex-matcher'
 
 const INPUT_STYLE = {
   margin: '2px',
@@ -21,6 +23,10 @@ const TAG_STYLE = {
   padding: '0.3em',
   verticalAlign: 'middle'
 }
+const LINK_STYLE = {
+  color: 'white',
+  textDecoration: 'none'
+}
 const ADD_TAG_STYLE = {
   cursor: 'pointer',
   fontSize: '0.8em',
@@ -34,7 +40,8 @@ const REMOVE_TAG_STYLE = {
   labels: propTypes.arrayOf(React.PropTypes.string).isRequired,
   onChange: propTypes.func,
   onDelete: propTypes.func,
-  onAdd: propTypes.func
+  onAdd: propTypes.func,
+  type: propTypes.string
 })
 export default class Tags extends Component {
   componentWillMount () {
@@ -85,7 +92,8 @@ export default class Tags extends Component {
       labels,
       onAdd,
       onChange,
-      onDelete
+      onDelete,
+      type
     } = this.props
 
     const deleteTag = (onDelete || onChange) && this._deleteTag
@@ -96,7 +104,7 @@ export default class Tags extends Component {
         {' '}
         <span>
           {map(labels.sort(), (label, index) =>
-            <Tag label={label} onDelete={deleteTag} key={index} />
+            <Tag type={type} label={label} onDelete={deleteTag} key={index} />
           )}
         </span>
         {(onAdd || onChange) && !this.state.editing
@@ -118,9 +126,16 @@ export default class Tags extends Component {
   }
 }
 
-export const Tag = ({ label, onDelete }) => (
-  <span style={TAG_STYLE}>
-    {label}{' '}
+export const Tag = ({ type, label, onDelete }) => {
+  const filter = createProperty('tags', createString(label))
+
+  return <span style={TAG_STYLE}>
+    {type
+      ? <Link to={`/home?t=${type}&s=${encodeURIComponent(filter::toString())}`} style={LINK_STYLE}>
+        {label}
+      </Link>
+      : label
+    }{' '}
     {onDelete
       ? <span onClick={onDelete && (() => onDelete(label))} style={REMOVE_TAG_STYLE}>
         <Icon icon='remove-tag' />
@@ -128,7 +143,7 @@ export const Tag = ({ label, onDelete }) => (
       : []
     }
   </span>
-)
+}
 Tag.propTypes = {
   label: React.PropTypes.string.isRequired
 }

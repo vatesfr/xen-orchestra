@@ -60,7 +60,7 @@ export default ({
   <Row className='text-xs-center'>
     <Col>
       <h2>
-        <Tags labels={pool.tags} onDelete={tag => removeTag(pool.id, tag)} onAdd={tag => addTag(pool.id, tag)} />
+        <Tags type='pool' labels={pool.tags} onDelete={tag => removeTag(pool.id, tag)} onAdd={tag => addTag(pool.id, tag)} />
       </h2>
     </Col>
   </Row>

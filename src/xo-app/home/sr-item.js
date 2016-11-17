@@ -160,7 +160,7 @@ export default class SrItem extends Component {
           </Col>
           <Col mediumSize={4}>
             <span style={{fontSize: '1.4em'}}>
-              <Tags labels={sr.tags} onDelete={this._removeTag} onAdd={this._addTag} />
+              <Tags type='SR' labels={sr.tags} onDelete={this._removeTag} onAdd={this._addTag} />
             </span>
           </Col>
         </SingleLineRow>

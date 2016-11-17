@@ -94,7 +94,7 @@ export default ({
   <Row>
     <Col>
       <h2 className='text-xs-center'>
-        <Tags labels={vm.tags} onDelete={tag => removeTag(vm.id, tag)} onAdd={tag => addTag(vm.id, tag)} />
+        <Tags type='VM' labels={vm.tags} onDelete={tag => removeTag(vm.id, tag)} onAdd={tag => addTag(vm.id, tag)} />
       </h2>
     </Col>
   </Row>
