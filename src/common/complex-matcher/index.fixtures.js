@@ -3,10 +3,11 @@ import {
   createOr,
   createNot,
   createProperty,
-  createString
+  createString,
+  createTruthyProperty
 } from './'
 
-export const pattern = 'foo !"\\\\ \\"" name:|(wonderwoman batman)'
+export const pattern = 'foo !"\\\\ \\"" name:|(wonderwoman batman) hasCape?'
 
 export const ast = createAnd([
   createString('foo'),
@@ -14,5 +15,6 @@ export const ast = createAnd([
   createProperty('name', createOr([
     createString('wonderwoman'),
     createString('batman')
-  ]))
+  ])),
+  createTruthyProperty('hasCape')
 ])

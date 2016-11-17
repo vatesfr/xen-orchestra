@@ -56,19 +56,22 @@ export const createProperty = (name, child) => ({ type: 'property', name, child 
 
 export const createString = value => ({ type: 'string', value })
 
+export const createTruthyProperty = name => ({ type: 'truthyProperty', name })
+
 // -------------------------------------------------------------------
 
-// *and         = terms
-// terms        = term+
-// term         = ws (groupedAnd | or | not | property | string) ws
-// ws           = ' '*
-// groupedAnd   = "(" and ")"
-// *or          = "|" ws "(" terms ")"
-// *not         = "!" term
-// *property    = string ws ":" term
-// *string      = quotedString | rawString
-// quotedString = "\"" ( /[^"\]/ | "\\\\" | "\\\"" )+
-// rawString    = /[a-z0-9-_.]+/i
+// *and           = terms
+// terms          = term+
+// term           = ws (groupedAnd | or | not | property | truthyProperty | string) ws
+// ws             = ' '*
+// groupedAnd     = "(" and ")"
+// *or            = "|" ws "(" terms ")"
+// *not           = "!" term
+// *property      = string ws ":" term
+// *truthyProperty = string ws "?"
+// *string        = quotedString | rawString
+// quotedString   = "\"" ( /[^"\]/ | "\\\\" | "\\\"" )+
+// rawString      = /[a-z0-9-_.]+/i
 export const parse = invoke(() => {
   let i
   let n
@@ -108,6 +111,7 @@ export const parse = invoke(() => {
       parseOr() ||
       parseNot() ||
       parseProperty() ||
+      parseTruthyProperty() ||
       parseString()
     )
     if (child) {
@@ -203,6 +207,16 @@ export const parse = invoke(() => {
       return value
     }
   }
+  const parseTruthyProperty = backtrace(() => {
+    let name
+    if (
+      (name = parseString()) &&
+      parseWs() &&
+      input[i++] === '?'
+    ) {
+      return createTruthyProperty(name.value)
+    }
+  })
 
   return input_ => {
     if (!input_) {
@@ -341,6 +355,7 @@ export const execute = invoke(() => {
     property: ({ name, child }, value) => (
       value != null && child::execute(value[name])
     ),
+    truthyProperty: ({ name }, value) => !!value[name],
     string: invoke(() => {
       const match = (pattern, value) => {
         if (isString(value)) {
@@ -378,7 +393,8 @@ export const toString = invoke(() => {
     property: ({ name, child }) => `${toString(createString(name))}:${toString(child)}`,
     string: ({ value }) => isRawString(value)
       ? value
-      : `"${value.replace(/\\|"/g, match => `\\${match}`)}"`
+      : `"${value.replace(/\\|"/g, match => `\\${match}`)}"`,
+    truthyProperty: ({ name }) => `${toString(createString(name))}?`
   }
 
   const toString = node => visitors[node.type](node)
