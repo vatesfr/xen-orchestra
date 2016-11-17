@@ -6,6 +6,7 @@ const keymap = {
     GO_TO_HOSTS: 'g h',
     GO_TO_POOLS: 'g p',
     GO_TO_VMS: 'g v',
+    GO_TO_SRS: 'g s',
     CREATE_VM: 'c v',
     UNFOCUS: 'esc',
     HELP: ['?', 'h']

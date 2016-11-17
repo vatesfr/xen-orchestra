@@ -133,6 +133,9 @@ export default class XoApp extends Component {
       case 'GO_TO_VMS':
         this.context.router.push('home?t=VM')
         break
+      case 'GO_TO_SRS':
+        this.context.router.push('home?t=SR')
+        break
       case 'CREATE_VM':
         this.context.router.push('vms/new')
         break

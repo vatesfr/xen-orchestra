@@ -1059,13 +1059,13 @@ export default {
   vmConsoleLabel: 'Console',
 
   // Original text: "Rescan all disks"
-  srRescan: 'Rescanner tout les disques',
+  srRescan: 'Rescanner tous les disques',
 
   // Original text: "Connect to all hosts"
-  srReconnectAll: 'Connecter sur tout les hôtes',
+  srReconnectAll: 'Connecter sur tous les hôtes',
 
   // Original text: "Disconnect to all hosts"
-  srDisconnectAll: 'Déconnecter de tout les hôtes',
+  srDisconnectAll: 'Déconnecter de tous les hôtes',
 
   // Original text: "Forget this SR"
   srForget: 'Oublier ce SR',

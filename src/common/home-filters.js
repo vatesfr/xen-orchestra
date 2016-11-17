@@ -18,3 +18,7 @@ export const pool = {
 export const vmTemplate = {
   homeFilterTags: 'tags:'
 }
+
+export const SR = {
+  homeFilterTags: 'tags:'
+}

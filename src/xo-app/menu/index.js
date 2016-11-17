@@ -107,7 +107,8 @@ export default class Menu extends Component {
         { to: '/home?t=VM', icon: 'vm', label: 'homeVmPage' },
         nHosts !== 0 && { to: '/home?t=host', icon: 'host', label: 'homeHostPage' },
         !isEmpty(pools) && { to: '/home?t=pool', icon: 'pool', label: 'homePoolPage' },
-        isAdmin && { to: '/home?t=VM-template', icon: 'template', label: 'homeTemplatePage' }
+        isAdmin && { to: '/home?t=VM-template', icon: 'template', label: 'homeTemplatePage' },
+        { to: '/home?t=SR', icon: 'sr', label: 'homeSrPage' }
       ]},
       { to: '/dashboard/overview', icon: 'menu-dashboard', label: 'dashboardPage', subMenu: [
         { to: '/dashboard/overview', icon: 'menu-dashboard-overview', label: 'overviewDashboardPage' },

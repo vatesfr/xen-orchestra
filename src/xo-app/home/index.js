@@ -6,6 +6,7 @@ import ceil from 'lodash/ceil'
 import CenterPanel from 'center-panel'
 import Component from 'base-component'
 import debounce from 'lodash/debounce'
+import find from 'lodash/find'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import invoke from 'invoke'
@@ -27,8 +28,13 @@ import {
   copyVms,
   deleteTemplates,
   deleteVms,
+  disconnectAllHostsSrs,
   emergencyShutdownHosts,
+  forgetSrs,
+  isSrShared,
   migrateVms,
+  reconnectAllHostsSrs,
+  rescanSrs,
   restartHosts,
   restartHostsAgents,
   restartVms,
@@ -72,6 +78,7 @@ import HostItem from './host-item'
 import PoolItem from './pool-item'
 import VmItem from './vm-item'
 import TemplateItem from './template-item'
+import SrItem from './sr-item'
 
 const ITEMS_PER_PAGE = 20
 
@@ -155,6 +162,25 @@ const OPTIONS = {
       { labelId: 'homeSortByRAM', sortBy: 'memory.size', sortOrder: 'desc' },
       { labelId: 'homeSortByCpus', sortBy: 'CPUs.number', sortOrder: 'desc' }
     ]
+  },
+  SR: {
+    defaultFilter: '',
+    filters: homeFilters.SR,
+    mainActions: [
+      { handler: rescanSrs, icon: 'refresh', tooltip: _('srRescan') },
+      { handler: reconnectAllHostsSrs, icon: 'sr-reconnect-all', tooltip: _('srReconnectAll') },
+      { handler: disconnectAllHostsSrs, icon: 'sr-disconnect-all', tooltip: _('srDisconnectAll') },
+      { handler: forgetSrs, icon: 'sr-forget', tooltip: _('srsForget') }
+    ],
+    Item: SrItem,
+    showPoolsSelector: true,
+    sortOptions: [
+      { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' },
+      { labelId: 'homeSortBySize', sortBy: 'size', sortOrder: 'desc', default: true },
+      { labelId: 'homeSortByShared', sortBy: isSrShared, sortOrder: 'desc' },
+      { labelId: 'homeSortByUsage', sortBy: 'physical_usage', sortOrder: 'desc' },
+      { labelId: 'homeSortByType', sortBy: 'SR_type', sortOrder: 'asc' }
+    ]
   }
 }
 
@@ -162,7 +188,8 @@ const TYPES = {
   VM: _('homeTypeVm'),
   'VM-template': _('homeTypeVmTemplate'),
   host: _('homeTypeHost'),
-  pool: _('homeTypePool')
+  pool: _('homeTypePool'),
+  SR: _('homeTypeSr')
 }
 
 const DEFAULT_TYPE = 'VM'
@@ -195,11 +222,11 @@ export default class Home extends Component {
   }
 
   componentWillMount () {
-    this._initFilter(this.props)
+    this._initFilterAndSortBy(this.props)
   }
 
   componentWillReceiveProps (props) {
-    this._initFilter(props)
+    this._initFilterAndSortBy(props)
     if (props.type !== this.props.type) {
       this.setState({ highlighted: undefined })
     }
@@ -247,7 +274,16 @@ export default class Home extends Component {
     )
   }
 
-  _initFilter (props) {
+  _getDefaultSort (props = this.props) {
+    const sortOption = find(OPTIONS[props.type].sortOptions, 'default')
+
+    return {
+      sortBy: firstDefined(sortOption && sortOption.sortBy, 'name_label'),
+      sortOrder: firstDefined(sortOption && sortOption.sortOrder, 'asc')
+    }
+  }
+
+  _initFilterAndSortBy (props) {
     const filter = this._getFilter(props)
 
     // If filter is null, set a default filter.
@@ -268,10 +304,13 @@ export default class Home extends Component {
     const parsed = ComplexMatcher.parse(filter)
     const properties = parsed::ComplexMatcher.getPropertyClausesStrings()
 
+    const sort = this._getDefaultSort(props)
+
     this.setState({
       selectedHosts: properties.$container,
       selectedPools: properties.$pool,
-      selectedTags: properties.tags
+      selectedTags: properties.tags,
+      ...sort
     })
 
     const { filterInput } = this.refs
@@ -325,7 +364,7 @@ export default class Home extends Component {
       () => this.props.items,
       this._getFilterFunction
     ),
-    () => this.state.sortBy || 'name_label',
+    () => this.state.sortBy,
     () => this.state.sortOrder
   )
 
@@ -446,7 +485,7 @@ export default class Home extends Component {
           break
         case 'JUMP_INTO':
           const item = items[this.state.highlighted]
-          if (includes(['VM', 'host', 'pool'], item.type)) {
+          if (includes(['VM', 'host', 'pool', 'SR'], item && item.type)) {
             this.context.router.push({
               pathname: `${item.type.toLowerCase()}s/${item.id}`
             })
