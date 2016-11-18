@@ -1,36 +1,45 @@
 'use strict'
 
-var xoLib = require('./')
+process.on('unhandledRejection', function (error) {
+  console.log(error)
+})
 
-var xo = new xoLib.Xo({
+var Xo = require('./').default
+
+var xo = new Xo({
   url: 'localhost:9000'
 })
-xo.call('acl.get', {}).then(function (result) {
-  console.log('baz', result)
-}).catch(function (error) {
-  console.log('error', error)
-})
 
-xo.signIn({
-  email: 'admin@admin.net',
-  password: 'admin'
+xo.open().then(function () {
+  return xo.call('acl.get', {}).then(function (result) {
+    console.log('success:', result)
+  }).catch(function (error) {
+    console.log('failure:', error)
+  })
 }).then(function () {
-  console.log('foo', xo.user)
-}).catch(function (error) {
-  console.log('error', error)
-})
-
-xo.signIn({
-  email: 'tom',
-  password: 'tom'
+  return xo.signIn({
+    email: 'admin@admin.net',
+    password: 'admin'
+  }).then(function () {
+    console.log('connected as ', xo.user)
+  }).catch(function (error) {
+    console.log('failure:', error)
+  })
 }).then(function () {
-  console.log('bar', xo.user)
-}).catch(function (error) {
-  console.log('error', error)
-})
+  return xo.signIn({
+    email: 'tom',
+    password: 'tom'
+  }).then(function () {
+    console.log('connected as', xo.user)
 
-xo.call('acl.get', {}).then(function (result) {
-  console.log('plop', result)
-}).catch(function (error) {
-  console.log('error', error)
+    return xo.call('acl.get', {}).then(function (result) {
+      console.log('success:', result)
+    }).catch(function (error) {
+      console.log('failure:', error)
+    })
+  }).catch(function (error) {
+    console.log('failure', error)
+  })
+}).then(function () {
+  return xo.close()
 })

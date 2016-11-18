@@ -1,9 +1,9 @@
-import startsWith from 'lodash.startswith'
 import JsonRpcWebSocketClient, {
   OPEN,
   CLOSED
 } from 'jsonrpc-websocket-client'
 import { BaseError } from 'make-error'
+import { startsWith } from 'lodash'
 
 // ===================================================================
 
