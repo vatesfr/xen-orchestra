@@ -71,13 +71,13 @@ export default ({
     <br />
     <Row>
       <Col className='text-xs-center'>
-        <BlockLink to={`/home?s=${vmsFilter}`}><h2>{nVms}x <Icon icon='vm' size='lg' /></h2></BlockLink>
+        <BlockLink to={`/home?t=VM&s=${vmsFilter}`}><h2>{nVms}x <Icon icon='vm' size='lg' /></h2></BlockLink>
       </Col>
     </Row>
     <br />
     <Row>
       <Col className='text-xs-center'>
-        <h5>{_('memoryStatePanel', { memory: formatSize(memoryUsed) })}</h5>
+        <h5>{_('memoryStatePanel', { memoryUsed: formatSize(memoryUsed) })}</h5>
       </Col>
     </Row>
     <Row>

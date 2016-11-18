@@ -20,7 +20,6 @@ import {
   routes
 } from 'utils'
 import {
-  createCounter,
   createDoesHostNeedRestart,
   createGetObject,
   createGetObjectsOfType,
@@ -71,9 +70,7 @@ const isRunning = host => host && host.power_state === 'Running'
     )
   )
 
-  const getNumberOfVms = createCounter(
-    getHostVms
-  )
+  const getNumberOfVms = getHostVms.count()
 
   const getLogs = createGetObjectsOfType('message').filter(
     createSelector(
