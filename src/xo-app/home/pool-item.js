@@ -7,7 +7,7 @@ import map from 'lodash/map'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import size from 'lodash/size'
-import Tags from 'tags'
+import HomeTags from 'home-tags'
 import Tooltip from 'tooltip'
 import Link, { BlockLink } from 'link'
 import { Col } from 'grid'
@@ -148,7 +148,7 @@ export default class PoolItem extends Component {
           </Col>
           <Col mediumSize={5}>
             <span style={{fontSize: '1.4em'}}>
-              <Tags type='pool' labels={pool.tags} onDelete={this._removeTag} onAdd={this._addTag} />
+              <HomeTags type='pool' labels={pool.tags} onDelete={this._removeTag} onAdd={this._addTag} />
             </span>
           </Col>
         </SingleLineRow>

@@ -9,7 +9,7 @@ import React from 'react'
 import SingleLineRow from 'single-line-row'
 import size from 'lodash/size'
 import Tooltip from 'tooltip'
-import Tags from 'tags'
+import HomeTags from 'home-tags'
 import { Col } from 'grid'
 import { Text } from 'editable'
 import {
@@ -160,7 +160,7 @@ export default class SrItem extends Component {
           </Col>
           <Col mediumSize={4}>
             <span style={{fontSize: '1.4em'}}>
-              <Tags type='SR' labels={sr.tags} onDelete={this._removeTag} onAdd={this._addTag} />
+              <HomeTags type='SR' labels={sr.tags} onDelete={this._removeTag} onAdd={this._addTag} />
             </span>
           </Col>
         </SingleLineRow>

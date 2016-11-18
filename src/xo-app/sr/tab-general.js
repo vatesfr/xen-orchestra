@@ -2,7 +2,7 @@ import _ from 'intl'
 import Icon from 'icon'
 import map from 'lodash/map'
 import React from 'react'
-import Tags from 'tags'
+import HomeTags from 'home-tags'
 import { addTag, removeTag } from 'xo'
 import { Container, Row, Col } from 'grid'
 import { formatSize } from 'utils'
@@ -49,7 +49,7 @@ export default ({
   <Row className='text-xs-center'>
     <Col>
       <h2 className='text-xs-center'>
-        <Tags type='SR' labels={sr.tags} onDelete={tag => removeTag(sr.id, tag)} onAdd={tag => addTag(sr.id, tag)} />
+        <HomeTags type='SR' labels={sr.tags} onDelete={tag => removeTag(sr.id, tag)} onAdd={tag => addTag(sr.id, tag)} />
       </h2>
     </Col>
   </Row>
