@@ -151,3 +151,60 @@ To configure it, 2 steps in the plugin section (in "Settings"):
 That's it: your next scheduled jobs will be recap in a message:
 
 ![](https://xen-orchestra.com/blog/content/images/2015/12/xmpp.png)
+
+## Slack or Mattermost notifications
+
+Xen Orchestra is able to send backup report to Slack or Mattermost.
+
+### Plugin configuration
+
+Like all other xo-server plugins, it can be configured directly via
+the web iterface, see [the plugin documentation](https://xen-orchestra.com/docs/plugins.html).
+
+### Generate the Webhook
+
+#### Slack
+
+1. Log in your Slack team account
+
+2. Click on the **Main menu** at the top and choose **Apps & Integrations**
+
+![Apps & Integrations](assets/DocImg1.png)
+
+3. Search **Incoming WebHooks**
+
+![Incoming WebHooks](assets/DocImg2.png)
+
+4. Click on **Add Configuration**
+
+![Add Configuration](assets/DocImg3.png)
+
+5. Choose the default channel and click on **Add Incoming WebHooks integration**
+
+![Add Incoming WebHooks integration](assets/DocImg4.png)
+
+6. Modify the default settings and click on **Save Settings**
+
+![Save Settings](assets/DocImg5.png)
+
+#### Mattermost
+
+You need to be an admin.
+
+* Go in MatterMost menu, then Integration
+* Click on "Add Incoming webhook"
+* "Add Incoming Webhook"
+
+### Testing the plugin
+
+#### Slack
+
+![Slack configuration](assets/DocImg6.png)
+
+![Slack](assets/DocImg7.png)
+
+#### Mattermost
+
+![Mattermost configuration](assets/DocImg8.png)
+
+![Mattermost](assets/DocImg9.png)
