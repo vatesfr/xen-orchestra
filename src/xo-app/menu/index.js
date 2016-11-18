@@ -107,7 +107,8 @@ export default class Menu extends Component {
         { to: '/home?t=VM', icon: 'vm', label: 'homeVmPage' },
         nHosts !== 0 && { to: '/home?t=host', icon: 'host', label: 'homeHostPage' },
         !isEmpty(pools) && { to: '/home?t=pool', icon: 'pool', label: 'homePoolPage' },
-        isAdmin && { to: '/home?t=VM-template', icon: 'template', label: 'homeTemplatePage' }
+        isAdmin && { to: '/home?t=VM-template', icon: 'template', label: 'homeTemplatePage' },
+        { to: '/home?t=SR', icon: 'sr', label: 'homeSrPage' }
       ]},
       { to: '/dashboard/overview', icon: 'menu-dashboard', label: 'dashboardPage', subMenu: [
         { to: '/dashboard/overview', icon: 'menu-dashboard-overview', label: 'overviewDashboardPage' },
@@ -133,7 +134,7 @@ export default class Menu extends Component {
         { to: '/settings/ips', icon: 'ip', label: 'settingsIpsPage' },
         { to: '/settings/config', icon: 'menu-settings-config', label: 'settingsConfigPage' }
       ]},
-      { to: '/jobs/overview', icon: 'menu-jobs', label: 'jobsPage', subMenu: [
+      isAdmin && { to: '/jobs/overview', icon: 'menu-jobs', label: 'jobsPage', subMenu: [
         { to: '/jobs/overview', icon: 'menu-jobs-overview', label: 'jobsOverviewPage' },
         { to: '/jobs/new', icon: 'menu-jobs-new', label: 'jobsNewPage' },
         { to: '/jobs/schedules', icon: 'menu-jobs-schedule', label: 'jobsSchedulingPage' }
