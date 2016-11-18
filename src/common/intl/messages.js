@@ -211,7 +211,7 @@ var messages = {
   jobScheduling: 'Scheduling',
   jobState: 'State',
   jobTimezone: 'Timezone',
-  jobServerTimezone: 'xo-server',
+  jobServerTimezone: 'Server',
   runJob: 'Run job',
   runJobVerbose: 'One shot running started. See overview for logs.',
   jobStarted: 'Started',

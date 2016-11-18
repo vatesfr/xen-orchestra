@@ -21,34 +21,35 @@ export default class TimezonePicker extends Component {
   constructor (props) {
     super(props)
 
-    this.localTimezone = moment.tz.guess()
-    this.serverTimezone = SERVER_TIMEZONE
+    this._localTimezone = moment.tz.guess()
+    this._serverTimezone = SERVER_TIMEZONE
   }
 
-  componentWillMount () {
-    const options = map(moment.tz.names(), value => ({ label: value, value }))
+  componentDidMount () {
     getXoServerTimezone.then(serverTimezone => {
-      this.options = [{
-        label: _('serverTimezoneOption', {
-          value: serverTimezone
-        }),
-        value: this.serverTimezone
-      }].concat(options)
-
       this.setState({
-        timezone: this.props.value || this.props.defaultValue || this.serverTimezone
+        timezone: this.props.value || this.props.defaultValue || this._serverTimezone,
+        options: [
+          ...map(moment.tz.names(), value => ({ label: value, value })),
+          {
+            label: _('serverTimezoneOption', {
+              value: serverTimezone
+            }),
+            value: this._serverTimezone
+          }
+        ]
       })
     })
   }
 
   componentWillReceiveProps (props) {
-    if (props !== this.props) {
-      this.setState({ timezone: props.value || this.serverTimezone })
+    if (props.value !== this.props.value) {
+      this.setState({ timezone: props.value || this._serverTimezone })
     }
   }
 
   get value () {
-    return this.state.timezone === this.serverTimezone ? undefined : this.state.timezone
+    return this.state.timezone === this._serverTimezone ? null : this.state.timezone
   }
 
   set value (value) {
@@ -63,23 +64,23 @@ export default class TimezonePicker extends Component {
     this.setState({
       timezone: option && option.value
     }, () =>
-      this.props.onChange(option && (option.value === this.serverTimezone ? undefined : option.value))
+      this.props.onChange(option && (option.value === this._serverTimezone ? null : option.value))
     )
   }
 
   _useLocalTime = () => {
-    this._onChange({ value: this.localTimezone })
+    this._onChange({ value: this._localTimezone })
   }
 
   render () {
-    const { timezone } = this.state
+    const { timezone, options } = this.state
 
     return (
       <div>
         <Select
           className='mb-1'
           onChange={this._onChange}
-          options={this.options}
+          options={options}
           placeholder={_('selectTimezone')}
           required={this.props.required}
           value={timezone}

@@ -6,6 +6,7 @@ import forEach from 'lodash/forEach'
 import GenericInput from 'json-schema-input'
 import Icon from 'icon'
 import map from 'lodash/map'
+import moment from 'moment-timezone'
 import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
 import startsWith from 'lodash/startsWith'
@@ -261,6 +262,9 @@ export default class New extends Component {
       if (job || schedule) { // Having only one of them is unexpected incomplete information
         error(_('backupEditNotFoundTitle'), _('backupEditNotFoundMessage'))
       }
+      this.setState({
+        timezone: moment.tz.guess()
+      })
       return
     }
     this.setState({
