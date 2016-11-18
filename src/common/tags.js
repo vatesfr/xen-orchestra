@@ -21,6 +21,9 @@ const TAG_STYLE = {
   padding: '0.3em',
   verticalAlign: 'middle'
 }
+const LINK_STYLE = {
+  cursor: 'pointer'
+}
 const ADD_TAG_STYLE = {
   cursor: 'pointer',
   fontSize: '0.8em',
@@ -32,9 +35,10 @@ const REMOVE_TAG_STYLE = {
 
 @propTypes({
   labels: propTypes.arrayOf(React.PropTypes.string).isRequired,
+  onAdd: propTypes.func,
   onChange: propTypes.func,
-  onDelete: propTypes.func,
-  onAdd: propTypes.func
+  onClick: propTypes.func,
+  onDelete: propTypes.func
 })
 export default class Tags extends Component {
   componentWillMount () {
@@ -85,6 +89,7 @@ export default class Tags extends Component {
       labels,
       onAdd,
       onChange,
+      onClick,
       onDelete
     } = this.props
 
@@ -96,7 +101,7 @@ export default class Tags extends Component {
         {' '}
         <span>
           {map(labels.sort(), (label, index) =>
-            <Tag label={label} onDelete={deleteTag} key={index} />
+            <Tag label={label} onDelete={deleteTag} key={index} onClick={onClick} />
           )}
         </span>
         {(onAdd || onChange) && !this.state.editing
@@ -118,9 +123,12 @@ export default class Tags extends Component {
   }
 }
 
-export const Tag = ({ label, onDelete }) => (
+export const Tag = ({ type, label, onDelete, onClick }) => (
   <span style={TAG_STYLE}>
-    {label}{' '}
+    <span onClick={onClick && (() => onClick(label))} style={onClick && LINK_STYLE}>
+      {label}
+    </span>
+    {' '}
     {onDelete
       ? <span onClick={onDelete && (() => onDelete(label))} style={REMOVE_TAG_STYLE}>
         <Icon icon='remove-tag' />

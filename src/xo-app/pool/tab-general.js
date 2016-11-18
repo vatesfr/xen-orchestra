@@ -4,7 +4,7 @@ import Icon from 'icon'
 import map from 'lodash/map'
 import React from 'react'
 import sumBy from 'lodash/sumBy'
-import Tags from 'tags'
+import HomeTags from 'home-tags'
 import { addTag, removeTag } from 'xo'
 import Link, { BlockLink } from 'link'
 import { Container, Row, Col } from 'grid'
@@ -60,7 +60,7 @@ export default ({
   <Row className='text-xs-center'>
     <Col>
       <h2>
-        <Tags labels={pool.tags} onDelete={tag => removeTag(pool.id, tag)} onAdd={tag => addTag(pool.id, tag)} />
+        <HomeTags type='pool' labels={pool.tags} onDelete={tag => removeTag(pool.id, tag)} onAdd={tag => addTag(pool.id, tag)} />
       </h2>
     </Col>
   </Row>

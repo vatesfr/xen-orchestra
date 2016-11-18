@@ -7,7 +7,7 @@ import Link, { BlockLink } from 'link'
 import map from 'lodash/map'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
-import Tags from 'tags'
+import HomeTags from 'home-tags'
 import Tooltip from 'tooltip'
 import { Row, Col } from 'grid'
 import { Text } from 'editable'
@@ -188,7 +188,7 @@ export default class HostItem extends Component {
           </Col>
           <Col mediumSize={4}>
             <span style={{fontSize: '1.4em'}}>
-              <Tags labels={host.tags} onDelete={this._removeTag} onAdd={this._addTag} />
+              <HomeTags type='host' labels={host.tags} onDelete={this._removeTag} onAdd={this._addTag} />
             </span>
           </Col>
         </Row>

@@ -6,7 +6,7 @@ import Link from 'link'
 import map from 'lodash/map'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
-import Tags from 'tags'
+import HomeTags from 'home-tags'
 import Tooltip from 'tooltip'
 import { Row, Col } from 'grid'
 import { Number, Size, Text } from 'editable'
@@ -82,7 +82,7 @@ export default class TemplateItem extends Component {
           </Col>
           <Col mediumSize={4}>
             <span style={{fontSize: '1.4em'}}>
-              <Tags labels={vm.tags} onDelete={this._removeTag} onAdd={this._addTag} />
+              <HomeTags type='VM-template' labels={vm.tags} onDelete={this._removeTag} onAdd={this._addTag} />
             </span>
           </Col>
         </Row>

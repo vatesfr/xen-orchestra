@@ -4,7 +4,7 @@ import Icon from 'icon'
 import map from 'lodash/map'
 import React from 'react'
 import store from 'store'
-import Tags from 'tags'
+import HomeTags from 'home-tags'
 import { addTag, removeTag } from 'xo'
 import { BlockLink } from 'link'
 import { Container, Row, Col } from 'grid'
@@ -93,7 +93,7 @@ export default ({
     <Row>
       <Col>
         <h2 className='text-xs-center'>
-          <Tags labels={host.tags} onDelete={tag => removeTag(host.id, tag)} onAdd={tag => addTag(host.id, tag)} />
+          <HomeTags type='host' labels={host.tags} onDelete={tag => removeTag(host.id, tag)} onAdd={tag => addTag(host.id, tag)} />
         </h2>
       </Col>
     </Row>

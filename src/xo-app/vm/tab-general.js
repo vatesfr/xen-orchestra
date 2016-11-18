@@ -4,7 +4,7 @@ import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React from 'react'
-import Tags from 'tags'
+import HomeTags from 'home-tags'
 import Tooltip from 'tooltip'
 import { addTag, editVm, removeTag } from 'xo'
 import { BlockLink } from 'link'
@@ -94,7 +94,7 @@ export default ({
   <Row>
     <Col>
       <h2 className='text-xs-center'>
-        <Tags labels={vm.tags} onDelete={tag => removeTag(vm.id, tag)} onAdd={tag => addTag(vm.id, tag)} />
+        <HomeTags type='VM' labels={vm.tags} onDelete={tag => removeTag(vm.id, tag)} onAdd={tag => addTag(vm.id, tag)} />
       </h2>
     </Col>
   </Row>
