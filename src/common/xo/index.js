@@ -267,8 +267,6 @@ export const apiMethods = _call('system.getMethodsInfo')
 
 export const serverVersion = _call('system.getServerVersion')
 
-export const getXoServerTimezone = _call('system.getServerTimezone')
-
 // ===================================================================
 
 const resolveId = value =>

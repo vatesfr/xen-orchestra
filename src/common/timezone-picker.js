@@ -6,92 +6,65 @@ import React from 'react'
 import _ from './intl'
 import Component from './base-component'
 import propTypes from './prop-types'
-import { getXoServerTimezone } from './xo'
 import { Select } from './form'
-
-const XO_SERVER_TIMEZONE = 'xo-server'
 
 @propTypes({
   defaultValue: propTypes.string,
   onChange: propTypes.func.isRequired,
+  required: propTypes.bool,
   value: propTypes.string
 })
 export default class TimezonePicker extends Component {
   constructor (props) {
     super(props)
-    this.state.options = map(moment.tz.names(), value => ({ label: value, value }))
+
+    this.options = map(moment.tz.names(), value => ({ label: value, value }))
+    this.localTimezone = moment.tz.guess()
+
+    // Use local timezone (Web browser) if no default value.
+    this.state = { timezone: props.defaultValue || this.localTimezone }
+  }
+
+  componentWillReceiveProps (props) {
+    if (props !== this.props) {
+      this.setState({ timezone: props.value })
+    }
   }
 
   get value () {
-    const value = this.refs.select.value
-    return (value === XO_SERVER_TIMEZONE) ? null : value
+    return this.state.timezone
   }
 
   set value (value) {
-    this.refs.select.value = value || XO_SERVER_TIMEZONE
+    this.setState({ timezone: value })
   }
 
-  _updateTimezone (value) {
-    this.props.onChange(value)
-  }
-  _handleChange = option => {
-    return this._updateTimezone(
-      !option || option.value === XO_SERVER_TIMEZONE
-        ? null
-        : option.value
-    )
-  }
-  _useServerTime = () => {
-    this._updateTimezone(null)
-  }
-  _useLocalTime = () => {
-    this._updateTimezone(moment.tz.guess())
-  }
-
-  componentWillMount () {
-    // Use local timezone (Web browser) if no default value.
-    if (this.props.value === undefined) {
-      this._useLocalTime()
+  _onChange = option => {
+    if (option && option.value === this.state.timezone) {
+      return
     }
 
-    getXoServerTimezone.then(serverTimezone => {
-      this.setState({
-        options: [{
-          label: _('serverTimezoneOption', {
-            value: serverTimezone
-          }),
-          value: XO_SERVER_TIMEZONE
-        }].concat(this.state.options),
-        serverTimezone
-      })
-    })
+    this.setState({ timezone: option && option.value }, () => this.props.onChange(option && option.value))
+  }
+
+  _useLocalTime = () => {
+    this._onChange({ value: this.localTimezone })
   }
 
   render () {
-    const { props, state } = this
+    const { timezone } = this.state
+
     return (
       <div>
-        <div className='alert alert-info' role='alert'>
-          {_('timezonePickerServerValue')} <strong>{state.serverTimezone}</strong>
-        </div>
         <Select
           className='mb-1'
-          defaultValue={props.defaultValue}
-          onChange={this._handleChange}
-          options={state.options}
+          onChange={this._onChange}
+          options={this.options}
           placeholder={_('selectTimezone')}
-          ref='select'
-          value={props.value || XO_SERVER_TIMEZONE}
+          required={this.props.required}
+          value={timezone}
         />
         <div className='pull-right'>
-          <ActionButton
-            btnStyle='primary'
-            className='mr-1'
-            handler={this._useServerTime}
-            icon='time'
-          >
-            {_('timezonePickerUseServerTime')}
-          </ActionButton>
           <ActionButton
             btnStyle='secondary'
             handler={this._useLocalTime}
