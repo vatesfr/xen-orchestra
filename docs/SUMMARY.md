@@ -60,3 +60,4 @@
    * [Editions](editions.md)
    * [Trial](trial.md)
    * [Invoices](invoices.md)
+* [Glossary](glossary.md)
