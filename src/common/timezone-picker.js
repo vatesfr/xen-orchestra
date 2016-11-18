@@ -6,7 +6,10 @@ import React from 'react'
 import _ from './intl'
 import Component from './base-component'
 import propTypes from './prop-types'
+import { getXoServerTimezone } from './xo'
 import { Select } from './form'
+
+const SERVER_TIMEZONE = 'server'
 
 @propTypes({
   defaultValue: propTypes.string,
@@ -18,21 +21,34 @@ export default class TimezonePicker extends Component {
   constructor (props) {
     super(props)
 
-    this.options = map(moment.tz.names(), value => ({ label: value, value }))
     this.localTimezone = moment.tz.guess()
+    this.serverTimezone = SERVER_TIMEZONE
+  }
 
-    // Use local timezone (Web browser) if no default value.
-    this.state = { timezone: props.defaultValue || this.localTimezone }
+  componentWillMount () {
+    const options = map(moment.tz.names(), value => ({ label: value, value }))
+    getXoServerTimezone.then(serverTimezone => {
+      this.options = [{
+        label: _('serverTimezoneOption', {
+          value: serverTimezone
+        }),
+        value: this.serverTimezone
+      }].concat(options)
+
+      this.setState({
+        timezone: this.props.value || this.props.defaultValue || this.serverTimezone
+      })
+    })
   }
 
   componentWillReceiveProps (props) {
     if (props !== this.props) {
-      this.setState({ timezone: props.value })
+      this.setState({ timezone: props.value || this.serverTimezone })
     }
   }
 
   get value () {
-    return this.state.timezone
+    return this.state.timezone === this.serverTimezone ? undefined : this.state.timezone
   }
 
   set value (value) {
@@ -44,7 +60,11 @@ export default class TimezonePicker extends Component {
       return
     }
 
-    this.setState({ timezone: option && option.value }, () => this.props.onChange(option && option.value))
+    this.setState({
+      timezone: option && option.value
+    }, () =>
+      this.props.onChange(option && (option.value === this.serverTimezone ? undefined : option.value))
+    )
   }
 
   _useLocalTime = () => {
