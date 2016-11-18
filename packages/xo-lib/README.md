@@ -1,14 +1,8 @@
-# xo-lib
-
-[![Build Status](https://img.shields.io/travis/vatesfr/xo-lib/master.svg)](http://travis-ci.org/vatesfr/xo-lib)
-[![Dependency Status](https://david-dm.org/vatesfr/xo-lib/status.svg?theme=shields.io)](https://david-dm.org/vatesfr/xo-lib)
-[![devDependency Status](https://david-dm.org/vatesfr/xo-lib/dev-status.svg?theme=shields.io)](https://david-dm.org/vatesfr/xo-lib#info=devDependencies)
+# xo-lib [![Build Status](https://travis-ci.org/vatesfr/xo-lib.png?branch=master)](https://travis-ci.org/vatesfr/xo-lib)
 
 > Library to connect to XO-Server.
 
-## Installation
-
-### Node & Browserify
+## Install
 
 Installation of the [npm package](https://npmjs.org/package/xo-lib):
 
@@ -19,100 +13,47 @@ npm install --save xo-lib
 Then require the package:
 
 ```javascript
-var xoLib = require('xo-lib');
+import Xo from 'xo-lib'
 ```
 
-## High level API
+## Usage
 
-This high-level interface handles session sign-in and a cache of
-remote XO objects. It also automatically reconnect and retry method
-calls when necessary.
+> If the URL is not provided and the current environment is a web
+> browser, the location of the current page will be used.
 
 ```javascript
 // Connect to XO.
-var xo = new xoLib.Xo('https://xo.company.tld');
+const xo = new Xo({ url: 'https://xo.company.tld' })
+
+// Let's start by opening the connection.
+await xo.connect()
 
 // Must sign in before being able to call any methods (all calls will
 // be buffered until signed in).
-xo.signIn({
+await xo.signIn({
   email: 'admin@admin.net',
-  password: 'admin',
-}).then(function () {
-  console('signed as', xo.user);
-});
+  password: 'admin'
+})
+
+console('signed as', xo.user)
 ```
 
 The credentials can also be passed directly to the constructor:
 
 ```javascript
-var xo = new xoLib.Xo({
+const xo = Xo({
   url: 'https://xo.company.tld',
   credentials: {
     email: 'admin@admin.net',
     password: 'admin',
   }
-});
-```
+})
 
-> If the URL is not provided and the current environment is a web
-> browser, the location of the current page will be used.
+xo.open()
 
-### Method call
-
-```javascript
-xo.call('token.create').then(function (token) {
-  console.log('Token created', token);
-});
-```
-
-### Status
-
-The connection status is available through the status property which
-is *disconnected*, *connecting* or *connected*.
-
-```javascript
-console.log('%s to xo-server', xo.status);
-```
-
-### Current user
-
-Information about the user account used to sign in is available
-through the `user` property.
-
-```javascript
-console.log('Current user is', xo.user);
-```
-
-> This property is null when the status is not connected.
-
-
-### XO Objects
-
-XO objects are cached locally in the `objects` collection.
-
-```javascript
-// Read-only dictionary of all objects.
-var allObjects = xo.objects.all;
-
-// Looks up a given object by its identifier.
-var object = allObjects[id];
-
-// Read-only dictionary of all indexes.
-var indexes = xo.objects.indexes;
-
-// Read-only dictionary of types.
-var byTypes = indexes.type;
-
-// Read-only view of all VMs.
-var vms = byTypes.VM;
-```
-
-Available indexes are: `ref`, `type` and `UUID`.
-
-## Low level
-
-```javascript
-var api = new xoLib.Api('https://xo.company.tld');
+xo.on('authenticated', () => {
+  console.log(xo.user)
+})
 ```
 
 > If the URL is not provided and the current environment is a web
@@ -121,48 +62,94 @@ var api = new xoLib.Api('https://xo.company.tld');
 ### Connection
 
 ```javascript
-api.connect().then(function () {
-  console.log('connected');
-});
+await xo.open()
+
+console.log('connected')
 ```
 
 ### Disconnection
 
 ```javascript
-api.close();
+xo.close()
+
+console.log('disconnected')
 ```
 
 ### Method call
 
 ```javascript
-api.call('session.signInWithPassword', {
-  email: 'admin@admin.net',
-  password: 'admin',
-}).then(function (user) {
-  console.log('Connected as', user);
-});
+const token = await xo.call('token.create')
+
+console.log('Token created', token)
 ```
 
-> A method call automatically trigger a connection if necessary.
+### Status
+
+The connection status is available through the status property which
+is *open*, *connecting* or *closed*.
+
+```javascript
+console.log('%s to xo-server', xo.status)
+```
+
+### Current user
+
+Information about the user account used to sign in is available
+through the `user` property.
+
+```javascript
+console.log('Current user is', xo.user)
+```
+
+> This property is null when the status is not connected.
 
 ### Events
 
 ```javascript
-api.on('connected', function () {
-  console.log('connected');
-});
+xo.on('open', () => {
+  console.log('connected')
+})
 ```
 
 ```javascript
-api.on('disconnected', function () {
-  console.log('disconnected');
-});
+xo.on('closed', () => {
+  console.log('disconnected')
+})
 ```
 
 ```javascript
-api.on('notification', function (notif) {
-  console.log('notification:', notif.method, notif.params);
-});
+xo.on('notification', function (notif) {
+  console.log('notification:', notif.method, notif.params)
+})
+```
+
+```javascript
+xo.on('authenticated', () => {
+  console.log('authenticated as', xo.user)
+})
+
+xo.on('authenticationFailure', () => {
+  console.log('failed to authenticate')
+})
+```
+
+## Development
+
+```
+# Install dependencies
+> npm install
+
+# Run the tests
+> npm test
+
+# Continuously compile
+> npm run dev
+
+# Continuously run the tests
+> npm run dev-test
+
+# Build for production (automatically called by npm install)
+> npm run build
 ```
 
 ## Contributions
