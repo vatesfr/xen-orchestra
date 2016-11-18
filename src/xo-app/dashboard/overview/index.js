@@ -203,7 +203,7 @@ export default class Overview extends Component {
                 <CardHeader>
                   <Icon icon='memory' /> {_('memoryStatePanel')}
                 </CardHeader>
-                <CardBlock>
+                <CardBlock className='dashboardItem'>
                   <ChartistGraph
                     data={{
                       labels: ['Used Memory', 'Total Memory'],
@@ -227,7 +227,7 @@ export default class Overview extends Component {
                   <Icon icon='cpu' /> {_('cpuStatePanel')}
                 </CardHeader>
                 <CardBlock>
-                  <div className='ct-chart-block'>
+                  <div className='ct-chart dashboardItem'>
                     <ChartistGraph
                       data={{
                         labels: ['vCPUs', 'CPUs'],
@@ -252,7 +252,7 @@ export default class Overview extends Component {
                   <Icon icon='disk' /> {_('srUsageStatePanel')}
                 </CardHeader>
                 <CardBlock>
-                  <div className='ct-chart-block'>
+                  <div className='ct-chart dashboardItem'>
                     <BlockLink to='/dashboard/health'>
                       <ChartistGraph
                         data={{
@@ -318,7 +318,7 @@ export default class Overview extends Component {
                 <CardHeader>
                   <Icon icon='vm-force-shutdown' /> {_('vmStatePanel')}
                 </CardHeader>
-                <CardBlock>
+                <CardBlock className='dashboardItem'>
                   <BlockLink to='/home?t=VM'>
                     <ChartistGraph
                       data={{
@@ -340,7 +340,7 @@ export default class Overview extends Component {
                 <CardHeader>
                   <Icon icon='disk' /> {_('srTopUsageStatePanel')}
                 </CardHeader>
-                <CardBlock>
+                <CardBlock className='dashboardItem'>
                   <BlockLink to='/dashboard/health'>
                     <ChartistGraph
                       style={{strokeWidth: '30px'}}

@@ -22,9 +22,13 @@ $ct-series-colors: (
 @import "../node_modules/chartist/dist/scss/settings/_chartist-settings";
 @import "../node_modules/chartist/dist/scss/chartist";
 
-.ct-chart-block {
+.ct-chart {
   display: flex;
   flex-direction: column-reverse;
+}
+
+.dashboardItem .ct-chart {
+  height: 150px;
 }
 
 // Line in charts with only 2px in width
