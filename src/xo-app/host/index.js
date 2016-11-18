@@ -10,6 +10,7 @@ import Page from '../page'
 import pick from 'lodash/pick'
 import React, { cloneElement, Component } from 'react'
 import sortBy from 'lodash/sortBy'
+import sum from 'lodash/sum'
 import Tooltip from 'tooltip'
 import { Text } from 'editable'
 import { editHost, fetchHostStats, getHostMissingPatches, installAllHostPatches, installHostPatch } from 'xo'
@@ -69,6 +70,8 @@ const isRunning = host => host && host.power_state === 'Running'
     )
   )
 
+  const getNumberOfVms = getHostVms.count()
+
   const getLogs = createGetObjectsOfType('message').filter(
     createSelector(
       getHost,
@@ -101,6 +104,11 @@ const isRunning = host => host && host.power_state === 'Running'
 
   const doesNeedRestart = createDoesHostNeedRestart(getHost)
 
+  const getMemoryUsed = createSelector(
+    getHostVms,
+    vms => sum(map(vms, vm => vm.memory.size))
+  )
+
   return (state, props) => {
     const host = getHost(state, props)
     if (!host) {
@@ -111,8 +119,10 @@ const isRunning = host => host && host.power_state === 'Running'
       host,
       hostPatches: getHostPatches(state, props),
       logs: getLogs(state, props),
+      memoryUsed: getMemoryUsed(state, props),
       needsRestart: doesNeedRestart(state, props),
       networks: getNetworks(state, props),
+      nVms: getNumberOfVms(state, props),
       pifs: getPifs(state, props),
       pool: getPool(state, props),
       vmController: getVmController(state, props),
@@ -273,7 +283,9 @@ export default class Host extends Component {
       'host',
       'hostPatches',
       'logs',
+      'memoryUsed',
       'networks',
+      'nVms',
       'pbds',
       'pifs',
       'srs',
