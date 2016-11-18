@@ -741,7 +741,7 @@ var messages = {
   poolPanel: 'Pool{pools, plural, one {} other {s}}',
   hostPanel: 'Host{hosts, plural, one {} other {s}}',
   vmPanel: 'VM{vms, plural, one {} other {s}}',
-  memoryStatePanel: 'RAM Usage',
+  memoryStatePanel: 'RAM Usage: {memory}',
   cpuStatePanel: 'CPUs Usage',
   vmStatePanel: 'VMs Power state',
   taskStatePanel: 'Pending tasks',

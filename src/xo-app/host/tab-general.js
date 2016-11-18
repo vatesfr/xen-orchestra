@@ -12,6 +12,7 @@ import { FormattedRelative } from 'react-intl'
 import { formatSize } from 'utils'
 import Usage, { UsageElement } from 'usage'
 import { getObject } from 'selectors'
+import { createString, createProperty, toString } from 'complex-matcher'
 import {
   CpuSparkLines,
   MemorySparkLines,
@@ -22,10 +23,14 @@ import {
 export default ({
   statsOverview,
   host,
+  memoryUsed,
+  nVms,
   vmController,
   vms
 }) => {
   const pool = getObject(store.getState(), host.$pool)
+  const vmsFilter = encodeURIComponent(createProperty('$container', createString(host.id))::toString())
+
   return <Container>
     <br />
     <Row className='text-xs-center'>
@@ -63,9 +68,16 @@ export default ({
         <p>{host.bios_strings['system-manufacturer']} {host.bios_strings['system-product-name']}</p>
       </Col>
     </Row>
+    <br />
     <Row>
       <Col className='text-xs-center'>
-        <h5>{_('memoryStatePanel')}</h5>
+        <BlockLink to={`/home?s=${vmsFilter}`}><h2>{nVms}x <Icon icon='vm' size='lg' /></h2></BlockLink>
+      </Col>
+    </Row>
+    <br />
+    <Row>
+      <Col className='text-xs-center'>
+        <h5>{_('memoryStatePanel', { memory: formatSize(memoryUsed) })}</h5>
       </Col>
     </Row>
     <Row>
