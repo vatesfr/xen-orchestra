@@ -9,7 +9,7 @@ import propTypes from './prop-types'
 import { getXoServerTimezone } from './xo'
 import { Select } from './form'
 
-const SERVER_TIMEZONE = 'server'
+const SERVER_TIMEZONE_TAG = 'server'
 const LOCAL_TIMEZONE = moment.tz.guess()
 
 @propTypes({
@@ -22,14 +22,14 @@ export default class TimezonePicker extends Component {
   componentDidMount () {
     getXoServerTimezone.then(serverTimezone => {
       this.setState({
-        timezone: this.props.value || this.props.defaultValue || SERVER_TIMEZONE,
+        timezone: this.props.value || this.props.defaultValue || SERVER_TIMEZONE_TAG,
         options: [
           ...map(moment.tz.names(), value => ({ label: value, value })),
           {
             label: _('serverTimezoneOption', {
               value: serverTimezone
             }),
-            value: SERVER_TIMEZONE
+            value: SERVER_TIMEZONE_TAG
           }
         ]
       })
@@ -38,16 +38,16 @@ export default class TimezonePicker extends Component {
 
   componentWillReceiveProps (props) {
     if (props.value !== this.props.value) {
-      this.setState({ timezone: props.value || SERVER_TIMEZONE })
+      this.setState({ timezone: props.value || SERVER_TIMEZONE_TAG })
     }
   }
 
   get value () {
-    return this.state.timezone === SERVER_TIMEZONE ? null : this.state.timezone
+    return this.state.timezone === SERVER_TIMEZONE_TAG ? null : this.state.timezone
   }
 
   set value (value) {
-    this.setState({ timezone: value || SERVER_TIMEZONE })
+    this.setState({ timezone: value || SERVER_TIMEZONE_TAG })
   }
 
   _onChange = option => {
@@ -56,9 +56,9 @@ export default class TimezonePicker extends Component {
     }
 
     this.setState({
-      timezone: option && option.value || SERVER_TIMEZONE
+      timezone: option && option.value || SERVER_TIMEZONE_TAG
     }, () =>
-      this.props.onChange(this.state.timezone === SERVER_TIMEZONE ? null : this.state.timezone)
+      this.props.onChange(this.state.timezone === SERVER_TIMEZONE_TAG ? null : this.state.timezone)
     )
   }
 
