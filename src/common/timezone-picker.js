@@ -10,6 +10,7 @@ import { getXoServerTimezone } from './xo'
 import { Select } from './form'
 
 const SERVER_TIMEZONE = 'server'
+const LOCAL_TIMEZONE = moment.tz.guess()
 
 @propTypes({
   defaultValue: propTypes.string,
@@ -18,24 +19,17 @@ const SERVER_TIMEZONE = 'server'
   value: propTypes.string
 })
 export default class TimezonePicker extends Component {
-  constructor (props) {
-    super(props)
-
-    this._localTimezone = moment.tz.guess()
-    this._serverTimezone = SERVER_TIMEZONE
-  }
-
   componentDidMount () {
     getXoServerTimezone.then(serverTimezone => {
       this.setState({
-        timezone: this.props.value || this.props.defaultValue || this._serverTimezone,
+        timezone: this.props.value || this.props.defaultValue || SERVER_TIMEZONE,
         options: [
           ...map(moment.tz.names(), value => ({ label: value, value })),
           {
             label: _('serverTimezoneOption', {
               value: serverTimezone
             }),
-            value: this._serverTimezone
+            value: SERVER_TIMEZONE
           }
         ]
       })
@@ -44,16 +38,16 @@ export default class TimezonePicker extends Component {
 
   componentWillReceiveProps (props) {
     if (props.value !== this.props.value) {
-      this.setState({ timezone: props.value || this._serverTimezone })
+      this.setState({ timezone: props.value || SERVER_TIMEZONE })
     }
   }
 
   get value () {
-    return this.state.timezone === this._serverTimezone ? null : this.state.timezone
+    return this.state.timezone === SERVER_TIMEZONE ? null : this.state.timezone
   }
 
   set value (value) {
-    this.setState({ timezone: value || this._serverTimezone })
+    this.setState({ timezone: value || SERVER_TIMEZONE })
   }
 
   _onChange = option => {
@@ -62,14 +56,14 @@ export default class TimezonePicker extends Component {
     }
 
     this.setState({
-      timezone: option && option.value || this._serverTimezone
+      timezone: option && option.value || SERVER_TIMEZONE
     }, () =>
-      this.props.onChange(this.state.timezone === this._serverTimezone ? null : this.state.timezone)
+      this.props.onChange(this.state.timezone === SERVER_TIMEZONE ? null : this.state.timezone)
     )
   }
 
   _useLocalTime = () => {
-    this._onChange({ value: this._localTimezone })
+    this._onChange({ value: LOCAL_TIMEZONE })
   }
 
   render () {
