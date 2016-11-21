@@ -42,7 +42,7 @@ import styles from './index.css'
         pool => props.item.$pool === pool.id
     ),
     (_, props) => props.item,
-    (pool, sr) => pool.default_SR === sr.id
+    (pool, sr) => pool && pool.default_SR === sr.id
   ),
   isShared: createSelector(
     (_, props) => props.item,
@@ -143,7 +143,7 @@ export default class SrItem extends Component {
             }
           </Col>
           <Col mediumSize={1} largeSize={1} className='hidden-sm-down'>
-            <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>
+            {container && <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>}
           </Col>
           <Col mediumSize={1} className={styles.itemExpandRow}>
             <a className={styles.itemExpandButton}

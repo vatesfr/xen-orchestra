@@ -8,8 +8,13 @@ import map from 'lodash/map'
 import React from 'react'
 import Tooltip from 'tooltip'
 import { Button } from 'react-bootstrap-4/lib'
-import { connectStore, noop, getXoaPlan } from 'utils'
 import { UpdateTag } from '../xoa-updates'
+import {
+  addSubscriptions,
+  connectStore,
+  getXoaPlan,
+  noop
+} from 'utils'
 import {
   connect,
   signOut,
@@ -22,12 +27,14 @@ import {
   createSelector,
   getLang,
   getStatus,
-  getUser
+  getUser,
+  isAdmin
 } from 'selectors'
 
 import styles from './index.css'
 
 @connectStore(() => ({
+  isAdmin,
   // FIXME: remove when fixed in React.
   //
   // There are currently issues between context updates (used by
@@ -38,10 +45,15 @@ import styles from './index.css'
   ),
   pools: createGetObjectsOfType('pool'),
   nHosts: createGetObjectsOfType('host').count(),
+  srs: createGetObjectsOfType('SR'),
   status: getStatus,
   user: getUser
 }), {
   withRef: true
+})
+@addSubscriptions({
+  permissions: subscribePermissions,
+  resourceSets: subscribeResourceSets
 })
 export default class Menu extends Component {
   componentWillMount () {
@@ -55,34 +67,37 @@ export default class Menu extends Component {
       window.removeEventListener('resize', updateCollapsed)
       this._removeListener = noop
     }
-
-    this._unsubscribeResourceSets = subscribeResourceSets(resourceSets => {
-      this.setState({
-        resourceSets
-      })
-    })
-    this._unsubscribePermissions = subscribePermissions(permissions => {
-      this.setState({
-        permissions
-      })
-    })
   }
 
   componentWillUnmount () {
     this._removeListener()
-    this._unsubscribeResourceSets()
-    this._unsubscribePermissions()
   }
+
+  _checkPermissions = createSelector(
+    () => this.props.isAdmin,
+    () => this.props.permissions,
+    (isAdmin, permissions) => ({ id }) =>
+      isAdmin || permissions && permissions[id] && permissions[id].operate
+  )
 
   _getNoOperatablePools = createSelector(
     createFilter(
       () => this.props.pools,
-      () => this.permissions,
-      [ ({ id }, permissions) => {
-        const { user } = this.props
-        return user && user.permission === 'admin' || permissions && permissions[id] && permissions[id].operate
-      } ]
+      this._checkPermissions
     ),
+    isEmpty
+  )
+
+  _getNoOperatableSrs = createSelector(
+    createFilter(
+      () => this.props.srs,
+      this._checkPermissions
+    ),
+    isEmpty
+  )
+
+  _getNoResourceSets = createSelector(
+    () => this.props.resourceSets,
     isEmpty
   )
 
@@ -96,10 +111,10 @@ export default class Menu extends Component {
   }
 
   render () {
-    const { nTasks, status, user, pools, nHosts } = this.props
-    const isAdmin = user && user.permission === 'admin'
+    const { isAdmin, nTasks, status, user, pools, nHosts } = this.props
     const noOperatablePools = this._getNoOperatablePools()
-    const noResourceSets = isEmpty(this.state.resourceSets)
+    const noOperatableSrs = this._getNoOperatableSrs()
+    const noResourceSets = this._getNoResourceSets()
 
     /* eslint-disable object-property-newline */
     const items = [
@@ -108,7 +123,7 @@ export default class Menu extends Component {
         nHosts !== 0 && { to: '/home?t=host', icon: 'host', label: 'homeHostPage' },
         !isEmpty(pools) && { to: '/home?t=pool', icon: 'pool', label: 'homePoolPage' },
         isAdmin && { to: '/home?t=VM-template', icon: 'template', label: 'homeTemplatePage' },
-        { to: '/home?t=SR', icon: 'sr', label: 'homeSrPage' }
+        !noOperatableSrs && { to: '/home?t=SR', icon: 'sr', label: 'homeSrPage' }
       ]},
       { to: '/dashboard/overview', icon: 'menu-dashboard', label: 'dashboardPage', subMenu: [
         { to: '/dashboard/overview', icon: 'menu-dashboard-overview', label: 'overviewDashboardPage' },
@@ -117,7 +132,7 @@ export default class Menu extends Component {
         { to: '/dashboard/health', icon: 'menu-dashboard-health', label: 'overviewHealthDashboardPage' }
       ]},
       isAdmin && { to: '/self', icon: 'menu-self-service', label: 'selfServicePage' },
-      { to: '/backup/overview', icon: 'menu-backup', label: 'backupPage', subMenu: [
+      isAdmin && { to: '/backup/overview', icon: 'menu-backup', label: 'backupPage', subMenu: [
         { to: '/backup/overview', icon: 'menu-backup-overview', label: 'backupOverviewPage' },
         { to: '/backup/new', icon: 'menu-backup-new', label: 'backupNewPage' },
         { to: '/backup/restore', icon: 'menu-backup-restore', label: 'backupRestorePage' }
