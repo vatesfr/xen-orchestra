@@ -53,7 +53,7 @@ export default class TimezonePicker extends Component {
   }
 
   set value (value) {
-    this.setState({ timezone: value })
+    this.setState({ timezone: value || this._serverTimezone })
   }
 
   _onChange = option => {
@@ -62,9 +62,9 @@ export default class TimezonePicker extends Component {
     }
 
     this.setState({
-      timezone: option && option.value
+      timezone: option && option.value || this._serverTimezone
     }, () =>
-      this.props.onChange(option && (option.value === this._serverTimezone ? null : option.value))
+      this.props.onChange(this.state.timezone === this._serverTimezone ? null : this.state.timezone)
     )
   }
 
