@@ -903,6 +903,19 @@ export const deleteVdi = vdi => (
   )
 )
 
+export const deleteOrphanedVdis = vdis => (
+  confirm({
+    title: _('removeAllOrphanedObject'),
+    body: <div>
+      <p>{_('removeAllOrphanedModalWarning')}</p>
+      <p>{_('definitiveMessageModal')}</p>
+    </div>
+  }).then(
+    () => Promise.all(map(resolveIds(vdis), id => _call('vdi.delete', { id }))),
+    noop
+  )
+)
+
 export const migrateVdi = (vdi, sr) => (
   _call('vdi.migrate', { id: resolveId(vdi), sr_id: resolveId(sr) })
 )

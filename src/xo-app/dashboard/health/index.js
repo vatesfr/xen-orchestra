@@ -11,7 +11,7 @@ import Upgrade from 'xoa-upgrade'
 import React, { Component } from 'react'
 import { Card, CardHeader, CardBlock } from 'card'
 import { confirm } from 'modal'
-import { deleteMessage, deleteVdi, deleteVm, isSrWritable } from 'xo'
+import { deleteMessage, deleteVdi, deleteOrphanedVdis, deleteVm, isSrWritable } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Container, Row, Col } from 'grid'
 import {
@@ -211,18 +211,9 @@ const ALARM_COLUMNS = [
   }
 })
 export default class Health extends Component {
-  _deleteOrphanedVdis = () => (
-    confirm({
-      title: _('removeAllOrphanedObject'),
-      body: <div>
-        <p>{_('removeAllOrphanedModalWarning')}</p>
-        <p>{_('definitiveMessageModal')}</p>
-      </div>
-    }).then(
-      () => map(this.props.vdiOrphaned, deleteVdi),
-      noop
-    )
-  )
+  _deleteOrphanedVdis = () =>
+    deleteOrphanedVdis(this.props.vdiOrphaned)
+
   _deleteAllLogs = () => (
     confirm({
       title: _('removeAllLogsModalTitle'),
@@ -231,7 +222,7 @@ export default class Health extends Component {
         <p>{_('definitiveMessageModal')}</p>
       </div>
     }).then(
-      () => map(this.props.alertMessages, deleteMessage),
+      () => Promise.all(map(this.props.alertMessages, deleteMessage)),
       noop
     )
   )
