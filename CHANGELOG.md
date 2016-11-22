@@ -1,19 +1,55 @@
 # ChangeLog
 
-## **5.3.1** (2016-10-27)
+## **5.4.0** (2016-11-23)
 
 ### Enhancements
 
+- XML display in alerts [\#1776](https://github.com/vatesfr/xo-web/issues/1776)
+- Remove some view for non admin users [\#1773](https://github.com/vatesfr/xo-web/issues/1773)
+- Complex matcher should support matching boolean values [\#1768](https://github.com/vatesfr/xo-web/issues/1768)
+- Home SR view [\#1764](https://github.com/vatesfr/xo-web/issues/1764)
+- Filter on tag click [\#1763](https://github.com/vatesfr/xo-web/issues/1763)
+- Testable plugins [\#1749](https://github.com/vatesfr/xo-web/issues/1749)
+- Backup/Restore Design fix. [\#1734](https://github.com/vatesfr/xo-web/issues/1734)
+- Display the owner of a \(backup\) job [\#1733](https://github.com/vatesfr/xo-web/issues/1733)
+- Use paginated table for backup jobs [\#1726](https://github.com/vatesfr/xo-web/issues/1726)
+- SR view / Disks: should display snapshot VDIs [\#1723](https://github.com/vatesfr/xo-web/issues/1723)
+- Restored VM should have an identifiable name [\#1719](https://github.com/vatesfr/xo-web/issues/1719)
+- If host reboot action returns NO\_HOSTS\_AVAILABLE, ask to force [\#1717](https://github.com/vatesfr/xo-web/issues/1717)
+- Hide xo-server timezone in backups [\#1706](https://github.com/vatesfr/xo-web/issues/1706)
+- Enable hyperlink for Hostname for Issues [\#1700](https://github.com/vatesfr/xo-web/issues/1700)
+- Pool/network - Modify column [\#1696](https://github.com/vatesfr/xo-web/issues/1696)
+- UI - Plugins - Display a message if no plugins [\#1670](https://github.com/vatesfr/xo-web/issues/1670)
+- Display warning/error for delta backup on XS older than 6.5 [\#1647](https://github.com/vatesfr/xo-web/issues/1647)
+- XO without internet access doesn't work [\#1629](https://github.com/vatesfr/xo-web/issues/1629)
 - Improve backup restore view [\#1609](https://github.com/vatesfr/xo-web/issues/1609)
+- UI Enhancement - Acronym for dummy [\#1604](https://github.com/vatesfr/xo-web/issues/1604)
+- Slack XO plugin for backup report [\#1593](https://github.com/vatesfr/xo-web/issues/1593)
+- Expose XAPI exceptions in the UI [\#1481](https://github.com/vatesfr/xo-web/issues/1481)
+- Running VMs in the host overview, all VMs in the pool overview [\#1432](https://github.com/vatesfr/xo-web/issues/1432)
 - Move location of NFS mount point [\#1405](https://github.com/vatesfr/xo-web/issues/1405)
+- Home: Pool list - additionnal informations for pool [\#1226](https://github.com/vatesfr/xo-web/issues/1226)
 - Modify VLAN of an existing network [\#1092](https://github.com/vatesfr/xo-web/issues/1092)
+- Wrong instructions for CLI upgrade [\#787](https://github.com/vatesfr/xo-web/issues/787)
 - Ability to export/import XO config [\#786](https://github.com/vatesfr/xo-web/issues/786)
+- Test button for transport-email plugin [\#697](https://github.com/vatesfr/xo-web/issues/697)
+- Merge `scheduler` API into `schedule` [\#664](https://github.com/vatesfr/xo-web/issues/664)
 
 ### Bug fixes
 
+- Should jobs be accessible to non admins? [\#1759](https://github.com/vatesfr/xo-web/issues/1759)
+- Schedules deletion is not working [\#1737](https://github.com/vatesfr/xo-web/issues/1737)
+- Editing a job from the jobs overview page does not work  [\#1736](https://github.com/vatesfr/xo-web/issues/1736)
+- Editing a schedule from jobs overview does not work  [\#1728](https://github.com/vatesfr/xo-web/issues/1728)
+- ACLs not correctly imported [\#1722](https://github.com/vatesfr/xo-web/issues/1722)
+- Some Bootstrap style broken [\#1721](https://github.com/vatesfr/xo-web/issues/1721)
 - Not properly sign out on auth token expiration [\#1711](https://github.com/vatesfr/xo-web/issues/1711)
+- Hosts/<UUID>/network status is incorrect [\#1702](https://github.com/vatesfr/xo-web/issues/1702)
 - Patches application fails "Found : Moved Temporarily" [\#1701](https://github.com/vatesfr/xo-web/issues/1701)
 - Password generation for user creation is not working [\#1678](https://github.com/vatesfr/xo-web/issues/1678)
+- \#/dashboard/health Remove All Orphaned VDIs  [\#1622](https://github.com/vatesfr/xo-web/issues/1622)
+- Create a new SR - CIFS/SAMBA Broken [\#1615](https://github.com/vatesfr/xo-web/issues/1615)
+- xo-cli --list-objects: truncated output ? 64k buffer limitation ? [\#1356](https://github.com/vatesfr/xo-web/issues/1356)
 
 ## **5.3.0** (2016-10-20)
 
