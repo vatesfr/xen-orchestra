@@ -446,8 +446,11 @@ export default class New extends Component {
   }
 
   _handleBackupSelection = event => {
+    const method = event.target.value
+
     this.setState({
-      backupInfo: BACKUP_METHOD_TO_INFO[event.target.value]
+      showVersionWarning: method === 'vm.rollingDeltaBackup' || method === 'vm.deltaCopy',
+      backupInfo: BACKUP_METHOD_TO_INFO[method]
     })
   }
 
@@ -466,7 +469,8 @@ export default class New extends Component {
       cronPattern,
       smartBackupMode,
       timezone,
-      owner
+      owner,
+      showVersionWarning
     } = this.state
 
     return process.env.XOA_PLAN > 1
@@ -500,6 +504,9 @@ export default class New extends Component {
                       )}
                     </select>
                   </fieldset>
+                  {showVersionWarning && <div className='alert alert-warning' role='alert'>
+                    <Icon icon='error' /> {_('backupVersionWarning')}
+                  </div>}
                   <form id='form-new-vm-backup'>
                     {backupInfo && <div>
                       <GenericInput

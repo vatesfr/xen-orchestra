@@ -241,6 +241,7 @@ var messages = {
   smartBackup: 'Smart backup',
   localRemoteWarningTitle: 'Local remote selected',
   localRemoteWarningMessage: 'Warning: local remotes will use limited XOA disk space. Only for advanced users.',
+  backupVersionWarning: 'Warning: this feature works only with XenServer 6.5 or newer.',
   editBackupVmsTitle: 'VMs',
   editBackupSmartStatusTitle: 'VMs statuses',
   editBackupSmartResidentOn: 'Resident on',
