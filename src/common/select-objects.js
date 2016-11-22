@@ -521,11 +521,11 @@ export const SelectTag = makeStoreSelect((_, props) => ({
 }), { placeholder: _('selectTags') })
 
 export const SelectHighLevelObject = makeStoreSelect(() => {
-  const getHosts = createGetObjectsOfType('host')
-  const getNetworks = createGetObjectsOfType('network')
-  const getPools = createGetObjectsOfType('pool')
-  const getSrs = createGetObjectsOfType('SR')
-  const getVms = createGetObjectsOfType('VM')
+  const getHosts = createGetObjectsOfType('host').filter(getPredicate)
+  const getNetworks = createGetObjectsOfType('network').filter(getPredicate)
+  const getPools = createGetObjectsOfType('pool').filter(getPredicate)
+  const getSrs = createGetObjectsOfType('SR').filter(getPredicate)
+  const getVms = createGetObjectsOfType('VM').filter(getPredicate)
 
   const getHighLevelObjects = createSelector(
     getHosts,
