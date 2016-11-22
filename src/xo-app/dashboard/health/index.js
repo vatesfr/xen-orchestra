@@ -4,7 +4,6 @@ import Component from 'base-component'
 import get from 'lodash/get'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
-import isString from 'lodash/isString'
 import Link from 'link'
 import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
@@ -177,9 +176,8 @@ const ALARM_COLUMNS = [
   },
   {
     name: _('alarmContent'),
-    itemRenderer: ({ formatted }) => isString(formatted)
-      ? <pre style={{ whiteSpace: 'pre-wrap' }}>{formatted}</pre>
-      : <div>
+    itemRenderer: ({ formatted, body }) => formatted
+      ? <div>
         <Row>
           <Col mediumSize={6}><strong>{formatted.name}</strong></Col>
           <Col mediumSize={6}>{formatted.value}</Col>
@@ -189,7 +187,8 @@ const ALARM_COLUMNS = [
           <Col mediumSize={6}>{label}</Col>
           <Col mediumSize={6}>{value}</Col>
         </Row>)}
-      </div>,
+      </div>
+      : <pre style={{ whiteSpace: 'pre-wrap' }}>{body}</pre>,
     sortCriteria: message => message.body
   },
   {
@@ -242,31 +241,29 @@ export default class Health extends Component {
   componentWillReceiveProps (props) {
     if (props.alertMessages !== this.props.alertMessages) {
       Promise.all(
-        map(props.alertMessages, ({ body }) =>
-          new Promise(resolve => {
-            const matches = /^value: ([0-9\.]+) config: (.*)$/.exec(body)
-            if (!matches) {
-              resolve(body)
-            }
+        map(props.alertMessages, ({ body }) => {
+          const matches = /^value: ([0-9\.]+) config: (.*)$/.exec(body)
+          if (!matches) {
+            return
+          }
 
-            const [ , value, xml ] = matches
-            fromCallback(cb =>
-              xml2js.parseString(xml, cb)
-            ).then(
-              result => {
-                const object = mapValues(result && result.variable, value => get(value, '[0].$.value'))
-                if (!object || !object.name) {
-                  resolve(body)
-                }
+          const [ , value, xml ] = matches
+          return fromCallback(cb =>
+            xml2js.parseString(xml, cb)
+          ).then(
+            result => {
+              const object = mapValues(result && result.variable, value => get(value, '[0].$.value'))
+              if (!object || !object.name) {
+                return
+              }
 
-                const { name, ...alarmAttributes } = object
+              const { name, ...alarmAttributes } = object
 
-                resolve({ name, value, alarmAttributes })
-              },
-              () => resolve(body)
-            )
-          })
-        )
+              return { name, value, alarmAttributes }
+            },
+            noop
+          )
+        })
       ).then(
         formattedMessages => {
           this.setState({
