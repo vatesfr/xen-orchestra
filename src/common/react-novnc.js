@@ -1,8 +1,7 @@
 import React, { Component } from 'react'
 import { createBackoff } from 'jsonrpc-websocket-client'
-import { RFB } from 'novnc-node'
+import RFB from '@nraynaud/novnc/lib/rfb'
 import {
-  format as formatUrl,
   parse as parseUrl,
   resolve as resolveUrl
 } from 'url'
@@ -91,14 +90,17 @@ export default class NoVnc extends Component {
     const rfb = this._rfb = new RFB({
       encrypt: isSecure,
       target: this.refs.canvas,
-      wsProtocols: [ 'chat' ],
+      wsProtocols: [ 'binary' ],
       onClipboard: onClipboardChange && ((_, text) => {
         onClipboardChange(text)
       }),
       onUpdateState: this._onUpdateState
     })
-
-    rfb.connect(formatUrl(url))
+    // remove heading slashes from the path
+    // it will be concatenated to a slash in the noVNC library (prefix + '/' + path) that would lead to: '//api/console/uid'
+    // then compared to a regex that only expects a single slash server side and miss the match.
+    const clippedPath = url.path.replace(/^\/+(.*)/, '$1')
+    rfb.connect(url.hostname, url.port, null, clippedPath)
     disableShortcuts()
   }
 
