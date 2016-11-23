@@ -128,7 +128,6 @@
     "leche": "^2.1.1",
     "mocha": "^3.0.2",
     "must": "^0.13.1",
-    "nyc": "^10.0.0",
     "rimraf": "^2.5.2",
     "sinon": "^1.14.1",
     "standard": "^8.1.0"
@@ -146,7 +145,7 @@
     "prerelease": "git checkout next-release && git pull --ff-only && git checkout stable && git pull --ff-only && git merge next-release",
     "release": "npm version",
     "start": "node bin/xo-server",
-    "test": "nyc mocha --opts .mocha.opts \"dist/**/*.spec.js\""
+    "test": "mocha --opts .mocha.opts \"dist/**/*.spec.js\""
   },
   "babel": {
     "plugins": [
