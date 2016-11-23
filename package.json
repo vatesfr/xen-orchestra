@@ -61,7 +61,7 @@
     "event-to-promise": "^0.7.0",
     "font-awesome": "^4.5.0",
     "font-mfizz": "github:fizzed/font-mfizz",
-    "get-stream": "^2.3.0",
+    "get-stream": "^3.0.0",
     "ghooks": "^1.1.1",
     "globby": "^6.0.0",
     "gulp": "github:gulpjs/gulp#4.0",
