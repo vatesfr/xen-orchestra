@@ -1,6 +1,6 @@
 # xo-server-transport-slack [![Build Status](https://travis-ci.org/vatesfr/xo-server-transport-slack.png?branch=master)](https://travis-ci.org/vatesfr/xo-server-transport-slack)
 
-> ${pkg.description}
+> xo-server plugin to send messages to Slack/Mattermost
 
 ## Install
 
