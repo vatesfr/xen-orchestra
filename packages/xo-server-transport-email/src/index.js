@@ -110,7 +110,7 @@ export const testSchema = {
 // ===================================================================
 
 class TransportEmailPlugin {
-  constructor (xo) {
+  constructor ({ xo }) {
     this._sendEmail = ::this._sendEmail
     this._set = ::xo.defineProperty
     this._unset = null
@@ -185,4 +185,4 @@ The transport-email plugin for Xen Orchestra server seems to be working fine, ni
 
 // ===================================================================
 
-export default ({ xo }) => new TransportEmailPlugin(xo)
+export default opts => new TransportEmailPlugin(opts)
