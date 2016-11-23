@@ -10,7 +10,6 @@ import {
 async function delete_ ({vif}) {
   this.allocIpAddresses(
     vif.id,
-    vif.$network,
     null,
     vif.allowedIpv4Addresses.concat(vif.allowedIpv6Addresses)
   )::pCatch(noop)
@@ -85,16 +84,16 @@ export async function set ({
     attached == null && (attached = vif.attached)
 
     await this.allocIpAddresses(vif.id, null, oldIpAddresses)
+    await xapi.deleteVif(vif._xapiId)
 
     // create new VIF with new parameters
-    await xapi.createVif(vm.$id, network.$id, {
+    const newVif = await xapi.createVif(vm.$id, network.$id, {
       mac,
       currently_attached: attached,
-      ipv4Allowed: allowedIpv4Addresses,
-      ipv6Allowed: allowedIpv6Addresses
+      ipv4_allowed: newIpAddresses
     })
 
-    await this.allocIpAddresses(vif.id, newIpAddresses)
+    await this.allocIpAddresses(newVif.$id, newIpAddresses)
 
     return
   }
