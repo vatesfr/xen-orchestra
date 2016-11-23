@@ -100,7 +100,7 @@
     "trace": "^2.0.1",
     "uuid": "^3.0.0",
     "ws": "^1.1.1",
-    "xen-api": "^0.9.4",
+    "xen-api": "^0.9.6",
     "xml2js": "~0.4.6",
     "xo-acl-resolver": "^0.2.2",
     "xo-collection": "^0.4.0",
