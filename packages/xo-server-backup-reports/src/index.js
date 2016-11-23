@@ -1,5 +1,5 @@
-import forEach from 'lodash/forEach'
 import moment from 'moment'
+import { forEach } from 'lodash'
 
 export const configurationSchema = {
   type: 'object',
