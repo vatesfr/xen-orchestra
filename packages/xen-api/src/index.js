@@ -609,25 +609,11 @@ export class Xapi extends EventEmitter {
   }
 
   _watchEvents () {
-    const injectEvent = () => {
-      const { pool } = this
-      if (pool) {
-        this._sessionCall('event.inject', [ 'pool', pool.$ref ]).catch(console.error)
-      }
-    }
-
-    let timeout
-    const loop = () => {
-      // Keep alive: force at least one event per minute.
-      clearTimeout(timeout)
-      timeout = setTimeout(injectEvent, 60e3)
-
-      return this._sessionCall('event.from', [
-        ['*'],
-        this._fromToken,
-        1e3 + 0.1 // Force float.
-      ]).then(onSuccess, onFailure)
-    }
+    const loop = () => this._sessionCall('event.from', [
+      ['*'],
+      this._fromToken,
+      60 + 0.1 // Force float.
+    ]).then(onSuccess, onFailure)
 
     const onSuccess = ({token, events}) => {
       this._fromToken = token
