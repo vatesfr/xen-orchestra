@@ -2,7 +2,7 @@
   "name": "xo-server-transport-email",
   "version": "0.2.0",
   "license": "AGPL-3.0",
-  "description": "",
+  "description": "xo-server plugin to send emails",
   "keywords": [
     "email",
     "mail",

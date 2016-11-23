@@ -1,6 +1,6 @@
 # xo-server-transport-email [![Build Status](https://travis-ci.org/vatesfr/xo-server-transport-email.png?branch=master)](https://travis-ci.org/vatesfr/xo-server-transport-email)
 
-> ${pkg.description}
+> xo-server plugin to send emails
 
 ## Install
 
