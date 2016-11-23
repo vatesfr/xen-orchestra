@@ -52,10 +52,7 @@ the web iterface, see [the plugin documentation](https://xen-orchestra.com/docs/
 
 ## Development
 
-### `Xo#sendSlackMessage({ message }) `
-
-This xo method is called to send the message passed in parameter to Slack or Mattermost.
-
+```
 # Install dependencies
 > npm install
 
@@ -71,6 +68,10 @@ This xo method is called to send the message passed in parameter to Slack or Mat
 # Build for production (automatically called by npm install)
 > npm run build
 ```
+
+### `Xo#sendSlackMessage({ message }) `
+
+This xo method is called to send the message passed in parameter to Slack or Mattermost.
 
 ## Contributions
 
