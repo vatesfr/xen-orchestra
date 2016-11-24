@@ -166,8 +166,15 @@ export default class Acls extends Component {
     }
 
     this.setState({
-      typeFilters: newTypeFilters,
+      typeFilters: { ...typeFilters, [type]: !typeFilters[type] },
       someTypeFilters: some(newTypeFilters)
+    }, () => {
+      // If some objects need to be removed from the selected objects
+      if (!this.state.typeFilters[type] || !someTypeFilters && this.state.someTypeFilters) {
+        this.setState({
+          objects: filter(objects, this._getObjectPredicate())
+        })
+      }
     })
   }
 
