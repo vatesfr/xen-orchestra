@@ -362,6 +362,6 @@ export default class Remotes extends Component {
           </div>
         </form>
       </div>
-      )
+    )
   }
 }

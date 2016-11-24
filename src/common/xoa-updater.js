@@ -52,7 +52,7 @@ function getCurrentUrl () {
 }
 
 function adaptUrl (url, port = null) {
-  const matches = /^http(s?):\/\/([^\/:]*(?::[^\/]*)?)(?:[^:]*)?$/.exec(url)
+  const matches = /^http(s?):\/\/([^/:]*(?::[^/]*)?)(?:[^:]*)?$/.exec(url)
   if (!matches || !matches[2]) {
     throw new Error('current URL not recognized')
   }

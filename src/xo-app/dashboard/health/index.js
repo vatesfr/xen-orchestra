@@ -242,7 +242,7 @@ export default class Health extends Component {
     if (props.alertMessages !== this.props.alertMessages) {
       Promise.all(
         map(props.alertMessages, ({ body }) => {
-          const matches = /^value: ([0-9\.]+) config: (.*)$/.exec(body)
+          const matches = /^value: ([0-9.]+) config: (.*)$/.exec(body)
           if (!matches) {
             return
           }

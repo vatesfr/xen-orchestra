@@ -154,7 +154,7 @@ export default class Restore extends Component {
 
       forEach(remoteFiles, file => {
         let backup
-        const deltaInfo = /^vm_delta_(.*)_([^\/]+)\/([^_]+)_(.*)$/.exec(file)
+        const deltaInfo = /^vm_delta_(.*)_([^/]+)\/([^_]+)_(.*)$/.exec(file)
         if (deltaInfo) {
           const [ , tag, id, date, name ] = deltaInfo
           backup = {
