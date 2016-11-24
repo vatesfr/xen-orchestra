@@ -17,6 +17,7 @@ var forEach = require('lodash/forEach')
 var getKeys = require('lodash/keys')
 var got = require('got')
 var humanFormat = require('human-format')
+var identity = require('lodash/identity')
 var isObject = require('lodash/isObject')
 var micromatch = require('micromatch')
 var multiline = require('multiline')
@@ -55,6 +56,24 @@ function connect () {
 
 function _startsWith (string, search) {
   return string.lastIndexOf(search, 0) === 0
+}
+
+var FLAG_RE = /^--([^=]+)(?:=([^]*))?$/
+function extractFlags (args) {
+  var flags = {}
+
+  var i = 0
+  var n = args.length
+  var matches
+  while (i < n && (matches = args[i].match(FLAG_RE))) {
+    var value = matches[2]
+
+    flags[matches[1]] = value === undefined ? true : value
+    ++i
+  }
+  args.splice(0, i)
+
+  return flags
 }
 
 var PARAM_RE = /^([^=]+)=([^]*)$/
@@ -133,8 +152,14 @@ var help = wrap((function (pkg) {
 
         The patterns can be used to filter on command names.
 
-      $name --list-objects [<property>=<value>]...
+      $name --list-objects [--<property>]… [<property>=<value>]...
         Returns a list of XO objects.
+
+        --<property>
+          Restricts displayed properties to those listed.
+
+        <property>=<value>
+          Restricted displayed objects to those matching the patterns.
 
       $name <command> [<name>=<value>]...
         Executes a command on the current XO instance.
@@ -265,9 +290,14 @@ function listCommands (args) {
 exports.listCommands = listCommands
 
 function listObjects (args) {
-  var sieve = args.length
-    ? parseParameters(args)
-    : null
+  var properties = getKeys(extractFlags(args))
+  var filterProperties = properties.length
+    ? function (object) {
+      return pick(object, properties)
+    }
+    : identity
+
+  var sieve = args.length && parseParameters(args)
 
   return connect().then(function getXoObjects (xo) {
     return xo.call('xo.getAllObjects')
@@ -277,7 +307,7 @@ function listObjects (args) {
     const stdout = process.stdout
     stdout.write('[\n')
     for (var i = 0, n = objects.length; i < n;) {
-      stdout.write(JSON.stringify(objects[i], null, 2))
+      stdout.write(JSON.stringify(filterProperties(objects[i]), null, 2))
       stdout.write(++i < n ? ',\n' : '\n')
     }
     stdout.write(']')
