@@ -30,8 +30,14 @@ Usage:
 
     The patterns can be used to filter on command names.
 
-  xo-cli --list-objects [<property>=<value>]...
+  xo-cli --list-objects [--<property>]… [<property>=<value>]...
     Returns a list of XO objects.
+
+    --<property>
+      Restricts displayed properties to those listed.
+
+    <property>=<value>
+      Restricted displayed objects to those matching the patterns.
 
   xo-cli <command> [<name>=<value>]...
     Executes a command on the current XO instance.
