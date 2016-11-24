@@ -77,7 +77,7 @@ export default ({
     <br />
     <Row>
       <Col className='text-xs-center'>
-        <h5>{_('memoryStatePanel', { memoryUsed: formatSize(memoryUsed) })}</h5>
+        <h5>{_('memoryHostState', { memoryUsed: formatSize(memoryUsed) })}</h5>
       </Col>
     </Row>
     <Row>

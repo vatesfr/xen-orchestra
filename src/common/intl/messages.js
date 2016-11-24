@@ -472,6 +472,7 @@ var messages = {
     // ----- host stat tab -----
   statLoad: 'Load average',
     // ----- host advanced tab -----
+  memoryHostState: 'RAM Usage: {memoryUsed}',
   hardwareHostSettingsLabel: 'Hardware',
   hostAddress: 'Address',
   hostStatus: 'Status',
@@ -740,7 +741,7 @@ var messages = {
   poolPanel: 'Pool{pools, plural, one {} other {s}}',
   hostPanel: 'Host{hosts, plural, one {} other {s}}',
   vmPanel: 'VM{vms, plural, one {} other {s}}',
-  memoryStatePanel: 'RAM Usage: {memoryUsed}',
+  memoryStatePanel: 'RAM Usage:',
   cpuStatePanel: 'CPUs Usage',
   vmStatePanel: 'VMs Power state',
   taskStatePanel: 'Pending tasks',
