@@ -7,6 +7,7 @@ import forEach from 'lodash/forEach'
 import groupBy from 'lodash/groupBy'
 import includes from 'lodash/includes'
 import isEmpty from 'lodash/isEmpty'
+import isEqual from 'lodash/isEqual'
 import keyBy from 'lodash/keyBy'
 import keys from 'lodash/keys'
 import map from 'lodash/map'
@@ -17,6 +18,7 @@ import store from 'store'
 import { parse as parseRemote } from 'xo-remote-parser'
 
 import _ from './intl'
+import autoControlledInput from 'auto-controlled-input'
 import Component from './base-component'
 import propTypes from './prop-types'
 import renderXoItem from './render-xo-item'
@@ -100,20 +102,54 @@ const getLabel = object =>
     propTypes.objectOf(propTypes.array)
   ]).isRequired
 })
+@autoControlledInput()
 export class GenericSelect extends Component {
-  constructor (props) {
-    super(props)
-    this.state = {
-      value: this._setValue(props.value || props.defaultValue, props)
+  componentWillReceiveProps (newProps) {
+    const { props } = this
+    const { value, xoContainers, xoObjects, onChange } = newProps
+
+    if (
+      xoContainers !== props.xoContainers ||
+      xoObjects !== props.xoObjects
+    ) {
+      const {
+        options,
+        xoObjectsById
+      } = this._computeOptions(newProps)
+
+      const newObjects = this._getFilteredObjects(this._getIds(value), xoObjectsById)
+      this.setState({
+        options,
+        xoObjectsById
+      })
+
+      if (onChange && !isEqual(this.state.value, this._getIds(newObjects))) {
+        onChange(newObjects)
+      }
     }
   }
 
-  _getValue (xoObjectsById = this.state.xoObjectsById, props = this.props) {
-    const { value } = this.state
+  _handleChange = value => {
+    const { onChange } = this.props
+    const newObjects = this._getFilteredObjects(value)
 
+    onChange && onChange(newObjects)
+  }
+
+  // Get ID(s) from object(s) of ID(s)
+  _getIds (value, props = this.props) {
     if (props.multi) {
-      // Returns the values of the selected objects
-      // if they are contained in xoObjectsById.
+      return map(value, object => object.id !== undefined ? object.id : object)
+    }
+
+    return (value != null)
+      ? value.id !== undefined ? value.id : value
+      : ''
+  }
+
+  // Get *valid* object(s) from ID(s) or xo-item(s)
+  _getFilteredObjects (value, xoObjectsById = this.state.xoObjectsById) {
+    if (this.props.multi) {
       return mapPlus(value, (value, push) => {
         const o = xoObjectsById[value.value !== undefined ? value.value : value]
 
@@ -126,53 +162,16 @@ export class GenericSelect extends Component {
     return xoObjectsById[value.value || value] || ''
   }
 
-  // Supports id strings and objects.
-  _setValue (value, props = this.props) {
-    if (props.multi) {
-      return map(value, object => object.id !== undefined ? object.id : object)
-    }
-
-    return (value != null)
-      ? value.id !== undefined ? value.id : value
-      : ''
-  }
-
-  componentWillMount () {
-    const { props } = this
-
-    this.setState({
-      ...this._computeOptions(props)
-    })
-  }
-
-  componentWillReceiveProps (newProps) {
-    const { props } = this
-    const { value, xoContainers, xoObjects } = newProps
-
-    if (
-      xoContainers !== props.xoContainers ||
-      xoObjects !== props.xoObjects
-    ) {
-      const {
-        options,
-        xoObjectsById
-      } = this._computeOptions(newProps)
-
-      const value = this._getValue(xoObjectsById, newProps)
-
-      this.setState({
-        options,
-        value: this._setValue(value, newProps),
-        xoObjectsById
-      })
-    }
-
-    if (value !== props.value) {
-      this.setState({
-        value: this._setValue(value, newProps)
-      })
-    }
-  }
+  // GroupBy: Display option with margin if not disabled and containers exists.
+  _renderOption = option => (
+    <span
+      className={classNames(
+        !option.disabled && this.props.xoContainers && 'ml-1'
+      )}
+    >
+      {renderXoItem(option.xoItem)}
+    </span>
+  )
 
   _computeOptions ({ xoContainers, xoObjects }) {
     if (!xoContainers) {
@@ -220,33 +219,9 @@ export class GenericSelect extends Component {
     return { xoObjectsById, options }
   }
 
-  get value () {
-    return this._getValue()
-  }
-
-  set value (value) {
-    this.setState({
-      value: this._setValue(value)
-    })
-  }
-
-  _handleChange = value => {
-    const { onChange } = this.props
-
-    this.setState({
-      value: this._setValue(value)
-    }, onChange && (() => onChange(this.value)))
-  }
-
-  // GroupBy: Display option with margin if not disabled and containers exists.
-  _renderOption = option => (
-    <span
-      className={classNames(
-        !option.disabled && this.props.xoContainers && 'ml-1'
-      )}
-    >
-      {renderXoItem(option.xoItem)}
-    </span>
+  _getValue = createSelector(
+    () => this.props.value,
+    value => this._getIds(value)
   )
 
   render () {
@@ -264,11 +239,12 @@ export class GenericSelect extends Component {
         options={state.options}
         placeholder={props.placeholder}
         required={props.required}
-        value={state.value}
+        value={this._getValue()}
         valueRenderer={this._renderOption}
       />
     )
   }
+
 }
 
 const makeStoreSelect = (createSelectors, props) => connectStore(

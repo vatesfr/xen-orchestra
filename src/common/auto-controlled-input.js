@@ -31,7 +31,7 @@ export default () => ControlledInput => {
           }
         }
       } else if (__DEV__ && props.defaultValue !== undefined) {
-        throw new Error(`${this.constructor.name}: uncontrolled component should not have a default value`)
+        throw new Error(`${this.constructor.name}: controlled component should not have a default value`)
       }
     }
 
