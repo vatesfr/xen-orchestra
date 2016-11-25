@@ -53,8 +53,14 @@ import {
 const getIds = value => value == null || isString(value)
   ? value
   : isArray(value)
-    ? map(value, this._getIds)
-    : value.id
+    ? map(value, value => value.id || value.value || value)
+    : value.id || value.value
+
+const getValues = value => value == null || isString(value)
+  ? value
+  : isArray(value)
+    ? map(value, value => value.value || value)
+    : value.value
 
 const getOption = (object, container) => ({
   label: container
@@ -170,10 +176,20 @@ export class GenericSelect extends Component {
     )
   )
 
+  _getNewSelectedObjectsGetter = createSelector(
+    this._getObjectsById,
+    objectsById => newItems => {
+      const newIds = getValues(newItems)
+      return isArray(newIds)
+        ? map(newIds, id => objectsById[id])
+        : objectsById[newIds]
+    }
+  )
+
   _onChange = value => {
     const { onChange } = this.props
     if (onChange) {
-      onChange(this._getSelectedObjects())
+      onChange(this._getNewSelectedObjectsGetter()(value))
     }
   }
 
@@ -218,7 +234,7 @@ export class GenericSelect extends Component {
   }
 }
 
-const makeStoreSelect = (createSelectors, defaultProps) => autoControlledInput(
+const makeStoreSelect = (createSelectors, defaultProps) => autoControlledInput()(
   connectStore(createSelectors)(
     props =>
       <GenericSelect
@@ -228,7 +244,7 @@ const makeStoreSelect = (createSelectors, defaultProps) => autoControlledInput(
   )
 )
 
-const makeSubscriptionSelect = (subscribe, props) => autoControlledInput(
+const makeSubscriptionSelect = (subscribe, props) => autoControlledInput()(
   class extends Component {
     constructor (props) {
       super(props)

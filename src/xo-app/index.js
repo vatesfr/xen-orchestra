@@ -67,6 +67,7 @@ const BODY_STYLE = {
 }
 
 @routes('home', {
+  plop: require('./plop').default,
   about: About,
   backup: Backup,
   dashboard: Dashboard,
