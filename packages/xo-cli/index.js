@@ -297,7 +297,7 @@ function listObjects (args) {
     }
     : identity
 
-  var sieve = args.length && parseParameters(args)
+  var sieve = args.length ? parseParameters(args) : null
 
   return connect().then(function getXoObjects (xo) {
     return xo.call('xo.getAllObjects')
