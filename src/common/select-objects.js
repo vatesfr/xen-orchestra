@@ -155,35 +155,25 @@ export class GenericSelect extends Component {
     }
   )
 
-  _getSelectedIds = createSelector(
+  _getSelectValue = createSelector(
     () => this.props.value,
     createCollectionWrapper(getIds)
   )
 
-  _getSelectedObjects = createSelector(
-    this._getObjectsById,
-    this._getSelectedIds,
-    createCollectionWrapper(
-      (objectsById, ids) => isArray(ids)
-        ? map(ids, id => objectsById[id])
-        : objectsById[ids]
-    )
-  )
-
-  _getNewSelectedObjectsGetter = createSelector(
+  _getNewSelectedObjects = createSelector(
     this._getObjectsById,
     value => value,
     (objectsById, value) => value == null
       ? value
       : isArray(value)
-        ? map(value, value => objectsById[value.id])
-        : objectsById[value.id]
+        ? map(value, value => objectsById[value.value])
+        : objectsById[value.value]
   )
 
   _onChange = value => {
     const { onChange } = this.props
     if (onChange) {
-      onChange(this._getNewSelectedObjectsGetter(value))
+      onChange(this._getNewSelectedObjects(value))
     }
   }
 
@@ -222,7 +212,7 @@ export class GenericSelect extends Component {
       openOnFocus
       optionRenderer={this._renderOption}
       options={this._getOptions()}
-      value={this._getSelectedIds()}
+      value={this._getSelectValue()}
       valueRenderer={this._renderOption}
     />
   }
