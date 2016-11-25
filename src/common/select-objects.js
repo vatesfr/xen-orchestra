@@ -1,20 +1,5 @@
 import React from 'react'
-import assign from 'lodash/assign'
 import classNames from 'classnames'
-import filter from 'lodash/filter'
-import flatten from 'lodash/flatten'
-import forEach from 'lodash/forEach'
-import groupBy from 'lodash/groupBy'
-import includes from 'lodash/includes'
-import isArray from 'lodash/isArray'
-import isEmpty from 'lodash/isEmpty'
-import isString from 'lodash/isString'
-import keyBy from 'lodash/keyBy'
-import keys from 'lodash/keys'
-import map from 'lodash/map'
-import mapValues from 'lodash/mapValues'
-import pick from 'lodash/pick'
-import sortBy from 'lodash/sortBy'
 import store from 'store'
 import { parse as parseRemote } from 'xo-remote-parser'
 
@@ -24,6 +9,23 @@ import Component from './base-component'
 import propTypes from './prop-types'
 import renderXoItem from './render-xo-item'
 import { Select } from './form'
+import {
+  assign,
+  filter,
+  flatten,
+  forEach,
+  groupBy,
+  includes,
+  isArray,
+  isEmpty,
+  isString,
+  keyBy,
+  keys,
+  map,
+  mapValues,
+  pick,
+  sortBy
+} from 'lodash'
 import {
   createCollectionWrapper,
   createFilter,
@@ -35,6 +37,7 @@ import {
 import {
   addSubscriptions,
   connectStore,
+  mapPlus,
   resolveResourceSets
 } from './utils'
 import {
@@ -116,6 +119,32 @@ const getLabel = object =>
   ]).isRequired
 })
 export class GenericSelect extends Component {
+  componentDidUpdate (prevProps) {
+    if (!this.props.onChange) {
+      return
+    }
+
+    const ids = this._getSelectValue()
+    const objectsById = this._getObjectsById()
+
+    // Not multi
+    let shouldTriggerOnChange = ids && !isArray(ids) && !objectsById[ids]
+    // Multi
+    const newValue = isArray(ids) && mapPlus(ids, (id, push) => {
+      const object = objectsById[id]
+
+      if (object) {
+        push(object)
+      } else {
+        shouldTriggerOnChange = true
+      }
+    })
+
+    if (shouldTriggerOnChange) {
+      this.props.onChange(isArray(ids) ? newValue : undefined)
+    }
+  }
+
   _getObjectsById = createSelector(
     () => this.props.xoObjects,
     objects => keyBy(objects, 'id')
