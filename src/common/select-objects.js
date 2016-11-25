@@ -120,28 +120,33 @@ const getLabel = object =>
 })
 export class GenericSelect extends Component {
   componentDidUpdate (prevProps) {
-    if (!this.props.onChange) {
+    const { onChange, xoObjects } = this.props
+
+    if (!onChange || prevProps.xoObjects === xoObjects) {
       return
     }
 
     const ids = this._getSelectValue()
     const objectsById = this._getObjectsById()
 
-    // Not multi
-    let shouldTriggerOnChange = ids && !isArray(ids) && !objectsById[ids]
-    // Multi
-    const newValue = isArray(ids) && mapPlus(ids, (id, push) => {
-      const object = objectsById[id]
+    if (!isArray(ids)) {
+      ids && !objectsById[ids] && onChange(undefined)
+    } else {
+      let shouldTriggerOnChange
 
-      if (object) {
-        push(object)
-      } else {
-        shouldTriggerOnChange = true
+      const newValue = isArray(ids) && mapPlus(ids, (id, push) => {
+        const object = objectsById[id]
+
+        if (object) {
+          push(object)
+        } else {
+          shouldTriggerOnChange = true
+        }
+      })
+
+      if (shouldTriggerOnChange) {
+        this.props.onChange(newValue)
       }
-    })
-
-    if (shouldTriggerOnChange) {
-      this.props.onChange(isArray(ids) ? newValue : undefined)
     }
   }
 
