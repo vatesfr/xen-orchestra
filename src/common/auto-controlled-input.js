@@ -13,7 +13,7 @@ export default () => ControlledInput => {
     constructor (props) {
       super()
 
-      const controlled = this._controlled = props.value !== undefined
+      const controlled = this._controlled = 'value' in props
       if (!controlled) {
         this.state.value = props.defaultValue
 
@@ -30,7 +30,7 @@ export default () => ControlledInput => {
             this.setState({ value: getEventValue(event) })
           }
         }
-      } else if (__DEV__ && props.defaultValue !== undefined) {
+      } else if (__DEV__ && 'defaultValue' in props) {
         throw new Error(`${this.constructor.name}: controlled component should not have a default value`)
       }
     }
@@ -66,7 +66,7 @@ export default () => ControlledInput => {
     AutoControlledInput.prototype.componentWillReceiveProps = function (newProps) {
       const { name } = this.constructor
       const controlled = this._controlled
-      const newControlled = newProps.value !== undefined
+      const newControlled = 'value' in newProps
 
       if (!controlled) {
         if (newControlled) {
