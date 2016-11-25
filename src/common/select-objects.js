@@ -6,8 +6,9 @@ import flatten from 'lodash/flatten'
 import forEach from 'lodash/forEach'
 import groupBy from 'lodash/groupBy'
 import includes from 'lodash/includes'
+import isArray from 'lodash/isArray'
 import isEmpty from 'lodash/isEmpty'
-import isEqual from 'lodash/isEqual'
+import isString from 'lodash/isString'
 import keyBy from 'lodash/keyBy'
 import keys from 'lodash/keys'
 import map from 'lodash/map'
@@ -18,12 +19,13 @@ import store from 'store'
 import { parse as parseRemote } from 'xo-remote-parser'
 
 import _ from './intl'
-import autoControlledInput from 'auto-controlled-input'
+import autoControlledInput from './auto-controlled-input'
 import Component from './base-component'
 import propTypes from './prop-types'
 import renderXoItem from './render-xo-item'
 import { Select } from './form'
 import {
+  createCollectionWrapper,
   createFilter,
   createGetObjectsOfType,
   createGetTags,
@@ -33,7 +35,6 @@ import {
 import {
   addSubscriptions,
   connectStore,
-  mapPlus,
   resolveResourceSets
 } from './utils'
 import {
@@ -48,6 +49,20 @@ import {
 } from './xo'
 
 // ===================================================================
+
+const getIds = value => value == null || isString(value)
+  ? value
+  : isArray(value)
+    ? map(value, this._getIds)
+    : value.id
+
+const getOption = (object, container) => ({
+  label: container
+    ? `${getLabel(object)} ${getLabel(container)}`
+    : getLabel(object),
+  value: object.id,
+  xoItem: object
+})
 
 const getLabel = object =>
   object.name_label ||
@@ -88,12 +103,10 @@ const getLabel = object =>
 @propTypes({
   autoFocus: propTypes.bool,
   clearable: propTypes.bool,
-  defaultValue: propTypes.any,
   disabled: propTypes.bool,
   multi: propTypes.bool,
   onChange: propTypes.func,
   placeholder: propTypes.any.isRequired,
-  predicate: propTypes.func,
   required: propTypes.bool,
   value: propTypes.any,
   xoContainers: propTypes.array,
@@ -102,68 +115,70 @@ const getLabel = object =>
     propTypes.objectOf(propTypes.array)
   ]).isRequired
 })
-@autoControlledInput()
 export class GenericSelect extends Component {
-  componentWillReceiveProps (newProps) {
-    const { props } = this
-    const { value, xoContainers, xoObjects, onChange } = newProps
+  _getObjectsById = createSelector(
+    () => this.props.xoObjects,
+    objects => keyBy(objects, 'id')
+  )
 
-    if (
-      xoContainers !== props.xoContainers ||
-      xoObjects !== props.xoObjects
-    ) {
-      const {
-        options,
-        xoObjectsById
-      } = this._computeOptions(newProps)
+  _getOptions = createSelector(
+    () => this.props.xoContainers,
+    () => this.props.xoObjects,
+    (containers, objects) => { // createCollectionWrapper with a depth?
+      const __DEV__ = process.env.NODE_ENV !== 'production'
+      const { name } = this.constructor
 
-      const newObjects = this._getFilteredObjects(this._getIds(value), xoObjectsById)
-      this.setState({
-        options,
-        xoObjectsById
-      })
-
-      if (onChange && !isEqual(this.state.value, this._getIds(newObjects))) {
-        onChange(newObjects)
-      }
-    }
-  }
-
-  _handleChange = value => {
-    const { onChange } = this.props
-    const newObjects = this._getFilteredObjects(value)
-
-    onChange && onChange(newObjects)
-  }
-
-  // Get ID(s) from object(s) of ID(s)
-  _getIds (value, props = this.props) {
-    if (props.multi) {
-      return map(value, object => object.id !== undefined ? object.id : object)
-    }
-
-    return (value != null)
-      ? value.id !== undefined ? value.id : value
-      : ''
-  }
-
-  // Get *valid* object(s) from ID(s) or xo-item(s)
-  _getFilteredObjects (value, xoObjectsById = this.state.xoObjectsById) {
-    if (this.props.multi) {
-      return mapPlus(value, (value, push) => {
-        const o = xoObjectsById[value.value !== undefined ? value.value : value]
-
-        if (o) {
-          push(o)
+      if (!containers) {
+        if (__DEV__ && !isArray(objects)) {
+          throw new Error(`${name}: without xoContainers, xoObjects must be an array`)
         }
-      })
-    }
 
-    return xoObjectsById[value.value || value] || ''
+        return map(objects, getOption)
+      }
+
+      if (__DEV__ && isArray(objects)) {
+        throw new Error(`${name}: with xoContainers, xoObjects must be an object`)
+      }
+
+      const options = []
+      forEach(containers, container => {
+        options.push({
+          disabled: true,
+          xoItem: container
+        })
+
+        forEach(objects[container.id], object => {
+          options.push(getOption(object, container))
+        })
+      })
+      return options
+    }
+  )
+
+  _getSelectedIds = createSelector(
+    () => this.props.value,
+    createCollectionWrapper(getIds)
+  )
+
+  _getSelectedObjects = createSelector(
+    this._getObjectsById,
+    this._getSelectedIds,
+    createCollectionWrapper(
+      (objectsById, ids) => isArray(ids)
+        ? map(ids, id => objectsById[id])
+        : objectsById[ids]
+    )
+  )
+
+  _onChange = value => {
+    const { onChange } = this.props
+    if (onChange) {
+      onChange(this._getSelectedObjects())
+    }
   }
 
   // GroupBy: Display option with margin if not disabled and containers exists.
-  _renderOption = option => (
+  _renderOption = option =>
     <span
       className={classNames(
         !option.disabled && this.props.xoContainers && 'ml-1'
@@ -171,108 +186,49 @@ export class GenericSelect extends Component {
     >
       {renderXoItem(option.xoItem)}
     </span>
-  )
-
-  _computeOptions ({ xoContainers, xoObjects }) {
-    if (!xoContainers) {
-      if (process.env.NODE_ENV !== 'production') {
-        if (!Array.isArray(xoObjects)) {
-          throw new Error('without xoContainers, xoObjects must be an array')
-        }
-      }
-
-      return {
-        xoObjectsById: keyBy(xoObjects, 'id'),
-        options: map(xoObjects, object => ({
-          label: getLabel(object),
-          value: object.id,
-          xoItem: object
-        }))
-      }
-    }
-
-    if (process.env.NODE_ENV !== 'production') {
-      if (Array.isArray(xoObjects)) {
-        throw new Error('with xoContainers, xoObjects must be an object')
-      }
-    }
-
-    const options = []
-    const xoObjectsById = {}
-
-    forEach(xoContainers, container => {
-      const containerObjects = keyBy(xoObjects[container.id], 'id')
-      assign(xoObjectsById, containerObjects)
-
-      options.push({
-        disabled: true,
-        xoItem: container
-      })
-
-      options.push.apply(options, map(containerObjects, object => ({
-        label: `${getLabel(object)} ${getLabel(container)}`,
-        value: object.id,
-        xoItem: object
-      })))
-    })
-
-    return { xoObjectsById, options }
-  }
-
-  _getValue = createSelector(
-    () => this.props.value,
-    value => this._getIds(value)
-  )
 
   render () {
-    const { props, state } = this
+    const {
+      autoFocus,
+      disabled,
+      multi,
+      placeholder,
+      required,
 
-    return (
-      <Select
-        autofocus={props.autoFocus}
-        clearable={props.clearable == null ? props.multi || !props.required : props.clearable}
-        disabled={props.disabled}
-        multi={props.multi}
-        onChange={this._handleChange}
-        openOnFocus
-        optionRenderer={this._renderOption}
-        options={state.options}
-        placeholder={props.placeholder}
-        required={props.required}
-        value={this._getValue()}
-        valueRenderer={this._renderOption}
-      />
-    )
+      clearable = Boolean(multi || !required)
+    } = this.props
+
+    return <Select
+      {...{
+        autofocus: autoFocus,
+        clearable,
+        disabled,
+        multi,
+        placeholder,
+        required
+      }}
+
+      onChange={this._onChange}
+      openOnFocus
+      optionRenderer={this._renderOption}
+      options={this._getOptions()}
+      value={this._getSelectedIds()}
+      valueRenderer={this._renderOption}
+    />
   }
-
 }
 
-const makeStoreSelect = (createSelectors, props) => connectStore(
-  createSelectors,
-  { withRef: true }
-)(
-  class extends Component {
-    get value () {
-      return this.refs.select.value
-    }
-
-    set value (value) {
-      this.refs.select.value = value
-    }
-
-    render () {
-      return (
-        <GenericSelect
-          ref='select'
-          {...props}
-          {...this.props}
-        />
-      )
-    }
-  }
+const makeStoreSelect = (createSelectors, defaultProps) => autoControlledInput(
+  connectStore(createSelectors)(
+    props =>
+      <GenericSelect
+        {...defaultProps}
+        {...props}
+      />
+  )
 )
 
-const makeSubscriptionSelect = (subscribe, props) => (
+const makeSubscriptionSelect = (subscribe, props) => autoControlledInput(
   class extends Component {
     constructor (props) {
       super(props)
@@ -301,14 +257,6 @@ const makeSubscriptionSelect = (subscribe, props) => (
       )
     }
 
-    get value () {
-      return this.refs.select.value
-    }
-
-    set value (value) {
-      this.refs.select.value = value
-    }
-
     componentWillMount () {
       this.componentWillUnmount = subscribe(::this.setState)
     }
@@ -316,7 +264,6 @@ const makeSubscriptionSelect = (subscribe, props) => (
     render () {
       return (
         <GenericSelect
-          ref='select'
           {...props}
           {...this.props}
           xoObjects={this._getFilteredXoObjects()}
