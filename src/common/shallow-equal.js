@@ -1,3 +1,5 @@
+import kindOf from 'kindof'
+
 // Tests that two collections (arrays or objects) have strictly equals
 // values (items or properties)
 const shallowEqual = (c1, c2) => {
@@ -5,8 +7,8 @@ const shallowEqual = (c1, c2) => {
     return true
   }
 
-  const type = typeof c1
-  if (type !== typeof c2) {
+  const type = kindOf(c1)
+  if (type !== kindOf(c2)) {
     return false
   }
 
@@ -23,6 +25,10 @@ const shallowEqual = (c1, c2) => {
     }
 
     return true
+  }
+
+  if (type !== 'object') {
+    return false
   }
 
   let n = 0
