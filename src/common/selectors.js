@@ -37,12 +37,16 @@ export {
 // Use case: in connect, to avoid rerendering a component where the
 // objects are still the same.
 const _createCollectionWrapper = selector => {
-  let cache
+  let cache, previous
 
   return (...args) => {
     const value = selector(...args)
-    if (!shallowEqual(value, cache)) {
-      cache = value
+    if (value !== previous) {
+      previous = value
+
+      if (!shallowEqual(value, cache)) {
+        cache = value
+      }
     }
     return cache
   }
