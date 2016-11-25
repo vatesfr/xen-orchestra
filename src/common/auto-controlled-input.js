@@ -54,7 +54,6 @@ export default () => ControlledInput => {
         return <ControlledInput {...this.props} />
       }
 
-      console.log('this.state.value', this.state.value)
       return <ControlledInput
         {...omit(this.props, 'defaultValue')}
         onChange={this._onChange}
