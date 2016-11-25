@@ -53,14 +53,8 @@ import {
 const getIds = value => value == null || isString(value)
   ? value
   : isArray(value)
-    ? map(value, value => value.id || value.value || value)
-    : value.id || value.value
-
-const getValues = value => value == null || isString(value)
-  ? value
-  : isArray(value)
-    ? map(value, value => value.value || value)
-    : value.value
+    ? map(value, getIds)
+    : value.id
 
 const getOption = (object, container) => ({
   label: container
@@ -178,18 +172,18 @@ export class GenericSelect extends Component {
 
   _getNewSelectedObjectsGetter = createSelector(
     this._getObjectsById,
-    objectsById => newItems => {
-      const newIds = getValues(newItems)
-      return isArray(newIds)
-        ? map(newIds, id => objectsById[id])
-        : objectsById[newIds]
-    }
+    value => value,
+    (objectsById, value) => value == null
+      ? value
+      : isArray(value)
+        ? map(value, value => objectsById[value.id])
+        : objectsById[value.id]
   )
 
   _onChange = value => {
     const { onChange } = this.props
     if (onChange) {
-      onChange(this._getNewSelectedObjectsGetter()(value))
+      onChange(this._getNewSelectedObjectsGetter(value))
     }
   }
 
