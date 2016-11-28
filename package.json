@@ -28,7 +28,7 @@
   "devDependencies": {
     "babel": "^6.5.2",
     "babel-eslint": "^7.0.0",
-    "babel-plugin-closure-elimination": "1.0.6",
+    "babel-plugin-closure-elimination": "^1.1.14",
     "clarify": "^2.0.0",
     "event-to-promise": "^0.7.0",
     "lodash": "^4.16.1",
