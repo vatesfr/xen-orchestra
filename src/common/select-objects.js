@@ -2,13 +2,6 @@ import React from 'react'
 import classNames from 'classnames'
 import store from 'store'
 import { parse as parseRemote } from 'xo-remote-parser'
-
-import _ from './intl'
-import autoControlledInput from './auto-controlled-input'
-import Component from './base-component'
-import propTypes from './prop-types'
-import renderXoItem from './render-xo-item'
-import { Select } from './form'
 import {
   assign,
   filter,
@@ -27,6 +20,13 @@ import {
   sortBy,
   toArray
 } from 'lodash'
+
+import _ from './intl'
+import autoControlledInput from './auto-controlled-input'
+import Component from './base-component'
+import propTypes from './prop-types'
+import renderXoItem from './render-xo-item'
+import { Select } from './form'
 import {
   createCollectionWrapper,
   createFilter,
@@ -76,7 +76,7 @@ const getLabel = object =>
   object.value ||
   object.label
 
-const getEmptyValue = props =>
+const getDefaultValue = props =>
   props.multi ? [] : undefined
 
 // ===================================================================
@@ -261,7 +261,7 @@ export class GenericSelect extends Component {
   }
 }
 
-const makeStoreSelect = (createSelectors, defaultProps) => autoControlledInput(getEmptyValue)(
+const makeStoreSelect = (createSelectors, defaultProps) => autoControlledInput({ defaultValue: getDefaultValue })(
   connectStore(createSelectors)(
     props =>
       <GenericSelect
@@ -271,7 +271,7 @@ const makeStoreSelect = (createSelectors, defaultProps) => autoControlledInput(g
   )
 )
 
-const makeSubscriptionSelect = (subscribe, props) => autoControlledInput(getEmptyValue)(
+const makeSubscriptionSelect = (subscribe, props) => autoControlledInput({ defaultValue: getDefaultValue })(
   class extends Component {
     constructor (props) {
       super(props)

@@ -1,5 +1,5 @@
 import React from 'react'
-import { omit } from 'lodash'
+import { isFunction, omit } from 'lodash'
 
 import Component from './base-component'
 import getEventValue from './get-event-value'
@@ -8,14 +8,14 @@ const __DEV__ = process.env.NODE_ENV !== 'production'
 
 // This decorator can be used on a controlled input component to make
 // it able to automatically handled the uncontrolled mode.
-export default getEmptyValue => ControlledInput => {
+export default ({ defaultValue }) => ControlledInput => {
   class AutoControlledInput extends Component {
     constructor (props) {
       super()
 
       const controlled = this._controlled = 'value' in props
       if (!controlled) {
-        this.state.value = props.defaultValue || getEmptyValue(props)
+        this.state.value = props.defaultValue || (isFunction(defaultValue) ? defaultValue(props) : defaultValue)
 
         this._onChange = event => {
           let defaultPrevented = false
