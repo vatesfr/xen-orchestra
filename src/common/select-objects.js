@@ -76,8 +76,9 @@ const getLabel = object =>
   object.value ||
   object.label
 
-const getDefaultValue = props =>
-  props.multi ? [] : undefined
+const options = props => ({
+  defaultValue: props.multi ? [] : undefined
+})
 
 // ===================================================================
 
@@ -261,7 +262,7 @@ export class GenericSelect extends Component {
   }
 }
 
-const makeStoreSelect = (createSelectors, defaultProps) => autoControlledInput({ defaultValue: getDefaultValue })(
+const makeStoreSelect = (createSelectors, defaultProps) => autoControlledInput(options)(
   connectStore(createSelectors)(
     props =>
       <GenericSelect
@@ -271,7 +272,7 @@ const makeStoreSelect = (createSelectors, defaultProps) => autoControlledInput({
   )
 )
 
-const makeSubscriptionSelect = (subscribe, props) => autoControlledInput({ defaultValue: getDefaultValue })(
+const makeSubscriptionSelect = (subscribe, props) => autoControlledInput(options)(
   class extends Component {
     constructor (props) {
       super(props)
