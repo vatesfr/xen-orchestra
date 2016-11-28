@@ -48,7 +48,17 @@ const AlarmColObject = connectStore(() => ({
   if (!object) {
     return null
   }
-  return object.type === 'VM-controller' ? <Link to={`hosts/${object.$container}`}>{object.name_label}</Link> : <Link to={`vms/${object.id}`}>{object.name_label}</Link>
+
+  switch (object.type) {
+    case 'VM':
+      return <Link to={`vms/${object.id}`}>{object.name_label}</Link>
+    case 'VM-controller':
+      return <Link to={`hosts/${object.$container}`}>{object.name_label}</Link>
+    case 'host':
+      return <Link to={`hosts/${object.id}`}>{object.name_label}</Link>
+    default:
+      return null
+  }
 })
 
 const AlarmColPool = connectStore(() => ({
@@ -240,42 +250,50 @@ const ALARM_COLUMNS = [
 export default class Health extends Component {
   componentWillReceiveProps (props) {
     if (props.alertMessages !== this.props.alertMessages) {
-      Promise.all(
-        map(props.alertMessages, ({ body }) => {
-          const matches = /^value: ([0-9.]+) config: (.*)$/.exec(body)
-          if (!matches) {
-            return
-          }
-
-          const [ , value, xml ] = matches
-          return fromCallback(cb =>
-            xml2js.parseString(xml, cb)
-          ).then(
-            result => {
-              const object = mapValues(result && result.variable, value => get(value, '[0].$.value'))
-              if (!object || !object.name) {
-                return
-              }
-
-              const { name, ...alarmAttributes } = object
-
-              return { name, value, alarmAttributes }
-            },
-            noop
-          )
-        })
-      ).then(
-        formattedMessages => {
-          this.setState({
-            messages: map(formattedMessages, (formattedMessage, index) => ({
-              formatted: formattedMessage,
-              ...props.alertMessages[index]
-            }))
-          })
-        },
-        noop
-      )
+      this._updateAlarms(props)
     }
+  }
+
+  componentDidMount () {
+    this._updateAlarms(this.props)
+  }
+
+  _updateAlarms = props => {
+    Promise.all(
+      map(props.alertMessages, ({ body }, id) => {
+        const matches = /^value: ([0-9.]+) config: (.*)$/.exec(body.replace(/\n/g, ' '))
+        if (!matches) {
+          return
+        }
+
+        const [ , value, xml ] = matches
+        return fromCallback(cb =>
+          xml2js.parseString(xml, cb)
+        ).then(
+          result => {
+            const object = mapValues(result && result.variable, value => get(value, '[0].$.value'))
+            if (!object || !object.name) {
+              return
+            }
+
+            const { name, ...alarmAttributes } = object
+
+            return { name, value, alarmAttributes, id }
+          },
+          noop
+        )
+      })
+    ).then(
+      formattedMessages => {
+        this.setState({
+          messages: map(formattedMessages, ({ ...formattedMessage, id }) => ({
+            formatted: formattedMessage,
+            ...props.alertMessages[id]
+          }))
+        })
+      },
+      noop
+    )
   }
 
   _deleteOrphanedVdis = () =>
