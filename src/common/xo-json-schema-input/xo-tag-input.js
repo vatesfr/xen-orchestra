@@ -14,6 +14,7 @@ export default class TagInput extends XoAbstractInput {
       <PrimitiveInputWrapper {...props}>
         <SelectTag
           disabled={props.disabled}
+          hasSelectAll
           multi={props.multi}
           onChange={props.onChange}
           ref='input'

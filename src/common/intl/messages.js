@@ -146,6 +146,7 @@ var messages = {
 
   // ----- Forms -----
   add: 'Add',
+  selectAll: 'Select all',
   remove: 'Remove',
   preview: 'Preview',
   item: 'Item',
@@ -245,7 +246,10 @@ var messages = {
   editBackupVmsTitle: 'VMs',
   editBackupSmartStatusTitle: 'VMs statuses',
   editBackupSmartResidentOn: 'Resident on',
+  editBackupSmartPools: 'Pools',
+  editBackupSmartTags: 'Tags',
   editBackupSmartTagsTitle: 'VMs Tags',
+  editBackupNot: 'Reverse',
   editBackupTagTitle: 'Tag',
   editBackupReportTitle: 'Report',
   editBackupReportEnable: 'Enable immediately after creation',

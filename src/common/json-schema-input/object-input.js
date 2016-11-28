@@ -73,8 +73,12 @@ export default class ObjectInput extends Component {
   }
 
   set value (value = {}) {
-    forEach(this.refs, (instance, id) => {
-      instance.value = value[id]
+    this.setState({
+      use: true
+    }, () => {
+      forEach(this.refs, (instance, id) => {
+        instance.value = value[id]
+      })
     })
   }
 

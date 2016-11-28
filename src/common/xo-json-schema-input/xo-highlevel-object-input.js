@@ -14,6 +14,7 @@ export default class HighLevelObjectInput extends XoAbstractInput {
       <PrimitiveInputWrapper {...props}>
         <SelectHighLevelObject
           disabled={props.disabled}
+          hasSelectAll
           multi={props.multi}
           onChange={props.onChange}
           ref='input'

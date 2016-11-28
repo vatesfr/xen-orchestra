@@ -14,6 +14,7 @@ export default class RoleInput extends XoAbstractInput {
       <PrimitiveInputWrapper {...props}>
         <SelectRole
           disabled={props.disabled}
+          hasSelectAll
           multi={props.multi}
           onChange={props.onChange}
           ref='input'
