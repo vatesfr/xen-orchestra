@@ -24,7 +24,8 @@ import {
   map,
   mapValues,
   pick,
-  sortBy
+  sortBy,
+  toArray
 } from 'lodash'
 import {
   createCollectionWrapper,
@@ -74,6 +75,9 @@ const getLabel = object =>
   (object.value && object.value.name) ||
   object.value ||
   object.label
+
+const getEmptyValue = props =>
+  props.multi ? [] : undefined
 
 // ===================================================================
 
@@ -152,7 +156,12 @@ export class GenericSelect extends Component {
 
   _getObjectsById = createSelector(
     () => this.props.xoObjects,
-    objects => keyBy(objects, 'id')
+    objects => keyBy(
+      isArray(objects)
+        ? objects
+        : flatten(toArray(objects)),
+      'id'
+    )
   )
 
   _getOptions = createSelector(
@@ -252,7 +261,7 @@ export class GenericSelect extends Component {
   }
 }
 
-const makeStoreSelect = (createSelectors, defaultProps) => autoControlledInput()(
+const makeStoreSelect = (createSelectors, defaultProps) => autoControlledInput(getEmptyValue)(
   connectStore(createSelectors)(
     props =>
       <GenericSelect
@@ -262,7 +271,7 @@ const makeStoreSelect = (createSelectors, defaultProps) => autoControlledInput()
   )
 )
 
-const makeSubscriptionSelect = (subscribe, props) => autoControlledInput()(
+const makeSubscriptionSelect = (subscribe, props) => autoControlledInput(getEmptyValue)(
   class extends Component {
     constructor (props) {
       super(props)

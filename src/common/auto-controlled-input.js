@@ -8,14 +8,14 @@ const __DEV__ = process.env.NODE_ENV !== 'production'
 
 // This decorator can be used on a controlled input component to make
 // it able to automatically handled the uncontrolled mode.
-export default () => ControlledInput => {
+export default getEmptyValue => ControlledInput => {
   class AutoControlledInput extends Component {
     constructor (props) {
       super()
 
       const controlled = this._controlled = 'value' in props
       if (!controlled) {
-        this.state.value = props.defaultValue
+        this.state.value = props.defaultValue || getEmptyValue(props)
 
         this._onChange = event => {
           let defaultPrevented = false
