@@ -67,7 +67,6 @@ export default class IsoDevice extends Component {
         <SelectVdi
           srPredicate={this._getPredicate()}
           onChange={this._handleInsert}
-          ref='selectIso'
           value={mountedIso}
         />
         <span className='input-group-btn'>

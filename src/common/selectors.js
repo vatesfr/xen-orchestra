@@ -37,12 +37,16 @@ export {
 // Use case: in connect, to avoid rerendering a component where the
 // objects are still the same.
 const _createCollectionWrapper = selector => {
-  let cache
+  let cache, previous
 
   return (...args) => {
     const value = selector(...args)
-    if (!shallowEqual(value, cache)) {
-      cache = value
+    if (value !== previous) {
+      previous = value
+
+      if (!shallowEqual(value, cache)) {
+        cache = value
+      }
     }
     return cache
   }
@@ -142,10 +146,10 @@ export const createPicker = (object, props) =>
 // - predicate == null → no filtering
 // - predicate === false → everything is filtered out
 export const createFilter = (collection, predicate) =>
-  _createCollectionWrapper(
-    _create2(
-      collection,
-      predicate,
+  _create2(
+    collection,
+    predicate,
+    _createCollectionWrapper(
       (collection, predicate) => predicate === false
         ? (isArrayLike(collection) ? EMPTY_ARRAY : EMPTY_OBJECT)
         : predicate
@@ -168,17 +172,18 @@ export const createGroupBy = (collection, getter) =>
     groupBy
   )
 
-export const createPager = (array, page, n = 25) => _createCollectionWrapper(
+export const createPager = (array, page, n = 25) =>
   _create2(
     array,
     page,
     n,
-    (array, page, n) => {
-      const start = (page - 1) * n
-      return slice(array, start, start + n)
-    }
+    _createCollectionWrapper(
+      (array, page, n) => {
+        const start = (page - 1) * n
+        return slice(array, start, start + n)
+      }
+    )
   )
-)
 
 export const createSort = (
   collection,
@@ -187,11 +192,11 @@ export const createSort = (
 ) => _create2(collection, getter, order, orderBy)
 
 export const createTop = (collection, iteratee, n) =>
-  _createCollectionWrapper(
-    _create2(
-      collection,
-      iteratee,
-      n,
+  _create2(
+    collection,
+    iteratee,
+    n,
+    _createCollectionWrapper(
       (objects, iteratee, n) => {
         let results = orderBy(objects, iteratee, 'desc')
         if (n < results.length) {
@@ -453,23 +458,24 @@ export const createDoesHostNeedRestart = hostSelector => {
   return (state, props) => restartPoolPatch(state, props) !== undefined
 }
 
-export const createGetHostMetrics = hostSelector => _createCollectionWrapper(
+export const createGetHostMetrics = hostSelector =>
   create(
     hostSelector,
-    hosts => {
-      const metrics = {
-        count: 0,
-        cpus: 0,
-        memoryTotal: 0,
-        memoryUsage: 0
+    _createCollectionWrapper(
+      hosts => {
+        const metrics = {
+          count: 0,
+          cpus: 0,
+          memoryTotal: 0,
+          memoryUsage: 0
+        }
+        forEach(hosts, host => {
+          metrics.count++
+          metrics.cpus += host.cpus.cores
+          metrics.memoryTotal += host.memory.size
+          metrics.memoryUsage += host.memory.usage
+        })
+        return metrics
       }
-      forEach(hosts, host => {
-        metrics.count++
-        metrics.cpus += host.cpus.cores
-        metrics.memoryTotal += host.memory.size
-        metrics.memoryUsage += host.memory.usage
-      })
-      return metrics
-    }
+    )
   )
-)

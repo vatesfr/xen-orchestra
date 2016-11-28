@@ -1,5 +1,5 @@
 import React from 'react'
-import { omit } from 'lodash'
+import { isFunction, omit } from 'lodash'
 
 import Component from './base-component'
 import getEventValue from './get-event-value'
@@ -8,14 +8,15 @@ const __DEV__ = process.env.NODE_ENV !== 'production'
 
 // This decorator can be used on a controlled input component to make
 // it able to automatically handled the uncontrolled mode.
-export default () => ControlledInput => {
+export default options => ControlledInput => {
   class AutoControlledInput extends Component {
     constructor (props) {
       super()
 
-      const controlled = this._controlled = props.value !== undefined
+      const opts = isFunction(options) ? options(props) : options
+      const controlled = this._controlled = 'value' in props
       if (!controlled) {
-        this.state.value = props.defaultValue
+        this.state.value = props.defaultValue || opts && opts.defaultValue
 
         this._onChange = event => {
           let defaultPrevented = false
@@ -30,8 +31,8 @@ export default () => ControlledInput => {
             this.setState({ value: getEventValue(event) })
           }
         }
-      } else if (__DEV__ && props.defaultValue !== undefined) {
-        throw new Error(`${this.constructor.name}: uncontrolled component should not have a default value`)
+      } else if (__DEV__ && 'defaultValue' in props) {
+        throw new Error(`${this.constructor.name}: controlled component should not have a default value`)
       }
     }
 
@@ -66,7 +67,7 @@ export default () => ControlledInput => {
     AutoControlledInput.prototype.componentWillReceiveProps = function (newProps) {
       const { name } = this.constructor
       const controlled = this._controlled
-      const newControlled = newProps.value !== undefined
+      const newControlled = 'value' in newProps
 
       if (!controlled) {
         if (newControlled) {

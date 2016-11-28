@@ -486,7 +486,7 @@ export default class New extends Component {
                       onChange={this.linkState('owner', 'id')}
                       predicate={this._subjectPredicate}
                       required
-                      value={owner}
+                      value={owner || null}
                     />
                   </fieldset>
                   <fieldset className='form-group'>
