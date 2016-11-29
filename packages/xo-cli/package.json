@@ -48,5 +48,10 @@
   "scripts": {
     "lint": "standard",
     "posttest": "npm run lint"
+  },
+  "greenkeeper": {
+    "ignore": [
+      "nice-pipe"
+    ]
   }
 }
