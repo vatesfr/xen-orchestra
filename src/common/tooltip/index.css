@@ -1,7 +1,7 @@
 .tooltipEnabled {
   background-color: #222;
   border-radius: 3px;
-  border: 1px solid $fff;
+  border: 1px solid #fff;
   color: #fff;
   display: inline-block;
   font-size: 13px;

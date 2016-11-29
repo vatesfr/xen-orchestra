@@ -27,6 +27,13 @@ $ct-series-colors: (
   flex-direction: column-reverse;
 }
 
+// safari has a bug in flex computing that prevent charts from showing see #1755
+// by fixing the height with a value found in Chrome it seems like it fixes the issue without breaking the layout
+// elsewhere
+.dashboardItem .ct-chart {
+  height: 150px;
+}
+
 // Line in charts with only 2px in width
 .ct-line {
   stroke-width: 2px;
