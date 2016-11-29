@@ -151,7 +151,7 @@ export default class TabConsole extends Component {
               scale={scale}
               url={resolveUrl(`consoles/${vm.id}`)}
             />
-            {!minimalLayout && <p><em><Icon icon='info' /> {_('tipLabel')} {_('tipConsoleLabel')}</em></p>}
+            {!minimalLayout && <p><em><Icon icon='info' /> <a href='https://bugs.xenserver.org/browse/XSO-650' target='_blank'>{_('tipLabel')} {_('tipConsoleLabel')}</a></em></p>}
           </Col>
         </Row>
       </Container>
