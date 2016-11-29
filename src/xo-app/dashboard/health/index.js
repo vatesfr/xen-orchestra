@@ -261,7 +261,7 @@ export default class Health extends Component {
   _updateAlarms = props => {
     Promise.all(
       map(props.alertMessages, ({ body }, id) => {
-        const matches = /^value: ([0-9.]+) config: (.*)$/.exec(body.replace(/\n/g, ' '))
+        const matches = /^value: ([0-9.]+)\nconfig:\n([^]*)$/.exec(body)
         if (!matches) {
           return
         }
