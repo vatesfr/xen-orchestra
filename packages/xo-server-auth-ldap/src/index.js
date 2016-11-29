@@ -61,7 +61,7 @@ If not specified, it will use a default set of well-known CAs.
       }
     },
     checkCertificate: {
-      description: 'Check the validity of the server\'s certificates. Useful when connecting to servers that use a self-signed certificate.',
+      description: 'Enforce the validity of the server\'s certificates. You can disable it when connecting to servers that use a self-signed certificate.',
       type: 'boolean',
       default: true
     },
