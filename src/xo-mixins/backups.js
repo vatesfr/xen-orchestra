@@ -1,3 +1,4 @@
+import deferrable from 'golike-defer'
 import endsWith from 'lodash/endsWith'
 import escapeStringRegexp from 'escape-string-regexp'
 import eventToPromise from 'event-to-promise'
@@ -15,9 +16,6 @@ import { utcFormat } from 'd3-time-format'
 
 import vhdMerge, { chainVhd } from '../vhd-merge'
 import xapiObjectToXo from '../xapi-object-to-xo'
-import {
-  deferrable
-} from '../decorators'
 import {
   forEach,
   mapToArray,

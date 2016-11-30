@@ -2,10 +2,7 @@ import bind from 'lodash/bind'
 
 import {
   isArray,
-  isPromise,
-  isFunction,
-  noop,
-  pFinally
+  isFunction
 } from './utils'
 
 // ===================================================================
@@ -94,117 +91,6 @@ export const debounce = duration => (target, name, descriptor) => {
 
   descriptor.value = debounced
   return descriptor
-}
-
-// -------------------------------------------------------------------
-
-const _push = Array.prototype.push
-
-export const deferrable = (target, name, descriptor) => {
-  let fn
-  function newFn () {
-    const deferreds = []
-    const defer = fn => {
-      deferreds.push(fn)
-    }
-    defer.clear = () => {
-      deferreds.length = 0
-    }
-
-    const args = [ defer ]
-    _push.apply(args, arguments)
-
-    let executeDeferreds = () => {
-      let i = deferreds.length
-      while (i) {
-        deferreds[--i]()
-      }
-    }
-
-    try {
-      const result = fn.apply(this, args)
-
-      if (isPromise(result)) {
-        result::pFinally(executeDeferreds)
-
-        // Do not execute the deferreds in the finally block.
-        executeDeferreds = noop
-      }
-
-      return result
-    } finally {
-      executeDeferreds()
-    }
-  }
-
-  if (descriptor) {
-    fn = descriptor.value
-    descriptor.value = newFn
-
-    return descriptor
-  }
-
-  fn = target
-  return newFn
-}
-
-// Deferred functions are only executed on failures.
-//
-// i.e.: defer.clear() is automatically called in case of success.
-deferrable.onFailure = (target, name, descriptor) => {
-  let fn
-  function newFn (defer) {
-    const result = fn.apply(this, arguments)
-
-    return isPromise(result)
-      ? result.then(result => {
-        defer.clear()
-        return result
-      })
-      : (defer.clear(), result)
-  }
-
-  if (descriptor) {
-    fn = descriptor.value
-    descriptor.value = newFn
-  } else {
-    fn = target
-    target = newFn
-  }
-
-  return deferrable(target, name, descriptor)
-}
-
-// Deferred functions are only executed on success.
-//
-// i.e.: defer.clear() is automatically called in case of failure.
-deferrable.onSuccess = (target, name, descriptor) => {
-  let fn
-  function newFn (defer) {
-    try {
-      const result = fn.apply(this, arguments)
-
-      return isPromise(result)
-        ? result.then(null, error => {
-          defer.clear()
-          throw error
-        })
-        : result
-    } catch (error) {
-      defer.clear()
-      throw error
-    }
-  }
-
-  if (descriptor) {
-    fn = descriptor.value
-    descriptor.value = newFn
-  } else {
-    fn = target
-    target = newFn
-  }
-
-  return deferrable(target, name, descriptor)
 }
 
 // -------------------------------------------------------------------

@@ -1,5 +1,6 @@
 /* eslint-disable camelcase */
 
+import deferrable from 'golike-defer'
 import every from 'lodash/every'
 import fatfs from 'fatfs'
 import find from 'lodash/find'
@@ -20,10 +21,7 @@ import {
 
 import httpRequest from '../http-request'
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer'
-import {
-  deferrable,
-  mixin
-} from '../decorators'
+import { mixin } from '../decorators'
 import {
   bufferToStream,
   camelToSnakeCase,

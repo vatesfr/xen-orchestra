@@ -58,6 +58,7 @@
     "fs-extra": "^1.0.0",
     "fs-promise": "^1.0.0",
     "get-stream": "^3.0.0",
+    "golike-defer": "^0.0.0",
     "hashy": "~0.5.1",
     "helmet": "^3.0.0",
     "highland": "^2.5.1",

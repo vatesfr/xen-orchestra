@@ -1,10 +1,8 @@
+import deferrable from 'golike-defer'
 import find from 'lodash/find'
 import gte from 'lodash/gte'
 import lte from 'lodash/lte'
 
-import {
-  deferrable
-} from '../../decorators'
 import {
   forEach,
   mapToArray,
