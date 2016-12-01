@@ -8,15 +8,6 @@ import { render } from 'react-dom'
 
 import XoApp from './xo-app'
 
-if (
-  typeof window !== 'undefined' &&
-  typeof window.addEventListener === 'function'
-) {
-  window.addEventListener('unhandledRejection', reason => {
-    console.error(reason)
-  })
-}
-
 render(
   <Provider store={store}>
     <div>
