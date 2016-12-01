@@ -14,6 +14,7 @@ import {
   includes,
   isArray,
   isEmpty,
+  isInteger,
   isString,
   keyBy,
   keys,
@@ -63,7 +64,7 @@ import {
 // https://github.com/twbs/bootstrap/blob/959c4e527c6ef69623928db638267ba1c370479d/scss/_variables.scss#L342
 const ADDON_BUTTON_STYLE = { lineHeight: '1.4' }
 
-const getIds = value => value == null || isString(value)
+const getIds = value => value == null || isString(value) || isInteger(value)
   ? value
   : isArray(value)
     ? map(value, getIds)
