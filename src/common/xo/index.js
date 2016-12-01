@@ -163,14 +163,13 @@ const createSubscription = cb => {
       if (!isEqual(result, cache)) {
         cache = result
 
-        /* FIXME: Edge case:
-         * 1) MyComponent has a subscription with subscribers[1]
-         * 2) subscribers[0] causes the MyComponent unmounting (and thus its unsubscription)
-         * When subscribers[1] will be executed, it will no longer exist,
-         * which will throw an error (Uncaught (in promise) TypeError: subscriber is not a function)
-         */
         forEach(subscribers, subscriber => {
-          subscriber(result)
+          // A subscriber might have disappeared during iteration.
+          //
+          // E.g.: if a subscriber triggers the subscription of another.
+          if (subscriber) {
+            subscriber(result)
+          }
         })
       }
     }, error => {
