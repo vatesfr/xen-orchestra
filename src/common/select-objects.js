@@ -283,6 +283,7 @@ export class GenericSelect extends Component {
 
     // `hasSelectAll` should be provided by react-select after this pull request has been merged:
     // https://github.com/JedWatson/react-select/pull/748
+    // TODO: remove once it has been merged upstream.
     return <div className='input-group'>
       {select}
       <span className='input-group-btn'>

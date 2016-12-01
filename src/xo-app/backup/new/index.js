@@ -12,17 +12,12 @@ import Scheduler, { SchedulePreview } from 'scheduling'
 import startsWith from 'lodash/startsWith'
 import Upgrade from 'xoa-upgrade'
 import Wizard, { Section } from 'wizard'
-import { addSubscriptions, connectStore } from 'utils'
+import { addSubscriptions } from 'utils'
 import { confirm } from 'modal'
 import { error } from 'notification'
 import { generateUiSchema } from 'xo-json-schema-input'
 import { SelectSubject } from 'select-objects'
 import { Container, Row, Col } from 'grid'
-
-import {
-  createGetObjectsOfType,
-  createGetTags
-} from 'selectors'
 
 import {
   createJob,
@@ -268,10 +263,6 @@ const DEFAULT_CRON_PATTERN = '0 0 * * *'
 @addSubscriptions({
   currentUser: subscribeCurrentUser
 })
-@connectStore({
-  pools: createGetObjectsOfType('pool'),
-  tags: createGetTags(createGetObjectsOfType('VM'))
-})
 export default class New extends Component {
   constructor (props) {
     super(props)
@@ -345,9 +336,15 @@ export default class New extends Component {
           smartBackupMode: true
         }, () => {
           vmsInput.value = {
-            poolsOptions: { pools: poolsOptions.__or || poolsOptions.__not, not: !!poolsOptions.__not },
+            poolsOptions: {
+              pools: poolsOptions.__not ? poolsOptions.__not.__or : poolsOptions.__or,
+              not: !!poolsOptions.__not
+            },
             status,
-            tagsOptions: { tags: map(tagsOptions.__or || tagsOptions.__not, tag => tag[0]), not: !!tagsOptions.__not }
+            tagsOptions: {
+              tags: map(tagsOptions.__not ? tagsOptions.__not.__or : tagsOptions.__or, tag => tag[0]),
+              not: !!tagsOptions.__not
+            }
           }
         })
       } else {
@@ -374,6 +371,7 @@ export default class New extends Component {
 
     const { pools, not: notPools } = vmsInputValue.poolsOptions || {}
     const { tags, not: notTags } = vmsInputValue.tagsOptions || {}
+    const formattedTags = map(tags, tag => [ tag ])
 
     const paramsVector = !smartBackupMode
       ? {
@@ -395,9 +393,13 @@ export default class New extends Component {
           collection: {
             type: 'fetchObjects',
             pattern: {
-              $pool: notPools ? { __not: pools } : pools && pools.length && { __or: pools },
+              $pool: notPools ? { __not: { __or: pools } } : { __or: pools },
               power_state: vmsInputValue.status === 'All' ? undefined : vmsInputValue.status,
-              tags: tags && tags.length ? { [notTags ? '__not' : '__or']: map(tags, tag => [ tag ]) } : undefined,
+              tags: tags && tags.length
+                ? (notTags
+                  ? { __not: { __or: formattedTags } }
+                  : { __or: formattedTags })
+                : undefined,
               type: 'VM'
             }
           },
