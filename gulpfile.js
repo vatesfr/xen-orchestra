@@ -162,7 +162,7 @@ function browserify (path, opts) {
 
   var bundler = require('browserify')(path, {
     basedir: SRC_DIR,
-    debug: DEVELOPMENT, // TODO: enable also in production but need to make it work with gulp-uglify.
+    debug: true,
     extensions: opts.extensions,
     fullPaths: false,
     paths: SRC_DIR + '/common',
@@ -257,6 +257,7 @@ gulp.task(function buildScripts () {
         }]
       ]
     }),
+    require('gulp-sourcemaps').init({ loadMaps: true }),
     PRODUCTION && require('gulp-uglify')(),
     dest()
   )
