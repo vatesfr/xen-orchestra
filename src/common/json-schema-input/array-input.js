@@ -20,7 +20,11 @@ class ArrayItem extends Component {
   }
 
   set value (value) {
-    this.refs.input.value = value
+    this.setState({
+      use: true
+    }, () => {
+      this.refs.input.value = value
+    })
   }
 
   render () {

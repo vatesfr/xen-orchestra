@@ -1,6 +1,9 @@
 import React from 'react'
 import classNames from 'classnames'
+import Icon from 'icon'
 import store from 'store'
+import Tooltip from 'tooltip'
+import { Button } from 'react-bootstrap-4/lib'
 import { parse as parseRemote } from 'xo-remote-parser'
 import {
   assign,
@@ -53,6 +56,12 @@ import {
 } from './xo'
 
 // ===================================================================
+
+// react-select's line-height is 1.4
+// https://github.com/JedWatson/react-select/blob/916ab0e62fc7394be8e24f22251c399a68de8b1c/less/multi.less#L33
+// while bootstrap button's line-height is 1.25
+// https://github.com/twbs/bootstrap/blob/959c4e527c6ef69623928db638267ba1c370479d/scss/_variables.scss#L342
+const ADDON_BUTTON_STYLE = { lineHeight: '1.4' }
 
 const getIds = value => value == null || isString(value)
   ? value
@@ -112,6 +121,7 @@ const options = props => ({
   autoFocus: propTypes.bool,
   clearable: propTypes.bool,
   disabled: propTypes.bool,
+  hasSelectAll: propTypes.bool,
   multi: propTypes.bool,
   onChange: propTypes.func,
   placeholder: propTypes.any.isRequired,
@@ -221,6 +231,12 @@ export class GenericSelect extends Component {
     }
   }
 
+  _selectAll = () => {
+    this._onChange(
+      filter(this._getOptions(), ({ disabled }) => !disabled)
+    )
+  }
+
   // GroupBy: Display option with margin if not disabled and containers exists.
   _renderOption = option =>
     <span
@@ -235,6 +251,7 @@ export class GenericSelect extends Component {
     const {
       autoFocus,
       disabled,
+      hasSelectAll,
       multi,
       placeholder,
       required,
@@ -242,7 +259,7 @@ export class GenericSelect extends Component {
       clearable = Boolean(multi || !required)
     } = this.props
 
-    return <Select
+    const select = <Select
       {...{
         autofocus: autoFocus,
         clearable,
@@ -259,6 +276,24 @@ export class GenericSelect extends Component {
       value={this._getSelectValue()}
       valueRenderer={this._renderOption}
     />
+
+    if (!multi || !hasSelectAll) {
+      return select
+    }
+
+    // `hasSelectAll` should be provided by react-select after this pull request has been merged:
+    // https://github.com/JedWatson/react-select/pull/748
+    // TODO: remove once it has been merged upstream.
+    return <div className='input-group'>
+      {select}
+      <span className='input-group-btn'>
+        <Tooltip content={_('selectAll')}>
+          <Button type='button' bsStyle='secondary' onClick={this._selectAll} style={ADDON_BUTTON_STYLE}>
+            <Icon icon='add' />
+          </Button>
+        </Tooltip>
+      </span>
+    </div>
   }
 }
 

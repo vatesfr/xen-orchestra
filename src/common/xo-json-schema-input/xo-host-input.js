@@ -14,6 +14,7 @@ export default class HostInput extends XoAbstractInput {
       <PrimitiveInputWrapper {...props}>
         <SelectHost
           disabled={props.disabled}
+          hasSelectAll
           multi={props.multi}
           onChange={props.onChange}
           ref='input'

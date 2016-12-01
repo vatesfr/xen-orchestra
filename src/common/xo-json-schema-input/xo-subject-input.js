@@ -14,6 +14,7 @@ export default class SubjectInput extends XoAbstractInput {
       <PrimitiveInputWrapper {...props}>
         <SelectSubject
           disabled={props.disabled}
+          hasSelectAll
           multi={props.multi}
           onChange={props.onChange}
           ref='input'

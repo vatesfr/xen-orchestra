@@ -14,6 +14,7 @@ export default class SrInput extends XoAbstractInput {
       <PrimitiveInputWrapper {...props}>
         <SelectSr
           disabled={props.disabled}
+          hasSelectAll
           multi={props.multi}
           onChange={props.onChange}
           ref='input'

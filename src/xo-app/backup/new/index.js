@@ -57,25 +57,47 @@ const SMART_SCHEMA = {
       title: _('editBackupSmartStatusTitle'),
       description: 'The statuses of VMs to backup.' // FIXME: can't translate
     },
-    pools: {
-      type: 'array',
-      items: {
-        type: 'string',
-        'xo:type': 'pool'
-      },
-      title: _('editBackupSmartResidentOn')
+    poolsOptions: {
+      type: 'object',
+      title: _('editBackupSmartPools'),
+      properties: {
+        not: {
+          type: 'boolean',
+          title: _('editBackupNot'),
+          description: 'Toggle on to backup VMs that are NOT resident on these pools'
+        },
+        pools: {
+          type: 'array',
+          items: {
+            type: 'string',
+            'xo:type': 'pool'
+          },
+          title: _('editBackupSmartResidentOn')
+        }
+      }
     },
-    tags: {
-      type: 'array',
-      items: {
-        type: 'string',
-        'xo:type': 'tag'
-      },
-      title: _('editBackupSmartTagsTitle'),
-      description: 'VMs which contains at least one of these tags. Not used if empty.' // FIXME: can't translate
+    tagsOptions: {
+      type: 'object',
+      title: _('editBackupSmartTags'),
+      properties: {
+        not: {
+          type: 'boolean',
+          title: _('editBackupNot'),
+          description: 'Toggle on to backup VMs that do NOT contain these tags'
+        },
+        tags: {
+          type: 'array',
+          items: {
+            type: 'string',
+            'xo:type': 'tag'
+          },
+          title: _('editBackupSmartTagsTitle'),
+          description: 'VMs which contain at least one of these tags. Not used if empty.' // FIXME: can't translate
+        }
+      }
     }
   },
-  required: [ 'status', 'pools' ]
+  required: [ 'status', 'poolsOptions' ]
 }
 const SMART_UI_SCHEMA = generateUiSchema(SMART_SCHEMA)
 
@@ -303,8 +325,8 @@ export default class New extends Component {
       if (values[1].type === 'map') {
         // Smart backup.
         const {
-          $pool: { __or: pools },
-          tags: { __or: tags } = {},
+          $pool: poolsOptions,
+          tags: tagsOptions = {},
           power_state: status = 'All'
         } = values[1].collection.pattern
 
@@ -314,9 +336,15 @@ export default class New extends Component {
           smartBackupMode: true
         }, () => {
           vmsInput.value = {
-            pools,
+            poolsOptions: {
+              pools: poolsOptions.__not ? poolsOptions.__not.__or : poolsOptions.__or,
+              not: !!poolsOptions.__not
+            },
             status,
-            tags: map(tags, tag => tag[0])
+            tagsOptions: {
+              tags: map(tagsOptions.__not ? tagsOptions.__not.__or : tagsOptions.__or, tag => tag[0]),
+              not: !!tagsOptions.__not
+            }
           }
         })
       } else {
@@ -341,6 +369,10 @@ export default class New extends Component {
       owner
     } = this.state
 
+    const { pools, not: notPools } = vmsInputValue.poolsOptions || {}
+    const { tags, not: notTags } = vmsInputValue.tagsOptions || {}
+    const formattedTags = map(tags, tag => [ tag ])
+
     const paramsVector = !smartBackupMode
       ? {
         type: 'crossProduct',
@@ -361,9 +393,13 @@ export default class New extends Component {
           collection: {
             type: 'fetchObjects',
             pattern: {
-              $pool: !vmsInputValue.pools.length ? undefined : { __or: vmsInputValue.pools },
+              $pool: notPools ? { __not: { __or: pools } } : { __or: pools },
               power_state: vmsInputValue.status === 'All' ? undefined : vmsInputValue.status,
-              tags: !vmsInputValue.tags.length ? undefined : { __or: map(vmsInputValue.tags, tag => [ tag ]) },
+              tags: tags && tags.length
+                ? (notTags
+                  ? { __not: { __or: formattedTags } }
+                  : { __or: formattedTags })
+                : undefined,
               type: 'VM'
             }
           },
