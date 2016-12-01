@@ -1,3 +1,5 @@
+import './patch-react'
+
 import DevTools from 'store/dev-tools'
 import hashHistory from 'react-router/lib/hashHistory'
 import React from 'react'
