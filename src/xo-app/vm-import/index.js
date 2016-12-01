@@ -300,12 +300,12 @@ export default class Import extends Component {
                 <FormGrid.LabelCol>{_('vmImportToSr')}</FormGrid.LabelCol>
                 <FormGrid.InputCol>
                   <SelectSr
-                    disabled={!sr}
+                    disabled={!pool}
                     onChange={this._handleSelectedSr}
                     predicate={srPredicate}
                     required
                     value={sr}
-                />
+                  />
                 </FormGrid.InputCol>
               </FormGrid.Row>
               {sr && (
