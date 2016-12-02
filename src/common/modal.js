@@ -148,6 +148,10 @@ export default class Modal extends Component {
     this.setState({ showModal: false })
   }
 
+  componentWillUnmount () {
+    instance = undefined
+  }
+
   close () {
     this.setState({ showModal: false }, enableShortcuts)
   }

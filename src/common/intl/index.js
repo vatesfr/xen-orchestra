@@ -63,6 +63,7 @@ export class IntlProvider extends Component {
   render () {
     const { lang, children } = this.props
     return <IntlProvider_
+      key={lang}
       locale={lang}
       messages={locales[lang]}
     >

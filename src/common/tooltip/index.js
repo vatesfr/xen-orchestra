@@ -24,6 +24,10 @@ export class TooltipViewer extends Component {
     this.state.place = 'top'
   }
 
+  componentWillUnmount () {
+    instance = undefined
+  }
+
   render () {
     const {
       className,

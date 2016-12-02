@@ -17,6 +17,10 @@ export class Notification extends Component {
     instance = this
   }
 
+  componentWillUnmount () {
+    instance = undefined
+  }
+
   // This special component never have to rerender!
   shouldComponentUpdate () {
     return false
