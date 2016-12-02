@@ -135,8 +135,10 @@ export const confirm = ({
 }
 
 export default class Modal extends Component {
-  componentWillMount () {
-    this.setState({ showModal: false })
+  constructor () {
+    super()
+
+    this.state = { showModal: false }
   }
 
   componentDidMount () {
