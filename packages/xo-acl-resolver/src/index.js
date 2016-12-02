@@ -30,7 +30,7 @@ const or = (...checkers) => (object, permission) => { // eslint-disable-line no-
 
 const checkMember = (memberName) => (object, permission) => {
   const member = object[memberName]
-  return checkAuthorization(member, permission)
+  return member !== object.id && checkAuthorization(member, permission)
 }
 
 const checkSelf = ({ id }, permission) => {
