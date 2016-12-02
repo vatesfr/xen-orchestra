@@ -65,7 +65,8 @@ export class IntlProvider extends Component {
     // Adding a key prop is a work-around suggested by react-intl documentation
     // to make sure changes to the locale trigger a re-render of the child components
     // https://github.com/yahoo/react-intl/wiki/Components#dynamic-language-selection
-    // FIXME: remove the key prop as it should not be necessary to update the language
+    //
+    // FIXME: remove the key prop when React context propagation is fixed (https://github.com/facebook/react/issues/2517)
     return <IntlProvider_
       key={lang}
       locale={lang}
