@@ -1,13 +1,13 @@
-# ${pkg.name} [![Build Status](https://travis-ci.org/${pkg.shortGitHubPath}.png?branch=master)](https://travis-ci.org/${pkg.shortGitHubPath})
+# xo-server-usage-report [![Build Status](https://travis-ci.org/vatesfr/xo-server-usage-report.png?branch=master)](https://travis-ci.org/vatesfr/xo-server-usage-report)
 
 > ${pkg.description}
 
 ## Install
 
-Installation of the [npm package](https://npmjs.org/package/${pkg.name}):
+Installation of the [npm package](https://npmjs.org/package/xo-server-usage-report):
 
 ```
-> npm install --save ${pkg.name}
+> npm install --save xo-server-usage-report
 ```
 
 ## Usage
@@ -16,24 +16,21 @@ Installation of the [npm package](https://npmjs.org/package/${pkg.name}):
 
 ## Development
 
-### Installing dependencies
-
 ```
+# Install dependencies
 > npm install
-```
 
-### Compilation
+# Run the tests
+> npm test
 
-The sources files are watched and automatically recompiled on changes.
-
-```
+# Continuously compile
 > npm run dev
-```
 
-### Tests
+# Continuously run the tests
+> npm run dev-test
 
-```
-> npm run test-dev
+# Build for production (automatically called by npm install)
+> npm run build
 ```
 
 ## Contributions
@@ -43,10 +40,10 @@ the code.
 
 You may:
 
-- report any [issue](${pkg.bugs})
+- report any [issue](https://github.com/vatesfr/xo-server-usage-report/issues)
   you've encountered;
 - fork and create a pull request.
 
 ## License
 
-${pkg.license} © [${pkg.author.name}](${pkg.author.url})
+AGPL3 © [Vates SAS](http://vates.fr)
