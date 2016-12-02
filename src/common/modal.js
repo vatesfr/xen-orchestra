@@ -138,14 +138,18 @@ export default class Modal extends Component {
   constructor () {
     super()
 
+    this.state = { showModal: false }
+  }
+
+  componentDidMount () {
     if (instance) {
       throw new Error('Modal is a singleton!')
     }
     instance = this
   }
 
-  componentWillMount () {
-    this.setState({ showModal: false })
+  componentWillUnmount () {
+    instance = undefined
   }
 
   close () {

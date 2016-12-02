@@ -8,13 +8,15 @@ export let info
 export let success
 
 export class Notification extends Component {
-  constructor () {
-    super()
-
+  componentDidMount () {
     if (instance) {
       throw new Error('Notification is a singleton!')
     }
     instance = this
+  }
+
+  componentWillUnmount () {
+    instance = undefined
   }
 
   // This special component never have to rerender!

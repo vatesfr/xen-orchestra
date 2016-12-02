@@ -17,11 +17,18 @@ export class TooltipViewer extends Component {
   constructor () {
     super()
 
+    this.state.place = 'top'
+  }
+
+  componentDidMount () {
     if (instance) {
       throw new Error('Tooltip viewer is a singleton!')
     }
     instance = this
-    this.state.place = 'top'
+  }
+
+  componentWillUnmount () {
+    instance = undefined
   }
 
   render () {
