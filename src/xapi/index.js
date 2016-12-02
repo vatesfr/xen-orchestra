@@ -7,6 +7,7 @@ import find from 'lodash/find'
 import flatten from 'lodash/flatten'
 import includes from 'lodash/includes'
 import isEmpty from 'lodash/isEmpty'
+import omit from 'lodash/omit'
 import tarStream from 'tar-stream'
 import uniq from 'lodash/uniq'
 import vmdkToVhd from 'xo-vmdk-to-vhd'
@@ -860,7 +861,10 @@ export default class Xapi extends XapiBase {
             [TAG_BASE_DELTA]: baseVm.uuid
           }
         }
-        : vm
+        : {
+          ...vm,
+          other_config: omit(vm.other_config, TAG_BASE_DELTA)
+        }
     }, 'streams', {
       value: await streams::pAll()
     })
