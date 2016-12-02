@@ -135,17 +135,15 @@ export const confirm = ({
 }
 
 export default class Modal extends Component {
-  constructor () {
-    super()
+  componentWillMount () {
+    this.setState({ showModal: false })
+  }
 
+  componentDidMount () {
     if (instance) {
       throw new Error('Modal is a singleton!')
     }
     instance = this
-  }
-
-  componentWillMount () {
-    this.setState({ showModal: false })
   }
 
   componentWillUnmount () {

@@ -25,7 +25,6 @@ import {
   createFilter,
   createGetObjectsOfType,
   createSelector,
-  getLang,
   getStatus,
   getUser,
   isAdmin
@@ -35,11 +34,6 @@ import styles from './index.css'
 
 @connectStore(() => ({
   isAdmin,
-  // FIXME: remove when fixed in React.
-  //
-  // There are currently issues between context updates (used by
-  // react-intl) and pure components.
-  lang: getLang,
   nTasks: createGetObjectsOfType('task').count(
     [ task => task.status === 'pending' ]
   ),

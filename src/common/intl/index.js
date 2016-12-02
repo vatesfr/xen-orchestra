@@ -62,6 +62,9 @@ export class IntlProvider extends Component {
 
   render () {
     const { lang, children } = this.props
+    // FIXME: adding a key prop is a work-around suggested by react-intl documentation
+    // to make sure changes to the locale trigger a re-render of the child components
+    // https://github.com/yahoo/react-intl/wiki/Components#dynamic-language-selection
     return <IntlProvider_
       key={lang}
       locale={lang}

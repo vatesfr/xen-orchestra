@@ -8,9 +8,7 @@ export let info
 export let success
 
 export class Notification extends Component {
-  constructor () {
-    super()
-
+  componentDidMount () {
     if (instance) {
       throw new Error('Notification is a singleton!')
     }
