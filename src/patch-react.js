@@ -24,7 +24,7 @@ React.createElement = (createElement => {
     if (isFunction(Component)) {
       const patched = Component._patched
       if (patched) {
-        Component = patched
+        arguments[0] = patched
       } else {
         const { prototype } = Component
         let render
@@ -32,7 +32,7 @@ React.createElement = (createElement => {
           prototype.render = wrapRender(render)
           Component._patched = Component // itself
         } else {
-          Component._patched = Component = assign(wrapRender(Component), Component)
+          arguments[0] = Component._patched = assign(wrapRender(Component), Component)
         }
       }
     }
