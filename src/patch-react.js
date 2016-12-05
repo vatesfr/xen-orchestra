@@ -10,7 +10,7 @@ React.createElement = (createElement => {
     fontWeight: 'bold'
   }}>an error has occured</p>
 
-  const wrapRender = render => function () {
+  const wrapRender = render => function patchedRender () {
     try {
       return render.apply(this, arguments)
     } catch (error) {
