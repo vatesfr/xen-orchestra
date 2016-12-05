@@ -15,19 +15,24 @@ import React from 'react'
 import remove from 'lodash/remove'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
-import { addSubscriptions, connectStore, noop } from 'utils'
 import { isIp, isIpV4 } from 'ip'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Container, Row, Col } from 'grid'
+import { injectIntl } from 'react-intl'
+import { SelectNetwork, SelectIp, SelectResourceSetIp } from 'select-objects'
+import { XoSelect, Text } from 'editable'
+import {
+  addSubscriptions,
+  connectStore,
+  EMPTY_ARRAY,
+  noop
+} from 'utils'
 import {
   createFinder,
   createGetObject,
   createGetObjectsOfType,
   createSelector
 } from 'selectors'
-import { injectIntl } from 'react-intl'
-import { SelectNetwork, SelectIp, SelectResourceSetIp } from 'select-objects'
-import { XoSelect, Text } from 'editable'
 
 import {
   connectVif,
@@ -106,9 +111,13 @@ class VifItem extends BaseComponent {
   }
 
   _getIps = createSelector(
-    () => this.props.vif.allowedIpv4Addresses,
-    () => this.props.vif.allowedIpv6Addresses,
-    concat
+    () => this.props.vif.allowedIpv4Addresses || EMPTY_ARRAY,
+    () => this.props.vif.allowedIpv6Addresses || EMPTY_ARRAY,
+    (...args) => {
+      const result = concat(...args)
+      console.log('_getIps', result)
+      return result
+    }
   )
   _getIpPredicate = createSelector(
     this._getIps,
