@@ -1,9 +1,15 @@
 import _ from 'intl'
+import filter from 'lodash/filter'
+import forEach from 'lodash/forEach'
+import includes from 'lodash/includes'
+import intersection from 'lodash/intersection'
 import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
 import propTypes from 'prop-types'
 import React, { Component } from 'react'
+import reduce from 'lodash/reduce'
 import renderXoItem from 'render-xo-item'
+import { resolveIds } from 'utils'
 
 import {
   subscribeGroups,
@@ -65,4 +71,26 @@ export class Subjects extends Component {
       </div>
     )
   }
+}
+
+export const computeAvailableHosts = (pools, srs, hostsByPool) => {
+  const validHosts = reduce(
+    hostsByPool,
+    (result, hosts, poolId) =>
+      includes(resolveIds(pools), poolId)
+        ? result.concat(hosts)
+        : result,
+    []
+  )
+
+  const availableHosts = filter(validHosts, host => {
+    let kept = false
+
+    forEach(srs, sr =>
+      !(kept = intersection(sr.$PBDs, host.$PBDs).length > 0)
+    )
+
+    return kept
+  })
+  return availableHosts
 }

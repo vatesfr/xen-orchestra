@@ -113,11 +113,7 @@ class VifItem extends BaseComponent {
   _getIps = createSelector(
     () => this.props.vif.allowedIpv4Addresses || EMPTY_ARRAY,
     () => this.props.vif.allowedIpv6Addresses || EMPTY_ARRAY,
-    (...args) => {
-      const result = concat(...args)
-      console.log('_getIps', result)
-      return result
-    }
+    (...args) => concat(...args)
   )
   _getIpPredicate = createSelector(
     this._getIps,

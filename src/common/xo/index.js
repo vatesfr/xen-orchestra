@@ -24,7 +24,7 @@ import invoke from '../invoke'
 import logError from '../log-error'
 import { alert, confirm } from '../modal'
 import { error, info, success } from '../notification'
-import { noop, rethrow, tap } from '../utils'
+import { noop, rethrow, tap, resolveId, resolveIds } from '../utils'
 import {
   connected,
   disconnected,
@@ -267,23 +267,6 @@ export const apiMethods = _call('system.getMethodsInfo')
 export const serverVersion = _call('system.getServerVersion')
 
 export const getXoServerTimezone = _call('system.getServerTimezone')
-
-// ===================================================================
-
-const resolveId = value =>
-  (value != null && typeof value === 'object' && 'id' in value)
-    ? value.id
-    : value
-
-const resolveIds = params => {
-  for (const key in params) {
-    const param = params[key]
-    if (param != null && typeof param === 'object' && 'id' in param) {
-      params[key] = param.id
-    }
-  }
-  return params
-}
 
 // XO --------------------------------------------------------------------------
 
