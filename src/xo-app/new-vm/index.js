@@ -647,7 +647,7 @@ export default class NewVm extends BaseComponent {
 
     this.context.router.push({
       pathname,
-      query: { resourceSet: resourceSet.id }
+      query: resourceSet && { resourceSet: resourceSet.id }
     })
     this._reset()
   }
@@ -656,7 +656,7 @@ export default class NewVm extends BaseComponent {
 
     this.context.router.push({
       pathname,
-      query: { pool: pool.id }
+      query: pool && { pool: pool.id }
     })
     this._reset()
   }

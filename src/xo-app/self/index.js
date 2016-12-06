@@ -11,12 +11,11 @@ import Icon from 'icon'
 import includes from 'lodash/includes'
 import intersection from 'lodash/intersection'
 import isEmpty from 'lodash/isEmpty'
-import keyBy from 'lodash/keyBy'
+import keys from 'lodash/keys'
 import map from 'lodash/map'
 import mapKeys from 'lodash/mapKeys'
 import propTypes from 'prop-types'
 import React from 'react'
-import reduce from 'lodash/reduce'
 import remove from 'lodash/remove'
 import renderXoItem from 'render-xo-item'
 import Upgrade from 'xoa-upgrade'
@@ -39,6 +38,7 @@ import {
   connectStore,
   firstDefined,
   formatSize,
+  resolveIds,
   resolveResourceSets
 } from 'utils'
 
@@ -58,6 +58,7 @@ import {
 } from 'select-objects'
 
 import {
+  computeAvailableHosts,
   Subjects
 } from './helpers'
 
@@ -126,6 +127,8 @@ const Hosts = propTypes({
   </div>
 ))
 
+// ===================================================================
+
 @propTypes({
   onSave: propTypes.func,
   resourceSet: propTypes.object
@@ -143,22 +146,20 @@ const Hosts = propTypes({
 export class Edit extends Component {
   constructor (props) {
     super(props)
-    const { resourceSet } = props
-
-    const ipPools = []
-    if (resourceSet) {
-      forEach(resourceSet.ipPools, ipPool => {
-        ipPools.push({
-          id: ipPool,
-          quantity: get(resourceSet, `limits[ipPool:${ipPool}].total`)
-        })
-      })
-    }
 
     this.state = {
+      cpus: '',
+      disk: null,
       eligibleHosts: [],
       excludedHosts: props.hosts,
-      ipPools
+      ipPools: [],
+      memory: null,
+      name: '',
+      networks: [],
+      pools: [],
+      srs: [],
+      subjects: [],
+      templates: []
     }
   }
 
@@ -166,156 +167,135 @@ export class Edit extends Component {
     const { resourceSet } = this.props
 
     if (resourceSet) {
-      let selectedPools = {}
-      forEach(resourceSet.objectsByType, (objects, type) => {
+      // Objects
+      const { objectsByType } = resourceSet
+      let pools = {}
+      forEach(objectsByType, objects => {
         forEach(objects, object => {
-          selectedPools[object.$pool] = true
+          pools[object.$pool] = true
         })
       })
-      selectedPools = keyBy(Object.keys(selectedPools))
 
-      const { refs } = this
-      const { objectsByType } = resourceSet
+      this._updateSelectedPools(keys(pools), objectsByType.SR, objectsByType.network)
 
-      const selectedSrs = objectsByType.SR
-      const selectedNetworks = objectsByType.network
+      // Limits and others
+      const { ipPools: rawIpPools, limits } = resourceSet
 
-      this._updateSelectedPools(selectedPools, selectedSrs, selectedNetworks, () => {
-        refs.selectPool.value = selectedPools
-        refs.inputName.value = resourceSet.name
-        refs.selectSubject.value = resourceSet.subjects
-        refs.selectVmTemplate.value = objectsByType['VM-template']
-        refs.selectSr.value = selectedSrs
-        refs.selectNetwork.value = selectedNetworks
+      const ipPools = []
+      forEach(rawIpPools, ipPool => {
+        ipPools.push({
+          id: ipPool,
+          quantity: get(limits, `[ipPool:${ipPool}].total`)
+        })
+      })
 
-        const { limits } = resourceSet
-
-        if (!limits) {
-          refs.inputMaxCpus.value = refs.inputMaxDiskSpace.value = refs.inputMaxRam.value = ''
-        } else {
-          refs.inputMaxCpus.value = (limits.cpus && limits.cpus.total) || ''
-          refs.inputMaxDiskSpace.value = (limits.disk && limits.disk.total) || null
-          refs.inputMaxRam.value = (limits.memory && limits.memory.total) || null
-        }
+      this.setState({
+        cpus: get(limits, 'cpus.total', ''),
+        disk: get(limits, 'disk.total', null),
+        ipPools,
+        memory: get(limits, 'memory.total', null),
+        name: resourceSet.name,
+        subjects: resourceSet.subjects,
+        templates: objectsByType['VM-template'] || []
       })
     }
   }
 
   _save = async () => {
-    const { refs } = this
+    const {
+      cpus,
+      disk,
+      ipPools,
+      memory,
+      name,
+      networks,
+      srs,
+      subjects,
+      templates
+    } = this.state
 
-    const cpus = refs.inputMaxCpus.value
-    const memory = refs.inputMaxRam.value
-    const disk = refs.inputMaxDiskSpace.value
-
-    const set = this.props.resourceSet || await createResourceSet(refs.inputName.value)
-    const objects = [
-      ...refs.selectVmTemplate.value,
-      ...refs.selectSr.value,
-      ...refs.selectNetwork.value
-    ]
+    const set = this.props.resourceSet || await createResourceSet(name)
+    const objects = [ ...templates, ...srs, ...networks ]
 
     const ipPoolsLimits = {}
-    const ipPools = []
-    forEach(this.state.ipPools, ipPool => {
+    forEach(ipPools, ipPool => {
       if (ipPool.quantity) {
         ipPoolsLimits[`ipPool:${ipPool.id}`] = +ipPool.quantity
       }
-      ipPools.push(ipPool.id)
     })
 
     await editResourceSet(set.id, {
-      name: refs.inputName.value,
+      name,
       limits: {
         cpus: cpus === '' ? undefined : +cpus,
         memory: memory === null ? undefined : memory,
         disk: disk === null ? undefined : disk,
         ...ipPoolsLimits
       },
-      objects: map(objects, object => object.id),
-      subjects: map(refs.selectSubject.value, object => object.id),
-      ipPools
+      objects: resolveIds(objects),
+      subjects: resolveIds(subjects),
+      ipPools: resolveIds(ipPools)
     })
 
     this.props.onSave()
   }
 
   _reset = () => {
-    const { refs } = this
-
-    this._updateSelectedPools([], [], [], () => {
-      refs.selectPool.value = undefined
-      refs.inputName.value = ''
-      refs.selectSubject.value = undefined
-      refs.selectVmTemplate.value = undefined
-      refs.selectSr.value = undefined
-      refs.selectNetwork.value = undefined
-      refs.inputMaxCpus.value = ''
-      refs.inputMaxDiskSpace.value = null
-      refs.inputMaxRam.value = null
-    })
-
-    this.setState({ ipPools: [], newIpPool: undefined, newQuantity: '' })
-  }
-
-  _updateSelectedPools = (pools, srs, networks, onChange) => {
-    const selectedPools = Array.isArray(pools) ? keyBy(pools, 'id') : pools
-    const predicate = object => selectedPools[object.$pool]
+    this._updateSelectedPools([], [], [])
 
     this.setState({
-      nPools: Object.keys(selectedPools).length,
-      selectedPools,
-      srPredicate: predicate,
-      vmTemplatePredicate: predicate
-    }, () => { this._updateSelectedSrs(srs || this.refs.selectSr.value, networks, onChange) })
-  }
-
-  // Helper for handler selected srs.
-  _computeAvailableHosts (pools, srs) {
-    const validHosts = reduce(
-      this.props.hostsByPool,
-      (result, value, key) => pools[key] ? result.concat(value) : result,
-      []
-    )
-
-    return filter(validHosts, host => {
-      let kept = false
-
-      forEach(srs, sr =>
-        !(kept = intersection(sr.$PBDs, host.$PBDs).length > 0)
-      )
-
-      return kept
+      cpus: '',
+      disk: null,
+      ipPools: [],
+      memory: null,
+      newIpPool: undefined,
+      newIpPoolQuantity: '',
+      subjects: []
     })
   }
 
-  _updateSelectedSrs = (srs, networks, onChange) => {
-    const selectableHosts = this._computeAvailableHosts(this.state.selectedPools, srs)
+// -----------------------------------------------------------------------------
+
+  _updateSelectedPools = (newPools, newSrs, newNetworks) => {
+    const predicate = object => includes(resolveIds(newPools), object.$pool)
+
+    this.setState({
+      nPools: newPools.length,
+      pools: newPools,
+      srPredicate: predicate,
+      vmTemplatePredicate: predicate
+    }, () => this._updateSelectedSrs(newSrs || this.state.srs, newNetworks))
+  }
+
+  _updateSelectedSrs = (newSrs, newNetworks) => {
+    const availableHosts = computeAvailableHosts(this.state.pools, newSrs, this.props.hostsByPool)
     const networkPredicate = network => {
       let kept = false
-      forEach(selectableHosts, host => !(kept = intersection(network.PIFs, host.PIFs).length > 0))
+      forEach(availableHosts, host => !(kept = intersection(network.PIFs, host.PIFs).length > 0))
       return kept
     }
 
     this.setState({
-      nSrs: srs.length,
+      availableHosts,
       networkPredicate,
-      selectableHosts
-    }, () => { this._updateSelectedNetworks(networks || this.refs.selectNetwork.value, onChange) })
+      nSrs: newSrs.length,
+      srs: newSrs
+    }, () => this._updateSelectedNetworks(newNetworks || this.state.networks))
   }
 
-  _updateSelectedNetworks = (networks, onChange) => {
-    const { state } = this
-    const eligibleHosts = filter(state.selectableHosts, host => {
+  _updateSelectedNetworks = newNetworks => {
+    const { availableHosts, srs } = this.state
+
+    const eligibleHosts = filter(availableHosts, host => {
       let keptBySr = false
       let keptByNetwork = false
 
-      forEach(this.refs.selectSr.value, sr =>
+      forEach(srs, sr =>
         !(keptBySr = (intersection(sr.$PBDs, host.$PBDs).length > 0))
       )
 
       if (keptBySr) {
-        forEach(networks, network =>
+        forEach(newNetworks, network =>
           !(keptByNetwork = intersection(network.PIFs, host.PIFs).length > 0)
         )
       }
@@ -326,16 +306,19 @@ export class Edit extends Component {
     this.setState({
       eligibleHosts,
       excludedHosts: differenceBy(this.props.hosts, eligibleHosts, host => host.id),
-      selectedNetworks: networks
-    }, onChange)
+      networks: newNetworks
+    })
   }
 
+// -----------------------------------------------------------------------------
+
   _addIpPool = () => {
-    const { ipPools, newIpPool, newQuantity } = this.state
+    const { ipPools, newIpPool, newIpPoolQuantity } = this.state
+
     this.setState({
-      ipPools: [ ...ipPools, { id: newIpPool.id, quantity: newQuantity } ],
+      ipPools: [ ...ipPools, { id: newIpPool.id, quantity: newIpPoolQuantity } ],
       newIpPool: undefined,
-      newQuantity: ''
+      newIpPoolQuantity: ''
     })
   }
   _removeIpPool = index => {
@@ -350,6 +333,8 @@ export class Edit extends Component {
       !includes(ipPoolsIds, ipPool.id)
   )
 
+// -----------------------------------------------------------------------------
+
   render () {
     const { state } = this
     const { formatMessage } = this.props.intl
@@ -363,25 +348,27 @@ export class Edit extends Component {
               <Col mediumSize={4}>
                 <input
                   className='form-control'
+                  onChange={this.linkState('name')}
                   placeholder={formatMessage(messages.resourceSetName)}
-                  ref='inputName'
                   required
                   type='text'
+                  value={state.name}
                 />
               </Col>
               <Col mediumSize={4}>
                 <SelectSubject
                   multi
-                  ref='selectSubject'
+                  onChange={this.linkState('subjects')}
                   required
+                  value={state.subjects}
                 />
               </Col>
               <Col mediumSize={4}>
                 <SelectPool
                   multi
                   onChange={this._updateSelectedPools}
-                  ref='selectPool'
                   required
+                  value={state.pools}
                 />
               </Col>
             </Row>
@@ -392,9 +379,10 @@ export class Edit extends Component {
                 <SelectVmTemplate
                   disabled={!state.nPools}
                   multi
+                  onChange={this.linkState('templates')}
                   predicate={state.vmTemplatePredicate}
-                  ref='selectVmTemplate'
                   required
+                  value={state.templates}
                 />
               </Col>
               <Col mediumSize={4}>
@@ -403,8 +391,8 @@ export class Edit extends Component {
                   multi
                   onChange={this._updateSelectedSrs}
                   predicate={state.srPredicate}
-                  ref='selectSr'
                   required
+                  value={state.srs}
                 />
               </Col>
               <Col mediumSize={4}>
@@ -413,8 +401,8 @@ export class Edit extends Component {
                   multi
                   onChange={this._updateSelectedNetworks}
                   predicate={state.networkPredicate}
-                  ref='selectNetwork'
                   required
+                  value={state.networks}
                 />
               </Col>
             </Row>
@@ -425,21 +413,24 @@ export class Edit extends Component {
                 <input
                   className='form-control'
                   min={0}
+                  onChange={this.linkState('cpus')}
                   placeholder={formatMessage(messages.maxCpus)}
-                  ref='inputMaxCpus'
                   type='number'
+                  value={state.cpus}
                 />
               </Col>
               <Col mediumSize={4}>
                 <SizeInput
+                  onChange={this.linkState('memory')}
                   placeholder={formatMessage(messages.maxRam)}
-                  ref='inputMaxRam'
+                  value={state.memory}
                 />
               </Col>
               <Col mediumSize={4}>
                 <SizeInput
+                  onChange={this.linkState('disk')}
                   placeholder={formatMessage(messages.maxDiskSpace)}
-                  ref='inputMaxDiskSpace'
+                  value={state.disk}
                 />
               </Col>
             </Row>
@@ -460,7 +451,7 @@ export class Edit extends Component {
                     <SelectIpPool onChange={this.linkState(`ipPools.${index}.id`, 'id')} value={ipPool.id} />
                   </Col>
                   <Col mediumSize={3}>
-                    <input className='form-control' type='number' onChange={this.linkState(`ipPools.${index}.quantity`)} value={firstDefined(ipPool.quantity, '')} placeholder='∞' />
+                    <input className='form-control' type='number' min={0} onChange={this.linkState(`ipPools.${index}.quantity`)} value={firstDefined(ipPool.quantity, '')} placeholder='∞' />
                   </Col>
                   <Col mediumSize={2}>
                     <ActionButton btnStyle='secondary' icon='delete' handler={this._removeIpPool} handlerParam={index} />
@@ -471,7 +462,7 @@ export class Edit extends Component {
                     <SelectIpPool onChange={this.linkState('newIpPool')} value={state.newIpPool} predicate={this._getIpPoolPredicate()} />
                   </Col>
                   <Col mediumSize={3}>
-                    <input className='form-control' type='number' onChange={this.linkState('newQuantity')} value={state.newQuantity || ''} placeholder='∞' />
+                    <input className='form-control' type='number' min={0} onChange={this.linkState('newIpPoolQuantity')} value={state.newIpPoolQuantity || ''} placeholder='∞' />
                   </Col>
                   <Col mediumSize={2}>
                     <ActionButton btnStyle='secondary' icon='add' handler={this._addIpPool} />
@@ -488,7 +479,7 @@ export class Edit extends Component {
         <div className='btn-toolbar'>
           <ActionButton btnStyle='primary' icon='save' handler={this._save} type='submit'>{_('saveResourceSet')}</ActionButton>
           <ActionButton btnStyle='secondary' icon='reset' handler={this._reset}>{_('resetResourceSet')}</ActionButton>
-          <ActionButton btnStyle='danger' icon='delete' handler={deleteResourceSet} handlerParam={resourceSet}>{_('deleteResourceSet')}</ActionButton>
+          {resourceSet && <ActionButton btnStyle='danger' icon='delete' handler={deleteResourceSet} handlerParam={resourceSet}>{_('deleteResourceSet')}</ActionButton>}
         </div>
       </li>
     </div>

@@ -406,9 +406,8 @@ export class XoSelect extends Editable {
       <span>{this.props.value[this.props.labelProp]}</span>
   }
 
-  _onChange = object => {
-    object ? this._save() : this._closeEdition()
-  }
+  _onChange = object =>
+    object && this._save()
 
   _renderEdition () {
     const {

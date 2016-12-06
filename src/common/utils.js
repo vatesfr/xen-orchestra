@@ -462,3 +462,20 @@ export const htmlFileToStream = file => {
 
   return stream
 }
+
+// ===================================================================
+
+export const resolveId = value =>
+  (value != null && typeof value === 'object' && 'id' in value)
+    ? value.id
+    : value
+
+export const resolveIds = params => {
+  for (const key in params) {
+    const param = params[key]
+    if (param != null && typeof param === 'object' && 'id' in param) {
+      params[key] = param.id
+    }
+  }
+  return params
+}
