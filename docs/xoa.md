@@ -24,6 +24,10 @@ Once you've got the XVA file, you can import it with `xe vm-import filename=xoa_
 
 After the VM is imported, you just need to start it with a `xe vm-start vm="XOA Unified"` or with XenCenter.
 
+## Registration
+
+**The first thing** you need to do with your XOA, is to register. [Read the documentation page dedicated to the updater/register inferface](updater.md).
+
 ### First console connection
 
 If you connect in SSH or via console, the default credentials are:
