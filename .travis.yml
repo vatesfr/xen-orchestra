@@ -4,9 +4,7 @@ node_js:
   #- '4' # npm 3's flat tree is needed because some packages do not
          # declare their deps correctly (e.g. chartist-plugin-tooltip)
 
-cache:
-  directories:
-    - node_modules
+cache: yarn
 
 # Use containers.
 # http://docs.travis-ci.com/user/workers/container-based-infrastructure/
