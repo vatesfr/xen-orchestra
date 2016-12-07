@@ -57,6 +57,8 @@
     "cookies-js": "^1.2.2",
     "d3": "^4.2.8",
     "dependency-check": "^2.5.1",
+    "enzyme": "^2.6.0",
+    "enzyme-to-json": "^1.4.4",
     "event-to-promise": "^0.7.0",
     "font-awesome": "^4.5.0",
     "font-mfizz": "github:fizzed/font-mfizz",
@@ -94,6 +96,7 @@
     "random-password": "^0.1.2",
     "react": "^15.0.0",
     "react-addons-shallow-compare": "^15.1.0",
+    "react-addons-test-utils": "^15.4.1",
     "react-bootstrap-4": "^0.29.1",
     "react-chartist": "^0.11.0",
     "react-copy-to-clipboard": "^4.0.2",
@@ -177,6 +180,11 @@
     "ghooks": {
       "commit-msg": "npm test"
     }
+  },
+  "jest": {
+    "snapshotSerializers": [
+      "<rootDir>/node_modules/enzyme-to-json/serializer"
+    ]
   },
   "standard": {
     "ignore": [
