@@ -609,7 +609,7 @@ export class Xapi extends EventEmitter {
   }
 
   _watchEvents () {
-    const loop = () => this._sessionCall('event.from', [
+    const loop = () => this.status === CONNECTED && this._sessionCall('event.from', [
       ['*'],
       this._fromToken,
       60 + 0.1 // Force float.
@@ -682,7 +682,7 @@ export class Xapi extends EventEmitter {
 
     const watchEvents = () => this._sessionCall('event.register', [ ['*'] ]).then(loop)
 
-    const loop = () => this._sessionCall('event.next', []).then(onSuccess, onFailure)
+    const loop = () => this.status === CONNECTED && this._sessionCall('event.next', []).then(onSuccess, onFailure)
 
     const onSuccess = events => {
       this._processEvents(events)
