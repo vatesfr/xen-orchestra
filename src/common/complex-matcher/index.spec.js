@@ -1,4 +1,4 @@
-import test from 'ava'
+/* eslint-env jest */
 
 import {
   getPropertyClausesStrings,
@@ -11,43 +11,36 @@ import {
   pattern
 } from './index.fixtures'
 
-test('getPropertyClausesStrings', t => {
-  let tmp = parse('foo bar:baz baz:|(foo bar)')::getPropertyClausesStrings()
-  t.deepEqual(
-    tmp,
-    {
-      bar: [ 'baz' ],
-      baz: [ 'foo', 'bar' ]
-    }
-  )
+it('getPropertyClausesStrings', () => {
+  const tmp = parse('foo bar:baz baz:|(foo bar)')::getPropertyClausesStrings()
+  expect(tmp).toEqual({
+    bar: [ 'baz' ],
+    baz: [ 'foo', 'bar' ]
+  })
 })
 
-test('parse', t => {
-  t.deepEqual(parse(pattern), ast)
+it('parse', () => {
+  expect(parse(pattern)).toEqual(ast)
 })
 
-test('setPropertyClause', t => {
-  t.is(
-    null::setPropertyClause('foo', 'bar')::toString(),
-    'foo:bar'
-  )
+it('setPropertyClause', () => {
+  expect(
+    null::setPropertyClause('foo', 'bar')::toString()
+  ).toBe('foo:bar')
 
-  t.is(
-    parse('baz')::setPropertyClause('foo', 'bar')::toString(),
-    'baz foo:bar'
-  )
+  expect(
+    parse('baz')::setPropertyClause('foo', 'bar')::toString()
+  ).toBe('baz foo:bar')
 
-  t.is(
-    parse('plip foo:baz plop')::setPropertyClause('foo', 'bar')::toString(),
-    'plip plop foo:bar'
-  )
+  expect(
+    parse('plip foo:baz plop')::setPropertyClause('foo', 'bar')::toString()
+  ).toBe('plip plop foo:bar')
 
-  t.is(
-    parse('foo:|(baz plop)')::setPropertyClause('foo', 'bar')::toString(),
-    'foo:bar'
-  )
+  expect(
+    parse('foo:|(baz plop)')::setPropertyClause('foo', 'bar')::toString()
+  ).toBe('foo:bar')
 })
 
-test('toString', t => {
-  t.is(pattern, ast::toString())
+it('toString', () => {
+  expect(pattern).toBe(ast::toString())
 })
