@@ -1,4 +1,3 @@
-import bind from 'lodash/bind'
 import { getBoundPropertyDescriptor } from 'bind-property-descriptor'
 
 import {
@@ -10,53 +9,10 @@ import {
 
 const {
   defineProperties,
-  defineProperty,
   getOwnPropertyDescriptor
 } = Object
 
 // ===================================================================
-
-// See: https://github.com/jayphelps/core-decorators.js#autobind
-//
-// TODO: make it work for all class methods.
-export const autobind = (target, key, {
-  configurable,
-  enumerable,
-  value: fn,
-  writable
-}) => ({
-  configurable,
-  enumerable,
-
-  get () {
-    if (this === target) {
-      return fn
-    }
-
-    const bound = bind(fn, this)
-
-    defineProperty(this, key, {
-      configurable: true,
-      enumerable: false,
-      value: bound,
-      writable: true
-    })
-
-    return bound
-  },
-  set (newValue) {
-    // Cannot use assignment because it will call the setter on
-    // the prototype.
-    defineProperty(this, key, {
-      configurable: true,
-      enumerable: true,
-      value: newValue,
-      writable: true
-    })
-  }
-})
-
-// -------------------------------------------------------------------
 
 // Debounce decorator for methods.
 //
