@@ -28,7 +28,14 @@ const promptForReload = () => confirm({
 
 if (+process.env.XOA_PLAN < 5) {
   xoaUpdater.start()
-  xoaUpdater.on('upgradeSuccessful', promptForReload)
+  // xoaUpdater.on('upgradeSuccessful', promptForReload)
+  xoaUpdater.on('upToDate', () => {
+    const webPackage = require('../../../package')
+    console.log(pkg.version, webPackage.version)
+    if (webPackage.version !== pkg.version) {
+      promptForReload()
+    }
+  })
 }
 
 const HEADER = <Container>
