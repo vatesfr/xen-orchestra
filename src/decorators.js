@@ -1,4 +1,5 @@
 import bind from 'lodash/bind'
+import { getBoundPropertyDescriptor } from 'bind-property-descriptor'
 
 import {
   isArray,
@@ -106,22 +107,6 @@ const _ownKeys = (
   )(Object)
 )
 
-const _bindPropertyDescriptor = (descriptor, thisArg) => {
-  const { get, set, value } = descriptor
-  if (get) {
-    descriptor.get = bind(get, thisArg)
-  }
-  if (set) {
-    descriptor.set = bind(set, thisArg)
-  }
-
-  if (isFunction(value)) {
-    descriptor.value = bind(value, thisArg)
-  }
-
-  return descriptor
-}
-
 const _isIgnoredProperty = name => (
   name[0] === '_' ||
   name === 'constructor'
@@ -186,8 +171,9 @@ export const mixin = MixIns => Class => {
           throw new Error(`${name}#${prop} is already defined`)
         }
 
-        descriptors[prop] = _bindPropertyDescriptor(
-          getOwnPropertyDescriptor(prototype, prop),
+        descriptors[prop] = getBoundPropertyDescriptor(
+          prototype,
+          prop,
           mixinInstance
         )
       }
