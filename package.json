@@ -127,7 +127,7 @@
     "gulp-plumber": "^1.0.0",
     "gulp-sourcemaps": "^2.1.1",
     "gulp-watch": "^4.2.2",
-    "index-modules": "0.2.0",
+    "index-modules": "^0.2.1",
     "leche": "^2.1.1",
     "mocha": "^3.0.2",
     "must": "^0.13.1",
