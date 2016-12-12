@@ -1,13 +1,16 @@
 import concat from 'lodash/concat'
+import countBy from 'lodash/countBy'
 import diff from 'lodash/difference'
 import findIndex from 'lodash/findIndex'
 import flatten from 'lodash/flatten'
 import highland from 'highland'
 import includes from 'lodash/includes'
+import isObject from 'lodash/isObject'
 import keys from 'lodash/keys'
 import mapValues from 'lodash/mapValues'
 import pick from 'lodash/pick'
 import remove from 'lodash/remove'
+import synchronized from 'decorator-synchronized'
 import { noSuchObject } from 'xo-common/api-errors'
 import { fromCallback } from 'promise-toolbox'
 
@@ -36,6 +39,11 @@ const normalize = ({
   networks,
   resourceSets
 })
+
+const _isAddressInIpPool = (address, network, ipPool) => (
+  ipPool.addresses && (address in ipPool.addresses) &&
+  includes(ipPool.networks, isObject(network) ? network.id : network)
+)
 
 // ===================================================================
 
@@ -87,7 +95,14 @@ export default class IpPools {
     throw noSuchObject(id, 'ipPool')
   }
 
-  async getAllIpPools (userId = undefined) {
+  _getAllIpPools (filter) {
+    return streamToArray(this._store.createValueStream(), {
+      filter,
+      mapper: normalize
+    })
+  }
+
+  async getAllIpPools (userId) {
     let filter
     if (userId != null) {
       const user = await this._xo.getUser(userId)
@@ -98,10 +113,7 @@ export default class IpPools {
       }
     }
 
-    return streamToArray(this._store.createValueStream(), {
-      filter,
-      mapper: normalize
-    })
+    return this._getAllIpPools(filter)
   }
 
   getIpPool (id) {
@@ -110,6 +122,30 @@ export default class IpPools {
     })
   }
 
+  async _getAddressIpPool (address, network) {
+    const ipPools = await this._getAllIpPools(ipPool => _isAddressInIpPool(address, network, ipPool))
+
+    return ipPools && ipPools[0]
+  }
+
+  // Returns a map that indicates how many IPs from each IP pool the VM uses
+  // e.g.: { 'ipPool:abc': 3, 'ipPool:xyz': 7 }
+  async computeVmIpPoolsUsage (vm) {
+    const vifs = vm.VIFs
+    const ipPools = []
+    for (const vifId of vifs) {
+      const { allowedIpv4Addresses, allowedIpv6Addresses, $network } = this._xo.getObject(vifId)
+
+      for (const address of concat(allowedIpv4Addresses, allowedIpv6Addresses)) {
+        const ipPool = await this._getAddressIpPool(address, $network)
+        ipPool && ipPools.push(ipPool.id)
+      }
+    }
+
+    return countBy(ipPools, ({ id }) => `ipPool:${id}`)
+  }
+
+  @synchronized
   allocIpAddresses (vifId, addAddresses, removeAddresses) {
     const updatedIpPools = {}
     const limits = {}
@@ -193,7 +229,13 @@ export default class IpPools {
 
     const { getXapi } = this._xo
     return Promise.all(mapToArray(mapVifAddresses, (addresses, vifId) => {
-      const vif = this._xo.getObject(vifId)
+      let vif
+      try {
+        // The IP may not have been correctly deallocated from the IP pool when the VIF was deleted
+        vif = this._xo.getObject(vifId)
+      } catch (error) {
+        return
+      }
       const { allowedIpv4Addresses, allowedIpv6Addresses } = vif
       remove(allowedIpv4Addresses, address => includes(addresses, address))
       remove(allowedIpv6Addresses, address => includes(addresses, address))

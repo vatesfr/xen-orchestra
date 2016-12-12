@@ -2,6 +2,7 @@ import every from 'lodash/every'
 import keyBy from 'lodash/keyBy'
 import remove from 'lodash/remove'
 import some from 'lodash/some'
+import synchronized from 'decorator-synchronized'
 import {
   noSuchObject,
   unauthorized
@@ -272,6 +273,7 @@ export default class {
     await this._save(set)
   }
 
+  @synchronized
   async allocateLimitsInResourceSet (limits, setId) {
     const set = await this.getResourceSet(setId)
     forEach(limits, (quantity, id) => {
@@ -287,6 +289,7 @@ export default class {
     await this._save(set)
   }
 
+  @synchronized
   async releaseLimitsInResourceSet (limits, setId) {
     const set = await this.getResourceSet(setId)
     forEach(limits, (quantity, id) => {

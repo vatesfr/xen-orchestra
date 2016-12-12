@@ -7,6 +7,7 @@ concat = require 'lodash/concat'
 endsWith = require 'lodash/endsWith'
 escapeStringRegexp = require 'escape-string-regexp'
 eventToPromise = require 'event-to-promise'
+merge = require 'lodash/merge'
 sortBy = require 'lodash/sortBy'
 startsWith = require 'lodash/startsWith'
 {coroutine: $coroutine} = require 'bluebird'
@@ -294,7 +295,7 @@ exports.create = create
 
 #---------------------------------------------------------------------
 
-delete_ = ({vm, delete_disks: deleteDisks}) ->
+delete_ = $coroutine ({vm, delete_disks: deleteDisks}) ->
   cpus = vm.CPUs.number
   memory = vm.memory.size
 
@@ -316,10 +317,28 @@ delete_ = ({vm, delete_disks: deleteDisks}) ->
       return
     )
 
-    pCatch.call(@releaseLimitsInResourceSet(
-      @computeVmResourcesUsage(vm),
-      resourceSet
-    ), noop)
+    yield Promise.all(map(vm.VIFs, (vifId) =>
+      vif = xapi.getObject(vifId)
+      return pCatch.call(
+        this.allocIpAddresses(
+          vifId,
+          null,
+          concat(vif.ipv4_allowed, vif.ipv6_allowed)
+        ),
+        noop
+      )
+    ))
+
+    resourceSetUsage = @computeVmResourcesUsage(vm)
+    ipPoolsUsage = yield @computeVmIpPoolsUsage(vm)
+
+    pCatch.call(
+      @releaseLimitsInResourceSet(
+        merge(resourceSetUsage, ipPoolsUsage),
+        resourceSet
+      ),
+      noop
+    )
 
   return xapi.deleteVm(vm._xapiId, deleteDisks)
 
