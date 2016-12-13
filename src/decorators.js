@@ -111,7 +111,7 @@ export const mixin = MixIns => Class => {
     defineProperties(prototype, descriptors)
   }
 
-  const Decorator = (...args) => {
+  function Decorator (...args) {
     const instance = new Class(...args)
 
     for (const MixIn of MixIns) {
