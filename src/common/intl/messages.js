@@ -66,6 +66,7 @@ var messages = {
   backupNewPage: 'New',
   backupRemotesPage: 'Remotes',
   backupRestorePage: 'Restore',
+  backupFileRestorePage: 'File restore',
   schedule: 'Schedule',
   newVmBackup: 'New VM backup',
   editVmBackup: 'Edit VM backup',
@@ -935,6 +936,18 @@ var messages = {
   importBackupTitle: 'Import VM',
   importBackupMessage: 'Starting your backup import',
   vmsToBackup: 'VMs to backup',
+
+  // ----- Restore files view -----
+  listRemoteBackups: 'List remote backups',
+  restoreFiles: 'Restore backup files',
+  restoreFilesError: 'Invalid options',
+  restoreFilesFromBackup: 'Restore file from {name}',
+  restoreFilesSelectBackup: 'Select a backup…',
+  restoreFilesSelectDisk: 'Select a disk…',
+  restoreFilesSelectPartition: 'Select a partition…',
+  restoreFilesSelectFolderPath: 'Folder path',
+  restoreFilesSelectFiles: 'Select a file…',
+  restoreFileInvalidFolder: 'Folder content not found',
 
   // ----- Modals -----
   emergencyShutdownHostsModalTitle: 'Emergency shutdown Host{nHosts, plural, one {} other {s}}',

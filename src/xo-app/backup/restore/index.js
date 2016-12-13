@@ -15,9 +15,8 @@ import SortedTable from 'sorted-table'
 import uniq from 'lodash/uniq'
 import Upgrade from 'xoa-upgrade'
 import { confirm } from 'modal'
-import { connectStore, addSubscriptions, noop } from 'utils'
+import { addSubscriptions, noop } from 'utils'
 import { Container, Row, Col } from 'grid'
-import { createGetObjectsOfType } from 'selectors'
 import { FormattedDate, injectIntl } from 'react-intl'
 import { info, error } from 'notification'
 import { SelectPlainObject, Toggle } from 'form'
@@ -99,11 +98,6 @@ const doImport = ({ backup, sr, start }) => {
   }
 }
 
-@connectStore(() => ({
-  writableSrs: createGetObjectsOfType('SR').filter(
-    [ isSrWritable ]
-  ).sort()
-}), { withRef: true })
 class _ModalBody extends Component {
   get value () {
     return this.state
@@ -130,11 +124,6 @@ class _ModalBody extends Component {
 
 const ImportModalBody = injectIntl(_ModalBody, {withRef: true})
 
-@connectStore(() => ({
-  writableSrs: createGetObjectsOfType('SR').filter(
-    [ isSrWritable ]
-  ).sort()
-}))
 @addSubscriptions({
   rawRemotes: subscribeRemotes
 })

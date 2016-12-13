@@ -674,6 +674,10 @@
       @extend .fa;
       @extend .fa-upload;
     }
+    &-file-restore {
+      @extend .fa;
+      @extend .fa-file-o;
+    }
   }
   &-menu-jobs {
     @extend .fa;
