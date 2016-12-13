@@ -159,7 +159,7 @@
   },
   "jest": {
     "testPathDirs": [
-      "<rootDir>/dist"
+      "<rootDir>/src"
     ]
   },
   "standard": {
