@@ -1,8 +1,4 @@
-/* eslint-env mocha */
-
-import expect from 'must'
-
-// ===================================================================
+/* eslint-env jest */
 
 import {
   camelToSnakeCase,
@@ -20,38 +16,34 @@ import {
 
 describe('camelToSnakeCase()', function () {
   it('converts a string from camelCase to snake_case', function () {
-    expect(camelToSnakeCase('fooBar')).to.equal('foo_bar')
-    expect(camelToSnakeCase('ipv4Allowed')).to.equal('ipv4_allowed')
+    expect(camelToSnakeCase('fooBar')).toBe('foo_bar')
+    expect(camelToSnakeCase('ipv4Allowed')).toBe('ipv4_allowed')
   })
 
   it('does not alter snake_case strings', function () {
-    expect(camelToSnakeCase('foo_bar')).to.equal('foo_bar')
-    expect(camelToSnakeCase('ipv4_allowed')).to.equal('ipv4_allowed')
+    expect(camelToSnakeCase('foo_bar')).toBe('foo_bar')
+    expect(camelToSnakeCase('ipv4_allowed')).toBe('ipv4_allowed')
   })
 
   it('does not alter upper case letters expect those from the camelCase', function () {
-    expect(camelToSnakeCase('fooBar_BAZ')).to.equal('foo_bar_BAZ')
+    expect(camelToSnakeCase('fooBar_BAZ')).toBe('foo_bar_BAZ')
   })
 })
 
 // -------------------------------------------------------------------
 
 describe('createRawObject()', () => {
-  it('returns an object', () => {
-    expect(createRawObject()).to.be.an.object()
-  })
-
   it('returns an empty object', () => {
-    expect(createRawObject()).to.be.empty()
+    expect(createRawObject()).toEqual({})
   })
 
   it('creates a new object each time', () => {
-    expect(createRawObject()).to.not.equal(createRawObject())
+    expect(createRawObject()).not.toBe(createRawObject())
   })
 
   if (Object.getPrototypeOf) {
     it('creates an object without a prototype', () => {
-      expect(Object.getPrototypeOf(createRawObject())).to.be.null()
+      expect(Object.getPrototypeOf(createRawObject())).toBe(null)
     })
   }
 })
@@ -63,7 +55,7 @@ describe('diffItems', () => {
     expect(diffItems(
       ['foo', 'bar'],
       ['baz', 'foo']
-    )).to.eql([
+    )).toEqual([
       ['bar'],
       ['baz']
     ])
@@ -76,17 +68,17 @@ describe('ensureArray()', function () {
   it('wrap the value in an array', function () {
     const value = 'foo'
 
-    expect(ensureArray(value)).to.eql([value])
+    expect(ensureArray(value)).toEqual([value])
   })
 
   it('returns an empty array for undefined', function () {
-    expect(ensureArray(undefined)).to.eql([])
+    expect(ensureArray(undefined)).toEqual([])
   })
 
   it('returns the object itself if is already an array', function () {
     const array = ['foo', 'bar', 'baz']
 
-    expect(ensureArray(array)).to.equal(array)
+    expect(ensureArray(array)).toBe(array)
   })
 })
 
@@ -97,15 +89,15 @@ describe('extractProperty()', function () {
     const value = {}
     const obj = { prop: value }
 
-    expect(extractProperty(obj, 'prop')).to.equal(value)
+    expect(extractProperty(obj, 'prop')).toBe(value)
   })
 
   it('removes the property from the object', function () {
     const value = {}
     const obj = { prop: value }
 
-    expect(extractProperty(obj, 'prop')).to.equal(value)
-    expect(obj).to.not.have.property('prop')
+    expect(extractProperty(obj, 'prop')).toBe(value)
+    expect(obj.prop).not.toBeDefined()
   })
 })
 
@@ -120,7 +112,7 @@ describe('formatXml()', function () {
           {$: {baz: 'plip'}}
         ]
       }
-    })).to.equal(`<foo>
+    })).toBe(`<foo>
   <bar baz="plop"/>
   <bar baz="plip"/>
 </foo>`)
@@ -131,7 +123,7 @@ describe('formatXml()', function () {
 
 describe('generateToken()', () => {
   it('generates a string', async () => {
-    expect(await generateToken()).to.be.a.string()
+    expect(typeof await generateToken()).toBe('string')
   })
 })
 
@@ -139,21 +131,21 @@ describe('generateToken()', () => {
 
 describe('parseSize()', function () {
   it('parses a human size', function () {
-    expect(parseSize('1G')).to.equal(1e9)
+    expect(parseSize('1G')).toBe(1e9)
   })
 
   it('returns the parameter if already a number', function () {
-    expect(parseSize(1e6)).to.equal(1e6)
+    expect(parseSize(1e6)).toBe(1e6)
   })
 
   it('throws if the string cannot be parsed', function () {
     expect(function () {
       parseSize('foo')
-    }).to.throw()
+    }).toThrow()
   })
 
   it('supports the B unit as suffix', function () {
-    expect(parseSize('3MB')).to.equal(3e6)
+    expect(parseSize('3MB')).toBe(3e6)
   })
 })
 
@@ -171,21 +163,21 @@ describe('pSettle()', () => {
       Promise.reject('fatality')
     ])
 
-    expect(status1.isRejected()).to.equal(false)
-    expect(status2.isRejected()).to.equal(false)
-    expect(status3.isRejected()).to.equal(true)
+    expect(status1.isRejected()).toBe(false)
+    expect(status2.isRejected()).toBe(false)
+    expect(status3.isRejected()).toBe(true)
 
-    expect(status1.isFulfilled()).to.equal(true)
-    expect(status2.isFulfilled()).to.equal(true)
-    expect(status3.isFulfilled()).to.equal(false)
+    expect(status1.isFulfilled()).toBe(true)
+    expect(status2.isFulfilled()).toBe(true)
+    expect(status3.isFulfilled()).toBe(false)
 
-    expect(status1.value()).to.equal(42)
-    expect(status2.value()).to.equal(Math.PI)
-    expect(::status3.value).to.throw()
+    expect(status1.value()).toBe(42)
+    expect(status2.value()).toBe(Math.PI)
+    expect(::status3.value).toThrow()
 
-    expect(::status1.reason).to.throw()
-    expect(::status2.reason).to.throw()
-    expect(status3.reason()).to.equal('fatality')
+    expect(::status1.reason).toThrow()
+    expect(::status2.reason).toThrow()
+    expect(status3.reason()).toBe('fatality')
   })
 
   it('works with objects', async () => {
@@ -199,20 +191,20 @@ describe('pSettle()', () => {
       c: Promise.reject('fatality')
     })
 
-    expect(status1.isRejected()).to.equal(false)
-    expect(status2.isRejected()).to.equal(false)
-    expect(status3.isRejected()).to.equal(true)
+    expect(status1.isRejected()).toBe(false)
+    expect(status2.isRejected()).toBe(false)
+    expect(status3.isRejected()).toBe(true)
 
-    expect(status1.isFulfilled()).to.equal(true)
-    expect(status2.isFulfilled()).to.equal(true)
-    expect(status3.isFulfilled()).to.equal(false)
+    expect(status1.isFulfilled()).toBe(true)
+    expect(status2.isFulfilled()).toBe(true)
+    expect(status3.isFulfilled()).toBe(false)
 
-    expect(status1.value()).to.equal(42)
-    expect(status2.value()).to.equal(Math.PI)
-    expect(::status3.value).to.throw()
+    expect(status1.value()).toBe(42)
+    expect(status2.value()).toBe(Math.PI)
+    expect(::status3.value).toThrow()
 
-    expect(::status1.reason).to.throw()
-    expect(::status2.reason).to.throw()
-    expect(status3.reason()).to.equal('fatality')
+    expect(::status1.reason).toThrow()
+    expect(::status2.reason).toThrow()
+    expect(status3.reason()).toBe('fatality')
   })
 })

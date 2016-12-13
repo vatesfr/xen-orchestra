@@ -1,8 +1,4 @@
-/* eslint-env mocha */
-
-import expect from 'must'
-
-// ===================================================================
+/* eslint-env jest */
 
 import {debounce} from './decorators'
 
@@ -25,17 +21,17 @@ describe('debounce()', () => {
   it('works', done => {
     const foo = new Foo()
 
-    expect(i).to.equal(0)
+    expect(i).toBe(0)
 
     foo.foo()
-    expect(i).to.equal(1)
+    expect(i).toBe(1)
 
     foo.foo()
-    expect(i).to.equal(1)
+    expect(i).toBe(1)
 
     setTimeout(() => {
       foo.foo()
-      expect(i).to.equal(2)
+      expect(i).toBe(2)
 
       done()
     }, 2e1)

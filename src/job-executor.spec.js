@@ -1,12 +1,10 @@
-/* eslint-env mocha */
+/* eslint-env jest */
 
-import leche from 'leche'
-import { expect } from 'chai'
-
+import { forEach } from 'lodash'
 import { resolveParamsVector } from './job-executor'
 
 describe('resolveParamsVector', function () {
-  leche.withData({
+  forEach({
     'cross product with three sets': [
       // Expected result.
       [ { id: 3, value: 'foo', remote: 'local' },
@@ -92,9 +90,11 @@ describe('resolveParamsVector', function () {
         }
       }
     ]
-  }, function (expectedResult, entry, context) {
-    it('Resolves params vector', function () {
-      expect(resolveParamsVector.call(context, entry)).to.deep.have.members(expectedResult)
+  }, ([ expectedResult, entry, context ], name) => {
+    describe(`with ${name}`, () => {
+      it('Resolves params vector', () => {
+        expect(resolveParamsVector.call(context, entry)).toEqual(expectedResult)
+      })
     })
   })
 })

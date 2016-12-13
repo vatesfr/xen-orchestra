@@ -1,8 +1,6 @@
-/* eslint-env mocha */
+/* eslint-env jest */
 
-import { expect } from 'chai'
-import leche from 'leche'
-
+import { forEach } from 'lodash'
 import { thunkToArray } from './utils'
 import {
   crossProduct,
@@ -10,7 +8,7 @@ import {
 } from './math'
 
 describe('mergeObjects', function () {
-  leche.withData({
+  forEach({
     'Two sets of one': [
       {a: 1, b: 2}, {a: 1}, {b: 2}
     ],
@@ -32,9 +30,11 @@ describe('mergeObjects', function () {
     'No set': [
       {}
     ]
-  }, function (resultSet, ...sets) {
-    it('Assembles all given param sets in on set', function () {
-      expect(mergeObjects(sets)).to.eql(resultSet)
+  }, ([ resultSet, ...sets ], name) => {
+    describe(`with ${name}`, () => {
+      it('Assembles all given param sets in on set', function () {
+        expect(mergeObjects(sets)).toEqual(resultSet)
+      })
     })
   })
 })
@@ -45,7 +45,7 @@ describe('crossProduct', function () {
   // Gives the product of all args
   const multiplyTest = args => args.reduce((prev, curr) => prev * curr, 1)
 
-  leche.withData({
+  forEach({
     '2 sets of 2 items to multiply': [
       [10, 14, 15, 21], [[2, 3], [5, 7]], multiplyTest
     ],
@@ -64,9 +64,11 @@ describe('crossProduct', function () {
     '2 sets of 3 items to add': [
       [9, 13, 15, 10, 14, 16, 12, 16, 18], [[2, 3, 5], [7, 11, 13]], addTest
     ]
-  }, function (product, items, cb) {
-    it('Crosses sets of values with a crossProduct callback', function () {
-      expect(thunkToArray(crossProduct(items, cb))).to.have.members(product)
+  }, ([ product, items, cb ], name) => {
+    describe(`with ${name}`, () => {
+      it('Crosses sets of values with a crossProduct callback', function () {
+        expect(thunkToArray(crossProduct(items, cb)).sort()).toEqual(product.sort())
+      })
     })
   })
 })
