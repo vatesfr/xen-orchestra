@@ -1,6 +1,8 @@
+import Component from 'base-component'
 import find from 'lodash/find'
+import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
-import React, { Component } from 'react'
+import React from 'react'
 
 import propTypes from '../prop-types'
 
@@ -8,7 +10,6 @@ import Select from './select'
 
 @propTypes({
   autoFocus: propTypes.bool,
-  defaultValue: propTypes.any,
   disabled: propTypes.bool,
   optionRenderer: propTypes.func,
   multi: propTypes.bool,
@@ -16,13 +17,33 @@ import Select from './select'
   options: propTypes.array,
   placeholder: propTypes.string,
   predicate: propTypes.func,
-  required: propTypes.bool
+  required: propTypes.bool,
+  value: propTypes.any
 })
 export default class SelectPlainObject extends Component {
-  constructor (props) {
-    super(props)
-    this.state = {
-      value: this._computeValue(props.defaultValue, props)
+  componentDidMount () {
+    const { options, value } = this.props
+
+    this.setState({
+      options: this._computeOptions(options),
+      value: this._computeValue(value, this.props)
+    })
+  }
+
+  componentWillReceiveProps (newProps) {
+    const { options, value } = newProps
+    const newState = {}
+
+    if (value !== this.props.value) {
+      newState.value = this._computeValue(value, newProps)
+    }
+
+    if (options !== this.props.options) {
+      newState.options = this._computeOptions(options)
+    }
+
+    if (!isEmpty(newState)) {
+      this.setState(newState)
     }
   }
 
@@ -36,23 +57,8 @@ export default class SelectPlainObject extends Component {
       }
       return map(value, reduceValue)
     }
+
     return reduceValue(value)
-  }
-
-  componentWillMount () {
-    const { options } = this.props
-
-    this.setState({
-      options: this._computeOptions(options)
-    })
-  }
-
-  componentWillReceiveProps (newProps) {
-    const { options } = newProps
-
-    this.setState({
-      options: this._computeOptions(options)
-    })
   }
 
   _computeOptions (options) {
