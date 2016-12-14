@@ -67,10 +67,6 @@ $side-menu-color: white;
 $select-input-height: 40px; // Bootstrap input height
 @import '../node_modules/react-select/scss/default';
 
-// TREE SELECT =================================================================
-
-@import "../node_modules/rc-tree-select/assets/index";
-
 // Boostrap hack...
 .is-searchable {
   width: 100%;

@@ -63,9 +63,12 @@ export default class SelectPlainObject extends Component {
     }))
   }
 
-  _getObject () {
+  _getObject (value) {
+    if (value == null) {
+      return undefined
+    }
+
     const { optionKey = 'id', options } = this.props
-    const { value } = this.state
 
     const pickValue = value => {
       value = value.value || value
@@ -82,9 +85,9 @@ export default class SelectPlainObject extends Component {
   _handleChange = value => {
     const { onChange } = this.props
 
-    this.setState({
-      value: this._computeValue(value)
-    }, onChange && (() => onChange(this._getObject(value))))
+    if (onChange) {
+      onChange(this._getObject(value))
+    }
   }
 
   _renderOption = option => option.label

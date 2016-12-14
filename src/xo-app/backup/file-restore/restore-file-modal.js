@@ -1,10 +1,9 @@
 import _ from 'intl'
 import Component from 'base-component'
 import endsWith from 'lodash/endsWith'
-import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React from 'react'
-import TreeSelect from 'rc-tree-select'
+import replace from 'lodash/replace'
 import { formatSize, noop } from 'utils'
 import { FormattedDate } from 'react-intl'
 import { SelectPlainObject } from 'form'
@@ -12,9 +11,6 @@ import {
   scanDisk,
   scanFiles
 } from 'xo'
-
-const SELECT_FILES_STYLE = { width: '100%' }
-const SELECT_FILES_DROPDOWN_STYLE = { maxHeight: 200, overflow: 'auto', zIndex: 1500 }
 
 const backupOptionRenderer = backup => <span>
   {backup.tag} - {backup.remoteName}
@@ -30,20 +26,27 @@ const diskOptionRenderer = disk => <span>
   {disk.name}
 </span>
 
-const formatFolderContent = (folderContent, path = '/') =>
-  map(folderContent, (subTree, folder) => {
-    const isFile = !endsWith(folder, '/')
-    const subPath = path + folder
+const fileOptionRenderer = file => <span>
+  {file.name}
+</span>
 
-    return {
-      children: isFile ? [] : formatFolderContent(subTree, subPath),
-      disabled: !isFile && isEmpty(subTree),
-      selectable: isFile,
-      key: subPath,
-      label: folder,
-      value: subPath
-    }
-  })
+const formatFilesOptions = (rawFiles, root) => {
+  const files = !root
+    ? [{
+      name: '..',
+      id: '..',
+      content: {}
+    }]
+    : []
+
+  return files.concat(map(rawFiles, (file, name) => ({
+    name,
+    id: name,
+    content: file
+  })))
+}
+
+const getParentPath = path => replace(path, /^(\/+.+)*(\/+.+)/, '$1/')
 
 // -----------------------------------------------------------------------------
 
@@ -54,9 +57,23 @@ export default class RestoreFileModalBody extends Component {
     return {
       disk: state.disk,
       partition: state.partition,
-      paths: state.file && [ state.file ],
+      paths: state.file && [ state.path + state.file.id ],
       remote: state.backup.remoteId
     }
+  }
+
+  _scanFiles = (path = this.state.path) => {
+    const { backup, disk, partition } = this.state
+
+    return scanFiles(backup.remoteId, disk, partition, path).then(
+      rawFiles => {
+        this.setState({
+          files: formatFilesOptions(rawFiles, path === '/'),
+          path
+        })
+      },
+      noop
+    )
   }
 
   _onBackupChange = backup => {
@@ -92,22 +109,24 @@ export default class RestoreFileModalBody extends Component {
   _onPartitionChange = partition => {
     this.setState({
       partition,
+      path: '/',
       file: undefined
+    }, partition && this._scanFiles)
+  }
+
+  _onFileChange = file => {
+    const { path } = this.state
+    const isFile = file && file.id !== '..' && !endsWith(file.id, '/')
+
+    this.setState({
+      file: isFile ? file : undefined
     })
 
-    if (!partition) {
+    if (isFile) {
       return
     }
 
-    const { backup, disk } = this.state
-    scanFiles(backup.remoteId, disk, partition, '/').then(
-      folderContent => {
-        this.setState({
-          tree: formatFolderContent(folderContent)
-        })
-      },
-      noop
-    )
+    this._scanFiles(file.id === '..' ? getParentPath(path) : `${path}${file.id}`)
   }
 
   // ---------------------------------------------------------------------------
@@ -117,10 +136,11 @@ export default class RestoreFileModalBody extends Component {
     const {
       backup,
       disk,
-      partitions,
+      file,
+      files,
       partition,
-      tree,
-      file
+      partitions,
+      path
     } = this.state
 
     return <div>
@@ -154,17 +174,15 @@ export default class RestoreFileModalBody extends Component {
           value={partition}
         />
       ]}
-      {partition && tree && [
+      {partition && [
         <br />,
-        <TreeSelect
-          dropdownStyle={SELECT_FILES_DROPDOWN_STYLE}
-          notFoundContent={<em>{_('restoreFileInvalidFolder')}</em>}
-          onChange={this.linkState('file')}
-          placeholder={_('restoreFilesSelectFiles')}
-          showSearch={false}
-          style={SELECT_FILES_STYLE}
-          treeData={tree}
-          treeLine
+        <pre>{path}{file && file.id}</pre>,
+        <SelectPlainObject
+          onChange={this._onFileChange}
+          optionKey='id'
+          optionRenderer={fileOptionRenderer}
+          options={files}
+          placeholder={path}
           value={file}
         />
       ]}
