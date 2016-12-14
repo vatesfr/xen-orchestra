@@ -124,7 +124,7 @@
     "redux-thunk": "^2.0.1",
     "reselect": "^2.2.1",
     "standard": "^8.4.0",
-    "superagent": "^2.0.0",
+    "superagent": "^3.3.0",
     "tar-stream": "^1.5.2",
     "vinyl": "^2.0.0",
     "watchify": "^3.7.0",
