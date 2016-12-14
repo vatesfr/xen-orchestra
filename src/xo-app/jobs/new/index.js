@@ -286,11 +286,12 @@ export default class Jobs extends Component {
     }
 
     const {name, method} = this.refs
+    const action = find(actions, action => action.method === job.method)
     name.value = job.name
-    method.value = job.method
+    method.value = action
     this.setState({
       job,
-      action: find(actions, action => action.method === job.method)
+      action
     }, () => delay(this._populateForm, 250, job)) // Work around.
     // Without the delay, some selects are not always ready to load a value
     // Values are displayed, but html5 compliant browsers say the value is required and empty on submit

@@ -98,7 +98,7 @@ export default class Schedules extends Component {
   }
 
   _edit = id => {
-    const { schedules } = this.state
+    const { schedules, jobs } = this.state
     const schedule = find(schedules, schedule => schedule.id === id)
     if (!schedule) {
       error('Schedule edition', 'This schedule was not found, or may not longer exists.')
@@ -107,7 +107,7 @@ export default class Schedules extends Component {
 
     const { name, job } = this.refs
     name.value = schedule.name
-    job.value = schedule.job
+    job.value = jobs[schedule.job]
     this.setState({
       cronPattern: schedule.cron,
       schedule,
