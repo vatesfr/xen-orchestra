@@ -35,9 +35,9 @@ const parseDate = date => +moment(date, 'YYYYMMDDTHHmmssZ').format('x')
 
 const backupOptionRenderer = backup => <span>
   {backup.type === 'delta' && <span><span className='tag tag-info'>{_('delta')}</span>{' '}</span>}
-  {backup.tag}
+  {backup.tag} - {backup.remoteName}
   {' '}
-  <FormattedDate value={new Date(backup.date)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />
+  (<FormattedDate value={new Date(backup.date)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />)
 </span>
 
 const VM_COLUMNS = [
@@ -153,7 +153,8 @@ export default class Restore extends Component {
             name,
             path: file,
             tag,
-            remoteId: remote.id
+            remoteId: remote.id,
+            remoteName: remote.name
           }
         } else {
           const backupInfo = /^([^_]+)_([^_]+)_(.*)\.xva$/.exec(file)
@@ -165,7 +166,8 @@ export default class Restore extends Component {
               name,
               path: file,
               tag,
-              remoteId: remote.id
+              remoteId: remote.id,
+              remoteName: remote.name
             }
           }
         }

@@ -1,13 +1,12 @@
-import _, { messages } from 'intl'
+import _ from 'intl'
 import Component from 'base-component'
-import DebounceInput from 'react-debounce-input'
 import endsWith from 'lodash/endsWith'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React from 'react'
 import TreeSelect from 'rc-tree-select'
 import { formatSize, noop } from 'utils'
-import { FormattedDate, injectIntl } from 'react-intl'
+import { FormattedDate } from 'react-intl'
 import { SelectPlainObject } from 'form'
 import {
   scanDisk,
@@ -46,7 +45,9 @@ const formatFolderContent = (folderContent, path = '/') =>
     }
   })
 
-class RestoreFileModalBody extends Component {
+// -----------------------------------------------------------------------------
+
+export default class RestoreFileModalBody extends Component {
   get value () {
     const { state } = this
 
@@ -58,21 +59,19 @@ class RestoreFileModalBody extends Component {
     }
   }
 
-  _onBackupChange = backup => { // ---------------------------------------------
+  _onBackupChange = backup => {
     this.setState({
       backup,
       disk: undefined,
       partition: undefined,
-      folderPath: '',
       file: undefined
     })
   }
 
-  _onDiskChange = disk => { // -------------------------------------------------
+  _onDiskChange = disk => {
     this.setState({
       disk,
       partition: undefined,
-      folderPath: '',
       file: undefined
     })
 
@@ -90,31 +89,21 @@ class RestoreFileModalBody extends Component {
     )
   }
 
-  _onPartitionChange = partition => { // ---------------------------------------
+  _onPartitionChange = partition => {
     this.setState({
       partition,
-      folderPath: '',
-      file: undefined
-    })
-  }
-
-  _onFolderPathChange = event => { // ------------------------------------------
-    const folderPath = event.target.value
-
-    this.setState({
-      folderPath,
       file: undefined
     })
 
-    if (!folderPath) {
+    if (!partition) {
       return
     }
 
-    const { backup, disk, partition } = this.state
-    scanFiles(backup.remoteId, disk, partition, folderPath).then(
+    const { backup, disk } = this.state
+    scanFiles(backup.remoteId, disk, partition, '/').then(
       folderContent => {
         this.setState({
-          tree: formatFolderContent(folderContent, `${folderPath}/`)
+          tree: formatFolderContent(folderContent)
         })
       },
       noop
@@ -124,13 +113,12 @@ class RestoreFileModalBody extends Component {
   // ---------------------------------------------------------------------------
 
   render () {
-    const { backups, intl } = this.props
+    const { backups } = this.props
     const {
       backup,
       disk,
       partitions,
       partition,
-      folderPath,
       tree,
       file
     } = this.state
@@ -138,10 +126,11 @@ class RestoreFileModalBody extends Component {
     return <div>
       <SelectPlainObject
         onChange={this._onBackupChange}
-        optionKey='path'
+        optionKey='id'
         optionRenderer={backupOptionRenderer}
         options={backups}
         placeholder={_('restoreFilesSelectBackup')}
+        value={backup}
       />
       {backup && [
         <br />,
@@ -151,9 +140,10 @@ class RestoreFileModalBody extends Component {
           optionRenderer={diskOptionRenderer}
           options={backup.disks}
           placeholder={_('restoreFilesSelectDisk')}
+          value={disk}
         />
       ]}
-      {backup && disk && partitions && [
+      {disk && partitions && [
         <br />,
         <SelectPlainObject
           onChange={this._onPartitionChange}
@@ -161,19 +151,10 @@ class RestoreFileModalBody extends Component {
           optionRenderer={partitionOptionRenderer}
           options={partitions}
           placeholder={_('restoreFilesSelectPartition')}
+          value={partition}
         />
       ]}
-      {backup && disk && partition && [
-        <br />,
-        <DebounceInput
-          className='form-control'
-          debounceTimeout={300}
-          onChange={this._onFolderPathChange}
-          placeholder={intl.formatMessage(messages.restoreFilesSelectFolderPath)}
-          value={folderPath}
-        />
-      ]}
-      {backup && disk && partition && folderPath && tree && [
+      {partition && tree && [
         <br />,
         <TreeSelect
           dropdownStyle={SELECT_FILES_DROPDOWN_STYLE}
@@ -190,5 +171,3 @@ class RestoreFileModalBody extends Component {
     </div>
   }
 }
-
-export default injectIntl(RestoreFileModalBody, {withRef: true})
