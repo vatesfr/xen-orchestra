@@ -84,7 +84,7 @@ export default class SelectPlainObject extends Component {
 
     this.setState({
       value: this._computeValue(value)
-    }, onChange && (() => { onChange(this._getObject(value)) }))
+    }, onChange && (() => onChange(this._getObject(value))))
   }
 
   _renderOption = option => option.label
