@@ -1,6 +1,6 @@
+import autoControlledInput from 'auto-controlled-input'
 import Component from 'base-component'
 import find from 'lodash/find'
-import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React from 'react'
 
@@ -20,6 +20,7 @@ import Select from './select'
   required: propTypes.bool,
   value: propTypes.any
 })
+@autoControlledInput()
 export default class SelectPlainObject extends Component {
   componentDidMount () {
     const { options, value } = this.props
@@ -31,19 +32,11 @@ export default class SelectPlainObject extends Component {
   }
 
   componentWillReceiveProps (newProps) {
-    const { options, value } = newProps
-    const newState = {}
-
-    if (value !== this.props.value) {
-      newState.value = this._computeValue(value, newProps)
-    }
-
-    if (options !== this.props.options) {
-      newState.options = this._computeOptions(options)
-    }
-
-    if (!isEmpty(newState)) {
-      this.setState(newState)
+    if (newProps !== this.props) {
+      this.setState({
+        options: this._computeOptions(newProps.options),
+        value: this._computeValue(newProps.value, newProps)
+      })
     }
   }
 
@@ -70,10 +63,10 @@ export default class SelectPlainObject extends Component {
     }))
   }
 
-  get value () {
-    const { optionKey = 'id' } = this.props
+  _getObject () {
+    const { optionKey = 'id', options } = this.props
     const { value } = this.state
-    const { options } = this.props
+
     const pickValue = value => {
       value = value.value || value
       return find(options, option => option[optionKey] === value || option === value)
@@ -86,18 +79,12 @@ export default class SelectPlainObject extends Component {
     return pickValue(value)
   }
 
-  set value (value) {
-    this.setState({
-      value: this._computeValue(value)
-    })
-  }
-
   _handleChange = value => {
     const { onChange } = this.props
 
     this.setState({
       value: this._computeValue(value)
-    }, onChange && (() => { onChange(this.value) }))
+    }, onChange && (() => { onChange(this._getObject(value)) }))
   }
 
   _renderOption = option => option.label
@@ -117,7 +104,8 @@ export default class SelectPlainObject extends Component {
         placeholder={props.placeholder}
         required={props.required}
         value={state.value}
-        valueRenderer={this._renderOption} />
+        valueRenderer={this._renderOption}
+      />
     )
   }
 }
