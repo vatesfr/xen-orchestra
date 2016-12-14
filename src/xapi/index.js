@@ -1,17 +1,21 @@
 /* eslint-disable camelcase */
 
 import deferrable from 'golike-defer'
-import every from 'lodash/every'
 import fatfs from 'fatfs'
-import find from 'lodash/find'
-import flatten from 'lodash/flatten'
-import includes from 'lodash/includes'
-import isEmpty from 'lodash/isEmpty'
-import omit from 'lodash/omit'
 import tarStream from 'tar-stream'
-import uniq from 'lodash/uniq'
 import vmdkToVhd from 'xo-vmdk-to-vhd'
 import { defer } from 'promise-toolbox'
+import { forbiddenOperation } from 'xo-common/api-errors'
+import {
+  every,
+  find,
+  flatten,
+  includes,
+  isEmpty,
+  omit,
+  startsWith,
+  uniq
+} from 'lodash'
 import {
   wrapError as wrapXapiError,
   Xapi as XapiBase
@@ -40,7 +44,6 @@ import {
   promisifyAll,
   pSettle
 } from '../utils'
-import { forbiddenOperation } from 'xo-common/api-errors'
 
 import mixins from './mixins'
 import OTHER_CONFIG_TEMPLATE from './other-config-template'
@@ -805,25 +808,38 @@ export default class Xapi extends XapiBase {
     const vdis = {}
     const vbds = {}
     forEach(vm.$VBDs, vbd => {
-      const vdiId = vbd.VDI
-      if (!vdiId || vbd.type !== 'Disk') {
+      let vdi
+      if (
+        vbd.type !== 'Disk' ||
+        !(vdi = vbd.$VDI)
+      ) {
         // Ignore this VBD.
+        return
+      }
+
+      // If the VDI name start with `[NOBAK]`, do not export it.
+      if (startsWith(vdi.name_label, '[NOBAK]')) {
+        // FIXME: find a way to not create the VDI snapshot in the
+        // first time.
+        //
+        // The snapshot must not exist otherwise it could break the
+        // next export.
+        this._deleteVdi(vdi)::pCatch(noop)
         return
       }
 
       vbds[vbd.$ref] = vbd
 
-      if (vdiId in vdis) {
+      const vdiRef = vdi.$ref
+      if (vdiRef in vdis) {
         // This VDI has already been managed.
         return
       }
 
-      const vdi = vbd.$VDI
-
       // Look for a snapshot of this vdi in the base VM.
       const baseVdi = baseVdis[vdi.snapshot_of]
 
-      vdis[vdiId] = baseVdi && !disableBaseTags
+      vdis[vdiRef] = baseVdi && !disableBaseTags
         ? {
           ...vdi,
           other_config: {
@@ -836,7 +852,7 @@ export default class Xapi extends XapiBase {
           ...vdi,
           $SR$uuid: vdi.$SR.uuid
         }
-      const stream = streams[`${vdiId}.vhd`] = this._exportVdi(vdi, baseVdi, VDI_FORMAT_VHD)
+      const stream = streams[`${vdiRef}.vhd`] = this._exportVdi(vdi, baseVdi, VDI_FORMAT_VHD)
       $onFailure(() => stream.cancel())
     })
 
