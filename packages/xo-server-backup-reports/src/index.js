@@ -63,6 +63,7 @@ class BackupReportsXoPlugin {
     let reportWhen
 
     const text = []
+    const nagiosText = []
 
     forEach(status.calls, call => {
       // Ignore call if it's not a Backup a Snapshot or a Disaster Recovery.
@@ -105,6 +106,12 @@ class BackupReportsXoPlugin {
         `  - End time: ${String(end)}`,
         `  - Duration: ${duration}`
       ].join('\n'))
+
+      if (call.error) {
+        nagiosText.push(
+          `[ ${vm ? vm.name_label : 'undefined'} : ${call.error.message} ]`
+        )
+      }
     })
 
     // No backup calls.
@@ -140,6 +147,7 @@ class BackupReportsXoPlugin {
     ].join('\n'))
 
     const markdown = text.join('\n')
+    const markdownNagios = nagiosText.join(' ')
 
     // TODO : Handle errors when `sendEmail` isn't present. (Plugin dependencies)
 
@@ -156,6 +164,10 @@ class BackupReportsXoPlugin {
       }),
       xo.sendSlackMessage && xo.sendSlackMessage({
         message: markdown
+      }),
+      xo.sendPassiveCheck && xo.sendPassiveCheck({
+        status: globalSuccess ? 0 : 2,
+        message: globalSuccess ? `[Xen Orchestra] [Success] Backup report for ${tag}` : `[Xen Orchestra] [Failure] Backup report for ${tag} - VMs : ${markdownNagios}`
       })
     ])
   }
