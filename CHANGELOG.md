@@ -1,5 +1,26 @@
 # ChangeLog
 
+## **5.5.0** (2016-12-15)
+
+File level restore.
+
+### Enhancements
+
+- Better auto select network when migrate VM [\#1788](https://github.com/vatesfr/xo-web/issues/1788)
+- Plugin for passive backup job reporting in Nagios [\#1664](https://github.com/vatesfr/xo-web/issues/1664)
+- File level restore for delta backup [\#1590](https://github.com/vatesfr/xo-web/issues/1590)
+- Better select filters for ACLs [\#1515](https://github.com/vatesfr/xo-web/issues/1515)
+- All pools and "negative" filters [\#1503](https://github.com/vatesfr/xo-web/issues/1503)
+- VM copy with disk selection [\#826](https://github.com/vatesfr/xo-web/issues/826)
+
+### Bug fixes
+
+- Replication does not work from a VM created by a CR or delta backup [\#1811](https://github.com/vatesfr/xo-web/issues/1811)
+- Can't add a SSH key in VM creation [\#1805](https://github.com/vatesfr/xo-web/issues/1805)
+- Issue when no default SR in a pool [\#1804](https://github.com/vatesfr/xo-web/issues/1804)
+- XOA doesn't refresh after an update anymore [\#1801](https://github.com/vatesfr/xo-web/issues/1801)
+- Shortcuts not inhibited on inputs on Safari [\#1691](https://github.com/vatesfr/xo-web/issues/1691)
+
 ## **5.4.0** (2016-11-23)
 
 ### Enhancements
