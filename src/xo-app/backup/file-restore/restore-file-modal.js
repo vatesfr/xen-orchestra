@@ -4,7 +4,7 @@ import endsWith from 'lodash/endsWith'
 import map from 'lodash/map'
 import React from 'react'
 import replace from 'lodash/replace'
-import { formatSize, noop } from 'utils'
+import { noop } from 'utils'
 import { FormattedDate } from 'react-intl'
 import { SelectPlainObject } from 'form'
 import {
@@ -19,7 +19,7 @@ const backupOptionRenderer = backup => <span>
 </span>
 
 const partitionOptionRenderer = partition => <span>
-  {partition.name} {partition.type} ({formatSize(+partition.size)})
+  {partition.name} {partition.type}
 </span>
 
 const diskOptionRenderer = disk => <span>
@@ -116,7 +116,7 @@ export default class RestoreFileModalBody extends Component {
 
   _onFileChange = file => {
     const { path } = this.state
-    const isFile = file && file.id !== '..' && !endsWith(file.id, '/')
+    const isFile = file != null && file.id !== '..' && !endsWith(file.id, '/')
 
     this.setState({
       file: isFile ? file : undefined
@@ -125,6 +125,14 @@ export default class RestoreFileModalBody extends Component {
     if (isFile) {
       return
     }
+
+    // Ugly workaround to keep the ReactSelect open after selecting a folder
+    // FIXME: Remove and use isOpen/alwaysOpen prop once one of these issues is fixed:
+    // https://github.com/JedWatson/react-select/issues/662 -> /pull/817
+    // https://github.com/JedWatson/react-select/issues/962 -> /pull/1015
+    const select = document.activeElement
+    select.blur()
+    select.focus()
 
     this._scanFiles(file.id === '..' ? getParentPath(path) : `${path}${file.id}`)
   }
@@ -182,7 +190,7 @@ export default class RestoreFileModalBody extends Component {
           optionKey='id'
           optionRenderer={fileOptionRenderer}
           options={files}
-          placeholder={path}
+          placeholder={_('restoreFilesSelectFiles')}
           value={file}
         />
       ]}

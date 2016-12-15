@@ -1413,15 +1413,11 @@ export const scanFiles = (remote, disk, partition, path) => (
   )
 )
 
-export const fetchFiles = (remote, disk, partition, paths) => {
-  console.log('remote', remote)
-  console.log('disk', disk)
-  console.log('partition', partition)
-  console.log('paths', paths)
-  return _call('backup.fetchFiles', resolveIds({ remote, disk, partition, paths }))::tap(
+export const fetchFiles = (remote, disk, partition, paths) => (
+  _call('backup.fetchFiles', resolveIds({ remote, disk, partition, paths }))::tap(
     subscribeRemotes.forceRefresh
-  ).then(({ $getFrom: url }) => { console.log('URL = ', url) /* window.location = `.${url}` */ })
-}
+  ).then(({ $getFrom: url }) => { window.location = `.${url}` })
+)
 
 // -------------------------------------------------------------------
 
