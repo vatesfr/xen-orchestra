@@ -5,7 +5,7 @@ export const getDefaultNetworkForVif = (vif, host, pifs, networks) => {
   let defaultNetwork
   forEach(host.$PIFs, pifId => {
     const pif = pifs[pifId]
-    if (pif.ip && networks[pif.$network].name_label === nameLabel) {
+    if (networks[pif.$network].name_label === nameLabel) {
       defaultNetwork = pif.$network
       return false
     }
