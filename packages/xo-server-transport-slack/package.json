@@ -4,6 +4,7 @@
   "license": "ISC",
   "description": "xo-server plugin to send messages to Slack/Mattermost",
   "keywords": [
+    "mattermost",
     "orchestra",
     "plugin",
     "slack",
