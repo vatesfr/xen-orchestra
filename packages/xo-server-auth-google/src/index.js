@@ -22,14 +22,16 @@ export const configurationSchema = {
 // ===================================================================
 
 class AuthGoogleXoPlugin {
-  constructor (xo) {
+  constructor ({ xo }) {
+    this._conf = null
     this._xo = xo
   }
 
   configure (conf) {
-    conf.scope = 'https://www.googleapis.com/auth/plus.login'
-
-    this._conf = conf
+    this._conf = {
+      ...conf,
+      scope: 'https://www.googleapis.com/auth/plus.login'
+    }
   }
 
   load () {
