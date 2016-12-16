@@ -35,7 +35,7 @@ class AuthGoogleXoPlugin {
   }
 
   load () {
-    const {_xo: xo} = this
+    const xo = this._xo
 
     xo.registerPassportStrategy(new Strategy(this._conf, async (accessToken, refreshToken, profile, done) => {
       try {
@@ -50,4 +50,4 @@ class AuthGoogleXoPlugin {
 
 // ===================================================================
 
-export default ({xo}) => new AuthGoogleXoPlugin(xo)
+export default opts => new AuthGoogleXoPlugin(opts)
