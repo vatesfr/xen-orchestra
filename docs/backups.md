@@ -26,13 +26,18 @@ You also have a filter to search anything related to these logs.
 
 ## Remotes
 
-Remotes are places where your *backup* and *delta backup* files will be stored.
+> Remotes are places where your *backup* and *delta backup* files will be stored.
+
+To add a *remote*, go in **Settings/Remotes** menu.
 
 Supported stores:
 
 * local (any folder in XOA filesystem)
 * NFS
 * SMB (CIFS)
+
+
+> **WARNING**: the initial "/" or "\\" is automatically added.
 
 ### NFS
 
