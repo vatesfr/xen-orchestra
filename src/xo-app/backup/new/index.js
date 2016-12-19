@@ -142,11 +142,6 @@ const BACKUP_SCHEMA = {
     ...COMMON_SCHEMA.properties,
     depth: DEPTH_PROPERTY,
     remoteId: REMOTE_PROPERTY,
-    onlyMetadata: {
-      type: 'boolean',
-      title: 'Only MetaData',
-      description: 'No disks export.'
-    },
     compress: {
       type: 'boolean',
       title: 'Enable compression',
