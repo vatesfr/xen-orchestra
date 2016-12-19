@@ -288,7 +288,7 @@ var messages = {
   remoteMyNamePlaceHolder: 'Name *',
   remoteLocalPlaceHolderPath: '/path/to/backup',
   remoteNfsPlaceHolderHost: 'host *',
-  remoteNfsPlaceHolderPath: '/path/to/backup',
+  remoteNfsPlaceHolderPath: 'path/to/backup',
   remoteSmbPlaceHolderRemotePath: 'subfolder [path\\to\\backup]',
   remoteSmbPlaceHolderUsername: 'Username',
   remoteSmbPlaceHolderPassword: 'Password',

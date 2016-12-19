@@ -723,7 +723,7 @@ export default {
   remoteNfsPlaceHolderHost: 'hôte*',
 
   // Original text: "/path/to/backup"
-  remoteNfsPlaceHolderPath: '/chemin/de/la/sauvegarde',
+  remoteNfsPlaceHolderPath: 'chemin/de/la/sauvegarde',
 
   // Original text: "subfolder [path\\to\\backup]"
   remoteSmbPlaceHolderRemotePath: 'sous-répertoire [chemin\\vers\\la\\sauvegarde]',
