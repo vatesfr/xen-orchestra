@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **5.5.0** (2016-12-15)
+## **5.5.0** (2016-12-20)
 
 File level restore.
 
@@ -12,9 +12,11 @@ File level restore.
 - Better select filters for ACLs [\#1515](https://github.com/vatesfr/xo-web/issues/1515)
 - All pools and "negative" filters [\#1503](https://github.com/vatesfr/xo-web/issues/1503)
 - VM copy with disk selection [\#826](https://github.com/vatesfr/xo-web/issues/826)
+- Disable metadata exports [\#1818](https://github.com/vatesfr/xo-web/issues/1818)
 
 ### Bug fixes
 
+- Tool small selector [\#1832](https://github.com/vatesfr/xo-web/issues/1832)
 - Replication does not work from a VM created by a CR or delta backup [\#1811](https://github.com/vatesfr/xo-web/issues/1811)
 - Can't add a SSH key in VM creation [\#1805](https://github.com/vatesfr/xo-web/issues/1805)
 - Issue when no default SR in a pool [\#1804](https://github.com/vatesfr/xo-web/issues/1804)
