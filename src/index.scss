@@ -62,6 +62,10 @@ $side-menu-color: white;
 
 @import '../node_modules/react-virtualized/styles';
 
+// TREE-SELECT =================================================================
+
+@import '../node_modules/rc-tree-select/assets/index';
+
 // REACT-SELECT ================================================================
 
 $select-input-height: 40px; // Bootstrap input height

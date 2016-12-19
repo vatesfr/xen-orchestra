@@ -947,7 +947,7 @@ var messages = {
   restoreFilesSelectPartition: 'Select a partition…',
   restoreFilesSelectFolderPath: 'Folder path',
   restoreFilesSelectFiles: 'Select a file…',
-  restoreFileInvalidFolder: 'Folder content not found',
+  restoreFileContentNotFound: 'Content not found',
 
   // ----- Modals -----
   emergencyShutdownHostsModalTitle: 'Emergency shutdown Host{nHosts, plural, one {} other {s}}',

@@ -1,16 +1,28 @@
 import _ from 'intl'
 import Component from 'base-component'
-import endsWith from 'lodash/endsWith'
-import map from 'lodash/map'
 import React from 'react'
-import replace from 'lodash/replace'
 import { noop } from 'utils'
 import { FormattedDate } from 'react-intl'
 import { SelectPlainObject } from 'form'
 import {
+  endsWith,
+  findIndex,
+  map
+} from 'lodash'
+import {
   scanDisk,
   scanFiles
 } from 'xo'
+
+import TreeSelect from 'rc-tree-select'
+
+const TREE_SELECT_STYLE = { width: '100%' }
+// tree-select dropdown's default z-index is 100 while react-bootstrap Modal's z-index is 1050
+const TREE_SELECT_DROPDOWN_STYLE = { maxHeight: 200, overflow: 'auto', zIndex: 1100 }
+
+const isFolder = ({ id }) => endsWith(id, '/')
+
+// -----------------------------------------------------------------------------
 
 const backupOptionRenderer = backup => <span>
   {backup.tag} - {backup.remoteName}
@@ -26,29 +38,30 @@ const diskOptionRenderer = disk => <span>
   {disk.name}
 </span>
 
-const fileOptionRenderer = file => <span>
-  {file.name}
-</span>
-
-const formatFilesOptions = (rawFiles, root) => {
-  const files = !root
-    ? [{
-      name: '..',
-      id: '..',
-      content: {}
-    }]
-    : []
-
-  return files.concat(map(rawFiles, (file, name) => ({
+const formatFilesOptions = (rawFiles, path) =>
+  map(rawFiles, (file, name) => ({
     name,
-    id: name,
+    id: `${path}${name}`,
     content: file
-  })))
-}
-
-const getParentPath = path => replace(path, /^(\/+.+)*(\/+.+)/, '$1/')
+  }))
 
 // -----------------------------------------------------------------------------
+
+const getNewTreeData = (tree, child, relativePath, folder = '/') => {
+  if (/^\/*$/.exec(relativePath)) {
+    return child
+  }
+
+  const match = /^\/*([^/]+\/)(.*)/.exec(relativePath)
+  const subFolder = `${folder}${match[1]}`
+  const index = findIndex(tree, file => file.key === subFolder)
+
+  tree[index].children = getNewTreeData(tree[index].children, child, match[2], subFolder)
+
+  return tree
+}
+
+// =============================================================================
 
 export default class RestoreFileModalBody extends Component {
   get value () {
@@ -57,23 +70,9 @@ export default class RestoreFileModalBody extends Component {
     return {
       disk: state.disk,
       partition: state.partition,
-      paths: state.file && [ state.path + state.file.id ],
+      paths: state.file && [ state.file.id ],
       remote: state.backup.remoteId
     }
-  }
-
-  _scanFiles = (path = this.state.path) => {
-    const { backup, disk, partition } = this.state
-
-    return scanFiles(backup.remoteId, disk, partition, path).then(
-      rawFiles => {
-        this.setState({
-          files: formatFilesOptions(rawFiles, path === '/'),
-          path
-        })
-      },
-      noop
-    )
   }
 
   _onBackupChange = backup => {
@@ -92,18 +91,16 @@ export default class RestoreFileModalBody extends Component {
       file: undefined
     })
 
-    if (!disk) {
-      return
+    if (disk) {
+      return scanDisk(this.state.backup.remoteId, disk).then(
+        ({ partitions }) => {
+          this.setState({
+            partitions
+          })
+        },
+        noop
+      )
     }
-
-    scanDisk(this.state.backup.remoteId, disk).then(
-      ({ partitions }) => {
-        this.setState({
-          partitions
-        })
-      },
-      noop
-    )
   }
 
   _onPartitionChange = partition => {
@@ -111,30 +108,43 @@ export default class RestoreFileModalBody extends Component {
       partition,
       path: '/',
       file: undefined
-    }, partition && this._scanFiles)
-  }
-
-  _onFileChange = file => {
-    const { path } = this.state
-    const isFile = file != null && file.id !== '..' && !endsWith(file.id, '/')
-
-    this.setState({
-      file: isFile ? file : undefined
     })
 
-    if (isFile) {
-      return
+    if (partition) {
+      return this._scanFiles('/', partition).then(
+        files => this._updateTree(files)
+      )
     }
+  }
 
-    // Ugly workaround to keep the ReactSelect open after selecting a folder
-    // FIXME: Remove and use isOpen/alwaysOpen prop once one of these issues is fixed:
-    // https://github.com/JedWatson/react-select/issues/662 -> /pull/817
-    // https://github.com/JedWatson/react-select/issues/962 -> /pull/1015
-    const select = document.activeElement
-    select.blur()
-    select.focus()
+  _scanFiles = (path, partition = this.state.partition) => {
+    const { backup, disk } = this.state
 
-    this._scanFiles(file.id === '..' ? getParentPath(path) : `${path}${file.id}`)
+    return scanFiles(backup.remoteId, disk, partition, path).then(
+      rawFiles => formatFilesOptions(rawFiles, path),
+      noop
+    )
+  }
+
+  _updateTree = (files, path = '/') => {
+    const formattedFiles = map(files, file => ({
+      isLeaf: !isFolder(file),
+      key: file.id,
+      label: file.name,
+      selectable: !isFolder(file),
+      value: file
+    }))
+
+    this.setState({
+      tree: [ ...getNewTreeData(this.state.tree, formattedFiles, path) ]
+    })
+  }
+
+  _onLoadData = node => {
+    return this._scanFiles(node.props.eventKey).then(
+      files => this._updateTree(files, node.props.eventKey),
+      noop
+    )
   }
 
   // ---------------------------------------------------------------------------
@@ -145,10 +155,9 @@ export default class RestoreFileModalBody extends Component {
       backup,
       disk,
       file,
-      files,
       partition,
       partitions,
-      path
+      tree
     } = this.state
 
     return <div>
@@ -160,40 +169,41 @@ export default class RestoreFileModalBody extends Component {
         placeholder={_('restoreFilesSelectBackup')}
         value={backup}
       />
-      {backup && [
-        <br />,
-        <SelectPlainObject
-          onChange={this._onDiskChange}
-          optionKey='id'
-          optionRenderer={diskOptionRenderer}
-          options={backup.disks}
-          placeholder={_('restoreFilesSelectDisk')}
-          value={disk}
-        />
-      ]}
-      {disk && partitions && [
-        <br />,
-        <SelectPlainObject
-          onChange={this._onPartitionChange}
-          optionKey='id'
-          optionRenderer={partitionOptionRenderer}
-          options={partitions}
-          placeholder={_('restoreFilesSelectPartition')}
-          value={partition}
-        />
-      ]}
-      {partition && [
-        <br />,
-        <pre>{path}{file && file.id}</pre>,
-        <SelectPlainObject
-          onChange={this._onFileChange}
-          optionKey='id'
-          optionRenderer={fileOptionRenderer}
-          options={files}
-          placeholder={_('restoreFilesSelectFiles')}
-          value={file}
-        />
-      ]}
+      <br />
+      <SelectPlainObject
+        disabled={!backup}
+        onChange={this._onDiskChange}
+        optionKey='id'
+        optionRenderer={diskOptionRenderer}
+        options={backup && backup.disks}
+        placeholder={_('restoreFilesSelectDisk')}
+        value={disk}
+      />
+      <br />
+      <SelectPlainObject
+        disabled={!disk || !partitions}
+        onChange={this._onPartitionChange}
+        optionKey='id'
+        optionRenderer={partitionOptionRenderer}
+        options={partitions}
+        placeholder={_('restoreFilesSelectPartition')}
+        value={partition}
+      />
+      <br />
+      <TreeSelect
+        disabled={!partition}
+        dropdownStyle={TREE_SELECT_DROPDOWN_STYLE}
+        loadData={this._onLoadData}
+        notFoundContent={_('restoreFileContentNotFound')}
+        onSelect={this.linkState('file')}
+        placeholder={_('restoreFilesSelectFiles')}
+        showSearch={false}
+        style={TREE_SELECT_STYLE}
+        treeData={tree}
+        treeLine
+        treeNodeFilterProp='label'
+        value={file}
+      />
     </div>
   }
 }
