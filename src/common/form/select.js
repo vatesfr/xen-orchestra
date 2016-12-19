@@ -18,6 +18,10 @@ const SELECT_STYLE = {
   minWidth: '10em'
 }
 
+const LIST_STYLE = {
+  whiteSpace: 'normal'
+}
+
 const MAX_OPTIONS = 5
 
 // See: https://github.com/bvaughn/react-virtualized-select/blob/master/source/VirtualizedSelect/VirtualizedSelect.js
@@ -75,6 +79,7 @@ export default class Select extends Component {
                   rowHeight={getRowHeight}
                   rowRenderer={wrappedRowRenderer}
                   scrollToIndex={focusedOptionIndex}
+                  style={LIST_STYLE}
                   width={width}
                 />
               }}
