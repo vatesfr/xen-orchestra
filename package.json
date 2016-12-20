@@ -121,19 +121,20 @@
     "babel-preset-es2015": "^6.5.0",
     "babel-preset-stage-0": "^6.5.0",
     "dependency-check": "^2.4.0",
-    "ghooks": "^1.0.3",
     "gulp": "git://github.com/gulpjs/gulp#4.0",
     "gulp-babel": "^6",
     "gulp-coffee": "^2.3.1",
     "gulp-plumber": "^1.0.0",
     "gulp-sourcemaps": "^2.1.1",
     "gulp-watch": "^4.2.2",
+    "husky": "^0.12.0",
     "index-modules": "^0.2.1",
     "rimraf": "^2.5.2",
     "standard": "^8.1.0"
   },
   "scripts": {
     "build": "gulp build --production",
+    "commit-msg": "npm test",
     "dev": "gulp build",
     "dev-test": "jest --bail --watch",
     "posttest": "standard && dependency-check ./package.json",
@@ -153,11 +154,6 @@
       "stage-0",
       "es2015"
     ]
-  },
-  "config": {
-    "ghooks": {
-      "commit-msg": "npm test"
-    }
   },
   "jest": {
     "testPathDirs": [
