@@ -102,15 +102,9 @@ const _listAllBackups = async remotes => {
 }
 
 @addSubscriptions({
-  backupInfoByVm: cb => subscribeRemotes(remotes => {
-    Promise.all(map(remotes, remote =>
-      remote.enabled && listRemoteBackups(remote).then(backups => ({
-        ...remote,
-        backups
-      }))
-    )).then(remotes => _listAllBackups(filter(remotes))
-    ).then(cb)
-  })
+  backupInfoByVm: cb => subscribeRemotes(remotes =>
+    _listAllBackups(filter(remotes, 'enabled')).then(cb)
+  )
 })
 export default class FileRestore extends Component {
   render () {
