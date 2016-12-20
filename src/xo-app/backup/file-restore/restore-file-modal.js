@@ -18,7 +18,7 @@ import {
 const backupOptionRenderer = backup => <span>
   {backup.tag} - {backup.remoteName}
   {' '}
-  (<FormattedDate value={new Date(backup.datetime)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />)
+  (<FormattedDate value={backup.datetime * 1e3} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />)
 </span>
 
 const partitionOptionRenderer = partition => <span>
