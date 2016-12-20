@@ -1,4 +1,4 @@
 .dashedLine {
-    stroke: black;
-    stroke-dasharray: 4px 5px;
+  stroke: black;
+  stroke-dasharray: 4px 2px;
 }

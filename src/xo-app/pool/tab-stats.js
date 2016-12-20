@@ -1,5 +1,6 @@
 import _ from 'intl'
 import Component from 'base-component'
+import getEventValue from 'get-event-value'
 import Icon from 'icon'
 import React from 'react'
 import Tooltip from 'tooltip'
@@ -7,33 +8,48 @@ import Upgrade from 'xoa-upgrade'
 import { Container, Row, Col } from 'grid'
 import { Toggle } from 'form'
 import { fetchHostStats } from 'xo'
+import { createGetObjectsOfType } from 'selectors'
 import {
-  CpuLineChart,
-  MemoryLineChart,
-  PifLineChart,
-  LoadLineChart
+  map
+} from 'lodash'
+import {
+  connectStore
+} from 'utils'
+import {
+  PoolCpuLineChart,
+  PoolMemoryLineChart,
+  PoolPifLineChart,
+  PoolLoadLineChart
 } from 'xo-line-chart'
 
-export default class HostStats extends Component {
-  constructor (props) {
-    super(props)
-    this.state.useCombinedValues = false
+@connectStore({
+  hosts: createGetObjectsOfType('host').filter(
+    (state, props) =>
+      host => host.power_state === 'Running' && host.$pool === props.pool.id
+  )
+})
+export default class PoolStats extends Component {
+  state = {
+    useCombinedValues: false
   }
 
-  loop (host = this.props.host) {
+  _loop = () => {
     if (this.cancel) {
       this.cancel()
-    }
-
-    if (host.power_state !== 'Running') {
-      return
     }
 
     let cancelled = false
     this.cancel = () => { cancelled = true }
 
-    fetchHostStats(host, this.state.granularity).then(stats => {
-      if (cancelled) {
+    Promise.all(map(this.props.hosts, host =>
+      fetchHostStats(host, this.state.granularity).then(
+        stats => ({
+          host: host.name_label,
+          ...stats
+        })
+      )
+    )).then(stats => {
+      if (cancelled || !stats[0]) {
         return
       }
       this.cancel = null
@@ -43,43 +59,28 @@ export default class HostStats extends Component {
         stats,
         selectStatsLoading: false
       }, () => {
-        this.timeout = setTimeout(this.loop, stats.interval * 1000)
+        this.timeout = setTimeout(this._loop, stats[0].interval * 1000)
       })
     })
   }
-  loop = ::this.loop
 
-  componentWillMount () {
-    this.loop()
+  componentDidMount () {
+    this._loop()
   }
 
   componentWillUnmount () {
     clearTimeout(this.timeout)
   }
 
-  componentWillReceiveProps (props) {
-    const hostCur = this.props.host
-    const hostNext = props.host
-
-    if (hostCur.power_state !== 'Running' && hostNext.power_state === 'Running') {
-      this.loop(hostNext)
-    } else if (hostCur.power_state === 'Running' && hostNext.power_state !== 'Running') {
-      this.setState({
-        stats: undefined
-      })
-    }
-  }
-
-  handleSelectStats (event) {
-    const granularity = event.target.value
+  _handleSelectStats = event => {
+    const granularity = getEventValue(event)
     clearTimeout(this.timeout)
 
     this.setState({
       granularity,
       selectStatsLoading: true
-    }, this.loop)
+    }, this._loop)
   }
-  handleSelectStats = ::this.handleSelectStats
 
   render () {
     const {
@@ -89,9 +90,8 @@ export default class HostStats extends Component {
       useCombinedValues
     } = this.state
 
-    return !stats
-      ? <p>No stats.</p>
-      : process.env.XOA_PLAN > 2
+    return process.env.XOA_PLAN > 2
+      ? stats
         ? <Container>
           <Row>
             <Col mediumSize={5}>
@@ -110,7 +110,7 @@ export default class HostStats extends Component {
             </Col>
             <Col mediumSize={6}>
               <div className='btn-tab'>
-                <select className='form-control' onChange={this.handleSelectStats} defaultValue={granularity} >
+                <select className='form-control' onChange={this._handleSelectStats} defaultValue={granularity} >
                   {_('statLastTenMinutes', message => <option value='seconds'>{message}</option>)}
                   {_('statLastTwoHours', message => <option value='minutes'>{message}</option>)}
                   {_('statLastWeek', message => <option value='hours'>{message}</option>)}
@@ -121,27 +121,30 @@ export default class HostStats extends Component {
           </Row>
           <Row>
             <Col mediumSize={6}>
-              <h5 className='text-xs-center'><Icon icon='cpu' size={1} /> {_('statsCpu')}</h5>
-              <CpuLineChart addSumSeries={useCombinedValues} data={stats} />
+              <h5 className='text-xs-center'><Icon icon='cpu' /> {_('statsCpu')}</h5>
+              <PoolCpuLineChart addSumSeries={useCombinedValues} data={stats} />
             </Col>
             <Col mediumSize={6}>
-              <h5 className='text-xs-center'><Icon icon='memory' size={1} /> {_('statsMemory')}</h5>
-              <MemoryLineChart data={stats} />
+              <h5 className='text-xs-center'><Icon icon='memory' /> {_('statsMemory')}</h5>
+              <PoolMemoryLineChart addSumSeries={useCombinedValues} data={stats} />
             </Col>
           </Row>
           <br />
           <hr />
           <Row>
             <Col mediumSize={6}>
-              <h5 className='text-xs-center'><Icon icon='network' size={1} /> {_('statsNetwork')}</h5>
-              <PifLineChart addSumSeries={useCombinedValues} data={stats} />
+              <h5 className='text-xs-center'><Icon icon='network' /> {_('statsNetwork')}</h5>
+              {/* key: workaround that unmounts and re-mounts the chart to make sure the legend updates when toggling "stacked values"
+              FIXME: remove key prop once this issue is fixed: https://github.com/CodeYellowBV/chartist-plugin-legend/issues/5 */}
+              <PoolPifLineChart key={useCombinedValues ? 'stacked' : 'unstacked'} addSumSeries={useCombinedValues} data={stats} />
             </Col>
             <Col mediumSize={6}>
-              <h5 className='text-xs-center'><Icon icon='disk' size={1} /> {_('statLoad')}</h5>
-              <LoadLineChart data={stats} />
+              <h5 className='text-xs-center'><Icon icon='disk' /> {_('statLoad')}</h5>
+              <PoolLoadLineChart addSumSeries={useCombinedValues} data={stats} />
             </Col>
           </Row>
         </Container>
-        : <Container><Upgrade place='hostStats' available={3} /></Container>
+        : <p>{_('poolNoStats')}</p>
+      : <Container><Upgrade place='hostStats' available={3} /></Container>
   }
 }
