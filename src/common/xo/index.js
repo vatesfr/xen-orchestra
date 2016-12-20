@@ -1407,8 +1407,8 @@ export const scanDisk = (remote, disk) => (
   )
 )
 
-export const scanFiles = (remote, disk, partition, path) => (
-  _call('backup.scanFiles', resolveIds({ remote, disk, partition, path }))::tap(
+export const scanFiles = (remote, disk, path, partition) => (
+  _call('backup.scanFiles', resolveIds({ remote, disk, path, partition }))::tap(
     subscribeRemotes.forceRefresh
   )
 )
