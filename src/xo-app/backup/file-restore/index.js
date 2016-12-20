@@ -45,7 +45,7 @@ const VM_COLUMNS = [
   },
   {
     name: _('lastBackupColumn'),
-    itemRenderer: ({ last }) => <FormattedDate value={last.datetime} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />,
+    itemRenderer: ({ last }) => <FormattedDate value={last.datetime * 1e3} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />,
     sortCriteria: ({ last }) => last.datetime,
     sortOrder: 'desc'
   },
