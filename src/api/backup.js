@@ -54,7 +54,7 @@ function handleFetchFiles (req, res, { remote, disk, partition, paths }) {
 
 export async function fetchFiles (params) {
   return this.registerHttpRequest(handleFetchFiles, params, {
-    suffix: `/${basename(params.paths[0])}`
+    suffix: encodeURI(`/${basename(params.paths[0])}`)
   }).then(url => ({ $getFrom: url }))
 }
 
