@@ -112,42 +112,51 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
-  async createReadStream (file, {
+  createReadStream (file, {
     checksum = false,
     ignoreMissingChecksum = false,
     ...options
   } = {}) {
-    const streamP = this._createReadStream(file, options).then(async stream => {
-      await eventToPromise(stream, 'readable')
+    const streamP = this._createReadStream(file, options).then(stream => {
+      // detect early errors
+      let promise = eventToPromise(stream, 'readable')
 
-      if (stream.length === undefined) {
-        stream.length = await this.getSize(file)::pCatch(noop)
+      // try to add the length prop if missing and not a range stream
+      if (
+        stream.length === undefined &&
+        options.end === undefined &&
+        options.start === undefined
+      ) {
+        promise = Promise.all([ promise, this.getSize(file).then(size => {
+          stream.length = size
+        }, noop) ])
       }
 
-      return stream
+      return promise.then(() => stream)
     })
 
     if (!checksum) {
       return streamP
     }
 
-    try {
-      checksum = await this.readFile(`${file}.checksum`)
-    } catch (error) {
-      if (error.code === 'ENOENT' && ignoreMissingChecksum) {
-        return streamP
+    // avoid a unhandled rejection warning
+    streamP.catch(noop)
+
+    return this.readFile(`${file}.checksum`).then(
+      checksum => streamP.then(stream => {
+        const { length } = stream
+        stream = validChecksumOfReadStream(stream, String(checksum).trim())
+        stream.length = length
+
+        return stream
+      }),
+      error => {
+        if (ignoreMissingChecksum && error && error.code === 'ENOENT') {
+          return streamP
+        }
+        throw error
       }
-
-      throw error
-    }
-
-    let stream = await streamP
-
-    const { length } = stream
-    stream = validChecksumOfReadStream(stream, checksum.toString())
-    stream.length = length
-
-    return stream
+    )
   }
 
   async _createReadStream (file, options) {

@@ -166,7 +166,7 @@ export const validChecksumOfReadStream = (stream, expectedChecksum) => {
       const checksum = `$${algorithmId}$$${hash.digest('hex')}`
 
       callback(
-        checksum.trim() !== expectedChecksum.trim()
+        checksum !== expectedChecksum
           ? new Error(`Bad checksum (${checksum}), expected: ${expectedChecksum}`)
           : null
       )
