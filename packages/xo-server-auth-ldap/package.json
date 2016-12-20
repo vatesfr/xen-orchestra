@@ -48,13 +48,14 @@
     "babel-preset-stage-0": "^6.3.13",
     "cross-env": "^3.1.3",
     "dependency-check": "^2.5.1",
-    "ghooks": "^1.2.1",
+    "husky": "^0.12.0",
     "rimraf": "^2.5.4",
     "standard": "^8.0.0"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
     "clean": "rimraf dist/",
+    "commit-msg": "npm test",
     "depcheck": "dependency-check ./package.json",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "lint": "standard",
@@ -77,10 +78,5 @@
       "dist"
     ],
     "parser": "babel-eslint"
-  },
-  "config": {
-    "ghooks": {
-      "commit-msg": "npm test"
-    }
   }
 }
