@@ -53,6 +53,8 @@ const isVdiBackup = name => /^\d+T\d+Z_(?:full|delta)\.vhd$/.test(name)
 const isDeltaVdiBackup = name => /^\d+T\d+Z_delta\.vhd$/.test(name)
 const isFullVdiBackup = name => /^\d+T\d+Z_full\.vhd$/.test(name)
 
+const toTimestamp = date => date && date.getTime() / 1000
+
 const parseVmBackupPath = name => {
   const base = basename(name)
   let baseMatches
@@ -60,7 +62,7 @@ const parseVmBackupPath = name => {
   baseMatches = /^([^_]+)_([^_]+)_(.+)\.xva$/.exec(base)
   if (baseMatches) {
     return {
-      datetime: safeDateParse(baseMatches[1]),
+      datetime: toTimestamp(safeDateParse(baseMatches[1])),
       id: name,
       name: baseMatches[3],
       tag: baseMatches[2],
@@ -74,7 +76,7 @@ const parseVmBackupPath = name => {
     (dirMatches = /^vm_delta_([^_]+)_(.+)$/.exec(basename(dirname(name))))
   ) {
     return {
-      datetime: safeDateParse(baseMatches[1]),
+      datetime: toTimestamp(safeDateParse(baseMatches[1])),
       id: name,
       name: baseMatches[2],
       tag: dirMatches[1],
