@@ -277,6 +277,7 @@ const TRANSFORMS = {
 
         return memory
       })(),
+      installTime: metrics && toTimestamp(metrics.install_time),
       name_description: obj.name_description,
       name_label: obj.name_label,
       other: otherConfig,
