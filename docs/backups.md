@@ -9,7 +9,7 @@ There is different way to protect your VMs:
 * [delta backups](delta_backups.md) (best of both previous ones) [*Enterprise Edition*]
 * [disaster recovery](disaster_recovery.md) [*Enterprise Edition*]
 * [continuous replication](continuous_replication.md) [*Premium Edition*]
-* [File level restore](file_level_restore.md) [*Premium Edition*]
+* [file level restore](file_level_restore.md) [*Premium Edition*]
 
 There is also a way to select automatically VMs to backup: **[smart backup](smart_backup.md)** [*Enterprise Edition*]
 

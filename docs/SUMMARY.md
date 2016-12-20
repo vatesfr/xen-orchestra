@@ -31,6 +31,7 @@
        * [Continuous Replication](continuous_replication.md)
        * [Disaster recovery](disaster_recovery.md)
        * [Smart Backup](smart_backup.md)
+       * [File level Restore](file_level_restore.md)
    * [User authentication](authentication.md)
        * [Built-in](built-in.md)
        * [LDAP](ldap.md)
