@@ -1,5 +1,4 @@
 {
-  "private": true,
   "name": "xo-server-nagios",
   "version": "0.0.0",
   "license": "ISC",
