@@ -1385,9 +1385,31 @@ export const listRemote = remote => (
   )
 )
 
+export const listRemoteBackups = remote => (
+  _call('backup.list', resolveIds({ remote }))::rethrow(
+    err => error(_('listRemote'), err.message || String(err))
+  )
+)
+
 export const testRemote = remote => (
   _call('remote.test', resolveIds({id: remote}))::rethrow(
     err => error(_('testRemote'), err.message || String(err))
+  )
+)
+
+// File restore  ----------------------------------------------------
+
+export const scanDisk = (remote, disk) => (
+  _call('backup.scanDisk', resolveIds({ remote, disk }))
+)
+
+export const scanFiles = (remote, disk, path, partition) => (
+  _call('backup.scanFiles', resolveIds({ remote, disk, path, partition }))
+)
+
+export const fetchFiles = (remote, disk, partition, paths) => (
+  _call('backup.fetchFiles', resolveIds({ remote, disk, partition, paths })).then(
+    ({ $getFrom: url }) => { window.location = `.${url}` }
   )
 )
 

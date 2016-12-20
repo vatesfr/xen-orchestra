@@ -15,9 +15,8 @@ import SortedTable from 'sorted-table'
 import uniq from 'lodash/uniq'
 import Upgrade from 'xoa-upgrade'
 import { confirm } from 'modal'
-import { connectStore, addSubscriptions, noop } from 'utils'
+import { addSubscriptions, noop } from 'utils'
 import { Container, Row, Col } from 'grid'
-import { createGetObjectsOfType } from 'selectors'
 import { FormattedDate, injectIntl } from 'react-intl'
 import { info, error } from 'notification'
 import { SelectPlainObject, Toggle } from 'form'
@@ -36,9 +35,9 @@ const parseDate = date => +moment(date, 'YYYYMMDDTHHmmssZ').format('x')
 
 const backupOptionRenderer = backup => <span>
   {backup.type === 'delta' && <span><span className='tag tag-info'>{_('delta')}</span>{' '}</span>}
-  {backup.tag}
+  {backup.tag} - {backup.remoteName}
   {' '}
-  <FormattedDate value={new Date(backup.date)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />
+  (<FormattedDate value={new Date(backup.date)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />)
 </span>
 
 const VM_COLUMNS = [
@@ -99,11 +98,6 @@ const doImport = ({ backup, sr, start }) => {
   }
 }
 
-@connectStore(() => ({
-  writableSrs: createGetObjectsOfType('SR').filter(
-    [ isSrWritable ]
-  ).sort()
-}), { withRef: true })
 class _ModalBody extends Component {
   get value () {
     return this.state
@@ -130,11 +124,6 @@ class _ModalBody extends Component {
 
 const ImportModalBody = injectIntl(_ModalBody, {withRef: true})
 
-@connectStore(() => ({
-  writableSrs: createGetObjectsOfType('SR').filter(
-    [ isSrWritable ]
-  ).sort()
-}))
 @addSubscriptions({
   rawRemotes: subscribeRemotes
 })
@@ -164,7 +153,8 @@ export default class Restore extends Component {
             name,
             path: file,
             tag,
-            remoteId: remote.id
+            remoteId: remote.id,
+            remoteName: remote.name
           }
         } else {
           const backupInfo = /^([^_]+)_([^_]+)_(.*)\.xva$/.exec(file)
@@ -176,7 +166,8 @@ export default class Restore extends Component {
               name,
               path: file,
               tag,
-              remoteId: remote.id
+              remoteId: remote.id,
+              remoteName: remote.name
             }
           }
         }

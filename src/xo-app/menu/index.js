@@ -129,7 +129,8 @@ export default class Menu extends Component {
       isAdmin && { to: '/backup/overview', icon: 'menu-backup', label: 'backupPage', subMenu: [
         { to: '/backup/overview', icon: 'menu-backup-overview', label: 'backupOverviewPage' },
         { to: '/backup/new', icon: 'menu-backup-new', label: 'backupNewPage' },
-        { to: '/backup/restore', icon: 'menu-backup-restore', label: 'backupRestorePage' }
+        { to: '/backup/restore', icon: 'menu-backup-restore', label: 'backupRestorePage' },
+        { to: '/backup/file-restore', icon: 'menu-backup-file-restore', label: 'backupFileRestorePage' }
       ]},
       isAdmin && { to: '/xoa-update', icon: 'menu-update', label: 'updatePage', extra: <UpdateTag /> },
       isAdmin && { to: '/settings/servers', icon: 'menu-settings', label: 'settingsPage', subMenu: [

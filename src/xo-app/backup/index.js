@@ -10,6 +10,7 @@ import Edit from './edit'
 import New from './new'
 import Overview from './overview'
 import Restore from './restore'
+import FileRestore from './file-restore'
 
 const HEADER = <Container>
   <Row>
@@ -21,6 +22,7 @@ const HEADER = <Container>
         <NavLink to={'/backup/overview'}><Icon icon='menu-backup-overview' /> {_('backupOverviewPage')}</NavLink>
         <NavLink to={'/backup/new'}><Icon icon='menu-backup-new' /> {_('backupNewPage')}</NavLink>
         <NavLink to={'/backup/restore'}><Icon icon='menu-backup-restore' /> {_('backupRestorePage')}</NavLink>
+        <NavLink to={'/backup/file-restore'}><Icon icon='menu-backup-file-restore' /> {_('backupFileRestorePage')}</NavLink>
       </NavTabs>
     </Col>
   </Row>
@@ -30,7 +32,8 @@ const Backup = routes('overview', {
   ':id/edit': Edit,
   new: New,
   overview: Overview,
-  restore: Restore
+  restore: Restore,
+  'file-restore': FileRestore
 })(
   ({ children }) => <Page header={HEADER} title='backupPage' formatTitle>{children}</Page>
 )
