@@ -1386,9 +1386,7 @@ export const listRemote = remote => (
 )
 
 export const listRemoteBackups = remote => (
-  _call('backup.list', resolveIds({ remote }))::tap(
-    subscribeRemotes.forceRefresh
-  )::rethrow(
+  _call('backup.list', resolveIds({ remote }))::rethrow(
     err => error(_('listRemote'), err.message || String(err))
   )
 )
@@ -1402,21 +1400,17 @@ export const testRemote = remote => (
 // File restore  ----------------------------------------------------
 
 export const scanDisk = (remote, disk) => (
-  _call('backup.scanDisk', resolveIds({ remote, disk }))::tap(
-    subscribeRemotes.forceRefresh
-  )
+  _call('backup.scanDisk', resolveIds({ remote, disk }))
 )
 
 export const scanFiles = (remote, disk, path, partition) => (
-  _call('backup.scanFiles', resolveIds({ remote, disk, path, partition }))::tap(
-    subscribeRemotes.forceRefresh
-  )
+  _call('backup.scanFiles', resolveIds({ remote, disk, path, partition }))
 )
 
 export const fetchFiles = (remote, disk, partition, paths) => (
-  _call('backup.fetchFiles', resolveIds({ remote, disk, partition, paths }))::tap(
-    subscribeRemotes.forceRefresh
-  ).then(({ $getFrom: url }) => { window.location = `.${url}` })
+  _call('backup.fetchFiles', resolveIds({ remote, disk, partition, paths })).then(
+    ({ $getFrom: url }) => { window.location = `.${url}` }
+  )
 )
 
 // -------------------------------------------------------------------

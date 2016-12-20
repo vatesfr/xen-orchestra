@@ -1,25 +1,25 @@
 import _ from 'intl'
 import Component from 'base-component'
-import filter from 'lodash/filter'
-import find from 'lodash/find'
-import forEach from 'lodash/forEach'
-import groupBy from 'lodash/groupBy'
 import Icon from 'icon'
-import isEmpty from 'lodash/isEmpty'
-import map from 'lodash/map'
-import mapValues from 'lodash/mapValues'
-import moment from 'moment'
 import React from 'react'
-import reduce from 'lodash/reduce'
 import SortedTable from 'sorted-table'
-import uniq from 'lodash/uniq'
 import Upgrade from 'xoa-upgrade'
 import { confirm } from 'modal'
 import { addSubscriptions, noop } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { error } from 'notification'
 import { FormattedDate } from 'react-intl'
-
+import {
+  find,
+  filter,
+  forEach,
+  groupBy,
+  isEmpty,
+  map,
+  mapValues,
+  reduce,
+  uniq
+} from 'lodash'
 import {
   fetchFiles,
   listRemoteBackups,
@@ -27,8 +27,6 @@ import {
 } from 'xo'
 
 import RestoreFileModalBody from './restore-file-modal'
-
-const parseDate = date => +moment(date, 'YYYYMMDDTHHmmssZ').format('x')
 
 const VM_COLUMNS = [
   {
@@ -47,8 +45,8 @@ const VM_COLUMNS = [
   },
   {
     name: _('lastBackupColumn'),
-    itemRenderer: ({ last }) => <FormattedDate value={parseDate(last.datetime)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />,
-    sortCriteria: ({ last }) => parseDate(last.datetime),
+    itemRenderer: ({ last }) => <FormattedDate value={last.datetime} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />,
+    sortCriteria: ({ last }) => last.datetime,
     sortOrder: 'desc'
   },
   {
@@ -71,51 +69,52 @@ const openImportModal = ({ backups }) => confirm({
   noop
 )
 
+const _listAllBackups = async remotes => {
+  const remotesBackups = await Promise.all(map(remotes, remote => listRemoteBackups(remote)))
+
+  const backupsByVm = {}
+  forEach(remotesBackups, (backups, index) => {
+    forEach(backups, backup => {
+      if (backup.disks) {
+        const remote = remotes[index]
+
+        backupsByVm[backup.name] || (backupsByVm[backup.name] = [])
+        backupsByVm[backup.name].push({
+          ...backup,
+          remoteId: remote.id,
+          remoteName: remote.name
+        })
+      }
+    })
+  })
+
+  const backupInfoByVm = mapValues(backupsByVm, backups => ({
+    backups,
+    count: backups.length,
+    last: reduce(backups, (last, b) => b.datetime > last.datetime ? b : last),
+    tagsByRemote: mapValues(groupBy(backups, 'remoteId'), (backups, remoteId) => ({
+      remoteName: find(remotes, remote => remote.id === remoteId).name,
+      tags: uniq(map(backups, 'tag'))
+    }))
+  }))
+
+  return backupInfoByVm
+}
+
 @addSubscriptions({
-  rawRemotes: subscribeRemotes
+  backupInfoByVm: cb => subscribeRemotes(remotes => {
+    Promise.all(map(remotes, remote =>
+      remote.enabled && listRemoteBackups(remote).then(backups => ({
+        ...remote,
+        backups
+      }))
+    )).then(remotes => _listAllBackups(filter(remotes))
+    ).then(cb)
+  })
 })
 export default class FileRestore extends Component {
-  componentWillReceiveProps ({ rawRemotes }) {
-    let filteredRemotes
-    if ((filteredRemotes = filter(rawRemotes, 'enabled')) !== filter(this.props.rawRemotes, 'enabled')) {
-      this._listAll(filteredRemotes).catch(noop)
-    }
-  }
-
-  _listAll = async remotes => {
-    const remotesBackups = await Promise.all(map(remotes, remote => listRemoteBackups(remote)))
-
-    const backupsByVm = {}
-    forEach(remotesBackups, (backups, index) => {
-      forEach(backups, backup => {
-        if (backup.disks) {
-          const remote = remotes[index]
-
-          backupsByVm[backup.name] || (backupsByVm[backup.name] = [])
-          backupsByVm[backup.name].push({
-            ...backup,
-            remoteId: remote.id,
-            remoteName: remote.name
-          })
-        }
-      })
-    })
-
-    const backupInfoByVm = mapValues(backupsByVm, backups => ({
-      backups,
-      count: backups.length,
-      last: reduce(backups, (last, b) => parseDate(b.datetime) > parseDate(last.datetime) ? b : last),
-      tagsByRemote: mapValues(groupBy(backups, 'remoteId'), (backups, remoteId) => ({
-        remoteName: find(remotes, remote => remote.id === remoteId).name,
-        tags: uniq(map(backups, 'tag'))
-      }))
-    }))
-
-    this.setState({ backupInfoByVm })
-  }
-
   render () {
-    const { backupInfoByVm } = this.state
+    const { backupInfoByVm } = this.props
 
     if (!backupInfoByVm) {
       return <h2>{_('statusLoading')}</h2>
