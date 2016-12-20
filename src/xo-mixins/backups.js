@@ -53,7 +53,7 @@ const isVdiBackup = name => /^\d+T\d+Z_(?:full|delta)\.vhd$/.test(name)
 const isDeltaVdiBackup = name => /^\d+T\d+Z_delta\.vhd$/.test(name)
 const isFullVdiBackup = name => /^\d+T\d+Z_full\.vhd$/.test(name)
 
-const toTimestamp = date => date && date.getTime() / 1000
+const toTimestamp = date => date && Math.round(date.getTime() / 1000)
 
 const parseVmBackupPath = name => {
   const base = basename(name)
