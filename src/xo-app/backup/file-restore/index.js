@@ -121,7 +121,7 @@ export default class FileRestore extends Component {
       return <h2>{_('statusLoading')}</h2>
     }
 
-    return process.env.XOA_PLAN > 1
+    return process.env.XOA_PLAN > 3
       ? <Container>
         <h2>{_('restoreFiles')}</h2>
         {isEmpty(backupInfoByVm)
@@ -132,6 +132,6 @@ export default class FileRestore extends Component {
           </div>
         }
       </Container>
-      : <Container><Upgrade place='restoreFiles' available={2} /></Container>
+      : <Container><Upgrade place='restoreFiles' available={4} /></Container>
   }
 }
