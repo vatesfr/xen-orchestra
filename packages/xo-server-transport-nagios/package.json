@@ -1,5 +1,5 @@
 {
-  "name": "xo-server-nagios",
+  "name": "xo-server-transport-nagios",
   "version": "0.1.0",
   "license": "ISC",
   "description": "",
@@ -11,11 +11,11 @@
     "xen-orchestra",
     "xo-server"
   ],
-  "homepage": "https://github.com/vatesfr/xo-server-nagios",
-  "bugs": "https://github.com/vatesfr/xo-server-nagios/issues",
+  "homepage": "https://github.com/vatesfr/xo-server-transport-nagios",
+  "bugs": "https://github.com/vatesfr/xo-server-transport-nagios/issues",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vatesfr/xo-server-nagios.git"
+    "url": "https://github.com/vatesfr/xo-server-transport-nagios.git"
   },
   "author": {
     "name": "Badr Azizbi",

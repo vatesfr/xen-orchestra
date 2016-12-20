@@ -1,13 +1,13 @@
-# xo-server-nagios [![Build Status](https://travis-ci.org/vatesfr/xo-server-nagios.png?branch=master)](https://travis-ci.org/vatesfr/xo-server-nagios)
+# xo-server-transport-nagios [![Build Status](https://travis-ci.org/vatesfr/xo-server-transport-nagios.png?branch=master)](https://travis-ci.org/vatesfr/xo-server-transport-nagios)
 
 > ${pkg.description}
 
 ## Install
 
-Installation of the [npm package](https://npmjs.org/package/xo-server-nagios):
+Installation of the [npm package](https://npmjs.org/package/xo-server-transport-nagios):
 
 ```
-> npm install --global xo-server-nagios
+> npm install --global xo-server-transport-nagios
 ```
 
 ## Usage
@@ -19,7 +19,7 @@ the web interface, see [the plugin documentation](https://xen-orchestra.com/docs
 
 ### `Xo#sendPassiveCheck( { status, message }) `
 
-This xo method is called to send a passive check to nagios and change the status of a service. 
+This xo method is called to send a passive check to nagios and change the status of a service.
 It has two parameters:
 - status: it's the service status in Nagios (0: OK | 1: WARNING | 2: CRITICAL).
 - message: it's the status information in Nagios.
@@ -48,7 +48,7 @@ the code.
 
 You may:
 
-- report any [issue](https://github.com/vatesfr/xo-server-nagios/issues)
+- report any [issue](https://github.com/vatesfr/xo-server-transport-nagios/issues)
   you've encountered;
 - fork and create a pull request.
 
