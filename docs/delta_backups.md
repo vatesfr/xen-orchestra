@@ -23,7 +23,7 @@ You can imagine to make your first initial full backup during a weekend, and the
 
 So, if you want to rollback your VM to a previous state, the cost is only one snapshot on your SR (far less than the [rolling snapshot](rolling_snapshot.md) mechanism).
 
-Even if you lost your whole SR or VM, you can use a Full backup to restore it completely, then apply any existing delta on top!
+Even if you lost your whole SR or VM, XOA will restore your VM entirely and automatically, at any date of backup.
 
 You can even imagine to use this to backup more often! Because delta will be smaller, and will be **always delta's**.
 
@@ -40,3 +40,9 @@ This way we can go "forward" and remove this oldest VHD after the merge:
 ## Create Delta backup
 
 Just go inside your "Backup" view, and select Delta Backup. Then, it's like a normal backup.
+
+## Exclude disks
+
+During a delta backup job, you can avoid saving all disks of the VM. To do that, it's trivial: just edit the VM disk name and add `[NOBAK]` before the current name, eg: `data-disk` will become `[NOBAK] data-disk` (with a space or not after, doesn't matter).
+
+For every following backup, this disk will be now ignored.
