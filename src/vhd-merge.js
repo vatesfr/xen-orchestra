@@ -1,3 +1,5 @@
+// TODO: remove once completely merged in vhd.js
+
 import fu from '@nraynaud/struct-fu'
 import isEqual from 'lodash/isEqual'
 

@@ -212,7 +212,7 @@ export default class Xo extends EventEmitter {
 
     const {fn, data} = watcher
     new Promise(resolve => {
-      resolve(fn(req, res, data, next))
+      resolve(fn.call(this, req, res, data, next))
     }).then(
       result => {
         if (result != null) {

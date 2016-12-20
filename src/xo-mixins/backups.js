@@ -1,18 +1,25 @@
 import deferrable from 'golike-defer'
-import endsWith from 'lodash/endsWith'
 import escapeStringRegexp from 'escape-string-regexp'
 import eventToPromise from 'event-to-promise'
-import filter from 'lodash/filter'
-import find from 'lodash/find'
-import findIndex from 'lodash/findIndex'
-import sortBy from 'lodash/sortBy'
-import startsWith from 'lodash/startsWith'
+import execa from 'execa'
+import splitLines from 'split-lines'
+import { createParser as createPairsParser } from 'parse-pairs'
+import { createReadStream, readdir, stat } from 'fs'
+import { satisfies as versionSatisfies } from 'semver'
+import { utcFormat } from 'd3-time-format'
 import {
   basename,
   dirname
 } from 'path'
-import { satisfies as versionSatisfies } from 'semver'
-import { utcFormat } from 'd3-time-format'
+import {
+  endsWith,
+  filter,
+  find,
+  findIndex,
+  once,
+  sortBy,
+  startsWith
+} from 'lodash'
 
 import vhdMerge, { chainVhd } from '../vhd-merge'
 import xapiObjectToXo from '../xapi-object-to-xo'
@@ -21,9 +28,12 @@ import {
   mapToArray,
   noop,
   pCatch,
+  pFromCallback,
   pSettle,
+  resolveSubpath,
   safeDateFormat,
-  safeDateParse
+  safeDateParse,
+  tmpDir
 } from '../utils'
 import {
   VDI_FORMAT_VHD
@@ -51,6 +61,7 @@ const parseVmBackupPath = name => {
   if (baseMatches) {
     return {
       datetime: safeDateParse(baseMatches[1]),
+      id: name,
       name: baseMatches[3],
       tag: baseMatches[2],
       type: 'xva'
@@ -64,10 +75,11 @@ const parseVmBackupPath = name => {
   ) {
     return {
       datetime: safeDateParse(baseMatches[1]),
+      id: name,
       name: baseMatches[2],
-      uuid: dirMatches[2],
       tag: dirMatches[1],
-      type: 'delta'
+      type: 'delta',
+      uuid: dirMatches[2]
     }
   }
 
@@ -107,6 +119,82 @@ async function checkFileIntegrity (handler, name) {
   //  await eventToPromise(stream, 'finish')
 }
 
+// -------------------------------------------------------------------
+
+const listPartitions = (() => {
+  const IGNORED = {}
+  forEach([
+    // https://github.com/jhermsmeier/node-mbr/blob/master/lib/partition.js#L38
+    0x05, 0x0F, 0x85, 0x15, 0x91, 0x9B, 0x5E, 0x5F, 0xCF, 0xD5, 0xC5,
+
+    0x82 // swap
+  ], type => {
+    IGNORED[type] = true
+  })
+
+  const TYPES = {
+    0x7: 'NTFS',
+    0x83: 'linux',
+    0xc: 'FAT'
+  }
+
+  const parseLine = createPairsParser({
+    keyTransform: key => key === 'UUID'
+      ? 'id'
+      : key.toLowerCase(),
+    valueTransform: (value, key) => key === 'start' || key === 'size'
+      ? +value
+      : key === 'type'
+        ? TYPES[+value] || value
+        : value
+  })
+
+  return device => execa.stdout('partx', [
+    '--bytes',
+    '--output=NR,START,SIZE,NAME,UUID,TYPE',
+    '--pairs',
+    device.path
+  ]).then(stdout => filter(
+    mapToArray(splitLines(stdout), parseLine),
+    ({ type }) => type != null && !IGNORED[+type]
+  ))
+})()
+
+const mountPartition = (device, partitionId) => Promise.all([
+  partitionId != null && listPartitions(device),
+  tmpDir()
+]).then(([ partitions, path ]) => {
+  const partition = partitionId && find(partitions, { id: partitionId })
+
+  const options = [
+    'loop',
+    'ro'
+  ]
+
+  if (partition) {
+    options.push(`offset=${partition.start * 512}`)
+
+    if (partition.type === 'linux') {
+      options.push('noload')
+    }
+  }
+
+  return execa('mount', [
+    `--options=${options.join(',')}`,
+    `--source=${device.path}`,
+    `--target=${path}`
+  ], {
+    timeout: 1e4
+  }).then(() => ({
+    path,
+    unmount: once(() => execa('umount', [ '--lazy', path ]))
+  })).catch(error => {
+    console.log(error)
+
+    throw error
+  })
+})
+
 // ===================================================================
 
 export default class {
@@ -137,6 +225,37 @@ export default class {
         }
       ))
     }
+
+    return backups
+  }
+
+  async listVmBackups (remoteId) {
+    const handler = await this._xo.getRemoteHandler(remoteId)
+
+    const backups = []
+
+    await Promise.all(mapToArray(await handler.list(), entry => {
+      if (endsWith(entry, '.xva')) {
+        backups.push(parseVmBackupPath(entry))
+      } else if (startsWith(entry, 'vm_delta_')) {
+        return handler.list(entry).then(children => Promise.all(mapToArray(children, child => {
+          if (endsWith(child, '.json')) {
+            const path = `${entry}/${child}`
+
+            const record = parseVmBackupPath(path)
+            backups.push(record)
+
+            return handler.readFile(path).then(data => {
+              record.disks = mapToArray(JSON.parse(data).vdis, vdi => ({
+                id: `${entry}/${vdi.xoPath}`,
+                name: vdi.name_label,
+                uuid: vdi.uuid
+              }))
+            }).catch(noop)
+          }
+        })))
+      }
+    }))
 
     return backups
   }
@@ -780,5 +899,97 @@ export default class {
       // Do not consider a failure to delete an old copy as a fatal error.
       targetXapi.deleteVm(vm.$id, true)::pCatch(noop)
     ))
+  }
+
+  // -----------------------------------------------------------------
+
+  _mountVhd (remoteId, vhdPath) {
+    return Promise.all([
+      this._xo.getRemoteHandler(remoteId),
+      tmpDir()
+    ]).then(([ handler, mountDir ]) => {
+      if (!handler._getRealPath) {
+        throw new Error(`this remote is not supported`)
+      }
+
+      const remotePath = handler._getRealPath()
+
+      return execa('vhdimount', [ resolveSubpath(remotePath, vhdPath), mountDir ]).then(() =>
+        pFromCallback(cb => readdir(mountDir, cb)).then(entries => {
+          let max = 0
+          forEach(entries, entry => {
+            const matches = /^vhdi(\d+)/.exec(entry)
+            if (matches) {
+              const value = +matches[1]
+              if (value > max) {
+                max = value
+              }
+            }
+          })
+
+          if (!max) {
+            throw new Error('no disks found')
+          }
+
+          return {
+            path: `${mountDir}/vhdi${max}`,
+            unmount: once(() => execa('fusermount', [ '-uz', mountDir ]))
+          }
+        })
+      )
+    })
+  }
+
+  _mountPartition (remoteId, vhdPath, partitionId) {
+    return this._mountVhd(remoteId, vhdPath).then(device =>
+      mountPartition(device, partitionId).then(partition => ({
+        ...partition,
+        unmount: () => partition.unmount().then(device.unmount)
+      }))
+    )
+  }
+
+  @deferrable
+  async scanDiskBackup ($defer, remoteId, vhdPath) {
+    const device = await this._mountVhd(remoteId, vhdPath)
+    $defer(device.unmount)
+
+    return {
+      partitions: await listPartitions(device)
+    }
+  }
+
+  @deferrable
+  async scanFilesInDiskBackup ($defer, remoteId, vhdPath, partitionId, path) {
+    const partition = await this._mountPartition(remoteId, vhdPath, partitionId)
+    $defer(partition.unmount)
+
+    path = resolveSubpath(partition.path, path)
+
+    const entries = await pFromCallback(cb => readdir(path, cb))
+
+    const entriesMap = {}
+    await Promise.all(mapToArray(entries, async name => {
+      const stats = await pFromCallback(cb => stat(`${path}/${name}`, cb))::pCatch(noop)
+      if (stats) {
+        entriesMap[stats.isDirectory() ? `${name}/` : name] = {}
+      }
+    }))
+    return entriesMap
+  }
+
+  async fetchFilesInDiskBackup (remoteId, vhdPath, partitionId, paths) {
+    const partition = await this._mountPartition(remoteId, vhdPath, partitionId)
+
+    let i = 0
+    const onEnd = () => {
+      if (!--i) {
+        partition.unmount()
+      }
+    }
+    return mapToArray(paths, path => {
+      ++i
+      return createReadStream(resolveSubpath(partition.path, path)).once('end', onEnd)
+    })
   }
 }
