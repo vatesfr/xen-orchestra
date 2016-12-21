@@ -669,7 +669,7 @@ export default class {
         stream => stream.cancel()
       ))
 
-      await xapi.deleteVm(delta.vm.ref, true)
+      await xapi.deleteVm(delta.vm.uuid, true)
     })
 
     // Save vdis.
