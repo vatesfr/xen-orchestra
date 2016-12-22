@@ -23,7 +23,7 @@ import { serverVersion } from 'xo'
 import pkg from '../../../package'
 
 const promptForReload = (packages, force) => {
-  if (force || find(packages, (version, name) => name.match(/^xo-web/) && version !== pkg.version)) {
+  if (force || find(packages, (version, name) => name.match(/^xo-web/) && (version !== pkg.version || name !== pkg.name))) {
     confirm({
       title: _('promptUpgradeReloadTitle'),
       body: <p>{_('promptUpgradeReloadMessage')}</p>
