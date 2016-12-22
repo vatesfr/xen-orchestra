@@ -169,7 +169,8 @@ The transport-email plugin for Xen Orchestra server seems to be working fine, ni
     from = this._conf.from,
     to, cc, bcc,
     subject,
-    markdown
+    markdown,
+    attachments
   }) {
     // TODO: handle errors
     return this._send({
@@ -178,7 +179,8 @@ The transport-email plugin for Xen Orchestra server seems to be working fine, ni
       cc,
       bcc,
       subject,
-      markdown
+      markdown,
+      attachments
     }).catch(logAndRethrow)
   }
 }
