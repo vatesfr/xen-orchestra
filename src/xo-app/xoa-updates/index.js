@@ -4,7 +4,6 @@ import ansiUp from 'ansi_up'
 import assign from 'lodash/assign'
 import Component from 'base-component'
 import Icon from 'icon'
-import find from 'lodash/find'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import Page from '../page'
@@ -22,18 +21,20 @@ import { serverVersion } from 'xo'
 
 import pkg from '../../../package'
 
-const promptForReload = (packages, force) => {
-  if (force || find(packages, (version, name) => name.match(/^xo-web/) && (version !== pkg.version || name !== pkg.name))) {
+let updateSource
+const promptForReload = (source, force) => {
+  if (force || (updateSource && source !== updateSource)) {
     confirm({
       title: _('promptUpgradeReloadTitle'),
       body: <p>{_('promptUpgradeReloadMessage')}</p>
     }).then(() => window.location.reload())
   }
+  updateSource = source
 }
 
 if (+process.env.XOA_PLAN < 5) {
   xoaUpdater.start()
-  xoaUpdater.on('upgradeSuccessful', packages => promptForReload(packages, !packages))
+  xoaUpdater.on('upgradeSuccessful', source => promptForReload(source, !source))
   xoaUpdater.on('upToDate', promptForReload)
 }
 

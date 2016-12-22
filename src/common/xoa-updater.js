@@ -77,7 +77,7 @@ class XoaUpdater extends EventEmitter {
 
   state (state) {
     this._state = state
-    this.emit(state, this._lowState && this._lowState.packages)
+    this.emit(state, this._lowState && this._lowState.source)
   }
 
   async update () {
@@ -99,7 +99,7 @@ class XoaUpdater extends EventEmitter {
   }
 
   _upgradeSuccessful () {
-    this.emit('upgradeSuccessful', this._lowState && this._lowState.packages)
+    this.emit('upgradeSuccessful', this._lowState && this._lowState.source)
   }
 
   async _open () {
