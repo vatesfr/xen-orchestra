@@ -888,8 +888,25 @@ export default class {
       }
 
       const remotePath = handler._getRealPath()
+      vhdPath = resolveSubpath(remotePath, vhdPath)
 
-      return execa('vhdimount', [ resolveSubpath(remotePath, vhdPath), mountDir ]).then(() =>
+      return Promise.resolve().then(() => {
+        // TODO: remove when no longer necessary.
+        //
+        // Currently, the filenames of the VHD changes over time
+        // (delta → full), but the JSON is not updated, therefore the
+        // VHD path may need to be fixed.
+        return endsWith(vhdPath, '_delta.vhd')
+          ? pFromCallback(cb => stat(vhdPath, cb)).then(
+            () => vhdPath,
+            error => {
+              if (error && error.code === 'ENOENT') {
+                return `${vhdPath.slice(0, -10)}_full.vhd`
+              }
+            }
+          )
+          : vhdPath
+      }).then(vhdPath => execa('vhdimount', [ vhdPath, mountDir ])).then(() =>
         pFromCallback(cb => readdir(mountDir, cb)).then(entries => {
           let max = 0
           forEach(entries, entry => {
