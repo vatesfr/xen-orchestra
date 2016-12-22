@@ -52,10 +52,12 @@ export default class {
 
     // FIXME: should be done in xo-remote-parser.
     const type = remote.url.split('://')[0]
-    if (!Handler[type]) {
+
+    const Handler = HANDLERS[type]
+    if (!Handler) {
       throw new Error('Unhandled remote type')
     }
-    return new Handler[type](remote)
+    return new Handler(remote)
   }
 
   async testRemote (remote) {
