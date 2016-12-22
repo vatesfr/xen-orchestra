@@ -1,4 +1,4 @@
-/* eslint-env mocha */
+/* eslint-env jest */
 
 // Doc: https://github.com/moll/js-must/blob/master/doc/API.md#must
 import expect from 'must'
@@ -10,15 +10,14 @@ import eventToPromise from 'event-to-promise'
 
 // ===================================================================
 
-describe('scheduler', function () {
-
+describe('scheduler', () => {
   let xo
   let serverId
   let jobId
   let scheduleId
 
-  before(async function () {
-    this.timeout(10e3)
+  beforeAll(async () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10e3
     let config
     ;[xo, config] = await Promise.all([
       getMainConnection(),
@@ -34,7 +33,7 @@ describe('scheduler', function () {
 
   // -----------------------------------------------------------------
 
-  after(async function () {
+  afterAll(async () => {
     await Promise.all([
       xo.call('schedule.delete', {id: scheduleId}),
       xo.call('job.delete', {id: jobId}),
@@ -44,11 +43,11 @@ describe('scheduler', function () {
 
   // =================================================================
 
-  describe('.enable()', function () {
-    afterEach(async function () {
+  describe('.enable()', () => {
+    afterEach(async () => {
       await xo.call('scheduler.disable', {id: scheduleId})
     })
-    it.skip('enables a schedule to run it\'s job as scheduled', async function () {
+    it.skip('enables a schedule to run it\'s job as scheduled', async () => {
       await xo.call('scheduler.enable', {id: scheduleId})
       const schedule = await getSchedule(xo, scheduleId)
       expect(schedule.enabled).to.be.true()
@@ -57,11 +56,11 @@ describe('scheduler', function () {
 
   // -----------------------------------------------------------------
 
-  describe('.disable()', function () {
-    beforeEach(async function () {
+  describe('.disable()', () => {
+    beforeEach(async () => {
       await xo.call('schedule.enable', {id: scheduleId})
     })
-    it.skip('disables a schedule', async function () {
+    it.skip('disables a schedule', async () => {
       await xo.call('schedule.disable', {id: scheduleId})
       const schedule = await getSchedule(xo, scheduleId)
       expect(schedule.enabled).to.be.false()
@@ -70,8 +69,8 @@ describe('scheduler', function () {
 
   // -----------------------------------------------------------------
 
-  describe('.getScheduleTable()', function () {
-    it('get a map of existing schedules', async function () {
+  describe('.getScheduleTable()', () => {
+    it('get a map of existing schedules', async () => {
       const table = await xo.call('scheduler.getScheduleTable')
       expect(table).to.be.an.object()
       expect(table).to.match(scheduleId)

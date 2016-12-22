@@ -1,4 +1,4 @@
-/* eslint-env mocha */
+/* eslint-env jest */
 
 // Doc: https://github.com/moll/js-must/blob/master/doc/API.md#must
 import expect from 'must'
@@ -22,7 +22,7 @@ import eventToPromise from 'event-to-promise'
 
 // ===================================================================
 
-describe('vm', function () {
+describe('vm', () => {
   let xo
   let vmId
   let vmIds = []
@@ -31,8 +31,8 @@ describe('vm', function () {
 
   // ----------------------------------------------------------------------
 
-  before(async function () {
-    this.timeout(10e3)
+  beforeAll(async () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10e3
     ;[xo, config] = await Promise.all([
       getMainConnection(),
       getConfig()
@@ -43,8 +43,8 @@ describe('vm', function () {
 
   // ----------------------------------------------------------------------
 
-  afterEach(async function () {
-    this.timeout(15e3)
+  afterEach(async () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 15e3
     await Promise.all(map(
       vmIds,
       vmId => xo.call('vm.delete', {id: vmId, delete_disks: true})
@@ -54,7 +54,7 @@ describe('vm', function () {
 
   // ---------------------------------------------------------------------
 
-  after(async function () {
+  afterAll(async () => {
     await xo.call('server.remove', {
       id: serverId
     })
@@ -124,8 +124,8 @@ describe('vm', function () {
 
   // =================================================================
 
-  describe('.create()', function () {
-    it('creates a VM with only a name and a template', async function () {
+  describe('.create()', () => {
+    it('creates a VM with only a name and a template', async () => {
       const templateId = getTemplateId(config.templates.debian)
 
       vmId = await createVm({
@@ -139,18 +139,17 @@ describe('vm', function () {
       })
     })
 
-    describe('.createHVM()', function () {
-
+    describe('.createHVM()', () => {
       let srId
       let templateId
 
-      before(async function () {
+      beforeAll(async () => {
         srId = await getSrId(xo)
         templateId = getTemplateId(config.templates.otherConfig)
       })
 
-      it.skip('creates a VM with the Other Config template, three disks, two interfaces and a ISO mounted', async function () {
-        this.timeout(30e3)
+      it.skip('creates a VM with the Other Config template, three disks, two interfaces and a ISO mounted', async () => {
+        jasmine.DEFAULT_TIMEOUT_INTERVAL = 30e3
 
         const networkId = await getNetworkId(xo)
         vmId = await createVm({
@@ -169,12 +168,12 @@ describe('vm', function () {
               size: 1,
               SR: srId,
               type: 'user'
-              },
+            },
             {device: '2',
               size: 1,
               SR: srId,
               type: 'user'
-              }
+            }
           ]
         })
 
@@ -186,7 +185,7 @@ describe('vm', function () {
         })
       })
 
-      it.skip('creates a VM with the Other Config template, no disk, no network and a ISO mounted', async function () {
+      it.skip('creates a VM with the Other Config template, no disk, no network and a ISO mounted', async () => {
         vmId = await createVm({
           name_label: 'vmTest',
           template: templateId,
@@ -200,20 +199,19 @@ describe('vm', function () {
         })
       })
     })
-    describe('.createPV()', function () {
-
+    describe('.createPV()', () => {
       let srId
       let templateId
       let networkId
 
-      before(async function () {
+      beforeAll(async () => {
         ;[networkId, srId] = await Promise.all([
           getNetworkId(xo),
           getSrId(xo)
         ])
       })
 
-      it.skip('creates a VM with the Debian 7 64 bits template, network install, one disk, one network', async function () {
+      it.skip('creates a VM with the Debian 7 64 bits template, network install, one disk, one network', async () => {
         templateId = getTemplateId(config.templates.debian)
 
         vmId = await createVm({
@@ -235,8 +233,8 @@ describe('vm', function () {
         })
       })
 
-      it('creates a VM with the CentOS 7 64 bits template, two disks, two networks and a ISO mounted', async function () {
-        this.timeout(10e3)
+      it('creates a VM with the CentOS 7 64 bits template, two disks, two networks and a ISO mounted', async () => {
+        jasmine.DEFAULT_TIMEOUT_INTERVAL = 10e3
 
         templateId = getTemplateId(config.templates.centOS)
         vmId = await createVm({
@@ -269,15 +267,15 @@ describe('vm', function () {
 
   // ------------------------------------------------------------------
 
-  describe('.delete()', function () {
+  describe('.delete()', () => {
     let snapshotIds = []
     let diskIds = []
 
-    beforeEach(async function () {
+    beforeEach(async () => {
       vmId = await createVmTest()
     })
 
-    after(async function () {
+    afterAll(async () => {
       await Promise.all(map(
         snapshotIds,
         snapshotId => xo.call('vm.delete', {id: snapshotId})
@@ -287,7 +285,7 @@ describe('vm', function () {
       ))
     })
 
-    it('deletes a VM', async function () {
+    it('deletes a VM', async () => {
       await xo.call('vm.delete', {
         id: vmId,
         delete_disks: true
@@ -299,7 +297,7 @@ describe('vm', function () {
       vmIds = []
     })
 
-    it('deletes a VM and its snapshots', async function () {
+    it('deletes a VM and its snapshots', async () => {
       const snapshotId = await xo.call('vm.snapshot', {
         id: vmId,
         name: 'snapshot'
@@ -317,8 +315,8 @@ describe('vm', function () {
       snapshotIds = []
     })
 
-    it('deletes a VM and its disks', async function () {
-      this.timeout(5e3)
+    it('deletes a VM and its disks', async () => {
+      jasmine.DEFAULT_TIMEOUT_INTERVAL = 5e3
       // create disk
       const host = getOneHost(xo)
       const pool = await xo.getOrWaitObject(host.$poolId)
@@ -349,7 +347,7 @@ describe('vm', function () {
     })
 
     // TODO: do a copy of the ISO
-    it.skip('deletes a vm but not delete its ISO', async function () {
+    it.skip('deletes a vm but not delete its ISO', async () => {
       vmId = await createVmTest()
 
       await xo.call('vm.insertCd', {
@@ -371,13 +369,13 @@ describe('vm', function () {
 
   // ------------------------------------------------------------------
 
-  describe('.ejectCd()', function () {
-    this.timeout(5e3)
+  describe('.ejectCd()', () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 5e3
     let isoId
-    before(async function () {
+    beforeAll(async () => {
       isoId = getIsoId()
     })
-    beforeEach(async function () {
+    beforeEach(async () => {
       vmId = await getVmXoTestPvId(xo)
       await xo.call('vm.insertCd', {
         id: vmId,
@@ -385,7 +383,7 @@ describe('vm', function () {
         force: false
       })
     })
-    it('ejects an ISO', async function () {
+    it('ejects an ISO', async () => {
       await xo.call('vm.ejectCd', {id: vmId})
       const vbdId = await getCdVbdPosition(vmId)
       await waitObjectState(xo, vbdId, vbd => {
@@ -396,16 +394,16 @@ describe('vm', function () {
 
   // -------------------------------------------------------------------
 
-  describe('.insertCd()', function () {
+  describe('.insertCd()', () => {
     let isoId
-    before(async function () {
+    beforeAll(async () => {
       isoId = getIsoId()
     })
-    afterEach(async function () {
+    afterEach(async () => {
       await xo.call('vm.ejectCd', {id: vmId})
     })
 
-    it('mount an ISO on the VM (force: false)', async function () {
+    it('mount an ISO on the VM (force: false)', async () => {
       vmId = await getVmXoTestPvId(xo)
       await xo.call('vm.insertCd', {
         id: vmId,
@@ -419,7 +417,7 @@ describe('vm', function () {
       })
     })
 
-    it('mount an ISO on the VM (force: true)', async function () {
+    it('mount an ISO on the VM (force: true)', async () => {
       vmId = await getVmXoTestPvId(xo)
 
       await xo.call('vm.insertCd', {
@@ -433,7 +431,7 @@ describe('vm', function () {
       })
     })
 
-    it('mount an ISO on a VM which do not have already cd\'s VBD', async function () {
+    it('mount an ISO on a VM which do not have already cd\'s VBD', async () => {
       vmId = await createVmTest()
 
       await xo.call('vm.insertCd', {
@@ -455,14 +453,14 @@ describe('vm', function () {
 
   // -------------------------------------------------------------------
 
-  describe('.migrate', function () {
-    this.timeout(15e3)
+  describe('.migrate', () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 15e3
 
     let secondServerId
     let startHostId
     let hostId
 
-    before(async function () {
+    beforeAll(async () => {
       secondServerId = await xo.call('server.add', config.xenServer2).catch(() => {})
       await eventToPromise(xo.objects, 'finish')
 
@@ -472,24 +470,24 @@ describe('vm', function () {
         await xo.call('vm.start', {id: vmId})
       } catch (_) {}
     })
-    beforeEach(async function () {
+    beforeEach(async () => {
       const vm = await xo.getOrWaitObject(vmId)
       startHostId = vm.$container
       hostId = getOtherHost(vm)
     })
-    afterEach(async function () {
+    afterEach(async () => {
       await xo.call('vm.migrate', {
         id: vmId,
         host_id: startHostId
       })
     })
-    after(async function () {
+    afterAll(async () => {
       await xo.call('server.remove', {
         id: secondServerId
       })
     })
 
-    it('migrates the VM on an other host', async function () {
+    it('migrates the VM on an other host', async () => {
       await xo.call('vm.migrate', {
         id: vmId,
         host_id: hostId
@@ -502,13 +500,13 @@ describe('vm', function () {
 
   // -------------------------------------------------------------------
 
-  describe('.migratePool()', function () {
-    this.timeout(100e3)
+  describe('.migratePool()', () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 100e3
     let hostId
     let secondServerId
     let startHostId
 
-    before(async function () {
+    beforeAll(async () => {
       secondServerId = await xo.call('server.add', config.xenServer2).catch(() => {})
       await eventToPromise(xo.objects, 'finish')
 
@@ -518,16 +516,16 @@ describe('vm', function () {
         await xo.call('vm.start', {id: vmId})
       } catch (_) {}
     })
-    after(async function () {
+    afterAll(async () => {
       await xo.call('server.remove', {id: secondServerId})
     })
-    beforeEach(async function () {
+    beforeEach(async () => {
       const vm = await xo.getOrWaitObject(vmId)
       startHostId = vm.$container
       hostId = getHostOtherPool(xo, vm)
     })
 
-    afterEach(async function () {
+    afterEach(async () => {
       // TODO: try to get the vmId
       vmId = await getVmToMigrateId(xo)
       await xo.call('vm.migrate_pool', {
@@ -536,7 +534,7 @@ describe('vm', function () {
       })
     })
 
-    it.skip('migrates the VM on an other host which is in an other pool', async function () {
+    it.skip('migrates the VM on an other host which is in an other pool', async () => {
       await xo.call('vm.migrate_pool', {
         id: vmId,
         target_host_id: hostId
@@ -549,13 +547,13 @@ describe('vm', function () {
 
   // -------------------------------------------------------------------
 
-  describe('.set()', function () {
-    beforeEach(async function () {
-      this.timeout(5e3)
+  describe('.set()', () => {
+    beforeEach(async () => {
+      jasmine.DEFAULT_TIMEOUT_INTERVAL = 5e3
       vmId = await createVmTest()
     })
 
-    it('sets VM parameters', async function () {
+    it('sets VM parameters', async () => {
       await xo.call('vm.set', {
         id: vmId,
         name_label: 'vmRenamed',
@@ -574,29 +572,29 @@ describe('vm', function () {
 
   // ---------------------------------------------------------------------
 
-  describe('.start()', function () {
-    this.timeout(10e3)
-    before(async function () {
+  describe('.start()', () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10e3
+    beforeAll(async () => {
       vmId = await getVmXoTestPvId(xo)
     })
-    beforeEach(async function () {
+    beforeEach(async () => {
       try {
         await xo.call('vm.stop', {
           id: vmId,
           force: true
         })
-      } catch(_) {}
+      } catch (_) {}
     })
-    afterEach(async function () {
+    afterEach(async () => {
       try {
         await xo.call('vm.stop', {
           id: vmId,
           force: true
         })
-      } catch(_) {}
+      } catch (_) {}
     })
 
-    it('starts a VM', async function () {
+    it('starts a VM', async () => {
       await xo.call('vm.start', {id: vmId})
       await waitObjectState(xo, vmId, vm => {
         expect(vm.power_state).to.be.equal('Running')
@@ -606,20 +604,19 @@ describe('vm', function () {
 
   // ---------------------------------------------------------------------
 
-  describe('.stop()', function () {
-    this.timeout(5e3)
-    before(async function () {
+  describe('.stop()', () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 5e3
+    beforeAll(async () => {
       vmId = await getVmXoTestPvId(xo)
-
     })
-    beforeEach(async function () {
+    beforeEach(async () => {
       try {
         await xo.call('vm.start', {id: vmId})
       } catch (_) {}
     })
 
-    it.skip('stops a VM (clean shutdown)', async function () {
-      this.timeout(20e3)
+    it.skip('stops a VM (clean shutdown)', async () => {
+      jasmine.DEFAULT_TIMEOUT_INTERVAL = 20e3
       await xo.call('vm.stop', {
         id: vmId,
         force: false
@@ -629,7 +626,7 @@ describe('vm', function () {
       })
     })
 
-    it('stops a VM (hard shutdown)', async function () {
+    it('stops a VM (hard shutdown)', async () => {
       await xo.call('vm.stop', {
         id: vmId,
         force: true
@@ -642,24 +639,24 @@ describe('vm', function () {
 
   // ---------------------------------------------------------------------
 
-  describe('.restart()', function () {
-    this.timeout(30e3)
-    before(async function () {
+  describe('.restart()', () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 30e3
+    beforeAll(async () => {
       vmId = await getVmXoTestPvId(xo)
     })
-    beforeEach(async function () {
+    beforeEach(async () => {
       try {
         await xo.call('vm.start', {id: vmId})
-      } catch(_) {}
+      } catch (_) {}
     })
-    afterEach(async function () {
+    afterEach(async () => {
       await xo.call('vm.stop', {
         id: vmId,
         force: true
       })
     })
 
-    it.skip('restarts a VM (clean reboot)', async function () {
+    it.skip('restarts a VM (clean reboot)', async () => {
       await xo.call('vm.restart', {
         id: vmId,
         force: false})
@@ -671,7 +668,7 @@ describe('vm', function () {
       })
     })
 
-    it('restarts a VM (hard reboot)', async function () {
+    it('restarts a VM (hard reboot)', async () => {
       await xo.call('vm.restart', {
         id: vmId,
         force: true})
@@ -686,17 +683,17 @@ describe('vm', function () {
 
   // --------------------------------------------------------------------
 
-  describe('.suspend()', function () {
-    this.timeout(10e3)
-    before(async function () {
+  describe('.suspend()', () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10e3
+    beforeAll(async () => {
       vmId = await getVmXoTestPvId(xo)
     })
-    beforeEach(async function() {
+    beforeEach(async () => {
       try {
         await xo.call('vm.start', {id: vmId})
-      } catch(_) {}
+      } catch (_) {}
     })
-    afterEach(async function () {
+    afterEach(async () => {
       await xo.call('vm.resume', {id: vmId})
       await xo.call('vm.stop', {
         id: vmId,
@@ -704,7 +701,7 @@ describe('vm', function () {
       })
     })
 
-    it('suspends a VM', async function() {
+    it('suspends a VM', async () => {
       await xo.call('vm.suspend', {id: vmId})
       await waitObjectState(xo, vmId, vm => {
         expect(vm.power_state).to.be.equal('Suspended')
@@ -714,30 +711,30 @@ describe('vm', function () {
 
   // --------------------------------------------------------------------
 
-  describe('.resume()', function () {
-    this.timeout(15e3)
-    before(async function () {
+  describe('.resume()', () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 15e3
+    beforeAll(async () => {
       vmId = await getVmXoTestPvId(xo)
     })
-    beforeEach(async function() {
+    beforeEach(async () => {
       try {
         await xo.call('vm.start', {id: vmId})
-      } catch(_) {}
+      } catch (_) {}
       await xo.call('vm.suspend', {id: vmId})
     })
-    afterEach(async function () {
+    afterEach(async () => {
       await xo.call('vm.stop', {
         id: vmId,
         force: true
       })
     })
-    it('resumes a VM (clean_resume)', async function () {
+    it('resumes a VM (clean_resume)', async () => {
       await xo.call('vm.resume', {id: vmId, force: false})
       await waitObjectState(xo, vmId, vm => {
         expect(vm.power_state).to.be.equal('Running')
       })
     })
-    it('resumes a VM (hard_resume)', async function () {
+    it('resumes a VM (hard_resume)', async () => {
       await xo.call('vm.resume', {id: vmId, force: true})
       await waitObjectState(xo, vmId, vm => {
         expect(vm.power_state).to.be.equal('Running')
@@ -747,11 +744,11 @@ describe('vm', function () {
 
   // --------------------------------------------------------------------
 
-  describe('.clone()', function () {
-    beforeEach(async function () {
+  describe('.clone()', () => {
+    beforeEach(async () => {
       vmId = await createVmTest()
     })
-    it('clones a VM', async function () {
+    it('clones a VM', async () => {
       const cloneId = await xo.call('vm.clone', {
         id: vmId,
         name: 'clone',
@@ -778,12 +775,12 @@ describe('vm', function () {
 
   // --------------------------------------------------------------------
 
-  describe('.convert()', function () {
-    beforeEach(async function () {
+  describe('.convert()', () => {
+    beforeEach(async () => {
       vmId = await createVmTest()
     })
 
-    it('converts a VM', async function () {
+    it('converts a VM', async () => {
       await xo.call('vm.convert', {id: vmId})
       await waitObjectState(xo, vmId, vm => {
         expect(vm.type).to.be.equal('VM-template')
@@ -793,15 +790,15 @@ describe('vm', function () {
 
   // ---------------------------------------------------------------------
 
-  describe('.snapshot()', function () {
-    this.timeout(5e3)
+  describe('.snapshot()', () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 5e3
     let snapshotId
 
-    afterEach(async function () {
+    afterEach(async () => {
       await xo.call('vm.delete', {id: snapshotId, delete_disks: true})
     })
 
-    it('snapshots a basic VM', async function () {
+    it('snapshots a basic VM', async () => {
       vmId = await createVmTest()
       snapshotId = await xo.call('vm.snapshot', {
         id: vmId,
@@ -823,7 +820,7 @@ describe('vm', function () {
       ])
     })
 
-    it('snapshots more complex VM', async function () {
+    it('snapshots more complex VM', async () => {
       vmId = await getVmXoTestPvId(xo)
       snapshotId = await xo.call('vm.snapshot', {
         id: vmId,
@@ -850,20 +847,20 @@ describe('vm', function () {
 
   // ---------------------------------------------------------------------
 
-  describe('.revert()', function () {
-    this.timeout(5e3)
+  describe('.revert()', () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 5e3
     let snapshotId
-    beforeEach(async function () {
+    beforeEach(async () => {
       vmId = await createVmTest()
       snapshotId = await xo.call('vm.snapshot', {
         id: vmId,
         name: 'snapshot'
       })
     })
-    afterEach(async function () {
+    afterEach(async () => {
       await xo.call('vm.delete', {id: snapshotId})
     })
-    it('reverts a snapshot to its parent VM', async function () {
+    it('reverts a snapshot to its parent VM', async () => {
       const revert = await xo.call('vm.revert', {id: snapshotId})
       expect(revert).to.be.true()
     })
@@ -871,22 +868,22 @@ describe('vm', function () {
 
   // ---------------------------------------------------------------------
 
-  describe('.handleExport()', function () {
+  describe('.handleExport()', () => {
     it('')
   })
 
   // --------------------------------------------------------------------
 
-  describe('.import()', function () {
+  describe('.import()', () => {
     it('')
   })
 
   // ---------------------------------------------------------------------
 
-  describe('.attachDisk()', function () {
-    this.timeout(5e3)
+  describe('.attachDisk()', () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 5e3
     let diskId
-    beforeEach(async function () {
+    beforeEach(async () => {
       vmId = await createVmTest()
       const srId = await getSrId(xo)
       diskId = await xo.call('disk.create', {
@@ -895,11 +892,11 @@ describe('vm', function () {
         sr: srId
       })
     })
-    afterEach(async function () {
+    afterEach(async () => {
       await xo.call('vdi.delete', {id: diskId})
     })
 
-    it('attaches the disk to the VM with attributes by default', async function () {
+    it('attaches the disk to the VM with attributes by default', async () => {
       await xo.call('vm.attachDisk', {
         vm: vmId,
         vdi: diskId
@@ -922,7 +919,7 @@ describe('vm', function () {
       })
     })
 
-    it('attaches the disk to the VM with specified attributes', async function () {
+    it('attaches the disk to the VM with specified attributes', async () => {
       await xo.call('vm.attachDisk', {
         vm: vmId,
         vdi: diskId,
@@ -947,18 +944,18 @@ describe('vm', function () {
 
   // ---------------------------------------------------------------------
 
-  describe('.createInterface()', function () {
+  describe('.createInterface()', () => {
     let vifId
     let networkId
-    before(async function () {
+    beforeAll(async () => {
       vmId = await getVmXoTestPvId(xo)
       networkId = await getNetworkId(xo)
     })
-    afterEach(async function () {
+    afterEach(async () => {
       await xo.call('vif.delete', {id: vifId})
     })
 
-    it('create a VIF between the VM and the network', async function () {
+    it('create a VIF between the VM and the network', async () => {
       vifId = await xo.call('vm.createInterface', {
         vm: vmId,
         network: networkId,
@@ -974,7 +971,7 @@ describe('vm', function () {
       })
     })
 
-    it('can not create two interfaces on the same device', async function () {
+    it('can not create two interfaces on the same device', async () => {
       vifId = await xo.call('vm.createInterface', {
         vm: vmId,
         network: networkId,
@@ -985,7 +982,7 @@ describe('vm', function () {
         network: networkId,
         position: '1'
       }).then(
-        function () {
+        () => {
           throw new Error('createInterface() sould have trown')
         },
         function (error) {
@@ -997,41 +994,41 @@ describe('vm', function () {
 
   // ---------------------------------------------------------------------
 
-  describe('.attachPci()', function () {
+  describe('.attachPci()', () => {
     it('')
   })
 
   // ---------------------------------------------------------------------
 
-  describe('.detachPci()', function () {
+  describe('.detachPci()', () => {
     it('')
   })
 
   // ---------------------------------------------------------------------
 
-  describe('.stats()', function () {
-    this.timeout(20e3)
-    before(async function () {
+  describe('.stats()', () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 20e3
+    beforeAll(async () => {
       vmId = await getVmXoTestPvId(xo)
     })
-    beforeEach(async function () {
+    beforeEach(async () => {
       await xo.call('vm.start', {id: vmId})
     })
-    afterEach(async function () {
+    afterEach(async () => {
       await xo.call('vm.stop', {
         id: vmId,
         force: true
       })
     })
 
-    it('returns an array with statistics of the VM', async function () {
+    it('returns an array with statistics of the VM', async () => {
       const stats = await xo.call('vm.stats', {id: vmId})
       expect(stats).to.be.an.object()
     })
   })
 
   // ---------------------------------------------------------------------
-  describe('.bootOrder()', function () {
+  describe('.bootOrder()', () => {
     it('')
   })
 })

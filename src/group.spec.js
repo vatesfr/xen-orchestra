@@ -1,4 +1,4 @@
-/* eslint-env mocha */
+/* eslint-env jest */
 
 // Doc: https://github.com/moll/js-must/blob/master/doc/API.md#must
 import expect from 'must'
@@ -10,19 +10,19 @@ import {find, map} from 'lodash'
 
 // ===================================================================
 
-describe('group', function () {
+describe('group', () => {
   let xo
   let userIds = []
   let groupIds = []
 
   // -----------------------------------------------------------------
-  before(async function () {
+  beforeAll(async () => {
     xo = await getMainConnection()
   })
 
   // -----------------------------------------------------------------
 
-  afterEach(async function () {
+  afterEach(async () => {
     await Promise.all([
       deleteGroups(),
       deleteUsers(xo, userIds)
@@ -70,8 +70,8 @@ describe('group', function () {
 
   // =================================================================
 
-  describe('.create()', function () {
-    it('creates a group and return its id', async function () {
+  describe('.create()', () => {
+    it('creates a group and return its id', async () => {
       const groupId = await createGroup({
         name: 'Avengers'
       })
@@ -83,7 +83,7 @@ describe('group', function () {
       })
     })
 
-    it.skip('does not create two groups with the same name', async function () {
+    it.skip('does not create two groups with the same name', async () => {
       await createGroup({
         name: 'Avengers'
       })
@@ -91,7 +91,7 @@ describe('group', function () {
       await createGroup({
         name: 'Avengers'
       }).then(
-        function () {
+        () => {
           throw new Error('createGroup() should have thrown')
         },
         function (error) {
@@ -103,15 +103,15 @@ describe('group', function () {
 
  // ------------------------------------------------------------------
 
-  describe('.delete()', function () {
+  describe('.delete()', () => {
     let groupId
-    beforeEach(async function () {
+    beforeEach(async () => {
       groupId = await createGroup({
         name: 'Avengers'
       })
     })
 
-    it('delete a group', async function () {
+    it('delete a group', async () => {
       await xo.call('group.delete', {
         id: groupId
       })
@@ -119,7 +119,7 @@ describe('group', function () {
       expect(group).to.be.undefined()
     })
 
-    it.skip('erase the group from user\'s groups list', async function () {
+    it.skip('erase the group from user\'s groups list', async () => {
       // create user and add it to the group
       const userId = await createUser(
         xo, userIds, {
@@ -138,7 +138,7 @@ describe('group', function () {
       expect(user.groups).to.be.a.permutationOf([])
     })
 
-    it.skip('erase the user from group\'s users list', async function () {
+    it.skip('erase the user from group\'s users list', async () => {
       // create user and add it to the group
       const userId = await createUser(
         xo, userIds, {
@@ -160,8 +160,8 @@ describe('group', function () {
 
 // -------------------------------------------------------------------
 
-  describe('.getAll()', function () {
-    it('returns an array', async function () {
+  describe('.getAll()', () => {
+    it('returns an array', async () => {
       const groups = await xo.call('group.getAll')
       expect(groups).to.be.an.array()
     })
@@ -169,12 +169,12 @@ describe('group', function () {
 
 // -------------------------------------------------------------------
 
-  describe('.setUsers ()', function () {
+  describe('.setUsers ()', () => {
     let groupId
     let userId1
     let userId2
     let userId3
-    beforeEach(async function () {
+    beforeEach(async () => {
       [groupId, userId1, userId2, userId3] = await Promise.all([
         createGroup({
           name: 'Avengers'
@@ -194,7 +194,7 @@ describe('group', function () {
       ])
     })
 
-    it('can set users of a group', async function () {
+    it('can set users of a group', async () => {
       // add two users on the group
       await xo.call('group.setUsers', {
         id: groupId,
@@ -247,10 +247,10 @@ describe('group', function () {
 
 // -------------------------------------------------------------------
 
-  describe('.addUser()', function () {
+  describe('.addUser()', () => {
     let groupId
     let userId
-    beforeEach(async function () {
+    beforeEach(async () => {
       ;[groupId, userId] = await Promise.all([
         createGroup({
           name: 'Avengers'
@@ -262,7 +262,7 @@ describe('group', function () {
       ])
     })
 
-    it('adds a user id to a group', async function () {
+    it('adds a user id to a group', async () => {
       await xo.call('group.addUser', {
         id: groupId,
         userId: userId
@@ -285,10 +285,10 @@ describe('group', function () {
 
 // -------------------------------------------------------------------
 
-  describe('removeUser()', function () {
+  describe('removeUser()', () => {
     let groupId
     let userId
-    beforeEach(async function () {
+    beforeEach(async () => {
       [groupId, userId] = await Promise.all([
         createGroup({
           name: 'Avengers'
@@ -305,7 +305,7 @@ describe('group', function () {
       })
     })
 
-    it('removes a user to a group', async function () {
+    it('removes a user to a group', async () => {
       await xo.call('group.removeUser', {
         id: groupId,
         userId: userId
@@ -328,15 +328,15 @@ describe('group', function () {
 
 // -------------------------------------------------------------------
 
-  describe('set()', function () {
+  describe('set()', () => {
     let groupId
-    beforeEach(async function () {
+    beforeEach(async () => {
       groupId = await createGroup({
         name: 'Avengers'
       })
     })
 
-    it('changes name of a group', async function () {
+    it('changes name of a group', async () => {
       await xo.call('group.set', {
         id: groupId,
         name: 'Guardians of the Galaxy'

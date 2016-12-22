@@ -1,4 +1,4 @@
-/* eslint-env mocha */
+/* eslint-env jest */
 
 // Doc: https://github.com/moll/js-must/blob/master/doc/API.md#must
 import expect from 'must'
@@ -7,19 +7,19 @@ import {map, find, assign} from 'lodash'
 
 // ===================================================================
 
-describe('server', function () {
+describe('server', () => {
   let xo
   let serverIds = []
   let config
 
-  before(async function () {
+  beforeAll(async () => {
     ;[xo, config] = await Promise.all([
       getMainConnection(),
       getConfig()
     ])
   })
 
-  afterEach(async function () {
+  afterEach(async () => {
     await Promise.all(map(
       serverIds,
       serverId => xo.call('server.remove', {id: serverId})
@@ -44,8 +44,8 @@ describe('server', function () {
 
   // ==================================================================
 
-  describe('.add()', function () {
-    it('add a Xen server and return its id', async function () {
+  describe('.add()', () => {
+    it('add a Xen server and return its id', async () => {
       const serverId = await addServer({
         host: 'xen1.example.org',
         username: 'root',
@@ -63,7 +63,7 @@ describe('server', function () {
       })
     })
 
-    it('does not add two servers with the same host', async function () {
+    it('does not add two servers with the same host', async () => {
       await addServer({
         host: 'xen1.example.org',
         username: 'root',
@@ -77,7 +77,7 @@ describe('server', function () {
         password: 'password',
         autoConnect: false
       }).then(
-        function () {
+        () => {
           throw new Error('addServer() should have thrown')
         },
         function (error) {
@@ -85,7 +85,7 @@ describe('server', function () {
         })
     })
 
-    it('set autoConnect true by default', async function () {
+    it('set autoConnect true by default', async () => {
       const serverId = await addServer(config.xenServer1)
       const server = await getServer(serverId)
 
@@ -98,9 +98,9 @@ describe('server', function () {
 
   // -----------------------------------------------------------------
 
-  describe('.remove()', function () {
+  describe('.remove()', () => {
     let serverId
-    beforeEach(async function () {
+    beforeEach(async () => {
       serverId = await addServer({
         host: 'xen1.example.org',
         username: 'root',
@@ -109,7 +109,7 @@ describe('server', function () {
       })
     })
 
-    it('remove a Xen server', async function () {
+    it('remove a Xen server', async () => {
       await xo.call('server.remove', {
         id: serverId
       })
@@ -121,8 +121,8 @@ describe('server', function () {
 
   // -----------------------------------------------------------------
 
-  describe('.getAll()', function () {
-    it('returns an array', async function () {
+  describe('.getAll()', () => {
+    it('returns an array', async () => {
       const servers = await xo.call('server.getAll')
 
       expect(servers).to.be.an.array()
@@ -131,9 +131,9 @@ describe('server', function () {
 
   // -----------------------------------------------------------------
 
-  describe('.set()', function () {
+  describe('.set()', () => {
     let serverId
-    beforeEach(async function () {
+    beforeEach(async () => {
       serverId = await addServer({
         host: 'xen1.example.org',
         username: 'root',
@@ -142,7 +142,7 @@ describe('server', function () {
       })
     })
 
-    it('changes attributes of an existing server', async function () {
+    it('changes attributes of an existing server', async () => {
       await xo.call('server.set', {
         id: serverId,
         username: 'root2'
@@ -160,10 +160,10 @@ describe('server', function () {
 
   // -----------------------------------------------------------------
 
-  describe('.connect()', function () {
-    this.timeout(5e3)
+  describe('.connect()', () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 5e3
 
-    it('connects to a Xen server', async function () {
+    it('connects to a Xen server', async () => {
       const serverId = await addServer(assign(
         {autoConnect: false}, config.xenServer1
       ))
@@ -181,7 +181,7 @@ describe('server', function () {
       })
     })
 
-    it.skip('connect to a Xen server on a slave host', async function () {
+    it.skip('connect to a Xen server on a slave host', async () => {
       const serverId = await addServer(config.slaveServer)
       await xo.call('server.connect', {id: serverId})
 
@@ -192,10 +192,10 @@ describe('server', function () {
 
   // -----------------------------------------------------------------
 
-  describe('.disconnect()', function () {
-    this.timeout(5e3)
+  describe('.disconnect()', () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 5e3
     let serverId
-    beforeEach(async function () {
+    beforeEach(async () => {
       serverId = await addServer(assign(
         {autoConnect: false}, config.xenServer1
       ))
@@ -204,7 +204,7 @@ describe('server', function () {
       })
     })
 
-    it('disconnects to a Xen server', async function () {
+    it('disconnects to a Xen server', async () => {
       await xo.call('server.disconnect', {
         id: serverId
       })

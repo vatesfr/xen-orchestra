@@ -1,4 +1,4 @@
-/* eslint-env mocha */
+/* eslint-env jest */
 
 // Doc: https://github.com/moll/js-must/blob/master/doc/API.md#must
 
@@ -9,15 +9,15 @@ import {find, forEach} from 'lodash'
 
 // ===================================================================
 
-describe('host', function () {
+describe('host', () => {
   let xo
   let serverId
   let hostId
 
   // -----------------------------------------------------------------
 
-  before(async function () {
-    this.timeout(10e3)
+  beforeAll(async () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10e3
     let config
     ;[xo, config] = await Promise.all([
       getMainConnection(),
@@ -31,7 +31,7 @@ describe('host', function () {
 
   // -------------------------------------------------------------------
 
-  after(async function () {
+  afterAll(async () => {
     await xo.call('server.remove', {
       id: serverId
     })
@@ -47,17 +47,17 @@ describe('host', function () {
 
 // ===================================================================
 
-  describe('.set()', function () {
+  describe('.set()', () => {
     let name_label
     let name_description
 
-    beforeEach(async function () {
+    beforeEach(async () => {
       // get values to set them at the end of the test
       const host = xo.objects.all[hostId]
       name_label = host.name_label
       name_description = host.name_description
     })
-    afterEach(async function () {
+    afterEach(async () => {
       await xo.call('host.set', {
         id: hostId,
         name_label: name_label,
@@ -65,7 +65,7 @@ describe('host', function () {
       })
     })
 
-    it('changes properties of the host', async function () {
+    it('changes properties of the host', async () => {
       await xo.call('host.set', {
         id: hostId,
         name_label: 'labTest',
@@ -80,9 +80,9 @@ describe('host', function () {
 
   // ------------------------------------------------------------------
 
-  describe('.restart()', function () {
-    this.timeout(330e3)
-    it('restart the host', async function () {
+  describe('.restart()', () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 330e3
+    it('restart the host', async () => {
       await xo.call('host.restart', {id: hostId})
 
       await waitObjectState(xo, hostId, host => {
@@ -99,18 +99,18 @@ describe('host', function () {
 
   // ------------------------------------------------------------------
 
-  describe('.restartAgent()', function () {
+  describe('.restartAgent()', () => {
     it('restart a Xen agent on the host')
   })
 
   // ------------------------------------------------------------------
 
-  describe('.start()', function () {
-    this.timeout(300e3)
-    beforeEach(async function () {
+  describe('.start()', () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 300e3
+    beforeEach(async () => {
       try {
         await xo.call('host.stop', {id: hostId})
-      } catch(_) {}
+      } catch (_) {}
 
       // test if the host is shutdown
       await waitObjectState(xo, hostId, host => {
@@ -118,7 +118,7 @@ describe('host', function () {
       })
     })
 
-    it('start the host', async function () {
+    it('start the host', async () => {
       await xo.call('host.start', {id: hostId})
       await waitObjectState(xo, hostId, host => {
         expect(host.power_state).to.be.equal('Running')
@@ -128,27 +128,27 @@ describe('host', function () {
 
   // ------------------------------------------------------------------
 
-  describe('.stop()', function () {
-    this.timeout(300e3)
+  describe('.stop()', () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 300e3
     let vmId
 
-    before(async function () {
+    beforeAll(async () => {
       vmId = await getVmToMigrateId(xo)
       try {
         await xo.call('vm.start', {id: vmId})
-      } catch(_) {}
+      } catch (_) {}
       try {
         await xo.call('vm.migrate', {
           vm: vmId,
           host: hostId
         })
-      } catch(_) {}
+      } catch (_) {}
     })
-    afterEach(async function () {
+    afterEach(async () => {
       await xo.call('host.start', {id: hostId})
     })
 
-    it('stop the host and shutdown its VMs', async function () {
+    it('stop the host and shutdown its VMs', async () => {
       await xo.call('host.stop', {id: hostId})
       await Promise.all([
         waitObjectState(xo, vmId, vm => {
@@ -164,20 +164,20 @@ describe('host', function () {
 
   // ------------------------------------------------------------------
 
-  describe('.detach()', function () {
+  describe('.detach()', () => {
     it('ejects the host of a pool')
   })
 
   // ------------------------------------------------------------------
 
-  describe('.disable(), ', function () {
-    afterEach(async function () {
+  describe('.disable(), ', () => {
+    afterEach(async () => {
       await xo.call('host.enable', {
         id: hostId
       })
     })
 
-    it('disables to create VM on the host', async function () {
+    it('disables to create VM on the host', async () => {
       await xo.call('host.disable', {id: hostId})
       await waitObjectState(xo, hostId, host => {
         expect(host.enabled).to.be.false()
@@ -187,12 +187,12 @@ describe('host', function () {
 
   // ------------------------------------------------------------------
 
-  describe('.enable()', async function () {
-    beforeEach(async function () {
+  describe('.enable()', async () => {
+    beforeEach(async () => {
       await xo.call('host.disable', {id: hostId})
     })
 
-    it('enables to create VM on the host', async function () {
+    it('enables to create VM on the host', async () => {
       await xo.call('host.enable', {id: hostId})
 
       await waitObjectState(xo, hostId, host => {
@@ -202,27 +202,27 @@ describe('host', function () {
   })
 
   // -----------------------------------------------------------------
-  describe('.createNetwork()', function () {
+  describe('.createNetwork()', () => {
     it('create a network')
   })
 
   // -----------------------------------------------------------------
 
-  describe('.listMissingPatches()', function () {
+  describe('.listMissingPatches()', () => {
     it('returns an array of missing patches in the host')
     it('returns a empty array if up-to-date')
   })
 
   // ------------------------------------------------------------------
 
-  describe('.installPatch()', function () {
+  describe('.installPatch()', () => {
     it('installs a patch patch on the host')
   })
 
   // ------------------------------------------------------------------
 
-  describe('.stats()', function () {
-    it('returns an array with statistics of the host', async function () {
+  describe('.stats()', () => {
+    it('returns an array with statistics of the host', async () => {
       const stats = await xo.call('host.stats', {
         host: hostId
       })

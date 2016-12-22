@@ -1,4 +1,4 @@
-/* eslint-env mocha */
+/* eslint-env jest */
 
 // Doc: https://github.com/moll/js-must/blob/master/doc/API.md#must
 import expect from 'must'
@@ -11,15 +11,14 @@ import eventToPromise from 'event-to-promise'
 
 // ===================================================================
 
-describe('job', function () {
-
+describe('job', () => {
   let xo
   let serverId
   let vmId
   let jobIds = []
 
-  before(async function () {
-    this.timeout(10e3)
+  beforeAll(async () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10e3
     let config
     ;[xo, config] = await Promise.all([
       getMainConnection(),
@@ -34,13 +33,13 @@ describe('job', function () {
 
   // -----------------------------------------------------------------
 
-  after(async function () {
+  afterAll(async () => {
     await xo.call('server.remove', {id: serverId})
   })
 
   // -----------------------------------------------------------------
 
-  afterEach(async function () {
+  afterEach(async () => {
     await Promise.all(map(
       jobIds,
       jobId => xo.call('job.delete', {id: jobId})
@@ -70,8 +69,8 @@ describe('job', function () {
 
 // ===================================================================
 
-  describe('.getAll()', function () {
-    it('gets all available jobs', async function () {
+  describe('.getAll()', () => {
+    it('gets all available jobs', async () => {
       const jobs = await xo.call('job.getAll')
       expect(jobs).to.be.an.array()
     })
@@ -79,13 +78,13 @@ describe('job', function () {
 
   // -----------------------------------------------------------------
 
-  describe('.get()', function () {
+  describe('.get()', () => {
     let jobId
-    beforeEach(async function() {
+    beforeEach(async () => {
       jobId = await createJobTest()
     })
 
-    it('gets an existing job', async function () {
+    it('gets an existing job', async () => {
       const job = await xo.call('job.get', {id: jobId})
 
       expect(job.method).to.be.equal('vm.snapshot')
@@ -97,8 +96,8 @@ describe('job', function () {
 
   // -----------------------------------------------------------------
 
-  describe('.create()', function () {
-    it('creates a new job', async function () {
+  describe('.create()', () => {
+    it('creates a new job', async () => {
       const jobId = await createJob({
         job: {
           type: 'call',
@@ -129,12 +128,12 @@ describe('job', function () {
 
   // -----------------------------------------------------------------
 
-  describe('.set()', function () {
+  describe('.set()', () => {
     let jobId
-    beforeEach(async function () {
+    beforeEach(async () => {
       jobId = createJobTest()
     })
-    it('modifies an existing job', async function () {
+    it('modifies an existing job', async () => {
       await xo.call('job.set', {
         job: {
           id: jobId,
@@ -164,15 +163,15 @@ describe('job', function () {
 
   // -----------------------------------------------------------------
 
-  describe('.delete()', function () {
+  describe('.delete()', () => {
     let jobId
-    beforeEach(async function () {
+    beforeEach(async () => {
       jobId = await createJobTest()
     })
-    it('delete an existing job', async function () {
+    it('delete an existing job', async () => {
       await xo.call('job.delete', {id: jobId})
       await getJob(jobId).then(
-        function () {
+        () => {
           throw new Error('getJob() should have thrown')
         },
         function (error) {

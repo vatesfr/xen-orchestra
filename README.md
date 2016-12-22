@@ -7,7 +7,7 @@
 Installation of the [npm package](https://npmjs.org/package/xo-test):
 
 ```
-> npm install --save xo-test
+> npm install --global xo-test
 ```
 
 ## Usage

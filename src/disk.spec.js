@@ -1,4 +1,4 @@
-/* eslint-env mocha */
+/* eslint-env jest */
 
 // Doc: https://github.com/moll/js-must/blob/master/doc/API.md#must
 import expect from 'must'
@@ -11,7 +11,7 @@ import eventToPromise from 'event-to-promise'
 
 // ===================================================================
 
-describe('disk', function () {
+describe('disk', () => {
   let diskId
   let diskIds = []
   let serverId
@@ -20,8 +20,8 @@ describe('disk', function () {
 
   // -----------------------------------------------------------------
 
-  before(async function () {
-    this.timeout(10e3)
+  beforeAll(async () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10e3
     xo = await getMainConnection()
 
     const config = await getConfig()
@@ -35,7 +35,7 @@ describe('disk', function () {
 
   // -----------------------------------------------------------------
 
-  afterEach(async function () {
+  afterEach(async () => {
     await Promise.all(map(
       diskIds,
       diskId => xo.call('vdi.delete', {id: diskId})
@@ -45,7 +45,7 @@ describe('disk', function () {
 
   // -----------------------------------------------------------------
 
-  after(async function () {
+  afterAll(async () => {
     await xo.call('server.remove', {id: serverId})
   })
 
@@ -68,8 +68,8 @@ describe('disk', function () {
 
 // ===================================================================
 
-  describe('.create()', function () {
-    it('create a new disk on a SR', async function () {
+  describe('.create()', () => {
+    it('create a new disk on a SR', async () => {
       diskId = await createDisk({
         name: 'diskTest',
         size: '1GB',
@@ -93,12 +93,12 @@ describe('disk', function () {
 
   // -------------------------------------------------------------------
 
-  describe('.delete()', function () {
-    beforeEach(async function () {
+  describe('.delete()', () => {
+    beforeEach(async () => {
       diskId = await createDiskTest()
     })
 
-    it('deletes a disk', async function () {
+    it('deletes a disk', async () => {
       await Promise.all([
         xo.call('vdi.delete', {id: diskId}),
         waitObjectState(xo, diskId, disk => {
@@ -114,12 +114,12 @@ describe('disk', function () {
 
   // ---------------------------------------------------------------------
 
-  describe('.set()', function () {
-    beforeEach(async function () {
+  describe('.set()', () => {
+    beforeEach(async () => {
       diskId = await createDiskTest()
     })
 
-    it('set the name of the disk', async function () {
+    it('set the name of the disk', async () => {
       await xo.call('vdi.set', {
         id: diskId,
         name_label: 'disk2'
@@ -130,7 +130,7 @@ describe('disk', function () {
       })
     })
 
-    it('set the description of the disk', async function () {
+    it('set the description of the disk', async () => {
       await xo.call('vdi.set', {
         id: diskId,
         name_description: 'description'
@@ -141,7 +141,7 @@ describe('disk', function () {
       })
     })
 
-    it.skip('set the size of the disk', async function () {
+    it.skip('set the size of the disk', async () => {
       await xo.getOrWaitObject(diskId)
       await xo.call('vdi.set', {
         id: diskId,
@@ -152,11 +152,5 @@ describe('disk', function () {
         expect(disk.size).to.be.equal(6291456)
       })
     })
-  })
-
-  // -------------------------------------------------------------------
-
-  describe('.migrate()', function () {
-    it('')
   })
 })

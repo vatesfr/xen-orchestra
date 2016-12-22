@@ -1,6 +1,6 @@
-import {Xo} from 'xo-lib'
-import {find, forEach, map, once, cloneDeep} from 'lodash'
 import expect from 'must'
+import Xo from 'xo-lib'
+import {find, forEach, map, once, cloneDeep} from 'lodash'
 
 export async function getConfig () {
   return {
@@ -44,18 +44,19 @@ export async function getConnection ({
   credentials
 } = {}) {
   const config = await getConfig()
-  const xo = new Xo(config.xoServerUrl)
+  const xo = new Xo({ url: config.xoServerUrl })
+  await xo.open()
   await xo.signIn(
-    credentials === undefined ?
-      config.adminCredentials :
-      credentials
+    credentials === undefined
+    ? config.adminCredentials
+    : credentials
   )
 
   // Injects waitObject()
   //
   // TODO: integrate in xo-lib.
   const watchers = {}
-  xo.waitObject = (id) => {
+  xo.waitObject = id => {
     return new Promise(resolve => {
       watchers[id] = resolve
     })
@@ -216,7 +217,7 @@ export function deepDelete (obj, path) {
 export function almostEqual (actual, expected, ignoredAttributes) {
   actual = cloneDeep(actual)
   expected = cloneDeep(expected)
-  forEach(ignoredAttributes, (ignoredAttribute) => {
+  forEach(ignoredAttributes, ignoredAttribute => {
     deepDelete(actual, ignoredAttribute.split('.'))
     deepDelete(expected, ignoredAttribute.split('.'))
   })

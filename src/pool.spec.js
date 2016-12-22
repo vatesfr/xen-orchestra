@@ -1,4 +1,4 @@
-/* eslint-env mocha */
+/* eslint-env jest */
 
 // Doc: https://github.com/moll/js-must/blob/master/doc/API.md#must
 import expect from 'must'
@@ -11,14 +11,14 @@ import {find} from 'lodash'
 
 // ===================================================================
 
-describe('pool', function () {
+describe('pool', () => {
   let xo
   let serverId
   let poolId
   let config
 
-  before(async function () {
-    this.timeout(10e3)
+  beforeAll(async () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10e3
 
     ;[xo, config] = await Promise.all([
       getMainConnection(),
@@ -31,7 +31,7 @@ describe('pool', function () {
 
 // -------------------------------------------------------------------
 
-  after(async function () {
+  afterAll(async () => {
     await xo.call('server.remove', {
       id: serverId
     })
@@ -47,15 +47,15 @@ describe('pool', function () {
 
 // ===================================================================
 
-  describe('.set()', function () {
-    afterEach(async function () {
+  describe('.set()', () => {
+    afterEach(async () => {
       await xo.call('pool.set', {
         id: poolId,
         name_label: config.pool.name_label,
         name_description: ''
       })
     })
-    it.skip('set pool parameters', async function () {
+    it.skip('set pool parameters', async () => {
       await xo.call('pool.set', {
         id: poolId,
         name_label: 'nameTest',
@@ -71,13 +71,13 @@ describe('pool', function () {
 
   // ------------------------------------------------------------------
 
-  describe('.installPatch()', function () {
+  describe('.installPatch()', () => {
     it('install a patch on the pool')
   })
 
   // -----------------------------------------------------------------
 
-  describe('handlePatchUpload()', function () {
+  describe('handlePatchUpload()', () => {
     it('')
   })
 })

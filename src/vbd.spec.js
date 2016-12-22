@@ -1,4 +1,4 @@
-/* eslint-env mocha */
+/* eslint-env jest */
 
 // Doc: https://github.com/moll/js-must/blob/master/doc/API.md#must
 import expect from 'must'
@@ -11,7 +11,7 @@ import eventToPromise from 'event-to-promise'
 
 // ===================================================================
 
-describe('vbd', function () {
+describe('vbd', () => {
   let xo
   let vbdId
   let diskIds = []
@@ -20,8 +20,8 @@ describe('vbd', function () {
 
   // ------------------------------------------------------------------
 
-  before(async function () {
-    this.timeout(10e3)
+  beforeAll(async () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10e3
     let config
     ;[xo, config] = await Promise.all([
       getMainConnection(),
@@ -42,14 +42,14 @@ describe('vbd', function () {
 
   // -----------------------------------------------------------------
 
-  beforeEach(async function () {
-    this.timeout(10e3)
+  beforeEach(async () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10e3
     vbdId = await createVbd()
   })
 
   // ------------------------------------------------------------------
 
-  afterEach(async function () {
+  afterEach(async () => {
     await Promise.all(map(
       diskIds,
       diskId => xo.call('vdi.delete', {id: diskId})
@@ -59,8 +59,8 @@ describe('vbd', function () {
 
   // ------------------------------------------------------------------
 
-  after(async function () {
-    this.timeout(5e3)
+  afterAll(async () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 5e3
     await Promise.all([
       xo.call('vm.stop', {id: vmId}),
       xo.call('server.remove', {id: serverId})
@@ -90,9 +90,8 @@ describe('vbd', function () {
 
   // =====================================================================
 
-  describe('.delete()', function () {
-
-    it('delete the VBD', async function () {
+  describe('.delete()', () => {
+    it('delete the VBD', async () => {
       await xo.call('vbd.disconnect', {id: vbdId})
       await xo.call('vbd.delete', {id: vbdId})
 
@@ -101,9 +100,9 @@ describe('vbd', function () {
       })
     })
 
-    it('deletes the VBD only if it is deconnected', async function () {
+    it('deletes the VBD only if it is deconnected', async () => {
       await xo.call('vbd.delete', {id: vbdId}).then(
-        function () {
+        () => {
           throw new Error('vbd.delete() should have thrown')
         },
         function (error) {
@@ -117,8 +116,8 @@ describe('vbd', function () {
 
   // --------------------------------------------------------------------
 
-  describe('.disconnect()', function () {
-    it('disconnect the VBD', async function () {
+  describe('.disconnect()', () => {
+    it('disconnect the VBD', async () => {
       await xo.call('vbd.disconnect', {id: vbdId})
       await waitObjectState(xo, vbdId, vbd => {
         expect(vbd.attached).to.be.false()
@@ -128,15 +127,15 @@ describe('vbd', function () {
 
   // -------------------------------------------------------------------
 
-  describe('.connect()', function () {
-    beforeEach(async function () {
+  describe('.connect()', () => {
+    beforeEach(async () => {
       await xo.call('vbd.disconnect', {id: vbdId})
     })
-    afterEach(async function () {
+    afterEach(async () => {
       await xo.call('vbd.disconnect', {id: vbdId})
     })
 
-    it('connect the VBD', async function () {
+    it('connect the VBD', async () => {
       await xo.call('vbd.connect', {id: vbdId})
 
       await waitObjectState(xo, vbdId, vbd => {
@@ -147,13 +146,13 @@ describe('vbd', function () {
 
   // ----------------------------------------------------------------
 
-  describe('.set()', function () {
-    afterEach(async function () {
+  describe('.set()', () => {
+    afterEach(async () => {
       await xo.call('vbd.disconnect', {id: vbdId})
     })
 
     // TODO: resolve problem with disconnect
-    it.skip('set the position of the VBD', async function () {
+    it.skip('set the position of the VBD', async () => {
       await xo.call('vbd.set', {
         id: vbdId,
         position: '10'

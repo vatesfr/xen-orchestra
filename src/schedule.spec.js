@@ -1,4 +1,4 @@
-/* eslint-env mocha */
+/* eslint-env jest */
 
 // Doc: https://github.com/moll/js-must/blob/master/doc/API.md#must
 import expect from 'must'
@@ -17,14 +17,14 @@ import {map} from 'lodash'
 
 // ===================================================================
 
-describe('schedule', function () {
+describe('schedule', () => {
   let xo
   let serverId
   let scheduleIds = []
   let jobId
 
-  before(async function () {
-    this.timeout(10e3)
+  beforeAll(async () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10e3
     let config
     ;[xo, config] = await Promise.all([
       getMainConnection(),
@@ -39,7 +39,7 @@ describe('schedule', function () {
 
   // -----------------------------------------------------------------
 
-  after(async function () {
+  afterAll(async () => {
     await Promise.all([
       xo.call('job.delete', {id: jobId}),
       xo.call('server.remove', {id: serverId})
@@ -48,7 +48,7 @@ describe('schedule', function () {
 
   // -----------------------------------------------------------------
 
-  afterEach(async function () {
+  afterEach(async () => {
     await Promise.all(map(
       scheduleIds,
       scheduleId => xo.call('schedule.delete', {id: scheduleId})
@@ -72,8 +72,8 @@ describe('schedule', function () {
 
   // =================================================================
 
-  describe('.getAll()', function () {
-    it('gets all existing schedules', async function () {
+  describe('.getAll()', () => {
+    it('gets all existing schedules', async () => {
       const schedules = await xo.call('schedule.getAll')
       expect(schedules).to.be.an.array()
     })
@@ -81,13 +81,13 @@ describe('schedule', function () {
 
   // -----------------------------------------------------------------
 
-  describe('.get()', function () {
+  describe('.get()', () => {
     let scheduleId
-    before(async function () {
+    beforeAll(async () => {
       scheduleId = (await createScheduleTest()).id
     })
 
-    it('gets an existing schedule', async function () {
+    it('gets an existing schedule', async () => {
       const schedule = await xo.call('schedule.get', {id: scheduleId})
       expect(schedule.job).to.be.equal(jobId)
       expect(schedule.cron).to.be.equal('* * * * * *')
@@ -97,8 +97,8 @@ describe('schedule', function () {
 
   // -----------------------------------------------------------------
 
-  describe('.create()', function () {
-    it('creates a new schedule', async function () {
+  describe('.create()', () => {
+    it('creates a new schedule', async () => {
       const schedule = await createSchedule({
         jobId: jobId,
         cron: '* * * * * *',
@@ -112,12 +112,12 @@ describe('schedule', function () {
 
   // -----------------------------------------------------------------
 
-  describe('.set()', function () {
+  describe('.set()', () => {
     let scheduleId
-    before(async function () {
+    beforeAll(async () => {
       scheduleId = (await createScheduleTest()).id
     })
-    it('modifies an existing schedule', async function () {
+    it('modifies an existing schedule', async () => {
       await xo.call('schedule.set', {
         id: scheduleId,
         cron: '2 * * * * *'
@@ -130,15 +130,15 @@ describe('schedule', function () {
 
   // -----------------------------------------------------------------
 
-  describe('.delete()', function () {
+  describe('.delete()', () => {
     let scheduleId
-    beforeEach(async function () {
+    beforeEach(async () => {
       scheduleId = (await createScheduleTest()).id
     })
-    it('deletes an existing schedule', async function () {
+    it('deletes an existing schedule', async () => {
       await xo.call('schedule.delete', {id: scheduleId})
       await getSchedule(xo, scheduleId).then(
-        function () {
+        () => {
           throw new Error('getSchedule() should have thrown')
         },
         function (error) {

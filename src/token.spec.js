@@ -1,4 +1,4 @@
-/* eslint-env mocha */
+/* eslint-env jest */
 
 // Doc: https://github.com/moll/js-must/blob/master/doc/API.md#must
 import expect from 'must'
@@ -10,14 +10,14 @@ import {map} from 'lodash'
 
 // ===================================================================
 
-describe('token', function () {
+describe('token', () => {
   let xo
   let tokens = []
-  before(async function () {
+  beforeAll(async () => {
     xo = await getMainConnection()
   })
 
-  after(async function () {
+  afterAll(async () => {
     await Promise.all(map(
       tokens,
       token => xo.call('token.delete', {token})
@@ -32,9 +32,8 @@ describe('token', function () {
 
   // =================================================================
 
-  describe('.create()', function () {
-
-    it('creates a token string which can be used to sign in', async function () {
+  describe('.create()', () => {
+    it('creates a token string which can be used to sign in', async () => {
       const token = await createToken()
 
       await getConnection({credentials: {token}})
@@ -43,8 +42,8 @@ describe('token', function () {
 
   // -------------------------------------------------------------------
 
-  describe('.delete()', function () {
-    it('deletes a token', async function () {
+  describe('.delete()', () => {
+    it('deletes a token', async () => {
       const token = await createToken()
       const xo2 = await getConnection({credentials: {token}})
 
@@ -53,7 +52,7 @@ describe('token', function () {
       })
 
       await getConnection({credentials: {token}}).then(
-        function () {
+        () => {
           throw new Error('xo2.signIn should have thrown')
         },
         function (error) {

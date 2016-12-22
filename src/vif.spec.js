@@ -1,4 +1,4 @@
-/* eslint-env mocha */
+/* eslint-env jest */
 
 // Doc: https://github.com/moll/js-must/blob/master/doc/API.md#must
 import expect from 'must'
@@ -11,15 +11,15 @@ import {map} from 'lodash'
 
 // ===================================================================
 
-describe('vif', function () {
+describe('vif', () => {
   let xo
   let serverId
   let vifIds = []
   let vmId
   let vifId
 
-  before(async function () {
-    this.timeout(10e3)
+  beforeAll(async () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10e3
     let config
 
     ;[xo, config] = await Promise.all([
@@ -38,13 +38,13 @@ describe('vif', function () {
 
 // -------------------------------------------------------------------
 
-  beforeEach(async function () {
+  beforeEach(async () => {
     vifId = await createVif()
   })
 
 // -------------------------------------------------------------------
 
-  afterEach(async function () {
+  afterEach(async () => {
     await Promise.all(map(
       vifIds,
       vifId => xo.call('vif.delete', {id: vifId})
@@ -54,8 +54,8 @@ describe('vif', function () {
 
 // -------------------------------------------------------------------
 
-  after(async function () {
-    this.timeout(5e3)
+  afterAll(async () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 5e3
     await xo.call('vm.stop', {id: vmId, force: true})
     await xo.call('server.remove', {id: serverId})
   })
@@ -77,8 +77,8 @@ describe('vif', function () {
 
 // ===================================================================
 
-  describe('.delete()', function () {
-    it('deletes a VIF', async function() {
+  describe('.delete()', () => {
+    it('deletes a VIF', async () => {
       await xo.call('vif.disconnect', {id: vifId})
       await xo.call('vif.delete', {id: vifId})
 
@@ -89,9 +89,9 @@ describe('vif', function () {
       vifIds = []
     })
 
-    it('can not delete a VIF if it is connected', async function () {
+    it('can not delete a VIF if it is connected', async () => {
       await xo.call('vif.delete', {id: vifId}).then(
-        function () {
+        () => {
           throw new Error('vif.delete() should have thrown')
         },
         function (error) {
@@ -104,8 +104,8 @@ describe('vif', function () {
 
   // ----------------------------------------------------------------
 
-  describe('.disconnect()', function () {
-    it('disconnects a VIF', async function () {
+  describe('.disconnect()', () => {
+    it('disconnects a VIF', async () => {
       await xo.call('vif.disconnect', {id: vifId})
       await waitObjectState(xo, vifId, vif => {
         expect(vif.attached).to.be.false()
@@ -115,14 +115,14 @@ describe('vif', function () {
 
   // ----------------------------------------------------------------
 
-  describe('.connect()', function () {
-    beforeEach(async function () {
+  describe('.connect()', () => {
+    beforeEach(async () => {
       await xo.call('vif.disconnect', {id: vifId})
     })
-    afterEach(async function () {
+    afterEach(async () => {
       await xo.call('vif.disconnect', {id: vifId})
     })
-    it('connects a VIF', async function () {
+    it('connects a VIF', async () => {
       await xo.call('vif.connect', {id: vifId})
       await waitObjectState(xo, vifId, vif => {
         expect(vif.attached).to.be.true()

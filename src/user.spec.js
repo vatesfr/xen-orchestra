@@ -1,4 +1,4 @@
-/* eslint-env mocha */
+/* eslint-env jest */
 
 // Doc: https://github.com/moll/js-must/blob/master/doc/API.md#must
 import expect from 'must'
@@ -9,24 +9,23 @@ import {createUser, deleteUsers, getConnection, getMainConnection, getUser} from
 
 // ===================================================================
 
-describe('user', function () {
+describe('user', () => {
   let xo
   let userIds = []
 
-  before(async function () {
+  beforeAll(async () => {
     xo = await getMainConnection()
   })
 
-  afterEach(async function () {
+  afterEach(async () => {
     await deleteUsers(xo, userIds)
     userIds = []
   })
 
   // =================================================================
 
-  describe('.create()', function () {
-
-    it('creates an user and returns its id', async function () {
+  describe('.create()', () => {
+    it.only('creates an user and returns its id', async () => {
       const userId = await createUser(xo, userIds, {
         email: 'wayne@vates.fr',
         password: 'batman'})
@@ -42,7 +41,7 @@ describe('user', function () {
       })
     })
 
-    it.skip('does not create two users with the same email', async function () {
+    it.skip('does not create two users with the same email', async () => {
       await createUser(xo, userIds, {
         email: 'wayne@vates.fr',
         password: 'batman'
@@ -52,7 +51,7 @@ describe('user', function () {
         email: 'wayne@vates.fr',
         password: 'alfred'
       }).then(
-        function () {
+        () => {
           throw new Error('createUser() should have thrown')
         },
         function (error) {
@@ -61,7 +60,7 @@ describe('user', function () {
       )
     })
 
-    it('can set the user permission', async function () {
+    it('can set the user permission', async () => {
       const userId = await createUser(xo, userIds, {
         email: 'wayne@vates.fr',
         password: 'batman',
@@ -77,7 +76,7 @@ describe('user', function () {
       })
     })
 
-    it('allows the user to sign in', async function () {
+    it('allows the user to sign in', async () => {
       await createUser(xo, userIds, {
         email: 'wayne@vates.fr',
         password: 'batman'
@@ -92,8 +91,8 @@ describe('user', function () {
 
   // -----------------------------------------------------------------
 
-  describe('.delete()', function () {
-    it('deletes an user', async function () {
+  describe('.delete()', () => {
+    it('deletes an user', async () => {
       const userId = await createUser(xo, userIds, {
         email: 'wayne@vates.fr',
         password: 'batman'
@@ -106,9 +105,9 @@ describe('user', function () {
       expect(user).to.be.undefined()
     })
 
-    it('not allows an user to delete itself', async function () {
+    it('not allows an user to delete itself', async () => {
       await xo.call('user.delete', {id: xo.user.id}).then(
-        function () {
+        () => {
           throw new Error('user.delete() should have thrown')
         },
         function (error) {
@@ -120,8 +119,8 @@ describe('user', function () {
 
   // -----------------------------------------------------------------
 
-  describe('.getAll()', function () {
-    it('returns an array', async function () {
+  describe('.getAll()', () => {
+    it('returns an array', async () => {
       const users = await xo.call('user.getAll')
 
       expect(users).to.be.an.array()
@@ -130,16 +129,16 @@ describe('user', function () {
 
   // -----------------------------------------------------------------
 
-  describe('.set()', function () {
+  describe('.set()', () => {
     let userId
-    beforeEach(async function () {
+    beforeEach(async () => {
       userId = await createUser(xo, userIds, {
         email: 'wayne@vates.fr',
         password: 'batman'
       })
     })
 
-    it('changes password of an existing user', async function () {
+    it('changes password of an existing user', async () => {
       await xo.call('user.set', {
         id: userId,
         password: 'alfred'
@@ -151,7 +150,7 @@ describe('user', function () {
       }})
     })
 
-    it('changes email adress and permission of an existing user', async function () {
+    it('changes email adress and permission of an existing user', async () => {
       await xo.call('user.set', {
         id: userId,
         email: 'batman@vates.fr',
