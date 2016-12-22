@@ -688,15 +688,15 @@ export default class {
     )
 
     const fulFilledVdiBackups = []
-    let success = true
+    let error
 
     // One or many vdi backups have failed.
     for (const vdiBackup of vdiBackups) {
       if (vdiBackup.isFulfilled()) {
         fulFilledVdiBackups.push(vdiBackup)
       } else {
-        console.error(`Rejected backup: ${vdiBackup.reason()}`)
-        success = false
+        error = vdiBackup.reason()
+        console.error('Rejected backup:', error)
       }
     }
 
@@ -708,8 +708,8 @@ export default class {
       )
     })
 
-    if (!success) {
-      throw new Error('Rolling delta vm backup failed.')
+    if (error) {
+      throw error
     }
 
     const date = safeDateFormat(new Date())
