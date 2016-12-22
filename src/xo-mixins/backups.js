@@ -614,16 +614,7 @@ export default class {
 
   @deferrable.onFailure
   async rollingDeltaVmBackup ($onFailure, {vm, remoteId, tag, depth}) {
-    const remote = await this._xo.getRemote(remoteId)
-
-    if (!remote) {
-      throw new Error(`No such Remote ${remoteId}`)
-    }
-    if (!remote.enabled) {
-      throw new Error(`Remote ${remoteId} is disabled`)
-    }
-
-    const handler = await this._xo.getRemoteHandler(remote)
+    const handler = await this._xo.getRemoteHandler(remoteId)
     const xapi = this._xo.getXapi(vm)
 
     vm = xapi.getObject(vm._xapiId)
@@ -803,16 +794,7 @@ export default class {
   // -----------------------------------------------------------------
 
   async backupVm ({vm, remoteId, file, compress, onlyMetadata}) {
-    const remote = await this._xo.getRemote(remoteId)
-
-    if (!remote) {
-      throw new Error(`No such Remote ${remoteId}`)
-    }
-    if (!remote.enabled) {
-      throw new Error(`Backup remote ${remoteId} is disabled`)
-    }
-
-    const handler = await this._xo.getRemoteHandler(remote)
+    const handler = await this._xo.getRemoteHandler(remoteId)
     return this._backupVm(vm, handler, file, {compress, onlyMetadata})
   }
 
@@ -830,16 +812,7 @@ export default class {
   }
 
   async rollingBackupVm ({vm, remoteId, tag, depth, compress, onlyMetadata}) {
-    const remote = await this._xo.getRemote(remoteId)
-
-    if (!remote) {
-      throw new Error(`No such Remote ${remoteId}`)
-    }
-    if (!remote.enabled) {
-      throw new Error(`Backup remote ${remoteId} is disabled`)
-    }
-
-    const handler = await this._xo.getRemoteHandler(remote)
+    const handler = await this._xo.getRemoteHandler(remoteId)
 
     const files = await handler.list()
 
