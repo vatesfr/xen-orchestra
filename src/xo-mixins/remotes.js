@@ -39,7 +39,12 @@ export default class {
     if (typeof remote === 'string') {
       remote = await this.getRemote(remote)
     }
-    const Handler = {
+
+    if (!remote.enabled) {
+      throw new Error('remote is disabled')
+    }
+
+    const HANDLERS = {
       file: RemoteHandlerLocal,
       smb: RemoteHandlerSmb,
       nfs: RemoteHandlerNfs
