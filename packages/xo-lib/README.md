@@ -26,7 +26,7 @@ import Xo from 'xo-lib'
 const xo = new Xo({ url: 'https://xo.company.tld' })
 
 // Let's start by opening the connection.
-await xo.connect()
+await xo.open()
 
 // Must sign in before being able to call any methods (all calls will
 // be buffered until signed in).
