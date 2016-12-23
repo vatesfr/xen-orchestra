@@ -31,8 +31,8 @@ acorn@^4.0.1:
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-4.0.4.tgz#17a8d6a7a6c4ef538b814ec9abac2779293bf30a"
 
 ajv-keywords@^1.0.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/ajv-keywords/-/ajv-keywords-1.2.0.tgz#676c4f087bfe1e8b12dca6fda2f3c74f417b099c"
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/ajv-keywords/-/ajv-keywords-1.4.0.tgz#87db6a428bac4a5057a772fa83c6c22b6ec2768e"
 
 ajv@^4.7.0:
   version "4.10.0"
@@ -2132,7 +2132,7 @@ kind-of@^3.0.2:
   dependencies:
     is-buffer "^1.0.2"
 
-"kindof@>= 2.0.0 < 3":
+"kindof@>= 2.0.0 < 3", kindof@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/kindof/-/kindof-2.0.0.tgz#c335baf603a77cc37f8b406b73b6463fdbdf1abe"
 
@@ -2252,6 +2252,10 @@ lodash.pickby@^4.6.0:
   dependencies:
     lodash._createwrapper "^3.0.0"
 
+lodash@^3.10.1:
+  version "3.10.1"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-3.10.1.tgz#5bf45e8e49ba4189e17d482789dfd15bd140b7b6"
+
 lodash@^4.0.0, lodash@^4.15.0, lodash@^4.17.2, lodash@^4.2.0, lodash@^4.3.0:
   version "4.17.2"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.2.tgz#34a3055babe04ce42467b607d700072c7ff6bf42"
@@ -2273,7 +2277,7 @@ lru-cache@^4.0.1:
     pseudomap "^1.0.1"
     yallist "^2.0.0"
 
-make-error@^1.0.4, make-error@^1.1.1, make-error@^1.2.0:
+make-error@^1.0.2, make-error@^1.0.4, make-error@^1.1.1, make-error@^1.2.0:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/make-error/-/make-error-1.2.1.tgz#9a6dfb4844423b9f145806728d05c6e935670e75"
 
@@ -3219,6 +3223,15 @@ ws@^1.0.1:
 "xml-name-validator@>= 2.0.1 < 3.0.0":
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/xml-name-validator/-/xml-name-validator-2.0.1.tgz#4d8b8f1eccd3419aa362061becef515e1e559635"
+
+xo-collection@^0.4.1:
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/xo-collection/-/xo-collection-0.4.1.tgz#e3fb7c42dd79950a71db6669db2e53b73f80e351"
+  dependencies:
+    babel-runtime "^6.18.0"
+    kindof "^2.0.0"
+    lodash "^3.10.1"
+    make-error "^1.0.2"
 
 xo-lib@^0.8.2:
   version "0.8.2"
