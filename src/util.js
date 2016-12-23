@@ -1,7 +1,9 @@
 import expect from 'must'
 import Xo from 'xo-lib'
 import XoCollection from 'xo-collection'
-import {find, forEach, map, once, cloneDeep} from 'lodash'
+import {find, forEach, map, cloneDeep} from 'lodash'
+
+/* eslint-env jest */
 
 export async function getConfig () {
   return {
@@ -103,7 +105,14 @@ export async function getConnection ({
   return xo
 }
 
-export const getMainConnection = once(getConnection)
+export let xo
+beforeAll(async () => {
+  xo = await getConnection()
+})
+afterAll(async () => {
+  await xo.close()
+  xo = null
+})
 
 // =================================================================
 

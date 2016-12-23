@@ -4,21 +4,14 @@ import {
   createUser,
   deleteUsers,
   getConnection,
-  getMainConnection,
-  getUser
+  getUser,
+  xo
 } from './util'
 
 // ===================================================================
 
 describe('user', () => {
-  let xo
   let userIds = []
-
-  beforeAll(async () => {
-    xo = await getMainConnection()
-  })
-
-  afterAll(() => xo.close())
 
   afterEach(async () => {
     await deleteUsers(xo, userIds)
