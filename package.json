@@ -38,6 +38,7 @@
     "must": "^0.13.2",
     "rimraf": "^2.5.4",
     "standard": "^8.6.0",
+    "xo-collection": "^0.4.1",
     "xo-lib": "^0.8.2"
   },
   "scripts": {

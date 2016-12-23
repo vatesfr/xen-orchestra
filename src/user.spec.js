@@ -1,11 +1,12 @@
 /* eslint-env jest */
 
-// Doc: https://github.com/moll/js-must/blob/master/doc/API.md#must
-import expect from 'must'
-
-// ===================================================================
-
-import {createUser, deleteUsers, getConnection, getMainConnection, getUser} from './util'
+import {
+  createUser,
+  deleteUsers,
+  getConnection,
+  getMainConnection,
+  getUser
+} from './util'
 
 // ===================================================================
 
@@ -16,6 +17,8 @@ describe('user', () => {
   beforeAll(async () => {
     xo = await getMainConnection()
   })
+
+  afterAll(() => xo.close())
 
   afterEach(async () => {
     await deleteUsers(xo, userIds)
@@ -28,12 +31,13 @@ describe('user', () => {
     it.only('creates an user and returns its id', async () => {
       const userId = await createUser(xo, userIds, {
         email: 'wayne@vates.fr',
-        password: 'batman'})
+        password: 'batman'
+      })
 
-      expect(userId).to.be.a.string()
+      expect(typeof userId).toBe('string')
 
       const user = await getUser(xo, userId)
-      expect(user).to.be.eql({
+      expect(user).toEqual({
         id: userId,
         email: 'wayne@vates.fr',
         groups: [],

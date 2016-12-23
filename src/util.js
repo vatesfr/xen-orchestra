@@ -1,5 +1,6 @@
 import expect from 'must'
 import Xo from 'xo-lib'
+import XoCollection from 'xo-collection'
 import {find, forEach, map, once, cloneDeep} from 'lodash'
 
 export async function getConfig () {
@@ -56,31 +57,47 @@ export async function getConnection ({
   //
   // TODO: integrate in xo-lib.
   const watchers = {}
-  xo.waitObject = id => {
-    return new Promise(resolve => {
-      watchers[id] = resolve
-    })
-  }
+  const waitObject = xo.waitObject = id => new Promise(resolve => {
+    watchers[id] = resolve
+  }) // FIXME: work with multiple listeners.
 
-  const onUpdate = objects => {
-    forEach(objects, (object, id) => {
-      if (watchers[id]) {
-        watchers[id](object)
+  const objects = xo.objects = new XoCollection()
+  xo.on('notification', ({ method, params }) => {
+    if (method !== 'all') {
+      return
+    }
+
+    const fn = params.type === 'exit'
+      ? objects.unset
+      : objects.set
+
+    forEach(params.items, (item, id) => {
+      fn.call(objects, id, item)
+
+      const watcher = watchers[id]
+      if (watcher) {
+        watcher(item)
         delete watchers[id]
       }
     })
-  }
-  xo.objects.on('add', onUpdate)
-  xo.objects.on('update', onUpdate)
-  xo.objects.on('remove', onUpdate)
+  })
+  forEach(await xo.call('xo.getAllObjects'), (object, id) => {
+    objects.set(id, object)
 
-  xo.getOrWaitObject = async function (id) {
-    const object = this.objects.all[id]
+    const watcher = watchers[id]
+    if (watcher) {
+      watcher(object)
+      delete watchers[id]
+    }
+  })
+
+  xo.getOrWaitObject = async id => {
+    const object = objects.all[id]
     if (object) {
       return object
     }
 
-    return await this.waitObject(id)
+    return waitObject(id)
   }
 
   return xo
@@ -96,7 +113,7 @@ export async function getAllUsers (xo) {
 
 export async function getUser (xo, id) {
   const users = await getAllUsers(xo)
-  return find(users, {id: id})
+  return find(users, { id })
 }
 
 export async function createUser (xo, userIds, params) {
