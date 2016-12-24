@@ -1088,7 +1088,7 @@ var messages = {
   documentation: 'Documentation',
   documentationText: 'Read our official doc',
   proSupportIncluded: 'Pro support included',
-  xoAccount: 'Acces your XO Account',
+  xoAccount: 'Access your XO Account',
   openTicket: 'Report a problem',
   openTicketText: 'Problem? Open a ticket!',
 
