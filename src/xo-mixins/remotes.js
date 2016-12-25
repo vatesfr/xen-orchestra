@@ -35,12 +35,12 @@ export default class {
     xo.on('stop', () => this.forgetAllRemotes())
   }
 
-  async getRemoteHandler (remote) {
+  async getRemoteHandler (remote, ignoreDisabled) {
     if (typeof remote === 'string') {
       remote = await this.getRemote(remote)
     }
 
-    if (!remote.enabled) {
+    if (!(ignoreDisabled || remote.enabled)) {
       throw new Error('remote is disabled')
     }
 
@@ -61,7 +61,7 @@ export default class {
   }
 
   async testRemote (remote) {
-    const handler = await this.getRemoteHandler(remote)
+    const handler = await this.getRemoteHandler(remote, true)
     return handler.test()
   }
 
@@ -90,7 +90,7 @@ export default class {
   async updateRemote (id, {name, url, enabled, error}) {
     const remote = await this._getRemote(id)
     this._updateRemote(remote, {name, url, enabled, error})
-    const handler = await this.getRemoteHandler(remote.properties)
+    const handler = await this.getRemoteHandler(remote.properties, true)
     const props = await handler.sync()
     this._updateRemote(remote, props)
     return (await this._remotes.save(remote)).properties
@@ -108,7 +108,7 @@ export default class {
   }
 
   async removeRemote (id) {
-    const handler = await this.getRemoteHandler(id)
+    const handler = await this.getRemoteHandler(id, true)
     await handler.forget()
     await this._remotes.remove(id)
   }
@@ -126,7 +126,7 @@ export default class {
     const remotes = await this.getAllRemotes()
     for (let remote of remotes) {
       try {
-        (await this.getRemoteHandler(remote)).forget()
+        (await this.getRemoteHandler(remote, true)).forget()
       } catch (_) {}
     }
   }
