@@ -32,7 +32,7 @@ import {
 
 const SrColContainer = connectStore(() => ({
   container: createGetObject()
-}))(({ container }) => <Link to={`pools/${container.id}`}>{container.name_label}</Link>)
+}))(({ container }) => <Link to={`${container.type}s/${container.id}`}>{container.name_label}</Link>)
 
 const VdiColSr = connectStore(() => ({
   sr: createGetObject()
