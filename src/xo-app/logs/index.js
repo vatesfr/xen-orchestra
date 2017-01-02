@@ -109,7 +109,7 @@ const LOG_COLUMNS = [
     default: true,
     name: _('jobEnd'),
     itemRenderer: log => log.end && <FormattedDate value={new Date(log.end)} month='short' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />,
-    sortCriteria: log => log.end,
+    sortCriteria: log => log.end || log.start,
     sortOrder: 'desc'
   },
   {
