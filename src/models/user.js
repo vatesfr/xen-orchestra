@@ -4,6 +4,8 @@ import Collection from '../collection/redis'
 import Model from '../model'
 import { forEach } from '../utils'
 
+import { parseProp } from './utils'
+
 // ===================================================================
 
 export default class User extends Model {}
@@ -13,18 +15,6 @@ User.prototype.default = {
 }
 
 // -------------------------------------------------------------------
-
-const parseProp = (obj, name) => {
-  const value = obj[name]
-  if (value == null) {
-    return
-  }
-  try {
-    return JSON.parse(value)
-  } catch (error) {
-    console.warn('cannot parse user[%s] (%s):', name, value, error)
-  }
-}
 
 export class Users extends Collection {
   get Model () {
@@ -49,12 +39,12 @@ export class Users extends Collection {
   async save (user) {
     // Serializes.
     let tmp
-    if (!isEmpty(tmp = user.groups)) {
-      user.groups = JSON.stringify(tmp)
-    }
-    if (!isEmpty(tmp = user.preferences)) {
-      user.preferences = JSON.stringify(tmp)
-    }
+    user.groups = isEmpty(tmp = user.groups)
+      ? undefined
+      : JSON.stringify(tmp)
+    user.preferences = isEmpty(tmp = user.preferences)
+     ? undefined
+     : JSON.stringify(tmp)
 
     return /* await */ this.update(user)
   }
@@ -64,11 +54,8 @@ export class Users extends Collection {
 
     // Deserializes
     forEach(users, user => {
-      let tmp
-      user.groups = ((tmp = parseProp(user, 'groups')) && tmp.length)
-        ? tmp
-        : undefined
-      user.preferences = parseProp(user, 'preferences')
+      user.groups = parseProp('user', user, 'groups', [])
+      user.preferences = parseProp('user', user, 'preferences', {})
     })
 
     return users

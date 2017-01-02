@@ -91,6 +91,7 @@
     "partial-stream": "0.0.0",
     "passport": "^0.3.0",
     "passport-local": "^1.0.0",
+    "pretty-format": "^18.1.0",
     "promise-toolbox": "^0.7.0",
     "proxy-agent": "^2.0.0",
     "pug": "^2.0.0-alpha6",

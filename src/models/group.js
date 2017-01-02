@@ -1,7 +1,11 @@
+import isEmpty from 'lodash/isEmpty'
+
 import Collection from '../collection/redis'
 import Model from '../model'
 
 import { forEach } from '../utils'
+
+import { parseProp } from './utils'
 
 // ===================================================================
 
@@ -15,15 +19,15 @@ export class Groups extends Collection {
   }
 
   create (name) {
-    return this.add(new Group({
-      name,
-      users: '[]'
-    }))
+    return this.add(new Group({ name }))
   }
 
   async save (group) {
     // Serializes.
-    group.users = JSON.stringify(group.users)
+    let tmp
+    group.users = isEmpty(tmp = group.users)
+      ? undefined
+      : JSON.stringify(tmp)
 
     return /* await */ this.update(group)
   }
@@ -33,13 +37,7 @@ export class Groups extends Collection {
 
     // Deserializes.
     forEach(groups, group => {
-      const {users} = group
-      try {
-        group.users = JSON.parse(users)
-      } catch (error) {
-        console.warn('cannot parse group.users:', users)
-        group.users = []
-      }
+      group.users = parseProp('group', group, 'users', [])
     })
 
     return groups
