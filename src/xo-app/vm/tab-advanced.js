@@ -83,6 +83,7 @@ export default ({
             handlerParam={vm}
             icon='vm-create-template'
             labelId='vmConvertButton'
+            redirectOnSuccess='/'
           />
         </span>
       }
