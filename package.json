@@ -60,7 +60,7 @@
     "enzyme": "^2.6.0",
     "enzyme-to-json": "^1.4.4",
     "event-to-promise": "^0.7.0",
-    "font-awesome": "^4.5.0",
+    "font-awesome": "^4.7.0",
     "font-mfizz": "github:fizzed/font-mfizz",
     "get-stream": "^2.3.0",
     "ghooks": "^1.1.1",
