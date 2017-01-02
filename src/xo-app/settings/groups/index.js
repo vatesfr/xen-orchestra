@@ -86,7 +86,7 @@ const GROUP_COLUMNS = [
   },
   {
     name: _('addUserToGroupColumn'),
-    itemRenderer: group => <SelectSubject predicate={getPredicate(group.users)} onChange={user => addUserToGroup(user, group)} defaultValue={null} />
+    itemRenderer: group => <SelectSubject predicate={getPredicate(group.users)} onChange={user => user && addUserToGroup(user, group)} defaultValue={null} />
   },
   {
     name: '',
