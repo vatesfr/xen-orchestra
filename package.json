@@ -60,7 +60,7 @@
     "fs-extra": "^1.0.0",
     "fs-promise": "^1.0.0",
     "golike-defer": "^0.0.0",
-    "hashy": "~0.5.1",
+    "hashy": "~0.6.0",
     "helmet": "^3.0.0",
     "highland": "^2.5.1",
     "http-proxy": "^1.13.2",
