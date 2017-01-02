@@ -21,7 +21,7 @@ describe('user', () => {
   // =================================================================
 
   describe('.create()', () => {
-    it.only('creates an user and returns its id', async () => {
+    it('creates an user and returns its id', async () => {
       const userId = await createUser(xo, userIds, {
         email: 'wayne@vates.fr',
         password: 'batman'
@@ -32,9 +32,7 @@ describe('user', () => {
       const user = await getUser(xo, userId)
       expect(user).toEqual({
         id: userId,
-        email: 'wayne@vates.fr',
-        groups: [],
-        permission: 'none'
+        email: 'wayne@vates.fr'
       })
     })
 
@@ -51,8 +49,8 @@ describe('user', () => {
         () => {
           throw new Error('createUser() should have thrown')
         },
-        function (error) {
-          expect(error.message).to.match(/duplicate user/i)
+        error => {
+          expect(error.message).toMatch(/already exists/i)
         }
       )
     })
@@ -65,10 +63,9 @@ describe('user', () => {
       })
 
       const user = await getUser(xo, userId)
-      expect(user).to.be.eql({
+      expect(user).toEqual({
         id: userId,
         email: 'wayne@vates.fr',
-        groups: [],
         permission: 'admin'
       })
     })
@@ -90,7 +87,7 @@ describe('user', () => {
 
   describe('.delete()', () => {
     it('deletes an user', async () => {
-      const userId = await createUser(xo, userIds, {
+      const userId = await xo.call('user.create', {
         email: 'wayne@vates.fr',
         password: 'batman'
       })
@@ -99,7 +96,7 @@ describe('user', () => {
         id: userId
       })
       const user = await getUser(xo, userId)
-      expect(user).to.be.undefined()
+      expect(user).toBeUndefined()
     })
 
     it('not allows an user to delete itself', async () => {
@@ -108,7 +105,7 @@ describe('user', () => {
           throw new Error('user.delete() should have thrown')
         },
         function (error) {
-          expect(error.data).to.equal('an user cannot delete itself')
+          expect(error.message).toBe('a user cannot delete itself')
         }
       )
     })
@@ -119,8 +116,7 @@ describe('user', () => {
   describe('.getAll()', () => {
     it('returns an array', async () => {
       const users = await xo.call('user.getAll')
-
-      expect(users).to.be.an.array()
+      expect(users).toBeInstanceOf(Array)
     })
   })
 
@@ -154,10 +150,9 @@ describe('user', () => {
         permission: 'admin'
       })
       const user = await getUser(xo, userId)
-      expect(user).to.be.eql({
+      expect(user).toEqual({
         id: userId,
         email: 'batman@vates.fr',
-        groups: [],
         permission: 'admin'
       })
     })
