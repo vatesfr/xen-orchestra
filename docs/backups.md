@@ -25,6 +25,22 @@ A successful backup task will be displayed in green, a faulty one in red. You ca
 
 You also have a filter to search anything related to these logs.
 
+> Logs are not "live" tasks. If you restart XOA during a backup, the log associated with the job will stay in orange (in progress), because it wasn't finished. It will stay forever not finished because the job was cut in the middle.
+
+## Consistent backup (with quiesce snapshots)
+
+All backup are relying on snapshots. But what about data consistency? By default, Xen Orchestra will try to make a **quiesce snapshots** everytime a snapshot is done.
+
+All your Windows VMs can be protected (especially MS SQL or Exchange services) after you have installed Xen tools in your VMs. A quiesce snapshots means the operating system will be notified and the cache will be flush on disks. This way, your backups will be consistent.
+
+To see if you have quiesced snapshots for a VM, just go into its anapshot tab, the "info" icons means it is a quiesced snapshot:
+
+![](./assets/quiesced1.png)
+
+The tooltip confirms this:
+
+![](./assets/quiesced2.png)
+
 ## Remotes
 
 > Remotes are places where your *backup* and *delta backup* files will be stored.
@@ -47,6 +63,8 @@ On your NFS server, authorize XOA's IP and permissions for subfolders. That's al
 ### SMB
 
 We support SMB storage on *Windows Server 2012 R2*.
+
+> WARNING: In continuous delta backup, SMB is **NOT** recommended (or only for small VMs, eg < 50GB)
 
 Also, read twice the UI when you add a SMB store. If you have:
 
