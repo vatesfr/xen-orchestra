@@ -256,7 +256,6 @@ export default class {
     // TODO: use plain objects.
     const group = (await this._groups.create(name)).properties
 
-    group.users = JSON.parse(group.users)
     return group
   }
 
