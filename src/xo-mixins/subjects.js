@@ -346,7 +346,7 @@ export default class {
       if (newUsersIds.has(id)) {
         newUsersIds.delete(id)
       } else {
-        oldUsers.push(id)
+        oldUsersIds.push(id)
       }
     })
     newUsersIds = newUsersIds.toArray()
