@@ -2,7 +2,6 @@ import _ from 'intl'
 import ActionRowButton from 'action-row-button'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
-import map from 'lodash/map'
 import React, { Component } from 'react'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
@@ -11,6 +10,10 @@ import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Container, Row, Col } from 'grid'
 import { Text } from 'editable'
+import {
+  includes,
+  map
+} from 'lodash'
 import {
   createGetObjectsOfType
 } from 'selectors'
@@ -63,7 +66,11 @@ export default class TabSnapshot extends Component {
               <tbody>
                 {map(snapshots, snapshot =>
                   <tr key={snapshot.id}>
-                    <td><FormattedTime value={snapshot.snapshot_time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={snapshot.snapshot_time * 1000} />)</td>
+                    <td>
+                      <FormattedTime value={snapshot.snapshot_time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={snapshot.snapshot_time * 1000} />)
+                      {' '}
+                      {includes(snapshot.tags, 'quiesce') && <Tooltip content={_('snapshotQuiesce')}><Icon icon='info' /></Tooltip>}
+                    </td>
                     <td>
                       <Text value={snapshot.name_label} onChange={value => editVm(snapshot, {name_label: value})} />
                     </td>
