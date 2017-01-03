@@ -118,7 +118,7 @@ const templateError =
     No stats.
   </div>
 
-// =============================================================================
+// ===================================================================
 
 export const CpuLineChart = injectIntl(propTypes({
   addSumSeries: propTypes.bool,

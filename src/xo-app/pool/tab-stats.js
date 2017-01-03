@@ -8,7 +8,7 @@ import Upgrade from 'xoa-upgrade'
 import { Container, Row, Col } from 'grid'
 import { Toggle } from 'form'
 import { fetchHostStats } from 'xo'
-import { createGetObjectsOfType } from 'selectors'
+import { createGetObjectsOfType, createSelector } from 'selectors'
 import {
   map
 } from 'lodash'
@@ -24,8 +24,11 @@ import {
 
 @connectStore({
   hosts: createGetObjectsOfType('host').filter(
-    (state, props) =>
-      host => host.power_state === 'Running' && host.$pool === props.pool.id
+    createSelector(
+      (state, props) => props.pool.id,
+      poolId =>
+        host => host.power_state === 'Running' && host.$pool === poolId
+    )
   )
 })
 export default class PoolStats extends Component {
