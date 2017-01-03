@@ -29,9 +29,9 @@ You also have a filter to search anything related to these logs.
 
 ## Consistent backup (with quiesce snapshots)
 
-All backup are relying on snapshots. But what about data consistency? By default, Xen Orchestra will try to make a **quiesce snapshots** everytime a snapshot is done.
+All backup are relying on snapshots. But what about data consistency? By default, Xen Orchestra will try to make a **quiesce snapshot** everytime a snapshot is done (and fallback to normal snapshot if it's not possible).
 
-All your Windows VMs can be protected (especially MS SQL or Exchange services) after you have installed Xen tools in your VMs. A quiesce snapshots means the operating system will be notified and the cache will be flush on disks. This way, your backups will be consistent.
+All your Windows VMs can be protected (especially MS SQL or Exchange services) after you have installed Xen tools in your VMs. A quiesce snapshots means the operating system will be notified and the cache will be flushed on disks. This way, your backups will be always consistent.
 
 To see if you have quiesced snapshots for a VM, just go into its anapshot tab, the "info" icons means it is a quiesced snapshot:
 
