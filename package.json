@@ -87,7 +87,7 @@
     "loose-envify": "^1.1.0",
     "make-error": "^1.2.1",
     "marked": "^0.3.5",
-    "modular-css": "^0.29.0",
+    "modular-css": "^1.0.0",
     "moment": "^2.13.0",
     "moment-timezone": "^0.5.4",
     "notifyjs": "^2.0.1",
