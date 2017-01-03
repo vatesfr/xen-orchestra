@@ -127,7 +127,8 @@ const COMMON_SCHEMA = {
 const DEPTH_PROPERTY = {
   type: 'integer',
   title: _('editBackupDepthTitle'),
-  description: 'How many backups to rollover.' // FIXME: can't translate
+  description: 'How many backups to rollover.', // FIXME: can't translate
+  min: 0
 }
 
 const REMOTE_PROPERTY = {

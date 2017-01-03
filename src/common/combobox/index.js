@@ -15,6 +15,8 @@ import styles from './index.css'
 @propTypes({
   defaultValue: propTypes.any,
   disabled: propTypes.bool,
+  max: propTypes.number,
+  min: propTypes.number,
   options: propTypes.oneOfType([
     propTypes.arrayOf(propTypes.string),
     propTypes.number,
@@ -62,6 +64,8 @@ export default class Combobox extends Component {
         className='form-control'
         defaultValue={props.defaultValue}
         disabled={props.disabled}
+        max={props.max}
+        min={props.min}
         options={options}
         onChange={this._handleChange}
         placeholder={props.placeholder}
