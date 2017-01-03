@@ -451,6 +451,9 @@ var messages = {
   hidePifs: 'Hide PIFs',
   showDetails: 'Show details',
   hideDetails: 'Hide details',
+  // ----- Pool stats tab -----
+  poolNoStats: 'No stats',
+  poolAllHosts: 'All hosts',
   // ----- Pool actions ------
   addSrLabel: 'Add SR',
   addVmLabel: 'Add VM',
