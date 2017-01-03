@@ -686,6 +686,7 @@ var messages = {
   snapshotDate: 'Creation date',
   snapshotName: 'Name',
   snapshotAction: 'Action',
+  snapshotQuiesce: 'Quiesced snapshot',
 
   // ----- VM log tab -----
   logRemoveAll: 'Remove all logs',
