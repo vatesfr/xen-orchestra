@@ -289,7 +289,7 @@ export const exportConfig = () => (
 export const addServer = (host, username, password) => (
   _call('server.add', { host, username, password })::tap(
     subscribeServers.forceRefresh
-  )
+  )::rethrow(() => error(_('serverError'), _('serverAddFailed')))
 )
 
 export const editServer = (server, { host, username, password, readOnly }) => (
