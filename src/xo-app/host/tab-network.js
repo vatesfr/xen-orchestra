@@ -189,7 +189,7 @@ class PifItem extends Component {
             btnStyle='default'
             disabled={pif.physical || pif.disallowUnplug || pif.management}
             handler={deletePif}
-            handlerParam={{ pif }}
+            handlerParam={pif}
             icon='delete'
             tooltip={_('deletePif')}
           />
