@@ -10,6 +10,7 @@ import Link, { BlockLink } from 'link'
 import { Container, Row, Col } from 'grid'
 import Usage, { UsageElement } from 'usage'
 import { formatSize } from 'utils'
+import Tooltip from 'tooltip'
 
 export default ({
   hosts,
@@ -20,13 +21,13 @@ export default ({
   <br />
   <Row className='text-xs-center'>
     <Col mediumSize={4}>
-      <BlockLink to={`/pools/${pool.id}/hosts`}><h2>{hosts.length}x <Icon icon='host' size='lg' /></h2></BlockLink>
+      <Tooltip content={_('displayAllHosts')}><BlockLink to={`/home?s=$pool:${pool.id}&t=host`}><h2>{hosts.length}x <Icon icon='host' size='lg' /></h2></BlockLink></Tooltip>
     </Col>
     <Col mediumSize={4}>
-      <BlockLink to={`/pools/${pool.id}/storage`}><h2>{srs.length}x <Icon icon='sr' size='lg' /></h2></BlockLink>
+      <Tooltip content={_('displayAllStorages')}><BlockLink to={`/home?s=$pool:${pool.id}&t=SR`}><h2>{srs.length}x <Icon icon='sr' size='lg' /></h2></BlockLink></Tooltip>
     </Col>
     <Col mediumSize={4}>
-      <BlockLink to={`/home?s=$pool:${pool.id}`}><h2>{nVms}x <Icon icon='vm' size='lg' /></h2></BlockLink>
+      <Tooltip content={_('displayAllVMs')}><BlockLink to={`/home?s=$pool:${pool.id}`}><h2>{nVms}x <Icon icon='vm' size='lg' /></h2></BlockLink></Tooltip>
     </Col>
   </Row>
   <br />
