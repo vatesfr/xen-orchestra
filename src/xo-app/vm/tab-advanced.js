@@ -134,7 +134,7 @@ export default ({
               }
             </td>
           </tr>
-          {vm.PV_args &&
+          {vm.virtualizationMode === 'pv' &&
             <tr>
               <th>{_('pvArgsLabel')}</th>
               <td>
