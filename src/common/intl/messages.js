@@ -35,7 +35,7 @@ var messages = {
   homeHostPage: 'Hosts',
   homePoolPage: 'Pools',
   homeTemplatePage: 'Templates',
-  homeSrPage: 'SRs',
+  homeSrPage: 'Storages',
   dashboardPage: 'Dashboard',
   overviewDashboardPage: 'Overview',
   overviewVisualizationDashboardPage: 'Visualizations',
@@ -426,6 +426,9 @@ var messages = {
   poolTitleRamUsage: 'Pool RAM usage:',
   poolRamUsage: '{used} used on {total}',
   poolMaster: 'Master:',
+  displayAllHosts: 'Display all hosts of this pool',
+  displayAllStorages: 'Display all storages of this pool',
+  displayAllVMs: 'Display all VMs of this pool',
   // ----- Pool tabs -----
   hostsTabName: 'Hosts',
   // ----- Pool advanced tab -----

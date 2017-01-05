@@ -189,7 +189,7 @@ const TYPES = {
   'VM-template': _('homeTypeVmTemplate'),
   host: _('homeTypeHost'),
   pool: _('homeTypePool'),
-  SR: _('homeTypeSr')
+  SR: _('homeSrPage')
 }
 
 const DEFAULT_TYPE = 'VM'

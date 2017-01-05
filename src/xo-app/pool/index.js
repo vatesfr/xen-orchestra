@@ -25,21 +25,17 @@ import TabGeneral from './tab-general'
 import TabStats from './tab-stats'
 import TabLogs from './tab-logs'
 import TabNetwork from './tab-network'
-import TabHosts from './tab-host'
 import TabPatches from './tab-patches'
-import TabStorage from './tab-storage'
 
 // ===================================================================
 
 @routes('general', {
   advanced: TabAdvanced,
   general: TabGeneral,
-  hosts: TabHosts,
   logs: TabLogs,
   network: TabNetwork,
   patches: TabPatches,
-  stats: TabStats,
-  storage: TabStorage
+  stats: TabStats
 })
 @connectStore(() => {
   const getPool = createGetObject()
@@ -135,9 +131,7 @@ export default class Pool extends Component {
           <NavTabs>
             <NavLink to={`/pools/${pool.id}/general`}>{_('generalTabName')}</NavLink>
             <NavLink to={`/pools/${pool.id}/stats`}>{_('statsTabName')}</NavLink>
-            <NavLink to={`/pools/${pool.id}/hosts`}>{_('hostsTabName')}</NavLink>
             <NavLink to={`/pools/${pool.id}/network`}>{_('networkTabName')}</NavLink>
-            <NavLink to={`/pools/${pool.id}/storage`}>{_('storageTabName')}</NavLink>
             <NavLink to={`/pools/${pool.id}/patches`}>{_('patchesTabName')}</NavLink>
             <NavLink to={`/pools/${pool.id}/logs`}>{_('logsTabName')}</NavLink>
             <NavLink to={`/pools/${pool.id}/advanced`}>{_('advancedTabName')}</NavLink>
