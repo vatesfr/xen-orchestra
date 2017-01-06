@@ -28,6 +28,8 @@ export default class IntegerInput extends AbstractInput {
         <Combobox
           defaultValue={props.defaultValue}
           disabled={props.disabled}
+          max={schema.max}
+          min={schema.min}
           onChange={props.onChange}
           options={schema.defaults}
           placeholder={props.placeholder || schema.default}
