@@ -11,7 +11,8 @@ import {
   isString,
   noop,
   pCatch,
-  popProperty
+  popProperty,
+  serializeError
 } from '../utils'
 import {
   Servers
@@ -78,12 +79,16 @@ export default class {
     }
   }
 
-  async updateXenServer (id, {host, username, password, readOnly, enabled}) {
+  async updateXenServer (id, {host, username, password, readOnly, enabled, error}) {
     const server = await this._getXenServer(id)
 
     if (host) server.set('host', host)
     if (username) server.set('username', username)
     if (password) server.set('password', password)
+
+    if (error !== undefined) {
+      server.set('error', error ? JSON.stringify(error) : '')
+    }
 
     if (enabled !== undefined) {
       server.set('enabled', enabled ? 'true' : undefined)
@@ -278,7 +283,14 @@ export default class {
 
     xapi.xo.install()
 
-    await xapi.connect()
+    await xapi.connect().then(
+      () => this.updateXenServer(id, { error: null }),
+      error => {
+        this.updateXenServer(id, { error: serializeError(error) })
+
+        throw error
+      }
+    )
   }
 
   async disconnectXenServer (id) {
