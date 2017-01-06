@@ -41,7 +41,8 @@ import {
   snapshotVms,
   startVms,
   stopHosts,
-  stopVms
+  stopVms,
+  subscribeServers
 } from 'xo'
 import { Container, Row, Col } from 'grid'
 import {
@@ -50,6 +51,7 @@ import {
   SelectTag
 } from 'select-objects'
 import {
+  addSubscriptions,
   connectStore,
   firstDefined,
   noop
@@ -194,6 +196,9 @@ const TYPES = {
 
 const DEFAULT_TYPE = 'VM'
 
+@addSubscriptions({
+  servers: subscribeServers
+})
 @connectStore(() => {
   const noServersConnected = invoke(
     createGetObjectsOfType('host'),
@@ -569,6 +574,7 @@ export default class Home extends Component {
     const { props } = this
     const { user } = this.props
     const isAdmin = user && user.permission === 'admin'
+    const noRegisteredServers = !props.servers || !props.servers.length
 
     if (!props.areObjectsFetched) {
       return <CenterPanel>
@@ -583,9 +589,9 @@ export default class Home extends Component {
           <CardBlock>
             <Link to='/settings/servers'>
               <Icon icon='pool' size={4} />
-              <h4>{_('homeAddServer')}</h4>
+              <h4>{noRegisteredServers ? _('homeAddServer') : _('homeConnectServer')}</h4>
             </Link>
-            <p className='text-muted'>{_('homeWelcomeText')}</p>
+            <p className='text-muted'>{noRegisteredServers ? _('homeWelcomeText') : _('homeConnectServerText')}</p>
             <br /><br />
             <h3>{_('homeHelp')}</h3>
             <Row>
