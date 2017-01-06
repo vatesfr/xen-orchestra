@@ -320,8 +320,8 @@ export default {
     tags: true
   }),
 
-  async editVm (id, props) {
-    return /* await */ this._editVm(this.getObject(id), props)
+  async editVm (id, props, checkLimits) {
+    return /* await */ this._editVm(this.getObject(id), props, checkLimits)
   },
 
   async revertVm (snapshotId, snapshotBefore = true) {
