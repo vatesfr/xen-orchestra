@@ -1,6 +1,7 @@
 import deferrable from 'golike-defer'
 import find from 'lodash/find'
 import gte from 'lodash/gte'
+import isEmpty from 'lodash/isEmpty'
 import lte from 'lodash/lte'
 
 import {
@@ -177,6 +178,7 @@ export default {
           ipv4_allowed: vif.ipv4_allowed,
           ipv6_allowed: vif.ipv6_allowed,
           device: devices[index],
+          locking_mode: isEmpty(vif.ipv4_allowed) && isEmpty(vif.ipv6_allowed) ? 'network_default' : 'locked',
           mac: vif.mac,
           mtu: vif.mtu
         }
