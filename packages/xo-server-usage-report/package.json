@@ -35,7 +35,7 @@
   "dependencies": {
     "babel-runtime": "^6.18.0",
     "lodash": "^4.17.2",
-    "promise-toolbox": "^0.7.0"
+    "promise-toolbox": "^0.8.0"
   },
   "devDependencies": {
     "babel-cli": "^6.18.0",
