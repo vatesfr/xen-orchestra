@@ -309,7 +309,7 @@ export default class {
     const sets = keyBy(await this.getAllResourceSets(), 'id')
     forEach(sets, ({ limits }) => {
       forEach(limits, (limit, id) => {
-        if (VM_RESOURCES[limit]) { // only reset VMs related limits
+        if (VM_RESOURCES[id]) { // only reset VMs related limits
           limit.available = limit.total
         }
       })
