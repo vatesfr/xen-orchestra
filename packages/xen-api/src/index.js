@@ -93,6 +93,20 @@ export const wrapError = error => new XapiError(error)
 
 // ===================================================================
 
+const formatUrl = url => {
+  const parts = []
+
+  if (!url.isSecure) {
+    parts.push('http://')
+  }
+  parts.push(url.hostname)
+  if (url.port != null) {
+    parts.push(':', url.port)
+  }
+
+  return parts.join('')
+}
+
 const URL_RE = /^(?:(http(s)?:)\/*)?([^/]+?)(?::([0-9]+))?\/?$/
 function parseUrl (url) {
   const matches = URL_RE.exec(url)
@@ -442,7 +456,13 @@ export class Xapi extends EventEmitter {
       ::pCatch(isHostSlave, ({params: [master]}) => {
         debug('%s: host is slave, attempting to connect at %s', this._humanId, master)
 
-        this._url.hostname = master
+        const newUrl = {
+          ...this._url,
+          hostname: master
+        }
+        this.emit('redirect', formatUrl(newUrl))
+        this._url = newUrl
+
         this._init()
 
         return this._transportCall(method, args, startTime)
