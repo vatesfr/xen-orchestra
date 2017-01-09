@@ -62,15 +62,12 @@
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
-    "clean": "rimraf dist/",
     "commit-msg": "npm test",
-    "depcheck": "dependency-check ./package.json",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
-    "lint": "standard",
     "plot": "gnuplot -p memory-test.gnu",
-    "posttest": "npm run lint && npm run depcheck",
-    "prebuild": "npm run clean",
-    "predev": "npm run clean",
+    "posttest": "standard && dependency-check ./package.json",
+    "prebuild": "rimraf dist/",
+    "predev": "npm run prebuild",
     "prepublish": "npm run build"
   },
   "babel": {
