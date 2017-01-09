@@ -78,7 +78,7 @@
     "gulp-watch": "^4.3.5",
     "human-format": "^0.7.0",
     "index-modules": "^0.2.1",
-    "is-ip": "^1.0.0",
+    "is-ip": "^2.0.0",
     "jest": "^18.0.0",
     "jsonrpc-websocket-client": "^0.1.1",
     "kindof": "^2.0.0",
