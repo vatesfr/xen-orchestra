@@ -1,0 +1,72 @@
+{
+  "name": "xo-remote-parser",
+  "version": "0.3.0",
+  "license": "AGPL-3.0",
+  "description": "",
+  "keywords": [],
+  "homepage": "",
+  "bugs": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vatesfr/xo-remote-parser"
+  },
+  "author": {
+    "name": "Fabrice Marsaud",
+    "email": "fabrice.marsaud@vates.fr"
+  },
+  "preferGlobal": false,
+  "main": "dist/",
+  "bin": {},
+  "files": [
+    "dist/"
+  ],
+  "engines": {
+    "node": ">=0.12"
+  },
+  "dependencies": {
+    "lodash": "^4.13.1"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.3.17",
+    "babel-eslint": "^7.0.0",
+    "babel-preset-es2015": "^6.3.13",
+    "babel-preset-stage-0": "^6.3.13",
+    "clarify": "^2.0.0",
+    "deep-freeze": "0.0.1",
+    "dependency-check": "^2.5.1",
+    "ghooks": "^1.2.1",
+    "mocha": "^3.0.0",
+    "must": "^0.13.1",
+    "nyc": "^10.0.0",
+    "source-map-support": "^0.4.0",
+    "standard": "^8.0.0",
+    "trace": "^2.1.0"
+  },
+  "scripts": {
+    "build": "NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "depcheck": "dependency-check ./package.json",
+    "dev": "babel --watch --source-maps --out-dir=dist/ src/",
+    "dev-test": "mocha --opts .mocha.opts --watch --reporter=min \"dist/**/*.spec.js\"",
+    "lint": "standard",
+    "posttest": "npm run lint && npm run depcheck",
+    "prepublish": "npm run build",
+    "test": "nyc mocha --opts .mocha.opts \"dist/**/*.spec.js\""
+  },
+  "babel": {
+    "presets": [
+      "stage-0",
+      "es2015"
+    ]
+  },
+  "standard": {
+    "ignore": [
+      "dist"
+    ],
+    "parser": "babel-eslint"
+  },
+  "config": {
+    "ghooks": {
+      "commit-msg": "npm test"
+    }
+  }
+}
