@@ -34,7 +34,6 @@
     "clarify": "^2.0.0",
     "deep-freeze": "0.0.1",
     "dependency-check": "^2.5.1",
-    "ghooks": "^1.2.1",
     "mocha": "^3.0.0",
     "must": "^0.13.1",
     "nyc": "^10.0.0",
@@ -63,10 +62,5 @@
       "dist"
     ],
     "parser": "babel-eslint"
-  },
-  "config": {
-    "ghooks": {
-      "commit-msg": "npm test"
-    }
   }
 }
