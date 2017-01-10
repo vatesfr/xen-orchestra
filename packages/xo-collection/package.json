@@ -1,0 +1,87 @@
+{
+  "name": "xo-collection",
+  "version": "0.4.1",
+  "license": "ISC",
+  "description": "Generic in-memory collection with events",
+  "keywords": [],
+  "homepage": "https://github.com/marsaud/collection",
+  "bugs": "https://github.com/marsaud/collection/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/marsaud/collection.git"
+  },
+  "author": {
+    "name": "Fabrice Marsaud",
+    "email": "fabrice.marsaud@vates.fr"
+  },
+  "preferGlobal": false,
+  "main": "dist/collection",
+  "bin": {},
+  "files": [
+    "dist/",
+    "*.js"
+  ],
+  "engines": {
+    "node": ">=4"
+  },
+  "dependencies": {
+    "babel-runtime": "^6.18.0",
+    "kindof": "^2.0.0",
+    "lodash": "^4.17.2",
+    "make-error": "^1.0.2"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.18.0",
+    "babel-eslint": "^7.1.0",
+    "babel-plugin-lodash": "^3.2.9",
+    "babel-plugin-transform-runtime": "^6.15.0",
+    "babel-preset-latest": "^6.16.0",
+    "babel-preset-stage-0": "^6.16.0",
+    "clarify": "^2.0.0",
+    "cross-env": "^3.1.3",
+    "dependency-check": "^2.6.0",
+    "event-to-promise": "^0.7.0",
+    "ghooks": "^1.3.2",
+    "mocha": "^3.1.2",
+    "must": "^0.13.2",
+    "rimraf": "^2.4.3",
+    "sinon": "^1.14.1",
+    "source-map-support": "^0.4.6",
+    "standard": "^8.5.0",
+    "trace": "^2.3.3"
+  },
+  "scripts": {
+    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "clean": "rimraf dist/",
+    "depcheck": "dependency-check ./package.json --entry dist/collection.js index.js unique-index.js view.js",
+    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
+    "lint": "standard",
+    "posttest": "npm run lint && npm run depcheck",
+    "prebuild": "npm run clean",
+    "predev": "npm run clean",
+    "prepublish": "npm run build",
+    "test": "npm run lint && mocha --opts .mocha.opts \"dist/**/*.spec.js\"",
+    "test-dev": "mocha --opts .mocha.opts --watch --reporter=min \"dist/**/*.spec.js\""
+  },
+  "babel": {
+    "plugins": [
+      "lodash",
+      "transform-runtime"
+    ],
+    "presets": [
+      "latest",
+      "stage-0"
+    ]
+  },
+  "standard": {
+    "ignore": [
+      "dist"
+    ],
+    "parser": "babel-eslint"
+  },
+  "config": {
+    "ghooks": {
+      "commit-msg": "npm test"
+    }
+  }
+}
