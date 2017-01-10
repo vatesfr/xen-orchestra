@@ -4,11 +4,11 @@
   "license": "ISC",
   "description": "Xen-Orchestra internal: do ACLs resolution",
   "keywords": [],
-  "homepage": "https://github.com/vatesfr/xo-acl-resolver",
-  "bugs": "https://github.com/vatesfr/xo-acl-resolver/issues",
+  "homepage": "https://github.com/vatesfr/xen-orchestra",
+  "bugs": "https://github.com/vatesfr/xo-web/issues",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vatesfr/xo-acl-resolver"
+    "url": "https://github.com/vatesfr/xen-orchestra"
   },
   "author": {
     "name": "Julien Fontanet",

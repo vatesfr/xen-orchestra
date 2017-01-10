@@ -1,4 +1,4 @@
-# xo-acl-resolver [![Build Status](https://travis-ci.org/vatesfr/xo-acl-resolver.png?branch=master)](https://travis-ci.org/vatesfr/xo-acl-resolver)
+# xo-acl-resolver [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
 > [Xen-Orchestra](http://xen-orchestra.com/) internal: do ACLs resolution.
 
@@ -65,7 +65,7 @@ the code.
 
 You may:
 
-- report any [issue](https://github.com/vatesfr/xo-acl-resolver/issues)
+- report any [issue](https://github.com/vatesfr/xo-web/issues)
   you've encountered;
 - fork and create a pull request.
 
