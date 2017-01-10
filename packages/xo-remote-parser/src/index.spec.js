@@ -1,9 +1,6 @@
-/* eslint-env mocha */
+/* eslint-env jest */
 
 import deepFreeze from 'deep-freeze'
-import expect from 'must'
-
-// ===================================================================
 
 import { parse, format } from './'
 
@@ -77,7 +74,7 @@ describe('format', () => {
   for (const name in formatData) {
     const datum = formatData[name]
     it(name, () => {
-      expect(format(datum.object)).to.equal(datum.string)
+      expect(format(datum.object)).toBe(datum.string)
     })
   }
 })
@@ -86,7 +83,7 @@ describe('parse', () => {
   for (const name in parseData) {
     const datum = parseData[name]
     it(name, () => {
-      expect(parse(datum.string)).to.eql(datum.object)
+      expect(parse(datum.string)).toEqual(datum.object)
     })
   }
 })

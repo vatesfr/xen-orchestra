@@ -21,41 +21,56 @@
     "dist/"
   ],
   "engines": {
-    "node": ">=0.12"
+    "node": ">=4"
   },
   "dependencies": {
     "lodash": "^4.13.1"
   },
   "devDependencies": {
-    "babel-cli": "^6.3.17",
-    "babel-eslint": "^7.0.0",
-    "babel-preset-es2015": "^6.3.13",
-    "babel-preset-stage-0": "^6.3.13",
-    "clarify": "^2.0.0",
-    "deep-freeze": "0.0.1",
-    "dependency-check": "^2.5.1",
-    "mocha": "^3.0.0",
-    "must": "^0.13.1",
-    "nyc": "^10.0.0",
-    "source-map-support": "^0.4.0",
-    "standard": "^8.0.0",
-    "trace": "^2.1.0"
+    "babel-cli": "^6.18.0",
+    "babel-eslint": "^7.1.1",
+    "babel-plugin-lodash": "^3.2.11",
+    "babel-preset-env": "^1.1.7",
+    "babel-preset-stage-3": "^6.17.0",
+    "cross-env": "^3.1.4",
+    "deep-freeze": "^0.0.1",
+    "dependency-check": "^2.7.0",
+    "jest": "^18.1.0",
+    "rimraf": "^2.5.4",
+    "standard": "^8.6.0"
   },
   "scripts": {
-    "build": "NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
-    "depcheck": "dependency-check ./package.json",
-    "dev": "babel --watch --source-maps --out-dir=dist/ src/",
-    "dev-test": "mocha --opts .mocha.opts --watch --reporter=min \"dist/**/*.spec.js\"",
-    "lint": "standard",
-    "posttest": "npm run lint && npm run depcheck",
+    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
+    "dev-test": "jest --bail --watch",
+    "posttest": "standard && dependency-check ./package.json",
+    "prebuild": "rimraf dist/",
+    "predev": "npm run prebuild",
     "prepublish": "npm run build",
-    "test": "nyc mocha --opts .mocha.opts \"dist/**/*.spec.js\""
+    "test": "jest"
   },
   "babel": {
+    "plugins": [
+      "lodash"
+    ],
     "presets": [
-      "stage-0",
-      "es2015"
+      [
+        "env",
+        {
+          "targets": {
+            "browsers": "> 5%",
+            "node": 4
+          }
+        }
+      ],
+      "stage-3"
     ]
+  },
+  "jest": {
+    "testPathDirs": [
+      "<rootDir>/src"
+    ],
+    "testRegex": "\\.spec\\.js$"
   },
   "standard": {
     "ignore": [
