@@ -1,0 +1,86 @@
+{
+  "name": "xo-lib",
+  "version": "0.8.2",
+  "license": "ISC",
+  "description": "Library to connect to XO-Server",
+  "keywords": [
+    "xen",
+    "orchestra",
+    "xen-orchestra"
+  ],
+  "homepage": "https://github.com/vatesfr/xo-lib",
+  "bugs": "https://github.com/vatesfr/xo-lib/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vatesfr/xo-lib"
+  },
+  "author": {
+    "name": "Julien Fontanet",
+    "email": "julien.fontanet@vates.fr"
+  },
+  "preferGlobal": false,
+  "main": "dist/",
+  "bin": {},
+  "files": [
+    "dist/"
+  ],
+  "engines": {
+    "node": ">=4"
+  },
+  "dependencies": {
+    "jsonrpc-websocket-client": "^0.1.2",
+    "lodash": "^4.17.2",
+    "make-error": "^1.0.4"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.18.0",
+    "babel-eslint": "^7.1.1",
+    "babel-plugin-lodash": "^3.2.9",
+    "babel-preset-env": "^1.0.1",
+    "babel-preset-stage-0": "^6.16.0",
+    "cross-env": "^3.1.3",
+    "dependency-check": "^2.6.0",
+    "ghooks": "^1.3.2",
+    "rimraf": "^2.5.4",
+    "standard": "^8.5.0"
+  },
+  "scripts": {
+    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "clean": "rimraf dist/",
+    "depcheck": "dependency-check ./package.json",
+    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
+    "lint": "standard",
+    "posttest": "npm run lint && npm run depcheck",
+    "prebuild": "npm run clean",
+    "predev": "npm run clean",
+    "prepublish": "npm run build"
+  },
+  "babel": {
+    "plugins": [
+      "lodash"
+    ],
+    "presets": [
+      [
+        "env",
+        {
+          "targets": {
+            "browsers": "> 2%",
+            "node": 4
+          }
+        }
+      ],
+      "stage-0"
+    ]
+  },
+  "standard": {
+    "ignore": [
+      "dist"
+    ],
+    "parser": "babel-eslint"
+  },
+  "config": {
+    "ghooks": {
+      "commit-msg": "npm test"
+    }
+  }
+}
