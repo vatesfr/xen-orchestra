@@ -15,7 +15,7 @@ import pkg from '../../../package'
 const HEADER = <Container>
   <Row>
     <Col mediumSize={12}>
-      <h2><Icon icon='menu-about' /> {_('aboutPage')} XO {getXoaPlan()}</h2>
+      <h2><Icon icon='menu-about' /> {_('aboutXoaPlan', { xoaPlan: getXoaPlan() })}</h2>
     </Col>
   </Row>
 </Container>
@@ -41,13 +41,13 @@ export default class About extends Component {
             <Copiable tagName='h4' data={`xo-server ${this.state.serverVersion}`}>
               xo-server {this.state.serverVersion || 'unknown'}
             </Copiable>
-            <p className='text-muted'>{_('xenOrchestra')} {_('xenOrchestraServer')}</p>
+            <p className='text-muted'>{_('xenOrchestraServer')}</p>
           </Col>
           <Col mediumSize={6}>
             <Icon icon='vm' size={4} />
             <Copiable tagName='h4' data={`xo-web ${pkg.version}`}>
               xo-web {pkg.version}</Copiable>
-            <p className='text-muted'>{_('xenOrchestra')} {_('xenOrchestraWeb')}</p>
+            <p className='text-muted'>{_('xenOrchestraWeb')}</p>
           </Col>
         </Row>
       }
@@ -57,7 +57,7 @@ export default class About extends Component {
               <Col>
                 <h2 className='text-danger'>{_('noProSupport')}</h2>
                 <h4 className='text-danger'>{_('noProductionUse')}</h4>
-                <p className='text-muted'>{_('downloadXoa')} <a href='https://xen-orchestra.com/#!/?pk_campaign=xoa_source_upgrade&pk_kwd=about'>http://xen-orchestra.com</a></p>
+                <p className='text-muted'>{_('downloadXoaFromWebsite', { website: <a href='https://xen-orchestra.com/#!/?pk_campaign=xoa_source_upgrade&pk_kwd=about'>http://xen-orchestra.com</a> })}</p>
               </Col>
             </Row>
             <Row>

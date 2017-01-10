@@ -238,7 +238,7 @@ export default class Overview extends Component {
                     />
                     <p className='text-xs-center'>
                       {_('ofUsage', {
-                        total: `${props.vmMetrics.vcpus} vCPUS`,
+                        total: `${props.vmMetrics.vcpus} vCPUs`,
                         usage: `${props.hostMetrics.cpus} CPUs`
                       })}
                     </p>

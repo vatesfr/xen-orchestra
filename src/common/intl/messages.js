@@ -55,6 +55,7 @@ var messages = {
   settingsIpsPage: 'IPs',
   settingsConfigPage: 'Config',
   aboutPage: 'About',
+  aboutXoaPlan: 'About XO {xoaPlan}',
   newMenu: 'New',
   taskMenu: 'Tasks',
   taskPage: 'Tasks',
@@ -1090,11 +1091,11 @@ var messages = {
 
   // ----- About View -----
   xenOrchestra: 'Xen Orchestra',
-  xenOrchestraServer: 'server',
-  xenOrchestraWeb: 'web client',
+  xenOrchestraServer: 'Xen Orchestra server',
+  xenOrchestraWeb: 'Xen Orchestra web client',
   noProSupport: 'No pro support provided!',
   noProductionUse: 'Use in production at your own risks',
-  downloadXoa: 'You can download our turnkey appliance at',
+  downloadXoaFromWebsite: 'You can download our turnkey appliance at {website}',
   bugTracker: 'Bug Tracker',
   bugTrackerText: 'Issues? Report it!',
   community: 'Community',

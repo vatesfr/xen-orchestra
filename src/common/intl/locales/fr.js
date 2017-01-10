@@ -119,6 +119,9 @@ export default {
   // Original text: "About"
   aboutPage: 'À propos',
 
+  // Original text: "About {xoaPlan}"
+  aboutXoaPlan: 'À propos de XO {xoaPlan}',
+
   // Original text: "New"
   newMenu: 'Nouveau',
 
@@ -171,7 +174,7 @@ export default {
   deltaBackup: 'Delta Backup',
 
   // Original text: "Disaster Recovery"
-  disasterRecovery: 'Disaster Recovery',
+  disasterRecovery: 'Reprise après panne',
 
   // Original text: "Continuous Replication"
   continuousReplication: 'Réplication continue',
@@ -207,7 +210,7 @@ export default {
   homeFetchingData: 'Récupération des données…',
 
   // Original text: "Welcome on Xen Orchestra!"
-  homeWelcome: 'Bienvenue sur Xen Orchestra!',
+  homeWelcome: 'Bienvenue sur Xen Orchestra !',
 
   // Original text: "Add your XenServer hosts or pools"
   homeWelcomeText: 'Ajouter vos serveurs ou pools XenServer',
@@ -249,13 +252,13 @@ export default {
   homeFilters: 'Filtres',
 
   // Original text: "No results! Click here to reset your filters"
-  homeNoMatches: 'Aucun résultat! Cliquez ici pour réinitialiser vos filtres',
+  homeNoMatches: 'Aucun résultat ! Cliquez ici pour réinitialiser vos filtres',
 
   // Original text: "Pool"
   homeTypePool: 'Pool',
 
   // Original text: "Host"
-  homeTypeHost: 'Hôtes',
+  homeTypeHost: 'Hôte',
 
   // Original text: "VM"
   homeTypeVm: 'VM',
@@ -282,16 +285,16 @@ export default {
   homeNewVm: 'Nouvelle VM',
 
   // Original text: "Running hosts"
-  homeFilterRunningHosts: 'Hôtes démarré',
+  homeFilterRunningHosts: 'Hôtes démarrés',
 
   // Original text: "Disabled hosts"
   homeFilterDisabledHosts: 'Hôtes désactivés',
 
   // Original text: "Running VMs"
-  homeFilterRunningVms: 'VMs démarré',
+  homeFilterRunningVms: 'VMs démarrées',
 
   // Original text: "Non running VMs"
-  homeFilterNonRunningVms: 'VMs éteinte',
+  homeFilterNonRunningVms: 'VMs éteintes',
 
   // Original text: "Pending VMs"
   homeFilterPendingVms: 'VMs en attente',
@@ -324,7 +327,7 @@ export default {
   homeDisplayedItems: '{displayed, number}x {icon} (sur {total, number})',
 
   // Original text: "{selected, number}x {icon} selected (on {total, number})"
-  homeSelectedItems: '{selected, number}x {icon} sélectionnés (sur {total, number})',
+  homeSelectedItems: '{selected, number}x {icon} sélectionné{selected, plural, one {} other {s}} (sur {total, number})',
 
   // Original text: "More"
   homeMore: 'Plus',
@@ -360,7 +363,7 @@ export default {
   selectSubjects: 'Sélectionner un ou des utilisateur(s) et/ou groupe(s)',
 
   // Original text: "Select Object(s)…"
-  selectObjects: 'Sélectionner le(s) objet(s)…',
+  selectObjects: 'Sélectionner de(s) objet(s)…',
 
   // Original text: "Choose a role"
   selectRole: 'Choisir un rôle',
@@ -375,10 +378,10 @@ export default {
   selectNetworks: 'Choisir un/des réseau(x)…',
 
   // Original text: "Select PIF(s)…"
-  selectPifs: 'Sélectionner la/les PIF(s)…',
+  selectPifs: 'Sélectionner une/des PIF(s)…',
 
   // Original text: "Select Pool(s)…"
-  selectPools: 'Sélectionner le(s) Pool(s)…',
+  selectPools: 'Sélectionner un/des Pool(s)…',
 
   // Original text: "Select Remote(s)…"
   selectRemotes: 'Choisir un/des emplacement(s)…',
@@ -387,49 +390,49 @@ export default {
   selectResourceSets: 'Choisir un jeu de ressource(s)…',
 
   // Original text: "Select template(s)…"
-  selectResourceSetsVmTemplate: 'Sélectionner le(s) template(s)…',
+  selectResourceSetsVmTemplate: 'Sélectionner un/des template(s)…',
 
   // Original text: "Select SR(s)…"
-  selectResourceSetsSr: 'Sélectionner le(s) SR(s)…',
+  selectResourceSetsSr: 'Sélectionner un/des SR(s)…',
 
   // Original text: "Select network(s)…"
-  selectResourceSetsNetwork: 'Sélectionner le(s) réseau(x)…',
+  selectResourceSetsNetwork: 'Sélectionner un/des réseau(x)…',
 
   // Original text: "Select disk(s)…"
-  selectResourceSetsVdi: 'Sélectionner le(s) disque(s)…',
+  selectResourceSetsVdi: 'Sélectionner un/des disque(s)…',
 
   // Original text: "Select SSH key(s)…"
-  selectSshKey: 'Sélectionner la/les clef(s) SSH…',
+  selectSshKey: 'Sélectionner une/des clef(s) SSH…',
 
   // Original text: "Select SR(s)…"
-  selectSrs: 'Sélectionner le(s) SR(s)…',
+  selectSrs: 'Sélectionner un/des SR(s)…',
 
   // Original text: "Select VM(s)…"
-  selectVms: 'Sélectionner la/les VM(s)…',
+  selectVms: 'Sélectionner une/des VM(s)…',
 
   // Original text: "Select VM template(s)…"
-  selectVmTemplates: 'Sélectionner le(s) template(s) de VM…',
+  selectVmTemplates: 'Sélectionner un/des template(s) de VM…',
 
   // Original text: "Select tag(s)…"
-  selectTags: 'Sélectionner le(s) tag(s)…',
+  selectTags: 'Sélectionner un/des tag(s)…',
 
   // Original text: "Select disk(s)…"
-  selectVdis: 'Sélectionner le(s) disque(s)…',
+  selectVdis: 'Sélectionner un/des disque(s)…',
 
   // Original text: "Select timezone…"
   selectTimezone: 'Sélectionner le fuseau horaire…',
 
   // Original text: "Select IP(s)…"
-  selectIp: 'Sélectionner la/les IP(s)…',
+  selectIp: 'Sélectionner une/des IP(s)…',
 
   // Original text: "Select IP pool(s)…"
-  selectIpPool: "Sélectionner le(s) plage(s) d'IP(s)…",
+  selectIpPool: "Sélectionner une/des plage(s) d'IP(s)…",
 
   // Original text: "Fill required informations."
-  fillRequiredInformations: 'Saisir les informations obligatoire.',
+  fillRequiredInformations: 'Saisir les informations obligatoires.',
 
   // Original text: "Fill informations (optional)"
-  fillOptionalInformations: 'Saisir les informations (optionelle)',
+  fillOptionalInformations: 'Saisir les informations (optionnel)',
 
   // Original text: "Reset"
   selectTableReset: 'Réinitialiser',
@@ -495,7 +498,7 @@ export default {
   backupEditNotFoundTitle: "Impossible d'éditer la sauvegarde",
 
   // Original text: "Missing required info for edition"
-  backupEditNotFoundMessage: "Il manque les informations nécessaire à l'édition",
+  backupEditNotFoundMessage: "Il manque les informations nécessaires à l'édition",
 
   // Original text: "Job"
   job: 'Job',
@@ -561,7 +564,7 @@ export default {
   deleteBackupScheduleQuestion: 'Êtes-vous sûr de vouloir supprimer ce job de sauvegarde ?',
 
   // Original text: "Enable immediately after creation"
-  scheduleEnableAfterCreation: 'Activé aussitôt après la création',
+  scheduleEnableAfterCreation: 'Activer aussitôt après la création',
 
   // Original text: "You are editing Schedule {name} ({id}). Saving will override previous schedule state."
   scheduleEditMessage: "Vous êtes en train d'éditer {name} ({id}). Enregistrer écrasera l'état planifié précédent.",
@@ -576,7 +579,7 @@ export default {
   noJobs: 'Pas de job trouvé.',
 
   // Original text: "No schedules found"
-  noSchedules: 'Pas de planification trouvé',
+  noSchedules: 'Pas de planification trouvée',
 
   // Original text: "Select a xo-server API command"
   jobActionPlaceHolder: "Sélectionnez une commande de l'API xo-server",
@@ -585,7 +588,7 @@ export default {
   jobSchedules: 'Planning',
 
   // Original text: "Name of your schedule"
-  jobScheduleNamePlaceHolder: 'Nom de votre plannification',
+  jobScheduleNamePlaceHolder: 'Nom de votre planification',
 
   // Original text: "Select a Job"
   jobScheduleJobPlaceHolder: 'Choisir un Job',
@@ -597,16 +600,16 @@ export default {
   smartBackupModeSelection: 'Sélectionnez votre mode de sauvegarde :',
 
   // Original text: "Normal backup"
-  normalBackup: 'Normal backup',
+  normalBackup: 'Backup normal',
 
   // Original text: "Smart backup"
-  smartBackup: 'Smart backup',
+  smartBackup: 'Backup intelligent',
 
   // Original text: "Local remote selected"
   localRemoteWarningTitle: 'Emplacement local sélectionné',
 
   // Original text: "Warning: local remotes will use limited XOA disk space. Only for advanced users."
-  localRemoteWarningMessage: "Attention : utilisé un emplacement local limite l'espace pour XO. Restreignez ceci aux utilisateurs avancés.",
+  localRemoteWarningMessage: "Attention : utiliser un emplacement local limite l'espace pour XO. Restreignez ceci aux utilisateurs avancés.",
 
   // Original text: "VMs"
   editBackupVmsTitle: 'VMs',
@@ -627,7 +630,7 @@ export default {
   editBackupReportTitle: 'Rapport',
 
   // Original text: "Enable immediately after creation"
-  editBackupReportEnable: 'Activé aussitôt après la création',
+  editBackupReportEnable: 'Activer aussitôt après la création',
 
   // Original text: "Depth"
   editBackupDepthTitle: 'Profondeur',
@@ -663,7 +666,7 @@ export default {
   remoteTestFailure: 'Test réussi pour {name}',
 
   // Original text: "Test passed for {name}"
-  remoteTestSuccess: 'Test échoué for {name}',
+  remoteTestSuccess: 'Test échoué pour {name}',
 
   // Original text: "Error"
   remoteTestError: 'Erreur',
@@ -720,7 +723,7 @@ export default {
   remoteLocalPlaceHolderPath: '/chemin/de/la/sauvegarde',
 
   // Original text: "host *"
-  remoteNfsPlaceHolderHost: 'hôte*',
+  remoteNfsPlaceHolderHost: 'hôte *',
 
   // Original text: "/path/to/backup"
   remoteNfsPlaceHolderPath: 'chemin/de/la/sauvegarde',
@@ -768,7 +771,7 @@ export default {
   newSrType: 'Type',
 
   // Original text: "Name"
-  newSrName: 'Name',
+  newSrName: 'Nom',
 
   // Original text: "Description"
   newSrDescription: 'Description',
@@ -837,7 +840,7 @@ export default {
   objectName: 'Objet',
 
   // Original text: "No acls found"
-  aclNoneFound: 'Aucun droits existants',
+  aclNoneFound: 'Aucun droit existant',
 
   // Original text: "Role"
   roleName: 'Rôle',
@@ -873,10 +876,10 @@ export default {
   noUser: "pas d'utilisateur",
 
   // Original text: "unknown user"
-  unknownUser: 'utilisateur incoonu',
+  unknownUser: 'utilisateur inconnu',
 
   // Original text: "No group found"
-  noGroupFound: 'Pas de groupes trouvé',
+  noGroupFound: 'Pas de groupe trouvé',
 
   // Original text: "Name"
   groupNameColumn: 'Nom',
@@ -954,10 +957,10 @@ export default {
   pluginConfigurationSuccess: 'Configuration du greffon',
 
   // Original text: "Plugin configuration successfully saved!"
-  pluginConfigurationChanges: 'La configuration du greffon a été sauvegardé avec succés !',
+  pluginConfigurationChanges: 'La configuration du greffon a été sauvegardée avec succés !',
 
   // Original text: "Predefined configuration"
-  pluginConfigurationPresetTitle: 'Configurations pré-définies',
+  pluginConfigurationPresetTitle: 'Configuration pré-définie',
 
   // Original text: "Choose a predefined configuration."
   pluginConfigurationChoosePreset: 'Choisir une configuration pré-définie.',
@@ -1005,7 +1008,7 @@ export default {
   customizeFilters: 'Personnaliser les filtres',
 
   // Original text: "Save custom filters"
-  saveCustomFilters: 'Sauvegarder les filtres personnalisé',
+  saveCustomFilters: 'Sauvegarder les filtres personnalisés',
 
   // Original text: "Start"
   startVmLabel: 'Créer',
@@ -1020,7 +1023,7 @@ export default {
   stopVmLabel: 'Arrêter',
 
   // Original text: "Force shutdown"
-  forceShutdownVmLabel: "Forver l'arrêt",
+  forceShutdownVmLabel: "Forcer l'arrêt",
 
   // Original text: "Reboot"
   rebootVmLabel: 'Redémarrer',
@@ -1074,7 +1077,7 @@ export default {
   srRemoveButton: 'Supprimer ce SR',
 
   // Original text: "No VDIs in this storage"
-  srNoVdis: 'Pas de VDIs sur ce stockage',
+  srNoVdis: 'Pas de VDI sur ce stockage',
 
   // Original text: "Pool RAM usage:"
   poolTitleRamUsage: 'Utilisation RAM du pool :',
@@ -1083,7 +1086,7 @@ export default {
   poolRamUsage: '{used} utilisé sur {total}',
 
   // Original text: "Master:"
-  poolMaster: 'Maître:',
+  poolMaster: 'Maître :',
 
   // Original text: "Hosts"
   hostsTabName: 'Hôtes',
@@ -1107,7 +1110,7 @@ export default {
   hostMemory: 'Mémoire',
 
   // Original text: "No hosts"
-  noHost: "Pas d'hôtes",
+  noHost: "Pas d'hôte",
 
   // Original text: "{used}% used ({free} free)"
   memoryLeftTooltip: '{used}% utilisé ({free} libre)',
@@ -1146,7 +1149,7 @@ export default {
   addVmLabel: 'Ajouter une VM',
 
   // Original text: "Add Host"
-  addHostLabel: 'Ajouter un Hôte',
+  addHostLabel: 'Ajouter un hôte',
 
   // Original text: "Disconnect"
   disconnectServer: 'Déconnecter',
@@ -1191,7 +1194,7 @@ export default {
   hardwareHostSettingsLabel: 'Matériel',
 
   // Original text: "Address"
-  hostAddress: 'Addresse',
+  hostAddress: 'Adresse',
 
   // Original text: "Status"
   hostStatus: 'État',
@@ -1233,7 +1236,7 @@ export default {
   hostBiosinfo: 'Informations BIOS',
 
   // Original text: "Licence"
-  licenseHostSettingsLabel: 'License',
+  licenseHostSettingsLabel: 'Licence',
 
   // Original text: "Type"
   hostLicenseType: 'Type',
@@ -1242,7 +1245,7 @@ export default {
   hostLicenseSocket: 'Socket',
 
   // Original text: "Expiry"
-  hostLicenseExpiry: 'Expiry',
+  hostLicenseExpiry: 'Expiration',
 
   // Original text: "Add a network"
   networkCreateButton: 'Ajouter un réseau',
@@ -1260,10 +1263,10 @@ export default {
   pifVlanLabel: 'VLAN',
 
   // Original text: "Address"
-  pifAddressLabel: 'Addresse',
+  pifAddressLabel: 'Adresse',
 
   // Original text: 'Mode'
-  pifModeLabel: undefined,
+  pifModeLabel: 'Mode',
 
   // Original text: "MAC"
   pifMacLabel: 'MAC',
@@ -1281,13 +1284,13 @@ export default {
   pifStatusDisconnected: 'Déconnecté',
 
   // Original text: "No physical interface detected"
-  pifNoInterface: "Pas d'interface physique détecté",
+  pifNoInterface: "Pas d'interface physique détectée",
 
   // Original text: "This interface is currently in use"
   pifInUse: "Cette interface est en cours d'utilisation",
 
   // Original text: "Default locking mode"
-  defaultLockingMode: 'Vérouillage par défaut',
+  defaultLockingMode: 'Verrouillage par défaut',
 
   // Original text: 'Configure IP address'
   pifConfigureIp: undefined,
@@ -1350,7 +1353,7 @@ export default {
   patchNameLabel: 'Nom',
 
   // Original text: "Install all patches"
-  patchUpdateButton: 'installer tout les patchs',
+  patchUpdateButton: 'installer tous les patchs',
 
   // Original text: "Description"
   patchDescription: 'Description',
@@ -1368,10 +1371,10 @@ export default {
   patchStatusApplied: 'Appliqué',
 
   // Original text: "Missing patches"
-  patchStatusNotApplied: 'Patches manquant',
+  patchStatusNotApplied: 'Patches manquants',
 
   // Original text: "No patch detected"
-  patchNothing: 'Pas de patchs détectés',
+  patchNothing: 'Pas de patch détecté',
 
   // Original text: "Release date"
   patchReleaseDate: 'Date de diffusion',
@@ -1386,7 +1389,7 @@ export default {
   hostAppliedPatches: 'Patches appliqués',
 
   // Original text: "Missing patches"
-  hostMissingPatches: 'Patches manquant',
+  hostMissingPatches: 'Patches manquants',
 
   // Original text: "Host up-to-date!"
   hostUpToDate: 'Hôte à jour !',
@@ -1422,7 +1425,7 @@ export default {
   logsTabName: 'Journaux',
 
   // Original text: "Advanced"
-  advancedTabName: 'Avancés',
+  advancedTabName: 'Avancé',
 
   // Original text: "Network"
   networkTabName: 'Réseaux',
@@ -1452,7 +1455,7 @@ export default {
   vmSettings: 'Démarré il y a {ago}',
 
   // Original text: "Current status:"
-  vmCurrentStatus: 'État actuel:',
+  vmCurrentStatus: 'État actuel :',
 
   // Original text: "Not running"
   vmNotRunning: 'Éteinte',
@@ -1512,7 +1515,7 @@ export default {
   tipLabel: 'Astuces :',
 
   // Original text: "non-US keyboard could have issues with console: switch your own layout to US."
-  tipConsoleLabel: 'les clavier autre que US risquent de rencontrer des soucis avec la console. Le cas échéant, changez votre configuration clavier pour US.',
+  tipConsoleLabel: 'les claviers autres que US risquent de rencontrer des soucis avec la console. Le cas échéant, changez votre configuration clavier pour US.',
 
   // Original text: "Hide infos"
   hideHeaderTooltip: 'Cacher les infos',
@@ -1524,7 +1527,7 @@ export default {
   containerName: 'Nom',
 
   // Original text: "Command"
-  containerCommand: 'Command',
+  containerCommand: 'Commande',
 
   // Original text: "Creation date"
   containerCreated: 'Date de création',
@@ -1536,7 +1539,7 @@ export default {
   containerAction: 'Action',
 
   // Original text: "No existing containers"
-  noContainers: 'Aucun conteneurs',
+  noContainers: 'Aucun conteneur',
 
   // Original text: "Stop this container"
   containerStop: 'Arrêter ce conteneur',
@@ -1545,7 +1548,7 @@ export default {
   containerStart: 'Démarrer ce conteneur',
 
   // Original text: "Pause this container"
-  containerPause: 'Mettre en pause ce conteneur',
+  containerPause: 'Mettre ce conteneur en pause',
 
   // Original text: "Resume this container"
   containerResume: 'Relancer ce conteneur',
@@ -1590,7 +1593,7 @@ export default {
   vdiMigrateSelectSr: 'SR de destination :',
 
   // Original text: "Migrate all VDIs"
-  vdiMigrateAll: 'Migrer tout les VDIs',
+  vdiMigrateAll: 'Migrer tous les VDIs',
 
   // Original text: "No SR"
   vdiMigrateNoSr: 'Pas de SR',
@@ -1617,7 +1620,7 @@ export default {
   vbdStatusDisconnected: 'Déconnecté',
 
   // Original text: "No disks"
-  vbdNoVbd: 'Pas de disques',
+  vbdNoVbd: 'Pas de disque',
 
   // Original text: "Connect VBD"
   vbdConnect: 'Connecter un VBD',
@@ -1683,22 +1686,22 @@ export default {
   vifRemove: 'Supprimer',
 
   // Original text: "IP addresses"
-  vifIpAddresses: 'Addresses IP',
+  vifIpAddresses: 'Adresses IP',
 
   // Original text: "Auto-generated if empty"
   vifMacAutoGenerate: 'Si vide, généré automatiquement',
 
   // Original text: "Allowed IPs"
-  vifAllowedIps: 'IPs autorisé',
+  vifAllowedIps: 'IPs autorisées',
 
   // Original text: "No IPs"
-  vifNoIps: "Pas d'IPs",
+  vifNoIps: "Pas d'IP",
 
   // Original text: "Network locked"
   vifLockedNetwork: 'Réseau verrouillé',
 
   // Original text: "Network locked and no IPs are allowed for this interface"
-  vifLockedNetworkNoIps: "Le réseau est verrouillé et aucune IP n'est autorisé sur cette interface",
+  vifLockedNetworkNoIps: "Le réseau est verrouillé et aucune IP n'est autorisée sur cette interface",
 
   // Original text: "Network not locked"
   vifUnLockedNetwork: 'Réseau non verrouillé',
@@ -1740,7 +1743,7 @@ export default {
   snapshotAction: 'Action',
 
   // Original text: "Remove all logs"
-  logRemoveAll: 'Supprimer tout les journaux',
+  logRemoveAll: 'Supprimer tous les journaux',
 
   // Original text: "No logs so far"
   noLogs: 'Pas de journaux jusque là',
@@ -1785,7 +1788,7 @@ export default {
   defaultCpuWeight: 'Défaut ({value, number})',
 
   // Original text: "CPU cap"
-  cpuCapLabel: 'Fonctionnalitées CPU',
+  cpuCapLabel: 'Fonctionnalités CPU',
 
   // Original text: "Default ({value, number})"
   defaultCpuCap: 'Défaut ({value, number})',
@@ -1794,7 +1797,7 @@ export default {
   pvArgsLabel: 'PV params',
 
   // Original text: "Xen tools status"
-  xenToolsStatus: 'État du Xen tools',
+  xenToolsStatus: 'État des Xen tools',
 
   // Original text: '{status}'
   xenToolsStatusValue: undefined,
@@ -1824,7 +1827,7 @@ export default {
   unknownOriginalTemplate: 'Inconnu',
 
   // Original text: "VM limits"
-  vmLimitsLabel: 'Limites de VM',
+  vmLimitsLabel: 'Limites de la VM',
 
   // Original text: "CPU limits"
   vmCpuLimitsLabel: 'Limites de CPU',
@@ -1845,16 +1848,16 @@ export default {
   vmHomeDescriptionPlaceholder: 'Clic long pour définir une description',
 
   // Original text: "Click to add a name"
-  vmViewNamePlaceholder: 'Clic pour définir un nom',
+  vmViewNamePlaceholder: 'Cliquer pour définir un nom',
 
   // Original text: "Click to add a description"
-  vmViewDescriptionPlaceholder: 'Clic pour définir une description',
+  vmViewDescriptionPlaceholder: 'Cliquer pour définir une description',
 
   // Original text: "Click to add a name"
-  templateHomeNamePlaceholder: 'Clic pour ajouter un nom',
+  templateHomeNamePlaceholder: 'Cliquer pour ajouter un nom',
 
   // Original text: "Click to add a description"
-  templateHomeDescriptionPlaceholder: 'Clic pour ajouter une description',
+  templateHomeDescriptionPlaceholder: 'Cliquer pour ajouter une description',
 
   // Original text: "Delete template"
   templateDelete: 'Supprimer le template',
@@ -1881,7 +1884,7 @@ export default {
   cpuStatePanel: 'Utilisation CPUs',
 
   // Original text: "VMs Power state"
-  vmStatePanel: 'VMs démarrés ?',
+  vmStatePanel: 'Etats des VMs',
 
   // Original text: "Pending tasks"
   taskStatePanel: 'Tâches en attente',
@@ -1926,16 +1929,16 @@ export default {
   srUsageStatePanel: 'Utilisation du stockage',
 
   // Original text: "Top 5 SR Usage (in %)"
-  srTopUsageStatePanel: "Top 5 d'utilisation des SR (en %)",
+  srTopUsageStatePanel: "Top 5 d'utilisation des SRs (en %)",
 
   // Original text: "{running} running ({halted} halted)"
-  vmsStates: '{running} en cours ({halted} stoppés)',
+  vmsStates: '{running} allumée{halted, plural, one {} other {s}} ({halted} éteinte{halted, plural, one {} other {s}})',
 
   // Original text: "Clear selection"
   dashboardStatsButtonRemoveAll: 'Vider la sélection',
 
   // Original text: "Add all hosts"
-  dashboardStatsButtonAddAllHost: 'Ajouter tout les hôtes',
+  dashboardStatsButtonAddAllHost: 'Ajouter tous les hôtes',
 
   // Original text: "Add all VMs"
   dashboardStatsButtonAddAllVM: 'Ajouter toutes les VMs',
@@ -1950,7 +1953,7 @@ export default {
   weeklyHeatmap: 'Heatmap hebdomadaire',
 
   // Original text: "Weekly Charts"
-  weeklyCharts: 'Graphes hebdomadaire',
+  weeklyCharts: 'Graphes hebdomadaires',
 
   // Original text: "Synchronize scale:"
   weeklyChartsScaleInfo: 'Synchroniser les échelles :',
@@ -1959,10 +1962,10 @@ export default {
   statsDashboardGenericErrorTitle: 'Erreurs de stats',
 
   // Original text: "There is no stats available for:"
-  statsDashboardGenericErrorMessage: 'Pas de statistiques disponible pour :',
+  statsDashboardGenericErrorMessage: 'Pas de statistiques disponibles pour :',
 
   // Original text: "No selected metric"
-  noSelectedMetric: 'Pas de métriques sélectionnés.',
+  noSelectedMetric: 'Pas de métrique sélectionnée.',
 
   // Original text: "Select"
   statsDashboardSelectObjects: 'Sélectionner',
@@ -1983,7 +1986,7 @@ export default {
   noOrphanedObject: "Pas d'orphelin",
 
   // Original text: "Remove all orphaned snapshot VDIs"
-  removeAllOrphanedObject: 'Supprimer tout les snapshot de VDIs orphelin',
+  removeAllOrphanedObject: 'Supprimer tous les snapshots de VDIs orphelins',
 
   // Original text: "Name"
   vmNameLabel: 'Nom',
@@ -2007,16 +2010,16 @@ export default {
   alarmContent: 'Contenu',
 
   // Original text: "Issue on"
-  alarmObject: 'Concerne',
+  alarmObject: 'Concerné',
 
   // Original text: "Pool"
   alarmPool: 'Pool',
 
   // Original text: "Remove all alarms"
-  alarmRemoveAll: 'Supprimer toute les alarmes',
+  alarmRemoveAll: 'Supprimer toutes les alarmes',
 
   // Original text: "{used}% used ({free} left)"
-  spaceLeftTooltip: '{used}% utilisé ({free} restant)',
+  spaceLeftTooltip: '{used}% utilisés ({free} restants)',
 
   // Original text: "Create a new VM on {select}"
   newVmCreateNewVmOn: 'Créer une nouvelle VM sur {select}',
@@ -2067,7 +2070,7 @@ export default {
   newVmNetworkLabel: 'Réseau',
 
   // Original text: "e.g: http://httpredir.debian.org/debian"
-  newVmInstallNetworkPlaceHolder: 'ex: http://httpredir.debian.org/debian',
+  newVmInstallNetworkPlaceHolder: 'ex : http://httpredir.debian.org/debian',
 
   // Original text: "PV Args"
   newVmPvArgsLabel: 'PV Args',
@@ -2097,7 +2100,7 @@ export default {
   newVmSizeLabel: 'Taille',
 
   // Original text: "Add disk"
-  newVmAddDisk: 'Ajouter disque',
+  newVmAddDisk: 'Ajouter un disque',
 
   // Original text: "Summary"
   newVmSummaryPanel: 'Récapitulatif',
@@ -2118,7 +2121,7 @@ export default {
   newVmConfigDrive: 'Config drive',
 
   // Original text: "Custom config"
-  newVmCustomConfig: 'Configuration personnalisé',
+  newVmCustomConfig: 'Configuration personnalisée',
 
   // Original text: "Boot VM after creation"
   newVmBootAfterCreate: 'Démarrer la VM après sa création',
@@ -2133,7 +2136,7 @@ export default {
   newVmDefaultCpuWeight: 'Par défaut: {value, number}',
 
   // Original text: "CPU cap"
-  newVmCpuCapLabel: 'Fonctionnalitées CPU',
+  newVmCpuCapLabel: 'Fonctionnalités CPU',
 
   // Original text: "Default: {value, number}"
   newVmDefaultCpuCap: 'Par défaut : {value, number}',
@@ -2163,7 +2166,7 @@ export default {
   newVmFirstIndex: 'Première itération :',
 
   // Original text: "Recalculate VMs number"
-  newVmNumberRecalculate: 'Recalculer les nombres des VMs',
+  newVmNumberRecalculate: 'Recalculer le nombre des VMs',
 
   // Original text: "Refresh VMs name"
   newVmNameRefresh: 'Rafraîchir le nom des VMs',
@@ -2181,13 +2184,13 @@ export default {
   resourceSets: 'Jeu de ressources',
 
   // Original text: "No resource sets."
-  noResourceSets: 'Pas de jeux de ressources.',
+  noResourceSets: 'Pas de jeu de ressources.',
 
   // Original text: "Loading resource sets"
-  loadingResourceSets: 'Charge les jeux de ressources…',
+  loadingResourceSets: 'Chargement des jeux de ressources…',
 
   // Original text: "Resource set name"
-  resourceSetName: 'Nom du jeu de ressource',
+  resourceSetName: 'Nom du jeu de ressources',
 
   // Original text: "Recompute all limits"
   recomputeResourceSets: 'Recalculer les limites',
@@ -2211,7 +2214,7 @@ export default {
   deleteResourceSetQuestion: 'Êtes-vous sûr de vouloir supprimer ce jeu de ressources ?',
 
   // Original text: "Missing objects:"
-  resourceSetMissingObjects: 'Objets manquant :',
+  resourceSetMissingObjects: 'Objets manquants :',
 
   // Original text: "vCPUs"
   resourceSetVcpus: 'vCPUs',
@@ -2226,16 +2229,16 @@ export default {
   unknownResourceSetValue: 'Inconnu',
 
   // Original text: "Available hosts"
-  availableHosts: 'Hôtes disponible',
+  availableHosts: 'Hôtes disponibles',
 
   // Original text: "Excluded hosts"
   excludedHosts: 'Hôtes exclus',
 
   // Original text: "No hosts available."
-  noHostsAvailable: "Pas d'hôtes disponible.",
+  noHostsAvailable: "Pas d'hôte disponible.",
 
   // Original text: "VMs created from this resource set shall run on the following hosts."
-  availableHostsDescription: 'Les VMs créé sur ce jeu de ressources doivent être lancés sur les hôtes suivants.',
+  availableHostsDescription: 'Les VMs créées sur ce jeu de ressources doivent être démarrées sur les hôtes suivants.',
 
   // Original text: "Maximum CPUs"
   maxCpus: 'CPUs maximum',
@@ -2247,7 +2250,7 @@ export default {
   maxDiskSpace: 'Espace disque maximum',
 
   // Original text: "IP pool"
-  ipPool: 'Plages IP',
+  ipPool: "Plages d'IPs",
 
   // Original text: "Quantity"
   quantity: 'Quantité',
@@ -2268,10 +2271,10 @@ export default {
   resourceSetNew: 'Nouvelle',
 
   // Original text: "Try dropping some VMs files here, or click to select VMs to upload. Accept only .xva/.ova files."
-  importVmsList: 'Essayez de déposer des fichiers de VMs ici, ou bien cliquez pour sélectionner des VMs à téléverser. Seul les fichiers .xva/.ova sont acceptés.',
+  importVmsList: 'Essayez de déposer des fichiers de VMs ici, ou bien cliquez pour sélectionner des VMs à téléverser. Seuls les fichiers .xva/.ova sont acceptés.',
 
   // Original text: "No selected VMs."
-  noSelectedVms: 'Pas de VMs sélectionné.',
+  noSelectedVms: 'Pas de VM sélectionnée.',
 
   // Original text: "To Pool:"
   vmImportToPool: 'Sur le Pool:',
@@ -2310,10 +2313,10 @@ export default {
   diskDescription: 'Description du disque',
 
   // Original text: "No disks."
-  noDisks: 'Pas de disques.',
+  noDisks: 'Pas de disque.',
 
   // Original text: "No networks."
-  noNetworks: 'Pas de réseaux.',
+  noNetworks: 'Pas de réseau.',
 
   // Original text: "Network {name}"
   networkInfo: 'Réseau {name}',
@@ -2322,7 +2325,7 @@ export default {
   noVmImportErrorDescription: 'Pas de description disponible',
 
   // Original text: "Error:"
-  vmImportError: 'Erreur:',
+  vmImportError: 'Erreur :',
 
   // Original text: "{type} file:"
   vmImportFileType: '{type} fichier:',
@@ -2331,10 +2334,10 @@ export default {
   vmImportConfigAlert: 'Merci de vérifier et/ou modifier la configuration de la VM.',
 
   // Original text: "No pending tasks"
-  noTasks: 'Pas de tâches en attente',
+  noTasks: 'Pas de tâche en attente',
 
   // Original text: "Currently, there are not any pending XenServer tasks"
-  xsTasks: "Actuellement, il n'y a aucune tâches en attente",
+  xsTasks: "Actuellement, il n'y a aucune tâche en attente",
 
   // Original text: "Schedules"
   backupSchedules: 'Planifier',
@@ -2355,7 +2358,7 @@ export default {
   restoreBackups: 'Restauration de sauvegardes',
 
   // Original text: 'Click on a VM to display restore options'
-  restoreBackupsInfo: undefined,
+  restoreBackupsInfo: 'Cliquez sur une VM pour afficher les options de récupération',
 
   // Original text: "Enabled"
   remoteEnabled: 'activé',
@@ -2370,19 +2373,19 @@ export default {
   backupVmNameColumn: 'Nom de la VM',
 
   // Original text: 'Tags'
-  backupTags: undefined,
+  backupTags: 'Tags',
 
   // Original text: "Last Backup"
   lastBackupColumn: 'Dernière sauvegarde',
 
   // Original text: "Available Backups"
-  availableBackupsColumn: 'Sauvegarde disponible',
+  availableBackupsColumn: 'Sauvegardes disponibles',
 
   // Original text: 'Missing parameters'
-  backupRestoreErrorTitle: undefined,
+  backupRestoreErrorTitle: 'Paramètres manquants',
 
   // Original text: 'Choose a SR and a backup'
-  backupRestoreErrorMessage: undefined,
+  backupRestoreErrorMessage: 'Choisir un SR et une sauvegarde',
 
   // Original text: "Display backups"
   displayBackup: 'Afficher les sauvegardes',
@@ -2397,10 +2400,10 @@ export default {
   vmsToBackup: 'VMs à sauvegarder',
 
   // Original text: "Emergency shutdown Host{nHosts, plural, one {} other {s}}"
-  emergencyShutdownHostsModalTitle: "Extinction d'urgence de(s) hôte{nHosts, plural, one {} other {s}}",
+  emergencyShutdownHostsModalTitle: "Extinction d'urgence {nHosts, plural, one {de l'hôte} other {des hôtes}}",
 
   // Original text: "Are you sure you want to shutdown {nHosts} Host{nHosts, plural, one {} other {s}}?"
-  emergencyShutdownHostsModalMessage: 'Êtes-vous sûr de vouloir arrêter {nHosts} Hôte{nHosts, plural, one {} other {s}}?',
+  emergencyShutdownHostsModalMessage: 'Êtes-vous sûr de vouloir arrêter {nHosts} hôte{nHosts, plural, one {} other {s}}?',
 
   // Original text: "Shutdown host"
   stopHostModalTitle: "Arrêter l'hôte",
@@ -2421,10 +2424,10 @@ export default {
   restartHostModalMessage: 'Votre hôte va devoir redémarrer. Voulez-vous continuer ?',
 
   // Original text: "Restart Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}"
-  restartHostsAgentsModalTitle: 'Redémarrer le{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}} de{nHosts, plural, one {} other {s}} hôte{nHosts, plural, one {} other {s}}',
+  restartHostsAgentsModalTitle: "Redémarrer les agents {nHosts, plural, one {de l'hôte} other {des hôtes}}",
 
   // Original text: "Are you sure you want to restart {nHosts} Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}?"
-  restartHostsAgentsModalMessage: 'Êtes-vous sûr de vouloir redémarrer le{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}} de{nHosts, plural, one {} other {s}} hôte{nHosts, plural, one {} other {s}}',
+  restartHostsAgentsModalMessage: "Êtes-vous sûr de vouloir redémarrer les agents {nHosts, plural, one {de l'hôte} other {des hôtes}} ?",
 
   // Original text: "Restart Host{nHosts, plural, one {} other {s}}"
   restartHostsModalTitle: "Redémarrer {nHosts, plural, one {l'} other {les}} hôte{nHosts, plural, one {} other {s}}",
@@ -2454,7 +2457,7 @@ export default {
   restartVmModalTitle: 'Redémarrer la VM',
 
   // Original text: "Are you sure you want to restart {name}?"
-  restartVmModalMessage: 'Êtes-vous sûr de vous redémarrer {name}?',
+  restartVmModalMessage: 'Êtes-vous sûr de vouloir redémarrer {name}?',
 
   // Original text: "Stop VM"
   stopVmModalTitle: 'Arrêter la VM',
@@ -2469,46 +2472,46 @@ export default {
   restartVmsModalMessage: 'Êtes-vous sûr de vouloir redémarrer {vms, plural, one {la} other {les}} VM{vms, plural, one {} other {s}} {vms} ?',
 
   // Original text: "Snapshot VM{vms, plural, one {} other {s}}"
-  snapshotVmsModalTitle: 'Faire un instantané {vms, plural, one {de la} other {des}}  VM{vms, plural, one {} other {s}}',
+  snapshotVmsModalTitle: 'Faire un instantané {vms, plural, one {de la} other {des}} VM{vms, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to snapshot {vms} VM{vms, plural, one {} other {s}}?"
-  snapshotVmsModalMessage: 'Êtes-vous sûr de vouloir faire un instantané {vms, plural, one {de la} other {des}} {vms} VM{vms, plural, one {} other {s}} ?',
+  snapshotVmsModalMessage: 'Êtes-vous sûr de vouloir faire un instantané {vms, plural, one {de la VM} other {des {vms} VMs}} ?',
 
   // Original text: "Delete VM{vms, plural, one {} other {s}}"
   deleteVmsModalTitle: 'Supprimer {vms, plural, one {la} other {les}} VM{vms, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to delete {vms} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED"
-  deleteVmsModalMessage: 'Êtes-vous sûr de vouloir supprimer {vms, plural, one {la} other {les}} {vms} VM{vms, plural, one {} other {s}} ? TOUT LES DISQUES ASSOCIÉS SERONT SUPPRIMÉ',
+  deleteVmsModalMessage: 'Êtes-vous sûr de vouloir supprimer {vms, plural, one {la VM} other {les {vms} VMs}} ? TOUS LES DISQUES ASSOCIÉS SERONT SUPPRIMÉS',
 
   // Original text: "Delete VM"
   deleteVmModalTitle: 'Supprimer la VM',
 
   // Original text: "Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED"
-  deleteVmModalMessage: 'Êtes-vous sûr de vouloir supprimer cette VM ? TOUT LES DISQUES DE LA VM SERONT SUPPRIMÉ DEFINITIVEMENT',
+  deleteVmModalMessage: 'Êtes-vous sûr de vouloir supprimer cette VM ? TOUS LES DISQUES DE LA VM SERONT SUPPRIMÉS DEFINITIVEMENT',
 
   // Original text: "Migrate VM"
   migrateVmModalTitle: 'Migrer la VM',
 
   // Original text: "Select a destination host:"
-  migrateVmSelectHost: 'Sélectionner un hôte de destination:',
+  migrateVmSelectHost: 'Sélectionner un hôte de destination :',
 
   // Original text: "Select a migration network:"
   migrateVmSelectMigrationNetwork: 'Choisir un réseau de migration :',
 
   // Original text: "For each VDI, select an SR:"
-  migrateVmSelectSrs: 'Pour chaque VDI, choisissez un SR :',
+  migrateVmSelectSrs: 'Pour chaque VDI, choisir un SR :',
 
   // Original text: "For each VIF, select a network:"
-  migrateVmSelectNetworks: 'Pour chaque VIF, choisissez un réseau :',
+  migrateVmSelectNetworks: 'Pour chaque VIF, choisir un réseau :',
 
   // Original text: "Select a destination SR:"
-  migrateVmsSelectSr: 'Sélectionnez un SR de destination :',
+  migrateVmsSelectSr: 'Sélectionner un SR de destination :',
 
   // Original text: "Select a destination SR for local disks:"
-  migrateVmsSelectSrIntraPool: 'Choisissez un SR de destination pour les disques locaux :',
+  migrateVmsSelectSrIntraPool: 'Choisir un SR de destination pour les disques locaux :',
 
   // Original text: "Select a network on which to connect each VIF:"
-  migrateVmsSelectNetwork: 'Choisissez un réseau sur pour connecter chaque VIF :',
+  migrateVmsSelectNetwork: 'Choisir un réseau pour chaque VIF :',
 
   // Original text: "Smart mapping"
   migrateVmsSmartMapping: 'Réaffectation intelligente',
@@ -2535,7 +2538,7 @@ export default {
   deleteVdiModalTitle: 'Supprimer le VDI',
 
   // Original text: "Are you sure you want to delete this disk? ALL DATA ON THIS DISK WILL BE LOST"
-  deleteVdiModalMessage: 'Êtes-vous sûr de vouloir supprimer ce disque ? TOUTE LES DONNÉES CONTENUE SERONT PERDUE IRRÉMÉDIABLEMENT',
+  deleteVdiModalMessage: 'Êtes-vous sûr de vouloir supprimer ce disque ? TOUTES LES DONNÉES CONTENUES SERONT PERDUES IRRÉMÉDIABLEMENT',
 
   // Original text: "Revert your VM"
   revertVmModalTitle: 'Restaurer la VM',
@@ -2547,13 +2550,13 @@ export default {
   deleteSnapshotModalMessage: 'Êtes-vous sûr de vouloir supprimer cet instantané ?',
 
   // Original text: "Are you sure you want to revert this VM to the snapshot state? This operation is irreversible."
-  revertVmModalMessage: "Êtes-vous sur de vouloir restaurer cette VM à l'état de cet instantané ? Cette opération est irrévocable.",
+  revertVmModalMessage: "Êtes-vous sûr de vouloir restaurer cette VM à l'état de cet instantané ? Cette opération est irrévocable.",
 
   // Original text: "Snapshot before"
   revertVmModalSnapshotBefore: 'Faire un instantané avant',
 
   // Original text: "Import a {name} Backup"
-  importBackupModalTitle: 'Importer une sauvegarde {name}',
+  importBackupModalTitle: 'Importer une sauvegarde de {name}',
 
   // Original text: "Start VM after restore"
   importBackupModalStart: 'Démarrer la VM après la restauration',
@@ -2562,37 +2565,37 @@ export default {
   importBackupModalSelectBackup: 'Sélectionnez votre sauvegarde…',
 
   // Original text: "Are you sure you want to remove all orphaned snapshot VDIs?"
-  removeAllOrphanedModalWarning: 'Êtes-vous sûr de vouloir supprimer tout les instantanés de VDIs orphelin ?',
+  removeAllOrphanedModalWarning: 'Êtes-vous sûr de vouloir supprimer tous les instantanés de VDIs orphelins ?',
 
   // Original text: "Remove all logs"
-  removeAllLogsModalTitle: 'Supprimer tout les journaux',
+  removeAllLogsModalTitle: 'Supprimer tous les journaux',
 
   // Original text: "Are you sure you want to remove all logs?"
-  removeAllLogsModalWarning: 'Êtes-vous sûr de vouloir supprimer tout les journaux ?',
+  removeAllLogsModalWarning: 'Êtes-vous sûr de vouloir supprimer tous les journaux ?',
 
   // Original text: "This operation is definitive."
   definitiveMessageModal: 'Cette action est irréversible.',
 
   // Original text: "Previous SR Usage"
-  existingSrModalTitle: 'Previous SR Usage',
+  existingSrModalTitle: 'Emplacement utilisé',
 
   // Original text: "This path has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation."
-  existingSrModalText: 'Cet emplacement avait été utilisé auparavant comme un Stockage par un hôte XenServer. Toute les données présente seront perdue sur vous décider de continuer la création du SR.',
+  existingSrModalText: 'Cet emplacement avait été utilisé auparavant comme un Stockage par un hôte XenServer. Toutes les données présentes seront perdues si vous décidez de continuer la création du SR.',
 
   // Original text: "Previous LUN Usage"
-  existingLunModalTitle: 'Previous LUN Usage',
+  existingLunModalTitle: 'LUN utilisé',
 
   // Original text: "This LUN has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation."
-  existingLunModalText: 'Ce LUN avait été utilisé auparavant comme un Stockage par un hôte XenServer. Toute les données présente seront perdue sur vous décider de continuer la création du SR.',
+  existingLunModalText: 'Ce LUN avait été utilisé auparavant comme un Stockage par un hôte XenServer. Toutes les données présentes seront perdues si vous décidez de continuer la création du SR.',
 
   // Original text: "Replace current registration?"
   alreadyRegisteredModal: "Remplacer l'enregistrement actuel ?",
 
   // Original text: "Your XO appliance is already registered to {email}, do you want to forget and replace this registration ?"
-  alreadyRegisteredModalText: 'Votre instance XOA est déjà enregistré pour {email}, voulez-vous remplacer cet enregistrement ?',
+  alreadyRegisteredModalText: 'Votre instance XOA est déjà enregistrée pour {email}, voulez-vous remplacer cet enregistrement ?',
 
   // Original text: "Ready for trial?"
-  trialReadyModal: 'Prêt pour une démonstration ?',
+  trialReadyModal: "Prêt pour l'essai ?",
 
   // Original text: "During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans!"
   trialReadyModalText: "Durant la période de démonstration, XOA nécessite une connexion internet fonctionnelle. Cette limitation disparaît avec la souscription d'une de nos formules.",
@@ -2640,10 +2643,10 @@ export default {
   copyVmNamePattern: 'Motif de nom',
 
   // Original text: "If empty: name of the copied VM"
-  copyVmNamePlaceholder: 'Si vide: nom de la VM',
+  copyVmNamePlaceholder: 'Si vide : nom de la VM',
 
   // Original text: "e.g.: \"\\{name\\}_COPY\""
-  copyVmNamePatternPlaceholder: 'ex.: "\\{name\\}_COPY"',
+  copyVmNamePatternPlaceholder: 'ex. : "\\{name\\}_COPY"',
 
   // Original text: "Select SR"
   copyVmSelectSr: 'Sélectionner le SR',
@@ -2661,7 +2664,7 @@ export default {
   detachHostModalTitle: "Détacher l'hôte",
 
   // Original text: "Are you sure you want to detach {host} from its pool? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND REBOOT THE HOST."
-  detachHostModalMessage: "Êtes-vous sûr de vouloir détacher {host} de son pool? CELA SUPPRIMERA TOUTE LES VMs DE SON STOCKAGE LOCAL ET REDÉMARRERA L'HÔTE.",
+  detachHostModalMessage: "Êtes-vous sûr de vouloir détacher {host} de son pool? CELA SUPPRIMERA TOUTES LES VMs DE SON STOCKAGE LOCAL ET REDÉMARRERA L'HÔTE.",
 
   // Original text: "Detach"
   detachHost: 'Détacher',
@@ -2691,7 +2694,7 @@ export default {
   newNetworkMtu: 'MTU',
 
   // Original text: "Default: 1500"
-  newNetworkDefaultMtu: 'Défaut: 1500',
+  newNetworkDefaultMtu: 'Défaut : 1500',
 
   // Original text: "Name required"
   newNetworkNoNameErrorTitle: 'Un nom est nécessaire',
@@ -2718,7 +2721,7 @@ export default {
   addHostSelectHost: 'Hôte',
 
   // Original text: "No host"
-  addHostNoHost: "Pas d'hôtes",
+  addHostNoHost: "Pas d'hôte",
 
   // Original text: "No host selected to be added"
   addHostNoHostMessage: 'Aucun hôte sélectionné pour ajout',
@@ -2727,10 +2730,10 @@ export default {
   xenOrchestra: 'Xen Orchestra',
 
   // Original text: "server"
-  xenOrchestraServer: 'server',
+  xenOrchestraServer: 'Serveur Xen Orchestra',
 
   // Original text: "web client"
-  xenOrchestraWeb: 'web client',
+  xenOrchestraWeb: 'Client web Xen Orchestra',
 
   // Original text: "No pro support provided!"
   noProSupport: 'Pas de support professionel fourni !',
@@ -2738,14 +2741,14 @@ export default {
   // Original text: "Use in production at your own risks"
   noProductionUse: 'Utilisez en production à vos risques et périls',
 
-  // Original text: "You can download our turnkey appliance at"
-  downloadXoa: 'Téléchargez notre édition clef en main sur',
+  // Original text: "You can download our turnkey appliance at {website}"
+  downloadXoaFromWebsite: 'Téléchargez notre édition clef en main sur {website}',
 
   // Original text: "Bug Tracker"
-  bugTracker: 'Gestionnaire de ticket',
+  bugTracker: 'Gestionnaire de tickets',
 
   // Original text: "Issues? Report it!"
-  bugTrackerText: 'Un soucis ? Dites-le !',
+  bugTrackerText: 'Un souci ? Dites-le nous !',
 
   // Original text: "Community"
   community: 'Communauté',
@@ -2763,7 +2766,7 @@ export default {
   issues: 'Des soucis ?',
 
   // Original text: "Problem? Contact us!"
-  issuesText: 'Un problème ? Contactez nous !',
+  issuesText: 'Un problème ? Contactez-nous !',
 
   // Original text: "Documentation"
   documentation: 'Documentation',
@@ -2772,10 +2775,10 @@ export default {
   documentationText: 'Consultez notre documentation officielle',
 
   // Original text: "Pro support included"
-  proSupportIncluded: 'Support professionel inclu',
+  proSupportIncluded: 'Support professionel inclus',
 
   // Original text: "Acces your XO Account"
-  xoAccount: 'Accèder à votre compte XO',
+  xoAccount: 'Accéder à votre compte XO',
 
   // Original text: "Report a problem"
   openTicket: 'Signaler un problème',
@@ -2820,7 +2823,7 @@ export default {
   proxySettingsHostPlaceHolder: 'Hôte (monproxy.exemple.tld)',
 
   // Original text: "Port (eg: 3128)"
-  proxySettingsPortPlaceHolder: 'Port (ex: 3128)',
+  proxySettingsPortPlaceHolder: 'Port (ex : 3128)',
 
   // Original text: "Username"
   proxySettingsUsernamePlaceHolder: "Nom d'utilisateur",
@@ -2847,10 +2850,10 @@ export default {
   noUpdaterCommunity: 'Pas de mise à jour sur la version Communautaire',
 
   // Original text: "Please consider subscribe and try it with all features for free during 15 days on"
-  noUpdaterSubscribe: 'Envisagez de souscrire, et essayez toute les fonctionnalitées gratuitement pendant 15 jours',
+  considerSubscribe: 'Envisagez de souscrire, et essayez toutes les fonctionnalités gratuitement pendant 15 jours.',
 
   // Original text: "Manual update could break your current installation due to dependencies issues, do it with caution"
-  noUpdaterWarning: 'Une mise à jour manuelle pourrait corrompre votre installation actuelle à cause des dépendances, soyez prudent',
+  noUpdaterWarning: 'Une mise à jour manuelle pourrait corrompre votre installation actuelle à cause des dépendances, soyez prudent.',
 
   // Original text: "Current version:"
   currentVersion: 'Version actuelle :',
@@ -2874,13 +2877,13 @@ export default {
   trialConsumed: "Votre période d'essai est terminé. Contactez-nous, ou régressez sur l'édition gratuite.",
 
   // Original text: "Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service."
-  trialLocked: 'Votre service xoa-update semble inaccessible. Votre XOA ne peux pas fonctionner pleinement si il ne peux pas joindre ce service.',
+  trialLocked: 'Votre service xoa-update semble inaccessible. Votre XOA ne peut pas fonctionner pleinement si elle ne peut pas joindre ce service.',
 
   // Original text: "No update information available"
   noUpdateInfo: "Pas d'informations de mises à jour disponible",
 
   // Original text: "Update information may be available"
-  waitingUpdateInfo: 'Des informations de mises à jour sont peut-être disponible',
+  waitingUpdateInfo: 'Des informations de mises à jour sont peut-être disponibles',
 
   // Original text: "Your XOA is up-to-date"
   upToDate: 'Votre XOA est à jour',
@@ -2889,16 +2892,16 @@ export default {
   mustUpgrade: 'Vous devez mettre à jour votre XOA (une nouvelle version est disponible)',
 
   // Original text: "Your XOA is not registered for updates"
-  registerNeeded: "Votre XOA n'est pas enregistré pour les mises à jour",
+  registerNeeded: "Votre XOA n'est pas enregistrée pour les mises à jour",
 
   // Original text: "Can't fetch update information"
   updaterError: 'Impossible de récupérer les informations de mise à jour.',
 
   // Original text: "Upgrade successful"
-  promptUpgradeReloadTitle: 'Mise à jour réussi',
+  promptUpgradeReloadTitle: 'Mise à jour réussie',
 
   // Original text: "Your XOA has successfully upgraded, and your browser must reload the application. Do you want to reload now ?"
-  promptUpgradeReloadMessage: "Votre XOA à été mis à jour avec brio, et votre navigateur doit rafraîchir l'application pour en profiter. Voulez-vous rafraîchir dès maintenant ?",
+  promptUpgradeReloadMessage: "Votre XOA à été mise à jour avec brio, et votre navigateur doit rafraîchir l'application pour en profiter. Voulez-vous rafraîchir dès maintenant ?",
 
   // Original text: "Xen Orchestra from the sources"
   disclaimerTitle: 'Xen Orchestra depuis les sources',
@@ -2907,10 +2910,10 @@ export default {
   disclaimerText1: "Vous utilisez XO depuis les sources. C'est parfait pour un usage personnel ou non lucratif.",
 
   // Original text: "If you are a company, it's better to use it with our appliance + pro support included:"
-  disclaimerText2: "Si vous êtes une entrerprise, il est préférable d'utiliser notre applicance qui inclu du support professionel.",
+  disclaimerText2: "Si vous êtes une entrerprise, il est préférable d'utiliser notre applicance qui inclut du support professionel.",
 
   // Original text: "This version is not bundled with any support nor updates. Use it with caution for critical tasks."
-  disclaimerText3: "Cette version n'est fournit avec aucun support ni aucune mise à jour. Soyez prudent en cas d'utilisation pour des tâches importantes.",
+  disclaimerText3: "Cette version n'est fournie avec aucun support ni aucune mise à jour. Soyez prudent en cas d'utilisation pour des tâches importantes.",
 
   // Original text: "Connect PIF"
   connectPif: 'Connecter la PIF',
@@ -2952,7 +2955,7 @@ export default {
   confirmationPasswordError: 'Confirmation du nouveau mot de passe invalide',
 
   // Original text: "Password does not match the confirm password."
-  confirmationPasswordErrorBody: 'Password does not match the confirm password.',
+  confirmationPasswordErrorBody: 'Le mot de passe ne correspond pas à la confirmation du mot de passe.',
 
   // Original text: "Password changed"
   pwdChangeSuccess: 'Mot de passe modifié',
@@ -2964,7 +2967,7 @@ export default {
   pwdChangeError: 'Mot de passe invalide',
 
   // Original text: "The old password provided is incorrect. Your password has not been changed."
-  pwdChangeErrorBody: 'The old password provided is incorrect. Your password has not been changed.',
+  pwdChangeErrorBody: "L'ancien mot de passe n'est pas valide. Votre mot de passe n'a pas été changé.",
 
   // Original text: "OK"
   changePasswordOk: 'OK',
@@ -2982,7 +2985,7 @@ export default {
   noSshKeys: 'Pas de clef SSH',
 
   // Original text: "New SSH key"
-  newSshKeyModalTitle: 'New SSH key',
+  newSshKeyModalTitle: 'Nouvelle clef SSH',
 
   // Original text: "Invalid key"
   sshKeyErrorTitle: 'Clef invalide',
@@ -3000,7 +3003,7 @@ export default {
   deleteSshKeyConfirm: 'Supprimer la clef SSH',
 
   // Original text: "Are you sure you want to delete the SSH key {title}?"
-  deleteSshKeyConfirmMessage: 'Êtes-vous sûr de vous supprimer la clef SSH {title}?',
+  deleteSshKeyConfirmMessage: 'Êtes-vous sûr de vouloir supprimer la clef SSH {title}?',
 
   // Original text: "Others"
   others: 'Autres',
@@ -3039,13 +3042,13 @@ export default {
   logDelete: 'Supprimer le log',
 
   // Original text: "Delete all logs"
-  logDeleteAll: 'Supprimer tout les journaux',
+  logDeleteAll: 'Supprimer tous les journaux',
 
   // Original text: "Delete all logs"
-  logDeleteAllTitle: 'Supprimer tout les journaux',
+  logDeleteAllTitle: 'Supprimer tous les journaux',
 
   // Original text: "Are you sure you want to delete all the logs?"
-  logDeleteAllMessage: 'Êtes-vous sûr de vouloir supprimer tout les journaux ?',
+  logDeleteAllMessage: 'Êtes-vous sûr de vouloir supprimer tous les journaux ?',
 
   // Original text: "Name"
   ipPoolName: 'Nom',
@@ -3069,7 +3072,7 @@ export default {
   ipsDeleteAllTitle: "Supprimer toutes les plages d'IPs",
 
   // Original text: "Are you sure you want to delete all the IP pools?"
-  ipsDeleteAllMessage: "Êtes-vous sûr de vouloir supprimer toutes les plages d'IP ?",
+  ipsDeleteAllMessage: "Êtes-vous sûr de vouloir supprimer toutes les plages d'IPs ?",
 
   // Original text: "VIFs"
   ipsVifs: 'VIFs',
@@ -3114,7 +3117,7 @@ export default {
   shortcut_NAV_UP: 'Élément précédent',
 
   // Original text: "Select item"
-  shortcut_SELECT: "Sélectionné l'élément",
+  shortcut_SELECT: "Sélectionner l'élément",
 
   // Original text: "Open"
   shortcut_JUMP_INTO: 'Ouvrir',
