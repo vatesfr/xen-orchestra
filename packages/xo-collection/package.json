@@ -4,11 +4,11 @@
   "license": "ISC",
   "description": "Generic in-memory collection with events",
   "keywords": [],
-  "homepage": "https://github.com/marsaud/collection",
-  "bugs": "https://github.com/marsaud/collection/issues",
+  "homepage": "https://github.com/vatesfr/xen-orchestra",
+  "bugs": "https://github.com/vatesfr/xo-web/issues",
   "repository": {
     "type": "git",
-    "url": "https://github.com/marsaud/collection.git"
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "author": {
     "name": "Fabrice Marsaud",

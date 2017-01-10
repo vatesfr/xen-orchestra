@@ -1,4 +1,4 @@
-# xo-collection [![Build Status](https://travis-ci.org/marsaud/collection.png?branch=master)](https://travis-ci.org/marsaud/collection)
+# xo-collection [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
 > Generic in-memory collection with events
 
@@ -256,7 +256,7 @@ the code.
 
 You may:
 
-- report any [issue](https://github.com/marsaud/collection/issues)
+- report any [issue](https://github.com/vatesfr/xo-web/issues)
   you've encountered;
 - fork and create a pull request.
 

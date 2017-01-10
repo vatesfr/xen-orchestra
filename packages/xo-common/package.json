@@ -4,11 +4,11 @@
   "license": "AGPL-3.0",
   "description": "Code shared between [XO](https://xen-orchestra.com) server and clients",
   "keywords": [],
-  "homepage": "https://github.com/vatesfr/xo-common",
-  "bugs": "https://github.com/vatesfr/xo-common/issues",
+  "homepage": "https://github.com/vatesfr/xen-orchestra",
+  "bugs": "https://github.com/vatesfr/xo-web/issues",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vatesfr/xo-common.git"
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "author": {
     "name": "Julien Fontanet",

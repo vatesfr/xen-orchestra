@@ -1,4 +1,4 @@
-# xo-lib [![Build Status](https://travis-ci.org/vatesfr/xo-lib.png?branch=master)](https://travis-ci.org/vatesfr/xo-lib)
+# xo-lib [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
 > Library to connect to XO-Server.
 
@@ -159,7 +159,7 @@ the code.
 
 You may:
 
-- report any [issue](https://github.com/vatesfr/xo-lib/issues)
+- report any [issue](https://github.com/vatesfr/xo-web/issues)
   you've encountered;
 - fork and create a pull request.
 

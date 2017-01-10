@@ -1,4 +1,4 @@
-# xo-common [![Build Status](https://travis-ci.org/vatesfr/xo-common.png?branch=master)](https://travis-ci.org/vatesfr/xo-common)
+# xo-common [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
 > Code shared between [XO](https://xen-orchestra.com) server and clients
 
@@ -40,7 +40,7 @@ the code.
 
 You may:
 
-- report any [issue](https://github.com/vatesfr/xo-common/issues)
+- report any [issue](https://github.com/vatesfr/xo-web/issues)
   you've encountered;
 - fork and create a pull request.
 
