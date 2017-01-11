@@ -42,7 +42,7 @@
     "xo-lib": "^0.8.0"
   },
   "devDependencies": {
-    "@types/node": "^6.0.46",
+    "@types/node": "^7.0.0",
     "@types/through2": "^2.0.31",
     "tslint": "^4.0.2",
     "tslint-config-standard": "^2.0.0",
