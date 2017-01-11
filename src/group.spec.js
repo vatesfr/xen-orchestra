@@ -1,33 +1,36 @@
 /* eslint-env jest */
 
-// Doc: https://github.com/moll/js-must/blob/master/doc/API.md#must
-import expect from 'must'
+import {
+  find,
+  map
+} from 'lodash'
+
+import {
+  createUser,
+  deleteUsers,
+  getUser,
+  xo
+} from './util.js'
 
 // ===================================================================
-
-import {createUser, deleteUsers, getMainConnection, getUser} from './util.js'
-import {find, map} from 'lodash'
-
-// ===================================================================
-
 describe('group', () => {
-  let xo
-  let userIds = []
-  let groupIds = []
-
-  // -----------------------------------------------------------------
-  beforeAll(async () => {
-    xo = await getMainConnection()
-  })
+  const userIds = []
+  const groupIds = []
 
   // -----------------------------------------------------------------
 
   afterEach(async () => {
-    await Promise.all([
-      deleteGroups(),
-      deleteUsers(xo, userIds)
-    ])
-    userIds = groupIds = []
+    await Promise.all(map(
+      groupIds,
+      id => xo.call('group.delete', {id})
+    ))
+    // Deleting users must be done AFTER deleting the group
+    // because there is a race condition in xo-server
+    // which cause some users to not be properly deleted.
+
+    // The test “delete the group with its users” highlight this issue.
+    await deleteUsers(xo, userIds)
+    userIds.length = groupIds.length = 0
   })
 
   // -----------------------------------------------------------------
@@ -40,19 +43,10 @@ describe('group', () => {
 
   // ----------------------------------------------------------------
 
-  async function deleteGroups () {
-    await Promise.all(map(
-      groupIds,
-      groupId => xo.call('group.delete', {id: groupId})
-    ))
-  }
-
-  // ----------------------------------------------------------------
-
   function compareGroup (actual, expected) {
-    expect(actual.name).to.equal(expected.name)
-    expect(actual.id).to.equal(expected.id)
-    expect(actual.users).to.be.a.permutationOf(expected.users)
+    expect(actual.name).toEqual(expected.name)
+    expect(actual.id).toEqual(expected.id)
+    expect(actual.users).toEqual(expected.users)
   }
 
   // ----------------------------------------------------------------
@@ -105,18 +99,20 @@ describe('group', () => {
 
   describe('.delete()', () => {
     let groupId
+    let userId1
+    let userId2
+    let userId3
     beforeEach(async () => {
-      groupId = await createGroup({
+      groupId = await xo.call('group.create', {
         name: 'Avengers'
       })
     })
-
     it('delete a group', async () => {
       await xo.call('group.delete', {
         id: groupId
       })
       const group = await getGroup(groupId)
-      expect(group).to.be.undefined()
+      expect(group).toBeUndefined()
     })
 
     it.skip('erase the group from user\'s groups list', async () => {
@@ -135,7 +131,7 @@ describe('group', () => {
       // delete the group
       await xo.call('group.delete', {id: groupId})
       const user = await getUser(userId)
-      expect(user.groups).to.be.a.permutationOf([])
+      expect(user.groups).toEqual([])
     })
 
     it.skip('erase the user from group\'s users list', async () => {
@@ -154,7 +150,51 @@ describe('group', () => {
       // delete the group
       await xo.call('user.delete', {id: userId})
       const group = await getGroup(groupId)
-      expect(group.users).to.be.a.permutationOf([])
+      expect(group.users).toEqual([])
+    })
+
+    // FIXME: some users are not properly deleted because of a race condition with group deletion.
+    it.skip('delete the group with its users', async () => {
+      // create users
+      [userId1, userId2, userId3] = await Promise.all([
+        xo.call('user.create', {
+          email: 'tony.stark@stark_industry.com',
+          password: 'IronMan'
+        }),
+        xo.call('user.create', {
+          email: 'natasha.romanov@shield.com',
+          password: 'BlackWidow'
+        }),
+        xo.call('user.create', {
+          email: 'pietro.maximoff@shield.com',
+          password: 'QickSilver'
+        })
+      ])
+
+      await xo.call('group.setUsers', {
+        id: groupId,
+        userIds: [userId1, userId2, userId3]
+      })
+
+      // delete the group with his users
+      await Promise.all([
+        xo.call('group.delete', {
+          id: groupId
+        }),
+        deleteUsers(xo, [userId1, userId2, userId3])
+      ])
+
+      const [group, user1, user2, user3] = await Promise.all([
+        getGroup(groupId),
+        getUser(xo, userId1),
+        getUser(xo, userId2),
+        getUser(xo, userId3)
+      ])
+
+      expect(group).toBeUndefined()
+      expect(user1).toBeUndefined()
+      expect(user2).toBeUndefined()
+      expect(user3).toBeUndefined()
     })
   })
 
@@ -163,7 +203,7 @@ describe('group', () => {
   describe('.getAll()', () => {
     it('returns an array', async () => {
       const groups = await xo.call('group.getAll')
-      expect(groups).to.be.an.array()
+      expect(groups).toBeInstanceOf(Array)
     })
   })
 
@@ -207,16 +247,15 @@ describe('group', () => {
           getUser(xo, userId2),
           getUser(xo, userId3)
         ])
-
         compareGroup(group, {
           id: groupId,
           name: 'Avengers',
           users: [userId1, userId2]
         })
 
-        expect(user1.groups).to.be.a.permutationOf([groupId])
-        expect(user2.groups).to.be.a.permutationOf([groupId])
-        expect(user3.groups).to.be.a.permutationOf([])
+        expect(user1.groups).toEqual([groupId])
+        expect(user2.groups).toEqual([groupId])
+        expect(user3.groups).toEqual([])
       }
 
       // change users of the group
@@ -238,9 +277,9 @@ describe('group', () => {
           users: [userId1, userId3]
         })
 
-        expect(user1.groups).to.be.a.permutationOf([groupId])
-        expect(user2.groups).to.be.a.permutationOf([])
-        expect(user3.groups).to.be.a.permutationOf([groupId])
+        expect(user1.groups).toEqual([groupId])
+        expect(user2.groups).toEqual([])
+        expect(user3.groups).toEqual([groupId])
       }
     })
   })
@@ -279,7 +318,7 @@ describe('group', () => {
         users: [userId]
       })
 
-      expect(user.groups).to.be.a.permutationOf([groupId])
+      expect(user.groups).toEqual([groupId])
     })
   })
 
@@ -322,7 +361,7 @@ describe('group', () => {
         users: []
       })
 
-      expect(user.groups).to.be.a.permutationOf([])
+      expect(user.groups).toEqual([])
     })
   })
 
