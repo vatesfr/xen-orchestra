@@ -31,8 +31,10 @@ describe('user', () => {
 
       const user = await getUser(xo, userId)
       expect(user).toEqual({
+        email: 'wayne@vates.fr',
+        groups: [],
         id: userId,
-        email: 'wayne@vates.fr'
+        preferences: {}
       })
     })
 
@@ -64,9 +66,11 @@ describe('user', () => {
 
       const user = await getUser(xo, userId)
       expect(user).toEqual({
-        id: userId,
         email: 'wayne@vates.fr',
-        permission: 'admin'
+        groups: [],
+        id: userId,
+        permission: 'admin',
+        preferences: {}
       })
     })
 
@@ -151,9 +155,11 @@ describe('user', () => {
       })
       const user = await getUser(xo, userId)
       expect(user).toEqual({
-        id: userId,
         email: 'batman@vates.fr',
-        permission: 'admin'
+        groups: [],
+        id: userId,
+        permission: 'admin',
+        preferences: {}
       })
     })
   })
