@@ -60,11 +60,11 @@ const openImportModal = ({ backups }) => confirm({
   title: _('restoreFilesFromBackup', {name: backups[0].name}),
   body: <RestoreFileModalBody vmName={backups[0].name} backups={backups} />
 }).then(
-  ({ remote, disk, partition, paths }) => {
-    if (!remote || !disk || !paths) {
+  ({ remote, disk, partition, paths, format }) => {
+    if (!remote || !disk || !paths || !paths.length) {
       return error(_('restoreFiles'), _('restoreFilesError'))
     }
-    return fetchFiles(remote, disk, partition, paths)
+    return fetchFiles(remote, disk, partition, paths, format)
   },
   noop
 )

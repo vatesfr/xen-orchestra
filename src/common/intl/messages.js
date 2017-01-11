@@ -958,6 +958,11 @@ var messages = {
   restoreFilesSelectFolderPath: 'Folder path',
   restoreFilesSelectFiles: 'Select a file…',
   restoreFileContentNotFound: 'Content not found',
+  restoreFilesNoFilesSelected: 'No files selected',
+  restoreFilesSelectedFiles: 'Selected files ({files}):',
+  restoreFilesDiskError: 'Error while scanning disk',
+  restoreFilesSelectAllFiles: 'Select all this folder\'s files',
+  restoreFilesUnselectAll: 'Unselect all files',
 
   // ----- Modals -----
   emergencyShutdownHostsModalTitle: 'Emergency shutdown Host{nHosts, plural, one {} other {s}}',

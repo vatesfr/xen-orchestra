@@ -1407,8 +1407,8 @@ export const scanFiles = (remote, disk, path, partition) => (
   _call('backup.scanFiles', resolveIds({ remote, disk, path, partition }))
 )
 
-export const fetchFiles = (remote, disk, partition, paths) => (
-  _call('backup.fetchFiles', resolveIds({ remote, disk, partition, paths })).then(
+export const fetchFiles = (remote, disk, partition, paths, format) => (
+  _call('backup.fetchFiles', resolveIds({ remote, disk, partition, paths, format })).then(
     ({ $getFrom: url }) => { window.location = `.${url}` }
   )
 )
