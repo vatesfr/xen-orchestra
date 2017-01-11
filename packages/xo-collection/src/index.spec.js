@@ -1,17 +1,14 @@
-/* eslint-env mocha */
+/* eslint-env jest */
 
 import eventToPromise from 'event-to-promise'
-import expect from 'must'
 import { forEach } from 'lodash'
-
-// ===================================================================
 
 import Collection from '..'
 import Index from '../index'
 
 // ===================================================================
 
-const waitTicks = (n = 1) => {
+const waitTicks = (n = 2) => {
   const {nextTick} = process
 
   return new Promise(resolve => {
@@ -60,7 +57,7 @@ describe('Index', function () {
   })
 
   it('works with existing items', function () {
-    expect(col.indexes).to.eql({
+    expect(col.indexes).toEqual({
       byGroup: {
         foo: {
           [item1.id]: item1,
@@ -81,8 +78,8 @@ describe('Index', function () {
 
     col.add(item5)
 
-    return waitTicks(2).then(() => {
-      expect(col.indexes).to.eql({
+    return waitTicks().then(() => {
+      expect(col.indexes).toEqual({
         byGroup: {
           foo: {
             [item1.id]: item1,
@@ -107,8 +104,8 @@ describe('Index', function () {
 
     col.update(item1bis)
 
-    return waitTicks(2).then(() => {
-      expect(col.indexes).to.eql({
+    return waitTicks().then(() => {
+      expect(col.indexes).toEqual({
         byGroup: {
           foo: {
             [item3.id]: item3
@@ -125,8 +122,8 @@ describe('Index', function () {
   it('works with removed items', function () {
     col.remove(item2)
 
-    return waitTicks(2).then(() => {
-      expect(col.indexes).to.eql({
+    return waitTicks().then(() => {
+      expect(col.indexes).toEqual({
         byGroup: {
           foo: {
             [item1.id]: item1,
@@ -148,7 +145,7 @@ describe('Index', function () {
     col.update(item1bis)
 
     return eventToPromise(col, 'finish').then(() => {
-      expect(col.indexes).to.eql({
+      expect(col.indexes).toEqual({
         byGroup: {
           foo: {
             [item1.id]: item1bis,
@@ -166,10 +163,10 @@ describe('Index', function () {
     it('removes empty items lists', function () {
       col.remove(item2)
 
-      return waitTicks(2).then(() => {
+      return waitTicks().then(() => {
         byGroup.sweep()
 
-        expect(col.indexes).to.eql({
+        expect(col.indexes).toEqual({
           byGroup: {
             foo: {
               [item1.id]: item1,

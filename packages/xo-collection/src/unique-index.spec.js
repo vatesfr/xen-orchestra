@@ -1,17 +1,14 @@
-/* eslint-env mocha */
+/* eslint-env jest */
 
 import eventToPromise from 'event-to-promise'
-import expect from 'must'
 import { forEach } from 'lodash'
-
-// ===================================================================
 
 import Collection from '..'
 import Index from '../unique-index'
 
 // ===================================================================
 
-const waitTicks = (n = 1) => {
+const waitTicks = (n = 2) => {
   const {nextTick} = process
 
   return new Promise(resolve => {
@@ -56,7 +53,7 @@ describe('UniqueIndex', function () {
   })
 
   it('works with existing items', function () {
-    expect(col.indexes).to.eql({
+    expect(col.indexes).toEqual({
       byKey: {
         [item1.key]: item1,
         [item2.key]: item2
@@ -72,8 +69,8 @@ describe('UniqueIndex', function () {
 
     col.add(item4)
 
-    return waitTicks(2).then(() => {
-      expect(col.indexes).to.eql({
+    return waitTicks().then(() => {
+      expect(col.indexes).toEqual({
         byKey: {
           [item1.key]: item1,
           [item2.key]: item2,
@@ -91,8 +88,8 @@ describe('UniqueIndex', function () {
 
     col.update(item1bis)
 
-    return waitTicks(2).then(() => {
-      expect(col.indexes).to.eql({
+    return waitTicks().then(() => {
+      expect(col.indexes).toEqual({
         byKey: {
           [item1bis.key]: item1bis,
           [item2.key]: item2
@@ -104,8 +101,8 @@ describe('UniqueIndex', function () {
   it('works with removed items', function () {
     col.remove(item2)
 
-    return waitTicks(2).then(() => {
-      expect(col.indexes).to.eql({
+    return waitTicks().then(() => {
+      expect(col.indexes).toEqual({
         byKey: {
           [item1.key]: item1
         }
@@ -123,7 +120,7 @@ describe('UniqueIndex', function () {
     col.update(item1bis)
 
     return eventToPromise(col, 'finish').then(() => {
-      expect(col.indexes).to.eql({
+      expect(col.indexes).toEqual({
         byKey: {
           [item1.key]: item1bis,
           [item2.key]: item2

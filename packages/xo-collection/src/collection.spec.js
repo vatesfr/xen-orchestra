@@ -1,17 +1,13 @@
-/* eslint-env mocha */
+/* eslint-env jest */
 
 import eventToPromise from 'event-to-promise'
-import expect from 'must'
-import sinon from 'sinon'
 import { forEach } from 'lodash'
-
-// ===================================================================
 
 import Collection, {DuplicateItem, NoSuchItem} from '..'
 
 // ===================================================================
 
-function waitTicks (n = 1) {
+function waitTicks (n = 2) {
   const {nextTick} = process
 
   return new Promise(function (resolve) {
@@ -37,16 +33,16 @@ describe('Collection', function () {
   it('is iterable', function () {
     const iterator = this.col[Symbol.iterator]()
 
-    expect(iterator.next()).to.eql({done: false, value: ['bar', 0]})
-    expect(iterator.next()).to.eql({done: true, value: undefined})
+    expect(iterator.next()).toEqual({done: false, value: ['bar', 0]})
+    expect(iterator.next()).toEqual({done: true, value: undefined})
   })
 
   describe('#keys()', function () {
     it('returns an iterator over the keys', function () {
       const iterator = this.col.keys()
 
-      expect(iterator.next()).to.eql({done: false, value: 'bar'})
-      expect(iterator.next()).to.eql({done: true, value: undefined})
+      expect(iterator.next()).toEqual({done: false, value: 'bar'})
+      expect(iterator.next()).toEqual({done: true, value: undefined})
     })
   })
 
@@ -54,32 +50,32 @@ describe('Collection', function () {
     it('returns an iterator over the values', function () {
       const iterator = this.col.values()
 
-      expect(iterator.next()).to.eql({done: false, value: 0})
-      expect(iterator.next()).to.eql({done: true, value: undefined})
+      expect(iterator.next()).toEqual({done: false, value: 0})
+      expect(iterator.next()).toEqual({done: true, value: undefined})
     })
   })
 
   describe('#add()', function () {
     it('adds item to the collection', function () {
-      const spy = sinon.spy()
+      const spy = jest.fn()
       this.col.on('add', spy)
 
       this.col.add('foo', true)
 
-      expect(this.col.get('foo')).to.be.true()
+      expect(this.col.get('foo')).toBe(true)
 
       // No sync events.
-      sinon.assert.notCalled(spy)
+      expect(spy).not.toHaveBeenCalled()
 
       // Async event.
       return eventToPromise(this.col, 'add').then(function (added) {
-        expect(added).to.have.keys(['foo'])
-        expect(added.foo).to.be.true()
+        expect(Object.keys(added)).toEqual([ 'foo' ])
+        expect(added.foo).toBe(true)
       })
     })
 
     it('throws an exception if the item already exists', function () {
-      expect(() => this.col.add('bar', true)).to.throw(DuplicateItem)
+      expect(() => this.col.add('bar', true)).toThrowError(DuplicateItem)
     })
 
     it('accepts an object with an id property', function () {
@@ -87,32 +83,32 @@ describe('Collection', function () {
 
       this.col.add(foo)
 
-      expect(this.col.get(foo.id)).to.equal(foo)
+      expect(this.col.get(foo.id)).toBe(foo)
     })
   })
 
   describe('#update()', function () {
     it('updates an item of the collection', function () {
-      const spy = sinon.spy()
+      const spy = jest.fn()
       this.col.on('update', spy)
 
       this.col.update('bar', 1)
-      expect(this.col.get('bar')).to.equal(1) // Will be forgotten by de-duplication
+      expect(this.col.get('bar')).toBe(1) // Will be forgotten by de-duplication
       this.col.update('bar', 2)
-      expect(this.col.get('bar')).to.equal(2)
+      expect(this.col.get('bar')).toBe(2)
 
       // No sync events.
-      sinon.assert.notCalled(spy)
+      expect(spy).not.toHaveBeenCalled()
 
       // Async event.
       return eventToPromise(this.col, 'update').then(function (updated) {
-        expect(updated).to.have.keys(['bar'])
-        expect(updated.bar).to.equal(2)
+        expect(Object.keys(updated)).toEqual(['bar'])
+        expect(updated.bar).toBe(2)
       })
     })
 
     it('throws an exception if the item does not exist', function () {
-      expect(() => this.col.update('baz', true)).to.throw(NoSuchItem)
+      expect(() => this.col.update('baz', true)).toThrowError(NoSuchItem)
     })
 
     it('accepts an object with an id property', function () {
@@ -120,31 +116,31 @@ describe('Collection', function () {
 
       this.col.update(bar)
 
-      expect(this.col.get(bar.id)).to.equal(bar)
+      expect(this.col.get(bar.id)).toBe(bar)
     })
   })
 
   describe('#remove()', function () {
     it('removes an item of the collection', function () {
-      const spy = sinon.spy()
+      const spy = jest.fn()
       this.col.on('remove', spy)
 
       this.col.update('bar', 1)
-      expect(this.col.get('bar')).to.equal(1) // Will be forgotten by de-duplication
+      expect(this.col.get('bar')).toBe(1) // Will be forgotten by de-duplication
       this.col.remove('bar')
 
       // No sync events.
-      sinon.assert.notCalled(spy)
+      expect(spy).not.toHaveBeenCalled()
 
       // Async event.
       return eventToPromise(this.col, 'remove').then(function (removed) {
-        expect(removed).to.have.keys(['bar'])
-        expect(removed.bar).to.not.exist()
+        expect(Object.keys(removed)).toEqual(['bar'])
+        expect(removed.bar).toBeUndefined()
       })
     })
 
     it('throws an exception if the item does not exist', function () {
-      expect(() => this.col.remove('baz', true)).to.throw(NoSuchItem)
+      expect(() => this.col.remove('baz', true)).toThrowError(NoSuchItem)
     })
 
     it('accepts an object with an id property', function () {
@@ -152,44 +148,44 @@ describe('Collection', function () {
 
       this.col.remove(bar)
 
-      expect(this.col.has(bar.id)).to.be.false()
+      expect(this.col.has(bar.id)).toBe(false)
     })
   })
 
   describe('#set()', function () {
     it('adds item if collection has not key', function () {
-      const spy = sinon.spy()
+      const spy = jest.fn()
       this.col.on('add', spy)
 
       this.col.set('foo', true)
 
-      expect(this.col.get('foo')).to.be.true()
+      expect(this.col.get('foo')).toBe(true)
 
       // No sync events.
-      sinon.assert.notCalled(spy)
+      expect(spy).not.toHaveBeenCalled()
 
       // Async events.
       return eventToPromise(this.col, 'add').then(function (added) {
-        expect(added).to.have.keys(['foo'])
-        expect(added.foo).to.be.true()
+        expect(Object.keys(added)).toEqual(['foo'])
+        expect(added.foo).toBe(true)
       })
     })
 
     it('updates item if collection has key', function () {
-      const spy = sinon.spy()
+      const spy = jest.fn()
       this.col.on('udpate', spy)
 
       this.col.set('bar', 1)
 
-      expect(this.col.get('bar')).to.equal(1)
+      expect(this.col.get('bar')).toBe(1)
 
       // No sync events.
-      sinon.assert.notCalled(spy)
+      expect(spy).not.toHaveBeenCalled()
 
       // Async events.
       return eventToPromise(this.col, 'update').then(function (updated) {
-        expect(updated).to.have.keys(['bar'])
-        expect(updated.bar).to.equal(1)
+        expect(Object.keys(updated)).toEqual(['bar'])
+        expect(updated.bar).toBe(1)
       })
     })
 
@@ -198,7 +194,7 @@ describe('Collection', function () {
 
       this.col.set(foo)
 
-      expect(this.col.get(foo.id)).to.equal(foo)
+      expect(this.col.get(foo.id)).toBe(foo)
     })
   })
 
@@ -206,11 +202,11 @@ describe('Collection', function () {
     it('removes an existing item', function () {
       this.col.unset('bar')
 
-      expect(this.col.has('bar')).to.be.false()
+      expect(this.col.has('bar')).toBe(false)
 
       return eventToPromise(this.col, 'remove').then(function (removed) {
-        expect(removed).to.have.keys(['bar'])
-        expect(removed.bar).to.not.exist()
+        expect(Object.keys(removed)).toEqual(['bar'])
+        expect(removed.bar).toBeUndefined()
       })
     })
 
@@ -221,11 +217,11 @@ describe('Collection', function () {
     it('accepts an object with an id property', function () {
       this.col.unset({id: 'bar'})
 
-      expect(this.col.has('bar')).to.be.false()
+      expect(this.col.has('bar')).toBe(false)
 
       return eventToPromise(this.col, 'remove').then(function (removed) {
-        expect(removed).to.have.keys(['bar'])
-        expect(removed.bar).to.not.exist()
+        expect(Object.keys(removed)).toEqual(['bar'])
+        expect(removed.bar).toBeUndefined()
       })
     })
   })
@@ -239,8 +235,8 @@ describe('Collection', function () {
         this.col.touch(foo)
 
         return eventToPromise(this.col, 'update', (items) => {
-          expect(items).to.have.keys(['foo'])
-          expect(items.foo).to.equal(foo)
+          expect(Object.keys(items)).toEqual(['foo'])
+          expect(items.foo).toBe(foo)
         })
       })
     })
@@ -250,11 +246,11 @@ describe('Collection', function () {
     it('removes all items from the collection', function () {
       this.col.clear()
 
-      expect(this.col.size).to.equal(0)
+      expect(this.col.size).toBe(0)
 
       return eventToPromise(this.col, 'remove').then((items) => {
-        expect(items).to.have.keys(['bar'])
-        expect(items.bar).to.not.exist()
+        expect(Object.keys(items)).toEqual(['bar'])
+        expect(items.bar).toBeUndefined()
       })
     })
   })
@@ -326,17 +322,16 @@ describe('Collection', function () {
 
         const spies = Object.create(null)
         forEach(['add', 'update', 'remove'], event => {
-          col.on(event, (spies[event] = sinon.spy()))
+          col.on(event, (spies[event] = jest.fn()))
         })
 
-        return waitTicks(2).then(() => {
+        return waitTicks().then(() => {
           forEach(spies, (spy, event) => {
             const items = results[event]
             if (items) {
-              sinon.assert.calledOnce(spy)
-              expect(spy.args[0][0]).to.eql(items)
+              expect(spy.mock.calls).toEqual([ [ items ] ])
             } else {
-              sinon.assert.notCalled(spy)
+              expect(spy).not.toHaveBeenCalled()
             }
           })
         })
