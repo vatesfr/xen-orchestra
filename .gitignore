@@ -1,5 +1,13 @@
 /node_modules/
-lerna-debug.log
-lerna-debug.log.*
+/lerna-debug.log
+/lerna-debug.log.*
+
+/packages/*/dist/
+/packages/*/node_modules/
+
+npm-debug.log
+npm-debug.log.*
+pnpm-debug.log
+pnpm-debug.log.*
 yarn-error.log
 yarn-error.log.*
