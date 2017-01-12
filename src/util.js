@@ -1,7 +1,14 @@
+import defer from 'golike-defer'
 import expect from 'must'
+import {
+  find,
+  forEach,
+  map,
+  cloneDeep
+} from 'lodash'
+
 import Xo from 'xo-lib'
 import XoCollection from 'xo-collection'
-import {find, forEach, map, cloneDeep} from 'lodash'
 
 /* eslint-env jest */
 
@@ -43,18 +50,18 @@ export async function getConfig () {
   }
 }
 
-export async function getConnection ({
+export const getConnection = defer.onFailure(async ($onFailure, {
   credentials
-} = {}) {
+} = {}) => {
   const config = await getConfig()
   const xo = new Xo({ url: config.xoServerUrl })
   await xo.open()
+  $onFailure(() => xo.close())
   await xo.signIn(
     credentials === undefined
     ? config.adminCredentials
     : credentials
   )
-
   // Injects waitObject()
   //
   // TODO: integrate in xo-lib.
@@ -103,7 +110,11 @@ export async function getConnection ({
   }
 
   return xo
-}
+})
+
+export const testConnection = opts => getConnection(opts).then(connection => connection.close())
+
+export const rejectionOf = promise => promise.then(value => { throw value }, reason => reason)
 
 export let xo
 beforeAll(async () => {

@@ -1,21 +1,21 @@
 /* eslint-env jest */
 
-// Doc: https://github.com/moll/js-must/blob/master/doc/API.md#must
-import expect from 'must'
+import defer from 'golike-defer'
+import {
+  map
+} from 'lodash'
 
-// ===================================================================
-
-import {getConnection, getMainConnection} from './util.js'
-import {map} from 'lodash'
+import {
+  getConnection,
+  rejectionOf,
+  testConnection,
+  xo
+} from './util.js'
 
 // ===================================================================
 
 describe('token', () => {
-  let xo
   let tokens = []
-  beforeAll(async () => {
-    xo = await getMainConnection()
-  })
 
   afterAll(async () => {
     await Promise.all(map(
@@ -36,28 +36,23 @@ describe('token', () => {
     it('creates a token string which can be used to sign in', async () => {
       const token = await createToken()
 
-      await getConnection({credentials: {token}})
+      await testConnection({credentials: {token}})
     })
   })
 
   // -------------------------------------------------------------------
 
   describe('.delete()', () => {
-    it('deletes a token', async () => {
+    it('deletes a token', defer(async $defer => {
       const token = await createToken()
       const xo2 = await getConnection({credentials: {token}})
+      $defer(() => xo2.close())
 
       await xo2.call('token.delete', {
         token
       })
 
-      await getConnection({credentials: {token}}).then(
-        () => {
-          throw new Error('xo2.signIn should have thrown')
-        },
-        function (error) {
-          expect(error.code).to.be.eql(3)
-        })
-    })
+      expect((await rejectionOf(testConnection({ credentials: { token } }))).code).toBe(3)
+    }))
   })
 })
