@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "lodash": "^4.17.4",
-    "nodemailer": "^2.7.0",
+    "nodemailer": "2.6.4",
     "nodemailer-markdown": "^1.0.1",
     "promise-toolbox": "^0.8.0"
   },
