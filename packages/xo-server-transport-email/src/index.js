@@ -23,10 +23,12 @@ export const configurationSchema = {
 
       properties: {
         name: {
-          type: 'string'
+          type: 'string',
+          description: 'human readable name of the sender'
         },
         address: {
-          type: 'string'
+          type: 'string',
+          description: 'email address of the sender'
         }
       },
 
