@@ -3,8 +3,8 @@
 import {
   createUser,
   deleteUsers,
-  getConnection,
   getUser,
+  testConnection,
   xo
 } from './util'
 
@@ -80,7 +80,7 @@ describe('user', () => {
         password: 'batman'
       })
 
-      await getConnection({credentials: {
+      await testConnection({credentials: {
         email: 'wayne@vates.fr',
         password: 'batman'
       }})
@@ -141,7 +141,7 @@ describe('user', () => {
         password: 'alfred'
       })
 
-      await getConnection({credentials: {
+      await testConnection({credentials: {
         email: 'wayne@vates.fr',
         password: 'alfred'
       }})
