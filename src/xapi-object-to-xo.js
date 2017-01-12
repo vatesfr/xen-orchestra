@@ -1,4 +1,9 @@
 import {
+  includes,
+  pickBy
+} from 'lodash'
+
+import {
   ensureArray,
   extractProperty,
   forEach,
@@ -140,6 +145,7 @@ const TRANSFORMS = {
         ? (isRunning ? 'Running' : 'Halted')
         : 'Unknown',
       startTime: toTimestamp(otherConfig.boot_time),
+      supplementalPacks: pickBy(obj.software_version, (value, key) => includes(key, ':')),
       agentStartTime: toTimestamp(otherConfig.agent_start_time),
       tags: obj.tags,
       version: obj.software_version.product_version,
