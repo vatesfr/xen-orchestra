@@ -156,7 +156,8 @@ export default class Menu extends Component {
         isAdmin && { to: '/new/sr', icon: 'menu-new-sr', label: 'newSrPage' },
         isAdmin && { to: '/settings/servers', icon: 'menu-settings-servers', label: 'newServerPage' },
         !noOperatablePools && { to: '/vms/import', icon: 'menu-new-import', label: 'newImport' }
-      ]}
+      ]},
+      { to: '/xosan', icon: 'task', label: 'xosan' }
     ]
     /* eslint-enable object-property-newline */
 

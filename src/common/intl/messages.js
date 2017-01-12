@@ -63,6 +63,7 @@ var messages = {
   newSrPage: 'Storage',
   newServerPage: 'Server',
   newImport: 'Import',
+  xosan: 'XO SAN',
   backupOverviewPage: 'Overview',
   backupNewPage: 'New',
   backupRemotesPage: 'Remotes',
