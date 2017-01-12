@@ -11,7 +11,7 @@ root = true
 charset = utf-8
 end_of_line = lf
 insert_final_newline = true
-trim_trailing_whitespaces = true
+trim_trailing_whitespace = true
 
 # CoffeeScript
 #
@@ -28,12 +28,12 @@ indent_style = space
 # Package.json
 #
 # This indentation style is the one used by npm.
-[/package.json]
+[package.json]
 indent_size = 2
 indent_style = space
 
-# Jade
-[*.jade]
+# Pug (Jade)
+[*.{jade,pug}]
 indent_size = 2
 indent_style = space
 
@@ -41,7 +41,7 @@ indent_style = space
 #
 # Two spaces seems to be the standard most common style, at least in
 # Node.js (http://nodeguide.com/style.html#tabs-vs-spaces).
-[*.js]
+[*.{js,jsx,ts,tsx}]
 indent_size = 2
 indent_style = space
 

@@ -1,3 +1,4 @@
+import { bind } from 'lodash'
 import { createTransport } from 'nodemailer'
 import { markdown as nodemailerMarkdown } from 'nodemailer-markdown'
 import { promisify } from 'promise-toolbox'
@@ -113,8 +114,8 @@ export const testSchema = {
 
 class TransportEmailPlugin {
   constructor ({ xo }) {
-    this._sendEmail = ::this._sendEmail
-    this._set = ::xo.defineProperty
+    this._sendEmail = bind(this._sendEmail, this)
+    this._set = bind(xo.defineProperty, xo)
     this._unset = null
 
     // Defined in configure().

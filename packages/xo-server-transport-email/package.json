@@ -31,33 +31,39 @@
     "node": ">=4"
   },
   "dependencies": {
-    "nodemailer": "^2.4.2",
-    "nodemailer-markdown": "^1.0.0",
+    "lodash": "^4.17.4",
+    "nodemailer": "^2.7.0",
+    "nodemailer-markdown": "^1.0.1",
     "promise-toolbox": "^0.8.0"
   },
   "devDependencies": {
     "babel-cli": "^6.18.0",
     "babel-eslint": "^7.1.1",
-    "babel-preset-env": "^1.0.0",
-    "babel-preset-stage-0": "^6.16.0",
-    "cross-env": "^3.1.3",
-    "dependency-check": "^2.6.0",
-    "ghooks": "^1.3.2",
+    "babel-plugin-lodash": "^3.2.11",
+    "babel-preset-env": "^1.1.8",
+    "babel-preset-stage-3": "^6.17.0",
+    "cross-env": "^3.1.4",
+    "dependency-check": "^2.7.0",
+    "husky": "^0.12.0",
+    "jest": "^18.1.0",
     "rimraf": "^2.5.4",
-    "standard": "^8.5.0"
+    "standard": "^8.6.0"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
-    "clean": "rimraf dist/",
-    "depcheck": "dependency-check ./package.json",
+    "commit-msg": "npm test",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
-    "lint": "standard",
-    "posttest": "npm run lint && npm run depcheck",
-    "prebuild": "npm run clean",
-    "predev": "npm run clean",
-    "prepublish": "npm run build"
+    "dev-test": "jest --bail --watch",
+    "posttest": "standard && dependency-check ./package.json",
+    "prebuild": "rimraf dist/",
+    "predev": "npm run prebuild",
+    "prepublish": "npm run build",
+    "test": "jest"
   },
   "babel": {
+    "plugins": [
+      "lodash"
+    ],
     "presets": [
       [
         "env",
@@ -67,18 +73,19 @@
           }
         }
       ],
-      "stage-0"
+      "stage-3"
     ]
+  },
+  "jest": {
+    "testPathDirs": [
+      "<rootDir>/src"
+    ],
+    "testRegex": "\\.spec\\.js$"
   },
   "standard": {
     "ignore": [
       "dist"
     ],
     "parser": "babel-eslint"
-  },
-  "config": {
-    "ghooks": {
-      "commit-msg": "npm test"
-    }
   }
 }
