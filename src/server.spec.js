@@ -1,23 +1,21 @@
 /* eslint-env jest */
 
-// Doc: https://github.com/moll/js-must/blob/master/doc/API.md#must
-import expect from 'must'
-import {getConfig, getMainConnection} from './util'
-import {map, find, assign} from 'lodash'
+import {
+  assign,
+  find,
+  map
+} from 'lodash'
+
+import {
+  config,
+  rejectionOf,
+  xo
+} from './util'
 
 // ===================================================================
 
 describe('server', () => {
-  let xo
   let serverIds = []
-  let config
-
-  beforeAll(async () => {
-    ;[xo, config] = await Promise.all([
-      getMainConnection(),
-      getConfig()
-    ])
-  })
 
   afterEach(async () => {
     await Promise.all(map(
@@ -54,8 +52,8 @@ describe('server', () => {
       })
 
       const server = await getServer(serverId)
-      expect(server.id).to.be.a.string()
-      expect(server).to.be.eql({
+      expect(typeof server.id).toBe('string')
+      expect(server).toEqual({
         id: serverId,
         host: 'xen1.example.org',
         username: 'root',
@@ -70,29 +68,22 @@ describe('server', () => {
         password: 'password',
         autoConnect: false
       })
-
-      await addServer({
+      expect((await rejectionOf(addServer({
         host: 'xen1.example.org',
         username: 'root',
         password: 'password',
         autoConnect: false
-      }).then(
-        () => {
-          throw new Error('addServer() should have thrown')
-        },
-        function (error) {
-          expect(error.message).to.be.equal('unknown error from the peer')
-        })
+      }))).message).toBe('unknown error from the peer')
     })
 
     it('set autoConnect true by default', async () => {
       const serverId = await addServer(config.xenServer1)
       const server = await getServer(serverId)
 
-      expect(server.id).to.be.equal(serverId)
-      expect(server.host).to.be.equal('192.168.100.3')
-      expect(server.username).to.be.equal('root')
-      expect(server.status).to.be.match(/^connect(?:ed|ing)$/)
+      expect(server.id).toBe(serverId)
+      expect(server.host).toBe('192.168.100.3')
+      expect(server.username).toBe('root')
+      expect(server.status).toMatch(/^connect(?:ed|ing)$/)
     })
   })
 
@@ -115,7 +106,7 @@ describe('server', () => {
       })
 
       const server = await getServer(serverId)
-      expect(server).to.be.undefined()
+      expect(server).toBeUndefined()
     })
   })
 
@@ -125,7 +116,7 @@ describe('server', () => {
     it('returns an array', async () => {
       const servers = await xo.call('server.getAll')
 
-      expect(servers).to.be.an.array()
+      expect(servers).toBeInstanceOf(Array)
     })
   })
 
@@ -149,7 +140,7 @@ describe('server', () => {
       })
 
       const server = await getServer(serverId)
-      expect(server).to.be.eql({
+      expect(server).toEqual({
         id: serverId,
         host: 'xen1.example.org',
         username: 'root2',
@@ -173,7 +164,8 @@ describe('server', () => {
       })
 
       const server = await getServer(serverId)
-      expect(server).to.be.eql({
+      expect(server).toEqual({
+        enabled: 'true',
         id: serverId,
         host: '192.168.100.3',
         username: 'root',
@@ -186,7 +178,7 @@ describe('server', () => {
       await xo.call('server.connect', {id: serverId})
 
       const server = await getServer(serverId)
-      expect(server.status).to.be.equal('connected')
+      expect(server.status).toBe('connected')
     })
   })
 
@@ -210,7 +202,7 @@ describe('server', () => {
       })
 
       const server = await getServer(serverId)
-      expect(server).to.be.eql({
+      expect(server).toEqual({
         id: serverId,
         host: '192.168.100.3',
         username: 'root',

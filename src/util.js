@@ -12,7 +12,7 @@ import XoCollection from 'xo-collection'
 
 /* eslint-env jest */
 
-export async function getConfig () {
+async function getConfig () {
   return {
     adminCredentials: {
       email: 'admin@admin.net',
@@ -53,7 +53,6 @@ export async function getConfig () {
 export const getConnection = defer.onFailure(async ($onFailure, {
   credentials
 } = {}) => {
-  const config = await getConfig()
   const xo = new Xo({ url: config.xoServerUrl })
   await xo.open()
   $onFailure(() => xo.close())
@@ -116,8 +115,10 @@ export const testConnection = opts => getConnection(opts).then(connection => con
 
 export const rejectionOf = promise => promise.then(value => { throw value }, reason => reason)
 
+export let config
 export let xo
 beforeAll(async () => {
+  config = await getConfig()
   xo = await getConnection()
 })
 afterAll(async () => {
