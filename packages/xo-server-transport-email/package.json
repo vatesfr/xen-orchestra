@@ -1,0 +1,91 @@
+{
+  "name": "xo-server-transport-email",
+  "version": "0.3.2",
+  "license": "AGPL-3.0",
+  "description": "xo-server plugin to send emails",
+  "keywords": [
+    "email",
+    "mail",
+    "orchestra",
+    "xen",
+    "xen-orchestra",
+    "xo-server"
+  ],
+  "homepage": "https://github.com/vatesfr/xo-server-transport-email",
+  "bugs": "https://github.com/vatesfr/xo-server-transport-email/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vatesfr/xo-server-transport-email"
+  },
+  "author": {
+    "name": "Julien Fontanet",
+    "email": "julien.fontanet@isonoe.net"
+  },
+  "preferGlobal": false,
+  "main": "dist/",
+  "bin": {},
+  "files": [
+    "dist/"
+  ],
+  "engines": {
+    "node": ">=4"
+  },
+  "dependencies": {
+    "lodash": "^4.17.4",
+    "nodemailer": "2.6.4",
+    "nodemailer-markdown": "^1.0.1",
+    "promise-toolbox": "^0.8.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.18.0",
+    "babel-eslint": "^7.1.1",
+    "babel-plugin-lodash": "^3.2.11",
+    "babel-preset-env": "^1.1.8",
+    "babel-preset-stage-3": "^6.17.0",
+    "cross-env": "^3.1.4",
+    "dependency-check": "^2.7.0",
+    "husky": "^0.12.0",
+    "jest": "^18.1.0",
+    "rimraf": "^2.5.4",
+    "standard": "^8.6.0"
+  },
+  "scripts": {
+    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "commit-msg": "npm test",
+    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
+    "dev-test": "jest --bail --watch",
+    "posttest": "standard && dependency-check ./package.json",
+    "prebuild": "rimraf dist/",
+    "predev": "npm run prebuild",
+    "prepublish": "npm run build",
+    "test": "jest"
+  },
+  "babel": {
+    "plugins": [
+      "lodash"
+    ],
+    "presets": [
+      [
+        "env",
+        {
+          "targets": {
+            "node": 4
+          }
+        }
+      ],
+      "stage-3"
+    ]
+  },
+  "jest": {
+    "testPathDirs": [
+      "<rootDir>/src"
+    ],
+    "testRegex": "\\.spec\\.js$"
+  },
+  "standard": {
+    "ignore": [
+      "dist"
+    ],
+    "parser": "babel-eslint"
+  }
+}
