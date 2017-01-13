@@ -1,4 +1,4 @@
-# xo-server-transport-nagios [![Build Status](https://travis-ci.org/vatesfr/xo-server-transport-nagios.png?branch=master)](https://travis-ci.org/vatesfr/xo-server-transport-nagios)
+# xo-server-transport-nagios [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
 > ${pkg.description}
 

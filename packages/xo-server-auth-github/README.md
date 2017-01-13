@@ -1,4 +1,4 @@
-# xo-server-auth-github [![Build Status](https://travis-ci.org/vatesfr/xo-server-auth-github.png?branch=master)](https://travis-ci.org/vatesfr/xo-server-auth-github)
+# xo-server-auth-github [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
 > GitHub authentication plugin for XO-Server
 

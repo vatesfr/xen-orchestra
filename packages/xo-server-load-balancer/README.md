@@ -1,4 +1,4 @@
-# xo-server-load-balancer [![Build Status](https://travis-ci.org/vatesfr/xo-server-load-balancer.png?branch=master)](https://travis-ci.org/vatesfr/xo-server-load-balancer)
+# xo-server-load-balancer [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
 XO-Server plugin that allows load balancing.
 

@@ -11,11 +11,11 @@
     "xen-orchestra",
     "xo-server"
   ],
-  "homepage": "https://github.com/vatesfr/xo-server-transport-email",
-  "bugs": "https://github.com/vatesfr/xo-server-transport-email/issues",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-transport-email",
+  "bugs": "https://github.com/vatesfr/xo-web/issues",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vatesfr/xo-server-transport-email"
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "author": {
     "name": "Julien Fontanet",
@@ -44,14 +44,12 @@
     "babel-preset-stage-3": "^6.17.0",
     "cross-env": "^3.1.4",
     "dependency-check": "^2.7.0",
-    "husky": "^0.12.0",
     "jest": "^18.1.0",
     "rimraf": "^2.5.4",
     "standard": "^8.6.0"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
-    "commit-msg": "npm test",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "dev-test": "jest --bail --watch",
     "posttest": "standard && dependency-check ./package.json",

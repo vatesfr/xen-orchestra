@@ -1,4 +1,4 @@
-# xo-server-backup-reports [![Build Status](https://api.travis-ci.org/vatesfr/xo-server-backup-reports.png?branch=master)](https://travis-ci.org/vatesfr/xo-server-backup-reports)
+# xo-server-backup-reports [![Build Status](https://api.travis-ci.org/vatesfr/xo-server-backup-reports.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
 > Backup reports plugin for XO-Server
 

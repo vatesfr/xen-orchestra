@@ -4,7 +4,7 @@
   "license": "ISC",
   "description": "Generic in-memory collection with events",
   "keywords": [],
-  "homepage": "https://github.com/vatesfr/xen-orchestra",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-collection",
   "bugs": "https://github.com/vatesfr/xo-web/issues",
   "repository": {
     "type": "git",
@@ -46,7 +46,6 @@
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
-    "commit-msg": "npm test",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "dev-test": "jest --bail --watch",
     "posttest": "standard && dependency-check ./package.json --entry dist/collection.js index.js unique-index.js view.js",

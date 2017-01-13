@@ -1,4 +1,4 @@
-# xo-server-transport-xmpp [![Build Status](https://travis-ci.org/vatesfr/xo-server-transport-xmpp.png?branch=master)](https://travis-ci.org/vatesfr/xo-server-transport-xmpp)
+# xo-server-transport-xmpp [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
 XO-Server plugin which sends XMPP messages.
 

@@ -1,4 +1,4 @@
-# xo-server-auth-ldap [![Build Status](https://travis-ci.org/vatesfr/xo-server-auth-ldap.png?branch=master)](https://travis-ci.org/vatesfr/xo-server-auth-ldap)
+# xo-server-auth-ldap [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
 > LDAP authentication plugin for XO-Server
 

@@ -9,8 +9,8 @@
     "xen",
     "orchestra"
   ],
-  "homepage": "https://github.com/vatesfr/xo-cli",
-  "bugs": "https://github.com/vatesfr/xo-cli/issues",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-cli",
+  "bugs": "https://github.com/vatesfr/xo-web/issues",
   "author": "Julien Fontanet <julien.fontanet@vates.fr>",
   "preferGlobal": true,
   "bin": {
@@ -21,7 +21,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/vatesfr/xo-cli"
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "dependencies": {
     "bluebird": "^3.4.6",

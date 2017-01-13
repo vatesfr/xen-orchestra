@@ -1,5 +1,5 @@
 # XO-CLI
-[![Build Status](https://img.shields.io/travis/vatesfr/xo-cli/master.svg)](http://travis-ci.org/vatesfr/xo-cli)
+[![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](http://travis-ci.org/vatesfr/xen-orchestra)
 [![Dependency Status](https://david-dm.org/vatesfr/xo-cli/status.svg?theme=shields.io)](https://david-dm.org/vatesfr/xo-cli)
 [![devDependency Status](https://david-dm.org/vatesfr/xo-cli/dev-status.svg?theme=shields.io)](https://david-dm.org/vatesfr/xo-cli#info=devDependencies)
 

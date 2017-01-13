@@ -1,4 +1,4 @@
-# xo-server-auth-saml [![Build Status](https://travis-ci.org/vatesfr/xo-server-auth-saml.png?branch=master)](https://travis-ci.org/vatesfr/xo-server-auth-saml)
+# xo-server-auth-saml [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
 > SAML authentication plugin for XO-Server
 
