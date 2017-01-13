@@ -20,8 +20,9 @@ import { join as joinPath } from 'path'
 import JsonRpcPeer from 'json-rpc-peer'
 import { invalidCredentials } from 'xo-common/api-errors'
 import {
-  readFile,
-  readdir
+  ensureDir,
+  readdir,
+  readFile
 } from 'fs-promise'
 
 import WebServer from 'http-server-plus'
@@ -223,7 +224,12 @@ async function registerPlugin (pluginPath, pluginName) {
   // The default export can be either a factory or directly a plugin
   // instance.
   const instance = isFunction(factory)
-    ? factory({ xo: this })
+    ? factory({
+      xo: this,
+      getDataDir: () => {
+        const dir = `${this._config.datadir}/${pluginName}`
+        return ensureDir(dir).then(() => dir)
+      }})
     : factory
 
   await this.registerPlugin(
