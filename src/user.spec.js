@@ -4,6 +4,7 @@ import {
   createUser,
   deleteUsers,
   getUser,
+  rejectionOf,
   testConnection,
   xo
 } from './util'
@@ -44,17 +45,10 @@ describe('user', () => {
         password: 'batman'
       })
 
-      await createUser(xo, userIds, {
+      expect((await rejectionOf(createUser(xo, userIds, {
         email: 'wayne@vates.fr',
         password: 'alfred'
-      }).then(
-        () => {
-          throw new Error('createUser() should have thrown')
-        },
-        error => {
-          expect(error.message).toMatch(/already exists/i)
-        }
-      )
+      }))).message).toMatch(/already exists/i)
     })
 
     it('can set the user permission', async () => {
@@ -104,14 +98,7 @@ describe('user', () => {
     })
 
     it('not allows an user to delete itself', async () => {
-      await xo.call('user.delete', {id: xo.user.id}).then(
-        () => {
-          throw new Error('user.delete() should have thrown')
-        },
-        function (error) {
-          expect(error.message).toBe('a user cannot delete itself')
-        }
-      )
+      expect((await rejectionOf(xo.call('user.delete', {id: xo.user.id}))).message).toBe('a user cannot delete itself')
     })
   })
 
