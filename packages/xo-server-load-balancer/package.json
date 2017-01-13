@@ -1,0 +1,78 @@
+{
+  "name": "xo-server-load-balancer",
+  "version": "0.3.1",
+  "license": "AGPL-3.0",
+  "description": "Load balancer for XO-Server",
+  "keywords": [
+    "load",
+    "balancer",
+    "server",
+    "pool",
+    "host"
+  ],
+  "homepage": "https://github.com/vatesfr/xo-server-load-balancer",
+  "bugs": "https://github.com/vatesfr/xo-server-load-balancer/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vatesfr/xo-server-load-balancer"
+  },
+  "author": {
+    "name": "Julien Fontanet",
+    "email": "julien.fontanet@isonoe.net"
+  },
+  "preferGlobal": false,
+  "main": "dist/",
+  "bin": {},
+  "files": [
+    "dist/"
+  ],
+  "engines": {
+    "node": ">=4"
+  },
+  "dependencies": {
+    "babel-runtime": "^6.11.6",
+    "cron": "^1.1.0",
+    "event-to-promise": "^0.7.0",
+    "lodash": "^4.16.2"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.16.0",
+    "babel-eslint": "^7.0.0",
+    "babel-plugin-lodash": "^3.2.9",
+    "babel-plugin-transform-runtime": "^6.15.0",
+    "babel-preset-es2015": "^6.16.0",
+    "babel-preset-stage-0": "^6.16.0",
+    "dependency-check": "^2.5.1",
+    "ghooks": "^1.3.2",
+    "standard": "^8.2.0"
+  },
+  "scripts": {
+    "build": "NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "depcheck": "dependency-check ./package.json",
+    "dev": "NODE_DEV=development babel --watch --source-maps --out-dir=dist/ src/",
+    "lint": "standard",
+    "posttest": "npm run lint && npm run depcheck",
+    "prepublish": "npm run build"
+  },
+  "babel": {
+    "plugins": [
+      "transform-runtime",
+      "lodash"
+    ],
+    "presets": [
+      "es2015",
+      "stage-0"
+    ]
+  },
+  "standard": {
+    "ignore": [
+      "dist"
+    ],
+    "parser": "babel-eslint"
+  },
+  "config": {
+    "ghooks": {
+      "commit-msg": "npm test"
+    }
+  }
+}
