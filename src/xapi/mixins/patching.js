@@ -1,5 +1,6 @@
 import filter from 'lodash/filter'
 import includes from 'lodash/includes'
+import some from 'lodash/some'
 import sortBy from 'lodash/sortBy'
 import unzip from 'julien-f-unzip'
 
@@ -10,6 +11,7 @@ import {
   createRawObject,
   ensureArray,
   forEach,
+  mapFilter,
   mapToArray,
   parseXml
 } from '../../utils'
@@ -149,6 +151,27 @@ export default {
     )
   },
 
+  async _ejectToolsIsos (hostRef) {
+    return Promise.all(mapFilter(
+      this.objects.all,
+      vm => {
+        if (vm.$type !== 'vm' || (hostRef && vm.resident_on !== hostRef)) {
+          return
+        }
+
+        const shouldEjectCd = some(vm.$VBDs, vbd => {
+          const vdi = vbd.$VDI
+
+          return vdi && vdi.is_tools_iso
+        })
+
+        if (shouldEjectCd) {
+          return this.ejectCdFromVm(vm.$id)
+        }
+      }
+    ))
+  },
+
   // -----------------------------------------------------------------
 
   _isPoolPatchInstallableOnHost (patchUuid, host) {
@@ -225,7 +248,8 @@ export default {
   async _installPoolPatchOnHost (patchUuid, host) {
     debug('installing patch %s', patchUuid)
 
-    const patch = await this._getOrUploadPoolPatch(patchUuid)
+    const [ patch ] = await Promise.all([ this._getOrUploadPoolPatch(patchUuid), this._ejectToolsIsos(host.$ref) ])
+
     await this.call('pool_patch.apply', patch.$ref, host.$ref)
   },
 
@@ -239,7 +263,7 @@ export default {
   // -----------------------------------------------------------------
 
   async installPoolPatchOnAllHosts (patchUuid) {
-    const patch = await this._getOrUploadPoolPatch(patchUuid)
+    const [ patch ] = await Promise.all([ this._getOrUploadPoolPatch(patchUuid), this._ejectToolsIsos() ])
 
     await this.call('pool_patch.pool_apply', patch.$ref)
   },

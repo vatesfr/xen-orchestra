@@ -17,6 +17,7 @@ import {
   isInteger,
   isString,
   map,
+  mapFilter,
   mapToArray,
   noop,
   pFinally
@@ -140,17 +141,6 @@ export const isVmRunning = vm => VM_RUNNING_POWER_STATES[vm.power_state]
 // -------------------------------------------------------------------
 
 const _DEFAULT_ADD_TO_LIMITS = (next, current) => next - current
-
-const _mapFilter = (collection, iteratee) => {
-  const result = []
-  forEach(collection, (...args) => {
-    const value = iteratee(...args)
-    if (value) {
-      result.push(value)
-    }
-  })
-  return result
-}
 
 export const makeEditObject = specs => {
   const normalizeGet = (get, name) => {
@@ -342,7 +332,7 @@ export const makeEditObject = specs => {
       return cb
     }
 
-    const cbs = _mapFilter(values, set)
+    const cbs = mapFilter(values, set)
 
     if (checkLimits) {
       await checkLimits(limits, object)

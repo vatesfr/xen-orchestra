@@ -556,3 +556,16 @@ export const tmpDir = () => fromCallback(cb => tmp.dir(cb))
 
 // Wrap a value in a function.
 export const wrap = value => () => value
+
+// -------------------------------------------------------------------
+
+export const mapFilter = (collection, iteratee) => {
+  const result = []
+  forEach(collection, (...args) => {
+    const value = iteratee(...args)
+    if (value) {
+      result.push(value)
+    }
+  })
+  return result
+}
