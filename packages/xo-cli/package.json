@@ -1,0 +1,57 @@
+{
+  "name": "xo-cli",
+  "version": "0.8.2",
+  "license": "AGPL-3.0",
+  "description": "Basic CLI for Xen-Orchestra",
+  "keywords": [
+    "xo",
+    "xen-orchestra",
+    "xen",
+    "orchestra"
+  ],
+  "homepage": "https://github.com/vatesfr/xo-cli",
+  "bugs": "https://github.com/vatesfr/xo-cli/issues",
+  "author": "Julien Fontanet <julien.fontanet@vates.fr>",
+  "preferGlobal": true,
+  "bin": {
+    "xo-cli": "index.js"
+  },
+  "files": [
+    "*.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vatesfr/xo-cli"
+  },
+  "dependencies": {
+    "bluebird": "^3.4.6",
+    "chalk": "^1.1.1",
+    "event-to-promise": "^0.7.0",
+    "exec-promise": "^0.6.1",
+    "fs-promise": "^1.0.0",
+    "got": "^6.5.0",
+    "human-format": "^0.7.0",
+    "l33teral": "^3.0.2",
+    "lodash": "^4.16.4",
+    "micromatch": "^2.2.0",
+    "mkdirp": "^0.5.0",
+    "multiline": "^1.0.2",
+    "nice-pipe": "0.0.0",
+    "pretty-ms": "^2.1.0",
+    "progress-stream": "^1.1.1",
+    "xdg-basedir": "^2.0.0",
+    "xo-lib": "^0.8.0"
+  },
+  "devDependencies": {
+    "standard": "^8.1.0"
+  },
+  "scripts": {
+    "lint": "standard",
+    "posttest": "npm run lint"
+  },
+  "greenkeeper": {
+    "ignore": [
+      "nice-pipe"
+    ]
+  }
+}
