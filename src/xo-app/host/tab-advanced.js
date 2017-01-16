@@ -6,8 +6,20 @@ import { Toggle } from 'form'
 import { enableHost, detachHost, disableHost, restartHost } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Container, Row, Col } from 'grid'
+import {
+  map
+} from 'lodash'
 
 const forceReboot = host => restartHost(host, true)
+
+const formatPack = (version, pack) => {
+  const [ author, name ] = pack.split(':')
+
+  return <tr>
+    <th>{_('supplementalPackTitle', { author, name })}</th>
+    <td>{version}</td>
+  </tr>
+}
 
 export default ({
   host
@@ -152,6 +164,12 @@ export default ({
               <FormattedTime value={host.license_expiry * 1000} day='numeric' month='long' year='numeric' /><br />
             </td>
           </tr>
+        </tbody>
+      </table>
+      <h3>{_('supplementalPacks')}</h3>
+      <table className='table'>
+        <tbody>
+          {map(host.supplementalPacks, formatPack)}
         </tbody>
       </table>
     </Col>
