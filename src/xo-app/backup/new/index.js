@@ -72,7 +72,8 @@ const SMART_SCHEMA = {
             type: 'string',
             'xo:type': 'pool'
           },
-          title: _('editBackupSmartResidentOn')
+          title: _('editBackupSmartResidentOn'),
+          description: 'Not used if empty.' // FIXME: can't translate
         }
       }
     },
@@ -97,7 +98,7 @@ const SMART_SCHEMA = {
       }
     }
   },
-  required: [ 'status', 'poolsOptions' ]
+  required: [ 'status', 'poolsOptions', 'tagsOptions' ]
 }
 const SMART_UI_SCHEMA = generateUiSchema(SMART_SCHEMA)
 
@@ -321,7 +322,7 @@ export default class New extends Component {
       if (values[1].type === 'map') {
         // Smart backup.
         const {
-          $pool: poolsOptions,
+          $pool: poolsOptions = {},
           tags: tagsOptions = {},
           power_state: status = 'All'
         } = values[1].collection.pattern
@@ -389,7 +390,11 @@ export default class New extends Component {
           collection: {
             type: 'fetchObjects',
             pattern: {
-              $pool: notPools ? { __not: { __or: pools } } : { __or: pools },
+              $pool: pools && pools.length
+                ? (notPools
+                  ? { __not: { __or: pools } }
+                  : { __or: pools })
+                : undefined,
               power_state: vmsInputValue.status === 'All' ? undefined : vmsInputValue.status,
               tags: tags && tags.length
                 ? (notTags
