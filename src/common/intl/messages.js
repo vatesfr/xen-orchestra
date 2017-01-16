@@ -506,6 +506,8 @@ var messages = {
   hostLicenseType: 'Type',
   hostLicenseSocket: 'Socket',
   hostLicenseExpiry: 'Expiry',
+  supplementalPacks: 'Installed supplemental packs',
+  supplementalPackTitle: '{name} (by {author})',
   // ----- Host net tabs -----
   networkCreateButton: 'Add a network',
   networkCreateBondedButton: 'Add a bonded network',
