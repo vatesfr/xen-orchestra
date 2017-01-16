@@ -45,10 +45,16 @@ export default class IsoDevice extends Component {
   _getPredicate = createSelector(
     () => this.props.vm.$pool,
     () => this.props.vm.$container,
-    (vmPool, vmContainer) => sr =>
-      sr.$pool === vmPool && // SR is on the same pool
-      (vmContainer === vmPool || sr.shared || vmContainer === sr.$container) && // non shared SR is on the same host if VM is running
-      (sr.SR_type === 'iso' || sr.SR_type === 'udev' && !sr.shared && sr.size) // CD or DVD
+    (vmPool, vmContainer) => sr => {
+      const vmRunning = vmContainer !== vmPool
+      const sameHost = vmContainer === sr.$container
+      const samePool = vmPool === sr.$pool
+
+      return (
+        samePool && (vmRunning ? sr.shared || sameHost : true) &&
+        sr.SR_type === 'iso' || sr.SR_type === 'udev' && sr.size
+      )
+    }
   )
 
   _handleInsert = iso => {
