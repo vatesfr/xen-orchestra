@@ -398,12 +398,12 @@ export default class New extends Component {
             type: 'fetchObjects',
             pattern: {
               $pool: isEmpty(pools)
-                ? negatePattern({ __or: pools }, notPools)
-                : undefined,
+                ? undefined
+                : negatePattern({ __or: pools }, notPools),
               power_state: vmsInputValue.status === 'All' ? undefined : vmsInputValue.status,
               tags: isEmpty(tags)
-                ? negatePattern({ __or: formattedTags }, notTags)
-                : undefined,
+                ? undefined
+                : negatePattern({ __or: formattedTags }, notTags),
               type: 'VM'
             }
           },
