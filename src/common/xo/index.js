@@ -1750,3 +1750,9 @@ export const setIpPool = (ipPool, { name, addresses, networks }) => (
     subscribeIpPools.forceRefresh
   )
 )
+
+// XO SAN ----------------------------------------------------------------------
+
+export const getPeers = ip => _call('xosan.getPeers', { ip })
+
+export const getVolumeInfo = (ip, volumeName) => _call('xosan.getVolumeInfo', { ip, volumeName })

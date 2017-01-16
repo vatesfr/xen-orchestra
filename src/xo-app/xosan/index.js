@@ -63,6 +63,7 @@ export default class Xosan extends Component {
             <tr>
               <th>Name</th>
               <th>Hosts</th>
+              <th>SAN Hosts</th>
               <th>Size</th>
               <th>Used Space</th>
             </tr>
@@ -75,6 +76,9 @@ export default class Xosan extends Component {
                 </td>
                 <td>
                   { sr.PBDs.map(pbd => pbd.realHost.name_label).join(', ') }
+                </td>
+                <td>
+                  { sr.PBDs.map(pbd => pbd.device_config['server']).join(', ') }
                 </td>
                 <td>
                   {formatSize(sr.size)}
