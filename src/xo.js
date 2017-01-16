@@ -29,6 +29,9 @@ export default class Xo extends EventEmitter {
   constructor (config) {
     super()
 
+    // a lot of mixins adds listener for start/stop/… events
+    this.setMaxListeners(0)
+
     this._config = config
 
     this._objects = new XoCollection()
