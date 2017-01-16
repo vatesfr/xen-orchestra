@@ -1,4 +1,4 @@
-# Xen Orchestra Web [![Build Status](https://travis-ci.org/vatesfr/xo-web.png?branch=master)](https://travis-ci.org/vatesfr/xo-web)
+# Xen Orchestra Web [![Chat with us](https://storage.crisp.im/plugins/images/936925df-f37b-4ba8-bab0-70cd2edcb0be/badge.svg)](https://go.crisp.im/chat/embed/?website_id=-JzqzzwddSV7bKGtEyAQ) [![Build Status](https://travis-ci.org/vatesfr/xo-web.png?branch=master)](https://travis-ci.org/vatesfr/xo-web)
 
 ![](http://i.imgur.com/tRffA5y.png)
 
