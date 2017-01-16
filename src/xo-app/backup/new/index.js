@@ -5,6 +5,7 @@ import delay from 'lodash/delay'
 import forEach from 'lodash/forEach'
 import GenericInput from 'json-schema-input'
 import Icon from 'icon'
+import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import moment from 'moment-timezone'
 import React from 'react'
@@ -257,6 +258,12 @@ const BACKUP_METHOD_TO_INFO = {
 
 const DEFAULT_CRON_PATTERN = '0 0 * * *'
 
+function negatePattern (pattern, not = true) {
+  return not
+    ? { __not: pattern }
+    : pattern
+}
+
 @addSubscriptions({
   currentUser: subscribeCurrentUser
 })
@@ -390,16 +397,12 @@ export default class New extends Component {
           collection: {
             type: 'fetchObjects',
             pattern: {
-              $pool: pools && pools.length
-                ? (notPools
-                  ? { __not: { __or: pools } }
-                  : { __or: pools })
+              $pool: isEmpty(pools)
+                ? negatePattern({ __or: pools }, notPools)
                 : undefined,
               power_state: vmsInputValue.status === 'All' ? undefined : vmsInputValue.status,
-              tags: tags && tags.length
-                ? (notTags
-                  ? { __not: { __or: formattedTags } }
-                  : { __or: formattedTags })
+              tags: isEmpty(tags)
+                ? negatePattern({ __or: formattedTags }, notTags)
                 : undefined,
               type: 'VM'
             }
