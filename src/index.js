@@ -131,6 +131,11 @@ async function setUpPassport (express, xo) {
     }))
   })
 
+  express.get('/signout', (req, res) => {
+    res.clearCookie('token')
+    res.redirect('/')
+  })
+
   const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?(:?\?.*)?$/
   express.use(async (req, res, next) => {
     const { url } = req
