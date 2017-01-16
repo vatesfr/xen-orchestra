@@ -1,5 +1,7 @@
+import archiver from 'archiver'
 import { basename } from 'path'
 import { format } from 'json-rpc-peer'
+import { forEach } from 'lodash'
 
 // ===================================================================
 
@@ -40,11 +42,31 @@ scanFiles.params = {
 
 // -------------------------------------------------------------------
 
-function handleFetchFiles (req, res, { remote, disk, partition, paths }) {
+function handleFetchFiles (req, res, { remote, disk, partition, paths, format: archiveFormat }) {
   this.fetchFilesInDiskBackup(remote, disk, partition, paths).then(files => {
     res.setHeader('content-disposition', 'attachment')
     res.setHeader('content-type', 'application/octet-stream')
-    files[0].pipe(res)
+
+    const nFiles = paths.length
+
+    // Send lone file directly
+    if (nFiles === 1) {
+      files[0].pipe(res)
+      return
+    }
+
+    const archive = archiver(archiveFormat)
+    archive.on('error', error => {
+      console.error(error)
+      res.end(format.error(0, error))
+    })
+
+    forEach(files, file => {
+      archive.append(file, { name: basename(file.path) })
+    })
+    archive.finalize()
+
+    archive.pipe(res)
   }).catch(error => {
     console.error(error)
     res.writeHead(500)
@@ -52,9 +74,13 @@ function handleFetchFiles (req, res, { remote, disk, partition, paths }) {
   })
 }
 
-export async function fetchFiles (params) {
-  return this.registerHttpRequest(handleFetchFiles, params, {
-    suffix: encodeURI(`/${basename(params.paths[0])}`)
+export async function fetchFiles ({ format = 'zip', ...params }) {
+  const fileName = params.paths.length > 1
+    ? `restore_${new Date().toJSON()}.${format}`
+    : basename(params.paths[0])
+
+  return this.registerHttpRequest(handleFetchFiles, { ...params, format }, {
+    suffix: encodeURI(`/${fileName}`)
   }).then(url => ({ $getFrom: url }))
 }
 
@@ -62,11 +88,11 @@ fetchFiles.permission = 'admin'
 fetchFiles.params = {
   remote: { type: 'string' },
   disk: { type: 'string' },
+  format: { type: 'string', optional: true },
   partition: { type: 'string', optional: true },
   paths: {
     type: 'array',
     items: { type: 'string' },
-    minLength: 1,
-    maxLength: 1 // TODO: remove when able to tar
+    minLength: 1
   }
 }
