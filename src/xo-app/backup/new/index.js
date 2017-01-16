@@ -5,6 +5,7 @@ import delay from 'lodash/delay'
 import forEach from 'lodash/forEach'
 import GenericInput from 'json-schema-input'
 import Icon from 'icon'
+import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import moment from 'moment-timezone'
 import React from 'react'
@@ -72,7 +73,8 @@ const SMART_SCHEMA = {
             type: 'string',
             'xo:type': 'pool'
           },
-          title: _('editBackupSmartResidentOn')
+          title: _('editBackupSmartResidentOn'),
+          description: 'Not used if empty.' // FIXME: can't translate
         }
       }
     },
@@ -97,7 +99,7 @@ const SMART_SCHEMA = {
       }
     }
   },
-  required: [ 'status', 'poolsOptions' ]
+  required: [ 'status', 'poolsOptions', 'tagsOptions' ]
 }
 const SMART_UI_SCHEMA = generateUiSchema(SMART_SCHEMA)
 
@@ -256,6 +258,12 @@ const BACKUP_METHOD_TO_INFO = {
 
 const DEFAULT_CRON_PATTERN = '0 0 * * *'
 
+function negatePattern (pattern, not = true) {
+  return not
+    ? { __not: pattern }
+    : pattern
+}
+
 @addSubscriptions({
   currentUser: subscribeCurrentUser
 })
@@ -321,7 +329,7 @@ export default class New extends Component {
       if (values[1].type === 'map') {
         // Smart backup.
         const {
-          $pool: poolsOptions,
+          $pool: poolsOptions = {},
           tags: tagsOptions = {},
           power_state: status = 'All'
         } = values[1].collection.pattern
@@ -389,13 +397,13 @@ export default class New extends Component {
           collection: {
             type: 'fetchObjects',
             pattern: {
-              $pool: notPools ? { __not: { __or: pools } } : { __or: pools },
+              $pool: isEmpty(pools)
+                ? undefined
+                : negatePattern({ __or: pools }, notPools),
               power_state: vmsInputValue.status === 'All' ? undefined : vmsInputValue.status,
-              tags: tags && tags.length
-                ? (notTags
-                  ? { __not: { __or: formattedTags } }
-                  : { __or: formattedTags })
-                : undefined,
+              tags: isEmpty(tags)
+                ? undefined
+                : negatePattern({ __or: formattedTags }, notTags),
               type: 'VM'
             }
           },
