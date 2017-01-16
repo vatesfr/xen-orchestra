@@ -1,0 +1,31 @@
+#!/usr/bin/env node
+
+const PKGS_DIR = `${__dirname}/../packages`
+
+const { fromCallback } = require('promise-toolbox')
+const { readdir, readFile, writeFile } = require('fs')
+
+const normalizePackage = path => fromCallback(cb =>
+  readFile(`${path}/package.json`, cb)
+).then(JSON.parse).then(package => {
+  const { name } = package
+  package.homepage = `https://github.com/vatesfr/xen-orchestra/tree/master/packages/${name}`
+  package.bugs = `https://github.com/vatesfr/xo-web/issues`
+  package.repository = {
+    type: 'git',
+    url: 'https://github.com/vatesfr/xen-orchestra.git'
+  }
+
+  return fromCallback(cb => writeFile(
+    `${path}/package.json`,
+    JSON.stringify(package, null, 2) + '\n',
+    cb
+  ))
+})
+
+const main =() => fromCallback(cb =>
+  readdir(PKGS_DIR, cb)
+).then(pkgs => Promise.all(pkgs.map(pkg =>
+  normalizePackage(`${PKGS_DIR}/${pkg}`)
+)))
+main().catch(console.error)

@@ -323,6 +323,10 @@ lru-cache@^4.0.1:
     pseudomap "^1.0.1"
     yallist "^2.0.0"
 
+make-error@^1.0.4:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/make-error/-/make-error-1.2.1.tgz#9a6dfb4844423b9f145806728d05c6e935670e75"
+
 map-obj@^1.0.0, map-obj@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/map-obj/-/map-obj-1.0.1.tgz#d933ceb9205d82bdcf4886f6742bdc2b4dea146d"
@@ -453,6 +457,12 @@ pinkie@^2.0.0:
 progress@^1.1.8:
   version "1.1.8"
   resolved "https://registry.yarnpkg.com/progress/-/progress-1.1.8.tgz#e260c78f6161cdd9b0e56cc3e0a85de17c7a57be"
+
+promise-toolbox@^0.8.0:
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/promise-toolbox/-/promise-toolbox-0.8.0.tgz#dfb94700c7476f4729a550c27a7859535b6538a1"
+  dependencies:
+    make-error "^1.0.4"
 
 pseudomap@^1.0.1:
   version "1.0.2"
