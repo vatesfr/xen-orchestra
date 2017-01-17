@@ -62,6 +62,7 @@ createBonded.resolve = {
   pool: ['pool', 'pool', 'administrate']
 }
 createBonded.permission = 'admin'
+createBonded.description = 'Create a bonded network. bondMode can be balance-slb, active-backup or lacp'
 
 // ===================================================================
 

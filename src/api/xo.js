@@ -33,6 +33,7 @@ export function getAllObjects () {
 }
 
 getAllObjects.permission = ''
+getAllObjects.description = 'Returns all XO objects'
 
 // -------------------------------------------------------------------
 

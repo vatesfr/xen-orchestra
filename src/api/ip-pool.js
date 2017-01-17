@@ -5,6 +5,7 @@ export function create (props) {
 }
 
 create.permission = 'admin'
+create.description = 'Creates a new ipPool'
 
 // -------------------------------------------------------------------
 
@@ -14,6 +15,7 @@ function delete_ ({ id }) {
 export { delete_ as delete }
 
 delete_.permission = 'admin'
+delete_.description = 'Delete an ipPool'
 
 // -------------------------------------------------------------------
 
@@ -30,6 +32,8 @@ export function getAll (params) {
   )
 }
 
+getAll.description = 'List all ipPools'
+
 // -------------------------------------------------------------------
 
 export function set ({ id, ...props }) {
@@ -37,3 +41,4 @@ export function set ({ id, ...props }) {
 }
 
 set.permission = 'admin'
+set.description = 'Allow to modify an existing ipPool'

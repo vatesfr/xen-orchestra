@@ -123,6 +123,8 @@ export async function getAll () {
   return this.getAllResourceSets(user.id)
 }
 
+getAll.description = 'Get the list of all existing resource set'
+
 // -------------------------------------------------------------------
 
 export function addObject ({ id, object }) {
@@ -235,3 +237,4 @@ export function recomputeAllLimits () {
 }
 
 recomputeAllLimits.permission = 'admin'
+recomputeAllLimits.description = 'Recompute manually the current resource set usage'

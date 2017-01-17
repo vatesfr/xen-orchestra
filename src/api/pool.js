@@ -74,15 +74,17 @@ export async function installAllPatches ({ pool }) {
   await this.getXapi(pool).installAllPoolPatchesOnAllHosts()
 }
 
-installPatch.params = {
+installAllPatches.params = {
   pool: {
     type: 'string'
   }
 }
 
-installPatch.resolve = {
+installAllPatches.resolve = {
   pool: ['pool', 'pool', 'administrate']
 }
+
+installAllPatches.description = 'Install automatically all patches for every hosts of a pool'
 
 // -------------------------------------------------------------------
 
