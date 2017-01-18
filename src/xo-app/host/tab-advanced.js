@@ -3,7 +3,7 @@ import Copiable from 'copiable'
 import React from 'react'
 import TabButton from 'tab-button'
 import { Toggle } from 'form'
-import { enableHost, detachHost, disableHost, restartHost } from 'xo'
+import { enableHost, detachHost, disableHost, restartHost, installSupplementalPack } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Container, Row, Col } from 'grid'
 import {
@@ -170,6 +170,15 @@ export default ({
       <table className='table'>
         <tbody>
           {map(host.supplementalPacks, formatPack)}
+          <tr>
+            <th>{_('supplementalPackNew')}</th>
+            <td>
+              <input
+                type='file'
+                onChange={e => installSupplementalPack(host, e.target.files[0])}
+              />
+            </td>
+          </tr>
         </tbody>
       </table>
     </Col>
