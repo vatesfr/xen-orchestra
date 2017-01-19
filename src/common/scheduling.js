@@ -230,7 +230,6 @@ class TableSelect extends Component {
       optionsRenderer,
       value
     } = this.props
-    const { length } = options[0]
 
     return (
       <div>
@@ -238,15 +237,14 @@ class TableSelect extends Component {
           <tbody>
             {map(options, (line, i) => (
               <tr key={i}>
-                {map(line, (tdOption, j) => {
-                  const tdId = length * i + j
+                {map(line, tdOption => {
                   return (
                     <ToggleTd
                       children={optionsRenderer(tdOption)}
-                      tdId={tdId}
-                      key={tdId}
+                      tdId={tdOption}
+                      key={tdOption}
                       onChange={this._handleChange}
-                      value={includes(value, tdId)}
+                      value={includes(value, tdOption)}
                     />
                   )
                 })}
@@ -269,14 +267,9 @@ class TableSelect extends Component {
   onChange: propTypes.func.isRequired,
   range: propTypes.array,
   labelId: propTypes.string.isRequired,
-  value: propTypes.any.isRequired,
-  valueRenderer: propTypes.func
+  value: propTypes.any.isRequired
 })
 class TimePicker extends Component {
-  static defaultProps = {
-    valueRenderer: e => +e
-  }
-
   constructor () {
     super()
     this.state = {
@@ -286,7 +279,7 @@ class TimePicker extends Component {
   }
 
   _update (props) {
-    const { value, valueRenderer } = props
+    const { value } = props
 
     if (value.indexOf('/') === 1) {
       this.setState({
@@ -297,7 +290,7 @@ class TimePicker extends Component {
         activeKey: NAV_EACH_SELECTED,
         tableValue: value === '*'
           ? []
-          : map(value.split(','), valueRenderer)
+          : map(value.split(','), Number)
       })
     }
   }
@@ -380,8 +373,6 @@ class TimePicker extends Component {
 const HOURS_RANGE = [2, 12]
 const MINUTES_RANGE = [2, 30]
 
-const decrement = e => e - 1
-
 @propTypes({
   cronPattern: propTypes.string.isRequired,
   onChange: propTypes.func,
@@ -393,12 +384,7 @@ export default class Scheduler extends Component {
       if (!value.length) {
         value = '*'
       } else {
-        value = join(
-          (type === 'monthDay' || type === 'month')
-            ? map(value, n => n + 1)
-            : value,
-          ','
-        )
+        value = value.join(',')
       }
     } else {
       value = `*/${value}`
@@ -445,14 +431,12 @@ export default class Scheduler extends Component {
               options={MONTHS}
               onChange={this._onMonthChange}
               value={cronPatternArr[PICKTIME_TO_ID['month']]}
-              valueRenderer={decrement}
             />
             <TimePicker
               labelId='MonthDay'
               options={DAYS}
               onChange={this._onMonthDayChange}
               value={cronPatternArr[PICKTIME_TO_ID['monthDay']]}
-              valueRenderer={decrement}
             />
             <TimePicker
               labelId='WeekDay'
