@@ -1,5 +1,4 @@
 import includes from 'lodash/includes'
-import join from 'lodash/join'
 import later from 'later'
 import map from 'lodash/map'
 import React from 'react'
