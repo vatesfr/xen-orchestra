@@ -2,6 +2,7 @@ import _ from 'intl'
 import Copiable from 'copiable'
 import React from 'react'
 import TabButton from 'tab-button'
+import Upgrade from 'xoa-upgrade'
 import { Toggle } from 'form'
 import { enableHost, detachHost, disableHost, restartHost, installSupplementalPack } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
@@ -9,6 +10,8 @@ import { Container, Row, Col } from 'grid'
 import {
   map
 } from 'lodash'
+
+const ALLOW_INSTALL_SUPP_PACK = process.env.XOA_PLAN > 1
 
 const forceReboot = host => restartHost(host, true)
 
@@ -170,7 +173,7 @@ export default ({
       <table className='table'>
         <tbody>
           {map(host.supplementalPacks, formatPack)}
-          <tr>
+          {ALLOW_INSTALL_SUPP_PACK && <tr>
             <th>{_('supplementalPackNew')}</th>
             <td>
               <input
@@ -178,9 +181,13 @@ export default ({
                 onChange={e => installSupplementalPack(host, e.target.files[0])}
               />
             </td>
-          </tr>
+          </tr>}
         </tbody>
       </table>
+      {!ALLOW_INSTALL_SUPP_PACK && [
+        <h3>{_('supplementalPackNew')}</h3>,
+        <Container><Upgrade place='supplementalPacks' available={2} /></Container>
+      ]}
     </Col>
   </Row>
 </Container>
