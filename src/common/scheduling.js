@@ -1,13 +1,14 @@
-import includes from 'lodash/includes'
+import classNames from 'classnames'
+import Icon from 'icon'
 import later from 'later'
-import map from 'lodash/map'
 import React from 'react'
-import sortedIndex from 'lodash/sortedIndex'
 import { FormattedDate, FormattedTime } from 'react-intl'
 import {
-  Tab,
-  Tabs
-} from 'react-bootstrap-4/lib'
+  includes,
+  isArray,
+  map,
+  sortedIndex
+} from 'lodash'
 
 import _ from './intl'
 import Component from './base-component'
@@ -19,13 +20,15 @@ import { Range } from './form'
 
 // ===================================================================
 
-// By default later use UTC but we use this line for futures versions.
+// By default, later uses UTC but we use this line for future versions.
 later.date.UTC()
 
 // ===================================================================
 
-const NAV_EACH_SELECTED = 1
-const NAV_EVERY_N = 2
+const CLICKABLE = { cursor: 'pointer' }
+const PREVIEW_SLIDER_STYLE = { width: '400px' }
+
+// ===================================================================
 
 const MIN_PREVIEWS = 5
 const MAX_PREVIEWS = 20
@@ -129,24 +132,20 @@ const getDayName = (dayNum) =>
   cronPattern: propTypes.string.isRequired
 })
 export class SchedulePreview extends Component {
-  _handleChange = value => {
-    this.setState({
-      value
-    })
-  }
-
   render () {
     const { cronPattern } = this.props
+    const { value } = this.state
+
     const cronSched = later.parse.cron(cronPattern)
-    const dates = later.schedule(cronSched).next(this.state.value || MIN_PREVIEWS)
+    const dates = later.schedule(cronSched).next(value)
 
     return (
       <div>
         <div className='alert alert-info' role='alert'>
           {_('cronPattern')} <strong>{cronPattern}</strong>
         </div>
-        <div className='form-inline pb-1'>
-          <Range min={MIN_PREVIEWS} max={MAX_PREVIEWS} onChange={this._handleChange} />
+        <div className='mb-1' style={PREVIEW_SLIDER_STYLE}>
+          <Range min={MIN_PREVIEWS} max={MAX_PREVIEWS} onChange={this.linkState('value')} value={value} />
         </div>
         <ul className='list-group'>
           {map(dates, (date, id) => (
@@ -178,7 +177,7 @@ class ToggleTd extends Component {
   render () {
     const { props } = this
     return (
-      <td style={{ cursor: 'pointer' }} className={props.value ? 'table-success' : ''} onClick={this._onClick}>
+      <td style={CLICKABLE} className={props.value ? 'table-success' : ''} onClick={this._onClick}>
         {props.children}
       </td>
     )
@@ -188,14 +187,15 @@ class ToggleTd extends Component {
 // ===================================================================
 
 @propTypes({
+  labelId: propTypes.string.isRequired,
   options: propTypes.array.isRequired,
-  optionsRenderer: propTypes.func,
+  optionRenderer: propTypes.func,
   onChange: propTypes.func.isRequired,
   value: propTypes.array.isRequired
 })
 class TableSelect extends Component {
   static defaultProps = {
-    optionsRenderer: value => value
+    optionRenderer: value => value
   }
 
   _reset = () => {
@@ -225,145 +225,146 @@ class TableSelect extends Component {
 
   render () {
     const {
+      labelId,
       options,
-      optionsRenderer,
+      optionRenderer,
       value
     } = this.props
 
-    return (
-      <div>
-        <table className='table table-bordered table-sm'>
-          <tbody>
-            {map(options, (line, i) => (
-              <tr key={i}>
-                {map(line, tdOption => {
-                  return (
-                    <ToggleTd
-                      children={optionsRenderer(tdOption)}
-                      tdId={tdOption}
-                      key={tdOption}
-                      onChange={this._handleChange}
-                      value={includes(value, tdOption)}
-                    />
-                  )
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <button className='btn btn-secondary pull-right' onClick={this._reset}>
-          {_('selectTableReset')}
-        </button>
-      </div>
-    )
+    return <div>
+      <table className='table table-bordered table-sm'>
+        <tbody>
+          {map(options, (line, i) => (
+            <tr key={i}>
+              {map(line, tdOption => (
+                <ToggleTd
+                  children={optionRenderer(tdOption)}
+                  tdId={tdOption}
+                  key={tdOption}
+                  onChange={this._handleChange}
+                  value={includes(value, tdOption)}
+                />
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <button className='btn btn-secondary pull-right' onClick={this._reset}>
+        {_(`selectTableAll${labelId}`)} {!value.length && <Icon icon='success' />}
+      </button>
+    </div>
   }
 }
 
 // ===================================================================
 
+// "2,7" => [2,7]   "*/2" => 2   "*" => []
+const cronToValue = (cron, range) => {
+  if (cron.indexOf('/') === 1) {
+    return +cron.split('/')[1]
+  }
+
+  if (cron === '*') {
+    return []
+  }
+
+  return map(cron.split(','), Number)
+}
+
+// [2,7] => "2,7"   2 => "*/2"   [] => "*"
+const valueToCron = value => {
+  if (!isArray(value)) {
+    return `*/${value}`
+  }
+
+  if (!value.length) {
+    return '*'
+  }
+
+  return value.join(',')
+}
+
 @propTypes({
-  optionsRenderer: propTypes.func,
+  optionRenderer: propTypes.func,
   onChange: propTypes.func.isRequired,
   range: propTypes.array,
   labelId: propTypes.string.isRequired,
   value: propTypes.any.isRequired
 })
 class TimePicker extends Component {
-  constructor () {
-    super()
-    this.state = {
-      activeKey: NAV_EACH_SELECTED,
-      tableValue: []
-    }
-  }
+  _update = cron => {
+    const { tableValue, rangeValue } = this.state
 
-  _update (props) {
-    const { value } = props
+    const newValue = cronToValue(cron)
+    const periodic = !isArray(newValue)
 
-    if (value.indexOf('/') === 1) {
-      this.setState({
-        activeKey: NAV_EVERY_N
-      }, () => { this.refs.range.value = value.split('/')[1] })
-    } else {
-      this.setState({
-        activeKey: NAV_EACH_SELECTED,
-        tableValue: value === '*'
-          ? []
-          : map(value.split(','), Number)
-      })
-    }
-  }
-
-  componentWillMount () {
-    this._update(this.props)
-  }
-
-  componentWillReceiveProps (props) {
-    this._update(props)
-  }
-
-  _selectTab = activeKey => {
     this.setState({
-      activeKey
-    }, () => {
-      const { activeKey, tableValue } = this.state
-      const { onChange } = this.props
-      const { refs } = this
-
-      if (activeKey === NAV_EACH_SELECTED) {
-        onChange(tableValue)
-      } else {
-        onChange(refs.range.value)
-      }
+      periodic,
+      tableValue: periodic ? tableValue : newValue,
+      rangeValue: periodic ? newValue : rangeValue
     })
   }
 
-  _handleTableValue = tableValue => {
-    this.setState({
-      tableValue
-    }, () => this.props.onChange(tableValue))
+  componentWillReceiveProps (props) {
+    if (props.value !== this.props.value) {
+      this._update(props.value)
+    }
   }
+
+  componentDidMount () {
+    this._update(this.props.value)
+  }
+
+  _onChange = value => {
+    this.props.onChange(valueToCron(value))
+  }
+
+  _tableTab = () => this._onChange(this.state.tableValue || [])
+  _periodicTab = () => this._onChange(this.state.rangeValue || this.props.range[0])
 
   render () {
     const {
-      onChange,
+      labelId,
       options,
-      optionsRenderer,
-      range,
-      labelId
+      optionRenderer,
+      range
     } = this.props
-    const { tableValue } = this.state
 
-    const tableSelect = (
-      <TableSelect
-        onChange={this._handleTableValue}
-        options={options}
-        optionsRenderer={optionsRenderer}
-        value={tableValue}
-      />
-    )
+    const {
+      periodic,
+      tableValue,
+      rangeValue
+    } = this.state
 
-    return (
-      <Card>
-        <CardHeader>
-          {_(`scheduling${labelId}`)}
-        </CardHeader>
-        <CardBlock>
-          {range
-            ? (
-              <Tabs bsStyle='tabs' activeKey={this.state.activeKey} onSelect={this._selectTab}>
-                <Tab tabClassName='nav-item' eventKey={NAV_EACH_SELECTED} title={_(`schedulingEachSelected${labelId}`)}>
-                  {tableSelect}
-                </Tab>
-                <Tab tabClassName='nav-item' eventKey={NAV_EVERY_N} title={_(`schedulingEveryN${labelId}`)}>
-                  <Range ref='range' min={range[0]} max={range[1]} onChange={onChange} />
-                </Tab>
-              </Tabs>
-            ) : tableSelect
-          }
-        </CardBlock>
-      </Card>
-    )
+    return <Card>
+      <CardHeader>
+        {_(`scheduling${labelId}`)}
+      </CardHeader>
+      <CardBlock>
+        {range && <ul className='nav nav-tabs mb-1'>
+          <li className='nav-item'>
+            <a onClick={this._tableTab} className={classNames('nav-link', !periodic && 'active')} style={CLICKABLE}>
+              {_(`schedulingEachSelected${labelId}`)}
+            </a>
+          </li>
+          <li className='nav-item'>
+            <a onClick={this._periodicTab} className={classNames('nav-link', periodic && 'active')} style={CLICKABLE}>
+              {_(`schedulingEveryN${labelId}`)}
+            </a>
+          </li>
+        </ul>}
+        {periodic
+          ? <Range ref='range' min={range[0]} max={range[1]} onChange={this._onChange} value={rangeValue} />
+          : <TableSelect
+            labelId={labelId}
+            onChange={this._onChange}
+            options={options}
+            optionRenderer={optionRenderer}
+            value={tableValue}
+          />
+        }
+      </CardBlock>
+    </Card>
   }
 }
 
@@ -378,37 +379,19 @@ const MINUTES_RANGE = [2, 30]
   timezone: propTypes.string
 })
 export default class Scheduler extends Component {
-  _update (type, value) {
-    if (Array.isArray(value)) {
-      if (!value.length) {
-        value = '*'
-      } else {
-        value = value.join(',')
-      }
-    } else {
-      value = `*/${value}`
-    }
+  _getOnChange = type => value => {
+    const cronPattern = this.props.cronPattern.split(' ')
 
-    const { props } = this
-    const cronPattern = props.cronPattern.split(' ')
     cronPattern[PICKTIME_TO_ID[type]] = value
-
     this.props.onChange({
       cronPattern: cronPattern.join(' '),
-      timezone: props.timezone
+      timezone: this.props.timezone
     })
   }
 
-  _onHourChange = value => this._update('hour', value)
-  _onMinuteChange = value => this._update('minute', value)
-  _onMonthChange = value => this._update('month', value)
-  _onMonthDayChange = value => this._update('monthDay', value)
-  _onWeekDayChange = value => this._update('weekDay', value)
-
   _onTimezoneChange = timezone => {
-    const { props } = this
-    props.onChange({
-      cronPattern: props.cronPattern,
+    this.props.onChange({
+      cronPattern: this.props.cronPattern,
       timezone
     })
   }
@@ -426,22 +409,22 @@ export default class Scheduler extends Component {
           <Col mediumSize={6}>
             <TimePicker
               labelId='Month'
-              optionsRenderer={getMonthName}
+              optionRenderer={getMonthName}
               options={MONTHS}
-              onChange={this._onMonthChange}
+              onChange={this._getOnChange('month')}
               value={cronPatternArr[PICKTIME_TO_ID['month']]}
             />
             <TimePicker
               labelId='MonthDay'
               options={DAYS}
-              onChange={this._onMonthDayChange}
+              onChange={this._getOnChange('monthDay')}
               value={cronPatternArr[PICKTIME_TO_ID['monthDay']]}
             />
             <TimePicker
               labelId='WeekDay'
-              optionsRenderer={getDayName}
+              optionRenderer={getDayName}
               options={WEEK_DAYS}
-              onChange={this._onWeekDayChange}
+              onChange={this._getOnChange('weekDay')}
               value={cronPatternArr[PICKTIME_TO_ID['weekDay']]}
             />
           </Col>
@@ -450,14 +433,14 @@ export default class Scheduler extends Component {
               labelId='Hour'
               options={HOURS}
               range={HOURS_RANGE}
-              onChange={this._onHourChange}
+              onChange={this._getOnChange('hour')}
               value={cronPatternArr[PICKTIME_TO_ID['hour']]}
             />
             <TimePicker
               labelId='Minute'
               options={MINS}
               range={MINUTES_RANGE}
-              onChange={this._onMinuteChange}
+              onChange={this._getOnChange('minute')}
               value={cronPatternArr[PICKTIME_TO_ID['minute']]}
             />
           </Col>
