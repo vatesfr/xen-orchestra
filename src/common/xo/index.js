@@ -1756,3 +1756,5 @@ export const setIpPool = (ipPool, { name, addresses, networks }) => (
 export const getPeers = ip => _call('xosan.getPeers', { ip })
 
 export const getVolumeInfo = (ip, volumeName) => _call('xosan.getVolumeInfo', { ip, volumeName })
+
+export const createXosanVM = srs => _call('xosan.createVM', { srs: resolveIds(srs) })

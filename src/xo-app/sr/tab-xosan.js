@@ -12,7 +12,7 @@ import {
 } from 'xo'
 
 @connectStore(() => {
-  return {allVMs: createGetObjectsOfType('VM'), allNetworks: createGetObjectsOfType('network')}
+  return { allVMs: createGetObjectsOfType('VM'), allNetworks: createGetObjectsOfType('network') }
 })
 export default class TabXosan extends Component {
   constructor (props) {
@@ -33,13 +33,11 @@ export default class TabXosan extends Component {
       })
     Promise.all(map(pbds, pbd => getVolumeInfo.apply(null, pbd.device_config['server'].split(':/'))))
       .then(pools => {
-        this.setState({volumes: fromPairs(pools.map((pool, index) => [pbds[index].id, pool]))})
+        this.setState({ volumes: fromPairs(pools.map((pool, index) => [pbds[index].id, pool])) })
       })
   }
 
   render () {
-    console.log(this.props)
-    console.log(this.state)
     return <Container>
       Connections:
       <table className='table table-striped'>
@@ -66,9 +64,11 @@ export default class TabXosan extends Component {
               }
               return <tr>
                 <td>{this.props.hosts[pbd.host].name_label}</td>
-                <td>{pbd.device_config['server']}</td>
+                <td>{pbd.device_config['server']} - {pbd.device_config['backupserver']}</td>
                 <td>{xosanVM.name_label}</td>
-                <td>{this.state.peers && <ul>{map(this.state.peers[pbd.id], peer => <li>{peer.hostname}</li>)}</ul> }
+                <td>{this.state.peers &&
+                  <ul>{map(this.state.peers[pbd.id], peer => <li key={peer.uuid}>{peer.hostname}
+                    - {peer.state}</li>)}</ul> }
                 </td>
                 <td>
                   {this.state.volumes && this.state.volumes[pbd.id]['Volume ID']}

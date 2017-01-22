@@ -1,4 +1,5 @@
 import _ from 'intl'
+import ActionButton from 'action-button'
 import Component from 'base-component'
 import Icon from 'icon'
 import fromPairs from 'lodash/fromPairs'
@@ -15,7 +16,8 @@ import {
   createSort
 } from 'selectors'
 import {
-  getVolumeInfo
+  getVolumeInfo,
+  createXosanVM
 } from 'xo'
 
 const HEADER = <Container>
@@ -60,7 +62,7 @@ export class XosanVolumesTable extends Component {
   }
 
   render () {
-    const {xosansrs} = this.props
+    const { xosansrs } = this.props
     return <div>
       <h1>Xen Orchestra SAN SRs</h1>
       <table className='table table-striped'>
@@ -68,7 +70,7 @@ export class XosanVolumesTable extends Component {
           <tr>
             <th>Name</th>
             <th>Hosts</th>
-            <th>SAN Hosts</th>
+            <th>Volume ID</th>
             <th>Size</th>
             <th>Used Space</th>
           </tr>
@@ -97,7 +99,7 @@ export class XosanVolumesTable extends Component {
                   used: String(Math.round((sr.physical_usage / sr.size) * 100)),
                   free: formatSize(sr.size - sr.physical_usage)
                 })}>
-                  <progress style={{margin: 0}} className='progress' value={(sr.physical_usage / sr.size) * 100}
+                  <progress style={{ margin: 0 }} className='progress' value={(sr.physical_usage / sr.size) * 100}
                     max='100' />
                 </Tooltip>
                 }
@@ -112,11 +114,12 @@ export class XosanVolumesTable extends Component {
           <thead>
             <tr>
               <th>Name</th>
-              <th>ID</th>
+              <th>Volume ID</th>
               <th>Status</th>
               <th>Type</th>
               <th>Number of Bricks</th>
               <th>Bricks</th>
+              <th>Peers</th>
             </tr>
           </thead>
           <tbody>
@@ -128,17 +131,22 @@ export class XosanVolumesTable extends Component {
               <td>{volume['Number of Bricks']}</td>
               <td>
                 <ul>{map(volume['Bricks'], brick => {
-                  const vif = Object.values(this.props.vifs).find(vif => vif['MAC'] === brick.mac)
-                  const vm = this.props.vms[vif['$VM']]
+                  if (!brick.vm) {
+                    return <li key={brick.config}> couldn't find the Virtual Machine! ({brick.config}) </li>
+                  }
+                  const vm = this.props.vms[brick.vm]
                   const vbds = vm['$VBDs'].map(vbd => this.props.vbds[vbd])
-                  const vdi = vbds.map(vbd => this.props.vdis[vbd['VDI']]).find(vdi => vdi && vdi.name_label === 'data')
+                  const vdi = vbds.map(vbd => this.props.vdis[vbd['VDI']]).find(vdi => vdi && vdi.name_label === 'xosan_data')
                   const sr = this.props.lvmsrs.find(sr => sr.id === vdi['$SR'])
                   const host = sr.PBDs[0].realHost
-                  return <li><Link to={`/vms/${vm.id}/general`}>{vm.name_label}</Link> - <Link
+                  return <li key={brick.config}><Link to={`/vms/${vm.id}/general`}>{vm.name_label}</Link> - <Link
                     to={`/srs/${sr.id}/general`}>{sr.name_label}</Link> - <Link
                       to={`/hosts/${host.id}/general`}>{host.name_label}</Link> ({brick.config})
                     </li>
                 })}</ul>
+              </td>
+              <td>
+                <ul>{map(volume['peers'], peer => <li key={peer.uuid}>{peer.hostname} - {peer.state}</li>)}</ul>
               </td>
             </tr>
             )}
@@ -181,53 +189,95 @@ export class XosanVolumesTable extends Component {
   ), 'name_label')
   return {
     xosansrs,
-    lvmsrs
+    lvmsrs,
+    networks: createGetObjectsOfType('network')
   }
 })
 
 export default class Xosan extends Component {
+  _selectedItems = {}
+
+  _selectItem = (event) => {
+    const id = event.target.value
+    !this._selectedItems[id] ? this._selectedItems[id] = true : delete this._selectedItems[id]
+  }
+
+  _createXosanVm = () => {
+    createXosanVM(Object.keys(this._selectedItems))
+  }
+
   render () {
-    const {lvmsrs} = this.props
+    const { lvmsrs, networks } = this.props
     return <Page header={HEADER} title='xosan' formatTitle>
       <Container>
         {this.props.xosansrs.length && <XosanVolumesTable xosansrs={this.props.xosansrs} lvmsrs={lvmsrs} />}
-        <h1>Available Raw SRs (lvm)</h1>
-        <table className='table table-striped'>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Hosts</th>
-              <th>Size</th>
-              <th>Used Space</th>
-            </tr>
-          </thead>
-          <tbody>
-            {map(lvmsrs, sr => {
-              return <tr key={sr.id}>
-                <td>
-                  <Link to={`/srs/${sr.id}/general`}>{sr.name_label}</Link>
-                </td>
-                <td>
-                  { sr.PBDs.map(pbd => pbd.realHost.name_label).join(', ') }
-                </td>
-                <td>
-                  {formatSize(sr.size)}
-                </td>
-                <td>
-                  {sr.size > 0 &&
-                  <Tooltip content={_('spaceLeftTooltip', {
-                    used: String(Math.round((sr.physical_usage / sr.size) * 100)),
-                    free: formatSize(sr.size - sr.physical_usage)
-                  })}>
-                    <progress style={{margin: 0}} className='progress' value={(sr.physical_usage / sr.size) * 100}
-                      max='100' />
-                  </Tooltip>
-                  }
-                </td>
+        <div>
+          <h1>Available Raw SRs (lvm)</h1>
+          <table className='table table-striped'>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Hosts</th>
+                <th>Size</th>
+                <th>Used Space</th>
+                <th><ActionButton
+                  btnStyle='success'
+                  icon='add'
+                  handler={this._createXosanVm}
+                  handlerParam={Object.keys(this._selectedItems)}
+                >Create XOSAN VM on selected SRs</ActionButton></th>
               </tr>
-            })}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {map(lvmsrs, sr => {
+                return <tr key={sr.id}>
+                  <td>
+                    <Link to={`/srs/${sr.id}/general`}>{sr.name_label}</Link>
+                  </td>
+                  <td>
+                    { sr.PBDs.map(pbd => pbd.realHost.name_label).join(', ') }
+                  </td>
+                  <td>
+                    {formatSize(sr.size)}
+                  </td>
+                  <td>
+                    {sr.size > 0 &&
+                    <Tooltip content={_('spaceLeftTooltip', {
+                      used: String(Math.round((sr.physical_usage / sr.size) * 100)),
+                      free: formatSize(sr.size - sr.physical_usage)
+                    })}>
+                      <progress style={{ margin: 0 }} className='progress' value={(sr.physical_usage / sr.size) * 100}
+                        max='100' />
+                    </Tooltip>
+                    }
+                  </td>
+                  <td>
+                    <input type='checkbox' checked={this._selectedItems[sr.id]} onChange={this._selectItem}
+                      value={sr.id} />
+                  </td>
+                </tr>
+              })}
+            </tbody>
+          </table>
+        </div>
+        <div><h1>Networks</h1>
+          <table className='table table-striped'>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Config</th>
+              </tr>
+            </thead>
+            <tbody>
+              {map(networks, network => <tr key={network.id}>
+                <td>{network.name_label}</td>
+                <td>{network.name_description}</td>
+                <td>{network.other_config}</td>
+              </tr>)}
+            </tbody>
+          </table>
+        </div>
       </Container>
     </Page>
   }
