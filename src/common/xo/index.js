@@ -488,18 +488,17 @@ export const installAllPatchesOnPool = pool => (
 export const installSupplementalPack = (host, file) => {
   info(_('supplementalPackInstallStartedTitle'), _('supplementalPackInstallStartedMessage'))
 
-  return _call('host.installSupplementalPack', { host: resolveId(host), size: file.size }).then(({ $sendTo: url }) => {
-    const req = request.post(url)
-
-    req.send(file)
-    req.end((err, res) => {
-      if (!err && res.status === 200) {
-        success(_('supplementalPackInstallSuccessTitle'), _('supplementalPackInstallSuccessMessage'))
-      } else {
-        error(_('supplementalPackInstallErrorTitle'), _('supplementalPackInstallErrorMessage'))
-      }
-    })
-  })
+  return _call('host.installSupplementalPack', { host: resolveId(host) }).then(({ $sendTo: url }) => (
+    request.post(url)
+      .send(file)
+      .end((err, res) => {
+        if (!err && res.status === 200) {
+          success(_('supplementalPackInstallSuccessTitle'), _('supplementalPackInstallSuccessMessage'))
+        } else {
+          error(_('supplementalPackInstallErrorTitle'), _('supplementalPackInstallErrorMessage'))
+        }
+      })
+  ))
 }
 
 // Containers --------------------------------------------------------
