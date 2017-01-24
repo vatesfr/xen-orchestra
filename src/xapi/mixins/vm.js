@@ -74,7 +74,7 @@ export default {
       const isHvm = isVmHvm(vm)
 
       if (isHvm) {
-        if (!vdis.length || installMethod === 'network') {
+        if (!isEmpty(vdis) || installMethod === 'network') {
           const { HVM_boot_params: bootParams } = vm
           let order = bootParams.order
           if (order) {
@@ -142,7 +142,7 @@ export default {
     // Creates the user defined VDIs.
     //
     // TODO: set vm.suspend_SR
-    if (vdis) {
+    if (!isEmpty(vdis)) {
       const devices = await this.call('VM.get_allowed_VBD_devices', vm.$ref)
       await Promise.all(mapToArray(vdis, (vdiDescription, i) => {
         ++nDisks
