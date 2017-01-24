@@ -20,7 +20,7 @@ import {
 
 const JOB_KEY = 'genericTask'
 
-const DEFAULT_CRON_PATTERN = '0 0 * * *'
+const DEFAULT_CRON_PATTERN = '0 0 * * ?'
 
 @injectIntl
 export default class Schedules extends Component {

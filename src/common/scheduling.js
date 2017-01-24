@@ -1,9 +1,14 @@
 import classNames from 'classnames'
+import synchronized from 'decorator-synchronized'
 import Icon from 'icon'
 import later from 'later'
 import React from 'react'
+import Tooltip from 'tooltip'
+import { Toggle } from 'form'
 import { FormattedDate, FormattedTime } from 'react-intl'
 import {
+  endsWith,
+  forEach,
   includes,
   isArray,
   map,
@@ -145,7 +150,7 @@ export class SchedulePreview extends Component {
           {_('cronPattern')} <strong>{cronPattern}</strong>
         </div>
         <div className='mb-1' style={PREVIEW_SLIDER_STYLE}>
-          <Range min={MIN_PREVIEWS} max={MAX_PREVIEWS} onChange={this.linkState('value')} value={value} />
+          <Range min={MIN_PREVIEWS} max={MAX_PREVIEWS} onChange={this.linkState('value')} value={+value} />
         </div>
         <ul className='list-group'>
           {map(dates, (date, id) => (
@@ -250,7 +255,7 @@ class TableSelect extends Component {
         </tbody>
       </table>
       <button className='btn btn-secondary pull-right' onClick={this._reset}>
-        {_(`selectTableAll${labelId}`)} {!value.length && <Icon icon='success' />}
+        {_(`selectTableAll${labelId}`)} {value && !value.length && <Icon icon='success' />}
       </button>
     </div>
   }
@@ -289,7 +294,8 @@ const valueToCron = value => {
   onChange: propTypes.func.isRequired,
   range: propTypes.array,
   labelId: propTypes.string.isRequired,
-  value: propTypes.any.isRequired
+  value: propTypes.any.isRequired,
+  weekDayMode: propTypes.bool
 })
 class TimePicker extends Component {
   _update = cron => {
@@ -327,7 +333,9 @@ class TimePicker extends Component {
       labelId,
       options,
       optionRenderer,
-      range
+      range,
+      setWeekDayMode,
+      weekDayMode
     } = this.props
 
     const {
@@ -339,6 +347,9 @@ class TimePicker extends Component {
     return <Card>
       <CardHeader>
         {_(`scheduling${labelId}`)}
+        {weekDayMode !== undefined && <Tooltip content={_(weekDayMode ? 'schedulingSetMonthDayMode' : 'schedulingSetWeekDayMode')}>
+          <span className='pull-right'><Toggle onChange={setWeekDayMode} iconSize={1} value={weekDayMode} /></span>
+        </Tooltip>}
       </CardHeader>
       <CardBlock>
         {range && <ul className='nav nav-tabs mb-1'>
@@ -360,7 +371,7 @@ class TimePicker extends Component {
             onChange={this._onChange}
             options={options}
             optionRenderer={optionRenderer}
-            value={tableValue}
+            value={tableValue || []}
           />
         }
       </CardBlock>
@@ -370,8 +381,12 @@ class TimePicker extends Component {
 
 // ===================================================================
 
-const HOURS_RANGE = [2, 12]
 const MINUTES_RANGE = [2, 30]
+const HOURS_RANGE = [2, 12]
+const MONTH_DAYS_RANGE = [2, 15]
+const MONTHS_RANGE = [2, 6]
+
+const UNITS = [ 'month', 'monthDay', 'weekDay', 'hour', 'minute' ]
 
 @propTypes({
   cronPattern: propTypes.string.isRequired,
@@ -379,13 +394,31 @@ const MINUTES_RANGE = [2, 30]
   timezone: propTypes.string
 })
 export default class Scheduler extends Component {
-  _getOnChange = type => value => {
-    const cronPattern = this.props.cronPattern.split(' ')
+  constructor (props) {
+    super(props)
 
-    cronPattern[PICKTIME_TO_ID[type]] = value
-    this.props.onChange({
-      cronPattern: cronPattern.join(' '),
-      timezone: this.props.timezone
+    this.state = {
+      weekDayMode: !endsWith(props.cronPattern, '?')
+    }
+
+    this._onCronChange = synchronized((unit, cron) => {
+      const cronPattern = this.props.cronPattern.split(' ')
+      cronPattern[PICKTIME_TO_ID[unit]] = cron
+
+      this.props.onChange({
+        cronPattern: cronPattern.join(' '),
+        timezone: this.props.timezone
+      })
+    })
+
+    forEach(UNITS, unit => {
+      this[`_${unit}Change`] = cron => this._onCronChange(unit, cron)
+    })
+  }
+
+  componentWillReceiveProps (props) {
+    this.setState({
+      weekDayMode: !endsWith(props.cronPattern, '?')
     })
   }
 
@@ -394,6 +427,12 @@ export default class Scheduler extends Component {
       cronPattern: this.props.cronPattern,
       timezone
     })
+  }
+
+  _setWeekDayMode = weekDayMode => {
+    this._monthDayChange(weekDayMode ? '?' : '*')
+    this._weekDayChange(weekDayMode ? '*' : '?')
+    this.setState({ weekDayMode })
   }
 
   render () {
@@ -411,36 +450,46 @@ export default class Scheduler extends Component {
               labelId='Month'
               optionRenderer={getMonthName}
               options={MONTHS}
-              onChange={this._getOnChange('month')}
+              onChange={this._monthChange}
+              range={MONTHS_RANGE}
               value={cronPatternArr[PICKTIME_TO_ID['month']]}
             />
-            <TimePicker
-              labelId='MonthDay'
-              options={DAYS}
-              onChange={this._getOnChange('monthDay')}
-              value={cronPatternArr[PICKTIME_TO_ID['monthDay']]}
-            />
-            <TimePicker
-              labelId='WeekDay'
-              optionRenderer={getDayName}
-              options={WEEK_DAYS}
-              onChange={this._getOnChange('weekDay')}
-              value={cronPatternArr[PICKTIME_TO_ID['weekDay']]}
-            />
+            {this.state.weekDayMode
+              ? <TimePicker
+                key='WeekDay'
+                labelId='WeekDay'
+                optionRenderer={getDayName}
+                options={WEEK_DAYS}
+                onChange={this._weekDayChange}
+                setWeekDayMode={this._setWeekDayMode}
+                value={cronPatternArr[PICKTIME_TO_ID['weekDay']]}
+                weekDayMode
+              />
+              : <TimePicker
+                key='MonthDay'
+                labelId='MonthDay'
+                options={DAYS}
+                onChange={this._monthDayChange}
+                range={MONTH_DAYS_RANGE}
+                setWeekDayMode={this._setWeekDayMode}
+                value={cronPatternArr[PICKTIME_TO_ID['monthDay']]}
+                weekDayMode={false}
+              />
+            }
           </Col>
           <Col mediumSize={6}>
             <TimePicker
               labelId='Hour'
               options={HOURS}
               range={HOURS_RANGE}
-              onChange={this._getOnChange('hour')}
+              onChange={this._hourChange}
               value={cronPatternArr[PICKTIME_TO_ID['hour']]}
             />
             <TimePicker
               labelId='Minute'
               options={MINS}
               range={MINUTES_RANGE}
-              onChange={this._getOnChange('minute')}
+              onChange={this._minuteChange}
               value={cronPatternArr[PICKTIME_TO_ID['minute']]}
             />
           </Col>
