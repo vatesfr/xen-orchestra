@@ -491,16 +491,16 @@ export const installSupplementalPack = (host, file) => {
   return _call('host.installSupplementalPack', { host: resolveId(host) }).then(({ $sendTo: url }) => (
     request.post(url)
       .send(file)
-      .then(
-        res => {
-          if (res.status !== 200) {
-            throw new Error('installing supplemental pack failed')
-          }
+      .then(res => {
+        if (res.status !== 200) {
+          throw new Error('installing supplemental pack failed')
+        }
 
-          success(_('supplementalPackInstallSuccessTitle'), _('supplementalPackInstallSuccessMessage'))
-        },
-        () => error(_('supplementalPackInstallErrorTitle'), _('supplementalPackInstallErrorMessage'))
-      )
+        success(_('supplementalPackInstallSuccessTitle'), _('supplementalPackInstallSuccessMessage'))
+      }).catch(err => {
+        error(_('supplementalPackInstallErrorTitle'), _('supplementalPackInstallErrorMessage'))
+        throw err
+      })
   ))
 }
 
