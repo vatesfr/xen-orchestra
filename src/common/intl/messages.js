@@ -1219,6 +1219,7 @@ var messages = {
   logDeleteAll: 'Delete all logs',
   logDeleteAllTitle: 'Delete all logs',
   logDeleteAllMessage: 'Are you sure you want to delete all the logs?',
+  reportBug: 'Report a bug',
 
   // ----- IPs ------
   ipPoolName: 'Name',
