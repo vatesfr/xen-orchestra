@@ -96,7 +96,7 @@ For Microsoft Active Directory, you can try one of the following filters:
 
 - \`(cn={{name}})\`
 - \`(sAMAccountName={{name}})\`
-- \`(sAMAccountName={{name}}@<domain>)\`
+- \`(sAMAccountName={{name}}@<domain>)\` (replace \`<domain>\` by your own domain)
 - \`(userPrincipalName={{name}})\`
 `.trim(),
       type: 'string',
