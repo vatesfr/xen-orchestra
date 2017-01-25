@@ -13,6 +13,7 @@ var messages = {
 
   editableLongClickPlaceholder: 'Long click to edit',
   editableClickPlaceholder: 'Click to edit',
+  browseFiles: 'Browse files',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -514,6 +515,7 @@ var messages = {
   hostLicenseExpiry: 'Expiry',
   supplementalPacks: 'Installed supplemental packs',
   supplementalPackNew: 'Install new supplemental pack',
+  supplementalPackPoolNew: 'Install supplemental pack on every host',
   supplementalPackTitle: '{name} (by {author})',
   supplementalPackInstallStartedTitle: 'Installation started',
   supplementalPackInstallStartedMessage: 'Installing new supplemental pack...',
