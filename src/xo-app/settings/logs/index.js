@@ -16,6 +16,18 @@ import { createSelector } from 'selectors'
 import { FormattedDate } from 'react-intl'
 import { subscribeApiLogs, subscribeUsers, deleteApiLog } from 'xo'
 
+const CAN_REPORT_BUG = process.env.XOA_PLAN > 1
+
+const reportBug = log => {
+  const title = encodeURIComponent(`Error on ${log.data.method}`)
+  const message = encodeURIComponent(`\`\`\`\n${log.data.method}\n${JSON.stringify(log.data.params, null, 2)}\n${JSON.stringify(log.data.error, null, 2).replace(/\\n/g, '\n')}\n\`\`\``)
+
+  window.open(process.env.XOA_PLAN < 5
+    ? `https://xen-orchestra.com/#!/member/support?title=${title}&message=${message}`
+    : `https://github.com/vatesfr/xo-web/issues/new?title=${title}&body=${message}`
+  )
+}
+
 const COLUMNS = [
   {
     name: _('logUser'),
@@ -47,21 +59,30 @@ const COLUMNS = [
   },
   {
     name: '',
-    itemRenderer: (log, { showError }) => <div className='text-xs-right'><ButtonGroup>
-      <ActionRowButton
-        handler={showError}
-        handlerParam={log}
-        icon='preview'
-        tooltip={_('logDisplayDetails')}
-      />
-      <ActionRowButton
-        btnStyle='danger'
-        handler={deleteApiLog}
-        handlerParam={log.id}
-        icon='delete'
-        tooltip={_('logDelete')}
-      />
-    </ButtonGroup></div>
+    itemRenderer: (log, { showError }) => <div className='text-xs-right'>
+      <ButtonGroup>
+        <ActionRowButton
+          btnStyle='secondary'
+          handler={showError}
+          handlerParam={log}
+          icon='preview'
+          tooltip={_('logDisplayDetails')}
+        />
+        <ActionRowButton
+          btnStyle='danger'
+          handler={deleteApiLog}
+          handlerParam={log.id}
+          icon='delete'
+          tooltip={_('logDelete')}
+        />
+        {CAN_REPORT_BUG && <ActionRowButton
+          btnStyle='secondary'
+          handler={() => reportBug(log)}
+          icon='bug'
+          tooltip={_('reportBug')}
+        />}
+      </ButtonGroup>
+    </div>
   }
 ]
 
@@ -83,9 +104,12 @@ export default class Logs extends BaseComponent {
     logs => map(logs, (log, id) => ({ ...log, id }))
   )
 
-  _showError = log => alert(_('logError'), <Copiable tagName='pre'>{`${log.data.method}
-${JSON.stringify(log.data.params, null, 2)}
-${JSON.stringify(log.data.error, null, 2)}`}</Copiable>)
+  _showError = log => alert(
+    _('logError'),
+    <Copiable tagName='pre'>
+      {`${log.data.method}\n${JSON.stringify(log.data.params, null, 2)}\n${JSON.stringify(log.data.error, null, 2).replace(/\\n/g, '\n')}`}
+    </Copiable>
+  )
 
   _getData = createSelector(
     () => this.props.users,
