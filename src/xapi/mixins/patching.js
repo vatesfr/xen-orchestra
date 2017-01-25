@@ -302,7 +302,11 @@ export default {
       const patch = installable[i]
 
       if (this._isPoolPatchInstallableOnHost(patch.uuid, host)) {
-        await this._installPoolPatchOnHostAndRequirements(patch, host, installableByUuid)
+        await this._installPoolPatchOnHostAndRequirements(patch, host, installableByUuid).catch(error => {
+          if (error.code !== 'PATCH_ALREADY_APPLIED') {
+            throw error
+          }
+        })
         host = this.getObject(host.$id)
       }
     }
