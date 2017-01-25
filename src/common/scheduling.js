@@ -399,12 +399,10 @@ class DayPicker extends Component {
   }
 
   componentWillReceiveProps (props) {
-    if (props !== this.props) {
-      const weekDayMode = isWeekDayMode(props)
+    const weekDayMode = isWeekDayMode(props)
 
-      if (weekDayMode !== undefined) {
-        this.setState({ weekDayMode })
-      }
+    if (weekDayMode !== undefined) {
+      this.setState({ weekDayMode })
     }
   }
 
@@ -414,11 +412,11 @@ class DayPicker extends Component {
   }
 
   _onChange = cron => {
-    const { weekDayMode } = this.state
+    const isMonthDayPattern = !this.state.weekDayMode || includes(cron, '/')
 
     this.props.onChange([
-      weekDayMode ? '*' : cron,
-      weekDayMode ? cron : '*'
+      isMonthDayPattern ? cron : '*',
+      isMonthDayPattern ? '*' : cron
     ])
   }
 
@@ -435,11 +433,11 @@ class DayPicker extends Component {
     return <TimePicker
       headerAddon={dayModeToggle}
       key={weekDayMode ? 'week' : 'month'}
-      labelId={weekDayMode ? 'WeekDay' : 'MonthDay'}
+      labelId={'Day'}
       optionRenderer={weekDayMode ? getDayName : undefined}
       options={weekDayMode ? WEEK_DAYS : DAYS}
       onChange={this._onChange}
-      range={weekDayMode ? undefined : MONTH_DAYS_RANGE}
+      range={MONTH_DAYS_RANGE}
       setWeekDayMode={this._setWeekDayMode}
       value={weekDayMode ? weekDayPattern : monthDayPattern}
     />
