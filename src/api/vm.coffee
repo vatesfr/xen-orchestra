@@ -301,6 +301,20 @@ delete_ = $coroutine ({vm, delete_disks: deleteDisks}) ->
 
   xapi = @getXapi(vm)
 
+  # Update IP pools
+  yield Promise.all(map(vm.VIFs, (vifId) =>
+    vif = xapi.getObject(vifId)
+    return pCatch.call(
+      this.allocIpAddresses(
+        vifId,
+        null,
+        concat(vif.ipv4_allowed, vif.ipv6_allowed)
+      ),
+      noop
+    )
+  ))
+
+  # Update resource sets
   resourceSet = xapi.xo.getData(vm._xapiId, 'resourceSet')
   if resourceSet?
     disk = 0
@@ -316,18 +330,6 @@ delete_ = $coroutine ({vm, delete_disks: deleteDisks}) ->
 
       return
     )
-
-    yield Promise.all(map(vm.VIFs, (vifId) =>
-      vif = xapi.getObject(vifId)
-      return pCatch.call(
-        this.allocIpAddresses(
-          vifId,
-          null,
-          concat(vif.ipv4_allowed, vif.ipv6_allowed)
-        ),
-        noop
-      )
-    ))
 
     resourceSetUsage = @computeVmResourcesUsage(vm)
     ipPoolsUsage = yield @computeVmIpPoolsUsage(vm)
