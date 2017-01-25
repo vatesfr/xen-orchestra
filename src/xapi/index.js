@@ -1105,6 +1105,36 @@ export default class Xapi extends XapiBase {
     return loop()
   }
 
+  async installSupplementalPack (stream, { hostId }) {
+    if (!stream.length) {
+      throw new Error('stream must have a length')
+    }
+
+    let sr = this.pool.$default_SR
+
+    if (!sr) {
+      sr = find(
+        mapToArray(this.getObject(hostId, 'host').$PBDs, '$SR'),
+        sr => sr && sr.content_type === 'user' && sr.physical_size - sr.physical_utilisation >= stream.length
+      )
+
+      if (!sr) {
+        throw new Error('no SR available to store installation file')
+      }
+    }
+
+    const vdi = await this.createVdi(stream.length, {
+      sr: sr.$ref,
+      name_label: '[XO] Supplemental pack ISO',
+      name_description: 'Small temporary VDI to store a supplemental pack ISO.'
+    })
+    await this.importVdiContent(vdi.$id, stream, { format: VDI_FORMAT_RAW })
+
+    await this.call('host.call_plugin', this.getObject(hostId).$ref, 'install-supp-pack', 'install', { vdi: vdi.uuid })
+
+    return this._deleteVdi(vdi)
+  }
+
   async _importVm (stream, sr, onlyMetadata = false, onVmCreation = undefined) {
     const taskRef = await this._createTask('VM import')
     const query = {

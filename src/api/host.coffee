@@ -5,8 +5,10 @@ $forEach = require 'lodash/forEach'
 endsWith = require 'lodash/endsWith'
 startsWith = require 'lodash/startsWith'
 {coroutine: $coroutine} = require 'bluebird'
+{format} = require 'json-rpc-peer'
 {
   extractProperty,
+  mapToArray,
   parseXml
 } = require '../utils'
 
@@ -259,6 +261,42 @@ stats.resolve = {
 }
 
 exports.stats = stats;
+
+#---------------------------------------------------------------------
+
+handleInstallSupplementalPack = $coroutine (req, res, { hostId }) ->
+  xapi = @getXapi(hostId)
+
+  # Timeout seems to be broken in Node 4.
+  # See https://github.com/nodejs/node/issues/3319
+  req.setTimeout(43200000) # 12 hours
+  req.length = req.headers['content-length']
+
+  try
+    yield xapi.installSupplementalPack(req, { hostId })
+    res.end(format.response(0))
+  catch e
+    res.writeHead(500)
+    res.end(format.error(0, new Error(e.message)))
+
+  return
+
+installSupplementalPack = $coroutine ({host}) ->
+  return {
+    $sendTo: yield @registerHttpRequest(handleInstallSupplementalPack, { hostId: host.id })
+  }
+
+installSupplementalPack.description = 'installs supplemental pack from ISO file'
+
+installSupplementalPack.params = {
+  host: { type: 'string' }
+}
+
+installSupplementalPack.resolve = {
+  host: ['host', 'host', 'admin']
+}
+
+exports.installSupplementalPack = installSupplementalPack;
 
 #=====================================================================
 
