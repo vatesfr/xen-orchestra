@@ -433,7 +433,7 @@ class DayPicker extends Component {
     return <TimePicker
       headerAddon={dayModeToggle}
       key={weekDayMode ? 'week' : 'month'}
-      labelId={'Day'}
+      labelId='Day'
       optionRenderer={weekDayMode ? getDayName : undefined}
       options={weekDayMode ? WEEK_DAYS : DAYS}
       onChange={this._onChange}
