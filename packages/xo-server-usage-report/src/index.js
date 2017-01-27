@@ -1,5 +1,58 @@
-import { all } from 'promise-toolbox'
-import { forEach, isFinite, map, sortBy } from 'lodash'
+import Handlebars from 'handlebars'
+import pdf from 'html-pdf'
+import { CronJob } from 'cron'
+import {
+  assign,
+  concat,
+  difference,
+  filter,
+  forEach,
+  isFinite,
+  map,
+  orderBy,
+  round,
+  values,
+  zipObject
+} from 'lodash'
+import {
+  fromCallback,
+  promisify
+} from 'promise-toolbox'
+import {
+  readFile,
+  writeFile
+} from 'fs'
+
+// ===================================================================
+
+const pReadFile = promisify(readFile)
+const pWriteFile = promisify(writeFile)
+
+const currDate = new Date().toISOString().slice(0, 10)
+
+const absolutePath = process.platform === 'linux' ? `file://${__dirname}` : `${__dirname}`
+const htmlPath = `${__dirname}/../templates/xoReport.html`
+const imgVates = `${absolutePath}/../images/logo.png` // Only absolute path is supported
+const imgXo = `${absolutePath}/../images/xo.png`
+
+const compareOperators = {
+  '>': (l, r) => l > r
+}
+const mathOperators = {
+  '+': (l, r) => l + r
+}
+
+const gibPower = Math.pow(2, 30)
+const mibPower = Math.pow(2, 20)
+const kibPower = Math.pow(2, 10)
+let template = null
+
+;(async () => {
+  const html = await pReadFile(htmlPath, 'utf8')
+  template = Handlebars.compile(html)
+})()
+
+// ===================================================================
 
 export const configurationSchema = {
   type: 'object',
@@ -13,7 +66,8 @@ export const configurationSchema = {
     },
     periodicity: {
       type: 'string',
-      description: 'enter monthly or weekly'
+      enum: ['monthly', 'weekly'],
+      description: 'If you choose weekly you will receive the report every sunday and if you choose monthly you will receive it every first day of the month.'
     }
   },
 
@@ -22,429 +76,378 @@ export const configurationSchema = {
 }
 
 // ===================================================================
+
+Handlebars.registerHelper('compare', function (lvalue, operator, rvalue, options) {
+  if (arguments.length < 3) {
+    throw new Error('Handlerbars Helper "compare" needs 2 parameters')
+  }
+
+  if (!compareOperators[operator]) {
+    throw new Error(`Handlerbars Helper "compare" doesn't know the operator ${operator}`)
+  }
+
+  return compareOperators[operator](lvalue, rvalue) ? options.fn(this) : options.inverse(this)
+})
+
+Handlebars.registerHelper('math', function (lvalue, operator, rvalue, options) {
+  if (arguments.length < 3) {
+    throw new Error('Handlerbars Helper "math" needs 2 parameters')
+  }
+
+  if (!mathOperators[operator]) {
+    throw new Error(`Handlerbars Helper "math" doesn't know the operator ${operator}`)
+  }
+
+  return mathOperators[operator](+lvalue, +rvalue)
+})
+
+// ===================================================================
+
 function computeMean (values) {
   let sum = 0
-  let tot = 0
-  forEach(values, (val) => {
-    sum += val || 0
-    tot += val ? 1 : 0
-  })
-  return sum / tot
-}
-function computeMax (values) {
-  let max = -Infinity
-  forEach(values, (val) => {
-    if (val && val > max) {
-      max = val
+  let n = 0
+  forEach(values, val => {
+    if (isFinite(val)) {
+      sum += val
+      n++
     }
   })
-  return max
-}
-function computeMin (values) {
-  let min = +Infinity
-  forEach(values, (val) => {
-    if (val && val < min) {
-      min = val
-    }
-  })
-  return min
-}
-function computeCpuMax (cpus) {
-  return sortArray(cpus.map(computeMax))
-}
-function computeCpuMin (cpus) {
-  return computeMin(cpus.map(computeMin))
-}
-function computeCpuMean (cpus) {
-  return computeMean(cpus.map(computeMean))
+
+  return sum / n
 }
 
-function compareNumbersDesc (a, b) {
-  if (a > b) {
-    return -1
-  }
-  if (a < b) {
-    return 1
-  }
-  return 0
+const computeDoubleMean = val => computeMean(val.map(computeMean))
+
+function computeMeans (objects, options) {
+  return zipObject(
+    options,
+    map(
+      options,
+        opt => round(computeMean(map(objects, opt)), 2)
+    )
+  )
 }
-function sortArray (values) {
-  let n = 3
-  let sort = values.sort(compareNumbersDesc)
-  return sort.slice(0, n)
+
+function getTop (objects, options) {
+  return zipObject(
+    options,
+    map(
+      options,
+      opt => map(
+        orderBy(objects, object => {
+          const value = object[opt]
+
+          return isNaN(value) ? -Infinity : value
+        }, 'desc').slice(0, 3),
+        obj => ({
+          uuid: obj.uuid,
+          value: round(obj[opt], 2)
+        })
+      )
+    )
+  )
+}
+
+function conputePercentage (curr, prev, options) {
+  return zipObject(
+    options,
+    map(
+      options,
+      opt => prev[opt] === 0 ? 'NONE' : `${round((curr[opt] - prev[opt]) * 100 / prev[opt], 2)}`
+    )
+  )
+}
+
+function getDiff (oldElements, newElements) {
+  return {
+    added: difference(oldElements, newElements),
+    removed: difference(newElements, oldElements)
+  }
+}
+
+// ===================================================================
+
+function getVmsStats ({
+  runningVms,
+  xo
+}) {
+  return Promise.all(map(runningVms, async vm => {
+    const vmStats = await xo.getXapiVmStats(vm, 'days')
+    return {
+      uuid: vm.uuid.split('-')[0],
+      cpu: computeDoubleMean(vmStats.stats.cpus),
+      ram: computeMean(vmStats.stats.memoryUsed) / gibPower,
+      diskRead: computeDoubleMean(values(vmStats.stats.xvds.r)) / mibPower,
+      diskWrite: computeDoubleMean(values(vmStats.stats.xvds.w)) / mibPower,
+      netReception: computeDoubleMean(vmStats.stats.vifs.rx) / kibPower,
+      netTransmission: computeDoubleMean(vmStats.stats.vifs.tx) / kibPower
+    }
+  }))
+}
+
+function getHostsStats ({
+  runningHosts,
+  xo
+}) {
+  return Promise.all(map(runningHosts, async host => {
+    const hostStats = await xo.getXapiHostStats(host, 'days')
+    return {
+      uuid: host.uuid.split('-')[0],
+      cpu: computeDoubleMean(hostStats.stats.cpus),
+      ram: computeMean(hostStats.stats.memoryUsed) / gibPower,
+      load: computeMean(hostStats.stats.load),
+      netReception: computeDoubleMean(hostStats.stats.pifs.rx) / kibPower,
+      netTransmission: computeDoubleMean(hostStats.stats.pifs.tx) / kibPower
+    }
+  }))
+}
+
+function computeGlobalVmsStats ({
+  haltedVms,
+  vmsStats,
+  xo
+}) {
+  const allVms = concat(map(vmsStats, 'uuid'), map(haltedVms, vm => vm.uuid.split('-')[0]))
+
+  return assign(computeMeans(vmsStats, ['cpu', 'ram', 'diskRead', 'diskWrite', 'netReception', 'netTransmission']), {
+    number: allVms.length,
+    allVms
+  })
+}
+
+function computeGlobalHostsStats ({
+  haltedHosts,
+  hostsStats,
+  xo
+}) {
+  const allHosts = concat(map(hostsStats, 'uuid'), map(haltedHosts, host => host.uuid.split('-')[0]))
+
+  return assign(computeMeans(hostsStats, ['cpu', 'ram', 'load', 'netReception', 'netTransmission']), {
+    number: allHosts.length,
+    allHosts
+  })
+}
+
+function getTopVms ({
+  vmsStats,
+  xo
+}) {
+  return getTop(vmsStats, ['cpu', 'ram', 'diskRead', 'diskWrite', 'netReception', 'netTransmission'])
+}
+
+function getTopHosts ({
+  hostsStats,
+  xo
+}) {
+  return getTop(hostsStats, ['cpu', 'ram', 'load', 'netReception', 'netTransmission'])
+}
+
+function getMostAllocatedSpaces ({
+  disks,
+  xo
+}) {
+  return map(
+    orderBy(disks, ['size'], ['desc']).slice(0, 3), disk => ({
+      uuid: disk.uuid.split('-')[0],
+      size: round(disk.size / gibPower, 2)
+    }))
+}
+
+function getHostsMissingPatches ({
+  hosts,
+  xo
+}) {
+  return Promise.all(map(hosts, async host => {
+    const hostsPatches = await xo.getXapi(host).listMissingPoolPatchesOnHost(host.uuid)
+    if (hostsPatches.length > 0) {
+      return {
+        uuid: host.uuid,
+        patches: map(hostsPatches, patch => 'name')
+      }
+    }
+  }))
+}
+
+function getAllUsersEmail (users) {
+  return map(users, 'email')
+}
+
+async function storeStats ({
+  data,
+  storedStatsPath
+}) {
+  await pWriteFile(storedStatsPath, JSON.stringify(data))
+}
+
+async function computeEvolution ({
+  storedStatsPath,
+  ...newStats
+}) {
+  try {
+    const oldStats = JSON.parse(await pReadFile(storedStatsPath, 'utf8'))
+    const newStatsVms = newStats.vms
+    const oldStatsVms = oldStats.global.vms
+    const newStatsHosts = newStats.hosts
+    const oldStatsHosts = oldStats.global.hosts
+
+    const prevDate = oldStats.style.currDate
+
+    const vmsEvolution = {
+      number: newStatsVms.number - oldStatsVms.number,
+      ...conputePercentage(newStatsVms, oldStatsVms, ['cpu', 'ram', 'diskRead', 'diskWrite', 'netReception', 'netTransmission'])
+    }
+
+    const hostsEvolution = {
+      number: newStatsHosts.number - oldStatsHosts.number,
+      ...conputePercentage(newStatsHosts, oldStatsHosts, ['cpu', 'ram', 'load', 'netReception', 'netTransmission'])
+    }
+
+    const vmsRessourcesEvolution = getDiff(oldStatsVms.allVms, newStatsVms.allVms)
+    const hostsRessourcesEvolution = getDiff(oldStatsHosts.allHosts, newStatsHosts.allHosts)
+
+    const usersEvolution = getDiff(oldStats.users, newStats.users)
+
+    return {
+      vmsEvolution,
+      hostsEvolution,
+      prevDate,
+      vmsRessourcesEvolution,
+      hostsRessourcesEvolution,
+      usersEvolution
+    }
+  } catch (err) {
+    if (err.code !== 'ENOENT') throw err
+  }
+}
+
+async function dataBuilder ({
+  xo,
+  storedStatsPath
+}) {
+  const xoObjects = values(xo.getObjects())
+  const runningVms = filter(xoObjects, {type: 'VM', power_state: 'Running'})
+  const haltedVms = filter(xoObjects, {type: 'VM', power_state: 'Halted'})
+  const runningHosts = filter(xoObjects, {type: 'host', power_state: 'Running'})
+  const haltedHosts = filter(xoObjects, {type: 'host', power_state: 'Halted'})
+  const disks = filter(xoObjects, {type: 'SR'})
+  const [users, vmsStats, hostsStats, topAllocation, hostsMissingPatches] = await Promise.all([
+    xo.getAllUsers(),
+    getVmsStats({xo, runningVms}),
+    getHostsStats({xo, runningHosts}),
+    getMostAllocatedSpaces({xo, disks}),
+    getHostsMissingPatches({xo, runningHosts})
+  ])
+
+  const [globalVmsStats, globalHostsStats, topVms, topHosts, usersEmail] = await Promise.all([
+    computeGlobalVmsStats({xo, vmsStats, haltedVms}),
+    computeGlobalHostsStats({xo, hostsStats, haltedHosts}),
+    getTopVms({xo, vmsStats}),
+    getTopHosts({xo, hostsStats}),
+    getAllUsersEmail(users)
+  ])
+  const evolution = await computeEvolution({
+    storedStatsPath,
+    hosts: globalHostsStats,
+    usersEmail,
+    vms: globalVmsStats
+  })
+
+  const data = {
+    global: {
+      vms: globalVmsStats,
+      hosts: globalHostsStats,
+      vmsEvolution: evolution && evolution.vmsEvolution,
+      hostsEvolution: evolution && evolution.hostsEvolution
+    },
+    topVms,
+    topHosts,
+    hostsMissingPatches,
+    usersEmail,
+    topAllocation,
+    vmsRessourcesEvolution: evolution && evolution.vmsRessourcesEvolution,
+    hostsRessourcesEvolution: evolution && evolution.hostsRessourcesEvolution,
+    usersEvolution: evolution && evolution.usersEvolution,
+    style: {
+      imgVates,
+      imgXo,
+      currDate,
+      prevDate: evolution && evolution.prevDate,
+      page: '{{page}}'
+    }
+  }
+
+  return data
 }
 
 // ===================================================================
 
 class UsageReportPlugin {
-  constructor (xo) {
+  constructor ({xo, getDataDir}) {
     this._xo = xo
-    this._unsets = []
+    this._dir = getDataDir
+    // Defined in configure().
+    this._conf = null
   }
 
-  configure ({emails}) {
-    this.mailsReceivers = emails
+  configure (configuration) {
+    this._conf = configuration
+
+    this._job = new CronJob({
+      cronTime: configuration.periodicity === 'monthly' ? '00 06 1 * *' : '00 06 * * 0',
+      onTick: () => this._sendReport(),
+      start: false
+    })
   }
-  load () {
-    const this_ = this
-    // TOP Max Cpu
-    this._unsets.push(this._xo.api.addMethod('generateCpu', async ({ machine, granularity }) => {
-      const machineStats = await this_._xo.getXapiHostStats(this_._xo.getObject(machine), granularity)
-      let maxCpu = computeCpuMax(machineStats.stats.cpus)
-      return {
-        'max': maxCpu
-      }
-    }))
-    // TOP Max Load
-    // xo-cli generate machine=4a2dccec-83ff-4212-9e16-44fbc0527961 granularity=days
-    this._unsets.push(this._xo.api.addMethod('generateLoad', async ({ machine, granularity }) => {
-      const machineStats = await this_._xo.getXapiHostStats(this_._xo.getObject(machine), granularity)
-      let maxLoad = sortArray(machineStats.stats.load)
-      return {
-        'max': maxLoad
-      }
-    }))
-    // TOP Max Memory
-    this._unsets.push(this._xo.api.addMethod('generateMemory', async ({ machine, granularity }) => {
-      const machineStats = await this_._xo.getXapiHostStats(this_._xo.getObject(machine), granularity)
-      let maxMemory = sortArray(machineStats.stats.memory)
-      return {
-        'max': maxMemory
-      }
-    }))
-    // TOP Max MemoryUsed
-    this._unsets.push(this._xo.api.addMethod('generateMemoryUsed', async ({ machine, granularity }) => {
-      const machineStats = await this_._xo.getXapiHostStats(this_._xo.getObject(machine), granularity)
-      let maxMemoryUsed = sortArray(machineStats.stats.memoryUsed)
-      return {
-        'max': maxMemoryUsed
-      }
-    }))
 
-// =============================================================================
+  async load () {
+    const dir = await this._dir()
+    this._storedStatsPath = `${dir}/stats.json`
 
-    // Returns {  host1_Id: [ highestCpuUsage, ... , lowestCpuUsage ],
-    //            host2_Id: [ highestCpuUsage, ... , lowestCpuUsage ]   }
-    this._unsets.push(this._xo.api.addMethod('generateGlobalCpuReport', async ({ machines, granularity }) => {
-      machines = machines.split(',')
-      const hostMean = {}
-      for (let machine of machines) {
-        const machineStats = await this_._xo.getXapiHostStats(this_._xo.getObject(machine), granularity)
-        const cpusMean = []
-        forEach(machineStats.stats.cpus, (cpu) => {
-          cpusMean.push(computeMean(cpu))
-        })
-        hostMean[machine] = sortArray(cpusMean)
-      }
-      return hostMean
-    }))
-
-    // Single host: get stats from its VMs.
-    // Returns { vm1_Id: vm1_Stats, vm2_Id: vm2_Stats, ... }
-    async function _getHostVmsStats (machine, granularity) {
-      const host = await this_._xo.getObject(machine)
-      const objects = await this_._xo.getObjects()
-
-      const promises = {}
-      forEach(objects, (obj) => {
-        if (obj.type === 'VM' && obj.power_state === 'Running' && obj.$poolId === host.$poolId) {
-          promises[obj.id] = this_._xo.getXapiVmStats(obj, granularity)
-        }
-      })
-
-      return promises::all()
-    }
-
-    this._unsets.push(this._xo.api.addMethod('generateHostVmsReport', async ({ machine, granularity }) => {
-      return _getHostVmsStats(machine, granularity)
-    }))
-
-    // Multiple hosts: get stats from all of their VMs
-    // Returns  {   host1_Id: { vm1_Id: vm1_Stats, vm2_Id: vm2_Stats }
-    //              host2_Id: { vm3_Id: vm3_Stats }                     }
-    async function _getHostsVmsStats (machines, granularity) {
-      machines = machines.split(',')
-
-      const promises = {}
-      forEach(machines, (machine) => {
-        promises[machine] = _getHostVmsStats(machine, granularity)
-      })
-
-      return promises::all()
-    }
-
-    this._unsets.push(this._xo.api.addMethod('generateHostsVmsReport', async ({ machines, granularity }) => {
-      return _getHostsVmsStats(machines, granularity)
-    }))
-
-    // Returns {  vm1_Id: { 'rx': vm1_RAverageUsage, 'tx': vm1_TAverageUsage }
-    //            vm2_Id: { 'rx': vm2_RAverageUsage, 'tx': vm2_TAverageUsage }  }
-    async function _getHostVmsNetworkUsage (machine, granularity) {
-      const vmsStats = await _getHostVmsStats(machine, granularity)
-      // Reading average usage of the network (all VIFs) for each resident VM
-      const hostVmsNetworkStats = {}
-      forEach(vmsStats, (vmStats, vmId) => {
-        const reception = vmStats.stats.vifs.rx
-        const transfer = vmStats.stats.vifs.tx
-
-        const receptionVifsMeans = reception.map(vifStats => computeMean(vifStats))
-        const transferVifsMeans = transfer.map(vifStats => computeMean(vifStats))
-
-        const receptionMean = computeMean(receptionVifsMeans)
-        const transferMean = computeMean(transferVifsMeans)
-
-        hostVmsNetworkStats[vmId] = { 'rx': receptionMean, 'tx': transferMean }
-      })
-      return hostVmsNetworkStats
-    }
-
-    // Returns {  'rx': [ { 'id': vmA_Id, 'value': vmA_receptionMeanUsage } , ..., { 'id': vmB_Id, 'value': vmB_receptionMeanUsage } ]
-    //            'tx': [ { 'id': vmC_Id, 'value': vmC_receptionMeanUsage } , ..., { 'id': vmD_Id, 'value': vmD_receptionMeanUsage } ]   }
-    // --> vmA is the most network using VM in reception
-    async function _getHostVmsSortedNetworkUsage (machine, granularity) {
-      const networkStats = await _getHostVmsNetworkUsage(machine, granularity)
-      forEach(networkStats, (vmNetworkStats, vmId) => {
-        vmNetworkStats.id = vmId
-      })
-
-      const sortedReception = sortBy(networkStats, vm => -vm.rx)
-      const sortedTransfer = sortBy(networkStats, vm => -vm.tx)
-
-      const sortedArrays = {
-        'rx': map(sortedReception, vm => {
-          return { 'id': vm.id, 'value': vm.rx }
-        }),
-        'tx': map(sortedTransfer, vm => {
-          return { 'id': vm.id, 'value': vm.tx }
-        })
-      }
-
-      return sortedArrays
-    }
-
-    // Returns [ { 'id': vm1_Id, 'rx|tx': vm1_Usage, 'id': vm2_Id, 'rx|tx': vm2_Usage }
-    // `number` VMs ordered from the highest to the lowest according to `criteria`
-    async function _getHostVmsReport (machine, granularity, criteria, number) {
-      if (!criteria) {
-        criteria = 'tx'
-      }
-      if (criteria !== 'tx' && criteria !== 'rx') {
-        throw new Error('`criteria` must be either `tx` or `rx`')
-      }
-      if (!number) {
-        number = 3
-      }
-      number = +number
-      if (!isFinite(number)) {
-        throw new Error('`number` must be a number')
-      }
-      const networkUsage = await _getHostVmsSortedNetworkUsage(machine, granularity)
-      const sortedNetworkStats = networkUsage[criteria]
-      return sortedNetworkStats.slice(0, number)
-    }
-
-    this._unsets.push(this._xo.api.addMethod('generateHostNetworkReport', async ({ machine, granularity, criteria, number }) => {
-      return _getHostVmsReport(machine, granularity, criteria, number)
-    }))
-
-    // faire la moyenne pour chaque vm, puis la moyenne de cette moyenne pour chaque hote et faire moyenne finale
-    this._unsets.push(this._xo.api.addMethod('generateGlobalMemoryUsedReport', async ({ machines, granularity }) => {
-      // const stats = await _getHostsVmsStats(machines, granularity)
-
-      machines = machines.split(',')
-      const hostMean = {}
-      for (let machine of machines) {
-        const machineStats = await this_._xo.getXapiHostStats(this_._xo.getObject(machine), granularity)
-        const memoryUsedMean = []
-        forEach(machineStats.stats.memoryUsed, (cpu) => {
-          memoryUsedMean.push(computeMean)
-        })
-        hostMean[machine] = sortArray(memoryUsedMean)
-      }
-      return hostMean
-    }))
-
-    // let maxMemoryUsed = sortArray(machineStats.stats.memoryUsed)
-    // Cpus
-    this._unsets.push(this._xo.api.addMethod('generateCpuReport', async ({ machine, granularity }) => {
-      const machineStats = await this_._xo.getXapiHostStats(this_._xo.getObject(machine), granularity)
-      let maxCpu = computeCpuMax(machineStats.stats.cpus)
-      let minCpu = computeCpuMin(machineStats.stats.cpus)
-      let meanCpu = computeCpuMean(machineStats.stats.cpus)
-
-      return {
-        'max': maxCpu,
-        'min': minCpu,
-        'mean': meanCpu
-      }
-    }))
-
-    // Load
-    this._unsets.push(this._xo.api.addMethod('generateLoadReport', async ({ machine, granularity }) => {
-      const machineStats = await this_._xo.getXapiHostStats(this_._xo.getObject(machine), granularity)
-      let maxLoad = computeMax(machineStats.stats.load)
-      let minLoad = computeMin(machineStats.stats.load)
-      let meanLoad = computeMean(machineStats.stats.load)
-
-      return {
-        'max': maxLoad,
-        'min': minLoad,
-        'mean': meanLoad
-      }
-    }))
-
-    // Memory
-    this._unsets.push(this._xo.api.addMethod('generateMemoryReport', async ({ machine, granularity }) => {
-      const machineStats = await this_._xo.getXapiHostStats(this_._xo.getObject(machine), granularity)
-      let maxMemory = computeMax(machineStats.stats.memory)
-      let minMemory = computeMin(machineStats.stats.memory)
-      let meanMemory = computeMean(machineStats.stats.memory)
-
-      return {
-        'max': maxMemory,
-        'min': minMemory,
-        'mean': meanMemory
-      }
-    }))
-
-    // MemoryUsed
-    this._unsets.push(this._xo.api.addMethod('generateMemoryUsedReport', async ({ machine, granularity }) => {
-      const machineStats = await this_._xo.getXapiHostStats(this_._xo.getObject(machine), granularity)
-      let maxMemoryUsed = computeMax(machineStats.stats.memoryUsed)
-      let minMemoryUsed = computeMin(machineStats.stats.memoryUsed)
-      let meanMemoryUsed = computeMean(machineStats.stats.memoryUsed)
-
-      return {
-        'max': maxMemoryUsed,
-        'min': minMemoryUsed,
-        'mean': meanMemoryUsed
-      }
-    }))
-
-    // MemoryFree
-    this._unsets.push(this._xo.api.addMethod('generateMemoryFreeReport', async ({ machine, granularity }) => {
-      const machineStats = await this_._xo.getXapiHostStats(this_._xo.getObject(machine), granularity)
-      let maxMemoryFree = computeMax(machineStats.stats.memoryFree)
-      let minMemoryFree = computeMin(machineStats.stats.memoryFree)
-      let meanMemoryFree = computeMean(machineStats.stats.memoryFree)
-
-      return {
-        'max': maxMemoryFree,
-        'min': minMemoryFree,
-        'mean': meanMemoryFree
-      }
-    }))
-
-// =============================================================================
-    // `report` format :
-    // {
-    //   title,
-    //   categories: [
-    //     {
-    //       title,                                        --> optional
-    //       type: 'list',
-    //       content: {
-    //         item1: { id: ID, value: VALUE }
-    //         item2: { id: ID, value: VALUE }
-    //       }
-    //     },
-    //     {
-    //       title,                                        --> optional
-    //       type: 'table',
-    //       headers: [ header1, ..., headerN ]            --> optional
-    //       content: { prop1: PROP1, ..., propN: PROPN }
-    //     }
-    //   ]
-    // }
-    async function _generateMarkdown (report, titleDepth = 0) {
-      const hashOffset = new Array(+titleDepth + 1).join('#')
-      let mdReport = report.title ? `${hashOffset}# ${report.title}\n` : ''
-      forEach(report.categories, category => {
-        mdReport += category.title ? `\n${hashOffset}## ${category.title}\n\n` : ''
-        mdReport += category.beforeContent ? `${category.beforeContent}<br>\n\n` : ''
-        if (category.type === 'list') {
-          forEach(category.content, (obj) => {
-            mdReport += `- **${obj.id}** :\t${obj.value}\n`
-          })
-        } else if (category.type === 'table') {
-          if (category.headers) {
-            mdReport += '|'
-            let underline = '|'
-            forEach(category.headers, header => {
-              mdReport += `${header}|`
-              underline += '---|'
-            })
-            mdReport += `\n${underline}\n`
-          }
-          forEach(category.content, line => {
-            mdReport += '|'
-            forEach(line, (col) => {
-              mdReport += `${col}|`
-            })
-            mdReport += '\n'
-          })
-        }
-        mdReport += category.afterContent ? `\n${category.afterContent}<br>\n` : ''
-      })
-      return mdReport
-    }
-
-    this._unsets.push(this._xo.api.addMethod('generateMarkdownReport', async ({ machine, titleDepth }) => {
-      const txReport = await _getHostVmsReport(machine, 'seconds', 'tx', 3)
-      const rxReport = await _getHostVmsReport(machine, 'seconds', 'rx', 3)
-
-      const report = {}
-      report.title = 'Network usage report'
-
-      const category1 = {}
-      category1.title = 'Transfer'
-      category1.beforeContent = 'These are the 3 most network using VMs in transfer (upload):'
-      category1.type = 'list'
-      category1.content = txReport
-
-      const category2 = {}
-      category2.title = 'Reception'
-      category2.beforeContent = 'These are the 3 most network using VMs in reception (download):'
-      category2.type = 'table'
-      category2.headers = ['ID', 'Usage']
-      category2.content = rxReport
-
-      report.categories = [category1, category2]
-
-      return _generateMarkdown(report, titleDepth)
-    }))
+    this._job.start()
   }
 
   unload () {
-    for (let i = 0; i < this._unsets; ++i) {
-      this._unsets[i]()
-    }
-
-    this._unsets.length = 0
+    this._job.stop()
   }
-}
 
-  /* if (this._xo.sendEmail) {
-    await this._xo.sendEmail({
-        to: this._mailsReceivers,
-        // subject: 'Usage Reports (XenOrchestra)',
-        markdown
+  test () {
+    return this._sendReport()
+  }
+
+  async _sendReport () {
+    const data = await dataBuilder({
+      xo: this._xo,
+      storedStatsPath: this._storedStatsPath
+    })
+    const result = template(data)
+    const stream = await fromCallback(cb => pdf.create(result).toStream(cb))
+
+    await Promise.all([
+      this._xo.sendEmail({
+        to: this._conf.emails,
+        subject: `[Xen Orchestra] Xo Report - ${currDate}`,
+        markdown: `Hi there,
+
+  You have chosen to receive your xo report ${this._conf.periodicity}.
+  Please, find the attached report.
+
+  best regards.`,
+        attachments: [{
+          filename: `xoReport_${currDate}.pdf`,
+          content: stream
+        }]
+      }),
+      storeStats({
+        data,
+        storedStatsPath: this._storedStatsPath
       })
-    }
-    else {
-      throw 'error, sendEmail does not exist'
-    } */
- /* if (periodicity = 'monthly') {
-   throw console.log('monthly')
- }  else {} */
-/* var data = {},
-  dir = __dirname + '/home/thannos/xo-server/lab1_days.json'
-fs.readdirSync(dir).forEach(function (file) {
-  data[file.replace(/\.json$/, '')] = require(dir + file)
-}) */
+    ])
+  }
+
+}
 
 // ===================================================================
 
-export default ({ xo }) => new UsageReportPlugin(xo)
+export default opts => new UsageReportPlugin(opts)
 
 // ===================================================================
