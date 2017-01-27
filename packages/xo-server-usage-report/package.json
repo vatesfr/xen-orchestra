@@ -28,6 +28,7 @@
   "bin": {},
   "files": [
     "dist/",
+    "images/",
     "report.html.tpl"
   ],
   "engines": {
