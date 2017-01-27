@@ -27,7 +27,8 @@
   "main": "dist/",
   "bin": {},
   "files": [
-    "dist/"
+    "dist/",
+    "report.html.tpl"
   ],
   "engines": {
     "node": ">=4"
