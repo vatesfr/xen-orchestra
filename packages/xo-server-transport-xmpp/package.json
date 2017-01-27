@@ -53,10 +53,10 @@
     "depcheck": "dependency-check ./package.json",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "lint": "standard",
-    "posttest": "npm run lint && npm run depcheck",
-    "prebuild": "npm run clean",
-    "predev": "npm run clean",
-    "prepublish": "npm run build"
+    "posttest": "yarn run lint && yarn run depcheck",
+    "prebuild": "yarn run clean",
+    "predev": "yarn run clean",
+    "prepublish": "yarn run build"
   },
   "babel": {
     "plugins": [

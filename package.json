@@ -5,8 +5,8 @@
     "promise-toolbox": "^0.8.0"
   },
   "scripts": {
-    "commit-msg": "lerna run test",
-    "install": "lerna bootstrap",
-    "test": "lerna run test"
+    "commit-msg": "yarn test",
+    "install": "lerna exec -- yarn",
+    "test": "lerna exec -- yarn test"
   }
 }

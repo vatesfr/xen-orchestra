@@ -47,7 +47,7 @@
   },
   "scripts": {
     "lint": "standard",
-    "posttest": "npm run lint"
+    "posttest": "yarn run lint"
   },
   "greenkeeper": {
     "ignore": [

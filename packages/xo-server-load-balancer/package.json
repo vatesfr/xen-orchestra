@@ -50,8 +50,8 @@
     "depcheck": "dependency-check ./package.json",
     "dev": "NODE_DEV=development babel --watch --source-maps --out-dir=dist/ src/",
     "lint": "standard",
-    "posttest": "npm run lint && npm run depcheck",
-    "prepublish": "npm run build"
+    "posttest": "yarn run lint && yarn run depcheck",
+    "prepublish": "yarn run build"
   },
   "babel": {
     "plugins": [

@@ -50,8 +50,8 @@
     "dev-test": "jest --bail --watch",
     "posttest": "standard && dependency-check ./package.json --entry dist/collection.js index.js unique-index.js view.js",
     "prebuild": "rimraf dist/",
-    "predev": "npm run prebuild",
-    "prepublish": "npm run build",
+    "predev": "yarn run prebuild",
+    "prepublish": "yarn run build",
     "test": "jest"
   },
   "babel": {

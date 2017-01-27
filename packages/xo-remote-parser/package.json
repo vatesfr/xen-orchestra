@@ -45,8 +45,8 @@
     "dev-test": "jest --bail --watch",
     "posttest": "standard && dependency-check ./package.json",
     "prebuild": "rimraf dist/",
-    "predev": "npm run prebuild",
-    "prepublish": "npm run build",
+    "predev": "yarn run prebuild",
+    "prepublish": "yarn run build",
     "test": "jest"
   },
   "babel": {
