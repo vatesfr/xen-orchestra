@@ -16,18 +16,22 @@ import {
   filter,
   find,
   findIndex,
+  includes,
   once,
   sortBy,
-  startsWith
+  startsWith,
+  trim
 } from 'lodash'
 
 import vhdMerge, { chainVhd } from '../vhd-merge'
 import xapiObjectToXo from '../xapi-object-to-xo'
 import {
   forEach,
+  mapFilter,
   mapToArray,
   noop,
   pCatch,
+  pFinally,
   pFromCallback,
   pSettle,
   resolveSubpath,
@@ -156,52 +160,173 @@ const listPartitions = (() => {
     '--output=NR,START,SIZE,NAME,UUID,TYPE',
     '--pairs',
     device.path
-  ]).then(stdout => filter(
-    mapToArray(splitLines(stdout), parseLine),
-    ({ type }) => type != null && !IGNORED[+type]
-  ))
+  ]).then(stdout => mapFilter(splitLines(stdout), line => {
+    const partition = parseLine(line)
+    const { type } = partition
+    if (type != null && !IGNORED[+type]) {
+      return partition
+    }
+  }))
 })()
+
+// handle LVM logical volumes automatically
+const listPartitions2 = device => listPartitions(device).then(partitions => {
+  const partitions2 = []
+  const promises = []
+  forEach(partitions, partition => {
+    if (+partition.type === 0x8e) {
+      promises.push(mountLvmPv(device, partition).then(device => {
+        const promise = listLvmLvs(device).then(lvs => {
+          forEach(lvs, lv => {
+            partitions2.push({
+              name: lv.lv_name,
+              size: +lv.lv_size,
+              id: `${partition.id}/${lv.vg_name}/${lv.lv_name}`
+            })
+          })
+        })
+        promise::pFinally(device.unmount)
+        return promise
+      }))
+    } else {
+      partitions2.push(partition)
+    }
+  })
+  return Promise.all(promises).then(() => partitions2)
+})
 
 const mountPartition = (device, partitionId) => Promise.all([
   partitionId != null && listPartitions(device),
   tmpDir()
 ]).then(([ partitions, path ]) => {
-  const partition = partitionId && find(partitions, { id: partitionId })
-
   const options = [
     'loop',
     'ro'
   ]
 
-  if (partition) {
-    options.push(`offset=${partition.start * 512}`)
+  if (partitions) {
+    const partition = find(partitions, { id: partitionId })
 
-    if (partition.type === 'linux') {
-      options.push('noload')
+    const { start } = partition
+    if (start != null) {
+      options.push(`offset=${start * 512}`)
     }
   }
 
-  return execa('mount', [
+  const mount = options => execa('mount', [
     `--options=${options.join(',')}`,
     `--source=${device.path}`,
     `--target=${path}`
-  ], {
-    timeout: 1e4
-  }).then(() => ({
+  ])
+
+  // `noload` option is used for ext3/ext4, if it fails it might
+  // `be another fs, try without
+  return mount([ ...options, 'noload' ]).catch(() =>
+    mount(options)
+  ).then(() => ({
     path,
     unmount: once(() => execa('umount', [ '--lazy', path ]))
-  })).catch(error => {
+  }), error => {
     console.log(error)
 
     throw error
   })
 })
 
+// handle LVM logical volumes automatically
+const mountPartition2 = (device, partitionId) => {
+  if (
+    partitionId == null ||
+    !includes(partitionId, '/')
+  ) {
+    return mountPartition(device, partitionId)
+  }
+
+  const [ pvId, vgName, lvName ] = partitionId.split('/')
+
+  return listPartitions(device).then(partitions =>
+    find(partitions, { id: pvId })
+  ).then(pvId => mountLvmPv(device, pvId)).then(device1 =>
+    execa('vgchange', [ '-ay', vgName ]).then(() =>
+      execa.stdout('lvs', [
+        '--reportformat',
+        'json',
+        '-o',
+        'lv_name,lv_path',
+        `${vgName}`
+      ]).then(stdout =>
+        find(JSON.parse(stdout).report[0].lv, { lv_name: lvName }).lv_path
+      )
+    ).then(path =>
+      mountPartition({ path }).then(device2 => ({
+        ...device2,
+        unmount: () => device2.unmount().then(device1.unmount)
+      }))
+    ).catch(error => device1.unmount().then(() => {
+      throw error
+    }))
+  )
+}
+
+// -------------------------------------------------------------------
+
+const listLvmLvs = device => execa.stdout('pvs', [
+  '--reportformat',
+  'json',
+  '--nosuffix',
+  '--units',
+  'b',
+  '-o',
+  'lv_name,lv_path,lv_size,vg_name',
+  device.path
+]).then(stdout => filter(JSON.parse(stdout).report[0].pv, pv => pv.lv_name))
+
+const mountLvmPv = (device, partition) => {
+  const args = []
+  if (partition) {
+    args.push('-o', partition.start * 512)
+  }
+  args.push(
+    '--show',
+    '-f',
+    device.path
+  )
+
+  return execa.stdout('losetup', args).then(stdout => {
+    const path = trim(stdout)
+    return {
+      path,
+      unmount: once(() => Promise.all([
+        execa('losetup', [ '-d', path ]),
+        execa.stdout('pvs', [
+          '--reportformat',
+          'json',
+          '-o',
+          'vg_name',
+          path
+        ]).then(stdout => execa('vgchange', [
+          '-an',
+          ...mapToArray(JSON.parse(stdout).report[0].pv, 'vg_name')
+        ]))
+      ]))
+    }
+  })
+}
+
 // ===================================================================
 
 export default class {
   constructor (xo) {
     this._xo = xo
+
+    // clean any LVM volumes that might have not been properly
+    // unmounted
+    xo.on('start', () => Promise.all([
+      execa('losetup', [ '-D' ]),
+      execa('vgchange', [ '-an' ])
+    ]).then(() =>
+      execa('pvscan', [ '--cache' ])
+    ))
   }
 
   async listRemoteBackups (remoteId) {
@@ -934,9 +1059,11 @@ export default class {
 
   _mountPartition (remoteId, vhdPath, partitionId) {
     return this._mountVhd(remoteId, vhdPath).then(device =>
-      mountPartition(device, partitionId).then(partition => ({
+      mountPartition2(device, partitionId).then(partition => ({
         ...partition,
         unmount: () => partition.unmount().then(device.unmount)
+      })).catch(error => device.unmount().then(() => {
+        throw error
       }))
     )
   }
@@ -947,7 +1074,7 @@ export default class {
     $defer(device.unmount)
 
     return {
-      partitions: await listPartitions(device)
+      partitions: await listPartitions2(device)
     }
   }
 
