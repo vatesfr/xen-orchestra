@@ -31,7 +31,7 @@ const pWriteFile = promisify(writeFile)
 const currDate = new Date().toISOString().slice(0, 10)
 
 const absolutePath = process.platform === 'linux' ? `file://${__dirname}` : `${__dirname}`
-const htmlPath = `${__dirname}/report.html.tpl`
+const htmlPath = `${__dirname}/../report.html.tpl`
 const imgVates = `${absolutePath}/../images/logo.png` // Only absolute path is supported
 const imgXo = `${absolutePath}/../images/xo.png`
 
