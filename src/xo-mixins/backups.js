@@ -25,6 +25,7 @@ import {
 
 import vhdMerge, { chainVhd } from '../vhd-merge'
 import xapiObjectToXo from '../xapi-object-to-xo'
+import { lvs, pvs } from '../lvm'
 import {
   forEach,
   mapFilter,
@@ -248,14 +249,8 @@ const mountPartition2 = (device, partitionId) => {
     find(partitions, { id: pvId })
   ).then(pvId => mountLvmPv(device, pvId)).then(device1 =>
     execa('vgchange', [ '-ay', vgName ]).then(() =>
-      execa.stdout('lvs', [
-        '--reportformat',
-        'json',
-        '-o',
-        'lv_name,lv_path',
-        `${vgName}`
-      ]).then(stdout =>
-        find(JSON.parse(stdout).report[0].lv, { lv_name: lvName }).lv_path
+      lvs([ 'lv_name', 'lv_path' ], vgName).then(lvs =>
+        find(lvs, { lv_name: lvName }).lv_path
       )
     ).then(path =>
       mountPartition({ path }).then(device2 => ({
@@ -270,16 +265,12 @@ const mountPartition2 = (device, partitionId) => {
 
 // -------------------------------------------------------------------
 
-const listLvmLvs = device => execa.stdout('pvs', [
-  '--reportformat',
-  'json',
-  '--nosuffix',
-  '--units',
-  'b',
-  '-o',
-  'lv_name,lv_path,lv_size,vg_name',
-  device.path
-]).then(stdout => filter(JSON.parse(stdout).report[0].pv, pv => pv.lv_name))
+const listLvmLvs = device => pvs([
+  'lv_name',
+  'lv_path',
+  'lv_size',
+  'vg_name'
+], device.path).then(pvs => filter(pvs, 'lv_name'))
 
 const mountLvmPv = (device, partition) => {
   const args = []
@@ -298,15 +289,9 @@ const mountLvmPv = (device, partition) => {
       path,
       unmount: once(() => Promise.all([
         execa('losetup', [ '-d', path ]),
-        execa.stdout('pvs', [
-          '--reportformat',
-          'json',
-          '-o',
-          'vg_name',
-          path
-        ]).then(stdout => execa('vgchange', [
+        pvs('vg_name', path).then(vgNames => execa('vgchange', [
           '-an',
-          ...mapToArray(JSON.parse(stdout).report[0].pv, 'vg_name')
+          ...vgNames
         ]))
       ]))
     }
