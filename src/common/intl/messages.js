@@ -484,7 +484,7 @@ var messages = {
   noHostsAvailableErrorMessage: 'Some VMs cannot be migrated before restarting this host. Please try force reboot.',
   failHostBulkRestartTitle: 'Error while restarting hosts',
   failHostBulkRestartMessage: '{failedHosts}/{totalHosts} host{failedHosts, plural, one {} other {s}} could not be restarted.',
-  rebootUpdateHostLabel: 'Reboot for applying updates',
+  rebootUpdateHostLabel: 'Reboot to apply updates',
   emergencyModeLabel: 'Emergency mode',
   // ----- Host tabs -----
   storageTabName: 'Storage',
