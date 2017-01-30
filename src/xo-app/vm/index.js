@@ -1,25 +1,30 @@
 import _ from 'intl'
-import assign from 'lodash/assign'
 import BaseComponent from 'base-component'
-import forEach from 'lodash/forEach'
 import Icon from 'icon'
-import isEmpty from 'lodash/isEmpty'
 import Link from 'link'
-import map from 'lodash/map'
 import { NavLink, NavTabs } from 'nav'
 import Page from '../page'
-import pick from 'lodash/pick'
 import React, { cloneElement } from 'react'
 import VmActionBar from './action-bar'
 import { Select, Text } from 'editable'
 import {
+  assign,
+  every,
+  forEach,
+  isEmpty,
+  map,
+  pick
+} from 'lodash'
+import {
   editVm,
   fetchVmStats,
   isVmRunning,
-  migrateVm
+  migrateVm,
+  subscribePermissions
 } from 'xo'
 import { Container, Row, Col } from 'grid'
 import {
+  addSubscriptions,
   connectStore,
   mapPlus,
   routes
@@ -117,6 +122,9 @@ import TabAdvanced from './tab-advanced'
     }
   }
 })
+@addSubscriptions({
+  permissions: subscribePermissions
+})
 export default class Vm extends BaseComponent {
   static contextTypes = {
     router: React.PropTypes.object
@@ -150,6 +158,20 @@ export default class Vm extends BaseComponent {
   }
   loop = ::this.loop
 
+  _getCanSnapshot = createSelector(
+    () => this.props.isAdmin,
+    () => this.props.vdis,
+    () => this.props.srs,
+    () => this.props.vm,
+    () => this.props.permissions,
+    (isAdmin, vdis, srs, vm, permissions) => (
+      isAdmin ||
+      vm && permissions &&
+      permissions[vm.id] && permissions[vm.id].administrate &&
+      (isEmpty(vdis) || every(srs, sr => permissions[sr.id] && permissions[sr.id].operate))
+    )
+  )
+
   componentWillMount () {
     this.loop()
   }
@@ -182,7 +204,7 @@ export default class Vm extends BaseComponent {
   _selectOptionRenderer = option => option.name_label
 
   header () {
-    const { vm, container, pool, hosts, isAdmin } = this.props
+    const { vm, container, pool, hosts } = this.props
     if (!vm) {
       return <Icon icon='loading' />
     }
@@ -240,7 +262,7 @@ export default class Vm extends BaseComponent {
             <NavLink to={`/vms/${vm.id}/console`}>{_('consoleTabName')}</NavLink>
             <NavLink to={`/vms/${vm.id}/network`}>{_('networkTabName')}</NavLink>
             <NavLink to={`/vms/${vm.id}/disks`}>{_('disksTabName', { disks: vm.$VBDs.length })}</NavLink>
-            {(isAdmin || !vm.resourceSet) && <NavLink to={`/vms/${vm.id}/snapshots`}>{_('snapshotsTabName')} {vm.snapshots.length !== 0 && <span className='tag tag-pill tag-default'>{vm.snapshots.length}</span>}</NavLink>}
+            {this._getCanSnapshot() && <NavLink to={`/vms/${vm.id}/snapshots`}>{_('snapshotsTabName')} {vm.snapshots.length !== 0 && <span className='tag tag-pill tag-default'>{vm.snapshots.length}</span>}</NavLink>}
             <NavLink to={`/vms/${vm.id}/logs`}>{_('logsTabName')}</NavLink>
             {vm.docker && <NavLink to={`/vms/${vm.id}/containers`}>{_('containersTabName')}</NavLink>}
             <NavLink to={`/vms/${vm.id}/advanced`}>{_('advancedTabName')}</NavLink>
