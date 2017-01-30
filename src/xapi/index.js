@@ -9,6 +9,7 @@ import { forbiddenOperation } from 'xo-common/api-errors'
 import {
   every,
   find,
+  filter,
   flatten,
   includes,
   isEmpty,
@@ -1105,14 +1106,26 @@ export default class Xapi extends XapiBase {
     return loop()
   }
 
-  async installSupplementalPack (stream, { hostId }) {
+  async _createSuppPackVdi (stream, sr) {
+    const vdi = await this.createVdi(stream.length, {
+      sr: sr.$ref,
+      name_label: '[XO] Supplemental pack ISO',
+      name_description: 'small temporary VDI to store a supplemental pack ISO'
+    })
+    await this.importVdiContent(vdi.$id, stream, { format: VDI_FORMAT_RAW })
+
+    return vdi
+  }
+
+  @deferrable
+  async installSupplementalPack ($defer, stream, { hostId }) {
     if (!stream.length) {
       throw new Error('stream must have a length')
     }
 
     let sr = this.pool.$default_SR
 
-    if (!sr) {
+    if (!sr || sr.physical_size - sr.physical_utilisation < stream.length) {
       sr = find(
         mapToArray(this.getObject(hostId, 'host').$PBDs, '$SR'),
         sr => sr && sr.content_type === 'user' && sr.physical_size - sr.physical_utilisation >= stream.length
@@ -1123,16 +1136,58 @@ export default class Xapi extends XapiBase {
       }
     }
 
-    const vdi = await this.createVdi(stream.length, {
-      sr: sr.$ref,
-      name_label: '[XO] Supplemental pack ISO',
-      name_description: 'Small temporary VDI to store a supplemental pack ISO.'
-    })
-    await this.importVdiContent(vdi.$id, stream, { format: VDI_FORMAT_RAW })
+    const vdi = await this._createSuppPackVdi(stream, sr)
+    $defer(() => this._deleteVdi(vdi))
 
     await this.call('host.call_plugin', this.getObject(hostId).$ref, 'install-supp-pack', 'install', { vdi: vdi.uuid })
+  }
 
-    return this._deleteVdi(vdi)
+  @deferrable
+  async installSupplementalPackOnAllHosts ($defer, stream) {
+    if (!stream.length) {
+      throw new Error('stream must have a length')
+    }
+
+    const isSrAvailable = sr =>
+      sr && sr.content_type === 'user' && sr.physical_size - sr.physical_utilisation >= stream.length
+
+    const hosts = filter(this.objects.all, { $type: 'host' })
+
+    // Try to find a shared SR
+    const sr = find(
+      filter(this.objects.all, { $type: 'sr', shared: true }),
+      isSrAvailable
+    )
+
+    // Shared SR available: create only 1 VDI for all the installations
+    if (sr) {
+      const vdi = await this._createSuppPackVdi(stream, sr)
+      $defer(() => this._deleteVdi(vdi))
+
+      // Install pack sequentially to prevent concurrent access to the unique VDI
+      for (const host of hosts) {
+        await this.call('host.call_plugin', host.$ref, 'install-supp-pack', 'install', { vdi: vdi.uuid })
+      }
+
+      return
+    }
+
+    // No shared SR available: find an available local SR on each host
+    return Promise.all(mapToArray(hosts, deferrable(async ($defer, host) => {
+      const sr = find(
+        mapToArray(host.$PBDs, '$SR'),
+        isSrAvailable
+      )
+
+      if (!sr) {
+        throw new Error('no SR available to store installation file')
+      }
+
+      const vdi = await this._createSuppPackVdi(stream, sr)
+      $defer(() => this._deleteVdi(vdi))
+
+      await this.call('host.call_plugin', host.$ref, 'install-supp-pack', 'install', { vdi: vdi.uuid })
+    })))
   }
 
   async _importVm (stream, sr, onlyMetadata = false, onVmCreation = undefined) {
