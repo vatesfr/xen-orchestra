@@ -490,6 +490,12 @@ export class Edit extends Component {
   ipPools: subscribeIpPools
 })
 class ResourceSet extends Component {
+  componentDidMount () {
+    if (this.props.autoExpand) {
+      this.refs.resourceSet.scrollIntoView()
+    }
+  }
+
   _renderDisplay = () => {
     const { resourceSet } = this.props
     const resolvedIpPools = mapKeys(this.props.ipPools, 'id')
@@ -621,11 +627,11 @@ class ResourceSet extends Component {
   }
 
   render () {
-    const { resourceSet } = this.props
+    const { resourceSet, autoExpand } = this.props
 
     return (
-      <div className='mb-1'>
-        <Collapse buttonText={resourceSet.name}>
+      <div className='mb-1' ref='resourceSet'>
+        <Collapse buttonText={resourceSet.name} defaultOpen={autoExpand}>
           <ul className='list-group'>
             {this.state.editionMode
               ? <Edit resourceSet={this.props.resourceSet} onSave={this.toggleState('editionMode')} />
@@ -646,6 +652,10 @@ class ResourceSet extends Component {
 // ===================================================================
 
 export default class Self extends Component {
+  static contextTypes = {
+    router: React.PropTypes.object
+  }
+
   constructor (props) {
     super(props)
     this.state = {}
@@ -661,6 +671,7 @@ export default class Self extends Component {
 
   render () {
     const { resourceSets, showNewResourceSetForm } = this.state
+    const { location } = this.props
 
     return <Page
       formatTitle
@@ -690,7 +701,13 @@ export default class Self extends Component {
           {resourceSets
             ? (isEmpty(resourceSets)
               ? _('noResourceSets')
-              : map(resourceSets, (resourceSet, key) => <ResourceSet key={resourceSet.id} resourceSet={resourceSet} />)
+              : map(resourceSets, resourceSet => (
+                <ResourceSet
+                  autoExpand={location.query.resourceSet === resourceSet.id}
+                  key={resourceSet.id}
+                  resourceSet={resourceSet}
+                />
+              ))
             ) : _('loadingResourceSets')
           }
         </div>
