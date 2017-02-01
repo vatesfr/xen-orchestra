@@ -222,6 +222,33 @@ export const getStatus = state => state.status
 
 export const getUser = state => state.user
 
+export const getCheckPermissions = invoke(() => {
+  const getPredicate = create(
+    state => state.permissions,
+    state => state.objects,
+    (permissions, objects) => {
+      objects = objects.all
+      const getObject = id => (objects[id] || EMPTY_OBJECT)
+
+      return (id, permission) => checkPermissions(permissions, getObject, id, permission)
+    }
+  )
+
+  return state => {
+    const user = getUser(state)
+
+    if (!user) {
+      return () => false
+    }
+
+    if (user.permission === 'admin') {
+      return () => true
+    }
+
+    return getPredicate(state)
+  }
+})
+
 const _getPermissionsPredicate = invoke(() => {
   const getPredicate = create(
     state => state.permissions,

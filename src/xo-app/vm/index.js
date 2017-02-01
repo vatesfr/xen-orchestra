@@ -9,7 +9,6 @@ import VmActionBar from './action-bar'
 import { Select, Text } from 'editable'
 import {
   assign,
-  every,
   forEach,
   isEmpty,
   map,
@@ -19,12 +18,10 @@ import {
   editVm,
   fetchVmStats,
   isVmRunning,
-  migrateVm,
-  subscribePermissions
+  migrateVm
 } from 'xo'
 import { Container, Row, Col } from 'grid'
 import {
-  addSubscriptions,
   connectStore,
   mapPlus,
   routes
@@ -33,6 +30,7 @@ import {
   createGetObject,
   createGetObjectsOfType,
   createSelector,
+  getCheckPermissions,
   isAdmin
 } from 'selectors'
 
@@ -110,6 +108,7 @@ import TabAdvanced from './tab-advanced'
     }
 
     return {
+      checkPermissions: getCheckPermissions(state, props),
       container: getContainer(state, props),
       hosts: getHosts(state, props),
       isAdmin: isAdmin(state, props),
@@ -121,9 +120,6 @@ import TabAdvanced from './tab-advanced'
       vmTotalDiskSpace: getVmTotalDiskSpace(state, props)
     }
   }
-})
-@addSubscriptions({
-  permissions: subscribePermissions
 })
 export default class Vm extends BaseComponent {
   static contextTypes = {
@@ -158,20 +154,6 @@ export default class Vm extends BaseComponent {
   }
   loop = ::this.loop
 
-  _getCanSnapshot = createSelector(
-    () => this.props.isAdmin,
-    () => this.props.vdis,
-    () => this.props.srs,
-    () => this.props.vm,
-    () => this.props.permissions,
-    (isAdmin, vdis, srs, vm, permissions) => (
-      isAdmin ||
-      vm && permissions &&
-      permissions[vm.id] && permissions[vm.id].administrate &&
-      (isEmpty(vdis) || every(srs, sr => permissions[sr.id] && permissions[sr.id].operate))
-    )
-  )
-
   componentWillMount () {
     this.loop()
   }
@@ -196,6 +178,16 @@ export default class Vm extends BaseComponent {
       })
     }
   }
+
+  _getCanSnapshot = createSelector(
+    () => this.props.checkPermissions,
+    () => this.props.vm,
+    () => this.props.srs,
+    (checkPermissions, vm, srs) => checkPermissions([
+      [ vm.id, 'administrate' ],
+      ...map(srs, sr => [ sr.id, 'operate' ])
+    ])
+  )
 
   _setNameDescription = nameDescription => editVm(this.props.vm, { name_description: nameDescription })
   _setNameLabel = nameLabel => editVm(this.props.vm, { name_label: nameLabel })
