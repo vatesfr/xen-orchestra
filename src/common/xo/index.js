@@ -504,6 +504,25 @@ export const installSupplementalPack = (host, file) => {
   ))
 }
 
+export const installSupplementalPackOnAllHosts = (pool, file) => {
+  info(_('supplementalPackInstallStartedTitle'), _('supplementalPackInstallStartedMessage'))
+
+  return _call('pool.installSupplementalPack', { pool: resolveId(pool) }).then(({ $sendTo: url }) => (
+    request.post(url)
+      .send(file)
+      .then(res => {
+        if (res.status !== 200) {
+          throw new Error('installing supplemental pack failed')
+        }
+
+        success(_('supplementalPackInstallSuccessTitle'), _('supplementalPackInstallSuccessMessage'))
+      }).catch(err => {
+        error(_('supplementalPackInstallErrorTitle'), _('supplementalPackInstallErrorMessage'))
+        throw err
+      })
+  ))
+}
+
 // Containers --------------------------------------------------------
 
 export const pauseContainer = (vm, container) => (

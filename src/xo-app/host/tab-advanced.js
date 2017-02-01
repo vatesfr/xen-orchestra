@@ -2,6 +2,7 @@ import _ from 'intl'
 import Copiable from 'copiable'
 import React from 'react'
 import TabButton from 'tab-button'
+import SelectFiles from 'select-files'
 import Upgrade from 'xoa-upgrade'
 import { Toggle } from 'form'
 import { enableHost, detachHost, disableHost, restartHost, installSupplementalPack } from 'xo'
@@ -176,9 +177,9 @@ export default ({
           {ALLOW_INSTALL_SUPP_PACK && <tr>
             <th>{_('supplementalPackNew')}</th>
             <td>
-              <input
+              <SelectFiles
                 type='file'
-                onChange={e => installSupplementalPack(host, e.target.files[0])}
+                onChange={file => installSupplementalPack(host, file)}
               />
             </td>
           </tr>}
