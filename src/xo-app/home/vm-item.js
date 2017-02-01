@@ -2,9 +2,7 @@ import _ from 'intl'
 import Component from 'base-component'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import Icon from 'icon'
-import isEmpty from 'lodash/isEmpty'
 import Link, { BlockLink } from 'link'
-import map from 'lodash/map'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import HomeTags from 'home-tags'
@@ -12,25 +10,35 @@ import Tooltip from 'tooltip'
 import { Row, Col } from 'grid'
 import { Text, XoSelect } from 'editable'
 import {
+  isEmpty,
+  map
+} from 'lodash'
+import {
   addTag,
   editVm,
   migrateVm,
   removeTag,
   startVm,
-  stopVm
+  stopVm,
+  subscribeResourceSets
 } from 'xo'
 import {
+  addSubscriptions,
   connectStore,
   formatSize,
   osFamily
 } from 'utils'
 import {
+  createFinder,
   createGetObject,
   createSelector
 } from 'selectors'
 
 import styles from './index.css'
 
+@addSubscriptions({
+  resourceSets: subscribeResourceSets
+})
 @connectStore({
   container: createGetObject((_, props) => props.item.$container)
 })
@@ -45,6 +53,14 @@ export default class VmItem extends Component {
     container => host => host.id !== container.id
   )
 
+  _getResourceSet = createFinder(
+    () => this.props.resourceSets,
+    createSelector(
+      () => this.props.item.resourceSet,
+      id => resourceSet => resourceSet.id === id
+    )
+  )
+
   _addTag = tag => addTag(this.props.item.id, tag)
   _migrateVm = host => migrateVm(this.props.item, host)
   _removeTag = tag => removeTag(this.props.item.id, tag)
@@ -57,10 +73,12 @@ export default class VmItem extends Component {
 
   render () {
     const { item: vm, container, expandAll, selected } = this.props
+    const resourceSet = this._getResourceSet()
+
     return <div className={styles.item}>
       <BlockLink to={`/vms/${vm.id}`}>
         <SingleLineRow>
-          <Col smallSize={10} mediumSize={9} largeSize={5}>
+          <Col smallSize={10} mediumSize={6} largeSize={5}>
             <EllipsisContainer>
               <input type='checkbox' checked={selected} onChange={this._onSelect} value={vm.id} />
               &nbsp;&nbsp;
@@ -140,7 +158,7 @@ export default class VmItem extends Component {
       </BlockLink>
       {(this.state.expanded || expandAll) &&
         <Row>
-          <Col mediumSize={4} className={styles.itemExpanded}>
+          <Col mediumSize={3} className={styles.itemExpanded}>
             <span>
               {vm.CPUs.number}x <Icon icon='cpu' />
               {' '}&nbsp;{' '}
@@ -153,10 +171,13 @@ export default class VmItem extends Component {
               {vm.docker ? <Icon icon='vm-docker' /> : null}
             </span>
           </Col>
-          <Col largeSize={4} className={styles.itemExpanded}>
+          <Col largeSize={3} className={styles.itemExpanded}>
             {map(vm.addresses, address => <span key={address} className='tag tag-info tag-ip'>{address}</span>)}
           </Col>
-          <Col mediumSize={4}>
+          <Col mediumSize={3} className='hidden-sm-down'>
+            {resourceSet && <span>{_('homeResourceSet', { resourceSet: <Link to={`self?resourceSet=${resourceSet.id}`}>{resourceSet.name}</Link> })}</span>}
+          </Col>
+          <Col mediumSize={3}>
             <span style={{fontSize: '1.4em'}}>
               <HomeTags type='VM' labels={vm.tags} onDelete={this._removeTag} onAdd={this._addTag} />
             </span>

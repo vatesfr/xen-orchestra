@@ -145,6 +145,7 @@ var messages = {
   homeMigrateTo: 'Migrate to…',
   homeMissingPaths: 'Missing patches',
   homePoolMaster: 'Master:',
+  homeResourceSet: 'Resource set: {resourceSet}',
   highAvailability: 'High Availability',
   srSharedType: 'Shared {type}',
   srNotSharedType: 'Not shared {type}',

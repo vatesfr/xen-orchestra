@@ -7,9 +7,14 @@ import propTypes from './prop-types'
 @propTypes({
   children: propTypes.any.isRequired,
   className: propTypes.string,
-  buttonText: propTypes.any.isRequired
+  buttonText: propTypes.any.isRequired,
+  defaultOpen: propTypes.bool
 })
 export default class Collapse extends Component {
+  state = {
+    isOpened: this.props.defaultOpen
+  }
+
   _onClick = () => {
     this.setState({
       isOpened: !this.state.isOpened
