@@ -234,15 +234,18 @@ export const getCheckPermissions = invoke(() => {
     }
   )
 
+  const isTrue = () => true
+  const isFalse = () => false
+
   return state => {
     const user = getUser(state)
 
     if (!user) {
-      return () => false
+      return isFalse
     }
 
     if (user.permission === 'admin') {
-      return () => true
+      return isTrue
     }
 
     return getPredicate(state)
