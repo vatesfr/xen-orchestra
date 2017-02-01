@@ -73,10 +73,12 @@ const ACL_COLUMNS = [
     createGetObjectsOfType('pool'),
     createGetObjectsOfType('SR'),
     createGetObjectsOfType('VM'),
-    (hosts, networks, pools, srs, vms) => ({
+    createGetObjectsOfType('VM-snapshot'),
+    (hosts, networks, pools, srs, vms, snapshots) => ({
       ...keyBy(hosts, 'id'),
       ...keyBy(networks, 'id'),
       ...keyBy(pools, 'id'),
+      ...keyBy(snapshots, 'id'),
       ...keyBy(srs, 'id'),
       ...keyBy(vms, 'id')
     })
@@ -96,7 +98,7 @@ class AclTable extends Component {
           object: xoObjects[object] || object,
           action: roles[action] || action
         })),
-        ({ subject, object, action }) => subject && object && action
+        ({ subject, object, action }) => subject && object && action && object.type !== 'VM-snapshot'
       )
       this.setState({
         resolvedAcls

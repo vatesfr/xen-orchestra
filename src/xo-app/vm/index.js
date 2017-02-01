@@ -1,17 +1,19 @@
 import _ from 'intl'
-import assign from 'lodash/assign'
 import BaseComponent from 'base-component'
-import forEach from 'lodash/forEach'
 import Icon from 'icon'
-import isEmpty from 'lodash/isEmpty'
 import Link from 'link'
-import map from 'lodash/map'
 import { NavLink, NavTabs } from 'nav'
 import Page from '../page'
-import pick from 'lodash/pick'
 import React, { cloneElement } from 'react'
 import VmActionBar from './action-bar'
 import { Select, Text } from 'editable'
+import {
+  assign,
+  forEach,
+  isEmpty,
+  map,
+  pick
+} from 'lodash'
 import {
   editVm,
   fetchVmStats,
@@ -28,6 +30,7 @@ import {
   createGetObject,
   createGetObjectsOfType,
   createSelector,
+  getCheckPermissions,
   isAdmin
 } from 'selectors'
 
@@ -105,6 +108,7 @@ import TabAdvanced from './tab-advanced'
     }
 
     return {
+      checkPermissions: getCheckPermissions(state, props),
       container: getContainer(state, props),
       hosts: getHosts(state, props),
       isAdmin: isAdmin(state, props),
@@ -175,6 +179,16 @@ export default class Vm extends BaseComponent {
     }
   }
 
+  _getCanSnapshot = createSelector(
+    () => this.props.checkPermissions,
+    () => this.props.vm,
+    () => this.props.srs,
+    (checkPermissions, vm, srs) => checkPermissions([
+      [ vm.id, 'administrate' ],
+      ...map(srs, sr => [ sr.id, 'operate' ])
+    ])
+  )
+
   _setNameDescription = nameDescription => editVm(this.props.vm, { name_description: nameDescription })
   _setNameLabel = nameLabel => editVm(this.props.vm, { name_label: nameLabel })
   _migrateVm = host => migrateVm(this.props.vm, host)
@@ -182,7 +196,7 @@ export default class Vm extends BaseComponent {
   _selectOptionRenderer = option => option.name_label
 
   header () {
-    const { vm, container, pool, hosts, isAdmin } = this.props
+    const { vm, container, pool, hosts } = this.props
     if (!vm) {
       return <Icon icon='loading' />
     }
@@ -240,7 +254,7 @@ export default class Vm extends BaseComponent {
             <NavLink to={`/vms/${vm.id}/console`}>{_('consoleTabName')}</NavLink>
             <NavLink to={`/vms/${vm.id}/network`}>{_('networkTabName')}</NavLink>
             <NavLink to={`/vms/${vm.id}/disks`}>{_('disksTabName', { disks: vm.$VBDs.length })}</NavLink>
-            {(isAdmin || !vm.resourceSet) && <NavLink to={`/vms/${vm.id}/snapshots`}>{_('snapshotsTabName')} {vm.snapshots.length !== 0 && <span className='tag tag-pill tag-default'>{vm.snapshots.length}</span>}</NavLink>}
+            {this._getCanSnapshot() && <NavLink to={`/vms/${vm.id}/snapshots`}>{_('snapshotsTabName')} {vm.snapshots.length !== 0 && <span className='tag tag-pill tag-default'>{vm.snapshots.length}</span>}</NavLink>}
             <NavLink to={`/vms/${vm.id}/logs`}>{_('logsTabName')}</NavLink>
             {vm.docker && <NavLink to={`/vms/${vm.id}/containers`}>{_('containersTabName')}</NavLink>}
             <NavLink to={`/vms/${vm.id}/advanced`}>{_('advancedTabName')}</NavLink>
