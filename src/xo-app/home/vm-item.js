@@ -10,7 +10,6 @@ import Tooltip from 'tooltip'
 import { Row, Col } from 'grid'
 import { Text, XoSelect } from 'editable'
 import {
-  find,
   isEmpty,
   map
 } from 'lodash'
@@ -30,6 +29,7 @@ import {
   osFamily
 } from 'utils'
 import {
+  createFinder,
   createGetObject,
   createSelector
 } from 'selectors'
@@ -53,10 +53,12 @@ export default class VmItem extends Component {
     container => host => host.id !== container.id
   )
 
-  _getResourceSet = createSelector(
+  _getResourceSet = createFinder(
     () => this.props.resourceSets,
-    () => this.props.item.resourceSet,
-    (resourceSets, id) => find(resourceSets, { id })
+    createSelector(
+      () => this.props.item.resourceSet,
+      id => resourceSet => resourceSet.id === id
+    )
   )
 
   _addTag = tag => addTag(this.props.item.id, tag)

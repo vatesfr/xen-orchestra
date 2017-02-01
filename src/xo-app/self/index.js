@@ -490,12 +490,6 @@ export class Edit extends Component {
   ipPools: subscribeIpPools
 })
 class ResourceSet extends Component {
-  componentDidMount () {
-    if (this.props.autoExpand) {
-      this.refs.resourceSet.scrollIntoView()
-    }
-  }
-
   _renderDisplay = () => {
     const { resourceSet } = this.props
     const resolvedIpPools = mapKeys(this.props.ipPools, 'id')
@@ -626,11 +620,17 @@ class ResourceSet extends Component {
     ]
   }
 
+  _autoExpand = ref => {
+    if (ref && ref.scrollIntoView) {
+      ref.scrollIntoView()
+    }
+  }
+
   render () {
     const { resourceSet, autoExpand } = this.props
 
     return (
-      <div className='mb-1' ref='resourceSet'>
+      <div className='mb-1' ref={this._autoExpand}>
         <Collapse buttonText={resourceSet.name} defaultOpen={autoExpand}>
           <ul className='list-group'>
             {this.state.editionMode
@@ -652,10 +652,6 @@ class ResourceSet extends Component {
 // ===================================================================
 
 export default class Self extends Component {
-  static contextTypes = {
-    router: React.PropTypes.object
-  }
-
   constructor (props) {
     super(props)
     this.state = {}
