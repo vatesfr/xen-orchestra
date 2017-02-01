@@ -8,14 +8,14 @@ import { omit } from 'lodash'
 @propTypes({
   multi: propTypes.bool,
   label: propTypes.node,
-  onChange: propTypes.func
+  onChange: propTypes.func.isRequired
 })
 export default class SelectFiles extends Component {
   _onChange = e => {
     const { multi, onChange } = this.props
     const { files } = e.target
 
-    onChange && onChange(multi ? files : files[0])
+    onChange(multi ? files : files[0])
   }
 
   render () {

@@ -1,9 +1,9 @@
 import _ from 'intl'
 import Copiable from 'copiable'
 import React from 'react'
+import SelectFiles from 'select-files'
 import { Container, Row, Col } from 'grid'
 import { installSupplementalPackOnAllHosts } from 'xo'
-import SelectFiles from 'select-files'
 
 export default ({
   pool
