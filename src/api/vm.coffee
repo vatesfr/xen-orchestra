@@ -1,5 +1,6 @@
 $assign = require 'lodash/assign'
 $debug = (require 'debug') 'xo:api:vm'
+$filter = require 'lodash/filter'
 $findIndex = require 'lodash/findIndex'
 $findWhere = require 'lodash/find'
 concat = require 'lodash/concat'
@@ -22,7 +23,6 @@ startsWith = require 'lodash/startsWith'
   formatXml: $js2xml,
   isArray: $isArray,
   map,
-  mapFilter,
   mapToArray,
   noop,
   parseSize,
@@ -300,16 +300,6 @@ delete_ = $coroutine ({vm, delete_disks: deleteDisks}) ->
   memory = vm.memory.size
 
   xapi = @getXapi(vm)
-
-  @getAllAcls().then((acls) =>
-    Promise.all(mapFilter(acls, (acl) =>
-      if (acl.object == vm.id)
-        return pCatch.call(
-          @removeAcl(acl.subject, acl.object, acl.action),
-          noop
-        )
-    ))
-  )
 
   # Update IP pools
   yield Promise.all(map(vm.VIFs, (vifId) =>
@@ -652,18 +642,6 @@ snapshot = $coroutine ({vm, name}) ->
   yield checkPermissionOnSrs.call(this, vm)
 
   snapshot = yield @getXapi(vm).snapshotVm(vm._xapiRef, name ? "#{vm.name_label}_#{new Date().toISOString()}")
-
-  # Copy VM's ACLs to the snapshot
-  @getAllAcls().then((acls) =>
-    Promise.all(mapFilter(acls, (acl) =>
-      if (acl.object == vm.id)
-        return pCatch.call(
-          @addAcl(acl.subject, snapshot.$id, acl.action),
-          noop
-        )
-    ))
-  )
-
   return snapshot.$id
 
 snapshot.params = {
