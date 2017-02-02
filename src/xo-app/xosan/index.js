@@ -2,7 +2,6 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import Icon from 'icon'
-import fromPairs from 'lodash/fromPairs'
 import Link from 'link'
 import map from 'lodash/map'
 import Page from '../page'
@@ -44,28 +43,22 @@ export class XosanVolumesTable extends Component {
 
   componentDidMount () {
     if (this.props.xosansrs && this.props.xosansrs.length > 0) {
-      const allPbdsConfigs = [].concat.apply([], this.props.xosansrs.map(sr => sr.PBDs)).map(pbd => pbd.device_config['server'])
-      const allPbdsConfigsMap = {}
-      allPbdsConfigs.forEach(config => { allPbdsConfigsMap[config] = true })
-
-      const allPbdConfigsArray = Object.keys(allPbdsConfigsMap)
-      Promise.all(map(allPbdConfigsArray, pbdConfig => getVolumeInfo.apply(null, pbdConfig.split(':/'))))
-        .then(volumes => {
-          const volumesByID = {}
-          volumes.forEach(volume => { volumesByID[volume['Volume ID']] = volume })
-          const partialState = {
-            volumesByConfig: fromPairs(volumes.map((pool, index) => [allPbdConfigsArray[index], pool])),
-            volumesByID
-          }
-          this.setState(partialState)
-        }).catch(e => { console.log('error', e) })
+      Promise.all(this.props.xosansrs.map(sr => getVolumeInfo(sr.id))).then(volumes => {
+        const volumeConfig = {}
+        volumes.forEach((volume, index) => {
+          volumeConfig[this.props.xosansrs[index].id] = volume
+        })
+        this.setState({
+          volumeConfig
+        })
+      })
     }
   }
 
   render () {
     const { xosansrs } = this.props
     return <div>
-      <h2>Xen Orchestra SAN SRs</h2>
+      <h2>Xen Orchestra SAN SR</h2>
       <table className='table table-striped'>
         <thead>
           <tr>
@@ -80,7 +73,6 @@ export class XosanVolumesTable extends Component {
           {map(xosansrs, sr => {
             const configsMap = {}
             sr.PBDs.forEach(pbd => { configsMap[pbd.device_config['server']] = true })
-            const configs = Object.keys(configsMap)
             return <tr key={sr.id}>
               <td>
                 <Link to={`/srs/${sr.id}/xosan`}>{sr.name_label}</Link>
@@ -89,7 +81,7 @@ export class XosanVolumesTable extends Component {
                 { sr.PBDs.map(pbd => pbd.realHost.name_label).join(', ') }
               </td>
               <td>
-                { this.state.volumesByConfig && this.state.volumesByConfig[configs[0]]['Volume ID'] }
+                { this.state.volumeConfig && this.state.volumeConfig[sr.id]['Volume ID'] }
               </td>
               <td>
                 {formatSize(sr.size)}
@@ -109,52 +101,6 @@ export class XosanVolumesTable extends Component {
           })}
         </tbody>
       </table>
-      { this.state.volumesByID && <div>
-        <h1>Discovered Gluster Volumes</h1>
-        <table className='table table-striped'>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Volume ID</th>
-              <th>Status</th>
-              <th>Type</th>
-              <th>Number of Bricks</th>
-              <th>Bricks</th>
-              <th>Peers</th>
-            </tr>
-          </thead>
-          <tbody>
-            {map(this.state.volumesByID, volume => <tr>
-              <td>{volume['Volume Name']}</td>
-              <td>{volume['Volume ID']}</td>
-              <td>{volume['Status']}</td>
-              <td>{volume['Type']}</td>
-              <td>{volume['Number of Bricks']}</td>
-              <td>
-                <ul>{map(volume['Bricks'], brick => {
-                  if (!brick.vm) {
-                    return <li key={brick.config}> couldn't find the Virtual Machine! ({brick.config}) </li>
-                  }
-                  const vm = this.props.vms[brick.vm]
-                  const vbds = vm['$VBDs'].map(vbd => this.props.vbds[vbd])
-                  const vdi = vbds.map(vbd => this.props.vdis[vbd['VDI']]).find(vdi => vdi && vdi.name_label === 'xosan_data')
-                  const sr = this.props.lvmsrs.find(sr => sr.id === vdi['$SR'])
-                  const host = sr.PBDs[0].realHost
-                  return <li key={brick.config}><Link to={`/vms/${vm.id}/general`}>{vm.name_label}</Link> - <Link
-                    to={`/srs/${sr.id}/general`}>{sr.name_label}</Link> - <Link
-                      to={`/hosts/${host.id}/general`}>{host.name_label}</Link> ({brick.config})
-                    </li>
-                })}</ul>
-              </td>
-              <td>
-                <ul>{map(volume['peers'], peer => <li key={peer.uuid}>{peer.hostname} - {peer.state}</li>)}</ul>
-              </td>
-            </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-      }
     </div>
   }
 }
@@ -219,95 +165,79 @@ export default class Xosan extends Component {
     createXosanVM(pif, vlan, Object.keys(this._selectedItems))
   }
 
+  renderPool (pool, xosansrs, lvmsrs) {
+    const filteredXosansrs = xosansrs.filter(sr => sr.$pool === pool.id)
+    if (filteredXosansrs.length) {
+      return <XosanVolumesTable xosansrs={filteredXosansrs} lvmsrs={lvmsrs} />
+    } else {
+      return <div>
+        <h2>Available Raw SRs (lvm)</h2>
+        <table className='table table-striped'>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Hosts</th>
+              <th>Size</th>
+              <th>Used Space</th>
+              <th><ActionButton
+                btnStyle='success'
+                icon='add'
+                handler={this._createXosanVm}
+                handlerParam={Object.keys(this._selectedItems)}
+              >Create XOSAN VM on selected SRs and PIF</ActionButton>
+                <br />
+                <SelectPif
+                  predicate={this._getPifPredicate(pool)}
+                  ref='pif'
+                />
+                <input type='text' ref='vlan' placeholder='VLAN' />
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {map(lvmsrs.filter(sr => sr.$pool === pool.id), sr => {
+              return <tr key={sr.id}>
+                <td>
+                  <Link to={`/srs/${sr.id}/general`}>{sr.name_label}</Link>
+                </td>
+                <td>
+                  { sr.PBDs.map(pbd => pbd.realHost.name_label).join(', ') }
+                </td>
+                <td>
+                  {formatSize(sr.size)}
+                </td>
+                <td>
+                  {sr.size > 0 &&
+                  <Tooltip content={_('spaceLeftTooltip', {
+                    used: String(Math.round((sr.physical_usage / sr.size) * 100)),
+                    free: formatSize(sr.size - sr.physical_usage)
+                  })}>
+                    <progress style={{ margin: 0 }} className='progress'
+                      value={(sr.physical_usage / sr.size) * 100}
+                      max='100' />
+                  </Tooltip>
+                  }
+                </td>
+                <td>
+                  <input type='checkbox' checked={this._selectedItems[sr.id]} onChange={this._selectItem}
+                    value={sr.id} />
+                </td>
+              </tr>
+            })}
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+
   render () {
-    const { lvmsrs, networks, pools, hosts, xosansrs } = this.props
-    console.log('hosts', hosts)
+    const { lvmsrs, pools, xosansrs } = this.props
     return <Page header={HEADER} title='xosan' formatTitle>
       <Container>
         {map(pools, pool => {
-          console.log('pool', pool)
-          const filteredXosansrs = xosansrs.filter(sr => sr.$pool === pool.id)
-          const master = hosts[pool.id].find(host => host.id === pool.master)
-          console.log('master', master)
           return <div>
             <h1>Pool <i>{pool.name_label}</i></h1>
-            { filteredXosansrs.length && <XosanVolumesTable xosansrs={filteredXosansrs} lvmsrs={lvmsrs} />}
-            <div>
-              <h2>Available Raw SRs (lvm)</h2>
-              <table className='table table-striped'>
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Hosts</th>
-                    <th>Size</th>
-                    <th>Used Space</th>
-                    <th><ActionButton
-                      btnStyle='success'
-                      icon='add'
-                      handler={this._createXosanVm}
-                      handlerParam={Object.keys(this._selectedItems)}
-                      >Create XOSAN VM on selected SRs and PIF</ActionButton>
-                      <br />
-                      <SelectPif
-                        predicate={this._getPifPredicate(pool)}
-                        ref='pif'
-                        />
-                      <input type='text' ref='vlan' placeholder='VLAN' />
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {map(lvmsrs.filter(sr => sr.$pool === pool.id), sr => {
-                    return <tr key={sr.id}>
-                      <td>
-                        <Link to={`/srs/${sr.id}/general`}>{sr.name_label}</Link>
-                      </td>
-                      <td>
-                        { sr.PBDs.map(pbd => pbd.realHost.name_label).join(', ') }
-                      </td>
-                      <td>
-                        {formatSize(sr.size)}
-                      </td>
-                      <td>
-                        {sr.size > 0 &&
-                          <Tooltip content={_('spaceLeftTooltip', {
-                            used: String(Math.round((sr.physical_usage / sr.size) * 100)),
-                            free: formatSize(sr.size - sr.physical_usage)
-                          })}>
-                            <progress style={{ margin: 0 }} className='progress'
-                              value={(sr.physical_usage / sr.size) * 100}
-                              max='100' />
-                          </Tooltip>
-                          }
-                      </td>
-                      <td>
-                        <input type='checkbox' checked={this._selectedItems[sr.id]} onChange={this._selectItem}
-                          value={sr.id} />
-                      </td>
-                    </tr>
-                  })}
-                </tbody>
-              </table>
-            </div>
-            <div><h1>Networks</h1>
-              <table className='table table-striped'>
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Description</th>
-                    <th>Config</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {map(networks[pool.id], network => <tr key={network.id}>
-                    <td>{network.name_label}</td>
-                    <td>{network.name_description}</td>
-                    <td>{JSON.stringify(network.other_config)}</td>
-                  </tr>)}
-                </tbody>
-              </table>
-            </div>
-
+            {this.renderPool(pool, xosansrs, lvmsrs)}
           </div>
         }
         )}
