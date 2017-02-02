@@ -301,6 +301,16 @@ delete_ = $coroutine ({vm, delete_disks: deleteDisks}) ->
 
   xapi = @getXapi(vm)
 
+  @getAllAcls().then((acls) =>
+    Promise.all(mapFilter(acls, (acl) =>
+      if (acl.object == vm.id)
+        return pCatch.call(
+          @removeAcl(acl.subject, acl.object, acl.action),
+          noop
+        )
+    ))
+  )
+
   # Update IP pools
   yield Promise.all(map(vm.VIFs, (vifId) =>
     vif = xapi.getObject(vifId)
