@@ -73,7 +73,7 @@ the code.
 
 You may:
 
-- report any [issue](https://github.com/vatesfr/xo-server-auth-ldap/issues)
+- report any [issue](https://github.com/vatesfr/xo-web/issues)
   you've encountered;
 - fork and create a pull request.
 
