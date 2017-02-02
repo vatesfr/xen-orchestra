@@ -188,6 +188,8 @@ class AuthLdap {
       const bind = promisify(client.bind, client)
       const search = promisify(client.search, client)
 
+      await eventToPromise(client, 'connect')
+
       // Bind if necessary.
       {
         const {_credentials: credentials} = this
