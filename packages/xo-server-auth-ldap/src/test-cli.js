@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import execPromise from 'exec-promise'
+import { bind } from 'lodash'
 import { fromCallback } from 'promise-toolbox'
 import { readFile, writeFile } from 'fs'
 
@@ -44,5 +45,5 @@ execPromise(async args => {
       validate: input => !!input.length
     }),
     password: await password('Password')
-  }, ::console.log)
+  }, bind(console.log, console))
 })

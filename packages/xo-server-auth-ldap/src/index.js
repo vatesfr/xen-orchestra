@@ -1,20 +1,13 @@
 /* eslint no-throw-literal: 0 */
 
 import eventToPromise from 'event-to-promise'
+import { bind, noop } from 'lodash'
 import { createClient } from 'ldapjs'
 import { escape } from 'ldapjs/lib/filters/escape'
 import { promisify } from 'promise-toolbox'
 import { readFile } from 'fs'
 
 // ===================================================================
-
-const bind = (fn, thisArg) => function () {
-  return fn.apply(thisArg, arguments)
-}
-
-const noop = () => {}
-
-// -------------------------------------------------------------------
 
 const VAR_RE = /\{\{([^}]+)\}\}/g
 const evalFilter = (filter, vars) => filter.replace(VAR_RE, (_, name) => {
