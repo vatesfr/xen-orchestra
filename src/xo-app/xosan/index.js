@@ -15,6 +15,7 @@ import {
   createSelector,
   createSort
 } from 'selectors'
+import { SelectPif } from 'select-objects'
 import {
   getVolumeInfo,
   createXosanVM
@@ -64,7 +65,7 @@ export class XosanVolumesTable extends Component {
   render () {
     const { xosansrs } = this.props
     return <div>
-      <h1>Xen Orchestra SAN SRs</h1>
+      <h2>Xen Orchestra SAN SRs</h2>
       <table className='table table-striped'>
         <thead>
           <tr>
@@ -158,6 +159,10 @@ export class XosanVolumesTable extends Component {
   }
 }
 @connectStore(() => {
+  const pools = createGetObjectsOfType('pool')
+
+  const hosts = createGetObjectsOfType('host').groupBy('$pool')
+
   const lvmsrs = createSort(createSelector(
     createGetObjectsOfType('SR').filter([sr => !sr.shared && sr.SR_type === 'lvm']),
     createGetObjectsOfType('PBD').groupBy('SR'),
@@ -170,7 +175,7 @@ export class XosanVolumesTable extends Component {
       })
       sr.PBDs.sort()
       return sr
-    })
+    }).filter(sr => Boolean(sr.PBDs.length))
   ), 'name_label')
 
   const xosansrs = createSort(createSelector(
@@ -188,14 +193,20 @@ export class XosanVolumesTable extends Component {
     })
   ), 'name_label')
   return {
+    hosts,
+    pools,
     xosansrs,
     lvmsrs,
-    networks: createGetObjectsOfType('network')
+    networks: createGetObjectsOfType('network').groupBy('$pool')
   }
 })
 
 export default class Xosan extends Component {
   _selectedItems = {}
+
+  _getPifPredicate (pool) {
+    return pif => pif.vlan === -1 && pif.$pool === pool.id
+  }
 
   _selectItem = (event) => {
     const id = event.target.value
@@ -203,81 +214,103 @@ export default class Xosan extends Component {
   }
 
   _createXosanVm = () => {
-    createXosanVM(Object.keys(this._selectedItems))
+    const pif = this.refs.pif.value
+    const vlan = this.refs.vlan.value
+    createXosanVM(pif, vlan, Object.keys(this._selectedItems))
   }
 
   render () {
-    const { lvmsrs, networks } = this.props
+    const { lvmsrs, networks, pools, hosts, xosansrs } = this.props
+    console.log('hosts', hosts)
     return <Page header={HEADER} title='xosan' formatTitle>
       <Container>
-        {this.props.xosansrs.length && <XosanVolumesTable xosansrs={this.props.xosansrs} lvmsrs={lvmsrs} />}
-        <div>
-          <h1>Available Raw SRs (lvm)</h1>
-          <table className='table table-striped'>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Hosts</th>
-                <th>Size</th>
-                <th>Used Space</th>
-                <th><ActionButton
-                  btnStyle='success'
-                  icon='add'
-                  handler={this._createXosanVm}
-                  handlerParam={Object.keys(this._selectedItems)}
-                >Create XOSAN VM on selected SRs</ActionButton></th>
-              </tr>
-            </thead>
-            <tbody>
-              {map(lvmsrs, sr => {
-                return <tr key={sr.id}>
-                  <td>
-                    <Link to={`/srs/${sr.id}/general`}>{sr.name_label}</Link>
-                  </td>
-                  <td>
-                    { sr.PBDs.map(pbd => pbd.realHost.name_label).join(', ') }
-                  </td>
-                  <td>
-                    {formatSize(sr.size)}
-                  </td>
-                  <td>
-                    {sr.size > 0 &&
-                    <Tooltip content={_('spaceLeftTooltip', {
-                      used: String(Math.round((sr.physical_usage / sr.size) * 100)),
-                      free: formatSize(sr.size - sr.physical_usage)
-                    })}>
-                      <progress style={{ margin: 0 }} className='progress' value={(sr.physical_usage / sr.size) * 100}
-                        max='100' />
-                    </Tooltip>
-                    }
-                  </td>
-                  <td>
-                    <input type='checkbox' checked={this._selectedItems[sr.id]} onChange={this._selectItem}
-                      value={sr.id} />
-                  </td>
-                </tr>
-              })}
-            </tbody>
-          </table>
-        </div>
-        <div><h1>Networks</h1>
-          <table className='table table-striped'>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Config</th>
-              </tr>
-            </thead>
-            <tbody>
-              {map(networks, network => <tr key={network.id}>
-                <td>{network.name_label}</td>
-                <td>{network.name_description}</td>
-                <td>{network.other_config}</td>
-              </tr>)}
-            </tbody>
-          </table>
-        </div>
+        {map(pools, pool => {
+          console.log('pool', pool)
+          const filteredXosansrs = xosansrs.filter(sr => sr.$pool === pool.id)
+          const master = hosts[pool.id].find(host => host.id === pool.master)
+          console.log('master', master)
+          return <div>
+            <h1>Pool <i>{pool.name_label}</i></h1>
+            { filteredXosansrs.length && <XosanVolumesTable xosansrs={filteredXosansrs} lvmsrs={lvmsrs} />}
+            <div>
+              <h2>Available Raw SRs (lvm)</h2>
+              <table className='table table-striped'>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Hosts</th>
+                    <th>Size</th>
+                    <th>Used Space</th>
+                    <th><ActionButton
+                      btnStyle='success'
+                      icon='add'
+                      handler={this._createXosanVm}
+                      handlerParam={Object.keys(this._selectedItems)}
+                      >Create XOSAN VM on selected SRs and PIF</ActionButton>
+                      <br />
+                      <SelectPif
+                        predicate={this._getPifPredicate(pool)}
+                        ref='pif'
+                        />
+                      <input type='text' ref='vlan' placeholder='VLAN' />
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {map(lvmsrs.filter(sr => sr.$pool === pool.id), sr => {
+                    return <tr key={sr.id}>
+                      <td>
+                        <Link to={`/srs/${sr.id}/general`}>{sr.name_label}</Link>
+                      </td>
+                      <td>
+                        { sr.PBDs.map(pbd => pbd.realHost.name_label).join(', ') }
+                      </td>
+                      <td>
+                        {formatSize(sr.size)}
+                      </td>
+                      <td>
+                        {sr.size > 0 &&
+                          <Tooltip content={_('spaceLeftTooltip', {
+                            used: String(Math.round((sr.physical_usage / sr.size) * 100)),
+                            free: formatSize(sr.size - sr.physical_usage)
+                          })}>
+                            <progress style={{ margin: 0 }} className='progress'
+                              value={(sr.physical_usage / sr.size) * 100}
+                              max='100' />
+                          </Tooltip>
+                          }
+                      </td>
+                      <td>
+                        <input type='checkbox' checked={this._selectedItems[sr.id]} onChange={this._selectItem}
+                          value={sr.id} />
+                      </td>
+                    </tr>
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <div><h1>Networks</h1>
+              <table className='table table-striped'>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Config</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {map(networks[pool.id], network => <tr key={network.id}>
+                    <td>{network.name_label}</td>
+                    <td>{network.name_description}</td>
+                    <td>{JSON.stringify(network.other_config)}</td>
+                  </tr>)}
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+        }
+        )}
       </Container>
     </Page>
   }
