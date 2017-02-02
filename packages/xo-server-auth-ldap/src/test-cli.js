@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 import execPromise from 'exec-promise'
-import { readFile, writeFile } from 'fs-promise'
+import { fromCallback } from 'promise-toolbox'
+import { readFile, writeFile } from 'fs'
 
 import promptSchema, {
   input,
@@ -20,12 +21,12 @@ const CACHE_FILE = './ldap.cache.conf'
 execPromise(async args => {
   const config = await promptSchema(
     configurationSchema,
-    await readFile(CACHE_FILE, 'utf-8').then(
+    await fromCallback(cb => readFile(CACHE_FILE, 'utf-8', cb)).then(
       JSON.parse,
       () => ({})
     )
   )
-  await writeFile(CACHE_FILE, JSON.stringify(config, null, 2)).then(
+  await fromCallback(cb => writeFile(CACHE_FILE, JSON.stringify(config, null, 2), cb)).then(
     () => {
       console.log('configuration saved in %s', CACHE_FILE)
     },

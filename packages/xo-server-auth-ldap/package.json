@@ -36,9 +36,9 @@
     "babel-runtime": "^6.3.19",
     "event-to-promise": "^0.7.0",
     "exec-promise": "^0.6.1",
-    "fs-promise": "^1.0.0",
     "inquirer": "^3.0.1",
-    "ldapjs": "^1.0.0"
+    "ldapjs": "^1.0.0",
+    "promise-toolbox": "^0.8.0"
   },
   "devDependencies": {
     "babel-cli": "^6.3.17",
