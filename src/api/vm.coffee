@@ -23,6 +23,7 @@ startsWith = require 'lodash/startsWith'
   formatXml: $js2xml,
   isArray: $isArray,
   map,
+  mapFilter,
   mapToArray,
   noop,
   parseSize,
