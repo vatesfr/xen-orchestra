@@ -1,24 +1,46 @@
 import _ from 'intl'
 import BaseComponent from 'base-component'
-import every from 'lodash/every'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
-import { SelectHost } from 'select-objects'
 import { Col } from 'grid'
 import { connectStore } from 'utils'
-import { createGetObjectsOfType } from 'selectors'
+import { createCollectionWrapper, createGetObjectsOfType, createSelector } from 'selectors'
+import { forEach } from 'lodash'
+import { SelectHost } from 'select-objects'
 
 @connectStore(() => ({
-  hosts: createGetObjectsOfType('host')
+  singleHosts: createSelector(
+    (_, { pool }) => pool && pool.id,
+    createGetObjectsOfType('host'),
+    createCollectionWrapper((poolId, hosts) => {
+      const visitedPools = {}
+      const singleHosts = {}
+      forEach(hosts, host => {
+        const { $pool } = host
+        if ($pool !== poolId) {
+          const previousHost = visitedPools[$pool]
+          if (previousHost) {
+            delete singleHosts[previousHost]
+          } else {
+            const { id } = host
+            singleHosts[id] = true
+            visitedPools[$pool] = id
+          }
+        }
+      })
+      return singleHosts
+    })
+  )
 }), { withRef: true })
 export default class AddHostModal extends BaseComponent {
   get value () {
     return this.state
   }
 
-  _hostPredicate = host =>
-    host.$pool !== this.props.pool.id &&
-    every(this.props.hosts, h => h.$pool !== host.$pool || h.id === host.id)
+  _getHostPredicate = createSelector(
+    () => this.props.singleHosts,
+    singleHosts => host => singleHosts[host.id]
+  )
 
   render () {
     return <div>
@@ -27,7 +49,7 @@ export default class AddHostModal extends BaseComponent {
         <Col size={6}>
           <SelectHost
             onChange={this.linkState('host')}
-            predicate={this._hostPredicate}
+            predicate={this._getHostPredicate()}
             value={this.state.host}
           />
         </Col>
