@@ -22,7 +22,9 @@ import { SelectHost } from 'select-objects'
           if (previousHost) {
             delete singleHosts[previousHost]
           } else {
-            singleHosts[host.id] = visitedPools[$pool] = true
+            const { id } = host
+            singleHosts[id] = true
+            visitedPools[$pool] = id
           }
         }
       })
