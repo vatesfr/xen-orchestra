@@ -1795,4 +1795,9 @@ export const getPeers = ip => _call('xosan.getPeers', { ip })
 
 export const getVolumeInfo = (xosanSr) => _call('xosan.getVolumeInfo', { sr: xosanSr })
 
-export const createXosanVM = (pif, vlan, srs) => _call('xosan.createVM', { pif: pif.id, vlan: vlan, srs: resolveIds(srs) })
+export const createXosanVM = (pif, vlan, srs, glusterType) => _call('xosan.createVM', {
+  pif: pif.id,
+  vlan: vlan,
+  srs: resolveIds(srs),
+  glusterType
+})

@@ -21,7 +21,7 @@ import {
 } from 'xo'
 
 const HEADER = <Container>
-  <h2><Icon icon='menu-update' /> Xen Orchestra Storage Area Network</h2>
+  <h2><Icon icon='menu-update'/> Xen Orchestra Storage Area Network</h2>
 </Container>
 @connectStore(() => {
   return {
@@ -31,6 +31,7 @@ const HEADER = <Container>
     vdis: createGetObjectsOfType('VDI')
   }
 })
+
 export class XosanVolumesTable extends Component {
   constructor (props) {
     super(props)
@@ -93,7 +94,7 @@ export class XosanVolumesTable extends Component {
                   free: formatSize(sr.size - sr.physical_usage)
                 })}>
                   <progress style={{ margin: 0 }} className='progress' value={(sr.physical_usage / sr.size) * 100}
-                    max='100' />
+                            max='100'/>
                 </Tooltip>
                 }
               </td>
@@ -162,13 +163,14 @@ export default class Xosan extends Component {
   _createXosanVm = () => {
     const pif = this.refs.pif.value
     const vlan = this.refs.vlan.value
-    createXosanVM(pif, vlan, Object.keys(this._selectedItems))
+    const type = this.refs.glusterType.value
+    createXosanVM(pif, vlan, Object.keys(this._selectedItems), type)
   }
 
   renderPool (pool, xosansrs, lvmsrs) {
     const filteredXosansrs = xosansrs.filter(sr => sr.$pool === pool.id)
     if (filteredXosansrs.length) {
-      return <XosanVolumesTable xosansrs={filteredXosansrs} lvmsrs={lvmsrs} />
+      return <XosanVolumesTable xosansrs={filteredXosansrs} lvmsrs={lvmsrs}/>
     } else {
       return <div>
         <h2>Available Raw SRs (lvm)</h2>
@@ -190,7 +192,17 @@ export default class Xosan extends Component {
                   predicate={this._getPifPredicate(pool)}
                   ref='pif'
                 />
-                <input type='text' ref='vlan' placeholder='VLAN' />
+                <input className='form-control' type='text' ref='vlan' placeholder='VLAN'/>
+                <select
+                  className='form-control'
+                  defaultValue='disperse'
+                  id='selectGlusterType'
+                  ref='glusterType'
+                  required
+                >
+                  <option value='disperse'>disperse</option>
+                  <option value='replica'>replica</option>
+                </select>
               </th>
             </tr>
           </thead>
@@ -200,7 +212,7 @@ export default class Xosan extends Component {
               let lastCol = null
               if (host.supplementalPacks['vates:XOSAN']) {
                 lastCol = <input type='checkbox' checked={this._selectedItems[sr.id]} onChange={this._selectItem}
-                  value={sr.id} />
+                                 value={sr.id}/>
               } else {
                 lastCol = <span>Supplemental Pack XOSAN is not installed on <Link
                   to={`/hosts/${host.id}/advanced`}>host { host.name_label }</Link></span>
@@ -222,8 +234,8 @@ export default class Xosan extends Component {
                     free: formatSize(sr.size - sr.physical_usage)
                   })}>
                     <progress style={{ margin: 0 }} className='progress'
-                      value={(sr.physical_usage / sr.size) * 100}
-                      max='100' />
+                              value={(sr.physical_usage / sr.size) * 100}
+                              max='100'/>
                   </Tooltip>
                   }
                 </td>
@@ -243,11 +255,11 @@ export default class Xosan extends Component {
     return <Page header={HEADER} title='xosan' formatTitle>
       <Container>
         {map(pools, pool => {
-          return <div>
-            <h1>Pool <i>{pool.name_label}</i></h1>
-            {this.renderPool(pool, xosansrs, lvmsrs)}
-          </div>
-        }
+            return <div>
+              <h1>Pool <i>{pool.name_label}</i></h1>
+              {this.renderPool(pool, xosansrs, lvmsrs)}
+            </div>
+          }
         )}
       </Container>
     </Page>
