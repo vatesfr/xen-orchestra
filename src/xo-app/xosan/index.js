@@ -196,12 +196,21 @@ export default class Xosan extends Component {
           </thead>
           <tbody>
             {map(lvmsrs.filter(sr => sr.$pool === pool.id), sr => {
+              const host = sr.PBDs[0].realHost
+              let lastCol = null
+              if (host.supplementalPacks['vates:XOSAN']) {
+                lastCol = <input type='checkbox' checked={this._selectedItems[sr.id]} onChange={this._selectItem}
+                  value={sr.id} />
+              } else {
+                lastCol = <span>Supplemental Pack XOSAN is not installed on <Link
+                  to={`/hosts/${host.id}/advanced`}>host { host.name_label }</Link></span>
+              }
               return <tr key={sr.id}>
                 <td>
                   <Link to={`/srs/${sr.id}/general`}>{sr.name_label}</Link>
                 </td>
                 <td>
-                  <Link to={`/hosts/${sr.PBDs[0].realHost.id}/general`}>{ sr.PBDs[0].realHost.name_label }</Link>
+                  <Link to={`/hosts/${host.id}/general`}>{ host.name_label }</Link>
                 </td>
                 <td>
                   {formatSize(sr.size)}
@@ -219,8 +228,7 @@ export default class Xosan extends Component {
                   }
                 </td>
                 <td>
-                  <input type='checkbox' checked={this._selectedItems[sr.id]} onChange={this._selectItem}
-                    value={sr.id} />
+                  { lastCol }
                 </td>
               </tr>
             })}
