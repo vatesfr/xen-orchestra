@@ -2,12 +2,28 @@ import _ from 'intl'
 import Copiable from 'copiable'
 import React from 'react'
 import TabButton from 'tab-button'
+import SelectFiles from 'select-files'
+import Upgrade from 'xoa-upgrade'
 import { Toggle } from 'form'
-import { enableHost, detachHost, disableHost, restartHost } from 'xo'
+import { enableHost, detachHost, disableHost, restartHost, installSupplementalPack } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Container, Row, Col } from 'grid'
+import {
+  map
+} from 'lodash'
+
+const ALLOW_INSTALL_SUPP_PACK = process.env.XOA_PLAN > 1
 
 const forceReboot = host => restartHost(host, true)
+
+const formatPack = (version, pack) => {
+  const [ author, name ] = pack.split(':')
+
+  return <tr>
+    <th>{_('supplementalPackTitle', { author, name })}</th>
+    <td>{version}</td>
+  </tr>
+}
 
 export default ({
   host
@@ -154,6 +170,25 @@ export default ({
           </tr>
         </tbody>
       </table>
+      <h3>{_('supplementalPacks')}</h3>
+      <table className='table'>
+        <tbody>
+          {map(host.supplementalPacks, formatPack)}
+          {ALLOW_INSTALL_SUPP_PACK && <tr>
+            <th>{_('supplementalPackNew')}</th>
+            <td>
+              <SelectFiles
+                type='file'
+                onChange={file => installSupplementalPack(host, file)}
+              />
+            </td>
+          </tr>}
+        </tbody>
+      </table>
+      {!ALLOW_INSTALL_SUPP_PACK && [
+        <h3>{_('supplementalPackNew')}</h3>,
+        <Container><Upgrade place='supplementalPacks' available={2} /></Container>
+      ]}
     </Col>
   </Row>
 </Container>

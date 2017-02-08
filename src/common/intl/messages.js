@@ -13,6 +13,7 @@ var messages = {
 
   editableLongClickPlaceholder: 'Long click to edit',
   editableClickPlaceholder: 'Click to edit',
+  browseFiles: 'Browse files',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -145,6 +146,7 @@ var messages = {
   homeMigrateTo: 'Migrate to…',
   homeMissingPaths: 'Missing patches',
   homePoolMaster: 'Master:',
+  homeResourceSet: 'Resource set: {resourceSet}',
   highAvailability: 'High Availability',
   srSharedType: 'Shared {type}',
   srNotSharedType: 'Not shared {type}',
@@ -186,17 +188,23 @@ var messages = {
   // --- Dates/Scheduler ---
 
   schedulingMonth: 'Month',
+  schedulingEveryNMonth: 'Every N month',
   schedulingEachSelectedMonth: 'Each selected month',
-  schedulingMonthDay: 'Day of the month',
-  schedulingEachSelectedMonthDay: 'Each selected day',
-  schedulingWeekDay: 'Day of the week',
-  schedulingEachSelectedWeekDay: 'Each selected day',
+  schedulingDay: 'Day',
+  schedulingEveryNDay: 'Every N day',
+  schedulingEachSelectedDay: 'Each selected day',
+  schedulingSetWeekDayMode: 'Switch to week days',
+  schedulingSetMonthDayMode: 'Switch to month days',
   schedulingHour: 'Hour',
-  schedulingEveryNHour: 'Every N hour',
   schedulingEachSelectedHour: 'Each selected hour',
+  schedulingEveryNHour: 'Every N hour',
   schedulingMinute: 'Minute',
-  schedulingEveryNMinute: 'Every N minute',
   schedulingEachSelectedMinute: 'Each selected minute',
+  schedulingEveryNMinute: 'Every N minute',
+  selectTableAllMonth: 'Every month',
+  selectTableAllDay: 'Every day',
+  selectTableAllHour: 'Every hour',
+  selectTableAllMinute: 'Every minute',
   schedulingReset: 'Reset',
   unknownSchedule: 'Unknown',
   timezonePickerUseLocalTime: 'Web browser timezone',
@@ -479,7 +487,7 @@ var messages = {
   noHostsAvailableErrorMessage: 'Some VMs cannot be migrated before restarting this host. Please try force reboot.',
   failHostBulkRestartTitle: 'Error while restarting hosts',
   failHostBulkRestartMessage: '{failedHosts}/{totalHosts} host{failedHosts, plural, one {} other {s}} could not be restarted.',
-  rebootUpdateHostLabel: 'Reboot for applying updates',
+  rebootUpdateHostLabel: 'Reboot to apply updates',
   emergencyModeLabel: 'Emergency mode',
   // ----- Host tabs -----
   storageTabName: 'Storage',
@@ -507,6 +515,16 @@ var messages = {
   hostLicenseType: 'Type',
   hostLicenseSocket: 'Socket',
   hostLicenseExpiry: 'Expiry',
+  supplementalPacks: 'Installed supplemental packs',
+  supplementalPackNew: 'Install new supplemental pack',
+  supplementalPackPoolNew: 'Install supplemental pack on every host',
+  supplementalPackTitle: '{name} (by {author})',
+  supplementalPackInstallStartedTitle: 'Installation started',
+  supplementalPackInstallStartedMessage: 'Installing new supplemental pack...',
+  supplementalPackInstallErrorTitle: 'Installation error',
+  supplementalPackInstallErrorMessage: 'The installation of the supplemental pack failed.',
+  supplementalPackInstallSuccessTitle: 'Installation success',
+  supplementalPackInstallSuccessMessage: 'Supplemental pack successfully installed.',
   // ----- Host net tabs -----
   networkCreateButton: 'Add a network',
   networkCreateBondedButton: 'Add a bonded network',
@@ -959,6 +977,11 @@ var messages = {
   restoreFilesSelectFolderPath: 'Folder path',
   restoreFilesSelectFiles: 'Select a file…',
   restoreFileContentNotFound: 'Content not found',
+  restoreFilesNoFilesSelected: 'No files selected',
+  restoreFilesSelectedFiles: 'Selected files ({files}):',
+  restoreFilesDiskError: 'Error while scanning disk',
+  restoreFilesSelectAllFiles: 'Select all this folder\'s files',
+  restoreFilesUnselectAll: 'Unselect all files',
 
   // ----- Modals -----
   emergencyShutdownHostsModalTitle: 'Emergency shutdown Host{nHosts, plural, one {} other {s}}',
@@ -1213,6 +1236,7 @@ var messages = {
   logDeleteAll: 'Delete all logs',
   logDeleteAllTitle: 'Delete all logs',
   logDeleteAllMessage: 'Are you sure you want to delete all the logs?',
+  reportBug: 'Report a bug',
 
   // ----- IPs ------
   ipPoolName: 'Name',

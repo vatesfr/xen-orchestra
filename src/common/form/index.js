@@ -5,12 +5,15 @@ import map from 'lodash/map'
 import randomPassword from 'random-password'
 import React from 'react'
 import round from 'lodash/round'
+import SingleLineRow from 'single-line-row'
+import { Container, Col } from 'grid'
 import {
   DropdownButton,
   MenuItem
 } from 'react-bootstrap-4/lib'
 
 import Component from '../base-component'
+import getEventValue from '../get-event-value'
 import propTypes from '../prop-types'
 import {
   firstDefined,
@@ -89,68 +92,45 @@ export class Password extends Component {
 // ===================================================================
 
 @propTypes({
-  defaultValue: propTypes.number,
   max: propTypes.number.isRequired,
   min: propTypes.number.isRequired,
+  onChange: propTypes.func,
   step: propTypes.number,
-  onChange: propTypes.func
+  value: propTypes.number
 })
 export class Range extends Component {
-  constructor (props) {
-    super()
-    this.state = {
-      value: props.defaultValue || props.min
+  componentDidMount () {
+    const { min, onChange, value } = this.props
+
+    if (!value) {
+      onChange && onChange(min)
     }
   }
 
-  get value () {
-    return this.state.value
-  }
-
-  set value (value) {
-    this.setState({
-      value: +value
-    })
-  }
-
-  _handleChange = event => {
-    const { onChange } = this.props
-    const { value } = event.target
-
-    if (value === this.state.value) {
-      return
-    }
-
-    this.setState({
-      value
-    }, onChange && (() => onChange(value)))
-  }
+  _onChange = value =>
+    this.props.onChange(getEventValue(value))
 
   render () {
-    const {
-      props
-    } = this
-    const step = props.step || 1
-    const { value } = this.state
+    const { max, min, step, value } = this.props
 
-    return (
-      <div className='form-group row'>
-        <label className='col-sm-2 control-label'>
-          {value}
-        </label>
-        <div className='col-sm-10'>
+    return <Container>
+      <SingleLineRow>
+        <Col size={2}>
+          <span className='pull-right'>{value}</span>
+        </Col>
+        <Col size={10}>
           <input
             className='form-control'
-            type='range'
-            min={props.min}
-            max={props.max}
+            max={max}
+            min={min}
+            onChange={this._onChange}
             step={step}
+            type='range'
             value={value}
-            onChange={this._handleChange}
           />
-        </div>
-      </div>
-    )
+        </Col>
+      </SingleLineRow>
+    </Container>
   }
 }
 

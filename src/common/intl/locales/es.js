@@ -1172,7 +1172,7 @@ export default {
   // Original text: "Reboot"
   rebootHostLabel: 'Reiniciar',
 
-  // Original text: 'Reboot for applying updates'
+  // Original text: 'Reboot to apply updates'
   rebootUpdateHostLabel: undefined,
 
   // Original text: "Emergency mode"

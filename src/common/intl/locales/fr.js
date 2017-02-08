@@ -1175,7 +1175,7 @@ export default {
   // Original text: "Reboot"
   rebootHostLabel: 'Redémarrer',
 
-  // Original text: "Reboot for applying updates"
+  // Original text: "Reboot to apply updates"
   rebootUpdateHostLabel: 'Redémarrer pour appliquer les mises à jour',
 
   // Original text: "Emergency mode"

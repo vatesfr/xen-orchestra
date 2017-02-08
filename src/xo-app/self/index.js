@@ -620,12 +620,18 @@ class ResourceSet extends Component {
     ]
   }
 
+  _autoExpand = ref => {
+    if (ref && ref.scrollIntoView) {
+      ref.scrollIntoView()
+    }
+  }
+
   render () {
-    const { resourceSet } = this.props
+    const { resourceSet, autoExpand } = this.props
 
     return (
-      <div className='mb-1'>
-        <Collapse buttonText={resourceSet.name}>
+      <div className='mb-1' ref={this._autoExpand}>
+        <Collapse buttonText={resourceSet.name} defaultOpen={autoExpand}>
           <ul className='list-group'>
             {this.state.editionMode
               ? <Edit resourceSet={this.props.resourceSet} onSave={this.toggleState('editionMode')} />
@@ -661,6 +667,7 @@ export default class Self extends Component {
 
   render () {
     const { resourceSets, showNewResourceSetForm } = this.state
+    const { location } = this.props
 
     return <Page
       formatTitle
@@ -690,7 +697,13 @@ export default class Self extends Component {
           {resourceSets
             ? (isEmpty(resourceSets)
               ? _('noResourceSets')
-              : map(resourceSets, (resourceSet, key) => <ResourceSet key={resourceSet.id} resourceSet={resourceSet} />)
+              : map(resourceSets, resourceSet => (
+                <ResourceSet
+                  autoExpand={location.query.resourceSet === resourceSet.id}
+                  key={resourceSet.id}
+                  resourceSet={resourceSet}
+                />
+              ))
             ) : _('loadingResourceSets')
           }
         </div>

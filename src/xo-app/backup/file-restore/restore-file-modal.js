@@ -1,14 +1,20 @@
 import _ from 'intl'
+import ActionButton from 'action-button'
 import Component from 'base-component'
 import endsWith from 'lodash/endsWith'
+import Icon from 'icon'
 import React from 'react'
 import replace from 'lodash/replace'
-import { formatSize, noop } from 'utils'
+import Tooltip from 'tooltip'
+import { Container, Col, Row } from 'grid'
+import { formatSize } from 'utils'
 import { FormattedDate } from 'react-intl'
 import { SelectPlainObject } from 'form'
 import {
+  find,
   isEmpty,
-  map
+  map,
+  filter
 } from 'lodash'
 import {
   scanDisk,
@@ -33,18 +39,20 @@ const fileOptionRenderer = file => <span>
   {file.name}
 </span>
 
-const formatFilesOptions = (rawFiles, root) => {
-  const files = !root
+const formatFilesOptions = (rawFiles, path) => {
+  const files = path !== '/'
     ? [{
       name: '..',
       id: '..',
+      path: getParentPath(path),
       content: {}
     }]
     : []
 
   return files.concat(map(rawFiles, (file, name) => ({
     name,
-    id: name,
+    id: `${path}${name}`,
+    path: `${path}${name}`,
     content: file
   })))
 }
@@ -54,28 +62,38 @@ const getParentPath = path => replace(path, /^(\/+.+)*(\/+.+)/, '$1/')
 // -----------------------------------------------------------------------------
 
 export default class RestoreFileModalBody extends Component {
+  state = {
+    format: 'zip'
+  }
+
   get value () {
     const { state } = this
 
     return {
       disk: state.disk,
+      format: state.format,
       partition: state.partition,
-      paths: state.file && [ state.path + state.file.id ],
+      paths: state.selectedFiles && map(state.selectedFiles, 'path'),
       remote: state.backup.remoteId
     }
   }
 
-  _scanFiles = (path = this.state.path) => {
-    const { backup, disk, partition } = this.state
+  _scanFiles = () => {
+    const { backup, disk, partition, path } = this.state
+    this.setState({ scanningFiles: true })
 
     return scanFiles(backup.remoteId, disk, path, partition).then(
-      rawFiles => {
+      rawFiles => this.setState({
+        files: formatFilesOptions(rawFiles, path),
+        scanningFiles: false
+      }),
+      error => {
         this.setState({
-          files: formatFilesOptions(rawFiles, path === '/'),
-          path
+          scanningFiles: false,
+          scanFilesError: true
         })
-      },
-      noop
+        throw error
+      }
     )
   }
 
@@ -84,15 +102,18 @@ export default class RestoreFileModalBody extends Component {
       backup,
       disk: undefined,
       partition: undefined,
-      file: undefined
+      file: undefined,
+      selectedFiles: undefined,
+      scanDiskError: false
     })
   }
 
   _onDiskChange = disk => {
     this.setState({
-      disk,
       partition: undefined,
-      file: undefined
+      file: undefined,
+      selectedFiles: undefined,
+      scanDiskError: false
     })
 
     if (!disk) {
@@ -102,14 +123,26 @@ export default class RestoreFileModalBody extends Component {
     scanDisk(this.state.backup.remoteId, disk).then(
       ({ partitions }) => {
         if (isEmpty(partitions)) {
-          return this._scanFiles('/')
+          this.setState({
+            disk,
+            path: '/'
+          }, this._scanFiles)
+
+          return
         }
 
         this.setState({
+          disk,
           partitions
         })
       },
-      noop
+      error => {
+        this.setState({
+          disk,
+          scanDiskError: true
+        })
+        throw error
+      }
     )
   }
 
@@ -117,21 +150,28 @@ export default class RestoreFileModalBody extends Component {
     this.setState({
       partition,
       path: '/',
-      file: undefined
+      file: undefined,
+      selectedFiles: undefined
     }, partition && this._scanFiles)
   }
 
   _onFileChange = file => {
-    const { path } = this.state
-    const isFile = file && file.id !== '..' && !endsWith(file.id, '/')
-
-    this.setState({
-      file: isFile ? file : undefined
-    })
+    const { path, selectedFiles } = this.state
+    const isFile = file && file.id !== '..' && !endsWith(file.path, '/')
 
     if (isFile) {
+      this.setState({
+        file,
+        selectedFiles: find(selectedFiles, { id: file.id })
+          ? selectedFiles
+          : (selectedFiles || []).concat(file)
+      })
       return
     }
+
+    this.setState({
+      file: undefined
+    })
 
     // Ugly workaround to keep the ReactSelect open after selecting a folder
     // FIXME: Remove and use isOpen/alwaysOpen prop once one of these issues is fixed:
@@ -141,7 +181,35 @@ export default class RestoreFileModalBody extends Component {
     select.blur()
     select.focus()
 
-    this._scanFiles(file.id === '..' ? getParentPath(path) : `${path}${file.id}`)
+    if (file) {
+      this.setState({
+        path: file.id === '..' ? getParentPath(path) : file.path
+      }, this._scanFiles)
+    }
+  }
+
+  _unselectFile = file => {
+    this.setState({
+      selectedFiles: filter(this.state.selectedFiles, ({ id }) => id !== file.id)
+    })
+  }
+
+  _unselectAllFiles = () => {
+    this.setState({
+      selectedFiles: undefined
+    })
+  }
+
+  _selectAllFolderFiles = () => {
+    const { files, selectedFiles } = this.state
+
+    this.setState({
+      selectedFiles: (selectedFiles || []).concat(
+        filter(files, ({ path }) =>
+          !endsWith(path, '/') && !find(selectedFiles, file => file.path === path)
+        )
+      )
+    })
   }
 
   // ---------------------------------------------------------------------------
@@ -153,9 +221,14 @@ export default class RestoreFileModalBody extends Component {
       disk,
       file,
       files,
+      format,
       partition,
       partitions,
-      path
+      path,
+      scanDiskError,
+      scanFilesError,
+      scanningFiles,
+      selectedFiles
     } = this.state
     const noPartitions = isEmpty(partitions)
 
@@ -179,7 +252,12 @@ export default class RestoreFileModalBody extends Component {
           value={disk}
         />
       ]}
-      {disk && !noPartitions && [
+      {scanDiskError &&
+        <span>
+          <Icon icon='error' /> {_('restoreFilesDiskError')}
+        </span>
+      }
+      {disk && !scanDiskError && !noPartitions && [
         <br />,
         <SelectPlainObject
           onChange={this._onPartitionChange}
@@ -190,9 +268,24 @@ export default class RestoreFileModalBody extends Component {
           value={partition}
         />
       ]}
-      {(partition || disk && noPartitions) && [
+      {(partition || disk && !scanDiskError && noPartitions) && [
         <br />,
-        <pre>{path}{file && file.id}&nbsp;</pre>,
+        <Container>
+          <Row>
+            <Col size={10}>
+              <pre>
+                {path} {scanningFiles && <Icon icon='loading' />}{scanFilesError && <Icon icon='error' />}
+              </pre>
+            </Col>
+            <Col size={2}>
+              <span className='pull-right'>
+                <Tooltip content={_('restoreFilesSelectAllFiles')}>
+                  <ActionButton btnStyle='secondary' handler={this._selectAllFolderFiles} icon='add' size='small' />
+                </Tooltip>
+              </span>
+            </Col>
+          </Row>
+        </Container>,
         <SelectPlainObject
           onChange={this._onFileChange}
           optionKey='id'
@@ -200,7 +293,57 @@ export default class RestoreFileModalBody extends Component {
           options={files}
           placeholder={_('restoreFilesSelectFiles')}
           value={file}
-        />
+        />,
+        <br />,
+        <div>
+          <span className='mr-1'>
+            <input
+              checked={format === 'zip'}
+              name='format'
+              onChange={this.linkState('format')}
+              type='radio'
+              value='zip'
+            /> ZIP
+          </span>
+          <span>
+            <input
+              checked={format === 'tar'}
+              name='format'
+              onChange={this.linkState('format')}
+              type='radio'
+              value='tar'
+            /> TAR
+          </span>
+        </div>,
+        <br />,
+        selectedFiles && selectedFiles.length
+          ? <Container>
+            <Row>
+              <Col className='pl-0 pb-1' size={10}>
+                <em>{_('restoreFilesSelectedFiles', { files: selectedFiles.length })}</em>
+              </Col>
+              <Col size={2}>
+                <span className='pull-right'>
+                  <Tooltip content={_('restoreFilesUnselectAll')}>
+                    <ActionButton btnStyle='secondary' handler={this._unselectAllFiles} icon='remove' size='small' />
+                  </Tooltip>
+                </span>
+              </Col>
+            </Row>
+            {map(selectedFiles, file =>
+              <Row key={file.id}>
+                <Col size={10}>
+                  <pre>{file.path}</pre>
+                </Col>
+                <Col size={2}>
+                  <span className='pull-right'>
+                    <ActionButton btnStyle='secondary' handler={this._unselectFile} handlerParam={file} icon='remove' size='small' />
+                  </span>
+                </Col>
+              </Row>
+            )}
+          </Container>
+          : <em>{_('restoreFilesNoFilesSelected')}</em>
       ]}
     </div>
   }
