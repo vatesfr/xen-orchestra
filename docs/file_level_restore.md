@@ -6,6 +6,8 @@ You can restore individual files against a whole VM. And it works on all your ex
 
 > Restore files from a SMB remote is not yet possible, but it's planned for the next release!
 
+> File level restore **is only possible on delta backups**
+
 ## Restore a file
 
 Go into Backup/File restore section:
