@@ -176,7 +176,7 @@ export default class Xosan extends Component {
           <thead>
             <tr>
               <th>Name</th>
-              <th>Hosts</th>
+              <th>Host</th>
               <th>Size</th>
               <th>Used Space</th>
               <th><ActionButton
@@ -201,7 +201,7 @@ export default class Xosan extends Component {
                   <Link to={`/srs/${sr.id}/general`}>{sr.name_label}</Link>
                 </td>
                 <td>
-                  { sr.PBDs.map(pbd => pbd.realHost.name_label).join(', ') }
+                  <Link to={`/hosts/${sr.PBDs[0].realHost.id}/general`}>{ sr.PBDs[0].realHost.name_label }</Link>
                 </td>
                 <td>
                   {formatSize(sr.size)}
