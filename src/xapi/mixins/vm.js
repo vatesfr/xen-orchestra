@@ -189,7 +189,7 @@ export default {
 
     if (cloudConfig != null) {
       // Refresh the record.
-      vm = await this._waitObject(vm.$id, vm => vm.VBDs.length === nDisks)
+      vm = await this._waitObjectState(vm.$id, vm => vm.VBDs.length === nDisks)
 
       // Find the SR of the first VDI.
       let srRef
