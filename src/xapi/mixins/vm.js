@@ -210,7 +210,7 @@ export default {
       await this[method](vm.$id, srRef, cloudConfig)
     }
 
-    return this._waitObject(vm.$id)
+    return this.getObject(vm.$id) // fetch the most up to date record
   },
 
   // High level method to edit a VM.
