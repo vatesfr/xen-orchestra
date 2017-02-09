@@ -224,6 +224,7 @@ create.params = {
 
   # Virtual interfaces to create for the new VM.
   VIFs: {
+    optional: true
     type: 'array'
     items: {
       type: 'object'
