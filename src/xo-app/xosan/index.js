@@ -3,14 +3,24 @@ import ActionButton from 'action-button'
 import Component from 'base-component'
 import Icon from 'icon'
 import Link from 'link'
-import map from 'lodash/map'
 import Page from '../page'
 import React from 'react'
+import SingleLineRow from 'single-line-row'
 import Tooltip from 'tooltip'
 import { connectStore, formatSize } from 'utils'
-import { Container } from 'grid'
+import { Container, Col } from 'grid'
+import { Toggle } from 'form'
+import {
+  every,
+  filter,
+  isEmpty,
+  keys,
+  map,
+  pickBy
+} from 'lodash'
 import {
   createGetObjectsOfType,
+  createGroupBy,
   createSelector,
   createSort
 } from 'selectors'
@@ -21,18 +31,20 @@ import {
   computeXosanPossibleOptions
 } from 'xo'
 
-const HEADER = <Container>
-  <h2><Icon icon='menu-update'/> Xen Orchestra Storage Area Network</h2>
-</Container>
-@connectStore(() => {
-  return {
-    vifs: createGetObjectsOfType('VIF'),
-    vms: createGetObjectsOfType('VM'),
-    vbds: createGetObjectsOfType('VBD'),
-    vdis: createGetObjectsOfType('VDI')
-  }
-})
+// ==================================================================
 
+const HEADER = <Container>
+  <h2><Icon icon='menu-xosan' /> Xen Orchestra Storage Area Network</h2>
+</Container>
+
+// ==================================================================
+
+@connectStore(() => ({
+  vifs: createGetObjectsOfType('VIF'),
+  vms: createGetObjectsOfType('VM'),
+  vbds: createGetObjectsOfType('VBD'),
+  vdis: createGetObjectsOfType('VDI')
+}))
 export class XosanVolumesTable extends Component {
   constructor (props) {
     super(props)
@@ -90,13 +102,17 @@ export class XosanVolumesTable extends Component {
               </td>
               <td>
                 {sr.size > 0 &&
-                <Tooltip content={_('spaceLeftTooltip', {
-                  used: String(Math.round((sr.physical_usage / sr.size) * 100)),
-                  free: formatSize(sr.size - sr.physical_usage)
-                })}>
-                  <progress style={{ margin: 0 }} className='progress' value={(sr.physical_usage / sr.size) * 100}
-                            max='100'/>
-                </Tooltip>
+                  <Tooltip content={_('spaceLeftTooltip', {
+                    used: String(Math.round((sr.physical_usage / sr.size) * 100)),
+                    free: formatSize(sr.size - sr.physical_usage)
+                  })}>
+                    <progress
+                      className='progress'
+                      max='100'
+                      style={{ margin: 0 }}
+                      value={(sr.physical_usage / sr.size) * 100}
+                    />
+                  </Tooltip>
                 }
               </td>
             </tr>
@@ -106,12 +122,194 @@ export class XosanVolumesTable extends Component {
     </div>
   }
 }
+
+// ==================================================================
+
+class PoolAvailableSrs extends Component {
+  state = {
+    glusterType: 'disperse',
+    selectedSrs: {}
+  }
+
+  _selectSr = (event, srId) => {
+    const selectedSrs = { ...this.state.selectedSrs }
+    selectedSrs[srId] = event.target.checked
+    this.setState({ selectedSrs })
+
+    computeXosanPossibleOptions(keys(pickBy(selectedSrs))).then(suggestions => {
+      this.setState({ suggestions })
+    })
+  }
+
+  _getPifPredicate = createSelector(
+    () => this.props.pool && this.props.pool.id,
+    poolId => pif => pif.vlan === -1 && pif.$pool === poolId
+  )
+
+  _getNSelectedSrs = createSelector(
+    () => this.state.selectedSrs,
+    srs => filter(srs).length
+  )
+
+  _createXosanVm = () => {
+    const { pif, vlan, glusterType, selectedSrs, redundancy } = this.state
+
+    return createXosanSR(pif, vlan || 0, keys(pickBy(selectedSrs)), glusterType, redundancy)
+  }
+
+  render () {
+    const { pool, lvmsrs } = this.props
+    const {
+      glusterType,
+      pif,
+      selectedSrs,
+      suggestions,
+      useVlan,
+      vlan
+    } = this.state
+
+    if (!every(lvmsrs, sr => sr.PBDs[0].realHost.supplementalPacks['vates:XOSAN'])) {
+      return <span>Install supplemental packs on all hosts</span> // TODO
+    }
+
+    return <div className='mb-3'>
+      <h1>Available Raw SRs (lvm) on {pool.name_label}</h1>
+      <table className='table table-striped'>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Host</th>
+            <th>Size</th>
+            <th>Used Space</th>
+            <th />
+          </tr>
+        </thead>
+        <tbody>
+          {map(lvmsrs, sr => {
+            const host = sr.PBDs[0].realHost
+            return <tr key={sr.id}>
+              <td>
+                <Link to={`/srs/${sr.id}/general`}>{sr.name_label}</Link>
+              </td>
+              <td>
+                <Link to={`/hosts/${host.id}/general`}>{host.name_label}</Link>
+              </td>
+              <td>
+                {formatSize(sr.size)}
+              </td>
+              <td>
+                {sr.size > 0 &&
+                <Tooltip content={_('spaceLeftTooltip', {
+                  used: String(Math.round((sr.physical_usage / sr.size) * 100)),
+                  free: formatSize(sr.size - sr.physical_usage)
+                })}>
+                  <progress
+                    className='progress'
+                    max='100'
+                    value={(sr.physical_usage / sr.size) * 100}
+                  />
+                </Tooltip>
+                }
+              </td>
+              <td>
+                <input
+                  checked={selectedSrs[sr.id] || false}
+                  onChange={event => this._selectSr(event, sr.id)}
+                  type='checkbox'
+                />
+              </td>
+            </tr>
+          })}
+        </tbody>
+      </table>
+      <h2>Suggestions</h2>
+      {isEmpty(suggestions)
+        ? <em>Select at least 2 SRs</em>
+        : <table className='table table-striped'>
+          <thead>
+            <tr>
+              <th>Layout</th>
+              <th>Redundancy</th>
+              <th>Capacity</th>
+              <th>Available space</th>
+            </tr>
+          </thead>
+          <tbody>
+            {map(suggestions, ({ layout, redundancy, capacity, availableSpace }, index) => <tr key={index}>
+              <td>{layout}</td>
+              <td>{redundancy}</td>
+              <td>{capacity}</td>
+              <td>{formatSize(availableSpace)}</td>
+            </tr>)}
+          </tbody>
+        </table>
+      }
+      <hr />
+      <Container>
+        <SingleLineRow>
+          <Col size={3}>
+            <SelectPif
+              onChange={this.linkState('pif')}
+              predicate={this._getPifPredicate()}
+              value={pif}
+            />
+          </Col>
+          <Col size={2}>
+            <input
+              className='form-control pull-right'
+              disabled={!useVlan}
+              onChange={this.linkState('vlan')}
+              placeholder='VLAN'
+              style={{ width: '50%' }}
+              type='text'
+              value={vlan}
+            />
+            <Toggle className='pull-right mr-1' onChange={this.linkState('useVlan')} value={useVlan} />
+          </Col>
+          <Col size={2}>
+            <select
+              className='form-control'
+              id='selectGlusterType'
+              onChange={this.linkState('glusterType')}
+              required
+              value={glusterType}
+            >
+              <option value='disperse'>disperse</option>
+              <option value='replica'>replica</option>
+            </select>
+          </Col>
+          <Col size={2}>
+            <input
+              className='form-control'
+              onChange={this.linkState('redundancy')}
+              placeholder='redundancy'
+              type='number'
+            />
+          </Col>
+          <Col size={3}>
+            <ActionButton
+              btnStyle='success'
+              disabled={!pif || !glusterType || this._getNSelectedSrs() < 2}
+              icon='add'
+              handler={this._createXosanVm}
+            >
+              Create XOSAN VM on selected SRs and PIF
+            </ActionButton>
+          </Col>
+        </SingleLineRow>
+      </Container>
+    </div>
+  }
+}
+
+// ==================================================================
+
 @connectStore(() => {
   const pools = createGetObjectsOfType('pool')
 
   const hosts = createGetObjectsOfType('host').groupBy('$pool')
 
-  const lvmsrs = createSort(createSelector(
+  const lvmSrsByPool = createGroupBy(createSort(createSelector(
     createGetObjectsOfType('SR').filter([sr => !sr.shared && sr.SR_type === 'lvm']),
     createGetObjectsOfType('PBD').groupBy('SR'),
     createGetObjectsOfType('host'),
@@ -124,9 +322,9 @@ export class XosanVolumesTable extends Component {
       sr.PBDs.sort()
       return sr
     }).filter(sr => Boolean(sr.PBDs.length))
-  ), 'name_label')
+  ), 'name_label'), '$pool')
 
-  const xosansrs = createSort(createSelector(
+  const xosanSrsByPool = createGroupBy(createSort(createSelector(
     createGetObjectsOfType('SR').filter([sr => sr.shared && sr.SR_type === 'xosan']),
     createGetObjectsOfType('PBD').groupBy('SR'),
     createGetObjectsOfType('host'),
@@ -139,143 +337,30 @@ export class XosanVolumesTable extends Component {
       sr.PBDs.sort((pbd1, pbd2) => pbd1.realHost.name_label.localeCompare(pbd2.realHost.name_label))
       return sr
     })
-  ), 'name_label')
+  ), 'name_label'), '$pool')
+
   return {
     hosts,
     pools,
-    xosansrs,
-    lvmsrs,
+    xosanSrsByPool,
+    lvmSrsByPool,
     networks: createGetObjectsOfType('network').groupBy('$pool')
   }
 })
-
 export default class Xosan extends Component {
-  _selectedItems = {}
-
-  _getPifPredicate (pool) {
-    return pif => pif.vlan === -1 && pif.$pool === pool.id
-  }
-
-  _selectItem = (event) => {
-    const id = event.target.value
-    !this._selectedItems[id] ? this._selectedItems[id] = true : delete this._selectedItems[id]
-    this.setState({
-      suggestions: []
-    })
-    computeXosanPossibleOptions(Object.keys(this._selectedItems)).then(suggestions => {
-      this.setState({
-        suggestions: suggestions
-      })
-    })
-  }
-
-  _createXosanVm = () => {
-    const pif = this.refs.pif.value
-    const vlan = this.refs.vlan.value
-    const type = this.refs.glusterType.value
-    const redundancy = this.refs.redundancy.value
-    createXosanSR(pif, vlan, Object.keys(this._selectedItems), type, redundancy)
-  }
-
-  renderPool (pool, xosansrs, lvmsrs) {
-    const filteredXosansrs = xosansrs.filter(sr => sr.$pool === pool.id)
-    if (filteredXosansrs.length) {
-      return <XosanVolumesTable xosansrs={filteredXosansrs} lvmsrs={lvmsrs}/>
-    } else {
-      return <div>
-        <h2>Available Raw SRs (lvm)</h2>
-        <table className='table table-striped'>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Host</th>
-              <th>Size</th>
-              <th>Used Space</th>
-            </tr>
-          </thead>
-          <tbody>
-            {map(lvmsrs.filter(sr => sr.$pool === pool.id), sr => {
-              const host = sr.PBDs[0].realHost
-              let lastCol = null
-              if (host.supplementalPacks['vates:XOSAN']) {
-                lastCol = <input type='checkbox' checked={this._selectedItems[sr.id]} onChange={this._selectItem}
-                                 value={sr.id}/>
-              } else {
-                lastCol = <span>Supplemental Pack XOSAN is not installed on <Link
-                  to={`/hosts/${host.id}/advanced`}>host { host.name_label }</Link></span>
-              }
-              return <tr key={sr.id}>
-                <td>
-                  <Link to={`/srs/${sr.id}/general`}>{sr.name_label}</Link>
-                </td>
-                <td>
-                  <Link to={`/hosts/${host.id}/general`}>{ host.name_label }</Link>
-                </td>
-                <td>
-                  {formatSize(sr.size)}
-                </td>
-                <td>
-                  {sr.size > 0 &&
-                  <Tooltip content={_('spaceLeftTooltip', {
-                    used: String(Math.round((sr.physical_usage / sr.size) * 100)),
-                    free: formatSize(sr.size - sr.physical_usage)
-                  })}>
-                    <progress style={{ margin: 0 }} className='progress'
-                              value={(sr.physical_usage / sr.size) * 100}
-                              max='100'/>
-                  </Tooltip>
-                  }
-                </td>
-                <td>
-                  { lastCol }
-                </td>
-              </tr>
-            })}
-            <tr>
-              <td colSpan="5"><br />
-                <SelectPif
-                  predicate={this._getPifPredicate(pool)}
-                  ref='pif'
-                />
-                <input className='form-control' type='text' ref='vlan' placeholder='VLAN'/>
-                <select
-                  className='form-control'
-                  defaultValue='disperse'
-                  id='selectGlusterType'
-                  ref='glusterType'
-                  required>
-                  <option value='disperse'>disperse</option>
-                  <option value='replica'>replica</option>
-                </select>
-                <input className='form-control' type='text' ref='redundancy' placeholder='redundancy'/>
-                <ActionButton
-                  btnStyle='success'
-                  icon='add'
-                  handler={this._createXosanVm}
-                  handlerParam={Object.keys(this._selectedItems)}
-                >Create XOSAN VM on selected SRs and PIF</ActionButton>
-                <br/>
-
-                suggestion: {JSON.stringify(this.state.suggestions)}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    }
-  }
-
   render () {
-    const { lvmsrs, pools, xosansrs } = this.props
+    const { pools, xosanSrsByPool, lvmSrsByPool } = this.props
+
     return <Page header={HEADER} title='xosan' formatTitle>
       <Container>
         {map(pools, pool => {
-            return <div>
-              <h1>Pool <i>{pool.name_label}</i></h1>
-              {this.renderPool(pool, xosansrs, lvmsrs)}
-            </div>
-          }
-        )}
+          const poolXosanSrs = xosanSrsByPool[pool.id]
+          const poolLvmSrs = lvmSrsByPool[pool.id]
+
+          return poolXosanSrs && poolXosanSrs.length
+            ? <XosanVolumesTable xosansrs={poolXosanSrs} lvmsrs={poolLvmSrs} />
+            : <PoolAvailableSrs pool={pool} lvmsrs={poolLvmSrs} />
+        })}
       </Container>
     </Page>
   }

@@ -23,7 +23,6 @@ export default class TabXosan extends Component {
 
   componentDidMount () {
     getVolumeInfo(this.props.sr.id).then(info => {
-      console.log('componentDidMount', info)
       this.setState({ volumeInfo: info })
     })
   }

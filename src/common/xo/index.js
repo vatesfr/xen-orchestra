@@ -335,7 +335,7 @@ export const addHostToPool = (pool, host) => {
 
   return confirm({
     title: _('addHostModalTitle'),
-    body: <AddHostModalBody pool={pool}/>
+    body: <AddHostModalBody pool={pool} />
   }).then(
     params => {
       if (!params.host) {
@@ -498,9 +498,9 @@ export const installSupplementalPack = (host, file) => {
 
         success(_('supplementalPackInstallSuccessTitle'), _('supplementalPackInstallSuccessMessage'))
       }).catch(err => {
-      error(_('supplementalPackInstallErrorTitle'), _('supplementalPackInstallErrorMessage'))
-      throw err
-    })
+        error(_('supplementalPackInstallErrorTitle'), _('supplementalPackInstallErrorMessage'))
+        throw err
+      })
   ))
 }
 
@@ -517,9 +517,9 @@ export const installSupplementalPackOnAllHosts = (pool, file) => {
 
         success(_('supplementalPackInstallSuccessTitle'), _('supplementalPackInstallSuccessMessage'))
       }).catch(err => {
-      error(_('supplementalPackInstallErrorTitle'), _('supplementalPackInstallErrorMessage'))
-      throw err
-    })
+        error(_('supplementalPackInstallErrorTitle'), _('supplementalPackInstallErrorMessage'))
+        throw err
+      })
   ))
 }
 
@@ -633,7 +633,7 @@ export const copyVm = (vm, sr, name, compress) => {
   } else {
     return confirm({
       title: _('copyVm'),
-      body: <CopyVmModalBody vm={vm}/>
+      body: <CopyVmModalBody vm={vm} />
     }).then(
       params => {
         if (!params.sr) {
@@ -652,7 +652,7 @@ export const copyVms = vms => {
   const _vms = resolveIds(vms)
   return confirm({
     title: _('copyVm'),
-    body: <CopyVmsModalBody vms={_vms}/>
+    body: <CopyVmsModalBody vms={_vms} />
   }).then(
     params => {
       if (!params.sr) {
@@ -723,7 +723,7 @@ import MigrateVmModalBody from './migrate-vm-modal'
 export const migrateVm = (vm, host) => (
   confirm({
     title: _('migrateVmModalTitle'),
-    body: <MigrateVmModalBody vm={vm} host={host}/>
+    body: <MigrateVmModalBody vm={vm} host={host} />
   }).then(
     params => {
       if (!params.targetHost) {
@@ -739,7 +739,7 @@ import MigrateVmsModalBody from './migrate-vms-modal'
 export const migrateVms = vms => (
   confirm({
     title: _('migrateVmModalTitle'),
-    body: <MigrateVmsModalBody vms={resolveIds(vms)}/>
+    body: <MigrateVmsModalBody vms={resolveIds(vms)} />
   }).then(
     params => {
       if (isEmpty(params.vms)) {
@@ -995,7 +995,7 @@ export const createNetwork = container => (
   confirm({
     icon: 'network',
     title: _('newNetworkCreate'),
-    body: <CreateNetworkModalBody container={container}/>
+    body: <CreateNetworkModalBody container={container} />
   }).then(
     params => {
       if (!params.name) {
@@ -1015,7 +1015,7 @@ export const createBondedNetwork = container => (
   confirm({
     icon: 'network',
     title: _('newBondedNetworkCreate'),
-    body: <CreateBondedNetworkModalBody pool={container.$pool}/>
+    body: <CreateBondedNetworkModalBody pool={container.$pool} />
   }).then(
     params => {
       if (!params.name) {
@@ -1654,8 +1654,8 @@ export const addSshKey = key => {
   const otherKeys = preferences && preferences.sshKeys || []
   if (key) {
     return _setUserPreferences({ sshKeys: [
-        ...otherKeys,
-        key
+      ...otherKeys,
+      key
     ]})
   }
   return confirm({
@@ -1669,8 +1669,8 @@ export const addSshKey = key => {
         return
       }
       return _setUserPreferences({ sshKeys: [
-          ...otherKeys,
-          newKey
+        ...otherKeys,
+        newKey
       ]})
     },
     noop
@@ -1699,7 +1699,7 @@ export const addCustomFilter = (type, value) => {
   const { user } = xo
   return confirm({
     title: _('saveNewFilterTitle'),
-    body: <AddUserFilterModalBody user={user} type={type} value={value}/>
+    body: <AddUserFilterModalBody user={user} type={type} value={value} />
   }).then(name => {
     if (name.length === 0) {
       return error(_('saveNewUserFilterErrorTitle'), _('saveNewUserFilterErrorBody'))
