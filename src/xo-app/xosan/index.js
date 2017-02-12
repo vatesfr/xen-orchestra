@@ -17,7 +17,8 @@ import {
 import { SelectPif } from 'select-objects'
 import {
   getVolumeInfo,
-  createXosanVM
+  createXosanSR,
+  computeXosanPossibleOptions
 } from 'xo'
 
 const HEADER = <Container>
@@ -158,13 +159,22 @@ export default class Xosan extends Component {
   _selectItem = (event) => {
     const id = event.target.value
     !this._selectedItems[id] ? this._selectedItems[id] = true : delete this._selectedItems[id]
+    this.setState({
+      suggestions: []
+    })
+    computeXosanPossibleOptions(Object.keys(this._selectedItems)).then(suggestions => {
+      this.setState({
+        suggestions: suggestions
+      })
+    })
   }
 
   _createXosanVm = () => {
     const pif = this.refs.pif.value
     const vlan = this.refs.vlan.value
     const type = this.refs.glusterType.value
-    createXosanVM(pif, vlan, Object.keys(this._selectedItems), type)
+    const redundancy = this.refs.redundancy.value
+    createXosanSR(pif, vlan, Object.keys(this._selectedItems), type, redundancy)
   }
 
   renderPool (pool, xosansrs, lvmsrs) {
@@ -181,29 +191,6 @@ export default class Xosan extends Component {
               <th>Host</th>
               <th>Size</th>
               <th>Used Space</th>
-              <th><ActionButton
-                btnStyle='success'
-                icon='add'
-                handler={this._createXosanVm}
-                handlerParam={Object.keys(this._selectedItems)}
-              >Create XOSAN VM on selected SRs and PIF</ActionButton>
-                <br />
-                <SelectPif
-                  predicate={this._getPifPredicate(pool)}
-                  ref='pif'
-                />
-                <input className='form-control' type='text' ref='vlan' placeholder='VLAN'/>
-                <select
-                  className='form-control'
-                  defaultValue='disperse'
-                  id='selectGlusterType'
-                  ref='glusterType'
-                  required
-                >
-                  <option value='disperse'>disperse</option>
-                  <option value='replica'>replica</option>
-                </select>
-              </th>
             </tr>
           </thead>
           <tbody>
@@ -244,6 +231,34 @@ export default class Xosan extends Component {
                 </td>
               </tr>
             })}
+            <tr>
+              <td colSpan="5"><br />
+                <SelectPif
+                  predicate={this._getPifPredicate(pool)}
+                  ref='pif'
+                />
+                <input className='form-control' type='text' ref='vlan' placeholder='VLAN'/>
+                <select
+                  className='form-control'
+                  defaultValue='disperse'
+                  id='selectGlusterType'
+                  ref='glusterType'
+                  required>
+                  <option value='disperse'>disperse</option>
+                  <option value='replica'>replica</option>
+                </select>
+                <input className='form-control' type='text' ref='redundancy' placeholder='redundancy'/>
+                <ActionButton
+                  btnStyle='success'
+                  icon='add'
+                  handler={this._createXosanVm}
+                  handlerParam={Object.keys(this._selectedItems)}
+                >Create XOSAN VM on selected SRs and PIF</ActionButton>
+                <br/>
+
+                suggestion: {JSON.stringify(this.state.suggestions)}
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
