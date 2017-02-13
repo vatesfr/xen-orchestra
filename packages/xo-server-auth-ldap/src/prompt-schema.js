@@ -184,7 +184,7 @@ const promptByType = {
       if (
         required[name] ||
         await confirm(`fill optional ${subpath}?`, {
-          default: false
+          default: Boolean(defaultValue && name in defaultValue)
         })
       ) {
         value[name] = await promptGeneric(
@@ -217,4 +217,3 @@ export default function promptGeneric (schema, defaultValue, path) {
 
   return prompt(schema, defaultValue, path)
 }
-
