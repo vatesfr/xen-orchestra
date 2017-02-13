@@ -96,7 +96,7 @@ const promptByType = {
   },
 
   boolean: (schema, defaultValue, path) => confirm(path, {
-    default: defaultValue || schema.default
+    default: defaultValue != null ? defaultValue : schema.default
   }),
 
   enum: (schema, defaultValue, path) => list(path, schema.enum, {
