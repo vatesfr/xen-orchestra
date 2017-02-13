@@ -1,59 +1,6 @@
+import { forEach, isFinite, isInteger } from 'lodash'
+import { forOwn as forOwnAsync } from 'promise-toolbox'
 import { prompt } from 'inquirer'
-
-// ===================================================================
-
-const forArray = (array, iteratee) => {
-  for (let i = 0, n = array.length; i < n; ++i) {
-    iteratee(array[i], i, array)
-  }
-}
-
-const { hasOwnProperty } = Object.prototype
-const forOwn = (object, iteratee) => {
-  for (const key in object) {
-    if (hasOwnProperty.call(object, key)) {
-      iteratee(object[key], key, object)
-    }
-  }
-}
-
-// -------------------------------------------------------------------
-
-const _makeAsyncIterator = iterator => (promises, cb) => {
-  let mainPromise = Promise.resolve()
-
-  iterator(promises, (promise, key) => {
-    mainPromise = mainPromise
-
-      // Waits the current promise.
-      .then(() => promise)
-
-      // Executes the callback.
-      .then(value => cb(value, key))
-  })
-
-  return mainPromise
-}
-
-const forOwnAsync = _makeAsyncIterator(forOwn)
-
-// -------------------------------------------------------------------
-
-const _isNaN = (
-  Number.isNaN ||
-  (value => value !== value) // eslint-disable-line no-self-compare
-)
-
-const isNumber = value => !_isNaN(value) && typeof value === 'number'
-
-const isInteger = (
-  Number.isInteger ||
-  (value => (
-    isNumber(value) &&
-    value > -Infinity && value < Infinity &&
-    Math.floor(value) === value
-  ))
-)
 
 // ===================================================================
 
@@ -165,14 +112,14 @@ const promptByType = {
   number: (schema, defaultValue, path) => input(path, {
     default: defaultValue || schema.default,
     filter: input => +input,
-    validate: input => isNumber(+input)
+    validate: input => isFinite(+input)
   }),
 
   object: async (schema, defaultValue, path) => {
     const value = {}
 
     const required = {}
-    schema.required && forArray(schema.required, name => {
+    schema.required && forEach(schema.required, name => {
       required[name] = true
     })
 
@@ -195,7 +142,7 @@ const promptByType = {
       }
     }
 
-    await forOwnAsync(schema.properties || {}, promptProperty)
+    await forOwnAsync.call(schema.properties || {}, promptProperty)
 
     return value
   },
