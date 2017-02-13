@@ -911,11 +911,11 @@ babel-plugin-transform-strict-mode@^6.18.0:
     babel-runtime "^6.0.0"
     babel-types "^6.18.0"
 
-babel-polyfill@^6.8.0:
-  version "6.20.0"
-  resolved "https://registry.yarnpkg.com/babel-polyfill/-/babel-polyfill-6.20.0.tgz#de4a371006139e20990aac0be367d398331204e7"
+babel-polyfill@^6.22.0:
+  version "6.22.0"
+  resolved "https://registry.yarnpkg.com/babel-polyfill/-/babel-polyfill-6.22.0.tgz#1ac99ebdcc6ba4db1e2618c387b2084a82154a3b"
   dependencies:
-    babel-runtime "^6.20.0"
+    babel-runtime "^6.22.0"
     core-js "^2.4.0"
     regenerator-runtime "^0.10.0"
 
@@ -1010,6 +1010,13 @@ babel-runtime@^5.8.3, babel-runtime@^5.8.34:
 babel-runtime@^6.0.0, babel-runtime@^6.11.6, babel-runtime@^6.18.0, babel-runtime@^6.2.0, babel-runtime@^6.20.0, babel-runtime@^6.5.0, babel-runtime@^6.9.0, babel-runtime@^6.9.1:
   version "6.20.0"
   resolved "https://registry.yarnpkg.com/babel-runtime/-/babel-runtime-6.20.0.tgz#87300bdcf4cd770f09bf0048c64204e17806d16f"
+  dependencies:
+    core-js "^2.4.0"
+    regenerator-runtime "^0.10.0"
+
+babel-runtime@^6.22.0:
+  version "6.22.0"
+  resolved "https://registry.yarnpkg.com/babel-runtime/-/babel-runtime-6.22.0.tgz#1cf8b4ac67c77a4ddb0db2ae1f74de52ac4ca611"
   dependencies:
     core-js "^2.4.0"
     regenerator-runtime "^0.10.0"
@@ -1144,7 +1151,7 @@ block-stream@*:
   dependencies:
     inherits "~2.0.0"
 
-blocked@^1.1.0:
+blocked@^1.1.0, blocked@^1.2.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/blocked/-/blocked-1.2.1.tgz#e22efe767863c65ab8197f6252929104e1ec9ce2"
 
@@ -1681,6 +1688,12 @@ debug-log@^1.0.0:
 debug@2, debug@2.X, debug@^2.1.1, debug@^2.1.3, debug@^2.2.0:
   version "2.6.0"
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.0.tgz#bc596bcabe7617f11d9fa15361eded5608b8499b"
+  dependencies:
+    ms "0.7.2"
+
+debug@^2.6.1:
+  version "2.6.1"
+  resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.1.tgz#79855090ba2c4e3115cc7d8769491d58f0491351"
   dependencies:
     ms "0.7.2"
 
@@ -4257,7 +4270,7 @@ lodash@^3.10.1:
   version "3.10.1"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-3.10.1.tgz#5bf45e8e49ba4189e17d482789dfd15bd140b7b6"
 
-lodash@^4.0.0, lodash@^4.13.1, lodash@^4.14.0, lodash@^4.15.0, lodash@^4.16.0, lodash@^4.16.2, lodash@^4.16.4, lodash@^4.16.6, lodash@^4.17.2, lodash@^4.2.0, lodash@^4.3.0, lodash@^4.8.0:
+lodash@^4.0.0, lodash@^4.13.1, lodash@^4.14.0, lodash@^4.15.0, lodash@^4.16.0, lodash@^4.16.2, lodash@^4.16.6, lodash@^4.17.2, lodash@^4.17.4, lodash@^4.2.0, lodash@^4.3.0, lodash@^4.8.0:
   version "4.17.4"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.4.tgz#78203a4d1c328ae1d86dca6460e369b57f4055ae"
 
@@ -4432,7 +4445,7 @@ ms@0.7.1:
   version "0.7.1"
   resolved "https://registry.yarnpkg.com/ms/-/ms-0.7.1.tgz#9cd13c03adbff25b65effde7ce864ee952017098"
 
-ms@0.7.2, ms@^0.7.1:
+ms@0.7.2, ms@^0.7.1, ms@^0.7.2:
   version "0.7.2"
   resolved "https://registry.yarnpkg.com/ms/-/ms-0.7.2.tgz#ae25cf2512b3885a1d95d7f037868d8431124765"
 
@@ -6617,24 +6630,24 @@ xdg-basedir@^2.0.0:
   dependencies:
     os-homedir "^1.0.0"
 
-xen-api@^0.9.6:
-  version "0.9.6"
-  resolved "https://registry.yarnpkg.com/xen-api/-/xen-api-0.9.6.tgz#88c9b096e1a936262b72d62427b5cac63301183c"
+xen-api@^0.10.0-2:
+  version "0.10.0-2"
+  resolved "https://registry.yarnpkg.com/xen-api/-/xen-api-0.10.0-2.tgz#fbc488caf56e6acd3326a76e9068541b2bb46abb"
   dependencies:
-    babel-polyfill "^6.8.0"
-    blocked "^1.1.0"
-    debug "^2.1.3"
+    babel-polyfill "^6.22.0"
+    blocked "^1.2.1"
+    debug "^2.6.1"
     event-to-promise "^0.7.0"
     exec-promise "^0.6.1"
     kindof "^2.0.0"
-    lodash "^4.16.4"
-    make-error "^1.0.2"
-    minimist "^1.1.1"
-    ms "^0.7.1"
-    promise-toolbox "^0.7.0"
+    lodash "^4.17.4"
+    make-error "^1.2.1"
+    minimist "^1.2.0"
+    ms "^0.7.2"
+    promise-toolbox "^0.8.0"
     pw "0.0.4"
-    xmlrpc "^1.3.0"
-    xo-collection "^0.4.0"
+    xmlrpc "^1.3.2"
+    xo-collection "^0.4.1"
 
 "xml-name-validator@>= 2.0.1 < 3.0.0":
   version "2.0.1"
@@ -6657,7 +6670,7 @@ xmlbuilder@^4.1.0:
   dependencies:
     lodash "^4.0.0"
 
-xmlrpc@^1.3.0:
+xmlrpc@^1.3.2:
   version "1.3.2"
   resolved "https://registry.yarnpkg.com/xmlrpc/-/xmlrpc-1.3.2.tgz#26b2ea347848d028aac7e7514b5351976de3e83d"
   dependencies:
@@ -6668,7 +6681,7 @@ xo-acl-resolver@^0.2.2:
   version "0.2.3"
   resolved "https://registry.yarnpkg.com/xo-acl-resolver/-/xo-acl-resolver-0.2.3.tgz#693f4181727379be0d969f7c22d660f3bddf935a"
 
-xo-collection@^0.4.0:
+xo-collection@^0.4.0, xo-collection@^0.4.1:
   version "0.4.1"
   resolved "https://registry.yarnpkg.com/xo-collection/-/xo-collection-0.4.1.tgz#e3fb7c42dd79950a71db6669db2e53b73f80e351"
   dependencies:
