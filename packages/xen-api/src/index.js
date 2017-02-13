@@ -86,6 +86,9 @@ class XapiError extends BaseError {
 
     this.code = code
     this.params = params
+
+    // slot than can be assigned later
+    this.method = null
   }
 }
 
@@ -510,7 +513,10 @@ export class Xapi extends EventEmitter {
 
           throw error
         }
-      )
+      ).catch(error => {
+        error.method = method
+        throw error
+      })
   }
 
   _init () {
