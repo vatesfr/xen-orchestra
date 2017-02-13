@@ -59,7 +59,7 @@
     "express-session": "^1.11.3",
     "fatfs": "^0.10.3",
     "fs-extra": "^1.0.0",
-    "fs-promise": "^1.0.0",
+    "fs-promise": "^2.0.0",
     "golike-defer": "^0.0.0",
     "hashy": "~0.6.0",
     "helmet": "^3.0.0",
