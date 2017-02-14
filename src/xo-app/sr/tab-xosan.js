@@ -1,7 +1,10 @@
-import map from 'lodash/map'
 import React, { Component } from 'react'
-import { Container } from 'grid'
+import { Container, Row, Col } from 'grid'
 import { connectStore } from 'utils'
+import {
+  keys,
+  map
+} from 'lodash'
 import {
   createGetObjectsOfType
 } from 'selectors'
@@ -29,13 +32,13 @@ export default class TabXosan extends Component {
 
   render () {
     return <Container>
-      <dl>
-        {this.state.volumeInfo && map(Object.keys(this.state.volumeInfo).sort(), key => key !== 'Bricks' && (
-          <div>
-            <dt>{key}:</dt>
-            <dd>{this.state.volumeInfo[key]}</dd>
-          </div>))}
-      </dl>
+      {this.state.volumeInfo && map(keys(this.state.volumeInfo).sort(), key => key !== 'Bricks'
+        ? <Row>
+          <Col size={3}><strong>{key}</strong></Col>
+          <Col size={4}>{this.state.volumeInfo[key]}</Col>
+        </Row>
+        : null
+      )}
     </Container >
   }
 }

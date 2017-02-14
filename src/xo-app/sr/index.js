@@ -193,12 +193,12 @@ export default class Sr extends Component {
           <NavTabs>
             <NavLink to={`/srs/${sr.id}/general`}>{_('generalTabName')}</NavLink>
             <NavLink to={`/srs/${sr.id}/disks`}>{_('disksTabName', { disks: sr.VDIs.length })}</NavLink>
+            {sr.SR_type === 'xosan' &&
+              <NavLink to={`/srs/${sr.id}/xosan`}>XOSAN</NavLink>
+            }
             <NavLink to={`/srs/${sr.id}/hosts`}>{_('hostsTabName')}</NavLink>
             <NavLink to={`/srs/${sr.id}/logs`}>{_('logsTabName')}</NavLink>
             <NavLink to={`/srs/${sr.id}/advanced`}>{_('advancedTabName')}</NavLink>
-            {sr.SR_type === 'xosan' &&
-              <NavLink to={`/srs/${sr.id}/xosan`}>XO SAN</NavLink>
-            }
           </NavTabs>
         </Col>
       </Row>

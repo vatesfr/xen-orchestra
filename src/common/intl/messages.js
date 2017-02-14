@@ -1299,7 +1299,36 @@ var messages = {
   srsForgetModalMessage: 'Are you sure you want to forget all the selected SRs? VDIs on these storages won\'t be removed.',
   srAllDisconnected: 'Disconnected',
   srSomeConnected: 'Partially connected',
-  srAllConnected: 'Connected'
+  srAllConnected: 'Connected',
+
+  // ----- XOSAN -----
+  xosanTitle: 'Xen Orchestra Storage Area Network',
+  xosanSrTitle: 'Xen Orchestra SAN SR',
+  xosanAvailableSrsTitle: 'Available Raw SRs (lvm)',
+  xosanName: 'Name',
+  xosanHost: 'Host',
+  xosanHosts: 'Hosts',
+  xosanVolumeId: 'Volume ID',
+  xosanSize: 'Size',
+  xosanUsedSpace: 'Used space',
+  xosanNeedPack: 'XOSAN pack needs to be installed on each host of the pool.',
+  xosanInstallIt: 'Install it now!',
+  xosanInstallPackTitle: 'Install XOSAN pack on {pool}',
+  xosanSelect2Srs: 'Select at least 2 SRs',
+  xosanLayout: 'Layout',
+  xosanRedundancy: 'Redundancy',
+  xosanCapacity: 'Capacity',
+  xosanAvailableSpace: 'Availbale space',
+  xosanCreate: 'Create XOSAN VM on selected SRs and PIF',
+  // Pack download modal
+  xosanInstallCloudPlugin: 'Install cloud plugin first',
+  xosanLoadCloudPlugin: 'Load cloud plugin first',
+  xosanLoading: 'Loading...',
+  xosanNotAvailable: 'XOSAN is not available at the moment',
+  xosanRegisterBeta: 'Register for the XOSAN beta',
+  xosanSuccessfullyRegistered: 'You have successfully registered for the XOSAN beta. Please wait until your request has been approved.',
+  xosanInstallPackOnHosts: 'Install XOSAN pack on these hosts:',
+  xosanInstallPack: 'Install {pack} v{version}?'
 
 }
 forEach(messages, function (message, id) {

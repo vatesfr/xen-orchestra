@@ -10,6 +10,7 @@ import Tooltip from 'tooltip'
 import { connectStore, formatSize } from 'utils'
 import { Container, Col } from 'grid'
 import { Toggle } from 'form'
+import { confirm } from 'modal'
 import {
   every,
   filter,
@@ -26,15 +27,18 @@ import {
 } from 'selectors'
 import { SelectPif } from 'select-objects'
 import {
-  getVolumeInfo,
+  computeXosanPossibleOptions,
   createXosanSR,
-  computeXosanPossibleOptions
+  downloadAndInstallXosanPack,
+  getVolumeInfo
 } from 'xo'
+
+import InstallXosanPackModal from './install-xosan-pack-modal'
 
 // ==================================================================
 
 const HEADER = <Container>
-  <h2><Icon icon='menu-xosan' /> Xen Orchestra Storage Area Network</h2>
+  <h2><Icon icon='menu-xosan' /> {_('xosanTitle')}</h2>
 </Container>
 
 // ==================================================================
@@ -72,15 +76,15 @@ export class XosanVolumesTable extends Component {
   render () {
     const { xosansrs } = this.props
     return <div>
-      <h2>Xen Orchestra SAN SR</h2>
+      <h2>{_('xosanSrTitle')}</h2>
       <table className='table table-striped'>
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Hosts</th>
-            <th>Volume ID</th>
-            <th>Size</th>
-            <th>Used Space</th>
+            <th>{_('xosanName')}</th>
+            <th>{_('xosanHosts')}</th>
+            <th>{_('xosanVolumeId')}</th>
+            <th>{_('xosanSize')}</th>
+            <th>{_('xosanUsedSpace')}</th>
           </tr>
         </thead>
         <tbody>
@@ -125,6 +129,16 @@ export class XosanVolumesTable extends Component {
 
 // ==================================================================
 
+const _handleInstallPack = pool =>
+  confirm({
+    title: _('xosanInstallPackTitle', { pool: pool.name_label }),
+    icon: 'export',
+    body: <InstallXosanPackModal pool={pool} />
+  }).then(
+    pack => console.log('Install pack id = ', pack.id, 'version = ', pack.version, 'pool = ', pool.id)
+    // pack => downloadAndInstallXosanPack({ id: pack.id, version: pack.version, pool })
+  )
+
 class PoolAvailableSrs extends Component {
   state = {
     glusterType: 'disperse',
@@ -168,19 +182,26 @@ class PoolAvailableSrs extends Component {
       vlan
     } = this.state
 
+    // TODO: check hosts supplementalPacks directly instead of checking each SR
     if (!every(lvmsrs, sr => sr.PBDs[0].realHost.supplementalPacks['vates:XOSAN'])) {
-      return <span>Install supplemental packs on all hosts</span> // TODO
+      return <div className='mb-3'>
+        <h1>{pool.name_label}</h1>
+        <Icon icon='error' /> {_('xosanNeedPack')}
+        <br />
+        <ActionButton btnStyle='success' icon='export' handler={_handleInstallPack} handlerParam={pool}>{_('xosanInstallIt')}</ActionButton>
+      </div>
     }
 
     return <div className='mb-3'>
-      <h1>Available Raw SRs (lvm) on {pool.name_label}</h1>
+      <h1>{pool.name_label}</h1>
+      <h2>{_('xosanAvailableSrsTitle')}</h2>
       <table className='table table-striped'>
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Host</th>
-            <th>Size</th>
-            <th>Used Space</th>
+            <th>{_('xosanName')}</th>
+            <th>{_('xosanHost')}</th>
+            <th>{_('xosanSize')}</th>
+            <th>{_('xosanUsedSpace')}</th>
             <th />
           </tr>
         </thead>
@@ -224,14 +245,14 @@ class PoolAvailableSrs extends Component {
       </table>
       <h2>Suggestions</h2>
       {isEmpty(suggestions)
-        ? <em>Select at least 2 SRs</em>
+        ? <em>{_('xosanSelect2Srs')}</em>
         : <table className='table table-striped'>
           <thead>
             <tr>
-              <th>Layout</th>
-              <th>Redundancy</th>
-              <th>Capacity</th>
-              <th>Available space</th>
+              <th>{_('xosanLayout')}</th>
+              <th>{_('xosanRedundancy')}</th>
+              <th>{_('xosanCapacity')}</th>
+              <th>{_('xosanAvailableSpace')}</th>
             </tr>
           </thead>
           <tbody>
@@ -293,7 +314,7 @@ class PoolAvailableSrs extends Component {
               icon='add'
               handler={this._createXosanVm}
             >
-              Create XOSAN VM on selected SRs and PIF
+              {_('xosanCreate')}
             </ActionButton>
           </Col>
         </SingleLineRow>

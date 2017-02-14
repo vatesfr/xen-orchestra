@@ -479,3 +479,20 @@ export const resolveIds = params => {
   }
   return params
 }
+
+// ===================================================================
+
+export const compareVersions = (v1, v2) => {
+  v1 = v1.split('.')
+  v2 = v2.split('.')
+
+  for (let i = 0; i < Math.max(v1.length, v2.length); i++) {
+    const n1 = +v1[i] || 0
+    const n2 = +v2[i] || 0
+
+    if (n1 < n2) return -1
+    if (n1 > n2) return 1
+  }
+
+  return 0
+}
