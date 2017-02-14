@@ -49,7 +49,7 @@
     "babelify": "^7.2.0",
     "benchmark": "^2.1.0",
     "bootstrap": "4.0.0-alpha.5",
-    "browserify": "^13.0.0",
+    "browserify": "^14.1.0",
     "bundle-collapser": "^1.2.1",
     "chartist": "^0.10.1",
     "chartist-plugin-legend": "^0.6.1",
