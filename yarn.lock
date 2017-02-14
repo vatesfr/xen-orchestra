@@ -1305,6 +1305,58 @@ browserify@^13.0.0:
     vm-browserify "~0.0.1"
     xtend "^4.0.0"
 
+browserify@^14.1.0:
+  version "14.1.0"
+  resolved "https://registry.yarnpkg.com/browserify/-/browserify-14.1.0.tgz#0508cc1e7bf4c152312c2fa523e676c0b0b92311"
+  dependencies:
+    JSONStream "^1.0.3"
+    assert "^1.4.0"
+    browser-pack "^6.0.1"
+    browser-resolve "^1.11.0"
+    browserify-zlib "~0.1.2"
+    buffer "^5.0.2"
+    cached-path-relative "^1.0.0"
+    concat-stream "~1.5.1"
+    console-browserify "^1.1.0"
+    constants-browserify "~1.0.0"
+    crypto-browserify "^3.0.0"
+    defined "^1.0.0"
+    deps-sort "^2.0.0"
+    domain-browser "~1.1.0"
+    duplexer2 "~0.1.2"
+    events "~1.1.0"
+    glob "^7.1.0"
+    has "^1.0.0"
+    htmlescape "^1.1.0"
+    https-browserify "~0.0.0"
+    inherits "~2.0.1"
+    insert-module-globals "^7.0.0"
+    labeled-stream-splicer "^2.0.0"
+    module-deps "^4.0.8"
+    os-browserify "~0.1.1"
+    parents "^1.0.1"
+    path-browserify "~0.0.0"
+    process "~0.11.0"
+    punycode "^1.3.2"
+    querystring-es3 "~0.2.0"
+    read-only-stream "^2.0.0"
+    readable-stream "^2.0.2"
+    resolve "^1.1.4"
+    shasum "^1.0.0"
+    shell-quote "^1.6.1"
+    stream-browserify "^2.0.0"
+    stream-http "^2.0.0"
+    string_decoder "~0.10.0"
+    subarg "^1.0.0"
+    syntax-error "^1.1.1"
+    through2 "^2.0.0"
+    timers-browserify "^1.0.1"
+    tty-browserify "~0.0.0"
+    url "~0.11.0"
+    util "~0.10.1"
+    vm-browserify "~0.0.1"
+    xtend "^4.0.0"
+
 browserslist@~1.5.1:
   version "1.5.2"
   resolved "https://registry.yarnpkg.com/browserslist/-/browserslist-1.5.2.tgz#1c82fde0ee8693e6d15c49b7bff209dc06298c56"
@@ -1332,6 +1384,13 @@ buffer@^4.1.0:
     base64-js "^1.0.2"
     ieee754 "^1.1.4"
     isarray "^1.0.0"
+
+buffer@^5.0.2:
+  version "5.0.5"
+  resolved "https://registry.yarnpkg.com/buffer/-/buffer-5.0.5.tgz#35c9393244a90aff83581063d16f0882cecc9418"
+  dependencies:
+    base64-js "^1.0.2"
+    ieee754 "^1.1.4"
 
 builtin-modules@^1.0.0:
   version "1.1.1"
@@ -1449,9 +1508,9 @@ character-parser@^2.1.1:
   dependencies:
     is-regex "^1.0.3"
 
-chartist-plugin-legend@^0.5.0:
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/chartist-plugin-legend/-/chartist-plugin-legend-0.5.0.tgz#a99457dd1523632df0e475ca8bcbc3f0aeed2e36"
+chartist-plugin-legend@^0.6.1:
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/chartist-plugin-legend/-/chartist-plugin-legend-0.6.1.tgz#0f5983aa5b5ed8a76d501c90cb79a5361933b2a6"
 
 chartist-plugin-tooltip@0.0.11:
   version "0.0.11"
@@ -4833,9 +4892,9 @@ minimist@^1.1.0, minimist@^1.1.1, minimist@^1.1.3, minimist@^1.2.0:
   dependencies:
     minimist "0.0.8"
 
-modular-css@^2.0.0:
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/modular-css/-/modular-css-2.0.2.tgz#15dfff51222002b2f807ff1b0223e16a6916ef22"
+modular-css@^3.0.0:
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/modular-css/-/modular-css-3.0.2.tgz#fb3f1d367ee8f3557b25e7bce0afd079a82eb008"
   dependencies:
     dependency-graph "^0.5.0"
     escape-string-regexp "^1.0.5"
@@ -4862,6 +4921,7 @@ modular-css@^2.0.0:
     sink-transform "^2.0.0"
     through2 "^2.0.0"
     unique-slug "^2.0.0"
+    webpack-sources "^0.1.3"
 
 module-deps@^4.0.8:
   version "4.0.8"
@@ -5702,9 +5762,9 @@ react-bootstrap-4@^0.29.1:
     uncontrollable "^3.1.3"
     warning "^2.1.0"
 
-react-chartist@^0.11.0:
-  version "0.11.0"
-  resolved "https://registry.yarnpkg.com/react-chartist/-/react-chartist-0.11.0.tgz#85a2dd68f40c90995a87ac1e237d5194dd9745a8"
+react-chartist@^0.12.0:
+  version "0.12.0"
+  resolved "https://registry.yarnpkg.com/react-chartist/-/react-chartist-0.12.0.tgz#a5412f5e0e2b82779650dbda42ac222e8a604611"
 
 react-copy-to-clipboard@^4.0.2:
   version "4.2.3"
@@ -6372,6 +6432,10 @@ sntp@1.x.x:
   resolved "https://registry.yarnpkg.com/sntp/-/sntp-1.0.9.tgz#6541184cc90aeea6c6e7b35e2659082443c66198"
   dependencies:
     hoek "2.x.x"
+
+source-list-map@~0.1.7:
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/source-list-map/-/source-list-map-0.1.8.tgz#c550b2ab5427f6b3f21f5afead88c4f5587b2106"
 
 source-map-resolve@^0.3.0:
   version "0.3.1"
@@ -7121,6 +7185,13 @@ watchify@^3.7.0:
 webidl-conversions@^3.0.0, webidl-conversions@^3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/webidl-conversions/-/webidl-conversions-3.0.1.tgz#24534275e2a7bc6be7bc86611cc16ae0a5654871"
+
+webpack-sources@^0.1.3:
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/webpack-sources/-/webpack-sources-0.1.4.tgz#ccc2c817e08e5fa393239412690bb481821393cd"
+  dependencies:
+    source-list-map "~0.1.7"
+    source-map "~0.5.3"
 
 websocket-driver@>=0.3.6:
   version "0.6.5"
