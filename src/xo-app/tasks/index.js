@@ -42,7 +42,10 @@ export const TaskItem = connectStore(() => ({
   host: createGetObject((_, props) => props.task.$host)
 }))(({ task, host }) => <SingleLineRow className='mb-1'>
   <Col mediumSize={6}>
-    {task.name_label} (on <Link to={`/hosts/${host.id}`}>{host.name_label}</Link>)
+    {task.name_label} (on {host
+      ? <Link to={`/hosts/${host.id}`}>{host.name_label}</Link>
+      : `unknown host − ${task.$host}`
+    })
     {' ' + Math.round(task.progress * 100)}%
   </Col>
   <Col mediumSize={4}>
