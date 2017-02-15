@@ -91,7 +91,7 @@
     "modular-css": "^3.0.0",
     "moment": "^2.13.0",
     "moment-timezone": "^0.5.4",
-    "notifyjs": "^2.0.1",
+    "notifyjs": "^3.0.0",
     "novnc-node": "^0.5.3",
     "promise-toolbox": "^0.8.0",
     "random-password": "^0.1.2",
