@@ -123,6 +123,11 @@ http:
 
 # Connection to the Redis server.
 redis:
+    # Unix sockets can be used
+    #
+    # Default: undefined
+    #socket: /var/run/redis/redis.sock
+
     # Syntax: redis://[db[:password]@]hostname[:port][/db-number]
     #
     # Default: redis://localhost:6379/0
