@@ -1,6 +1,8 @@
 // TODO: remove once completely merged in vhd.js
 
 import assert from 'assert'
+import constantStream from 'constant-stream'
+import eventToPromise from 'event-to-promise'
 import fu from '@nraynaud/struct-fu'
 import isEqual from 'lodash/isEqual'
 
@@ -354,6 +356,48 @@ class Vhd {
     )
   }
 
+  // get the identifiers and first sectors of the first and last block
+  // in the file
+  //
+  // return undefined if none
+  async _getFirstAndLastBlocks () {
+    const n = this.header.maxTableEntries
+    const bat = this.blockTable
+    let i = 0
+    let j = 0
+    let first, firstSector, last, lastSector
+
+    // get first allocated block for initialization
+    while ((firstSector = bat.readUInt32BE(j)) === BLOCK_UNUSED) {
+      i += 1
+      j += VHD_ENTRY_SIZE
+
+      if (i === n) {
+        return
+      }
+    }
+    lastSector = firstSector
+    first = last = i
+
+    while (i < n) {
+      const value = bat.readUInt32BE(i++)
+      if (value !== BLOCK_UNUSED) {
+        if (value < firstSector) {
+          first = i
+          firstSector = value
+        } else if (value > lastSector) {
+          last = i
+          lastSector = value
+        }
+      }
+
+      i += 1
+      j += VHD_ENTRY_SIZE
+    }
+
+    return { first, firstSector, last, lastSector }
+  }
+
   // =================================================================
   // Write functions.
   // =================================================================
@@ -363,6 +407,40 @@ class Vhd {
       flags: 'r+',
       start
     })
+  }
+
+  async ensureBatSize (size) {
+    const { blockSize, maxTableEntries, tableOffset } = this.header
+
+    const diff = size - maxTableEntries
+    if (diff < 0) {
+      return
+    }
+
+    const { first, firstSector, lastSector } = this._getFirstAndLastBlocks()
+
+    const newFirstSector = lastSector + blockSize / VHD_SECTOR_SIZE
+
+    return Promise.all([
+      // copy the first block at the end
+      Promise.all([
+        this._readStream(sectorsToBytes(firstSector), blockSize),
+        this._writeStream(sectorsToBytes(newFirstSector))
+      ]).then(([ input, output ]) => eventToPromise(
+        input.pipe(output),
+        'finish'
+      )).then(() =>
+        // fill the new bat entries with BLOCK_UNUSED
+        this._writeStream(uint32ToUint64(tableOffset)).then(output => eventToPromise(
+          constantStream(BLOCK_UNUSED, diff),
+          'finish'
+        ))
+      ),
+
+      this._setBatEntry(first, newFirstSector),
+
+      this.writeFooter()
+    ])
   }
 
   // Write a buffer at a given position in a vhd file.
@@ -563,6 +641,8 @@ export default async function vhdMerge (
     parentVhd.readBlockTable(),
     childVhd.readBlockTable()
   ])
+
+  await parentVhd.ensureBatSize(childVhd.header.maxTableEntries)
 
   for (let blockId = 0; blockId < childVhd.header.maxTableEntries; blockId++) {
     const blockAddr = childVhd._getBatEntry(blockId)
