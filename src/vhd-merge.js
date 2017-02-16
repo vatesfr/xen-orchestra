@@ -203,6 +203,10 @@ class Vhd {
     })
   }
 
+  _read (start, n) {
+    return this._readStream(start, n).then(streamToBuffer)
+  }
+
   // Returns the first address after metadata. (In bytes)
   getEndOfHeaders () {
     const { header } = this
@@ -262,9 +266,7 @@ class Vhd {
 
   // Get the beginning (footer + header) of a vhd file.
   async readHeaderAndFooter () {
-    const buf = await streamToBuffer(
-      await this._readStream(0, VHD_FOOTER_SIZE + VHD_HEADER_SIZE)
-    )
+    const buf = await this._read(0, VHD_FOOTER_SIZE + VHD_HEADER_SIZE)
 
     const sum = unpackField(fuFooter.fields.checksum, buf)
     const sumToTest = checksumStruct(buf, fuFooter)
@@ -307,9 +309,7 @@ class Vhd {
       sectorsRoundUpNoZero(header.maxTableEntries * VHD_ENTRY_SIZE)
     )
 
-    this.blockTable = await streamToBuffer(
-      await this._readStream(offset, size)
-    )
+    this.blockTable = await this._read(offset, size)
   }
 
   // return the first sector (bitmap) of a block
@@ -330,9 +330,7 @@ class Vhd {
 
     debug(`Read block data at: ${blockDataAddr}. (size=${size})`)
 
-    const buf = await streamToBuffer(
-      await this._readStream(blockDataAddr, blockDataAddr + size)
-    )
+    const buf = await this._read(blockDataAddr, blockDataAddr + size)
 
     // Padded by zero !
     if (isPadded) {
@@ -351,9 +349,7 @@ class Vhd {
 
     debug(`Read bitmap at: ${offset}. (size=${bitmapSize})`)
 
-    return streamToBuffer(
-      await this._readStream(offset, bitmapSize)
-    )
+    return this._read(offset, bitmapSize)
   }
 
   // get the identifiers and first sectors of the first and last block
