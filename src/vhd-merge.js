@@ -235,7 +235,7 @@ class Vhd {
 
     const { maxTableEntries } = this.header
     for (let i = 0; i < maxTableEntries; i++) {
-      let blockAddr = this.readAllocationTableEntry(i)
+      let blockAddr = this._getBatEntry(i)
 
       if (blockAddr !== BLOCK_UNUSED) {
         // Compute next block address.
@@ -309,9 +309,9 @@ class Vhd {
     )
   }
 
-  // Returns the address block at the entry location of one table.
-  readAllocationTableEntry (entry) {
-    return this.blockTable.readUInt32BE(entry * VHD_ENTRY_SIZE)
+  // return the first sector (bitmap) of a block
+  _getBatEntry (block) {
+    return this.blockTable.readUInt32BE(block * VHD_ENTRY_SIZE)
   }
 
   // Returns the data content of a block. (Not the bitmap !)
@@ -376,12 +376,12 @@ class Vhd {
     }))
   }
 
-  // Write an entry in the allocation table.
-  writeAllocationTableEntry (entry, value) {
-    const i = entry * VHD_ENTRY_SIZE
+  // set the first sector (bitmap) of a block
+  _setBatEntry (block, blockSector) {
+    const i = block * VHD_ENTRY_SIZE
     const { blockTable } = this
 
-    blockTable.writeUInt32BE(value, i)
+    blockTable.writeUInt32BE(blockSector, i)
 
     return this._write(
       blockTable.slice(i, i + VHD_ENTRY_SIZE),
@@ -409,7 +409,7 @@ class Vhd {
     await this._write(new Buffer(fullBlockSize).fill(0), offset)
 
     // New entry in block allocation table.
-    await this.writeAllocationTableEntry(blockId, blockAddr)
+    await this._setBatEntry(blockId, blockAddr)
 
     return blockAddr
   }
@@ -429,7 +429,7 @@ class Vhd {
   }
 
   async writeBlockSectors (block, beginSectorId, n) {
-    let blockAddr = this.readAllocationTableEntry(block.id)
+    let blockAddr = this._getBatEntry(block.id)
 
     if (blockAddr === BLOCK_UNUSED) {
       blockAddr = await this.createBlock(block.id)
@@ -562,7 +562,7 @@ export default async function vhdMerge (
   ])
 
   for (let blockId = 0; blockId < childVhd.header.maxTableEntries; blockId++) {
-    const blockAddr = childVhd.readAllocationTableEntry(blockId)
+    const blockAddr = childVhd._getBatEntry(blockId)
 
     if (blockAddr !== BLOCK_UNUSED) {
       await parentVhd.coalesceBlock(
