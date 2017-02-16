@@ -1,5 +1,6 @@
 // TODO: remove once completely merged in vhd.js
 
+import assert from 'assert'
 import fu from '@nraynaud/struct-fu'
 import isEqual from 'lodash/isEqual'
 
@@ -536,6 +537,8 @@ export default async function vhdMerge (
     parentVhd.readHeaderAndFooter(),
     childVhd.readHeaderAndFooter()
   ])
+
+  assert(childVhd.header.blockSize === parentVhd.header.blockSize)
 
   // Child must be a delta.
   if (childVhd.footer.diskType !== HARD_DISK_TYPE_DIFFERENCING) {
