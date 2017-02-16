@@ -357,13 +357,17 @@ class Vhd {
   // Write functions.
   // =================================================================
 
+  _writeStream (start) {
+    return this._handler.createOutputStream(this._path, {
+      flags: 'r+',
+      start
+    })
+  }
+
   // Write a buffer at a given position in a vhd file.
   async _write (buffer, offset) {
     // TODO: could probably be merged in remote handlers.
-    return this._handler.createOutputStream(this._path, {
-      start: offset,
-      flags: 'r+'
-    }).then(stream => new Promise((resolve, reject) => {
+    return this._writeStream(offset).then(stream => new Promise((resolve, reject) => {
       stream.on('error', reject)
       stream.write(buffer, () => {
         stream.end()
