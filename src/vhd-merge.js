@@ -193,6 +193,13 @@ class Vhd {
   // Read functions.
   // =================================================================
 
+  _readStream (start, n) {
+    return this._handler.createReadStream(this._path, {
+      start,
+      end: start + n - 1 // end is inclusive
+    })
+  }
+
   // Returns the first address after metadata. (In bytes)
   getEndOfHeaders () {
     const { header } = this
@@ -253,10 +260,7 @@ class Vhd {
   // Get the beginning (footer + header) of a vhd file.
   async readHeaderAndFooter () {
     const buf = await streamToBuffer(
-      await this._handler.createReadStream(this._path, {
-        start: 0,
-        end: VHD_FOOTER_SIZE + VHD_HEADER_SIZE - 1
-      })
+      await this._readStream(0, VHD_FOOTER_SIZE + VHD_HEADER_SIZE)
     )
 
     const sum = unpackField(fuFooter.fields.checksum, buf)
@@ -301,10 +305,7 @@ class Vhd {
     )
 
     this.blockTable = await streamToBuffer(
-      await this._handler.createReadStream(this._path, {
-        start: offset,
-        end: offset + size - 1
-      })
+      await this._readStream(offset, size)
     )
   }
 
@@ -317,9 +318,6 @@ class Vhd {
   async readBlockData (blockAddr) {
     const { blockSize } = this.header
 
-    const handler = this._handler
-    const path = this._path
-
     const blockDataAddr = sectorsToBytes(blockAddr + this.sectorsOfBitmap)
     const footerStart = await this.getFooterStart()
     const isPadded = footerStart < (blockDataAddr + blockSize)
@@ -330,10 +328,7 @@ class Vhd {
     debug(`Read block data at: ${blockDataAddr}. (size=${size})`)
 
     const buf = await streamToBuffer(
-      await handler.createReadStream(path, {
-        start: blockDataAddr,
-        end: blockDataAddr + size - 1
-      })
+      await this._readStream(blockDataAddr, blockDataAddr + size)
     )
 
     // Padded by zero !
@@ -354,10 +349,7 @@ class Vhd {
     debug(`Read bitmap at: ${offset}. (size=${bitmapSize})`)
 
     return streamToBuffer(
-      await this._handler.createReadStream(this._path, {
-        start: offset,
-        end: offset + bitmapSize - 1
-      })
+      await this._readStream(offset, bitmapSize)
     )
   }
 
