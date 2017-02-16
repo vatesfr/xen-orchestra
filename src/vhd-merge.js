@@ -378,7 +378,15 @@ class Vhd {
 
   // Write an entry in the allocation table.
   writeAllocationTableEntry (entry, value) {
-    this.blockTable.writeUInt32BE(value, entry * VHD_ENTRY_SIZE)
+    const i = entry * VHD_ENTRY_SIZE
+    const { blockTable } = this
+
+    blockTable.writeUInt32BE(value, i)
+
+    return this._write(
+      blockTable.slice(i, i + VHD_ENTRY_SIZE),
+      uint32ToUint64(this.header.tableOffset) + i
+    )
   }
 
   // Make a new empty block at vhd end.
@@ -394,21 +402,14 @@ class Vhd {
 
     const blockAddr = Math.floor(offset / VHD_SECTOR_SIZE)
 
-    const {
-      blockTable,
-      fullBlockSize
-    } = this
+    const { fullBlockSize } = this
     debug(`Create block at ${blockAddr}. (size=${fullBlockSize}, offset=${offset})`)
-
-    // New entry in block allocation table.
-    this.writeAllocationTableEntry(blockId, blockAddr)
-
-    const tableOffset = uint32ToUint64(this.header.tableOffset)
-    const entry = blockId * VHD_ENTRY_SIZE
 
     // Write an empty block and addr in vhd file.
     await this._write(new Buffer(fullBlockSize).fill(0), offset)
-    await this._write(blockTable.slice(entry, entry + VHD_ENTRY_SIZE), tableOffset + entry)
+
+    // New entry in block allocation table.
+    await this.writeAllocationTableEntry(blockId, blockAddr)
 
     return blockAddr
   }
