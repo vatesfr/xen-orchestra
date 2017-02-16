@@ -406,13 +406,16 @@ class Vhd {
   }
 
   async ensureBatSize (size) {
-    const { blockSize, maxTableEntries, tableOffset } = this.header
+    const { header } = this
 
-    const diff = size - maxTableEntries
+    const diff = size - header.maxTableEntries
     if (diff < 0) {
       return
     }
 
+    header.maxTableEntries += Math.ceil(diff / VHD_SECTOR_SIZE)
+
+    const { blockSize, tableOffset } = header
     const { first, firstSector, lastSector } = this._getFirstAndLastBlocks()
 
     const newFirstSector = lastSector + blockSize / VHD_SECTOR_SIZE
@@ -434,7 +437,7 @@ class Vhd {
       ),
 
       this._setBatEntry(first, newFirstSector),
-
+      this.writeHeader(),
       this.writeFooter()
     ])
   }
