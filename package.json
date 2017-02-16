@@ -58,6 +58,7 @@
     "express": "^4.14.1",
     "express-session": "^1.15.1",
     "fatfs": "^0.10.4",
+    "from2": "^2.3.0",
     "fs-extra": "^2.0.0",
     "fs-promise": "^2.0.0",
     "golike-defer": "^0.0.0",
