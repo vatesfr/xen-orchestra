@@ -408,42 +408,50 @@ class Vhd {
   async ensureBatSize (size) {
     const { header } = this
 
-    const diff = size - header.maxTableEntries
-    if (size >= header.maxTableEntries) {
+    const prevMaxTableEntries = header.maxTableEntries
+    if (prevMaxTableEntries >= size) {
       return
     }
 
+    const tableOffset = uint32ToUint64(header.tableOffset)
     const { first, firstSector, lastSector } = this._getFirstAndLastBlocks()
 
-    header.maxTableEntries = Math.ceil(size / VHD_SECTOR_SIZE)
-    const { blockSize, maxTableEntries, tableOffset } = header
+    // extend BAT
+    const maxTableEntries = header.maxTableEntries = Math.ceil(size / VHD_SECTOR_SIZE) * VHD_SECTOR_SIZE
+    const batSize = maxTableEntries * VHD_ENTRY_SIZE
 
     const extendBat = () => {
-      // extend local BAT
-      const bat = this.blockTable
-      const newBat = this.blockTable = Buffer.allocUnsafe(maxTableEntries * VHD_ENTRY_SIZE)
-      bat.copy(newBat)
-      newBat.fill(BLOCK_UNUSED, bat.size)
+      const BUF_BLOCK_UNUSED = Buffer.allocUnsafe(VHD_ENTRY_SIZE)
+      BUF_BLOCK_UNUSED.writeUInt32BE(BLOCK_UNUSED, 0)
 
-      return this._writeStream(uint32ToUint64(tableOffset)).then(output => eventToPromise(
-        constantStream(BLOCK_UNUSED, diff),
+      // extend local BAT
+      const prevBat = this.blockTable
+      const bat = this.blockTable = Buffer.allocUnsafe(batSize)
+      prevBat.copy(bat)
+      bat.fill(BUF_BLOCK_UNUSED, prevBat.size)
+
+      console.log({ prevMaxTableEntries, maxTableEntries })
+
+      return this._writeStream(tableOffset).then(output => eventToPromise(
+        constantStream(BUF_BLOCK_UNUSED, maxTableEntries - prevMaxTableEntries).pipe(output),
         'finish'
       ))
     }
 
-    if (uint32ToUint64(tableOffset) + maxTableEntries < sectorsToBytes(firstSector)) {
+    if (tableOffset + batSize < sectorsToBytes(firstSector)) {
       return Promise.all([
         extendBat(),
         this.writeHeader()
       ])
     }
 
-    const newFirstSector = lastSector + blockSize / VHD_SECTOR_SIZE
+    const { fullBlockSize } = this
+    const newFirstSector = lastSector + fullBlockSize / VHD_SECTOR_SIZE
 
     return Promise.all([
       // copy the first block at the end
       Promise.all([
-        this._readStream(sectorsToBytes(firstSector), blockSize),
+        this._readStream(sectorsToBytes(firstSector), fullBlockSize),
         this._writeStream(sectorsToBytes(newFirstSector))
       ]).then(([ input, output ]) => eventToPromise(
         input.pipe(output),
