@@ -376,14 +376,14 @@ class Vhd {
     first = last = i
 
     while (i < n) {
-      const value = bat.readUInt32BE(i++)
-      if (value !== BLOCK_UNUSED) {
-        if (value < firstSector) {
+      const sector = bat.readUInt32BE(j)
+      if (sector !== BLOCK_UNUSED) {
+        if (sector < firstSector) {
           first = i
-          firstSector = value
-        } else if (value > lastSector) {
+          firstSector = sector
+        } else if (sector > lastSector) {
           last = i
-          lastSector = value
+          lastSector = sector
         }
       }
 
