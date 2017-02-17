@@ -45,6 +45,10 @@ const HARD_DISK_TYPE_DIFFERENCING = 4 // Delta backup.
 const BLOCK_UNUSED = 0xFFFFFFFF
 const BIT_MASK = 0x80
 
+// unused block as buffer containing a uint32BE
+const BUF_BLOCK_UNUSED = Buffer.allocUnsafe(VHD_ENTRY_SIZE)
+BUF_BLOCK_UNUSED.writeUInt32BE(BLOCK_UNUSED, 0)
+
 // ===================================================================
 
 const fuFooter = fu.struct([
@@ -314,7 +318,12 @@ class Vhd {
 
   // return the first sector (bitmap) of a block
   _getBatEntry (block) {
-    return this.blockTable.readUInt32BE(block * VHD_ENTRY_SIZE)
+    try {
+      return this.blockTable.readUInt32BE(block * VHD_ENTRY_SIZE)
+    } catch (error) {
+      console.log({ block, size: this.blockTable.length, maxTableEntries: this.header.maxTableEntries }, error)
+      throw error
+    }
   }
 
   // Returns the data content of a block. (Not the bitmap !)
@@ -419,24 +428,18 @@ class Vhd {
     // extend BAT
     const maxTableEntries = header.maxTableEntries = Math.ceil(size / VHD_SECTOR_SIZE) * VHD_SECTOR_SIZE
     const batSize = maxTableEntries * VHD_ENTRY_SIZE
-
-    const extendBat = () => {
-      const BUF_BLOCK_UNUSED = Buffer.allocUnsafe(VHD_ENTRY_SIZE)
-      BUF_BLOCK_UNUSED.writeUInt32BE(BLOCK_UNUSED, 0)
-
-      // extend local BAT
+    {
       const prevBat = this.blockTable
       const bat = this.blockTable = Buffer.allocUnsafe(batSize)
       prevBat.copy(bat)
       bat.fill(BUF_BLOCK_UNUSED, prevBat.size)
+    }
 
-      console.log({ prevMaxTableEntries, maxTableEntries })
-
-      return this._writeStream(tableOffset).then(output => eventToPromise(
+    const extendBat = () =>
+      this._writeStream(tableOffset).then(output => eventToPromise(
         constantStream(BUF_BLOCK_UNUSED, maxTableEntries - prevMaxTableEntries).pipe(output),
         'finish'
       ))
-    }
 
     if (tableOffset + batSize < sectorsToBytes(firstSector)) {
       return Promise.all([
