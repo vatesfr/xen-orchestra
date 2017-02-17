@@ -409,17 +409,33 @@ class Vhd {
     const { header } = this
 
     const diff = size - header.maxTableEntries
-    if (diff < 0) {
+    if (size >= header.maxTableEntries) {
       return
     }
 
     const { first, firstSector, lastSector } = this._getFirstAndLastBlocks()
 
-    header.maxTableEntries += Math.ceil(diff / VHD_SECTOR_SIZE)
+    header.maxTableEntries = Math.ceil(size / VHD_SECTOR_SIZE)
     const { blockSize, maxTableEntries, tableOffset } = header
 
+    const extendBat = () => {
+      // extend local BAT
+      const bat = this.blockTable
+      const newBat = this.blockTable = Buffer.allocUnsafe(maxTableEntries * VHD_ENTRY_SIZE)
+      bat.copy(newBat)
+      newBat.fill(BLOCK_UNUSED, bat.size)
+
+      return this._writeStream(uint32ToUint64(tableOffset)).then(output => eventToPromise(
+        constantStream(BLOCK_UNUSED, diff),
+        'finish'
+      ))
+    }
+
     if (uint32ToUint64(tableOffset) + maxTableEntries < sectorsToBytes(firstSector)) {
-      return this.writeHeader()
+      return Promise.all([
+        extendBat(),
+        this.writeHeader()
+      ])
     }
 
     const newFirstSector = lastSector + blockSize / VHD_SECTOR_SIZE
@@ -432,13 +448,7 @@ class Vhd {
       ]).then(([ input, output ]) => eventToPromise(
         input.pipe(output),
         'finish'
-      )).then(() =>
-        // fill the new bat entries with BLOCK_UNUSED
-        this._writeStream(uint32ToUint64(tableOffset)).then(output => eventToPromise(
-          constantStream(BLOCK_UNUSED, diff),
-          'finish'
-        ))
-      ),
+      )).then(extendBat),
 
       this._setBatEntry(first, newFirstSector),
       this.writeHeader(),
