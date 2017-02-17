@@ -413,10 +413,14 @@ class Vhd {
       return
     }
 
-    header.maxTableEntries += Math.ceil(diff / VHD_SECTOR_SIZE)
-
-    const { blockSize, tableOffset } = header
     const { first, firstSector, lastSector } = this._getFirstAndLastBlocks()
+
+    header.maxTableEntries += Math.ceil(diff / VHD_SECTOR_SIZE)
+    const { blockSize, maxTableEntries, tableOffset } = header
+
+    if (uint32ToUint64(tableOffset) + maxTableEntries < sectorsToBytes(firstSector)) {
+      return this.writeHeader()
+    }
 
     const newFirstSector = lastSector + blockSize / VHD_SECTOR_SIZE
 
