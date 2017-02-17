@@ -330,7 +330,7 @@ class Vhd {
 
     debug(`Read block data at: ${blockDataAddr}. (size=${size})`)
 
-    const buf = await this._read(blockDataAddr, blockDataAddr + size)
+    const buf = await this._read(blockDataAddr, size)
 
     // Padded by zero !
     if (isPadded) {
