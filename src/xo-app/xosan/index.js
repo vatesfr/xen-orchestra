@@ -7,13 +7,15 @@ import Page from '../page'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import Tooltip from 'tooltip'
-import { connectStore, formatSize } from 'utils'
+import { addSubscriptions, connectStore, formatSize, compareVersions } from 'utils'
 import { Container, Col } from 'grid'
 import { Toggle } from 'form'
 import { confirm } from 'modal'
 import {
   every,
   filter,
+  find,
+  forEach,
   isEmpty,
   keys,
   map,
@@ -30,7 +32,10 @@ import {
   computeXosanPossibleOptions,
   createXosanSR,
   downloadAndInstallXosanPack,
-  getVolumeInfo
+  getVolumeInfo,
+  registerXosan,
+  subscribeResourceCatalog,
+  subscribePlugins
 } from 'xo'
 
 import InstallXosanPackModal from './install-xosan-pack-modal'
@@ -135,9 +140,20 @@ const _handleInstallPack = pool =>
     icon: 'export',
     body: <InstallXosanPackModal pool={pool} />
   }).then(
-    pack => console.log('Install pack id = ', pack.id, 'version = ', pack.version, 'pool = ', pool.id)
-    // pack => downloadAndInstallXosanPack({ id: pack.id, version: pack.version, pool })
+    pack => downloadAndInstallXosanPack({ id: pack.id, version: pack.version, pool })
   )
+
+const _findLatestTemplate = templates => {
+  let latestTemplate = templates[0]
+
+  forEach(templates, pack => {
+    if (compareVersions(pack.version, latestTemplate.version) > 0) {
+      latestTemplate = pack
+    }
+  })
+
+  return latestTemplate
+}
 
 class PoolAvailableSrs extends Component {
   state = {
@@ -165,10 +181,22 @@ class PoolAvailableSrs extends Component {
     srs => filter(srs).length
   )
 
+  _getLatestTemplate = createSelector(
+    () => this.props.templates,
+    _findLatestTemplate
+  )
+
   _createXosanVm = () => {
     const { pif, vlan, glusterType, selectedSrs, redundancy } = this.state
 
-    return createXosanSR(pif, vlan || 0, keys(pickBy(selectedSrs)), glusterType, redundancy)
+    return createXosanSR({
+      template: this._getLatestTemplate(),
+      pif,
+      vlan: vlan || 0,
+      srs: keys(pickBy(selectedSrs)),
+      glusterType,
+      redundancy
+    })
   }
 
   render () {
@@ -368,20 +396,60 @@ class PoolAvailableSrs extends Component {
     networks: createGetObjectsOfType('network').groupBy('$pool')
   }
 })
+@addSubscriptions({
+  catalog: subscribeResourceCatalog,
+  plugins: subscribePlugins
+})
 export default class Xosan extends Component {
+  _getError = createSelector(
+    () => this.props.plugins,
+    () => this.props.catalog,
+    (plugins, catalog) => {
+      const cloudPlugin = find(plugins, { id: 'cloud' })
+      if (!cloudPlugin) {
+        return _('xosanInstallCloudPlugin')
+      }
+
+      if (!cloudPlugin.loaded) {
+        return _('xosanLoadCloudPlugin')
+      }
+
+      if (!catalog) {
+        return _('xosanLoading')
+      }
+
+      const { xosan } = catalog._namespaces
+      if (!xosan) {
+        return <span><Icon icon='error' /> {_('xosanNotAvailable')}</span>
+      }
+
+      if (xosan.available) {
+        return <ActionButton handler={registerXosan} btnStyle='primary' icon='add'>{_('xosanRegisterBeta')}</ActionButton>
+      }
+
+      if (xosan.pending) {
+        return _('xosanSuccessfullyRegistered')
+      }
+    }
+  )
+
   render () {
-    const { pools, xosanSrsByPool, lvmSrsByPool } = this.props
+    const { pools, xosanSrsByPool, lvmSrsByPool, catalog } = this.props
+    const error = this._getError()
 
     return <Page header={HEADER} title='xosan' formatTitle>
       <Container>
-        {map(pools, pool => {
-          const poolXosanSrs = xosanSrsByPool[pool.id]
-          const poolLvmSrs = lvmSrsByPool[pool.id]
+        {error
+          ? <em>{error}</em>
+          : map(pools, pool => {
+            const poolXosanSrs = xosanSrsByPool[pool.id]
+            const poolLvmSrs = lvmSrsByPool[pool.id]
 
-          return poolXosanSrs && poolXosanSrs.length
-            ? <XosanVolumesTable xosansrs={poolXosanSrs} lvmsrs={poolLvmSrs} />
-            : <PoolAvailableSrs pool={pool} lvmsrs={poolLvmSrs} />
-        })}
+            return poolXosanSrs && poolXosanSrs.length
+              ? <XosanVolumesTable xosansrs={poolXosanSrs} lvmsrs={poolLvmSrs} />
+              : <PoolAvailableSrs pool={pool} lvmsrs={poolLvmSrs} templates={filter(catalog.xosan, { type: 'xva' })} />
+          })
+        }
       </Container>
     </Page>
   }

@@ -1,14 +1,11 @@
 import _ from 'intl'
-import ActionButton from 'action-button'
 import Component from 'base-component'
-import Icon from 'icon'
 import React from 'react'
 import { connectStore, compareVersions } from 'utils'
-import { subscribeResourceCatalog, subscribePlugins, registerXosan } from 'xo'
+import { subscribeResourceCatalog, subscribePlugins } from 'xo'
 import { createGetObjectsOfType, createSelector } from 'selectors'
 import {
   filter,
-  find,
   forEach,
   map
 } from 'lodash'
@@ -53,37 +50,8 @@ export default class InstallXosanPackModal extends Component {
   }
 
   render () {
-    const { plugins, catalog } = this.state
-    console.log('catalog', catalog)
     const { hosts } = this.props
     const latestPack = this._getXosanLatestPack()
-
-    const cloudPlugin = find(plugins, { id: 'cloud' })
-    if (!cloudPlugin) {
-      return _('xosanInstallCloudPlugin')
-    }
-
-    if (!cloudPlugin.loaded) {
-      return _('xosanLoadCloudPlugin')
-    }
-
-    if (!catalog) {
-      return _('xosanLoading')
-    }
-
-    const { xosan } = catalog._namespaces
-
-    if (!xosan) {
-      return <span><Icon icon='error' /> {_('xosanNotAvailable')}</span>
-    }
-
-    if (xosan.available) {
-      return <ActionButton handler={registerXosan} btnStyle='primary' icon='add'>{_('xosanRegisterBeta')}</ActionButton>
-    }
-
-    if (xosan.pending) {
-      return _('xosanSuccessfullyRegistered')
-    }
 
     return <div>
       {_('xosanInstallPackOnHosts')}

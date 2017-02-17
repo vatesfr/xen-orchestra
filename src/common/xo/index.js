@@ -266,9 +266,6 @@ export const subscribeResourceCatalog = createSubscription(() => _call('plugin.g
 
 export const registerXosan = namespace => _call('plugin.registerResource', { namespace: 'xosan' })
 
-export const downloadAndInstallXosanPack = ({ id, version, pool }) =>
-  _call('plugin.downloadAndInstallXosanPack', { namespace: 'xosan', id, version, pool: resolveId(pool) })
-
 // System ============================================================
 
 export const apiMethods = _call('system.getMethodsInfo')
@@ -1804,12 +1801,16 @@ export const getPeers = ip => _call('xosan.getPeers', { ip })
 
 export const getVolumeInfo = (xosanSr) => _call('xosan.getVolumeInfo', { sr: xosanSr })
 
-export const createXosanSR = (pif, vlan, srs, glusterType, redundancy) => _call('xosan.createSR', {
+export const createXosanSR = ({ template, pif, vlan, srs, glusterType, redundancy }) => _call('xosan.createSR', {
+  template,
   pif: pif.id,
-  vlan: vlan,
+  vlan: String(vlan),
   srs: resolveIds(srs),
   glusterType,
   redundancy: Number.parseInt(redundancy)
 })
 
 export const computeXosanPossibleOptions = lvmSrs => _call('xosan.computeXosanPossibleOptions', { lvmSrs })
+
+export const downloadAndInstallXosanPack = ({ id, version, pool }) =>
+  _call('xosan.downloadAndInstallXosanPack', { namespace: 'xosan', id, version, pool: resolveId(pool) })
