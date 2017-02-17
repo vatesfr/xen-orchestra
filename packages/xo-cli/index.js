@@ -18,6 +18,7 @@ var getKeys = require('lodash/keys')
 var got = require('got')
 var humanFormat = require('human-format')
 var identity = require('lodash/identity')
+var isArray = require('lodash/isArray')
 var isObject = require('lodash/isObject')
 var micromatch = require('micromatch')
 var multiline = require('multiline')
@@ -274,7 +275,19 @@ function listCommands (args) {
         if (info.optional) {
           str.push('[')
         }
-        str.push(name, '=<', info.type || 'unknown', '>')
+
+        var type = info.type
+        str.push(
+          name,
+          '=<',
+          type == null
+            ? 'unknown type'
+            : isArray(type)
+              ? type.join('|')
+              : type,
+          '>'
+        )
+
         if (info.optional) {
           str.push(']')
         }
