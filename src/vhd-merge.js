@@ -356,7 +356,7 @@ class Vhd {
   // in the file
   //
   // return undefined if none
-  async _getFirstAndLastBlocks () {
+  _getFirstAndLastBlocks () {
     const n = this.header.maxTableEntries
     const bat = this.blockTable
     let i = 0
