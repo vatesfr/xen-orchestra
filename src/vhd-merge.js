@@ -467,10 +467,7 @@ class Vhd {
     // TODO: could probably be merged in remote handlers.
     return this._writeStream(offset).then(stream => new Promise((resolve, reject) => {
       stream.on('error', reject)
-      stream.write(buffer, () => {
-        stream.end()
-        resolve()
-      })
+      stream.end(buffer, resolve)
     }))
   }
 
