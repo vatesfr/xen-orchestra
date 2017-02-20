@@ -318,12 +318,7 @@ class Vhd {
 
   // return the first sector (bitmap) of a block
   _getBatEntry (block) {
-    try {
-      return this.blockTable.readUInt32BE(block * VHD_ENTRY_SIZE)
-    } catch (error) {
-      console.log({ block, size: this.blockTable.length, maxTableEntries: this.header.maxTableEntries }, error)
-      throw error
-    }
+    return this.blockTable.readUInt32BE(block * VHD_ENTRY_SIZE)
   }
 
   // Returns the data content of a block. (Not the bitmap !)
