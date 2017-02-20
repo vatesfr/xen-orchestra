@@ -1797,8 +1797,6 @@ export const setIpPool = (ipPool, { name, addresses, networks }) => (
 
 // XO SAN ----------------------------------------------------------------------
 
-export const getPeers = ip => _call('xosan.getPeers', { ip })
-
 export const getVolumeInfo = (xosanSr) => _call('xosan.getVolumeInfo', { sr: xosanSr })
 
 export const createXosanSR = ({ template, pif, vlan, srs, glusterType, redundancy }) => _call('xosan.createSR', {

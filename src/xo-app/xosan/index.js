@@ -104,7 +104,7 @@ export class XosanVolumesTable extends Component {
                 { sr.PBDs.map(pbd => pbd.realHost.name_label).join(', ') }
               </td>
               <td>
-                { this.state.volumeConfig && this.state.volumeConfig[sr.id]['Volume ID'] }
+                { this.state.volumeConfig && this.state.volumeConfig[sr.id] && this.state.volumeConfig[sr.id]['Volume ID'] }
               </td>
               <td>
                 {formatSize(sr.size)}
