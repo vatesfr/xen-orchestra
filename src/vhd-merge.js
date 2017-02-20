@@ -402,11 +402,20 @@ class Vhd {
   // Write functions.
   // =================================================================
 
-  _writeStream (start) {
+  // Write a buffer/stream at a given position in a vhd file.
+  _write (data, offset) {
+    // TODO: could probably be merged in remote handlers.
     return this._handler.createOutputStream(this._path, {
       flags: 'r+',
-      start
-    })
+      start: offset
+    }).then(
+      Buffer.isBuffer(data)
+        ? stream => new Promise((resolve, reject) => {
+          stream.on('error', reject)
+          stream.end(data, resolve)
+        })
+        : stream => eventToPromise(data.pipe(stream), 'finish')
+    )
   }
 
   async ensureBatSize (size) {
@@ -456,19 +465,6 @@ class Vhd {
       this.writeHeader(),
       this.writeFooter()
     ])
-  }
-
-  // Write a buffer/stream at a given position in a vhd file.
-  _write (data, offset) {
-    // TODO: could probably be merged in remote handlers.
-    return this._writeStream(offset).then(
-      Buffer.isBuffer(data)
-        ? stream => new Promise((resolve, reject) => {
-          stream.on('error', reject)
-          stream.end(data, resolve)
-        })
-        : stream => eventToPromise(data.pipe(stream), 'finish')
-    )
   }
 
   // set the first sector (bitmap) of a block
