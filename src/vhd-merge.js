@@ -431,10 +431,10 @@ class Vhd {
     }
 
     const extendBat = () =>
-      this._writeStream(tableOffset).then(output => eventToPromise(
-        constantStream(BUF_BLOCK_UNUSED, maxTableEntries - prevMaxTableEntries).pipe(output),
-        'finish'
-      ))
+      this._write(
+        constantStream(BUF_BLOCK_UNUSED, maxTableEntries - prevMaxTableEntries),
+        tableOffset
+      )
 
     if (tableOffset + batSize < sectorsToBytes(firstSector)) {
       return Promise.all([
@@ -448,13 +448,9 @@ class Vhd {
 
     return Promise.all([
       // copy the first block at the end
-      Promise.all([
-        this._readStream(sectorsToBytes(firstSector), fullBlockSize),
-        this._writeStream(sectorsToBytes(newFirstSector))
-      ]).then(([ input, output ]) => eventToPromise(
-        input.pipe(output),
-        'finish'
-      )).then(extendBat),
+      this._readStream(sectorsToBytes(firstSector), fullBlockSize).then(stream =>
+        this._write(stream, sectorsToBytes(newFirstSector))
+      ).then(extendBat),
 
       this._setBatEntry(first, newFirstSector),
       this.writeHeader(),
@@ -462,13 +458,17 @@ class Vhd {
     ])
   }
 
-  // Write a buffer at a given position in a vhd file.
-  async _write (buffer, offset) {
+  // Write a buffer/stream at a given position in a vhd file.
+  _write (data, offset) {
     // TODO: could probably be merged in remote handlers.
-    return this._writeStream(offset).then(stream => new Promise((resolve, reject) => {
-      stream.on('error', reject)
-      stream.end(buffer, resolve)
-    }))
+    return this._writeStream(offset).then(
+      Buffer.isBuffer(data)
+        ? stream => new Promise((resolve, reject) => {
+          stream.on('error', reject)
+          stream.end(data, resolve)
+        })
+        : stream => eventToPromise(data.pipe(stream), 'finish')
+    )
   }
 
   // set the first sector (bitmap) of a block
@@ -501,7 +501,10 @@ class Vhd {
     debug(`Create block at ${blockAddr}. (size=${fullBlockSize}, offset=${offset})`)
 
     // Write an empty block and addr in vhd file.
-    await this._write(new Buffer(fullBlockSize).fill(0), offset)
+    await this._write(
+      constantStream(Buffer.from([ 0 ]), fullBlockSize),
+      offset
+    )
 
     // New entry in block allocation table.
     await this._setBatEntry(blockId, blockAddr)
