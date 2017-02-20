@@ -310,7 +310,9 @@ class PoolAvailableSrs extends Component {
       </table>
       <h2>{_('xosanSuggestions')}</h2>
       {isEmpty(suggestions)
-        ? <em>{_('xosanSelect2Srs')}</em>
+        // TODO: uncomment this line and remove next line when arbitrer VM has been implemented
+        // ? <em>{_('xosanSelect2Srs')}</em>
+        ? <em>Select at least 3 SRs</em>
         : <table className='table table-striped'>
           <thead>
             <tr>
@@ -382,7 +384,7 @@ class PoolAvailableSrs extends Component {
           <Col size={3}>
             <ActionButton
               btnStyle='success'
-              disabled={!suggestions || !pif || !layout || this._getNSelectedSrs() < 2}
+              disabled={!suggestions || !pif || !layout || this._getNSelectedSrs() < 3} // TODO: "< 2" when arbitrer VM has been implemented
               icon='add'
               handler={this._createXosanVm}
             >
