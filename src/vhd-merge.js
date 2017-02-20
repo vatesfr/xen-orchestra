@@ -668,6 +668,10 @@ export default async function vhdMerge (
 
   await parentVhd.ensureBatSize(childVhd.header.maxTableEntries)
 
+  parentVhd.footer.currentSize = { ...childVhd.footer.currentSize }
+  parentVhd.footer.timestamp = childVhd.footer.timestamp
+  await parentVhd.writeHeader()
+
   for (let blockId = 0; blockId < childVhd.header.maxTableEntries; blockId++) {
     const blockAddr = childVhd._getBatEntry(blockId)
 
