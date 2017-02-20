@@ -1,16 +1,17 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
+import getEventValue from 'get-event-value'
 import Icon from 'icon'
 import Link from 'link'
 import Page from '../page'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import Tooltip from 'tooltip'
-import { addSubscriptions, connectStore, formatSize, compareVersions } from 'utils'
 import { Container, Col } from 'grid'
 import { Toggle } from 'form'
 import { confirm } from 'modal'
+import { SelectPif } from 'select-objects'
 import {
   every,
   filter,
@@ -19,7 +20,8 @@ import {
   isEmpty,
   keys,
   map,
-  pickBy
+  pickBy,
+  uniq
 } from 'lodash'
 import {
   createGetObjectsOfType,
@@ -27,7 +29,12 @@ import {
   createSelector,
   createSort
 } from 'selectors'
-import { SelectPif } from 'select-objects'
+import {
+  addSubscriptions,
+  compareVersions,
+  connectStore,
+  formatSize
+} from 'utils'
 import {
   computeXosanPossibleOptions,
   createXosanSR,
@@ -155,9 +162,11 @@ const _findLatestTemplate = templates => {
   return latestTemplate
 }
 
+const _mapUniqLayouts = collection => uniq(map(collection, 'layout'))
+const _mapUniqRedundancies = (layout, collection) => uniq(map(filter(collection, { layout }), 'redundancy')).sort()
+
 class PoolAvailableSrs extends Component {
   state = {
-    glusterType: 'disperse',
     selectedSrs: {}
   }
 
@@ -167,7 +176,23 @@ class PoolAvailableSrs extends Component {
     this.setState({ selectedSrs })
 
     computeXosanPossibleOptions(keys(pickBy(selectedSrs))).then(suggestions => {
-      this.setState({ suggestions })
+      const layout = _mapUniqLayouts(suggestions)[0]
+      const redundancy = layout && _mapUniqRedundancies(layout, suggestions)[0]
+
+      this.setState({
+        layout,
+        redundancy,
+        suggestions
+      })
+    })
+  }
+
+  _selectLayout = event => {
+    const layout = getEventValue(event)
+
+    this.setState({
+      layout,
+      redundancy: _mapUniqRedundancies(layout, this.state.suggestions)[0]
     })
   }
 
@@ -186,15 +211,26 @@ class PoolAvailableSrs extends Component {
     _findLatestTemplate
   )
 
+  _getPossibleLayouts = createSelector(
+    () => this.state.suggestions,
+    _mapUniqLayouts
+  )
+
+  _getPossibleRedundancies = createSelector(
+    () => this.state.layout,
+    () => this.state.suggestions,
+    _mapUniqRedundancies
+  )
+
   _createXosanVm = () => {
-    const { pif, vlan, glusterType, selectedSrs, redundancy } = this.state
+    const { pif, vlan, layout, selectedSrs, redundancy } = this.state
 
     return createXosanSR({
       template: this._getLatestTemplate(),
       pif,
       vlan: vlan || 0,
       srs: keys(pickBy(selectedSrs)),
-      glusterType,
+      glusterType: layout,
       redundancy
     })
   }
@@ -202,8 +238,9 @@ class PoolAvailableSrs extends Component {
   render () {
     const { pool, lvmsrs } = this.props
     const {
-      glusterType,
+      layout,
       pif,
+      redundancy,
       selectedSrs,
       suggestions,
       useVlan,
@@ -271,7 +308,7 @@ class PoolAvailableSrs extends Component {
           })}
         </tbody>
       </table>
-      <h2>Suggestions</h2>
+      <h2>{_('xosanSuggestions')}</h2>
       {isEmpty(suggestions)
         ? <em>{_('xosanSelect2Srs')}</em>
         : <table className='table table-striped'>
@@ -318,27 +355,34 @@ class PoolAvailableSrs extends Component {
           <Col size={2}>
             <select
               className='form-control'
-              id='selectGlusterType'
-              onChange={this.linkState('glusterType')}
+              disabled={!suggestions}
+              onChange={this._selectLayout}
               required
-              value={glusterType}
+              value={layout}
             >
-              <option value='disperse'>disperse</option>
-              <option value='replica'>replica</option>
+              {map(this._getPossibleLayouts(), layout =>
+                <option key={layout} value={layout}>{layout}</option>
+              )}
             </select>
           </Col>
           <Col size={2}>
-            <input
+            <select
               className='form-control'
+              disabled={!suggestions}
               onChange={this.linkState('redundancy')}
               placeholder='redundancy'
-              type='number'
-            />
+              required
+              value={redundancy}
+            >
+              {map(this._getPossibleRedundancies(), redundancy =>
+                <option key={redundancy} value={redundancy}>{_('xosanRedundancyN', { redundancy })}</option>
+              )}
+            </select>
           </Col>
           <Col size={3}>
             <ActionButton
               btnStyle='success'
-              disabled={!pif || !glusterType || this._getNSelectedSrs() < 2}
+              disabled={!suggestions || !pif || !layout || this._getNSelectedSrs() < 2}
               icon='add'
               handler={this._createXosanVm}
             >

@@ -1305,6 +1305,7 @@ var messages = {
   xosanTitle: 'Xen Orchestra Storage Area Network',
   xosanSrTitle: 'Xen Orchestra SAN SR',
   xosanAvailableSrsTitle: 'Available Raw SRs (lvm)',
+  xosanSuggestions: 'Suggestions',
   xosanName: 'Name',
   xosanHost: 'Host',
   xosanHosts: 'Hosts',
@@ -1317,8 +1318,9 @@ var messages = {
   xosanSelect2Srs: 'Select at least 2 SRs',
   xosanLayout: 'Layout',
   xosanRedundancy: 'Redundancy',
+  xosanRedundancyN: 'Redundancy {redundancy}',
   xosanCapacity: 'Capacity',
-  xosanAvailableSpace: 'Availbale space',
+  xosanAvailableSpace: 'Available space',
   xosanCreate: 'Create XOSAN VM on selected SRs and PIF',
   // Pack download modal
   xosanInstallCloudPlugin: 'Install cloud plugin first',
