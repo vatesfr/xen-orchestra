@@ -140,7 +140,7 @@
     "commit-msg": "npm test",
     "dev": "gulp build",
     "dev-test": "jest --bail --watch",
-    "posttest": "standard && dependency-check ./package.json",
+    "posttest": "standard && dependency-check -i constant-stream ./package.json",
     "prebuild": "index-modules src/api src/xapi/mixins src/xo-mixins",
     "predev": "npm run prebuild",
     "prepublish": "npm run build",
