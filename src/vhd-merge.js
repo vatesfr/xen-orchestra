@@ -430,7 +430,7 @@ class Vhd {
     const { first, firstSector, lastSector } = this._getFirstAndLastBlocks()
 
     // extend BAT
-    const maxTableEntries = header.maxTableEntries = Math.ceil(size / VHD_SECTOR_SIZE) * VHD_SECTOR_SIZE
+    const maxTableEntries = header.maxTableEntries = size
     const batSize = maxTableEntries * VHD_ENTRY_SIZE
     {
       const prevBat = this.blockTable
