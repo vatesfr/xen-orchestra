@@ -418,17 +418,15 @@ class Vhd {
     // extend BAT
     const maxTableEntries = header.maxTableEntries = size
     const batSize = maxTableEntries * VHD_ENTRY_SIZE
-    {
-      const prevBat = this.blockTable
-      const bat = this.blockTable = Buffer.allocUnsafe(batSize)
-      prevBat.copy(bat)
-      bat.fill(BUF_BLOCK_UNUSED, prevBat.size)
-    }
+    const prevBat = this.blockTable
+    const bat = this.blockTable = Buffer.allocUnsafe(batSize)
+    prevBat.copy(bat)
+    bat.fill(BUF_BLOCK_UNUSED, prevBat.size)
 
     const extendBat = () =>
       this._write(
         constantStream(BUF_BLOCK_UNUSED, maxTableEntries - prevMaxTableEntries),
-        tableOffset
+        tableOffset + prevBat.size
       )
 
     if (tableOffset + batSize < sectorsToBytes(firstSector)) {
