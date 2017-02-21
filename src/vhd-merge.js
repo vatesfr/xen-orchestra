@@ -230,17 +230,15 @@ class Vhd {
 
   // Returns the first sector after data.
   getEndOfData () {
-    let end = Math.floor(this.getEndOfHeaders() / VHD_SECTOR_SIZE)
+    let end = Math.ceil(this.getEndOfHeaders() / VHD_SECTOR_SIZE)
 
+    const fullBlockSize = this.sectorsOfBitmap + this.sectorsPerBlock
     const { maxTableEntries } = this.header
     for (let i = 0; i < maxTableEntries; i++) {
-      let blockAddr = this._getBatEntry(i)
+      const blockAddr = this._getBatEntry(i)
 
       if (blockAddr !== BLOCK_UNUSED) {
-        // Compute next block address.
-        blockAddr += this.sectorsPerBlock + this.sectorsOfBitmap
-
-        end = Math.max(end, blockAddr)
+        end = Math.max(end, blockAddr + fullBlockSize)
       }
     }
 
@@ -471,27 +469,19 @@ class Vhd {
   // Make a new empty block at vhd end.
   // Update block allocation table in context and in file.
   async createBlock (blockId) {
-    // End of file !
-    let offset = this.getEndOfData()
+    const blockAddr = Math.ceil(this.getEndOfData() / VHD_SECTOR_SIZE)
 
-    // Padded on bound sector.
-    if (offset % VHD_SECTOR_SIZE) {
-      offset += (VHD_SECTOR_SIZE - (offset % VHD_SECTOR_SIZE))
-    }
+    debug(`create block ${blockId} at ${blockAddr}`)
 
-    const blockAddr = Math.floor(offset / VHD_SECTOR_SIZE)
+    await Promise.all([
+      // Write an empty block and addr in vhd file.
+      this._write(
+        constantStream(Buffer.from([ 0 ]), this.fullBlockSize),
+        blockAddr * VHD_SECTOR_SIZE
+      ),
 
-    const { fullBlockSize } = this
-    debug(`Create block at ${blockAddr}. (size=${fullBlockSize}, offset=${offset})`)
-
-    // Write an empty block and addr in vhd file.
-    await this._write(
-      constantStream(Buffer.from([ 0 ]), fullBlockSize),
-      offset
-    )
-
-    // New entry in block allocation table.
-    await this._setBatEntry(blockId, blockAddr)
+      this._setBatEntry(blockId, blockAddr)
+    ])
 
     return blockAddr
   }
