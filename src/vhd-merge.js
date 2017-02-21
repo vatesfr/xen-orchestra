@@ -247,13 +247,6 @@ class Vhd {
     return sectorsToBytes(end)
   }
 
-  // Returns the start position of the vhd footer.
-  // The real footer, not the copy at the beginning of the vhd file.
-  async getFooterStart () {
-    const stats = await this._handler.getSize(this._path)
-    return stats.size - VHD_FOOTER_SIZE
-  }
-
   // Get the beginning (footer + header) of a vhd file.
   async readHeaderAndFooter () {
     const buf = await this._read(0, VHD_FOOTER_SIZE + VHD_HEADER_SIZE)
@@ -308,26 +301,15 @@ class Vhd {
   }
 
   // Returns the data content of a block. (Not the bitmap !)
-  async readBlockData (blockAddr) {
-    const { blockSize } = this.header
-
+  readBlockData (blockAddr) {
     const blockDataAddr = sectorsToBytes(blockAddr + this.sectorsOfBitmap)
-    const footerStart = await this.getFooterStart()
-    const isPadded = footerStart < (blockDataAddr + blockSize)
 
     // Size ot the current block in the vhd file.
-    const size = isPadded ? (footerStart - blockDataAddr) : sectorsToBytes(this.sectorsPerBlock)
+    const size = sectorsToBytes(this.sectorsPerBlock)
 
     debug(`Read block data at: ${blockDataAddr}. (size=${size})`)
 
-    const buf = await this._read(blockDataAddr, size)
-
-    // Padded by zero !
-    if (isPadded) {
-      return Buffer.concat([buf, new Buffer(blockSize - size).fill(0)])
-    }
-
-    return buf
+    return this._read(blockDataAddr, size)
   }
 
   // Returns a buffer that contains the bitmap of a block.
@@ -443,11 +425,11 @@ class Vhd {
       // copy the first block at the end
       this._readStream(sectorsToBytes(firstSector), fullBlockSize).then(stream =>
         this._write(stream, sectorsToBytes(newFirstSector))
-      ).then(extendBat),
+      ).then(extendBat).then(() => this.writeFooter()),
 
       this._setBatEntry(first, newFirstSector),
       this.writeHeader(),
-      this.writeFooter()
+      // this.writeFooter()
     ])
   }
 
@@ -474,8 +456,8 @@ class Vhd {
     await Promise.all([
       // Write an empty block and addr in vhd file.
       this._write(
-        constantStream(Buffer.from([ 0 ]), this.fullBlockSize),
-        blockAddr * VHD_SECTOR_SIZE
+        constantStream([ 0 ], this.fullBlockSize),
+        sectorsToBytes(blockAddr)
       ),
 
       this._setBatEntry(blockId, blockAddr)
@@ -578,13 +560,13 @@ class Vhd {
     await this._write(rawFooter, offset)
   }
 
-  async writeHeader () {
+  writeHeader () {
     const { header } = this
     const rawHeader = fuHeader.pack(header)
     header.checksum = checksumStruct(rawHeader, fuHeader)
     const offset = VHD_FOOTER_SIZE
     debug(`Write header at: ${offset} (checksum=${header.checksum}). (data=${rawHeader.toString('hex')})`)
-    await this._write(rawHeader, offset)
+    return this._write(rawHeader, offset)
   }
 }
 
