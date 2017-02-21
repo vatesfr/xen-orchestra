@@ -176,18 +176,6 @@ function checksumStruct (rawStruct, struct) {
   return sum
 }
 
-function getParentLocatorSize (parentLocatorEntry) {
-  const { platformDataSpace } = parentLocatorEntry
-
-  if (platformDataSpace < VHD_SECTOR_SIZE) {
-    return sectorsToBytes(platformDataSpace)
-  }
-
-  return (platformDataSpace % VHD_SECTOR_SIZE === 0)
-    ? platformDataSpace
-    : 0
-}
-
 // ===================================================================
 
 class Vhd {
@@ -228,10 +216,10 @@ class Vhd {
       const entry = header.parentLocatorEntry[i]
 
       if (entry.platformCode !== VHD_PLATFORM_CODE_NONE) {
-        const dataOffset = uint32ToUint64(entry.platformDataOffset)
-
-        // Max(end, locator end)
-        end = Math.max(end, dataOffset + getParentLocatorSize(entry))
+        end = Math.max(end,
+          uint32ToUint64(entry.platformDataOffset) +
+          sectorsToBytes(entry.platformDataSpace)
+        )
       }
     }
 
