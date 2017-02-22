@@ -366,6 +366,7 @@ class Vhd {
 
   // Write a buffer/stream at a given position in a vhd file.
   _write (data, offset) {
+    debug(`_write offset=${offset} size=${Buffer.isBuffer(data) ? data.length : '???'}`)
     // TODO: could probably be merged in remote handlers.
     return this._handler.createOutputStream(this._path, {
       flags: 'r+',
@@ -398,12 +399,16 @@ class Vhd {
     const bat = this.blockTable = Buffer.allocUnsafe(batSize)
     prevBat.copy(bat)
     bat.fill(BUF_BLOCK_UNUSED, prevBat.size)
+    debug(`ensureBatSize: extend in memory BAT ${prevMaxTableEntries} -> ${maxTableEntries}`)
 
-    const extendBat = () =>
-      this._write(
+    const extendBat = () => {
+      debug(`ensureBatSize: extend in file BAT ${prevMaxTableEntries} -> ${maxTableEntries}`)
+
+      return this._write(
         constantStream(BUF_BLOCK_UNUSED, maxTableEntries - prevMaxTableEntries),
         tableOffset + prevBat.size
       )
+    }
 
     if (tableOffset + batSize < sectorsToBytes(firstSector)) {
       return Promise.all([
@@ -414,6 +419,7 @@ class Vhd {
 
     const { fullBlockSize } = this
     const newFirstSector = lastSector + fullBlockSize / VHD_SECTOR_SIZE
+    debug(`ensureBatSize: move first block ${firstSector} -> ${newFirstSector}`)
 
     return Promise.all([
       // copy the first block at the end
