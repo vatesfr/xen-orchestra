@@ -224,6 +224,16 @@ class PoolAvailableSrs extends Component {
     _mapUniqRedundancies
   )
 
+  _getDisableSrCheckbox = createSelector(
+    () => this.state.selectedSrs,
+    () => this.props.lvmsrs,
+    (selectedSrs, lvmsrs) => sr =>
+      !every(keys(pickBy(selectedSrs)), selectedSrId =>
+        selectedSrId === sr.id ||
+        find(lvmsrs, { id: selectedSrId }).$container !== sr.$container
+      )
+  )
+
   _createXosanVm = () => {
     const { pif, vlan, layout, selectedSrs, redundancy } = this.state
 
@@ -257,6 +267,8 @@ class PoolAvailableSrs extends Component {
       </div>
     }
 
+    const disableSrCheckbox = this._getDisableSrCheckbox()
+
     return <div className='mb-3'>
       <h3>{_('xosanAvailableSrsTitle')}</h3>
       <table className='table table-striped'>
@@ -276,6 +288,7 @@ class PoolAvailableSrs extends Component {
               <td>
                 <input
                   checked={selectedSrs[sr.id] || false}
+                  disabled={disableSrCheckbox(sr)}
                   onChange={event => this._selectSr(event, sr.id)}
                   type='checkbox'
                 />
