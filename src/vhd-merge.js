@@ -504,11 +504,11 @@ class Vhd {
   }
 
   // Merge block id (of vhd child) into vhd parent.
-  async coalesceBlock (child, blockAddr, blockId) {
+  async coalesceBlock (child, blockId) {
     // Get block data and bitmap of block id.
     const { bitmap, data } = await child._readBlock(blockId)
 
-    debug(`Coalesce block ${blockId} at ${blockAddr}.`)
+    debug(`coalesceBlock block=${blockId}`)
 
     // For each sector of block data...
     const { sectorsPerBlock } = child
@@ -623,14 +623,8 @@ export default async function vhdMerge (
   }
 
   for (let blockId = 0; blockId < childVhd.header.maxTableEntries; blockId++) {
-    const blockAddr = childVhd._getBatEntry(blockId)
-
-    if (blockAddr !== BLOCK_UNUSED) {
-      await parentVhd.coalesceBlock(
-        childVhd,
-        blockAddr,
-        blockId
-      )
+    if (childVhd._getBatEntry(blockId) !== BLOCK_UNUSED) {
+      await parentVhd.coalesceBlock(childVhd, blockId)
     }
   }
 
