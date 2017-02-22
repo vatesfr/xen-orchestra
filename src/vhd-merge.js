@@ -613,24 +613,22 @@ export default async function vhdMerge (
 
   await parentVhd.ensureBatSize(childVhd.header.maxTableEntries)
 
-  {
-    const cFooter = childVhd.footer
-    const pFooter = parentVhd.footer
-
-    pFooter.currentSize = { ...cFooter.currentSize }
-    pFooter.diskGeometry = { ...cFooter.diskGeometry }
-    pFooter.originalSize = { ...cFooter.originalSize }
-    pFooter.timestamp = cFooter.timestamp
-
-    await parentVhd.writeFooter()
-  }
-
   for (let blockId = 0; blockId < childVhd.header.maxTableEntries; blockId++) {
     if (childVhd._getBatEntry(blockId) !== BLOCK_UNUSED) {
       await parentVhd.coalesceBlock(childVhd, blockId)
     }
   }
 
+  const cFooter = childVhd.footer
+  const pFooter = parentVhd.footer
+
+  pFooter.currentSize = { ...cFooter.currentSize }
+  pFooter.diskGeometry = { ...cFooter.diskGeometry }
+  pFooter.originalSize = { ...cFooter.originalSize }
+  pFooter.timestamp = cFooter.timestamp
+
+  // necessary to update values and to recreate the footer after block
+  // creation
   await parentVhd.writeFooter()
 }
 
