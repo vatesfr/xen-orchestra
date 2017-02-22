@@ -500,7 +500,7 @@ class Vhd {
       sectorsToBytes(offset)
     )
 
-    const bitmap = await this.readBlockBitmap(this.bitmapSize, blockAddr)
+    const bitmap = await this.readBlockBitmap(blockAddr)
 
     for (let i = beginSectorId; i < endSectorId; ++i) {
       mapSetBit(bitmap, i)
