@@ -1811,4 +1811,4 @@ export const createXosanSR = ({ template, pif, vlan, srs, glusterType, redundanc
 export const computeXosanPossibleOptions = lvmSrs => _call('xosan.computeXosanPossibleOptions', { lvmSrs })
 
 export const downloadAndInstallXosanPack = ({ id, version, pool }) =>
-  _call('xosan.downloadAndInstallXosanPack', { namespace: 'xosan', id, version, pool: resolveId(pool) })
+  _call('xosan.downloadAndInstallXosanPack', { id, version, pool: resolveId(pool) })

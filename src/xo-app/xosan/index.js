@@ -1,5 +1,6 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
+import Collapse from 'collapse'
 import Component from 'base-component'
 import getEventValue from 'get-event-value'
 import Icon from 'icon'
@@ -89,7 +90,7 @@ export class XosanVolumesTable extends Component {
   render () {
     const { xosansrs } = this.props
     return <div>
-      <h2>{_('xosanSrTitle')}</h2>
+      <h3>{_('xosanSrTitle')}</h3>
       <table className='table table-striped'>
         <thead>
           <tr>
@@ -237,7 +238,7 @@ class PoolAvailableSrs extends Component {
   }
 
   render () {
-    const { pool, lvmsrs } = this.props
+    const { pool, lvmsrs, noPack } = this.props
     const {
       layout,
       pif,
@@ -248,10 +249,8 @@ class PoolAvailableSrs extends Component {
       vlan
     } = this.state
 
-    // TODO: check hosts supplementalPacks directly instead of checking each SR
-    if (!every(lvmsrs, sr => sr.PBDs[0].realHost.supplementalPacks['vates:XOSAN'])) {
+    if (noPack) {
       return <div className='mb-3'>
-        <h1>{pool.name_label}</h1>
         <Icon icon='error' /> {_('xosanNeedPack')}
         <br />
         <ActionButton btnStyle='success' icon='export' handler={_handleInstallPack} handlerParam={pool}>{_('xosanInstallIt')}</ActionButton>
@@ -259,22 +258,28 @@ class PoolAvailableSrs extends Component {
     }
 
     return <div className='mb-3'>
-      <h1>{pool.name_label}</h1>
-      <h2>{_('xosanAvailableSrsTitle')}</h2>
+      <h3>{_('xosanAvailableSrsTitle')}</h3>
       <table className='table table-striped'>
         <thead>
           <tr>
+            <th />
             <th>{_('xosanName')}</th>
             <th>{_('xosanHost')}</th>
             <th>{_('xosanSize')}</th>
             <th>{_('xosanUsedSpace')}</th>
-            <th />
           </tr>
         </thead>
         <tbody>
           {map(lvmsrs, sr => {
             const host = sr.PBDs[0].realHost
             return <tr key={sr.id}>
+              <td>
+                <input
+                  checked={selectedSrs[sr.id] || false}
+                  onChange={event => this._selectSr(event, sr.id)}
+                  type='checkbox'
+                />
+              </td>
               <td>
                 <Link to={`/srs/${sr.id}/general`}>{sr.name_label}</Link>
               </td>
@@ -298,22 +303,13 @@ class PoolAvailableSrs extends Component {
                 </Tooltip>
                 }
               </td>
-              <td>
-                <input
-                  checked={selectedSrs[sr.id] || false}
-                  onChange={event => this._selectSr(event, sr.id)}
-                  type='checkbox'
-                />
-              </td>
             </tr>
           })}
         </tbody>
       </table>
-      <h2>{_('xosanSuggestions')}</h2>
+      <h3>{_('xosanSuggestions')}</h3>
       {isEmpty(suggestions)
-        // TODO: uncomment this line and remove next line when arbitrer VM has been implemented
-        // ? <em>{_('xosanSelect2Srs')}</em>
-        ? <em>Select at least 3 SRs</em>
+        ? <em>{_('xosanSelect2Srs')}</em>
         : [
           <table className='table table-striped'>
             <thead>
@@ -333,71 +329,71 @@ class PoolAvailableSrs extends Component {
               </tr>)}
             </tbody>
           </table>,
-          <Graph layout={layout} redundancy={redundancy} nSrs={this._getNSelectedSrs()} />
+          <Graph layout={layout} redundancy={redundancy} nSrs={this._getNSelectedSrs()} />,
+          <hr />,
+          <Container>
+            <SingleLineRow>
+              <Col size={3}>
+                <SelectPif
+                  onChange={this.linkState('pif')}
+                  predicate={this._getPifPredicate()}
+                  value={pif}
+                />
+              </Col>
+              <Col size={2}>
+                <input
+                  className='form-control pull-right'
+                  disabled={!useVlan}
+                  onChange={this.linkState('vlan')}
+                  placeholder='VLAN'
+                  style={{ width: '50%' }}
+                  type='text'
+                  value={vlan}
+                />
+                <Toggle className='pull-right mr-1' onChange={this.linkState('useVlan')} value={useVlan} />
+              </Col>
+              <Col size={2}>
+                <select
+                  className='form-control'
+                  disabled={!suggestions}
+                  onChange={this._selectLayout}
+                  required
+                  value={layout}
+                >
+                  {map(this._getPossibleLayouts(), layout =>
+                    <option key={layout} value={layout}>{layout}</option>
+                  )}
+                </select>
+              </Col>
+              <Col size={2}>
+                <select
+                  className='form-control'
+                  disabled={!suggestions}
+                  onChange={this.linkState('redundancy')}
+                  placeholder='redundancy'
+                  required
+                  value={redundancy}
+                >
+                  {map(this._getPossibleRedundancies(), redundancy =>
+                    <option key={redundancy} value={redundancy}>{_('xosanRedundancyN', { redundancy })}</option>
+                  )}
+                </select>
+              </Col>
+              <Col size={3}>
+                <ActionButton
+                  btnStyle='success'
+                  disabled={!suggestions || !pif || !layout || this._getNSelectedSrs() < 3} // TODO: "< 2" when arbitrer VM has been implemented
+                  icon='add'
+                  handler={this._createXosanVm}
+                  redirectOnSuccess='tasks'
+                >
+                  {_('xosanCreate')}
+                </ActionButton>
+              </Col>
+            </SingleLineRow>
+          </Container>
         ]
       }
-      <hr />
-      <Container>
-        <SingleLineRow>
-          <Col size={3}>
-            <SelectPif
-              onChange={this.linkState('pif')}
-              predicate={this._getPifPredicate()}
-              value={pif}
-            />
-          </Col>
-          <Col size={2}>
-            <input
-              className='form-control pull-right'
-              disabled={!useVlan}
-              onChange={this.linkState('vlan')}
-              placeholder='VLAN'
-              style={{ width: '50%' }}
-              type='text'
-              value={vlan}
-            />
-            <Toggle className='pull-right mr-1' onChange={this.linkState('useVlan')} value={useVlan} />
-          </Col>
-          <Col size={2}>
-            <select
-              className='form-control'
-              disabled={!suggestions}
-              onChange={this._selectLayout}
-              required
-              value={layout}
-            >
-              {map(this._getPossibleLayouts(), layout =>
-                <option key={layout} value={layout}>{layout}</option>
-              )}
-            </select>
-          </Col>
-          <Col size={2}>
-            <select
-              className='form-control'
-              disabled={!suggestions}
-              onChange={this.linkState('redundancy')}
-              placeholder='redundancy'
-              required
-              value={redundancy}
-            >
-              {map(this._getPossibleRedundancies(), redundancy =>
-                <option key={redundancy} value={redundancy}>{_('xosanRedundancyN', { redundancy })}</option>
-              )}
-            </select>
-          </Col>
-          <Col size={3}>
-            <ActionButton
-              btnStyle='success'
-              disabled={!suggestions || !pif || !layout || this._getNSelectedSrs() < 3} // TODO: "< 2" when arbitrer VM has been implemented
-              icon='add'
-              handler={this._createXosanVm}
-              redirectOnSuccess='tasks'
-            >
-              {_('xosanCreate')}
-            </ActionButton>
-          </Col>
-        </SingleLineRow>
-      </Container>
     </div>
   }
 }
@@ -495,10 +491,17 @@ export default class Xosan extends Component {
           : map(pools, pool => {
             const poolXosanSrs = xosanSrsByPool[pool.id]
             const poolLvmSrs = lvmSrsByPool[pool.id]
+            // TODO: check hosts supplementalPacks directly instead of checking each SR
+            const noPack = !every(poolLvmSrs, sr => sr.PBDs[0].realHost.supplementalPacks['vates:XOSAN'])
 
-            return poolXosanSrs && poolXosanSrs.length
-              ? <XosanVolumesTable xosansrs={poolXosanSrs} lvmsrs={poolLvmSrs} />
-              : <PoolAvailableSrs pool={pool} lvmsrs={poolLvmSrs} templates={filter(catalog.xosan, { type: 'xva' })} />
+            return <Collapse className='mb-1' buttonText={<span>{noPack && <Icon icon='error' />} {pool.name_label}</span>}>
+              <div className='m-1'>
+                {poolXosanSrs && poolXosanSrs.length
+                  ? <XosanVolumesTable xosansrs={poolXosanSrs} lvmsrs={poolLvmSrs} />
+                  : <PoolAvailableSrs pool={pool} lvmsrs={poolLvmSrs} noPack={noPack} templates={filter(catalog.xosan, { type: 'xva' })} />
+                }
+              </div>
+            </Collapse>
           })
         }
       </Container>

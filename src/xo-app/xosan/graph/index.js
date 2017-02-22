@@ -67,23 +67,29 @@ const _diskGroup = (n, loss) => n % 2
     _fill(Math.min(n / 2, loss), DISK_LOSS)
   ]
 
-const _replicationGraph = (nGroups, nPerGroup) => {
+const _replicationGraph = (nSrs, nPerGroup) => {
+  const nGroups = nSrs / nPerGroup // Should always be an integer
+
   const suppXosanOffset = nPerGroup % 2 ? 0 : floor(nGroups / 2)
   const suppForkOffset = 1 - nPerGroup % 2
 
   return <div className={styles.graph}>
-    {_blank(floor(((nPerGroup * nGroups) + nGroups - 1) / 2) + suppXosanOffset)}
+    {_blank(floor((nSrs + nGroups - 1) / 2) + suppXosanOffset)}
     {XOSAN}
     <br />
 
-    {_blank(floor(nPerGroup / 2))}
-    {_fork(nGroups, (nPerGroup - 1) + 1 + suppForkOffset)}
+    {nGroups > 1 && [
+      _blank(floor(nPerGroup / 2)),
+      _fork(nGroups, nPerGroup + suppForkOffset),
+      <br />
+    ]}
+
+    {_fill(nGroups - 1, [ _fork(nPerGroup), _blank(1) ])}
+    {_fork(nPerGroup)}
     <br />
 
-    {_fill(nGroups, [ _fork(nPerGroup), _blank(1) ])}
-    <br />
-
-    {_fill(nGroups, [ _diskGroup(nPerGroup, nPerGroup - 1), _blank(1) ])}
+    {_fill(nGroups - 1, [ _diskGroup(nPerGroup, nPerGroup - 1), _blank(1) ])}
+    {_diskGroup(nPerGroup, nPerGroup - 1)}
   </div>
 }
 
@@ -113,7 +119,7 @@ export default class Graph extends Component {
       <div className={styles.graphWrapper}>
         {layout === 'disperse'
          ? _disperseGraph(nSrs, redundancy)
-         : _replicationGraph(nSrs, redundancy)}
+         : _replicationGraph(nSrs, redundancy - (layout === 'replica_arbiter' ? 1 : 0))}
       </div>
       <div>
         <strong className={styles.legend}>{_('xosanDiskLossLegend')}</strong>

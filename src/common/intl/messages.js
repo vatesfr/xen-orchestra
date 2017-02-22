@@ -1302,9 +1302,9 @@ var messages = {
   srAllConnected: 'Connected',
 
   // ----- XOSAN -----
-  xosanTitle: 'Xen Orchestra Storage Area Network',
+  xosanTitle: 'XOSAN',
   xosanSrTitle: 'Xen Orchestra SAN SR',
-  xosanAvailableSrsTitle: 'Available Raw SRs (lvm)',
+  xosanAvailableSrsTitle: 'Select local SRs (lvm)',
   xosanSuggestions: 'Suggestions',
   xosanName: 'Name',
   xosanHost: 'Host',
