@@ -1322,7 +1322,7 @@ var messages = {
   xosanCapacity: 'Capacity',
   xosanAvailableSpace: 'Available space',
   xosanDiskLossLegend: '* Can fail without data loss',
-  xosanCreate: 'Create XOSAN VM on selected SRs and PIF',
+  xosanCreate: 'Create XOSAN',
   // Pack download modal
   xosanInstallCloudPlugin: 'Install cloud plugin first',
   xosanLoadCloudPlugin: 'Load cloud plugin first',
