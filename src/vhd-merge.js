@@ -428,8 +428,8 @@ class Vhd {
       ).then(extendBat).then(() => this.writeFooter()),
 
       this._setBatEntry(first, newFirstSector),
-      this.writeHeader(),
-      // this.writeFooter()
+      this.writeHeader() // ,
+      // this.writeFooter() // TODO: necessary for the tests in writeFooter, retore when no longer necessary
     ])
   }
 
