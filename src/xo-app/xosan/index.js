@@ -198,8 +198,8 @@ class PoolAvailableSrs extends Component {
   }
 
   _getPifPredicate = createSelector(
-    () => this.props.pool && this.props.pool.id,
-    poolId => pif => pif.vlan === -1 && pif.$pool === poolId
+    () => this.props.pool,
+    pool => pif => pif.vlan === -1 && pif.$host === pool.master
   )
 
   _getNSelectedSrs = createSelector(
