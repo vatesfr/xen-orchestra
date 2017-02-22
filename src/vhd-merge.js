@@ -474,17 +474,16 @@ class Vhd {
     await this._write(bitmap, sectorsToBytes(blockAddr))
   }
 
-  async writeBlockSectors (block, beginSectorId, n) {
+  async writeBlockSectors (block, beginSectorId, endSectorId) {
     let blockAddr = this._getBatEntry(block.id)
 
     if (blockAddr === BLOCK_UNUSED) {
       blockAddr = await this.createBlock(block.id)
     }
 
-    const endSectorId = beginSectorId + n
     const offset = blockAddr + this.sectorsOfBitmap + beginSectorId
 
-    debug(`Write block data at: ${offset}. (counter=${n}, blockId=${block.id}, blockSector=${beginSectorId})`)
+    debug(`writeBlockSectors at ${offset} block=${block.id}, sectors=${beginSectorId}...${endSectorId}`)
 
     await this._write(
       block.data.slice(
@@ -518,24 +517,22 @@ class Vhd {
         continue
       }
 
-      let sectors = 0
+      let endSector = i + 1
 
       // Count changed sectors.
-      for (; sectors + i < sectorsPerBlock; sectors++) {
-        if (!mapTestBit(bitmap, sectors + i)) {
-          break
-        }
+      while (endSector < sectorsPerBlock && mapTestBit(bitmap, endSector)) {
+        ++endSector
       }
 
       // Write n sectors into parent.
-      debug(`Coalesce block: write. (offset=${i}, sectors=${sectors})`)
+      debug(`coalesceBlock: write sectors=${i}...${endSector}`)
       await this.writeBlockSectors(
         { id: blockId, data },
         i,
-        sectors
+        endSector
       )
 
-      i += sectors
+      i = endSector
     }
   }
 
