@@ -391,6 +391,7 @@ class PoolAvailableSrs extends Component {
               disabled={!suggestions || !pif || !layout || this._getNSelectedSrs() < 3} // TODO: "< 2" when arbitrer VM has been implemented
               icon='add'
               handler={this._createXosanVm}
+              redirectOnSuccess='tasks'
             >
               {_('xosanCreate')}
             </ActionButton>
