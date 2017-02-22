@@ -300,28 +300,22 @@ class Vhd {
     return this.blockTable.readUInt32BE(block * VHD_ENTRY_SIZE)
   }
 
-  // Returns the data content of a block. (Not the bitmap !)
-  readBlockData (blockAddr) {
-    const blockDataAddr = sectorsToBytes(blockAddr + this.sectorsOfBitmap)
+  _readBlock (blockId, onlyBitmap = false) {
+    const blockAddr = this._getBatEntry(blockId)
+    if (blockAddr === BLOCK_UNUSED) {
+      throw new Error(`no such block ${blockId}`)
+    }
 
-    // Size ot the current block in the vhd file.
-    const size = sectorsToBytes(this.sectorsPerBlock)
-
-    debug(`Read block data at: ${blockDataAddr}. (size=${size})`)
-
-    return this._read(blockDataAddr, size)
-  }
-
-  // Returns a buffer that contains the bitmap of a block.
-  //
-  // TODO: merge with readBlockData().
-  async readBlockBitmap (blockAddr) {
-    const { bitmapSize } = this
-    const offset = sectorsToBytes(blockAddr)
-
-    debug(`Read bitmap at: ${offset}. (size=${bitmapSize})`)
-
-    return this._read(offset, bitmapSize)
+    return this._read(
+      sectorsToBytes(blockAddr),
+      onlyBitmap ? this.bitmapSize : this.fullBlockSize
+    ).then(buf => onlyBitmap
+      ? { bitmap: buf }
+      : {
+        bitmap: buf.slice(0, this.bitmapSize),
+        data: buf.slice(this.bitmapSize)
+      }
+    )
   }
 
   // get the identifiers and first sectors of the first and last block
@@ -500,7 +494,7 @@ class Vhd {
       sectorsToBytes(offset)
     )
 
-    const bitmap = await this.readBlockBitmap(blockAddr)
+    const { bitmap } = await this._readBlock(block.id, true)
 
     for (let i = beginSectorId; i < endSectorId; ++i) {
       mapSetBit(bitmap, i)
@@ -512,8 +506,7 @@ class Vhd {
   // Merge block id (of vhd child) into vhd parent.
   async coalesceBlock (child, blockAddr, blockId) {
     // Get block data and bitmap of block id.
-    const blockData = await child.readBlockData(blockAddr)
-    const blockBitmap = await child.readBlockBitmap(blockAddr)
+    const { bitmap, data } = await child._readBlock(blockId)
 
     debug(`Coalesce block ${blockId} at ${blockAddr}.`)
 
@@ -521,7 +514,7 @@ class Vhd {
     const { sectorsPerBlock } = child
     for (let i = 0; i < sectorsPerBlock; i++) {
       // If no changes on one sector, skip.
-      if (!mapTestBit(blockBitmap, i)) {
+      if (!mapTestBit(bitmap, i)) {
         continue
       }
 
@@ -529,7 +522,7 @@ class Vhd {
 
       // Count changed sectors.
       for (; sectors + i < sectorsPerBlock; sectors++) {
-        if (!mapTestBit(blockBitmap, sectors + i)) {
+        if (!mapTestBit(bitmap, sectors + i)) {
           break
         }
       }
@@ -537,7 +530,7 @@ class Vhd {
       // Write n sectors into parent.
       debug(`Coalesce block: write. (offset=${i}, sectors=${sectors})`)
       await this.writeBlockSectors(
-        { id: blockId, data: blockData },
+        { id: blockId, data },
         i,
         sectors
       )
