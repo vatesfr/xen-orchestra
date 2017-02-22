@@ -1,0 +1,41 @@
+.wrapper {
+  display: flex column;
+}
+
+.graphWrapper {
+  display: flex;
+}
+
+.graph {
+  margin: auto;
+  font-size: 30px;
+  line-height: 1em;
+}
+
+.item {
+  height: 1em;
+  /* 18.05px is the size of a box element in courier font-size 30px
+  An "item" is 3 characters wide. 18.05 * 3 = 54.16 */
+  width: 54.16px;
+  margin: auto;
+}
+
+.wrapper:hover .loss {
+  color: #990822;
+  font-weight: bold;
+}
+
+.box {
+  font-family: courier;
+  width: 1em;
+  margin: auto;
+}
+
+.legend {
+  color: #990822;
+  visibility: hidden;
+}
+
+.wrapper:hover .legend {
+  visibility: visible;
+}

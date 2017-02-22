@@ -45,6 +45,7 @@ import {
   subscribePlugins
 } from 'xo'
 
+import Graph from './graph'
 import InstallXosanPackModal from './install-xosan-pack-modal'
 
 // ==================================================================
@@ -313,24 +314,27 @@ class PoolAvailableSrs extends Component {
         // TODO: uncomment this line and remove next line when arbitrer VM has been implemented
         // ? <em>{_('xosanSelect2Srs')}</em>
         ? <em>Select at least 3 SRs</em>
-        : <table className='table table-striped'>
-          <thead>
-            <tr>
-              <th>{_('xosanLayout')}</th>
-              <th>{_('xosanRedundancy')}</th>
-              <th>{_('xosanCapacity')}</th>
-              <th>{_('xosanAvailableSpace')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {map(suggestions, ({ layout, redundancy, capacity, availableSpace }, index) => <tr key={index}>
-              <td>{layout}</td>
-              <td>{redundancy}</td>
-              <td>{capacity}</td>
-              <td>{formatSize(availableSpace)}</td>
-            </tr>)}
-          </tbody>
-        </table>
+        : [
+          <table className='table table-striped'>
+            <thead>
+              <tr>
+                <th>{_('xosanLayout')}</th>
+                <th>{_('xosanRedundancy')}</th>
+                <th>{_('xosanCapacity')}</th>
+                <th>{_('xosanAvailableSpace')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {map(suggestions, ({ layout, redundancy, capacity, availableSpace }, index) => <tr key={index}>
+                <td>{layout}</td>
+                <td>{redundancy}</td>
+                <td>{capacity}</td>
+                <td>{formatSize(availableSpace)}</td>
+              </tr>)}
+            </tbody>
+          </table>,
+          <Graph layout={layout} redundancy={redundancy} nSrs={this._getNSelectedSrs()} />
+        ]
       }
       <hr />
       <Container>

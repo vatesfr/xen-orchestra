@@ -1321,6 +1321,7 @@ var messages = {
   xosanRedundancyN: 'Redundancy {redundancy}',
   xosanCapacity: 'Capacity',
   xosanAvailableSpace: 'Available space',
+  xosanDiskLossLegend: '* Can fail without data loss',
   xosanCreate: 'Create XOSAN VM on selected SRs and PIF',
   // Pack download modal
   xosanInstallCloudPlugin: 'Install cloud plugin first',
