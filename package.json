@@ -52,7 +52,7 @@
     "cross-env": "^3.1.4",
     "dependency-check": "^2.7.0",
     "husky": "^0.12.0",
-    "jest": "^18.1.0",
+    "jest": "^19.0.1",
     "rimraf": "^2.5.4",
     "standard": "^8.6.0"
   },
