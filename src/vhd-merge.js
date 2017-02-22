@@ -398,7 +398,7 @@ class Vhd {
     const prevBat = this.blockTable
     const bat = this.blockTable = Buffer.allocUnsafe(batSize)
     prevBat.copy(bat)
-    bat.fill(BUF_BLOCK_UNUSED, prevBat.size)
+    bat.fill(BUF_BLOCK_UNUSED, prevBat.length)
     debug(`ensureBatSize: extend in memory BAT ${prevMaxTableEntries} -> ${maxTableEntries}`)
 
     const extendBat = () => {
@@ -406,7 +406,7 @@ class Vhd {
 
       return this._write(
         constantStream(BUF_BLOCK_UNUSED, maxTableEntries - prevMaxTableEntries),
-        tableOffset + prevBat.size
+        tableOffset + prevBat.length
       )
     }
 
