@@ -36,6 +36,7 @@ import User from './user'
 import Vm from './vm'
 import VmImport from './vm-import'
 import XoaUpdates from './xoa-updates'
+import Xosan from './xosan'
 
 import keymap, { help } from '../keymap'
 
@@ -83,7 +84,8 @@ const BODY_STYLE = {
   'vms/import': VmImport,
   'vms/new': NewVm,
   'vms/:id': Vm,
-  'xoa-update': XoaUpdates
+  'xoa-update': XoaUpdates,
+  'xosan': Xosan
 })
 @connectStore((state) => {
   return {

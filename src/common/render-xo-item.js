@@ -165,7 +165,7 @@ const xoItemToRender = {
   // PIF.
   PIF: pif => (
     <span>
-      <Icon icon='network' /> {pif.device}
+      <Icon icon='network' /> {pif.device} ({pif.deviceName})
     </span>
   ),
 

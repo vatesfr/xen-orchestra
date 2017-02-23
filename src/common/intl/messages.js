@@ -64,6 +64,7 @@ var messages = {
   newSrPage: 'Storage',
   newServerPage: 'Server',
   newImport: 'Import',
+  xosan: 'XOSAN',
   backupOverviewPage: 'Overview',
   backupNewPage: 'New',
   backupRemotesPage: 'Remotes',
@@ -1298,7 +1299,42 @@ var messages = {
   srsForgetModalMessage: 'Are you sure you want to forget all the selected SRs? VDIs on these storages won\'t be removed.',
   srAllDisconnected: 'Disconnected',
   srSomeConnected: 'Partially connected',
-  srAllConnected: 'Connected'
+  srAllConnected: 'Connected',
+
+  // ----- XOSAN -----
+  xosanTitle: 'XOSAN',
+  xosanSrTitle: 'Xen Orchestra SAN SR',
+  xosanAvailableSrsTitle: 'Select local SRs (lvm)',
+  xosanSuggestions: 'Suggestions',
+  xosanName: 'Name',
+  xosanHost: 'Host',
+  xosanHosts: 'Hosts',
+  xosanVolumeId: 'Volume ID',
+  xosanSize: 'Size',
+  xosanUsedSpace: 'Used space',
+  xosanNeedPack: 'XOSAN pack needs to be installed on each host of the pool.',
+  xosanInstallIt: 'Install it now!',
+  xosanInstallPackTitle: 'Install XOSAN pack on {pool}',
+  xosanSelect2Srs: 'Select at least 2 SRs',
+  xosanLayout: 'Layout',
+  xosanRedundancy: 'Redundancy',
+  xosanRedundancyN: 'Redundancy {redundancy}',
+  xosanCapacity: 'Capacity',
+  xosanAvailableSpace: 'Available space',
+  xosanDiskLossLegend: '* Can fail without data loss',
+  xosanCreate: 'Create XOSAN',
+  xosanInstalling: 'Installing XOSAN. Please wait...',
+  xosanBadVersion: 'You need XenServer 7 to install XOSAN',
+  xosanCommunity: 'No XOSAN available for Community Edition',
+  // Pack download modal
+  xosanInstallCloudPlugin: 'Install cloud plugin first',
+  xosanLoadCloudPlugin: 'Load cloud plugin first',
+  xosanLoading: 'Loading...',
+  xosanNotAvailable: 'XOSAN is not available at the moment',
+  xosanRegisterBeta: 'Register for the XOSAN beta',
+  xosanSuccessfullyRegistered: 'You have successfully registered for the XOSAN beta. Please wait until your request has been approved.',
+  xosanInstallPackOnHosts: 'Install XOSAN pack on these hosts:',
+  xosanInstallPack: 'Install {pack} v{version}?'
 
 }
 forEach(messages, function (message, id) {
