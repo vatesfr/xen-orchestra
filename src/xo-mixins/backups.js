@@ -421,7 +421,7 @@ export default class {
           stream => stream.cancel()
         ))
 
-        return srcXapi.deleteVm(delta.vm.uuid, true)
+        return srcXapi.deleteVm(delta.vm.uuid)
       })
 
       const promise = targetXapi.importDeltaVm(
@@ -435,7 +435,7 @@ export default class {
       // Once done, (asynchronously) remove the (now obsolete) local
       // base.
       if (localBaseUuid) {
-        promise.then(() => srcXapi.deleteVm(localBaseUuid, true))::pCatch(noop)
+        promise.then(() => srcXapi.deleteVm(localBaseUuid))::pCatch(noop)
       }
 
       // (Asynchronously) Identify snapshot as future base.
@@ -735,7 +735,7 @@ export default class {
       base => base.snapshot_time
     )
     const baseVm = bases.pop()
-    forEach(bases, base => { xapi.deleteVm(base.$id, true)::pCatch(noop) })
+    forEach(bases, base => { xapi.deleteVm(base.$id)::pCatch(noop) })
 
     // Check backup dirs.
     const dir = `vm_delta_${tag}_${vm.uuid}`
@@ -770,7 +770,7 @@ export default class {
         stream => stream.cancel()
       ))
 
-      await xapi.deleteVm(delta.vm.uuid, true)
+      await xapi.deleteVm(delta.vm.uuid)
     })
 
     // Save vdis.
@@ -846,7 +846,7 @@ export default class {
     await this._removeOldDeltaVmBackups(xapi, { vm, handler, dir, depth })
 
     if (baseVm) {
-      xapi.deleteVm(baseVm.$id, true)::pCatch(noop)
+      xapi.deleteVm(baseVm.$id)::pCatch(noop)
     }
 
     // Returns relative path.
@@ -949,7 +949,7 @@ export default class {
     const promises = []
     for (let surplus = snapshots.length - (depth - 1); surplus > 0; surplus--) {
       const oldSnap = snapshots.shift()
-      promises.push(xapi.deleteVm(oldSnap.uuid, true))
+      promises.push(xapi.deleteVm(oldSnap.uuid))
     }
     await Promise.all(promises)
   }
@@ -982,7 +982,7 @@ export default class {
     const n = 1 - depth
     await Promise.all(mapToArray(n ? olderCopies.slice(0, n) : olderCopies, vm =>
       // Do not consider a failure to delete an old copy as a fatal error.
-      targetXapi.deleteVm(vm.$id, true)::pCatch(noop)
+      targetXapi.deleteVm(vm.$id)::pCatch(noop)
     ))
   }
 

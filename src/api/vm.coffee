@@ -297,7 +297,7 @@ exports.create = create
 
 #---------------------------------------------------------------------
 
-delete_ = $coroutine ({vm, delete_disks: deleteDisks}) ->
+delete_ = $coroutine ({vm, delete_disks: deleteDisks = false }) ->
   cpus = vm.CPUs.number
   memory = vm.memory.size
 

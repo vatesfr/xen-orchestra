@@ -52,7 +52,7 @@ export default {
 
     // Clones the template.
     const vmRef = await this[clone ? '_cloneVm' : '_copyVm'](template, nameLabel)
-    $onFailure(() => this.deleteVm(vmRef, true)::pCatch(noop))
+    $onFailure(() => this.deleteVm(vmRef)::pCatch(noop))
 
     // TODO: copy BIOS strings?
 

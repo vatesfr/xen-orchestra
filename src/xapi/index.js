@@ -515,7 +515,7 @@ export default class Xapi extends XapiBase {
       )
     } finally {
       if (snapshot) {
-        await this._deleteVm(snapshot, true)
+        await this._deleteVm(snapshot)
       }
     }
   }
@@ -675,7 +675,7 @@ export default class Xapi extends XapiBase {
     }))
   }
 
-  async _deleteVm (vm, deleteDisks) {
+  async _deleteVm (vm, deleteDisks = true) {
     debug(`Deleting VM ${vm.name_label}`)
 
     // It is necessary for suspended VMs to be shut down
@@ -712,14 +712,14 @@ export default class Xapi extends XapiBase {
       }))
     }
 
-    await Promise.all(mapToArray(vm.$snapshots, snapshot => {
-      return this.deleteVm(snapshot.$id, true)::pCatch(noop)
-    }))
+    await Promise.all(mapToArray(vm.$snapshots, snapshot =>
+      this.deleteVm(snapshot.$id)::pCatch(noop)
+    ))
 
     await this.call('VM.destroy', vm.$ref)
   }
 
-  async deleteVm (vmId, deleteDisks = false) {
+  async deleteVm (vmId, deleteDisks) {
     return /* await */ this._deleteVm(
       this.getObject(vmId),
       deleteDisks
@@ -757,7 +757,7 @@ export default class Xapi extends XapiBase {
     const taskRef = await this._createTask('VM Export', vm.name_label)
     if (snapshotRef) {
       this._watchTask(taskRef)::pFinally(() => {
-        this.deleteVm(snapshotRef, true)::pCatch(noop)
+        this.deleteVm(snapshotRef)::pCatch(noop)
       })
     }
 
@@ -783,7 +783,7 @@ export default class Xapi extends XapiBase {
     disableBaseTags = false
   } = {}) {
     const vm = await this.snapshotVm(vmId)
-    $onFailure(() => this._deleteVm(vm, true))
+    $onFailure(() => this._deleteVm(vm))
     if (snapshotNameLabel) {
       this._setObjectProperties(vm, {
         nameLabel: snapshotNameLabel
@@ -930,7 +930,7 @@ export default class Xapi extends XapiBase {
         is_a_template: false
       })
     )
-    $onFailure(() => this._deleteVm(vm, true))
+    $onFailure(() => this._deleteVm(vm))
 
     await Promise.all([
       this._setObjectProperties(vm, {
@@ -1035,7 +1035,7 @@ export default class Xapi extends XapiBase {
     ])
 
     if (deleteBase && baseVm) {
-      this._deleteVm(baseVm, true)::pCatch(noop)
+      this._deleteVm(baseVm)::pCatch(noop)
     }
 
     await Promise.all([
@@ -1258,7 +1258,7 @@ export default class Xapi extends XapiBase {
         VCPUs_max: nCpus
       })
     )
-    $onFailure(() => this._deleteVm(vm, true))
+    $onFailure(() => this._deleteVm(vm))
     // Disable start and change the VM name label during import.
     await Promise.all([
       this.addForbiddenOperationToVm(vm.$id, 'start', 'OVA import in progress...'),
