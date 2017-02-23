@@ -34,7 +34,7 @@ set.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function scan ({SR}) {
+export async function scan ({ SR }) {
   await this.getXapi(SR).call('SR.scan', SR._xapiRef)
 }
 
@@ -50,7 +50,15 @@ scan.resolve = {
 
 // TODO: find a way to call this "delete" and not destroy
 export async function destroy ({ sr }) {
-  await this.getXapi(sr).destroySr(sr._xapiId)
+  const xapi = this.getXapi(sr)
+  if (sr.SR_type === 'xosan') {
+    const config = xapi.xo.getData(sr, 'xosan_config')
+    // we simply forget because the hosted disks are been destroyed with the VMs
+    await xapi.forgetSr(sr._xapiId)
+    await Promise.all(config.nodes.map(node => xapi.deleteVm(node.vm.id, true)))
+    return await xapi.deleteNetwork(config.network)
+  }
+  await xapi.destroySr(sr._xapiId)
 }
 
 destroy.params = {
@@ -63,7 +71,7 @@ destroy.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function forget ({SR}) {
+export async function forget ({ SR }) {
   await this.getXapi(SR).forgetSr(SR._xapiId)
 }
 
@@ -77,7 +85,7 @@ forget.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function connectAllPbds ({SR}) {
+export async function connectAllPbds ({ SR }) {
   await this.getXapi(SR).connectAllSrPbds(SR._xapiId)
 }
 
@@ -91,7 +99,7 @@ connectAllPbds.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function disconnectAllPbds ({SR}) {
+export async function disconnectAllPbds ({ SR }) {
   await this.getXapi(SR).disconnectAllSrPbds(SR._xapiId)
 }
 
@@ -572,7 +580,7 @@ export async function probeIscsiExists ({
   const srs = []
   forEach(ensureArray(xml['SRlist'].SR), sr => {
     // get the UUID of SR connected to this LUN
-    srs.push({uuid: sr.UUID.trim()})
+    srs.push({ uuid: sr.UUID.trim() })
   })
 
   return srs
@@ -614,7 +622,7 @@ export async function probeNfsExists ({
 
   forEach(ensureArray(xml['SRlist'].SR), sr => {
     // get the UUID of SR connected to this LUN
-    srs.push({uuid: sr.UUID.trim()})
+    srs.push({ uuid: sr.UUID.trim() })
   })
 
   return srs

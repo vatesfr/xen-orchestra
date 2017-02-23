@@ -386,6 +386,8 @@ const TRANSFORMS = {
       tags: obj.tags,
       usage: +obj.virtual_allocation,
       VDIs: link(obj, 'VDIs'),
+      other_config: obj.other_config,
+      sm_config: obj.sm_config,
 
       $container: (
         obj.shared || !obj.$PBDs[0]
@@ -404,7 +406,8 @@ const TRANSFORMS = {
 
       attached: Boolean(obj.currently_attached),
       host: link(obj, 'host'),
-      SR: link(obj, 'SR')
+      SR: link(obj, 'SR'),
+      device_config: obj.device_config
     }
   },
 
@@ -419,6 +422,7 @@ const TRANSFORMS = {
       attached: Boolean(obj.currently_attached),
       isBondMaster: !isEmpty(obj.bond_master_of),
       device: obj.device,
+      deviceName: metrics && metrics.device_name,
       dns: obj.DNS,
       disallowUnplug: Boolean(obj.disallow_unplug),
       gateway: obj.gateway,
@@ -511,6 +515,7 @@ const TRANSFORMS = {
       MTU: +obj.MTU,
       name_description: obj.name_description,
       name_label: obj.name_label,
+      other_config: obj.other_config,
       tags: obj.tags,
       PIFs: link(obj, 'PIFs'),
       VIFs: link(obj, 'VIFs')

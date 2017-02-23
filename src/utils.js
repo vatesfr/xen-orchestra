@@ -569,3 +569,13 @@ export const mapFilter = (collection, iteratee) => {
   })
   return result
 }
+
+// -------------------------------------------------------------------
+
+export const splitFirst = (string, separator) => {
+  const i = string.indexOf(separator)
+  return i === -1 ? null : [
+    string.slice(0, i),
+    string.slice(i + separator.length)
+  ]
+}

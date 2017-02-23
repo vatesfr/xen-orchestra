@@ -1,5 +1,4 @@
 /* eslint-disable camelcase */
-
 import deferrable from 'golike-defer'
 import fatfs from 'fatfs'
 import tarStream from 'tar-stream'

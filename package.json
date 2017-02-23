@@ -38,6 +38,7 @@
     "@nraynaud/struct-fu": "^1.0.1",
     "app-conf": "^0.4.1",
     "archiver": "^1.3.0",
+    "arp-a": "^0.5.1",
     "babel-runtime": "^6.22.0",
     "base64url": "^2.0.0",
     "bind-property-descriptor": "^0.0.0",
