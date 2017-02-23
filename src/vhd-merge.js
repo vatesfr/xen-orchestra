@@ -425,11 +425,11 @@ class Vhd {
       // copy the first block at the end
       this._readStream(sectorsToBytes(firstSector), fullBlockSize).then(stream =>
         this._write(stream, sectorsToBytes(newFirstSector))
-      ).then(extendBat).then(() => this.writeFooter()),
+      ).then(extendBat),
 
       this._setBatEntry(first, newFirstSector),
-      this.writeHeader() // ,
-      // this.writeFooter() // TODO: necessary for the tests in writeFooter, retore when no longer necessary
+      this.writeHeader(),
+      this.writeFooter()
     ])
   }
 
