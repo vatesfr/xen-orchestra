@@ -273,10 +273,6 @@ export const subscribeIsInstallingXosan = (pool, cb) => {
   return xosanSubscriptions[poolId](cb)
 }
 
-// Cloud plugin ======================================================
-
-export const registerXosan = namespace => _call('cloud.registerResource', { namespace: 'xosan' })
-
 // System ============================================================
 
 export const apiMethods = _call('system.getMethodsInfo')
@@ -1821,5 +1817,14 @@ export const createXosanSR = ({ template, pif, vlan, srs, glusterType, redundanc
 
 export const computeXosanPossibleOptions = lvmSrs => _call('xosan.computeXosanPossibleOptions', { lvmSrs })
 
-export const downloadAndInstallXosanPack = ({ id, version, pool }) =>
-  _call('xosan.downloadAndInstallXosanPack', { id, version, pool: resolveId(pool) })
+import InstallXosanPackModal from './install-xosan-pack-modal'
+export const downloadAndInstallXosanPack = pool =>
+  confirm({
+    title: _('xosanInstallPackTitle', { pool: pool.name_label }),
+    icon: 'export',
+    body: <InstallXosanPackModal pool={pool} />
+  }).then(
+    pack => _call('xosan.downloadAndInstallXosanPack', { id: pack.id, version: pack.version, pool: resolveId(pool) })
+  )
+
+export const registerXosan = namespace => _call('cloud.registerResource', { namespace: 'xosan' })

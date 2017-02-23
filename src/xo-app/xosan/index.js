@@ -11,7 +11,6 @@ import SingleLineRow from 'single-line-row'
 import Tooltip from 'tooltip'
 import { Container, Col } from 'grid'
 import { Toggle } from 'form'
-import { confirm } from 'modal'
 import { SelectPif } from 'select-objects'
 import {
   every,
@@ -48,7 +47,6 @@ import {
 } from 'xo'
 
 import Graph from './graph'
-import InstallXosanPackModal from './install-xosan-pack-modal'
 
 // ==================================================================
 
@@ -143,15 +141,6 @@ export class XosanVolumesTable extends Component {
 }
 
 // ==================================================================
-
-const _handleInstallPack = pool =>
-  confirm({
-    title: _('xosanInstallPackTitle', { pool: pool.name_label }),
-    icon: 'export',
-    body: <InstallXosanPackModal pool={pool} />
-  }).then(
-    pack => downloadAndInstallXosanPack({ id: pack.id, version: pack.version, pool })
-  )
 
 const _findLatestTemplate = templates => {
   let latestTemplate = templates[0]
@@ -286,7 +275,7 @@ class PoolAvailableSrs extends Component {
       return <div className='mb-3'>
         <Icon icon='error' /> {_('xosanNeedPack')}
         <br />
-        <ActionButton btnStyle='success' icon='export' handler={_handleInstallPack} handlerParam={pool}>{_('xosanInstallIt')}</ActionButton>
+        <ActionButton btnStyle='success' icon='export' handler={downloadAndInstallXosanPack} handlerParam={pool}>{_('xosanInstallIt')}</ActionButton>
       </div>
     }
 
