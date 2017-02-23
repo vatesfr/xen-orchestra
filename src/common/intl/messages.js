@@ -1325,6 +1325,7 @@ var messages = {
   xosanCreate: 'Create XOSAN',
   xosanInstalling: 'Installing XOSAN. Please wait...',
   xosanBadVersion: 'You need XenServer 7 to install XOSAN',
+  xosanCommunity: 'No XOSAN available for Community Edition',
   // Pack download modal
   xosanInstallCloudPlugin: 'Install cloud plugin first',
   xosanLoadCloudPlugin: 'Load cloud plugin first',

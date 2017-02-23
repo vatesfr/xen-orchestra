@@ -520,26 +520,32 @@ export default class Xosan extends Component {
     const error = this._getError()
 
     return <Page header={HEADER} title='xosan' formatTitle>
-      <Container>
-        {error
-          ? <em>{error}</em>
-          : map(pools, pool => {
-            const poolXosanSrs = xosanSrsByPool[pool.id]
-            const poolLvmSrs = lvmSrsByPool[pool.id]
-            // TODO: check hosts supplementalPacks directly instead of checking each SR
-            const noPack = !every(poolLvmSrs, sr => sr.PBDs[0].realHost.supplementalPacks['vates:XOSAN'])
+      {process.env.XOA_PLAN < 5
+        ? <Container>
+          {error
+            ? <em>{error}</em>
+            : map(pools, pool => {
+              const poolXosanSrs = xosanSrsByPool[pool.id]
+              const poolLvmSrs = lvmSrsByPool[pool.id]
+              // TODO: check hosts supplementalPacks directly instead of checking each SR
+              const noPack = !every(poolLvmSrs, sr => sr.PBDs[0].realHost.supplementalPacks['vates:XOSAN'])
 
-            return <Collapse className='mb-1' buttonText={<span>{noPack && <Icon icon='error' />} {pool.name_label}</span>}>
-              <div className='m-1'>
-                {poolXosanSrs && poolXosanSrs.length
-                  ? <XosanVolumesTable xosansrs={poolXosanSrs} lvmsrs={poolLvmSrs} />
-                  : <PoolAvailableSrs pool={pool} lvmsrs={poolLvmSrs} noPack={noPack} templates={filter(catalog.xosan, { type: 'xva' })} />
-                }
-              </div>
-            </Collapse>
-          })
-        }
-      </Container>
+              return <Collapse className='mb-1' buttonText={<span>{noPack && <Icon icon='error' />} {pool.name_label}</span>}>
+                <div className='m-1'>
+                  {poolXosanSrs && poolXosanSrs.length
+                    ? <XosanVolumesTable xosansrs={poolXosanSrs} lvmsrs={poolLvmSrs} />
+                    : <PoolAvailableSrs pool={pool} lvmsrs={poolLvmSrs} noPack={noPack} templates={filter(catalog.xosan, { type: 'xva' })} />
+                  }
+                </div>
+              </Collapse>
+            })
+          }
+        </Container>
+        : <Container>
+          <h2 className='text-danger'>{_('xosanCommunity')}</h2>
+          <p>{_('considerSubscribe', { link: <a href='https://xen-orchestra.com'>https://xen-orchestra.com</a> })}</p>
+        </Container>
+      }
     </Page>
   }
 }
