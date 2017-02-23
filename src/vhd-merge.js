@@ -1,5 +1,8 @@
 // TODO: remove once completely merged in vhd.js
 
+import assert from 'assert'
+import constantStream from 'constant-stream'
+import eventToPromise from 'event-to-promise'
 import fu from '@nraynaud/struct-fu'
 import isEqual from 'lodash/isEqual'
 
@@ -41,6 +44,10 @@ const HARD_DISK_TYPE_DIFFERENCING = 4 // Delta backup.
 // Other.
 const BLOCK_UNUSED = 0xFFFFFFFF
 const BIT_MASK = 0x80
+
+// unused block as buffer containing a uint32BE
+const BUF_BLOCK_UNUSED = Buffer.allocUnsafe(VHD_ENTRY_SIZE)
+BUF_BLOCK_UNUSED.writeUInt32BE(BLOCK_UNUSED, 0)
 
 // ===================================================================
 
@@ -169,18 +176,6 @@ function checksumStruct (rawStruct, struct) {
   return sum
 }
 
-function getParentLocatorSize (parentLocatorEntry) {
-  const { platformDataSpace } = parentLocatorEntry
-
-  if (platformDataSpace < VHD_SECTOR_SIZE) {
-    return sectorsToBytes(platformDataSpace)
-  }
-
-  return (platformDataSpace % VHD_SECTOR_SIZE === 0)
-    ? platformDataSpace
-    : 0
-}
-
 // ===================================================================
 
 class Vhd {
@@ -192,6 +187,17 @@ class Vhd {
   // =================================================================
   // Read functions.
   // =================================================================
+
+  _readStream (start, n) {
+    return this._handler.createReadStream(this._path, {
+      start,
+      end: start + n - 1 // end is inclusive
+    })
+  }
+
+  _read (start, n) {
+    return this._readStream(start, n).then(streamToBuffer)
+  }
 
   // Returns the first address after metadata. (In bytes)
   getEndOfHeaders () {
@@ -210,10 +216,10 @@ class Vhd {
       const entry = header.parentLocatorEntry[i]
 
       if (entry.platformCode !== VHD_PLATFORM_CODE_NONE) {
-        const dataOffset = uint32ToUint64(entry.platformDataOffset)
-
-        // Max(end, locator end)
-        end = Math.max(end, dataOffset + getParentLocatorSize(entry))
+        end = Math.max(end,
+          uint32ToUint64(entry.platformDataOffset) +
+          sectorsToBytes(entry.platformDataSpace)
+        )
       }
     }
 
@@ -224,17 +230,15 @@ class Vhd {
 
   // Returns the first sector after data.
   getEndOfData () {
-    let end = Math.floor(this.getEndOfHeaders() / VHD_SECTOR_SIZE)
+    let end = Math.ceil(this.getEndOfHeaders() / VHD_SECTOR_SIZE)
 
+    const fullBlockSize = this.sectorsOfBitmap + this.sectorsPerBlock
     const { maxTableEntries } = this.header
     for (let i = 0; i < maxTableEntries; i++) {
-      let blockAddr = this.readAllocationTableEntry(i)
+      const blockAddr = this._getBatEntry(i)
 
       if (blockAddr !== BLOCK_UNUSED) {
-        // Compute next block address.
-        blockAddr += this.sectorsPerBlock + this.sectorsOfBitmap
-
-        end = Math.max(end, blockAddr)
+        end = Math.max(end, blockAddr + fullBlockSize)
       }
     }
 
@@ -243,21 +247,9 @@ class Vhd {
     return sectorsToBytes(end)
   }
 
-  // Returns the start position of the vhd footer.
-  // The real footer, not the copy at the beginning of the vhd file.
-  async getFooterStart () {
-    const stats = await this._handler.getSize(this._path)
-    return stats.size - VHD_FOOTER_SIZE
-  }
-
   // Get the beginning (footer + header) of a vhd file.
   async readHeaderAndFooter () {
-    const buf = await streamToBuffer(
-      await this._handler.createReadStream(this._path, {
-        start: 0,
-        end: VHD_FOOTER_SIZE + VHD_HEADER_SIZE - 1
-      })
-    )
+    const buf = await this._read(0, VHD_FOOTER_SIZE + VHD_HEADER_SIZE)
 
     const sum = unpackField(fuFooter.fields.checksum, buf)
     const sumToTest = checksumStruct(buf, fuFooter)
@@ -300,119 +292,176 @@ class Vhd {
       sectorsRoundUpNoZero(header.maxTableEntries * VHD_ENTRY_SIZE)
     )
 
-    this.blockTable = await streamToBuffer(
-      await this._handler.createReadStream(this._path, {
-        start: offset,
-        end: offset + size - 1
-      })
-    )
+    this.blockTable = await this._read(offset, size)
   }
 
-  // Returns the address block at the entry location of one table.
-  readAllocationTableEntry (entry) {
-    return this.blockTable.readUInt32BE(entry * VHD_ENTRY_SIZE)
+  // return the first sector (bitmap) of a block
+  _getBatEntry (block) {
+    return this.blockTable.readUInt32BE(block * VHD_ENTRY_SIZE)
   }
 
-  // Returns the data content of a block. (Not the bitmap !)
-  async readBlockData (blockAddr) {
-    const { blockSize } = this.header
-
-    const handler = this._handler
-    const path = this._path
-
-    const blockDataAddr = sectorsToBytes(blockAddr + this.sectorsOfBitmap)
-    const footerStart = await this.getFooterStart()
-    const isPadded = footerStart < (blockDataAddr + blockSize)
-
-    // Size ot the current block in the vhd file.
-    const size = isPadded ? (footerStart - blockDataAddr) : sectorsToBytes(this.sectorsPerBlock)
-
-    debug(`Read block data at: ${blockDataAddr}. (size=${size})`)
-
-    const buf = await streamToBuffer(
-      await handler.createReadStream(path, {
-        start: blockDataAddr,
-        end: blockDataAddr + size - 1
-      })
-    )
-
-    // Padded by zero !
-    if (isPadded) {
-      return Buffer.concat([buf, new Buffer(blockSize - size).fill(0)])
+  _readBlock (blockId, onlyBitmap = false) {
+    const blockAddr = this._getBatEntry(blockId)
+    if (blockAddr === BLOCK_UNUSED) {
+      throw new Error(`no such block ${blockId}`)
     }
 
-    return buf
+    return this._read(
+      sectorsToBytes(blockAddr),
+      onlyBitmap ? this.bitmapSize : this.fullBlockSize
+    ).then(buf => onlyBitmap
+      ? { bitmap: buf }
+      : {
+        bitmap: buf.slice(0, this.bitmapSize),
+        data: buf.slice(this.bitmapSize)
+      }
+    )
   }
 
-  // Returns a buffer that contains the bitmap of a block.
+  // get the identifiers and first sectors of the first and last block
+  // in the file
   //
-  // TODO: merge with readBlockData().
-  async readBlockBitmap (blockAddr) {
-    const { bitmapSize } = this
-    const offset = sectorsToBytes(blockAddr)
+  // return undefined if none
+  _getFirstAndLastBlocks () {
+    const n = this.header.maxTableEntries
+    const bat = this.blockTable
+    let i = 0
+    let j = 0
+    let first, firstSector, last, lastSector
 
-    debug(`Read bitmap at: ${offset}. (size=${bitmapSize})`)
+    // get first allocated block for initialization
+    while ((firstSector = bat.readUInt32BE(j)) === BLOCK_UNUSED) {
+      i += 1
+      j += VHD_ENTRY_SIZE
 
-    return streamToBuffer(
-      await this._handler.createReadStream(this._path, {
-        start: offset,
-        end: offset + bitmapSize - 1
-      })
-    )
+      if (i === n) {
+        return
+      }
+    }
+    lastSector = firstSector
+    first = last = i
+
+    while (i < n) {
+      const sector = bat.readUInt32BE(j)
+      if (sector !== BLOCK_UNUSED) {
+        if (sector < firstSector) {
+          first = i
+          firstSector = sector
+        } else if (sector > lastSector) {
+          last = i
+          lastSector = sector
+        }
+      }
+
+      i += 1
+      j += VHD_ENTRY_SIZE
+    }
+
+    return { first, firstSector, last, lastSector }
   }
 
   // =================================================================
   // Write functions.
   // =================================================================
 
-  // Write a buffer at a given position in a vhd file.
-  async _write (buffer, offset) {
+  // Write a buffer/stream at a given position in a vhd file.
+  _write (data, offset) {
+    debug(`_write offset=${offset} size=${Buffer.isBuffer(data) ? data.length : '???'}`)
     // TODO: could probably be merged in remote handlers.
     return this._handler.createOutputStream(this._path, {
-      start: offset,
-      flags: 'r+'
-    }).then(stream => new Promise((resolve, reject) => {
-      stream.on('error', reject)
-      stream.write(buffer, () => {
-        stream.end()
-        resolve()
-      })
-    }))
+      flags: 'r+',
+      start: offset
+    }).then(
+      Buffer.isBuffer(data)
+        ? stream => new Promise((resolve, reject) => {
+          stream.on('error', reject)
+          stream.end(data, resolve)
+        })
+        : stream => eventToPromise(data.pipe(stream), 'finish')
+    )
   }
 
-  // Write an entry in the allocation table.
-  writeAllocationTableEntry (entry, value) {
-    this.blockTable.writeUInt32BE(value, entry * VHD_ENTRY_SIZE)
+  async ensureBatSize (size) {
+    const { header } = this
+
+    const prevMaxTableEntries = header.maxTableEntries
+    if (prevMaxTableEntries >= size) {
+      return
+    }
+
+    const tableOffset = uint32ToUint64(header.tableOffset)
+    const { first, firstSector, lastSector } = this._getFirstAndLastBlocks()
+
+    // extend BAT
+    const maxTableEntries = header.maxTableEntries = size
+    const batSize = maxTableEntries * VHD_ENTRY_SIZE
+    const prevBat = this.blockTable
+    const bat = this.blockTable = Buffer.allocUnsafe(batSize)
+    prevBat.copy(bat)
+    bat.fill(BUF_BLOCK_UNUSED, prevBat.length)
+    debug(`ensureBatSize: extend in memory BAT ${prevMaxTableEntries} -> ${maxTableEntries}`)
+
+    const extendBat = () => {
+      debug(`ensureBatSize: extend in file BAT ${prevMaxTableEntries} -> ${maxTableEntries}`)
+
+      return this._write(
+        constantStream(BUF_BLOCK_UNUSED, maxTableEntries - prevMaxTableEntries),
+        tableOffset + prevBat.length
+      )
+    }
+
+    if (tableOffset + batSize < sectorsToBytes(firstSector)) {
+      return Promise.all([
+        extendBat(),
+        this.writeHeader()
+      ])
+    }
+
+    const { fullBlockSize } = this
+    const newFirstSector = lastSector + fullBlockSize / VHD_SECTOR_SIZE
+    debug(`ensureBatSize: move first block ${firstSector} -> ${newFirstSector}`)
+
+    return Promise.all([
+      // copy the first block at the end
+      this._readStream(sectorsToBytes(firstSector), fullBlockSize).then(stream =>
+        this._write(stream, sectorsToBytes(newFirstSector))
+      ).then(extendBat),
+
+      this._setBatEntry(first, newFirstSector),
+      this.writeHeader(),
+      this.writeFooter()
+    ])
+  }
+
+  // set the first sector (bitmap) of a block
+  _setBatEntry (block, blockSector) {
+    const i = block * VHD_ENTRY_SIZE
+    const { blockTable } = this
+
+    blockTable.writeUInt32BE(blockSector, i)
+
+    return this._write(
+      blockTable.slice(i, i + VHD_ENTRY_SIZE),
+      uint32ToUint64(this.header.tableOffset) + i
+    )
   }
 
   // Make a new empty block at vhd end.
   // Update block allocation table in context and in file.
   async createBlock (blockId) {
-    // End of file !
-    let offset = this.getEndOfData()
+    const blockAddr = Math.ceil(this.getEndOfData() / VHD_SECTOR_SIZE)
 
-    // Padded on bound sector.
-    if (offset % VHD_SECTOR_SIZE) {
-      offset += (VHD_SECTOR_SIZE - (offset % VHD_SECTOR_SIZE))
-    }
+    debug(`create block ${blockId} at ${blockAddr}`)
 
-    const blockAddr = Math.floor(offset / VHD_SECTOR_SIZE)
+    await Promise.all([
+      // Write an empty block and addr in vhd file.
+      this._write(
+        constantStream([ 0 ], this.fullBlockSize),
+        sectorsToBytes(blockAddr)
+      ),
 
-    const {
-      blockTable,
-      fullBlockSize
-    } = this
-    debug(`Create block at ${blockAddr}. (size=${fullBlockSize}, offset=${offset})`)
-
-    // New entry in block allocation table.
-    this.writeAllocationTableEntry(blockId, blockAddr)
-
-    const tableOffset = uint32ToUint64(this.header.tableOffset)
-    const entry = blockId * VHD_ENTRY_SIZE
-
-    // Write an empty block and addr in vhd file.
-    await this._write(new Buffer(fullBlockSize).fill(0), offset)
-    await this._write(blockTable.slice(entry, entry + VHD_ENTRY_SIZE), tableOffset + entry)
+      this._setBatEntry(blockId, blockAddr)
+    ])
 
     return blockAddr
   }
@@ -431,17 +480,16 @@ class Vhd {
     await this._write(bitmap, sectorsToBytes(blockAddr))
   }
 
-  async writeBlockSectors (block, beginSectorId, n) {
-    let blockAddr = this.readAllocationTableEntry(block.id)
+  async writeBlockSectors (block, beginSectorId, endSectorId) {
+    let blockAddr = this._getBatEntry(block.id)
 
     if (blockAddr === BLOCK_UNUSED) {
       blockAddr = await this.createBlock(block.id)
     }
 
-    const endSectorId = beginSectorId + n
     const offset = blockAddr + this.sectorsOfBitmap + beginSectorId
 
-    debug(`Write block data at: ${offset}. (counter=${n}, blockId=${block.id}, blockSector=${beginSectorId})`)
+    debug(`writeBlockSectors at ${offset} block=${block.id}, sectors=${beginSectorId}...${endSectorId}`)
 
     await this._write(
       block.data.slice(
@@ -451,7 +499,7 @@ class Vhd {
       sectorsToBytes(offset)
     )
 
-    const bitmap = await this.readBlockBitmap(this.bitmapSize, blockAddr)
+    const { bitmap } = await this._readBlock(block.id, true)
 
     for (let i = beginSectorId; i < endSectorId; ++i) {
       mapSetBit(bitmap, i)
@@ -461,39 +509,36 @@ class Vhd {
   }
 
   // Merge block id (of vhd child) into vhd parent.
-  async coalesceBlock (child, blockAddr, blockId) {
+  async coalesceBlock (child, blockId) {
     // Get block data and bitmap of block id.
-    const blockData = await child.readBlockData(blockAddr)
-    const blockBitmap = await child.readBlockBitmap(blockAddr)
+    const { bitmap, data } = await child._readBlock(blockId)
 
-    debug(`Coalesce block ${blockId} at ${blockAddr}.`)
+    debug(`coalesceBlock block=${blockId}`)
 
     // For each sector of block data...
     const { sectorsPerBlock } = child
     for (let i = 0; i < sectorsPerBlock; i++) {
       // If no changes on one sector, skip.
-      if (!mapTestBit(blockBitmap, i)) {
+      if (!mapTestBit(bitmap, i)) {
         continue
       }
 
-      let sectors = 0
+      let endSector = i + 1
 
       // Count changed sectors.
-      for (; sectors + i < sectorsPerBlock; sectors++) {
-        if (!mapTestBit(blockBitmap, sectors + i)) {
-          break
-        }
+      while (endSector < sectorsPerBlock && mapTestBit(bitmap, endSector)) {
+        ++endSector
       }
 
       // Write n sectors into parent.
-      debug(`Coalesce block: write. (offset=${i}, sectors=${sectors})`)
+      debug(`coalesceBlock: write sectors=${i}...${endSector}`)
       await this.writeBlockSectors(
-        { id: blockId, data: blockData },
+        { id: blockId, data },
         i,
-        sectors
+        endSector
       )
 
-      i += sectors
+      i = endSector
     }
   }
 
@@ -511,13 +556,13 @@ class Vhd {
     await this._write(rawFooter, offset)
   }
 
-  async writeHeader () {
+  writeHeader () {
     const { header } = this
     const rawHeader = fuHeader.pack(header)
     header.checksum = checksumStruct(rawHeader, fuHeader)
     const offset = VHD_FOOTER_SIZE
     debug(`Write header at: ${offset} (checksum=${header.checksum}). (data=${rawHeader.toString('hex')})`)
-    await this._write(rawHeader, offset)
+    return this._write(rawHeader, offset)
   }
 }
 
@@ -539,6 +584,8 @@ export default async function vhdMerge (
     parentVhd.readHeaderAndFooter(),
     childVhd.readHeaderAndFooter()
   ])
+
+  assert(childVhd.header.blockSize === parentVhd.header.blockSize)
 
   // Child must be a delta.
   if (childVhd.footer.diskType !== HARD_DISK_TYPE_DIFFERENCING) {
@@ -564,18 +611,24 @@ export default async function vhdMerge (
     childVhd.readBlockTable()
   ])
 
-  for (let blockId = 0; blockId < childVhd.header.maxTableEntries; blockId++) {
-    const blockAddr = childVhd.readAllocationTableEntry(blockId)
+  await parentVhd.ensureBatSize(childVhd.header.maxTableEntries)
 
-    if (blockAddr !== BLOCK_UNUSED) {
-      await parentVhd.coalesceBlock(
-        childVhd,
-        blockAddr,
-        blockId
-      )
+  for (let blockId = 0; blockId < childVhd.header.maxTableEntries; blockId++) {
+    if (childVhd._getBatEntry(blockId) !== BLOCK_UNUSED) {
+      await parentVhd.coalesceBlock(childVhd, blockId)
     }
   }
 
+  const cFooter = childVhd.footer
+  const pFooter = parentVhd.footer
+
+  pFooter.currentSize = { ...cFooter.currentSize }
+  pFooter.diskGeometry = { ...cFooter.diskGeometry }
+  pFooter.originalSize = { ...cFooter.originalSize }
+  pFooter.timestamp = cFooter.timestamp
+
+  // necessary to update values and to recreate the footer after block
+  // creation
   await parentVhd.writeFooter()
 }
 
