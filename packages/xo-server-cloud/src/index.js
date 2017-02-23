@@ -1,4 +1,4 @@
-import Client from 'jsonrpc-websocket-client'
+import Client, { createBackoff } from 'jsonrpc-websocket-client'
 import eventToPromise from 'event-to-promise'
 import request from 'superagent'
 import { PassThrough } from 'stream'
@@ -44,8 +44,20 @@ class XoServerCloud {
     })
     this._unsetRequestResource = this._xo.defineProperty('requestResource', this._requestResource, this)
 
-    this._updater = new Client(`${UPDATER_URL}:${WS_PORT}`)
-    this._updater.open()
+    const updater = this._updater = new Client(`${UPDATER_URL}:${WS_PORT}`)
+    const connect = () => updater.open(createBackoff()).catch(
+      error => {
+        console.error('xo-server-cloud: fail to connect to updater', error)
+
+        return connect()
+      }
+    )
+    updater
+      .on('close', connect)
+      .on('scheduledAttempt', ({ delay }) => {
+        console.warn('xo-server-cloud: next attempt in %s ms', delay)
+      })
+    connect()
   }
 
   unload () {
