@@ -1323,6 +1323,7 @@ var messages = {
   xosanAvailableSpace: 'Available space',
   xosanDiskLossLegend: '* Can fail without data loss',
   xosanCreate: 'Create XOSAN',
+  xosanInstalling: 'Installing XOSAN. Please wait...',
   // Pack download modal
   xosanInstallCloudPlugin: 'Install cloud plugin first',
   xosanLoadCloudPlugin: 'Load cloud plugin first',

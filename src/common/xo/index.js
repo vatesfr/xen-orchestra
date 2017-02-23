@@ -262,6 +262,17 @@ export const subscribeIpPools = createSubscription(() => _call('ipPool.getAll'))
 
 export const subscribeResourceCatalog = createSubscription(() => _call('plugin.getResourceCatalog'))
 
+const xosanSubscriptions = {}
+export const subscribeIsInstallingXosan = (pool, cb) => {
+  const poolId = resolveId(pool)
+
+  if (!xosanSubscriptions[poolId]) {
+    xosanSubscriptions[poolId] = createSubscription(() => _call('xosan.checkSrIsBusy', { poolId }))
+  }
+
+  return xosanSubscriptions[poolId](cb)
+}
+
 // Cloud plugin ======================================================
 
 export const registerXosan = namespace => _call('plugin.registerResource', { namespace: 'xosan' })

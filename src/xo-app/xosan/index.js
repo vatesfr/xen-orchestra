@@ -42,8 +42,9 @@ import {
   downloadAndInstallXosanPack,
   getVolumeInfo,
   registerXosan,
-  subscribeResourceCatalog,
-  subscribePlugins
+  subscribeIsInstallingXosan,
+  subscribePlugins,
+  subscribeResourceCatalog
 } from 'xo'
 
 import Graph from './graph'
@@ -172,6 +173,12 @@ class PoolAvailableSrs extends Component {
     selectedSrs: {}
   }
 
+  componentDidMount () {
+    this.componentWillUnmount = subscribeIsInstallingXosan(this.props.pool, isInstallingXosan => {
+      this.setState({ isInstallingXosan })
+    })
+  }
+
   _selectSr = (event, srId) => {
     const selectedSrs = { ...this.state.selectedSrs }
     selectedSrs[srId] = event.target.checked
@@ -250,6 +257,7 @@ class PoolAvailableSrs extends Component {
   render () {
     const { pool, lvmsrs, noPack } = this.props
     const {
+      isInstallingXosan,
       layout,
       pif,
       redundancy,
@@ -258,6 +266,10 @@ class PoolAvailableSrs extends Component {
       useVlan,
       vlan
     } = this.state
+
+    if (isInstallingXosan) {
+      return <em><Icon icon='loading' /> {_('xosanInstalling')}</em>
+    }
 
     if (noPack) {
       return <div className='mb-3'>
@@ -398,7 +410,6 @@ class PoolAvailableSrs extends Component {
                   disabled={!suggestions || !pif || !layout || this._getNSelectedSrs() < 3} // TODO: "< 2" when arbitrer VM has been implemented
                   icon='add'
                   handler={this._createXosanVm}
-                  redirectOnSuccess='tasks'
                 >
                   {_('xosanCreate')}
                 </ActionButton>
