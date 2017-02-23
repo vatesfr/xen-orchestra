@@ -306,6 +306,23 @@ export default class Xo extends EventEmitter {
     return () => unset()
   }
 
+  // Convenience method to define multiple properties at once.
+  defineProperties (props, thisArg) {
+    const unsets = []
+    const unset = () => forEach(unsets, unset => unset())
+
+    try {
+      forEach(props, (value, name) => {
+        unsets.push(this.defineProperty(name, value, thisArg))
+      })
+    } catch (error) {
+      unset()
+      throw error
+    }
+
+    return unset
+  }
+
   // -----------------------------------------------------------------
 
   // Watches objects changes.
