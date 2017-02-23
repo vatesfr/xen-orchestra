@@ -407,7 +407,7 @@ class PoolAvailableSrs extends Component {
               <Col size={3}>
                 <ActionButton
                   btnStyle='success'
-                  disabled={!suggestions || !pif || !layout || this._getNSelectedSrs() < 3} // TODO: "< 2" when arbitrer VM has been implemented
+                  disabled={!suggestions || !pif || !layout || this._getNSelectedSrs() < 2}
                   icon='add'
                   handler={this._createXosanVm}
                 >
