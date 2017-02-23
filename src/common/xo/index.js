@@ -260,7 +260,7 @@ export const subscribeRoles = createSubscription(invoke(
 
 export const subscribeIpPools = createSubscription(() => _call('ipPool.getAll'))
 
-export const subscribeResourceCatalog = createSubscription(() => _call('plugin.getResourceCatalog'))
+export const subscribeResourceCatalog = createSubscription(() => _call('cloud.getResourceCatalog'))
 
 const xosanSubscriptions = {}
 export const subscribeIsInstallingXosan = (pool, cb) => {
@@ -275,7 +275,7 @@ export const subscribeIsInstallingXosan = (pool, cb) => {
 
 // Cloud plugin ======================================================
 
-export const registerXosan = namespace => _call('plugin.registerResource', { namespace: 'xosan' })
+export const registerXosan = namespace => _call('cloud.registerResource', { namespace: 'xosan' })
 
 // System ============================================================
 
