@@ -413,12 +413,11 @@ const setUpStaticFiles = (express, opts) => {
 
 const setUpApi = (webServer, xo, verboseLogsOnErrors) => {
   const webSocketServer = new WebSocket.Server({
-    server: webServer,
-    path: '/api/'
+    noServer: true
   })
   xo.on('stop', () => pFromCallback(cb => webSocketServer.close(cb)))
 
-  webSocketServer.on('connection', socket => {
+  const onConnection = socket => {
     const { remoteAddress } = socket.upgradeReq.socket
 
     debug('+ WebSocket connection (%s)', remoteAddress)
@@ -461,6 +460,11 @@ const setUpApi = (webServer, xo, verboseLogsOnErrors) => {
         socket.send(data, onSend)
       }
     })
+  }
+  webServer.on('upgrade', (req, socket, head) => {
+    if (req.url === '/api/') {
+      webSocketServer.handleUpgrade(req, socket, head, onConnection)
+    }
   })
 }
 
