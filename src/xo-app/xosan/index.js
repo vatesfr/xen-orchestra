@@ -168,6 +168,11 @@ const _findLatestTemplate = templates => {
 const _mapUniqLayouts = collection => uniq(map(collection, 'layout'))
 const _mapUniqRedundancies = (layout, collection) => uniq(map(filter(collection, { layout }), 'redundancy')).sort()
 
+@connectStore({
+  poolMaster: createGetObjectsOfType('host').find(
+    (_, props) => ({ id }) => props.pool.master === id
+  )
+})
 class PoolAvailableSrs extends Component {
   state = {
     selectedSrs: {}
@@ -255,7 +260,7 @@ class PoolAvailableSrs extends Component {
   }
 
   render () {
-    const { pool, lvmsrs, noPack } = this.props
+    const { pool, lvmsrs, noPack, poolMaster } = this.props
     const {
       isInstallingXosan,
       layout,
@@ -269,6 +274,12 @@ class PoolAvailableSrs extends Component {
 
     if (isInstallingXosan) {
       return <em><Icon icon='loading' /> {_('xosanInstalling')}</em>
+    }
+
+    if (poolMaster && compareVersions(poolMaster.version, '7') < 0) {
+      return <div>
+        <Icon icon='error' /> <em>{_('xosanBadVersion')}</em>
+      </div>
     }
 
     if (noPack) {
