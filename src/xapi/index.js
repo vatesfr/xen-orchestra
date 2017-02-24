@@ -4,6 +4,7 @@ import fatfs from 'fatfs'
 import tarStream from 'tar-stream'
 import vmdkToVhd from 'xo-vmdk-to-vhd'
 import { defer } from 'promise-toolbox'
+import { PassThrough } from 'stream'
 import { forbiddenOperation } from 'xo-common/api-errors'
 import {
   every,
@@ -1173,6 +1174,10 @@ export default class Xapi extends XapiBase {
 
     // No shared SR available: find an available local SR on each host
     return Promise.all(mapToArray(hosts, deferrable(async ($defer, host) => {
+      // pipe stream synchronously to several PassThroughs to be able to pipe them asynchronously later
+      const pt = stream.pipe(new PassThrough())
+      pt.length = stream.length
+
       const sr = find(
         mapToArray(host.$PBDs, '$SR'),
         isSrAvailable
@@ -1182,7 +1187,7 @@ export default class Xapi extends XapiBase {
         throw new Error('no SR available to store installation file')
       }
 
-      const vdi = await this._createSuppPackVdi(stream, sr)
+      const vdi = await this._createSuppPackVdi(pt, sr)
       $defer(() => this._deleteVdi(vdi))
 
       await this.call('host.call_plugin', host.$ref, 'install-supp-pack', 'install', { vdi: vdi.uuid })
