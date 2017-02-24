@@ -342,7 +342,7 @@ export const createSR = defer.onFailure(async function ($onFailure, { template, 
     const firstIpAndHost = ipAndHosts[0]
     await configureGluster(redundancy, ipAndHosts, xapi, firstIpAndHost, glusterType, arbiter)
     debug('xosan gluster volume started')
-    const config = { server: firstIpAndHost.address + ':/xosan', backupserver: ipAndHosts[1] }
+    const config = { server: firstIpAndHost.address + ':/xosan', backupserver: ipAndHosts[1].address }
     const xosanSr = await xapi.call('SR.create', srsObjects[0].$PBDs[0].$host.$ref, config, 0, 'XOSAN', 'XOSAN', 'xosan', '', true, {})
     if (arbiter) {
       ipAndHosts.push(arbiter)
