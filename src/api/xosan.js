@@ -25,6 +25,7 @@ const NETWORK_PREFIX = '172.31.100.'
 
 const XOSAN_VM_SYSTEM_DISK_SIZE = 10 * 1024 * 1024 * 1024
 const XOSAN_DATA_DISK_USEAGE_RATIO = 0.99
+const XOSAN_MAX_DISK_SIZE = 2093050 * 1024 * 1024 // a bit under 2To
 
 const CURRENTLY_CREATING_SRS = {}
 
@@ -131,7 +132,6 @@ async function prepareGlusterVm (xapi, vmAndParam, xosanNetwork, increaseDataDis
   const host = sr.$PBDs[0].$host
   const firstVif = vm.$VIFs[0]
   if (xosanNetwork.$id !== firstVif.$network.$id) {
-    console.warn('VIF in wrong network (' + firstVif.$network.name_label + '), moving to correct one: ' + xosanNetwork.name_label)
     await xapi.call('VIF.move', firstVif.$ref, xosanNetwork.$ref)
   }
   await xapi.editVm(vm, {
@@ -144,7 +144,7 @@ async function prepareGlusterVm (xapi, vmAndParam, xosanNetwork, increaseDataDis
     const srFreeSpace = sr.physical_size - sr.physical_utilisation
     // we use a percentage because it looks like the VDI overhead is proportional
     const newSize = floor2048((srFreeSpace + dataDisk.virtual_size) * XOSAN_DATA_DISK_USEAGE_RATIO)
-    await xapi._resizeVdi(dataDisk, newSize)
+    await xapi._resizeVdi(dataDisk, Math.min(newSize, XOSAN_MAX_DISK_SIZE))
   }
   await xapi.startVm(vm)
   debug('waiting for boot of ', ip)
@@ -214,6 +214,10 @@ async function getOrCreateSshKey (xapi) {
 }
 async function configureGluster (redundancy, ipAndHosts, xapi, firstIpAndHost, glusterType, arbiter = null) {
   const configByType = {
+    replica_arbiter: {
+      creation: 'replica 3 arbiter 1',
+      extra: []
+    },
     replica: {
       creation: 'replica ' + redundancy + ' ',
       extra: ['gluster volume set xosan cluster.data-self-heal on']
@@ -223,17 +227,11 @@ async function configureGluster (redundancy, ipAndHosts, xapi, firstIpAndHost, g
       extra: []
     }
   }
-  for (let i = 1; i < ipAndHosts.length; i++) {
-    await remoteSsh(xapi, firstIpAndHost, 'gluster peer probe ' + ipAndHosts[i].address)
+  let brickVms = arbiter ? ipAndHosts.concat(arbiter) : ipAndHosts
+  for (let i = 1; i < brickVms.length; i++) {
+    await remoteSsh(xapi, firstIpAndHost, 'gluster peer probe ' + brickVms[i].address)
   }
-  const brickVms = ipAndHosts
-  let creation = configByType[glusterType].creation
-  if (arbiter) {
-    await remoteSsh(xapi, firstIpAndHost, 'gluster peer probe ' + arbiter.address)
-    brickVms.push(arbiter)
-    creation = 'replica 3 arbiter 1'
-  }
-
+  const creation = configByType[glusterType].creation
   const volumeCreation = 'gluster volume create xosan ' + creation +
     ' ' + brickVms.map(ipAndHost => (ipAndHost.address + ':/bricks/xosan/xosandir')).join(' ')
   debug('creating volume: ', volumeCreation)
@@ -272,7 +270,6 @@ export const createSR = defer.onFailure(async function ($onFailure, { template, 
   }
 
   CURRENTLY_CREATING_SRS[xapi.pool.$id] = true
-
   try {
     const xosanNetwork = await createNetworkAndInsertHosts(xapi, pif, vlan)
     $onFailure(() => xapi.deleteNetwork(xosanNetwork)::pCatch(noop))
@@ -312,7 +309,7 @@ export const createSR = defer.onFailure(async function ($onFailure, { template, 
       autoPoweron: true
     })
     const copiedVms = await Promise.all(vmParameters.slice(1).map(param => copyVm(xapi, firstVM, param)))
-    // TODO: Promise.all() is certainly not the right operation to execute all the given promises wether they fulfill or reject.
+    // TODO: Promise.all() is certainly not the right operation to execute all the given promises whether they fulfill or reject.
     $onFailure(() => Promise.all(copiedVms.map(vm => xapi.deleteVm(vm.vm, true)))::pCatch(noop))
     const vmsAndParams = [{
       vm: firstVM,
@@ -335,7 +332,7 @@ export const createSR = defer.onFailure(async function ($onFailure, { template, 
         }
       }
       const arbiterVm = await copyVm(xapi, firstVM, arbiterConfig)
-      $onFailure(() => xapi.deleteVm(arbiterVm, true)::pCatch(noop))
+      $onFailure(() => xapi.deleteVm(arbiterVm.vm, true)::pCatch(noop))
       arbiter = await prepareGlusterVm(xapi, arbiterVm, xosanNetwork, false)
     }
     const ipAndHosts = await Promise.all(map(vmsAndParams, vmAndParam => prepareGlusterVm(xapi, vmAndParam, xosanNetwork)))
