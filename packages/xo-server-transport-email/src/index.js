@@ -164,7 +164,12 @@ class TransportEmailPlugin {
       subject: '[Xen Orchestra] Test of transport-email plugin',
       markdown: `Hi there,
 
-The transport-email plugin for Xen Orchestra server seems to be working fine, nicely done :)`
+The transport-email plugin for Xen Orchestra server seems to be working fine, nicely done :)
+`,
+      attachments: [ {
+        filename: 'example.txt',
+        content: 'Attachments are working too, great!\n'
+      } ]
     })
   }
 
