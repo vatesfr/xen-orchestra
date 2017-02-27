@@ -15,7 +15,7 @@ Installation of the [npm package](https://npmjs.org/package/xo-server-backup-rep
 ## Usage
 
 Like all other xo-server plugins, it can be configured directly via
-the web iterface, see [the plugin documentation](https://xen-orchestra.com/docs/plugins.html).
+the web interface, see [the plugin documentation](https://xen-orchestra.com/docs/plugins.html).
 
 ## Development
 

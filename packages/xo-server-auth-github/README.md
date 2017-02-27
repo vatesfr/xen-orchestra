@@ -22,7 +22,7 @@ Installation of the [npm package](https://npmjs.org/package/xo-server-auth-githu
 > for more information about the configuration.
 
 Like all other xo-server plugins, it can be configured directly via
-the web iterface, see [the plugin documentation](https://xen-orchestra.com/docs/plugins.html).
+the web interface, see [the plugin documentation](https://xen-orchestra.com/docs/plugins.html).
 
 ![Registering XO instance in GitHub](github.png)
 

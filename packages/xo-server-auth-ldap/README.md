@@ -18,7 +18,7 @@ Installation of the [npm package](https://npmjs.org/package/xo-server-auth-ldap)
 ## Usage
 
 Like all other xo-server plugins, it can be configured directly via
-the web iterface, see [the plugin documentation](https://xen-orchestra.com/docs/plugins.html).
+the web interface, see [the plugin documentation](https://xen-orchestra.com/docs/plugins.html).
 
 If you have issues, you can use the provided CLI to gather more
 information:
