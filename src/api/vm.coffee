@@ -1022,6 +1022,9 @@ handleVmImport = $coroutine (req, res, { data, srId, type, xapi }) ->
 
 # TODO: "sr_id" can be passed in URL to target a specific SR
 import_ = $coroutine ({ data, host, sr, type }) ->
+  if data and type is 'xva'
+    throw invalidParameters('unsupported field data for the file type xva')
+
   if not sr
     if not host
       throw invalidParameters('you must provide either host or SR')
