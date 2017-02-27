@@ -139,6 +139,7 @@
     "benchmarks": "./tools/run-benchmarks.js 'src/**/*.bench.js'",
     "build": "npm run build-indexes && NODE_ENV=production gulp build",
     "build-indexes": "index-modules --auto src",
+    "commitmsg": "npm test",
     "dev": "npm run build-indexes && NODE_ENV=development gulp build",
     "dev-test": "jest --watch",
     "lint": "standard",
@@ -176,11 +177,6 @@
       "react",
       "stage-0"
     ]
-  },
-  "config": {
-    "ghooks": {
-      "commit-msg": "npm test"
-    }
   },
   "jest": {
     "snapshotSerializers": [
