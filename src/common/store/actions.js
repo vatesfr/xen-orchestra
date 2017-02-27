@@ -1,33 +1,22 @@
-import isFunction from 'lodash/isFunction'
-
-// ===================================================================
-
 const createAction = (() => {
   const { defineProperty } = Object
-  const noop = function () {
-    if (arguments.length) {
-      throw new Error('this action expects no payload!')
-    }
-  }
 
-  return (type, payloadCreator = noop) => {
-    const createActionObject = payload => {
-      // Thunks
-      if (isFunction(payload)) {
-        return payload
-      }
+  return (type, payloadCreator) => defineProperty(
+    payloadCreator
+      ? (...args) => ({
+        type,
+        payload: payloadCreator(...args)
+      })
+      : (action => function () {
+        if (arguments.length) {
+          throw new Error('this action expects no payload!')
+        }
 
-      return payload === undefined
-        ? { type }
-        : { type, payload }
-    }
-
-    return defineProperty(
-      (...args) => createActionObject(payloadCreator(...args)),
-      'toString',
-      { value: () => type }
-    )
-  }
+        return action
+      })({ type }),
+    'toString',
+    { value: () => type }
+  )
 })()
 
 // ===================================================================
