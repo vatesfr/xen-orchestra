@@ -71,7 +71,6 @@
     "human-format": "^0.7.0",
     "is-my-json-valid": "^2.16.0",
     "is-redirect": "^1.0.0",
-    "jest": "^19.0.2",
     "js-yaml": "^3.8.1",
     "json-rpc-peer": "^0.13.1",
     "json5": "^0.5.1",
@@ -133,6 +132,7 @@
     "gulp-watch": "^4.3.11",
     "husky": "^0.13.1",
     "index-modules": "^0.3.0",
+    "jest": "^19.0.2",
     "rimraf": "^2.6.1",
     "standard": "^8.6.0"
   },
