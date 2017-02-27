@@ -138,7 +138,7 @@
   },
   "scripts": {
     "build": "gulp build --production",
-    "commit-msg": "npm test",
+    "commitmsg": "npm test",
     "dev": "gulp build",
     "dev-test": "jest --bail --watch",
     "posttest": "standard && dependency-check -i constant-stream ./package.json",
