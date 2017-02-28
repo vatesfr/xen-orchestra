@@ -102,16 +102,20 @@ export default {
 
       for (const id in updates) {
         const object = updates[id]
+        const previous = all[id]
 
         if (object) {
+          const { type } = object.type
+
           all[id] = object
-          get(object.type)[id] = object
-        } else {
-          const previous = all[id]
-          if (previous) {
-            delete all[id]
+          get(type)[id] = object
+
+          if (previous && previous.type !== type) {
             delete get(previous.type)[id]
           }
+        } else if (previous) {
+          delete all[id]
+          delete get(previous.type)[id]
         }
       }
 
