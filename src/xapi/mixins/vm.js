@@ -104,6 +104,8 @@ export default {
       }
     }
 
+    let nVbds = vm.VBDs.length
+
     // Inserts the CD if necessary.
     if (installMethod === 'cd') {
       // When the VM is started, if PV, the CD drive will become not
@@ -111,14 +113,12 @@ export default {
       await this._insertCdIntoVm(installRepository, vm, {
         bootable: true
       })
-    }
 
-    let nVbds = 0
+      ++nVbds
+    }
 
     // Modify existing (previous template) disks if necessary
     existingVdis && await Promise.all(mapToArray(existingVdis, async ({ size, $SR: srId, ...properties }, userdevice) => {
-      ++nVbds
-
       const vbd = find(vm.$VBDs, { userdevice })
       if (!vbd) {
         return
