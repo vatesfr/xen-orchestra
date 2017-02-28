@@ -105,7 +105,7 @@ export default {
         const previous = all[id]
 
         if (object) {
-          const { type } = object.type
+          const { type } = object
 
           all[id] = object
           get(type)[id] = object
