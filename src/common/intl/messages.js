@@ -1318,7 +1318,6 @@ var messages = {
   xosanSelect2Srs: 'Select at least 2 SRs',
   xosanLayout: 'Layout',
   xosanRedundancy: 'Redundancy',
-  xosanRedundancyN: 'Redundancy {redundancy}',
   xosanCapacity: 'Capacity',
   xosanAvailableSpace: 'Available space',
   xosanDiskLossLegend: '* Can fail without data loss',

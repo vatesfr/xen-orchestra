@@ -1,109 +1,72 @@
 import _ from 'intl'
-import classNames from 'classnames'
 import Component from 'base-component'
 import Icon from 'icon'
 import propTypes from 'prop-types'
 import React from 'react'
 import {
-  floor
+  map
 } from 'lodash'
 
 import styles from './index.css'
 
-const DISK = <Icon className={styles.item} icon='disk' fixedWidth />
-const DISK_LOSS = <Icon className={classNames(styles.item, styles.loss)} icon='disk' fixedWidth />
-const XOSAN = <Icon className={styles.item} icon='sr' fixedWidth />
+const ICON_WIDTH = 38.56 // fa-2x (2em) ; font-size 15px
 
-const BLANK = <span className={styles.box}>&nbsp;</span>
-const HORIZONTAL = <span className={styles.box}>&#9473;</span>
-const HORIZONTAL_UP = <span className={styles.box}>&#9531;</span>
-const HORIZONTAL_DOWN = <span className={styles.box}>&#9523;</span>
-const TOP_LEFT = <span className={styles.box}>&#9487;</span>
-const TOP_RIGHT = <span className={styles.box}>&#9491;</span>
-const PLUS = <span className={styles.box}>&#9547;</span>
+const disk = (x, y, loss) =>
+  <foreignObject x={x - ICON_WIDTH / 2} y={y} width={ICON_WIDTH} height={ICON_WIDTH}>
+    <Icon className={loss && styles.loss} size={2} icon='disk' fixedWidth />
+  </foreignObject>
 
-const RIGHT = [ BLANK, TOP_LEFT, HORIZONTAL ]
-const LEFT = [ HORIZONTAL, TOP_RIGHT, BLANK ]
-const DOWN = [ HORIZONTAL, HORIZONTAL_DOWN, HORIZONTAL ]
-const UP = [ HORIZONTAL, HORIZONTAL_UP, HORIZONTAL ]
-const UP_DOWN = [ HORIZONTAL, PLUS, HORIZONTAL ]
-const OFFSET = [ HORIZONTAL, HORIZONTAL, HORIZONTAL ]
-const EMPTY = [ BLANK, BLANK, BLANK ]
+const xosan = (x, y, h) =>
+  <foreignObject x={x - ICON_WIDTH / 2} y={y} width={ICON_WIDTH} height={ICON_WIDTH}>
+    <Icon icon='sr' size={2} fixedWidth />
+  </foreignObject>
 
-const _fill = (n, content) => new Array(n).fill(content)
+const stroke = (x1, y1, x2, y2, xo = 0, yo = 0) =>
+  <path
+    d={`M${x1} ${y1} L${x2} ${y2}`}
+    key={`${x1},${y1},${x2},${y2},${xo},${yo}`}
+    stroke='#373a3c'
+    strokeLinecap='round'
+    strokeWidth='4'
+    transform={`translate(${xo} ${yo})`}
+  />
 
-const _fork = (n, space) => {
-  const offset = _fill(space || 0, OFFSET)
-  const halfOffset = _fill(floor((space || 0) / 2), OFFSET)
+const fork = (n, x, y, w, h, nDisksLoss) => [
+  // horizontal line
+  stroke(w / (2 * n), 0, w - w / (2 * n), 0, x, y),
+  // vertical lines (and disks icons)
+  map(new Array(n), (_, i) => [
+    stroke(i * w / n + w / (2 * n), 0, i * w / n + w / (2 * n), h, x, y),
+    nDisksLoss !== undefined && disk(x + i * w / n + w / (2 * n), y + h, i >= n - nDisksLoss)
+  ])
+]
 
-  const upWithOffset = [ halfOffset, UP, halfOffset ]
-  const upAndDownWithOffset = [ offset, UP_DOWN, offset ]
+const graph = (nGroups, nPerGroup, w, h, disksLoss) => {
+  const hUnit = h / 5
 
-  if (n === 2) {
-    return [ RIGHT, upWithOffset, LEFT ]
-  }
-
-  const odd = n % 2 === 1
-  const nSide = floor((n - 2) / 2)
-
-  const leftHalf = [ RIGHT, _fill(nSide, [ offset, DOWN ]) ]
-  const rightHalf = [ _fill(nSide, [ DOWN, offset ]), LEFT ]
-
-  if (odd) {
-    return [ leftHalf, upAndDownWithOffset, rightHalf ]
-  } else {
-    return [ leftHalf, upWithOffset, rightHalf ]
-  }
+  return <svg width={w} height={h}>
+    {xosan(w / 2, 0)}
+    {stroke(w / 2, hUnit, w / 2, 2 * hUnit)}
+    {nGroups === 1
+      ? fork(nPerGroup, 0, 2 * hUnit, w, hUnit, disksLoss)
+      : [
+        fork(nGroups, 0, 2 * hUnit, w, hUnit),
+        map(new Array(nGroups), (_, i) =>
+          fork(nPerGroup, i * w / nGroups, 3 * hUnit, w / nGroups, hUnit, disksLoss)
+        )
+      ]
+    }
+  </svg>
 }
 
-const _blank = n => _fill(n, EMPTY)
-const _diskGroup = (n, loss) => n % 2
-  ? [ _fill(n - loss, DISK), _fill(loss, DISK_LOSS) ]
-  : [
-    _fill(n / 2 - Math.max(0, loss - n / 2), DISK),
-    _fill(Math.max(0, loss - n / 2), DISK_LOSS),
-    EMPTY,
-    _fill(n / 2 - Math.min(n / 2, loss), DISK),
-    _fill(Math.min(n / 2, loss), DISK_LOSS)
-  ]
-
-const _replicationGraph = (nSrs, nPerGroup) => {
-  const nGroups = nSrs / nPerGroup // Should always be an integer
-
-  const suppXosanOffset = nPerGroup % 2 ? 0 : floor(nGroups / 2)
-  const suppForkOffset = 1 - nPerGroup % 2
-
-  return <div className={styles.graph}>
-    {_blank(floor((nSrs + nGroups - 1) / 2) + suppXosanOffset)}
-    {XOSAN}
-    <br />
-
-    {nGroups > 1 && [
-      _blank(floor(nPerGroup / 2)),
-      _fork(nGroups, nPerGroup + suppForkOffset),
-      <br />
-    ]}
-
-    {_fill(nGroups - 1, [ _fork(nPerGroup), _blank(1) ])}
-    {_fork(nPerGroup)}
-    <br />
-
-    {_fill(nGroups - 1, [ _diskGroup(nPerGroup, nPerGroup - 1), _blank(1) ])}
-    {_diskGroup(nPerGroup, nPerGroup - 1)}
-  </div>
+const disperseGraph = (nSrs, redundancy, w, h) => {
+  return graph(1, nSrs, w, h, redundancy)
 }
 
-const _disperseGraph = (nSrs, redundancy) => {
-  return <div className={styles.graph}>
-    {_blank(floor(nSrs / 2))}
-    {XOSAN}
-    <br />
+const replicationGraph = (nSrs, redundancy, w, h) => {
+  const nGroups = nSrs / redundancy // Should always be an integer
 
-    {_fork(nSrs)}
-    <br />
-
-    {_diskGroup(nSrs, redundancy)}
-  </div>
+  return graph(nGroups, redundancy, w, h, redundancy - 1)
 }
 
 @propTypes({
@@ -113,13 +76,15 @@ const _disperseGraph = (nSrs, redundancy) => {
 })
 export default class Graph extends Component {
   render () {
-    const { layout, redundancy, nSrs } = this.props
+    const { layout, redundancy, nSrs, width, height } = this.props
 
     return <div className={styles.wrapper}>
       <div className={styles.graphWrapper}>
-        {layout === 'disperse'
-         ? _disperseGraph(nSrs, redundancy)
-         : _replicationGraph(nSrs, redundancy - (layout === 'replica_arbiter' ? 1 : 0))}
+        <div className={styles.graph}>
+          {layout === 'disperse'
+           ? disperseGraph(nSrs, redundancy, width, height)
+           : replicationGraph(nSrs, redundancy - (layout === 'replica_arbiter' ? 1 : 0), width, height)}
+        </div>
       </div>
       <div>
         <strong className={styles.legend}>{_('xosanDiskLossLegend')}</strong>
