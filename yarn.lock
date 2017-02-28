@@ -3539,12 +3539,12 @@ indent-string@^2.1.0:
   dependencies:
     repeating "^2.0.0"
 
-index-modules@^0.2.1:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/index-modules/-/index-modules-0.2.1.tgz#0338997306c561a8161b8bba34643980dbb7d38c"
+index-modules@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/index-modules/-/index-modules-0.3.0.tgz#70a0d80be07ad3e1a6e4849c9aaf08348050a9ae"
   dependencies:
-    lodash "^4.16.2"
-    promise-toolbox "^0.7.0"
+    lodash "^4.17.4"
+    promise-toolbox "^0.8.0"
 
 indexes-of@^1.0.1:
   version "1.0.1"
@@ -4681,7 +4681,7 @@ lodash.uniq@^4.2.0:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/lodash.uniq/-/lodash.uniq-4.5.0.tgz#d0225373aeb652adc1bc82e4945339a842754773"
 
-lodash@^4.0.0, lodash@^4.13.1, lodash@^4.14.0, lodash@^4.15.0, lodash@^4.16.2, lodash@^4.16.6, lodash@^4.17.2, lodash@^4.17.3, lodash@^4.2.0, lodash@^4.2.1, lodash@^4.3.0, lodash@^4.6.1:
+lodash@^4.0.0, lodash@^4.13.1, lodash@^4.14.0, lodash@^4.15.0, lodash@^4.16.6, lodash@^4.17.2, lodash@^4.17.3, lodash@^4.17.4, lodash@^4.2.0, lodash@^4.2.1, lodash@^4.3.0, lodash@^4.6.1:
   version "4.17.4"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.4.tgz#78203a4d1c328ae1d86dca6460e369b57f4055ae"
 
@@ -5546,12 +5546,6 @@ process@~0.11.0:
 progress@^1.1.8:
   version "1.1.8"
   resolved "https://registry.yarnpkg.com/progress/-/progress-1.1.8.tgz#e260c78f6161cdd9b0e56cc3e0a85de17c7a57be"
-
-promise-toolbox@^0.7.0:
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/promise-toolbox/-/promise-toolbox-0.7.0.tgz#f98c1926886b1d14f08e8935994b74372848790e"
-  dependencies:
-    make-error "^1.0.4"
 
 promise-toolbox@^0.8.0:
   version "0.8.0"
