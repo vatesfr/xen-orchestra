@@ -1,5 +1,4 @@
 import Handlebars from 'handlebars'
-import pdf from 'html-pdf'
 import { CronJob } from 'cron'
 import {
   assign,
@@ -15,7 +14,6 @@ import {
   zipObject
 } from 'lodash'
 import {
-  fromCallback,
   promisify
 } from 'promise-toolbox'
 import {
@@ -419,8 +417,6 @@ class UsageReportPlugin {
       xo: this._xo,
       storedStatsPath: this._storedStatsPath
     })
-    const result = template(data)
-    const stream = await fromCallback(cb => pdf.create(result).toStream(cb))
 
     await Promise.all([
       this._xo.sendEmail({
@@ -433,8 +429,8 @@ class UsageReportPlugin {
 
   best regards.`,
         attachments: [{
-          filename: `xoReport_${currDate}.pdf`,
-          content: stream
+          filename: `xoReport_${currDate}.html`,
+          content: template(data)
         }]
       }),
       storeStats({

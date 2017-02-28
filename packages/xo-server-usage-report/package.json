@@ -37,7 +37,6 @@
     "babel-runtime": "^6.18.0",
     "cron": "^1.2.1",
     "handlebars": "^4.0.6",
-    "html-pdf": "^2.1.0",
     "lodash": "^4.17.2",
     "promise-toolbox": "^0.8.0"
   },
