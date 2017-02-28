@@ -1,14 +1,19 @@
-exports[`test Col 1`] = `
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Col 1`] = `
 <div
-  className="col-xs-12" />
+  className="col-xs-12"
+/>
 `;
 
-exports[`test Container 1`] = `
+exports[`Container 1`] = `
 <div
-  className="container-fluid" />
+  className="container-fluid"
+/>
 `;
 
-exports[`test Row 1`] = `
+exports[`Row 1`] = `
 <div
-  className=" row" />
+  className=" row"
+/>
 `;
