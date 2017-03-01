@@ -1,6 +1,7 @@
 import Component from 'base-component'
 import HostsPatchesTable from 'hosts-patches-table'
 import React from 'react'
+import Upgrade from 'xoa-upgrade'
 import { connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
@@ -20,7 +21,7 @@ export default class TabPatches extends Component {
   _getContainer = () => this.refs.container
 
   render () {
-    return (
+    return <Upgrade place='poolPatches' required={2}>
       <Container>
         <Row>
           <Col className='text-xs-right'>
@@ -37,6 +38,6 @@ export default class TabPatches extends Component {
           </Col>
         </Row>
       </Container>
-    )
+    </Upgrade>
   }
 }
