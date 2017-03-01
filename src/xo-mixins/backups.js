@@ -887,7 +887,7 @@ export default class {
         )
       )
 
-      delta.vm.name_label += ` (${shortDate(datetime)})`
+      delta.vm.name_label += ` (${shortDate(datetime * 1e3)})`
       delta.vm.tags.push('restored from backup')
 
       vm = await xapi.importDeltaVm(delta, {
