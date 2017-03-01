@@ -383,7 +383,7 @@ export default class {
     await Promise.all([
       xapi.addTag(vm.$id, 'restored from backup'),
       xapi.editVm(vm.$id, {
-        name_label: `${vm.name_label} (${shortDate(datetime)})`
+        name_label: `${vm.name_label} (${shortDate(datetime * 1e3)})`
       })
     ])
 
