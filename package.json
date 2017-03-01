@@ -94,7 +94,7 @@
     "passport": "^0.3.2",
     "passport-local": "^1.0.0",
     "pretty-format": "^19.0.0",
-    "promise-toolbox": "^0.8.0",
+    "promise-toolbox": "^0.8.1",
     "proxy-agent": "^2.0.0",
     "pug": "^2.0.0-beta11",
     "redis": "^2.6.5",

@@ -4284,6 +4284,10 @@ make-error@^1, make-error@^1.0.2, make-error@^1.0.4, make-error@^1.2.0, make-err
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/make-error/-/make-error-1.2.1.tgz#9a6dfb4844423b9f145806728d05c6e935670e75"
 
+make-error@^1.2.2:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/make-error/-/make-error-1.2.2.tgz#e4e270e474f642cca20fa126fe441163957832ef"
+
 make-iterator@^0.1.1:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/make-iterator/-/make-iterator-0.1.1.tgz#873d27b8198a465a81483b6f5d16da4e863ecf5b"
@@ -4971,6 +4975,12 @@ promise-toolbox@^0.8.0:
   resolved "https://registry.yarnpkg.com/promise-toolbox/-/promise-toolbox-0.8.0.tgz#dfb94700c7476f4729a550c27a7859535b6538a1"
   dependencies:
     make-error "^1.0.4"
+
+promise-toolbox@^0.8.1:
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/promise-toolbox/-/promise-toolbox-0.8.1.tgz#8a6243ba9f8f194dd4b01d5f290bff0df96c9dfa"
+  dependencies:
+    make-error "^1.2.2"
 
 promise@^7.0.1:
   version "7.1.1"

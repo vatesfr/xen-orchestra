@@ -1,5 +1,6 @@
 import isRedirect from 'is-redirect'
 import { assign, isString, startsWith } from 'lodash'
+import { cancellable } from 'promise-toolbox'
 import { request as httpRequest } from 'http'
 import { request as httpsRequest } from 'https'
 import { stringify as formatQueryString } from 'querystring'
@@ -122,7 +123,7 @@ const raw = opts => {
   return pResponse
 }
 
-const httpRequestPlus = (...args) => {
+const httpRequestPlus = ($cancelToken, ...args) => {
   const opts = {}
   for (let i = 0, length = args.length; i < length; ++i) {
     const arg = args[i]
@@ -131,13 +132,13 @@ const httpRequestPlus = (...args) => {
 
   const pResponse = raw(opts)
 
-  pResponse.cancel = () => {
+  $cancelToken.promise.then(() => {
     const { request } = pResponse
     request.emit('error', new Error('HTTP request canceled!'))
     request.abort()
-  }
+  })
   pResponse.readAll = () => pResponse.then(response => response.readAll())
 
   return pResponse
 }
-export { httpRequestPlus as default }
+export default cancellable(httpRequestPlus)

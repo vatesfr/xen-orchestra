@@ -3,7 +3,7 @@ import deferrable from 'golike-defer'
 import fatfs from 'fatfs'
 import tarStream from 'tar-stream'
 import vmdkToVhd from 'xo-vmdk-to-vhd'
-import { defer } from 'promise-toolbox'
+import { cancellable, defer } from 'promise-toolbox'
 import { PassThrough } from 'stream'
 import { forbiddenOperation } from 'xo-common/api-errors'
 import {
@@ -1820,7 +1820,8 @@ export default class Xapi extends XapiBase {
     return snap
   }
 
-  async _exportVdi (vdi, base, format = VDI_FORMAT_VHD) {
+  @cancellable
+  async _exportVdi ($cancelToken, vdi, base, format = VDI_FORMAT_VHD) {
     const host = vdi.$SR.$PBDs[0].$host
     const taskRef = await this._createTask('VDI Export', vdi.name_label)
 
@@ -1840,16 +1841,11 @@ export default class Xapi extends XapiBase {
     }`)
 
     const task = this._watchTask(taskRef)
-    return httpRequest({
+    return httpRequest($cancelToken, {
       hostname: host.address,
       path: '/export_raw_vdi/',
       query
     }).then(response => {
-      response.cancel = (cancel => () => {
-        return new Promise(resolve => {
-          resolve(cancel())
-        }).then(() => task::pCatch(noop))
-      })(response.cancel)
       response.task = task
 
       return response
