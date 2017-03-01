@@ -9,20 +9,26 @@ import { connectStore, getXoaPlan } from './utils'
 import { isAdmin } from 'selectors'
 
 const Upgrade = propTypes({
-  available: propTypes.number.isRequired,
-  place: propTypes.string.isRequired
+  available: propTypes.number,
+  place: propTypes.string.isRequired,
+  required: propTypes.number
 })(connectStore({
   isAdmin
 }))(({
   available,
+  children,
   isAdmin,
-  place
-}) => (
-  <Card>
+  place,
+  required
+}) => {
+  const requiredPlan = available || required
+
+  return process.env.XOA_PLAN < requiredPlan
+  ? <Card>
     <CardHeader>{_('upgradeNeeded')}</CardHeader>
     {isAdmin
       ? <CardBlock className='text-xs-center'>
-        <p>{_('availableIn', {plan: getXoaPlan(available)})}</p>
+        <p>{_('availableIn', {plan: getXoaPlan(requiredPlan)})}</p>
         <p>
           <a href={`https://xen-orchestra.com/#!/pricing?pk_campaign=xoa_${getXoaPlan()}_upgrade&pk_kwd=${place}`} className='btn btn-primary btn-lg'>
             <Icon icon='plan-upgrade' /> {_('upgradeNow')}
@@ -37,6 +43,7 @@ const Upgrade = propTypes({
       </CardBlock>
     }
   </Card>
-))
+  : children
+})
 
 export { Upgrade as default }

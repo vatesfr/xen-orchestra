@@ -21,8 +21,8 @@ export default class TabPatches extends Component {
   _getContainer = () => this.refs.container
 
   render () {
-    return process.env.XOA_PLAN > 1
-      ? <Container>
+    return <Upgrade place='poolPatches' required={2}>
+      <Container>
         <Row>
           <Col className='text-xs-right'>
             <div ref='container' />
@@ -38,6 +38,6 @@ export default class TabPatches extends Component {
           </Col>
         </Row>
       </Container>
-      : <Container><Upgrade place='poolPatches' available={2} /></Container>
+    </Upgrade>
   }
 }
