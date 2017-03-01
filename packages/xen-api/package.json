@@ -35,7 +35,7 @@
     "babel-polyfill": "^6.22.0",
     "blocked": "^1.2.1",
     "debug": "^2.6.1",
-    "event-to-promise": "^0.7.0",
+    "event-to-promise": "^0.8.0",
     "exec-promise": "^0.6.1",
     "kindof": "^2.0.0",
     "lodash": "^4.17.4",
