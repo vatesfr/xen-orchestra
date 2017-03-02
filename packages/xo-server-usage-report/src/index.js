@@ -1,4 +1,5 @@
 import Handlebars from 'handlebars'
+import { minify } from 'html-minifier'
 import { CronJob } from 'cron'
 import {
   assign,
@@ -42,7 +43,15 @@ const kibPower = Math.pow(2, 10)
 let template = null
 pReadFile(`${__dirname}/../report.html.tpl`, 'utf8')
   .then(tpl => {
-    template = Handlebars.compile(tpl)
+    template = Handlebars.compile(minify(tpl, {
+      collapseBooleanAttributes: true,
+      collapseWhitespace: true,
+      minifyCSS: true,
+      removeAttributeQuotes: true,
+      removeComments: true,
+      removeOptionalTags: true,
+      removeRedundantAttributes: true
+    }))
   })
 
 let imgXo = null
