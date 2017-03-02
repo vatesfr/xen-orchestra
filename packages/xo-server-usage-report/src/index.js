@@ -28,11 +28,6 @@ const pWriteFile = promisify(writeFile)
 
 const currDate = new Date().toISOString().slice(0, 10)
 
-const absolutePath = process.platform === 'linux' ? `file://${__dirname}` : `${__dirname}`
-const htmlPath = `${__dirname}/../report.html.tpl`
-const imgVates = `${absolutePath}/../images/logo.png` // Only absolute path is supported
-const imgXo = `${absolutePath}/../images/xo.png`
-
 const compareOperators = {
   '>': (l, r) => l > r
 }
@@ -43,12 +38,26 @@ const mathOperators = {
 const gibPower = Math.pow(2, 30)
 const mibPower = Math.pow(2, 20)
 const kibPower = Math.pow(2, 10)
-let template = null
 
-;(async () => {
-  const html = await pReadFile(htmlPath, 'utf8')
-  template = Handlebars.compile(html)
-})()
+let template = null
+pReadFile(`${__dirname}/../report.html.tpl`, 'utf8')
+  .then(tpl => {
+    template = Handlebars.compile(tpl)
+  })
+
+let imgXo = null
+pReadFile(`${__dirname}/../images/xo.png`, 'base64')
+  .then(data => {
+    imgXo = `data:image/png;base64,${data}`
+  })
+
+setTimeout(() => {
+  writeFile('./report.html', template({
+    style: {
+      imgXo
+    }
+  }))
+}, 2e3)
 
 // ===================================================================
 
@@ -366,7 +375,6 @@ async function dataBuilder ({
     hostsRessourcesEvolution: evolution && evolution.hostsRessourcesEvolution,
     usersEvolution: evolution && evolution.usersEvolution,
     style: {
-      imgVates,
       imgXo,
       currDate,
       prevDate: evolution && evolution.prevDate,
