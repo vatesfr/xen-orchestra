@@ -14,7 +14,7 @@
     }
 
     #pageHeader .logo {
-      overflow:auto; 
+      overflow:auto;
       float: left;
       width: 300px;
     }
@@ -25,7 +25,7 @@
       float: left;
     }
 
-    #pageHeader .logo label{
+    #pageHeader .logo label {
       font-weight: 450;
       font-size: 28px;
       color: #171717;
@@ -40,15 +40,15 @@
       margin-top:12px;
     }
 
-    #pageHeader .date span{
+    #pageHeader .date span {
       font-size: 20px;
     }
 
-    #pageHeader hr{
+    #pageHeader hr {
       margin-top: 7%;
     }
 
-    .page .global{
+    .page .global {
       border-collapse: collapse;
       margin: auto;
       border: 1px solid #95a5a6;
@@ -123,8 +123,7 @@
 
     <div id="pageHeader">
       <div class="logo">
-        <!-- Only absolute path is supported -->
-        <img src ={{style.imgXo}} alt= "Xo Logo"> <label>XOA</label>
+        <img src="{{style.imgXo}}" alt= "Xo Logo"> <label>XOA</label>
       </div>
       <div class="date">
           <span>{{#if style.prevDate}} {{style.prevDate}} {{else}} 0000-00-00 {{/if}}</span> - <span>{{style.currDate}}</span>
@@ -133,10 +132,12 @@
         <hr color="#95a5a6" size="1px"/>
     </div>
 
+    {{!-- Do not use the footer for pure HTML version
     <div id="pageFooter"  align="center">
       <hr color="#95a5a6" size="1px"/>
       <span style="color:#7f8c8d">-{{style.page}}-</span>
     </div>
+    --}}
 
     <div class="page">
 
@@ -160,7 +161,7 @@
           <td>CPU:</td>
           <td>{{global.vms.cpu}} %</td> <!-- One condition doesn't work -->
           <td style='color:{{#compare global.vmsEvolution.cpu ">" 0}} red {{else}} green {{/compare}}'>
-            {{#if global.vmsEvolution.cpu}} 
+            {{#if global.vmsEvolution.cpu}}
               {{#compare global.vmsEvolution.cpu ">" 0}}+{{/compare}}
               {{global.vmsEvolution.cpu}}%
             {{else}}
@@ -239,7 +240,7 @@
             <th>UUID</th>
             <th>Value</th>
           </tr>
-          
+
           <tr>
             <td rowspan='{{math topVms.cpu.length "+" 1}}' class="tableHeader">CPU</td>
           </tr>
@@ -326,7 +327,7 @@
         </tr>
         <tr>
           <td>CPU:</td>
-          <td>{{global.hosts.cpu}} %</td> 
+          <td>{{global.hosts.cpu}} %</td>
           <td style='color:{{#compare global.hostsEvolution.cpu ">" 0}} red {{else}} green {{/compare}}'>
             {{#if global.hostsEvolution.cpu}}
               {{#compare global.hostsEvolution.cpu ">" 0}}+{{/compare}}
@@ -527,7 +528,7 @@
             <tr>
               <th>UUID</th>
             </tr>
-            {{#if vmsRessourcesEvolution.added}} 
+            {{#if vmsRessourcesEvolution.added}}
               {{#each vmsRessourcesEvolution.added}}
                 <tr>
                   <td>{{this}}</td>
@@ -545,7 +546,7 @@
             <tr>
               <th>UUID</th>
             </tr>
-            {{#if vmsRessourcesEvolution.removed}} 
+            {{#if vmsRessourcesEvolution.removed}}
               {{#each vmsRessourcesEvolution.removed}}
               <tr>
                 <td>{{this}}</td>
@@ -562,7 +563,7 @@
             <tr>
               <th>UUID</th>
             </tr>
-            {{#if hostsRessourcesEvolution.added}} 
+            {{#if hostsRessourcesEvolution.added}}
               {{#each hostsRessourcesEvolution.added}}
               <tr>
                 <td>{{this}}</td>
@@ -579,7 +580,7 @@
             <tr>
               <th>UUID</th>
             </tr>
-            {{#if hostsRessourcesEvolution.removed}} 
+            {{#if hostsRessourcesEvolution.removed}}
               {{#each hostsRessourcesEvolution.removed}}
               <tr>
                 <td>{{this}}</td>

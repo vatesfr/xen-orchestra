@@ -51,14 +51,6 @@ pReadFile(`${__dirname}/../images/xo.png`, 'base64')
     imgXo = `data:image/png;base64,${data}`
   })
 
-setTimeout(() => {
-  writeFile('./report.html', template({
-    style: {
-      imgXo
-    }
-  }))
-}, 2e3)
-
 // ===================================================================
 
 export const configurationSchema = {
@@ -453,5 +445,3 @@ class UsageReportPlugin {
 // ===================================================================
 
 export default opts => new UsageReportPlugin(opts)
-
-// ===================================================================
