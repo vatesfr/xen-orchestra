@@ -1324,7 +1324,7 @@ var messages = {
   xosanDiskLossLegend: '* Can fail without data loss',
   xosanCreate: 'Create XOSAN',
   xosanInstalling: 'Installing XOSAN. Please wait...',
-  xosanBadVersion: 'You need XenServer 7 to install XOSAN',
+  xosanBadVersion: 'You need XenServer 7.0 to install XOSAN',
   xosanCommunity: 'No XOSAN available for Community Edition',
   // Pack download modal
   xosanInstallCloudPlugin: 'Install cloud plugin first',
