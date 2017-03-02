@@ -482,7 +482,35 @@ export const resolveIds = params => {
 
 // ===================================================================
 
-export const compareVersions = (v1, v2) => {
+const OPs = {
+  '<': a => a < 0,
+  '<=': a => a <= 0,
+  '===': a => a === 0,
+  '>': a => a > 0,
+  '>=': a => a >= 0
+}
+
+const makeNiceCompare = compare => function () {
+  const { length } = arguments
+  if (length === 2) {
+    return compare(arguments[0], arguments[1])
+  }
+
+  let i = 1
+  let v1 = arguments[0]
+  let op, v2
+  while (i < length) {
+    op = arguments[i++]
+    v2 = arguments[i++]
+    if (!OPs[op](compare(v1, v2))) {
+      return false
+    }
+    v1 = v2
+  }
+  return true
+}
+
+export const compareVersions = makeNiceCompare((v1, v2) => {
   v1 = v1.split('.')
   v2 = v2.split('.')
 
@@ -495,4 +523,4 @@ export const compareVersions = (v1, v2) => {
   }
 
   return 0
-}
+})
