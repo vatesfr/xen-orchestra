@@ -265,7 +265,7 @@ class PoolAvailableSrs extends Component {
       return <em><Icon icon='loading' /> {_('xosanInstalling')}</em>
     }
 
-    if (poolMaster && compareVersions(poolMaster.version, '7') < 0) {
+    if (poolMaster && !compareVersions('7', '<=', poolMaster.version, '<', '7.1')) {
       return <div>
         <Icon icon='error' /> <em>{_('xosanBadVersion')}</em>
       </div>
