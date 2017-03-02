@@ -1,5 +1,8 @@
+<!DOCTYPE html>
 <html>
 <head>
+  <meta charset="utf-8">
+  <title>Xen Orchestra − Usage Report − {{style.currDate}}</title>
   <style>
     html, body {
       font-family: 'Legacy',sans-serif;
