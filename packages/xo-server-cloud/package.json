@@ -11,7 +11,7 @@
     "xen-orchestra",
     "xo-server"
   ],
-  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-transport-cloud",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-cloud",
   "bugs": "https://github.com/vatesfr/xo-web/issues",
   "repository": {
     "type": "git",
