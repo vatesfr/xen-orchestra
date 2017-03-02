@@ -12,11 +12,11 @@
     "xen",
     "xen-orchestra"
   ],
-  "homepage": "https://github.com/vatesfr/xo-server-usage-report",
-  "bugs": "https://github.com/vatesfr/xo-server-usage-report/issues",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-usage-report",
+  "bugs": "https://github.com/vatesfr/xo-web/issues",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vatesfr/xo-server-usage-report.git"
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "author": {
     "name": "Julien Fontanet",
