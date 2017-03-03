@@ -86,5 +86,4 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     const stats = await fs.stat(this._getFilePath(file))
     return stats.size
   }
-
 }

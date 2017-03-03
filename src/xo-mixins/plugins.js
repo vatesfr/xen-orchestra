@@ -100,7 +100,7 @@ export default class {
         }
       })
       .catch(error => {
-        console.error('register plugin %s: %s', name, error && error.stack || error)
+        console.error('register plugin %s: %s', name, (error && error.stack) || error)
       })
   }
 

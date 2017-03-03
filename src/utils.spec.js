@@ -153,6 +153,7 @@ describe('parseSize()', function () {
 
 describe('pSettle()', () => {
   it('works with arrays', async () => {
+    const rejection = 'fatality'
     const [
       status1,
       status2,
@@ -160,7 +161,7 @@ describe('pSettle()', () => {
     ] = await pSettle([
       Promise.resolve(42),
       Math.PI,
-      Promise.reject('fatality')
+      Promise.reject(rejection)
     ])
 
     expect(status1.isRejected()).toBe(false)
@@ -177,10 +178,12 @@ describe('pSettle()', () => {
 
     expect(::status1.reason).toThrow()
     expect(::status2.reason).toThrow()
-    expect(status3.reason()).toBe('fatality')
+    expect(status3.reason()).toBe(rejection)
   })
 
   it('works with objects', async () => {
+    const rejection = 'fatality'
+
     const {
       a: status1,
       b: status2,
@@ -188,7 +191,7 @@ describe('pSettle()', () => {
     } = await pSettle({
       a: Promise.resolve(42),
       b: Math.PI,
-      c: Promise.reject('fatality')
+      c: Promise.reject(rejection)
     })
 
     expect(status1.isRejected()).toBe(false)
@@ -205,6 +208,6 @@ describe('pSettle()', () => {
 
     expect(::status1.reason).toThrow()
     expect(::status2.reason).toThrow()
-    expect(status3.reason()).toBe('fatality')
+    expect(status3.reason()).toBe(rejection)
   })
 })

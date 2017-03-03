@@ -80,7 +80,7 @@ export async function set ({
 
     const vm = xapi.getObject(vif.$VM)
     mac == null && (mac = vif.MAC)
-    network = xapi.getObject(network && network.id || vif.$network)
+    network = xapi.getObject((network && network.id) || vif.$network)
     attached == null && (attached = vif.attached)
 
     await this.allocIpAddresses(vif.id, null, oldIpAddresses)

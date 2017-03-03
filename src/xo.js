@@ -61,7 +61,7 @@ export default class Xo extends EventEmitter {
     const handleCleanError = error => {
       console.error(
         '[WARN] clean error:',
-        error && error.stack || error
+        (error && error.stack) || error
       )
     }
     await Promise.all(mapToArray(
@@ -85,7 +85,7 @@ export default class Xo extends EventEmitter {
     const handleStartError = error => {
       console.error(
         '[WARN] start error:',
-        error && error.stack || error
+        (error && error.stack) || error
       )
     }
     await Promise.all(mapToArray(
@@ -109,7 +109,7 @@ export default class Xo extends EventEmitter {
     const handleStopError = error => {
       console.error(
         '[WARN] stop error:',
-        error && error.stack || error
+        (error && error.stack) || error
       )
     }
     await Promise.all(mapToArray(
@@ -153,7 +153,7 @@ export default class Xo extends EventEmitter {
     }
 
     if (type != null && (
-      isString(type) && type !== obj.type ||
+      (isString(type) && type !== obj.type) ||
       !includes(type, obj.type) // Array
     )) {
       throw noSuchObject(key, type)

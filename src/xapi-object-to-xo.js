@@ -215,7 +215,7 @@ const TRANSFORMS = {
       // snapshots.
       type: 'VM',
 
-      addresses: guestMetrics && guestMetrics.networks || null,
+      addresses: (guestMetrics && guestMetrics.networks) || null,
       auto_poweron: Boolean(otherConfig.auto_poweron),
       boot: obj.HVM_boot_params,
       CPUs: {
@@ -287,7 +287,7 @@ const TRANSFORMS = {
       name_description: obj.name_description,
       name_label: obj.name_label,
       other: otherConfig,
-      os_version: guestMetrics && guestMetrics.os_version || null,
+      os_version: (guestMetrics && guestMetrics.os_version) || null,
       power_state: obj.power_state,
       resourceSet,
       snapshots: link(obj, 'snapshots'),

@@ -22,7 +22,7 @@ export class ScheduleOverride extends SchedulerError {
 
 export class ScheduleNotEnabled extends SchedulerError {
   constructor (scheduleOrId) {
-    super('Schedule ' + _resolveId(scheduleOrId)) + ' is not enabled'
+    super('Schedule ' + _resolveId(scheduleOrId) + ' is not enabled')
   }
 }
 

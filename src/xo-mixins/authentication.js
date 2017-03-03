@@ -13,6 +13,8 @@ import {
 const noSuchAuthenticationToken = id =>
   noSuchObject(id, 'authenticationToken')
 
+const ONE_MONTH = 1e3 * 60 * 60 * 24 * 30
+
 export default class {
   constructor (xo) {
     this._xo = xo
@@ -55,9 +57,7 @@ export default class {
 
       try {
         return (await xo.getAuthenticationToken(tokenId)).user_id
-      } catch (e) {
-        return
-      }
+      } catch (error) {}
     })
 
     xo.on('clean', async () => {
@@ -154,7 +154,7 @@ export default class {
     const token = new Token({
       id: await generateToken(),
       user_id: userId,
-      expiration: Date.now() + 1e3 * 60 * 60 * 24 * 30 // 1 month validity.
+      expiration: Date.now() + ONE_MONTH
     })
 
     await this._tokens.add(token)

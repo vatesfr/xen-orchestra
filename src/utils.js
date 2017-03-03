@@ -209,7 +209,7 @@ export const getUserPublicProperties = user => pick(
 // -------------------------------------------------------------------
 
 export const getPseudoRandomBytes = n => {
-  const bytes = new Buffer(n)
+  const bytes = Buffer.allocUnsafe(n)
 
   const odd = n & 1
   for (let i = 0, m = n - odd; i < m; i += 2) {
@@ -454,7 +454,7 @@ export function map (
 export const multiKeyHash = (...args) => new Promise(resolve => {
   const hash = multiKeyHashInt(...args)
 
-  const buf = new Buffer(4)
+  const buf = Buffer.allocUnsafe(4)
   buf.writeUInt32LE(hash, 0)
 
   resolve(base64url(buf))
@@ -498,7 +498,7 @@ export const scheduleFn = (cronTime, fn, timeZone) => {
       try {
         await fn()
       } catch (error) {
-        console.error('[WARN] scheduled function:', error && error.stack || error)
+        console.error('[WARN] scheduled function:', (error && error.stack) || error)
       } finally {
         running = false
       }

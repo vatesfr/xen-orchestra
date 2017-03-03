@@ -1,7 +1,5 @@
-import createLogger from 'debug'
-const debug = createLogger('xo:xosan')
-
 import arp from 'arp-a'
+import createLogger from 'debug'
 import defer from 'golike-defer'
 import execa from 'execa'
 import fromPairs from 'lodash/fromPairs'
@@ -19,6 +17,8 @@ import {
   pFromCallback,
   splitFirst
 } from '../utils'
+
+const debug = createLogger('xo:xosan')
 
 const SSH_KEY_FILE = 'id_rsa_xosan'
 const NETWORK_PREFIX = '172.31.100.'

@@ -1,6 +1,4 @@
 import createDebug from 'debug'
-const debug = createDebug('xo:api')
-
 import kindOf from 'kindof'
 import ms from 'ms'
 import schemaInspector from 'schema-inspector'
@@ -20,6 +18,8 @@ import {
 import * as errors from 'xo-common/api-errors'
 
 // ===================================================================
+
+const debug = createDebug('xo:api')
 
 const PERMISSIONS = {
   none: 0,

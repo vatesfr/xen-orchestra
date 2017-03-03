@@ -24,7 +24,7 @@ export const debounce = duration => (target, name, descriptor) => {
 
   // This symbol is used to store the related data directly on the
   // current object.
-  const s = Symbol()
+  const s = Symbol(`debounced ${name} data`)
 
   function debounced () {
     const data = this[s] || (this[s] = {
@@ -53,7 +53,7 @@ export const debounce = duration => (target, name, descriptor) => {
 // -------------------------------------------------------------------
 
 const _ownKeys = (
-  typeof Reflect !== 'undefined' && Reflect.ownKeys ||
+  (typeof Reflect !== 'undefined' && Reflect.ownKeys) ||
   (({
     getOwnPropertyNames: names,
     getOwnPropertySymbols: symbols

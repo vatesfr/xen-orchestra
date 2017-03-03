@@ -1,10 +1,8 @@
-import createLogger from 'debug'
-const debug = createLogger('xo:main')
-
 import appConf from 'app-conf'
 import bind from 'lodash/bind'
 import blocked from 'blocked'
 import createExpress from 'express'
+import createLogger from 'debug'
 import eventToPromise from 'event-to-promise'
 import has from 'lodash/has'
 import helmet from 'helmet'
@@ -48,6 +46,8 @@ import { parse as parseCookies } from 'cookie'
 import { Strategy as LocalStrategy } from 'passport-local'
 
 // ===================================================================
+
+const debug = createLogger('xo:main')
 
 const warn = (...args) => {
   console.warn('[Warn]', ...args)
@@ -510,7 +510,7 @@ const setUpConsoleProxy = (webServer, xo) => {
         proxyConsole(connection, vmConsole, xapi.sessionId)
       })
     } catch (error) {
-      console.error(error && error.stack || error)
+      console.error((error && error.stack) || error)
     }
   })
 }

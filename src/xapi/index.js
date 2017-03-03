@@ -1020,7 +1020,7 @@ export default class Xapi extends XapiBase {
       // Create VIFs.
       Promise.all(mapToArray(delta.vifs, vif => {
         const network =
-          vif.$network$uuid && this.getObject(vif.$network$uuid, null) ||
+          (vif.$network$uuid && this.getObject(vif.$network$uuid, null)) ||
           networksOnPoolMasterByDevice[vif.device] ||
           defaultNetwork
 
@@ -2136,5 +2136,4 @@ export default class Xapi extends XapiBase {
   }
 
   // =================================================================
-
 }

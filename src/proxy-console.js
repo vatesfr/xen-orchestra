@@ -56,7 +56,7 @@ export default function proxyConsole (ws, vmConsole, sessionId) {
       .on('message', data => {
         if (!closed) {
           // Decode from base 64.
-          socket.write(new Buffer(data, 'base64'))
+          socket.write(Buffer.from(data, 'base64'))
         }
       })
       .on('close', () => {

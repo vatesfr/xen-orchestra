@@ -142,7 +142,7 @@ mergeInto.resolve = {
 export async function getLicenseState ({pool}) {
   return this.getXapi(pool).call(
     'pool.get_license_state',
-    pool._xapiId.$ref,
+    pool._xapiId.$ref
   )
 }
 
@@ -173,8 +173,6 @@ async function handleInstallSupplementalPack (req, res, { poolId }) {
     res.writeHead(500)
     res.end(format.error(0, new Error(e.message)))
   }
-
-  return
 }
 
 export async function installSupplementalPack ({ pool }) {
