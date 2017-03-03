@@ -341,5 +341,10 @@ export default {
       await this._snapshotVm(snapshot.$snapshot_of)
     }
     return this.call('VM.revert', snapshot.$ref)
+  },
+
+  async resumeVm (vmId) {
+    // the force parameter is always true
+    return this.call('VM.resume', this.getObject(vmId).$ref, false, true)
   }
 }

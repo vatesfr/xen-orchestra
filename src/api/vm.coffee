@@ -920,18 +920,11 @@ exports.suspend = suspend
 
 #---------------------------------------------------------------------
 
-resume = $coroutine ({vm, force}) ->
-  # FIXME: WTF this is?
-  if not force
-    force = true
-
-  yield @getXapi(vm).call 'VM.resume', vm._xapiRef, false, force
-
-  return true
+resume = ({vm}) ->
+  return @getXapi(vm).resumeVm(vm._xapiId)
 
 resume.params = {
   id: { type: 'string' }
-  force: { type: 'boolean', optional: true }
 }
 
 resume.resolve = {
