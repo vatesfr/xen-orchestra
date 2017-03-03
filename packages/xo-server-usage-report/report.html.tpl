@@ -241,6 +241,7 @@
           <tr>
             <th></th>
             <th>UUID</th>
+            <th>Name</th>
             <th>Value</th>
           </tr>
 
@@ -250,6 +251,7 @@
           {{#each topVms.cpu}}
           <tr>
             <td>{{this.uuid}}</td>
+            <td>{{this.name}}</td>
             <td>{{this.value}} %</td>
           </tr>
           {{/each}}
@@ -260,6 +262,7 @@
           {{#each topVms.ram}}
           <tr>
             <td>{{this.uuid}}</td>
+            <td>{{this.name}}</td>
             <td>{{this.value}} GiB</td>
           </tr>
           {{/each}}
@@ -269,6 +272,7 @@
           <tr>
             <th></th>
             <th>UUID</th>
+            <th>Name</th>
             <th>Value</th>
           </tr>
           <tr>
@@ -277,6 +281,7 @@
           {{#each topVms.diskRead}}
           <tr>
             <td>{{this.uuid}}</td>
+            <td>{{this.name}}</td>
             <td>{{this.value}} MiB</td>
           </tr>
           {{/each}}
@@ -286,6 +291,7 @@
           {{#each topVms.diskWrite}}
           <tr>
             <td>{{this.uuid}}</td>
+            <td>{{this.name}}</td>
             <td>{{this.value}} MiB</td>
           </tr>
           {{/each}}
@@ -295,6 +301,7 @@
           {{#each topVms.netReception}}
           <tr>
             <td>{{this.uuid}}</td>
+            <td>{{this.name}}</td>
             <td>{{this.value}} KiB</td>
           </tr>
           {{/each}}
@@ -304,6 +311,7 @@
           {{#each topVms.netTransmission}}
           <tr>
             <td>{{this.uuid}}</td>
+            <td>{{this.name}}</td>
             <td>{{this.value}} KiB</td>
           </tr>
           {{/each}}
@@ -530,16 +538,18 @@
             <caption>Added Vms</caption>
             <tr>
               <th>UUID</th>
+              <th>Name</th>
             </tr>
             {{#if vmsRessourcesEvolution.added}}
               {{#each vmsRessourcesEvolution.added}}
                 <tr>
-                  <td>{{this}}</td>
+                  <td>{{this.uuid}}</td>
+                  <td>{{this.name}}</td>
                 </tr>
               {{/each}}
             {{else}}
               <tr>
-                <td>No added VMs!</td>
+                <td colspan="2">No added VMs!</td>
               </tr>
             {{/if}}
           </table>
@@ -548,16 +558,18 @@
             <caption>Removed Vms</caption>
             <tr>
               <th>UUID</th>
+              <th>Name</th>
             </tr>
             {{#if vmsRessourcesEvolution.removed}}
               {{#each vmsRessourcesEvolution.removed}}
               <tr>
-                <td>{{this}}</td>
+                <td>{{this.uuid}}</td>
+                <td>{{this.name}}</td>
               </tr>
               {{/each}}
             {{else}}
               <tr>
-                <td>No removed VMs!</td>
+                <td colspan="2">No removed VMs!</td>
               </tr>
             {{/if}}
           </table>

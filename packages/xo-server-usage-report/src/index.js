@@ -4,9 +4,10 @@ import { CronJob } from 'cron'
 import {
   assign,
   concat,
-  difference,
+  differenceWith,
   filter,
   forEach,
+  isEqual,
   isFinite,
   map,
   orderBy,
@@ -149,6 +150,7 @@ function getTop (objects, options) {
         }, 'desc').slice(0, 3),
         obj => ({
           uuid: obj.uuid,
+          name: obj.name,
           value: round(obj[opt], 2)
         })
       )
@@ -168,8 +170,8 @@ function conputePercentage (curr, prev, options) {
 
 function getDiff (oldElements, newElements) {
   return {
-    added: difference(oldElements, newElements),
-    removed: difference(newElements, oldElements)
+    added: differenceWith(oldElements, newElements, isEqual),
+    removed: differenceWith(newElements, oldElements, isEqual)
   }
 }
 
@@ -183,6 +185,7 @@ function getVmsStats ({
     const vmStats = await xo.getXapiVmStats(vm, 'days')
     return {
       uuid: vm.uuid.split('-')[0],
+      name: vm.name_label,
       cpu: computeDoubleMean(vmStats.stats.cpus),
       ram: computeMean(vmStats.stats.memoryUsed) / gibPower,
       diskRead: computeDoubleMean(values(vmStats.stats.xvds.r)) / mibPower,
@@ -215,7 +218,16 @@ function computeGlobalVmsStats ({
   vmsStats,
   xo
 }) {
-  const allVms = concat(map(vmsStats, 'uuid'), map(haltedVms, vm => vm.uuid.split('-')[0]))
+  const allVms = concat(
+    map(vmsStats, vm => ({
+      uuid: vm.uuid,
+      name: vm.name
+    })),
+    map(haltedVms, vm => ({
+      uuid: vm.uuid.split('-')[0],
+      name: vm.name_label
+    }))
+  )
 
   return assign(computeMeans(vmsStats, ['cpu', 'ram', 'diskRead', 'diskWrite', 'netReception', 'netTransmission']), {
     number: allVms.length,
