@@ -18,7 +18,7 @@ class XoError extends BaseError {
 }
 
 const create = (code, getProps) => {
-  const factory = args => new XoError({ ...getProps(args), code })
+  const factory = (...args) => new XoError({ ...getProps(...args), code })
   factory.is = (error, predicate) =>
     error.code === code && iteratee(predicate)(error)
 
