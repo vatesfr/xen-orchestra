@@ -476,11 +476,15 @@ set = (params) ->
   VM = extract(params, 'VM')
   xapi = @getXapi(VM)
 
-  return xapi.editVm(VM._xapiId, params, (limits, vm) =>
+  return xapi.editVm(VM._xapiId, params, $coroutine (limits, vm) =>
     resourceSet = xapi.xo.getData(vm, 'resourceSet')
 
     if (resourceSet)
-      return @allocateLimitsInResourceSet(limits, resourceSet)
+      try
+        return yield @allocateLimitsInResourceSet(limits, resourceSet)
+      catch error
+        # if the resource set no longer exist, behave as if the VM is free
+        throw error unless noSuchObject.is(error)
 
     if (limits.cpuWeight && this.user.permission != 'admin')
       throw unauthorized()
