@@ -31,7 +31,7 @@
     "bin": "bin"
   },
   "engines": {
-    "node": ">=4"
+    "node": ">=4.5"
   },
   "dependencies": {
     "@marsaud/smb2-promise": "^0.2.1",
