@@ -4280,11 +4280,11 @@ ltgt@^2.1.2, ltgt@~2.1.1:
   version "2.1.3"
   resolved "https://registry.yarnpkg.com/ltgt/-/ltgt-2.1.3.tgz#10851a06d9964b971178441c23c9e52698eece34"
 
-make-error@^1, make-error@^1.0.2, make-error@^1.0.4, make-error@^1.2.0, make-error@^1.2.1:
+make-error@^1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/make-error/-/make-error-1.2.1.tgz#9a6dfb4844423b9f145806728d05c6e935670e75"
 
-make-error@^1.2.2:
+make-error@^1.0.2, make-error@^1.0.4, make-error@^1.2.0, make-error@^1.2.1, make-error@^1.2.2:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/make-error/-/make-error-1.2.2.tgz#e4e270e474f642cca20fa126fe441163957832ef"
 
@@ -4970,13 +4970,7 @@ promise-toolbox@^0.7.0:
   dependencies:
     make-error "^1.0.4"
 
-promise-toolbox@^0.8.0:
-  version "0.8.0"
-  resolved "https://registry.yarnpkg.com/promise-toolbox/-/promise-toolbox-0.8.0.tgz#dfb94700c7476f4729a550c27a7859535b6538a1"
-  dependencies:
-    make-error "^1.0.4"
-
-promise-toolbox@^0.8.1:
+promise-toolbox@^0.8.0, promise-toolbox@^0.8.1:
   version "0.8.1"
   resolved "https://registry.yarnpkg.com/promise-toolbox/-/promise-toolbox-0.8.1.tgz#8a6243ba9f8f194dd4b01d5f290bff0df96c9dfa"
   dependencies:
@@ -6637,9 +6631,9 @@ xo-collection@^0.4.1:
     lodash "^3.10.1"
     make-error "^1.0.2"
 
-xo-common@0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/xo-common/-/xo-common-0.1.0.tgz#6e02ada37691df6c2ca025be260689cf4c837197"
+xo-common@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/xo-common/-/xo-common-0.1.1.tgz#bdad9ea7926c1f27d8fdaecc92d672854c911815"
   dependencies:
     babel-runtime "^6.18.0"
     lodash "^4.16.6"
