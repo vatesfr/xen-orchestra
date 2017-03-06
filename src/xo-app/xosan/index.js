@@ -2,7 +2,6 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import Collapse from 'collapse'
 import Component from 'base-component'
-import getEventValue from 'get-event-value'
 import Icon from 'icon'
 import Link from 'link'
 import Page from '../page'
@@ -20,8 +19,7 @@ import {
   isEmpty,
   keys,
   map,
-  pickBy,
-  uniq
+  pickBy
 } from 'lodash'
 import {
   createGetObjectsOfType,
@@ -154,9 +152,6 @@ const _findLatestTemplate = templates => {
   return latestTemplate
 }
 
-const _mapUniqLayouts = collection => uniq(map(collection, 'layout'))
-const _mapUniqRedundancies = (layout, collection) => uniq(map(filter(collection, { layout }), 'redundancy')).sort()
-
 @connectStore({
   poolMaster: createGetObjectsOfType('host').find(
     (_, props) => ({ id }) => props.pool.master === id
@@ -176,26 +171,13 @@ class PoolAvailableSrs extends Component {
   _selectSr = (event, srId) => {
     const selectedSrs = { ...this.state.selectedSrs }
     selectedSrs[srId] = event.target.checked
-    this.setState({ selectedSrs })
 
     computeXosanPossibleOptions(keys(pickBy(selectedSrs))).then(suggestions => {
-      const layout = _mapUniqLayouts(suggestions)[0]
-      const redundancy = layout && _mapUniqRedundancies(layout, suggestions)[0]
-
       this.setState({
-        layout,
-        redundancy,
+        selectedSrs,
+        suggestion: 0,
         suggestions
       })
-    })
-  }
-
-  _selectLayout = event => {
-    const layout = getEventValue(event)
-
-    this.setState({
-      layout,
-      redundancy: _mapUniqRedundancies(layout, this.state.suggestions)[0]
     })
   }
 
@@ -214,17 +196,6 @@ class PoolAvailableSrs extends Component {
     _findLatestTemplate
   )
 
-  _getPossibleLayouts = createSelector(
-    () => this.state.suggestions,
-    _mapUniqLayouts
-  )
-
-  _getPossibleRedundancies = createSelector(
-    () => this.state.layout,
-    () => this.state.suggestions,
-    _mapUniqRedundancies
-  )
-
   _getDisableSrCheckbox = createSelector(
     () => this.state.selectedSrs,
     () => this.props.lvmsrs,
@@ -235,27 +206,46 @@ class PoolAvailableSrs extends Component {
       )
   )
 
+  _getDisableCreation = createSelector(
+    () => this.state.suggestion,
+    () => this.state.suggestions,
+    () => this.state.pif,
+    this._getNSelectedSrs,
+    (suggestion, suggestions, pif, nSelectedSrs) =>
+      !suggestions || !suggestions[suggestion] || !pif || nSelectedSrs < 2
+  )
+
   _createXosanVm = () => {
-    const { pif, vlan, layout, selectedSrs, redundancy } = this.state
+    const { pif, vlan, selectedSrs, suggestion, suggestions } = this.state
+
+    const params = suggestions[suggestion]
+
+    if (!params) {
+      return
+    }
 
     return createXosanSR({
       template: this._getLatestTemplate(),
       pif,
       vlan: vlan || 0,
       srs: keys(pickBy(selectedSrs)),
-      glusterType: layout,
-      redundancy
+      glusterType: params.layout,
+      redundancy: params.redundancy
     })
   }
 
   render () {
-    const { pool, lvmsrs, noPack, poolMaster } = this.props
+    const {
+      lvmsrs,
+      noPack,
+      pool,
+      poolMaster
+    } = this.props
     const {
       isInstallingXosan,
-      layout,
       pif,
-      redundancy,
       selectedSrs,
+      suggestion,
       suggestions,
       useVlan,
       vlan
@@ -335,10 +325,11 @@ class PoolAvailableSrs extends Component {
       <h3>{_('xosanSuggestions')}</h3>
       {isEmpty(suggestions)
         ? <em>{_('xosanSelect2Srs')}</em>
-        : [
+        : <div>
           <table className='table table-striped'>
             <thead>
               <tr>
+                <th />
                 <th>{_('xosanLayout')}</th>
                 <th>{_('xosanRedundancy')}</th>
                 <th>{_('xosanCapacity')}</th>
@@ -347,76 +338,65 @@ class PoolAvailableSrs extends Component {
             </thead>
             <tbody>
               {map(suggestions, ({ layout, redundancy, capacity, availableSpace }, index) => <tr key={index}>
+                <td>
+                  <input
+                    checked={+suggestion === index}
+                    name={`suggestion_${pool.id}`}
+                    onChange={this.linkState('suggestion')}
+                    type='radio'
+                    value={index}
+                  />
+                </td>
                 <td>{layout}</td>
                 <td>{redundancy}</td>
                 <td>{capacity}</td>
                 <td>{formatSize(availableSpace)}</td>
               </tr>)}
             </tbody>
-          </table>,
-          <Graph layout={layout} redundancy={redundancy} nSrs={this._getNSelectedSrs()} />,
-          <hr />,
+          </table>
+          <Graph
+            height={160}
+            layout={suggestions[suggestion].layout}
+            nSrs={this._getNSelectedSrs()}
+            redundancy={suggestions[suggestion].redundancy}
+            width={600}
+          />
+          <hr />
           <Container>
             <SingleLineRow>
-              <Col size={3}>
+              <Col size={6}>
                 <SelectPif
                   onChange={this.linkState('pif')}
                   predicate={this._getPifPredicate()}
                   value={pif}
                 />
               </Col>
-              <Col size={2}>
+              <Col size={3}>
                 <input
                   className='form-control pull-right'
                   disabled={!useVlan}
                   onChange={this.linkState('vlan')}
                   placeholder='VLAN'
-                  style={{ width: '50%' }}
+                  style={{ width: '70%' }}
                   type='text'
                   value={vlan}
                 />
                 <Toggle className='pull-right mr-1' onChange={this.linkState('useVlan')} value={useVlan} />
               </Col>
-              <Col size={2}>
-                <select
-                  className='form-control'
-                  disabled={!suggestions}
-                  onChange={this._selectLayout}
-                  required
-                  value={layout}
-                >
-                  {map(this._getPossibleLayouts(), layout =>
-                    <option key={layout} value={layout}>{layout}</option>
-                  )}
-                </select>
-              </Col>
-              <Col size={2}>
-                <select
-                  className='form-control'
-                  disabled={!suggestions}
-                  onChange={this.linkState('redundancy')}
-                  placeholder='redundancy'
-                  required
-                  value={redundancy}
-                >
-                  {map(this._getPossibleRedundancies(), redundancy =>
-                    <option key={redundancy} value={redundancy}>{_('xosanRedundancyN', { redundancy })}</option>
-                  )}
-                </select>
-              </Col>
               <Col size={3}>
                 <ActionButton
                   btnStyle='success'
-                  disabled={!suggestions || !pif || !layout || this._getNSelectedSrs() < 2}
-                  icon='add'
+                  className='pull-right'
+                  disabled={this._getDisableCreation()}
                   handler={this._createXosanVm}
+                  icon='add'
                 >
                   {_('xosanCreate')}
                 </ActionButton>
               </Col>
             </SingleLineRow>
           </Container>
-        ]
+        </div>
       }
     </div>
   }
@@ -519,7 +499,7 @@ export default class Xosan extends Component {
               // TODO: check hosts supplementalPacks directly instead of checking each SR
               const noPack = !every(poolLvmSrs, sr => sr.PBDs[0].realHost.supplementalPacks['vates:XOSAN'])
 
-              return <Collapse className='mb-1' buttonText={<span>{noPack && <Icon icon='error' />} {pool.name_label}</span>}>
+              return <Collapse key={pool.id} className='mb-1' buttonText={<span>{noPack && <Icon icon='error' />} {pool.name_label}</span>}>
                 <div className='m-1'>
                   {poolXosanSrs && poolXosanSrs.length
                     ? <XosanVolumesTable xosansrs={poolXosanSrs} lvmsrs={poolLvmSrs} />
