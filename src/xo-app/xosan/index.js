@@ -364,28 +364,29 @@ class PoolAvailableSrs extends Component {
           <hr />
           <Container>
             <SingleLineRow>
-              <Col size={3} offset={5}>
+              <Col size={6}>
                 <SelectPif
                   onChange={this.linkState('pif')}
                   predicate={this._getPifPredicate()}
                   value={pif}
                 />
               </Col>
-              <Col size={2}>
+              <Col size={3}>
                 <input
                   className='form-control pull-right'
                   disabled={!useVlan}
                   onChange={this.linkState('vlan')}
                   placeholder='VLAN'
-                  style={{ width: '50%' }}
+                  style={{ width: '70%' }}
                   type='text'
                   value={vlan}
                 />
                 <Toggle className='pull-right mr-1' onChange={this.linkState('useVlan')} value={useVlan} />
               </Col>
-              <Col size={2}>
+              <Col size={3}>
                 <ActionButton
                   btnStyle='success'
+                  className='pull-right'
                   disabled={this._getDisableCreation()}
                   handler={this._createXosanVm}
                   icon='add'

@@ -1321,7 +1321,7 @@ var messages = {
   xosanCapacity: 'Capacity',
   xosanAvailableSpace: 'Available space',
   xosanDiskLossLegend: '* Can fail without data loss',
-  xosanCreate: 'Create XOSAN',
+  xosanCreate: 'Create',
   xosanInstalling: 'Installing XOSAN. Please wait...',
   xosanBadVersion: 'You need XenServer 7 to install XOSAN',
   xosanCommunity: 'No XOSAN available for Community Edition',
