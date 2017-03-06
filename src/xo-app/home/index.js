@@ -233,7 +233,7 @@ export default class Home extends Component {
   componentWillReceiveProps (props) {
     this._initFilterAndSortBy(props)
     if (props.type !== this.props.type) {
-      this.setState({ highlighted: undefined })
+      this.setState({ activePage: undefined, highlighted: undefined })
     }
   }
 
@@ -249,7 +249,6 @@ export default class Home extends Component {
       pathname,
       query: { ...query, t: type, s: undefined }
     })
-    this.setState({ highlighted: undefined })
   }
 
   _getDefaultFilter (props = this.props) {
