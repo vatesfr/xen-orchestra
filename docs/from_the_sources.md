@@ -33,15 +33,14 @@ We'll consider at this point that you've got a working node on your box. E.g:
 
 ```
 $ node -v
-v6.9.1
+v6.10.0
 ```
 
-Be sure to use `npm` **version 3** by using `npm i -g npm`, for example:
+### Yarn
 
-```
-$ npm -v
-3.10.8
-```
+> Yarn is a package manager which offers more guarantees than npm.
+
+See [this page](https://yarnpkg.com/en/docs/install) to know how to install it.
 
 ### Packages
 
@@ -67,7 +66,7 @@ git clone -b stable http://github.com/vatesfr/xo-web
 Once you have it, use `npm`, as the non-root user owning the fetched code, to install the other dependencies: go into XO-Server directory and launch the following command:
 
 ```
-npm install && npm run build
+$ yarn && yarn run build
 ```
 
 Then, you have to create a config file for XO-Server:
@@ -90,7 +89,7 @@ In this config file, you can also change default ports (80 and 443) for XO-Serve
 You can try to start XO-Server to see if it works. You should have something like that:
 
 ```
-$ npm start
+$ yarn start
 WebServer listening on localhost:80
 [INFO] Default user: "admin@admin.net" with password "admin"
 ```
@@ -100,14 +99,14 @@ WebServer listening on localhost:80
 First, we'll also install dependencies:
 
 ```
-$ npm install && npm run build
+$ yarn && yarn run build
 ```
 ## Running XO
 
 The sole part you have to launch is XO-Server which is quite easy to do, just launch the `xo-server` script, which is in the root of XO-Server's directory:
 
 ```
-$ npm start
+$ yarn start
 ```
 That's it! Go on your browser to the XO-Server IP address, and it works! :)
 
@@ -116,7 +115,7 @@ That's it! Go on your browser to the XO-Server IP address, and it works! :)
 - You can also consider using [forever](https://github.com/nodejitsu/forever) to have always the process running.
 
 ```
-$ npm install -g forever
+$ yarn global add forever
 $ forever start bin/xo-server
 ```
 
@@ -129,8 +128,7 @@ $ git checkout next-release
 
 ```
 $ git pull --ff-only
-$ npm install
-$ npm run build
+$ yarn && yarn run build
 ```
 
 ## Troubleshooting
@@ -138,8 +136,8 @@ $ npm run build
 If you have problem during the buiding phase in `xo-web` or `xo-server`, follow these steps:
 
 1. `rm -rf node_modules`
-1. `npm install`
-1. `npm run build`
+1. `yarn`
+1. `yarn run build`
 
 ## FreeBSD
 
