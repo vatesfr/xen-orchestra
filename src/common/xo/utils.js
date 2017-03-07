@@ -1,14 +1,28 @@
-import forEach from 'lodash/forEach'
+import {
+  forEach,
+  includes,
+  map
+} from 'lodash'
 
-export const getDefaultNetworkForVif = (vif, host, pifs, networks) => {
-  const nameLabel = networks[vif.$network].name_label
-  let defaultNetwork
-  forEach(host.$PIFs, pifId => {
-    const pif = pifs[pifId]
-    if (networks[pif.$network].name_label === nameLabel) {
-      defaultNetwork = pif.$network
+export const getDefaultNetworkForVif = (vif, destHost, pifs, networks) => {
+  const originNetwork = networks[vif.$network]
+  const originVlans = map(originNetwork.PIFs, pifId => pifs[pifId].vlan)
+
+  let destNetworkId = pifs[destHost.$PIFs[0]].$network
+
+  forEach(destHost.$PIFs, pifId => {
+    const { $network, vlan } = pifs[pifId]
+
+    if (networks[$network].name_label === originNetwork.name_label) {
+      destNetworkId = $network
+
       return false
     }
+
+    if (vlan !== -1 && includes(originVlans, vlan)) {
+      destNetworkId = $network
+    }
   })
-  return defaultNetwork
+
+  return destNetworkId
 }
