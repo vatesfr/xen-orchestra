@@ -4,10 +4,11 @@
 
 Tested with:
 
-- Xen Server 5.6
-- Xen Server 6.2
-- Xen Server 6.5
-- Xen Server 7
+- XenServer 5.6
+- XenServer 6.2
+- XenServer 6.5
+- XenServer 7
+- XenServer 7.1
 
 ## Install
 
