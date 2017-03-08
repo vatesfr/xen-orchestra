@@ -323,7 +323,7 @@ function listObjects (args) {
       stdout.write(JSON.stringify(filterProperties(objects[i]), null, 2))
       stdout.write(++i < n ? ',\n' : '\n')
     }
-    stdout.write(']')
+    stdout.write(']\n')
   })
 }
 exports.listObjects = listObjects
