@@ -1,33 +1,54 @@
-import React from 'react'
 import _ from 'intl'
-import map from 'lodash/map'
+import autoControlledInput from 'auto-controlled-input'
+import Component from 'base-component'
+import React from 'react'
+import { createSelector } from 'reselect'
+import { findIndex, map } from 'lodash'
 
-import AbstractInput from './abstract-input'
 import { PrimitiveInputWrapper } from './helpers'
 
 // ===================================================================
 
-export default class EnumInput extends AbstractInput {
+@autoControlledInput()
+export default class EnumInput extends Component {
+  _getSelectedIndex = createSelector(
+    () => this.props.schema.enum,
+    () => {
+      const {
+        schema,
+        value = schema.default
+      } = this.props
+      return value
+    },
+    (enumValues, value) => {
+      const index = findIndex(enumValues, current => current === value)
+      return index === -1 ? '' : index
+    }
+  )
+
+  _onChange = event => {
+    this.props.onChange(this.props.schema.enum[event.target.value])
+  }
+
   render () {
-    const { props } = this
     const {
-      onChange,
+      disabled,
+      schema: { enum: enumValues, enumNames = enumValues },
       required
-    } = props
+    } = this.props
 
     return (
-      <PrimitiveInputWrapper {...props}>
+      <PrimitiveInputWrapper {...this.props}>
         <select
           className='form-control'
-          defaultValue={props.defaultValue || ''}
-          disabled={props.disabled}
-          onChange={onChange && (event => onChange(event.target.value))}
-          ref='input'
+          disabled={disabled}
+          onChange={this._onChange}
           required={required}
+          value={this._getSelectedIndex()}
         >
           {_('noSelectedValue', message => <option value=''>{message}</option>)}
-          {map(props.schema.enum, (value, index) =>
-            <option value={value} key={index}>{value}</option>
+          {map(enumNames, (name, index) =>
+            <option value={index} key={index}>{name}</option>
           )}
         </select>
       </PrimitiveInputWrapper>
