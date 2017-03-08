@@ -14,7 +14,7 @@ Installation of the [npm package](https://npmjs.org/package/xapi-explore-sr):
 
 ```
 > xapi-explore-sr
-Usage: xapi-explore-sr [--full] <SR UUID> <Xen URL> <Xen user> [<Xen password>]
+Usage: xapi-explore-sr [--full] <SR UUID> <XenServer URL> <XenServer user> [<XenServer password>]
 ```
 
 ## Development
