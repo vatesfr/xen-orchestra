@@ -40,6 +40,7 @@
     "transform": {
       "/@xen-orchestra/cron/.+\\.jsx?$": "babel-7-jest",
       "/@xen-orchestra/fs/.+\\.jsx?$": "babel-7-jest",
+      "/@xen-orchestra/log/.+\\.jsx?$": "babel-7-jest",
       "/packages/complex-matcher/.+\\.jsx?$": "babel-7-jest",
       "/packages/value-matcher/.+\\.jsx?$": "babel-7-jest",
       "/packages/vhd-lib/.+\\.jsx?$": "babel-7-jest",

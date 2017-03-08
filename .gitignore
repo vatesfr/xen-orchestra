@@ -8,6 +8,8 @@
 /packages/*/dist/
 /packages/*/node_modules/
 
+/@xen-orchestra/log/src/transports/index.js
+
 /packages/vhd-cli/src/commands/index.js
 
 /packages/xen-api/plot.dat
