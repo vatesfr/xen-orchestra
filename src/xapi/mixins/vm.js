@@ -105,6 +105,7 @@ export default {
     }
 
     let nVbds = vm.VBDs.length
+    let hasBootableDisk = !!find(vm.$VBDs, 'bootable')
 
     // Inserts the CD if necessary.
     if (installMethod === 'cd') {
@@ -113,6 +114,7 @@ export default {
       await this._insertCdIntoVm(installRepository, vm, {
         bootable: true
       })
+      hasBootableDisk = true
 
       ++nVbds
     }
@@ -157,9 +159,8 @@ export default {
         )
           .then(ref => this._getOrWaitObject(ref))
           .then(vdi => this._createVbd(vm, vdi, {
-            // Only the first VBD if installMethod is not cd is bootable.
-            bootable: installMethod !== 'cd' && !i,
-
+            // Either the CD or the 1st disk is bootable (only useful for PV VMs)
+            bootable: !(hasBootableDisk || i),
             userdevice: devices[i]
           }))
       }))
