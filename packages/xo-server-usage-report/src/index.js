@@ -4,10 +4,9 @@ import { CronJob } from 'cron'
 import {
   assign,
   concat,
-  differenceWith,
+  differenceBy,
   filter,
   forEach,
-  isEqual,
   isFinite,
   map,
   orderBy,
@@ -170,8 +169,8 @@ function conputePercentage (curr, prev, options) {
 
 function getDiff (oldElements, newElements) {
   return {
-    added: differenceWith(oldElements, newElements, isEqual),
-    removed: differenceWith(newElements, oldElements, isEqual)
+    added: differenceBy(oldElements, newElements, 'uuid'),
+    removed: differenceBy(newElements, oldElements, 'uuid')
   }
 }
 
