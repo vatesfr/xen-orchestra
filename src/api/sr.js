@@ -223,6 +223,51 @@ createNfs.resolve = {
 }
 
 // -------------------------------------------------------------------
+// HBA SR
+
+// This functions creates an HBA SR
+
+export async function createHba ({
+  host,
+  nameLabel,
+  nameDescription,
+  scsiId
+}) {
+  const xapi = this.getXapi(host)
+
+  const deviceConfig = {
+    scsiId
+  }
+
+  const srRef = await xapi.call(
+    'SR.create',
+    host._xapiRef,
+    deviceConfig,
+    '0',
+    nameLabel,
+    nameDescription,
+    'lvmoohba', // SR LVM over HBA
+    'user', // recommended by Citrix
+    true,
+    {}
+  )
+
+  const sr = await xapi.call('SR.get_record', srRef)
+  return sr.uuid
+}
+
+createHba.params = {
+  host: { type: 'string' },
+  nameLabel: { type: 'string' },
+  nameDescription: { type: 'string' },
+  scsiId: { type: 'string' }
+}
+
+createHba.resolve = {
+  host: ['host', 'host', 'administrate']
+}
+
+// -------------------------------------------------------------------
 // Local LVM SR
 
 // This functions creates a local LVM SR
@@ -318,6 +363,55 @@ probeNfs.params = {
 }
 
 probeNfs.resolve = {
+  host: ['host', 'host', 'administrate']
+}
+
+// -------------------------------------------------------------------
+// This function helps to detect all HBA devices on the host
+
+export async function probeHba ({
+  host
+}) {
+  const xapi = this.getXapi(host)
+
+  let xml
+
+  try {
+    await xapi.call(
+      'SR.probe',
+      host._xapiRef,
+      'type',
+      {}
+    )
+
+    throw new Error('the call above should have thrown an error')
+  } catch (error) {
+    if (error.code !== 'SR_BACKEND_FAILURE_107') {
+      throw error
+    }
+
+    xml = parseXml(error.params[2])
+  }
+
+  const hbaDevices = []
+  forEach(ensureArray(xml.Devlist.BlockDevice), hbaDevice => {
+    hbaDevices.push({
+      hba: hbaDevice.hba.trim(),
+      path: hbaDevice.path.trim(),
+      scsciId: hbaDevice.SCSIid.trim(),
+      size: hbaDevice.size.trim(),
+      vendor: hbaDevice.vendor.trim()
+    })
+  })
+
+  return hbaDevices
+}
+
+probeHba.params = {
+  host: { type: 'string' }
+}
+
+probeHba.resolve = {
   host: ['host', 'host', 'administrate']
 }
 
