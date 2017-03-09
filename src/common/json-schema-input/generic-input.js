@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 
+import autoControlledInput from '../auto-controlled-input'
 import propTypes from '../prop-types'
 import { EMPTY_OBJECT } from '../utils'
 
@@ -30,32 +31,23 @@ const InputByType = {
   depth: propTypes.number,
   disabled: propTypes.bool,
   label: propTypes.any.isRequired,
-  onChange: propTypes.func,
   required: propTypes.bool,
   schema: propTypes.object.isRequired,
-  uiSchema: propTypes.object,
-  defaultValue: propTypes.any
+  uiSchema: propTypes.object
 })
+@autoControlledInput()
 export default class GenericInput extends Component {
-  get value () {
-    return this.refs.input.value
-  }
-
-  set value (value) {
-    this.refs.input.value = value
-  }
-
   render () {
     const {
       schema,
-      defaultValue = schema.default,
+      value = schema.default,
       uiSchema = EMPTY_OBJECT,
       ...opts
     } = this.props
 
     const props = {
       ...opts,
-      defaultValue,
+      value,
       schema,
       uiSchema,
       ref: 'input'

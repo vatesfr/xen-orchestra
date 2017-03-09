@@ -217,7 +217,7 @@ class Plugin extends Component {
               uiSchema={state.uiSchema}
               required
               ref='pluginInput'
-              defaultValue={props.configuration || undefined}
+              value={props.configuration}
             />
             <div className='form-group pull-right'>
               <div className='btn-toolbar'>

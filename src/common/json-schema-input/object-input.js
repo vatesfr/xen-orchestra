@@ -1,14 +1,13 @@
 import _ from 'intl'
-import React, { Component, cloneElement } from 'react'
-import forEach from 'lodash/forEach'
-import includes from 'lodash/includes'
-import map from 'lodash/map'
+import React, { cloneElement } from 'react'
+import { forEach, includes, map } from 'lodash'
 
+import autoControlledInput from '../auto-controlled-input'
+import Component from '../base-component'
 import propTypes from '../prop-types'
-import { propsEqual } from '../utils'
+import { EMPTY_OBJECT, propsEqual } from '../utils'
 
 import GenericInput from './generic-input'
-
 import {
   descriptionRender,
   forceDisplayOptionalAttr
@@ -16,23 +15,12 @@ import {
 
 // ===================================================================
 
+@autoControlledInput
 class ObjectItem extends Component {
-  get value () {
-    return this.refs.input.value
-  }
-
-  set value (value) {
-    this.refs.input.value = value
-  }
-
   render () {
-    const { props } = this
-
     return (
       <div className='pb-1'>
-        {cloneElement(props.children, {
-          ref: 'input'
-        })}
+        {this.props.children}
       </div>
     )
   }
@@ -46,9 +34,9 @@ class ObjectItem extends Component {
   label: propTypes.any.isRequired,
   required: propTypes.bool,
   schema: propTypes.object.isRequired,
-  uiSchema: propTypes.object,
-  defaultValue: propTypes.object
+  uiSchema: propTypes.object
 })
+@autoControlledInput()
 export default class ObjectInput extends Component {
   constructor (props) {
     super(props)
@@ -56,30 +44,6 @@ export default class ObjectInput extends Component {
       use: Boolean(props.required) || forceDisplayOptionalAttr(props),
       children: this._makeChildren(props)
     }
-  }
-
-  get value () {
-    if (!this.state.use) {
-      return
-    }
-
-    const obj = {}
-
-    forEach(this.refs, (instance, key) => {
-      obj[key] = instance.value
-    })
-
-    return obj
-  }
-
-  set value (value = {}) {
-    this.setState({
-      use: true
-    }, () => {
-      forEach(this.refs, (instance, id) => {
-        instance.value = value[id]
-      })
-    })
   }
 
   _handleOptionalChange = event => {
@@ -94,8 +58,8 @@ export default class ObjectInput extends Component {
     const {
       depth = 0,
       schema,
-      uiSchema = {},
-      defaultValue = {}
+      uiSchema = EMPTY_OBJECT,
+      value = EMPTY_OBJECT
     } = props
     const obj = {}
     const { properties } = uiSchema
@@ -110,7 +74,7 @@ export default class ObjectInput extends Component {
             required={includes(schema.required, key)}
             schema={childSchema}
             uiSchema={properties && properties[key]}
-            defaultValue={defaultValue[key]}
+            value={value[key]}
           />
         </ObjectItem>
       )

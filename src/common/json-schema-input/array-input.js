@@ -1,8 +1,10 @@
-import React, { Component, cloneElement } from 'react'
+import React, { cloneElement } from 'react'
 import map from 'lodash/map'
 import filter from 'lodash/filter'
 
 import _ from '../intl'
+import autoControlledInput from '../auto-controlled-input'
+import Component from '../base-component'
 import propTypes from '../prop-types'
 import { propsEqual } from '../utils'
 
@@ -14,28 +16,20 @@ import {
 
 // ===================================================================
 
+@autoControlledInput()
 class ArrayItem extends Component {
-  get value () {
-    return this.refs.input.value
-  }
-
-  set value (value) {
-    this.setState({
-      use: true
-    }, () => {
-      this.refs.input.value = value
-    })
-  }
-
   render () {
-    const { children } = this.props
+    const { children, onDelete } = this.props
 
     return (
       <li className='list-group-item clearfix'>
-        {cloneElement(children, {
-          ref: 'input'
-        })}
-        <button disabled={children.props.disabled} className='btn btn-danger pull-right' type='button' onClick={this.props.onDelete}>
+        {children}
+        <button
+          className='btn btn-danger pull-right'
+          disabled={children.props.disabled}
+          onClick={onDelete}
+          type='button'
+        >
           {_('remove')}
         </button>
       </li>
@@ -51,9 +45,9 @@ class ArrayItem extends Component {
   label: propTypes.any.isRequired,
   required: propTypes.bool,
   schema: propTypes.object.isRequired,
-  uiSchema: propTypes.object,
-  defaultValue: propTypes.array
+  uiSchema: propTypes.object
 })
+@autoControlledInput()
 export default class ArrayInput extends Component {
   constructor (props) {
     super(props)
@@ -64,18 +58,6 @@ export default class ArrayInput extends Component {
       use: props.required || forceDisplayOptionalAttr(props),
       children: this._makeChildren(props)
     }
-  }
-
-  get value () {
-    if (this.state.use) {
-      return map(this.refs, 'value')
-    }
-  }
-
-  set value (value = []) {
-    this.setState({
-      children: this._makeChildren({ ...this.props, value })
-    })
   }
 
   _handleOptionalChange = event => {
@@ -97,7 +79,7 @@ export default class ArrayInput extends Component {
     })
   }
 
-  _makeChild (props, defaultValue) {
+  _makeChild (props, value) {
     const key = String(this._nextChildKey++)
     const {
       schema: {
@@ -114,15 +96,15 @@ export default class ArrayInput extends Component {
           required
           schema={items}
           uiSchema={props.uiSchema.items}
-          defaultValue={defaultValue}
+          value={value}
         />
       </ArrayItem>
     )
   }
 
   _makeChildren (props) {
-    return map(props.defaultValue, defaultValue =>
-      this._makeChild(props, defaultValue)
+    return map(props.value, value =>
+      this._makeChild(props, value)
     )
   }
 
@@ -131,7 +113,7 @@ export default class ArrayInput extends Component {
       !propsEqual(
         this.props,
         props,
-        [ 'depth', 'disabled', 'label', 'required', 'schema', 'uiSchema' ]
+        [ 'depth', 'disabled', 'label', 'required', 'schema', 'uiSchema', 'value' ]
       )
     ) {
       this.setState({
