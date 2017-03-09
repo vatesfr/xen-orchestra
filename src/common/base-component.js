@@ -6,7 +6,6 @@ import map from 'lodash/map'
 import { Component } from 'react'
 
 import getEventValue from './get-event-value'
-import invoke from './invoke'
 import shallowEqual from './shallow-equal'
 
 // Should components logs every renders?
@@ -46,11 +45,11 @@ export default class BaseComponent extends Component {
     this._linkedState = null
 
     if (VERBOSE) {
-      this.render = invoke(this.render, render => () => {
+      this.render = (render => () => {
         console.log('render', this.constructor.name)
 
         return render.call(this)
-      })
+      })(this.render)
     }
   }
 
