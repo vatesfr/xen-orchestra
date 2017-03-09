@@ -171,6 +171,7 @@
     },
     "plugins": [
       "dev",
+      "lodash",
       "transform-decorators-legacy",
       "transform-runtime"
     ],
