@@ -72,6 +72,28 @@ export default class BaseComponent extends PureComponent {
     })
   }
 
+  // <input name='user' onChange={this.linkedValue} />
+  //
+  // more efficient than linkState because only a single listener is
+  // defined
+  get linkedValue () {
+    const linkedValue = event => {
+      // bound method defined lazily
+      if (
+        __DEV__ &&
+        (event == null ||
+          event.target == null ||
+          typeof event.target.name !== 'string')
+      ) {
+        throw new Error('event.target.name is not a string')
+      }
+
+      this.setState({ [event.target.name]: getEventValue(event) })
+    }
+
+    return (this.linkedValue = linkedValue)
+  }
+
   toggleState (name) {
     let linkedState = this._linkedState
     let cb
