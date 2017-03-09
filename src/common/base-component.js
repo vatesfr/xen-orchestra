@@ -3,10 +3,9 @@ import includes from 'lodash/includes'
 import isArray from 'lodash/isArray'
 import forEach from 'lodash/forEach'
 import map from 'lodash/map'
-import { Component } from 'react'
+import { PureComponent } from 'react'
 
 import getEventValue from './get-event-value'
-import shallowEqual from './shallow-equal'
 
 // Should components logs every renders?
 //
@@ -35,7 +34,7 @@ const get = (object, path, depth) => {
     : get(object[prop], path, depth)
 }
 
-export default class BaseComponent extends Component {
+export default class BaseComponent extends PureComponent {
   constructor (props, context) {
     super(props, context)
 
@@ -110,13 +109,6 @@ export default class BaseComponent extends Component {
         [name]: !this.state[name]
       })
     })
-  }
-
-  shouldComponentUpdate (newProps, newState) {
-    return !(
-      shallowEqual(this.props, newProps) &&
-      shallowEqual(this.state, newState)
-    )
   }
 }
 
