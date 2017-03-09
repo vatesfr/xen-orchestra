@@ -4,8 +4,6 @@ import { isFunction, omit } from 'lodash'
 import Component from './base-component'
 import getEventValue from './get-event-value'
 
-const __DEV__ = process.env.NODE_ENV !== 'production'
-
 // This decorator can be used on a controlled input component to make
 // it able to automatically handled the uncontrolled mode.
 export default options => ControlledInput => {

@@ -180,7 +180,6 @@ export class GenericSelect extends Component {
     () => this.props.xoContainers,
     () => this.props.xoObjects,
     (containers, objects) => { // createCollectionWrapper with a depth?
-      const __DEV__ = process.env.NODE_ENV !== 'production'
       const { name } = this.constructor
 
       if (!containers) {

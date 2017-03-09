@@ -34,6 +34,7 @@
     "ansi_up": "^1.3.0",
     "asap": "^2.0.4",
     "babel-eslint": "^7.0.0",
+    "babel-plugin-dev": "^1.0.0",
     "babel-plugin-lodash": "^3.2.11",
     "babel-plugin-transform-decorators-legacy": "^1.3.4",
     "babel-plugin-transform-react-constant-elements": "^6.5.0",
@@ -169,6 +170,7 @@
       }
     },
     "plugins": [
+      "dev",
       "transform-decorators-legacy",
       "transform-runtime"
     ],
@@ -184,6 +186,9 @@
     ]
   },
   "standard": {
+    "globals": [
+      "__DEV__"
+    ],
     "ignore": [
       "dist"
     ],
