@@ -58,7 +58,7 @@ gulp.task(function buildCoffee () {
 })
 
 gulp.task(function buildEs6 () {
-  return src('**/*.js')
+  return src([ '**/*.js', '!*.spec.js' ])
     .pipe(sourceMaps.init())
     .pipe(babel())
     .pipe(sourceMaps.write('.'))
