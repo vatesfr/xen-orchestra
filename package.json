@@ -71,6 +71,9 @@
     ]
   },
   "standard": {
+    "globals": [
+      "jasmine"
+    ],
     "ignore": [
       "dist"
     ],
