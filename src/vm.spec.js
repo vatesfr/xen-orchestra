@@ -593,63 +593,6 @@ describe('vm', () => {
 
   // ---------------------------------------------------------------------
 
-  describe('.snapshot()', () => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 5e3
-    let snapshotId
-
-    afterEach(async () => {
-      await xo.call('vm.delete', {id: snapshotId, delete_disks: true})
-    })
-
-    it('snapshots a basic VM', async () => {
-      vmId = await createVmTest()
-      snapshotId = await xo.call('vm.snapshot', {
-        id: vmId,
-        name: 'snapshot'
-      })
-
-      const [vm, snapshot] = await Promise.all([
-        xo.getOrWaitObject(vmId),
-        xo.getOrWaitObject(snapshotId)
-      ])
-      expect(snapshot.type).to.be.equal('VM-snapshot')
-      almostEqual(snapshot, vm, [
-        'id',
-        'type',
-        'ref',
-        'snapshot_time',
-        'snapshots',
-        '$snapshot_of'
-      ])
-    })
-
-    it('snapshots more complex VM', async () => {
-      vmId = await getVmXoTestPvId(xo)
-      snapshotId = await xo.call('vm.snapshot', {
-        id: vmId,
-        name: 'snapshot'
-      })
-
-      const [vm, snapshot] = await Promise.all([
-        xo.getOrWaitObject(vmId),
-        xo.getOrWaitObject(snapshotId)
-      ])
-      expect(snapshot.type).to.be.equal('VM-snapshot')
-      almostEqual(snapshot, vm, [
-        'id',
-        'type',
-        'ref',
-        'snapshot_time',
-        'snapshots',
-        'VIFs',
-        '$VBDs',
-        '$snapshot_of'
-      ])
-    })
-  })
-
-  // ---------------------------------------------------------------------
-
   describe('.revert()', () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 5e3
     let snapshotId
