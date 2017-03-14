@@ -857,7 +857,6 @@ var messages = {
   newVmAddInterface: 'Add interface',
   newVmDisksPanel: 'Disks',
   newVmSrLabel: 'SR',
-  newVmBootableLabel: 'Bootable',
   newVmSizeLabel: 'Size',
   newVmAddDisk: 'Add disk',
   newVmSummaryPanel: 'Summary',
