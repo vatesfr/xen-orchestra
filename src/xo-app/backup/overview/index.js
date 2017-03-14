@@ -45,9 +45,14 @@ const jobKeyToLabel = {
 
 const JOB_COLUMNS = [
   {
-    name: _('job'),
-    itemRenderer: ({ jobId, jobLabel }) => <span>{jobId.slice(4, 8)} ({jobLabel})</span>,
+    name: _('jobId'),
+    itemRenderer: ({ jobId }) => jobId.slice(4, 8),
     sortCriteria: 'jobId'
+  },
+  {
+    name: _('jobType'),
+    itemRenderer: ({ jobLabel }) => jobLabel,
+    sortCriteria: 'jobLabel'
   },
   {
     name: _('jobTag'),
