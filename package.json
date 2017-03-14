@@ -68,7 +68,7 @@
     "globby": "^6.0.0",
     "gulp": "github:gulpjs/gulp#4.0",
     "gulp-autoprefixer": "^3.1.0",
-    "gulp-csso": "^2.0.0",
+    "gulp-csso": "^3.0.0",
     "gulp-embedlr": "^0.5.2",
     "gulp-plumber": "^1.1.0",
     "gulp-pug": "^3.1.0",
