@@ -86,6 +86,20 @@ $ npm config -g set strict-ssl=false
 
 Then, restart the updater with `systemctl restart xoa-updater`.
 
+### Updating SSL self-signed certificate
+
+If the provided certificate is expired, you may want to create a new one.
+
+Connect to your appliance via SSH as root, and execute these commands:
+
+```
+$ cd /etc/ssl
+$ cp server.crt server.crt.old
+$ cp server.key server.key.old
+$ openssl req -x509 -newkey rsa:2048 -keyout server.key -out server.crt -nodes -days 360
+$ systemctl restart xo-server.service
+```
+
 ## XO configuration
 
 The system logs are visible thanks to this command:
