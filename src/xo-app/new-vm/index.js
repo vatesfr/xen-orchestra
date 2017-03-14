@@ -1195,18 +1195,6 @@ export default class NewVm extends BaseComponent {
                 />}
               </span>
             </Item>
-            {' '}
-            <Item className='checkbox'>
-              <label>
-                <input
-                  checked={!!vdi.bootable}
-                  onChange={this._getOnChangeCheckbox('VDIs', index, 'bootable')}
-                  type='checkbox'
-                />
-                {' '}
-                {_('newVmBootableLabel')}
-              </label>
-            </Item>
             <Item label={_('newVmNameLabel')}>
               <DebounceInput
                 className='form-control'
