@@ -1,6 +1,6 @@
 import React from 'react'
 
-import autoControlledInput from '../auto-controlled-input'
+import uncontrollableInput from 'uncontrollable-input'
 import Combobox from '../combobox'
 import Component from '../base-component'
 import getEventValue from '../get-event-value'
@@ -9,7 +9,7 @@ import { PrimitiveInputWrapper } from './helpers'
 
 // ===================================================================
 
-@autoControlledInput()
+@uncontrollableInput()
 export default class NumberInput extends Component {
   _onChange = event => {
     const value = getEventValue(event)

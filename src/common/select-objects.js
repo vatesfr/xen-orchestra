@@ -26,7 +26,7 @@ import {
 } from 'lodash'
 
 import _ from './intl'
-import autoControlledInput from './auto-controlled-input'
+import uncontrollableInput from 'uncontrollable-input'
 import Component from './base-component'
 import propTypes from './prop-types'
 import renderXoItem from './render-xo-item'
@@ -297,7 +297,7 @@ export class GenericSelect extends Component {
   }
 }
 
-const makeStoreSelect = (createSelectors, defaultProps) => autoControlledInput(options)(
+const makeStoreSelect = (createSelectors, defaultProps) => uncontrollableInput(options)(
   connectStore(createSelectors)(
     props =>
       <GenericSelect
@@ -307,7 +307,7 @@ const makeStoreSelect = (createSelectors, defaultProps) => autoControlledInput(o
   )
 )
 
-const makeSubscriptionSelect = (subscribe, props) => autoControlledInput(options)(
+const makeSubscriptionSelect = (subscribe, props) => uncontrollableInput(options)(
   class extends Component {
     constructor (props) {
       super(props)

@@ -1,6 +1,6 @@
 import React from 'react'
 
-import autoControlledInput from '../auto-controlled-input'
+import uncontrollableInput from 'uncontrollable-input'
 import Component from '../base-component'
 import { Toggle } from '../form'
 
@@ -8,7 +8,7 @@ import { PrimitiveInputWrapper } from './helpers'
 
 // ===================================================================
 
-@autoControlledInput()
+@uncontrollableInput()
 export default class BooleanInput extends Component {
   render () {
     const {

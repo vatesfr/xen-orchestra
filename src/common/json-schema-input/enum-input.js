@@ -1,5 +1,5 @@
 import _ from 'intl'
-import autoControlledInput from 'auto-controlled-input'
+import uncontrollableInput from 'uncontrollable-input'
 import Component from 'base-component'
 import React from 'react'
 import { createSelector } from 'reselect'
@@ -9,7 +9,7 @@ import { PrimitiveInputWrapper } from './helpers'
 
 // ===================================================================
 
-@autoControlledInput()
+@uncontrollableInput()
 export default class EnumInput extends Component {
   _getSelectedIndex = createSelector(
     () => this.props.schema.enum,

@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 
-import autoControlledInput from '../auto-controlled-input'
+import uncontrollableInput from 'uncontrollable-input'
 import propTypes from '../prop-types'
 import { EMPTY_OBJECT } from '../utils'
 
@@ -35,7 +35,7 @@ const InputByType = {
   schema: propTypes.object.isRequired,
   uiSchema: propTypes.object
 })
-@autoControlledInput()
+@uncontrollableInput()
 export default class GenericInput extends Component {
   render () {
     const {

@@ -3,7 +3,7 @@ import map from 'lodash/map'
 import filter from 'lodash/filter'
 
 import _ from '../intl'
-import autoControlledInput from '../auto-controlled-input'
+import uncontrollableInput from 'uncontrollable-input'
 import Component from '../base-component'
 import propTypes from '../prop-types'
 import { propsEqual } from '../utils'
@@ -16,7 +16,7 @@ import {
 
 // ===================================================================
 
-@autoControlledInput()
+@uncontrollableInput()
 class ArrayItem extends Component {
   render () {
     const { children, onDelete } = this.props
@@ -47,7 +47,7 @@ class ArrayItem extends Component {
   schema: propTypes.object.isRequired,
   uiSchema: propTypes.object
 })
-@autoControlledInput()
+@uncontrollableInput()
 export default class ArrayInput extends Component {
   constructor (props) {
     super(props)

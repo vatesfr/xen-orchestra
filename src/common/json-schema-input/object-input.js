@@ -2,7 +2,7 @@ import _ from 'intl'
 import React, { cloneElement } from 'react'
 import { forEach, includes, map } from 'lodash'
 
-import autoControlledInput from '../auto-controlled-input'
+import uncontrollableInput from 'uncontrollable-input'
 import Component from '../base-component'
 import propTypes from '../prop-types'
 import { EMPTY_OBJECT, propsEqual } from '../utils'
@@ -15,7 +15,7 @@ import {
 
 // ===================================================================
 
-@autoControlledInput
+@uncontrollableInput
 class ObjectItem extends Component {
   render () {
     return (
@@ -36,7 +36,7 @@ class ObjectItem extends Component {
   schema: propTypes.object.isRequired,
   uiSchema: propTypes.object
 })
-@autoControlledInput()
+@uncontrollableInput()
 export default class ObjectInput extends Component {
   constructor (props) {
     super(props)

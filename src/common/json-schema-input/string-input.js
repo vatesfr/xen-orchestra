@@ -1,6 +1,6 @@
 import React from 'react'
 
-import autoControlledInput from '../auto-controlled-input'
+import uncontrollableInput from 'uncontrollable-input'
 import Combobox from '../combobox'
 import Component from '../base-component'
 import propTypes from '../prop-types'
@@ -12,7 +12,7 @@ import { PrimitiveInputWrapper } from './helpers'
 @propTypes({
   password: propTypes.bool
 })
-@autoControlledInput()
+@uncontrollableInput()
 export default class StringInput extends Component {
   render () {
     const { schema } = this.props
