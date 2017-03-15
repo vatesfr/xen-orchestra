@@ -158,7 +158,12 @@ create = $coroutine (params) ->
 
   if resourceSet
     yield Promise.all([
-      @addAcl(user.id, vm.id, 'admin')
+      if params.share
+        $resourceSet = yield @getResourceSet(resourceSet)
+        Promise.all(map($resourceSet.subjects, (subjectId) => @addAcl(subjectId, vm.id, 'admin')))
+      else
+        @addAcl(user.id, vm.id, 'admin')
+
       xapi.xo.setData(xapiVm.$id, 'resourceSet', resourceSet)
     ])
 
@@ -214,6 +219,12 @@ create.params = {
 
   # PV Args
   pv_args: { type: 'string', optional: true }
+
+
+  share: {
+    type: 'boolean',
+    optional: true
+  }
 
   # TODO: add the install repository!
   # VBD.insert/eject
