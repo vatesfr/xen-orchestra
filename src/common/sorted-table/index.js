@@ -93,7 +93,7 @@ class TableFilter extends Component {
 
 @propTypes({
   columnId: propTypes.number.isRequired,
-  name: propTypes.any.isRequired,
+  name: propTypes.node,
   sort: propTypes.func,
   sortIcon: propTypes.string
 })
@@ -141,7 +141,7 @@ const DEFAULT_ITEMS_PER_PAGE = 10
   ]).isRequired,
   columns: propTypes.arrayOf(propTypes.shape({
     default: propTypes.bool,
-    name: propTypes.node.isRequired,
+    name: propTypes.node,
     itemRenderer: propTypes.func.isRequired,
     sortCriteria: propTypes.oneOfType([
       propTypes.func,

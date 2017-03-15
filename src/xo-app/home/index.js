@@ -499,7 +499,7 @@ export default class Home extends Component {
   )
 
   _typesDropdownItems = map(TYPES, (label, type) =>
-    <MenuItem onClick={() => this._setType(type)}>{label}</MenuItem>
+    <MenuItem key={type} onClick={() => this._setType(type)}>{label}</MenuItem>
   )
 
   _renderHeader () {
@@ -797,7 +797,7 @@ export default class Home extends Component {
               </a>
             </p>
             : map(visibleItems, (item, index) => (
-              <div className={highlighted === index && styles.highlight}>
+              <div key={item.id} className={highlighted === index && styles.highlight}>
                 <Item
                   expandAll={this.state.expandAll}
                   item={item}
