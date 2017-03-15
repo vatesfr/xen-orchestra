@@ -885,6 +885,7 @@ var messages = {
   newVmAdvancedPanel: 'Advanced',
   newVmShowAdvanced: 'Show advanced settings',
   newVmHideAdvanced: 'Hide advanced settings',
+  newVmShare: 'Share this VM',
 
   // ----- Self -----
   resourceSets: 'Resource sets',
