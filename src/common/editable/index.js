@@ -394,7 +394,7 @@ const MAP_TYPE_SELECT = {
   value: propTypes.oneOfType([
     propTypes.string,
     propTypes.object
-  ]).isRequired
+  ])
 })
 export class XoSelect extends Editable {
   get value () {
