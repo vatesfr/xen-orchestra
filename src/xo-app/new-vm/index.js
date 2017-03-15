@@ -276,6 +276,7 @@ export default class NewVm extends BaseComponent {
       VDIs: [],
       VIFs: [],
       seqStart: 1,
+      share: false,
       tags: []
     })
   }
@@ -365,6 +366,7 @@ export default class NewVm extends BaseComponent {
       pv_args: state.pv_args,
       autoPoweron: state.autoPoweron,
       bootAfterCreate: state.bootAfterCreate,
+      share: state.share,
       cloudConfig,
       coreOs: state.template.name_label === 'CoreOS',
       tags: state.tags
@@ -1259,6 +1261,7 @@ export default class NewVm extends BaseComponent {
       namePattern,
       nbVms,
       seqStart,
+      share,
       showAdvanced,
       tags
     } = this.state.state
@@ -1292,6 +1295,17 @@ export default class NewVm extends BaseComponent {
           </Item>
           <Item className={styles.tags}>
             <Tags labels={tags} onChange={this._linkState('tags')} />
+          </Item>
+        </SectionContent>,
+        <SectionContent>
+          <Item>
+            <input
+              checked={share}
+              onChange={this._getOnChangeCheckbox('share')}
+              type='checkbox'
+            />
+            &nbsp;
+            {_('newVmShare')}
           </Item>
         </SectionContent>,
         <SectionContent>
