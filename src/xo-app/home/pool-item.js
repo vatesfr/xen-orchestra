@@ -46,6 +46,13 @@ import styles from './index.css'
 
   const getHostMetrics = createGetHostMetrics(getPoolHosts)
 
+  const getNumberOfSrs = createGetObjectsOfType('SR').count(
+    createSelector(
+      (_, props) => props.item.id,
+      poolId => obj => obj.$pool === poolId
+    )
+  )
+
   const getNumberOfVms = createGetObjectsOfType('VM').count(
     createSelector(
       (_, props) => props.item.id,
@@ -57,6 +64,7 @@ import styles from './index.css'
     hostMetrics: getHostMetrics,
     missingPaths: getMissingPatches,
     poolHosts: getPoolHosts,
+    nSrs: getNumberOfSrs,
     nVms: getNumberOfVms
   }
 })
@@ -73,7 +81,7 @@ export default class PoolItem extends Component {
   }
 
   render () {
-    const { item: pool, expandAll, selected, hostMetrics, poolHosts, nVms } = this.props
+    const { item: pool, expandAll, selected, hostMetrics, poolHosts, nSrs, nVms } = this.props
     const { missingPatchCount } = this.state
     return <div className={styles.item}>
       <BlockLink to={`/pools/${pool.id}`}>
@@ -106,6 +114,38 @@ export default class PoolItem extends Component {
               }
             </EllipsisContainer>
           </Col>
+          <Col mediumSize={1} className='hidden-md-down'>
+            <EllipsisContainer>
+              <span className={styles.itemActionButons}>
+                <Tooltip content={<span>{hostMetrics.count}x {_('hostsTabName')}</span>}>
+                  {(hostMetrics.count > 0)
+                    ? <Link to={`/home?s=$pool:${pool.id}&t=host`}>
+                      <Icon icon='host' size='1' fixedWidth />
+                    </Link>
+                    : <Icon icon='host' size='1' fixedWidth />
+                  }
+                </Tooltip>
+                &nbsp;
+                <Tooltip content={<span>{nVms}x {_('vmsTabName')}</span>}>
+                  {(nVms > 0)
+                    ? <Link to={`/home?s=$pool:${pool.id}&t=VM`}>
+                      <Icon icon='vm' size='1' fixedWidth />
+                    </Link>
+                    : <Icon icon='vm' size='1' fixedWidth />
+                  }
+                </Tooltip>
+                &nbsp;
+                <Tooltip content={<span>{nSrs}x {_('srsTabName')}</span>}>
+                  {(nSrs > 0)
+                    ? <Link to={`/home?s=$pool:${pool.id}&t=SR`}>
+                      <Icon icon='sr' size='1' fixedWidth />
+                    </Link>
+                    : <Icon icon='sr' size='1' fixedWidth />
+                  }
+                </Tooltip>
+              </span>
+            </EllipsisContainer>
+          </Col>
           <Col mediumSize={4} className='hidden-md-down'>
             <EllipsisContainer>
               <Ellipsis>
@@ -132,9 +172,11 @@ export default class PoolItem extends Component {
         <SingleLineRow>
           <Col mediumSize={3} className={styles.itemExpanded}>
             <span>
-              <Link to={`/home?s=$pool:${pool.id}&t=host`}>{hostMetrics.count}x <Icon icon='host' /></Link>
+              {hostMetrics.count}x <Icon icon='host' />
               {' '}
-              <Link to={`/home?s=$pool:${pool.id}&t=VM`}>{nVms}x <Icon icon='vm' /></Link>
+              {nVms}x <Icon icon='vm' />
+              {' '}
+              {nSrs}x <Icon icon='sr' />
               {' '}
               {hostMetrics.cpus}x <Icon icon='cpu' />
               {' '}
