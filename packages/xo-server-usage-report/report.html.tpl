@@ -10,6 +10,7 @@
 
     .page:not(:first-child) {
       page-break-before: always;
+      margin-top: 40px;
     }
 
     table {
@@ -88,7 +89,7 @@
 
     .top table{
       margin: auto;
-      margin-top: 60px;
+      margin-top: 20px;
       width: 400px;
     }
 
@@ -146,7 +147,7 @@
 
       <table class ="global">
         <tr>
-          <td id="title" rowspan="13">VM</td>
+          <td id="title" rowspan="13">VMs</td>
         </tr>
         <tr>
           <td>Number:</td>
@@ -250,7 +251,7 @@
           </tr>
           {{#each topVms.cpu}}
           <tr>
-            <td>{{this.uuid}}</td>
+            <td>{{shortUUID this.uuid}}</td>
             <td>{{this.name}}</td>
             <td>{{this.value}} %</td>
           </tr>
@@ -261,26 +262,17 @@
           </tr>
           {{#each topVms.ram}}
           <tr>
-            <td>{{this.uuid}}</td>
+            <td>{{shortUUID this.uuid}}</td>
             <td>{{this.name}}</td>
             <td>{{this.value}} GiB</td>
           </tr>
           {{/each}}
-        </table>
-        <table>
-          <caption>3rd top usages</caption>
-          <tr>
-            <th></th>
-            <th>UUID</th>
-            <th>Name</th>
-            <th>Value</th>
-          </tr>
           <tr>
             <td rowspan='{{math topVms.diskRead.length "+" 1}}' class="tableHeader">Disk read</td>
           </tr>
           {{#each topVms.diskRead}}
           <tr>
-            <td>{{this.uuid}}</td>
+            <td>{{shortUUID this.uuid}}</td>
             <td>{{this.name}}</td>
             <td>{{this.value}} MiB</td>
           </tr>
@@ -290,7 +282,7 @@
           </tr>
           {{#each topVms.diskWrite}}
           <tr>
-            <td>{{this.uuid}}</td>
+            <td>{{shortUUID this.uuid}}</td>
             <td>{{this.name}}</td>
             <td>{{this.value}} MiB</td>
           </tr>
@@ -300,7 +292,7 @@
           </tr>
           {{#each topVms.netReception}}
           <tr>
-            <td>{{this.uuid}}</td>
+            <td>{{shortUUID this.uuid}}</td>
             <td>{{this.name}}</td>
             <td>{{this.value}} KiB</td>
           </tr>
@@ -310,7 +302,7 @@
           </tr>
           {{#each topVms.netTransmission}}
           <tr>
-            <td>{{this.uuid}}</td>
+            <td>{{shortUUID this.uuid}}</td>
             <td>{{this.name}}</td>
             <td>{{this.value}} KiB</td>
           </tr>
@@ -322,7 +314,7 @@
     <div class="page">
       <table class ="global">
         <tr>
-          <td id="title" rowspan="13">Host</td>
+          <td id="title" rowspan="13">Hosts</td>
         </tr>
         <tr>
           <td>Number:</td>
@@ -406,6 +398,7 @@
           <tr>
             <th></th>
             <th>UUID</th>
+            <th>Name</th>
             <th>Value</th>
           </tr>
           <tr>
@@ -413,7 +406,8 @@
           </tr>
           {{#each topHosts.cpu}}
           <tr>
-            <td>{{this.uuid}}</td>
+            <td>{{shortUUID this.uuid}}</td>
+            <td>{{this.name}}</td>
             <td>{{this.value}} %</td>
           </tr>
           {{/each}}
@@ -422,24 +416,18 @@
           </tr>
           {{#each topHosts.ram}}
           <tr>
-            <td>{{this.uuid}}</td>
+            <td>{{shortUUID this.uuid}}</td>
+            <td>{{this.name}}</td>
             <td>{{this.value}} GiB</td>
           </tr>
           {{/each}}
-        </table>
-        <table>
-          <caption>3rd top usages</caption>
-          <tr>
-            <th></th>
-            <th>UUID</th>
-            <th>Value</th>
-          </tr>
           <tr>
             <td rowspan='{{math topHosts.load.length "+" 1}}' class="tableHeader">Load average</td>
           </tr>
           {{#each topHosts.load}}
           <tr>
-            <td>{{this.uuid}}</td>
+            <td>{{shortUUID this.uuid}}</td>
+            <td>{{this.name}}</td>
             <td>{{this.value}} </td>
           </tr>
           {{/each}}
@@ -448,7 +436,8 @@
           </tr>
           {{#each topHosts.netReception}}
           <tr>
-            <td>{{this.uuid}}</td>
+            <td>{{shortUUID this.uuid}}</td>
+            <td>{{this.name}}</td>
             <td>{{this.value}} KiB</td>
           </tr>
           {{/each}}
@@ -457,7 +446,8 @@
           </tr>
           {{#each topHosts.netTransmission}}
           <tr>
-            <td>{{this.uuid}}</td>
+            <td>{{shortUUID this.uuid}}</td>
+            <td>{{this.name}}</td>
             <td>{{this.value}} KiB</td>
           </tr>
           {{/each}}
@@ -468,14 +458,16 @@
     <div class="page">
       <div class="top">
         <table>
-          <caption>3rd most allocated space </caption>
+          <caption>Most used storages </caption>
             <tr>
               <th>UUID</th>
+              <th>Name</th>
               <th>value</th>
             </tr>
             {{#each topAllocation}}
               <tr>
-                <td>{{this.uuid}}</td>
+                <td>{{shortUUID this.uuid}}</td>
+                <td>{{this.name}}</td>
                 <td>{{this.size}} GiB</td>
               </tr>
              {{/each}}
@@ -484,19 +476,20 @@
              <caption>Hosts missing patches</caption>
             <tr>
             <th>UUID</th>
+            <th>Name</th>
             <th>Patches</th>
             </tr>
               {{#if hostsMissingPatches}}
                 {{#each hostsMissingPatches}}
                 <tr>
-                  <td>{{this.uuid}}</td>
+                  <td>{{shortUUID this.uuid}}</td>
+                  <td>{{this.name}}</td>
                   <td>{{this.patches}}</td>
                 </tr>
                 {{/each}}
               {{else}}
                 <tr>
-                  <td>All hosts are updated!</td>
-                  <td>No patch!</td>
+                  <td colspan="3">All hosts are updated!</td>
                 </tr>
               {{/if}}
           </table>
@@ -543,7 +536,7 @@
             {{#if vmsRessourcesEvolution.added}}
               {{#each vmsRessourcesEvolution.added}}
                 <tr>
-                  <td>{{this.uuid}}</td>
+                  <td>{{shortUUID this.uuid}}</td>
                   <td>{{this.name}}</td>
                 </tr>
               {{/each}}
@@ -563,7 +556,7 @@
             {{#if vmsRessourcesEvolution.removed}}
               {{#each vmsRessourcesEvolution.removed}}
               <tr>
-                <td>{{this.uuid}}</td>
+                <td>{{shortUUID this.uuid}}</td>
                 <td>{{this.name}}</td>
               </tr>
               {{/each}}
@@ -577,16 +570,18 @@
             <caption>Added Hosts</caption>
             <tr>
               <th>UUID</th>
+              <th>Name</th>
             </tr>
             {{#if hostsRessourcesEvolution.added}}
               {{#each hostsRessourcesEvolution.added}}
               <tr>
-                <td>{{this}}</td>
+                <td>{{shortUUID this.uuid}}</td>
+                <td>{{this.name}}</td>
               </tr>
               {{/each}}
             {{else}}
               <tr>
-                <td>No added Hosts!</td>
+                <td colspan="2">No added Hosts!</td>
               </tr>
             {{/if}}
           </table>
@@ -594,16 +589,18 @@
             <caption>Removed Hosts</caption>
             <tr>
               <th>UUID</th>
+              <th>Name</th>
             </tr>
             {{#if hostsRessourcesEvolution.removed}}
               {{#each hostsRessourcesEvolution.removed}}
               <tr>
-                <td>{{this}}</td>
+                <td>{{shortUUID this.uuid}}</td>
+                <td>{{this.name}}</td>
               </tr>
               {{/each}}
             {{else}}
               <tr>
-                <td>No removed Hosts!</td>
+                <td colspan="2">No removed Hosts!</td>
               </tr>
             {{/if}}
           </table>

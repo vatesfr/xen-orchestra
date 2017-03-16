@@ -109,6 +109,8 @@ Handlebars.registerHelper('math', function (lvalue, operator, rvalue, options) {
   return mathOperators[operator](+lvalue, +rvalue)
 })
 
+Handlebars.registerHelper('shortUUID', uuid => uuid.split('-')[0])
+
 // ===================================================================
 
 function computeMean (values) {
@@ -183,7 +185,7 @@ function getVmsStats ({
   return Promise.all(map(runningVms, async vm => {
     const vmStats = await xo.getXapiVmStats(vm, 'days')
     return {
-      uuid: vm.uuid.split('-')[0],
+      uuid: vm.uuid,
       name: vm.name_label,
       cpu: computeDoubleMean(vmStats.stats.cpus),
       ram: computeMean(vmStats.stats.memoryUsed) / gibPower,
@@ -202,7 +204,8 @@ function getHostsStats ({
   return Promise.all(map(runningHosts, async host => {
     const hostStats = await xo.getXapiHostStats(host, 'days')
     return {
-      uuid: host.uuid.split('-')[0],
+      uuid: host.uuid,
+      name: host.name_label,
       cpu: computeDoubleMean(hostStats.stats.cpus),
       ram: computeMean(hostStats.stats.memoryUsed) / gibPower,
       load: computeMean(hostStats.stats.load),
@@ -223,7 +226,7 @@ function computeGlobalVmsStats ({
       name: vm.name
     })),
     map(haltedVms, vm => ({
-      uuid: vm.uuid.split('-')[0],
+      uuid: vm.uuid,
       name: vm.name_label
     }))
   )
@@ -239,7 +242,16 @@ function computeGlobalHostsStats ({
   hostsStats,
   xo
 }) {
-  const allHosts = concat(map(hostsStats, 'uuid'), map(haltedHosts, host => host.uuid.split('-')[0]))
+  const allHosts = concat(
+    map(hostsStats, host => ({
+      uuid: host.uuid,
+      name: host.name
+    })),
+    map(haltedHosts, host => ({
+      uuid: host.uuid,
+      name: host.name_label
+    }))
+  )
 
   return assign(computeMeans(hostsStats, ['cpu', 'ram', 'load', 'netReception', 'netTransmission']), {
     number: allHosts.length,
@@ -267,7 +279,8 @@ function getMostAllocatedSpaces ({
 }) {
   return map(
     orderBy(disks, ['size'], ['desc']).slice(0, 3), disk => ({
-      uuid: disk.uuid.split('-')[0],
+      uuid: disk.uuid,
+      name: disk.name_label,
       size: round(disk.size / gibPower, 2)
     }))
 }
@@ -281,6 +294,7 @@ function getHostsMissingPatches ({
     if (hostsPatches.length > 0) {
       return {
         uuid: host.uuid,
+        name: host.name,
         patches: map(hostsPatches, patch => 'name')
       }
     }
