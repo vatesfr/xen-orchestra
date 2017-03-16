@@ -445,6 +445,8 @@ var messages = {
   displayAllVMs: 'Display all VMs of this pool',
   // ----- Pool tabs -----
   hostsTabName: 'Hosts',
+  vmsTabName: 'Vms',
+  srsTabName: 'Srs',
   // ----- Pool advanced tab -----
   poolHaStatus: 'High Availability',
   poolHaEnabled: 'Enabled',

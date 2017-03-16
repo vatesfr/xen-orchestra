@@ -26,7 +26,9 @@ import {
 } from 'utils'
 import {
   createDoesHostNeedRestart,
-  createGetObject
+  createGetObject,
+  createGetObjectsOfType,
+  createSelector
 } from 'selectors'
 import {
   CpuSparkLines,
@@ -79,7 +81,13 @@ class MiniStats extends Component {
 
 @connectStore(({
   container: createGetObject((_, props) => props.item.$pool),
-  needsRestart: createDoesHostNeedRestart((_, props) => props.item)
+  needsRestart: createDoesHostNeedRestart((_, props) => props.item),
+  nVms: createGetObjectsOfType('VM').count(
+    createSelector(
+      (_, props) => props.item.id,
+      hostId => obj => obj.$container === hostId
+    )
+  )
 }))
 export default class HostItem extends Component {
   get _isRunning () {
@@ -97,7 +105,7 @@ export default class HostItem extends Component {
   _onSelect = () => this.props.onSelect(this.props.item.id)
 
   render () {
-    const { item: host, container, expandAll, selected } = this.props
+    const { item: host, container, expandAll, selected, nVms } = this.props
     return <div className={styles.item}>
       <BlockLink to={`/hosts/${host.id}`}>
         <SingleLineRow>
@@ -129,6 +137,15 @@ export default class HostItem extends Component {
           <Col mediumSize={3} className='hidden-lg-down'>
             <EllipsisContainer>
               <span className={styles.itemActionButons}>
+                <Tooltip content={<span>{nVms}x {_('vmsTabName')}</span>}>
+                  {(nVms > 0)
+                    ? <Link to={`/home?s=$container:${host.id}&t=VM`}>
+                      <Icon icon='vm' size='1' fixedWidth />
+                    </Link>
+                    : <Icon icon='vm' size='1' fixedWidth />
+                  }
+                </Tooltip>
+                &nbsp;
                 {this._isRunning
                   ? <span>
                     <Tooltip content={_('stopHostLabel')}>
