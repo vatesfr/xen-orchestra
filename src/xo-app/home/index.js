@@ -8,6 +8,7 @@ import Component from 'base-component'
 import debounce from 'lodash/debounce'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
+import get from 'lodash/get'
 import Icon from 'icon'
 import invoke from 'invoke'
 import keys from 'lodash/keys'
@@ -252,29 +253,15 @@ export default class Home extends Component {
   }
 
   _getDefaultFilter (props = this.props) {
-    const { type, user } = props
-
-    const defaultFilter = OPTIONS[type].defaultFilter
-
-    // No user.
-    if (!user) {
-      return defaultFilter
-    }
-
-    const { defaultHomeFilters = {}, filters = {} } = user.preferences || {}
-    const filterName = defaultHomeFilters[type]
-
-    // No filter defined in preferences.
-    if (!filterName) {
-      return defaultFilter
-    }
-
-    // Filter defined.
-    let tmp
+    const { type } = props
+    const preferences = get(props, 'user.preferences')
+    const defaultFilterName = get(preferences, [ 'defaultHomeFilters', type ])
     return firstDefined(
-      (tmp = homeFilters[type]) && tmp[filterName],
-      (tmp = filters[type]) && tmp[filterName],
-      defaultFilter
+      defaultFilterName && firstDefined(
+        get(homeFilters, [ type, defaultFilterName ]),
+        get(preferences, [ 'filters', type, defaultFilterName ])
+      ),
+      OPTIONS[type].defaultFilter
     )
   }
 
