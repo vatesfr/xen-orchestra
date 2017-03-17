@@ -2,12 +2,11 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import filter from 'lodash/filter'
-import find from 'lodash/find'
-import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React, { Component } from 'react'
+import some from 'lodash/some'
 import Tooltip from 'tooltip'
 import { addSubscriptions } from 'utils'
 import { alert } from 'modal'
@@ -220,15 +219,9 @@ export default class Remotes extends Component {
 
   _handleRemoteTypeSelection = type => this.setState({type})
 
-  _checkNameExists = () => {
-    let exists = false
-
-    forEach(this.props.remotes, values => {
-      if (find(values, ['name', this.refs.name.value])) exists = true
-    })
-
-    return exists ? alert(<span><Icon icon={'error'} />{' '}{_('remoteTestName')}</span>, <p>{_('remoteTestNameFailure')}</p>) : this._createRemote()
-  }
+  _checkNameExists = () => some(this.props.remotes, values => some(values, ['name', this.refs.name.value]))
+  ? alert(<span><Icon icon={'error'} />{' '}{_('remoteTestName')}</span>, <p>{_('remoteTestNameFailure')}</p>)
+  : this._createRemote()
 
   _createRemote = async () => {
     const {
