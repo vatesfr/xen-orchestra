@@ -123,6 +123,7 @@ var messages = {
   homeAllHosts: 'Hosts',
   homeAllTags: 'Tags',
   homeNewVm: 'New VM',
+  homeFilterNone: 'None',
   homeFilterRunningHosts: 'Running hosts',
   homeFilterDisabledHosts: 'Disabled hosts',
   homeFilterRunningVms: 'Running VMs',
