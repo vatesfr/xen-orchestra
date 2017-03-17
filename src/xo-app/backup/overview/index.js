@@ -69,7 +69,7 @@ const JOB_COLUMNS = [
     sortCriteria: ({ schedule }) => schedule.timezone
   },
   {
-    name: _('jobState'),
+    name: _('jobEnable'),
     itemRenderer: ({ schedule, scheduleToggleValue }) => <ActionToggle
       value={scheduleToggleValue}
       handler={scheduleToggleValue ? disableSchedule : enableSchedule}

@@ -226,7 +226,7 @@ var messages = {
   jobAction: 'Action',
   jobTag: 'Tag',
   jobScheduling: 'Scheduling',
-  jobState: 'State',
+  jobEnable: 'Enable',
   jobTimezone: 'Timezone',
   jobServerTimezone: 'Server',
   runJob: 'Run job',
