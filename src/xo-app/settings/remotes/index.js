@@ -219,9 +219,15 @@ export default class Remotes extends Component {
 
   _handleRemoteTypeSelection = type => this.setState({type})
 
-  _checkNameExists = () => some(this.props.remotes, values => some(values, ['name', this.refs.name.value]))
-  ? alert(<span><Icon icon={'error'} />{' '}{_('remoteTestName')}</span>, <p>{_('remoteTestNameFailure')}</p>)
-  : this._createRemote()
+  _checkNameExists = () => some(
+    this.props.remotes,
+    values => some(values, ['name', this.refs.name.value])
+  )
+    ? alert(
+      <span><Icon icon={'error'} />{' '}{_('remoteTestName')}</span>,
+      <p>{_('remoteTestNameFailure')}</p>
+    )
+    : this._createRemote()
 
   _createRemote = async () => {
     const {
