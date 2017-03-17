@@ -6,6 +6,7 @@ import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React, { Component } from 'react'
+import some from 'lodash/some'
 import Tooltip from 'tooltip'
 import { addSubscriptions } from 'utils'
 import { alert } from 'modal'
@@ -218,6 +219,16 @@ export default class Remotes extends Component {
 
   _handleRemoteTypeSelection = type => this.setState({type})
 
+  _checkNameExists = () => some(
+    this.props.remotes,
+    values => some(values, ['name', this.refs.name.value])
+  )
+    ? alert(
+      <span><Icon icon={'error'} />{' '}{_('remoteTestName')}</span>,
+      <p>{_('remoteTestNameFailure')}</p>
+    )
+    : this._createRemote()
+
   _createRemote = async () => {
     const {
       name,
@@ -356,7 +367,7 @@ export default class Remotes extends Component {
             </fieldset>
           }
           <div className='form-group'>
-            <ActionButton type='submit' form='newRemoteForm' icon='save' btnStyle='primary' handler={this._createRemote}>
+            <ActionButton type='submit' form='newRemoteForm' icon='save' btnStyle='primary' handler={this._checkNameExists}>
               {_('savePluginConfiguration')}
             </ActionButton>
           </div>
