@@ -184,7 +184,9 @@ export default class XoApp extends Component {
           <Menu ref='menu' />
           <div ref='bodyWrapper' style={BODY_WRAPPER_STYLE}>
             <div style={BODY_STYLE}>
-              {blocked ? <XoaUpdates /> : this.props.children}
+              {blocked
+                ? <XoaUpdates />
+                : signedUp ? this.props.children : <p>Still loading</p>}
             </div>
           </div>
           <Modal />
