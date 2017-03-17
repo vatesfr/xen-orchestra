@@ -191,12 +191,13 @@ const TRANSFORMS = {
         return false
       }
 
-      const { PV_drivers_version: { major, minor } } = guestMetrics
-      if (major === undefined || minor === undefined) {
-        return false
-      }
+      const { major, minor } = guestMetrics.PV_drivers_version
+      const [ hostMajor, hostMinor ] = (obj.$resident_on || obj.$pool.$master)
+        .software_version
+        .product_version
+        .split('.')
 
-      return guestMetrics.PV_drivers_up_to_date
+      return major >= hostMajor && minor >= hostMinor
         ? 'up to date'
         : 'out of date'
     })()
