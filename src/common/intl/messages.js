@@ -285,6 +285,8 @@ var messages = {
   remoteTestError: 'Error',
   remoteTestStep: 'Test Step',
   remoteTestFile: 'Test file',
+  remoteTestName: 'Test name',
+  remoteTestNameFailure: 'Remote name already exists!',
   remoteTestSuccessMessage: 'The remote appears to work correctly',
 
   // ------ Remote -----

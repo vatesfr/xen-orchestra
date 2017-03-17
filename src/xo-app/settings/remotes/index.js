@@ -218,6 +218,27 @@ export default class Remotes extends Component {
 
   _handleRemoteTypeSelection = type => this.setState({type})
 
+  _checkNameExists = () => {
+    const newName = this.refs.name.value
+    const remotes = this.props.remotes
+    let exists = false
+
+    const title = <span>
+      <Icon icon={'error'} />
+      {' '}
+      {_('remoteTestName')}
+    </span>
+    const body = <p>
+      {_('remoteTestNameFailure')}
+    </p>
+
+    map(remotes, values => map(values, remote => {
+      if (remote.name === newName) exists = true
+    }))
+
+    return exists ? alert(title, body) : this._createRemote()
+  }
+
   _createRemote = async () => {
     const {
       name,
@@ -356,7 +377,7 @@ export default class Remotes extends Component {
             </fieldset>
           }
           <div className='form-group'>
-            <ActionButton type='submit' form='newRemoteForm' icon='save' btnStyle='primary' handler={this._createRemote}>
+            <ActionButton type='submit' form='newRemoteForm' icon='save' btnStyle='primary' handler={this._checkNameExists}>
               {_('savePluginConfiguration')}
             </ActionButton>
           </div>
