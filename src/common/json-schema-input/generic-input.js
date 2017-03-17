@@ -1,7 +1,8 @@
 import React, { Component } from 'react'
 
-import uncontrollableInput from 'uncontrollable-input'
+import getEventValue from '../get-event-value'
 import propTypes from '../prop-types'
+import uncontrollableInput from 'uncontrollable-input'
 import { EMPTY_OBJECT } from '../utils'
 
 import ArrayInput from './array-input'
@@ -37,6 +38,11 @@ const InputByType = {
 })
 @uncontrollableInput()
 export default class GenericInput extends Component {
+  _onChange = event => {
+    const { name, onChange } = this.props
+    onChange && onChange(getEventValue(event), name)
+  }
+
   render () {
     const {
       schema,
@@ -47,10 +53,10 @@ export default class GenericInput extends Component {
 
     const props = {
       ...opts,
-      value,
+      onChange: this._onChange,
       schema,
       uiSchema,
-      ref: 'input'
+      value
     }
 
     // Enum, special case.

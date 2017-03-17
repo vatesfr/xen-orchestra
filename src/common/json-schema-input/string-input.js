@@ -15,12 +15,11 @@ import { PrimitiveInputWrapper } from './helpers'
 @uncontrollableInput()
 export default class StringInput extends Component {
   render () {
-    const { schema } = this.props
+    const { required, schema } = this.props
     const {
       disabled,
       onChange,
       password,
-      required,
       placeholder = schema.default,
       value,
       ...props
@@ -29,7 +28,7 @@ export default class StringInput extends Component {
     return (
       <PrimitiveInputWrapper {...props}>
         <Combobox
-          value={value}
+          value={value || ''}
           disabled={disabled}
           onChange={onChange}
           options={schema.defaults}

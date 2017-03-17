@@ -1,9 +1,9 @@
 import map from 'lodash/map'
-import AbstractInput from '../json-schema-input/abstract-input'
+import { PureComponent } from 'react'
 
 // ===================================================================
 
-export default class XoAbstractInput extends AbstractInput {
+export default class XoAbstractInput extends PureComponent {
   get value () {
     const value = this.refs.input.value
 

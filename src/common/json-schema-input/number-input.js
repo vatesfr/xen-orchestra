@@ -17,11 +17,10 @@ export default class NumberInput extends Component {
   }
 
   render () {
-    const { schema } = this.props
+    const { required, schema } = this.props
     const {
       disabled,
-      onChange,
-      required,
+      onChange, // eslint-disable-line no-unused-vars
       placeholder = schema.default,
       value,
       ...props

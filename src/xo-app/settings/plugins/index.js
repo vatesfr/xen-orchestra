@@ -1,14 +1,16 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import ActionToggle from 'action-toggle'
+import Component from 'base-component'
 import GenericInput from 'json-schema-input'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
-import React, { Component } from 'react'
+import React from 'react'
 import size from 'lodash/size'
 import { addSubscriptions } from 'utils'
 import { alert } from 'modal'
+import { createSelector } from 'reselect'
 import { generateUiSchema } from 'xo-json-schema-input'
 import { lastly } from 'promise-toolbox'
 import { Row, Col } from 'grid'
@@ -26,35 +28,15 @@ import {
 class Plugin extends Component {
   constructor (props) {
     super(props)
-    const { configurationSchema } = props
 
-    // Don't update input with schema in edit mode!
-    // It's always the same!
-    this.state = {
-      configurationSchema,
-      uiSchema: generateUiSchema(configurationSchema)
-    }
     this.configFormId = `form-config-${props.id}`
     this.testFormId = `form-test-${props.id}`
   }
 
-  componentWillReceiveProps (nextProps) {
-    // Don't update input with schema in edit mode!
-    if (!this.state.edit) {
-      const { configurationSchema } = nextProps
-
-      this.setState({
-        configurationSchema,
-        uiSchema: generateUiSchema(configurationSchema)
-      })
-
-      if (this.refs.pluginInput) {
-        // TODO: Compare values!!!
-        // `|| undefined` because old configs can be null.
-        this.refs.pluginInput.value = nextProps.configuration || undefined
-      }
-    }
-  }
+  _getUiSchema = createSelector(
+    () => this.props.configurationSchema,
+    generateUiSchema
+  )
 
   _updateExpanded = () => {
     this.setState({
@@ -69,7 +51,9 @@ class Plugin extends Component {
 
     this._updateAutoload = true
 
-    const method = event.target.checked ? enablePluginAutoload : disablePluginAutoload
+    const method = event.target.checked
+      ? enablePluginAutoload
+      : disablePluginAutoload
 
     method(this.props.id)::lastly(() => {
       this._updateAutoload = false
@@ -88,37 +72,32 @@ class Plugin extends Component {
   }
 
   _saveConfiguration = async () => {
-    try {
-      await configurePlugin(this.props.id, this.refs.pluginInput.value)
-
-      this.setState({
-        edit: false
-      })
-    } catch (_) { }
+    await configurePlugin(this.props.id, this.state.editedConfig)
+    this._stopEditing()
   }
 
   _deleteConfiguration = async () => {
-    try {
-      await purgePluginConfiguration(this.props.id)
-      this.refs.pluginInput.value = undefined
-    } catch (_) { }
+    await purgePluginConfiguration(this.props.id)
+    this._stopEditing()
   }
 
-  _edit = () => {
+  _startEditing = () => {
     this.setState({
-      edit: true
+      editedConfig: this.props.configuration
     })
   }
 
-  _cancelEdit = () => {
+  _stopEditing = () => {
     this.setState({
-      edit: false
+      editedConfig: undefined
     })
   }
 
   _applyPredefinedConfiguration = () => {
     const configName = this.refs.selectPredefinedConfiguration.value
-    this.refs.pluginInput.value = this.props.configurationPresets[configName]
+    this.setState({
+      editedConfig: this.props.configurationPresets[configName]
+    })
   }
 
   _test = async () => {
@@ -143,7 +122,7 @@ class Plugin extends Component {
       props,
       state
     } = this
-    const { expanded, edit } = state
+    const { editedConfig, expanded } = state
     const {
       configurationPresets,
       loaded
@@ -189,7 +168,7 @@ class Plugin extends Component {
                   <p>{_('pluginConfigurationChoosePreset')}</p>
                 </span>
                 <div className='input-group'>
-                  <select className='form-control' disabled={!edit} ref='selectPredefinedConfiguration'>
+                  <select className='form-control' disabled={!editedConfig} ref='selectPredefinedConfiguration'>
                     {map(configurationPresets, (_, name) => (
                       <option key={name} value={name}>
                         {name}
@@ -199,7 +178,7 @@ class Plugin extends Component {
                   <span className='input-group-btn'>
                     <button
                       className='btn btn-primary'
-                      disabled={!edit}
+                      disabled={!editedConfig}
                       onClick={this._applyPredefinedConfiguration}
                       type='button'
                     >
@@ -211,35 +190,35 @@ class Plugin extends Component {
               </div>
             )}
             <GenericInput
-              disabled={!edit}
+              disabled={!editedConfig}
               label='Configuration'
-              schema={state.configurationSchema}
-              uiSchema={state.uiSchema}
               required
-              ref='pluginInput'
-              value={props.configuration}
+              schema={props.configurationSchema}
+              uiSchema={this._getUiSchema()}
+              onChange={this.linkState('editedConfig')}
+              value={editedConfig || this.props.configuration}
             />
             <div className='form-group pull-right'>
               <div className='btn-toolbar'>
                 <div className='btn-group'>
-                  <ActionButton disabled={!edit} form={this.configFormId} icon='save' className='btn-primary' handler={this._saveConfiguration}>
+                  <ActionButton disabled={!editedConfig} form={this.configFormId} icon='save' className='btn-primary' handler={this._saveConfiguration}>
                     {_('savePluginConfiguration')}
                   </ActionButton>
                 </div>
                 <div className='btn-group'>
-                  <ActionButton disabled={!edit} icon='delete' className='btn-danger' handler={this._deleteConfiguration}>
+                  <ActionButton disabled={!editedConfig} icon='delete' className='btn-danger' handler={this._deleteConfiguration}>
                     {_('deletePluginConfiguration')}
                   </ActionButton>
                 </div>
-                {!edit ? (
+                {!editedConfig ? (
                   <div className='btn-group'>
-                    <button type='button' className='btn btn-primary' onClick={this._edit}>
+                    <button type='button' className='btn btn-primary' onClick={this._startEditing}>
                       {_('editPluginConfiguration')}
                     </button>
                   </div>
                 ) : (
                   <div className='btn-group'>
-                    <button type='button' className='btn btn-primary' onClick={this._cancelEdit}>
+                    <button type='button' className='btn btn-primary' onClick={this._stopEditing}>
                       {_('cancelPluginEdition')}
                     </button>
                   </div>
