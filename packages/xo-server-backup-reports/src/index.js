@@ -62,7 +62,8 @@ class BackupReportsXoPlugin {
     let nCalls = 0
     let reportWhen
 
-    const text = []
+    const failedBackupsText = []
+    const successfulBackupText = []
     const nagiosText = []
 
     forEach(status.calls, call => {
@@ -96,20 +97,28 @@ class BackupReportsXoPlugin {
       const end = moment(call.end)
       const duration = moment.duration(end - start).humanize()
 
-      text.push([
-        `### VM : ${vm ? vm.name_label : 'undefined'}`,
-        `  - UUID: ${vm ? vm.uuid : 'undefined'}`,
-        call.error
-          ? `  - Status: Failure\n  - Error: ${call.error.message}`
-          : '  - Status: Success',
-        `  - Start time: ${String(start)}`,
-        `  - End time: ${String(end)}`,
-        `  - Duration: ${duration}`
-      ].join('\n'))
-
       if (call.error) {
+        failedBackupsText.push(
+          `### VM : ${vm ? vm.name_label : 'not found'}`,
+          `  - UUID: ${vm ? vm.uuid : call.params.id}`,
+          `  - Error: ${call.error.message}`,
+          `  - Start time: ${String(start)}`,
+          `  - End time: ${String(end)}`,
+          `  - Duration: ${duration}`,
+          ''
+        )
+
         nagiosText.push(
           `[ ${vm ? vm.name_label : 'undefined'} : ${call.error.message} ]`
+        )
+      } else {
+        successfulBackupText.push(
+          `### VM : ${vm.name_label}`,
+          `  - UUID: ${vm.uuid}`,
+          `  - Start time: ${String(start)}`,
+          `  - End time: ${String(end)}`,
+          `  - Duration: ${duration}`,
+          ''
         )
       }
     })
@@ -135,8 +144,12 @@ class BackupReportsXoPlugin {
       .replace(/([A-Z])/g, ' $1').replace(/^./, letter => letter.toUpperCase()) // humanize
     const tag = status.calls[Object.keys(status.calls)[0]].params.tag
 
+    nCalls - nSuccess > 0 && failedBackupsText.unshift([`## Failed backups:`])
+    nSuccess > 0 && successfulBackupText.unshift([`## Successful backups:`])
+    const text = failedBackupsText.concat(successfulBackupText)
+
     // Global status.
-    text.unshift([
+    text.unshift(
       `## Global status for "${tag}" (${method}): ${globalSuccess ? 'Success' : 'Fail'}`,
       `  - Start time: ${String(start)}`,
       `  - End time: ${String(end)}`,
@@ -144,7 +157,7 @@ class BackupReportsXoPlugin {
       `  - Successful backed up VM number: ${nSuccess}`,
       `  - Failed backed up VM: ${nCalls - nSuccess}`,
       ''
-    ].join('\n'))
+    )
 
     const markdown = text.join('\n')
     const markdownNagios = nagiosText.join(' ')
