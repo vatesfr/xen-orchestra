@@ -125,7 +125,7 @@
     "redux-devtools-log-monitor": "^1.0.5",
     "redux-thunk": "^2.0.1",
     "reselect": "^2.2.1",
-    "standard": "^8.4.0",
+    "standard": "^9.0.2",
     "superagent": "^3.5.0",
     "tar-stream": "^1.5.2",
     "vinyl": "^2.0.0",
