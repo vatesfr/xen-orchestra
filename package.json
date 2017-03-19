@@ -86,7 +86,7 @@
     "micromatch": "^2.3.11",
     "minimist": "^1.2.0",
     "moment-timezone": "^0.5.11",
-    "ms": "^0.7.2",
+    "ms": "^1.0.0",
     "multikey-hash": "^1.0.4",
     "ndjson": "^1.5.0",
     "parse-pairs": "^0.2.2",
