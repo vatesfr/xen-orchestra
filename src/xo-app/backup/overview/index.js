@@ -12,7 +12,7 @@ import map from 'lodash/map'
 import orderBy from 'lodash/orderBy'
 import React from 'react'
 import SortedTable from 'sorted-table'
-import StateToggle from 'state-toggle'
+import StateButton from 'state-button'
 import Tooltip from 'tooltip'
 import { addSubscriptions } from 'utils'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
@@ -73,7 +73,7 @@ const JOB_COLUMNS = [
   {
     name: _('jobState'),
     itemRenderer: ({ schedule, scheduleToggleValue }) => <Tooltip content={scheduleToggleValue ? _('logIndicationToDisable') : _('logIndicationToEnable')}>
-      <StateToggle
+      <StateButton
         value={scheduleToggleValue}
         handler={scheduleToggleValue ? disableSchedule : enableSchedule}
         handlerParam={schedule.id}

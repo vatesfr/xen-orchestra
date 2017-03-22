@@ -194,5 +194,8 @@
       "dist"
     ],
     "parser": "babel-eslint"
+  },
+  "dependencies": {
+    "styled-components": "^1.4.4"
   }
 }
