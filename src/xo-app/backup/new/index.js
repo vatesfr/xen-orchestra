@@ -114,6 +114,7 @@ const COMMON_SCHEMA = {
       description: 'Back-up tag.' // FIXME: can't translate
     },
     _reportWhen: {
+      default: 'failure',
       enum: [ 'never', 'always', 'failure' ], // FIXME: can't translate
       title: _('editBackupReportTitle'),
       description: 'When to send reports.' // FIXME: can't translate
