@@ -2,15 +2,13 @@ import React from 'react'
 import styled from 'styled-components'
 
 import ActionButton from './action-button'
-import Colors from './Themes/default.js'
+import themes from './themes'
 import propTypes from './prop-types'
 
 const Button = styled(ActionButton)`
-  background-color: #fff
-  border: 2px solid ${props => props.enabled ? Colors.enabled : Colors.disabled}
-  color: ${props => props.enabled ? Colors.enabled : Colors.disabled}
-  font-size: 12px
-  font-weight: bold
+  background-color: ${themes.base.statesBackgroundColor}
+  border: 2px solid ${props => props.enabled ? themes.base.enabledStateColor : themes.base.disabledStateColor}
+  color: ${props => props.enabled ? themes.base.enabledStateColor : themes.base.disabledStateColor}
 `
 
 const StateButton = ({value, state, ...props}) =>
