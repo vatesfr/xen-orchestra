@@ -73,11 +73,16 @@ const JOB_COLUMNS = [
   {
     name: _('jobState'),
     itemRenderer: ({ schedule, scheduleToggleValue }) => <StateButton
-      value={scheduleToggleValue}
-      handler={scheduleToggleValue ? disableSchedule : enableSchedule}
+      disabledLabel={_('jobStateDisabled')}
+      disabledHandler={enableSchedule}
+      disabledTooltip={_('logIndicationToEnable')}
+
+      enabledLabel={_('jobStateEnabled')}
+      enabledHandler={disableSchedule}
+      enabledTooltip={_('logIndicationToDisable')}
+
       handlerParam={schedule.id}
-      state={scheduleToggleValue ? _('jobStateEnabled') : _('jobStateDisabled')}
-      tooltip={scheduleToggleValue ? _('logIndicationToDisable') : _('logIndicationToEnable')}
+      state={scheduleToggleValue}
     />,
     sortCriteria: 'scheduleToggleValue'
   },

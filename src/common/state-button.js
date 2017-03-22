@@ -5,21 +5,34 @@ import ActionButton from './action-button'
 import propTypes from './prop-types'
 
 const Button = styled(ActionButton)`
-  background-color: ${p => p.theme[`${p.enabled ? 'enabled' : 'disabled'}StateBg`]}
-  border: 2px solid ${p => p.theme[`${p.enabled ? 'enabled' : 'disabled'}StateColor`]}
-  color: ${p => p.theme[`${p.enabled ? 'enabled' : 'disabled'}StateColor`]}
+  background-color: ${p => p.theme[`${p.state ? 'enabled' : 'disabled'}StateBg`]}
+  border: 2px solid ${p => p.theme[`${p.state ? 'enabled' : 'disabled'}StateColor`]}
+  color: ${p => p.theme[`${p.state ? 'enabled' : 'disabled'}StateColor`]}
 `
 
-const StateButton = ({value, state, ...props}) =>
+const StateButton = ({
+  disabledHandler,
+  disabledLabel,
+  disabledTooltip,
+
+  enabledLabel,
+  enabledTooltip,
+  enabledHandler,
+
+  state,
+  ...props
+}) =>
   <Button
+    handler={state ? enabledHandler : disabledHandler}
+    tooltip={state ? enabledTooltip : disabledTooltip}
     {...props}
-    enabled={value}
-    icon={value ? 'running' : 'halted'}
+    icon={state ? 'running' : 'halted'}
     size='small'
+    state={state}
   >
-    { state }
+    {state ? enabledLabel : disabledLabel}
   </Button>
 
 export default propTypes({
-  value: propTypes.bool.isRequired
+  state: propTypes.bool.isRequired
 })(StateButton)
