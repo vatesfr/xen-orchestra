@@ -195,6 +195,5 @@
       "dist"
     ],
     "parser": "babel-eslint"
-  },
-  "dependencies": {}
+  }
 }
