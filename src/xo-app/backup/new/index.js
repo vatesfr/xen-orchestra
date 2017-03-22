@@ -117,7 +117,11 @@ const COMMON_SCHEMA = {
       default: 'failure',
       enum: [ 'never', 'always', 'failure' ], // FIXME: can't translate
       title: _('editBackupReportTitle'),
-      description: 'When to send reports.' // FIXME: can't translate
+      description: [
+        'When to send reports.',
+        '',
+        'Plugins *tranport-email* and *backup-reports* need to be configured.'
+      ].join('\n')
     },
     enabled: {
       type: 'boolean',
