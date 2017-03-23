@@ -54,7 +54,7 @@ export default class Servers extends Component {
             <td>{_('serverPassword')}</td>
             <td>{_('serverStatus')}</td>
             <td>{_('serverReadOnly')}</td>
-            <td>{_('serverAction')}</td>
+            <td className='text-xs-right'>{_('serverAction')}</td>
           </tr>
         </thead>
         <tbody>
@@ -112,7 +112,7 @@ export default class Servers extends Component {
                 }
               </td>
               <td><Toggle value={!!server.readOnly} onChange={readOnly => editServer(server, { readOnly })} /></td>
-              <td>
+              <td className='text-xs-right'>
                 <ActionRowButton
                   btnStyle='danger'
                   handler={removeServer}

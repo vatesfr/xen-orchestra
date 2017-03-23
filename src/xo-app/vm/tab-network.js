@@ -17,7 +17,6 @@ import StateButton from 'state-button'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import { isIp, isIpV4 } from 'ip'
-import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
 import { SelectNetwork, SelectIp, SelectResourceSetIp } from 'select-objects'
@@ -256,18 +255,18 @@ class VifItem extends BaseComponent {
           handlerParam={vif}
           state={vif.attached}
         />
-        {!vif.attached &&
-          <ButtonGroup className='pull-right'>
-            <ActionRowButton
-              handler={deleteVif}
-              handlerParam={vif}
-              icon='remove'
-              tooltip={_('vifRemove')}
-            />
-          </ButtonGroup>
-        }
         {' '}
         {this._getNetworkStatus()}
+      </td>
+      <td className='text-xs-right'>
+        {!vif.attached &&
+          <ActionRowButton
+            handler={deleteVif}
+            handlerParam={vif}
+            icon='remove'
+            tooltip={_('vifRemove')}
+          />
+        }
       </td>
     </tr>
   }
@@ -400,6 +399,7 @@ export default class TabNetwork extends BaseComponent {
                     <th>{_('vifNetworkLabel')}</th>
                     <th>{_('vifAllowedIps')}</th>
                     <th>{_('vifStatusLabel')}</th>
+                    <th className='text-xs-right'>{_('vifAction')}</th>
                   </tr>
                 </thead>
                 <tbody>

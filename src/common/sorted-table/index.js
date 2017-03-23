@@ -104,10 +104,10 @@ class ColumnHead extends Component {
   }
 
   render () {
-    const { name, sortIcon } = this.props
+    const { name, sortIcon, textAlign } = this.props
 
     if (!this.props.sort) {
-      return <th>{name}</th>
+      return <th className={textAlign && `text-xs-${textAlign}`}>{name}</th>
     }
 
     const isSelected = sortIcon === 'asc' || sortIcon === 'desc'
@@ -115,6 +115,7 @@ class ColumnHead extends Component {
     return (
       <th
         className={classNames(
+          textAlign && `text-xs-${textAlign}`,
           styles.clickableColumn,
           isSelected && classNames('text-white', 'bg-info')
         )}
@@ -302,7 +303,9 @@ export default class SortedTable extends Component {
             <tr>
               {map(props.columns, (column, key) => (
                 <ColumnHead
+                  textAlign={column.textAlign}
                   columnId={key}
+
                   key={key}
                   name={column.name}
                   sort={column.sortCriteria && this._sort}
@@ -314,7 +317,7 @@ export default class SortedTable extends Component {
           <tbody>
             {map(this._getVisibleItems(), (item, i) => {
               const columns = map(props.columns, (column, key) => (
-                <td key={key}>
+                <td key={key} className={column.textAlign && `text-xs-${column.textAlign}`}>
                   {column.itemRenderer(item, userData)}
                 </td>
               ))

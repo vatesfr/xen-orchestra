@@ -16,7 +16,6 @@ import some from 'lodash/some'
 import StateButton from 'state-button'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
-import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Container, Row, Col } from 'grid'
 import { createSelector } from 'selectors'
 import { DragDropContext, DragSource, DropTarget } from 'react-dnd'
@@ -444,6 +443,7 @@ export default class TabDisks extends Component {
                   <th>{_('vdiSr')}</th>
                   <th>{_('vdbBootableStatus')}</th>
                   <th>{_('vdbStatus')}</th>
+                  <th className='text-xs-right'>{_('vbdAction')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -495,36 +495,36 @@ export default class TabDisks extends Component {
                         handlerParam={vbd}
                         state={vbd.attached}
                       />
-                      <ButtonGroup className='pull-right'>
-                        <Tooltip content={_('vdiMigrate')}>
-                          <ActionRowButton
-                            btnStyle='default'
-                            icon='vdi-migrate'
-                            handler={this._migrateVdi}
-                            handlerParam={vdi}
-                          />
-                        </Tooltip>
-                        {!vbd.attached &&
-                          <span>
-                            <Tooltip content={_('vdiForget')}>
-                              <ActionRowButton
-                                btnStyle='default'
-                                icon='vdi-forget'
-                                handler={deleteVbd}
-                                handlerParam={vbd}
-                              />
-                            </Tooltip>
-                            <Tooltip content={_('vdiRemove')}>
-                              <ActionRowButton
-                                btnStyle='default'
-                                icon='vdi-remove'
-                                handler={deleteVdi}
-                                handlerParam={vdi}
-                              />
-                            </Tooltip>
-                          </span>
-                        }
-                      </ButtonGroup>
+                    </td>
+                    <td className='text-xs-right'>
+                      <Tooltip content={_('vdiMigrate')}>
+                        <ActionRowButton
+                          btnStyle='default'
+                          icon='vdi-migrate'
+                          handler={this._migrateVdi}
+                          handlerParam={vdi}
+                        />
+                      </Tooltip>
+                      {!vbd.attached &&
+                        <span>
+                          <Tooltip content={_('vdiForget')}>
+                            <ActionRowButton
+                              btnStyle='default'
+                              icon='vdi-forget'
+                              handler={deleteVbd}
+                              handlerParam={vbd}
+                            />
+                          </Tooltip>
+                          <Tooltip content={_('vdiRemove')}>
+                            <ActionRowButton
+                              btnStyle='default'
+                              icon='vdi-remove'
+                              handler={deleteVdi}
+                              handlerParam={vdi}
+                            />
+                          </Tooltip>
+                        </span>
+                      }
                     </td>
                   </tr>
                 })}

@@ -87,7 +87,8 @@ const JOB_COLUMNS = [
     sortCriteria: 'scheduleToggleValue'
   },
   {
-    itemRenderer: ({ schedule }, isScheduleUserMissing) => <fieldset className='pull-right'>
+    name: _('jobAction'),
+    itemRenderer: ({ schedule }, isScheduleUserMissing) => <fieldset>
       {!isScheduleUserMissing[schedule.id] && <Tooltip content={_('backupUserNotFound')}><Icon className='mr-1' icon='error' /></Tooltip>}
       <Link className='btn btn-sm btn-primary mr-1' to={`/backup/${schedule.id}/edit`}>
         <Icon icon='edit' />
@@ -107,7 +108,8 @@ const JOB_COLUMNS = [
           handlerParam={schedule.job}
         />
       </ButtonGroup>
-    </fieldset>
+    </fieldset>,
+    'textAlign': 'right'
   }
 ]
 

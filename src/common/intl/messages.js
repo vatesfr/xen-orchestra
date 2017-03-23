@@ -565,6 +565,7 @@ var messages = {
   addSrDeviceButton: 'Add a storage',
   srNameLabel: 'Name',
   srType: 'Type',
+  pbdAction: 'Action',
   pbdStatus: 'Status',
   pbdStatusConnected: 'Connected',
   pbdStatusDisconnected: 'Disconnected',
@@ -687,6 +688,7 @@ var messages = {
   vbdDisconnect: 'Disconnect VBD',
   vdbBootable: 'Bootable',
   vdbReadonly: 'Readonly',
+  vbdAction: 'Action',
   vdbCreate: 'Create',
   vdbNamePlaceHolder: 'Disk name',
   vdbSizePlaceHolder: 'Size',
@@ -714,6 +716,7 @@ var messages = {
   vifLockedNetworkNoIps: 'Network locked and no IPs are allowed for this interface',
   vifUnLockedNetwork: 'Network not locked',
   vifUnknownNetwork: 'Unknown network',
+  vifAction: 'Action',
   vifCreate: 'Create',
 
   // ----- VM snapshot tab -----

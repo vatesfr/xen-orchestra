@@ -5,7 +5,6 @@ import Link from 'link'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
-import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Container, Row, Col } from 'grid'
 import { editHost, connectPbd, disconnectPbd, deletePbd } from 'xo'
 import { Text } from 'editable'
@@ -35,32 +34,31 @@ const HOST_COLUMNS = [
   },
   {
     name: _('pbdStatus'),
-    itemRenderer: pbd => <span>
-      <StateButton
-        disabledLabel={_('pbdStatusDisconnected')}
-        disabledHandler={connectPbd}
-        disabledTooltip={_('pbdConnect')}
+    itemRenderer: pbd => <StateButton
+      disabledLabel={_('pbdStatusDisconnected')}
+      disabledHandler={connectPbd}
+      disabledTooltip={_('pbdConnect')}
 
-        enabledLabel={_('pbdStatusConnected')}
-        enabledHandler={disconnectPbd}
-        enabledTooltip={_('pbdDisconnect')}
+      enabledLabel={_('pbdStatusConnected')}
+      enabledHandler={disconnectPbd}
+      enabledTooltip={_('pbdDisconnect')}
 
-        handlerParam={pbd}
-        state={pbd.attached}
-      />
-      {!pbd.attached &&
-        <ButtonGroup className='pull-right'>
-          <ActionRowButton
-            btnStyle='default'
-            handler={deletePbd}
-            handlerParam={pbd}
-            icon='sr-forget'
-            tooltip={_('pbdForget')}
-          />
-        </ButtonGroup>
-      }
-    </span>,
+      handlerParam={pbd}
+      state={pbd.attached}
+    />,
     sortCriteria: 'attached'
+  },
+  {
+    name: _('pbdAction'),
+    itemRenderer: pbd => !pbd.attached &&
+      <ActionRowButton
+        btnStyle='default'
+        handler={deletePbd}
+        handlerParam={pbd}
+        icon='sr-forget'
+        tooltip={_('pbdForget')}
+      />,
+    textAlign: 'right'
   }
 ]
 

@@ -7,7 +7,6 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
-import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { connectPbd, disconnectPbd, deletePbd, editSr, isSrShared } from 'xo'
 import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
@@ -55,31 +54,30 @@ const SR_COLUMNS = [
   },
   {
     name: _('pbdStatus'),
-    itemRenderer: storage => <span>
-      <StateButton
-        disabledLabel={_('pbdStatusDisconnected')}
-        disabledHandler={connectPbd}
-        disabledTooltip={_('pbdConnect')}
+    itemRenderer: storage => <StateButton
+      disabledLabel={_('pbdStatusDisconnected')}
+      disabledHandler={connectPbd}
+      disabledTooltip={_('pbdConnect')}
 
-        enabledLabel={_('pbdStatusConnected')}
-        enabledHandler={disconnectPbd}
-        enabledTooltip={_('pbdDisconnect')}
+      enabledLabel={_('pbdStatusConnected')}
+      enabledHandler={disconnectPbd}
+      enabledTooltip={_('pbdDisconnect')}
 
+      handlerParam={storage.pbdId}
+      state={storage.attached}
+    />
+  },
+  {
+    name: _('pbdAction'),
+    itemRenderer: storage => !storage.attached &&
+      <ActionRowButton
+        btnStyle='default'
+        handler={deletePbd}
         handlerParam={storage.pbdId}
-        state={storage.attached}
-      />
-      {!storage.attached &&
-        <ButtonGroup className='pull-right'>
-          <ActionRowButton
-            btnStyle='default'
-            handler={deletePbd}
-            handlerParam={storage.pbdId}
-            icon='sr-forget'
-            tooltip={_('pbdForget')}
-          />
-        </ButtonGroup>
-      }
-    </span>
+        icon='sr-forget'
+        tooltip={_('pbdForget')}
+      />,
+    textAlign: 'right'
   }
 ]
 
