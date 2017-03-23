@@ -291,6 +291,7 @@ var messages = {
   remoteTestName: 'Test name',
   remoteTestNameFailure: 'Remote name already exists!',
   remoteTestSuccessMessage: 'The remote appears to work correctly',
+  remoteConnectionFailed: 'Connection failed',
 
   // ------ Remote -----
   remoteName: 'Name',
@@ -298,11 +299,14 @@ var messages = {
   remoteState: 'State',
   remoteDevice: 'Device',
   remoteShare: 'Share',
+  remoteAction: 'Action',
   remoteAuth: 'Auth',
   remoteMounted: 'Mounted',
   remoteUnmounted: 'Unmounted',
   remoteConnectTip: 'Connect',
   remoteDisconnectTip: 'Disconnect',
+  remoteConnected: 'Connected',
+  remoteDisconnected: 'Disconnected',
   remoteDeleteTip: 'Delete',
   remoteNamePlaceHolder: 'remote name *',
   remoteMyNamePlaceHolder: 'Name *',
@@ -561,6 +565,7 @@ var messages = {
   addSrDeviceButton: 'Add a storage',
   srNameLabel: 'Name',
   srType: 'Type',
+  pbdAction: 'Action',
   pbdStatus: 'Status',
   pbdStatusConnected: 'Connected',
   pbdStatusDisconnected: 'Disconnected',
@@ -683,6 +688,7 @@ var messages = {
   vbdDisconnect: 'Disconnect VBD',
   vdbBootable: 'Bootable',
   vdbReadonly: 'Readonly',
+  vbdAction: 'Action',
   vdbCreate: 'Create',
   vdbNamePlaceHolder: 'Disk name',
   vdbSizePlaceHolder: 'Size',
@@ -710,6 +716,7 @@ var messages = {
   vifLockedNetworkNoIps: 'Network locked and no IPs are allowed for this interface',
   vifUnLockedNetwork: 'Network not locked',
   vifUnknownNetwork: 'Unknown network',
+  vifAction: 'Action',
   vifCreate: 'Create',
 
   // ----- VM snapshot tab -----

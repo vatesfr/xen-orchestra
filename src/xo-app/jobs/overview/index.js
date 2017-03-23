@@ -13,7 +13,6 @@ import StateButton from 'state-button'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
 import { addSubscriptions } from 'utils'
-import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Container } from 'grid'
 import { createSelector } from 'selectors'
 import {
@@ -155,6 +154,7 @@ export default class Overview extends Component {
                     <th>{_('job')}</th>
                     <th className='hidden-xs-down'>{_('jobScheduling')}</th>
                     <th>{_('jobState')}</th>
+                    <th className='text-xs-right'>{_('jobAction')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -176,25 +176,23 @@ export default class Overview extends Component {
                           </Link>
                         </td>
                         <td className='hidden-xs-down'>{schedule.cron}</td>
-                        <td>
-                          {this._getScheduleToggle(schedule)}
-                          <fieldset className='pull-right'>
+                        <td>{this._getScheduleToggle(schedule)}</td>
+                        <td className='text-xs-right'>
+                          <fieldset>
                             {!isScheduleUserMissing[schedule.id] && <Tooltip content={_('jobUserNotFound')}><Icon className='mr-1' icon='error' /></Tooltip>}
-                            <ButtonGroup>
-                              <ActionRowButton
-                                icon='delete'
-                                btnStyle='danger'
-                                handler={deleteSchedule}
-                                handlerParam={schedule}
-                              />
-                              <ActionRowButton
-                                disabled={!isScheduleUserMissing[schedule.id]}
-                                icon='run-schedule'
-                                btnStyle='warning'
-                                handler={runJob}
-                                handlerParam={schedule.job}
-                              />
-                            </ButtonGroup>
+                            <ActionRowButton
+                              icon='delete'
+                              btnStyle='danger'
+                              handler={deleteSchedule}
+                              handlerParam={schedule}
+                            />
+                            <ActionRowButton
+                              disabled={!isScheduleUserMissing[schedule.id]}
+                              icon='run-schedule'
+                              btnStyle='warning'
+                              handler={runJob}
+                              handlerParam={schedule.job}
+                            />
                           </fieldset>
                         </td>
                       </tr>

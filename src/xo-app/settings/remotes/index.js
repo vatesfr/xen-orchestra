@@ -7,6 +7,7 @@ import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React, { Component } from 'react'
 import some from 'lodash/some'
+import StateButton from 'state-button'
 import Tooltip from 'tooltip'
 import { addSubscriptions } from 'utils'
 import { alert } from 'modal'
@@ -38,6 +39,11 @@ class AbstractRemote extends Component {
     const url = format(remote)
     return editRemote(remote, {url})
   }
+
+  _showError = () => alert(
+    _('remoteConnectionFailed'),
+    this.props.remote.error
+  )
 
   _changeName = name => {
     const { remote } = this.props
@@ -80,25 +86,45 @@ class AbstractRemote extends Component {
       <td>{this._renderRemoteInfo(remote)}</td>
       <td>{this._renderAuthInfo(remote)}</td>
       <td>
-        {remote.enabled &&
-          <span>
-            <span className='text-success'>{this.accessible} <Icon icon='success' /></span>
-            {' '}
-            <Tooltip content={_('remoteTestTip')}><ActionRowButton btnStyle='primary' handler={this._test} icon='diagnosis' /></Tooltip>
-            {' '}
-            <Tooltip content={_('remoteDisconnectTip')}><ActionRowButton btnStyle='warning' handler={disableRemote} handlerParam={remote} icon='disconnect' /></Tooltip>
-          </span>
-        }
-        {!remote.enabled &&
-          <span>
-            <span className='text-muted'>{this.unaccessible}</span>
-            {' '}
-            <Tooltip content={_('remoteConnectTip')}><ActionRowButton btnStyle='primary' handler={enableRemote} handlerParam={remote} icon='connect' /></Tooltip>
-          </span>
+        <StateButton
+          disabledLabel={_('remoteDisconnected')}
+          disabledHandler={enableRemote}
+          disabledTooltip={_('remoteConnectTip')}
+
+          enabledLabel={_('remoteConnected')}
+          enabledHandler={disableRemote}
+          enabledTooltip={_('remoteDisconnectTip')}
+
+          handlerParam={remote}
+          state={remote.enabled}
+        />
+        {' '}
+        {remote.error &&
+          <Tooltip content={_('remoteConnectionFailed')}>
+            <a
+              className='text-danger btn btn-link'
+              style={{ padding: '0px' }}
+              onClick={this._showError}
+            >
+              <Icon
+                icon='alarm'
+                size='lg'
+              />
+            </a>
+          </Tooltip>
         }
       </td>
-      <td><span className='text-muted'>{remote.error}</span></td>
-      <td><Tooltip content={_('remoteDeleteTip')}><ActionRowButton btnStyle='danger' handler={deleteRemote} handlerParam={remote} icon='delete' /></Tooltip></td>
+      <td className='text-xs-right'>
+        {remote.enabled &&
+          <Tooltip content={_('remoteTestTip')}>
+            <ActionRowButton btnStyle='primary' handler={this._test} icon='diagnosis' />
+          </Tooltip>
+        }
+        {' '}
+        <Tooltip content={_('remoteDeleteTip')}>
+          <ActionRowButton btnStyle='danger' handler={deleteRemote} handlerParam={remote} icon='delete' />
+        </Tooltip>
+      </td>
     </tr>
   }
 
@@ -276,8 +302,7 @@ export default class Remotes extends Component {
                 <th>{_('remotePath')}</th>
                 <th />
                 <th>{_('remoteState')}</th>
-                <th>{_('remoteError')}</th>
-                <th />
+                <th className='text-xs-right'>{_('remoteAction')}</th>
               </tr>
               {map(remotes.file, (remote, key) => <LocalRemote remote={remote} key={key} />)}
             </tbody>
@@ -290,8 +315,7 @@ export default class Remotes extends Component {
                 <th>{_('remoteDevice')}</th>
                 <th />
                 <th>{_('remoteState')}</th>
-                <th>{_('remoteError')}</th>
-                <th />
+                <th className='text-xs-right'>{_('remoteAction')}</th>
               </tr>
               {map(remotes.nfs, (remote, key) => <NfsRemote remote={remote} key={key} />)}
             </tbody>
@@ -304,8 +328,7 @@ export default class Remotes extends Component {
                 <th>{_('remoteShare')}</th>
                 <th>{_('remoteAuth')}</th>
                 <th>{_('remoteState')}</th>
-                <th>{_('remoteError')}</th>
-                <th />
+                <th className='text-xs-right'>{_('remoteAction')}</th>
               </tr>
               {map(remotes.smb, (remote, key) => <SmbRemote remote={remote} key={key} />)}
             </tbody>

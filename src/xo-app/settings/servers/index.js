@@ -2,9 +2,11 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import Component from 'base-component'
+import Icon from 'icon'
 import map from 'lodash/map'
-import Tooltip from 'tooltip'
 import React from 'react'
+import StateButton from 'state-button'
+import Tooltip from 'tooltip'
 import { addSubscriptions } from 'utils'
 import { alert } from 'modal'
 import { Container } from 'grid'
@@ -34,25 +36,10 @@ export default class Servers extends Component {
     this.setState({ host: '', password: '', username: '' })
   }
 
-  _showError = error => {
-    alert(
-      error.code === 'SESSION_AUTHENTICATION_FAILED' ? _('serverAuthFailed') : error.code || _('serverUnknownError'),
-      error.message
-    )
-  }
-
-  _getServerStatus = server => {
-    switch (server.status) {
-      case 'connected':
-        return _('serverConnected')
-      case 'connecting':
-        return _('serverConnecting')
-      case 'disconnected':
-        return server.error
-          ? <a className='text-danger btn btn-link' style={{ padding: '0px' }} onClick={() => this._showError(server.error)}>{_('serverConnectionFailed')}</a>
-          : _('serverDisconnected')
-    }
-  }
+  _showError = error => alert(
+    error.code === 'SESSION_AUTHENTICATION_FAILED' ? _('serverAuthFailed') : error.code || _('serverUnknownError'),
+    error.message
+  )
 
   render () {
     const { servers } = this.props
@@ -65,9 +52,9 @@ export default class Servers extends Component {
             <td>{_('serverHost')}</td>
             <td>{_('serverUsername')}</td>
             <td>{_('serverPassword')}</td>
-            <td>{_('serverAction')}</td>
-            <td>{_('serverReadOnly')}</td>
             <td>{_('serverStatus')}</td>
+            <td>{_('serverReadOnly')}</td>
+            <td className='text-xs-right'>{_('serverAction')}</td>
           </tr>
         </thead>
         <tbody>
@@ -95,31 +82,37 @@ export default class Servers extends Component {
                 />
               </td>
               <td>
-                {server.status === 'connected'
-                  ? <Tooltip content={_('serverDisconnect')}>
-                    <ActionRowButton
-                      btnStyle='warning'
-                      handler={disconnectServer}
-                      handlerParam={server}
-                      icon='disconnect'
-                      style={{
-                        marginRight: '0.5em'
-                      }}
-                    />
-                  </Tooltip>
-                  : <Tooltip content={_('serverConnect')}>
-                    <ActionRowButton
-                      btnStyle='secondary'
-                      disabled={server.status === 'connecting'}
-                      handler={connectServer}
-                      handlerParam={server}
-                      icon='connect'
-                      style={{
-                        marginRight: '0.5em'
-                      }}
-                    />
+                <StateButton
+                  disabledLabel={_('serverDisconnected')}
+                  disabledHandler={connectServer}
+                  disabledTooltip={_('serverConnect')}
+
+                  enabledLabel={_('serverConnected')}
+                  enabledHandler={disconnectServer}
+                  enabledTooltip={_('serverDisconnect')}
+
+                  disabled={server.status === 'connecting'}
+                  handlerParam={server}
+                  state={server.status === 'connected'}
+                />
+                {' '}
+                {server.error &&
+                  <Tooltip content={_('serverConnectionFailed')}>
+                    <a
+                      className='text-danger btn btn-link'
+                      style={{ padding: '0px' }}
+                      onClick={() => this._showError(server.error)}
+                    >
+                      <Icon
+                        icon='alarm'
+                        size='lg'
+                      />
+                    </a>
                   </Tooltip>
                 }
+              </td>
+              <td><Toggle value={!!server.readOnly} onChange={readOnly => editServer(server, { readOnly })} /></td>
+              <td className='text-xs-right'>
                 <ActionRowButton
                   btnStyle='danger'
                   handler={removeServer}
@@ -130,8 +123,6 @@ export default class Servers extends Component {
                   }}
                 />
               </td>
-              <td><Toggle value={!!server.readOnly} onChange={readOnly => editServer(server, { readOnly })} /></td>
-              <td>{this._getServerStatus(server)}</td>
             </tr>
           ))}
         </tbody>
