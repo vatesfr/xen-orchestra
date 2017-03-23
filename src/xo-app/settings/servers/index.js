@@ -94,10 +94,8 @@ export default class Servers extends Component {
                   disabled={server.status === 'connecting'}
                   handlerParam={server}
                   state={server.status === 'connected'}
-                  style={{
-                    marginRight: '0.5em'
-                  }}
                 />
+                {' '}
                 {server.error &&
                   <Tooltip content={_('serverConnectionFailed')}>
                     <a

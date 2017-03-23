@@ -97,10 +97,8 @@ class AbstractRemote extends Component {
 
           handlerParam={remote}
           state={remote.enabled}
-          style={{
-            marginRight: '0.5em'
-          }}
         />
+        {' '}
         {remote.error &&
           <Tooltip content={_('remoteConnectionFailed')}>
             <a
