@@ -1,6 +1,5 @@
 import _ from 'intl'
 import ActionRowButton from 'action-row-button'
-import ActionToggle from 'action-toggle'
 import Component from 'base-component'
 import filter from 'lodash/filter'
 import find from 'lodash/find'
@@ -13,6 +12,7 @@ import map from 'lodash/map'
 import orderBy from 'lodash/orderBy'
 import React from 'react'
 import SortedTable from 'sorted-table'
+import StateButton from 'state-button'
 import Tooltip from 'tooltip'
 import { addSubscriptions } from 'utils'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
@@ -56,7 +56,9 @@ const JOB_COLUMNS = [
   },
   {
     name: _('jobTag'),
-    itemRenderer: ({ scheduleTag }) => scheduleTag
+    itemRenderer: ({ scheduleTag }) => scheduleTag,
+    default: true,
+    sortCriteria: ({ scheduleTag }) => scheduleTag
   },
   {
     name: _('jobScheduling'),
@@ -70,11 +72,17 @@ const JOB_COLUMNS = [
   },
   {
     name: _('jobState'),
-    itemRenderer: ({ schedule, scheduleToggleValue }) => <ActionToggle
-      value={scheduleToggleValue}
-      handler={scheduleToggleValue ? disableSchedule : enableSchedule}
+    itemRenderer: ({ schedule, scheduleToggleValue }) => <StateButton
+      disabledLabel={_('jobStateDisabled')}
+      disabledHandler={enableSchedule}
+      disabledTooltip={_('logIndicationToEnable')}
+
+      enabledLabel={_('jobStateEnabled')}
+      enabledHandler={disableSchedule}
+      enabledTooltip={_('logIndicationToDisable')}
+
       handlerParam={schedule.id}
-      size='small'
+      state={scheduleToggleValue}
     />,
     sortCriteria: 'scheduleToggleValue'
   },

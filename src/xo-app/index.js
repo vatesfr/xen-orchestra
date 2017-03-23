@@ -6,11 +6,13 @@ import isArray from 'lodash/isArray'
 import map from 'lodash/map'
 import React from 'react'
 import Shortcuts from 'shortcuts'
+import themes from 'themes'
 import _, { IntlProvider } from 'intl'
 import { blockXoaAccess } from 'xoa-updater'
 import { connectStore, routes } from 'utils'
 import { Notification } from 'notification'
 import { ShortcutManager } from 'react-shortcuts'
+import { ThemeProvider } from 'styled-components'
 import { TooltipViewer } from 'tooltip'
 import { Container, Row, Col } from 'grid'
 // import {
@@ -178,22 +180,24 @@ export default class XoApp extends Component {
     const blocked = signedUp && blockXoaAccess(trial) // If we are under expired or unstable trial (signed up only)
 
     return <IntlProvider>
-      <DocumentTitle title='Xen Orchestra'>
-        <div style={CONTAINER_STYLE}>
-          <Shortcuts name='XoApp' handler={this._shortcutsHandler} targetNodeSelector='body' stopPropagation={false} />
-          <Menu ref='menu' />
-          <div ref='bodyWrapper' style={BODY_WRAPPER_STYLE}>
-            <div style={BODY_STYLE}>
-              {blocked
-                ? <XoaUpdates />
-                : signedUp ? this.props.children : <p>Still loading</p>}
+      <ThemeProvider theme={themes.base}>
+        <DocumentTitle title='Xen Orchestra'>
+          <div style={CONTAINER_STYLE}>
+            <Shortcuts name='XoApp' handler={this._shortcutsHandler} targetNodeSelector='body' stopPropagation={false} />
+            <Menu ref='menu' />
+            <div ref='bodyWrapper' style={BODY_WRAPPER_STYLE}>
+              <div style={BODY_STYLE}>
+                {blocked
+                  ? <XoaUpdates />
+                  : signedUp ? this.props.children : <p>Still loading</p>}
+              </div>
             </div>
+            <Modal />
+            <Notification />
+            <TooltipViewer />
           </div>
-          <Modal />
-          <Notification />
-          <TooltipViewer />
-        </div>
-      </DocumentTitle>
+        </DocumentTitle>
+      </ThemeProvider>
     </IntlProvider>
   }
 }

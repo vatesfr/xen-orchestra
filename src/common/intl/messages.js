@@ -227,6 +227,8 @@ var messages = {
   jobTag: 'Tag',
   jobScheduling: 'Scheduling',
   jobState: 'State',
+  jobStateEnabled: 'Enabled',
+  jobStateDisabled: 'Disabled',
   jobTimezone: 'Timezone',
   jobServerTimezone: 'Server',
   runJob: 'Run job',
@@ -1243,6 +1245,8 @@ var messages = {
   logDeleteAll: 'Delete all logs',
   logDeleteAllTitle: 'Delete all logs',
   logDeleteAllMessage: 'Are you sure you want to delete all the logs?',
+  logIndicationToEnable: 'Click to enable',
+  logIndicationToDisable: 'Click to disable',
   reportBug: 'Report a bug',
 
   // ----- IPs ------

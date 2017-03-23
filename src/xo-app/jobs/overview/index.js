@@ -1,6 +1,5 @@
 import _ from 'intl'
 import ActionRowButton from 'action-row-button'
-import ActionToggle from 'action-toggle'
 import filter from 'lodash/filter'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
@@ -10,6 +9,7 @@ import LogList from '../../logs'
 import map from 'lodash/map'
 import orderBy from 'lodash/orderBy'
 import React, { Component } from 'react'
+import StateButton from 'state-button'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
 import { addSubscriptions } from 'utils'
@@ -104,19 +104,19 @@ export default class Overview extends Component {
     const { id } = schedule
 
     return (
-      <ActionToggle
-        value={this.state.scheduleTable[id]}
-        handler={this._updateScheduleState}
+      <StateButton
+        disabledLabel={_('jobStateDisabled')}
+        disabledHandler={enableSchedule}
+        disabledTooltip={_('logIndicationToEnable')}
+
+        enabledLabel={_('jobStateEnabled')}
+        enabledHandler={disableSchedule}
+        enabledTooltip={_('logIndicationToDisable')}
+
         handlerParam={id}
-        size='small' />
+        state={this.state.scheduleTable[id]}
+      />
     )
-  }
-
-  _updateScheduleState = id => {
-    const enabled = this.state.scheduleTable[id]
-    const method = enabled ? disableSchedule : enableSchedule
-
-    return method(id)
   }
 
   _getIsScheduleUserMissing = createSelector(
