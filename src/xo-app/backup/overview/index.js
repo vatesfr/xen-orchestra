@@ -109,7 +109,7 @@ const JOB_COLUMNS = [
         />
       </ButtonGroup>
     </fieldset>,
-    'textAlign': 'right'
+    textAlign: 'right'
   }
 ]
 
