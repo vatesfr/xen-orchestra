@@ -36,12 +36,10 @@ export default class Servers extends Component {
     this.setState({ host: '', password: '', username: '' })
   }
 
-  _showError = error => {
-    alert(
-      error.code === 'SESSION_AUTHENTICATION_FAILED' ? _('serverAuthFailed') : error.code || _('serverUnknownError'),
-      error.message
-    )
-  }
+  _showError = error => alert(
+    error.code === 'SESSION_AUTHENTICATION_FAILED' ? _('serverAuthFailed') : error.code || _('serverUnknownError'),
+    error.message
+  )
 
   render () {
     const { servers } = this.props

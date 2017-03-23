@@ -40,13 +40,10 @@ class AbstractRemote extends Component {
     return editRemote(remote, {url})
   }
 
-  _showError = error => {
-    console.log(error)
-    alert(
-      _('remoteConnectionFailed'),
-      error
-    )
-  }
+  _showError = () => alert(
+    _('remoteConnectionFailed'),
+    this.props.remote.error
+  )
 
   _changeName = name => {
     const { remote } = this.props
@@ -109,7 +106,7 @@ class AbstractRemote extends Component {
             <a
               className='text-danger btn btn-link'
               style={{ padding: '0px' }}
-              onClick={() => this._showError(remote.error)}
+              onClick={this._showError}
             >
               <Icon
                 icon='alarm'
