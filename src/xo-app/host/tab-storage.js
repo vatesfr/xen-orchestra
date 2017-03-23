@@ -5,6 +5,7 @@ import Link from 'link'
 import map from 'lodash/map'
 import React from 'react'
 import SortedTable from 'sorted-table'
+import StateButton from 'state-button'
 import Tooltip from 'tooltip'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { connectPbd, disconnectPbd, deletePbd, editSr, isSrShared } from 'xo'
@@ -54,33 +55,21 @@ const SR_COLUMNS = [
   },
   {
     name: _('pbdStatus'),
-    itemRenderer: storage => storage.attached
-      ? <span>
-        <span className='tag tag-success'>
-          {_('pbdStatusConnected')}
-        </span>
+    itemRenderer: storage => <span>
+      <StateButton
+        disabledLabel={_('pbdStatusDisconnected')}
+        disabledHandler={connectPbd}
+        disabledTooltip={_('pbdConnect')}
+
+        enabledLabel={_('pbdStatusConnected')}
+        enabledHandler={disconnectPbd}
+        enabledTooltip={_('pbdDisconnect')}
+
+        handlerParam={storage.pbdId}
+        state={storage.attached}
+      />
+      {!storage.attached &&
         <ButtonGroup className='pull-right'>
-          <ActionRowButton
-            btnStyle='default'
-            handler={disconnectPbd}
-            handlerParam={storage.pbdId}
-            icon='disconnect'
-            tooltip={_('pbdDisconnect')}
-          />
-        </ButtonGroup>
-      </span>
-      : <span>
-        <span className='tag tag-default'>
-          {_('pbdStatusDisconnected')}
-        </span>
-        <ButtonGroup className='pull-right'>
-          <ActionRowButton
-            btnStyle='default'
-            handler={connectPbd}
-            handlerParam={storage.pbdId}
-            icon='connect'
-            tooltip={_('pbdConnect')}
-          />
           <ActionRowButton
             btnStyle='default'
             handler={deletePbd}
@@ -89,7 +78,8 @@ const SR_COLUMNS = [
             tooltip={_('pbdForget')}
           />
         </ButtonGroup>
-      </span>
+      }
+    </span>
   }
 ]
 

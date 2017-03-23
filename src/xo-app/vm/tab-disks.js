@@ -13,6 +13,7 @@ import propTypes from 'prop-types'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import some from 'lodash/some'
+import StateButton from 'state-button'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
@@ -482,53 +483,29 @@ export default class TabDisks extends Component {
                       />
                     </td>
                     <td>
-                      {vbd.attached
-                        ? <span>
-                          <span className='tag tag-success'>
-                            {_('vbdStatusConnected')}
-                          </span>
-                          <ButtonGroup className='pull-right'>
-                            <Tooltip content={_('vdiMigrate')}>
-                              <ActionRowButton
-                                btnStyle='default'
-                                icon='vdi-migrate'
-                                handler={this._migrateVdi}
-                                handlerParam={vdi}
-                              />
-                            </Tooltip>
-                            <Tooltip content={_('vbdDisconnect')}>
-                              <ActionRowButton
-                                btnStyle='default'
-                                icon='disconnect'
-                                handler={disconnectVbd}
-                                handlerParam={vbd}
-                              />
-                            </Tooltip>
-                          </ButtonGroup>
-                        </span>
-                        : <span>
-                          <span className='tag tag-default'>
-                            {_('vbdStatusDisconnected')}
-                          </span>
-                          <ButtonGroup className='pull-right'>
-                            <Tooltip content={_('vdiMigrate')}>
-                              <ActionRowButton
-                                btnStyle='default'
-                                icon='vdi-migrate'
-                                handler={this._migrateVdi}
-                                handlerParam={vdi}
-                              />
-                            </Tooltip>
-                            {isVmRunning(vm) &&
-                              <Tooltip content={_('vbdConnect')}>
-                                <ActionRowButton
-                                  btnStyle='default'
-                                  icon='connect'
-                                  handler={connectVbd}
-                                  handlerParam={vbd}
-                                />
-                              </Tooltip>
-                            }
+                      <StateButton
+                        disabledLabel={_('vbdStatusDisconnected')}
+                        disabledHandler={isVmRunning(vm) && connectVbd}
+                        disabledTooltip={_('vbdConnect')}
+
+                        enabledLabel={_('vbdStatusConnected')}
+                        enabledHandler={disconnectVbd}
+                        enabledTooltip={_('vbdDisconnect')}
+
+                        handlerParam={vbd}
+                        state={vbd.attached}
+                      />
+                      <ButtonGroup className='pull-right'>
+                        <Tooltip content={_('vdiMigrate')}>
+                          <ActionRowButton
+                            btnStyle='default'
+                            icon='vdi-migrate'
+                            handler={this._migrateVdi}
+                            handlerParam={vdi}
+                          />
+                        </Tooltip>
+                        {!vbd.attached &&
+                          <span>
                             <Tooltip content={_('vdiForget')}>
                               <ActionRowButton
                                 btnStyle='default'
@@ -545,9 +522,9 @@ export default class TabDisks extends Component {
                                 handlerParam={vdi}
                               />
                             </Tooltip>
-                          </ButtonGroup>
-                        </span>
-                      }
+                          </span>
+                        }
+                      </ButtonGroup>
                     </td>
                   </tr>
                 })}

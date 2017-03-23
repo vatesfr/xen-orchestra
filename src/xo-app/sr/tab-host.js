@@ -4,6 +4,7 @@ import isEmpty from 'lodash/isEmpty'
 import Link from 'link'
 import React from 'react'
 import SortedTable from 'sorted-table'
+import StateButton from 'state-button'
 import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Container, Row, Col } from 'grid'
 import { editHost, connectPbd, disconnectPbd, deletePbd } from 'xo'
@@ -34,50 +35,31 @@ const HOST_COLUMNS = [
   },
   {
     name: _('pbdStatus'),
-    itemRenderer: pbd => {
-      if (pbd.attached) {
-        return (
-          <span>
-            <span className='tag tag-success'>
-              {_('pbdStatusConnected')}
-            </span>
-            <ButtonGroup className='pull-right'>
-              <ActionRowButton
-                btnStyle='warning'
-                handler={disconnectPbd}
-                handlerParam={pbd}
-                icon='disconnect'
-                tooltip={_('pbdDisconnect')}
-              />
-            </ButtonGroup>
-          </span>
-        )
-      }
+    itemRenderer: pbd => <span>
+      <StateButton
+        disabledLabel={_('pbdStatusDisconnected')}
+        disabledHandler={connectPbd}
+        disabledTooltip={_('pbdConnect')}
 
-      return (
-        <span>
-          <span className='tag tag-default'>
-            {_('pbdStatusDisconnected')}
-          </span>
-          <ButtonGroup className='pull-right'>
-            <ActionRowButton
-              btnStyle='default'
-              handler={connectPbd}
-              handlerParam={pbd}
-              icon='connect'
-              tooltip={_('pbdConnect')}
-            />
-            <ActionRowButton
-              btnStyle='default'
-              handler={deletePbd}
-              handlerParam={pbd}
-              icon='sr-forget'
-              tooltip={_('pbdForget')}
-            />
-          </ButtonGroup>
-        </span>
-      )
-    },
+        enabledLabel={_('pbdStatusConnected')}
+        enabledHandler={disconnectPbd}
+        enabledTooltip={_('pbdDisconnect')}
+
+        handlerParam={pbd}
+        state={pbd.attached}
+      />
+      {!pbd.attached &&
+        <ButtonGroup className='pull-right'>
+          <ActionRowButton
+            btnStyle='default'
+            handler={deletePbd}
+            handlerParam={pbd}
+            icon='sr-forget'
+            tooltip={_('pbdForget')}
+          />
+        </ButtonGroup>
+      }
+    </span>,
     sortCriteria: 'attached'
   }
 ]
