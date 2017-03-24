@@ -179,6 +179,8 @@ create = $coroutine (params) ->
   return vm.id
 
 create.params = {
+  affinityHost: { type: 'string', optional: true }
+
   bootAfterCreate: {
     type: 'boolean'
     optional: true
@@ -540,6 +542,8 @@ set.params = {
   cpuWeight: { type: ['integer', 'null'], optional: true }
 
   cpuCap: { type: ['integer', 'null'], optional: true }
+
+  affinityHost: { type: ['string', 'null'], optional: true }
 }
 
 set.resolve = {

@@ -15,7 +15,8 @@ import {
 import {
   isVmHvm,
   isVmRunning,
-  makeEditObject
+  makeEditObject,
+  NULL_REF
 } from '../utils'
 
 export default {
@@ -229,6 +230,17 @@ export default {
   //
   // Params do not correspond directly to XAPI props.
   _editVm: makeEditObject({
+    affinityHost: {
+      get: 'affinity',
+      set (value, vm) {
+        return this._setObjectProperty(
+          vm,
+          'affinity',
+          value ? this.getObject(value).$ref : NULL_REF
+        )
+      }
+    },
+
     autoPoweron: {
       set (value, vm) {
         return Promise.all([
