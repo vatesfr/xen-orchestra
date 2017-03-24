@@ -298,10 +298,12 @@ export default class New extends Component {
       })
       return
     }
+
     this.setState({
       backupInfo: BACKUP_METHOD_TO_INFO[job.method],
       cronPattern: schedule.cron,
       owner: job.userId,
+      timeout: job.timeout,
       timezone: schedule.timezone || null
     }, () => delay(this._populateForm, 250, job)) // Work around.
     // Without the delay, some selects are not always ready to load a value
@@ -374,6 +376,7 @@ export default class New extends Component {
     const {
       backupInfo,
       smartBackupMode,
+      timeout,
       timezone,
       owner
     } = this.state
@@ -424,7 +427,8 @@ export default class New extends Component {
       key: backupInfo.jobKey,
       method: backupInfo.method,
       paramsVector,
-      userId: owner
+      userId: owner,
+      timeout: timeout
     }
 
     // Update backup schedule.
@@ -513,6 +517,7 @@ export default class New extends Component {
       backupInfo,
       cronPattern,
       smartBackupMode,
+      timeout,
       timezone,
       owner,
       showVersionWarning
@@ -533,6 +538,10 @@ export default class New extends Component {
                       required
                       value={owner || null}
                     />
+                  </fieldset>
+                  <fieldset className='form-group'>
+                    <label>{_('jobTimeoutPlaceHolder')}</label>
+                    <input type='number' onChange={this.linkState('timeout')} value={timeout} className='form-control' />
                   </fieldset>
                   <fieldset className='form-group'>
                     <label htmlFor='selectBackup'>{_('newBackupSelection')}</label>

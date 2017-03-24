@@ -257,8 +257,8 @@ export default class Jobs extends Component {
 
   _handleSubmit = () => {
     const {name, method, params} = this.refs
-    const { job, owner } = this.state
 
+    const { job, owner, timeout } = this.state
     const _job = {
       type: 'call',
       name: name.value,
@@ -268,7 +268,8 @@ export default class Jobs extends Component {
         type: 'crossProduct',
         items: dataToParamVectorItems(method.value.info.properties, params.value)
       },
-      userId: owner
+      userId: owner,
+      timeout: timeout
     }
 
     job && (_job.id = job.id)
@@ -320,7 +321,10 @@ export default class Jobs extends Component {
     }
     const { params } = this.refs
     params.value = data
-    this.setState({ owner: job.userId })
+    this.setState({
+      owner: job.userId,
+      timeout: job.timeout
+    })
   }
 
   _reset = () => {
@@ -330,7 +334,8 @@ export default class Jobs extends Component {
     this.setState({
       action: undefined,
       job: undefined,
-      owner: undefined
+      owner: undefined,
+      timeout: ''
     })
   }
 
@@ -356,7 +361,8 @@ export default class Jobs extends Component {
       actions,
       job,
       jobs,
-      owner
+      owner,
+      timeout
     } = this.state
     const { formatMessage } = this.props.intl
 
@@ -374,6 +380,7 @@ export default class Jobs extends Component {
         />
         <input type='text' ref='name' className='form-control mb-1 mt-1' placeholder={formatMessage(messages.jobNamePlaceholder)} pattern='[^_]+' required />
         <SelectPlainObject ref='method' options={actions} optionKey='method' onChange={this._handleSelectMethod} placeholder={_('jobActionPlaceHolder')} />
+        <input type='number' onChange={this.linkState('timeout')} value={timeout} className='form-control mb-1 mt-1' placeholder='Job timeout (seconds)' />
         {action && <fieldset>
           <GenericInput ref='params' schema={action.info} uiSchema={action.uiSchema} label={action.method} required />
           {job && <p className='text-warning'>{_('jobEditMessage', { name: job.name, id: job.id.slice(4, 8) })}</p>}
