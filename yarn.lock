@@ -4418,6 +4418,10 @@ ms@0.7.2, ms@^0.7.2:
   version "0.7.2"
   resolved "https://registry.yarnpkg.com/ms/-/ms-0.7.2.tgz#ae25cf2512b3885a1d95d7f037868d8431124765"
 
+ms@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/ms/-/ms-1.0.0.tgz#59adcd22edc543f7b5381862d31387b1f4bc9473"
+
 multikey-hash@^1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/multikey-hash/-/multikey-hash-1.0.4.tgz#f062fd512deb57d1a6f376cb74dbb50671d4fcc3"
