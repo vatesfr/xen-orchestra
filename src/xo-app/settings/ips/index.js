@@ -35,6 +35,11 @@ import {
 
 const FULL_WIDTH = { width: '100%' }
 const NETWORK_FORM_STYLE = { maxWidth: '40em' }
+const IPS_PATTERN = (() => {
+  const ipRe = '\\d{1,3}(\\.\\d{1,3}){3}'
+  const ipOrRangeRe = `${ipRe}(-${ipRe})?`
+  return `${ipOrRangeRe}(;${ipOrRangeRe})*`
+})()
 
 @connectStore(() => ({
   networks: createGetObjectsOfType('network').groupBy('id'),
@@ -301,10 +306,6 @@ export default class Ips extends BaseComponent {
       networks
     } = this.state
 
-    const ipRe = '\\d{1,3}(\\.\\d{1,3}){3}'
-    const ipOrRangeRe = `${ipRe}(-${ipRe})?`
-    const ipsPattern = `${ipOrRangeRe}(;${ipOrRangeRe})*`
-
     return <div>
       <Row>
         <Col size={6}>
@@ -327,7 +328,7 @@ export default class Ips extends BaseComponent {
                   className='form-control'
                   disabled={creatingIpPool}
                   onChange={this.linkState('ips')}
-                  pattern={ipsPattern}
+                  pattern={IPS_PATTERN}
                   placeholder={intl.formatMessage(messages.ipPoolIps)}
                   required
                   style={FULL_WIDTH}
