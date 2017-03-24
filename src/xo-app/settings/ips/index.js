@@ -3,14 +3,7 @@ import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import BaseComponent from 'base-component'
 import DebounceInput from 'react-debounce-input'
-import findIndex from 'lodash/findIndex'
-import forEach from 'lodash/forEach'
 import Icon from 'icon'
-import includes from 'lodash/includes'
-import isEmpty from 'lodash/isEmpty'
-import isObject from 'lodash/isObject'
-import keys from 'lodash/keys'
-import map from 'lodash/map'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import SortedTable from 'sorted-table'
@@ -20,8 +13,19 @@ import { Container, Row, Col } from 'grid'
 import { formatIps, getNextIpV4, parseIpPattern } from 'ip'
 import { createGetObjectsOfType, createSelector } from 'selectors'
 import { injectIntl } from 'react-intl'
+import { renderXoItemFromId } from 'render-xo-item'
 import { SelectNetwork } from 'select-objects'
 import { Text } from 'editable'
+import {
+  some,
+  findIndex,
+  forEach,
+  includes,
+  isEmpty,
+  isObject,
+  keys,
+  map
+} from 'lodash'
 import {
   createIpPool,
   deleteIpPool,
@@ -31,6 +35,11 @@ import {
 
 const FULL_WIDTH = { width: '100%' }
 const NETWORK_FORM_STYLE = { maxWidth: '40em' }
+const IPS_PATTERN = (() => {
+  const ipRe = '\\d{1,3}(\\.\\d{1,3}){3}'
+  const ipOrRangeRe = `${ipRe}(-${ipRe})?`
+  return `${ipOrRangeRe}(;${ipOrRangeRe})*`
+})()
 
 @connectStore(() => ({
   networks: createGetObjectsOfType('network').groupBy('id'),
@@ -84,6 +93,7 @@ class IpsCell extends BaseComponent {
             </Col>
             <Col mediumSize={1} offset={6}>
               <ActionRowButton
+                btnStyle='secondary'
                 handler={this._deleteIp}
                 handlerParam={ip}
                 icon='delete'
@@ -111,6 +121,7 @@ class IpsCell extends BaseComponent {
           }</Col>
           <Col mediumSize={1}>
             <ActionRowButton
+              btnStyle='secondary'
               handler={this._deleteIp}
               handlerParam={ip}
               icon='delete'
@@ -142,13 +153,6 @@ class IpsCell extends BaseComponent {
   }
 }
 
-@connectStore(() => {
-  const getNetworks = createGetObjectsOfType('network')
-
-  return (state, props) => ({
-    networks: getNetworks(state, props)
-  })
-})
 class NetworksCell extends BaseComponent {
   state = { newNetworks: [] }
 
@@ -182,16 +186,22 @@ class NetworksCell extends BaseComponent {
   )
 
   render () {
-    const { ipPool, networks } = this.props
+    const { ipPool } = this.props
     const { newNetworks, showNewNetworkForm } = this.state
 
     return <Container>
       {map(ipPool.networks, networkId => <Row>
         <Col mediumSize={11}>
-          {networks[networkId].name_label}
+          {renderXoItemFromId(networkId)}
         </Col>
         <Col mediumSize={1}>
-          <ActionButton btnStyle='default' size='small' handler={this._deleteNetwork} handlerParam={networkId} icon='delete' />
+          <ActionRowButton
+            btnStyle='secondary'
+            handler={this._deleteNetwork}
+            handlerParam={networkId}
+            icon='delete'
+            size='small'
+          />
         </Col>
       </Row>)}
       <Row>
@@ -223,24 +233,48 @@ class NetworksCell extends BaseComponent {
 @injectIntl
 export default class Ips extends BaseComponent {
   _create = () => {
-    const { name, ips: { value: pattern }, networks } = this.refs
+    const { name, ips, networks } = this.state
 
     this.setState({ creatingIpPool: true })
     return createIpPool({
-      ips: parseIpPattern(pattern),
-      name: name.value,
-      networks: map(networks.value, network => network.id)
+      ips: parseIpPattern(ips),
+      name,
+      networks: map(networks, 'id')
     }).then(() => {
-      name.value = this.refs.ips.value = networks.value = ''
-      this.setState({ creatingIpPool: false })
+      this.setState({
+        creatingIpPool: false,
+        ips: undefined,
+        name: undefined,
+        networks: []
+      })
     })
+  }
+
+  _getNameAlreadyExists = createSelector(
+    () => this.props.ipPools,
+    ipPools => name => some(ipPools, { name })
+  )
+
+  _disableCreation = createSelector(
+    this._getNameAlreadyExists,
+    () => this.state,
+    (nameAlreadyExists, { name, ips, networks }) =>
+      !name || isEmpty(ips) || isEmpty(networks) || nameAlreadyExists(name)
+  )
+
+  _onChangeIpPoolName = (ipPool, name) => {
+    if (some(this.props.ipPools, { name })) {
+      throw new Error(this.props.intl.formatMessage(messages.ipPoolNameAlreadyExists))
+    }
+
+    return setIpPool(ipPool, { name })
   }
 
   _ipColumns = [
     {
       default: true,
       name: _('ipPoolName'),
-      itemRenderer: ipPool => <Text onChange={name => setIpPool(ipPool, { name })} value={ipPool.name} />,
+      itemRenderer: ipPool => <Text onChange={name => this._onChangeIpPoolName(ipPool, name)} value={ipPool.name} />,
       sortCriteria: ipPool => ipPool.name
     },
     {
@@ -254,7 +288,7 @@ export default class Ips extends BaseComponent {
     {
       name: '',
       itemRenderer: ipPool => <span className='pull-right'>
-        <ActionButton btnStyle='default' handler={deleteIpPool} handlerParam={ipPool.id} icon='delete' />
+        <ActionButton btnStyle='secondary' handler={deleteIpPool} handlerParam={ipPool.id} icon='delete' />
       </span>
     }
   ]
@@ -265,7 +299,13 @@ export default class Ips extends BaseComponent {
     }
 
     const { ipPools, intl } = this.props
-    const { creatingIpPool } = this.state
+    const {
+      creatingIpPool,
+      ips,
+      name,
+      networks
+    } = this.state
+
     return <div>
       <Row>
         <Col size={6}>
@@ -275,22 +315,25 @@ export default class Ips extends BaseComponent {
                 <input
                   className='form-control'
                   disabled={creatingIpPool}
+                  onChange={this.linkState('name')}
                   placeholder={intl.formatMessage(messages.ipPoolName)}
-                  ref='name'
                   required
                   style={FULL_WIDTH}
                   type='text'
+                  value={name || ''}
                 />
               </Col>
               <Col mediumSize={6}>
                 <input
                   className='form-control'
                   disabled={creatingIpPool}
+                  onChange={this.linkState('ips')}
+                  pattern={IPS_PATTERN}
                   placeholder={intl.formatMessage(messages.ipPoolIps)}
-                  ref='ips'
                   required
                   style={FULL_WIDTH}
                   type='text'
+                  value={ips || ''}
                 />
               </Col>
             </SingleLineRow>
@@ -300,7 +343,8 @@ export default class Ips extends BaseComponent {
                 <SelectNetwork
                   disabled={creatingIpPool}
                   multi
-                  ref='networks'
+                  onChange={this.linkState('networks')}
+                  value={networks}
                 />
               </Col>
             </SingleLineRow>
@@ -309,6 +353,7 @@ export default class Ips extends BaseComponent {
               <Col mediumSize={6}>
                 <ActionButton
                   btnStyle='success'
+                  disabled={this._disableCreation()}
                   form='newIpPoolForm' icon='add'
                   handler={this._create}
                 >

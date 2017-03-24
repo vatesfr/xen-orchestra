@@ -1268,6 +1268,7 @@ var messages = {
   ipsVifs: 'VIFs',
   ipsNotUsed: 'Not used',
   ipPoolUnknownVif: 'unknown VIF',
+  ipPoolNameAlreadyExists: 'Name already exists',
 
   // ----- Shortcuts -----
   shortcutModalTitle: 'Keyboard shortcuts',
