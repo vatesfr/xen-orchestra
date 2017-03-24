@@ -101,6 +101,7 @@ class NewDisk extends Component {
   )
 
   render () {
+    const { vm } = this.props
     const { formatMessage } = this.props.intl
 
     return <form id='newDiskForm'>
@@ -117,7 +118,8 @@ class NewDisk extends Component {
         </div>
         {' '}
         <div className='form-group'>
-          {_('vdbBootable')} <Toggle ref='bootable' /> {_('vdbReadonly')} <Toggle ref='readOnly' />
+          {vm.virtualizationMode === 'pv' && <span>{_('vdbBootable')} <Toggle ref='bootable' /> </span>}
+          <span>{_('vdbReadonly')} <Toggle ref='readOnly' /></span>
         </div>
         <span className='pull-right'>
           <ActionButton form='newDiskForm' icon='add' btnStyle='primary' handler={this._createDisk}>{_('vdbCreate')}</ActionButton>
@@ -169,7 +171,9 @@ class AttachDisk extends Component {
   }
 
   render () {
+    const { vm } = this.props
     const { vdi } = this.state
+
     return <form id='attachDiskForm'>
       <div className='form-group'>
         <SelectVdi
@@ -180,7 +184,8 @@ class AttachDisk extends Component {
       </div>
       {vdi && <fieldset className='form-inline'>
         <div className='form-group'>
-          {_('vdbBootable')} <Toggle ref='bootable' /> {_('vdbReadonly')} <Toggle ref='readOnly' />
+          {vm.virtualizationMode === 'pv' && <span>{_('vdbBootable')} <Toggle ref='bootable' /> </span>}
+          <span>{_('vdbReadonly')} <Toggle ref='readOnly' /></span>
         </div>
         <span className='pull-right'>
           <ActionButton icon='add' form='attachDiskForm' btnStyle='primary' handler={this._addVdi}>{_('vdbCreate')}</ActionButton>
@@ -226,7 +231,8 @@ const orderItemTarget = {
   isDragging: propTypes.bool.isRequired,
   id: propTypes.any.isRequired,
   item: propTypes.object.isRequired,
-  move: propTypes.func.isRequired
+  move: propTypes.func.isRequired,
+  showBootableFlag: propTypes.bool
 })
 class OrderItem extends Component {
   _toggle = checked => {
@@ -236,7 +242,7 @@ class OrderItem extends Component {
   }
 
   render () {
-    const { item, connectDragSource, connectDropTarget } = this.props
+    const { item, connectDragSource, connectDropTarget, showBootableFlag } = this.props
     return connectDragSource(connectDropTarget(
       <li className='list-group-item'>
         <Icon icon='grab' />
@@ -244,9 +250,9 @@ class OrderItem extends Component {
         <Icon icon='grab' />
         {' '}
         {item.text}
-        <span className='pull-right'>
+        {showBootableFlag && <span className='pull-right'>
           <Toggle value={item.active} onChange={this._toggle} />
-        </span>
+        </span>}
       </li>
     ))
   }
@@ -290,6 +296,7 @@ class BootOrder extends Component {
   }
 
   render () {
+    const { vm } = this.props
     const { order } = this.state
 
     return <form>
@@ -301,6 +308,7 @@ class BootOrder extends Component {
           // FIXME missing translation
           item={item}
           move={this._moveOrderItem}
+          showBootableFlag={vm.virtualizationMode === 'pv'}
         />)}
       </ul>
       <fieldset className='form-inline'>
@@ -441,7 +449,7 @@ export default class TabDisks extends Component {
                   <th>{_('vdiNameDescription')}</th>
                   <th>{_('vdiSize')}</th>
                   <th>{_('vdiSr')}</th>
-                  <th>{_('vdbBootableStatus')}</th>
+                  {vm.virtualizationMode === 'pv' && <th>{_('vdbBootableStatus')}</th>}
                   <th>{_('vdbStatus')}</th>
                   <th className='text-xs-right'>{_('vbdAction')}</th>
                 </tr>
@@ -476,12 +484,12 @@ export default class TabDisks extends Component {
                       </XoSelect>
                     }
                     </td>
-                    <td>
+                    {vm.virtualizationMode === 'pv' && <td>
                       <Toggle
                         value={vbd.bootable}
                         onChange={bootable => setBootableVbd(vbd, bootable)}
                       />
-                    </td>
+                    </td>}
                     <td>
                       <StateButton
                         disabledLabel={_('vbdStatusDisconnected')}
