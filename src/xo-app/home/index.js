@@ -255,9 +255,11 @@ export default class Home extends Component {
     const { selectedItems } = this.state
 
     // Unselect items that are no longer visible
-    const newSelectedItems = pick(selectedItems, map(this._getVisibleItems(), 'id'))
-    if (size(newSelectedItems) < this._getNumberOfSelectedItems()) {
-      this.setState({ selectedItems: newSelectedItems })
+    if ((this._visibleItemsRecomputations || 0) < (this._visibleItemsRecomputations = this._getVisibleItems.recomputations())) {
+      const newSelectedItems = pick(selectedItems, map(this._getVisibleItems(), 'id'))
+      if (size(newSelectedItems) < this._getNumberOfSelectedItems()) {
+        this.setState({ selectedItems: newSelectedItems })
+      }
     }
   }
 
