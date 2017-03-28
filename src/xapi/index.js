@@ -764,6 +764,7 @@ export default class Xapi extends XapiBase {
     return httpRequest({
       hostname: host.address,
       path: onlyMetadata ? '/export_metadata/' : '/export/',
+      protocol: 'https',
       query: {
         ref: snapshotRef || vm.$ref,
         session_id: this.sessionId,
@@ -1225,6 +1226,7 @@ export default class Xapi extends XapiBase {
       put(stream, {
         hostname: host.address,
         path,
+        protocol: 'https',
         query
       })
     ])
@@ -1844,6 +1846,7 @@ export default class Xapi extends XapiBase {
     return httpRequest($cancelToken, {
       hostname: host.address,
       path: '/export_raw_vdi/',
+      protocol: 'https',
       query
     }).then(response => {
       response.task = task
@@ -1889,6 +1892,7 @@ export default class Xapi extends XapiBase {
         hostname: pbd.$host.address,
         method: 'put',
         path: '/import_raw_vdi/',
+        protocol: 'https',
         query
       }, task)
     ])
