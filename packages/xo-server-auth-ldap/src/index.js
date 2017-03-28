@@ -78,6 +78,11 @@ For Microsoft Active Directory, you can try one of the following filters:
 - \`(sAMAccountName={{name}})\`
 - \`(sAMAccountName={{name}}@<domain>)\` (replace \`<domain>\` by your own domain)
 - \`(userPrincipalName={{name}})\`
+
+For LDAP if you want to filter for a special group you can try
+something like:
+
+- \`(&(uid={{name}})(memberOf=<group DN>))\`
 `.trim(),
       type: 'string',
       default: '(uid={{name}})'
