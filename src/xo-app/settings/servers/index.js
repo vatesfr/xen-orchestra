@@ -48,7 +48,7 @@ export default class Servers extends Component {
         servers
       },
       state
-    } = this.props
+    } = this
 
     return <Container>
       <table className='table table-striped'>
