@@ -7,6 +7,6 @@
   "scripts": {
     "commit-msg": "yarn test",
     "install": "lerna exec --concurrency 1 -- yarn",
-    "test": "lerna exec -- yarn test"
+    "test": "lerna run test"
   }
 }
