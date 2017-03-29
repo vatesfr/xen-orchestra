@@ -56,11 +56,12 @@ export default class {
     // TODO: disconnect servers on stop.
   }
 
-  async registerXenServer ({host, username, password, readOnly = false}) {
+  async registerXenServer ({label, host, username, password, readOnly = false}) {
     // FIXME: We are storing passwords which is bad!
     //        Could we use tokens instead?
     // TODO: use plain objects
     const server = await this._servers.create({
+      label: label || undefined,
       host,
       username,
       password,
@@ -79,9 +80,10 @@ export default class {
     }
   }
 
-  async updateXenServer (id, {host, username, password, readOnly, enabled, error}) {
+  async updateXenServer (id, {label, host, username, password, readOnly, enabled, error}) {
     const server = await this._getXenServer(id)
 
+    if (label !== undefined) server.set('label', label || undefined)
     if (host) server.set('host', host)
     if (username) server.set('username', username)
     if (password) server.set('password', password)

@@ -4,13 +4,14 @@ import {
 } from '../utils'
 
 export async function add ({
+  label,
   host,
   username,
   password,
   readOnly,
   autoConnect = true
 }) {
-  const server = await this.registerXenServer({host, username, password, readOnly})
+  const server = await this.registerXenServer({label, host, username, password, readOnly})
 
   if (autoConnect) {
     // Connect asynchronously, ignore any errors.
@@ -25,6 +26,10 @@ add.description = 'register a new Xen server'
 add.permission = 'admin'
 
 add.params = {
+  label: {
+    optional: true,
+    type: 'string'
+  },
   host: {
     type: 'string'
   },
@@ -70,8 +75,8 @@ getAll.permission = 'admin'
 
 // -------------------------------------------------------------------
 
-export async function set ({id, host, username, password, readOnly}) {
-  await this.updateXenServer(id, {host, username, password, readOnly})
+export async function set ({id, label, host, username, password, readOnly}) {
+  await this.updateXenServer(id, {label, host, username, password, readOnly})
 }
 
 set.description = 'changes the properties of a Xen server'
@@ -81,6 +86,10 @@ set.permission = 'admin'
 set.params = {
   id: {
     type: 'string'
+  },
+  label: {
+    type: 'string',
+    optional: true
   },
   host: {
     type: 'string',
