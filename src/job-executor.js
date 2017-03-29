@@ -9,6 +9,7 @@ import mapValues from 'lodash/mapValues'
 import size from 'lodash/size'
 import some from 'lodash/some'
 import { BaseError } from 'make-error'
+import { timeout } from 'promise-toolbox'
 
 import { crossProduct } from './math'
 import {
@@ -163,8 +164,12 @@ export default class JobExecutor {
         params,
         start: Date.now()
       }
+      let promise = this.xo.callApiMethod(connection, job.method, assign({}, params))
+      if (job.timeout) {
+        promise = promise::timeout(job.timeout)
+      }
 
-      return this.xo.callApiMethod(connection, job.method, assign({}, params)).then(
+      return promise.then(
         value => {
           this._logger.notice(`Call ${job.method} (${runCallId}) is a success. (${job.id})`, {
             event: 'jobCall.end',

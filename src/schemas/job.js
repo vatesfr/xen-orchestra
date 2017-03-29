@@ -27,6 +27,10 @@ export default {
     },
     paramsVector: {
       type: 'object'
+    },
+    timeout: {
+      type: 'number',
+      description: 'number of milliseconds after which the job is considered failed'
     }
   },
   required: [

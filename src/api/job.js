@@ -33,6 +33,7 @@ create.params = {
     properties: {
       userId: {type: 'string', optional: true},
       name: {type: 'string', optional: true},
+      timeout: {type: 'number', optional: true},
       type: {type: 'string'},
       key: {type: 'string'},
       method: {type: 'string'},
@@ -65,6 +66,7 @@ set.params = {
     properties: {
       id: {type: 'string'},
       name: {type: 'string', optional: true},
+      timeout: {type: 'number', optional: true},
       type: {type: 'string'},
       key: {type: 'string'},
       method: {type: 'string'},
