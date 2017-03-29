@@ -5,7 +5,7 @@
     "promise-toolbox": "^0.8.2"
   },
   "scripts": {
-    "commit-msg": "yarn test",
+    "commitmsg": "yarn test",
     "install": "lerna exec --concurrency 1 -- yarn",
     "test": "lerna run test"
   }
