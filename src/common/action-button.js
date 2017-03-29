@@ -38,7 +38,8 @@ export default class ActionButton extends Component {
 
     const {
       handler,
-      handlerParam
+      handlerParam,
+      children
     } = this.props
 
     try {
@@ -69,7 +70,7 @@ export default class ActionButton extends Component {
       // ignore when undefined because it usually means that the action has been canceled
       if (error !== undefined) {
         logError(error)
-        _error(error.name, error.message || String(error))
+        _error(children || error.name, error.message || String(error))
       }
     }
   }
