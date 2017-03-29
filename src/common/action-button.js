@@ -7,6 +7,7 @@ import Component from './base-component'
 import logError from './log-error'
 import propTypes from './prop-types'
 import Tooltip from './tooltip'
+import { error as _error } from './notification'
 
 @propTypes({
   btnStyle: propTypes.string,
@@ -68,6 +69,7 @@ export default class ActionButton extends Component {
       // ignore when undefined because it usually means that the action has been canceled
       if (error !== undefined) {
         logError(error)
+        _error(error.name, error.message || String(error))
       }
     }
   }
