@@ -39,6 +39,7 @@
     "nice-pipe": "0.0.0",
     "pretty-ms": "^2.1.0",
     "progress-stream": "^1.1.1",
+    "pw": "^0.0.4",
     "xdg-basedir": "^2.0.0",
     "xo-lib": "^0.8.0"
   },

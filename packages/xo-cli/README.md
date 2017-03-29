@@ -19,7 +19,7 @@ npm install -g xo-cli
 > xo-cli --help
 Usage:
 
-  xo-cli --register [<XO-Server URL>] [<username>] [<password>]
+  xo-cli --register <XO-Server URL> <username> [<password>]
     Registers the XO instance to use.
 
   xo-cli --unregister

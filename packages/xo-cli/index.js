@@ -27,6 +27,7 @@ var pairs = require('lodash/toPairs')
 var pick = require('lodash/pick')
 var prettyMs = require('pretty-ms')
 var progressStream = require('progress-stream')
+var pw = require('pw')
 var Xo = require('xo-lib').default
 
 // -------------------------------------------------------------------
@@ -142,7 +143,7 @@ var help = wrap((function (pkg) {
   return multiline.stripIndent(function () { /*
     Usage:
 
-      $name --register [<XO-Server URL>] [<username>] [<password>]
+      $name --register <XO-Server URL> <username> [<password>]
         Registers the XO instance to use.
 
       $name --unregister
@@ -206,11 +207,19 @@ exports = module.exports = main
 exports.help = help
 
 function register (args) {
-  var xo = new Xo({ url: args[0] })
-  return xo.open().then(function () {
+  var password, xo
+  return Promise.resolve(args[2] || new Promise(function (resolve) {
+    process.stdout.write('Password: ')
+    pw(resolve)
+  })).then(function (password_) {
+    password = password_
+
+    xo = new Xo({ url: args[0] })
+    return xo.open()
+  }).then(function () {
     return xo.signIn({
       email: args[1],
-      password: args[2]
+      password: password
     })
   }).then(function () {
     console.log('Successfully logged with', xo.user.email)
