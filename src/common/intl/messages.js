@@ -1069,6 +1069,7 @@ var messages = {
   trialReadyModalText: 'During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans!',
 
   // ----- Servers -----
+  serverLabel: 'Label',
   serverHost: 'Host',
   serverUsername: 'Username',
   serverPassword: 'Password',
@@ -1078,6 +1079,7 @@ var messages = {
   serverPlaceHolderUser: 'username',
   serverPlaceHolderPassword: 'password',
   serverPlaceHolderAddress: 'address[:port]',
+  serverPlaceHolderLabel: 'label',
   serverConnect: 'Connect',
   serverError: 'Error',
   serverAddFailed: 'Adding server failed',

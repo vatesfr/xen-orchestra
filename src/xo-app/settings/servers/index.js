@@ -29,11 +29,11 @@ import {
 @injectIntl
 export default class Servers extends Component {
   _addServer = async () => {
-    const { host, password, username } = this.state
+    const { label, host, password, username } = this.state
 
-    await addServer(host, username, password)
+    await addServer(label, host, username, password)
 
-    this.setState({ host: '', password: '', username: '' })
+    this.setState({ label: '', host: '', password: '', username: '' })
   }
 
   _showError = error => alert(
@@ -43,12 +43,13 @@ export default class Servers extends Component {
 
   render () {
     const { servers } = this.props
-    const { host, password, username } = this.state
+    const { label, host, password, username } = this.state
 
     return <Container>
       <table className='table table-striped'>
         <thead>
           <tr>
+            <td>{_('serverLabel')}</td>
             <td>{_('serverHost')}</td>
             <td>{_('serverUsername')}</td>
             <td>{_('serverPassword')}</td>
@@ -60,6 +61,13 @@ export default class Servers extends Component {
         <tbody>
           {map(servers, server => (
             <tr key={server.id}>
+              <td>
+                <Text
+                  value={server.label}
+                  onChange={label => editServer(server, { label })}
+                  placeholder={this.props.intl.formatMessage(messages.serverPlaceHolderLabel)}
+                />
+              </td>
               <td>
                 <Text
                   value={server.host}
@@ -131,6 +139,16 @@ export default class Servers extends Component {
         className='form-inline'
         id='form-add-server'
       >
+        <div className='form-group'>
+          <input
+            className='form-control'
+            onChange={this.linkState('label')}
+            placeholder={this.props.intl.formatMessage(messages.serverPlaceHolderLabel)}
+            type='text'
+            value={label}
+          />
+        </div>
+        {' '}
         <div className='form-group'>
           <input
             className='form-control'
