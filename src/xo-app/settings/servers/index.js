@@ -63,7 +63,7 @@ export default class Servers extends Component {
             <tr key={server.id}>
               <td>
                 <Text
-                  value={server.label}
+                  value={server.label || ''}
                   onChange={label => editServer(server, { label })}
                   placeholder={this.props.intl.formatMessage(messages.serverPlaceHolderLabel)}
                 />
