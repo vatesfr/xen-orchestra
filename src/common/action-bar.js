@@ -2,7 +2,6 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import map from 'lodash/map'
 import React from 'react'
-import Tooltip from 'tooltip'
 import {
   ButtonGroup
 } from 'react-bootstrap-4/lib'
@@ -18,17 +17,16 @@ const ActionBar = ({ actions, param }) => (
       }
 
       const { handler, handlerParam = param, label, icon, redirectOnSuccess } = button
-      return <Tooltip key={index} content={_(label)}>
-        <ActionButton
-          key={index}
-          btnStyle='secondary'
-          handler={handler || noop}
-          handlerParam={handlerParam}
-          icon={icon}
-          redirectOnSuccess={redirectOnSuccess}
-          size='large'
-        />
-      </Tooltip>
+      return <ActionButton
+        key={index}
+        btnStyle='secondary'
+        handler={handler || noop}
+        handlerParam={handlerParam}
+        icon={icon}
+        redirectOnSuccess={redirectOnSuccess}
+        size='large'
+        tooltip={_(label)}
+      />
     })}
   </ButtonGroup>
 )
