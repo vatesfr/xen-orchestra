@@ -82,6 +82,9 @@ const fullCopy = vm => cloneVm(vm, true)
   }
 })
 class AffinityHost extends Component {
+  _removeAffinityHost = () =>
+    editVm(this.props.vm, { affinityHost: null })
+
   render () {
     const {
       affinityHost,
@@ -102,7 +105,7 @@ class AffinityHost extends Component {
         }
       </XoSelect>
       {' '}
-      {affinityHost && <a role='button' onClick={() => editVm(vm, { affinityHost: null })}>
+      {affinityHost && <a role='button' onClick={this._removeAffinityHost}>
         <Icon icon='remove' />
       </a>}
     </span>
