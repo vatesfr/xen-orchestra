@@ -1,13 +1,21 @@
 import _ from 'intl'
+import Component from 'base-component'
 import Copiable from 'copiable'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import React from 'react'
+import renderXoItem from 'render-xo-item'
 import TabButton from 'tab-button'
 import { Toggle } from 'form'
-import { Number, Size, Text } from 'editable'
+import { Number, Size, Text, XoSelect } from 'editable'
 import { Container, Row, Col } from 'grid'
 import {
+  every,
+  map,
+  uniq
+} from 'lodash'
+import {
+  connectStore,
   firstDefined,
   formatSize,
   normalizeXenToolsStatus,
@@ -26,10 +34,82 @@ import {
   XEN_DEFAULT_CPU_CAP,
   XEN_DEFAULT_CPU_WEIGHT
 } from 'xo'
+import {
+  createGetObjectsOfType,
+  createSelector
+} from 'selectors'
 
 const forceReboot = vm => restartVm(vm, true)
 const forceShutdown = vm => stopVm(vm, true)
 const fullCopy = vm => cloneVm(vm, true)
+
+@connectStore(() => {
+  const getAffinityHost = createGetObjectsOfType('host').find(
+    (_, { vm }) => ({ id: vm.affinityHost })
+  )
+
+  const getVbds = createGetObjectsOfType('VBD').pick(
+    (_, { vm }) => vm.$VBDs
+  )
+  const getVdis = createGetObjectsOfType('VDI').pick(
+    createSelector(
+      getVbds,
+      vbds => map(vbds, 'VDI')
+    )
+  )
+  const getSrs = createGetObjectsOfType('SR').pick(
+    createSelector(
+      getVdis,
+      vdis => uniq(map(vdis, '$SR'))
+    )
+  )
+  const getSrsContainers = createSelector(
+    getSrs,
+    srs => uniq(map(srs, '$container'))
+  )
+
+  const getAffinityHostPredicate = createSelector(
+    getAffinityHost,
+    getSrsContainers,
+    (affinityHost, containers) =>
+      host => (!affinityHost || host.id !== affinityHost.id) &&
+        every(containers, container => container === host.$pool || container === host.id)
+  )
+
+  return {
+    affinityHost: getAffinityHost,
+    affinityHostPredicate: getAffinityHostPredicate
+  }
+})
+class AffinityHost extends Component {
+  _editAffinityHost = host =>
+    editVm(this.props.vm, { affinityHost: host.id || null })
+
+  render () {
+    const {
+      affinityHost,
+      affinityHostPredicate
+    } = this.props
+
+    return <span>
+      <XoSelect
+        onChange={this._editAffinityHost}
+        predicate={affinityHostPredicate}
+        value={affinityHost}
+        xoType='host'
+      >
+        {affinityHost
+          ? renderXoItem(affinityHost)
+          : _('noAffinityHost')
+        }
+      </XoSelect>
+      {' '}
+      {affinityHost && <a role='button' onClick={this._editAffinityHost}>
+        <Icon icon='remove' />
+      </a>}
+    </span>
+  }
+}
 
 export default ({
   vm
@@ -166,6 +246,12 @@ export default ({
             <th>{_('ha')}</th>
             <td><Toggle value={vm.high_availability} onChange={value => editVm(vm, { high_availability: value })} /></td>
           </tr>
+          <tr>
+            <th>{_('vmAffinityHost')}</th>
+            <td>
+              <AffinityHost vm={vm} />
+            </td>
+          </tr>
         </tbody>
       </table>
       <br />
@@ -202,10 +288,11 @@ export default ({
           </tr>
           <tr>
             <th>{_('osName')}</th>
-            <td>{isEmpty(vm.os_version)
+            <td>
+              {isEmpty(vm.os_version)
                 ? _('unknownOsName')
                 : <span><Icon className='text-info' icon={osFamily(vm.os_version.distro)} />&nbsp;{vm.os_version.name}</span>
-                }
+              }
             </td>
           </tr>
           <tr>
