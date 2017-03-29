@@ -31,7 +31,7 @@ export default class Servers extends Component {
   _addServer = async () => {
     const { label, host, password, username } = this.state
 
-    await addServer(label, host, username, password)
+    await addServer(host, username, password, label)
 
     this.setState({ label: '', host: '', password: '', username: '' })
   }
@@ -42,8 +42,13 @@ export default class Servers extends Component {
   )
 
   render () {
-    const { servers } = this.props
-    const { label, host, password, username } = this.state
+    const {
+      props: {
+        intl: { formatMessage },
+        servers
+      },
+      state
+    } = this.props
 
     return <Container>
       <table className='table table-striped'>
@@ -65,28 +70,28 @@ export default class Servers extends Component {
                 <Text
                   value={server.label || ''}
                   onChange={label => editServer(server, { label })}
-                  placeholder={this.props.intl.formatMessage(messages.serverPlaceHolderLabel)}
+                  placeholder={formatMessage(messages.serverPlaceHolderLabel)}
                 />
               </td>
               <td>
                 <Text
                   value={server.host}
                   onChange={host => editServer(server, { host })}
-                  placeholder={this.props.intl.formatMessage(messages.serverPlaceHolderAddress)}
+                  placeholder={formatMessage(messages.serverPlaceHolderAddress)}
                 />
               </td>
               <td>
                 <Text
                   value={server.username}
                   onChange={username => editServer(server, { username })}
-                  placeholder={this.props.intl.formatMessage(messages.serverPlaceHolderUser)}
+                  placeholder={formatMessage(messages.serverPlaceHolderUser)}
                 />
               </td>
               <td>
                 <EditablePassword
                   value=''
                   onChange={password => editServer(server, { password })}
-                  placeholder={this.props.intl.formatMessage(messages.serverPlaceHolderPassword)}
+                  placeholder={formatMessage(messages.serverPlaceHolderPassword)}
                 />
               </td>
               <td>
@@ -143,9 +148,9 @@ export default class Servers extends Component {
           <input
             className='form-control'
             onChange={this.linkState('label')}
-            placeholder={this.props.intl.formatMessage(messages.serverPlaceHolderLabel)}
+            placeholder={formatMessage(messages.serverPlaceHolderLabel)}
             type='text'
-            value={label}
+            value={state.label}
           />
         </div>
         {' '}
@@ -153,10 +158,10 @@ export default class Servers extends Component {
           <input
             className='form-control'
             onChange={this.linkState('host')}
-            placeholder={this.props.intl.formatMessage(messages.serverPlaceHolderAddress)}
+            placeholder={formatMessage(messages.serverPlaceHolderAddress)}
             required
             type='text'
-            value={host}
+            value={state.host}
           />
         </div>
         {' '}
@@ -164,10 +169,10 @@ export default class Servers extends Component {
           <input
             className='form-control'
             onChange={this.linkState('username')}
-            placeholder={this.props.intl.formatMessage(messages.serverPlaceHolderUser)}
+            placeholder={formatMessage(messages.serverPlaceHolderUser)}
             required
             type='text'
-            value={username}
+            value={state.username}
           />
         </div>
         {' '}
@@ -175,9 +180,9 @@ export default class Servers extends Component {
           <Password
             disabled={!this.state.username}
             onChange={this.linkState('password')}
-            placeholder={this.props.intl.formatMessage(messages.serverPlaceHolderPassword)}
+            placeholder={formatMessage(messages.serverPlaceHolderPassword)}
             required
-            value={password}
+            value={state.password}
           />
         </div>
         {' '}
