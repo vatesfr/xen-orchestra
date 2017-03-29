@@ -513,15 +513,15 @@ export default class New extends Component {
     type === 'user' && permission === 'admin'
 
   render () {
+    const { state } = this
     const {
       backupInfo,
       cronPattern,
       smartBackupMode,
-      timeout,
       timezone,
       owner,
       showVersionWarning
-    } = this.state
+    } = state
 
     return process.env.XOA_PLAN > 1
       ? (
@@ -541,7 +541,7 @@ export default class New extends Component {
                   </fieldset>
                   <fieldset className='form-group'>
                     <label>{_('jobTimeoutPlaceHolder')}</label>
-                    <input type='number' onChange={this.linkState('timeout')} value={timeout} className='form-control' />
+                    <input type='number' onChange={this.linkState('timeout')} value={state.timeout} className='form-control' />
                   </fieldset>
                   <fieldset className='form-group'>
                     <label htmlFor='selectBackup'>{_('newBackupSelection')}</label>
