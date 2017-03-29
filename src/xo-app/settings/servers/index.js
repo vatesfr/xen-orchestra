@@ -29,11 +29,11 @@ import {
 @injectIntl
 export default class Servers extends Component {
   _addServer = async () => {
-    const { host, password, username } = this.state
+    const { label, host, password, username } = this.state
 
-    await addServer(host, username, password)
+    await addServer(host, username, password, label)
 
-    this.setState({ host: '', password: '', username: '' })
+    this.setState({ label: '', host: '', password: '', username: '' })
   }
 
   _showError = error => alert(
@@ -42,13 +42,19 @@ export default class Servers extends Component {
   )
 
   render () {
-    const { servers } = this.props
-    const { host, password, username } = this.state
+    const {
+      props: {
+        intl: { formatMessage },
+        servers
+      },
+      state
+    } = this
 
     return <Container>
       <table className='table table-striped'>
         <thead>
           <tr>
+            <td>{_('serverLabel')}</td>
             <td>{_('serverHost')}</td>
             <td>{_('serverUsername')}</td>
             <td>{_('serverPassword')}</td>
@@ -62,23 +68,30 @@ export default class Servers extends Component {
             <tr key={server.id}>
               <td>
                 <Text
+                  value={server.label || ''}
+                  onChange={label => editServer(server, { label })}
+                  placeholder={formatMessage(messages.serverPlaceHolderLabel)}
+                />
+              </td>
+              <td>
+                <Text
                   value={server.host}
                   onChange={host => editServer(server, { host })}
-                  placeholder={this.props.intl.formatMessage(messages.serverPlaceHolderAddress)}
+                  placeholder={formatMessage(messages.serverPlaceHolderAddress)}
                 />
               </td>
               <td>
                 <Text
                   value={server.username}
                   onChange={username => editServer(server, { username })}
-                  placeholder={this.props.intl.formatMessage(messages.serverPlaceHolderUser)}
+                  placeholder={formatMessage(messages.serverPlaceHolderUser)}
                 />
               </td>
               <td>
                 <EditablePassword
                   value=''
                   onChange={password => editServer(server, { password })}
-                  placeholder={this.props.intl.formatMessage(messages.serverPlaceHolderPassword)}
+                  placeholder={formatMessage(messages.serverPlaceHolderPassword)}
                 />
               </td>
               <td>
@@ -134,11 +147,21 @@ export default class Servers extends Component {
         <div className='form-group'>
           <input
             className='form-control'
+            onChange={this.linkState('label')}
+            placeholder={formatMessage(messages.serverPlaceHolderLabel)}
+            type='text'
+            value={state.label}
+          />
+        </div>
+        {' '}
+        <div className='form-group'>
+          <input
+            className='form-control'
             onChange={this.linkState('host')}
-            placeholder={this.props.intl.formatMessage(messages.serverPlaceHolderAddress)}
+            placeholder={formatMessage(messages.serverPlaceHolderAddress)}
             required
             type='text'
-            value={host}
+            value={state.host}
           />
         </div>
         {' '}
@@ -146,10 +169,10 @@ export default class Servers extends Component {
           <input
             className='form-control'
             onChange={this.linkState('username')}
-            placeholder={this.props.intl.formatMessage(messages.serverPlaceHolderUser)}
+            placeholder={formatMessage(messages.serverPlaceHolderUser)}
             required
             type='text'
-            value={username}
+            value={state.username}
           />
         </div>
         {' '}
@@ -157,9 +180,9 @@ export default class Servers extends Component {
           <Password
             disabled={!this.state.username}
             onChange={this.linkState('password')}
-            placeholder={this.props.intl.formatMessage(messages.serverPlaceHolderPassword)}
+            placeholder={formatMessage(messages.serverPlaceHolderPassword)}
             required
-            value={password}
+            value={state.password}
           />
         </div>
         {' '}

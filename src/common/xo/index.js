@@ -306,14 +306,14 @@ export const exportConfig = () => (
 
 // Server ------------------------------------------------------------
 
-export const addServer = (host, username, password) => (
-  _call('server.add', { host, username, password })::tap(
+export const addServer = (host, username, password, label) => (
+  _call('server.add', { host, label, password, username })::tap(
     subscribeServers.forceRefresh
   )::rethrow(() => error(_('serverError'), _('serverAddFailed')))
 )
 
-export const editServer = (server, { host, username, password, readOnly }) => (
-  _call('server.set', { id: resolveId(server), host, username, password, readOnly })::tap(
+export const editServer = (server, props) => (
+  _call('server.set', { ...props, id: resolveId(server) })::tap(
     subscribeServers.forceRefresh
   )
 )
