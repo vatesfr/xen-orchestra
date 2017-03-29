@@ -37,9 +37,9 @@ export default class ActionButton extends Component {
     }
 
     const {
+      children,
       handler,
-      handlerParam,
-      children
+      handlerParam
     } = this.props
 
     try {
