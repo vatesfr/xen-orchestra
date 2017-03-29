@@ -82,19 +82,18 @@ const fullCopy = vm => cloneVm(vm, true)
   }
 })
 class AffinityHost extends Component {
-  _removeAffinityHost = () =>
-    editVm(this.props.vm, { affinityHost: null })
+  _editAffinityHost = host =>
+    editVm(this.props.vm, { affinityHost: host.id || null })
 
   render () {
     const {
       affinityHost,
-      affinityHostPredicate,
-      vm
+      affinityHostPredicate
     } = this.props
 
     return <span>
       <XoSelect
-        onChange={host => editVm(vm, { affinityHost: host.id })}
+        onChange={this._editAffinityHost}
         predicate={affinityHostPredicate}
         value={affinityHost}
         xoType='host'
@@ -105,7 +104,7 @@ class AffinityHost extends Component {
         }
       </XoSelect>
       {' '}
-      {affinityHost && <a role='button' onClick={this._removeAffinityHost}>
+      {affinityHost && <a role='button' onClick={this._editAffinityHost}>
         <Icon icon='remove' />
       </a>}
     </span>
