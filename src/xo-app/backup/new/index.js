@@ -303,7 +303,7 @@ export default class New extends Component {
       backupInfo: BACKUP_METHOD_TO_INFO[job.method],
       cronPattern: schedule.cron,
       owner: job.userId,
-      timeout: job.timeout,
+      timeout: job.timeout && job.timeout / 1e3,
       timezone: schedule.timezone || null
     }, () => delay(this._populateForm, 250, job)) // Work around.
     // Without the delay, some selects are not always ready to load a value
@@ -428,7 +428,7 @@ export default class New extends Component {
       method: backupInfo.method,
       paramsVector,
       userId: owner,
-      timeout: timeout
+      timeout: timeout ? timeout * 1e3 : undefined
     }
 
     // Update backup schedule.

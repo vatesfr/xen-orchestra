@@ -269,7 +269,7 @@ export default class Jobs extends Component {
         items: dataToParamVectorItems(method.value.info.properties, params.value)
       },
       userId: owner,
-      timeout: timeout
+      timeout: timeout ? timeout * 1e3 : undefined
     }
 
     job && (_job.id = job.id)
@@ -323,7 +323,7 @@ export default class Jobs extends Component {
     params.value = data
     this.setState({
       owner: job.userId,
-      timeout: job.timeout
+      timeout: job.timeout && job.timeout / 1e3
     })
   }
 
