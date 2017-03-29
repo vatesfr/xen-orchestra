@@ -2,28 +2,35 @@ import * as ComplexMatcher from 'complex-matcher'
 import * as homeFilters from 'home-filters'
 import _ from 'intl'
 import ActionButton from 'action-button'
-import ceil from 'lodash/ceil'
 import CenterPanel from 'center-panel'
 import Component from 'base-component'
-import debounce from 'lodash/debounce'
-import find from 'lodash/find'
-import forEach from 'lodash/forEach'
-import get from 'lodash/get'
 import Icon from 'icon'
 import invoke from 'invoke'
-import keys from 'lodash/keys'
-import includes from 'lodash/includes'
-import isEmpty from 'lodash/isEmpty'
-import isString from 'lodash/isString'
 import Link from 'link'
-import map from 'lodash/map'
 import Page from '../page'
 import React from 'react'
 import Shortcuts from 'shortcuts'
 import SingleLineRow from 'single-line-row'
-import size from 'lodash/size'
 import Tooltip from 'tooltip'
 import { Card, CardHeader, CardBlock } from 'card'
+import {
+  ceil,
+  debounce,
+  filter,
+  find,
+  forEach,
+  get,
+  identity,
+  includes,
+  isEmpty,
+  isString,
+  keys,
+  map,
+  pick,
+  pickBy,
+  size,
+  some
+} from 'lodash'
 import {
   addCustomFilter,
   copyVms,
@@ -220,6 +227,10 @@ export default class Home extends Component {
     router: React.PropTypes.object
   }
 
+  state = {
+    selectedItems: {}
+  }
+
   get page () {
     return this.state.page
   }
@@ -232,13 +243,31 @@ export default class Home extends Component {
   }
 
   componentWillReceiveProps (props) {
-    this._initFilterAndSortBy(props)
+    if (this._getFilter() !== this._getFilter(props)) {
+      this._initFilterAndSortBy(props)
+    }
     if (props.type !== this.props.type) {
       this.setState({ activePage: undefined, highlighted: undefined })
     }
   }
 
+  componentDidUpdate () {
+    const { selectedItems } = this.state
+
+    // Unselect items that are no longer visible
+    if ((this._visibleItemsRecomputations || 0) < (this._visibleItemsRecomputations = this._getVisibleItems.recomputations())) {
+      const newSelectedItems = pick(selectedItems, map(this._getVisibleItems(), 'id'))
+      if (size(newSelectedItems) < this._getNumberOfSelectedItems()) {
+        this.setState({ selectedItems: newSelectedItems })
+      }
+    }
+  }
+
   _getNumberOfItems = createCounter(() => this.props.items)
+  _getNumberOfSelectedItems = createCounter(
+    () => this.state.selectedItems,
+    [ identity ]
+  )
 
   _getType () {
     return this.props.type
@@ -251,6 +280,8 @@ export default class Home extends Component {
       query: { ...query, t: type, s: undefined }
     })
   }
+
+  // Filter and sort -----------------------------------------------------------
 
   _getDefaultFilter (props = this.props) {
     const { type } = props
@@ -371,6 +402,11 @@ export default class Home extends Component {
 
   _tick = isCriteria => <Icon icon={isCriteria ? 'success' : undefined} fixedWidth />
 
+  // High level filters --------------------------------------------------------
+
+  _typesDropdownItems = map(TYPES, (label, type) =>
+    <MenuItem key={type} onClick={() => this._setType(type)}>{label}</MenuItem>
+  )
   _updateSelectedPools = pools => {
     const filter = this._getParsedFilter()
 
@@ -410,42 +446,12 @@ export default class Home extends Component {
       : filter::ComplexMatcher.removePropertyClause('tags')
     )
   }
-
-  // Checkboxes
-  _selectedItems = {}
-  _updateMasterCheckbox () {
-    const masterCheckbox = this.refs.masterCheckbox
-    if (!masterCheckbox) {
-      return
-    }
-    const noneChecked = isEmpty(this._selectedItems)
-    masterCheckbox.checked = !noneChecked
-    masterCheckbox.indeterminate = !noneChecked && size(this._selectedItems) !== this._getFilteredItems().length
-    this.setState({ displayActions: !noneChecked })
-  }
-  _selectItem = (id, checked) => {
-    const shouldBeChecked = checked === undefined ? !this._selectedItems[id] : checked
-    shouldBeChecked ? this._selectedItems[id] = true : delete this._selectedItems[id]
-    this.forceUpdate()
-    this._updateMasterCheckbox()
-  }
-  _selectAllItems = (checked) => {
-    const shouldBeChecked = checked === undefined ? !size(this._selectedItems) : checked
-    this._selectedItems = {}
-    forEach(this._getFilteredItems(), item => {
-      shouldBeChecked && (this._selectedItems[item.id] = true)
-    })
-    this.forceUpdate()
-    this._updateMasterCheckbox()
-  }
-
   _addCustomFilter = () => {
     return addCustomFilter(
       this._getType(),
       this._getFilter()
     )
   }
-
   _getCustomFilters () {
     const { preferences } = this.props.user || {}
 
@@ -456,6 +462,34 @@ export default class Home extends Component {
     const customFilters = preferences.filters || {}
     return customFilters[this._getType()]
   }
+
+  // Checkboxes ----------------------------------------------------------------
+
+  _getIsAllSelected = createSelector(
+    () => this.state.selectedItems,
+    this._getVisibleItems,
+    (selectedItems, visibleItems) =>
+      size(visibleItems) > 0 && size(filter(selectedItems)) === size(visibleItems)
+  )
+  _getIsSomeSelected = createSelector(
+    () => this.state.selectedItems,
+    some
+  )
+  _toggleMaster = () => {
+    const selectedItems = {}
+    if (!this._getIsAllSelected()) {
+      forEach(this._getVisibleItems(), ({ id }) => {
+        selectedItems[id] = true
+      })
+    }
+    this.setState({ selectedItems })
+  }
+  _getSelectedItemsIds = createSelector(
+    () => this.state.selectedItems,
+    items => keys(pickBy(items))
+  )
+
+  // Shortcuts -----------------------------------------------------------------
 
   _getShortcutsHandler = createSelector(
     () => this._getVisibleItems(),
@@ -472,7 +506,13 @@ export default class Home extends Component {
           this.setState({ highlighted: (this.state.highlighted + items.length - 1) % items.length || 0 })
           break
         case 'SELECT':
-          this._selectItem(items[this.state.highlighted].id)
+          const itemId = items[this.state.highlighted].id
+          this.setState({
+            selectedItems: {
+              ...this.state.selectedItems,
+              [itemId]: !this.state.selectedItems[itemId]
+            }
+          })
           break
         case 'JUMP_INTO':
           const item = items[this.state.highlighted]
@@ -485,9 +525,7 @@ export default class Home extends Component {
     }
   )
 
-  _typesDropdownItems = map(TYPES, (label, type) =>
-    <MenuItem key={type} onClick={() => this._setType(type)}>{label}</MenuItem>
-  )
+  // Header --------------------------------------------------------------------
 
   _renderHeader () {
     const { type } = this.props
@@ -556,19 +594,26 @@ export default class Home extends Component {
     </Container>
   }
 
-  render () {
-    const { props } = this
-    const { user } = this.props
-    const isAdmin = user && user.permission === 'admin'
-    const noRegisteredServers = !props.servers || !props.servers.length
+  // ---------------------------------------------------------------------------
 
-    if (!props.areObjectsFetched) {
+  render () {
+    const {
+      areObjectsFetched,
+      noServersConnected,
+      servers,
+      user
+    } = this.props
+
+    const isAdmin = user && user.permission === 'admin'
+    const noRegisteredServers = !servers || !servers.length
+
+    if (!areObjectsFetched) {
       return <CenterPanel>
         <h2><img src='assets/loading.svg' /></h2>
       </CenterPanel>
     }
 
-    if (props.noServersConnected && isAdmin) {
+    if (noServersConnected && isAdmin) {
       return <CenterPanel>
         <Card shadow>
           <CardHeader>{_('homeWelcome')}</CardHeader>
@@ -640,12 +685,35 @@ export default class Home extends Component {
 
     const filteredItems = this._getFilteredItems()
     const visibleItems = this._getVisibleItems()
-    const { activePage, sortBy, highlighted } = this.state
-    const { type } = props
+
+    const {
+      activePage,
+      expandAll,
+      highlighted,
+      selectedHosts,
+      selectedItems,
+      selectedPools,
+      selectedTags,
+      sortBy
+    } = this.state
+    const {
+      items,
+      type
+    } = this.props
+
     const options = OPTIONS[type]
-    const { Item } = options
-    const { mainActions, otherActions } = options
-    const selectedItemsIds = keys(this._selectedItems)
+    const {
+      Item,
+      mainActions,
+      otherActions,
+      showHostsSelector,
+      showPoolsSelector
+    } = options
+
+    // Necessary because indeterminate cannot be used as an attribute
+    if (this.refs.masterCheckbox) {
+      this.refs.masterCheckbox.indeterminate = this._getIsSomeSelected() && !this._getIsAllSelected()
+    }
 
     return <Page header={this._renderHeader()}>
       <Shortcuts name='Home' handler={this._getShortcutsHandler()} targetNodeSelector='body' stopPropagation={false} />
@@ -653,13 +721,18 @@ export default class Home extends Component {
         <div className={styles.itemContainer}>
           <SingleLineRow className={styles.itemContainerHeader}>
             <Col smallsize={11} mediumSize={3}>
-              <input type='checkbox' onChange={() => this._selectAllItems()} ref='masterCheckbox' />
+              <input
+                checked={this._getIsAllSelected()}
+                onChange={this._toggleMaster}
+                ref='masterCheckbox'
+                type='checkbox'
+              />
               {' '}
               <span className='text-muted'>
-                {size(this._selectedItems)
+                {this._getNumberOfSelectedItems()
                  ? _('homeSelectedItems', {
                    icon: <Icon icon={type.toLowerCase()} />,
-                   selected: size(this._selectedItems),
+                   selected: this._getNumberOfSelectedItems(),
                    total: nItems
                  })
                  : _('homeDisplayedItems', {
@@ -671,7 +744,7 @@ export default class Home extends Component {
               </span>
             </Col>
             <Col mediumSize={8} className='text-xs-right hidden-sm-down'>
-              {this.state.displayActions
+              {this._getNumberOfSelectedItems()
                 ? (
                   <div>
                     {mainActions && <div className='btn-group'>
@@ -680,7 +753,7 @@ export default class Home extends Component {
                           <ActionButton
                             btnStyle='secondary'
                             {...action}
-                            handlerParam={selectedItemsIds}
+                            handlerParam={this._getSelectedItemsIds()}
                           />
                         </Tooltip>
                       ))}
@@ -688,7 +761,7 @@ export default class Home extends Component {
                     {otherActions && (
                     <DropdownButton bsStyle='secondary' id='advanced' title={_('homeMore')}>
                       {map(otherActions, (action, key) => (
-                        <MenuItem key={key} onClick={() => { action.handler(selectedItemsIds, action.params) }}>
+                        <MenuItem key={key} onClick={() => { action.handler(this._getSelectedItemsIds(), action.params) }}>
                           <Icon icon={action.icon} fixedWidth /> {_(action.labelId)}
                         </MenuItem>
                       ))}
@@ -696,7 +769,7 @@ export default class Home extends Component {
                   )}
                   </div>
                 ) : <div>
-                  {options.showPoolsSelector && (
+                  {showPoolsSelector && (
                     <OverlayTrigger
                       trigger='click'
                       rootClose
@@ -707,7 +780,7 @@ export default class Home extends Component {
                             autoFocus
                             multi
                             onChange={this._updateSelectedPools}
-                            value={this.state.selectedPools}
+                            value={selectedPools}
                           />
                         </Popover>
                       }
@@ -716,7 +789,7 @@ export default class Home extends Component {
                     </OverlayTrigger>
                   )}
                   {' '}
-                  {options.showHostsSelector && (
+                  {showHostsSelector && (
                     <OverlayTrigger
                       trigger='click'
                       rootClose
@@ -727,7 +800,7 @@ export default class Home extends Component {
                             autoFocus
                             multi
                             onChange={this._updateSelectedHosts}
-                            value={this.state.selectedHosts}
+                            value={selectedHosts}
                           />
                         </Popover>
                       }
@@ -746,9 +819,9 @@ export default class Home extends Component {
                         <SelectTag
                           autoFocus
                           multi
-                          objects={props.items}
+                          objects={items}
                           onChange={this._updateSelectedTags}
-                          value={this.state.selectedTags}
+                          value={selectedTags}
                         />
                       </Popover>
                     }
@@ -786,11 +859,11 @@ export default class Home extends Component {
             : map(visibleItems, (item, index) => (
               <div key={item.id} className={highlighted === index && styles.highlight}>
                 <Item
-                  expandAll={this.state.expandAll}
+                  expandAll={expandAll}
                   item={item}
                   key={item.id}
-                  onSelect={this._selectItem}
-                  selected={this._selectedItems[item.id]}
+                  onSelect={this.toggleState(`selectedItems.${item.id}`)}
+                  selected={selectedItems[item.id]}
                 />
               </div>
             ))
