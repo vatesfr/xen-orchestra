@@ -48,7 +48,7 @@ const mapFilter = (collection, iteratee, results = []) => {
 
 execPromise(async args => {
   if (!args.length) {
-    return `Usage: xapi-explore-sr [--full] <SR UUID> <Xen URL> <Xen user> [<Xen password>]`
+    return `Usage: xapi-explore-sr [--full] <SR UUID> <XenServer URL> <XenServer user> [<XenServer password>]`
   }
 
   let full = args[0] === '--full'
