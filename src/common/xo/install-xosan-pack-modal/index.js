@@ -4,20 +4,34 @@ import React from 'react'
 import { connectStore, compareVersions } from 'utils'
 import { subscribeResourceCatalog, subscribePlugins } from 'xo'
 import { createGetObjectsOfType, createSelector } from 'selectors'
+import { satisfies as versionSatisfies } from 'semver'
 import {
+  every,
   filter,
   forEach,
   map
 } from 'lodash'
 
-const findLatestPack = packs => {
-  let latestPack = packs[0]
+const findLatestPack = (packs, hostsVersions) => {
+  const checkVersion = version =>
+    every(hostsVersions, hostVersion => versionSatisfies(hostVersion, version))
 
+  let latestPack = { version: '0' }
   forEach(packs, pack => {
-    if (compareVersions(pack.version, latestPack.version) > 0) {
+    const xsVersionRequirement = pack.requirements && pack.requirements.xenserver
+
+    if (
+      compareVersions(pack.version, latestPack.version) > 0 &&
+      (!xsVersionRequirement || checkVersion(xsVersionRequirement))
+    ) {
       latestPack = pack
     }
   })
+
+  if (latestPack.version === '0') {
+    // No compatible pack was found
+    return
+  }
 
   return latestPack
 }
@@ -40,8 +54,10 @@ export default class InstallXosanPackModal extends Component {
 
   _getXosanLatestPack = createSelector(
     () => this.state.catalog && this.state.catalog.xosan,
-    xosanCatalog => findLatestPack(
-      filter(xosanCatalog, (value, key) => key !== '_token' && value.type === 'iso')
+    () => this.props.hosts && map(this.props.hosts, 'version'),
+    (xosanCatalog, hostsVersions) => findLatestPack(
+      filter(xosanCatalog, (value, key) => key !== '_token' && value.type === 'iso'),
+      hostsVersions
     )
   )
 
@@ -54,13 +70,18 @@ export default class InstallXosanPackModal extends Component {
     const latestPack = this._getXosanLatestPack()
 
     return <div>
-      {_('xosanInstallPackOnHosts')}
-      <ul>
-        {map(hosts, host => <li key={host.id}>{host.name_label}</li>)}
-      </ul>
-      {latestPack && <div className='mt-1'>
-        {_('xosanInstallPack', { pack: latestPack.name, version: latestPack.version })}
-      </div>}
+      {latestPack
+        ? <div>
+          {_('xosanInstallPackOnHosts')}
+          <ul>
+            {map(hosts, host => <li key={host.id}>{host.name_label}</li>)}
+          </ul>
+          <div className='mt-1'>
+            {_('xosanInstallPack', { pack: latestPack.name, version: latestPack.version })}
+          </div>
+        </div>
+        : _('xosanNoPackFound')
+      }
     </div>
   }
 }

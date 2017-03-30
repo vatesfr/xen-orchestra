@@ -1358,7 +1358,8 @@ var messages = {
   xosanRegisterBeta: 'Register for the XOSAN beta',
   xosanSuccessfullyRegistered: 'You have successfully registered for the XOSAN beta. Please wait until your request has been approved.',
   xosanInstallPackOnHosts: 'Install XOSAN pack on these hosts:',
-  xosanInstallPack: 'Install {pack} v{version}?'
+  xosanInstallPack: 'Install {pack} v{version}?',
+  xosanNoPackFound: 'No compatible XOSAN pack found'
 
 }
 forEach(messages, function (message, id) {
