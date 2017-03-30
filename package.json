@@ -85,7 +85,7 @@
     ]
   },
   "jest": {
-    "testPathDirs": [
+    "roots": [
       "<rootDir>/src"
     ],
     "testRegex": "\\.spec\\.js$"
