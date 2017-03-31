@@ -74,7 +74,6 @@ export default class InstallXosanPackModal extends Component {
   render () {
     const { hosts } = this.props
     const latestPack = this._getXosanLatestPack()
-    const packs = this._getXosanPacks()
 
     return <div>
       {latestPack
@@ -92,7 +91,7 @@ export default class InstallXosanPackModal extends Component {
           <p>
             {_('xosanPackRequirements')}
             <ul>
-              {map(packs, ({ name, requirements }) => <li>
+              {map(this._getXosanPacks(), ({ name, requirements }) => <li>
                 {name}: <strong>{requirements && requirements.xenserver ? requirements.xenserver : '/'}</strong>
               </li>)}
             </ul>
