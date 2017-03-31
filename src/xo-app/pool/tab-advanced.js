@@ -2,6 +2,7 @@ import _ from 'intl'
 import Copiable from 'copiable'
 import React from 'react'
 import SelectFiles from 'select-files'
+import Upgrade from 'xoa-upgrade'
 import { Container, Row, Col } from 'grid'
 import { installSupplementalPackOnAllHosts } from 'xo'
 
@@ -33,7 +34,7 @@ export default ({
     </Row>
   </Container>
   <h3 className='mt-1 mb-1'>{_('supplementalPackPoolNew')}</h3>
-  <div>
+  <Upgrade place='poolSupplementalPacks' required={2}>
     <SelectFiles onChange={file => installSupplementalPackOnAllHosts(pool, file)} />
-  </div>
+  </Upgrade>
 </div>
