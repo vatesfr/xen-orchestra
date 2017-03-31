@@ -205,10 +205,12 @@ export default {
       put(stream, {
         hostname: this.pool.$master.address,
         path: '/pool_patch_upload',
+        protocol: 'https',
         query: {
           session_id: this.sessionId,
           task_id: taskRef
-        }
+        },
+        rejectUnauthorized: false
       }, task)
     ])
 
