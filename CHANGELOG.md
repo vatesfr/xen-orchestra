@@ -1,5 +1,40 @@
 # ChangeLog
 
+## **5.6.0** (2016-01-27)
+
+Reporting, LVM File level restore.
+
+### Enhancements
+
+- Do not stop patches install if already applied [\#1904](https://github.com/vatesfr/xo-web/issues/1904)
+- Improve scheduling UI [\#1893](https://github.com/vatesfr/xo-web/issues/1893)
+- Smart backup and tag [\#1885](https://github.com/vatesfr/xo-web/issues/1885)
+- Missing embeded API documention [\#1882](https://github.com/vatesfr/xo-web/issues/1882)
+- Add local DVD in CD selector [\#1880](https://github.com/vatesfr/xo-web/issues/1880)
+- File level restore for LVM [\#1878](https://github.com/vatesfr/xo-web/issues/1878)
+- Restore multiple files from file level restore [\#1877](https://github.com/vatesfr/xo-web/issues/1877)
+- Add a VM tab for host & pool views [\#1864](https://github.com/vatesfr/xo-web/issues/1864)
+- Icon to indicate if a snapshot is quiesce [\#1858](https://github.com/vatesfr/xo-web/issues/1858)
+- UI for disconnect hosts comp [\#1833](https://github.com/vatesfr/xo-web/issues/1833)
+- Eject all xs-guest.iso in a pool [\#1798](https://github.com/vatesfr/xo-web/issues/1798)
+- Display installed supplemental pack on host [\#1506](https://github.com/vatesfr/xo-web/issues/1506)
+- Install supplemental pack on host comp [\#1460](https://github.com/vatesfr/xo-web/issues/1460)
+- Pool-wide combined stats [\#1324](https://github.com/vatesfr/xo-web/issues/1324)
+
+### Bug fixes
+
+- IP-address not released when VM removed [\#1906](https://github.com/vatesfr/xo-web/issues/1906)
+- Interface broken due to new Bootstrap Alpha [\#1871](https://github.com/vatesfr/xo-web/issues/1871)
+- Self service recompute all limits broken [\#1866](https://github.com/vatesfr/xo-web/issues/1866)
+- Patch not found error for XS 6.5 [\#1863](https://github.com/vatesfr/xo-web/issues/1863)
+- Convert To Template issues [\#1855](https://github.com/vatesfr/xo-web/issues/1855)
+- Removing PIF seems to fail [\#1853](https://github.com/vatesfr/xo-web/issues/1853)
+- Depth should be >= 1 in backup creation [\#1851](https://github.com/vatesfr/xo-web/issues/1851)
+- Wrong link in Dashboard > Health [\#1850](https://github.com/vatesfr/xo-web/issues/1850)
+- Incorrect file dates shown in new File Restore feature [\#1840](https://github.com/vatesfr/xo-web/issues/1840)
+- IP allocation problem [\#1747](https://github.com/vatesfr/xo-web/issues/1747)
+- Selfservice limits not honored after VM creation [\#1695](https://github.com/vatesfr/xo-web/issues/1695)
+
 ## **5.5.0** (2016-12-20)
 
 File level restore.
