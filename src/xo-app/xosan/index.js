@@ -152,11 +152,6 @@ const _findLatestTemplate = templates => {
   return latestTemplate
 }
 
-@connectStore({
-  poolMaster: createGetObjectsOfType('host').find(
-    (_, props) => ({ id }) => props.pool.master === id
-  )
-})
 class PoolAvailableSrs extends Component {
   state = {
     selectedSrs: {}
@@ -238,8 +233,7 @@ class PoolAvailableSrs extends Component {
     const {
       lvmsrs,
       noPack,
-      pool,
-      poolMaster
+      pool
     } = this.props
     const {
       isInstallingXosan,
@@ -253,12 +247,6 @@ class PoolAvailableSrs extends Component {
 
     if (isInstallingXosan) {
       return <em><Icon icon='loading' /> {_('xosanInstalling')}</em>
-    }
-
-    if (poolMaster && !compareVersions('7', '<=', poolMaster.version, '<', '7.1')) {
-      return <div>
-        <Icon icon='error' /> <em>{_('xosanBadVersion')}</em>
-      </div>
     }
 
     if (noPack) {
