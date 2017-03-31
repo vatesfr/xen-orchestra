@@ -3,11 +3,10 @@ import Component from 'base-component'
 import React from 'react'
 import { connectStore, compareVersions } from 'utils'
 import { subscribeResourceCatalog, subscribePlugins } from 'xo'
-import { createGetObjectsOfType, createSelector } from 'selectors'
+import { createGetObjectsOfType, createSelector, createCollectionWrapper } from 'selectors'
 import { satisfies as versionSatisfies } from 'semver'
 import {
   every,
-  filter,
   forEach,
   map
 } from 'lodash'
@@ -21,6 +20,7 @@ const findLatestPack = (packs, hostsVersions) => {
     const xsVersionRequirement = pack.requirements && pack.requirements.xenserver
 
     if (
+      pack.type === 'iso' &&
       compareVersions(pack.version, latestPack.version) > 0 &&
       (!xsVersionRequirement || checkVersion(xsVersionRequirement))
     ) {
@@ -54,11 +54,11 @@ export default class InstallXosanPackModal extends Component {
 
   _getXosanLatestPack = createSelector(
     () => this.state.catalog && this.state.catalog.xosan,
-    () => this.props.hosts && map(this.props.hosts, 'version'),
-    (xosanCatalog, hostsVersions) => findLatestPack(
-      filter(xosanCatalog, (value, key) => key !== '_token' && value.type === 'iso'),
-      hostsVersions
-    )
+    createSelector(
+      () => this.props.hosts,
+      createCollectionWrapper(hosts => map(hosts, 'version'))
+    ),
+    findLatestPack
   )
 
   get value () {
