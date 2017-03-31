@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **5.7.0** (2016-03-31)
+## **5.7.0** (2017-03-31)
 
 ### Enhancements
 
@@ -46,7 +46,7 @@
 - Two remotes should not be able to have the same name [\#1879](https://github.com/vatesfr/xo-web/issues/1879)
 - Selfservice limits not honored after VM creation [\#1695](https://github.com/vatesfr/xo-web/issues/1695)
 
-## **5.6.0** (2016-01-27)
+## **5.6.0** (2017-01-27)
 
 Reporting, LVM File level restore.
 
