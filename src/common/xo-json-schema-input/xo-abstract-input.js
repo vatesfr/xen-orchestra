@@ -1,20 +1,21 @@
 import map from 'lodash/map'
 import { PureComponent } from 'react'
 
+import getEventValue from '../get-event-value'
+
 // ===================================================================
 
+const getId = value => value != null && value.id || value
+
 export default class XoAbstractInput extends PureComponent {
-  get value () {
-    const value = this.refs.input.value
+  _onChange = event => {
+    const value = getEventValue(event)
+    const { props } = this
 
-    if (this.props.schema.type === 'array') {
-      return map(value, object => object.id || object)
-    }
-
-    return value.id || value
-  }
-
-  set value (value) {
-    this.refs.input.value = value
+    return props.onChange(
+      props.schema.type === 'array'
+        ? map(value, getId)
+        : getId(value)
+    )
   }
 }
