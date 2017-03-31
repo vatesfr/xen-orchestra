@@ -49,16 +49,17 @@ http:
 
   # Hosts & ports on which to listen.
   #
-  # By default, the server listens on 0.0.0.0:80.
+  # By default, the server listens on [::]:80.
   listen:
     # Basic HTTP.
     -
       # Address on which the server is listening on.
       #
-      # Sets it to '127.0.0.1' to listen only on the local host.
+      # Sets it to 'localhost' for IP to listen only on the local host.
       #
-      # Default: '0.0.0.0' (all addresses)
-      #hostname: '127.0.0.1'
+      # Default: all IPv6 addresses if available, otherwise all IPv4
+      # addresses.
+      #hostname: 'localhost'
 
       # Port on which the server is listening on.
       #
