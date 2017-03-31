@@ -7,7 +7,7 @@ import { promisify } from 'promise-toolbox'
 const markdownCompiler = nodemailerMarkdown()
 
 const logAndRethrow = error => {
-  console.error('[WARN] plugin transport-email:', error && error.stack || error)
+  console.error('[WARN] plugin transport-email:', (error && error.stack) || error)
 
   throw error
 }
