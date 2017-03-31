@@ -381,7 +381,7 @@ export default class Jobs extends Component {
         />
         <input type='text' ref='name' className='form-control mb-1 mt-1' placeholder={formatMessage(messages.jobNamePlaceholder)} pattern='[^_]+' required />
         <SelectPlainObject ref='method' options={actions} optionKey='method' onChange={this._handleSelectMethod} placeholder={_('jobActionPlaceHolder')} />
-        <input type='number' onChange={this.linkState('timeout')} value={state.timeout} className='form-control mb-1 mt-1' placeholder='Job timeout (seconds)' />
+        <input type='number' onChange={this.linkState('timeout')} value={state.timeout || ''} className='form-control mb-1 mt-1' placeholder={formatMessage(messages.jobTimeoutPlaceHolder)} />
         {action && <fieldset>
           <GenericInput ref='params' schema={action.info} uiSchema={action.uiSchema} label={action.method} required />
           {job && <p className='text-warning'>{_('jobEditMessage', { name: job.name, id: job.id.slice(4, 8) })}</p>}

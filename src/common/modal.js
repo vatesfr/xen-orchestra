@@ -29,7 +29,7 @@ const modal = (content, onClose) => {
   buttons: propTypes.arrayOf(propTypes.shape({
     btnStyle: propTypes.string,
     icon: propTypes.string,
-    label: propTypes.string.isRequired,
+    label: propTypes.node.isRequired,
     tooltip: propTypes.node,
     value: propTypes.any
   })).isRequired,
@@ -58,8 +58,6 @@ class GenericModal extends Component {
   }
 
   render () {
-    const { Body, Footer, Header, Title } = ReactModal
-
     const {
       buttons,
       icon,
@@ -69,34 +67,33 @@ class GenericModal extends Component {
     const body = _addRef(this.props.children, 'body')
 
     return <div>
-      <Header closeButton>
-        <Title>
+      <ReactModal.Header closeButton>
+        <ReactModal.Title>
           {icon
             ? <span><Icon icon={icon} /> {title}</span>
             : title
           }
-        </Title>
-      </Header>
-      <Body>
+        </ReactModal.Title>
+      </ReactModal.Header>
+      <ReactModal.Body>
         {body}
-      </Body>
-      <Footer>
+      </ReactModal.Body>
+      <ReactModal.Footer>
         {map(buttons, ({
           label,
           tooltip,
           value,
           icon,
           ...props
-        }) => {
+        }, key) => {
           const button = <Button
             onClick={() => this._resolve(value)}
-            key={value}
             {...props}
           >
             {icon !== undefined && <Icon icon={icon} fixedWidth />}
             {label}
           </Button>
-          return <span>
+          return <span key={key}>
             {tooltip !== undefined
               ? <Tooltip content={tooltip}>{button}</Tooltip>
               : button
@@ -109,7 +106,7 @@ class GenericModal extends Component {
             {_('genericCancel')}
           </Button>
         }
-      </Footer>
+      </ReactModal.Footer>
     </div>
   }
 }
@@ -209,14 +206,8 @@ export default class Modal extends Component {
   }
 
   render () {
-    const { showModal } = this.state
-    /* TODO: remove this work-around and use
-     * ReactModal.Body, ReactModal.Header, ...
-     * after this issue has been fixed:
-     * https://phabricator.babeljs.io/T6976
-     */
     return (
-      <ReactModal show={showModal} onHide={this._onHide}>
+      <ReactModal show={this.state.showModal} onHide={this._onHide}>
         {this.state.content}
       </ReactModal>
     )

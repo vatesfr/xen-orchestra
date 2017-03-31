@@ -507,7 +507,7 @@ class ResourceSet extends Component {
     } = resourceSet
 
     return [
-      <li className='list-group-item'>
+      <li key='subjects' className='list-group-item'>
         <Subjects subjects={subjects} />
       </li>,
       ...map(objectsByType, (objectsSet, type) => (
@@ -515,7 +515,7 @@ class ResourceSet extends Component {
           {map(objectsSet, object => renderXoItem(object, { className: 'mr-1' }))}
         </li>
       )),
-      !isEmpty(ipPools) && <li className='list-group-item'>
+      !isEmpty(ipPools) && <li key='ipPools' className='list-group-item'>
         {map(ipPools, pool => {
           const resolvedIpPool = resolvedIpPools[pool]
           const limits = get(resourceSet, `limits[ipPool:${pool}]`)
@@ -531,7 +531,7 @@ class ResourceSet extends Component {
         }
       )}
       </li>,
-      <li className='list-group-item'>
+      <li key='graphs' className='list-group-item'>
         <Row>
           <Col mediumSize={4}>
             <Card>
@@ -613,7 +613,7 @@ class ResourceSet extends Component {
           </Col>
         </Row>
       </li>,
-      <li className='list-group-item text-xs-center'>
+      <li key='actions' className='list-group-item text-xs-center'>
         <div className='btn-toolbar'>
           <ActionButton btnStyle='primary' icon='edit' handler={this.toggleState('editionMode')}>{_('editResourceSet')}</ActionButton>
           <ActionButton btnStyle='danger' icon='delete' handler={deleteResourceSet} handlerParam={resourceSet}>{_('deleteResourceSet')}</ActionButton>

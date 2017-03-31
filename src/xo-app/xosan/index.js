@@ -148,9 +148,9 @@ export class XosanVolumesTable extends Component {
 const _findLatestTemplate = templates => {
   let latestTemplate = templates[0]
 
-  forEach(templates, pack => {
-    if (compareVersions(pack.version, latestTemplate.version) > 0) {
-      latestTemplate = pack
+  forEach(templates, template => {
+    if (compareVersions(template.version, latestTemplate.version) > 0) {
+      latestTemplate = template
     }
   })
 

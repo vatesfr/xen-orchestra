@@ -15,7 +15,7 @@ import Select from './select'
   multi: propTypes.bool,
   onChange: propTypes.func,
   options: propTypes.array,
-  placeholder: propTypes.string,
+  placeholder: propTypes.node,
   predicate: propTypes.func,
   required: propTypes.bool,
   value: propTypes.any

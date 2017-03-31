@@ -390,7 +390,6 @@ const MAP_TYPE_SELECT = {
 }
 
 @propTypes({
-  labelProp: propTypes.string.isRequired,
   value: propTypes.oneOfType([
     propTypes.string,
     propTypes.object

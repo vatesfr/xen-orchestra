@@ -550,7 +550,7 @@ export default class Home extends Component {
                         {name}
                       </MenuItem>
                     ),
-                    <MenuItem divider />
+                    <MenuItem key='divider' divider />
                   ]}
                   {map(filters, (filter, label) =>
                     <MenuItem key={label} onClick={() => this._setFilter(filter)}>
@@ -584,7 +584,8 @@ export default class Home extends Component {
         <Col mediumSize={3} className='text-xs-right'>
           <Link
             className='btn btn-success'
-            to='/vms/new'>
+            to='/vms/new'
+          >
             <Icon icon='vm-new' /> {_('homeNewVm')}
           </Link>
         </Col>
@@ -859,7 +860,7 @@ export default class Home extends Component {
                   item={item}
                   key={item.id}
                   onSelect={this.toggleState(`selectedItems.${item.id}`)}
-                  selected={selectedItems[item.id]}
+                  selected={Boolean(selectedItems[item.id])}
                 />
               </div>
             ))

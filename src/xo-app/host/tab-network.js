@@ -91,7 +91,7 @@ class ConfigureIpModal extends Component {
 }))
 class PifItem extends Component {
   componentWillMount () {
-    getIpv4ConfigModes().then(configModes =>
+    getIpv4ConfigModes().then((configModes = []) =>
       this.setState({ configModes })
     )
   }
@@ -126,7 +126,7 @@ class PifItem extends Component {
 
     const pifInUse = some(vifsByNetwork[pif.$network], vif => vif.attached)
 
-    return <tr key={pif.id}>
+    return <tr>
       <td>{pif.device}</td>
       <td>{networks[pif.$network].name_label}</td>
       <td>
@@ -238,7 +238,7 @@ export default ({
               </tr>
             </thead>
             <tbody>
-              {map(pifs, pif => <PifItem pif={pif} networks={networks} />)}
+              {map(pifs, pif => <PifItem key={pif.id} pif={pif} networks={networks} />)}
             </tbody>
           </table>
         </span>

@@ -491,7 +491,7 @@ export default class New extends Component {
                 >
                   <option value={null}>{formatMessage(messages.noSelectedValue)}</option>
                   {map(typeGroups, (types, group) =>
-                    <optgroup label={SR_GROUP_TO_LABEL[group]}>
+                    <optgroup key={group} label={SR_GROUP_TO_LABEL[group]}>
                       {map(types, type =>
                         <option key={type} value={type}>{SR_TYPE_TO_LABEL[type]}</option>
                       )}
