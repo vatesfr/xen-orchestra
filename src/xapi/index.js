@@ -1227,7 +1227,8 @@ export default class Xapi extends XapiBase {
         hostname: host.address,
         path,
         protocol: 'https',
-        query
+        query,
+        rejectUnauthorized: false
       })
     ])
 
@@ -1847,7 +1848,8 @@ export default class Xapi extends XapiBase {
       hostname: host.address,
       path: '/export_raw_vdi/',
       protocol: 'https',
-      query
+      query,
+      rejectUnauthorized: false
     }).then(response => {
       response.task = task
 
@@ -1890,10 +1892,10 @@ export default class Xapi extends XapiBase {
       task,
       put(stream, {
         hostname: pbd.$host.address,
-        method: 'put',
         path: '/import_raw_vdi/',
         protocol: 'https',
-        query
+        query,
+        rejectUnauthorized: false
       }, task)
     ])
   }
