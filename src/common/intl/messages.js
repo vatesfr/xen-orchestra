@@ -1348,7 +1348,6 @@ var messages = {
   xosanDiskLossLegend: '* Can fail without data loss',
   xosanCreate: 'Create',
   xosanInstalling: 'Installing XOSAN. Please wait...',
-  xosanBadVersion: 'You need XenServer 7.0 to install XOSAN',
   xosanCommunity: 'No XOSAN available for Community Edition',
   // Pack download modal
   xosanInstallCloudPlugin: 'Install cloud plugin first',
@@ -1359,7 +1358,8 @@ var messages = {
   xosanSuccessfullyRegistered: 'You have successfully registered for the XOSAN beta. Please wait until your request has been approved.',
   xosanInstallPackOnHosts: 'Install XOSAN pack on these hosts:',
   xosanInstallPack: 'Install {pack} v{version}?',
-  xosanNoPackFound: 'No compatible XOSAN pack found'
+  xosanNoPackFound: 'No compatible XOSAN pack found for your XenServer versions.',
+  xosanPackRequirements: 'At least one of these version requirements must be satisfied by all the hosts in this pool:'
 
 }
 forEach(messages, function (message, id) {

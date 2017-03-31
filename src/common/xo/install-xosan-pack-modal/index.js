@@ -7,6 +7,7 @@ import { createGetObjectsOfType, createSelector, createCollectionWrapper } from 
 import { satisfies as versionSatisfies } from 'semver'
 import {
   every,
+  filter,
   forEach,
   map
 } from 'lodash'
@@ -61,6 +62,11 @@ export default class InstallXosanPackModal extends Component {
     findLatestPack
   )
 
+  _getXosanPacks = createSelector(
+    () => this.state.catalog && this.state.catalog.xosan,
+    packs => filter(packs, ({ type }) => type === 'iso')
+  )
+
   get value () {
     return this._getXosanLatestPack()
   }
@@ -68,6 +74,7 @@ export default class InstallXosanPackModal extends Component {
   render () {
     const { hosts } = this.props
     const latestPack = this._getXosanLatestPack()
+    const packs = this._getXosanPacks()
 
     return <div>
       {latestPack
@@ -80,7 +87,17 @@ export default class InstallXosanPackModal extends Component {
             {_('xosanInstallPack', { pack: latestPack.name, version: latestPack.version })}
           </div>
         </div>
-        : _('xosanNoPackFound')
+        : <div>
+          <p>{_('xosanNoPackFound')}</p>
+          <p>
+            {_('xosanPackRequirements')}
+            <ul>
+              {map(packs, ({ name, requirements }) => <li>
+                {name}: <strong>{requirements && requirements.xenserver ? requirements.xenserver : '/'}</strong>
+              </li>)}
+            </ul>
+          </p>
+        </div>
       }
     </div>
   }
