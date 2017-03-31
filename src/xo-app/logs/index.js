@@ -54,7 +54,7 @@ class JobParam extends Component {
 
     return object
     ? <span><strong>{object.type || paramKey}</strong>: {renderXoItem(object)} </span>
-    : <span><strong>{paramKey}:</strong> {id} </span>
+    : <span><strong>{paramKey}:</strong> {String(id)} </span>
   }
 }
 
