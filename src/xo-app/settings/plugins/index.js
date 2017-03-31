@@ -81,13 +81,9 @@ class Plugin extends Component {
     this._stopEditing()
   }
 
-  _startEditing = () => {
-    this.setState({
-      editedConfig: this.props.configuration
-    })
-  }
+  _stopEditing = event => {
+    event && event.preventDefault()
 
-  _stopEditing = () => {
     this.setState({
       editedConfig: undefined
     })
@@ -160,7 +156,7 @@ class Plugin extends Component {
           </Col>
         </Row>
         {expanded && props.configurationSchema &&
-          <form id={this.configFormId}>
+          <form id={this.configFormId} onReset={this._stopEditing}>
             {size(configurationPresets) > 0 && (
               <div>
                 <legend>{_('pluginConfigurationPresetTitle')}</legend>
@@ -190,7 +186,6 @@ class Plugin extends Component {
               </div>
             )}
             <GenericInput
-              disabled={!editedConfig}
               label='Configuration'
               required
               schema={props.configurationSchema}
@@ -201,28 +196,20 @@ class Plugin extends Component {
             <div className='form-group pull-right'>
               <div className='btn-toolbar'>
                 <div className='btn-group'>
+                  <ActionButton disabled={!props.configuration} icon='delete' className='btn-danger' handler={this._deleteConfiguration}>
+                    {_('deletePluginConfiguration')}
+                  </ActionButton>
+                </div>
+                <div className='btn-group'>
+                  <button disabled={!editedConfig} type='reset' className='btn'>
+                    {_('cancelPluginEdition')}
+                  </button>
+                </div>
+                <div className='btn-group'>
                   <ActionButton disabled={!editedConfig} form={this.configFormId} icon='save' className='btn-primary' handler={this._saveConfiguration}>
                     {_('savePluginConfiguration')}
                   </ActionButton>
                 </div>
-                <div className='btn-group'>
-                  <ActionButton disabled={!editedConfig} icon='delete' className='btn-danger' handler={this._deleteConfiguration}>
-                    {_('deletePluginConfiguration')}
-                  </ActionButton>
-                </div>
-                {!editedConfig ? (
-                  <div className='btn-group'>
-                    <button type='button' className='btn btn-primary' onClick={this._startEditing}>
-                      {_('editPluginConfiguration')}
-                    </button>
-                  </div>
-                ) : (
-                  <div className='btn-group'>
-                    <button type='button' className='btn btn-primary' onClick={this._stopEditing}>
-                      {_('cancelPluginEdition')}
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
           </form>
