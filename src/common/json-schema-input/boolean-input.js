@@ -1,32 +1,30 @@
 import React from 'react'
-import { Toggle } from 'form'
 
-import AbstractInput from './abstract-input'
+import uncontrollableInput from 'uncontrollable-input'
+import Component from '../base-component'
+import { Toggle } from '../form'
+
 import { PrimitiveInputWrapper } from './helpers'
 
 // ===================================================================
 
-export default class BooleanInput extends AbstractInput {
-
-  get value () {
-    return this.refs.input.value
-  }
-
-  set value (value) {
-    this.refs.input.value = value
-  }
-
+@uncontrollableInput()
+export default class BooleanInput extends Component {
   render () {
-    const { props } = this
+    const {
+      disabled,
+      onChange,
+      value,
+      ...props
+    } = this.props
 
     return (
       <PrimitiveInputWrapper {...props}>
         <div className='checkbox form-control'>
           <Toggle
-            defaultValue={props.defaultValue}
-            disabled={props.disabled}
-            onChange={props.onChange}
-            ref='input'
+            disabled={disabled}
+            onChange={onChange}
+            value={value}
           />
         </div>
       </PrimitiveInputWrapper>

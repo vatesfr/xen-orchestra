@@ -1,4 +1,4 @@
-import autoControlledInput from 'auto-controlled-input'
+import uncontrollableInput from 'uncontrollable-input'
 import Component from 'base-component'
 import find from 'lodash/find'
 import map from 'lodash/map'
@@ -20,7 +20,7 @@ import Select from './select'
   required: propTypes.bool,
   value: propTypes.any
 })
-@autoControlledInput()
+@uncontrollableInput()
 export default class SelectPlainObject extends Component {
   componentDidMount () {
     const { options, value } = this.props

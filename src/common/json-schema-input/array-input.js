@@ -1,10 +1,11 @@
-import React, { Component, cloneElement } from 'react'
-import map from 'lodash/map'
-import filter from 'lodash/filter'
+import React from 'react'
+import uncontrollableInput from 'uncontrollable-input'
+import { filter, map } from 'lodash'
 
 import _ from '../intl'
+import Component from '../base-component'
 import propTypes from '../prop-types'
-import { propsEqual } from '../utils'
+import { EMPTY_ARRAY } from '../utils'
 
 import GenericInput from './generic-input'
 import {
@@ -12,175 +13,110 @@ import {
   forceDisplayOptionalAttr
 } from './helpers'
 
-// ===================================================================
-
-class ArrayItem extends Component {
-  get value () {
-    return this.refs.input.value
-  }
-
-  set value (value) {
-    this.setState({
-      use: true
-    }, () => {
-      this.refs.input.value = value
-    })
-  }
-
-  render () {
-    const { children } = this.props
-
-    return (
-      <li className='list-group-item clearfix'>
-        {cloneElement(children, {
-          ref: 'input'
-        })}
-        <button disabled={children.props.disabled} className='btn btn-danger pull-right' type='button' onClick={this.props.onDelete}>
-          {_('remove')}
-        </button>
-      </li>
-    )
-  }
-}
-
-// ===================================================================
-
 @propTypes({
   depth: propTypes.number,
   disabled: propTypes.bool,
   label: propTypes.any.isRequired,
   required: propTypes.bool,
   schema: propTypes.object.isRequired,
-  uiSchema: propTypes.object,
-  defaultValue: propTypes.array
+  uiSchema: propTypes.object
 })
-export default class ArrayInput extends Component {
-  constructor (props) {
-    super(props)
-
-    this._nextChildKey = 0
-
-    this.state = {
-      use: props.required || forceDisplayOptionalAttr(props),
-      children: this._makeChildren(props)
-    }
+@uncontrollableInput()
+export default class ObjectInput extends Component {
+  state = {
+    use: this.props.required || forceDisplayOptionalAttr(this.props)
   }
 
-  get value () {
-    if (this.state.use) {
-      return map(this.refs, 'value')
-    }
+  _onAddItem = () => {
+    const { props } = this
+    props.onChange((props.value || EMPTY_ARRAY).concat(undefined))
   }
 
-  set value (value = []) {
-    this.setState({
-      children: this._makeChildren({ ...this.props, value })
-    })
+  _onChangeItem = (value, name) => {
+    const key = Number(name)
+
+    const { props } = this
+    const newValue = (props.value || EMPTY_ARRAY).slice()
+    newValue[key] = value
+    props.onChange(newValue)
   }
 
-  _handleOptionalChange = event => {
-    this.setState({
-      use: event.target.checked
-    })
-  }
-
-  _handleAdd = () => {
-    const { children } = this.state
-    this.setState({
-      children: children.concat(this._makeChild(this.props))
-    })
-  }
-
-  _remove (key) {
-    this.setState({
-      children: filter(this.state.children, child => child.key !== key)
-    })
-  }
-
-  _makeChild (props, defaultValue) {
-    const key = String(this._nextChildKey++)
-    const {
-      schema: {
-        items
-      }
-    } = props
-
-    return (
-      <ArrayItem key={key} onDelete={() => { this._remove(key) }}>
-        <GenericInput
-          depth={props.depth}
-          disabled={props.disabled}
-          label={items.title || _('item')}
-          required
-          schema={items}
-          uiSchema={props.uiSchema.items}
-          defaultValue={defaultValue}
-        />
-      </ArrayItem>
-    )
-  }
-
-  _makeChildren (props) {
-    return map(props.defaultValue, defaultValue =>
-      this._makeChild(props, defaultValue)
-    )
-  }
-
-  componentWillReceiveProps (props) {
-    if (
-      !propsEqual(
-        this.props,
-        props,
-        [ 'depth', 'disabled', 'label', 'required', 'schema', 'uiSchema' ]
-      )
-    ) {
-      this.setState({
-        children: this._makeChildren(props)
-      })
-    }
+  _onRemoveItem = key => {
+    const { props } = this
+    props.onChange(filter(props.value, (_, i) => i !== key))
   }
 
   render () {
     const {
-      props,
-      state
+      props: {
+        depth = 0,
+        disabled,
+        label,
+        required,
+        schema,
+        uiSchema,
+        value = EMPTY_ARRAY
+      },
+      state: { use }
     } = this
-    const {
-      disabled,
-      schema
-    } = props
-    const { use } = state
-    const depth = props.depth || 0
+
+    const childDepth = depth + 2
+    const itemSchema = schema.items
+    const itemUiSchema = uiSchema && uiSchema.items
+
+    const itemLabel = itemSchema.title || _('item')
 
     return (
       <div style={{'paddingLeft': `${depth}em`}}>
-        <legend>{props.label}</legend>
+        <legend>{label}</legend>
         {descriptionRender(schema.description)}
         <hr />
-        {!props.required &&
-          <div className='checkbox'>
-            <label>
-              <input
-                checked={use}
-                disabled={disabled}
-                onChange={this._handleOptionalChange}
-                type='checkbox'
-              /> {_('fillOptionalInformations')}
-            </label>
-          </div>
-        }
-        {use &&
-          <div className={'card-block'}>
-            <ul style={{'paddingLeft': 0}} >
-              {map(this.state.children, (child, index) =>
-                cloneElement(child, { ref: index })
-              )}
-            </ul>
-            <button disabled={disabled} className='btn btn-primary pull-right mt-1 mr-1' type='button' onClick={this._handleAdd}>
-              {_('add')}
-            </button>
-          </div>
-        }
+        {!required && <div className='checkbox'>
+          <label>
+            <input
+              checked={use}
+              disabled={disabled}
+              onChange={this.linkState('use')}
+              type='checkbox'
+            /> {_('fillOptionalInformations')}
+          </label>
+        </div>}
+        {use && <div className='card-block'>
+          <ul style={{'paddingLeft': 0}} >
+            {map(value, (value, key) =>
+              <li className='list-group-item clearfix' key={key}>
+                <GenericInput
+                  depth={childDepth}
+                  disabled={disabled}
+                  label={itemLabel}
+                  name={key}
+                  onChange={this._onChangeItem}
+                  required
+                  schema={itemSchema}
+                  uiSchema={itemUiSchema}
+                  value={value}
+                />
+                <button
+                  className='btn btn-danger pull-right'
+                  disabled={disabled}
+                  name={key}
+                  onClick={() => this._onRemoveItem(key)}
+                  type='button'
+                >
+                  {_('remove')}
+                </button>
+              </li>
+            )}
+          </ul>
+          <button
+            className='btn btn-primary pull-right mt-1 mr-1'
+            disabled={disabled}
+            onClick={this._onAddItem}
+            type='button'
+          >
+            {_('add')}
+          </button>
+        </div>}
       </div>
     )
   }

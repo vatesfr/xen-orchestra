@@ -130,6 +130,7 @@
     "styled-components": "^1.4.4",
     "superagent": "^3.5.0",
     "tar-stream": "^1.5.2",
+    "uncontrollable-input": "^0.0.0",
     "vinyl": "^2.0.0",
     "watchify": "^3.7.0",
     "xml2js": "^0.4.17",

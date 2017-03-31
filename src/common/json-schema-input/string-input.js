@@ -1,8 +1,10 @@
 import React from 'react'
 
-import AbstractInput from './abstract-input'
+import uncontrollableInput from 'uncontrollable-input'
 import Combobox from '../combobox'
+import Component from '../base-component'
 import propTypes from '../prop-types'
+
 import { PrimitiveInputWrapper } from './helpers'
 
 // ===================================================================
@@ -10,22 +12,29 @@ import { PrimitiveInputWrapper } from './helpers'
 @propTypes({
   password: propTypes.bool
 })
-export default class StringInput extends AbstractInput {
+@uncontrollableInput()
+export default class StringInput extends Component {
   render () {
-    const { props } = this
-    const { schema } = props
+    const { required, schema } = this.props
+    const {
+      disabled,
+      onChange,
+      password,
+      placeholder = schema.default,
+      value,
+      ...props
+    } = this.props
 
     return (
       <PrimitiveInputWrapper {...props}>
         <Combobox
-          defaultValue={props.defaultValue}
-          disabled={props.disabled}
-          onChange={props.onChange}
+          value={value || ''}
+          disabled={disabled}
+          onChange={onChange}
           options={schema.defaults}
-          placeholder={props.placeholder || schema.default}
-          ref='input'
-          required={props.required}
-          type={props.password && 'password'}
+          placeholder={placeholder || schema.default}
+          required={required}
+          type={password && 'password'}
         />
       </PrimitiveInputWrapper>
     )
