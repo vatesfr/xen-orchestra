@@ -46,11 +46,18 @@ export const configurationSchema = {
         },
         port: {
           type: 'integer',
-          description: 'port of the SMTP server (defaults to 25 or 465)'
+          description: 'port of the SMTP server (defaults to 25 or 465 for TLS)'
         },
         secure: {
-          type: 'boolean',
-          description: 'whether the connection should use SSL'
+          default: false,
+          enum: [ false, 'force', 'disabled', true ],
+          enumNames: [
+            'auto (uses STARTTLS if available)',
+            'force (requires STARTTLS or fail)',
+            'disabled (never use STARTTLS)',
+            'TLS'
+          ],
+          description: 'whether the connection should use TLS'
         },
         ignoreUnauthorized: {
           type: 'boolean',
@@ -117,18 +124,18 @@ class TransportEmailPlugin {
     this._unset = null
 
     // Defined in configure().
-    this._conf = null
     this._send = null
   }
 
   configure ({
+    from,
     transport: {
       ignoreUnauthorized,
       password,
+      secure,
       user,
       ...transportConf
-    },
-    ...conf
+    }
   }) {
     if (ignoreUnauthorized != null) {
       (
@@ -141,10 +148,18 @@ class TransportEmailPlugin {
       transportConf.auth = { user, pass: password }
     }
 
-    const transport = createTransport(transportConf)
+    switch (secure) {
+      case true:
+        transportConf.secure = true; break
+      case 'disabled':
+        transportConf.ignoreTLS = true; break
+      case 'required':
+        transportConf.requireTLS = true; break
+    }
+
+    const transport = createTransport(transportConf, { from })
     transport.use('compile', markdownCompiler)
 
-    this._conf = conf
     this._send = promisify(transport.sendMail, transport)
   }
 
@@ -172,7 +187,7 @@ The transport-email plugin for Xen Orchestra server seems to be working fine, ni
   }
 
   _sendEmail ({
-    from = this._conf.from,
+    from,
     to, cc, bcc,
     subject,
     markdown,
