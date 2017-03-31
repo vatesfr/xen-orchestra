@@ -1,5 +1,53 @@
 # ChangeLog
 
+## **5.7.0** (2016-03-31)
+
+Reporting, LVM File level restore.
+
+### Enhancements
+
+- Improve ActionButton error reporting [\#2048](https://github.com/vatesfr/xo-web/issues/2048)
+- Home view master checkbox UI issue [\#2027](https://github.com/vatesfr/xo-web/issues/2027)
+- HU Translation [\#2019](https://github.com/vatesfr/xo-web/issues/2019)
+- [Usage report] Add name for all objects [\#2017](https://github.com/vatesfr/xo-web/issues/2017)
+- [Home] Improve inter-types linkage [\#2012](https://github.com/vatesfr/xo-web/issues/2012)
+- Remove bootable checkboxes in VM creation [\#2007](https://github.com/vatesfr/xo-web/issues/2007)
+- Do not display bootable toggles for disks of non-PV VMs [\#1996](https://github.com/vatesfr/xo-web/issues/1996)
+- Try to match network VLAN for VM migration modal [\#1990](https://github.com/vatesfr/xo-web/issues/1990)
+- [Usage reports] Add VM names in addition to UUIDs [\#1984](https://github.com/vatesfr/xo-web/issues/1984)
+- Host affinity in "advanced" VM creation [\#1983](https://github.com/vatesfr/xo-web/issues/1983)
+- Add job tag in backup logs [\#1982](https://github.com/vatesfr/xo-web/issues/1982)
+- Possibility to add a label/description to servers [\#1965](https://github.com/vatesfr/xo-web/issues/1965)
+- Possibility to create shared VM in a resource set [\#1964](https://github.com/vatesfr/xo-web/issues/1964)
+- Clearer display of disabled (backup) jobs [\#1958](https://github.com/vatesfr/xo-web/issues/1958)
+- Job should have a configurable timeout [\#1956](https://github.com/vatesfr/xo-web/issues/1956)
+- Sort failed VMs in backup report [\#1950](https://github.com/vatesfr/xo-web/issues/1950)
+- Support for UNIX socket path [\#1944](https://github.com/vatesfr/xo-web/issues/1944)
+- Interface - Host Patching - Button Verbiage [\#1911](https://github.com/vatesfr/xo-web/issues/1911)
+- Display if a VM is in Self Service (and which group) [\#1905](https://github.com/vatesfr/xo-web/issues/1905)
+- Install supplemental pack on a whole pool [\#1896](https://github.com/vatesfr/xo-web/issues/1896)
+- Allow VM snapshots with ACLs [\#1865](https://github.com/vatesfr/xo-web/issues/1886)
+- Icon to indicate if a snapshot is quiesce [\#1858](https://github.com/vatesfr/xo-web/issues/1858)
+- Pool Ips input too permissive [\#1731](https://github.com/vatesfr/xo-web/issues/1731)
+- Select is going on top after each choice [\#1359](https://github.com/vatesfr/xo-web/issues/1359)
+
+### Bug fixes
+
+- Missing objects should be displayed in backup edition [\#2052](https://github.com/vatesfr/xo-web/issues/2052)
+- Search bar content changes while typing [\#2035](https://github.com/vatesfr/xo-web/issues/2035)
+- VM.$guest_metrics.PV_drivers_up_to_date is deprecated in XS 7.1 [\#2024](https://github.com/vatesfr/xo-web/issues/2024)
+- Bootable flag selection checkbox for extra disk not fetched [\#1994](https://github.com/vatesfr/xo-web/issues/1994)
+- Home view − Changing type must reset paging [\#1993](https://github.com/vatesfr/xo-web/issues/1993)
+- XOSAN menu item should only be displayed to admins [\#1968](https://github.com/vatesfr/xo-web/issues/1968)
+- Object type change are not correctly handled in UI [\#1967](https://github.com/vatesfr/xo-web/issues/1967)
+- VM creation is stuck when using ISO/DVD as install method [\#1966](https://github.com/vatesfr/xo-web/issues/1966)
+- Install pack on whole pool fails [\#1957](https://github.com/vatesfr/xo-web/issues/1957)
+- Consoles are broken in next-release [\#1954](https://github.com/vatesfr/xo-web/issues/1954)
+- [VHD merge] Increase BAT when necessary [\#1939](https://github.com/vatesfr/xo-web/issues/1939)
+- Issue on VM restore time [\#1936](https://github.com/vatesfr/xo-web/issues/1936)
+- Two remotes should not be able to have the same name [\#1879](https://github.com/vatesfr/xo-web/issues/1879)
+- Selfservice limits not honored after VM creation [\#1695](https://github.com/vatesfr/xo-web/issues/1695)
+
 ## **5.6.0** (2016-01-27)
 
 Reporting, LVM File level restore.
