@@ -2,8 +2,6 @@
 
 ## **5.7.0** (2016-03-31)
 
-Reporting, LVM File level restore.
-
 ### Enhancements
 
 - Improve ActionButton error reporting [\#2048](https://github.com/vatesfr/xo-web/issues/2048)
