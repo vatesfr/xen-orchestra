@@ -1345,7 +1345,7 @@ export const disablePluginAutoload = id => (
   )
 )
 
-export const configurePlugin = (id, configuration) => {
+export const configurePlugin = (id, configuration) =>
   _call('plugin.configure', { id, configuration })::tap(
     () => {
       info(_('pluginConfigurationSuccess'), _('pluginConfigurationChanges'))
@@ -1354,7 +1354,6 @@ export const configurePlugin = (id, configuration) => {
   )::rethrow(
     err => error(_('pluginError'), JSON.stringify(err.data) || _('unknownPluginError'))
   )
-}
 
 export const purgePluginConfiguration = async id => {
   await confirm({
