@@ -1,15 +1,18 @@
 import _ from 'intl'
 import ActionRowButton from 'action-row-button'
-import isEmpty from 'lodash/isEmpty'
 import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import Upgrade from 'xoa-upgrade'
 import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
-import { createDoesHostNeedRestart } from 'selectors'
+import { createDoesHostNeedRestart, createSelector } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { restartHost } from 'xo'
+import {
+  isEmpty,
+  isString
+} from 'lodash'
 
 const MISSING_PATCH_COLUMNS = [
   {
@@ -84,12 +87,56 @@ const INSTALLED_PATCH_COLUMNS = [
   }
 ]
 
+// support for software_version.platform_version ^2.1.1
+const INSTALLED_PATCH_COLUMNS_2 = [
+  {
+    default: true,
+    name: _('patchNameLabel'),
+    itemRenderer: patch => patch.name,
+    sortCriteria: patch => patch.name
+  },
+  {
+    name: _('patchDescription'),
+    itemRenderer: patch => patch.description,
+    sortCriteria: patch => patch.description
+  },
+  {
+    name: _('patchSize'),
+    itemRenderer: patch => formatSize(patch.size),
+    sortCriteria: patch => patch.size
+  }
+]
+
 @connectStore(() => ({
   needsRestart: createDoesHostNeedRestart((_, props) => props.host)
 }))
 export default class HostPatches extends Component {
+  _getPatches = createSelector(
+    () => this.props.host,
+    () => this.props.hostPatches,
+    (host, hostPatches) => {
+      if (isEmpty(host.patches) && isEmpty(hostPatches)) {
+        return { patches: null }
+      }
+
+      if (isString(host.patches[0])) {
+        return {
+          patches: hostPatches,
+          columns: INSTALLED_PATCH_COLUMNS
+        }
+      }
+
+      return {
+        patches: host.patches,
+        columns: INSTALLED_PATCH_COLUMNS_2
+      }
+    }
+  )
+
   render () {
-    const { host, hostPatches, missingPatches, installAllPatches, installPatch } = this.props
+    const { host, missingPatches, installAllPatches, installPatch } = this.props
+    const { patches, columns } = this._getPatches()
+
     return process.env.XOA_PLAN > 1
       ? <Container>
         <Row>
@@ -125,13 +172,12 @@ export default class HostPatches extends Component {
         </Row>}
         <Row>
           <Col>
-            {!isEmpty(hostPatches)
-              ? (
-                <span>
-                  <h3>{_('hostAppliedPatches')}</h3>
-                  <SortedTable collection={hostPatches} columns={INSTALLED_PATCH_COLUMNS} />
-                </span>
-              ) : <h4 className='text-xs-center'>{_('patchNothing')}</h4>
+            {patches
+              ? <span>
+                <h3>{_('hostAppliedPatches')}</h3>
+                <SortedTable collection={patches} columns={columns} />
+              </span>
+              : <h4 className='text-xs-center'>{_('patchNothing')}</h4>
             }
           </Col>
         </Row>
