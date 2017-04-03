@@ -1,4 +1,4 @@
-import {OAuth2Strategy as Strategy} from 'passport-google-oauth'
+import { Strategy } from 'passport-google-oauth20'
 
 // ===================================================================
 
