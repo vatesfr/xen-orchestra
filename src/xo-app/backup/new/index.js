@@ -390,7 +390,7 @@ export default class New extends Component {
         type: 'crossProduct',
         items: [{
           type: 'set',
-          values: map(vmsInputValue.vms, vm => ({ id: vm }))
+          values: vmsInputValue.vms[0].id ? vmsInputValue.vms : map(vmsInputValue.vms, vm => ({ id: vm }))
         }, {
           type: 'set',
           values: [ callArgs ]

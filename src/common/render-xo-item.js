@@ -199,6 +199,10 @@ const renderXoItem = (item, {
     throw new Error(`no available component for type ${type}`)
   }
 
+  if (item.removed) {
+    return <span key={id} className='text-danger'> <Icon icon='alarm'size='1' /> <label>{id}</label></span>
+  }
+
   if (Component) {
     return (
       <span key={id} className={className}>

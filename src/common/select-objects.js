@@ -42,7 +42,6 @@ import {
 import {
   addSubscriptions,
   connectStore,
-  mapPlus,
   resolveResourceSets
 } from './utils'
 import {
@@ -118,54 +117,7 @@ const options = props => ({
  *  ]
  * }
  */
-@propTypes({
-  autoFocus: propTypes.bool,
-  clearable: propTypes.bool,
-  disabled: propTypes.bool,
-  hasSelectAll: propTypes.bool,
-  multi: propTypes.bool,
-  onChange: propTypes.func,
-  placeholder: propTypes.any.isRequired,
-  required: propTypes.bool,
-  value: propTypes.any,
-  xoContainers: propTypes.array,
-  xoObjects: propTypes.oneOfType([
-    propTypes.array,
-    propTypes.objectOf(propTypes.array)
-  ]).isRequired
-})
 export class GenericSelect extends Component {
-  componentDidUpdate (prevProps) {
-    const { onChange, xoObjects } = this.props
-
-    if (!onChange || prevProps.xoObjects === xoObjects) {
-      return
-    }
-
-    const ids = this._getSelectValue()
-    const objectsById = this._getObjectsById()
-
-    if (!isArray(ids)) {
-      ids && !objectsById[ids] && onChange(undefined)
-    } else {
-      let shouldTriggerOnChange
-
-      const newValue = isArray(ids) && mapPlus(ids, (id, push) => {
-        const object = objectsById[id]
-
-        if (object) {
-          push(object)
-        } else {
-          shouldTriggerOnChange = true
-        }
-      })
-
-      if (shouldTriggerOnChange) {
-        this.props.onChange(newValue)
-      }
-    }
-  }
-
   _getObjectsById = createSelector(
     () => this.props.xoObjects,
     objects => keyBy(
@@ -204,6 +156,22 @@ export class GenericSelect extends Component {
         forEach(objects[container.id], object => {
           options.push(getOption(object, container))
         })
+      })
+      const values = this._getSelectValue()
+      forEach(values, val => {
+        if (!this._getObjectsById()[val]) {
+          options.push({
+            id: val,
+            label: val,
+            value: val,
+            xoItem: {
+              id: val,
+              type: 'VM',
+              label: val,
+              removed: true
+            }
+          })
+        }
       })
       return options
     }
