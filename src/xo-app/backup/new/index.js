@@ -595,22 +595,22 @@ export default class New extends Component {
                         </select>
                       </fieldset>
                       {smartBackupMode
-                        ? (process.env.XOA_PLAN > 2
-                          ? <GenericInput
+                        ? <Upgrade place='newBackup' required={3}>
+                          <GenericInput
                             label={<span><Icon icon='vm' /> {_('vmsToBackup')}</span>}
                             ref='vmsInput'
                             required
                             schema={SMART_SCHEMA}
                             uiSchema={SMART_UI_SCHEMA}
-                            />
-                          : <Container><Upgrade place='newBackup' available={3} /></Container>
-                        ) : <GenericInput
+                          />
+                        </Upgrade>
+                        : <GenericInput
                           label={<span><Icon icon='vm' /> {_('vmsToBackup')}</span>}
                           ref='vmsInput'
                           required
                           schema={NO_SMART_SCHEMA}
                           uiSchema={NO_SMART_UI_SCHEMA}
-                          />
+                        />
                       }
                     </div>}
                   </form>
