@@ -360,15 +360,18 @@ export default class New extends Component {
         })
       } else {
         // Normal backup.
-        // It fixes the bug: After each backup saves, the each value of vmsInput is converted to an object with an id.
-        // When the latter is an object, a new level in the object is added.
+        backupInput.value = values[1].values[0]
+
+        // xo-web v5.7.1 introduced a bug where an extra level ({ id: { id: <id> } }) was introduced for the VM param.
+        //
+        // This code automatically unbox the ids.
         const vms = map(values[0].values, vm => {
           while (vm.id) {
             vm = vm.id
             if (!vm.id) return vm
           }
         })
-        backupInput.value = values[1].values[0]
+
         vmsInput.value = { vms }
       }
     }
