@@ -182,6 +182,10 @@ const renderXoItem = (item, {
 } = {}) => {
   const { id, type, label } = item
 
+  if (item.removed) {
+    return <span key={id} className='text-danger'> <Icon icon='alarm'size='1' /> <label>{id}</label></span>
+  }
+
   if (!type) {
     if (process.env.NODE_ENV !== 'production' && !label) {
       throw new Error(`an item must have at least either a type or a label`)
@@ -197,10 +201,6 @@ const renderXoItem = (item, {
 
   if (process.env.NODE_ENV !== 'production' && !Component) {
     throw new Error(`no available component for type ${type}`)
-  }
-
-  if (item.removed) {
-    return <span key={id} className='text-danger'> <Icon icon='alarm'size='1' /> <label>{id}</label></span>
   }
 
   if (Component) {

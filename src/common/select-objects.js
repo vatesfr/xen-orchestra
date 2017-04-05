@@ -117,6 +117,22 @@ const options = props => ({
  *  ]
  * }
  */
+@propTypes({
+  autoFocus: propTypes.bool,
+  clearable: propTypes.bool,
+  disabled: propTypes.bool,
+  hasSelectAll: propTypes.bool,
+  multi: propTypes.bool,
+  onChange: propTypes.func,
+  placeholder: propTypes.any.isRequired,
+  required: propTypes.bool,
+  value: propTypes.any,
+  xoContainers: propTypes.array,
+  xoObjects: propTypes.oneOfType([
+    propTypes.array,
+    propTypes.objectOf(propTypes.array)
+  ]).isRequired
+})
 export class GenericSelect extends Component {
   _getObjectsById = createSelector(
     () => this.props.xoObjects,
@@ -166,8 +182,6 @@ export class GenericSelect extends Component {
             value: val,
             xoItem: {
               id: val,
-              type: 'VM',
-              label: val,
               removed: true
             }
           })
