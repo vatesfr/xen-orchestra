@@ -31,7 +31,7 @@
     "npm": ">=3"
   },
   "devDependencies": {
-    "@nraynaud/novnc": "^0.6.1",
+    "@nraynaud/novnc": "^0.6.1-1",
     "ansi_up": "^1.3.0",
     "asap": "^2.0.4",
     "babel-eslint": "^7.0.0",
