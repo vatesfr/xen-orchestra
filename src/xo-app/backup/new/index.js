@@ -360,8 +360,14 @@ export default class New extends Component {
         })
       } else {
         // Normal backup.
+        const vms = map(values[0].values, vm => {
+          while (vm.id) {
+            vm = vm.id
+            if (!vm.id) return vm
+          }
+        })
         backupInput.value = values[1].values[0]
-        vmsInput.value = { vms: values[0].values }
+        vmsInput.value = { vms }
       }
     }
   }
@@ -390,7 +396,7 @@ export default class New extends Component {
         type: 'crossProduct',
         items: [{
           type: 'set',
-          values: vmsInputValue.vms[0].id ? vmsInputValue.vms : map(vmsInputValue.vms, vm => ({ id: vm }))
+          values: map(vmsInputValue.vms, vm => ({ id: vm.id || vm }))
         }, {
           type: 'set',
           values: [ callArgs ]
