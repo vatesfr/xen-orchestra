@@ -554,6 +554,7 @@ var messages = {
   pifStatusDisconnected: 'Disconnected',
   pifNoInterface: 'No physical interface detected',
   pifInUse: 'This interface is currently in use',
+  pifAction: 'Action',
   defaultLockingMode: 'Default locking mode',
   pifConfigureIp: 'Configure IP address',
   configIpErrorTitle: 'Invalid parameters',
@@ -1213,6 +1214,10 @@ var messages = {
   disconnectPifConfirm: 'Are you sure you want to disconnect this PIF?',
   deletePif: 'Delete PIF',
   deletePifConfirm: 'Are you sure you want to delete this PIF?',
+  pifConnected: 'Connected',
+  pifDisconnected: 'Disconnected',
+  pifPhysicallyConnected: 'Physically connected',
+  pifPhysicallyDisconnected: 'Physically disconnected',
 
   // ----- User -----
   username: 'Username',
