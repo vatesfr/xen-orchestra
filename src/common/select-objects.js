@@ -174,8 +174,9 @@ export class GenericSelect extends Component {
         })
       })
       const values = this._getSelectValue()
+      const objectsById = this._getObjectsById()
       forEach(values, val => {
-        if (!this._getObjectsById()[val]) {
+        if (!objectsById[val]) {
           options.push({
             id: val,
             label: val,
