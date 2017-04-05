@@ -365,11 +365,11 @@ export default class New extends Component {
         // xo-web v5.7.1 introduced a bug where an extra level ({ id: { id: <id> } }) was introduced for the VM param.
         //
         // This code automatically unbox the ids.
-        const vms = map(values[0].values, vm => {
-          while (vm.id) {
-            vm = vm.id
-            if (!vm.id) return vm
+        const vms = map(values[0].values, id => {
+          while (typeof id === 'object') {
+            id = id.id
           }
+          return id
         })
 
         vmsInput.value = { vms }
