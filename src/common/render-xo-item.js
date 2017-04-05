@@ -183,7 +183,7 @@ const renderXoItem = (item, {
   const { id, type, label } = item
 
   if (item.removed) {
-    return <span key={id} className='text-danger'> <Icon icon='alarm'size='1' /> {id}</span>
+    return <span key={id} className='text-danger'> <Icon icon='alarm' /> {id}</span>
   }
 
   if (!type) {

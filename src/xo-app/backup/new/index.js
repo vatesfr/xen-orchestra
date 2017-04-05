@@ -360,6 +360,8 @@ export default class New extends Component {
         })
       } else {
         // Normal backup.
+        // It fixes the bug: After each backup saves, the each value of vmsInput is converted to an object with an id.
+        // When the latter is an object, a new level in the object is added.
         const vms = map(values[0].values, vm => {
           while (vm.id) {
             vm = vm.id
