@@ -182,6 +182,10 @@ const renderXoItem = (item, {
 } = {}) => {
   const { id, type, label } = item
 
+  if (item.removed) {
+    return <span key={id} className='text-danger'> <Icon icon='alarm' /> {id}</span>
+  }
+
   if (!type) {
     if (process.env.NODE_ENV !== 'production' && !label) {
       throw new Error(`an item must have at least either a type or a label`)

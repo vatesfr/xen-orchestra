@@ -361,7 +361,18 @@ export default class New extends Component {
       } else {
         // Normal backup.
         backupInput.value = values[1].values[0]
-        vmsInput.value = { vms: values[0].values }
+
+        // xo-web v5.7.1 introduced a bug where an extra level ({ id: { id: <id> } }) was introduced for the VM param.
+        //
+        // This code automatically unbox the ids.
+        const vms = map(values[0].values, id => {
+          while (typeof id === 'object') {
+            id = id.id
+          }
+          return id
+        })
+
+        vmsInput.value = { vms }
       }
     }
   }
@@ -390,7 +401,7 @@ export default class New extends Component {
         type: 'crossProduct',
         items: [{
           type: 'set',
-          values: map(vmsInputValue.vms, vm => ({ id: vm }))
+          values: map(vmsInputValue.vms, vm => ({ id: vm.id || vm }))
         }, {
           type: 'set',
           values: [ callArgs ]

@@ -42,7 +42,6 @@ import {
 import {
   addSubscriptions,
   connectStore,
-  mapPlus,
   resolveResourceSets
 } from './utils'
 import {
@@ -135,37 +134,6 @@ const options = props => ({
   ]).isRequired
 })
 export class GenericSelect extends Component {
-  componentDidUpdate (prevProps) {
-    const { onChange, xoObjects } = this.props
-
-    if (!onChange || prevProps.xoObjects === xoObjects) {
-      return
-    }
-
-    const ids = this._getSelectValue()
-    const objectsById = this._getObjectsById()
-
-    if (!isArray(ids)) {
-      ids && !objectsById[ids] && onChange(undefined)
-    } else {
-      let shouldTriggerOnChange
-
-      const newValue = isArray(ids) && mapPlus(ids, (id, push) => {
-        const object = objectsById[id]
-
-        if (object) {
-          push(object)
-        } else {
-          shouldTriggerOnChange = true
-        }
-      })
-
-      if (shouldTriggerOnChange) {
-        this.props.onChange(newValue)
-      }
-    }
-  }
-
   _getObjectsById = createSelector(
     () => this.props.xoObjects,
     objects => keyBy(
@@ -204,6 +172,21 @@ export class GenericSelect extends Component {
         forEach(objects[container.id], object => {
           options.push(getOption(object, container))
         })
+      })
+      const values = this._getSelectValue()
+      const objectsById = this._getObjectsById()
+      forEach(values, val => {
+        if (!objectsById[val]) {
+          options.push({
+            id: val,
+            label: val,
+            value: val,
+            xoItem: {
+              id: val,
+              removed: true
+            }
+          })
+        }
       })
       return options
     }
