@@ -5,6 +5,7 @@ import isEqual from 'lodash/isEqual'
 import isPlainObject from 'lodash/isPlainObject'
 import pickBy from 'lodash/pickBy'
 import { utcFormat, utcParse } from 'd3-time-format'
+import { satisfies as versionSatisfies } from 'semver'
 
 import httpRequest from '../http-request'
 import {
@@ -383,4 +384,9 @@ export const put = (stream, {
   }
 
   return makeRequest().readAll()
+}
+
+export const useUpdateSystem = host => {
+  // Match Xen Center's condition: https://github.com/xenserver/xenadmin/blob/f3a64fc54bbff239ca6f285406d9034f57537d64/XenModel/Utils/Helpers.cs#L420
+  return versionSatisfies(host.software_version.platform_version, '^2.1.1')
 }

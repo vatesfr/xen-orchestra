@@ -1,6 +1,5 @@
 import {
-  includes,
-  pickBy
+  startsWith
 } from 'lodash'
 
 import {
@@ -9,6 +8,7 @@ import {
   forEach,
   isArray,
   isEmpty,
+  mapFilter,
   mapToArray,
   parseXml
 } from './utils'
@@ -18,6 +18,9 @@ import {
   isVmRunning,
   parseDateTime
 } from './xapi'
+import {
+  useUpdateSystem
+} from './xapi/utils'
 
 // ===================================================================
 
@@ -99,6 +102,32 @@ const TRANSFORMS = {
     } = obj
 
     const isRunning = isHostRunning(obj)
+    const { software_version } = obj
+    let supplementalPacks, patches
+
+    if (useUpdateSystem(obj)) {
+      supplementalPacks = []
+      patches = []
+
+      forEach(obj.$updates, update => {
+        const formattedUpdate = {
+          name: update.name_label,
+          description: update.name_description,
+          author: update.key.split('-')[3],
+          version: update.version,
+          guidance: update.after_apply_guidance,
+          hosts: link(update, 'hosts'),
+          vdi: link(update, 'vdi'),
+          size: update.installation_size
+        }
+
+        if (startsWith(update.name_label, 'XS')) {
+          patches.push(formattedUpdate)
+        } else {
+          supplementalPacks.push(formattedUpdate)
+        }
+      })
+    }
 
     return {
       // Deprecated
@@ -139,13 +168,25 @@ const TRANSFORMS = {
           total: 0
         }
       })(),
-      patches: link(obj, 'patches'),
+      patches: patches || link(obj, 'patches'),
       powerOnMode: obj.power_on_mode,
       power_state: metrics
         ? (isRunning ? 'Running' : 'Halted')
         : 'Unknown',
       startTime: toTimestamp(otherConfig.boot_time),
-      supplementalPacks: pickBy(obj.software_version, (value, key) => includes(key, ':')),
+      supplementalPacks: supplementalPacks ||
+        mapFilter(software_version, (value, key) => {
+          let author, name
+          if (([ author, name ] = key.split(':')).length === 2) {
+            const [ description, version ] = value.split(', ')
+            return {
+              name,
+              description,
+              author,
+              version: version.split(' ')[1]
+            }
+          }
+        }),
       agentStartTime: toTimestamp(otherConfig.agent_start_time),
       tags: obj.tags,
       version: obj.software_version.product_version,

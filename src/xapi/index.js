@@ -1107,37 +1107,13 @@ export default class Xapi extends XapiBase {
     return loop()
   }
 
-  async _createSuppPackVdi (stream, sr) {
-    const vdi = await this.createVdi(stream.length, {
-      sr: sr.$ref,
-      name_label: '[XO] Supplemental pack ISO',
-      name_description: 'small temporary VDI to store a supplemental pack ISO'
-    })
-    await this.importVdiContent(vdi.$id, stream, { format: VDI_FORMAT_RAW })
-
-    return vdi
-  }
-
   @deferrable
   async installSupplementalPack ($defer, stream, { hostId }) {
     if (!stream.length) {
       throw new Error('stream must have a length')
     }
 
-    let sr = this.pool.$default_SR
-
-    if (!sr || sr.physical_size - sr.physical_utilisation < stream.length) {
-      sr = find(
-        mapToArray(this.getObject(hostId, 'host').$PBDs, '$SR'),
-        sr => sr && sr.content_type === 'user' && sr.physical_size - sr.physical_utilisation >= stream.length
-      )
-
-      if (!sr) {
-        throw new Error('no SR available to store installation file')
-      }
-    }
-
-    const vdi = await this._createSuppPackVdi(stream, sr)
+    const vdi = await this.createTemporaryVdiOnHost(stream, hostId, '[XO] Supplemental pack ISO', 'small temporary VDI to store a supplemental pack ISO')
     $defer(() => this._deleteVdi(vdi))
 
     await this.call('host.call_plugin', this.getObject(hostId).$ref, 'install-supp-pack', 'install', { vdi: vdi.uuid })
@@ -1162,7 +1138,7 @@ export default class Xapi extends XapiBase {
 
     // Shared SR available: create only 1 VDI for all the installations
     if (sr) {
-      const vdi = await this._createSuppPackVdi(stream, sr)
+      const vdi = await this._createTemporaryVdiOnSr(stream, sr, '[XO] Supplemental pack ISO', 'small temporary VDI to store a supplemental pack ISO')
       $defer(() => this._deleteVdi(vdi))
 
       // Install pack sequentially to prevent concurrent access to the unique VDI
@@ -1188,7 +1164,7 @@ export default class Xapi extends XapiBase {
         throw new Error('no SR available to store installation file')
       }
 
-      const vdi = await this._createSuppPackVdi(pt, sr)
+      const vdi = await this._createTemporaryVdiOnSr(pt, sr, '[XO] Supplemental pack ISO', 'small temporary VDI to store a supplemental pack ISO')
       $defer(() => this._deleteVdi(vdi))
 
       await this.call('host.call_plugin', host.$ref, 'install-supp-pack', 'install', { vdi: vdi.uuid })
@@ -2139,6 +2115,37 @@ export default class Xapi extends XapiBase {
       format: VDI_FORMAT_RAW
     })
     await this._createVbd(vm, vdi)
+  }
+
+  @deferrable.onFailure
+  async _createTemporaryVdiOnSr ($onFailure, stream, sr, name_label, name_description) {
+    const vdi = await this.createVdi(stream.length, {
+      sr: sr.$ref,
+      name_label,
+      name_description
+    })
+    $onFailure(() => this._deleteVdi(vdi))
+
+    await this.importVdiContent(vdi.$id, stream, { format: VDI_FORMAT_RAW })
+
+    return vdi
+  }
+
+  async createTemporaryVdiOnHost (stream, hostId, name_label, name_description) {
+    let sr = this.pool.$default_SR
+
+    if (!sr || sr.physical_size - sr.physical_utilisation < stream.length) {
+      sr = find(
+        mapToArray(this.getObject(hostId).$PBDs, '$SR'),
+        sr => sr && sr.content_type === 'user' && sr.physical_size - sr.physical_utilisation >= stream.length
+      )
+
+      if (!sr) {
+        throw new Error('no SR available to store installation file')
+      }
+    }
+
+    return this._createTemporaryVdiOnSr(stream, sr, name_label, name_description)
   }
 
   // =================================================================
