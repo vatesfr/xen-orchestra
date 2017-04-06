@@ -16,14 +16,11 @@ const ALLOW_INSTALL_SUPP_PACK = process.env.XOA_PLAN > 1
 
 const forceReboot = host => restartHost(host, true)
 
-const formatPack = (version, pack) => {
-  const [ author, name ] = pack.split(':')
-
-  return <tr>
-    <th>{_('supplementalPackTitle', { author, name })}</th>
-    <td>{version}</td>
-  </tr>
-}
+const formatPack = ({ name, author, description, version }) => <tr>
+  <th>{_('supplementalPackTitle', { author, name })}</th>
+  <td>{description}</td>
+  <td>{version}</td>
+</tr>
 
 export default ({
   host

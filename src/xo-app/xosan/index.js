@@ -19,7 +19,8 @@ import {
   isEmpty,
   keys,
   map,
-  pickBy
+  pickBy,
+  some
 } from 'lodash'
 import {
   createGetObjectsOfType,
@@ -31,7 +32,8 @@ import {
   addSubscriptions,
   compareVersions,
   connectStore,
-  formatSize
+  formatSize,
+  mapPlus
 } from 'utils'
 import {
   computeXosanPossibleOptions,
@@ -85,7 +87,7 @@ export class XosanVolumesTable extends Component {
   }
 
   render () {
-    const { xosansrs } = this.props
+    const { xosansrs, hosts } = this.props
     return <div>
       <h3>{_('xosanSrTitle')}</h3>
       <table className='table table-striped'>
@@ -101,13 +103,14 @@ export class XosanVolumesTable extends Component {
         <tbody>
           {map(xosansrs, sr => {
             const configsMap = {}
-            sr.PBDs.forEach(pbd => { configsMap[pbd.device_config['server']] = true })
+            forEach(sr.pbds, pbd => { configsMap[pbd.device_config['server']] = true })
+
             return <tr key={sr.id}>
               <td>
                 <Link to={`/srs/${sr.id}/xosan`}>{sr.name_label}</Link>
               </td>
               <td>
-                { sr.PBDs.map(pbd => pbd.realHost.name_label).join(', ') }
+                { map(sr.pbds, ({ host }) => find(hosts, [ 'id', host ]).name_label).join(', ') }
               </td>
               <td>
                 { this.state.volumeConfig && this.state.volumeConfig[sr.id] && this.state.volumeConfig[sr.id]['Volume ID'] }
@@ -231,6 +234,7 @@ class PoolAvailableSrs extends Component {
 
   render () {
     const {
+      hosts,
       lvmsrs,
       noPack,
       pool
@@ -273,7 +277,8 @@ class PoolAvailableSrs extends Component {
         </thead>
         <tbody>
           {map(lvmsrs, sr => {
-            const host = sr.PBDs[0].realHost
+            const host = find(hosts, [ 'id', sr.$container ])
+
             return <tr key={sr.id}>
               <td>
                 <input
@@ -393,45 +398,31 @@ class PoolAvailableSrs extends Component {
 // ==================================================================
 
 @connectStore(() => {
-  const pools = createGetObjectsOfType('pool')
+  const pbdsBySr = createGetObjectsOfType('PBD').groupBy('SR')
 
-  const hosts = createGetObjectsOfType('host').groupBy('$pool')
-
-  const lvmSrsByPool = createGroupBy(createSort(createSelector(
-    createGetObjectsOfType('SR').filter([sr => !sr.shared && sr.SR_type === 'lvm']),
-    createGetObjectsOfType('PBD').groupBy('SR'),
-    createGetObjectsOfType('host'),
-    (srs, pbds, hosts) => map(srs, sr => {
-      const list = pbds[sr.id]
-      sr.PBDs = list || []
-      sr.PBDs.forEach(pbd => {
-        pbd.realHost = hosts[pbd.host]
-      })
-      sr.PBDs.sort()
-      return sr
-    }).filter(sr => Boolean(sr.PBDs.length))
-  ), 'name_label'), '$pool')
-
-  const xosanSrsByPool = createGroupBy(createSort(createSelector(
-    createGetObjectsOfType('SR').filter([sr => sr.shared && sr.SR_type === 'xosan']),
-    createGetObjectsOfType('PBD').groupBy('SR'),
-    createGetObjectsOfType('host'),
-    (srs, pbds, hosts) => map(srs, sr => {
-      const list = pbds[sr.id]
-      sr.PBDs = list || []
-      sr.PBDs.forEach(pbd => {
-        pbd.realHost = hosts[pbd.host]
-      })
-      sr.PBDs.sort((pbd1, pbd2) => pbd1.realHost.name_label.localeCompare(pbd2.realHost.name_label))
-      return sr
+  const lvmSrs = createSort(createSelector(
+    createGetObjectsOfType('SR').filter([ sr => !sr.shared && sr.SR_type === 'lvm' ]),
+    pbdsBySr,
+    (srs, pbdsBySr) => mapPlus(srs, (sr, push) => {
+      let pbds
+      if ((pbds = pbdsBySr[sr.id]).length) {
+        push({ ...sr, pbds })
+      }
     })
-  ), 'name_label'), '$pool')
+  ), 'name_label')
+
+  const xosanSrs = createSort(createSelector(
+    createGetObjectsOfType('SR').filter([sr => sr.shared && sr.SR_type === 'xosan']),
+    pbdsBySr,
+    (srs, pbdsBySr) =>
+      map(srs, sr => ({ ...sr, pbds: pbdsBySr[sr.id] }))
+  ), 'name_label')
 
   return {
-    hosts,
-    pools,
-    xosanSrsByPool,
-    lvmSrsByPool,
+    hostsByPool: createGetObjectsOfType('host').groupBy('$pool'),
+    pools: createGetObjectsOfType('pool'),
+    xosanSrsByPool: createGroupBy(xosanSrs, '$pool'),
+    lvmSrsByPool: createGroupBy(lvmSrs, '$pool'),
     networks: createGetObjectsOfType('network').groupBy('$pool')
   }
 })
@@ -473,7 +464,7 @@ export default class Xosan extends Component {
   )
 
   render () {
-    const { pools, xosanSrsByPool, lvmSrsByPool, catalog } = this.props
+    const { pools, xosanSrsByPool, lvmSrsByPool, catalog, hostsByPool } = this.props
     const error = this._getError()
 
     return <Page header={HEADER} title='xosan' formatTitle>
@@ -484,14 +475,14 @@ export default class Xosan extends Component {
             : map(pools, pool => {
               const poolXosanSrs = xosanSrsByPool[pool.id]
               const poolLvmSrs = lvmSrsByPool[pool.id]
-              // TODO: check hosts supplementalPacks directly instead of checking each SR
-              const noPack = !every(poolLvmSrs, sr => sr.PBDs[0].realHost.supplementalPacks['vates:XOSAN'])
+              const hosts = hostsByPool[pool.id]
+              const noPack = !every(hosts, host => some(host.supplementalPacks, [ 'name', 'XOSAN' ]))
 
               return <Collapse key={pool.id} className='mb-1' buttonText={<span>{noPack && <Icon icon='error' />} {pool.name_label}</span>}>
                 <div className='m-1'>
                   {poolXosanSrs && poolXosanSrs.length
-                    ? <XosanVolumesTable xosansrs={poolXosanSrs} lvmsrs={poolLvmSrs} />
-                    : <PoolAvailableSrs pool={pool} lvmsrs={poolLvmSrs} noPack={noPack} templates={filter(catalog.xosan, { type: 'xva' })} />
+                    ? <XosanVolumesTable hosts={hosts} xosansrs={poolXosanSrs} lvmsrs={poolLvmSrs} />
+                    : <PoolAvailableSrs hosts={hosts} pool={pool} lvmsrs={poolLvmSrs} noPack={noPack} templates={filter(catalog.xosan, { type: 'xva' })} />
                   }
                 </div>
               </Collapse>

@@ -1,16 +1,10 @@
 import _ from 'intl'
-import assign from 'lodash/assign'
 import HostActionBar from './action-bar'
 import Icon from 'icon'
-import isEmpty from 'lodash/isEmpty'
-import map from 'lodash/map'
 import Link from 'link'
 import { NavLink, NavTabs } from 'nav'
 import Page from '../page'
-import pick from 'lodash/pick'
 import React, { cloneElement, Component } from 'react'
-import sortBy from 'lodash/sortBy'
-import sum from 'lodash/sum'
 import Tooltip from 'tooltip'
 import { Text } from 'editable'
 import { editHost, fetchHostStats, getHostMissingPatches, installAllHostPatches, installHostPatch } from 'xo'
@@ -25,6 +19,15 @@ import {
   createGetObjectsOfType,
   createSelector
 } from 'selectors'
+import {
+  assign,
+  isEmpty,
+  isString,
+  map,
+  pick,
+  sortBy,
+  sum
+} from 'lodash'
 
 import TabAdvanced from './tab-advanced'
 import TabConsole from './tab-console'
@@ -94,7 +97,7 @@ const isRunning = host => host && host.power_state === 'Running'
   const getHostPatches = createSelector(
     createGetObjectsOfType('pool_patch'),
     createGetObjectsOfType('host_patch').pick(
-      createSelector(getHost, host => host.patches)
+      createSelector(getHost, host => isString(host.patches[0]) ? host.patches : [])
     ),
     (poolsPatches, hostsPatches) => map(hostsPatches, hostPatch => ({
       ...hostPatch,
