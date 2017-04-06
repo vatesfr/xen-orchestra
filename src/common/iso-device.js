@@ -97,7 +97,7 @@ export default class IsoDevice extends Component {
           <Tooltip content={_('cdDriveNotInstalled')}>
             <a
               className='text-warning btn btn-link'
-              onClick={() => this._showWarning()}
+              onClick={this._showWarning}
             >
               <Icon
                 icon='alarm'
