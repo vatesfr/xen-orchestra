@@ -694,6 +694,8 @@ var messages = {
   vdbCreate: 'Create',
   vdbNamePlaceHolder: 'Disk name',
   vdbSizePlaceHolder: 'Size',
+  cdDriveNotInstalled: 'CD drive not completely installed',
+  cdDriveInstallation: 'Stop and start the VM to install the CD drive',
   saveBootOption: 'Save',
   resetBootOption: 'Reset',
 
