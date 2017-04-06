@@ -55,7 +55,7 @@ const getType = function (param) {
 /**
  * Tries extracting Object targeted property
  */
-const reduceObject = (value, propertyName = 'id') => value && value[propertyName] || value
+const reduceObject = (value, propertyName = 'id') => (value != null && value[propertyName]) || value
 
 /**
  * Adapts all data "arrayed" by UI-multiple-selectors to job's cross-product trick

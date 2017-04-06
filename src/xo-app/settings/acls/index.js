@@ -161,7 +161,7 @@ export default class Acls extends Component {
     const newSomeTypeFilters = some(newTypeFilters)
 
     // If some objects need to be removed from the selected objects
-    if (!newTypeFilters[type] || !someTypeFilters && newSomeTypeFilters) {
+    if (!newTypeFilters[type] || (!someTypeFilters && newSomeTypeFilters)) {
       this.setState({
         objects: filter(objects, ({ type }) => !newSomeTypeFilters || newTypeFilters[type])
       })
@@ -172,7 +172,7 @@ export default class Acls extends Component {
       someTypeFilters: some(newTypeFilters)
     }, () => {
       // If some objects need to be removed from the selected objects
-      if (!this.state.typeFilters[type] || !someTypeFilters && this.state.someTypeFilters) {
+      if (!this.state.typeFilters[type] || (!someTypeFilters && this.state.someTypeFilters)) {
         this.setState({
           objects: filter(objects, this._getObjectPredicate())
         })

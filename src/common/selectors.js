@@ -347,7 +347,7 @@ export const createSortForType = invoke(() => {
   return (type, collection) => createSort(
     collection,
     autoSelector(type, getIteratees),
-    autoSelector(type, getOrders),
+    autoSelector(type, getOrders)
   )
 })
 

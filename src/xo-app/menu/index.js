@@ -32,6 +32,8 @@ import {
 
 import styles from './index.css'
 
+const returnTrue = () => true
+
 @connectStore(() => ({
   isAdmin,
   nTasks: createGetObjectsOfType('task').count(
@@ -70,8 +72,9 @@ export default class Menu extends Component {
   _checkPermissions = createSelector(
     () => this.props.isAdmin,
     () => this.props.permissions,
-    (isAdmin, permissions) => ({ id }) =>
-      isAdmin || permissions && permissions[id] && permissions[id].operate
+    (isAdmin, permissions) => isAdmin
+      ? returnTrue
+      : ({ id }) => permissions && permissions[id] && permissions[id].operate
   )
 
   _getNoOperatablePools = createSelector(

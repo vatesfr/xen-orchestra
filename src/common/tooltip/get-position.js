@@ -280,8 +280,8 @@ const getParent = (currentTarget) => {
     currentParent = currentParent.parentElement
   }
 
-  const parentTop = currentParent && currentParent.getBoundingClientRect().top || 0
-  const parentLeft = currentParent && currentParent.getBoundingClientRect().left || 0
+  const parentTop = currentParent && currentParent.getBoundingClientRect().top
+  const parentLeft = currentParent && currentParent.getBoundingClientRect().left
 
   return {parentTop, parentLeft}
 }

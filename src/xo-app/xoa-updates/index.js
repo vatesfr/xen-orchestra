@@ -141,9 +141,7 @@ export default class XoaUpdates extends Component {
       return xoaUpdater.requestTrial()
         .then(() => xoaUpdater.update())
         .catch(err => error('Request Trial', err.message || String(err)))
-    } catch (_) {
-      return
-    }
+    } catch (_) {}
   }
 
   componentWillMount () {

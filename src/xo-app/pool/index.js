@@ -92,7 +92,6 @@ import TabPatches from './tab-patches'
   }
 })
 export default class Pool extends Component {
-
   _setNameDescription = nameDescription => editPool(this.props.pool, { name_description: nameDescription })
   _setNameLabel = nameLabel => editPool(this.props.pool, { name_label: nameLabel })
 

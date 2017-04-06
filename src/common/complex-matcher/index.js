@@ -294,10 +294,10 @@ export const getPropertyClausesStrings = function () {
 
 export const removePropertyClause = function (name) {
   let type
-  if (
-    !this ||
-    (type = this.type) === 'property' && this.name === name
-  ) {
+  if (!this || (
+    (type = this.type) === 'property' &&
+    this.name === name
+  )) {
     return
   }
 
@@ -335,7 +335,7 @@ export const setPropertyClause = function (name, child) {
   return _addAndClause(
     this,
     property,
-    node => node.type === 'property' && node.name === name,
+    node => node.type === 'property' && node.name === name
   )
 }
 

@@ -202,7 +202,7 @@ class PifItem extends Component {
   }
 }
 
-export default (({
+export default ({
   host,
   networks,
   pifs,
@@ -247,4 +247,4 @@ export default (({
       }
     </Col>
   </Row>
-</Container>)
+</Container>

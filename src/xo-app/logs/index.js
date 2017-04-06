@@ -143,7 +143,7 @@ const LOG_COLUMNS = [
         </ButtonGroup>
       </span>
     </span>,
-    sortCriteria: log => log.hasErrors && ' ' || log.status
+    sortCriteria: log => log.hasErrors ? ' ' : log.status
   }
 ]
 

@@ -41,7 +41,7 @@ class UserDisplay extends Component {
     const { id, users } = this.props
 
     return <span>
-      {id && (users && users[id] && users[id].email) || <em>&lt;{_('unknownUser')}&gt;</em>}
+      {(id && users && users[id] && users[id].email) || <em>&lt;{_('unknownUser')}&gt;</em>}
       {' '}
       <ActionButton className='pull-right' btnStyle='primary' size='small' icon='remove' handler={this._removeUser} />
     </span>

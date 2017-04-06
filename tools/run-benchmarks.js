@@ -46,5 +46,5 @@ function main (args) {
 new Promise(function (resolve) {
   resolve(main(process.argv.slice(2)))
 }).catch(function (error) {
-  console.log(error && (error.stack || error.message) || error)
+  console.log((error != null && (error.stack || error.message)) || error)
 })

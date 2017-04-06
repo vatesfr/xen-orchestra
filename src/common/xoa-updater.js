@@ -240,7 +240,7 @@ class XoaUpdater extends EventEmitter {
         this.registerState = 'error'
       }
     } finally {
-      this.emit('registerState', {state: this.registerState, email: this.token && this.token.registrationEmail || '', error: this.registerError})
+      this.emit('registerState', {state: this.registerState, email: (this.token && this.token.registrationEmail) || '', error: this.registerError})
     }
   }
 
@@ -262,7 +262,7 @@ class XoaUpdater extends EventEmitter {
         this.registerState = 'error'
       }
     } finally {
-      this.emit('registerState', {state: this.registerState, email: this.token && this.token.registrationEmail || '', error: this.registerError})
+      this.emit('registerState', {state: this.registerState, email: (this.token && this.token.registrationEmail) || '', error: this.registerError})
       if (this.registerState === 'registered') {
         this.update()
       }
@@ -351,7 +351,7 @@ class XoaUpdater extends EventEmitter {
   }
 
   log (level, message) {
-    message = message && message.message || String(message)
+    message = (message != null && message.message) || String(message)
     const date = new Date()
     this._log.unshift({
       date: date.toLocaleString(),
