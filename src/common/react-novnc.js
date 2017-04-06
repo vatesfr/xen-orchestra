@@ -77,6 +77,11 @@ export default class NoVnc extends Component {
   _connect = () => {
     this._clean()
 
+    const { canvas } = this.refs
+    if (!canvas) {
+      return
+    }
+
     const url = parseRelativeUrl(this.props.url)
     fixProtocol(url)
 
