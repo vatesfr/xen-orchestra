@@ -17,7 +17,7 @@ const cowSet = (object, path, value, depth) => {
     return value
   }
 
-  object = clone(object)
+  object = object != null ? clone(object) : {}
   const prop = path[depth]
   object[prop] = cowSet(object[prop], path, value, depth + 1)
   return object

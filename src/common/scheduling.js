@@ -259,7 +259,11 @@ class TableSelect extends Component {
           ))}
         </tbody>
       </table>
-      <button className='btn btn-secondary pull-right' onClick={this._reset}>
+      <button
+        className='btn btn-secondary pull-right'
+        onClick={this._reset}
+        type='button'
+      >
         {_(`selectTableAll${labelId}`)} {value && !value.length && <Icon icon='success' />}
       </button>
     </div>
@@ -447,23 +451,27 @@ class DayPicker extends Component {
 // ===================================================================
 
 @propTypes({
-  cronPattern: propTypes.string.isRequired,
+  cronPattern: propTypes.string,
   onChange: propTypes.func,
-  timezone: propTypes.string
+  timezone: propTypes.string,
+  value: propTypes.shape({
+    cronPattern: propTypes.string.isRequired,
+    timezone: propTypes.string
+  })
 })
 export default class Scheduler extends Component {
   constructor (props) {
     super(props)
 
     this._onCronChange = newCrons => {
-      const cronPattern = this.props.cronPattern.split(' ')
+      const cronPattern = this._getCronPattern().split(' ')
       forEach(newCrons, (cron, unit) => {
         cronPattern[PICKTIME_TO_ID[unit]] = cron
       })
 
       this.props.onChange({
         cronPattern: cronPattern.join(' '),
-        timezone: this.props.timezone
+        timezone: this._getTimezone()
       })
     }
 
@@ -475,17 +483,24 @@ export default class Scheduler extends Component {
 
   _onTimezoneChange = timezone => {
     this.props.onChange({
-      cronPattern: this.props.cronPattern,
+      cronPattern: this._getTimezone(),
       timezone
     })
   }
 
+  _getCronPattern = () => {
+    const { value, cronPattern = value.cronPattern } = this.props
+    return cronPattern
+  }
+
+  _getTimezone = () => {
+    const { value, timezone = value && value.timezone } = this.props
+    return timezone
+  }
+
   render () {
-    const {
-      cronPattern,
-      timezone
-    } = this.props
-    const cronPatternArr = cronPattern.split(' ')
+    const cronPatternArr = this._getCronPattern().split(' ')
+    const timezone = this._getTimezone()
 
     return (
       <div className='card-block'>
