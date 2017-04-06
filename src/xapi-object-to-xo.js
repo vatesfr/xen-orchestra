@@ -482,6 +482,7 @@ const TRANSFORMS = {
 
       attached: Boolean(obj.currently_attached),
       bootable: Boolean(obj.bootable),
+      device: obj.device || null,
       is_cd_drive: obj.type === 'CD',
       position: obj.userdevice,
       read_only: obj.mode === 'RO',
