@@ -1,8 +1,12 @@
 import React from 'react'
 
+import _ from 'intl'
 import ActionButton from './action-button'
 import Component from './base-component'
+import Icon from 'icon'
 import propTypes from './prop-types'
+import Tooltip from 'tooltip'
+import { alert } from 'modal'
 import { connectStore } from './utils'
 import { SelectVdi } from './select-objects'
 import {
@@ -70,7 +74,7 @@ export default class IsoDevice extends Component {
   _handleEject = () => ejectCd(this.props.vm)
 
   render () {
-    const { mountedIso } = this.props
+    const {cdDrive, mountedIso} = this.props
 
     return (
       <div className='input-group'>
@@ -87,6 +91,19 @@ export default class IsoDevice extends Component {
             icon='vm-eject'
           />
         </span>
+        { mountedIso && cdDrive.device === '' &&
+          <Tooltip content={_('cdDriveNotInstalled')}>
+            <a
+              className='text-warning btn btn-link'
+              onClick={() => alert(_('cdDriveNotInstalled'), _('cdDriveInstallation'))}
+            >
+              <Icon
+                icon='alarm'
+                size='lg'
+              />
+            </a>
+          </Tooltip>
+        }
       </div>
     )
   }
