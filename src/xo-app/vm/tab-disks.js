@@ -82,7 +82,7 @@ class NewDisk extends Component {
       .then(diskId => {
         const mode = readOnly.value ? 'RO' : 'RW'
         return attachDiskToVm(diskId, vm, {
-          bootable: bootable.value,
+          bootable: bootable && bootable.value,
           mode
         })
           .then(onClose)
@@ -164,7 +164,7 @@ class AttachDisk extends Component {
     })
     const mode = readOnly.value || !_isFreeForWriting(vdi) ? 'RO' : 'RW'
     return attachDiskToVm(vdi, vm, {
-      bootable: bootable.value,
+      bootable: bootable && bootable.value,
       mode
     })
       .then(onClose)
