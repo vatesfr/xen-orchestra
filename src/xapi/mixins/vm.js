@@ -353,7 +353,15 @@ export default {
     if (snapshotBefore) {
       await this._snapshotVm(snapshot.$snapshot_of)
     }
-    return this.call('VM.revert', snapshot.$ref)
+    await this.call('VM.revert', snapshot.$ref)
+    if (snapshot.snapshot_info['power-state-at-snapshot'] === 'Running') {
+      const vm = snapshot.$snapshot_of
+      if (vm.power_state === 'Halted') {
+        this.startVm(vm.$id)::pCatch(noop)
+      } else if (vm.power_state === 'Suspended') {
+        this.resumeVm(vm.$id)::pCatch(noop)
+      }
+    }
   },
 
   async resumeVm (vmId) {
