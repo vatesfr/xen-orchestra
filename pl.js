@@ -21,7 +21,7 @@ export default {
   errorPageNotFound: 'Nie znaleziono strony',
 
   // Original text: "no such item"
-  errorNoSuchItem: 'Brak przedmiotów',
+  errorNoSuchItem: 'nie ma takiego elementu',
 
   // Original text: "Long click to edit"
   editableLongClickPlaceholder: 'Przytrzymaj żeby edytować',
@@ -1443,7 +1443,7 @@ export default {
   powerStateSuspended: 'Uśpiony',
 
   // Original text: "No Xen tools detected"
-  vmStatus: 'Nie wykryto Xen tools'ów',
+  vmStatus: 'Nie wykryto Xen tools',
 
   // Original text: "No IPv4 record"
   vmName: "Nie zapisano IPv4",
@@ -1461,7 +1461,7 @@ export default {
   vmNotRunning: 'Nie uruchomione',
 
   // Original text: "No Xen tools detected"
-  noToolsDetected: 'Nie wykryto Xen tools'ów',
+  noToolsDetected: 'Nie wykryto Xen tools',
 
   // Original text: "No IPv4 record"
   noIpv4Record: "Nie zapisano IPv4",
@@ -1566,7 +1566,7 @@ export default {
   vbdCreateDeviceButton: 'Nowy dysk',
 
   // Original text: "Boot order"
-  vdiBootOrder: 'Kolejność boot'owania',
+  vdiBootOrder: 'Kolejność bootowania',
 
   // Original text: "Name"
   vdiNameLabel: 'Nazwa',
@@ -1767,7 +1767,7 @@ export default {
   vmConvertButton: 'Konwertuj',
 
   // Original text: "Xen settings"
-  xenSettingsLabel: 'Ustawienia Xen'a',
+  xenSettingsLabel: 'Ustawienia Xen',
 
   // Original text: "Guest OS"
   guestOsLabel: 'Geust OS',
@@ -1797,7 +1797,7 @@ export default {
   pvArgsLabel: 'PV args',
 
   // Original text: "Xen tools status"
-  xenToolsStatus: 'Status Xen tools'ów',
+  xenToolsStatus: 'Status Xen tools',
 
   // Original text: '{status}'
   xenToolsStatusValue: undefined,
