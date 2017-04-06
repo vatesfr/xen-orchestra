@@ -73,6 +73,8 @@ export default class IsoDevice extends Component {
 
   _handleEject = () => ejectCd(this.props.vm)
 
+  _showWarning = () => alert(_('cdDriveNotInstalled'), _('cdDriveInstallation'))
+
   render () {
     const {cdDrive, mountedIso} = this.props
 
@@ -91,11 +93,11 @@ export default class IsoDevice extends Component {
             icon='vm-eject'
           />
         </span>
-        { mountedIso && cdDrive.device === '' &&
+        {mountedIso && !cdDrive.device &&
           <Tooltip content={_('cdDriveNotInstalled')}>
             <a
               className='text-warning btn btn-link'
-              onClick={() => alert(_('cdDriveNotInstalled'), _('cdDriveInstallation'))}
+              onClick={() => this._showWarning()}
             >
               <Icon
                 icon='alarm'
