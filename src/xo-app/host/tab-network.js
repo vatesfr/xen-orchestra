@@ -8,9 +8,9 @@ import map from 'lodash/map'
 import pick from 'lodash/pick'
 import SingleLineRow from 'single-line-row'
 import some from 'lodash/some'
+import StateButton from 'state-button'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
-import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { confirm } from 'modal'
 import { connectStore, noop } from 'utils'
 import { Container, Row, Col } from 'grid'
@@ -166,34 +166,37 @@ class PifItem extends Component {
         )}
       </td>
       <td>
-        {pif.carrier
-          ? <span className='tag tag-success'>
-            {_('pifStatusConnected')}
-          </span>
-          : <span className='tag tag-default'>
-            {_('pifStatusDisconnected')}
-          </span>
-        }
+        <StateButton
+          disabledLabel={_('pifDisconnected')}
+          disabledHandler={connectPif}
+          disabledTooltip={_('connectPif')}
+
+          enabledLabel={_('pifConnected')}
+          enabledHandler={disconnectPif}
+          enabledTooltip={_('disconnectPif')}
+
+          disabled={pif.attached && (pif.management || pif.disallowUnplug)}
+          handlerParam={pif}
+          state={pif.attached}
+        />
+        {' '}
+        <Tooltip content={pif.carrier ? _('pifPhysicallyConnected') : _('pifPhysicallyDisconnected')}>
+          <Icon
+            icon='network'
+            size='lg'
+            className={pif.carrier ? 'text-success' : 'text-muted'}
+          />
+        </Tooltip>
       </td>
-      <td>
-        <ButtonGroup className='pull-right'>
-          <ActionRowButton
-            btnStyle='default'
-            disabled={pif.attached && (pif.management || pif.disallowUnplug)}
-            handler={pif.attached ? disconnectPif : connectPif}
-            handlerParam={pif}
-            icon={pif.attached ? 'disconnect' : 'connect'}
-            tooltip={pif.attached ? _('disconnectPif') : _('connectPif')}
-          />
-          <ActionRowButton
-            btnStyle='default'
-            disabled={pif.physical || pif.disallowUnplug || pif.management}
-            handler={deletePif}
-            handlerParam={pif}
-            icon='delete'
-            tooltip={_('deletePif')}
-          />
-        </ButtonGroup>
+      <td className='text-xs-right'>
+        <ActionRowButton
+          btnStyle='default'
+          disabled={pif.physical || pif.disallowUnplug || pif.management}
+          handler={deletePif}
+          handlerParam={pif}
+          icon='delete'
+          tooltip={_('deletePif')}
+        />
       </td>
     </tr>
   }
@@ -232,7 +235,7 @@ export default (({
                 <th>{_('pifMtuLabel')}</th>
                 <th>{_('defaultLockingMode')}</th>
                 <th>{_('pifStatusLabel')}</th>
-                <th />
+                <th className='text-xs-right'>{_('pifAction')}</th>
               </tr>
             </thead>
             <tbody>
