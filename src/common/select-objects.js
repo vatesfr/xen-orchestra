@@ -150,19 +150,17 @@ export class GenericSelect extends Component {
     (containers, objects) => { // createCollectionWrapper with a depth?
       const { name } = this.constructor
 
+      let options = []
       if (!containers) {
         if (__DEV__ && !isArray(objects)) {
           throw new Error(`${name}: without xoContainers, xoObjects must be an array`)
         }
 
-        return map(objects, getOption)
-      }
-
-      if (__DEV__ && isArray(objects)) {
+        options = map(objects, getOption)
+      } else if (__DEV__ && isArray(objects)) {
         throw new Error(`${name}: with xoContainers, xoObjects must be an object`)
       }
 
-      const options = []
       forEach(containers, container => {
         options.push({
           disabled: true,
@@ -173,11 +171,13 @@ export class GenericSelect extends Component {
           options.push(getOption(object, container))
         })
       })
+
       const values = this._getSelectValue()
       const objectsById = this._getObjectsById()
-      forEach(values, val => {
+      const addIfMissing = val => {
         if (!objectsById[val]) {
           options.push({
+            disabled: true,
             id: val,
             label: val,
             value: val,
@@ -187,7 +187,14 @@ export class GenericSelect extends Component {
             }
           })
         }
-      })
+      }
+
+      if (isArray(values)) {
+        forEach(values, addIfMissing)
+      } else {
+        addIfMissing(values)
+      }
+
       return options
     }
   )
