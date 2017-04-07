@@ -175,7 +175,7 @@ export class GenericSelect extends Component {
       const values = this._getSelectValue()
       const objectsById = this._getObjectsById()
       const addIfMissing = val => {
-        if (!objectsById[val]) {
+        if (val !== '' && !objectsById[val]) {
           options.push({
             disabled: true,
             id: val,
