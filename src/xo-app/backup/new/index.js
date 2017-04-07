@@ -302,7 +302,7 @@ export default class New extends Component {
     () => this.props.job,
     job => {
       if (!job) {
-        return { main: {}, vms: {} }
+        return { main: {}, vms: { vms: [] } }
       }
 
       const { items } = job.paramsVector
