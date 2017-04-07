@@ -1,24 +1,27 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
-import delay from 'lodash/delay'
-import forEach from 'lodash/forEach'
 import GenericInput from 'json-schema-input'
 import Icon from 'icon'
-import isEmpty from 'lodash/isEmpty'
-import map from 'lodash/map'
 import moment from 'moment-timezone'
 import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
-import startsWith from 'lodash/startsWith'
 import Upgrade from 'xoa-upgrade'
 import Wizard, { Section } from 'wizard'
-import { addSubscriptions } from 'utils'
+import { addSubscriptions, EMPTY_OBJECT } from 'utils'
 import { confirm } from 'modal'
-import { error } from 'notification'
+import { Container, Row, Col } from 'grid'
+import { createSelector } from 'reselect'
 import { generateUiSchema } from 'xo-json-schema-input'
 import { SelectSubject } from 'select-objects'
-import { Container, Row, Col } from 'grid'
+import {
+  forEach,
+  isArray,
+  map,
+  mapValues,
+  noop,
+  startsWith
+} from 'lodash'
 
 import {
   createJob,
@@ -52,13 +55,13 @@ const NO_SMART_UI_SCHEMA = generateUiSchema(NO_SMART_SCHEMA)
 const SMART_SCHEMA = {
   type: 'object',
   properties: {
-    status: {
+    power_state: {
       default: 'All', // FIXME: can't translate
       enum: [ 'All', 'Running', 'Halted' ], // FIXME: can't translate
       title: _('editBackupSmartStatusTitle'),
       description: 'The statuses of VMs to backup.' // FIXME: can't translate
     },
-    poolsOptions: {
+    $pool: {
       type: 'object',
       title: _('editBackupSmartPools'),
       properties: {
@@ -67,7 +70,7 @@ const SMART_SCHEMA = {
           title: _('editBackupNot'),
           description: 'Toggle on to backup VMs that are NOT resident on these pools'
         },
-        pools: {
+        values: {
           type: 'array',
           items: {
             type: 'string',
@@ -78,7 +81,7 @@ const SMART_SCHEMA = {
         }
       }
     },
-    tagsOptions: {
+    tags: {
       type: 'object',
       title: _('editBackupSmartTags'),
       properties: {
@@ -87,7 +90,7 @@ const SMART_SCHEMA = {
           title: _('editBackupNot'),
           description: 'Toggle on to backup VMs that do NOT contain these tags'
         },
-        tags: {
+        values: {
           type: 'array',
           items: {
             type: 'string',
@@ -99,7 +102,7 @@ const SMART_SCHEMA = {
       }
     }
   },
-  required: [ 'status', 'poolsOptions', 'tagsOptions' ]
+  required: [ 'power_state', '$pool', 'tags' ]
 }
 const SMART_UI_SCHEMA = generateUiSchema(SMART_SCHEMA)
 
@@ -262,8 +265,30 @@ const BACKUP_METHOD_TO_INFO = {
 // ===================================================================
 
 const DEFAULT_CRON_PATTERN = '0 0 * * *'
+const DEFAULT_TIMEZONE = moment.tz.guess()
 
-function negatePattern (pattern, not = true) {
+// xo-web v5.7.1 introduced a bug where an extra level
+// ({ id: { id: <id> } }) was introduced for the VM param.
+//
+// This code automatically unbox the ids.
+const extractId = value => {
+  while (typeof value === 'object') {
+    value = value.id
+  }
+  return value
+}
+
+const destructPattern = pattern => pattern && ({
+  not: !!pattern.__not,
+  values: (pattern.__not || pattern).__or
+})
+
+const constructPattern = ({ not, values } = EMPTY_OBJECT) => {
+  if (values == null || !values.length) {
+    return
+  }
+
+  const pattern = { __or: values }
   return not
     ? { __not: pattern }
     : pattern
@@ -273,186 +298,128 @@ function negatePattern (pattern, not = true) {
   currentUser: subscribeCurrentUser
 })
 export default class New extends Component {
-  constructor (props) {
-    super(props)
-    this.state.cronPattern = DEFAULT_CRON_PATTERN
-  }
-
-  componentWillReceiveProps (props) {
-    const { currentUser } = props
-    const { owner } = this.state
-
-    if (currentUser && !owner) {
-      this.setState({ owner: currentUser.id })
-    }
-  }
-
-  componentWillMount () {
-    const { job, schedule } = this.props
-    if (!job || !schedule) {
-      if (job || schedule) { // Having only one of them is unexpected incomplete information
-        error(_('backupEditNotFoundTitle'), _('backupEditNotFoundMessage'))
+  _getParams = createSelector(
+    () => this.props.job,
+    job => {
+      if (!job) {
+        return EMPTY_OBJECT
       }
-      this.setState({
-        timezone: moment.tz.guess()
-      })
-      return
-    }
 
-    this.setState({
-      backupInfo: BACKUP_METHOD_TO_INFO[job.method],
-      cronPattern: schedule.cron,
-      owner: job.userId,
-      timeout: job.timeout && job.timeout / 1e3,
-      timezone: schedule.timezone || null
-    }, () => delay(this._populateForm, 250, job)) // Work around.
-    // Without the delay, some selects are not always ready to load a value
-    // Values are displayed, but html5 compliant browsers say the value is required and empty on submit
-  }
+      const { items } = job.paramsVector
 
-  _populateForm = job => {
-    let values = job.paramsVector.items
-    const {
-      backupInput,
-      vmsInput
-    } = this.refs
+      // legacy backup jobs
+      if (items.length === 1) {
+        const { ...main } = items[0].values[0]
 
-    if (values.length === 1) {
-      // Older versions of XenOrchestra uses only values[0].
-      const array = values[0].values
-      const config = array[0]
-      const reportWhen = config._reportWhen
-
-      backupInput.value = {
-        ...config,
-        _reportWhen:
-          // Fix old reportWhen values...
-          (reportWhen === 'fail' && 'failure') ||
-          (reportWhen === 'alway' && 'always') ||
-          reportWhen
+        return {
+          main,
+          vms: { vms: map(items[0].values.slice(1), extractId) }
+        }
       }
-      vmsInput.value = { vms: map(array, ({ id, vm }) => id || vm) }
-    } else {
-      if (values[1].type === 'map') {
-        // Smart backup.
-        const {
-          $pool: poolsOptions = {},
-          tags: tagsOptions = {},
-          power_state: status = 'All'
-        } = values[1].collection.pattern
 
-        backupInput.value = values[0].values[0]
+      // smart backup
+      if (items[1].type === 'map') {
+        const { pattern } = items[1].collection
+        const { $pool, tags } = pattern
 
-        this.setState({
-          smartBackupMode: true
-        }, () => {
-          vmsInput.value = {
-            poolsOptions: {
-              pools: poolsOptions.__not ? poolsOptions.__not.__or : poolsOptions.__or,
-              not: !!poolsOptions.__not
-            },
-            status,
-            tagsOptions: {
-              tags: map(tagsOptions.__not ? tagsOptions.__not.__or : tagsOptions.__or, tag => tag[0]),
-              not: !!tagsOptions.__not
-            }
+        return {
+          main: items[0].values[0],
+          vms: {
+            $pool: destructPattern($pool),
+            power_state: pattern.power_state,
+            tags: destructPattern(tags)
           }
-        })
-      } else {
-        // Normal backup.
-        backupInput.value = values[1].values[0]
+        }
+      }
 
-        // xo-web v5.7.1 introduced a bug where an extra level ({ id: { id: <id> } }) was introduced for the VM param.
-        //
-        // This code automatically unbox the ids.
-        const vms = map(values[0].values, id => {
-          while (typeof id === 'object') {
-            id = id.id
-          }
-          return id
-        })
-
-        vmsInput.value = { vms }
+      // normal backup
+      return {
+        main: items[1].values[0],
+        vms: { vms: map(items[0].values, extractId) }
       }
     }
-  }
+  )
+
+  _getMainParams = () => this.state.mainParams || this._getParams().main
+  _getVmsParam = () => this.state.vmsParam || this._getParams().vms
+
+  _getScheduling = createSelector(
+    () => this.props.schedule,
+    () => this.state.scheduling,
+    (schedule, scheduling) => {
+      if (scheduling !== undefined) {
+        return scheduling
+      }
+
+      const {
+        cron = DEFAULT_CRON_PATTERN,
+        timezone = DEFAULT_TIMEZONE
+      } = schedule || EMPTY_OBJECT
+
+      return {
+        cronPattern: cron,
+        timezone
+      }
+    }
+  )
 
   _handleSubmit = async () => {
+    const { props, state } = this
+
+    const method = this._getValue('job', 'method')
+    const backupInfo = BACKUP_METHOD_TO_INFO[method]
+
     const {
       enabled,
-      ...callArgs
-    } = this.refs.backupInput.value
-    const vmsInputValue = this.refs.vmsInput.value
-
-    const {
-      backupInfo,
-      smartBackupMode,
-      timeout,
-      timezone,
-      owner
-    } = this.state
-
-    const { pools, not: notPools } = vmsInputValue.poolsOptions || {}
-    const { tags, not: notTags } = vmsInputValue.tagsOptions || {}
-    const formattedTags = map(tags, tag => [ tag ])
-
-    const paramsVector = !smartBackupMode
-      ? {
-        type: 'crossProduct',
-        items: [{
-          type: 'set',
-          values: map(vmsInputValue.vms, vm => ({ id: vm.id || vm }))
-        }, {
-          type: 'set',
-          values: [ callArgs ]
-        }]
-      } : {
-        type: 'crossProduct',
-        items: [{
-          type: 'set',
-          values: [ callArgs ]
-        }, {
-          type: 'map',
-          collection: {
-            type: 'fetchObjects',
-            pattern: {
-              $pool: isEmpty(pools)
-                ? undefined
-                : negatePattern({ __or: pools }, notPools),
-              power_state: vmsInputValue.status === 'All' ? undefined : vmsInputValue.status,
-              tags: isEmpty(tags)
-                ? undefined
-                : negatePattern({ __or: formattedTags }, notTags),
-              type: 'VM'
-            }
-          },
-          iteratee: {
-            type: 'extractProperties',
-            mapping: { id: 'id' }
-          }
-        }]
-      }
+      ...mainParams
+    } = this._getMainParams()
+    const vms = this._getVmsParam()
 
     const job = {
+      ...props.job,
+      ...state.job,
+
       type: 'call',
       key: backupInfo.jobKey,
-      method: backupInfo.method,
-      paramsVector,
-      userId: owner,
-      timeout: timeout ? timeout * 1e3 : undefined
+      paramsVector: {
+        type: 'crossProduct',
+        items: isArray(vms.vms)
+          ? [{
+            type: 'set',
+            values: map(vms.vms, vm => ({ id: extractId(vm) }))
+          }, {
+            type: 'set',
+            values: [ mainParams ]
+          }]
+          : [{
+            type: 'set',
+            values: [ mainParams ]
+          }, {
+            type: 'map',
+            collection: {
+              type: 'fetchObjects',
+              pattern: {
+                $pool: constructPattern(vms.$pool),
+                power_state: vms.power_state === 'All' ? undefined : vms.power_state,
+                tags: constructPattern(vms.tags),
+                type: 'VM'
+              }
+            },
+            iteratee: {
+              type: 'extractProperties',
+              mapping: { id: 'id' }
+            }
+          }]
+      }
     }
 
-    // Update backup schedule.
-    const { job: oldJob, schedule: oldSchedule } = this.props
-
-    if (oldJob && oldSchedule) {
-      job.id = oldJob.id
-      return editJob(job).then(() => editSchedule({
-        ...oldSchedule,
-        cron: this.state.cronPattern,
-        timezone
-      }))
+    const { timeout } = job
+    if (typeof timeout === 'string') {
+      job.timeout = timeout ? +timeout : undefined
     }
+
+    const scheduling = this._getScheduling()
+
 
     let remoteId
     if (job.type === 'call') {
@@ -485,58 +452,75 @@ export default class New extends Component {
       }
     }
 
+    // Update backup schedule.
+    const oldJob = props.job
+    if (oldJob) {
+      job.id = oldJob.id
+      await editJob(job)
+
+      return editSchedule({
+        id: props.schedule.id,
+        cron: scheduling.cronPattern,
+        timezone: scheduling.timezone
+      })
+    }
+
     // Create backup schedule.
-    return createSchedule(await createJob(job), { cron: this.state.cronPattern, enabled, timezone })
+    return createSchedule(await createJob(job), {
+      cron: scheduling.cronPattern,
+      enabled,
+      timezone: scheduling.timezone
+    })
   }
 
   _handleReset = () => {
-    const { backupInput } = this.refs
-
-    if (backupInput) {
-      backupInput.value = undefined
-    }
-
-    this.setState({
-      cronPattern: DEFAULT_CRON_PATTERN
-    })
-  }
-
-  _updateCronPattern = value => {
-    this.setState(value)
-  }
-
-  _handleBackupSelection = event => {
-    const method = event.target.value
-
-    this.setState({
-      showVersionWarning: method === 'vm.rollingDeltaBackup' || method === 'vm.deltaCopy',
-      backupInfo: BACKUP_METHOD_TO_INFO[method]
-    })
+    this.setState(mapValues(this.state, noop))
   }
 
   _handleSmartBackupMode = event => {
-    this.setState({
-      smartBackupMode: event.target.value === 'smart'
-    })
+    this.setState(
+      event.target.value === 'smart'
+        ? { vmsParam: {} }
+        : { vmsParam: { vms: [] } }
+    )
   }
 
   _subjectPredicate = ({ type, permission }) =>
     type === 'user' && permission === 'admin'
 
-  render () {
-    const { state } = this
-    const {
-      backupInfo,
-      cronPattern,
-      smartBackupMode,
-      timezone,
-      owner,
-      showVersionWarning
-    } = state
+  _getValue = (ns, key, defaultValue) => {
+    let tmp
 
-    return process.env.XOA_PLAN > 1
-      ? (
-        <Wizard>
+    // look in the state
+    if (
+      (tmp = this.state[ns]) != null &&
+      (tmp = tmp[key]) !== undefined
+    ) {
+      return tmp
+    }
+
+    // look in the props
+    if (
+      (tmp = this.props[ns]) != null &&
+      (tmp = tmp[key]) !== undefined
+    ) {
+      return tmp
+    }
+
+    return defaultValue
+  }
+
+  render () {
+    const method = this._getValue('job', 'method', '')
+    const scheduling = this._getScheduling()
+    const vms = this._getVmsParam()
+
+    const backupInfo = BACKUP_METHOD_TO_INFO[method]
+    const smartBackupMode = !isArray(vms.vms)
+
+    return (
+      <Upgrade place='newBackup' required={2}>
+        <Wizard><form id='form-new-vm-backup'>
           <Section icon='backup' title={this.props.job ? 'editVmBackup' : 'newVmBackup'}>
             <Container>
               <Row>
@@ -544,92 +528,97 @@ export default class New extends Component {
                   <fieldset className='form-group'>
                     <label>{_('backupOwner')}</label>
                     <SelectSubject
-                      onChange={this.linkState('owner', 'id')}
+                      onChange={this.linkState('job.userId', 'id')}
                       predicate={this._subjectPredicate}
                       required
-                      value={owner || null}
+                      value={this._getValue('job', 'userId', '')}
                     />
                   </fieldset>
                   <fieldset className='form-group'>
                     <label>{_('jobTimeoutPlaceHolder')}</label>
-                    <input type='number' onChange={this.linkState('timeout')} value={state.timeout} className='form-control' />
+                    <input
+                      className='form-control'
+                      onChange={this.linkState('job.timeout')}
+                      type='number'
+                      value={this._getValue('job', 'timeout', '')}
+                    />
                   </fieldset>
                   <fieldset className='form-group'>
                     <label htmlFor='selectBackup'>{_('newBackupSelection')}</label>
                     <select
                       className='form-control'
-                      value={(backupInfo && backupInfo.method) || ''}
                       id='selectBackup'
-                      onChange={this._handleBackupSelection}
+                      onChange={this.linkState('job.method')}
                       required
+                      value={method}
                     >
                       {_('noSelectedValue', message => <option value=''>{message}</option>)}
                       {map(BACKUP_METHOD_TO_INFO, (info, key) =>
-                      _(info.label, message => <option key={key} value={key}>{message}</option>)
+                        _(info.label, message => <option key={key} value={key}>{message}</option>)
                       )}
                     </select>
                   </fieldset>
-                  {showVersionWarning && <div className='alert alert-warning' role='alert'>
+                  {(method === 'vm.rollingDeltaBackup' || method === 'vm.deltaCopy') && <div className='alert alert-warning' role='alert'>
                     <Icon icon='error' /> {_('backupVersionWarning')}
                   </div>}
-                  <form id='form-new-vm-backup'>
-                    {backupInfo && <div>
-                      <GenericInput
-                        label={<span><Icon icon={backupInfo.icon} /> {_(backupInfo.label)}</span>}
-                        ref='backupInput'
+                  {backupInfo && <div>
+                    <GenericInput
+                      label={<span><Icon icon={backupInfo.icon} /> {_(backupInfo.label)}</span>}
+                      required
+                      schema={backupInfo.schema}
+                      uiSchema={backupInfo.uiSchema}
+                      onChange={this.linkState('mainParams')}
+                      value={this._getMainParams()}
+                    />
+                    <fieldset className='form-group'>
+                      <label htmlFor='smartMode'>{_('smartBackupModeSelection')}</label>
+                      <select
+                        className='form-control'
+                        id='smartMode'
+                        onChange={this._handleSmartBackupMode}
                         required
-                        schema={backupInfo.schema}
-                        uiSchema={backupInfo.uiSchema}
-                      />
-                      <fieldset className='form-group'>
-                        <label htmlFor='smartMode'>{_('smartBackupModeSelection')}</label>
-                        <select
-                          className='form-control'
-                          id='smartMode'
-                          onChange={this._handleSmartBackupMode}
-                          required
-                          value={smartBackupMode ? 'smart' : 'normal'}
-                        >
-                          {_('normalBackup', message => <option value='normal'>{message}</option>)}
-                          {_('smartBackup', message => <option value='smart'>{message}</option>)}
-                        </select>
-                      </fieldset>
-                      {smartBackupMode
-                        ? <Upgrade place='newBackup' required={3}>
-                          <GenericInput
-                            label={<span><Icon icon='vm' /> {_('vmsToBackup')}</span>}
-                            ref='vmsInput'
-                            required
-                            schema={SMART_SCHEMA}
-                            uiSchema={SMART_UI_SCHEMA}
-                          />
-                        </Upgrade>
-                        : <GenericInput
+                        value={smartBackupMode ? 'smart' : 'normal'}
+                      >
+                        {_('normalBackup', message => <option value='normal'>{message}</option>)}
+                        {_('smartBackup', message => <option value='smart'>{message}</option>)}
+                      </select>
+                    </fieldset>
+                    {smartBackupMode
+                      ? <Upgrade place='newBackup' required={3}>
+                        <GenericInput
                           label={<span><Icon icon='vm' /> {_('vmsToBackup')}</span>}
-                          ref='vmsInput'
+                          onChange={this.linkState('vmsParam')}
                           required
-                          schema={NO_SMART_SCHEMA}
-                          uiSchema={NO_SMART_UI_SCHEMA}
+                          schema={SMART_SCHEMA}
+                          uiSchema={SMART_UI_SCHEMA}
+                          value={vms}
                         />
-                      }
-                    </div>}
-                  </form>
+                      </Upgrade>
+                      : <GenericInput
+                        label={<span><Icon icon='vm' /> {_('vmsToBackup')}</span>}
+                        onChange={this.linkState('vmsParam')}
+                        required
+                        schema={NO_SMART_SCHEMA}
+                        uiSchema={NO_SMART_UI_SCHEMA}
+                        value={vms}
+                      />
+                    }
+                  </div>}
                 </Col>
               </Row>
             </Container>
           </Section>
           <Section icon='schedule' title='schedule'>
             <Scheduler
-              cronPattern={cronPattern}
-              onChange={this._updateCronPattern}
-              timezone={timezone}
+              onChange={this.linkState('scheduling')}
+              value={scheduling}
             />
           </Section>
           <Section icon='preview' title='preview' summary>
             <Container>
               <Row>
                 <Col>
-                  <SchedulePreview cronPattern={cronPattern} />
+                  <SchedulePreview cronPattern={scheduling.cronPattern} />
                   {process.env.XOA_PLAN < 4 && backupInfo && process.env.XOA_PLAN < REQUIRED_XOA_PLAN[backupInfo.jobKey]
                     ? <Upgrade place='newBackup' available={REQUIRED_XOA_PLAN[backupInfo.jobKey]} />
                     : (smartBackupMode && process.env.XOA_PLAN < 3
@@ -655,8 +644,8 @@ export default class New extends Component {
               </Row>
             </Container>
           </Section>
-        </Wizard>
-      )
-      : <Container><Upgrade place='newBackup' available={2} /></Container>
+        </form></Wizard>
+      </Upgrade>
+    )
   }
 }
