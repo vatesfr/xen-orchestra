@@ -420,7 +420,6 @@ export default class New extends Component {
 
     const scheduling = this._getScheduling()
 
-
     let remoteId
     if (job.type === 'call') {
       const { paramsVector } = job
