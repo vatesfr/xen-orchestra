@@ -483,7 +483,7 @@ export default class Scheduler extends Component {
 
   _onTimezoneChange = timezone => {
     this.props.onChange({
-      cronPattern: this._getTimezone(),
+      cronPattern: this._getCronPattern(),
       timezone
     })
   }
