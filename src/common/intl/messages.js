@@ -245,7 +245,7 @@ var messages = {
   noJobs: 'No jobs found.',
   noSchedules: 'No schedules found',
   jobActionPlaceHolder: 'Select a xo-server API command',
-  jobTimeoutPlaceHolder: ' Job timeout (seconds)',
+  jobTimeoutPlaceHolder: ' Timeout (number of seconds after which the job is considered failed)',
   jobSchedules: 'Schedules',
   jobScheduleNamePlaceHolder: 'Name of your schedule',
   jobScheduleJobPlaceHolder: 'Select a Job',
