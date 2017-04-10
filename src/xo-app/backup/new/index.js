@@ -10,11 +10,12 @@ import Scheduler, { SchedulePreview } from 'scheduling'
 import uncontrollableInput from 'uncontrollable-input'
 import Upgrade from 'xoa-upgrade'
 import Wizard, { Section } from 'wizard'
-import { addSubscriptions, EMPTY_OBJECT } from 'utils'
 import { confirm } from 'modal'
+import { connectStore, EMPTY_OBJECT } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createSelector } from 'reselect'
 import { generateUiSchema } from 'xo-json-schema-input'
+import { getUser } from 'selectors'
 import { SelectSubject } from 'select-objects'
 import {
   forEach,
@@ -318,8 +319,8 @@ const constructPattern = ({ not, values } = EMPTY_OBJECT) => {
     : pattern
 }
 
-@addSubscriptions({
-  currentUser: subscribeCurrentUser
+@connectStore({
+  currentUser: getUser
 })
 export default class New extends Component {
   _getParams = createSelector(
@@ -554,7 +555,7 @@ export default class New extends Component {
                       onChange={this.linkState('job.userId', 'id')}
                       predicate={this._subjectPredicate}
                       required
-                      value={this._getValue('job', 'userId', '')}
+                      value={this._getValue('job', 'userId', this.props.currentUser.id)}
                     />
                   </fieldset>
                   <fieldset className='form-group'>
