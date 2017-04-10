@@ -1767,7 +1767,7 @@ export default {
   vmConvertButton: 'Konwertuj',
 
   // Original text: "Xen settings"
-  xenSettingsLabel: 'Ustawienia Xen',
+  xenSettingsLabel: 'Ustawienia Xena',
 
   // Original text: "Guest OS"
   guestOsLabel: 'Geust OS',
@@ -2475,7 +2475,7 @@ export default {
   snapshotVmsModalTitle: 'Snapshot VM{vms, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to snapshot {vms} VM{vms, plural, one {} other {s}}?"
-  snapshotVmsModalMessage: 'Jesteś pewny że chcesz zrobić snapshot'a {vms} VM{vms, plural, one {} other {s}}?',
+  snapshotVmsModalMessage: 'Jesteś pewny że chcesz zrobić snapshot {vms} VM{vms, plural, one {} other {s}}?',
 
   // Original text: "Delete VM{vms, plural, one {} other {s}}"
   deleteVmsModalTitle: 'Delete VM{vms, plural, one {} other {s}}',
@@ -2895,7 +2895,7 @@ export default {
   registerNeeded: "Your XOA is not registered for updates",
 
   // Original text: "Can't fetch update information"
-  updaterError: 'Can't fetch update information',
+  updaterError: "Nie mogę pobrać aktualizacji",
 
   // Original text: "Upgrade successful"
   promptUpgradeReloadTitle: 'Aktualizacja zakończona sukcesem',
