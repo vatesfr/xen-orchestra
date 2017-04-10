@@ -4,6 +4,15 @@ import { promisify } from 'promise-toolbox'
 
 // ===================================================================
 
+const removeUndefined = obj => {
+  Object.keys(obj).forEach(key => {
+    if (obj[key] === undefined) {
+      delete obj[key]
+    }
+  })
+  return obj
+}
+
 const markdownCompiler = nodemailerMarkdown()
 
 const logAndRethrow = error => {
@@ -193,8 +202,7 @@ The transport-email plugin for Xen Orchestra server seems to be working fine, ni
     markdown,
     attachments
   }) {
-    // TODO: handle errors
-    return this._send({
+    return this._send(removeUndefined({
       from,
       to,
       cc,
@@ -202,7 +210,7 @@ The transport-email plugin for Xen Orchestra server seems to be working fine, ni
       subject,
       markdown,
       attachments
-    }).catch(logAndRethrow)
+    })).catch(logAndRethrow)
   }
 }
 
