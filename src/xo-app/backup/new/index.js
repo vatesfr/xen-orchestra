@@ -2,10 +2,12 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import GenericInput from 'json-schema-input'
+import getEventValue from 'get-event-value'
 import Icon from 'icon'
 import moment from 'moment-timezone'
 import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
+import uncontrollableInput from 'uncontrollable-input'
 import Upgrade from 'xoa-upgrade'
 import Wizard, { Section } from 'wizard'
 import { addSubscriptions, EMPTY_OBJECT } from 'utils'
@@ -259,6 +261,28 @@ const BACKUP_METHOD_TO_INFO = {
     icon: 'continuous-replication',
     jobKey: 'continuousReplication',
     method: 'vm.deltaCopy'
+  }
+}
+
+// ===================================================================
+
+@uncontrollableInput()
+class TimeoutInput extends Component {
+  _onChange = event => {
+    const value = getEventValue(event).trim()
+    this.props.onChange(value === '' ? null : +value * 1e3)
+  }
+
+  render () {
+    const { props } = this
+    const { value } = props
+
+    return <input
+      {...props}
+      onChange={this._onChange}
+      type='number'
+      value={value == null ? '' : String(value / 1e3)}
+    />
   }
 }
 
@@ -535,11 +559,10 @@ export default class New extends Component {
                   </fieldset>
                   <fieldset className='form-group'>
                     <label>{_('jobTimeoutPlaceHolder')}</label>
-                    <input
+                    <TimeoutInput
                       className='form-control'
                       onChange={this.linkState('job.timeout')}
-                      type='number'
-                      value={this._getValue('job', 'timeout', '')}
+                      value={this._getValue('job', 'timeout')}
                     />
                   </fieldset>
                   <fieldset className='form-group'>
