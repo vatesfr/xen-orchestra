@@ -63,13 +63,22 @@ export const addSubscriptions = subscriptions => Component => {
 
     componentWillMount () {
       this._unsubscribes = map(isFunction(subscriptions) ? subscriptions() : subscriptions, (subscribe, prop) =>
-        subscribe(value => this.setState({ [prop]: value }))
+        subscribe(value => this._setState({ [prop]: value }))
       )
+    }
+
+    componentDidMount () {
+      this._setState = this.setState
     }
 
     componentWillUnmount () {
       forEach(this._unsubscribes, unsubscribe => unsubscribe())
       this._unsubscribes = null
+      delete this._setState
+    }
+
+    _setState (nextState) {
+      this.state = { ...this.state, nextState }
     }
 
     render () {
