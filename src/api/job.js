@@ -66,10 +66,10 @@ set.params = {
     properties: {
       id: {type: 'string'},
       name: {type: 'string', optional: true},
-      timeout: {type: 'number', optional: true},
-      type: {type: 'string'},
-      key: {type: 'string'},
-      method: {type: 'string'},
+      timeout: {type: ['number', 'null'], optional: true},
+      type: {type: 'string', optional: true},
+      key: {type: 'string', optional: true},
+      method: {type: 'string', optional: true},
       paramsVector: {
         type: 'object',
         properties: {

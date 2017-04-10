@@ -46,9 +46,14 @@ export default class {
   }
 
   async updateJob ({id, ...props}) {
-    const oldJob = await this.getJob(id)
-    assign(oldJob, props)
-    return /* await */ this._jobs.save(oldJob)
+    const job = await this.getJob(id)
+
+    assign(job, props)
+    if (job.timeout === null) {
+      delete job.timeout
+    }
+
+    return /* await */ this._jobs.save(job)
   }
 
   async removeJob (id) {
