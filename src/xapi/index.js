@@ -1519,7 +1519,7 @@ export default class Xapi extends XapiBase {
 
   async _createVbd (vm, vdi, {
     bootable = false,
-    empty = false,
+    empty = !vdi,
     type = 'Disk',
     unpluggable = false,
     userdevice = undefined,
