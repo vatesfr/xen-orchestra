@@ -1,5 +1,3 @@
-import prettyFormat from 'pretty-format'
-
 export const parseProp = (type, obj, name, defaultValue) => {
   const value = obj[name]
   if (
@@ -11,7 +9,8 @@ export const parseProp = (type, obj, name, defaultValue) => {
   try {
     return JSON.parse(value)
   } catch (error) {
-    console.warn('cannot parse %ss[%j].%s (%s):', type, obj.id, name, prettyFormat(value), error)
+    // do not display the error because it can occurs a lot and fill
+    // up log files
     return defaultValue
   }
 }
