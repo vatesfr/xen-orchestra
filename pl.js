@@ -180,7 +180,7 @@ export default {
   continuousReplication: 'Continous Replication',
 
   // Original text: "Overview"
-  jobsOverviewPage: "Podgląd",
+  jobsOverviewPage: 'Podgląd',
 
   // Original text: "New"
   jobsNewPage: 'Nowe',
@@ -216,7 +216,7 @@ export default {
   homeWelcomeText: 'Dodaj serwery XenServer lub pule',
 
   // Original text: "Want some help?"
-  homeHelp: "Potrzebujesz pomocy?",
+  homeHelp: 'Potrzebujesz pomocy?',
 
   // Original text: "Add server"
   homeAddServer: 'Dodaj serwer',
@@ -228,7 +228,7 @@ export default {
   homeProSupport: 'Profesjonalne wsparcie',
 
   // Original text: "There are no VMs!"
-  homeNoVms: "Nie masz żadnych VMs!",
+  homeNoVms: 'Nie masz żadnych VMs!',
 
   // Original text: "Or…"
   homeNoVmsOr: 'Lub…',
@@ -426,7 +426,7 @@ export default {
   selectIp: 'Wybierz IP(s)…',
 
   // Original text: "Select IP pool(s)…"
-  selectIpPool: "Wybierz pulę/pule IP",
+  selectIpPool: 'Wybierz pulę/pule IP',
 
   // Original text: "Fill required informations."
   fillRequiredInformations: 'Wypełnij brakujące informacje.',
@@ -495,10 +495,10 @@ export default {
   cronPattern: 'Cron Pattern :',
 
   // Original text: "Cannot edit backup"
-  backupEditNotFoundTitle: "Nie można edytować kopii zapasowej",
+  backupEditNotFoundTitle: 'Nie można edytować kopii zapasowej',
 
   // Original text: "Missing required info for edition"
-  backupEditNotFoundMessage: "Brakuje wymaganych informacji do edycji",
+  backupEditNotFoundMessage: 'Brakuje wymaganych informacji do edycji',
 
   // Original text: "Job"
   job: 'Job',
@@ -510,7 +510,7 @@ export default {
   jobName: 'Nazwa',
 
   // Original text: "Name of your job (forbidden: \"_\")"
-  jobNamePlaceholder: 'Name of your job (forbidden: \"_\")',
+  jobNamePlaceholder: 'Name of your job (forbidden: "_")',
 
   // Original text: "Start"
   jobStart: 'Start',
@@ -546,7 +546,7 @@ export default {
   runJob: 'Uruchomione zadanie',
 
   // Original text: "One shot running started. See overview for logs."
-  runJobVerbose: "One shot running started. See overview for logs.",
+  runJobVerbose: 'One shot running started. See overview for logs.',
 
   // Original text: "Started"
   jobStarted: 'Rozpoczęto',
@@ -567,10 +567,10 @@ export default {
   scheduleEnableAfterCreation: 'Enable immediately after creation',
 
   // Original text: "You are editing Schedule {name} ({id}). Saving will override previous schedule state."
-  scheduleEditMessage: "Edytujesz harmonogram{name} ({id}). Zapisanie zastąpi poprzedni stan harmonogramu",
+  scheduleEditMessage: 'Edytujesz harmonogram{name} ({id}). Zapisanie zastąpi poprzedni stan harmonogramu',
 
   // Original text: "You are editing job {name} ({id}). Saving will override previous job state."
-  jobEditMessage: "Edytujesz zadanie {name} ({id}). Zapisanie zastąpi poprzednie zadanie",
+  jobEditMessage: 'Edytujesz zadanie {name} ({id}). Zapisanie zastąpi poprzednie zadanie',
 
   // Original text: "No scheduled jobs."
   noScheduledJobs: 'Brak zaplanowanych zadań',
@@ -582,7 +582,7 @@ export default {
   noSchedules: 'Brak harmonogramów',
 
   // Original text: "Select a xo-server API command"
-  jobActionPlaceHolder: "Wybierz polecenie API dla xo-server",
+  jobActionPlaceHolder: 'Wybierz polecenie API dla xo-server',
 
   // Original text: "Schedules"
   jobSchedules: 'Harmonogramy',
@@ -609,7 +609,7 @@ export default {
   localRemoteWarningTitle: 'Local remote selected',
 
   // Original text: "Warning: local remotes will use limited XOA disk space. Only for advanced users."
-  localRemoteWarningMessage: "Warning: local remotes will use limited XOA disk space. Only for advanced users.",
+  localRemoteWarningMessage: 'Warning: local remotes will use limited XOA disk space. Only for advanced users.',
 
   // Original text: "VMs"
   editBackupVmsTitle: 'VMs',
@@ -660,7 +660,7 @@ export default {
   remoteTestTip: 'Przetestuj swoje zdalne połączenie',
 
   // Original text: "Test Remote"
-  testRemote: "Test Remote",
+  testRemote: 'Test Remote',
 
   // Original text: "Test failed for {name}"
   remoteTestFailure: 'Test zakończony niepowodzeniem dla {name}',
@@ -678,7 +678,7 @@ export default {
   remoteTestFile: 'Testowy plik',
 
   // Original text: "The remote appears to work correctly"
-  remoteTestSuccessMessage: "The remote appears to work correctly",
+  remoteTestSuccessMessage: 'The remote appears to work correctly',
 
   // Original text: "Name"
   remoteName: 'Name',
@@ -732,7 +732,7 @@ export default {
   remoteSmbPlaceHolderRemotePath: 'podfolder [ścieżka\\do\\kopii\\zapasowej]',
 
   // Original text: "Username"
-  remoteSmbPlaceHolderUsername: "Nazwa użytkownika",
+  remoteSmbPlaceHolderUsername: 'Nazwa użytkownika',
 
   // Original text: "Password"
   remoteSmbPlaceHolderPassword: 'Hasło',
@@ -792,7 +792,7 @@ export default {
   newSrAuth: 'z autoryzacją',
 
   // Original text: "User Name"
-  newSrUsername: "Nazwa użytkownika",
+  newSrUsername: 'Nazwa użytkownika',
 
   // Original text: "Password"
   newSrPassword: 'Hasło',
@@ -810,10 +810,10 @@ export default {
   newSrCreate: 'Utwórz',
 
   // Original text: "Storage name"
-  newSrNamePlaceHolder: "Nazwa puli dyskowej",
+  newSrNamePlaceHolder: 'Nazwa puli dyskowej',
 
   // Original text: "Storage description"
-  newSrDescPlaceHolder: "Opis puli dyskowej",
+  newSrDescPlaceHolder: 'Opis puli dyskowej',
 
   // Original text: "Address"
   newSrAddressPlaceHolder: 'Adres',
@@ -822,7 +822,7 @@ export default {
   newSrPortPlaceHolder: '[port]',
 
   // Original text: "Username"
-  newSrUsernamePlaceHolder: "Nazwa użytkownika",
+  newSrUsernamePlaceHolder: 'Nazwa użytkownika',
 
   // Original text: "Password"
   newSrPasswordPlaceHolder: 'Hasło',
@@ -864,16 +864,16 @@ export default {
   deleteGroupConfirm: 'Jesteś pewny że chcesz usunąć te grupę?',
 
   // Original text: "Remove user from Group"
-  removeUserFromGroup: "Usuń użytkownika z grupy",
+  removeUserFromGroup: 'Usuń użytkownika z grupy',
 
   // Original text: "Are you sure you want to delete this user?"
   deleteUserConfirm: 'Jesteś pewny że chcesz usunąć tego użytkownika?',
 
   // Original text: "Delete User"
-  deleteUser: "Usuń użytkownika",
+  deleteUser: 'Usuń użytkownika',
 
   // Original text: "no user"
-  noUser: "Brak użytkownika",
+  noUser: 'Brak użytkownika',
 
   // Original text: "unknown user"
   unknownUser: 'Nieznany użytkownik',
@@ -909,7 +909,7 @@ export default {
   createUserButton: 'Utwórz',
 
   // Original text: "No user found"
-  noUserFound: "Nie znaleziono użytkownika",
+  noUserFound: 'Nie znaleziono użytkownika',
 
   // Original text: "User"
   userLabel: 'Użytkownik',
@@ -918,7 +918,7 @@ export default {
   adminLabel: 'Administrator',
 
   // Original text: "No user in group"
-  noUserInGroup: "Brak użytkownika w grupie",
+  noUserInGroup: 'Brak użytkownika w grupie',
 
   // Original text: "{users} user{users, plural, one {} other {s}}"
   countUsers: '{users} użytkownik{users, plural, one {} other {s}}',
@@ -969,7 +969,7 @@ export default {
   applyPluginPreset: 'Akceptuj',
 
   // Original text: "Save filter error"
-  saveNewUserFilterErrorTitle: "Zapisz błąd filtra",
+  saveNewUserFilterErrorTitle: 'Zapisz błąd filtra',
 
   // Original text: "Bad parameter: name must be given."
   saveNewUserFilterErrorBody: 'Zły parametr: nazwa musi byc nadana',
@@ -1023,7 +1023,7 @@ export default {
   stopVmLabel: 'Stop',
 
   // Original text: "Force shutdown"
-  forceShutdownVmLabel: "Brtualne wyłączenie",
+  forceShutdownVmLabel: 'Brtualne wyłączenie',
 
   // Original text: "Reboot"
   rebootVmLabel: 'Reboot',
@@ -1110,7 +1110,7 @@ export default {
   hostMemory: 'Pamieć',
 
   // Original text: "No hosts"
-  noHost: "Brak hostów",
+  noHost: 'Brak hostów',
 
   // Original text: "{used}% used ({free} free)"
   memoryLeftTooltip: '{used}% używane ({free} libre)',
@@ -1215,10 +1215,10 @@ export default {
   hostStatusDisabled: 'Wyłącz',
 
   // Original text: "Power on mode"
-  hostPowerOnMode: "Tryb włączenia",
+  hostPowerOnMode: 'Tryb włączenia',
 
   // Original text: "Host uptime"
-  hostStartedSince: "Nieprzerwany czas działania hosta",
+  hostStartedSince: 'Nieprzerwany czas działania hosta',
 
   // Original text: "Toolstack uptime"
   hostStackStartedSince: 'Toolstack uptime',
@@ -1284,10 +1284,10 @@ export default {
   pifStatusDisconnected: 'Rozłączono',
 
   // Original text: "No physical interface detected"
-  pifNoInterface: "Brak fizycznych interfejsów",
+  pifNoInterface: 'Brak fizycznych interfejsów',
 
   // Original text: "This interface is currently in use"
-  pifInUse: "Ten interfejs jest obecnie używany",
+  pifInUse: 'Ten interfejs jest obecnie używany',
 
   // Original text: "Default locking mode"
   defaultLockingMode: 'Domyślny tryb blokowania',
@@ -1359,7 +1359,7 @@ export default {
   patchDescription: 'Opis',
 
   // Original text: "Applied date"
-  patchApplied: "Applied date",
+  patchApplied: 'Applied date',
 
   // Original text: "Size"
   patchSize: 'Rozmiar',
@@ -1446,10 +1446,10 @@ export default {
   vmStatus: 'Nie wykryto Xen tools',
 
   // Original text: "No IPv4 record"
-  vmName: "Nie zapisano IPv4",
+  vmName: 'Nie zapisano IPv4',
 
   // Original text: "No IP record"
-  vmDescription: "Nie zapisano IP",
+  vmDescription: 'Nie zapisano IP',
 
   // Original text: "Started {ago}"
   vmSettings: 'Rozpoczęto {ago}',
@@ -1464,10 +1464,10 @@ export default {
   noToolsDetected: 'Nie wykryto Xen tools',
 
   // Original text: "No IPv4 record"
-  noIpv4Record: "Nie zapisano IPv4",
+  noIpv4Record: 'Nie zapisano IPv4',
 
   // Original text: "No IP record"
-  noIpRecord: "Nie zapisano IP",
+  noIpRecord: 'Nie zapisano IP',
 
   // Original text: "Started {ago}"
   started: 'Rozpoczęto {ago}',
@@ -1653,7 +1653,7 @@ export default {
   vifCreateDeviceButton: 'Nowe urządzenie',
 
   // Original text: "No interface"
-  vifNoInterface: "Brak interfejsu",
+  vifNoInterface: 'Brak interfejsu',
 
   // Original text: "Device"
   vifDeviceLabel: 'Urządzenie',
@@ -1695,13 +1695,13 @@ export default {
   vifAllowedIps: 'Dopuszczone IPs',
 
   // Original text: "No IPs"
-  vifNoIps: "Brak IPs",
+  vifNoIps: 'Brak IPs',
 
   // Original text: "Network locked"
   vifLockedNetwork: 'Sieć zablokowana',
 
   // Original text: "Network locked and no IPs are allowed for this interface"
-  vifLockedNetworkNoIps: "Sieć zablokowana i żadne IPs nie są dopuszczone do tego interfejsu",
+  vifLockedNetworkNoIps: 'Sieć zablokowana i żadne IPs nie są dopuszczone do tego interfejsu',
 
   // Original text: "Network not locked"
   vifUnLockedNetwork: 'Sieć niezablokowana',
@@ -1713,13 +1713,13 @@ export default {
   vifCreate: 'Utwórz',
 
   // Original text: "No snapshots"
-  noSnapshots: "Brak snapshotów",
+  noSnapshots: 'Brak snapshotów',
 
   // Original text: "New snapshot"
   snapshotCreateButton: 'Nowy snapshot',
 
   // Original text: "Just click on the snapshot button to create one!"
-  tipCreateSnapshotLabel: "Kliknij na guzuik snapshota żeby stworzyć !",
+  tipCreateSnapshotLabel: 'Kliknij na guzuik snapshota żeby stworzyć !',
 
   // Original text: "Revert VM to this snapshot"
   revertSnapshot: 'Przywróć VM do tego snapshota',
@@ -1803,10 +1803,10 @@ export default {
   xenToolsStatusValue: undefined,
 
   // Original text: "OS name"
-  osName: "Nazwa systemu",
+  osName: 'Nazwa systemu',
 
   // Original text: "OS kernel"
-  osKernel: "Kernel systemu",
+  osKernel: 'Kernel systemu',
 
   // Original text: "Auto power on"
   autoPowerOn: 'Autoamtyczne uruchamianie',
@@ -1815,7 +1815,7 @@ export default {
   ha: 'HA',
 
   // Original text: "Original template"
-  originalTemplate: "Oryginalny szablon",
+  originalTemplate: 'Oryginalny szablon',
 
   // Original text: "Unknown"
   unknownOsName: 'Nieznany',
@@ -1929,7 +1929,7 @@ export default {
   srUsageStatePanel: 'Storage Usage',
 
   // Original text: "Top 5 SR Usage (in %)"
-  srTopUsageStatePanel: "Top 5 SRs (w %)",
+  srTopUsageStatePanel: 'Top 5 SRs (w %)',
 
   // Original text: "{running} running ({halted} halted)"
   vmsStates: '{running} uruchomiona{halted, plural, one {} other {s}} ({halted} zatrzymana{halted, plural, one {} other {s}})',
@@ -1974,7 +1974,7 @@ export default {
   metricsLoading: 'Ładowanie…',
 
   // Original text: "Coming soon!"
-  comingSoon: "Coming soon!",
+  comingSoon: 'Coming soon!',
 
   // Original text: "Orphaned snapshot VDIs"
   orphanedVdis: 'Orphaned snapshot VDIs',
@@ -1983,7 +1983,7 @@ export default {
   orphanedVms: 'Orphaned VMs snapshot',
 
   // Original text: "No orphans"
-  noOrphanedObject: "No orphans",
+  noOrphanedObject: 'No orphans',
 
   // Original text: "Remove all orphaned snapshot VDIs"
   removeAllOrphanedObject: 'Remove all orphaned snapshot VDIs',
@@ -2001,7 +2001,7 @@ export default {
   alarmMessage: 'Alarmy',
 
   // Original text: "No alarms"
-  noAlarms: "Brak alarmów",
+  noAlarms: 'Brak alarmów',
 
   // Original text: "Date"
   alarmDate: 'Data',
@@ -2028,7 +2028,7 @@ export default {
   newVmCreateNewVmOn2: 'Stwórz nową VM w  {select1} lub {select2}',
 
   // Original text: "You have no permission to create a VM"
-  newVmCreateNewVmNoPermission: "Nie masz uprawnień do tworzenia VM",
+  newVmCreateNewVmNoPermission: 'Nie masz uprawnień do tworzenia VM',
 
   // Original text: "Infos"
   newVmInfoPanel: 'Informacje',
@@ -2061,7 +2061,7 @@ export default {
   newVmDynamicMaxLabel: 'Pamieć dynamiczna max',
 
   // Original text: "Install settings"
-  newVmInstallSettingsPanel: "Install settings",
+  newVmInstallSettingsPanel: 'Install settings',
 
   // Original text: "ISO/DVD"
   newVmIsoDvdLabel: 'ISO/DVD',
@@ -2235,7 +2235,7 @@ export default {
   excludedHosts: 'Wykluczone hosty',
 
   // Original text: "No hosts available."
-  noHostsAvailable: "Brak dostępnych hostów.",
+  noHostsAvailable: 'Brak dostępnych hostów.',
 
   // Original text: "VMs created from this resource set shall run on the following hosts."
   availableHostsDescription: 'VMs created from this resource set shall run on the following hosts.',
@@ -2250,7 +2250,7 @@ export default {
   maxDiskSpace: 'Maximum disk space',
 
   // Original text: "IP pool"
-  ipPool: "Pula IP",
+  ipPool: 'Pula IP',
 
   // Original text: "Quantity"
   quantity: 'Quantity',
@@ -2295,10 +2295,10 @@ export default {
   vmImportFailed: 'Import VM nieudany',
 
   // Original text: "Import starting…"
-  startVmImport: "Rozpoczęcie importowania…",
+  startVmImport: 'Rozpoczęcie importowania…',
 
   // Original text: "Export starting…"
-  startVmExport: "Eksport rozpoczęty…",
+  startVmExport: 'Eksport rozpoczęty…',
 
   // Original text: "N CPUs"
   nCpus: 'N CPUs',
@@ -2337,7 +2337,7 @@ export default {
   noTasks: 'Brak oczekujących zadań',
 
   // Original text: "Currently, there are not any pending XenServer tasks"
-  xsTasks: "Aktualnie, nie ma żadnych oczekujących zadań na HyperVisorze",
+  xsTasks: 'Aktualnie, nie ma żadnych oczekujących zadań na HyperVisorze',
 
   // Original text: "Schedules"
   backupSchedules: 'Harmonogramy',
@@ -2394,22 +2394,22 @@ export default {
   importBackupTitle: 'Importuj VM',
 
   // Original text: "Starting your backup import"
-  importBackupMessage: "Rozpoczynanie imortu kopii zapasowej",
+  importBackupMessage: 'Rozpoczynanie imortu kopii zapasowej',
 
   // Original text: "VMs to backup"
   vmsToBackup: 'VMs do kopii zapasowej',
 
   // Original text: "Emergency shutdown Host{nHosts, plural, one {} other {s}}"
-  emergencyShutdownHostsModalTitle: "Wyłączenie awaryjne hosta {nHosts, plural, one {} other {s}}",
+  emergencyShutdownHostsModalTitle: 'Wyłączenie awaryjne hosta {nHosts, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to shutdown {nHosts} Host{nHosts, plural, one {} other {s}}?"
   emergencyShutdownHostsModalMessage: 'Jesteś peweny że chcesz wyłączyć {nHosts} hosta{nHosts, plural, one {} other {s}}?',
 
   // Original text: "Shutdown host"
-  stopHostModalTitle: "Wyłączenie hosta",
+  stopHostModalTitle: 'Wyłączenie hosta',
 
   // Original text: "This will shutdown your host. Do you want to continue? If it's the pool master, your connection to the pool will be lost"
-  stopHostModalMessage: "To wyłączy twojego hosta. Chcesz kontynuować? Jeżeli jest to zarządca puli, twoje połaczenie do puli zostanie utracone",
+  stopHostModalMessage: 'To wyłączy twojego hosta. Chcesz kontynuować? Jeżeli jest to zarządca puli, twoje połaczenie do puli zostanie utracone',
 
   // Original text: "Add host"
   addHostModalTitle: 'Dodaj hosta',
@@ -2418,22 +2418,22 @@ export default {
   addHostModalMessage: 'Jesteś pewny że chcesz dodać hosta{host} do {pool}?',
 
   // Original text: "Restart host"
-  restartHostModalTitle: "Restart hosta",
+  restartHostModalTitle: 'Restart hosta',
 
   // Original text: "This will restart your host. Do you want to continue?"
   restartHostModalMessage: 'To zrestartuje twojego hosta. Chcesz kontynuować?',
 
   // Original text: "Restart Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}"
-  restartHostsAgentsModalTitle: "Zrestartuj hosta{nHosts, plural, one {} other {s}}",
+  restartHostsAgentsModalTitle: 'Zrestartuj hosta{nHosts, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to restart {nHosts} Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}?"
   restartHostsAgentsModalMessage: "Êtes-vous sûr de vouloir redémarrer les agents {nHosts, plural, one {de l'hôte} other {des hôtes}} ?",
 
   // Original text: "Restart Host{nHosts, plural, one {} other {s}}"
-  restartHostsModalTitle: "Restart hosta{nHosts, plural, one {} other {s}}",
+  restartHostsModalTitle: 'Restart hosta{nHosts, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to restart {nHosts} Host{nHosts, plural, one {} other {s}}?"
-  restartHostsModalMessage: "Czy na pewno chcesz zrestartować {nHosts} Host{nHosts, plural, one {} other {s}}?",
+  restartHostsModalMessage: 'Czy na pewno chcesz zrestartować {nHosts} Host{nHosts, plural, one {} other {s}}?',
 
   // Original text: "Start VM{vms, plural, one {} other {s}}"
   startVmsModalTitle: 'Uruchom VM{vms, plural, one {} other {s}}',
@@ -2442,10 +2442,10 @@ export default {
   startVmsModalMessage: 'Are you sure you want to start {vms} VM{vms, plural, one {} other {s}}?',
 
   // Original text: "Stop Host{nHosts, plural, one {} other {s}}"
-  stopHostsModalTitle: "Zatrzymaj hosta{nHosts, plural, one {} other {s}}",
+  stopHostsModalTitle: 'Zatrzymaj hosta{nHosts, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to stop {nHosts} Host{nHosts, plural, one {} other {s}}?"
-  stopHostsModalMessage: "Jesteś pewny że chcesz zatrzymać {nHosts} Host{nHosts, plural, one {} other {s}}?",
+  stopHostsModalMessage: 'Jesteś pewny że chcesz zatrzymać {nHosts} Host{nHosts, plural, one {} other {s}}?',
 
   // Original text: "Stop VM{vms, plural, one {} other {s}}"
   stopVmsModalTitle: 'Zatrzymaj VM {vms, plural, one {} other {s}}',
@@ -2529,7 +2529,7 @@ export default {
   migrateVmNetwork: 'Sieć',
 
   // Original text: "No target host"
-  migrateVmNoTargetHost: "No target host",
+  migrateVmNoTargetHost: 'No target host',
 
   // Original text: "A target host is required to migrate a VM"
   migrateVmNoTargetHostMessage: 'A target host is required to migrate a VM',
@@ -2544,13 +2544,13 @@ export default {
   revertVmModalTitle: 'Revert your VM',
 
   // Original text: "Delete snapshot"
-  deleteSnapshotModalTitle: "Usuń snapshot",
+  deleteSnapshotModalTitle: 'Usuń snapshot',
 
   // Original text: "Are you sure you want to delete this snapshot?"
   deleteSnapshotModalMessage: 'Are you sure you want to delete this snapshot?',
 
   // Original text: "Are you sure you want to revert this VM to the snapshot state? This operation is irreversible."
-  revertVmModalMessage: "Are you sure you want to revert this VM to the snapshot state? This operation is irreversible.",
+  revertVmModalMessage: 'Are you sure you want to revert this VM to the snapshot state? This operation is irreversible.',
 
   // Original text: "Snapshot before"
   revertVmModalSnapshotBefore: 'Snapshot before',
@@ -2589,22 +2589,22 @@ export default {
   existingLunModalText: 'This LUN has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.',
 
   // Original text: "Replace current registration?"
-  alreadyRegisteredModal: "Replace current registration?",
+  alreadyRegisteredModal: 'Replace current registration?',
 
   // Original text: "Your XO appliance is already registered to {email}, do you want to forget and replace this registration ?"
   alreadyRegisteredModalText: 'Your XO appliance is already registered to {email}, do you want to forget and replace this registration ?',
 
   // Original text: "Ready for trial?"
-  trialReadyModal: "Ready for trial?",
+  trialReadyModal: 'Ready for trial?',
 
   // Original text: "During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans!"
-  trialReadyModalText: "During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans!",
+  trialReadyModalText: 'During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans!',
 
   // Original text: "Host"
   serverHost: 'Host',
 
   // Original text: "Username"
-  serverUsername: "Nazwa użytkownika",
+  serverUsername: 'Nazwa użytkownika',
 
   // Original text: "Password"
   serverPassword: 'Hasło',
@@ -2619,7 +2619,7 @@ export default {
   serverDisconnect: 'Rozłącz serwer',
 
   // Original text: "username"
-  serverPlaceHolderUser: "Użytkownik",
+  serverPlaceHolderUser: 'Użytkownik',
 
   // Original text: "password"
   serverPlaceHolderPassword: 'hasło',
@@ -2661,10 +2661,10 @@ export default {
   copyVmsNoTargetSrMessage: 'A target SR is required to copy a VM',
 
   // Original text: "Detach host"
-  detachHostModalTitle: "Detach host",
+  detachHostModalTitle: 'Detach host',
 
   // Original text: "Are you sure you want to detach {host} from its pool? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND REBOOT THE HOST."
-  detachHostModalMessage: "Are you sure you want to detach {host} from its pool? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND REBOOT THE HOST.",
+  detachHostModalMessage: 'Are you sure you want to detach {host} from its pool? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND REBOOT THE HOST.',
 
   // Original text: "Detach"
   detachHost: 'Detach',
@@ -2712,7 +2712,7 @@ export default {
   deleteNetworkConfirm: 'Jesteś pewien że chcesz usunąć te sieć ?',
 
   // Original text: "This network is currently in use"
-  networkInUse: "Ta sieć jest obecnie używana ",
+  networkInUse: 'Ta sieć jest obecnie używana ',
 
   // Original text: "Bonded"
   pillBonded: 'Bonded',
@@ -2721,7 +2721,7 @@ export default {
   addHostSelectHost: 'Host',
 
   // Original text: "No host"
-  addHostNoHost: "No host",
+  addHostNoHost: 'No host',
 
   // Original text: "No host selected to be added"
   addHostNoHostMessage: 'No host selected to be added',
@@ -2757,7 +2757,7 @@ export default {
   communityText: 'Dołącz do forum społeczności !',
 
   // Original text: "Free Trial for Premium Edition!"
-  freeTrial: "Free Trial for Premium Edition!",
+  freeTrial: 'Free Trial for Premium Edition!',
 
   // Original text: "Request your trial now!"
   freeTrialNow: 'Request your trial now!',
@@ -2799,10 +2799,10 @@ export default {
   tryIt: 'Spróbuj za darmo!',
 
   // Original text: "This feature is available starting from {plan} Edition"
-  availableIn: "This feature is available starting from {plan} Edition",
+  availableIn: 'This feature is available starting from {plan} Edition',
 
   // Original text: "This feature is not available in your version, contact your administrator to know more."
-  notAvailable: "This feature is not available in your version, contact your administrator to know more.",
+  notAvailable: 'This feature is not available in your version, contact your administrator to know more.',
 
   // Original text: "Updates"
   updateTitle: 'Aktualizuj',
@@ -2826,7 +2826,7 @@ export default {
   proxySettingsPortPlaceHolder: 'Port (np : 3128)',
 
   // Original text: "Username"
-  proxySettingsUsernamePlaceHolder: "Użytkownik",
+  proxySettingsUsernamePlaceHolder: 'Użytkownik',
 
   // Original text: "Password"
   proxySettingsPasswordPlaceHolder: 'Hasło',
@@ -2859,28 +2859,28 @@ export default {
   currentVersion: 'Obecna wersja:',
 
   // Original text: "Register"
-  register: "Rejestruj",
+  register: 'Rejestruj',
 
   // Original text: "Edit registration"
-  editRegistration: "Edit registration",
+  editRegistration: 'Edit registration',
 
   // Original text: "Please, take time to register in order to enjoy your trial."
   trialRegistration: 'Please, take time to register in order to enjoy your trial.',
 
   // Original text: "Start trial"
-  trialStartButton: "Start trial",
+  trialStartButton: 'Start trial',
 
   // Original text: "You can use a trial version until {date, date, medium}. Upgrade your appliance to get it."
-  trialAvailableUntil: "You can use a trial version until {date, date, medium}. Upgrade your appliance to get it.",
+  trialAvailableUntil: 'You can use a trial version until {date, date, medium}. Upgrade your appliance to get it.',
 
   // Original text: "Your trial has been ended. Contact us or downgrade to Free version"
-  trialConsumed: "Twoja wersja demonstracyjna właśnie się zakończyła. Skontaktuj się z nami żeby pobrać darmową wersję",
+  trialConsumed: 'Twoja wersja demonstracyjna właśnie się zakończyła. Skontaktuj się z nami żeby pobrać darmową wersję',
 
   // Original text: "Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service."
   trialLocked: 'Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service.',
 
   // Original text: "No update information available"
-  noUpdateInfo: "No update information available",
+  noUpdateInfo: 'No update information available',
 
   // Original text: "Update information may be available"
   waitingUpdateInfo: 'Update information may be available',
@@ -2892,28 +2892,28 @@ export default {
   mustUpgrade: 'You need to update your XOA (new version is available)',
 
   // Original text: "Your XOA is not registered for updates"
-  registerNeeded: "Your XOA is not registered for updates",
+  registerNeeded: 'Your XOA is not registered for updates',
 
   // Original text: "Can't fetch update information"
-  updaterError: "Nie mogę pobrać aktualizacji",
+  updaterError: 'Nie mogę pobrać aktualizacji',
 
   // Original text: "Upgrade successful"
   promptUpgradeReloadTitle: 'Aktualizacja zakończona sukcesem',
 
   // Original text: "Your XOA has successfully upgraded, and your browser must reload the application. Do you want to reload now ?"
-  promptUpgradeReloadMessage: "Your XOA has successfully upgraded, and your browser must reload the application. Do you want to reload now ?",
+  promptUpgradeReloadMessage: 'Your XOA has successfully upgraded, and your browser must reload the application. Do you want to reload now ?',
 
   // Original text: "Xen Orchestra from the sources"
   disclaimerTitle: 'Xen Orchestra z źródeł',
 
   // Original text: "You are using XO from the sources! That's great for a personal/non-profit usage."
-  disclaimerText1: "Używasz XO z źródeł!. To dobre rozwiązanie tylko do prywatnego/nieprodukcyjnego użytku",
+  disclaimerText1: 'Używasz XO z źródeł!. To dobre rozwiązanie tylko do prywatnego/nieprodukcyjnego użytku',
 
   // Original text: "If you are a company, it's better to use it with our appliance + pro support included:"
   disclaimerText2: "If you are a company, it's better to use it with our appliance + pro support included:",
 
   // Original text: "This version is not bundled with any support nor updates. Use it with caution for critical tasks."
-  disclaimerText3: "This version is not bundled with any support nor updates. Use it with caution for critical tasks.",
+  disclaimerText3: 'This version is not bundled with any support nor updates. Use it with caution for critical tasks.',
 
   // Original text: "Connect PIF"
   connectPif: 'Connect PIF',
@@ -2934,7 +2934,7 @@ export default {
   deletePifConfirm: 'Are you sure you want to delete this PIF?',
 
   // Original text: "Username"
-  username: "Użytkownik",
+  username: 'Użytkownik',
 
   // Original text: "Password"
   password: 'Hasło',
@@ -2967,7 +2967,7 @@ export default {
   pwdChangeError: 'Nieprawidłowe hasło',
 
   // Original text: "The old password provided is incorrect. Your password has not been changed."
-  pwdChangeErrorBody: "The old password provided is incorrect. Your password has not been changed.",
+  pwdChangeErrorBody: 'The old password provided is incorrect. Your password has not been changed.',
 
   // Original text: "OK"
   changePasswordOk: 'OK',
@@ -3063,16 +3063,16 @@ export default {
   ipPoolNetworks: 'Sieci',
 
   // Original text: "No IP pools"
-  ipsNoIpPool: "Brak puli IP",
+  ipsNoIpPool: 'Brak puli IP',
 
   // Original text: "Create"
   ipsCreate: 'Utwórz',
 
   // Original text: "Delete all IP pools"
-  ipsDeleteAllTitle: "Usuń wszystkie pule IP",
+  ipsDeleteAllTitle: 'Usuń wszystkie pule IP',
 
   // Original text: "Are you sure you want to delete all the IP pools?"
-  ipsDeleteAllMessage: "Jesteś pewien że chcesz usunąć wszystkie pule IP?",
+  ipsDeleteAllMessage: 'Jesteś pewien że chcesz usunąć wszystkie pule IP?',
 
   // Original text: "VIFs"
   ipsVifs: 'VIFs',
@@ -3117,7 +3117,7 @@ export default {
   shortcut_NAV_UP: 'Previous item',
 
   // Original text: "Select item"
-  shortcut_SELECT: "Select item",
+  shortcut_SELECT: 'Select item',
 
   // Original text: "Open"
   shortcut_JUMP_INTO: 'Otwarte',

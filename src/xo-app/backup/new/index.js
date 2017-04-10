@@ -31,8 +31,7 @@ import {
   createSchedule,
   getRemote,
   editJob,
-  editSchedule,
-  subscribeCurrentUser
+  editSchedule
 } from 'xo'
 
 // ===================================================================
