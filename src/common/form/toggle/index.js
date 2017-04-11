@@ -25,6 +25,8 @@ export default class Toggle extends Component {
     iconSize: 2
   }
 
+  _onChange = event => this.props.onChange(event.target.checked)
+
   render () {
     const { props } = this
 
@@ -43,7 +45,7 @@ export default class Toggle extends Component {
           checked={props.value || false}
           className={styles.checkbox}
           disabled={props.disabled}
-          onChange={props.onChange}
+          onChange={this._onChange}
           type='checkbox'
         />
       </label>
