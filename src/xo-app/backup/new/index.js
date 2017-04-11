@@ -484,6 +484,10 @@ export default class New extends Component {
       })
     }
 
+    if (job.timeout === null) {
+      delete job.timeout // only needed for job edition
+    }
+
     // Create backup schedule.
     return createSchedule(await createJob(job), {
       cron: scheduling.cronPattern,
