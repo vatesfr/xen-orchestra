@@ -438,11 +438,6 @@ export default class New extends Component {
       }
     }
 
-    const { timeout } = job
-    if (typeof timeout === 'string') {
-      job.timeout = timeout ? +timeout : undefined
-    }
-
     const scheduling = this._getScheduling()
 
     let remoteId
