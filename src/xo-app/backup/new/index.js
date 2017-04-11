@@ -19,6 +19,7 @@ import { getUser } from 'selectors'
 import { SelectSubject } from 'select-objects'
 import {
   forEach,
+  identity,
   isArray,
   map,
   mapValues,
@@ -302,17 +303,17 @@ const extractId = value => {
   return value
 }
 
-const destructPattern = pattern => pattern && ({
+const destructPattern = (pattern, valueTransform = identity) => pattern && ({
   not: !!pattern.__not,
-  values: (pattern.__not || pattern).__or
+  values: valueTransform((pattern.__not || pattern).__or)
 })
 
-const constructPattern = ({ not, values } = EMPTY_OBJECT) => {
+const constructPattern = ({ not, values } = EMPTY_OBJECT, valueTransform = identity) => {
   if (values == null || !values.length) {
     return
   }
 
-  const pattern = { __or: values }
+  const pattern = { __or: valueTransform(values) }
   return not
     ? { __not: pattern }
     : pattern
@@ -351,7 +352,7 @@ export default class New extends Component {
           vms: {
             $pool: destructPattern($pool),
             power_state: pattern.power_state,
-            tags: destructPattern(tags)
+            tags: destructPattern(tags, tags => map(tags, tag => isArray(tag) ? tag[0] : tag))
           }
         }
       }
@@ -425,7 +426,7 @@ export default class New extends Component {
               pattern: {
                 $pool: constructPattern(vms.$pool),
                 power_state: vms.power_state === 'All' ? undefined : vms.power_state,
-                tags: constructPattern(vms.tags),
+                tags: constructPattern(vms.tags, tags => map(tags, tag => [ tag ])),
                 type: 'VM'
               }
             },
