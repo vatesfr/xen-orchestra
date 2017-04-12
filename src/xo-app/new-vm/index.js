@@ -1116,6 +1116,7 @@ export default class NewVm extends BaseComponent {
       <SectionContent column>
         {map(VIFs, (vif, index) => <div key={index}>
           <Vif
+            networkPredicate={this._getNetworkPredicate()}
             onChangeAddresses={this._linkState(`VIFs.${index}.addresses`, '*.id')}
             onChangeMac={this._linkState(`VIFs.${index}.mac`)}
             onChangeNetwork={this._linkState(`VIFs.${index}.network`, 'id')}
