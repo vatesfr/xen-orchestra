@@ -33,6 +33,7 @@ import {
   compareVersions,
   connectStore,
   formatSize,
+  isXosanPack,
   mapPlus
 } from 'utils'
 import {
@@ -476,7 +477,7 @@ export default class Xosan extends Component {
               const poolXosanSrs = xosanSrsByPool[pool.id]
               const poolLvmSrs = lvmSrsByPool[pool.id]
               const hosts = hostsByPool[pool.id]
-              const noPack = !every(hosts, host => some(host.supplementalPacks, [ 'name', 'XOSAN' ]))
+              const noPack = !every(hosts, host => some(host.supplementalPacks, isXosanPack))
 
               return <Collapse key={pool.id} className='mb-1' buttonText={<span>{noPack && <Icon icon='error' />} {pool.name_label}</span>}>
                 <div className='m-1'>
