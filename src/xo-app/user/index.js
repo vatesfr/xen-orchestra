@@ -372,7 +372,7 @@ export default class User extends Component {
               <option value='en'>English</option>
               <option value='fr'>Français</option>
               <option value='he'>עברי</option>
-              <option value='pl'>Polskie</option>
+              <option value='pl'>Polski</option>
               <option value='pt'>Português</option>
               <option value='es'>Español</option>
               <option value='zh'>简体中文</option>
