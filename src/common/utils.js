@@ -15,6 +15,7 @@ import mapValues from 'lodash/mapValues'
 import React from 'react'
 import ReadableStream from 'readable-stream'
 import replace from 'lodash/replace'
+import startsWith from 'lodash/startsWith'
 import { connect } from 'react-redux'
 
 import _ from './intl'
@@ -533,3 +534,6 @@ export const compareVersions = makeNiceCompare((v1, v2) => {
 
   return 0
 })
+
+export const isXosanPack = ({ name }) =>
+  startsWith(name, 'XOSAN')

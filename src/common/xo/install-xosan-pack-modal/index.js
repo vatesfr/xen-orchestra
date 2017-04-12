@@ -1,7 +1,7 @@
 import _ from 'intl'
 import Component from 'base-component'
 import React from 'react'
-import { connectStore, compareVersions } from 'utils'
+import { connectStore, compareVersions, isXosanPack } from 'utils'
 import { subscribeResourceCatalog, subscribePlugins } from 'xo'
 import { createGetObjectsOfType, createSelector, createCollectionWrapper } from 'selectors'
 import { satisfies as versionSatisfies } from 'semver'
@@ -9,7 +9,8 @@ import {
   every,
   filter,
   forEach,
-  map
+  map,
+  some
 } from 'lodash'
 
 const findLatestPack = (packs, hostsVersions) => {
@@ -37,11 +38,16 @@ const findLatestPack = (packs, hostsVersions) => {
   return latestPack
 }
 
-@connectStore({
+@connectStore(() => ({
   hosts: createGetObjectsOfType('host').filter(
-    (_, { pool }) => host => pool && host.$pool === pool.id && !host.supplementalPacks['vates:XOSAN']
+    createSelector(
+      (_, { pool }) => pool != null && pool.id,
+      poolId => poolId
+        ? host => host.$pool === poolId && !some(host.supplementalPacks, isXosanPack)
+        : false
+    )
   )
-}, { withRef: true })
+}), { withRef: true })
 export default class InstallXosanPackModal extends Component {
   componentDidMount () {
     this._unsubscribePlugins = subscribePlugins(plugins => this.setState({ plugins }))
