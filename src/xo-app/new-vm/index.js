@@ -1323,7 +1323,7 @@ export default class NewVm extends BaseComponent {
             <Tags labels={tags} onChange={this._linkState('tags')} />
           </Item>
         </SectionContent>,
-        <SectionContent>
+        this._getResourceSet() !== undefined && <SectionContent>
           <Item>
             <input
               checked={share}
