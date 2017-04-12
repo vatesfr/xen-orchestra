@@ -1143,7 +1143,11 @@ export default class Xapi extends XapiBase {
 
       // Install pack sequentially to prevent concurrent access to the unique VDI
       for (const host of hosts) {
-        await this.call('host.call_plugin', host.$ref, 'install-supp-pack', 'install', { vdi: vdi.uuid })
+        await this.call('host.call_plugin', host.$ref, 'install-supp-pack', 'install', { vdi: vdi.uuid }).catch(error => {
+          if (error.code !== 'XENAPI_PLUGIN_FAILURE') {
+            throw error
+          }
+        })
       }
 
       return
@@ -1167,7 +1171,11 @@ export default class Xapi extends XapiBase {
       const vdi = await this._createTemporaryVdiOnSr(pt, sr, '[XO] Supplemental pack ISO', 'small temporary VDI to store a supplemental pack ISO')
       $defer(() => this._deleteVdi(vdi))
 
-      await this.call('host.call_plugin', host.$ref, 'install-supp-pack', 'install', { vdi: vdi.uuid })
+      await this.call('host.call_plugin', host.$ref, 'install-supp-pack', 'install', { vdi: vdi.uuid }).catch(error => {
+        if (error.code !== 'XENAPI_PLUGIN_FAILURE') {
+          throw error
+        }
+      })
     })))
   }
 
