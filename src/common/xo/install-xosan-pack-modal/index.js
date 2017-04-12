@@ -38,14 +38,17 @@ const findLatestPack = (packs, hostsVersions) => {
   return latestPack
 }
 
-@connectStore({
+@connectStore(() => ({
   hosts: createGetObjectsOfType('host').filter(
-    (_, { pool }) => host =>
-      pool != null &&
-      host.$pool === pool.id &&
-      !some(host.supplementalPacks, isXosanPack)
+    createSelector(
+      (_, props) => props.pool,
+      pool => host =>
+        pool != null &&
+        host.$pool === pool.id &&
+        !some(host.supplementalPacks, isXosanPack)
+    )
   )
-}, { withRef: true })
+}), { withRef: true })
 export default class InstallXosanPackModal extends Component {
   componentDidMount () {
     this._unsubscribePlugins = subscribePlugins(plugins => this.setState({ plugins }))
