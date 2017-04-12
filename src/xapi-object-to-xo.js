@@ -1,4 +1,5 @@
 import {
+  includes,
   startsWith
 } from 'lodash'
 
@@ -367,8 +368,11 @@ const TRANSFORMS = {
       vm.snapshot_time = toTimestamp(obj.snapshot_time)
       vm.$snapshot_of = link(obj, 'snapshot_of')
     } else if (obj.is_a_template) {
-      vm.id = obj.$ref // use refs for templates as they
       vm.type += '-template'
+
+      if (obj.other_config.default_template === 'true') {
+        vm.id = obj.$ref // use refs for templates as they
+      }
 
       vm.CPUs.number = +obj.VCPUs_at_startup
       vm.template_info = {
