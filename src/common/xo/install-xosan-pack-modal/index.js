@@ -41,11 +41,10 @@ const findLatestPack = (packs, hostsVersions) => {
 @connectStore(() => ({
   hosts: createGetObjectsOfType('host').filter(
     createSelector(
-      (_, props) => props.pool,
-      pool => host =>
-        pool != null &&
-        host.$pool === pool.id &&
-        !some(host.supplementalPacks, isXosanPack)
+      (_, ({ pool }) => pool != null && pool.id,
+      poolId => poolId
+       ? false
+       : host => host.$pool === poolId && !some(host.supplementalPacks, isXosanPack)
     )
   )
 }), { withRef: true })
