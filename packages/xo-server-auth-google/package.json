@@ -12,11 +12,11 @@
     "xen-orchestra",
     "xo-server"
   ],
-  "homepage": "https://google.com/vatesfr/xo-server-auth-google",
-  "bugs": "https://google.com/vatesfr/xo-server-auth-google/issues",
+  "homepage": "https://github.com/vatesfr/xo-server-auth-google",
+  "bugs": "https://github.com/vatesfr/xo-server-auth-google/issues",
   "repository": {
     "type": "git",
-    "url": "https://google.com/vatesfr/xo-server-auth-google.git"
+    "url": "https://github.com/vatesfr/xo-server-auth-google.git"
   },
   "author": {
     "name": "Julien Fontanet",
