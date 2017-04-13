@@ -55,7 +55,7 @@ const vmActionBarByState = {
           icon: 'vm-copy',
           label: 'copyVmLabel',
           handler: copyVm,
-          pending: includes(vm.current_operations, 'snapshot')
+          pending: includes(vm.current_operations, 'copy')
         }
       ]}
       display='icon'
