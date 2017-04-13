@@ -1,7 +1,7 @@
+import classNames from 'classnames'
 import Icon from 'icon'
 import isFunction from 'lodash/isFunction'
 import React from 'react'
-import { Button } from 'react-bootstrap-4/lib'
 
 import Component from './base-component'
 import logError from './log-error'
@@ -114,18 +114,24 @@ export default class ActionButton extends Component {
       state: { error, working }
     } = this
 
-    const button = <Button
+    const button = <button
+      className={classNames(
+        'btn',
+        btnStyle !== undefined && `btn-${btnStyle}`,
+        bsSize === 'large' ? 'btn-lg' : bsSize === 'small' ? 'btn-sm' : null,
+        className
+      )}
       bsStyle={error ? 'warning' : btnStyle}
       form={form}
       onClick={!form && this._execute}
       disabled={working || disabled}
       type={form ? 'submit' : 'button'}
-      {...{ bsSize, className, style }}
+      style={style}
     >
       <Icon icon={working ? 'loading' : icon} fixedWidth />
       {children && ' '}
       {children}
-    </Button>
+    </button>
 
     return tooltip
       ? <Tooltip content={tooltip}>{button}</Tooltip>
