@@ -493,13 +493,14 @@ export default class TabDisks extends Component {
                     <td>
                       <StateButton
                         disabledLabel={_('vbdStatusDisconnected')}
-                        disabledHandler={isVmRunning(vm) && connectVbd}
+                        disabledHandler={connectVbd}
                         disabledTooltip={_('vbdConnect')}
 
                         enabledLabel={_('vbdStatusConnected')}
                         enabledHandler={disconnectVbd}
                         enabledTooltip={_('vbdDisconnect')}
 
+                        disabled={!(vbd.attached || isVmRunning(vm))}
                         handlerParam={vbd}
                         state={vbd.attached}
                       />
