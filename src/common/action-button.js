@@ -10,20 +10,46 @@ import Tooltip from './tooltip'
 import { error as _error } from './notification'
 
 @propTypes({
+  // Bootstrap button style (https://v4-alpha.getbootstrap.com/components/buttons/#examples)
   btnStyle: propTypes.string,
+
+  // React element to use as button content
+  children: propTypes.node,
+
+  // whether this button is disabled (default to false)
   disabled: propTypes.bool,
+
+  // form identifier
+  //
+  // if provided, this button and its action are associated to this
+  // form for the submit event
   form: propTypes.string,
+
+  // function to call when the action is triggered (via a clik on the
+  // button or submit on the form)
   handler: propTypes.func.isRequired,
+
+  // optional value which will be passed as first param to the handler
   handlerParam: propTypes.any,
+
+  // XO icon to use for this button
   icon: propTypes.string.isRequired,
+
+  // path to redirect to when the triggered action finish successfully
+  //
+  // if a function, it will be called with the result of the action to
+  // compute the path
   redirectOnSuccess: propTypes.oneOfType([
     propTypes.func,
     propTypes.string
   ]),
+
   size: propTypes.oneOf([
     'large',
     'small'
   ]),
+
+  // React element to use tooltip for the component
   tooltip: propTypes.node
 })
 export default class ActionButton extends Component {
