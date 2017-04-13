@@ -1,4 +1,5 @@
 import _ from 'intl'
+import ButtonGroup from 'button-group'
 import ChartistGraph from 'react-chartist'
 import Component from 'base-component'
 import forEach from 'lodash/forEach'
@@ -10,7 +11,6 @@ import HostsPatchesTable from 'hosts-patches-table'
 import React from 'react'
 import size from 'lodash/size'
 import Upgrade from 'xoa-upgrade'
-import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Row, Col } from 'grid'
 import {

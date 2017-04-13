@@ -1,6 +1,7 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
+import ButtonGroup from 'button-group'
 import Component from 'base-component'
 import filter from 'lodash/filter'
 import forEach from 'lodash/forEach'
@@ -19,7 +20,6 @@ import { connectStore } from 'utils'
 import { Container } from 'grid'
 import { error } from 'notification'
 import { SelectHighLevelObject, SelectRole, SelectSubject } from 'select-objects'
-import { ButtonGroup } from 'react-bootstrap-4/lib'
 
 import {
   createGetObjectsOfType,
@@ -243,7 +243,7 @@ export default class Acls extends Component {
             <SelectHighLevelObject multi onChange={this.linkState('objects')} value={objects} predicate={this._getObjectPredicate()} />
           </div>
           <div className='form-group mb-1'>
-            <ButtonGroup className='mr-1'>
+            <ButtonGroup>
               {map(TYPES, type =>
                 <ActionButton
                   btnStyle={typeFilters[type] ? 'success' : 'secondary'}
@@ -256,6 +256,7 @@ export default class Acls extends Component {
                 />
               )}
             </ButtonGroup>
+            {' '}
             <ActionButton tooltip='Select all' btnStyle='secondary' size='small' icon='add' handler={this._selectAll} />
           </div>
           <div className='form-group'>

@@ -1,5 +1,6 @@
 import _ from 'intl'
 import ActionRowButton from 'action-row-button'
+import ButtonGroup from 'button-group'
 import Component from 'base-component'
 import filter from 'lodash/filter'
 import find from 'lodash/find'
@@ -15,7 +16,6 @@ import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
 import { addSubscriptions } from 'utils'
-import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { createSelector } from 'selectors'
 import {
   Card,

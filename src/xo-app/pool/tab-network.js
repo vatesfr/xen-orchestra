@@ -205,8 +205,8 @@ class PifItem extends Component {
           </span>
           }
       </td>
-      <td>
-        <ButtonGroup className='pull-right'>
+      <td className='text-xs-right'>
+        <ButtonGroup>
           <ActionRowButton
             btnStyle='default'
             disabled={disableUnplug}
@@ -272,7 +272,7 @@ class NetworkActions extends Component {
   render () {
     const { network, disableNetworkDelete } = this.props
 
-    return <ButtonGroup className='pull-right'>
+    return <ButtonGroup>
       <ActionRowButton
         btnStyle='default'
         disabled={disableNetworkDelete}
@@ -324,7 +324,8 @@ const NETWORKS_COLUMNS = [
   },
   {
     name: '',
-    itemRenderer: network => <NetworkActions network={network} />
+    itemRenderer: network => <NetworkActions network={network} />,
+    textAlign: 'right'
   }
 ]
 

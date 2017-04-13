@@ -1,10 +1,10 @@
 import _ from 'intl'
 import ActionRowButton from 'action-row-button'
+import ButtonGroup from 'button-group'
 import isEmpty from 'lodash/isEmpty'
+import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
-import React, { Component } from 'react'
-import { ButtonGroup } from 'react-bootstrap-4/lib'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Container, Row, Col } from 'grid'
 import {

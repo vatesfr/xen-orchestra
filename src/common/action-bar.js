@@ -1,13 +1,9 @@
-import _ from 'intl'
-import ActionButton from 'action-button'
-import map from 'lodash/map'
 import React from 'react'
-import {
-  ButtonGroup
-} from 'react-bootstrap-4/lib'
-import {
-  noop
-} from 'utils'
+import { map, noop } from 'lodash'
+
+import _ from './intl'
+import ActionButton from './action-button'
+import ButtonGroup from './button-group'
 
 const ActionBar = ({ actions, param }) => (
   <ButtonGroup>
