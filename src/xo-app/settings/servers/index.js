@@ -104,8 +104,8 @@ export default class Servers extends Component {
                   enabledHandler={disconnectServer}
                   enabledTooltip={_('serverDisconnect')}
 
-                  disabled={server.status === 'connecting'}
                   handlerParam={server}
+                  pending={server.status === 'connecting'}
                   state={server.status === 'connected'}
                 />
                 {' '}
