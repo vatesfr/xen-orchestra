@@ -342,7 +342,7 @@ export const editPool = (pool, props) => (
   _call('pool.set', { id: resolveId(pool), ...props })
 )
 
-import AddHostModalBody from './add-host-modal'
+import AddHostModalBody from './add-host-modal' // eslint-disable-line import/first
 export const addHostToPool = (pool, host) => {
   if (host) {
     return confirm({
@@ -643,7 +643,7 @@ export const cloneVm = ({ id, name_label: nameLabel }, fullCopy = false) => (
   })
 )
 
-import CopyVmModalBody from './copy-vm-modal'
+import CopyVmModalBody from './copy-vm-modal' // eslint-disable-line import/first
 export const copyVm = (vm, sr, name, compress) => {
   if (sr) {
     return confirm({
@@ -667,7 +667,7 @@ export const copyVm = (vm, sr, name, compress) => {
   }
 }
 
-import CopyVmsModalBody from './copy-vms-modal'
+import CopyVmsModalBody from './copy-vms-modal' // eslint-disable-line import/first
 export const copyVms = vms => {
   const _vms = resolveIds(vms)
   return confirm({
@@ -685,7 +685,7 @@ export const copyVms = vms => {
         sr
       } = params
       Promise.all(map(_vms, (vm, index) =>
-        _call('vm.copy', { vm, sr, compress, name: names[index] }),
+        _call('vm.copy', { vm, sr, compress, name: names[index] })
       ))
     },
     noop
@@ -739,7 +739,7 @@ export const deleteSnapshot = vm => (
   )
 )
 
-import MigrateVmModalBody from './migrate-vm-modal'
+import MigrateVmModalBody from './migrate-vm-modal' // eslint-disable-line import/first
 export const migrateVm = (vm, host) => (
   confirm({
     title: _('migrateVmModalTitle'),
@@ -755,7 +755,7 @@ export const migrateVm = (vm, host) => (
   )
 )
 
-import MigrateVmsModalBody from './migrate-vms-modal'
+import MigrateVmsModalBody from './migrate-vms-modal' // eslint-disable-line import/first
 export const migrateVms = vms => (
   confirm({
     title: _('migrateVmModalTitle'),
@@ -838,7 +838,7 @@ export const importDeltaBackup = ({ remote, file, sr }) => (
   _call('vm.importDeltaBackup', resolveIds({ remote, filePath: file, sr }))
 )
 
-import RevertSnapshotModalBody from './revert-snapshot-modal'
+import RevertSnapshotModalBody from './revert-snapshot-modal' // eslint-disable-line import/first
 export const revertSnapshot = vm => (
   confirm({
     title: _('revertVmModalTitle'),
@@ -911,7 +911,7 @@ export const attachDiskToVm = (vdi, vm, { bootable, mode, position }) => (
   _call('vm.attachDisk', {
     bootable,
     mode,
-    position: position && String(position) || undefined,
+    position: (position && String(position)) || undefined,
     vdi: resolveId(vdi),
     vm: resolveId(vm)
   })
@@ -1010,7 +1010,7 @@ export const editNetwork = (network, props) => (
   _call('network.set', { ...props, id: resolveId(network) })
 )
 
-import CreateNetworkModalBody from './create-network-modal'
+import CreateNetworkModalBody from './create-network-modal' // eslint-disable-line import/first
 export const createNetwork = container => (
   confirm({
     icon: 'network',
@@ -1030,7 +1030,7 @@ export const createNetwork = container => (
 export const getBondModes = () =>
   _call('network.getBondModes')
 
-import CreateBondedNetworkModalBody from './create-bonded-network-modal'
+import CreateBondedNetworkModalBody from './create-bonded-network-modal' // eslint-disable-line import/first
 export const createBondedNetwork = container => (
   confirm({
     icon: 'network',
@@ -1321,7 +1321,7 @@ export const loadPlugin = async id => (
   _call('plugin.load', { id })::tap(
     subscribePlugins.forceRefresh
   )::rethrow(
-    err => error(_('pluginError'), err && err.message || _('unknownPluginError'))
+    err => error(_('pluginError'), (err && err.message) || _('unknownPluginError'))
   )
 )
 
@@ -1329,7 +1329,7 @@ export const unloadPlugin = id => (
   _call('plugin.unload', { id })::tap(
     subscribePlugins.forceRefresh
   )::rethrow(
-    err => error(_('pluginError'), err && err.message || _('unknownPluginError'))
+    err => error(_('pluginError'), (err && err.message) || _('unknownPluginError'))
   )
 )
 
@@ -1667,10 +1667,10 @@ const _setUserPreferences = preferences => (
   )
 )
 
-import NewSshKeyModalBody from './new-ssh-key-modal'
+import NewSshKeyModalBody from './new-ssh-key-modal' // eslint-disable-line import/first
 export const addSshKey = key => {
   const { preferences } = xo.user
-  const otherKeys = preferences && preferences.sshKeys || []
+  const otherKeys = (preferences && preferences.sshKeys) || []
   if (key) {
     return _setUserPreferences({ sshKeys: [
       ...otherKeys,
@@ -1713,7 +1713,7 @@ export const deleteSshKey = key => (
 
 // User filters --------------------------------------------------
 
-import AddUserFilterModalBody from './add-user-filter-modal'
+import AddUserFilterModalBody from './add-user-filter-modal' // eslint-disable-line import/first
 export const addCustomFilter = (type, value) => {
   const { user } = xo
   return confirm({
@@ -1823,7 +1823,7 @@ export const createXosanSR = ({ template, pif, vlan, srs, glusterType, redundanc
 
 export const computeXosanPossibleOptions = lvmSrs => _call('xosan.computeXosanPossibleOptions', { lvmSrs })
 
-import InstallXosanPackModal from './install-xosan-pack-modal'
+import InstallXosanPackModal from './install-xosan-pack-modal' // eslint-disable-line import/first
 export const downloadAndInstallXosanPack = pool =>
   confirm({
     title: _('xosanInstallPackTitle', { pool: pool.name_label }),

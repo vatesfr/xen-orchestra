@@ -28,7 +28,7 @@ function assertIpv4 (str, msg) {
   if (!ipv4.test(str)) { throw new Error(msg) }
 }
 
-function *range (ip1, ip2) {
+function * range (ip1, ip2) {
   assertIpv4(ip1, 'argument "ip1" must be a valid IPv4 address')
   assertIpv4(ip2, 'argument "ip2" must be a valid IPv4 address')
 

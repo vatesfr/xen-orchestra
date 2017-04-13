@@ -57,7 +57,7 @@ export default class ObjectInput extends Component {
     } = this
 
     const childDepth = depth + 2
-    const properties = uiSchema && uiSchema.properties || EMPTY_OBJECT
+    const properties = (uiSchema != null && uiSchema.properties) || EMPTY_OBJECT
     const requiredProps = this._getRequiredProps()
 
     return (

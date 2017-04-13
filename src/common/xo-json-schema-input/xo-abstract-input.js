@@ -5,7 +5,7 @@ import getEventValue from '../get-event-value'
 
 // ===================================================================
 
-const getId = value => value != null && value.id || value
+const getId = value => (value != null && value.id) || value
 
 export default class XoAbstractInput extends PureComponent {
   _onChange = event => {

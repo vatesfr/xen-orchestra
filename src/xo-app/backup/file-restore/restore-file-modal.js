@@ -268,7 +268,7 @@ export default class RestoreFileModalBody extends Component {
           value={partition}
         />
       ]}
-      {(partition || disk && !scanDiskError && noPartitions) && [
+      {(partition || (disk && !scanDiskError && noPartitions)) && [
         <br />,
         <Container>
           <Row>

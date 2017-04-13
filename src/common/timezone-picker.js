@@ -56,7 +56,7 @@ export default class TimezonePicker extends Component {
     }
 
     this.setState({
-      timezone: option && option.value || SERVER_TIMEZONE_TAG
+      timezone: (option != null && option.value) || SERVER_TIMEZONE_TAG
     }, () =>
       this.props.onChange(this.state.timezone === SERVER_TIMEZONE_TAG ? null : this.state.timezone)
     )

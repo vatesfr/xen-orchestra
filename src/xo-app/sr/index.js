@@ -52,7 +52,7 @@ import TabXosan from './tab-xosan'
   )
 
   const getPbds = createGetObjectsOfType('PBD').pick(
-    createSelector(getSr, sr => sr.$PBDs),
+    createSelector(getSr, sr => sr.$PBDs)
   )
 
   const getSrHosts = createGetObjectsOfType('host').pick(
@@ -65,7 +65,7 @@ import TabXosan from './tab-xosan'
 // -----------------------------------------------------------------------------
 
   const getVdis = createGetObjectsOfType('VDI').pick(
-    createSelector(getSr, sr => sr.VDIs),
+    createSelector(getSr, sr => sr.VDIs)
   ).sort()
 
   const getLogs = createGetObjectMessages(getSr)
@@ -80,7 +80,7 @@ import TabXosan from './tab-xosan'
 // -----------------------------------------------------------------------------
 
   const getVdiSnapshots = createGetObjectsOfType('VDI-snapshot').pick(
-    createSelector(getSr, sr => sr.VDIs),
+    createSelector(getSr, sr => sr.VDIs)
   ).sort()
 
   const getVdiSnapshotToVdi = createSelector(

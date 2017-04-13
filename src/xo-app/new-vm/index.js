@@ -91,6 +91,8 @@ const NB_VMS_MAX = 100
 
 const getObject = createGetObject((_, id) => id)
 
+const returnTrue = () => true
+
 // Sub-components
 
 const SectionContent = ({ column, children }) => (
@@ -444,7 +446,7 @@ export default class NewVm extends BaseComponent {
       cpuWeight: '',
       memoryDynamicMax: template.memory.dynamic[1],
       // installation
-      installMethod: template.install_methods && template.install_methods[0] || 'SSH',
+      installMethod: (template.install_methods != null && template.install_methods[0]) || 'SSH',
       sshKeys: this.props.userSshKeys && this.props.userSshKeys.length && [ 0 ],
       customConfig: '#cloud-config\n#hostname: myhostname\n#ssh_authorized_keys:\n#  - ssh-rsa <myKey>\n#packages:\n#  - htop\n',
       // interfaces
@@ -492,9 +494,11 @@ export default class NewVm extends BaseComponent {
   )
 
   _getCanOperate = createSelector(
+    () => this.props.isAdmin,
     () => this.props.permissions,
-    permissions => ({ id }) =>
-      this.props.isAdmin || permissions && permissions[id] && permissions[id].operate
+    (isAdmin, permissions) => isAdmin
+      ? returnTrue
+      : ({ id }) => permissions && permissions[id] && permissions[id].operate
   )
   _getVmPredicate = createSelector(
     this._getIsInPool,

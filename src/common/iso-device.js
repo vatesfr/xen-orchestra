@@ -55,8 +55,9 @@ export default class IsoDevice extends Component {
       const samePool = vmPool === sr.$pool
 
       return (
-        samePool && (vmRunning ? sr.shared || sameHost : true) &&
-        sr.SR_type === 'iso' || sr.SR_type === 'udev' && sr.size
+        samePool &&
+        (vmRunning ? sr.shared || sameHost : true) &&
+        (sr.SR_type === 'iso' || (sr.SR_type === 'udev' && sr.size))
       )
     }
   )
