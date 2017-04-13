@@ -77,12 +77,11 @@ export default class ActionButton extends Component {
 
       const result = await handler(handlerParam)
 
-      let { redirectOnSuccess } = this.props
+      const { redirectOnSuccess } = this.props
       if (redirectOnSuccess) {
-        if (isFunction(redirectOnSuccess)) {
-          redirectOnSuccess = redirectOnSuccess(result)
-        }
-        return this.context.router.push(redirectOnSuccess)
+        return this.context.router.push(
+          isFunction(redirectOnSuccess) ? redirectOnSuccess(result) : redirectOnSuccess
+        )
       }
 
       this.setState({
