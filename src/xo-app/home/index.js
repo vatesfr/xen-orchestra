@@ -2,6 +2,7 @@ import * as ComplexMatcher from 'complex-matcher'
 import * as homeFilters from 'home-filters'
 import _ from 'intl'
 import ActionButton from 'action-button'
+import Button from 'button'
 import CenterPanel from 'center-panel'
 import Component from 'base-component'
 import Icon from 'icon'
@@ -75,7 +76,6 @@ import {
   getUser
 } from 'selectors'
 import {
-  Button,
   DropdownButton,
   MenuItem,
   OverlayTrigger,
@@ -568,11 +568,9 @@ export default class Home extends Component {
               type='text'
             />
             <div className='input-group-btn'>
-              <a
-                className='btn btn-secondary'
-                onClick={this._clearFilter}>
+              <Button onClick={this._clearFilter}>
                 <Icon icon='clear-search' />
-              </a>
+              </Button>
             </div>
             <div className='input-group-btn'>
               <ActionButton
@@ -751,7 +749,6 @@ export default class Home extends Component {
                       {map(mainActions, (action, key) => (
                         <Tooltip content={action.tooltip} key={key}>
                           <ActionButton
-                            btnStyle='secondary'
                             {...action}
                             handlerParam={this._getSelectedItemsIds()}
                           />
@@ -785,7 +782,7 @@ export default class Home extends Component {
                         </Popover>
                       }
                     >
-                      <Button className='btn-link'><Icon icon='pool' /> {_('homeAllPools')}</Button>
+                      <Button btnStyle='link'><Icon icon='pool' /> {_('homeAllPools')}</Button>
                     </OverlayTrigger>
                   )}
                   {' '}
@@ -805,7 +802,7 @@ export default class Home extends Component {
                         </Popover>
                       }
                     >
-                      <Button className='btn-link'><Icon icon='host' /> {_('homeAllHosts')}</Button>
+                      <Button btnStyle='link'><Icon icon='host' /> {_('homeAllHosts')}</Button>
                     </OverlayTrigger>
                   )}
                   {' '}
@@ -826,7 +823,7 @@ export default class Home extends Component {
                       </Popover>
                     }
                   >
-                    <Button className='btn-link'><Icon icon='tags' /> {_('homeAllTags')}</Button>
+                    <Button btnStyle='link'><Icon icon='tags' /> {_('homeAllTags')}</Button>
                   </OverlayTrigger>
                   {' '}
                   <DropdownButton bsStyle='link' id='sort' title={_('homeSortBy')}>
@@ -844,10 +841,9 @@ export default class Home extends Component {
               }
             </Col>
             <Col smallsize={1} mediumSize={1} className='text-xs-right'>
-              <button className='btn btn-secondary'
-                onClick={this._expandAll}>
+              <Button onClick={this._expandAll}>
                 <Icon icon='nav' />
-              </button>
+              </Button>
             </Col>
           </SingleLineRow>
           {isEmpty(filteredItems)

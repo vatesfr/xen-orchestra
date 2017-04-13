@@ -1,4 +1,5 @@
 import _ from 'intl'
+import Button from 'button'
 import Component from 'base-component'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import debounce from 'lodash/debounce'
@@ -73,20 +74,19 @@ export default class extends Component {
               <input type='text' className='form-control' ref='clipboard' onChange={this._setRemoteClipboard} />
               <span className='input-group-btn'>
                 <CopyToClipboard text={this.state.clipboard || ''}>
-                  <button className='btn btn-secondary'>
+                  <Button>
                     <Icon icon='clipboard' /> {_('copyToClipboardLabel')}
-                  </button>
+                  </Button>
                 </CopyToClipboard>
               </span>
             </div>
           </Col>
           <Col mediumSize={2}>
-            <button
-              className='btn btn-secondary'
+            <Button
               onClick={this._sendCtrlAltDel}
             >
               <Icon icon='vm-keyboard' /> {_('ctrlAltDelButtonLabel')}
-            </button>
+            </Button>
           </Col>
         </Row>
         <Row className='console'>

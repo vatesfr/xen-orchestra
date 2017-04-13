@@ -1,6 +1,7 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import ActionToggle from 'action-toggle'
+import Button from 'button'
 import Component from 'base-component'
 import GenericInput from 'json-schema-input'
 import Icon from 'icon'
@@ -149,9 +150,9 @@ class Plugin extends Component {
           </Col>
           <Col mediumSize={4}>
             <div className='form-group pull-right small'>
-              <button type='button' className='btn btn-primary' onClick={this._updateExpanded}>
+              <Button btnStyle='primary' onClick={this._updateExpanded}>
                 <Icon icon={expanded ? 'minus' : 'plus'} />
-              </button>
+              </Button>
             </div>
           </Col>
         </Row>
@@ -172,14 +173,13 @@ class Plugin extends Component {
                     ))}
                   </select>
                   <span className='input-group-btn'>
-                    <button
-                      className='btn btn-primary'
+                    <Button
+                      btnStyle='primary'
                       disabled={!editedConfig}
                       onClick={this._applyPredefinedConfiguration}
-                      type='button'
                     >
                       {_('applyPluginPreset')}
-                    </button>
+                    </Button>
                   </span>
                 </div>
                 <hr />
@@ -196,14 +196,14 @@ class Plugin extends Component {
             <div className='form-group pull-right'>
               <div className='btn-toolbar'>
                 <div className='btn-group'>
-                  <ActionButton disabled={!props.configuration} icon='delete' className='btn-danger' handler={this._deleteConfiguration}>
+                  <ActionButton btnStyle='danger' disabled={!props.configuration} icon='delete' handler={this._deleteConfiguration}>
                     {_('deletePluginConfiguration')}
                   </ActionButton>
                 </div>
                 <div className='btn-group'>
-                  <button disabled={!editedConfig} type='reset' className='btn'>
+                  <Button disabled={!editedConfig} type='reset'>
                     {_('cancelPluginEdition')}
-                  </button>
+                  </Button>
                 </div>
                 <div className='btn-group'>
                   <ActionButton disabled={!editedConfig} form={this.configFormId} icon='save' className='btn-primary' handler={this._saveConfiguration}>

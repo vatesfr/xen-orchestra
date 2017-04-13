@@ -1,9 +1,6 @@
 import classNames from 'classnames'
-import Icon from 'icon'
 import later from 'later'
 import React from 'react'
-import Tooltip from 'tooltip'
-import { Toggle } from 'form'
 import { FormattedDate, FormattedTime } from 'react-intl'
 import {
   forEach,
@@ -14,12 +11,15 @@ import {
 } from 'lodash'
 
 import _ from './intl'
+import Button from './button'
 import Component from './base-component'
 import propTypes from './prop-types'
 import TimezonePicker from './timezone-picker'
+import Icon from './icon'
+import Tooltip from './tooltip'
 import { Card, CardHeader, CardBlock } from './card'
 import { Col, Row } from './grid'
-import { Range } from './form'
+import { Range, Toggle } from './form'
 
 // ===================================================================
 
@@ -259,13 +259,12 @@ class TableSelect extends Component {
           ))}
         </tbody>
       </table>
-      <button
-        className='btn btn-secondary pull-right'
+      <Button
+        className='pull-right'
         onClick={this._reset}
-        type='button'
       >
         {_(`selectTableAll${labelId}`)} {value && !value.length && <Icon icon='success' />}
-      </button>
+      </Button>
     </div>
   }
 }

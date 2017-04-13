@@ -52,7 +52,6 @@ const HOST_COLUMNS = [
     name: _('pbdAction'),
     itemRenderer: pbd => !pbd.attached &&
       <ActionRowButton
-        btnStyle='default'
         handler={deletePbd}
         handlerParam={pbd}
         icon='sr-forget'

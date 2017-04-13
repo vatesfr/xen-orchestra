@@ -88,7 +88,6 @@ export default class IsoDevice extends Component {
         />
         <span className='input-group-btn'>
           <ActionButton
-            btnStyle='secondary'
             disabled={!mountedIso}
             handler={this._handleEject}
             icon='vm-eject'

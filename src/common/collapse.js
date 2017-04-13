@@ -1,5 +1,6 @@
 import React from 'react'
 
+import Button from './button'
 import Component from './base-component'
 import Icon from './icon'
 import propTypes from './prop-types'
@@ -27,9 +28,9 @@ export default class Collapse extends Component {
 
     return (
       <div className={props.className}>
-        <button className='btn btn-lg btn-primary btn-block' onClick={this._onClick}>
+        <Button block btnStyle='primary' size='large' onClick={this._onClick}>
           {props.buttonText} <Icon icon={`chevron-${isOpened ? 'up' : 'down'}`} />
-        </button>
+        </Button>
         {isOpened && props.children}
       </div>
     )

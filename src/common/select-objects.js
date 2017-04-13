@@ -1,9 +1,5 @@
 import React from 'react'
 import classNames from 'classnames'
-import Icon from 'icon'
-import store from 'store'
-import Tooltip from 'tooltip'
-import { Button } from 'react-bootstrap-4/lib'
 import { parse as parseRemote } from 'xo-remote-parser'
 import {
   assign,
@@ -26,10 +22,14 @@ import {
 } from 'lodash'
 
 import _ from './intl'
-import uncontrollableInput from 'uncontrollable-input'
+import Button from './button'
 import Component from './base-component'
+import Icon from './icon'
 import propTypes from './prop-types'
 import renderXoItem from './render-xo-item'
+import store from './store'
+import Tooltip from './tooltip'
+import uncontrollableInput from 'uncontrollable-input'
 import { Select } from './form'
 import {
   createCollectionWrapper,
@@ -278,7 +278,7 @@ export class GenericSelect extends Component {
       {select}
       <span className='input-group-btn'>
         <Tooltip content={_('selectAll')}>
-          <Button type='button' bsStyle='secondary' onClick={this._selectAll} style={ADDON_BUTTON_STYLE}>
+          <Button onClick={this._selectAll} style={ADDON_BUTTON_STYLE}>
             <Icon icon='add' />
           </Button>
         </Tooltip>

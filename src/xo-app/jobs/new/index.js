@@ -1,6 +1,7 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
+import Button from 'button'
 import Component from 'base-component'
 import delay from 'lodash/delay'
 import find from 'lodash/find'
@@ -387,7 +388,7 @@ export default class Jobs extends Component {
           {process.env.XOA_PLAN > 3
             ? <span><ActionButton form='newJobForm' handler={this._handleSubmit} icon='save' btnStyle='primary'>{_('saveResourceSet')}</ActionButton>
               {' '}
-              <button type='button' className='btn btn-default' onClick={this._reset}>{_('resetResourceSet')}</button></span>
+              <Button onClick={this._reset}>{_('resetResourceSet')}</Button></span>
             : <span><Upgrade place='health' available={4} /></span>
           }
         </fieldset>

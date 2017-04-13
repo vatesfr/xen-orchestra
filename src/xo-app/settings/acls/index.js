@@ -257,7 +257,7 @@ export default class Acls extends Component {
               )}
             </ButtonGroup>
             {' '}
-            <ActionButton tooltip='Select all' btnStyle='secondary' size='small' icon='add' handler={this._selectAll} />
+            <ActionButton tooltip='Select all' size='small' icon='add' handler={this._selectAll} />
           </div>
           <div className='form-group'>
             <SelectRole onChange={this.linkState('action')} value={action} />

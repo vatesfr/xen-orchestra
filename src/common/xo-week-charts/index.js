@@ -381,7 +381,7 @@ export default class XoWeekCharts extends Component {
           <p className='mt-1'>
             {_('weeklyChartsScaleInfo')}
             {' '}
-            <Toggle iconSize={1} icon='scale' className='btn btn-secondary' onChange={this._updateScale} />
+            <Toggle iconSize={1} icon='scale' onChange={this._updateScale} />
           </p>
         </div>
         <div

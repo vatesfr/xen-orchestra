@@ -81,7 +81,6 @@ export default class TimezonePicker extends Component {
         />
         <div className='pull-right'>
           <ActionButton
-            btnStyle='secondary'
             handler={this._useLocalTime}
             icon='time'
           >

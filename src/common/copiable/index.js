@@ -1,11 +1,12 @@
-import _ from 'intl'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import classNames from 'classnames'
-import Tooltip from 'tooltip'
 import React, { createElement } from 'react'
 
+import _ from '../intl'
+import Button from '../button'
 import Icon from '../icon'
 import propTypes from '../prop-types'
+import Tooltip from '../tooltip'
 
 import styles from './index.css'
 
@@ -22,9 +23,9 @@ const Copiable = propTypes({
   ' ',
   <Tooltip content={_('copyToClipboard')}>
     <CopyToClipboard text={props.data || props.children}>
-      <button className={classNames('btn btn-sm btn-secondary', styles.button)}>
+      <Button className={styles.button} size='small'>
         <Icon icon='clipboard' />
-      </button>
+      </Button>
     </CopyToClipboard>
   </Tooltip>
 ))

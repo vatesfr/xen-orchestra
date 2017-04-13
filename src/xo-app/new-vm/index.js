@@ -1,6 +1,7 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import BaseComponent from 'base-component'
+import Button from 'button'
 import classNames from 'classnames'
 import DebounceInput from 'react-debounce-input'
 import getEventValue from 'get-event-value'
@@ -12,7 +13,6 @@ import store from 'store'
 import Tags from 'tags'
 import Tooltip from 'tooltip'
 import Wizard, { Section } from 'wizard'
-import { Button } from 'react-bootstrap-4/lib'
 import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
 import { Limits } from 'usage'
@@ -177,7 +177,7 @@ class Vif extends BaseComponent {
         </span>
       </LineItem>
       <Item>
-        <Button onClick={onDelete} bsStyle='secondary'>
+        <Button onClick={onDelete}>
           <Icon icon='new-vm-remove' />
         </Button>
       </Item>
@@ -800,7 +800,6 @@ export default class NewVm extends BaseComponent {
         </Wizard>
         <div className={styles.submitSection}>
           <ActionButton
-            btnStyle='secondary'
             className={styles.button}
             handler={this._reset}
             icon='new-vm-reset'
@@ -967,7 +966,7 @@ export default class NewVm extends BaseComponent {
               value={newSshKey}
             />
             <span className='input-group-btn'>
-              <Button className='btn btn-secondary' onClick={this._addNewSshKey} disabled={!newSshKey}>
+              <Button onClick={this._addNewSshKey} disabled={!newSshKey}>
                 <Icon icon='add' />
               </Button>
             </span>
@@ -1132,7 +1131,7 @@ export default class NewVm extends BaseComponent {
           {index < VIFs.length - 1 && <hr />}
         </div>)}
         <Item>
-          <Button onClick={this._addInterface} bsStyle='secondary'>
+          <Button onClick={this._addInterface}>
             <Icon icon='new-vm-add' />
             {' '}
             {_('newVmAddInterface')}
@@ -1251,7 +1250,7 @@ export default class NewVm extends BaseComponent {
               />
             </Item>
             <Item>
-              <Button onClick={() => this._removeVdi(index)} bsStyle='secondary'>
+              <Button onClick={() => this._removeVdi(index)}>
                 <Icon icon='new-vm-remove' />
               </Button>
             </Item>
@@ -1259,7 +1258,7 @@ export default class NewVm extends BaseComponent {
           {index < VDIs.length - 1 && <hr />}
         </div>)}
         <Item>
-          <Button onClick={this._addVdi} bsStyle='secondary'>
+          <Button onClick={this._addVdi}>
             <Icon icon='new-vm-add' />
             {' '}
             {_('newVmAddDisk')}
@@ -1299,7 +1298,7 @@ export default class NewVm extends BaseComponent {
     const { formatMessage } = this.props.intl
     return <Section icon='new-vm-advanced' title='newVmAdvancedPanel' done={this._isAdvancedDone()}>
       <SectionContent column>
-        <Button bsStyle='secondary' onClick={this._toggleState('showAdvanced')}>
+        <Button onClick={this._toggleState('showAdvanced')}>
           {showAdvanced ? _('newVmHideAdvanced') : _('newVmShowAdvanced')}
         </Button>
       </SectionContent>
@@ -1412,7 +1411,7 @@ export default class NewVm extends BaseComponent {
             />
             <span className='input-group-btn'>
               <Tooltip content={_('newVmNumberRecalculate')}>
-                <Button bsStyle='secondary' disabled={!multipleVms} onClick={this._updateNbVms}>
+                <Button disabled={!multipleVms} onClick={this._updateNbVms}>
                   <Icon icon='arrow-right' />
                 </Button>
               </Tooltip>

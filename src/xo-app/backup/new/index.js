@@ -1,5 +1,6 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
+import Button from 'button'
 import Component from 'base-component'
 import GenericInput from 'json-schema-input'
 import getEventValue from 'get-event-value'
@@ -648,18 +649,19 @@ export default class New extends Component {
                       : <fieldset className='pull-right pt-1'>
                         <ActionButton
                           btnStyle='primary'
-                          className='btn-lg mr-1'
+                          className='mr-1'
                           disabled={!backupInfo}
                           form='form-new-vm-backup'
                           handler={this._handleSubmit}
                           icon='save'
                           redirectOnSuccess='/backup/overview'
+                          size='large'
                         >
                           {_('saveBackupJob')}
                         </ActionButton>
-                        <button type='button' className='btn btn-lg btn-secondary' onClick={this._handleReset}>
+                        <Button onClick={this._handleReset} size='large'>
                           {_('selectTableReset')}
-                        </button>
+                        </Button>
                       </fieldset>)
                 }
                 </Col>

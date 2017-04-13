@@ -3,6 +3,7 @@ import uncontrollableInput from 'uncontrollable-input'
 import { filter, map } from 'lodash'
 
 import _ from '../intl'
+import Button from '../button'
 import Component from '../base-component'
 import propTypes from '../prop-types'
 import { EMPTY_ARRAY } from '../utils'
@@ -96,26 +97,26 @@ export default class ObjectInput extends Component {
                   uiSchema={itemUiSchema}
                   value={value}
                 />
-                <button
-                  className='btn btn-danger pull-right'
+                <Button
+                  btnStyle='danger'
+                  className='pull-right'
                   disabled={disabled}
                   name={key}
                   onClick={() => this._onRemoveItem(key)}
-                  type='button'
                 >
                   {_('remove')}
-                </button>
+                </Button>
               </li>
             )}
           </ul>
-          <button
-            className='btn btn-primary pull-right mt-1 mr-1'
+          <Button
+            btnStyle='primary'
+            className='pull-right mt-1 mr-1'
             disabled={disabled}
             onClick={this._onAddItem}
-            type='button'
           >
             {_('add')}
-          </button>
+          </Button>
         </div>}
       </div>
     )

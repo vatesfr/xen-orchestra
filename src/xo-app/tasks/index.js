@@ -54,13 +54,11 @@ export const TaskItem = connectStore(() => ({
   <Col mediumSize={2}>
     <ButtonGroup>
       <ActionRowButton
-        btnStyle='default'
         handler={cancelTask}
         handlerParam={task}
         icon='task-cancel'
       />
       <ActionRowButton
-        btnStyle='default'
         handler={destroyTask}
         handlerParam={task}
         icon='task-destroy'

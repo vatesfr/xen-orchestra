@@ -515,7 +515,7 @@ export default class New extends Component {
                           type='text'
                         />
                         <span className='input-group-btn'>
-                          <ActionButton icon='search' btnStyle='default' handler={this._handleSearchServer} />
+                          <ActionButton icon='search' handler={this._handleSearchServer} />
                         </span>
                       </div>
                     </fieldset>
@@ -560,7 +560,7 @@ export default class New extends Component {
                           ref='port'
                           type='text'
                         />
-                        <ActionButton icon='search' btnStyle='default' handler={this._handleSearchServer} />
+                        <ActionButton icon='search' handler={this._handleSearchServer} />
                       </div>
                       {auth &&
                         <fieldset>

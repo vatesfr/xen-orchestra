@@ -22,7 +22,6 @@ const ActionBar = ({ actions, param }) => (
       } = button
       return <ActionButton
         key={index}
-        btnStyle='secondary'
         handler={handler || noop}
         handlerParam={handlerParam}
         icon={icon}

@@ -1,10 +1,11 @@
-import _ from 'intl'
-import Icon from 'icon'
 import isArray from 'lodash/isArray'
 import isString from 'lodash/isString'
 import React, { Component, cloneElement } from 'react'
-import { Button, Modal as ReactModal } from 'react-bootstrap-4/lib'
+import { Modal as ReactModal } from 'react-bootstrap-4/lib'
 
+import _ from './intl'
+import Button from './button'
+import Icon from './icon'
 import propTypes from './prop-types'
 import {
   disable as disableShortcuts,
@@ -75,8 +76,6 @@ class Confirm extends Component {
     instance.close()
   }
 
-  _style = { marginRight: '0.5em' }
-
   render () {
     const { Body, Footer, Header, Title } = ReactModal
     const { title, icon } = this.props
@@ -97,14 +96,14 @@ class Confirm extends Component {
       </Body>
       <Footer>
         <Button
-          bsStyle='primary'
+          btnStyle='primary'
           onClick={this._resolve}
           style={this._style}
         >
           {_('confirmOk')}
         </Button>
+        {' '}
         <Button
-          bsStyle='secondary'
           onClick={this._reject}
         >
           {_('confirmCancel')}

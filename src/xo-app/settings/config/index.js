@@ -1,6 +1,6 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
-import { Button } from 'react-bootstrap-4/lib'
+import Button from 'button'
 import Component from 'base-component'
 import Dropzone from 'dropzone'
 import Icon from 'icon'
@@ -77,7 +77,6 @@ export default class Config extends Component {
                 {_('importConfig')}
               </ActionButton>
               <Button
-                bsStyle='secondary'
                 onClick={this._unselectFile}
               >
                 {_('importVmsCleanList')}
@@ -93,7 +92,7 @@ export default class Config extends Component {
       <br />
       <div className='mt-1'>
         <h2><Icon icon='export' /> {_('exportConfig')}</h2>
-        <Button bsStyle='primary' onClick={exportConfig}>{_('downloadConfig')}</Button>
+        <Button btnStyle='primary' onClick={exportConfig}>{_('downloadConfig')}</Button>
       </div>
     </div>
   }

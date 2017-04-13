@@ -508,7 +508,6 @@ export default class TabDisks extends Component {
                     <td className='text-xs-right'>
                       <Tooltip content={_('vdiMigrate')}>
                         <ActionRowButton
-                          btnStyle='default'
                           icon='vdi-migrate'
                           handler={this._migrateVdi}
                           handlerParam={vdi}
@@ -518,7 +517,6 @@ export default class TabDisks extends Component {
                         <span>
                           <Tooltip content={_('vdiForget')}>
                             <ActionRowButton
-                              btnStyle='default'
                               icon='vdi-forget'
                               handler={deleteVbd}
                               handlerParam={vbd}
@@ -526,7 +524,6 @@ export default class TabDisks extends Component {
                           </Tooltip>
                           <Tooltip content={_('vdiRemove')}>
                             <ActionRowButton
-                              btnStyle='default'
                               icon='vdi-remove'
                               handler={deleteVdi}
                               handlerParam={vdi}
