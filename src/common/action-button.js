@@ -54,7 +54,7 @@ import { error as _error } from './notification'
 })
 export default class ActionButton extends Component {
   static contextTypes = {
-    router: React.PropTypes.object
+    router: propTypes.object
   }
 
   async _execute () {
