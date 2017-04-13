@@ -16,13 +16,21 @@ const ActionBar = ({ actions, param }) => (
         return
       }
 
-      const { handler, handlerParam = param, label, icon, redirectOnSuccess } = button
+      const {
+        handler,
+        handlerParam = param,
+        icon,
+        label,
+        pending,
+        redirectOnSuccess
+      } = button
       return <ActionButton
         key={index}
         btnStyle='secondary'
         handler={handler || noop}
         handlerParam={handlerParam}
         icon={icon}
+        pending={pending}
         redirectOnSuccess={redirectOnSuccess}
         size='large'
         tooltip={_(label)}

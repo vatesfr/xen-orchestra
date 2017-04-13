@@ -1,6 +1,7 @@
 import ActionBar from 'action-bar'
 import React from 'react'
 import { connectStore } from 'utils'
+import { includes } from 'lodash'
 import { isAdmin } from 'selectors'
 import {
   cloneVm,
@@ -21,32 +22,40 @@ const vmActionBarByState = {
         {
           icon: 'vm-stop',
           label: 'stopVmLabel',
-          handler: stopVm
+          handler: stopVm,
+          pending: includes(vm.current_operations, 'clean_shutdown')
         },
         {
           icon: 'vm-reboot',
           label: 'rebootVmLabel',
-          handler: restartVm
+          handler: restartVm,
+          pending: includes(vm.current_operations, 'clean_reboot')
         },
         (isAdmin || !vm.resourceSet) && {
           icon: 'vm-migrate',
           label: 'migrateVmLabel',
-          handler: migrateVm
+          handler: migrateVm,
+          pending:
+            includes(vm.current_operations, 'migrate_send') ||
+            includes(vm.current_operations, 'pool_migrate')
         },
         (isAdmin || !vm.resourceSet) && {
           icon: 'vm-snapshot',
           label: 'snapshotVmLabel',
-          handler: snapshotVm
+          handler: snapshotVm,
+          pending: includes(vm.current_operations, 'snapshot')
         },
         (isAdmin || !vm.resourceSet) && {
           icon: 'export',
           label: 'exportVmLabel',
-          handler: exportVm
+          handler: exportVm,
+          pending: includes(vm.current_operations, 'export')
         },
         (isAdmin || !vm.resourceSet) && {
           icon: 'vm-copy',
           label: 'copyVmLabel',
-          handler: copyVm
+          handler: copyVm,
+          pending: includes(vm.current_operations, 'snapshot')
         }
       ]}
       display='icon'
@@ -59,32 +68,38 @@ const vmActionBarByState = {
         {
           icon: 'vm-start',
           label: 'startVmLabel',
-          handler: startVm
+          handler: startVm,
+          pending: includes(vm.current_operations, 'start')
         },
         (isAdmin || !vm.resourceSet) && {
           icon: 'vm-fast-clone',
           label: 'fastCloneVmLabel',
-          handler: cloneVm
+          handler: cloneVm,
+          pending: includes(vm.current_operations, 'clone')
         },
         (isAdmin || !vm.resourceSet) && {
           icon: 'vm-migrate',
           label: 'migrateVmLabel',
-          handler: migrateVm
+          handler: migrateVm,
+          pending: includes(vm.current_operations, 'pool_migrate')
         },
         (isAdmin || !vm.resourceSet) && {
           icon: 'vm-snapshot',
           label: 'snapshotVmLabel',
-          handler: snapshotVm
+          handler: snapshotVm,
+          pending: includes(vm.current_operations, 'snapshot')
         },
         (isAdmin || !vm.resourceSet) && {
           icon: 'export',
           label: 'exportVmLabel',
-          handler: exportVm
+          handler: exportVm,
+          pending: includes(vm.current_operations, 'export')
         },
         (isAdmin || !vm.resourceSet) && {
           icon: 'vm-copy',
           label: 'copyVmLabel',
-          handler: copyVm
+          handler: copyVm,
+          pending: includes(vm.current_operations, 'copy')
         }
       ]}
       display='icon'
@@ -97,22 +112,26 @@ const vmActionBarByState = {
         {
           icon: 'vm-start',
           label: 'resumeVmLabel',
-          handler: resumeVm
+          handler: resumeVm,
+          pending: includes(vm.current_operations, 'start')
         },
         (isAdmin || !vm.resourceSet) && {
           icon: 'vm-snapshot',
           label: 'snapshotVmLabel',
-          handler: snapshotVm
+          handler: snapshotVm,
+          pending: includes(vm.current_operations, 'snapshot')
         },
         (isAdmin || !vm.resourceSet) && {
           icon: 'export',
           label: 'exportVmLabel',
-          handler: exportVm
+          handler: exportVm,
+          pending: includes(vm.current_operations, 'export')
         },
         (isAdmin || !vm.resourceSet) && {
           icon: 'vm-copy',
           label: 'copyVmLabel',
-          handler: copyVm
+          handler: copyVm,
+          pending: includes(vm.current_operations, 'copy')
         }
       ]}
       display='icon'
