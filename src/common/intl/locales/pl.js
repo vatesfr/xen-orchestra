@@ -281,8 +281,8 @@ export default {
   // Original text: "Tags"
   homeAllTags: 'Tagi',
 
-  // Original text: "Nowa VM"
-  homeNewVm: 'Nouvelle VM',
+  // Original text: "New VM"
+  homeNewVm: 'Nowa VM',
 
   // Original text: "Running hosts"
   homeFilterRunningHosts: 'Działające hosty',
@@ -549,10 +549,10 @@ export default {
   runJobVerbose: 'One shot running started. See overview for logs.',
 
   // Original text: "Started"
-  jobStarted: 'Rozpoczęto',
+  jobStarted: 'Uruchomiono',
 
   // Original text: "Finished"
-  jobFinished: 'Skończono',
+  jobFinished: 'Zakończono',
 
   // Original text: "Save"
   saveBackupJob: 'Zapisz',
@@ -1419,7 +1419,7 @@ export default {
   containersTabName: 'Kontener',
 
   // Original text: "Snapshots"
-  snapshotsTabName: 'Snapshots',
+  snapshotsTabName: 'Snapshoty',
 
   // Original text: "Logs"
   logsTabName: 'Logi',
@@ -1452,7 +1452,7 @@ export default {
   vmDescription: 'Nie zapisano IP',
 
   // Original text: "Started {ago}"
-  vmSettings: 'Rozpoczęto {ago}',
+  vmSettings: 'Uruchomiono {ago}',
 
   // Original text: "Current status:"
   vmCurrentStatus: 'Obecny status:',
@@ -1470,7 +1470,7 @@ export default {
   noIpRecord: 'Nie zapisano IP',
 
   // Original text: "Started {ago}"
-  started: 'Rozpoczęto {ago}',
+  started: 'Uruchomiono {ago}',
 
   // Original text: "Paravirtualization (PV)"
   paraVirtualizedMode: 'Parawirtualizacja (PV)',
@@ -1488,7 +1488,7 @@ export default {
   statsNetwork: 'Wydajność sieci',
 
   // Original text: "Stacked values"
-  useStackedValuesOnStats: 'Stacked values',
+  useStackedValuesOnStats: 'Skumulowane wartości',
 
   // Original text: "Disk throughput"
   statDisk: 'Wydajność dysku',
@@ -1719,7 +1719,7 @@ export default {
   snapshotCreateButton: 'Nowy snapshot',
 
   // Original text: "Just click on the snapshot button to create one!"
-  tipCreateSnapshotLabel: 'Kliknij na guzuik snapshota żeby stworzyć !',
+  tipCreateSnapshotLabel: 'Kliknij na guzik żeby stworzyć snapshota !',
 
   // Original text: "Revert VM to this snapshot"
   revertSnapshot: 'Przywróć VM do tego snapshota',
@@ -1755,7 +1755,7 @@ export default {
   logName: 'Nazwa',
 
   // Original text: "Content"
-  logContent: 'Content',
+  logContent: 'Zawartość',
 
   // Original text: "Action"
   logAction: 'Akcja',
@@ -1893,7 +1893,7 @@ export default {
   usersStatePanel: 'Użytkownicy',
 
   // Original text: "Storage state"
-  srStatePanel: 'Storage state',
+  srStatePanel: 'Status przestrzeni dyskowej',
 
   // Original text: "{usage} (of {total})"
   ofUsage: '{usage} (sur {total})',
@@ -1950,7 +1950,7 @@ export default {
   weekHeatmapNoData: 'No data.',
 
   // Original text: "Weekly Heatmap"
-  weeklyHeatmap: 'Weekly Heatmap',
+  weeklyHeatmap: 'Tygodniowa mapa cieplna',
 
   // Original text: "Weekly Charts"
   weeklyCharts: 'Wykresy tygodniowe',
@@ -2739,7 +2739,7 @@ export default {
   noProSupport: 'No pro support provided!',
 
   // Original text: "Use in production at your own risks"
-  noProductionUse: 'Używani produkcyjne na własne ryzyko',
+  noProductionUse: 'Używanie produkcyjne na własne ryzyko',
 
   // Original text: "You can download our turnkey appliance at {website}"
   downloadXoaFromWebsite: 'You can download our turnkey appliance at {website}',
