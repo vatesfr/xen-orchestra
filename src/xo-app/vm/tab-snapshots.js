@@ -43,6 +43,7 @@ export default class TabSnapshot extends Component {
             handlerParam={vm}
             icon='add'
             labelId='snapshotCreateButton'
+            pending={includes(vm.current_operations, 'snapshot')}
           />
         </Col>
       </Row>
