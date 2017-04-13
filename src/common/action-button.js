@@ -1,9 +1,9 @@
 import classNames from 'classnames'
-import Icon from 'icon'
 import isFunction from 'lodash/isFunction'
 import React from 'react'
 
 import Component from './base-component'
+import Icon from './icon'
 import logError from './log-error'
 import propTypes from './prop-types'
 import Tooltip from './tooltip'
