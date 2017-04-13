@@ -35,6 +35,9 @@ import { error as _error } from './notification'
   // XO icon to use for this button
   icon: propTypes.string.isRequired,
 
+  // whether the action of this action is already underway
+  pending: propTypes.bool,
+
   // path to redirect to when the triggered action finish successfully
   //
   // if a function, it will be called with the result of the action to
@@ -58,7 +61,7 @@ export default class ActionButton extends Component {
   }
 
   async _execute () {
-    if (this.state.working) {
+    if (this.props.pending || this.state.working) {
       return
     }
 
@@ -132,6 +135,7 @@ export default class ActionButton extends Component {
         disabled,
         form,
         icon,
+        pending,
         size: bsSize,
         style,
         tooltip
@@ -149,11 +153,11 @@ export default class ActionButton extends Component {
       bsStyle={error ? 'warning' : btnStyle}
       form={form}
       onClick={!form && this._execute}
-      disabled={working || disabled}
+      disabled={pending || working || disabled}
       type={form ? 'submit' : 'button'}
       style={style}
     >
-      <Icon icon={working ? 'loading' : icon} fixedWidth />
+      <Icon icon={pending || working ? 'loading' : icon} fixedWidth />
       {children && ' '}
       {children}
     </button>
