@@ -32,7 +32,8 @@ import {
   stopVm,
   suspendVm,
   XEN_DEFAULT_CPU_CAP,
-  XEN_DEFAULT_CPU_WEIGHT
+  XEN_DEFAULT_CPU_WEIGHT,
+  XEN_VGA_VIDEORAM_MAX
 } from 'xo'
 import {
   createGetObjectsOfType,
@@ -252,6 +253,24 @@ export default ({
               <AffinityHost vm={vm} />
             </td>
           </tr>
+          {vm.virtualizationMode === 'hvm' &&
+            <tr>
+              <th>{_('vmVGA')}</th>
+              <td>
+                <Toggle value={vm.platform && vm.platform.vga} onChange={value => editVm(vm, { VGA: value })} />
+              </td>
+            </tr>
+          }
+          {vm.platform && vm.platform.vga &&
+            <tr>
+              <th>{_('vmVideoram')}</th>
+              <td>
+                <Number value={vm.platform && vm.platform.videoram} onChange={value => value <= XEN_VGA_VIDEORAM_MAX && editVm(vm, { videoram: value })}>
+                  {vm.platform.videoram} MB / {XEN_VGA_VIDEORAM_MAX} MB
+                </Number>
+              </td>
+            </tr>
+          }
         </tbody>
       </table>
       <br />
