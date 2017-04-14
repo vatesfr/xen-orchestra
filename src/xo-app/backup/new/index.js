@@ -138,9 +138,9 @@ const COMMON_SCHEMA = {
   required: [ 'tag', 'vms', '_reportWhen' ]
 }
 
-const DEPTH_PROPERTY = {
+const RETENTION_PROPERTY = {
   type: 'integer',
-  title: _('editBackupDepthTitle'),
+  title: _('editBackupRetentionTitle'),
   description: 'How many backups to rollover.', // FIXME: can't translate
   min: 1
 }
@@ -155,7 +155,7 @@ const BACKUP_SCHEMA = {
   type: 'object',
   properties: {
     ...COMMON_SCHEMA.properties,
-    depth: DEPTH_PROPERTY,
+    retention: RETENTION_PROPERTY,
     remoteId: REMOTE_PROPERTY,
     compress: {
       type: 'boolean',
@@ -163,33 +163,33 @@ const BACKUP_SCHEMA = {
       default: true
     }
   },
-  required: COMMON_SCHEMA.required.concat([ 'depth', 'remoteId' ])
+  required: COMMON_SCHEMA.required.concat([ 'retention', 'remoteId' ])
 }
 
 const ROLLING_SNAPSHOT_SCHEMA = {
   type: 'object',
   properties: {
     ...COMMON_SCHEMA.properties,
-    depth: DEPTH_PROPERTY
+    retention: RETENTION_PROPERTY
   },
-  required: COMMON_SCHEMA.required.concat('depth')
+  required: COMMON_SCHEMA.required.concat('retention')
 }
 
 const DELTA_BACKUP_SCHEMA = {
   type: 'object',
   properties: {
     ...COMMON_SCHEMA.properties,
-    depth: DEPTH_PROPERTY,
+    retention: RETENTION_PROPERTY,
     remote: REMOTE_PROPERTY
   },
-  required: COMMON_SCHEMA.required.concat([ 'depth', 'remote' ])
+  required: COMMON_SCHEMA.required.concat([ 'retention', 'remote' ])
 }
 
 const DISASTER_RECOVERY_SCHEMA = {
   type: 'object',
   properties: {
     ...COMMON_SCHEMA.properties,
-    depth: DEPTH_PROPERTY,
+    retention: RETENTION_PROPERTY,
     deleteOldBackupsFirst: {
       type: 'boolean',
       title: _('deleteOldBackupsFirst'),
@@ -205,7 +205,7 @@ const DISASTER_RECOVERY_SCHEMA = {
       title: 'To SR'
     }
   },
-  required: COMMON_SCHEMA.required.concat([ 'depth', 'sr' ])
+  required: COMMON_SCHEMA.required.concat([ 'retention', 'sr' ])
 }
 
 const CONTINUOUS_REPLICATION_SCHEMA = {
