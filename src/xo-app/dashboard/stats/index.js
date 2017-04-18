@@ -305,32 +305,22 @@ class SelectMetric extends Component {
               />
             </div>
             <div className='btn-group mt-1' role='group'>
-              <button
-                className='btn btn-secondary'
-                onClick={this._resetSelection}
-                tooltip={_('dashboardStatsButtonRemoveAll')}
-                type='button'
-              >
-                <Icon icon='remove' />
-              </button>
-              <button
-                className='btn btn-secondary'
-                onClick={this._selectAllHosts}
-                tooltip={_('dashboardStatsButtonAddAllHost')}
-                type='button'
-              >
-                <Icon icon='host' />
-              </button>
-              <button
-                className='btn btn-secondary'
-                onClick={this._selectAllVms}
-                tooltip={_('dashboardStatsButtonAddAllVM')}
-                type='button'
-              >
-                <Icon icon='vm' />
-              </button>
               <ActionButton
-                btnStyle='secondary'
+                handler={this._resetSelection}
+                icon='remove'
+                tooltip={_('dashboardStatsButtonRemoveAll')}
+              />
+              <ActionButton
+                handler={this._selectAllHosts}
+                icon='host'
+                tooltip={_('dashboardStatsButtonAddAllHost')}
+              />
+              <ActionButton
+                handler={this._selectAllVms}
+                icon='vm'
+                tooltip={_('dashboardStatsButtonAddAllVM')}
+              />
+              <ActionButton
                 disabled={!objects.length}
                 handler={this._validSelection}
                 icon='success'

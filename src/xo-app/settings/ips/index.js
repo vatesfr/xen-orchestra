@@ -93,7 +93,6 @@ class IpsCell extends BaseComponent {
             </Col>
             <Col mediumSize={1} offset={6}>
               <ActionRowButton
-                btnStyle='secondary'
                 handler={this._deleteIp}
                 handlerParam={ip}
                 icon='delete'
@@ -121,7 +120,6 @@ class IpsCell extends BaseComponent {
           }</Col>
           <Col mediumSize={1}>
             <ActionRowButton
-              btnStyle='secondary'
               handler={this._deleteIp}
               handlerParam={ip}
               icon='delete'
@@ -196,7 +194,6 @@ class NetworksCell extends BaseComponent {
         </Col>
         <Col mediumSize={1}>
           <ActionRowButton
-            btnStyle='secondary'
             handler={this._deleteNetwork}
             handlerParam={networkId}
             icon='delete'
@@ -288,7 +285,7 @@ export default class Ips extends BaseComponent {
     {
       name: '',
       itemRenderer: ipPool => <span className='pull-right'>
-        <ActionButton btnStyle='secondary' handler={deleteIpPool} handlerParam={ipPool.id} icon='delete' />
+        <ActionButton handler={deleteIpPool} handlerParam={ipPool.id} icon='delete' />
       </span>
     }
   ]

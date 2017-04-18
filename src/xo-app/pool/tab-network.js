@@ -1,6 +1,8 @@
 import _ from 'intl'
 import ActionRowButton from 'action-row-button'
 import BaseComponent from 'base-component'
+import Button from 'button'
+import ButtonGroup from 'button-group'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
@@ -9,10 +11,9 @@ import some from 'lodash/some'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
-import { Button, ButtonGroup } from 'react-bootstrap-4/lib'
-import { Text, Number } from 'editable'
-import { Container, Row, Col } from 'grid'
 import { connectStore } from 'utils'
+import { Container, Row, Col } from 'grid'
+import { Text, Number } from 'editable'
 import { Toggle } from 'form'
 import {
   createFinder,
@@ -208,7 +209,6 @@ class PifItem extends Component {
       <td className='text-xs-right'>
         <ButtonGroup>
           <ActionRowButton
-            btnStyle='default'
             disabled={disableUnplug}
             handler={pif.attached ? disconnectPif : connectPif}
             handlerParam={pif}
@@ -228,7 +228,7 @@ class PifsItem extends BaseComponent {
 
     return <div>
       <Tooltip content={showPifs ? _('hidePifs') : _('showPifs')}>
-        <Button bsSize='small' bsStyle='secondary' className='mb-1 pull-right' onClick={this.toggleState('showPifs')}>
+        <Button size='small' className='mb-1 pull-right' onClick={this.toggleState('showPifs')}>
           <Icon icon={showPifs ? 'hidden' : 'shown'} />
         </Button>
       </Tooltip>
@@ -274,7 +274,6 @@ class NetworkActions extends Component {
 
     return <ButtonGroup>
       <ActionRowButton
-        btnStyle='default'
         disabled={disableNetworkDelete}
         handler={deleteNetwork}
         handlerParam={network}

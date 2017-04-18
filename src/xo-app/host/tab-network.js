@@ -190,7 +190,6 @@ class PifItem extends Component {
       </td>
       <td className='text-xs-right'>
         <ActionRowButton
-          btnStyle='default'
           disabled={pif.physical || pif.disallowUnplug || pif.management}
           handler={deletePif}
           handlerParam={pif}

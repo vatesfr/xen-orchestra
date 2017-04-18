@@ -62,7 +62,6 @@ const COLUMNS = [
     itemRenderer: (log, { showError }) => <div className='text-xs-right'>
       <ButtonGroup>
         <ActionRowButton
-          btnStyle='secondary'
           handler={showError}
           handlerParam={log}
           icon='preview'
@@ -76,7 +75,6 @@ const COLUMNS = [
           tooltip={_('logDelete')}
         />
         {CAN_REPORT_BUG && <ActionRowButton
-          btnStyle='secondary'
           handler={() => reportBug(log)}
           icon='bug'
           tooltip={_('reportBug')}

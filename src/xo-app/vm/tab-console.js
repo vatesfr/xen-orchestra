@@ -1,4 +1,5 @@
 import _ from 'intl'
+import Button from 'button'
 import Component from 'base-component'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import debounce from 'lodash/debounce'
@@ -8,7 +9,6 @@ import IsoDevice from 'iso-device'
 import NoVnc from 'react-novnc'
 import React from 'react'
 import Tooltip from 'tooltip'
-import { Button } from 'react-bootstrap-4/lib'
 import { resolveUrl, isVmRunning } from 'xo'
 import { Container, Row, Col } from 'grid'
 import {
@@ -109,20 +109,19 @@ export default class TabConsole extends Component {
               <input type='text' className='form-control' ref='clipboard' onChange={this._setRemoteClipboard} />
               <span className='input-group-btn'>
                 <CopyToClipboard text={this.state.clipboard || ''}>
-                  <button className='btn btn-secondary'>
+                  <Button>
                     <Icon icon='clipboard' /> {_('copyToClipboardLabel')}
-                  </button>
+                  </Button>
                 </CopyToClipboard>
               </span>
             </div>
           </Col>
           <Col mediumSize={2}>
-            <button
-              className='btn btn-secondary'
+            <Button
               onClick={this._sendCtrlAltDel}
             >
               <Icon icon='vm-keyboard' /> {_('ctrlAltDelButtonLabel')}
-            </button>
+            </Button>
           </Col>
           <Col mediumSize={3}>
             <input
@@ -137,7 +136,7 @@ export default class TabConsole extends Component {
           </Col>
           <Col mediumSize={1}>
             <Tooltip content={minimalLayout ? _('showHeaderTooltip') : _('hideHeaderTooltip')}>
-              <Button bsStyle='secondary' onClick={this._toggleMinimalLayout}>
+              <Button onClick={this._toggleMinimalLayout}>
                 <Icon icon={minimalLayout ? 'caret' : 'caret-up'} />
               </Button>
             </Tooltip>

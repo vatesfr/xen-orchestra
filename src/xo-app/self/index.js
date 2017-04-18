@@ -454,7 +454,7 @@ export class Edit extends Component {
                     <input className='form-control' type='number' min={0} onChange={this.linkState(`ipPools.${index}.quantity`)} value={firstDefined(ipPool.quantity, '')} placeholder='∞' />
                   </Col>
                   <Col mediumSize={2}>
-                    <ActionButton btnStyle='secondary' icon='delete' handler={this._removeIpPool} handlerParam={index} />
+                    <ActionButton icon='delete' handler={this._removeIpPool} handlerParam={index} />
                   </Col>
                 </Row>)}
                 <Row>
@@ -465,7 +465,7 @@ export class Edit extends Component {
                     <input className='form-control' type='number' min={0} onChange={this.linkState('newIpPoolQuantity')} value={state.newIpPoolQuantity || ''} placeholder='∞' />
                   </Col>
                   <Col mediumSize={2}>
-                    <ActionButton btnStyle='secondary' icon='add' handler={this._addIpPool} />
+                    <ActionButton icon='add' handler={this._addIpPool} />
                   </Col>
                 </Row>
               </Col>
@@ -478,7 +478,7 @@ export class Edit extends Component {
       <li className='list-group-item text-xs-center'>
         <div className='btn-toolbar'>
           <ActionButton btnStyle='primary' icon='save' handler={this._save} type='submit'>{_('saveResourceSet')}</ActionButton>
-          <ActionButton btnStyle='secondary' icon='reset' handler={this._reset}>{_('resetResourceSet')}</ActionButton>
+          <ActionButton icon='reset' handler={this._reset}>{_('resetResourceSet')}</ActionButton>
           {resourceSet && <ActionButton btnStyle='danger' icon='delete' handler={deleteResourceSet} handlerParam={resourceSet}>{_('deleteResourceSet')}</ActionButton>}
         </div>
       </li>
@@ -686,7 +686,6 @@ export default class Self extends Component {
               {_('resourceSetNew')}
             </ActionButton>
             <ActionButton
-              btnStyle='secondary'
               handler={recomputeResourceSetsLimits}
               icon='refresh'
             >

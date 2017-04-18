@@ -139,7 +139,7 @@ const LOG_COLUMNS = [
       <span className='pull-right'>
         <ButtonGroup>
           <Tooltip content={_('logDisplayDetails')}><ActionRowButton icon='preview' handler={showCalls} handlerParam={log} /></Tooltip>
-          <Tooltip content={_('remove')}><ActionRowButton btnStyle='default' handler={deleteJobsLog} handlerParam={log.logKey} icon='delete' /></Tooltip>
+          <Tooltip content={_('remove')}><ActionRowButton handler={deleteJobsLog} handlerParam={log.logKey} icon='delete' /></Tooltip>
         </ButtonGroup>
       </span>
     </span>,

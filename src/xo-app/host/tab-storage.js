@@ -71,7 +71,6 @@ const SR_COLUMNS = [
     name: _('pbdAction'),
     itemRenderer: storage => !storage.attached &&
       <ActionRowButton
-        btnStyle='default'
         handler={deletePbd}
         handlerParam={storage.pbdId}
         icon='sr-forget'

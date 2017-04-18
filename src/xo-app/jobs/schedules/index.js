@@ -1,5 +1,6 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
+import Button from 'button'
 import find from 'lodash/find'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
@@ -171,7 +172,7 @@ export default class Schedules extends Component {
         {process.env.XOA_PLAN > 3
           ? <span><ActionButton form='newScheduleForm' handler={this._handleSubmit} icon='save' btnStyle='primary'>{_('saveBackupJob')}</ActionButton>
             {' '}
-            <button type='button' className='btn btn-secondary' onClick={this._reset}>{_('selectTableReset')}</button></span>
+            <Button onClick={this._reset}>{_('selectTableReset')}</Button></span>
           : <span><Upgrade place='health' available={4} /></span>
         }
       </div>
@@ -195,9 +196,9 @@ export default class Schedules extends Component {
             <td className='hidden-xs-down'>{schedule.cron}</td>
             <td className='hidden-xs-down'>{schedule.timezone || _('jobServerTimezone')}</td>
             <td>
-              <button type='button' className='btn btn-primary' onClick={() => this._edit(schedule.id)}><Icon icon='edit' /></button>
+              <Button btnStyle='primary' onClick={() => this._edit(schedule.id)}><Icon icon='edit' /></Button>
               {' '}
-              <button type='button' className='btn btn-danger' onClick={() => deleteSchedule(schedule)}><Icon icon='delete' /></button>
+              <Button btnStyle='danger' onClick={() => deleteSchedule(schedule)}><Icon icon='delete' /></Button>
             </td>
           </tr>)}
         </tbody>

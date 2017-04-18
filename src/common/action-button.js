@@ -1,7 +1,7 @@
-import classNames from 'classnames'
 import isFunction from 'lodash/isFunction'
 import React from 'react'
 
+import Button from './button'
 import Component from './base-component'
 import Icon from './icon'
 import logError from './log-error'
@@ -10,9 +10,6 @@ import Tooltip from './tooltip'
 import { error as _error } from './notification'
 
 @propTypes({
-  // Bootstrap button style (https://v4-alpha.getbootstrap.com/components/buttons/#examples)
-  btnStyle: propTypes.string,
-
   // React element to use as button content
   children: propTypes.node,
 
@@ -47,11 +44,6 @@ import { error as _error } from './notification'
     propTypes.string
   ]),
 
-  size: propTypes.oneOf([
-    'large',
-    'small'
-  ]),
-
   // React element to use tooltip for the component
   tooltip: propTypes.node
 })
@@ -74,7 +66,7 @@ export default class ActionButton extends Component {
 
     try {
       this.setState({
-        error: null,
+        error: undefined,
         working: true
       })
 
@@ -129,38 +121,33 @@ export default class ActionButton extends Component {
   render () {
     const {
       props: {
-        btnStyle,
         children,
-        className,
-        disabled,
-        form,
         icon,
         pending,
-        size: bsSize,
-        style,
-        tooltip
+        tooltip,
+        ...props
       },
       state: { error, working }
     } = this
 
-    const button = <button
-      className={classNames(
-        'btn',
-        btnStyle !== undefined && `btn-${btnStyle}`,
-        bsSize === 'large' ? 'btn-lg' : bsSize === 'small' ? 'btn-sm' : null,
-        className
-      )}
-      bsStyle={error ? 'warning' : btnStyle}
-      form={form}
-      onClick={!form && this._execute}
-      disabled={pending || working || disabled}
-      type={form ? 'submit' : 'button'}
-      style={style}
-    >
+    if (error !== undefined) {
+      props.btnStyle = 'warning'
+    }
+    if (pending || working) {
+      props.disabled = true
+    }
+    delete props.handler
+    delete props.handlerParam
+    if (props.form === undefined) {
+      props.onClick = this._execute
+    }
+    delete props.redirectOnSuccess
+
+    const button = <Button {...props}>
       <Icon icon={pending || working ? 'loading' : icon} fixedWidth />
       {children && ' '}
       {children}
-    </button>
+    </Button>
 
     return tooltip
       ? <Tooltip content={tooltip}>{button}</Tooltip>

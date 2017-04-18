@@ -280,7 +280,7 @@ export default class RestoreFileModalBody extends Component {
             <Col size={2}>
               <span className='pull-right'>
                 <Tooltip content={_('restoreFilesSelectAllFiles')}>
-                  <ActionButton btnStyle='secondary' handler={this._selectAllFolderFiles} icon='add' size='small' />
+                  <ActionButton handler={this._selectAllFolderFiles} icon='add' size='small' />
                 </Tooltip>
               </span>
             </Col>
@@ -322,12 +322,13 @@ export default class RestoreFileModalBody extends Component {
               <Col className='pl-0 pb-1' size={10}>
                 <em>{_('restoreFilesSelectedFiles', { files: selectedFiles.length })}</em>
               </Col>
-              <Col size={2}>
-                <span className='pull-right'>
-                  <Tooltip content={_('restoreFilesUnselectAll')}>
-                    <ActionButton btnStyle='secondary' handler={this._unselectAllFiles} icon='remove' size='small' />
-                  </Tooltip>
-                </span>
+              <Col size={2} className='text-xs-right'>
+                <ActionButton
+                  handler={this._unselectAllFiles}
+                  icon='remove'
+                  size='small'
+                  tooltip={_('restoreFilesUnselectAll')}
+                />
               </Col>
             </Row>
             {map(selectedFiles, file =>
@@ -335,10 +336,8 @@ export default class RestoreFileModalBody extends Component {
                 <Col size={10}>
                   <pre>{file.path}</pre>
                 </Col>
-                <Col size={2}>
-                  <span className='pull-right'>
-                    <ActionButton btnStyle='secondary' handler={this._unselectFile} handlerParam={file} icon='remove' size='small' />
-                  </span>
+                <Col size={2} className='text-xs-right'>
+                  <ActionButton handler={this._unselectFile} handlerParam={file} icon='remove' size='small' />
                 </Col>
               </Row>
             )}

@@ -1,6 +1,7 @@
 import * as FormGrid from 'form-grid'
 import _ from 'intl'
 import ActionButton from 'action-button'
+import Button from 'button'
 import Component from 'base-component'
 import Dropzone from 'dropzone'
 import Icon from 'icon'
@@ -362,13 +363,11 @@ export default class Import extends Component {
                   >
                     {_('newImport')}
                   </ActionButton>
-                  <button
-                    className='btn btn-secondary'
+                  <Button
                     onClick={this._handleCleanSelectedVms}
-                    type='button'
                   >
                     {_('importVmsCleanList')}
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}

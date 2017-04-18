@@ -155,7 +155,6 @@ class HostsPatchesTable extends Component {
     const Buttons = (
       <Container>
         <Button
-          btnStyle='secondary'
           handler={this._refreshMissingPatches}
           icon='refresh'
           labelId='refreshPatches'

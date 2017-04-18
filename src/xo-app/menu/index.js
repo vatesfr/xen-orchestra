@@ -1,13 +1,12 @@
 import _ from 'intl'
-import Component from 'base-component'
 import classNames from 'classnames'
+import Component from 'base-component'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import Link from 'link'
 import map from 'lodash/map'
 import React from 'react'
 import Tooltip from 'tooltip'
-import { Button } from 'react-bootstrap-4/lib'
 import { UpdateTag } from '../xoa-updates'
 import {
   addSubscriptions,
@@ -102,9 +101,20 @@ export default class Menu extends Component {
     return this.refs.content.offsetHeight
   }
 
-  _toggleCollapsed = () => {
+  _toggleCollapsed = event => {
+    event.preventDefault()
     this._removeListener()
     this.setState({ collapsed: !this.state.collapsed })
+  }
+
+  _connect = event => {
+    event.preventDefault()
+    return connect()
+  }
+
+  _signOut = event => {
+    event.preventDefault()
+    return signOut()
   }
 
   render () {
@@ -178,9 +188,9 @@ export default class Menu extends Component {
           </span>
         </li>
         <li>
-          <Button onClick={this._toggleCollapsed}>
+          <a className='nav-link' onClick={this._toggleCollapsed} href='#'>
             <Icon icon='menu-collapse' size='lg' fixedWidth />
-          </Button>
+          </a>
         </li>
         {map(items, (item, index) =>
           item && <MenuLinkItem key={index} item={item} />
@@ -221,10 +231,10 @@ export default class Menu extends Component {
         <li>&nbsp;</li>
         <li>&nbsp;</li>
         <li className='nav-item xo-menu-item'>
-          <Button className='nav-link' onClick={signOut}>
+          <a className='nav-link' onClick={this._signOut} href='#'>
             <Icon icon='sign-out' size='lg' fixedWidth />
             <span className={styles.hiddenCollapsed}>{' '}{_('signOut')}</span>
-          </Button>
+          </a>
         </li>
         <li className='nav-item xo-menu-item'>
           <Link className='nav-link text-xs-center' to={'/user'}>
@@ -239,9 +249,9 @@ export default class Menu extends Component {
           ? <li className='nav-item text-xs-center'>{_('statusConnecting')}</li>
           : status === 'disconnected' &&
             <li className='nav-item text-xs-center xo-menu-item'>
-              <Button className='nav-link' onClick={connect}>
+              <a className='nav-link' onClick={this._connect} href='#'>
                 <Icon icon='alarm' size='lg' fixedWidth /> {_('statusDisconnected')}
-              </Button>
+              </a>
             </li>
         }
       </ul>

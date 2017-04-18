@@ -12,6 +12,7 @@ import {
   MenuItem
 } from 'react-bootstrap-4/lib'
 
+import Button from '../button'
 import Component from '../base-component'
 import getEventValue from '../get-event-value'
 import propTypes from '../prop-types'
@@ -70,9 +71,9 @@ export class Password extends Component {
 
     return <div className='input-group'>
       {enableGenerator && <span className='input-group-btn'>
-        <button type='button' className='btn btn-secondary' onClick={this._generate}>
+        <Button onClick={this._generate}>
           <Icon icon='password' />
-        </button>
+        </Button>
       </span>}
       <input
         {...props}
@@ -81,9 +82,9 @@ export class Password extends Component {
         type={visible ? 'text' : 'password'}
       />
       <span className='input-group-btn'>
-        <button type='button' className='btn btn-secondary' onClick={this._toggleVisibility}>
+        <Button onClick={this._toggleVisibility}>
           <Icon icon={visible ? 'shown' : 'hidden'} />
-        </button>
+        </Button>
       </span>
     </div>
   }

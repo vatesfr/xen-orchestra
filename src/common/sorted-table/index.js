@@ -12,6 +12,7 @@ import DropdownMenu from 'react-bootstrap-4/lib/DropdownMenu' // https://phabric
 import DropdownToggle from 'react-bootstrap-4/lib/DropdownToggle' // https://phabricator.babeljs.io/T6662 so Dropdown.Toggle won't work https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
 import { Portal } from 'react-overlays'
 
+import Button from '../button'
 import Component from '../base-component'
 import Icon from '../icon'
 import propTypes from '../prop-types'
@@ -80,9 +81,9 @@ class TableFilter extends Component {
           className='form-control'
         />
         <div className='input-group-btn'>
-          <button className='btn btn-secondary' onClick={this._cleanFilter}>
+          <Button onClick={this._cleanFilter}>
             <Icon icon='clear-search' />
-          </button>
+          </Button>
         </div>
       </div>
     )
@@ -148,7 +149,8 @@ const DEFAULT_ITEMS_PER_PAGE = 10
       propTypes.func,
       propTypes.string
     ]),
-    sortOrder: propTypes.string
+    sortOrder: propTypes.string,
+    textAlign: propTypes.string
   })).isRequired,
   filterContainer: propTypes.func,
   filters: propTypes.object,

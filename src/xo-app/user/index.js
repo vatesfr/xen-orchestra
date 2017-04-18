@@ -253,9 +253,8 @@ const SshKeys = addSubscriptions({
                 <Col size={8} style={SSH_KEY_STYLE}>
                   {sshKey.key}
                 </Col>
-                <Col size={2}>
+                <Col size={2} className='text-xs-right'>
                   <ActionButton
-                    className='btn-secondary pull-right'
                     icon='delete'
                     handler={() => deleteSshKey(sshKey)}
                   >

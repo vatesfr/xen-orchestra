@@ -1,9 +1,10 @@
 import _ from 'intl'
 import ActionRow from 'action-row-button'
+import Button from 'button'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
-import TabButton from 'tab-button'
 import React, { Component } from 'react'
+import TabButton from 'tab-button'
 import { deleteMessage } from 'xo'
 import { createPager } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
@@ -42,12 +43,12 @@ export default class TabLogs extends Component {
         : <div>
           <Row>
             <Col className='text-xs-right'>
-              <button className='btn btn-lg btn-tab' onClick={this._previousPage}>
+              <Button size='large' onClick={this._previousPage}>
                 &lt;
-              </button>
-              <button className='btn btn-lg btn-tab' onClick={this._nextPage}>
+              </Button>
+              <Button size='large' onClick={this._nextPage}>
                 &gt;
-              </button>
+              </Button>
               <TabButton
                 btnStyle='danger'
                 handler={this._removeAllLogs}

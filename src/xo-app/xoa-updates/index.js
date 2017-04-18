@@ -2,6 +2,7 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ansiUp from 'ansi_up'
 import assign from 'lodash/assign'
+import Button from 'button'
 import Component from 'base-component'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
@@ -273,7 +274,7 @@ export default class XoaUpdates extends Component {
                     <fieldset>
                       <ActionButton icon='save' btnStyle='primary' handler={this._configure}>{_('saveResourceSet')}</ActionButton>
                       {' '}
-                      <button type='button' className='btn btn-default' onClick={this._handleConfigReset} disabled={!configEdited}>{_('resetResourceSet')}</button>
+                      <Button onClick={this._handleConfigReset} disabled={!configEdited}>{_('resetResourceSet')}</Button>
                     </fieldset>
                   </form>
                 </CardBlock>
