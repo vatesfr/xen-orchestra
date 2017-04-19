@@ -2,6 +2,7 @@ import isEmpty from 'lodash/isEmpty'
 import keys from 'lodash/keys'
 import map from 'lodash/map'
 import React from 'react'
+import Tooltip from 'tooltip'
 import { Portal } from 'react-overlays'
 
 import _ from './intl'
@@ -154,18 +155,20 @@ class HostsPatchesTable extends Component {
 
     const Buttons = (
       <Container>
-        <Button
-          handler={this._refreshMissingPatches}
-          icon='refresh'
-          labelId='refreshPatches'
-        />
-        <Button
-          btnStyle='primary'
-          disabled={noPatches}
-          handler={this._installAllMissingPatches}
-          icon='host-patch-update'
-          labelId='installPoolPatches'
-        />
+        <Tooltip content={_('checkForUpdates')}>
+          <Button
+            handler={this._refreshMissingPatches}
+            icon='refresh'
+          />
+        </Tooltip>
+        <Tooltip content={_('installPoolPatches')}>
+          <Button
+            btnStyle='primary'
+            disabled={noPatches}
+            handler={this._installAllMissingPatches}
+            icon='host-patch-update'
+          />
+        </Tooltip>
       </Container>
     )
 
