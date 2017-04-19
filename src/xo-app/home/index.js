@@ -313,7 +313,7 @@ export default class Home extends Component {
       const defaultFilter = this._getDefaultFilter(props)
 
       if (defaultFilter != null) {
-        this._setFilter(defaultFilter, props)
+        this._setFilter(defaultFilter, props, true)
       }
       return
     }
@@ -359,13 +359,13 @@ export default class Home extends Component {
 
   // Optionally can take the props to be able to use it in
   // componentWillReceiveProps().
-  _setFilter (filter, props = this.props) {
+  _setFilter (filter, props = this.props, replace) {
     if (!isString(filter)) {
       filter = filter::ComplexMatcher.toString()
     }
 
     const { pathname, query } = props.location
-    this.context.router.push({
+    this.context.router[replace ? 'replace' : 'push']({
       pathname,
       query: { ...query, s: filter }
     })
