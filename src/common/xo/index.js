@@ -436,7 +436,7 @@ export const restartHostsAgents = hosts => {
     title: _('restartHostsAgentsModalTitle', { nHosts }),
     body: _('restartHostsAgentsModalMessage', { nHosts })
   }).then(
-    () => map(hosts, restartHostAgent),
+    () => Promise.all(map(hosts, restartHostAgent)),
     noop
   )
 }
