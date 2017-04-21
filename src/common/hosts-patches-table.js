@@ -64,6 +64,14 @@ const POOLS_MISSING_PATCHES_COLUMNS = [{
   sortCriteria: (host, { pools }) => pools[host.$pool].name_label
 }].concat(MISSING_PATCHES_COLUMNS)
 
+const ActionButton_ = ({ children, labelId, ...props }) =>
+  <ActionButton
+    {...props}
+    tooltip={_(labelId)}
+  >
+    {children}
+  </ActionButton>
+
 // ===================================================================
 
 class HostsPatchesTable extends Component {
@@ -150,9 +158,10 @@ class HostsPatchesTable extends Component {
     const { props } = this
 
     const Container = props.container || 'div'
-    const Button = props.useTabButton
+
+    const Button = this.props.useTabButton
       ? TabButton
-      : ({ children, labelId, ...props }) => <ActionButton {...props} tooltip={_(labelId)}>{children}</ActionButton>
+      : ActionButton_
 
     const Buttons = (
       <Container>
