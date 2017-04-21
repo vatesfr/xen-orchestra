@@ -64,6 +64,15 @@ const POOLS_MISSING_PATCHES_COLUMNS = [{
   sortCriteria: (host, { pools }) => pools[host.$pool].name_label
 }].concat(MISSING_PATCHES_COLUMNS)
 
+// Small component to homogenize Button usage in HostsPatchesTable
+const ActionButton_ = ({ children, labelId, ...props }) =>
+  <ActionButton
+    {...props}
+    tooltip={_(labelId)}
+  >
+    {children}
+  </ActionButton>
+
 // ===================================================================
 
 class HostsPatchesTable extends Component {
@@ -150,14 +159,17 @@ class HostsPatchesTable extends Component {
     const { props } = this
 
     const Container = props.container || 'div'
-    const Button = props.useTabButton ? TabButton : ActionButton
+
+    const Button = this.props.useTabButton
+      ? TabButton
+      : ActionButton_
 
     const Buttons = (
       <Container>
         <Button
           handler={this._refreshMissingPatches}
           icon='refresh'
-          labelId='refreshPatches'
+          labelId='checkForUpdates'
         />
         <Button
           btnStyle='primary'
