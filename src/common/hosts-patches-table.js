@@ -64,6 +64,7 @@ const POOLS_MISSING_PATCHES_COLUMNS = [{
   sortCriteria: (host, { pools }) => pools[host.$pool].name_label
 }].concat(MISSING_PATCHES_COLUMNS)
 
+// Small component to homogenize Button usage in HostsPatchesTable
 const ActionButton_ = ({ children, labelId, ...props }) =>
   <ActionButton
     {...props}
