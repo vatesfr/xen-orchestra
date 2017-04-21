@@ -150,10 +150,13 @@ class HostsPatchesTable extends Component {
     const { props } = this
 
     const Container = props.container || 'div'
+    const Button = props.useTabButton
+      ? TabButton
+      : ({ children, labelId, ...props }) => <ActionButton {...props} tooltip={_(labelId)}>{children}</ActionButton>
 
-    const Buttons = props.useTabButton
-      ? <Container>
-        <TabButton
+    const Buttons = (
+      <Container>
+        <Button
           handler={this._refreshMissingPatches}
           icon='refresh'
           labelId='checkForUpdates'
@@ -166,20 +169,7 @@ class HostsPatchesTable extends Component {
           labelId='installPoolPatches'
         />
       </Container>
-      : <Container>
-        <ActionButton
-          handler={this._refreshMissingPatches}
-          icon='refresh'
-          tooltip={_('checkForUpdates')}
-        />
-        <ActionButton
-          btnStyle='primary'
-          disabled={noPatches}
-          handler={this._installAllMissingPatches}
-          icon='host-patch-update'
-          tooltip={_('installPoolPatches')}
-        />
-      </Container>
+    )
 
     return (
       <div>
