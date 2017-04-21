@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
 import deferrable from 'golike-defer'
 import fatfs from 'fatfs'
+import synchronized from 'decorator-synchronized'
 import tarStream from 'tar-stream'
 import vmdkToVhd from 'xo-vmdk-to-vhd'
 import { cancellable, defer } from 'promise-toolbox'
@@ -1107,6 +1108,16 @@ export default class Xapi extends XapiBase {
     return loop()
   }
 
+  @synchronized
+  _callInstallationPlugin (hostRef, vdi) {
+    return this.call('host.call_plugin', hostRef, 'install-supp-pack', 'install', { vdi }).catch(error => {
+      if (error.code !== 'XENAPI_PLUGIN_FAILURE') {
+        console.warn('_callInstallationPlugin', error)
+        throw error
+      }
+    })
+  }
+
   @deferrable
   async installSupplementalPack ($defer, stream, { hostId }) {
     if (!stream.length) {
@@ -1116,7 +1127,7 @@ export default class Xapi extends XapiBase {
     const vdi = await this.createTemporaryVdiOnHost(stream, hostId, '[XO] Supplemental pack ISO', 'small temporary VDI to store a supplemental pack ISO')
     $defer(() => this._deleteVdi(vdi))
 
-    await this.call('host.call_plugin', this.getObject(hostId).$ref, 'install-supp-pack', 'install', { vdi: vdi.uuid })
+    await this._callInstallationPlugin(this.getObject(hostId).$ref, vdi.uuid)
   }
 
   @deferrable
@@ -1143,11 +1154,7 @@ export default class Xapi extends XapiBase {
 
       // Install pack sequentially to prevent concurrent access to the unique VDI
       for (const host of hosts) {
-        await this.call('host.call_plugin', host.$ref, 'install-supp-pack', 'install', { vdi: vdi.uuid }).catch(error => {
-          if (error.code !== 'XENAPI_PLUGIN_FAILURE') {
-            throw error
-          }
-        })
+        await this._callInstallationPlugin(host.$ref, vdi.uuid)
       }
 
       return
@@ -1171,11 +1178,7 @@ export default class Xapi extends XapiBase {
       const vdi = await this._createTemporaryVdiOnSr(pt, sr, '[XO] Supplemental pack ISO', 'small temporary VDI to store a supplemental pack ISO')
       $defer(() => this._deleteVdi(vdi))
 
-      await this.call('host.call_plugin', host.$ref, 'install-supp-pack', 'install', { vdi: vdi.uuid }).catch(error => {
-        if (error.code !== 'XENAPI_PLUGIN_FAILURE') {
-          throw error
-        }
-      })
+      await this._callInstallationPlugin(host.$ref, vdi.uuid)
     })))
   }
 
