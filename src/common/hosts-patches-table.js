@@ -2,7 +2,6 @@ import isEmpty from 'lodash/isEmpty'
 import keys from 'lodash/keys'
 import map from 'lodash/map'
 import React from 'react'
-import Tooltip from 'tooltip'
 import { Portal } from 'react-overlays'
 
 import _ from './intl'
@@ -151,26 +150,36 @@ class HostsPatchesTable extends Component {
     const { props } = this
 
     const Container = props.container || 'div'
-    const Button = props.useTabButton ? TabButton : ActionButton
 
-    const Buttons = (
-      <Container>
-        <Tooltip content={_('checkForUpdates')}>
-          <Button
-            handler={this._refreshMissingPatches}
-            icon='refresh'
-          />
-        </Tooltip>
-        <Tooltip content={_('installPoolPatches')}>
-          <Button
-            btnStyle='primary'
-            disabled={noPatches}
-            handler={this._installAllMissingPatches}
-            icon='host-patch-update'
-          />
-        </Tooltip>
+    const Buttons = props.useTabButton
+      ? <Container>
+        <TabButton
+          handler={this._refreshMissingPatches}
+          icon='refresh'
+          labelId='checkForUpdates'
+        />
+        <TabButton
+          btnStyle='primary'
+          disabled={noPatches}
+          handler={this._installAllMissingPatches}
+          icon='host-patch-update'
+          labelId='installPoolPatches'
+        />
       </Container>
-    )
+      : <Container>
+        <ActionButton
+          handler={this._refreshMissingPatches}
+          icon='refresh'
+          tooltip={_('checkForUpdates')}
+        />
+        <ActionButton
+          btnStyle='primary'
+          disabled={noPatches}
+          handler={this._installAllMissingPatches}
+          icon='host-patch-update'
+          tooltip={_('installPoolPatches')}
+        />
+      </Container>
 
     return (
       <div>
