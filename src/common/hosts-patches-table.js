@@ -161,7 +161,7 @@ class HostsPatchesTable extends Component {
           icon='refresh'
           labelId='checkForUpdates'
         />
-        <TabButton
+        <Button
           btnStyle='primary'
           disabled={noPatches}
           handler={this._installAllMissingPatches}
