@@ -23,6 +23,8 @@ var messages = {
   // ----- Filters -----
   onError: 'On error',
   successful: 'Successful',
+  filterOnlySnapshots: 'Snapshots only',
+  filterNoSnapshots: 'Full disks only',
 
   // ----- Copiable component -----
   copyToClipboard: 'Copy to clipboard',

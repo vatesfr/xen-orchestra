@@ -74,6 +74,11 @@ const COLUMNS = [
   }
 ]
 
+const FILTERS = {
+  filterOnlySnapshots: 'snapshot',
+  filterNoSnapshots: '!snapshot'
+}
+
 // ===================================================================
 
 export default ({ vdis, vdiSnapshots, vdisToVmIds }) => (
@@ -81,7 +86,7 @@ export default ({ vdis, vdiSnapshots, vdisToVmIds }) => (
     <Row>
       <Col>
         {!isEmpty(vdis)
-          ? <SortedTable collection={vdis.concat(vdiSnapshots)} userData={vdisToVmIds} columns={COLUMNS} />
+          ? <SortedTable collection={vdis.concat(vdiSnapshots)} userData={vdisToVmIds} columns={COLUMNS} filters={FILTERS} />
           : <h4 className='text-xs-center'>{_('srNoVdis')}</h4>
         }
       </Col>
