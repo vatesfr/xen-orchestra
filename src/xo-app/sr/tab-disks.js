@@ -75,8 +75,8 @@ const COLUMNS = [
 ]
 
 const FILTERS = {
-  filterOnlySnapshots: 'snapshot',
-  filterNoSnapshots: '!snapshot'
+  filterNoSnapshots: 'type:!VDI-snapshot',
+  filterOnlySnapshots: 'type:VDI-snapshot'
 }
 
 // ===================================================================
