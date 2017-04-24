@@ -52,6 +52,7 @@ export default class {
     instance,
     configurationSchema,
     configurationPresets,
+    description,
     testSchema,
     version
   ) {
@@ -60,6 +61,7 @@ export default class {
       configurationPresets,
       configurationSchema,
       configured: !configurationSchema,
+      description,
       id,
       instance,
       name,
@@ -108,6 +110,7 @@ export default class {
     const {
       configurationPresets,
       configurationSchema,
+      description,
       loaded,
       name,
       testable,
@@ -124,6 +127,7 @@ export default class {
       id,
       name,
       autoload,
+      description,
       loaded,
       unloadable,
       version,

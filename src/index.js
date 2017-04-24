@@ -210,7 +210,7 @@ async function setUpPassport (express, xo) {
 
 async function registerPlugin (pluginPath, pluginName) {
   const plugin = require(pluginPath)
-  const { version = 'unknown' } = (() => {
+  const { description, version = 'unknown' } = (() => {
     try {
       return require(pluginPath + '/package.json')
     } catch (_) {
@@ -242,6 +242,7 @@ async function registerPlugin (pluginPath, pluginName) {
     instance,
     configurationSchema,
     configurationPresets,
+    description,
     testSchema,
     version
   )
