@@ -2,6 +2,8 @@ import Collection from '../collection/redis'
 import Model from '../model'
 import { forEach } from '../utils'
 
+import { parseProp } from './utils'
+
 // ===================================================================
 
 export default class Job extends Model {}
@@ -28,12 +30,11 @@ export class Jobs extends Collection {
 
     // Deserializes.
     forEach(jobs, job => {
-      const {paramsVector} = job
-      try {
-        job.paramsVector = JSON.parse(paramsVector)
-      } catch (error) {
-        console.warn('cannot parse job.paramsVector:', paramsVector) // FIXME this is a warning as I copy/paste acl.js, but...
-        job.paramsVector = {}
+      job.paramsVector = parseProp('job', job, 'paramsVector', {})
+
+      const { timeout } = job
+      if (timeout !== undefined) {
+        job.timeout = +timeout
       }
     })
 
