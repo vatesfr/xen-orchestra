@@ -402,7 +402,6 @@ export default class New extends Component {
     const vms = this._getVmsParam()
 
     const job = {
-      ...props.job,
       ...state.job,
 
       type: 'call',
