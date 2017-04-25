@@ -687,19 +687,21 @@ exports.snapshot = snapshot
 
 #---------------------------------------------------------------------
 
-rollingDeltaBackup = $coroutine ({vm, remote, tag, depth}) ->
+rollingDeltaBackup = $coroutine ({vm, remote, tag, depth, retention = depth}) ->
   return yield @rollingDeltaVmBackup({
     vm,
     remoteId: remote,
     tag,
-    depth
+    retention
   })
 
 rollingDeltaBackup.params = {
   id: { type: 'string' }
   remote: { type: 'string' }
   tag: { type: 'string'}
-  depth: { type: ['string', 'number'] }
+  retention: { type: ['string', 'number'], optional: true }
+  # This parameter is deprecated. It used to support the old saved backups jobs.
+  depth: { type: ['string', 'number'], optional: true }
 }
 
 rollingDeltaBackup.resolve = {
@@ -747,21 +749,23 @@ exports.deltaCopy = deltaCopy
 
 #---------------------------------------------------------------------
 
-rollingSnapshot = $coroutine ({vm, tag, depth}) ->
+rollingSnapshot = $coroutine ({vm, tag, depth, retention = depth}) ->
   yield checkPermissionOnSrs.call(this, vm)
-  yield @rollingSnapshotVm(vm, tag, depth)
+  yield @rollingSnapshotVm(vm, tag, retention)
 
 rollingSnapshot.params = {
   id: { type: 'string' }
   tag: { type: 'string' }
-  depth: { type: 'number' }
+  retention: { type: 'number', optional: true }
+  # This parameter is deprecated. It used to support the old saved backups jobs.
+  depth: { type: 'number', optional: true }
 }
 
 rollingSnapshot.resolve = {
   vm: ['id', 'VM', 'administrate']
 }
 
-rollingSnapshot.description = 'Snapshots a VM with a tagged name, and removes the oldest snapshot with the same tag according to depth'
+rollingSnapshot.description = 'Snapshots a VM with a tagged name, and removes the oldest snapshot with the same tag according to retention'
 
 exports.rollingSnapshot = rollingSnapshot
 
@@ -810,12 +814,12 @@ exports.importBackup = importBackup
 
 #---------------------------------------------------------------------
 
-rollingBackup = $coroutine ({vm, remoteId, tag, depth, compress, onlyMetadata}) ->
+rollingBackup = $coroutine ({vm, remoteId, tag, depth, retention = depth, compress, onlyMetadata}) ->
   return yield @rollingBackupVm({
     vm,
     remoteId,
     tag,
-    depth,
+    retention,
     compress,
     onlyMetadata
   })
@@ -826,7 +830,9 @@ rollingBackup.params = {
   id: { type: 'string' }
   remoteId: { type: 'string' }
   tag: { type: 'string'}
-  depth: { type: 'number' }
+  retention: { type: 'number', optional: true }
+  # This parameter is deprecated. It used to support the old saved backups jobs.
+  depth: { type: 'number', optional: true }
   compress: { type: 'boolean', optional: true }
 }
 
@@ -834,13 +840,13 @@ rollingBackup.resolve = {
   vm: ['id', ['VM', 'VM-snapshot'], 'administrate']
 }
 
-rollingBackup.description = 'Exports a VM to the file system with a tagged name, and removes the oldest backup with the same tag according to depth'
+rollingBackup.description = 'Exports a VM to the file system with a tagged name, and removes the oldest backup with the same tag according to retention'
 
 exports.rollingBackup = rollingBackup
 
 #---------------------------------------------------------------------
 
-rollingDrCopy = ({vm, pool, sr, tag, depth}) ->
+rollingDrCopy = ({vm, pool, sr, tag, depth, retention = depth}) ->
   unless sr
     unless pool
       throw invalidParameters('either pool or sr param should be specified')
@@ -850,10 +856,12 @@ rollingDrCopy = ({vm, pool, sr, tag, depth}) ->
 
     sr = @getObject(pool.default_SR, 'SR')
 
-  return @rollingDrCopyVm({vm, sr, tag, depth})
+  return @rollingDrCopyVm({vm, sr, tag, retention})
 
 rollingDrCopy.params = {
-  depth: { type: 'number' }
+  retention: { type: 'number', optional: true }
+  # This parameter is deprecated. It used to support the old saved backups jobs.
+  depth: { type: 'number', optional: true }
   id: { type: 'string' }
   pool: { type: 'string', optional: true }
   sr: { type: 'string', optional: true }
@@ -866,7 +874,7 @@ rollingDrCopy.resolve = {
   sr: ['sr', 'SR', 'administrate']
 }
 
-rollingDrCopy.description = 'Copies a VM to a different pool, with a tagged name, and removes the oldest VM with the same tag from this pool, according to depth'
+rollingDrCopy.description = 'Copies a VM to a different pool, with a tagged name, and removes the oldest VM with the same tag from this pool, according to retention'
 
 exports.rollingDrCopy = rollingDrCopy
 

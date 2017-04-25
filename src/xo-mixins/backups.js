@@ -583,9 +583,9 @@ export default class {
     }
   }
 
-  async _mergeDeltaVdiBackups ({handler, dir, depth}) {
+  async _mergeDeltaVdiBackups ({handler, dir, retention}) {
     const backups = await this._listVdiBackups(handler, dir)
-    let i = backups.length - depth
+    let i = backups.length - retention
 
     // No merge.
     if (i <= 0) {
@@ -661,7 +661,7 @@ export default class {
     return sortBy(filter(files, isDeltaBackup))
   }
 
-  async _saveDeltaVdiBackup (xapi, { vdiParent, isFull, handler, stream, dir, depth }) {
+  async _saveDeltaVdiBackup (xapi, { vdiParent, isFull, handler, stream, dir, retention }) {
     const backupDirectory = `vdi_${vdiParent.uuid}`
     dir = `${dir}/${backupDirectory}`
 
@@ -704,9 +704,9 @@ export default class {
     return `${backupDirectory}/${vdiFilename}`
   }
 
-  async _removeOldDeltaVmBackups (xapi, { handler, dir, depth }) {
+  async _removeOldDeltaVmBackups (xapi, { handler, dir, retention }) {
     const backups = await this._listDeltaVmBackups(handler, dir)
-    const nOldBackups = backups.length - depth
+    const nOldBackups = backups.length - retention
 
     if (nOldBackups > 0) {
       await Promise.all(
@@ -723,7 +723,7 @@ export default class {
   }
 
   @deferrable.onFailure
-  async rollingDeltaVmBackup ($onFailure, {vm, remoteId, tag, depth}) {
+  async rollingDeltaVmBackup ($onFailure, {vm, remoteId, tag, retention}) {
     const handler = await this._xo.getRemoteHandler(remoteId)
     const xapi = this._xo.getXapi(vm)
 
@@ -784,7 +784,7 @@ export default class {
           handler,
           stream: delta.streams[`${key}.vhd`],
           dir,
-          depth
+          retention
         })
           .then(path => {
             delta.vdis[key] = {
@@ -837,13 +837,13 @@ export default class {
         const backupName = vdiBackup.value()
         const backupDirectory = backupName.slice(0, backupName.lastIndexOf('/'))
         const backupDir = `${dir}/${backupDirectory}`
-        return this._mergeDeltaVdiBackups({ handler, dir: backupDir, depth })
+        return this._mergeDeltaVdiBackups({ handler, dir: backupDir, retention })
           .then(() => { this._chainDeltaVdiBackups({ handler, dir: backupDir }) })
       })
     )
 
     // Delete old backups.
-    await this._removeOldDeltaVmBackups(xapi, { vm, handler, dir, depth })
+    await this._removeOldDeltaVmBackups(xapi, { vm, handler, dir, retention })
 
     if (baseVm) {
       xapi.deleteVm(baseVm.$id)::pCatch(noop)
@@ -921,7 +921,7 @@ export default class {
     await promise
   }
 
-  async rollingBackupVm ({vm, remoteId, tag, depth, compress, onlyMetadata}) {
+  async rollingBackupVm ({vm, remoteId, tag, retention, compress, onlyMetadata}) {
     const handler = await this._xo.getRemoteHandler(remoteId)
 
     const files = await handler.list()
@@ -933,10 +933,10 @@ export default class {
     const file = `${date}_${tag}_${vm.name_label}.xva`
 
     await this._backupVm(vm, handler, file, {compress, onlyMetadata})
-    await this._removeOldBackups(backups, handler, undefined, backups.length - (depth - 1))
+    await this._removeOldBackups(backups, handler, undefined, backups.length - (retention - 1))
   }
 
-  async rollingSnapshotVm (vm, tag, depth) {
+  async rollingSnapshotVm (vm, tag, retention) {
     const xapi = this._xo.getXapi(vm)
     vm = xapi.getObject(vm._xapiId)
 
@@ -947,14 +947,14 @@ export default class {
     await xapi.snapshotVm(vm.$id, `rollingSnapshot_${date}_${tag}_${vm.name_label}`)
 
     const promises = []
-    for (let surplus = snapshots.length - (depth - 1); surplus > 0; surplus--) {
+    for (let surplus = snapshots.length - (retention - 1); surplus > 0; surplus--) {
       const oldSnap = snapshots.shift()
       promises.push(xapi.deleteVm(oldSnap.uuid))
     }
     await Promise.all(promises)
   }
 
-  async rollingDrCopyVm ({vm, sr, tag, depth}) {
+  async rollingDrCopyVm ({vm, sr, tag, retention}) {
     tag = 'DR_' + tag
     const reg = new RegExp('^' + escapeStringRegexp(`${vm.name_label}_${tag}_`) + '[0-9]{8}T[0-9]{6}Z$')
 
@@ -979,7 +979,7 @@ export default class {
     })
     await targetXapi.addTag(drCopy.$id, 'Disaster Recovery')
 
-    const n = 1 - depth
+    const n = 1 - retention
     await Promise.all(mapToArray(n ? olderCopies.slice(0, n) : olderCopies, vm =>
       // Do not consider a failure to delete an old copy as a fatal error.
       targetXapi.deleteVm(vm.$id)::pCatch(noop)
