@@ -162,7 +162,7 @@ export default class Menu extends Component {
         { to: '/jobs/new', icon: 'menu-jobs-new', label: 'jobsNewPage' },
         { to: '/jobs/schedules', icon: 'menu-jobs-schedule', label: 'jobsSchedulingPage' }
       ]},
-      { to: '/about', icon: 'menu-about', label: 'aboutPage' },
+      isAdmin && { to: '/about', icon: 'menu-about', label: 'aboutPage' },
       { to: '/tasks', icon: 'task', label: 'taskMenu', pill: nTasks },
       isAdmin && { to: '/xosan', icon: 'menu-xosan', label: 'xosan' },
       !(noOperatablePools && noResourceSets) && { to: '/vms/new', icon: 'menu-new', label: 'newMenu', subMenu: [
