@@ -771,7 +771,7 @@ var messages = {
   ha: 'HA',
   vmAffinityHost: 'Affinity host',
   vmVGA: 'VGA',
-  vmVideoram: 'Videoram',
+  vmVideoram: 'Video RAM',
   noAffinityHost: 'None',
   originalTemplate: 'Original template',
   unknownOsName: 'Unknown',

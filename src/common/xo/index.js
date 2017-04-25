@@ -41,7 +41,9 @@ export const XEN_DEFAULT_CPU_CAP = 0
 
 // ===================================================================
 
-export const XEN_VGA_VIDEORAM_MAX = 16
+// according to: https://xenserver.org/blog/entry/vga-over-cirrus-in-xenserver-6-2.html
+// the maximal value that the video RAM can take is 16
+export const XEN_MAX_VIDEORAM = 16
 
 // ===================================================================
 

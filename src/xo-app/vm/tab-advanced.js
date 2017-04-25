@@ -33,7 +33,7 @@ import {
   suspendVm,
   XEN_DEFAULT_CPU_CAP,
   XEN_DEFAULT_CPU_WEIGHT,
-  XEN_VGA_VIDEORAM_MAX
+  XEN_MAX_VIDEORAM
 } from 'xo'
 import {
   createGetObjectsOfType,
@@ -261,12 +261,12 @@ export default ({
               </td>
             </tr>
           }
-          {vm.platform && vm.platform.vga &&
+          {vm.platform.vga !== undefined &&
             <tr>
               <th>{_('vmVideoram')}</th>
               <td>
-                <Number value={vm.platform && vm.platform.videoram} onChange={value => value <= XEN_VGA_VIDEORAM_MAX && editVm(vm, { videoram: value })}>
-                  {vm.platform.videoram} MB / {XEN_VGA_VIDEORAM_MAX} MB
+                <Number value={vm.platform && vm.platform.videoram} onChange={value => editVm(vm, { videoram: value })}>
+                  {vm.platform.videoram} MB / {XEN_MAX_VIDEORAM} MB
                 </Number>
               </td>
             </tr>
