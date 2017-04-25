@@ -19,12 +19,12 @@ import {
   isEmpty,
   keys,
   map,
+  mapValues,
   pickBy,
   some
 } from 'lodash'
 import {
   createGetObjectsOfType,
-  createGroupBy,
   createSelector,
   createSort
 } from 'selectors'
@@ -42,6 +42,7 @@ import {
   downloadAndInstallXosanPack,
   getVolumeInfo,
   registerXosan,
+  restartHostsAgents,
   subscribeIsInstallingXosan,
   subscribePlugins,
   subscribeResourceCatalog
@@ -161,12 +162,6 @@ class PoolAvailableSrs extends Component {
     selectedSrs: {}
   }
 
-  componentDidMount () {
-    this.componentWillUnmount = subscribeIsInstallingXosan(this.props.pool, isInstallingXosan => {
-      this.setState({ isInstallingXosan })
-    })
-  }
-
   _selectSr = (event, srId) => {
     const selectedSrs = { ...this.state.selectedSrs }
     selectedSrs[srId] = event.target.checked
@@ -237,11 +232,9 @@ class PoolAvailableSrs extends Component {
     const {
       hosts,
       lvmsrs,
-      noPack,
       pool
     } = this.props
     const {
-      isInstallingXosan,
       pif,
       selectedSrs,
       suggestion,
@@ -249,18 +242,6 @@ class PoolAvailableSrs extends Component {
       useVlan,
       vlan
     } = this.state
-
-    if (isInstallingXosan) {
-      return <em><Icon icon='loading' /> {_('xosanInstalling')}</em>
-    }
-
-    if (noPack) {
-      return <div className='mb-3'>
-        <Icon icon='error' /> {_('xosanNeedPack')}
-        <br />
-        <ActionButton btnStyle='success' icon='export' handler={downloadAndInstallXosanPack} handlerParam={pool}>{_('xosanInstallIt')}</ActionButton>
-      </div>
-    }
 
     const disableSrCheckbox = this._getDisableSrCheckbox()
 
@@ -399,11 +380,29 @@ class PoolAvailableSrs extends Component {
 // ==================================================================
 
 @connectStore(() => {
-  const pbdsBySr = createGetObjectsOfType('PBD').groupBy('SR')
+  const getIsInPool = createSelector(
+    (_, { pool }) => pool != null && pool.id,
+    poolId => obj => obj.$pool === poolId
+  )
 
-  const lvmSrs = createSort(createSelector(
-    createGetObjectsOfType('SR').filter([ sr => !sr.shared && sr.SR_type === 'lvm' ]),
-    pbdsBySr,
+  const getPbdsBySr = createGetObjectsOfType('PBD').filter(getIsInPool).groupBy('SR')
+  const getHosts = createGetObjectsOfType('host').filter(getIsInPool)
+
+  // LVM SRs that are connected
+  const getLvmSrs = createSort(createSelector(
+    createGetObjectsOfType('SR').filter(
+      createSelector(
+        getHosts,
+        getIsInPool,
+        (hosts, isInPool) =>
+          sr =>
+            isInPool(sr) &&
+            !sr.shared &&
+            sr.SR_type === 'lvm' &&
+            find(hosts, { id: sr.$container }).power_state === 'Running'
+      )
+    ),
+    getPbdsBySr,
     (srs, pbdsBySr) => mapPlus(srs, (sr, push) => {
       let pbds
       if ((pbds = pbdsBySr[sr.id]).length) {
@@ -412,21 +411,102 @@ class PoolAvailableSrs extends Component {
     })
   ), 'name_label')
 
-  const xosanSrs = createSort(createSelector(
-    createGetObjectsOfType('SR').filter([sr => sr.shared && sr.SR_type === 'xosan']),
-    pbdsBySr,
+  const getXosanSrs = createSort(createSelector(
+    createGetObjectsOfType('SR').filter(createSelector(
+      (_, { pool }) => pool != null && pool.id,
+      poolId =>
+        sr => sr.$pool === poolId && sr.shared && sr.SR_type === 'xosan'
+    )),
+    getPbdsBySr,
     (srs, pbdsBySr) =>
       map(srs, sr => ({ ...sr, pbds: pbdsBySr[sr.id] }))
   ), 'name_label')
 
+  const getTemplates = createSelector(
+    (_, { catalog }) => catalog,
+    catalog => filter(catalog.xosan, { type: 'xva' })
+  )
+
+  // Hosts whose toolstack hasn't been restarted since XOSAN-pack installation
+  const getHostsNeedRestart = createSelector(
+    (_, { pool }) => pool && pool.xosanPackInstallationTime,
+    getHosts,
+    (xosanPackInstallationTime, hosts) => filter(hosts, host =>
+      host.power_state === 'Running' &&
+      xosanPackInstallationTime != null &&
+      xosanPackInstallationTime > host.agentStartTime
+    )
+  )
+
+  const getIsMasterOffline = createSelector(
+    getHosts,
+    (_, { pool }) => pool.master,
+    (hosts, id) => find(hosts, { id }).power_state !== 'Running'
+  )
+
   return {
-    hostsByPool: createGetObjectsOfType('host').groupBy('$pool'),
-    pools: createGetObjectsOfType('pool'),
-    xosanSrsByPool: createGroupBy(xosanSrs, '$pool'),
-    lvmSrsByPool: createGroupBy(lvmSrs, '$pool'),
-    networks: createGetObjectsOfType('network').groupBy('$pool')
+    isMasterOffline: getIsMasterOffline,
+    hosts: getHosts,
+    lvmSrs: getLvmSrs,
+    hostsNeedRestart: getHostsNeedRestart,
+    templates: getTemplates,
+    xosanSrs: getXosanSrs
   }
 })
+class Pool extends Component {
+  componentDidMount () {
+    this.componentWillUnmount = subscribeIsInstallingXosan(this.props.pool, isInstallingXosan => {
+      this.setState({ isInstallingXosan })
+    })
+  }
+
+  render () {
+    const { xosanSrs, lvmSrs, hosts, noPack, templates, pool, hostsNeedRestart, isMasterOffline } = this.props
+    const { isInstallingXosan } = this.state
+
+    if (isInstallingXosan) {
+      return <em><Icon icon='loading' /> {_('xosanInstalling')}</em>
+    }
+
+    if (noPack) {
+      return <div className='mb-3'>
+        <Icon icon='error' /> {_('xosanNeedPack')}
+        <br />
+        <ActionButton btnStyle='success' icon='export' handler={downloadAndInstallXosanPack} handlerParam={pool}>{_('xosanInstallIt')}</ActionButton>
+      </div>
+    }
+
+    if (isMasterOffline) {
+      return <div className='mb-3'>
+        <Icon icon='error' /> {_('xosanMasterOffline')}
+      </div>
+    }
+
+    if (!isEmpty(hostsNeedRestart)) {
+      return <div className='mb-3'>
+        <Icon icon='error' /> {_('xosanNeedRestart')}
+        <br />
+        <ActionButton btnStyle='success' icon='host-restart-agent' handler={restartHostsAgents} handlerParam={hostsNeedRestart}>{_('xosanRestartAgents')}</ActionButton>
+      </div>
+    }
+
+    return xosanSrs && xosanSrs.length
+      ? <XosanVolumesTable hosts={hosts} xosansrs={xosanSrs} lvmsrs={lvmSrs} />
+      : <PoolAvailableSrs hosts={hosts} pool={pool} lvmsrs={lvmSrs} templates={templates} />
+  }
+}
+
+// ==================================================================
+
+@connectStore(() => ({
+  pools: createGetObjectsOfType('pool'),
+  noPacksByPool: createSelector(
+    createGetObjectsOfType('host').groupBy('$pool'),
+    hostsByPool => mapValues(hostsByPool, (poolHosts, poolId) =>
+      !every(poolHosts, host => some(host.supplementalPacks, isXosanPack))
+    )
+  )
+}))
 @addSubscriptions({
   catalog: subscribeResourceCatalog,
   plugins: subscribePlugins
@@ -465,7 +545,7 @@ export default class Xosan extends Component {
   )
 
   render () {
-    const { pools, xosanSrsByPool, lvmSrsByPool, catalog, hostsByPool } = this.props
+    const { pools, noPacksByPool, catalog } = this.props
     const error = this._getError()
 
     return <Page header={HEADER} title='xosan' formatTitle>
@@ -474,17 +554,11 @@ export default class Xosan extends Component {
           {error
             ? <em>{error}</em>
             : map(pools, pool => {
-              const poolXosanSrs = xosanSrsByPool[pool.id]
-              const poolLvmSrs = lvmSrsByPool[pool.id]
-              const hosts = hostsByPool[pool.id]
-              const noPack = !every(hosts, host => some(host.supplementalPacks, isXosanPack))
+              const noPack = noPacksByPool && noPacksByPool[pool.id]
 
               return <Collapse key={pool.id} className='mb-1' buttonText={<span>{noPack && <Icon icon='error' />} {pool.name_label}</span>}>
                 <div className='m-1'>
-                  {poolXosanSrs && poolXosanSrs.length
-                    ? <XosanVolumesTable hosts={hosts} xosansrs={poolXosanSrs} lvmsrs={poolLvmSrs} />
-                    : <PoolAvailableSrs hosts={hosts} pool={pool} lvmsrs={poolLvmSrs} noPack={noPack} templates={filter(catalog.xosan, { type: 'xva' })} />
-                  }
+                  <Pool pool={pool} noPack={noPack} catalog={catalog} />
                 </div>
               </Collapse>
             })
