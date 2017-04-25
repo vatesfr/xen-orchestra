@@ -1806,10 +1806,10 @@ export default {
   vdiRemove: 'VDI Eltávolítás',
 
   // Original text: "Boot flag"
-  vdbBootableStatus: 'Boot flag',
+  vbdBootableStatus: 'Boot flag',
 
   // Original text: "Status"
-  vdbStatus: 'Állapot',
+  vbdStatus: 'Állapot',
 
   // Original text: "Connected"
   vbdStatusConnected: 'Kapcsolódva',
@@ -1827,22 +1827,22 @@ export default {
   vbdDisconnect: 'VBD Lecsatlakozás',
 
   // Original text: "Bootable"
-  vdbBootable: 'Bootolható',
+  vbdBootable: 'Bootolható',
 
   // Original text: "Readonly"
-  vdbReadonly: 'Csak olvasható',
+  vbdReadonly: 'Csak olvasható',
 
   // Original text: 'Action'
   vbdAction: undefined,
 
   // Original text: "Create"
-  vdbCreate: 'Létrehozás',
+  vbdCreate: 'Létrehozás',
 
   // Original text: "Disk name"
-  vdbNamePlaceHolder: 'Diszk név',
+  vbdNamePlaceHolder: 'Diszk név',
 
   // Original text: "Size"
-  vdbSizePlaceHolder: 'Méret',
+  vbdSizePlaceHolder: 'Méret',
 
   // Original text: "Save"
   saveBootOption: 'Mentés',

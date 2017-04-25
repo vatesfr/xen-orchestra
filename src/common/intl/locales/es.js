@@ -1605,10 +1605,10 @@ export default {
   vdiRemove: undefined,
 
   // Original text: "Boot flag"
-  vdbBootableStatus: 'Etiqueta de Inicio',
+  vbdBootableStatus: 'Etiqueta de Inicio',
 
   // Original text: "Status"
-  vdbStatus: 'Estado',
+  vbdStatus: 'Estado',
 
   // Original text: "Connected"
   vbdStatusConnected: 'Conectado',
@@ -1626,19 +1626,19 @@ export default {
   vbdDisconnect: undefined,
 
   // Original text: 'Bootable'
-  vdbBootable: undefined,
+  vbdBootable: undefined,
 
   // Original text: 'Readonly'
-  vdbReadonly: undefined,
+  vbdReadonly: undefined,
 
   // Original text: 'Create'
-  vdbCreate: undefined,
+  vbdCreate: undefined,
 
   // Original text: 'Disk name'
-  vdbNamePlaceHolder: undefined,
+  vbdNamePlaceHolder: undefined,
 
   // Original text: 'Size'
-  vdbSizePlaceHolder: undefined,
+  vbdSizePlaceHolder: undefined,
 
   // Original text: 'Save'
   saveBootOption: undefined,

@@ -1608,10 +1608,10 @@ export default {
   vdiRemove: 'Usuń VDI',
 
   // Original text: "Boot flag"
-  vdbBootableStatus: 'Boot flag',
+  vbdBootableStatus: 'Boot flag',
 
   // Original text: "Status"
-  vdbStatus: 'Status',
+  vbdStatus: 'Status',
 
   // Original text: "Connected"
   vbdStatusConnected: 'Połączono',
@@ -1629,19 +1629,19 @@ export default {
   vbdDisconnect: 'Rozłącz z VBD',
 
   // Original text: "Bootable"
-  vdbBootable: 'Bootable',
+  vbdBootable: 'Bootable',
 
   // Original text: "Readonly"
-  vdbReadonly: 'Tylko do odcztu',
+  vbdReadonly: 'Tylko do odcztu',
 
   // Original text: "Create"
-  vdbCreate: 'Utwórz',
+  vbdCreate: 'Utwórz',
 
   // Original text: "Disk name"
-  vdbNamePlaceHolder: 'Nazwa dysku',
+  vbdNamePlaceHolder: 'Nazwa dysku',
 
   // Original text: "Size"
-  vdbSizePlaceHolder: 'Rozmiar',
+  vbdSizePlaceHolder: 'Rozmiar',
 
   // Original text: "Save"
   saveBootOption: 'Zapisz',

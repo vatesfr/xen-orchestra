@@ -960,7 +960,7 @@ export const migrateVdi = (vdi, sr) => (
   _call('vdi.migrate', { id: resolveId(vdi), sr_id: resolveId(sr) })
 )
 
-// VDB ---------------------------------------------------------------
+// VBD ---------------------------------------------------------------
 
 export const connectVbd = vbd => (
   _call('vbd.connect', { id: resolveId(vbd) })

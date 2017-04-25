@@ -110,19 +110,19 @@ class NewDisk extends Component {
       </div>
       <fieldset className='form-inline'>
         <div className='form-group'>
-          <input type='text' ref='name' placeholder={formatMessage(messages.vdbNamePlaceHolder)} className='form-control' required />
+          <input type='text' ref='name' placeholder={formatMessage(messages.vbdNamePlaceHolder)} className='form-control' required />
         </div>
         {' '}
         <div className='form-group'>
-          <SizeInput ref='size' placeholder={formatMessage(messages.vdbSizePlaceHolder)} required />
+          <SizeInput ref='size' placeholder={formatMessage(messages.vbdSizePlaceHolder)} required />
         </div>
         {' '}
         <div className='form-group'>
-          {vm.virtualizationMode === 'pv' && <span>{_('vdbBootable')} <Toggle ref='bootable' /> </span>}
-          <span>{_('vdbReadonly')} <Toggle ref='readOnly' /></span>
+          {vm.virtualizationMode === 'pv' && <span>{_('vbdBootable')} <Toggle ref='bootable' /> </span>}
+          <span>{_('vbdReadonly')} <Toggle ref='readOnly' /></span>
         </div>
         <span className='pull-right'>
-          <ActionButton form='newDiskForm' icon='add' btnStyle='primary' handler={this._createDisk}>{_('vdbCreate')}</ActionButton>
+          <ActionButton form='newDiskForm' icon='add' btnStyle='primary' handler={this._createDisk}>{_('vbdCreate')}</ActionButton>
         </span>
       </fieldset>
     </form>
@@ -184,11 +184,11 @@ class AttachDisk extends Component {
       </div>
       {vdi && <fieldset className='form-inline'>
         <div className='form-group'>
-          {vm.virtualizationMode === 'pv' && <span>{_('vdbBootable')} <Toggle ref='bootable' /> </span>}
-          <span>{_('vdbReadonly')} <Toggle ref='readOnly' /></span>
+          {vm.virtualizationMode === 'pv' && <span>{_('vbdBootable')} <Toggle ref='bootable' /> </span>}
+          <span>{_('vbdReadonly')} <Toggle ref='readOnly' /></span>
         </div>
         <span className='pull-right'>
-          <ActionButton icon='add' form='attachDiskForm' btnStyle='primary' handler={this._addVdi}>{_('vdbCreate')}</ActionButton>
+          <ActionButton icon='add' form='attachDiskForm' btnStyle='primary' handler={this._addVdi}>{_('vbdCreate')}</ActionButton>
         </span>
       </fieldset>
       }
@@ -446,8 +446,8 @@ export default class TabDisks extends Component {
                   <th>{_('vdiNameDescription')}</th>
                   <th>{_('vdiSize')}</th>
                   <th>{_('vdiSr')}</th>
-                  {vm.virtualizationMode === 'pv' && <th>{_('vdbBootableStatus')}</th>}
-                  <th>{_('vdbStatus')}</th>
+                  {vm.virtualizationMode === 'pv' && <th>{_('vbdBootableStatus')}</th>}
+                  <th>{_('vbdStatus')}</th>
                   <th className='text-xs-right'>{_('vbdAction')}</th>
                 </tr>
               </thead>

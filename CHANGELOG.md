@@ -258,7 +258,7 @@ File level restore.
 - Tooltip on OS icon in VM view [\#1416](https://github.com/vatesfr/xo-web/issues/1416)
 - Display pool master [\#1407](https://github.com/vatesfr/xo-web/issues/1407)
 - Missing tooltips in VM creation view [\#1402](https://github.com/vatesfr/xo-web/issues/1402)
-- Handle VDB disconnect and connect [\#1397](https://github.com/vatesfr/xo-web/issues/1397)
+- Handle VBD disconnect and connect [\#1397](https://github.com/vatesfr/xo-web/issues/1397)
 - Eject host from a pool [\#1395](https://github.com/vatesfr/xo-web/issues/1395)
 - Improve pool general view [\#1393](https://github.com/vatesfr/xo-web/issues/1393)
 - Improve patching system [\#1392](https://github.com/vatesfr/xo-web/issues/1392)

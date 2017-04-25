@@ -1203,10 +1203,10 @@ export default {
   vdiVm: '虚拟机',
 
   // Original text: "Boot flag"
-  vdbBootableStatus: '启动标识',
+  vbdBootableStatus: '启动标识',
 
   // Original text: "Status"
-  vdbStatus: '状态',
+  vbdStatus: '状态',
 
   // Original text: "Connected"
   vbdStatusConnected: '已连接',
