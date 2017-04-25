@@ -231,8 +231,7 @@ const orderItemTarget = {
   isDragging: propTypes.bool.isRequired,
   id: propTypes.any.isRequired,
   item: propTypes.object.isRequired,
-  move: propTypes.func.isRequired,
-  showBootableFlag: propTypes.bool
+  move: propTypes.func.isRequired
 })
 class OrderItem extends Component {
   _toggle = checked => {
@@ -296,7 +295,6 @@ class BootOrder extends Component {
   }
 
   render () {
-    const { vm } = this.props
     const { order } = this.state
 
     return <form>
@@ -308,7 +306,6 @@ class BootOrder extends Component {
           // FIXME missing translation
           item={item}
           move={this._moveOrderItem}
-          showBootableFlag={vm.virtualizationMode === 'pv'}
         />)}
       </ul>
       <fieldset className='form-inline'>
