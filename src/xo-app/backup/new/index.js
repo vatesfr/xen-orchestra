@@ -326,19 +326,22 @@ const constructPattern = ({ not, values } = EMPTY_OBJECT, valueTransform = ident
 export default class New extends Component {
   _getParams = createSelector(
     () => this.props.job,
-    job => {
+    () => this.props.schedule,
+    (job, schedule) => {
       if (!job) {
         return { main: {}, vms: { vms: [] } }
       }
 
       const { items } = job.paramsVector
+      const enabled = schedule != null && schedule.enabled
 
       // legacy backup jobs
       if (items.length === 1) {
-        const { ...main } = items[0].values[0]
-
         return {
-          main,
+          main: {
+            enabled,
+            ...items[0].values[0]
+          },
           vms: { vms: map(items[0].values.slice(1), extractId) }
         }
       }
@@ -349,7 +352,10 @@ export default class New extends Component {
         const { $pool, tags } = pattern
 
         return {
-          main: items[0].values[0],
+          main: {
+            enabled,
+            ...items[0].values[0]
+          },
           vms: {
             $pool: destructPattern($pool),
             power_state: pattern.power_state,
@@ -360,7 +366,10 @@ export default class New extends Component {
 
       // normal backup
       return {
-        main: items[1].values[0],
+        main: {
+          enabled,
+          ...items[1].values[0]
+        },
         vms: { vms: map(items[0].values, extractId) }
       }
     }
@@ -480,6 +489,7 @@ export default class New extends Component {
       return editSchedule({
         id: props.schedule.id,
         cron: scheduling.cronPattern,
+        enabled,
         timezone: scheduling.timezone
       })
     }
