@@ -78,7 +78,8 @@ const TRANSFORMS = {
       master: link(obj, 'master'),
       tags: obj.tags,
       name_description: obj.name_description,
-      name_label: obj.name_label || obj.$master.name_label
+      name_label: obj.name_label || obj.$master.name_label,
+      xosanPackInstallationTime: toTimestamp(obj.other_config.xosan_pack_installation_time)
 
       // TODO
       // - ? networks = networksByPool.items[pool.id] (network.$pool.id)

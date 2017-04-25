@@ -460,7 +460,10 @@ export async function downloadAndInstallXosanPack ({ id, version, pool }) {
   const xapi = this.getXapi(pool.id)
   const res = await this.requestResource('xosan', id, version)
 
-  return xapi.installSupplementalPackOnAllHosts(res)
+  await xapi.installSupplementalPackOnAllHosts(res)
+  await xapi._updateObjectMapProperty(xapi.pool, 'other_config', {
+    'xosan_pack_installation_time': String(Math.floor(Date.now() / 1e3))
+  })
 }
 
 downloadAndInstallXosanPack.description = 'Register a resource via cloud plugin'
