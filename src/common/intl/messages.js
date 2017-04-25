@@ -818,7 +818,7 @@ var messages = {
   srFree: 'free',
   srUsageStatePanel: 'Storage Usage',
   srTopUsageStatePanel: 'Top 5 SR Usage (in %)',
-  vmsStates: '{running} running ({halted} halted)',
+  vmsStates: '{running, number} running ({halted, number} halted)',
   dashboardStatsButtonRemoveAll: 'Clear selection',
   dashboardStatsButtonAddAllHost: 'Add all hosts',
   dashboardStatsButtonAddAllVM: 'Add all VMs',

@@ -19,7 +19,8 @@ import {
   createGetObjectsOfType,
   createGetHostMetrics,
   createSelector,
-  createTop
+  createTop,
+  isAdmin
 } from 'selectors'
 import {
   connectStore,
@@ -136,6 +137,7 @@ class PatchesCard extends Component {
   return {
     hostMetrics: getHostMetrics,
     hosts: getHosts,
+    isAdmin,
     nAlarmMessages: getNumberOfAlarmMessages,
     nHosts: getNumberOfHosts,
     nPools: getNumberOfPools,
@@ -306,7 +308,10 @@ export default class Overview extends Component {
                 </CardHeader>
                 <CardBlock>
                   <p className={styles.bigCardContent}>
-                    <Link to='/settings/users'>{nUsers}</Link>
+                    {props.isAdmin
+                      ? <Link to='/settings/users'>{nUsers}</Link>
+                      : <p>{nUsers}</p>
+                    }
                   </p>
                 </CardBlock>
               </Card>
