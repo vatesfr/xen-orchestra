@@ -381,7 +381,7 @@ class PoolAvailableSrs extends Component {
 
 @connectStore(() => {
   const getIsInPool = createSelector(
-    (_, { pool }) => pool && pool.id,
+    (_, { pool }) => pool != null && pool.id,
     poolId => obj => obj.$pool === poolId
   )
 
@@ -413,7 +413,7 @@ class PoolAvailableSrs extends Component {
 
   const getXosanSrs = createSort(createSelector(
     createGetObjectsOfType('SR').filter(createSelector(
-      (_, { pool }) => pool && pool.id,
+      (_, { pool }) => pool != null && pool.id,
       poolId =>
         sr => sr.$pool === poolId && sr.shared && sr.SR_type === 'xosan'
     )),
