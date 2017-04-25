@@ -380,7 +380,10 @@ class PoolAvailableSrs extends Component {
 // ==================================================================
 
 @connectStore(() => {
-  const getIsInPool = (_, { pool }) => obj => obj.$pool === pool.id
+  const getIsInPool = createSelector(
+    (_, { pool }) => pool && pool.id,
+    poolId => obj => obj.$pool === poolId
+  )
 
   const getPbdsBySr = createGetObjectsOfType('PBD').filter(getIsInPool).groupBy('SR')
   const getHosts = createGetObjectsOfType('host').filter(getIsInPool)
@@ -409,9 +412,11 @@ class PoolAvailableSrs extends Component {
   ), 'name_label')
 
   const getXosanSrs = createSort(createSelector(
-    createGetObjectsOfType('SR').filter((_, { pool }) =>
-      sr => sr.$pool === pool.id && sr.shared && sr.SR_type === 'xosan'
-    ),
+    createGetObjectsOfType('SR').filter(createSelector(
+      (_, { pool }) => pool && pool.id,
+      poolId =>
+        sr => sr.$pool === poolId && sr.shared && sr.SR_type === 'xosan'
+    )),
     getPbdsBySr,
     (srs, pbdsBySr) =>
       map(srs, sr => ({ ...sr, pbds: pbdsBySr[sr.id] }))
