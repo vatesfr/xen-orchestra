@@ -1,6 +1,5 @@
 import classNames from 'classnames'
 import every from 'lodash/every'
-import map from 'lodash/map'
 import React, { Component, cloneElement } from 'react'
 
 import _ from '../intl'
@@ -12,7 +11,7 @@ import styles from './index.css'
 const Wizard = ({ children }) => {
   const allDone = every(React.Children.toArray(children), (child) => child.props.done || child.props.summary)
   return <ul className={styles.wizard}>
-    {map(React.Children.toArray(children), (child, key) => cloneElement(child, { allDone, key }))}
+    {React.Children.map(children, (child, key) => cloneElement(child, { allDone, key }))}
   </ul>
 }
 export { Wizard as default }
