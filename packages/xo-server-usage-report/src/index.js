@@ -285,20 +285,21 @@ function getMostAllocatedSpaces ({
     }))
 }
 
-function getHostsMissingPatches ({
-  hosts,
+async function getHostsMissingPatches ({
+  runningHosts,
   xo
 }) {
-  return Promise.all(map(hosts, async host => {
-    const hostsPatches = await xo.getXapi(host).listMissingPoolPatchesOnHost(host.uuid)
+  const hostsMissingPatches = await Promise.all(map(runningHosts, async host => {
+    const hostsPatches = await xo.getXapi(host).listMissingPoolPatchesOnHost(host._xapiId)
     if (hostsPatches.length > 0) {
       return {
         uuid: host.uuid,
-        name: host.name,
-        patches: map(hostsPatches, patch => 'name')
+        name: host.name_label,
+        patches: map(hostsPatches, 'name')
       }
     }
   }))
+  return filter(hostsMissingPatches, host => host !== undefined)
 }
 
 function getAllUsersEmail (users) {
