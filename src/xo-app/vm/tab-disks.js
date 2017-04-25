@@ -242,7 +242,7 @@ class OrderItem extends Component {
   }
 
   render () {
-    const { item, connectDragSource, connectDropTarget, showBootableFlag } = this.props
+    const { item, connectDragSource, connectDropTarget } = this.props
     return connectDragSource(connectDropTarget(
       <li className='list-group-item'>
         <Icon icon='grab' />
@@ -250,9 +250,9 @@ class OrderItem extends Component {
         <Icon icon='grab' />
         {' '}
         {item.text}
-        {showBootableFlag && <span className='pull-right'>
+        <span className='pull-right'>
           <Toggle value={item.active} onChange={this._toggle} />
-        </span>}
+        </span>
       </li>
     ))
   }
@@ -424,12 +424,12 @@ export default class TabDisks extends Component {
             icon='disk'
             labelId='vdiAttachDeviceButton'
           />
-          <TabButton
+          {vm.virtualizationMode !== 'pv' && <TabButton
             btnStyle={bootOrder ? 'info' : 'primary'}
-            handler={this._toggleBootOrder} // TODO: boot order
+            handler={this._toggleBootOrder}
             icon='sort'
             labelId='vdiBootOrder'
-          />
+          />}
         </Col>
       </Row>
       <Row>
