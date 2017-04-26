@@ -9,9 +9,14 @@ import propTypes from '../prop-types'
 import styles from './index.css'
 
 const Wizard = ({ children }) => {
-  const allDone = every(React.Children.toArray(children), (child) => child.props.done || child.props.summary)
+  const allDone = every(React.Children.toArray(children), child =>
+    child.props.done || child.props.summary
+  )
+
   return <ul className={styles.wizard}>
-    {React.Children.map(children, (child, key) => cloneElement(child, { allDone, key }))}
+    {React.Children.map(children, (child, key) =>
+      child && cloneElement(child, { allDone, key })
+    )}
   </ul>
 }
 export { Wizard as default }
