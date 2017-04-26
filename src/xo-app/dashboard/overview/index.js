@@ -240,8 +240,8 @@ export default class Overview extends Component {
                     />
                     <p className='text-xs-center'>
                       {_('ofUsage', {
-                        total: `${props.vmMetrics.vcpus} vCPUs`,
-                        usage: `${props.hostMetrics.cpus} CPUs`
+                        total: `${props.hostMetrics.cpus} CPUs`,
+                        usage: `${props.vmMetrics.vcpus} vCPUs`
                       })}
                     </p>
                   </div>
