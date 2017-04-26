@@ -335,6 +335,21 @@ const constructPattern = ({ not, values } = EMPTY_OBJECT, valueTransform = ident
   currentUser: getUser
 })
 export default class New extends Component {
+  constructor (props) {
+    super(props)
+
+    // This piece of code is used to replace the deprecated parameter 'depth' with 'retention'
+    if (this._getMainParams().depth !== undefined) {
+      let params = this._getMainParams()
+      params.retention = this._getMainParams().depth
+      delete params.depth
+
+      this.setState({
+        mainParams: params
+      })
+    }
+  }
+
   _getParams = createSelector(
     () => this.props.job,
     () => this.props.schedule,
