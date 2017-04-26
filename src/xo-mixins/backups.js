@@ -424,6 +424,8 @@ export default class {
         return srcXapi.deleteVm(delta.vm.uuid)
       })
 
+      delta.vm.name_label += ` (${shortDate(Date.now())})`
+
       const promise = targetXapi.importDeltaVm(
         delta,
         {
