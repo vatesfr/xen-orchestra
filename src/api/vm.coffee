@@ -544,6 +544,11 @@ set.params = {
   cpuCap: { type: ['integer', 'null'], optional: true }
 
   affinityHost: { type: ['string', 'null'], optional: true }
+
+  # Switch from Cirrus video adaptor to VGA adaptor
+  vga: { type: 'string', optional: true }
+
+  videoram: { type: ['string', 'number'], optional: true }
 }
 
 set.resolve = {

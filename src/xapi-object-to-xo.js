@@ -360,6 +360,13 @@ const TRANSFORMS = {
       $VGPUs: link(obj, 'VGPUs')
     }
 
+    if (isHvm) {
+      ({
+        vga: vm.vga = 'cirrus',
+        videoram: vm.videoram = 4
+      } = obj.platform)
+    }
+
     if (obj.is_control_domain) {
       vm.type += '-controller'
     } else if (obj.is_a_snapshot) {

@@ -1,6 +1,7 @@
 import deferrable from 'golike-defer'
 import find from 'lodash/find'
 import gte from 'lodash/gte'
+import includes from 'lodash/includes'
 import isEmpty from 'lodash/isEmpty'
 import lte from 'lodash/lte'
 
@@ -18,6 +19,10 @@ import {
   makeEditObject,
   NULL_REF
 } from '../utils'
+
+// According to: https://xenserver.org/blog/entry/vga-over-cirrus-in-xenserver-6-2.html.
+const XEN_VGA_VALUES = ['std', 'cirrus']
+const XEN_VIDEORAM_VALUES = [1, 2, 4, 8, 16]
 
 export default {
   // TODO: clean up on error.
@@ -341,7 +346,25 @@ export default {
 
     PV_args: true,
 
-    tags: true
+    tags: true,
+
+    vga: {
+      set (vga, vm) {
+        if (!includes(XEN_VGA_VALUES, vga)) {
+          throw new Error(`The different values that the VGA can take are: ${XEN_VGA_VALUES}`)
+        }
+        return this._updateObjectMapProperty(vm, 'platform', { vga })
+      }
+    },
+
+    videoram: {
+      set (videoram, vm) {
+        if (!includes(XEN_VIDEORAM_VALUES, videoram)) {
+          throw new Error(`The different values that the video RAM can take are: ${XEN_VIDEORAM_VALUES}`)
+        }
+        return this._updateObjectMapProperty(vm, 'platform', { videoram })
+      }
+    }
   }),
 
   async editVm (id, props, checkLimits) {
