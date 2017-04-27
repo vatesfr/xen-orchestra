@@ -1,6 +1,7 @@
 import _ from 'intl'
 import Component from 'base-component'
 import Copiable from 'copiable'
+import getEventValue from 'get-event-value'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import React from 'react'
@@ -255,7 +256,7 @@ export default ({
           </tr>
           {vm.virtualizationMode === 'hvm' &&
             <tr>
-              <th>{_('vmVGA')}</th>
+              <th>{_('vmVga')}</th>
               <td>
                 <Toggle value={vm.vga === 'std'} onChange={value => editVm(vm, { vga: value ? 'std' : 'cirrus' })} />
               </td>
@@ -267,10 +268,10 @@ export default ({
               <td>
                 <select
                   className='form-control'
-                  onChange={event => editVm(vm, { videoram: +event.target.value })}
-                  defaultValue={vm.videoram}
+                  onChange={event => editVm(vm, { videoram: +getEventValue(event) })}
+                  value={vm.videoram}
                 >
-                  {map(XEN_VIDEORAM_VALUES, val => <option value={val}>{val}</option>)}
+                  {map(XEN_VIDEORAM_VALUES, val => <option value={val}>{val} MB</option>)}
                 </select>
               </td>
             </tr>
