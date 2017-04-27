@@ -106,6 +106,7 @@ export default class HostItem extends Component {
 
   render () {
     const { item: host, container, expandAll, selected, nVms } = this.props
+    const toolTipContent = host.power_state === 'Running' && !host.enabled ? `disabled` : _(`powerState${host.power_state}`)
     return <div className={styles.item}>
       <BlockLink to={`/hosts/${host.id}`}>
         <SingleLineRow>
@@ -115,8 +116,8 @@ export default class HostItem extends Component {
               &nbsp;&nbsp;
               <Tooltip
                 content={isEmpty(host.current_operations)
-                  ? _(`powerState${host.power_state}`)
-                  : <div>{_(`powerState${host.power_state}`)}{' ('}{map(host.current_operations)[0]}{')'}</div>
+                  ? toolTipContent
+                  : <div>{toolTipContent}{' ('}{map(host.current_operations)[0]}{')'}</div>
                 }
               >
                 {isEmpty(host.current_operations) && (host.power_state !== 'Running' || host.enabled)
