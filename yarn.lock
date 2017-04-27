@@ -1866,6 +1866,10 @@ dependency-check@^2.8.0:
     read-package-json "^2.0.4"
     resolve "^1.1.7"
 
+deptree@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/deptree/-/deptree-1.0.0.tgz#d4f8fa7c21444b1977e719ce3d29fc3650336b7b"
+
 destroy@~1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/destroy/-/destroy-1.0.4.tgz#978857442c44749e4206613e37946205826abd80"

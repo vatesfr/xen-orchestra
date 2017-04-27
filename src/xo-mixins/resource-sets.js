@@ -84,7 +84,8 @@ export default class {
         () => this.getAllResourceSets(),
         resourceSets => Promise.all(mapToArray(resourceSets, resourceSet =>
           this._save(resourceSet)
-        ))
+        )),
+        [ 'groups', 'users' ]
       )
 
       this._store = await xo.getStore('resourceSets')

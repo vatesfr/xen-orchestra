@@ -52,6 +52,7 @@
     "d3-time-format": "^2.0.5",
     "debug": "^2.6.3",
     "decorator-synchronized": "^0.2.3",
+    "deptree": "^1.0.0",
     "escape-string-regexp": "^1.0.5",
     "event-to-promise": "^0.8.0",
     "exec-promise": "^0.6.1",

@@ -53,7 +53,8 @@ export default class {
     xo.on('start', async () => {
       xo.addConfigManager('groups',
         () => groupsDb.get(),
-        groups => Promise.all(mapToArray(groups, group => groupsDb.save(group)))
+        groups => Promise.all(mapToArray(groups, group => groupsDb.save(group))),
+        [ 'users' ]
       )
       xo.addConfigManager('users',
         () => usersDb.get(),
@@ -62,7 +63,7 @@ export default class {
           const conflictUsers = await usersDb.get({ email: user.email })
           if (!isEmpty(conflictUsers)) {
             await Promise.all(mapToArray(conflictUsers, ({ id }) =>
-              (id !== userId) && this.deleteUser(user.id)
+              (id !== userId) && this.deleteUser(id)
             ))
           }
           return usersDb.save(user)

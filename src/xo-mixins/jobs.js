@@ -21,7 +21,8 @@ export default class {
         () => jobsDb.get(),
         jobs => Promise.all(mapToArray(jobs, job =>
           jobsDb.save(job)
-        ))
+        )),
+        [ 'users' ]
       )
     })
   }

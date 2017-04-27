@@ -49,7 +49,8 @@ export default class {
         () => schedules.get(),
         schedules_ => Promise.all(mapToArray(schedules_, schedule =>
           schedules.save(schedule)
-        ))
+        )),
+        [ 'jobs' ]
       )
 
       return this._loadSchedules()

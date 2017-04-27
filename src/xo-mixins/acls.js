@@ -28,7 +28,8 @@ export default class {
     xo.on('start', () => {
       xo.addConfigManager('acls',
         () => aclsDb.get(),
-        acls => aclsDb.update(acls)
+        acls => aclsDb.update(acls),
+        [ 'groups', 'users' ]
       )
     })
 
