@@ -1,6 +1,7 @@
 import _ from 'intl'
 import Component from 'base-component'
 import Copiable from 'copiable'
+import getEventValue from 'get-event-value'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import React from 'react'
@@ -32,7 +33,8 @@ import {
   stopVm,
   suspendVm,
   XEN_DEFAULT_CPU_CAP,
-  XEN_DEFAULT_CPU_WEIGHT
+  XEN_DEFAULT_CPU_WEIGHT,
+  XEN_VIDEORAM_VALUES
 } from 'xo'
 import {
   createGetObjectsOfType,
@@ -252,6 +254,28 @@ export default ({
               <AffinityHost vm={vm} />
             </td>
           </tr>
+          {vm.virtualizationMode === 'hvm' &&
+            <tr>
+              <th>{_('vmVga')}</th>
+              <td>
+                <Toggle value={vm.vga === 'std'} onChange={value => editVm(vm, { vga: value ? 'std' : 'cirrus' })} />
+              </td>
+            </tr>
+          }
+          {vm.vga === 'std' &&
+            <tr>
+              <th>{_('vmVideoram')}</th>
+              <td>
+                <select
+                  className='form-control'
+                  onChange={event => editVm(vm, { videoram: +getEventValue(event) })}
+                  value={vm.videoram}
+                >
+                  {map(XEN_VIDEORAM_VALUES, val => <option value={val}>{formatSize(val * 1048576)}</option>)}
+                </select>
+              </td>
+            </tr>
+          }
         </tbody>
       </table>
       <br />

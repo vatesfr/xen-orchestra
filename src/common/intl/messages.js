@@ -770,6 +770,8 @@ var messages = {
   autoPowerOn: 'Auto power on',
   ha: 'HA',
   vmAffinityHost: 'Affinity host',
+  vmVga: 'VGA',
+  vmVideoram: 'Video RAM',
   noAffinityHost: 'None',
   originalTemplate: 'Original template',
   unknownOsName: 'Unknown',
