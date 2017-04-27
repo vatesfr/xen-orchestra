@@ -33,7 +33,7 @@ import {
   suspendVm,
   XEN_DEFAULT_CPU_CAP,
   XEN_DEFAULT_CPU_WEIGHT,
-  XEN_MAX_VIDEORAM
+  XEN_VIDEORAM_VALUES
 } from 'xo'
 import {
   createGetObjectsOfType,
@@ -257,17 +257,21 @@ export default ({
             <tr>
               <th>{_('vmVGA')}</th>
               <td>
-                <Toggle value={vm.platform && vm.platform.vga} onChange={value => editVm(vm, { VGA: value })} />
+                <Toggle value={vm.vga === 'std'} onChange={value => editVm(vm, { vga: value ? 'std' : 'cirrus' })} />
               </td>
             </tr>
           }
-          {vm.platform.vga !== undefined &&
+          {vm.vga === 'std' &&
             <tr>
               <th>{_('vmVideoram')}</th>
               <td>
-                <Number value={vm.platform && vm.platform.videoram} onChange={value => editVm(vm, { videoram: value })}>
-                  {vm.platform.videoram} MB / {XEN_MAX_VIDEORAM} MB
-                </Number>
+                <select
+                  className='form-control'
+                  onChange={event => editVm(vm, { videoram: +event.target.value })}
+                  defaultValue={vm.videoram}
+                >
+                  {map(XEN_VIDEORAM_VALUES, val => <option value={val}>{val}</option>)}
+                </select>
               </td>
             </tr>
           }
