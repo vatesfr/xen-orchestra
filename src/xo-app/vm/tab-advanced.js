@@ -271,7 +271,7 @@ export default ({
                   onChange={event => editVm(vm, { videoram: +getEventValue(event) })}
                   value={vm.videoram}
                 >
-                  {map(XEN_VIDEORAM_VALUES, val => <option value={val}>{val} MB</option>)}
+                  {map(XEN_VIDEORAM_VALUES, val => <option value={val}>{formatSize(val * 1048576)}</option>)}
                 </select>
               </td>
             </tr>
