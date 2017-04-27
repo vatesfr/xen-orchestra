@@ -119,7 +119,7 @@ export default class HostItem extends Component {
                   : <div>{_(`powerState${host.power_state}`)}{' ('}{map(host.current_operations)[0]}{')'}</div>
                 }
               >
-                {isEmpty(host.current_operations)
+                {isEmpty(host.current_operations) && (host.power_state !== 'Running' || host.enabled)
                   ? <Icon icon={`${host.power_state.toLowerCase()}`} />
                   : <Icon icon='busy' />
                 }

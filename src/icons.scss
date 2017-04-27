@@ -441,6 +441,11 @@
       @extend .fa-server;
       @extend .text-danger;
     }
+    &-busy {
+      @extend .fa;
+      @extend .fa-server;
+      @extend .text-warning;
+    }
     &-working {
       @extend .fa;
       @extend .fa-circle;
