@@ -282,6 +282,7 @@ class TimeoutInput extends Component {
     return <input
       {...props}
       onChange={this._onChange}
+      min='1'
       type='number'
       value={value == null ? '' : String(value / 1e3)}
     />
