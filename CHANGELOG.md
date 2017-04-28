@@ -1,5 +1,31 @@
 # ChangeLog
 
+## **5.8.0** (2017-04-28)
+
+### Enhancements
+
+- Limit About view info for non-admins [\#2109](https://github.com/vatesfr/xo-web/issues/2109)
+- Enabling/disabling boot device on HVM VM [\#2105](https://github.com/vatesfr/xo-web/issues/2105)
+- Filter: Hide snapshots in SR disk view [\#2102](https://github.com/vatesfr/xo-web/issues/2102)
+- Smarter XOSAN install [\#2084](https://github.com/vatesfr/xo-web/issues/2084)
+- PL translation [\#2079](https://github.com/vatesfr/xo-web/issues/2079)
+- Remove the "share this VM" option if not in self service [\#2061](https://github.com/vatesfr/xo-web/issues/2061)
+- "connected" status graphics are not the same on the host storage and networking tabs [\#2060](https://github.com/vatesfr/xo-web/issues/2060)
+- Ability to view and edit `vga` and `videoram` fields in VM view [\#158](https://github.com/vatesfr/xo-web/issues/158)
+
+### Bug fixes
+
+- Dashboard display issues [\#2108](https://github.com/vatesfr/xo-web/issues/2108)
+- Dashboard CPUs Usage [\#2105](https://github.com/vatesfr/xo-web/issues/2105)
+- [Dashboard/Overview] Warning [\#2090](https://github.com/vatesfr/xo-web/issues/2090)
+- VM creation displays all networks [\#2086](https://github.com/vatesfr/xo-web/issues/2086)
+- Cannot change HA mode for a VM [\#2080](https://github.com/vatesfr/xo-web/issues/2080)
+- [Smart backup] Tags selection does not work [\#2077](https://github.com/vatesfr/xo-web/issues/2077)
+- [Backup jobs] Timeout should be in seconds, not milliseconds [\#2076](https://github.com/vatesfr/xo-web/issues/2076)
+- Missing VM templates [\#2075](https://github.com/vatesfr/xo-web/issues/2075)
+- [transport-email] From header not set [\#2074](https://github.com/vatesfr/xo-web/issues/2074)
+- Missing objects should be displayed in backup edition [\#2052](https://github.com/vatesfr/xo-web/issues/2052)
+
 ## **5.7.0** (2017-03-31)
 
 ### Enhancements
