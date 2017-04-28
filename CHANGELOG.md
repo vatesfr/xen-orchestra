@@ -12,6 +12,7 @@
 - Remove the "share this VM" option if not in self service [\#2061](https://github.com/vatesfr/xo-web/issues/2061)
 - "connected" status graphics are not the same on the host storage and networking tabs [\#2060](https://github.com/vatesfr/xo-web/issues/2060)
 - Ability to view and edit `vga` and `videoram` fields in VM view [\#158](https://github.com/vatesfr/xo-web/issues/158)
+- Performances [\#1](https://github.com/vatesfr/xen-api/issues/1)
 
 ### Bug fixes
 
