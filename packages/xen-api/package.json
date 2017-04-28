@@ -37,6 +37,7 @@
     "debug": "^2.6.1",
     "event-to-promise": "^0.8.0",
     "exec-promise": "^0.6.1",
+    "json-rpc-protocol": "^0.11.2",
     "kindof": "^2.0.0",
     "lodash": "^4.17.4",
     "make-error": "^1.2.1",
@@ -44,6 +45,7 @@
     "ms": "^1.0.0",
     "promise-toolbox": "^0.8.0",
     "pw": "0.0.4",
+    "superagent": "^3.5.2",
     "xmlrpc": "^1.3.2",
     "xo-collection": "^0.4.1"
   },
