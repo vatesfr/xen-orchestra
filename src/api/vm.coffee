@@ -201,6 +201,11 @@ create.params = {
     optional: true
   }
 
+  coresPerSocket: {
+    type: ['string', 'number']
+    optional: true
+  }
+
   resourceSet: {
     type: 'string',
     optional: true
@@ -549,6 +554,8 @@ set.params = {
   vga: { type: 'string', optional: true }
 
   videoram: { type: ['string', 'number'], optional: true }
+
+  coresPerSocket : { type: ['string', 'number', 'null'], optional: true }
 }
 
 set.resolve = {

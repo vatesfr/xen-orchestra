@@ -72,6 +72,7 @@ function toTimestamp (date) {
 
 const TRANSFORMS = {
   pool (obj) {
+    const cpuInfo = obj.cpu_info
     return {
       default_SR: link(obj, 'default_SR'),
       HA_enabled: Boolean(obj.ha_enabled),
@@ -79,7 +80,11 @@ const TRANSFORMS = {
       tags: obj.tags,
       name_description: obj.name_description,
       name_label: obj.name_label || obj.$master.name_label,
-      xosanPackInstallationTime: toTimestamp(obj.other_config.xosan_pack_installation_time)
+      xosanPackInstallationTime: toTimestamp(obj.other_config.xosan_pack_installation_time),
+      cpus: {
+        cores: cpuInfo && +cpuInfo.cpu_count,
+        sockets: cpuInfo && +cpuInfo.socket_count
+      }
 
       // TODO
       // - ? networks = networksByPool.items[pool.id] (network.$pool.id)
@@ -365,6 +370,11 @@ const TRANSFORMS = {
         vga: vm.vga = 'cirrus',
         videoram: vm.videoram = 4
       } = obj.platform)
+    }
+
+    const coresPerSocket = obj.platform['cores-per-socket']
+    if (coresPerSocket !== undefined) {
+      vm.coresPerSocket = +coresPerSocket
     }
 
     if (obj.is_control_domain) {

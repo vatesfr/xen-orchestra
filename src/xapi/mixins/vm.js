@@ -259,6 +259,12 @@ export default {
       }
     },
 
+    coresPerSocket: {
+      set (coresPerSocket, vm) {
+        return this._updateObjectMapProperty(vm, 'platform', {'cores-per-socket': coresPerSocket})
+      }
+    },
+
     CPUs: 'cpus',
     cpus: {
       addToLimits: true,
