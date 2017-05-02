@@ -12,6 +12,7 @@ import { Number, Size, Text, XoSelect } from 'editable'
 import { Container, Row, Col } from 'grid'
 import {
   every,
+  includes,
   map,
   uniq
 } from 'lodash'
@@ -37,6 +38,7 @@ import {
   XEN_VIDEORAM_VALUES
 } from 'xo'
 import {
+  createGetObject,
   createGetObjectsOfType,
   createSelector
 } from 'selectors'
@@ -110,6 +112,49 @@ class AffinityHost extends Component {
         <Icon icon='remove' />
       </a>}
     </span>
+  }
+}
+
+@connectStore(() => ({
+  container: createGetObject((_, { vm }) => vm.$container)
+}))
+class CoresPerSocket extends Component {
+  _getCoresPerSocketPossibilities = () => {
+    const {
+      container,
+      vm
+    } = this.props
+
+    // According to : https://www.citrix.com/blogs/2014/03/11/citrix-xenserver-setting-more-than-one-vcpu-per-vm-to-improve-application-performance-and-server-consolidation-e-g-for-cad3-d-graphical-applications/
+    const maxVCPUs = 16
+    const maxCoresPerSocket = container.cpus.cores
+    const vCPUs = vm.CPUs.number
+
+    const options = []
+    for (let coresPerSocket = 1; coresPerSocket <= maxCoresPerSocket; coresPerSocket++) {
+      if (vCPUs % coresPerSocket === 0 && vCPUs / coresPerSocket <= maxVCPUs) options.push(coresPerSocket)
+    }
+
+    if (vm.coresPerSocket && !includes(options, +vm.coresPerSocket)) {
+      editVm(vm, { coresPerSocket: null })
+    }
+
+    return options
+  }
+
+  render () {
+    const vm = this.props.vm
+
+    return <select
+      className='form-control'
+      onChange={event => editVm(vm, { coresPerSocket: getEventValue(event) })}
+      value={vm.coresPerSocket}
+    >
+      <option value={'null'}> Choose core(s) per socket </option>
+      {map(this._getCoresPerSocketPossibilities(),
+        coresPerSocket => <option value={coresPerSocket}>{`${vm.CPUs.number / coresPerSocket} socket${vm.CPUs.number / coresPerSocket > 1 ? 's' : ''} with ${coresPerSocket} core${coresPerSocket > 1 ? 's' : ''} per socket`}</option>
+      )}
+    </select>
   }
 }
 
@@ -291,6 +336,12 @@ export default ({
                 ? vm.CPUs.max
                 : <Number value={vm.CPUs.max} onChange={cpusStaticMax => editVm(vm, { cpusStaticMax })} />
               }
+            </td>
+          </tr>
+          <tr>
+            <th>{_('vmCpuTopology')}</th>
+            <td>
+              <CoresPerSocket vm={vm} />
             </td>
           </tr>
           <tr>

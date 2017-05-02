@@ -239,6 +239,20 @@ export default class NewVm extends BaseComponent {
     resolveResourceSet
   )
 
+  _getCoresPerSocketPossibilities = () => {
+    // According to : https://www.citrix.com/blogs/2014/03/11/citrix-xenserver-setting-more-than-one-vcpu-per-vm-to-improve-application-performance-and-server-consolidation-e-g-for-cad3-d-graphical-applications/
+    const maxVCPUs = 16
+    const maxCoresPerSocket = this.props.pool.cpus.cores
+    const vCPUs = this.state.state.CPUs
+
+    const options = []
+    for (let coresPerSocket = 1; coresPerSocket <= maxCoresPerSocket; coresPerSocket++) {
+      if (vCPUs !== '' && vCPUs % coresPerSocket === 0 && vCPUs / coresPerSocket <= maxVCPUs) options.push(coresPerSocket)
+    }
+
+    return options
+  }
+
 // Utils -----------------------------------------------------------------------
 
   getUniqueId () {
@@ -363,6 +377,7 @@ export default class NewVm extends BaseComponent {
       VIFs: _VIFs,
       resourceSet: resourceSet && resourceSet.id,
       // vm.set parameters
+      coresPerSocket: state.coresPerSocket,
       CPUs: state.CPUs,
       cpuWeight: state.cpuWeight === '' ? null : state.cpuWeight,
       cpuCap: state.cpuCap === '' ? null : state.cpuCap,
@@ -880,7 +895,8 @@ export default class NewVm extends BaseComponent {
   }
 
   _renderPerformances = () => {
-    const { CPUs, memoryDynamicMax } = this.state.state
+    const { CPUs, memoryDynamicMax, coresPerSocket } = this.state.state
+
     return <Section icon='new-vm-perf' title='newVmPerfPanel' done={this._isPerformancesDone()}>
       <SectionContent>
         <Item label={_('newVmVcpusLabel')}>
@@ -899,6 +915,18 @@ export default class NewVm extends BaseComponent {
             onChange={this._linkState('memoryDynamicMax')}
             value={firstDefined(memoryDynamicMax, null)}
           />
+        </Item>
+        <Item label={_('vmCpuTopology')}>
+          <select
+            className='form-control'
+            onChange={this._getOnChange('coresPerSocket')}
+            value={coresPerSocket}
+          >
+            <option> Choose core(s) per socket </option>
+            {map(this._getCoresPerSocketPossibilities(),
+              coresPerSocket => <option value={coresPerSocket}>{`${CPUs / coresPerSocket} socket${CPUs / coresPerSocket > 1 ? 's' : ''} with ${coresPerSocket} core${coresPerSocket > 1 ? 's' : ''} per socket`}</option>
+            )}
+          </select>
         </Item>
       </SectionContent>
     </Section>

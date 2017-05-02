@@ -779,6 +779,7 @@ var messages = {
   unknownOriginalTemplate: 'Unknown',
   vmLimitsLabel: 'VM limits',
   vmCpuLimitsLabel: 'CPU limits',
+  vmCpuTopology: 'Topology',
   vmMemoryLimitsLabel: 'Memory limits (min/max)',
   vmMaxVcpus: 'vCPUs max:',
   vmMaxRam: 'Memory max:',

@@ -79,7 +79,7 @@ class MiniStats extends Component {
   }
 }
 
-@connectStore(({
+@connectStore(() => ({
   container: createGetObject((_, props) => props.item.$pool),
   needsRestart: createDoesHostNeedRestart((_, props) => props.item),
   nVms: createGetObjectsOfType('VM').count(
