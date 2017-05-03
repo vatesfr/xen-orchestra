@@ -1,5 +1,6 @@
 import _ from 'intl'
 import ActionRowButton from 'action-row-button'
+import Button from 'button'
 import Link from 'link'
 import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
@@ -117,13 +118,29 @@ export default class HostPatches extends Component {
   _installPatchWarning = ({patch, installPatch}) => confirm(
     {
       title: _('installPatchWarningTitle'),
-      body: <div><p>{_('installPatchWarningContent')}</p><Link to={'/pools/' + this.props.host.$pool + '/patches'} onClick={close}>link to the pool patches</Link></div>
+      body: <div>
+        <p>{_('installPatchWarningContent')}</p>
+        <Link to={'/pools/' + this.props.host.$pool + '/patches'}>
+          <Button
+            btnStyle='success btn-block'
+            onClick={close}>Go to pool level patching
+          </Button>
+        </Link>
+      </div>
     }).then(() => installPatch(patch))
 
   _installAllPatchesWarning = installAllPatches => confirm(
     {
       title: _('installPatchWarningTitle'),
-      body: <div><p>{_('installPatchWarningContent')}</p><Link to={'/pools/' + this.props.host.$pool + '/patches'} onClick={close}>link to the pool patches</Link></div>
+      body: <div>
+        <p>{_('installPatchWarningContent')}</p>
+        <Link to={'/pools/' + this.props.host.$pool + '/patches'}>
+          <Button
+            btnStyle='success btn-block'
+            onClick={close}>Go to pool level patching
+          </Button>
+        </Link>
+      </div>
     }).then(() => installAllPatches())
 
   _getPatches = createSelector(
