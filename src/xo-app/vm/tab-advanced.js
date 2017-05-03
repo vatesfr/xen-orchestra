@@ -1,4 +1,4 @@
-import _ from 'intl'
+import _, {messages} from 'intl'
 import Component from 'base-component'
 import Copiable from 'copiable'
 import getEventValue from 'get-event-value'
@@ -7,6 +7,7 @@ import isEmpty from 'lodash/isEmpty'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
 import TabButton from 'tab-button'
+import { injectIntl } from 'react-intl'
 import { Toggle } from 'form'
 import { Number, Size, Text, XoSelect } from 'editable'
 import { Container, Row, Col } from 'grid'
@@ -115,6 +116,7 @@ class AffinityHost extends Component {
   }
 }
 
+@injectIntl
 @connectStore(() => ({
   container: createGetObject((_, { vm }) => vm.$container)
 }))
@@ -131,29 +133,40 @@ class CoresPerSocket extends Component {
     const vCPUs = vm.CPUs.number
 
     const options = []
-    for (let coresPerSocket = 1; coresPerSocket <= maxCoresPerSocket; coresPerSocket++) {
-      if (vCPUs % coresPerSocket === 0 && vCPUs / coresPerSocket <= maxVCPUs) options.push(coresPerSocket)
-    }
-
-    if (vm.coresPerSocket && !includes(options, +vm.coresPerSocket)) {
-      editVm(vm, { coresPerSocket: null })
+    if (maxCoresPerSocket !== undefined) {
+      for (let coresPerSocket = 1; coresPerSocket <= maxCoresPerSocket; coresPerSocket++) {
+        if (vCPUs % coresPerSocket === 0 && vCPUs / coresPerSocket <= maxVCPUs) options.push(coresPerSocket)
+      }
+      if (vm.coresPerSocket && !includes(options, +vm.coresPerSocket)) {
+        editVm(vm, { coresPerSocket: null })
+      }
     }
 
     return options
   }
-
   render () {
     const vm = this.props.vm
+    const { formatMessage } = this.props.intl
 
     return <select
       className='form-control'
       onChange={event => editVm(vm, { coresPerSocket: getEventValue(event) })}
       value={vm.coresPerSocket}
     >
-      <option value={'null'}> Choose core(s) per socket </option>
-      {map(this._getCoresPerSocketPossibilities(),
-        coresPerSocket => <option value={coresPerSocket}>{`${vm.CPUs.number / coresPerSocket} socket${vm.CPUs.number / coresPerSocket > 1 ? 's' : ''} with ${coresPerSocket} core${coresPerSocket > 1 ? 's' : ''} per socket`}</option>
-      )}
+      <option value={'null'}> {formatMessage(messages.vmChooseCoresPerSocket)} </option>
+      {
+        map(
+          this._getCoresPerSocketPossibilities(),
+          coresPerSocket => <option
+            value={coresPerSocket}
+          >
+            {formatMessage(messages.vmCoresPerSocket, {
+              sockets: vm.CPUs.number / coresPerSocket,
+              value: coresPerSocket
+            })}
+          </option>
+        )
+      }
     </select>
   }
 }

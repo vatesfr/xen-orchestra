@@ -780,6 +780,8 @@ var messages = {
   vmLimitsLabel: 'VM limits',
   vmCpuLimitsLabel: 'CPU limits',
   vmCpuTopology: 'Topology',
+  vmChooseCoresPerSocket: 'Choose core(s) per socket',
+  vmCoresPerSocket: '{sockets, number} socket{sockets, plural, one {} other {s}} with {value, number} core{value, plural, one {} other {s}} per socket',
   vmMemoryLimitsLabel: 'Memory limits (min/max)',
   vmMaxVcpus: 'vCPUs max:',
   vmMaxRam: 'Memory max:',

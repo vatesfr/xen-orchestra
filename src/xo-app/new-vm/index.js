@@ -239,20 +239,6 @@ export default class NewVm extends BaseComponent {
     resolveResourceSet
   )
 
-  _getCoresPerSocketPossibilities = () => {
-    // According to : https://www.citrix.com/blogs/2014/03/11/citrix-xenserver-setting-more-than-one-vcpu-per-vm-to-improve-application-performance-and-server-consolidation-e-g-for-cad3-d-graphical-applications/
-    const maxVCPUs = 16
-    const maxCoresPerSocket = this.props.pool.cpus.cores
-    const vCPUs = this.state.state.CPUs
-
-    const options = []
-    for (let coresPerSocket = 1; coresPerSocket <= maxCoresPerSocket; coresPerSocket++) {
-      if (vCPUs !== '' && vCPUs % coresPerSocket === 0 && vCPUs / coresPerSocket <= maxVCPUs) options.push(coresPerSocket)
-    }
-
-    return options
-  }
-
 // Utils -----------------------------------------------------------------------
 
   getUniqueId () {
@@ -608,6 +594,25 @@ export default class NewVm extends BaseComponent {
     })
   )
 
+  _getCoresPerSocketPossibilities = createSelector(
+    () => this.props.pool,
+    () => this.state.state.CPUs,
+    (pool, vCPUs) => {
+      // According to : https://www.citrix.com/blogs/2014/03/11/citrix-xenserver-setting-more-than-one-vcpu-per-vm-to-improve-application-performance-and-server-consolidation-e-g-for-cad3-d-graphical-applications/
+      const maxVCPUs = 16
+      const maxCoresPerSocket = pool.cpus.cores
+
+      const options = []
+      if (maxCoresPerSocket !== undefined) {
+        for (let coresPerSocket = 1; coresPerSocket <= maxCoresPerSocket; coresPerSocket++) {
+          if (vCPUs !== '' && vCPUs % coresPerSocket === 0 && vCPUs / coresPerSocket <= maxVCPUs) options.push(coresPerSocket)
+        }
+      }
+
+      return options
+    }
+  )
+
 // On change -------------------------------------------------------------------
   /*
    * if index: the element to be modified should be an array/object
@@ -896,6 +901,7 @@ export default class NewVm extends BaseComponent {
 
   _renderPerformances = () => {
     const { CPUs, memoryDynamicMax, coresPerSocket } = this.state.state
+    const { formatMessage } = this.props.intl
 
     return <Section icon='new-vm-perf' title='newVmPerfPanel' done={this._isPerformancesDone()}>
       <SectionContent>
@@ -922,10 +928,20 @@ export default class NewVm extends BaseComponent {
             onChange={this._getOnChange('coresPerSocket')}
             value={coresPerSocket}
           >
-            <option> Choose core(s) per socket </option>
-            {map(this._getCoresPerSocketPossibilities(),
-              coresPerSocket => <option value={coresPerSocket}>{`${CPUs / coresPerSocket} socket${CPUs / coresPerSocket > 1 ? 's' : ''} with ${coresPerSocket} core${coresPerSocket > 1 ? 's' : ''} per socket`}</option>
-            )}
+            <option>{formatMessage(messages.vmChooseCoresPerSocket)} </option>
+            {
+              map(
+                this._getCoresPerSocketPossibilities(),
+                coresPerSocket => <option
+                  value={coresPerSocket}
+                >
+                  {formatMessage(messages.vmCoresPerSocket, {
+                    sockets: CPUs / coresPerSocket,
+                    value: coresPerSocket
+                  })}
+                </option>
+              )
+            }
           </select>
         </Item>
       </SectionContent>
