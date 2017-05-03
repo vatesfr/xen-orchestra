@@ -1,10 +1,11 @@
 import _ from 'intl'
 import ActionRowButton from 'action-row-button'
+import Link from 'link'
 import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import Upgrade from 'xoa-upgrade'
-import { confirm } from 'modal'
+import { confirm, close } from 'modal'
 import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createDoesHostNeedRestart, createSelector } from 'selectors'
@@ -14,6 +15,8 @@ import {
   isEmpty,
   isString
 } from 'lodash'
+
+
 
 const MISSING_PATCH_COLUMNS = [
   {
@@ -46,7 +49,8 @@ const MISSING_PATCH_COLUMNS = [
     itemRenderer: (patch, {installPatch, _installPatchWarning}) => (
       <ActionRowButton
         btnStyle='primary'
-        handler={() => _installPatchWarning(patch, installPatch)}
+        handler={_installPatchWarning}
+        handlerParam={{patch, installPatch}}
         icon='host-patch-update'
       />
     )

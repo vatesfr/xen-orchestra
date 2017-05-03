@@ -23,6 +23,10 @@ const modal = (content, onClose) => {
   instance.setState({ content, onClose, showModal: true }, disableShortcuts)
 }
 
+export const close = () => {
+  instance.close()
+}
+
 export const alert = (title, body) => {
   return new Promise(resolve => {
     const { Body, Footer, Header, Title } = ReactModal

@@ -1112,7 +1112,7 @@ var messages = {
   serverError: 'Error',
   serverAddFailed: 'Adding server failed',
   serverStatus: 'Status',
-  serverConnectionFailed: 'Connection failed. Click for more information.',
+  serverConnectionFailed: 'Connection failed',
   serverConnecting: 'Connecting...',
   serverConnected: 'Connected',
   serverDisconnected: 'Disconnected',
