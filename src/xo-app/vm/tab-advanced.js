@@ -1,4 +1,4 @@
-import _, {messages} from 'intl'
+import _ from 'intl'
 import Component from 'base-component'
 import Copiable from 'copiable'
 import getEventValue from 'get-event-value'
@@ -7,7 +7,6 @@ import isEmpty from 'lodash/isEmpty'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
 import TabButton from 'tab-button'
-import { injectIntl } from 'react-intl'
 import { Toggle } from 'form'
 import { Number, Size, Text, XoSelect } from 'editable'
 import { Container, Row, Col } from 'grid'
@@ -116,7 +115,6 @@ class AffinityHost extends Component {
   }
 }
 
-@injectIntl
 @connectStore(() => ({
   container: createGetObject((_, { vm }) => vm.$container)
 }))
@@ -146,27 +144,23 @@ class CoresPerSocket extends Component {
   }
   render () {
     const vm = this.props.vm
-    const { formatMessage } = this.props.intl
 
     return <select
       className='form-control'
-      onChange={event => editVm(vm, { coresPerSocket: getEventValue(event) })}
-      value={vm.coresPerSocket}
+      onChange={event => editVm(vm, { coresPerSocket: +getEventValue(event) })}
+      value={vm.coresPerSocket || 'null'}
     >
-      <option value={'null'}> {formatMessage(messages.vmChooseCoresPerSocket)} </option>
-      {
-        map(
-          this._getCoresPerSocketPossibilities(),
-          coresPerSocket => <option
-            value={coresPerSocket}
-          >
-            {formatMessage(messages.vmCoresPerSocket, {
-              sockets: vm.CPUs.number / coresPerSocket,
-              value: coresPerSocket
-            })}
-          </option>
+      {_('vmChooseCoresPerSocket', message => <option value={'null'}>{message}</option>)}
+      {map(
+        this._getCoresPerSocketPossibilities(),
+        coresPerSocket => _(
+          'vmCoresPerSocket', {
+            nSockets: vm.CPUs.number / coresPerSocket,
+            nCores: coresPerSocket
+          },
+          message => <option key={vm.CPUs.number / coresPerSocket} value={coresPerSocket}>{message}</option>
         )
-      }
+      )}
     </select>
   }
 }

@@ -595,17 +595,16 @@ export default class NewVm extends BaseComponent {
   )
 
   _getCoresPerSocketPossibilities = createSelector(
-    () => this.props.pool,
+    () => this.props.pool.cpus.cores,
     () => this.state.state.CPUs,
-    (pool, vCPUs) => {
+    (maxCoresPerSocket, vCPUs) => {
       // According to : https://www.citrix.com/blogs/2014/03/11/citrix-xenserver-setting-more-than-one-vcpu-per-vm-to-improve-application-performance-and-server-consolidation-e-g-for-cad3-d-graphical-applications/
       const maxVCPUs = 16
-      const maxCoresPerSocket = pool.cpus.cores
 
       const options = []
-      if (maxCoresPerSocket !== undefined) {
+      if (maxCoresPerSocket !== undefined && vCPUs !== '') {
         for (let coresPerSocket = 1; coresPerSocket <= maxCoresPerSocket; coresPerSocket++) {
-          if (vCPUs !== '' && vCPUs % coresPerSocket === 0 && vCPUs / coresPerSocket <= maxVCPUs) options.push(coresPerSocket)
+          if (vCPUs % coresPerSocket === 0 && vCPUs / coresPerSocket <= maxVCPUs) options.push(coresPerSocket)
         }
       }
 
@@ -901,7 +900,6 @@ export default class NewVm extends BaseComponent {
 
   _renderPerformances = () => {
     const { CPUs, memoryDynamicMax, coresPerSocket } = this.state.state
-    const { formatMessage } = this.props.intl
 
     return <Section icon='new-vm-perf' title='newVmPerfPanel' done={this._isPerformancesDone()}>
       <SectionContent>
@@ -928,20 +926,17 @@ export default class NewVm extends BaseComponent {
             onChange={this._getOnChange('coresPerSocket')}
             value={coresPerSocket}
           >
-            <option>{formatMessage(messages.vmChooseCoresPerSocket)} </option>
-            {
-              map(
-                this._getCoresPerSocketPossibilities(),
-                coresPerSocket => <option
-                  value={coresPerSocket}
-                >
-                  {formatMessage(messages.vmCoresPerSocket, {
-                    sockets: CPUs / coresPerSocket,
-                    value: coresPerSocket
-                  })}
-                </option>
+            {_('vmChooseCoresPerSocket', message => <option value={''}>{message}</option>)}
+            {map(
+              this._getCoresPerSocketPossibilities(),
+              coresPerSocket => _(
+                'vmCoresPerSocket', {
+                  nSockets: CPUs / coresPerSocket,
+                  nCores: coresPerSocket
+                },
+                message => <option key={CPUs / coresPerSocket} value={coresPerSocket}>{message}</option>
               )
-            }
+            )}
           </select>
         </Item>
       </SectionContent>
