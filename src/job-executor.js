@@ -34,11 +34,12 @@ export class UnsupportedVectorType extends JobExecutorError {
 const match = (pattern, value) => {
   if (isPlainObject(pattern)) {
     if (size(pattern) === 1) {
-      if (pattern.__or) {
-        return some(pattern.__or, subpattern => match(subpattern, value))
+      let op
+      if ((op = pattern.__or) !== undefined) {
+        return some(op, subpattern => match(subpattern, value))
       }
-      if (pattern.__not) {
-        return !match(pattern.__not, value)
+      if ((op = pattern.__not) !== undefined) {
+        return !match(op, value)
       }
     }
 
