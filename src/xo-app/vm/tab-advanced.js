@@ -39,7 +39,6 @@ import {
   XEN_VIDEORAM_VALUES
 } from 'xo'
 import {
-  createGetObject,
   createGetObjectsOfType,
   createSelector
 } from 'selectors'
@@ -116,39 +115,30 @@ class AffinityHost extends Component {
   }
 }
 
-@connectStore(() => ({
-  container: createGetObject((_, { vm }) => vm.$container)
-}))
 class CoresPerSocket extends Component {
-  _updateXenCoresPerSocketValue = createSelector(
-    (maxCoresPerSocket, vCPUs) => getCoresPerSocketPossibilities(maxCoresPerSocket, vCPUs),
-    options => {
-      const coresPerSocket = this.props.vm.coresPerSocket
-
-      if (coresPerSocket !== undefined && !includes(options, +coresPerSocket)) {
-        editVm(this.props.vm, { coresPerSocket: null })
-      }
-    }
+  _getCoresPerSocketPossibilities = createSelector(
+    () => this.props.container.cpus.cores,
+    () => this.props.vm.CPUs.number,
+    getCoresPerSocketPossibilities
   )
 
   render () {
-    const {
-      container,
-      vm
-    } = this.props
-    const maxCoresPerSocket = container.cpus.cores
-    const vCPUs = vm.CPUs.number
+    const vm = this.props.vm
+    const selectedCoresPerSocket = vm.coresPerSocket
+    const options = this._getCoresPerSocketPossibilities()
 
-    this._updateXenCoresPerSocketValue(maxCoresPerSocket, vCPUs)
+    if (selectedCoresPerSocket !== undefined && !includes(options, selectedCoresPerSocket)) {
+      editVm(vm, { coresPerSocket: null })
+    }
 
     return <select
       className='form-control'
       onChange={event => editVm(vm, { coresPerSocket: getEventValue(event) || null })}
-      value={vm.coresPerSocket || ''}
+      value={selectedCoresPerSocket || ''}
     >
       {_('vmChooseCoresPerSocket', message => <option value=''>{message}</option>)}
       {map(
-        getCoresPerSocketPossibilities(maxCoresPerSocket, vCPUs),
+        options,
         coresPerSocket => _(
           'vmCoresPerSocket', {
             nSockets: vm.CPUs.number / coresPerSocket,
@@ -162,6 +152,7 @@ class CoresPerSocket extends Component {
 }
 
 export default ({
+  container,
   vm
 }) => <Container>
   <Row>
@@ -344,7 +335,7 @@ export default ({
           <tr>
             <th>{_('vmCpuTopology')}</th>
             <td>
-              <CoresPerSocket vm={vm} />
+              <CoresPerSocket container={container} vm={vm} />
             </td>
           </tr>
           <tr>
