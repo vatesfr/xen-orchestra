@@ -81,12 +81,12 @@ const FILTERS = {
 
 // ===================================================================
 
-export default ({ vdis, vdiSnapshots, vdisToVmIds }) => (
+export default ({ vdis, vdisUnmanaged, vdiSnapshots, vdisToVmIds }) => (
   <Container>
     <Row>
       <Col>
         {!isEmpty(vdis)
-          ? <SortedTable collection={vdis.concat(vdiSnapshots)} userData={vdisToVmIds} columns={COLUMNS} filters={FILTERS} />
+          ? <SortedTable collection={vdis.concat(vdiSnapshots, vdisUnmanaged)} userData={vdisToVmIds} columns={COLUMNS} filters={FILTERS} />
           : <h4 className='text-xs-center'>{_('srNoVdis')}</h4>
         }
       </Col>

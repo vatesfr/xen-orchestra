@@ -223,6 +223,7 @@ export default class Sr extends Component {
       'pbds',
       'sr',
       'vdis',
+      'vdisUnmanaged',
       'vdiSnapshots',
       'vdisToVmIds'
     ]))
