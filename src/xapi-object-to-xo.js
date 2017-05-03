@@ -510,13 +510,10 @@ const TRANSFORMS = {
   // -----------------------------------------------------------------
 
   vdi (obj) {
-    if (!obj.managed) {
-      return
-    }
-
     const vdi = {
       type: 'VDI',
 
+      managed: obj.managed,
       name_description: obj.name_description,
       name_label: obj.name_label,
       size: +obj.virtual_size,
