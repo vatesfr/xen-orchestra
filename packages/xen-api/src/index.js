@@ -115,18 +115,15 @@ const {
   create: createObject,
   defineProperties,
   defineProperty,
-  freeze: freezeObject,
-  prototype: { toString }
+  freeze: freezeObject
 } = Object
-
-const isString = invoke(toString.call(''), tag =>
-  value => toString.call(value) === tag
-)
 
 // -------------------------------------------------------------------
 
 const OPAQUE_REF_PREFIX = 'OpaqueRef:'
-const isOpaqueRef = value => isString(value) && startsWith(value, OPAQUE_REF_PREFIX)
+const isOpaqueRef = value =>
+  typeof value === 'string' &&
+  startsWith(value, OPAQUE_REF_PREFIX)
 
 // -------------------------------------------------------------------
 
@@ -289,7 +286,7 @@ export class Xapi extends EventEmitter {
   // this lib), UUID (unique identifier that some objects have) or
   // opaque reference (internal to XAPI).
   getObject (idOrUuidOrRef, defaultValue) {
-    const object = isString(idOrUuidOrRef)
+    const object = typeof idOrUuidOrRef === 'string'
       ? (
         // if there is an UUID, it is also the $id.
         this._objects.all[idOrUuidOrRef] ||
