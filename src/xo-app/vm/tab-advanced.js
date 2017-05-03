@@ -20,6 +20,7 @@ import {
   connectStore,
   firstDefined,
   formatSize,
+  getCoresPerSocketPossibilities,
   normalizeXenToolsStatus,
   osFamily
 } from 'utils'
@@ -119,46 +120,41 @@ class AffinityHost extends Component {
   container: createGetObject((_, { vm }) => vm.$container)
 }))
 class CoresPerSocket extends Component {
-  _getCoresPerSocketPossibilities = () => {
+  _updateXenCoresPerSocketValue = createSelector(
+    (maxCoresPerSocket, vCPUs) => getCoresPerSocketPossibilities(maxCoresPerSocket, vCPUs),
+    options => {
+      const coresPerSocket = this.props.vm.coresPerSocket
+
+      if (coresPerSocket !== undefined && !includes(options, +coresPerSocket)) {
+        editVm(this.props.vm, { coresPerSocket: null })
+      }
+    }
+  )
+
+  render () {
     const {
       container,
       vm
     } = this.props
-
-    // According to : https://www.citrix.com/blogs/2014/03/11/citrix-xenserver-setting-more-than-one-vcpu-per-vm-to-improve-application-performance-and-server-consolidation-e-g-for-cad3-d-graphical-applications/
-    const maxVCPUs = 16
     const maxCoresPerSocket = container.cpus.cores
     const vCPUs = vm.CPUs.number
 
-    const options = []
-    if (maxCoresPerSocket !== undefined) {
-      for (let coresPerSocket = 1; coresPerSocket <= maxCoresPerSocket; coresPerSocket++) {
-        if (vCPUs % coresPerSocket === 0 && vCPUs / coresPerSocket <= maxVCPUs) options.push(coresPerSocket)
-      }
-      if (vm.coresPerSocket && !includes(options, +vm.coresPerSocket)) {
-        editVm(vm, { coresPerSocket: null })
-      }
-    }
-
-    return options
-  }
-  render () {
-    const vm = this.props.vm
+    this._updateXenCoresPerSocketValue(maxCoresPerSocket, vCPUs)
 
     return <select
       className='form-control'
-      onChange={event => editVm(vm, { coresPerSocket: +getEventValue(event) })}
-      value={vm.coresPerSocket || 'null'}
+      onChange={event => editVm(vm, { coresPerSocket: getEventValue(event) || null })}
+      value={vm.coresPerSocket || ''}
     >
-      {_('vmChooseCoresPerSocket', message => <option value={'null'}>{message}</option>)}
+      {_('vmChooseCoresPerSocket', message => <option value=''>{message}</option>)}
       {map(
-        this._getCoresPerSocketPossibilities(),
+        getCoresPerSocketPossibilities(maxCoresPerSocket, vCPUs),
         coresPerSocket => _(
           'vmCoresPerSocket', {
             nSockets: vm.CPUs.number / coresPerSocket,
             nCores: coresPerSocket
           },
-          message => <option key={vm.CPUs.number / coresPerSocket} value={coresPerSocket}>{message}</option>
+          message => <option key={coresPerSocket} value={coresPerSocket}>{message}</option>
         )
       )}
     </select>

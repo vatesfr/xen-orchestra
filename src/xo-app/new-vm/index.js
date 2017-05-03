@@ -70,6 +70,7 @@ import {
   connectStore,
   firstDefined,
   formatSize,
+  getCoresPerSocketPossibilities,
   noop,
   resolveResourceSet
 } from 'utils'
@@ -597,19 +598,7 @@ export default class NewVm extends BaseComponent {
   _getCoresPerSocketPossibilities = createSelector(
     () => this.props.pool.cpus.cores,
     () => this.state.state.CPUs,
-    (maxCoresPerSocket, vCPUs) => {
-      // According to : https://www.citrix.com/blogs/2014/03/11/citrix-xenserver-setting-more-than-one-vcpu-per-vm-to-improve-application-performance-and-server-consolidation-e-g-for-cad3-d-graphical-applications/
-      const maxVCPUs = 16
-
-      const options = []
-      if (maxCoresPerSocket !== undefined && vCPUs !== '') {
-        for (let coresPerSocket = 1; coresPerSocket <= maxCoresPerSocket; coresPerSocket++) {
-          if (vCPUs % coresPerSocket === 0 && vCPUs / coresPerSocket <= maxVCPUs) options.push(coresPerSocket)
-        }
-      }
-
-      return options
-    }
+    (maxCoresPerSocket, vCPUs) => getCoresPerSocketPossibilities(maxCoresPerSocket, vCPUs)
   )
 
 // On change -------------------------------------------------------------------
@@ -926,7 +915,7 @@ export default class NewVm extends BaseComponent {
             onChange={this._getOnChange('coresPerSocket')}
             value={coresPerSocket}
           >
-            {_('vmChooseCoresPerSocket', message => <option value={''}>{message}</option>)}
+            {_('vmChooseCoresPerSocket', message => <option value=''>{message}</option>)}
             {map(
               this._getCoresPerSocketPossibilities(),
               coresPerSocket => _(
@@ -934,7 +923,7 @@ export default class NewVm extends BaseComponent {
                   nSockets: CPUs / coresPerSocket,
                   nCores: coresPerSocket
                 },
-                message => <option key={CPUs / coresPerSocket} value={coresPerSocket}>{message}</option>
+                message => <option key={coresPerSocket} value={coresPerSocket}>{message}</option>
               )
             )}
           </select>
