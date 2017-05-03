@@ -12,6 +12,7 @@ import Usage, { UsageElement } from 'usage'
 export default ({
   sr,
   vdis,
+  vdisUnmanaged,
   vdisToVmIds
 }) => <Container>
   <Row className='text-xs-center'>
@@ -34,8 +35,17 @@ export default ({
   <Row>
     <Col smallOffset={1} mediumSize={10}>
       <Usage total={sr.size}>
+        {map(vdisUnmanaged, vdi => <UsageElement
+          highlight
+          key={vdi.id}
+          tooltip={<span>
+            {vdi.name_label}
+            <br />
+            {vdisToVmIds[vdi.id] && renderXoItemFromId(vdisToVmIds[vdi.id])}
+          </span>}
+          value={vdi.usage}
+        />)}
         {map(vdis, vdi => <UsageElement
-          highlight={!vdi.managed}
           key={vdi.id}
           tooltip={<span>
             {vdi.name_label}

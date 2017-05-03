@@ -79,6 +79,12 @@ import TabXosan from './tab-xosan'
 
 // -----------------------------------------------------------------------------
 
+  const getVdisUnmanaged = createGetObjectsOfType('VDI-unmanaged').pick(
+    createSelector(getSr, sr => sr.VDIs)
+  ).sort()
+
+// -----------------------------------------------------------------------------
+
   const getVdiSnapshots = createGetObjectsOfType('VDI-snapshot').pick(
     createSelector(getSr, sr => sr.VDIs)
   ).sort()
@@ -136,6 +142,7 @@ import TabXosan from './tab-xosan'
       pbds: getPbds(state, props),
       logs: getLogs(state, props),
       vdis: getVdis(state, props),
+      vdisUnmanaged: getVdisUnmanaged(state, props),
       vdiSnapshots: getVdiSnapshots(state, props),
       vdisToVmIds: getVdisToVmIds(state, props),
       sr
