@@ -16,23 +16,6 @@ const debug = createDebug('xen-api')
 
 // ===================================================================
 
-function invoke (fn) {
-  const n = arguments.length - 1
-  if (!n) {
-    return fn()
-  }
-
-  fn = arguments[n]
-  const args = new Array(n)
-  for (let i = 0; i < n; ++i) {
-    args[i] = arguments[i]
-  }
-
-  return fn.apply(undefined, args)
-}
-
-// ===================================================================
-
 // http://www.gnu.org/software/libc/manual/html_node/Error-Codes.html
 const NETWORK_ERRORS = {
   // Connection has been closed outside of our control.
@@ -127,11 +110,12 @@ const isOpaqueRef = value =>
 
 // -------------------------------------------------------------------
 
-const isReadOnlyCall = invoke(/^[^.]+\.get_/, RE => (method, args) => (
+const RE_READ_ONLY_METHOD = /^[^.]+\.get_/
+const isReadOnlyCall = (method, args) => (
   args.length === 1 &&
   isOpaqueRef(args[0]) &&
-  RE.test(method)
-))
+  RE_READ_ONLY_METHOD.test(method)
+)
 
 // -------------------------------------------------------------------
 
