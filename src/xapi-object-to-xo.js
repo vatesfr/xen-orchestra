@@ -513,7 +513,6 @@ const TRANSFORMS = {
     const vdi = {
       type: 'VDI',
 
-      managed: obj.managed,
       name_description: obj.name_description,
       name_label: obj.name_label,
       size: +obj.virtual_size,
@@ -529,6 +528,10 @@ const TRANSFORMS = {
       vdi.type += '-snapshot'
       vdi.snapshot_time = toTimestamp(obj.snapshot_time)
       vdi.$snapshot_of = link(obj, 'snapshot_of')
+    }
+
+    if (!obj.managed) {
+      vdi.type += '-unmanaged'
     }
 
     return vdi
