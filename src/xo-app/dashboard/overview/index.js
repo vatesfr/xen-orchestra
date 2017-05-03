@@ -69,23 +69,19 @@ class PatchesCard extends Component {
 
   const getHostMetrics = createGetHostMetrics(getHosts)
 
-  const userSrs = createTop(
-    createGetObjectsOfType('SR').filter(
-      [ isSrWritable ]
-    ),
-    [ sr => sr.physical_usage / sr.size ],
-    5
+  const writableSrs = createGetObjectsOfType('SR').filter(
+    [ isSrWritable ]
   )
 
   const getSrMetrics = createCollectionWrapper(
     createSelector(
-      userSrs,
-      userSrs => {
+      writableSrs,
+      writableSrs => {
         const metrics = {
           srTotal: 0,
           srUsage: 0
         }
-        forEach(userSrs, sr => {
+        forEach(writableSrs, sr => {
           metrics.srUsage += sr.physical_usage
           metrics.srTotal += sr.size
         })
@@ -144,7 +140,11 @@ class PatchesCard extends Component {
     nTasks: getNumberOfTasks,
     nVms: getNumberOfVms,
     srMetrics: getSrMetrics,
-    userSrs: userSrs,
+    topWritableSrs: createTop(
+      writableSrs,
+      [ sr => sr.physical_usage / sr.size ],
+      5
+    ),
     vmMetrics: getVmMetrics
   }
 })
@@ -350,8 +350,8 @@ export default class Overview extends Component {
                     <ChartistGraph
                       style={{strokeWidth: '30px'}}
                       data={{
-                        labels: map(props.userSrs, 'name_label'),
-                        series: map(props.userSrs, sr => (sr.physical_usage / sr.size) * 100)
+                        labels: map(props.topWritableSrs, 'name_label'),
+                        series: map(props.topWritableSrs, sr => (sr.physical_usage / sr.size) * 100)
                       }}
                       options={{ showLabel: false, showGrid: false, distributeSeries: true, high: 100 }}
                       type='Bar'
