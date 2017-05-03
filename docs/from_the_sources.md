@@ -66,7 +66,7 @@ git clone -b stable http://github.com/vatesfr/xo-web
 Once you have it, use `npm`, as the non-root user owning the fetched code, to install the other dependencies: go into XO-Server directory and launch the following command:
 
 ```
-$ yarn && yarn run build
+$ yarn
 ```
 
 Then, you have to create a config file for XO-Server:
@@ -99,7 +99,7 @@ WebServer listening on localhost:80
 First, we'll also install dependencies:
 
 ```
-$ yarn && yarn run build
+$ yarn
 ```
 ## Running XO
 
@@ -128,7 +128,7 @@ $ git checkout next-release
 
 ```
 $ git pull --ff-only
-$ yarn && yarn run build
+$ yarn
 ```
 
 ## Troubleshooting
@@ -137,7 +137,6 @@ If you have problem during the buiding phase in `xo-web` or `xo-server`, follow 
 
 1. `rm -rf node_modules`
 1. `yarn`
-1. `yarn run build`
 
 ## FreeBSD
 
