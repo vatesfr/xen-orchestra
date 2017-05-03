@@ -75,8 +75,10 @@ const COLUMNS = [
 ]
 
 const FILTERS = {
+  filterOnlyRegularDisks: 'type:!VDI-unmanaged type:!VDI-snapshot',
   filterNoSnapshots: 'type:!VDI-snapshot',
-  filterOnlySnapshots: 'type:VDI-snapshot'
+  filterOnlySnapshots: 'type:VDI-snapshot',
+  filterOnlyBaseCopy: 'type:VDI-unmanaged'
 }
 
 // ===================================================================

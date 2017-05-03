@@ -24,7 +24,9 @@ var messages = {
   onError: 'On error',
   successful: 'Successful',
   filterNoSnapshots: 'Full disks only',
+  filterOnlyRegularDisks: 'Regular disks only',
   filterOnlySnapshots: 'Snapshots only',
+  filterOnlyBaseCopy: 'Base copy only',
 
   // ----- Copiable component -----
   copyToClipboard: 'Copy to clipboard',
