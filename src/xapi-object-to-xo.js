@@ -510,10 +510,6 @@ const TRANSFORMS = {
   // -----------------------------------------------------------------
 
   vdi (obj) {
-    if (!obj.managed) {
-      return
-    }
-
     const vdi = {
       type: 'VDI',
 
@@ -532,6 +528,10 @@ const TRANSFORMS = {
       vdi.type += '-snapshot'
       vdi.snapshot_time = toTimestamp(obj.snapshot_time)
       vdi.$snapshot_of = link(obj, 'snapshot_of')
+    }
+
+    if (!obj.managed) {
+      vdi.type += '-unmanaged'
     }
 
     return vdi
