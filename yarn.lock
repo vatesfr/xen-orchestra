@@ -5354,7 +5354,7 @@ punycode@^1.4.1:
   version "1.4.1"
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-1.4.1.tgz#c0d5a63b2718800ad8e1eb0fa5269c84dd41845e"
 
-pw@0.0.4:
+pw@0.0.4, pw@^0.0.4:
   version "0.0.4"
   resolved "https://registry.yarnpkg.com/pw/-/pw-0.0.4.tgz#8015982ef8bebfd9d8eb8c795e751774871fde46"
 
