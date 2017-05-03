@@ -35,6 +35,7 @@ export default ({
     <Col smallOffset={1} mediumSize={10}>
       <Usage total={sr.size}>
         {map(vdis, vdi => <UsageElement
+          highlight={!vdi.managed}
           key={vdi.id}
           tooltip={<span>
             {vdi.name_label}
