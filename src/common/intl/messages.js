@@ -597,6 +597,8 @@ var messages = {
   hostAppliedPatches: 'Applied patches',
   hostMissingPatches: 'Missing patches',
   hostUpToDate: 'Host up-to-date!',
+  installPatchWarningTitle: 'Install Patch Manually',
+  installPatchWarningContent: 'Your are installing a patch manually. If you are knowing what you do, you can continue, otherwise you should install the patches with the pool update',
   // ----- Pool patch tabs -----
   refreshPatches: 'Refresh patches',
   installPoolPatches: 'Install pool patches',

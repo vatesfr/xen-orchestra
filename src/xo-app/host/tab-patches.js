@@ -1,5 +1,6 @@
 import _ from 'intl'
 import ActionRowButton from 'action-row-button'
+import Link from 'link'
 import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
@@ -13,6 +14,8 @@ import {
   isEmpty,
   isString
 } from 'lodash'
+
+import { confirm, close } from 'modal'
 
 const MISSING_PATCH_COLUMNS = [
   {
@@ -42,11 +45,11 @@ const MISSING_PATCH_COLUMNS = [
   },
   {
     name: _('patchAction'),
-    itemRenderer: (patch, installPatch) => (
+    itemRenderer: (patch, {installPatch, _installPatchWarning}) => (
       <ActionRowButton
         btnStyle='primary'
-        handler={installPatch}
-        handlerParam={patch}
+        handler={_installPatchWarning}
+        handlerParam={{patch, installPatch}}
         icon='host-patch-update'
       />
     )
@@ -111,6 +114,18 @@ const INSTALLED_PATCH_COLUMNS_2 = [
   needsRestart: createDoesHostNeedRestart((_, props) => props.host)
 }))
 export default class HostPatches extends Component {
+  _installPatchWarning = ({patch, installPatch}) => confirm(
+    {
+      title: _('installPatchWarningTitle'),
+      body: <div><p>{_('installPatchWarningContent')}</p><Link to={'/pools/' + this.props.host.$pool + '/patches'} onClick={close}>link to the pool patches</Link></div>
+    }).then(() => installPatch(patch))
+
+  _installAllPatchesWarning = installAllPatches => confirm(
+    {
+      title: _('installPatchWarningTitle'),
+      body: <div><p>{_('installPatchWarningContent')}</p><Link to={'/pools/' + this.props.host.$pool + '/patches'} onClick={close}>link to the pool patches</Link></div>
+    }).then(() => installAllPatches())
+
   _getPatches = createSelector(
     () => this.props.host,
     () => this.props.hostPatches,
@@ -151,13 +166,15 @@ export default class HostPatches extends Component {
             {isEmpty(missingPatches)
               ? <TabButton
                 disabled
-                handler={installAllPatches}
+                handler={this._installAllPatchesWarning}
+                handlerParam={installAllPatches}
                 icon='success'
                 labelId='hostUpToDate'
               />
               : <TabButton
                 btnStyle='primary'
-                handler={installAllPatches}
+                handler={this._installAllPatchesWarning}
+                handlerParam={installAllPatches}
                 icon='host-patch-update'
                 labelId='patchUpdateButton'
               />
@@ -167,7 +184,7 @@ export default class HostPatches extends Component {
         {!isEmpty(missingPatches) && <Row>
           <Col>
             <h3>{_('hostMissingPatches')}</h3>
-            <SortedTable collection={missingPatches} userData={installPatch} columns={MISSING_PATCH_COLUMNS} />
+            <SortedTable collection={missingPatches} userData={{installPatch, _installPatchWarning: this._installPatchWarning}} columns={MISSING_PATCH_COLUMNS} />
           </Col>
         </Row>}
         <Row>
