@@ -8,7 +8,6 @@ import React from 'react'
 import renderXoItem from 'render-xo-item'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
-import { alert } from 'modal'
 import { Toggle } from 'form'
 import { Number, Size, Text, XoSelect } from 'editable'
 import { Container, Row, Col } from 'grid'
@@ -132,11 +131,6 @@ class CoresPerSocket extends Component {
 
   _onChange = event => editVm(this.props.vm, { coresPerSocket: getEventValue(event) || null })
 
-  _showError = () => alert(
-    _('vmCoresPerSocketIncorrectValue'),
-    _('vmCoresPerSocketIncorrectValueSolution')
-  )
-
   render () {
     const vm = this.props.vm
     const selectedCoresPerSocket = vm.coresPerSocket
@@ -165,19 +159,13 @@ class CoresPerSocket extends Component {
       </select>
       {' '}
       {this._selectedValueIsNotInOptions() &&
-        <Tooltip content={_('vmCoresPerSocketIncorrectValue')}>
-          <a
-            className='text-danger'
-            style={{
-              padding: '0px'
-            }}
-            onClick={this._showError}
-          >
+        <Tooltip content={_('vmCoresPerSocketIncorrectValueSolution')}>
+          <span className='text-danger' >
             <Icon
               icon='alarm'
               size='lg'
             />
-          </a>
+          </span>
         </Tooltip>
       }
     </form>
