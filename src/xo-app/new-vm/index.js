@@ -68,6 +68,7 @@ import {
   connectStore,
   firstDefined,
   formatSize,
+  getCoresPerSocketPossibilities,
   noop,
   resolveResourceSet
 } from 'utils'
@@ -361,6 +362,7 @@ export default class NewVm extends BaseComponent {
       VIFs: _VIFs,
       resourceSet: resourceSet && resourceSet.id,
       // vm.set parameters
+      coresPerSocket: state.coresPerSocket,
       CPUs: state.CPUs,
       cpuWeight: state.cpuWeight === '' ? null : state.cpuWeight,
       cpuCap: state.cpuCap === '' ? null : state.cpuCap,
@@ -589,6 +591,12 @@ export default class NewVm extends BaseComponent {
       '{name}': state => state.name_label || '',
       '%': (_, i) => i
     })
+  )
+
+  _getCoresPerSocketPossibilities = createSelector(
+    () => this.props.pool.cpus.cores,
+    () => this.state.state.CPUs,
+    getCoresPerSocketPossibilities
   )
 
 // On change -------------------------------------------------------------------
@@ -828,7 +836,8 @@ export default class NewVm extends BaseComponent {
   }
 
   _renderPerformances = () => {
-    const { CPUs, memoryDynamicMax } = this.state.state
+    const { CPUs, memoryDynamicMax, coresPerSocket } = this.state.state
+
     return <Section icon='new-vm-perf' title='newVmPerfPanel' done={this._isPerformancesDone()}>
       <SectionContent>
         <Item label={_('newVmVcpusLabel')}>
@@ -847,6 +856,25 @@ export default class NewVm extends BaseComponent {
             onChange={this._linkState('memoryDynamicMax')}
             value={firstDefined(memoryDynamicMax, null)}
           />
+        </Item>
+        <Item label={_('vmCpuTopology')}>
+          <select
+            className='form-control'
+            onChange={this._linkState('coresPerSocket')}
+            value={coresPerSocket}
+          >
+            {_('vmChooseCoresPerSocket', message => <option value=''>{message}</option>)}
+            {map(
+              this._getCoresPerSocketPossibilities(),
+              coresPerSocket => _(
+                'vmCoresPerSocket', {
+                  nSockets: CPUs / coresPerSocket,
+                  nCores: coresPerSocket
+                },
+                message => <option key={coresPerSocket} value={coresPerSocket}>{message}</option>
+              )
+            )}
+          </select>
         </Item>
       </SectionContent>
     </Section>

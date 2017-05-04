@@ -537,3 +537,21 @@ export const compareVersions = makeNiceCompare((v1, v2) => {
 
 export const isXosanPack = ({ name }) =>
   startsWith(name, 'XOSAN')
+
+// ===================================================================
+
+export const getCoresPerSocketPossibilities = (maxCoresPerSocket, vCPUs) => {
+  // According to : https://www.citrix.com/blogs/2014/03/11/citrix-xenserver-setting-more-than-one-vcpu-per-vm-to-improve-application-performance-and-server-consolidation-e-g-for-cad3-d-graphical-applications/
+  const maxVCPUs = 16
+
+  const options = []
+  if (maxCoresPerSocket !== undefined && vCPUs !== '') {
+    const ratio = vCPUs / maxVCPUs
+
+    for (let coresPerSocket = maxCoresPerSocket; coresPerSocket >= ratio; coresPerSocket--) {
+      if (vCPUs % coresPerSocket === 0) options.push(coresPerSocket)
+    }
+  }
+
+  return options
+}

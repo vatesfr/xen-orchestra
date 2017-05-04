@@ -7,11 +7,13 @@ import isEmpty from 'lodash/isEmpty'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
 import TabButton from 'tab-button'
+import Tooltip from 'tooltip'
 import { Toggle } from 'form'
 import { Number, Size, Text, XoSelect } from 'editable'
 import { Container, Row, Col } from 'grid'
 import {
   every,
+  includes,
   map,
   uniq
 } from 'lodash'
@@ -19,6 +21,7 @@ import {
   connectStore,
   firstDefined,
   formatSize,
+  getCoresPerSocketPossibilities,
   normalizeXenToolsStatus,
   osFamily
 } from 'utils'
@@ -113,7 +116,62 @@ class AffinityHost extends Component {
   }
 }
 
+class CoresPerSocket extends Component {
+  _getCoresPerSocketPossibilities = createSelector(
+    () => this.props.container.cpus.cores,
+    () => this.props.vm.CPUs.number,
+    getCoresPerSocketPossibilities
+  )
+
+  _selectedValueIsNotInOptions = createSelector(
+    () => this.props.vm.coresPerSocket,
+    this._getCoresPerSocketPossibilities,
+    (selectedCoresPerSocket, options) => selectedCoresPerSocket !== undefined && !includes(options, selectedCoresPerSocket)
+  )
+
+  _onChange = event => editVm(this.props.vm, { coresPerSocket: getEventValue(event) || null })
+
+  render () {
+    const vm = this.props.vm
+    const selectedCoresPerSocket = vm.coresPerSocket
+    const options = this._getCoresPerSocketPossibilities()
+
+    return <form className='form-inline'>
+      <select
+        className='form-control'
+        onChange={this._onChange}
+        value={selectedCoresPerSocket || ''}
+      >
+        {_('vmChooseCoresPerSocket', message => <option value=''>{message}</option>)}
+        {this._selectedValueIsNotInOptions() &&
+          _('vmCoresPerSocketIncorrectValue', message => <option value={selectedCoresPerSocket}> {message}</option>)
+        }
+        {map(
+          options,
+          coresPerSocket => _(
+            'vmCoresPerSocket', {
+              nSockets: vm.CPUs.number / coresPerSocket,
+              nCores: coresPerSocket
+            },
+            message => <option key={coresPerSocket} value={coresPerSocket}>{message}</option>
+          )
+        )}
+      </select>
+      {' '}
+      {this._selectedValueIsNotInOptions() &&
+        <Tooltip content={_('vmCoresPerSocketIncorrectValueSolution')}>
+          <Icon
+            icon='error'
+            size='lg'
+          />
+        </Tooltip>
+      }
+    </form>
+  }
+}
+
 export default ({
+  container,
   vm
 }) => <Container>
   <Row>
@@ -291,6 +349,12 @@ export default ({
                 ? vm.CPUs.max
                 : <Number value={vm.CPUs.max} onChange={cpusStaticMax => editVm(vm, { cpusStaticMax })} />
               }
+            </td>
+          </tr>
+          <tr>
+            <th>{_('vmCpuTopology')}</th>
+            <td>
+              <CoresPerSocket container={container} vm={vm} />
             </td>
           </tr>
           <tr>
