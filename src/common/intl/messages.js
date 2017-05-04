@@ -780,7 +780,7 @@ var messages = {
   vmLimitsLabel: 'VM limits',
   vmCpuLimitsLabel: 'CPU limits',
   vmCpuTopology: 'Topology',
-  vmChooseCoresPerSocket: 'Choose core(s) per socket',
+  vmChooseCoresPerSocket: 'Default behavior',
   vmCoresPerSocket: '{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket',
   vmCoresPerSocketIncorrectValue: 'Incorrect cores per socket value',
   vmCoresPerSocketIncorrectValueSolution: 'Please change the selected value to fix it.',
