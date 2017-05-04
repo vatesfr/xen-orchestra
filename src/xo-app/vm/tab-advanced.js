@@ -160,12 +160,10 @@ class CoresPerSocket extends Component {
       {' '}
       {this._selectedValueIsNotInOptions() &&
         <Tooltip content={_('vmCoresPerSocketIncorrectValueSolution')}>
-          <span className='text-danger' >
-            <Icon
-              icon='alarm'
-              size='lg'
-            />
-          </span>
+          <Icon
+            icon='error'
+            size='lg'
+          />
         </Tooltip>
       }
     </form>
