@@ -7,6 +7,8 @@ import isEmpty from 'lodash/isEmpty'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
 import TabButton from 'tab-button'
+import Tooltip from 'tooltip'
+import { alert } from 'modal'
 import { Toggle } from 'form'
 import { Number, Size, Text, XoSelect } from 'editable'
 import { Container, Row, Col } from 'grid'
@@ -122,32 +124,54 @@ class CoresPerSocket extends Component {
     getCoresPerSocketPossibilities
   )
 
+  _onChange = event => editVm(this.props.vm, { coresPerSocket: getEventValue(event) || null })
+
+  _showError = () => alert(
+    _('vmCoresPerSocketIncorrectValue'),
+    _('vmCoresPerSocketIncorrectValueSolution')
+  )
+
   render () {
     const vm = this.props.vm
     const selectedCoresPerSocket = vm.coresPerSocket
     const options = this._getCoresPerSocketPossibilities()
 
-    if (selectedCoresPerSocket !== undefined && !includes(options, selectedCoresPerSocket)) {
-      editVm(vm, { coresPerSocket: null })
-    }
-
-    return <select
-      className='form-control'
-      onChange={event => editVm(vm, { coresPerSocket: getEventValue(event) || null })}
-      value={selectedCoresPerSocket || ''}
-    >
-      {_('vmChooseCoresPerSocket', message => <option value=''>{message}</option>)}
-      {map(
-        options,
-        coresPerSocket => _(
-          'vmCoresPerSocket', {
-            nSockets: vm.CPUs.number / coresPerSocket,
-            nCores: coresPerSocket
-          },
-          message => <option key={coresPerSocket} value={coresPerSocket}>{message}</option>
-        )
-      )}
-    </select>
+    return <span>
+      <select
+        className='form-control'
+        onChange={this._onChange}
+        value={selectedCoresPerSocket || ''}
+      >
+        {_('vmChooseCoresPerSocket', message => <option value=''>{message}</option>)}
+        {selectedCoresPerSocket !== undefined && !includes(options, selectedCoresPerSocket) &&
+          _('vmCoresPerSocketIncorrectValue', message => <option value={selectedCoresPerSocket}> {message}</option>)
+        }
+        {map(
+          options,
+          coresPerSocket => _(
+            'vmCoresPerSocket', {
+              nSockets: vm.CPUs.number / coresPerSocket,
+              nCores: coresPerSocket
+            },
+            message => <option key={coresPerSocket} value={coresPerSocket}>{message}</option>
+          )
+        )}
+      </select>
+      {selectedCoresPerSocket !== undefined && !includes(options, selectedCoresPerSocket) &&
+        <Tooltip content={_('vmCoresPerSocketIncorrectValue')}>
+          <a
+            className='text-danger btn btn-link'
+            style={{ padding: '0px' }}
+            onClick={this._showError}
+          >
+            <Icon
+              icon='alarm'
+              size='lg'
+            />
+          </a>
+        </Tooltip>
+      }
+    </span>
   }
 }
 
