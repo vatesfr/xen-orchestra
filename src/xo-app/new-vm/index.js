@@ -912,7 +912,7 @@ export default class NewVm extends BaseComponent {
         <Item label={_('vmCpuTopology')}>
           <select
             className='form-control'
-            onChange={this._getOnChange('coresPerSocket')}
+            onChange={this._linkState('coresPerSocket')}
             value={coresPerSocket}
           >
             {_('vmChooseCoresPerSocket', message => <option value=''>{message}</option>)}

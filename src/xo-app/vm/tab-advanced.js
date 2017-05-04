@@ -124,6 +124,12 @@ class CoresPerSocket extends Component {
     getCoresPerSocketPossibilities
   )
 
+  _selectedValueIsNotInOptions = createSelector(
+    () => this.props.vm.coresPerSocket,
+    this._getCoresPerSocketPossibilities,
+    (selectedCoresPerSocket, options) => selectedCoresPerSocket !== undefined && !includes(options, selectedCoresPerSocket)
+  )
+
   _onChange = event => editVm(this.props.vm, { coresPerSocket: getEventValue(event) || null })
 
   _showError = () => alert(
@@ -136,14 +142,14 @@ class CoresPerSocket extends Component {
     const selectedCoresPerSocket = vm.coresPerSocket
     const options = this._getCoresPerSocketPossibilities()
 
-    return <span>
+    return <form className='form-inline'>
       <select
         className='form-control'
         onChange={this._onChange}
         value={selectedCoresPerSocket || ''}
       >
         {_('vmChooseCoresPerSocket', message => <option value=''>{message}</option>)}
-        {selectedCoresPerSocket !== undefined && !includes(options, selectedCoresPerSocket) &&
+        {this._selectedValueIsNotInOptions() &&
           _('vmCoresPerSocketIncorrectValue', message => <option value={selectedCoresPerSocket}> {message}</option>)
         }
         {map(
@@ -157,11 +163,14 @@ class CoresPerSocket extends Component {
           )
         )}
       </select>
-      {selectedCoresPerSocket !== undefined && !includes(options, selectedCoresPerSocket) &&
+      {' '}
+      {this._selectedValueIsNotInOptions() &&
         <Tooltip content={_('vmCoresPerSocketIncorrectValue')}>
           <a
-            className='text-danger btn btn-link'
-            style={{ padding: '0px' }}
+            className='text-danger'
+            style={{
+              padding: '0px'
+            }}
             onClick={this._showError}
           >
             <Icon
@@ -171,7 +180,7 @@ class CoresPerSocket extends Component {
           </a>
         </Tooltip>
       }
-    </span>
+    </form>
   }
 }
 

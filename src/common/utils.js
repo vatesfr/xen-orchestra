@@ -546,7 +546,9 @@ export const getCoresPerSocketPossibilities = (maxCoresPerSocket, vCPUs) => {
 
   const options = []
   if (maxCoresPerSocket !== undefined && vCPUs !== '') {
-    for (let coresPerSocket = maxCoresPerSocket; coresPerSocket >= vCPUs / maxVCPUs; coresPerSocket--) {
+    const ratio = vCPUs / maxVCPUs
+
+    for (let coresPerSocket = maxCoresPerSocket; coresPerSocket >= ratio; coresPerSocket--) {
       if (vCPUs % coresPerSocket === 0) options.push(coresPerSocket)
     }
   }
