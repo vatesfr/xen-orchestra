@@ -4,7 +4,6 @@ import BaseComponent from 'base-component'
 import Button from 'button'
 import classNames from 'classnames'
 import DebounceInput from 'react-debounce-input'
-import getEventValue from 'get-event-value'
 import Icon from 'icon'
 import isIp from 'is-ip'
 import Page from '../page'
@@ -24,7 +23,6 @@ import {
   forEach,
   get,
   includes,
-  isArray,
   isEmpty,
   join,
   map,
@@ -594,57 +592,7 @@ export default class NewVm extends BaseComponent {
   )
 
 // On change -------------------------------------------------------------------
-  /*
-   * if index: the element to be modified should be an array/object
-   * if stateObjectProp: the array/object contains objects and stateObjectProp needs to be modified
-   * if targetObjectProp: the event target value is an object and the new value is the targetObjectProp of this object
-   *
-   * SCHEMA:                                      EXAMPLE:
-   *
-   * state: {                                     this.state.state: {
-   *   [prop]: {                                    existingDisks: {
-   *     [index]: {                                   0: {
-   *       [stateObjectProp]: TO BE MODIFIED            name_label: TO BE MODIFIED
-   *       ...                                          name_description
-   *     }                                              ...
-   *     ...                                          }
-   *   }                                              1: {...}
-   *   ...                                          }
-   * }                                            }
-   */
-  _getOnChange (prop, index, stateObjectProp, targetObjectProp) {
-    return event => {
-      let value
-      if (index !== undefined) { // The element should be an array or an object
-        value = this.state.state[prop]
-        value = isArray(value) ? [ ...value ] : { ...value } // Clone the element
-        let eventValue = getEventValue(event)
-        eventValue = targetObjectProp ? eventValue[targetObjectProp] : eventValue // Get the new value
-        if (value[index] && stateObjectProp) {
-          value[index][stateObjectProp] = eventValue
-        } else {
-          value[index] = eventValue
-        }
-      } else {
-        value = getEventValue(event)
-      }
-      this._setState({ [prop]: value })
-    }
-  }
-  _getOnChangeCheckbox (prop, index, stateObjectProp) {
-    return event => {
-      let value
-      if (index !== undefined) {
-        value = this.state.state[prop]
-        value = [ ...value ]
-        let eventValue = event.target.checked
-        stateObjectProp ? value[index][stateObjectProp] = eventValue : value[index] = eventValue
-      } else {
-        value = event.target.checked
-      }
-      this._setState({ [prop]: value })
-    }
-  }
+
   _onChangeSshKeys = keys => this._setState({ sshKeys: map(keys, key => key.id) })
 
   _updateNbVms = () => {
@@ -859,7 +807,7 @@ export default class NewVm extends BaseComponent {
           <DebounceInput
             className='form-control'
             debounceTimeout={DEBOUNCE_TIMEOUT}
-            onChange={this._getOnChange('name_label')}
+            onChange={this._linkState('name_label')}
             value={name_label}
           />
         </Item>
@@ -867,7 +815,7 @@ export default class NewVm extends BaseComponent {
           <DebounceInput
             className='form-control'
             debounceTimeout={DEBOUNCE_TIMEOUT}
-            onChange={this._getOnChange('name_description')}
+            onChange={this._linkState('name_description')}
             value={name_description}
           />
         </Item>
@@ -888,7 +836,7 @@ export default class NewVm extends BaseComponent {
             className='form-control'
             debounceTimeout={DEBOUNCE_TIMEOUT}
             min={0}
-            onChange={this._getOnChange('CPUs')}
+            onChange={this._linkState('CPUs')}
             type='number'
             value={CPUs}
           />
@@ -938,7 +886,7 @@ export default class NewVm extends BaseComponent {
             <span className={styles.configDriveToggle}>
               <Toggle
                 value={configDrive}
-                onChange={this._getOnChange('configDrive')}
+                onChange={this._linkState('configDrive')}
               />
             </span>
           </div>
@@ -949,7 +897,7 @@ export default class NewVm extends BaseComponent {
               checked={installMethod === 'SSH'}
               disabled={!configDrive}
               name='installMethod'
-              onChange={this._getOnChange('installMethod')}
+              onChange={this._linkState('installMethod')}
               type='radio'
               value='SSH'
             />
@@ -962,7 +910,7 @@ export default class NewVm extends BaseComponent {
               className='form-control'
               disabled={!configDrive || installMethod !== 'SSH'}
               debounceTimeout={DEBOUNCE_TIMEOUT}
-              onChange={this._getOnChange('newSshKey')}
+              onChange={this._linkState('newSshKey')}
               value={newSshKey}
             />
             <span className='input-group-btn'>
@@ -985,7 +933,7 @@ export default class NewVm extends BaseComponent {
             checked={installMethod === 'customConfig'}
             disabled={!configDrive}
             name='installMethod'
-            onChange={this._getOnChange('installMethod')}
+            onChange={this._linkState('installMethod')}
             type='radio'
             value='customConfig'
           />
@@ -997,7 +945,7 @@ export default class NewVm extends BaseComponent {
             debounceTimeout={DEBOUNCE_TIMEOUT}
             disabled={!configDrive || installMethod !== 'customConfig'}
             element='textarea'
-            onChange={this._getOnChange('customConfig')}
+            onChange={this._linkState('customConfig')}
             value={customConfig}
           />
         </LineItem>
@@ -1008,7 +956,7 @@ export default class NewVm extends BaseComponent {
             <input
               checked={installMethod === 'ISO'}
               name='installMethod'
-              onChange={this._getOnChange('installMethod')}
+              onChange={this._linkState('installMethod')}
               type='radio'
               value='ISO'
             />
@@ -1018,13 +966,13 @@ export default class NewVm extends BaseComponent {
             <span className={styles.inlineSelect}>
               {this.props.pool ? <SelectVdi
                 disabled={installMethod !== 'ISO'}
-                onChange={this._getOnChange('installIso')}
+                onChange={this._linkState('installIso')}
                 srPredicate={this._getIsoPredicate()}
                 value={installIso}
               />
               : <SelectResourceSetsVdi
                 disabled={installMethod !== 'ISO'}
-                onChange={this._getOnChange('installIso')}
+                onChange={this._linkState('installIso')}
                 resourceSet={this._getResolvedResourceSet()}
                 srPredicate={this._getIsoPredicate()}
                 value={installIso}
@@ -1038,7 +986,7 @@ export default class NewVm extends BaseComponent {
               <input
                 checked={installMethod === 'network'}
                 name='installMethod'
-                onChange={this._getOnChange('installMethod')}
+                onChange={this._linkState('installMethod')}
                 type='radio'
                 value='network'
               />
@@ -1050,7 +998,7 @@ export default class NewVm extends BaseComponent {
                 debounceTimeout={DEBOUNCE_TIMEOUT}
                 disabled={installMethod !== 'network'}
                 key='networkInput'
-                onChange={this._getOnChange('installNetwork')}
+                onChange={this._linkState('installNetwork')}
                 placeholder={formatMessage(messages.newVmInstallNetworkPlaceHolder)}
                 value={installNetwork}
               />
@@ -1059,7 +1007,7 @@ export default class NewVm extends BaseComponent {
               <DebounceInput
                 className='form-control'
                 debounceTimeout={DEBOUNCE_TIMEOUT}
-                onChange={this._getOnChange('pv_args')}
+                onChange={this._linkState('pv_args')}
                 value={pv_args}
               />
             </Item>
@@ -1068,7 +1016,7 @@ export default class NewVm extends BaseComponent {
             <input
               checked={installMethod === 'PXE'}
               name='installMethod'
-              onChange={this._getOnChange('installMethod')}
+              onChange={this._linkState('installMethod')}
               type='radio'
               value='PXE'
             />
@@ -1083,7 +1031,7 @@ export default class NewVm extends BaseComponent {
           className='form-control'
           debounceTimeout={DEBOUNCE_TIMEOUT}
           element='textarea'
-          onChange={this._getOnChange('cloudConfig')}
+          onChange={this._linkState('cloudConfig')}
           rows={7}
           value={cloudConfig}
         />
@@ -1167,12 +1115,12 @@ export default class NewVm extends BaseComponent {
             <Item label={_('newVmSrLabel')}>
               <span className={styles.inlineSelect}>
                 {pool ? <SelectSr
-                  onChange={this._getOnChange('existingDisks', index, '$SR', 'id')}
+                  onChange={this._linkState(`existingDisks.${index}.$SR`, 'id')}
                   predicate={this._getSrPredicate()}
                   value={disk.$SR}
                 />
                 : <SelectResourceSetsSr
-                  onChange={this._getOnChange('existingDisks', index, '$SR', 'id')}
+                  onChange={this._linkState(`existingDisks.${index}.$SR`, 'id')}
                   predicate={this._getSrPredicate()}
                   resourceSet={resourceSet}
                   value={disk.$SR}
@@ -1184,7 +1132,7 @@ export default class NewVm extends BaseComponent {
               <DebounceInput
                 className='form-control'
                 debounceTimeout={DEBOUNCE_TIMEOUT}
-                onChange={this._getOnChange('existingDisks', index, 'name_label')}
+                onChange={this._linkState(`existingDisks.${index}.name_label`)}
                 value={disk.name_label}
               />
             </Item>
@@ -1192,14 +1140,14 @@ export default class NewVm extends BaseComponent {
               <DebounceInput
                 className='form-control'
                 debounceTimeout={DEBOUNCE_TIMEOUT}
-                onChange={this._getOnChange('existingDisks', index, 'name_description')}
+                onChange={this._linkState(`existingDisks.${index}.name_description`)}
                 value={disk.name_description}
               />
             </Item>
             <Item label={_('newVmSizeLabel')}>
               <SizeInput
                 className={styles.sizeInput}
-                onChange={this._getOnChange('existingDisks', index, 'size')}
+                onChange={this._linkState(`existingDisks.${index}.size`)}
                 readOnly={!configDrive}
                 value={firstDefined(disk.size, null)}
               />
@@ -1214,12 +1162,12 @@ export default class NewVm extends BaseComponent {
             <Item label={_('newVmSrLabel')}>
               <span className={styles.inlineSelect}>
                 {pool ? <SelectSr
-                  onChange={this._getOnChange('VDIs', index, 'SR', 'id')}
+                  onChange={this._linkState(`VDIs.${index}.SR`, 'id')}
                   predicate={this._getSrPredicate()}
                   value={vdi.SR}
                 />
                 : <SelectResourceSetsSr
-                  onChange={this._getOnChange('VDIs', index, 'SR', 'id')}
+                  onChange={this._linkState(`VDIs.${index}.SR`, 'id')}
                   predicate={this._getSrPredicate()}
                   resourceSet={resourceSet}
                   value={vdi.SR}
@@ -1230,7 +1178,7 @@ export default class NewVm extends BaseComponent {
               <DebounceInput
                 className='form-control'
                 debounceTimeout={DEBOUNCE_TIMEOUT}
-                onChange={this._getOnChange('VDIs', index, 'name_label')}
+                onChange={this._linkState(`VDIs.${index}.name_label`)}
                 value={vdi.name_label}
               />
             </Item>
@@ -1238,14 +1186,14 @@ export default class NewVm extends BaseComponent {
               <DebounceInput
                 className='form-control'
                 debounceTimeout={DEBOUNCE_TIMEOUT}
-                onChange={this._getOnChange('VDIs', index, 'name_description')}
+                onChange={this._linkState(`VDIs.${index}.name_description`)}
                 value={vdi.name_description}
               />
             </Item>
             <Item label={_('newVmSizeLabel')}>
               <SizeInput
                 className={styles.sizeInput}
-                onChange={this._getOnChange('VDIs', index, 'size')}
+                onChange={this._linkState(`VDIs.${index}.size`)}
                 value={firstDefined(vdi.size, null)}
               />
             </Item>
@@ -1308,7 +1256,7 @@ export default class NewVm extends BaseComponent {
           <Item>
             <input
               checked={bootAfterCreate}
-              onChange={this._getOnChangeCheckbox('bootAfterCreate')}
+              onChange={this._linkState('bootAfterCreate')}
               type='checkbox'
             />
             &nbsp;
@@ -1317,7 +1265,7 @@ export default class NewVm extends BaseComponent {
           <Item>
             <input
               checked={autoPoweron}
-              onChange={this._getOnChangeCheckbox('autoPoweron')}
+              onChange={this._linkState('autoPoweron')}
               type='checkbox'
             />
             &nbsp;
@@ -1331,7 +1279,7 @@ export default class NewVm extends BaseComponent {
           <Item>
             <input
               checked={share}
-              onChange={this._getOnChangeCheckbox('share')}
+              onChange={this._linkState('share')}
               type='checkbox'
             />
             &nbsp;
@@ -1345,7 +1293,7 @@ export default class NewVm extends BaseComponent {
               debounceTimeout={DEBOUNCE_TIMEOUT}
               min={0}
               max={65535}
-              onChange={this._getOnChange('cpuWeight')}
+              onChange={this._linkState('cpuWeight')}
               placeholder={formatMessage(messages.newVmDefaultCpuWeight, { value: XEN_DEFAULT_CPU_WEIGHT })}
               type='number'
               value={cpuWeight}
@@ -1356,7 +1304,7 @@ export default class NewVm extends BaseComponent {
               className='form-control'
               debounceTimeout={DEBOUNCE_TIMEOUT}
               min={0}
-              onChange={this._getOnChange('cpuCap')}
+              onChange={this._linkState('cpuCap')}
               placeholder={formatMessage(messages.newVmDefaultCpuCap, { value: XEN_DEFAULT_CPU_CAP })}
               type='number'
               value={cpuCap}
@@ -1376,14 +1324,14 @@ export default class NewVm extends BaseComponent {
         </SectionContent>,
         <SectionContent>
           <Item label={_('newVmMultipleVms')}>
-            <Toggle value={multipleVms} onChange={this._getOnChange('multipleVms')} />
+            <Toggle value={multipleVms} onChange={this._linkState('multipleVms')} />
           </Item>
           <Item label={_('newVmMultipleVmsPattern')}>
             <DebounceInput
               className='form-control'
               debounceTimeout={DEBOUNCE_TIMEOUT}
               disabled={!multipleVms}
-              onChange={this._getOnChange('namePattern')}
+              onChange={this._linkState('namePattern')}
               placeholder={formatMessage(messages.newVmMultipleVmsPatternPlaceholder)}
               value={namePattern}
             />
@@ -1393,7 +1341,7 @@ export default class NewVm extends BaseComponent {
               className={'form-control'}
               debounceTimeout={DEBOUNCE_TIMEOUT}
               disabled={!multipleVms}
-              onChange={this._getOnChange('seqStart')}
+              onChange={this._linkState('seqStart')}
               type='number'
               value={seqStart}
             />
@@ -1405,7 +1353,7 @@ export default class NewVm extends BaseComponent {
               disabled={!multipleVms}
               max={NB_VMS_MAX}
               min={NB_VMS_MIN}
-              onChange={this._getOnChange('nbVms')}
+              onChange={this._linkState('nbVms')}
               type='number'
               value={nbVms}
             />
@@ -1425,7 +1373,7 @@ export default class NewVm extends BaseComponent {
           {multipleVms && <LineItem>
             {map(nameLabels, (nameLabel, index) =>
               <Item key={`nameLabel_${index}`}>
-                <input type='text' className='form-control' value={nameLabel} onChange={this._getOnChange('nameLabels', index)} />
+                <input type='text' className='form-control' value={nameLabel} onChange={this._linkState(`nameLabels.${index}`)} />
               </Item>
             )}
           </LineItem>}
@@ -1527,7 +1475,7 @@ export default class NewVm extends BaseComponent {
         <span style={{margin: 'auto'}}>
           <input
             checked={fastClone}
-            onChange={this._getOnChangeCheckbox('fastClone')}
+            onChange={this._linkState('fastClone')}
             type='checkbox'
           />
           {' '}
