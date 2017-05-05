@@ -130,6 +130,10 @@ const COMMON_SCHEMA = {
         'Plugins *tranport-email* and *backup-reports* need to be configured.'
       ].join('\n')
     },
+    reportOnlyFailedBackups: {
+      type: 'boolean',
+      title: _('editBackupReportOnlyFailedBackups')
+    },
     enabled: {
       type: 'boolean',
       title: _('editBackupReportEnable')

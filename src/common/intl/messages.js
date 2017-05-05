@@ -276,6 +276,7 @@ var messages = {
   editBackupTagTitle: 'Tag',
   editBackupReportTitle: 'Report',
   editBackupReportEnable: 'Enable immediately after creation',
+  editBackupReportOnlyFailedBackups: 'Report only failed backups',
   editBackupDepthTitle: 'Depth',
   editBackupRemoteTitle: 'Remote',
 
