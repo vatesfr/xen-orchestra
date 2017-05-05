@@ -284,6 +284,17 @@ export const subscribeIsInstallingXosan = (pool, cb) => {
   return xosanSubscriptions[poolId](cb)
 }
 
+const missingPatchesByHost = {}
+export const subscribeHostMissingPatches = (host, cb) => {
+  const hostId = resolveId(host)
+
+  if (missingPatchesByHost[hostId] == null) {
+    missingPatchesByHost[hostId] = createSubscription(() => _call('host.listMissingPatches', { host: hostId }))
+  }
+
+  return missingPatchesByHost[hostId](cb)
+}
+
 // System ============================================================
 
 export const apiMethods = _call('system.getMethodsInfo')
