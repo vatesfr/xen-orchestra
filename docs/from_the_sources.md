@@ -8,26 +8,13 @@
 
 This installation is validated against a fresh Debian 8 (Jessie) 64 bits. It should be almost the same on others dpkg systems. For RPMs based OS, it should be close, because most of our dependencies came from NPM and not the OS itself.
 
-As you may have seen, in other parts of the documentation, XO is composed of two parts: [XO-Server](https://github.com/vatesfr/xo-server/) and [XO-Web](https://github.com/vatesfr/xo-web/). They can be installed separately, even on different machines, but for the sake of simplicity we will set them up together.
+As you may have seen, in other parts of the documentation, XO is composed of two parts: [xo-server](https://github.com/vatesfr/xo-server/) and [xo-web](https://github.com/vatesfr/xo-web/). They can be installed separately, even on different machines, but for the sake of simplicity we will set them up together.
 
 ## Packages and Pre-requisites
 
 ### NodeJS
 
-XO needs Node.js. You can install it:
-- by [following this procedure](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager).
-- on Wheezy, the build from source was tested and working well.
-- by using *n*, documented just below.
-
-We'll use `n` because it's powerful and flexible. First, you need `curl`. Then, install it as root:
-
-```bash
-curl -o /usr/local/bin/n https://raw.githubusercontent.com/visionmedia/n/master/bin/n
-chmod +x /usr/local/bin/n
-n lts
-```
-
-> Please use the LTS version of Node
+XO needs Node.js. **Please always use the LTS version of Node**.
 
 We'll consider at this point that you've got a working node on your box. E.g:
 
@@ -46,6 +33,8 @@ See [this page](https://yarnpkg.com/en/docs/install) to know how to install it.
 
 XO needs those packages to be built and installed. Redis is used as a database by XO.
 
+Eg on Debian:
+
 ```
 apt-get install build-essential redis-server libpng-dev git python-minimal
 ```
@@ -61,32 +50,32 @@ git clone -b stable http://github.com/vatesfr/xo-web
 
 ## Installing dependencies
 
-### XO-Server
+### xo-server
 
-Once you have it, use `npm`, as the non-root user owning the fetched code, to install the other dependencies: go into XO-Server directory and launch the following command:
+Once you have it, use `yarn`, as the non-root user owning the fetched code, to install the other dependencies. Into `xo-server` directory and launch the following command:
 
 ```
 $ yarn
 ```
 
-Then, you have to create a config file for XO-Server:
+Then, you have to create a config file for `xo-server`:
 
 ```
 cp sample.config.yaml .xo-server.yaml
 ```
 
-Edit and uncomment it to have the right path to deliver XO-Web, because XO-Server embeds an HTTP server (we assume that XO-Server and XO-Web are on the same directory). It's near the end of the file:
+Edit and uncomment it to have the right path to deliver `xo-web`, because `xo-server` embeds an HTTP server (we assume that `xo-server` and `xo-web` are on the same directory). It's near the end of the file:
 
 ```yaml
   mounts: '/': '../xo-web/dist/'
 ```
-> Note this `dist` folder will be created in the next step (see the XO-Web section)
+> Note this `dist` folder will be created in the next step (see the `xo-web` section)
 
-WARNING: YAML is very strict with indentation: use spaces for it, not tabs.
+**WARNING: YAML is very strict with indentation: use spaces for it, not tabs**.
 
-In this config file, you can also change default ports (80 and 443) for XO-Server.
+In this config file, you can also change default ports (80 and 443) for xo-server.
 
-You can try to start XO-Server to see if it works. You should have something like that:
+You can try to start xo-server to see if it works. You should have something like that:
 
 ```
 $ yarn start
@@ -94,7 +83,7 @@ WebServer listening on localhost:80
 [INFO] Default user: "admin@admin.net" with password "admin"
 ```
 
-### XO-Web
+### xo-web
 
 First, we'll also install dependencies:
 
@@ -103,12 +92,12 @@ $ yarn
 ```
 ## Running XO
 
-The sole part you have to launch is XO-Server which is quite easy to do, just launch the `xo-server` script, which is in the root of XO-Server's directory:
+The sole part you have to launch is xo-server which is quite easy to do, just launch the `xo-server` script, which is in the root of xo-server's directory:
 
 ```
 $ yarn start
 ```
-That's it! Go on your browser to the XO-Server IP address, and it works! :)
+That's it! Go on your browser to the xo-server IP address, and it works! :)
 
 ## Misc
 
@@ -119,7 +108,7 @@ $ yarn global add forever
 $ forever start bin/xo-server
 ```
 
-- Our stable branch is *stable* and the beta branch is *next-release*. You can change it if you want to test our latest features (on both XO-Server and XO-Web, do NOT mix them):
+- Our stable branch is *stable* and the beta branch is *next-release*. You can change it if you want to test our latest features (on both xo-server and `xo-web`, do NOT mix them):
 
 ```
 $ git checkout next-release
