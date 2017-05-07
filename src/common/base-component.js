@@ -54,20 +54,20 @@ export default class BaseComponent extends PureComponent {
 
   // See https://preactjs.com/guide/linked-state
   linkState (name, targetPath) {
-    const key = targetPath
+    const key = targetPath !== undefined
       ? `${name}##${targetPath}`
       : name
 
     let linkedState = this._linkedState
     let cb
-    if (!linkedState) {
+    if (linkedState === null) {
       linkedState = this._linkedState = {}
-    } else if ((cb = linkedState[key])) {
+    } else if ((cb = linkedState[key]) !== undefined) {
       return cb
     }
 
     let getValue
-    if (targetPath) {
+    if (targetPath !== undefined) {
       const path = targetPath.split('.')
       getValue = event => get(getEventValue(event), path, 0)
     } else {
@@ -91,9 +91,9 @@ export default class BaseComponent extends PureComponent {
   toggleState (name) {
     let linkedState = this._linkedState
     let cb
-    if (!linkedState) {
+    if (linkedState === null) {
       linkedState = this._linkedState = {}
-    } else if ((cb = linkedState[name])) {
+    } else if ((cb = linkedState[name]) !== undefined) {
       return cb
     }
 
