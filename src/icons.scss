@@ -375,6 +375,12 @@
     @extend .xo-status-busy;
   }
 
+  &-disabled {
+    @extend .fa;
+    @extend .fa-circle;
+    @extend .xo-status-busy;
+  }
+
   &-all-connected {
     @extend .fa;
     @extend .fa-circle;
@@ -441,7 +447,7 @@
       @extend .fa-server;
       @extend .text-danger;
     }
-    &-busy {
+    &-disabled {
       @extend .fa;
       @extend .fa-server;
       @extend .text-warning;
