@@ -1,11 +1,10 @@
 import _ from 'intl'
 import ActionRowButton from 'action-row-button'
-import Button from 'button'
-import Link from 'link'
 import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import Upgrade from 'xoa-upgrade'
+import { confirm } from 'modal'
 import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createDoesHostNeedRestart, createSelector } from 'selectors'
@@ -15,8 +14,6 @@ import {
   isEmpty,
   isString
 } from 'lodash'
-
-import { confirm, close } from 'modal'
 
 const MISSING_PATCH_COLUMNS = [
   {
@@ -49,8 +46,7 @@ const MISSING_PATCH_COLUMNS = [
     itemRenderer: (patch, {installPatch, _installPatchWarning}) => (
       <ActionRowButton
         btnStyle='primary'
-        handler={_installPatchWarning}
-        handlerParam={{patch, installPatch}}
+        handler={() => _installPatchWarning(patch, installPatch)}
         icon='host-patch-update'
       />
     )
@@ -115,33 +111,25 @@ const INSTALLED_PATCH_COLUMNS_2 = [
   needsRestart: createDoesHostNeedRestart((_, props) => props.host)
 }))
 export default class HostPatches extends Component {
-  _installPatchWarning = ({patch, installPatch}) => confirm(
+  static contextTypes = {
+    router: React.PropTypes.object
+  }
+
+  _installPatchWarning = (patch, installPatch) => confirm(
     {
       title: _('installPatchWarningTitle'),
-      body: <div>
-        <p>{_('installPatchWarningContent')}</p>
-        <Link to={'/pools/' + this.props.host.$pool + '/patches'}>
-          <Button
-            btnStyle='success btn-block'
-            onClick={close}>Go to pool level patching
-          </Button>
-        </Link>
-      </div>
-    }).then(() => installPatch(patch))
+      body: <p>{_('installPatchWarningContent')}</p>,
+      labelResolve: _('installPatchWarningResolve'),
+      labelReject: _('installPatchWarningReject')
+    }).then(() => installPatch(patch), () => this.context.router.push('/pools/' + this.props.host.$pool + '/patches'))
 
   _installAllPatchesWarning = installAllPatches => confirm(
     {
       title: _('installPatchWarningTitle'),
-      body: <div>
-        <p>{_('installPatchWarningContent')}</p>
-        <Link to={'/pools/' + this.props.host.$pool + '/patches'}>
-          <Button
-            btnStyle='success btn-block'
-            onClick={close}>Go to pool level patching
-          </Button>
-        </Link>
-      </div>
-    }).then(() => installAllPatches())
+      body: <p>{_('installPatchWarningContent')}</p>,
+      labelResolve: _('installPatchWarningResolve'),
+      labelReject: _('installPatchWarningReject')
+    }).then(installAllPatches, () => this.context.router.push('/pools/' + this.props.host.$pool + '/patches'))
 
   _getPatches = createSelector(
     () => this.props.host,
