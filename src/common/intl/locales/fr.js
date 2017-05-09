@@ -1394,12 +1394,6 @@ export default {
   // Original text: "Host up-to-date!"
   hostUpToDate: 'Hôte à jour !',
 
-  // Original text: "Install Patch Warning"
-  installPatchWarningTitle: 'Installation manuelle de patches',
-
-  // Original text: "Your are installing patch manually. If you are knowing what you do, you can continue, otherwise we advise you to install the patches with the pool update"
-  installPatchWarningContent: 'Vous êtes en train d\'installer des patches manuellement. Si vous savez ce que vous faites, vous pouvez continuer, sinon, nous vous conseillons d\'utiliser la mise à jour à partir de la page du pool',
-
   // Original text: "Refresh patches"
   refreshPatches: 'Rafraichir patchs',
 

@@ -6,7 +6,7 @@ import { Modal as ReactModal } from 'react-bootstrap-4/lib'
 import _ from './intl'
 import Button from './button'
 import Icon from './icon'
-import propTypes from './prop-types-decorator'
+import propTypes from './prop-types'
 import {
   disable as disableShortcuts,
   enable as enableShortcuts
@@ -21,10 +21,6 @@ const modal = (content, onClose) => {
     throw new Error('Other modal still open.')
   }
   instance.setState({ content, onClose, showModal: true }, disableShortcuts)
-}
-
-export const close = () => {
-  instance.close()
 }
 
 export const alert = (title, body) => {

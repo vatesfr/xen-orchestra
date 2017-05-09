@@ -1,11 +1,10 @@
 import _ from 'intl'
 import ActionRowButton from 'action-row-button'
-import Link from 'link'
 import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import Upgrade from 'xoa-upgrade'
-import { confirm, close } from 'modal'
+import { confirm } from 'modal'
 import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createDoesHostNeedRestart, createSelector } from 'selectors'
@@ -15,8 +14,6 @@ import {
   isEmpty,
   isString
 } from 'lodash'
-
-
 
 const MISSING_PATCH_COLUMNS = [
   {
@@ -118,8 +115,6 @@ export default class HostPatches extends Component {
   static contextTypes = {
     router: React.PropTypes.object
   }
-
-  poolRoute = '/pools/' + this.props.host.$pool + '/patches'
 
   _installPatchWarning = (patch, installPatch) => confirm(
     {
