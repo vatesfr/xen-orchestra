@@ -74,11 +74,9 @@ const fullCopy = vm => cloneVm(vm, true)
   )
 
   const getAffinityHostPredicate = createSelector(
-    getAffinityHost,
     getSrsContainers,
-    (affinityHost, containers) =>
-      host => (!affinityHost || host.id !== affinityHost.id) &&
-        every(containers, container => container === host.$pool || container === host.id)
+    containers =>
+      host => every(containers, container => container === host.$pool || container === host.id)
   )
 
   return {
