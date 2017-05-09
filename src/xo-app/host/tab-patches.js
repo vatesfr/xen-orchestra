@@ -115,21 +115,23 @@ export default class HostPatches extends Component {
     router: React.PropTypes.object
   }
 
+  poolRoute = '/pools/' + this.props.host.$pool + '/patches'
+
   _installPatchWarning = (patch, installPatch) => confirm(
     {
       title: _('installPatchWarningTitle'),
       body: <p>{_('installPatchWarningContent')}</p>,
-      labelResolve: _('installPatchWarningResolve'),
-      labelReject: _('installPatchWarningReject')
-    }).then(() => installPatch(patch), () => this.context.router.push('/pools/' + this.props.host.$pool + '/patches'))
+      okLabel: _('installPatchWarningResolve'),
+      cancelLabel: _('installPatchWarningReject')
+    }).then(() => installPatch(patch), () => this.context.router.push(this.poolRoute))
 
   _installAllPatchesWarning = installAllPatches => confirm(
     {
       title: _('installPatchWarningTitle'),
       body: <p>{_('installPatchWarningContent')}</p>,
-      labelResolve: _('installPatchWarningResolve'),
-      labelReject: _('installPatchWarningReject')
-    }).then(installAllPatches, () => this.context.router.push('/pools/' + this.props.host.$pool + '/patches'))
+      okLabel: _('installPatchWarningResolve'),
+      cancelLabel: _('installPatchWarningReject')
+    }).then(installAllPatches, () => this.context.router.push(this.poolRoute))
 
   _getPatches = createSelector(
     () => this.props.host,
