@@ -1394,12 +1394,6 @@ export default {
   // Original text: "Host up-to-date!"
   hostUpToDate: 'Host posiada najnowsze łatki!',
 
-  // Original text: "Install Patch Warning"
-  installPatchWarningTitle: undefined,
-
-  // Original text: "Your are installing patch manually. If you are knowing what you do, you can continue, otherwise we advise you to install the patches with the pool update"
-  installPatchWarningContent: undefined,
-
   // Original text: "Refresh patches"
   refreshPatches: 'Odśwież łatki',
 
