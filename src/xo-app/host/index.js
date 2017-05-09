@@ -235,7 +235,7 @@ export default class Host extends Component {
       <Row>
         <Col mediumSize={6} className='header-title'>
           <h2>
-            <Icon icon={`host-${host.power_state.toLowerCase()}`} />
+            <Icon icon={host.power_state === 'Running' && !host.enabled ? 'host-disabled' : `host-${host.power_state.toLowerCase()}`} />
             {' '}
             <Text
               value={host.name_label}
