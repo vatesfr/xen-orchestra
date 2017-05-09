@@ -60,6 +60,7 @@ class BackupReportsXoPlugin {
   _listener (status) {
     let nSuccess = 0
     let nCalls = 0
+    let reportOnFailure
     let reportWhen
 
     const failedBackupsText = []
@@ -77,6 +78,7 @@ class BackupReportsXoPlugin {
       }
 
       reportWhen = call.params._reportWhen
+      reportOnFailure = reportWhen === 'failure' || reportWhen === 'fail'
 
       if (reportWhen === 'never') {
         return
@@ -111,7 +113,7 @@ class BackupReportsXoPlugin {
         nagiosText.push(
           `[ ${vm ? vm.name_label : 'undefined'} : ${call.error.message} ]`
         )
-      } else {
+      } else if (!reportOnFailure) {
         successfulBackupText.push(
           `### VM : ${vm.name_label}`,
           `  - UUID: ${vm.uuid}`,
@@ -145,7 +147,7 @@ class BackupReportsXoPlugin {
     const tag = status.calls[Object.keys(status.calls)[0]].params.tag
 
     nCalls - nSuccess > 0 && failedBackupsText.unshift([`## Failed backups:`])
-    nSuccess > 0 && successfulBackupText.unshift([`## Successful backups:`])
+    nSuccess > 0 && !reportOnFailure && successfulBackupText.unshift([`## Successful backups:`])
     const text = failedBackupsText.concat(successfulBackupText)
 
     // Global status.
