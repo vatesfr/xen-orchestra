@@ -116,6 +116,8 @@ export default class HostPatches extends Component {
     router: React.PropTypes.object
   }
 
+  poolRoute = '/pools/' + this.props.host.$pool + '/patches'
+
   _installPatchWarning = (patch, installPatch) => confirm(
     {
       title: _('installPatchWarningTitle'),
