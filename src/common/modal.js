@@ -78,7 +78,7 @@ class Confirm extends Component {
 
   render () {
     const { Body, Footer, Header, Title } = ReactModal
-    const { title, icon, okLabel = _('confirmOk'), cancelLabel = _('confirmCancel')} = this.props
+    const { title, icon, okLabel = _('confirmOk'), cancelLabel = _('confirmCancel') } = this.props
 
     const body = _addRef(this.props.children, 'body')
 
