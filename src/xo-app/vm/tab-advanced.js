@@ -77,8 +77,7 @@ const fullCopy = vm => cloneVm(vm, true)
     getAffinityHost,
     getSrsContainers,
     (affinityHost, containers) =>
-      host => (!affinityHost || host.id !== affinityHost.id) &&
-        every(containers, container => container === host.$pool || container === host.id)
+      host => every(containers, container => container === host.$pool || container === host.id)
   )
 
   return {
