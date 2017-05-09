@@ -220,9 +220,9 @@ const mountPartition = (device, partitionId) => Promise.all([
     `--target=${path}`
   ])
 
-  // `noload` option is used for ext3/ext4, if it fails it might
-  // `be another fs, try without
-  return mount([ ...options, 'noload' ]).catch(() =>
+  // `norecovery` option is used for ext3/ext4/xfs, if it fails it
+  // might be another fs, try without
+  return mount([ ...options, 'norecovery' ]).catch(() =>
     mount(options)
   ).then(() => ({
     path,
