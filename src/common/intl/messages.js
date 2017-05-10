@@ -980,6 +980,7 @@ var messages = {
   delta: 'delta',
   restoreBackups: 'Restore Backups',
   restoreBackupsInfo: 'Click on a VM to display restore options',
+  restoreDeltaBackupsInfo: 'Only the files of Delta Backup which are not hosted with SMB can be restored',
   remoteEnabled: 'Enabled',
   remoteError: 'Error',
   noBackup: 'No backup available',
