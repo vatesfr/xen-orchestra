@@ -27,6 +27,7 @@ import {
 } from 'xo'
 
 import RestoreFileModalBody from './restore-file-modal'
+import styles from './index.css'
 
 const VM_COLUMNS = [
   {
@@ -125,7 +126,7 @@ export default class FileRestore extends Component {
             </div>
           </div>
           : <div>
-            <ul>
+            <ul className={styles.listRestoreBackupInfos}>
               <li><em><Icon icon='info' /> {_('restoreBackupsInfo')}</em></li>
               <li><em><Icon icon='info' /> {_('restoreDeltaBackupsInfo')}</em></li>
             </ul>
