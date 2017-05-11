@@ -47,7 +47,7 @@ const mapFilter = (collection, iteratee, results = []) => {
 // -------------------------------------------------------------------
 
 execPromise(async args => {
-  if (!args.length) {
+  if (args.length === 0 || args[0] === '-h' || args[0] === '--help') {
     return `Usage: xapi-explore-sr [--full] <SR UUID> <XenServer URL> <XenServer user> [<XenServer password>]`
   }
 
