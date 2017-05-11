@@ -19,9 +19,24 @@ This first step is needed until Docker is supported nativly in the XenServer API
 
 > The plugin should be installed in every hosts, even if they are on the same pool.
 
+#### For XenServer 6.5
+
 1. SSH on your XenServer
-1. Download the plugin: `wget http://downloadns.citrix.com.edgesuite.net/10343/XenServer-6.5.0-SP1-xscontainer.iso` for XenServer 6.5 or `wget http://downloadns.citrix.com.edgesuite.net/11621/XenServer-7.0.0-xscontainer.iso` for 7.
-1. Install it: `xe-install-supplemental-pack XenServer-*-xscontainer.iso`
+1. Download the plugin: `wget http://downloadns.citrix.com.edgesuite.net/10343/XenServer-6.5.0-SP1-xscontainer.iso`
+1. Install it: `xe-install-supplemental-pack XenServer-6.5.0-SP1-xscontainer.iso`
+
+#### For XenServer 7.0
+
+1. SSH on your XenServer
+1. Download the plugin: `wget http://downloadns.citrix.com.edgesuite.net/11621/XenServer-7.0.0-xscontainer.iso`
+1. Install it: `xe-install-supplemental-pack XenServer-7.0.0-xscontainer.iso`
+
+#### For XenServer 7.1
+
+1. SSH on your XenServer
+1. Download the plugin: `wget http://downloadns.citrix.com.edgesuite.net/11993/XenServer-7.1.0-xscontainer.iso`
+1. Install it: `xe-install-supplemental-pack XenServer-7.1.0-xscontainer.iso`
+
 
 That's it! You are ready for enjoying Docker support!
 
