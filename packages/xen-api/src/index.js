@@ -76,20 +76,15 @@ export const wrapError = error => new XapiError(error)
 
 // ===================================================================
 
-const URL_RE = /^(?:http(s)?:\/*)?([^/]+?)(?::([0-9]+))?\/?$/
+const URL_RE = /^(?:(https?:)\/*)?([^/]+?)(?::([0-9]+))?\/?$/
 const parseUrl = url => {
   const matches = URL_RE.exec(url)
   if (!matches) {
     throw new Error('invalid URL: ' + url)
   }
 
-  url = {
-    hostname: matches[2],
-    port: matches[3],
-    protocol: matches[1] === 's' ? 'https:' : 'http:'
-  }
-
-  return url
+  const [ , protocol = 'https:', hostname, port ] = matches
+  return { protocol, hostname, port }
 }
 
 // -------------------------------------------------------------------
@@ -139,6 +134,7 @@ export class Xapi extends EventEmitter {
   constructor (opts) {
     super()
 
+    this._allowUnauthorized = opts.allowUnauthorized
     this._auth = opts.auth
     this._pool = null
     this._readOnly = Boolean(opts.readOnly)
@@ -174,7 +170,10 @@ export class Xapi extends EventEmitter {
 
   set _url (url) {
     this.__url = url
-    this._call = autoTransport({ url })
+    this._call = autoTransport({
+      allowUnauthorized: this._allowUnauthorized,
+      url
+    })
   }
 
   get readOnly () {

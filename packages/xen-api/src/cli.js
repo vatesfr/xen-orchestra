@@ -36,9 +36,10 @@ const usage = 'Usage: xen-api <url> <user> [<password>]'
 
 const main = async args => {
   const opts = minimist(args, {
-    boolean: ['help', 'read-only', 'verbose'],
+    boolean: ['allow-unauthorized', 'help', 'read-only', 'verbose'],
 
     alias: {
+      'allow-unauthorized': 'au',
       debounce: 'd',
       help: 'h',
       'read-only': 'ro',
@@ -72,6 +73,7 @@ const main = async args => {
 
   const xapi = createClient({
     url,
+    allowUnauthorized: opts.au,
     auth: { user, password },
     debounce: opts.debounce != null ? +opts.debounce : null,
     readOnly: opts.ro
