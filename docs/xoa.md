@@ -104,15 +104,37 @@ Administrator. It usually boils down to these three things:
 
 ### Network configuration
 
-XOA is in **DHCP** by default, so if you need to configure the IP, you need to edit `/etc/network/interfaces` as explained in the [Debian documentation](https://wiki.debian.org/NetworkConfiguration#Configuring_the_interface_manually). You can access the VM console through XenCenter or using VNC through a SSH tunnel.
+XOA is in **DHCP** by default, so if you need to configure the IP, please run the command `xoa network static`. It will ask you network details:
+
+```
+$ xoa network static
+? Static IP for this machine 192.168.100.120
+? Network mask (eg 255.255.255.0) 255.255.255.0
+? Gateway 192.168.100.254
+? IP of the DNS server 192.168.100.254
+```
 
 Xen Orchestra is now accessible in your browser on ` https://your-vm-ip`.
 
-> If you are using a static IP configuration, take care of the `/etc/resolv.conf` file to fit your DNS settings.
+You can access the VM console through XenCenter or using VNC through a SSH tunnel.
+
+If you want to go back in DHCP, just use `xoa network dhcp`
 
 ### SSH Pro Support
 
-By default, if you need support, there is a dedicated user named `xoa-support`. We are the only one with the private key. However, if you want to deactivate it, you can type `chage -E 0 xoa-support`. To re-activate this account, you must use the `chage -E 1 xoa-support`.
+By default, if you need support, there is a dedicated user named `xoa-support`. We are the only one with the private key. If you want our assistance on your XOA, you can open a private tunnel:
+
+```
+$ xoa support tunnel
+The support tunnel has been created.
+
+Do not stop this command before the intervention is over!
+Give this id to the support: 40713
+```
+
+Give us this number, we'll be able to access your XOA in a secure manner. Then, close the tunnel with `Ctrl+C` after the support fixed your issue.
+
+> If you want to deactivate this bundled user, you can type `chage -E 0 xoa-support`. To re-activate this account, you must use the `chage -E 1 xoa-support`.
 
 ### Firewall
 
