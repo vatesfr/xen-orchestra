@@ -9,6 +9,7 @@ import isArray from 'lodash/isArray'
 import isString from 'lodash/isString'
 import keys from 'lodash/keys'
 import kindOf from 'kindof'
+import mapToArray from 'lodash/map'
 import multiKeyHashInt from 'multikey-hash'
 import pick from 'lodash/pick'
 import tmp from 'tmp'
@@ -37,6 +38,30 @@ import {
 } from 'crypto'
 
 // ===================================================================
+
+// Similar to map() + Promise.all() but wait for all promises to
+// settle before rejecting (with the first error)
+export const asyncMap = (collection, iteratee) => {
+  let errorContainer
+  const onError = error => {
+    if (errorContainer === undefined) {
+      errorContainer = { error }
+    }
+  }
+
+  return Promise.all(mapToArray(collection, (item, key, collection) =>
+    new Promise(resolve => {
+      resolve(iteratee(item, key, collection))
+    }).catch(onError)
+  )).then(values => {
+    if (errorContainer !== undefined) {
+      throw errorContainer.error
+    }
+    return values
+  })
+}
+
+// -------------------------------------------------------------------
 
 export function bufferToStream (buf) {
   const stream = new Readable()
