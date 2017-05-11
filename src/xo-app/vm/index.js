@@ -28,6 +28,7 @@ import {
 } from 'utils'
 import {
   createGetObject,
+  createGetObjectMessages,
   createGetObjectsOfType,
   createSelector,
   getCheckPermissions,
@@ -88,6 +89,10 @@ import TabAdvanced from './tab-advanced'
     )
   )
 
+  const logs = createGetObjectMessages(
+    (state, props) => getVm(state, props)
+  )
+
   const getVmTotalDiskSpace = createSelector(
     getVdis,
     vdis => {
@@ -112,6 +117,7 @@ import TabAdvanced from './tab-advanced'
       container: getContainer(state, props),
       hosts: getHosts(state, props),
       isAdmin: isAdmin(state, props),
+      logs: logs(state, props),
       pool: getPool(state, props),
       srs: getSrs(state, props),
       vbds: getVbds(state, props),
@@ -275,6 +281,7 @@ export default class Vm extends BaseComponent {
 
     const childProps = assign(pick(this.props, [
       'container',
+      'logs',
       'pool',
       'removeTag',
       'srs',

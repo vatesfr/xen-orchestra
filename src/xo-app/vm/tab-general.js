@@ -24,86 +24,95 @@ import {
 } from 'xo-sparklines'
 
 export default ({
+  logs,
   statsOverview,
   vm,
   vmTotalDiskSpace
-}) => <Container>
-  {/* TODO: use CSS style */}
-  <br />
-  <Row className='text-xs-center'>
-    <Col mediumSize={3}>
-      <h2><Number value={vm.CPUs.number} onChange={vcpus => editVm(vm, { CPUs: vcpus })} />x <Icon icon='cpu' size='lg' /></h2>
-      <BlockLink to={`/vms/${vm.id}/stats`}>{statsOverview && <CpuSparkLines data={statsOverview} />}</BlockLink>
-    </Col>
-    <Col mediumSize={3}>
-      <h2 className='form-inline'>
-        <Size value={firstDefined(vm.memory.dynamic[1], null)} onChange={memory => editVm(vm, { memory })} />
-        &nbsp;<span><Icon icon='memory' size='lg' /></span>
-      </h2>
-      <BlockLink to={`/vms/${vm.id}/stats`}>{statsOverview && <MemorySparkLines data={statsOverview} />}</BlockLink>
-    </Col>
-    <Col mediumSize={3}>
-      <BlockLink to={`/vms/${vm.id}/network`}><h2>{vm.VIFs.length}x <Icon icon='network' size='lg' /></h2></BlockLink>
-      <BlockLink to={`/vms/${vm.id}/stats`}>{statsOverview && <VifSparkLines data={statsOverview} />}</BlockLink>
-    </Col>
-    <Col mediumSize={3}>
-      <BlockLink to={`/vms/${vm.id}/disks`}><h2>{formatSize(vmTotalDiskSpace)} <Icon icon='disk' size='lg' /></h2></BlockLink>
-      <BlockLink to={`/vms/${vm.id}/stats`}>{statsOverview && <XvdSparkLines data={statsOverview} />}</BlockLink>
-    </Col>
-  </Row>
-  {/* TODO: use CSS style */}
-  <br />
-  <Row className='text-xs-center'>
-    <Col mediumSize={3}>
-      {vm.power_state === 'Running'
-        ? <div>
-          <p className='text-xs-center'>{_('started', { ago: <FormattedRelative value={vm.startTime * 1000} /> })}</p>
-        </div>
-        : <p className='text-xs-center'>{_('vmNotRunning')}</p>
-      }
-    </Col>
-    <Col mediumSize={3}>
-      <p>
-        {vm.virtualizationMode === 'pv'
-          ? _('paraVirtualizedMode')
-          : _('hardwareVirtualizedMode')
-        }
-      </p>
-    </Col>
-    <Col mediumSize={3}>
-      <BlockLink to={`/vms/${vm.id}/network`}>
-        <Copiable tagName='p'>
-          {vm.addresses && vm.addresses['0/ip']
-            ? vm.addresses['0/ip']
-            : _('noIpv4Record')
-          }
-        </Copiable>
-      </BlockLink>
-    </Col>
-    <Col mediumSize={3}>
-      <BlockLink to={`/vms/${vm.id}/advanced`}><Tooltip content={vm.os_version ? vm.os_version.name : _('unknownOsName')}><h1><Icon className='text-info' icon={vm.os_version && vm.os_version.distro && osFamily(vm.os_version.distro)} /></h1></Tooltip></BlockLink>
-    </Col>
-  </Row>
-  {!vm.xenTools && vm.power_state === 'Running' &&
+}) => {
+  const VMsShutdown = logs.filter(log => log.name === 'VM_SHUTDOWN')
+  const haltedFor = VMsShutdown.length === 0 ? null : VMsShutdown.sort((log1, log2) => log1.time < log2.time)[0].time
+  return (<Container>
+    {/* TODO: use CSS style */}
+    <br />
     <Row className='text-xs-center'>
-      <Col><Icon icon='error' /><em> {_('noToolsDetected')}.</em></Col>
-    </Row>
-  }
-  {/* TODO: use CSS style */}
-  <br />
-  <Row>
-    <Col>
-      <h2 className='text-xs-center'>
-        <HomeTags type='VM' labels={vm.tags} onDelete={tag => removeTag(vm.id, tag)} onAdd={tag => addTag(vm.id, tag)} />
-      </h2>
-    </Col>
-  </Row>
-  {isEmpty(vm.current_operations)
-    ? null
-    : <Row className='text-xs-center'>
-      <Col>
-        <h4>{_('vmCurrentStatus')}{' '}{map(vm.current_operations)[0]}</h4>
+      <Col mediumSize={3}>
+        <h2><Number value={vm.CPUs.number} onChange={vcpus => editVm(vm, { CPUs: vcpus })} />x <Icon icon='cpu' size='lg' /></h2>
+        <BlockLink to={`/vms/${vm.id}/stats`}>{statsOverview && <CpuSparkLines data={statsOverview} />}</BlockLink>
+      </Col>
+      <Col mediumSize={3}>
+        <h2 className='form-inline'>
+          <Size value={firstDefined(vm.memory.dynamic[1], null)} onChange={memory => editVm(vm, { memory })} />
+          &nbsp;<span><Icon icon='memory' size='lg' /></span>
+        </h2>
+        <BlockLink to={`/vms/${vm.id}/stats`}>{statsOverview && <MemorySparkLines data={statsOverview} />}</BlockLink>
+      </Col>
+      <Col mediumSize={3}>
+        <BlockLink to={`/vms/${vm.id}/network`}><h2>{vm.VIFs.length}x <Icon icon='network' size='lg' /></h2></BlockLink>
+        <BlockLink to={`/vms/${vm.id}/stats`}>{statsOverview && <VifSparkLines data={statsOverview} />}</BlockLink>
+      </Col>
+      <Col mediumSize={3}>
+        <BlockLink to={`/vms/${vm.id}/disks`}><h2>{formatSize(vmTotalDiskSpace)} <Icon icon='disk' size='lg' /></h2></BlockLink>
+        <BlockLink to={`/vms/${vm.id}/stats`}>{statsOverview && <XvdSparkLines data={statsOverview} />}</BlockLink>
       </Col>
     </Row>
-  }
-</Container>
+    {/* TODO: use CSS style */}
+    <br />
+    <Row className='text-xs-center'>
+      <Col mediumSize={3}>
+        {vm.power_state === 'Running'
+          ? <div>
+            <p className='text-xs-center'>{_('started', { ago: <FormattedRelative value={vm.startTime * 1000} /> })}</p>
+          </div>
+          : <p className='text-xs-center'>
+            { haltedFor
+              ? _('vmNotRunningHaltedFor', {time: <FormattedRelative value={haltedFor * 1000} />})
+              : _('vmNotRunning')}
+          </p>
+        }
+      </Col>
+      <Col mediumSize={3}>
+        <p>
+          {vm.virtualizationMode === 'pv'
+            ? _('paraVirtualizedMode')
+            : _('hardwareVirtualizedMode')
+          }
+        </p>
+      </Col>
+      <Col mediumSize={3}>
+        <BlockLink to={`/vms/${vm.id}/network`}>
+          <Copiable tagName='p'>
+            {vm.addresses && vm.addresses['0/ip']
+              ? vm.addresses['0/ip']
+              : _('noIpv4Record')
+            }
+          </Copiable>
+        </BlockLink>
+      </Col>
+      <Col mediumSize={3}>
+        <BlockLink to={`/vms/${vm.id}/advanced`}><Tooltip content={vm.os_version ? vm.os_version.name : _('unknownOsName')}><h1><Icon className='text-info' icon={vm.os_version && vm.os_version.distro && osFamily(vm.os_version.distro)} /></h1></Tooltip></BlockLink>
+      </Col>
+    </Row>
+    {!vm.xenTools && vm.power_state === 'Running' &&
+      <Row className='text-xs-center'>
+        <Col><Icon icon='error' /><em> {_('noToolsDetected')}.</em></Col>
+      </Row>
+    }
+    {/* TODO: use CSS style */}
+    <br />
+    <Row>
+      <Col>
+        <h2 className='text-xs-center'>
+          <HomeTags type='VM' labels={vm.tags} onDelete={tag => removeTag(vm.id, tag)} onAdd={tag => addTag(vm.id, tag)} />
+        </h2>
+      </Col>
+    </Row>
+    {isEmpty(vm.current_operations)
+      ? null
+      : <Row className='text-xs-center'>
+        <Col>
+          <h4>{_('vmCurrentStatus')}{' '}{map(vm.current_operations)[0]}</h4>
+        </Col>
+      </Row>
+    }
+  </Container>)
+}
