@@ -55,7 +55,7 @@ export async function destroy ({ sr }) {
     const config = xapi.xo.getData(sr, 'xosan_config')
     // we simply forget because the hosted disks are been destroyed with the VMs
     await xapi.forgetSr(sr._xapiId)
-    await Promise.all(config.nodes.map(node => xapi.deleteVm(node.vm.id, true)))
+    await Promise.all(config.nodes.map(node => xapi.deleteVm(node.vm.id)))
     return xapi.deleteNetwork(config.network)
   }
   await xapi.destroySr(sr._xapiId)

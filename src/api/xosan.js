@@ -304,13 +304,13 @@ export const createSR = defer.onFailure(async function ($onFailure, { template, 
       await this.requestResource('xosan', template.id, template.version),
       { srId: vmParameters[0].sr.$ref, type: 'xva' }
     )
-    $onFailure(() => xapi.deleteVm(firstVM, true)::pCatch(noop))
+    $onFailure(() => xapi.deleteVm(firstVM)::pCatch(noop))
     await xapi.editVm(firstVM, {
       autoPoweron: true
     })
     const copiedVms = await Promise.all(vmParameters.slice(1).map(param => copyVm(xapi, firstVM, param)))
     // TODO: Promise.all() is certainly not the right operation to execute all the given promises whether they fulfill or reject.
-    $onFailure(() => Promise.all(copiedVms.map(vm => xapi.deleteVm(vm.vm, true)))::pCatch(noop))
+    $onFailure(() => Promise.all(copiedVms.map(vm => xapi.deleteVm(vm.vm)))::pCatch(noop))
     const vmsAndParams = [{
       vm: firstVM,
       params: vmParameters[0]
@@ -332,7 +332,7 @@ export const createSR = defer.onFailure(async function ($onFailure, { template, 
         }
       }
       const arbiterVm = await copyVm(xapi, firstVM, arbiterConfig)
-      $onFailure(() => xapi.deleteVm(arbiterVm.vm, true)::pCatch(noop))
+      $onFailure(() => xapi.deleteVm(arbiterVm.vm)::pCatch(noop))
       arbiter = await prepareGlusterVm(xapi, arbiterVm, xosanNetwork, false)
     }
     const ipAndHosts = await Promise.all(map(vmsAndParams, vmAndParam => prepareGlusterVm(xapi, vmAndParam, xosanNetwork)))
