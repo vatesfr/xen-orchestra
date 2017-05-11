@@ -3,6 +3,7 @@
 import archy from 'archy'
 import chalk from 'chalk'
 import execPromise from 'exec-promise'
+import humanFormat from 'human-format'
 import pw from 'pw'
 import { createClient } from 'xen-api'
 import { forEach, map, orderBy } from 'lodash'
@@ -12,6 +13,11 @@ import { forEach, map, orderBy } from 'lodash'
 const askPassword = prompt => new Promise(resolve => {
   prompt && process.stderr.write(`${prompt}: `)
   pw(resolve)
+})
+
+const formatSize = bytes => humanFormat(bytes, {
+  prefix: 'Gi',
+  scale: 'binary'
 })
 
 const required = name => {
@@ -98,7 +104,7 @@ execPromise(async args => {
   const makeVdiNode = vdi => {
     const { uuid } = vdi
 
-    let label = `${vdi.name_label} - ${uuid}`
+    let label = `${vdi.name_label} - ${uuid} - ${formatSize(vdi.physical_utilisation)}`
     const nodes = []
 
     const vhdChildren = vhdChildrenByUuid[uuid]

@@ -1806,6 +1806,10 @@ http-signature@~1.1.0:
     jsprim "^1.2.2"
     sshpk "^1.7.0"
 
+human-format@^0.8.0:
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/human-format/-/human-format-0.8.0.tgz#6146370a838fd52718d1e27f16f1916b43a06e92"
+
 husky@^0.13.3:
   version "0.13.3"
   resolved "https://registry.yarnpkg.com/husky/-/husky-0.13.3.tgz#bc2066080badc8b8fe3516e881f5bc68a57052ff"
