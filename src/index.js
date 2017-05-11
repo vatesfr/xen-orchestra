@@ -58,9 +58,9 @@ execPromise(async args => {
 
   const [
     srUuid = required('SR UUID'),
-    url = required('Xen URL'),
-    user = required('Xen user'),
-    password = await askPassword('Xen password')
+    url = required('XenServer URL'),
+    user = required('XenServer user'),
+    password = await askPassword('XenServer password')
   ] = args
 
   const xapi = createClient({
