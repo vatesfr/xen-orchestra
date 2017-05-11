@@ -27,6 +27,7 @@ import {
 } from 'xo'
 
 import RestoreFileModalBody from './restore-file-modal'
+import styles from './index.css'
 
 const VM_COLUMNS = [
   {
@@ -118,9 +119,18 @@ export default class FileRestore extends Component {
       ? <Container>
         <h2>{_('restoreFiles')}</h2>
         {isEmpty(backupInfoByVm)
-          ? _('noBackup')
+          ? <div>
+            <em><Icon icon='info' /> {_('restoreDeltaBackupsInfo')}</em>
+            <div>
+              <a>{_('noBackup')}</a>
+            </div>
+          </div>
           : <div>
-            <em><Icon icon='info' /> {_('restoreBackupsInfo')}</em>
+            <ul className={styles.listRestoreBackupInfos}>
+              <li><em><Icon icon='info' /> {_('restoreBackupsInfo')}</em></li>
+              <li><em><Icon icon='info' /> {_('restoreDeltaBackupsInfo')}</em></li>
+            </ul>
+
             <SortedTable collection={backupInfoByVm} columns={VM_COLUMNS} rowAction={openImportModal} defaultColumn={2} />
           </div>
         }
