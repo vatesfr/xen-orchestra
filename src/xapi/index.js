@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
 import deferrable from 'golike-defer'
 import fatfs from 'fatfs'
+import httpRequest from 'http-request-plus'
 import synchronized from 'decorator-synchronized'
 import tarStream from 'tar-stream'
 import vmdkToVhd from 'xo-vmdk-to-vhd'
@@ -26,7 +27,6 @@ import {
   satisfies as versionSatisfies
 } from 'semver'
 
-import httpRequest from '../http-request'
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer'
 import { mixin } from '../decorators'
 import {
@@ -1883,7 +1883,7 @@ export default class Xapi extends XapiBase {
         protocol: 'https',
         query,
         rejectUnauthorized: false
-      }, task)
+      })
     ])
   }
 

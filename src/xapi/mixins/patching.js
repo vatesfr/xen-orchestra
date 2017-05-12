@@ -1,12 +1,12 @@
 import deferrable from 'golike-defer'
 import filter from 'lodash/filter'
+import httpRequest from 'http-request-plus'
 import includes from 'lodash/includes'
 import some from 'lodash/some'
 import sortBy from 'lodash/sortBy'
 import unzip from 'julien-f-unzip'
 
 import httpProxy from '../../http-proxy'
-import httpRequest from '../../http-request'
 import { debounce } from '../../decorators'
 import {
   createRawObject,
@@ -220,7 +220,7 @@ export default {
           task_id: taskRef
         },
         rejectUnauthorized: false
-      }, task)
+      })
     ])
 
     return this._getOrWaitObject(patchRef)

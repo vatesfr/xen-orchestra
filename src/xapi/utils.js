@@ -1,13 +1,13 @@
 // import isFinite from 'lodash/isFinite'
 import camelCase from 'lodash/camelCase'
 import createDebug from 'debug'
+import httpRequest from 'http-request-plus'
 import isEqual from 'lodash/isEqual'
 import isPlainObject from 'lodash/isPlainObject'
 import pickBy from 'lodash/pickBy'
 import { utcFormat, utcParse } from 'd3-time-format'
 import { satisfies as versionSatisfies } from 'semver'
 
-import httpRequest from '../http-request'
 import {
   camelToSnakeCase,
   createRawObject,
@@ -20,8 +20,7 @@ import {
   map,
   mapFilter,
   mapToArray,
-  noop,
-  pFinally
+  noop
 } from '../utils'
 
 // ===================================================================
@@ -354,31 +353,25 @@ export const NULL_REF = 'OpaqueRef:NULL'
 export const put = (stream, {
   headers: { ...headers } = {},
   ...opts
-}, task) => {
-  const makeRequest = () => httpRequest({
-    ...opts,
+}) => {
+  const makeRequest = () => httpRequest.put(opts, {
     body: stream,
-    headers,
-    method: 'put'
+    headers
   })
 
   // Xen API does not support chunk encoding.
   if (stream.length == null) {
-    headers['transfer-encoding'] = null
+    // add a fake huge content length (1 PiB)
+    headers['content-length'] = '1125899906842624'
 
     const promise = makeRequest()
 
-    if (task) {
-      // Some connections need the task to resolve (VDI import).
-      task::pFinally(() => {
+    // when the data has been emitted, close the connection
+    stream.on('end', () => {
+      setTimeout(() => {
         promise.cancel()
-      })
-    } else {
-      // Some tasks need the connection to close (VM import).
-      promise.request.once('finish', () => {
-        promise.cancel()
-      })
-    }
+      }, 1e3)
+    })
 
     return promise.readAll()
   }

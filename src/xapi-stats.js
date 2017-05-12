@@ -1,8 +1,8 @@
 import endsWith from 'lodash/endsWith'
+import httpRequest from 'http-request-plus'
 import JSON5 from 'json5'
 import { BaseError } from 'make-error'
 
-import httpRequest from './http-request'
 import { parseDateTime } from './xapi'
 
 const RRD_STEP_SECONDS = 5
