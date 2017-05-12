@@ -28,11 +28,11 @@ import {
 export default connectStore(() => {
   const getLastShutdownTime = createGetLastShutdownTime()
   return (state, props) => {
-    return { vmHaltedFor: getLastShutdownTime(state, props.vm) }
+    return { lastShutdownTime: getLastShutdownTime(state, props.vm) }
   }
 })(
  ({
-  vmHaltedFor,
+  lastShutdownTime,
   statsOverview,
   vm,
   vmTotalDiskSpace
@@ -69,8 +69,8 @@ export default connectStore(() => {
           <p className='text-xs-center'>{_('started', { ago: <FormattedRelative value={vm.startTime * 1000} /> })}</p>
         </div>
         : <p className='text-xs-center'>
-          { vmHaltedFor
-            ? _('vmNotRunningHaltedFor', {ago: <FormattedRelative value={vmHaltedFor * 1000} />})
+          { lastShutdownTime
+            ? _('vmNotRunningHaltedFor', {ago: <FormattedRelative value={lastShutdownTime * 1000} />})
             : _('vmNotRunning')}
         </p>
       }
