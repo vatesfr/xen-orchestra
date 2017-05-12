@@ -3,15 +3,8 @@ import {
   pCatch
 } from '../utils'
 
-export async function add ({
-  label,
-  host,
-  username,
-  password,
-  readOnly,
-  autoConnect = true
-}) {
-  const server = await this.registerXenServer({label, host, username, password, readOnly})
+export async function add ({autoConnect = true, ...props}) {
+  const server = await this.registerXenServer(props)
 
   if (autoConnect) {
     // Connect asynchronously, ignore any errors.
@@ -40,6 +33,10 @@ add.params = {
     type: 'string'
   },
   autoConnect: {
+    optional: true,
+    type: 'boolean'
+  },
+  allowUnauthorized: {
     optional: true,
     type: 'boolean'
   }
@@ -75,8 +72,8 @@ getAll.permission = 'admin'
 
 // -------------------------------------------------------------------
 
-export async function set ({id, label, host, username, password, readOnly}) {
-  await this.updateXenServer(id, {label, host, username, password, readOnly})
+export async function set ({id, ...props}) {
+  await this.updateXenServer(id, props)
 }
 
 set.description = 'changes the properties of a Xen server'
@@ -102,6 +99,10 @@ set.params = {
   password: {
     type: 'string',
     optional: true
+  },
+  allowUnauthorized: {
+    optional: true,
+    type: 'boolean'
   }
 }
 

@@ -56,17 +56,25 @@ export default class {
     // TODO: disconnect servers on stop.
   }
 
-  async registerXenServer ({label, host, username, password, readOnly = false}) {
+  async registerXenServer ({
+    allowUnauthorized,
+    host,
+    label,
+    password,
+    readOnly,
+    username
+  }) {
     // FIXME: We are storing passwords which is bad!
     //        Could we use tokens instead?
     // TODO: use plain objects
     const server = await this._servers.create({
-      label: label || undefined,
+      allowUnauthorized: allowUnauthorized ? 'true' : undefined,
+      enabled: 'true',
       host,
-      username,
+      label: label || undefined,
       password,
       readOnly: readOnly ? 'true' : undefined,
-      enabled: 'true'
+      username
     })
 
     return server.properties
@@ -80,7 +88,16 @@ export default class {
     }
   }
 
-  async updateXenServer (id, {label, host, username, password, readOnly, enabled, error}) {
+  async updateXenServer (id, {
+    allowUnauthorized,
+    enabled,
+    error,
+    host,
+    label,
+    password,
+    readOnly,
+    username
+  }) {
     const server = await this._getXenServer(id)
 
     if (label !== undefined) server.set('label', label || undefined)
@@ -102,6 +119,10 @@ export default class {
       if (xapi) {
         xapi.readOnly = readOnly
       }
+    }
+
+    if (allowUnauthorized !== undefined) {
+      server.set('allowUnauthorized', allowUnauthorized ? 'true' : undefined)
     }
 
     await this._servers.update(server)
@@ -188,12 +209,13 @@ export default class {
     const server = (await this._getXenServer(id)).properties
 
     const xapi = this._xapis[server.id] = new Xapi({
-      url: server.host,
+      allowUnauthorized: Boolean(server.allowUnauthorized),
       auth: {
         user: server.username,
         password: server.password
       },
-      readOnly: Boolean(server.readOnly)
+      readOnly: Boolean(server.readOnly),
+      url: server.host
     })
 
     xapi.xo = (() => {
