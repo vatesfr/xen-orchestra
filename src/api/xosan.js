@@ -310,7 +310,7 @@ export const createSR = defer.onFailure(async function ($onFailure, { template, 
     })
     const copiedVms = await Promise.all(vmParameters.slice(1).map(param => copyVm(xapi, firstVM, param)))
     // TODO: Promise.all() is certainly not the right operation to execute all the given promises whether they fulfill or reject.
-    $onFailure(() => Promise.all(copiedVms.map(vm => xapi.deleteVm(vm.vm)))::pCatch(noop))
+    $onFailure(() => Promise.all(copiedVms.map(vm => xapi.deleteVm(vm.vm)::pCatch(noop))))
     const vmsAndParams = [{
       vm: firstVM,
       params: vmParameters[0]

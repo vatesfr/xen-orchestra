@@ -418,10 +418,10 @@ export default class {
       $onFailure(async () => {
         await Promise.all(mapToArray(
           delta.streams,
-          stream => stream.cancel()
+          stream => stream.cancel()::pCatch(noop)
         ))
 
-        return srcXapi.deleteVm(delta.vm.uuid)
+        return srcXapi.deleteVm(delta.vm.uuid)::pCatch(noop)
       })
 
       delta.vm.name_label += ` (${shortDate(Date.now())})`
@@ -769,10 +769,10 @@ export default class {
     $onFailure(async () => {
       await Promise.all(mapToArray(
         delta.streams,
-        stream => stream.cancel()
+        stream => stream.cancel()::pCatch(noop)
       ))
 
-      await xapi.deleteVm(delta.vm.uuid)
+      return xapi.deleteVm(delta.vm.uuid)::pCatch(noop)
     })
 
     // Save vdis.
@@ -812,13 +812,14 @@ export default class {
       }
     }
 
-    $onFailure(async () => {
-      await Promise.all(
-        mapToArray(fulFilledVdiBackups, vdiBackup => {
-          return handler.unlink(`${dir}/${vdiBackup.value()}`, { checksum: true })::pCatch(noop)
-        })
+    $onFailure(() => Promise.all(
+      mapToArray(fulFilledVdiBackups, vdiBackup =>
+        handler.unlink(
+          `${dir}/${vdiBackup.value()}`,
+          { checksum: true }
+        )::pCatch(noop)
       )
-    })
+    ))
 
     if (error) {
       throw error

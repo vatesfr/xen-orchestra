@@ -785,7 +785,7 @@ export default class Xapi extends XapiBase {
     disableBaseTags = false
   } = {}) {
     const vm = await this.snapshotVm(vmId)
-    $onFailure(() => this._deleteVm(vm))
+    $onFailure(() => this._deleteVm(vm)::pCatch(noop))
     if (snapshotNameLabel) {
       this._setObjectProperties(vm, {
         nameLabel: snapshotNameLabel
@@ -856,7 +856,7 @@ export default class Xapi extends XapiBase {
           $SR$uuid: vdi.$SR.uuid
         }
       const stream = streams[`${vdiRef}.vhd`] = this._exportVdi(vdi, baseVdi, VDI_FORMAT_VHD)
-      $onFailure(() => stream.cancel())
+      $onFailure(() => stream.cancel()::pCatch(noop))
     })
 
     const vifs = {}
@@ -932,7 +932,7 @@ export default class Xapi extends XapiBase {
         is_a_template: false
       })
     )
-    $onFailure(() => this._deleteVm(vm))
+    $onFailure(() => this._deleteVm(vm)::pCatch(noop))
 
     await Promise.all([
       this._setObjectProperties(vm, {
@@ -965,7 +965,7 @@ export default class Xapi extends XapiBase {
           },
           sr: sr.$id
         })
-        $onFailure(() => this._deleteVdi(newVdi))
+        $onFailure(() => this._deleteVdi(newVdi)::pCatch(noop))
 
         return newVdi
       }
@@ -981,7 +981,7 @@ export default class Xapi extends XapiBase {
       const newVdi = await this._getOrWaitObject(
         await this._cloneVdi(baseVdi)
       )
-      $onFailure(() => this._deleteVdi(newVdi))
+      $onFailure(() => this._deleteVdi(newVdi)::pCatch(noop))
 
       await this._updateObjectMapProperty(newVdi, 'other_config', {
         [TAG_COPY_SRC]: vdi.uuid
@@ -1252,7 +1252,7 @@ export default class Xapi extends XapiBase {
         VCPUs_max: nCpus
       })
     )
-    $onFailure(() => this._deleteVm(vm))
+    $onFailure(() => this._deleteVm(vm)::pCatch(noop))
     // Disable start and change the VM name label during import.
     await Promise.all([
       this.addForbiddenOperationToVm(vm.$id, 'start', 'OVA import in progress...'),
@@ -2135,7 +2135,7 @@ export default class Xapi extends XapiBase {
       name_label,
       name_description
     })
-    $onFailure(() => this._deleteVdi(vdi))
+    $onFailure(() => this._deleteVdi(vdi)::pCatch(noop))
 
     await this.importVdiContent(vdi.$id, stream, { format: VDI_FORMAT_RAW })
 
