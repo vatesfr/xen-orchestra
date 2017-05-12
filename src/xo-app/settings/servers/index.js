@@ -41,6 +41,11 @@ export default class Servers extends Component {
     error.message
   )
 
+  _showInfo = () => alert(
+    _('serverAllowUnauthorizedCertificates'),
+    _('serverUnauthorizedCertificatesInfo')
+  )
+
   render () {
     const {
       props: {
@@ -60,6 +65,21 @@ export default class Servers extends Component {
             <td>{_('serverPassword')}</td>
             <td>{_('serverStatus')}</td>
             <td>{_('serverReadOnly')}</td>
+            <td>
+              {_('serverUnauthorizedCertificates')}
+              {' '}
+              <Tooltip content={_('serverAllowUnauthorizedCertificates')}>
+                <a
+                  className='text-info'
+                  onClick={this._showInfo}
+                >
+                  <Icon
+                    icon='info'
+                    size='lg'
+                  />
+                </a>
+              </Tooltip>
+            </td>
             <td className='text-xs-right'>{_('serverAction')}</td>
           </tr>
         </thead>
@@ -125,6 +145,12 @@ export default class Servers extends Component {
                 }
               </td>
               <td><Toggle value={!!server.readOnly} onChange={readOnly => editServer(server, { readOnly })} /></td>
+              <td>
+                <Toggle
+                  value={server.allowUnauthorized}
+                  onChange={allowUnauthorized => editServer(server, { allowUnauthorized })}
+                />
+              </td>
               <td className='text-xs-right'>
                 <ActionRowButton
                   btnStyle='danger'
