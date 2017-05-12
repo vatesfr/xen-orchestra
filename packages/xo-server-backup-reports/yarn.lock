@@ -1519,6 +1519,10 @@ http-signature@~1.1.0:
     jsprim "^1.2.2"
     sshpk "^1.7.0"
 
+human-format@^0.8.0:
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/human-format/-/human-format-0.8.0.tgz#6146370a838fd52718d1e27f16f1916b43a06e92"
+
 ignore@^3.0.9, ignore@^3.2.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/ignore/-/ignore-3.2.0.tgz#8d88f03c3002a0ac52114db25d2c673b0bf1e435"
