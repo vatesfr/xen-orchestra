@@ -448,13 +448,12 @@ export const createGetTags = collectionSelectors => {
   return _extendCollectionSelector(getTags, 'tag')
 }
 
-export const getLastShutdownTime = create(
+export const createGetLastShutdownTime = () => create(
   (_, vm) => vm.id,
-  state => state.objects.byType.message,
-  (vmID, messages) => {
-    const vmLogsSD = filter(messages, message => message.$object === vmID && message.name === 'VM_SHUTDOWN')
-    .sort((message1, message2) => message1.time < message2.time)
-    return vmLogsSD.length !== 0 ? vmLogsSD[0].time : null
+  createGetObjectsOfType('message'),
+  (vmId, messages) => {
+    const vmShutdownLogs = filter(messages, message => message.$object === vmId && message.name === 'VM_SHUTDOWN')
+    return vmShutdownLogs.length !== 0 ? Math.max(...vmShutdownLogs.map(message => message.time)) : null
   }
 )
 
