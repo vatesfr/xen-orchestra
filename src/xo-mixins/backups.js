@@ -23,6 +23,7 @@ import {
   trim
 } from 'lodash'
 
+import createSizeStream from '../size-stream'
 import vhdMerge, { chainVhd } from '../vhd-merge'
 import xapiObjectToXo from '../xapi-object-to-xo'
 import { lvs, pvs } from '../lvm'
@@ -680,6 +681,8 @@ export default class {
     const vdiFilename = `${date}_${isFull ? 'full' : 'delta'}.vhd`
     const backupFullPath = `${dir}/${vdiFilename}`
 
+    const sizeStream = createSizeStream()
+
     try {
       const targetStream = await handler.createOutputStream(backupFullPath, {
         // FIXME: Checksum is not computed for full vdi backups.
@@ -692,7 +695,12 @@ export default class {
       stream.on('error', error => targetStream.emit('error', error))
 
       await Promise.all([
-        eventToPromise(stream.pipe(targetStream), 'finish'),
+        eventToPromise(
+          stream
+            .pipe(sizeStream)
+            .pipe(targetStream),
+          'finish'
+        ),
         stream.task
       ])
     } catch (error) {
@@ -702,8 +710,11 @@ export default class {
       throw error
     }
 
-    // Returns relative path.
-    return `${backupDirectory}/${vdiFilename}`
+    return {
+      // Returns relative path.
+      path: `${backupDirectory}/${vdiFilename}`,
+      size: sizeStream.size
+    }
   }
 
   async _removeOldDeltaVmBackups (xapi, { handler, dir, retention }) {
@@ -788,13 +799,13 @@ export default class {
           dir,
           retention
         })
-          .then(path => {
+          .then(data => {
             delta.vdis[key] = {
               ...delta.vdis[key],
-              xoPath: path
+              xoPath: data.path
             }
 
-            return path
+            return data
           })
       })
     )
@@ -834,12 +845,16 @@ export default class {
     // Write Metadata.
     await handler.outputFile(infoPath, JSON.stringify(delta, null, 2))
 
+    let dataSize = 0
+
     // Here we have a completed backup. We can merge old vdis.
     await Promise.all(
       mapToArray(vdiBackups, vdiBackup => {
-        const backupName = vdiBackup.value()
+        const backupName = vdiBackup.value().path
         const backupDirectory = backupName.slice(0, backupName.lastIndexOf('/'))
         const backupDir = `${dir}/${backupDirectory}`
+        dataSize += vdiBackup.value().size
+
         return this._mergeDeltaVdiBackups({ handler, dir: backupDir, retention })
           .then(() => { this._chainDeltaVdiBackups({ handler, dir: backupDir }) })
       })
@@ -852,8 +867,11 @@ export default class {
       xapi.deleteVm(baseVm.$id)::pCatch(noop)
     }
 
-    // Returns relative path.
-    return `${dir}/${backupFormat}`
+    return {
+      // Returns relative path.
+      path: `${dir}/${backupFormat}`,
+      size: dataSize
+    }
   }
 
   async importDeltaVmBackup ({sr, remoteId, filePath}) {
@@ -919,9 +937,18 @@ export default class {
       compress,
       onlyMetadata: onlyMetadata || false
     })
-    sourceStream.pipe(targetStream)
+
+    const sizeStream = createSizeStream()
+
+    sourceStream
+      .pipe(sizeStream)
+      .pipe(targetStream)
 
     await promise
+
+    return {
+      size: sizeStream.size
+    }
   }
 
   async rollingBackupVm ({vm, remoteId, tag, retention, compress, onlyMetadata}) {
@@ -935,8 +962,10 @@ export default class {
     const date = safeDateFormat(new Date())
     const file = `${date}_${tag}_${vm.name_label}.xva`
 
-    await this._backupVm(vm, handler, file, {compress, onlyMetadata})
+    const data = await this._backupVm(vm, handler, file, {compress, onlyMetadata})
     await this._removeOldBackups(backups, handler, undefined, backups.length - (retention - 1))
+
+    return data
   }
 
   async rollingSnapshotVm (vm, tag, retention) {
