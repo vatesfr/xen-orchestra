@@ -3,16 +3,16 @@ import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import Component from 'base-component'
 import Icon from 'icon'
-import map from 'lodash/map'
 import React from 'react'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
 import { addSubscriptions } from 'utils'
-import { alert } from 'modal'
+import { alert, confirm } from 'modal'
 import { Container } from 'grid'
 import { Password as EditablePassword, Text } from 'editable'
 import { Password, Toggle } from 'form'
 import { injectIntl } from 'react-intl'
+import { map, noop } from 'lodash'
 import {
   addServer,
   editServer,
@@ -36,10 +36,27 @@ export default class Servers extends Component {
     this.setState({ label: '', host: '', password: '', username: '' })
   }
 
-  _showError = error => alert(
-    error.code === 'SESSION_AUTHENTICATION_FAILED' ? _('serverAuthFailed') : error.code || _('serverUnknownError'),
-    error.message
-  )
+  _showError = server => {
+    const { code, message } = server.error
+
+    if (code === 'DEPTH_ZERO_SELF_SIGNED_CERT') {
+      return confirm({
+        title: _('serverSelfSignedCertError'),
+        body: _('serverSelfSignedCertQuestion')
+      }).then(
+        () => editServer(server, { allowUnauthorized: true }).then(
+          () => connectServer(server)
+        ),
+        noop
+      )
+    }
+
+    if (code === 'SESSION_AUTHENTICATION_FAILED') {
+      return alert(_('serverAuthFailed'), message)
+    }
+
+    return alert(code || _('serverUnknownError'), message)
+  }
 
   _showInfo = () => alert(
     _('serverAllowUnauthorizedCertificates'),
@@ -134,7 +151,7 @@ export default class Servers extends Component {
                     <a
                       className='text-danger btn btn-link'
                       style={{ padding: '0px' }}
-                      onClick={() => this._showError(server.error)}
+                      onClick={() => this._showError(server)}
                     >
                       <Icon
                         icon='alarm'

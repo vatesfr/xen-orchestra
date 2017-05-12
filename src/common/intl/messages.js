@@ -1113,6 +1113,8 @@ var messages = {
   serverDisconnected: 'Disconnected',
   serverAuthFailed: 'Authentication error',
   serverUnknownError: 'Unknown error',
+  serverSelfSignedCertError: 'Invalid self-signed certificate',
+  serverSelfSignedCertQuestion: 'Do you want to accept self-signed certificate for this server even though it would decrease security?',
 
   // ----- Copy VM -----
   copyVm: 'Copy VM',
