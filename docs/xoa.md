@@ -174,7 +174,7 @@ In any case, if you lose your password, you can reset the database and get the d
 
 ## Timezone
 
-You can verify if your time is correctly set with the `date` command. To set XOA to your current timezone, use `dpkg-reconfigure tzdata`.
+You can verify if your time is correctly set with the `date` command. To set XOA to your current timezone, use `sudo dpkg-reconfigure tzdata`.
 
 ## Restart the service
 
