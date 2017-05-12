@@ -29,11 +29,11 @@ import {
 @injectIntl
 export default class Servers extends Component {
   _addServer = async () => {
-    const { label, host, password, username, allowUnauthorized } = this.state
+    const { label, host, password, username } = this.state
 
-    await addServer(host, username, password, label, allowUnauthorized)
+    await addServer(host, username, password, label)
 
-    this.setState({ label: '', host: '', password: '', username: '', allowUnauthorized: false })
+    this.setState({ label: '', host: '', password: '', username: '' })
   }
 
   _showError = error => alert(
