@@ -2,11 +2,9 @@ import React from 'react'
 import classNames from 'classnames'
 import uncontrollableInput from 'uncontrollable-input'
 
-import Component from '../../base-component'
-import Icon from '../../icon'
-import propTypes from '../../prop-types'
-
-import styles from './index.css'
+import Component from '../base-component'
+import Icon from '../icon'
+import propTypes from '../prop-types'
 
 @uncontrollableInput()
 @propTypes({
@@ -25,30 +23,26 @@ export default class Toggle extends Component {
     iconSize: 2
   }
 
-  _onChange = event => this.props.onChange(event.target.checked)
+  _toggle = () => {
+    const { props } = this
+    props.onChange(!props.value)
+  }
 
   render () {
     const { props } = this
 
+    console.log({ value: props.value })
+
     return (
-      <label
+      <Icon
         className={classNames(
           props.disabled ? 'text-muted' : props.value ? 'text-success' : null,
           props.className
         )}
-      >
-        <Icon
-          icon={props.icon || (props.value ? props.iconOn : props.iconOff)}
-          size={props.iconSize}
-        />
-        <input
-          checked={props.value || false}
-          className={styles.checkbox}
-          disabled={props.disabled}
-          onChange={this._onChange}
-          type='checkbox'
-        />
-      </label>
+        icon={props.icon || (props.value ? props.iconOn : props.iconOff)}
+        onClick={this._toggle}
+        size={props.iconSize}
+      />
     )
   }
 }
