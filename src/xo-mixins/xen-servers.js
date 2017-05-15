@@ -362,9 +362,17 @@ export default class {
     const xapis = this._xapis
     forEach(servers, server => {
       const xapi = xapis[server.id]
-      server.status = xapi
-        ? xapi.status
-        : 'disconnected'
+      if (xapi !== undefined) {
+        server.status = xapi.status
+
+        let pool
+        if (
+          server.label === undefined &&
+          (pool = xapi.pool) != null
+        ) {
+          server.label = pool.name_label
+        }
+      }
 
       // Do not expose password.
       delete server.password
