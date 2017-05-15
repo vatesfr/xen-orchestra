@@ -15,8 +15,8 @@ import sortBy from 'lodash/sortBy'
 import throttle from 'lodash/throttle'
 import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
+import { lastly, reflect } from 'promise-toolbox'
 import { noHostsAvailable } from 'xo-common/api-errors'
-import { reflect } from 'promise-toolbox'
 import { resolve } from 'url'
 
 import _ from '../intl'
@@ -323,7 +323,7 @@ export const editServer = (server, props) => (
 )
 
 export const connectServer = server => (
-  _call('server.connect', { id: resolveId(server) })::tap(
+  _call('server.connect', { id: resolveId(server) })::lastly(
     subscribeServers.forceRefresh
   )
 )
