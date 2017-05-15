@@ -31,8 +31,6 @@ export default class Toggle extends Component {
   render () {
     const { props } = this
 
-    console.log({ value: props.value })
-
     return (
       <Icon
         className={classNames(
