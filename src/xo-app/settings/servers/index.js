@@ -149,8 +149,7 @@ export default class Servers extends Component {
                 {server.error &&
                   <Tooltip content={_('serverConnectionFailed')}>
                     <a
-                      className='text-danger btn btn-link'
-                      style={{ padding: '0px' }}
+                      className='text-danger btn btn-link btn-sm'
                       onClick={() => this._showError(server)}
                     >
                       <Icon
@@ -174,9 +173,6 @@ export default class Servers extends Component {
                   handler={removeServer}
                   handlerParam={server}
                   icon='delete'
-                  style={{
-                    marginRight: '0.5em'
-                  }}
                 />
               </td>
             </tr>
