@@ -7,9 +7,9 @@ import React from 'react'
 import HomeTags from 'home-tags'
 import Tooltip from 'tooltip'
 import { addTag, editVm, removeTag } from 'xo'
+import { createGetVmLastShutdownTime } from 'selectors'
 import { BlockLink } from 'link'
 import { FormattedRelative } from 'react-intl'
-import { createGetLastShutdownTime } from 'selectors'
 import { Container, Row, Col } from 'grid'
 import { Number, Size } from 'editable'
 import {
@@ -26,9 +26,9 @@ import {
 } from 'xo-sparklines'
 
 export default connectStore(() => {
-  const getLastShutdownTime = createGetLastShutdownTime()
-  return (state, props) => {
-    return { lastShutdownTime: getLastShutdownTime(state, props.vm) }
+  const getLastShutdownTime = createGetVmLastShutdownTime(vm => vm.id, (message, vmId) => message.$object === vmId && message.name === 'VM_SHUTDOWN')
+  return {
+    lastShutdownTime: getLastShutdownTime
   }
 })(
  ({
