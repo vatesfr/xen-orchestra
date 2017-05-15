@@ -26,10 +26,8 @@ import {
 } from 'xo-sparklines'
 
 export default connectStore(() => {
-  const getLastShutdownTime = createGetVmLastShutdownTime(vm => vm.id, (message, vmId) => message.$object === vmId && message.name === 'VM_SHUTDOWN')
-  return {
-    lastShutdownTime: getLastShutdownTime
-  }
+  const getLastShutdownTime = createGetVmLastShutdownTime((_, props) => props.vm.id)
+  return { lastShutdownTime: getLastShutdownTime }
 })(
  ({
   lastShutdownTime,
