@@ -156,8 +156,8 @@ export default class {
   async updateSchedule (id, { job, cron, enabled, name, timezone }) {
     const schedule = await this._getSchedule(id)
 
-    if (job) schedule.set('job', job)
-    if (cron) schedule.set('cron', cron)
+    if (job !== undefined) schedule.set('job', job)
+    if (cron !== undefined) schedule.set('cron', cron)
     if (enabled !== undefined) schedule.set('enabled', enabled)
     if (name !== undefined) schedule.set('name', name)
     if (timezone === null) {
