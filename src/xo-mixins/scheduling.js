@@ -59,11 +59,15 @@ export default class {
   }
 
   _add (schedule) {
-    const id = _resolveId(schedule)
+    const { id } = schedule
     this._schedules[id] = schedule
     this._scheduleTable[id] = false
-    if (schedule.enabled) {
-      this._enable(schedule)
+    try {
+      if (schedule.enabled) {
+        this._enable(schedule)
+      }
+    } catch (error) {
+      console.warn('Scheduling#_add(%s)', id, error)
     }
   }
 
