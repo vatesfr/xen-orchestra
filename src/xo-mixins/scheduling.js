@@ -174,6 +174,7 @@ export default class {
       throw noSuchObject(id, 'schedule')
     }
 
+    // disable the job, _add() will enable it if necessary
     if (this._isEnabled(id)) {
       await this._disable(id)
     }
