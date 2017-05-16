@@ -452,7 +452,7 @@ export const createGetVmLastShutdownTime = (getVmId = (_, {vm}) => vm != null ? 
   getVmId,
   createGetObjectsOfType('message'),
   (vmId, messages) => {
-    var max = null
+    let max = null
     forEach(messages, message => {
       if (
         message.$object === vmId &&
