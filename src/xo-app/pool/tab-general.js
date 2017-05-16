@@ -40,7 +40,7 @@ export default ({
     <Col smallOffset={1} mediumSize={10}>
       <Usage total={sumBy(hosts, 'memory.size')}>
         {map(hosts, host => <UsageElement
-          tooltip={host.name_label}
+          tooltip={`${host.name_label} (${formatSize(host.memory.usage)})`}
           key={host.id}
           value={host.memory.usage}
           href={`#/hosts/${host.id}`}

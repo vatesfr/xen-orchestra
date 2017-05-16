@@ -85,11 +85,11 @@ export default ({
         <Usage total={host.memory.size}>
           <UsageElement
             highlight
-            tooltip='XenServer'
+            tooltip={`XenServer (${formatSize(vmController.memory.size)})`}
             value={vmController.memory.size}
           />
           {map(vms, vm => <UsageElement
-            tooltip={vm.name_label}
+            tooltip={`${vm.name_label} (${formatSize(vm.memory.size)})`}
             key={vm.id}
             value={vm.memory.size}
             href={`#/vms/${vm.id}`}
