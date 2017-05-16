@@ -85,7 +85,8 @@ export default class RestoreFileModalBody extends Component {
     return scanFiles(backup.remoteId, disk, path, partition).then(
       rawFiles => this.setState({
         files: formatFilesOptions(rawFiles, path),
-        scanningFiles: false
+        scanningFiles: false,
+        scanFilesError: false
       }),
       error => {
         this.setState({
@@ -104,7 +105,8 @@ export default class RestoreFileModalBody extends Component {
       partition: undefined,
       file: undefined,
       selectedFiles: undefined,
-      scanDiskError: false
+      scanDiskError: false,
+      scanFilesError: false
     })
   }
 
@@ -113,7 +115,8 @@ export default class RestoreFileModalBody extends Component {
       partition: undefined,
       file: undefined,
       selectedFiles: undefined,
-      scanDiskError: false
+      scanDiskError: false,
+      scanFilesError: false
     })
 
     if (!disk) {
