@@ -1,6 +1,6 @@
 import humanFormat from 'human-format'
 import moment from 'moment'
-import { forEach } from 'lodash'
+import { forEach, startCase } from 'lodash'
 
 export const configurationSchema = {
   type: 'object',
@@ -31,6 +31,30 @@ export const configurationSchema = {
 
 // ===================================================================
 
+const ICON_FAILURE = '\u274C'
+const ICON_SUCCESS = '\u2705'
+
+const formatDate = timestamp =>
+  moment(timestamp).format()
+
+const formatDuration = milliseconds =>
+  moment.duration(milliseconds).humanize()
+
+const formatMethod = method =>
+  startCase(method.slice(method.indexOf('.') + 1))
+
+const formatSize = bytes =>
+  humanFormat(bytes, {
+    scale: 'binary',
+    unit: 'B'
+  })
+
+const formatSpeed = (bytes, milliseconds) =>
+  humanFormat(bytes * 1e3 / milliseconds, {
+    scale: 'binary',
+    unit: 'B/S'
+  })
+
 const logError = e => {
   console.error('backup report error:', e)
 }
@@ -59,158 +83,165 @@ class BackupReportsXoPlugin {
   }
 
   _listener (status) {
-    let globalAverageSpeed = 0
-    let nCalls = 0
-    let nSuccess = 0
-    let reportOnFailure
-    let reportWhen
+    const { calls } = status
+    const callIds = Object.keys(calls)
+
+    const nCalls = callIds.length
+    if (nCalls === 0) {
+      return
+    }
+
+    const oneCall = calls[callIds[0]]
+
+    const reportWhen = oneCall.params._reportWhen
+    if (reportWhen === 'never') {
+      return
+    }
+
+    const { method } = oneCall
+    if (
+      method !== 'vm.deltaCopy' &&
+      method !== 'vm.rollingBackup' &&
+      method !== 'vm.rollingDeltaBackup' &&
+      method !== 'vm.rollingDrCopy' &&
+      method !== 'vm.rollingSnapshot'
+    ) {
+      return
+    }
+
+    const reportOnFailure =
+      reportWhen === 'fail' || // xo-web < 5
+      reportWhen === 'failure'  // xo-web >= 5
+
+    let globalSize = 0
+    let nFailures = 0
 
     const failedBackupsText = []
     const nagiosText = []
     const successfulBackupText = []
 
-    forEach(status.calls, call => {
-      // Ignore call if it's not a Backup a Snapshot or a Disaster Recovery.
-      if (call.method !== 'vm.deltaCopy' &&
-          call.method !== 'vm.rollingDeltaBackup' &&
-          call.method !== 'vm.rollingDrCopy' &&
-          call.method !== 'vm.rollingSnapshot' &&
-          call.method !== 'vm.rollingBackup') {
-        return
-      }
-
-      reportWhen = call.params._reportWhen
-      reportOnFailure = reportWhen === 'failure' || reportWhen === 'fail'
-
-      if (reportWhen === 'never') {
-        return
-      }
-
-      nCalls++
-      if (!call.error) {
-        nSuccess++
-      }
+    forEach(calls, call => {
+      const { id = call.params.vm } = call.params
 
       let vm
-
       try {
-        vm = this._xo.getObject(call.params.id || call.params.vm)
+        vm = this._xo.getObject(id)
       } catch (e) {}
 
-      const start = moment(call.start)
-      const end = moment(call.end)
-      const duration = moment.duration(end - start).humanize()
+      const { end, start } = call
+      const duration = end - start
+      const text = [
+        `### ${vm !== undefined ? vm.name_label : 'VM not found'}`,
+        '',
+        `- UUID: ${vm !== undefined ? vm.uuid : id}`,
+        `- Start time: ${formatDate(start)}`,
+        `- End time: ${formatDate(end)}`,
+        `- Duration: ${formatDuration(duration)}`
+      ]
 
-      if (call.error) {
+      const { error } = call
+      if (error !== undefined) {
+        ++nFailures
+
+        const { message } = error
+
         failedBackupsText.push(
-          `### VM : ${vm ? vm.name_label : 'not found'}`,
-          `  - UUID: ${vm ? vm.uuid : call.params.id}`,
-          `  - Error: ${call.error.message}`,
-          `  - Start time: ${String(start)}`,
-          `  - End time: ${String(end)}`,
-          `  - Duration: ${duration}`,
+          ...text,
+          `- Error: ${message}`,
           ''
         )
 
         nagiosText.push(
-          `[ ${vm ? vm.name_label : 'undefined'} : ${call.error.message} ]`
+          `[ ${vm !== undefined ? vm.name_label : 'undefined'} : ${message} ]`
         )
       } else if (!reportOnFailure) {
-        let averageSpeed
-
-        if (call.method === 'vm.rollingBackup' || call.method === 'vm.rollingDeltaBackup') {
-          const dataLength = call.returnedValue.size
-          averageSpeed = dataLength / moment.duration(end - start).asSeconds()
-          globalAverageSpeed += averageSpeed
+        const { returnedValue } = call
+        let size
+        if (
+          returnedValue != null &&
+          (size = returnedValue.size) !== undefined
+        ) {
+          globalSize += size
+          text.push(
+            `- Size: ${formatSize(size)}`,
+            `- Speed: ${formatSpeed(size, duration)}`
+          )
         }
 
         successfulBackupText.push(
-          `### VM : ${vm.name_label}`,
-          `  - UUID: ${vm.uuid}`,
-          `  - Start time: ${String(start)}`,
-          `  - End time: ${String(end)}`,
-          `  - Duration: ${duration}`
+          ...text,
+          ''
         )
-
-        if (averageSpeed !== undefined) {
-          successfulBackupText.push(`  - Average speed: ${humanFormat(
-            averageSpeed,
-            { scale: 'binary', unit: 'B/S' }
-          )}`)
-        }
-        successfulBackupText.push('')
       }
     })
 
-    // No backup calls.
-    if (nCalls === 0) {
+    if (reportOnFailure && nFailures === 0) {
       return
     }
 
-    const globalSuccess = nSuccess === nCalls
-    if (globalSuccess && (
-      reportWhen === 'fail' || // xo-web < 5
-      reportWhen === 'failure' // xo-web >= 5
-    )) {
-      return
-    }
+    const { end, start } = status
+    const { tag } = oneCall.params
+    const duration = end - start
+    const globalSuccess = nFailures === 0
+    const nSuccesses = nCalls - nFailures
 
-    const start = moment(status.start)
-    const end = moment(status.end)
-    const duration = moment.duration(end - start).humanize()
-    let method = status.calls[Object.keys(status.calls)[0]].method
-    method = method.slice(method.indexOf('.') + 1)
-      .replace(/([A-Z])/g, ' $1').replace(/^./, letter => letter.toUpperCase()) // humanize
-    const tag = status.calls[Object.keys(status.calls)[0]].params.tag
-    const failIcon = '\u274C'
-    const successIcon = '\u2705'
-
-    if (nCalls - nSuccess > 0) {
-      failedBackupsText.unshift(`## Failed backups: ${failIcon}`, '')
-    }
-    if (nSuccess > 0 && !reportOnFailure) {
-      successfulBackupText.unshift(`## Successful backups: ${successIcon}`, '')
-    }
-
-    // Global status.
-    const globalText = [
-      `## Global status for "${tag}" (${method}): ${globalSuccess ? `Success ${successIcon}` : `Fail ${failIcon}`}`,
-      `  - Start time: ${String(start)}`,
-      `  - End time: ${String(end)}`,
-      `  - Duration: ${duration}`,
-      `  - Successful backed up VM number: ${nSuccess}`,
-      `  - Failed backed up VM: ${nCalls - nSuccess}`
+    let markdown = [
+      `## Global status for "${tag}" (${formatMethod(method)}): ${
+        nFailures === 0 ? `Success ${ICON_SUCCESS}` : `Failure ${ICON_FAILURE}`
+      }`,
+      '',
+      `- Start time: ${formatDate(start)}`,
+      `- End time: ${formatDate(end)}`,
+      `- Duration: ${formatDuration(duration)}`,
+      `- Successes: ${nSuccesses}`,
+      `- Failures: ${nFailures}`
     ]
-    if (globalAverageSpeed !== 0) {
-      globalText.push(`  - Average speed: ${humanFormat(
-        globalAverageSpeed / nSuccess,
-        { scale: 'binary', unit: 'B/S' }
-      )}`)
+    if (globalSize !== 0) {
+      markdown.push(
+        `- Size: ${formatSize(globalSize)}`,
+        `- Speed: ${formatSpeed(globalSize, duration)}`
+      )
     }
-    globalText.push('')
+    markdown.push('')
 
-    const markdown = globalText.concat(failedBackupsText, successfulBackupText).join('\n')
-    const markdownNagios = nagiosText.join(' ')
+    if (nFailures !== 0) {
+      markdown.push(
+        `## ${ICON_FAILURE} Failures (${nFailures})`,
+        '',
+        ...failedBackupsText
+      )
+    }
 
-    // TODO : Handle errors when `sendEmail` isn't present. (Plugin dependencies)
+    if (nSuccesses !== 0 && !reportOnFailure) {
+      markdown.push(
+        `## ${ICON_SUCCESS} Successes (${nSuccesses})`,
+        '',
+        ...successfulBackupText
+      )
+    }
+
+    markdown = markdown.join('\n')
+    console.log(markdown)
 
     const xo = this._xo
     return Promise.all([
-      xo.sendEmail && xo.sendEmail({
+      xo.sendEmail !== undefined && xo.sendEmail({
         to: this._mailsReceivers,
         subject: `[Xen Orchestra][${globalSuccess ? 'Success' : 'Failure'}] Backup report for ${tag}`,
         markdown
       }),
-      xo.sendToXmppClient && xo.sendToXmppClient({
+      xo.sendToXmppClient !== undefined && xo.sendToXmppClient({
         to: this._xmppReceivers,
         message: markdown
       }),
-      xo.sendSlackMessage && xo.sendSlackMessage({
+      xo.sendSlackMessage !== undefined && xo.sendSlackMessage({
         message: markdown
       }),
-      xo.sendPassiveCheck && xo.sendPassiveCheck({
+      xo.sendPassiveCheck !== undefined && xo.sendPassiveCheck({
         status: globalSuccess ? 0 : 2,
-        message: globalSuccess ? `[Xen Orchestra] [Success] Backup report for ${tag}` : `[Xen Orchestra] [Failure] Backup report for ${tag} - VMs : ${markdownNagios}`
+        message: globalSuccess
+          ? `[Xen Orchestra] [Success] Backup report for ${tag}`
+          : `[Xen Orchestra] [Failure] Backup report for ${tag} - VMs : ${nagiosText.join(' ')}`
       })
     ])
   }
