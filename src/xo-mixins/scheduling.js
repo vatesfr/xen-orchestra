@@ -176,7 +176,7 @@ export default class {
 
     // disable the job, _add() will enable it if necessary
     if (this._isEnabled(id)) {
-      await this._disable(id)
+      this._disable(id)
     }
 
     this._add(properties)
