@@ -26,8 +26,7 @@ import {
 } from 'xo-sparklines'
 
 export default connectStore(() => {
-  const getLastShutdownTime = createGetVmLastShutdownTime((_, props) => props.vm.id)
-  return { lastShutdownTime: getLastShutdownTime }
+  return { lastShutdownTime: createGetVmLastShutdownTime((_, props) => props.vm.id) }
 })(
  ({
   lastShutdownTime,
@@ -69,7 +68,8 @@ export default connectStore(() => {
         : <p className='text-xs-center'>
           { lastShutdownTime
             ? _('vmNotRunningHaltedFor', {ago: <FormattedRelative value={lastShutdownTime * 1000} />})
-            : _('vmNotRunning')}
+            : _('vmNotRunning')
+          }
         </p>
       }
     </Col>
