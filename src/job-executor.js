@@ -2,6 +2,7 @@ import assign from 'lodash/assign'
 import Bluebird from 'bluebird'
 import every from 'lodash/every'
 import filter from 'lodash/filter'
+import find from 'lodash/find'
 import isArray from 'lodash/isArray'
 import isPlainObject from 'lodash/isPlainObject'
 import map from 'lodash/map'
@@ -146,10 +147,13 @@ export default class JobExecutor {
 
     connection.set('user_id', job.userId)
 
+    const schedule = find(await this.xo.getAllSchedules(), { job: job.id })
+
     const execStatus = {
+      calls: {},
       runJobId,
       start: Date.now(),
-      calls: {}
+      timezone: schedule !== undefined ? schedule.timezone : undefined
     }
 
     await Bluebird.map(paramsFlatVector, params => {
