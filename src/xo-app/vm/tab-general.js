@@ -67,7 +67,7 @@ export default connectStore(() => {
         </div>
         : <p className='text-xs-center'>
           { lastShutdownTime
-            ? _('vmNotRunningHaltedFor', {ago: <FormattedRelative value={lastShutdownTime * 1000} />})
+            ? _('vmNotRunningHaltedSince', {ago: <FormattedRelative value={lastShutdownTime * 1000} />})
             : _('vmNotRunning')
           }
         </p>
