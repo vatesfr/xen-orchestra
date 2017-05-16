@@ -448,6 +448,24 @@ export const createGetTags = collectionSelectors => {
   return _extendCollectionSelector(getTags, 'tag')
 }
 
+export const createGetVmLastShutdownTime = (getVmId = (_, {vm}) => vm != null ? vm.id : undefined) => create(
+  getVmId,
+  createGetObjectsOfType('message'),
+  (vmId, messages) => {
+    let max = null
+    forEach(messages, message => {
+      if (
+        message.$object === vmId &&
+        message.name === 'VM_SHUTDOWN' &&
+        (max === null || message.time > max)
+      ) {
+        max = message.time
+      }
+    })
+    return max
+  }
+)
+
 export const createGetObjectMessages = objectSelector =>
   createGetObjectsOfType('message').filter(
     create(

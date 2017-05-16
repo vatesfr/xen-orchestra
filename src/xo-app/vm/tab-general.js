@@ -7,11 +7,13 @@ import React from 'react'
 import HomeTags from 'home-tags'
 import Tooltip from 'tooltip'
 import { addTag, editVm, removeTag } from 'xo'
+import { createGetVmLastShutdownTime } from 'selectors'
 import { BlockLink } from 'link'
 import { FormattedRelative } from 'react-intl'
 import { Container, Row, Col } from 'grid'
 import { Number, Size } from 'editable'
 import {
+  connectStore,
   firstDefined,
   formatSize,
   osFamily
@@ -23,7 +25,11 @@ import {
   XvdSparkLines
 } from 'xo-sparklines'
 
-export default ({
+export default connectStore(() => {
+  return { lastShutdownTime: createGetVmLastShutdownTime() }
+})(
+ ({
+  lastShutdownTime,
   statsOverview,
   vm,
   vmTotalDiskSpace
@@ -59,7 +65,12 @@ export default ({
         ? <div>
           <p className='text-xs-center'>{_('started', { ago: <FormattedRelative value={vm.startTime * 1000} /> })}</p>
         </div>
-        : <p className='text-xs-center'>{_('vmNotRunning')}</p>
+        : <p className='text-xs-center'>
+          { lastShutdownTime
+            ? _('vmHaltedSince', {ago: <FormattedRelative value={lastShutdownTime * 1000} />})
+            : _('vmNotRunning')
+          }
+        </p>
       }
     </Col>
     <Col mediumSize={3}>
@@ -107,3 +118,4 @@ export default ({
     </Row>
   }
 </Container>
+)

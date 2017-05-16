@@ -627,6 +627,7 @@ var messages = {
   vmSettings: 'Started {ago}',
   vmCurrentStatus: 'Current status:',
   vmNotRunning: 'Not running',
+  vmHaltedSince: 'Halted since {ago}',
 
   // ----- VM general tab -----
   noToolsDetected: 'No Xen tools detected',
