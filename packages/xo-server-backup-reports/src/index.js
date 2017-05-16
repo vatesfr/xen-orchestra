@@ -224,7 +224,6 @@ class BackupReportsXoPlugin {
     }
 
     markdown = markdown.join('\n')
-    console.log(markdown)
 
     const xo = this._xo
     return Promise.all([
