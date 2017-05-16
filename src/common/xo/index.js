@@ -374,6 +374,7 @@ import AddHostModalBody from './add-host-modal' // eslint-disable-line import/fi
 export const addHostToPool = (pool, host) => {
   if (host) {
     return confirm({
+      icon: 'add',
       title: _('addHostModalTitle'),
       body: _('addHostModalMessage', { pool: pool.name_label, host: host.name_label })
     }).then(() =>
@@ -382,6 +383,7 @@ export const addHostToPool = (pool, host) => {
   }
 
   return confirm({
+    icon: 'add',
     title: _('addHostModalTitle'),
     body: <AddHostModalBody pool={pool} />
   }).then(
@@ -390,7 +392,13 @@ export const addHostToPool = (pool, host) => {
         error(_('addHostNoHost'), _('addHostNoHostMessage'))
         return
       }
-      _call('pool.mergeInto', { source: params.host.$pool, target: pool.id, force: true })
+      return _call('pool.mergeInto', { source: params.host.$pool, target: pool.id, force: true }).catch(error => {
+        if (error.code !== 'HOSTS_NOT_HOMOGENEOUS') {
+          throw error
+        }
+
+        error(_('addHostErrorTitle'), _('addHostNotHomogeneousErrorMessage'))
+      })
     },
     noop
   )
