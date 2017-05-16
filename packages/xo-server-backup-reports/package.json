@@ -37,7 +37,7 @@
   "dependencies": {
     "human-format": "^0.8.0",
     "lodash": "^4.13.1",
-    "moment": "^2.13.0"
+    "moment-timezone": "^0.5.13"
   },
   "devDependencies": {
     "babel-cli": "^6.18.0",

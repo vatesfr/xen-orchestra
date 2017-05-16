@@ -1,5 +1,5 @@
 import humanFormat from 'human-format'
-import moment from 'moment'
+import moment from 'moment-timezone'
 import { forEach, startCase } from 'lodash'
 
 export const configurationSchema = {
@@ -34,8 +34,9 @@ export const configurationSchema = {
 const ICON_FAILURE = '\u274C'
 const ICON_SUCCESS = '\u2705'
 
-const formatDate = timestamp =>
-  moment(timestamp).format()
+const createDateFormater = timezone => timezone !== undefined
+  ? timestamp => moment(timestamp).tz(timezone).format()
+  : timestamp => moment(timestamp).format()
 
 const formatDuration = milliseconds =>
   moment.duration(milliseconds).humanize()
@@ -119,6 +120,8 @@ class BackupReportsXoPlugin {
     const failedBackupsText = []
     const nagiosText = []
     const successfulBackupText = []
+
+    const formatDate = createDateFormater(status.timezone)
 
     forEach(calls, call => {
       const { id = call.params.vm } = call.params
