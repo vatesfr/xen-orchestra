@@ -170,12 +170,12 @@ export default class {
 
     const { properties } = schedule
 
-    if (!this._exists(properties)) {
-      throw noSuchObject(properties, 'schedule')
+    if (!this._exists(id)) {
+      throw noSuchObject(id, 'schedule')
     }
 
-    if (this._isEnabled(properties)) {
-      await this._disable(properties)
+    if (this._isEnabled(id)) {
+      await this._disable(id)
     }
 
     this._add(properties)
