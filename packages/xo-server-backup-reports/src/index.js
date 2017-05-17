@@ -94,7 +94,7 @@ class BackupReportsXoPlugin {
 
     const oneCall = calls[callIds[0]]
 
-    const reportWhen = oneCall.params._reportWhen
+    const { _reportWhen: reportWhen = 'failure' } = oneCall.params
     if (reportWhen === 'never') {
       return
     }
