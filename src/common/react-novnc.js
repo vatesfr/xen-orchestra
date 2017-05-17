@@ -8,7 +8,7 @@ import {
 } from 'url'
 import { enable as enableShortcuts, disable as disableShortcuts } from 'shortcuts'
 
-import propTypes from './prop-types'
+import propTypes from './prop-types-decorator'
 
 const parseRelativeUrl = url => parseUrl(resolveUrl(String(window.location), url))
 

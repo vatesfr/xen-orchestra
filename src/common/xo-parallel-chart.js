@@ -6,7 +6,7 @@ import map from 'lodash/map'
 import times from 'lodash/times'
 
 import Component from './base-component'
-import propTypes from './prop-types'
+import propTypes from './prop-types-decorator'
 import { setStyles } from './d3-utils'
 
 // ===================================================================

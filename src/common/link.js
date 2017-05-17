@@ -3,7 +3,7 @@ import React from 'react'
 import { routerShape } from 'react-router/lib/PropTypes'
 
 import Component from './base-component'
-import propTypes from './prop-types'
+import propTypes from './prop-types-decorator'
 
 // ===================================================================
 

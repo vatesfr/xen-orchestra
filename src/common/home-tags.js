@@ -1,7 +1,7 @@
 import React from 'react'
 
 import Component from './base-component'
-import propTypes from './prop-types'
+import propTypes from './prop-types-decorator'
 import Tags from './tags'
 import { createString, createProperty, toString } from './complex-matcher'
 

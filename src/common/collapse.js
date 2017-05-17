@@ -3,7 +3,7 @@ import React from 'react'
 import Button from './button'
 import Component from './base-component'
 import Icon from './icon'
-import propTypes from './prop-types'
+import propTypes from './prop-types-decorator'
 
 @propTypes({
   children: propTypes.any.isRequired,

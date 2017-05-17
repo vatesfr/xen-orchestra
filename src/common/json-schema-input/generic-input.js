@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 
 import getEventValue from '../get-event-value'
-import propTypes from '../prop-types'
+import propTypes from '../prop-types-decorator'
 import uncontrollableInput from 'uncontrollable-input'
 import { EMPTY_OBJECT } from '../utils'
 

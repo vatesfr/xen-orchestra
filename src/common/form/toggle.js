@@ -4,7 +4,7 @@ import uncontrollableInput from 'uncontrollable-input'
 
 import Component from '../base-component'
 import Icon from '../icon'
-import propTypes from '../prop-types'
+import propTypes from '../prop-types-decorator'
 
 @uncontrollableInput()
 @propTypes({

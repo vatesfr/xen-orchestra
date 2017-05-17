@@ -3,7 +3,7 @@ import React from 'react'
 import uncontrollableInput from 'uncontrollable-input'
 import Combobox from '../combobox'
 import Component from '../base-component'
-import propTypes from '../prop-types'
+import propTypes from '../prop-types-decorator'
 
 import { PrimitiveInputWrapper } from './helpers'
 

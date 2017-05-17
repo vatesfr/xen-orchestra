@@ -15,7 +15,7 @@ import {
   values
 } from 'lodash'
 
-import propTypes from '../prop-types'
+import propTypes from '../prop-types-decorator'
 import { computeArraysSum } from '../xo-stats'
 import { formatSize } from '../utils'
 

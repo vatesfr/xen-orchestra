@@ -15,7 +15,7 @@ import {
 import Button from '../button'
 import Component from '../base-component'
 import getEventValue from '../get-event-value'
-import propTypes from '../prop-types'
+import propTypes from '../prop-types-decorator'
 import {
   firstDefined,
   formatSizeRaw,

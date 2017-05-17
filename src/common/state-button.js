@@ -2,7 +2,7 @@ import React from 'react'
 import styled from 'styled-components'
 
 import ActionButton from './action-button'
-import propTypes from './prop-types'
+import propTypes from './prop-types-decorator'
 
 const Button = styled(ActionButton)`
   background-color: ${p => p.theme[`${p.state ? 'enabled' : 'disabled'}StateBg`]}

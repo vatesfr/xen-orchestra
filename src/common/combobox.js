@@ -7,7 +7,7 @@ import {
 } from 'react-bootstrap-4/lib'
 
 import Component from './base-component'
-import propTypes from './prop-types'
+import propTypes from './prop-types-decorator'
 
 @uncontrollableInput({
   defaultValue: ''

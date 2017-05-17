@@ -2,7 +2,7 @@ import _ from 'intl'
 import React from 'react'
 
 import Icon from './icon'
-import propTypes from './prop-types'
+import propTypes from './prop-types-decorator'
 import { createGetObject } from './selectors'
 import { isSrWritable } from './xo'
 import {

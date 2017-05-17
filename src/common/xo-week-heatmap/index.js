@@ -13,7 +13,7 @@ import { FormattedTime } from 'react-intl'
 
 import _ from '../intl'
 import Component from '../base-component'
-import propTypes from '../prop-types'
+import propTypes from '../prop-types-decorator'
 import Tooltip from '../tooltip'
 
 import styles from './index.css'

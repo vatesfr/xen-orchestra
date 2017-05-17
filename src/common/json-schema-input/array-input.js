@@ -5,7 +5,7 @@ import { filter, map } from 'lodash'
 import _ from '../intl'
 import Button from '../button'
 import Component from '../base-component'
-import propTypes from '../prop-types'
+import propTypes from '../prop-types-decorator'
 import { EMPTY_ARRAY } from '../utils'
 
 import GenericInput from './generic-input'

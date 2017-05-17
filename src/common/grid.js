@@ -1,7 +1,7 @@
 import classNames from 'classnames'
 import React from 'react'
 
-import propTypes from './prop-types'
+import propTypes from './prop-types-decorator'
 
 export const Col = propTypes({
   className: propTypes.string,
