@@ -2,7 +2,7 @@ import classNames from 'classnames'
 import isInteger from 'lodash/isInteger'
 import React from 'react'
 
-import propTypes from './prop-types'
+import propTypes from './prop-types-decorator'
 
 const Icon = ({ icon, size = 1, fixedWidth, ...props }) => {
   props.className = classNames(
