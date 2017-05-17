@@ -116,21 +116,19 @@ export default class HostPatches extends Component {
     router: React.PropTypes.object
   }
 
-  _installPatchWarning = (patch, installPatch) => confirm(
-    {
-      title: _('installPatchWarningTitle'),
-      body: <p>{_('installPatchWarningContent')}</p>,
-      okLabel: _('installPatchWarningResolve'),
-      cancelLabel: _('installPatchWarningReject')
-    }).then(() => installPatch(patch), () => this.context.router.push(`/pools/${this.props.host.$pool}/patches`))
+  _installPatchWarning = (patch, installPatch) => confirm({
+    title: _('installPatchWarningTitle'),
+    body: <p>{_('installPatchWarningContent')}</p>,
+    okLabel: _('installPatchWarningResolve'),
+    cancelLabel: _('installPatchWarningReject')
+  }).then(() => installPatch(patch), () => this.context.router.push(`/pools/${this.props.host.$pool}/patches`))
 
-  _installAllPatchesWarning = installAllPatches => confirm(
-    {
-      title: _('installPatchWarningTitle'),
-      body: <p>{_('installPatchWarningContent')}</p>,
-      okLabel: _('installPatchWarningResolve'),
-      cancelLabel: _('installPatchWarningReject')
-    }).then(installAllPatches, () => this.context.router.push(`/pools/${this.props.host.$pool}/patches`))
+  _installAllPatchesWarning = installAllPatches => confirm({
+    title: _('installPatchWarningTitle'),
+    body: <p>{_('installPatchWarningContent')}</p>,
+    okLabel: _('installPatchWarningResolve'),
+    cancelLabel: _('installPatchWarningReject')
+  }).then(installAllPatches, () => this.context.router.push(`/pools/${this.props.host.$pool}/patches`))
 
   _getPatches = createSelector(
     () => this.props.host,
@@ -172,8 +170,6 @@ export default class HostPatches extends Component {
             {isEmpty(missingPatches)
               ? <TabButton
                 disabled
-                handler={this._installAllPatchesWarning}
-                handlerParam={installAllPatches}
                 icon='success'
                 labelId='hostUpToDate'
               />
