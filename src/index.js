@@ -418,8 +418,8 @@ const setUpApi = (webServer, xo, verboseLogsOnErrors) => {
   })
   xo.on('stop', () => pFromCallback(cb => webSocketServer.close(cb)))
 
-  const onConnection = socket => {
-    const { remoteAddress } = socket.upgradeReq.socket
+  const onConnection = (socket, upgradeReq) => {
+    const { remoteAddress } = upgradeReq.socket
 
     debug('+ WebSocket connection (%s)', remoteAddress)
 
@@ -464,7 +464,7 @@ const setUpApi = (webServer, xo, verboseLogsOnErrors) => {
   }
   webServer.on('upgrade', (req, socket, head) => {
     if (req.url === '/api/') {
-      webSocketServer.handleUpgrade(req, socket, head, onConnection)
+      webSocketServer.handleUpgrade(req, socket, head, ws => onConnection(ws, req))
     }
   })
 }
