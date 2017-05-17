@@ -27,7 +27,7 @@ const Button = ({
   return <button {...props}>{children}</button>
 }
 
-propTypes(Button)({
+propTypes({
   active: propTypes.bool,
   block: propTypes.bool,
 
@@ -51,6 +51,6 @@ propTypes(Button)({
     'large',
     'small'
   ])
-})
+})(Button)
 
 export { Button as default }
