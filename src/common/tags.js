@@ -5,7 +5,7 @@ import React from 'react'
 
 import Component from './base-component'
 import Icon from './icon'
-import propTypes from './prop-types'
+import propTypes from './prop-types-decorator'
 
 const INPUT_STYLE = {
   margin: '2px',

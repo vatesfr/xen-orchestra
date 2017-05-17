@@ -5,7 +5,7 @@ import * as FormGrid from '../../form-grid'
 import _ from '../../intl'
 import Combobox from '../../combobox'
 import Component from '../../base-component'
-import propTypes from '../../prop-types'
+import propTypes from '../../prop-types-decorator'
 import { createSelector } from '../../selectors'
 
 @propTypes({

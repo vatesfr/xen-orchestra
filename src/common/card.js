@@ -1,6 +1,6 @@
 import React from 'react'
 
-import propTypes from './prop-types'
+import propTypes from './prop-types-decorator'
 
 const CARD_STYLE = {
   minHeight: '100%'

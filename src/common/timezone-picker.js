@@ -5,7 +5,7 @@ import React from 'react'
 
 import _ from './intl'
 import Component from './base-component'
-import propTypes from './prop-types'
+import propTypes from './prop-types-decorator'
 import { getXoServerTimezone } from './xo'
 import { Select } from './form'
 

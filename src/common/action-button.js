@@ -5,7 +5,7 @@ import Button from './button'
 import Component from './base-component'
 import Icon from './icon'
 import logError from './log-error'
-import propTypes from './prop-types'
+import propTypes from './prop-types-decorator'
 import Tooltip from './tooltip'
 import { error as _error } from './notification'
 

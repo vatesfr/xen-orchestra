@@ -1,7 +1,7 @@
 import _ from 'intl'
 import Component from 'base-component'
 import Icon from 'icon'
-import propTypes from 'prop-types'
+import propTypes from 'prop-types-decorator'
 import React from 'react'
 import { omit } from 'lodash'
 

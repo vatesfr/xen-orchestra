@@ -5,7 +5,7 @@ import { keyBy, map } from 'lodash'
 
 import _ from '../intl'
 import Component from '../base-component'
-import propTypes from '../prop-types'
+import propTypes from '../prop-types-decorator'
 import { EMPTY_OBJECT } from '../utils'
 
 import GenericInput from './generic-input'

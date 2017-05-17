@@ -4,7 +4,7 @@ import {
   SparklinesLine
 } from 'react-sparklines'
 
-import propTypes from './prop-types'
+import propTypes from './prop-types-decorator'
 import {
   computeArraysAvg,
   computeObjectsAvg

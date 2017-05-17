@@ -4,7 +4,7 @@ import React, { Component, cloneElement } from 'react'
 
 import _ from '../intl'
 import Icon from '../icon'
-import propTypes from '../prop-types'
+import propTypes from '../prop-types-decorator'
 
 import styles from './index.css'
 

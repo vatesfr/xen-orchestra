@@ -1,6 +1,6 @@
 import React, { cloneElement } from 'react'
 
-import propTypes from './prop-types'
+import propTypes from './prop-types-decorator'
 
 const SINGLE_LINE_STYLE = { display: 'flex' }
 const COL_STYLE = { marginTop: 'auto', marginBottom: 'auto' }

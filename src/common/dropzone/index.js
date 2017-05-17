@@ -1,5 +1,5 @@
 import Component from 'base-component'
-import propTypes from 'prop-types'
+import propTypes from 'prop-types-decorator'
 import React from 'react'
 import ReactDropzone from 'react-dropzone'
 

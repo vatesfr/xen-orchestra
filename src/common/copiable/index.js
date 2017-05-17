@@ -5,7 +5,7 @@ import React, { createElement } from 'react'
 import _ from '../intl'
 import Button from '../button'
 import Icon from '../icon'
-import propTypes from '../prop-types'
+import propTypes from '../prop-types-decorator'
 import Tooltip from '../tooltip'
 
 import styles from './index.css'

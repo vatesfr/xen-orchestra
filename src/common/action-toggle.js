@@ -1,7 +1,7 @@
 import React from 'react'
 
 import ActionButton from './action-button'
-import propTypes from './prop-types'
+import propTypes from './prop-types-decorator'
 
 const ActionToggle = ({ className, value, ...props }) =>
   <ActionButton

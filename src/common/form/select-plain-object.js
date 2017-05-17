@@ -4,7 +4,7 @@ import find from 'lodash/find'
 import map from 'lodash/map'
 import React from 'react'
 
-import propTypes from '../prop-types'
+import propTypes from '../prop-types-decorator'
 
 import Select from './select'
 

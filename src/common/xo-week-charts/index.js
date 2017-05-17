@@ -5,7 +5,7 @@ import map from 'lodash/map'
 
 import Component from '../base-component'
 import _ from '../intl'
-import propTypes from '../prop-types'
+import propTypes from '../prop-types-decorator'
 import { Toggle } from '../form'
 import { setStyles } from '../d3-utils'
 import {

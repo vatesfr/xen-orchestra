@@ -8,7 +8,7 @@ import {
   List
 } from 'react-virtualized'
 
-import propTypes from '../prop-types'
+import propTypes from '../prop-types-decorator'
 
 const SELECT_MENU_STYLE = {
   overflow: 'hidden'

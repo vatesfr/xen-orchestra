@@ -5,7 +5,7 @@ import ReactDOM from 'react-dom'
 
 import Component from '../base-component'
 import getPosition from './get-position'
-import propTypes from '../prop-types'
+import propTypes from '../prop-types-decorator'
 
 import styles from './index.css'
 

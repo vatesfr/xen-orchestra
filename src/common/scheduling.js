@@ -13,7 +13,7 @@ import {
 import _ from './intl'
 import Button from './button'
 import Component from './base-component'
-import propTypes from './prop-types'
+import propTypes from './prop-types-decorator'
 import TimezonePicker from './timezone-picker'
 import Icon from './icon'
 import Tooltip from './tooltip'
