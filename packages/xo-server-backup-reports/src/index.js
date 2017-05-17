@@ -227,7 +227,11 @@ class BackupReportsXoPlugin {
     return Promise.all([
       xo.sendEmail !== undefined && xo.sendEmail({
         to: this._mailsReceivers,
-        subject: `[Xen Orchestra][${globalSuccess ? 'Success' : 'Failure'}] Backup report for ${tag}`,
+        subject: `[Xen Orchestra] ${
+          globalSuccess ? 'Success' : 'Failure'
+        } − Backup report for ${tag} ${
+          globalSuccess ? ICON_SUCCESS : ICON_FAILURE
+        }`,
         markdown
       }),
       xo.sendToXmppClient !== undefined && xo.sendToXmppClient({
