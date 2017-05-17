@@ -136,10 +136,10 @@ class BackupReportsXoPlugin {
       const text = [
         `### ${vm !== undefined ? vm.name_label : 'VM not found'}`,
         '',
-        `- UUID: ${vm !== undefined ? vm.uuid : id}`,
-        `- Start time: ${formatDate(start)}`,
-        `- End time: ${formatDate(end)}`,
-        `- Duration: ${formatDuration(duration)}`
+        `- **UUID**: ${vm !== undefined ? vm.uuid : id}`,
+        `- **Start time**: ${formatDate(start)}`,
+        `- **End time**: ${formatDate(end)}`,
+        `- **Duration**: ${formatDuration(duration)}`
       ]
 
       const { error } = call
@@ -150,7 +150,7 @@ class BackupReportsXoPlugin {
 
         failedBackupsText.push(
           ...text,
-          `- Error: ${message}`,
+          `- **Error**: ${message}`,
           ''
         )
 
@@ -166,8 +166,8 @@ class BackupReportsXoPlugin {
         ) {
           globalSize += size
           text.push(
-            `- Size: ${formatSize(size)}`,
-            `- Speed: ${formatSpeed(size, duration)}`
+            `- **Size**: ${formatSize(size)}`,
+            `- **Speed**: ${formatSpeed(size, duration)}`
           )
         }
 
@@ -193,16 +193,16 @@ class BackupReportsXoPlugin {
         nFailures === 0 ? `Success ${ICON_SUCCESS}` : `Failure ${ICON_FAILURE}`
       }`,
       '',
-      `- Start time: ${formatDate(start)}`,
-      `- End time: ${formatDate(end)}`,
-      `- Duration: ${formatDuration(duration)}`,
-      `- Successes: ${nSuccesses}`,
-      `- Failures: ${nFailures}`
+      `- **Type**: ${formatMethod(method)}`,
+      `- **Start time**: ${formatDate(start)}`,
+      `- **End time**: ${formatDate(end)}`,
+      `- **Duration**: ${formatDuration(duration)}`,
+      `- **Successes**: ${nSuccesses} / ${nCalls}`
     ]
     if (globalSize !== 0) {
       markdown.push(
-        `- Size: ${formatSize(globalSize)}`,
-        `- Speed: ${formatSpeed(globalSize, duration)}`
+        `- **Size**: ${formatSize(globalSize)}`,
+        `- **Speed**: ${formatSpeed(globalSize, duration)}`
       )
     }
     markdown.push('')
