@@ -178,19 +178,19 @@ class BackupReportsXoPlugin {
       }
     })
 
-    if (reportOnFailure && nFailures === 0) {
+    const globalSuccess = nFailures === 0
+    if (reportOnFailure && globalSuccess) {
       return
     }
 
     const { end, start } = status
     const { tag } = oneCall.params
     const duration = end - start
-    const globalSuccess = nFailures === 0
     const nSuccesses = nCalls - nFailures
 
     let markdown = [
       `## Global status for "${tag}" (${formatMethod(method)}): ${
-        nFailures === 0 ? `Success ${ICON_SUCCESS}` : `Failure ${ICON_FAILURE}`
+        globalSuccess ? `Success ${ICON_SUCCESS}` : `Failure ${ICON_FAILURE}`
       }`,
       '',
       `- **Type**: ${formatMethod(method)}`,
