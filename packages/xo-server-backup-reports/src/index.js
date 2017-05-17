@@ -31,8 +31,8 @@ export const configurationSchema = {
 
 // ===================================================================
 
-const ICON_FAILURE = '\u274C'
-const ICON_SUCCESS = '\u2705'
+const ICON_FAILURE = '🚨'
+const ICON_SUCCESS = '✔'
 
 const createDateFormater = timezone => timezone !== undefined
   ? timestamp => moment(timestamp).tz(timezone).format()
