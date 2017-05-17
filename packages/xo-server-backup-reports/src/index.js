@@ -189,9 +189,7 @@ class BackupReportsXoPlugin {
     const nSuccesses = nCalls - nFailures
 
     let markdown = [
-      `## Global status for "${tag}" (${formatMethod(method)}): ${
-        globalSuccess ? `Success ${ICON_SUCCESS}` : `Failure ${ICON_FAILURE}`
-      }`,
+      `##  Global status: ${globalSuccess ? `Success` : `Failure`}`,
       '',
       `- **Type**: ${formatMethod(method)}`,
       `- **Start time**: ${formatDate(start)}`,
@@ -209,7 +207,7 @@ class BackupReportsXoPlugin {
 
     if (nFailures !== 0) {
       markdown.push(
-        `## ${ICON_FAILURE} Failures (${nFailures})`,
+        `## ${nFailures} Failure${nFailures === 1 ? '' : 's'}`,
         '',
         ...failedBackupsText
       )
@@ -217,7 +215,7 @@ class BackupReportsXoPlugin {
 
     if (nSuccesses !== 0 && !reportOnFailure) {
       markdown.push(
-        `## ${ICON_SUCCESS} Successes (${nSuccesses})`,
+        `## ${nSuccesses} Success${nSuccesses === 1 ? '' : 'es'}`,
         '',
         ...successfulBackupText
       )
