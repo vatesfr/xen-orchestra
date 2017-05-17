@@ -208,6 +208,8 @@ class BackupReportsXoPlugin {
 
     if (nFailures !== 0) {
       markdown.push(
+        '---',
+        '',
         `## ${nFailures} Failure${nFailures === 1 ? '' : 's'}`,
         '',
         ...failedBackupsText
@@ -216,6 +218,8 @@ class BackupReportsXoPlugin {
 
     if (nSuccesses !== 0 && !reportOnFailure) {
       markdown.push(
+        '---',
+        '',
         `## ${nSuccesses} Success${nSuccesses === 1 ? '' : 'es'}`,
         '',
         ...successfulBackupText
