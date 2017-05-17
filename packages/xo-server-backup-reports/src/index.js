@@ -34,9 +34,10 @@ export const configurationSchema = {
 const ICON_FAILURE = '🚨'
 const ICON_SUCCESS = '✔'
 
+const DATE_FORMAT = 'dddd, MMMM Do YYYY, h:mm:ss a'
 const createDateFormater = timezone => timezone !== undefined
-  ? timestamp => moment(timestamp).tz(timezone).format()
-  : timestamp => moment(timestamp).format()
+  ? timestamp => moment(timestamp).tz(timezone).format(DATE_FORMAT)
+  : timestamp => moment(timestamp).format(DATE_FORMAT)
 
 const formatDuration = milliseconds =>
   moment.duration(milliseconds).humanize()
