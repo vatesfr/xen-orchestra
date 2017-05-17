@@ -155,7 +155,7 @@ export default class HostPatches extends Component {
   render () {
     const { host, missingPatches, installAllPatches, installPatch } = this.props
     const { patches, columns } = this._getPatches()
-
+    const isMissingPatchesEmpty = isEmpty(missingPatches)
     return process.env.XOA_PLAN > 1
       ? <Container>
         <Row>
@@ -167,23 +167,17 @@ export default class HostPatches extends Component {
               icon='host-reboot'
               labelId='rebootUpdateHostLabel'
             />}
-            {isEmpty(missingPatches)
-              ? <TabButton
-                disabled
-                icon='success'
-                labelId='hostUpToDate'
-              />
-              : <TabButton
-                btnStyle='primary'
-                handler={this._installAllPatchesWarning}
-                handlerParam={installAllPatches}
-                icon='host-patch-update'
-                labelId='patchUpdateButton'
-              />
-            }
+            <TabButton
+              disabled={isMissingPatchesEmpty}
+              btnStyle={!isMissingPatchesEmpty && 'primary'}
+              handler={this._installAllPatchesWarning}
+              handlerParam={installAllPatches}
+              icon={isMissingPatchesEmpty ? 'success' : 'host-patch-update'}
+              labelId={isMissingPatchesEmpty ? 'hostUpToDate' : 'patchUpdateButton'}
+            />
           </Col>
         </Row>
-        {!isEmpty(missingPatches) && <Row>
+        {!isMissingPatchesEmpty && <Row>
           <Col>
             <h3>{_('hostMissingPatches')}</h3>
             <SortedTable collection={missingPatches} userData={{installPatch, _installPatchWarning: this._installPatchWarning}} columns={MISSING_PATCH_COLUMNS} />
