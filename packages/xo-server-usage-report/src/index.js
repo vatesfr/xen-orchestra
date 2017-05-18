@@ -110,7 +110,7 @@ Handlebars.registerHelper('math', function (lvalue, operator, rvalue, options) {
 })
 
 Handlebars.registerHelper('shortUUID', uuid => {
-  if(uuid !== undefined) {
+  if (typeof uuid === 'string') {
     return uuid.split('-')[0]
   }
 })
