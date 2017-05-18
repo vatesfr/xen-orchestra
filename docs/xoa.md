@@ -20,7 +20,23 @@ For usage on huge infrastructure (more than 500+ VMs), feel free to raise the RA
 
 ## Deployment
 
-Once you've got the XVA file, you can import it with `xe vm-import filename=xoa_unified.xva` or via XenCenter.
+### The quickest way
+
+SSH on your XenServer, and execute this:
+
+```
+bash -c "$(curl -s http://xoa.io/deploy)"
+```
+
+And follow instructions:
+
+* Your IP configuration will be requested: it's in **DHCP by default**, otherwise you can enter a fixed IP address (eg `192.168.0.10`)
+* If DHCP is selected, the script will continue automatically. Otherwise, a netmask, gateway and DNS should be provided.
+* XOA will be deployed on your default storage repository. You can move it elsewhere anytime after.
+
+### The alternative
+
+Download XOA on xen-orchestra.com. Once you've got the XVA file, you can import it with `xe vm-import filename=xoa_unified.xva` or via XenCenter.
 
 After the VM is imported, you just need to start it with a `xe vm-start vm="XOA Unified"` or with XenCenter.
 

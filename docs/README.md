@@ -10,6 +10,14 @@ It aims to be easy to use on any device supporting modern web technologies (HTML
 
 ![](https://pbs.twimg.com/profile_images/601775622675898368/xWbbafyO_400x400.png)
 
+## XOA quick deploy
+
+SSH on your XenServer, and execute this:
+
+```
+bash -c "$(curl -s http://xoa.io/deploy)"
+```
+
 ### XOA credentials
 
 * Web UI: `admin@admin.net` / `admin`
