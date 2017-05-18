@@ -25,7 +25,7 @@ For usage on huge infrastructure (more than 500+ VMs), feel free to raise the RA
 SSH on your XenServer, and execute this:
 
 ```
-# bash -c "$(curl -s https://xoa.io/deploy)"
+bash -c "$(curl -s http://xoa.io/deploy)"
 ```
 
 And follow instructions:

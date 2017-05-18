@@ -15,7 +15,7 @@ It aims to be easy to use on any device supporting modern web technologies (HTML
 SSH on your XenServer, and execute this:
 
 ```
-# bash -c "$(curl -s https://xoa.io/deploy)"
+bash -c "$(curl -s http://xoa.io/deploy)"
 ```
 
 ### XOA credentials
