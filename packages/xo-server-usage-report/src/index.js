@@ -109,7 +109,11 @@ Handlebars.registerHelper('math', function (lvalue, operator, rvalue, options) {
   return mathOperators[operator](+lvalue, +rvalue)
 })
 
-Handlebars.registerHelper('shortUUID', uuid => uuid.split('-')[0])
+Handlebars.registerHelper('shortUUID', uuid => {
+  if (typeof uuid === 'string') {
+    return uuid.split('-')[0]
+  }
+})
 
 // ===================================================================
 
