@@ -3243,6 +3243,14 @@ http-request-plus@^0.1.1:
     lodash "^4.17.4"
     promise-toolbox "^0.8.2"
 
+http-request-plus@^0.1.3:
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/http-request-plus/-/http-request-plus-0.1.3.tgz#44b90f6d3b391cf5f21c1dbfefc115c86975cdd7"
+  dependencies:
+    is-redirect "^1.0.0"
+    lodash "^4.17.4"
+    promise-toolbox "^0.8.2"
+
 http-server-plus@^0.8.0:
   version "0.8.0"
   resolved "https://registry.yarnpkg.com/http-server-plus/-/http-server-plus-0.8.0.tgz#36d8e6a1897dd2ad71f790ac02f02f2db608c155"
