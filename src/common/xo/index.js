@@ -22,7 +22,7 @@ import { resolve } from 'url'
 import _ from '../intl'
 import invoke from '../invoke'
 import logError from '../log-error'
-import { alert, confirm } from '../modal'
+import { alert, chooseAction, confirm } from '../modal'
 import { error, info, success } from '../notification'
 import { noop, rethrow, tap, resolveId, resolveIds } from '../utils'
 import {
@@ -571,8 +571,51 @@ export const unpauseContainer = (vm, container) => (
 
 // VM ----------------------------------------------------------------
 
+const _chooseAction = props => {
+  const items = [
+    {name: _('cloneAndStartVM'), value: 'clean', style: 'btn-success'},
+    {name: _('forceStartVm'), value: 'force', style: 'btn-danger'}
+  ]
+
+  return chooseAction({
+    icon: 'alarm',
+    items,
+    ...props
+  })
+}
+
+const cloneAndStartVM = async vm => (
+  _call('vm.start', { id: await cloneVm(vm) })
+)
+
+const unblockOperationAndStartVM = async id => {
+  await _call('vm.set', {
+    blockedOperation: {
+      start: null
+    },
+    id
+  })
+
+  return _call('vm.start', { id })
+}
+
 export const startVm = vm => (
-  _call('vm.start', { id: resolveId(vm) })
+  _call('vm.start', { id: resolveId(vm) }).then(val => val, async reason => {
+    if (reason.code === 5) {
+      const choice = await _chooseAction({
+        body: _('forceStartVmModalMessage'),
+        title: _('forceStartVmModalTitle')
+      })
+
+      if (choice === 'clean') {
+        return cloneAndStartVM(vm)
+      } else if (choice === 'force') {
+        return unblockOperationAndStartVM(resolveId(vm))
+      }
+    }
+
+    throw reason
+  })
 )
 
 export const startVms = vms => (
@@ -580,7 +623,36 @@ export const startVms = vms => (
     title: _('startVmsModalTitle', { vms: vms.length }),
     body: _('startVmsModalMessage', { vms: vms.length })
   }).then(
-    () => map(vms, vmId => startVm({ id: vmId })),
+    async () => {
+      const forbiddenStart = []
+
+      await Promise.all(map(
+        vms,
+        id => _call('vm.start', { id }).catch(err => {
+          if (err.code === 5) {
+            forbiddenStart.push(id)
+          } else {
+            throw err
+          }
+        })
+      ))
+
+      if (forbiddenStart.length !== 0) {
+        const choice = await _chooseAction({
+          body: _('forceStartVmsModalMessage', {nVms: forbiddenStart.length}),
+          title: _('forceStartVmModalTitle')
+        })
+
+        if (choice === 'clean') {
+          await Promise.all(map(
+            forbiddenStart,
+            async id => cloneAndStartVM((await _call('xo.getAllObjects'))[id])
+          ))
+        } else if (choice === 'force') {
+          await Promise.all(map(forbiddenStart, id => unblockOperationAndStartVM(id)))
+        }
+      }
+    },
     noop
   )
 )

@@ -1,5 +1,6 @@
 import isArray from 'lodash/isArray'
 import isString from 'lodash/isString'
+import map from 'lodash/map'
 import React, { Component, cloneElement } from 'react'
 import { Modal as ReactModal } from 'react-bootstrap-4/lib'
 
@@ -132,6 +133,89 @@ export const confirm = ({
       >
         {body}
       </Confirm>,
+      reject
+    )
+  })
+}
+
+@propTypes({
+  children: propTypes.node.isRequired,
+  icon: propTypes.string,
+  items: propTypes.object.isRequired,
+  title: propTypes.node.isRequired
+})
+class ChooseAction extends Component {
+  _resolve = val => {
+    this.props.resolve(val)
+    instance.close()
+  }
+
+  _reject = () => {
+    this.props.reject()
+    instance.close()
+  }
+
+  render () {
+    const { Body, Footer, Header, Title } = ReactModal
+
+    const {
+      icon,
+      items,
+      title
+    } = this.props
+
+    const body = _addRef(this.props.children, 'body')
+
+    return <div>
+      <Header closeButton>
+        <Title>
+          {icon !== undefined
+            ? <span><Icon icon={icon} /> {title}</span>
+            : title
+          }
+        </Title>
+      </Header>
+      <Body>
+        {body}
+      </Body>
+      <Footer>
+        {map(
+          items,
+          item => <span>
+            <Button
+              className={item.style !== undefined && item.style}
+              onClick={() => this._resolve(item.value)}
+            >
+              {item.name}
+            </Button>
+            {' '}
+          </span>
+        )}
+        <Button onClick={this._reject} >
+          {_('chooseCancel')}
+        </Button>
+      </Footer>
+    </div>
+  }
+}
+
+export const chooseAction = ({
+  body,
+  icon,
+  items,
+  title
+}) => {
+  return new Promise((resolve, reject) => {
+    modal(
+      <ChooseAction
+        icon={icon}
+        items={items}
+        reject={reject}
+        resolve={resolve}
+        title={title}
+      >
+        {body}
+      </ChooseAction>,
       reject
     )
   })
