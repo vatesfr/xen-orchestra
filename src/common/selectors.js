@@ -481,27 +481,37 @@ export const createGetObjectMessages = objectSelector =>
 export const getObject = createGetObject((_, id) => id)
 
 export const createDoesHostNeedRestart = hostSelector => {
-  // Returns the first patch of the host which requires it to be
-  // restarted.
-  const restartPoolPatch = createGetObjectsOfType('pool_patch').pick(
+  const restartPoolPatch = create(
+    // Returns the first patch of the host which requires it to be
+    // restarted.
+
+    // XS < 7.1
+    createGetObjectsOfType('pool_patch').pick(
+      create(
+        createGetObjectsOfType('host_patch').pick(
+          (state, props) => {
+            const host = hostSelector(state, props)
+            return host && host.patches
+          }
+        ).filter(create(
+          (state, props) => {
+            const host = hostSelector(state, props)
+            return host && host.startTime
+          },
+          startTime => patch => patch.time > startTime
+        )),
+        hostPatches => map(hostPatches, hostPatch => hostPatch.pool_patch)
+      )
+    ).find([ ({ guidance }) => find(guidance, action =>
+      action === 'restartHost' || action === 'restartXapi'
+    ) ]),
+    // XS >= 7.1
     create(
-      createGetObjectsOfType('host_patch').pick(
-        (state, props) => {
-          const host = hostSelector(state, props)
-          return host && host.patches
-        }
-      ).filter(create(
-        (state, props) => {
-          const host = hostSelector(state, props)
-          return host && host.startTime
-        },
-        startTime => patch => patch.time > startTime
-      )),
-      hostPatches => map(hostPatches, hostPatch => hostPatch.pool_patch)
-    )
-  ).find([ ({ guidance }) => find(guidance, action =>
-    action === 'restartHost' || action === 'restartXapi'
-  ) ])
+      hostSelector,
+      host => host.patchesRequiringReboot && host.patchesRequiringReboot[0]
+    ),
+    (patchRequiresReboot1, patchRequiresReboot2) => patchRequiresReboot1 || patchRequiresReboot2
+  )
 
   return (state, props) => restartPoolPatch(state, props) !== undefined
 }
