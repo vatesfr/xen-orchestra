@@ -1635,6 +1635,10 @@ export default class Xapi extends XapiBase {
     const vdi = this.getObject(vdiId)
     const sr = this.getObject(srId)
 
+    if (vdi.SR === sr.$ref) {
+      return // nothing to do
+    }
+
     debug(`Moving VDI ${vdi.name_label} from ${vdi.$SR.name_label} to ${sr.name_label}`)
     try {
       await this.call('VDI.pool_migrate', vdi.$ref, sr.$ref, {})
