@@ -195,6 +195,7 @@ const TRANSFORMS = {
         }),
       agentStartTime: toTimestamp(otherConfig.agent_start_time),
       tags: obj.tags,
+      patchesRequiringReboot: link(obj, 'updates_requiring_reboot'),
       version: obj.software_version.product_version,
 
       // TODO: dedupe.
