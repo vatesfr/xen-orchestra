@@ -412,6 +412,7 @@ export default class {
     })(srcVm.other_config[TAG_LAST_BASE_DELTA])
 
     // 2. Copy.
+    let size = 0
     const dstVm = await (async () => {
       const delta = await srcXapi.exportDeltaVm(srcVm.$id, localBaseUuid, {
         snapshotNameLabel: `XO_DELTA_EXPORT: ${targetSr.name_label} (${targetSr.uuid})`
@@ -426,6 +427,14 @@ export default class {
       })
 
       delta.vm.name_label += ` (${shortDate(Date.now())})`
+
+      forEach(delta.vdis, (vdi, key) => {
+        const id = `${key}.vhd`
+        const sizeStream = createSizeStream().once('finish', () => {
+          size += sizeStream.size
+        })
+        delta.streams[id] = delta.streams[id].pipe(sizeStream)
+      })
 
       const promise = targetXapi.importDeltaVm(
         delta,
@@ -451,8 +460,11 @@ export default class {
       return promise
     })()
 
+    return {
     // 5. Return the identifier of the new XO VM object.
-    return xapiObjectToXo(dstVm).id
+      id: xapiObjectToXo(dstVm).id,
+      size
+    }
   }
 
   // -----------------------------------------------------------------
@@ -1006,16 +1018,21 @@ export default class {
     const olderCopies = sortBy(vms, 'name_label')
 
     const copyName = `${vm.name_label}_${tag}_${safeDateFormat(new Date())}`
-    const drCopy = await sourceXapi.remoteCopyVm(vm.$id, targetXapi, sr.$id, {
+    const data = await sourceXapi.remoteCopyVm(vm.$id, targetXapi, sr.$id, {
       nameLabel: copyName
     })
-    await targetXapi.addTag(drCopy.$id, 'Disaster Recovery')
+
+    await targetXapi.addTag(data.vm.$id, 'Disaster Recovery')
 
     const n = 1 - retention
     await Promise.all(mapToArray(n ? olderCopies.slice(0, n) : olderCopies, vm =>
       // Do not consider a failure to delete an old copy as a fatal error.
       targetXapi.deleteVm(vm.$id)::pCatch(noop)
     ))
+
+    return {
+      size: data.size
+    }
   }
 
   // -----------------------------------------------------------------

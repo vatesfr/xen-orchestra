@@ -631,7 +631,7 @@ copy = $coroutine ({
   return @getXapi(vm).remoteCopyVm(vm._xapiId, @getXapi(sr), sr._xapiId, {
     compress,
     nameLabel
-  }).then((vm) -> vm.$id)
+  }).then(({ vm }) -> vm.$id)
 
 copy.params = {
   compress: {

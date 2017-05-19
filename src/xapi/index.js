@@ -27,6 +27,7 @@ import {
   satisfies as versionSatisfies
 } from 'semver'
 
+import createSizeStream from '../size-stream'
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer'
 import { mixin } from '../decorators'
 import {
@@ -558,10 +559,13 @@ export default class Xapi extends XapiBase {
     }
 
     const sr = targetXapi.getObject(targetSrId)
-    const stream = await this.exportVm(vmId, {
+    let stream = await this.exportVm(vmId, {
       compress,
       onlyMetadata: false
     })
+
+    const sizeStream = createSizeStream()
+    stream = stream.pipe(sizeStream)
 
     const onVmCreation = nameLabel !== undefined
       ? vm => targetXapi._setObjectProperties(vm, {
@@ -578,7 +582,10 @@ export default class Xapi extends XapiBase {
       )
     )
 
-    return vm
+    return {
+      size: sizeStream.size,
+      vm
+    }
   }
 
   // Low level create VM.
