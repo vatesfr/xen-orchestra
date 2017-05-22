@@ -176,10 +176,6 @@ To                         Action      From
 
 If you want to open or close ports, please check the [documentation of UFW](https://help.ubuntu.com/community/UFW).
 
-### Downloading XOA with wget
-
-If you want to download your XOA with `wget`, you need to provide your cookie generated on https://xen-orchestra.com. See [this documentation](http://askubuntu.com/questions/161778/how-do-i-use-wget-curl-to-download-from-a-site-i-am-logged-into) for further details.
-
 ## Default XO admin account
 
 Default user is **admin@admin.net** with **admin** as a password.
