@@ -2,10 +2,13 @@ import Collection from 'xo-collection'
 import createDebug from 'debug'
 import kindOf from 'kindof'
 import ms from 'ms'
+import httpRequest from 'http-request-plus'
 import { BaseError } from 'make-error'
 import { EventEmitter } from 'events'
 import { filter, forEach, isArray, isObject, map, startsWith } from 'lodash'
 import {
+  cancelable,
+  CancelToken,
   catchPlus as pCatch,
   delay as pDelay
 } from 'promise-toolbox'
@@ -307,6 +310,66 @@ export class Xapi extends EventEmitter {
     if (arguments.length > 1) return defaultValue
 
     throw new Error('there is no object with the UUID ' + uuid)
+  }
+
+  @cancelable
+  getResource ($cancelToken, pathname, { host, query }) {
+    return httpRequest(
+      $cancelToken,
+      this._url,
+      host && {
+        hostname: this.getObject(host).address
+      },
+      {
+        path: pathname,
+        query: {
+          ...query,
+          session_id: this.sessionId
+        },
+        rejectUnauthorized: !this._allowUnauthorized
+      }
+    )
+  }
+
+  @cancelable
+  putResource ($cancelToken, stream, pathname, {
+    host,
+    query
+  } = {}) {
+    const headers = {}
+
+    // Xen API does not support chunk encoding.
+    const { length } = stream
+    if (length === undefined) {
+      // add a fake huge content length (1 PiB)
+      headers['content-length'] = '1125899906842624'
+
+      const { cancel, token } = CancelToken.source()
+      $cancelToken = CancelToken.race([ $cancelToken, token ])
+
+      // when the data has been emitted, close the connection
+      stream.on('end', () => {
+        setTimeout(cancel, 1e3)
+      })
+    }
+
+    return httpRequest.put(
+      $cancelToken,
+      this._url,
+      host && {
+        hostname: this.getObject(host).address
+      },
+      {
+        body: stream,
+        headers,
+        path: pathname,
+        query: {
+          ...query,
+          session_id: this.sessionId
+        },
+        rejectUnauthorized: !this._allowUnauthorized
+      }
+    )
   }
 
   get pool () {
