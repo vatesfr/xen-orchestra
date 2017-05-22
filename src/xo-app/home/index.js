@@ -51,7 +51,8 @@ import {
   startVms,
   stopHosts,
   stopVms,
-  subscribeServers
+  subscribeServers,
+  subscribeVMGroups
 } from 'xo'
 import { Container, Row, Col } from 'grid'
 import {
@@ -87,6 +88,7 @@ import styles from './index.css'
 import HostItem from './host-item'
 import PoolItem from './pool-item'
 import VmItem from './vm-item'
+import VmGroupItem from './vm-group-item'
 import TemplateItem from './template-item'
 import SrItem from './sr-item'
 
@@ -150,6 +152,20 @@ const OPTIONS = {
       { labelId: 'homeSortByCpus', sortBy: 'CPUs.number', sortOrder: 'desc' }
     ]
   },
+  'VM-group': {
+    defaultFilter: '',
+    filters: homeFilters.vmGroup,
+    mainActions: [
+      { handler: '', icon: 'vm-stop', tooltip: _('stopVmLabel') },
+      { handler: '', icon: 'vm-start', tooltip: _('startVmLabel') },
+      { handler: '', icon: 'vm-reboot', tooltip: _('rebootVmLabel') }
+    ],
+    Item: VmGroupItem,
+    sortOptions: [
+      { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' },
+      { labelId: 'homeSortByPowerstate', sortBy: 'power_state', sortOrder: 'desc' }
+    ]
+  },
   pool: {
     defaultFilter: '',
     filters: homeFilters.pool,
@@ -196,6 +212,7 @@ const OPTIONS = {
 
 const TYPES = {
   VM: _('homeTypeVm'),
+  'VM-group': _('homeTypeVmGroup'),
   'VM-template': _('homeTypeVmTemplate'),
   host: _('homeTypeHost'),
   pool: _('homeTypePool'),
@@ -205,7 +222,8 @@ const TYPES = {
 const DEFAULT_TYPE = 'VM'
 
 @addSubscriptions({
-  servers: subscribeServers
+  servers: subscribeServers,
+  VMGroups: subscribeVMGroups
 })
 @connectStore(() => {
   const noServersConnected = invoke(
@@ -263,7 +281,9 @@ export default class Home extends Component {
     }
   }
 
-  _getNumberOfItems = createCounter(() => this.props.items)
+  _getItems = () => this.props.type === 'VM-group' ? this.props.VMGroups : this.props.items
+
+  _getNumberOfItems = createCounter(() => this._getItems())
   _getNumberOfSelectedItems = createCounter(
     () => this.state.selectedItems,
     [ identity ]
@@ -383,7 +403,7 @@ export default class Home extends Component {
 
   _getFilteredItems = createSort(
     createFilter(
-      () => this.props.items,
+      () => this._getItems(),
       this._getFilterFunction
     ),
     () => this.state.sortBy,
@@ -695,9 +715,9 @@ export default class Home extends Component {
       sortBy
     } = this.state
     const {
-      items,
       type
     } = this.props
+    const items = this._getItems()
 
     const options = OPTIONS[type]
     const {

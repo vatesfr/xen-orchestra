@@ -31,3 +31,8 @@ export const SR = {
   ...common,
   homeFilterTags: 'tags:'
 }
+
+export const vmGroup = {
+  ...common,
+  homeFilterTags: 'tags:'
+}

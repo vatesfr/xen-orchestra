@@ -38,6 +38,7 @@ var messages = {
   // ----- Titles -----
   homePage: 'Home',
   homeVmPage: 'VMs',
+  homeVmGroupPage: 'VM-Groups',
   homeHostPage: 'Hosts',
   homePoolPage: 'Pools',
   homeTemplatePage: 'Templates',
@@ -121,6 +122,7 @@ var messages = {
   homeTypePool: 'Pool',
   homeTypeHost: 'Host',
   homeTypeVm: 'VM',
+  homeTypeVmGroup: 'VM group',
   homeTypeSr: 'SR',
   homeTypeVmTemplate: 'Template',
   homeSort: 'Sort',

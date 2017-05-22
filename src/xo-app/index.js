@@ -36,6 +36,7 @@ import Sr from './sr'
 import Tasks from './tasks'
 import User from './user'
 import Vm from './vm'
+import VmGroup from './vm-group'
 import VmImport from './vm-import'
 import XoaUpdates from './xoa-updates'
 import Xosan from './xosan'
@@ -86,6 +87,7 @@ const BODY_STYLE = {
   'vms/import': VmImport,
   'vms/new': NewVm,
   'vms/:id': Vm,
+  'vm-group/:id': VmGroup,
   'xoa-update': XoaUpdates,
   'xosan': Xosan
 })

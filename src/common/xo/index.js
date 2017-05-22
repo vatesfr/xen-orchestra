@@ -245,6 +245,8 @@ export const subscribeScheduleTable = createSubscription(() => _call('scheduler.
 
 export const subscribeSchedules = createSubscription(() => _call('schedule.getAll'))
 
+export const subscribeVMGroups = createSubscription(() => _call('vmGroup.get'))
+
 export const subscribeServers = createSubscription(invoke(
   fpSortBy('host'),
   sort => () => _call('server.getAll').then(sort)

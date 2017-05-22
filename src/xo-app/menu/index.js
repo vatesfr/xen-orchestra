@@ -127,6 +127,7 @@ export default class Menu extends Component {
     const items = [
       { to: '/home', icon: 'menu-home', label: 'homePage', subMenu: [
         { to: '/home?t=VM', icon: 'vm', label: 'homeVmPage' },
+        { to: '/home?t=VM-group', icon: 'vm', label: 'homeVmGroupPage' },
         nHosts !== 0 && { to: '/home?t=host', icon: 'host', label: 'homeHostPage' },
         !isEmpty(pools) && { to: '/home?t=pool', icon: 'pool', label: 'homePoolPage' },
         isAdmin && { to: '/home?t=VM-template', icon: 'template', label: 'homeTemplatePage' },
