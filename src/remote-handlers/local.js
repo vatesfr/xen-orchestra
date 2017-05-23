@@ -1,4 +1,4 @@
-import fs from 'fs-promise'
+import fs from 'fs-extra'
 import startsWith from 'lodash/startsWith'
 import {
   dirname,

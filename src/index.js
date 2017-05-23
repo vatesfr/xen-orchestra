@@ -21,7 +21,7 @@ import {
   ensureDir,
   readdir,
   readFile
-} from 'fs-promise'
+} from 'fs-extra'
 
 import WebServer from 'http-server-plus'
 import Xo from './xo'

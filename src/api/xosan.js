@@ -3,7 +3,7 @@ import createLogger from 'debug'
 import defer from 'golike-defer'
 import execa from 'execa'
 import fromPairs from 'lodash/fromPairs'
-import fs from 'fs-promise'
+import fs from 'fs-extra'
 import map from 'lodash/map'
 import splitLines from 'split-lines'
 import {
