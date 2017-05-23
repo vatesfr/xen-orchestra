@@ -1710,7 +1710,7 @@ debug-log@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/debug-log/-/debug-log-1.0.1.tgz#2307632d4c04382b8df8a32f70b895046d52745f"
 
-debug@2, debug@2.6.7, debug@2.X, debug@^2.1.1, debug@^2.2.0, debug@^2.6.3, debug@^2.6.6, debug@^2.6.7:
+debug@2, debug@2.6.7, debug@^2.2.0, debug@^2.6.7:
   version "2.6.7"
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.7.tgz#92bad1f6d05bbb6bba22cca88bcd0ec894c2861e"
   dependencies:
@@ -1733,6 +1733,12 @@ debug@2.6.3:
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.3.tgz#0f7eb8c30965ec08c72accfa0130c8b79984141d"
   dependencies:
     ms "0.7.2"
+
+debug@2.X, debug@^2.1.1, debug@^2.6.3, debug@^2.6.8:
+  version "2.6.8"
+  resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.8.tgz#e731531ca2ede27d188222427da17821d68ff4fc"
+  dependencies:
+    ms "2.0.0"
 
 decamelize@^1.0.0, decamelize@^1.1.1:
   version "1.2.0"
@@ -3227,9 +3233,17 @@ http-proxy@^1.16.2:
     eventemitter3 "1.x.x"
     requires-port "1.x.x"
 
-http-request-plus@^0.1.1, http-request-plus@^0.1.3:
+http-request-plus@^0.1.3:
   version "0.1.3"
   resolved "https://registry.yarnpkg.com/http-request-plus/-/http-request-plus-0.1.3.tgz#44b90f6d3b391cf5f21c1dbfefc115c86975cdd7"
+  dependencies:
+    is-redirect "^1.0.0"
+    lodash "^4.17.4"
+    promise-toolbox "^0.8.2"
+
+http-request-plus@^0.1.4:
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/http-request-plus/-/http-request-plus-0.1.4.tgz#c99cd36366e96c13f92da5954b3a2fd2ce2c531e"
   dependencies:
     is-redirect "^1.0.0"
     lodash "^4.17.4"
@@ -4421,9 +4435,13 @@ ltgt@^2.1.2, ltgt@~2.1.1:
   version "2.1.3"
   resolved "https://registry.yarnpkg.com/ltgt/-/ltgt-2.1.3.tgz#10851a06d9964b971178441c23c9e52698eece34"
 
-make-error@^1, make-error@^1.0.2, make-error@^1.2.0, make-error@^1.2.1, make-error@^1.2.2, make-error@^1.2.3:
+make-error@^1, make-error@^1.0.2, make-error@^1.2.1, make-error@^1.2.2:
   version "1.2.3"
   resolved "https://registry.yarnpkg.com/make-error/-/make-error-1.2.3.tgz#6c4402df732e0977ac6faf754a5074b3d2b1d19d"
+
+make-error@^1.2.0, make-error@^1.3.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/make-error/-/make-error-1.3.0.tgz#52ad3a339ccf10ce62b4040b708fe707244b8b96"
 
 make-iterator@^0.1.1:
   version "0.1.1"
@@ -4558,10 +4576,6 @@ ms@0.7.2:
 ms@2.0.0, ms@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
-
-ms@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/ms/-/ms-1.0.0.tgz#59adcd22edc543f7b5381862d31387b1f4bc9473"
 
 multikey-hash@^1.0.4:
   version "1.0.4"
@@ -6781,22 +6795,22 @@ xdg-basedir@^2.0.0:
   dependencies:
     os-homedir "^1.0.0"
 
-xen-api@^0.11.0:
-  version "0.11.0"
-  resolved "https://registry.yarnpkg.com/xen-api/-/xen-api-0.11.0.tgz#bad0a8bcf85c93030c83b78f42b8c83e5feae0af"
+xen-api@^0.12.0:
+  version "0.12.0"
+  resolved "https://registry.yarnpkg.com/xen-api/-/xen-api-0.12.0.tgz#1eefa8da0fe25c5a5e104d548579f329c4de22cc"
   dependencies:
     babel-polyfill "^6.23.0"
     blocked "^1.2.1"
-    debug "^2.6.6"
+    debug "^2.6.8"
     event-to-promise "^0.8.0"
-    exec-promise "^0.6.1"
-    http-request-plus "^0.1.1"
+    exec-promise "^0.7.0"
+    http-request-plus "^0.1.4"
     json-rpc-protocol "^0.11.2"
     kindof "^2.0.0"
     lodash "^4.17.4"
-    make-error "^1.2.3"
+    make-error "^1.3.0"
     minimist "^1.2.0"
-    ms "^1.0.0"
+    ms "^2.0.0"
     promise-toolbox "^0.8.2"
     pw "0.0.4"
     xmlrpc "^1.3.2"
