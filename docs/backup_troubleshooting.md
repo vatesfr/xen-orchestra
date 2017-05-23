@@ -25,6 +25,8 @@ First one is a chain that contains more than 30 elements (fixed XenServer limit)
 
 So in the end, this message is a **protection mechanism against damaging your SR**. THe backup job will fail but maybe next time it will be run, that chain will be OK.
 
+> You can read more on this into our dedicated blog post regarding [XenServer coalesce detection](https://xen-orchestra.com/blog/xenserver-coalesce-detection-in-xen-orchestra/).
+
 ### `SR_BACKEND_FAILURE_44 (insufficient space)`
 
 > This message could be triggered by any backup method.
