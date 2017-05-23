@@ -116,7 +116,12 @@ class AffinityHost extends Component {
 
 class CoresPerSocket extends Component {
   _getCoresPerSocketPossibilities = createSelector(
-    () => this.props.container.cpus.cores,
+    () => {
+      const { container } = this.props
+      if (container !== undefined) {
+        return container.cpus.cores
+      }
+    },
     () => this.props.vm.CPUs.number,
     getCoresPerSocketPossibilities
   )
