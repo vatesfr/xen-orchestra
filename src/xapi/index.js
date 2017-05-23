@@ -783,6 +783,35 @@ export default class Xapi extends XapiBase {
     })
   }
 
+  _assertHealthyVdiChain (vdi) {
+    if (vdi === null) {
+      return
+    }
+
+    if (!vdi.managed) {
+      let n = 0
+      const { uuid } = vdi
+      forEach(vdi.$SR.$VDIs, vdi => {
+        if (vdi.sm_config['vhd-parent'] === uuid && ++n > 1) {
+          return false // no need to continue, more than 1 child
+        }
+      })
+      if (n === 1) {
+        throw new Error('unhealthy VDI chain')
+      }
+    }
+
+    this._assertHealthyVdiChain(
+      this.getObjectByUuid(vdi.sm_config['vhd-parent'], null)
+    )
+  }
+
+  _assertHealthyVdiChains (vm) {
+    forEach(vm.$VBDs, ({ $VDI }) => {
+      this._assertHealthyVdiChain($VDI)
+    })
+  }
+
   // Create a snapshot of the VM and returns a delta export object.
   @deferrable.onFailure
   async exportDeltaVm ($onFailure, vmId, baseVmId = undefined, {
@@ -791,6 +820,8 @@ export default class Xapi extends XapiBase {
     fullVdisRequired = [],
     disableBaseTags = false
   } = {}) {
+    this._assertHealthyVdiChains(this.getObject(vmId))
+
     const vm = await this.snapshotVm(vmId)
     $onFailure(() => this._deleteVm(vm)::pCatch(noop))
     if (snapshotNameLabel) {
