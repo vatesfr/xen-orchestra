@@ -52,7 +52,7 @@ import {
   stopHosts,
   stopVms,
   subscribeServers,
-  subscribeVMGroups
+  subscribeVmGroups
 } from 'xo'
 import { Container, Row, Col } from 'grid'
 import {
@@ -87,8 +87,8 @@ import {
 import styles from './index.css'
 import HostItem from './host-item'
 import PoolItem from './pool-item'
-import VmItem from './vm-item'
 import VmGroupItem from './vm-group-item'
+import VmItem from './vm-item'
 import TemplateItem from './template-item'
 import SrItem from './sr-item'
 
@@ -223,21 +223,28 @@ const DEFAULT_TYPE = 'VM'
 
 @addSubscriptions({
   servers: subscribeServers,
-  VMGroups: subscribeVMGroups
+  vmGroups: subscribeVmGroups
 })
 @connectStore(() => {
   const noServersConnected = invoke(
     createGetObjectsOfType('host'),
     hosts => state => isEmpty(hosts(state))
   )
-  const type = (_, props) => props.location.query.t || DEFAULT_TYPE
+  const getType = (_, props) => props.location.query.t || DEFAULT_TYPE
+  const getObjectsByType = createGetObjectsOfType(getType)
 
-  return {
-    areObjectsFetched,
-    items: createGetObjectsOfType(type),
-    noServersConnected,
-    type,
-    user: getUser
+  return (state, props) => {
+    const type = getType(state, props)
+
+    return {
+      areObjectsFetched: areObjectsFetched(state, props),
+      items: type === 'VM-group'
+        ? props.vmGroups
+        : getObjectsByType(state, props),
+      noServersConnected: noServersConnected(state, props),
+      type,
+      user: getUser(state, props)
+    }
   }
 })
 export default class Home extends Component {
@@ -281,9 +288,7 @@ export default class Home extends Component {
     }
   }
 
-  _getItems = () => this.props.type === 'VM-group' ? this.props.VMGroups : this.props.items
-
-  _getNumberOfItems = createCounter(() => this._getItems())
+  _getNumberOfItems = createCounter(() => this.props.items)
   _getNumberOfSelectedItems = createCounter(
     () => this.state.selectedItems,
     [ identity ]
@@ -403,7 +408,7 @@ export default class Home extends Component {
 
   _getFilteredItems = createSort(
     createFilter(
-      () => this._getItems(),
+      () => this.props.items,
       this._getFilterFunction
     ),
     () => this.state.sortBy,
@@ -717,7 +722,7 @@ export default class Home extends Component {
     const {
       type
     } = this.props
-    const items = this._getItems()
+    const items = this.props.items
 
     const options = OPTIONS[type]
     const {

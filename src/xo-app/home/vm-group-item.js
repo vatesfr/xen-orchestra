@@ -10,8 +10,8 @@ import { Text } from 'editable'
 
 import styles from './index.css'
 
-export default class VMGroupItem extends Component {
-  _toggleExpanded = () => this.setState({ expanded: !this.state.expanded })
+export default class VmGroupItem extends Component {
+  toggleState = stateField => () => this.setState({ [stateField]: !this.state[stateField] })
   _onSelect = () => this.props.onSelect(this.props.item.id)
   _setNameLabel = nameLabel => { /* TODO */ }
   _removeTag = tag => { /* TODO */ }
@@ -43,8 +43,7 @@ export default class VMGroupItem extends Component {
             </EllipsisContainer>
           </Col>
           <Col mediumSize={1} className={styles.itemExpandRow}>
-            <a className={styles.itemExpandButton}
-              onClick={this._toggleExpanded}>
+            <a className={styles.itemExpandButton} onClick={this.toggleState('expanded')}>
               <Icon icon='nav' fixedWidth />&nbsp;&nbsp;&nbsp;
             </a>
           </Col>

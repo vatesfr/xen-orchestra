@@ -245,8 +245,6 @@ export const subscribeScheduleTable = createSubscription(() => _call('scheduler.
 
 export const subscribeSchedules = createSubscription(() => _call('schedule.getAll'))
 
-export const subscribeVMGroups = createSubscription(() => _call('vmGroup.get'))
-
 export const subscribeServers = createSubscription(invoke(
   fpSortBy('host'),
   sort => () => _call('server.getAll').then(sort)
@@ -276,6 +274,8 @@ export const subscribeRoles = createSubscription(invoke(
 export const subscribeIpPools = createSubscription(() => _call('ipPool.getAll'))
 
 export const subscribeResourceCatalog = createSubscription(() => _call('cloud.getResourceCatalog'))
+
+export const subscribeVmGroups = createSubscription(() => _call('vmGroup.get'))
 
 const xosanSubscriptions = {}
 export const subscribeIsInstallingXosan = (pool, cb) => {
