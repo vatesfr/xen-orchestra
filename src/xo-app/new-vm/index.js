@@ -594,7 +594,12 @@ export default class NewVm extends BaseComponent {
   )
 
   _getCoresPerSocketPossibilities = createSelector(
-    () => this.props.pool.cpus.cores,
+    () => {
+      const { pool } = this.props
+      if (pool !== undefined) {
+        return pool.cpus.cores
+      }
+    },
     () => this.state.state.CPUs,
     getCoresPerSocketPossibilities
   )
