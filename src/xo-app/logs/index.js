@@ -72,9 +72,14 @@ class JobReturn extends Component {
 
 const Log = props => <ul className='list-group'>
   {map(props.log.calls, call => {
-    const id = call.returnedValue !== undefined
-      ? call.returnedValue.id || call.returnedValue
-      : undefined
+    let id
+    if (call.returnedValue !== undefined) {
+      if (typeof call.returnedValue === 'object') {
+        id = call.returnedValue.id
+      } else {
+        id = call.returnedValue
+      }
+    }
 
     return <li key={call.callKey} className='list-group-item'>
       <strong className='text-info'>{call.method}: </strong><br />
