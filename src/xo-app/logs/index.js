@@ -70,11 +70,14 @@ class JobReturn extends Component {
   }
 }
 
+const returnedValueContainId = returnedValue =>
+  returnedValue !== undefined && (typeof returnedValue !== 'object' || returnedValue.id !== undefined)
+
 const Log = props => <ul className='list-group'>
   {map(props.log.calls, call => <li key={call.callKey} className='list-group-item'>
     <strong className='text-info'>{call.method}: </strong><br />
     {map(call.params, (value, key) => [ <JobParam id={value} paramKey={key} key={key} />, <br /> ])}
-    {call.returnedValue && <span>{' '}<JobReturn id={call.returnedValue} /></span>}
+    {returnedValueContainId(call.returnedValue) && <span>{' '}<JobReturn id={call.returnedValue.id || call.returnedValue} /></span>}
     {call.error &&
       <span className='text-danger'>
         <Icon icon='error' />
