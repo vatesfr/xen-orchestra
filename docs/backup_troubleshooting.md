@@ -2,11 +2,11 @@
 
 ## Backup progress
 
-While a backup job is running, you should see activity in the "Task" view (Menu/Tasks), like this:
+While a backup job is running, you should see activity in the "Tasks" view (Menu/Tasks), like this:
 
 ![](assets/export_task.png)
 
-Another good way to check if there is activty is the XOA VM stats view (on the Network graph).
+Another good way to check if there is activity is the XOA VM stats view (on the Network graph).
 
 ## Error messages
 
@@ -14,16 +14,16 @@ Another good way to check if there is activty is the XOA VM stats view (on the N
 
 > This message is relevent for Continuous Delta Backup or Continuous Replication only.
 
-It means your previous VM disks and snapshots should be "merged" (*coalesced* in the XenServer world) before we take a new snapshot. This mechanism is handled by XenServer itself, not us. But we can check your existing chain and avoiding creating more snapshot than your storage can merge.
+It means your previous VM disks and snapshots should be "merged" (*coalesced* in the XenServer world) before we take a new snapshot. This mechanism is handled by XenServer itself, not us. But we can check your existing chain and avoiding creating more snapshots than your storage can merge.
 
 Without this detection, you could have 2 potential issues:
 
 * `The Snapshot Chain is too Long`
 * `SR_BACKEND_FAILURE_44 (insufficient space)`
 
-First one is a chain that contains more than 30 elements (fixed XenServer limit), and the other one means it's full because "coalesced" can't keep up the pace too and the disk is filled.
+First one is a chain that contains more than 30 elements (fixed XenServer limit), and the other one means it's full because "coalesced" also can't keep up the pace and the storage is filled.
 
-So in the end, this message is a **protection mechanism against damaging your SR**. THe backup job will fail but maybe next time it will be run, that chain will be OK.
+In the end, this message is a **protection mechanism against damaging your SR**. THe backup job will fail but maybe next time it will be run, that chain will be OK.
 
 > You can read more on this into our dedicated blog post regarding [XenServer coalesce detection](https://xen-orchestra.com/blog/xenserver-coalesce-detection-in-xen-orchestra/).
 
