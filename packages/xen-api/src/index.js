@@ -5,7 +5,7 @@ import ms from 'ms'
 import httpRequest from 'http-request-plus'
 import { BaseError } from 'make-error'
 import { EventEmitter } from 'events'
-import { filter, forEach, isArray, isObject, map, startsWith } from 'lodash'
+import { filter, forEach, isArray, isObject, map, noop, reduce, startsWith } from 'lodash'
 import {
   cancelable,
   CancelToken,
@@ -401,79 +401,6 @@ export class Xapi extends EventEmitter {
     }
   }
 
-  // Low level call: handle transport errors.
-  _transportCall (method, args) {
-    let tries = 1
-    const loop = () => this._rawCall(method, args)
-      ::pCatch(isNetworkError, isXapiNetworkError, error => {
-        debug('%s: network error %s', this._humanId, error.code)
-
-        if (!(tries < MAX_TRIES)) {
-          debug('%s too many network errors (%s), give up', this._humanId, tries)
-
-          throw error
-        }
-
-        // TODO: ability to cancel the connection
-        // TODO: ability to force immediate reconnection
-        // TODO: implement back-off
-
-        return pDelay(5e3).then(() => {
-          // TODO: handling not responding host.
-
-          return this._transportCall(method, args, startTime, tries + 1)
-        })
-      })
-      ::pCatch(isHostSlave, ({params: [master]}) => {
-        debug('%s: host is slave, attempting to connect at %s', this._humanId, master)
-
-        const newUrl = {
-          ...this._url,
-          hostname: master
-        }
-        this.emit('redirect', newUrl)
-        this._url = newUrl
-
-        return this._transportCall(method, args, startTime)
-      })
-
-    const startTime = Date.now()
-    return loop().then(
-      result => {
-        debug(
-          '%s: %s(...) [%s] ==> %s',
-          this._humanId,
-          method,
-          ms(Date.now() - startTime),
-          kindOf(result)
-        )
-        return result
-      },
-      error => {
-        debug(
-          '%s: %s(...) [%s] =!> %s',
-          this._humanId,
-          method,
-          ms(Date.now() - startTime),
-          error
-        )
-        throw error
-      }
-    )
-  }
-
-  // Lowest level call: do not handle any errors.
-  _rawCall (method, args) {
-    return this._call(method, args).catch(error => {
-      if (isArray(error)) {
-        error = wrapError(error)
-      }
-
-      error.method = method
-      throw error
-    })
-  }
-
   _addObject (type, ref, object) {
     const {_objectsByRefs: objectsByRefs} = this
 
@@ -669,7 +596,83 @@ export class Xapi extends EventEmitter {
   }
 }
 
+Xapi.prototype._transportCall = reduce([
+  function (method, args) {
+    return this._call(method, args).catch(error => {
+      if (isArray(error)) {
+        error = wrapError(error)
+      }
+
+      error.method = method
+      throw error
+    })
+  },
+  call => function () {
+    let tries = 1
+    const loop = () => call.apply(this, arguments)
+      ::pCatch(isNetworkError, isXapiNetworkError, error => {
+        debug('%s: network error %s', this._humanId, error.code)
+
+        if (++tries < MAX_TRIES) {
+          // TODO: ability to cancel the connection
+          // TODO: ability to force immediate reconnection
+          // TODO: implement back-off
+
+          return pDelay(5e3).then(loop)
+        }
+
+        debug('%s too many network errors (%s), give up', this._humanId, tries)
+
+        // mark as disconnected
+        this.disconnect()::pCatch(noop)
+
+        throw error
+      })
+    return loop()
+  },
+  call => function loop () {
+    return call.apply(this, arguments)
+      ::pCatch(isHostSlave, ({params: [master]}) => {
+        debug('%s: host is slave, attempting to connect at %s', this._humanId, master)
+
+        const newUrl = {
+          ...this._url,
+          hostname: master
+        }
+        this.emit('redirect', newUrl)
+        this._url = newUrl
+
+        return loop.apply(this, arguments)
+      })
+  },
+  call => function (method) {
+    const startTime = Date.now()
+    return call.apply(this, arguments).then(
+      result => {
+        debug(
+          '%s: %s(...) [%s] ==> %s',
+          this._humanId,
+          method,
+          ms(Date.now() - startTime),
+          kindOf(result)
+        )
+        return result
+      },
+      error => {
+        debug(
+          '%s: %s(...) [%s] =!> %s',
+          this._humanId,
+          method,
+          ms(Date.now() - startTime),
+          error
+        )
+        throw error
+      }
+    )
+  }
+], (call, decorator) => decorator(call))
+
 // ===================================================================
 
 // The default value is a factory function.
-export const createClient = (opts) => new Xapi(opts)
+export const createClient = opts => new Xapi(opts)
