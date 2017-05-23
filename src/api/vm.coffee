@@ -892,10 +892,11 @@ exports.rollingDrCopy = rollingDrCopy
 
 #---------------------------------------------------------------------
 
-start = ({vm}) ->
-  return @getXapi(vm).startVm(vm._xapiId)
+start = ({vm, force}) ->
+  return @getXapi(vm).startVm(vm._xapiId, force)
 
 start.params = {
+  force: { type: 'boolean', optional: true}
   id: { type: 'string' }
 }
 

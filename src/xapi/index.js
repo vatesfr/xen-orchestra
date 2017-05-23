@@ -1433,8 +1433,14 @@ export default class Xapi extends XapiBase {
     await this._updateObjectMapProperty(vm, 'VCPUs_params', {weight})
   }
 
-  _startVm (vm) {
+  async _startVm (vm, force) {
     debug(`Starting VM ${vm.name_label}`)
+
+    if (force) {
+      await this._updateObjectMapProperty(vm, 'blocked_operations', {
+        start: null
+      })
+    }
 
     return this.call(
       'VM.start',
@@ -1444,9 +1450,9 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  async startVm (vmId) {
+  async startVm (vmId, force) {
     try {
-      await this._startVm(this.getObject(vmId))
+      await this._startVm(this.getObject(vmId), force)
     } catch (e) {
       if (e.code === 'OPERATION_BLOCKED') {
         throw forbiddenOperation('Start', e.params[1])
