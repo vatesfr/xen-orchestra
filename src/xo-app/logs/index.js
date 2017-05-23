@@ -70,29 +70,27 @@ class JobReturn extends Component {
   }
 }
 
-const returnedValueContainId = returnedValue =>
-  returnedValue !== undefined && (typeof returnedValue !== 'object' || returnedValue.id !== undefined)
-
-const getId = val =>
-  val.id !== undefined
-    ? val.id
-    : val
-
 const Log = props => <ul className='list-group'>
-  {map(props.log.calls, call => <li key={call.callKey} className='list-group-item'>
-    <strong className='text-info'>{call.method}: </strong><br />
-    {map(call.params, (value, key) => [ <JobParam id={value} paramKey={key} key={key} />, <br /> ])}
-    {returnedValueContainId(call.returnedValue) && <span>{' '}<JobReturn id={getId(call.returnedValue)} /></span>}
-    {call.error &&
-      <span className='text-danger'>
-        <Icon icon='error' />
-        {' '}
-        {call.error.message
-          ? <strong>{call.error.message}</strong>
-          : JSON.stringify(call.error)
-        }
-      </span>}
-  </li>)}
+  {map(props.log.calls, call => {
+    const id = call.returnedValue !== undefined
+      ? call.returnedValue.id || call.returnedValue
+      : undefined
+
+    return <li key={call.callKey} className='list-group-item'>
+      <strong className='text-info'>{call.method}: </strong><br />
+      {map(call.params, (value, key) => [ <JobParam id={value} paramKey={key} key={key} />, <br /> ])}
+      {id !== undefined && <span>{' '}<JobReturn id={id} /></span>}
+      {call.error &&
+        <span className='text-danger'>
+          <Icon icon='error' />
+          {' '}
+          {call.error.message
+            ? <strong>{call.error.message}</strong>
+            : JSON.stringify(call.error)
+          }
+        </span>}
+    </li>
+  })}
 </ul>
 
 const showCalls = log => alert(_('jobModalTitle', { job: log.jobId }), <Log log={log} />)
