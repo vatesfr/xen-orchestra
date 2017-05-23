@@ -61,16 +61,12 @@ class GenericModal extends Component {
 
   render () {
     const { Body, Footer, Header, Title } = ReactModal
-<<<<<<< 7a3f932313c075383ccae46b9ab860a5877800c9
-    const { title, icon, okLabel = _('confirmOk'), cancelLabel = _('confirmCancel') } = this.props
-=======
 
     const {
       buttons,
       icon,
       title
     } = this.props
->>>>>>> fix errors
 
     const body = _addRef(this.props.children, 'body')
 
@@ -101,21 +97,6 @@ class GenericModal extends Component {
         {body}
       </Body>
       <Footer>
-<<<<<<< 7a3f932313c075383ccae46b9ab860a5877800c9
-        <Button
-          btnStyle='primary'
-          onClick={this._resolve}
-          style={this._style}
-        >
-          {okLabel}
-        </Button>
-        {' '}
-        <Button
-          onClick={this._reject}
-        >
-          {cancelLabel}
-        </Button>
-=======
         {map(buttons, ({
           name,
           tooltip,
@@ -138,39 +119,20 @@ class GenericModal extends Component {
             {_('genericCancel')}
           </Button>
         }
->>>>>>> fix errors
       </Footer>
     </div>
   }
 }
 
-<<<<<<< 7a3f932313c075383ccae46b9ab860a5877800c9
-export const confirm = ({
-  body,
-  title,
-  okLabel,
-  cancelLabel,
-  icon = 'alarm'
-}) => {
-  return new Promise((resolve, reject) => {
-=======
 export const alert = (title, body) => {
   const buttons = [{ name: _('alertOk'), value: 'ok' }]
 
   return new Promise(resolve => {
->>>>>>> fix errors
     modal(
       <GenericModal
         buttons={buttons}
         resolve={resolve}
-<<<<<<< 7a3f932313c075383ccae46b9ab860a5877800c9
-        reject={reject}
-        icon={icon}
-        okLabel={okLabel}
-        cancelLabel={cancelLabel}
-=======
         title={title}
->>>>>>> fix errors
       >
         {body}
       </GenericModal>

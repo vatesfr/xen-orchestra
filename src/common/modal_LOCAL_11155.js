@@ -8,7 +8,6 @@ import _ from './intl'
 import Button from './button'
 import Icon from './icon'
 import propTypes from './prop-types-decorator'
-import Tooltip from './tooltip'
 import {
   disable as disableShortcuts,
   enable as enableShortcuts
@@ -25,155 +24,25 @@ const modal = (content, onClose) => {
   instance.setState({ content, onClose, showModal: true }, disableShortcuts)
 }
 
-@propTypes({
-  buttons: propTypes.arrayOf(propTypes.shape({
-    btnStyle: propTypes.string,
-    disabled: propTypes.bool,
-    icon: propTypes.node,
-    name: propTypes.string.isRequired,
-    tooltip: propTypes.node,
-    value: propTypes.string
-  })),
-  children: propTypes.node.isRequired,
-  icon: propTypes.string,
-  title: propTypes.node.isRequired
-})
-class GenericModal extends Component {
-  _resolve = value => {
-    if (value !== undefined) {
-      this.props.resolve(value)
-      instance.close()
-    }
-
-    const { body } = this.refs
-
-    this.props.resolve(body && (body.getWrappedInstance
-      ? body.getWrappedInstance().value
-      : body.value
-    ))
-    instance.close()
-  }
-
-  _reject = () => {
-    this.props.reject()
-    instance.close()
-  }
-
-  render () {
-    const { Body, Footer, Header, Title } = ReactModal
-<<<<<<< 7a3f932313c075383ccae46b9ab860a5877800c9
-    const { title, icon, okLabel = _('confirmOk'), cancelLabel = _('confirmCancel') } = this.props
-=======
-
-    const {
-      buttons,
-      icon,
-      title
-    } = this.props
->>>>>>> fix errors
-
-    const body = _addRef(this.props.children, 'body')
-
-    const button = ({
-      icon,
-      name,
-      props,
-      value
-    }) =>
-      <Button
-        onClick={() => this._resolve(value)}
-        {...props}
-      >
-        {icon !== undefined && <Icon icon={icon} fixedWidth />}
-        {name}
-      </Button>
-
-    return <div>
-      <Header closeButton>
-        <Title>
-          {icon
-            ? <span><Icon icon={icon} /> {title}</span>
-            : title
-          }
-        </Title>
-      </Header>
-      <Body>
-        {body}
-      </Body>
-      <Footer>
-<<<<<<< 7a3f932313c075383ccae46b9ab860a5877800c9
-        <Button
-          btnStyle='primary'
-          onClick={this._resolve}
-          style={this._style}
-        >
-          {okLabel}
-        </Button>
-        {' '}
-        <Button
-          onClick={this._reject}
-        >
-          {cancelLabel}
-        </Button>
-=======
-        {map(buttons, ({
-          name,
-          tooltip,
-          value,
-          icon,
-          ...props
-        }) =>
-          <span>
-            {tooltip !== undefined
-              ? <Tooltip content={tooltip}>
-                {button({name, value, icon, props})}
-              </Tooltip>
-              : button({name, value, icon, props})
-            }
-            {' '}
-          </span>
-        )}
-        {this.props.reject !== undefined &&
-          <Button onClick={this._reject} >
-            {_('genericCancel')}
-          </Button>
-        }
->>>>>>> fix errors
-      </Footer>
-    </div>
-  }
-}
-
-<<<<<<< 7a3f932313c075383ccae46b9ab860a5877800c9
-export const confirm = ({
-  body,
-  title,
-  okLabel,
-  cancelLabel,
-  icon = 'alarm'
-}) => {
-  return new Promise((resolve, reject) => {
-=======
 export const alert = (title, body) => {
-  const buttons = [{ name: _('alertOk'), value: 'ok' }]
-
   return new Promise(resolve => {
->>>>>>> fix errors
+    const { Body, Footer, Header, Title } = ReactModal
     modal(
-      <GenericModal
-        buttons={buttons}
-        resolve={resolve}
-<<<<<<< 7a3f932313c075383ccae46b9ab860a5877800c9
-        reject={reject}
-        icon={icon}
-        okLabel={okLabel}
-        cancelLabel={cancelLabel}
-=======
-        title={title}
->>>>>>> fix errors
-      >
-        {body}
-      </GenericModal>
+      <div>
+        <Header closeButton>
+          <Title>{title}</Title>
+        </Header>
+        <Body>{body}</Body>
+        <Footer>
+          <Button bsStyle='primary' onClick={() => {
+            resolve()
+            instance.close()
+          }}>
+            {_('alertOk')}
+          </Button>
+        </Footer>
+      </div>,
+      resolve
     )
   })
 }
@@ -189,46 +58,164 @@ const _addRef = (component, ref) => {
   return component
 }
 
+@propTypes({
+  children: propTypes.node.isRequired,
+  title: propTypes.node.isRequired,
+  icon: propTypes.string
+})
+class Confirm extends Component {
+  _resolve = () => {
+    const { body } = this.refs
+    this.props.resolve(body && (body.getWrappedInstance
+      ? body.getWrappedInstance().value
+      : body.value
+    ))
+    instance.close()
+  }
+  _reject = () => {
+    this.props.reject()
+    instance.close()
+  }
+
+  render () {
+    const { Body, Footer, Header, Title } = ReactModal
+    const { title, icon, okLabel = _('confirmOk'), cancelLabel = _('confirmCancel') } = this.props
+
+    const body = _addRef(this.props.children, 'body')
+
+    return <div>
+      <Header closeButton>
+        <Title>
+          {icon
+            ? <span><Icon icon={icon} /> {title}</span>
+            : title
+          }
+        </Title>
+      </Header>
+      <Body>
+        {body}
+      </Body>
+      <Footer>
+        <Button
+          btnStyle='primary'
+          onClick={this._resolve}
+          style={this._style}
+        >
+          {okLabel}
+        </Button>
+        {' '}
+        <Button
+          onClick={this._reject}
+        >
+          {cancelLabel}
+        </Button>
+      </Footer>
+    </div>
+  }
+}
+
 export const confirm = ({
   body,
-  icon = 'alarm',
-  title
+  title,
+  okLabel,
+  cancelLabel,
+  icon = 'alarm'
 }) => {
-  const buttons = [ { btnStyle: 'primary', name: _('confirmOk') } ]
-
   return new Promise((resolve, reject) => {
     modal(
-      <GenericModal
-        buttons={buttons}
-        icon={icon}
-        reject={reject}
-        resolve={resolve}
+      <Confirm
         title={title}
+        resolve={resolve}
+        reject={reject}
+        icon={icon}
+        okLabel={okLabel}
+        cancelLabel={cancelLabel}
       >
         {body}
-      </GenericModal>,
+      </Confirm>,
       reject
     )
   })
 }
 
+@propTypes({
+  children: propTypes.node.isRequired,
+  icon: propTypes.string,
+  items: propTypes.object.isRequired,
+  title: propTypes.node.isRequired
+})
+class ChooseAction extends Component {
+  _resolve = val => {
+    this.props.resolve(val)
+    instance.close()
+  }
+
+  _reject = () => {
+    this.props.reject()
+    instance.close()
+  }
+
+  render () {
+    const { Body, Footer, Header, Title } = ReactModal
+
+    const {
+      icon,
+      items,
+      title
+    } = this.props
+
+    const body = _addRef(this.props.children, 'body')
+
+    return <div>
+      <Header closeButton>
+        <Title>
+          {icon !== undefined
+            ? <span><Icon icon={icon} /> {title}</span>
+            : title
+          }
+        </Title>
+      </Header>
+      <Body>
+        {body}
+      </Body>
+      <Footer>
+        {map(
+          items,
+          item => <span>
+            <Button
+              className={item.style !== undefined && item.style}
+              onClick={() => this._resolve(item.value)}
+            >
+              {item.name}
+            </Button>
+            {' '}
+          </span>
+        )}
+        <Button onClick={this._reject} >
+          {_('chooseCancel')}
+        </Button>
+      </Footer>
+    </div>
+  }
+}
+
 export const chooseAction = ({
   body,
   icon,
-  buttons,
+  items,
   title
 }) => {
   return new Promise((resolve, reject) => {
     modal(
-      <GenericModal
-        buttons={buttons}
+      <ChooseAction
         icon={icon}
+        items={items}
         reject={reject}
         resolve={resolve}
         title={title}
       >
         {body}
-      </GenericModal>,
+      </ChooseAction>,
       reject
     )
   })
