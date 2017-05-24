@@ -8,7 +8,7 @@ You can see your installed plugins in "Settings" then "Plugins" page:
 
 Every plugin configuration should be done in the web interface:
 
-![](./assets/xo5pluginspage)
+![](./assets/xo5pluginspage.png)
 
 A plugin can be:
 

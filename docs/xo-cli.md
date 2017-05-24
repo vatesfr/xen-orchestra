@@ -1,47 +1,107 @@
 # xo-cli
 
-After [a request from someone on our Github repository](https://github.com/vatesfr/xo-server/issues/23), we decided to add the possibility to do some actions with CLI. Just few hours after the request, [we created XO-cli](https://github.com/vatesfr/xo-cli). It's a real example of the Xen Orchestra modularity, and how we can be flexible.
+This is another client of `xo-server`, this time in command line.
 
-Thanks to introspection, XO-cli will detect all the available features exposed in XO-server API.
+Thanks to introspection, `xo-cli` will detect all the available features exposed in `xo-server` API.
 
 ## Usage
 
 ```
-  xo-cli --register [<XO-Server URL>] [<username>] [<password>]
+> xo-cli --help
+Usage:
+
+  xo-cli --register <XO-Server URL> <username> [<password>]
     Registers the XO instance to use.
 
-  xo-cli --list-commands [--json]
+  xo-cli --unregister
+    Remove stored credentials.
+
+  xo-cli --list-commands [--json] [<pattern>]...
     Returns the list of available commands on the current XO instance.
 
-  xo-cli --list-objects [<property>=<value>]...
+    The patterns can be used to filter on command names.
+
+  xo-cli --list-objects [--<property>]… [<property>=<value>]...
     Returns a list of XO objects.
+
+    --<property>
+      Restricts displayed properties to those listed.
+
+    <property>=<value>
+      Restricted displayed objects to those matching the patterns.
 
   xo-cli <command> [<name>=<value>]...
     Executes a command on the current XO instance.
 
 ```
 
-## Examples
 
-List all running VMs on your entire infrastructure, filtering on their name:
-
-```
-$ xo-cli --list-objects type=VM power_state=Running | grep name_label
-
-    "name_label": "test tools",
-    "name_label": "nfs",
-    "name_label": "Salt Master",
+#### Register your XO instance
 
 ```
+> xo-cli --register http://xo.my-company.net admin@admin.net admin
+Successfully logged with admin@admin.net
+```
 
-You can list all the exposed XO-server API methods:
+Note: only a token will be saved in the configuration file.
+
+#### List available objects
+
+Prints all objects:
 
 ```
-$ xo-cli --list-commands
+> xo-cli --list-objects
+```
 
-...
-vm.export vm=<string> [compress=<boolean>] [onlyMetadata=<boolean>]
-vm.import host=<string>
-...
+It is possible to filter on object properties, for instance to prints
+all VM templates:
 
+```
+> xo-cli --list-objects type=VM-template
+```
+
+#### List available commands
+
+```
+> xo-cli --list-commands
+```
+
+Commands can be filtered using patterns:
+
+```
+> xo-cli --list-commands '{user,group}.*'
+```
+
+#### Execute a command
+
+The same syntax is used for all commands: `xo-cli <command> <param
+name>=<value>...`
+
+E.g., adding a new server:
+
+```
+> xo-cli server.add host=my.server.net username=root password=secret-password
+42
+```
+
+The return value is the identifier of this new server in XO.
+
+Parameters (except `true` and `false` which are correctly parsed as
+booleans) are assumed to be strings, for other types, you may use JSON
+encoding by prefixing with `json:`:
+
+```
+> xo-cli foo.bar baz='json:[1, 2, 3]'
+```
+
+##### VM export
+
+```
+> xo-cli vm.export vm=a01667e0-8e29-49fc-a550-17be4226783c @=vm.xva
+```
+
+##### VM import
+
+ ```
+> xo-cli vm.import host=60a6939e-8b0a-4352-9954-5bde44bcdf7d @=vm.xva
 ```

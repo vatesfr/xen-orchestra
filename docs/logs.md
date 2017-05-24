@@ -2,6 +2,10 @@
 
 This section will explain how to check the XOA logs, and be able to detect issues.
 
+## From the web interface
+
+Go into Settings/Logs view.
+
 ## CLI
 
 All XOA logs are stored in `/var/log/syslog`.
@@ -19,8 +23,3 @@ You can also filter for the updater program:
 ```
 $ journalctl -u xoa-updater -f -n 50
 ```
-
-
-## From the web interface
-
-> This feature is under development.
