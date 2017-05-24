@@ -19,7 +19,6 @@ var messages = {
   alertOk: 'OK',
   confirmOk: 'OK',
   genericCancel: 'Cancel',
-  chooseCancel: 'Cancel',
 
   // ----- Filters -----
   onError: 'On error',
@@ -1046,6 +1045,8 @@ var messages = {
   forceStartVmModalMessage: 'If you choose to force start the vm, this will break the current CR.',
   forceStartVmsModalMessage: 'Forbidden operation start for {nVms, number} vm{nVms, plural, one {} other {s}}. If you choose to force start the vm{nVms, plural, one {} other {s}}, this will break the current CR{nVms, plural, one {} other {\'s}}.',
   startVmsModalMessage: 'Are you sure you want to start {vms, number} VM{vms, plural, one {} other {s}}?',
+  failedVmsErrorMessage: '{nVms, number} vm{nVms, plural, one {} other {s}} are failed. Please see your logs to get more information',
+  failedVmsErrorTitle: 'Start failed',
   stopHostsModalTitle: 'Stop Host{nHosts, plural, one {} other {s}}',
   stopHostsModalMessage: 'Are you sure you want to stop {nHosts, number} Host{nHosts, plural, one {} other {s}}?',
   stopVmsModalTitle: 'Stop VM{vms, plural, one {} other {s}}',

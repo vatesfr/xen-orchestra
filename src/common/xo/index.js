@@ -614,25 +614,35 @@ export const startVms = vms => (
   }).then(
     async () => {
       const forbiddenStart = []
+      let nErrors = 0
 
       await Promise.all(map(
         vms,
         id => _call('vm.start', { id }).catch(reason => {
-          if (!forbiddenOperation.is(reason)) {
-            throw reason
+          if (forbiddenOperation.is(reason)) {
+            forbiddenStart.push(id)
+          } else {
+            nErrors++
           }
-          forbiddenStart.push(id)
         })
       ))
 
       if (forbiddenStart.length === 0) {
-        return
+        if (nErrors === 0) {
+          return
+        }
+
+        return error(_('failedVmsErrorTitle'), _('failedVmsErrorMessage', {nVms: nErrors}))
       }
 
       const choice = await chooseActionToUnblockForbiddenStartVm({
         body: _('forceStartVmsModalMessage', {nVms: forbiddenStart.length}),
         title: _('forceStartVmModalTitle')
-      })
+      }).catch(noop)
+
+      if (nErrors !== 0) {
+        error(_('failedVmsErrorTitle'), _('failedVmsErrorMessage', {nVms: nErrors}))
+      }
 
       if (choice === 'clean') {
         return Promise.all(map(
@@ -641,10 +651,12 @@ export const startVms = vms => (
         ))
       }
 
-      return Promise.all(map(
-        forbiddenStart,
-        id => _call('vm.start', { id, force: true })
-      ))
+      if (choice === 'force') {
+        return Promise.all(map(
+          forbiddenStart,
+          id => _call('vm.start', { id, force: true })
+        ))
+      }
     },
     noop
   )
