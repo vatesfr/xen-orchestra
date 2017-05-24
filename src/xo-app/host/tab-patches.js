@@ -169,7 +169,7 @@ export default class HostPatches extends Component {
             />}
             <TabButton
               disabled={isMissingPatchesEmpty}
-              btnStyle={!isMissingPatchesEmpty && 'primary'}
+              btnStyle={isMissingPatchesEmpty ? undefined : 'primary'}
               handler={this._installAllPatchesWarning}
               handlerParam={installAllPatches}
               icon={isMissingPatchesEmpty ? 'success' : 'host-patch-update'}

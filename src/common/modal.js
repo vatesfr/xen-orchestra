@@ -6,7 +6,7 @@ import { Modal as ReactModal } from 'react-bootstrap-4/lib'
 import _ from './intl'
 import Button from './button'
 import Icon from './icon'
-import propTypes from './prop-types'
+import propTypes from './prop-types-decorator'
 import {
   disable as disableShortcuts,
   enable as enableShortcuts
