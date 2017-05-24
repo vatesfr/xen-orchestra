@@ -197,7 +197,7 @@ export default class Menu extends Component {
         )}
         <li>&nbsp;</li>
         <li>&nbsp;</li>
-        <li className='nav-item xo-menu-item'>
+        { (isAdmin || +process.env.XOA_PLAN === 5) && <li className='nav-item xo-menu-item'>
           <Link className='nav-link' style={{display: 'flex'}} to={'/about'}>
             {+process.env.XOA_PLAN === 5
               ? <span>
@@ -227,7 +227,7 @@ export default class Menu extends Component {
                 </span>
             }
           </Link>
-        </li>
+        </li>}
         <li>&nbsp;</li>
         <li>&nbsp;</li>
         <li className='nav-item xo-menu-item'>
