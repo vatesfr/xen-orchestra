@@ -46,8 +46,7 @@ const MISSING_PATCH_COLUMNS = [
     itemRenderer: (patch, {installPatch, _installPatchWarning}) => (
       <ActionRowButton
         btnStyle='primary'
-        handler={_installPatchWarning}
-        handlerParam={{patch, installPatch}}
+        handler={() => _installPatchWarning(patch, installPatch)}
         icon='host-patch-update'
       />
     )
@@ -121,14 +120,20 @@ export default class HostPatches extends Component {
     body: <p>{_('installPatchWarningContent')}</p>,
     okLabel: _('installPatchWarningResolve'),
     cancelLabel: _('installPatchWarningReject')
-  }).then(() => installPatch(patch), () => this.context.router.push(`/pools/${this.props.host.$pool}/patches`))
+  }).then(
+    () => installPatch(patch),
+    () => this.context.router.push(`/pools/${this.props.host.$pool}/patches`)
+  )
 
   _installAllPatchesWarning = installAllPatches => confirm({
     title: _('installPatchWarningTitle'),
     body: <p>{_('installPatchWarningContent')}</p>,
     okLabel: _('installPatchWarningResolve'),
     cancelLabel: _('installPatchWarningReject')
-  }).then(installAllPatches, () => this.context.router.push(`/pools/${this.props.host.$pool}/patches`))
+  }).then(
+    installAllPatches,
+    () => this.context.router.push(`/pools/${this.props.host.$pool}/patches`)
+  )
 
   _getPatches = createSelector(
     () => this.props.host,
@@ -155,7 +160,7 @@ export default class HostPatches extends Component {
   render () {
     const { host, missingPatches, installAllPatches, installPatch } = this.props
     const { patches, columns } = this._getPatches()
-    const isMissingPatchesEmpty = isEmpty(missingPatches)
+    const hasMissingPatches = !isEmpty(missingPatches)
     return process.env.XOA_PLAN > 1
       ? <Container>
         <Row>
@@ -168,16 +173,16 @@ export default class HostPatches extends Component {
               labelId='rebootUpdateHostLabel'
             />}
             <TabButton
-              disabled={isMissingPatchesEmpty}
-              btnStyle={isMissingPatchesEmpty ? undefined : 'primary'}
+              disabled={!hasMissingPatches}
+              btnStyle={hasMissingPatches ? 'primary' : undefined}
               handler={this._installAllPatchesWarning}
               handlerParam={installAllPatches}
-              icon={isMissingPatchesEmpty ? 'success' : 'host-patch-update'}
-              labelId={isMissingPatchesEmpty ? 'hostUpToDate' : 'patchUpdateButton'}
+              icon={hasMissingPatches ? 'host-patch-update' : 'success'}
+              labelId={hasMissingPatches ? 'patchUpdateButton' : 'hostUpToDate'}
             />
           </Col>
         </Row>
-        {!isMissingPatchesEmpty && <Row>
+        {hasMissingPatches && <Row>
           <Col>
             <h3>{_('hostMissingPatches')}</h3>
             <SortedTable collection={missingPatches} userData={{installPatch, _installPatchWarning: this._installPatchWarning}} columns={MISSING_PATCH_COLUMNS} />
