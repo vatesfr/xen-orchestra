@@ -1,6 +1,6 @@
 # XOA
 
-The fastest way to install Xen Orchestra is to use our Appliance. You can dpeloy it by connecting into your XenServer and execute this:
+The fastest way to install Xen Orchestra is to use our Appliance. You can deploy it by connecting into your XenServer and execute this:
 
 ```
 bash -c "$(curl -s http://xoa.io/deploy)"
@@ -13,8 +13,8 @@ XOA is a Debian VM with:
 * Xen Orchestra already installed (nothing to do!)
 * Tested with all bundled dependencies (QA)
 * The web updater (update in one click)
-* Support (+SSH support)
-* Secured system (firewall, tooling…)
+* Support (+SSH support, tooling…)
+* Secured system (sudo, firewall)
 
 ## Specifications
 
