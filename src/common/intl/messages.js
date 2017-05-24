@@ -631,6 +631,7 @@ var messages = {
   vmSettings: 'Started {ago}',
   vmCurrentStatus: 'Current status:',
   vmNotRunning: 'Not running',
+  vmHaltedSince: 'Halted {ago}',
 
   // ----- VM general tab -----
   noToolsDetected: 'No Xen tools detected',
@@ -785,6 +786,11 @@ var messages = {
   unknownOriginalTemplate: 'Unknown',
   vmLimitsLabel: 'VM limits',
   vmCpuLimitsLabel: 'CPU limits',
+  vmCpuTopology: 'Topology',
+  vmChooseCoresPerSocket: 'Default behavior',
+  vmCoresPerSocket: '{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket',
+  vmCoresPerSocketIncorrectValue: 'Incorrect cores per socket value',
+  vmCoresPerSocketIncorrectValueSolution: 'Please change the selected value to fix it.',
   vmMemoryLimitsLabel: 'Memory limits (min/max)',
   vmMaxVcpus: 'vCPUs max:',
   vmMaxRam: 'Memory max:',
@@ -986,6 +992,7 @@ var messages = {
   delta: 'delta',
   restoreBackups: 'Restore Backups',
   restoreBackupsInfo: 'Click on a VM to display restore options',
+  restoreDeltaBackupsInfo: 'Only the files of Delta Backup which are not on a SMB remote can be restored',
   remoteEnabled: 'Enabled',
   remoteError: 'Error',
   noBackup: 'No backup available',
@@ -1093,6 +1100,9 @@ var messages = {
   serverPassword: 'Password',
   serverAction: 'Action',
   serverReadOnly: 'Read Only',
+  serverUnauthorizedCertificates: 'Unauthorized Certificates',
+  serverAllowUnauthorizedCertificates: 'Allow Unauthorized Certificates',
+  serverUnauthorizedCertificatesInfo: 'Enable it if your certificate is rejected, but it\'s not recommended because your connection will not be secured.',
   serverDisconnect: 'Disconnect server',
   serverPlaceHolderUser: 'username',
   serverPlaceHolderPassword: 'password',
@@ -1108,6 +1118,8 @@ var messages = {
   serverDisconnected: 'Disconnected',
   serverAuthFailed: 'Authentication error',
   serverUnknownError: 'Unknown error',
+  serverSelfSignedCertError: 'Invalid self-signed certificate',
+  serverSelfSignedCertQuestion: 'Do you want to accept self-signed certificate for this server even though it would decrease security?',
 
   // ----- Copy VM -----
   copyVm: 'Copy VM',
