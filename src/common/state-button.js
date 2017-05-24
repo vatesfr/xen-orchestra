@@ -12,18 +12,21 @@ const Button = styled(ActionButton)`
 
 const StateButton = ({
   disabledHandler,
+  disabledHandlerParam,
   disabledLabel,
   disabledTooltip,
 
   enabledLabel,
   enabledTooltip,
   enabledHandler,
+  enabledHandlerParam,
 
   state,
   ...props
 }) =>
   <Button
     handler={state ? enabledHandler : disabledHandler}
+    handlerParam={state ? enabledHandlerParam : disabledHandlerParam}
     tooltip={state ? enabledTooltip : disabledTooltip}
     {...props}
     icon={state ? 'running' : 'halted'}

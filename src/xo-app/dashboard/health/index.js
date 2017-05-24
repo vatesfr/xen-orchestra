@@ -1,13 +1,10 @@
 import _ from 'intl'
 import ActionRowButton from 'action-row-button'
 import Component from 'base-component'
-import get from 'lodash/get'
 import Icon from 'icon'
-import isEmpty from 'lodash/isEmpty'
 import Link from 'link'
-import map from 'lodash/map'
-import mapValues from 'lodash/mapValues'
 import SortedTable from 'sorted-table'
+import StateButton from 'state-button'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
@@ -15,18 +12,37 @@ import React from 'react'
 import xml2js from 'xml2js'
 import { Card, CardHeader, CardBlock } from 'card'
 import { confirm } from 'modal'
-import { deleteMessage, deleteVdi, deleteOrphanedVdis, deleteVm, isSrWritable } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { fromCallback } from 'promise-toolbox'
 import { Container, Row, Col } from 'grid'
 import {
+  connectVbd,
+  deleteMessage,
+  deleteOrphanedVdis,
+  deleteVdi,
+  deleteVm,
+  disconnectVbd,
+  isSrWritable
+} from 'xo'
+import {
+  find,
+  get,
+  includes,
+  isEmpty,
+  map,
+  mapValues
+} from 'lodash'
+import {
+  createFilter,
   createGetObject,
   createGetObjectsOfType,
-  createSelector
+  createSelector,
+  createSort
 } from 'selectors'
 import {
   connectStore,
   formatSize,
+  mapPlus,
   noop
 } from 'utils'
 
@@ -102,10 +118,21 @@ const SR_COLUMNS = [
   }
 ]
 
-const VDI_COLUMNS = [
+const ORPHANED_VDI_COLUMNS = [
   {
     name: _('snapshotDate'),
-    itemRenderer: vdi => <span><FormattedTime value={vdi.snapshot_time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={vdi.snapshot_time * 1000} />)</span>,
+    itemRenderer: vdi => <span>
+      <FormattedTime
+        day='numeric'
+        hour='numeric'
+        minute='numeric'
+        month='long'
+        value={vdi.snapshot_time * 1000}
+        year='numeric'
+      />
+      {' '}
+      (<FormattedRelative value={vdi.snapshot_time * 1000} />)
+    </span>,
     sortCriteria: vdi => vdi.snapshot_time,
     sortOrder: 'desc'
   },
@@ -141,10 +168,65 @@ const VDI_COLUMNS = [
   }
 ]
 
+const CONTROL_DOMAIN_VDI_COLUMNS = [
+  {
+    name: _('vdiNameLabel'),
+    itemRenderer: vdi => vdi && vdi.name_label,
+    sortCriteria: vdi => vdi && vdi.name_label
+  },
+  {
+    name: _('vdiNameDescription'),
+    itemRenderer: vdi => vdi && vdi.name_description,
+    sortCriteria: vdi => vdi && vdi.name_description
+  },
+  {
+    name: _('vdiPool'),
+    itemRenderer: vdi => vdi && vdi.pool && <Link to={`pools/${vdi.pool.id}`}>{vdi.pool.name_label}</Link>,
+    sortCriteria: vdi => vdi && vdi.pool && vdi.pool.name_label
+  },
+  {
+    name: _('vdiSize'),
+    itemRenderer: vdi => vdi && formatSize(vdi.size),
+    sortCriteria: vdi => vdi && vdi.size
+  },
+  {
+    name: _('vdiSr'),
+    itemRenderer: vdi => vdi && vdi.sr && <Link to={`srs/${vdi.sr.id}`}>{vdi.sr.name_label}</Link>,
+    sortCriteria: vdi => vdi && vdi.sr && vdi.sr.name_label
+  },
+  {
+    name: _('vdiAction'),
+    itemRenderer: vdi => vdi && vdi.vbd && <StateButton
+      disabledLabel={_('vbdStatusDisconnected')}
+      disabledHandler={connectVbd}
+      disabledHandlerParam={vdi.vbd}
+      disabledTooltip={_('vbdConnect')}
+
+      enabledLabel={_('vbdStatusConnected')}
+      enabledHandler={disconnectVbd}
+      enabledHandlerParam={vdi.vbd}
+      enabledTooltip={_('vbdDisconnect')}
+
+      state={vdi.vbd.attached}
+    />
+  }
+]
+
 const VM_COLUMNS = [
   {
     name: _('snapshotDate'),
-    itemRenderer: vm => <span><FormattedTime value={vm.snapshot_time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={vm.snapshot_time * 1000} />)</span>,
+    itemRenderer: vm => <span>
+      <FormattedTime
+        day='numeric'
+        hour='numeric'
+        minute='numeric'
+        month='long'
+        value={vm.snapshot_time * 1000}
+        year='numeric'
+      />
+      {' '}
+      (<FormattedRelative value={vm.snapshot_time * 1000} />)
+    </span>,
     sortCriteria: vm => vm.snapshot_time,
     sortOrder: 'desc'
   },
@@ -178,9 +260,18 @@ const VM_COLUMNS = [
 const ALARM_COLUMNS = [
   {
     name: _('alarmDate'),
-    itemRenderer: message => (
-      <span><FormattedTime value={message.time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={message.time * 1000} />)</span>
-    ),
+    itemRenderer: message => <span>
+      <FormattedTime
+        day='numeric'
+        hour='numeric'
+        minute='numeric'
+        month='long'
+        value={message.time * 1000}
+        year='numeric'
+      />
+      {' '}
+      (<FormattedRelative value={message.time * 1000} />)
+    </span>,
     sortCriteria: message => message.time,
     sortOrder: 'desc'
   },
@@ -226,6 +317,39 @@ const ALARM_COLUMNS = [
   const getOrphanVdiSnapshots = createGetObjectsOfType('VDI-snapshot')
     .filter([ snapshot => !snapshot.$snapshot_of ])
     .sort()
+  const getControlDomainVbds = createSort(createFilter(
+    createGetObjectsOfType('VBD'),
+    createSelector(
+      createSelector(
+        createGetObjectsOfType('VM-controller'),
+        vmControllers => map(vmControllers, 'id')
+      ),
+      vmControllerIds =>
+        vbd => includes(vmControllerIds, vbd.VM)
+    )
+  ))
+  const getControlDomainVdis = createSelector(
+    getControlDomainVbds,
+    createGetObjectsOfType('VDI'),
+    createGetObjectsOfType('pool'),
+    createGetObjectsOfType('SR'),
+    (vbds, vdis, pools, srs) =>
+      mapPlus(vbds, (vbd, push) => {
+        const vdi = find(vdis, { id: vbd.VDI })
+
+        if (vdi == null) {
+          return
+        }
+
+        push({
+          ...vdi,
+          pool: find(pools, { id: vbd.$pool }),
+          sr: find(srs, { id: vdi.$SR }),
+          vbd
+        })
+      }
+    )
+  )
   const getOrphanVmSnapshots = createGetObjectsOfType('VM-snapshot')
     .filter([ snapshot => !snapshot.$snapshot_of ])
     .sort()
@@ -241,6 +365,7 @@ const ALARM_COLUMNS = [
 
   return {
     alertMessages: getAlertMessages,
+    controlDomainVdis: getControlDomainVdis,
     userSrs: getUserSrs,
     vdiOrphaned: getOrphanVdiSnapshots,
     vdiSr: getVdiSrs,
@@ -362,10 +487,25 @@ export default class Health extends Component {
                     </Row>
                     <Row>
                       <Col>
-                        <SortedTable collection={this.props.vdiOrphaned} columns={VDI_COLUMNS} />
+                        <SortedTable collection={this.props.vdiOrphaned} columns={ORPHANED_VDI_COLUMNS} />
                       </Col>
                     </Row>
                   </div>
+                }
+              </CardBlock>
+            </Card>
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <Card>
+              <CardHeader>
+                <Icon icon='disk' /> {_('vdisOnControlDomain')}
+              </CardHeader>
+              <CardBlock>
+                {isEmpty(this.props.controlDomainVdis)
+                  ? <p className='text-xs-center'>{_('noControlDomainVdis')}</p>
+                  : <SortedTable collection={this.props.controlDomainVdis} columns={CONTROL_DOMAIN_VDI_COLUMNS} />
                 }
               </CardBlock>
             </Card>
