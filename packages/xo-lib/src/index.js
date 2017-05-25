@@ -17,10 +17,10 @@ export class XoError extends BaseError {}
 
 export default class Xo extends JsonRpcWebSocketClient {
   constructor (opts) {
-    const url = opts && opts.url || '.'
+    const url = opts != null ? opts.url : '.'
     super(`${url === '/' ? '' : url}/api/`)
 
-    this._credentials = opts && opts.credentials || null
+    this._credentials = (opts != null ? opts.credentials : null)
     this._user = null
 
     this.on(OPEN, () => {
