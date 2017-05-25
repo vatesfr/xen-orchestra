@@ -1,7 +1,5 @@
 # Load balancing
 
-> Load balancing is a feature coming for Q2 2016.
-
 The goal here is to **distribute the VMs load** in the best way possible on your servers.
 
 Because Xen Orchestra is connected to [multiple pools](xo-server.md) and XenServer supports [live storage motion](https://www.citrix.com/content/dam/citrix/en_us/documents/products-solutions/storage-xenmotion-live-storage-migration-with-citrix-xenserver.pdf?accessmode=direct), we can make load balancing on a **whole XenServer infrastructure** (even between remote Data Centers).
@@ -54,18 +52,3 @@ In a plan, you can configure various thresholds:
 If the CPU threshold is set to 90%, the load-balancer will be only triggered if the average CPU usage on a host is more than 90%.
 
 For the free memory, it will be triggered if there is **less** free RAM than the threshold.
-
-## More
-
-The issue is [opened here](https://github.com/vatesfr/xo-web/issues/423).
-
-![](loadbalancer.jpg)
-
-* `xo-analysis` get stats from `xo-server` and build reports/alerts
-* `xo-director` get reports/alerts
-* `xo-director` migrate VMs from various hosts (and even stop "useless" hosts)
-
-
-## External resources
-
-Citrix WLB Admin guide: http://docs.citrix.com/content/dam/docs/en-us/xenserver/xenserver-60/XenServer-6.0.0-wlb-userguide.pdf
