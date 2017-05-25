@@ -42,7 +42,7 @@ export const TaskItem = connectStore(() => ({
   host: createGetObject((_, props) => props.task.$host)
 }))(({ task, host }) => <SingleLineRow className='mb-1'>
   <Col mediumSize={6}>
-    {task.name_label} (on {host
+    {task.name_label} ({task.name_description && `${task.name_description} `}on {host
       ? <Link to={`/hosts/${host.id}`}>{host.name_label}</Link>
       : `unknown host − ${task.$host}`
     })
