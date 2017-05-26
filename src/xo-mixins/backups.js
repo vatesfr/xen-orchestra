@@ -998,7 +998,14 @@ export default class {
     await Promise.all(promises)
   }
 
-  async rollingDrCopyVm ({vm, sr, tag, retention}) {
+  _removeVms (xapi, vms) {
+    return Promise.all(mapToArray(vms, vm =>
+      // Do not consider a failure to delete an old copy as a fatal error.
+      xapi.deleteVm(vm.$id)::pCatch(noop)
+    ))
+  }
+
+  async rollingDrCopyVm ({vm, sr, tag, retention, deleteOldBackupsFirst}) {
     tag = 'DR_' + tag
     const reg = new RegExp('^' + escapeStringRegexp(`${vm.name_label}_${tag}_`) + '[0-9]{8}T[0-9]{6}Z$')
 
@@ -1015,7 +1022,16 @@ export default class {
         vms[vm.$id] = vm
       }
     })
-    const olderCopies = sortBy(vms, 'name_label')
+
+    let vmsToRemove = sortBy(vms, 'name_label')
+
+    if (retention > 1) {
+      vmsToRemove = vmsToRemove.slice(0, 1 - retention)
+    }
+
+    if (deleteOldBackupsFirst) {
+      await this._removeVms(targetXapi, vmsToRemove)
+    }
 
     const copyName = `${vm.name_label}_${tag}_${safeDateFormat(new Date())}`
     const data = await sourceXapi.remoteCopyVm(vm.$id, targetXapi, sr.$id, {
@@ -1024,11 +1040,9 @@ export default class {
 
     await targetXapi.addTag(data.vm.$id, 'Disaster Recovery')
 
-    const n = 1 - retention
-    await Promise.all(mapToArray(n ? olderCopies.slice(0, n) : olderCopies, vm =>
-      // Do not consider a failure to delete an old copy as a fatal error.
-      targetXapi.deleteVm(vm.$id)::pCatch(noop)
-    ))
+    if (!deleteOldBackupsFirst) {
+      await this._removeVms(targetXapi, vmsToRemove)
+    }
 
     return {
       size: data.size

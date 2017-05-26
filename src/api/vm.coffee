@@ -858,7 +858,7 @@ exports.rollingBackup = rollingBackup
 
 #---------------------------------------------------------------------
 
-rollingDrCopy = ({vm, pool, sr, tag, depth, retention = depth}) ->
+rollingDrCopy = ({vm, pool, sr, tag, depth, retention = depth, deleteOldBackupsFirst}) ->
   unless sr
     unless pool
       throw invalidParameters('either pool or sr param should be specified')
@@ -868,7 +868,7 @@ rollingDrCopy = ({vm, pool, sr, tag, depth, retention = depth}) ->
 
     sr = @getObject(pool.default_SR, 'SR')
 
-  return @rollingDrCopyVm({vm, sr, tag, retention})
+  return @rollingDrCopyVm({vm, sr, tag, retention, deleteOldBackupsFirst})
 
 rollingDrCopy.params = {
   retention: { type: 'number', optional: true }
@@ -878,6 +878,7 @@ rollingDrCopy.params = {
   pool: { type: 'string', optional: true }
   sr: { type: 'string', optional: true }
   tag: { type: 'string'}
+  deleteOldBackupsFirst: {type: 'boolean', optional: true}
 }
 
 rollingDrCopy.resolve = {

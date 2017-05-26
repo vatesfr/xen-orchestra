@@ -555,7 +555,9 @@ export default class Xapi extends XapiBase {
   } = {}) {
     // Fall back on local copy if possible.
     if (targetXapi === this) {
-      return this.copyVm(vmId, targetSrId, { nameLabel })
+      return {
+        vm: await this.copyVm(vmId, targetSrId, { nameLabel })
+      }
     }
 
     const sr = targetXapi.getObject(targetSrId)
