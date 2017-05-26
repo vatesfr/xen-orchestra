@@ -157,7 +157,7 @@ const DELETE_OLD_BACKUPS_FIRST_PROPERTY = {
   description: [
     'Delete the old backups before copy the vms.',
     '',
-    'If the backup fails, you will loose your old backups.'
+    'If the backup fails, you will lose your old backups.'
   ].join('\n')
 }
 
