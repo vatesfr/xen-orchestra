@@ -278,7 +278,7 @@ var messages = {
   editBackupReportEnable: 'Enable immediately after creation',
   editBackupDepthTitle: 'Depth',
   editBackupRemoteTitle: 'Remote',
-  deleteOldBackupsFirst: 'Delete the old backups in first',
+  deleteOldBackupsFirst: 'Delete the old backups first',
 
   // ------ New Remote -----
   remoteList: 'Remote stores for backup',
