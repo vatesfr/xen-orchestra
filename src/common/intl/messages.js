@@ -259,6 +259,7 @@ var messages = {
   backupOwner: 'Backup owner',
 
   // ------ New backup -----
+  autoPowerOnTitle: 'Auto power on',
   newBackupSelection: 'Select your backup type:',
   smartBackupModeSelection: 'Select backup mode:',
   normalBackup: 'Normal backup',
