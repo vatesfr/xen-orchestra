@@ -8,7 +8,6 @@ import { EventEmitter } from 'events'
 import { filter, forEach, isArray, isObject, map, noop, reduce, startsWith } from 'lodash'
 import {
   cancelable,
-  CancelToken,
   catchPlus as pCatch,
   delay as pDelay
 } from 'promise-toolbox'
@@ -332,24 +331,23 @@ export class Xapi extends EventEmitter {
   }
 
   @cancelable
-  putResource ($cancelToken, stream, pathname, {
+  putResource ($cancelToken, body, pathname, {
     host,
     query
   } = {}) {
     const headers = {}
 
     // Xen API does not support chunk encoding.
-    const { length } = stream
-    if (length === undefined) {
+    const { length } = body
+    if (length === undefined && typeof body.pipe === 'function') {
       // add a fake huge content length (1 PiB)
       headers['content-length'] = '1125899906842624'
 
-      const { cancel, token } = CancelToken.source()
-      $cancelToken = CancelToken.race([ $cancelToken, token ])
-
       // when the data has been emitted, close the connection
-      stream.on('end', () => {
-        setTimeout(cancel, 1e3)
+      $cancelToken = $cancelToken.fork(cancel => {
+        body.on('end', () => {
+          setTimeout(cancel, 1e3)
+        })
       })
     }
 
@@ -360,7 +358,7 @@ export class Xapi extends EventEmitter {
         hostname: this.getObject(host).address
       },
       {
-        body: stream,
+        body,
         headers,
         path: pathname,
         query: {
