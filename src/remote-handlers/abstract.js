@@ -203,7 +203,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async unlink (file, {
-    checksum = false
+    checksum = true
   } = {}) {
     if (checksum) {
       this._unlink(`${file}.checksum`)::pCatch(noop)

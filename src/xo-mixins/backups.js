@@ -18,6 +18,7 @@ import {
   findIndex,
   includes,
   once,
+  range,
   sortBy,
   startsWith,
   trim
@@ -28,6 +29,7 @@ import vhdMerge, { chainVhd } from '../vhd-merge'
 import xapiObjectToXo from '../xapi-object-to-xo'
 import { lvs, pvs } from '../lvm'
 import {
+  asyncMap,
   forEach,
   mapFilter,
   mapToArray,
@@ -478,8 +480,8 @@ export default class {
 
     const getPath = (file, dir) => dir ? `${dir}/${file}` : file
 
-    await Promise.all(
-      mapToArray(backups.slice(0, n), async backup => /* await */ handler.unlink(getPath(backup, dir)))
+    await asyncMap(backups.slice(0, n), backup =>
+      handler.unlink(getPath(backup, dir))
     )
   }
 
@@ -617,11 +619,9 @@ export default class {
     const fullBackupId = j
 
     // Remove old backups before the most recent full.
-    if (j > 0) {
-      for (j--; j >= 0; j--) {
-        await handler.unlink(`${dir}/${backups[j]}`, { checksum: true })
-      }
-    }
+    await asyncMap(range(0, j), i =>
+      handler.unlink(`${dir}/${backups[i]}`)
+    )
 
     const parent = `${dir}/${backups[fullBackupId]}`
 
@@ -636,7 +636,7 @@ export default class {
         throw e
       }
 
-      await handler.unlink(backup, { checksum: true })
+      await handler.unlink(backup)
     }
 
     // Rename the first old full backup to the new full backup.
@@ -717,7 +717,7 @@ export default class {
       ])
     } catch (error) {
       // Remove new backup. (corrupt).
-      await handler.unlink(backupFullPath, { checksum: true })::pCatch(noop)
+      await handler.unlink(backupFullPath)::pCatch(noop)
 
       throw error
     }
@@ -734,16 +734,14 @@ export default class {
     const nOldBackups = backups.length - retention
 
     if (nOldBackups > 0) {
-      await Promise.all(
-        mapToArray(backups.slice(0, nOldBackups), async backup => {
-          // Remove json file.
-          await handler.unlink(`${dir}/${backup}`)
+      await asyncMap(backups.slice(0, nOldBackups), backup => Promise.all([
+        // Remove json file.
+        handler.unlink(`${dir}/${backup}`),
 
-          // Remove xva file.
-          // Version 0.0.0 (Legacy) Delta Backup.
-          handler.unlink(`${dir}/${getDeltaBackupNameWithoutExt(backup)}.xva`)::pCatch(noop)
-        })
-      )
+        // Remove xva file.
+        // Version 0.0.0 (Legacy) Delta Backup.
+        handler.unlink(`${dir}/${getDeltaBackupNameWithoutExt(backup)}.xva`)::pCatch(noop)
+      ]))
     }
   }
 
@@ -835,13 +833,8 @@ export default class {
       }
     }
 
-    $onFailure(() => Promise.all(
-      mapToArray(fulFilledVdiBackups, vdiBackup =>
-        handler.unlink(
-          `${dir}/${vdiBackup.value()}`,
-          { checksum: true }
-        )::pCatch(noop)
-      )
+    $onFailure(() => asyncMap(fulFilledVdiBackups, vdiBackup =>
+      handler.unlink(`${dir}/${vdiBackup.value()}`)::pCatch(noop)
     ))
 
     if (error) {

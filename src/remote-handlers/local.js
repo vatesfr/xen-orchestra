@@ -1,14 +1,8 @@
 import fs from 'fs-extra'
-import startsWith from 'lodash/startsWith'
-import {
-  dirname,
-  resolve
-} from 'path'
+import { dirname, resolve } from 'path'
+import { noop, startsWith } from 'lodash'
 
 import RemoteHandlerAbstract from './abstract'
-import {
-  noop
-} from '../utils'
 
 export default class LocalHandler extends RemoteHandlerAbstract {
   get type () {
@@ -79,7 +73,12 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   async _unlink (file) {
-    return fs.unlink(this._getFilePath(file))
+    return fs.unlink(this._getFilePath(file)).catch(error => {
+      // do not throw if the file did not exist
+      if (error == null || error.code !== 'ENOENT') {
+        throw error
+      }
+    })
   }
 
   async _getSize (file) {
