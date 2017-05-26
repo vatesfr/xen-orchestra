@@ -8,7 +8,6 @@ import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
-import moment from 'moment'
 import React from 'react'
 import reduce from 'lodash/reduce'
 import SortedTable from 'sorted-table'
@@ -26,18 +25,16 @@ import {
   importBackup,
   importDeltaBackup,
   isSrWritable,
-  listRemote,
+  listRemoteBackups,
   startVm,
   subscribeRemotes
 } from 'xo'
-
-const parseDate = date => +moment(date, 'YYYYMMDDTHHmmssZ').format('x')
 
 const backupOptionRenderer = backup => <span>
   {backup.type === 'delta' && <span><span className='tag tag-info'>{_('delta')}</span>{' '}</span>}
   {backup.tag} - {backup.remoteName}
   {' '}
-  (<FormattedDate value={new Date(backup.date)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />)
+  (<FormattedDate value={new Date(backup.datetime * 1000)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />)
 </span>
 
 const VM_COLUMNS = [
@@ -57,8 +54,8 @@ const VM_COLUMNS = [
   },
   {
     name: _('lastBackupColumn'),
-    itemRenderer: ({ last }) => <FormattedDate value={last.date} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />,
-    sortCriteria: ({ last }) => last.date,
+    itemRenderer: ({ last }) => <FormattedDate value={last.datetime * 1000} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />,
+    sortCriteria: ({ last }) => last.datetime,
     sortOrder: 'desc'
   },
   {
@@ -83,11 +80,11 @@ const doImport = ({ backup, sr, start }) => {
   }
   const importMethods = {
     delta: importDeltaBackup,
-    simple: importBackup
+    xva: importBackup
   }
   info(_('importBackupTitle'), _('importBackupMessage'))
   try {
-    const importPromise = importMethods[backup.type]({remote: backup.remoteId, sr, file: backup.path}).then(id => {
+    const importPromise = importMethods[backup.type]({remote: backup.remoteId, sr, backup: backup.id}).then(id => {
       return id
     })
     if (start) {
@@ -111,7 +108,7 @@ class _ModalBody extends Component {
       <br />
       <SelectPlainObject
         onChange={this.linkState('backup')}
-        optionKey='path'
+        optionKey='id'
         optionRenderer={backupOptionRenderer}
         options={backups}
         placeholder={intl.formatMessage(messages.importBackupModalSelectBackup)}
@@ -136,41 +133,17 @@ export default class Restore extends Component {
   }
 
   _listAll = async remotes => {
-    const remotesFiles = await Promise.all(map(remotes, remote => listRemote(remote.id)))
+    const remotesFiles = await Promise.all(map(remotes, remote => listRemoteBackups(remote.id)))
     const backupInfoByVm = {}
+    console.log(remotesFiles)
+
     forEach(remotesFiles, (remoteFiles, index) => {
       const remote = remotes[index]
 
-      forEach(remoteFiles, file => {
-        let backup
-        const deltaInfo = /^vm_delta_(.*)_([^/]+)\/([^_]+)_(.*)$/.exec(file)
-        if (deltaInfo) {
-          const [ , tag, id, date, name ] = deltaInfo
-          backup = {
-            type: 'delta',
-            date: parseDate(date),
-            id,
-            name,
-            path: file,
-            tag,
-            remoteId: remote.id,
-            remoteName: remote.name
-          }
-        } else {
-          const backupInfo = /^([^_]+)_([^_]+)_(.*)\.xva$/.exec(file)
-          if (backupInfo) {
-            const [ , date, tag, name ] = backupInfo
-            backup = {
-              type: 'simple',
-              date: parseDate(date),
-              name,
-              path: file,
-              tag,
-              remoteId: remote.id,
-              remoteName: remote.name
-            }
-          }
-        }
+      forEach(remoteFiles, backup => {
+        backup.remoteId = remote.id
+        backup.remoteName = remote.name
+        console.log(backup)
         if (backup) {
           backupInfoByVm[backup.name] || (backupInfoByVm[backup.name] = [])
           backupInfoByVm[backup.name].push(backup)
@@ -180,14 +153,14 @@ export default class Restore extends Component {
     forEach(backupInfoByVm, (backups, vm) => {
       backupInfoByVm[vm] = {
         backups,
-        last: reduce(backups, (last, b) => b.date > last.date ? b : last),
+        last: reduce(backups, (last, b) => b.datetime > last.datetime ? b : last),
         tagsByRemote: mapValues(groupBy(backups, 'remoteId'), (backups, remoteId) =>
           ({
             remoteName: find(remotes, remote => remote.id === remoteId).name,
             tags: uniq(map(backups, 'tag'))
           })
         ),
-        simpleCount: reduce(backups, (sum, b) => b.type === 'simple' ? ++sum : sum, 0),
+        simpleCount: reduce(backups, (sum, b) => b.type === 'xva' ? ++sum : sum, 0),
         deltaCount: reduce(backups, (sum, b) => b.type === 'delta' ? ++sum : sum, 0)
       }
     })
