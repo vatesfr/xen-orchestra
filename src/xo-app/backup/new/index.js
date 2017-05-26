@@ -151,16 +151,6 @@ const REMOTE_PROPERTY = {
   title: _('editBackupRemoteTitle')
 }
 
-const DELETE_OLD_BACKUPS_FIRST_PROPERTY = {
-  type: 'boolean',
-  title: _('deleteOldBackupsFirst'),
-  description: [
-    'Delete the old backups before copy the vms.',
-    '',
-    'If the backup fails, you will lose your old backups.'
-  ].join('\n')
-}
-
 const BACKUP_SCHEMA = {
   type: 'object',
   properties: {
@@ -200,7 +190,15 @@ const DISASTER_RECOVERY_SCHEMA = {
   properties: {
     ...COMMON_SCHEMA.properties,
     depth: DEPTH_PROPERTY,
-    deleteOldBackupsFirst: DELETE_OLD_BACKUPS_FIRST_PROPERTY,
+    deleteOldBackupsFirst: {
+      type: 'boolean',
+      title: _('deleteOldBackupsFirst'),
+      description: [
+        'Delete the old backups before copy the vms.',
+        '',
+        'If the backup fails, you will lose your old backups.'
+      ].join('\n')
+    },
     sr: {
       type: 'string',
       'xo:type': 'sr',
