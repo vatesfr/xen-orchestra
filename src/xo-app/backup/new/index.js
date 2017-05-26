@@ -190,6 +190,15 @@ const DISASTER_RECOVERY_SCHEMA = {
   properties: {
     ...COMMON_SCHEMA.properties,
     depth: DEPTH_PROPERTY,
+    deleteOldBackupsFirst: {
+      type: 'boolean',
+      title: _('deleteOldBackupsFirst'),
+      description: [
+        'Delete the old backups before copy the vms.',
+        '',
+        'If the backup fails, you will lose your old backups.'
+      ].join('\n')
+    },
     sr: {
       type: 'string',
       'xo:type': 'sr',
