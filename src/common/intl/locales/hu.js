@@ -726,7 +726,7 @@ export default {
   editBackupReportTitle: 'Riport',
 
   // Original text: "Enable immediately after creation"
-  editBackupReportEnable: 'Azonnal a létrehozás után',
+  editBackupScheduleEnabled: 'Azonnal a létrehozás után',
 
   // Original text: "Depth"
   editBackupDepthTitle: 'Mélység',

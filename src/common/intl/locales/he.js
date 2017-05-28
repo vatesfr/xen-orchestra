@@ -627,7 +627,7 @@ export default {
   editBackupReportTitle: undefined,
 
   // Original text: 'Enable immediately after creation'
-  editBackupReportEnable: undefined,
+  editBackupScheduleEnabled: undefined,
 
   // Original text: 'Depth'
   editBackupDepthTitle: undefined,
