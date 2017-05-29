@@ -598,6 +598,10 @@ var messages = {
   hostAppliedPatches: 'Applied patches',
   hostMissingPatches: 'Missing patches',
   hostUpToDate: 'Host up-to-date!',
+  installPatchWarningTitle: 'Non-recommended patch install',
+  installPatchWarningContent: 'This will install a patch only on this host. This is NOT the recommended way: please go into the Pool patch view and follow instructions there. If you are sure about this, you can continue anyway',
+  installPatchWarningReject: 'Go to pool',
+  installPatchWarningResolve: 'Install',
   // ----- Pool patch tabs -----
   refreshPatches: 'Refresh patches',
   installPoolPatches: 'Install pool patches',

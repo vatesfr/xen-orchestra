@@ -78,7 +78,7 @@ class Confirm extends Component {
 
   render () {
     const { Body, Footer, Header, Title } = ReactModal
-    const { title, icon } = this.props
+    const { title, icon, okLabel = _('confirmOk'), cancelLabel = _('confirmCancel') } = this.props
 
     const body = _addRef(this.props.children, 'body')
 
@@ -100,13 +100,13 @@ class Confirm extends Component {
           onClick={this._resolve}
           style={this._style}
         >
-          {_('confirmOk')}
+          {okLabel}
         </Button>
         {' '}
         <Button
           onClick={this._reject}
         >
-          {_('confirmCancel')}
+          {cancelLabel}
         </Button>
       </Footer>
     </div>
@@ -116,6 +116,8 @@ class Confirm extends Component {
 export const confirm = ({
   body,
   title,
+  okLabel,
+  cancelLabel,
   icon = 'alarm'
 }) => {
   return new Promise((resolve, reject) => {
@@ -125,6 +127,8 @@ export const confirm = ({
         resolve={resolve}
         reject={reject}
         icon={icon}
+        okLabel={okLabel}
+        cancelLabel={cancelLabel}
       >
         {body}
       </Confirm>,
