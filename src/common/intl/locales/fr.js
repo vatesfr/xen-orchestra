@@ -630,7 +630,7 @@ export default {
   editBackupReportTitle: 'Rapport',
 
   // Original text: "Enable immediately after creation"
-  editBackupReportEnable: 'Activer aussitôt après la création',
+  editBackupScheduleEnabled: 'Executer en fonction de la planification',
 
   // Original text: "Depth"
   editBackupDepthTitle: 'Profondeur',

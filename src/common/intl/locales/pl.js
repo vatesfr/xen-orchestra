@@ -630,7 +630,7 @@ export default {
   editBackupReportTitle: 'Raport',
 
   // Original text: "Enable immediately after creation"
-  editBackupReportEnable: 'Uruchom natychamiast po utworzeniu',
+  editBackupScheduleEnabled: 'Uruchom natychamiast po utworzeniu',
 
   // Original text: "Depth"
   editBackupDepthTitle: 'Depth',

@@ -132,7 +132,7 @@ const COMMON_SCHEMA = {
     },
     enabled: {
       type: 'boolean',
-      title: _('editBackupReportEnable')
+      title: _('editBackupScheduleEnabled')
     }
   },
   required: [ 'tag', 'vms', '_reportWhen' ]
