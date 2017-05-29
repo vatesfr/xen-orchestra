@@ -845,7 +845,7 @@ export default class {
     const backupFormat = `${date}_${vm.name_label}`
     const infoPath = `${dir}/${backupFormat}${DELTA_BACKUP_EXT}`
 
-    $onFailure(() => handler.unlink(infoPath)::pCatch(noop))
+    $onFailure(() => handler.unlink(infoPath))
 
     // Write Metadata.
     await handler.outputFile(infoPath, JSON.stringify(delta, null, 2))

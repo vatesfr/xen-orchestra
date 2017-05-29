@@ -6,14 +6,14 @@ import fromPairs from 'lodash/fromPairs'
 import fs from 'fs-extra'
 import map from 'lodash/map'
 import splitLines from 'split-lines'
+import { tap } from 'promise-toolbox'
 import {
   filter,
   includes
 } from 'lodash'
 
 import {
-  noop,
-  pCatch,
+  asyncMap,
   pFromCallback,
   splitFirst
 } from '../utils'
@@ -185,7 +185,7 @@ const createNetworkAndInsertHosts = defer.onFailure(async function ($onFailure, 
     mtu: 9000,
     vlan: +vlan
   })
-  $onFailure(() => xapi.deleteNetwork(xosanNetwork)::pCatch(noop))
+  $onFailure(() => xapi.deleteNetwork(xosanNetwork))
   await Promise.all(xosanNetwork.$PIFs.map(pif => setPifIp(xapi, pif, NETWORK_PREFIX + (hostIpLastNumber++))))
 
   return xosanNetwork
@@ -272,7 +272,7 @@ export const createSR = defer.onFailure(async function ($onFailure, { template, 
   CURRENTLY_CREATING_SRS[xapi.pool.$id] = true
   try {
     const xosanNetwork = await createNetworkAndInsertHosts(xapi, pif, vlan)
-    $onFailure(() => xapi.deleteNetwork(xosanNetwork)::pCatch(noop))
+    $onFailure(() => xapi.deleteNetwork(xosanNetwork))
     const sshKey = await getOrCreateSshKey(xapi)
     const srsObjects = map(srs, srId => xapi.getObject(srId))
 
@@ -304,13 +304,15 @@ export const createSR = defer.onFailure(async function ($onFailure, { template, 
       await this.requestResource('xosan', template.id, template.version),
       { srId: vmParameters[0].sr.$ref, type: 'xva' }
     )
-    $onFailure(() => xapi.deleteVm(firstVM)::pCatch(noop))
+    $onFailure(() => xapi.deleteVm(firstVM))
     await xapi.editVm(firstVM, {
       autoPoweron: true
     })
-    const copiedVms = await Promise.all(vmParameters.slice(1).map(param => copyVm(xapi, firstVM, param)))
-    // TODO: Promise.all() is certainly not the right operation to execute all the given promises whether they fulfill or reject.
-    $onFailure(() => Promise.all(copiedVms.map(vm => xapi.deleteVm(vm.vm)::pCatch(noop))))
+    const copiedVms = await asyncMap(vmParameters.slice(1), param =>
+      copyVm(xapi, firstVM, param)::tap(({ vm }) =>
+        $onFailure(() => xapi.deleteVm(vm))
+      )
+    )
     const vmsAndParams = [{
       vm: firstVM,
       params: vmParameters[0]
@@ -332,7 +334,7 @@ export const createSR = defer.onFailure(async function ($onFailure, { template, 
         }
       }
       const arbiterVm = await copyVm(xapi, firstVM, arbiterConfig)
-      $onFailure(() => xapi.deleteVm(arbiterVm.vm)::pCatch(noop))
+      $onFailure(() => xapi.deleteVm(arbiterVm.vm))
       arbiter = await prepareGlusterVm(xapi, arbiterVm, xosanNetwork, false)
     }
     const ipAndHosts = await Promise.all(map(vmsAndParams, vmAndParam => prepareGlusterVm(xapi, vmAndParam, xosanNetwork)))
@@ -345,7 +347,7 @@ export const createSR = defer.onFailure(async function ($onFailure, { template, 
       ipAndHosts.push(arbiter)
     }
     // we just forget because the cleanup actions will be executed before.
-    $onFailure(() => xapi.forgetSr(xosanSr)::pCatch(noop))
+    $onFailure(() => xapi.forgetSr(xosanSr))
     await xapi.xo.setData(xosanSr, 'xosan_config', {
       nodes: ipAndHosts.map(param => ({
         host: param.host.$id,

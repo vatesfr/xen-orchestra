@@ -62,7 +62,7 @@
     "fatfs": "^0.10.4",
     "from2": "^2.3.0",
     "fs-extra": "^3.0.1",
-    "golike-defer": "^0.0.0",
+    "golike-defer": "^0.1.0",
     "hashy": "~0.6.1",
     "helmet": "^3.6.0",
     "highland": "^2.10.5",
