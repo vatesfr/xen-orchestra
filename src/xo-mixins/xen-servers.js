@@ -266,6 +266,8 @@ export default class {
       }
 
       return {
+        httpRequest: this._xo.httpRequest.bind(this),
+
         install () {
           objects.on('add', onAddOrUpdate)
           objects.on('update', onAddOrUpdate)

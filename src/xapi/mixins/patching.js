@@ -1,12 +1,10 @@
 import deferrable from 'golike-defer'
 import filter from 'lodash/filter'
-import httpRequest from 'http-request-plus'
 import includes from 'lodash/includes'
 import some from 'lodash/some'
 import sortBy from 'lodash/sortBy'
 import unzip from 'julien-f-unzip'
 
-import httpProxy from '../../http-proxy'
 import { debounce } from '../../decorators'
 import {
   createRawObject,
@@ -19,7 +17,6 @@ import {
 
 import {
   debug,
-  put,
   useUpdateSystem
 } from '../utils'
 
@@ -27,9 +24,8 @@ export default {
   // FIXME: should be static
   @debounce(24 * 60 * 60 * 1000)
   async _getXenUpdates () {
-    const { readAll, statusCode } = await httpRequest(
-      'http://updates.xensource.com/XenServer/updates.xml',
-      { agent: httpProxy }
+    const { readAll, statusCode } = await this.xo.httpRequest(
+      'http://updates.xensource.com/XenServer/updates.xml'
     )
 
     if (statusCode !== 200) {
@@ -211,15 +207,10 @@ export default {
     const task = this._watchTask(taskRef)
     const [ patchRef ] = await Promise.all([
       task,
-      put(stream, {
-        hostname: this.pool.$master.address,
-        path: '/pool_patch_upload',
-        protocol: 'https',
+      this.putResource(stream, '/pool_patch_upload', {
         query: {
-          session_id: this.sessionId,
           task_id: taskRef
-        },
-        rejectUnauthorized: false
+        }
       })
     ])
 
@@ -238,7 +229,7 @@ export default {
       throw new Error('no such patch ' + uuid)
     }
 
-    let stream = await httpRequest(patchInfo.url, { agent: httpProxy })
+    let stream = await this.xo.httpRequest(patchInfo.url)
     stream = await new Promise((resolve, reject) => {
       const PATCH_RE = /\.xsupdate$/
       stream.pipe(unzip.Parse()).on('entry', entry => {
@@ -280,7 +271,7 @@ export default {
       throw new Error('no such patch ' + uuid)
     }
 
-    let stream = await httpRequest(patchInfo.url, { agent: httpProxy })
+    let stream = await this.xo.httpRequest(patchInfo.url)
     stream = await new Promise((resolve, reject) => {
       stream.pipe(unzip.Parse()).on('entry', entry => {
         entry.length = entry.size

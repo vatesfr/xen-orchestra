@@ -1,7 +1,6 @@
 // import isFinite from 'lodash/isFinite'
 import camelCase from 'lodash/camelCase'
 import createDebug from 'debug'
-import httpRequest from 'http-request-plus'
 import isEqual from 'lodash/isEqual'
 import isPlainObject from 'lodash/isPlainObject'
 import pickBy from 'lodash/pickBy'
@@ -347,37 +346,6 @@ export const makeEditObject = specs => {
 export const NULL_REF = 'OpaqueRef:NULL'
 
 // ===================================================================
-
-// HTTP put, use an ugly hack if the length is not known because XAPI
-// does not support chunk encoding.
-export const put = (stream, {
-  headers: { ...headers } = {},
-  ...opts
-}) => {
-  const makeRequest = () => httpRequest.put(opts, {
-    body: stream,
-    headers
-  })
-
-  // Xen API does not support chunk encoding.
-  if (stream.length == null) {
-    // add a fake huge content length (1 PiB)
-    headers['content-length'] = '1125899906842624'
-
-    const promise = makeRequest()
-
-    // when the data has been emitted, close the connection
-    stream.on('end', () => {
-      setTimeout(() => {
-        promise.cancel()
-      }, 1e3)
-    })
-
-    return promise.readAll()
-  }
-
-  return makeRequest().readAll()
-}
 
 export const useUpdateSystem = host => {
   // Match Xen Center's condition: https://github.com/xenserver/xenadmin/blob/f3a64fc54bbff239ca6f285406d9034f57537d64/XenModel/Utils/Helpers.cs#L420

@@ -116,7 +116,7 @@ export const mixin = MixIns => Class => {
 
     for (const MixIn of MixIns) {
       const { prototype } = MixIn
-      const mixinInstance = new MixIn(instance)
+      const mixinInstance = new MixIn(instance, ...args)
       const descriptors = { __proto__: null }
       for (const prop of _ownKeys(prototype)) {
         if (_isIgnoredProperty(prop)) {

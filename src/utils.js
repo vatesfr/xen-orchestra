@@ -23,7 +23,6 @@ import 'moment-timezone'
 
 import through2 from 'through2'
 import { CronJob } from 'cron'
-import { Readable } from 'stream'
 import { utcFormat, utcParse } from 'd3-time-format'
 import {
   all as pAll,
@@ -62,24 +61,6 @@ export const asyncMap = (collection, iteratee) => {
 }
 
 // -------------------------------------------------------------------
-
-export function bufferToStream (buf) {
-  const stream = new Readable()
-
-  let i = 0
-  const { length } = buf
-  stream._read = function (size) {
-    if (i === length) {
-      return this.push(null)
-    }
-
-    const newI = Math.min(i + size, length)
-    this.push(buf.slice(i, newI))
-    i = newI
-  }
-
-  return stream
-}
 
 export streamToBuffer from './stream-to-new-buffer'
 
@@ -222,6 +203,19 @@ export function extractProperty (obj, prop) {
   const value = obj[prop]
   delete obj[prop]
   return value
+}
+
+// -------------------------------------------------------------------
+
+// Returns the first defined (non-undefined) value.
+export const firstDefined = function () {
+  const n = arguments.length
+  for (let i = 0; i < n; ++i) {
+    const arg = arguments[i]
+    if (arg !== undefined) {
+      return arg
+    }
+  }
 }
 
 // -------------------------------------------------------------------

@@ -1,7 +1,6 @@
 /* eslint-disable camelcase */
 import deferrable from 'golike-defer'
 import fatfs from 'fatfs'
-import httpRequest from 'http-request-plus'
 import synchronized from 'decorator-synchronized'
 import tarStream from 'tar-stream'
 import vmdkToVhd from 'xo-vmdk-to-vhd'
@@ -31,7 +30,6 @@ import createSizeStream from '../size-stream'
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer'
 import { mixin } from '../decorators'
 import {
-  bufferToStream,
   camelToSnakeCase,
   createRawObject,
   ensureArray,
@@ -61,8 +59,7 @@ import {
   isVmRunning,
   NULL_REF,
   optional,
-  prepareXapiParam,
-  put
+  prepareXapiParam
 } from './utils'
 
 // ===================================================================
@@ -760,8 +757,6 @@ export default class Xapi extends XapiBase {
     if (isVmRunning(vm) && !onlyMetadata) {
       host = vm.$resident_on
       snapshotRef = (await this._snapshotVm(vm)).$ref
-    } else {
-      host = this.pool.$master
     }
 
     const taskRef = await this._createTask('VM Export', vm.name_label)
@@ -771,17 +766,13 @@ export default class Xapi extends XapiBase {
       })
     }
 
-    return httpRequest({
-      hostname: host.address,
-      path: onlyMetadata ? '/export_metadata/' : '/export/',
-      protocol: 'https',
+    return this.getResource(onlyMetadata ? '/export_metadata/' : '/export/', {
+      host,
       query: {
         ref: snapshotRef || vm.$ref,
-        session_id: this.sessionId,
         task_id: taskRef,
         use_compression: compress ? 'true' : 'false'
-      },
-      rejectUnauthorized: false
+      }
     })
   }
 
@@ -1228,7 +1219,6 @@ export default class Xapi extends XapiBase {
       force: onlyMetadata
         ? 'true'
         : undefined,
-      session_id: this.sessionId,
       task_id: taskRef
     }
 
@@ -1236,11 +1226,7 @@ export default class Xapi extends XapiBase {
     if (sr) {
       host = sr.$PBDs[0].$host
       query.sr_id = sr.$ref
-    } else {
-      host = this.pool.$master
     }
-
-    const path = onlyMetadata ? '/import_metadata/' : '/import/'
 
     if (onVmCreation) {
       this._waitObject(
@@ -1250,13 +1236,11 @@ export default class Xapi extends XapiBase {
 
     const [ vmRef ] = await Promise.all([
       this._watchTask(taskRef).then(extractOpaqueRef),
-      put(stream, {
-        hostname: host.address,
-        path,
-        protocol: 'https',
-        query,
-        rejectUnauthorized: false
-      })
+      this.putResource(
+        stream,
+        onlyMetadata ? '/import_metadata/' : '/import/',
+        { host, query }
+      )
     ])
 
     // Importing a metadata archive of running VMs is currently
@@ -1867,7 +1851,6 @@ export default class Xapi extends XapiBase {
 
     const query = {
       format,
-      session_id: this.sessionId,
       task_id: taskRef,
       vdi: vdi.$ref
     }
@@ -1881,12 +1864,9 @@ export default class Xapi extends XapiBase {
     }`)
 
     const task = this._watchTask(taskRef)
-    return httpRequest($cancelToken, {
-      hostname: host.address,
-      path: '/export_raw_vdi/',
-      protocol: 'https',
-      query,
-      rejectUnauthorized: false
+    return this.getResource($cancelToken, '/export_raw_vdi/', {
+      host,
+      query
     }).then(response => {
       response.task = task
 
@@ -1911,13 +1891,6 @@ export default class Xapi extends XapiBase {
   async _importVdiContent (vdi, stream, format = VDI_FORMAT_VHD) {
     const taskRef = await this._createTask('VDI Content Import', vdi.name_label)
 
-    const query = {
-      session_id: this.sessionId,
-      task_id: taskRef,
-      format,
-      vdi: vdi.$ref
-    }
-
     const pbd = find(vdi.$SR.$PBDs, 'currently_attached')
     if (!pbd) {
       throw new Error('no valid PBDs found')
@@ -1927,12 +1900,13 @@ export default class Xapi extends XapiBase {
     await Promise.all([
       stream.checksumVerified,
       task,
-      put(stream, {
-        hostname: pbd.$host.address,
-        path: '/import_raw_vdi/',
-        protocol: 'https',
-        query,
-        rejectUnauthorized: false
+      this.putResource(stream, '/import_raw_vdi/', {
+        host: pbd.host,
+        query: {
+          format,
+          task_id: taskRef,
+          vdi: vdi.$ref
+        }
       })
     ])
   }
@@ -2171,10 +2145,7 @@ export default class Xapi extends XapiBase {
     await fs.writeFile('openstack/latest/user_data', config)
 
     // Transform the buffer into a stream
-    const stream = bufferToStream(buffer)
-    await this.importVdiContent(vdi.$id, stream, {
-      format: VDI_FORMAT_RAW
-    })
+    await this._importVdiContent(vdi, buffer, VDI_FORMAT_RAW)
     await this._createVbd(vm, vdi)
   }
 

@@ -26,9 +26,6 @@ import {
 import WebServer from 'http-server-plus'
 import Xo from './xo'
 import {
-  setup as setupHttpProxy
-} from './http-proxy'
-import {
   createRawObject,
   forEach,
   isArray,
@@ -234,7 +231,8 @@ async function registerPlugin (pluginPath, pluginName) {
       getDataDir: () => {
         const dir = `${this._config.datadir}/${pluginName}`
         return ensureDir(dir).then(() => dir)
-      }})
+      }
+    })
     : factory
 
   await this.registerPlugin(
@@ -556,10 +554,6 @@ export default async function main (args) {
     }
   } catch (error) {
     warn('Failed to change user/group:', error)
-  }
-
-  if (config.httpProxy) {
-    setupHttpProxy(config.httpProxy)
   }
 
   // Creates main object.

@@ -1,5 +1,4 @@
 import endsWith from 'lodash/endsWith'
-import httpRequest from 'http-request-plus'
 import JSON5 from 'json5'
 import { BaseError } from 'make-error'
 
@@ -37,10 +36,6 @@ export class FaultyGranularity extends XapiStatsError {}
 // -------------------------------------------------------------------
 // Utils
 // -------------------------------------------------------------------
-
-function makeUrl (hostname, sessionId, timestamp) {
-  return `https://${hostname}/rrd_updates?session_id=${sessionId}&start=${timestamp}&cf=AVERAGE&host=true&json=true`
-}
 
 // Return current local timestamp in seconds
 function getCurrentTimestamp () {
@@ -387,9 +382,16 @@ export default class XapiStats {
 
   // Execute one http request on a XenServer for get stats
   // Return stats (Json format) or throws got exception
-  async _getJson (url) {
-    const body = await httpRequest(url, { rejectUnauthorized: false }).readAll()
-    return JSON5.parse(body)
+  _getJson (xapi, host, timestamp) {
+    return xapi.getResource('/rrd_updates', {
+      host,
+      query: {
+        cf: 'AVERAGE',
+        host: 'true',
+        json: 'true',
+        start: timestamp
+      }
+    }).readAll().then(JSON5.parse)
   }
 
   async _getLastTimestamp (xapi, host, step) {
@@ -450,7 +452,7 @@ export default class XapiStats {
 
     // Get json
     const timestamp = await this._getLastTimestamp(xapi, host, step)
-    let json = await this._getJson(makeUrl(hostname, xapi.sessionId, timestamp))
+    let json = await this._getJson(xapi, host, timestamp)
 
     // Check if the granularity is linked to 'step'
     // If it's not the case, we retry other url with the json timestamp
@@ -460,7 +462,7 @@ export default class XapiStats {
 
       // Approximately: half points are asked
       // FIXME: Not the best solution
-      json = await this._getJson(makeUrl(hostname, xapi.sessionId, serverTimestamp - step * (RRD_POINTS_PER_STEP[step] / 2) + step))
+      json = await this._getJson(xapi, host, serverTimestamp - step * (RRD_POINTS_PER_STEP[step] / 2) + step)
 
       if (json.meta.step !== step) {
         throw new FaultyGranularity(`Unable to get the true granularity: ${json.meta.step}`)
