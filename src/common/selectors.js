@@ -482,11 +482,11 @@ export const getObject = createGetObject((_, id) => id)
 
 export const createDoesHostNeedRestart = hostSelector => {
   const restartPoolPatch = create(
-    // Returns the first patch of the host which requires it to be
-    // restarted.
 
     // XS < 7.1
     createGetObjectsOfType('pool_patch').pick(
+      // Returns the first patch of the host which requires it to be
+      // restarted.
       create(
         createGetObjectsOfType('host_patch').pick(
           (state, props) => {
@@ -508,12 +508,12 @@ export const createDoesHostNeedRestart = hostSelector => {
     // XS >= 7.1
     create(
       hostSelector,
-      host => host.patchesRequiringReboot && host.patchesRequiringReboot[0]
+      host => host.rebootRequired
     ),
-    (patchRequiresReboot1, patchRequiresReboot2) => patchRequiresReboot1 || patchRequiresReboot2
+    (patchRequiresReboot, rebootRequired) => !!patchRequiresReboot || rebootRequired
   )
 
-  return (state, props) => restartPoolPatch(state, props) !== undefined
+  return (state, props) => restartPoolPatch(state, props)
 }
 
 export const createGetHostMetrics = hostSelector =>
