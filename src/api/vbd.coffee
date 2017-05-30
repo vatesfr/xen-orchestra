@@ -4,13 +4,7 @@
 
 #=====================================================================
 
-delete_ = $coroutine ({vbd}) ->
-  xapi = @getXapi vbd
-
-  # TODO: check if VBD is attached before
-  yield xapi.call 'VBD.destroy', vbd._xapiRef
-
-  return true
+delete_ = ({vbd}) -> @getXapi(vbd).deleteVbd(vbd)
 
 delete_.params = {
   id: { type: 'string' }
