@@ -20,7 +20,6 @@ import {
   deleteVbd,
   deleteVdi,
   deleteVm,
-  disconnectVbd,
   isSrWritable
 } from 'xo'
 import {
@@ -196,7 +195,8 @@ const CONTROL_DOMAIN_VDI_COLUMNS = [
     name: _('vdiAction'),
     itemRenderer: vdi => vdi && vdi.vbd && <ActionRowButton
       btnStyle='danger'
-      handler={() => disconnectVbd(vdi.vbd).then(() => deleteVbd(vdi.vbd))}
+      handler={deleteVbd}
+      handlerParam={vdi.vbd}
       icon='delete'
     />
   }
