@@ -29,7 +29,7 @@ const modal = (content, onClose) => {
   buttons: propTypes.arrayOf(propTypes.shape({
     btnStyle: propTypes.string,
     icon: propTypes.string,
-    name: propTypes.string.isRequired,
+    label: propTypes.string.isRequired,
     tooltip: propTypes.node,
     value: propTypes.string
   })).isRequired,
