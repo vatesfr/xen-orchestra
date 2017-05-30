@@ -4,7 +4,6 @@ import Component from 'base-component'
 import Icon from 'icon'
 import Link from 'link'
 import SortedTable from 'sorted-table'
-import StateButton from 'state-button'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
@@ -16,9 +15,9 @@ import { FormattedRelative, FormattedTime } from 'react-intl'
 import { fromCallback } from 'promise-toolbox'
 import { Container, Row, Col } from 'grid'
 import {
-  connectVbd,
   deleteMessage,
   deleteOrphanedVdis,
+  deleteVbd,
   deleteVdi,
   deleteVm,
   disconnectVbd,
@@ -26,18 +25,17 @@ import {
 } from 'xo'
 import {
   find,
+  flatten,
   get,
-  includes,
   isEmpty,
   map,
   mapValues
 } from 'lodash'
 import {
-  createFilter,
+  createCollectionWrapper,
   createGetObject,
   createGetObjectsOfType,
-  createSelector,
-  createSort
+  createSelector
 } from 'selectors'
 import {
   connectStore,
@@ -196,18 +194,10 @@ const CONTROL_DOMAIN_VDI_COLUMNS = [
   },
   {
     name: _('vdiAction'),
-    itemRenderer: vdi => vdi && vdi.vbd && <StateButton
-      disabledLabel={_('vbdStatusDisconnected')}
-      disabledHandler={connectVbd}
-      disabledHandlerParam={vdi.vbd}
-      disabledTooltip={_('vbdConnect')}
-
-      enabledLabel={_('vbdStatusConnected')}
-      enabledHandler={disconnectVbd}
-      enabledHandlerParam={vdi.vbd}
-      enabledTooltip={_('vbdDisconnect')}
-
-      state={vdi.vbd.attached}
+    itemRenderer: vdi => vdi && vdi.vbd && <ActionRowButton
+      btnStyle='danger'
+      handler={() => disconnectVbd(vdi.vbd).then(() => deleteVbd(vdi.vbd))}
+      icon='delete'
     />
   }
 ]
@@ -317,17 +307,16 @@ const ALARM_COLUMNS = [
   const getOrphanVdiSnapshots = createGetObjectsOfType('VDI-snapshot')
     .filter([ snapshot => !snapshot.$snapshot_of ])
     .sort()
-  const getControlDomainVbds = createSort(createFilter(
-    createGetObjectsOfType('VBD'),
-    createSelector(
+  const getControlDomainVbds = createGetObjectsOfType('VBD')
+    .pick(
       createSelector(
         createGetObjectsOfType('VM-controller'),
-        vmControllers => map(vmControllers, 'id')
-      ),
-      vmControllerIds =>
-        vbd => includes(vmControllerIds, vbd.VM)
+        createCollectionWrapper(
+          vmControllers => flatten(map(vmControllers, '$VBDs'))
+        )
+      )
     )
-  ))
+    .sort()
   const getControlDomainVdis = createSelector(
     getControlDomainVbds,
     createGetObjectsOfType('VDI'),
