@@ -357,6 +357,7 @@ export class Edit extends Component {
               </Col>
               <Col mediumSize={4}>
                 <SelectSubject
+                  hasSelectAll
                   multi
                   onChange={this.linkState('subjects')}
                   required
@@ -365,6 +366,7 @@ export class Edit extends Component {
               </Col>
               <Col mediumSize={4}>
                 <SelectPool
+                  hasSelectAll
                   multi
                   onChange={this._updateSelectedPools}
                   required
@@ -378,6 +380,7 @@ export class Edit extends Component {
               <Col mediumSize={4}>
                 <SelectVmTemplate
                   disabled={!state.nPools}
+                  hasSelectAll
                   multi
                   onChange={this.linkState('templates')}
                   predicate={state.vmTemplatePredicate}
@@ -388,6 +391,7 @@ export class Edit extends Component {
               <Col mediumSize={4}>
                 <SelectSr
                   disabled={!state.nPools}
+                  hasSelectAll
                   multi
                   onChange={this._updateSelectedSrs}
                   predicate={state.srPredicate}
@@ -398,6 +402,7 @@ export class Edit extends Component {
               <Col mediumSize={4}>
                 <SelectNetwork
                   disabled={!state.nSrs}
+                  hasSelectAll
                   multi
                   onChange={this._updateSelectedNetworks}
                   predicate={state.networkPredicate}
