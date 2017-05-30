@@ -1792,6 +1792,10 @@ export default class Xapi extends XapiBase {
     await this.call('VBD.destroy', vbd.$ref)
   }
 
+  deleteVbd (vbdId) {
+    return this._deleteVbd(this.getObject(vbdId))
+  }
+
   // TODO: remove when no longer used.
   async destroyVbdsFromVm (vmId) {
     await Promise.all(
