@@ -22,6 +22,8 @@ import { resolve } from 'url'
 import _ from '../intl'
 import invoke from '../invoke'
 import logError from '../log-error'
+import store from 'store'
+import { getObject } from 'selectors'
 import { alert, chooseAction, confirm } from '../modal'
 import { error, info, success } from '../notification'
 import { noop, rethrow, tap, resolveId, resolveIds } from '../utils'
@@ -571,18 +573,18 @@ export const unpauseContainer = (vm, container) => (
 
 // VM ----------------------------------------------------------------
 
-const chooseActionToUnblockForbiddenStartVm = props => {
-  const buttons = [
-    {name: _('cloneAndStartVM'), value: 'clean', btnStyle: 'success'},
-    {name: _('forceStartVm'), value: 'force', btnStyle: 'danger'}
-  ]
+const CHOOSEACTION_BUTTONS = [
+  {label: _('cloneAndStartVM'), value: 'clone', btnStyle: 'success'},
+  {label: _('forceStartVm'), value: 'force', btnStyle: 'danger'}
+]
 
-  return chooseAction({
+const chooseActionToUnblockForbiddenStartVm = props => (
+  chooseAction({
     icon: 'alarm',
-    buttons,
+    buttons: CHOOSEACTION_BUTTONS,
     ...props
   })
-}
+)
 
 const cloneAndStartVM = async vm => (
   _call('vm.start', { id: await cloneVm(vm) })
@@ -599,7 +601,7 @@ export const startVm = vm => (
       title: _('forceStartVmModalTitle')
     })
 
-    if (choice === 'clean') {
+    if (choice === 'clone') {
       return cloneAndStartVM(vm)
     }
 
@@ -644,10 +646,10 @@ export const startVms = vms => (
         error(_('failedVmsErrorTitle'), _('failedVmsErrorMessage', {nVms: nErrors}))
       }
 
-      if (choice === 'clean') {
+      if (choice === 'clone') {
         return Promise.all(map(
           forbiddenStart,
-          async id => cloneAndStartVM((await _call('xo.getAllObjects'))[id])
+          async id => cloneAndStartVM(getObject(store.getState(), id))
         ))
       }
 

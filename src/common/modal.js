@@ -28,7 +28,6 @@ const modal = (content, onClose) => {
 @propTypes({
   buttons: propTypes.arrayOf(propTypes.shape({
     btnStyle: propTypes.string,
-    disabled: propTypes.bool,
     icon: propTypes.string,
     name: propTypes.string.isRequired,
     tooltip: propTypes.node,
@@ -43,6 +42,8 @@ class GenericModal extends Component {
     if (value !== undefined) {
       this.props.resolve(value)
       instance.close()
+
+      return
     }
 
     const { body } = this.refs
@@ -74,20 +75,6 @@ class GenericModal extends Component {
 
     const body = _addRef(this.props.children, 'body')
 
-    const button = ({
-      icon,
-      name,
-      props,
-      value
-    }) =>
-      <Button
-        onClick={() => this._resolve(value)}
-        {...props}
-      >
-        {icon !== undefined && <Icon icon={icon} fixedWidth />}
-        {name}
-      </Button>
-
     return <div>
       <Header closeButton>
         <Title>
@@ -117,22 +104,28 @@ class GenericModal extends Component {
         </Button>
 =======
         {map(buttons, ({
-          name,
+          label,
           tooltip,
           value,
           icon,
           ...props
-        }) =>
-          <span>
+        }) => {
+          const button = <Button
+            onClick={() => this._resolve(value)}
+            key={value}
+            {...props}
+          >
+            {icon !== undefined && <Icon icon={icon} fixedWidth />}
+            {label}
+          </Button>
+          return <span>
             {tooltip !== undefined
-              ? <Tooltip content={tooltip}>
-                {button({name, value, icon, props})}
-              </Tooltip>
-              : button({name, value, icon, props})
+              ? <Tooltip content={tooltip}>{button}</Tooltip>
+              : button
             }
             {' '}
           </span>
-        )}
+        })}
         {this.props.reject !== undefined &&
           <Button onClick={this._reject} >
             {_('genericCancel')}
@@ -144,6 +137,7 @@ class GenericModal extends Component {
   }
 }
 
+<<<<<<< db4ec7e520405f9637c3bd408b9717e3ea9c573c
 <<<<<<< 7a3f932313c075383ccae46b9ab860a5877800c9
 export const confirm = ({
   body,
@@ -159,9 +153,15 @@ export const alert = (title, body) => {
 
   return new Promise(resolve => {
 >>>>>>> fix errors
+=======
+const ALERT_BUTTONS = [ { label: _('alertOk'), value: 'ok' } ]
+
+export const alert = (title, body) => (
+  new Promise(resolve => {
+>>>>>>> fix errors
     modal(
       <GenericModal
-        buttons={buttons}
+        buttons={ALERT_BUTTONS}
         resolve={resolve}
 <<<<<<< 7a3f932313c075383ccae46b9ab860a5877800c9
         reject={reject}
@@ -176,7 +176,7 @@ export const alert = (title, body) => {
       </GenericModal>
     )
   })
-}
+)
 
 const _addRef = (component, ref) => {
   if (isString(component) || isArray(component)) {
@@ -189,17 +189,17 @@ const _addRef = (component, ref) => {
   return component
 }
 
+const CONFIRM_BUTTONS = [ { btnStyle: 'primary', label: _('confirmOk') } ]
+
 export const confirm = ({
   body,
   icon = 'alarm',
   title
-}) => {
-  const buttons = [ { btnStyle: 'primary', name: _('confirmOk') } ]
-
-  return new Promise((resolve, reject) => {
+}) => (
+  new Promise((resolve, reject) => {
     modal(
       <GenericModal
-        buttons={buttons}
+        buttons={CONFIRM_BUTTONS}
         icon={icon}
         reject={reject}
         resolve={resolve}
@@ -210,7 +210,7 @@ export const confirm = ({
       reject
     )
   })
-}
+)
 
 export const chooseAction = ({
   body,
