@@ -71,20 +71,31 @@ class JobReturn extends Component {
 }
 
 const Log = props => <ul className='list-group'>
-  {map(props.log.calls, call => <li key={call.callKey} className='list-group-item'>
-    <strong className='text-info'>{call.method}: </strong><br />
-    {map(call.params, (value, key) => [ <JobParam id={value} paramKey={key} key={key} />, <br /> ])}
-    {call.returnedValue && <span>{' '}<JobReturn id={call.returnedValue} /></span>}
-    {call.error &&
-      <span className='text-danger'>
-        <Icon icon='error' />
-        {' '}
-        {call.error.message
-          ? <strong>{call.error.message}</strong>
-          : JSON.stringify(call.error)
-        }
-      </span>}
-  </li>)}
+  {map(props.log.calls, call => {
+    const { returnedValue } = call
+    let id
+    if (returnedValue != null) {
+      id = returnedValue.id
+      if (id === undefined) {
+        id = returnedValue
+      }
+    }
+
+    return <li key={call.callKey} className='list-group-item'>
+      <strong className='text-info'>{call.method}: </strong><br />
+      {map(call.params, (value, key) => [ <JobParam id={value} paramKey={key} key={key} />, <br /> ])}
+      {id !== undefined && <span>{' '}<JobReturn id={id} /></span>}
+      {call.error &&
+        <span className='text-danger'>
+          <Icon icon='error' />
+          {' '}
+          {call.error.message
+            ? <strong>{call.error.message}</strong>
+            : JSON.stringify(call.error)
+          }
+        </span>}
+    </li>
+  })}
 </ul>
 
 const showCalls = log => alert(_('jobModalTitle', { job: log.jobId }), <Log log={log} />)
