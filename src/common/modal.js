@@ -31,7 +31,7 @@ const modal = (content, onClose) => {
     icon: propTypes.string,
     label: propTypes.string.isRequired,
     tooltip: propTypes.node,
-    value: propTypes.string
+    value: propTypes.any
   })).isRequired,
   children: propTypes.node.isRequired,
   icon: propTypes.string,
@@ -39,16 +39,9 @@ const modal = (content, onClose) => {
 })
 class GenericModal extends Component {
   _resolve = value => {
-    if (value !== undefined) {
-      this.props.resolve(value)
-      instance.close()
-
-      return
-    }
-
     const { body } = this.refs
 
-    this.props.resolve(body && (body.getWrappedInstance
+    this.props.resolve(value = body && (body.getWrappedInstance
       ? body.getWrappedInstance().value
       : body.value
     ))
@@ -62,16 +55,12 @@ class GenericModal extends Component {
 
   render () {
     const { Body, Footer, Header, Title } = ReactModal
-<<<<<<< 7a3f932313c075383ccae46b9ab860a5877800c9
-    const { title, icon, okLabel = _('confirmOk'), cancelLabel = _('confirmCancel') } = this.props
-=======
 
     const {
       buttons,
       icon,
       title
     } = this.props
->>>>>>> fix errors
 
     const body = _addRef(this.props.children, 'body')
 
@@ -88,21 +77,6 @@ class GenericModal extends Component {
         {body}
       </Body>
       <Footer>
-<<<<<<< 7a3f932313c075383ccae46b9ab860a5877800c9
-        <Button
-          btnStyle='primary'
-          onClick={this._resolve}
-          style={this._style}
-        >
-          {okLabel}
-        </Button>
-        {' '}
-        <Button
-          onClick={this._reject}
-        >
-          {cancelLabel}
-        </Button>
-=======
         {map(buttons, ({
           label,
           tooltip,
@@ -131,46 +105,20 @@ class GenericModal extends Component {
             {_('genericCancel')}
           </Button>
         }
->>>>>>> fix errors
       </Footer>
     </div>
   }
 }
 
-<<<<<<< db4ec7e520405f9637c3bd408b9717e3ea9c573c
-<<<<<<< 7a3f932313c075383ccae46b9ab860a5877800c9
-export const confirm = ({
-  body,
-  title,
-  okLabel,
-  cancelLabel,
-  icon = 'alarm'
-}) => {
-  return new Promise((resolve, reject) => {
-=======
-export const alert = (title, body) => {
-  const buttons = [{ name: _('alertOk'), value: 'ok' }]
-
-  return new Promise(resolve => {
->>>>>>> fix errors
-=======
 const ALERT_BUTTONS = [ { label: _('alertOk'), value: 'ok' } ]
 
 export const alert = (title, body) => (
   new Promise(resolve => {
->>>>>>> fix errors
     modal(
       <GenericModal
         buttons={ALERT_BUTTONS}
         resolve={resolve}
-<<<<<<< 7a3f932313c075383ccae46b9ab860a5877800c9
-        reject={reject}
-        icon={icon}
-        okLabel={okLabel}
-        cancelLabel={cancelLabel}
-=======
         title={title}
->>>>>>> fix errors
       >
         {body}
       </GenericModal>
