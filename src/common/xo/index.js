@@ -595,7 +595,7 @@ export const startVm = vm => (
     }
 
     const choice = await chooseActionToUnblockForbiddenStartVm({
-      body: _('forceStartVmModalMessage'),
+      body: _('blockedStartVmModalMessage'),
       title: _('forceStartVmModalTitle')
     })
 
@@ -636,7 +636,7 @@ export const startVms = vms => (
       }
 
       const choice = await chooseActionToUnblockForbiddenStartVm({
-        body: _('forceStartVmsModalMessage', {nVms: forbiddenStart.length}),
+        body: _('blockedStartVmsModalMessage', {nVms: forbiddenStart.length}),
         title: _('forceStartVmModalTitle')
       }).catch(noop)
 
