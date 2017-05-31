@@ -107,8 +107,6 @@ const INSTALLED_PATCH_COLUMNS_2 = [
   }
 ]
 
-const INSTALLPATCH_BUTTONS = 
-
 @connectStore(() => ({
   needsRestart: createDoesHostNeedRestart((_, props) => props.host)
 }))
@@ -117,7 +115,7 @@ export default class HostPatches extends Component {
     router: React.PropTypes.object
   }
 
-  _chooseActionPatch = async fct => {
+  _chooseActionPatch = async doInstall => {
     const choice = await chooseAction({
       body: <p>{_('installPatchWarningContent')}</p>,
       buttons: [
@@ -127,18 +125,14 @@ export default class HostPatches extends Component {
       title: _('installPatchWarningTitle')
     })
 
-    if (choice === 'install') {
-      return fct
-    }
-
-    if (choice === 'goToPool') {
-      return this.context.router.push(`/pools/${this.props.host.$pool}/patches`)
-    }
+    return choice === 'install'
+      ? doInstall()
+      : this.context.router.push(`/pools/${this.props.host.$pool}/patches`)
   }
 
-  _installPatchWarning = (patch, installPatch) => this._chooseActionPatch(installPatch(patch))
+  _installPatchWarning = (patch, installPatch) => this._chooseActionPatch(() => installPatch(patch))
 
-  _installAllPatchesWarning = installAllPatches => this._chooseActionPatch(installAllPatches())
+  _installAllPatchesWarning = installAllPatches => this._chooseActionPatch(installAllPatches)
 
   _getPatches = createSelector(
     () => this.props.host,
