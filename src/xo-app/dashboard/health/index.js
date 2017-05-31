@@ -23,7 +23,6 @@ import {
   isSrWritable
 } from 'xo'
 import {
-  find,
   flatten,
   get,
   isEmpty,
@@ -34,8 +33,7 @@ import {
   createCollectionWrapper,
   createGetObject,
   createGetObjectsOfType,
-  createSelector,
-  getObject
+  createSelector
 } from 'selectors'
 import {
   connectStore,
@@ -320,12 +318,12 @@ const ALARM_COLUMNS = [
     .sort()
   const getControlDomainVdis = createSelector(
     getControlDomainVbds,
+    createGetObjectsOfType('VDI'),
     createGetObjectsOfType('pool'),
     createGetObjectsOfType('SR'),
-    state => state,
-    (vbds, pools, srs, state) =>
+    (vbds, vdis, pools, srs) =>
       mapPlus(vbds, (vbd, push) => {
-        const vdi = getObject(state, vbd.VDI)
+        const vdi = vdis[vbd.VDI]
 
         if (vdi == null) {
           return
@@ -333,8 +331,8 @@ const ALARM_COLUMNS = [
 
         push({
           ...vdi,
-          pool: find(pools, { id: vbd.$pool }),
-          sr: find(srs, { id: vdi.$SR }),
+          pool: pools[vbd.$pool],
+          sr: srs[vdi.$SR],
           vbd
         })
       }
