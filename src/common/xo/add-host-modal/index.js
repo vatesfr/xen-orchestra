@@ -1,12 +1,16 @@
 import _ from 'intl'
 import BaseComponent from 'base-component'
+import Icon from 'icon'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import { Col } from 'grid'
 import { connectStore } from 'utils'
-import { createCollectionWrapper, createGetObjectsOfType, createSelector } from 'selectors'
-import { forEach } from 'lodash'
+import { createCollectionWrapper, createGetObjectsOfType, createSelector, createGetObject } from 'selectors'
 import { SelectHost } from 'select-objects'
+import {
+  differenceBy,
+  forEach
+} from 'lodash'
 
 @connectStore(() => ({
   singleHosts: createSelector(
@@ -30,10 +34,20 @@ import { SelectHost } from 'select-objects'
       })
       return singleHosts
     })
+  ),
+  poolMasterPatches: createSelector(
+    createGetObject(
+      (_, props) => props.pool.master
+    ),
+    ({ patches }) => patches
   )
 }), { withRef: true })
 export default class AddHostModal extends BaseComponent {
   get value () {
+    if (process.env.XOA_PLAN < 2 && this.state.nMissingPatches) {
+      return {}
+    }
+
     return this.state
   }
 
@@ -42,18 +56,40 @@ export default class AddHostModal extends BaseComponent {
     singleHosts => host => singleHosts[host.id]
   )
 
+  _onChangeHost = host => {
+    this.setState({
+      host,
+      nMissingPatches: host
+       ? differenceBy(this.props.poolMasterPatches, host.patches, 'name').length
+       : undefined
+    })
+  }
+
   render () {
+    const { nMissingPatches } = this.state
+
     return <div>
       <SingleLineRow>
         <Col size={6}>{_('addHostSelectHost')}</Col>
         <Col size={6}>
           <SelectHost
-            onChange={this.linkState('host')}
+            onChange={this._onChangeHost}
             predicate={this._getHostPredicate()}
             value={this.state.host}
           />
         </Col>
       </SingleLineRow>
+      <br />
+      {nMissingPatches > 0 && <SingleLineRow>
+        <Col>
+          <span className='text-danger'>
+            <Icon icon='error' /> {process.env.XOA_PLAN > 1
+              ? _('hostNeedsPatchUpdate', { patches: nMissingPatches })
+              : _('hostNeedsPatchUpdateNoInstall')
+            }
+          </span>
+        </Col>
+      </SingleLineRow>}
     </div>
   }
 }
