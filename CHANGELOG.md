@@ -1,5 +1,41 @@
 # ChangeLog
 
+## **5.9.0** (2017-05-31)
+
+### Enhancements
+
+- Allow DR to remove previous backup first [\#2157](https://github.com/vatesfr/xo-web/issues/2157)
+- Feature request - add amount of RAM to memory bars [\#2149](https://github.com/vatesfr/xo-web/issues/2149)
+- Make the acceptability of invalid certificates configurable [\#2138](https://github.com/vatesfr/xo-web/issues/2138)
+- label of VM names in tasks link [\#2135](https://github.com/vatesfr/xo-web/issues/2135)
+- Backup report timezone [\#2133](https://github.com/vatesfr/xo-web/issues/2133)
+- xo-server-recover-account [\#2129](https://github.com/vatesfr/xo-web/issues/2129)
+- Detect disks attached to control domain [\#2126](https://github.com/vatesfr/xo-web/issues/2126)
+- Add task description in Tasks view [\#2125](https://github.com/vatesfr/xo-web/issues/2125)
+- Host reboot warning after patching for 7.1 [\#2124](https://github.com/vatesfr/xo-web/issues/2124)
+- Continuous Replication - possibility run VM without a clone [\#2119](https://github.com/vatesfr/xo-web/issues/2119)
+- Unreachable host should be detected [\#2099](https://github.com/vatesfr/xo-web/issues/2099)
+- Orange icon when host is is disabled [\#2098](https://github.com/vatesfr/xo-web/issues/2098)
+- Enhanced backup report logs [\#2096](https://github.com/vatesfr/xo-web/issues/2096)
+- Only show failures when configured to report on failures [\#2095](https://github.com/vatesfr/xo-web/issues/2095)
+- "Add all" button in self service [\#2081](https://github.com/vatesfr/xo-web/issues/2081)
+- Patch and pack mechanism changed on Ely [\#2058](https://github.com/vatesfr/xo-web/issues/2058)
+- Tip or ask people to patch from pool view [\#2057](https://github.com/vatesfr/xo-web/issues/2057)
+- File restore - Remind compatible backup [\#1930](https://github.com/vatesfr/xo-web/issues/1930)
+- Reporting for halted vm time [\#1613](https://github.com/vatesfr/xo-web/issues/1613)
+- Add standalone XS server to a pool and patch it to the pool level [\#878](https://github.com/vatesfr/xo-web/issues/878)
+- Add Cores-per-sockets [\#130](https://github.com/vatesfr/xo-web/issues/130)
+
+### Bug fixes
+
+- VM creation is broken for non-admins [\#2168](https://github.com/vatesfr/xo-web/issues/2168)
+- Can't create cloud config drive [\#2162](https://github.com/vatesfr/xo-web/issues/2162)
+- Select is "moving" [\#2142](https://github.com/vatesfr/xo-web/issues/2142)
+- Select issue for affinity host [\#2141](https://github.com/vatesfr/xo-web/issues/2141)
+- Dashboard Storage Usage incorrect [\#2123](https://github.com/vatesfr/xo-web/issues/2123)
+- Detect unmerged *base copy* and prevent too long chains [\#2047](https://github.com/vatesfr/xo-web/issues/2047)
+
+
 ## **5.8.0** (2017-04-28)
 
 ### Enhancements
