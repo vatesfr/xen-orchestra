@@ -194,6 +194,7 @@ const TRANSFORMS = {
           }
         }),
       agentStartTime: toTimestamp(otherConfig.agent_start_time),
+      rebootRequired: !isEmpty(obj.updates_requiring_reboot),
       tags: obj.tags,
       version: obj.software_version.product_version,
 
