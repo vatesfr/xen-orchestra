@@ -481,39 +481,34 @@ export const createGetObjectMessages = objectSelector =>
 export const getObject = createGetObject((_, id) => id)
 
 export const createDoesHostNeedRestart = hostSelector => {
-  const restartPoolPatch = create(
-
-    // XS < 7.1
-    createGetObjectsOfType('pool_patch').pick(
-      // Returns the first patch of the host which requires it to be
-      // restarted.
-      create(
-        createGetObjectsOfType('host_patch').pick(
-          (state, props) => {
-            const host = hostSelector(state, props)
-            return host && host.patches
-          }
-        ).filter(create(
-          (state, props) => {
-            const host = hostSelector(state, props)
-            return host && host.startTime
-          },
-          startTime => patch => patch.time > startTime
-        )),
-        hostPatches => map(hostPatches, hostPatch => hostPatch.pool_patch)
-      )
-    ).find([ ({ guidance }) => find(guidance, action =>
-      action === 'restartHost' || action === 'restartXapi'
-    ) ]),
-    // XS >= 7.1
+  // XS < 7.1
+  const patchRequiresReboot = createGetObjectsOfType('pool_patch').pick(
+    // Returns the first patch of the host which requires it to be
+    // restarted.
     create(
-      hostSelector,
-      host => host.rebootRequired
-    ),
-    (patchRequiresReboot, rebootRequired) => !!patchRequiresReboot || rebootRequired
-  )
+      createGetObjectsOfType('host_patch').pick(
+        (state, props) => {
+          const host = hostSelector(state, props)
+          return host && host.patches
+        }
+      ).filter(create(
+        (state, props) => {
+          const host = hostSelector(state, props)
+          return host && host.startTime
+        },
+        startTime => patch => patch.time > startTime
+      )),
+      hostPatches => map(hostPatches, hostPatch => hostPatch.pool_patch)
+    )
+  ).find([ ({ guidance }) => find(guidance, action =>
+    action === 'restartHost' || action === 'restartXapi'
+  ) ])
 
-  return (state, props) => restartPoolPatch(state, props)
+  return create(
+    hostSelector,
+    (...args) => args,
+    (host, args) => host.rebootRequired || !!patchRequiresReboot(...args)
+  )
 }
 
 export const createGetHostMetrics = hostSelector =>
