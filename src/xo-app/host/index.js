@@ -7,8 +7,14 @@ import Page from '../page'
 import React, { cloneElement, Component } from 'react'
 import Tooltip from 'tooltip'
 import { Text } from 'editable'
-import { editHost, fetchHostStats, getHostMissingPatches, installAllHostPatches, installHostPatch } from 'xo'
 import { Container, Row, Col } from 'grid'
+import {
+  editHost,
+  fetchHostStats,
+  installAllHostPatches,
+  installHostPatch,
+  subscribeHostMissingPatches
+} from 'xo'
 import {
   connectStore,
   routes
@@ -139,6 +145,10 @@ export default class Host extends Component {
   }
 
   loop (host = this.props.host) {
+    if (host == null) {
+      return
+    }
+
     if (this.cancel) {
       this.cancel()
     }
@@ -166,22 +176,19 @@ export default class Host extends Component {
   }
   loop = ::this.loop
 
-  _getMissingPatches (host) {
-    getHostMissingPatches(host).then(missingPatches => {
-      this.setState({ missingPatches: sortBy(missingPatches, (patch) => -patch.time) })
-    })
-  }
-
-  componentWillMount () {
-    if (!this.props.host) {
-      return
-    }
+  componentDidMount () {
     this.loop()
-    this._getMissingPatches(this.props.host)
+    this.unsubscribeHostMissingPatches = subscribeHostMissingPatches(
+      this.props.routeParams.id,
+      missingPatches => this.setState({
+        missingPatches: sortBy(missingPatches, patch => -patch.time)
+      })
+    )
   }
 
   componentWillUnmount () {
     clearTimeout(this.timeout)
+    this.unsubscribeHostMissingPatches()
   }
 
   componentWillReceiveProps (props) {
@@ -195,10 +202,6 @@ export default class Host extends Component {
       this.context.router.push('/')
     }
 
-    if (!hostCur) {
-      this._getMissingPatches(hostNext)
-    }
-
     if (!isRunning(hostCur) && isRunning(hostNext)) {
       this.loop(hostNext)
     } else if (isRunning(hostCur) && !isRunning(hostNext)) {
@@ -210,16 +213,12 @@ export default class Host extends Component {
 
   _installAllPatches = () => {
     const { host } = this.props
-    return installAllHostPatches(host).then(() => {
-      this._getMissingPatches(host)
-    })
+    return installAllHostPatches(host)
   }
 
   _installPatch = patch => {
     const { host } = this.props
-    return installHostPatch(host, patch).then(() => {
-      this._getMissingPatches(host)
-    })
+    return installHostPatch(host, patch)
   }
 
   _setNameDescription = nameDescription => editHost(this.props.host, { name_description: nameDescription })

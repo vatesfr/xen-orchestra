@@ -284,6 +284,28 @@ export const subscribeIsInstallingXosan = (pool, cb) => {
   return xosanSubscriptions[poolId](cb)
 }
 
+const missingPatchesByHost = {}
+export const subscribeHostMissingPatches = (host, cb) => {
+  const hostId = resolveId(host)
+
+  if (missingPatchesByHost[hostId] == null) {
+    missingPatchesByHost[hostId] = createSubscription(() => _call('host.listMissingPatches', { host: hostId }))
+  }
+
+  return missingPatchesByHost[hostId](cb)
+}
+subscribeHostMissingPatches.forceRefresh = host => {
+  if (host === undefined) {
+    forEach(missingPatchesByHost, subscription => subscription.forceRefresh())
+    return
+  }
+
+  const subscription = missingPatchesByHost[resolveId(host)]
+  if (subscription !== undefined) {
+    subscription.forceRefresh()
+  }
+}
+
 // System ============================================================
 
 export const apiMethods = _call('system.getMethodsInfo')
@@ -498,15 +520,21 @@ export const emergencyShutdownHosts = hosts => {
 }
 
 export const installHostPatch = (host, { uuid }) => (
-  _call('host.installPatch', { host: resolveId(host), patch: uuid })
+  _call('host.installPatch', { host: resolveId(host), patch: uuid })::tap(
+    () => subscribeHostMissingPatches.forceRefresh(host)
+  )
 )
 
 export const installAllHostPatches = host => (
-  _call('host.installAllPatches', { host: resolveId(host) })
+  _call('host.installAllPatches', { host: resolveId(host) })::tap(
+    () => subscribeHostMissingPatches.forceRefresh(host)
+  )
 )
 
 export const installAllPatchesOnPool = pool => (
-  _call('pool.installAllPatches', { pool: resolveId(pool) })
+  _call('pool.installAllPatches', { pool: resolveId(pool) })::tap(
+    () => subscribeHostMissingPatches.forceRefresh()
+  )
 )
 
 export const installSupplementalPack = (host, file) => {

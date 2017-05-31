@@ -19,9 +19,9 @@ import {
   createSelector
 } from './selectors'
 import {
-  getHostMissingPatches,
   installAllHostPatches,
-  installAllPatchesOnPool
+  installAllPatchesOnPool,
+  subscribeHostMissingPatches
 } from './xo'
 
 // ===================================================================
@@ -89,11 +89,25 @@ class HostsPatchesTable extends Component {
     )
   )
 
-  _refreshMissingPatches = () => (
-    Promise.all(
-      map(this.props.hosts, this._refreshHostMissingPatches)
+  _subscribeMissingPatches = (hosts = this.props.hosts) => {
+    const unsubs = map(hosts, host =>
+      subscribeHostMissingPatches(
+        host,
+        patches => this.setState({
+          missingPatches: {
+            ...this.state.missingPatches,
+            [host.id]: patches.length
+          }
+        })
+      )
     )
-  )
+
+    if (this.unsubscribeMissingPatches !== undefined) {
+      this.unsubscribeMissingPatches()
+    }
+
+    this.unsubscribeMissingPatches = () => forEach(unsubs, unsub => unsub())
+  }
 
   _installAllMissingPatches = () => {
     const pools = {}
@@ -104,82 +118,43 @@ class HostsPatchesTable extends Component {
     return Promise.all(map(
       keys(pools),
       installAllPatchesOnPool
-    )).then(this._refreshMissingPatches)
-  }
-
-  _refreshHostMissingPatches = host => (
-    getHostMissingPatches(host).then(patches => {
-      this.setState({
-        missingPatches: {
-          ...this.state.missingPatches,
-          [host.id]: patches.length
-        }
-      })
-    })
-  )
-
-  _installAllHostPatches = host => (
-    installAllHostPatches(host).then(() =>
-      this._refreshHostMissingPatches(host)
-    )
-  )
-
-  componentWillMount () {
-    this._refreshMissingPatches()
+    ))
   }
 
   componentDidMount () {
     // Force one Portal refresh.
     // Because Portal cannot see the container reference at first rendering.
     this.forceUpdate()
+    this._subscribeMissingPatches()
   }
 
   componentWillReceiveProps (nextProps) {
-    forEach(nextProps.hosts, host => {
-      const { id } = host
+    if (nextProps.hosts !== this.props.hosts) {
+      this._subscribeMissingPatches(nextProps.hosts)
+    }
+  }
 
-      if (this.state.missingPatches[id] !== undefined) {
-        return
-      }
-
-      this.setState({
-        missingPatches: {
-          ...this.state.missingPatches,
-          [id]: 0
-        }
-      })
-
-      this._refreshHostMissingPatches(host)
-    })
+  componentWillUnmount () {
+    this.unsubscribeMissingPatches()
   }
 
   render () {
+    const {
+      buttonsGroupContainer,
+      container,
+      displayPools,
+      pools,
+      useTabButton
+    } = this.props
+
     const hosts = this._getHosts()
     const noPatches = isEmpty(hosts)
-    const { props } = this
 
-    const Container = props.container || 'div'
+    const Container = container || 'div'
 
-    const Button = this.props.useTabButton
+    const Button = useTabButton
       ? TabButton
       : ActionButton_
-
-    const Buttons = (
-      <Container>
-        <Button
-          handler={this._refreshMissingPatches}
-          icon='refresh'
-          labelId='checkForUpdates'
-        />
-        <Button
-          btnStyle='primary'
-          disabled={noPatches}
-          handler={this._installAllMissingPatches}
-          icon='host-patch-update'
-          labelId='installPoolPatches'
-        />
-      </Container>
-    )
 
     return (
       <div>
@@ -187,17 +162,25 @@ class HostsPatchesTable extends Component {
           ? (
             <SortedTable
               collection={hosts}
-              columns={props.displayPools ? POOLS_MISSING_PATCHES_COLUMNS : MISSING_PATCHES_COLUMNS}
+              columns={displayPools ? POOLS_MISSING_PATCHES_COLUMNS : MISSING_PATCHES_COLUMNS}
               userData={{
-                installAllHostPatches: this._installAllHostPatches,
+                installAllHostPatches,
                 missingPatches: this.state.missingPatches,
-                pools: props.pools
+                pools
               }}
             />
           ) : <p>{_('patchNothing')}</p>
         }
-        <Portal container={() => props.buttonsGroupContainer()}>
-          {Buttons}
+        <Portal container={() => buttonsGroupContainer()}>
+          <Container>
+            <Button
+              btnStyle='primary'
+              disabled={noPatches}
+              handler={this._installAllMissingPatches}
+              icon='host-patch-update'
+              labelId='installPoolPatches'
+            />
+          </Container>
         </Portal>
       </div>
     )
