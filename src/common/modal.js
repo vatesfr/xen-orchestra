@@ -144,26 +144,18 @@ export const confirm = ({
   icon = 'alarm',
   title
 }) => (
-  new Promise((resolve, reject) => {
-    modal(
-      <GenericModal
-        buttons={CONFIRM_BUTTONS}
-        icon={icon}
-        reject={reject}
-        resolve={resolve}
-        title={title}
-      >
-        {body}
-      </GenericModal>,
-      reject
-    )
+  chooseAction({
+    body,
+    buttons: CONFIRM_BUTTONS,
+    icon,
+    title
   })
 )
 
 export const chooseAction = ({
   body,
-  icon,
   buttons,
+  icon,
   title
 }) => {
   return new Promise((resolve, reject) => {
