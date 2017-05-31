@@ -1,6 +1,8 @@
 import httpRequestPlus from 'http-request-plus'
 import { format, parse } from 'json-rpc-protocol'
 
+import { UnsupportedTransport } from './_utils'
+
 export default ({ allowUnauthorized, url }) => {
   return (method, args) => httpRequestPlus.post(url, {
     rejectUnauthorized: !allowUnauthorized,
@@ -10,12 +12,27 @@ export default ({ allowUnauthorized, url }) => {
       'Content-Type': 'application/json'
     },
     path: '/jsonrpc'
-  }).readAll('utf8').then(text => {
-    const response = parse(text)
-    if (response.type === 'response') {
-      return response.result
-    }
+  }).readAll('utf8').then(
+    text => {
+      let response
+      try {
+        response = parse(text)
+      } catch (error) {
+        throw new UnsupportedTransport()
+      }
 
-    throw response.error
-  })
+      if (response.type === 'response') {
+        return response.result
+      }
+
+      throw response.error
+    },
+    error => {
+      if (error.response !== undefined) { // HTTP error
+        throw new UnsupportedTransport()
+      }
+
+      throw error
+    }
+  )
 }
