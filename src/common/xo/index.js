@@ -573,15 +573,13 @@ export const unpauseContainer = (vm, container) => (
 
 // VM ----------------------------------------------------------------
 
-const CHOOSEACTION_BUTTONS = [
-  {label: _('cloneAndStartVM'), value: 'clone', btnStyle: 'success'},
-  {label: _('forceStartVm'), value: 'force', btnStyle: 'danger'}
-]
-
 const chooseActionToUnblockForbiddenStartVm = props => (
   chooseAction({
     icon: 'alarm',
-    buttons: CHOOSEACTION_BUTTONS,
+    buttons: [
+      { label: _('cloneAndStartVM'), value: 'clone', btnStyle: 'success' },
+      { label: _('forceStartVm'), value: 'force', btnStyle: 'danger' }
+    ],
     ...props
   })
 )
