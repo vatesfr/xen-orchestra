@@ -1031,6 +1031,10 @@ export default class {
       nameLabel: copyName
     })
 
+    targetXapi._updateObjectMapProperty(data.vm, 'blocked_operations', {
+      start: 'Start operation for this vm is blocked, clone it if you want to use it.'
+    })
+
     await targetXapi.addTag(data.vm.$id, 'Disaster Recovery')
 
     if (!deleteOldBackupsFirst) {
