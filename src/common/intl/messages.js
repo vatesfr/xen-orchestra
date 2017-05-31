@@ -626,6 +626,7 @@ var messages = {
   advancedTabName: 'Advanced',
   networkTabName: 'Network',
   disksTabName: 'Disk{disks, plural, one {} other {s}}',
+  managementTabName: 'Management',
 
   powerStateHalted: 'halted',
   powerStateRunning: 'running',

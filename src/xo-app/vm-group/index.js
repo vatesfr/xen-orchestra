@@ -29,7 +29,7 @@ import VmGroupActionBar from './action-bar'
   advanced: TabAdvanced,
   general: TabGeneral,
   management: TabManagement,
-  stats: TabStats,
+  stats: TabStats
 })
 @addSubscriptions({
   vmGroups: subscribeVmGroups
