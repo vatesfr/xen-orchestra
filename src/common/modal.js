@@ -41,10 +41,10 @@ class GenericModal extends Component {
   _resolve = value => {
     const { body } = this.refs
 
-    this.props.resolve(value = body && (body.getWrappedInstance
+    this.props.resolve(value || (body && (body.getWrappedInstance
       ? body.getWrappedInstance().value
       : body.value
-    ))
+    )))
     instance.close()
   }
 

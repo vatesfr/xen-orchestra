@@ -4,7 +4,7 @@ import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import Upgrade from 'xoa-upgrade'
-import { confirm } from 'modal'
+import { chooseAction } from 'modal'
 import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createDoesHostNeedRestart, createSelector } from 'selectors'
@@ -107,6 +107,11 @@ const INSTALLED_PATCH_COLUMNS_2 = [
   }
 ]
 
+const INSTALLPATCH_BUTTONS = [
+  {label: _('installPatchWarningResolve'), value: 'install', btnStyle: 'primary'},
+  {label: _('installPatchWarningReject'), value: 'goToPool'}
+]
+
 @connectStore(() => ({
   needsRestart: createDoesHostNeedRestart((_, props) => props.host)
 }))
@@ -115,25 +120,25 @@ export default class HostPatches extends Component {
     router: React.PropTypes.object
   }
 
-  _installPatchWarning = (patch, installPatch) => confirm({
-    title: _('installPatchWarningTitle'),
-    body: <p>{_('installPatchWarningContent')}</p>,
-    okLabel: _('installPatchWarningResolve'),
-    cancelLabel: _('installPatchWarningReject')
-  }).then(
-    () => installPatch(patch),
-    () => this.context.router.push(`/pools/${this.props.host.$pool}/patches`)
-  )
+  _chooseActionPatch = async fct => {
+    const choice = await chooseAction({
+      body: <p>{_('installPatchWarningContent')}</p>,
+      buttons: INSTALLPATCH_BUTTONS,
+      title: _('installPatchWarningTitle')
+    })
 
-  _installAllPatchesWarning = installAllPatches => confirm({
-    title: _('installPatchWarningTitle'),
-    body: <p>{_('installPatchWarningContent')}</p>,
-    okLabel: _('installPatchWarningResolve'),
-    cancelLabel: _('installPatchWarningReject')
-  }).then(
-    installAllPatches,
-    () => this.context.router.push(`/pools/${this.props.host.$pool}/patches`)
-  )
+    if (choice === 'install') {
+      return fct
+    }
+
+    if (choice === 'goToPool') {
+      return this.context.router.push(`/pools/${this.props.host.$pool}/patches`)
+    }
+  }
+
+  _installPatchWarning = (patch, installPatch) => this._chooseActionPatch(installPatch(patch))
+
+  _installAllPatchesWarning = installAllPatches => this._chooseActionPatch(installAllPatches())
 
   _getPatches = createSelector(
     () => this.props.host,
