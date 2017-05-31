@@ -295,7 +295,7 @@ export const subscribeHostMissingPatches = (host, cb) => {
   return missingPatchesByHost[hostId](cb)
 }
 subscribeHostMissingPatches.forceRefresh = host => {
-  if (!host) {
+  if (host === undefined) {
     forEach(missingPatchesByHost, subscription => subscription.forceRefresh())
     return
   }

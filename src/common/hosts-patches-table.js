@@ -102,7 +102,11 @@ class HostsPatchesTable extends Component {
       )
     )
 
-    return () => forEach(unsubs, unsub => unsub())
+    if (this.unsubscribeMissingPatches !== undefined) {
+      this.unsubscribeMissingPatches()
+    }
+
+    this.unsubscribeMissingPatches = () => forEach(unsubs, unsub => unsub())
   }
 
   _installAllMissingPatches = () => {
@@ -121,13 +125,12 @@ class HostsPatchesTable extends Component {
     // Force one Portal refresh.
     // Because Portal cannot see the container reference at first rendering.
     this.forceUpdate()
-    this.unsubscribeMissingPatches = this._subscribeMissingPatches()
+    this._subscribeMissingPatches()
   }
 
   componentWillReceiveProps (nextProps) {
     if (nextProps.hosts !== this.props.hosts) {
-      this.unsubscribeMissingPatches()
-      this.unsubscribeMissingPatches = this._subscribeMissingPatches(nextProps.hosts)
+      this._subscribeMissingPatches(nextProps.hosts)
     }
   }
 
