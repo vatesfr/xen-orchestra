@@ -34,7 +34,8 @@ import {
   createCollectionWrapper,
   createGetObject,
   createGetObjectsOfType,
-  createSelector
+  createSelector,
+  getObject
 } from 'selectors'
 import {
   connectStore,
@@ -319,12 +320,12 @@ const ALARM_COLUMNS = [
     .sort()
   const getControlDomainVdis = createSelector(
     getControlDomainVbds,
-    createGetObjectsOfType('VDI'),
     createGetObjectsOfType('pool'),
     createGetObjectsOfType('SR'),
-    (vbds, vdis, pools, srs) =>
+    state => state,
+    (vbds, pools, srs, state) =>
       mapPlus(vbds, (vbd, push) => {
-        const vdi = find(vdis, { id: vbd.VDI })
+        const vdi = getObject(state, vbd.VDI)
 
         if (vdi == null) {
           return
