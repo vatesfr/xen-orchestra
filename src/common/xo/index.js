@@ -1953,3 +1953,7 @@ export const downloadAndInstallXosanPack = pool =>
   )
 
 export const registerXosan = namespace => _call('cloud.registerResource', { namespace: 'xosan' })
+
+// VM-Group ----------------------------------------------------------------------
+
+export const fetchVmGroupStats = (host, granularity) => { /* TODO */ }
