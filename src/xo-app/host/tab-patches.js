@@ -4,7 +4,7 @@ import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import Upgrade from 'xoa-upgrade'
-import { confirm } from 'modal'
+import { chooseAction } from 'modal'
 import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createDoesHostNeedRestart, createSelector } from 'selectors'
@@ -115,25 +115,24 @@ export default class HostPatches extends Component {
     router: React.PropTypes.object
   }
 
-  _installPatchWarning = (patch, installPatch) => confirm({
-    title: _('installPatchWarningTitle'),
-    body: <p>{_('installPatchWarningContent')}</p>,
-    okLabel: _('installPatchWarningResolve'),
-    cancelLabel: _('installPatchWarningReject')
-  }).then(
-    () => installPatch(patch),
-    () => this.context.router.push(`/pools/${this.props.host.$pool}/patches`)
-  )
+  _chooseActionPatch = async doInstall => {
+    const choice = await chooseAction({
+      body: <p>{_('installPatchWarningContent')}</p>,
+      buttons: [
+        { label: _('installPatchWarningResolve'), value: 'install', btnStyle: 'primary' },
+        { label: _('installPatchWarningReject'), value: 'goToPool' }
+      ],
+      title: _('installPatchWarningTitle')
+    })
 
-  _installAllPatchesWarning = installAllPatches => confirm({
-    title: _('installPatchWarningTitle'),
-    body: <p>{_('installPatchWarningContent')}</p>,
-    okLabel: _('installPatchWarningResolve'),
-    cancelLabel: _('installPatchWarningReject')
-  }).then(
-    installAllPatches,
-    () => this.context.router.push(`/pools/${this.props.host.$pool}/patches`)
-  )
+    return choice === 'install'
+      ? doInstall()
+      : this.context.router.push(`/pools/${this.props.host.$pool}/patches`)
+  }
+
+  _installPatchWarning = (patch, installPatch) => this._chooseActionPatch(() => installPatch(patch))
+
+  _installAllPatchesWarning = installAllPatches => this._chooseActionPatch(installAllPatches)
 
   _getPatches = createSelector(
     () => this.props.host,

@@ -18,7 +18,7 @@ var messages = {
   // ----- Modals -----
   alertOk: 'OK',
   confirmOk: 'OK',
-  confirmCancel: 'Cancel',
+  genericCancel: 'Cancel',
 
   // ----- Filters -----
   onError: 'On error',
@@ -1038,7 +1038,14 @@ var messages = {
   restartHostsModalTitle: 'Restart Host{nHosts, plural, one {} other {s}}',
   restartHostsModalMessage: 'Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}}?',
   startVmsModalTitle: 'Start VM{vms, plural, one {} other {s}}',
+  cloneAndStartVM: 'Start a copy',
+  forceStartVm: 'Force start',
+  forceStartVmModalTitle: 'Forbidden operation',
+  blockedStartVmModalMessage: 'Start operation for this vm is blocked.',
+  blockedStartVmsModalMessage: 'Forbidden operation start for {nVms, number} vm{nVms, plural, one {} other {s}}.',
   startVmsModalMessage: 'Are you sure you want to start {vms, number} VM{vms, plural, one {} other {s}}?',
+  failedVmsErrorMessage: '{nVms, number} vm{nVms, plural, one {} other {s}} are failed. Please see your logs to get more information',
+  failedVmsErrorTitle: 'Start failed',
   stopHostsModalTitle: 'Stop Host{nHosts, plural, one {} other {s}}',
   stopHostsModalMessage: 'Are you sure you want to stop {nHosts, number} Host{nHosts, plural, one {} other {s}}?',
   stopVmsModalTitle: 'Stop VM{vms, plural, one {} other {s}}',
