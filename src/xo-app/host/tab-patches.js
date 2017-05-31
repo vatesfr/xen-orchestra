@@ -107,10 +107,7 @@ const INSTALLED_PATCH_COLUMNS_2 = [
   }
 ]
 
-const INSTALLPATCH_BUTTONS = [
-  {label: _('installPatchWarningResolve'), value: 'install', btnStyle: 'primary'},
-  {label: _('installPatchWarningReject'), value: 'goToPool'}
-]
+const INSTALLPATCH_BUTTONS = 
 
 @connectStore(() => ({
   needsRestart: createDoesHostNeedRestart((_, props) => props.host)
@@ -123,7 +120,10 @@ export default class HostPatches extends Component {
   _chooseActionPatch = async fct => {
     const choice = await chooseAction({
       body: <p>{_('installPatchWarningContent')}</p>,
-      buttons: INSTALLPATCH_BUTTONS,
+      buttons: [
+        { label: _('installPatchWarningResolve'), value: 'install', btnStyle: 'primary' },
+        { label: _('installPatchWarningReject'), value: 'goToPool' }
+      ],
       title: _('installPatchWarningTitle')
     })
 
