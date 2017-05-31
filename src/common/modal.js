@@ -40,16 +40,11 @@ const modal = (content, onClose) => {
 class GenericModal extends Component {
   _getBodyValue = () => {
     const { body } = this.refs
-
-    if (body === undefined) {
-      return
+    if (body !== undefined) {
+      return body.getWrappedInstance === undefined
+        ? body.value
+        : body.getWrappedInstance().value
     }
-
-    if (body.getWrappedInstance === undefined) {
-      return body.value
-    }
-
-    return body.getWrappedInstance().value
   }
 
   _resolve = (value = this._getBodyValue()) => {
