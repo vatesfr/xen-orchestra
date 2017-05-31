@@ -1,8 +1,10 @@
 import deferrable from 'golike-defer'
-import filter from 'lodash/filter'
+import every from 'lodash/every'
 import includes from 'lodash/includes'
+import isObject from 'lodash/isObject'
 import some from 'lodash/some'
 import sortBy from 'lodash/sortBy'
+import assign from 'lodash/assign'
 import unzip from 'julien-f-unzip'
 
 import { debounce } from '../../decorators'
@@ -198,6 +200,13 @@ export default {
     return installable
   },
 
+  _isPoolPatchInstallableOnPool (patchUuid) {
+    return every(
+      this.objects.all,
+      obj => obj.$type !== 'host' || this._isPoolPatchInstallableOnHost(patchUuid, obj)
+    )
+  },
+
   // -----------------------------------------------------------------
 
   // platform_version < 2.1.1 ----------------------------------------
@@ -246,29 +255,12 @@ export default {
   },
 
   // patform_version >= 2.1.1 ----------------------------------------
-  _installPatch: deferrable(async function ($defer, stream, { hostId }) {
-    if (!stream.length) {
-      throw new Error('stream must have a length')
-    }
+  async _getUpdateVdi ($defer, patchUuid, hostId) {
+    debug('downloading patch %s', patchUuid)
 
-    const vdi = await this.createTemporaryVdiOnHost(stream, hostId, '[XO] Patch ISO', 'small temporary VDI to store a patch ISO')
-    $defer(() => this._deleteVdi(vdi))
-
-    const updateRef = await this.call('pool_update.introduce', vdi.$ref)
-    // TODO: check update status
-    // await this.call('pool_update.precheck', updateRef, host.$ref)
-    // - ok_livepatch_complete     An applicable live patch exists for every required component
-    // - ok_livepatch_incomplete   An applicable live patch exists but it is not sufficient
-    // - ok                        There is no applicable live patch
-    await this.call('pool_update.apply', updateRef, this.getObject(hostId).$ref)
-  }),
-
-  async _downloadPatchAndInstall (uuid, hostId) {
-    debug('downloading patch %s', uuid)
-
-    const patchInfo = (await this._getXenUpdates()).patches[uuid]
+    const patchInfo = (await this._getXenUpdates()).patches[patchUuid]
     if (!patchInfo) {
-      throw new Error('no such patch ' + uuid)
+      throw new Error('no such patch ' + patchUuid)
     }
 
     let stream = await this.xo.httpRequest(patchInfo.url)
@@ -279,59 +271,122 @@ export default {
       }).on('error', reject)
     })
 
-    return this._installPatch(stream, { hostId })
+    let vdi
+
+    // If no hostId provided, try and find a shared SR
+    if (!hostId) {
+      const sr = await this.findAvailableSharedSr(stream.length)
+
+      if (!sr) {
+        return
+      }
+
+      vdi = await this.createTemporaryVdiOnSr(stream, sr, '[XO] Patch ISO', 'small temporary VDI to store a patch ISO')
+    } else {
+      vdi = await this.createTemporaryVdiOnHost(stream, hostId, '[XO] Patch ISO', 'small temporary VDI to store a patch ISO')
+    }
+    $defer(() => this._deleteVdi(vdi))
+
+    return vdi
   },
 
   // -----------------------------------------------------------------
 
+  // patform_version < 2.1.1 -----------------------------------------
   async _installPoolPatchOnHost (patchUuid, host) {
     const [ patch ] = await Promise.all([ this._getOrUploadPoolPatch(patchUuid), this._ejectToolsIsos(host.$ref) ])
 
     await this.call('pool_patch.apply', patch.$ref, host.$ref)
   },
 
-  _installPatchUpdateOnHost (patchUuid, host) {
-    return Promise.all([ this._downloadPatchAndInstall(patchUuid, host.$id), this._ejectToolsIsos(host.$ref) ])
-  },
+  // patform_version >= 2.1.1
+  _installPatchUpdateOnHost: deferrable(async function ($defer, patchUuid, host) {
+    const [ vdi ] = await Promise.all([
+      this._getUpdateVdi($defer, patchUuid, host.$id),
+      this._ejectToolsIsos(host.$ref)
+    ])
 
-  async _checkSoftwareVersionAndInstallPatch (patchUuid, hostId) {
-    const host = this.getObject(hostId)
+    const updateRef = await this.call('pool_update.introduce', vdi.$ref)
+    // TODO: check update status
+    // const precheck = await this.call('pool_update.precheck', updateRef, host.$ref)
+    // - ok_livepatch_complete     An applicable live patch exists for every required component
+    // - ok_livepatch_incomplete   An applicable live patch exists but it is not sufficient
+    // - ok                        There is no applicable live patch
+    return this.call('pool_update.apply', updateRef, host.$ref)
+  }),
+
+  // -----------------------------------------------------------------
+
+  async installPoolPatchOnHost (patchUuid, host) {
+    debug('installing patch %s', patchUuid)
+    if (!isObject(host)) {
+      host = this.getObject(host)
+    }
 
     return useUpdateSystem(host)
       ? this._installPatchUpdateOnHost(patchUuid, host)
       : this._installPoolPatchOnHost(patchUuid, host)
   },
 
-  async installPoolPatchOnHost (patchUuid, hostId) {
-    debug('installing patch %s', patchUuid)
-
-    return this._checkSoftwareVersionAndInstallPatch(patchUuid, hostId)
-  },
-
   // -----------------------------------------------------------------
 
-  async installPoolPatchOnAllHosts (patchUuid) {
-    const [ patch ] = await Promise.all([ this._getOrUploadPoolPatch(patchUuid), this._ejectToolsIsos() ])
+  // platform_version < 2.1.1
+  async _installPoolPatchOnAllHosts (patchUuid) {
+    const [ patch ] = await Promise.all([
+      this._getOrUploadPoolPatch(patchUuid),
+      this._ejectToolsIsos()
+    ])
 
     await this.call('pool_patch.pool_apply', patch.$ref)
   },
 
+  // platform_version >= 2.1.1
+  _installPatchUpdateOnAllHosts: deferrable(async function ($defer, patchUuid) {
+    let [ vdi ] = await Promise.all([
+      this._getUpdateVdi($defer, patchUuid),
+      this._ejectToolsIsos()
+    ])
+    if (vdi == null) {
+      vdi = await this._getUpdateVdi($defer, patchUuid, this.pool.master)
+    }
+
+    return this.call(
+      'pool_update.pool_apply',
+      await this.call('pool_update.introduce', vdi.$ref)
+    )
+  }),
+
+  async installPoolPatchOnAllHosts (patchUuid) {
+    debug('installing patch %s on all hosts', patchUuid)
+
+    return useUpdateSystem(this.pool.$master)
+      ? this._installPatchUpdateOnAllHosts(patchUuid)
+      : this._installPoolPatchOnAllHosts(patchUuid)
+  },
+
   // -----------------------------------------------------------------
 
-  async _installPoolPatchOnHostAndRequirements (patch, host, patchesByUuid) {
+  // If no host is provided, install on pool
+  async _installPoolPatchAndRequirements (patch, patchesByUuid, host) {
+    if (host == null
+      ? !this._isPoolPatchInstallableOnPool(patch.uuid)
+      : !this._isPoolPatchInstallableOnHost(patch.uuid, host)
+    ) {
+      return
+    }
+
     const { requirements } = patch
+
     if (requirements.length) {
       for (const requirementUuid of requirements) {
-        if (this._isPoolPatchInstallableOnHost(requirementUuid, host)) {
-          const requirement = patchesByUuid[requirementUuid]
-          await this._installPoolPatchOnHostAndRequirements(requirement, host, patchesByUuid)
-
-          host = this.getObject(host.$id)
-        }
+        await this._installPoolPatchAndRequirements(patchesByUuid[requirementUuid], patchesByUuid, host)
+        host = host && this.getObject(host.$id)
       }
     }
 
-    await this._checkSoftwareVersionAndInstallPatch(patch.uuid, host)
+    return host == null
+      ? this.installPoolPatchOnAllHosts(patch.uuid)
+      : this.installPoolPatchOnHost(patch.uuid, host)
   },
 
   async installAllPoolPatchesOnHost (hostId) {
@@ -350,8 +405,8 @@ export default {
       const patch = installable[i]
 
       if (this._isPoolPatchInstallableOnHost(patch.uuid, host)) {
-        await this._installPoolPatchOnHostAndRequirements(patch, host, installableByUuid).catch(error => {
-          if (error.code !== 'PATCH_ALREADY_APPLIED') {
+        await this._installPoolPatchAndRequirements(patch, installableByUuid, host).catch(error => {
+          if (error.code !== 'PATCH_ALREADY_APPLIED' && error.code !== 'UPDATE_ALREADY_APPLIED') {
             throw error
           }
         })
@@ -361,11 +416,30 @@ export default {
   },
 
   async installAllPoolPatchesOnAllHosts () {
-    await this.installAllPoolPatchesOnHost(this.pool.master)
-    // TODO: use pool_update.pool_apply for platform_version ^2.1.1
-    await Promise.all(mapToArray(
-      filter(this.objects.all, { $type: 'host' }),
-      host => this.installAllPoolPatchesOnHost(host.$id)
-    ))
+    const installableByUuid = assign(
+      {},
+      ...await Promise.all(mapFilter(this.objects.all, host => {
+        if (host.$type === 'host') {
+          return this._listMissingPoolPatchesOnHost(host)
+        }
+      }))
+    )
+
+    // List of all installable patches sorted from the newest to the
+    // oldest.
+    const installable = sortBy(
+      installableByUuid,
+      patch => -Date.parse(patch.date)
+    )
+
+    for (let i = 0, n = installable.length; i < n; ++i) {
+      const patch = installable[i]
+
+      await this._installPoolPatchAndRequirements(patch, installableByUuid).catch(error => {
+        if (error.code !== 'PATCH_ALREADY_APPLIED' && error.code !== 'UPDATE_ALREADY_APPLIED_IN_POOL') {
+          throw error
+        }
+      })
+    }
   }
 }

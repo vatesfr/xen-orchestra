@@ -55,6 +55,7 @@ import {
   extractOpaqueRef,
   filterUndefineds,
   getNamespaceForType,
+  canSrHaveNewVdiOfSize,
   isVmHvm,
   isVmRunning,
   NULL_REF,
@@ -1172,15 +1173,11 @@ export default class Xapi extends XapiBase {
 
     const hosts = filter(this.objects.all, { $type: 'host' })
 
-    // Try to find a shared SR
-    const sr = find(
-      filter(this.objects.all, { $type: 'sr', shared: true }),
-      isSrAvailable
-    )
+    const sr = this.findAvailableSharedSr(stream.length)
 
     // Shared SR available: create only 1 VDI for all the installations
     if (sr) {
-      const vdi = await this._createTemporaryVdiOnSr(stream, sr, '[XO] Supplemental pack ISO', 'small temporary VDI to store a supplemental pack ISO')
+      const vdi = await this.createTemporaryVdiOnSr(stream, sr, '[XO] Supplemental pack ISO', 'small temporary VDI to store a supplemental pack ISO')
       $defer(() => this._deleteVdi(vdi))
 
       // Install pack sequentially to prevent concurrent access to the unique VDI
@@ -1206,7 +1203,7 @@ export default class Xapi extends XapiBase {
         throw new Error('no SR available to store installation file')
       }
 
-      const vdi = await this._createTemporaryVdiOnSr(pt, sr, '[XO] Supplemental pack ISO', 'small temporary VDI to store a supplemental pack ISO')
+      const vdi = await this.createTemporaryVdiOnSr(pt, sr, '[XO] Supplemental pack ISO', 'small temporary VDI to store a supplemental pack ISO')
       $defer(() => this._deleteVdi(vdi))
 
       await this._callInstallationPlugin(host.$ref, vdi.uuid)
@@ -2154,7 +2151,7 @@ export default class Xapi extends XapiBase {
   }
 
   @deferrable.onFailure
-  async _createTemporaryVdiOnSr ($onFailure, stream, sr, name_label, name_description) {
+  async createTemporaryVdiOnSr ($onFailure, stream, sr, name_label, name_description) {
     const vdi = await this.createVdi(stream.length, {
       sr: sr.$ref,
       name_label,
@@ -2167,21 +2164,25 @@ export default class Xapi extends XapiBase {
     return vdi
   }
 
+  // Create VDI on an adequate local SR
   async createTemporaryVdiOnHost (stream, hostId, name_label, name_description) {
-    let sr = this.pool.$default_SR
+    const sr = find(
+      this.getObject(hostId).$PBDs,
+      pbd => canSrHaveNewVdiOfSize(pbd.$SR, stream.length)
+    )
 
-    if (!sr || sr.physical_size - sr.physical_utilisation < stream.length) {
-      sr = find(
-        mapToArray(this.getObject(hostId).$PBDs, '$SR'),
-        sr => sr && sr.content_type === 'user' && sr.physical_size - sr.physical_utilisation >= stream.length
-      )
-
-      if (!sr) {
-        throw new Error('no SR available to store installation file')
-      }
+    if (sr == null) {
+      throw new Error('no SR available')
     }
 
-    return this._createTemporaryVdiOnSr(stream, sr, name_label, name_description)
+    return this.createTemporaryVdiOnSr(stream, sr, name_label, name_description)
+  }
+
+  async findAvailableSharedSr (minSize) {
+    return find(
+      this.objects.all,
+      obj => obj.$type === 'sr' && obj.shared && canSrHaveNewVdiOfSize(obj, minSize)
+    )
   }
 
   // =================================================================
