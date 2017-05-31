@@ -1418,7 +1418,7 @@ var messages = {
   xosanSuggestions: 'Suggestions',
   xosanName: 'Name',
   xosanHost: 'Host',
-  xosanHosts: 'Hosts',
+  xosanHosts: 'Connected Hosts',
   xosanVolumeId: 'Volume ID',
   xosanSize: 'Size',
   xosanUsedSpace: 'Used space',
@@ -1435,6 +1435,7 @@ var messages = {
   xosanAvailableSpace: 'Available space',
   xosanDiskLossLegend: '* Can fail without data loss',
   xosanCreate: 'Create',
+  xosanAdd: 'Add',
   xosanInstalling: 'Installing XOSAN. Please wait...',
   xosanCommunity: 'No XOSAN available for Community Edition',
   // Pack download modal

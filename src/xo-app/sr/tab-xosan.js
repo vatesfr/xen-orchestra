@@ -11,20 +11,20 @@ import {
 
 export default class TabXosan extends Component {
   componentDidMount () {
-    getVolumeInfo(this.props.sr.id).then(info => {
-      this.setState({ volumeInfo: info })
+    getVolumeInfo(this.props.sr.id).then(data => {
+      this.setState({ volumeInfo: data })
     })
   }
 
   render () {
-    return <Container>
-      {this.state.volumeInfo && map(keys(this.state.volumeInfo).sort(), key => key !== 'Bricks'
+    return this.state.volumeInfo ? (<Container>
+      {this.state.volumeInfo && map(keys(this.state.volumeInfo.info).sort(), key => key !== 'Bricks'
         ? <Row key={key}>
           <Col size={3}><strong>{key}</strong></Col>
-          <Col size={4}>{this.state.volumeInfo[key]}</Col>
+            <Col size={4}>{this.state.volumeInfo.info[key]}</Col>
         </Row>
         : null
       )}
-    </Container >
+    </Container >) : (<Container/>)
   }
 }
