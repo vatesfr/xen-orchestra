@@ -38,12 +38,21 @@ const modal = (content, onClose) => {
   title: propTypes.node.isRequired
 })
 class GenericModal extends Component {
-  _resolve = ({
-    value = this.refs.body && (this.refs.body.getWrappedInstance
-      ? this.refs.body.getWrappedInstance().value
-      : this.refs.body.value
-    )
-  }) => {
+  _getBodyValue = () => {
+    const { body } = this.refs
+
+    if (body === undefined) {
+      return
+    }
+
+    if (body.getWrappedInstance === undefined) {
+      return body.value
+    }
+
+    return body.getWrappedInstance().value
+  }
+
+  _resolve = (value = this._getBodyValue()) => {
     this.props.resolve(value)
     instance.close()
   }
@@ -85,7 +94,7 @@ class GenericModal extends Component {
           ...props
         }) => {
           const button = <Button
-            onClick={() => this._resolve({ value })}
+            onClick={() => this._resolve(value)}
             key={value}
             {...props}
           >
