@@ -1,5 +1,6 @@
 import deferrable from 'golike-defer'
 import every from 'lodash/every'
+import find from 'lodash/find'
 import includes from 'lodash/includes'
 import isObject from 'lodash/isObject'
 import some from 'lodash/some'
@@ -387,6 +388,29 @@ export default {
     return host == null
       ? this.installPoolPatchOnAllHosts(patch.uuid)
       : this.installPoolPatchOnHost(patch.uuid, host)
+  },
+
+  async installSpecificPatchesOnHost (patchNames, hostId) {
+    const host = this.getObject(hostId)
+    const missingPatches = await this._listMissingPoolPatchesOnHost(host)
+
+    const patchesToInstall = []
+    const addPatchesToList = patches => {
+      forEach(patches, patch => {
+        addPatchesToList(mapToArray(patch.requirements, { uuid: patch.uuid }))
+
+        if (!find(patchesToInstall, { name: patch.name })) {
+          patchesToInstall.push(patch)
+        }
+      })
+    }
+    addPatchesToList(mapToArray(patchNames, name =>
+      find(missingPatches, { name })
+    ))
+
+    for (let i = 0, n = patchesToInstall.length; i < n; i++) {
+      await this._installPoolPatchAndRequirements(patchesToInstall[i], missingPatches, host)
+    }
   },
 
   async installAllPoolPatchesOnHost (hostId) {

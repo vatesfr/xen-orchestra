@@ -1,4 +1,6 @@
 import { format } from 'json-rpc-peer'
+import { differenceBy } from 'lodash'
+import { mapToArray } from '../utils'
 
 // ===================================================================
 
@@ -123,6 +125,23 @@ export {uploadPatch as patch}
 // -------------------------------------------------------------------
 
 export async function mergeInto ({ source, target, force }) {
+  const sourceHost = this.getObject(source.master)
+  const sourcePatches = sourceHost.patches
+  const targetPatches = this.getObject(target.master).patches
+  const counterDiff = differenceBy(sourcePatches, targetPatches, 'name')
+
+  if (counterDiff.length > 0) {
+    throw new Error('host has patches that are not applied on target pool')
+  }
+
+  const diff = differenceBy(targetPatches, sourcePatches, 'name')
+
+  // TODO: compare UUIDs
+  await this.getXapi(source).installSpecificPatchesOnHost(
+    mapToArray(diff, 'name'),
+    sourceHost._xapiId
+  )
+
   await this.mergeXenPools(source._xapiId, target._xapiId, force)
 }
 
