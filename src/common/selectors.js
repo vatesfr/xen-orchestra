@@ -481,9 +481,10 @@ export const createGetObjectMessages = objectSelector =>
 export const getObject = createGetObject((_, id) => id)
 
 export const createDoesHostNeedRestart = hostSelector => {
-  // Returns the first patch of the host which requires it to be
-  // restarted.
-  const restartPoolPatch = createGetObjectsOfType('pool_patch').pick(
+  // XS < 7.1
+  const patchRequiresReboot = createGetObjectsOfType('pool_patch').pick(
+    // Returns the first patch of the host which requires it to be
+    // restarted.
     create(
       createGetObjectsOfType('host_patch').pick(
         (state, props) => {
@@ -503,7 +504,11 @@ export const createDoesHostNeedRestart = hostSelector => {
     action === 'restartHost' || action === 'restartXapi'
   ) ])
 
-  return (state, props) => restartPoolPatch(state, props) !== undefined
+  return create(
+    hostSelector,
+    (...args) => args,
+    (host, args) => host.rebootRequired || !!patchRequiresReboot(...args)
+  )
 }
 
 export const createGetHostMetrics = hostSelector =>
