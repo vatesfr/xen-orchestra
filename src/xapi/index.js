@@ -778,7 +778,7 @@ export default class Xapi extends XapiBase {
   }
 
   _assertHealthyVdiChain (vdi) {
-    if (vdi != null) {
+    if (vdi == null) {
       return
     }
 
