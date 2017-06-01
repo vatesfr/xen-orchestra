@@ -2166,16 +2166,16 @@ export default class Xapi extends XapiBase {
 
   // Create VDI on an adequate local SR
   async createTemporaryVdiOnHost (stream, hostId, name_label, name_description) {
-    const sr = find(
+    const pbd = find(
       this.getObject(hostId).$PBDs,
       pbd => canSrHaveNewVdiOfSize(pbd.$SR, stream.length)
     )
 
-    if (sr == null) {
+    if (pbd == null) {
       throw new Error('no SR available')
     }
 
-    return this.createTemporaryVdiOnSr(stream, sr, name_label, name_description)
+    return this.createTemporaryVdiOnSr(stream, pbd.SR, name_label, name_description)
   }
 
   async findAvailableSharedSr (minSize) {
