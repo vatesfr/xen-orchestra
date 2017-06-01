@@ -380,8 +380,12 @@ export default {
 
     if (requirements.length) {
       for (const requirementUuid of requirements) {
-        await this._installPoolPatchAndRequirements(patchesByUuid[requirementUuid], patchesByUuid, host)
-        host = host && this.getObject(host.$id)
+        const requirement = patchesByUuid[requirementUuid]
+
+        if (requirement != null) {
+          await this._installPoolPatchAndRequirements(requirement, patchesByUuid, host)
+          host = host && this.getObject(host.$id)
+        }
       }
     }
 
