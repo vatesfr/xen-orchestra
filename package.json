@@ -36,6 +36,7 @@
   "dependencies": {
     "@marsaud/smb2-promise": "^0.2.1",
     "@nraynaud/struct-fu": "^1.0.1",
+    "ajv": "^5.1.5",
     "app-conf": "^0.4.1",
     "archiver": "^1.3.0",
     "arp-a": "^0.5.1",
@@ -70,7 +71,6 @@
     "http-request-plus": "^0.1.5",
     "http-server-plus": "^0.8.0",
     "human-format": "^0.8.0",
-    "is-my-json-valid": "^2.16.0",
     "is-redirect": "^1.0.0",
     "js-yaml": "^3.8.4",
     "json-rpc-peer": "^0.13.1",
