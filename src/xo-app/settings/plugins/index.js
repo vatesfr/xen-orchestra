@@ -190,17 +190,25 @@ class Plugin extends Component {
               schema={configurationSchema}
               uiSchema={this._getUiSchema()}
               onChange={this.linkState('editedConfig')}
-              value={editedConfig || this.props.configuration}
+              value={editedConfig || props.configuration}
             />
             <div className='form-group pull-right'>
               <div className='btn-toolbar'>
                 <div className='btn-group'>
-                  <ActionButton btnStyle='danger' disabled={!props.configuration} icon='delete' handler={this._deleteConfiguration}>
+                  <ActionButton
+                    btnStyle='danger'
+                    disabled={!props.configuration}
+                    handler={this._deleteConfiguration}
+                    icon='delete'
+                  >
                     {_('deletePluginConfiguration')}
                   </ActionButton>
                 </div>
                 <div className='btn-group'>
-                  <Button disabled={!editedConfig} type='reset'>
+                  <Button
+                    disabled={!editedConfig}
+                    type='reset'
+                  >
                     {_('cancelPluginEdition')}
                   </Button>
                 </div>
