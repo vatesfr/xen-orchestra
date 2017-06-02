@@ -38,11 +38,7 @@ class AuthGoogleXoPlugin {
   }
 
   load () {
-    const conf = {
-      // TODO: find a better way to inject default values
-      scope: configurationSchema.properties.scope.default,
-      ...this._conf
-    }
+    const conf = this._conf
     const xo = this._xo
 
     xo.registerPassportStrategy(new Strategy(conf, async (accessToken, refreshToken, profile, done) => {
