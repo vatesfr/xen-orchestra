@@ -90,23 +90,17 @@ export default class {
       })
     }
 
-    // Configure plugin if necessary. (i.e. configurationSchema)
-    // Load plugin.
-    // Ignore configuration and loading errors.
-    Promise.resolve()
-      .then(() => {
-        if (!plugin.configured) {
-          return this._configurePlugin(plugin, configuration)
-        }
-      })
-      .then(() => {
-        if (autoload) {
-          return this.loadPlugin(id)
-        }
-      })
-      .catch(error => {
-        console.error('register plugin %s: %s', name, (error && error.stack) || error)
-      })
+    if (configurationSchema !== undefined) {
+      if (configuration === undefined) {
+        return
+      }
+
+      await this._configurePlugin(plugin, configuration)
+    }
+
+    if (autoload) {
+      await this.loadPlugin(id)
+    }
   }
 
   async _getPlugin (id) {
