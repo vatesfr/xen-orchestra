@@ -76,7 +76,7 @@ const Log = props => <ul className='list-group'>
     let id
     if (returnedValue != null) {
       id = returnedValue.id
-      if (id === undefined) {
+      if (id === undefined && typeof returnedValue === 'string') {
         id = returnedValue
       }
     }
