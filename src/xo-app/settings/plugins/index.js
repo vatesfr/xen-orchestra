@@ -122,6 +122,7 @@ class Plugin extends Component {
     const { editedConfig, expanded } = state
     const {
       configurationPresets,
+      configurationSchema,
       loaded
     } = props
 
@@ -148,15 +149,13 @@ class Plugin extends Component {
               </div>
             </h5>
           </Col>
-          <Col mediumSize={4}>
-            <div className='form-group pull-right small'>
-              <Button btnStyle='primary' onClick={this._updateExpanded}>
-                <Icon icon={expanded ? 'minus' : 'plus'} />
-              </Button>
-            </div>
-          </Col>
+          {configurationSchema !== undefined && <Col className='text-xs-right' mediumSize={4}>
+            <Button btnStyle='primary' onClick={this._updateExpanded}>
+              <Icon icon={expanded ? 'minus' : 'plus'} />
+            </Button>
+          </Col>}
         </Row>
-        {expanded && props.configurationSchema &&
+        {expanded &&
           <form id={this.configFormId} onReset={this._stopEditing}>
             {size(configurationPresets) > 0 && (
               <div>
@@ -188,7 +187,7 @@ class Plugin extends Component {
             <GenericInput
               label='Configuration'
               required
-              schema={props.configurationSchema}
+              schema={configurationSchema}
               uiSchema={this._getUiSchema()}
               onChange={this.linkState('editedConfig')}
               value={editedConfig || this.props.configuration}
