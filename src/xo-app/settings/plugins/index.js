@@ -206,7 +206,13 @@ class Plugin extends Component {
                   </Button>
                 </div>
                 <div className='btn-group'>
-                  <ActionButton disabled={!editedConfig} form={this.configFormId} icon='save' className='btn-primary' handler={this._saveConfiguration}>
+                  <ActionButton
+                    btnStyle='primary'
+                    disabled={!editedConfig}
+                    form={this.configFormId}
+                    handler={this._saveConfiguration}
+                    icon='save'
+                  >
                     {_('savePluginConfiguration')}
                   </ActionButton>
                 </div>
