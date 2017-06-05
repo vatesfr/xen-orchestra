@@ -1719,9 +1719,10 @@ export const deleteGroup = group => (
   confirm({
     title: _('deleteGroup'),
     body: <p>{_('deleteGroupConfirm')}</p>
-  }).then(() => _call('group.delete', resolveIds({ id: group })))
+  }).then(() => _call('group.delete', resolveIds({ id: group }))
     ::tap(subscribeGroups.forceRefresh)
     ::rethrow(err => error(_('deleteGroup'), err.message || String(err)))
+  )
 )
 
 export const removeUserFromGroup = (user, group) => (
