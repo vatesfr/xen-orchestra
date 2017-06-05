@@ -15,7 +15,7 @@ import sortBy from 'lodash/sortBy'
 import throttle from 'lodash/throttle'
 import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
-import { lastly, reflect } from 'promise-toolbox'
+import { lastly, reflect, tap } from 'promise-toolbox'
 import { forbiddenOperation, noHostsAvailable } from 'xo-common/api-errors'
 import { resolve } from 'url'
 
@@ -26,7 +26,7 @@ import store from 'store'
 import { getObject } from 'selectors'
 import { alert, chooseAction, confirm } from '../modal'
 import { error, info, success } from '../notification'
-import { noop, rethrow, tap, resolveId, resolveIds } from '../utils'
+import { noop, resolveId, resolveIds } from '../utils'
 import {
   connected,
   disconnected,
@@ -92,7 +92,7 @@ const _call = (method, params) => {
   let promise = _signIn.then(() => xo.call(method, params))
 
   if (process.env.NODE_ENV !== 'production') {
-    promise = promise::rethrow(error => {
+    promise = promise::tap(null, error => {
       console.error('XO error', {
         method,
         params,
@@ -336,8 +336,9 @@ export const exportConfig = () => (
 
 export const addServer = (host, username, password, label) => (
   _call('server.add', { host, label, password, username })::tap(
-    subscribeServers.forceRefresh
-  )::rethrow(() => error(_('serverError'), _('serverAddFailed')))
+    subscribeServers.forceRefresh,
+    () => error(_('serverError'), _('serverAddFailed'))
+  )
 )
 
 export const editServer = (server, props) => (
@@ -1436,16 +1437,14 @@ export const getSchedule = id => (
 
 export const loadPlugin = async id => (
   _call('plugin.load', { id })::tap(
-    subscribePlugins.forceRefresh
-  )::rethrow(
+    subscribePlugins.forceRefresh,
     err => error(_('pluginError'), (err && err.message) || _('unknownPluginError'))
   )
 )
 
 export const unloadPlugin = id => (
   _call('plugin.unload', { id })::tap(
-    subscribePlugins.forceRefresh
-  )::rethrow(
+    subscribePlugins.forceRefresh,
     err => error(_('pluginError'), (err && err.message) || _('unknownPluginError'))
   )
 )
@@ -1467,8 +1466,7 @@ export const configurePlugin = (id, configuration) =>
     () => {
       info(_('pluginConfigurationSuccess'), _('pluginConfigurationChanges'))
       subscribePlugins.forceRefresh()
-    }
-  )::rethrow(
+    },
     err => error(_('pluginError'), JSON.stringify(err.data) || _('unknownPluginError'))
   )
 
@@ -1516,7 +1514,8 @@ export const recomputeResourceSetsLimits = () => (
 // Remote ------------------------------------------------------------
 
 export const getRemote = remote => (
-  _call('remote.get', resolveIds({ id: remote }))::rethrow(
+  _call('remote.get', resolveIds({ id: remote }))::tap(
+    null,
     err => error(_('getRemote'), err.message || String(err))
   )
 )
@@ -1553,20 +1552,21 @@ export const editRemote = (remote, { name, url }) => (
 
 export const listRemote = remote => (
   _call('remote.list', resolveIds({ id: remote }))::tap(
-    subscribeRemotes.forceRefresh
-  )::rethrow(
+    subscribeRemotes.forceRefresh,
     err => error(_('listRemote'), err.message || String(err))
   )
 )
 
 export const listRemoteBackups = remote => (
-  _call('backup.list', resolveIds({ remote }))::rethrow(
+  _call('backup.list', resolveIds({ remote }))::tap(
+    null,
     err => error(_('listRemote'), err.message || String(err))
   )
 )
 
 export const testRemote = remote => (
-  _call('remote.test', resolveIds({ id: remote }))::rethrow(
+  _call('remote.test', resolveIds({ id: remote }))::tap(
+    null,
     err => error(_('testRemote'), err.message || String(err))
   )
 )
@@ -1673,16 +1673,14 @@ export const deleteApiLog = id => (
 
 export const addAcl = ({ subject, object, action }) => (
   _call('acl.add', resolveIds({ subject, object, action }))::tap(
-    subscribeAcls.forceRefresh
-  )::rethrow(
+    subscribeAcls.forceRefresh,
     err => error('Add ACL', err.message || String(err))
   )
 )
 
 export const removeAcl = ({ subject, object, action }) => (
   _call('acl.remove', resolveIds({ subject, object, action }))::tap(
-    subscribeAcls.forceRefresh
-  )::rethrow(
+    subscribeAcls.forceRefresh,
     err => error('Remove ACL', err.message || String(err))
   )
 )
@@ -1697,14 +1695,15 @@ export const editAcl = (
 ) => (
   _call('acl.remove', resolveIds({ subject, object, action }))
     .then(() => _call('acl.add', resolveIds({ subject: newSubject, object: newObject, action: newAction })))
-    ::tap(subscribeAcls.forceRefresh)
-    ::rethrow(err => error('Edit ACL', err.message || String(err)))
+    ::tap(
+      subscribeAcls.forceRefresh,
+      err => error('Edit ACL', err.message || String(err))
+    )
 )
 
 export const createGroup = name => (
   _call('group.create', { name })::tap(
-    subscribeGroups.forceRefresh
-  ):: rethrow(
+    subscribeGroups.forceRefresh,
     err => error(_('createGroup'), err.message || String(err))
   )
 )
@@ -1715,36 +1714,35 @@ export const setGroupName = (group, name) => (
   )
 )
 
-export const deleteGroup = group => (
+export const deleteGroup = group =>
   confirm({
     title: _('deleteGroup'),
     body: <p>{_('deleteGroupConfirm')}</p>
-  }).then(() => _call('group.delete', resolveIds({ id: group }))
-    ::tap(subscribeGroups.forceRefresh)
-    ::rethrow(err => error(_('deleteGroup'), err.message || String(err)))
+  }).then(() =>
+    _call('group.delete', resolveIds({ id: group }))::tap(
+      subscribeGroups.forceRefresh,
+      err => error(_('deleteGroup'), err.message || String(err))
+    ),
+    noop
   )
-)
 
 export const removeUserFromGroup = (user, group) => (
   _call('group.removeUser', resolveIds({ id: group, userId: user }))::tap(
-    subscribeGroups.forceRefresh
-  )::rethrow(
+    subscribeGroups.forceRefresh,
     err => error(_('removeUserFromGroup'), err.message || String(err))
   )
 )
 
 export const addUserToGroup = (user, group) => (
   _call('group.addUser', resolveIds({ id: group, userId: user }))::tap(
-    subscribeGroups.forceRefresh
-  )::rethrow(
+    subscribeGroups.forceRefresh,
     err => error('Add User', err.message || String(err))
   )
 )
 
 export const createUser = (email, password, permission) => (
   _call('user.create', { email, password, permission })::tap(
-    subscribeUsers.forceRefresh
-  )::rethrow(
+    subscribeUsers.forceRefresh,
     err => error('Create user', err.message || String(err))
   )
 )
@@ -1754,9 +1752,10 @@ export const deleteUser = user => (
     title: _('deleteUser'),
     body: <p>{_('deleteUserConfirm')}</p>
   }).then(() =>
-    _call('user.delete', { id: resolveId(user) })
-      ::tap(subscribeUsers.forceRefresh)
-      ::rethrow(err => error(_('deleteUser'), err.message || String(err)))
+    _call('user.delete', { id: resolveId(user) })::tap(
+      subscribeUsers.forceRefresh,
+      err => error(_('deleteUser'), err.message || String(err))
+    )
   )
 )
 

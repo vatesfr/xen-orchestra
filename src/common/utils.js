@@ -359,20 +359,6 @@ export const throwFn = error => () => {
   )
 }
 
-// -------------------------------------------------------------------
-
-export function tap (cb) {
-  return this.then(value =>
-    Promise.resolve(cb(value)).then(() => value)
-  )
-}
-
-export function rethrow (cb) {
-  return this.catch(error =>
-    Promise.resolve(cb(error)).then(() => { throw error })
-  )
-}
-
 // ===================================================================
 
 export const resolveResourceSet = resourceSet => {
