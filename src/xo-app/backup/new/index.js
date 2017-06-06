@@ -145,6 +145,13 @@ const DEPTH_PROPERTY = {
   min: 1
 }
 
+const AUTO_POWER_ON_PROPERTY = {
+  type: 'boolean',
+  title: _('autoPowerOnTitle'),
+  description: 'Vm auto power on property.',
+  default: false
+}
+
 const REMOTE_PROPERTY = {
   type: 'string',
   'xo:type': 'remote',
@@ -199,6 +206,7 @@ const DISASTER_RECOVERY_SCHEMA = {
         'If the backup fails, you will lose your old backups.'
       ].join('\n')
     },
+    autoPowerOn: AUTO_POWER_ON_PROPERTY,
     sr: {
       type: 'string',
       'xo:type': 'sr',
@@ -212,6 +220,7 @@ const CONTINUOUS_REPLICATION_SCHEMA = {
   type: 'object',
   properties: {
     ...COMMON_SCHEMA.properties,
+    autoPowerOn: AUTO_POWER_ON_PROPERTY,
     sr: {
       type: 'string',
       'xo:type': 'sr',
