@@ -1,14 +1,16 @@
 import _ from 'intl'
 import ActionRow from 'action-row-button'
+import Component from 'base-component'
 import Icon from 'icon'
-import isEmpty from 'lodash/isEmpty'
 import Link from 'link'
 import React from 'react'
+import renderXoItem, { renderXoUnknownItem } from 'render-xo-item'
 import SortedTable from 'sorted-table'
-import { formatSize } from 'utils'
+import { concat, isEmpty } from 'lodash'
+import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
+import { createGetObject, createSelector } from 'selectors'
 import { deleteVdi, editVdi } from 'xo'
-import { renderXoItemFromId } from 'render-xo-item'
 import { Text } from 'editable'
 
 // ===================================================================
@@ -37,20 +39,30 @@ const COLUMNS = [
   },
   {
     name: _('vdiVm'),
-    itemRenderer: (vdi, vdisToVmIds) => {
-      const id = vdisToVmIds[vdi.id]
-      const Item = renderXoItemFromId(id)
+    component: connectStore(() => {
+      const getObject = createGetObject((_, id) => id)
 
-      if (id) {
-        return (
-          <Link to={`/vms/${id}${vdi.type === 'VDI-snapshot' ? '/snapshots' : ''}`}>
-            {Item}
-          </Link>
-        )
+      return {
+        vm: (state, { item: vdi }) => {
+          const vbd = getObject(state, vdi.$VBDs[0])
+          if (vbd != null) {
+            return getObject(state, vbd.VM)
+          }
+        }
+      }
+    })(({ vm }) => {
+      if (vm === undefined) {
+        return renderXoUnknownItem()
       }
 
-      return Item
-    }
+      return <Link to={`/vms/${
+        vm.type === 'VM-snapshot'
+        ? `${vm.$snapshot_of}/snapshots`
+        : vm.id
+      }`}>
+        {renderXoItem(vm)}
+      </Link>
+    })
   },
   {
     name: _('vdiTags'),
@@ -77,21 +89,35 @@ const COLUMNS = [
 const FILTERS = {
   filterNoSnapshots: 'type:!VDI-snapshot',
   filterOnlyBaseCopy: 'type:VDI-unmanaged',
-  filterOnlyRegularDisks: 'type:!VDI-unmanaged type:!VDI-snapshot',
+  filterOnlyRegularDisks: '!type:|(VDI-snapshot VDI-unmanaged)',
   filterOnlySnapshots: 'type:VDI-snapshot'
 }
 
 // ===================================================================
 
-export default ({ vdis, vdisUnmanaged, vdiSnapshots, vdisToVmIds }) => (
-  <Container>
-    <Row>
-      <Col>
-        {!isEmpty(vdis)
-          ? <SortedTable collection={vdis.concat(vdiSnapshots, vdisUnmanaged)} userData={vdisToVmIds} columns={COLUMNS} filters={FILTERS} />
-          : <h4 className='text-xs-center'>{_('srNoVdis')}</h4>
-        }
-      </Col>
-    </Row>
-  </Container>
-)
+export default class SrDisks extends Component {
+  _getAllVdis = createSelector(
+    () => this.props.vdis,
+    () => this.props.vdiSnapshots,
+    () => this.props.unmanagedVdis,
+    concat
+  )
+
+  render () {
+    const vdis = this._getAllVdis()
+    return <Container>
+      <Row>
+        <Col>
+          {!isEmpty(vdis)
+            ? <SortedTable
+              collection={vdis}
+              columns={COLUMNS}
+              filters={FILTERS}
+            />
+            : <h4 className='text-xs-center'>{_('srNoVdis')}</h4>
+          }
+        </Col>
+      </Row>
+    </Container>
+  }
+}
