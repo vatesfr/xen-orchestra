@@ -222,7 +222,9 @@ const GenericXoItem = connectStore(() => {
   })
 })(({ xoItem, ...props }) => xoItem
   ? renderXoItem(xoItem, props)
-  : <span className='text-muted'>{_('errorNoSuchItem')}</span>
+  : renderXoUnknownItem()
 )
 
 export const renderXoItemFromId = (id, props) => <GenericXoItem {...props} id={id} />
+
+export const renderXoUnknownItem = () => <span className='text-muted'>{_('errorNoSuchItem')}</span>
