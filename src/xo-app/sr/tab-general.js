@@ -57,6 +57,12 @@ export default ({
           tooltip={<UsageTooltip vdi={vdi} />}
           value={vdi.usage}
         />)}
+        {map(vdiSnapshots, vdi => <UsageElement
+          highlight
+          key={vdi.id}
+          tooltip={<UsageTooltip vdi={vdi} />}
+          value={vdi.usage}
+        />)}
       </Usage>
     </Col>
   </Row>
