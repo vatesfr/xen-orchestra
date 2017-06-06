@@ -1,15 +1,8 @@
 import _ from 'intl'
-import assign from 'lodash/assign'
 import Component from 'base-component'
-import find from 'lodash/find'
-import flatten from 'lodash/flatten'
-import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import Link from 'link'
-import map from 'lodash/map'
-import mapValues from 'lodash/mapValues'
 import Page from '../page'
-import pick from 'lodash/pick'
 import React, { cloneElement } from 'react'
 import SrActionBar from './action-bar'
 import { Container, Row, Col } from 'grid'
@@ -17,10 +10,17 @@ import { editSr } from 'xo'
 import { NavLink, NavTabs } from 'nav'
 import { Text } from 'editable'
 import {
+  assign,
+  forEach,
+  map,
+  pick
+} from 'lodash'
+import {
   connectStore,
   routes
 } from 'utils'
 import {
+  createCollectionWrapper,
   createGetObject,
   createGetObjectMessages,
   createGetObjectsOfType,
@@ -62,73 +62,25 @@ import TabXosan from './tab-xosan'
     )
   )
 
-// -----------------------------------------------------------------------------
-
-  const getVdis = createGetObjectsOfType('VDI').pick(
-    createSelector(getSr, sr => sr.VDIs)
-  ).sort()
+  // -----------------------------------------------------------------
 
   const getLogs = createGetObjectMessages(getSr)
 
-  const getVbdsByVdi = createGetObjectsOfType('VBD').pick(
-    createSelector(
-      getVdis,
-      vdis => flatten(map(vdis, vdi => vdi.$VBDs))
-    )
-  ).groupBy('VDI')
+  // -----------------------------------------------------------------
 
-// -----------------------------------------------------------------------------
+  const getVdiIds = (state, props) => getSr(state, props).VDIs
 
-  const getVdisUnmanaged = createGetObjectsOfType('VDI-unmanaged').pick(
-    createSelector(getSr, sr => sr.VDIs)
+  const getVdis = createGetObjectsOfType('VDI').pick(
+    getVdiIds
   ).sort()
-
-// -----------------------------------------------------------------------------
-
   const getVdiSnapshots = createGetObjectsOfType('VDI-snapshot').pick(
+    getVdiIds
+  ).sort()
+  const getUnmanagedVdis = createGetObjectsOfType('VDI-unmanaged').pick(
     createSelector(getSr, sr => sr.VDIs)
   ).sort()
 
-  const getVdiSnapshotToVdi = createSelector(
-    getVdis,
-    getVdiSnapshots,
-    (vdis, vdiSnapshots) => {
-      const vdiSnapshotToVdi = {}
-      forEach(vdiSnapshots, vdiSnapshot => {
-        vdiSnapshotToVdi[vdiSnapshot.id] = vdiSnapshot.$snapshot_of && find(vdis, vdi => vdi.id === vdiSnapshot.$snapshot_of)
-      })
-
-      return vdiSnapshotToVdi
-    }
-  )
-
-  const getVbdsByVdiSnapshot = createSelector(
-    getVbdsByVdi,
-    getVdiSnapshots,
-    getVdiSnapshotToVdi,
-    (vbdsByVdi, vdiSnapshots, vdiSnapshotToVdi) => {
-      const vbdsByVdiSnapshot = {}
-      forEach(vdiSnapshots, vdiSnapshot => {
-        const vdi = vdiSnapshotToVdi[vdiSnapshot.id]
-        vbdsByVdiSnapshot[vdiSnapshot.id] = vdi && vbdsByVdi[vdi.id]
-      })
-
-      return vbdsByVdiSnapshot
-    }
-  )
-
-// -----------------------------------------------------------------------------
-
-  const getVdisToVmIds = createSelector(
-    getVbdsByVdi,
-    getVbdsByVdiSnapshot,
-    (vbdsByVdi, vbdsByVdiSnapshot) => mapValues({ ...vbdsByVdi, ...vbdsByVdiSnapshot }, vbds => {
-      const vbd = find(vbds, 'VM')
-      if (vbd) {
-        return vbd.VM
-      }
-    })
-  )
+  // -----------------------------------------------------------------
 
   return (state, props) => {
     const sr = getSr(state, props)
@@ -142,9 +94,8 @@ import TabXosan from './tab-xosan'
       pbds: getPbds(state, props),
       logs: getLogs(state, props),
       vdis: getVdis(state, props),
-      vdisUnmanaged: getVdisUnmanaged(state, props),
+      unmanagedVdis: getUnmanagedVdis(state, props),
       vdiSnapshots: getVdiSnapshots(state, props),
-      vdisToVmIds: getVdisToVmIds(state, props),
       sr
     }
   }
@@ -223,9 +174,8 @@ export default class Sr extends Component {
       'pbds',
       'sr',
       'vdis',
-      'vdisUnmanaged',
-      'vdiSnapshots',
-      'vdisToVmIds'
+      'unmanagedVdis',
+      'vdiSnapshots'
     ]))
     return <Page header={this.header()} title={`${sr.name_label}${container ? ` (${container.name_label})` : ''}`}>
       {cloneElement(this.props.children, childProps)}

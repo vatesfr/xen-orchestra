@@ -1,19 +1,30 @@
 import _ from 'intl'
+import HomeTags from 'home-tags'
 import Icon from 'icon'
 import map from 'lodash/map'
 import React from 'react'
-import HomeTags from 'home-tags'
-import { addTag, removeTag } from 'xo'
-import { Container, Row, Col } from 'grid'
-import { formatSize } from 'utils'
-import { renderXoItemFromId } from 'render-xo-item'
 import Usage, { UsageElement } from 'usage'
+import { addTag, removeTag } from 'xo'
+import { connectStore, formatSize } from 'utils'
+import { Container, Row, Col } from 'grid'
+import { createGetObject } from 'selectors'
+import { renderXoItemFromId } from 'render-xo-item'
+
+const UsageTooltip = connectStore(() => ({
+  vbd: createGetObject((_, { vdi }) => vdi.$VBDs[0])
+}))(({ vbd, vdi }) =>
+  <span>
+    {vdi.name_label}
+    {vbd != null && <br />}
+    {vbd != null && renderXoItemFromId(vbd.VM)}
+  </span>
+)
 
 export default ({
   sr,
   vdis,
-  vdisUnmanaged,
-  vdisToVmIds
+  vdiSnapshots,
+  unmanagedVdis
 }) => <Container>
   <Row className='text-xs-center'>
     <Col mediumSize={4}>
@@ -35,23 +46,15 @@ export default ({
   <Row>
     <Col smallOffset={1} mediumSize={10}>
       <Usage total={sr.size}>
-        {map(vdisUnmanaged, vdi => <UsageElement
+        {map(unmanagedVdis, vdi => <UsageElement
           highlight
           key={vdi.id}
-          tooltip={<span>
-            {vdi.name_label}
-            <br />
-            {vdisToVmIds[vdi.id] && renderXoItemFromId(vdisToVmIds[vdi.id])}
-          </span>}
+          tooltip={<UsageTooltip vdi={vdi} />}
           value={vdi.usage}
         />)}
         {map(vdis, vdi => <UsageElement
           key={vdi.id}
-          tooltip={<span>
-            {vdi.name_label}
-            <br />
-            {vdisToVmIds[vdi.id] && renderXoItemFromId(vdisToVmIds[vdi.id])}
-          </span>}
+          tooltip={<UsageTooltip vdi={vdi} />}
           value={vdi.usage}
         />)}
       </Usage>
