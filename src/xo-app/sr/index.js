@@ -11,7 +11,6 @@ import { NavLink, NavTabs } from 'nav'
 import { Text } from 'editable'
 import {
   assign,
-  forEach,
   map,
   pick
 } from 'lodash'
@@ -20,7 +19,6 @@ import {
   routes
 } from 'utils'
 import {
-  createCollectionWrapper,
   createGetObject,
   createGetObjectMessages,
   createGetObjectsOfType,
