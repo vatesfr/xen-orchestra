@@ -142,9 +142,10 @@ const DEFAULT_ITEMS_PER_PAGE = 10
     propTypes.object
   ]).isRequired,
   columns: propTypes.arrayOf(propTypes.shape({
+    component: propTypes.func,
     default: propTypes.bool,
     name: propTypes.node,
-    itemRenderer: propTypes.func.isRequired,
+    itemRenderer: propTypes.func,
     sortCriteria: propTypes.oneOfType([
       propTypes.func,
       propTypes.string
@@ -318,11 +319,21 @@ export default class SortedTable extends Component {
           </thead>
           <tbody>
             {map(this._getVisibleItems(), (item, i) => {
-              const columns = map(props.columns, (column, key) => (
-                <td key={key} className={column.textAlign && `text-xs-${column.textAlign}`}>
-                  {column.itemRenderer(item, userData)}
+              const columns = map(props.columns, ({
+                component: Component,
+                itemRenderer,
+                textAlign
+              }, key) =>
+                <td
+                  className={textAlign && `text-xs-${textAlign}`}
+                  key={key}
+                >
+                  {Component !== undefined
+                    ? <Component item={item} userData={userData} />
+                    : itemRenderer(item, userData)
+                  }
                 </td>
-              ))
+              )
 
               const { id = i } = item
 
