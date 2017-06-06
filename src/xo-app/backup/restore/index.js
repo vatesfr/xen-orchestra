@@ -1,4 +1,5 @@
 import _, { messages } from 'intl'
+import Collapse from 'collapse'
 import Component from 'base-component'
 import filter from 'lodash/filter'
 import find from 'lodash/find'
@@ -15,6 +16,7 @@ import SortedTable from 'sorted-table'
 import uniq from 'lodash/uniq'
 import Upgrade from 'xoa-upgrade'
 import { confirm } from 'modal'
+import { createSelector } from 'selectors'
 import { addSubscriptions, noop } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { FormattedDate, injectIntl } from 'react-intl'
@@ -27,6 +29,7 @@ import {
   importDeltaBackup,
   isSrWritable,
   listRemote,
+  listRemoteBackups,
   startVm,
   subscribeRemotes
 } from 'xo'
@@ -76,7 +79,7 @@ const openImportModal = ({ backups }) => confirm({
   body: <ImportModalBody vmName={backups[0].name} backups={backups} />
 }).then(doImport)
 
-const doImport = ({ backup, sr, start }) => {
+const doImport = ({ backup, sr, start, vdiSr }) => {
   if (!sr || !backup) {
     error(_('backupRestoreErrorTitle'), _('backupRestoreErrorMessage'))
     return
@@ -87,7 +90,7 @@ const doImport = ({ backup, sr, start }) => {
   }
   info(_('importBackupTitle'), _('importBackupMessage'))
   try {
-    const importPromise = importMethods[backup.type]({remote: backup.remoteId, sr, file: backup.path}).then(id => {
+    const importPromise = importMethods[backup.type]({remote: backup.remoteId, sr, file: backup.path, vdiSr}).then(id => {
       return id
     })
     if (start) {
@@ -98,13 +101,45 @@ const doImport = ({ backup, sr, start }) => {
   }
 }
 
+class _Collapsible extends Component {
+  render () {
+    const {
+      collapsible,
+      children,
+      ...props
+    } = this.props
+
+    return collapsible
+      ? <Collapse {...props}> {children} </Collapse>
+      : <div> {children} </div>
+  }
+}
+
 class _ModalBody extends Component {
   get value () {
     return this.state
   }
 
+  _srPredicate = createSelector(
+    sr => sr,
+    () => this.state.sr.$pool,
+    (sr, pool) => isSrWritable(sr) && sr.$pool === pool
+  )
+
+  _getSelectedValue = vdi => {
+    const value = this.state.vdiSr && this.state.vdiSr[vdi]
+    if (value && value.$pool !== this.state.sr.$pool
+    ) {
+      delete this.state.vdiSr[vdi]
+      return undefined
+    }
+
+    return value
+  }
+
   render () {
     const { backups, intl } = this.props
+    const vdis = this.state.backup && this.state.backup.vdis
 
     return <div>
       <SelectSr onChange={this.linkState('sr')} predicate={isSrWritable} />
@@ -116,6 +151,19 @@ class _ModalBody extends Component {
         options={backups}
         placeholder={intl.formatMessage(messages.importBackupModalSelectBackup)}
       />
+      <br />
+      {vdis !== undefined && this.state.sr &&
+        <_Collapsible collapsible={vdis.length >= 3} buttonText='choose sr for each vdis '>
+          <br />
+          {map(vdis, vdi =>
+            <span>
+              <b>VDI:</b> {vdi.name}
+              <SelectSr key={vdi.uuid} onChange={this.linkState(`vdiSr.${vdi.uuid}`)} value={this._getSelectedValue(vdi.uuid)} predicate={sr => this._srPredicate(sr)} />
+              <br />
+            </span>
+          )}
+        </_Collapsible>
+      }
       <br />
       <Toggle onChange={this.linkState('start')} /> {_('importBackupModalStart')}
     </div>
@@ -136,16 +184,26 @@ export default class Restore extends Component {
   }
 
   _listAll = async remotes => {
-    const remotesFiles = await Promise.all(map(remotes, remote => listRemote(remote.id)))
+    const remotesFiles = await Promise.all(map(remotes, async remote => ({
+      file: await listRemote(remote.id),
+      backupInfo: await listRemoteBackups(remote.id)
+    })))
+
     const backupInfoByVm = {}
+
     forEach(remotesFiles, (remoteFiles, index) => {
       const remote = remotes[index]
 
-      forEach(remoteFiles, file => {
+      forEach(remoteFiles.file, file => {
         let backup
         const deltaInfo = /^vm_delta_(.*)_([^/]+)\/([^_]+)_(.*)$/.exec(file)
+
         if (deltaInfo) {
           const [ , tag, id, date, name ] = deltaInfo
+          const vdis = find(remoteFiles.backupInfo, {
+            id: `${file}.json`
+          }).disks
+
           backup = {
             type: 'delta',
             date: parseDate(date),
@@ -154,7 +212,8 @@ export default class Restore extends Component {
             path: file,
             tag,
             remoteId: remote.id,
-            remoteName: remote.name
+            remoteName: remote.name,
+            vdis
           }
         } else {
           const backupInfo = /^([^_]+)_([^_]+)_(.*)\.xva$/.exec(file)
