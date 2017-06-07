@@ -117,14 +117,21 @@ class _Collapsible extends Component {
 }
 
 class _ModalBody extends Component {
+  constructor () {
+    super()
+
+    this.state = {
+      mapVdisSrs: {}
+    }
+  }
+
   get value () {
     return this.state
   }
 
-  _srPredicate = createSelector(
-    sr => sr,
+  _getSrPredicate = createSelector(
     () => this.state.sr.$pool,
-    (sr, pool) => isSrWritable(sr) && sr.$pool === pool
+    pool => sr => isSrWritable(sr) && sr.$pool === pool
   )
 
   _onChange = event => {
@@ -132,7 +139,7 @@ class _ModalBody extends Component {
 
     if (this.state.sr && this.state.sr.$pool !== sr.$pool) {
       this.setState({
-        mapVdisSrs: undefined
+        mapVdisSrs: {}
       })
     }
 
@@ -140,8 +147,6 @@ class _ModalBody extends Component {
       sr
     })
   }
-
-  _getSelectedValue = vdiId => this.state.mapVdisSrs && this.state.mapVdisSrs[vdiId]
 
   render () {
     const { backups, intl } = this.props
@@ -164,7 +169,7 @@ class _ModalBody extends Component {
           {map(vdis, vdi =>
             <span>
               <b>{_('backupRestoreVdiLabel')}:</b> {vdi.name}
-              <SelectSr key={vdi.uuid} onChange={this.linkState(`mapVdisSrs.${vdi.uuid}`)} value={this._getSelectedValue(vdi.uuid)} predicate={this._srPredicate} />
+              <SelectSr key={vdi.uuid} onChange={this.linkState(`mapVdisSrs.${vdi.uuid}`)} value={this.state.mapVdisSrs[vdi.uuid]} predicate={this._getSrPredicate()} />
               <br />
             </span>
           )}
