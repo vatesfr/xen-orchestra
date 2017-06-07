@@ -1010,7 +1010,7 @@ var messages = {
   availableBackupsColumn: 'Available Backups',
   backupRestoreErrorTitle: 'Missing parameters',
   backupRestoreErrorMessage: 'Choose a SR and a backup',
-  backupRestoreChooseSRForEachVdis: 'choose sr for each vdis',
+  backupRestoreChooseSRForEachVdis: 'Choose a SR for each VDI',
   backupRestoreVdiLabel: 'VDI',
   displayBackup: 'Display backups',
   importBackupTitle: 'Import VM',

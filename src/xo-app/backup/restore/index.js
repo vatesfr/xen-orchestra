@@ -4,6 +4,7 @@ import Component from 'base-component'
 import filter from 'lodash/filter'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
+import getEventValue from 'get-event-value'
 import groupBy from 'lodash/groupBy'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
@@ -126,29 +127,28 @@ class _ModalBody extends Component {
     (sr, pool) => isSrWritable(sr) && sr.$pool === pool
   )
 
-  _getSelectedValue = createSelector(
-    vdi => vdi,
-    vdi => this.state.mapVdisSrs && this.state.mapVdisSrs[vdi],
-    (vdi, value) => {
-      if (value && value.$pool !== this.state.sr.$pool) {
-        const mapVdisSrs = this.state.mapVdisSrs
-        delete mapVdisSrs[vdi]
-        this.setState({
-          mapVdisSrs: mapVdisSrs
-        })
-        return undefined
-      }
+  _onChange = event => {
+    const sr = getEventValue(event)
 
-      return value
+    if (this.state.sr && this.state.sr.$pool !== sr.$pool) {
+      this.setState({
+        mapVdisSrs: undefined
+      })
     }
-  )
+
+    this.setState({
+      sr
+    })
+  }
+
+  _getSelectedValue = vdiId => this.state.mapVdisSrs && this.state.mapVdisSrs[vdiId]
 
   render () {
     const { backups, intl } = this.props
     const vdis = this.state.backup && this.state.backup.vdis
 
     return <div>
-      <SelectSr onChange={this.linkState('sr')} predicate={isSrWritable} />
+      <SelectSr onChange={this._onChange} predicate={isSrWritable} />
       <br />
       <SelectPlainObject
         onChange={this.linkState('backup')}

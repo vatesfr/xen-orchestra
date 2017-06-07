@@ -952,20 +952,12 @@ export const importBackup = ({ remote, file, sr }) => (
   _call('vm.importBackup', resolveIds({ remote, file, sr }))
 )
 
-const resolveMapIds = map => {
-  forEach(map, (val, key) => {
-    map[key] = resolveId(val)
-  })
-
-  return map
-}
-
 export const importDeltaBackup = ({ remote, file, sr, mapVdisSrs }) => (
   _call('vm.importDeltaBackup', resolveIds({
     remote,
     filePath: file,
     sr,
-    mapVdisSrs: resolveMapIds(mapVdisSrs)
+    mapVdisSrs: resolveIds(mapVdisSrs)
   }))
 )
 
