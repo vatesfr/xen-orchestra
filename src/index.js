@@ -104,7 +104,7 @@ execPromise(async args => {
   const makeVdiNode = vdi => {
     const { uuid } = vdi
 
-    let label = `${vdi.name_label} - ${uuid} - ${formatSize(vdi.physical_utilisation)}`
+    let label = `${vdi.name_label} - ${uuid} - ${formatSize(+vdi.physical_utilisation)}`
     const nodes = []
 
     const vhdChildren = vhdChildrenByUuid[uuid]
