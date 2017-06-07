@@ -79,7 +79,7 @@ const openImportModal = ({ backups }) => confirm({
   body: <ImportModalBody vmName={backups[0].name} backups={backups} />
 }).then(doImport)
 
-const doImport = ({ backup, sr, start, vdiSr }) => {
+const doImport = ({ backup, sr, start, mapVdisSrs }) => {
   if (!sr || !backup) {
     error(_('backupRestoreErrorTitle'), _('backupRestoreErrorMessage'))
     return
@@ -90,7 +90,7 @@ const doImport = ({ backup, sr, start, vdiSr }) => {
   }
   info(_('importBackupTitle'), _('importBackupMessage'))
   try {
-    const importPromise = importMethods[backup.type]({remote: backup.remoteId, sr, file: backup.path, vdiSr}).then(id => {
+    const importPromise = importMethods[backup.type]({remote: backup.remoteId, sr, file: backup.path, mapVdisSrs}).then(id => {
       return id
     })
     if (start) {
@@ -126,16 +126,22 @@ class _ModalBody extends Component {
     (sr, pool) => isSrWritable(sr) && sr.$pool === pool
   )
 
-  _getSelectedValue = vdi => {
-    const value = this.state.vdiSr && this.state.vdiSr[vdi]
-    if (value && value.$pool !== this.state.sr.$pool
-    ) {
-      delete this.state.vdiSr[vdi]
-      return undefined
-    }
+  _getSelectedValue = createSelector(
+    vdi => vdi,
+    vdi => this.state.mapVdisSrs && this.state.mapVdisSrs[vdi],
+    (vdi, value) => {
+      if (value && value.$pool !== this.state.sr.$pool) {
+        const mapVdisSrs = this.state.mapVdisSrs
+        delete mapVdisSrs[vdi]
+        this.setState({
+          mapVdisSrs: mapVdisSrs
+        })
+        return undefined
+      }
 
-    return value
-  }
+      return value
+    }
+  )
 
   render () {
     const { backups, intl } = this.props
@@ -153,12 +159,12 @@ class _ModalBody extends Component {
       />
       <br />
       {vdis !== undefined && this.state.sr &&
-        <_Collapsible collapsible={vdis.length >= 3} buttonText='choose sr for each vdis '>
+        <_Collapsible collapsible={vdis.length >= 3} buttonText={_('backupRestoreChooseSRForEachVdis')}>
           <br />
           {map(vdis, vdi =>
             <span>
-              <b>VDI:</b> {vdi.name}
-              <SelectSr key={vdi.uuid} onChange={this.linkState(`vdiSr.${vdi.uuid}`)} value={this._getSelectedValue(vdi.uuid)} predicate={sr => this._srPredicate(sr)} />
+              <b>{_('backupRestoreVdiLabel')}:</b> {vdi.name}
+              <SelectSr key={vdi.uuid} onChange={this.linkState(`mapVdisSrs.${vdi.uuid}`)} value={this._getSelectedValue(vdi.uuid)} predicate={this._srPredicate} />
               <br />
             </span>
           )}
@@ -184,23 +190,23 @@ export default class Restore extends Component {
   }
 
   _listAll = async remotes => {
-    const remotesFiles = await Promise.all(map(remotes, async remote => ({
-      file: await listRemote(remote.id),
-      backupInfo: await listRemoteBackups(remote.id)
+    const remotesInfo = await Promise.all(map(remotes, async remote => ({
+      files: await listRemote(remote.id),
+      backupsInfo: await listRemoteBackups(remote.id)
     })))
 
     const backupInfoByVm = {}
 
-    forEach(remotesFiles, (remoteFiles, index) => {
+    forEach(remotesInfo, (remoteInfo, index) => {
       const remote = remotes[index]
 
-      forEach(remoteFiles.file, file => {
+      forEach(remoteInfo.files, file => {
         let backup
         const deltaInfo = /^vm_delta_(.*)_([^/]+)\/([^_]+)_(.*)$/.exec(file)
 
         if (deltaInfo) {
           const [ , tag, id, date, name ] = deltaInfo
-          const vdis = find(remoteFiles.backupInfo, {
+          const vdis = find(remoteInfo.backupsInfo, {
             id: `${file}.json`
           }).disks
 

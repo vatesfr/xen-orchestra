@@ -952,8 +952,21 @@ export const importBackup = ({ remote, file, sr }) => (
   _call('vm.importBackup', resolveIds({ remote, file, sr }))
 )
 
-export const importDeltaBackup = ({ remote, file, sr, vdiSr }) => (
-  _call('vm.importDeltaBackup', resolveIds({ remote, filePath: file, sr, vdiSr }))
+const resolveMapIds = map => {
+  forEach(map, (val, key) => {
+    map[key] = resolveId(val)
+  })
+
+  return map
+}
+
+export const importDeltaBackup = ({ remote, file, sr, mapVdisSrs }) => (
+  _call('vm.importDeltaBackup', resolveIds({
+    remote,
+    filePath: file,
+    sr,
+    mapVdisSrs: resolveMapIds(mapVdisSrs)
+  }))
 )
 
 import RevertSnapshotModalBody from './revert-snapshot-modal' // eslint-disable-line import/first
