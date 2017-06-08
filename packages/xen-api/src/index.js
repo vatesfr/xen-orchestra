@@ -7,6 +7,7 @@ import { BaseError } from 'make-error'
 import { EventEmitter } from 'events'
 import { filter, forEach, isArray, isObject, map, noop, reduce, startsWith } from 'lodash'
 import {
+  Cancel,
   cancelable,
   catchPlus as pCatch,
   defer,
@@ -122,6 +123,21 @@ const getKey = o => o.$id
 // -------------------------------------------------------------------
 
 const EMPTY_ARRAY = freezeObject([])
+
+// -------------------------------------------------------------------
+
+const getTaskResult = (task, onSuccess, onFailure) => {
+  const { status } = task
+  if (status === 'cancelled') {
+    return [ onFailure(new Cancel('task canceled')) ]
+  }
+  if (status === 'failure') {
+    return [ onFailure(task.error_info) ]
+  }
+  if (status === 'success') {
+    return [ onSuccess(task.result) ]
+  }
+}
 
 // ===================================================================
 
@@ -384,6 +400,15 @@ export class Xapi extends EventEmitter {
 
     let watcher = watchers[ref]
     if (watcher === undefined) {
+      // sync check if the task is already settled
+      const task = this.objects.all[ref]
+      if (task !== undefined) {
+        const result = getTaskResult(task)
+        if (result) {
+          return result[0]
+        }
+      }
+
       watcher = watchers[ref] = defer()
     }
     return watcher.promise
@@ -492,15 +517,11 @@ export class Xapi extends EventEmitter {
     } else if (type === 'task') {
       const taskWatchers = this._taskWatchers
       let taskWatcher = taskWatchers[ref]
-      if (taskWatcher !== undefined) { // no need to check for object type
-        const { status } = object
-        if (status === 'success') {
-          taskWatcher.resolve(object.result)
-          delete taskWatchers[ref]
-        } else if (status === 'failure') {
-          taskWatcher.reject(object.error_info)
-          delete taskWatchers[ref]
-        }
+      if (
+        taskWatcher !== undefined &&
+        getTaskResult(object, taskWatcher.resolve, taskWatcher.reject)
+      ) {
+        delete taskWatchers[ref]
       }
     }
   }
