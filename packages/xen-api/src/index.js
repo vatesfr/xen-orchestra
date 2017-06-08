@@ -11,7 +11,8 @@ import {
   cancelable,
   catchPlus as pCatch,
   defer,
-  delay as pDelay
+  delay as pDelay,
+  lastly
 } from 'promise-toolbox'
 
 import autoTransport from './transports/auto'
@@ -126,16 +127,24 @@ const EMPTY_ARRAY = freezeObject([])
 
 // -------------------------------------------------------------------
 
+const TASK_RESULT_PREFIX_LEN = '<value>'.length
+const TASK_RESULT_SUFFIX_LEN = '</value>'.length
+
 const getTaskResult = (task, onSuccess, onFailure) => {
   const { status } = task
   if (status === 'cancelled') {
     return [ onFailure(new Cancel('task canceled')) ]
   }
   if (status === 'failure') {
-    return [ onFailure(task.error_info) ]
+    return [ onFailure(wrapError(task.error_info)) ]
   }
   if (status === 'success') {
-    return [ onSuccess(task.result) ]
+    // a task result is either void or a ref, it should be fine to
+    // remove the XML prefix/suffix
+    return [ onSuccess(task.result.slice(
+      TASK_RESULT_PREFIX_LEN,
+      -TASK_RESULT_SUFFIX_LEN
+    )) ]
   }
 }
 
@@ -284,6 +293,19 @@ export class Xapi extends EventEmitter {
     return this._readOnly && !isReadOnlyCall(method, args)
       ? Promise.reject(new Error(`cannot call ${method}() in read only mode`))
       : this._sessionCall(method, args)
+  }
+
+  @cancelable
+  callAsync ($cancelToken, method, ...args) {
+    return this.call(`Async.${method}`, ...args).then(taskRef => {
+      $cancelToken.promise.then(() => {
+        this.call('task.cancel', taskRef).catch(noop)
+      })
+
+      return this.watchTask(taskRef)::lastly(() => {
+        this.call('task.destroy', taskRef).catch(noop)
+      })
+    })
   }
 
   // Nice getter which returns the object for a given $id (internal to
