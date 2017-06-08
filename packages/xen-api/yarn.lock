@@ -3016,6 +3016,12 @@ promise-toolbox@^0.9.1:
   dependencies:
     make-error "^1.2.3"
 
+promise-toolbox@^0.9.4:
+  version "0.9.4"
+  resolved "https://registry.yarnpkg.com/promise-toolbox/-/promise-toolbox-0.9.4.tgz#672fe37557eea05093f770e7e1fca64e39ae9238"
+  dependencies:
+    make-error "^1.2.3"
+
 prr@~0.0.0:
   version "0.0.0"
   resolved "https://registry.yarnpkg.com/prr/-/prr-0.0.0.tgz#1a84b85908325501411853d0081ee3fa86e2926a"
