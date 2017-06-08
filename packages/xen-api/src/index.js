@@ -9,6 +9,7 @@ import { filter, forEach, isArray, isObject, map, noop, reduce, startsWith } fro
 import {
   cancelable,
   catchPlus as pCatch,
+  defer,
   delay as pDelay
 } from 'promise-toolbox'
 
@@ -157,6 +158,8 @@ export class Xapi extends EventEmitter {
 
       this._objectsByRefs = createObject(null)
       this._objectsByRefs['OpaqueRef:NULL'] = null
+
+      this._taskWatchers = Object.create(null)
 
       this.on('connected', this._watchEvents)
       this.on('disconnected', () => {
@@ -370,6 +373,22 @@ export class Xapi extends EventEmitter {
     )
   }
 
+  watchTask (ref) {
+    const watchers = this._taskWatchers
+    if (watchers === undefined) {
+      throw new Error('Xapi#watchTask() requires events watching')
+    }
+
+    // allow task object to be passed
+    if (ref.$ref !== undefined) ref = ref.$ref
+
+    let watcher = watchers[ref]
+    if (watcher === undefined) {
+      watcher = watchers[ref] = defer()
+    }
+    return watcher.promise
+  }
+
   get pool () {
     return this._pool
   }
@@ -470,6 +489,19 @@ export class Xapi extends EventEmitter {
 
     if (type === 'pool') {
       this._pool = object
+    } else if (type === 'task') {
+      const taskWatchers = this._taskWatchers
+      let taskWatcher = taskWatchers[ref]
+      if (taskWatcher !== undefined) { // no need to check for object type
+        const { status } = object
+        if (status === 'success') {
+          taskWatcher.resolve(object.result)
+          delete taskWatchers[ref]
+        } else if (status === 'failure') {
+          taskWatcher.reject(object.error_info)
+          delete taskWatchers[ref]
+        }
+      }
     }
   }
 
