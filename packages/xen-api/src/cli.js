@@ -9,7 +9,7 @@ import execPromise from 'exec-promise'
 import minimist from 'minimist'
 import pw from 'pw'
 import { asCallback, fromCallback } from 'promise-toolbox'
-import { filter, find } from 'lodash'
+import { filter, find, isArray } from 'lodash'
 import { start as createRepl } from 'repl'
 
 import { createClient } from './'
@@ -92,7 +92,9 @@ const main = async args => {
   repl.eval = (evaluate => (cmd, context, filename, cb) => {
     fromCallback(cb => {
       evaluate.call(repl, cmd, context, filename, cb)
-    })::asCallback(cb)
+    }).then(value =>
+      isArray(value) ? Promise.all(value) : value
+    )::asCallback(cb)
   })(repl.eval)
 
   await eventToPromise(repl, 'exit')
