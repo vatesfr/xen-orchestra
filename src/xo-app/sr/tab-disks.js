@@ -43,14 +43,22 @@ const COLUMNS = [
       const getObject = createGetObject((_, id) => id)
 
       return {
-        vm: (state, { item: vdi }) => {
-          const vbd = getObject(state, vdi.$VBDs[0])
+        vm: (state, { item: { $VBDs: [ vbdId ] } }) => {
+          if (vbdId === undefined) {
+            return null
+          }
+
+          const vbd = getObject(state, vbdId)
           if (vbd != null) {
             return getObject(state, vbd.VM)
           }
         }
       }
     })(({ vm }) => {
+      if (vm === null) {
+        return null // no attached VM
+      }
+
       if (vm === undefined) {
         return renderXoUnknownItem()
       }
