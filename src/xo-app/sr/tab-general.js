@@ -14,7 +14,7 @@ const UsageTooltip = connectStore(() => ({
   vbd: createGetObject((_, { vdi }) => vdi.$VBDs[0])
 }))(({ vbd, vdi }) =>
   <span>
-    {vdi.name_label}
+    {vdi.name_label} − {formatSize(vdi.usage)}
     {vbd != null && <br />}
     {vbd != null && renderXoItemFromId(vbd.VM)}
   </span>
