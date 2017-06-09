@@ -51,8 +51,7 @@ import {
   startVms,
   stopHosts,
   stopVms,
-  subscribeServers,
-  subscribeVmGroups
+  subscribeServers
 } from 'xo'
 import { Container, Row, Col } from 'grid'
 import {
@@ -222,8 +221,7 @@ const TYPES = {
 const DEFAULT_TYPE = 'VM'
 
 @addSubscriptions({
-  servers: subscribeServers,
-  vmGroups: subscribeVmGroups
+  servers: subscribeServers
 })
 @connectStore(() => {
   const noServersConnected = invoke(
@@ -235,12 +233,9 @@ const DEFAULT_TYPE = 'VM'
 
   return (state, props) => {
     const type = getType(state, props)
-
     return {
       areObjectsFetched: areObjectsFetched(state, props),
-      items: type === 'VM-group'
-        ? props.vmGroups
-        : getObjectsByType(state, props),
+      items: getObjectsByType(state, props),
       noServersConnected: noServersConnected(state, props),
       type,
       user: getUser(state, props)

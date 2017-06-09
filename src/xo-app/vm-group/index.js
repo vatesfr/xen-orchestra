@@ -5,7 +5,6 @@ import { NavLink, NavTabs } from 'nav'
 import Page from '../page'
 import React, { cloneElement } from 'react'
 import {
-  addSubscriptions,
   connectStore,
   routes
 } from 'utils'
@@ -16,7 +15,6 @@ import {
 import { Container, Row, Col } from 'grid'
 import { createGetObject } from 'selectors'
 import { Text } from 'editable'
-import { subscribeVmGroups } from 'xo'
 
 import TabAdvanced from './tab-advanced'
 import TabGeneral from './tab-general'
@@ -31,19 +29,22 @@ import VmGroupActionBar from './action-bar'
   management: TabManagement,
   stats: TabStats
 })
-@addSubscriptions({
-  vmGroups: subscribeVmGroups
-})
 @connectStore(() => {
+  const getVmGroup = createGetObject()
+
   return (state, props) => {
+    const vmGroup = getVmGroup(state, props)
+    if (!vmGroup) {
+      return {}
+    }
+    const vms = {}
+    forEach(vmGroup.$VMs, vmId => {
+      const getVM = createGetObject(() => vmId)
+      vms[vmId] = getVM(state, props)
+    })
     return {
-      vmGroup: props.vmGroups ? props.vmGroups[props.params.id] : undefined,
-      vms: props.vmGroups
-        ? props.vmGroups[props.params.id].VMs.map(vmId => {
-          const getVM = createGetObject(() => vmId)
-          return getVM(state, props)
-        })
-        : undefined
+      vmGroup,
+      vms
     }
   }
 })
