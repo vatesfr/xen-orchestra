@@ -12,8 +12,10 @@ import some from 'lodash/some'
 import store from 'store'
 
 import _ from '../../intl'
+import Icon from 'icon'
 import invoke from '../../invoke'
 import SingleLineRow from '../../single-line-row'
+import Tooltip from '../../tooltip'
 import { Col } from '../../grid'
 import { getDefaultNetworkForVif } from '../utils'
 import {
@@ -136,6 +138,12 @@ export default class MigrateVmsModalBody extends BaseComponent {
     if (!host || isEmpty(vms)) {
       return { vms }
     }
+
+    const { defaultSrIsLocal } = this.state
+    if (defaultSrIsLocal) {
+      return { vms, targetHost: host.id, defaultSrIsLocal }
+    }
+
     const {
       networks,
       pifs,
@@ -210,13 +218,26 @@ export default class MigrateVmsModalBody extends BaseComponent {
   }
 
   _selectHost = host => {
+    this.setState({
+      defaultSrIsLocal: undefined
+    })
+
     if (!host) {
       this.setState({ targetHost: undefined })
       return
     }
+
     const { pools, pifs } = this.props
-    const defaultMigrationNetworkId = find(pifs, pif => pif.$host === host.id && pif.management).$network
     const defaultSrId = pools[host.$pool].default_SR
+    if (!isSrShared(this._getObject(defaultSrId))) {
+      this.setState({
+        host,
+        defaultSrIsLocal: true
+      })
+      return
+    }
+
+    const defaultMigrationNetworkId = find(pifs, pif => pif.$host === host.id && pif.management).$network
     const doNotMigrateVmVdis = {}
     const doNotMigrateVdi = {}
     forEach(this.props.vbdsByVm, (vbds, vm) => {
@@ -252,6 +273,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
 
   render () {
     const {
+      defaultSrIsLocal,
       host,
       intraPool,
       migrationNetworkId,
@@ -263,7 +285,19 @@ export default class MigrateVmsModalBody extends BaseComponent {
     return <div>
       <div style={LINE_STYLE}>
         <SingleLineRow>
-          <Col size={6}>{_('migrateVmSelectHost')}</Col>
+          <Col size={6}>
+            {_('migrateVmSelectHost')}
+            {' '}
+            {defaultSrIsLocal &&
+              <Tooltip content={_('migrateDefaultSrError')}>
+                <Icon
+                  className='text-danger'
+                  icon='alarm'
+                  size='lg'
+                />
+              </Tooltip>
+            }
+          </Col>
           <Col size={6}>
             <SelectHost
               onChange={this._selectHost}
@@ -287,7 +321,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
           </SingleLineRow>
         </div>
       }
-      {host && (!intraPool || !noVdisMigration) &&
+      {defaultSrIsLocal === undefined && host !== undefined && (!intraPool || !noVdisMigration) &&
         <div key='sr' style={LINE_STYLE}>
           <SingleLineRow>
             <Col size={6}>{!intraPool ? _('migrateVmsSelectSr') : _('migrateVmsSelectSrIntraPool')}</Col>
@@ -301,7 +335,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
           </SingleLineRow>
         </div>
       }
-      {host && !intraPool &&
+      {defaultSrIsLocal === undefined && host !== undefined && !intraPool &&
         <div key='network' style={LINE_STYLE}>
           <SingleLineRow>
             <Col size={6}>{_('migrateVmsSelectNetwork')}</Col>

@@ -867,6 +867,11 @@ export const migrateVm = (vm, host) => (
       if (!params.targetHost) {
         return error(_('migrateVmNoTargetHost'), _('migrateVmNoTargetHostMessage'))
       }
+
+      if (params.defaultSrIsLocal) {
+        return error(_('migrateDefaultSrError'), _('migrateDefaultSrErrorMessage'))
+      }
+
       _call('vm.migrate', { vm: vm.id, ...params })
     },
     noop
@@ -885,6 +890,10 @@ export const migrateVms = vms => (
       }
       if (!params.targetHost) {
         return error(_('migrateVmNoTargetHost'), _('migrateVmNoTargetHostMessage'))
+      }
+
+      if (params.defaultSrIsLocal) {
+        return error(_('migrateDefaultSrError'), _('migrateDefaultSrErrorMessage'))
       }
 
       const {
