@@ -13,6 +13,7 @@ import mapValues from 'lodash/mapValues'
 import moment from 'moment'
 import React from 'react'
 import reduce from 'lodash/reduce'
+import SingleLineRow from 'single-line-row'
 import SortedTable from 'sorted-table'
 import uniq from 'lodash/uniq'
 import Upgrade from 'xoa-upgrade'
@@ -112,7 +113,11 @@ class _Collapsible extends Component {
 
     return collapsible
       ? <Collapse {...props}> {children} </Collapse>
-      : <div> {children} </div>
+      : <div>
+        <span> {props.buttonText} </span>
+        <br />
+        {children}
+      </div>
   }
 }
 
@@ -130,21 +135,49 @@ class _ModalBody extends Component {
   }
 
   _getSrPredicate = createSelector(
-    () => this.state.sr.$pool,
-    pool => sr => isSrWritable(sr) && sr.$pool === pool
+    () => this.state.sr,
+    () => this.state.mapVdisSrs,
+    (defaultSr, mapVdisSrs) => sr => {
+      let predicate = isSrWritable(sr) && defaultSr.$pool === sr.$pool
+
+      if (!defaultSr.shared) {
+        predicate = predicate && (defaultSr.$container === sr.$container || sr.shared)
+      } else {
+        forEach(mapVdisSrs, (selectedSr, vdi) => {
+          if (selectedSr != null && !selectedSr.shared) {
+            predicate = predicate && (selectedSr.$container === sr.$container || sr.shared)
+          }
+        })
+      }
+
+      return predicate
+    }
   )
 
-  _onChange = event => {
-    const sr = getEventValue(event)
+  _onChangeDefaultSr = event => {
+    const oldSr = this.state.sr
+    const newSr = getEventValue(event)
 
-    if (this.state.sr && this.state.sr.$pool !== sr.$pool) {
-      this.setState({
-        mapVdisSrs: {}
-      })
+    if (oldSr != null && newSr != null) {
+      if (oldSr.$pool !== newSr.$pool) {
+        this.setState({
+          mapVdisSrs: {}
+        })
+      } else if (!newSr.shared) {
+        const mapVdisSrs = {...this.state.mapVdisSrs}
+        forEach(mapVdisSrs, (sr, vdi) => {
+          if (sr != null && newSr !== sr && !sr.shared) {
+            delete mapVdisSrs[vdi]
+          }
+        })
+        this.setState({
+          mapVdisSrs
+        })
+      }
     }
 
     this.setState({
-      sr
+      sr: newSr
     })
   }
 
@@ -153,7 +186,7 @@ class _ModalBody extends Component {
     const vdis = this.state.backup && this.state.backup.vdis
 
     return <div>
-      <SelectSr onChange={this._onChange} predicate={isSrWritable} />
+      <SelectSr onChange={this._onChangeDefaultSr} predicate={isSrWritable} placeholder={_('backupRestoreSelectDefaultSr')} />
       <br />
       <SelectPlainObject
         onChange={this.linkState('backup')}
@@ -163,16 +196,21 @@ class _ModalBody extends Component {
         placeholder={intl.formatMessage(messages.importBackupModalSelectBackup)}
       />
       <br />
-      {vdis !== undefined && this.state.sr &&
+      {vdis != null && this.state.sr != null &&
         <_Collapsible collapsible={vdis.length >= 3} buttonText={_('backupRestoreChooseSRForEachVdis')}>
           <br />
-          {map(vdis, vdi =>
-            <span>
-              <b>{_('backupRestoreVdiLabel')}:</b> {vdi.name}
-              <SelectSr key={vdi.uuid} onChange={this.linkState(`mapVdisSrs.${vdi.uuid}`)} value={this.state.mapVdisSrs[vdi.uuid]} predicate={this._getSrPredicate()} />
-              <br />
-            </span>
-          )}
+          <container>
+            <SingleLineRow>
+              <Col size={6}><strong>{_('backupRestoreVdiLabel')}</strong></Col>
+              <Col size={6}><strong>{_('backupResoreSrLabel')}</strong></Col>
+            </SingleLineRow>
+            {map(vdis, vdi =>
+              <SingleLineRow key={vdi.uuid}>
+                <Col size={6}>{vdi.name}</Col>
+                <Col size={6}><SelectSr onChange={this.linkState(`mapVdisSrs.${vdi.uuid}`)} value={this.state.mapVdisSrs[vdi.uuid]} predicate={this._getSrPredicate()} /></Col>
+              </SingleLineRow>
+            )}
+          </container>
         </_Collapsible>
       }
       <br />
