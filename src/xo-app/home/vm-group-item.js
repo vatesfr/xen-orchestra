@@ -3,7 +3,6 @@ import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import Icon from 'icon'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
-import HomeTags from 'home-tags'
 import { BlockLink } from 'link'
 import { Col } from 'grid'
 import { Text } from 'editable'
@@ -20,8 +19,7 @@ export default class VmGroupItem extends Component {
   _setNameLabel = label => { /* TODO */ }
 
   render () {
-    const { item: vmGroup, expandAll, selected } = this.props
-
+    const { item: vmGroup, selected } = this.props
     return <div className={styles.item}>
       <BlockLink to={`/vm-group/${vmGroup.id}`}>
         <SingleLineRow>
@@ -42,22 +40,8 @@ export default class VmGroupItem extends Component {
               </Ellipsis>
             </EllipsisContainer>
           </Col>
-          <Col mediumSize={1} className={styles.itemExpandRow}>
-            <a className={styles.itemExpandButton} onClick={this.toggleState('expanded')}>
-              <Icon icon='nav' fixedWidth />&nbsp;&nbsp;&nbsp;
-            </a>
-          </Col>
         </SingleLineRow>
       </BlockLink>
-      {(this.state.expanded || expandAll) &&
-        <SingleLineRow>
-          <Col mediumSize={5}>
-            <span style={{fontSize: '1.4em'}}>
-              <HomeTags type='pool' labels={vmGroup.tags} onDelete={this._removeTag} onAdd={this._addTag} />
-            </span>
-          </Col>
-        </SingleLineRow>
-      }
     </div>
   }
 }

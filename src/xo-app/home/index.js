@@ -715,9 +715,9 @@ export default class Home extends Component {
       sortBy
     } = this.state
     const {
+      items,
       type
     } = this.props
-    const items = this.props.items
 
     const options = OPTIONS[type]
     const {
@@ -826,7 +826,7 @@ export default class Home extends Component {
                     </OverlayTrigger>
                   )}
                   {' '}
-                  <OverlayTrigger
+                  {type !== 'VmGroup' && <OverlayTrigger
                     autoFocus
                     trigger='click'
                     rootClose
@@ -844,7 +844,7 @@ export default class Home extends Component {
                     }
                   >
                     <Button btnStyle='link'><Icon icon='tags' /> {_('homeAllTags')}</Button>
-                  </OverlayTrigger>
+                  </OverlayTrigger> }
                   {' '}
                   <DropdownButton bsStyle='link' id='sort' title={_('homeSortBy')}>
                     {map(options.sortOptions, ({ labelId, sortBy: _sortBy, sortOrder }, key) => (

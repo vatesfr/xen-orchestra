@@ -1,6 +1,5 @@
 import Component from 'base-component'
 import forEach from 'lodash/forEach'
-import HomeTags from 'home-tags'
 import Icon from 'icon'
 import reduce from 'lodash/reduce'
 import React from 'react'
@@ -49,13 +48,6 @@ export default class TabGeneral extends Component {
             </Col>
             <Col mediumSize={3}>
               <h2>{formatSize(this._getMemoryTotal())} <Icon icon='disk' size='lg' /></h2>
-            </Col>
-          </Row>
-          <Row>
-            <Col>
-              <h2 className='text-xs-center'>
-                <HomeTags type='VM' labels={vmGroup.tags} onDelete={tag => this._removeTag(tag)} onAdd={tag => this._addTag(tag)} />
-              </h2>
             </Col>
           </Row>
         </div>
