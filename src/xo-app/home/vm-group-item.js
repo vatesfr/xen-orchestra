@@ -1,22 +1,48 @@
+import _ from 'intl'
 import Component from 'base-component'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
+import forEach from 'lodash/forEach'
 import Icon from 'icon'
+import map from 'lodash/map'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
+import Tooltip from 'tooltip'
 import { BlockLink } from 'link'
 import { Col } from 'grid'
+import { connectStore } from 'utils'
+import { createGetObject } from 'selectors'
+import { editVmGroup } from 'xo'
 import { Text } from 'editable'
 
 import styles from './index.css'
 
+@connectStore(() => {
+  return (state, props) => {
+    const vms = {}
+    forEach(props.item.$VMs, vmId => {
+      const getVM = createGetObject(() => vmId)
+      vms[vmId] = getVM(state, props)
+    })
+    return {
+      vms
+    }
+  }
+})
 export default class VmGroupItem extends Component {
   toggleState = stateField => () => this.setState({ [stateField]: !this.state[stateField] })
   _onSelect = () => this.props.onSelect(this.props.item.id)
-  _setNameLabel = nameLabel => { /* TODO */ }
-  _removeTag = tag => { /* TODO */ }
-  _addTag = tag => { /* TODO */ }
-  _setNameDescription = description => { /* TODO */ }
-  _setNameLabel = label => { /* TODO */ }
+  _setNameDescription = description => editVmGroup(this.props.item, {name_description: description})
+  _setNameLabel = label => editVmGroup(this.props.item, {name_label: label})
+  _getVmGroupState = (vmGroup) => {
+    const states = map(this.props.vms, vm => vm.power_state)
+    return (states.length === 0
+    ? 'Busy'
+    : states.indexOf('Halted') === -1
+      ? states[0]
+      : states.indexOf('Running') === -1
+        ? states[0]
+        : 'Busy')
+  }
 
   render () {
     const { item: vmGroup, selected } = this.props

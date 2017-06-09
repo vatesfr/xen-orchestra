@@ -1,8 +1,6 @@
 import _ from 'intl'
 import BaseComponent from 'base-component'
 import Icon from 'icon'
-import { NavLink, NavTabs } from 'nav'
-import Page from '../page'
 import React, { cloneElement } from 'react'
 import {
   connectStore,
@@ -10,12 +8,17 @@ import {
 } from 'utils'
 import {
   assign,
+  forEach,
+  map,
   pick
 } from 'lodash'
 import { Container, Row, Col } from 'grid'
 import { createGetObject } from 'selectors'
+import { editVmGroup } from 'xo'
+import { NavLink, NavTabs } from 'nav'
 import { Text } from 'editable'
 
+import Page from '../page'
 import TabAdvanced from './tab-advanced'
 import TabGeneral from './tab-general'
 import TabManagement from './tab-management'
@@ -53,8 +56,18 @@ export default class VmGroup extends BaseComponent {
     router: React.PropTypes.object
   }
 
-  _setNameDescription = description => { /* TODO */ }
-  _setNameLabel = label => { /* TODO */ }
+  _setNameDescription = description => editVmGroup(this.props.vmGroup, {name_description: description})
+  _setNameLabel = label => editVmGroup(this.props.vmGroup, {name_label: label})
+  _getVmGroupState = () => {
+    const states = map(this.props.vms, vm => vm.power_state)
+    return (states.length === 0
+    ? 'busy'
+    : states.indexOf('Halted') === -1
+      ? states[0]
+      : states.indexOf('Running') === -1
+        ? states[0]
+        : 'busy').toLowerCase()
+  }
 
   header () {
     const { vmGroup } = this.props
