@@ -142,18 +142,12 @@ class _ModalBody extends Component {
   _getSrPredicate = createSelector(
     () => this.state.sr,
     () => this.state.mapVdisSrs,
-    (defaultSr, mapVdisSrs) => sr => {
-      if (!isSrWritable(sr)) {
-        return false
-      }
-
-      if (defaultSr.$pool !== sr.$pool) {
-        return false
-      }
-
-      return sr !== defaultSr && areSrsCompatible(defaultSr, sr) &&
-        every(mapVdisSrs, selectedSr => selectedSr == null || areSrsCompatible(selectedSr, sr))
-    }
+    (defaultSr, mapVdisSrs) => sr =>
+      sr !== defaultSr &&
+      isSrWritable(sr) &&
+      defaultSr.$pool === sr.$pool &&
+      areSrsCompatible(defaultSr, sr) &&
+      every(mapVdisSrs, selectedSr => selectedSr == null || areSrsCompatible(selectedSr, sr))
   )
 
   _onChangeDefaultSr = event => {
