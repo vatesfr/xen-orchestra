@@ -1956,5 +1956,11 @@ export const registerXosan = namespace => _call('cloud.registerResource', { name
 
 // VM-Group ----------------------------------------------------------------------
 
-export const fetchVmGroupStats = (host, granularity) => { /* TODO */ }
-export const createVmGroup = ({ pool, name_label, name_description }) => _call('vmGroup.create', { id: resolveId(pool), name_label, name_description })
+export const startVmGroup = vmGroup => {
+  _call('vmGroup.start', { id: resolveId(vmGroup) })
+}
+export const shutdownVmGroup = vmGroup => _call('vmGroup.shutdown', { id: resolveId(vmGroup) })
+export const rebootVmGroup = async vmGroup => {
+  await shutdownVmGroup(vmGroup)
+  await startVmGroup(vmGroup)
+}
