@@ -946,6 +946,11 @@ var messages = {
   newVmGroupCreate: 'Create',
   newVmGroupInfoPanel: 'Infos',
 
+  // ----- VM-Group item -----
+  powerStateVmGroupRunning: 'All vms are running',
+  powerStateVmGroupHalted: 'All vms are halted',
+  powerStateVmGroupBusy: 'Contains vms halted and vms running',
+
   // ----- Self -----
   resourceSets: 'Resource sets',
   noResourceSets: 'No resource sets.',

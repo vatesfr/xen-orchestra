@@ -78,7 +78,7 @@ export default class VmGroup extends BaseComponent {
       <Row>
         <Col mediumSize={6} className='header-title'>
           <h2>
-            <Icon icon='vm-busy' />
+            <Icon icon={`vm-${this._getVmGroupState()}`} />
             {' '}
             <Text value={vmGroup.name_label} onChange={this._setNameLabel} />
           </h2>

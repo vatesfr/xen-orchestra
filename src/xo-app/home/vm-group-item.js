@@ -54,6 +54,9 @@ export default class VmGroupItem extends Component {
               <input type='checkbox' checked={selected} onChange={this._onSelect} value={vmGroup.id} />
               &nbsp;&nbsp;
               <Ellipsis>
+                <Tooltip content={_(`powerStateVmGroup${this._getVmGroupState(vmGroup)}`)}>
+                  <Icon icon={`${this._getVmGroupState(vmGroup).toLowerCase()}`} />
+                </Tooltip>
                 <Text value={vmGroup.name_label} onChange={this._setNameLabel} useLongClick />
               </Ellipsis>
               &nbsp;&nbsp;
