@@ -67,6 +67,7 @@ var messages = {
   taskMenu: 'Tasks',
   taskPage: 'Tasks',
   newVmPage: 'VM',
+  newVmGroupPage: 'VM-Group',
   newSrPage: 'Storage',
   newServerPage: 'Server',
   newImport: 'Import',
@@ -936,6 +937,14 @@ var messages = {
   newVmShowAdvanced: 'Show advanced settings',
   newVmHideAdvanced: 'Hide advanced settings',
   newVmShare: 'Share this VM',
+
+  // ----- VM-Group-----
+  newVmGroupTitle: 'Create a new Vm-Group on ',
+  newVmGroupNameLabel: 'Label',
+  newVmGroupDescriptionLabel: 'Description',
+  newVmGroupReset: 'Reset',
+  newVmGroupCreate: 'Create',
+  newVmGroupInfoPanel: 'Infos',
 
   // ----- Self -----
   resourceSets: 'Resource sets',

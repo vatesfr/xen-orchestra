@@ -29,6 +29,7 @@ import Menu from './menu'
 import Modal, { alert } from 'modal'
 import New from './new'
 import NewVm from './new-vm'
+import NewVmGroup from './new-vm-group'
 import Pool from './pool'
 import Self from './self'
 import Settings from './settings'
@@ -87,6 +88,7 @@ const BODY_STYLE = {
   'vms/import': VmImport,
   'vms/new': NewVm,
   'vms/:id': Vm,
+  'vm-group/new': NewVmGroup,
   'vm-group/:id': VmGroup,
   'xoa-update': XoaUpdates,
   'xosan': Xosan

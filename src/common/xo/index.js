@@ -1957,3 +1957,4 @@ export const registerXosan = namespace => _call('cloud.registerResource', { name
 // VM-Group ----------------------------------------------------------------------
 
 export const fetchVmGroupStats = (host, granularity) => { /* TODO */ }
+export const createVmGroup = ({ pool, name_label, name_description }) => _call('vmGroup.create', { id: resolveId(pool), name_label, name_description })
