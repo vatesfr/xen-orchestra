@@ -151,7 +151,7 @@ const OPTIONS = {
       { labelId: 'homeSortByCpus', sortBy: 'CPUs.number', sortOrder: 'desc' }
     ]
   },
-  'VM-group': {
+  'VmGroup': {
     defaultFilter: '',
     filters: homeFilters.vmGroup,
     mainActions: [
@@ -211,7 +211,7 @@ const OPTIONS = {
 
 const TYPES = {
   VM: _('homeTypeVm'),
-  'VM-group': _('homeTypeVmGroup'),
+  VmGroup: _('homeTypeVmGroup'),
   'VM-template': _('homeTypeVmTemplate'),
   host: _('homeTypeHost'),
   pool: _('homeTypePool'),
