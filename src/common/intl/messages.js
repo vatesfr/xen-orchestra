@@ -951,6 +951,10 @@ var messages = {
   powerStateVmGroupHalted: 'All vms are halted',
   powerStateVmGroupBusy: 'Contains vms halted and vms running',
 
+  // ----- VM-Group management Tab -----
+  'attachVmButton': 'new VM',
+  'vmsBootOrder': 'Boot order',
+
   // ----- Self -----
   resourceSets: 'Resource sets',
   noResourceSets: 'No resource sets.',

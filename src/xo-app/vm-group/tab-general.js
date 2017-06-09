@@ -3,6 +3,7 @@ import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import reduce from 'lodash/reduce'
 import React from 'react'
+import size from 'lodash/size'
 import store from 'store'
 import { Container, Row, Col } from 'grid'
 import { formatSize } from 'utils'
@@ -27,7 +28,7 @@ export default class TabGeneral extends Component {
   _removeTag = tag => { /* TODO */ }
 
   render () {
-    const { vms, vmGroup } = this.props
+    const { vms } = this.props
     return (
 
       <Container>
@@ -35,7 +36,7 @@ export default class TabGeneral extends Component {
         <div>
           <Row className='text-xs-center'>
             <Col mediumSize={3}>
-              <h2>{vms.length}x <Icon icon='vm' size='lg' /></h2>
+              <h2>{size(vms)}x <Icon icon='vm' size='lg' /></h2>
             </Col>
             <Col mediumSize={3}>
               <h2>{this._getNbCPU()}x <Icon icon='cpu' size='lg' /></h2>

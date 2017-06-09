@@ -61,12 +61,25 @@ const VM_COLUMNS = [
 
 const parseBootOrder = vms => {
   // FIXME missing translation
+  var previousOrder = vms[Object.keys(vms)[0]].order
+  var toggleActive = false
   const orderVms = sortBy(vms, vm => {
+    if (vm.order !== previousOrder) toggleActive = true
     return vm.order
   })
   const order = []
-  forEach(orderVms, vm => { order.push({id: vm.id, text: vm.name_label, active: vm.order !== 0}) })
-  return order
+  forEach(orderVms, vm => {
+    order.push({id: vm.id, text: vm.name_label})
+  })
+  return {order, toggleActive}
+}
+
+const setVmBootOrder = (vms, order, toggleActive) => {
+  var orderValue = 0
+  forEach(order, (vm, key) => {
+    editVm(vms[vm.id], { order: toggleActive ? orderValue : 0 })
+    orderValue += 1
+  })
 }
 
 const orderItemSource = {
@@ -105,10 +118,6 @@ const orderItemTarget = {
   move: propTypes.func.isRequired
 })
 class OrderItem extends Component {
-  _toggle = checked => {
-    /* TODO */
-  }
-
   render () {
     const { item, connectDragSource, connectDropTarget } = this.props
     return connectDragSource(connectDropTarget(
@@ -118,9 +127,6 @@ class OrderItem extends Component {
         <Icon icon='grab' />
         {' '}
         {item.text}
-        <span className='pull-right'>
-          <Toggle value={item.active} onChange={this._toggle} />
-        </span>
       </li>
     ))
   }
@@ -134,25 +140,34 @@ class BootOrder extends Component {
   constructor (props) {
     super(props)
     const { vms } = props
-    const order = parseBootOrder(vms)
-    this.state = {order}
+    this.state = parseBootOrder(vms)
   }
 
   _moveOrderItem = (dragIndex, hoverIndex) => {
-    /* TODO */
+    const order = this.state.order.slice()
+    const dragItem = order.splice(dragIndex, 1)
+    if (dragItem.length) {
+      order.splice(hoverIndex, 0, dragItem.pop())
+      this.setState({order})
+    }
   }
 
   _reset = () => {
-    /* TODO */
+    const { vms } = this.props
+    const order = parseBootOrder(vms)
+    this.state = this.setState({order})
   }
 
   _save = () => {
-    /* TODO */
+    setVmBootOrder(this.props.vms, this.state.order, this.state.toggleActive)
   }
 
+  _toggleOnChange = event => this.setState({toggleActive: event})
+
   render () {
-    const { order } = this.state
+    const { order, toggleActive } = this.state
     return <form>
+      <Toggle value={toggleActive} onChange={this._toggleOnChange} />
       <ul>
         {map(order, (item, index) => <OrderItem
           key={index}
@@ -183,8 +198,10 @@ export default class TabManagement extends Component {
     }
   }
 
-  _addVm = vm => { /* TODO */ }
-  _selectVm = vm => this.setState({vm})
+  _addVm = () => {
+    forEach(this.state.vmsToAdd, vm => editVm(vm, { appliance: this.props.vmGroup.id }))
+  }
+  _selectVm = vmsToAdd => this.setState({vmsToAdd})
   _toggleBootOrder = () => this.setState({
     bootOrder: !this.state.bootOrder,
     attachVm: false
@@ -193,7 +210,7 @@ export default class TabManagement extends Component {
     attachVm: !this.state.attachVm,
     bootOrder: false
   })
-  _vmPredicate = vm => !this.props.vms.includes(vm)
+  _vmPredicate = vm => vm.appliance === null
 
   render () {
     const { vms } = this.props
@@ -206,21 +223,21 @@ export default class TabManagement extends Component {
               btnStyle={attachVm ? 'info' : 'primary'}
               handler={this._toggleNewVm}
               icon='add'
-              labelId='vbdCreateDeviceButton'
+              labelId='attachVmButton'
             />
             <TabButton
               btnStyle={bootOrder ? 'info' : 'primary'}
               handler={this._toggleBootOrder}
               icon='sort'
-              labelId='vdiBootOrder'
+              labelId='vmsBootOrder'
             />
           </Col>
         </Row>
         {bootOrder && <div><BootOrder vms={vms} onClose={this._toggleBootOrder} /><hr /></div>}
         {attachVm && <div>
-          <SelectVm onChange={this._selectVm} predicate={this._vmPredicate} required />
+          <SelectVm multi onChange={this._selectVm} predicate={this._vmPredicate} required />
           <span className='pull-right'>
-            <ActionButton icon='add' btnStyle='primary' handler={this._addVm}>{_('add')}</ActionButton>
+            <ActionButton onClick={this._addVm} icon='add' btnStyle='primary' handler={this._addVm}>{_('add')}</ActionButton>
           </span>
         </div>}
         <SortedTable collection={vms} columns={VM_COLUMNS} />
