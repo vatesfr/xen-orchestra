@@ -39,7 +39,7 @@ import {
 
 // Can 2 SRs on the same pool have 2 VDIs used by the same VM
 const areSrsCompatible = (sr1, sr2) =>
-  sr1 === sr2 || sr1.shared || sr2.shared || sr1.$container === sr2.$container
+  sr1.shared || sr2.shared || sr1.$container === sr2.$container
 
 const parseDate = date => +moment(date, 'YYYYMMDDTHHmmssZ').format('x')
 
@@ -151,7 +151,7 @@ class _ModalBody extends Component {
         return false
       }
 
-      return areSrsCompatible(defaultSr, sr) &&
+      return sr !== defaultSr && areSrsCompatible(defaultSr, sr) &&
         every(mapVdisSrs, selectedSr => selectedSr == null || areSrsCompatible(selectedSr, sr))
     }
   )
@@ -167,7 +167,7 @@ class _ModalBody extends Component {
     } else if (!newSr.shared) {
       const mapVdisSrs = {...this.state.mapVdisSrs}
       forEach(mapVdisSrs, (sr, vdi) => {
-        if (sr != null && !areSrsCompatible(sr, newSr)) {
+        if (sr != null && newSr !== sr && sr.$container !== newSr.$container && !sr.shared) {
           delete mapVdisSrs[vdi]
         }
       })
