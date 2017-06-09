@@ -112,9 +112,9 @@ class _Collapsible extends Component {
     } = this.props
 
     return collapsible
-      ? <Collapse {...props}> {children} </Collapse>
+      ? <Collapse {...props}>{children}</Collapse>
       : <div>
-        <span> {props.buttonText} </span>
+        <span>{props.buttonText}</span>
         <br />
         {children}
       </div>
@@ -138,19 +138,19 @@ class _ModalBody extends Component {
     () => this.state.sr,
     () => this.state.mapVdisSrs,
     (defaultSr, mapVdisSrs) => sr => {
-      let predicate = isSrWritable(sr) && defaultSr.$pool === sr.$pool
+      let result = isSrWritable(sr) && defaultSr.$pool === sr.$pool
 
       if (!defaultSr.shared) {
-        predicate = predicate && (defaultSr.$container === sr.$container || sr.shared)
+        result = result && (sr.shared || defaultSr.$container === sr.$container)
       } else {
-        forEach(mapVdisSrs, (selectedSr, vdi) => {
+        forEach(mapVdisSrs, selectedSr => {
           if (selectedSr != null && !selectedSr.shared) {
-            predicate = predicate && (selectedSr.$container === sr.$container || sr.shared)
+            result = result && (sr.shared || selectedSr.$container === sr.$container)
           }
         })
       }
 
-      return predicate
+      return result
     }
   )
 
@@ -158,22 +158,20 @@ class _ModalBody extends Component {
     const oldSr = this.state.sr
     const newSr = getEventValue(event)
 
-    if (oldSr != null && newSr != null) {
-      if (oldSr.$pool !== newSr.$pool) {
-        this.setState({
-          mapVdisSrs: {}
-        })
-      } else if (!newSr.shared) {
-        const mapVdisSrs = {...this.state.mapVdisSrs}
-        forEach(mapVdisSrs, (sr, vdi) => {
-          if (sr != null && newSr !== sr && !sr.shared) {
-            delete mapVdisSrs[vdi]
-          }
-        })
-        this.setState({
-          mapVdisSrs
-        })
-      }
+    if (oldSr == null || newSr == null || oldSr.$pool !== newSr.$pool) {
+      this.setState({
+        mapVdisSrs: {}
+      })
+    } else if (!newSr.shared) {
+      const mapVdisSrs = {...this.state.mapVdisSrs}
+      forEach(mapVdisSrs, (sr, vdi) => {
+        if (sr != null && newSr !== sr && !sr.shared) {
+          delete mapVdisSrs[vdi]
+        }
+      })
+      this.setState({
+        mapVdisSrs
+      })
     }
 
     this.setState({
@@ -197,12 +195,12 @@ class _ModalBody extends Component {
       />
       <br />
       {vdis != null && this.state.sr != null &&
-        <_Collapsible collapsible={vdis.length >= 3} buttonText={_('backupRestoreChooseSRForEachVdis')}>
+        <_Collapsible collapsible={vdis.length >= 3} buttonText={_('backupRestoreChooseSrForEachVdis')}>
           <br />
-          <container>
+          <Container>
             <SingleLineRow>
               <Col size={6}><strong>{_('backupRestoreVdiLabel')}</strong></Col>
-              <Col size={6}><strong>{_('backupResoreSrLabel')}</strong></Col>
+              <Col size={6}><strong>{_('backupRestoreSrLabel')}</strong></Col>
             </SingleLineRow>
             {map(vdis, vdi =>
               <SingleLineRow key={vdi.uuid}>
@@ -210,7 +208,7 @@ class _ModalBody extends Component {
                 <Col size={6}><SelectSr onChange={this.linkState(`mapVdisSrs.${vdi.uuid}`)} value={this.state.mapVdisSrs[vdi.uuid]} predicate={this._getSrPredicate()} /></Col>
               </SingleLineRow>
             )}
-          </container>
+          </Container>
         </_Collapsible>
       }
       <br />
