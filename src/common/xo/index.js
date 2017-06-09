@@ -1965,3 +1965,11 @@ export const rebootVmGroup = async vmGroup => {
   await startVmGroup(vmGroup)
 }
 export const editVmGroup = (vmGroup, props) => _call('vmGroup.set', { id: resolveId(vmGroup), ...props })
+export const deleteVmGroup = (vmGroup, vms) =>
+  confirm({
+    title: _('deleteVmGroupModalTitle'),
+    body: _('deleteVmGroupModalMessage')
+  }).then(() => {
+    forEach(vms, vm => editVm(vm, { appliance: null, order: 0 }))
+    _call('vmGroup.destroy', { id: resolveId(vmGroup) })
+  }, Promise.reject())

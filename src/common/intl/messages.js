@@ -1107,6 +1107,8 @@ var messages = {
   migrateVmNetwork: 'Network',
   migrateVmNoTargetHost: 'No target host',
   migrateVmNoTargetHostMessage: 'A target host is required to migrate a VM',
+  deleteVmGroupModalTitle: 'Delete VM-Group',
+  deleteVmGroupModalMessage: 'Are you sure you want to delete this VMGroup ?',
   deleteVdiModalTitle: 'Delete VDI',
   deleteVdiModalMessage: 'Are you sure you want to delete this disk? ALL DATA ON THIS DISK WILL BE LOST',
   revertVmModalTitle: 'Revert your VM',
