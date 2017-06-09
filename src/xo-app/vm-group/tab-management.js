@@ -15,11 +15,10 @@ import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import { DragDropContext, DragSource, DropTarget } from 'react-dnd'
+import { editVm } from 'xo'
 import { Row, Col } from 'grid'
 import { SelectVm } from 'select-objects'
 import { Toggle } from 'form'
-
-const deleteVM = () => { /* TODO */ }
 
 const VM_COLUMNS = [
   {
@@ -52,7 +51,7 @@ const VM_COLUMNS = [
     itemRenderer: vm => (
       <ActionRowButton
         btnStyle='danger'
-        handler={deleteVM}
+        handler={(vm) => editVm(vm, { appliance: null, order: 0 })}
         handlerParam={vm}
         icon='delete'
       />

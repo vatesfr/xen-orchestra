@@ -1964,3 +1964,4 @@ export const rebootVmGroup = async vmGroup => {
   await shutdownVmGroup(vmGroup)
   await startVmGroup(vmGroup)
 }
+export const editVmGroup = (vmGroup, props) => _call('vmGroup.set', { id: resolveId(vmGroup), ...props })
