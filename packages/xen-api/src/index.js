@@ -299,11 +299,11 @@ export class Xapi extends EventEmitter {
   callAsync ($cancelToken, method, ...args) {
     return this.call(`Async.${method}`, ...args).then(taskRef => {
       $cancelToken.promise.then(() => {
-        this.call('task.cancel', taskRef).catch(noop)
+        this._sessionCall('task.cancel', taskRef).catch(noop)
       })
 
       return this.watchTask(taskRef)::lastly(() => {
-        this.call('task.destroy', taskRef).catch(noop)
+        this._sessionCall('task.destroy', taskRef).catch(noop)
       })
     })
   }
