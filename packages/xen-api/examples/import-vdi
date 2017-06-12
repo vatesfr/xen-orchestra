@@ -1,0 +1,35 @@
+#!/usr/bin/env node
+
+process.env.DEBUG = '*'
+
+const defer = require('golike-defer').default
+const pump = require('pump')
+const { createReadStream } = require('fs')
+const { fromCallback } = require('promise-toolbox')
+
+const { createClient } = require('../')
+
+defer(async ($defer, args) => {
+  if (args.length < 2) {
+    return console.log('Usage: import-vdi <XS URL> <VDI reference> <VHD file>')
+  }
+
+  const xapi = createClient({
+    allowUnauthorized: true,
+    url: args[0],
+    watchEvents: false
+  })
+
+  await xapi.connect()
+  $defer(() => xapi.disconnect())
+
+  // https://xapi-project.github.io/xen-api/snapshots.html#uploading-a-disk-or-snapshot
+  await xapi.putResource(createReadStream(args[2]), '/import_raw_vdi/', {
+    query: {
+      format: 'vhd',
+      vdi: args[1]
+    }
+  })
+})(process.argv.slice(2)).catch(
+  console.error.bind(console, 'error')
+)

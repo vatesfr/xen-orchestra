@@ -1,33 +1,37 @@
-import forEach from 'lodash.foreach'
-import size from 'lodash.size'
-import {createClient} from './'
+#!/usr/bin/env node
 
-import sourceMapSupport from 'source-map-support'
-sourceMapSupport.install()
+require('source-map-support').install()
+
+const { forEach, size } = require('lodash')
+
+const { createClient } = require('../')
+
+// ===================================================================
+
+if (process.argv.length < 3) {
+  return console.log('Usage: log-events <XS URL>')
+}
 
 // ===================================================================
 // Creation
 
 const xapi = createClient({
-  url: 'https://192.168.1.1',
-  auth: {
-    user: 'root',
-    password: 'qwerty'
-  }
+  allowUnauthorized: true,
+  url: process.argv[2]
 })
 
 // ===================================================================
 // Method call
 
-const getAllVms = xapi.call('VM.get_all_records')
-
-getAllVms()
+xapi.connect().then(() => {
+  xapi.call('VM.get_all_records')
   .then(function (vms) {
     console.log('%s VMs fetched', size(vms))
   })
   .catch(function (error) {
     console.error(error)
   })
+})
 
 // ===================================================================
 // Objects
