@@ -354,6 +354,7 @@ export class Xapi extends EventEmitter {
 
   @cancelable
   getResource ($cancelToken, pathname, { host, query }) {
+    // TODO: should we create a task to properly cancel the request?
     return httpRequest(
       $cancelToken,
       this._url,
@@ -376,6 +377,7 @@ export class Xapi extends EventEmitter {
     host,
     query
   } = {}) {
+    // TODO: should we create a task to properly cancel the request?
     const headers = {}
 
     // Xen API does not support chunk encoding.
