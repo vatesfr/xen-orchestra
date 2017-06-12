@@ -12,6 +12,7 @@ import {
   catchPlus as pCatch,
   defer,
   delay as pDelay,
+  fromEvent,
   lastly
 } from 'promise-toolbox'
 
@@ -147,6 +148,10 @@ const getTaskResult = (task, onSuccess, onFailure) => {
     )) ]
   }
 }
+
+// -------------------------------------------------------------------
+
+const PUT_RESOURCE_CANCEL_TAG = '[Xapi#putResource] normal cancel'
 
 // ===================================================================
 
@@ -401,7 +406,7 @@ export class Xapi extends EventEmitter {
       // when the data has been emitted, close the connection
       $cancelToken = $cancelToken.fork(cancel => {
         body.on('end', () => {
-          setTimeout(cancel, 1e3)
+          setTimeout(() => cancel(PUT_RESOURCE_CANCEL_TAG), 1e3)
         })
       })
     }
@@ -422,7 +427,14 @@ export class Xapi extends EventEmitter {
         },
         rejectUnauthorized: !this._allowUnauthorized
       }
-    )
+    ).then(response => {
+      // TODO: response.header['task-id']
+      return fromEvent(response, 'end').catch(error => {
+        if (error == null || error.message !== PUT_RESOURCE_CANCEL_TAG) {
+          throw error
+        }
+      })
+    })
   }
 
   watchTask (ref) {
