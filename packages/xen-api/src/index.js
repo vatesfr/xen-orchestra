@@ -411,7 +411,7 @@ export class Xapi extends EventEmitter {
       })
     }
 
-    return httpRequest.put(
+    const doRequest = ($cancelToken, override) => httpRequest.put(
       $cancelToken,
       this._url,
       host && {
@@ -426,6 +426,36 @@ export class Xapi extends EventEmitter {
           session_id: this.sessionId
         },
         rejectUnauthorized: !this._allowUnauthorized
+      },
+      override
+    )
+
+    // http-request-plus correctly handle redirects if body is not a stream
+    if (typeof body.pipe !== 'function') {
+      return doRequest($cancelToken)
+    }
+
+    // dummy request to probe for a redirection before consuming body
+    return doRequest(null, {
+      body: '',
+      maxRedirects: 0
+    }).then(
+      response => {
+        response.cancel()
+        return doRequest($cancelToken)
+      },
+      error => {
+        let response
+        if (error != null && (response = error.response) != null) {
+          response.cancel()
+
+          const { headers: { location }, statusCode } = response
+          if (statusCode === 302 && location !== undefined) {
+            return doRequest($cancelToken, location)
+          }
+        }
+
+        throw error
       }
     ).then(response => {
       // TODO: response.header['task-id']
