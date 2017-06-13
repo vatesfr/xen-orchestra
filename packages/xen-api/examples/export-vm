@@ -4,14 +4,15 @@ process.env.DEBUG = '*'
 
 const defer = require('golike-defer').default
 const pump = require('pump')
-const { createWriteStream } = require('fs')
 const { fromCallback } = require('promise-toolbox')
 
 const { createClient } = require('../')
 
+const { createOutputStream } = require('./utils')
+
 defer(async ($defer, args) => {
-  if (args.length < 3) {
-    return console.log('Usage: export-vm <XS URL> <VM reference> <XVA file>')
+  if (args.length < 2) {
+    return console.log('Usage: export-vm <XS URL> <VM reference> [<XVA file>]')
   }
 
   const xapi = createClient({
@@ -31,11 +32,11 @@ defer(async ($defer, args) => {
     }
   })
 
-  console.log('Import task:', exportStream.headers['task-id'])
+  console.warn('Export task:', exportStream.headers['task-id'])
 
   await fromCallback(cb => pump(
     exportStream,
-    createWriteStream(args[2]),
+    createOutputStream(args[2]),
     cb
   ))
 })(process.argv.slice(2)).catch(

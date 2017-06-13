@@ -3,15 +3,14 @@
 process.env.DEBUG = '*'
 
 const defer = require('golike-defer').default
-const pump = require('pump')
-const { createReadStream } = require('fs')
-const { fromCallback } = require('promise-toolbox')
 
 const { createClient } = require('../')
 
+const { createInputStream } = require('./utils')
+
 defer(async ($defer, args) => {
-  if (args.length < 2) {
-    return console.log('Usage: import-vm <XS URL> <XVA file> [SR reference]')
+  if (args.length < 1) {
+    return console.log('Usage: import-vm <XS URL> [<XVA file>] [SR reference]')
   }
 
   const xapi = createClient({
@@ -24,7 +23,7 @@ defer(async ($defer, args) => {
   $defer(() => xapi.disconnect())
 
   // https://xapi-project.github.io/xen-api/importexport.html
-  await xapi.putResource(createReadStream(args[1]), '/import/', {
+  await xapi.putResource(createInputStream(args[1]), '/import/', {
     query: args[2] && { sr_id: args[2] }
   })
 })(process.argv.slice(2)).catch(
