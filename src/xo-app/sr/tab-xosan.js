@@ -1,12 +1,18 @@
 import Component from 'base-component'
 import Link from 'link'
 import React from 'react'
+import ActionButton from 'action-button'
 import { Container, Row, Col } from 'grid'
+import { SelectSr } from 'select-objects'
 import {
   map
 } from 'lodash'
 import {
-  getVolumeInfo
+  createSelector
+} from 'selectors'
+import {
+  getVolumeInfo,
+  replaceXosanBrick
 } from 'xo'
 
 export default class TabXosan extends Component {
@@ -15,8 +21,18 @@ export default class TabXosan extends Component {
       this.setState({ volumeInfo: data })
     })
   }
+  _replaceBrick = (brick) => {
+    console.log('_replaceBrick', brick, this.state.sr.id)
+    replaceXosanBrick(this.props.sr.id, brick, this.state.sr.id).then(res => {
+      console.log('replaced', res)
+    })
+  }
+  _getSrPredicate = createSelector(
+    () => this.props.sr.pool, pool => sr => sr.SR_type === 'lvm'
+  )
 
   render () {
+    const {sr} = this.state
     return this.state.volumeInfo ? (<Container>
       {this.state.volumeInfo && map(this.state.volumeInfo['bricks'], brick =>
         <div>
@@ -27,6 +43,17 @@ export default class TabXosan extends Component {
             </Row>
             <Row>
               <Col size={2}>Status: </Col><Col size={4}>{brick.heal.status}</Col>
+              <Col size={3}>
+                <SelectSr predicate={this._getSrPredicate()} onChange={this.linkState('sr')} value={sr} />
+              </Col>
+              <Col size={3}>
+                <ActionButton
+                  btnStyle='success'
+                  icon='refresh'
+                  handler={this._replaceBrick}
+                  handlerParam={brick.info.name}
+                >Replace</ActionButton>
+              </Col>
             </Row>
             <Row>
               <Col size={2}>Arbiter: </Col><Col size={4}>{brick.info.isArbiter === '1' ? 'True' : 'False' }</Col>
