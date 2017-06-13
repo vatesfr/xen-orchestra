@@ -12,7 +12,7 @@ import {
   catchPlus as pCatch,
   defer,
   delay as pDelay,
-  fromEvent,
+  fromEvents,
   lastly
 } from 'promise-toolbox'
 
@@ -429,7 +429,11 @@ export class Xapi extends EventEmitter {
       }
     ).then(response => {
       // TODO: response.header['task-id']
-      return fromEvent(response, 'end').catch(error => {
+      return fromEvents(
+        response,
+        [ 'end' ],
+        [ 'aborted', 'error' ]
+      ).catch(([ error ]) => {
         if (error == null || error.message !== PUT_RESOURCE_CANCEL_TAG) {
           throw error
         }
