@@ -28,6 +28,9 @@ export default class TabXosan extends Component {
             <Row>
               <Col size={2}>Status: </Col><Col size={4}>{brick.heal.status}</Col>
             </Row>
+            <Row>
+              <Col size={2}>Arbiter: </Col><Col size={4}>{brick.info.isArbiter === '1' ? 'True' : 'False' }</Col>
+            </Row>
             {brick['status'].length !== 0 && <table style={{border: 'solid black 1px'}}>
               <thead>
                 <tr style={{border: 'solid black 1px'}}>

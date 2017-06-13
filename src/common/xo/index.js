@@ -2001,6 +2001,8 @@ export const createXosanSR = ({ template, pif, vlan, srs, glusterType, redundanc
   redundancy: Number.parseInt(redundancy)
 })
 
+export const addXosanBrick = (xosansr, lvmsr) => _call('xosan.addBrick', {xosansr, lvmsr})
+
 export const computeXosanPossibleOptions = lvmSrs => _call('xosan.computeXosanPossibleOptions', { lvmSrs })
 
 import InstallXosanPackModal from './install-xosan-pack-modal' // eslint-disable-line import/first
