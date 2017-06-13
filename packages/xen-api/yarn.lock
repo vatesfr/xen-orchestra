@@ -1897,9 +1897,9 @@ html-encoding-sniffer@^1.0.1:
   dependencies:
     whatwg-encoding "^1.0.1"
 
-http-request-plus@^0.1.5:
-  version "0.1.5"
-  resolved "https://registry.yarnpkg.com/http-request-plus/-/http-request-plus-0.1.5.tgz#9aead8b230586397928ecbb9a6bed96a3bfe2210"
+http-request-plus@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/http-request-plus/-/http-request-plus-0.3.0.tgz#4ee822f65006485af0362dd70c5fd145f885dd0c"
   dependencies:
     is-redirect "^1.0.0"
     lodash "^4.17.4"
@@ -3010,13 +3010,7 @@ progress@^1.1.8:
   version "1.1.8"
   resolved "https://registry.yarnpkg.com/progress/-/progress-1.1.8.tgz#e260c78f6161cdd9b0e56cc3e0a85de17c7a57be"
 
-promise-toolbox@^0.9.1:
-  version "0.9.1"
-  resolved "https://registry.yarnpkg.com/promise-toolbox/-/promise-toolbox-0.9.1.tgz#01ad022f7a1272f51049b9561ac522041360fc37"
-  dependencies:
-    make-error "^1.2.3"
-
-promise-toolbox@^0.9.4:
+promise-toolbox@^0.9.1, promise-toolbox@^0.9.4:
   version "0.9.4"
   resolved "https://registry.yarnpkg.com/promise-toolbox/-/promise-toolbox-0.9.4.tgz#672fe37557eea05093f770e7e1fca64e39ae9238"
   dependencies:

@@ -379,7 +379,7 @@ export class Xapi extends EventEmitter {
         hostname: this.getObject(host).address
       },
       {
-        path: pathname,
+        pathname,
         query: {
           ...query,
           session_id: this.sessionId
@@ -420,7 +420,7 @@ export class Xapi extends EventEmitter {
       {
         body,
         headers,
-        path: pathname,
+        pathname,
         query: {
           ...query,
           session_id: this.sessionId
