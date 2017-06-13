@@ -353,4 +353,8 @@ export const useUpdateSystem = host => {
 }
 
 export const canSrHaveNewVdiOfSize = (sr, minSize) =>
-  sr != null && sr.content_type === 'user' && sr.physical_size - sr.physical_utilisation >= minSize
+  sr != null &&
+  // content_type values are not documented: this may be incorrect
+  sr.content_type !== 'disk' && // removable
+  sr.content_type !== 'iso' && // read only
+  sr.physical_size - sr.physical_utilisation >= minSize
