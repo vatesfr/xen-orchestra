@@ -105,7 +105,7 @@ const {
 // -------------------------------------------------------------------
 
 const OPAQUE_REF_PREFIX = 'OpaqueRef:'
-const isOpaqueRef = value =>
+export const isOpaqueRef = value =>
   typeof value === 'string' &&
   startsWith(value, OPAQUE_REF_PREFIX)
 
