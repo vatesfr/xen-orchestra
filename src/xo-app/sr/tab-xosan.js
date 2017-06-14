@@ -22,10 +22,7 @@ export default class TabXosan extends Component {
     })
   }
   _replaceBrick = (brick) => {
-    console.log('_replaceBrick', brick, this.state.sr.id)
-    replaceXosanBrick(this.props.sr.id, brick, this.state.sr.id).then(res => {
-      console.log('replaced', res)
-    })
+    replaceXosanBrick(this.props.sr.id, brick, this.state.sr.id)
   }
   _getSrPredicate = createSelector(
     () => this.props.sr.pool, pool => sr => sr.SR_type === 'lvm'
