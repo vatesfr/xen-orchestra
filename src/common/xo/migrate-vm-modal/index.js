@@ -9,8 +9,10 @@ import some from 'lodash/some'
 import store from 'store'
 
 import _ from '../../intl'
+import Icon from 'icon'
 import invoke from '../../invoke'
 import SingleLineRow from '../../single-line-row'
+import Tooltip from '../../tooltip'
 import { Col } from '../../grid'
 import { getDefaultNetworkForVif } from '../utils'
 import {
@@ -164,32 +166,7 @@ export default class MigrateVmModalBody extends BaseComponent {
 
     // Intra-pool
     const defaultSr = pools[host.$pool].default_SR
-
-    let targetSr
-    if (
-      isSrShared(this._getObject(defaultSr)) ||
-      some(host.$PBDs, pbd => this._getObject(pbd).SR === defaultSr)
-    ) {
-      targetSr = defaultSr
-    } else {
-      for (let pbd of host.$PBDs) {
-        const sr = this._getObject(this._getObject(pbd).SR)
-        if (isSrShared(sr) && isSrWritable(sr)) {
-          targetSr = sr.id
-          break
-        }
-      }
-
-      if (targetSr === undefined) {
-        for (let pbd of host.$PBDs) {
-          const sr = this._getObject(this._getObject(pbd).SR)
-          if (isSrWritable(sr)) {
-            targetSr = sr.id
-            break
-          }
-        }
-      }
-    }
+    const defaultSrConnectedToHost = some(host.$PBDs, pbd => this._getObject(pbd).SR === defaultSr)
 
     if (intraPool) {
       let doNotMigrateVdis
@@ -206,10 +183,16 @@ export default class MigrateVmModalBody extends BaseComponent {
       }
 
       this.setState({
+        defaultSr,
+        defaultSrConnectedToHost,
         doNotMigrateVdis,
         host,
         intraPool,
-        mapVdisSrs: doNotMigrateVdis ? undefined : mapValues(vdis, vdi => targetSr),
+        mapVdisSrs: doNotMigrateVdis
+          ? undefined
+          : defaultSrConnectedToHost
+            ? mapValues(vdis, vdi => defaultSr)
+            : undefined,
         mapVifsNetworks: undefined,
         migrationNetwork: undefined
       })
@@ -237,10 +220,14 @@ export default class MigrateVmModalBody extends BaseComponent {
     })
 
     this.setState({
+      defaultSr,
+      defaultSrConnectedToHost,
       doNotMigrateVdis: false,
       host,
       intraPool,
-      mapVdisSrs: mapValues(vdis, vdi => targetSr),
+      mapVdisSrs: defaultSrConnectedToHost
+        ? mapValues(vdis, vdi => defaultSr)
+        : undefined,
       mapVifsNetworks: defaultNetworksForVif,
       migrationNetworkId: defaultMigrationNetworkId
     })
@@ -251,6 +238,8 @@ export default class MigrateVmModalBody extends BaseComponent {
   render () {
     const { vdis, vifs, networks } = this.props
     const {
+      defaultSr,
+      defaultSrConnectedToHost,
       doNotMigrateVdis,
       host,
       intraPool,
@@ -278,7 +267,24 @@ export default class MigrateVmModalBody extends BaseComponent {
         <br />
         <SingleLineRow>
           <Col size={6}><span className={styles.listTitle}>{_('migrateVmName')}</span></Col>
-          <Col size={6}><span className={styles.listTitle}>{_('migrateVmSr')}</span></Col>
+          <Col size={6}>
+            <span className={styles.listTitle}>{_('migrateVmSr')}</span>
+            {' '}
+            {(defaultSr === undefined || !defaultSrConnectedToHost) &&
+              <Tooltip
+                content={defaultSr !== undefined
+                  ? _('migrateVmNotConnectedDefaultSrError')
+                  : _('migrateVmNoDefaultSrError')
+                }
+              >
+                <Icon
+                  icon={defaultSr !== undefined ? 'alarm' : 'info'}
+                  className={defaultSr !== undefined ? 'text-warning' : 'text-info'}
+                  size='lg'
+                />
+              </Tooltip>
+            }
+          </Col>
         </SingleLineRow>
         {map(vdis, vdi => <div className={styles.listItem} key={vdi.id}>
           <SingleLineRow>
@@ -287,7 +293,7 @@ export default class MigrateVmModalBody extends BaseComponent {
               <SelectSr
                 onChange={sr => this.setState({ mapVdisSrs: { ...mapVdisSrs, [vdi.id]: sr.id } })}
                 predicate={this._getSrPredicate()}
-                value={mapVdisSrs[vdi.id]}
+                value={mapVdisSrs && mapVdisSrs[vdi.id]}
               />
             </Col>
           </SingleLineRow>
