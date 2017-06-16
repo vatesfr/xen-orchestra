@@ -879,7 +879,6 @@ var messages = {
 
   // ----- New VM -----
   newVmCreateNewVmOn: 'Create a new VM on {select}',
-  newVmCreateNewVmOn2: 'Create a new VM on {select1} or {select2}',
   newVmCreateNewVmNoPermission: 'You have no permission to create a VM',
   newVmInfoPanel: 'Infos',
   newVmNameLabel: 'Name',

@@ -51,6 +51,7 @@ import {
   startVms,
   stopHosts,
   stopVms,
+  subscribeResourceSets,
   subscribeServers
 } from 'xo'
 import { Container, Row, Col } from 'grid'
@@ -73,7 +74,8 @@ import {
   createPager,
   createSelector,
   createSort,
-  getUser
+  getUser,
+  isAdmin
 } from 'selectors'
 import {
   DropdownButton,
@@ -205,6 +207,7 @@ const TYPES = {
 const DEFAULT_TYPE = 'VM'
 
 @addSubscriptions({
+  resourceSets: subscribeResourceSets,
   servers: subscribeServers
 })
 @connectStore(() => {
@@ -216,6 +219,7 @@ const DEFAULT_TYPE = 'VM'
 
   return {
     areObjectsFetched,
+    isAdmin,
     items: createGetObjectsOfType(type),
     noServersConnected,
     type,
@@ -463,6 +467,11 @@ export default class Home extends Component {
     return customFilters[this._getType()]
   }
 
+  _getNoResourceSets = createSelector(
+    () => this.props.resourceSets,
+    isEmpty
+  )
+
   // Checkboxes ----------------------------------------------------------------
 
   _getIsAllSelected = createSelector(
@@ -528,9 +537,13 @@ export default class Home extends Component {
   // Header --------------------------------------------------------------------
 
   _renderHeader () {
-    const { type } = this.props
+    const {
+      isAdmin,
+      type
+    } = this.props
     const { filters } = OPTIONS[type]
     const customFilters = this._getCustomFilters()
+    const noResourceSets = this._getNoResourceSets()
 
     return <Container>
       <Row className={styles.itemRowHeader}>
@@ -581,13 +594,15 @@ export default class Home extends Component {
             </div>
           </div>
         </Col>
-        <Col mediumSize={3} className='text-xs-right'>
-          <Link
-            className='btn btn-success'
-            to='/vms/new'>
-            <Icon icon='vm-new' /> {_('homeNewVm')}
-          </Link>
-        </Col>
+        {(isAdmin || !noResourceSets) &&
+          <Col mediumSize={3} className='text-xs-right'>
+            <Link
+              className='btn btn-success'
+              to='/vms/new'>
+              <Icon icon='vm-new' /> {_('homeNewVm')}
+            </Link>
+          </Col>
+        }
       </Row>
     </Container>
   }
@@ -597,12 +612,11 @@ export default class Home extends Component {
   render () {
     const {
       areObjectsFetched,
+      isAdmin,
       noServersConnected,
-      servers,
-      user
+      servers
     } = this.props
 
-    const isAdmin = user && user.permission === 'admin'
     const noRegisteredServers = !servers || !servers.length
 
     if (!areObjectsFetched) {
@@ -643,11 +657,12 @@ export default class Home extends Component {
     }
 
     const nItems = this._getNumberOfItems()
+    const noResourceSets = this._getNoResourceSets()
     if (!nItems) {
       return <CenterPanel>
         <Card shadow>
           <CardHeader>{_('homeNoVms')}</CardHeader>
-          <CardBlock>
+          {(isAdmin || !noResourceSets) && <CardBlock>
             <Row>
               <Col>
                 <Link to='/vms/new'>
@@ -676,7 +691,7 @@ export default class Home extends Component {
                 </Col>
               </Row>
             </div>}
-          </CardBlock>
+          </CardBlock>}
         </Card>
       </CenterPanel>
     }

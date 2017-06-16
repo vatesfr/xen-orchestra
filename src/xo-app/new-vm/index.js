@@ -73,7 +73,6 @@ import {
   resolveResourceSet
 } from 'utils'
 import {
-  createFilter,
   createSelector,
   createGetObject,
   createGetObjectsOfType,
@@ -89,8 +88,6 @@ const NB_VMS_MAX = 100
 /* eslint-disable camelcase */
 
 const getObject = createGetObject((_, id) => id)
-
-const returnTrue = () => true
 
 // Sub-components
 
@@ -493,13 +490,11 @@ export default class NewVm extends BaseComponent {
     objectsIds => id => includes(objectsIds, id)
   )
 
-  _getCanOperate = createSelector(
-    () => this.props.isAdmin,
-    () => this.props.permissions,
-    (isAdmin, permissions) => isAdmin
-      ? returnTrue
-      : ({ id }) => permissions && permissions[id] && permissions[id].operate
+  _getNoResourceSets = createSelector(
+    () => this.props.resourceSets,
+    isEmpty
   )
+
   _getVmPredicate = createSelector(
     this._getIsInPool,
     this._getIsInResourceSet,
@@ -548,11 +543,7 @@ export default class NewVm extends BaseComponent {
     },
     (networks, poolId) => filter(networks, network => network.$pool === poolId)
   )
-  _getOperatablePools = createFilter(
-    () => this.props.pools,
-    this._getCanOperate,
-    [ (pool, canOperate) => canOperate(pool) ]
-  )
+
   _getAffinityHostPredicate = createSelector(
     () => this.props.pool,
     () => this.state.state.existingDisks,
@@ -709,13 +700,12 @@ export default class NewVm extends BaseComponent {
 // MAIN ------------------------------------------------------------------------
 
   _renderHeader = () => {
-    const { pool } = this.props
-    const showSelectPool = !isEmpty(this._getOperatablePools())
-    const showSelectResourceSet = !this.props.isAdmin && !isEmpty(this.props.resourceSets)
+    const {isAdmin, pool} = this.props
+    const noResourceSets = this._getNoResourceSets()
+
     const selectPool = <span className={styles.inlineSelect}>
       <SelectPool
         onChange={this._selectPool}
-        predicate={this._getCanOperate()}
         value={pool}
       />
     </span>
@@ -729,14 +719,9 @@ export default class NewVm extends BaseComponent {
       <Row>
         <Col mediumSize={12}>
           <h2>
-            {showSelectPool && showSelectResourceSet
-              ? _('newVmCreateNewVmOn2', {
-                select1: selectPool,
-                select2: selectResourceSet
-              })
-              : showSelectPool || showSelectResourceSet
+            {isAdmin || !noResourceSets
               ? _('newVmCreateNewVmOn', {
-                select: showSelectPool ? selectPool : selectResourceSet
+                select: isAdmin ? selectPool : selectResourceSet
               })
               : _('newVmCreateNewVmNoPermission')
             }
@@ -1276,6 +1261,7 @@ export default class NewVm extends BaseComponent {
       showAdvanced,
       tags
     } = this.state.state
+    const { isAdmin } = this.props
     const { formatMessage } = this.props.intl
     return <Section icon='new-vm-advanced' title='newVmAdvancedPanel' done={this._isAdvancedDone()}>
       <SectionContent column>
@@ -1411,15 +1397,16 @@ export default class NewVm extends BaseComponent {
             )}
           </LineItem>}
         </SectionContent>,
-        <SectionContent>
-          <Item label={_('newVmAffinityHost')}>
-            <SelectHost
-              onChange={this._linkState('affinityHost')}
-              predicate={this._getAffinityHostPredicate()}
-              value={affinityHost}
-            />
-          </Item>
-        </SectionContent>
+        isAdmin &&
+          <SectionContent>
+            <Item label={_('newVmAffinityHost')}>
+              <SelectHost
+                onChange={this._linkState('affinityHost')}
+                predicate={this._getAffinityHostPredicate()}
+                value={affinityHost}
+              />
+            </Item>
+          </SectionContent>
       ]}
     </Section>
   }
