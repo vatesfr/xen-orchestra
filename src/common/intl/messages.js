@@ -955,6 +955,9 @@ var messages = {
   'attachVmButton': 'new VM',
   'vmsBootOrder': 'Boot order',
 
+  // ----- VM-Group stats Tab -----
+  'vmGroupAllVm': 'All VMs',
+
   // ----- Self -----
   resourceSets: 'Resource sets',
   noResourceSets: 'No resource sets.',

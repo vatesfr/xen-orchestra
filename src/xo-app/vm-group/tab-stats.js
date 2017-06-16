@@ -1,16 +1,19 @@
 import _ from 'intl'
 import Component from 'base-component'
+import filter from 'lodash/filter'
 import Icon from 'icon'
+import map from 'lodash/map'
 import React from 'react'
 import Tooltip from 'tooltip'
+import Upgrade from 'xoa-upgrade'
 import { Container, Row, Col } from 'grid'
 import { Toggle } from 'form'
-import { fetchVmGroupStats } from 'xo'
+import { fetchVmStats } from 'xo'
 import {
-  CpuLineChart,
-  MemoryLineChart,
-  PifLineChart,
-  LoadLineChart
+  VmGroupCpuLineChart,
+  VmGroupMemoryLineChart,
+  VmGroupVifLineChart,
+  VmGroupXvdLineChart
 } from 'xo-line-chart'
 
 export default class TabStats extends Component {
@@ -27,20 +30,27 @@ export default class TabStats extends Component {
     let cancelled = false
     this.cancel = () => { cancelled = true }
 
-    // fetchVmGroupStats(vmGroup, this.state.granularity).then(stats => {
-    //   if (cancelled) {
-    //     return
-    //   }
-    //   this.cancel = null
-    //
-    //   clearTimeout(this.timeout)
-    //   this.setState({
-    //     stats,
-    //     selectStatsLoading: false
-    //   }, () => {
-    //     this.timeout = setTimeout(this.loop, stats.interval * 1000)
-    //   })
-    // })
+    Promise.all(map(filter(this.props.vms, vm => vm.power_state === 'Running'), vm =>
+      fetchVmStats(vm, this.state.granularity).then(
+        stats => ({
+          vm: vm.name_label,
+          ...stats
+        })
+      )
+    )).then(stats => {
+      if (cancelled || !stats[0]) {
+        return
+      }
+      this.cancel = null
+
+      clearTimeout(this.timeout)
+      this.setState({
+        stats,
+        selectStatsLoading: false
+      }, () => {
+        this.timeout = setTimeout(this.loop, stats[0].interval * 1000)
+      })
+    })
   }
   loop = ::this.loop
 
@@ -70,8 +80,7 @@ export default class TabStats extends Component {
       stats,
       useCombinedValues
     } = this.state
-    const {vmGroup} = this.props
-    return !vmGroup
+    return !stats
       ? <p>No stats.</p>
       : process.env.XOA_PLAN > 2
         ? <Container>
@@ -104,11 +113,11 @@ export default class TabStats extends Component {
           <Row>
             <Col mediumSize={6}>
               <h5 className='text-xs-center'><Icon icon='cpu' size={1} /> {_('statsCpu')}</h5>
-              {/* <CpuLineChart addSumSeries={useCombinedValues} data={stats} /> */}
+              <VmGroupCpuLineChart addSumSeries={useCombinedValues} data={stats} />
             </Col>
             <Col mediumSize={6}>
               <h5 className='text-xs-center'><Icon icon='memory' size={1} /> {_('statsMemory')}</h5>
-              {/* <MemoryLineChart data={stats} /> */}
+              <VmGroupMemoryLineChart addSumSeries={useCombinedValues} data={stats} />
             </Col>
           </Row>
           <br />
@@ -116,11 +125,11 @@ export default class TabStats extends Component {
           <Row>
             <Col mediumSize={6}>
               <h5 className='text-xs-center'><Icon icon='network' size={1} /> {_('statsNetwork')}</h5>
-              {/* <PifLineChart addSumSeries={useCombinedValues} data={stats} /> */}
+              <VmGroupVifLineChart key={useCombinedValues ? 'stacked' : 'unstacked'} addSumSeries={useCombinedValues} data={stats} />
             </Col>
             <Col mediumSize={6}>
-              <h5 className='text-xs-center'><Icon icon='disk' size={1} /> {_('statLoad')}</h5>
-              {/* <LoadLineChart data={stats} /> */}
+              <h5 className='text-xs-center'><Icon icon='disk' size={1} /> {_('statDisk')}</h5>
+              <VmGroupXvdLineChart addSumSeries={useCombinedValues} data={stats} />
             </Col>
           </Row>
         </Container>
