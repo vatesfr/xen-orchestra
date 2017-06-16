@@ -1974,3 +1974,12 @@ export const deleteVmGroup = (vmGroup, vms) =>
     _call('vmGroup.destroy', { id: resolveId(vmGroup) })
   }, Promise.reject())
 export const createVmGroup = ({ pool, name_label, name_description }) => _call('vmGroup.create', { id: resolveId(pool), name_label, name_description })
+export const startVmGroups = (vmGroupIds) => {
+  forEach(vmGroupIds, id => startVmGroup({id: id}))
+}
+export const shutdownVmGroups = (vmGroupIds) => {
+  forEach(vmGroupIds, id => shutdownVmGroup({id: id}))
+}
+export const rebootVmGroups = (vmGroupIds) => {
+  forEach(vmGroupIds, id => rebootVmGroup({id: id}))
+}

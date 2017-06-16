@@ -42,12 +42,15 @@ import {
   forgetSrs,
   isSrShared,
   migrateVms,
+  rebootVmGroups,
   reconnectAllHostsSrs,
   rescanSrs,
   restartHosts,
   restartHostsAgents,
   restartVms,
+  shutdownVmGroups,
   snapshotVms,
+  startVmGroups,
   startVms,
   stopHosts,
   stopVms,
@@ -155,9 +158,9 @@ const OPTIONS = {
     defaultFilter: '',
     filters: homeFilters.vmGroup,
     mainActions: [
-      { handler: '', icon: 'vm-stop', tooltip: _('stopVmLabel') },
-      { handler: '', icon: 'vm-start', tooltip: _('startVmLabel') },
-      { handler: '', icon: 'vm-reboot', tooltip: _('rebootVmLabel') }
+      { handler: shutdownVmGroups, icon: 'vm-stop', tooltip: _('stopVmLabel') },
+      { handler: startVmGroups, icon: 'vm-start', tooltip: _('startVmLabel') },
+      { handler: rebootVmGroups, icon: 'vm-reboot', tooltip: _('rebootVmLabel') }
     ],
     Item: VmGroupItem,
     sortOptions: [
