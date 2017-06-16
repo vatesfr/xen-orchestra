@@ -48,7 +48,7 @@ export const XEN_VIDEORAM_VALUES = [1, 2, 4, 8, 16]
 // ===================================================================
 
 export const isSrWritable = sr => sr && sr.content_type !== 'iso' && sr.size > 0
-export const isSrShared = sr => sr && sr.$PBDs.length > 1
+export const isSrShared = sr => sr && sr.shared
 export const isVmRunning = vm => vm && vm.power_state === 'Running'
 
 // ===================================================================
@@ -867,11 +867,6 @@ export const migrateVm = (vm, host) => (
       if (!params.targetHost) {
         return error(_('migrateVmNoTargetHost'), _('migrateVmNoTargetHostMessage'))
       }
-
-      if (params.defaultSrIsLocal) {
-        return error(_('migrateDefaultSrError'), _('migrateDefaultSrErrorMessage'))
-      }
-
       _call('vm.migrate', { vm: vm.id, ...params })
     },
     noop
@@ -890,10 +885,6 @@ export const migrateVms = vms => (
       }
       if (!params.targetHost) {
         return error(_('migrateVmNoTargetHost'), _('migrateVmNoTargetHostMessage'))
-      }
-
-      if (params.defaultSrIsLocal) {
-        return error(_('migrateDefaultSrError'), _('migrateDefaultSrErrorMessage'))
       }
 
       const {

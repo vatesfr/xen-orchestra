@@ -12,10 +12,8 @@ import some from 'lodash/some'
 import store from 'store'
 
 import _ from '../../intl'
-import Icon from 'icon'
 import invoke from '../../invoke'
 import SingleLineRow from '../../single-line-row'
-import Tooltip from '../../tooltip'
 import { Col } from '../../grid'
 import { getDefaultNetworkForVif } from '../utils'
 import {
@@ -139,11 +137,6 @@ export default class MigrateVmsModalBody extends BaseComponent {
       return { vms }
     }
 
-    const { defaultSrIsLocal } = this.state
-    if (defaultSrIsLocal) {
-      return { vms, targetHost: host.id, defaultSrIsLocal }
-    }
-
     const {
       networks,
       pifs,
@@ -218,23 +211,37 @@ export default class MigrateVmsModalBody extends BaseComponent {
   }
 
   _selectHost = host => {
-    this.setState({
-      defaultSrIsLocal: undefined
-    })
-
     if (!host) {
       this.setState({ targetHost: undefined })
       return
     }
-
     const { pools, pifs } = this.props
     const defaultSrId = pools[host.$pool].default_SR
-    if (!isSrShared(this._getObject(defaultSrId))) {
-      this.setState({
-        host,
-        defaultSrIsLocal: true
-      })
-      return
+
+    let targetSr
+    if (
+      isSrShared(this._getObject(defaultSrId)) ||
+      some(host.$PBDs, pbd => this._getObject(pbd).SR === defaultSrId)
+    ) {
+      targetSr = defaultSrId
+    } else {
+      for (let pbd of host.$PBDs) {
+        const sr = this._getObject(this._getObject(pbd).SR)
+        if (isSrShared(sr) && isSrWritable(sr)) {
+          targetSr = sr.id
+          break
+        }
+      }
+
+      if (targetSr === undefined) {
+        for (let pbd of host.$PBDs) {
+          const sr = this._getObject(this._getObject(pbd).SR)
+          if (isSrWritable(sr)) {
+            targetSr = sr.id
+            break
+          }
+        }
+      }
     }
 
     const defaultMigrationNetworkId = find(pifs, pif => pif.$host === host.id && pif.management).$network
@@ -263,7 +270,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
       networkId: defaultMigrationNetworkId,
       noVdisMigration,
       smartVifMapping: true,
-      srId: defaultSrId
+      srId: targetSr
     })
   }
   _selectMigrationNetwork = migrationNetwork => this.setState({ migrationNetworkId: migrationNetwork.id })
@@ -273,7 +280,6 @@ export default class MigrateVmsModalBody extends BaseComponent {
 
   render () {
     const {
-      defaultSrIsLocal,
       host,
       intraPool,
       migrationNetworkId,
@@ -285,19 +291,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
     return <div>
       <div style={LINE_STYLE}>
         <SingleLineRow>
-          <Col size={6}>
-            {_('migrateVmSelectHost')}
-            {' '}
-            {defaultSrIsLocal &&
-              <Tooltip content={_('migrateDefaultSrError')}>
-                <Icon
-                  className='text-danger'
-                  icon='alarm'
-                  size='lg'
-                />
-              </Tooltip>
-            }
-          </Col>
+          <Col size={6}>{_('migrateVmSelectHost')}</Col>
           <Col size={6}>
             <SelectHost
               onChange={this._selectHost}
@@ -321,7 +315,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
           </SingleLineRow>
         </div>
       }
-      {defaultSrIsLocal === undefined && host !== undefined && (!intraPool || !noVdisMigration) &&
+      {host && (!intraPool || !noVdisMigration) &&
         <div key='sr' style={LINE_STYLE}>
           <SingleLineRow>
             <Col size={6}>{!intraPool ? _('migrateVmsSelectSr') : _('migrateVmsSelectSrIntraPool')}</Col>
@@ -335,7 +329,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
           </SingleLineRow>
         </div>
       }
-      {defaultSrIsLocal === undefined && host !== undefined && !intraPool &&
+      {host && !intraPool &&
         <div key='network' style={LINE_STYLE}>
           <SingleLineRow>
             <Col size={6}>{_('migrateVmsSelectNetwork')}</Col>

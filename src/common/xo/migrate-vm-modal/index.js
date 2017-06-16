@@ -1,17 +1,16 @@
 import BaseComponent from 'base-component'
 import every from 'lodash/every'
-import forEach from 'lodash/forEach'
 import find from 'lodash/find'
+import forEach from 'lodash/forEach'
 import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
 import React from 'react'
+import some from 'lodash/some'
 import store from 'store'
 
 import _ from '../../intl'
-import Icon from 'icon'
 import invoke from '../../invoke'
 import SingleLineRow from '../../single-line-row'
-import Tooltip from '../../tooltip'
 import { Col } from '../../grid'
 import { getDefaultNetworkForVif } from '../utils'
 import {
@@ -139,7 +138,6 @@ export default class MigrateVmModalBody extends BaseComponent {
 
   get value () {
     return {
-      defaultSrIsLocal: this.state.defaultSrIsLocal,
       mapVdisSrs: this.state.mapVdisSrs,
       mapVifsNetworks: this.state.mapVifsNetworks,
       migrationNetwork: this.state.migrationNetworkId,
@@ -152,10 +150,6 @@ export default class MigrateVmModalBody extends BaseComponent {
   }
 
   _selectHost = host => {
-    this.setState({
-      defaultSrIsLocal: undefined
-    })
-
     // No host selected
     if (!host) {
       this.setState({
@@ -170,13 +164,31 @@ export default class MigrateVmModalBody extends BaseComponent {
 
     // Intra-pool
     const defaultSr = pools[host.$pool].default_SR
-    if (!isSrShared(this._getObject(defaultSr))) {
-      this.setState({
-        host,
-        defaultSrIsLocal: true
-      })
 
-      return
+    let targetSr
+    if (
+      isSrShared(this._getObject(defaultSr)) ||
+      some(host.$PBDs, pbd => this._getObject(pbd).SR === defaultSr)
+    ) {
+      targetSr = defaultSr
+    } else {
+      for (let pbd of host.$PBDs) {
+        const sr = this._getObject(this._getObject(pbd).SR)
+        if (isSrShared(sr) && isSrWritable(sr)) {
+          targetSr = sr.id
+          break
+        }
+      }
+
+      if (targetSr === undefined) {
+        for (let pbd of host.$PBDs) {
+          const sr = this._getObject(this._getObject(pbd).SR)
+          if (isSrWritable(sr)) {
+            targetSr = sr.id
+            break
+          }
+        }
+      }
     }
 
     if (intraPool) {
@@ -197,7 +209,7 @@ export default class MigrateVmModalBody extends BaseComponent {
         doNotMigrateVdis,
         host,
         intraPool,
-        mapVdisSrs: doNotMigrateVdis ? undefined : mapValues(vdis, vdi => defaultSr),
+        mapVdisSrs: doNotMigrateVdis ? undefined : mapValues(vdis, vdi => targetSr),
         mapVifsNetworks: undefined,
         migrationNetwork: undefined
       })
@@ -228,7 +240,7 @@ export default class MigrateVmModalBody extends BaseComponent {
       doNotMigrateVdis: false,
       host,
       intraPool,
-      mapVdisSrs: mapValues(vdis, vdi => defaultSr),
+      mapVdisSrs: mapValues(vdis, vdi => targetSr),
       mapVifsNetworks: defaultNetworksForVif,
       migrationNetworkId: defaultMigrationNetworkId
     })
@@ -239,7 +251,6 @@ export default class MigrateVmModalBody extends BaseComponent {
   render () {
     const { vdis, vifs, networks } = this.props
     const {
-      defaultSrIsLocal,
       doNotMigrateVdis,
       host,
       intraPool,
@@ -250,19 +261,7 @@ export default class MigrateVmModalBody extends BaseComponent {
     return <div>
       <div className={styles.block}>
         <SingleLineRow>
-          <Col size={6}>
-            {_('migrateVmSelectHost')}
-            {' '}
-            {defaultSrIsLocal &&
-              <Tooltip content={_('migrateDefaultSrError')}>
-                <Icon
-                  className='text-danger'
-                  icon='alarm'
-                  size='lg'
-                />
-              </Tooltip>
-            }
-          </Col>
+          <Col size={6}>{_('migrateVmSelectHost')}</Col>
           <Col size={6}>
             <SelectHost
               onChange={this._selectHost}
@@ -272,30 +271,28 @@ export default class MigrateVmModalBody extends BaseComponent {
           </Col>
         </SingleLineRow>
       </div>
-      {defaultSrIsLocal === undefined && host !== undefined && !doNotMigrateVdis &&
-        <div className={styles.groupBlock}>
+      {host && !doNotMigrateVdis && <div className={styles.groupBlock}>
+        <SingleLineRow>
+          <Col>{_('migrateVmSelectSrs')}</Col>
+        </SingleLineRow>
+        <br />
+        <SingleLineRow>
+          <Col size={6}><span className={styles.listTitle}>{_('migrateVmName')}</span></Col>
+          <Col size={6}><span className={styles.listTitle}>{_('migrateVmSr')}</span></Col>
+        </SingleLineRow>
+        {map(vdis, vdi => <div className={styles.listItem} key={vdi.id}>
           <SingleLineRow>
-            <Col>{_('migrateVmSelectSrs')}</Col>
+            <Col size={6}>{vdi.name_label}</Col>
+            <Col size={6}>
+              <SelectSr
+                onChange={sr => this.setState({ mapVdisSrs: { ...mapVdisSrs, [vdi.id]: sr.id } })}
+                predicate={this._getSrPredicate()}
+                value={mapVdisSrs[vdi.id]}
+              />
+            </Col>
           </SingleLineRow>
-          <br />
-          <SingleLineRow>
-            <Col size={6}><span className={styles.listTitle}>{_('migrateVmName')}</span></Col>
-            <Col size={6}><span className={styles.listTitle}>{_('migrateVmSr')}</span></Col>
-          </SingleLineRow>
-          {map(vdis, vdi => <div className={styles.listItem} key={vdi.id}>
-            <SingleLineRow>
-              <Col size={6}>{vdi.name_label}</Col>
-              <Col size={6}>
-                <SelectSr
-                  onChange={sr => this.setState({ mapVdisSrs: { ...mapVdisSrs, [vdi.id]: sr.id } })}
-                  predicate={this._getSrPredicate()}
-                  value={mapVdisSrs[vdi.id]}
-                />
-              </Col>
-            </SingleLineRow>
-          </div>)}
-        </div>
-      }
+        </div>)}
+      </div>}
       {intraPool !== undefined &&
         (!intraPool &&
           <div>

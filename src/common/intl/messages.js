@@ -1079,8 +1079,6 @@ var messages = {
   migrateVmsSelectSrIntraPool: 'Select a destination SR for local disks:',
   migrateVmsSelectNetwork: 'Select a network on which to connect each VIF:',
   migrateVmsSmartMapping: 'Smart mapping',
-  migrateDefaultSrError: 'Inaccessible default SR',
-  migrateDefaultSrErrorMessage: 'The default SR is not accessible in the target host',
   migrateVmName: 'Name',
   migrateVmSr: 'SR',
   migrateVmVif: 'VIF',
