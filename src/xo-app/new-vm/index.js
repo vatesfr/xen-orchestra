@@ -1397,7 +1397,7 @@ export default class NewVm extends BaseComponent {
             )}
           </LineItem>}
         </SectionContent>,
-        isAdmin &&
+        isAdmin && (
           <SectionContent>
             <Item label={_('newVmAffinityHost')}>
               <SelectHost
@@ -1407,6 +1407,7 @@ export default class NewVm extends BaseComponent {
               />
             </Item>
           </SectionContent>
+        )
       ]}
     </Section>
   }

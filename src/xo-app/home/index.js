@@ -594,7 +594,7 @@ export default class Home extends Component {
             </div>
           </div>
         </Col>
-        {(isAdmin || !noResourceSets) &&
+        {(isAdmin || !noResourceSets) && (
           <Col mediumSize={3} className='text-xs-right'>
             <Link
               className='btn btn-success'
@@ -602,7 +602,7 @@ export default class Home extends Component {
               <Icon icon='vm-new' /> {_('homeNewVm')}
             </Link>
           </Col>
-        }
+        )}
       </Row>
     </Container>
   }
