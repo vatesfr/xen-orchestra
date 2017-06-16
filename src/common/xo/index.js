@@ -1037,6 +1037,10 @@ export const attachDiskToVm = (vdi, vm, { bootable, mode, position }) => (
   })
 )
 
+export const removeAppliance = vm => {
+  _call('vm.removeAppliance', { id: resolveId(vm) })
+}
+
 // DISK ---------------------------------------------------------------
 
 export const createDisk = (name, size, sr) => (
@@ -1970,7 +1974,7 @@ export const deleteVmGroup = (vmGroup, vms) =>
     title: _('deleteVmGroupModalTitle'),
     body: _('deleteVmGroupModalMessage')
   }).then(() => {
-    forEach(vms, vm => editVm(vm, { appliance: null, order: 0 }))
+    forEach(vms, vm => removeAppliance(vm))
     _call('vmGroup.destroy', { id: resolveId(vmGroup) })
   }, Promise.reject())
 export const createVmGroup = ({ pool, name_label, name_description }) => _call('vmGroup.create', { id: resolveId(pool), name_label, name_description })
