@@ -304,7 +304,7 @@ const ALARM_COLUMNS = [
 
 @connectStore(() => {
   const getOrphanVdiSnapshots = createGetObjectsOfType('VDI-snapshot')
-    .filter([ snapshot => !snapshot.$snapshot_of ])
+    .filter([ _ => !_.$snapshot_of && _.$VBDs.length === 0 ])
     .sort()
   const getControlDomainVbds = createGetObjectsOfType('VBD')
     .pick(
