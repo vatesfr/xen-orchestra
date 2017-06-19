@@ -15,7 +15,7 @@ In advanced tab, you have extra options:
 * each VM has a vCPU maximum number. This value can't be change while the VM is running. You can reduce the number of vCPUs, but can't assign more than max. In XO, while your VM is halted, allow the max vCPUs you would need, then boot it. Now you can reduce it and then expand it later to this maximum.
 * the same limitation apply for the static RAM.
 
-You can learn more about XenServer resource management here: https://wiki.xenserver.org/XCP_FAQ_Dynamic_Memory_Control
+You can learn more about XenServer [resource management on the Citrix Website](https://docs.citrix.com/de-de/xencenter/6-5/xs-xc-vms-configuring/xs-xc-vms-memory/xs-xc-dmc-about.html)
 
 ## VDI live migration
 
