@@ -5,10 +5,10 @@ import _ from './intl'
 import ActionButton from './action-button'
 import ButtonGroup from './button-group'
 
-const ActionBar = ({ actions, param }) => (
+const ActionBar = ({ actions, param, show }) => (
   <ButtonGroup>
     {map(actions, (button, index) => {
-      if (!button) {
+      if (show === false) {
         return
       }
 
@@ -42,6 +42,7 @@ ActionBar.propTypes = {
       redirectOnSuccess: React.PropTypes.string
     })
   ).isRequired,
-  display: React.PropTypes.oneOf(['icon', 'text', 'both'])
+  display: React.PropTypes.oneOf(['icon', 'text', 'both']),
+  show: React.PropTypes.bool
 }
 export { ActionBar as default }
