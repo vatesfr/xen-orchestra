@@ -954,6 +954,9 @@ var messages = {
   // ----- VM-Group management Tab -----
   'attachVmButton': 'new VM',
   'vmsBootOrder': 'Boot order',
+  'vmGroupLabel': 'Label',
+  'vmGroupDescription': 'Description',
+  'vmGroupActions': 'Actions',
 
   // ----- VM-Group stats Tab -----
   'vmGroupAllVm': 'All VMs',

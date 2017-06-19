@@ -22,7 +22,7 @@ import { Toggle } from 'form'
 
 const VM_COLUMNS = [
   {
-    name: 'label',
+    name: _('vmGroupLabel'),
     itemRenderer: vm => (<span><Tooltip
       content={isEmpty(vm.current_operations)
         ? _(`powerState${vm.power_state}`)
@@ -42,12 +42,12 @@ const VM_COLUMNS = [
     sortCriteria: vm => vm.name_label
   },
   {
-    name: 'description',
+    name: _('vmGroupDescription'),
     itemRenderer: vm => vm.name_description,
     sortCriteria: vm => vm.name_description
   },
   {
-    name: 'Actions',
+    name: _('vmGroupActions'),
     itemRenderer: vm => (
       <ActionRowButton
         btnStyle='danger'
