@@ -10,13 +10,13 @@ You can choose the edition you want in two places:
 
 > You need to be logged to make a purchase. If you don't have any account, please [register here](https://xen-orchestra.com/#!/signup).
 
-From your account zone, click on the Edition you want:
+From your account zone, click on the purchase menu, then select the edition you need:
 
-![](./assets/member_purchase.png)
+![](./assets/directpurchase.png)
 
-Then you need to fill your information:
+Then you need to fill your information and select "buy it for my own use":
 
-![](./assets/member_purchase2.png)
+![](./assets/member_purchase_2.png)
 
 The default payment method is by **credit card**. But you can also choose the "wire transfer" tab (with the "bank" icon):
 
