@@ -22,11 +22,11 @@ Now, you just have to pick the edition of Xen Orchestra you want to purchase for
 
 ![](./assets/purchase-for-another.png)
 
-3. Once the payment is completed, you will have to bind the plan with the end-user account. If the end-user don't have an account yet, the system will create one and send an e-mail to your end user. 
+3. Once the payment is completed, you will have to bind the plan with the end-user account. If the end-user doesn't have an account yet, the system will create one and send an e-mail to your end user. 
 
 
 ![](./assets/bind-process.png)
 
-That's it, you have now complete the purchase. 
+That's it, you have now completed the purchase. 
 
 :warning: Once you have bind the plan to your end user account, you cannot change it. Double check the spelling of the e-mail before binding the account.
