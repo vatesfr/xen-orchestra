@@ -4,7 +4,7 @@ import BaseComponent from 'base-component'
 import classNames from 'classnames'
 import DebounceInput from 'react-debounce-input'
 import Icon from 'icon'
-import Page from '../page'
+import Page from '../../page'
 import React from 'react'
 import Wizard, { Section } from 'wizard'
 import { Container, Row, Col } from 'grid'
@@ -22,7 +22,7 @@ import {
 import { SelectPool } from 'select-objects'
 import { addSubscriptions, connectStore } from 'utils'
 
-import styles from '../new-vm/index.css'
+import styles from '../../new-vm/index.css'
 
 const SectionContent = ({ column, children }) => (
   <div className={classNames(
@@ -53,7 +53,7 @@ const Item = ({ label, children, className }) => (
   ),
   pools: createGetObjectsOfType('pool')
 }))
-export default class NewVmGroup extends BaseComponent {
+export default class VmGroup extends BaseComponent {
   static contextTypes = {
     router: React.PropTypes.object
   }
