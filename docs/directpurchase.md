@@ -14,7 +14,7 @@ From your account zone, click on the purchase menu, then select the edition you 
 
 ![](./assets/directpurchase.png)
 
-Then you need to fill your information and select "buy it for my own use":
+Then you need to fill your information and select **"buy it for my own use"**:
 
 ![](./assets/member_purchase_2.png)
 
