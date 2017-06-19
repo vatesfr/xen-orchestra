@@ -29,4 +29,4 @@ Now, you just have to pick the edition of Xen Orchestra you want to purchase for
 
 That's it, you have now completed the purchase. 
 
-:warning: Once you have bind the plan to your end user account, you cannot change it. Double check the spelling of the e-mail before binding the account.
+**Once you have bind the plan to your end user account, you cannot change it. Double check the spelling of the e-mail before binding the account.**
