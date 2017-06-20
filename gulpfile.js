@@ -258,7 +258,7 @@ gulp.task(function buildScripts () {
       ]
     }),
     require('gulp-sourcemaps').init({ loadMaps: true }),
-    PRODUCTION && require('gulp-uglify')(),
+    PRODUCTION && require('gulp-uglify/composer')(require('uglify-es'))(),
     dest()
   )
 })
