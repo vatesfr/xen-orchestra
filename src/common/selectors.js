@@ -126,9 +126,9 @@ export const createCounter = (collection, predicate) =>
 //
 // Should only be used with a reasonable number of properties.
 export const createPicker = (object, props) =>
-  _createCollectionWrapper(
-    _create2(
-      object, props,
+  _create2(
+    object, props,
+    _createCollectionWrapper(
       (object, props) => {
         const values = {}
         forEach(props, prop => {
