@@ -13,7 +13,10 @@ try {
         name &&
 
         // contains a separator (no internal modules)
-        name.indexOf(sep) !== -1
+        name.indexOf(sep) !== -1 &&
+
+        // does not start with `internal`
+        name.lastIndexOf('internal', 0) !== -1
       )
     })
 
