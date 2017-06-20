@@ -23,10 +23,11 @@ var messages = {
   // ----- Filters -----
   onError: 'On error',
   successful: 'Successful',
-  filterNoSnapshots: 'Full disks only',
-  filterOnlyBaseCopy: 'Base copy only',
-  filterOnlyRegularDisks: 'Regular disks only',
-  filterOnlySnapshots: 'Snapshots only',
+  filterOnlyManaged: 'Managed disks',
+  filterOnlyOrphaned: 'Orphaned disks',
+  filterOnlyRegular: 'Normal disks',
+  filterOnlySnapshots: 'Snapshot disks',
+  filterOnlyUnmanaged: 'Unmanaged disks',
 
   // ----- Copiable component -----
   copyToClipboard: 'Copy to clipboard',
