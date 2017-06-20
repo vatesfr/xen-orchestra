@@ -406,7 +406,7 @@ export class Xapi extends EventEmitter {
       // when the data has been emitted, close the connection
       $cancelToken = $cancelToken.fork(cancel => {
         body.on('end', () => {
-          setTimeout(() => cancel(PUT_RESOURCE_CANCEL_TAG), 1e3)
+          setTimeout(cancel, 1e3, PUT_RESOURCE_CANCEL_TAG)
         })
       })
     }
