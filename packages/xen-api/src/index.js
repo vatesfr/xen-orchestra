@@ -460,7 +460,7 @@ export class Xapi extends EventEmitter {
     ).then(response => {
       // TODO: response.header['task-id']
       return fromEvents(
-        response,
+        response.resume(),
         [ 'end' ],
         [ 'aborted', 'error' ]
       ).catch(([ error ]) => {
