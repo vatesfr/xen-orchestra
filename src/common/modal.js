@@ -125,7 +125,8 @@ export const alert = (title, body) => (
         title={title}
       >
         {body}
-      </GenericModal>
+      </GenericModal>,
+      resolve
     )
   })
 )
