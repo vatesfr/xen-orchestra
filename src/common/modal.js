@@ -117,7 +117,7 @@ class GenericModal extends Component {
 const ALERT_BUTTONS = [ { label: _('alertOk'), value: 'ok' } ]
 
 export const alert = (title, body) => (
-  new Promise((resolve, reject) => {
+  new Promise(resolve => {
     modal(
       <GenericModal
         buttons={ALERT_BUTTONS}
@@ -126,7 +126,7 @@ export const alert = (title, body) => (
       >
         {body}
       </GenericModal>,
-      reject
+      resolve
     )
   })
 )
