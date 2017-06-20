@@ -485,7 +485,7 @@ export class Xapi extends EventEmitter {
       // sync check if the task is already settled
       const task = this.objects.all[ref]
       if (task !== undefined) {
-        const result = getTaskResult(task)
+        const result = getTaskResult(task, Promise.resolve, Promise.reject)
         if (result) {
           return result[0]
         }
