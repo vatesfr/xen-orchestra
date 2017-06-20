@@ -9,7 +9,6 @@ import VmActionBar from './action-bar'
 import { Select, Text } from 'editable'
 import {
   assign,
-  forEach,
   isEmpty,
   map,
   pick
@@ -23,7 +22,6 @@ import {
 import { Container, Row, Col } from 'grid'
 import {
   connectStore,
-  mapPlus,
   routes
 } from 'utils'
 import {
