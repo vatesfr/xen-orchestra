@@ -198,12 +198,16 @@ class CoresPerSocket extends Component {
     editVm(this.props.vm, { coresPerSocket: getEventValue(event) || null })
 
   render () {
-    const vm = this.props.vm
+    const {
+      container,
+      vm
+    } = this.props
     const selectedCoresPerSocket = vm.coresPerSocket
     const options = this._getCoresPerSocketPossibilities()
 
-    return (
-      <form className='form-inline'>
+    return <form className='form-inline'>
+      {container
+        ? <div>
         <select
           className='form-control'
           onChange={this._onChange}
@@ -237,8 +241,14 @@ class CoresPerSocket extends Component {
             <Icon icon='error' size='lg' />
           </Tooltip>
         )}
-      </form>
-    )
+        </div>
+        : _(
+          'vmCoresPerSocket',
+          {nSockets: vm.CPUs.number / selectedCoresPerSocket, nCores: selectedCoresPerSocket},
+          message => <span>{message}</span>
+        )
+      }
+    </form>
   }
 }
 
