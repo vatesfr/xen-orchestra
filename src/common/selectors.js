@@ -12,6 +12,7 @@ import orderBy from 'lodash/orderBy'
 import pickBy from 'lodash/pickBy'
 import size from 'lodash/size'
 import slice from 'lodash/slice'
+import sumBy from 'lodash/sumBy'
 import { createSelector as create } from 'reselect'
 
 import invoke from './invoke'
@@ -190,6 +191,13 @@ export const createSort = (
   getter = 'name_label',
   order = 'asc'
 ) => _create2(collection, getter, order, orderBy)
+
+export const createSumBy = (itemsSelector, iterateeSelector) =>
+_create2(
+  itemsSelector,
+  iterateeSelector,
+  (items, iteratee) => sumBy(items, iteratee)
+)
 
 export const createTop = (collection, iteratee, n) =>
   _create2(
