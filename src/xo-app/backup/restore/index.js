@@ -1,5 +1,5 @@
 import _, { messages } from 'intl'
-import Collapse from 'collapse'
+import ChooseSrForEachVdisModal from 'xo/choose-sr-for-each-vdis-modal'
 import Component from 'base-component'
 import every from 'lodash/every'
 import filter from 'lodash/filter'
@@ -14,7 +14,6 @@ import mapValues from 'lodash/mapValues'
 import moment from 'moment'
 import React from 'react'
 import reduce from 'lodash/reduce'
-import SingleLineRow from 'single-line-row'
 import SortedTable from 'sorted-table'
 import uniq from 'lodash/uniq'
 import Upgrade from 'xoa-upgrade'
@@ -25,7 +24,6 @@ import { Container, Row, Col } from 'grid'
 import { FormattedDate, injectIntl } from 'react-intl'
 import { info, error } from 'notification'
 import { SelectPlainObject, Toggle } from 'form'
-import { SelectSr } from 'select-objects'
 
 import {
   importBackup,
@@ -86,8 +84,8 @@ const openImportModal = ({ backups }) => confirm({
   body: <ImportModalBody vmName={backups[0].name} backups={backups} />
 }).then(doImport)
 
-const doImport = ({ backup, sr, start, mapVdisSrs }) => {
-  if (!sr || !backup) {
+const doImport = ({ backup, mainSr, start, mapVdisSrs }) => {
+  if (!mainSr || !backup) {
     error(_('backupRestoreErrorTitle'), _('backupRestoreErrorMessage'))
     return
   }
@@ -97,7 +95,7 @@ const doImport = ({ backup, sr, start, mapVdisSrs }) => {
   }
   info(_('importBackupTitle'), _('importBackupMessage'))
   try {
-    const importPromise = importMethods[backup.type]({remote: backup.remoteId, sr, file: backup.path, mapVdisSrs}).then(id => {
+    const importPromise = importMethods[backup.type]({remote: backup.remoteId, sr: mainSr, file: backup.path, mapVdisSrs}).then(id => {
       return id
     })
     if (start) {
@@ -105,24 +103,6 @@ const doImport = ({ backup, sr, start, mapVdisSrs }) => {
     }
   } catch (err) {
     error('VM import', err.message || String(err))
-  }
-}
-
-class _Collapsible extends Component {
-  render () {
-    const {
-      collapsible,
-      children,
-      ...props
-    } = this.props
-
-    return collapsible
-      ? <Collapse {...props}>{children}</Collapse>
-      : <div>
-        <span>{props.buttonText}</span>
-        <br />
-        {children}
-      </div>
   }
 }
 
@@ -180,8 +160,6 @@ class _ModalBody extends Component {
     const vdis = this.state.backup && this.state.backup.vdis
 
     return <div>
-      <SelectSr onChange={this._onChangeDefaultSr} predicate={isSrWritable} placeholder={_('backupRestoreSelectDefaultSr')} />
-      <br />
       <SelectPlainObject
         onChange={this.linkState('backup')}
         optionKey='path'
@@ -190,23 +168,10 @@ class _ModalBody extends Component {
         placeholder={intl.formatMessage(messages.importBackupModalSelectBackup)}
       />
       <br />
-      {vdis != null && this.state.sr != null &&
-        <_Collapsible collapsible={vdis.length >= 3} buttonText={_('backupRestoreChooseSrForEachVdis')}>
-          <br />
-          <Container>
-            <SingleLineRow>
-              <Col size={6}><strong>{_('backupRestoreVdiLabel')}</strong></Col>
-              <Col size={6}><strong>{_('backupRestoreSrLabel')}</strong></Col>
-            </SingleLineRow>
-            {map(vdis, vdi =>
-              <SingleLineRow key={vdi.uuid}>
-                <Col size={6}>{vdi.name}</Col>
-                <Col size={6}><SelectSr onChange={this.linkState(`mapVdisSrs.${vdi.uuid}`)} value={this.state.mapVdisSrs[vdi.uuid]} predicate={this._getSrPredicate()} /></Col>
-              </SingleLineRow>
-            )}
-          </Container>
-        </_Collapsible>
-      }
+      <ChooseSrForEachVdisModal
+        vdis={vdis}
+        onChange={props => this.setState(props)}
+      />
       <br />
       <Toggle onChange={this.linkState('start')} /> {_('importBackupModalStart')}
     </div>
