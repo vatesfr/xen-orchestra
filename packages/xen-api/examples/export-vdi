@@ -8,7 +8,7 @@ const { fromCallback } = require('promise-toolbox')
 
 const { createClient } = require('../')
 
-const { createOutputStream } = require('./utils')
+const { createOutputStream, resolveRef } = require('./utils')
 
 defer(async ($defer, args) => {
   let raw = false
@@ -18,7 +18,7 @@ defer(async ($defer, args) => {
   }
 
   if (args.length < 2) {
-    return console.log('Usage: export-vdi <XS URL> <VDI reference> [<VHD file>]')
+    return console.log('Usage: export-vdi <XS URL> <VDI identifier> [<VHD file>]')
   }
 
   const xapi = createClient({
@@ -34,7 +34,7 @@ defer(async ($defer, args) => {
   const exportStream = await xapi.getResource('/export_raw_vdi/', {
     query: {
       format: raw ? 'raw' : 'vhd',
-      vdi: args[1]
+      vdi: await resolveRef(xapi, 'VDI', args[1])
     }
   })
 

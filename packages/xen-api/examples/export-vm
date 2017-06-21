@@ -8,11 +8,11 @@ const { fromCallback } = require('promise-toolbox')
 
 const { createClient } = require('../')
 
-const { createOutputStream } = require('./utils')
+const { createOutputStream, resolveRef } = require('./utils')
 
 defer(async ($defer, args) => {
   if (args.length < 2) {
-    return console.log('Usage: export-vm <XS URL> <VM reference> [<XVA file>]')
+    return console.log('Usage: export-vm <XS URL> <VM identifier> [<XVA file>]')
   }
 
   const xapi = createClient({
@@ -27,7 +27,7 @@ defer(async ($defer, args) => {
   // https://xapi-project.github.io/xen-api/importexport.html
   const exportStream = await xapi.getResource('/export/', {
     query: {
-      ref: args[1],
+      ref: await resolveRef(xapi, 'VM', args[1]),
       use_compression: 'true'
     }
   })
