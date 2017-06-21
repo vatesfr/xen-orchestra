@@ -207,8 +207,99 @@ const TYPES = {
 const DEFAULT_TYPE = 'VM'
 
 @addSubscriptions({
-  resourceSets: subscribeResourceSets,
   servers: subscribeServers
+})
+class NoObjects_ extends Component {
+  render () {
+    const {
+      fetched,
+      isAdmin,
+      nItems,
+      noResourceSets,
+      noServersConnected,
+      servers
+    } = this.props
+
+    if (!fetched) {
+      return <CenterPanel>
+        <h2><img src='assets/loading.svg' /></h2>
+      </CenterPanel>
+    }
+
+    const noRegisteredServers = !servers || !servers.length
+    if (noServersConnected && isAdmin) {
+      return <CenterPanel>
+        <Card shadow>
+          <CardHeader>{_('homeWelcome')}</CardHeader>
+          <CardBlock>
+            <Link to='/settings/servers'>
+              <Icon icon='pool' size={4} />
+              <h4>{noRegisteredServers ? _('homeAddServer') : _('homeConnectServer')}</h4>
+            </Link>
+            <p className='text-muted'>{noRegisteredServers ? _('homeWelcomeText') : _('homeConnectServerText')}</p>
+            <br /><br />
+            <h3>{_('homeHelp')}</h3>
+            <Row>
+              <Col mediumSize={6}>
+                <a href='https://xen-orchestra.com/docs/' target='_blank' className='btn btn-link'>
+                  <Icon icon='menu-about' size={4} />
+                  <h4>{_('homeOnlineDoc')}</h4>
+                </a>
+              </Col>
+              <Col mediumSize={6}>
+                <a href='https://xen-orchestra.com/#!/member/support' target='_blank' className='btn btn-link'>
+                  <Icon icon='menu-settings-users' size={4} />
+                  <h4>{_('homeProSupport')}</h4>
+                </a>
+              </Col>
+            </Row>
+          </CardBlock>
+        </Card>
+      </CenterPanel>
+    }
+
+    if (!nItems) {
+      return <CenterPanel>
+        <Card shadow>
+          <CardHeader>{_('homeNoVms')}</CardHeader>
+          {(isAdmin || !noResourceSets) && <CardBlock>
+            <Row>
+              <Col>
+                <Link to='/vms/new'>
+                  <Icon icon='vm' size={4} />
+                  <h4>{_('homeNewVm')}</h4>
+                </Link>
+                <p className='text-muted'>{_('homeNewVmMessage')}</p>
+              </Col>
+            </Row>
+            {isAdmin && <div>
+              <h2>{_('homeNoVmsOr')}</h2>
+              <Row>
+                <Col mediumSize={6}>
+                  <Link to='/import'>
+                    <Icon icon='menu-new-import' size={4} />
+                    <h4>{_('homeImportVm')}</h4>
+                  </Link>
+                  <p className='text-muted'>{_('homeImportVmMessage')}</p>
+                </Col>
+                <Col mediumSize={6}>
+                  <Link to='/backup/restore'>
+                    <Icon icon='backup' size={4} />
+                    <h4>{_('homeRestoreBackup')}</h4>
+                  </Link>
+                  <p className='text-muted'>{_('homeRestoreBackupMessage')}</p>
+                </Col>
+              </Row>
+            </div>}
+          </CardBlock>}
+        </Card>
+      </CenterPanel>
+    }
+  }
+}
+
+@addSubscriptions({
+  resourceSets: subscribeResourceSets
 })
 @connectStore(() => {
   const noServersConnected = invoke(
@@ -613,87 +704,25 @@ export default class Home extends Component {
     const {
       areObjectsFetched,
       isAdmin,
-      noServersConnected,
-      servers
+      noServersConnected
     } = this.props
-
-    const noRegisteredServers = !servers || !servers.length
-
-    if (!areObjectsFetched) {
-      return <CenterPanel>
-        <h2><img src='assets/loading.svg' /></h2>
-      </CenterPanel>
-    }
-
-    if (noServersConnected && isAdmin) {
-      return <CenterPanel>
-        <Card shadow>
-          <CardHeader>{_('homeWelcome')}</CardHeader>
-          <CardBlock>
-            <Link to='/settings/servers'>
-              <Icon icon='pool' size={4} />
-              <h4>{noRegisteredServers ? _('homeAddServer') : _('homeConnectServer')}</h4>
-            </Link>
-            <p className='text-muted'>{noRegisteredServers ? _('homeWelcomeText') : _('homeConnectServerText')}</p>
-            <br /><br />
-            <h3>{_('homeHelp')}</h3>
-            <Row>
-              <Col mediumSize={6}>
-                <a href='https://xen-orchestra.com/docs/' target='_blank' className='btn btn-link'>
-                  <Icon icon='menu-about' size={4} />
-                  <h4>{_('homeOnlineDoc')}</h4>
-                </a>
-              </Col>
-              <Col mediumSize={6}>
-                <a href='https://xen-orchestra.com/#!/member/support' target='_blank' className='btn btn-link'>
-                  <Icon icon='menu-settings-users' size={4} />
-                  <h4>{_('homeProSupport')}</h4>
-                </a>
-              </Col>
-            </Row>
-          </CardBlock>
-        </Card>
-      </CenterPanel>
-    }
 
     const nItems = this._getNumberOfItems()
     const noResourceSets = this._getNoResourceSets()
-    if (!nItems) {
-      return <CenterPanel>
-        <Card shadow>
-          <CardHeader>{_('homeNoVms')}</CardHeader>
-          {(isAdmin || !noResourceSets) && <CardBlock>
-            <Row>
-              <Col>
-                <Link to='/vms/new'>
-                  <Icon icon='vm' size={4} />
-                  <h4>{_('homeNewVm')}</h4>
-                </Link>
-                <p className='text-muted'>{_('homeNewVmMessage')}</p>
-              </Col>
-            </Row>
-            {isAdmin && <div>
-              <h2>{_('homeNoVmsOr')}</h2>
-              <Row>
-                <Col mediumSize={6}>
-                  <Link to='/import'>
-                    <Icon icon='menu-new-import' size={4} />
-                    <h4>{_('homeImportVm')}</h4>
-                  </Link>
-                  <p className='text-muted'>{_('homeImportVmMessage')}</p>
-                </Col>
-                <Col mediumSize={6}>
-                  <Link to='/backup/restore'>
-                    <Icon icon='backup' size={4} />
-                    <h4>{_('homeRestoreBackup')}</h4>
-                  </Link>
-                  <p className='text-muted'>{_('homeRestoreBackupMessage')}</p>
-                </Col>
-              </Row>
-            </div>}
-          </CardBlock>}
-        </Card>
-      </CenterPanel>
+    const noObjects = (
+      !areObjectsFetched ||
+      (noServersConnected && isAdmin) ||
+      !nItems
+    )
+
+    if (noObjects) {
+      return <NoObjects_
+        fetched={areObjectsFetched}
+        isAdmin={isAdmin}
+        nItems={nItems}
+        noResourceSets={noResourceSets}
+        noServersConnected={noServersConnected}
+      />
     }
 
     const filteredItems = this._getFilteredItems()
