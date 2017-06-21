@@ -9,6 +9,7 @@ import Icon from 'icon'
 import invoke from 'invoke'
 import Link from 'link'
 import Page from '../page'
+import propTypes from 'prop-types-decorator'
 import React from 'react'
 import Shortcuts from 'shortcuts'
 import SingleLineRow from 'single-line-row'
@@ -209,6 +210,13 @@ const DEFAULT_TYPE = 'VM'
 @addSubscriptions({
   servers: subscribeServers
 })
+@propTypes({
+  fetched: propTypes.bool,
+  isAdmin: propTypes.bool,
+  nItems: propTypes.number,
+  noResourceSets: propTypes.bool,
+  noServersConnected: propTypes.bool
+})
 class NoObjects_ extends Component {
   render () {
     const {
@@ -226,7 +234,7 @@ class NoObjects_ extends Component {
       </CenterPanel>
     }
 
-    const noRegisteredServers = !servers || !servers.length
+    const noRegisteredServers = isEmpty(servers)
     if (noServersConnected && isAdmin) {
       return <CenterPanel>
         <Card shadow>
@@ -258,7 +266,7 @@ class NoObjects_ extends Component {
       </CenterPanel>
     }
 
-    if (!nItems) {
+    if (nItems === undefined) {
       return <CenterPanel>
         <Card shadow>
           <CardHeader>{_('homeNoVms')}</CardHeader>
@@ -558,11 +566,6 @@ export default class Home extends Component {
     return customFilters[this._getType()]
   }
 
-  _getNoResourceSets = createSelector(
-    () => this.props.resourceSets,
-    isEmpty
-  )
-
   // Checkboxes ----------------------------------------------------------------
 
   _getIsAllSelected = createSelector(
@@ -630,11 +633,12 @@ export default class Home extends Component {
   _renderHeader () {
     const {
       isAdmin,
+      resourceSets,
       type
     } = this.props
     const { filters } = OPTIONS[type]
     const customFilters = this._getCustomFilters()
-    const noResourceSets = this._getNoResourceSets()
+    const noResourceSets = isEmpty(resourceSets)
 
     return <Container>
       <Row className={styles.itemRowHeader}>
@@ -704,18 +708,14 @@ export default class Home extends Component {
     const {
       areObjectsFetched,
       isAdmin,
-      noServersConnected
+      noServersConnected,
+      resourceSets
     } = this.props
 
     const nItems = this._getNumberOfItems()
-    const noResourceSets = this._getNoResourceSets()
-    const noObjects = (
-      !areObjectsFetched ||
-      (noServersConnected && isAdmin) ||
-      !nItems
-    )
+    const noResourceSets = isEmpty(resourceSets)
 
-    if (noObjects) {
+    if (nItems === undefined) {
       return <NoObjects_
         fetched={areObjectsFetched}
         isAdmin={isAdmin}
