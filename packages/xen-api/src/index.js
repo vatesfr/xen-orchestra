@@ -5,14 +5,14 @@ import ms from 'ms'
 import httpRequest from 'http-request-plus'
 import { BaseError } from 'make-error'
 import { EventEmitter } from 'events'
-import { filter, forEach, isArray, isObject, map, noop, reduce, startsWith } from 'lodash'
+import { filter, forEach, isArray, isObject, map, noop, omit, reduce, startsWith } from 'lodash'
 import {
   Cancel,
   cancelable,
   catchPlus as pCatch,
   defer,
   delay as pDelay,
-  fromEvents,
+  fromEvent,
   lastly
 } from 'promise-toolbox'
 
@@ -150,10 +150,6 @@ const getTaskResult = (task, onSuccess, onFailure) => {
 }
 
 // -------------------------------------------------------------------
-
-const PUT_RESOURCE_CANCEL_TAG = '[Xapi#putResource] normal cancel'
-
-// ===================================================================
 
 const MAX_TRIES = 5
 
@@ -398,20 +394,14 @@ export class Xapi extends EventEmitter {
     const headers = {}
 
     // Xen API does not support chunk encoding.
+    const isStream = typeof body.pipe === 'function'
     const { length } = body
-    if (length === undefined && typeof body.pipe === 'function') {
+    if (isStream && length === undefined) {
       // add a fake huge content length (1 PiB)
       headers['content-length'] = '1125899906842624'
-
-      // when the data has been emitted, close the connection
-      $cancelToken = $cancelToken.fork(cancel => {
-        body.on('end', () => {
-          setTimeout(cancel, 1e3, PUT_RESOURCE_CANCEL_TAG)
-        })
-      })
     }
 
-    const doRequest = ($cancelToken, override) => httpRequest.put(
+    const doRequest = override => httpRequest.put(
       $cancelToken,
       this._url,
       host && {
@@ -430,43 +420,56 @@ export class Xapi extends EventEmitter {
       override
     )
 
-    // http-request-plus correctly handle redirects if body is not a stream
-    if (typeof body.pipe !== 'function') {
-      return doRequest($cancelToken)
-    }
+    const promise = isStream
 
-    // dummy request to probe for a redirection before consuming body
-    return doRequest(null, {
-      body: '',
-      maxRedirects: 0
-    }).then(
-      response => {
-        response.cancel()
-        return doRequest($cancelToken)
-      },
-      error => {
-        let response
-        if (error != null && (response = error.response) != null) {
-          response.cancel()
+      // dummy request to probe for a redirection before consuming body
+      ? doRequest({
+        body: '',
+        query: {
+          // omit task_id because this request will fail on purpose
+          ...(
+            query != null && 'task_id' in query
+            ? omit(query, 'task_id')
+            : query
+          ),
+          session_id: this.sessionId
+        },
+        maxRedirects: 0
+      }).then(
+        response => {
+          response.req.abort()
+          return doRequest()
+        },
+        error => {
+          let response
+          if (error != null && (response = error.response) != null) {
+            response.req.abort()
 
-          const { headers: { location }, statusCode } = response
-          if (statusCode === 302 && location !== undefined) {
-            return doRequest($cancelToken, location)
+            const { headers: { location }, statusCode } = response
+            if (statusCode === 302 && location !== undefined) {
+              return doRequest(location)
+            }
           }
-        }
 
-        throw error
-      }
-    ).then(response => {
-      // TODO: response.header['task-id']
-      return fromEvents(
-        response.resume(),
-        [ 'end' ],
-        [ 'aborted', 'error' ]
-      ).catch(([ error ]) => {
-        if (error == null || error.message !== PUT_RESOURCE_CANCEL_TAG) {
           throw error
         }
+      )
+
+      // http-request-plus correctly handle redirects if body is not a stream
+      : doRequest()
+
+    return promise.then(response => {
+      // TODO: response.header['task-id']
+
+      const { req } = response
+
+      if (req.finished) {
+        req.abort()
+        return
+      }
+
+      return fromEvent(req, 'finish').then(() => {
+        req.abort()
       })
     })
   }
