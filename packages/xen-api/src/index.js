@@ -382,23 +382,45 @@ export class Xapi extends EventEmitter {
   }
 
   @cancelable
-  getResource ($cancelToken, pathname, { host, query }) {
-    // TODO: should we create a task to properly cancel the request?
-    return httpRequest(
-      $cancelToken,
-      this._url,
-      host && {
-        hostname: this.getObject(host).address
-      },
-      {
-        pathname,
-        query: {
-          ...query,
-          session_id: this.sessionId
-        },
-        rejectUnauthorized: !this._allowUnauthorized
+  getResource ($cancelToken, pathname, {
+    host,
+    query,
+    task
+  }) {
+    return Promise.resolve(
+      task
+        ? this.createTask(`Xapi#getResource ${pathname}`)
+        : undefined
+    ).then(taskRef => {
+      query = { ...query, session_id: this.sessionId }
+      let taskResult
+      if (taskRef !== undefined) {
+        query.task_id = taskRef
+        taskResult = this.watchTask(taskRef)
       }
-    )
+
+      let promise = httpRequest(
+        $cancelToken,
+        this._url,
+        host && {
+          hostname: this.getObject(host).address
+        },
+        {
+          pathname,
+          query,
+          rejectUnauthorized: !this._allowUnauthorized
+        }
+      )
+
+      if (taskResult !== undefined) {
+        promise = promise.then(response => {
+          response.task = taskResult
+          return response
+        })
+      }
+
+      return promise
+    })
   }
 
   @cancelable
