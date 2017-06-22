@@ -36,6 +36,9 @@ export default class TabXosan extends Component {
           <h3>Brick {brick.info.name}</h3>
           <div style={{ marginLeft: '15px' }}>
             <Row>
+              <Col size={2}>Brick UUID: </Col><Col size={4}>{brick.uuid}</Col>
+            </Row>
+            <Row>
               <Col size={2}>Virtual Machine: </Col><Col size={4}><Link to={`/vms/${brick.vmId}`} title={brick.info.name}>{brick.vmLabel}</Link></Col>
             </Row>
             <Row>
