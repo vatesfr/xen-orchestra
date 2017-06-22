@@ -7071,9 +7071,9 @@ xdg-basedir@^2.0.0:
   dependencies:
     os-homedir "^1.0.0"
 
-xen-api@^0.13.0:
-  version "0.13.0"
-  resolved "https://registry.yarnpkg.com/xen-api/-/xen-api-0.13.0.tgz#1492934a8d36aead61990471c8ff35576a06dce1"
+xen-api@^0.13.1:
+  version "0.13.1"
+  resolved "https://registry.yarnpkg.com/xen-api/-/xen-api-0.13.1.tgz#471aedff714460e888189b07d04610bf762971df"
   dependencies:
     babel-polyfill "^6.23.0"
     blocked "^1.2.1"
