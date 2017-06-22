@@ -628,13 +628,18 @@ export class Xapi extends EventEmitter {
   }
 
   _removeObject (ref) {
-    const {_objectsByRefs: objectsByRefs} = this
-
-    const object = objectsByRefs[ref]
-
-    if (object) {
+    const byRefs = this._objectsByRefs
+    const object = byRefs[ref]
+    if (object !== undefined) {
       this._objects.unset(object.$id)
-      delete objectsByRefs[ref]
+      delete byRefs[ref]
+    }
+
+    const taskWatchers = this._taskWatchers
+    const taskWatcher = taskWatchers[ref]
+    if (taskWatcher !== undefined) {
+      taskWatcher.reject(new Error('task has been detroyed before completion'))
+      delete taskWatchers[ref]
     }
   }
 
