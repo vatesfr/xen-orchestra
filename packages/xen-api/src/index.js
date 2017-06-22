@@ -426,88 +426,101 @@ export class Xapi extends EventEmitter {
   @cancelable
   putResource ($cancelToken, body, pathname, {
     host,
-    query
+    query,
+    task
   } = {}) {
-    // TODO: should we create a task to properly cancel the request?
-    const headers = {}
+    return Promise.resolve(
+      task
+        ? this.createTask(`Xapi#putResource ${pathname}`)
+        : undefined
+    ).then(taskRef => {
+      query = { ...query, session_id: this.sessionId }
 
-    // Xen API does not support chunk encoding.
-    const isStream = typeof body.pipe === 'function'
-    const { length } = body
-    if (isStream && length === undefined) {
-      // add a fake huge content length (1 PiB)
-      headers['content-length'] = '1125899906842624'
-    }
-
-    const doRequest = override => httpRequest.put(
-      $cancelToken,
-      this._url,
-      host && {
-        hostname: this.getObject(host).address
-      },
-      {
-        body,
-        headers,
-        pathname,
-        query: {
-          ...query,
-          session_id: this.sessionId
-        },
-        rejectUnauthorized: !this._allowUnauthorized
-      },
-      override
-    )
-
-    const promise = isStream
-
-      // dummy request to probe for a redirection before consuming body
-      ? doRequest({
-        body: '',
-        query: {
-          // omit task_id because this request will fail on purpose
-          ...(
-            query != null && 'task_id' in query
-            ? omit(query, 'task_id')
-            : query
-          ),
-          session_id: this.sessionId
-        },
-        maxRedirects: 0
-      }).then(
-        response => {
-          response.req.abort()
-          return doRequest()
-        },
-        error => {
-          let response
-          if (error != null && (response = error.response) != null) {
-            response.req.abort()
-
-            const { headers: { location }, statusCode } = response
-            if (statusCode === 302 && location !== undefined) {
-              return doRequest(location)
-            }
-          }
-
-          throw error
-        }
-      )
-
-      // http-request-plus correctly handle redirects if body is not a stream
-      : doRequest()
-
-    return promise.then(response => {
-      // TODO: response.header['task-id']
-
-      const { req } = response
-
-      if (req.finished) {
-        req.abort()
-        return
+      let taskResult
+      if (taskRef !== undefined) {
+        query.task_id = taskRef
+        taskResult = this.watchTask(taskRef)
       }
 
-      return fromEvent(req, 'finish').then(() => {
-        req.abort()
+      const headers = {}
+
+      // Xen API does not support chunk encoding.
+      const isStream = typeof body.pipe === 'function'
+      const { length } = body
+      if (isStream && length === undefined) {
+        // add a fake huge content length (1 PiB)
+        headers['content-length'] = '1125899906842624'
+      }
+
+      const doRequest = override => httpRequest.put(
+        $cancelToken,
+        this._url,
+        host && {
+          hostname: this.getObject(host).address
+        },
+        {
+          body,
+          headers,
+          pathname,
+          query: {
+            ...query,
+            session_id: this.sessionId
+          },
+          rejectUnauthorized: !this._allowUnauthorized
+        },
+        override
+      )
+
+      const promise = isStream
+
+        // dummy request to probe for a redirection before consuming body
+        ? doRequest({
+          body: '',
+          query: {
+            // omit task_id because this request will fail on purpose
+            ...(
+              query != null && 'task_id' in query
+              ? omit(query, 'task_id')
+              : query
+            ),
+            session_id: this.sessionId
+          },
+          maxRedirects: 0
+        }).then(
+          response => {
+            response.req.abort()
+            return doRequest()
+          },
+          error => {
+            let response
+            if (error != null && (response = error.response) != null) {
+              response.req.abort()
+
+              const { headers: { location }, statusCode } = response
+              if (statusCode === 302 && location !== undefined) {
+                return doRequest(location)
+              }
+            }
+
+            throw error
+          }
+        )
+
+        // http-request-plus correctly handle redirects if body is not a stream
+        : doRequest()
+
+      return promise.then(response => {
+        const { req } = response
+
+        if (req.finished) {
+          req.abort()
+          return taskResult
+        }
+
+        return fromEvent(req, 'finish').then(() => {
+          req.abort()
+          return taskResult
+        })
       })
     })
   }
