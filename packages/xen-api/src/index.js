@@ -321,6 +321,22 @@ export class Xapi extends EventEmitter {
     })
   }
 
+  // create a task and automatically destroy it when settled
+  createTask (nameLabel, nameDescription = '') {
+    const promise = this._sessionCall('task.create', [
+      nameLabel,
+      nameDescription
+    ])
+
+    promise.then(taskRef => {
+      const destroy = () =>
+        this._sessionCall('task.destroy', taskRef).catch(noop)
+      this.watchTask(taskRef).then(destroy, destroy)
+    })
+
+    return promise
+  }
+
   // Nice getter which returns the object for a given $id (internal to
   // this lib), UUID (unique identifier that some objects have) or
   // opaque reference (internal to XAPI).
