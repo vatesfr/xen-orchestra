@@ -16,7 +16,7 @@ defer(async ($defer, args) => {
   }
 
   if (args.length < 2) {
-    return console.log('Usage: import-vdi <XS URL> <VDI identifier> [<VHD file>]')
+    return console.log('Usage: import-vdi [--raw] <XS URL> <VDI identifier> [<VHD file>]')
   }
 
   const xapi = createClient({
