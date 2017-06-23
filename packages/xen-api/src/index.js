@@ -397,6 +397,10 @@ export class Xapi extends EventEmitter {
       if (taskRef !== undefined) {
         query.task_id = taskRef
         taskResult = this.watchTask(taskRef)
+
+        if (typeof $cancelToken.addHandler === 'function') {
+          $cancelToken.addHandler(() => task)
+        }
       }
 
       let promise = httpRequest(
@@ -440,6 +444,10 @@ export class Xapi extends EventEmitter {
       if (taskRef !== undefined) {
         query.task_id = taskRef
         taskResult = this.watchTask(taskRef)
+
+        if (typeof $cancelToken.addHandler === 'function') {
+          $cancelToken.addHandler(() => task)
+        }
       }
 
       const headers = {}
