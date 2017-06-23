@@ -3,6 +3,7 @@ import Component from 'base-component'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
+import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
@@ -35,17 +36,17 @@ export default class VmGroupItem extends Component {
   _setNameLabel = label => editVmGroup(this.props.item, {name_label: label})
   _getVmGroupState = (vmGroup) => {
     const states = map(this.props.vms, vm => vm.power_state)
-    return (states.length === 0
+    return isEmpty(states)
     ? 'Busy'
     : states.indexOf('Halted') === -1
       ? states[0]
       : states.indexOf('Running') === -1
         ? states[0]
-        : 'Busy')
+        : 'Busy'
   }
 
   render () {
-    const { item: vmGroup, selected } = this.props
+    const { item: vmGroup, selected, vms } = this.props
     return <div className={styles.item}>
       <BlockLink to={`/vm-group/${vmGroup.id}`}>
         <SingleLineRow>
@@ -55,7 +56,7 @@ export default class VmGroupItem extends Component {
               &nbsp;&nbsp;
               <Ellipsis>
                 <Tooltip content={_(`powerStateVmGroup${this._getVmGroupState(vmGroup)}`)}>
-                  <Icon icon={`${this._getVmGroupState(vmGroup).toLowerCase()}`} />
+                  <Icon icon={isEmpty(vms) ? 'halted' : `${this._getVmGroupState(vmGroup).toLowerCase()}`} />
                 </Tooltip>
                 <Text value={vmGroup.name_label} onChange={this._setNameLabel} useLongClick />
               </Ellipsis>

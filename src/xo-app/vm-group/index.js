@@ -1,6 +1,7 @@
 import _ from 'intl'
 import BaseComponent from 'base-component'
 import Icon from 'icon'
+import isEmpty from 'lodash/isEmpty'
 import React, { cloneElement } from 'react'
 import {
   connectStore,
@@ -60,7 +61,7 @@ export default class VmGroup extends BaseComponent {
   _setNameLabel = label => editVmGroup(this.props.vmGroup, {name_label: label})
   _getVmGroupState = () => {
     const states = map(this.props.vms, vm => vm.power_state)
-    return (states.length === 0
+    return (isEmpty(states)
     ? 'busy'
     : states.indexOf('Halted') === -1
       ? states[0]
@@ -70,7 +71,7 @@ export default class VmGroup extends BaseComponent {
   }
 
   header () {
-    const { vmGroup } = this.props
+    const { vmGroup, vms } = this.props
     if (!vmGroup) {
       return <Icon icon='loading' />
     }
@@ -78,7 +79,7 @@ export default class VmGroup extends BaseComponent {
       <Row>
         <Col mediumSize={6} className='header-title'>
           <h2>
-            <Icon icon={`vm-${this._getVmGroupState()}`} />
+            <Icon icon={isEmpty(vms) ? `vm-halted` : `vm-${this._getVmGroupState()}`} />
             {' '}
             <Text value={vmGroup.name_label} onChange={this._setNameLabel} />
           </h2>
