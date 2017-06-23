@@ -214,7 +214,7 @@ export default {
   async uploadPoolPatch (stream, patchName = 'unknown') {
     const taskRef = await this._createTask('Patch upload', patchName)
 
-    const task = this._watchTask(taskRef)
+    const task = this.watchTask(taskRef)
     const [ patchRef ] = await Promise.all([
       task,
       this.putResource(stream, '/pool_patch_upload', {

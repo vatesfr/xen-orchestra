@@ -20,7 +20,6 @@ import {
   uniq
 } from 'lodash'
 import {
-  wrapError as wrapXapiError,
   Xapi as XapiBase
 } from 'xen-api'
 import {
@@ -100,7 +99,6 @@ export default class Xapi extends XapiBase {
 
     const genericWatchers = this._genericWatchers = createRawObject()
     const objectsWatchers = this._objectWatchers = createRawObject()
-    const taskWatchers = this._taskWatchers = createRawObject()
 
     const onAddOrUpdate = objects => {
       forEach(objects, object => {
@@ -122,21 +120,6 @@ export default class Xapi extends XapiBase {
         if (ref in objectsWatchers) {
           objectsWatchers[ref].resolve(object)
           delete objectsWatchers[ref]
-        }
-
-        // Watched task.
-        if (ref in taskWatchers) {
-          const {status} = object
-
-          if (status === 'success') {
-            taskWatchers[ref].resolve(object.result)
-          } else if (status === 'failure') {
-            taskWatchers[ref].reject(wrapXapiError(object.error_info))
-          } else {
-            return
-          }
-
-          delete taskWatchers[ref]
         }
       })
     }
@@ -233,27 +216,13 @@ export default class Xapi extends XapiBase {
     const ref = await this.call('task.create', `[XO] ${name}`, description)
     debug('task created: %s (%s)', name, description)
 
-    this._watchTask(ref)::pFinally(() => {
+    this.watchTask(ref)::pFinally(() => {
       this.call('task.destroy', ref).then(() => {
         debug('task destroyed: %s (%s)', name, description)
       })
     })
 
     return ref
-  }
-
-  // Waits for a task to be resolved.
-  _watchTask (ref) {
-    // If a task object is passed, unpacked the ref.
-    if (typeof ref === 'object' && ref.$ref) ref = ref.$ref
-
-    let watcher = this._taskWatchers[ref]
-    if (!watcher) {
-      // Register the watcher.
-      watcher = this._taskWatchers[ref] = defer()
-    }
-
-    return watcher.promise
   }
 
   // =================================================================
@@ -763,7 +732,7 @@ export default class Xapi extends XapiBase {
 
     const taskRef = await this._createTask('VM Export', vm.name_label)
     if (snapshotRef) {
-      this._watchTask(taskRef)::pFinally(() => {
+      this.watchTask(taskRef)::pFinally(() => {
         this.deleteVm(snapshotRef)::pCatch(noop)
       })
     }
@@ -1237,7 +1206,7 @@ export default class Xapi extends XapiBase {
     }
 
     const [ vmRef ] = await Promise.all([
-      this._watchTask(taskRef).then(extractOpaqueRef),
+      this.watchTask(taskRef).then(extractOpaqueRef),
       this.putResource(
         stream,
         onlyMetadata ? '/import_metadata/' : '/import/',
@@ -1869,7 +1838,7 @@ export default class Xapi extends XapiBase {
       : ''
     }`)
 
-    const task = this._watchTask(taskRef)
+    const task = this.watchTask(taskRef)
     return this.getResource($cancelToken, '/export_raw_vdi/', {
       host,
       query
@@ -1902,7 +1871,7 @@ export default class Xapi extends XapiBase {
       throw new Error('no valid PBDs found')
     }
 
-    const task = this._watchTask(taskRef)
+    const task = this.watchTask(taskRef)
     await Promise.all([
       stream.checksumVerified,
       task,
