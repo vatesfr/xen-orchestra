@@ -137,6 +137,10 @@ export default class Xapi extends XapiBase {
     return loop()
   }
 
+  createTask (name = 'untitled task', description) {
+    return super.createTask(`[XO] ${name}`, description)
+  }
+
   // =================================================================
 
   _registerGenericWatcher (fn) {
@@ -207,22 +211,6 @@ export default class Xapi extends XapiBase {
       this.getObject(idOrUuidOrRef, null) ||
       this._waitObject(idOrUuidOrRef)
     )
-  }
-
-  // =================================================================
-
-  // Create a task.
-  async _createTask (name = 'untitled task', description = '') {
-    const ref = await this.call('task.create', `[XO] ${name}`, description)
-    debug('task created: %s (%s)', name, description)
-
-    this.watchTask(ref)::pFinally(() => {
-      this.call('task.destroy', ref).then(() => {
-        debug('task destroyed: %s (%s)', name, description)
-      })
-    })
-
-    return ref
   }
 
   // =================================================================
@@ -730,7 +718,7 @@ export default class Xapi extends XapiBase {
       snapshotRef = (await this._snapshotVm(vm)).$ref
     }
 
-    const taskRef = await this._createTask('VM Export', vm.name_label)
+    const taskRef = await this.createTask('VM Export', vm.name_label)
     if (snapshotRef) {
       this.watchTask(taskRef)::pFinally(() => {
         this.deleteVm(snapshotRef)::pCatch(noop)
@@ -1185,7 +1173,7 @@ export default class Xapi extends XapiBase {
   }
 
   async _importVm (stream, sr, onlyMetadata = false, onVmCreation = undefined) {
-    const taskRef = await this._createTask('VM import')
+    const taskRef = await this.createTask('VM import')
     const query = {
       force: onlyMetadata
         ? 'true'
@@ -1822,7 +1810,7 @@ export default class Xapi extends XapiBase {
   @cancellable
   async _exportVdi ($cancelToken, vdi, base, format = VDI_FORMAT_VHD) {
     const host = vdi.$SR.$PBDs[0].$host
-    const taskRef = await this._createTask('VDI Export', vdi.name_label)
+    const taskRef = await this.createTask('VDI Export', vdi.name_label)
 
     const query = {
       format,
