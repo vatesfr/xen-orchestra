@@ -385,12 +385,11 @@ export class Xapi extends EventEmitter {
   getResource ($cancelToken, pathname, {
     host,
     query,
-    task = this._taskWatchers !== undefined
+    task
   }) {
-    return Promise.resolve(
-      task
-        ? this.createTask(`Xapi#getResource ${pathname}`)
-        : undefined
+    return this._autoTask(
+      task,
+      `Xapi#getResource ${pathname}`
     ).then(taskRef => {
       query = { ...query, session_id: this.sessionId }
       let taskResult
@@ -431,12 +430,11 @@ export class Xapi extends EventEmitter {
   putResource ($cancelToken, body, pathname, {
     host,
     query,
-    task = this._taskWatchers !== undefined
+    task
   } = {}) {
-    return Promise.resolve(
-      task
-        ? this.createTask(`Xapi#putResource ${pathname}`)
-        : undefined
+    return this._autoTask(
+      task,
+      `Xapi#putResource ${pathname}`
     ).then(taskRef => {
       query = { ...query, session_id: this.sessionId }
 
@@ -564,6 +562,20 @@ export class Xapi extends EventEmitter {
 
   get objects () {
     return this._objects
+  }
+
+  // return a promise which resolves to a task ref or undefined
+  _autoTask (task = this._taskWatchers !== undefined, name) {
+    if (task === false) {
+      return Promise.resolve()
+    }
+
+    if (task === true) {
+      return this.createTask(name)
+    }
+
+    // either a reference or a promise to a reference
+    return Promise.resolve(task)
   }
 
   // Medium level call: handle session errors.
