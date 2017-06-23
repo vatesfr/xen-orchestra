@@ -12,14 +12,14 @@ import { getObject } from 'selectors'
 
 export default connectStore(() => {
   const getMemoryTotal = (state, props) => {
-    const vbdIds = new Set()
-    forEach(props.vms, vm => forEach(vm.$VBDs, vbd => vbdIds.add(vbd)))
-    var sum = 0
-    vbdIds.forEach(vbdId => {
-      const vbd = getObject(state, vbdId)
-      if (vbd) sum += getObject(state, vbd.VDI).size
-    })
-    return sum
+    const vdiIds = new Set()
+    forEach(props.vms, vm => forEach(vm.$VBDs, vbdId => vdiIds.add(getObject(state, vbdId).VDI)))
+    return reduce(Array.from(vdiIds), (sum, vdiId) => {
+      const vdi = getObject(state, vdiId)
+      return vdi !== undefined
+        ? sum + vdi.size
+        : sum
+    }, 0)
   }
 
   const getMemoryDynamicTotal = props => reduce(props.vms, (sum, vm) => vm.memory.dynamic[1] + sum, 0)
