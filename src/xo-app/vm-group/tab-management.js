@@ -105,35 +105,41 @@ export default class TabManagement extends Component {
   render () {
     const { vms } = this.props
     const { attachVm, bootOrder } = this.state
-    return (
-      <div>
-        <Row>
-          <Col className='text-xs-right'>
-            <TabButton
-              btnStyle={attachVm ? 'info' : 'primary'}
-              handler={this._toggleNewVm}
-              icon='add'
-              labelId='attachVmButton'
-            />
-            <TabButton
-              btnStyle={bootOrder ? 'info' : 'primary'}
-              handler={this._toggleBootOrder}
-              icon='sort'
-              labelId='vmsBootOrder'
-            />
-          </Col>
-        </Row>
-        {bootOrder && <div><DragNDropOrder parseOrderParam={vms} parseOrder={this.parseBootOrder} setOrder={this.setVmBootOrder} toggleItems={false} onClose={this._toggleBootOrder} /><hr /></div>}
-        {attachVm && <div>
-          <form id='attachVm'>
-            <SelectVm multi onChange={this._selectVm} predicate={this._vmPredicate} required />
-            <span className='pull-right'>
-              <ActionButton form='attachVm' icon='add' btnStyle='primary' handler={this._addVm}>{_('add')}</ActionButton>
-            </span>
-          </form>
-        </div>}
-        <SortedTable collection={vms} columns={VM_COLUMNS} />
-      </div>
+    return isEmpty(vms)
+        ? <form id='attachVm'>
+          <SelectVm multi onChange={this._selectVm} predicate={this._vmPredicate} required />
+          <span className='pull-right'>
+            <ActionButton form='attachVm' icon='add' btnStyle='primary' handler={this._addVm}>{_('add')}</ActionButton>
+          </span>
+        </form>
+        : (<div>
+          <Row>
+            <Col className='text-xs-right'>
+              <TabButton
+                btnStyle={attachVm ? 'info' : 'primary'}
+                handler={this._toggleNewVm}
+                icon='add'
+                labelId='attachVmButton'
+              />
+              <TabButton
+                btnStyle={bootOrder ? 'info' : 'primary'}
+                handler={this._toggleBootOrder}
+                icon='sort'
+                labelId='vmsBootOrder'
+              />
+            </Col>
+          </Row>
+          {bootOrder && <div><DragNDropOrder parseOrderParam={vms} parseOrder={this.parseBootOrder} setOrder={this.setVmBootOrder} toggleItems={false} onClose={this._toggleBootOrder} /><hr /></div>}
+          {attachVm && <div>
+            <form id='attachVm'>
+              <SelectVm multi onChange={this._selectVm} predicate={this._vmPredicate} required />
+              <span className='pull-right'>
+                <ActionButton form='attachVm' icon='add' btnStyle='primary' handler={this._addVm}>{_('add')}</ActionButton>
+              </span>
+            </form>
+          </div>}
+          <SortedTable collection={vms} columns={VM_COLUMNS} />
+        </div>
     )
   }
 }
