@@ -54,11 +54,6 @@ export default class VmItem extends Component {
     return vm && vm.power_state === 'Running'
   }
 
-  _getMigrationPredicate = createSelector(
-    () => this.props.container,
-    container => host => host.id !== container.id
-  )
-
   _getResourceSet = createFinder(
     () => this.props.resourceSets,
     createSelector(
@@ -144,7 +139,6 @@ export default class VmItem extends Component {
                 labelProp='name_label'
                 onChange={this._migrateVm}
                 placeholder={_('homeMigrateTo')}
-                predicate={this._getMigrationPredicate()}
                 useLongClick
                 value={container}
                 xoType='host'
