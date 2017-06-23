@@ -385,7 +385,7 @@ export class Xapi extends EventEmitter {
   getResource ($cancelToken, pathname, {
     host,
     query,
-    task
+    task = this._taskWatchers !== undefined
   }) {
     return Promise.resolve(
       task
@@ -427,7 +427,7 @@ export class Xapi extends EventEmitter {
   putResource ($cancelToken, body, pathname, {
     host,
     query,
-    task
+    task = this._taskWatchers !== undefined
   } = {}) {
     return Promise.resolve(
       task
