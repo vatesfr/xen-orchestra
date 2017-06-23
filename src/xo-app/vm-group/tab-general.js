@@ -1,5 +1,8 @@
+import _ from 'intl'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
+import isEmpty from 'lodash/isEmpty'
+import map from 'lodash/map'
 import reduce from 'lodash/reduce'
 import React from 'react'
 import size from 'lodash/size'
@@ -28,7 +31,7 @@ export default connectStore(() => {
     memoryDynamical: getMemoryDynamicTotal(props),
     nbCPU: getNbCPU(props)
   })
-})(({ vms, memoryTotal, memoryDynamical, nbCPU }) => {
+})(({ vms, memoryTotal, memoryDynamical, nbCPU, vmGroup }) => {
   return (
     <Container>
       <br />
@@ -50,6 +53,14 @@ export default connectStore(() => {
             <h2>{formatSize(memoryTotal)} <Icon icon='disk' size='lg' /></h2>
           </Col>
         </Row>
+        {isEmpty(vmGroup.current_operations)
+          ? null
+          : <Row className='text-xs-center'>
+            <Col>
+              <h4>{_('vmCurrentStatus')}{' '}{map(vmGroup.current_operations)[0]}</h4>
+            </Col>
+          </Row>
+        }
       </div>
     </Container>
   )
