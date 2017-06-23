@@ -77,7 +77,7 @@ const vmActionBarByState = {
           handler: cloneVm,
           pending: includes(vm.current_operations, 'clone')
         },
-        (isAdmin || !vm.resourceSet) && {
+        {
           icon: 'vm-migrate',
           label: 'migrateVmLabel',
           handler: migrateVm,
