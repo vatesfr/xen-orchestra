@@ -57,7 +57,7 @@ export default connectStore(() => {
           ? null
           : <Row className='text-xs-center'>
             <Col>
-              <h4>{_('vmCurrentStatus')}{' '}{map(vmGroup.current_operations)[0]}</h4>
+              <h4>{_('vmGroupCurrentStatus')}{' '}{map(vmGroup.current_operations)[0]}</h4>
             </Col>
           </Row>
         }

@@ -958,6 +958,9 @@ var messages = {
   'vmGroupDescription': 'Description',
   'vmGroupActions': 'Actions',
 
+  // ----- VM-Group general Tab -----
+  'vmGroupCurrentStatus': 'Current status',
+
   // ----- VM-Group stats Tab -----
   'vmGroupAllVm': 'All VMs',
 
