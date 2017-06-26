@@ -2079,13 +2079,16 @@ export default class Xapi extends XapiBase {
   }
 
   // Generic Config Drive
-  async createCloudInitConfigDrive (vmId, srId, config) {
+  @deferrable.onFailure
+  async createCloudInitConfigDrive ($onFailure, vmId, srId, config) {
     const vm = this.getObject(vmId)
     const sr = this.getObject(srId)
 
     // First, create a small VDI (10MB) which will become the ConfigDrive
     const buffer = fatfsBufferInit()
     const vdi = await this.createVdi(buffer.length, { name_label: 'XO CloudConfigDrive', name_description: undefined, sr: sr.$ref })
+    $onFailure(() => this._deleteVdi(vdi))
+
     // Then, generate a FAT fs
     const fs = promisifyAll(fatfs.createFileSystem(fatfsBuffer(buffer)))
     // Create Cloud config folders
