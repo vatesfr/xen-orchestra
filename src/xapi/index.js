@@ -1844,15 +1844,15 @@ export default class Xapi extends XapiBase {
 
   // -----------------------------------------------------------------
 
-  async _importVdiContent (vdi, stream, format = VDI_FORMAT_VHD) {
+  async _importVdiContent (vdi, body, format = VDI_FORMAT_VHD) {
     const pbd = find(vdi.$SR.$PBDs, 'currently_attached')
     if (pbd === undefined) {
       throw new Error('no valid PBDs found')
     }
 
     await Promise.all([
-      stream.checksumVerified,
-      this.putResource(stream, '/import_raw_vdi/', {
+      body.checksumVerified,
+      this.putResource(body, '/import_raw_vdi/', {
         host: pbd.host,
         query: {
           format,
@@ -1863,12 +1863,12 @@ export default class Xapi extends XapiBase {
     ])
   }
 
-  importVdiContent (vdiId, stream, {
+  importVdiContent (vdiId, body, {
     format
   } = {}) {
     return this._importVdiContent(
       this.getObject(vdiId),
-      stream,
+      body,
       format
     )
   }
