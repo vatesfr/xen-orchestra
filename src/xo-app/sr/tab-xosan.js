@@ -25,7 +25,7 @@ export default class TabXosan extends Component {
     replaceXosanBrick(this.props.sr.id, brick, this.state.sr.id)
   }
   _getSrPredicate = createSelector(
-    () => this.props.sr.pool, pool => sr => sr.SR_type === 'lvm'
+    () => this.props.sr.$pool, poolId =>(sr => sr.SR_type === 'lvm' && sr.$pool === poolId)
   )
 
   render () {
