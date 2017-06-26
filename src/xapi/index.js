@@ -2091,16 +2091,24 @@ export default class Xapi extends XapiBase {
 
     // Then, generate a FAT fs
     const fs = promisifyAll(fatfs.createFileSystem(fatfsBuffer(buffer)))
-    // Create Cloud config folders
+
     await fs.mkdir('openstack')
     await fs.mkdir('openstack/latest')
-    // Create the meta_data file
-    await fs.writeFile('openstack/latest/meta_data.json', '{\n    "uuid": "' + vm.uuid + '"\n}\n')
-    // Create the user_data file
-    await fs.writeFile('openstack/latest/user_data', config)
+    await Promise.all([
+      fs.writeFile(
+        'openstack/latest/meta_data.json',
+        '{\n    "uuid": "' + vm.uuid + '"\n}\n'
+      ),
+      fs.writeFile('openstack/latest/user_data', config)
+    ])
 
-    // Transform the buffer into a stream
-    await this._importVdiContent(vdi, buffer, VDI_FORMAT_RAW)
+    // ignore VDI_IO_ERROR errors, I (JFT) don't understand why they
+    // are emitted because it works
+    await this._importVdiContent(vdi, buffer, VDI_FORMAT_RAW)::pCatch(
+      { code: 'VDI_IO_ERROR' },
+      console.warn
+    )
+
     await this._createVbd(vm, vdi)
   }
 
