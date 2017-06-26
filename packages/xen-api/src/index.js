@@ -468,10 +468,7 @@ export class Xapi extends EventEmitter {
           body,
           headers,
           pathname,
-          query: {
-            ...query,
-            session_id: this.sessionId
-          },
+          query,
           rejectUnauthorized: !this._allowUnauthorized
         },
         override
@@ -482,15 +479,12 @@ export class Xapi extends EventEmitter {
         // dummy request to probe for a redirection before consuming body
         ? doRequest({
           body: '',
-          query: {
-            // omit task_id because this request will fail on purpose
-            ...(
-              query != null && 'task_id' in query
-              ? omit(query, 'task_id')
-              : query
-            ),
-            session_id: this.sessionId
-          },
+
+          // omit task_id because this request will fail on purpose
+          query: 'task_id' in query
+            ? omit(query, 'task_id')
+            : query,
+
           maxRedirects: 0
         }).then(
           response => {
