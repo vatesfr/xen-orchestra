@@ -850,8 +850,8 @@ export default class Xapi extends XapiBase {
           ...vdi,
           $SR$uuid: vdi.$SR.uuid
         }
-      const stream = streams[`${vdiRef}.vhd`] = this._exportVdi(vdi, baseVdi, VDI_FORMAT_VHD)
-      $onFailure(() => stream.cancel())
+      const stream = streams[`${vdiRef}.vhd`] = this._exportVdi($cancelToken, vdi, baseVdi, VDI_FORMAT_VHD)
+      $onFailure(stream.cancel)
     })
 
     const vifs = {}
