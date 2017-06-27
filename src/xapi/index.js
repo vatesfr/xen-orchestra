@@ -4,7 +4,7 @@ import fatfs from 'fatfs'
 import synchronized from 'decorator-synchronized'
 import tarStream from 'tar-stream'
 import vmdkToVhd from 'xo-vmdk-to-vhd'
-import { cancellable, defer, ignoreErrors } from 'promise-toolbox'
+import { cancellable, catchPlus as pCatch, defer, ignoreErrors } from 'promise-toolbox'
 import { PassThrough } from 'stream'
 import { forbiddenOperation } from 'xo-common/api-errors'
 import {
@@ -38,7 +38,6 @@ import {
   map,
   mapToArray,
   pAll,
-  pCatch,
   pDelay,
   pFinally,
   promisifyAll,
