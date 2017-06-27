@@ -30,6 +30,7 @@ If the result you have is completely different from that, or if error messages a
 
 * [Unhealthy VDI chain](https://xen-orchestra.com/docs/backup_troubleshooting.html#unhealthy-vdi-chain)
 * [SR_backend_failure_44](https://xen-orchestra.com/docs/backup_troubleshooting.html#srbackendfailure44-insufficient-space)
+* [Could not find the base VM](https://xen-orchestra.com/docs/backup_troubleshooting.html#could-not-find-the-base-vm)
 
 ## You haven't found a solution here? 
 Open a ticket concerning your issue on your personal space [here](https://xen-orchestra.com/#!/member/support) 
