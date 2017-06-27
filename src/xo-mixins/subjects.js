@@ -1,5 +1,5 @@
-import filter from 'lodash/filter'
-import includes from 'lodash/includes'
+import { filter, includes } from 'lodash'
+import { ignoreErrors } from 'promise-toolbox'
 import {
   hash,
   needsRehash,
@@ -20,9 +20,7 @@ import {
   forEach,
   isEmpty,
   lightSet,
-  mapToArray,
-  noop,
-  pCatch
+  mapToArray
 } from '../utils'
 
 // ===================================================================
@@ -106,15 +104,15 @@ export default class {
     this._xo.getAuthenticationTokensForUser(id)
       .then(tokens => {
         forEach(tokens, token => {
-          this._xo.deleteAuthenticationToken(id)::pCatch(noop)
+          this._xo.deleteAuthenticationToken(id)::ignoreErrors()
         })
       })
-      ::pCatch(noop) // Ignore any failures.
+      ::ignoreErrors()
 
     // Remove ACLs for this user.
     this._xo.getAclsForSubject(id).then(acls => {
       forEach(acls, acl => {
-        this._xo.removeAcl(id, acl.object, acl.action)::pCatch(noop)
+        this._xo.removeAcl(id, acl.object, acl.action)::ignoreErrors()
       })
     })
 
@@ -122,7 +120,7 @@ export default class {
     forEach(user.groups, groupId => {
       this.getGroup(groupId)
         .then(group => this._removeUserFromGroup(id, group))
-        ::pCatch(noop) // Ignore any failures.
+        ::ignoreErrors()
     })
   }
 
@@ -268,7 +266,7 @@ export default class {
     // Remove ACLs for this group.
     this._xo.getAclsForSubject(id).then(acls => {
       forEach(acls, acl => {
-        this._xo.removeAcl(id, acl.object, acl.action)::pCatch(noop)
+        this._xo.removeAcl(id, acl.object, acl.action)::ignoreErrors()
       })
     })
 
@@ -276,7 +274,7 @@ export default class {
     forEach(group.users, userId => {
       this.getUser(userId)
         .then(user => this._removeGroupFromUser(id, user))
-        ::pCatch(noop) // Ignore any failures.
+        ::ignoreErrors()
     })
   }
 

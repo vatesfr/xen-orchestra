@@ -1,16 +1,17 @@
 import deferrable from 'golike-defer'
-import find from 'lodash/find'
-import gte from 'lodash/gte'
-import includes from 'lodash/includes'
-import isEmpty from 'lodash/isEmpty'
-import lte from 'lodash/lte'
+import { ignoreErrors } from 'promise-toolbox'
+import {
+  find,
+  gte,
+  includes,
+  isEmpty,
+  lte
+} from 'lodash'
 
 import {
   forEach,
   mapToArray,
-  noop,
-  parseSize,
-  pCatch
+  parseSize
 } from '../../utils'
 
 import {
@@ -64,7 +65,7 @@ export default {
 
     // Removes disks from the provision XML, we will create them by
     // ourselves.
-    await this.call('VM.remove_from_other_config', vmRef, 'disks')::pCatch(noop)
+    await this.call('VM.remove_from_other_config', vmRef, 'disks')::ignoreErrors()
 
     // Creates the VDIs and executes the initial steps of the
     // installation.
@@ -386,9 +387,9 @@ export default {
     if (snapshot.snapshot_info['power-state-at-snapshot'] === 'Running') {
       const vm = snapshot.$snapshot_of
       if (vm.power_state === 'Halted') {
-        this.startVm(vm.$id)::pCatch(noop)
+        this.startVm(vm.$id)::ignoreErrors()
       } else if (vm.power_state === 'Suspended') {
-        this.resumeVm(vm.$id)::pCatch(noop)
+        this.resumeVm(vm.$id)::ignoreErrors()
       }
     }
   },

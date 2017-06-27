@@ -3,7 +3,7 @@ import escapeStringRegexp from 'escape-string-regexp'
 import eventToPromise from 'event-to-promise'
 import execa from 'execa'
 import splitLines from 'split-lines'
-import { CancelToken } from 'promise-toolbox'
+import { CancelToken, ignoreErrors } from 'promise-toolbox'
 import { createParser as createPairsParser } from 'parse-pairs'
 import { createReadStream, readdir, stat } from 'fs'
 import { satisfies as versionSatisfies } from 'semver'
@@ -35,7 +35,6 @@ import {
   mapFilter,
   mapToArray,
   noop,
-  pCatch,
   pFinally,
   pFromCallback,
   pSettle,
@@ -445,7 +444,7 @@ export default class {
       // Once done, (asynchronously) remove the (now obsolete) local
       // base.
       if (localBaseUuid) {
-        promise.then(() => srcXapi.deleteVm(localBaseUuid))::pCatch(noop)
+        promise.then(() => srcXapi.deleteVm(localBaseUuid))::ignoreErrors()
       }
 
       // (Asynchronously) Identify snapshot as future base.
@@ -453,7 +452,7 @@ export default class {
         return srcXapi._updateObjectMapProperty(srcVm, 'other_config', {
           [TAG_LAST_BASE_DELTA]: delta.vm.uuid
         })
-      })::pCatch(noop)
+      })::ignoreErrors()
 
       return promise
     })()
@@ -683,7 +682,7 @@ export default class {
       filter(vdiParent.$snapshots, { name_label: 'XO_DELTA_BASE_VDI_SNAPSHOT' }),
       base => base.snapshot_time
     )
-    forEach(bases, base => { xapi.deleteVdi(base.$id)::pCatch(noop) })
+    forEach(bases, base => { xapi.deleteVdi(base.$id)::ignoreErrors() })
 
     // Export full or delta backup.
     const vdiFilename = `${date}_${isFull ? 'full' : 'delta'}.vhd`
@@ -713,7 +712,7 @@ export default class {
       ])
     } catch (error) {
       // Remove new backup. (corrupt).
-      await handler.unlink(backupFullPath)::pCatch(noop)
+      await handler.unlink(backupFullPath)::ignoreErrors()
 
       throw error
     }
@@ -736,7 +735,7 @@ export default class {
 
         // Remove xva file.
         // Version 0.0.0 (Legacy) Delta Backup.
-        handler.unlink(`${dir}/${getDeltaBackupNameWithoutExt(backup)}.xva`)::pCatch(noop)
+        handler.unlink(`${dir}/${getDeltaBackupNameWithoutExt(backup)}.xva`)::ignoreErrors()
       ]))
     }
   }
@@ -754,7 +753,7 @@ export default class {
       base => base.snapshot_time
     )
     const baseVm = bases.pop()
-    forEach(bases, base => { xapi.deleteVm(base.$id)::pCatch(noop) })
+    forEach(bases, base => { xapi.deleteVm(base.$id)::ignoreErrors() })
 
     // Check backup dirs.
     const dir = `vm_delta_${tag}_${vm.uuid}`
@@ -824,7 +823,7 @@ export default class {
     }
 
     $onFailure(() => asyncMap(fulFilledVdiBackups, vdiBackup =>
-      handler.unlink(`${dir}/${vdiBackup.value()}`)::pCatch(noop)
+      handler.unlink(`${dir}/${vdiBackup.value()}`)::ignoreErrors()
     ))
 
     if (error) {
@@ -859,7 +858,7 @@ export default class {
     await this._removeOldDeltaVmBackups(xapi, { vm, handler, dir, retention })
 
     if (baseVm) {
-      xapi.deleteVm(baseVm.$id)::pCatch(noop)
+      xapi.deleteVm(baseVm.$id)::ignoreErrors()
     }
 
     return {
@@ -984,7 +983,7 @@ export default class {
   _removeVms (xapi, vms) {
     return Promise.all(mapToArray(vms, vm =>
       // Do not consider a failure to delete an old copy as a fatal error.
-      xapi.deleteVm(vm.$id)::pCatch(noop)
+      xapi.deleteVm(vm.$id)::ignoreErrors()
     ))
   }
 
@@ -1124,7 +1123,7 @@ export default class {
 
     const entriesMap = {}
     await Promise.all(mapToArray(entries, async name => {
-      const stats = await pFromCallback(cb => stat(`${path}/${name}`, cb))::pCatch(noop)
+      const stats = await pFromCallback(cb => stat(`${path}/${name}`, cb))::ignoreErrors()
       if (stats) {
         entriesMap[stats.isDirectory() ? `${name}/` : name] = {}
       }

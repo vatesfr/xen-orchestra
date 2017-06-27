@@ -1,3 +1,4 @@
+import { ignoreErrors } from 'promise-toolbox'
 import { noSuchObject } from 'xo-common/api-errors'
 
 import Xapi from '../xapi'
@@ -9,8 +10,6 @@ import {
   forEach,
   isEmpty,
   isString,
-  noop,
-  pCatch,
   popProperty,
   serializeError
 } from '../utils'
@@ -81,7 +80,7 @@ export default class {
   }
 
   async unregisterXenServer (id) {
-    this.disconnectXenServer(id)::pCatch(noop)
+    this.disconnectXenServer(id)::ignoreErrors()
 
     if (!await this._servers.remove(id)) {
       throw noSuchObject(id, 'xenServer')

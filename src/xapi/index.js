@@ -4,7 +4,7 @@ import fatfs from 'fatfs'
 import synchronized from 'decorator-synchronized'
 import tarStream from 'tar-stream'
 import vmdkToVhd from 'xo-vmdk-to-vhd'
-import { cancellable, defer } from 'promise-toolbox'
+import { cancellable, defer, ignoreErrors } from 'promise-toolbox'
 import { PassThrough } from 'stream'
 import { forbiddenOperation } from 'xo-common/api-errors'
 import {
@@ -37,7 +37,6 @@ import {
   isFunction,
   map,
   mapToArray,
-  noop,
   pAll,
   pCatch,
   pDelay,
@@ -237,7 +236,7 @@ export default class Xapi extends XapiBase {
       if (value != null) {
         return this.call(`${namespace}.set_${camelToSnakeCase(name)}`, ref, prepareXapiParam(value))
       }
-    }))::pCatch(noop)
+    }))::ignoreErrors()
   }
 
   async _updateObjectMapProperty (object, prop, values) {
@@ -259,7 +258,7 @@ export default class Xapi extends XapiBase {
 
         return value === null
           ? removal
-          : removal::pCatch(noop).then(() => this.call(add, ref, name, prepareXapiParam(value)))
+          : removal::ignoreErrors().then(() => this.call(add, ref, name, prepareXapiParam(value)))
       }
     }))
   }
@@ -672,14 +671,14 @@ export default class Xapi extends XapiBase {
           vdi.VBDs.length < 2 ||
           every(vdi.$VBDs, vbd => vbd.VM === vm.$ref)
         ) {
-          return this._deleteVdi(vdi)::pCatch(noop)
+          return this._deleteVdi(vdi)::ignoreErrors()
         }
         console.error(`cannot delete VDI ${vdi.name_label} (from VM ${vm.name_label})`)
       }))
     }
 
     await Promise.all(mapToArray(vm.$snapshots, snapshot =>
-      this.deleteVm(snapshot.$id)::pCatch(noop)
+      this.deleteVm(snapshot.$id)::ignoreErrors()
     ))
 
     await this.call('VM.destroy', vm.$ref)
@@ -729,7 +728,7 @@ export default class Xapi extends XapiBase {
 
     if (snapshotRef !== undefined) {
       promise.then(_ => _.task::pFinally(() =>
-        this.deleteVm(snapshotRef)::pCatch(noop)
+        this.deleteVm(snapshotRef)::ignoreErrors()
       ))
     }
 
@@ -785,7 +784,7 @@ export default class Xapi extends XapiBase {
     if (snapshotNameLabel) {
       this._setObjectProperties(vm, {
         nameLabel: snapshotNameLabel
-      })::pCatch(noop)
+      })::ignoreErrors()
     }
 
     const baseVm = baseVmId && this.getObject(baseVmId)
@@ -823,7 +822,7 @@ export default class Xapi extends XapiBase {
         //
         // The snapshot must not exist otherwise it could break the
         // next export.
-        this._deleteVdi(vdi)::pCatch(noop)
+        this._deleteVdi(vdi)::ignoreErrors()
         return
       }
 
@@ -945,7 +944,7 @@ export default class Xapi extends XapiBase {
     // 2. Delete all VBDs which may have been created by the import.
     await Promise.all(mapToArray(
       vm.$VBDs,
-      vbd => this._deleteVbd(vbd)::pCatch(noop)
+      vbd => this._deleteVbd(vbd)::ignoreErrors()
     ))
 
     // 3. Create VDIs.
@@ -1033,7 +1032,7 @@ export default class Xapi extends XapiBase {
     ])
 
     if (deleteBase && baseVm) {
-      this._deleteVm(baseVm)::pCatch(noop)
+      this._deleteVm(baseVm)::ignoreErrors()
     }
 
     await Promise.all([
@@ -1189,7 +1188,7 @@ export default class Xapi extends XapiBase {
     if (onVmCreation) {
       this._waitObject(
         obj => obj && obj.current_operations && taskRef in obj.current_operations
-      ).then(onVmCreation)::pCatch(noop)
+      ).then(onVmCreation)::ignoreErrors()
     }
 
     const vmRef = await this.putResource(
@@ -1367,7 +1366,7 @@ export default class Xapi extends XapiBase {
     let ref
     try {
       ref = await this.call('VM.snapshot_with_quiesce', vm.$ref, nameLabel)
-      this.addTag(ref, 'quiesce')::pCatch(noop) // ignore any failures
+      this.addTag(ref, 'quiesce')::ignoreErrors()
 
       await this._waitObjectState(ref, vm => includes(vm.tags, 'quiesce'))
     } catch (error) {
@@ -1497,10 +1496,10 @@ export default class Xapi extends XapiBase {
       } finally {
         this._setObjectProperties(vm, {
           PV_bootloader: bootloader
-        })::pCatch(noop)
+        })::ignoreErrors()
 
         forEach(bootables, ([ vbd, bootable ]) => {
-          this._setObjectProperties(vbd, { bootable })::pCatch(noop)
+          this._setObjectProperties(vbd, { bootable })::ignoreErrors()
         })
       }
     }
@@ -1701,7 +1700,7 @@ export default class Xapi extends XapiBase {
           throw error
         }
 
-        await this.call('VBD.eject', cdDrive.$ref)::pCatch(noop)
+        await this.call('VBD.eject', cdDrive.$ref)::ignoreErrors()
 
         // Retry.
         await this.call('VBD.insert', cdDrive.$ref, cd.$ref)
@@ -1747,7 +1746,7 @@ export default class Xapi extends XapiBase {
   }
 
   async _deleteVbd (vbd) {
-    await this._disconnectVbd(vbd)::pCatch(noop)
+    await this._disconnectVbd(vbd)::ignoreErrors()
     await this.call('VBD.destroy', vbd.$ref)
   }
 
@@ -1759,7 +1758,7 @@ export default class Xapi extends XapiBase {
   async destroyVbdsFromVm (vmId) {
     await Promise.all(
       mapToArray(this.getObject(vmId).$VBDs, async vbd => {
-        await this.disconnectVbd(vbd.$ref)::pCatch(noop)
+        await this.disconnectVbd(vbd.$ref)::ignoreErrors()
         return this.call('VBD.destroy', vbd.$ref)
       })
     )
@@ -1978,7 +1977,7 @@ export default class Xapi extends XapiBase {
     const newPifs = await this.call('pool.create_VLAN_from_PIF', physPif.$ref, pif.network, asInteger(vlan))
     await Promise.all(
       mapToArray(newPifs, pifRef =>
-        !wasAttached[this.getObject(pifRef).host] && this.call('PIF.unplug', pifRef)::pCatch(noop)
+        !wasAttached[this.getObject(pifRef).host] && this.call('PIF.unplug', pifRef)::ignoreErrors()
       )
     )
   }

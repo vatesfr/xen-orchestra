@@ -1,5 +1,6 @@
 import eventToPromise from 'event-to-promise'
 import through2 from 'through2'
+import { ignoreErrors } from 'promise-toolbox'
 
 import {
   parse
@@ -8,8 +9,6 @@ import {
 import {
   addChecksumToReadStream,
   getPseudoRandomBytes,
-  noop,
-  pCatch,
   streamToBuffer,
   validChecksumOfReadStream
 } from '../utils'
@@ -70,7 +69,7 @@ export default class RemoteHandlerAbstract {
         error: error.message || String(error)
       }
     } finally {
-      this.unlink(testFileName).catch(noop)
+      this.unlink(testFileName)::ignoreErrors()
     }
   }
 
@@ -127,9 +126,12 @@ export default class RemoteHandlerAbstract {
         options.end === undefined &&
         options.start === undefined
       ) {
-        promise = Promise.all([ promise, this.getSize(file).then(size => {
-          stream.length = size
-        }, noop) ])
+        promise = Promise.all([
+          promise,
+          this.getSize(file).then(size => {
+            stream.length = size
+          })::ignoreErrors()
+        ])
       }
 
       return promise.then(() => stream)
@@ -140,7 +142,7 @@ export default class RemoteHandlerAbstract {
     }
 
     // avoid a unhandled rejection warning
-    streamP.catch(noop)
+    streamP::ignoreErrors()
 
     return this.readFile(`${file}.checksum`).then(
       checksum => streamP.then(stream => {
@@ -206,7 +208,7 @@ export default class RemoteHandlerAbstract {
     checksum = true
   } = {}) {
     if (checksum) {
-      this._unlink(`${file}.checksum`)::pCatch(noop)
+      this._unlink(`${file}.checksum`)::ignoreErrors()
     }
 
     return this._unlink(file)

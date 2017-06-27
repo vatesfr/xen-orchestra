@@ -1,11 +1,11 @@
-import Token, { Tokens } from '../models/token'
 import { noSuchObject } from 'xo-common/api-errors'
+import { ignoreErrors } from 'promise-toolbox'
+
+import Token, { Tokens } from '../models/token'
 import {
   createRawObject,
   forEach,
-  generateToken,
-  pCatch,
-  noop
+  generateToken
 } from '../utils'
 
 // ===================================================================
@@ -180,7 +180,7 @@ export default class {
     if (!(
       token.expiration > Date.now()
     )) {
-      this._tokens.remove(id)::pCatch(noop)
+      this._tokens.remove(id)::ignoreErrors()
 
       throw noSuchAuthenticationToken(id)
     }
