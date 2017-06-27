@@ -37,7 +37,7 @@
     "debug": "^2.6.8",
     "event-to-promise": "^0.8.0",
     "exec-promise": "^0.7.0",
-    "http-request-plus": "^0.3.0",
+    "http-request-plus": "^0.4.0",
     "json-rpc-protocol": "^0.11.2",
     "kindof": "^2.0.0",
     "lodash": "^4.17.4",
