@@ -398,7 +398,7 @@ export class Xapi extends EventEmitter {
         taskResult = this.watchTask(taskRef)
 
         if (typeof $cancelToken.addHandler === 'function') {
-          $cancelToken.addHandler(() => task)
+          $cancelToken.addHandler(() => taskResult)
         }
       }
 
@@ -444,7 +444,7 @@ export class Xapi extends EventEmitter {
         taskResult = this.watchTask(taskRef)
 
         if (typeof $cancelToken.addHandler === 'function') {
-          $cancelToken.addHandler(() => task)
+          $cancelToken.addHandler(() => taskResult)
         }
       }
 
