@@ -777,20 +777,14 @@ export default class {
     )
 
     // Export...
-    const delta = await xapi.exportDeltaVm(vm.$id, baseVm && baseVm.$id, {
+    const { cancel, token } = CancelToken.source()
+    const delta = await xapi.exportDeltaVm(token, vm.$id, baseVm && baseVm.$id, {
       snapshotNameLabel: `XO_DELTA_BASE_VM_SNAPSHOT_${tag}`,
       fullVdisRequired,
       disableBaseTags: true
     })
-
-    $onFailure(async () => {
-      await Promise.all(mapToArray(
-        delta.streams,
-        stream => stream.cancel()::pCatch(noop)
-      ))
-
-      return xapi.deleteVm(delta.vm.uuid)::pCatch(noop)
-    })
+    $onFailure(() => xapi.deleteVm(delta.vm.uuid))
+    $onFailure(cancel)
 
     // Save vdis.
     const vdiBackups = await pSettle(
