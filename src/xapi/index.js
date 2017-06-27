@@ -718,21 +718,22 @@ export default class Xapi extends XapiBase {
       snapshotRef = (await this._snapshotVm(vm)).$ref
     }
 
-    const taskRef = await this.createTask('VM Export', vm.name_label)
-    if (snapshotRef) {
-      this.watchTask(taskRef)::pFinally(() => {
-        this.deleteVm(snapshotRef)::pCatch(noop)
-      })
-    }
-
-    return this.getResource(onlyMetadata ? '/export_metadata/' : '/export/', {
+    const promise = this.getResource(onlyMetadata ? '/export_metadata/' : '/export/', {
       host,
       query: {
         ref: snapshotRef || vm.$ref,
-        task_id: taskRef,
         use_compression: compress ? 'true' : 'false'
-      }
+      },
+      task: this.createTask('VM export', vm.name_label)
     })
+
+    if (snapshotRef !== undefined) {
+      promise.then(_ => _.task::pFinally(() =>
+        this.deleteVm(snapshotRef)::pCatch(noop)
+      ))
+    }
+
+    return promise
   }
 
   _assertHealthyVdiChain (vdi, childrenMap) {
@@ -1176,13 +1177,10 @@ export default class Xapi extends XapiBase {
     const taskRef = await this.createTask('VM import')
     const query = {
       force: onlyMetadata
-        ? 'true'
-        : undefined,
-      task_id: taskRef
     }
 
     let host
-    if (sr) {
+    if (sr != null) {
       host = sr.$PBDs[0].$host
       query.sr_id = sr.$ref
     }
@@ -1193,14 +1191,15 @@ export default class Xapi extends XapiBase {
       ).then(onVmCreation)::pCatch(noop)
     }
 
-    const [ vmRef ] = await Promise.all([
-      this.watchTask(taskRef).then(extractOpaqueRef),
-      this.putResource(
-        stream,
-        onlyMetadata ? '/import_metadata/' : '/import/',
-        { host, query }
-      )
-    ])
+    const vmRef = await this.putResource(
+      stream,
+      onlyMetadata ? '/import_metadata/' : '/import/',
+      {
+        host,
+        query,
+        task: taskRef
+      }
+    ).then(extractOpaqueRef)
 
     // Importing a metadata archive of running VMs is currently
     // broken: its VBDs are incorrectly seen as attached.
@@ -1808,13 +1807,11 @@ export default class Xapi extends XapiBase {
   }
 
   @cancellable
-  async _exportVdi ($cancelToken, vdi, base, format = VDI_FORMAT_VHD) {
+  _exportVdi ($cancelToken, vdi, base, format = VDI_FORMAT_VHD) {
     const host = vdi.$SR.$PBDs[0].$host
-    const taskRef = await this.createTask('VDI Export', vdi.name_label)
 
     const query = {
       format,
-      task_id: taskRef,
       vdi: vdi.$ref
     }
     if (base) {
@@ -1826,14 +1823,10 @@ export default class Xapi extends XapiBase {
       : ''
     }`)
 
-    const task = this.watchTask(taskRef)
     return this.getResource($cancelToken, '/export_raw_vdi/', {
       host,
-      query
-    }).then(response => {
-      response.task = task
-
-      return response
+      query,
+      task: this.createTask('VDI Export', vdi.name_label)
     })
   }
 
@@ -1852,24 +1845,20 @@ export default class Xapi extends XapiBase {
   // -----------------------------------------------------------------
 
   async _importVdiContent (vdi, stream, format = VDI_FORMAT_VHD) {
-    const taskRef = await this._createTask('VDI Content Import', vdi.name_label)
-
     const pbd = find(vdi.$SR.$PBDs, 'currently_attached')
-    if (!pbd) {
+    if (pbd === undefined) {
       throw new Error('no valid PBDs found')
     }
 
-    const task = this.watchTask(taskRef)
     await Promise.all([
       stream.checksumVerified,
-      task,
       this.putResource(stream, '/import_raw_vdi/', {
         host: pbd.host,
         query: {
           format,
-          task_id: taskRef,
           vdi: vdi.$ref
-        }
+        },
+        task: this.createTask('VDI Content Import', vdi.name_label)
       })
     ])
   }
