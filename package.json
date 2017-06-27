@@ -68,7 +68,7 @@
     "helmet": "^3.6.0",
     "highland": "^2.10.5",
     "http-proxy": "^1.16.2",
-    "http-request-plus": "^0.3.0",
+    "http-request-plus": "^0.4.0",
     "http-server-plus": "^0.8.0",
     "human-format": "^0.8.0",
     "is-redirect": "^1.0.0",

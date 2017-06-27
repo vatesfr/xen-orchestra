@@ -3323,9 +3323,9 @@ http-proxy@^1.16.2:
     eventemitter3 "1.x.x"
     requires-port "1.x.x"
 
-http-request-plus@^0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/http-request-plus/-/http-request-plus-0.3.0.tgz#4ee822f65006485af0362dd70c5fd145f885dd0c"
+http-request-plus@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/http-request-plus/-/http-request-plus-0.4.0.tgz#f9cfe550094c82d4a8d93b6252ff8f37349a8123"
   dependencies:
     is-redirect "^1.0.0"
     lodash "^4.17.4"
