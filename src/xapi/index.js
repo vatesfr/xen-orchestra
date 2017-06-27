@@ -30,6 +30,7 @@ import createSizeStream from '../size-stream'
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer'
 import { mixin } from '../decorators'
 import {
+  asyncMap,
   camelToSnakeCase,
   createRawObject,
   ensureArray,
@@ -941,10 +942,10 @@ export default class Xapi extends XapiBase {
     ])
 
     // 2. Delete all VBDs which may have been created by the import.
-    await Promise.all(mapToArray(
+    await asyncMap(
       vm.$VBDs,
-      vbd => this._deleteVbd(vbd)::ignoreErrors()
-    ))
+      vbd => this._deleteVbd(vbd)
+    )::ignoreErrors()
 
     // 3. Create VDIs.
     const newVdis = await map(delta.vdis, async vdi => {
