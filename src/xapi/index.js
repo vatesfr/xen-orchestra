@@ -770,8 +770,9 @@ export default class Xapi extends XapiBase {
   }
 
   // Create a snapshot of the VM and returns a delta export object.
+  @cancellable
   @deferrable.onFailure
-  async exportDeltaVm ($onFailure, vmId, baseVmId = undefined, {
+  async exportDeltaVm ($onFailure, $cancelToken, vmId, baseVmId = undefined, {
     snapshotNameLabel = undefined,
     // Contains a vdi.$id set of vmId.
     fullVdisRequired = [],

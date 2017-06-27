@@ -3,6 +3,7 @@ import escapeStringRegexp from 'escape-string-regexp'
 import eventToPromise from 'event-to-promise'
 import execa from 'execa'
 import splitLines from 'split-lines'
+import { CancelToken } from 'promise-toolbox'
 import { createParser as createPairsParser } from 'parse-pairs'
 import { createReadStream, readdir, stat } from 'fs'
 import { satisfies as versionSatisfies } from 'semver'
@@ -416,11 +417,12 @@ export default class {
     // 2. Copy.
     let size = 0
     const dstVm = await (async () => {
-      const delta = await srcXapi.exportDeltaVm(srcVm.$id, localBaseUuid, {
+      const { cancel, token } = CancelToken.source()
+      const delta = await srcXapi.exportDeltaVm(token, srcVm.$id, localBaseUuid, {
         snapshotNameLabel: `XO_DELTA_EXPORT: ${targetSr.name_label} (${targetSr.uuid})`
       })
-      $onFailure(() => srcXapi.deleteVm(delta.vm.uuid)::pCatch(noop))
-      forEach(delta.streams, stream => $onFailure(stream.cancel))
+      $onFailure(() => srcXapi.deleteVm(delta.vm.uuid))
+      $onFailure(cancel)
 
       delta.vm.name_label += ` (${shortDate(Date.now())})`
 
