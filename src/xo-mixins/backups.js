@@ -419,14 +419,8 @@ export default class {
       const delta = await srcXapi.exportDeltaVm(srcVm.$id, localBaseUuid, {
         snapshotNameLabel: `XO_DELTA_EXPORT: ${targetSr.name_label} (${targetSr.uuid})`
       })
-      $onFailure(async () => {
-        await Promise.all(mapToArray(
-          delta.streams,
-          stream => stream.cancel()::pCatch(noop)
-        ))
-
-        return srcXapi.deleteVm(delta.vm.uuid)::pCatch(noop)
-      })
+      $onFailure(() => srcXapi.deleteVm(delta.vm.uuid)::pCatch(noop))
+      forEach(delta.streams, stream => $onFailure(stream.cancel))
 
       delta.vm.name_label += ` (${shortDate(Date.now())})`
 
