@@ -5399,9 +5399,9 @@ promise-toolbox@^0.8.0:
   dependencies:
     make-error "^1.2.3"
 
-promise-toolbox@^0.9.1, promise-toolbox@^0.9.2, promise-toolbox@^0.9.4:
-  version "0.9.4"
-  resolved "https://registry.yarnpkg.com/promise-toolbox/-/promise-toolbox-0.9.4.tgz#672fe37557eea05093f770e7e1fca64e39ae9238"
+promise-toolbox@^0.9.1, promise-toolbox@^0.9.4, promise-toolbox@^0.9.5:
+  version "0.9.5"
+  resolved "https://registry.yarnpkg.com/promise-toolbox/-/promise-toolbox-0.9.5.tgz#ca33e53714cfde924a9bd3d2d23c53b21cb75acc"
   dependencies:
     make-error "^1.2.3"
 
