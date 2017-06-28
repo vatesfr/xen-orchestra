@@ -1979,8 +1979,8 @@ export default class Xapi extends XapiBase {
       )
     )
   }
-
-  async createNetwork ({
+  @deferrable.onFailure
+  async createNetwork ($onFailure, {
     name,
     description = 'Created with Xen Orchestra',
     pifId,
@@ -1993,6 +1993,7 @@ export default class Xapi extends XapiBase {
       MTU: asInteger(mtu),
       other_config: {}
     })
+    $onFailure(() => this.call('network.destroy', networkRef))
     if (pifId) {
       await this.call('pool.create_VLAN_from_PIF', this.getObject(pifId).$ref, networkRef, asInteger(vlan))
     }
@@ -2036,13 +2037,15 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  async createBondedNetwork ({
+  @deferrable.onFailure
+  async createBondedNetwork ($onFailure, {
     bondMode,
     mac,
     pifIds,
     ...params
   }) {
     const network = await this.createNetwork(params)
+    $onFailure(() => this.deleteNetwork(network))
     // TODO: test and confirm:
     // Bond.create is called here with PIFs from one host but XAPI should then replicate the
     // bond on each host in the same pool with the corresponding PIFs (ie same interface names?).
