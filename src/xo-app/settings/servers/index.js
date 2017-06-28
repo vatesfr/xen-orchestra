@@ -67,7 +67,7 @@ const COLUMNS = [
     itemRenderer: (server, formatMessage) => (
       <Text
         value={server.host}
-        onChange={host => editServer(server, { host })}
+        onChange={host => (server.status !== 'connected') && editServer(server, { host })}
         placeholder={formatMessage(messages.serverPlaceHolderAddress)}
       />
     ),
