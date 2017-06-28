@@ -17,22 +17,34 @@ import {
 
 export default class TabXosan extends Component {
   componentDidMount () {
+    this._refreshInfo()
+  }
+
+  _refreshInfo() {
     getVolumeInfo(this.props.sr.id).then(data => {
-      this.setState({ volumeInfo: data })
+      const newState = { volumeInfo: data }
+      data.bricks.forEach((brick, i) => {
+        newState[`sr-${i}`] = null
+      })
+      this.setState(newState)
     })
   }
-  _replaceBrick = (brick) => {
-    replaceXosanBrick(this.props.sr.id, brick, this.state.sr.id)
+
+  _replaceBrick = ({brick, newSr}) => {
+    replaceXosanBrick(this.props.sr.id, brick, newSr.id).then(() => {
+      this._refreshInfo()
+    })
   }
   _getSrPredicate = createSelector(
-    () => this.props.sr.$pool, poolId => sr => sr.SR_type === 'lvm' && sr.$pool === poolId
+    (underlyingSr) => this.props.sr.$pool,
+    (underlyingSr) => underlyingSr,
+    (poolId, underlyingSr) => sr => sr.SR_type === 'lvm' && sr.$pool === poolId && underlyingSr !== sr.id
   )
 
   render () {
-    const {sr} = this.state
     return this.state.volumeInfo ? (<Container>
-      {this.state.volumeInfo && map(this.state.volumeInfo['bricks'], brick =>
-        <div>
+      {this.state.volumeInfo && map(this.state.volumeInfo['bricks'], (brick, i) =>
+        <div key={brick.uuid}>
           <h3>Brick {brick.info.name}</h3>
           <div style={{ marginLeft: '15px' }}>
             <Row>
@@ -44,14 +56,14 @@ export default class TabXosan extends Component {
             <Row>
               <Col size={2}>Status: </Col><Col size={4}>{brick.heal.status}</Col>
               <Col size={3}>
-                <SelectSr predicate={this._getSrPredicate()} onChange={this.linkState('sr')} value={sr} />
+                <SelectSr predicate={this._getSrPredicate(brick.underlyingSr)} onChange={this.linkState(`sr-${i}`)} value={this.state[`sr-${i}`]} />
               </Col>
               <Col size={3}>
                 <ActionButton
                   btnStyle='success'
                   icon='refresh'
                   handler={this._replaceBrick}
-                  handlerParam={brick.info.name}
+                  handlerParam={{brick: brick.info.name, newSr: this.state[`sr-${i}`]}}
                 >Replace</ActionButton>
               </Col>
             </Row>
@@ -68,13 +80,15 @@ export default class TabXosan extends Component {
                   <th style={{border: 'solid black 1px'}}>Port</th>
                 </tr>
               </thead>
-              {map(brick['status'], job => <tr style={{border: 'solid black 1px'}}>
-                <td style={{border: 'solid black 1px'}}>{job.hostname}</td>
-                <td style={{border: 'solid black 1px'}}>{job.path}</td>
-                <td style={{border: 'solid black 1px'}}>{job.status}</td>
-                <td style={{border: 'solid black 1px'}}>{job.pid}</td>
-                <td style={{border: 'solid black 1px'}}>{job.port}</td>
-              </tr>)}
+              <tbody>
+                {map(brick['status'], (job, j) => <tr key={`${brick.uuid}-${job.pid}`} style={{border: 'solid black 1px'}}>
+                  <td style={{border: 'solid black 1px'}}>{job.hostname}</td>
+                  <td style={{border: 'solid black 1px'}}>{job.path}</td>
+                  <td style={{border: 'solid black 1px'}}>{job.status}</td>
+                  <td style={{border: 'solid black 1px'}}>{job.pid}</td>
+                  <td style={{border: 'solid black 1px'}}>{job.port}</td>
+                </tr>)}
+              </tbody>
             </table>}
             {brick['heal']['file'] && brick['heal']['file'].length !== 0 && <div>
               <h4>Files needing healing</h4>
