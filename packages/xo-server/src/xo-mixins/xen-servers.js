@@ -1,5 +1,6 @@
 import { ignoreErrors } from 'promise-toolbox'
 import { noSuchObject } from 'xo-common/api-errors'
+import { some } from 'lodash'
 
 import Xapi from '../xapi'
 import xapiObjectToXo from '../xapi-object-to-xo'
@@ -321,8 +322,40 @@ export default class {
 
     xapi.xo.install()
 
+    let redirectedToAnExistingServer = false
+    xapi.on('redirect', async url => {
+      const servers = await this.getAllXenServers()
+      const serverExists = some(
+        servers,
+        server => server.host === url.hostname
+      )
+
+      if (serverExists) {
+        redirectedToAnExistingServer = true
+        return
+      }
+
+      await this.updateXenServer(id, {host: url.hostname})
+    })
+
     await xapi.connect().then(
-      () => this.updateXenServer(id, { error: null }),
+      async () => {
+        let error = null
+        if (redirectedToAnExistingServer) {
+          error = {
+            code: 'SESSION_AUTHENTICATION_FAILED',
+            message: 'host is slave and the master is already connected'
+          }
+
+          await this.disconnectXenServer(id)
+          console.error(
+            `[WARN] ${server.host}:`,
+            error.message
+          )
+        }
+
+        return this.updateXenServer(id, { error })
+      },
       error => {
         this.updateXenServer(id, { error: serializeError(error) })
 
