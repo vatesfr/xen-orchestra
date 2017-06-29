@@ -65,7 +65,7 @@ export default ({
           handler={forgetHost}
           handlerParam={host}
           icon='host-forget'
-          labelId='forgetHostLabel'
+          labelId='forgetHost'
         />
       }
     </Col>

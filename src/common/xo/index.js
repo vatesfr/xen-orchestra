@@ -421,7 +421,7 @@ export const forgetHost = host => (
     title: _('forgetHostModalTitle'),
     body: _('forgetHostModalMessage', { host: <strong>{host.name_label}</strong> })
   }).then(
-    () => _call('host.forget', { host: host.id })
+    () => _call('host.forget', { host: resolveId(host) })
   )
 )
 
