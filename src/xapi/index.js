@@ -443,6 +443,10 @@ export default class Xapi extends XapiBase {
     await this.call('host.disable', this.getObject(hostId).$ref)
   }
 
+  async forgetHost (hostId) {
+    await this.call('host.destroy', this.getObject(hostId).$ref)
+  }
+
   async ejectHostFromPool (hostId) {
     await this.call('pool.eject', this.getObject(hostId).$ref)
   }

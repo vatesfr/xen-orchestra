@@ -168,6 +168,22 @@ disable.resolve = {
 }
 
 exports.disable = disable
+#---------------------------------------------------------------------
+
+forget = ({host}) ->
+  return @getXapi(host).forgetHost(host._xapiId)
+
+forget.description = 'remove the host record from XAPI database'
+
+forget.params = {
+  id: { type: 'string' }
+}
+
+forget.resolve = {
+  host: ['id', 'host', 'administrate'],
+}
+
+exports.forget = forget
 
 #---------------------------------------------------------------------
 # Returns an array of missing new patches in the host
