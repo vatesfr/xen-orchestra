@@ -53,7 +53,7 @@ class XoServerCloud {
       }
     )
     updater
-      .on('close', connect)
+      .on('closed', connect)
       .on('scheduledAttempt', ({ delay }) => {
         console.warn('xo-server-cloud: next attempt in %s ms', delay)
       })
