@@ -5,7 +5,7 @@ import TabButton from 'tab-button'
 import SelectFiles from 'select-files'
 import Upgrade from 'xoa-upgrade'
 import { Toggle } from 'form'
-import { enableHost, detachHost, disableHost, restartHost, installSupplementalPack } from 'xo'
+import { enableHost, detachHost, disableHost, forgetHost, restartHost, installSupplementalPack } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Container, Row, Col } from 'grid'
 import {
@@ -59,6 +59,15 @@ export default ({
         icon='host-eject'
         labelId='detachHost'
       />
+      {host.power_state !== 'Running' &&
+        <TabButton
+          btnStyle='danger'
+          handler={forgetHost}
+          handlerParam={host}
+          icon='host-forget'
+          labelId='forgetHost'
+        />
+      }
     </Col>
   </Row>
   <Row>

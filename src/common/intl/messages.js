@@ -1154,6 +1154,11 @@ var messages = {
   detachHostModalMessage: 'Are you sure you want to detach {host} from its pool? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND REBOOT THE HOST.',
   detachHost: 'Detach',
 
+  // ----- Forget host -----
+  forgetHostModalTitle: 'Forget host',
+  forgetHostModalMessage: 'Are you sure you want to forget {host} from its pool? Be sure this host can\'t be back online, or use detach instead.',
+  forgetHost: 'Forget',
+
   // ----- Network -----
   newNetworkCreate: 'Create network',
   newBondedNetworkCreate: 'Create bonded network',

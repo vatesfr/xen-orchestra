@@ -452,6 +452,10 @@
       @extend .fa-server;
       @extend .text-warning;
     }
+    &-forget {
+      @extend .fa;
+      @extend .fa-ban;
+    }
     &-working {
       @extend .fa;
       @extend .fa-circle;
