@@ -404,16 +404,7 @@ export default class Xapi extends XapiBase {
   }
 
   async ejectHostFromPool (hostId) {
-    const { user: username, password } = this._auth
-    const host = this.getObject(hostId)
-
-    await this.call('pool.eject', host.$ref)
-
-    await this.registerXenServer({
-      host: host.address,
-      password,
-      username
-    })
+    await this.call('pool.eject', this.getObject(hostId).$ref)
   }
 
   async enableHost (hostId) {
