@@ -415,6 +415,16 @@ export const detachHost = host => (
   )
 )
 
+export const forgetHost = host => (
+  confirm({
+    icon: 'host-forget',
+    title: _('forgetHostModalTitle'),
+    body: _('forgetHostModalMessage', { host: <strong>{host.name_label}</strong> })
+  }).then(
+    () => _call('host.forget', { host: host.id })
+  )
+)
+
 export const setDefaultSr = sr => (
   _call('pool.setDefaultSr', { sr: resolveId(sr) })
 )
