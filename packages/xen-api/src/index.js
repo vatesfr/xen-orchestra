@@ -12,7 +12,7 @@ import {
   catchPlus as pCatch,
   defer,
   delay as pDelay,
-  fromEvent,
+  fromEvents,
   lastly
 } from 'promise-toolbox'
 
@@ -517,7 +517,7 @@ export class Xapi extends EventEmitter {
           return taskResult
         }
 
-        return fromEvent(req, 'finish').then(() => {
+        return fromEvents(req, ['close', 'finish']).then(() => {
           req.abort()
           return taskResult
         })
