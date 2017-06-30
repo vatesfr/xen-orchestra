@@ -92,7 +92,6 @@ export default class extends Component {
         <Row className='console'>
           <Col>
             <NoVnc ref='noVnc' url={resolveUrl(`consoles/${vmController.id}`)} onClipboardChange={this._getRemoteClipboard} />
-            <p><em><Icon icon='info' /> {_('tipLabel')} {_('tipConsoleLabel')}</em></p>
           </Col>
         </Row>
       </Container>
