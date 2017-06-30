@@ -1,15 +1,18 @@
 import BaseComponent from 'base-component'
 import every from 'lodash/every'
-import forEach from 'lodash/forEach'
 import find from 'lodash/find'
+import forEach from 'lodash/forEach'
 import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
 import React from 'react'
+import some from 'lodash/some'
 import store from 'store'
 
 import _ from '../../intl'
+import Icon from 'icon'
 import invoke from '../../invoke'
 import SingleLineRow from '../../single-line-row'
+import Tooltip from '../../tooltip'
 import { Col } from '../../grid'
 import { getDefaultNetworkForVif } from '../utils'
 import {
@@ -137,10 +140,10 @@ export default class MigrateVmModalBody extends BaseComponent {
 
   get value () {
     return {
-      targetHost: this.state.host && this.state.host.id,
       mapVdisSrs: this.state.mapVdisSrs,
       mapVifsNetworks: this.state.mapVifsNetworks,
-      migrationNetwork: this.state.migrationNetworkId
+      migrationNetwork: this.state.migrationNetworkId,
+      targetHost: this.state.host && this.state.host.id
     }
   }
 
@@ -163,6 +166,8 @@ export default class MigrateVmModalBody extends BaseComponent {
 
     // Intra-pool
     const defaultSr = pools[host.$pool].default_SR
+    const defaultSrConnectedToHost = some(host.$PBDs, pbd => this._getObject(pbd).SR === defaultSr)
+
     if (intraPool) {
       let doNotMigrateVdis
       if (vm.$container === host.id) {
@@ -178,10 +183,16 @@ export default class MigrateVmModalBody extends BaseComponent {
       }
 
       this.setState({
+        defaultSr,
+        defaultSrConnectedToHost,
         doNotMigrateVdis,
         host,
         intraPool,
-        mapVdisSrs: doNotMigrateVdis ? undefined : mapValues(vdis, vdi => defaultSr),
+        mapVdisSrs: doNotMigrateVdis
+          ? undefined
+          : defaultSrConnectedToHost
+            ? mapValues(vdis, vdi => defaultSr)
+            : undefined,
         mapVifsNetworks: undefined,
         migrationNetwork: undefined
       })
@@ -209,10 +220,14 @@ export default class MigrateVmModalBody extends BaseComponent {
     })
 
     this.setState({
+      defaultSr,
+      defaultSrConnectedToHost,
       doNotMigrateVdis: false,
       host,
       intraPool,
-      mapVdisSrs: mapValues(vdis, vdi => defaultSr),
+      mapVdisSrs: defaultSrConnectedToHost
+        ? mapValues(vdis, vdi => defaultSr)
+        : undefined,
       mapVifsNetworks: defaultNetworksForVif,
       migrationNetworkId: defaultMigrationNetworkId
     })
@@ -223,6 +238,8 @@ export default class MigrateVmModalBody extends BaseComponent {
   render () {
     const { vdis, vifs, networks } = this.props
     const {
+      defaultSr,
+      defaultSrConnectedToHost,
       doNotMigrateVdis,
       host,
       intraPool,
@@ -250,7 +267,24 @@ export default class MigrateVmModalBody extends BaseComponent {
         <br />
         <SingleLineRow>
           <Col size={6}><span className={styles.listTitle}>{_('migrateVmName')}</span></Col>
-          <Col size={6}><span className={styles.listTitle}>{_('migrateVmSr')}</span></Col>
+          <Col size={6}>
+            <span className={styles.listTitle}>{_('migrateVmSr')}</span>
+            {' '}
+            {(defaultSr === undefined || !defaultSrConnectedToHost) &&
+              <Tooltip
+                content={defaultSr !== undefined
+                  ? _('migrateVmNotConnectedDefaultSrError')
+                  : _('migrateVmNoDefaultSrError')
+                }
+              >
+                <Icon
+                  icon={defaultSr !== undefined ? 'alarm' : 'info'}
+                  className={defaultSr !== undefined ? 'text-warning' : 'text-info'}
+                  size='lg'
+                />
+              </Tooltip>
+            }
+          </Col>
         </SingleLineRow>
         {map(vdis, vdi => <div className={styles.listItem} key={vdi.id}>
           <SingleLineRow>
@@ -259,7 +293,7 @@ export default class MigrateVmModalBody extends BaseComponent {
               <SelectSr
                 onChange={sr => this.setState({ mapVdisSrs: { ...mapVdisSrs, [vdi.id]: sr.id } })}
                 predicate={this._getSrPredicate()}
-                value={mapVdisSrs[vdi.id]}
+                value={mapVdisSrs && mapVdisSrs[vdi.id]}
               />
             </Col>
           </SingleLineRow>
