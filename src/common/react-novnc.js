@@ -101,7 +101,12 @@ export default class NoVnc extends Component {
     // a leading slassh will be added by noVNC
     const clippedPath = url.path.replace(/^\/+/, '')
 
-    rfb.connect(url.hostname, url.port, null, clippedPath)
+    // a port is required
+    //
+    // if not available from the URL, use the default ones
+    const { port = isSecure ? 443 : 80 } = url
+
+    rfb.connect(url.hostname, url, null, clippedPath)
     disableShortcuts()
   }
 
