@@ -5,6 +5,7 @@ import ButtonGroup from 'button-group'
 import classnames from 'classnames'
 import forEach from 'lodash/forEach'
 import get from 'lodash/get'
+import humanFormat from 'human-format'
 import Icon from 'icon'
 import includes from 'lodash/includes'
 import map from 'lodash/map'
@@ -41,6 +42,18 @@ const jobKeyToLabel = {
   rollingSnapshot: _('rollingSnapshot')
 }
 
+const formatSize = bytes =>
+  humanFormat(bytes, {
+    scale: 'binary',
+    unit: 'B'
+  })
+
+const formatSpeed = (bytes, milliseconds) =>
+  humanFormat(bytes * 1e3 / milliseconds, {
+    scale: 'binary',
+    unit: 'B/s'
+  })
+
 // ===================================================================
 
 @connectStore(() => ({object: createGetObject()}))
@@ -70,9 +83,50 @@ class JobReturn extends Component {
   }
 }
 
+class JobTransferredData extends Component {
+  render () {
+    const {
+      end,
+      size,
+      start
+    } = this.props
+
+    return <div>
+      <span><strong>{_('jobTransferredDataSize')}</strong>: {formatSize(size)} </span>
+      <br />
+      <span><strong>{_('jobTransferredDataSpeed')}</strong>: {formatSpeed(size, end - start)} </span>
+    </div>
+  }
+}
+
+class JobCallState extends Component {
+  _renderInfos = () => this.props.error !== undefined
+    ? {icon: 'halted', tooltip: 'failedJobCall'}
+    : this.props.end !== undefined
+      ? {icon: 'running', tooltip: 'successfulJobCall'}
+      : {icon: 'busy', tooltip: 'jobCallInProgess'}
+
+  render () {
+    const {
+      icon,
+      tooltip
+    } = this._renderInfos()
+
+    return <Tooltip content={_(tooltip)}>
+      <Icon icon={icon} />
+    </Tooltip>
+  }
+}
+
 const Log = props => <ul className='list-group'>
   {map(props.log.calls, call => {
-    const { returnedValue } = call
+    const {
+      end,
+      error,
+      returnedValue,
+      start
+    } = call
+
     let id
     if (returnedValue != null) {
       id = returnedValue.id
@@ -82,8 +136,13 @@ const Log = props => <ul className='list-group'>
     }
 
     return <li key={call.callKey} className='list-group-item'>
-      <strong className='text-info'>{call.method}: </strong><br />
+      <strong className='text-info'>{call.method}: </strong><JobCallState end={end} error={error} /><br />
       {map(call.params, (value, key) => [ <JobParam id={value} paramKey={key} key={key} />, <br /> ])}
+      {returnedValue != null && returnedValue.size !== undefined && <JobTransferredData
+        end={end}
+        size={returnedValue.size}
+        start={start}
+      />}
       {id !== undefined && <span>{' '}<JobReturn id={id} /></span>}
       {call.error &&
         <span className='text-danger'>
@@ -208,6 +267,7 @@ export default class LogList extends Component {
               callKey: logKey,
               params: data.params,
               method: data.method,
+              start: time,
               time
             }
           } else if (data.event === 'jobCall.end') {
@@ -219,6 +279,7 @@ export default class LogList extends Component {
               entry.meta = 'error'
             } else {
               call.returnedValue = data.returnedValue
+              call.end = time
             }
           }
         }
