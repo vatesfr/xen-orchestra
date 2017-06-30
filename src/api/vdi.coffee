@@ -3,7 +3,7 @@
 {coroutine: $coroutine} = require 'bluebird'
 
 {format} = require 'json-rpc-peer'
-{invalidParameters} = require 'xo-common/api-errors'
+{invalidParameters, unauthorized} = require 'xo-common/api-errors'
 {isArray: $isArray, parseSize} = require '../utils'
 {JsonRpcError} = require 'json-rpc-peer'
 
@@ -30,8 +30,7 @@ exports.delete = delete_
 set = $coroutine (params) ->
   {vdi} = params
   xapi = @getXapi vdi
-
-  {_xapiRef: ref} = vdi
+  ref = vdi._xapiRef
 
   # Size.
   if 'size' of params
@@ -41,6 +40,22 @@ set = $coroutine (params) ->
       throw invalidParameters(
         "cannot set new size (#{size}) below the current size (#{vdi.size})"
       )
+
+    vbds = vdi.$VBDs
+    if (
+      vbds.length == 1 &&
+      (resourceSetId = xapi.xo.getData(@getObject(vbds[0], 'VBD'), 'resourceSet')) != undefined
+    )
+      if @user.permission != 'admin'
+        yield @checkResourceSetConstraints(resourceSetId, @user.id)
+
+      yield @allocateLimitsInResourceSet({ disk: size - vdi.size }, resourceSetId)
+    else if !(
+      @user.permission == 'admin' ||
+      yield @hasPermissions(@user.id, [ [ vdi.$SR, 'operate' ] ])
+    )
+      throw unauthorized()
+
     yield xapi.resizeVdi(ref, size)
 
   # Other fields.
