@@ -666,7 +666,6 @@ var messages = {
   copyToClipboardLabel: 'Copy',
   ctrlAltDelButtonLabel: 'Ctrl+Alt+Del',
   tipLabel: 'Tip:',
-  tipConsoleLabel: 'Due to a XenServer issue, non-US keyboard layouts aren\'t well supported. Switch your own layout to US to workaround it.',
   hideHeaderTooltip: 'Hide infos',
   showHeaderTooltip: 'Show infos',
 
