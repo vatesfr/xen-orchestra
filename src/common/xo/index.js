@@ -275,6 +275,8 @@ export const subscribeIpPools = createSubscription(() => _call('ipPool.getAll'))
 
 export const subscribeResourceCatalog = createSubscription(() => _call('cloud.getResourceCatalog'))
 
+export const subscribeVmGroups = createSubscription(() => _call('vmGroup.get'))
+
 const xosanSubscriptions = {}
 export const subscribeIsInstallingXosan = (pool, cb) => {
   const poolId = resolveId(pool)
@@ -1044,6 +1046,10 @@ export const attachDiskToVm = (vdi, vm, { bootable, mode, position }) => (
     vm: resolveId(vm)
   })
 )
+
+export const removeAppliance = vm => {
+  _call('vm.removeAppliance', { id: resolveId(vm) })
+}
 
 // DISK ---------------------------------------------------------------
 
@@ -1961,3 +1967,33 @@ export const downloadAndInstallXosanPack = pool =>
   )
 
 export const registerXosan = namespace => _call('cloud.registerResource', { namespace: 'xosan' })
+
+// VM-Group ----------------------------------------------------------------------
+
+export const startVmGroup = vmGroup => {
+  _call('vmGroup.start', { id: resolveId(vmGroup) })
+}
+export const shutdownVmGroup = vmGroup => _call('vmGroup.shutdown', { id: resolveId(vmGroup) })
+export const rebootVmGroup = async vmGroup => {
+  await shutdownVmGroup(vmGroup)
+  await startVmGroup(vmGroup)
+}
+export const editVmGroup = (vmGroup, props) => _call('vmGroup.set', { id: resolveId(vmGroup), ...props })
+export const deleteVmGroup = (vmGroup, vms) =>
+  confirm({
+    title: _('deleteVmGroupModalTitle'),
+    body: _('deleteVmGroupModalMessage')
+  }).then(() => {
+    forEach(vms, vm => removeAppliance(vm))
+    _call('vmGroup.destroy', { id: resolveId(vmGroup) })
+  }, Promise.reject())
+export const createVmGroup = ({ pool, name_label, name_description }) => _call('vmGroup.create', { id: resolveId(pool), name_label, name_description })
+export const startVmGroups = (vmGroupIds) => {
+  forEach(vmGroupIds, id => startVmGroup({id: id}))
+}
+export const shutdownVmGroups = (vmGroupIds) => {
+  forEach(vmGroupIds, id => shutdownVmGroup({id: id}))
+}
+export const rebootVmGroups = (vmGroupIds) => {
+  forEach(vmGroupIds, id => rebootVmGroup({id: id}))
+}

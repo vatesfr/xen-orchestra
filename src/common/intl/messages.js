@@ -38,6 +38,7 @@ var messages = {
   // ----- Titles -----
   homePage: 'Home',
   homeVmPage: 'VMs',
+  homeVmGroupPage: 'VM-Groups',
   homeHostPage: 'Hosts',
   homePoolPage: 'Pools',
   homeTemplatePage: 'Templates',
@@ -66,6 +67,7 @@ var messages = {
   taskMenu: 'Tasks',
   taskPage: 'Tasks',
   newVmPage: 'VM',
+  newVmGroupPage: 'VM-Group',
   newSrPage: 'Storage',
   newServerPage: 'Server',
   newImport: 'Import',
@@ -121,6 +123,7 @@ var messages = {
   homeTypePool: 'Pool',
   homeTypeHost: 'Host',
   homeTypeVm: 'VM',
+  homeTypeVmGroup: 'VM group',
   homeTypeSr: 'SR',
   homeTypeVmTemplate: 'Template',
   homeSort: 'Sort',
@@ -629,6 +632,7 @@ var messages = {
   advancedTabName: 'Advanced',
   networkTabName: 'Network',
   disksTabName: 'Disk{disks, plural, one {} other {s}}',
+  managementTabName: 'Management',
 
   powerStateHalted: 'halted',
   powerStateRunning: 'running',
@@ -938,6 +942,32 @@ var messages = {
   newVmHideAdvanced: 'Hide advanced settings',
   newVmShare: 'Share this VM',
 
+  // ----- VM-Group-----
+  newVmGroupTitle: 'Create a new Vm-Group on ',
+  newVmGroupNameLabel: 'Label',
+  newVmGroupDescriptionLabel: 'Description',
+  newVmGroupReset: 'Reset',
+  newVmGroupCreate: 'Create',
+  newVmGroupInfoPanel: 'Infos',
+
+  // ----- VM-Group item -----
+  powerStateVmGroupRunning: 'All vms are running',
+  powerStateVmGroupHalted: 'All vms are halted',
+  powerStateVmGroupBusy: 'Contains vms halted and vms running',
+
+  // ----- VM-Group management Tab -----
+  'attachVmButton': 'new VM',
+  'vmsBootOrder': 'Boot order',
+  'vmGroupLabel': 'Label',
+  'vmGroupDescription': 'Description',
+  'vmGroupActions': 'Actions',
+
+  // ----- VM-Group general Tab -----
+  'vmGroupCurrentStatus': 'Current status',
+
+  // ----- VM-Group stats Tab -----
+  'vmGroupAllVm': 'All VMs',
+
   // ----- Self -----
   resourceSets: 'Resource sets',
   noResourceSets: 'No resource sets.',
@@ -1090,6 +1120,8 @@ var messages = {
   migrateVmNetwork: 'Network',
   migrateVmNoTargetHost: 'No target host',
   migrateVmNoTargetHostMessage: 'A target host is required to migrate a VM',
+  deleteVmGroupModalTitle: 'Delete VM-Group',
+  deleteVmGroupModalMessage: 'Are you sure you want to delete this VMGroup ?',
   deleteVdiModalTitle: 'Delete VDI',
   deleteVdiModalMessage: 'Are you sure you want to delete this disk? ALL DATA ON THIS DISK WILL BE LOST',
   revertVmModalTitle: 'Revert your VM',

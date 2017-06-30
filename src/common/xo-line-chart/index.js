@@ -8,6 +8,7 @@ import {
   find,
   flatten,
   floor,
+  forEach,
   map,
   max,
   size,
@@ -16,7 +17,7 @@ import {
 } from 'lodash'
 
 import propTypes from '../prop-types-decorator'
-import { computeArraysSum } from '../xo-stats'
+import { computeArraysSum, computeArraysAvg } from '../xo-stats'
 import { formatSize } from '../utils'
 
 import styles from './index.css'
@@ -214,6 +215,54 @@ export const PoolCpuLineChart = injectIntl(propTypes({
   )
 }))
 
+export const VmGroupCpuLineChart = injectIntl(propTypes({
+  addSumSeries: propTypes.bool,
+  data: propTypes.object.isRequired,
+  options: propTypes.object
+})(({ addSumSeries, data, options = {}, intl }) => {
+  const firstVmData = data[0]
+  const length = getStatsLength(firstVmData.stats.cpus)
+
+  if (!length) {
+    return templateError
+  }
+
+  const series = map(data, ({ vm, stats }) => ({
+    name: vm,
+    data: computeArraysSum(stats.cpus)
+  }))
+
+  if (addSumSeries) {
+    series.push({
+      name: intl.formatMessage(messages.vmGroupAllVm),
+      data: computeArraysSum(map(series, 'data')),
+      className: styles.dashedLine
+    })
+  }
+
+  const nbCpusByVm = map(data, ({ stats }) => stats.cpus.length)
+
+  return (
+    <ChartistGraph
+      type='Line'
+      data={{
+        series
+      }}
+      options={{
+        ...makeOptions({
+          intl,
+          nValues: length,
+          endTimestamp: firstVmData.endTimestamp,
+          interval: firstVmData.interval,
+          valueTransform: value => `${floor(value)}%`
+        }),
+        high: 100 * (addSumSeries ? sum(nbCpusByVm) : max(nbCpusByVm)),
+        ...options
+      }}
+    />
+  )
+}))
+
 export const MemoryLineChart = injectIntl(propTypes({
   data: propTypes.object.isRequired,
   options: propTypes.object
@@ -302,6 +351,57 @@ export const PoolMemoryLineChart = injectIntl(propTypes({
   )
 }))
 
+export const VmGroupMemoryLineChart = injectIntl(propTypes({
+  addSumSeries: propTypes.bool,
+  data: propTypes.object.isRequired,
+  options: propTypes.object
+})(({ addSumSeries, data, options = {}, intl }) => {
+  const firstVmData = data[0]
+  const {
+    memory,
+    memoryUsed
+  } = firstVmData.stats
+
+  if (!memory || !memoryUsed) {
+    return templateError
+  }
+
+  const series = map(data, ({ vm, stats }) => ({
+    name: vm,
+    data: stats.memoryUsed
+  }))
+
+  if (addSumSeries) {
+    series.push({
+      name: intl.formatMessage(messages.vmGroupAllVm),
+      data: computeArraysSum(map(data, 'stats.memoryUsed')),
+      className: styles.dashedLine
+    })
+  }
+
+  const currentMemoryByHost = map(data, ({ stats }) => stats.memory[stats.memory.length - 1])
+
+  return (
+    <ChartistGraph
+      type='Line'
+      data={{
+        series
+      }}
+      options={{
+        ...makeOptions({
+          intl,
+          nValues: firstVmData.stats.memoryUsed.length,
+          endTimestamp: firstVmData.endTimestamp,
+          interval: firstVmData.interval,
+          valueTransform: formatSize
+        }),
+        high: addSumSeries ? sum(currentMemoryByHost) : max(currentMemoryByHost),
+        ...options
+      }}
+    />
+  )
+}))
+
 export const XvdLineChart = injectIntl(propTypes({
   addSumSeries: propTypes.bool,
   data: propTypes.object.isRequired,
@@ -324,6 +424,60 @@ export const XvdLineChart = injectIntl(propTypes({
         ...makeOptions({
           intl,
           nValues: length,
+          endTimestamp: data.endTimestamp,
+          interval: data.interval,
+          valueTransform: formatSize
+        }),
+        ...options
+      }}
+    />
+  )
+}))
+
+export const VmGroupXvdLineChart = injectIntl(propTypes({
+  addSumSeries: propTypes.bool,
+  data: propTypes.object.isRequired,
+  options: propTypes.object
+})(({ addSumSeries, data, options = {}, intl }) => {
+  const firstVmData = data[0]
+  const {
+    memory,
+    memoryUsed
+  } = firstVmData.stats
+
+  if (!memory || !memoryUsed) {
+    return templateError
+  }
+
+  const series = flatten(map(data, ({ stats, vm }) =>
+    map(stats.xvds, (xvd, key) => {
+      return {
+        name: `${vm} (${key})`,
+        data: computeArraysAvg(stats.xvds[key])
+      }
+    })
+  ))
+
+  const datas = []
+  forEach(series, ({ data }) => datas.push(data))
+  if (addSumSeries) {
+    series.push({
+      name: intl.formatMessage(messages.vmGroupAllVm),
+      data: computeArraysSum(datas),
+      className: styles.dashedLine
+    })
+  }
+
+  return (
+    <ChartistGraph
+      type='Line'
+      data={{
+        series
+      }}
+      options={{
+        ...makeOptions({
+          intl,
+          nValues: firstVmData.stats.xvds.r.length,
           endTimestamp: data.endTimestamp,
           interval: data.interval,
           valueTransform: formatSize
@@ -435,6 +589,48 @@ export const PoolPifLineChart = injectIntl(propTypes({
           nValues: length,
           endTimestamp: firstHostData.endTimestamp,
           interval: firstHostData.interval,
+          valueTransform: formatSize
+        }),
+        ...options
+      }}
+    />
+  )
+}))
+
+export const VmGroupVifLineChart = injectIntl(propTypes({
+  addSumSeries: propTypes.bool,
+  data: propTypes.object.isRequired,
+  options: propTypes.object
+})(({ addSumSeries, data, options = {}, intl }) => {
+  const firstVmData = data[0]
+  const length = firstVmData.stats && getStatsLength(firstVmData.stats.vifs.rx)
+
+  if (!length) {
+    return templateError
+  }
+  const series = addSumSeries
+      ? map(ios, io => ({
+        name: `${intl.formatMessage(messages.vmGroupAllVm)} (${io})`,
+        data: computeArraysSum(map(data, ({ stats }) => computeArraysSum(stats.vifs[io])))
+      }))
+      : flatten(map(data, ({ stats, vm }) =>
+        map(ios, io => ({
+          name: `${vm} (${io})`,
+          data: computeArraysSum(stats.vifs[io])
+        }))
+      ))
+  return (
+    <ChartistGraph
+      type='Line'
+      data={{
+        series
+      }}
+      options={{
+        ...makeOptions({
+          intl,
+          nValues: length,
+          endTimestamp: firstVmData.endTimestamp,
+          interval: firstVmData.interval,
           valueTransform: formatSize
         }),
         ...options

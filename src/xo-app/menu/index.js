@@ -127,6 +127,7 @@ export default class Menu extends Component {
     const items = [
       { to: '/home', icon: 'menu-home', label: 'homePage', subMenu: [
         { to: '/home?t=VM', icon: 'vm', label: 'homeVmPage' },
+        { to: '/home?t=VmGroup', icon: 'vm', label: 'homeVmGroupPage' },
         nHosts !== 0 && { to: '/home?t=host', icon: 'host', label: 'homeHostPage' },
         !isEmpty(pools) && { to: '/home?t=pool', icon: 'pool', label: 'homePoolPage' },
         isAdmin && { to: '/home?t=VM-template', icon: 'template', label: 'homeTemplatePage' },
@@ -167,6 +168,7 @@ export default class Menu extends Component {
       isAdmin && { to: '/xosan', icon: 'menu-xosan', label: 'xosan' },
       !(noOperatablePools && noResourceSets) && { to: '/vms/new', icon: 'menu-new', label: 'newMenu', subMenu: [
         { to: '/vms/new', icon: 'menu-new-vm', label: 'newVmPage' },
+        { to: '/new/vm-group', icon: 'menu-new-vm', label: 'newVmGroupPage' },
         isAdmin && { to: '/new/sr', icon: 'menu-new-sr', label: 'newSrPage' },
         isAdmin && { to: '/settings/servers', icon: 'menu-settings-servers', label: 'newServerPage' },
         !noOperatablePools && { to: '/vms/import', icon: 'menu-new-import', label: 'newImport' }

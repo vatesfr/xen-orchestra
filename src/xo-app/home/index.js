@@ -42,12 +42,15 @@ import {
   forgetSrs,
   isSrShared,
   migrateVms,
+  rebootVmGroups,
   reconnectAllHostsSrs,
   rescanSrs,
   restartHosts,
   restartHostsAgents,
   restartVms,
+  shutdownVmGroups,
   snapshotVms,
+  startVmGroups,
   startVms,
   stopHosts,
   stopVms,
@@ -86,6 +89,7 @@ import {
 import styles from './index.css'
 import HostItem from './host-item'
 import PoolItem from './pool-item'
+import VmGroupItem from './vm-group-item'
 import VmItem from './vm-item'
 import TemplateItem from './template-item'
 import SrItem from './sr-item'
@@ -150,6 +154,20 @@ const OPTIONS = {
       { labelId: 'homeSortByCpus', sortBy: 'CPUs.number', sortOrder: 'desc' }
     ]
   },
+  'VmGroup': {
+    defaultFilter: '',
+    filters: homeFilters.vmGroup,
+    mainActions: [
+      { handler: shutdownVmGroups, icon: 'vm-stop', tooltip: _('stopVmLabel') },
+      { handler: startVmGroups, icon: 'vm-start', tooltip: _('startVmLabel') },
+      { handler: rebootVmGroups, icon: 'vm-reboot', tooltip: _('rebootVmLabel') }
+    ],
+    Item: VmGroupItem,
+    sortOptions: [
+      { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' },
+      { labelId: 'homeSortByPowerstate', sortBy: 'power_state', sortOrder: 'desc' }
+    ]
+  },
   pool: {
     defaultFilter: '',
     filters: homeFilters.pool,
@@ -196,6 +214,7 @@ const OPTIONS = {
 
 const TYPES = {
   VM: _('homeTypeVm'),
+  VmGroup: _('homeTypeVmGroup'),
   'VM-template': _('homeTypeVmTemplate'),
   host: _('homeTypeHost'),
   pool: _('homeTypePool'),
@@ -212,14 +231,18 @@ const DEFAULT_TYPE = 'VM'
     createGetObjectsOfType('host'),
     hosts => state => isEmpty(hosts(state))
   )
-  const type = (_, props) => props.location.query.t || DEFAULT_TYPE
+  const getType = (_, props) => props.location.query.t || DEFAULT_TYPE
+  const getObjectsByType = createGetObjectsOfType(getType)
 
-  return {
-    areObjectsFetched,
-    items: createGetObjectsOfType(type),
-    noServersConnected,
-    type,
-    user: getUser
+  return (state, props) => {
+    const type = getType(state, props)
+    return {
+      areObjectsFetched: areObjectsFetched(state, props),
+      items: getObjectsByType(state, props),
+      noServersConnected: noServersConnected(state, props),
+      type,
+      user: getUser(state, props)
+    }
   }
 })
 export default class Home extends Component {
@@ -806,7 +829,7 @@ export default class Home extends Component {
                     </OverlayTrigger>
                   )}
                   {' '}
-                  <OverlayTrigger
+                  {type !== 'VmGroup' && <OverlayTrigger
                     autoFocus
                     trigger='click'
                     rootClose
@@ -824,7 +847,7 @@ export default class Home extends Component {
                     }
                   >
                     <Button btnStyle='link'><Icon icon='tags' /> {_('homeAllTags')}</Button>
-                  </OverlayTrigger>
+                  </OverlayTrigger> }
                   {' '}
                   <DropdownButton bsStyle='link' id='sort' title={_('homeSortBy')}>
                     {map(options.sortOptions, ({ labelId, sortBy: _sortBy, sortOrder }, key) => (
