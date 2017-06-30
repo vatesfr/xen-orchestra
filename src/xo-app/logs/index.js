@@ -16,10 +16,12 @@ import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
 import { alert, confirm } from 'modal'
-import { connectStore } from 'utils'
 import { createGetObject } from 'selectors'
 import { FormattedDate } from 'react-intl'
-
+import {
+  connectStore,
+  formatSize
+} from 'utils'
 import {
   Card,
   CardHeader,
@@ -41,12 +43,6 @@ const jobKeyToLabel = {
   rollingBackup: _('backup'),
   rollingSnapshot: _('rollingSnapshot')
 }
-
-const formatSize = bytes =>
-  humanFormat(bytes, {
-    scale: 'binary',
-    unit: 'B'
-  })
 
 const formatSpeed = (bytes, milliseconds) =>
   humanFormat(bytes * 1e3 / milliseconds, {
