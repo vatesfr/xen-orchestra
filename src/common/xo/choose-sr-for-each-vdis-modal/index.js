@@ -1,9 +1,7 @@
 import Collapse from 'collapse'
 import Component from 'base-component'
-import every from 'lodash/every'
-import forEach from 'lodash/forEach'
-import map from 'lodash/map'
 import React from 'react'
+import { every, forEach, map } from 'lodash'
 
 import _ from '../../intl'
 import SingleLineRow from '../../single-line-row'
