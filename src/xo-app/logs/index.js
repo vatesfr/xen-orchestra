@@ -74,14 +74,11 @@ class JobReturn extends Component {
 }
 
 const getJobCallStateInfos = (end, error) => {
-  const {
-    icon,
-    tooltip
-  } = error !== undefined
-    ? {icon: 'halted', tooltip: 'failedJobCall'}
+  const [ icon, tooltip ] = error !== undefined
+    ? ['halted', 'failedJobCall']
     : end !== undefined
-      ? {icon: 'running', tooltip: 'successfulJobCall'}
-      : {icon: 'busy', tooltip: 'jobCallInProgess'}
+      ? ['running', 'successfulJobCall']
+      : ['busy', 'jobCallInProgess']
 
   return <Tooltip content={_(tooltip)}>
     <Icon icon={icon} />
