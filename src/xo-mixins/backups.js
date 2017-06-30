@@ -430,9 +430,7 @@ export default class {
         const sizeStream = createSizeStream().once('finish', () => {
           size += sizeStream.size
         })
-        delta.streams[id] = delta.streams[id].on('end', () => {
-          console.log(`${id} end`)
-        }).pipe(sizeStream)
+        delta.streams[id] = delta.streams[id].pipe(sizeStream)
       })
 
       const promise = targetXapi.importDeltaVm(
