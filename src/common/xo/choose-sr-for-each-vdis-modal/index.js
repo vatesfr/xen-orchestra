@@ -25,14 +25,9 @@ const Collapsible = ({collapsible, children, ...props}) => collapsible
     {children}
   </div>
 
-    return collapsible
-      ? <Collapse {...props}>{children}</Collapse>
-      : <div>
-        <span>{props.buttonText}</span>
-        <br />
-        {children}
-      </div>
-  }
+Collapsible.propTypes = {
+  collapsible: React.propTypes.bool.isRequired,
+  children: React.propTypes.node.isRequired
 }
 
 export default class ChooseSrForEachVdisModal extends Component {
