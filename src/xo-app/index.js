@@ -25,6 +25,7 @@ import Backup from './backup'
 import Dashboard from './dashboard'
 import Home from './home'
 import Host from './host'
+import InnovativeTree from './innovative-tree'
 import Jobs from './jobs'
 import Menu from './menu'
 import Modal, { alert } from 'modal'
@@ -90,6 +91,7 @@ const BODY_STYLE = {
   'vms/:id': Vm,
   xoa: Xoa,
   xosan: Xosan,
+  'tree': InnovativeTree
 })
 @connectStore(state => {
   return {
