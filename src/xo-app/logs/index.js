@@ -73,23 +73,19 @@ class JobReturn extends Component {
   }
 }
 
-class JobCallState extends Component {
-  _renderInfos = () => this.props.error !== undefined
+const getJobCallStateInfos = (end, error) => {
+  const {
+    icon,
+    tooltip
+  } = error !== undefined
     ? {icon: 'halted', tooltip: 'failedJobCall'}
-    : this.props.end !== undefined
+    : end !== undefined
       ? {icon: 'running', tooltip: 'successfulJobCall'}
       : {icon: 'busy', tooltip: 'jobCallInProgess'}
 
-  render () {
-    const {
-      icon,
-      tooltip
-    } = this._renderInfos()
-
-    return <Tooltip content={_(tooltip)}>
-      <Icon icon={icon} />
-    </Tooltip>
-  }
+  return <Tooltip content={_(tooltip)}>
+    <Icon icon={icon} />
+  </Tooltip>
 }
 
 const getJobTransferredDataInfos = (start, end, size) => <div>
@@ -116,7 +112,7 @@ const Log = props => <ul className='list-group'>
     }
 
     return <li key={call.callKey} className='list-group-item'>
-      <strong className='text-info'>{call.method}: </strong><JobCallState end={end} error={error} /><br />
+      <strong className='text-info'>{call.method}: </strong>{getJobCallStateInfos(end, error)}<br />
       {map(call.params, (value, key) => [ <JobParam id={value} paramKey={key} key={key} />, <br /> ])}
       {returnedValue != null && returnedValue.size !== undefined && getJobTransferredDataInfos(start, end, returnedValue.size)}
       {id !== undefined && <span>{' '}<JobReturn id={id} /></span>}
