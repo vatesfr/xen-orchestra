@@ -73,7 +73,7 @@ class JobReturn extends Component {
   }
 }
 
-const getJobCallStateInfos = (end, error) => {
+const getJobCallStateInfos = ({ end, error }) => {
   const [ icon, tooltip ] = error !== undefined
     ? ['halted', 'failedJobCall']
     : end !== undefined
@@ -85,7 +85,7 @@ const getJobCallStateInfos = (end, error) => {
   </Tooltip>
 }
 
-const getJobTransferredDataInfos = (start, end, size) => <div>
+const getJobTransferredDataInfos = ({ start, end, size }) => <div>
   <span><strong>{_('jobTransferredDataSize')}</strong> {formatSize(size)}</span>
   <br />
   <span><strong>{_('jobTransferredDataSpeed')}</strong> {formatSpeed(size, end - start)}</span>
@@ -109,9 +109,9 @@ const Log = props => <ul className='list-group'>
     }
 
     return <li key={call.callKey} className='list-group-item'>
-      <strong className='text-info'>{call.method}: </strong>{getJobCallStateInfos(end, error)}<br />
+      <strong className='text-info'>{call.method}: </strong>{getJobCallStateInfos({ end, error })}<br />
       {map(call.params, (value, key) => [ <JobParam id={value} paramKey={key} key={key} />, <br /> ])}
-      {returnedValue != null && returnedValue.size !== undefined && getJobTransferredDataInfos(start, end, returnedValue.size)}
+      {returnedValue != null && returnedValue.size !== undefined && getJobTransferredDataInfos({ start, end, size: returnedValue.size })}
       {id !== undefined && <span>{' '}<JobReturn id={id} /></span>}
       {call.error &&
         <span className='text-danger'>
