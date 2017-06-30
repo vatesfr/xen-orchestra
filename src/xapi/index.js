@@ -891,9 +891,10 @@ export default class Xapi extends XapiBase {
   @deferrable.onFailure
   async importDeltaVm ($onFailure, delta, {
     deleteBase = false,
+    disableStartAfterImport = true,
+    mapVdisSrs = {},
     name_label = delta.vm.name_label,
-    srId = this.pool.default_SR,
-    disableStartAfterImport = true
+    srId = this.pool.default_SR
   } = {}) {
     const { version } = delta
 
@@ -913,8 +914,6 @@ export default class Xapi extends XapiBase {
         throw new Error('could not find the base VM')
       }
     }
-
-    const sr = this.getObject(srId)
 
     const baseVdis = {}
     baseVm && forEach(baseVm.$VBDs, vbd => {
@@ -962,7 +961,7 @@ export default class Xapi extends XapiBase {
             [TAG_BASE_DELTA]: undefined,
             [TAG_COPY_SRC]: vdi.uuid
           },
-          sr: sr.$id
+          sr: mapVdisSrs[vdi.uuid] || srId
         })
         $onFailure(() => this._deleteVdi(newVdi))
 
@@ -1056,6 +1055,7 @@ export default class Xapi extends XapiBase {
 
   async _migrateVmWithStorageMotion (vm, hostXapi, host, {
     migrationNetwork = find(host.$PIFs, pif => pif.management).$network, // TODO: handle not found
+    sr,
     mapVdisSrs,
     mapVifsNetworks
   }) {
@@ -1067,7 +1067,9 @@ export default class Xapi extends XapiBase {
       if (vbd.type === 'Disk') {
         vdis[vdi.$ref] = mapVdisSrs && mapVdisSrs[vdi.$id]
           ? hostXapi.getObject(mapVdisSrs[vdi.$id]).$ref
-          : defaultSr.$ref // Will error if there are no default SR.
+          : sr !== undefined
+            ? hostXapi.getObject(sr).$ref
+            : defaultSr.$ref // Will error if there are no default SR.
       }
     }
 
@@ -1325,6 +1327,7 @@ export default class Xapi extends XapiBase {
   }
 
   async migrateVm (vmId, hostXapi, hostId, {
+    sr,
     migrationNetworkId,
     mapVifsNetworks,
     mapVdisSrs
@@ -1335,14 +1338,16 @@ export default class Xapi extends XapiBase {
     const accrossPools = vm.$pool !== host.$pool
     const useStorageMotion = (
       accrossPools ||
-      migrationNetworkId ||
-      mapVifsNetworks ||
-      mapVdisSrs
+      sr !== undefined ||
+      migrationNetworkId !== undefined ||
+      !isEmpty(mapVifsNetworks) ||
+      !isEmpty(mapVdisSrs)
     )
 
     if (useStorageMotion) {
       await this._migrateVmWithStorageMotion(vm, hostXapi, host, {
         migrationNetwork: migrationNetworkId && hostXapi.getObject(migrationNetworkId),
+        sr,
         mapVdisSrs,
         mapVifsNetworks
       })

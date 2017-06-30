@@ -32,6 +32,7 @@ import { lvs, pvs } from '../lvm'
 import {
   asyncMap,
   forEach,
+  getFirstPropertyName,
   mapFilter,
   mapToArray,
   noop,
@@ -506,7 +507,7 @@ export default class {
     return vdiId
   }
 
-  async _legacyImportDeltaVmBackup (xapi, { remoteId, handler, filePath, info, sr }) {
+  async _legacyImportDeltaVmBackup (xapi, { remoteId, handler, filePath, info, sr, mapVdisSrs = {} }) {
     // Import vm metadata.
     const vm = await (async () => {
       const stream = await handler.createReadStream(`${filePath}.xva`)
@@ -532,7 +533,7 @@ export default class {
       mapToArray(
         info.vdis,
         async vdiInfo => {
-          vdiInfo.sr = sr._xapiId
+          vdiInfo.sr = mapVdisSrs[vdiInfo.uuid] || sr._xapiId
 
           const vdiId = await this._legacyImportDeltaVdiBackup(xapi, { vmId: vm.$id, handler, dir, vdiInfo })
           vdiIds[vdiInfo.uuid] = vdiId
@@ -868,12 +869,12 @@ export default class {
     }
   }
 
-  async importDeltaVmBackup ({sr, remoteId, filePath}) {
+  async importDeltaVmBackup ({sr, remoteId, filePath, mapVdisSrs = {}}) {
     filePath = `${filePath}${DELTA_BACKUP_EXT}`
     const { datetime } = parseVmBackupPath(filePath)
 
     const handler = await this._xo.getRemoteHandler(remoteId)
-    const xapi = this._xo.getXapi(sr)
+    const xapi = this._xo.getXapi(sr || mapVdisSrs[getFirstPropertyName(mapVdisSrs)])
 
     const delta = JSON.parse(await handler.readFile(filePath))
     let vm
@@ -882,7 +883,7 @@ export default class {
     if (!version) {
       // Legacy import. (Version 0.0.0)
       vm = await this._legacyImportDeltaVmBackup(xapi, {
-        remoteId, handler, filePath, info: delta, sr
+        remoteId, handler, filePath, info: delta, sr, mapVdisSrs
       })
     } else if (versionSatisfies(delta.version, '^1')) {
       const basePath = dirname(filePath)
@@ -907,7 +908,8 @@ export default class {
 
       vm = await xapi.importDeltaVm(delta, {
         disableStartAfterImport: false,
-        srId: sr._xapiId
+        srId: sr !== undefined && sr._xapiId,
+        mapVdisSrs
       })
     } else {
       throw new Error(`Unsupported delta backup version: ${version}`)

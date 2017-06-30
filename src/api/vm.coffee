@@ -422,6 +422,7 @@ exports.insertCd = insertCd
 migrate = $coroutine ({
   vm,
   host,
+  sr,
   mapVdisSrs,
   mapVifsNetworks,
   migrationNetwork
@@ -452,6 +453,7 @@ migrate = $coroutine ({
     throw unauthorized()
 
   yield @getXapi(vm).migrateVm(vm._xapiId, @getXapi(host), host._xapiId, {
+    sr: @getObject(sr, 'SR')._xapiId
     migrationNetworkId: migrationNetwork?._xapiId
     mapVifsNetworks: mapVifsNetworksXapi,
     mapVdisSrs: mapVdisSrsXapi,
@@ -465,6 +467,9 @@ migrate.params = {
 
   # Identifier of the host to migrate to.
   targetHost: { type: 'string' }
+
+  # Identifier of the default SR to migrate to.
+  sr: { type: 'string', optional: true }
 
   # Map VDIs IDs --> SRs IDs
   mapVdisSrs: { type: 'object', optional: true }
@@ -722,13 +727,20 @@ exports.rollingDeltaBackup = rollingDeltaBackup
 
 #---------------------------------------------------------------------
 
-importDeltaBackup = ({sr, remote, filePath}) ->
-  return @importDeltaVmBackup({sr, remoteId: remote, filePath})
+importDeltaBackup = ({sr, remote, filePath, mapVdisSrs}) ->
+  mapVdisSrsXapi = {}
+
+  forEach mapVdisSrs, (srId, vdiId) =>
+    mapVdisSrsXapi[vdiId] = @getObject(srId, 'SR')._xapiId
+
+  return @importDeltaVmBackup({sr, remoteId: remote, filePath, mapVdisSrs: mapVdisSrsXapi})
 
 importDeltaBackup.params = {
   sr: { type: 'string' }
   remote: { type: 'string' }
   filePath: { type: 'string' }
+  # Map VDIs UUIDs --> SRs IDs
+  mapVdisSrs: { type: 'object', optional: true }
 }
 
 importDeltaBackup.resolve = {
