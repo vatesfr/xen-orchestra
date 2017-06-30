@@ -958,12 +958,12 @@ export const deleteVms = vms => (
   )
 )
 
-export const importBackup = ({ remote, file, sr }) => (
-  _call('vm.importBackup', resolveIds({ remote, file, sr }))
+export const importBackup = ({ remote, backup, sr }) => (
+  _call('vm.importBackup', resolveIds({ remote, backup, sr }))
 )
 
-export const importDeltaBackup = ({ remote, file, sr }) => (
-  _call('vm.importDeltaBackup', resolveIds({ remote, filePath: file, sr }))
+export const importDeltaBackup = ({ remote, backup, sr }) => (
+  _call('vm.importDeltaBackup', resolveIds({ remote, backup, sr }))
 )
 
 import RevertSnapshotModalBody from './revert-snapshot-modal' // eslint-disable-line import/first
