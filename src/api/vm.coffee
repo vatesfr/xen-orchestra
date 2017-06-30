@@ -453,7 +453,7 @@ migrate = $coroutine ({
     throw unauthorized()
 
   yield @getXapi(vm).migrateVm(vm._xapiId, @getXapi(host), host._xapiId, {
-    sr: @getObject(sr, 'SR')._xapiId
+    sr: sr && @getObject(sr, 'SR')._xapiId
     migrationNetworkId: migrationNetwork?._xapiId
     mapVifsNetworks: mapVifsNetworksXapi,
     mapVdisSrs: mapVdisSrsXapi,
