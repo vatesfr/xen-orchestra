@@ -1,8 +1,11 @@
 import _, { messages } from 'intl'
+import ChooseSrForEachVdisModal from 'xo/choose-sr-for-each-vdis-modal'
 import Component from 'base-component'
+import every from 'lodash/every'
 import filter from 'lodash/filter'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
+import getEventValue from 'get-event-value'
 import groupBy from 'lodash/groupBy'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
@@ -15,21 +18,26 @@ import SortedTable from 'sorted-table'
 import uniq from 'lodash/uniq'
 import Upgrade from 'xoa-upgrade'
 import { confirm } from 'modal'
+import { createSelector } from 'selectors'
 import { addSubscriptions, noop } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { FormattedDate, injectIntl } from 'react-intl'
 import { info, error } from 'notification'
 import { SelectPlainObject, Toggle } from 'form'
-import { SelectSr } from 'select-objects'
 
 import {
   importBackup,
   importDeltaBackup,
   isSrWritable,
   listRemote,
+  listRemoteBackups,
   startVm,
   subscribeRemotes
 } from 'xo'
+
+// Can 2 SRs on the same pool have 2 VDIs used by the same VM
+const areSrsCompatible = (sr1, sr2) =>
+  sr1.shared || sr2.shared || sr1.$container === sr2.$container
 
 const parseDate = date => +moment(date, 'YYYYMMDDTHHmmssZ').format('x')
 
@@ -76,8 +84,8 @@ const openImportModal = ({ backups }) => confirm({
   body: <ImportModalBody vmName={backups[0].name} backups={backups} />
 }).then(doImport)
 
-const doImport = ({ backup, sr, start }) => {
-  if (!sr || !backup) {
+const doImport = ({ backup, mainSr, start, mapVdisSrs }) => {
+  if (!mainSr || !backup) {
     error(_('backupRestoreErrorTitle'), _('backupRestoreErrorMessage'))
     return
   }
@@ -87,7 +95,7 @@ const doImport = ({ backup, sr, start }) => {
   }
   info(_('importBackupTitle'), _('importBackupMessage'))
   try {
-    const importPromise = importMethods[backup.type]({remote: backup.remoteId, sr, file: backup.path}).then(id => {
+    const importPromise = importMethods[backup.type]({remote: backup.remoteId, sr: mainSr, file: backup.path, mapVdisSrs}).then(id => {
       return id
     })
     if (start) {
@@ -99,22 +107,70 @@ const doImport = ({ backup, sr, start }) => {
 }
 
 class _ModalBody extends Component {
+  constructor () {
+    super()
+
+    this.state = {
+      mapVdisSrs: {}
+    }
+  }
+
   get value () {
     return this.state
   }
 
+  _getSrPredicate = createSelector(
+    () => this.state.sr,
+    () => this.state.mapVdisSrs,
+    (defaultSr, mapVdisSrs) => sr =>
+      sr !== defaultSr &&
+      isSrWritable(sr) &&
+      defaultSr.$pool === sr.$pool &&
+      areSrsCompatible(defaultSr, sr) &&
+      every(mapVdisSrs, selectedSr => selectedSr == null || areSrsCompatible(selectedSr, sr))
+  )
+
+  _onChangeDefaultSr = event => {
+    const oldSr = this.state.sr
+    const newSr = getEventValue(event)
+
+    if (oldSr == null || newSr == null || oldSr.$pool !== newSr.$pool) {
+      this.setState({
+        mapVdisSrs: {}
+      })
+    } else if (!newSr.shared) {
+      const mapVdisSrs = {...this.state.mapVdisSrs}
+      forEach(mapVdisSrs, (sr, vdi) => {
+        if (sr != null && newSr !== sr && sr.$container !== newSr.$container && !sr.shared) {
+          delete mapVdisSrs[vdi]
+        }
+      })
+      this.setState({
+        mapVdisSrs
+      })
+    }
+
+    this.setState({
+      sr: newSr
+    })
+  }
+
   render () {
     const { backups, intl } = this.props
+    const vdis = this.state.backup && this.state.backup.vdis
 
     return <div>
-      <SelectSr onChange={this.linkState('sr')} predicate={isSrWritable} />
-      <br />
       <SelectPlainObject
         onChange={this.linkState('backup')}
         optionKey='path'
         optionRenderer={backupOptionRenderer}
         options={backups}
         placeholder={intl.formatMessage(messages.importBackupModalSelectBackup)}
+      />
+      <br />
+      <ChooseSrForEachVdisModal
+        vdis={vdis}
+        onChange={props => this.setState(props)}
       />
       <br />
       <Toggle onChange={this.linkState('start')} /> {_('importBackupModalStart')}
@@ -136,16 +192,26 @@ export default class Restore extends Component {
   }
 
   _listAll = async remotes => {
-    const remotesFiles = await Promise.all(map(remotes, remote => listRemote(remote.id)))
+    const remotesInfo = await Promise.all(map(remotes, async remote => ({
+      files: await listRemote(remote.id),
+      backupsInfo: await listRemoteBackups(remote.id)
+    })))
+
     const backupInfoByVm = {}
-    forEach(remotesFiles, (remoteFiles, index) => {
+
+    forEach(remotesInfo, (remoteInfo, index) => {
       const remote = remotes[index]
 
-      forEach(remoteFiles, file => {
+      forEach(remoteInfo.files, file => {
         let backup
         const deltaInfo = /^vm_delta_(.*)_([^/]+)\/([^_]+)_(.*)$/.exec(file)
+
         if (deltaInfo) {
           const [ , tag, id, date, name ] = deltaInfo
+          const vdis = find(remoteInfo.backupsInfo, {
+            id: `${file}.json`
+          }).disks
+
           backup = {
             type: 'delta',
             date: parseDate(date),
@@ -154,7 +220,8 @@ export default class Restore extends Component {
             path: file,
             tag,
             remoteId: remote.id,
-            remoteName: remote.name
+            remoteName: remote.name,
+            vdis
           }
         } else {
           const backupInfo = /^([^_]+)_([^_]+)_(.*)\.xva$/.exec(file)
