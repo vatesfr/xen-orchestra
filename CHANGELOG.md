@@ -4,6 +4,7 @@
 
 ### Enhancements
 
+- Improve backup log display [\#2239](https://github.com/vatesfr/xo-web/issues/2239)
 - Patch SR detection improvement [\#2215](https://github.com/vatesfr/xo-web/issues/2215)
 - Less strict coalesce detection [\#2207](https://github.com/vatesfr/xo-web/issues/2207)
 - Ability to clear "Auto power on" flag for DR-ed VM [\#2097](https://github.com/vatesfr/xo-web/issues/2097)
