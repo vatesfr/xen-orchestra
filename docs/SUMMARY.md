@@ -62,4 +62,5 @@
    * [Editions](editions.md)
    * [Trial](trial.md)
    * [Invoices](invoices.md)
+* [General Troubleshooting](general-troubleshooting.md)   
 * [Glossary](glossary.md)
