@@ -5,7 +5,6 @@ import ButtonGroup from 'button-group'
 import classnames from 'classnames'
 import forEach from 'lodash/forEach'
 import get from 'lodash/get'
-import humanFormat from 'human-format'
 import Icon from 'icon'
 import includes from 'lodash/includes'
 import map from 'lodash/map'
@@ -20,7 +19,8 @@ import { createGetObject } from 'selectors'
 import { FormattedDate } from 'react-intl'
 import {
   connectStore,
-  formatSize
+  formatSize,
+  formatSpeed
 } from 'utils'
 import {
   Card,
@@ -43,12 +43,6 @@ const jobKeyToLabel = {
   rollingBackup: _('backup'),
   rollingSnapshot: _('rollingSnapshot')
 }
-
-const formatSpeed = (bytes, milliseconds) =>
-  humanFormat(bytes * 1e3 / milliseconds, {
-    scale: 'binary',
-    unit: 'B/s'
-  })
 
 // ===================================================================
 
