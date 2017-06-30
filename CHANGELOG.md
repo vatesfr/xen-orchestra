@@ -1,5 +1,22 @@
 # ChangeLog
 
+## **5.10.0** (2017-05-31)
+
+### Enhancements
+
+- Patch SR detection improvement [\#2215](https://github.com/vatesfr/xo-web/issues/2215)
+- Less strict coalesce detection [\#2207](https://github.com/vatesfr/xo-web/issues/2207)
+- Ability to clear "Auto power on" flag for DR-ed VM [\#2097](https://github.com/vatesfr/xo-web/issues/2097)
+- Ability to forget an host (even if no longer present) [\#1934](https://github.com/vatesfr/xo-web/issues/1934)
+
+### Bug fixes
+
+- ActionButtons with modals stay in pending state forever [\#2222](https://github.com/vatesfr/xo-web/issues/2222)
+- Permission issue for a user on self service VMs [\#2212](https://github.com/vatesfr/xo-web/issues/2212)
+- Backup log no longer shows the name of destination VM [\#2195](https://github.com/vatesfr/xo-web/issues/2195)
+- State not restored when exiting modal dialog [\#2194](https://github.com/vatesfr/xo-web/issues/2194)
+- [Xapi#exportDeltaVm] Cannot read property 'managed' of undefined [\#2189](https://github.com/vatesfr/xo-web/issues/2189)
+
 ## **5.9.0** (2017-05-31)
 
 ### Enhancements
