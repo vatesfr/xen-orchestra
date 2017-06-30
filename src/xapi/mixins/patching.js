@@ -212,9 +212,9 @@ export default {
 
   // platform_version < 2.1.1 ----------------------------------------
   async uploadPoolPatch (stream, patchName = 'unknown') {
-    const taskRef = await this._createTask('Patch upload', patchName)
+    const taskRef = await this.createTask('Patch upload', patchName)
 
-    const task = this._watchTask(taskRef)
+    const task = this.watchTask(taskRef)
     const [ patchRef ] = await Promise.all([
       task,
       this.putResource(stream, '/pool_patch_upload', {

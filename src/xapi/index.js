@@ -4,7 +4,7 @@ import fatfs from 'fatfs'
 import synchronized from 'decorator-synchronized'
 import tarStream from 'tar-stream'
 import vmdkToVhd from 'xo-vmdk-to-vhd'
-import { cancellable, defer } from 'promise-toolbox'
+import { cancellable, catchPlus as pCatch, defer, ignoreErrors } from 'promise-toolbox'
 import { PassThrough } from 'stream'
 import { forbiddenOperation } from 'xo-common/api-errors'
 import {
@@ -20,7 +20,6 @@ import {
   uniq
 } from 'lodash'
 import {
-  wrapError as wrapXapiError,
   Xapi as XapiBase
 } from 'xen-api'
 import {
@@ -31,6 +30,7 @@ import createSizeStream from '../size-stream'
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer'
 import { mixin } from '../decorators'
 import {
+  asyncMap,
   camelToSnakeCase,
   createRawObject,
   ensureArray,
@@ -38,9 +38,7 @@ import {
   isFunction,
   map,
   mapToArray,
-  noop,
   pAll,
-  pCatch,
   pDelay,
   pFinally,
   promisifyAll,
@@ -100,7 +98,6 @@ export default class Xapi extends XapiBase {
 
     const genericWatchers = this._genericWatchers = createRawObject()
     const objectsWatchers = this._objectWatchers = createRawObject()
-    const taskWatchers = this._taskWatchers = createRawObject()
 
     const onAddOrUpdate = objects => {
       forEach(objects, object => {
@@ -123,21 +120,6 @@ export default class Xapi extends XapiBase {
           objectsWatchers[ref].resolve(object)
           delete objectsWatchers[ref]
         }
-
-        // Watched task.
-        if (ref in taskWatchers) {
-          const {status} = object
-
-          if (status === 'success') {
-            taskWatchers[ref].resolve(object.result)
-          } else if (status === 'failure') {
-            taskWatchers[ref].reject(wrapXapiError(object.error_info))
-          } else {
-            return
-          }
-
-          delete taskWatchers[ref]
-        }
       })
     }
     this.objects.on('add', onAddOrUpdate)
@@ -152,6 +134,10 @@ export default class Xapi extends XapiBase {
     }, () => pDelay(5e3).then(loop))
 
     return loop()
+  }
+
+  createTask (name = 'untitled task', description) {
+    return super.createTask(`[XO] ${name}`, description)
   }
 
   // =================================================================
@@ -228,36 +214,6 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
-  // Create a task.
-  async _createTask (name = 'untitled task', description = '') {
-    const ref = await this.call('task.create', `[XO] ${name}`, description)
-    debug('task created: %s (%s)', name, description)
-
-    this._watchTask(ref)::pFinally(() => {
-      this.call('task.destroy', ref).then(() => {
-        debug('task destroyed: %s (%s)', name, description)
-      })
-    })
-
-    return ref
-  }
-
-  // Waits for a task to be resolved.
-  _watchTask (ref) {
-    // If a task object is passed, unpacked the ref.
-    if (typeof ref === 'object' && ref.$ref) ref = ref.$ref
-
-    let watcher = this._taskWatchers[ref]
-    if (!watcher) {
-      // Register the watcher.
-      watcher = this._taskWatchers[ref] = defer()
-    }
-
-    return watcher.promise
-  }
-
-  // =================================================================
-
   _setObjectProperty (object, name, value) {
     return this.call(
       `${getNamespaceForType(object.$type)}.set_${camelToSnakeCase(name)}`,
@@ -280,7 +236,7 @@ export default class Xapi extends XapiBase {
       if (value != null) {
         return this.call(`${namespace}.set_${camelToSnakeCase(name)}`, ref, prepareXapiParam(value))
       }
-    }))::pCatch(noop)
+    }))::ignoreErrors()
   }
 
   async _updateObjectMapProperty (object, prop, values) {
@@ -302,7 +258,7 @@ export default class Xapi extends XapiBase {
 
         return value === null
           ? removal
-          : removal::pCatch(noop).then(() => this.call(add, ref, name, prepareXapiParam(value)))
+          : removal::ignoreErrors().then(() => this.call(add, ref, name, prepareXapiParam(value)))
       }
     }))
   }
@@ -719,14 +675,14 @@ export default class Xapi extends XapiBase {
           vdi.VBDs.length < 2 ||
           every(vdi.$VBDs, vbd => vbd.VM === vm.$ref)
         ) {
-          return this._deleteVdi(vdi)::pCatch(noop)
+          return this._deleteVdi(vdi)::ignoreErrors()
         }
         console.error(`cannot delete VDI ${vdi.name_label} (from VM ${vm.name_label})`)
       }))
     }
 
     await Promise.all(mapToArray(vm.$snapshots, snapshot =>
-      this.deleteVm(snapshot.$id)::pCatch(noop)
+      this.deleteVm(snapshot.$id)::ignoreErrors()
     ))
 
     await this.call('VM.destroy', vm.$ref)
@@ -765,21 +721,22 @@ export default class Xapi extends XapiBase {
       snapshotRef = (await this._snapshotVm(vm)).$ref
     }
 
-    const taskRef = await this._createTask('VM Export', vm.name_label)
-    if (snapshotRef) {
-      this._watchTask(taskRef)::pFinally(() => {
-        this.deleteVm(snapshotRef)::pCatch(noop)
-      })
-    }
-
-    return this.getResource(onlyMetadata ? '/export_metadata/' : '/export/', {
+    const promise = this.getResource(onlyMetadata ? '/export_metadata/' : '/export/', {
       host,
       query: {
         ref: snapshotRef || vm.$ref,
-        task_id: taskRef,
         use_compression: compress ? 'true' : 'false'
-      }
+      },
+      task: this.createTask('VM export', vm.name_label)
     })
+
+    if (snapshotRef !== undefined) {
+      promise.then(_ => _.task::pFinally(() =>
+        this.deleteVm(snapshotRef)::ignoreErrors()
+      ))
+    }
+
+    return promise
   }
 
   _assertHealthyVdiChain (vdi, childrenMap) {
@@ -816,8 +773,9 @@ export default class Xapi extends XapiBase {
   }
 
   // Create a snapshot of the VM and returns a delta export object.
+  @cancellable
   @deferrable.onFailure
-  async exportDeltaVm ($onFailure, vmId, baseVmId = undefined, {
+  async exportDeltaVm ($onFailure, $cancelToken, vmId, baseVmId = undefined, {
     snapshotNameLabel = undefined,
     // Contains a vdi.$id set of vmId.
     fullVdisRequired = [],
@@ -830,7 +788,7 @@ export default class Xapi extends XapiBase {
     if (snapshotNameLabel) {
       this._setObjectProperties(vm, {
         nameLabel: snapshotNameLabel
-      })::pCatch(noop)
+      })::ignoreErrors()
     }
 
     const baseVm = baseVmId && this.getObject(baseVmId)
@@ -868,7 +826,7 @@ export default class Xapi extends XapiBase {
         //
         // The snapshot must not exist otherwise it could break the
         // next export.
-        this._deleteVdi(vdi)::pCatch(noop)
+        this._deleteVdi(vdi)::ignoreErrors()
         return
       }
 
@@ -896,8 +854,8 @@ export default class Xapi extends XapiBase {
           ...vdi,
           $SR$uuid: vdi.$SR.uuid
         }
-      const stream = streams[`${vdiRef}.vhd`] = this._exportVdi(vdi, baseVdi, VDI_FORMAT_VHD)
-      $onFailure(() => stream.cancel())
+      const stream = streams[`${vdiRef}.vhd`] = this._exportVdi($cancelToken, vdi, baseVdi, VDI_FORMAT_VHD)
+      $onFailure(stream.cancel)
     })
 
     const vifs = {}
@@ -988,10 +946,10 @@ export default class Xapi extends XapiBase {
     ])
 
     // 2. Delete all VBDs which may have been created by the import.
-    await Promise.all(mapToArray(
+    await asyncMap(
       vm.$VBDs,
-      vbd => this._deleteVbd(vbd)::pCatch(noop)
-    ))
+      vbd => this._deleteVbd(vbd)
+    )::ignoreErrors()
 
     // 3. Create VDIs.
     const newVdis = await map(delta.vdis, async vdi => {
@@ -1078,7 +1036,7 @@ export default class Xapi extends XapiBase {
     ])
 
     if (deleteBase && baseVm) {
-      this._deleteVm(baseVm)::pCatch(noop)
+      this._deleteVm(baseVm)::ignoreErrors()
     }
 
     await Promise.all([
@@ -1220,16 +1178,13 @@ export default class Xapi extends XapiBase {
   }
 
   async _importVm (stream, sr, onlyMetadata = false, onVmCreation = undefined) {
-    const taskRef = await this._createTask('VM import')
+    const taskRef = await this.createTask('VM import')
     const query = {
       force: onlyMetadata
-        ? 'true'
-        : undefined,
-      task_id: taskRef
     }
 
     let host
-    if (sr) {
+    if (sr != null) {
       host = sr.$PBDs[0].$host
       query.sr_id = sr.$ref
     }
@@ -1237,17 +1192,18 @@ export default class Xapi extends XapiBase {
     if (onVmCreation) {
       this._waitObject(
         obj => obj && obj.current_operations && taskRef in obj.current_operations
-      ).then(onVmCreation)::pCatch(noop)
+      ).then(onVmCreation)::ignoreErrors()
     }
 
-    const [ vmRef ] = await Promise.all([
-      this._watchTask(taskRef).then(extractOpaqueRef),
-      this.putResource(
-        stream,
-        onlyMetadata ? '/import_metadata/' : '/import/',
-        { host, query }
-      )
-    ])
+    const vmRef = await this.putResource(
+      stream,
+      onlyMetadata ? '/import_metadata/' : '/import/',
+      {
+        host,
+        query,
+        task: taskRef
+      }
+    ).then(extractOpaqueRef)
 
     // Importing a metadata archive of running VMs is currently
     // broken: its VBDs are incorrectly seen as attached.
@@ -1414,7 +1370,7 @@ export default class Xapi extends XapiBase {
     let ref
     try {
       ref = await this.call('VM.snapshot_with_quiesce', vm.$ref, nameLabel)
-      this.addTag(ref, 'quiesce')::pCatch(noop) // ignore any failures
+      this.addTag(ref, 'quiesce')::ignoreErrors()
 
       await this._waitObjectState(ref, vm => includes(vm.tags, 'quiesce'))
     } catch (error) {
@@ -1544,10 +1500,10 @@ export default class Xapi extends XapiBase {
       } finally {
         this._setObjectProperties(vm, {
           PV_bootloader: bootloader
-        })::pCatch(noop)
+        })::ignoreErrors()
 
         forEach(bootables, ([ vbd, bootable ]) => {
-          this._setObjectProperties(vbd, { bootable })::pCatch(noop)
+          this._setObjectProperties(vbd, { bootable })::ignoreErrors()
         })
       }
     }
@@ -1748,7 +1704,7 @@ export default class Xapi extends XapiBase {
           throw error
         }
 
-        await this.call('VBD.eject', cdDrive.$ref)::pCatch(noop)
+        await this.call('VBD.eject', cdDrive.$ref)::ignoreErrors()
 
         // Retry.
         await this.call('VBD.insert', cdDrive.$ref, cd.$ref)
@@ -1794,7 +1750,7 @@ export default class Xapi extends XapiBase {
   }
 
   async _deleteVbd (vbd) {
-    await this._disconnectVbd(vbd)::pCatch(noop)
+    await this._disconnectVbd(vbd)::ignoreErrors()
     await this.call('VBD.destroy', vbd.$ref)
   }
 
@@ -1806,7 +1762,7 @@ export default class Xapi extends XapiBase {
   async destroyVbdsFromVm (vmId) {
     await Promise.all(
       mapToArray(this.getObject(vmId).$VBDs, async vbd => {
-        await this.disconnectVbd(vbd.$ref)::pCatch(noop)
+        await this.disconnectVbd(vbd.$ref)::ignoreErrors()
         return this.call('VBD.destroy', vbd.$ref)
       })
     )
@@ -1855,13 +1811,11 @@ export default class Xapi extends XapiBase {
   }
 
   @cancellable
-  async _exportVdi ($cancelToken, vdi, base, format = VDI_FORMAT_VHD) {
+  _exportVdi ($cancelToken, vdi, base, format = VDI_FORMAT_VHD) {
     const host = vdi.$SR.$PBDs[0].$host
-    const taskRef = await this._createTask('VDI Export', vdi.name_label)
 
     const query = {
       format,
-      task_id: taskRef,
       vdi: vdi.$ref
     }
     if (base) {
@@ -1873,14 +1827,10 @@ export default class Xapi extends XapiBase {
       : ''
     }`)
 
-    const task = this._watchTask(taskRef)
     return this.getResource($cancelToken, '/export_raw_vdi/', {
       host,
-      query
-    }).then(response => {
-      response.task = task
-
-      return response
+      query,
+      task: this.createTask('VDI Export', vdi.name_label)
     })
   }
 
@@ -1898,35 +1848,31 @@ export default class Xapi extends XapiBase {
 
   // -----------------------------------------------------------------
 
-  async _importVdiContent (vdi, stream, format = VDI_FORMAT_VHD) {
-    const taskRef = await this._createTask('VDI Content Import', vdi.name_label)
-
+  async _importVdiContent (vdi, body, format = VDI_FORMAT_VHD) {
     const pbd = find(vdi.$SR.$PBDs, 'currently_attached')
-    if (!pbd) {
+    if (pbd === undefined) {
       throw new Error('no valid PBDs found')
     }
 
-    const task = this._watchTask(taskRef)
     await Promise.all([
-      stream.checksumVerified,
-      task,
-      this.putResource(stream, '/import_raw_vdi/', {
+      body.checksumVerified,
+      this.putResource(body, '/import_raw_vdi/', {
         host: pbd.host,
         query: {
           format,
-          task_id: taskRef,
           vdi: vdi.$ref
-        }
+        },
+        task: this.createTask('VDI Content Import', vdi.name_label)
       })
     ])
   }
 
-  importVdiContent (vdiId, stream, {
+  importVdiContent (vdiId, body, {
     format
   } = {}) {
     return this._importVdiContent(
       this.getObject(vdiId),
-      stream,
+      body,
       format
     )
   }
@@ -2036,7 +1982,7 @@ export default class Xapi extends XapiBase {
     const newPifs = await this.call('pool.create_VLAN_from_PIF', physPif.$ref, pif.network, asInteger(vlan))
     await Promise.all(
       mapToArray(newPifs, pifRef =>
-        !wasAttached[this.getObject(pifRef).host] && this.call('PIF.unplug', pifRef)::pCatch(noop)
+        !wasAttached[this.getObject(pifRef).host] && this.call('PIF.unplug', pifRef)::ignoreErrors()
       )
     )
   }
@@ -2140,25 +2086,36 @@ export default class Xapi extends XapiBase {
   }
 
   // Generic Config Drive
-  async createCloudInitConfigDrive (vmId, srId, config) {
+  @deferrable.onFailure
+  async createCloudInitConfigDrive ($onFailure, vmId, srId, config) {
     const vm = this.getObject(vmId)
     const sr = this.getObject(srId)
 
     // First, create a small VDI (10MB) which will become the ConfigDrive
     const buffer = fatfsBufferInit()
     const vdi = await this.createVdi(buffer.length, { name_label: 'XO CloudConfigDrive', name_description: undefined, sr: sr.$ref })
+    $onFailure(() => this._deleteVdi(vdi))
+
     // Then, generate a FAT fs
     const fs = promisifyAll(fatfs.createFileSystem(fatfsBuffer(buffer)))
-    // Create Cloud config folders
+
     await fs.mkdir('openstack')
     await fs.mkdir('openstack/latest')
-    // Create the meta_data file
-    await fs.writeFile('openstack/latest/meta_data.json', '{\n    "uuid": "' + vm.uuid + '"\n}\n')
-    // Create the user_data file
-    await fs.writeFile('openstack/latest/user_data', config)
+    await Promise.all([
+      fs.writeFile(
+        'openstack/latest/meta_data.json',
+        '{\n    "uuid": "' + vm.uuid + '"\n}\n'
+      ),
+      fs.writeFile('openstack/latest/user_data', config)
+    ])
 
-    // Transform the buffer into a stream
-    await this._importVdiContent(vdi, buffer, VDI_FORMAT_RAW)
+    // ignore VDI_IO_ERROR errors, I (JFT) don't understand why they
+    // are emitted because it works
+    await this._importVdiContent(vdi, buffer, VDI_FORMAT_RAW)::pCatch(
+      { code: 'VDI_IO_ERROR' },
+      console.warn
+    )
+
     await this._createVbd(vm, vdi)
   }
 

@@ -391,7 +391,7 @@ export default class XapiStats {
         json: 'true',
         start: timestamp
       }
-    }).readAll().then(JSON5.parse)
+    }).then(response => response.readAll().then(JSON5.parse))
   }
 
   async _getLastTimestamp (xapi, host, step) {

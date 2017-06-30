@@ -1,8 +1,6 @@
-import {
-  diffItems,
-  noop,
-  pCatch
-} from '../utils'
+import { ignoreErrors } from 'promise-toolbox'
+
+import { diffItems } from '../utils'
 
 // ===================================================================
 
@@ -12,7 +10,7 @@ async function delete_ ({vif}) {
     vif.id,
     null,
     vif.allowedIpv4Addresses.concat(vif.allowedIpv6Addresses)
-  )::pCatch(noop)
+  )::ignoreErrors()
 
   await this.getXapi(vif).deleteVif(vif._xapiId)
 }

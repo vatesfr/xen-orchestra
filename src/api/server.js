@@ -1,14 +1,10 @@
-import {
-  noop,
-  pCatch
-} from '../utils'
+import { ignoreErrors } from 'promise-toolbox'
 
 export async function add ({autoConnect = true, ...props}) {
   const server = await this.registerXenServer(props)
 
   if (autoConnect) {
-    // Connect asynchronously, ignore any errors.
-    this.connectXenServer(server.id)::pCatch(noop)
+    this.connectXenServer(server.id)::ignoreErrors()
   }
 
   return server.id
@@ -109,7 +105,7 @@ set.params = {
 // -------------------------------------------------------------------
 
 export async function connect ({id}) {
-  this.updateXenServer(id, {enabled: true})::pCatch(noop)
+  this.updateXenServer(id, {enabled: true})::ignoreErrors()
   await this.connectXenServer(id)
 }
 
@@ -126,7 +122,7 @@ connect.params = {
 // -------------------------------------------------------------------
 
 export async function disconnect ({id}) {
-  this.updateXenServer(id, {enabled: false})::pCatch(noop)
+  this.updateXenServer(id, {enabled: false})::ignoreErrors()
   await this.disconnectXenServer(id)
 }
 
