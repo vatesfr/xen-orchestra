@@ -6,16 +6,12 @@ import { every, forEach, map } from 'lodash'
 import _ from '../../intl'
 import SingleLineRow from '../../single-line-row'
 import { createSelector } from '../../selectors'
+import { SelectSr } from '../../select-objects'
+import { isSrWritable } from 'xo'
 import {
   Container,
   Col
 } from 'grid'
-import {
-  SelectSr
-} from '../../select-objects'
-import {
-  isSrWritable
-} from 'xo'
 
 // Can 2 SRs on the same pool have 2 VDIs used by the same VM
 const areSrsCompatible = (sr1, sr2) =>
