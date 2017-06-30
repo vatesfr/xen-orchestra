@@ -39,3 +39,7 @@ Workarounds:
 * wait for Citrix to release thin provisioning on LVM
 * wait for Citrix to allow another mechanism than snapshot to be able to export disks
 * use less than 50% of SR space or don't backup all VMs
+
+### Could not find the base VM
+
+This message appears when the previous replicated VM has been deleted on the target side which breaks the replication. To reset the process it's necessary to delete VM snapshot related to this CR job on the original VM. The name of this snapshot is: `XO_DELTA_EXPORT: <name label of target SR> (<UUID of target SR>)`
