@@ -4,6 +4,7 @@ import React from 'react'
 import { every, forEach, map } from 'lodash'
 
 import _ from '../../intl'
+import propTypes from '../../prop-types-decorator'
 import SingleLineRow from '../../single-line-row'
 import { createSelector } from '../../selectors'
 import { SelectSr } from '../../select-objects'
@@ -26,17 +27,17 @@ const Collapsible = ({collapsible, children, ...props}) => collapsible
   </div>
 
 Collapsible.propTypes = {
-  collapsible: React.propTypes.bool.isRequired,
-  children: React.propTypes.node.isRequired
+  collapsible: propTypes.bool.isRequired,
+  children: propTypes.node.isRequired
 }
 
+@propTypes({
+  vdis: propTypes.array.isRequired,
+  predicate: propTypes.func
+})
 export default class ChooseSrForEachVdisModal extends Component {
-  constructor () {
-    super()
-
-    this.state = {
-      mapVdisSrs: {}
-    }
+  state = {
+    mapVdisSrs: {}
   }
 
   componentWillReceiveProps (newProps) {
@@ -89,22 +90,22 @@ export default class ChooseSrForEachVdisModal extends Component {
   )
 
   render () {
-    const {
-      predicate,
-      vdis
-    } = this.props
+    const { props, state } = this
+    const { vdis } = props
     const {
       mainSr,
       mapVdisSrs
-    } = this.state
+    } = state
+
+    const srPredicate = props.predicate || this._getSrPredicate()
 
     return <div>
       <SelectSr
-        onChange={mainSr => predicate !== undefined
+        onChange={mainSr => props.predicate !== undefined
           ? this._onChange({mainSr})
           : this._onChangeMainSr(mainSr)
         }
-        predicate={predicate || isSrWritable}
+        predicate={props.predicate || isSrWritable}
         placeholder={_('chooseSrForEachVdisModalMainSr')}
         value={mainSr}
       />
@@ -124,7 +125,7 @@ export default class ChooseSrForEachVdisModal extends Component {
                   <SelectSr
                     onChange={sr => this._onChange({ mapVdisSrs: { ...mapVdisSrs, [vdi.uuid]: sr } })}
                     value={mapVdisSrs[vdi.uuid]}
-                    predicate={predicate || this._getSrPredicate()}
+                    predicate={srPredicate}
                   />
                 </Col>
               </SingleLineRow>

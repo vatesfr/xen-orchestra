@@ -138,7 +138,7 @@ export default class MigrateVmModalBody extends BaseComponent {
   get value () {
     return {
       targetHost: this.state.host && this.state.host.id,
-      mainSr: this.state.mainSr && this.state.mainSr.id,
+      sr: this.state.mainSr && this.state.mainSr.id,
       mapVdisSrs: resolveIds(this.state.mapVdisSrs),
       mapVifsNetworks: this.state.mapVifsNetworks,
       migrationNetwork: this.state.migrationNetworkId
