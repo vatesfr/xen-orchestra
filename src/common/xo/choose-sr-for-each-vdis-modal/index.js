@@ -17,13 +17,13 @@ import {
 const areSrsCompatible = (sr1, sr2) =>
   sr1.shared || sr2.shared || sr1.$container === sr2.$container
 
-class _Collapsible extends Component {
-  render () {
-    const {
-      collapsible,
-      children,
-      ...props
-    } = this.props
+const Collapsible = ({collapsible, children, ...props}) => collapsible
+  ? <Collapse {...props}>{children}</Collapse>
+  : <div>
+    <span>{props.buttonText}</span>
+    <br />
+    {children}
+  </div>
 
     return collapsible
       ? <Collapse {...props}>{children}</Collapse>
@@ -115,7 +115,7 @@ export default class ChooseSrForEachVdisModal extends Component {
       />
       <br />
       {vdis != null && mainSr != null &&
-        <_Collapsible collapsible={vdis.length >= 3} buttonText={_('chooseSrForEachVdisModalSelectSr')}>
+        <Collapsible collapsible={vdis.length >= 3} buttonText={_('chooseSrForEachVdisModalSelectSr')}>
           <br />
           <Container>
             <SingleLineRow>
@@ -136,7 +136,7 @@ export default class ChooseSrForEachVdisModal extends Component {
             )}
             <i>{_('chooseSrForEachVdisModalOptionalEntry')}</i>
           </Container>
-        </_Collapsible>
+        </Collapsible>
       }
     </div>
   }
