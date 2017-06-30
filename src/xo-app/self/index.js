@@ -312,15 +312,15 @@ export class Edit extends Component {
 
 // -----------------------------------------------------------------------------
 
-  _addIpPool = () => {
-    const { ipPools, newIpPool, newIpPoolQuantity } = this.state
+  _onChangeIpPool = newIpPool => {
+    const { ipPools, newIpPoolQuantity } = this.state
 
     this.setState({
       ipPools: [ ...ipPools, { id: newIpPool.id, quantity: newIpPoolQuantity } ],
-      newIpPool: undefined,
       newIpPoolQuantity: ''
     })
   }
+
   _removeIpPool = index => {
     const ipPools = [ ...this.state.ipPools ]
     remove(ipPools, (_, i) => index === i)
@@ -444,33 +444,30 @@ export class Edit extends Component {
             <Row>
               <Col mediumSize={4}>
                 <Row>
-                  <Col mediumSize={7}>
-                    <strong>{_('ipPool')}</strong>
-                  </Col>
                   <Col mediumSize={3}>
                     <strong>{_('quantity')}</strong>
                   </Col>
+                  <Col mediumSize={7}>
+                    <strong>{_('ipPool')}</strong>
+                  </Col>
                 </Row>
                 {map(state.ipPools, (ipPool, index) => <Row className='mb-1' key={index}>
-                  <Col mediumSize={7}>
-                    <SelectIpPool onChange={this.linkState(`ipPools.${index}.id`, 'id')} value={ipPool.id} />
-                  </Col>
                   <Col mediumSize={3}>
                     <input className='form-control' type='number' min={0} onChange={this.linkState(`ipPools.${index}.quantity`)} value={firstDefined(ipPool.quantity, '')} placeholder='∞' />
+                  </Col>
+                  <Col mediumSize={7}>
+                    <SelectIpPool onChange={this.linkState(`ipPools.${index}.id`, 'id')} value={ipPool.id} />
                   </Col>
                   <Col mediumSize={2}>
                     <ActionButton icon='delete' handler={this._removeIpPool} handlerParam={index} />
                   </Col>
                 </Row>)}
                 <Row>
-                  <Col mediumSize={7}>
-                    <SelectIpPool onChange={this.linkState('newIpPool')} value={state.newIpPool} predicate={this._getIpPoolPredicate()} />
-                  </Col>
                   <Col mediumSize={3}>
                     <input className='form-control' type='number' min={0} onChange={this.linkState('newIpPoolQuantity')} value={state.newIpPoolQuantity || ''} placeholder='∞' />
                   </Col>
-                  <Col mediumSize={2}>
-                    <ActionButton icon='add' handler={this._addIpPool} />
+                  <Col mediumSize={7}>
+                    <SelectIpPool onChange={this._onChangeIpPool} value='' predicate={this._getIpPoolPredicate()} />
                   </Col>
                 </Row>
               </Col>
