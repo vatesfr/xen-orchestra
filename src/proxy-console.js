@@ -34,8 +34,7 @@ export default function proxyConsole (ws, vmConsole, sessionId) {
       debug('connected')
     })).on('data', data => {
       if (!closed) {
-        // Encode to base 64.
-        ws.send(data.toString('base64'), onSend)
+        ws.send(data, onSend)
       }
     }).on('end', () => {
       if (!closed) {
@@ -55,8 +54,7 @@ export default function proxyConsole (ws, vmConsole, sessionId) {
       })
       .on('message', data => {
         if (!closed) {
-          // Decode from base 64.
-          socket.write(Buffer.from(data, 'base64'))
+          socket.write(data)
         }
       })
       .on('close', () => {
