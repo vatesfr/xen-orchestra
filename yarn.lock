@@ -19,6 +19,12 @@
     normalize-path "^2.0.1"
     through2 "^2.0.3"
 
+"@nraynaud/novnc@^0.6.1-1":
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/@nraynaud/novnc/-/novnc-0.6.1.tgz#995459bb6f7bd5dd9bd7899b021f68f7744cf1b3"
+  dependencies:
+    pako "^1.0.3"
+
 JSONStream@^1.0.3:
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/JSONStream/-/JSONStream-1.3.1.tgz#707f761e01dae9e16f1bcf93703b78c70966579a"
@@ -1203,10 +1209,6 @@ bootstrap@4.0.0-alpha.5:
   dependencies:
     jquery "1.9.1 - 3"
     tether "^1.3.7"
-
-bowser@^0.7.2:
-  version "0.7.3"
-  resolved "https://registry.yarnpkg.com/bowser/-/bowser-0.7.3.tgz#4fc0cb4e0e2bdd9b394df0d2038c32c2cc2712c8"
 
 brace-expansion@^1.1.7:
   version "1.1.8"
@@ -5279,13 +5281,6 @@ notifyjs@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/notifyjs/-/notifyjs-3.0.0.tgz#7418c9d6c0533aebaa643414214af53b521d1b28"
 
-novnc-node@^0.5.3:
-  version "0.5.3"
-  resolved "https://registry.yarnpkg.com/novnc-node/-/novnc-node-0.5.3.tgz#69f20a4a2ff0c54ca2f942ff59553f523eb61fa7"
-  dependencies:
-    bowser "^0.7.2"
-    debug "^2.2.0"
-
 now-and-later@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/now-and-later/-/now-and-later-1.0.0.tgz#23e798ccaaf0e8acbef0687f82086274746e0893"
@@ -5519,6 +5514,10 @@ p-map@^1.1.1:
 p-reduce@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/p-reduce/-/p-reduce-1.0.0.tgz#18c2b0dd936a4690a529f8231f58a0fdb6a47dfa"
+
+pako@^1.0.3:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/pako/-/pako-1.0.5.tgz#d2205dfe5b9da8af797e7c163db4d1f84e4600bc"
 
 pako@~0.2.0:
   version "0.2.9"

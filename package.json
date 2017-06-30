@@ -31,6 +31,7 @@
     "npm": ">=3"
   },
   "devDependencies": {
+    "@nraynaud/novnc": "^0.6.1-1",
     "ansi_up": "^1.3.0",
     "asap": "^2.0.4",
     "babel-eslint": "^7.0.0",
@@ -93,7 +94,6 @@
     "moment": "^2.13.0",
     "moment-timezone": "^0.5.4",
     "notifyjs": "^3.0.0",
-    "novnc-node": "^0.5.3",
     "promise-toolbox": "^0.9.4",
     "random-password": "^0.1.2",
     "react": "^15.4.1",
