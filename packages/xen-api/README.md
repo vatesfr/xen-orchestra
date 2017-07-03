@@ -27,6 +27,7 @@ var createClient = require('xen-api').createClient
 
 var xapi = createClient({
   url: 'https://xen1.company.net',
+  allowUnauthorized: false, // set to tru to accept self-signed HTTPs certs
   auth: {
     user: 'root',
     password: 'important secret password'
