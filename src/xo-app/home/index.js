@@ -210,6 +210,17 @@ const DEFAULT_TYPE = 'VM'
 @addSubscriptions({
   servers: subscribeServers
 })
+@connectStore(() => {
+  const noServersConnected = invoke(
+    createGetObjectsOfType('host'),
+    hosts => state => isEmpty(hosts(state))
+  )
+
+  return {
+    areObjectsFetched,
+    noServersConnected
+  }
+})
 @propTypes({
   isAdmin: propTypes.bool.isRequired,
   noResourceSets: propTypes.bool.isRequired
@@ -217,14 +228,14 @@ const DEFAULT_TYPE = 'VM'
 class NoObjects_ extends Component {
   render () {
     const {
-      fetched,
+      areObjectsFetched,
       isAdmin,
       noResourceSets,
       noServersConnected,
       servers
     } = this.props
 
-    if (!fetched) {
+    if (!areObjectsFetched) {
       return <CenterPanel>
         <h2><img src='assets/loading.svg' /></h2>
       </CenterPanel>
@@ -304,17 +315,11 @@ class NoObjects_ extends Component {
   noResourceSets: cb => subscribeResourceSets(data => cb(isEmpty(data)))
 })
 @connectStore(() => {
-  const noServersConnected = invoke(
-    createGetObjectsOfType('host'),
-    hosts => state => isEmpty(hosts(state))
-  )
   const type = (_, props) => props.location.query.t || DEFAULT_TYPE
 
   return {
-    areObjectsFetched,
     isAdmin,
     items: createGetObjectsOfType(type),
-    noServersConnected,
     type,
     user: getUser
   }
@@ -699,7 +704,6 @@ export default class Home extends Component {
 
   render () {
     const {
-      areObjectsFetched,
       isAdmin,
       noResourceSets
     } = this.props
@@ -708,10 +712,8 @@ export default class Home extends Component {
 
     if (nItems < 1) {
       return <NoObjects_
-        fetched={areObjectsFetched}
         isAdmin={isAdmin}
         noResourceSets={noResourceSets}
-        noServersConnected={noServersConnected}
       />
     }
 
