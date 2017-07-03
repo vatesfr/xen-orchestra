@@ -219,7 +219,6 @@ class NoObjects_ extends Component {
     const {
       fetched,
       isAdmin,
-      nItems,
       noResourceSets,
       noServersConnected,
       servers
@@ -263,43 +262,41 @@ class NoObjects_ extends Component {
       </CenterPanel>
     }
 
-    if (nItems === undefined) {
-      return <CenterPanel>
-        <Card shadow>
-          <CardHeader>{_('homeNoVms')}</CardHeader>
-          {(isAdmin || !noResourceSets) && <CardBlock>
+    return <CenterPanel>
+      <Card shadow>
+        <CardHeader>{_('homeNoVms')}</CardHeader>
+        {(isAdmin || !noResourceSets) && <CardBlock>
+          <Row>
+            <Col>
+              <Link to='/vms/new'>
+                <Icon icon='vm' size={4} />
+                <h4>{_('homeNewVm')}</h4>
+              </Link>
+              <p className='text-muted'>{_('homeNewVmMessage')}</p>
+            </Col>
+          </Row>
+          {isAdmin && <div>
+            <h2>{_('homeNoVmsOr')}</h2>
             <Row>
-              <Col>
-                <Link to='/vms/new'>
-                  <Icon icon='vm' size={4} />
-                  <h4>{_('homeNewVm')}</h4>
+              <Col mediumSize={6}>
+                <Link to='/import'>
+                  <Icon icon='menu-new-import' size={4} />
+                  <h4>{_('homeImportVm')}</h4>
                 </Link>
-                <p className='text-muted'>{_('homeNewVmMessage')}</p>
+                <p className='text-muted'>{_('homeImportVmMessage')}</p>
+              </Col>
+              <Col mediumSize={6}>
+                <Link to='/backup/restore'>
+                  <Icon icon='backup' size={4} />
+                  <h4>{_('homeRestoreBackup')}</h4>
+                </Link>
+                <p className='text-muted'>{_('homeRestoreBackupMessage')}</p>
               </Col>
             </Row>
-            {isAdmin && <div>
-              <h2>{_('homeNoVmsOr')}</h2>
-              <Row>
-                <Col mediumSize={6}>
-                  <Link to='/import'>
-                    <Icon icon='menu-new-import' size={4} />
-                    <h4>{_('homeImportVm')}</h4>
-                  </Link>
-                  <p className='text-muted'>{_('homeImportVmMessage')}</p>
-                </Col>
-                <Col mediumSize={6}>
-                  <Link to='/backup/restore'>
-                    <Icon icon='backup' size={4} />
-                    <h4>{_('homeRestoreBackup')}</h4>
-                  </Link>
-                  <p className='text-muted'>{_('homeRestoreBackupMessage')}</p>
-                </Col>
-              </Row>
-            </div>}
-          </CardBlock>}
-        </Card>
-      </CenterPanel>
-    }
+          </div>}
+        </CardBlock>}
+      </Card>
+    </CenterPanel>
   }
 }
 
@@ -712,11 +709,10 @@ export default class Home extends Component {
     const nItems = this._getNumberOfItems()
     const noResourceSets = isEmpty(resourceSets)
 
-    if (nItems === undefined) {
+    if (nItems < 1) {
       return <NoObjects_
         fetched={areObjectsFetched}
         isAdmin={isAdmin}
-        nItems={nItems}
         noResourceSets={noResourceSets}
         noServersConnected={noServersConnected}
       />
