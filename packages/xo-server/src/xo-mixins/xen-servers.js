@@ -1,5 +1,6 @@
 import { ignoreErrors } from 'promise-toolbox'
 import { noSuchObject } from 'xo-common/api-errors'
+import { parseUrl } from 'xen-api'
 import { some } from 'lodash'
 
 import Xapi from '../xapi'
