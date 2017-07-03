@@ -301,7 +301,7 @@ class NoObjects_ extends Component {
 }
 
 @addSubscriptions({
-  resourceSets: subscribeResourceSets
+  noResourceSets: cb => subscribeResourceSets(data => cb(isEmpty(data)))
 })
 @connectStore(() => {
   const noServersConnected = invoke(
@@ -627,12 +627,11 @@ export default class Home extends Component {
   _renderHeader () {
     const {
       isAdmin,
-      resourceSets,
+      noResourceSets,
       type
     } = this.props
     const { filters } = OPTIONS[type]
     const customFilters = this._getCustomFilters()
-    const noResourceSets = isEmpty(resourceSets)
 
     return <Container>
       <Row className={styles.itemRowHeader}>
@@ -702,12 +701,10 @@ export default class Home extends Component {
     const {
       areObjectsFetched,
       isAdmin,
-      noServersConnected,
-      resourceSets
+      noResourceSets
     } = this.props
 
     const nItems = this._getNumberOfItems()
-    const noResourceSets = isEmpty(resourceSets)
 
     if (nItems < 1) {
       return <NoObjects_
