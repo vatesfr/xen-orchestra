@@ -1990,7 +1990,7 @@ export const setIpPool = (ipPool, { name, addresses, networks }) => (
 
 // XO SAN ----------------------------------------------------------------------
 
-export const getVolumeInfo = (xosanSr) => _call('xosan.getVolumeInfo', { sr: xosanSr })
+export const getVolumeInfo = (xosanSr, infoType) => _call('xosan.getVolumeInfo', { sr: xosanSr, infoType })
 
 export const createXosanSR = ({ template, pif, vlan, srs, glusterType, redundancy }) => _call('xosan.createSR', {
   template,

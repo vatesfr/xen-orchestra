@@ -8,33 +8,50 @@ import {
   map
 } from 'lodash'
 import {
+  createGetObjectsOfType,
   createSelector
 } from 'selectors'
+import {
+  connectStore
+} from 'utils'
 import {
   getVolumeInfo,
   replaceXosanBrick
 } from 'xo'
 
+@connectStore(() => ({
+  vms: createGetObjectsOfType('VM'),
+  srs: createGetObjectsOfType('SR')
+}))
 export default class TabXosan extends Component {
-  componentDidMount () {
-    this._refreshInfo()
+  async componentDidMount () {
+    await this._refreshInfo()
   }
 
-  _refreshInfo() {
-    getVolumeInfo(this.props.sr.id).then(data => {
-      const newState = { volumeInfo: data }
-      data.bricks.forEach((brick, i) => {
-        newState[`sr-${i}`] = null
-      })
-      this.setState(newState)
-    })
+  async _refreshAspect (infoType, statusVariable) {
+    const val = {}
+    val[statusVariable] = null
+    this.setState(val)
+    val[statusVariable] = await getVolumeInfo(this.props.sr.id, infoType)
+    this.setState(val)
   }
 
-  _replaceBrick = ({brick, newSr}) => {
-    replaceXosanBrick(this.props.sr.id, brick, newSr.id).then(() => {
-      this._refreshInfo()
-    })
+  async _refreshInfo () {
+    this.setState({xosanConfig: JSON.parse(this.props.sr.other_config['xo:xosan_config'])})
+    await Promise.all([::this._refreshAspect('heal', 'volumeHeal'), ::this._refreshAspect('status', 'volumeStatus'),
+      ::this._refreshAspect('info', 'volumeInfo')])
   }
+
+  async _replaceBrick ({brick, newSr}) {
+    await replaceXosanBrick(this.props.sr.id, brick, newSr.id)
+    const newState = {}
+    this.state.xosanConfig.nodes.forEach((node, i) => {
+      newState[`sr-${i}`] = null
+    })
+    this.setState(newState)
+    await this._refreshInfo()
+  }
+
   _getSrPredicate = createSelector(
     (underlyingSr) => this.props.sr.$pool,
     (underlyingSr) => underlyingSr,
@@ -42,35 +59,65 @@ export default class TabXosan extends Component {
   )
 
   render () {
-    return this.state.volumeInfo ? (<Container>
-      {this.state.volumeInfo && map(this.state.volumeInfo['bricks'], (brick, i) =>
-        <div key={brick.uuid}>
-          <h3>Brick {brick.info.name}</h3>
+    const {volumeHeal, volumeInfo, volumeStatus, xosanConfig} = this.state
+    const { vms, srs } = this.props
+    if (!xosanConfig) {
+      return <Container />
+    }
+    const brickByName = {}
+    xosanConfig['nodes'].forEach(node => {
+      brickByName[node.brickName] = {config: node, uuid: '-'}
+    })
+    const brickByUuid = {}
+    const strippedVolumeInfo = volumeInfo && volumeInfo['commandStatus'] ? volumeInfo['result'] : null
+    if (strippedVolumeInfo) {
+      strippedVolumeInfo['bricks'].forEach(brick => {
+        brickByName[brick.name] = brickByName[brick.name] || {}
+        brickByName[brick.name]['info'] = brick
+        brickByName[brick.name]['uuid'] = brick.hostUuid
+        brickByUuid[brick.hostUuid] = brickByUuid[brick.hostUuid] || brickByName[brick.name]
+      })
+    }
+    if (volumeHeal && volumeHeal['commandStatus']) {
+      volumeHeal['result']['bricks'].forEach(brick => {
+        brickByName[brick.name] = brickByName[brick.name] || {}
+        brickByName[brick.name]['heal'] = brick
+        brickByName[brick.name]['uuid'] = brick.hostUuid
+        brickByUuid[brick.hostUuid] = brickByUuid[brick.hostUuid] || brickByName[brick.name]
+      })
+    }
+    if (volumeStatus && volumeStatus['commandStatus']) {
+      for (let key in brickByUuid) {
+        brickByUuid[key]['status'] = volumeStatus.result.nodes[key]
+      }
+    }
+    const orderedBrickList = map(Object.keys(brickByName), name => brickByName[name])
+    return <Container>
+      {map(orderedBrickList, (node, i) =>
+        <div key={node.config.brickName}>
+          <h3>Brick {node.config.brickName}</h3>
           <div style={{ marginLeft: '15px' }}>
-            <Row>
-              <Col size={2}>Brick UUID: </Col><Col size={4}>{brick.uuid}</Col>
-            </Row>
-            <Row>
-              <Col size={2}>Virtual Machine: </Col><Col size={4}><Link to={`/vms/${brick.vmId}`} title={brick.info.name}>{brick.vmLabel}</Link></Col>
-            </Row>
-            <Row>
-              <Col size={2}>Status: </Col><Col size={4}>{brick.heal.status}</Col>
-              <Col size={3}>
-                <SelectSr predicate={this._getSrPredicate(brick.underlyingSr)} onChange={this.linkState(`sr-${i}`)} value={this.state[`sr-${i}`]} />
-              </Col>
+            <Row><Col size={2}>Virtual Machine: </Col><Col size={4}><Link
+              to={`/vms/${node.config.vm.id}`}>{vms[node.config.vm.id].name_label}</Link></Col></Row>
+            <Row><Col size={2}>Underlying Storage: </Col><Col size={4}><Link
+              to={`/srs/${node.config.underlyingSr}`}>{srs[node.config.underlyingSr].name_label}</Link></Col></Row>
+            <Row><Col size={2}>Move Brick: </Col>
+              <Col size={3}><SelectSr predicate={this._getSrPredicate(node.config.underlyingSr)}
+                onChange={this.linkState(`sr-${i}`)} value={this.state[`sr-${i}`]} /></Col>
               <Col size={3}>
                 <ActionButton
                   btnStyle='success'
                   icon='refresh'
-                  handler={this._replaceBrick}
-                  handlerParam={{brick: brick.info.name, newSr: this.state[`sr-${i}`]}}
+                  handler={::this._replaceBrick}
+                  handlerParam={{ brick: node.config.brickName, newSr: this.state[`sr-${i}`] }}
                 >Replace</ActionButton>
-              </Col>
-            </Row>
+              </Col></Row>
+            <Row><Col size={2} title='gluster UUID'>Brick UUID: </Col><Col size={4}>{node.uuid}</Col></Row>
             <Row>
-              <Col size={2}>Arbiter: </Col><Col size={4}>{brick.info.isArbiter === '1' ? 'True' : 'False' }</Col>
+              <Col size={2}>Status: </Col><Col size={4}>{node['heal'] ? node['heal'].status : 'unknown'}</Col>
             </Row>
-            {brick['status'].length !== 0 && <table style={{border: 'solid black 1px'}}>
+            <Row><Col size={2}>Arbiter: </Col><Col size={4}>{node.config.arbiter ? 'True' : 'False' }</Col></Row>
+            {node['status'] && node['status'].length !== 0 && <table style={{border: 'solid black 1px'}}>
               <thead>
                 <tr style={{border: 'solid black 1px'}}>
                   <th style={{border: 'solid black 1px'}}>Job</th>
@@ -81,7 +128,7 @@ export default class TabXosan extends Component {
                 </tr>
               </thead>
               <tbody>
-                {map(brick['status'], (job, j) => <tr key={`${brick.uuid}-${job.pid}`} style={{border: 'solid black 1px'}}>
+                {map(node['status'], (job, j) => <tr key={`${node.uuid}-${job.pid}`} style={{border: 'solid black 1px'}}>
                   <td style={{border: 'solid black 1px'}}>{job.hostname}</td>
                   <td style={{border: 'solid black 1px'}}>{job.path}</td>
                   <td style={{border: 'solid black 1px'}}>{job.status}</td>
@@ -90,61 +137,60 @@ export default class TabXosan extends Component {
                 </tr>)}
               </tbody>
             </table>}
-            {brick['heal']['file'] && brick['heal']['file'].length !== 0 && <div>
+            {node['heal'] && node['heal']['file'] && node['heal']['file'].length !== 0 && <div>
               <h4>Files needing healing</h4>
-              { map(brick['heal']['file'], file =>
-                <Row>
-                  <Col size={4}>{file['_']}</Col><Col size={4}>{file['gfid']}</Col>
-                </Row>)}</div>}
+              {map(node['heal']['file'], file =>
+                <Row key={file['gfid']}><Col size={4}>{file['_']}</Col><Col size={4}>{file['gfid']}</Col></Row>)}
+            </div>}
           </div>
         </div>
       )}
       <h2>Volume</h2>
-      {this.state.volumeInfo && <div>
+      {strippedVolumeInfo && <div>
         <Row key='name'>
           <Col size={3}><strong>Name</strong></Col>
-          <Col size={4}>{this.state.volumeInfo['name']}</Col>
+          <Col size={4}>{strippedVolumeInfo['name']}</Col>
         </Row>
         <Row key='statusStr'>
           <Col size={3}><strong>Status</strong></Col>
-          <Col size={4}>{this.state.volumeInfo['statusStr']}</Col>
+          <Col size={4}>{strippedVolumeInfo['statusStr']}</Col>
         </Row>
         <Row key='typeStr'>
           <Col size={3}><strong>Type</strong></Col>
-          <Col size={4}>{this.state.volumeInfo['typeStr']}</Col>
+          <Col size={4}>{strippedVolumeInfo['typeStr']}</Col>
         </Row>
         <Row key='brickCount'>
           <Col size={3}><strong>Brick Count</strong></Col>
-          <Col size={4}>{this.state.volumeInfo['brickCount']}</Col>
+          <Col size={4}>{strippedVolumeInfo['brickCount']}</Col>
         </Row>
         <Row key='stripeCount'>
           <Col size={3}><strong>Stripe Count</strong></Col>
-          <Col size={4}>{this.state.volumeInfo['stripeCount']}</Col>
+          <Col size={4}>{strippedVolumeInfo['stripeCount']}</Col>
         </Row>
         <Row key='replicaCount'>
           <Col size={3}><strong>Replica Count</strong></Col>
-          <Col size={4}>{this.state.volumeInfo['replicaCount']}</Col>
+          <Col size={4}>{strippedVolumeInfo['replicaCount']}</Col>
         </Row>
         <Row key='arbiterCount'>
           <Col size={3}><strong>Arbiter Count</strong></Col>
-          <Col size={4}>{this.state.volumeInfo['arbiterCount']}</Col>
+          <Col size={4}>{strippedVolumeInfo['arbiterCount']}</Col>
         </Row>
         <Row key='disperseCount'>
           <Col size={3}><strong>Disperse Count</strong></Col>
-          <Col size={4}>{this.state.volumeInfo['disperseCount']}</Col>
+          <Col size={4}>{strippedVolumeInfo['disperseCount']}</Col>
         </Row>
         <Row key='redundancyCount'>
           <Col size={3}><strong>Redundancy Count</strong></Col>
-          <Col size={4}>{this.state.volumeInfo['redundancyCount']}</Col>
+          <Col size={4}>{strippedVolumeInfo['redundancyCount']}</Col>
         </Row>
+        <h3>Volume Options</h3>
+        {map(strippedVolumeInfo.options, option =>
+          <Row key={option.name}>
+            <Col size={3}><strong>{option.name}</strong></Col>
+            <Col size={4}>{option.value}</Col>
+          </Row>
+        )}
       </div>}
-      <h3>Volume Options</h3>
-      {map(this.state.volumeInfo.options, option =>
-        <Row key={option.name}>
-          <Col size={3}><strong>{option.name}</strong></Col>
-          <Col size={4}>{option.value}</Col>
-        </Row>
-      )}
-    </Container >) : (<Container />)
+    </Container>
   }
 }
