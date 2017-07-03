@@ -211,11 +211,8 @@ const DEFAULT_TYPE = 'VM'
   servers: subscribeServers
 })
 @propTypes({
-  fetched: propTypes.bool,
-  isAdmin: propTypes.bool,
-  nItems: propTypes.number,
-  noResourceSets: propTypes.bool,
-  noServersConnected: propTypes.bool
+  isAdmin: propTypes.bool.isRequired,
+  noResourceSets: propTypes.bool.isRequired
 })
 class NoObjects_ extends Component {
   render () {
