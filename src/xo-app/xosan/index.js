@@ -41,7 +41,6 @@ import {
   createXosanSR,
   addXosanBrick,
   downloadAndInstallXosanPack,
-  getVolumeInfo,
   registerXosan,
   restartHostsAgents,
   subscribeIsInstallingXosan,
@@ -75,19 +74,6 @@ export class XosanVolumesTable extends Component {
     }
   }
 
-  componentDidMount () {
-    if (this.props.xosansrs && this.props.xosansrs.length > 0) {
-      Promise.all(this.props.xosansrs.map(sr => getVolumeInfo(sr.id))).then(volumes => {
-        const volumeConfig = {}
-        volumes.forEach((volume, index) => {
-          volumeConfig[this.props.xosansrs[index].id] = volume
-        })
-        this.setState({
-          volumeConfig
-        })
-      })
-    }
-  }
   _addBrick = (params) => {
     addXosanBrick(params.xosansr.id, params.lvmsr.id)
   }
@@ -101,7 +87,6 @@ export class XosanVolumesTable extends Component {
           <tr>
             <th>{_('xosanName')}</th>
             <th>{_('xosanHosts')}</th>
-            <th>{_('xosanVolumeId')}</th>
             <th>{_('xosanSize')}</th>
             <th>{_('xosanUsedSpace')}</th>
           </tr>
@@ -117,9 +102,6 @@ export class XosanVolumesTable extends Component {
               </td>
               <td>
                 { map(sr.pbds, ({ host }) => find(hosts, [ 'id', host ]).name_label).join(', ') }
-              </td>
-              <td>
-                { this.state.volumeConfig && this.state.volumeConfig[sr.id] && this.state.volumeConfig[sr.id]['Volume ID'] }
               </td>
               <td>
                 {formatSize(sr.size)}
@@ -443,7 +425,7 @@ class PoolAvailableSrs extends Component {
 
 @connectStore(() => {
   const getIsInPool = createSelector(
-    (_, { pool }) => pool != null && pool.id,
+    (_, { pool }) => pool !== null && pool.id,
     poolId => obj => obj.$pool === poolId
   )
 
@@ -475,7 +457,7 @@ class PoolAvailableSrs extends Component {
 
   const getXosanSrs = createSort(createSelector(
     createGetObjectsOfType('SR').filter(createSelector(
-      (_, { pool }) => pool != null && pool.id,
+      (_, { pool }) => pool !== null && pool.id,
       poolId =>
         sr => sr.$pool === poolId && sr.shared && sr.SR_type === 'xosan'
     )),
@@ -495,7 +477,7 @@ class PoolAvailableSrs extends Component {
     getHosts,
     (xosanPackInstallationTime, hosts) => filter(hosts, host =>
       host.power_state === 'Running' &&
-      xosanPackInstallationTime != null &&
+      xosanPackInstallationTime !== null &&
       xosanPackInstallationTime > host.agentStartTime
     )
   )
