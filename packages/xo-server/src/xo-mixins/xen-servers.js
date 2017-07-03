@@ -323,8 +323,14 @@ export default class {
 
     xapi.xo.install()
 
-    let redirectedToAnExistingServer = false
+    let resolveRedirectedToAnExistingServer
+    const redirectedToAnExistingServer = new Promise(resolve => {
+      resolveRedirectedToAnExistingServer = resolve
+    })
+
+    let redirect = false
     xapi.on('redirect', async url => {
+      redirect = true
       const servers = await this.getAllXenServers()
       const serverExists = some(
         servers,
@@ -332,17 +338,17 @@ export default class {
       )
 
       if (serverExists) {
-        redirectedToAnExistingServer = true
-        return
+        resolveRedirectedToAnExistingServer(true)
       }
 
       await this.updateXenServer(id, {host: url.hostname})
+      resolveRedirectedToAnExistingServer(false)
     })
 
     await xapi.connect().then(
       async () => {
         let error = null
-        if (redirectedToAnExistingServer) {
+        if (redirect && await redirectedToAnExistingServer) {
           error = {
             code: 'Connection failed',
             message: 'host is slave and the master is already connected'
