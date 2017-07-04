@@ -111,12 +111,6 @@ async-each@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/async-each/-/async-each-1.0.1.tgz#19d386a1d9edc6e7c1c85d388aedbcc56d33602d"
 
-async-hook@^1.0.0:
-  version "1.7.1"
-  resolved "https://registry.yarnpkg.com/async-hook/-/async-hook-1.7.1.tgz#dfc7d90236e45a8b04be7c1e8c81024b6bce9c2a"
-  dependencies:
-    stack-chain "^1.3.1"
-
 async@^1.0.0:
   version "1.5.2"
   resolved "https://registry.yarnpkg.com/async/-/async-1.5.2.tgz#ec6a61ae56480c0c3cb241c95618e20892f9672a"
@@ -2482,7 +2476,7 @@ sshpk@^1.7.0:
     jsbn "~0.1.0"
     tweetnacl "~0.14.0"
 
-stack-chain@1.3.x, stack-chain@^1.3.1, stack-chain@^1.3.5:
+stack-chain@1.3.x:
   version "1.3.7"
   resolved "https://registry.yarnpkg.com/stack-chain/-/stack-chain-1.3.7.tgz#d192c9ff4ea6a22c94c4dd459171e3f00cea1285"
 
@@ -2609,13 +2603,6 @@ tough-cookie@~2.3.0:
   resolved "https://registry.yarnpkg.com/tough-cookie/-/tough-cookie-2.3.2.tgz#f081f76e4c85720e6c37a5faced737150d84072a"
   dependencies:
     punycode "^1.4.1"
-
-trace@^2.3.3:
-  version "2.4.1"
-  resolved "https://registry.yarnpkg.com/trace/-/trace-2.4.1.tgz#d0d5cce3675feb5c137b82efac20a0f173a38825"
-  dependencies:
-    async-hook "^1.0.0"
-    stack-chain "^1.3.5"
 
 tryit@^1.0.1:
   version "1.0.3"

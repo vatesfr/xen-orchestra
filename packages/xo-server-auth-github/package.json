@@ -43,8 +43,7 @@
     "mocha": "^3.1.0",
     "must": "^0.13.2",
     "source-map-support": "^0.4.3",
-    "standard": "^8.2.0",
-    "trace": "^2.3.3"
+    "standard": "^8.2.0"
   },
   "scripts": {
     "build": "NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
