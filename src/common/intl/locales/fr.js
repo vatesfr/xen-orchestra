@@ -768,7 +768,7 @@ export default {
   editBackupRemoteTitle: 'Emplacement',
 
   // Original text: "Delete the old backups first"
-  deleteOldBackupsFirst: 'Supprimez les anciennes sauvegardes',
+  deleteOldBackupsFirst: 'Supprimer les anciennes sauvegardes',
 
   // Original text: "Remote stores for backup"
   remoteList: 'Emplacement de stockage de backup',
@@ -1647,7 +1647,7 @@ export default {
   installPatchWarningTitle: 'Installation de patch non recommandée',
 
   // Original text: "This will install a patch only on this host. This is NOT the recommended way: please go into the Pool patch view and follow instructions there. If you are sure about this, you can continue anyway"
-  installPatchWarningContent: "Ceci installera un patch sur cet hôte uniquement. Ce n'est pas la procédure recommandée : veuillez vous rendre sur la page des patches du pool et suivre les instructions. Si vous êtes certain de ce que vous faites, vous pouvez tout de même continuer.",
+  installPatchWarningContent: "Installer un patch sur un hôte seul est déconseillé. Il est recommandé d'aller sur la page du pool et de faire l'installation sur tous les hôtes.",
 
   // Original text: "Go to pool"
   installPatchWarningReject: 'Aller au pool',
@@ -1917,10 +1917,10 @@ export default {
   vbdSizePlaceHolder: 'Taille',
 
   // Original text: "CD drive not completely installed"
-  cdDriveNotInstalled: 'CD pas complètement installé',
+  cdDriveNotInstalled: "Le lecteur CD n'est pas complètement installé",
 
   // Original text: "Stop and start the VM to install the CD drive"
-  cdDriveInstallation: 'Arrêtez et démarrez la VM pour installer le CD',
+  cdDriveInstallation: 'Arrêtez et démarrez la VM pour installer le lecteur CD',
 
   // Original text: "Save"
   saveBootOption: 'Enregistrer',
@@ -2025,7 +2025,7 @@ export default {
   snapshotAction: 'Action',
 
   // Original text: "Quiesced snapshot"
-  snapshotQuiesce: 'Snapshot quiesce',
+  snapshotQuiesce: 'Instantané quiesce',
 
   // Original text: "Remove all logs"
   logRemoveAll: 'Supprimer tous les journaux',
@@ -2100,7 +2100,7 @@ export default {
   ha: 'Haute Dispo',
 
   // Original text: "Affinity host"
-  vmAffinityHost: "Hôte d'affinité",
+  vmAffinityHost: 'Hôte préféré',
 
   // Original text: "VGA"
   vmVga: 'VGA',
@@ -3036,7 +3036,7 @@ export default {
   serverAllowUnauthorizedCertificates: 'Autoriser les certificats non approuvés',
 
   // Original text: "Enable it if your certificate is rejected, but it's not recommended because your connection will not be secured."
-  serverUnauthorizedCertificatesInfo: "Activez ceci si votre certificat est rejeté, mais ce n'est pas recommandé car votre connexion ne sera pas sécurisée",
+  serverUnauthorizedCertificatesInfo: "Activez ceci si votre certificat est rejeté, mais ce n'est pas recommandé car votre connexion ne sera pas sécurisée.",
 
   // Original text: "Disconnect server"
   serverDisconnect: 'Déconnecter le serveur',
@@ -3066,7 +3066,7 @@ export default {
   serverStatus: 'Statut',
 
   // Original text: "Connection failed. Click for more information."
-  serverConnectionFailed: "Echec de connexion. Cliquer pour plus d'informations",
+  serverConnectionFailed: "Echec de connexion. Cliquer pour plus d'informations.",
 
   // Original text: "Connecting..."
   serverConnecting: 'Connexion...',
@@ -3084,10 +3084,10 @@ export default {
   serverUnknownError: 'Erreur inconnue',
 
   // Original text: "Invalid self-signed certificate"
-  serverSelfSignedCertError: 'Certificat auto-signé invalide',
+  serverSelfSignedCertError: 'Certificat auto-signé rejeté',
 
   // Original text: "Do you want to accept self-signed certificate for this server even though it would decrease security?"
-  serverSelfSignedCertQuestion: 'Voulez-vous accepter un certificat auto-signé pour ce serveur même si cela réduirait la sécurité ?',
+  serverSelfSignedCertQuestion: 'Voulez-vous accepter un certificat auto-signé pour ce serveur même si cela réduit la sécurité ?',
 
   // Original text: "Copy VM"
   copyVm: 'Copier la VM',
@@ -3705,7 +3705,7 @@ export default {
   xosanTitle: 'XOSAN',
 
   // Original text: "Xen Orchestra SAN SR"
-  xosanSrTitle: 'SR SAN Xen Orchestra',
+  xosanSrTitle: 'SR NAS Xen Orchestra',
 
   // Original text: "Select local SRs (lvm)"
   xosanAvailableSrsTitle: 'Sélectionner des SRs locaux (lvm)',
@@ -3798,7 +3798,7 @@ export default {
   xosanInstallPackOnHosts: 'Installer le pack XOSAN sur ces hôtes :',
 
   // Original text: "Install {pack} v{version}?"
-  xosanInstallPack: 'Installer {pack} v{version}',
+  xosanInstallPack: 'Installer {pack} v{version} ?',
 
   // Original text: "No compatible XOSAN pack found for your XenServer versions."
   xosanNoPackFound: 'Pas de pack XOSAN compatible pour vos versions de XenServers.',
