@@ -35,7 +35,6 @@ import {
   getFirstPropertyName,
   mapFilter,
   mapToArray,
-  noop,
   pFinally,
   pFromCallback,
   pSettle,
@@ -350,28 +349,30 @@ export default class {
 
     const backups = []
 
-    await Promise.all(mapToArray(await handler.list(), entry => {
+    await asyncMap(handler.list(), entry => {
       if (endsWith(entry, '.xva')) {
         backups.push(parseVmBackupPath(entry))
       } else if (startsWith(entry, 'vm_delta_')) {
-        return handler.list(entry).then(children => Promise.all(mapToArray(children, child => {
-          if (endsWith(child, '.json')) {
-            const path = `${entry}/${child}`
+        return handler.list(entry).then(children =>
+          asyncMap(children, child => {
+            if (endsWith(child, '.json')) {
+              const path = `${entry}/${child}`
 
-            const record = parseVmBackupPath(path)
-            backups.push(record)
+              const record = parseVmBackupPath(path)
+              backups.push(record)
 
-            return handler.readFile(path).then(data => {
-              record.disks = mapToArray(JSON.parse(data).vdis, vdi => ({
-                id: `${entry}/${vdi.xoPath}`,
-                name: vdi.name_label,
-                uuid: vdi.uuid
-              }))
-            }).catch(noop)
-          }
-        })))
+              return handler.readFile(path).then(data => {
+                record.disks = mapToArray(JSON.parse(data).vdis, vdi => ({
+                  id: `${entry}/${vdi.xoPath}`,
+                  name: vdi.name_label,
+                  uuid: vdi.uuid
+                }))
+              })
+            }
+          })
+        )
       }
-    }))
+    })::ignoreErrors()
 
     return backups
   }
