@@ -49,8 +49,7 @@ function nscaPacketBuilder ({
 }) {
   // Building NSCA packet
   const SIZE = 720
-  const packet = new Buffer(SIZE)
-  packet.fill(0)
+  const packet = Buffer.alloc(SIZE)
   packet.writeInt16BE(VERSION, 0)
   packet.fill('h', 2, 3)
   packet.writeUInt32BE(0, 4) // initial 0 for CRC32 value
@@ -66,7 +65,7 @@ function nscaPacketBuilder ({
 function xor (data, mask) {
   const dataSize = data.length
   const maskSize = mask.length
-  const result = new Buffer(dataSize)
+  const result = Buffer.allocUnsafe(dataSize)
   let j = 0
   for (let i = 0; i < dataSize; i++) {
     if (j === maskSize) {
@@ -88,7 +87,6 @@ const VERSION = 3
 const ENCODING = 'binary'
 
 class XoServerNagios {
-
   constructor ({ xo }) {
     this._sendPassiveCheck = bind(this._sendPassiveCheck, this)
     this._set = bind(xo.defineProperty, xo)
@@ -101,7 +99,7 @@ class XoServerNagios {
 
   configure (configuration) {
     this._conf = configuration
-    this._key = new Buffer(configuration.key, ENCODING)
+    this._key = Buffer.from(configuration.key, ENCODING)
   }
 
   load () {

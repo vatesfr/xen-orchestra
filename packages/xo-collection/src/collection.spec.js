@@ -30,7 +30,7 @@ describe('Collection', function () {
     return waitTicks()
   })
 
-  it('is iterable', function () {
+  it.only('is iterable', function () {
     const iterator = this.col[Symbol.iterator]()
 
     expect(iterator.next()).toEqual({done: false, value: ['bar', 0]})

@@ -14,8 +14,6 @@ import {
   debug
 } from './utils'
 
-class Emitter extends EventEmitter {}
-
 // ===================================================================
 
 const PERFORMANCE_MODE = 0
@@ -104,7 +102,7 @@ export const configurationSchema = {
 const makeJob = (cronPattern, fn) => {
   const job = {
     running: false,
-    emitter: new Emitter()
+    emitter: new EventEmitter()
   }
 
   job.cron = new CronJob(cronPattern, async () => {
@@ -117,7 +115,7 @@ const makeJob = (cronPattern, fn) => {
     try {
       await fn()
     } catch (error) {
-      console.error('[WARN] scheduled function:', error && error.stack || error)
+      console.error('[WARN] scheduled function:', (error && error.stack) || error)
     } finally {
       job.running = false
       job.emitter.emit('finish')
@@ -136,7 +134,6 @@ class LoadBalancerPlugin {
   constructor (xo) {
     this.xo = xo
     this._job = makeJob(`*/${EXECUTION_DELAY} * * * *`, ::this._executePlans)
-    this._emitter
   }
 
   async configure ({ plans }) {

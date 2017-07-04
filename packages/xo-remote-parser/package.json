@@ -27,17 +27,17 @@
     "lodash": "^4.13.1"
   },
   "devDependencies": {
-    "babel-cli": "^6.18.0",
-    "babel-eslint": "^7.1.1",
+    "babel-cli": "^6.24.1",
+    "babel-eslint": "^7.2.3",
     "babel-plugin-lodash": "^3.2.11",
-    "babel-preset-env": "^1.1.7",
-    "babel-preset-stage-3": "^6.17.0",
-    "cross-env": "^3.1.4",
+    "babel-preset-env": "^1.5.2",
+    "babel-preset-stage-3": "^6.24.1",
+    "cross-env": "^5.0.1",
     "deep-freeze": "^0.0.1",
-    "dependency-check": "^2.7.0",
-    "jest": "^18.1.0",
-    "rimraf": "^2.5.4",
-    "standard": "^8.6.0"
+    "dependency-check": "^2.9.1",
+    "jest": "^20.0.4",
+    "rimraf": "^2.6.1",
+    "standard": "^10.0.2"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
@@ -67,7 +67,7 @@
     ]
   },
   "jest": {
-    "testPathDirs": [
+    "roots": [
       "<rootDir>/src"
     ],
     "testRegex": "\\.spec\\.js$"

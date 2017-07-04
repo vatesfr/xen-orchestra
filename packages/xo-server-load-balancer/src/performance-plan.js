@@ -132,7 +132,5 @@ export default class PerformancePlan extends Plan {
 
     await Promise.all(promises)
     debug(`Performance mode: ${optimizationsCount} optimizations for Host (${exceededHost.id}).`)
-
-    return
   }
 }
