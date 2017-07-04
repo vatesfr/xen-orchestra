@@ -59,7 +59,7 @@ export default {
   // Original text: "Snapshot disks"
   filterOnlySnapshots: 'Instantanés',
 
-  // Original text: 'Unmanaged disks'
+  // Original text: "Unmanaged disks"
   filterOnlyUnmanaged: 'Bases delta',
 
   // Original text: "Copy to clipboard"
@@ -84,7 +84,7 @@ export default {
   homeTemplatePage: 'Templates',
 
   // Original text: "Storages"
-  homeSrPage: 'Stockage',
+  homeSrPage: 'Stockages',
 
   // Original text: "Dashboard"
   dashboardPage: 'Tableau de bord',
@@ -246,7 +246,7 @@ export default {
   homeWelcomeText: 'Ajouter vos serveurs ou pools XenServer',
 
   // Original text: "Some XenServers have been registered but are not connected"
-  homeConnectServerText: "Des XenServers sont enregistrés mais aucun n'est connectés",
+  homeConnectServerText: "Des XenServers sont enregistrés mais aucun n'est connecté",
 
   // Original text: "Want some help?"
   homeHelp: "Besoin d'aide ?",
@@ -255,7 +255,7 @@ export default {
   homeAddServer: 'Ajouter un serveur',
 
   // Original text: "Connect servers"
-  homeConnectServer: 'Connecter les serveurs',
+  homeConnectServer: 'Connecter des serveurs',
 
   // Original text: "Online Doc"
   homeOnlineDoc: 'Documentation en ligne',
@@ -392,16 +392,16 @@ export default {
   // Original text: "Master:"
   homePoolMaster: 'Maître :',
 
-  // Original text: "Resource set: {resourceSet}""
+  // Original text: "Resource set: {resourceSet}"
   homeResourceSet: 'Jeu de ressources : {resourceSet}',
 
   // Original text: "High Availability"
   highAvailability: 'Haute disponibilité',
 
-  // Original text: "Shared {type}""
+  // Original text: "Shared {type}"
   srSharedType: '{type} partagé',
 
-  // Original text: "Not shared {type}""
+  // Original text: "Not shared {type}"
   srNotSharedType: '{type} non partagé',
 
   // Original text: "Add"
@@ -504,7 +504,7 @@ export default {
   schedulingMonth: 'Mois',
 
   // Original text: "Every N month"
-  schedulingEveryNMonth: 'Tous les n mois',
+  schedulingEveryNMonth: 'Tous les N mois',
 
   // Original text: "Each selected month"
   schedulingEachSelectedMonth: 'Chaque mois sélectionné',
@@ -513,7 +513,7 @@ export default {
   schedulingDay: 'Jour',
 
   // Original text: "Every N day"
-  schedulingEveryNDay: 'Tous les n jours',
+  schedulingEveryNDay: 'Tous les N jours',
 
   // Original text: "Each selected day"
   schedulingEachSelectedDay: 'Chaque jour sélectionné',
@@ -597,7 +597,7 @@ export default {
   jobModalTitle: 'Job {job}',
 
   // Original text: "ID"
-  jobId: 'Job ID',
+  jobId: 'ID du job',
 
   // Original text: "Type"
   jobType: 'Type',
@@ -702,7 +702,6 @@ export default {
   jobOwnerPlaceholder: 'Propriétaire',
 
   // Original text: "This job's creator no longer exists"
-
   jobUserNotFound: "Le propriétaire de ce job n'existe plus",
 
   // Original text: "This backup's creator no longer exists"
@@ -730,7 +729,7 @@ export default {
   localRemoteWarningMessage: "Attention : utiliser un emplacement local limite l'espace pour XO. Restreignez ceci aux utilisateurs avancés.",
 
   // Original text: "Warning: this feature works only with XenServer 6.5 or newer."
-  backupVersionWarning: 'Note : cette fonctionnalité marche uniquement avec XenServer 6.5 ou plus récent.',
+  backupVersionWarning: "Attention : cette fonctionnalité ne fonctionne qu'avec XenServer 6.5 et plus récent.",
 
   // Original text: "VMs"
   editBackupVmsTitle: 'VMs',
@@ -742,16 +741,16 @@ export default {
   editBackupSmartResidentOn: 'Situé sur',
 
   // Original text: "Pools"
-  editBackupSmartPools: undefined,
+  editBackupSmartPools: 'Pools',
 
-  // Original text: 'Tags'
-  editBackupSmartTags: undefined,
+  // Original text: "Tags"
+  editBackupSmartTags: 'Tags',
 
   // Original text: "VMs Tags"
   editBackupSmartTagsTitle: 'Tags des VMs',
 
-  // Original text: 'Reverse'
-  editBackupNot: undefined,
+  // Original text: "Reverse"
+  editBackupNot: 'Inverser',
 
   // Original text: "Tag"
   editBackupTagTitle: 'Tag',
@@ -768,8 +767,8 @@ export default {
   // Original text: "Remote"
   editBackupRemoteTitle: 'Emplacement',
 
-  // Original text: 'Delete the old backups first'
-  deleteOldBackupsFirst: undefined,
+  // Original text: "Delete the old backups first"
+  deleteOldBackupsFirst: 'Supprimer les anciennes sauvegardes',
 
   // Original text: "Remote stores for backup"
   remoteList: 'Emplacement de stockage de backup',
@@ -813,14 +812,14 @@ export default {
   // Original text: 'Test name'
   remoteTestName: undefined,
 
-  // Original text: 'Remote name already exists!'
-  remoteTestNameFailure: undefined,
+  // Original text: "Remote name already exists!"
+  remoteTestNameFailure: "Le nom de l'emplacement existe déjà",
 
   // Original text: "The remote appears to work correctly"
   remoteTestSuccessMessage: "L'emplacement distant semble marcher correctement",
 
-  // Original text: 'Connection failed'
-  remoteConnectionFailed: undefined,
+  // Original text: "Connection failed"
+  remoteConnectionFailed: 'La connexion a échoué',
 
   // Original text: "Name"
   remoteName: 'Nom',
@@ -837,8 +836,8 @@ export default {
   // Original text: "Share"
   remoteShare: 'Partage',
 
-  // Original text: 'Action'
-  remoteAction: undefined,
+  // Original text: "Action"
+  remoteAction: 'Action',
 
   // Original text: "Auth"
   remoteAuth: 'Accès',
@@ -855,11 +854,11 @@ export default {
   // Original text: "Disconnect"
   remoteDisconnectTip: 'Déconnecter',
 
-  // Original text: 'Connected'
-  remoteConnected: undefined,
+  // Original text: "Connected"
+  remoteConnected: 'Connecté',
 
-  // Original text: 'Disconnected'
-  remoteDisconnected: undefined,
+  // Original text: "Disconnected"
+  remoteDisconnected: 'Déconnecté',
 
   // Original text: "Delete"
   remoteDeleteTip: 'Supprimer',
@@ -1077,8 +1076,8 @@ export default {
   // Original text: "Select Permission"
   selectPermission: 'Choisir les droits',
 
-  // Original text: 'No plugins found'
-  noPlugins: undefined,
+  // Original text: "No plugins found"
+  noPlugins: 'Aucun plugin trouvé',
 
   // Original text: "Auto-load at server start"
   autoloadPlugin: 'Charger automatiquement au démarrage du serveur',
@@ -1338,7 +1337,7 @@ export default {
   // Original text: "Add Host"
   addHostLabel: 'Ajouter un hôte',
 
-  // Original text: "This host needs to install {patches, number} patch{patches, plural, one {} other {es}} before it can be added to the pool. This operation may be long.""
+  // Original text: "This host needs to install {patches, number} patch{patches, plural, one {} other {es}} before it can be added to the pool. This operation may be long."
   hostNeedsPatchUpdate: "Cet hôte a besoin d'installer {patches, number} patch{patches, plural, one {} other {es}} avant de pouvoir être ajouté au pool. Cette opération peut être longue.",
 
   // Original text: "This host cannot be added to the pool because it's missing some patches."
@@ -1347,7 +1346,7 @@ export default {
   // Original text: "Adding host failed"
   addHostErrorTitle: "L'ajout de l'hôte a échoué.",
 
-  // Original text: "Host patches could not be homogenized.""
+  // Original text: "Host patches could not be homogenized."
   addHostNotHomogeneousErrorMessage: "Les patches de l'hôte n'ont pas pu être homogénéisés.",
 
   // Original text: "Disconnect"
@@ -1374,17 +1373,17 @@ export default {
   // Original text: "Reboot"
   rebootHostLabel: 'Redémarrer',
 
-  // Original text:"Error while restarting host"
-  noHostsAvailableErrorTitle: "Erreur pendant le rédémarrage de l'hôte",
+  // Original text: "Error while restarting host"
+  noHostsAvailableErrorTitle: "Erreur lors du redémarrage de l'hôte",
 
-  // Original text: "Some VMs cannot be migrated before restarting this host. Please try force reboot.""
-  noHostsAvailableErrorMessage: "Des VMs n'ont pas pu être migrées afin de redémarrer l'hôte. Essayez de forcer le redémarrage.",
+  // Original text: "Some VMs cannot be migrated before restarting this host. Please try force reboot."
+  noHostsAvailableErrorMessage: "Certaines VMs ne peuvent pas être migrées avant le redémarrage de l'hôte. Essayez de forcer le redémarrage.",
 
   // Original text: "Error while restarting hosts"
-  failHostBulkRestartTitle: 'Erreur pendant le redémarrage des hôtes',
+  failHostBulkRestartTitle: 'Erreur lors du redémarrage des hôtes',
 
   // Original text: "{failedHosts, number}/{totalHosts, number} host{failedHosts, plural, one {} other {s}} could not be restarted."
-  failHostBulkRestartMessage: "{failedHosts, number}/{totalHosts, number} hôte{failedHosts, plural, one {} other {s}} n'ont pas pu être redémarré.",
+  failHostBulkRestartMessage: "{failedHosts, number}/{totalHosts, number} {failedHosts, plural, one {hôte n'a pas pu être redémarré} other {n'ont pas pu être redémarrés}} ",
 
   // Original text: "Reboot to apply updates"
   rebootUpdateHostLabel: 'Redémarrer pour appliquer les mises à jour',
@@ -1461,35 +1460,35 @@ export default {
   // Original text: "Expiry"
   hostLicenseExpiry: 'Expiration',
 
-  // Original text: 'Installed supplemental packs'
-  supplementalPacks: undefined,
+  // Original text: "Installed supplemental packs"
+  supplementalPacks: 'Packs supplémentaires installés',
 
-  // Original text: 'Install new supplemental pack'
-  supplementalPackNew: undefined,
+  // Original text: "Install new supplemental pack"
+  supplementalPackNew: 'Installer un nouveau pack supplémentaire',
 
-  // Original text: 'Install supplemental pack on every host'
-  supplementalPackPoolNew: undefined,
+  // Original text: "Install supplemental pack on every host"
+  supplementalPackPoolNew: 'Installer un pack supplémentaire sur tous les hôtes',
 
-  // Original text: '{name} (by {author})'
-  supplementalPackTitle: undefined,
+  // Original text: "{name} (by {author})"
+  supplementalPackTitle: '{name} (par {author})',
 
-  // Original text: 'Installation started'
-  supplementalPackInstallStartedTitle: undefined,
+  // Original text: "Installation started"
+  supplementalPackInstallStartedTitle: 'Installation démarrée',
 
-  // Original text: 'Installing new supplemental pack...'
-  supplementalPackInstallStartedMessage: undefined,
+  // Original text: "Installing new supplemental pack..."
+  supplementalPackInstallStartedMessage: "Installation d'un nouveau pack supplémentaire",
 
-  // Original text: 'Installation error'
-  supplementalPackInstallErrorTitle: undefined,
+  // Original text: "Installation error"
+  supplementalPackInstallErrorTitle: "Erreur d'installation",
 
-  // Original text: 'The installation of the supplemental pack failed.'
-  supplementalPackInstallErrorMessage: undefined,
+  // Original text: "The installation of the supplemental pack failed."
+  supplementalPackInstallErrorMessage: "L'installation du pack supplémentaire a échoué.",
 
-  // Original text: 'Installation success'
-  supplementalPackInstallSuccessTitle: undefined,
+  // Original text: "Installation success"
+  supplementalPackInstallSuccessTitle: "Succès de l'installation",
 
-  // Original text: 'Supplemental pack successfully installed.'
-  supplementalPackInstallSuccessMessage: undefined,
+  // Original text: "Supplemental pack successfully installed."
+  supplementalPackInstallSuccessMessage: 'Le pack supplémentaire a été installé avec succès.',
 
   // Original text: "Add a network"
   networkCreateButton: 'Ajouter un réseau',
@@ -1533,32 +1532,32 @@ export default {
   // Original text: "This interface is currently in use"
   pifInUse: "Cette interface est en cours d'utilisation",
 
-  // Original text: 'Action'
-  pifAction: undefined,
+  // Original text: "Action"
+  pifAction: 'Action',
 
   // Original text: "Default locking mode"
   defaultLockingMode: 'Verrouillage par défaut',
 
-  // Original text: 'Configure IP address'
-  pifConfigureIp: undefined,
+  // Original text: "Configure IP address"
+  pifConfigureIp: "Configurer l'adresse IP",
 
-  // Original text: 'Invalid parameters'
-  configIpErrorTitle: undefined,
+  // Original text: "Invalid parameters"
+  configIpErrorTitle: 'Paramètres invalides',
 
-  // Original text: 'IP address and netmask required'
-  configIpErrorMessage: undefined,
+  // Original text: "IP address and netmask required"
+  configIpErrorMessage: 'Adresse IP et masque de réseau requis',
 
-  // Original text: 'Static IP address'
-  staticIp: undefined,
+  // Original text: "Static IP address"
+  staticIp: 'Adresse IP statique',
 
-  // Original text: 'Netmask'
-  netmask: undefined,
+  // Original text: "Netmask"
+  netmask: 'Masque de réseau',
 
-  // Original text: 'DNS'
-  dns: undefined,
+  // Original text: "DNS"
+  dns: 'DNS',
 
-  // Original text: 'Gateway'
-  gateway: undefined,
+  // Original text: "Gateway"
+  gateway: 'Passerelle',
 
   // Original text: "Add a storage"
   addSrDeviceButton: 'Ajouter un stockage',
@@ -1569,8 +1568,8 @@ export default {
   // Original text: "Type"
   srType: 'Type',
 
-  // Original text: 'Action'
-  pbdAction: undefined,
+  // Original text: "Action"
+  pbdAction: 'Action',
 
   // Original text: "Status"
   pbdStatus: 'État',
@@ -1644,17 +1643,17 @@ export default {
   // Original text: "Host up-to-date!"
   hostUpToDate: 'Hôte à jour !',
 
-  // Original text: 'Non-recommended patch install'
-  installPatchWarningTitle: undefined,
+  // Original text: "Non-recommended patch install"
+  installPatchWarningTitle: 'Installation de patch non recommandée',
 
-  // Original text: 'This will install a patch only on this host. This is NOT the recommended way: please go into the Pool patch view and follow instructions there. If you are sure about this, you can continue anyway'
-  installPatchWarningContent: undefined,
+  // Original text: "This will install a patch only on this host. This is NOT the recommended way: please go into the Pool patch view and follow instructions there. If you are sure about this, you can continue anyway"
+  installPatchWarningContent: "Installer un patch sur un hôte seul est déconseillé. Il est recommandé d'aller sur la page du pool et de faire l'installation sur tous les hôtes.",
 
-  // Original text: 'Go to pool'
-  installPatchWarningReject: undefined,
+  // Original text: "Go to pool"
+  installPatchWarningReject: 'Aller au pool',
 
-  // Original text: 'Install'
-  installPatchWarningResolve: undefined,
+  // Original text: "Install"
+  installPatchWarningResolve: 'Installer',
 
   // Original text: "Refresh patches"
   refreshPatches: 'Rafraichir patchs',
@@ -1722,8 +1721,8 @@ export default {
   // Original text: "Not running"
   vmNotRunning: 'Éteinte',
 
-  // Original text: 'Halted {ago}'
-  vmHaltedSince: undefined,
+  // Original text: "Halted {ago}"
+  vmHaltedSince: 'Stoppée {ago}',
 
   // Original text: "No Xen tools detected"
   noToolsDetected: 'Pas de Xen tools détectés',
@@ -1836,11 +1835,11 @@ export default {
   // Original text: "Description"
   vdiNameDescription: 'Description',
 
-  // Original text: 'Pool'
-  vdiPool: undefined,
+  // Original text: "Pool"
+  vdiPool: 'Pool',
 
-  // Original text: 'Disconnect'
-  vdiDisconnect: undefined,
+  // Original text: "Disconnect"
+  vdiDisconnect: 'Déconnecté',
 
   // Original text: "Tags"
   vdiTags: 'Tags',
@@ -1875,8 +1874,8 @@ export default {
   // Original text: "Remove VDI"
   vdiRemove: 'Supprimer le VDI',
 
-  // Original text: 'No VDIs attached to Control Domain'
-  noControlDomainVdis: undefined,
+  // Original text: "No VDIs attached to Control Domain"
+  noControlDomainVdis: 'Aucun VDI attaché au Control Domain',
 
   // Original text: "Boot flag"
   vbdBootableStatus: 'Boot flag',
@@ -1905,8 +1904,8 @@ export default {
   // Original text: "Readonly"
   vbdReadonly: 'Lecture seule',
 
-  // Original text: 'Action'
-  vbdAction: undefined,
+  // Original text: "Action"
+  vbdAction: 'Action',
 
   // Original text: "Create"
   vbdCreate: 'Créer',
@@ -1917,11 +1916,11 @@ export default {
   // Original text: "Size"
   vbdSizePlaceHolder: 'Taille',
 
-  // Original text: 'CD drive not completely installed'
-  cdDriveNotInstalled: undefined,
+  // Original text: "CD drive not completely installed"
+  cdDriveNotInstalled: "Le lecteur CD n'est pas complètement installé",
 
-  // Original text: 'Stop and start the VM to install the CD drive'
-  cdDriveInstallation: undefined,
+  // Original text: "Stop and start the VM to install the CD drive"
+  cdDriveInstallation: 'Arrêtez et démarrez la VM pour installer le lecteur CD',
 
   // Original text: "Save"
   saveBootOption: 'Enregistrer',
@@ -1989,8 +1988,8 @@ export default {
   // Original text: "Unknown network"
   vifUnknownNetwork: 'Réseau inconnu',
 
-  // Original text: 'Action'
-  vifAction: undefined,
+  // Original text: "Action"
+  vifAction: 'Action',
 
   // Original text: "Create"
   vifCreate: 'Créer',
@@ -2025,8 +2024,8 @@ export default {
   // Original text: "Action"
   snapshotAction: 'Action',
 
-  // Original text: 'Quiesced snapshot'
-  snapshotQuiesce: undefined,
+  // Original text: "Quiesced snapshot"
+  snapshotQuiesce: 'Instantané quiesce',
 
   // Original text: "Remove all logs"
   logRemoveAll: 'Supprimer tous les journaux',
@@ -2085,8 +2084,8 @@ export default {
   // Original text: "Xen tools status"
   xenToolsStatus: 'État des Xen tools',
 
-  // Original text: '{status}'
-  xenToolsStatusValue: undefined,
+  // Original text: "{status}"
+  xenToolsStatusValue: '{status}',
 
   // Original text: "OS name"
   osName: "Nom de l'OS",
@@ -2100,17 +2099,17 @@ export default {
   // Original text: "HA"
   ha: 'Haute Dispo',
 
-  // Original text: 'Affinity host'
-  vmAffinityHost: undefined,
+  // Original text: "Affinity host"
+  vmAffinityHost: 'Hôte préféré',
 
-  // Original text: 'VGA'
-  vmVga: undefined,
+  // Original text: "VGA"
+  vmVga: 'VGA',
 
-  // Original text: 'Video RAM'
-  vmVideoram: undefined,
+  // Original text: "Video RAM"
+  vmVideoram: 'Mémoire vidéo',
 
-  // Original text: 'None'
-  noAffinityHost: undefined,
+  // Original text: "None"
+  noAffinityHost: 'Aucun',
 
   // Original text: "Original template"
   originalTemplate: "Template d'origine",
@@ -2130,20 +2129,20 @@ export default {
   // Original text: "CPU limits"
   vmCpuLimitsLabel: 'Limites de CPU',
 
-  // Original text: 'Topology'
-  vmCpuTopology: undefined,
+  // Original text: "Topology"
+  vmCpuTopology: 'Topologie',
 
-  // Original text: 'Default behavior'
-  vmChooseCoresPerSocket: undefined,
+  // Original text: "Default behavior"
+  vmChooseCoresPerSocket: 'Comportement par défaut',
 
-  // Original text: '{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket'
-  vmCoresPerSocket: undefined,
+  // Original text: "{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket"
+  vmCoresPerSocket: '{nSockets, number} socket{nSockets, plural, one {} other {s}} avec {nCores, number} cœur{nCores, plural, one {} other {s}} par socket',
 
-  // Original text: 'Incorrect cores per socket value'
-  vmCoresPerSocketIncorrectValue: undefined,
+  // Original text: "Incorrect cores per socket value"
+  vmCoresPerSocketIncorrectValue: 'Valeur incorrecte de cœurs par socket',
 
-  // Original text: 'Please change the selected value to fix it.'
-  vmCoresPerSocketIncorrectValueSolution: undefined,
+  // Original text: "Please change the selected value to fix it."
+  vmCoresPerSocketIncorrectValueSolution: 'Veuillez modifier la valeur.',
 
   // Original text: "Memory limits (min/max)"
   vmMemoryLimitsLabel: 'Limites de mémoire (min/max)',
@@ -2301,8 +2300,8 @@ export default {
   // Original text: "Remove all orphaned snapshot VDIs"
   removeAllOrphanedObject: 'Supprimer tous les snapshots de VDIs orphelins',
 
-  // Original text: 'VDIs attached to Control Domain'
-  vdisOnControlDomain: undefined,
+  // Original text: "VDIs attached to Control Domain"
+  vdisOnControlDomain: 'VDIs attachés au Control Domain',
 
   // Original text: "Name"
   vmNameLabel: 'Nom',
@@ -2484,8 +2483,8 @@ export default {
   // Original text: "Refresh VMs name"
   newVmNameRefresh: 'Rafraîchir le nom des VMs',
 
-  // Original text: 'Affinity host'
-  newVmAffinityHost: undefined,
+  // Original text: "Affinity host"
+  newVmAffinityHost: 'Hôte préféré',
 
   // Original text: "Advanced"
   newVmAdvancedPanel: 'Avancé',
@@ -2496,8 +2495,8 @@ export default {
   // Original text: "Hide advanced settings"
   newVmHideAdvanced: 'Cacher les paramètres avancés',
 
-  // Original text: 'Share this VM'
-  newVmShare: undefined,
+  // Original text: "Share this VM"
+  newVmShare: 'Partager cette VM',
 
   // Original text: "Resource sets"
   resourceSets: 'Jeu de ressources',
@@ -2679,8 +2678,8 @@ export default {
   // Original text: "Click on a VM to display restore options"
   restoreBackupsInfo: 'Cliquez sur une VM pour afficher les options de récupération',
 
-  // Original text: 'Only the files of Delta Backup which are not on a SMB remote can be restored'
-  restoreDeltaBackupsInfo: undefined,
+  // Original text: "Only the files of Delta Backup which are not on a SMB remote can be restored"
+  restoreDeltaBackupsInfo: 'Seuls les fichiers de Delta Backup qui ne sont pas sur un emplacement SMB peuvent être restaurés',
 
   // Original text: "Enabled"
   remoteEnabled: 'activé',
@@ -2709,17 +2708,17 @@ export default {
   // Original text: "Choose a SR and a backup"
   backupRestoreErrorMessage: 'Choisir un SR et une sauvegarde',
 
-  // Original text: 'Select default SR…'
-  backupRestoreSelectDefaultSr: undefined,
+  // Original text: "Select default SR…"
+  backupRestoreSelectDefaultSr: 'Sélectionner le SR par défaut…',
 
-  // Original text: 'Choose a SR for each VDI'
-  backupRestoreChooseSrForEachVdis: undefined,
+  // Original text: "Choose a SR for each VDI"
+  backupRestoreChooseSrForEachVdis: 'Choisir un SR pour chaque VDI',
 
-  // Original text: 'VDI'
-  backupRestoreVdiLabel: undefined,
+  // Original text: "VDI"
+  backupRestoreVdiLabel: 'VDI',
 
-  // Original text: 'SR'
-  backupRestoreSrLabel: undefined,
+  // Original text: "SR"
+  backupRestoreSrLabel: 'SR',
 
   // Original text: "Display backups"
   displayBackup: 'Afficher les sauvegardes',
@@ -2733,50 +2732,50 @@ export default {
   // Original text: "VMs to backup"
   vmsToBackup: 'VMs à sauvegarder',
 
-  // Original text: 'List remote backups'
-  listRemoteBackups: undefined,
+  // Original text: "List remote backups"
+  listRemoteBackups: 'Lister les emplacements de sauvegardes',
 
-  // Original text: 'Restore backup files'
-  restoreFiles: undefined,
+  // Original text: "Restore backup files"
+  restoreFiles: 'Restaurer les fichiers de sauvegarde',
 
-  // Original text: 'Invalid options'
-  restoreFilesError: undefined,
+  // Original text: "Invalid options"
+  restoreFilesError: 'Options invalides',
 
-  // Original text: 'Restore file from {name}'
-  restoreFilesFromBackup: undefined,
+  // Original text: "Restore file from {name}"
+  restoreFilesFromBackup: 'Restaurer les fichiers depuis {name}',
 
-  // Original text: 'Select a backup…'
-  restoreFilesSelectBackup: undefined,
+  // Original text: "Select a backup…"
+  restoreFilesSelectBackup: 'Sélectionner une sauvegarde…',
 
-  // Original text: 'Select a disk…'
-  restoreFilesSelectDisk: undefined,
+  // Original text: "Select a disk…"
+  restoreFilesSelectDisk: 'Sélectionner un disque…',
 
-  // Original text: 'Select a partition…'
-  restoreFilesSelectPartition: undefined,
+  // Original text: "Select a partition…"
+  restoreFilesSelectPartition: 'Sélectionner un partition…',
 
-  // Original text: 'Folder path'
-  restoreFilesSelectFolderPath: undefined,
+  // Original text: "Folder path"
+  restoreFilesSelectFolderPath: 'Chemin du dossier',
 
-  // Original text: 'Select a file…'
-  restoreFilesSelectFiles: undefined,
+  // Original text: "Select a file…"
+  restoreFilesSelectFiles: 'Sélectionner un fichier…',
 
-  // Original text: 'Content not found'
-  restoreFileContentNotFound: undefined,
+  // Original text: "Content not found"
+  restoreFileContentNotFound: 'Contenu non trouvé',
 
-  // Original text: 'No files selected'
-  restoreFilesNoFilesSelected: undefined,
+  // Original text: "No files selected"
+  restoreFilesNoFilesSelected: 'Pas de fichier sélectionné',
 
-  // Original text: 'Selected files ({files}):'
-  restoreFilesSelectedFiles: undefined,
+  // Original text: "Selected files ({files}):"
+  restoreFilesSelectedFiles: 'Fichiers sélectionnés ({files}) :',
 
-  // Original text: 'Error while scanning disk'
-  restoreFilesDiskError: undefined,
+  // Original text: "Error while scanning disk"
+  restoreFilesDiskError: 'Erreur lors du scan du disque',
 
   // Original text: "Select all this folder's files"
-  restoreFilesSelectAllFiles: undefined,
+  restoreFilesSelectAllFiles: 'Sélectionner tous les fichiers de ce dossier',
 
-  // Original text: 'Unselect all files'
-  restoreFilesUnselectAll: undefined,
+  // Original text: "Unselect all files"
+  restoreFilesUnselectAll: 'Déselectionner tous les fichiers',
 
   // Original text: "Emergency shutdown Host{nHosts, plural, one {} other {s}}"
   emergencyShutdownHostsModalTitle: "Extinction d'urgence {nHosts, plural, one {de l'hôte} other {des hôtes}}",
@@ -2817,29 +2816,29 @@ export default {
   // Original text: "Start VM{vms, plural, one {} other {s}}"
   startVmsModalTitle: 'Démarrer {vms, plural, one {la} other {les}} VM{vms, plural, one {} other {s}}',
 
-  // Original text: 'Start a copy'
-  cloneAndStartVM: undefined,
+  // Original text: "Start a copy"
+  cloneAndStartVM: 'Démarrer une copie',
 
-  // Original text: 'Force start'
-  forceStartVm: undefined,
+  // Original text: "Force start"
+  forceStartVm: 'Forcer le démarrage',
 
-  // Original text: 'Forbidden operation'
-  forceStartVmModalTitle: undefined,
+  // Original text: "Forbidden operation"
+  forceStartVmModalTitle: 'Opération non autorisée',
 
-  // Original text: 'Start operation for this vm is blocked.'
-  blockedStartVmModalMessage: undefined,
+  // Original text: "Start operation for this vm is blocked."
+  blockedStartVmModalMessage: 'Le démarrage est bloqué pour cette VM.',
 
-  // Original text: 'Forbidden operation start for {nVms, number} vm{nVms, plural, one {} other {s}}.'
-  blockedStartVmsModalMessage: undefined,
+  // Original text: "Forbidden operation start for {nVms, number} vm{nVms, plural, one {} other {s}}."
+  blockedStartVmsModalMessage: 'Démarrage non autorisé pour {nVms, number} VM{nVms, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to start {vms, number} VM{vms, plural, one {} other {s}}?"
   startVmsModalMessage: 'Êtes-vous sûr de vouloir démarrer {vms, plural, one {la} other {les}} {vms} VM{vms, plural, one {} other {s}} ?',
 
-  // Original text: '{nVms, number} vm{nVms, plural, one {} other {s}} are failed. Please see your logs to get more information'
-  failedVmsErrorMessage: undefined,
+  // Original text: "{nVms, number} vm{nVms, plural, one {} other {s}} are failed. Please see your logs to get more information"
+  failedVmsErrorMessage: "{nVms, number} VM{nVms, plural, one {} other {s}} ont échoué. Veuillez consulter les journaux pour plus d'informations",
 
-  // Original text: 'Start failed'
-  failedVmsErrorTitle: undefined,
+  // Original text: "Start failed"
+  failedVmsErrorTitle: 'Echec du démarrage',
 
   // Original text: "Stop Host{nHosts, plural, one {} other {s}}"
   stopHostsModalTitle: "Arrêter {nHosts, plural, one {l'} other {les}} hôte{nHosts, plural, one {} other {s}}",
@@ -2925,26 +2924,26 @@ export default {
   // Original text: "A target host is required to migrate a VM"
   migrateVmNoTargetHostMessage: 'Un hôte cible est nécessaire pour migrer une VM',
 
-  // Original text: 'No default SR'
-  migrateVmNoDefaultSrError: undefined,
+  // Original text: "No default SR"
+  migrateVmNoDefaultSrError: 'Pas de SR par défaut',
 
-  // Original text: 'Default SR not connected to host'
-  migrateVmNotConnectedDefaultSrError: undefined,
+  // Original text: "Default SR not connected to host"
+  migrateVmNotConnectedDefaultSrError: "Le SR par défaut n'est pas connecté à l'hôte",
 
-  // Original text: 'For each VDI, select an SR:'
-  chooseSrForEachVdisModalSelectSr: undefined,
+  // Original text: "For each VDI, select an SR:"
+  chooseSrForEachVdisModalSelectSr: 'Pour chaque VDI, sélectionner un SR :',
 
-  // Original text: 'Select main SR…'
-  chooseSrForEachVdisModalMainSr: undefined,
+  // Original text: "Select main SR…"
+  chooseSrForEachVdisModalMainSr: 'Sélectionner le SR principal…',
 
-  // Original text: 'VDI'
-  chooseSrForEachVdisModalVdiLabel: undefined,
+  // Original text: "VDI"
+  chooseSrForEachVdisModalVdiLabel: 'VDI',
 
-  // Original text: 'SR*'
-  chooseSrForEachVdisModalSrLabel: undefined,
+  // Original text: "SR*"
+  chooseSrForEachVdisModalSrLabel: 'SR*',
 
-  // Original text: '* optional'
-  chooseSrForEachVdisModalOptionalEntry: undefined,
+  // Original text: "* optional"
+  chooseSrForEachVdisModalOptionalEntry: '* optionnel',
 
   // Original text: "Delete VDI"
   deleteVdiModalTitle: 'Supprimer le VDI',
@@ -3012,8 +3011,8 @@ export default {
   // Original text: "During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans!"
   trialReadyModalText: "Durant la période de démonstration, XOA nécessite une connexion internet fonctionnelle. Cette limitation disparaît avec la souscription d'une de nos formules.",
 
-  // Original text: 'Label'
-  serverLabel: undefined,
+  // Original text: "Label"
+  serverLabel: 'Nom',
 
   // Original text: "Host"
   serverHost: 'Hôte',
@@ -3030,14 +3029,14 @@ export default {
   // Original text: "Read Only"
   serverReadOnly: 'Lecture seule',
 
-  // Original text: 'Unauthorized Certificates'
-  serverUnauthorizedCertificates: undefined,
+  // Original text: "Unauthorized Certificates"
+  serverUnauthorizedCertificates: 'Certificats non approuvés',
 
-  // Original text: 'Allow Unauthorized Certificates'
-  serverAllowUnauthorizedCertificates: undefined,
+  // Original text: "Allow Unauthorized Certificates"
+  serverAllowUnauthorizedCertificates: 'Autoriser les certificats non approuvés',
 
   // Original text: "Enable it if your certificate is rejected, but it's not recommended because your connection will not be secured."
-  serverUnauthorizedCertificatesInfo: undefined,
+  serverUnauthorizedCertificatesInfo: "Activez ceci si votre certificat est rejeté, mais ce n'est pas recommandé car votre connexion ne sera pas sécurisée.",
 
   // Original text: "Disconnect server"
   serverDisconnect: 'Déconnecter le serveur',
@@ -3051,44 +3050,44 @@ export default {
   // Original text: "address[:port]"
   serverPlaceHolderAddress: 'adresse[:port]',
 
-  // Original text: 'label'
-  serverPlaceHolderLabel: undefined,
+  // Original text: "label"
+  serverPlaceHolderLabel: 'nom',
 
   // Original text: "Connect"
   serverConnect: 'Connecter',
 
-  // Original text: 'Error'
-  serverError: undefined,
+  // Original text: "Error"
+  serverError: 'Erreur',
 
-  // Original text: 'Adding server failed'
-  serverAddFailed: undefined,
+  // Original text: "Adding server failed"
+  serverAddFailed: "Echec de l'ajout du serveur",
 
-  // Original text: 'Status'
-  serverStatus: undefined,
+  // Original text: "Status"
+  serverStatus: 'Statut',
 
-  // Original text: 'Connection failed. Click for more information.'
-  serverConnectionFailed: undefined,
+  // Original text: "Connection failed. Click for more information."
+  serverConnectionFailed: "Echec de connexion. Cliquer pour plus d'informations.",
 
-  // Original text: 'Connecting...'
-  serverConnecting: undefined,
+  // Original text: "Connecting..."
+  serverConnecting: 'Connexion...',
 
-  // Original text: 'Connected'
-  serverConnected: undefined,
+  // Original text: "Connected"
+  serverConnected: 'Connecté',
 
-  // Original text: 'Disconnected'
-  serverDisconnected: undefined,
+  // Original text: "Disconnected"
+  serverDisconnected: 'Déconnecté',
 
-  // Original text: 'Authentication error'
-  serverAuthFailed: undefined,
+  // Original text: "Authentication error"
+  serverAuthFailed: "Erreur d'authentification",
 
-  // Original text: 'Unknown error'
-  serverUnknownError: undefined,
+  // Original text: "Unknown error"
+  serverUnknownError: 'Erreur inconnue',
 
-  // Original text: 'Invalid self-signed certificate'
-  serverSelfSignedCertError: undefined,
+  // Original text: "Invalid self-signed certificate"
+  serverSelfSignedCertError: 'Certificat auto-signé rejeté',
 
-  // Original text: 'Do you want to accept self-signed certificate for this server even though it would decrease security?'
-  serverSelfSignedCertQuestion: undefined,
+  // Original text: "Do you want to accept self-signed certificate for this server even though it would decrease security?"
+  serverSelfSignedCertQuestion: 'Voulez-vous accepter un certificat auto-signé pour ce serveur même si cela réduit la sécurité ?',
 
   // Original text: "Copy VM"
   copyVm: 'Copier la VM',
@@ -3129,14 +3128,14 @@ export default {
   // Original text: "Detach"
   detachHost: 'Détacher',
 
-  // Original text: 'Forget host'
-  forgetHostModalTitle: undefined,
+  // Original text: "Forget host"
+  forgetHostModalTitle: "Oublier l'hôte",
 
   // Original text: "Are you sure you want to forget {host} from its pool? Be sure this host can't be back online, or use detach instead."
-  forgetHostModalMessage: undefined,
+  forgetHostModalMessage: 'Êtes-vous sûr de vouloir oublier {host} de son pool ? Soyez certain que cet hôte ne peut pas être de retour en ligne ou utilisez "Détacher" à la place.',
 
-  // Original text: 'Forget'
-  forgetHost: undefined,
+  // Original text: "Forget"
+  forgetHost: 'Oublier',
 
   // Original text: "Create network"
   newNetworkCreate: 'Créer un réseau',
@@ -3402,17 +3401,17 @@ export default {
   // Original text: "Are you sure you want to delete this PIF?"
   deletePifConfirm: 'Êtes-vous sûr de vouloir supprimer cette PIF ?',
 
-  // Original text: 'Connected'
-  pifConnected: undefined,
+  // Original text: "Connected"
+  pifConnected: 'Connecté',
 
-  // Original text: 'Disconnected'
-  pifDisconnected: undefined,
+  // Original text: "Disconnected"
+  pifDisconnected: 'Déconnecté',
 
-  // Original text: 'Physically connected'
-  pifPhysicallyConnected: undefined,
+  // Original text: "Physically connected"
+  pifPhysicallyConnected: 'Connecté physiquement',
 
-  // Original text: 'Physically disconnected'
-  pifPhysicallyDisconnected: undefined,
+  // Original text: "Physically disconnected"
+  pifPhysicallyDisconnected: 'Déconnecté physiquement',
 
   // Original text: "Username"
   username: "Nom d'utilisateur",
@@ -3531,14 +3530,14 @@ export default {
   // Original text: "Are you sure you want to delete all the logs?"
   logDeleteAllMessage: 'Êtes-vous sûr de vouloir supprimer tous les journaux ?',
 
-  // Original text: 'Click to enable'
-  logIndicationToEnable: undefined,
+  // Original text: "Click to enable"
+  logIndicationToEnable: 'Cliquer pour activer',
 
-  // Original text: 'Click to disable'
-  logIndicationToDisable: undefined,
+  // Original text: "Click to disable"
+  logIndicationToDisable: 'Cliquer pour désactiver',
 
-  // Original text: 'Report a bug'
-  reportBug: undefined,
+  // Original text: "Report a bug"
+  reportBug: 'Rapporter un bug',
 
   // Original text: "Name"
   ipPoolName: 'Nom',
@@ -3570,11 +3569,11 @@ export default {
   // Original text: "Not used"
   ipsNotUsed: 'Non utilisé',
 
-  // Original text: 'unknown VIF'
-  ipPoolUnknownVif: undefined,
+  // Original text: "unknown VIF"
+  ipPoolUnknownVif: 'VIF inconnue',
 
-  // Original text: 'Name already exists'
-  ipPoolNameAlreadyExists: undefined,
+  // Original text: "Name already exists"
+  ipPoolNameAlreadyExists: 'Ce nom existe déjà',
 
   // Original text: "Keyboard shortcuts"
   shortcutModalTitle: 'Raccourcis clavier',
@@ -3591,8 +3590,8 @@ export default {
   // Original text: "Go to VMs list"
   shortcut_GO_TO_VMS: 'Aller sur la liste des VMs',
 
-  // Original text: 'Go to SRs list'
-  shortcut_GO_TO_SRS: undefined,
+  // Original text: "Go to SRs list"
+  shortcut_GO_TO_SRS: 'Aller à la liste des SRs',
 
   // Original text: "Create a new VM"
   shortcut_CREATE_VM: 'Créer une nouvelle VM',
@@ -3636,174 +3635,174 @@ export default {
   // Original text: "Network"
   settingsAclsButtonTooltipnetwork: 'Réseaux',
 
-  // Original text: 'No config file selected'
-  noConfigFile: undefined,
+  // Original text: "No config file selected"
+  noConfigFile: 'Pas de fichier de configuration sélectionné',
 
-  // Original text: 'Try dropping a config file here, or click to select a config file to upload.'
-  importTip: undefined,
+  // Original text: "Try dropping a config file here, or click to select a config file to upload."
+  importTip: 'Essayez de déposer un fichier de configuration ou cliquez pour sélectionner un fichier de configuration à importer.',
 
-  // Original text: 'Config'
-  config: undefined,
+  // Original text: "Config"
+  config: 'Configuration',
 
-  // Original text: 'Import'
-  importConfig: undefined,
+  // Original text: "Import"
+  importConfig: 'Importer',
 
-  // Original text: 'Config file successfully imported'
-  importConfigSuccess: undefined,
+  // Original text: "Config file successfully imported"
+  importConfigSuccess: 'Fichier de configuration importé avec succès',
 
-  // Original text: 'Error while importing config file'
-  importConfigError: undefined,
+  // Original text: "Error while importing config file"
+  importConfigError: "Erreur lors de l'import du fichier de configuration",
 
-  // Original text: 'Export'
-  exportConfig: undefined,
+  // Original text: "Export"
+  exportConfig: 'Exporter',
 
-  // Original text: 'Download current config'
-  downloadConfig: undefined,
+  // Original text: "Download current config"
+  downloadConfig: 'Télécharger la configuration actuelle',
 
-  // Original text: 'No config import available for Community Edition'
-  noConfigImportCommunity: undefined,
+  // Original text: "No config import available for Community Edition"
+  noConfigImportCommunity: 'Import de configuration non disponible pour la Community Edition',
 
-  // Original text: 'Reconnect all hosts'
-  srReconnectAllModalTitle: undefined,
+  // Original text: "Reconnect all hosts"
+  srReconnectAllModalTitle: 'Reconnecter tous les hôtes',
 
-  // Original text: 'This will reconnect this SR to all its hosts.'
-  srReconnectAllModalMessage: undefined,
+  // Original text: "This will reconnect this SR to all its hosts."
+  srReconnectAllModalMessage: 'Ceci reconnectera ce SR à tous ses hôtes',
 
-  // Original text: 'This will reconnect each selected SR to its host (local SR) or to every hosts of its pool (shared SR).'
-  srsReconnectAllModalMessage: undefined,
+  // Original text: "This will reconnect each selected SR to its host (local SR) or to every hosts of its pool (shared SR)."
+  srsReconnectAllModalMessage: 'Ceci reconnectera tous les SRs sélectionnés à son hôte (SR local) ou à tous les hôtes de son pool (SR partagé).',
 
-  // Original text: 'Disconnect all hosts'
-  srDisconnectAllModalTitle: undefined,
+  // Original text: "Disconnect all hosts"
+  srDisconnectAllModalTitle: 'Déconnecter tous les hôtes',
 
-  // Original text: 'This will disconnect this SR from all its hosts.'
-  srDisconnectAllModalMessage: undefined,
+  // Original text: "This will disconnect this SR from all its hosts."
+  srDisconnectAllModalMessage: 'Ceci déconnectera ce SR de tous ses hôtes.',
 
-  // Original text: 'This will disconnect each selected SR from its host (local SR) or from every hosts of its pool (shared SR).'
-  srsDisconnectAllModalMessage: undefined,
+  // Original text: "This will disconnect each selected SR from its host (local SR) or from every hosts of its pool (shared SR)."
+  srsDisconnectAllModalMessage: 'Ceci déconnectera tous les SRs sélectionnés de leur hôte (SR local) ou de tous les hôtes de leur pool (SR partagé).',
 
-  // Original text: 'Forget SR'
-  srForgetModalTitle: undefined,
+  // Original text: "Forget SR"
+  srForgetModalTitle: 'Oublier le SR',
 
-  // Original text: 'Forget selected SRs'
-  srsForgetModalTitle: undefined,
+  // Original text: "Forget selected SRs"
+  srsForgetModalTitle: 'Oublier les SRs sélectionnés',
 
   // Original text: "Are you sure you want to forget this SR? VDIs on this storage won't be removed."
-  srForgetModalMessage: undefined,
+  srForgetModalMessage: 'Êtes-vous sûr de vouloir oublier ce SR ? Les VDIs de ce stockage ne seront pas supprimés.',
 
   // Original text: "Are you sure you want to forget all the selected SRs? VDIs on these storages won't be removed."
-  srsForgetModalMessage: undefined,
+  srsForgetModalMessage: 'Êtes-vous sûr de vouloir oublier tous les SRs sélectionnés ? Les VDIs sur ces stockages ne seront pas supprimés.',
 
-  // Original text: 'Disconnected'
-  srAllDisconnected: undefined,
+  // Original text: "Disconnected"
+  srAllDisconnected: 'Déconnectés',
 
-  // Original text: 'Partially connected'
-  srSomeConnected: undefined,
+  // Original text: "Partially connected"
+  srSomeConnected: 'Partiellement connectés',
 
-  // Original text: 'Connected'
-  srAllConnected: undefined,
+  // Original text: "Connected"
+  srAllConnected: 'Connectés',
 
-  // Original text: 'XOSAN'
-  xosanTitle: undefined,
+  // Original text: "XOSAN"
+  xosanTitle: 'XOSAN',
 
-  // Original text: 'Xen Orchestra SAN SR'
-  xosanSrTitle: undefined,
+  // Original text: "Xen Orchestra SAN SR"
+  xosanSrTitle: 'SR NAS Xen Orchestra',
 
-  // Original text: 'Select local SRs (lvm)'
-  xosanAvailableSrsTitle: undefined,
+  // Original text: "Select local SRs (lvm)"
+  xosanAvailableSrsTitle: 'Sélectionner des SRs locaux (lvm)',
 
-  // Original text: 'Suggestions'
-  xosanSuggestions: undefined,
+  // Original text: "Suggestions"
+  xosanSuggestions: 'Suggestions',
 
-  // Original text: 'Name'
-  xosanName: undefined,
+  // Original text: "Name"
+  xosanName: 'Nom',
 
-  // Original text: 'Host'
-  xosanHost: undefined,
+  // Original text: "Host"
+  xosanHost: 'Hôte',
 
-  // Original text: 'Hosts'
-  xosanHosts: undefined,
+  // Original text: "Hosts"
+  xosanHosts: 'Hôtes',
 
-  // Original text: 'Volume ID'
-  xosanVolumeId: undefined,
+  // Original text: "Volume ID"
+  xosanVolumeId: 'ID du volume',
 
-  // Original text: 'Size'
-  xosanSize: undefined,
+  // Original text: "Size"
+  xosanSize: 'Taille',
 
-  // Original text: 'Used space'
-  xosanUsedSpace: undefined,
+  // Original text: "Used space"
+  xosanUsedSpace: 'Espace utilisé',
 
-  // Original text: 'XOSAN pack needs to be installed on each host of the pool.'
-  xosanNeedPack: undefined,
+  // Original text: "XOSAN pack needs to be installed on each host of the pool."
+  xosanNeedPack: 'La pack XOSAN doit être installé sur tous les hôtes du pool.',
 
-  // Original text: 'Install it now!'
-  xosanInstallIt: undefined,
+  // Original text: "Install it now!"
+  xosanInstallIt: 'Installer maintenant !',
 
-  // Original text: 'Some hosts need their toolstack to be restarted before you can create an XOSAN'
-  xosanNeedRestart: undefined,
+  // Original text: "Some hosts need their toolstack to be restarted before you can create an XOSAN"
+  xosanNeedRestart: 'Certains hôtes ont besoin que leur toolstack soit redémarrée avant de pouvoir créer un XOSAN',
 
-  // Original text: 'Restart toolstacks'
-  xosanRestartAgents: undefined,
+  // Original text: "Restart toolstacks"
+  xosanRestartAgents: 'Redémarrer les toolstacks',
 
-  // Original text: 'Pool master is not running'
-  xosanMasterOffline: undefined,
+  // Original text: "Pool master is not running"
+  xosanMasterOffline: "Le master du pool n'est pas démarré",
 
-  // Original text: 'Install XOSAN pack on {pool}'
-  xosanInstallPackTitle: undefined,
+  // Original text: "Install XOSAN pack on {pool}"
+  xosanInstallPackTitle: 'Installer le pack XOSAN sur {pool}',
 
-  // Original text: 'Select at least 2 SRs'
-  xosanSelect2Srs: undefined,
+  // Original text: "Select at least 2 SRs"
+  xosanSelect2Srs: 'Sélectionner au moins 2 SRs',
 
-  // Original text: 'Layout'
-  xosanLayout: undefined,
+  // Original text: "Layout"
+  xosanLayout: 'Disposition',
 
-  // Original text: 'Redundancy'
-  xosanRedundancy: undefined,
+  // Original text: "Redundancy"
+  xosanRedundancy: 'Redondance',
 
-  // Original text: 'Capacity'
-  xosanCapacity: undefined,
+  // Original text: "Capacity"
+  xosanCapacity: 'Capacité',
 
-  // Original text: 'Available space'
-  xosanAvailableSpace: undefined,
+  // Original text: "Available space"
+  xosanAvailableSpace: 'Espace disponible',
 
-  // Original text: '* Can fail without data loss'
-  xosanDiskLossLegend: undefined,
+  // Original text: "* Can fail without data loss"
+  xosanDiskLossLegend: '* Peut tomber en panne sans perte de données',
 
-  // Original text: 'Create'
-  xosanCreate: undefined,
+  // Original text: "Create"
+  xosanCreate: 'Créer',
 
-  // Original text: 'Installing XOSAN. Please wait...'
-  xosanInstalling: undefined,
+  // Original text: "Installing XOSAN. Please wait..."
+  xosanInstalling: 'Installation de XOSAN. Veuillez patienter...',
 
-  // Original text: 'No XOSAN available for Community Edition'
-  xosanCommunity: undefined,
+  // Original text: "No XOSAN available for Community Edition"
+  xosanCommunity: 'XOSAN non disponible pour la Community Edition',
 
-  // Original text: 'Install cloud plugin first'
-  xosanInstallCloudPlugin: undefined,
+  // Original text: "Install cloud plugin first"
+  xosanInstallCloudPlugin: 'Installer le plugin cloud avant',
 
-  // Original text: 'Load cloud plugin first'
-  xosanLoadCloudPlugin: undefined,
+  // Original text: "Load cloud plugin first"
+  xosanLoadCloudPlugin: 'Charger le plugin cloud avant',
 
-  // Original text: 'Loading...'
-  xosanLoading: undefined,
+  // Original text: "Loading..."
+  xosanLoading: 'Chargement...',
 
-  // Original text: 'XOSAN is not available at the moment'
-  xosanNotAvailable: undefined,
+  // Original text: "XOSAN is not available at the moment"
+  xosanNotAvailable: "XOSAN n'est pas disponible pour le moment",
 
-  // Original text: 'Register for the XOSAN beta'
-  xosanRegisterBeta: undefined,
+  // Original text: "Register for the XOSAN beta"
+  xosanRegisterBeta: 'Inscrivez-vous pour la beta de XOSAN',
 
-  // Original text: 'You have successfully registered for the XOSAN beta. Please wait until your request has been approved.'
-  xosanSuccessfullyRegistered: undefined,
+  // Original text: "You have successfully registered for the XOSAN beta. Please wait until your request has been approved."
+  xosanSuccessfullyRegistered: 'Vous êtes inscrit pour la beta de XOSAN. Veuillez attendre que votre demande soit approuvée.',
 
-  // Original text: 'Install XOSAN pack on these hosts:'
-  xosanInstallPackOnHosts: undefined,
+  // Original text: "Install XOSAN pack on these hosts:"
+  xosanInstallPackOnHosts: 'Installer le pack XOSAN sur ces hôtes :',
 
-  // Original text: 'Install {pack} v{version}?'
-  xosanInstallPack: undefined,
+  // Original text: "Install {pack} v{version}?"
+  xosanInstallPack: 'Installer {pack} v{version} ?',
 
-  // Original text: 'No compatible XOSAN pack found for your XenServer versions.'
-  xosanNoPackFound: undefined,
+  // Original text: "No compatible XOSAN pack found for your XenServer versions."
+  xosanNoPackFound: 'Pas de pack XOSAN compatible pour vos versions de XenServers.',
 
-  // Original text: 'At least one of these version requirements must be satisfied by all the hosts in this pool:'
-  xosanPackRequirements: undefined
+  // Original text: "At least one of these version requirements must be satisfied by all the hosts in this pool:"
+  xosanPackRequirements: 'Au moins une de ces condtions de version doit être satisfaite par tous les hôtes de ce pool :'
 }
