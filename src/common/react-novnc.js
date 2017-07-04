@@ -104,7 +104,7 @@ export default class NoVnc extends Component {
     // a port is required
     //
     // if not available from the URL, use the default ones
-    let port = url.port || isSecure ? 443 : 80
+    const port = url.port || (isSecure ? 443 : 80)
 
     rfb.connect(url.hostname, port, null, clippedPath)
     disableShortcuts()
