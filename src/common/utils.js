@@ -12,6 +12,7 @@ import join from 'lodash/join'
 import keys from 'lodash/keys'
 import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
+import random from 'lodash/random'
 import React from 'react'
 import ReadableStream from 'readable-stream'
 import replace from 'lodash/replace'
@@ -546,3 +547,18 @@ export const getCoresPerSocketPossibilities = (maxCoresPerSocket, vCPUs) => {
 
   return options
 }
+
+export const getReadableRandomString = (() => {
+  const letterGetters = map([
+    [ 'a', 'e', 'i', 'o', 'u', 'y' ],
+    [ 'b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'z' ]
+  ], letters =>
+    () => letters[random(letters.length - 1)]
+  )
+
+  return function _ (length = 8) {
+    return length > 0
+      ? _(length - 1) + letterGetters[length % 2]()
+      : ''
+  }
+})()
