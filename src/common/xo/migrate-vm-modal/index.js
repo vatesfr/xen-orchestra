@@ -172,6 +172,8 @@ export default class MigrateVmModalBody extends BaseComponent {
         doNotMigrateVdis,
         host,
         intraPool,
+        mainSr: undefined,
+        mapVdisSrs: {},
         mapVifsNetworks: undefined,
         migrationNetwork: undefined,
       })
@@ -203,6 +205,8 @@ export default class MigrateVmModalBody extends BaseComponent {
       doNotMigrateVdis: false,
       host,
       intraPool,
+      mainSr: undefined,
+      mapVdisSrs: {},
       mapVifsNetworks: defaultNetworksForVif,
       migrationNetworkId: defaultMigrationNetworkId,
     })
@@ -217,6 +221,8 @@ export default class MigrateVmModalBody extends BaseComponent {
       doNotMigrateVdis,
       host,
       intraPool,
+      mainSr,
+      mapVdisSrs,
       mapVifsNetworks,
       migrationNetworkId,
     } = this.state
