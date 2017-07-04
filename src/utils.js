@@ -28,6 +28,7 @@ import {
   all as pAll,
   defer,
   fromCallback,
+  isPromise,
   promisify,
   reflect as pReflect
 } from 'promise-toolbox'
@@ -41,6 +42,10 @@ import {
 // Similar to map() + Promise.all() but wait for all promises to
 // settle before rejecting (with the first error)
 export const asyncMap = (collection, iteratee) => {
+  if (isPromise(collection)) {
+    return collection.then(collection => asyncMap(collection, iteratee))
+  }
+
   let errorContainer
   const onError = error => {
     if (errorContainer === undefined) {
