@@ -369,7 +369,6 @@ export {
   all as pAll,
   delay as pDelay,
   fromCallback as pFromCallback,
-  isPromise,
   lastly as pFinally,
   promisify,
   promisifyAll,
