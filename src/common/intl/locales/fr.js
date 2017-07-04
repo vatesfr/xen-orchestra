@@ -2484,7 +2484,7 @@ export default {
   newVmNameRefresh: 'Rafraîchir le nom des VMs',
 
   // Original text: "Affinity host"
-  newVmAffinityHost: "Hôte d'affinité",
+  newVmAffinityHost: 'Hôte préféré',
 
   // Original text: "Advanced"
   newVmAdvancedPanel: 'Avancé',
