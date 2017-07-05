@@ -68,7 +68,7 @@ const main = async args => {
   }
 
   const xapi = createClient({
-    url: opts._,
+    url: opts._[0],
     allowUnauthorized: opts.au,
     auth,
     debounce: opts.debounce != null ? +opts.debounce : null,
