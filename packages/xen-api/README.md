@@ -23,11 +23,11 @@ Installation of the [npm package](https://npmjs.org/package/xen-api):
 ### Library
 
 ```javascript
-var createClient = require('xen-api').createClient
+const { createClient } = require('xen-api')
 
-var xapi = createClient({
+const xapi = createClient({
   url: 'https://xen1.company.net',
-  allowUnauthorized: false, // set to tru to accept self-signed HTTPs certs
+  allowUnauthorized: false,
   auth: {
     user: 'root',
     password: 'important secret password'
@@ -39,7 +39,8 @@ var xapi = createClient({
 Options:
 
 - `url`: address of a host in the pool we are trying to connect to
-- `auth`: credentials used to sign in
+- `allowUnauthorized`: whether to accept self-signed certificates
+- `auth`: credentials used to sign in (can also be specified in the URL)
 - `readOnly = false`: if true, no methods with side-effects can be called
 
 ```js
@@ -49,7 +50,7 @@ xapi.connect().catch(error => {
 })
 
 // Watch objects.
-xapi.objects.on('add', function (objects) {
+xapi.objects.on('add', objects => {
   console.log('new objects:', objects)
 })
 ```
