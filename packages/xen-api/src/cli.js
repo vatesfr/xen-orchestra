@@ -26,13 +26,9 @@ function askPassword (prompt = 'Password: ') {
   })
 }
 
-function required (name) {
-  throw new Error(`missing required argument ${name}`)
-}
-
 // ===================================================================
 
-const usage = 'Usage: xen-api <url> <user> [<password>]'
+const usage = 'Usage: xen-api <url> [<user> [<password>]]'
 
 const main = async args => {
   const opts = minimist(args, {
@@ -58,11 +54,11 @@ const main = async args => {
     createDebug.enable('xen-api,xen-api:*')
   }
 
-  const [
-    url = required('url'),
-    user = required('user'),
-    password = await askPassword()
-  ] = opts._
+  let auth
+  if (opts._.length > 1) {
+    const [ , user, password = await askPassword() ] = opts._
+    auth = { user, password }
+  }
 
   {
     const debug = createDebug('xen-api:perf')
@@ -72,9 +68,9 @@ const main = async args => {
   }
 
   const xapi = createClient({
-    url,
+    url: opts._,
     allowUnauthorized: opts.au,
-    auth: { user, password },
+    auth,
     debounce: opts.debounce != null ? +opts.debounce : null,
     readOnly: opts.ro
   })

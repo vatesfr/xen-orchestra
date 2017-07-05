@@ -264,6 +264,11 @@ export class Xapi extends EventEmitter {
       return Promise.reject(new Error('already connecting'))
     }
 
+    const auth = this._auth
+    if (auth === undefined) {
+      return Promise.reject(new Error('missing credentials'))
+    }
+
     this._sessionId = CONNECTING
 
     return this._transportCall('session.login_with_password', [
