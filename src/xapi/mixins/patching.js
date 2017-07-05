@@ -273,7 +273,7 @@ export default {
 
     // If no hostId provided, try and find a shared SR
     if (!hostId) {
-      const sr = await this.findAvailableSharedSr(stream.length)
+      const sr = this.findAvailableSharedSr(stream.length)
 
       if (!sr) {
         return

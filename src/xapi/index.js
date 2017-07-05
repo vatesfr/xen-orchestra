@@ -1603,6 +1603,10 @@ export default class Xapi extends XapiBase {
     type = 'user',
     xenstore_data = undefined
   } = {}) {
+    if (sr === NULL_REF) {
+      throw new Error('SR required to create VDI')
+    }
+
     sr = this.getObject(sr)
     debug(`Creating VDI ${name_label} on ${sr.name_label}`)
 
@@ -2152,7 +2156,7 @@ export default class Xapi extends XapiBase {
     return this.createTemporaryVdiOnSr(stream, pbd.SR, name_label, name_description)
   }
 
-  async findAvailableSharedSr (minSize) {
+  findAvailableSharedSr (minSize) {
     return find(
       this.objects.all,
       obj => obj.$type === 'sr' && obj.shared && canSrHaveNewVdiOfSize(obj, minSize)
