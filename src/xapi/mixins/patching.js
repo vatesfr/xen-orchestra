@@ -20,6 +20,7 @@ import {
 
 import {
   debug,
+  extractOpaqueRef,
   useUpdateSystem
 } from '../utils'
 
@@ -211,18 +212,14 @@ export default {
   // -----------------------------------------------------------------
 
   // platform_version < 2.1.1 ----------------------------------------
-  async uploadPoolPatch (stream, patchName = 'unknown') {
-    const taskRef = await this.createTask('Patch upload', patchName)
-
-    const task = this.watchTask(taskRef)
-    const [ patchRef ] = await Promise.all([
-      task,
-      this.putResource(stream, '/pool_patch_upload', {
-        query: {
-          task_id: taskRef
-        }
-      })
-    ])
+  async uploadPoolPatch (stream, patchName) {
+    const patchRef = await this.putResource(
+      stream,
+      '/pool_patch_upload',
+      {
+        task: this.createTask('Patch upload', patchName)
+      }
+    ).then(extractOpaqueRef)
 
     return this._getOrWaitObject(patchRef)
   },
