@@ -128,9 +128,6 @@ const EMPTY_ARRAY = freezeObject([])
 
 // -------------------------------------------------------------------
 
-const TASK_RESULT_PREFIX_LEN = '<value>'.length
-const TASK_RESULT_SUFFIX_LEN = '</value>'.length
-
 const getTaskResult = (task, onSuccess, onFailure) => {
   const { status } = task
   if (status === 'cancelled') {
@@ -140,12 +137,11 @@ const getTaskResult = (task, onSuccess, onFailure) => {
     return [ onFailure(wrapError(task.error_info)) ]
   }
   if (status === 'success') {
-    // a task result is either void or a ref, it should be fine to
-    // remove the XML prefix/suffix
-    return [ onSuccess(task.result.slice(
-      TASK_RESULT_PREFIX_LEN,
-      -TASK_RESULT_SUFFIX_LEN
-    )) ]
+    // the result might be:
+    // - empty string
+    // - an opaque reference
+    // - an XML-RPC value
+    return [ onSuccess(task.result) ]
   }
 }
 
