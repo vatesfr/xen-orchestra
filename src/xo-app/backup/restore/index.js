@@ -152,12 +152,8 @@ const doImport = ({ backup, mainSr, start, mapVdisSrs }) => {
 }
 
 class _ModalBody extends Component {
-  constructor () {
-    super()
-
-    this.state = {
-      mapVdisSrs: {},
-    }
+  state = {
+    value: {}
   }
 
   get value () {
@@ -165,8 +161,8 @@ class _ModalBody extends Component {
   }
 
   _getSrPredicate = createSelector(
-    () => this.state.mainSr,
-    () => this.state.mapVdisSrs,
+    () => this.state.value.mainSr,
+    () => this.state.value.mapVdisSrs,
     (mainSr, mapVdisSrs) => sr =>
       isSrWritable(sr) &&
       mainSr.$pool === sr.$pool &&
@@ -178,54 +174,50 @@ class _ModalBody extends Component {
   )
 
   _onChange = props => {
+    const value = {...this.state.value}
+
     if (props.mainSr !== undefined) {
+      value.mainSr = props.mainSr
+
+      // This code fixes the incompatibilities between the mapVdisSrs values.
       const newMainSr = props.mainSr
-      const oldMainSr = this.state.mainSr
+      const oldMainSr = this.state.value.mainSr
 
       if (oldMainSr == null || newMainSr == null || oldMainSr.$pool !== newMainSr.$pool) {
-        this.setState({
-          mapVdisSrs: {}
-        })
+        value.mapVdisSrs = {}
       } else if (!newMainSr.shared) {
-        const mapVdisSrs = {...this.state.mapVdisSrs}
-        forEach(mapVdisSrs, (sr, vdi) => {
+        forEach(value.mapVdisSrs, (sr, vdi) => {
           if (sr != null && newMainSr !== sr && sr.$container !== newMainSr.$container && !sr.shared) {
-            delete mapVdisSrs[vdi]
+            delete value.mapVdisSrs[vdi]
           }
         })
-        this.setState({mapVdisSrs})
       }
     }
 
-    this.setState(props)
+    if (props.mapVdisSrs !== undefined) {
+      value.mapVdisSrs = props.mapVdisSrs
+    }
+
+    this.setState({ value })
   }
 
   render () {
     const { props, state } = this
     const vdis = state.backup && state.backup.vdis
-    const {
-      backups,
-      intl
-    } = props
-    const {
-      mainSr,
-      mapVdisSrs
-    } = state
 
     return <div>
       <SelectPlainObject
         onChange={this.linkState('backup')}
         optionKey='path'
         optionRenderer={backupOptionRenderer}
-        options={backups}
-        placeholder={intl.formatMessage(messages.importBackupModalSelectBackup)}
+        options={props.backups}
+        placeholder={props.intl.formatMessage(messages.importBackupModalSelectBackup)}
       />
       <br />
       <ChooseSrForEachVdisModal
-        mainSr={mainSr}
-        mapVdisSrs={mapVdisSrs}
         onChange={this._onChange}
         srPredicate={this._getSrPredicate()}
+        value={state.value}
         vdis={vdis}
       />
       <br />
