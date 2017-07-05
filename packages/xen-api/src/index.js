@@ -268,8 +268,8 @@ export class Xapi extends EventEmitter {
     this._sessionId = CONNECTING
 
     return this._transportCall('session.login_with_password', [
-      this._auth.user,
-      this._auth.password
+      auth.user,
+      auth.password
     ]).then(
       sessionId => {
         this._sessionId = sessionId
