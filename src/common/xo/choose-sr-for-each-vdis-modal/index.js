@@ -50,12 +50,9 @@ export default class ChooseSrForEachVdisModal extends Component {
     const { props } = this
     const {
       mainSrPredicate = isSrWritable,
-      srPredicate = mainSrPredicate
+      srPredicate = mainSrPredicate,
+      value: { mainSr, mapVdisSrs }
     } = props
-    const {
-      mainSr,
-      mapVdisSrs
-    } = props.value
 
     return <div>
       <SelectSr

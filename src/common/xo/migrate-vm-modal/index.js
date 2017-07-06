@@ -12,8 +12,16 @@ import invoke from '../../invoke'
 import SingleLineRow from '../../single-line-row'
 import { Col } from '../../grid'
 import { getDefaultNetworkForVif } from '../utils'
-import { SelectHost, SelectNetwork } from '../../select-objects'
-import { connectStore, mapPlus, resolveIds } from '../../utils'
+import {
+  SelectHost,
+  SelectNetwork
+} from '../../select-objects'
+import {
+  connectStore,
+  mapPlus,
+  resolveId,
+  resolveIds
+} from '../../utils'
 import {
   createGetObjectsOfType,
   createPicker,
@@ -69,7 +77,7 @@ export default class MigrateVmModalBody extends BaseComponent {
 
     this.state = {
       mapVifsNetworks: {},
-      value: {}
+      targetSrs: {}
     }
 
     this._getHostPredicate = createSelector(
@@ -127,7 +135,7 @@ export default class MigrateVmModalBody extends BaseComponent {
   get value () {
     return {
       targetHost: this.state.host && this.state.host.id,
-      sr: this.state.targetSrs.mainSr && this.state.targetSrs.mainSr.id,
+      sr: resolveId(this.state.targetSrs.mainSr),
       mapVdisSrs: resolveIds(this.state.targetSrs.mapVdisSrs),
       mapVifsNetworks: this.state.mapVifsNetworks,
       migrationNetwork: this.state.migrationNetworkId,
