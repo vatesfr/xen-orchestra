@@ -44,7 +44,7 @@ set = $coroutine (params) ->
     vbds = vdi.$VBDs
     if (
       vbds.length == 1 &&
-      (resourceSetId = xapi.xo.getData(@getObject(vbds[0], 'VBD'), 'resourceSet')) != undefined
+      (resourceSetId = xapi.xo.getData(@getObject(vbds[0], 'VBD').VM, 'resourceSet')) != undefined
     )
       if @user.permission != 'admin'
         yield @checkResourceSetConstraints(resourceSetId, @user.id)
