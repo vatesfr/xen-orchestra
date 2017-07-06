@@ -83,7 +83,7 @@ export class XosanVolumesTable extends Component {
     try {
       glusterType = JSON.parse(xosansrs[0].other_config['xo:xosan_config'])['type']
     } catch (e) {
-      //pass
+      // pass
     }
     return <div>
       <h3>{_('xosanSrTitle')}</h3>
