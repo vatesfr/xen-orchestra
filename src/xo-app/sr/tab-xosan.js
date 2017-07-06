@@ -1,9 +1,11 @@
+import _ from 'intl'
 import Component from 'base-component'
 import Link from 'link'
 import React from 'react'
 import ActionButton from 'action-button'
 import { Container, Row, Col } from 'grid'
 import { SelectSr } from 'select-objects'
+import Tooltip from 'tooltip'
 import {
   map
 } from 'lodash'
@@ -12,6 +14,7 @@ import {
   createSelector
 } from 'selectors'
 import {
+  formatSize,
   connectStore
 } from 'utils'
 import {
@@ -39,7 +42,7 @@ export default class TabXosan extends Component {
   async _refreshInfo () {
     this.setState({xosanConfig: JSON.parse(this.props.sr.other_config['xo:xosan_config'])})
     await Promise.all([::this._refreshAspect('heal', 'volumeHeal'), ::this._refreshAspect('status', 'volumeStatus'),
-      ::this._refreshAspect('info', 'volumeInfo')])
+      ::this._refreshAspect('info', 'volumeInfo'), ::this._refreshAspect('statusDetail', 'volumeStatusDetail')])
   }
 
   async _replaceBrick ({brick, newSr}) {
@@ -59,7 +62,7 @@ export default class TabXosan extends Component {
   )
 
   render () {
-    const {volumeHeal, volumeInfo, volumeStatus, xosanConfig} = this.state
+    const {volumeHeal, volumeInfo, volumeStatus, xosanConfig, volumeStatusDetail} = this.state
     const { vms, srs } = this.props
     if (!xosanConfig) {
       return <Container />
@@ -91,6 +94,13 @@ export default class TabXosan extends Component {
         brickByUuid[key]['status'] = volumeStatus.result.nodes[key]
       }
     }
+    if (volumeStatusDetail && volumeStatusDetail['commandStatus']) {
+      for (let key in brickByUuid) {
+        if (key in volumeStatusDetail.result.nodes) {
+          brickByUuid[key]['statusDetail'] = volumeStatusDetail.result.nodes[key][0]
+        }
+      }
+    }
     const orderedBrickList = map(Object.keys(brickByName), name => brickByName[name])
     return <Container>
       {map(orderedBrickList, (node, i) =>
@@ -117,6 +127,30 @@ export default class TabXosan extends Component {
               <Col size={2}>Status: </Col><Col size={4}>{node['heal'] ? node['heal'].status : 'unknown'}</Col>
             </Row>
             <Row><Col size={2}>Arbiter: </Col><Col size={4}>{node.config.arbiter ? 'True' : 'False' }</Col></Row>
+            {node['statusDetail'] && <div>
+              <Row><Col size={2}>Used Space: </Col><Col size={4}>
+                <Tooltip content={_('spaceLeftTooltip', {
+                  used: String(Math.round(100 - (parseInt(node['statusDetail']['sizeFree']) / parseInt(node['statusDetail']['sizeTotal'])) * 100)),
+                  free: formatSize(parseInt(node['statusDetail']['sizeFree']))
+                })}>
+                  <progress className='progress' max='100'
+                    value={100 - (parseInt(node['statusDetail']['sizeFree']) / parseInt(node['statusDetail']['sizeTotal'])) * 100}
+                  />
+                </Tooltip></Col></Row>
+              <Row><Col size={2}>Used Inodes: </Col><Col size={4}>
+                <Tooltip content={_('spaceLeftTooltip', {
+                  used: String(Math.round(100 - (parseInt(node['statusDetail']['inodesFree']) / parseInt(node['statusDetail']['inodesTotal'])) * 100)),
+                  free: String(parseInt(node['statusDetail']['inodesFree']))
+                })}>
+                  <progress className='progress' max='100' value={100 - (parseInt(node['statusDetail']['inodesFree']) / parseInt(node['statusDetail']['inodesTotal'])) * 100}
+                  /></Tooltip></Col></Row>
+              <Row><Col size={2}>blockSize: </Col><Col size={4}>{ node['statusDetail']['blockSize']}</Col></Row>
+              <Row><Col size={2}>device: </Col><Col size={4}>{ node['statusDetail']['device']}</Col></Row>
+              <Row><Col size={2}>fsName: </Col><Col size={4}>{ node['statusDetail']['fsName']}</Col></Row>
+              <Row><Col size={2}>mntOptions: </Col><Col size={4}>{ node['statusDetail']['mntOptions']}</Col></Row>
+              <Row><Col size={2}>path: </Col><Col size={4}>{ node['statusDetail']['path']}</Col></Row>
+            </div>}
+
             {node['status'] && node['status'].length !== 0 && <table style={{border: 'solid black 1px'}}>
               <thead>
                 <tr style={{border: 'solid black 1px'}}>
@@ -140,7 +174,7 @@ export default class TabXosan extends Component {
             {node['heal'] && node['heal']['file'] && node['heal']['file'].length !== 0 && <div>
               <h4>Files needing healing</h4>
               {map(node['heal']['file'], file =>
-                <Row key={file['gfid']}><Col size={4}>{file['_']}</Col><Col size={4}>{file['gfid']}</Col></Row>)}
+                <Row key={file['gfid']}><Col size={5}>{file['_']}</Col ><Col size={4}>{file['gfid']}</Col></Row>)}
             </div>}
           </div>
         </div>
