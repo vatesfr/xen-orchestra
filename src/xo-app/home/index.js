@@ -208,7 +208,7 @@ const TYPES = {
 const DEFAULT_TYPE = 'VM'
 
 @addSubscriptions({
-  servers: subscribeServers
+  noRegisteredServers: cb => subscribeServers(data => cb(isEmpty(data)))
 })
 @connectStore(() => {
   const noServersConnected = invoke(
@@ -230,9 +230,9 @@ class NoObjects_ extends Component {
     const {
       areObjectsFetched,
       isAdmin,
+      noRegisteredServers,
       noResourceSets,
-      noServersConnected,
-      servers
+      noServersConnected
     } = this.props
 
     if (!areObjectsFetched) {
@@ -241,7 +241,6 @@ class NoObjects_ extends Component {
       </CenterPanel>
     }
 
-    const noRegisteredServers = isEmpty(servers)
     if (noServersConnected && isAdmin) {
       return <CenterPanel>
         <Card shadow>
