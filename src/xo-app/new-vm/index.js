@@ -490,11 +490,6 @@ export default class NewVm extends BaseComponent {
     objectsIds => id => includes(objectsIds, id)
   )
 
-  _getNoResourceSets = createSelector(
-    () => this.props.resourceSets,
-    isEmpty
-  )
-
   _getVmPredicate = createSelector(
     this._getIsInPool,
     this._getIsInResourceSet,
@@ -700,9 +695,7 @@ export default class NewVm extends BaseComponent {
 // MAIN ------------------------------------------------------------------------
 
   _renderHeader = () => {
-    const {isAdmin, pool} = this.props
-    const noResourceSets = this._getNoResourceSets()
-
+    const {isAdmin, pool, resourceSets} = this.props
     const selectPool = <span className={styles.inlineSelect}>
       <SelectPool
         onChange={this._selectPool}
@@ -719,7 +712,7 @@ export default class NewVm extends BaseComponent {
       <Row>
         <Col mediumSize={12}>
           <h2>
-            {isAdmin || !noResourceSets
+            {isAdmin || !isEmpty(resourceSets)
               ? _('newVmCreateNewVmOn', {
                 select: isAdmin ? selectPool : selectResourceSet
               })
