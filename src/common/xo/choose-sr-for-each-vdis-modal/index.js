@@ -46,6 +46,8 @@ export default class ChooseSrForEachVdisModal extends Component {
     })
   }
 
+  _onChangeMainSr = mainSr => this._onChange({ mainSr })
+
   render () {
     const { props } = this
     const {
@@ -56,7 +58,7 @@ export default class ChooseSrForEachVdisModal extends Component {
 
     return <div>
       <SelectSr
-        onChange={mainSr => this._onChange({ mainSr })}
+        onChange={this._onChangeMainSr}
         placeholder={_('chooseSrForEachVdisModalMainSr')}
         predicate={mainSrPredicate}
         value={mainSr}
