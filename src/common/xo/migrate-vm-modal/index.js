@@ -127,8 +127,8 @@ export default class MigrateVmModalBody extends BaseComponent {
   get value () {
     return {
       targetHost: this.state.host && this.state.host.id,
-      sr: this.state.mainSr && this.state.mainSr.id,
-      mapVdisSrs: resolveIds(this.state.mapVdisSrs),
+      sr: this.state.targetSrs.mainSr && this.state.targetSrs.mainSr.id,
+      mapVdisSrs: resolveIds(this.state.targetSrs.mapVdisSrs),
       mapVifsNetworks: this.state.mapVifsNetworks,
       migrationNetwork: this.state.migrationNetworkId,
     }
@@ -174,7 +174,7 @@ export default class MigrateVmModalBody extends BaseComponent {
         intraPool,
         mapVifsNetworks: undefined,
         migrationNetwork: undefined,
-        value: {}
+        targetSrs: {}
       })
       return
     }
@@ -206,26 +206,12 @@ export default class MigrateVmModalBody extends BaseComponent {
       intraPool,
       mapVifsNetworks: defaultNetworksForVif,
       migrationNetworkId: defaultMigrationNetworkId,
-      value: {}
+      targetSrs: {}
     })
   }
 
   _selectMigrationNetwork = migrationNetwork =>
     this.setState({ migrationNetworkId: migrationNetwork.id })
-
-  _onChange = props => {
-    const value = {...this.state.value}
-
-    if (props.mainSr !== undefined) {
-      value.mainSr = props.mainSr
-    }
-
-    if (props.mapVdisSrs !== undefined) {
-      value.mapVdisSrs = props.mapVdisSrs
-    }
-
-    this.setState({ value })
-  }
 
   render () {
     const { vdis, vifs, networks } = this.props
@@ -235,7 +221,7 @@ export default class MigrateVmModalBody extends BaseComponent {
       intraPool,
       mapVifsNetworks,
       migrationNetworkId,
-      value
+      targetSrs
     } = this.state
     return (
       <div>
@@ -257,11 +243,11 @@ export default class MigrateVmModalBody extends BaseComponent {
               <SingleLineRow>
                 <Col size={12}>
                   <ChooseSrForEachVdisModal
-                    mainSrPredicate={this._getSrPredicate()}
-                    onChange={this._onChange}
-                    value={value}
-                    vdis={vdis}
-                  />
+		    mainSrPredicate={this._getSrPredicate()}
+		    onChange={this.linkState('targetSrs')}
+		    value={targetSrs}
+		    vdis={vdis}
+		  />
                 </Col>
               </SingleLineRow>
             </div>

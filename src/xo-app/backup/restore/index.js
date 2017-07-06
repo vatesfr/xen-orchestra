@@ -124,8 +124,8 @@ const openImportModal = ({ backups }) =>
     body: <ImportModalBody vmName={backups[0].name} backups={backups} />,
   }).then(doImport)
 
-const doImport = ({ backup, mainSr, start, mapVdisSrs }) => {
-  if (!mainSr || !backup) {
+const doImport = ({ backup, targetSrs, start }) => {
+  if (targetSrs.mainSr === undefined || backup === undefined) {
     error(_('backupRestoreErrorTitle'), _('backupRestoreErrorMessage'))
     return
   }
@@ -135,12 +135,7 @@ const doImport = ({ backup, mainSr, start, mapVdisSrs }) => {
   }
   info(_('importBackupTitle'), _('importBackupMessage'))
   try {
-    const importPromise = importMethods[backup.type]({
-      remote: backup.remoteId,
-      sr: mainSr,
-      file: backup.path,
-      mapVdisSrs,
-    }).then(id => {
+    const importPromise = importMethods[backup.type]({remote: backup.remoteId, sr: targetSrs.mainSr, file: backup.path, mapVdisSrs: targetSrs.mapVdisSrs}).then(id => {
       return id
     })
     if (start) {
@@ -153,7 +148,7 @@ const doImport = ({ backup, mainSr, start, mapVdisSrs }) => {
 
 class _ModalBody extends Component {
   state = {
-    value: {}
+    targetSrs: {}
   }
 
   get value () {
@@ -161,8 +156,8 @@ class _ModalBody extends Component {
   }
 
   _getSrPredicate = createSelector(
-    () => this.state.value.mainSr,
-    () => this.state.value.mapVdisSrs,
+    () => this.state.targetSrs.mainSr,
+    () => this.state.targetSrs.mapVdisSrs,
     (mainSr, mapVdisSrs) => sr =>
       isSrWritable(sr) &&
       mainSr.$pool === sr.$pool &&
@@ -174,31 +169,25 @@ class _ModalBody extends Component {
   )
 
   _onChange = props => {
-    const value = {...this.state.value}
+    const oldMainSr = this.state.targetSrs.mainSr
+    const newMainSr = props.mainSr
 
-    if (props.mainSr !== undefined) {
-      value.mainSr = props.mainSr
+    const targetSrs = {...props}
 
-      // This code fixes the incompatibilities between the mapVdisSrs values.
-      const newMainSr = props.mainSr
-      const oldMainSr = this.state.value.mainSr
-
+    // This code fixes the incompatibilities between the mapVdisSrs values
+    if (oldMainSr !== newMainSr) {
       if (oldMainSr == null || newMainSr == null || oldMainSr.$pool !== newMainSr.$pool) {
-        value.mapVdisSrs = {}
+        targetSrs.mapVdisSrs = {}
       } else if (!newMainSr.shared) {
-        forEach(value.mapVdisSrs, (sr, vdi) => {
+        forEach(targetSrs.mapVdisSrs, (sr, vdi) => {
           if (sr != null && newMainSr !== sr && sr.$container !== newMainSr.$container && !sr.shared) {
-            delete value.mapVdisSrs[vdi]
+            delete targetSrs.mapVdisSrs[vdi]
           }
         })
       }
     }
 
-    if (props.mapVdisSrs !== undefined) {
-      value.mapVdisSrs = props.mapVdisSrs
-    }
-
-    this.setState({ value })
+    this.setState({ targetSrs })
   }
 
   render () {
@@ -217,7 +206,7 @@ class _ModalBody extends Component {
       <ChooseSrForEachVdisModal
         onChange={this._onChange}
         srPredicate={this._getSrPredicate()}
-        value={state.value}
+        value={state.targetSrs}
         vdis={vdis}
       />
       <br />

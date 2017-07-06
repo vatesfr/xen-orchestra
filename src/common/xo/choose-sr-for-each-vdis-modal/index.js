@@ -7,7 +7,6 @@ import _ from '../../intl'
 import propTypes from '../../prop-types-decorator'
 import SingleLineRow from '../../single-line-row'
 import { SelectSr } from '../../select-objects'
-import { createSelector } from '../../selectors'
 import { isSrWritable } from 'xo'
 import { Container, Col } from 'grid'
 
@@ -40,15 +39,12 @@ Collapsible.propTypes = {
   vdis: propTypes.object.isRequired
 })
 export default class ChooseSrForEachVdisModal extends Component {
-  _getMainSr = createSelector(
-    () => this.props.value.mainSr,
-    mainSr => mainSr
-  )
-
-  _getMapVdisSrs = createSelector(
-    () => this.props.value.mapVdisSrs,
-    mapVdisSrs => mapVdisSrs
-  )
+  _onChange = newValues => {
+    this.props.onChange({
+      ...this.props.value,
+      ...newValues
+    })
+  }
 
   render () {
     const { props } = this
@@ -56,13 +52,14 @@ export default class ChooseSrForEachVdisModal extends Component {
       mainSrPredicate = isSrWritable,
       srPredicate = mainSrPredicate
     } = props
-
-    const mainSr = this._getMainSr()
-    const mapVdisSrs = this._getMapVdisSrs()
+    const {
+      mainSr,
+      mapVdisSrs
+    } = props.value
 
     return <div>
       <SelectSr
-        onChange={mainSr => props.onChange({mainSr})}
+        onChange={mainSr => this._onChange({ mainSr })}
         placeholder={_('chooseSrForEachVdisModalMainSr')}
         predicate={mainSrPredicate}
         value={mainSr}
@@ -81,7 +78,7 @@ export default class ChooseSrForEachVdisModal extends Component {
                 <Col size={6}>{ vdi.name_label || vdi.name }</Col>
                 <Col size={6}>
                   <SelectSr
-                    onChange={sr => props.onChange({ mapVdisSrs: { ...mapVdisSrs, [vdi.uuid]: sr } })}
+                    onChange={sr => this._onChange({ mapVdisSrs: { ...mapVdisSrs, [vdi.uuid]: sr } })}
                     predicate={srPredicate}
                     value={mapVdisSrs !== undefined && mapVdisSrs[vdi.uuid]}
                   />
