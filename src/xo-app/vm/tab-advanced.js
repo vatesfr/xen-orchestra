@@ -206,8 +206,8 @@ class CoresPerSocket extends Component {
     const options = this._getCoresPerSocketPossibilities()
 
     return <form className='form-inline'>
-      {container
-        ? <div>
+      {container !== undefined
+        ? <span>
         <select
           className='form-control'
           onChange={this._onChange}
@@ -241,12 +241,13 @@ class CoresPerSocket extends Component {
             <Icon icon='error' size='lg' />
           </Tooltip>
         )}
-        </div>
-        : _(
-          'vmCoresPerSocket',
-          {nSockets: vm.CPUs.number / selectedCoresPerSocket, nCores: selectedCoresPerSocket},
-          message => <span>{message}</span>
-        )
+        </span>
+        : selectedCoresPerSocket !== undefined
+          ? _('vmCoresPerSocket', {
+            nSockets: vm.CPUs.number / selectedCoresPerSocket,
+            nCores: selectedCoresPerSocket
+          })
+          : _('vmCoresPerSocketNone')
       }
     </form>
   }
