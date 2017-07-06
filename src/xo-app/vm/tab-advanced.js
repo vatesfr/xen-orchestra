@@ -178,7 +178,7 @@ class CoresPerSocket extends Component {
   _getCoresPerSocketPossibilities = createSelector(
     () => {
       const { container } = this.props
-      if (container !== undefined) {
+      if (container != null) {
         return container.cpus.cores
       }
     },
@@ -206,7 +206,7 @@ class CoresPerSocket extends Component {
     const options = this._getCoresPerSocketPossibilities()
 
     return <form className='form-inline'>
-      {container !== undefined
+      {container != null
         ? <span>
         <select
           className='form-control'
@@ -242,7 +242,7 @@ class CoresPerSocket extends Component {
           </Tooltip>
         )}
         </span>
-        : selectedCoresPerSocket !== undefined
+        : selectedCoresPerSocket != null
           ? _('vmCoresPerSocket', {
             nSockets: vm.CPUs.number / selectedCoresPerSocket,
             nCores: selectedCoresPerSocket
