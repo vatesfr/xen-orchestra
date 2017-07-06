@@ -78,8 +78,13 @@ export class XosanVolumesTable extends Component {
     addXosanBrick(params.xosansr.id, params.lvmsr.id)
   }
   render () {
+    let glusterType = null
     const { xosansrs, hosts, lvmsrs } = this.props
-    const glusterType = JSON.parse(xosansrs[0].other_config['xo:xosan_config'])['type']
+    try {
+      glusterType = JSON.parse(xosansrs[0].other_config['xo:xosan_config'])['type']
+    } catch (e) {
+      //pass
+    }
     return <div>
       <h3>{_('xosanSrTitle')}</h3>
       <table className='table table-striped'>
