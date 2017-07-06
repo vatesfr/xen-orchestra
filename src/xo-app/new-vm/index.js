@@ -1390,17 +1390,15 @@ export default class NewVm extends BaseComponent {
             )}
           </LineItem>}
         </SectionContent>,
-        isAdmin && (
-          <SectionContent>
-            <Item label={_('newVmAffinityHost')}>
-              <SelectHost
-                onChange={this._linkState('affinityHost')}
-                predicate={this._getAffinityHostPredicate()}
-                value={affinityHost}
-              />
-            </Item>
-          </SectionContent>
-        )
+        isAdmin && <SectionContent>
+          <Item label={_('newVmAffinityHost')}>
+            <SelectHost
+              onChange={this._linkState('affinityHost')}
+              predicate={this._getAffinityHostPredicate()}
+              value={affinityHost}
+            />
+          </Item>
+        </SectionContent>
       ]}
     </Section>
   }
