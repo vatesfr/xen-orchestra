@@ -18,6 +18,7 @@ export default class Jobs {
     })
     this._runningJobs = Object.create(null)
 
+    xo.on('clean', () => jobsDb.rebuildIndexes())
     xo.on('start', () => {
       xo.addConfigManager('jobs',
         () => jobsDb.get(),

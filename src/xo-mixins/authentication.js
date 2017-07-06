@@ -70,6 +70,7 @@ export default class {
         }
       })
       await tokensDb.remove(toRemove)
+      return tokensDb.rebuildIndexes()
     })
 
     xo.on('start', () => {

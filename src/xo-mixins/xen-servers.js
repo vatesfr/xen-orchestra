@@ -32,6 +32,7 @@ export default class {
     this._xapisByPool = createRawObject()
     this._xo = xo
 
+    xo.on('clean', () => serversDb.rebuildIndexes())
     xo.on('start', async () => {
       xo.addConfigManager('xenServers',
         () => serversDb.get(),

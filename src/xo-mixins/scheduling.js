@@ -44,6 +44,7 @@ export default class {
     })
     this._scheduleTable = undefined
 
+    xo.on('clean', () => schedules.rebuildIndexes())
     xo.on('start', () => {
       xo.addConfigManager('schedules',
         () => schedules.get(),

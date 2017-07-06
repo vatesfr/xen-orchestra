@@ -1,16 +1,10 @@
-import Collection, {ModelAlreadyExists} from '../collection'
-import difference from 'lodash/difference'
-import filter from 'lodash/filter'
-import getKey from 'lodash/keys'
-import {createClient as createRedisClient} from 'redis'
-import {v4 as generateUuid} from 'uuid'
+import { createClient as createRedisClient } from 'redis'
+import { difference, filter, forEach, isEmpty, keys as getKeys } from 'lodash'
+import { promisifyAll } from 'promise-toolbox'
+import { v4 as generateUuid } from 'uuid'
 
-import {
-  forEach,
-  isEmpty,
-  mapToArray,
-  promisifyAll
-} from '../utils'
+import Collection, { ModelAlreadyExists } from '../collection'
+import { asyncMap, mapToArray } from '../utils'
 
 // ===================================================================
 
@@ -43,6 +37,29 @@ export default class Redis extends Collection {
     this.indexes = indexes
     this.prefix = prefix
     this.redis = promisifyAll(connection || createRedisClient(uri))
+  }
+
+  rebuildIndexes () {
+    const { indexes, prefix, redis } = this
+
+    if (indexes.length === 0) {
+      return Promise.resolve()
+    }
+
+    return asyncMap(indexes, index =>
+      redis.keys(`${prefix}_${index}:*`).then(keys =>
+        keys.length !== 0 && redis.del(keys)
+      )
+    ).then(() => asyncMap(redis.smembers(`${prefix}_ids`), id =>
+      redis.hgetall(`${prefix}:${id}`).then(values =>
+        asyncMap(indexes, index => {
+          const value = values[index]
+          if (value !== undefined) {
+            return redis.sadd(`${prefix}_${index}:${value}`, id)
+          }
+        })
+      )
+    ))
   }
 
   _extract (ids) {
@@ -140,7 +157,7 @@ export default class Redis extends Collection {
     const {indexes} = this
 
     // Check for non indexed fields.
-    const unfit = difference(getKey(properties), indexes)
+    const unfit = difference(getKeys(properties), indexes)
     if (unfit.length) {
       throw new Error('fields not indexed: ' + unfit.join())
     }

@@ -21,6 +21,7 @@ export default class {
       indexes: ['enabled']
     })
 
+    xo.on('clean', () => this._remotes.rebuildIndexes())
     xo.on('start', async () => {
       xo.addConfigManager('remotes',
         () => this._remotes.get(),

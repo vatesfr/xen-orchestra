@@ -42,6 +42,7 @@ export default class {
         }
       })
       await aclsDb.remove(toRemove)
+      return aclsDb.rebuildIndexes()
     })
   }
 
