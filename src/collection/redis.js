@@ -1,10 +1,10 @@
 import { createClient as createRedisClient } from 'redis'
-import { difference, filter, forEach, isEmpty, keys as getKeys } from 'lodash'
+import { difference, filter, forEach, isEmpty, keys as getKeys, map } from 'lodash'
 import { promisifyAll } from 'promise-toolbox'
 import { v4 as generateUuid } from 'uuid'
 
 import Collection, { ModelAlreadyExists } from '../collection'
-import { asyncMap, mapToArray } from '../utils'
+import { asyncMap } from '../utils'
 
 // ===================================================================
 
@@ -67,7 +67,7 @@ export default class Redis extends Collection {
     const {redis} = this
 
     const models = []
-    return Promise.all(mapToArray(ids, id => {
+    return Promise.all(map(ids, id => {
       return redis.hgetall(prefix + id).then(model => {
         // If empty, consider it a no match.
         if (isEmpty(model)) {
@@ -88,20 +88,32 @@ export default class Redis extends Collection {
 
     const {indexes, prefix, redis} = this
 
-    return Promise.all(mapToArray(models, async model => {
+    return Promise.all(map(models, async model => {
       // Generate a new identifier if necessary.
       if (model.id === undefined) {
         model.id = generateUuid()
       }
+      const { id } = model
 
-      const success = await redis.sadd(prefix + '_ids', model.id)
+      const success = await redis.sadd(prefix + '_ids', id)
 
       // The entry already exists an we are not in replace mode.
       if (!success && !replace) {
-        throw new ModelAlreadyExists(model.id)
+        throw new ModelAlreadyExists(id)
       }
 
       // TODO: Remove existing fields.
+
+      // remove the previous values from indexes
+      if (replace && indexes.length !== 0) {
+        const previous = await redis.hgetall(`${prefix}:${id}`)
+        await asyncMap(indexes, index => {
+          const value = previous[index]
+          if (value !== undefined) {
+            return redis.srem(`${prefix}_${index}:${value}`, id)
+          }
+        })
+      }
 
       const params = []
       forEach(model, (value, name) => {
@@ -113,7 +125,7 @@ export default class Redis extends Collection {
         params.push(name, value)
       })
 
-      const key = `${prefix}:${model.id}`
+      const key = `${prefix}:${id}`
       const promises = [
         redis.del(key),
         redis.hmset(key, ...params)
@@ -127,7 +139,7 @@ export default class Redis extends Collection {
         }
 
         const key = prefix + '_' + index + ':' + value
-        promises.push(redis.sadd(key, model.id))
+        promises.push(redis.sadd(key, id))
       })
 
       await Promise.all(promises)
@@ -162,7 +174,7 @@ export default class Redis extends Collection {
       throw new Error('fields not indexed: ' + unfit.join())
     }
 
-    const keys = mapToArray(properties, (value, index) => `${prefix}_${index}:${value}`)
+    const keys = map(properties, (value, index) => `${prefix}_${index}:${value}`)
     return redis.sinter(...keys).then(ids => this._extract(ids))
   }
 
@@ -171,17 +183,29 @@ export default class Redis extends Collection {
       return
     }
 
-    const {prefix, redis} = this
+    const { indexes, prefix, redis } = this
 
-    // TODO: handle indexes.
+    // update main index
+    let promise = redis.srem(prefix + '_ids', ...ids)
 
-    return Promise.all([
-      // Remove the identifiers from the main index.
-      redis.srem(prefix + '_ids', ...ids),
+    // update other indexes
+    if (indexes.length !== 0) {
+      promise = Promise.all([ promise, asyncMap(ids, id =>
+        redis.hgetall(`${prefix}:${id}`).then(values =>
+          asyncMap(indexes, index => {
+            const value = values[index]
+            if (value !== undefined) {
+              return redis.srem(`${prefix}_${index}:${value}`, id)
+            }
+          })
+        )
+      ) ])
+    }
 
-      // Remove the models.
-      redis.del(mapToArray(ids, id => `${prefix}:${id}`))
-    ])
+    return promise.then(() =>
+      // remove the models
+      redis.del(map(ids, id => `${prefix}:${id}`))
+    )
   }
 
   _update (models) {
