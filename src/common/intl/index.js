@@ -48,6 +48,10 @@ const getMessage = (props, messageId, values, render) => {
     {render}
   </FormattedMessage>
 }
+getMessage.keyValue = (key, value) => getMessage('keyValue', {
+  key: <strong>{key}</strong>,
+  value
+})
 
 export { getMessage as default }
 

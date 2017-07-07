@@ -55,9 +55,9 @@ class JobParam extends Component {
       id
     } = this.props
 
-    return object
-    ? <span><strong>{object.type || paramKey}</strong>: {renderXoItem(object)} </span>
-    : <span><strong>{paramKey}:</strong> {String(id)} </span>
+    return object != null
+      ? _.keyValue(object.type || paramKey, renderXoItem(object))
+      : _.keyValue(paramKey, String(id))
   }
 }
 
@@ -111,6 +111,7 @@ const Log = props => <ul className='list-group'>
     return <li key={call.callKey} className='list-group-item'>
       <strong className='text-info'>{call.method}: </strong><JobCallStateInfos end={end} error={error} /><br />
       {map(call.params, (value, key) => [ <JobParam id={value} paramKey={key} key={key} />, <br /> ])}
+      {end !== undefined && _.keyValue(_('jobDuration'), <FormattedDuration duration={end - start} />)}
       {returnedValue != null && returnedValue.size !== undefined && <JobTransferredDataInfos start={start} end={end} size={returnedValue.size} />}
       {id !== undefined && <span>{' '}<JobReturn id={id} /></span>}
       {call.error &&
