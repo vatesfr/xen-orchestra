@@ -1,5 +1,5 @@
-import React from 'react'
 import _, { messages } from 'intl'
+import React from 'react'
 import { FormattedDate, injectIntl } from 'react-intl'
 import {
   every,
@@ -11,7 +11,7 @@ import {
   map,
   mapValues,
   reduce,
-  uniq
+  uniq,
 } from 'lodash'
 
 import ChooseSrForEachVdisModal from 'xo/choose-sr-for-each-vdis-modal'
@@ -129,7 +129,7 @@ const doImport = ({ backup, targetSrs, start }) => {
   }
   const importMethods = {
     delta: importDeltaBackup,
-    xva: importBackup
+    xva: importBackup,
   }
   info(_('importBackupTitle'), _('importBackupMessage'))
   try {
@@ -249,26 +249,17 @@ export default class Restore extends Component {
   }
 
   _listAll = async remotes => {
-    const remotesInfo = await Promise.all(map(remotes, async remote => listRemoteBackups(remote.id)))
+    const remotesBackups = await Promise.all(
+      map(remotes, remote => listRemoteBackups(remote.id))
+    )
 
     const backupInfoByVm = {}
 
-    forEach(remotesInfo, (remoteInfo, index) => {
-      const {
-        id: remoteId,
-        name: remoteName
-      } = remotes[index]
+    forEach(remotesBackups, (remoteBackups, index) => {
+      const { id: remoteId, name: remoteName } = remotes[index]
 
-      forEach(remoteInfo, backupInfo => {
-        const {
-          datetime,
-          disks,
-          id,
-          name,
-          tag,
-          type,
-          uuid
-        } = backupInfo
+      forEach(remoteBackups, backupInfo => {
+        const { datetime, disks, id, name, tag, type, uuid } = backupInfo
 
         const backup = {
           date: datetime * 1000,
@@ -276,10 +267,10 @@ export default class Restore extends Component {
           remoteId,
           remoteName,
           tag,
-          type
+          type,
         }
 
-        if (backupInfo.type === 'delta') {
+        if (type === 'delta') {
           backup.path = /^(.*)\..*$/.exec(id)[1]
           backup.id = uuid
           backup.vdis = disks
@@ -303,8 +294,16 @@ export default class Restore extends Component {
             tags: uniq(map(backups, 'tag')),
           })
         ),
-        simpleCount: reduce(backups, (sum, b) => b.type === 'xva' ? ++sum : sum, 0),
-        deltaCount: reduce(backups, (sum, b) => b.type === 'delta' ? ++sum : sum, 0)
+        simpleCount: reduce(
+          backups,
+          (sum, b) => (b.type === 'xva' ? ++sum : sum),
+          0
+        ),
+        deltaCount: reduce(
+          backups,
+          (sum, b) => (b.type === 'delta' ? ++sum : sum),
+          0
+        ),
       }
     })
     this.setState({ backupInfoByVm })
