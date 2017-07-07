@@ -1,6 +1,6 @@
 {
   "name": "xo-server",
-  "version": "5.10.1",
+  "version": "5.10.2",
   "license": "AGPL-3.0",
   "description": "Server part of Xen-Orchestra",
   "keywords": [
