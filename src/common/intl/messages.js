@@ -5,6 +5,8 @@ var forEach = require('lodash/forEach')
 var isString = require('lodash/isString')
 
 var messages = {
+  keyValue: '{key}: {value}',
+
   statusConnecting: 'Connecting',
   statusDisconnected: 'Disconnected',
   statusLoading: 'Loading…',

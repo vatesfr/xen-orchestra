@@ -8,6 +8,9 @@ addLocaleData(reactIntlData)
 // ===================================================================
 
 export default {
+  // Original text: "{key}: {value}"
+  keyValue: '{key} : {value}',
+
   // Original text: "Connecting"
   statusConnecting: 'Connexion…',
 
