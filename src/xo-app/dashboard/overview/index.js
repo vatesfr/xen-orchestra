@@ -2,15 +2,18 @@ import _ from 'intl'
 import ButtonGroup from 'button-group'
 import ChartistGraph from 'react-chartist'
 import Component from 'base-component'
-import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import propTypes from 'prop-types-decorator'
 import Link, { BlockLink } from 'link'
-import map from 'lodash/map'
 import HostsPatchesTable from 'hosts-patches-table'
 import React from 'react'
-import size from 'lodash/size'
 import Upgrade from 'xoa-upgrade'
+import {
+  forEach,
+  isEmpty,
+  map,
+  size
+} from 'lodash'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Row, Col } from 'grid'
 import {
@@ -29,6 +32,7 @@ import {
 } from 'utils'
 import {
   isSrWritable,
+  subscribePermissions,
   subscribeResourceSets,
   subscribeUsers
 } from 'xo'
@@ -63,13 +67,119 @@ class PatchesCard extends Component {
   }
 }
 
-// ===================================================================
-
-@addSubscriptions({
-  resourceSetsQuotas: cb => subscribeResourceSets(resourceSets => {
-    cb(resourceSets[0] != null && resourceSets[0].limits)
-  })
+@propTypes({
+  resourceSet: propTypes.object.isRequired
 })
+class ResouceSetCard extends Component {
+  _getQuotas = () => {
+    const resources = ['disk', 'memory', 'cpus']
+
+    const { limits } = this.props.resourceSet
+    const quotas = {}
+    forEach(resources, resource => {
+      if (limits[resource] != null) {
+        quotas[`${resource}Total`] = limits[resource].total
+        quotas[`${resource}Usage`] = limits[resource].total - limits[resource].available
+      } else {
+        quotas[`${resource}Total`] = quotas[`${resource}Usage`] = 0
+      }
+    })
+
+    return quotas
+  }
+
+  render () {
+    const quotas = this._getQuotas()
+
+    return <Card>
+      <CardHeader>
+        <Icon icon='menu-self-service' /> {this.props.resourceSet.name}
+      </CardHeader>
+      <CardBlock>
+        <Container>
+          <Row>
+            <Col mediumSize={4}>
+              <Card>
+                <CardHeader>
+                  <Icon icon='memory' /> {_('memoryStatePanel')}
+                </CardHeader>
+                <CardBlock className='dashboardItem'>
+                  <ChartistGraph
+                    data={{
+                      labels: ['Used Memory', 'Total Memory'],
+                      series: [quotas.memoryTotal, quotas.memoryUsage - quotas.memoryUsage]
+                    }}
+                    options={{ donut: true, donutWidth: 40, showLabel: false }}
+                    type='Pie'
+                  />
+                  <p className='text-xs-center'>
+                    {_('ofUsage', {
+                      total: formatSize(quotas.memoryTotal),
+                      usage: formatSize(quotas.memoryUsage)
+                    })}
+                  </p>
+                </CardBlock>
+              </Card>
+            </Col>
+            <Col mediumSize={4}>
+              <Card>
+                <CardHeader>
+                  <Icon icon='cpu' /> {_('cpuStatePanel')}
+                </CardHeader>
+                <CardBlock>
+                  <div className='ct-chart dashboardItem'>
+                    <ChartistGraph
+                      data={{
+                        labels: ['CPUs Usage', 'CPUs Total'],
+                        series: [quotas.cpusUsage, quotas.cpusTotal]
+                      }}
+                      options={{ showLabel: false, showGrid: false, distributeSeries: true }}
+                      type='Bar'
+                    />
+                    <p className='text-xs-center'>
+                      {_('ofUsage', {
+                        total: `${quotas.cpusTotal} CPUs`,
+                        usage: `${quotas.cpusUsage} CPUs`
+                      })}
+                    </p>
+                  </div>
+                </CardBlock>
+              </Card>
+            </Col>
+            <Col mediumSize={4}>
+              <Card>
+                <CardHeader>
+                  <Icon icon='disk' /> {_('srUsageStatePanel')}
+                </CardHeader>
+                <CardBlock>
+                  <div className='ct-chart dashboardItem'>
+                    <BlockLink to='/dashboard/health'>
+                      <ChartistGraph
+                        data={{
+                          labels: ['Used Space', 'Total Space'],
+                          series: [quotas.diskUsage, quotas.diskTotal - quotas.diskUsage]
+                        }}
+                        options={{ donut: true, donutWidth: 40, showLabel: false }}
+                        type='Pie'
+                      />
+                      <p className='text-xs-center'>
+                        {_('ofUsage', {
+                          total: formatSize(quotas.diskTotal),
+                          usage: formatSize(quotas.diskUsage)
+                        })}
+                      </p>
+                    </BlockLink>
+                  </div>
+                </CardBlock>
+              </Card>
+            </Col>
+          </Row>
+        </Container>
+      </CardBlock>
+    </Card>
+  }
+}
+
 @connectStore(() => {
   const getHosts = createGetObjectsOfType('host')
   const getVms = createGetObjectsOfType('VM')
@@ -124,7 +234,6 @@ class PatchesCard extends Component {
   return {
     hostMetrics: getHostMetrics,
     hosts: getHosts,
-    isAdmin,
     nAlarmMessages: getNumberOfAlarmMessages,
     nHosts: getNumberOfHosts,
     nPools: getNumberOfPools,
@@ -139,38 +248,11 @@ class PatchesCard extends Component {
     vmMetrics: getVmMetrics,
   }
 })
-export default class Overview extends Component {
+class DefaultCard extends Component {
   componentWillMount () {
     this.componentWillUnmount = subscribeUsers(users => {
       this.setState({ users })
     })
-  }
-
-  _getMetrics = () => {
-    const { props } = this
-    if (props.isAdmin || props.resourceSetsQuotas == null) {
-      return {
-        diskTotal: props.srMetrics.srTotal,
-        diskUsage: props.srMetrics.srUsage,
-        memoryTotal: props.hostMetrics.memoryTotal,
-        memoryUsage: props.hostMetrics.memoryUsage,
-        cpusTotal: props.hostMetrics.cpus,
-        cpusUsage: props.vmMetrics.vcpus
-      }
-    }
-
-    const resources = ['disk', 'memory', 'cpus']
-    const metrics = {}
-    forEach(resources, resource => {
-      if (props.resourceSetsQuotas[resource] != null) {
-        metrics[`${resource}Total`] = props.resourceSetsQuotas[resource].total
-        metrics[`${resource}Usage`] = props.resourceSetsQuotas[resource].total - props.resourceSetsQuotas[resource].available
-      } else {
-        metrics[`${resource}Total`] = metrics[`${resource}Usage`] = 0
-      }
-    })
-
-    return metrics
   }
 
   render () {
@@ -178,223 +260,237 @@ export default class Overview extends Component {
     const users = state && state.users
     const nUsers = size(users)
 
-    const {
-      diskTotal: srTotal,
-      diskUsage: srUsage,
-      memoryTotal,
-      memoryUsage,
-      cpusTotal: cpus,
-      cpusUsage: vcpus
-    } = this._getMetrics()
+    return <Container>
+      <Row>
+        <Col mediumSize={4}>
+          <Card>
+            <CardHeader>
+              <Icon icon='pool' /> {_('poolPanel', { pools: props.nPools })}
+            </CardHeader>
+            <CardBlock>
+              <p className={styles.bigCardContent}>
+                <Link to='/home?t=pool'>{props.nPools}</Link>
+              </p>
+            </CardBlock>
+          </Card>
+        </Col>
+        <Col mediumSize={4}>
+          <Card>
+            <CardHeader>
+              <Icon icon='host' /> {_('hostPanel', { hosts: props.nHosts })}
+            </CardHeader>
+            <CardBlock>
+              <p className={styles.bigCardContent}>
+                <Link to='/home?t=host'>{props.nHosts}</Link>
+              </p>
+            </CardBlock>
+          </Card>
+        </Col>
+        <Col mediumSize={4}>
+          <Card>
+            <CardHeader>
+              <Icon icon='vm' /> {_('vmPanel', { vms: props.nVms })}
+            </CardHeader>
+            <CardBlock>
+              <p className={styles.bigCardContent}>
+                <Link to='/home?s=&t=VM'>{props.nVms}</Link>
+              </p>
+            </CardBlock>
+          </Card>
+        </Col>
+      </Row>
+      <Row>
+        <Col mediumSize={4}>
+          <Card>
+            <CardHeader>
+              <Icon icon='memory' /> {_('memoryStatePanel')}
+            </CardHeader>
+            <CardBlock className='dashboardItem'>
+              <ChartistGraph
+                data={{
+                  labels: ['Used Memory', 'Total Memory'],
+                  series: [props.hostMetrics.memoryUsage, props.hostMetrics.memoryTotal - props.hostMetrics.memoryUsage]
+                }}
+                options={{ donut: true, donutWidth: 40, showLabel: false }}
+                type='Pie'
+              />
+              <p className='text-xs-center'>
+                {_('ofUsage', {
+                  total: formatSize(props.hostMetrics.memoryTotal),
+                  usage: formatSize(props.hostMetrics.memoryUsage)
+                })}
+              </p>
+            </CardBlock>
+          </Card>
+        </Col>
+        <Col mediumSize={4}>
+          <Card>
+            <CardHeader>
+              <Icon icon='cpu' /> {_('cpuStatePanel')}
+            </CardHeader>
+            <CardBlock>
+              <div className='ct-chart dashboardItem'>
+                <ChartistGraph
+                  data={{
+                    labels: ['vCPUs', 'CPUs'],
+                    series: [props.vmMetrics.vcpus, props.hostMetrics.cpus]
+                  }}
+                  options={{ showLabel: false, showGrid: false, distributeSeries: true }}
+                  type='Bar'
+                />
+                <p className='text-xs-center'>
+                  {_('ofUsage', {
+                    total: `${props.hostMetrics.cpus} CPUs`,
+                    usage: `${props.vmMetrics.vcpus} vCPUs`
+                  })}
+                </p>
+              </div>
+            </CardBlock>
+          </Card>
+        </Col>
+        <Col mediumSize={4}>
+          <Card>
+            <CardHeader>
+              <Icon icon='disk' /> {_('srUsageStatePanel')}
+            </CardHeader>
+            <CardBlock>
+              <div className='ct-chart dashboardItem'>
+                <ChartistGraph
+                  data={{
+                    labels: ['Used Space', 'Total Space'],
+                    series: [props.srMetrics.srUsage, props.srMetrics.srTotal - props.srMetrics.srUsage]
+                  }}
+                  options={{ donut: true, donutWidth: 40, showLabel: false }}
+                  type='Pie'
+                />
+                <p className='text-xs-center'>
+                  {_('ofUsage', {
+                    total: formatSize(props.srMetrics.srTotal),
+                    usage: formatSize(props.srMetrics.srUsage)
+                  })}
+                </p>
+              </div>
+            </CardBlock>
+          </Card>
+        </Col>
+      </Row>
+      <Row>
+        <Col mediumSize={4}>
+          <Card>
+            <CardHeader>
+              <Icon icon='alarm' /> {_('alarmMessage')}
+            </CardHeader>
+            <CardBlock>
+              <p className={styles.bigCardContent}>
+                <Link to='/dashboard/health' className={props.nAlarmMessages > 0 ? 'text-warning' : ''}>{props.nAlarmMessages}</Link>
+              </p>
+            </CardBlock>
+          </Card>
+        </Col>
+        <Col mediumSize={4}>
+          <Card>
+            <CardHeader>
+              <Icon icon='task' /> {_('taskStatePanel')}
+            </CardHeader>
+            <CardBlock>
+              <p className={styles.bigCardContent}>
+                <Link to='/tasks'>{props.nTasks}</Link>
+              </p>
+            </CardBlock>
+          </Card>
+        </Col>
+        <Col mediumSize={4}>
+          <Card>
+            <CardHeader>
+              <Icon icon='user' /> {_('usersStatePanel')}
+            </CardHeader>
+            <CardBlock>
+              <p className={styles.bigCardContent}>
+                {props.isAdmin
+                  ? <Link to='/settings/users'>{nUsers}</Link>
+                  : <p>{nUsers}</p>
+                }
+              </p>
+            </CardBlock>
+          </Card>
+        </Col>
+      </Row>
+      <Row>
+        <Col mediumSize={4}>
+          <Card>
+            <CardHeader>
+              <Icon icon='vm-force-shutdown' /> {_('vmStatePanel')}
+            </CardHeader>
+            <CardBlock className='dashboardItem'>
+              <BlockLink to='/home?t=VM'>
+                <ChartistGraph
+                  data={{
+                    labels: ['Running', 'Halted', 'Other'],
+                    series: [props.vmMetrics.running, props.vmMetrics.halted, props.vmMetrics.other]
+                  }}
+                  options={{ showLabel: false }}
+                  type='Pie'
+                />
+                <p className='text-xs-center'>
+                  {_('vmsStates', { running: props.vmMetrics.running, halted: props.vmMetrics.halted })}
+                </p>
+              </BlockLink>
+            </CardBlock>
+          </Card>
+        </Col>
+        <Col mediumSize={8}>
+          <Card>
+            <CardHeader>
+              <Icon icon='disk' /> {_('srTopUsageStatePanel')}
+            </CardHeader>
+            <CardBlock className='dashboardItem'>
+              <BlockLink to='/dashboard/health'>
+                <ChartistGraph
+                  style={{strokeWidth: '30px'}}
+                  data={{
+                    labels: map(props.topWritableSrs, 'name_label'),
+                    series: map(props.topWritableSrs, sr => (sr.physical_usage / sr.size) * 100)
+                  }}
+                  options={{ showLabel: false, showGrid: false, distributeSeries: true, high: 100 }}
+                  type='Bar'
+                />
+              </BlockLink>
+            </CardBlock>
+          </Card>
+        </Col>
+      </Row>
+      <Row>
+        <Col>
+          <PatchesCard hosts={props.hosts} />
+        </Col>
+      </Row>
+    </Container>
+  }
+}
+
+// ===================================================================
+
+@addSubscriptions({
+  resourceSets: subscribeResourceSets,
+  permissions: subscribePermissions
+})
+@connectStore({
+  isAdmin
+})
+export default class Overview extends Component {
+  render () {
+    const { props } = this
 
     return process.env.XOA_PLAN > 2
+      ? !isEmpty(props.resourceSets) && !props.isAdmin
         ? <Container>
-          <Row>
-            <Col mediumSize={4}>
-              <Card>
-                <CardHeader>
-                  <Icon icon='pool' /> {_('poolPanel', { pools: props.nPools })}
-                </CardHeader>
-                <CardBlock>
-                  <p className={styles.bigCardContent}>
-                    <Link to='/home?t=pool'>{props.nPools}</Link>
-                  </p>
-                </CardBlock>
-              </Card>
-            </Col>
-            <Col mediumSize={4}>
-              <Card>
-                <CardHeader>
-                  <Icon icon='host' /> {_('hostPanel', { hosts: props.nHosts })}
-                </CardHeader>
-                <CardBlock>
-                  <p className={styles.bigCardContent}>
-                    <Link to='/home?t=host'>{props.nHosts}</Link>
-                  </p>
-                </CardBlock>
-              </Card>
-            </Col>
-            <Col mediumSize={4}>
-              <Card>
-                <CardHeader>
-                  <Icon icon='vm' /> {_('vmPanel', { vms: props.nVms })}
-                </CardHeader>
-                <CardBlock>
-                  <p className={styles.bigCardContent}>
-                    <Link to='/home?s=&t=VM'>{props.nVms}</Link>
-                  </p>
-                </CardBlock>
-              </Card>
-            </Col>
-          </Row>
-          <Row>
-            <Col mediumSize={4}>
-              <Card>
-                <CardHeader>
-                  <Icon icon='memory' /> {_('memoryStatePanel')}
-                </CardHeader>
-                <CardBlock className='dashboardItem'>
-                  <ChartistGraph
-                    data={{
-                      labels: ['Used Memory', 'Total Memory'],
-                      series: [memoryUsage, memoryTotal - memoryUsage]
-                    }}
-                    options={{ donut: true, donutWidth: 40, showLabel: false }}
-                    type='Pie'
-                  />
-                  <p className='text-xs-center'>
-                    {_('ofUsage', {
-                      total: formatSize(memoryTotal),
-                      usage: formatSize(memoryUsage)
-                    })}
-                  </p>
-                </CardBlock>
-              </Card>
-            </Col>
-            <Col mediumSize={4}>
-              <Card>
-                <CardHeader>
-                  <Icon icon='cpu' /> {_('cpuStatePanel')}
-                </CardHeader>
-                <CardBlock>
-                  <div className='ct-chart dashboardItem'>
-                    <ChartistGraph
-                      data={{
-                        labels: ['vCPUs', 'CPUs'],
-                        series: [vcpus, cpus]
-                      }}
-                      options={{ showLabel: false, showGrid: false, distributeSeries: true }}
-                      type='Bar'
-                    />
-                    <p className='text-xs-center'>
-                      {_('ofUsage', {
-                        total: `${cpus} CPUs`,
-                        usage: `${vcpus} vCPUs`
-                      })}
-                    </p>
-                  </div>
-                </CardBlock>
-              </Card>
-            </Col>
-            <Col mediumSize={4}>
-              <Card>
-                <CardHeader>
-                  <Icon icon='disk' /> {_('srUsageStatePanel')}
-                </CardHeader>
-                <CardBlock>
-                  <div className='ct-chart dashboardItem'>
-                    <BlockLink to='/dashboard/health'>
-                      <ChartistGraph
-                        data={{
-                          labels: ['Used Space', 'Total Space'],
-                          series: [srUsage, srTotal - srUsage]
-                        }}
-                        options={{ donut: true, donutWidth: 40, showLabel: false }}
-                        type='Pie'
-                      />
-                      <p className='text-xs-center'>
-                        {_('ofUsage', {
-                          total: formatSize(srTotal),
-                          usage: formatSize(srUsage)
-                        })}
-                      </p>
-                    </BlockLink>
-                  </div>
-                </CardBlock>
-              </Card>
-            </Col>
-          </Row>
-          <Row>
-            <Col mediumSize={4}>
-              <Card>
-                <CardHeader>
-                  <Icon icon='alarm' /> {_('alarmMessage')}
-                </CardHeader>
-                <CardBlock>
-                  <p className={styles.bigCardContent}>
-                    <Link to='/dashboard/health' className={props.nAlarmMessages > 0 ? 'text-warning' : ''}>{props.nAlarmMessages}</Link>
-                  </p>
-                </CardBlock>
-              </Card>
-            </Col>
-            <Col mediumSize={4}>
-              <Card>
-                <CardHeader>
-                  <Icon icon='task' /> {_('taskStatePanel')}
-                </CardHeader>
-                <CardBlock>
-                  <p className={styles.bigCardContent}>
-                    <Link to='/tasks'>{props.nTasks}</Link>
-                  </p>
-                </CardBlock>
-              </Card>
-            </Col>
-            <Col mediumSize={4}>
-              <Card>
-                <CardHeader>
-                  <Icon icon='user' /> {_('usersStatePanel')}
-                </CardHeader>
-                <CardBlock>
-                  <p className={styles.bigCardContent}>
-                    {props.isAdmin
-                      ? <Link to='/settings/users'>{nUsers}</Link>
-                      : <p>{nUsers}</p>
-                    }
-                  </p>
-                </CardBlock>
-              </Card>
-            </Col>
-          </Row>
-          <Row>
-            <Col mediumSize={4}>
-              <Card>
-                <CardHeader>
-                  <Icon icon='vm-force-shutdown' /> {_('vmStatePanel')}
-                </CardHeader>
-                <CardBlock className='dashboardItem'>
-                  <BlockLink to='/home?t=VM'>
-                    <ChartistGraph
-                      data={{
-                        labels: ['Running', 'Halted', 'Other'],
-                        series: [props.vmMetrics.running, props.vmMetrics.halted, props.vmMetrics.other]
-                      }}
-                      options={{ showLabel: false }}
-                      type='Pie'
-                    />
-                    <p className='text-xs-center'>
-                      {_('vmsStates', { running: props.vmMetrics.running, halted: props.vmMetrics.halted })}
-                    </p>
-                  </BlockLink>
-                </CardBlock>
-              </Card>
-            </Col>
-            <Col mediumSize={8}>
-              <Card>
-                <CardHeader>
-                  <Icon icon='disk' /> {_('srTopUsageStatePanel')}
-                </CardHeader>
-                <CardBlock className='dashboardItem'>
-                  <BlockLink to='/dashboard/health'>
-                    <ChartistGraph
-                      style={{strokeWidth: '30px'}}
-                      data={{
-                        labels: map(props.topWritableSrs, 'name_label'),
-                        series: map(props.topWritableSrs, sr => (sr.physical_usage / sr.size) * 100)
-                      }}
-                      options={{ showLabel: false, showGrid: false, distributeSeries: true, high: 100 }}
-                      type='Bar'
-                    />
-                  </BlockLink>
-                </CardBlock>
-              </Card>
-            </Col>
-          </Row>
-          <Row>
-            <Col>
-              <PatchesCard hosts={props.hosts} />
-            </Col>
-          </Row>
+          {map(props.resourceSets, resourceSet => <Row key={resourceSet.id}>
+            <ResouceSetCard key={resourceSet.id} resourceSet={resourceSet} />
+          </Row>)}
         </Container>
-        : <Container><Upgrade place='dashboard' available={3} /></Container>
+        : !isEmpty(props.permissions) || props.isAdmin
+          ? <DefaultCard isAdmin={props.isAdmin} />
+          : <h2>{_('noEnoughPermissionsError')}</h2>
+      : <Container><Upgrade place='dashboard' available={3} /></Container>
   }
 }

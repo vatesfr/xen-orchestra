@@ -919,6 +919,7 @@ const messages = {
   srFree: 'free',
   srUsageStatePanel: 'Storage Usage',
   srTopUsageStatePanel: 'Top 5 SR Usage (in %)',
+  noEnoughPermissionsError: 'Not enough permissions!',
   vmsStates: '{running, number} running ({halted, number} halted)',
   dashboardStatsButtonRemoveAll: 'Clear selection',
   dashboardStatsButtonAddAllHost: 'Add all hosts',
