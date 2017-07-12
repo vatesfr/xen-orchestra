@@ -1,4 +1,4 @@
-import _ from 'intl'
+import _, { messages } from 'intl'
 import ButtonGroup from 'button-group'
 import ChartistGraph from 'react-chartist'
 import Component from 'base-component'
@@ -8,6 +8,7 @@ import Link, { BlockLink } from 'link'
 import HostsPatchesTable from 'hosts-patches-table'
 import React from 'react'
 import Upgrade from 'xoa-upgrade'
+import { injectIntl } from 'react-intl'
 import {
   forEach,
   isEmpty,
@@ -70,26 +71,44 @@ class PatchesCard extends Component {
 @propTypes({
   resourceSet: propTypes.object.isRequired
 })
-class ResouceSetCard extends Component {
-  _getQuotas = () => {
-    const resources = ['disk', 'memory', 'cpus']
+@injectIntl
+class ResourceSetCard extends Component {
+  _getQuotas = createSelector(
+    () => this.props.resourceSet.limits,
+    limits => {
+      const resources = ['disk', 'memory', 'cpus']
+      const quotas = {}
 
-    const { limits } = this.props.resourceSet
-    const quotas = {}
-    forEach(resources, resource => {
-      if (limits[resource] != null) {
-        quotas[`${resource}Total`] = limits[resource].total
-        quotas[`${resource}Usage`] = limits[resource].total - limits[resource].available
-      } else {
-        quotas[`${resource}Total`] = quotas[`${resource}Usage`] = 0
-      }
-    })
+      forEach(resources, resource => {
+        if (limits[resource] != null) {
+          const {
+            available,
+            total
+          } = limits[resource]
 
-    return quotas
-  }
+          quotas[`${resource}`] = {
+            total: total,
+            usage: total - available
+          }
+        } else {
+          quotas[`${resource}`] = {
+            total: 0,
+            usage: 0
+          }
+        }
+      })
+
+      return quotas
+    }
+  )
 
   render () {
-    const quotas = this._getQuotas()
+    const {
+      cpus,
+      disk,
+      memory
+    } = this._getQuotas()
+    const { formatMessage } = this.props.intl
 
     return <Card>
       <CardHeader>
@@ -106,16 +125,16 @@ class ResouceSetCard extends Component {
                 <CardBlock className='dashboardItem'>
                   <ChartistGraph
                     data={{
-                      labels: ['Used Memory', 'Total Memory'],
-                      series: [quotas.memoryTotal, quotas.memoryUsage - quotas.memoryUsage]
+                      labels: [formatMessage(messages.usedMemory), formatMessage(messages.totalMemory)],
+                      series: [memory.total, memory.total - memory.usage]
                     }}
                     options={{ donut: true, donutWidth: 40, showLabel: false }}
                     type='Pie'
                   />
                   <p className='text-xs-center'>
                     {_('ofUsage', {
-                      total: formatSize(quotas.memoryTotal),
-                      usage: formatSize(quotas.memoryUsage)
+                      total: formatSize(memory.total),
+                      usage: formatSize(memory.usage)
                     })}
                   </p>
                 </CardBlock>
@@ -130,16 +149,16 @@ class ResouceSetCard extends Component {
                   <div className='ct-chart dashboardItem'>
                     <ChartistGraph
                       data={{
-                        labels: ['CPUs Usage', 'CPUs Total'],
-                        series: [quotas.cpusUsage, quotas.cpusTotal]
+                        labels: [formatMessage(messages.usedCpus), formatMessage(messages.totalCpus)],
+                        series: [cpus.usage, cpus.total]
                       }}
                       options={{ showLabel: false, showGrid: false, distributeSeries: true }}
                       type='Bar'
                     />
                     <p className='text-xs-center'>
-                      {_('ofUsage', {
-                        total: `${quotas.cpusTotal} CPUs`,
-                        usage: `${quotas.cpusUsage} CPUs`
+                      {_('resourceSetOfUsage', {
+                        total: `${cpus.total}`,
+                        usage: `${cpus.usage}`
                       })}
                     </p>
                   </div>
@@ -153,22 +172,20 @@ class ResouceSetCard extends Component {
                 </CardHeader>
                 <CardBlock>
                   <div className='ct-chart dashboardItem'>
-                    <BlockLink to='/dashboard/health'>
-                      <ChartistGraph
-                        data={{
-                          labels: ['Used Space', 'Total Space'],
-                          series: [quotas.diskUsage, quotas.diskTotal - quotas.diskUsage]
-                        }}
-                        options={{ donut: true, donutWidth: 40, showLabel: false }}
-                        type='Pie'
-                      />
-                      <p className='text-xs-center'>
-                        {_('ofUsage', {
-                          total: formatSize(quotas.diskTotal),
-                          usage: formatSize(quotas.diskUsage)
-                        })}
-                      </p>
-                    </BlockLink>
+                    <ChartistGraph
+                      data={{
+                        labels: [formatMessage(messages.usedSpace), formatMessage(messages.totalSpace)],
+                        series: [disk.usage, disk.total - disk.usage]
+                      }}
+                      options={{ donut: true, donutWidth: 40, showLabel: false }}
+                      type='Pie'
+                    />
+                    <p className='text-xs-center'>
+                      {_('ofUsage', {
+                        total: formatSize(disk.total),
+                        usage: formatSize(disk.usage)
+                      })}
+                    </p>
                   </div>
                 </CardBlock>
               </Card>
@@ -248,6 +265,7 @@ class ResouceSetCard extends Component {
     vmMetrics: getVmMetrics,
   }
 })
+@injectIntl
 class DefaultCard extends Component {
   componentWillMount () {
     this.componentWillUnmount = subscribeUsers(users => {
@@ -259,6 +277,8 @@ class DefaultCard extends Component {
     const { props, state } = this
     const users = state && state.users
     const nUsers = size(users)
+
+    const { formatMessage } = props.intl
 
     return <Container>
       <Row>
@@ -308,7 +328,7 @@ class DefaultCard extends Component {
             <CardBlock className='dashboardItem'>
               <ChartistGraph
                 data={{
-                  labels: ['Used Memory', 'Total Memory'],
+                  labels: [formatMessage(messages.usedMemory), formatMessage(messages.totalMemory)],
                   series: [props.hostMetrics.memoryUsage, props.hostMetrics.memoryTotal - props.hostMetrics.memoryUsage]
                 }}
                 options={{ donut: true, donutWidth: 40, showLabel: false }}
@@ -332,7 +352,7 @@ class DefaultCard extends Component {
               <div className='ct-chart dashboardItem'>
                 <ChartistGraph
                   data={{
-                    labels: ['vCPUs', 'CPUs'],
+                    labels: [formatMessage(messages.defaultUsedCpus), formatMessage(messages.totalCpus)],
                     series: [props.vmMetrics.vcpus, props.hostMetrics.cpus]
                   }}
                   options={{ showLabel: false, showGrid: false, distributeSeries: true }}
@@ -355,20 +375,22 @@ class DefaultCard extends Component {
             </CardHeader>
             <CardBlock>
               <div className='ct-chart dashboardItem'>
-                <ChartistGraph
-                  data={{
-                    labels: ['Used Space', 'Total Space'],
-                    series: [props.srMetrics.srUsage, props.srMetrics.srTotal - props.srMetrics.srUsage]
-                  }}
-                  options={{ donut: true, donutWidth: 40, showLabel: false }}
-                  type='Pie'
-                />
-                <p className='text-xs-center'>
-                  {_('ofUsage', {
-                    total: formatSize(props.srMetrics.srTotal),
-                    usage: formatSize(props.srMetrics.srUsage)
-                  })}
-                </p>
+                <BlockLink to='/dashboard/health'>
+                  <ChartistGraph
+                    data={{
+                      labels: [formatMessage(messages.usedSpace), formatMessage(messages.totalSpace)],
+                      series: [props.srMetrics.srUsage, props.srMetrics.srTotal - props.srMetrics.srUsage]
+                    }}
+                    options={{ donut: true, donutWidth: 40, showLabel: false }}
+                    type='Pie'
+                  />
+                  <p className='text-xs-center'>
+                    {_('ofUsage', {
+                      total: formatSize(props.srMetrics.srTotal),
+                      usage: formatSize(props.srMetrics.srUsage)
+                    })}
+                  </p>
+                </BlockLink>
               </div>
             </CardBlock>
           </Card>
@@ -480,17 +502,24 @@ class DefaultCard extends Component {
 export default class Overview extends Component {
   render () {
     const { props } = this
+    const showResourceSets = !isEmpty(props.resourceSets) && !props.isAdmin
+    const showDefault = !isEmpty(props.permissions) || props.isAdmin
 
-    return process.env.XOA_PLAN > 2
-      ? !isEmpty(props.resourceSets) && !props.isAdmin
-        ? <Container>
-          {map(props.resourceSets, resourceSet => <Row key={resourceSet.id}>
-            <ResouceSetCard key={resourceSet.id} resourceSet={resourceSet} />
-          </Row>)}
-        </Container>
-        : !isEmpty(props.permissions) || props.isAdmin
-          ? <DefaultCard isAdmin={props.isAdmin} />
-          : <h2>{_('noEnoughPermissionsError')}</h2>
-      : <Container><Upgrade place='dashboard' available={3} /></Container>
+    if (process.env.XOA_PLAN < 3) {
+      return <Container><Upgrade place='dashboard' available={3} /></Container>
+    }
+
+    if (!showDefault && !showResourceSets) {
+      return <h2>{_('notEnoughPermissionsError')}</h2>
+    }
+
+    return <container>
+      {showResourceSets
+        ? map(props.resourceSets, resourceSet => <Row key={resourceSet.id}>
+          <ResourceSetCard key={resourceSet.id} resourceSet={resourceSet} />
+        </Row>)
+        : <DefaultCard isAdmin={props.isAdmin} />
+      }
+    </container>
   }
 }
