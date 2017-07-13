@@ -42,7 +42,7 @@ import styles from './index.css'
 
 // ===================================================================
 
-const resources = ['disk', 'memory', 'cpus']
+const RESOURCES = ['disk', 'memory', 'cpus']
 
 // ===================================================================
 
@@ -82,7 +82,7 @@ class ResourceSetCard extends Component {
     limits => {
       const quotas = {}
 
-      forEach(resources, resource => {
+      forEach(RESOURCES, resource => {
         if (limits[resource] != null) {
           const {
             available,
@@ -114,6 +114,7 @@ class ResourceSetCard extends Component {
       memory
     } = this._getQuotas()
     const { formatMessage } = this.props.intl
+    const labels = [ formatMessage(messages.availableResourceLabel), formatMessage(messages.usedResourceLabel) ]
 
     return <Card>
       <CardHeader>
@@ -130,7 +131,7 @@ class ResourceSetCard extends Component {
                 <CardBlock>
                   <ChartistGraph
                     data={{
-                      labels: [ formatMessage(messages.availableResourceLabel), formatMessage(messages.usedResourceLabel) ],
+                      labels,
                       series: [ cpus.available, cpus.usage ]
                     }}
                     options={{ donut: true, donutWidth: 40, showLabel: false }}
@@ -153,7 +154,7 @@ class ResourceSetCard extends Component {
                 <CardBlock className='dashboardItem'>
                   <ChartistGraph
                     data={{
-                      labels: [formatMessage(messages.availableResourceLabel), formatMessage(messages.usedResourceLabel)],
+                      labels,
                       series: [memory.available, memory.usage]
                     }}
                     options={{ donut: true, donutWidth: 40, showLabel: false }}
@@ -176,7 +177,7 @@ class ResourceSetCard extends Component {
                 <CardBlock>
                   <ChartistGraph
                     data={{
-                      labels: [ formatMessage(messages.availableResourceLabel), formatMessage(messages.usedResourceLabel) ],
+                      labels,
                       series: [disk.available, disk.usage]
                     }}
                     options={{ donut: true, donutWidth: 40, showLabel: false }}
@@ -448,7 +449,7 @@ class DefaultCard extends Component {
               <BlockLink to='/home?t=VM'>
                 <ChartistGraph
                   data={{
-                    labels: ['Running', 'Halted', 'Other'],
+                    labels: [formatMessage(messages.vmStateRunning), formatMessage(messages.vmStateHalted), formatMessage(messages.vmStateOther)],
                     series: [props.vmMetrics.running, props.vmMetrics.halted, props.vmMetrics.other]
                   }}
                   options={{ showLabel: false }}

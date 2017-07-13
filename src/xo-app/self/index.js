@@ -595,6 +595,7 @@ class ResourceSet extends Component {
       subjects,
       objectsByType,
     } = resourceSet
+    const labels = [ formatMessage(messages.availableResourceLabel), formatMessage(messages.usedResourceLabel) ]
 
     return [
       <li key='subjects' className='list-group-item'>
@@ -643,7 +644,7 @@ class ResourceSet extends Component {
                   <div>
                     <ChartistGraph
                       data={{
-                        labels: [ formatMessage(messages.availableResourceLabel), formatMessage(messages.usedResourceLabel) ],
+                        labels,
                         series: [ cpus.available, cpus.total - cpus.available ]
                       }}
                       options={{
@@ -676,7 +677,7 @@ class ResourceSet extends Component {
                   <div>
                     <ChartistGraph
                       data={{
-                        labels: [ formatMessage(messages.availableResourceLabel), formatMessage(messages.usedResourceLabel) ],
+                        labels,
                         series: [ memory.available, memory.total - memory.available ]
                       }}
                       options={{
@@ -709,7 +710,7 @@ class ResourceSet extends Component {
                   <div>
                     <ChartistGraph
                       data={{
-                        labels: [ formatMessage(messages.availableResourceLabel), formatMessage(messages.usedResourceLabel) ],
+                        labels,
                         series: [ disk.available, disk.total - disk.available ]
                       }}
                       options={{
