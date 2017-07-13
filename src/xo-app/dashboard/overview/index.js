@@ -42,6 +42,10 @@ import styles from './index.css'
 
 // ===================================================================
 
+const resources = ['disk', 'memory', 'cpus']
+
+// ===================================================================
+
 @propTypes({
   hosts: propTypes.object.isRequired,
 })
@@ -76,7 +80,6 @@ class ResourceSetCard extends Component {
   _getQuotas = createSelector(
     () => this.props.resourceSet.limits,
     limits => {
-      const resources = ['disk', 'memory', 'cpus']
       const quotas = {}
 
       forEach(resources, resource => {
@@ -86,12 +89,14 @@ class ResourceSetCard extends Component {
             total
           } = limits[resource]
 
-          quotas[`${resource}`] = {
-            total: total,
+          quotas[resource] = {
+            available,
+            total,
             usage: total - available
           }
         } else {
-          quotas[`${resource}`] = {
+          quotas[resource] = {
+            available: 0,
             total: 0,
             usage: 0
           }
@@ -120,19 +125,42 @@ class ResourceSetCard extends Component {
             <Col mediumSize={4}>
               <Card>
                 <CardHeader>
-                  <Icon icon='memory' /> {_('memoryStatePanel')}
+                  <Icon icon='cpu' /> {_('cpuStatePanel')}
                 </CardHeader>
-                <CardBlock className='dashboardItem'>
+                <CardBlock>
                   <ChartistGraph
                     data={{
-                      labels: [formatMessage(messages.usedMemory), formatMessage(messages.totalMemory)],
-                      series: [memory.total, memory.total - memory.usage]
+                      labels: [ formatMessage(messages.availableResourceLabel), formatMessage(messages.usedResourceLabel) ],
+                      series: [ cpus.available, cpus.usage ]
                     }}
                     options={{ donut: true, donutWidth: 40, showLabel: false }}
                     type='Pie'
                   />
                   <p className='text-xs-center'>
-                    {_('ofUsage', {
+                    {_('resourceSetQuota', {
+                      total: cpus.total.toString(),
+                      usage: cpus.usage.toString()
+                    })}
+                  </p>
+                </CardBlock>
+              </Card>
+            </Col>
+            <Col mediumSize={4}>
+              <Card>
+                <CardHeader>
+                  <Icon icon='memory' /> {_('memoryStatePanel')}
+                </CardHeader>
+                <CardBlock className='dashboardItem'>
+                  <ChartistGraph
+                    data={{
+                      labels: [formatMessage(messages.availableResourceLabel), formatMessage(messages.usedResourceLabel)],
+                      series: [memory.available, memory.usage]
+                    }}
+                    options={{ donut: true, donutWidth: 40, showLabel: false }}
+                    type='Pie'
+                  />
+                  <p className='text-xs-center'>
+                    {_('resourceSetQuota', {
                       total: formatSize(memory.total),
                       usage: formatSize(memory.usage)
                     })}
@@ -143,50 +171,23 @@ class ResourceSetCard extends Component {
             <Col mediumSize={4}>
               <Card>
                 <CardHeader>
-                  <Icon icon='cpu' /> {_('cpuStatePanel')}
-                </CardHeader>
-                <CardBlock>
-                  <div className='ct-chart dashboardItem'>
-                    <ChartistGraph
-                      data={{
-                        labels: [formatMessage(messages.usedCpus), formatMessage(messages.totalCpus)],
-                        series: [cpus.usage, cpus.total]
-                      }}
-                      options={{ showLabel: false, showGrid: false, distributeSeries: true }}
-                      type='Bar'
-                    />
-                    <p className='text-xs-center'>
-                      {_('resourceSetOfUsage', {
-                        total: `${cpus.total}`,
-                        usage: `${cpus.usage}`
-                      })}
-                    </p>
-                  </div>
-                </CardBlock>
-              </Card>
-            </Col>
-            <Col mediumSize={4}>
-              <Card>
-                <CardHeader>
                   <Icon icon='disk' /> {_('srUsageStatePanel')}
                 </CardHeader>
                 <CardBlock>
-                  <div className='ct-chart dashboardItem'>
-                    <ChartistGraph
-                      data={{
-                        labels: [formatMessage(messages.usedSpace), formatMessage(messages.totalSpace)],
-                        series: [disk.usage, disk.total - disk.usage]
-                      }}
-                      options={{ donut: true, donutWidth: 40, showLabel: false }}
-                      type='Pie'
-                    />
-                    <p className='text-xs-center'>
-                      {_('ofUsage', {
-                        total: formatSize(disk.total),
-                        usage: formatSize(disk.usage)
-                      })}
-                    </p>
-                  </div>
+                  <ChartistGraph
+                    data={{
+                      labels: [ formatMessage(messages.availableResourceLabel), formatMessage(messages.usedResourceLabel) ],
+                      series: [disk.available, disk.usage]
+                    }}
+                    options={{ donut: true, donutWidth: 40, showLabel: false }}
+                    type='Pie'
+                  />
+                  <p className='text-xs-center'>
+                    {_('resourceSetQuota', {
+                      total: formatSize(disk.total),
+                      usage: formatSize(disk.usage)
+                    })}
+                  </p>
                 </CardBlock>
               </Card>
             </Col>
@@ -352,16 +353,16 @@ class DefaultCard extends Component {
               <div className='ct-chart dashboardItem'>
                 <ChartistGraph
                   data={{
-                    labels: [formatMessage(messages.defaultUsedCpus), formatMessage(messages.totalCpus)],
+                    labels: [formatMessage(messages.usedVCpus), formatMessage(messages.totalCpus)],
                     series: [props.vmMetrics.vcpus, props.hostMetrics.cpus]
                   }}
                   options={{ showLabel: false, showGrid: false, distributeSeries: true }}
                   type='Bar'
                 />
                 <p className='text-xs-center'>
-                  {_('ofUsage', {
-                    total: `${props.hostMetrics.cpus} CPUs`,
-                    usage: `${props.vmMetrics.vcpus} vCPUs`
+                  {_('ofCPUsUsage', {
+                    total: props.hostMetrics.cpus,
+                    usage: props.vmMetrics.vcpus
                   })}
                 </p>
               </div>
@@ -513,13 +514,13 @@ export default class Overview extends Component {
       return <h2>{_('notEnoughPermissionsError')}</h2>
     }
 
-    return <container>
+    return <Container>
       {showResourceSets
         ? map(props.resourceSets, resourceSet => <Row key={resourceSet.id}>
-          <ResourceSetCard key={resourceSet.id} resourceSet={resourceSet} />
+          <ResourceSetCard resourceSet={resourceSet} />
         </Row>)
         : <DefaultCard isAdmin={props.isAdmin} />
       }
-    </container>
+    </Container>
   }
 }
