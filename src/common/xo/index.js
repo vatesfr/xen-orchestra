@@ -1326,6 +1326,10 @@ export const rescanSrs = srs => (
   ))
 )
 
+export const getUnheathlyChains = sr => {
+  return _call('sr.getUnheathlyChains', { id: resolveId(sr) })
+}
+
 // PBDs --------------------------------------------------------------
 
 export const connectPbd = pbd => (
