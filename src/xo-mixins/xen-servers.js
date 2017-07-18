@@ -99,6 +99,20 @@ export default class {
     username
   }) {
     const server = await this._getXenServer(id)
+    const xapi = this._xapis[id]
+    const requireDisconnected =
+      allowUnauthorized !== undefined ||
+      host !== undefined ||
+      password !== undefined ||
+      username !== undefined
+
+    if (
+      requireDisconnected &&
+      xapi !== undefined &&
+      xapi.status !== 'disconnected'
+    ) {
+      throw new Error('this entry require disconnecting the server to update it')
+    }
 
     if (label !== undefined) server.set('label', label || undefined)
     if (host) server.set('host', host)
@@ -115,8 +129,7 @@ export default class {
 
     if (readOnly !== undefined) {
       server.set('readOnly', readOnly ? 'true' : undefined)
-      const xapi = this._xapis[id]
-      if (xapi) {
+      if (xapi !== undefined) {
         xapi.readOnly = readOnly
       }
     }
