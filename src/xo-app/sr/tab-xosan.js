@@ -64,16 +64,16 @@ export default class TabXosan extends Component {
   async _removeBricks () {
     const bricks = filter(Object.keys(this.state.selectedBricks), k => this.state.selectedBricks[k])
     await removeXosanBricks(this.props.sr.id, bricks)
-    this.setState({selectedBricks:{}})
+    this.setState({selectedBricks: {}})
     await this._refreshInfo()
   }
 
-  async _addBricks({srs}) {
-    await addXosanBricks(this.props.sr.id, srs.map(sr=>sr.id))
+  async _addBricks ({srs}) {
+    await addXosanBricks(this.props.sr.id, srs.map(sr => sr.id))
     await this._refreshInfo()
   }
 
-  _selectNode(event, brickName) {
+  _selectNode (event, brickName) {
     const selectedBricks = { ...this.state.selectedBricks }
     selectedBricks[brickName] = event.target.checked
     this.setState({
@@ -219,26 +219,26 @@ export default class TabXosan extends Component {
             <Col size={5}>{b}</Col>
           </Row>
         )}
-        <ActionButton
-          btnStyle='success'
-          icon='remove'
-          handler={::this._removeBricks}
+          <ActionButton
+            btnStyle='success'
+            icon='remove'
+            handler={::this._removeBricks}
         >Remove</ActionButton>
-        </div> :
-          <div>No brick selected for removal.</div>}
+        </div>
+          : <div>No brick selected for removal.</div>}
       </div>
       <h2>Add bricks</h2>
       <div>
         <Row><Col size={2}>Select {strippedVolumeInfo && strippedVolumeInfo['disperseCount']} SRs: </Col>
           <Col size={5}><SelectSr multi predicate={this._getSrPredicate(null)} onChange={this.linkState('added-srs')}
-                                  value={this.state['added-srs']}/>
-          <ActionButton
-            btnStyle='success'
-            icon='add'
-            handler={::this._addBricks}
-            handlerParam={{ srs: this.state['added-srs'] }}
+            value={this.state['added-srs']} />
+            <ActionButton
+              btnStyle='success'
+              icon='add'
+              handler={::this._addBricks}
+              handlerParam={{ srs: this.state['added-srs'] }}
           >Add</ActionButton>
-        </Col></Row>
+          </Col></Row>
       </div>
       {strippedVolumeInfo && <div>
         <h2>Volume</h2>
