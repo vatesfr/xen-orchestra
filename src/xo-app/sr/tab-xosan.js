@@ -130,6 +130,14 @@ export default class TabXosan extends Component {
     const orderedBrickList = map(xosanConfig['nodes'], node => brickByName[node.brickName])
     const selectedBrickNames = filter(Object.keys(this.state.selectedBricks), k => this.state.selectedBricks[k])
     return <Container>
+      <ul>
+        <li>volume
+          status: {volumeStatus ? (volumeStatus['commandStatus'] ? 'ok' : volumeStatus.error) : 'running' }</li>
+        <li>volume heal: {volumeHeal ? (volumeHeal['commandStatus'] ? 'ok' : volumeHeal.error) : 'running' }</li>
+        <li>volume status
+          detail: {volumeStatusDetail ? (volumeStatusDetail['commandStatus'] ? 'ok' : volumeStatusDetail.error) : 'running' }</li>
+        <li>volume info: {volumeInfo ? (volumeInfo['commandStatus'] ? 'ok' : volumeInfo.error) : 'running' }</li>
+      </ul>
       {map(orderedBrickList, (node, i) =>
         <div key={node.config.brickName}>
           <h3><input
