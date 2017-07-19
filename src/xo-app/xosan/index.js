@@ -39,7 +39,6 @@ import {
 import {
   computeXosanPossibleOptions,
   createXosanSR,
-  addXosanBrick,
   downloadAndInstallXosanPack,
   registerXosan,
   restartHostsAgents,
@@ -74,17 +73,8 @@ export class XosanVolumesTable extends Component {
     }
   }
 
-  _addBrick = (params) => {
-    addXosanBrick(params.xosansr.id, params.lvmsr.id)
-  }
   render () {
-    let glusterType = null
-    const { xosansrs, hosts, lvmsrs } = this.props
-    try {
-      glusterType = JSON.parse(xosansrs[0].other_config['xo:xosan_config'])['type']
-    } catch (e) {
-      // pass
-    }
+    const { xosansrs, hosts } = this.props
     return <div>
       <h3>{_('xosanSrTitle')}</h3>
       <table className='table table-striped'>
@@ -130,64 +120,6 @@ export class XosanVolumesTable extends Component {
           })}
         </tbody>
       </table>
-      {/* TODO: FOR NOW WE ALTER THE FIRST XOSAN SR IN THE POOL */
-        (glusterType === 'replica' || glusterType === 'replica_arbiter') &&
-        <div>
-          <h3>Add brick</h3>
-          <table className='table table-striped'>
-            <thead>
-              <tr>
-                <th />
-                <th>{_('xosanName')}</th>
-                <th>{_('xosanHost')}</th>
-                <th>{_('xosanSize')}</th>
-                <th>{_('xosanUsedSpace')}</th>
-              </tr>
-            </thead>
-            <tbody>{map(lvmsrs, lvmsr => {
-              const host = find(hosts, ['id', lvmsr.$container])
-
-              return <tr key={lvmsr.id}>
-                <td>
-                  <ActionButton
-                    btnStyle='success'
-                    handler={this._addBrick}
-                    handlerParam={({
-                      lvmsr,
-                      xosansr: xosansrs[0]
-                    })}
-                    icon='add' >
-                    {_('xosanAdd')}
-                  </ActionButton>
-                </td>
-                <td>
-                  <Link to={`/srs/${lvmsr.id}/general`}>{lvmsr.name_label}</Link>
-                </td>
-                <td>
-                  <Link to={`/hosts/${host.id}/general`}>{host.name_label}</Link>
-                </td>
-                <td>
-                  {formatSize(lvmsr.size)}
-                </td>
-                <td>
-                  {lvmsr.size > 0 &&
-                  <Tooltip content={_('spaceLeftTooltip', {
-                    used: String(Math.round((lvmsr.physical_usage / lvmsr.size) * 100)),
-                    free: formatSize(lvmsr.size - lvmsr.physical_usage)
-                  })}>
-                    <progress
-                      className='progress'
-                      max='100'
-                      value={(lvmsr.physical_usage / lvmsr.size) * 100}
-                  />
-                  </Tooltip>
-                }
-                </td>
-              </tr>
-            })}
-            </tbody>
-          </table>
-        </div>}
     </div>
   }
 }
@@ -347,6 +279,7 @@ class PoolAvailableSrs extends Component {
         </tbody>
       </table>
       <h3>{_('xosanSuggestions')}</h3>
+      (brick size has been limited for the beta)
       {isEmpty(suggestions)
         ? <em>{_('xosanSelect2Srs')}</em>
         : <div>

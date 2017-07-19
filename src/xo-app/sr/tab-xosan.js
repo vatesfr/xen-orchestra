@@ -7,7 +7,8 @@ import { Container, Row, Col } from 'grid'
 import { SelectSr } from 'select-objects'
 import Tooltip from 'tooltip'
 import {
-  map
+  map,
+  filter
 } from 'lodash'
 import {
   createGetObjectsOfType,
@@ -19,7 +20,9 @@ import {
 } from 'utils'
 import {
   getVolumeInfo,
-  replaceXosanBrick
+  replaceXosanBrick,
+  removeXosanBricks,
+  addXosanBricks
 } from 'xo'
 
 @connectStore(() => ({
@@ -27,6 +30,9 @@ import {
   srs: createGetObjectsOfType('SR')
 }))
 export default class TabXosan extends Component {
+  state = {
+    selectedBricks: {}
+  }
   async componentDidMount () {
     await this._refreshInfo()
   }
@@ -55,6 +61,26 @@ export default class TabXosan extends Component {
     await this._refreshInfo()
   }
 
+  async _removeBricks () {
+    const bricks = filter(Object.keys(this.state.selectedBricks), k => this.state.selectedBricks[k])
+    await removeXosanBricks(this.props.sr.id, bricks)
+    this.setState({selectedBricks:{}})
+    await this._refreshInfo()
+  }
+
+  async _addBricks({srs}) {
+    await addXosanBricks(this.props.sr.id, srs.map(sr=>sr.id))
+    await this._refreshInfo()
+  }
+
+  _selectNode(event, brickName) {
+    const selectedBricks = { ...this.state.selectedBricks }
+    selectedBricks[brickName] = event.target.checked
+    this.setState({
+      selectedBricks
+    })
+  }
+
   _getSrPredicate = createSelector(
     (underlyingSr) => this.props.sr.$pool,
     (underlyingSr) => underlyingSr,
@@ -62,7 +88,7 @@ export default class TabXosan extends Component {
   )
 
   render () {
-    const {volumeHeal, volumeInfo, volumeStatus, xosanConfig, volumeStatusDetail} = this.state
+    const {volumeHeal, volumeInfo, volumeStatus, xosanConfig, volumeStatusDetail, selectedBricks} = this.state
     const { vms, srs } = this.props
     if (!xosanConfig) {
       return <Container />
@@ -101,17 +127,22 @@ export default class TabXosan extends Component {
         }
       }
     }
-    const orderedBrickList = map(Object.keys(brickByName), name => brickByName[name])
+    const orderedBrickList = map(xosanConfig['nodes'], node => brickByName[node.brickName])
+    const selectedBrickNames = filter(Object.keys(this.state.selectedBricks), k => this.state.selectedBricks[k])
     return <Container>
       {map(orderedBrickList, (node, i) =>
         <div key={node.config.brickName}>
-          <h3>Brick {node.config.brickName}</h3>
+          <h3><input
+            checked={selectedBricks[node.config.brickName] || false}
+            onChange={event => this._selectNode(event, node.config.brickName)}
+            type='checkbox'
+          />Brick {node.config.brickName}</h3>
           <div style={{ marginLeft: '15px' }}>
             <Row><Col size={2}>Virtual Machine: </Col><Col size={4}><Link
               to={`/vms/${node.config.vm.id}`}>{vms[node.config.vm.id].name_label}</Link></Col></Row>
             <Row><Col size={2}>Underlying Storage: </Col><Col size={4}><Link
               to={`/srs/${node.config.underlyingSr}`}>{srs[node.config.underlyingSr].name_label}</Link></Col></Row>
-            <Row><Col size={2}>Move Brick: </Col>
+            <Row><Col size={2}>Replace: </Col>
               <Col size={3}><SelectSr predicate={this._getSrPredicate(node.config.underlyingSr)}
                 onChange={this.linkState(`sr-${i}`)} value={this.state[`sr-${i}`]} /></Col>
               <Col size={3}>
@@ -179,8 +210,38 @@ export default class TabXosan extends Component {
           </div>
         </div>
       )}
-      <h2>Volume</h2>
+      <h2>Remove selected bricks</h2>
+      <div>
+        {selectedBrickNames.length ? <div>
+        Selected for removal:
+        {map(selectedBrickNames, b =>
+          <Row key={b}>
+            <Col size={5}>{b}</Col>
+          </Row>
+        )}
+        <ActionButton
+          btnStyle='success'
+          icon='remove'
+          handler={::this._removeBricks}
+        >Remove</ActionButton>
+        </div> :
+          <div>No brick selected for removal.</div>}
+      </div>
+      <h2>Add bricks</h2>
+      <div>
+        <Row><Col size={2}>Select {strippedVolumeInfo && strippedVolumeInfo['disperseCount']} SRs: </Col>
+          <Col size={5}><SelectSr multi predicate={this._getSrPredicate(null)} onChange={this.linkState('added-srs')}
+                                  value={this.state['added-srs']}/>
+          <ActionButton
+            btnStyle='success'
+            icon='add'
+            handler={::this._addBricks}
+            handlerParam={{ srs: this.state['added-srs'] }}
+          >Add</ActionButton>
+        </Col></Row>
+      </div>
       {strippedVolumeInfo && <div>
+        <h2>Volume</h2>
         <Row key='name'>
           <Col size={3}><strong>Name</strong></Col>
           <Col size={4}>{strippedVolumeInfo['name']}</Col>
