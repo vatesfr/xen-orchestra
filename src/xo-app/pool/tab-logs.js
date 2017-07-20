@@ -25,8 +25,8 @@ export default class TabLogs extends Component {
     )
 
     this.getNPages = createSelector(
-      () => this.props.logs,
-      logs => ceil(logs.length / LOGS_PER_PAGE)
+      () => this.props.logs.length,
+      nLogs => ceil(nLogs / LOGS_PER_PAGE)
     )
 
     this.state = {

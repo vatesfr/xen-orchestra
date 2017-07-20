@@ -19,7 +19,7 @@ const TabButton = ({
     size='large'
     style={STYLE}
   >
-    {labelId != null && <span className='hidden-md-down'>{_(labelId)}</span>}
+    {labelId !== undefined && <span className='hidden-md-down'>{_(labelId)}</span>}
   </ActionButton>
 )
 export { TabButton as default }

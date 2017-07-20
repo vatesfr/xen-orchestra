@@ -1,4 +1,4 @@
-import _, { messages } from 'intl'
+import _ from 'intl'
 import Component from 'base-component'
 import Copiable from 'copiable'
 import getEventValue from 'get-event-value'
@@ -155,7 +155,7 @@ class CoresPerSocket extends Component {
             key={coresPerSocket}
             value={coresPerSocket}
           >
-            {_(messages.vmCoresPerSocket, {
+            {_('vmCoresPerSocket', {
               nSockets: vm.CPUs.number / coresPerSocket,
               nCores: coresPerSocket
             })}

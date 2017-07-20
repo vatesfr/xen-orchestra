@@ -90,8 +90,10 @@ class ConfigureIpModal extends Component {
   vifsByNetwork: createGetObjectsOfType('VIF').groupBy('$network')
 }))
 class PifItem extends Component {
+  state = { configModes: [] }
+
   componentWillMount () {
-    getIpv4ConfigModes().then((configModes = []) =>
+    getIpv4ConfigModes().then(configModes =>
       this.setState({ configModes })
     )
   }

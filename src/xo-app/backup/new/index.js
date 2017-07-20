@@ -597,7 +597,7 @@ export default class New extends Component {
                       >
                         {_('noSelectedValue', message => <option value=''>{message}</option>)}
                         {map(BACKUP_METHOD_TO_INFO, (info, key) =>
-                          _({ key }, info.label, message => <option key={key} value={key}>{message}</option>)
+                          _({ key }, info.label, message => <option value={key}>{message}</option>)
                         )}
                       </select>
                     </fieldset>
