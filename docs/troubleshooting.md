@@ -2,17 +2,17 @@
 
 This page recap the possible actions to realize if you have any problems with your XOA.
 
-## Empty page after login
-
-This is happening when your anti-virus or firewall is blocking websocket protocol. This is what we use to communicate between `xo-server` and `xo-web` (see the [architecture page](architecture.md)).
-
-The solution is to use **HTTPS**. In this way, websockets will be encapsulated in the secured protocol, avoiding interception from your firewalls or anti-virus system.
-
 ## XOA deploy error
 
 > Auto deploy failed. - No SR specified and Pool default SR is null
 
 It means you didn't have any default SR set on your pool you are importing XOA. To set a default SR, you must first find the SR UUID you want, with `xe sr-list`. When you got the UUID, you can set the default SR like this: `xe pool-param-set default-SR=<SR_UUID>`. When it's done, re-enter the deploy script command and it will work!
+
+## Empty page after login
+
+This is happening when your anti-virus or firewall is blocking websocket protocol. This is what we use to communicate between `xo-server` and `xo-web` (see the [architecture page](architecture.md)).
+
+The solution is to use **HTTPS**. In this way, websockets will be encapsulated in the secured protocol, avoiding interception from your firewalls or anti-virus system.
 
 ## XOA configuration
 
