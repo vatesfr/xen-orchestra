@@ -550,7 +550,7 @@ export const getCoresPerSocketPossibilities = (maxCoresPerSocket, vCPUs) => {
 
 // Generates a random human-readable string of length `length`
 // Useful to generate random default names intended for the UI user
-export const getReadableRandomString = (() => {
+export const generateReadableRandomString = (() => {
   const CONSONANTS = 'bdfgklmnprtvz'.split('')
   const VOWELS = 'aeiou'.split('')
   return (length = 8) => {

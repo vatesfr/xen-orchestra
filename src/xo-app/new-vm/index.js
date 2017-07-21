@@ -69,7 +69,7 @@ import {
   firstDefined,
   formatSize,
   getCoresPerSocketPossibilities,
-  getReadableRandomString,
+  generateReadableRandomString,
   noop,
   resolveResourceSet
 } from 'utils'
@@ -453,7 +453,7 @@ export default class NewVm extends BaseComponent {
         return {
           ...disk,
           name_description: disk.name_description || 'Created by XO',
-          name_label: (name_label || 'disk') + '_' + getReadableRandomString(5),
+          name_label: (name_label || 'disk') + '_' + generateReadableRandomString(5),
           SR: pool
             ? pool.default_SR
             : resourceSet.objectsByType['SR'][0].id
@@ -652,7 +652,7 @@ export default class NewVm extends BaseComponent {
 
     this._setState({ VDIs: [ ...state.VDIs, {
       name_description: 'Created by XO',
-      name_label: (state.name_label || 'disk') + '_' + getReadableRandomString(5),
+      name_label: (state.name_label || 'disk') + '_' + generateReadableRandomString(5),
       SR: pool && pool.default_SR,
       type: 'system'
     }] })
