@@ -403,7 +403,8 @@ export default class NewVm extends BaseComponent {
       }
       const vdi = getObject(storeState, vbd.VDI, resourceSet)
       if (vdi) {
-        existingDisks[this.getUniqueId()] = {
+        this._uniqueId = Math.max(this._uniqueId, +vbd.position + 1 || 0)
+        existingDisks[vbd.position] = {
           name_label: vdi.name_label,
           name_description: vdi.name_description,
           size: vdi.size,
