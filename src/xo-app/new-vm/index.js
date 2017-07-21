@@ -69,6 +69,7 @@ import {
   firstDefined,
   formatSize,
   getCoresPerSocketPossibilities,
+  generateReadableRandomString,
   noop,
   resolveResourceSet
 } from 'utils'
@@ -240,9 +241,6 @@ export default class NewVm extends BaseComponent {
 
 // Utils -----------------------------------------------------------------------
 
-  getUniqueId () {
-    return this._uniqueId++
-  }
   get _isDiskTemplate () {
     const { template } = this.state.state
     return template &&
@@ -403,7 +401,7 @@ export default class NewVm extends BaseComponent {
       }
       const vdi = getObject(storeState, vbd.VDI, resourceSet)
       if (vdi) {
-        existingDisks[this.getUniqueId()] = {
+        existingDisks[vbd.position] = {
           name_label: vdi.name_label,
           name_description: vdi.name_description,
           size: vdi.size,
@@ -418,7 +416,6 @@ export default class NewVm extends BaseComponent {
     forEach(template.VIFs, vifId => {
       const vif = getObject(storeState, vifId, resourceSet)
       VIFs.push({
-        id: this.getUniqueId(),
         network: pool || isInResourceSet(vif.$network)
           ? vif.$network
           : resourceSet.objectsByType['network'][0].id
@@ -427,7 +424,6 @@ export default class NewVm extends BaseComponent {
     if (VIFs.length === 0) {
       const networkId = this._getDefaultNetworkId()
       VIFs.push({
-        id: this.getUniqueId(),
         network: networkId
       })
     }
@@ -454,12 +450,10 @@ export default class NewVm extends BaseComponent {
       // disks
       existingDisks,
       VDIs: map(template.template_info.disks, disk => {
-        const device = String(this.getUniqueId())
         return {
           ...disk,
-          device,
           name_description: disk.name_description || 'Created by XO',
-          name_label: (name_label || 'disk') + '_' + device,
+          name_label: (name_label || 'disk') + '_' + generateReadableRandomString(5),
           SR: pool
             ? pool.default_SR
             : resourceSet.objectsByType['SR'][0].id
@@ -655,12 +649,10 @@ export default class NewVm extends BaseComponent {
   _addVdi = () => {
     const { state } = this.state
     const { pool } = this.props
-    const device = String(this.getUniqueId())
 
     this._setState({ VDIs: [ ...state.VDIs, {
-      device,
       name_description: 'Created by XO',
-      name_label: (state.name_label || 'disk') + '_' + device,
+      name_label: (state.name_label || 'disk') + '_' + generateReadableRandomString(5),
       SR: pool && pool.default_SR,
       type: 'system'
     }] })
@@ -674,7 +666,6 @@ export default class NewVm extends BaseComponent {
     const networkId = this._getDefaultNetworkId()
 
     this._setState({ VIFs: [ ...this.state.state.VIFs, {
-      id: this.getUniqueId(),
       network: networkId
     }] })
   }
@@ -1190,7 +1181,7 @@ export default class NewVm extends BaseComponent {
         </div>)}
 
         {/* VDIs */}
-        {map(VDIs, (vdi, index) => <div key={vdi.device}>
+        {map(VDIs, (vdi, index) => <div key={index}>
           <LineItem>
             <Item label={_('newVmSrLabel')}>
               <span className={styles.inlineSelect}>

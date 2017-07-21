@@ -15,6 +15,7 @@ import mapValues from 'lodash/mapValues'
 import React from 'react'
 import ReadableStream from 'readable-stream'
 import replace from 'lodash/replace'
+import sample from 'lodash/sample'
 import startsWith from 'lodash/startsWith'
 import { connect } from 'react-redux'
 
@@ -546,3 +547,17 @@ export const getCoresPerSocketPossibilities = (maxCoresPerSocket, vCPUs) => {
 
   return options
 }
+
+// Generates a random human-readable string of length `length`
+// Useful to generate random default names intended for the UI user
+export const generateReadableRandomString = (() => {
+  const CONSONANTS = 'bdfgklmnprtvz'.split('')
+  const VOWELS = 'aeiou'.split('')
+  return (length = 8) => {
+    const result = new Array(length)
+    for (let i = 0; i < length; ++i) {
+      result[i] = sample((i & 1) === 0 ? VOWELS : CONSONANTS)
+    }
+    return result.join('')
+  }
+})()
