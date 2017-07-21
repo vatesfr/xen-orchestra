@@ -41,7 +41,7 @@ export default class NoVnc extends Component {
         }
       }
 
-      if (state !== 'disconnected') {
+      if (state !== 'disconnected' || this.refs.canvas == null) {
         return
       }
 

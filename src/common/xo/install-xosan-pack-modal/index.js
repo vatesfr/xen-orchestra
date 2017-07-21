@@ -93,15 +93,14 @@ export default class InstallXosanPackModal extends Component {
           </div>
         </div>
         : <div>
-          <p>{_('xosanNoPackFound')}</p>
-          <p>
-            {_('xosanPackRequirements')}
-            <ul>
-              {map(this._getXosanPacks(), ({ name, requirements }) => <li>
-                {name}: <strong>{requirements && requirements.xenserver ? requirements.xenserver : '/'}</strong>
-              </li>)}
-            </ul>
-          </p>
+          {_('xosanNoPackFound')}
+          <br />
+          {_('xosanPackRequirements')}
+          <ul>
+            {map(this._getXosanPacks(), ({ name, requirements }, key) => <li key={key}>
+              {_.keyValue(name, requirements && requirements.xenserver ? requirements.xenserver : '/')}
+            </li>)}
+          </ul>
         </div>
       }
     </div>

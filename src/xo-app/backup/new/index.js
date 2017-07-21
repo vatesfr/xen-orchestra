@@ -563,131 +563,133 @@ export default class New extends Component {
 
     return (
       <Upgrade place='newBackup' required={2}>
-        <Wizard><form id='form-new-vm-backup'>
-          <Section icon='backup' title={this.props.job ? 'editVmBackup' : 'newVmBackup'}>
-            <Container>
-              <Row>
-                <Col>
-                  <fieldset className='form-group'>
-                    <label>{_('backupOwner')}</label>
-                    <SelectSubject
-                      onChange={this.linkState('job.userId', 'id')}
-                      predicate={this._subjectPredicate}
-                      required
-                      value={this._getValue('job', 'userId', this.props.currentUser.id)}
-                    />
-                  </fieldset>
-                  <fieldset className='form-group'>
-                    <label>{_('jobTimeoutPlaceHolder')}</label>
-                    <TimeoutInput
-                      className='form-control'
-                      onChange={this.linkState('job.timeout')}
-                      value={this._getValue('job', 'timeout')}
-                    />
-                  </fieldset>
-                  <fieldset className='form-group'>
-                    <label htmlFor='selectBackup'>{_('newBackupSelection')}</label>
-                    <select
-                      className='form-control'
-                      id='selectBackup'
-                      onChange={this.linkState('job.method')}
-                      required
-                      value={method}
-                    >
-                      {_('noSelectedValue', message => <option value=''>{message}</option>)}
-                      {map(BACKUP_METHOD_TO_INFO, (info, key) =>
-                        _(info.label, message => <option key={key} value={key}>{message}</option>)
-                      )}
-                    </select>
-                  </fieldset>
-                  {(method === 'vm.rollingDeltaBackup' || method === 'vm.deltaCopy') && <div className='alert alert-warning' role='alert'>
-                    <Icon icon='error' /> {_('backupVersionWarning')}
-                  </div>}
-                  {backupInfo && <div>
-                    <GenericInput
-                      label={<span><Icon icon={backupInfo.icon} /> {_(backupInfo.label)}</span>}
-                      required
-                      schema={backupInfo.schema}
-                      uiSchema={backupInfo.uiSchema}
-                      onChange={this.linkState('mainParams')}
-                      value={this._getMainParams()}
-                    />
+        <form id='form-new-vm-backup'>
+          <Wizard>
+            <Section icon='backup' title={this.props.job ? 'editVmBackup' : 'newVmBackup'}>
+              <Container>
+                <Row>
+                  <Col>
                     <fieldset className='form-group'>
-                      <label htmlFor='smartMode'>{_('smartBackupModeSelection')}</label>
+                      <label>{_('backupOwner')}</label>
+                      <SelectSubject
+                        onChange={this.linkState('job.userId', 'id')}
+                        predicate={this._subjectPredicate}
+                        required
+                        value={this._getValue('job', 'userId', this.props.currentUser.id)}
+                      />
+                    </fieldset>
+                    <fieldset className='form-group'>
+                      <label>{_('jobTimeoutPlaceHolder')}</label>
+                      <TimeoutInput
+                        className='form-control'
+                        onChange={this.linkState('job.timeout')}
+                        value={this._getValue('job', 'timeout')}
+                      />
+                    </fieldset>
+                    <fieldset className='form-group'>
+                      <label htmlFor='selectBackup'>{_('newBackupSelection')}</label>
                       <select
                         className='form-control'
-                        id='smartMode'
-                        onChange={this._handleSmartBackupMode}
+                        id='selectBackup'
+                        onChange={this.linkState('job.method')}
                         required
-                        value={smartBackupMode ? 'smart' : 'normal'}
+                        value={method}
                       >
-                        {_('normalBackup', message => <option value='normal'>{message}</option>)}
-                        {_('smartBackup', message => <option value='smart'>{message}</option>)}
+                        {_('noSelectedValue', message => <option value=''>{message}</option>)}
+                        {map(BACKUP_METHOD_TO_INFO, (info, key) =>
+                          _({ key }, info.label, message => <option value={key}>{message}</option>)
+                        )}
                       </select>
                     </fieldset>
-                    {smartBackupMode
-                      ? <Upgrade place='newBackup' required={3}>
-                        <GenericInput
+                    {(method === 'vm.rollingDeltaBackup' || method === 'vm.deltaCopy') && <div className='alert alert-warning' role='alert'>
+                      <Icon icon='error' /> {_('backupVersionWarning')}
+                    </div>}
+                    {backupInfo && <div>
+                      <GenericInput
+                        label={<span><Icon icon={backupInfo.icon} /> {_(backupInfo.label)}</span>}
+                        required
+                        schema={backupInfo.schema}
+                        uiSchema={backupInfo.uiSchema}
+                        onChange={this.linkState('mainParams')}
+                        value={this._getMainParams()}
+                      />
+                      <fieldset className='form-group'>
+                        <label htmlFor='smartMode'>{_('smartBackupModeSelection')}</label>
+                        <select
+                          className='form-control'
+                          id='smartMode'
+                          onChange={this._handleSmartBackupMode}
+                          required
+                          value={smartBackupMode ? 'smart' : 'normal'}
+                        >
+                          {_('normalBackup', message => <option value='normal'>{message}</option>)}
+                          {_('smartBackup', message => <option value='smart'>{message}</option>)}
+                        </select>
+                      </fieldset>
+                      {smartBackupMode
+                        ? <Upgrade place='newBackup' required={3}>
+                          <GenericInput
+                            label={<span><Icon icon='vm' /> {_('vmsToBackup')}</span>}
+                            onChange={this.linkState('vmsParam')}
+                            required
+                            schema={SMART_SCHEMA}
+                            uiSchema={SMART_UI_SCHEMA}
+                            value={vms}
+                          />
+                        </Upgrade>
+                        : <GenericInput
                           label={<span><Icon icon='vm' /> {_('vmsToBackup')}</span>}
                           onChange={this.linkState('vmsParam')}
                           required
-                          schema={SMART_SCHEMA}
-                          uiSchema={SMART_UI_SCHEMA}
+                          schema={NO_SMART_SCHEMA}
+                          uiSchema={NO_SMART_UI_SCHEMA}
                           value={vms}
                         />
-                      </Upgrade>
-                      : <GenericInput
-                        label={<span><Icon icon='vm' /> {_('vmsToBackup')}</span>}
-                        onChange={this.linkState('vmsParam')}
-                        required
-                        schema={NO_SMART_SCHEMA}
-                        uiSchema={NO_SMART_UI_SCHEMA}
-                        value={vms}
-                      />
-                    }
-                  </div>}
-                </Col>
-              </Row>
-            </Container>
-          </Section>
-          <Section icon='schedule' title='schedule'>
-            <Scheduler
-              onChange={this.linkState('scheduling')}
-              value={scheduling}
-            />
-          </Section>
-          <Section icon='preview' title='preview' summary>
-            <Container>
-              <Row>
-                <Col>
-                  <SchedulePreview cronPattern={scheduling.cronPattern} />
-                  {process.env.XOA_PLAN < 4 && backupInfo && process.env.XOA_PLAN < REQUIRED_XOA_PLAN[backupInfo.jobKey]
-                    ? <Upgrade place='newBackup' available={REQUIRED_XOA_PLAN[backupInfo.jobKey]} />
-                    : (smartBackupMode && process.env.XOA_PLAN < 3
-                      ? <Upgrade place='newBackup' available={3} />
-                      : <fieldset className='pull-right pt-1'>
-                        <ActionButton
-                          btnStyle='primary'
-                          className='mr-1'
-                          disabled={!backupInfo}
-                          form='form-new-vm-backup'
-                          handler={this._handleSubmit}
-                          icon='save'
-                          redirectOnSuccess='/backup/overview'
-                          size='large'
-                        >
-                          {_('saveBackupJob')}
-                        </ActionButton>
-                        <Button onClick={this._handleReset} size='large'>
-                          {_('selectTableReset')}
-                        </Button>
-                      </fieldset>)
-                }
-                </Col>
-              </Row>
-            </Container>
-          </Section>
-        </form></Wizard>
+                      }
+                    </div>}
+                  </Col>
+                </Row>
+              </Container>
+            </Section>
+            <Section icon='schedule' title='schedule'>
+              <Scheduler
+                onChange={this.linkState('scheduling')}
+                value={scheduling}
+              />
+            </Section>
+            <Section icon='preview' title='preview' summary>
+              <Container>
+                <Row>
+                  <Col>
+                    <SchedulePreview cronPattern={scheduling.cronPattern} />
+                    {process.env.XOA_PLAN < 4 && backupInfo && process.env.XOA_PLAN < REQUIRED_XOA_PLAN[backupInfo.jobKey]
+                      ? <Upgrade place='newBackup' available={REQUIRED_XOA_PLAN[backupInfo.jobKey]} />
+                      : (smartBackupMode && process.env.XOA_PLAN < 3
+                        ? <Upgrade place='newBackup' available={3} />
+                        : <fieldset className='pull-right pt-1'>
+                          <ActionButton
+                            btnStyle='primary'
+                            className='mr-1'
+                            disabled={!backupInfo}
+                            form='form-new-vm-backup'
+                            handler={this._handleSubmit}
+                            icon='save'
+                            redirectOnSuccess='/backup/overview'
+                            size='large'
+                          >
+                            {_('saveBackupJob')}
+                          </ActionButton>
+                          <Button onClick={this._handleReset} size='large'>
+                            {_('selectTableReset')}
+                          </Button>
+                        </fieldset>)
+                  }
+                  </Col>
+                </Row>
+              </Container>
+            </Section>
+          </Wizard>
+        </form>
       </Upgrade>
     )
   }

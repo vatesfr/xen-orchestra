@@ -57,7 +57,7 @@ const VM_COLUMNS = [
   {
     name: _('backupTags'),
     itemRenderer: ({ tagsByRemote }) => <Container>
-      {map(tagsByRemote, ({ tags, remoteName }) => <Row>
+      {map(tagsByRemote, ({ tags, remoteName }, key) => <Row key={key}>
         <Col mediumSize={3}><strong>{remoteName}</strong></Col>
         <Col mediumSize={9}>{tags.join(', ')}</Col>
       </Row>)}

@@ -329,7 +329,7 @@ export default class User extends Component {
           <Col smallSize={10}>
             <form className='form-inline' id='changePassword'>
               <input
-                autocomplete='off'
+                autoComplete='off'
                 className='form-control'
                 onChange={this._handleOldPasswordChange}
                 placeholder={formatMessage(messages.oldPasswordPlaceholder)}
@@ -339,7 +339,7 @@ export default class User extends Component {
               />
               {' '}
               <input type='password'
-                autocomplete='off'
+                autoComplete='off'
                 className='form-control'
                 onChange={this._handleNewPasswordChange}
                 placeholder={formatMessage(messages.newPasswordPlaceholder)}
@@ -348,7 +348,7 @@ export default class User extends Component {
               />
               {' '}
               <input
-                autocomplete='off'
+                autoComplete='off'
                 className='form-control'
                 onChange={this._handleConfirmPasswordChange}
                 placeholder={formatMessage(messages.confirmPasswordPlaceholder)}

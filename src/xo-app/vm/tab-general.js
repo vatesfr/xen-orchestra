@@ -83,12 +83,12 @@ export default connectStore(() => {
     </Col>
     <Col mediumSize={3}>
       <BlockLink to={`/vms/${vm.id}/network`}>
-        <Copiable tagName='p'>
-          {vm.addresses && vm.addresses['0/ip']
-            ? vm.addresses['0/ip']
-            : _('noIpv4Record')
-          }
-        </Copiable>
+        {vm.addresses && vm.addresses['0/ip']
+          ? <Copiable tagName='p'>
+            {vm.addresses['0/ip']}
+          </Copiable>
+          : <p>{_('noIpv4Record')}</p>
+        }
       </BlockLink>
     </Col>
     <Col mediumSize={3}>

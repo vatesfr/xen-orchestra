@@ -112,7 +112,7 @@ export default ({
           </tr>
           <tr>
             <th>{_('hostXenServerVersion')}</th>
-            <Copiable tagName='td'>
+            <Copiable tagName='td' data={host.version}>
               {host.license_params.sku_marketing_name} {host.version} ({host.license_params.sku_type})
             </Copiable>
           </tr>

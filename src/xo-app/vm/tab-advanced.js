@@ -145,19 +145,21 @@ class CoresPerSocket extends Component {
         onChange={this._onChange}
         value={selectedCoresPerSocket || ''}
       >
-        {_('vmChooseCoresPerSocket', message => <option value=''>{message}</option>)}
+        {_('vmChooseCoresPerSocket', message => <option key='none' value=''>{message}</option>)}
         {this._selectedValueIsNotInOptions() &&
-          _('vmCoresPerSocketIncorrectValue', message => <option value={selectedCoresPerSocket}> {message}</option>)
+          _('vmCoresPerSocketIncorrectValue', message => <option key='incorrect' value={selectedCoresPerSocket}> {message}</option>)
         }
         {map(
           options,
-          coresPerSocket => _(
-            'vmCoresPerSocket', {
+          coresPerSocket => <option
+            key={coresPerSocket}
+            value={coresPerSocket}
+          >
+            {_('vmCoresPerSocket', {
               nSockets: vm.CPUs.number / coresPerSocket,
               nCores: coresPerSocket
-            },
-            message => <option key={coresPerSocket} value={coresPerSocket}>{message}</option>
-          )
+            })}
+          </option>
         )}
       </select>
       {' '}
@@ -392,7 +394,7 @@ export default ({
           </tr>
           <tr>
             <th>{_('osKernel')}</th>
-            <td>{vm.os_version ? vm.os_version.uname ? vm.os_version.uname : _('unknownOsKernel') : _('unknownOsKernel')}</td>
+            <td>{(vm.os_version && vm.os_version.uname) || _('unknownOsKernel')}</td>
           </tr>
         </tbody>
       </table>
