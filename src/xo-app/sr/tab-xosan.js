@@ -7,8 +7,7 @@ import { Container, Row, Col } from 'grid'
 import { SelectSr } from 'select-objects'
 import Tooltip from 'tooltip'
 import {
-  map,
-  filter
+  map
 } from 'lodash'
 import {
   createGetObjectsOfType,
@@ -30,9 +29,6 @@ import {
   srs: createGetObjectsOfType('SR')
 }))
 export default class TabXosan extends Component {
-  state = {
-    selectedBricks: {}
-  }
   async componentDidMount () {
     await this._refreshInfo()
   }
@@ -61,24 +57,14 @@ export default class TabXosan extends Component {
     await this._refreshInfo()
   }
 
-  async _removeBricks () {
-    const bricks = filter(Object.keys(this.state.selectedBricks), k => this.state.selectedBricks[k])
+  async _removeSubVolume (bricks) {
     await removeXosanBricks(this.props.sr.id, bricks)
-    this.setState({selectedBricks: {}})
     await this._refreshInfo()
   }
 
   async _addBricks ({srs}) {
     await addXosanBricks(this.props.sr.id, srs.map(sr => sr.id))
     await this._refreshInfo()
-  }
-
-  _selectNode (event, brickName) {
-    const selectedBricks = { ...this.state.selectedBricks }
-    selectedBricks[brickName] = event.target.checked
-    this.setState({
-      selectedBricks
-    })
   }
 
   _getSrPredicate = createSelector(
@@ -88,7 +74,7 @@ export default class TabXosan extends Component {
   )
 
   render () {
-    const {volumeHeal, volumeInfo, volumeStatus, xosanConfig, volumeStatusDetail, selectedBricks} = this.state
+    const {volumeHeal, volumeInfo, volumeStatus, xosanConfig, volumeStatusDetail} = this.state
     const { vms, srs } = this.props
     if (!xosanConfig) {
       return <Container />
@@ -99,6 +85,8 @@ export default class TabXosan extends Component {
     })
     const brickByUuid = {}
     const strippedVolumeInfo = volumeInfo && volumeInfo['commandStatus'] ? volumeInfo['result'] : null
+    let subvolumeSize = null
+    let subVolumes = []
     if (strippedVolumeInfo) {
       strippedVolumeInfo['bricks'].forEach(brick => {
         brickByName[brick.name] = brickByName[brick.name] || {}
@@ -106,6 +94,10 @@ export default class TabXosan extends Component {
         brickByName[brick.name]['uuid'] = brick.hostUuid
         brickByUuid[brick.hostUuid] = brickByUuid[brick.hostUuid] || brickByName[brick.name]
       })
+      subvolumeSize = +strippedVolumeInfo['disperseCount'] || +strippedVolumeInfo['replicaCount']
+      for (let i = 0; i < strippedVolumeInfo['bricks'].length; i += subvolumeSize) {
+        subVolumes.push(strippedVolumeInfo['bricks'].slice(i, i + subvolumeSize))
+      }
     }
     if (volumeHeal && volumeHeal['commandStatus']) {
       volumeHeal['result']['bricks'].forEach(brick => {
@@ -128,7 +120,6 @@ export default class TabXosan extends Component {
       }
     }
     const orderedBrickList = map(xosanConfig['nodes'], node => brickByName[node.brickName])
-    const selectedBrickNames = filter(Object.keys(this.state.selectedBricks), k => this.state.selectedBricks[k])
     return <Container>
       <ul>
         <li>volume
@@ -140,11 +131,7 @@ export default class TabXosan extends Component {
       </ul>
       {map(orderedBrickList, (node, i) =>
         <div key={node.config.brickName}>
-          <h3><input
-            checked={selectedBricks[node.config.brickName] || false}
-            onChange={event => this._selectNode(event, node.config.brickName)}
-            type='checkbox'
-          />Brick {node.config.brickName}</h3>
+          <h3>Brick {node.config.brickName}</h3>
           <div style={{ marginLeft: '15px' }}>
             <Row><Col size={2}>Virtual Machine: </Col><Col size={4}><Link
               to={`/vms/${node.config.vm.id}`}>{vms[node.config.vm.id].name_label}</Link></Col></Row>
@@ -218,26 +205,9 @@ export default class TabXosan extends Component {
           </div>
         </div>
       )}
-      <h2>Remove selected bricks</h2>
+      <h2>Add Subvolume</h2>
       <div>
-        {selectedBrickNames.length ? <div>
-        Selected for removal:
-        {map(selectedBrickNames, b =>
-          <Row key={b}>
-            <Col size={5}>{b}</Col>
-          </Row>
-        )}
-          <ActionButton
-            btnStyle='success'
-            icon='remove'
-            handler={::this._removeBricks}
-        >Remove</ActionButton>
-        </div>
-          : <div>No brick selected for removal.</div>}
-      </div>
-      <h2>Add bricks</h2>
-      <div>
-        <Row><Col size={2}>Select {strippedVolumeInfo && strippedVolumeInfo['disperseCount']} SRs: </Col>
+        <Row><Col size={2}>Select {subvolumeSize} SRs: </Col>
           <Col size={5}><SelectSr multi predicate={this._getSrPredicate(null)} onChange={this.linkState('added-srs')}
             value={this.state['added-srs']} />
             <ActionButton
@@ -248,6 +218,16 @@ export default class TabXosan extends Component {
           >Add</ActionButton>
           </Col></Row>
       </div>
+      <h2>Remove Subvolumes</h2>
+      {subVolumes.map((subvolume, i) => <div key={i}>
+        <ActionButton
+          btnStyle='success'
+          icon='remove'
+          handler={::this._removeSubVolume}
+          handlerParam={map(subvolume, brick => brick.name)}
+        >Remove</ActionButton>
+        {map(subvolume, brick => brick.name).join(', ')}
+      </div>)}
       {strippedVolumeInfo && <div>
         <h2>Volume</h2>
         <Row key='name'>
