@@ -166,7 +166,7 @@ export default class Menu extends Component {
       { to: '/tasks', icon: 'task', label: 'taskMenu', pill: nTasks },
       isAdmin && { to: '/xosan', icon: 'menu-xosan', label: 'xosan' },
       !(noOperatablePools && noResourceSets) && { to: '/vms/new', icon: 'menu-new', label: 'newMenu', subMenu: [
-        { to: '/vms/new', icon: 'menu-new-vm', label: 'newVmPage' },
+        (isAdmin || !noResourceSets) && { to: '/vms/new', icon: 'menu-new-vm', label: 'newVmPage' },
         isAdmin && { to: '/new/sr', icon: 'menu-new-sr', label: 'newSrPage' },
         isAdmin && { to: '/settings/servers', icon: 'menu-settings-servers', label: 'newServerPage' },
         !noOperatablePools && { to: '/vms/import', icon: 'menu-new-import', label: 'newImport' }
