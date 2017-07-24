@@ -85,9 +85,9 @@ class IpsCell extends BaseComponent {
       <Row>
         <Col mediumSize={6} offset={5}><strong>{_('ipsVifs')}</strong></Col>
       </Row>
-      {ipPool.addresses && map(formatIps(keys(ipPool.addresses)), ip => {
+      {ipPool.addresses && map(formatIps(keys(ipPool.addresses)), (ip, key) => {
         if (isObject(ip)) { // Range of IPs
-          return <Row>
+          return <Row key={key}>
             <Col mediumSize={5}>
               <strong>{ip.first} <Icon icon='arrow-right' /> {ip.last}</strong>
             </Col>
@@ -109,7 +109,7 @@ class IpsCell extends BaseComponent {
             ? map(addressVifs, (vifId, index) => {
               const vif = vifs[vifId] && vifs[vifId][0]
               const network = vif && networks[vif.$network] && networks[vif.$network][0]
-              return <span className='mr-1'>
+              return <span key={index} className='mr-1'>
                 {network && vif
                   ? `${network.name_label} #${vif.device}`
                   : <em>{_('ipPoolUnknownVif')}</em>
@@ -188,7 +188,7 @@ class NetworksCell extends BaseComponent {
     const { newNetworks, showNewNetworkForm } = this.state
 
     return <Container>
-      {map(ipPool.networks, networkId => <Row>
+      {map(ipPool.networks, networkId => <Row key={networkId}>
         <Col mediumSize={11}>
           {renderXoItemFromId(networkId)}
         </Col>

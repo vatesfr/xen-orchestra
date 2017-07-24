@@ -33,6 +33,7 @@ import styles from './index.css'
 // ===================================================================
 
 @propTypes({
+  defaultFilter: propTypes.string,
   filters: propTypes.object,
   nFilteredItems: propTypes.number.isRequired,
   nItems: propTypes.number.isRequired,
@@ -75,10 +76,10 @@ class TableFilter extends Component {
             </Dropdown>
           </div>}
         <input
-          type='text'
-          ref='filter'
-          onChange={this._onChange}
           className='form-control'
+          defaultValue={props.defaultFilter}
+          onChange={this._onChange}
+          ref='filter'
         />
         <div className='input-group-btn'>
           <Button onClick={this._cleanFilter}>
@@ -137,6 +138,7 @@ const DEFAULT_ITEMS_PER_PAGE = 10
 
 @propTypes({
   defaultColumn: propTypes.number,
+  defaultFilter: propTypes.string,
   collection: propTypes.oneOfType([
     propTypes.array,
     propTypes.object
@@ -177,7 +179,10 @@ export default class SortedTable extends Component {
       }
     }
 
+    const { defaultFilter } = props
+
     this.state = {
+      filter: defaultFilter !== undefined ? props.filters[defaultFilter] : undefined,
       selectedColumn,
       itemsPerPage: props.itemsPerPage || DEFAULT_ITEMS_PER_PAGE
     }
@@ -193,7 +198,7 @@ export default class SortedTable extends Component {
       createFilter(
         () => this.props.collection,
         createSelector(
-          () => this.state.filter || '',
+          () => this.state.filter,
           createMatcher
         )
       ),
@@ -292,6 +297,7 @@ export default class SortedTable extends Component {
 
     const filterInstance = (
       <TableFilter
+        defaultFilter={state.filter}
         filters={filters}
         nFilteredItems={nFilteredItems}
         nItems={this._getTotalNumberOfItems()}

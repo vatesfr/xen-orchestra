@@ -1,5 +1,28 @@
 # ChangeLog
 
+## **5.10.0** (2017-05-31)
+
+### Enhancements
+
+- Improve backup log display [\#2239](https://github.com/vatesfr/xo-web/issues/2239)
+- Patch SR detection improvement [\#2215](https://github.com/vatesfr/xo-web/issues/2215)
+- Less strict coalesce detection [\#2207](https://github.com/vatesfr/xo-web/issues/2207)
+- IP pool UI improvement [\#2203](https://github.com/vatesfr/xo-web/issues/2203)
+- Ability to clear "Auto power on" flag for DR-ed VM [\#2097](https://github.com/vatesfr/xo-web/issues/2097)
+- [Delta backup restoration] Choose SR for each VDIs [\#2070](https://github.com/vatesfr/xo-web/issues/2070)
+- Ability to forget an host (even if no longer present) [\#1934](https://github.com/vatesfr/xo-web/issues/1934)
+
+### Bug fixes
+
+- Cross pool migrate fail [\#2248](https://github.com/vatesfr/xo-web/issues/2248)
+- ActionButtons with modals stay in pending state forever [\#2222](https://github.com/vatesfr/xo-web/issues/2222)
+- Permission issue for a user on self service VMs [\#2212](https://github.com/vatesfr/xo-web/issues/2212)
+- Self-Service resource loophole [\#2198](https://github.com/vatesfr/xo-web/issues/2198)
+- Backup log no longer shows the name of destination VM [\#2195](https://github.com/vatesfr/xo-web/issues/2195)
+- State not restored when exiting modal dialog [\#2194](https://github.com/vatesfr/xo-web/issues/2194)
+- [Xapi#exportDeltaVm] Cannot read property 'managed' of undefined [\#2189](https://github.com/vatesfr/xo-web/issues/2189)
+- VNC keyboard layout change [\#404](https://github.com/vatesfr/xo-web/issues/404)
+
 ## **5.9.0** (2017-05-31)
 
 ### Enhancements

@@ -1,14 +1,18 @@
 import _ from 'intl'
 import ActionRow from 'action-row-button'
-import Button from 'button'
-import isEmpty from 'lodash/isEmpty'
-import map from 'lodash/map'
 import React, { Component } from 'react'
 import TabButton from 'tab-button'
 import { deleteMessage } from 'xo'
-import { createPager } from 'selectors'
+import { createPager, createSelector } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Container, Row, Col } from 'grid'
+import {
+  ceil,
+  isEmpty,
+  map
+} from 'lodash'
+
+const LOGS_PER_PAGE = 10
 
 export default class TabLogs extends Component {
   constructor () {
@@ -17,7 +21,12 @@ export default class TabLogs extends Component {
     this.getLogs = createPager(
       () => this.props.logs,
       () => this.state.page,
-      10
+      LOGS_PER_PAGE
+    )
+
+    this.getNPages = createSelector(
+      () => this.props.logs ? this.props.logs.length : 0,
+      nLogs => ceil(nLogs / LOGS_PER_PAGE)
     )
 
     this.state = {
@@ -26,11 +35,12 @@ export default class TabLogs extends Component {
   }
 
   _deleteAllLogs = () => map(this.props.logs, deleteMessage)
-  _nextPage = () => this.setState({ page: this.state.page + 1 })
-  _previousPage = () => this.setState({ page: this.state.page - 1 })
+  _nextPage = () => this.setState({ page: Math.min(this.state.page + 1, this.getNPages()) })
+  _previousPage = () => this.setState({ page: Math.max(this.state.page - 1, 1) })
 
   render () {
     const logs = this.getLogs()
+    const { page } = this.state
 
     return <Container>
       {isEmpty(logs)
@@ -43,15 +53,21 @@ export default class TabLogs extends Component {
         : <div>
           <Row>
             <Col className='text-xs-right'>
-              <Button size='large' onClick={this._previousPage}>
-                &lt;
-              </Button>
-              <Button size='large' onClick={this._nextPage}>
-                &gt;
-              </Button>
+              <TabButton
+                btnStyle='secondary'
+                disabled={page === 1}
+                handler={this._previousPage}
+                icon='previous'
+              />
+              <TabButton
+                btnStyle='secondary'
+                disabled={page === this.getNPages()}
+                handler={this._nextPage}
+                icon='next'
+              />
               <TabButton
                 btnStyle='danger'
-                handler={this._removeAllLogs}
+                handler={this._removeAllLogs} // FIXME: define this method
                 icon='delete'
                 labelId='logRemoveAll'
               />

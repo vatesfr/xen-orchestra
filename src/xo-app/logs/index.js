@@ -15,10 +15,13 @@ import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
 import { alert, confirm } from 'modal'
-import { connectStore } from 'utils'
 import { createGetObject } from 'selectors'
 import { FormattedDate } from 'react-intl'
-
+import {
+  connectStore,
+  formatSize,
+  formatSpeed
+} from 'utils'
 import {
   Card,
   CardHeader,
@@ -52,9 +55,9 @@ class JobParam extends Component {
       id
     } = this.props
 
-    return object
-    ? <span><strong>{object.type || paramKey}</strong>: {renderXoItem(object)} </span>
-    : <span><strong>{paramKey}:</strong> {String(id)} </span>
+    return object != null
+      ? _.keyValue(object.type || paramKey, renderXoItem(object))
+      : _.keyValue(paramKey, String(id))
   }
 }
 
@@ -70,9 +73,33 @@ class JobReturn extends Component {
   }
 }
 
+const JobCallStateInfos = ({ end, error }) => {
+  const [ icon, tooltip ] = error !== undefined
+    ? ['halted', 'failedJobCall']
+    : end !== undefined
+      ? ['running', 'successfulJobCall']
+      : ['busy', 'jobCallInProgess']
+
+  return <Tooltip content={_(tooltip)}>
+    <Icon icon={icon} />
+  </Tooltip>
+}
+
+const JobTransferredDataInfos = ({ start, end, size }) => <div>
+  <span><strong>{_('jobTransferredDataSize')}</strong> {formatSize(size)}</span>
+  <br />
+  <span><strong>{_('jobTransferredDataSpeed')}</strong> {formatSpeed(size, end - start)}</span>
+</div>
+
 const Log = props => <ul className='list-group'>
   {map(props.log.calls, call => {
-    const { returnedValue } = call
+    const {
+      end,
+      error,
+      returnedValue,
+      start
+    } = call
+
     let id
     if (returnedValue != null) {
       id = returnedValue.id
@@ -82,8 +109,10 @@ const Log = props => <ul className='list-group'>
     }
 
     return <li key={call.callKey} className='list-group-item'>
-      <strong className='text-info'>{call.method}: </strong><br />
+      <strong className='text-info'>{call.method}: </strong><JobCallStateInfos end={end} error={error} /><br />
       {map(call.params, (value, key) => [ <JobParam id={value} paramKey={key} key={key} />, <br /> ])}
+      {end !== undefined && _.keyValue(_('jobDuration'), <FormattedDuration duration={end - start} />)}
+      {returnedValue != null && returnedValue.size !== undefined && <JobTransferredDataInfos start={start} end={end} size={returnedValue.size} />}
       {id !== undefined && <span>{' '}<JobReturn id={id} /></span>}
       {call.error &&
         <span className='text-danger'>
@@ -208,6 +237,7 @@ export default class LogList extends Component {
               callKey: logKey,
               params: data.params,
               method: data.method,
+              start: time,
               time
             }
           } else if (data.event === 'jobCall.end') {
@@ -219,6 +249,7 @@ export default class LogList extends Component {
               entry.meta = 'error'
             } else {
               call.returnedValue = data.returnedValue
+              call.end = time
             }
           }
         }

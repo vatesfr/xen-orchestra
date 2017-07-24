@@ -12,8 +12,10 @@ import some from 'lodash/some'
 import store from 'store'
 
 import _ from '../../intl'
+import Icon from 'icon'
 import invoke from '../../invoke'
 import SingleLineRow from '../../single-line-row'
+import Tooltip from '../../tooltip'
 import { Col } from '../../grid'
 import { getDefaultNetworkForVif } from '../utils'
 import {
@@ -217,6 +219,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
     const { pools, pifs } = this.props
     const defaultMigrationNetworkId = find(pifs, pif => pif.$host === host.id && pif.management).$network
     const defaultSrId = pools[host.$pool].default_SR
+    const defaultSrConnectedToHost = some(host.$PBDs, pbd => this._getObject(pbd).SR === defaultSrId)
     const doNotMigrateVmVdis = {}
     const doNotMigrateVdi = {}
     forEach(this.props.vbdsByVm, (vbds, vm) => {
@@ -234,6 +237,8 @@ export default class MigrateVmsModalBody extends BaseComponent {
     })
     const noVdisMigration = every(doNotMigrateVmVdis)
     this.setState({
+      defaultSrConnectedToHost,
+      defaultSrId,
       host,
       intraPool: every(this.props.vms, vm => vm.$pool === host.$pool),
       doNotMigrateVdi,
@@ -242,7 +247,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
       networkId: defaultMigrationNetworkId,
       noVdisMigration,
       smartVifMapping: true,
-      srId: defaultSrId
+      srId: defaultSrConnectedToHost ? defaultSrId : undefined
     })
   }
   _selectMigrationNetwork = migrationNetwork => this.setState({ migrationNetworkId: migrationNetwork.id })
@@ -252,6 +257,8 @@ export default class MigrateVmsModalBody extends BaseComponent {
 
   render () {
     const {
+      defaultSrConnectedToHost,
+      defaultSrId,
       host,
       intraPool,
       migrationNetworkId,
@@ -290,7 +297,24 @@ export default class MigrateVmsModalBody extends BaseComponent {
       {host && (!intraPool || !noVdisMigration) &&
         <div key='sr' style={LINE_STYLE}>
           <SingleLineRow>
-            <Col size={6}>{!intraPool ? _('migrateVmsSelectSr') : _('migrateVmsSelectSrIntraPool')}</Col>
+            <Col size={6}>
+              {!intraPool ? _('migrateVmsSelectSr') : _('migrateVmsSelectSrIntraPool')}
+              {' '}
+              {(defaultSrId === undefined || !defaultSrConnectedToHost) &&
+                <Tooltip
+                  content={defaultSrId !== undefined
+                    ? _('migrateVmNotConnectedDefaultSrError')
+                    : _('migrateVmNoDefaultSrError')
+                  }
+                >
+                  <Icon
+                    icon={defaultSrId !== undefined ? 'alarm' : 'info'}
+                    className={defaultSrId !== undefined ? 'text-warning' : 'text-info'}
+                    size='lg'
+                  />
+                </Tooltip>
+              }
+            </Col>
             <Col size={6}>
               <SelectSr
                 onChange={this._selectSr}

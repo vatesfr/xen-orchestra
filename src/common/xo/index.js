@@ -48,7 +48,7 @@ export const XEN_VIDEORAM_VALUES = [1, 2, 4, 8, 16]
 // ===================================================================
 
 export const isSrWritable = sr => sr && sr.content_type !== 'iso' && sr.size > 0
-export const isSrShared = sr => sr && sr.$PBDs.length > 1
+export const isSrShared = sr => sr && sr.shared
 export const isVmRunning = vm => vm && vm.power_state === 'Running'
 
 // ===================================================================
@@ -412,6 +412,16 @@ export const detachHost = host => (
     body: _('detachHostModalMessage', { host: <strong>{host.name_label}</strong> })
   }).then(
     () => _call('host.detach', { host: host.id })
+  )
+)
+
+export const forgetHost = host => (
+  confirm({
+    icon: 'host-forget',
+    title: _('forgetHostModalTitle'),
+    body: _('forgetHostModalMessage', { host: <strong>{host.name_label}</strong> })
+  }).then(
+    () => _call('host.forget', { host: resolveId(host) })
   )
 )
 
@@ -952,8 +962,13 @@ export const importBackup = ({ remote, file, sr }) => (
   _call('vm.importBackup', resolveIds({ remote, file, sr }))
 )
 
-export const importDeltaBackup = ({ remote, file, sr }) => (
-  _call('vm.importDeltaBackup', resolveIds({ remote, filePath: file, sr }))
+export const importDeltaBackup = ({ remote, file, sr, mapVdisSrs }) => (
+  _call('vm.importDeltaBackup', resolveIds({
+    remote,
+    filePath: file,
+    sr,
+    mapVdisSrs: resolveIds(mapVdisSrs)
+  }))
 )
 
 import RevertSnapshotModalBody from './revert-snapshot-modal' // eslint-disable-line import/first

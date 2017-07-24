@@ -3,23 +3,23 @@ import every from 'lodash/every'
 import forEach from 'lodash/forEach'
 import find from 'lodash/find'
 import map from 'lodash/map'
-import mapValues from 'lodash/mapValues'
 import React from 'react'
 import store from 'store'
 
 import _ from '../../intl'
+import ChooseSrForEachVdisModal from '../choose-sr-for-each-vdis-modal'
 import invoke from '../../invoke'
 import SingleLineRow from '../../single-line-row'
 import { Col } from '../../grid'
 import { getDefaultNetworkForVif } from '../utils'
 import {
   SelectHost,
-  SelectNetwork,
-  SelectSr
+  SelectNetwork
 } from '../../select-objects'
 import {
   connectStore,
-  mapPlus
+  mapPlus,
+  resolveIds
 } from '../../utils'
 import {
   createGetObjectsOfType,
@@ -138,7 +138,8 @@ export default class MigrateVmModalBody extends BaseComponent {
   get value () {
     return {
       targetHost: this.state.host && this.state.host.id,
-      mapVdisSrs: this.state.mapVdisSrs,
+      sr: this.state.mainSr && this.state.mainSr.id,
+      mapVdisSrs: resolveIds(this.state.mapVdisSrs),
       mapVifsNetworks: this.state.mapVifsNetworks,
       migrationNetwork: this.state.migrationNetworkId
     }
@@ -158,11 +159,10 @@ export default class MigrateVmModalBody extends BaseComponent {
       return
     }
 
-    const { pools, vbds, vdis, vm } = this.props
+    const { vbds, vm } = this.props
     const intraPool = vm.$pool === host.$pool
 
     // Intra-pool
-    const defaultSr = pools[host.$pool].default_SR
     if (intraPool) {
       let doNotMigrateVdis
       if (vm.$container === host.id) {
@@ -181,7 +181,6 @@ export default class MigrateVmModalBody extends BaseComponent {
         doNotMigrateVdis,
         host,
         intraPool,
-        mapVdisSrs: doNotMigrateVdis ? undefined : mapValues(vdis, vdi => defaultSr),
         mapVifsNetworks: undefined,
         migrationNetwork: undefined
       })
@@ -212,7 +211,6 @@ export default class MigrateVmModalBody extends BaseComponent {
       doNotMigrateVdis: false,
       host,
       intraPool,
-      mapVdisSrs: mapValues(vdis, vdi => defaultSr),
       mapVifsNetworks: defaultNetworksForVif,
       migrationNetworkId: defaultMigrationNetworkId
     })
@@ -226,7 +224,6 @@ export default class MigrateVmModalBody extends BaseComponent {
       doNotMigrateVdis,
       host,
       intraPool,
-      mapVdisSrs,
       mapVifsNetworks,
       migrationNetworkId
     } = this.state
@@ -245,25 +242,14 @@ export default class MigrateVmModalBody extends BaseComponent {
       </div>
       {host && !doNotMigrateVdis && <div className={styles.groupBlock}>
         <SingleLineRow>
-          <Col>{_('migrateVmSelectSrs')}</Col>
+          <Col size={12}>
+            <ChooseSrForEachVdisModal
+              onChange={props => this.setState(props)}
+              predicate={this._getSrPredicate()}
+              vdis={vdis}
+            />
+          </Col>
         </SingleLineRow>
-        <br />
-        <SingleLineRow>
-          <Col size={6}><span className={styles.listTitle}>{_('migrateVmName')}</span></Col>
-          <Col size={6}><span className={styles.listTitle}>{_('migrateVmSr')}</span></Col>
-        </SingleLineRow>
-        {map(vdis, vdi => <div className={styles.listItem} key={vdi.id}>
-          <SingleLineRow>
-            <Col size={6}>{vdi.name_label}</Col>
-            <Col size={6}>
-              <SelectSr
-                onChange={sr => this.setState({ mapVdisSrs: { ...mapVdisSrs, [vdi.id]: sr.id } })}
-                predicate={this._getSrPredicate()}
-                value={mapVdisSrs[vdi.id]}
-              />
-            </Col>
-          </SingleLineRow>
-        </div>)}
       </div>}
       {intraPool !== undefined &&
         (!intraPool &&

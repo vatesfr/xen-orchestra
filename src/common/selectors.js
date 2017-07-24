@@ -1,18 +1,21 @@
+import add from 'lodash/add'
 import checkPermissions from 'xo-acl-resolver'
-import filter from 'lodash/filter'
-import find from 'lodash/find'
-import forEach from 'lodash/forEach'
-import groupBy from 'lodash/groupBy'
-import isArray from 'lodash/isArray'
-import isArrayLike from 'lodash/isArrayLike'
-import isFunction from 'lodash/isFunction'
-import keys from 'lodash/keys'
-import map from 'lodash/map'
-import orderBy from 'lodash/orderBy'
-import pickBy from 'lodash/pickBy'
-import size from 'lodash/size'
-import slice from 'lodash/slice'
 import { createSelector as create } from 'reselect'
+import {
+  filter,
+  find,
+  forEach,
+  groupBy,
+  isArray,
+  isArrayLike,
+  isFunction,
+  keys,
+  map,
+  orderBy,
+  pickBy,
+  size,
+  slice
+} from 'lodash'
 
 import invoke from './invoke'
 import shallowEqual from './shallow-equal'
@@ -126,9 +129,9 @@ export const createCounter = (collection, predicate) =>
 //
 // Should only be used with a reasonable number of properties.
 export const createPicker = (object, props) =>
-  _createCollectionWrapper(
-    _create2(
-      object, props,
+  _create2(
+    object, props,
+    _createCollectionWrapper(
       (object, props) => {
         const values = {}
         forEach(props, prop => {
@@ -190,6 +193,13 @@ export const createSort = (
   getter = 'name_label',
   order = 'asc'
 ) => _create2(collection, getter, order, orderBy)
+
+export const createSumBy = (itemsSelector, iterateeSelector) =>
+  _create2(
+    itemsSelector,
+    iterateeSelector,
+    (items, iteratee) => map(items, iteratee).reduce(add, 0)
+  )
 
 export const createTop = (collection, iteratee, n) =>
   _create2(
@@ -530,5 +540,19 @@ export const createGetHostMetrics = hostSelector =>
         })
         return metrics
       }
+    )
+  )
+
+export const createGetVmDisks = vmSelector =>
+  createGetObjectsOfType('VDI').pick(
+    create(
+      createGetObjectsOfType('VBD').pick(
+        (state, props) => vmSelector(state, props).$VBDs
+      ),
+      _createCollectionWrapper(vbds => map(vbds, vbd =>
+        vbd.is_cd_drive
+          ? undefined
+          : vbd.VDI
+      ))
     )
   )

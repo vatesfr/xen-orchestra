@@ -79,6 +79,14 @@
     @extend .fa;
     @extend .fa-ellipsis-v;
   },
+  &-previous {
+    @extend .fa;
+    @extend .fa-chevron-left;
+  },
+  &-next {
+    @extend .fa;
+    @extend .fa-chevron-right;
+  },
   &-caret {
     @extend .fa;
     @extend .fa-caret-down;
@@ -451,6 +459,10 @@
       @extend .fa;
       @extend .fa-server;
       @extend .text-warning;
+    }
+    &-forget {
+      @extend .fa;
+      @extend .fa-ban;
     }
     &-working {
       @extend .fa;

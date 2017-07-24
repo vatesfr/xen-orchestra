@@ -31,7 +31,9 @@ import {
 import {
   createFinder,
   createGetObject,
-  createSelector
+  createGetVmDisks,
+  createSelector,
+  createSumBy
 } from 'selectors'
 
 import styles from './index.css'
@@ -39,19 +41,18 @@ import styles from './index.css'
 @addSubscriptions({
   resourceSets: subscribeResourceSets
 })
-@connectStore({
-  container: createGetObject((_, props) => props.item.$container)
-})
+@connectStore(() => ({
+  container: createGetObject((_, props) => props.item.$container),
+  totalDiskSize: createSumBy(
+    createGetVmDisks((_, props) => props.item),
+    'size'
+  )
+}))
 export default class VmItem extends Component {
   get _isRunning () {
     const vm = this.props.item
     return vm && vm.power_state === 'Running'
   }
-
-  _getMigrationPredicate = createSelector(
-    () => this.props.container,
-    container => host => host.id !== container.id
-  )
 
   _getResourceSet = createFinder(
     () => this.props.resourceSets,
@@ -138,7 +139,6 @@ export default class VmItem extends Component {
                 labelProp='name_label'
                 onChange={this._migrateVm}
                 placeholder={_('homeMigrateTo')}
-                predicate={this._getMigrationPredicate()}
                 useLongClick
                 value={container}
                 xoType='host'
@@ -163,6 +163,8 @@ export default class VmItem extends Component {
               {vm.CPUs.number}x <Icon icon='cpu' />
               {' '}&nbsp;{' '}
               {formatSize(vm.memory.size)} <Icon icon='memory' />
+              {' '}&nbsp;{' '}
+              {formatSize(this.props.totalDiskSize)} <Icon icon='disk' />
               {' '}&nbsp;{' '}
               {isEmpty(vm.snapshots)
                 ? null

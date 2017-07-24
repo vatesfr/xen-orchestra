@@ -9,7 +9,6 @@ import VmActionBar from './action-bar'
 import { Select, Text } from 'editable'
 import {
   assign,
-  forEach,
   isEmpty,
   map,
   pick
@@ -23,13 +22,14 @@ import {
 import { Container, Row, Col } from 'grid'
 import {
   connectStore,
-  mapPlus,
   routes
 } from 'utils'
 import {
   createGetObject,
   createGetObjectsOfType,
+  createGetVmDisks,
   createSelector,
+  createSumBy,
   getCheckPermissions,
   isAdmin
 } from 'selectors'
@@ -71,16 +71,7 @@ import TabAdvanced from './tab-advanced'
   const getVbds = createGetObjectsOfType('VBD').pick(
     (state, props) => getVm(state, props).$VBDs
   ).sort()
-  const getVdis = createGetObjectsOfType('VDI').pick(
-    createSelector(
-      getVbds,
-      vbds => mapPlus(vbds, (vbd, push) => {
-        if (!vbd.is_cd_drive && vbd.VDI) {
-          push(vbd.VDI)
-        }
-      })
-    )
-  )
+  const getVdis = createGetVmDisks(getVm)
   const getSrs = createGetObjectsOfType('SR').pick(
     createSelector(
       getVdis,
@@ -88,15 +79,9 @@ import TabAdvanced from './tab-advanced'
     )
   )
 
-  const getVmTotalDiskSpace = createSelector(
-    getVdis,
-    vdis => {
-      let vmTotalDiskSpace = 0
-      forEach(vdis, vdi => {
-        vmTotalDiskSpace += vdi.size
-      })
-      return vmTotalDiskSpace
-    }
+  const getVmTotalDiskSpace = createSumBy(
+    createGetVmDisks(getVm),
+    'size'
   )
 
   const getHosts = createGetObjectsOfType('host')

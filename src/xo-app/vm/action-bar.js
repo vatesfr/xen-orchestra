@@ -31,7 +31,7 @@ const vmActionBarByState = {
           handler: restartVm,
           pending: includes(vm.current_operations, 'clean_reboot')
         },
-        (isAdmin || !vm.resourceSet) && {
+        {
           icon: 'vm-migrate',
           label: 'migrateVmLabel',
           handler: migrateVm,
@@ -77,7 +77,7 @@ const vmActionBarByState = {
           handler: cloneVm,
           pending: includes(vm.current_operations, 'clone')
         },
-        (isAdmin || !vm.resourceSet) && {
+        {
           icon: 'vm-migrate',
           label: 'migrateVmLabel',
           handler: migrateVm,

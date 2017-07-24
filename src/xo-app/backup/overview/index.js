@@ -212,7 +212,7 @@ export default class Overview extends Component {
       <div>
         <Card>
           <CardHeader>
-            <h5><Icon icon='schedule' /> {_('backupSchedules')}</h5>
+            <Icon icon='schedule' /> {_('backupSchedules')}
           </CardHeader>
           <CardBlock>
             {schedules.length ? (

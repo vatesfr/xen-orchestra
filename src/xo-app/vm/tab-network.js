@@ -403,7 +403,7 @@ export default class TabNetwork extends BaseComponent {
                   </tr>
                 </thead>
                 <tbody>
-                  {map(vm.VIFs, vif => <VifItem vifId={vif} isVmRunning={isVmRunning(vm)} resourceSet={vm.resourceSet} />)}
+                  {map(vm.VIFs, vif => <VifItem key={vif} vifId={vif} isVmRunning={isVmRunning(vm)} resourceSet={vm.resourceSet} />)}
                 </tbody>
               </table>
               {vm.addresses && !isEmpty(vm.addresses)
