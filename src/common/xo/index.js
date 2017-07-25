@@ -308,6 +308,18 @@ subscribeHostMissingPatches.forceRefresh = host => {
   }
 }
 
+const unhealthyVdiChainsLengthSubscriptionsBySr = {}
+export const createSrUnhealthyVdiChainsLengthSubscription = sr => {
+  sr = resolveId(sr)
+  let subscription = unhealthyVdiChainsLengthSubscriptionsBySr[sr]
+  if (subscription === undefined) {
+    subscription = unhealthyVdiChainsLengthSubscriptionsBySr[sr] = createSubscription(
+      () => _call('sr.getUnhealthyChainsLength', { sr })
+    )
+  }
+  return subscription
+}
+
 // System ============================================================
 
 export const apiMethods = _call('system.getMethodsInfo')
@@ -1325,10 +1337,6 @@ export const rescanSrs = srs => (
     _call('sr.scan', { id })
   ))
 )
-
-export const getUnheathlyChains = sr => {
-  return _call('sr.getUnheathlyChains', { id: resolveId(sr) })
-}
 
 // PBDs --------------------------------------------------------------
 

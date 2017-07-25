@@ -452,10 +452,10 @@ var messages = {
 
   // ----- SR advanced tab -----
 
-  srUnHealthyVdiNameLabel: 'Name',
-  srUnHealthyVdiSize: 'Size',
-  srUnHealthyVdiDepth: 'Depth',
-  srUnHealthyVdiTitle: 'VDI to coalesce',
+  srUnhealthyVdiNameLabel: 'Name',
+  srUnhealthyVdiSize: 'Size',
+  srUnhealthyVdiDepth: 'Depth',
+  srUnhealthyVdiTitle: 'VDI to coalesce',
 
   // ----- SR actions -----
   srRescan: 'Rescan all disks',

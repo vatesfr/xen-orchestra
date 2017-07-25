@@ -1,95 +1,91 @@
 import _ from 'intl'
-import Component from 'base-component'
 import Copiable from 'copiable'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
-import { formatSize } from 'utils'
-import { createSelector } from 'selectors'
-import { deleteSr, getUnheathlyChains } from 'xo'
+import { addSubscriptions, connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
+import { createGetObjectsOfType } from 'selectors'
+import { createSelector } from 'reselect'
+import { createSrUnhealthyVdiChainsLengthSubscription, deleteSr } from 'xo'
+import { flowRight, isEmpty, keys } from 'lodash'
 
 // ===================================================================
 
 const COLUMNS = [
   {
-    name: _('srUnHealthyVdiNameLabel'),
+    name: _('srUnhealthyVdiNameLabel'),
     itemRenderer: vdi => <span>{vdi.name_label}</span>,
     sortCriteria: vdi => vdi.name_label
   },
   {
-    name: _('srUnHealthyVdiSize'),
+    name: _('srUnhealthyVdiSize'),
     itemRenderer: vdi => formatSize(vdi.size),
     sortCriteria: vdi => vdi.size
   },
   {
-    name: _('srUnHealthyVdiDepth'),
-    itemRenderer: vdi => vdi.depth,
-    sortCriteria: vdi => vdi.depth
+    name: _('srUnhealthyVdiDepth'),
+    itemRenderer: (vdi, chains) => chains[vdi.uuid],
+    sortCriteria: (vdi, chains) => chains[vdi.uuid]
   }
 ]
 
-class UnHealthyVdiChains extends Component {
-  _getUnHealthyVdiChains = createSelector(
-    () => this.props.sr,
-    async sr => {
-      const chains = await getUnheathlyChains(sr)
-      this.setState({
-        chains
-      })
-    }
-  )
-
-  render () {
-    const { chains } = this.state
-    this._getUnHealthyVdiChains()
-
-    return chains && chains.length !== 0
-      ? <div>
-        <h3>{_('srUnHealthyVdiTitle')}</h3>
-        <SortedTable
-          collection={this.state.chains}
-          columns={COLUMNS}
-        />
-      </div>
-      : <span />
-  }
-}
+const UnhealthyVdiChains = flowRight(
+  addSubscriptions(props => ({
+    chains: createSrUnhealthyVdiChainsLengthSubscription(props.sr)
+  })),
+  connectStore(() => ({
+    vdis: createGetObjectsOfType('VDI').pick(
+      createSelector(
+        (_, props) => props.chains,
+        keys
+      )
+    )
+  }))
+)(({ chains, vdis }) => isEmpty(vdis)
+  ? null
+  : <div>
+    <h3>{_('srUnhealthyVdiTitle')}</h3>
+    <SortedTable
+      collection={vdis}
+      columns={COLUMNS}
+      userData={chains}
+    />
+  </div>
+)
 
 export default ({
   sr
-}) => {
-  return <Container>
-    <Row>
-      <Col className='text-xs-right'>
-        <TabButton
-          btnStyle='danger'
-          handler={deleteSr}
-          handlerParam={sr}
-          icon='sr-remove'
-          labelId='srRemoveButton'
-        />
-      </Col>
-    </Row>
-    <Row>
-      <Col>
-        <h3>{_('xenSettingsLabel')}</h3>
-        <table className='table'>
-          <tbody>
-            <tr>
-              <th>{_('uuid')}</th>
-              <Copiable tagName='td'>
-                {sr.uuid}
-              </Copiable>
-            </tr>
-          </tbody>
-        </table>
-      </Col>
-    </Row>
-    <Row>
-      <Col>
-        <UnHealthyVdiChains sr={sr} />
-      </Col>
-    </Row>
-  </Container>
-}
+}) => <Container>
+  <Row>
+    <Col className='text-xs-right'>
+      <TabButton
+        btnStyle='danger'
+        handler={deleteSr}
+        handlerParam={sr}
+        icon='sr-remove'
+        labelId='srRemoveButton'
+      />
+    </Col>
+  </Row>
+  <Row>
+    <Col>
+      <h3>{_('xenSettingsLabel')}</h3>
+      <table className='table'>
+        <tbody>
+          <tr>
+            <th>{_('uuid')}</th>
+            <Copiable tagName='td'>
+              {sr.uuid}
+            </Copiable>
+          </tr>
+        </tbody>
+      </table>
+    </Col>
+  </Row>
+  <Row>
+    <Col>
+      <UnhealthyVdiChains sr={sr} />
+    </Col>
+  </Row>
+</Container>
