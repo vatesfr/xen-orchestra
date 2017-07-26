@@ -817,3 +817,17 @@ reattachIso.params = {
 reattachIso.resolve = {
   host: ['host', 'host', 'administrate']
 }
+
+// -------------------------------------------------------------------
+
+export function getUnhealthyVdiChainsLength ({ sr }) {
+  return this.getXapi(sr).getUnhealthyVdiChainsLength(sr)
+}
+
+getUnhealthyVdiChainsLength.params = {
+  id: { type: 'string' }
+}
+
+getUnhealthyVdiChainsLength.resolve = {
+  sr: ['id', 'SR', 'operate']
+}

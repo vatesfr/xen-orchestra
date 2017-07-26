@@ -739,14 +739,16 @@ export default class Xapi extends XapiBase {
     return promise
   }
 
-  _assertHealthyVdiChain (vdi, childrenMap) {
+  _assertHealthyVdiChain (vdi, cache) {
     if (vdi == null) {
       return
     }
 
     if (!vdi.managed) {
+      const { SR } = vdi
+      let childrenMap = cache[SR]
       if (childrenMap === undefined) {
-        childrenMap = groupBy(vdi.$SR.$VDIs, _ => _.sm_config['vhd-parent'])
+        childrenMap = cache[SR] = groupBy(vdi.$SR.$VDIs, _ => _.sm_config['vhd-parent'])
       }
 
       // an unmanaged VDI should not have exactly one child: they
@@ -762,13 +764,14 @@ export default class Xapi extends XapiBase {
 
     this._assertHealthyVdiChain(
       this.getObjectByUuid(vdi.sm_config['vhd-parent'], null),
-      childrenMap
+      cache
     )
   }
 
   _assertHealthyVdiChains (vm) {
+    const cache = createRawObject()
     forEach(vm.$VBDs, ({ $VDI }) => {
-      this._assertHealthyVdiChain($VDI)
+      this._assertHealthyVdiChain($VDI, cache)
     })
   }
 
