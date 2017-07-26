@@ -64,8 +64,12 @@ export const addSubscriptions = subscriptions => Component => {
     }
 
     componentWillMount () {
-      this._unsubscribes = map(isFunction(subscriptions) ? subscriptions() : subscriptions, (subscribe, prop) =>
-        subscribe(value => this._setState({ [prop]: value }))
+      this._unsubscribes = map(
+        isFunction(subscriptions)
+          ? subscriptions(this.props)
+          : subscriptions,
+        (subscribe, prop) =>
+          subscribe(value => this._setState({ [prop]: value }))
       )
     }
 

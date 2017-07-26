@@ -450,7 +450,13 @@ var messages = {
   convertVmToTemplateLabel: 'Convert to template',
   vmConsoleLabel: 'Console',
 
-  // ----- SR tabs -----
+  // ----- SR advanced tab -----
+
+  srUnhealthyVdiNameLabel: 'Name',
+  srUnhealthyVdiSize: 'Size',
+  srUnhealthyVdiDepth: 'Depth',
+  srUnhealthyVdiTitle: 'VDI to coalesce',
+
   // ----- SR actions -----
   srRescan: 'Rescan all disks',
   srReconnectAll: 'Connect to all hosts',
