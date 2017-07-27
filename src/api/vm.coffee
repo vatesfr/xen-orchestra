@@ -7,6 +7,7 @@ concat = require 'lodash/concat'
 endsWith = require 'lodash/endsWith'
 escapeStringRegexp = require 'escape-string-regexp'
 eventToPromise = require 'event-to-promise'
+maxBy = require 'lodash/maxBy'
 merge = require 'lodash/merge'
 sortBy = require 'lodash/sortBy'
 startsWith = require 'lodash/startsWith'
@@ -83,7 +84,9 @@ create = $coroutine (params) ->
     vms: 1
   }
   vdiSizesByDevice = {}
+  highestDevice = -1
   forEach(xapi.getObject(template._xapiId).$VBDs, (vbd) =>
+    highestDevice = Math.max(highestDevice, vbd.userdevice)
     if (
       vbd.type is 'Disk' and
       (vdi = vbd.$VDI)
@@ -102,7 +105,7 @@ create = $coroutine (params) ->
     limits.disk += size
 
     return $assign({}, vdi, {
-      device: vdi.userdevice ? vdi.device ? vdi.position,
+      device: ++highestDevice,
       size,
       SR: sr._xapiId,
       type: vdi.type
@@ -276,7 +279,6 @@ create.params = {
     items: {
       type: 'object'
       properties: {
-        device: { type: 'string' }
         size: { type: ['integer', 'string'] }
         SR: { type: 'string' }
         type: { type: 'string' }
