@@ -64,9 +64,13 @@ export default {
       length = children !== undefined && children.length === 1
         ? 1
         : 0
-      const parent = this.getObjectByUuid(uuid).sm_config['vhd-parent']
-      if (parent !== undefined) {
-        length += this._getUnhealthyVdiChainLength(parent, childrenMap, cache)
+      try {
+        const parent = this.getObjectByUuid(uuid).sm_config['vhd-parent']
+        if (parent !== undefined) {
+          length += this._getUnhealthyVdiChainLength(parent, childrenMap, cache)
+        }
+      } catch (error) {
+        console.warn('Xapi#_getUnhealthyVdiChainLength(%s)', uuid, error)
       }
       cache[uuid] = length
     }
