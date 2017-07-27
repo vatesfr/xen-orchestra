@@ -314,7 +314,7 @@ export const createSrUnhealthyVdiChainsLengthSubscription = sr => {
   let subscription = unhealthyVdiChainsLengthSubscriptionsBySr[sr]
   if (subscription === undefined) {
     subscription = unhealthyVdiChainsLengthSubscriptionsBySr[sr] = createSubscription(
-      () => _call('sr.getUnhealthyChainsLength', { sr })
+      () => _call('sr.getUnhealthyVdiChainsLength', { sr })
     )
   }
   return subscription
