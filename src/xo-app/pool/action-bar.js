@@ -12,7 +12,7 @@ const NOT_IMPLEMENTED = () => {
 const PoolActionBar = ({ pool }) => (
   <ActionBar
     display='icon'
-    param={pool}
+    handlerParam={pool}
   >
     <Action
       handler={NOT_IMPLEMENTED}

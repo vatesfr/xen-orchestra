@@ -6,7 +6,7 @@ import { forgetSr, rescanSr, reconnectAllHostsSr, disconnectAllHostsSr } from 'x
 const SrActionBar = ({ sr }) => (
   <ActionBar
     display='icon'
-    param={sr}
+    handlerParam={sr}
   >
     <Action
       handler={rescanSr}

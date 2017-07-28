@@ -14,7 +14,7 @@ const hostActionBarByState = {
   Running: ({ host }) => (
     <ActionBar
       display='icon'
-      param={host}
+      handlerParam={host}
     >
       <Action
         handler={stopHost}
@@ -41,7 +41,7 @@ const hostActionBarByState = {
   Halted: ({ host }) => (
     <ActionBar
       display='icon'
-      param={host}
+      handlerParam={host}
     >
       <Action
         handler={startHost}

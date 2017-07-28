@@ -21,7 +21,7 @@ const vmActionBarByState = {
   Running: ({ vm, isSelfUser, canAdministrate }) => (
     <ActionBar
       display='icon'
-      param={vm}
+      handlerParam={vm}
     >
       <Action
         handler={stopVm}
@@ -67,7 +67,7 @@ const vmActionBarByState = {
   Halted: ({ vm, isSelfUser, canAdministrate }) => (
     <ActionBar
       display='icon'
-      param={vm}
+      handlerParam={vm}
     >
       <Action
         handler={startVm}
@@ -110,7 +110,7 @@ const vmActionBarByState = {
   Suspended: ({ vm, isSelfUser, canAdministrate }) => (
     <ActionBar
       display='icon'
-      param={vm}
+      handlerParam={vm}
     >
       <Action
         handler={resumeVm}
