@@ -1,33 +1,32 @@
-import ActionBar from 'action-bar'
+import ActionBar, { Action } from 'action-bar'
 import React from 'react'
 import { forgetSr, rescanSr, reconnectAllHostsSr, disconnectAllHostsSr } from 'xo'
 
 const SrActionBar = ({ sr }) => (
   <ActionBar
-    actions={[
-      {
-        icon: 'refresh',
-        label: 'srRescan',
-        handler: rescanSr
-      },
-      {
-        icon: 'sr-reconnect-all',
-        label: 'srReconnectAll',
-        handler: reconnectAllHostsSr
-      },
-      {
-        icon: 'sr-disconnect-all',
-        label: 'srDisconnectAll',
-        handler: disconnectAllHostsSr
-      },
-      {
-        icon: 'sr-forget',
-        label: 'srForget',
-        handler: forgetSr
-      }
-    ]}
     display='icon'
     param={sr}
-  />
+  >
+    <Action
+      handler={rescanSr}
+      label='srRescan'
+      icon='refresh'
+    />
+    <Action
+      handler={reconnectAllHostsSr}
+      label='srReconnectAll'
+      icon='sr-reconnect-all'
+    />
+    <Action
+      handler={disconnectAllHostsSr}
+      label='srDisconnectAll'
+      icon='sr-disconnect-all'
+    />
+    <Action
+      handler={forgetSr}
+      label='srForget'
+      icon='sr-forget'
+    />
+  </ActionBar>
 )
 export default SrActionBar

@@ -1,4 +1,4 @@
-import ActionBar from 'action-bar'
+import ActionBar, { Action } from 'action-bar'
 import React from 'react'
 import { addSubscriptions, connectStore } from 'utils'
 import { find, includes } from 'lodash'
@@ -19,138 +19,123 @@ import {
 const vmActionBarByState = {
   Running: ({ vm, isSelfUser, canAdministrate }) => (
     <ActionBar
-      actions={[
-        {
-          icon: 'vm-stop',
-          label: 'stopVmLabel',
-          handler: stopVm,
-          pending: includes(vm.current_operations, 'clean_shutdown')
-        },
-        {
-          icon: 'vm-reboot',
-          label: 'rebootVmLabel',
-          handler: restartVm,
-          pending: includes(vm.current_operations, 'clean_reboot')
-        },
-        {
-          icon: 'vm-migrate',
-          label: 'migrateVmLabel',
-          handler: migrateVm,
-          pending:
-            includes(vm.current_operations, 'migrate_send') ||
-            includes(vm.current_operations, 'pool_migrate'),
-          show: !isSelfUser
-        },
-        {
-          icon: 'vm-snapshot',
-          label: 'snapshotVmLabel',
-          handler: snapshotVm,
-          pending: includes(vm.current_operations, 'snapshot'),
-          show: !isSelfUser
-        },
-        {
-          icon: 'export',
-          label: 'exportVmLabel',
-          handler: exportVm,
-          pending: includes(vm.current_operations, 'export'),
-          show: !isSelfUser && canAdministrate
-        },
-        {
-          icon: 'vm-copy',
-          label: 'copyVmLabel',
-          handler: copyVm,
-          pending: includes(vm.current_operations, 'copy'),
-          show: !isSelfUser && canAdministrate
-        }
-      ]}
       display='icon'
       param={vm}
-    />
+    >
+      <Action
+        handler={stopVm}
+        icon='vm-stop'
+        label='stopVmLabel'
+        pending={includes(vm.current_operations, 'clean_shutdown')}
+      />
+      <Action
+        handler={restartVm}
+        icon='vm-reboot'
+        label='rebootVmLabel'
+        pending={includes(vm.current_operations, 'clean_reboot')}
+      />
+      {!isSelfUser && <Action
+        handler={migrateVm}
+        icon='vm-migrate'
+        label='migrateVmLabel'
+        pending={
+          includes(vm.current_operations, 'migrate_send') ||
+          includes(vm.current_operations, 'pool_migrate')
+        }
+      />}
+      {!isSelfUser && <Action
+        handler={snapshotVm}
+        icon='vm-snapshot'
+        label='snapshotVmLabel'
+        pending={includes(vm.current_operations, 'snapshot')}
+      />}
+      {!isSelfUser && canAdministrate && <Action
+        handler={exportVm}
+        icon='export'
+        label='exportVmLabel'
+        pending={includes(vm.current_operations, 'export')}
+      />}
+      {!isSelfUser && canAdministrate && <Action
+        handler={copyVm}
+        icon='vm-copy'
+        label='copyVmLabel'
+        pending={includes(vm.current_operations, 'copy')}
+      />}
+    </ActionBar>
   ),
   Halted: ({ vm, isSelfUser, canAdministrate }) => (
     <ActionBar
-      actions={[
-        {
-          icon: 'vm-start',
-          label: 'startVmLabel',
-          handler: startVm,
-          pending: includes(vm.current_operations, 'start')
-        },
-        {
-          icon: 'vm-fast-clone',
-          label: 'fastCloneVmLabel',
-          handler: cloneVm,
-          pending: includes(vm.current_operations, 'clone'),
-          show: !isSelfUser && canAdministrate
-        },
-        {
-          icon: 'vm-migrate',
-          label: 'migrateVmLabel',
-          handler: migrateVm,
-          pending: includes(vm.current_operations, 'pool_migrate'),
-          show: !isSelfUser
-        },
-        {
-          icon: 'vm-snapshot',
-          label: 'snapshotVmLabel',
-          handler: snapshotVm,
-          pending: includes(vm.current_operations, 'snapshot'),
-          show: !isSelfUser
-        },
-        {
-          icon: 'export',
-          label: 'exportVmLabel',
-          handler: exportVm,
-          pending: includes(vm.current_operations, 'export'),
-          show: !isSelfUser && canAdministrate
-        },
-        {
-          icon: 'vm-copy',
-          label: 'copyVmLabel',
-          handler: copyVm,
-          pending: includes(vm.current_operations, 'copy'),
-          show: !isSelfUser && canAdministrate
-
-        }
-      ]}
       display='icon'
       param={vm}
-    />
+    >
+      <Action
+        handler={startVm}
+        icon='vm-start'
+        label='startVmLabel'
+        pending={includes(vm.current_operations, 'start')}
+      />
+      {!isSelfUser && canAdministrate && <Action
+        handler={cloneVm}
+        icon='vm-fast-clone'
+        label='fastCloneVmLabel'
+        pending={includes(vm.current_operations, 'clone')}
+      />}
+      {!isSelfUser && <Action
+        handler={migrateVm}
+        icon='vm-migrate'
+        label='migrateVmLabel'
+        pending={includes(vm.current_operations, 'pool_migrate')}
+      />}
+      {!isSelfUser && <Action
+        handler={snapshotVm}
+        icon='vm-snapshot'
+        label='snapshotVmLabel'
+        pending={includes(vm.current_operations, 'snapshot')}
+      />}
+      {!isSelfUser && canAdministrate && <Action
+        handler={exportVm}
+        icon='export'
+        label='exportVmLabel'
+        pending={includes(vm.current_operations, 'export')}
+      />}
+      {!isSelfUser && canAdministrate && <Action
+        handler={copyVm}
+        icon='vm-copy'
+        label='copyVmLabel'
+        pending={includes(vm.current_operations, 'copy')}
+      />}
+    </ActionBar>
   ),
   Suspended: ({ vm, isSelfUser, canAdministrate }) => (
     <ActionBar
-      actions={[
-        {
-          icon: 'vm-start',
-          label: 'resumeVmLabel',
-          handler: resumeVm,
-          pending: includes(vm.current_operations, 'start')
-        },
-        {
-          icon: 'vm-snapshot',
-          label: 'snapshotVmLabel',
-          handler: snapshotVm,
-          pending: includes(vm.current_operations, 'snapshot'),
-          show: !isSelfUser
-        },
-        {
-          icon: 'export',
-          label: 'exportVmLabel',
-          handler: exportVm,
-          pending: includes(vm.current_operations, 'export'),
-          show: !isSelfUser && canAdministrate
-        },
-        {
-          icon: 'vm-copy',
-          label: 'copyVmLabel',
-          handler: copyVm,
-          pending: includes(vm.current_operations, 'copy'),
-          show: !isSelfUser && canAdministrate
-        }
-      ]}
       display='icon'
       param={vm}
-    />
+    >
+      <Action
+        handler={resumeVm}
+        icon='vm-start'
+        label='resumeVmLabel'
+        pending={includes(vm.current_operations, 'start')}
+      />
+      {!isSelfUser && <Action
+        handler={snapshotVm}
+        icon='vm-snapshot'
+        label='snapshotVmLabel'
+        pending={includes(vm.current_operations, 'snapshot')}
+      />}
+      {!isSelfUser && canAdministrate && <Action
+        handler={exportVm}
+        icon='export'
+        label='exportVmLabel'
+        pending={includes(vm.current_operations, 'export')}
+      />}
+      {!isSelfUser && canAdministrate && <Action
+        handler={copyVm}
+        icon='vm-copy'
+        label='copyVmLabel'
+        pending={includes(vm.current_operations, 'copy')}
+      />}
+    </ActionBar>
   )
 }
 

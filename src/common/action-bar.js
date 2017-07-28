@@ -1,48 +1,46 @@
-import React from 'react'
-import { map, noop } from 'lodash'
+import _ from 'intl'
+import ActionButton from 'action-button'
+import React, { cloneElement } from 'react'
+import { noop } from 'lodash'
 
-import _ from './intl'
-import ActionButton from './action-button'
 import ButtonGroup from './button-group'
 
-const ActionBar = ({ actions, param, show }) => (
+export const Action = ({ label, icon, handler, redirectOnSuccess, display }) =>
+  <ActionButton
+    handler={handler}
+    icon={icon}
+    redirectOnSuccess={redirectOnSuccess}
+    size='large'
+    tooltip={display === 'icon' ? _(label) : undefined}
+  >
+    {display === 'both' && _(label)}
+  </ActionButton>
+
+Action.propTypes = {
+  display: React.PropTypes.oneOf([ 'icon', 'both' ]),
+  handler: React.PropTypes.func.isRequired,
+  icon: React.PropTypes.string.isRequired,
+  label: React.PropTypes.string,
+  redirectOnSuccess: React.PropTypes.string
+}
+
+const ActionBar = ({ children, param = noop, display = 'both' }) =>
   <ButtonGroup>
-    {map(actions, (button, index) => {
-      if (show === false) {
+    {React.Children.map(children, (child, key) => {
+      if (child == null) {
         return
       }
 
-      const {
-        handler,
-        handlerParam = param,
-        icon,
-        label,
-        pending,
-        redirectOnSuccess
-      } = button
-      return <ActionButton
-        key={index}
-        handler={handler || noop}
-        handlerParam={handlerParam}
-        icon={icon}
-        pending={pending}
-        redirectOnSuccess={redirectOnSuccess}
-        size='large'
-        tooltip={_(label)}
-      />
+      const { props } = child
+      return cloneElement(child, {
+        display: props.display || display,
+        handlerParam: props.handlerParam || param,
+        key
+      })
     })}
   </ButtonGroup>
-)
+
 ActionBar.propTypes = {
-  actions: React.PropTypes.arrayOf(
-    React.PropTypes.shape({
-      label: React.PropTypes.string.isRequired,
-      icon: React.PropTypes.string.isRequired,
-      handler: React.PropTypes.func,
-      redirectOnSuccess: React.PropTypes.string
-    })
-  ).isRequired,
-  display: React.PropTypes.oneOf(['icon', 'text', 'both']),
-  show: React.PropTypes.bool
+  display: React.PropTypes.oneOf([ 'icon', 'both' ])
 }
 export { ActionBar as default }
