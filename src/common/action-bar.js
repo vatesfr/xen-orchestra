@@ -1,5 +1,5 @@
-import _ from 'intl'
 import ActionButton from 'action-button'
+import propTypes from 'prop-types-decorator'
 import React, { cloneElement } from 'react'
 import { noop } from 'lodash'
 
@@ -11,23 +11,23 @@ export const Action = ({ label, icon, handler, redirectOnSuccess, display }) =>
     icon={icon}
     redirectOnSuccess={redirectOnSuccess}
     size='large'
-    tooltip={display === 'icon' ? _(label) : undefined}
+    tooltip={display === 'icon' ? label : undefined}
   >
-    {display === 'both' && _(label)}
+    {display === 'both' && label}
   </ActionButton>
 
 Action.propTypes = {
-  display: React.PropTypes.oneOf([ 'icon', 'both' ]),
-  handler: React.PropTypes.func.isRequired,
-  icon: React.PropTypes.string.isRequired,
-  label: React.PropTypes.string,
-  redirectOnSuccess: React.PropTypes.string
+  display: propTypes.oneOf([ 'icon', 'both' ]),
+  handler: propTypes.func.isRequired,
+  icon: propTypes.string.isRequired,
+  label: propTypes.node,
+  redirectOnSuccess: propTypes.string
 }
 
 const ActionBar = ({ children, param = noop, display = 'both' }) =>
   <ButtonGroup>
     {React.Children.map(children, (child, key) => {
-      if (child == null) {
+      if (!child) {
         return
       }
 
@@ -41,6 +41,6 @@ const ActionBar = ({ children, param = noop, display = 'both' }) =>
   </ButtonGroup>
 
 ActionBar.propTypes = {
-  display: React.PropTypes.oneOf([ 'icon', 'both' ])
+  display: propTypes.oneOf([ 'icon', 'both' ])
 }
 export { ActionBar as default }

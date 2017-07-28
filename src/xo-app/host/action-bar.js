@@ -1,3 +1,4 @@
+import _ from 'intl'
 import ActionBar, { Action } from 'action-bar'
 import React from 'react'
 import {
@@ -18,22 +19,22 @@ const hostActionBarByState = {
       <Action
         handler={stopHost}
         icon='host-stop'
-        label='stopHostLabel'
+        label={_('stopHostLabel')}
       />
       <Action
         handler={restartHostAgent}
         icon='host-restart-agent'
-        label='restartHostAgent'
+        label={_('restartHostAgent')}
       />
       <Action
         handler={emergencyShutdownHost}
         icon='host-emergency-shutdown'
-        label='emergencyModeLabel'
+        label={_('emergencyModeLabel')}
       />
       <Action
         handler={restartHost}
         icon='host-reboot'
-        label='rebootHostLabel'
+        label={_('rebootHostLabel')}
       />
     </ActionBar>
   ),
@@ -45,7 +46,7 @@ const hostActionBarByState = {
       <Action
         handler={startHost}
         icon='host-start'
-        label='startHostLabel'
+        label={_('startHostLabel')}
       />
     </ActionBar>
   )

@@ -1,3 +1,4 @@
+import _ from 'intl'
 import ActionBar, { Action } from 'action-bar'
 import React from 'react'
 import {
@@ -16,24 +17,24 @@ const PoolActionBar = ({ pool }) => (
     <Action
       handler={NOT_IMPLEMENTED}
       icon='add-sr'
-      label='addSrLabel'
+      label={_('addSrLabel')}
       redirectOnSuccess={`new/sr?host=${pool.master}`}
     />
     <Action
       handler={NOT_IMPLEMENTED}
       icon='add-vm'
-      label='addVmLabel'
+      label={_('addVmLabel')}
       redirectOnSuccess={`vms/new?pool=${pool.id}`}
     />
     <Action
       handler={addHostToPool}
       icon='add-host'
-      label='addHostLabel'
+      label={_('addHostLabel')}
     />
     <Action
       handler={NOT_IMPLEMENTED} // TODO disconnect server
       icon='disconnect'
-      label='disconnectServer'
+      label={_('disconnectServer')}
     />
   </ActionBar>
 )

@@ -1,3 +1,4 @@
+import _ from 'intl'
 import ActionBar, { Action } from 'action-bar'
 import React from 'react'
 import { addSubscriptions, connectStore } from 'utils'
@@ -25,19 +26,19 @@ const vmActionBarByState = {
       <Action
         handler={stopVm}
         icon='vm-stop'
-        label='stopVmLabel'
+        label={_('stopVmLabel')}
         pending={includes(vm.current_operations, 'clean_shutdown')}
       />
       <Action
         handler={restartVm}
         icon='vm-reboot'
-        label='rebootVmLabel'
+        label={_('rebootVmLabel')}
         pending={includes(vm.current_operations, 'clean_reboot')}
       />
       {!isSelfUser && <Action
         handler={migrateVm}
         icon='vm-migrate'
-        label='migrateVmLabel'
+        label={_('migrateVmLabel')}
         pending={
           includes(vm.current_operations, 'migrate_send') ||
           includes(vm.current_operations, 'pool_migrate')
@@ -46,19 +47,19 @@ const vmActionBarByState = {
       {!isSelfUser && <Action
         handler={snapshotVm}
         icon='vm-snapshot'
-        label='snapshotVmLabel'
+        label={_('snapshotVmLabel')}
         pending={includes(vm.current_operations, 'snapshot')}
       />}
       {!isSelfUser && canAdministrate && <Action
         handler={exportVm}
         icon='export'
-        label='exportVmLabel'
+        label={_('exportVmLabel')}
         pending={includes(vm.current_operations, 'export')}
       />}
       {!isSelfUser && canAdministrate && <Action
         handler={copyVm}
         icon='vm-copy'
-        label='copyVmLabel'
+        label={_('copyVmLabel')}
         pending={includes(vm.current_operations, 'copy')}
       />}
     </ActionBar>
@@ -71,37 +72,37 @@ const vmActionBarByState = {
       <Action
         handler={startVm}
         icon='vm-start'
-        label='startVmLabel'
+        label={_('startVmLabel')}
         pending={includes(vm.current_operations, 'start')}
       />
       {!isSelfUser && canAdministrate && <Action
         handler={cloneVm}
         icon='vm-fast-clone'
-        label='fastCloneVmLabel'
+        label={_('fastCloneVmLabel')}
         pending={includes(vm.current_operations, 'clone')}
       />}
       {!isSelfUser && <Action
         handler={migrateVm}
         icon='vm-migrate'
-        label='migrateVmLabel'
+        label={_('migrateVmLabel')}
         pending={includes(vm.current_operations, 'pool_migrate')}
       />}
       {!isSelfUser && <Action
         handler={snapshotVm}
         icon='vm-snapshot'
-        label='snapshotVmLabel'
+        label={_('snapshotVmLabel')}
         pending={includes(vm.current_operations, 'snapshot')}
       />}
       {!isSelfUser && canAdministrate && <Action
         handler={exportVm}
         icon='export'
-        label='exportVmLabel'
+        label={_('exportVmLabel')}
         pending={includes(vm.current_operations, 'export')}
       />}
       {!isSelfUser && canAdministrate && <Action
         handler={copyVm}
         icon='vm-copy'
-        label='copyVmLabel'
+        label={_('copyVmLabel')}
         pending={includes(vm.current_operations, 'copy')}
       />}
     </ActionBar>
@@ -114,25 +115,25 @@ const vmActionBarByState = {
       <Action
         handler={resumeVm}
         icon='vm-start'
-        label='resumeVmLabel'
+        label={_('resumeVmLabel')}
         pending={includes(vm.current_operations, 'start')}
       />
       {!isSelfUser && <Action
         handler={snapshotVm}
         icon='vm-snapshot'
-        label='snapshotVmLabel'
+        label={_('snapshotVmLabel')}
         pending={includes(vm.current_operations, 'snapshot')}
       />}
       {!isSelfUser && canAdministrate && <Action
         handler={exportVm}
         icon='export'
-        label='exportVmLabel'
+        label={_('exportVmLabel')}
         pending={includes(vm.current_operations, 'export')}
       />}
       {!isSelfUser && canAdministrate && <Action
         handler={copyVm}
         icon='vm-copy'
-        label='copyVmLabel'
+        label={_('copyVmLabel')}
         pending={includes(vm.current_operations, 'copy')}
       />}
     </ActionBar>
