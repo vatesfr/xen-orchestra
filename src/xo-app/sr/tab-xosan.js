@@ -42,7 +42,8 @@ export default class TabXosan extends Component {
   }
 
   async _refreshInfo () {
-    this.setState({xosanConfig: JSON.parse(this.props.sr.other_config['xo:xosan_config'])})
+    const otherConfig = this.props.sr.other_config['xo:xosan_config']
+    this.setState({xosanConfig: otherConfig ? JSON.parse(otherConfig) : null})
     await Promise.all([::this._refreshAspect('heal', 'volumeHeal'), ::this._refreshAspect('status', 'volumeStatus'),
       ::this._refreshAspect('info', 'volumeInfo'), ::this._refreshAspect('statusDetail', 'volumeStatusDetail')])
   }
@@ -78,6 +79,9 @@ export default class TabXosan extends Component {
     const { vms, srs } = this.props
     if (!xosanConfig) {
       return <Container />
+    }
+    if (!xosanConfig['version']) {
+      return <Container>This version of XOSAN SR is from the first beta phase. You can keep using it, but to modify it you'll have to save your disks and re-create it.</Container>
     }
     const brickByName = {}
     xosanConfig['nodes'].forEach(node => {
