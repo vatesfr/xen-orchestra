@@ -1,4 +1,5 @@
-import ActionBar from 'action-bar'
+import _ from 'intl'
+import ActionBar, { Action } from 'action-bar'
 import React from 'react'
 import {
   // disableHost,
@@ -12,44 +13,42 @@ import {
 const hostActionBarByState = {
   Running: ({ host }) => (
     <ActionBar
-      actions={[
-        {
-          icon: 'host-stop',
-          label: 'stopHostLabel',
-          handler: stopHost
-        },
-        {
-          icon: 'host-restart-agent',
-          label: 'restartHostAgent',
-          handler: restartHostAgent
-        },
-        {
-          icon: 'host-emergency-shutdown',
-          label: 'emergencyModeLabel',
-          handler: emergencyShutdownHost
-        },
-        {
-          icon: 'host-reboot',
-          label: 'rebootHostLabel',
-          handler: restartHost
-        }
-      ]}
       display='icon'
-      param={host}
-    />
+      handlerParam={host}
+    >
+      <Action
+        handler={stopHost}
+        icon='host-stop'
+        label={_('stopHostLabel')}
+      />
+      <Action
+        handler={restartHostAgent}
+        icon='host-restart-agent'
+        label={_('restartHostAgent')}
+      />
+      <Action
+        handler={emergencyShutdownHost}
+        icon='host-emergency-shutdown'
+        label={_('emergencyModeLabel')}
+      />
+      <Action
+        handler={restartHost}
+        icon='host-reboot'
+        label={_('rebootHostLabel')}
+      />
+    </ActionBar>
   ),
   Halted: ({ host }) => (
     <ActionBar
-      actions={[
-        {
-          icon: 'host-start',
-          label: 'startHostLabel',
-          handler: startHost
-        }
-      ]}
       display='icon'
-      param={host}
-    />
+      handlerParam={host}
+    >
+      <Action
+        handler={startHost}
+        icon='host-start'
+        label={_('startHostLabel')}
+      />
+    </ActionBar>
   )
 }
 
