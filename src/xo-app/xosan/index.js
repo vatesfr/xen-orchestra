@@ -2,6 +2,7 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import Collapse from 'collapse'
 import Component from 'base-component'
+import getEventValue from 'get-event-value'
 import Icon from 'icon'
 import Link from 'link'
 import Page from '../page'
@@ -9,7 +10,7 @@ import React from 'react'
 import SingleLineRow from 'single-line-row'
 import Tooltip from 'tooltip'
 import { Container, Col } from 'grid'
-import { Toggle } from 'form'
+import { Toggle, SizeInput } from 'form'
 import { SelectPif } from 'select-objects'
 import {
   every,
@@ -138,22 +139,33 @@ const _findLatestTemplate = templates => {
   return latestTemplate
 }
 
+const GIGABYTE = 1024 * 1024 * 1024
+
 class PoolAvailableSrs extends Component {
   state = {
-    selectedSrs: {}
+    selectedSrs: {},
+    brickSize: 100 * GIGABYTE
   }
 
-  _selectSr = (event, srId) => {
+  _refreshSuggestions = async ({ selectedSrs = this.state.selectedSrs, brickSize = this.state.brickSize }) => {
+    console.log('_refreshSuggestions', selectedSrs, brickSize)
+    this.setState({
+      suggestion: 0,
+      suggestions: await computeXosanPossibleOptions(keys(pickBy(selectedSrs)), brickSize)
+    })
+  }
+
+  _onBrickSizeChange = async event => {
+    const brickSize = getEventValue(event)
+    this.setState({ brickSize })
+    await this._refreshSuggestions({ brickSize })
+  }
+
+  _selectSr = async (event, srId) => {
     const selectedSrs = { ...this.state.selectedSrs }
     selectedSrs[srId] = event.target.checked
-
-    computeXosanPossibleOptions(keys(pickBy(selectedSrs))).then(suggestions => {
-      this.setState({
-        selectedSrs,
-        suggestion: 0,
-        suggestions
-      })
-    })
+    this.setState({ selectedSrs })
+    await this._refreshSuggestions({ selectedSrs })
   }
 
   _getPifPredicate = createSelector(
@@ -191,7 +203,7 @@ class PoolAvailableSrs extends Component {
   )
 
   _createXosanVm = () => {
-    const { pif, vlan, selectedSrs, suggestion, suggestions } = this.state
+    const { pif, vlan, selectedSrs, suggestion, suggestions, brickSize } = this.state
 
     const params = suggestions[suggestion]
 
@@ -205,7 +217,8 @@ class PoolAvailableSrs extends Component {
       vlan: vlan || 0,
       srs: keys(pickBy(selectedSrs)),
       glusterType: params.layout,
-      redundancy: params.redundancy
+      redundancy: params.redundancy,
+      brickSize
     })
   }
 
@@ -221,7 +234,8 @@ class PoolAvailableSrs extends Component {
       suggestion,
       suggestions,
       useVlan,
-      vlan
+      vlan,
+      brickSize
     } = this.state
 
     const disableSrCheckbox = this._getDisableSrCheckbox()
@@ -279,10 +293,11 @@ class PoolAvailableSrs extends Component {
         </tbody>
       </table>
       <h3>{_('xosanSuggestions')}</h3>
-      (brick size has been limited for the beta)
       {isEmpty(suggestions)
         ? <em>{_('xosanSelect2Srs')}</em>
         : <div>
+          <label title="Size of the disk underlying the bricks">Brick size:</label>
+          <SizeInput value={brickSize} ref='brickSize' onChange={this._onBrickSizeChange} required />
           <table className='table table-striped'>
             <thead>
               <tr>
