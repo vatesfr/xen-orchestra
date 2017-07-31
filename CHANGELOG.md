@@ -1,6 +1,19 @@
 # ChangeLog
 
-## **5.10.0** (2017-05-31)
+## **5.11.0** (2017-07-31)
+
+### Enhancements
+
+- Storage VHD chain health [\#2178](https://github.com/vatesfr/xo-web/issues/2178)
+
+### Bug fixes
+
+- No web VNC console [\#2258](https://github.com/vatesfr/xo-web/issues/2258)
+- Patching issues [\#2254](https://github.com/vatesfr/xo-web/issues/2254)
+- Advanced button in VM creation for self service user [\#2202](https://github.com/vatesfr/xo-web/issues/2202)
+- Hide "new VM" menu entry if not admin or not self service user [\#2191](https://github.com/vatesfr/xo-web/issues/2191)
+
+## **5.10.0** (2017-06-30)
 
 ### Enhancements
 
