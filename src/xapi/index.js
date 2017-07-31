@@ -653,6 +653,8 @@ export default class Xapi extends XapiBase {
       await this.call('VM.hard_shutdown', vm.$ref)
     }
 
+    await this.barrier('VM', vm.$ref)
+
     if (deleteDisks) {
       // Compute the VDIs list without duplicates.
       const vdis = {}
@@ -999,29 +1001,29 @@ export default class Xapi extends XapiBase {
 
     await Promise.all([
       // Create VBDs.
-      Promise.all(mapToArray(
+      asyncMap(
         delta.vbds,
         vbd => this._createVbd(vm, newVdis[vbd.VDI], vbd)
-      )),
+      ),
 
       // Import VDI contents.
-      Promise.all(mapToArray(
+      asyncMap(
         newVdis,
         async (vdi, id) => {
           for (const stream of ensureArray(streams[`${id}.vhd`])) {
             await this._importVdiContent(vdi, stream, VDI_FORMAT_VHD)
           }
         }
-      )),
+      ),
 
       // Wait for VDI export tasks (if any) termination.
-      Promise.all(mapToArray(
+      asyncMap(
         streams,
         stream => stream.task
-      )),
+      ),
 
       // Create VIFs.
-      Promise.all(mapToArray(delta.vifs, vif => {
+      asyncMap(delta.vifs, vif => {
         const network =
           (vif.$network$uuid && this.getObject(vif.$network$uuid, null)) ||
           networksOnPoolMasterByDevice[vif.device] ||
@@ -1034,7 +1036,7 @@ export default class Xapi extends XapiBase {
             vif
           )
         }
-      }))
+      })
     ])
 
     if (deleteBase && baseVm) {
@@ -1867,6 +1869,7 @@ export default class Xapi extends XapiBase {
     }
 
     await Promise.all([
+      body.task,
       body.checksumVerified,
       this.putResource(body, '/import_raw_vdi/', {
         host: pbd.host,
