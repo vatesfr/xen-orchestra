@@ -182,6 +182,9 @@ export class Xapi extends EventEmitter {
       this._debounce = opts.debounce == null
         ? 200
         : opts.debounce
+
+      this._eventWatchers = createObject(null)
+
       this._fromToken = ''
 
       // Memoize this function _addObject().
@@ -247,6 +250,29 @@ export class Xapi extends EventEmitter {
 
   get _humanId () {
     return `${this._auth.user}@${this._url.hostname}`
+  }
+
+  // this method injects an artificial event on the pool and waits for
+  // this event to be received
+  barrier () {
+    const eventWatchers = this._eventWatchers
+    if (eventWatchers === undefined) {
+      return Promise.reject(new Error('Xapi#barrier() requires events watching'))
+    }
+
+    return this._sessionCall(
+      'event.inject',
+      [ 'pool', this._pool.$ref ]
+    ).then(eventId => {
+      // see https://gist.github.com/julien-f/675b01825302bcc85270dd74f15e7cb0
+      eventId = String(+eventId.split(',')[0] + 1)
+
+      let watcher = eventWatchers[eventId]
+      if (watcher === undefined) {
+        watcher = eventWatchers[eventId] = defer()
+      }
+      return watcher.promise
+    })
   }
 
   connect () {
@@ -694,14 +720,24 @@ export class Xapi extends EventEmitter {
   }
 
   _processEvents (events) {
-    forEach(events, event => {
-      const {operation: op} = event
+    const eventWatchers = this._eventWatchers
 
-      const {ref} = event
-      if (op === 'del') {
-        this._removeObject(ref)
+    forEach(events, event => {
+      if (eventWatchers !== undefined) {
+        // see https://gist.github.com/julien-f/675b01825302bcc85270dd74f15e7cb0
+        const eventId = String(+event.id.split(',')[0])
+
+        const watcher = eventWatchers[eventId]
+        if (watcher !== undefined) {
+          delete eventWatchers[eventId]
+          watcher.resolve()
+        }
+      }
+
+      if (event.operation === 'del') {
+        this._removeObject(event.ref)
       } else {
-        this._addObject(event.class, ref, event.snapshot)
+        this._addObject(event.class, event.ref, event.snapshot)
       }
     })
   }
