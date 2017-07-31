@@ -95,24 +95,23 @@ export default class Redis extends Collection {
       }
       const { id } = model
 
-      const success = await redis.sadd(prefix + '_ids', id)
+      const newEntry = await redis.sadd(prefix + '_ids', id)
 
-      // The entry already exists an we are not in replace mode.
-      if (!success && !replace) {
-        throw new ModelAlreadyExists(id)
-      }
+      if (!newEntry) {
+        if (!replace) {
+          throw new ModelAlreadyExists(id)
+        }
 
-      // TODO: Remove existing fields.
-
-      // remove the previous values from indexes
-      if (replace && indexes.length !== 0) {
-        const previous = await redis.hgetall(`${prefix}:${id}`)
-        await asyncMap(indexes, index => {
-          const value = previous[index]
-          if (value !== undefined) {
-            return redis.srem(`${prefix}_${index}:${value}`, id)
-          }
-        })
+        // remove the previous values from indexes
+        if (indexes.length !== 0) {
+          const previous = await redis.hgetall(`${prefix}:${id}`)
+          await asyncMap(indexes, index => {
+            const value = previous[index]
+            if (value !== undefined) {
+              return redis.srem(`${prefix}_${index}:${value}`, id)
+            }
+          })
+        }
       }
 
       const params = []
@@ -192,7 +191,7 @@ export default class Redis extends Collection {
     if (indexes.length !== 0) {
       promise = Promise.all([ promise, asyncMap(ids, id =>
         redis.hgetall(`${prefix}:${id}`).then(values =>
-          asyncMap(indexes, index => {
+          values != null && asyncMap(indexes, index => {
             const value = values[index]
             if (value !== undefined) {
               return redis.srem(`${prefix}_${index}:${value}`, id)
