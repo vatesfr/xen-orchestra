@@ -150,52 +150,29 @@ class Log extends BaseComponent {
               }
             }
 
-            const jobDuration = end - start
-
-            return (
-              predicate(call) && (
-                <li key={call.callKey} className='list-group-item'>
-                  <strong className='text-info'>{call.method}: </strong>
-                  <JobCallStateInfos end={end} error={error} />
-                  <br />
-                  {map(call.params, (value, key) => [
-                    <JobParam id={value} paramKey={key} key={key} />,
-                    <br />,
-                  ])}
-                  {end !== undefined &&
-                    _.keyValue(
-                      _('jobDuration'),
-                      <FormattedDuration duration={jobDuration} />
-                    )}
-                  {returnedValue != null && (
-                    <JobDataInfos
-                      jobDuration={jobDuration}
-                      {...returnedValue}
-                    />
-                  )}
-                  {id !== undefined && (
-                    <span>
-                      {' '}
-                      <JobReturn id={id} />
-                    </span>
-                  )}
-                  {call.error && (
-                    <span className='text-danger'>
-                      <Icon icon='error' />{' '}
-                      {call.error.message ? (
-                        <strong>{call.error.message}</strong>
-                      ) : (
-                        JSON.stringify(call.error)
-                      )}
-                    </span>
-                  )}
-                </li>
-              )
-            )
-          })}
-        </ul>
-      </div>
-    )
+          return predicate(call) && <li key={call.callKey} className='list-group-item'>
+            <strong className='text-info'>{call.method}: </strong><JobCallStateInfos end={end} error={error} /><br />
+            {map(call.params, (value, key) => [ <JobParam id={value} paramKey={key} key={key} />, <br /> ])}
+            {_.keyValue(_('jobStart'), <span><FormattedDate value={new Date(start)} month='short' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' /><br /></span>)}
+	    {end !== undefined && <div>
+	      {_.keyValue(_('jobEnd'), <span><FormattedDate value={new Date(end)} month='short' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' /><br /></span>)}
+	      {_.keyValue(_('jobDuration'), <FormattedDuration duration={end - start} />)}
+            </div>}
+            {returnedValue != null && returnedValue.size !== undefined && <JobTransferredDataInfos start={start} end={end} size={returnedValue.size} />}
+            {id !== undefined && <span>{' '}<JobReturn id={id} /></span>}
+            {call.error &&
+              <span className='text-danger'>
+                <Icon icon='error' />
+                {' '}
+                {call.error.message
+                  ? <strong>{call.error.message}</strong>
+                  : JSON.stringify(call.error)
+                }
+              </span>}
+          </li>
+        })}
+      </ul>
+    </div>
   }
 }
 
