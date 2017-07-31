@@ -296,7 +296,7 @@ class PoolAvailableSrs extends Component {
       {isEmpty(suggestions)
         ? <em>{_('xosanSelect2Srs')}</em>
         : <div>
-          <label title="Size of the disk underlying the bricks">Brick size:</label>
+          <label title='Size of the disk underlying the bricks'>Brick size:</label>
           <SizeInput value={brickSize} ref='brickSize' onChange={this._onBrickSizeChange} required />
           <table className='table table-striped'>
             <thead>
