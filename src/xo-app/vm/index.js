@@ -230,7 +230,6 @@ export default class Vm extends BaseComponent {
           </div>
         </Col>
       </Row>
-      <br />
       <Row>
         <Col>
           <NavTabs>
