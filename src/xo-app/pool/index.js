@@ -124,7 +124,6 @@ export default class Pool extends Component {
           </div>
         </Col>
       </Row>
-      <br />
       <Row>
         <Col>
           <NavTabs>
