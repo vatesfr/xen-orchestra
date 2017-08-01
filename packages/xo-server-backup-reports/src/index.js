@@ -1,3 +1,4 @@
+import 'moment-precise-range-plugin'
 import humanFormat from 'human-format'
 import moment from 'moment-timezone'
 import { forEach, startCase } from 'lodash'
@@ -41,8 +42,8 @@ const createDateFormater = timezone => timezone !== undefined
   ? timestamp => moment(timestamp).tz(timezone).format(DATE_FORMAT)
   : timestamp => moment(timestamp).format(DATE_FORMAT)
 
-const formatDuration = milliseconds =>
-  moment.duration(milliseconds).humanize()
+const formatDuration = (end, start) =>
+  moment.preciseDiff(end, start)
 
 const formatMethod = method =>
   startCase(method.slice(method.indexOf('.') + 1))
@@ -136,14 +137,13 @@ class BackupReportsXoPlugin {
       } catch (e) {}
 
       const { end, start } = call
-      const duration = end - start
       const text = [
         `### ${vm !== undefined ? vm.name_label : 'VM not found'}`,
         '',
         `- **UUID**: ${vm !== undefined ? vm.uuid : id}`,
         `- **Start time**: ${formatDate(start)}`,
         `- **End time**: ${formatDate(end)}`,
-        `- **Duration**: ${formatDuration(duration)}`,
+        `- **Duration**: ${formatDuration(end, start)}`,
       ]
 
       const { error } = call
@@ -195,7 +195,6 @@ class BackupReportsXoPlugin {
 
     const { end, start } = status
     const { tag } = oneCall.params
-    const duration = end - start
     const nSuccesses = nCalls - nFailures
 
     let markdown = [
@@ -204,7 +203,7 @@ class BackupReportsXoPlugin {
       `- **Type**: ${formatMethod(method)}`,
       `- **Start time**: ${formatDate(start)}`,
       `- **End time**: ${formatDate(end)}`,
-      `- **Duration**: ${formatDuration(duration)}`,
+      `- **Duration**: ${formatDuration(end, start)}`,
       `- **Successes**: ${nSuccesses} / ${nCalls}`,
     ]
     if (globalTransferSize !== 0) {

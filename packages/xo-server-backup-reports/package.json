@@ -37,6 +37,7 @@
   "dependencies": {
     "human-format": "^0.9.2",
     "lodash": "^4.13.1",
+    "moment-precise-range": "^0.2.0",
     "moment-timezone": "^0.5.13"
   },
   "devDependencies": {
