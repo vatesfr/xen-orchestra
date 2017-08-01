@@ -9,6 +9,7 @@ import { FormattedMessage, IntlProvider as IntlProvider_ } from 'react-intl'
 import locales from './locales'
 import messages from './messages'
 import Tooltip from '.././tooltip'
+import { formatDuration } from '.././utils'
 
 // ===================================================================
 
@@ -77,31 +78,6 @@ export class IntlProvider extends Component {
 
 @connect(({ lang }) => ({ lang }))
 export class FormattedDuration extends Component {
-  getDuration (nbSecondes) {
-    return <FormattedMessage
-      id='preciseDuration'
-      defaultMessage='{days, plural,
-        =0 {}
-        one {# day}
-        other {# days}} {hours, plural,
-        =0 {}
-        one {# hour}
-        other {# hours}} {minutes, plural,
-        =0 {}
-        one {# minute}
-        other {# minutes}} {seconds, plural,
-        =0 {}
-        one {# second}
-        other {# seconds}}'
-      values={{
-        days: ~~(nbSecondes / (3600 * 24)),
-        hours: ~~((nbSecondes % (3600 * 24)) / 3600),
-        minutes: ~~(((nbSecondes % (3600 * 24) % 3600)) / 60),
-        seconds: ~~(((nbSecondes % (3600 * 24) % 3600)) % 60)
-      }}
-    />
-  }
-
   render () {
     const {
       duration,
@@ -109,7 +85,7 @@ export class FormattedDuration extends Component {
     } = this.props
     const momentDuration = moment.duration(duration)
 
-    return <Tooltip content={this.getDuration(momentDuration.asSeconds())}>
+    return <Tooltip content={formatDuration(momentDuration.asSeconds())}>
       <span>{momentDuration.locale(lang).humanize()}</span>
     </Tooltip>
   }

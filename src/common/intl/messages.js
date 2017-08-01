@@ -1705,6 +1705,9 @@ const messages = {
   expiresOn: 'expires on {date}',
   xosanInstallXoaPlugin: 'Install XOA plugin first',
   xosanLoadXoaPlugin: 'Load XOA plugin first',
+
+  // ----- Utils -----
+  formatDuration: '{days, plural, =0 {} one {# day} other {# days}} {hours, plural, =0 {} one {# hour} other {# hours}} {minutes, plural, =0 {} one {# minute} other {# minutes}} {seconds, plural, =0 {} one {# second} other {# seconds}}'
 }
 forEach(messages, function (message, id) {
   if (isString(message)) {
