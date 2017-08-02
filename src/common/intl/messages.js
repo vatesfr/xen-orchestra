@@ -159,6 +159,9 @@ var messages = {
   srSharedType: 'Shared {type}',
   srNotSharedType: 'Not shared {type}',
 
+  // ----- Common components -----
+  sortedTableSelectedItems: '{selected, number}x selected (on {total, number})',
+
   // ----- Forms -----
   add: 'Add',
   selectAll: 'Select all',
@@ -728,6 +731,7 @@ var messages = {
   cdDriveInstallation: 'Stop and start the VM to install the CD drive',
   saveBootOption: 'Save',
   resetBootOption: 'Reset',
+  deleteSelectedVdis: 'delete selected vdis',
 
   // ----- VM network tab -----
   vifCreateDeviceButton: 'New device',
@@ -1107,6 +1111,8 @@ var messages = {
   chooseSrForEachVdisModalOptionalEntry: '* optional',
   deleteVdiModalTitle: 'Delete VDI',
   deleteVdiModalMessage: 'Are you sure you want to delete this disk? ALL DATA ON THIS DISK WILL BE LOST',
+  deleteVdisModalTitle: 'Delete VDI{vdis, plural, one {} other {s}}',
+  deleteVdisModalMessage: 'Are you sure you want to delete {vdis, number} disk{vdis, plural, one {} other {s}}? ALL DATA ON THESE DISKS WILL BE LOST',
   revertVmModalTitle: 'Revert your VM',
   deleteSnapshotModalTitle: 'Delete snapshot',
   deleteSnapshotModalMessage: 'Are you sure you want to delete this snapshot?',

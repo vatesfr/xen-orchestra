@@ -1088,6 +1088,16 @@ export const deleteVdi = vdi => (
   )
 )
 
+export const deleteVdis = vdis => (
+  confirm({
+    title: _('deleteVdisModalTitle', { vdis: vdis.length }),
+    body: _('deleteVdisModalMessage', { vdis: vdis.length })
+  }).then(
+    () => map(vdis, id => _call('vdi.delete', { id })),
+    noop
+  )
+)
+
 export const deleteOrphanedVdis = vdis => (
   confirm({
     title: _('removeAllOrphanedObject'),

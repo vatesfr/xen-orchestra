@@ -10,7 +10,7 @@ import { concat, isEmpty } from 'lodash'
 import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createGetObject, createSelector } from 'selectors'
-import { deleteVdi, editVdi } from 'xo'
+import { deleteVdi, deleteVdis, editVdi } from 'xo'
 import { Text } from 'editable'
 
 // ===================================================================
@@ -94,6 +94,15 @@ const COLUMNS = [
   }
 ]
 
+const ACTIONS = [
+  {
+    handler: deleteVdis,
+    icon: 'delete',
+    label: _('deleteSelectedVdis'),
+    size: 'small'
+  }
+]
+
 const FILTERS = {
   filterOnlyManaged: 'type:!VDI-unmanaged',
   filterOnlyRegular: '!type:|(VDI-snapshot VDI-unmanaged)',
@@ -123,6 +132,7 @@ export default class SrDisks extends Component {
               columns={COLUMNS}
               defaultFilter='filterOnlyManaged'
               filters={FILTERS}
+              actions={ACTIONS}
             />
             : <h4 className='text-xs-center'>{_('srNoVdis')}</h4>
           }

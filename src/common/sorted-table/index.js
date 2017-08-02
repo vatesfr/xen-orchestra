@@ -1,22 +1,28 @@
 import _ from 'intl'
-import ceil from 'lodash/ceil'
 import classNames from 'classnames'
-import debounce from 'lodash/debounce'
-import findIndex from 'lodash/findIndex'
-import isEmpty from 'lodash/isEmpty'
-import isFunction from 'lodash/isFunction'
-import map from 'lodash/map'
 import React from 'react'
 import { Dropdown, MenuItem, Pagination } from 'react-bootstrap-4/lib'
 import DropdownMenu from 'react-bootstrap-4/lib/DropdownMenu' // https://phabricator.babeljs.io/T6662 so Dropdown.Menu won't work like https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
 import DropdownToggle from 'react-bootstrap-4/lib/DropdownToggle' // https://phabricator.babeljs.io/T6662 so Dropdown.Toggle won't work https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
 import { Portal } from 'react-overlays'
+import {
+  ceil,
+  debounce,
+  findIndex,
+  forEach,
+  isEmpty,
+  isFunction,
+  identity,
+  map
+} from 'lodash'
 
 import Button from '../button'
 import Component from '../base-component'
 import Icon from '../icon'
 import propTypes from '../prop-types-decorator'
 import SingleLineRow from '../single-line-row'
+import getEventValue from '../get-event-value'
+import ActionBar, { Action } from 'action-bar'
 import { BlockLink } from '../link'
 import { Container, Col } from '../grid'
 import { create as createMatcher } from '../complex-matcher'
@@ -137,6 +143,12 @@ class ColumnHead extends Component {
 const DEFAULT_ITEMS_PER_PAGE = 10
 
 @propTypes({
+  actions: propTypes.arrayOf(propTypes.shape({
+    handler: propTypes.func.isRequired,
+    icon: propTypes.node.isRequired,
+    label: propTypes.node,
+    size: propTypes.string
+  })),
   defaultColumn: propTypes.number,
   defaultFilter: propTypes.string,
   collection: propTypes.oneOfType([
@@ -220,6 +232,8 @@ export default class SortedTable extends Component {
       () => this.state.activePage,
       this.state.itemsPerPage
     )
+
+    this.state.selectedItems = {}
   }
 
   componentWillMount () {
@@ -260,6 +274,40 @@ export default class SortedTable extends Component {
     activePage: event.eventKey
   })
 
+  _selectAllVisibleItems = checked => {
+    const selectedItems = {}
+
+    if (checked) {
+      forEach(this._getVisibleItems(), ({ id }) => {
+        selectedItems[id] = true
+      })
+
+      this.setState({
+        selectedItems
+      })
+    } else {
+      this.setState({
+        selectedItems
+      })
+    }
+  }
+
+  _getSelectedItems = () => {
+    const selectedItems = []
+    forEach(this.state.selectedItems, (value, key) => {
+      if (value) {
+        selectedItems.push(key)
+      }
+    })
+
+    return selectedItems
+  }
+
+  _getNumberOfSelectedItems = createCounter(
+    () => this.state.selectedItems,
+    [ identity ]
+  )
+
   _onFilterChange = debounce(filter => {
     this.setState({
       filter,
@@ -270,6 +318,7 @@ export default class SortedTable extends Component {
   render () {
     const { props, state } = this
     const {
+      actions,
       paginationContainer,
       filterContainer,
       filters,
@@ -279,6 +328,7 @@ export default class SortedTable extends Component {
     } = props
 
     const nFilteredItems = this._getAllItems().length
+    const nVisibleItems = this._getVisibleItems().length
 
     const paginationInstance = (
       <Pagination
@@ -310,6 +360,12 @@ export default class SortedTable extends Component {
         <table className='table'>
           <thead className='thead-default'>
             <tr>
+              {actions != null && <th>
+                <input
+                  type='checkbox'
+                  onChange={event => this._selectAllVisibleItems(getEventValue(event))}
+                />
+              </th>}
               {map(props.columns, (column, key) => (
                 <ColumnHead
                   textAlign={column.textAlign}
@@ -324,6 +380,23 @@ export default class SortedTable extends Component {
             </tr>
           </thead>
           <tbody>
+            {this._getNumberOfSelectedItems() !== 0 && <tr className='bg-faded'>
+              <td colSpan={props.columns.length + 1}>
+                {_('sortedTableSelectedItems', {
+                  selected: this._getNumberOfSelectedItems(),
+                  total: nVisibleItems
+                })}
+                <span className='pull-right'>
+                  <ActionBar display='icon'>
+                    {map(actions, (btnProps, key) => <Action
+                      {...btnProps}
+                      key={key}
+                      handlerParam={this._getSelectedItems()}
+                    />)}
+                  </ActionBar>
+                </span>
+              </td>
+            </tr>}
             {map(this._getVisibleItems(), (item, i) => {
               const columns = map(props.columns, ({
                 component: Component,
@@ -354,6 +427,13 @@ export default class SortedTable extends Component {
                   key={id}
                   onClick={rowAction && (() => rowAction(item, userData))}
                 >
+                  {actions != null && <td>
+                    <input
+                      type='checkbox'
+                      onChange={this.linkState(`selectedItems.${id}`)}
+                      checked={Boolean(state.selectedItems[id])}
+                    />
+                  </td>}
                   {columns}
                 </tr>
             })}
