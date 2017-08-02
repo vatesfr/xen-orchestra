@@ -1,14 +1,13 @@
 import _ from 'intl'
+import ActionButton from 'action-button'
 import Component from 'base-component'
 import Link from 'link'
 import React from 'react'
-import ActionButton from 'action-button'
-import { Container, Row, Col } from 'grid'
-import { SelectSr } from 'select-objects'
 import Tooltip from 'tooltip'
-import {
-  map
-} from 'lodash'
+import { SizeInput } from 'form'
+import { Container, Col, Row } from 'grid'
+import { map, reduce } from 'lodash'
+import { SelectSr } from 'select-objects'
 import {
   createGetObjectsOfType,
   createSelector
@@ -24,9 +23,13 @@ import {
   addXosanBricks
 } from 'xo'
 
+const GIGABYTE = 1024 * 1024 * 1024
+
 @connectStore(() => ({
   vms: createGetObjectsOfType('VM'),
-  srs: createGetObjectsOfType('SR')
+  srs: createGetObjectsOfType('SR'),
+  vbds: createGetObjectsOfType('VBD'),
+  vdis: createGetObjectsOfType('VDI')
 }))
 export default class TabXosan extends Component {
   async componentDidMount () {
@@ -43,13 +46,21 @@ export default class TabXosan extends Component {
 
   async _refreshInfo () {
     const otherConfig = this.props.sr.other_config['xo:xosan_config']
-    this.setState({xosanConfig: otherConfig ? JSON.parse(otherConfig) : null})
+    const xosanConfig = otherConfig ? JSON.parse(otherConfig) : null
+    const newState = {xosanConfig}
+    if (xosanConfig) {
+      xosanConfig.nodes.forEach((node, i) => {
+        newState[`sr-${i}`] = null
+        newState[`brickSize-${i}`] = 100 * GIGABYTE
+      })
+    }
+    this.setState({xosanConfig})
     await Promise.all([::this._refreshAspect('heal', 'volumeHeal'), ::this._refreshAspect('status', 'volumeStatus'),
       ::this._refreshAspect('info', 'volumeInfo'), ::this._refreshAspect('statusDetail', 'volumeStatusDetail')])
   }
 
-  async _replaceBrick ({brick, newSr}) {
-    await replaceXosanBrick(this.props.sr.id, brick, newSr.id)
+  async _replaceBrick ({brick, newSr, brickSize}) {
+    await replaceXosanBrick(this.props.sr.id, brick, newSr.id, brickSize)
     const newState = {}
     this.state.xosanConfig.nodes.forEach((node, i) => {
       newState[`sr-${i}`] = null
@@ -76,7 +87,7 @@ export default class TabXosan extends Component {
 
   render () {
     const {volumeHeal, volumeInfo, volumeStatus, xosanConfig, volumeStatusDetail} = this.state
-    const { vms, srs } = this.props
+    const { vms, srs, vbds, vdis } = this.props
     if (!xosanConfig) {
       return <Container />
     }
@@ -85,7 +96,8 @@ export default class TabXosan extends Component {
     }
     const brickByName = {}
     xosanConfig['nodes'].forEach(node => {
-      brickByName[node.brickName] = {config: node, uuid: '-'}
+      const size = reduce(vms[node.vm.id].$VBDs, (sum, vbd) => (vdi => vdi !== undefined ? sum + vdi.size : sum)(vdis[vbds[vbd].VDI]), 0)
+      brickByName[node.brickName] = {config: node, uuid: '-', size}
     })
     const brickByUuid = {}
     const strippedVolumeInfo = volumeInfo && volumeInfo['commandStatus'] ? volumeInfo['result'] : null
@@ -140,16 +152,19 @@ export default class TabXosan extends Component {
             <Row><Col size={2}>Virtual Machine: </Col><Col size={4}><Link
               to={`/vms/${node.config.vm.id}`}>{vms[node.config.vm.id].name_label}</Link></Col></Row>
             <Row><Col size={2}>Underlying Storage: </Col><Col size={4}><Link
-              to={`/srs/${node.config.underlyingSr}`}>{srs[node.config.underlyingSr].name_label}</Link></Col></Row>
+              to={`/srs/${node.config.underlyingSr}`}>{srs[node.config.underlyingSr].name_label}</Link> -
+              Using {formatSize(node.size)}</Col></Row>
             <Row><Col size={2}>Replace: </Col>
               <Col size={3}><SelectSr predicate={this._getSrPredicate(node.config.underlyingSr)}
                 onChange={this.linkState(`sr-${i}`)} value={this.state[`sr-${i}`]} /></Col>
+              <Col size={2}><SizeInput defaultValue={node.size} value={this.state[`brickSize-${i}`]}
+                onChange={this.linkState(`brickSize-${i}`)} required /></Col>
               <Col size={3}>
                 <ActionButton
                   btnStyle='success'
                   icon='refresh'
                   handler={::this._replaceBrick}
-                  handlerParam={{ brick: node.config.brickName, newSr: this.state[`sr-${i}`] }}
+                  handlerParam={{ brick: node.config.brickName, newSr: this.state[`sr-${i}`], brickSize: this.state[`brickSize-${i}`] }}
                 >Replace</ActionButton>
               </Col></Row>
             <Row><Col size={2} title='gluster UUID'>Brick UUID: </Col><Col size={4}>{node.uuid}</Col></Row>
