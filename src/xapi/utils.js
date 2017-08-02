@@ -113,6 +113,25 @@ export const getNamespaceForType = type => TYPE_TO_NAMESPACE[type] || type
 
 // -------------------------------------------------------------------
 
+export const getVmDisks = vm => {
+  const disks = createRawObject(null)
+  forEach(vm.$VBDs, vbd => {
+    let vdi
+    if (
+      // Do not remove CDs and Floppies.
+      vbd.type === 'Disk' &&
+
+      // Ignore VBD without VDI.
+      (vdi = vbd.$VDI)
+    ) {
+      disks[vdi.$id] = vdi
+    }
+  })
+  return disks
+}
+
+// -------------------------------------------------------------------
+
 // Format a date (pseudo ISO 8601) from one XenServer get by
 // xapi.call('host.get_servertime', host.$ref) for example
 export const formatDateTime = utcFormat('%Y%m%dT%H:%M:%SZ')
