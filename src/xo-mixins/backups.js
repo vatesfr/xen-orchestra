@@ -398,7 +398,7 @@ export default class {
   // -----------------------------------------------------------------
 
   @deferrable.onFailure
-  async deltaCopyVm ($onFailure, srcVm, targetSr) {
+  async deltaCopyVm ($onFailure, srcVm, targetSr, force = false) {
     const srcXapi = this._xo.getXapi(srcVm)
     const targetXapi = this._xo.getXapi(targetSr)
 
@@ -420,6 +420,7 @@ export default class {
     const dstVm = await (async () => {
       const { cancel, token } = CancelToken.source()
       const delta = await srcXapi.exportDeltaVm(token, srcVm.$id, localBaseUuid, {
+        bypassVdiChainsCheck: force,
         snapshotNameLabel: `XO_DELTA_EXPORT: ${targetSr.name_label} (${targetSr.uuid})`
       })
       $onFailure(() => srcXapi.deleteVm(delta.vm.uuid))

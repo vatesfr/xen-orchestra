@@ -781,12 +781,17 @@ export default class Xapi extends XapiBase {
   @cancellable
   @deferrable.onFailure
   async exportDeltaVm ($onFailure, $cancelToken, vmId, baseVmId = undefined, {
-    snapshotNameLabel = undefined,
+    bypassVdiChainsCheck = false,
+
     // Contains a vdi.$id set of vmId.
     fullVdisRequired = [],
-    disableBaseTags = false
+
+    disableBaseTags = false,
+    snapshotNameLabel = undefined
   } = {}) {
-    this._assertHealthyVdiChains(this.getObject(vmId))
+    if (!bypassVdiChainsCheck) {
+      this._assertHealthyVdiChains(this.getObject(vmId))
+    }
 
     const vm = await this.snapshotVm(vmId)
     $onFailure(() => this._deleteVm(vm))
