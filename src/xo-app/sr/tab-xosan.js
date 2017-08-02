@@ -32,6 +32,10 @@ const GIGABYTE = 1024 * 1024 * 1024
   vdis: createGetObjectsOfType('VDI')
 }))
 export default class TabXosan extends Component {
+  state = {
+    'added-size': 100 * GIGABYTE
+  }
+
   async componentDidMount () {
     await this._refreshInfo()
   }
@@ -51,10 +55,10 @@ export default class TabXosan extends Component {
     if (xosanConfig) {
       xosanConfig.nodes.forEach((node, i) => {
         newState[`sr-${i}`] = null
-        newState[`brickSize-${i}`] = 100 * GIGABYTE
+        newState[`brickSize-${i}`] = this.nodeSize(node)
       })
     }
-    this.setState({xosanConfig})
+    this.setState(newState)
     await Promise.all([::this._refreshAspect('heal', 'volumeHeal'), ::this._refreshAspect('status', 'volumeStatus'),
       ::this._refreshAspect('info', 'volumeInfo'), ::this._refreshAspect('statusDetail', 'volumeStatusDetail')])
   }
@@ -74,8 +78,8 @@ export default class TabXosan extends Component {
     await this._refreshInfo()
   }
 
-  async _addBricks ({srs}) {
-    await addXosanBricks(this.props.sr.id, srs.map(sr => sr.id))
+  async _addBricks ({srs, brickSize}) {
+    await addXosanBricks(this.props.sr.id, srs.map(sr => sr.id), brickSize)
     await this._refreshInfo()
   }
 
@@ -85,18 +89,26 @@ export default class TabXosan extends Component {
     (poolId, underlyingSr) => sr => sr.SR_type === 'lvm' && sr.$pool === poolId && underlyingSr !== sr.id
   )
 
+  nodeSize (node) {
+    const { vms, vbds, vdis } = this.props
+    const reducer = (sum, vbd) => (vdi => vdi !== undefined ? sum + vdi.size : sum)(vdis[vbds[vbd].VDI])
+    const vm = vms[node.vm.id]
+    return vm ? reduce(vm.$VBDs, reducer, 0) : 100 * GIGABYTE
+  }
+
   render () {
     const {volumeHeal, volumeInfo, volumeStatus, xosanConfig, volumeStatusDetail} = this.state
-    const { vms, srs, vbds, vdis } = this.props
+    const { vms, srs } = this.props
     if (!xosanConfig) {
       return <Container />
     }
     if (!xosanConfig['version']) {
-      return <Container>This version of XOSAN SR is from the first beta phase. You can keep using it, but to modify it you'll have to save your disks and re-create it.</Container>
+      return <Container>This version of XOSAN SR is from the first beta phase. You can keep using it, but to
+        modify it you'll have to save your disks and re-create it.</Container>
     }
     const brickByName = {}
     xosanConfig['nodes'].forEach(node => {
-      const size = reduce(vms[node.vm.id].$VBDs, (sum, vbd) => (vdi => vdi !== undefined ? sum + vdi.size : sum)(vdis[vbds[vbd].VDI]), 0)
+      const size = this.nodeSize(node)
       brickByName[node.brickName] = {config: node, uuid: '-', size}
     })
     const brickByUuid = {}
@@ -157,7 +169,7 @@ export default class TabXosan extends Component {
             <Row><Col size={2}>Replace: </Col>
               <Col size={3}><SelectSr predicate={this._getSrPredicate(node.config.underlyingSr)}
                 onChange={this.linkState(`sr-${i}`)} value={this.state[`sr-${i}`]} /></Col>
-              <Col size={2}><SizeInput defaultValue={node.size} value={this.state[`brickSize-${i}`]}
+              <Col size={2}><SizeInput value={this.state[`brickSize-${i}`]}
                 onChange={this.linkState(`brickSize-${i}`)} required /></Col>
               <Col size={3}>
                 <ActionButton
@@ -175,7 +187,8 @@ export default class TabXosan extends Component {
             {node['statusDetail'] && <div>
               <Row><Col size={2}>Used Space: </Col><Col size={4}>
                 <Tooltip content={_('spaceLeftTooltip', {
-                  used: String(Math.round(100 - (parseInt(node['statusDetail']['sizeFree']) / parseInt(node['statusDetail']['sizeTotal'])) * 100)),
+                  used: String(Math.round(100 - (parseInt(node['statusDetail']['sizeFree']) /
+                    parseInt(node['statusDetail']['sizeTotal'])) * 100)),
                   free: formatSize(parseInt(node['statusDetail']['sizeFree']))
                 })}>
                   <progress className='progress' max='100'
@@ -184,10 +197,12 @@ export default class TabXosan extends Component {
                 </Tooltip></Col></Row>
               <Row><Col size={2}>Used Inodes: </Col><Col size={4}>
                 <Tooltip content={_('spaceLeftTooltip', {
-                  used: String(Math.round(100 - (parseInt(node['statusDetail']['inodesFree']) / parseInt(node['statusDetail']['inodesTotal'])) * 100)),
+                  used: String(Math.round(100 - (parseInt(node['statusDetail']['inodesFree']) /
+                    parseInt(node['statusDetail']['inodesTotal'])) * 100)),
                   free: String(parseInt(node['statusDetail']['inodesFree']))
                 })}>
-                  <progress className='progress' max='100' value={100 - (parseInt(node['statusDetail']['inodesFree']) / parseInt(node['statusDetail']['inodesTotal'])) * 100}
+                  <progress className='progress' max='100' value={100 - (parseInt(node['statusDetail']['inodesFree']) /
+                    parseInt(node['statusDetail']['inodesTotal'])) * 100}
                   /></Tooltip></Col></Row>
               <Row><Col size={2}>blockSize: </Col><Col size={4}>{ node['statusDetail']['blockSize']}</Col></Row>
               <Row><Col size={2}>device: </Col><Col size={4}>{ node['statusDetail']['device']}</Col></Row>
@@ -227,15 +242,17 @@ export default class TabXosan extends Component {
       <h2>Add Subvolume</h2>
       <div>
         <Row><Col size={2}>Select {subvolumeSize} SRs: </Col>
-          <Col size={5}><SelectSr multi predicate={this._getSrPredicate(null)} onChange={this.linkState('added-srs')}
+          <Col size={4}><SelectSr multi predicate={this._getSrPredicate(null)} onChange={this.linkState('added-srs')}
             value={this.state['added-srs']} />
-            <ActionButton
-              btnStyle='success'
-              icon='add'
-              handler={::this._addBricks}
-              handlerParam={{ srs: this.state['added-srs'] }}
-          >Add</ActionButton>
-          </Col></Row>
+          </Col>
+          <Col size={2}><SizeInput value={this.state['added-size']} onChange={this.linkState('added-size')} required /></Col>
+          <Col size={1}><ActionButton
+            btnStyle='success'
+            icon='add'
+            handler={::this._addBricks}
+            handlerParam={{ srs: this.state['added-srs'], brickSize: this.state['added-size'] }}
+          >Add</ActionButton></Col>
+        </Row>
       </div>
       <h2>Remove Subvolumes</h2>
       {subVolumes.map((subvolume, i) => <div key={i}>
