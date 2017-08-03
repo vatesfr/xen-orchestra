@@ -350,6 +350,12 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
+  async setPoolMaster (hostId) {
+    await this.call('pool.designate_new_master', this.getObject(hostId).$ref)
+  }
+
+  // =================================================================
+
   async joinPool (masterAddress, masterUsername, masterPassword, force = false) {
     await this.call(
       force ? 'pool.join_force' : 'pool.join',
