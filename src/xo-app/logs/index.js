@@ -11,6 +11,7 @@ import map from 'lodash/map'
 import orderBy from 'lodash/orderBy'
 import propTypes from 'prop-types-decorator'
 import React, { Component } from 'react'
+import BaseComponent from 'base-component'
 import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
@@ -91,41 +92,78 @@ const JobTransferredDataInfos = ({ start, end, size }) => <div>
   <span><strong>{_('jobTransferredDataSpeed')}</strong> {formatSpeed(size, end - start)}</span>
 </div>
 
-const Log = props => <ul className='list-group'>
-  {map(props.log.calls, call => {
-    const {
-      end,
-      error,
-      returnedValue,
-      start
-    } = call
+const CALL_FILTER_OPTIONS = [
+  {label: _('successfulJobCall'), value: 'success'},
+  {label: _('failedJobCall'), value: 'failed'},
+  {label: _('jobCallInProgess'), value: 'busy'},
+  {label: _('allJobCalls'), value: 'all'}
+]
 
-    let id
-    if (returnedValue != null) {
-      id = returnedValue.id
-      if (id === undefined && typeof returnedValue === 'string') {
-        id = returnedValue
-      }
-    }
+class Log extends BaseComponent {
+  state = {
+    filter: 'all'
+  }
 
-    return <li key={call.callKey} className='list-group-item'>
-      <strong className='text-info'>{call.method}: </strong><JobCallStateInfos end={end} error={error} /><br />
-      {map(call.params, (value, key) => [ <JobParam id={value} paramKey={key} key={key} />, <br /> ])}
-      {end !== undefined && _.keyValue(_('jobDuration'), <FormattedDuration duration={end - start} />)}
-      {returnedValue != null && returnedValue.size !== undefined && <JobTransferredDataInfos start={start} end={end} size={returnedValue.size} />}
-      {id !== undefined && <span>{' '}<JobReturn id={id} /></span>}
-      {call.error &&
-        <span className='text-danger'>
-          <Icon icon='error' />
-          {' '}
-          {call.error.message
-            ? <strong>{call.error.message}</strong>
-            : JSON.stringify(call.error)
+  render () {
+    const { props, state } = this
+
+    return <div>
+      <select
+        className='form-control'
+        onChange={this.linkState('filter')}
+        value={state.filter}
+      >
+        {map(CALL_FILTER_OPTIONS, ({ label, value }) => <option key={value} value={value}>{label}</option>)}
+      </select>
+      <br />
+      <ul className='list-group'>
+        {map(props.log.calls, call => {
+          const {
+            end,
+            error,
+            returnedValue,
+            start
+          } = call
+
+          let id
+          if (returnedValue != null) {
+            id = returnedValue.id
+            if (id === undefined && typeof returnedValue === 'string') {
+              id = returnedValue
+            }
           }
-        </span>}
-    </li>
-  })}
-</ul>
+
+          const showCall =
+            state.filter === 'all' ||
+            state.filter === (
+              error !== undefined
+                ? 'failed'
+                : end !== undefined
+                  ? 'success'
+                  : 'busy'
+            )
+
+          return showCall && <li key={call.callKey} className='list-group-item'>
+            <strong className='text-info'>{call.method}: </strong><JobCallStateInfos end={end} error={error} /><br />
+            {map(call.params, (value, key) => [ <JobParam id={value} paramKey={key} key={key} />, <br /> ])}
+            {end !== undefined && _.keyValue(_('jobDuration'), <FormattedDuration duration={end - start} />)}
+            {returnedValue != null && returnedValue.size !== undefined && <JobTransferredDataInfos start={start} end={end} size={returnedValue.size} />}
+            {id !== undefined && <span>{' '}<JobReturn id={id} /></span>}
+            {call.error &&
+              <span className='text-danger'>
+                <Icon icon='error' />
+                {' '}
+                {call.error.message
+                  ? <strong>{call.error.message}</strong>
+                  : JSON.stringify(call.error)
+                }
+              </span>}
+          </li>
+        })}
+      </ul>
+    </div>
+  }
+}
 
 const showCalls = log => alert(_('jobModalTitle', { job: log.jobId }), <Log log={log} />)
 
