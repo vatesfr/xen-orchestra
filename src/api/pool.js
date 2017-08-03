@@ -54,6 +54,25 @@ setDefaultSr.params = {
 setDefaultSr.resolve = {
   sr: ['sr', 'SR']
 }
+
+// -------------------------------------------------------------------
+
+export async function setPoolMaster ({ host }) {
+  await this.hasPermissions(this.user.id, [ [ host.$pool, 'administrate' ] ])
+
+  await this.getXapi(host).setPoolMaster(host._xapiId)
+}
+
+setPoolMaster.params = {
+  host: {
+    type: 'string'
+  }
+}
+
+setPoolMaster.resolve = {
+  host: ['host', 'host']
+}
+
 // -------------------------------------------------------------------
 
 export async function installPatch ({pool, patch: patchUuid}) {
