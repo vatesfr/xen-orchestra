@@ -1,10 +1,43 @@
-import _ from 'intl'
-import Copiable from 'copiable'
 import React from 'react'
+
+import _ from 'intl'
+import Component from 'base-component'
+import Copiable from 'copiable'
 import SelectFiles from 'select-files'
 import Upgrade from 'xoa-upgrade'
-import { Container, Row, Col } from 'grid'
-import { installSupplementalPackOnAllHosts } from 'xo'
+import { connectStore } from 'utils'
+import { createGetObjectsOfType } from 'selectors'
+import { XoSelect } from 'editable'
+import { installSupplementalPackOnAllHosts, setPoolMaster } from 'xo'
+import {
+  Container,
+  Row,
+  Col
+} from 'grid'
+
+@connectStore(() => ({
+  master: createGetObjectsOfType('host').find(
+    (_, { pool }) => ({ id: pool.master })
+  )
+}))
+class PoolMaster extends Component {
+  _getPoolMasterPredicate = host => host.$pool === this.props.pool.id
+
+  _onChange = host => setPoolMaster(host)
+
+  render () {
+    const { pool, master } = this.props
+
+    return <XoSelect
+      onChange={this._onChange}
+      predicate={this._getPoolMasterPredicate}
+      value={pool.master}
+      xoType='host'
+    >
+      {master.name_label}
+    </XoSelect>
+  }
+}
 
 export default ({
   pool
@@ -30,6 +63,14 @@ export default ({
           ? _('poolHaEnabled')
           : _('poolHaDisabled')
         }
+      </Col>
+    </Row>
+    <Row>
+      <Col size={3}>
+        <strong>{_('setpoolMaster')}</strong>
+      </Col>
+      <Col size={9}>
+        <PoolMaster pool={pool} />
       </Col>
     </Row>
   </Container>

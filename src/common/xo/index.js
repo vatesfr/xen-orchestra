@@ -441,6 +441,16 @@ export const setDefaultSr = sr => (
   _call('pool.setDefaultSr', { sr: resolveId(sr) })
 )
 
+export const setPoolMaster = host => (
+  confirm({
+    title: _('setPoolMasterModalTitle'),
+    body: _('setPoolMasterModalMessage', { host: <strong>{host.name_label}</strong> })
+  }).then(
+    () => _call('pool.setPoolMaster', { host: resolveId(host) }),
+    noop
+  )
+)
+
 // Host --------------------------------------------------------------
 
 export const editHost = (host, props) => (
