@@ -480,6 +480,7 @@ var messages = {
   poolHaStatus: 'High Availability',
   poolHaEnabled: 'Enabled',
   poolHaDisabled: 'Disabled',
+  setpoolMaster: 'Master',
   // ----- Pool host tab -----
   hostNameLabel: 'Name',
   hostDescription: 'Description',
@@ -1177,6 +1178,11 @@ var messages = {
   forgetHostModalTitle: 'Forget host',
   forgetHostModalMessage: 'Are you sure you want to forget {host} from its pool? Be sure this host can\'t be back online, or use detach instead.',
   forgetHost: 'Forget',
+
+  // ----- Set pool master -----
+
+  setPoolMasterModalTitle: 'Designate a new master',
+  setPoolMasterModalMessage: 'This operation may take several minutes. Do you want to continue?',
 
   // ----- Network -----
   newNetworkCreate: 'Create network',
