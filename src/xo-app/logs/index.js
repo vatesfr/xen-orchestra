@@ -1,22 +1,27 @@
+import React, { Component } from 'react'
+import { FormattedDate } from 'react-intl'
+import {
+forEach,
+get,
+includes,
+isEmpty,
+map,
+orderBy
+} from 'lodash'
+
 import _, { FormattedDuration } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import ButtonGroup from 'button-group'
 import classnames from 'classnames'
-import forEach from 'lodash/forEach'
-import get from 'lodash/get'
 import Icon from 'icon'
-import includes from 'lodash/includes'
-import map from 'lodash/map'
-import orderBy from 'lodash/orderBy'
+import NoObjects from 'no-objects'
 import propTypes from 'prop-types-decorator'
-import React, { Component } from 'react'
 import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
 import { alert, confirm } from 'modal'
 import { createGetObject } from 'selectors'
-import { FormattedDate } from 'react-intl'
 import {
   connectStore,
   formatSize,
@@ -194,7 +199,6 @@ export default class LogList extends Component {
   constructor (props) {
     super(props)
     this.state = {
-      logs: [],
       logsToClear: []
     }
     this.filters = {
@@ -278,18 +282,25 @@ export default class LogList extends Component {
     }).then(() => deleteJobsLog(this.state.logsToClear))
   }
 
+  _getPredicate = logs => logs != null
+
   render () {
     const { logs } = this.state
 
     return (
       <Card>
         <CardHeader>
-          <Icon icon='log' /> Logs<span className='pull-right'><ActionButton disabled={!logs.length} btnStyle='danger' handler={this._deleteAllLogs} icon='delete' /></span>
+          <Icon icon='log' /> Logs<span className='pull-right'><ActionButton disabled={isEmpty(logs)} btnStyle='danger' handler={this._deleteAllLogs} icon='delete' /></span>
         </CardHeader>
         <CardBlock>
-          {logs.length
-            ? <SortedTable collection={logs} columns={LOG_COLUMNS} filters={this.filters} />
-            : <p>{_('noLogs')}</p>}
+          <NoObjects
+            className='text-xs-center'
+            collection={logs}
+            message={_('noLogs')}
+            predicate={this._getPredicate}
+          >
+            <SortedTable collection={logs} columns={LOG_COLUMNS} filters={this.filters} />
+          </NoObjects>
         </CardBlock>
       </Card>
     )

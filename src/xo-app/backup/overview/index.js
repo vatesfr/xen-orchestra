@@ -1,17 +1,21 @@
+import React from 'react'
+import {
+  filter,
+  find,
+  forEach,
+  get,
+  map,
+  orderBy
+} from 'lodash'
+
 import _ from 'intl'
 import ActionRowButton from 'action-row-button'
 import ButtonGroup from 'button-group'
 import Component from 'base-component'
-import filter from 'lodash/filter'
-import find from 'lodash/find'
-import forEach from 'lodash/forEach'
-import get from 'lodash/get'
 import Icon from 'icon'
 import Link from 'link'
 import LogList from '../../logs'
-import map from 'lodash/map'
-import orderBy from 'lodash/orderBy'
-import React from 'react'
+import NoObjects from 'no-objects'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
@@ -122,7 +126,6 @@ export default class Overview extends Component {
   constructor (props) {
     super(props)
     this.state = {
-      schedules: [],
       scheduleTable: {}
     }
   }
@@ -201,6 +204,8 @@ export default class Overview extends Component {
     }
   )
 
+  _getPredicate = schedules => schedules != null
+
   render () {
     const {
       schedules
@@ -215,9 +220,14 @@ export default class Overview extends Component {
             <Icon icon='schedule' /> {_('backupSchedules')}
           </CardHeader>
           <CardBlock>
-            {schedules.length ? (
+            <NoObjects
+              className='text-xs-center'
+              collection={schedules}
+              message={_('noScheduledJobs')}
+              predicate={this._getPredicate}
+            >
               <SortedTable columns={JOB_COLUMNS} collection={this._getScheduleCollection()} userData={isScheduleUserMissing} />
-            ) : <p>{_('noScheduledJobs')}</p>}
+            </NoObjects>
           </CardBlock>
         </Card>
         <LogList jobKeys={Object.keys(jobKeyToLabel)} />
