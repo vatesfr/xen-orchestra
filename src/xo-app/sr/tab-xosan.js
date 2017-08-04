@@ -161,8 +161,8 @@ export default class TabXosan extends Component {
         <div key={node.config.brickName}>
           <h3>Brick {node.config.brickName}</h3>
           <div style={{ marginLeft: '15px' }}>
-            <Row><Col size={2}>Virtual Machine: </Col><Col size={4}><Link
-              to={`/vms/${node.config.vm.id}`}>{vms[node.config.vm.id].name_label}</Link></Col></Row>
+            <Row><Col size={2}>Virtual Machine: </Col><Col size={4}>{vms[node.config.vm.id] != null && <Link
+              to={`/vms/${node.config.vm.id}`}>{vms[node.config.vm.id].name_label}</Link>}</Col></Row>
             <Row><Col size={2}>Underlying Storage: </Col><Col size={4}><Link
               to={`/srs/${node.config.underlyingSr}`}>{srs[node.config.underlyingSr].name_label}</Link> -
               Using {formatSize(node.size)}</Col></Row>
