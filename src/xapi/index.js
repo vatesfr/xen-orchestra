@@ -662,7 +662,8 @@ export default class Xapi extends XapiBase {
       await this.call('VM.hard_shutdown', $ref)
     }
 
-    await this.barrier('VM', $ref)
+    // ensure the vm record is up-to-date
+    vm = await this.barrier('VM', $ref)
 
     return Promise.all([
       this.call('VM.destroy', $ref),
