@@ -19,6 +19,7 @@ propTypes(Icon)({
   color: propTypes.string,
   fixedWidth: propTypes.bool,
   icon: propTypes.string,
+  color: propTypes.string,
   size: propTypes.oneOfType([
     propTypes.string,
     propTypes.number
