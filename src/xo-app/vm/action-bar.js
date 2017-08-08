@@ -82,12 +82,6 @@ const vmActionBarByState = {
         pending={includes(vm.current_operations, 'clone')}
       />}
       {!isSelfUser && <Action
-        handler={migrateVm}
-        icon='vm-migrate'
-        label={_('migrateVmLabel')}
-        pending={includes(vm.current_operations, 'pool_migrate')}
-      />}
-      {!isSelfUser && <Action
         handler={snapshotVm}
         icon='vm-snapshot'
         label={_('snapshotVmLabel')}
