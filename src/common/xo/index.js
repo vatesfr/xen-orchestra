@@ -163,6 +163,11 @@ const createSubscription = cb => {
 
   let running = false
 
+  const uninstall = () => {
+    clearTimeout(timeout)
+    cache = undefined
+  }
+
   const loop = () => {
     if (running) {
       return
@@ -171,6 +176,11 @@ const createSubscription = cb => {
     running = true
     _signIn.then(() => cb()).then(result => {
       running = false
+
+      if (n === 0) {
+        return uninstall()
+      }
+
       timeout = setTimeout(loop, delay)
 
       if (!isEqual(result, cache)) {
@@ -187,6 +197,11 @@ const createSubscription = cb => {
       }
     }, error => {
       running = false
+
+      if (n === 0) {
+        return uninstall()
+      }
+
       console.error(error)
     })
   }
@@ -195,8 +210,10 @@ const createSubscription = cb => {
     const id = nextId++
     subscribers[id] = cb
 
-    if (n++) {
-      cache !== undefined && asap(() => cb(cache))
+    if (n++ !== 0) {
+      if (cache !== undefined) {
+        asap(() => cb(cache))
+      }
     } else {
       loop()
     }
@@ -204,9 +221,8 @@ const createSubscription = cb => {
     return once(() => {
       delete subscribers[id]
 
-      if (!--n) {
-        clearTimeout(timeout)
-        cache = undefined
+      if (--n === 0) {
+        uninstall()
       }
     })
   }
