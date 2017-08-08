@@ -254,15 +254,20 @@ export class Xapi extends EventEmitter {
 
   // this method injects an artificial event on the pool and waits for
   // this event to be received
-  barrier () {
+  barrier (type, ref) {
     const eventWatchers = this._eventWatchers
     if (eventWatchers === undefined) {
       return Promise.reject(new Error('Xapi#barrier() requires events watching'))
     }
 
+    if (type === undefined) {
+      type = 'pool'
+      ref = this._pool.$ref
+    }
+
     return this._sessionCall(
       'event.inject',
-      [ 'pool', this._pool.$ref ]
+      [ type, ref ]
     ).then(eventId => {
       // see https://gist.github.com/julien-f/675b01825302bcc85270dd74f15e7cb0
       eventId = String(+eventId.split(',')[0] + 1)
@@ -701,6 +706,8 @@ export class Xapi extends EventEmitter {
         delete taskWatchers[ref]
       }
     }
+
+    return object
   }
 
   _removeObject (ref) {
@@ -723,6 +730,13 @@ export class Xapi extends EventEmitter {
     const eventWatchers = this._eventWatchers
 
     forEach(events, event => {
+      let object
+      if (event.operation === 'del') {
+        this._removeObject(event.ref)
+      } else {
+        object = this._addObject(event.class, event.ref, event.snapshot)
+      }
+
       if (eventWatchers !== undefined) {
         // see https://gist.github.com/julien-f/675b01825302bcc85270dd74f15e7cb0
         const eventId = String(+event.id.split(',')[0])
@@ -730,14 +744,8 @@ export class Xapi extends EventEmitter {
         const watcher = eventWatchers[eventId]
         if (watcher !== undefined) {
           delete eventWatchers[eventId]
-          watcher.resolve()
+          watcher.resolve(object)
         }
-      }
-
-      if (event.operation === 'del') {
-        this._removeObject(event.ref)
-      } else {
-        this._addObject(event.class, event.ref, event.snapshot)
       }
     })
   }
