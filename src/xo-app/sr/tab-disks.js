@@ -70,7 +70,7 @@ const COLUMNS = [
         const id = vm.$snapshot_of
         link = id !== undefined
           ? `/vms/${id}/snapshots`
-          : '/dashboard/health#orphan-vm-snapshots'
+          : '/dashboard/health'
       }
 
       return <Link to={link}>{renderXoItem(vm)}</Link>
