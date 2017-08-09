@@ -17,7 +17,6 @@ const CARD_HEADER_STYLE = {
 }
 
 export const Card = propTypes({
-  disableMaxHeight: propTypes.bool,
   shadow: propTypes.bool
 })(({
   children,
