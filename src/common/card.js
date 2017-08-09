@@ -19,13 +19,14 @@ const CARD_HEADER_STYLE = {
 export const Card = propTypes({
   shadow: propTypes.bool
 })(({
-  children,
-  shadow
-}) => (
-  <div className='card' style={shadow ? CARD_STYLE_WITH_SHADOW : CARD_STYLE}>
-    {children}
-  </div>
-))
+  shadow,
+  ...props
+}) => {
+  props.className = 'card'
+  props.style = shadow ? CARD_STYLE_WITH_SHADOW : CARD_STYLE
+
+  return <div {...props} />
+})
 
 export const CardHeader = propTypes({
   className: propTypes.string
