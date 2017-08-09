@@ -147,6 +147,13 @@ const getTaskResult = (task, onSuccess, onFailure) => {
 
 // -------------------------------------------------------------------
 
+// see https://gist.github.com/julien-f/675b01825302bcc85270dd74f15e7cb0
+const parseEventId = id => typeof id === 'string'
+  ? +id.split(',')[0]
+  : id
+
+// -------------------------------------------------------------------
+
 const MAX_TRIES = 5
 
 const CONNECTED = 'connected'
@@ -269,14 +276,13 @@ export class Xapi extends EventEmitter {
       'event.inject',
       [ type, ref ]
     ).then(eventId => {
-      // see https://gist.github.com/julien-f/675b01825302bcc85270dd74f15e7cb0
-      eventId = String(+eventId.split(',')[0] + 1)
-
-      let watcher = eventWatchers[eventId]
-      if (watcher === undefined) {
-        watcher = eventWatchers[eventId] = defer()
-      }
-      return watcher.promise
+      eventId = parseEventId(eventId)
+      const { promise, resolve } = defer()
+      ;(
+        eventWatchers[ref] ||
+        (eventWatchers[ref] = [])
+      ).push({ eventId, resolve })
+      return promise
     })
   }
 
@@ -731,20 +737,33 @@ export class Xapi extends EventEmitter {
 
     forEach(events, event => {
       let object
+      const { ref } = event
       if (event.operation === 'del') {
-        this._removeObject(event.ref)
+        this._removeObject(ref)
       } else {
-        object = this._addObject(event.class, event.ref, event.snapshot)
+        object = this._addObject(event.class, ref, event.snapshot)
       }
 
       if (eventWatchers !== undefined) {
-        // see https://gist.github.com/julien-f/675b01825302bcc85270dd74f15e7cb0
-        const eventId = String(+event.id.split(',')[0])
+        const watchers = eventWatchers[ref]
+        if (watchers !== undefined) {
+          const eventId = parseEventId(event.id)
 
-        const watcher = eventWatchers[eventId]
-        if (watcher !== undefined) {
-          delete eventWatchers[eventId]
-          watcher.resolve(object)
+          const { length } = watchers
+          let i = 0
+          let current
+          while (
+            i < length &&
+            (current = watchers[i]).eventId <= eventId
+          ) {
+            current.resolve(object)
+            ++i
+          }
+          if (i === length) {
+            delete eventWatchers[ref]
+          } else {
+            watchers.splice(0, i)
+          }
         }
       }
     })
