@@ -63,13 +63,17 @@ const COLUMNS = [
         return renderXoUnknownItem()
       }
 
-      return <Link to={`/vms/${
-        vm.type === 'VM-snapshot'
-        ? `${vm.$snapshot_of}/snapshots`
-        : vm.id
-      }`}>
-        {renderXoItem(vm)}
-      </Link>
+      let link
+      if (vm.$type === 'VM') {
+        link = `/vms/${vm.id}`
+      } else {
+        const id = vm.$snapshot_of
+        link = id !== undefined
+          ? `/vms/${id}/snapshots`
+          : '/dashboard/health#orphan-vm-snapshots'
+      }
+
+      return <Link to={link}>{renderXoItem(vm)}</Link>
     })
   },
   {
