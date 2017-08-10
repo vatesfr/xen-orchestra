@@ -1992,14 +1992,15 @@ export const setIpPool = (ipPool, { name, addresses, networks }) => (
 
 export const getVolumeInfo = (xosanSr, infoType) => _call('xosan.getVolumeInfo', { sr: xosanSr, infoType })
 
-export const createXosanSR = ({ template, pif, vlan, srs, glusterType, redundancy, brickSize }) => _call('xosan.createSR', {
+export const createXosanSR = ({ template, pif, vlan, srs, glusterType, redundancy, brickSize, memorySize }) => _call('xosan.createSR', {
   template,
   pif: pif.id,
   vlan: String(vlan),
   srs: resolveIds(srs),
   glusterType,
   redundancy: Number.parseInt(redundancy),
-  brickSize
+  brickSize,
+  memorySize
 })
 
 export const addXosanBricks = (xosansr, lvmsrs, brickSize) => _call('xosan.addBricks', {xosansr, lvmsrs, brickSize})

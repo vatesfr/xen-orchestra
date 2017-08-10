@@ -144,11 +144,11 @@ const GIGABYTE = 1024 * 1024 * 1024
 class PoolAvailableSrs extends Component {
   state = {
     selectedSrs: {},
-    brickSize: 100 * GIGABYTE
+    brickSize: 100 * GIGABYTE,
+    memorySize: 2 * GIGABYTE
   }
 
   _refreshSuggestions = async ({ selectedSrs = this.state.selectedSrs, brickSize = this.state.brickSize }) => {
-    console.log('_refreshSuggestions', selectedSrs, brickSize)
     this.setState({
       suggestion: 0,
       suggestions: await computeXosanPossibleOptions(keys(pickBy(selectedSrs)), brickSize)
@@ -203,9 +203,7 @@ class PoolAvailableSrs extends Component {
   )
 
   _createXosanVm = () => {
-    const { pif, vlan, selectedSrs, suggestion, suggestions, brickSize } = this.state
-
-    const params = suggestions[suggestion]
+    const params = this.state.suggestions[this.state.suggestion]
 
     if (!params) {
       return
@@ -213,12 +211,13 @@ class PoolAvailableSrs extends Component {
 
     return createXosanSR({
       template: this._getLatestTemplate(),
-      pif,
-      vlan: vlan || 0,
-      srs: keys(pickBy(selectedSrs)),
+      pif: this.state.pif,
+      vlan: this.state.vlan || 0,
+      srs: keys(pickBy(this.state.selectedSrs)),
       glusterType: params.layout,
       redundancy: params.redundancy,
-      brickSize
+      brickSize: this.state.brickSize,
+      memorySize: this.state.memorySize
     })
   }
 
@@ -235,7 +234,8 @@ class PoolAvailableSrs extends Component {
       suggestions,
       useVlan,
       vlan,
-      brickSize
+      brickSize,
+      memorySize
     } = this.state
 
     const disableSrCheckbox = this._getDisableSrCheckbox()
@@ -298,6 +298,8 @@ class PoolAvailableSrs extends Component {
         : <div>
           <label title='Size of the disk underlying the bricks'>Brick size:</label>
           <SizeInput value={brickSize} onChange={this._onBrickSizeChange} required />
+          <label title='Memory size of the VMs underlying the bricks'>Memory size:</label>
+          <SizeInput value={memorySize} onChange={this.linkState('memorySize')} required />
           <table className='table table-striped'>
             <thead>
               <tr>
