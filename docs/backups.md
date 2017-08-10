@@ -11,7 +11,7 @@ There is different way to protect your VMs:
 * [continuous replication](continuous_replication.md) [*Premium Edition*]
 * [file level restore](file_level_restore.md) [*Premium Edition*]
 
-> Don't forget to take a look on the [backup troubleshooting](backup_troubleshooting.md) section.
+> Don't forget to take a look on the [backup troubleshooting](backup_troubleshooting.md) section. You can also take a look on the [backup reports](backup-reports.md) section for configuring notification.
 
 There is also a way to select automatically VMs to backup: **[smart backup](smart_backup.md)** [*Enterprise Edition*]
 
@@ -133,104 +133,3 @@ To get the mount point persistent in XOA, edit the `/etc/fstab` file, and add:
 ```
 
 This way, without modifying your previous scheduled snapshot, they will be written in this local mountpoint!
-
-## Notifications
-
-### Emails
-
-You can **be notified by emails** after the backup task is finished (scheduled "full backup", "snapshots" or "disaster recovery").
-
-To configure it, 2 steps in the plugin section (in "Settings"):
-
-1. First, add a list of recipient(s) for the notifications (in the plugin "backup-reports").
-1. Then, you can set the SMTP server.
-
-That's it: your next scheduled jobs will be recap in a email. It will look like this:
-
-```
-Global status: Success
-
-Start time: Fri Nov 27 2015 10:54:00 GMT+0100
-End time: Fri Nov 27 2015 10:54:04 GMT+0100
-Duration: a few seconds
-Successful backed up VM number: 1
-Failed backed up VM: 0
-VM : miniVM
-
-UUID: 4b85a038-6fd1-30f0-75c6-8440121d8faa
-Status: Success
-Start time: Fri Nov 27 2015 10:54:00 GMT+0100
-End time: Fri Nov 27 2015 10:54:04 GMT+0100
-Duration: a few seconds
-
-```
-
-## XMPP nofications
-
-You can **be notified via XMPP** after the backup task is finished (scheduled "full backup", "snapshots" or "disaster recovery").
-
-To configure it, 2 steps in the plugin section (in "Settings"):
-
-1. add a list of recipient(s) for the notifications (in the plugin "backup-reports" and for XMPP)
-2. set the XMPP server
-
-That's it: your next scheduled jobs will be recap in a message:
-
-![](https://xen-orchestra.com/blog/content/images/2015/12/xmpp.png)
-
-## Slack or Mattermost notifications
-
-Xen Orchestra is able to send backup report to Slack or Mattermost.
-
-### Plugin configuration
-
-Like all other xo-server plugins, it can be configured directly via
-the web iterface, see [the plugin documentation](https://xen-orchestra.com/docs/plugins.html).
-
-### Generate the Webhook
-
-#### Slack
-
-1. Log in your Slack team account
-
-2. Click on the **Main menu** at the top and choose **Apps & Integrations**
-
-![Apps & Integrations](assets/DocImg1.png)
-
-3. Search **Incoming WebHooks**
-
-![Incoming WebHooks](assets/DocImg2.png)
-
-4. Click on **Add Configuration**
-
-![Add Configuration](assets/DocImg3.png)
-
-5. Choose the default channel and click on **Add Incoming WebHooks integration**
-
-![Add Incoming WebHooks integration](assets/DocImg4.png)
-
-6. Modify the default settings and click on **Save Settings**
-
-![Save Settings](assets/DocImg5.png)
-
-#### Mattermost
-
-You need to be an admin.
-
-* Go in MatterMost menu, then Integration
-* Click on "Add Incoming webhook"
-* "Add Incoming Webhook"
-
-### Testing the plugin
-
-#### Slack
-
-![Slack configuration](assets/DocImg6.png)
-
-![Slack](assets/DocImg7.png)
-
-#### Mattermost
-
-![Mattermost configuration](assets/DocImg8.png)
-
-![Mattermost](assets/DocImg9.png)

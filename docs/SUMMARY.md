@@ -32,6 +32,7 @@
        * [Disaster recovery](disaster_recovery.md)
        * [Smart Backup](smart_backup.md)
        * [File level Restore](file_level_restore.md)
+       * [Configure backup reports](backup_reports.md)
        * [Backup troubleshooting](backup_troubleshooting.md)
    * [User authentication](authentication.md)
        * [Built-in](built-in.md)
