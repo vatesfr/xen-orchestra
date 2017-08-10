@@ -285,15 +285,11 @@ export default class SortedTable extends Component {
       forEach(this._getVisibleItems(), ({ id }) => {
         selectedItems[id] = true
       })
-
-      this.setState({
-        selectedItems
-      })
-    } else {
-      this.setState({
-        selectedItems
-      })
     }
+
+    this.setState({
+      selectedItems
+    })
   }
 
   _getSelectedItems = () => {
