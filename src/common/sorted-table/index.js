@@ -1,10 +1,14 @@
 import _ from 'intl'
 import classNames from 'classnames'
-import React from 'react'
-import { Dropdown, MenuItem, Pagination } from 'react-bootstrap-4/lib'
 import DropdownMenu from 'react-bootstrap-4/lib/DropdownMenu' // https://phabricator.babeljs.io/T6662 so Dropdown.Menu won't work like https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
 import DropdownToggle from 'react-bootstrap-4/lib/DropdownToggle' // https://phabricator.babeljs.io/T6662 so Dropdown.Toggle won't work https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
+import React from 'react'
 import { Portal } from 'react-overlays'
+import {
+  Dropdown,
+  MenuItem,
+  Pagination
+} from 'react-bootstrap-4/lib'
 import {
   ceil,
   debounce,
@@ -16,13 +20,13 @@ import {
   map
 } from 'lodash'
 
+import ActionBar, { Action } from 'action-bar'
 import Button from '../button'
 import Component from '../base-component'
+import getEventValue from '../get-event-value'
 import Icon from '../icon'
 import propTypes from '../prop-types-decorator'
 import SingleLineRow from '../single-line-row'
-import getEventValue from '../get-event-value'
-import ActionBar, { Action } from 'action-bar'
 import { BlockLink } from '../link'
 import { Container, Col } from '../grid'
 import { create as createMatcher } from '../complex-matcher'
