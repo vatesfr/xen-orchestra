@@ -11,7 +11,7 @@ There is different way to protect your VMs:
 * [continuous replication](continuous_replication.md) [*Premium Edition*]
 * [file level restore](file_level_restore.md) [*Premium Edition*]
 
-> Don't forget to take a look on the [backup troubleshooting](backup_troubleshooting.md) section. You can also take a look on the [backup reports](backup-reports.md) section for configuring notification.
+> Don't forget to take a look on the [backup troubleshooting](backup_troubleshooting.md) section. You can also take a look on the [backup reports](backup_reports.md) section for configuring notification.
 
 There is also a way to select automatically VMs to backup: **[smart backup](smart_backup.md)** [*Enterprise Edition*]
 
