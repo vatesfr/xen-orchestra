@@ -1,6 +1,7 @@
 import _, { FormattedDuration } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
+import BaseComponent from 'base-component'
 import ButtonGroup from 'button-group'
 import classnames from 'classnames'
 import forEach from 'lodash/forEach'
@@ -91,41 +92,80 @@ const JobTransferredDataInfos = ({ start, end, size }) => <div>
   <span><strong>{_('jobTransferredDataSpeed')}</strong> {formatSpeed(size, end - start)}</span>
 </div>
 
-const Log = props => <ul className='list-group'>
-  {map(props.log.calls, call => {
-    const {
-      end,
-      error,
-      returnedValue,
-      start
-    } = call
+const CALL_FILTER_OPTIONS = [
+  {label: 'successfulJobCall', value: 'success'},
+  {label: 'failedJobCall', value: 'error'},
+  {label: 'jobCallInProgess', value: 'running'},
+  {label: 'allJobCalls', value: 'all'}
+]
 
-    let id
-    if (returnedValue != null) {
-      id = returnedValue.id
-      if (id === undefined && typeof returnedValue === 'string') {
-        id = returnedValue
-      }
-    }
+const PREDICATES = {
+  all: () => true,
+  error: call => call.error !== undefined,
+  running: call => call.end === undefined && call.error === undefined,
+  success: call => call.end !== undefined && call.error === undefined
+}
 
-    return <li key={call.callKey} className='list-group-item'>
-      <strong className='text-info'>{call.method}: </strong><JobCallStateInfos end={end} error={error} /><br />
-      {map(call.params, (value, key) => [ <JobParam id={value} paramKey={key} key={key} />, <br /> ])}
-      {end !== undefined && _.keyValue(_('jobDuration'), <FormattedDuration duration={end - start} />)}
-      {returnedValue != null && returnedValue.size !== undefined && <JobTransferredDataInfos start={start} end={end} size={returnedValue.size} />}
-      {id !== undefined && <span>{' '}<JobReturn id={id} /></span>}
-      {call.error &&
-        <span className='text-danger'>
-          <Icon icon='error' />
-          {' '}
-          {call.error.message
-            ? <strong>{call.error.message}</strong>
-            : JSON.stringify(call.error)
+class Log extends BaseComponent {
+  state = {
+    filter: 'all'
+  }
+
+  render () {
+    const { props, state } = this
+    const predicate = PREDICATES[state.filter]
+
+    return <div>
+      <select
+        className='form-control'
+        onChange={this.linkState('filter')}
+        value={state.filter}
+      >
+        {map(CALL_FILTER_OPTIONS, ({ label, value }) => _(
+          { key: value },
+          label,
+          message => <option value={value}>{message}</option>
+        ))}
+      </select>
+      <br />
+      <ul className='list-group'>
+        {map(props.log.calls, call => {
+          const {
+            end,
+            error,
+            returnedValue,
+            start
+          } = call
+
+          let id
+          if (returnedValue != null) {
+            id = returnedValue.id
+            if (id === undefined && typeof returnedValue === 'string') {
+              id = returnedValue
+            }
           }
-        </span>}
-    </li>
-  })}
-</ul>
+
+          return predicate(call) && <li key={call.callKey} className='list-group-item'>
+            <strong className='text-info'>{call.method}: </strong><JobCallStateInfos end={end} error={error} /><br />
+            {map(call.params, (value, key) => [ <JobParam id={value} paramKey={key} key={key} />, <br /> ])}
+            {end !== undefined && _.keyValue(_('jobDuration'), <FormattedDuration duration={end - start} />)}
+            {returnedValue != null && returnedValue.size !== undefined && <JobTransferredDataInfos start={start} end={end} size={returnedValue.size} />}
+            {id !== undefined && <span>{' '}<JobReturn id={id} /></span>}
+            {call.error &&
+              <span className='text-danger'>
+                <Icon icon='error' />
+                {' '}
+                {call.error.message
+                  ? <strong>{call.error.message}</strong>
+                  : JSON.stringify(call.error)
+                }
+              </span>}
+          </li>
+        })}
+      </ul>
+    </div>
+  }
+}
 
 const showCalls = log => alert(_('jobModalTitle', { job: log.jobId }), <Log log={log} />)
 

@@ -225,6 +225,7 @@ var messages = {
   jobCallInProgess: 'In progress',
   jobTransferredDataSize: 'size:',
   jobTransferredDataSpeed: 'speed:',
+  allJobCalls: 'All',
   job: 'Job',
   jobModalTitle: 'Job {job}',
   jobId: 'ID',
