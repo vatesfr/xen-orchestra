@@ -291,7 +291,7 @@ export default class LogList extends Component {
           <Icon icon='log' /> Logs<span className='pull-right'><ActionButton disabled={isEmpty(logs)} btnStyle='danger' handler={this._deleteAllLogs} icon='delete' /></span>
         </CardHeader>
         <CardBlock>
-          <NoObjects collection={logs} message={_('noLogs')}>
+          <NoObjects collection={logs} emptyMessage={_('noLogs')}>
             <SortedTable collection={logs} columns={LOG_COLUMNS} filters={this.filters} />
           </NoObjects>
         </CardBlock>

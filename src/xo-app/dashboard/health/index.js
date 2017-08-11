@@ -443,7 +443,7 @@ export default class Health extends Component {
               <CardBlock>
                 <NoObjects
                   collection={props.areObjectsFetched ? props.userSrs : null}
-                  message={_('noSrs')}
+                  emptyMessage={_('noSrs')}
                 >
                   <Row>
                     <Col>
@@ -468,7 +468,7 @@ export default class Health extends Component {
               <CardBlock>
                 <NoObjects
                   collection={props.areObjectsFetched ? props.vdiOrphaned : null}
-                  message={_('noOrphanedObject')}
+                  emptyMessage={_('noOrphanedObject')}
                 >
                   <div>
                     <Row>
@@ -501,7 +501,7 @@ export default class Health extends Component {
               <CardBlock>
                 <NoObjects
                   collection={props.areObjectsFetched ? props.controlDomainVdis : null}
-                  message={_('noControlDomainVdis')}
+                  emptyMessage={_('noControlDomainVdis')}
                 >
                   <SortedTable collection={props.controlDomainVdis} columns={CONTROL_DOMAIN_VDI_COLUMNS} />
                 </NoObjects>
@@ -518,7 +518,7 @@ export default class Health extends Component {
               <CardBlock>
                 <NoObjects
                   collection={props.areObjectsFetched ? props.vmOrphaned : null}
-                  message={_('noOrphanedObject')}
+                  emptyMessage={_('noOrphanedObject')}
                 >
                   <SortedTable collection={props.vmOrphaned} columns={VM_COLUMNS} />
                 </NoObjects>
@@ -535,7 +535,7 @@ export default class Health extends Component {
               <CardBlock>
                 <NoObjects
                   collection={props.areObjectsFetched ? props.alertMessages : null}
-                  message={_('noAlarms')}
+                  emptyMessage={_('noAlarms')}
                 >
                   <div>
                     <Row>

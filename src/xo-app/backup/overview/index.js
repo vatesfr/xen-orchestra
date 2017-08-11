@@ -217,7 +217,7 @@ export default class Overview extends Component {
             <Icon icon='schedule' /> {_('backupSchedules')}
           </CardHeader>
           <CardBlock>
-            <NoObjects collection={schedules} message={_('noScheduledJobs')}>
+            <NoObjects collection={schedules} emptyMessage={_('noScheduledJobs')}>
               <SortedTable columns={JOB_COLUMNS} collection={this._getScheduleCollection()} userData={isScheduleUserMissing} />
             </NoObjects>
           </CardBlock>

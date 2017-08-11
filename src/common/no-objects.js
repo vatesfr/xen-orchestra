@@ -9,14 +9,14 @@ import propTypes from './prop-types-decorator'
 //  - The children if the objects are fetched and the collection is not empty
 //
 // ```js
-//  <NoObjects collection={collection} message={message}>
+//  <NoObjects collection={collection} emptyMessage={message}>
 //    {children}
 // </NoObjects>
 // ````
-const NoObjects = ({ children, collection, message }) => collection == null
+const NoObjects = ({ children, collection, emptyMessage }) => collection == null
   ? <img src='assets/loading.svg' alt='loading' />
   : isEmpty(collection)
-    ? <p>{message}</p>
+    ? <p>{emptyMessage}</p>
     : <div>{children}</div>
 
 propTypes(NoObjects)({
@@ -25,6 +25,6 @@ propTypes(NoObjects)({
     propTypes.array,
     propTypes.object
   ]).isRequired,
-  message: propTypes.any
+  emptyMessage: propTypes.node.isRequired
 })
 export default NoObjects
