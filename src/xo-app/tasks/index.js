@@ -28,8 +28,7 @@ import {
   includes,
   isEmpty,
   keys,
-  map,
-  size
+  map
 } from 'lodash'
 import {
   createGetObject,
@@ -86,15 +85,20 @@ export const TaskItem = connectStore(() => ({
 </SingleLineRow>)
 
 @connectStore(() => {
-  const getPendingTasksByPool = createGetObjectsOfType('task').filter(
+  const getPendingTasks = createGetObjectsOfType('task').filter(
     [ task => task.status === 'pending' ]
-  ).sort().groupBy('$pool')
+  )
+
+  const getNPendingTasks = getPendingTasks.count()
+
+  const getPendingTasksByPool = getPendingTasks.sort().groupBy('$pool')
 
   const getPools = createGetObjectsOfType('pool').pick(
     createSelector(getPendingTasksByPool, keys)
   ).sort()
 
   return {
+    nTasks: getNPendingTasks,
     pendingTasksByPool: getPendingTasksByPool,
     pools: getPools
   }
@@ -107,9 +111,9 @@ export default class Tasks extends Component {
     const { props, state } = this
     const {
       intl,
+      nTasks,
       pendingTasksByPool
     } = props
-    const nTasks = size(pendingTasksByPool)
 
     if (isEmpty(pendingTasksByPool)) {
       return <Page header={HEADER} title='taskPage' formatTitle>
