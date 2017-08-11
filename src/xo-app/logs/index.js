@@ -1,6 +1,7 @@
 import _, { FormattedDuration } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
+import BaseComponent from 'base-component'
 import ButtonGroup from 'button-group'
 import classnames from 'classnames'
 import forEach from 'lodash/forEach'
@@ -11,7 +12,6 @@ import map from 'lodash/map'
 import orderBy from 'lodash/orderBy'
 import propTypes from 'prop-types-decorator'
 import React, { Component } from 'react'
-import BaseComponent from 'base-component'
 import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
@@ -93,11 +93,18 @@ const JobTransferredDataInfos = ({ start, end, size }) => <div>
 </div>
 
 const CALL_FILTER_OPTIONS = [
-  {label: _('successfulJobCall'), value: 'success'},
-  {label: _('failedJobCall'), value: 'failed'},
-  {label: _('jobCallInProgess'), value: 'busy'},
-  {label: _('allJobCalls'), value: 'all'}
+  {label: 'successfulJobCall', value: 'success'},
+  {label: 'failedJobCall', value: 'error'},
+  {label: 'jobCallInProgess', value: 'running'},
+  {label: 'allJobCalls', value: 'all'}
 ]
+
+const PREDICATES = {
+  all: () => true,
+  error: call => call.error !== undefined,
+  running: call => call.end === undefined && call.error === undefined,
+  success: call => call.end !== undefined && call.error === undefined
+}
 
 class Log extends BaseComponent {
   state = {
@@ -106,6 +113,7 @@ class Log extends BaseComponent {
 
   render () {
     const { props, state } = this
+    const predicate = PREDICATES[state.filter]
 
     return <div>
       <select
@@ -113,7 +121,10 @@ class Log extends BaseComponent {
         onChange={this.linkState('filter')}
         value={state.filter}
       >
-        {map(CALL_FILTER_OPTIONS, ({ label, value }) => <option key={value} value={value}>{label}</option>)}
+        {map(CALL_FILTER_OPTIONS, ({ label, value }) => _(
+          label,
+          message => <option key={value} value={value}>{message}</option>
+        ))}
       </select>
       <br />
       <ul className='list-group'>
@@ -133,17 +144,7 @@ class Log extends BaseComponent {
             }
           }
 
-          const showCall =
-            state.filter === 'all' ||
-            state.filter === (
-              error !== undefined
-                ? 'failed'
-                : end !== undefined
-                  ? 'success'
-                  : 'busy'
-            )
-
-          return showCall && <li key={call.callKey} className='list-group-item'>
+          return predicate(call) && <li key={call.callKey} className='list-group-item'>
             <strong className='text-info'>{call.method}: </strong><JobCallStateInfos end={end} error={error} /><br />
             {map(call.params, (value, key) => [ <JobParam id={value} paramKey={key} key={key} />, <br /> ])}
             {end !== undefined && _.keyValue(_('jobDuration'), <FormattedDuration duration={end - start} />)}
