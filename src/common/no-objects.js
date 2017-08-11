@@ -7,6 +7,12 @@ import propTypes from './prop-types-decorator'
 //  - A loading icon when the objects are not fetched
 //  - A default message if the objects are fetched and the collection is empty
 //  - The children if the objects are fetched and the collection is not empty
+//
+// ```js
+//  <NoObjects collection={collection} message={message}>
+//    {children}
+// </NoObjects>
+// ````
 const NoObjects = ({ children, collection, message }) => collection == null
   ? <img src='assets/loading.svg' alt='loading' />
   : isEmpty(collection)
