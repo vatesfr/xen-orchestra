@@ -198,5 +198,8 @@
       "dist"
     ],
     "parser": "babel-eslint"
+  },
+  "dependencies": {
+    "immutable": "^3.8.1"
   }
 }

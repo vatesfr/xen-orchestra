@@ -1,5 +1,4 @@
 import _ from 'intl'
-import ActionRow from 'action-row-button'
 import Component from 'base-component'
 import Icon from 'icon'
 import Link from 'link'
@@ -80,26 +79,23 @@ const COLUMNS = [
     name: _('vdiSize'),
     itemRenderer: vdi => formatSize(vdi.size),
     sortCriteria: vdi => vdi.size
-  },
-  {
-    name: _('vdiAction'),
-    itemRenderer: vdi => (
-      <ActionRow
-        btnStyle='danger'
-        handler={deleteVdi}
-        handlerParam={vdi}
-        icon='delete'
-      />
-    )
   }
 ]
 
-const ACTIONS = [
+const GROUPED_ACTIONS = [
   {
     handler: deleteVdis,
     icon: 'delete',
     label: _('deleteSelectedVdis'),
     size: 'small'
+  }
+]
+
+const INDIVIDUAL_ACTIONS = [
+  {
+    btnStyle: 'danger',
+    handler: deleteVdi,
+    icon: 'delete'
   }
 ]
 
@@ -132,7 +128,8 @@ export default class SrDisks extends Component {
               columns={COLUMNS}
               defaultFilter='filterOnlyManaged'
               filters={FILTERS}
-              actions={ACTIONS}
+              groupedActions={GROUPED_ACTIONS}
+              individualActions={INDIVIDUAL_ACTIONS}
             />
             : <h4 className='text-xs-center'>{_('srNoVdis')}</h4>
           }
