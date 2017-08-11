@@ -1,20 +1,13 @@
-import React from 'react'
-import { injectIntl } from 'react-intl'
-import {
-  includes,
-  isEmpty,
-  keys,
-  map
-} from 'lodash'
-
 import _, { messages } from 'intl'
 import ActionRowButton from 'action-row-button'
 import ButtonGroup from 'button-group'
-import Component from 'base-component'
 import CenterPanel from 'center-panel'
+import Component from 'base-component'
 import Icon from 'icon'
 import Link from 'link'
+import React from 'react'
 import SingleLineRow from 'single-line-row'
+import { injectIntl } from 'react-intl'
 import { SelectPool } from 'select-objects'
 import {
   Card,
@@ -31,6 +24,12 @@ import {
   Container,
   Row
 } from 'grid'
+import {
+  includes,
+  isEmpty,
+  keys,
+  map
+} from 'lodash'
 import {
   createGetObject,
   createGetObjectsOfType,
@@ -88,19 +87,16 @@ export const TaskItem = connectStore(() => ({
 @connectStore(() => {
   const getTasks = createGetObjectsOfType('task')
 
-  const getNPendingTasks = getTasks.count(
-    [ task => task.status === 'pending' ]
-  )
-
   const getPendingTasksByPool = getTasks.filter(
     [ task => task.status === 'pending' ]
   ).sort().groupBy('$pool')
 
+  const getNPendingTasks = getTasks.count(
+    [ task => task.status === 'pending' ]
+  )
+
   const getPools = createGetObjectsOfType('pool').pick(
-    createSelector(
-      getPendingTasksByPool,
-      pendingTasksByPool => keys(pendingTasksByPool)
-    )
+    createSelector(getPendingTasksByPool, keys)
   ).sort()
 
   return {
@@ -141,12 +137,12 @@ export default class Tasks extends Component {
     const { formatMessage } = intl
     return <Page header={HEADER} title={`(${nTasks}) ${formatMessage(messages.taskPage)}`}>
       <Container>
-        <Row>
+        <Row className='mb-1'>
           <SelectPool
             multi
             value={state.pools}
             onChange={this.linkState('pools')}
-          /> <br />
+          />
         </Row>
         {map(props.pools, pool => this._showPoolTasks(pool) && <Row>
           <Card>
