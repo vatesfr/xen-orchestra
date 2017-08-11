@@ -1,13 +1,3 @@
-import React from 'react'
-import {
-  filter,
-  find,
-  forEach,
-  get,
-  map,
-  orderBy
-} from 'lodash'
-
 import _ from 'intl'
 import ActionRowButton from 'action-row-button'
 import ButtonGroup from 'button-group'
@@ -16,6 +6,7 @@ import Icon from 'icon'
 import Link from 'link'
 import LogList from '../../logs'
 import NoObjects from 'no-objects'
+import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
@@ -26,6 +17,14 @@ import {
   CardHeader,
   CardBlock
 } from 'card'
+import {
+  filter,
+  find,
+  forEach,
+  get,
+  map,
+  orderBy
+} from 'lodash'
 import {
   deleteBackupSchedule,
   disableSchedule,
@@ -204,8 +203,6 @@ export default class Overview extends Component {
     }
   )
 
-  _getPredicate = schedules => schedules != null
-
   render () {
     const {
       schedules
@@ -220,12 +217,7 @@ export default class Overview extends Component {
             <Icon icon='schedule' /> {_('backupSchedules')}
           </CardHeader>
           <CardBlock>
-            <NoObjects
-              className='text-xs-center'
-              collection={schedules}
-              message={_('noScheduledJobs')}
-              predicate={this._getPredicate}
-            >
+            <NoObjects collection={schedules} message={_('noScheduledJobs')}>
               <SortedTable columns={JOB_COLUMNS} collection={this._getScheduleCollection()} userData={isScheduleUserMissing} />
             </NoObjects>
           </CardBlock>

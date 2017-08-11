@@ -1,27 +1,20 @@
-import React from 'react'
-import xml2js from 'xml2js'
-import { fromCallback } from 'promise-toolbox'
-import { FormattedRelative, FormattedTime } from 'react-intl'
-import {
-  flatten,
-  get,
-  map,
-  mapValues
-} from 'lodash'
-
 import _ from 'intl'
 import ActionRowButton from 'action-row-button'
 import Component from 'base-component'
 import Icon from 'icon'
 import Link from 'link'
 import NoObjects from 'no-objects'
+import React from 'react'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
+import xml2js from 'xml2js'
 import { Card, CardHeader, CardBlock } from 'card'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
+import { FormattedRelative, FormattedTime } from 'react-intl'
+import { fromCallback } from 'promise-toolbox'
 import {
   deleteMessage,
   deleteOrphanedVdis,
@@ -37,6 +30,12 @@ import {
   createGetObjectsOfType,
   createSelector
 } from 'selectors'
+import {
+  flatten,
+  get,
+  map,
+  mapValues
+} from 'lodash'
 import {
   connectStore,
   formatSize,
@@ -430,8 +429,6 @@ export default class Health extends Component {
 
   _getSrUrl = sr => `srs/${sr.id}`
 
-  _getPredicate = () => this.props.areObjectsFetched
-
   render () {
     const { props } = this
 
@@ -445,10 +442,8 @@ export default class Health extends Component {
               </CardHeader>
               <CardBlock>
                 <NoObjects
-                  className='text-xs-center'
-                  collection={props.userSrs}
+                  collection={props.areObjectsFetched ? props.userSrs : null}
                   message={_('noSrs')}
-                  predicate={this._getPredicate}
                 >
                   <Row>
                     <Col>
@@ -472,10 +467,8 @@ export default class Health extends Component {
               </CardHeader>
               <CardBlock>
                 <NoObjects
-                  className='text-xs-center'
-                  collection={props.vdiOrphaned}
+                  collection={props.areObjectsFetched ? props.vdiOrphaned : null}
                   message={_('noOrphanedObject')}
-                  predicate={this._getPredicate}
                 >
                   <div>
                     <Row>
@@ -507,10 +500,8 @@ export default class Health extends Component {
               </CardHeader>
               <CardBlock>
                 <NoObjects
-                  className='text-xs-center'
-                  collection={props.controlDomainVdis}
+                  collection={props.areObjectsFetched ? props.controlDomainVdis : null}
                   message={_('noControlDomainVdis')}
-                  predicate={this._getPredicate}
                 >
                   <SortedTable collection={props.controlDomainVdis} columns={CONTROL_DOMAIN_VDI_COLUMNS} />
                 </NoObjects>
@@ -526,10 +517,8 @@ export default class Health extends Component {
               </CardHeader>
               <CardBlock>
                 <NoObjects
-                  className='text-xs-center'
-                  collection={props.vmOrphaned}
+                  collection={props.areObjectsFetched ? props.vmOrphaned : null}
                   message={_('noOrphanedObject')}
-                  predicate={this._getPredicate}
                 >
                   <SortedTable collection={props.vmOrphaned} columns={VM_COLUMNS} />
                 </NoObjects>
@@ -545,10 +534,8 @@ export default class Health extends Component {
               </CardHeader>
               <CardBlock>
                 <NoObjects
-                  className='text-xs-center'
-                  collection={props.alertMessages}
+                  collection={props.areObjectsFetched ? props.alertMessages : null}
                   message={_('noAlarms')}
-                  predicate={this._getPredicate}
                 >
                   <div>
                     <Row>
