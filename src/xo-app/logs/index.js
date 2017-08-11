@@ -122,8 +122,9 @@ class Log extends BaseComponent {
         value={state.filter}
       >
         {map(CALL_FILTER_OPTIONS, ({ label, value }) => _(
+          { key: value },
           label,
-          message => <option key={value} value={value}>{message}</option>
+          message => <option value={value}>{message}</option>
         ))}
       </select>
       <br />
