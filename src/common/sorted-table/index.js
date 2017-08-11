@@ -324,6 +324,8 @@ export default class SortedTable extends Component {
     const nVisibleItems = this._getVisibleItems().length
     const nSelectedItems = state.selectedItems.size
 
+    const selectedItems = state.selectedItems.toArray()
+
     const paginationInstance = (
       <Pagination
         first
@@ -385,7 +387,7 @@ export default class SortedTable extends Component {
                   {map(groupedActions, (btnProps, key) => <Action
                     {...btnProps}
                     key={key}
-                    handlerParam={state.selectedItems}
+                    handlerParam={selectedItems}
                   />)}
                 </span>
               </td>
