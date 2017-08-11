@@ -3,17 +3,18 @@ import ActionRowButton from 'action-row-button'
 import Component from 'base-component'
 import Icon from 'icon'
 import Link from 'link'
+import NoObjects from 'no-objects'
+import React from 'react'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
-import React from 'react'
 import xml2js from 'xml2js'
 import { Card, CardHeader, CardBlock } from 'card'
 import { confirm } from 'modal'
+import { Container, Row, Col } from 'grid'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { fromCallback } from 'promise-toolbox'
-import { Container, Row, Col } from 'grid'
 import {
   deleteMessage,
   deleteOrphanedVdis,
@@ -23,18 +24,18 @@ import {
   isSrWritable
 } from 'xo'
 import {
-  flatten,
-  get,
-  isEmpty,
-  map,
-  mapValues
-} from 'lodash'
-import {
+  areObjectsFetched,
   createCollectionWrapper,
   createGetObject,
   createGetObjectsOfType,
   createSelector
 } from 'selectors'
+import {
+  flatten,
+  get,
+  map,
+  mapValues
+} from 'lodash'
 import {
   connectStore,
   formatSize,
@@ -352,6 +353,7 @@ const ALARM_COLUMNS = [
     .filter([ message => message.name === 'ALARM' ])
 
   return {
+    areObjectsFetched,
     alertMessages: getAlertMessages,
     controlDomainVdis: getControlDomainVdis,
     userSrs: getUserSrs,
@@ -428,6 +430,8 @@ export default class Health extends Component {
   _getSrUrl = sr => `srs/${sr.id}`
 
   render () {
+    const { props } = this
+
     return process.env.XOA_PLAN > 3
       ? <Container>
         <Row>
@@ -437,18 +441,20 @@ export default class Health extends Component {
                 <Icon icon='disk' /> {_('srStatePanel')}
               </CardHeader>
               <CardBlock>
-                {isEmpty(this.props.userSrs)
-                  ? <p className='text-xs-center'>{_('noSrs')}</p>
-                  : <Row>
+                <NoObjects
+                  collection={props.areObjectsFetched ? props.userSrs : null}
+                  emptyMessage={_('noSrs')}
+                >
+                  <Row>
                     <Col>
                       <SortedTable
-                        collection={this.props.userSrs}
+                        collection={props.userSrs}
                         columns={SR_COLUMNS}
                         rowLink={this._getSrUrl}
                       />
                     </Col>
                   </Row>
-                }
+                </NoObjects>
               </CardBlock>
             </Card>
           </Col>
@@ -460,9 +466,11 @@ export default class Health extends Component {
                 <Icon icon='disk' /> {_('orphanedVdis')}
               </CardHeader>
               <CardBlock>
-                {isEmpty(this.props.vdiOrphaned)
-                  ? <p className='text-xs-center'>{_('noOrphanedObject')}</p>
-                  : <div>
+                <NoObjects
+                  collection={props.areObjectsFetched ? props.vdiOrphaned : null}
+                  emptyMessage={_('noOrphanedObject')}
+                >
+                  <div>
                     <Row>
                       <Col className='text-xs-right'>
                         <TabButton
@@ -479,7 +487,7 @@ export default class Health extends Component {
                       </Col>
                     </Row>
                   </div>
-                }
+                </NoObjects>
               </CardBlock>
             </Card>
           </Col>
@@ -491,10 +499,12 @@ export default class Health extends Component {
                 <Icon icon='disk' /> {_('vdisOnControlDomain')}
               </CardHeader>
               <CardBlock>
-                {isEmpty(this.props.controlDomainVdis)
-                  ? <p className='text-xs-center'>{_('noControlDomainVdis')}</p>
-                  : <SortedTable collection={this.props.controlDomainVdis} columns={CONTROL_DOMAIN_VDI_COLUMNS} />
-                }
+                <NoObjects
+                  collection={props.areObjectsFetched ? props.controlDomainVdis : null}
+                  emptyMessage={_('noControlDomainVdis')}
+                >
+                  <SortedTable collection={props.controlDomainVdis} columns={CONTROL_DOMAIN_VDI_COLUMNS} />
+                </NoObjects>
               </CardBlock>
             </Card>
           </Col>
@@ -506,10 +516,12 @@ export default class Health extends Component {
                 <Icon icon='vm' /> {_('orphanedVms')}
               </CardHeader>
               <CardBlock>
-                {isEmpty(this.props.vmOrphaned)
-                  ? <p className='text-xs-center'>{_('noOrphanedObject')}</p>
-                  : <SortedTable collection={this.props.vmOrphaned} columns={VM_COLUMNS} />
-                }
+                <NoObjects
+                  collection={props.areObjectsFetched ? props.vmOrphaned : null}
+                  emptyMessage={_('noOrphanedObject')}
+                >
+                  <SortedTable collection={props.vmOrphaned} columns={VM_COLUMNS} />
+                </NoObjects>
               </CardBlock>
             </Card>
           </Col>
@@ -521,9 +533,11 @@ export default class Health extends Component {
                 <Icon icon='alarm' /> {_('alarmMessage')}
               </CardHeader>
               <CardBlock>
-                {isEmpty(this.props.alertMessages)
-                  ? <p className='text-xs-center'>{_('noAlarms')}</p>
-                  : <div>
+                <NoObjects
+                  collection={props.areObjectsFetched ? props.alertMessages : null}
+                  emptyMessage={_('noAlarms')}
+                >
+                  <div>
                     <Row>
                       <Col className='text-xs-right'>
                         <TabButton
@@ -540,7 +554,7 @@ export default class Health extends Component {
                       </Col>
                     </Row>
                   </div>
-                }
+                </NoObjects>
               </CardBlock>
             </Card>
           </Col>

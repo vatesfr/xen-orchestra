@@ -1,19 +1,19 @@
+import React from 'react'
+import { FormattedDate } from 'react-intl'
+import { find, map } from 'lodash'
+
 import _ from 'intl'
 import ActionRowButton from 'action-row-button'
 import BaseComponent from 'base-component'
 import ButtonGroup from 'button-group'
 import Copiable from 'copiable'
-import find from 'lodash/find'
-import isEmpty from 'lodash/isEmpty'
-import map from 'lodash/map'
-import React from 'react'
+import NoObjects from 'no-objects'
 import SortedTable from 'sorted-table'
 import styles from './index.css'
 import TabButton from 'tab-button'
 import { addSubscriptions } from 'utils'
 import { alert, confirm } from 'modal'
 import { createSelector } from 'selectors'
-import { FormattedDate } from 'react-intl'
 import { subscribeApiLogs, subscribeUsers, deleteApiLog } from 'xo'
 
 const CAN_REPORT_BUG = process.env.XOA_PLAN > 1
@@ -99,7 +99,7 @@ export default class Logs extends BaseComponent {
 
   _getLogs = createSelector(
     () => this.props.logs,
-    logs => map(logs, (log, id) => ({ ...log, id }))
+    logs => logs && map(logs, (log, id) => ({ ...log, id }))
   )
 
   _showError = log => alert(
@@ -115,29 +115,28 @@ export default class Logs extends BaseComponent {
     (users, showError) => ({ users, showError })
   )
 
+  _getPredicate = logs => logs != null
+
   render () {
     const logs = this._getLogs()
 
-    return <div>
-      {isEmpty(logs)
-        ? <p>{_('noLogs')}</p>
-        : <div>
-          <span className='pull-right'>
-            <TabButton
-              btnStyle='danger'
-              handler={this._deleteAllLogs}
-              icon='delete'
-              labelId='logDeleteAll'
-            />
-          </span>
-          {' '}
-          <SortedTable
-            collection={logs}
-            columns={COLUMNS}
-            userData={this._getData()}
+    return <NoObjects collection={logs} message={_('noLogs')} predicate={this._getPredicate}>
+      <div>
+        <span className='pull-right'>
+          <TabButton
+            btnStyle='danger'
+            handler={this._deleteAllLogs}
+            icon='delete'
+            labelId='logDeleteAll'
           />
-        </div>
-      }
-    </div>
+        </span>
+        {' '}
+        <SortedTable
+          collection={logs}
+          columns={COLUMNS}
+          userData={this._getData()}
+        />
+      </div>
+    </NoObjects>
   }
 }

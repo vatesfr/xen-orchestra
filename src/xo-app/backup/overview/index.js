@@ -2,15 +2,10 @@ import _ from 'intl'
 import ActionRowButton from 'action-row-button'
 import ButtonGroup from 'button-group'
 import Component from 'base-component'
-import filter from 'lodash/filter'
-import find from 'lodash/find'
-import forEach from 'lodash/forEach'
-import get from 'lodash/get'
 import Icon from 'icon'
 import Link from 'link'
 import LogList from '../../logs'
-import map from 'lodash/map'
-import orderBy from 'lodash/orderBy'
+import NoObjects from 'no-objects'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
@@ -22,6 +17,14 @@ import {
   CardHeader,
   CardBlock
 } from 'card'
+import {
+  filter,
+  find,
+  forEach,
+  get,
+  map,
+  orderBy
+} from 'lodash'
 import {
   deleteBackupSchedule,
   disableSchedule,
@@ -122,7 +125,6 @@ export default class Overview extends Component {
   constructor (props) {
     super(props)
     this.state = {
-      schedules: [],
       scheduleTable: {}
     }
   }
@@ -215,9 +217,9 @@ export default class Overview extends Component {
             <Icon icon='schedule' /> {_('backupSchedules')}
           </CardHeader>
           <CardBlock>
-            {schedules.length ? (
+            <NoObjects collection={schedules} emptyMessage={_('noScheduledJobs')}>
               <SortedTable columns={JOB_COLUMNS} collection={this._getScheduleCollection()} userData={isScheduleUserMissing} />
-            ) : <p>{_('noScheduledJobs')}</p>}
+            </NoObjects>
           </CardBlock>
         </Card>
         <LogList jobKeys={Object.keys(jobKeyToLabel)} />
