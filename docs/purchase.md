@@ -13,3 +13,11 @@ To find which XOA Edition fits your needs, please read the [dedicated page about
 ## Invoices
 
 Invoices are available in PDF format. [Details here](invoices.md).
+
+## Quotation
+
+You can ask for an automatic quote on our website on the pricing page or directely from you personal space. 
+
+![button-quotation](./assets/quotation.png)
+
+Choose the plan you want, the number of year of commitment that suits you and fill the informations required (prefilled with your account informations. 
