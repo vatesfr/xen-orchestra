@@ -22,7 +22,8 @@ import {
   map,
   mapValues,
   pickBy,
-  some
+  some,
+  sortBy
 } from 'lodash'
 import {
   createGetObjectsOfType,
@@ -545,6 +546,7 @@ export default class Xosan extends Component {
 
   render () {
     const { pools, noPacksByPool, catalog } = this.props
+    const sortedPools = sortBy(pools, ['name_label'])
     const error = this._getError()
 
     return <Page header={HEADER} title='xosan' formatTitle>
@@ -552,7 +554,7 @@ export default class Xosan extends Component {
         ? <Container>
           {error
             ? <em>{error}</em>
-            : map(pools, pool => {
+            : map(sortedPools, pool => {
               const noPack = noPacksByPool && noPacksByPool[pool.id]
 
               return <Collapse key={pool.id} className='mb-1' buttonText={<span>{noPack && <Icon icon='error' />} {pool.name_label}</span>}>
