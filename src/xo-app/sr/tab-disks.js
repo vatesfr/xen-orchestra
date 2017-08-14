@@ -64,16 +64,20 @@ const COLUMNS = [
       }
 
       let link
-      if (vm.$type === 'VM') {
+      const { type } = vm
+      if (type === 'VM') {
         link = `/vms/${vm.id}`
-      } else {
+      } else if (type === 'VM-snapshot') {
         const id = vm.$snapshot_of
         link = id !== undefined
           ? `/vms/${id}/snapshots`
           : '/dashboard/health'
       }
 
-      return <Link to={link}>{renderXoItem(vm)}</Link>
+      const item = renderXoItem(vm)
+      return link === undefined
+        ? item
+        : <Link to={link}>{item}</Link>
     })
   },
   {
