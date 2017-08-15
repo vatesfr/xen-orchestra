@@ -86,7 +86,7 @@ export default class TabXosan extends Component {
   _getSrPredicate = createSelector(
     (underlyingSr) => this.props.sr.$pool,
     (underlyingSr) => underlyingSr,
-    (poolId, underlyingSr) => sr => sr.SR_type === 'lvm' && sr.$pool === poolId && underlyingSr !== sr.id
+    (poolId, underlyingSr) => sr => sr.SR_type === 'lvm' && sr.$pool === poolId
   )
 
   nodeSize (node) {
