@@ -470,6 +470,8 @@ export default class Home extends Component {
       pathname,
       query: { ...query, s: filter }
     })
+
+    this.page = 1
   }
 
   _clearFilter = () => this._setFilter('')
