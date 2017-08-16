@@ -8,7 +8,7 @@ import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
 import { createSelector } from 'reselect'
 import { createSrUnhealthyVdiChainsLengthSubscription, deleteSr } from 'xo'
-import { flowRight, isEmpty, keys } from 'lodash'
+import { flowRight, isEmpty, keys, sum, values } from 'lodash'
 
 // ===================================================================
 
@@ -45,7 +45,7 @@ const UnhealthyVdiChains = flowRight(
 )(({ chains, vdis }) => isEmpty(vdis)
   ? null
   : <div>
-    <h3>{_('srUnhealthyVdiTitle')}</h3>
+    <h3>{_('srUnhealthyVdiTitle', { total: sum(values(chains)) })}</h3>
     <SortedTable
       collection={vdis}
       columns={COLUMNS}
