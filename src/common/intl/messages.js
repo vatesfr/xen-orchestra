@@ -456,7 +456,7 @@ var messages = {
   srUnhealthyVdiNameLabel: 'Name',
   srUnhealthyVdiSize: 'Size',
   srUnhealthyVdiDepth: 'Depth',
-  srUnhealthyVdiTitle: 'VDI to coalesce',
+  srUnhealthyVdiTitle: 'VDI to coalesce ({total, number})',
 
   // ----- SR actions -----
   srRescan: 'Rescan all disks',
