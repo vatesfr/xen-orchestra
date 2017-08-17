@@ -129,6 +129,7 @@ var messages = {
   homeAllPools: 'Pools',
   homeAllHosts: 'Hosts',
   homeAllTags: 'Tags',
+  homeAllResourceSets: 'Resource sets',
   homeNewVm: 'New VM',
   homeFilterNone: 'None',
   homeFilterRunningHosts: 'Running hosts',
