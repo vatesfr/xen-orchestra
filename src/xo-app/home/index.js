@@ -59,6 +59,7 @@ import { Container, Row, Col } from 'grid'
 import {
   SelectHost,
   SelectPool,
+  SelectResourceSet,
   SelectTag
 } from 'select-objects'
 import {
@@ -146,6 +147,7 @@ const OPTIONS = {
     Item: VmItem,
     showPoolsSelector: true,
     showHostsSelector: true,
+    showResourceSetsSelector: true,
     sortOptions: [
       { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' },
       { labelId: 'homeSortByPowerstate', sortBy: 'power_state', sortOrder: 'desc' },
@@ -433,6 +435,7 @@ export default class Home extends Component {
       selectedHosts: properties.$container,
       selectedPools: properties.$pool,
       selectedTags: properties.tags,
+      selectedResourceSets: properties.resourceSet,
       ...sort
     })
 
@@ -547,6 +550,19 @@ export default class Home extends Component {
         ))
       )
       : filter::ComplexMatcher.removePropertyClause('tags')
+    )
+  }
+  _updateSelectedResourceSets = resourceSets => {
+    const filter = this._getParsedFilter()
+
+    this._setFilter(resourceSets.length
+      ? filter::ComplexMatcher.setPropertyClause(
+        'resourceSet',
+        ComplexMatcher.createOr(map(resourceSets, set =>
+          ComplexMatcher.createString(set.id)
+        ))
+      )
+      : filter::ComplexMatcher.removePropertyClause('resourceSet')
     )
   }
   _addCustomFilter = () => {
@@ -727,6 +743,7 @@ export default class Home extends Component {
       selectedHosts,
       selectedItems,
       selectedPools,
+      selectedResourceSets,
       selectedTags,
       sortBy
     } = this.state
@@ -741,7 +758,8 @@ export default class Home extends Component {
       mainActions,
       otherActions,
       showHostsSelector,
-      showPoolsSelector
+      showPoolsSelector,
+      showResourceSetsSelector
     } = options
 
     // Necessary because indeterminate cannot be used as an attribute
@@ -821,7 +839,6 @@ export default class Home extends Component {
                       <Button btnStyle='link'><Icon icon='pool' /> {_('homeAllPools')}</Button>
                     </OverlayTrigger>
                   )}
-                  {' '}
                   {showHostsSelector && (
                     <OverlayTrigger
                       trigger='click'
@@ -841,7 +858,6 @@ export default class Home extends Component {
                       <Button btnStyle='link'><Icon icon='host' /> {_('homeAllHosts')}</Button>
                     </OverlayTrigger>
                   )}
-                  {' '}
                   <OverlayTrigger
                     autoFocus
                     trigger='click'
@@ -861,7 +877,23 @@ export default class Home extends Component {
                   >
                     <Button btnStyle='link'><Icon icon='tags' /> {_('homeAllTags')}</Button>
                   </OverlayTrigger>
-                  {' '}
+                  {showResourceSetsSelector && isAdmin && !noResourceSets && <OverlayTrigger
+                    trigger='click'
+                    rootClose
+                    placement='bottom'
+                    overlay={
+                      <Popover className={styles.selectObject} id='resourceSetPopover'>
+                        <SelectResourceSet
+                          autoFocus
+                          multi
+                          onChange={this._updateSelectedResourceSets}
+                          value={selectedResourceSets}
+                        />
+                      </Popover>
+                    }
+                  >
+                    <Button btnStyle='link'><Icon icon='resource-set' /> {_('homeAllResourceSets')}</Button>
+                  </OverlayTrigger>}
                   <DropdownButton bsStyle='link' id='sort' title={_('homeSortBy')}>
                     {map(options.sortOptions, ({ labelId, sortBy: _sortBy, sortOrder }, key) => (
                       <MenuItem key={key} onClick={() => this.setState({ sortBy: _sortBy, sortOrder })}>
