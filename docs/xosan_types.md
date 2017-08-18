@@ -9,4 +9,4 @@ That's why it's **very important to understand pros and cons** of each type.
 Here is those 2 types:
 
 * [Replicated](xosan_replicated.md)
-* [Disperse](xosan_replicated.md)
+* [Disperse](xosan_disperse.md)
