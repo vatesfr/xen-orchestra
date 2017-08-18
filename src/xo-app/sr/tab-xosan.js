@@ -1,6 +1,7 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
+import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
 import Tooltip from 'tooltip'
@@ -109,7 +110,7 @@ export default class TabXosan extends Component {
     const brickByName = {}
     xosanConfig['nodes'].forEach(node => {
       const size = this.nodeSize(node)
-      brickByName[node.brickName] = {config: node, uuid: '-', size}
+      brickByName[node.brickName] = {config: node, uuid: '-', size, vm: vms[node.vm.id]}
     })
     const brickByUuid = {}
     const strippedVolumeInfo = volumeInfo && volumeInfo['commandStatus'] ? volumeInfo['result'] : null
@@ -154,15 +155,18 @@ export default class TabXosan extends Component {
           status: {volumeStatus ? (volumeStatus['commandStatus'] ? 'ok' : volumeStatus.error) : 'running' }</li>
         <li>volume heal: {volumeHeal ? (volumeHeal['commandStatus'] ? 'ok' : volumeHeal.error) : 'running' }</li>
         <li>volume status
-          detail: {volumeStatusDetail ? (volumeStatusDetail['commandStatus'] ? 'ok' : volumeStatusDetail.error) : 'running' }</li>
+          detail: {volumeStatusDetail ? (volumeStatusDetail['commandStatus'] ? 'ok' : volumeStatusDetail.error)
+            : 'running' }</li>
         <li>volume info: {volumeInfo ? (volumeInfo['commandStatus'] ? 'ok' : volumeInfo.error) : 'running' }</li>
       </ul>
       {map(orderedBrickList, (node, i) =>
         <div key={node.config.brickName}>
           <h3>Brick {node.config.brickName}</h3>
           <div style={{ marginLeft: '15px' }}>
-            <Row><Col size={2}>Virtual Machine: </Col><Col size={4}>{vms[node.config.vm.id] !== undefined && <Link
-              to={`/vms/${node.config.vm.id}`}>{vms[node.config.vm.id].name_label}</Link>}</Col></Row>
+            <Row><Col size={2}>Virtual Machine: </Col><Col size={4}>{node.vm !== undefined && <span
+              title={node.vm.power_state}>
+              <Icon icon={node.vm.power_state.toLowerCase()} /><Link
+                to={`/vms/${node.config.vm.id}`}>{node.vm.name_label}</Link></span>}</Col></Row>
             <Row><Col size={2}>Underlying Storage: </Col><Col size={4}><Link
               to={`/srs/${node.config.underlyingSr}`}>{srs[node.config.underlyingSr].name_label}</Link> -
               Using {formatSize(node.size)}</Col></Row>
@@ -176,7 +180,11 @@ export default class TabXosan extends Component {
                   btnStyle='success'
                   icon='refresh'
                   handler={::this._replaceBrick}
-                  handlerParam={{ brick: node.config.brickName, newSr: this.state[`sr-${i}`], brickSize: this.state[`brickSize-${i}`] }}
+                  handlerParam={{
+                    brick: node.config.brickName,
+                    newSr: this.state[`sr-${i}`],
+                    brickSize: this.state[`brickSize-${i}`]
+                  }}
                 >Replace</ActionButton>
               </Col></Row>
             <Row><Col size={2} title='gluster UUID'>Brick UUID: </Col><Col size={4}>{node.uuid}</Col></Row>
@@ -192,8 +200,8 @@ export default class TabXosan extends Component {
                   free: formatSize(parseInt(node['statusDetail']['sizeFree']))
                 })}>
                   <progress className='progress' max='100'
-                    value={100 - (parseInt(node['statusDetail']['sizeFree']) / parseInt(node['statusDetail']['sizeTotal'])) * 100}
-                  />
+                    value={100 - (parseInt(node['statusDetail']['sizeFree']) /
+                      parseInt(node['statusDetail']['sizeTotal'])) * 100} />
                 </Tooltip></Col></Row>
               <Row><Col size={2}>Used Inodes: </Col><Col size={4}>
                 <Tooltip content={_('spaceLeftTooltip', {
@@ -245,7 +253,8 @@ export default class TabXosan extends Component {
           <Col size={4}><SelectSr multi predicate={this._getSrPredicate(null)} onChange={this.linkState('added-srs')}
             value={this.state['added-srs']} />
           </Col>
-          <Col size={2}><SizeInput value={this.state['added-size']} onChange={this.linkState('added-size')} required /></Col>
+          <Col size={2}><SizeInput value={this.state['added-size']} onChange={this.linkState('added-size')}
+            required /></Col>
           <Col size={1}><ActionButton
             btnStyle='success'
             icon='add'
