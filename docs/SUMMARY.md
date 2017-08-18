@@ -67,6 +67,8 @@
 * [XOSAN](xosan.md)
   * [Requirements](xosan_requirements.md)
   * [Types](xosan_types.md)
+    * [Replicated](xosan_replicated.md)
+    * [Disperse](xosan_disperse.md)
   * [Creation](xosan_create.md)
   * [Management](xosan_management.md)
   * [Trial](xosan_trial.md)
