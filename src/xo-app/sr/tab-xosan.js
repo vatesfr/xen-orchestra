@@ -149,7 +149,15 @@ export default class TabXosan extends Component {
       }
     }
     const orderedBrickList = map(xosanConfig['nodes'], node => brickByName[node.brickName])
+    const issues = []
+    if (reduce(orderedBrickList, (hasStopped, node) => hasStopped || (node.vm && node.vm.power_state.toLowerCase() !== 'running'), false)) {
+      issues.push('Some XOSAN Virtual Machines are not running')
+    }
+    if (reduce(orderedBrickList, (hasStopped, node) => hasStopped || node.vm === undefined, false)) {
+      issues.push('Some XOSAN Virtual Machines could not be found')
+    }
     return <Container>
+      {map(issues, (issue, i) => <div key={i}><Icon icon='alarm' />{issue}</div>)}
       <ul>
         <li>volume
           status: {volumeStatus ? (volumeStatus['commandStatus'] ? 'ok' : volumeStatus.error) : 'running' }</li>
@@ -163,10 +171,11 @@ export default class TabXosan extends Component {
         <div key={node.config.brickName}>
           <h3>Brick {node.config.brickName}</h3>
           <div style={{ marginLeft: '15px' }}>
-            <Row><Col size={2}>Virtual Machine: </Col><Col size={4}>{node.vm !== undefined && <span
+            <Row><Col size={2}>Virtual Machine: </Col><Col size={4}>{(node.vm !== undefined && <span
               title={node.vm.power_state}>
               <Icon icon={node.vm.power_state.toLowerCase()} /><Link
-                to={`/vms/${node.config.vm.id}`}>{node.vm.name_label}</Link></span>}</Col></Row>
+                to={`/vms/${node.config.vm.id}`}>{node.vm.name_label}</Link></span>) || <span
+                  style={{color: 'red'}}><Icon icon='alarm' />Could not find VM</span>}</Col></Row>
             <Row><Col size={2}>Underlying Storage: </Col><Col size={4}><Link
               to={`/srs/${node.config.underlyingSr}`}>{srs[node.config.underlyingSr].name_label}</Link> -
               Using {formatSize(node.size)}</Col></Row>
