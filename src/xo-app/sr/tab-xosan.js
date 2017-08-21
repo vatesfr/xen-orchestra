@@ -153,8 +153,11 @@ export default class TabXosan extends Component {
     if (reduce(orderedBrickList, (hasStopped, node) => hasStopped || (node.vm && node.vm.power_state.toLowerCase() !== 'running'), false)) {
       issues.push('Some XOSAN Virtual Machines are not running')
     }
-    if (reduce(orderedBrickList, (hasStopped, node) => hasStopped || node.vm === undefined, false)) {
+    if (reduce(orderedBrickList, (hasNotFound, node) => hasNotFound || node.vm === undefined, false)) {
       issues.push('Some XOSAN Virtual Machines could not be found')
+    }
+    if (reduce(orderedBrickList, (hasFileToHeal, node) => hasFileToHeal || (node['heal'] && node['heal']['file'] && node['heal']['file'].length !== 0), false)) {
+      issues.push('Some XOSAN Virtual Machines have files needing healing')
     }
     return <Container>
       {map(issues, (issue, i) => <div key={i}><Icon icon='alarm' />{issue}</div>)}
