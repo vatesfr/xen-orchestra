@@ -26,7 +26,8 @@ import {
   addXosanBricks,
   getVolumeInfo,
   removeXosanBricks,
-  replaceXosanBrick
+  replaceXosanBrick,
+  startVm
 } from 'xo'
 
 const GIGABYTE = 1024 * 1024 * 1024
@@ -218,9 +219,11 @@ export default class TabXosan extends Component {
               <Row>
                 <Col size={2}>Virtual Machine: </Col>
                 <Col size={4}>
-                  {vms[node.config.vm.id] !== undefined &&
-                    <Link to={`/vms/${node.config.vm.id}`}>{vms[node.config.vm.id].name_label}</Link>
-                  }
+                  {(node.vm !== undefined && <span
+                    title={node.vm.power_state}>
+              <Icon icon={node.vm.power_state.toLowerCase()}/><Link
+                    to={`/vms/${node.config.vm.id}`}>{node.vm.name_label}</Link>{node.vm.power_state.toLowerCase() !== 'running' && <ActionButton  title="Start Virtual Machine" handler={()=>startVm(node.vm)} icon="vm-start">Run</ActionButton>}</span>) || <span
+                    style={{color: 'red'}}><Icon icon='alarm'/>Could not find VM</span>}
                 </Col>
               </Row>
               <Row>
