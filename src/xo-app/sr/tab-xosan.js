@@ -221,9 +221,9 @@ export default class TabXosan extends Component {
                 <Col size={4}>
                   {(node.vm !== undefined && <span
                     title={node.vm.power_state}>
-              <Icon icon={node.vm.power_state.toLowerCase()}/><Link
-                    to={`/vms/${node.config.vm.id}`}>{node.vm.name_label}</Link>{node.vm.power_state.toLowerCase() !== 'running' && <ActionButton  title="Start Virtual Machine" handler={()=>startVm(node.vm)} icon="vm-start">Run</ActionButton>}</span>) || <span
-                    style={{color: 'red'}}><Icon icon='alarm'/>Could not find VM</span>}
+                    <Icon icon={node.vm.power_state.toLowerCase()} /><Link
+                      to={`/vms/${node.config.vm.id}`}>{node.vm.name_label}</Link>{node.vm.power_state.toLowerCase() !== 'running' && <ActionButton title='Start Virtual Machine' handler={() => startVm(node.vm)} icon='vm-start'>Run</ActionButton>}</span>) || <span
+                        style={{color: 'red'}}><Icon icon='alarm' />Could not find VM</span>}
                 </Col>
               </Row>
               <Row>
