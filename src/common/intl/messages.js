@@ -1448,8 +1448,11 @@ var messages = {
   xosanInstallPackOnHosts: 'Install XOSAN pack on these hosts:',
   xosanInstallPack: 'Install {pack} v{version}?',
   xosanNoPackFound: 'No compatible XOSAN pack found for your XenServer versions.',
-  xosanPackRequirements: 'At least one of these version requirements must be satisfied by all the hosts in this pool:'
-
+  xosanPackRequirements: 'At least one of these version requirements must be satisfied by all the hosts in this pool:',
+  // SR tab XOSAN
+  xosanVmsNotRunning: 'Some XOSAN Virtual Machines are not running',
+  xosanVmsNotFound: 'Some XOSAN Virtual Machines could not be found',
+  xosanFilesNeedHealing: 'Some XOSAN Virtual Machines have files needing healing'
 }
 forEach(messages, function (message, id) {
   if (isString(message)) {
