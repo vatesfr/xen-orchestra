@@ -5,13 +5,13 @@ import { noop } from 'lodash'
 
 import ButtonGroup from './button-group'
 
-export const Action = ({ display, handler, handlerParam, icon, label, redirectOnSuccess, size = 'large' }) =>
+export const Action = ({display, handler, handlerParam, icon, label, redirectOnSuccess}) =>
   <ActionButton
     handler={handler}
     handlerParam={handlerParam}
     icon={icon}
     redirectOnSuccess={redirectOnSuccess}
-    size={size}
+    size='large'
     tooltip={display === 'icon' ? label : undefined}
   >
     {display === 'both' && label}

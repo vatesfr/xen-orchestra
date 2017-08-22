@@ -86,16 +86,15 @@ const GROUPED_ACTIONS = [
   {
     handler: deleteVdis,
     icon: 'delete',
-    label: _('deleteSelectedVdis'),
-    size: 'small'
+    label: _('deleteSelectedVdis')
   }
 ]
 
 const INDIVIDUAL_ACTIONS = [
   {
-    btnStyle: 'danger',
     handler: deleteVdi,
-    icon: 'delete'
+    icon: 'delete',
+    level: 'danger'
   }
 ]
 

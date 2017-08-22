@@ -160,7 +160,8 @@ var messages = {
   srNotSharedType: 'Not shared {type}',
 
   // ----- Common components -----
-  sortedTableSelectedItems: '{selected, number}x selected on {total, number}',
+  sortedTableSelectedItems: '{selected, number} selected on {total, number}',
+  sortedTableAction: 'Action',
 
   // ----- Forms -----
   add: 'Add',
