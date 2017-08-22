@@ -361,7 +361,7 @@ class DefaultCard extends Component {
                   type='Bar'
                 />
                 <p className='text-xs-center'>
-                  {_('ofCPUsUsage', {
+                  {_('ofCpusUsage', {
                     total: props.hostMetrics.cpus,
                     usage: props.vmMetrics.vcpus
                   })}
