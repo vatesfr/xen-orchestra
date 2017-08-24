@@ -320,8 +320,6 @@ export default class LogList extends Component {
     }).then(() => deleteJobsLog(this.state.logsToClear))
   }
 
-  _getPredicate = logs => logs != null
-
   render () {
     const { logs } = this.state
 
