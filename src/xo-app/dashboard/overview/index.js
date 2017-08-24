@@ -46,6 +46,10 @@ const RESOURCES = ['disk', 'memory', 'cpus']
 
 // ===================================================================
 
+const PIE_GRAPH_OPTIONS = { donut: true, donutWidth: 40, showLabel: false }
+
+// ===================================================================
+
 @propTypes({
   hosts: propTypes.object.isRequired,
 })
@@ -134,7 +138,7 @@ class ResourceSetCard extends Component {
                       labels,
                       series: [ cpus.available, cpus.usage ]
                     }}
-                    options={{ donut: true, donutWidth: 40, showLabel: false }}
+                    options={PIE_GRAPH_OPTIONS}
                     type='Pie'
                   />
                   <p className='text-xs-center'>
@@ -157,7 +161,7 @@ class ResourceSetCard extends Component {
                       labels,
                       series: [memory.available, memory.usage]
                     }}
-                    options={{ donut: true, donutWidth: 40, showLabel: false }}
+                    options={PIE_GRAPH_OPTIONS}
                     type='Pie'
                   />
                   <p className='text-xs-center'>
@@ -180,7 +184,7 @@ class ResourceSetCard extends Component {
                       labels,
                       series: [disk.available, disk.usage]
                     }}
-                    options={{ donut: true, donutWidth: 40, showLabel: false }}
+                    options={PIE_GRAPH_OPTIONS}
                     type='Pie'
                   />
                   <p className='text-xs-center'>
@@ -333,7 +337,7 @@ class DefaultCard extends Component {
                   labels: [formatMessage(messages.usedMemory), formatMessage(messages.totalMemory)],
                   series: [props.hostMetrics.memoryUsage, props.hostMetrics.memoryTotal - props.hostMetrics.memoryUsage]
                 }}
-                options={{ donut: true, donutWidth: 40, showLabel: false }}
+                options={PIE_GRAPH_OPTIONS}
                 type='Pie'
               />
               <p className='text-xs-center'>
@@ -362,8 +366,8 @@ class DefaultCard extends Component {
                 />
                 <p className='text-xs-center'>
                   {_('ofCpusUsage', {
-                    total: props.hostMetrics.cpus,
-                    usage: props.vmMetrics.vcpus
+                    nCpus: props.hostMetrics.cpus,
+                    nVcpus: props.vmMetrics.vcpus
                   })}
                 </p>
               </div>
@@ -383,7 +387,7 @@ class DefaultCard extends Component {
                       labels: [formatMessage(messages.usedSpace), formatMessage(messages.totalSpace)],
                       series: [props.srMetrics.srUsage, props.srMetrics.srTotal - props.srMetrics.srUsage]
                     }}
-                    options={{ donut: true, donutWidth: 40, showLabel: false }}
+                    options={PIE_GRAPH_OPTIONS}
                     type='Pie'
                   />
                   <p className='text-xs-center'>
