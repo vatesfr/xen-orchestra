@@ -21,6 +21,15 @@ The objectives are to:
 * give you flexibility to grow your storage by adding new nodes
 * work on all kind of hardware, from HDDs to SSDs
 
+## Beta access - Phase II
+
+XOSAN is currently in beta phase II. Every user can access this beta stage and try the solution in its current version. 
+To activate you XOSAN beta, just go in the **"XOSAN"** menu in your (up-to-date) XOA. Once on the menu, click on **"Register for Beta"**. 
+
+![](https://xen-orchestra.com/blog/content/images/2017/02/xosan-menu.png)
+
+> Even a free version of XOA can access the XOSAN beta.
+
 ## Deployment
 
 To deploy XOSAN, please follow the rest of the documentation:
