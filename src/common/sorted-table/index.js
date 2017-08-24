@@ -171,8 +171,8 @@ class Checkbox extends Component {
 
 const DEFAULT_ITEMS_PER_PAGE = 10
 const actionsShape = propTypes.arrayOf(propTypes.shape({
-  // groupedActions : the function will be called with the grouped action in the parameters
-  // individualActions : the function will be called with the related item's id in parameters
+  // groupedActions: the function will be called with an array of the selected items` ids in parameters
+  // individualActions: the function will be called with the related item's id in parameters
   handler: propTypes.func.isRequired,
   icon: propTypes.string.isRequired,
   label: propTypes.node.isRequired,
