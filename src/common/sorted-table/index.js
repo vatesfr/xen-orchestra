@@ -298,6 +298,18 @@ export default class SortedTable extends Component {
     })
   }
 
+  componentDidUpdate () {
+    const { selectedItemsIds } = this.state
+
+    // Unselect items that are no longer visible
+    if ((this._visibleItemsRecomputations || 0) < (this._visibleItemsRecomputations = this._getVisibleItems.recomputations())) {
+      const newSelectedItems = selectedItemsIds.intersect(map(this._getVisibleItems(), 'id'))
+      if (newSelectedItems.size < selectedItemsIds.size) {
+        this.setState({ selectedItemsIds: newSelectedItems })
+      }
+    }
+  }
+
   _onPageSelection = (_, event) => this.setState({
     activePage: event.eventKey
   })
