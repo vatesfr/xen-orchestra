@@ -154,9 +154,9 @@ class Log extends BaseComponent {
             <strong className='text-info'>{call.method}: </strong><JobCallStateInfos end={end} error={error} /><br />
             {map(call.params, (value, key) => [ <JobParam id={value} paramKey={key} key={key} />, <br /> ])}
             {_.keyValue(_('jobStart'), <span><FormattedDate value={new Date(start)} month='short' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' /><br /></span>)}
-	    {end !== undefined && <div>
-	      {_.keyValue(_('jobEnd'), <span><FormattedDate value={new Date(end)} month='short' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' /><br /></span>)}
-	      {_.keyValue(_('jobDuration'), <FormattedDuration duration={end - start} />)}
+            {end !== undefined && <div>
+              {_.keyValue(_('jobEnd'), <span><FormattedDate value={new Date(end)} month='short' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' /><br /></span>)}
+              {_.keyValue(_('jobDuration'), <FormattedDuration duration={end - start} />)}
             </div>}
             {returnedValue != null && returnedValue.size !== undefined && <JobTransferredDataInfos start={start} end={end} size={returnedValue.size} />}
             {id !== undefined && <span>{' '}<JobReturn id={id} /></span>}

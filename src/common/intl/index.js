@@ -1,6 +1,7 @@
 import isFunction from 'lodash/isFunction'
 import isString from 'lodash/isString'
 import moment from 'moment'
+import { parseDuration } from 'utils'
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
@@ -9,7 +10,7 @@ import { FormattedMessage, IntlProvider as IntlProvider_ } from 'react-intl'
 import locales from './locales'
 import messages from './messages'
 import Tooltip from '.././tooltip'
-import { parseDuration } from 'utils'
+import { createSelector } from '.././selectors'
 
 // ===================================================================
 
@@ -78,15 +79,20 @@ export class IntlProvider extends Component {
 
 @connect(({ lang }) => ({ lang }))
 export class FormattedDuration extends Component {
-  render () {
-    const {
-      duration,
-      lang
-    } = this.props
-    const momentDuration = moment.duration(duration)
+  _parseDuration = createSelector(
+    () => this.props.duration,
+    duration => parseDuration(moment.duration(duration).asSeconds())
+  )
 
-    return <Tooltip content={getMessage('parseDuration', parseDuration(momentDuration.asSeconds()))}>
-      <span>{momentDuration.locale(lang).humanize()}</span>
+  _humanizeDuration = createSelector(
+    () => this.props.duration,
+    () => this.props.lang,
+    (duration, lang) => moment.duration(duration).locale(lang).humanize()
+  )
+
+  render () {
+    return <Tooltip content={getMessage('parseDuration', this._parseDuration())}>
+      <span>{this._humanizeDuration()}</span>
     </Tooltip>
   }
 }
