@@ -94,6 +94,7 @@ const INDIVIDUAL_ACTIONS = [
   {
     handler: deleteVdi,
     icon: 'delete',
+    label: _('deleteSelectedVdi'),
     level: 'danger'
   }
 ]

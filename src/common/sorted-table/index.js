@@ -3,7 +3,6 @@ import classNames from 'classnames'
 import DropdownMenu from 'react-bootstrap-4/lib/DropdownMenu' // https://phabricator.babeljs.io/T6662 so Dropdown.Menu won't work like https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
 import DropdownToggle from 'react-bootstrap-4/lib/DropdownToggle' // https://phabricator.babeljs.io/T6662 so Dropdown.Toggle won't work https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
 import React from 'react'
-import ReactDOM from 'react-dom'
 import { Portal } from 'react-overlays'
 import { Set } from 'immutable'
 import {
@@ -20,9 +19,9 @@ import {
   map
 } from 'lodash'
 
-import ActionRow from 'action-row-button'
+import ActionRowButton from 'action-row-button'
 import Button from '../button'
-import ButtonGroup from 'button-group'
+import ButtonGroup from '../button-group'
 import Component from '../base-component'
 import Icon from '../icon'
 import propTypes from '../prop-types-decorator'
@@ -144,48 +143,40 @@ class ColumnHead extends Component {
 
 // ===================================================================
 
-class MasterCheckbox extends Component {
-  componentDidMount () {
-    const { indeterminate } = this.props
-    if (indeterminate) {
-      this._setIndeterminate(indeterminate)
+class Checkbox extends React.PureComponent {
+  componentDidUpdate () {
+    const { props: { indeterminate }, ref } = this
+    if (ref !== null && indeterminate !== undefined) {
+      ref.indeterminate = indeterminate
     }
   }
 
-  componentWillReceiveProps (nextProps) {
-    if (this.props.indeterminate !== nextProps.indeterminate) {
-      this._setIndeterminate(nextProps.indeterminate)
-    }
-  }
-  _setIndeterminate (indeterminate) {
-    ReactDOM.findDOMNode(this).indeterminate = indeterminate
+  _ref = ref => {
+    this.ref = ref
+    this.componentDidUpdate()
   }
 
   render () {
-    return <input
-      type='checkbox'
-      onChange={this.props.onChange}
-    />
+    const { indeterminate, ...props } = this.props
+    props.ref = this._ref
+    props.type = 'checkbox'
+    return <input {...props} />
   }
 }
 
 // ===================================================================
 
 const DEFAULT_ITEMS_PER_PAGE = 10
+const actionsShape = propTypes.arrayOf(propTypes.shape({
+  handler: propTypes.func.isRequired,
+  icon: propTypes.string.isRequired,
+  label: propTypes.node.isRequired,
+  level: propTypes.oneOf([ 'warning', 'danger' ])
+}))
 
 @propTypes({
-  groupedActions: propTypes.arrayOf(propTypes.shape({
-    handler: propTypes.func.isRequired,
-    icon: propTypes.node.isRequired,
-    label: propTypes.node,
-    level: propTypes.oneOf([ 'warning', 'danger' ])
-  })),
-  individualActions: propTypes.arrayOf(propTypes.shape({
-    handler: propTypes.func.isRequired,
-    icon: propTypes.node.isRequired,
-    label: propTypes.node,
-    level: propTypes.oneOf([ 'warning', 'danger' ])
-  })),
+  groupedActions: actionsShape,
+  individualActions: actionsShape,
   defaultColumn: propTypes.number,
   defaultFilter: propTypes.string,
   collection: propTypes.oneOfType([
@@ -270,7 +261,7 @@ export default class SortedTable extends Component {
       this.state.itemsPerPage
     )
 
-    this.state.selectedItems = new Set()
+    this.state.selectedItemsIds = new Set()
   }
 
   componentWillMount () {
@@ -315,14 +306,16 @@ export default class SortedTable extends Component {
     const { checked } = event.target
     const visibleItemsIds = map(this._getVisibleItems(), 'id')
     this.setState({
-      selectedItems: this.state.selectedItems[checked ? 'union' : 'clear'](visibleItemsIds)
+      selectedItemsIds: checked
+        ? this.state.selectedItemsIds.union(visibleItemsIds)
+        : this.state.selectedItemsIds.clear()
     })
   }
 
   _selectItem = event => {
     const { checked, name } = event.target
     this.setState({
-      selectedItems: this.state.selectedItems[checked ? 'add' : 'delete'](name)
+      selectedItemsIds: this.state.selectedItemsIds[checked ? 'add' : 'delete'](name)
     })
   }
 
@@ -333,11 +326,7 @@ export default class SortedTable extends Component {
     })
   }, 500)
 
-  _executeGroupedAction = createSelector(
-    handler => handler,
-    () => this.state.selectedItems.toArray(),
-    (handler, selectedItems) => handler(selectedItems)
-  )
+  _executeGroupedAction = handler => handler(this.state.selectedItemsIds.toArray())
 
   render () {
     const { props, state } = this
@@ -354,7 +343,7 @@ export default class SortedTable extends Component {
 
     const nFilteredItems = this._getAllItems().length
     const nVisibleItems = this._getVisibleItems().length
-    const nSelectedItems = state.selectedItems.size
+    const nSelectedItemsIds = state.selectedItemsIds.size
 
     const paginationInstance = (
       <Pagination
@@ -387,9 +376,10 @@ export default class SortedTable extends Component {
           <thead className='thead-default'>
             <tr>
               {groupedActions != null && <th>
-                <MasterCheckbox
+                <Checkbox
                   onChange={this._selectAllVisibleItems}
-                  indeterminate={nSelectedItems !== 0 && nSelectedItems !== nVisibleItems}
+                  checked={nSelectedItemsIds === nVisibleItems}
+                  indeterminate={nSelectedItemsIds !== 0 && nSelectedItemsIds !== nVisibleItems}
                 />
               </th>}
               {map(props.columns, (column, key) => (
@@ -403,27 +393,28 @@ export default class SortedTable extends Component {
                   sortIcon={state.selectedColumn === key ? state.sortOrder : 'sort'}
                />
               ))}
-              {individualActions !== undefined && <th>{_('sortedTableAction')}</th>}
+              {individualActions !== undefined && <th>{_('sortedTableActions')}</th>}
             </tr>
           </thead>
           <tbody>
-            {nSelectedItems !== 0 && <tr className='bg-faded'>
+            {nSelectedItemsIds !== 0 && <tr className='bg-faded'>
               <td colSpan={props.columns.length + (individualActions != null ? 2 : 1)}>
                 {_('sortedTableSelectedItems', {
-                  selected: nSelectedItems,
+                  selected: nSelectedItemsIds,
                   total: nVisibleItems
                 })}
-                <span className='pull-right'>
+                <div className='pull-right'>
                   <ButtonGroup>
-                    {map(groupedActions, ({ icon, label, level, handler }, key) => <ActionRow
+                    {map(groupedActions, ({ icon, label, level, handler }, key) => <ActionRowButton
                       btnStyle={level}
-                      handler={() => this._executeGroupedAction(handler)}
+                      handler={this._executeGroupedAction}
+                      handlerParam={handler}
                       icon={icon}
                       key={key}
                       tooltip={label}
                     />)}
                   </ButtonGroup>
-                </span>
+                </div>
               </td>
             </tr>}
             {map(this._getVisibleItems(), (item, i) => {
@@ -445,17 +436,17 @@ export default class SortedTable extends Component {
 
               const { id = i } = item
 
-              const selectionColumn = groupedActions != null && <td>
+              const selectionColumn = groupedActions !== undefined && groupedActions.length !== 0 && <td>
                 <input
-                  checked={state.selectedItems.has(id)}
+                  checked={state.selectedItemsIds.has(id)}
                   name={id}
                   onChange={this._selectItem}
                   type='checkbox'
                 />
               </td>
-              const actionsColumn = individualActions != null && <td><span className='pull-right'>
+              const actionsColumn = individualActions !== undefined && individualActions.length !== 0 && <td><div className='pull-right'>
                 <ButtonGroup>
-                  {map(individualActions, ({ icon, label, level, handler }, key) => <ActionRow
+                  {map(individualActions, ({ icon, label, level, handler }, key) => <ActionRowButton
                     btnStyle={level}
                     handler={handler}
                     handlerParam={id}
@@ -464,7 +455,7 @@ export default class SortedTable extends Component {
                     tooltip={label}
                   />)}
                 </ButtonGroup>
-              </span></td>
+              </div></td>
 
               return rowLink != null
                 ? <BlockLink
