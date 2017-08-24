@@ -143,10 +143,13 @@ class ColumnHead extends Component {
 
 // ===================================================================
 
-class Checkbox extends React.PureComponent {
+@propTypes({
+  indeterminate: propTypes.bool.isRequired
+})
+class Checkbox extends Component {
   componentDidUpdate () {
     const { props: { indeterminate }, ref } = this
-    if (ref !== null && indeterminate !== undefined) {
+    if (ref !== null) {
       ref.indeterminate = indeterminate
     }
   }
@@ -168,6 +171,7 @@ class Checkbox extends React.PureComponent {
 
 const DEFAULT_ITEMS_PER_PAGE = 10
 const actionsShape = propTypes.arrayOf(propTypes.shape({
+  // function called with the selected items in parameters
   handler: propTypes.func.isRequired,
   icon: propTypes.string.isRequired,
   label: propTypes.node.isRequired,
@@ -175,8 +179,6 @@ const actionsShape = propTypes.arrayOf(propTypes.shape({
 }))
 
 @propTypes({
-  groupedActions: actionsShape,
-  individualActions: actionsShape,
   defaultColumn: propTypes.number,
   defaultFilter: propTypes.string,
   collection: propTypes.oneOfType([
@@ -197,6 +199,8 @@ const actionsShape = propTypes.arrayOf(propTypes.shape({
   })).isRequired,
   filterContainer: propTypes.func,
   filters: propTypes.object,
+  groupedActions: actionsShape,
+  individualActions: actionsShape,
   itemsPerPage: propTypes.number,
   paginationContainer: propTypes.func,
   rowAction: propTypes.func,
@@ -315,11 +319,9 @@ export default class SortedTable extends Component {
   })
 
   _selectAllVisibleItems = event => {
-    const { checked } = event.target
-    const visibleItemsIds = map(this._getVisibleItems(), 'id')
     this.setState({
-      selectedItemsIds: checked
-        ? this.state.selectedItemsIds.union(visibleItemsIds)
+      selectedItemsIds: event.target.checked
+        ? this.state.selectedItemsIds.union(map(this._getVisibleItems(), 'id'))
         : this.state.selectedItemsIds.clear()
     })
   }
@@ -355,7 +357,7 @@ export default class SortedTable extends Component {
 
     const nFilteredItems = this._getAllItems().length
     const nVisibleItems = this._getVisibleItems().length
-    const nSelectedItemsIds = state.selectedItemsIds.size
+    const nSelectedItems = state.selectedItemsIds.size
 
     const paginationInstance = (
       <Pagination
@@ -387,11 +389,11 @@ export default class SortedTable extends Component {
         <table className='table'>
           <thead className='thead-default'>
             <tr>
-              {groupedActions != null && <th>
+              {!isEmpty(groupedActions) && <th>
                 <Checkbox
                   onChange={this._selectAllVisibleItems}
-                  checked={nSelectedItemsIds === nVisibleItems}
-                  indeterminate={nSelectedItemsIds !== 0 && nSelectedItemsIds !== nVisibleItems}
+                  checked={nSelectedItems === nVisibleItems}
+                  indeterminate={nSelectedItems !== 0 && nSelectedItems !== nVisibleItems}
                 />
               </th>}
               {map(props.columns, (column, key) => (
@@ -405,14 +407,14 @@ export default class SortedTable extends Component {
                   sortIcon={state.selectedColumn === key ? state.sortOrder : 'sort'}
                />
               ))}
-              {individualActions !== undefined && <th>{_('sortedTableActions')}</th>}
+              {!isEmpty(individualActions) && <th />}
             </tr>
           </thead>
           <tbody>
-            {nSelectedItemsIds !== 0 && <tr className='bg-faded'>
+            {nSelectedItems !== 0 && <tr className='bg-faded'>
               <td colSpan={props.columns.length + (individualActions != null ? 2 : 1)}>
                 {_('sortedTableSelectedItems', {
-                  selected: nSelectedItemsIds,
+                  selected: nSelectedItems,
                   total: nVisibleItems
                 })}
                 <div className='pull-right'>
@@ -448,7 +450,7 @@ export default class SortedTable extends Component {
 
               const { id = i } = item
 
-              const selectionColumn = groupedActions !== undefined && groupedActions.length !== 0 && <td>
+              const selectionColumn = !isEmpty(groupedActions) && <td>
                 <input
                   checked={state.selectedItemsIds.has(id)}
                   name={id}
@@ -456,7 +458,7 @@ export default class SortedTable extends Component {
                   type='checkbox'
                 />
               </td>
-              const actionsColumn = individualActions !== undefined && individualActions.length !== 0 && <td><div className='pull-right'>
+              const actionsColumn = !isEmpty(individualActions) && <td><div className='pull-right'>
                 <ButtonGroup>
                   {map(individualActions, ({ icon, label, level, handler }, key) => <ActionRowButton
                     btnStyle={level}

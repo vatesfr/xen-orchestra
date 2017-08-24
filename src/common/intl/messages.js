@@ -161,7 +161,6 @@ var messages = {
 
   // ----- Common components -----
   sortedTableSelectedItems: '{selected, number} selected on {total, number}',
-  sortedTableActions: 'Actions',
 
   // ----- Forms -----
   add: 'Add',
@@ -732,8 +731,8 @@ var messages = {
   cdDriveInstallation: 'Stop and start the VM to install the CD drive',
   saveBootOption: 'Save',
   resetBootOption: 'Reset',
-  deleteSelectedVdis: 'Delete selected vdis',
-  deleteSelectedVdi: 'Delete selected vdi',
+  deleteSelectedVdis: 'Delete selected VDIs',
+  deleteSelectedVdi: 'Delete selected VDI',
 
   // ----- VM network tab -----
   vifCreateDeviceButton: 'New device',
