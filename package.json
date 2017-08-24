@@ -80,6 +80,7 @@
     "gulp-watch": "^4.3.5",
     "human-format": "^0.8.0",
     "husky": "^0.13.1",
+    "immutable": "^3.8.1",
     "index-modules": "^0.3.0",
     "is-ip": "^1.0.0",
     "jest": "^20.0.4",

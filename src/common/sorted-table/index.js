@@ -1,18 +1,27 @@
 import _ from 'intl'
-import ceil from 'lodash/ceil'
 import classNames from 'classnames'
-import debounce from 'lodash/debounce'
-import findIndex from 'lodash/findIndex'
-import isEmpty from 'lodash/isEmpty'
-import isFunction from 'lodash/isFunction'
-import map from 'lodash/map'
-import React from 'react'
-import { Dropdown, MenuItem, Pagination } from 'react-bootstrap-4/lib'
 import DropdownMenu from 'react-bootstrap-4/lib/DropdownMenu' // https://phabricator.babeljs.io/T6662 so Dropdown.Menu won't work like https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
 import DropdownToggle from 'react-bootstrap-4/lib/DropdownToggle' // https://phabricator.babeljs.io/T6662 so Dropdown.Toggle won't work https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
+import React from 'react'
 import { Portal } from 'react-overlays'
+import { Set } from 'immutable'
+import {
+  Dropdown,
+  MenuItem,
+  Pagination
+} from 'react-bootstrap-4/lib'
+import {
+  ceil,
+  debounce,
+  findIndex,
+  isEmpty,
+  isFunction,
+  map
+} from 'lodash'
 
+import ActionRowButton from 'action-row-button'
 import Button from '../button'
+import ButtonGroup from '../button-group'
 import Component from '../base-component'
 import Icon from '../icon'
 import propTypes from '../prop-types-decorator'
@@ -134,7 +143,41 @@ class ColumnHead extends Component {
 
 // ===================================================================
 
+@propTypes({
+  indeterminate: propTypes.bool.isRequired
+})
+class Checkbox extends Component {
+  componentDidUpdate () {
+    const { props: { indeterminate }, ref } = this
+    if (ref !== null) {
+      ref.indeterminate = indeterminate
+    }
+  }
+
+  _ref = ref => {
+    this.ref = ref
+    this.componentDidUpdate()
+  }
+
+  render () {
+    const { indeterminate, ...props } = this.props
+    props.ref = this._ref
+    props.type = 'checkbox'
+    return <input {...props} />
+  }
+}
+
+// ===================================================================
+
 const DEFAULT_ITEMS_PER_PAGE = 10
+const actionsShape = propTypes.arrayOf(propTypes.shape({
+  // groupedActions: the function will be called with an array of the selected items` ids in parameters
+  // individualActions: the function will be called with the related item's id in parameters
+  handler: propTypes.func.isRequired,
+  icon: propTypes.string.isRequired,
+  label: propTypes.node.isRequired,
+  level: propTypes.oneOf([ 'warning', 'danger' ])
+}))
 
 @propTypes({
   defaultColumn: propTypes.number,
@@ -157,6 +200,8 @@ const DEFAULT_ITEMS_PER_PAGE = 10
   })).isRequired,
   filterContainer: propTypes.func,
   filters: propTypes.object,
+  groupedActions: actionsShape,
+  individualActions: actionsShape,
   itemsPerPage: propTypes.number,
   paginationContainer: propTypes.func,
   rowAction: propTypes.func,
@@ -220,6 +265,8 @@ export default class SortedTable extends Component {
       () => this.state.activePage,
       this.state.itemsPerPage
     )
+
+    this.state.selectedItemsIds = new Set()
   }
 
   componentWillMount () {
@@ -256,9 +303,36 @@ export default class SortedTable extends Component {
     })
   }
 
+  componentDidUpdate () {
+    const { selectedItemsIds } = this.state
+
+    // Unselect items that are no longer visible
+    if ((this._visibleItemsRecomputations || 0) < (this._visibleItemsRecomputations = this._getVisibleItems.recomputations())) {
+      const newSelectedItems = selectedItemsIds.intersect(map(this._getVisibleItems(), 'id'))
+      if (newSelectedItems.size < selectedItemsIds.size) {
+        this.setState({ selectedItemsIds: newSelectedItems })
+      }
+    }
+  }
+
   _onPageSelection = (_, event) => this.setState({
     activePage: event.eventKey
   })
+
+  _selectAllVisibleItems = event => {
+    this.setState({
+      selectedItemsIds: event.target.checked
+        ? this.state.selectedItemsIds.union(map(this._getVisibleItems(), 'id'))
+        : this.state.selectedItemsIds.clear()
+    })
+  }
+
+  _selectItem = event => {
+    const { checked, name } = event.target
+    this.setState({
+      selectedItemsIds: this.state.selectedItemsIds[checked ? 'add' : 'delete'](name)
+    })
+  }
 
   _onFilterChange = debounce(filter => {
     this.setState({
@@ -267,18 +341,27 @@ export default class SortedTable extends Component {
     })
   }, 500)
 
+  _executeGroupedAction = handler => handler(this.state.selectedItemsIds.toArray())
+
   render () {
     const { props, state } = this
     const {
-      paginationContainer,
       filterContainer,
       filters,
+      groupedActions,
+      individualActions,
+      paginationContainer,
       rowAction,
       rowLink,
       userData
     } = props
 
     const nFilteredItems = this._getAllItems().length
+    const nVisibleItems = this._getVisibleItems().length
+    const nSelectedItems = state.selectedItemsIds.size
+
+    const hasGroupedActions = !isEmpty(groupedActions)
+    const hasIndividualActions = !isEmpty(individualActions)
 
     const paginationInstance = (
       <Pagination
@@ -310,6 +393,13 @@ export default class SortedTable extends Component {
         <table className='table'>
           <thead className='thead-default'>
             <tr>
+              {hasGroupedActions && <th>
+                <Checkbox
+                  onChange={this._selectAllVisibleItems}
+                  checked={nSelectedItems === nVisibleItems}
+                  indeterminate={nSelectedItems !== 0 && nSelectedItems !== nVisibleItems}
+                />
+              </th>}
               {map(props.columns, (column, key) => (
                 <ColumnHead
                   textAlign={column.textAlign}
@@ -321,9 +411,30 @@ export default class SortedTable extends Component {
                   sortIcon={state.selectedColumn === key ? state.sortOrder : 'sort'}
                />
               ))}
+              {hasIndividualActions && <th />}
             </tr>
           </thead>
           <tbody>
+            {nSelectedItems !== 0 && <tr className='bg-faded'>
+              <td colSpan={props.columns.length + (individualActions != null ? 2 : 1)}>
+                {_('sortedTableSelectedItems', {
+                  selected: nSelectedItems,
+                  total: nVisibleItems
+                })}
+                <div className='pull-right'>
+                  <ButtonGroup>
+                    {map(groupedActions, ({ icon, label, level, handler }, key) => <ActionRowButton
+                      btnStyle={level}
+                      handler={this._executeGroupedAction}
+                      handlerParam={handler}
+                      icon={icon}
+                      key={key}
+                      tooltip={label}
+                    />)}
+                  </ButtonGroup>
+                </div>
+              </td>
+            </tr>}
             {map(this._getVisibleItems(), (item, i) => {
               const columns = map(props.columns, ({
                 component: Component,
@@ -343,18 +454,45 @@ export default class SortedTable extends Component {
 
               const { id = i } = item
 
-              return rowLink
+              const selectionColumn = hasGroupedActions && <td>
+                <input
+                  checked={state.selectedItemsIds.has(id)}
+                  name={id}
+                  onChange={this._selectItem}
+                  type='checkbox'
+                />
+              </td>
+              const actionsColumn = hasIndividualActions && <td><div className='pull-right'>
+                <ButtonGroup>
+                  {map(individualActions, ({ icon, label, level, handler }, key) => <ActionRowButton
+                    btnStyle={level}
+                    handler={handler}
+                    handlerParam={id}
+                    icon={icon}
+                    key={key}
+                    tooltip={label}
+                  />)}
+                </ButtonGroup>
+              </div></td>
+
+              return rowLink != null
                 ? <BlockLink
                   key={id}
                   tagName='tr'
                   to={isFunction(rowLink) ? rowLink(item, userData) : rowLink}
-                >{columns}</BlockLink>
+                >
+                  {selectionColumn}
+                  {columns}
+                  {actionsColumn}
+                </BlockLink>
                 : <tr
                   className={rowAction && styles.clickableRow}
                   key={id}
                   onClick={rowAction && (() => rowAction(item, userData))}
                 >
+                  {selectionColumn}
                   {columns}
+                  {actionsColumn}
                 </tr>
             })}
           </tbody>

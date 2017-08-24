@@ -1114,6 +1114,16 @@ export const deleteVdi = vdi => (
   )
 )
 
+export const deleteVdis = vdis => (
+  confirm({
+    title: _('deleteVdisModalTitle', { nVdis: vdis.length }),
+    body: _('deleteVdisModalMessage', { nVdis: vdis.length })
+  }).then(
+    () => Promise.all(map(vdis, id => _call('vdi.delete', { id }))),
+    noop
+  )
+)
+
 export const deleteOrphanedVdis = vdis => (
   confirm({
     title: _('removeAllOrphanedObject'),

@@ -1,5 +1,4 @@
 import _ from 'intl'
-import ActionRow from 'action-row-button'
 import Component from 'base-component'
 import Icon from 'icon'
 import Link from 'link'
@@ -10,7 +9,7 @@ import { concat, isEmpty } from 'lodash'
 import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createGetObject, createSelector } from 'selectors'
-import { deleteVdi, editVdi } from 'xo'
+import { deleteVdi, deleteVdis, editVdi } from 'xo'
 import { Text } from 'editable'
 
 // ===================================================================
@@ -88,17 +87,23 @@ const COLUMNS = [
     name: _('vdiSize'),
     itemRenderer: vdi => formatSize(vdi.size),
     sortCriteria: vdi => vdi.size
-  },
+  }
+]
+
+const GROUPED_ACTIONS = [
   {
-    name: _('vdiAction'),
-    itemRenderer: vdi => (
-      <ActionRow
-        btnStyle='danger'
-        handler={deleteVdi}
-        handlerParam={vdi}
-        icon='delete'
-      />
-    )
+    handler: deleteVdis,
+    icon: 'delete',
+    label: _('deleteSelectedVdis')
+  }
+]
+
+const INDIVIDUAL_ACTIONS = [
+  {
+    handler: deleteVdi,
+    icon: 'delete',
+    label: _('deleteSelectedVdi'),
+    level: 'danger'
   }
 ]
 
@@ -131,6 +136,8 @@ export default class SrDisks extends Component {
               columns={COLUMNS}
               defaultFilter='filterOnlyManaged'
               filters={FILTERS}
+              groupedActions={GROUPED_ACTIONS}
+              individualActions={INDIVIDUAL_ACTIONS}
             />
             : <h4 className='text-xs-center'>{_('srNoVdis')}</h4>
           }
