@@ -171,7 +171,8 @@ class Checkbox extends Component {
 
 const DEFAULT_ITEMS_PER_PAGE = 10
 const actionsShape = propTypes.arrayOf(propTypes.shape({
-  // function called with the selected items in parameters
+  // groupedActions : the function will be called with the grouped action in the parameters
+  // individualActions : the function will be called with the related item's id in parameters
   handler: propTypes.func.isRequired,
   icon: propTypes.string.isRequired,
   label: propTypes.node.isRequired,
@@ -359,6 +360,9 @@ export default class SortedTable extends Component {
     const nVisibleItems = this._getVisibleItems().length
     const nSelectedItems = state.selectedItemsIds.size
 
+    const hasGroupedActions = !isEmpty(groupedActions)
+    const hasIndividualActions = !isEmpty(individualActions)
+
     const paginationInstance = (
       <Pagination
         first
@@ -389,7 +393,7 @@ export default class SortedTable extends Component {
         <table className='table'>
           <thead className='thead-default'>
             <tr>
-              {!isEmpty(groupedActions) && <th>
+              {hasGroupedActions && <th>
                 <Checkbox
                   onChange={this._selectAllVisibleItems}
                   checked={nSelectedItems === nVisibleItems}
@@ -407,7 +411,7 @@ export default class SortedTable extends Component {
                   sortIcon={state.selectedColumn === key ? state.sortOrder : 'sort'}
                />
               ))}
-              {!isEmpty(individualActions) && <th />}
+              {hasIndividualActions && <th />}
             </tr>
           </thead>
           <tbody>
@@ -450,7 +454,7 @@ export default class SortedTable extends Component {
 
               const { id = i } = item
 
-              const selectionColumn = !isEmpty(groupedActions) && <td>
+              const selectionColumn = hasGroupedActions && <td>
                 <input
                   checked={state.selectedItemsIds.has(id)}
                   name={id}
@@ -458,7 +462,7 @@ export default class SortedTable extends Component {
                   type='checkbox'
                 />
               </td>
-              const actionsColumn = !isEmpty(individualActions) && <td><div className='pull-right'>
+              const actionsColumn = hasIndividualActions && <td><div className='pull-right'>
                 <ButtonGroup>
                   {map(individualActions, ({ icon, label, level, handler }, key) => <ActionRowButton
                     btnStyle={level}
