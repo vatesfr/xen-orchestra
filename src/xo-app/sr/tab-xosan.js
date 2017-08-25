@@ -366,8 +366,10 @@ export default class TabXosan extends Component {
                       btnStyle='success'
                       icon='refresh'
                       handler={::this._replaceBrick}
-                      handlerParam={{ brick: node.config.brickName, newSr: this.state[`sr-${i}`],
-                        brickSize: this.state[`brickSize-${i}`], onSameVm: this.state[`onSameVm-${i}`] }}
+                      handlerParam={{ brick: node.config.brickName,
+                        newSr: this.state[`sr-${i}`],
+                        brickSize: this.state[`brickSize-${i}`],
+                        onSameVm: this.state[`onSameVm-${i}`] }}
                     >
                       Replace
                     </ActionButton>
