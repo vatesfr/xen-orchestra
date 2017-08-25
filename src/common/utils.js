@@ -9,6 +9,7 @@ import {
   escapeRegExp,
   every,
   forEach,
+  identity,
   isArray,
   isEmpty,
   isFunction,
@@ -28,6 +29,14 @@ import * as actions from './store/actions'
 import invoke from './invoke'
 import store from './store'
 import { getObject } from './selectors'
+import {
+  createAnd,
+  createNot,
+  createOr,
+  createProperty,
+  createString,
+  toString
+} from './complex-matcher'
 
 export const EMPTY_ARRAY = Object.freeze([])
 export const EMPTY_OBJECT = Object.freeze({})
@@ -524,3 +533,69 @@ export const createFakeProgress = (() => {
 export const ShortDate = ({ timestamp }) => (
   <FormattedDate value={timestamp} month='short' day='numeric' year='numeric' />
 )
+
+// ===================================================================
+
+// Smart backup
+export const destructPattern = (pattern, valueTransform = identity) => pattern && ({
+  not: !!pattern.__not,
+  values: valueTransform((pattern.__not || pattern).__or)
+})
+
+export const constructPattern = ({ not, values } = EMPTY_OBJECT, valueTransform = identity) => {
+  if (values == null || !values.length) {
+    return
+  }
+
+  const pattern = { __or: valueTransform(values) }
+  return not
+    ? { __not: pattern }
+    : pattern
+}
+
+const parsePattern = pattern => {
+  const patternValues = map(pattern.values, value => {
+    return isArray(value)
+      ? createString(value[0])
+      : createString(value)
+  })
+
+  return pattern.not
+    ? createNot(createOr(patternValues))
+    : createOr(patternValues)
+}
+
+export const constructFilter = pattern => {
+  const powerState = pattern.power_state
+  const pool = destructPattern(pattern.$pool)
+  const tags = destructPattern(pattern.tags)
+
+  let filter = []
+
+  if (powerState !== undefined) {
+    filter.push(
+      createProperty(
+        'power_state',
+        powerState === 'Running' ? createString('running') : createNot(createString('running'))
+      )
+    )
+  }
+  if (pool !== undefined) {
+    filter.push(
+      createProperty(
+        '$pool',
+        parsePattern(pool)
+      )
+    )
+  }
+  if (tags !== undefined) {
+    filter.push(
+      createProperty(
+        'tags',
+        parsePattern(tags)
+      )
+    )
+  }
+
+  return createAnd(filter)::toString()
+}
