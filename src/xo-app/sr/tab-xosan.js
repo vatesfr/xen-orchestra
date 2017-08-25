@@ -96,8 +96,8 @@ export default class TabXosan extends Component {
 
   // Actions -------------------------------------------------------------------
 
-  async _replaceBrick ({ brick, newSr, brickSize }) {
-    await replaceXosanBrick(this.props.sr.id, brick, newSr.id, brickSize)
+  async _replaceBrick ({ brick, newSr, brickSize, onSameVm = false }) {
+    await replaceXosanBrick(this.props.sr.id, brick, newSr.id, brickSize, onSameVm)
     const newState = {}
     forEach(this.state.xosanConfig.nodes, (node, i) => {
       newState[`sr-${i}`] = null
@@ -355,12 +355,19 @@ export default class TabXosan extends Component {
                     />
                   </span>
                   {' '}
+                  <span><input
+                    checked={this.state[`onSameVm-${i}`] || false}
+                    onChange={event => this.setState({[`onSameVm-${i}`]: event.target.checked})}
+                    type='checkbox'
+                  />On Same VM</span>
+                  {' '}
                   <span>
                     <ActionButton
                       btnStyle='success'
                       icon='refresh'
                       handler={::this._replaceBrick}
-                      handlerParam={{ brick: node.config.brickName, newSr: this.state[`sr-${i}`], brickSize: this.state[`brickSize-${i}`] }}
+                      handlerParam={{ brick: node.config.brickName, newSr: this.state[`sr-${i}`],
+                        brickSize: this.state[`brickSize-${i}`], onSameVm: this.state[`onSameVm-${i}`] }}
                     >
                       Replace
                     </ActionButton>
