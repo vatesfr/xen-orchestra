@@ -9,7 +9,7 @@ Pros:
 
 Cons:
 
-* low capacity (so higher cost, better for SSDs)
+* lower capacity (so higher cost, better for SSDs)
 * a bit more complex to maintain in distributed-replicated (see "RAID 10 like")
 
 ### 2-way replication
@@ -30,7 +30,7 @@ Same than 2-way, but data is replicated on 3 nodes in total.
 
 ### Building a "RAID 10" like
 
-If you have more than 2 or 3 nodes, it could be interesting to distribute data on multiple replicated nodes. This is called "distributed-replicated" type. Here is an example with 6 nodes:
+If you have more than 2 or 3 nodes, it could be interesting to **distribute** data on multiple replicated nodes. This is called "**distributed-replicated**" type. Here is an example with 6 nodes:
 
 ![picture distributed-replicated with 6 nodes]()
 

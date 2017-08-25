@@ -4,7 +4,7 @@ In order to work, XOSAN need a minimal set of requirements.
 
 ## Storage
 
-XOSAN is deployed on an existing **Local LVM storage**, that XenServer configure by default during its installation. However, you can create yourself easily this kind of storage while using Xen Orchestra:
+XOSAN can be deployed on an existing **Local LVM storage**, that XenServer configure by default during its installation. However, you can also create yourself easily this kind of storage while using Xen Orchestra:
 
 * Go on the "New" menu entry, then select "Storage"
 * Select the host having the disk you want to use for XOSAN
@@ -22,7 +22,7 @@ XOSAN will use the network card you choose at creation. For better performances,
 
 ## RAM
 
-Each XOSAN VM deployed will use 2GiB of RAM. It could be increased (sweet spot seems to be around 4GiB), but it's also workload and infrastructure related. If you don't have a lot of RAM, keep it to 2GiB. If RAM is not an issue, 4GiB is better.
+Each XOSAN VM will use 2GiB of RAM. It could be increased (sweet spot seems to be around 4GiB), but it's also workload and infrastructure related. If you don't have a lot of RAM, keep it to 2GiB. If RAM is not an issue, 4GiB is better.
 
 ## CPU
 

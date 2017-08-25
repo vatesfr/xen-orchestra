@@ -4,7 +4,7 @@ There is 2 modes for creating an XOSAN storage. They are different and the choic
 
 That's why it's **very important to understand pros and cons** of each type.
 
-> On "top" of there 2 types, you can also deciding to spread all operations to multiple number of volumes. This is called **distributed** mode. It's very similar to *RAID 0*, which can be placed on top of a *RAID 1* for example. We'll talk about it in the end of this guide.
+> On "top" of there 2 types, you can also decide to spread all operations to multiple number of volumes. This is called **distributed** mode. It's very similar to *RAID 0*, which can be placed on top of a *RAID 1* for example. We'll talk about it in the end of this guide.
 
 Here is those 2 types:
 
