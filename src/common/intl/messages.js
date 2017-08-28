@@ -1419,6 +1419,7 @@ var messages = {
   xosanName: 'Name',
   xosanHost: 'Host',
   xosanHosts: 'Connected Hosts',
+  xosanPool: 'Pool',
   xosanVolumeId: 'Volume ID',
   xosanSize: 'Size',
   xosanUsedSpace: 'Used space',
@@ -1438,6 +1439,8 @@ var messages = {
   xosanAdd: 'Add',
   xosanInstalling: 'Installing XOSAN. Please wait...',
   xosanCommunity: 'No XOSAN available for Community Edition',
+  xosanNew: 'New',
+  xosanAdvanced: 'Advanced',
   // Pack download modal
   xosanInstallCloudPlugin: 'Install cloud plugin first',
   xosanLoadCloudPlugin: 'Load cloud plugin first',
@@ -1452,7 +1455,22 @@ var messages = {
   // SR tab XOSAN
   xosanVmsNotRunning: 'Some XOSAN Virtual Machines are not running',
   xosanVmsNotFound: 'Some XOSAN Virtual Machines could not be found',
-  xosanFilesNeedHealing: 'Some XOSAN Virtual Machines have files needing healing'
+  xosanFilesNeedHealing: 'Some XOSAN Virtual Machines have files needing healing',
+  xosanVm: 'Virtual Machine',
+  xosanUnderlyingStorage: 'Underlying storage',
+  xosanReplace: 'Replace',
+  xosanBrickUuid: 'Brick UUID',
+  xosanStatus: 'Status',
+  xosanArbiter: 'Arbiter',
+  xosanUsedInodes: 'Used Inodes',
+  xosanBlockSize: 'Block size',
+  xosanDevice: 'Device',
+  xosanFsName: 'FS name',
+  xosanMountOptions: 'Mount options',
+  xosanPath: 'Path',
+  xosanJob: 'Job',
+  xosanPid: 'PID',
+  xosanPort: 'Port'
 }
 forEach(messages, function (message, id) {
   if (isString(message)) {

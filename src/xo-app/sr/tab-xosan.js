@@ -313,7 +313,7 @@ export default class TabXosan extends Component {
             key={node.config.brickName}
           >
             <Container className='m-1'>
-              <Field title={'Virtual Machine'}>
+              <Field title={_('xosanVm')}>
                 {node.vm !== undefined
                   ? <span title={node.vm.power_state}>
                     <Icon icon={node.vm.power_state.toLowerCase()} />
@@ -334,10 +334,10 @@ export default class TabXosan extends Component {
                   </span>
                 }
               </Field>
-              <Field title={'Underlying Storage'}>
+              <Field title={_('xosanUnderlyingStorage')}>
                 <Link to={`/srs/${node.config.underlyingSr}`}>{srs[node.config.underlyingSr].name_label}</Link> - Using {formatSize(node.size)}
               </Field>
-              <Field title={'Replace'}>
+              <Field title={_('xosanReplace')}>
                 <div style={{ display: 'flex' }}>
                   <span className='mr-1' style={{ display: 'inline-block', width: '18em' }}>
                     <SelectSr
@@ -376,17 +376,17 @@ export default class TabXosan extends Component {
                   </span>
                 </div>
               </Field>
-              <Field title={'Brick UUID'}>
+              <Field title={_('xosanBrickUuid')}>
                 <Copiable>{node.uuid}</Copiable>
               </Field>
-              <Field title={'Status'}>
+              <Field title={_('xosanStatus')}>
                 {node.heal ? node.heal.status : 'unknown'}
               </Field>
-              <Field title={'Arbiter'}>
+              <Field title={_('xosanArbiter')}>
                 {node.config.arbiter ? 'True' : 'False' }
               </Field>
               {node.statusDetail && [
-                <Field title={'Used Space'}>
+                <Field title={_('xosanUsedSpace')}>
                   <span style={{ display: 'inline-block', width: '20em', height: '1em' }}>
                     <Tooltip content={_('spaceLeftTooltip', {
                       used: String(Math.round(100 - (+node.statusDetail.sizeFree / +node.statusDetail.sizeTotal) * 100)),
@@ -400,7 +400,7 @@ export default class TabXosan extends Component {
                     </Tooltip>
                   </span>
                 </Field>,
-                <Field title={'Used Inodes'}>
+                <Field title={_('xosanUsedInodes')}>
                   <span style={{ display: 'inline-block', width: '20em', height: '1em' }}>
                     <Tooltip content={_('spaceLeftTooltip', {
                       used: String(Math.round(100 - (+node.statusDetail.inodesFree / +node.statusDetail.inodesTotal) * 100)),
@@ -411,11 +411,11 @@ export default class TabXosan extends Component {
                     </Tooltip>
                   </span>
                 </Field>,
-                <Field title={'Block size'}>{node.statusDetail.blockSize}</Field>,
-                <Field title={'Device'}>{node.statusDetail.device}</Field>,
-                <Field title={'FS name'}>{node.statusDetail.fsName}</Field>,
-                <Field title={'Mount options'}>{node.statusDetail.mntOptions}</Field>,
-                <Field title={'Path'}>{node.statusDetail.path}</Field>
+                <Field title={_('xosanBlockSize')}>{node.statusDetail.blockSize}</Field>,
+                <Field title={_('xosanDevice')}>{node.statusDetail.device}</Field>,
+                <Field title={_('xosanFsName')}>{node.statusDetail.fsName}</Field>,
+                <Field title={_('xosanMountOptions')}>{node.statusDetail.mntOptions}</Field>,
+                <Field title={_('xosanPath')}>{node.statusDetail.path}</Field>
               ]}
 
               {node.status && node.status.length !== 0 && <Row>
@@ -423,11 +423,11 @@ export default class TabXosan extends Component {
                   <table className='table'>
                     <thead>
                       <tr>
-                        <th>Job</th>
-                        <th>Path</th>
-                        <th>Status</th>
-                        <th>PID</th>
-                        <th>Port</th>
+                        <th>{_('xosanJob')}</th>
+                        <th>{_('xosanPath')}</th>
+                        <th>{_('xosanStatus')}</th>
+                        <th>{_('xosanPid')}</th>
+                        <th>{_('xosanPort')}</th>
                       </tr>
                     </thead>
                     <tbody>

@@ -1,6 +1,6 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
-import Collapse from 'collapse'
+import ActionRowButton from 'action-row-button'
 import Component from 'base-component'
 import getEventValue from 'get-event-value'
 import Icon from 'icon'
@@ -8,24 +8,26 @@ import Link from 'link'
 import Page from '../page'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
+import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
-import { Container, Col } from 'grid'
+import { Container, Col, Row } from 'grid'
 import { Toggle, SizeInput } from 'form'
-import { SelectPif } from 'select-objects'
+import { SelectPif, SelectPool } from 'select-objects'
 import {
   every,
   filter,
   find,
   forEach,
+  groupBy,
   isEmpty,
   keys,
   map,
   mapValues,
   pickBy,
-  some,
-  sortBy
+  some
 } from 'lodash'
 import {
+  createFilter,
   createGetObjectsOfType,
   createSelector,
   createSort
@@ -41,7 +43,9 @@ import {
 import {
   computeXosanPossibleOptions,
   createXosanSR,
+  deleteSr,
   downloadAndInstallXosanPack,
+  getVolumeInfo,
   registerXosan,
   restartHostsAgents,
   subscribeIsInstallingXosan,
@@ -59,74 +63,68 @@ const HEADER = <Container>
 
 // ==================================================================
 
-@connectStore(() => ({
-  vifs: createGetObjectsOfType('VIF'),
-  vms: createGetObjectsOfType('VM'),
-  vbds: createGetObjectsOfType('VBD'),
-  vdis: createGetObjectsOfType('VDI')
-}))
-export class XosanVolumesTable extends Component {
-  constructor (props) {
-    super(props)
-    this.state = {
-      peers: null,
-      volumesByConfig: null,
-      volumesByID: null
+const XOSAN_COLUMNS = [
+  {
+    name: _('xosanSize'),
+    itemRenderer: (sr, { isInstallingXosan, status }) => {
+      if (isInstallingXosan && isInstallingXosan[sr.pool && sr.pool.id]) {
+        return <Icon icon='loading' />
+      }
+
+      if ((status && !every(status[sr.id])) || !every(map(sr.pbds, 'attached'))) {
+        return <Icon icon='halted' />
+      }
+
+      return <Icon icon='running' />
     }
+  },
+  {
+    name: _('xosanPool'),
+    itemRenderer: sr => sr.pool.name_label,
+    sortCriteria: sr => sr.pool.name_label
+  },
+  {
+    name: _('xosanName'),
+    itemRenderer: sr => sr.name_label,
+    sortCriteria: sr => sr.name_label
+  },
+  {
+    name: _('xosanHosts'),
+    itemRenderer: sr => sr.hosts.join(', ')
+  },
+  {
+    name: _('xosanSize'),
+    itemRenderer: sr => formatSize(sr.size),
+    sortCriteria: sr => sr.size
+  },
+  {
+    name: _('xosanUsedSpace'),
+    itemRenderer: sr => sr.size > 0
+      ? <Tooltip content={_('spaceLeftTooltip', {
+        used: String(Math.round((sr.physical_usage / sr.size) * 100)),
+        free: formatSize(sr.size - sr.physical_usage)
+      })}>
+        <progress
+          className='progress'
+          max='100'
+          value={(sr.physical_usage * 100) / sr.size}
+        />
+      </Tooltip>
+      : null,
+    sortCriteria: sr => sr.size
+  },
+  {
+    name: 'Delete',
+    itemRenderer: sr => <ActionRowButton
+      btnStyle='danger'
+      icon='delete'
+      handler={deleteSr}
+      handlerParam={sr.id}
+    />
   }
+]
 
-  render () {
-    const { xosansrs, hosts } = this.props
-    return <div>
-      <h3>{_('xosanSrTitle')}</h3>
-      <table className='table table-striped'>
-        <thead>
-          <tr>
-            <th>{_('xosanName')}</th>
-            <th>{_('xosanHosts')}</th>
-            <th>{_('xosanSize')}</th>
-            <th>{_('xosanUsedSpace')}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {map(xosansrs, sr => {
-            const configsMap = {}
-            forEach(sr.pbds, pbd => { configsMap[pbd.device_config['server']] = true })
-
-            return <tr key={sr.id}>
-              <td>
-                <Link to={`/srs/${sr.id}/xosan`}>{sr.name_label}</Link>
-              </td>
-              <td>
-                { map(sr.pbds, ({ host }) => find(hosts, [ 'id', host ]).name_label).join(', ') }
-              </td>
-              <td>
-                {formatSize(sr.size)}
-              </td>
-              <td>
-                {sr.size > 0 &&
-                  <Tooltip content={_('spaceLeftTooltip', {
-                    used: String(Math.round((sr.physical_usage / sr.size) * 100)),
-                    free: formatSize(sr.size - sr.physical_usage)
-                  })}>
-                    <progress
-                      className='progress'
-                      max='100'
-                      style={{ margin: 0 }}
-                      value={(sr.physical_usage / sr.size) * 100}
-                    />
-                  </Tooltip>
-                }
-              </td>
-            </tr>
-          })}
-        </tbody>
-      </table>
-    </div>
-  }
-}
-
-// ==================================================================
+const GIGABYTE = 1024 * 1024 * 1024
 
 const _findLatestTemplate = templates => {
   let latestTemplate = templates[0]
@@ -140,14 +138,71 @@ const _findLatestTemplate = templates => {
   return latestTemplate
 }
 
-const GIGABYTE = 1024 * 1024 * 1024
-
-class PoolAvailableSrs extends Component {
+@addSubscriptions({
+  catalog: subscribeResourceCatalog
+})
+@connectStore({
+  pbds: createGetObjectsOfType('PBD'),
+  hosts: createGetObjectsOfType('host'),
+  srs: createGetObjectsOfType('SR')
+})
+class NewXosan extends Component {
   state = {
     selectedSrs: {},
     brickSize: 100 * GIGABYTE,
     memorySize: 2 * GIGABYTE
   }
+
+  _selectPool = pool => {
+    this.setState({
+      selectedSrs: {},
+      brickSize: 100 * GIGABYTE,
+      memorySize: 2 * GIGABYTE,
+      pif: undefined,
+      pool
+    })
+
+    this._refreshSuggestions({ selectedSrs: {}, brickSize: 100 * GIGABYTE })
+  }
+
+  _getIsInPool = createSelector(
+    () => this.state.pool != null && this.state.pool.id,
+    poolId => obj => obj.$pool === poolId
+  )
+
+  _getPbdsBySr = createSelector(
+    () => this.props.pbds,
+    pbds => groupBy(filter(pbds, this._getIsInPool), 'SR')
+  )
+
+  _getHosts = createSelector(
+    () => this.props.hosts,
+    hosts => filter(hosts, this._getIsInPool)
+  )
+
+  // LVM SRs that are connected
+  _getLvmSrs = createSort(createSelector(
+    createFilter(
+      () => this.props.srs,
+      createSelector(
+        this._getHosts,
+        this._getIsInPool,
+        (hosts, isInPool) =>
+          sr =>
+            isInPool(sr) &&
+            !sr.shared &&
+            sr.SR_type === 'lvm' &&
+            find(hosts, { id: sr.$container }).power_state === 'Running'
+      )
+    ),
+    this._getPbdsBySr,
+    (srs, pbdsBySr) => mapPlus(srs, (sr, push) => {
+      let pbds
+      if ((pbds = pbdsBySr[sr.id]).length) {
+        push({ ...sr, pbds })
+      }
+    })
+  ), 'name_label')
 
   _refreshSuggestions = async ({ selectedSrs = this.state.selectedSrs, brickSize = this.state.brickSize }) => {
     this.setState({
@@ -170,8 +225,8 @@ class PoolAvailableSrs extends Component {
   }
 
   _getPifPredicate = createSelector(
-    () => this.props.pool,
-    pool => pif => pif.vlan === -1 && pif.$host === pool.master
+    () => this.state.pool,
+    pool => pif => pif.vlan === -1 && pif.$host === (pool && pool.master)
   )
 
   _getNSelectedSrs = createSelector(
@@ -180,13 +235,16 @@ class PoolAvailableSrs extends Component {
   )
 
   _getLatestTemplate = createSelector(
-    () => this.props.templates,
+    createFilter(
+      () => this.props.catalog && map(this.props.catalog.xosan),
+      [ ({ type }) => type === 'xva' ]
+    ),
     _findLatestTemplate
   )
 
   _getDisableSrCheckbox = createSelector(
     () => this.state.selectedSrs,
-    () => this.props.lvmsrs,
+    this._getLvmSrs,
     (selectedSrs, lvmsrs) => sr =>
       !every(keys(pickBy(selectedSrs)), selectedSrId =>
         selectedSrId === sr.id ||
@@ -219,17 +277,13 @@ class PoolAvailableSrs extends Component {
       redundancy: params.redundancy,
       brickSize: this.state.brickSize,
       memorySize: this.state.memorySize
-    })
+    }).then(this.props.onSrCreated)
   }
 
   render () {
     const {
-      hosts,
-      lvmsrs,
-      pool
-    } = this.props
-    const {
       pif,
+      pool,
       selectedSrs,
       suggestion,
       suggestions,
@@ -239,279 +293,308 @@ class PoolAvailableSrs extends Component {
       memorySize
     } = this.state
 
+    const {
+      hostsNeedRestart,
+      noPacksByPool,
+      poolPredicate
+    } = this.props
+
+    const lvmsrs = this._getLvmSrs()
+    const hosts = this._getHosts()
+
     const disableSrCheckbox = this._getDisableSrCheckbox()
 
-    return <div className='mb-3'>
-      <h3>{_('xosanAvailableSrsTitle')}</h3>
-      <table className='table table-striped'>
-        <thead>
-          <tr>
-            <th />
-            <th>{_('xosanName')}</th>
-            <th>{_('xosanHost')}</th>
-            <th>{_('xosanSize')}</th>
-            <th>{_('xosanUsedSpace')}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {map(lvmsrs, sr => {
-            const host = find(hosts, [ 'id', sr.$container ])
-
-            return <tr key={sr.id}>
-              <td>
-                <input
-                  checked={selectedSrs[sr.id] || false}
-                  disabled={disableSrCheckbox(sr)}
-                  onChange={event => this._selectSr(event, sr.id)}
-                  type='checkbox'
-                />
-              </td>
-              <td>
-                <Link to={`/srs/${sr.id}/general`}>{sr.name_label}</Link>
-              </td>
-              <td>
-                <Link to={`/hosts/${host.id}/general`}>{host.name_label}</Link>
-              </td>
-              <td>
-                {formatSize(sr.size)}
-              </td>
-              <td>
-                {sr.size > 0 &&
-                <Tooltip content={_('spaceLeftTooltip', {
-                  used: String(Math.round((sr.physical_usage / sr.size) * 100)),
-                  free: formatSize(sr.size - sr.physical_usage)
-                })}>
-                  <progress
-                    className='progress'
-                    max='100'
-                    value={(sr.physical_usage / sr.size) * 100}
-                  />
-                </Tooltip>
-                }
-              </td>
-            </tr>
-          })}
-        </tbody>
-      </table>
-      <h3>{_('xosanSuggestions')}</h3>
-      {isEmpty(suggestions)
-        ? <em>{_('xosanSelect2Srs')}</em>
-        : <div>
-          <label title='Size of the disk underlying the bricks'>Brick size:</label>
-          <SizeInput value={brickSize} onChange={this._onBrickSizeChange} required />
-          <label title='Memory size of the VMs underlying the bricks'>Memory size:</label>
-          <SizeInput value={memorySize} onChange={this.linkState('memorySize')} required />
+    return <Container className='mb-3'>
+      <Row className='mb-1'>
+        <Col size={3}>
+          <SelectPool
+            onChange={this._selectPool}
+            predicate={poolPredicate}
+            value={pool}
+          />
+        </Col>
+        <Col size={3}>
+          <SelectPif
+            disabled={pool == null || noPacksByPool[pool.id] || !isEmpty(hostsNeedRestart)}
+            onChange={this.linkState('pif')}
+            predicate={this._getPifPredicate()}
+            value={pif}
+          />
+        </Col>
+      </Row>
+      {pool != null && noPacksByPool[pool.id] && <Row>
+        <Icon icon='error' /> {_('xosanNeedPack')}
+        <br />
+        <ActionButton
+          btnStyle='success'
+          handler={downloadAndInstallXosanPack}
+          handlerParam={pool}
+          icon='export'
+        >
+          {_('xosanInstallIt')}
+        </ActionButton>
+      </Row>}
+      {!isEmpty(hostsNeedRestart) && <Row>
+        <Icon icon='error' /> {_('xosanNeedRestart')}
+        <br />
+        <ActionButton
+          btnStyle='success'
+          handler={restartHostsAgents}
+          handlerParam={hostsNeedRestart}
+          icon='host-restart-agent'
+        >
+          {_('xosanRestartAgents')}
+        </ActionButton>
+      </Row>}
+      {pool != null && !noPacksByPool[pool.id] && isEmpty(hostsNeedRestart) && [
+        <Row>
+          <em>{_('xosanSelect2Srs')}</em>
           <table className='table table-striped'>
             <thead>
               <tr>
                 <th />
-                <th>{_('xosanLayout')}</th>
-                <th>{_('xosanRedundancy')}</th>
-                <th>{_('xosanCapacity')}</th>
-                <th>{_('xosanAvailableSpace')}</th>
+                <th>{_('xosanName')}</th>
+                <th>{_('xosanHost')}</th>
+                <th>{_('xosanSize')}</th>
+                <th>{_('xosanUsedSpace')}</th>
               </tr>
             </thead>
             <tbody>
-              {map(suggestions, ({ layout, redundancy, capacity, availableSpace }, index) => <tr key={index}>
-                <td>
-                  <input
-                    checked={+suggestion === index}
-                    name={`suggestion_${pool.id}`}
-                    onChange={this.linkState('suggestion')}
-                    type='radio'
-                    value={index}
-                  />
-                </td>
-                <td>{layout}</td>
-                <td>{redundancy}</td>
-                <td>{capacity}</td>
-                <td>{formatSize(availableSpace)}</td>
-              </tr>)}
+              {map(lvmsrs, sr => {
+                const host = find(hosts, [ 'id', sr.$container ])
+
+                return <tr key={sr.id}>
+                  <td>
+                    <input
+                      checked={selectedSrs[sr.id] || false}
+                      disabled={disableSrCheckbox(sr)}
+                      onChange={event => this._selectSr(event, sr.id)}
+                      type='checkbox'
+                    />
+                  </td>
+                  <td>
+                    <Link to={`/srs/${sr.id}/general`}>{sr.name_label}</Link>
+                  </td>
+                  <td>
+                    <Link to={`/hosts/${host.id}/general`}>{host.name_label}</Link>
+                  </td>
+                  <td>
+                    {formatSize(sr.size)}
+                  </td>
+                  <td>
+                    {sr.size > 0 &&
+                    <Tooltip content={_('spaceLeftTooltip', {
+                      used: String(Math.round((sr.physical_usage / sr.size) * 100)),
+                      free: formatSize(sr.size - sr.physical_usage)
+                    })}>
+                      <progress
+                        className='progress'
+                        max='100'
+                        value={(sr.physical_usage / sr.size) * 100}
+                      />
+                    </Tooltip>
+                    }
+                  </td>
+                </tr>
+              })}
             </tbody>
           </table>
-          <Graph
-            height={160}
-            layout={suggestions[suggestion].layout}
-            nSrs={this._getNSelectedSrs()}
-            redundancy={suggestions[suggestion].redundancy}
-            width={600}
-          />
-          <hr />
-          <Container>
-            <SingleLineRow>
-              <Col size={6}>
-                <SelectPif
-                  onChange={this.linkState('pif')}
-                  predicate={this._getPifPredicate()}
-                  value={pif}
-                />
-              </Col>
-              <Col size={3}>
-                <input
-                  className='form-control pull-right'
-                  disabled={!useVlan}
-                  onChange={this.linkState('vlan')}
-                  placeholder='VLAN'
-                  style={{ width: '70%' }}
-                  type='text'
-                  value={vlan}
-                />
-                <Toggle className='pull-right mr-1' onChange={this.linkState('useVlan')} value={useVlan} />
-              </Col>
-              <Col size={3}>
-                <ActionButton
-                  btnStyle='success'
-                  className='pull-right'
-                  disabled={this._getDisableCreation()}
-                  handler={this._createXosanVm}
-                  icon='add'
-                >
-                  {_('xosanCreate')}
-                </ActionButton>
-              </Col>
-            </SingleLineRow>
-          </Container>
-        </div>
-      }
-    </div>
+        </Row>,
+        <Row>
+          {!isEmpty(suggestions) && <div>
+            <h3>{_('xosanSuggestions')}</h3>
+            <table className='table table-striped'>
+              <thead>
+                <tr>
+                  <th />
+                  <th>{_('xosanLayout')}</th>
+                  <th>{_('xosanRedundancy')}</th>
+                  <th>{_('xosanCapacity')}</th>
+                  <th>{_('xosanAvailableSpace')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {map(suggestions, ({ layout, redundancy, capacity, availableSpace }, index) => <tr key={index}>
+                  <td>
+                    <input
+                      checked={+suggestion === index}
+                      name={`suggestion_${pool.id}`}
+                      onChange={this.linkState('suggestion')}
+                      type='radio'
+                      value={index}
+                    />
+                  </td>
+                  <td>{layout}</td>
+                  <td>{redundancy}</td>
+                  <td>{capacity}</td>
+                  <td>{formatSize(availableSpace)}</td>
+                </tr>)}
+              </tbody>
+            </table>
+            <Graph
+              height={160}
+              layout={suggestions[suggestion].layout}
+              nSrs={this._getNSelectedSrs()}
+              redundancy={suggestions[suggestion].redundancy}
+              width={600}
+            />
+            <hr />
+            <Toggle
+              onChange={this.toggleState('showAdvanced')}
+              value={this.state.showAdvanced}
+            /> {_('xosanAdvanced')}
+            {' '}
+            {this.state.showAdvanced && <Container className='mb-1'>
+              <SingleLineRow>
+                <Col size={3}>
+                  <input
+                    className='form-control pull-right'
+                    disabled={!useVlan}
+                    onChange={this.linkState('vlan')}
+                    placeholder='VLAN'
+                    style={{ width: '70%' }}
+                    type='text'
+                    value={vlan}
+                  />
+                  <Toggle className='pull-right mr-1' onChange={this.linkState('useVlan')} value={useVlan} />
+                </Col>
+              </SingleLineRow>
+              <SingleLineRow>
+                <Col size={3}>
+                  <label title='Size of the disk underlying the bricks'>Brick size:</label>{' '}
+                  <SizeInput value={brickSize} onChange={this._onBrickSizeChange} required />
+                  <label title='Memory size of the VMs underlying the bricks'>Memory size:</label>
+                  <SizeInput value={memorySize} onChange={this.linkState('memorySize')} required />
+                </Col>
+              </SingleLineRow>
+            </Container>}
+            <hr />
+          </div>}
+        </Row>
+      ]}
+      <Row>
+        <Col>
+          <ActionButton
+            btnStyle='success'
+            disabled={this._getDisableCreation()}
+            handler={this._createXosanVm}
+            icon='add'
+          >
+            {_('xosanCreate')}
+          </ActionButton>
+        </Col>
+      </Row>
+    </Container>
   }
 }
-
-// ==================================================================
 
 @connectStore(() => {
-  const getIsInPool = createSelector(
-    (_, { pool }) => pool !== null && pool.id,
-    poolId => obj => obj.$pool === poolId
-  )
+  const getHosts = createGetObjectsOfType('host')
+  const getHostsByPool = getHosts.groupBy('$pool')
+  const getPools = createGetObjectsOfType('pool')
 
-  const getPbdsBySr = createGetObjectsOfType('PBD').filter(getIsInPool).groupBy('SR')
-  const getHosts = createGetObjectsOfType('host').filter(getIsInPool)
-
-  // LVM SRs that are connected
-  const getLvmSrs = createSort(createSelector(
-    createGetObjectsOfType('SR').filter(
-      createSelector(
-        getHosts,
-        getIsInPool,
-        (hosts, isInPool) =>
-          sr =>
-            isInPool(sr) &&
-            !sr.shared &&
-            sr.SR_type === 'lvm' &&
-            find(hosts, { id: sr.$container }).power_state === 'Running'
-      )
-    ),
-    getPbdsBySr,
-    (srs, pbdsBySr) => mapPlus(srs, (sr, push) => {
-      let pbds
-      if ((pbds = pbdsBySr[sr.id]).length) {
-        push({ ...sr, pbds })
-      }
-    })
-  ), 'name_label')
-
-  const getXosanSrs = createSort(createSelector(
-    createGetObjectsOfType('SR').filter(createSelector(
-      (_, { pool }) => pool !== null && pool.id,
-      poolId =>
-        sr => sr.$pool === poolId && sr.shared && sr.SR_type === 'xosan'
-    )),
-    getPbdsBySr,
-    (srs, pbdsBySr) =>
-      map(srs, sr => ({ ...sr, pbds: pbdsBySr[sr.id] }))
-  ), 'name_label')
-
-  const getTemplates = createSelector(
-    (_, { catalog }) => catalog,
-    catalog => filter(catalog.xosan, { type: 'xva' })
-  )
-
-  // Hosts whose toolstack hasn't been restarted since XOSAN-pack installation
-  const getHostsNeedRestart = createSelector(
-    (_, { pool }) => pool && pool.xosanPackInstallationTime,
-    getHosts,
-    (xosanPackInstallationTime, hosts) => filter(hosts, host =>
-      host.power_state === 'Running' &&
-      xosanPackInstallationTime !== null &&
-      xosanPackInstallationTime > host.agentStartTime
-    )
-  )
-
-  const getIsMasterOffline = createSelector(
-    getHosts,
-    (_, { pool }) => pool.master,
-    (hosts, id) => find(hosts, { id }).power_state !== 'Running'
-  )
-
-  return {
-    isMasterOffline: getIsMasterOffline,
-    hosts: getHosts,
-    lvmSrs: getLvmSrs,
-    hostsNeedRestart: getHostsNeedRestart,
-    templates: getTemplates,
-    xosanSrs: getXosanSrs
-  }
-})
-class Pool extends Component {
-  componentDidMount () {
-    this.componentWillUnmount = subscribeIsInstallingXosan(this.props.pool, isInstallingXosan => {
-      this.setState({ isInstallingXosan })
-    })
-  }
-
-  render () {
-    const { xosanSrs, lvmSrs, hosts, noPack, templates, pool, hostsNeedRestart, isMasterOffline } = this.props
-    const { isInstallingXosan } = this.state
-
-    if (isInstallingXosan) {
-      return <em><Icon icon='loading' /> {_('xosanInstalling')}</em>
-    }
-
-    if (noPack) {
-      return <div className='mb-3'>
-        <Icon icon='error' /> {_('xosanNeedPack')}
-        <br />
-        <ActionButton btnStyle='success' icon='export' handler={downloadAndInstallXosanPack} handlerParam={pool}>{_('xosanInstallIt')}</ActionButton>
-      </div>
-    }
-
-    if (isMasterOffline) {
-      return <div className='mb-3'>
-        <Icon icon='error' /> {_('xosanMasterOffline')}
-      </div>
-    }
-
-    if (!isEmpty(hostsNeedRestart)) {
-      return <div className='mb-3'>
-        <Icon icon='error' /> {_('xosanNeedRestart')}
-        <br />
-        <ActionButton btnStyle='success' icon='host-restart-agent' handler={restartHostsAgents} handlerParam={hostsNeedRestart}>{_('xosanRestartAgents')}</ActionButton>
-      </div>
-    }
-
-    return xosanSrs && xosanSrs.length
-      ? <XosanVolumesTable hosts={hosts} xosansrs={xosanSrs} lvmsrs={lvmSrs} />
-      : <PoolAvailableSrs hosts={hosts} pool={pool} lvmsrs={lvmSrs} templates={templates} />
-  }
-}
-
-// ==================================================================
-
-@connectStore(() => ({
-  pools: createGetObjectsOfType('pool'),
-  noPacksByPool: createSelector(
-    createGetObjectsOfType('host').groupBy('$pool'),
+  const noPacksByPool = createSelector(
+    getHostsByPool,
     hostsByPool => mapValues(hostsByPool, (poolHosts, poolId) =>
       !every(poolHosts, host => some(host.supplementalPacks, isXosanPack))
     )
   )
-}))
+
+  const getPbdsBySr = createGetObjectsOfType('PBD').groupBy('SR')
+  const getXosanSrs = createSelector(
+    createGetObjectsOfType('SR').filter([ sr => sr.shared && sr.SR_type === 'xosan' ]),
+    getPbdsBySr,
+    getPools,
+    getHosts,
+    (srs, pbdsBySr, pools, hosts) =>
+      map(srs, sr => ({
+        ...sr,
+        pbds: pbdsBySr[sr.id],
+        pool: find(pools, { id: sr.$pool }),
+        hosts: map(pbdsBySr[sr.id], ({ host }) => find(hosts, [ 'id', host ]).name_label),
+        config: sr.other_config['xo:xosan_config'] && JSON.parse(sr.other_config['xo:xosan_config'])
+      }))
+  )
+
+  const getIsMasterOfflineByPool = createSelector(
+    getHostsByPool,
+    getPools,
+    (hostsByPool, pools) => {
+      const isMasterOfflineByPool = {}
+      forEach(pools, pool => {
+        const poolMaster = find(hostsByPool[pool.id], { id: pool.master })
+        isMasterOfflineByPool[pool.id] = poolMaster && poolMaster.power_state !== 'Running'
+      })
+    }
+  )
+
+  // Hosts whose toolstack hasn't been restarted since XOSAN-pack installation
+  const getHostsNeedRestartByPool = createSelector(
+    getHostsByPool,
+    getPools,
+    (hostsByPool, pools) => {
+      const hostsNeedRestartByPool = {}
+      forEach(pools, pool => {
+        hostsNeedRestartByPool[pool.id] = filter(hostsByPool[pool.id], host =>
+          host.power_state === 'Running' &&
+          pool.xosanPackInstallationTime !== null &&
+          pool.xosanPackInstallationTime > host.agentStartTime
+        )
+      })
+    }
+  )
+
+  const getPoolPredicate = createSelector(
+    getXosanSrs,
+    srs => pool => every(srs, sr => sr.$pool !== pool.id)
+  )
+
+  return {
+    isMasterOfflineByPool: getIsMasterOfflineByPool,
+    hostsNeedRestartByPool: getHostsNeedRestartByPool,
+    noPacksByPool,
+    poolPredicate: getPoolPredicate,
+    pools: getPools,
+    xosanSrs: getXosanSrs
+  }
+})
 @addSubscriptions({
   catalog: subscribeResourceCatalog,
   plugins: subscribePlugins
 })
 export default class Xosan extends Component {
+  componentDidMount () {
+    this.unsubscribeIsInstallingXosan = map(this.props.pools, pool =>
+      subscribeIsInstallingXosan(pool, isInstallingXosan => {
+        this.setState({
+          isInstallingXosan: {
+            ...this.state.isInstallingXosan,
+            [pool.id]: isInstallingXosan
+          }
+        })
+      })
+    )
+  }
+
+  componentWillReceiveProps ({ xosanSrs }) {
+    const sr = xosanSrs && xosanSrs[0] && xosanSrs[0].id
+    forEach(xosanSrs, ({ id }) => {
+      Promise.all([
+        getVolumeInfo(sr, 'heal'),
+        getVolumeInfo(sr, 'status'),
+        getVolumeInfo(sr, 'info'),
+        getVolumeInfo(sr, 'statusDetail')
+      ]).then(result => {
+        this.setState({
+          status: { ...this.state.status, [id]: map(result, 'commandStatus') } })
+      })
+    })
+  }
+
+  componentWillUnmount () {
+    forEach(this.unsubscribeIsInstallingXosan, unsubscribe => unsubscribe())
+  }
+
   _getError = createSelector(
     () => this.props.plugins,
     () => this.props.catalog,
@@ -544,9 +627,10 @@ export default class Xosan extends Component {
     }
   )
 
+  _onSrCreated = () => this.setState({ showNewXosanForm: false })
+
   render () {
-    const { pools, noPacksByPool, catalog } = this.props
-    const sortedPools = sortBy(pools, ['name_label'])
+    const { xosanSrs, noPacksByPool, hostsNeedRestart, poolPredicate } = this.props
     const error = this._getError()
 
     return <Page header={HEADER} title='xosan' formatTitle>
@@ -554,15 +638,35 @@ export default class Xosan extends Component {
         ? <Container>
           {error
             ? <em>{error}</em>
-            : map(sortedPools, pool => {
-              const noPack = noPacksByPool && noPacksByPool[pool.id]
-
-              return <Collapse key={pool.id} className='mb-1' buttonText={<span>{noPack && <Icon icon='error' />} {pool.name_label}</span>}>
-                <div className='m-1'>
-                  <Pool pool={pool} noPack={noPack} catalog={catalog} />
-                </div>
-              </Collapse>
-            })
+            : <div>
+              <p>
+                <ActionButton
+                  btnStyle='primary'
+                  handler={this.toggleState('showNewXosanForm')}
+                  icon={this.state.showNewXosanForm ? 'minus' : 'plus'}
+                >
+                  {_('xosanNew')}
+                </ActionButton>
+              </p>
+              <p>
+                {this.state.showNewXosanForm && <NewXosan
+                  hostsNeedRestart={hostsNeedRestart}
+                  noPacksByPool={noPacksByPool}
+                  poolPredicate={poolPredicate}
+                  onSrCreated={this._onSrCreated}
+                />}
+              </p>
+              <p>
+                <SortedTable
+                  collection={xosanSrs}
+                  columns={XOSAN_COLUMNS}
+                  userData={{
+                    isInstallingXosan: this.state.isInstallingXosan,
+                    status: this.state.status
+                  }}
+                />
+              </p>
+            </div>
           }
         </Container>
         : <Container>
