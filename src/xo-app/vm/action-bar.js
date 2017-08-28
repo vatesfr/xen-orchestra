@@ -152,11 +152,11 @@ const VmActionBar = addSubscriptions(() => ({
   // Is the user in the same resource set as the VM
   const _getIsSelfUser = createSelector(
     () => resourceSets,
-    resourceSets =>
-      vm.resourceSet && includes(
-        find(resourceSets, { id: vm.resourceSet }).subjects,
-        userId
-      )
+    resourceSets => {
+      const vmResourceSet = vm.resourceSet && find(resourceSets, { id: vm.resourceSet })
+
+      return vmResourceSet && includes(vmResourceSet.subjects, userId)
+    }
   )
 
   const _getCanAdministrate = createSelector(
