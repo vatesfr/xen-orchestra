@@ -411,11 +411,11 @@ export default class TabXosan extends Component {
                     </Tooltip>
                   </span>
                 </Field>,
-                <Field title={'Block size'}>{ node.statusDetail.blockSize}</Field>,
-                <Field title={'Device'}>{ node.statusDetail.device}</Field>,
-                <Field title={'FS name'}>{ node.statusDetail.fsName}</Field>,
-                <Field title={'Mount options'}>{ node.statusDetail.mntOptions}</Field>,
-                <Field title={'Path'}>{ node.statusDetail.path}</Field>
+                <Field title={'Block size'}>{node.statusDetail.blockSize}</Field>,
+                <Field title={'Device'}>{node.statusDetail.device}</Field>,
+                <Field title={'FS name'}>{node.statusDetail.fsName}</Field>,
+                <Field title={'Mount options'}>{node.statusDetail.mntOptions}</Field>,
+                <Field title={'Path'}>{node.statusDetail.path}</Field>
               ]}
 
               {node.status && node.status.length !== 0 && <Row>
@@ -487,64 +487,42 @@ export default class TabXosan extends Component {
           </Row>
         </Container>
         <h2>Remove Subvolumes</h2>
-        {subVolumes.map((subvolume, i) => <div key={i}>
-          <ActionButton
-            btnStyle='success'
-            icon='remove'
-            handler={::this._removeSubVolume}
-            handlerParam={map(subvolume, brick => brick.name)}
-          >
-            Remove
-          </ActionButton>
-          {map(subvolume, brick => brick.name).join(', ')}
-        </div>)}
+        <table className='table'>
+          {map(subVolumes, (subvolume, i) => <tr key={i}>
+            <td>
+              <ul className='list-group'>{map(subvolume, brick => <li className='list-group-item'>{brick.name}</li>)}</ul>
+            </td>
+            <td>
+              <ActionButton
+                btnStyle='danger'
+                icon='remove'
+                handler={::this._removeSubVolume}
+                handlerParam={map(subvolume, brick => brick.name)}
+              >
+                Remove
+              </ActionButton>
+            </td>
+          </tr>)}
+        </table>
         {strippedVolumeInfo && <div>
           <h2>Volume</h2>
           <Container>
-            <Row>
-              <Col size={3}><strong>Name</strong></Col>
-              <Col size={4}>{strippedVolumeInfo.name}</Col>
-            </Row>
-            <Row>
-              <Col size={3}><strong>Status</strong></Col>
-              <Col size={4}>{strippedVolumeInfo.statusStr}</Col>
-            </Row>
-            <Row>
-              <Col size={3}><strong>Type</strong></Col>
-              <Col size={4}>{strippedVolumeInfo.typeStr}</Col>
-            </Row>
-            <Row>
-              <Col size={3}><strong>Brick Count</strong></Col>
-              <Col size={4}>{strippedVolumeInfo.brickCount}</Col>
-            </Row>
-            <Row>
-              <Col size={3}><strong>Stripe Count</strong></Col>
-              <Col size={4}>{strippedVolumeInfo.stripeCount}</Col>
-            </Row>
-            <Row>
-              <Col size={3}><strong>Replica Count</strong></Col>
-              <Col size={4}>{strippedVolumeInfo.replicaCount}</Col>
-            </Row>
-            <Row>
-              <Col size={3}><strong>Arbiter Count</strong></Col>
-              <Col size={4}>{strippedVolumeInfo.arbiterCount}</Col>
-            </Row>
-            <Row>
-              <Col size={3}><strong>Disperse Count</strong></Col>
-              <Col size={4}>{strippedVolumeInfo.disperseCount}</Col>
-            </Row>
-            <Row>
-              <Col size={3}><strong>Redundancy Count</strong></Col>
-              <Col size={4}>{strippedVolumeInfo.redundancyCount}</Col>
-            </Row>
+            <Field title={'Name'}>{strippedVolumeInfo.name}</Field>
+            <Field title={'Status'}>{strippedVolumeInfo.statusStr}</Field>
+            <Field title={'Type'}>{strippedVolumeInfo.typeStr}</Field>
+            <Field title={'Brick Count'}>{strippedVolumeInfo.brickCount}</Field>
+            <Field title={'Stripe Count'}>{strippedVolumeInfo.stripeCount}</Field>
+            <Field title={'Replica Count'}>{strippedVolumeInfo.replicaCount}</Field>
+            <Field title={'Arbiter Count'}>{strippedVolumeInfo.arbiterCount}</Field>
+            <Field title={'Disperse Count'}>{strippedVolumeInfo.disperseCount}</Field>
+            <Field title={'Redundancy Count'}>{strippedVolumeInfo.redundancyCount}</Field>
           </Container>
           <h3>Volume Options</h3>
-          {map(strippedVolumeInfo.options, option =>
-            <Row key={option.name}>
-              <Col size={3}><strong>{option.name}</strong></Col>
-              <Col size={4}>{option.value}</Col>
-            </Row>
-          )}
+          <Container>
+            {map(strippedVolumeInfo.options, option =>
+              <Field key={option.name} title={option.name}>{option.value}</Field>
+            )}
+          </Container>
         </div>}
       </Row>
     </Container>
