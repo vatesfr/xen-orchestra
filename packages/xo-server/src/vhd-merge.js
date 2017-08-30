@@ -1,6 +1,7 @@
 // TODO: remove once completely merged in vhd.js
 
 import assert from 'assert'
+import concurrency from 'limit-concurrency-decorator'
 import eventToPromise from 'event-to-promise'
 import fu from '@nraynaud/struct-fu'
 import isEqual from 'lodash/isEqual'
@@ -612,7 +613,7 @@ class Vhd {
 // Parent must be a full backup !
 //
 // TODO: update the identifier of the parent VHD.
-export default async function vhdMerge (
+export default concurrency(2)(async function vhdMerge (
   parentHandler,
   parentPath,
   childHandler,
@@ -673,7 +674,7 @@ export default async function vhdMerge (
   await parentVhd.writeFooter()
 
   return mergedDataSize
-}
+})
 
 // returns true if the child was actually modified
 export async function chainVhd (
