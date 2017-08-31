@@ -1990,18 +1990,26 @@ export const setIpPool = (ipPool, { name, addresses, networks }) => (
 
 // XO SAN ----------------------------------------------------------------------
 
-export const getVolumeInfo = (xosanSr) => _call('xosan.getVolumeInfo', { sr: xosanSr })
+export const getVolumeInfo = (xosanSr, infoType) => _call('xosan.getVolumeInfo', { sr: xosanSr, infoType })
 
-export const createXosanSR = ({ template, pif, vlan, srs, glusterType, redundancy }) => _call('xosan.createSR', {
+export const createXosanSR = ({ template, pif, vlan, srs, glusterType, redundancy, brickSize, memorySize }) => _call('xosan.createSR', {
   template,
   pif: pif.id,
   vlan: String(vlan),
   srs: resolveIds(srs),
   glusterType,
-  redundancy: Number.parseInt(redundancy)
+  redundancy: Number.parseInt(redundancy),
+  brickSize,
+  memorySize
 })
 
-export const computeXosanPossibleOptions = lvmSrs => _call('xosan.computeXosanPossibleOptions', { lvmSrs })
+export const addXosanBricks = (xosansr, lvmsrs, brickSize) => _call('xosan.addBricks', {xosansr, lvmsrs, brickSize})
+
+export const replaceXosanBrick = (xosansr, previousBrick, newLvmSr, brickSize, onSameVM = false) =>
+  _call('xosan.replaceBrick', {xosansr, previousBrick, newLvmSr, brickSize, onSameVM})
+export const removeXosanBricks = (xosansr, bricks) => _call('xosan.removeBricks', {xosansr, bricks})
+
+export const computeXosanPossibleOptions = (lvmSrs, brickSize) => _call('xosan.computeXosanPossibleOptions', { lvmSrs, brickSize })
 
 import InstallXosanPackModal from './install-xosan-pack-modal' // eslint-disable-line import/first
 export const downloadAndInstallXosanPack = pool =>

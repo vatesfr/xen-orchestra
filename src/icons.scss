@@ -963,4 +963,11 @@
     @extend .fa;
     @extend .fa-star;
   }
+
+  // XOSAN related
+
+  &-health {
+    @extend .fa;
+    @extend .fa-heartbeat;
+  }
 }
