@@ -453,7 +453,7 @@ export default class {
       const promise = targetXapi.importDeltaVm(
         delta,
         {
-          deleteBase: toRemove.length === 0, // old replications are not captured in toRemove
+          deleteBase: toRemove === undefined, // old replications are not captured in toRemove
           srId: targetSr.$id
         }
       )
