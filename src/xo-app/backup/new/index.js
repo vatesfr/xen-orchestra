@@ -212,6 +212,7 @@ const CONTINUOUS_REPLICATION_SCHEMA = {
   type: 'object',
   properties: {
     ...COMMON_SCHEMA.properties,
+    retention: DEPTH_PROPERTY,
     sr: {
       type: 'string',
       'xo:type': 'sr',
