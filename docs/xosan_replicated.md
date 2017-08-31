@@ -16,7 +16,7 @@ Cons:
 
 This type is pretty simple to understand: everything written on one node is mirrored to another one. It's very similar to **RAID 1**.
 
-![picture replication]()
+![picture replication](./assets/replicate2.png)
 
 If you lose one node, your data are still here. This mode will give you **50% of your total disk space** (e.g with 2x nodes of 250GiB, you'll have only 250GiB of space).
 
@@ -24,7 +24,7 @@ If you lose one node, your data are still here. This mode will give you **50% of
 
 Same than 2-way, but data is replicated on 3 nodes in total.
 
-![picture triplication]()
+![picture triplication](./assets/replicate3.png)
 
 2 nodes can be destroyed without losing your data. This mode will give you **33% of your total disk space** (e.g with 3x nodes of 250GiB, you'll have only 250GiB of space).
 

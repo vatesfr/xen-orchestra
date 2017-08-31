@@ -4,7 +4,9 @@ In order to work, XOSAN need a minimal set of requirements.
 
 ## Storage
 
-XOSAN can be deployed on an existing **Local LVM storage**, that XenServer configure by default during its installation. However, you can also create yourself easily this kind of storage while using Xen Orchestra:
+XOSAN can be deployed on an existing **Local LVM storage**, that XenServer configure by default during its installation. You need 10GiB for XOSAN VM (one on each host) and the rest for XOSAN data, eg all the space left.
+
+However, if you have unused disks on your host, you can also create yourself a local LVM storage while using Xen Orchestra:
 
 * Go on the "New" menu entry, then select "Storage"
 * Select the host having the disk you want to use for XOSAN
