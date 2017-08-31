@@ -18,7 +18,7 @@ This type is pretty simple to understand: everything written on one node is mirr
 
 ![picture replication](./assets/replicate2.png)
 
-If you lose one node, your data are still here. This mode will give you **50% of your total disk space** (e.g with 2x nodes of 250GiB, you'll have only 250GiB of space).
+If you lose one node, your data are still here. This mode will give you **50% of your total disk space** (e.g with 2x nodes of 100GiB, you'll have only 100GiB of space).
 
 ### 3-way replication
 
@@ -26,15 +26,15 @@ Same than 2-way, but data is replicated on 3 nodes in total.
 
 ![picture triplication](./assets/replicate3.png)
 
-2 nodes can be destroyed without losing your data. This mode will give you **33% of your total disk space** (e.g with 3x nodes of 250GiB, you'll have only 250GiB of space).
+2 nodes can be destroyed without losing your data. This mode will give you **33% of your total disk space** (e.g with 3x nodes of 100GiB, you'll have only 100GiB of space).
 
 ### Building a "RAID 10" like
 
 If you have more than 2 or 3 nodes, it could be interesting to **distribute** data on multiple replicated nodes. This is called "**distributed-replicated**" type. Here is an example with 6 nodes:
 
-![picture distributed-replicated with 6 nodes]()
+![picture distributed-replicated with 6 nodes](./assets/replicate3x2.png)
 
-It's very similar to **RAID 10**.
+It's very similar to **RAID 10**. In this example, you'll have 300GiB of data usable.
 
 > This is the mode you'll use in a more than 3 nodes setup.
 
