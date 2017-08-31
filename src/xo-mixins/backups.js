@@ -51,6 +51,8 @@ import {
 
 const DELTA_BACKUP_EXT = '.json'
 const DELTA_BACKUP_EXT_LENGTH = DELTA_BACKUP_EXT.length
+const TAG_SOURCE_VM = 'xo:source_vm'
+const TAG_EXPORT_TIME = 'xo:export_time'
 
 const shortDate = utcFormat('%Y-%m-%d')
 
@@ -398,12 +400,12 @@ export default class {
   // -----------------------------------------------------------------
 
   @deferrable.onFailure
-  async deltaCopyVm ($onFailure, srcVm, targetSr, force = false) {
+  async deltaCopyVm ($onFailure, srcVm, targetSr, force = false, retention = 1) {
     const srcXapi = this._xo.getXapi(srcVm)
     const targetXapi = this._xo.getXapi(targetSr)
 
     // Get Xen objects from XO objects.
-    srcVm = srcXapi.getObject(srcVm._xapiId)
+    const { uuid } = srcVm = srcXapi.getObject(srcVm._xapiId)
     targetSr = targetXapi.getObject(targetSr._xapiId)
 
     // 1. Find the local base for this SR (if any).
@@ -426,7 +428,10 @@ export default class {
       $onFailure(() => srcXapi.deleteVm(delta.vm.uuid))
       $onFailure(cancel)
 
-      delta.vm.name_label += ` (${shortDate(Date.now())})`
+      const now = Date.now()
+      delta.vm.name_label += ` (${shortDate(now)})`
+      delta.vm.other_config[TAG_SOURCE_VM] = uuid
+      delta.vm.other_config[TAG_EXPORT_TIME] = safeDateFormat(now)
 
       forEach(delta.vdis, (vdi, key) => {
         const id = `${key}.vhd`
@@ -436,10 +441,19 @@ export default class {
         delta.streams[id] = delta.streams[id].pipe(sizeStream)
       })
 
+      let toRemove = filter(targetXapi.objects.all, obj =>
+        obj.$type === 'vm' &&
+        obj.other_config[TAG_SOURCE_VM] === uuid
+      )
+      const n = toRemove.length - retention + 1 // take into account the future copy
+      toRemove = n > 0
+        ? sortBy(toRemove, _ => _.other_config[TAG_EXPORT_TIME]).slice(0, n)
+        : undefined
+
       const promise = targetXapi.importDeltaVm(
         delta,
         {
-          deleteBase: true, // Remove the remote base.
+          deleteBase: toRemove.length === 0, // old replications are not captured in toRemove
           srId: targetSr.$id
         }
       )
@@ -448,6 +462,12 @@ export default class {
       // base.
       if (localBaseUuid) {
         promise.then(() => srcXapi.deleteVm(localBaseUuid))::ignoreErrors()
+      }
+
+      if (toRemove !== undefined) {
+        promise.then(() => asyncMap(toRemove, _ =>
+          targetXapi.deleteVm(_.$id))
+        )::ignoreErrors()
       }
 
       // (Asynchronously) Identify snapshot as future base.

@@ -894,18 +894,15 @@ export default class Xapi extends XapiBase {
       vbds,
       vdis,
       vifs,
-      vm: baseVm && !disableBaseTags
-        ? {
-          ...vm,
-          other_config: {
+      vm: {
+        ...vm,
+        other_config: baseVm && !disableBaseTags
+          ? {
             ...vm.other_config,
             [TAG_BASE_DELTA]: baseVm.uuid
           }
-        }
-        : {
-          ...vm,
-          other_config: omit(vm.other_config, TAG_BASE_DELTA)
-        }
+          : omit(vm.other_config, TAG_BASE_DELTA)
+      }
     }, 'streams', {
       value: await streams::pAll()
     })

@@ -755,12 +755,13 @@ exports.importDeltaBackup = importDeltaBackup
 
 #---------------------------------------------------------------------
 
-deltaCopy = ({ force, vm, sr }) -> @deltaCopyVm(vm, sr, force)
+deltaCopy = ({ force, vm, retention, sr }) -> @deltaCopyVm(vm, sr, force, retention)
 
 deltaCopy.params = {
+  force: { type: 'boolean', optional: true },
   id: { type: 'string' },
-  sr: { type: 'string' },
-  force: { type: 'boolean', optional: true }
+  retention: { type: 'number', optional: true },
+  sr: { type: 'string' }
 }
 
 deltaCopy.resolve = {
