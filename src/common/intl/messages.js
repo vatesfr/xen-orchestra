@@ -1444,6 +1444,7 @@ var messages = {
   xosanRemoveSubvolumes: 'Remove subvolumes',
   xosanAddSubvolume: 'Add subvolume',
   xosanWarning: 'This version of XOSAN SR is from the first beta phase. You can keep using it, but to modify it you\'ll have to save your disks and re-create it.',
+  xosanVlan: 'VLAN',
   // Pack download modal
   xosanInstallCloudPlugin: 'Install cloud plugin first',
   xosanLoadCloudPlugin: 'Load cloud plugin first',

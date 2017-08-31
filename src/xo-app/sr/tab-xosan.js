@@ -28,7 +28,8 @@ import {
 import {
   addXosanBricks,
   getVolumeInfo,
-  removeXosanBricks,
+  // TODO: uncomment when implementing subvolume deletion
+  // removeXosanBricks,
   replaceXosanBrick,
   startVm
 } from 'xo'
@@ -133,10 +134,11 @@ export default class TabXosan extends Component {
     return this._addBricks({ srs, brickSize })
   }
 
-  async _removeSubVolume (bricks) {
-    await removeXosanBricks(this.props.sr.id, bricks)
-    await this._refreshInfo()
-  }
+  // TODO: uncomment when implementing subvolume deletion
+  // async _removeSubVolume (bricks) {
+  //   await removeXosanBricks(this.props.sr.id, bricks)
+  //   await this._refreshInfo()
+  // }
 
   async _addBricks ({srs, brickSize}) {
     await addXosanBricks(this.props.sr.id, srs.map(sr => sr.id), brickSize)
@@ -174,20 +176,21 @@ export default class TabXosan extends Component {
       : null
   )
 
-  _getSubvolumes = createSelector(
-    this._getStrippedVolumeInfo,
-    this._getSubvolumeSize,
-    (strippedVolumeInfo, subvolumeSize) => {
-      const subVolumes = []
-      if (strippedVolumeInfo) {
-        for (let i = 0; i < strippedVolumeInfo.bricks.length; i += subvolumeSize) {
-          subVolumes.push(strippedVolumeInfo.bricks.slice(i, i + subvolumeSize))
-        }
-      }
-
-      return subVolumes
-    }
-  )
+  // TODO: uncomment when implementing subvolume deletion
+  // _getSubvolumes = createSelector(
+  //   this._getStrippedVolumeInfo,
+  //   this._getSubvolumeSize,
+  //   (strippedVolumeInfo, subvolumeSize) => {
+  //     const subVolumes = []
+  //     if (strippedVolumeInfo) {
+  //       for (let i = 0; i < strippedVolumeInfo.bricks.length; i += subvolumeSize) {
+  //         subVolumes.push(strippedVolumeInfo.bricks.slice(i, i + subvolumeSize))
+  //       }
+  //     }
+  //
+  //     return subVolumes
+  //   }
+  // )
 
   _getBrickByName = createSelector(
     () => this.state.xosanConfig && this.state.xosanConfig.nodes,
@@ -293,7 +296,7 @@ export default class TabXosan extends Component {
     }
 
     const strippedVolumeInfo = this._getStrippedVolumeInfo()
-    const subVolumes = this._getSubvolumes()
+    // const subVolumes = this._getSubvolumes() // TODO: uncomment when implementing subvolume deletion
     const orderedBrickList = this._getOrderedBrickList()
     const issues = this._getIssues()
 
@@ -452,7 +455,8 @@ export default class TabXosan extends Component {
         >
           {_('xosanAdd')}
         </ActionButton>
-        <h2>{_('xosanRemoveSubvolumes')}</h2>
+        {/* We will implement this later */}
+        {/* <h2>{_('xosanRemoveSubvolumes')}</h2>
         <table className='table'>
           {map(subVolumes, (subvolume, i) => <tr key={i}>
             <td>
@@ -469,7 +473,8 @@ export default class TabXosan extends Component {
               </ActionButton>
             </td>
           </tr>)}
-        </table>
+        </table> */}
+        <br />
         <Toggle onChange={this.toggleState('showAdvanced')} value={showAdvanced} /> {_('xosanAdvanced')}
         {strippedVolumeInfo && showAdvanced && <div>
           <h2>{_('xosanVolume')}</h2>

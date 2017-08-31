@@ -22,7 +22,6 @@ import {
   isEmpty,
   keys,
   map,
-  min,
   mapValues,
   pickBy,
   some
@@ -221,13 +220,7 @@ class NewXosan extends Component {
   _selectSr = async (event, sr) => {
     const selectedSrs = { ...this.state.selectedSrs }
     selectedSrs[sr.id] = event.target.checked
-    this.setState({
-      selectedSrs,
-      brickSize: min(map(
-        pickBy(this._getLvmSrs(), sr => selectedSrs[sr.id]),
-        sr => sr.size - sr.physical_usage
-      ))
-    })
+    this.setState({ selectedSrs })
     await this._refreshSuggestions({ selectedSrs })
   }
 
@@ -282,22 +275,23 @@ class NewXosan extends Component {
       srs: keys(pickBy(this.state.selectedSrs)),
       glusterType: params.layout,
       redundancy: params.redundancy,
-      brickSize: this.state.brickSize,
+      brickSize: this.state.customBrickSize ? this.state.brickSize : undefined,
       memorySize: this.state.memorySize
     }).then(this.props.onSrCreated)
   }
 
   render () {
     const {
+      brickSize,
+      customBrickSize,
+      memorySize,
       pif,
       pool,
       selectedSrs,
       suggestion,
       suggestions,
       useVlan,
-      vlan,
-      brickSize,
-      memorySize
+      vlan
     } = this.state
 
     const {
@@ -313,14 +307,14 @@ class NewXosan extends Component {
 
     return <Container className='mb-3'>
       <Row className='mb-1'>
-        <Col size={3}>
+        <Col size={4}>
           <SelectPool
             onChange={this._selectPool}
             predicate={poolPredicate}
             value={pool}
           />
         </Col>
-        <Col size={3}>
+        <Col size={4}>
           <SelectPif
             disabled={pool == null || noPacksByPool[pool.id] || !isEmpty(hostsNeedRestart)}
             onChange={this.linkState('pif')}
@@ -453,24 +447,42 @@ class NewXosan extends Component {
             {' '}
             {this.state.showAdvanced && <Container className='mb-1'>
               <SingleLineRow>
+                <Col>{_('xosanVlan')}</Col>
+              </SingleLineRow>
+              <SingleLineRow>
+                <Col size={1}>
+                  <Toggle onChange={this.linkState('useVlan')} value={useVlan} />
+                </Col>
                 <Col size={3}>
                   <input
-                    className='form-control pull-right'
+                    className='form-control'
                     disabled={!useVlan}
                     onChange={this.linkState('vlan')}
                     placeholder='VLAN'
-                    style={{ width: '70%' }}
                     type='text'
                     value={vlan}
                   />
-                  <Toggle className='pull-right mr-1' onChange={this.linkState('useVlan')} value={useVlan} />
                 </Col>
               </SingleLineRow>
               <SingleLineRow>
+                <Col>{_('xosanBrickSize')}</Col>
+              </SingleLineRow>
+              <SingleLineRow>
+                <Col size={1}>
+                  <Toggle className='mr-1' onChange={this.linkState('customBrickSize')} value={customBrickSize} />
+                </Col>
                 <Col size={3}>
-                  <label title='Size of the disk underlying the bricks'>{_('xosanBrickSize')}</label>{' '}
-                  <SizeInput value={brickSize} onChange={this._onBrickSizeChange} required />
-                  <label title='Memory size of the VMs underlying the bricks'>{_('xosanMemorySize')}</label>
+                  <SizeInput
+                    readOnly={!customBrickSize}
+                    value={brickSize}
+                    onChange={this._onBrickSizeChange}
+                    required
+                  />
+                </Col>
+              </SingleLineRow>
+              <SingleLineRow>
+                <Col size={4}>
+                  <label>{_('xosanMemorySize')}</label>
                   <SizeInput value={memorySize} onChange={this.linkState('memorySize')} required />
                 </Col>
               </SingleLineRow>
