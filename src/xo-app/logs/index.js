@@ -14,10 +14,28 @@ import Tooltip from 'tooltip'
 import { alert, confirm } from 'modal'
 import { createGetObject } from 'selectors'
 import { FormattedDate } from 'react-intl'
-import { connectStore, formatSize, formatSpeed } from 'utils'
-import { Card, CardHeader, CardBlock } from 'card'
-import { forEach, get, includes, isEmpty, map, orderBy } from 'lodash'
-import { deleteJobsLog, subscribeJobsLogs } from 'xo'
+import {
+  connectStore,
+  formatSize,
+  formatSpeed
+} from 'utils'
+import {
+  Card,
+  CardHeader,
+  CardBlock
+} from 'card'
+import {
+  forEach,
+  get,
+  includes,
+  isEmpty,
+  map,
+  orderBy
+} from 'lodash'
+import {
+  deleteJobsLog,
+  subscribeJobsLogs
+} from 'xo'
 
 // ===================================================================
 
