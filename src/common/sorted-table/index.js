@@ -328,10 +328,33 @@ export default class SortedTable extends Component {
   }
 
   _selectItem = event => {
-    const { checked, name } = event.target
-    this.setState({
-      selectedItemsIds: this.state.selectedItemsIds[checked ? 'add' : 'delete'](name)
+    const { selectedItemsIds } = this.state
+    const { target } = event
+    const visibleItems = this._getVisibleItems()
+
+    const current = +target.name
+    let method = target.checked ? 'add' : 'delete'
+
+    let previous
+    this.setState({ selectedItemsIds:
+      (
+        event.nativeEvent.shiftKey &&
+        (previous = this._previous) !== undefined
+      ) ? selectedItemsIds.withMutations(selectedItemsIds => {
+        let i = previous
+        let end = current
+        if (previous > current) {
+          i = current
+          end = previous
+        }
+        for (; i <= end; ++i) {
+          selectedItemsIds[method](visibleItems[i].id)
+        }
+      })
+        : selectedItemsIds[method](visibleItems[current].id)
     })
+
+    this._previous = current
   }
 
   _onFilterChange = debounce(filter => {
@@ -457,7 +480,7 @@ export default class SortedTable extends Component {
               const selectionColumn = hasGroupedActions && <td>
                 <input
                   checked={state.selectedItemsIds.has(id)}
-                  name={id}
+                  name={i} // position in visible items
                   onChange={this._selectItem}
                   type='checkbox'
                 />
