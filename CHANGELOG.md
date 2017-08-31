@@ -1,5 +1,32 @@
 # ChangeLog
 
+## **5.12.0** (2017-08-31)
+
+### Enhancements
+
+ * PIF selector with physical status [#2326](https://github.com/vatesfr/xo-web/issues/2326)
+ * [SortedTable] Range selection [#2323](https://github.com/vatesfr/xo-web/issues/2323)
+ * Self service filter for home/VM view [#2303](https://github.com/vatesfr/xo-web/issues/2303)
+ * SR/Disks Display total of VDIs to coalesce [#2300](https://github.com/vatesfr/xo-web/issues/2300)
+ * Pool filter in the task view [#2293](https://github.com/vatesfr/xo-web/issues/2293)
+ * "Loading" while fetching objects [#2285](https://github.com/vatesfr/xo-web/issues/2285)
+ * [SortedTable] Add grouped actions feature [#2276](https://github.com/vatesfr/xo-web/issues/2276)
+ * Add a filter to the backups' log [#2246](https://github.com/vatesfr/xo-web/issues/2246)
+ * It should not be possible to migrate a halted VM. [#2233](https://github.com/vatesfr/xo-web/issues/2233)
+ * [Home][Keyboard navigation] Allow selecting the objects [#2214](https://github.com/vatesfr/xo-web/issues/2214)
+ * Allow to set pool master [#2213](https://github.com/vatesfr/xo-web/issues/2213)
+ * Continuous Replication Retention  [#1692](https://github.com/vatesfr/xo-web/issues/1692)
+
+### Bugs
+
+ * Home pagination bug [#2310](https://github.com/vatesfr/xo-web/issues/2310)
+ * Fix PoolActionBar to add a new SR [#2307](https://github.com/vatesfr/xo-web/issues/2307)
+ * VM snapshots are not correctly deleted [#2304](https://github.com/vatesfr/xo-web/issues/2304)
+ * Parallel deletion of VMs fails [#2297](https://github.com/vatesfr/xo-web/issues/2297)
+ * Continous replication create multiple zombie disks [#2292](https://github.com/vatesfr/xo-web/issues/2292)
+ * Add user to Group issue [#2196](https://github.com/vatesfr/xo-web/issues/2196)
+ * [VM migration] Error if default SR not accessible to target host [#2180](https://github.com/vatesfr/xo-web/issues/2180)
+
 ## **5.11.0** (2017-07-31)
 
 ### Enhancements
