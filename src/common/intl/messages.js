@@ -297,9 +297,9 @@ const messages = {
   jobOwnerPlaceholder: 'Job owner',
   jobUserNotFound: "This job's creator no longer exists",
   backupUserNotFound: "This backup's creator no longer exists",
-  redirectToMatchedVms: 'Click here to see the matched VMs',
-  noMatchedVms: 'There are no matched VMs!',
-  allMatchedVms: '{icon} See the matched vms ({nMatchedVms, number})',
+  redirectToMatchingVms: 'Click here to see the matching VMs',
+  noMatchingVms: 'There are no matching VMs!',
+  allMatchingVms: '{icon} See the matching VMs ({nMatchingVms, number})',
   backupOwner: 'Backup owner',
 
   // ------ New backup -----
@@ -317,7 +317,7 @@ const messages = {
   editBackupSmartResidentOn: 'Resident on',
   editBackupSmartPools: 'Pools',
   editBackupSmartTags: 'Tags',
-  sampleOfMatchedVms: 'Sample of matched Vms',
+  sampleOfMatchingVms: 'Sample of matching Vms',
   editBackupSmartTagsTitle: 'VMs Tags',
   editBackupNot: 'Reverse',
   editBackupTagTitle: 'Tag',

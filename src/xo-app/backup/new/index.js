@@ -5,6 +5,7 @@ import Component from 'base-component'
 import GenericInput from 'json-schema-input'
 import getEventValue from 'get-event-value'
 import Icon from 'icon'
+import Link from 'link'
 import moment from 'moment-timezone'
 import propTypes from 'prop-types-decorator'
 import React from 'react'
@@ -325,7 +326,7 @@ const match = (pattern, value) => {
 
 // ===================================================================
 
-const SAMPLE_SIZE_OF_MATCHED_VMS = 3
+const SAMPLE_SIZE_OF_MATCHING_VMS = 3
 
 @propTypes({
   pattern: propTypes.object.isRequired
@@ -334,11 +335,7 @@ const SAMPLE_SIZE_OF_MATCHED_VMS = 3
   vms: createGetObjectsOfType('VM')
 })
 class SmartBackupPreview extends Component {
-  static contextTypes = {
-    router: propTypes.object
-  }
-
-  _getMatchedVms = createSelector(
+  _getMatchingVms = createSelector(
     () => this.props.pattern,
     () => this.props.vms,
     (pattern, vms) => filter(
@@ -347,43 +344,37 @@ class SmartBackupPreview extends Component {
     )
   )
 
-  _redirectToMatchedVms = () => {
-    this.context.router.push({
-      pathname: '/home',
-      query: { t: 'VM', s: constructFilter(this.props.pattern) }
-    })
-  }
-
   render () {
-    const matchedVms = this._getMatchedVms()
-    const nMatchedVms = matchedVms.length
+    const matchingVms = this._getMatchingVms()
+    const nMatchingVms = matchingVms.length
 
     return <Card>
-      <CardHeader>{_('sampleOfMatchedVms')}</CardHeader>
+      <CardHeader>{_('sampleOfMatchingVms')}</CardHeader>
       <CardBlock>
-        {nMatchedVms === 0
-          ? <p className='text-xs-center'>{_('noMatchedVms')}</p>
+        {nMatchingVms === 0
+          ? <p className='text-xs-center'>{_('noMatchingVms')}</p>
           : <div>
             <ul className='list-group'>
-              {sampleSize(
-                map(matchedVms, vm => <li className='list-group-item' key={vm.id}>
-                  {renderXoItem(vm)}
-                </li>),
-                SAMPLE_SIZE_OF_MATCHED_VMS
+              {map(
+                sampleSize(matchingVms, SAMPLE_SIZE_OF_MATCHING_VMS),
+                vm => <li className='list-group-item' key={vm.id}>{renderXoItem(vm)}</li>
               )}
             </ul>
             <br />
-            <Tooltip content={_('redirectToMatchedVms')}>
-              <Button
-                className='pull-right'
-                onClick={this._redirectToMatchedVms}
-                btnStyle='primary'
+            <Tooltip content={_('redirectToMatchingVms')}>
+              <Link
+                className={'pull-right'}
+                target={'_blank'}
+                to={{
+                  pathname: '/home',
+                  query: { t: 'VM', s: constructFilter(this.props.pattern) }
+                }}
               >
-                {_('allMatchedVms', {
+                {_('allMatchingVms', {
                   icon: <Icon icon='preview' />,
-                  nMatchedVms
+                  nMatchingVms
                 })}
-              </Button>
+              </Link>
             </Tooltip>
           </div>
         }
