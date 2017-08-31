@@ -80,7 +80,7 @@ const XOSAN_COLUMNS = [
   },
   {
     name: _('xosanPool'),
-    itemRenderer: sr => sr.pool.name_label,
+    itemRenderer: sr => <Link to={`/pools/${sr.pool.id}`}>{sr.pool.name_label}</Link>,
     sortCriteria: sr => sr.pool.name_label
   },
   {
@@ -90,7 +90,7 @@ const XOSAN_COLUMNS = [
   },
   {
     name: _('xosanHosts'),
-    itemRenderer: sr => sr.hosts.join(', ')
+    itemRenderer: sr => <span>{map(sr.hosts, (host, i) => [ i ? ', ' : null, <Link to={`/hosts/${host.id}`}>{host.name_label}</Link> ])}</span>
   },
   {
     name: _('xosanSize'),
@@ -530,7 +530,7 @@ class NewXosan extends Component {
         ...sr,
         pbds: pbdsBySr[sr.id],
         pool: find(pools, { id: sr.$pool }),
-        hosts: map(pbdsBySr[sr.id], ({ host }) => find(hosts, [ 'id', host ]).name_label),
+        hosts: map(pbdsBySr[sr.id], ({ host }) => find(hosts, [ 'id', host ])),
         config: sr.other_config['xo:xosan_config'] && JSON.parse(sr.other_config['xo:xosan_config'])
       }))
   )
