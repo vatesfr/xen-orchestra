@@ -1441,6 +1441,9 @@ var messages = {
   xosanCommunity: 'No XOSAN available for Community Edition',
   xosanNew: 'New',
   xosanAdvanced: 'Advanced',
+  xosanRemoveSubvolumes: 'Remove subvolumes',
+  xosanAddSubvolume: 'Add subvolume',
+  xosanWarning: 'This version of XOSAN SR is from the first beta phase. You can keep using it, but to modify it you\'ll have to save your disks and re-create it.',
   // Pack download modal
   xosanInstallCloudPlugin: 'Install cloud plugin first',
   xosanLoadCloudPlugin: 'Load cloud plugin first',
@@ -1456,10 +1459,13 @@ var messages = {
   xosanVmsNotRunning: 'Some XOSAN Virtual Machines are not running',
   xosanVmsNotFound: 'Some XOSAN Virtual Machines could not be found',
   xosanFilesNeedHealing: 'Some XOSAN Virtual Machines have files needing healing',
-  xosanVm: 'Virtual Machine',
-  xosanUnderlyingStorage: 'Underlying storage',
+  xosanVm: 'VM controller',
+  xosanUnderlyingStorage: 'SR',
   xosanReplace: 'Replace',
+  xosanOnSameVm: 'On same VM',
   xosanBrickUuid: 'Brick UUID',
+  xosanBrickSize: 'Brick size',
+  xosanMemorySize: 'Memory size',
   xosanStatus: 'Status',
   xosanArbiter: 'Arbiter',
   xosanUsedInodes: 'Used Inodes',
@@ -1470,7 +1476,16 @@ var messages = {
   xosanPath: 'Path',
   xosanJob: 'Job',
   xosanPid: 'PID',
-  xosanPort: 'Port'
+  xosanPort: 'Port',
+  xosanReplaceBrickErrorTitle: 'Missing values',
+  xosanReplaceBrickErrorMessage: 'You need to select a SR and a size',
+  xosanAddSubvolumeErrorTitle: 'Bad values',
+  xosanAddSubvolumeErrorMessage: 'You need to select {nSrs, number} and a size',
+  xosanSelectNSrs: 'Select {nSrs, number} SRs',
+  xosanRun: 'Run',
+  xosanRemove: 'Remove',
+  xosanVolume: 'Volume',
+  xosanVolumeOptions: 'Volume options'
 }
 forEach(messages, function (message, id) {
   if (isString(message)) {

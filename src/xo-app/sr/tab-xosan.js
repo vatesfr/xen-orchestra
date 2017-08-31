@@ -7,9 +7,11 @@ import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
 import Tooltip from 'tooltip'
-import { SizeInput } from 'form'
+import SingleLineRow from 'single-line-row'
+import { confirm } from 'modal'
+import { error } from 'notification'
+import { Toggle } from 'form'
 import { Container, Col, Row } from 'grid'
-import { SelectSr } from 'select-objects'
 import {
   forEach,
   map,
@@ -31,6 +33,9 @@ import {
   startVm
 } from 'xo'
 
+import ReplaceBrickModalBody from './replace-brick-modal'
+import AddSubvolumeModalBody from './add-subvolume-modal'
+
 const GIGABYTE = 1024 * 1024 * 1024
 
 const ISSUE_CODE_TO_MESSAGE = {
@@ -45,10 +50,10 @@ const Issues = ({ issues }) => <div>
   </div>)}
 </div>
 
-const Field = ({ title, children }) => <Row>
+const Field = ({ title, children }) => <SingleLineRow>
   <Col size={3}><strong>{title}</strong></Col>
   <Col size={9}>{children}</Col>
-</Row>
+</SingleLineRow>
 
 @connectStore(() => ({
   vms: createGetObjectsOfType('VM'),
@@ -57,10 +62,8 @@ const Field = ({ title, children }) => <Row>
   vdis: createGetObjectsOfType('VDI')
 }))
 export default class TabXosan extends Component {
-  // State ---------------------------------------------------------------------
-
   state = {
-    'added-size': 100 * GIGABYTE
+    showAdvancedNodes: {}
   }
 
   async componentDidMount () {
@@ -96,14 +99,38 @@ export default class TabXosan extends Component {
 
   // Actions -------------------------------------------------------------------
 
-  async _replaceBrick ({ brick, newSr, brickSize, onSameVm = false }) {
-    await replaceXosanBrick(this.props.sr.id, brick, newSr.id, brickSize, onSameVm)
+  _replaceBrick = async ({ brick, vm }) => {
+    const { sr, brickSize, onSameVm = false } = await confirm({
+      icon: 'refresh',
+      title: _('xosanReplace'),
+      body: <ReplaceBrickModalBody vm={vm} />
+    })
+
+    if (sr == null || brickSize == null) {
+      return error(_('xosanReplaceBrickErrorTitle'), _('xosanReplaceBrickErrorMessage'))
+    }
+
+    await replaceXosanBrick(this.props.sr.id, brick, sr.id, brickSize, onSameVm)
     const newState = {}
     forEach(this.state.xosanConfig.nodes, (node, i) => {
       newState[`sr-${i}`] = null
     })
     this.setState(newState)
     await this._refreshInfo()
+  }
+
+  _addSubvolume = async () => {
+    const { srs, brickSize } = await confirm({
+      icon: 'add',
+      title: _('xosanAddSubvolume'),
+      body: <AddSubvolumeModalBody sr={this.props.sr} subvolumeSize={this._getSubvolumeSize()} />
+    })
+
+    if (brickSize == null || (srs && srs.length) !== this._getSubvolumeSize()) {
+      return error(_('xosanAddSubvolumeErrorTitle'), _('xosanAddSubvolumeErrorMessage', { nSrs: this._getSubvolumeSize() }))
+    }
+
+    return this._addBricks({ srs, brickSize })
   }
 
   async _removeSubVolume (bricks) {
@@ -134,11 +161,6 @@ export default class TabXosan extends Component {
   }
 
   // Selectors -----------------------------------------------------------------
-
-  _getSrPredicate = createSelector(
-    () => this.props.sr.$pool,
-    poolId => sr => sr.SR_type === 'lvm' && sr.$pool === poolId
-  )
 
   _getStrippedVolumeInfo = createSelector(
     () => this.state.volumeInfo,
@@ -257,7 +279,7 @@ export default class TabXosan extends Component {
   )
 
   render () {
-    const { volumeHeal, volumeInfo, volumeStatus, xosanConfig, volumeStatusDetail } = this.state
+    const { volumeHeal, volumeInfo, volumeStatus, xosanConfig, volumeStatusDetail, showAdvanced, showAdvancedNodes } = this.state
     const { srs } = this.props
 
     if (!xosanConfig) {
@@ -266,12 +288,11 @@ export default class TabXosan extends Component {
 
     if (!xosanConfig.version) {
       return <div>
-        This version of XOSAN SR is from the first beta phase. You can keep using it, but to modify it you ll have to save your disks and re-create it.
+        {_('xosanWarning')}
       </div>
     }
 
     const strippedVolumeInfo = this._getStrippedVolumeInfo()
-    const subvolumeSize = this._getSubvolumeSize()
     const subVolumes = this._getSubvolumes()
     const orderedBrickList = this._getOrderedBrickList()
     const issues = this._getIssues()
@@ -325,7 +346,7 @@ export default class TabXosan extends Component {
                         handlerParam={node.vm}
                         icon='vm-start'
                       >
-                        Run
+                        {_('xosanRun')}
                       </ActionButton>
                     }
                   </span>
@@ -337,70 +358,42 @@ export default class TabXosan extends Component {
               <Field title={_('xosanUnderlyingStorage')}>
                 <Link to={`/srs/${node.config.underlyingSr}`}>{srs[node.config.underlyingSr].name_label}</Link> - Using {formatSize(node.size)}
               </Field>
-              <Field title={_('xosanReplace')}>
-                <div style={{ display: 'flex' }}>
-                  <span className='mr-1' style={{ display: 'inline-block', width: '18em' }}>
-                    <SelectSr
-                      onChange={this.linkState(`sr-${i}`)}
-                      predicate={this._getSrPredicate()}
-                      value={this.state[`sr-${i}`]}
-                    />
-                  </span>
-                  {' '}
-                  <span className='mr-1' style={{ display: 'inline-block', width: '10em' }}>
-                    <SizeInput
-                      onChange={this.linkState(`brickSize-${i}`)}
-                      required
-                      value={this.state[`brickSize-${i}`]}
-                    />
-                  </span>
-                  {' '}
-                  <span><input
-                    checked={this.state[`onSameVm-${i}`] || false}
-                    onChange={event => this.setState({[`onSameVm-${i}`]: event.target.checked})}
-                    type='checkbox'
-                  />On Same VM</span>
-                  {' '}
-                  <span>
-                    <ActionButton
-                      btnStyle='success'
-                      icon='refresh'
-                      handler={::this._replaceBrick}
-                      handlerParam={{ brick: node.config.brickName,
-                        newSr: this.state[`sr-${i}`],
-                        brickSize: this.state[`brickSize-${i}`],
-                        onSameVm: this.state[`onSameVm-${i}`] }}
-                    >
-                      Replace
-                    </ActionButton>
-                  </span>
-                </div>
-              </Field>
-              <Field title={_('xosanBrickUuid')}>
-                <Copiable>{node.uuid}</Copiable>
-              </Field>
               <Field title={_('xosanStatus')}>
                 {node.heal ? node.heal.status : 'unknown'}
               </Field>
-              <Field title={_('xosanArbiter')}>
-                {node.config.arbiter ? 'True' : 'False' }
+              {node.statusDetail && <Field title={_('xosanUsedSpace')}>
+                <span style={{ display: 'inline-block', width: '20em', height: '1em' }}>
+                  <Tooltip content={_('spaceLeftTooltip', {
+                    used: String(Math.round(100 - (+node.statusDetail.sizeFree / +node.statusDetail.sizeTotal) * 100)),
+                    free: formatSize(+node.statusDetail.sizeFree)
+                  })}>
+                    <progress
+                      className='progress'
+                      max='100'
+                      value={100 - (+node.statusDetail.sizeFree / +node.statusDetail.sizeTotal) * 100}
+                    />
+                  </Tooltip>
+                </span>
+              </Field>}
+              {node.config.arbiter === 'True' && <Field title={_('xosanArbiter')} />}
+              <ActionButton
+                btnStyle='success'
+                icon='refresh'
+                handler={this._replaceBrick}
+                handlerParam={{ brick: node.config.brickName, vm: node.vm }}
+              >
+                {_('xosanReplace')}
+              </ActionButton>
+            </Container>
+            <Toggle onChange={this.toggleState(`showAdvancedNodes.${node.vm.id}`)} value={showAdvancedNodes && showAdvancedNodes[node.vm.id]} />
+            {' '}
+            {_('xosanAdvanced')}
+            {showAdvancedNodes[node.vm.id] && <Container>
+              <Field title={_('xosanBrickUuid')}>
+                <Copiable>{node.uuid}</Copiable>
               </Field>
               {node.statusDetail && [
-                <Field title={_('xosanUsedSpace')}>
-                  <span style={{ display: 'inline-block', width: '20em', height: '1em' }}>
-                    <Tooltip content={_('spaceLeftTooltip', {
-                      used: String(Math.round(100 - (+node.statusDetail.sizeFree / +node.statusDetail.sizeTotal) * 100)),
-                      free: formatSize(+node.statusDetail.sizeFree)
-                    })}>
-                      <progress
-                        className='progress'
-                        max='100'
-                        value={100 - (+node.statusDetail.sizeFree / +node.statusDetail.sizeTotal) * 100}
-                      />
-                    </Tooltip>
-                  </span>
-                </Field>,
-                <Field title={_('xosanUsedInodes')}>
+                <Field key='usedInodes' title={_('xosanUsedInodes')}>
                   <span style={{ display: 'inline-block', width: '20em', height: '1em' }}>
                     <Tooltip content={_('spaceLeftTooltip', {
                       used: String(Math.round(100 - (+node.statusDetail.inodesFree / +node.statusDetail.inodesTotal) * 100)),
@@ -411,24 +404,22 @@ export default class TabXosan extends Component {
                     </Tooltip>
                   </span>
                 </Field>,
-                <Field title={_('xosanBlockSize')}>{node.statusDetail.blockSize}</Field>,
-                <Field title={_('xosanDevice')}>{node.statusDetail.device}</Field>,
-                <Field title={_('xosanFsName')}>{node.statusDetail.fsName}</Field>,
-                <Field title={_('xosanMountOptions')}>{node.statusDetail.mntOptions}</Field>,
-                <Field title={_('xosanPath')}>{node.statusDetail.path}</Field>
+                <Field key='blockSize' title={_('xosanBlockSize')}>{node.statusDetail.blockSize}</Field>,
+                <Field key='device' title={_('xosanDevice')}>{node.statusDetail.device}</Field>,
+                <Field key='fsName' title={_('xosanFsName')}>{node.statusDetail.fsName}</Field>,
+                <Field key='mountOptions' title={_('xosanMountOptions')}>{node.statusDetail.mntOptions}</Field>,
+                <Field key='path' title={_('xosanPath')}>{node.statusDetail.path}</Field>
               ]}
 
               {node.status && node.status.length !== 0 && <Row>
                 <Col>
                   <table className='table'>
                     <thead>
-                      <tr>
-                        <th>{_('xosanJob')}</th>
-                        <th>{_('xosanPath')}</th>
-                        <th>{_('xosanStatus')}</th>
-                        <th>{_('xosanPid')}</th>
-                        <th>{_('xosanPort')}</th>
-                      </tr>
+                      <th>{_('xosanJob')}</th>
+                      <th>{_('xosanPath')}</th>
+                      <th>{_('xosanStatus')}</th>
+                      <th>{_('xosanPid')}</th>
+                      <th>{_('xosanPort')}</th>
                     </thead>
                     <tbody>
                       {map(node.status, (job, j) => <tr key={`${node.uuid}-${job.pid}`}>
@@ -449,48 +440,23 @@ export default class TabXosan extends Component {
                   <Col size={4}>{file.gfid}</Col>
                 </Row>)}
               </div>}
-            </Container>
+            </Container>}
           </Collapse>
         )}
-
         <hr />
-
-        <h2>Add Subvolume</h2>
-        <Container>
-          <Row>
-            <Col size={2}>Select {subvolumeSize} SRs: </Col>
-            <Col size={4}>
-              <SelectSr
-                multi
-                onChange={this.linkState('added-srs')}
-                predicate={this._getSrPredicate()}
-                value={this.state['added-srs']}
-              />
-            </Col>
-            <Col size={2}>
-              <SizeInput
-                onChange={this.linkState('added-size')}
-                required
-                value={this.state['added-size']}
-              />
-            </Col>
-            <Col size={1}>
-              <ActionButton
-                btnStyle='success'
-                handler={::this._addBricks}
-                handlerParam={{ srs: this.state['added-srs'], brickSize: this.state['added-size'] }}
-                icon='add'
-              >
-                Add
-              </ActionButton>
-            </Col>
-          </Row>
-        </Container>
-        <h2>Remove Subvolumes</h2>
+        <h2>{_('xosanAddSubvolume')}</h2>
+        <ActionButton
+          btnStyle='success'
+          handler={this._addSubvolume}
+          icon='add'
+        >
+          {_('xosanAdd')}
+        </ActionButton>
+        <h2>{_('xosanRemoveSubvolumes')}</h2>
         <table className='table'>
           {map(subVolumes, (subvolume, i) => <tr key={i}>
             <td>
-              <ul className='list-group'>{map(subvolume, brick => <li className='list-group-item'>{brick.name}</li>)}</ul>
+              <ul>{map(subvolume, (brick, j) => <li key={j}>{brick.name}</li>)}</ul>
             </td>
             <td>
               <ActionButton
@@ -499,13 +465,14 @@ export default class TabXosan extends Component {
                 handler={::this._removeSubVolume}
                 handlerParam={map(subvolume, brick => brick.name)}
               >
-                Remove
+                {_('xosanRemove')}
               </ActionButton>
             </td>
           </tr>)}
         </table>
-        {strippedVolumeInfo && <div>
-          <h2>Volume</h2>
+        <Toggle onChange={this.toggleState('showAdvanced')} value={showAdvanced} /> {_('xosanAdvanced')}
+        {strippedVolumeInfo && showAdvanced && <div>
+          <h2>{_('xosanVolume')}</h2>
           <Container>
             <Field title={'Name'}>{strippedVolumeInfo.name}</Field>
             <Field title={'Status'}>{strippedVolumeInfo.statusStr}</Field>
@@ -517,7 +484,7 @@ export default class TabXosan extends Component {
             <Field title={'Disperse Count'}>{strippedVolumeInfo.disperseCount}</Field>
             <Field title={'Redundancy Count'}>{strippedVolumeInfo.redundancyCount}</Field>
           </Container>
-          <h3>Volume Options</h3>
+          <h3>{_('xosanVolumeOptions')}</h3>
           <Container>
             {map(strippedVolumeInfo.options, option =>
               <Field key={option.name} title={option.name}>{option.value}</Field>

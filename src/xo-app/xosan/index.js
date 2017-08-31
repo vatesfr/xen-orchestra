@@ -22,6 +22,7 @@ import {
   isEmpty,
   keys,
   map,
+  min,
   mapValues,
   pickBy,
   some
@@ -217,10 +218,16 @@ class NewXosan extends Component {
     await this._refreshSuggestions({ brickSize })
   }
 
-  _selectSr = async (event, srId) => {
+  _selectSr = async (event, sr) => {
     const selectedSrs = { ...this.state.selectedSrs }
-    selectedSrs[srId] = event.target.checked
-    this.setState({ selectedSrs })
+    selectedSrs[sr.id] = event.target.checked
+    this.setState({
+      selectedSrs,
+      brickSize: min(map(
+        pickBy(this._getLvmSrs(), sr => selectedSrs[sr.id]),
+        sr => sr.size - sr.physical_usage
+      ))
+    })
     await this._refreshSuggestions({ selectedSrs })
   }
 
@@ -368,7 +375,7 @@ class NewXosan extends Component {
                     <input
                       checked={selectedSrs[sr.id] || false}
                       disabled={disableSrCheckbox(sr)}
-                      onChange={event => this._selectSr(event, sr.id)}
+                      onChange={event => this._selectSr(event, sr)}
                       type='checkbox'
                     />
                   </td>
@@ -461,9 +468,9 @@ class NewXosan extends Component {
               </SingleLineRow>
               <SingleLineRow>
                 <Col size={3}>
-                  <label title='Size of the disk underlying the bricks'>Brick size:</label>{' '}
+                  <label title='Size of the disk underlying the bricks'>{_('xosanBrickSize')}</label>{' '}
                   <SizeInput value={brickSize} onChange={this._onBrickSizeChange} required />
-                  <label title='Memory size of the VMs underlying the bricks'>Memory size:</label>
+                  <label title='Memory size of the VMs underlying the bricks'>{_('xosanMemorySize')}</label>
                   <SizeInput value={memorySize} onChange={this.linkState('memorySize')} required />
                 </Col>
               </SingleLineRow>
