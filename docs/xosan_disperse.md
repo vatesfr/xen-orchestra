@@ -20,7 +20,7 @@ Cons:
 
 This is similar to **RAID5**: there is an [algorithm](https://en.wikipedia.org/wiki/Reed%E2%80%93Solomon_error_correction) that will generate a kind of parity, being able to continue to work even if 1 node is down. If you reintroduce the node, it will be "healed" automatically.
 
-![picture disperse 3]()
+![picture disperse 3](./assets/disperse3.png)
 
 If you lose one node, your data are still here. This mode will give you **66% of your total disk space**.
 
@@ -28,7 +28,7 @@ If you lose one node, your data are still here. This mode will give you **66% of
 
 Same than 3, like **RAID5**, you can lose 1 node without service interruption.
 
-![picture disperse 5]()
+![picture disperse 5](./assets/disperse5.png)
 
 In this case, you'll be able to use up to **80%** of your total storage capacity!
 
@@ -36,7 +36,9 @@ In this case, you'll be able to use up to **80%** of your total storage capacity
 
 It's very similar to **RAID6**. You can lose up to 2 nodes, it will continue to work in read and write.
 
-![picture disperse 6]()
+![picture disperse 6](./assets/disperse6.png)
+
+![disperse 6 with 2 nodes down](./assets/disperse6_2nodesoff.png)
 
 ## Growing a disperse XOSAN
 
@@ -44,3 +46,5 @@ You can grow a replicated XOSAN by adding extra disperse volumes, in other words
 
 * To grow a disperse 3, you need 3 new nodes. You'll add the total capacity of each disperse to make a distributed-disperse on 2x3 dispersed nodes.
 * To grow a disperse 6, you need 6 new nodes.
+
+![growing disperse](./assets/disperse3_grow.png)

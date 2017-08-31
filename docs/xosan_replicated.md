@@ -61,24 +61,24 @@ The easiest way is to use 3-way replication. You can lose completely 2 hosts, it
 
 The usual deal is to create a "group" of 2 replicated nodes (2x2). In a picture:
 
-![2x2 replication]()
+![2x2 replication](./assets/replicate2x2.png)
 
 #### 5 hosts
 
 There is no way to use the local disks of 5 nodes in a replicated type. So you'll use 4 hosts in XOSAN, and the 5th would be also able to use the shared XOSAN SR, without participating directly to it.
 
-![2x2 replication and 1 extra node]()
-
 #### 6 hosts
 
 You have 2 choices:
 
-1. 2-way replication on 3 nodes (2x3)
-2. 3-way replication on 2 nodes (3x2)
+1. 2-way replication on 3 replicated nodes (2x3)
+2. 3-way replication on 2 triplicated nodes (3x2)
 
 There is more fault tolerance on mode 2, but less space usable. It's up to you!
 
-![2x3 vs 3x2 modes]()
+![2x3 mode](./assets/replicate2x3_full.png)
+
+![3x2 mode](./assets/replicate3x2_full.png)
 
 ## Growing a replicated XOSAN
 

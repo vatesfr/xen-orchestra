@@ -37,3 +37,5 @@ For a 6 nodes setup, XOSAN will use in total:
 * 12 vCPUs (usage is in general pretty low)
 * 12 GiB RAM
 * All Local LVM disk space
+
+![picture disperse](./assets/disperse6.png)
