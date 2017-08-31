@@ -85,7 +85,7 @@ const XOSAN_COLUMNS = [
   },
   {
     name: _('xosanName'),
-    itemRenderer: sr => sr.name_label,
+    itemRenderer: sr => <Link to={`/srs/${sr.id}`}>{sr.name_label}</Link>,
     sortCriteria: sr => sr.name_label
   },
   {
@@ -489,20 +489,20 @@ class NewXosan extends Component {
             </Container>}
             <hr />
           </div>}
+        </Row>,
+        <Row>
+          <Col>
+            <ActionButton
+              btnStyle='success'
+              disabled={this._getDisableCreation()}
+              handler={this._createXosanVm}
+              icon='add'
+            >
+              {_('xosanCreate')}
+            </ActionButton>
+          </Col>
         </Row>
       ]}
-      <Row>
-        <Col>
-          <ActionButton
-            btnStyle='success'
-            disabled={this._getDisableCreation()}
-            handler={this._createXosanVm}
-            icon='add'
-          >
-            {_('xosanCreate')}
-          </ActionButton>
-        </Col>
-      </Row>
     </Container>
   }
 }
