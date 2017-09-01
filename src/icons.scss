@@ -970,4 +970,8 @@
     @extend .fa;
     @extend .fa-heartbeat;
   }
+  &-fix {
+    @extend .fa;
+    @extend .fa-wrench;
+  }
 }

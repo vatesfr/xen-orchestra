@@ -1,9 +1,11 @@
-import clone from 'lodash/clone'
-import includes from 'lodash/includes'
-import isArray from 'lodash/isArray'
-import forEach from 'lodash/forEach'
-import map from 'lodash/map'
 import { PureComponent } from 'react'
+import { cowSet } from 'utils'
+import {
+  includes,
+  isArray,
+  forEach,
+  map
+} from 'lodash'
 
 import getEventValue from './get-event-value'
 
@@ -11,17 +13,6 @@ import getEventValue from './get-event-value'
 //
 // Usually set to process.env.NODE_ENV !== 'production'.
 const VERBOSE = false
-
-const cowSet = (object, path, value, depth) => {
-  if (depth >= path.length) {
-    return value
-  }
-
-  object = object != null ? clone(object) : {}
-  const prop = path[depth]
-  object[prop] = cowSet(object[prop], path, value, depth + 1)
-  return object
-}
 
 const get = (object, path, depth) => {
   if (depth >= path.length) {

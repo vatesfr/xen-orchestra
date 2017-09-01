@@ -291,15 +291,15 @@ export const subscribeIpPools = createSubscription(() => _call('ipPool.getAll'))
 
 export const subscribeResourceCatalog = createSubscription(() => _call('cloud.getResourceCatalog'))
 
-const xosanSubscriptions = {}
-export const subscribeIsInstallingXosan = (pool, cb) => {
+const checkSrCurrentStateSubscriptions = {}
+export const subscribeCheckSrCurrentState = (pool, cb) => {
   const poolId = resolveId(pool)
 
-  if (!xosanSubscriptions[poolId]) {
-    xosanSubscriptions[poolId] = createSubscription(() => _call('xosan.checkSrCurrentState', { poolId }))
+  if (!checkSrCurrentStateSubscriptions[poolId]) {
+    checkSrCurrentStateSubscriptions[poolId] = createSubscription(() => _call('xosan.checkSrCurrentState', { poolId }))
   }
 
-  return xosanSubscriptions[poolId](cb)
+  return checkSrCurrentStateSubscriptions[poolId](cb)
 }
 
 const missingPatchesByHost = {}
@@ -323,6 +323,34 @@ subscribeHostMissingPatches.forceRefresh = host => {
     subscription.forceRefresh()
   }
 }
+
+const volumeInfoBySr = {}
+export const subscribeVolumeInfo = ({ sr, infoType }, cb) => {
+  sr = resolveId(sr)
+
+  if (volumeInfoBySr[sr] == null) {
+    volumeInfoBySr[sr] = {}
+  }
+
+  if (volumeInfoBySr[sr][infoType] == null) {
+    volumeInfoBySr[sr][infoType] = createSubscription(() => _call('xosan.getVolumeInfo', { sr, infoType }))
+  }
+
+  return volumeInfoBySr[sr][infoType](cb)
+}
+subscribeVolumeInfo.forceRefresh = (() => {
+  const refreshSrVolumeInfo = volumeInfo => {
+    forEach(volumeInfo, subscription => subscription.forceRefresh())
+  }
+
+  return sr => {
+    if (sr === undefined) {
+      forEach(volumeInfoBySr, refreshSrVolumeInfo)
+    } else {
+      refreshSrVolumeInfo(volumeInfoBySr[sr])
+    }
+  }
+})()
 
 const unhealthyVdiChainsLengthSubscriptionsBySr = {}
 export const createSrUnhealthyVdiChainsLengthSubscription = sr => {
@@ -810,13 +838,14 @@ export const cloneVm = ({ id, name_label: nameLabel }, fullCopy = false) => (
 )
 
 import CopyVmModalBody from './copy-vm-modal' // eslint-disable-line import/first
-export const copyVm = (vm, sr, name, compress) =>
-  sr !== undefined
-    ? confirm({
+export const copyVm = (vm, sr, name, compress) => {
+  if (sr) {
+    return confirm({
       title: _('copyVm'),
       body: _('copyVmConfirm', { SR: sr.name_label })
     }).then(() => _call('vm.copy', { vm: vm.id, sr: sr.id, name: name || vm.name_label + '_COPY', compress }))
-    : confirm({
+  } else {
+    return confirm({
       title: _('copyVm'),
       body: <CopyVmModalBody vm={vm} />
     }).then(
@@ -825,10 +854,12 @@ export const copyVm = (vm, sr, name, compress) =>
           error('copyVmsNoTargetSr', 'copyVmsNoTargetSrMessage')
           return
         }
-        return _call('vm.copy', { vm: vm.id, ...params })
+        _call('vm.copy', { vm: vm.id, ...params })
       },
       noop
     )
+  }
+}
 
 import CopyVmsModalBody from './copy-vms-modal' // eslint-disable-line import/first
 export const copyVms = vms => {
@@ -837,17 +868,19 @@ export const copyVms = vms => {
     title: _('copyVm'),
     body: <CopyVmsModalBody vms={_vms} />
   }).then(
-    ({
-      compress,
-      names,
-      sr
-    }) => {
-      if (sr !== undefined) {
-        return Promise.all(map(_vms, (vm, index) =>
-          _call('vm.copy', { vm, sr, compress, name: names[index] })
-        ))
+    params => {
+      if (!params.sr) {
+        error(_('copyVmsNoTargetSr'), _('copyVmsNoTargetSrMessage'))
+        return
       }
-      error(_('copyVmsNoTargetSr'), _('copyVmsNoTargetSrMessage'))
+      const {
+        compress,
+        names,
+        sr
+      } = params
+      Promise.all(map(_vms, (vm, index) =>
+        _call('vm.copy', { vm, sr, compress, name: names[index] })
+      ))
     },
     noop
   )
@@ -1987,7 +2020,7 @@ export const setIpPool = (ipPool, { name, addresses, networks }) => (
 
 export const getVolumeInfo = (xosanSr, infoType) => _call('xosan.getVolumeInfo', { sr: xosanSr, infoType })
 
-export const createXosanSR = ({ template, pif, vlan, srs, glusterType, redundancy, brickSize, memorySize, ipRange }) => _call('xosan.createSR', {
+export const createXosanSR = ({ template, pif, vlan, srs, glusterType, redundancy, brickSize, memorySize }) => _call('xosan.createSR', {
   template,
   pif: pif.id,
   vlan: String(vlan),
@@ -1995,8 +2028,7 @@ export const createXosanSR = ({ template, pif, vlan, srs, glusterType, redundanc
   glusterType,
   redundancy: Number.parseInt(redundancy),
   brickSize,
-  memorySize,
-  ipRange
+  memorySize
 })
 
 export const addXosanBricks = (xosansr, lvmsrs, brickSize) => _call('xosan.addBricks', {xosansr, lvmsrs, brickSize})
