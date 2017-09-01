@@ -419,7 +419,7 @@ export default class SortedTable extends Component {
               {hasGroupedActions && <th>
                 <Checkbox
                   onChange={this._selectAllVisibleItems}
-                  checked={nSelectedItems === nVisibleItems}
+                  checked={nSelectedItems !== 0}
                   indeterminate={nSelectedItems !== 0 && nSelectedItems !== nVisibleItems}
                 />
               </th>}
