@@ -9,6 +9,7 @@ import { getUser } from 'selectors'
 import { serverVersion } from 'xo'
 import { Container, Row, Col } from 'grid'
 import { connectStore, getXoaPlan } from 'utils'
+import computed from 'computed'
 
 import pkg from '../../../package'
 
@@ -25,6 +26,20 @@ const HEADER = (
   </Container>
 )
 
+let MyComponent = _ => <p>{_.firstName}</p>
+
+MyComponent = computed({
+  firstName: ({ firstName }) => firstName.toUpperCase(),
+  fullName: _ =>
+    _.firstName === 'Bob'
+      ? 'Bobinette'
+      : `${_.title} ${_.lastName}, ${_.firstName}`,
+})(MyComponent)
+
+MyComponent = computed({
+  title: () => 'Mr',
+})(MyComponent)
+
 @connectStore(() => ({
   user: getUser,
 }))
@@ -34,12 +49,30 @@ export default class About extends Component {
       this.setState({ serverVersion })
     })
   }
+
+  state = {
+    firstName: 'John',
+    lastName: 'Smith',
+  };
+
   render () {
     const { user } = this.props
     const isAdmin = user && user.permission === 'admin'
 
     return (
       <Page header={HEADER} title='aboutPage' formatTitle>
+        <input
+          value={this.state.firstName}
+          onChange={this.linkState('firstName')}
+        />
+        <input
+          value={this.state.lastName}
+          onChange={this.linkState('lastName')}
+        />
+        <MyComponent
+          firstName={this.state.firstName}
+          lastName={this.state.lastName}
+        />
         <Container className='text-xs-center'>
           {isAdmin && (
             <Row>
