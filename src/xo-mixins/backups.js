@@ -445,7 +445,9 @@ export default class {
         obj.$type === 'vm' &&
         obj.other_config[TAG_SOURCE_VM] === uuid
       )
-      const n = toRemove.length - retention + 1 // take into account the future copy
+      const { length } = toRemove
+      const deleteBase = length === 0 // old replications are not captured in toRemove
+      const n = length - retention + 1 // take into account the future copy
       toRemove = n > 0
         ? sortBy(toRemove, _ => _.other_config[TAG_EXPORT_TIME]).slice(0, n)
         : undefined
@@ -453,7 +455,7 @@ export default class {
       const promise = targetXapi.importDeltaVm(
         delta,
         {
-          deleteBase: toRemove === undefined, // old replications are not captured in toRemove
+          deleteBase,
           srId: targetSr.$id
         }
       )
