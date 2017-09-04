@@ -1,16 +1,19 @@
-import assign from 'lodash/assign'
 import Bluebird from 'bluebird'
-import every from 'lodash/every'
-import filter from 'lodash/filter'
-import find from 'lodash/find'
-import isArray from 'lodash/isArray'
-import isPlainObject from 'lodash/isPlainObject'
-import map from 'lodash/map'
-import mapValues from 'lodash/mapValues'
-import size from 'lodash/size'
-import some from 'lodash/some'
 import { BaseError } from 'make-error'
 import { timeout } from 'promise-toolbox'
+import {
+  assign,
+  every,
+  filter,
+  find,
+  isArray,
+  isEmpty,
+  isPlainObject,
+  map,
+  mapValues,
+  size,
+  some
+} from 'lodash'
 
 import { crossProduct } from './math'
 import {
@@ -68,7 +71,11 @@ const paramsVectorActionsMap = {
     ))
   },
   fetchObjects ({ pattern }) {
-    return filter(this.xo.getObjects(), object => match(pattern, object))
+    const objects = filter(this.xo.getObjects(), object => match(pattern, object))
+    if (isEmpty(objects)) {
+      throw new Error('no objects match this pattern')
+    }
+    return objects
   },
   map ({ collection, iteratee, paramName = 'value' }) {
     return map(resolveParamsVector.call(this, collection), value => {
