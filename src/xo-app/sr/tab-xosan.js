@@ -40,14 +40,15 @@ import AddSubvolumeModalBody from './add-subvolume-modal'
 const GIGABYTE = 1024 * 1024 * 1024
 
 const ISSUE_CODE_TO_MESSAGE = {
-  VMS_DOWN: _('xosanVmsNotRunning'),
-  VMS_NOT_FOUND: _('xosanVmsNotFound'),
-  FILES_NEED_HEALING: _('xosanFilesNeedHealing')
+  VMS_DOWN: 'xosanVmsNotRunning',
+  VMS_NOT_FOUND: 'xosanVmsNotFound',
+  FILES_NEED_HEALING: 'xosanFilesNeedHealing',
+  HOST_NOT_IN_NETWORK: 'xosanHostNotInNetwork'
 }
 
 const Issues = ({ issues }) => <div>
-  {map(issues, code => <div key={code} className='alert alert-danger mb-1' role='alert'>
-    <Icon icon='error' /> <strong>{ISSUE_CODE_TO_MESSAGE[code]}</strong>
+  {map(issues, issue => <div key={issue.key || issue.code} className='alert alert-danger mb-1' role='alert'>
+    <Icon icon='error' /> <strong>{_(ISSUE_CODE_TO_MESSAGE[issue.code], issue.params)}</strong>
   </div>)}
 </div>
 
@@ -58,6 +59,7 @@ const Field = ({ title, children }) => <SingleLineRow>
 
 @connectStore(() => ({
   vms: createGetObjectsOfType('VM'),
+  hosts: createGetObjectsOfType('host'),
   srs: createGetObjectsOfType('SR'),
   vbds: createGetObjectsOfType('VBD'),
   vdis: createGetObjectsOfType('VDI')
@@ -94,7 +96,8 @@ export default class TabXosan extends Component {
       ::this._refreshAspect('heal', 'volumeHeal'),
       ::this._refreshAspect('status', 'volumeStatus'),
       ::this._refreshAspect('info', 'volumeInfo'),
-      ::this._refreshAspect('statusDetail', 'volumeStatusDetail')
+      ::this._refreshAspect('statusDetail', 'volumeStatusDetail'),
+      ::this._refreshAspect('hosts', 'hostStatus')
     ])
   }
 
@@ -268,13 +271,13 @@ export default class TabXosan extends Component {
 
       const issues = []
       if (reduce(orderedBrickList, (hasStopped, node) => hasStopped || (node.vm && node.vm.power_state.toLowerCase() !== 'running'), false)) {
-        issues.push('VMS_DOWN')
+        issues.push({code: 'VMS_DOWN'})
       }
       if (reduce(orderedBrickList, (hasNotFound, node) => hasNotFound || node.vm === undefined, false)) {
-        issues.push('VMS_NOT_FOUND')
+        issues.push({code: 'VMS_NOT_FOUND'})
       }
       if (reduce(orderedBrickList, (hasFileToHeal, node) => hasFileToHeal || (node.heal && node.heal.file && node.heal.file.length !== 0), false)) {
-        issues.push('FILES_NEED_HEALING')
+        issues.push({code: 'FILES_NEED_HEALING'})
       }
 
       return issues
@@ -282,8 +285,9 @@ export default class TabXosan extends Component {
   )
 
   render () {
-    const { volumeHeal, volumeInfo, volumeStatus, xosanConfig, volumeStatusDetail, showAdvanced, showAdvancedNodes } = this.state
-    const { srs } = this.props
+    const { volumeHeal, volumeInfo, volumeStatus, xosanConfig, volumeStatusDetail, showAdvanced, showAdvancedNodes,
+      hostStatus } = this.state
+    const { srs, hosts } = this.props
 
     if (!xosanConfig) {
       return null
@@ -299,6 +303,13 @@ export default class TabXosan extends Component {
     // const subVolumes = this._getSubvolumes() // TODO: uncomment when implementing subvolume deletion
     const orderedBrickList = this._getOrderedBrickList()
     const issues = this._getIssues()
+    hostStatus.forEach(status => {
+      issues.push({
+        code: 'HOST_NOT_IN_NETWORK',
+        key: 'HOST_NOT_IN_NETWORK' + status.host,
+        params: {hostName: hosts[status.host].name_label}
+      })
+    })
 
     return <Container>
       <Row className='text-xs-center'>

@@ -1460,6 +1460,7 @@ var messages = {
   xosanVmsNotRunning: 'Some XOSAN Virtual Machines are not running',
   xosanVmsNotFound: 'Some XOSAN Virtual Machines could not be found',
   xosanFilesNeedHealing: 'Some XOSAN Virtual Machines have files needing healing',
+  xosanHostNotInNetwork: 'Host {hostName} is not in XOSAN network',
   xosanVm: 'VM controller',
   xosanUnderlyingStorage: 'SR',
   xosanReplace: 'Replace',
