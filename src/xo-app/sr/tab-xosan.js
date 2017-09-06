@@ -50,7 +50,7 @@ const ISSUE_CODE_TO_MESSAGE = {
 const Issues = ({ issues }) => <div>
   {map(issues, issue => <div key={issue.key || issue.code} className='alert alert-danger mb-1' role='alert'>
     <Icon icon='error' /> <strong>{_(ISSUE_CODE_TO_MESSAGE[issue.code], issue.params)}</strong>
-    {issue.fix && <ActionButton icon="edit" handler={issue.fix.action} title={issue.fix.title}>Fix</ActionButton>}
+    {issue.fix && <ActionButton icon='edit' handler={issue.fix.action} title={issue.fix.title}>Fix</ActionButton>}
   </div>)}
 </div>
 
@@ -99,7 +99,7 @@ export default class TabXosan extends Component {
       ::this._refreshAspect('status', 'volumeStatus'),
       ::this._refreshAspect('info', 'volumeInfo'),
       ::this._refreshAspect('statusDetail', 'volumeStatusDetail'),
-      //TODO: that thing should probably be a selector.
+      // TODO: that thing should probably be a selector.
       ::this._refreshAspect('hosts', 'hostStatus')
     ])
   }
@@ -311,8 +311,10 @@ export default class TabXosan extends Component {
         code: 'HOST_NOT_IN_NETWORK',
         key: 'HOST_NOT_IN_NETWORK' + status.host,
         params: {hostName: hosts[status.host].name_label},
-        fix: {action: () => fixHostNotInXosanNetwork(this.props.sr.id, status.host),
-        title: 'Will configure the host xosan network device with a static IP address and plug it in.'}
+        fix: {
+          action: () => fixHostNotInXosanNetwork(this.props.sr.id, status.host),
+          title: 'Will configure the host xosan network device with a static IP address and plug it in.'
+        }
       })
     })
 
