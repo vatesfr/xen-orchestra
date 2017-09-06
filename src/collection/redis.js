@@ -1,6 +1,6 @@
 import { createClient as createRedisClient } from 'redis'
 import { difference, filter, forEach, isEmpty, keys as getKeys, map } from 'lodash'
-import { promisifyAll } from 'promise-toolbox'
+import { ignoreErrors, promisifyAll } from 'promise-toolbox'
 import { v4 as generateUuid } from 'uuid'
 
 import Collection, { ModelAlreadyExists } from '../collection'
@@ -12,8 +12,8 @@ import { asyncMap } from '../utils'
 // Data model:
 // - prefix +'_id': value of the last generated identifier;
 // - prefix +'_ids': set containing identifier of all models;
-// - prefix +'_'+ index +':' + value: set of identifiers which have
-//   value for the given index.
+// - prefix +'_'+ index +':' + lowerCase(value): set of identifiers
+//   which have value for the given index.
 // - prefix +':'+ id: hash containing the properties of a model;
 // ///////////////////////////////////////////////////////////////////
 
@@ -24,6 +24,8 @@ import { asyncMap } from '../utils'
 // configuration like Backbone.
 
 // TODO: Remote events.
+
+const VERSION = '20170905'
 
 export default class Redis extends Collection {
   constructor ({
@@ -36,7 +38,23 @@ export default class Redis extends Collection {
 
     this.indexes = indexes
     this.prefix = prefix
-    this.redis = promisifyAll(connection || createRedisClient(uri))
+    const redis = this.redis = promisifyAll(connection || createRedisClient(uri))
+
+    const key = `${prefix}:version`
+    redis.get(key).then(version => {
+      if (version === VERSION) {
+        return
+      }
+
+      let p = redis.set(`${prefix}:version`, VERSION)
+      switch (version) {
+        case undefined:
+          // - clean indexes
+          // - indexes are now case insensitive
+          p = p.then(() => this.rebuildIndexes())
+      }
+      return p
+    })::ignoreErrors()
   }
 
   rebuildIndexes () {
@@ -55,7 +73,7 @@ export default class Redis extends Collection {
         asyncMap(indexes, index => {
           const value = values[index]
           if (value !== undefined) {
-            return redis.sadd(`${prefix}_${index}:${value}`, id)
+            return redis.sadd(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
           }
         })
       )
@@ -108,7 +126,7 @@ export default class Redis extends Collection {
           await asyncMap(indexes, index => {
             const value = previous[index]
             if (value !== undefined) {
-              return redis.srem(`${prefix}_${index}:${value}`, id)
+              return redis.srem(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
             }
           })
         }
@@ -137,7 +155,7 @@ export default class Redis extends Collection {
           return
         }
 
-        const key = prefix + '_' + index + ':' + value
+        const key = prefix + '_' + index + ':' + String(value).toLowerCase()
         promises.push(redis.sadd(key, id))
       })
 
@@ -173,7 +191,7 @@ export default class Redis extends Collection {
       throw new Error('fields not indexed: ' + unfit.join())
     }
 
-    const keys = map(properties, (value, index) => `${prefix}_${index}:${value}`)
+    const keys = map(properties, (value, index) => `${prefix}_${index}:${String(value).toLowerCase()}`)
     return redis.sinter(...keys).then(ids => this._extract(ids))
   }
 
@@ -194,7 +212,7 @@ export default class Redis extends Collection {
           values != null && asyncMap(indexes, index => {
             const value = values[index]
             if (value !== undefined) {
-              return redis.srem(`${prefix}_${index}:${value}`, id)
+              return redis.srem(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
             }
           })
         )
