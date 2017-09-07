@@ -204,11 +204,19 @@ class NewXosan extends Component {
     })
   ), 'name_label')
 
-  _refreshSuggestions = async ({ selectedSrs = this.state.selectedSrs, brickSize = this.state.brickSize }) => {
+  _refreshSuggestions = async ({ selectedSrs = this.state.selectedSrs, brickSize = this.state.brickSize,
+                                 customBrickSize = this.state.customBrickSize }) => {
+    const finalSize = customBrickSize ? brickSize : undefined
     this.setState({
       suggestion: 0,
-      suggestions: await computeXosanPossibleOptions(keys(pickBy(selectedSrs)), brickSize)
+      suggestions: await computeXosanPossibleOptions(keys(pickBy(selectedSrs)), finalSize)
     })
+  }
+
+  _onCustomBrickSizeChange = async event => {
+    const customBrickSize = getEventValue(event)
+    this.setState({ customBrickSize })
+    await this._refreshSuggestions({customBrickSize})
   }
 
   _onBrickSizeChange = async event => {
@@ -469,7 +477,7 @@ class NewXosan extends Component {
               </SingleLineRow>
               <SingleLineRow>
                 <Col size={1}>
-                  <Toggle className='mr-1' onChange={this.linkState('customBrickSize')} value={customBrickSize} />
+                  <Toggle className='mr-1' onChange={this._onCustomBrickSizeChange} value={customBrickSize} />
                 </Col>
                 <Col size={3}>
                   <SizeInput
