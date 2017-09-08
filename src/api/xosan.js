@@ -774,7 +774,7 @@ POSSIBLE_CONFIGURATIONS[15] = [
   { layout: 'replica', redundancy: 3, capacity: 5 }]
 POSSIBLE_CONFIGURATIONS[16] = [{ layout: 'replica', redundancy: 2, capacity: 8 }]
 
-export async function computeXosanPossibleOptions ({ lvmSrs, brickSize }) {
+export async function computeXosanPossibleOptions ({ lvmSrs, brickSize = Infinity }) {
   const count = lvmSrs.length
   const configurations = POSSIBLE_CONFIGURATIONS[count]
   if (!configurations) {
@@ -798,7 +798,7 @@ computeXosanPossibleOptions.params = {
     }
   },
   brickSize: {
-    type: 'number'
+    type: 'number', optional: true
   }
 }
 
