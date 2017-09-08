@@ -102,9 +102,6 @@ export function resolveParamsVector (paramsVector) {
 export default class JobExecutor {
   constructor (xo) {
     this.xo = xo
-    this._extractValueCb = {
-      'set': items => items.values
-    }
 
     // The logger is not available until Xo has started.
     xo.on('start', () => xo.getLogger('jobs').then(logger => {
