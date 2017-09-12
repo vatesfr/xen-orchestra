@@ -306,17 +306,19 @@ export default class TabXosan extends Component {
     // const subVolumes = this._getSubvolumes() // TODO: uncomment when implementing subvolume deletion
     const orderedBrickList = this._getOrderedBrickList()
     const issues = this._getIssues()
-    hostStatus.forEach(status => {
-      issues.push({
-        code: 'HOST_NOT_IN_NETWORK',
-        key: 'HOST_NOT_IN_NETWORK' + status.host,
-        params: {hostName: hosts[status.host].name_label},
-        fix: {
-          action: () => fixHostNotInXosanNetwork(this.props.sr.id, status.host),
-          title: 'Will configure the host xosan network device with a static IP address and plug it in.'
-        }
+    if (hostStatus) {
+      hostStatus.forEach(status => {
+        issues.push({
+          code: 'HOST_NOT_IN_NETWORK',
+          key: 'HOST_NOT_IN_NETWORK' + status.host,
+          params: {hostName: hosts[status.host].name_label},
+          fix: {
+            action: () => fixHostNotInXosanNetwork(this.props.sr.id, status.host),
+            title: 'Will configure the host xosan network device with a static IP address and plug it in.'
+          }
+        })
       })
-    })
+    }
 
     return <Container>
       <Row className='text-xs-center'>
