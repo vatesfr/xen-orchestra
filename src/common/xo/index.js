@@ -296,7 +296,7 @@ export const subscribeIsInstallingXosan = (pool, cb) => {
   const poolId = resolveId(pool)
 
   if (!xosanSubscriptions[poolId]) {
-    xosanSubscriptions[poolId] = createSubscription(() => _call('xosan.checkSrIsBusy', { poolId }))
+    xosanSubscriptions[poolId] = createSubscription(() => _call('xosan.checkSrCurrentState', { poolId }))
   }
 
   return xosanSubscriptions[poolId](cb)
