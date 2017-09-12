@@ -150,6 +150,7 @@ class NewXosan extends Component {
   state = {
     selectedSrs: {},
     brickSize: 100 * GIGABYTE,
+    ipRange: '172.31.100.0',
     memorySize: 2 * GIGABYTE
   }
 
@@ -284,7 +285,8 @@ class NewXosan extends Component {
       glusterType: params.layout,
       redundancy: params.redundancy,
       brickSize: this.state.customBrickSize ? this.state.brickSize : undefined,
-      memorySize: this.state.memorySize
+      memorySize: this.state.memorySize,
+      ipRange: this.state.customIpRange ? this.state.ipRange : undefined
     }).then(this.props.onSrCreated)
   }
 
@@ -292,6 +294,8 @@ class NewXosan extends Component {
     const {
       brickSize,
       customBrickSize,
+      customIpRange,
+      ipRange,
       memorySize,
       pif,
       pool,
@@ -307,7 +311,6 @@ class NewXosan extends Component {
       noPacksByPool,
       poolPredicate
     } = this.props
-
     const lvmsrs = this._getLvmSrs()
     const hosts = this._getHosts()
 
@@ -469,6 +472,24 @@ class NewXosan extends Component {
                     placeholder='VLAN'
                     type='text'
                     value={vlan}
+                  />
+                </Col>
+              </SingleLineRow>
+              <SingleLineRow>
+                <Col>Custom IP network (/24)</Col>
+              </SingleLineRow>
+              <SingleLineRow>
+                <Col size={1}>
+                  <Toggle onChange={this.linkState('customIpRange')} value={customIpRange} />
+                </Col>
+                <Col size={3}>
+                  <input
+                    className='form-control'
+                    disabled={!customIpRange}
+                    onChange={this.linkState('ipRange')}
+                    placeholder='ipRange'
+                    type='text'
+                    value={ipRange}
                   />
                 </Col>
               </SingleLineRow>
