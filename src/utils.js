@@ -293,7 +293,7 @@ export const parseXml = (function () {
 // - works only with strings
 // - methods are already bound and chainable
 export const lightSet = collection => {
-  const data = createRawObject()
+  let data = createRawObject()
   if (collection) {
     forEach(collection, value => {
       data[value] = true
@@ -307,9 +307,7 @@ export const lightSet = collection => {
       return set
     },
     clear: () => {
-      for (const value in data) {
-        delete data[value]
-      }
+      data = createRawObject()
       return set
     },
     delete: value => {
