@@ -137,8 +137,6 @@ export default class Xo extends EventEmitter {
   // -----------------------------------------------------------------
 
   // Returns an object from its key or UUID.
-  //
-  // TODO: should throw a NoSuchObject error on failure.
   getObject (key, type) {
     const {
       all,
@@ -162,28 +160,8 @@ export default class Xo extends EventEmitter {
     return obj
   }
 
-  getObjects (keys) {
-    const {
-      all,
-      indexes: {
-        byRef
-      }
-    } = this._objects
-
-    // Returns all objects if no keys have been passed.
-    if (!keys) {
-      return all
-    }
-
-    // Fetches all objects and ignores those missing.
-    const result = []
-    forEach(keys, key => {
-      const object = all[key] || byRef[key]
-      if (object) {
-        result.push(object)
-      }
-    })
-    return result
+  getObjects () {
+    return this._objects.all
   }
 
   // -----------------------------------------------------------------
