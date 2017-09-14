@@ -8,6 +8,10 @@ This page recap the possible actions to realize if you have any problems with yo
 
 It means you didn't have any default SR set on your pool you are importing XOA. To set a default SR, you must first find the SR UUID you want, with `xe sr-list`. When you got the UUID, you can set the default SR like this: `xe pool-param-set default-SR=<SR_UUID>`. When it's done, re-enter the deploy script command and it will work!
 
+## XOA unreachable after boot
+
+XOA is using HVM mode. If your physical host doesn't support virtualization extensions, XOA won't work. To check if your XenServer support hardware assisted virtualization (HVM), you can enter this command in your host: `grep --color vmx /proc/cpuinfo`. If you don't have any result, it means XOA won't work on this hardware.
+
 ## Empty page after login
 
 This is happening when your anti-virus or firewall is blocking websocket protocol. This is what we use to communicate between `xo-server` and `xo-web` (see the [architecture page](architecture.md)).
