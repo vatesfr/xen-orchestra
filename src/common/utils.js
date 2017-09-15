@@ -585,7 +585,7 @@ export const cowSet = (object, path, value, depth = 0) => {
 // based on the elapsed time since the createFakeProgress call and
 // the given estimated duration d
 export const createFakeProgress = (() => {
-  const S = 0.9 // Progress value after d seconds
+  const S = 0.95 // Progress value after d seconds
   return d => {
     const startTime = Date.now() / 1e3
     return () => {
