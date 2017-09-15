@@ -99,6 +99,8 @@ All your scheduled backup are acccessible in the "Restore" view in backup sectio
 2. Choose the backup you want to restore
 3. Select SR where you want to restore it
 
+> Note: You can restore your backup even on a brand new XenServer and on a brand new hardware.
+
 ## About backup compression
 
 By default, *Backup* are compressed (using GZIP, done in XenServer side). There is no absolute rule but in general not compressed backup are faster.
