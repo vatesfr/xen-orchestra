@@ -293,7 +293,7 @@ async function registerPlugins (xo) {
 
 // ===================================================================
 
-async function makeWebServerListen ({
+async function makeWebServerListen (webServer, {
   certificate,
 
   // The properties was called `certificate` before.
@@ -308,9 +308,8 @@ async function makeWebServerListen ({
       readFile(key)
     ])
   }
-
   try {
-    const niceAddress = await this.listen(opts)
+    const niceAddress = await webServer.listen(opts)
     debug(`Web server listening on ${niceAddress}`)
   } catch (error) {
     if (error.niceAddress) {
@@ -329,10 +328,12 @@ async function makeWebServerListen ({
   }
 }
 
-async function createWebServer (opts) {
+async function createWebServer ({ listen, listenOptions }) {
   const webServer = new WebServer()
 
-  await Promise.all(mapToArray(opts, webServer::makeWebServerListen))
+  await Promise.all(mapToArray(listen,
+    opts => makeWebServerListen(webServer, { ...listenOptions, ...opts })
+  ))
 
   return webServer
 }
@@ -539,7 +540,7 @@ export default async function main (args) {
 
   const config = await loadConfiguration()
 
-  const webServer = await createWebServer(config.http.listen)
+  const webServer = await createWebServer(config.http)
 
   // Now the web server is listening, drop privileges.
   try {
