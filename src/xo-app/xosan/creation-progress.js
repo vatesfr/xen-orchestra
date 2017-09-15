@@ -64,9 +64,7 @@ export default class CreationProgress extends Component {
       return
     }
 
-    if (newState == null || newState.operation !== 'createSr') {
-      clearTimeout(this._loopTimeout)
-    }
+    clearTimeout(this._loopTimeout)
 
     if (newState && newState.operation === 'createSr') {
       this._startNewFakeProgress(newState.state)

@@ -95,7 +95,7 @@ class Node extends Component {
       return error(_('xosanReplaceBrickErrorTitle'), _('xosanReplaceBrickErrorMessage'))
     }
 
-    await replaceXosanBrick(this.props.sr.id, brick, sr.id, brickSize, onSameVm)
+    await replaceXosanBrick(this.props.sr, brick, sr, brickSize, onSameVm)
   }
 
   render () {
@@ -490,6 +490,7 @@ export default class TabXosan extends Component {
             info_={info_}
             vdis={this.props.vdis}
             vbds={this.props.vbds}
+            sr={this.props.sr}
           />
         </Col>)}
       </Row>

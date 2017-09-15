@@ -2035,7 +2035,8 @@ export const createXosanSR = ({ template, pif, vlan, srs, glusterType, redundanc
 export const addXosanBricks = (xosansr, lvmsrs, brickSize) => _call('xosan.addBricks', {xosansr, lvmsrs, brickSize})
 
 export const replaceXosanBrick = (xosansr, previousBrick, newLvmSr, brickSize, onSameVM = false) =>
-  _call('xosan.replaceBrick', {xosansr, previousBrick, newLvmSr, brickSize, onSameVM})
+  _call('xosan.replaceBrick', resolveIds({ xosansr, previousBrick, newLvmSr, brickSize, onSameVM }))
+
 export const removeXosanBricks = (xosansr, bricks) => _call('xosan.removeBricks', {xosansr, bricks})
 
 export const computeXosanPossibleOptions = (lvmSrs, brickSize) => _call('xosan.computeXosanPossibleOptions', { lvmSrs, brickSize })
