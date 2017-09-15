@@ -83,9 +83,27 @@ export default class NewXosan extends Component {
       pif: undefined,
       pool
     })
-
-    this._refreshSuggestions({ selectedSrs: {}, brickSize: DEFAULT_BRICKSIZE })
   }
+
+  componentDidUpdate () {
+    this._refreshSuggestions()
+  }
+
+  // Selector that doesn't return anything but updates the suggestions only if necessary
+  _refreshSuggestions = createSelector(
+    () => this.state.selectedSrs,
+    () => this.state.brickSize,
+    () => this.state.customBrickSize,
+    async (selectedSrs, brickSize, customBrickSize) => {
+      this.setState({
+        suggestion: 0,
+        suggestions: await computeXosanPossibleOptions(
+          keys(pickBy(selectedSrs)),
+          customBrickSize ? brickSize : undefined
+        )
+      })
+    }
+  )
 
   _getIsInPool = createSelector(
     () => this.state.pool != null && this.state.pool.id,
@@ -126,31 +144,20 @@ export default class NewXosan extends Component {
     })
   ), 'name_label')
 
-  _refreshSuggestions = async ({ selectedSrs = this.state.selectedSrs, brickSize = this.state.brickSize, customBrickSize = this.state.customBrickSize }) => {
-    const finalSize = customBrickSize ? brickSize : undefined
-    this.setState({
-      suggestion: 0,
-      suggestions: await computeXosanPossibleOptions(keys(pickBy(selectedSrs)), finalSize)
-    })
-  }
-
   _onCustomBrickSizeChange = async event => {
     const customBrickSize = getEventValue(event)
     this.setState({ customBrickSize })
-    await this._refreshSuggestions({customBrickSize})
   }
 
   _onBrickSizeChange = async event => {
     const brickSize = getEventValue(event)
     this.setState({ brickSize })
-    await this._refreshSuggestions({ brickSize })
   }
 
   _selectSr = async (event, sr) => {
     const selectedSrs = { ...this.state.selectedSrs }
     selectedSrs[sr.id] = event.target.checked
     this.setState({ selectedSrs })
-    await this._refreshSuggestions({ selectedSrs })
   }
 
   _getPifPredicate = createSelector(
@@ -403,7 +410,7 @@ export default class NewXosan extends Component {
                 </Col>
               </SingleLineRow>
               <SingleLineRow>
-                <Col>Custom IP network (/24)</Col>
+                <Col>{_('xosanCustomIpNetwork')}</Col>
               </SingleLineRow>
               <SingleLineRow>
                 <Col size={1}>
