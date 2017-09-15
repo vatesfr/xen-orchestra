@@ -2,6 +2,7 @@ import _ from 'intl'
 import Component from 'base-component'
 import React from 'react'
 import { Col, Row } from 'grid'
+import { createSelector } from 'selectors'
 import {
   addSubscriptions,
   createFakeProgress
@@ -9,6 +10,10 @@ import {
 import {
   subscribeCheckSrCurrentState
 } from 'xo'
+import {
+  slice,
+  sum
+} from 'lodash'
 
 const ESTIMATED_DURATIONS = [
   10, // configuringNetwork
@@ -19,6 +24,8 @@ const ESTIMATED_DURATIONS = [
   5,  // creatingSr
   5   // scanningSr
 ]
+
+const TOTAL_ESTIMATED_DURATION = sum(ESTIMATED_DURATIONS)
 
 @addSubscriptions(props => ({
   currentState: cb => subscribeCheckSrCurrentState(props.pool, cb)
@@ -66,9 +73,20 @@ export default class CreationProgress extends Component {
     }
   }
 
+  _getMainProgress = createSelector(
+    () => this.props.currentState && this.props.currentState.state,
+    () => this.state.intermediateProgress,
+    (state, intermediateProgress) => {
+      if (state == null) {
+        return null
+      }
+
+      return sum(slice(ESTIMATED_DURATIONS, 0, state)) + intermediateProgress * ESTIMATED_DURATIONS[state]
+    }
+  )
+
   render () {
     const { currentState, pool } = this.props
-    const { intermediateProgress } = this.state
 
     if (currentState == null || currentState.operation !== 'createSr') {
       return null
@@ -78,7 +96,7 @@ export default class CreationProgress extends Component {
 
     return <Row>
       <Col size={3}>
-        <strong>{pool.name_label}</strong>
+        <strong>{_('xosanCreatingOn', { pool: pool.name_label })}</strong>
       </Col>
       <Col size={3}>
         ({state + 1}/{states.length}) {_(`xosanState_${states[state]}`)}
@@ -86,8 +104,8 @@ export default class CreationProgress extends Component {
       <Col size={6}>
         <progress
           className='progress'
-          max={states.length}
-          value={state + intermediateProgress}
+          max={TOTAL_ESTIMATED_DURATION}
+          value={this._getMainProgress()}
         />
       </Col>
     </Row>

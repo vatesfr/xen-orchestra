@@ -19,6 +19,11 @@ export default class ReplaceBrickModalBody extends Component {
       : sr => sr.$pool === vm.$pool && sr.SR_type === 'lvm'
   )
 
+  _toggleOnSameVm = () => this.setState({
+    onSameVm: !this.state.onSameVm,
+    sr: undefined
+  })
+
   _selectSr = sr => {
     this.setState({
       sr,
@@ -31,7 +36,7 @@ export default class ReplaceBrickModalBody extends Component {
       <Row className='mb-1'>
         <Col size={6}><strong>{_('xosanOnSameVm')}</strong></Col>
         <Col size={6}>
-          <Toggle onChange={this.toggleState('onSameVm')} value={this.state.onSameVm} />
+          <Toggle onChange={this._toggleOnSameVm} value={this.state.onSameVm} />
         </Col>
       </Row>
       <Row className='mb-1'>

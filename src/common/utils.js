@@ -590,7 +590,7 @@ export const createFakeProgress = (() => {
     const startTime = Date.now() / 1e3
     return () => {
       const x = Date.now() / 1e3 - startTime
-      return (S * x) / ((S * x) - (S * d) + d)
+      return -Math.exp((x * Math.log(1 - S)) / d) + 1
     }
   }
 })()
