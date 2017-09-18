@@ -4,6 +4,7 @@ import Icon from 'icon'
 import propTypes from 'prop-types-decorator'
 import React from 'react'
 import {
+  isInteger,
   map
 } from 'lodash'
 
@@ -64,7 +65,11 @@ const disperseGraph = (nSrs, redundancy, w, h) => {
 }
 
 const replicationGraph = (nSrs, redundancy, w, h) => {
-  const nGroups = nSrs / redundancy // Should always be an integer
+  const nGroups = nSrs / redundancy
+
+  if (!isInteger(nGroups)) {
+    return null
+  }
 
   return graph(nGroups, redundancy, w, h, redundancy - 1)
 }
