@@ -99,6 +99,22 @@ class Node extends Component {
     await replaceXosanBrick(this.props.sr, brick, sr, brickSize, onSameVm)
   }
 
+  _getSizeUsage = createSelector(
+    () => this.props.node.statusDetail,
+    statusDetail => ({
+      used: String(Math.round(100 - (+statusDetail.sizeFree / +statusDetail.sizeTotal) * 100)),
+      free: formatSize(+statusDetail.sizeFree)
+    })
+  )
+
+  _getInodesUsage = createSelector(
+    () => this.props.node.statusDetail,
+    statusDetail => ({
+      used: String(Math.round(100 - (+statusDetail.inodesFree / +statusDetail.inodesTotal) * 100)),
+      free: formatSize(+statusDetail.inodesFree)
+    })
+  )
+
   render () {
     const { srs } = this.props
     const { showAdvanced } = this.state
@@ -161,10 +177,7 @@ class Node extends Component {
           </Field>
           {statusDetail && <Field title={_('xosanUsedSpace')}>
             <span style={{ display: 'inline-block', width: '20em', height: '1em' }}>
-              <Tooltip content={_('spaceLeftTooltip', {
-                used: String(Math.round(100 - (+statusDetail.sizeFree / +statusDetail.sizeTotal) * 100)),
-                free: formatSize(+statusDetail.sizeFree)
-              })}>
+              <Tooltip content={_('spaceLeftTooltip', this._getSizeUsage())}>
                 <progress
                   className='progress'
                   max='100'
@@ -174,7 +187,7 @@ class Node extends Component {
             </span>
           </Field>}
           {config.arbiter === 'True' && <Field title={_('xosanArbiter')} />}
-          <Row>
+          <Row className='mt-1'>
             <Col>
               <ActionButton
                 btnStyle='success'
@@ -187,23 +200,20 @@ class Node extends Component {
             </Col>
           </Row>
           <Row className='mt-1'>
-            <Col><Toggle onChange={this.toggleState('showAdvanced')} value={showAdvanced} /> {_('xosanAdvanced')}</Col>
+            <Col><h3><Toggle iconSize={1} onChange={this.toggleState('showAdvanced')} value={showAdvanced} /> {_('xosanAdvanced')}</h3></Col>
           </Row>
           {showAdvanced && [
             <Field title={_('xosanBrickName')}>
-              <Copiable>{config.brickName}</Copiable>
+              <Copiable tagName='div'>{config.brickName}</Copiable>
             </Field>,
             <Field title={_('xosanBrickUuid')}>
-              <Copiable>{uuid}</Copiable>
+              <Copiable tagName='div'>{uuid}</Copiable>
             </Field>,
             <div>
               {statusDetail && [
                 <Field key='usedInodes' title={_('xosanUsedInodes')}>
                   <span style={{ display: 'inline-block', width: '20em', height: '1em' }}>
-                    <Tooltip content={_('spaceLeftTooltip', {
-                      used: String(Math.round(100 - (+statusDetail.inodesFree / +statusDetail.inodesTotal) * 100)),
-                      free: statusDetail.inodesFree
-                    })}>
+                    <Tooltip content={_('spaceLeftTooltip', this._getInodesUsage())}>
                       <progress className='progress' max='100' value={100 - (+statusDetail.inodesFree / +statusDetail.inodesTotal) * 100}
                       />
                     </Tooltip>
@@ -561,7 +571,7 @@ export default class TabXosan extends Component {
               <Field title={'Disperse Count'}>{strippedVolumeInfo.disperseCount}</Field>
               <Field title={'Redundancy Count'}>{strippedVolumeInfo.redundancyCount}</Field>
             </Container>
-            <h3>{_('xosanVolumeOptions')}</h3>
+            <h3 className='mt-1'>{_('xosanVolumeOptions')}</h3>
             <Container>
               {map(strippedVolumeInfo.options, option =>
                 <Field key={option.name} title={option.name}>{option.value}</Field>
