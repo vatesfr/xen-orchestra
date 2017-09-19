@@ -11,7 +11,7 @@ import {
   subscribeCheckSrCurrentState
 } from 'xo'
 import {
-  slice,
+  map,
   sum
 } from 'lodash'
 
@@ -31,7 +31,20 @@ const TOTAL_ESTIMATED_DURATION = sum(ESTIMATED_DURATIONS)
   currentState: cb => subscribeCheckSrCurrentState(props.pool, cb)
 }))
 export default class CreationProgress extends Component {
-  state = { intermediateProgress: 0 }
+  constructor () {
+    super()
+
+    this.state = { intermediateProgress: 0 }
+
+    let sum = 0
+    let _sum = 0
+    this._milestones = map(ESTIMATED_DURATIONS, duration => {
+      _sum = sum
+      sum += duration
+
+      return _sum
+    })
+  }
 
   _startNewFakeProgress = state => {
     this._fakeProgress = createFakeProgress(ESTIMATED_DURATIONS[state])
@@ -41,7 +54,7 @@ export default class CreationProgress extends Component {
 
   _loopProgress = () => {
     this.setState({ intermediateProgress: this._fakeProgress() })
-    this._loopTimeout = setTimeout(this._loopProgress, 100)
+    this._loopTimeout = setTimeout(this._loopProgress, 50)
   }
 
   componentDidMount () {
@@ -67,6 +80,11 @@ export default class CreationProgress extends Component {
     clearTimeout(this._loopTimeout)
 
     if (newState && newState.operation === 'createSr') {
+      if (oldState != null) {
+        // Step transition: set the end of the milestone to the current position so the
+        // progress bar doesn't unsmoothly jump to the actual end of the milestone
+        this._milestones[newState.state] = this._getMainProgress()
+      }
       this._startNewFakeProgress(newState.state)
     }
   }
@@ -79,7 +97,10 @@ export default class CreationProgress extends Component {
         return null
       }
 
-      return sum(slice(ESTIMATED_DURATIONS, 0, state)) + intermediateProgress * ESTIMATED_DURATIONS[state]
+      const previousMilestone = this._milestones[state]
+      const stepLength = (this._milestones[state + 1] || TOTAL_ESTIMATED_DURATION) - previousMilestone
+
+      return previousMilestone + intermediateProgress * stepLength
     }
   )
 
