@@ -1507,7 +1507,8 @@ var messages = {
   xosanVolumeOptions: 'Volume options',
   xosanCouldNotFindVM: 'Could not find VM',
   xosanUnderlyingStorageUsage: 'Using {usage}',
-  xosanCustomIpNetwork: 'Custom IP network (/24)'
+  xosanCustomIpNetwork: 'Custom IP network (/24)',
+  xosanIssueHostNotInNetwork: 'Will configure the host xosan network device with a static IP address and plug it in.'
 }
 forEach(messages, function (message, id) {
   if (isString(message)) {

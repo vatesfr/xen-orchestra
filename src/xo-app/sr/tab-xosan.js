@@ -53,26 +53,27 @@ const ISSUE_CODE_TO_MESSAGE = {
 const BORDERS = {
   border: 'solid 2px #ccc',
   borderRadius: '5px',
-  borderTop: 'none',
-  padding: '1em'
+  borderTop: 'none'
 }
 
-const Issues = ({ issues }) => <div>
-  {map(issues, issue => <div key={issue.key || issue.code} className='alert alert-danger mb-1' role='alert'>
-    <Icon icon='error' /> <strong>{_(ISSUE_CODE_TO_MESSAGE[issue.code], issue.params)}</strong>
-    {issue.fix && <Tooltip content={issue.fix.title}>
-      <ActionButton
-        btnStyle='danger'
-        className='ml-1'
-        handler={issue.fix.action}
-        icon='fix'
-        size='small'
-      >
-        {_('xosanFixIssue')}
-      </ActionButton>
-    </Tooltip>}
-  </div>)}
-</div>
+const Issues = ({ issues }) => <Container>
+  {map(issues, issue => <Row key={issue.key || issue.code} className='alert alert-danger mb-1' role='alert'>
+    <Col>
+      <Icon icon='error' /> <strong>{_(ISSUE_CODE_TO_MESSAGE[issue.code], issue.params)}</strong>
+      {issue.fix && <Tooltip content={issue.fix.title}>
+        <ActionButton
+          btnStyle='danger'
+          className='ml-1'
+          handler={issue.fix.action}
+          icon='fix'
+          size='small'
+        >
+          {_('xosanFixIssue')}
+        </ActionButton>
+      </Tooltip>}
+    </Col>
+  </Row>)}
+</Container>
 
 const Field = ({ title, children }) => <SingleLineRow>
   <Col size={3}><strong>{title}</strong></Col>
@@ -127,7 +128,7 @@ class Node extends Component {
       className='mb-1'
     >
       <div style={BORDERS}>
-        <Container className='m-1'>
+        <Container className='p-1'>
           <Field title={_('xosanVm')}>
             {vm !== undefined
               ? <span>
@@ -173,74 +174,83 @@ class Node extends Component {
             </span>
           </Field>}
           {config.arbiter === 'True' && <Field title={_('xosanArbiter')} />}
-          <ActionButton
-            btnStyle='success'
-            icon='refresh'
-            handler={this._replaceBrick}
-            handlerParam={{ brick: config.brickName, vm }}
-          >
-            {_('xosanReplace')}
-          </ActionButton>
-        </Container>
-        <Toggle onChange={this.toggleState('showAdvanced')} value={showAdvanced} />
-        {' '}
-        {_('xosanAdvanced')}
-        {showAdvanced && <Container>
-          <Field title={_('xosanBrickName')}>
-            <Copiable>{config.brickName}</Copiable>
-          </Field>
-          <Field title={_('xosanBrickUuid')}>
-            <Copiable>{uuid}</Copiable>
-          </Field>
-          {statusDetail && [
-            <Field key='usedInodes' title={_('xosanUsedInodes')}>
-              <span style={{ display: 'inline-block', width: '20em', height: '1em' }}>
-                <Tooltip content={_('spaceLeftTooltip', {
-                  used: String(Math.round(100 - (+statusDetail.inodesFree / +statusDetail.inodesTotal) * 100)),
-                  free: statusDetail.inodesFree
-                })}>
-                  <progress className='progress' max='100' value={100 - (+statusDetail.inodesFree / +statusDetail.inodesTotal) * 100}
-                  />
-                </Tooltip>
-              </span>
-            </Field>,
-            <Field key='blockSize' title={_('xosanBlockSize')}>{statusDetail.blockSize}</Field>,
-            <Field key='device' title={_('xosanDevice')}>{statusDetail.device}</Field>,
-            <Field key='fsName' title={_('xosanFsName')}>{statusDetail.fsName}</Field>,
-            <Field key='mountOptions' title={_('xosanMountOptions')}>{statusDetail.mntOptions}</Field>,
-            <Field key='path' title={_('xosanPath')}>{statusDetail.path}</Field>
-          ]}
-
-          {status && status.length !== 0 && <Row className='mt-1'>
+          <Row>
             <Col>
-              <table className='table' style={{ maxWidth: '50em' }}>
-                <thead>
-                  <th>{_('xosanJob')}</th>
-                  <th>{_('xosanPath')}</th>
-                  <th>{_('xosanStatus')}</th>
-                  <th>{_('xosanPid')}</th>
-                  <th>{_('xosanPort')}</th>
-                </thead>
-                <tbody>
-                  {map(status, job => <tr key={job.pid}>
-                    <td>{job.hostname}</td>
-                    <td>{job.path}</td>
-                    <td>{job.status}</td>
-                    <td>{job.pid}</td>
-                    <td>{job.port}</td>
-                  </tr>)}
-                </tbody>
-              </table>
+              <ActionButton
+                btnStyle='success'
+                icon='refresh'
+                handler={this._replaceBrick}
+                handlerParam={{ brick: config.brickName, vm }}
+              >
+                {_('xosanReplace')}
+              </ActionButton>
             </Col>
-          </Row>}
-          {heal && heal.file && heal.file.length !== 0 && <div>
-            <h4>{_('xosanFilesNeedingHealing')}</h4>
-            {map(heal.file, file => <Row key={file.gfid}>
-              <Col size={5}>{file._}</Col >
-              <Col size={4}>{file.gfid}</Col>
-            </Row>)}
-          </div>}
-        </Container>}
+          </Row>
+          <Row className='mt-1'>
+            <Col><Toggle onChange={this.toggleState('showAdvanced')} value={showAdvanced} /> {_('xosanAdvanced')}</Col>
+          </Row>
+          {showAdvanced && [
+            <Field title={_('xosanBrickName')}>
+              <Copiable>{config.brickName}</Copiable>
+            </Field>,
+            <Field title={_('xosanBrickUuid')}>
+              <Copiable>{uuid}</Copiable>
+            </Field>,
+            <div>
+              {statusDetail && [
+                <Field key='usedInodes' title={_('xosanUsedInodes')}>
+                  <span style={{ display: 'inline-block', width: '20em', height: '1em' }}>
+                    <Tooltip content={_('spaceLeftTooltip', {
+                      used: String(Math.round(100 - (+statusDetail.inodesFree / +statusDetail.inodesTotal) * 100)),
+                      free: statusDetail.inodesFree
+                    })}>
+                      <progress className='progress' max='100' value={100 - (+statusDetail.inodesFree / +statusDetail.inodesTotal) * 100}
+                      />
+                    </Tooltip>
+                  </span>
+                </Field>,
+                <Field key='blockSize' title={_('xosanBlockSize')}>{statusDetail.blockSize}</Field>,
+                <Field key='device' title={_('xosanDevice')}>{statusDetail.device}</Field>,
+                <Field key='fsName' title={_('xosanFsName')}>{statusDetail.fsName}</Field>,
+                <Field key='mountOptions' title={_('xosanMountOptions')}>{statusDetail.mntOptions}</Field>,
+                <Field key='path' title={_('xosanPath')}>{statusDetail.path}</Field>
+              ]}
+            </div>,
+            <div>
+              {status && status.length !== 0 && <Row className='mt-1'>
+                <Col>
+                  <table className='table' style={{ maxWidth: '50em' }}>
+                    <thead>
+                      <th>{_('xosanJob')}</th>
+                      <th>{_('xosanPath')}</th>
+                      <th>{_('xosanStatus')}</th>
+                      <th>{_('xosanPid')}</th>
+                      <th>{_('xosanPort')}</th>
+                    </thead>
+                    <tbody>
+                      {map(status, job => <tr key={job.pid}>
+                        <td>{job.hostname}</td>
+                        <td>{job.path}</td>
+                        <td>{job.status}</td>
+                        <td>{job.pid}</td>
+                        <td>{job.port}</td>
+                      </tr>)}
+                    </tbody>
+                  </table>
+                </Col>
+              </Row>}
+            </div>,
+            <div>
+              {heal && heal.file && heal.file.length !== 0 && <div>
+                <h4>{_('xosanFilesNeedingHealing')}</h4>
+                {map(heal.file, file => <Row key={file.gfid}>
+                  <Col size={5}>{file._}</Col >
+                  <Col size={4}>{file.gfid}</Col>
+                </Row>)}
+              </div>}
+            </div>
+          ]}
+        </Container>
       </div>
     </Collapse>
   }
@@ -399,7 +409,10 @@ export default class TabXosan extends Component {
 
   _getIssues = createSelector(
     this._getOrderedBrickList,
-    orderedBrickList => {
+    () => this.props.hosts_,
+    () => this.props.hosts,
+    () => this.props.sr,
+    (orderedBrickList, hosts_, hosts, sr) => {
       if (orderedBrickList == null) {
         return
       }
@@ -420,18 +433,32 @@ export default class TabXosan extends Component {
         false
       )) { issues.push({ code: 'FILES_NEED_HEALING' }) }
 
+      forEach(hosts_, ({ host }) => {
+        issues.push({
+          code: 'HOST_NOT_IN_NETWORK',
+          key: 'HOST_NOT_IN_NETWORK' + host,
+          params: { hostName: hosts[host].name_label },
+          fix: {
+            action: () => fixHostNotInXosanNetwork(sr.id, host),
+            title: _('xosanIssueHostNotInNetwork')
+          }
+        })
+      })
+
       return issues
     }
   )
 
   render () {
-    const { showAdvanced, hostStatus } = this.state
+    const { showAdvanced } = this.state
     const {
       heal_,
-      hosts,
       info_,
+      sr,
       status_,
-      statusDetail_
+      statusDetail_,
+      vbds,
+      vdis
     } = this.props
 
     const xosanConfig = this._getConfig()
@@ -449,18 +476,6 @@ export default class TabXosan extends Component {
     const strippedVolumeInfo = this._getStrippedVolumeInfo()
     // const subVolumes = this._getSubvolumes() // TODO: uncomment when implementing subvolume deletion
     const orderedBrickList = this._getOrderedBrickList()
-    const issues = this._getIssues()
-    forEach(hostStatus, status => {
-      issues.push({
-        code: 'HOST_NOT_IN_NETWORK',
-        key: 'HOST_NOT_IN_NETWORK' + status.host,
-        params: {hostName: hosts[status.host].name_label},
-        fix: {
-          action: () => fixHostNotInXosanNetwork(this.props.sr.id, status.host),
-          title: 'Will configure the host xosan network device with a static IP address and plug it in.'
-        }
-      })
-    })
 
     return <Container>
       <Row className='text-xs-center mb-1 mt-1'>
@@ -478,22 +493,22 @@ export default class TabXosan extends Component {
         </Col>
       </Row>
       <Row className='mb-1'>
-        <Issues issues={issues} />
+        <Col><Issues issues={this._getIssues()} /></Col>
       </Row>
-      <Row>
-        {map(orderedBrickList, node => <Col key={node.config.brickName}>
+      {map(orderedBrickList, node => <Row key={node.config.brickName}>
+        <Col>
           <Node
-            node={node}
             heal_={heal_}
+            info_={info_}
+            node={node}
+            sr={sr}
             status_={status_}
             statusDetail_={statusDetail_}
-            info_={info_}
-            vdis={this.props.vdis}
-            vbds={this.props.vbds}
-            sr={this.props.sr}
+            vbds={vbds}
+            vdis={vdis}
           />
-        </Col>)}
-      </Row>
+        </Col>
+      </Row>)}
       <Row>
         <Col>
           <ActionButton
