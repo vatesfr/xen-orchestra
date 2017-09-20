@@ -2,6 +2,7 @@ import appConf from 'app-conf'
 import pw from 'pw'
 
 import Xo from './xo'
+import { generateToken } from './utils'
 
 const recoverAccount = async ([ name ]) => {
   if (
@@ -17,10 +18,15 @@ xo-server-recover-account <user name or email>
 `
   }
 
-  const password = await new Promise(resolve => {
-    process.stdout.write('Password: ')
+  let password = await new Promise(resolve => {
+    process.stdout.write('Password (live empty for random): ')
     pw(resolve)
   })
+
+  if (password === '') {
+    password = await generateToken(10)
+    console.log('The generated password is', password)
+  }
 
   const xo = new Xo(await appConf.load('xo-server', {
     ignoreUnknownFormats: true
