@@ -664,25 +664,27 @@ export default class Home extends Component {
         </Col>
         <Col mediumSize={6}>
           <div className='input-group'>
-            {!isEmpty(filters) && (
-              <div className='input-group-btn'>
-                <DropdownButton id='filter' bsStyle='info' title={_('homeFilters')}>
-                  {!isEmpty(customFilters) && [
-                    map(customFilters, (filter, name) =>
-                      <MenuItem key={`custom-${name}`} onClick={() => this._setFilter(filter)}>
-                        {name}
-                      </MenuItem>
-                    ),
-                    <MenuItem key='divider' divider />
-                  ]}
-                  {map(filters, (filter, label) =>
-                    <MenuItem key={label} onClick={() => this._setFilter(filter)}>
-                      {_(label)}
+            <span className='input-group-btn'>
+              <DropdownButton id='filter' bsStyle='info' title={_('homeFilters')}>
+                <MenuItem onClick={this._addCustomFilter}>
+                  {_('filterSaveAs')}
+                </MenuItem>
+                <MenuItem divider />
+                {!isEmpty(customFilters) && [
+                  map(customFilters, (filter, name) =>
+                    <MenuItem key={`custom-${name}`} onClick={() => this._setFilter(filter)}>
+                      {name}
                     </MenuItem>
-                  )}
-                </DropdownButton>
-              </div>
-            )}
+                  ),
+                  <MenuItem key='divider' divider />
+                ]}
+                {map(filters, (filter, label) =>
+                  <MenuItem key={label} onClick={() => this._setFilter(filter)}>
+                    {_(label)}
+                  </MenuItem>
+                )}
+              </DropdownButton>
+            </span>
             <input
               className='form-control'
               defaultValue={this._getFilter()}
@@ -690,18 +692,20 @@ export default class Home extends Component {
               ref='filterInput'
               type='text'
             />
-            <div className='input-group-btn'>
+            <Tooltip content={_('filterSyntaxLinkTooltip')}>
+              <a
+                className='input-group-addon'
+                href='https://xen-orchestra.com/docs/search.html#filter-syntax'
+                target='_blank'
+              >
+                <Icon icon='info' />
+              </a>
+            </Tooltip>
+            <span className='input-group-btn'>
               <Button onClick={this._clearFilter}>
                 <Icon icon='clear-search' />
               </Button>
-            </div>
-            <div className='input-group-btn'>
-              <ActionButton
-                btnStyle='primary'
-                handler={this._addCustomFilter}
-                icon='save'
-              />
-            </div>
+            </span>
           </div>
         </Col>
         {(isAdmin || !noResourceSets) && <Col mediumSize={3} className='text-xs-right'>
