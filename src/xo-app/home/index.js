@@ -5,6 +5,7 @@ import ActionButton from 'action-button'
 import Button from 'button'
 import CenterPanel from 'center-panel'
 import Component from 'base-component'
+import defined, { get } from 'xo-defined'
 import Icon from 'icon'
 import invoke from 'invoke'
 import Link from 'link'
@@ -21,7 +22,6 @@ import {
   filter,
   find,
   forEach,
-  get,
   identity,
   includes,
   isEmpty,
@@ -65,7 +65,6 @@ import {
 import {
   addSubscriptions,
   connectStore,
-  firstDefined,
   noop
 } from 'utils'
 import {
@@ -388,12 +387,12 @@ export default class Home extends Component {
 
   _getDefaultFilter (props = this.props) {
     const { type } = props
-    const preferences = get(props, 'user.preferences')
-    const defaultFilterName = get(preferences, [ 'defaultHomeFilters', type ])
-    return firstDefined(
-      defaultFilterName && firstDefined(
-        get(homeFilters, [ type, defaultFilterName ]),
-        get(preferences, [ 'filters', type, defaultFilterName ])
+    const preferences = get(() => props.user.preferences)
+    const defaultFilterName = get(() => preferences.defaultHomeFilters[type])
+    return defined(
+      defaultFilterName && defined(
+        () => homeFilters[type][defaultFilterName],
+        () => preferences.filters[type][defaultFilterName]
       ),
       OPTIONS[type].defaultFilter
     )
@@ -403,8 +402,8 @@ export default class Home extends Component {
     const sortOption = find(OPTIONS[props.type].sortOptions, 'default')
 
     return {
-      sortBy: firstDefined(sortOption && sortOption.sortBy, 'name_label'),
-      sortOrder: firstDefined(sortOption && sortOption.sortOrder, 'asc')
+      sortBy: defined(() => sortOption.sortBy, 'name_label'),
+      sortOrder: defined(() => sortOption.sortOrder, 'asc')
     }
   }
 

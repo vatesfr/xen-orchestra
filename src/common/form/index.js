@@ -14,10 +14,10 @@ import {
 
 import Button from '../button'
 import Component from '../base-component'
+import defined from '../xo-defined'
 import getEventValue from '../get-event-value'
 import propTypes from '../prop-types-decorator'
 import {
-  firstDefined,
   formatSizeRaw,
   parseSize
 } from '../utils'
@@ -158,7 +158,7 @@ export class SizeInput extends BaseComponent {
   constructor (props) {
     super(props)
 
-    this.state = this._createStateFromBytes(firstDefined(props.value, props.defaultValue, null))
+    this.state = this._createStateFromBytes(defined(props.value, props.defaultValue, null))
   }
 
   componentWillReceiveProps (props) {
