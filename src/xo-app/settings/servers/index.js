@@ -160,7 +160,7 @@ const INDIVIDUAL_ACTIONS = [
   {
     handler: removeServer,
     icon: 'delete',
-    label: 'Remove server',
+    label: _('remove'),
     level: 'danger'
   }
 ]
