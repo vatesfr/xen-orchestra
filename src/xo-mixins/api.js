@@ -210,7 +210,7 @@ export default class Api {
     return remove
   }
 
-  async callApiMethod (session, name, params) {
+  async callApiMethod (session, name, params = {}) {
     const startTime = Date.now()
 
     const method = this._methods[name]

@@ -28,12 +28,17 @@ exportConfig.permission = 'admin'
 
 // -------------------------------------------------------------------
 
-export function getAllObjects () {
-  return this.getObjects()
+export function getAllObjects ({ filter, limit }) {
+  return this.getObjects({ filter, limit })
 }
 
 getAllObjects.permission = ''
 getAllObjects.description = 'Returns all XO objects'
+
+getAllObjects.params = {
+  filter: { type: 'object', optional: true },
+  limit: { type: 'number', optional: true }
+}
 
 // -------------------------------------------------------------------
 

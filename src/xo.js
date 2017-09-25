@@ -1,9 +1,18 @@
-import includes from 'lodash/includes'
 import XoCollection from 'xo-collection'
 import XoUniqueIndex from 'xo-collection/unique-index'
 import {createClient as createRedisClient} from 'redis'
 import {EventEmitter} from 'events'
 import { noSuchObject } from 'xo-common/api-errors'
+import {
+  forEach,
+  includes,
+  isEmpty,
+  isFunction,
+  isString,
+  iteratee,
+  map as mapToArray,
+  stubTrue
+} from 'lodash'
 
 import mixins from './xo-mixins'
 import Connection from './connection'
@@ -13,12 +22,7 @@ import {
 } from './decorators'
 import {
   createRawObject,
-  forEach,
   generateToken,
-  isEmpty,
-  isFunction,
-  isString,
-  mapToArray,
   noop
 } from './utils'
 
@@ -160,8 +164,32 @@ export default class Xo extends EventEmitter {
     return obj
   }
 
-  getObjects () {
-    return this._objects.all
+  getObjects ({ filter, limit } = {}) {
+    const { all } = this._objects
+
+    if (filter === undefined) {
+      if (limit === undefined || limit === Infinity) {
+        return all
+      }
+      filter = stubTrue
+    } else {
+      filter = iteratee(filter)
+      if (limit === undefined) {
+        limit = Infinity
+      }
+    }
+
+    const results = createRawObject(null)
+    for (const id in all) {
+      const object = all[id]
+      if (filter(object, id, all)) {
+        if (limit-- <= 0) {
+          break
+        }
+        results[id] = object
+      }
+    }
+    return results
   }
 
   // -----------------------------------------------------------------
