@@ -407,6 +407,21 @@ export default {
   // Original text: "Not shared {type}"
   srNotSharedType: '{type} non partagé',
 
+  // Original text: 'All of them are selected'
+  sortedTableAllItemsSelected: 'Toutes sont sélectionnées',
+
+  // Original text: '{nFiltered, number} of {nTotal, number} items'
+  sortedTableNumberOfFilteredItems: '{nFiltered, number} entrées sur {nTotal, number}',
+
+  // Original text: '{nTotal, number} items'
+  sortedTableNumberOfItems: '{nTotal, number} entrées',
+
+  // Original text: '{nSelected, number} selected'
+  sortedTableNumberOfSelectedItems: '{nSelected, number} sélectionnées',
+
+  // Original text: 'Click here to select all items'
+  sortedTableSelectAllItems: 'Cliquez ici pour sélectionner toutes les entrées',
+
   // Original text: "Add"
   add: 'Ajouter',
 

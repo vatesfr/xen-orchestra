@@ -15,6 +15,7 @@ import {
   ceil,
   debounce,
   findIndex,
+  forEach,
   isEmpty,
   isFunction,
   map
@@ -47,8 +48,6 @@ import styles from './index.css'
 @propTypes({
   defaultFilter: propTypes.string,
   filters: propTypes.object,
-  nFilteredItems: propTypes.number.isRequired,
-  nItems: propTypes.number.isRequired,
   onChange: propTypes.func.isRequired
 })
 class TableFilter extends Component {
@@ -70,7 +69,6 @@ class TableFilter extends Component {
 
     return (
       <div className='input-group'>
-        <span className='input-group-addon'>{props.nFilteredItems} / {props.nItems}</span>
         {isEmpty(props.filters)
           ? <span className='input-group-addon'><Icon icon='search' /></span>
           : <span className='input-group-btn'>
@@ -240,11 +238,15 @@ export default class SortedTable extends Component {
     }
 
     this.state = {
+      all: false, // whether all items are selected (accross pages)
       filter: defined(
         () => context.router.location.query[props.filterUrlParam],
         () => props.filters[props.defaultFilter]
       ),
       selectedColumn,
+      sortOrder: props.columns[selectedColumn].sortOrder === 'desc'
+        ? 'desc'
+        : 'asc',
       itemsPerPage: props.itemsPerPage || DEFAULT_ITEMS_PER_PAGE
     }
 
@@ -255,7 +257,7 @@ export default class SortedTable extends Component {
       () => this.props.collection
     )
 
-    this._getAllItems = createSort(
+    this._getItems = createSort(
       createFilter(
         () => this.props.collection,
         createSelector(
@@ -277,18 +279,12 @@ export default class SortedTable extends Component {
     this.state.activePage = 1
 
     this._getVisibleItems = createPager(
-      this._getAllItems,
+      this._getItems,
       () => this.state.activePage,
       this.state.itemsPerPage
     )
 
     this.state.selectedItemsIds = new Set()
-  }
-
-  componentWillMount () {
-    this.setState({
-      sortOrder: this.props.columns[this.state.selectedColumn].sortOrder === 'desc' ? 'desc' : 'asc'
-    })
   }
 
   componentDidMount () {
@@ -337,6 +333,7 @@ export default class SortedTable extends Component {
 
   _selectAllVisibleItems = event => {
     this.setState({
+      all: false,
       selectedItemsIds: event.target.checked
         ? this.state.selectedItemsIds.union(map(this._getVisibleItems(), 'id'))
         : this.state.selectedItemsIds.clear()
@@ -360,12 +357,27 @@ export default class SortedTable extends Component {
     }
   }
 
+  _selectAll = () => this.setState({ all: true })
+
   _selectItem = event => {
-    const { selectedItemsIds } = this.state
+    const { all, selectedItemsIds } = this.state
     const { target } = event
     const visibleItems = this._getVisibleItems()
 
     const current = +target.name
+
+    if (all) {
+      return this.setState({
+        all: false,
+        selectedItemsIds: new Set().withMutations(selectedItemsIds => {
+          forEach(visibleItems, item => {
+            selectedItemsIds.add(item.id)
+          })
+          selectedItemsIds.delete(visibleItems[current].id)
+        })
+      })
+    }
+
     let method = target.checked ? 'add' : 'delete'
 
     let previous
@@ -409,7 +421,14 @@ export default class SortedTable extends Component {
     })
   }, 500)
 
-  _executeGroupedAction = handler => handler(this.state.selectedItemsIds.toArray())
+  _executeGroupedAction = handler => {
+    const { state } = this
+    return handler(
+      state.all
+        ? map(this._getItems(), 'id')
+        : state.selectedItemsIds.toArray()
+    )
+  }
 
   render () {
     const { props, state } = this
@@ -423,13 +442,17 @@ export default class SortedTable extends Component {
       rowLink,
       userData
     } = props
+    const { all } = state
 
-    const nFilteredItems = this._getAllItems().length
-    const nVisibleItems = this._getVisibleItems().length
+    const nAllItems = this._getTotalNumberOfItems()
+    const nItems = this._getItems().length
     const nSelectedItems = state.selectedItemsIds.size
+    const nVisibleItems = this._getVisibleItems().length
 
     const hasGroupedActions = !isEmpty(groupedActions)
     const hasIndividualActions = !isEmpty(individualActions)
+
+    const nColumns = props.columns.length + (hasIndividualActions ? 2 : 1)
 
     const paginationInstance = (
       <Pagination
@@ -440,7 +463,7 @@ export default class SortedTable extends Component {
         ellipsis
         boundaryLinks
         maxButtons={10}
-        items={ceil(nFilteredItems / state.itemsPerPage)}
+        items={ceil(nItems / state.itemsPerPage)}
         activePage={this.state.activePage}
         onSelect={this._onPageSelection}
       />
@@ -450,8 +473,6 @@ export default class SortedTable extends Component {
       <TableFilter
         defaultFilter={state.filter}
         filters={filters}
-        nFilteredItems={nFilteredItems}
-        nItems={this._getTotalNumberOfItems()}
         onChange={this._onFilterChange}
       />
     )
@@ -461,14 +482,61 @@ export default class SortedTable extends Component {
         <table className='table'>
           <thead className='thead-default'>
             <tr>
+              <th colSpan={nColumns}>
+                {nItems === nAllItems
+                  ? _('sortedTableNumberOfItems', { nTotal: nItems })
+                  : _('sortedTableNumberOfFilteredItems', {
+                    nFiltered: nItems,
+                    nTotal: nAllItems
+                  })
+                }
+                {all
+                  ? <span>
+                    {' '}-{' '}
+                    <span className='text-danger'>
+                      {_('sortedTableAllItemsSelected')}
+                    </span>
+                  </span>
+                  : nSelectedItems !== 0 && <span>
+                    {' '}-{' '}
+                    {_('sortedTableNumberOfSelectedItems', {
+                      nSelected: nSelectedItems
+                    })}
+                    {nSelectedItems === nVisibleItems && nSelectedItems < nItems &&
+                      <Button
+                        btnStyle='info'
+                        className='ml-1'
+                        onClick={this._selectAll}
+                        size='small'
+                      >
+                        {_('sortedTableSelectAllItems')}
+                      </Button>
+                    }
+                  </span>
+                }
+                {nSelectedItems !== 0 && <div className='pull-right'>
+                  <ButtonGroup>
+                    {map(groupedActions, ({ icon, label, level, handler }, key) => <ActionRowButton
+                      btnStyle={level}
+                      handler={this._executeGroupedAction}
+                      handlerParam={handler}
+                      icon={icon}
+                      key={key}
+                      tooltip={label}
+                    />)}
+                  </ButtonGroup>
+                </div>}
+              </th>
+            </tr>
+            <tr>
               {hasGroupedActions && <th
                 className='text-xs-center'
                 onClick={this._toggleNestedCheckbox}
               >
                 <Checkbox
                   onChange={this._selectAllVisibleItems}
-                  checked={nSelectedItems !== 0}
-                  indeterminate={nSelectedItems !== 0 && nSelectedItems !== nVisibleItems}
+                  checked={all || nSelectedItems !== 0}
+                  indeterminate={!all && nSelectedItems !== 0 && nSelectedItems !== nVisibleItems}
                 />
               </th>}
               {map(props.columns, (column, key) => (
@@ -486,26 +554,6 @@ export default class SortedTable extends Component {
             </tr>
           </thead>
           <tbody>
-            {nSelectedItems !== 0 && <tr className='bg-faded'>
-              <td colSpan={props.columns.length + (individualActions != null ? 2 : 1)}>
-                {_('sortedTableSelectedItems', {
-                  selected: nSelectedItems,
-                  total: nVisibleItems
-                })}
-                <div className='pull-right'>
-                  <ButtonGroup>
-                    {map(groupedActions, ({ icon, label, level, handler }, key) => <ActionRowButton
-                      btnStyle={level}
-                      handler={this._executeGroupedAction}
-                      handlerParam={handler}
-                      icon={icon}
-                      key={key}
-                      tooltip={label}
-                    />)}
-                  </ButtonGroup>
-                </div>
-              </td>
-            </tr>}
             {map(this._getVisibleItems(), (item, i) => {
               const columns = map(props.columns, ({
                 component: Component,
@@ -530,7 +578,7 @@ export default class SortedTable extends Component {
                 onClick={this._toggleNestedCheckbox}
               >
                 <input
-                  checked={state.selectedItemsIds.has(id)}
+                  checked={all || state.selectedItemsIds.has(id)}
                   name={i} // position in visible items
                   onChange={this._selectItem}
                   type='checkbox'
