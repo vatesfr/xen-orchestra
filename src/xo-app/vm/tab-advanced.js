@@ -1,6 +1,7 @@
 import _ from 'intl'
 import Component from 'base-component'
 import Copiable from 'copiable'
+import defined from 'xo-defined'
 import getEventValue from 'get-event-value'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
@@ -19,7 +20,6 @@ import {
 } from 'lodash'
 import {
   connectStore,
-  firstDefined,
   formatSize,
   getCoresPerSocketPossibilities,
   normalizeXenToolsStatus,
@@ -369,8 +369,8 @@ export default ({
           <tr>
             <th>{_('vmMemoryLimitsLabel')}</th>
             <td>
-              <p>Static: {formatSize(vm.memory.static[0])}/<Size value={firstDefined(vm.memory.static[1], null)} onChange={memoryStaticMax => editVm(vm, { memoryStaticMax })} /></p>
-              <p>Dynamic: <Size value={firstDefined(vm.memory.dynamic[0], null)} onChange={memoryMin => editVm(vm, { memoryMin })} />/<Size value={firstDefined(vm.memory.dynamic[1], null)} onChange={memoryMax => editVm(vm, { memoryMax })} /></p>
+              <p>Static: {formatSize(vm.memory.static[0])}/<Size value={defined(vm.memory.static[1], null)} onChange={memoryStaticMax => editVm(vm, { memoryStaticMax })} /></p>
+              <p>Dynamic: <Size value={defined(vm.memory.dynamic[0], null)} onChange={memoryMin => editVm(vm, { memoryMin })} />/<Size value={defined(vm.memory.dynamic[1], null)} onChange={memoryMax => editVm(vm, { memoryMax })} /></p>
             </td>
           </tr>
         </tbody>

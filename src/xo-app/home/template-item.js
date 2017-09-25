@@ -1,5 +1,6 @@
 import _ from 'intl'
 import Component from 'base-component'
+import defined from 'xo-defined'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import Icon from 'icon'
 import Link from 'link'
@@ -17,7 +18,6 @@ import {
 } from 'xo'
 import {
   connectStore,
-  firstDefined,
   osFamily
 } from 'utils'
 import {
@@ -74,7 +74,7 @@ export default class TemplateItem extends Component {
           <Col mediumSize={4} className={styles.itemExpanded}>
             <span>
               <Number value={vm.CPUs.number} onChange={this._setCpus} />x <Icon icon='cpu' className='mr-1' />
-              <Size value={firstDefined(vm.memory.size, null)} onChange={this._setMemory} /> <Icon icon='memory' />
+              <Size value={defined(vm.memory.size, null)} onChange={this._setMemory} /> <Icon icon='memory' />
             </span>
           </Col>
           <Col largeSize={4} className={styles.itemExpanded}>

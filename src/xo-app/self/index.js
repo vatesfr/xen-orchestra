@@ -3,6 +3,7 @@ import ActionButton from 'action-button'
 import ChartistGraph from 'react-chartist'
 import Collapse from 'collapse'
 import Component from 'base-component'
+import defined from 'xo-defined'
 import differenceBy from 'lodash/differenceBy'
 import filter from 'lodash/filter'
 import forEach from 'lodash/forEach'
@@ -36,7 +37,6 @@ import {
 import {
   addSubscriptions,
   connectStore,
-  firstDefined,
   formatSize,
   resolveIds,
   resolveResourceSets
@@ -453,7 +453,7 @@ export class Edit extends Component {
                 </Row>
                 {map(state.ipPools, (ipPool, index) => <Row className='mb-1' key={index}>
                   <Col mediumSize={3}>
-                    <input className='form-control' type='number' min={0} onChange={this.linkState(`ipPools.${index}.quantity`)} value={firstDefined(ipPool.quantity, '')} placeholder='∞' />
+                    <input className='form-control' type='number' min={0} onChange={this.linkState(`ipPools.${index}.quantity`)} value={defined(ipPool.quantity, '')} placeholder='∞' />
                   </Col>
                   <Col mediumSize={7}>
                     <SelectIpPool onChange={this.linkState(`ipPools.${index}.id`, 'id')} value={ipPool.id} />

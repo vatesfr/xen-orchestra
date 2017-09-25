@@ -1,5 +1,6 @@
 import _ from 'intl'
 import Copiable from 'copiable'
+import defined from 'xo-defined'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
@@ -14,7 +15,6 @@ import { Container, Row, Col } from 'grid'
 import { Number, Size } from 'editable'
 import {
   connectStore,
-  firstDefined,
   formatSize,
   osFamily
 } from 'utils'
@@ -43,7 +43,7 @@ export default connectStore(() => {
     </Col>
     <Col mediumSize={3}>
       <h2 className='form-inline'>
-        <Size value={firstDefined(vm.memory.dynamic[1], null)} onChange={memory => editVm(vm, { memory })} />
+        <Size value={defined(vm.memory.dynamic[1], null)} onChange={memory => editVm(vm, { memory })} />
         &nbsp;<span><Icon icon='memory' size='lg' /></span>
       </h2>
       <BlockLink to={`/vms/${vm.id}/stats`}>{statsOverview && <MemorySparkLines data={statsOverview} />}</BlockLink>
