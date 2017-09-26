@@ -738,6 +738,8 @@ var messages = {
   resetBootOption: 'Reset',
   deleteSelectedVdis: 'Delete selected VDIs',
   deleteSelectedVdi: 'Delete selected VDI',
+  useQuotaWarning: 'Creating this disk will use the disk space quota from the resource set {resourceSet} ({spaceLeft} left)',
+  notEnoughSpaceInResourceSet: 'Not enough space in resource set {resourceSet} ({spaceLeft} left)',
 
   // ----- VM network tab -----
   vifCreateDeviceButton: 'New device',
