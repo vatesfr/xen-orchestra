@@ -2,6 +2,7 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import filter from 'lodash/filter'
+import find from 'lodash/find'
 import Icon from 'icon'
 import includes from 'lodash/includes'
 import info, { error } from 'notification'
@@ -107,7 +108,7 @@ class SelectLun extends Component {
   _handleChange = value => {
     const { onChange, options } = this.props
     value = value.value
-    this.setState({ value }, () => onChange(options[value]))
+    this.setState({ value }, () => onChange(find(options, { id: value })))
   }
 
   componentWillMount () {
