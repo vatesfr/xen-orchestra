@@ -28,6 +28,7 @@ import defined from '../xo-defined'
 import Icon from '../icon'
 import propTypes from '../prop-types-decorator'
 import SingleLineRow from '../single-line-row'
+import Tooltip from '../tooltip'
 import { BlockLink } from '../link'
 import { Container, Col } from '../grid'
 import { create as createMatcher } from '../complex-matcher'
@@ -72,7 +73,7 @@ class TableFilter extends Component {
         <span className='input-group-addon'>{props.nFilteredItems} / {props.nItems}</span>
         {isEmpty(props.filters)
           ? <span className='input-group-addon'><Icon icon='search' /></span>
-          : <div className='input-group-btn'>
+          : <span className='input-group-btn'>
             <Dropdown id='filter'>
               <DropdownToggle bsStyle='info'>
                 <Icon icon='search' />
@@ -85,18 +86,27 @@ class TableFilter extends Component {
                 )}
               </DropdownMenu>
             </Dropdown>
-          </div>}
+          </span>}
         <input
           className='form-control'
           defaultValue={props.defaultFilter}
           onChange={this._onChange}
           ref='filter'
         />
-        <div className='input-group-btn'>
+        <Tooltip content={_('filterSyntaxLinkTooltip')}>
+          <a
+            className='input-group-addon'
+            href='https://xen-orchestra.com/docs/search.html#filter-syntax'
+            target='_blank'
+          >
+            <Icon icon='info' />
+          </a>
+        </Tooltip>
+        <span className='input-group-btn'>
           <Button onClick={this._cleanFilter}>
             <Icon icon='clear-search' />
           </Button>
-        </div>
+        </span>
       </div>
     )
   }

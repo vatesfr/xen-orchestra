@@ -30,6 +30,8 @@ var messages = {
   filterOnlyRegular: 'Normal disks',
   filterOnlySnapshots: 'Snapshot disks',
   filterOnlyUnmanaged: 'Unmanaged disks',
+  filterSaveAs: 'Save…',
+  filterSyntaxLinkTooltip: 'Explore the search syntax in the documentation',
 
   // ----- Copiable component -----
   copyToClipboard: 'Copy to clipboard',
