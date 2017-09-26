@@ -442,8 +442,8 @@ export async function createIscsi ({
 
   // if we give user and password
   if (chapUser && chapPassword) {
-    deviceConfig.chapUser = chapUser
-    deviceConfig.chapPassword = chapPassword
+    deviceConfig.chapuser = chapUser
+    deviceConfig.chappassword = chapPassword
   }
 
   //  if we give another port than default iSCSI
@@ -581,8 +581,8 @@ export async function probeIscsiLuns ({
 
   // if we give user and password
   if (chapUser && chapPassword) {
-    deviceConfig.chapUser = chapUser
-    deviceConfig.chapPassword = chapPassword
+    deviceConfig.chapuser = chapUser
+    deviceConfig.chappassword = chapPassword
   }
 
   //  if we give another port than default iSCSI
@@ -660,8 +660,8 @@ export async function probeIscsiExists ({
 
   // if we give user and password
   if (chapUser && chapPassword) {
-    deviceConfig.chapUser = chapUser
-    deviceConfig.chapPassword = chapPassword
+    deviceConfig.chapuser = chapUser
+    deviceConfig.chappassword = chapPassword
   }
 
   //  if we give another port than default iSCSI
