@@ -2,18 +2,13 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import Component from 'base-component'
-import forEach from 'lodash/forEach'
-import get from 'lodash/get'
 import HTML5Backend from 'react-dnd-html5-backend'
 import Icon from 'icon'
-import isEmpty from 'lodash/isEmpty'
 import IsoDevice from 'iso-device'
 import Link from 'link'
-import map from 'lodash/map'
 import propTypes from 'prop-types-decorator'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
-import some from 'lodash/some'
 import StateButton from 'state-button'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
@@ -27,6 +22,14 @@ import { SizeInput, Toggle } from 'form'
 import { XoSelect, Size, Text } from 'editable'
 import { confirm } from 'modal'
 import { error } from 'notification'
+import {
+  forEach,
+  get,
+  includes,
+  isEmpty,
+  map,
+  some
+} from 'lodash'
 import {
   attachDiskToVm,
   createDisk,
@@ -71,6 +74,9 @@ const parseBootOrder = bootOrder => {
 @addSubscriptions({
   resourceSets: subscribeResourceSets
 })
+@connectStore({
+  isAdmin
+})
 class NewDisk extends Component {
   _createDisk = () => {
     const { vm, onClose = noop } = this.props
@@ -82,13 +88,28 @@ class NewDisk extends Component {
     }).then(onClose)
   }
 
+  _getIsInResourceSet = createSelector(
+    () => {
+      const resourceSet = this._getResourceSet()
+      return resourceSet && resourceSet.objects
+    },
+    objectsIds => objectsIds != null
+      ? id => includes(objectsIds, id)
+      : () => true
+  )
+
   // FIXME: duplicate code
   _getSrPredicate = createSelector(
     () => {
       const { vm } = this.props
       return vm && vm.$pool
     },
-    poolId => sr => sr.$pool === poolId && isSrWritable(sr)
+    this._getIsInResourceSet,
+    () => this.props.isAdmin,
+    (poolId, isInResourceSet, isAdmin) => sr =>
+      sr.$pool === poolId &&
+      isSrWritable(sr) &&
+      (isAdmin || isInResourceSet(sr.id))
   )
 
   _getResourceSet = createFinder(
