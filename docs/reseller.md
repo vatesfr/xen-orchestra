@@ -2,15 +2,15 @@
 
 The Xen Orchestra partner program is designed to offer you the opportunity to become a reseller of Xen Orchestra and deliver a full stack solution to your customers. 
 
-> For reselling XOA to your clients, you'll have a standard discount on every edition of Xen Orchestra. This discount will increase with the number of customers you have. 
+> For reselling XOA to your clients, you'll have a standard discount on every edition of Xen Orchestra. However, to keep the reseller status, you will have to sell more than one XO edition a year, if not, you will fall under the "purchaser" status, which grant no discount.
 
 ## Apply to the program
 
-You need to be registered first. Then go on [the partner page here](https://xen-orchestra.com/#!/partner) and click on the "Register button":
+You need to be registered first. Then go on [the partner page here](https://xen-orchestra.com/#!/partner) and click on the "Register to become a partner" button:
 
 ![](./assets/partner_request.png)
 
-You will have to complete a form in order to give us some informations regarding your expectation and location. Once it's down, we will come back to you very fast to discuss of our collaboration. 
+You will have to complete a form in order to give us some informations regarding your expectation and location. Once it's down, you should receive an email in order to start the discussion with someone from our team. 
 
 As soon it's done, you can access to your partner zone, [at the same partner page](https://xen-orchestra.com/#!/partner).
 
@@ -22,11 +22,9 @@ Now you could see the reseller interface:
 
 You can follow these steps to purchase a XOA edition for your customer. 
 
-1. choose the edition you want to purchase for your client
-2. Buy it on your reseller space (the discount automatically apply)
-3. Once it's done, a new line appears on your reseller space
-3. on this new line, upload your wire transfer proof
-4. assign/bind the plan to your final client email
+1. choose the edition you want to purchase for your customer
+2. Buy it on your reseller space (the discount is automatically applied - once it's done, a new line appears on your reseller space)
+3. assign/bind the plan to your final client email
 
 You'll have all the invoices in your account.
 
