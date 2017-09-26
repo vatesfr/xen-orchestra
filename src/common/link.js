@@ -19,6 +19,7 @@ const _IGNORED_TAGNAMES = {
 }
 
 @propTypes({
+  className: propTypes.string,
   tagName: propTypes.string
 })
 export class BlockLink extends Component {
@@ -54,10 +55,11 @@ export class BlockLink extends Component {
   }
 
   render () {
-    const { children, tagName = 'div' } = this.props
+    const { children, tagName = 'div', className } = this.props
     const Component = tagName
     return (
       <Component
+        className={className}
         ref={this._addAuxClickListener}
         style={this._style}
         onClickCapture={this._onClickCapture}

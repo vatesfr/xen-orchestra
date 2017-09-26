@@ -10,3 +10,8 @@
 .clickableRow {
   cursor: pointer;
 }
+
+.highlight {
+  outline: 2px solid #366e98;
+  outline-offset: -2px;
+}

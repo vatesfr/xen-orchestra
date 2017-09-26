@@ -17,6 +17,13 @@ const keymap = {
     NAV_UP: 'k',
     SELECT: 'x',
     JUMP_INTO: 'enter'
+  },
+  SortedTable: {
+    SEARCH: '/',
+    NAV_DOWN: 'j',
+    NAV_UP: 'k',
+    SELECT: 'x',
+    ROW_ACTION: 'enter'
   }
 }
 export { keymap as default }
@@ -25,6 +32,6 @@ export const help = mapValues(keymap, (shortcuts, contextLabel) => ({
   name: _(`shortcut_${contextLabel}`),
   shortcuts: mapValues(shortcuts, (shortcut, label) => ({
     keys: shortcuts[label],
-    message: _(`shortcut_${label}`)
+    message: _(`shortcut_${contextLabel}_${label}`)
   }))
 }))

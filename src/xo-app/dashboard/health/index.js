@@ -451,6 +451,7 @@ export default class Health extends Component {
                         collection={props.userSrs}
                         columns={SR_COLUMNS}
                         rowLink={this._getSrUrl}
+                        shortcutsTarget='body'
                       />
                     </Col>
                   </Row>
@@ -509,7 +510,7 @@ export default class Health extends Component {
             </Card>
           </Col>
         </Row>
-        <Row>
+        <Row className='orphaned-vms'>
           <Col>
             <Card>
               <CardHeader>
@@ -520,7 +521,7 @@ export default class Health extends Component {
                   collection={props.areObjectsFetched ? props.vmOrphaned : null}
                   emptyMessage={_('noOrphanedObject')}
                 >
-                  <SortedTable collection={props.vmOrphaned} columns={VM_COLUMNS} />
+                  <SortedTable collection={props.vmOrphaned} columns={VM_COLUMNS} shortcutsTarget='.orphaned-vms' />
                 </NoObjects>
               </CardBlock>
             </Card>

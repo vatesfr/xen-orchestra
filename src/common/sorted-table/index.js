@@ -3,6 +3,7 @@ import classNames from 'classnames'
 import DropdownMenu from 'react-bootstrap-4/lib/DropdownMenu' // https://phabricator.babeljs.io/T6662 so Dropdown.Menu won't work like https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
 import DropdownToggle from 'react-bootstrap-4/lib/DropdownToggle' // https://phabricator.babeljs.io/T6662 so Dropdown.Toggle won't work https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
 import React from 'react'
+import Shortcuts from 'shortcuts'
 import { Portal } from 'react-overlays'
 import { routerShape } from 'react-router/lib/PropTypes'
 import { Set } from 'immutable'
@@ -219,6 +220,9 @@ const actionsShape = propTypes.arrayOf(propTypes.shape({
     propTypes.func,
     propTypes.string
   ]),
+  // DOM node selector like body or .my-class
+  // The shortcuts will be enabled when the node is focused
+  shortcutsTarget: propTypes.string,
   userData: propTypes.any
 }, {
   router: routerShape
@@ -287,6 +291,69 @@ export default class SortedTable extends Component {
     )
 
     this.state.selectedItemsIds = new Set()
+
+    this._getShortcutsHandler = createSelector(
+      () => {
+        const items = this._getVisibleItems()
+        return items && items.length
+      },
+      () => {
+        const items = this._getVisibleItems()
+        const { highlighted } = this.state
+        return items && highlighted != null && items[highlighted]
+      },
+      () => this.state.highlighted,
+      () => this.props.groupedActions,
+      () => this.props.rowLink,
+      () => this.props.rowAction,
+      () => this.props.userData,
+      (nItems, item, itemIndex, groupedActions, rowLink, rowAction, userData) => (command, event) => {
+        event.preventDefault()
+        switch (command) {
+          case 'SEARCH':
+            this.refs.filterInput.refs.filter.focus()
+            break
+          case 'NAV_DOWN':
+            if (groupedActions == null && rowAction == null && rowLink == null) {
+              break
+            }
+            this.setState({ highlighted: (itemIndex + nItems + 1) % nItems || 0 })
+            break
+          case 'NAV_UP':
+            if (groupedActions == null && rowAction == null && rowLink == null) {
+              break
+            }
+            this.setState({ highlighted: (itemIndex + nItems - 1) % nItems || 0 })
+            break
+          case 'SELECT':
+            if (groupedActions == null) {
+              break
+            }
+            const { selectedItemsIds } = this.state
+            const method = selectedItemsIds.has(item.id)
+              ? 'delete'
+              : 'add'
+            this.setState({
+              selectedItemsIds: selectedItemsIds[method](item.id)
+            })
+            break
+          case 'ROW_ACTION':
+            if (item == null) {
+              break
+            }
+            if (rowLink != null) {
+              this.context.router.push(isFunction(rowLink)
+                ? rowLink(item, userData)
+                : rowLink
+              )
+              break
+            }
+            if (rowAction != null) {
+              rowAction(item, userData)
+            }
+        }
+      }
+    )
   }
 
   componentDidMount () {
@@ -330,7 +397,8 @@ export default class SortedTable extends Component {
   }
 
   _onPageSelection = (_, event) => this.setState({
-    activePage: event.eventKey
+    activePage: event.eventKey,
+    highlighted: undefined
   })
 
   _selectAllVisibleItems = event => {
@@ -418,8 +486,9 @@ export default class SortedTable extends Component {
       })
     }
     this.setState({
+      activePage: 1,
       filter,
-      activePage: 1
+      highlighted: undefined
     })
   }, 500)
 
@@ -489,25 +558,28 @@ export default class SortedTable extends Component {
     </div></td>
 
     return rowLink != null
-      ? <BlockLink
-        key={id}
-        tagName='tr'
-        to={isFunction(rowLink) ? rowLink(item, userData) : rowLink}
-      >
-        {selectionColumn}
-        {columns}
-        {actionsColumn}
-      </BlockLink>
-      : <tr
-        className={rowAction && styles.clickableRow}
-        data-index={i}
-        key={id}
-        onClick={rowAction && this._executeRowAction}
-      >
-        {selectionColumn}
-        {columns}
-        {actionsColumn}
-      </tr>
+        ? <BlockLink
+          className={state.highlighted === i ? styles.highlight : undefined}
+          key={id}
+          tagName='tr'
+          to={isFunction(rowLink) ? rowLink(item, userData) : rowLink}
+        >
+          {selectionColumn}
+          {columns}
+          {actionsColumn}
+        </BlockLink>
+        : <tr
+          className={classNames(
+            rowAction && styles.clickableRow,
+            state.highlighted === i && styles.highlight
+          )}
+          key={id}
+          onClick={rowAction && (() => rowAction(item, userData))}
+        >
+          {selectionColumn}
+          {columns}
+          {actionsColumn}
+        </tr>
   }
 
   render () {
@@ -516,7 +588,8 @@ export default class SortedTable extends Component {
       filterContainer,
       groupedActions,
       itemsPerPage,
-      paginationContainer
+      paginationContainer,
+      shortcutsTarget
     } = props
     const { all } = state
 
@@ -557,11 +630,18 @@ export default class SortedTable extends Component {
         defaultFilter={state.filter}
         filters={props.filters}
         onChange={this._onFilterChange}
+        ref='filterInput'
       />
     )
 
     return (
       <div>
+        {shortcutsTarget !== undefined && <Shortcuts
+          handler={this._getShortcutsHandler()}
+          name='SortedTable'
+          stopPropagation
+          targetNodeSelector={shortcutsTarget}
+        />}
         <table className='table'>
           <thead className='thead-default'>
             <tr>

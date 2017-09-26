@@ -618,10 +618,10 @@ export default class Home extends Component {
           this.refs.filterInput.focus()
           break
         case 'NAV_DOWN':
-          this.setState({ highlighted: (this.state.highlighted + items.length + 1) % items.length || 0 })
+          this.setState({ highlighted: (this.state.highlighted + 1) % items.length || 0 })
           break
         case 'NAV_UP':
-          this.setState({ highlighted: (this.state.highlighted + items.length - 1) % items.length || 0 })
+          this.setState({ highlighted: (this.state.highlighted - 1) % items.length || 0 })
           break
         case 'SELECT':
           const itemId = items[this.state.highlighted].id
