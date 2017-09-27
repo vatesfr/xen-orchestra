@@ -46,45 +46,46 @@ import {
   options: propTypes.array.isRequired
 })
 class SelectIqn extends Component {
-  _computeOptions (props = this.props) {
-    this.setState({
-      options: map(props.options, (iqn, id) => ({
-        value: `${iqn.ip}$${iqn.iqn}`,
-        label: `${iqn.iqn} (${iqn.ip})`
-      }))
-    })
-  }
-
-  _handleChange = value => {
-    const { onChange } = this.props
-
-    value = value.value
-    const index = value.indexOf('$')
-
-    this.setState({
-      value
-    }, () => onChange({
-      ip: value.slice(0, index),
-      iqn: value.slice(index + 1)
+  _getOptions = createSelector(
+    () => this.props.options,
+    options => map(options, ({ ip, iqn }, index) => ({
+      label: `${iqn} (${ip})`,
+      value: index
     }))
+  )
+
+  _handleChange = ({ value }) => {
+    const { props } = this
+
+    this.setState(
+      { value },
+      () => props.onChange(props.options[value])
+    )
   }
 
-  componentWillMount () {
-    this._computeOptions()
+  componentDidMount () {
+    return this.componentDidUpdate()
   }
 
-  componentWillReceiveProps (props) {
-    this._computeOptions(props)
+  componentDidUpdate () {
+    let options
+    if (
+      this.state.value === null &&
+      (options = this._getOptions()).length === 1
+    ) {
+      this._handleChange(options[0])
+    }
   }
+
+  state = { value: null }
 
   render () {
-    const { state } = this
     return (
       <Select
         clearable={false}
         onChange={this._handleChange}
-        options={state.options}
-        value={state.value}
+        options={this._getOptions()}
+        value={this.state.value}
       />
     )
   }
@@ -95,37 +96,45 @@ class SelectIqn extends Component {
   options: propTypes.array.isRequired
 })
 class SelectLun extends Component {
-  _computeOptions (props = this.props) {
-    this.setState({
-      options: map(props.options, lun => ({
-        value: lun.id,
-        label: `LUN ${lun.id}: ${lun.serial} - ${formatSize(+lun.size)} - (${lun.vendor})`
-      }))
-    })
+  _getOptions = createSelector(
+    () => this.props.options,
+    options => map(options, (lun, index) => ({
+      label: `LUN ${lun.id}: ${lun.serial} - ${formatSize(+lun.size)} - (${lun.vendor})`,
+      value: index
+    }))
+  )
+
+  _handleChange = ({ value }) => {
+    const { props } = this
+    this.setState(
+      { value },
+      () => props.onChange(props.options[value])
+    )
   }
 
-  _handleChange = value => {
-    const { onChange, options } = this.props
-    value = value.value
-    this.setState({ value }, () => onChange(options[value]))
+  componentDidMount () {
+    return this.componentDidUpdate()
   }
 
-  componentWillMount () {
-    this._computeOptions()
+  componentDidUpdate () {
+    let options
+    if (
+      this.state.value === null &&
+      (options = this._getOptions()).length === 1
+    ) {
+      this._handleChange(options[0])
+    }
   }
 
-  componentWillReceiveProps (props) {
-    this._computeOptions(props)
-  }
+  state = { value: null }
 
   render () {
-    const { state } = this
     return (
       <Select
         clearable={false}
         onChange={this._handleChange}
-        options={state.options}
-        value={state.value}
+        options={this._getOptions()}
+        value={this.state.value}
       />
     )
   }
@@ -172,6 +181,7 @@ export default class New extends Component {
       host: hostId && getObject(store.getState(), hostId),
       iqn: undefined,
       iqns: undefined,
+      loading: 0,
       lockCreation: undefined,
       lun: undefined,
       luns: undefined,
@@ -279,7 +289,7 @@ export default class New extends Component {
     } = this.state
 
     try {
-      this.setState({loading: true})
+      this.setState(({ loading }) => ({ loading: loading + 1 }))
       const luns = await probeSrIscsiLuns(host.id, iqn.ip, iqn.iqn, username && username.value, password && password.value)
       this.setState({
         iqn,
@@ -288,7 +298,7 @@ export default class New extends Component {
     } catch (err) {
       error('LUNs Detection', err.message || String(err))
     } finally {
-      this.setState({loading: undefined})
+      this.setState(({ loading }) => ({ loading: loading - 1 }))
     }
   }
 
@@ -304,7 +314,7 @@ export default class New extends Component {
     } = this.state
 
     try {
-      this.setState({loading: true})
+      this.setState(({ loading }) => ({ loading: loading + 1 }))
       const list = await probeSrIscsiExists(host.id, iqn.ip, iqn.iqn, lun.scsiId, +port.value, username && username.value, password && password.value)
       const srIds = map(this.getHostSrs(), sr => sr.id)
       const used = filter(list, item => includes(srIds, item.id))
@@ -319,7 +329,7 @@ export default class New extends Component {
     } catch (err) {
       error('iSCSI Error', err.message || String(err))
     } finally {
-      this.setState({loading: undefined})
+      this.setState(({ loading }) => ({ loading: loading - 1 }))
     }
   }
 
@@ -375,7 +385,7 @@ export default class New extends Component {
     } = this.state
 
     try {
-      this.setState({loading: true})
+      this.setState(({ loading }) => ({ loading: loading + 1 }))
       const list = await probeSrNfsExists(host.id, server.value, path)
       const srIds = map(this.getHostSrs(), sr => sr.id)
       const used = filter(list, item => includes(srIds, item.id))
@@ -390,7 +400,7 @@ export default class New extends Component {
     } catch (err) {
       error('NFS Error', err.message || String(err))
     } finally {
-      this.setState({loading: undefined})
+      this.setState(({ loading }) => ({ loading: loading - 1 }))
     }
   }
 
@@ -657,7 +667,7 @@ export default class New extends Component {
                   }
                 </fieldset>
               }
-              {loading &&
+              {loading !== 0 &&
                 <Icon icon='loading' />
               }
             </Section>

@@ -136,6 +136,7 @@ export default class SrDisks extends Component {
               columns={COLUMNS}
               defaultFilter='filterOnlyManaged'
               filters={FILTERS}
+              filterUrlParam='s'
               groupedActions={GROUPED_ACTIONS}
               individualActions={INDIVIDUAL_ACTIONS}
             />

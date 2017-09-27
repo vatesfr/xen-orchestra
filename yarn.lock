@@ -6306,6 +6306,13 @@ rc@^1.1.7:
     minimist "^1.2.0"
     strip-json-comments "~2.0.1"
 
+react-addons-shallow-compare@^15.0.2:
+  version "15.6.2"
+  resolved "https://registry.yarnpkg.com/react-addons-shallow-compare/-/react-addons-shallow-compare-15.6.2.tgz#198a00b91fc37623db64a28fd17b596ba362702f"
+  dependencies:
+    fbjs "^0.8.4"
+    object-assign "^4.1.0"
+
 react-addons-shallow-compare@^15.1.0:
   version "15.6.0"
   resolved "https://registry.yarnpkg.com/react-addons-shallow-compare/-/react-addons-shallow-compare-15.6.0.tgz#b7a4e5ff9f2704c20cf686dd8a05dd08b26de252"
@@ -6528,11 +6535,11 @@ react-side-effect@^1.0.2:
     exenv "^1.2.1"
     shallowequal "^1.0.1"
 
-react-sparklines@^1.7.0:
-  version "1.7.0"
-  resolved "https://registry.yarnpkg.com/react-sparklines/-/react-sparklines-1.7.0.tgz#9b1d97e8c8610095eeb2ad658d2e1fcf91f91a60"
+react-sparklines@1.6.0:
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/react-sparklines/-/react-sparklines-1.6.0.tgz#0fe5987b1895301ce724c40d78ab9a26e8a9c2bf"
   dependencies:
-    prop-types "^15.5.10"
+    react-addons-shallow-compare "^15.0.2"
 
 react-transition-group@^2.0.0-beta.0:
   version "2.2.0"

@@ -4,6 +4,7 @@ import DropdownMenu from 'react-bootstrap-4/lib/DropdownMenu' // https://phabric
 import DropdownToggle from 'react-bootstrap-4/lib/DropdownToggle' // https://phabricator.babeljs.io/T6662 so Dropdown.Toggle won't work https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
 import React from 'react'
 import { Portal } from 'react-overlays'
+import { routerShape } from 'react-router/lib/PropTypes'
 import { Set } from 'immutable'
 import {
   Dropdown,
@@ -19,13 +20,15 @@ import {
   map
 } from 'lodash'
 
-import ActionRowButton from 'action-row-button'
+import ActionRowButton from '../action-row-button'
 import Button from '../button'
 import ButtonGroup from '../button-group'
 import Component from '../base-component'
+import defined from '../xo-defined'
 import Icon from '../icon'
 import propTypes from '../prop-types-decorator'
 import SingleLineRow from '../single-line-row'
+import Tooltip from '../tooltip'
 import { BlockLink } from '../link'
 import { Container, Col } from '../grid'
 import { create as createMatcher } from '../complex-matcher'
@@ -70,7 +73,7 @@ class TableFilter extends Component {
         <span className='input-group-addon'>{props.nFilteredItems} / {props.nItems}</span>
         {isEmpty(props.filters)
           ? <span className='input-group-addon'><Icon icon='search' /></span>
-          : <div className='input-group-btn'>
+          : <span className='input-group-btn'>
             <Dropdown id='filter'>
               <DropdownToggle bsStyle='info'>
                 <Icon icon='search' />
@@ -83,18 +86,27 @@ class TableFilter extends Component {
                 )}
               </DropdownMenu>
             </Dropdown>
-          </div>}
+          </span>}
         <input
           className='form-control'
           defaultValue={props.defaultFilter}
           onChange={this._onChange}
           ref='filter'
         />
-        <div className='input-group-btn'>
+        <Tooltip content={_('filterSyntaxLinkTooltip')}>
+          <a
+            className='input-group-addon'
+            href='https://xen-orchestra.com/docs/search.html#filter-syntax'
+            target='_blank'
+          >
+            <Icon icon='info' />
+          </a>
+        </Tooltip>
+        <span className='input-group-btn'>
           <Button onClick={this._cleanFilter}>
             <Icon icon='clear-search' />
           </Button>
-        </div>
+        </span>
       </div>
     )
   }
@@ -199,6 +211,7 @@ const actionsShape = propTypes.arrayOf(propTypes.shape({
     textAlign: propTypes.string
   })).isRequired,
   filterContainer: propTypes.func,
+  filterUrlParam: propTypes.string,
   filters: propTypes.object,
   groupedActions: actionsShape,
   individualActions: actionsShape,
@@ -210,10 +223,12 @@ const actionsShape = propTypes.arrayOf(propTypes.shape({
     propTypes.string
   ]),
   userData: propTypes.any
+}, {
+  router: routerShape
 })
 export default class SortedTable extends Component {
-  constructor (props) {
-    super(props)
+  constructor (props, context) {
+    super(props, context)
 
     let selectedColumn = props.defaultColumn
     if (selectedColumn == null) {
@@ -224,10 +239,11 @@ export default class SortedTable extends Component {
       }
     }
 
-    const { defaultFilter } = props
-
     this.state = {
-      filter: defaultFilter !== undefined ? props.filters[defaultFilter] : undefined,
+      filter: defined(
+        () => context.router.location.query[props.filterUrlParam],
+        () => props.filters[props.defaultFilter]
+      ),
       selectedColumn,
       itemsPerPage: props.itemsPerPage || DEFAULT_ITEMS_PER_PAGE
     }
@@ -358,6 +374,18 @@ export default class SortedTable extends Component {
   }
 
   _onFilterChange = debounce(filter => {
+    const { filterUrlParam } = this.props
+    if (filterUrlParam !== undefined) {
+      const { router } = this.context
+      const { location } = router
+      router.replace({
+        ...location,
+        query: {
+          ...location.query,
+          [filterUrlParam]: filter
+        }
+      })
+    }
     this.setState({
       filter,
       activePage: 1
