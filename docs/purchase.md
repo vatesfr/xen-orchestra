@@ -23,3 +23,9 @@ You can ask for an automatic quote on our website on the pricing page or directe
 Choose the plan you want, the number of year of commitment that suits you and fill the informations required (prefilled with your account informations. 
 
 If you want to purchase XO using the quote you got, you just have to enter the quote number on the purchase menu, on your personal space. 
+
+## Edit your card informations
+
+If you choose a Stripe payment, you can always edit the credit card informations in case you need it. To do so, you only have to connect on your personal space and go on the *profile* menu. 
+
+![](./assets/updatecreditcard.png)
