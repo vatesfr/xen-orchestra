@@ -347,6 +347,7 @@ export default class Remotes extends Component {
             >
               {map(remoteTypes, (label, key) => _({key}, label, message => <option value={key}>{message}</option>))}
             </select>
+            {type === 'smb' && <em className='text-warning'>{_('remoteSmbWarningMessage')}</em>}
           </div>
           <div className='form-group'>
             <input type='text' ref='name' className='form-control' placeholder={this.props.intl.formatMessage(messages.remoteMyNamePlaceHolder)} required />

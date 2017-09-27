@@ -302,6 +302,7 @@ var messages = {
   remoteTypeNfs: 'NFS',
   remoteTypeSmb: 'SMB',
   remoteType: 'Type',
+  remoteSmbWarningMessage: 'SMB remotes are meant to work on Windows Server. For other systems (Linux Samba, which means almost all NAS), please use NFS.',
   remoteTestTip: 'Test your remote',
   testRemote: 'Test Remote',
   remoteTestFailure: 'Test failed for {name}',
