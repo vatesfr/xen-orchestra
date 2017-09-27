@@ -95,37 +95,29 @@ class SelectIqn extends Component {
   options: propTypes.array.isRequired
 })
 class SelectLun extends Component {
-  _computeOptions (props = this.props) {
-    this.setState({
-      options: map(props.options, lun => ({
-        value: lun.id,
-        label: `LUN ${lun.id}: ${lun.serial} - ${formatSize(+lun.size)} - (${lun.vendor})`
-      }))
-    })
-  }
+  _getOptions = createSelector(
+    () => this.props.options,
+    options => map(options, (lun, index) => ({
+      label: `LUN ${lun.id}: ${lun.serial} - ${formatSize(+lun.size)} - (${lun.vendor})`,
+      value: index
+    }))
+  )
 
-  _handleChange = value => {
-    const { onChange, options } = this.props
-    value = value.value
-    this.setState({ value }, () => onChange(options[value]))
-  }
-
-  componentWillMount () {
-    this._computeOptions()
-  }
-
-  componentWillReceiveProps (props) {
-    this._computeOptions(props)
+  _handleChange = ({ value }) => {
+    const { props } = this
+    this.setState(
+      { value },
+      () => props.onChange(props.options[value])
+    )
   }
 
   render () {
-    const { state } = this
     return (
       <Select
         clearable={false}
         onChange={this._handleChange}
-        options={state.options}
-        value={state.value}
+        options={this._getOptions()}
+        value={this.state.value}
       />
     )
   }
