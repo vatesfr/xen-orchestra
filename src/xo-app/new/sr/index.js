@@ -181,6 +181,7 @@ export default class New extends Component {
       host: hostId && getObject(store.getState(), hostId),
       iqn: undefined,
       iqns: undefined,
+      loading: 0,
       lockCreation: undefined,
       lun: undefined,
       luns: undefined,
@@ -288,7 +289,7 @@ export default class New extends Component {
     } = this.state
 
     try {
-      this.setState({loading: true})
+      this.setState(({ loading }) => ({ loading: loading + 1 }))
       const luns = await probeSrIscsiLuns(host.id, iqn.ip, iqn.iqn, username && username.value, password && password.value)
       this.setState({
         iqn,
@@ -297,7 +298,7 @@ export default class New extends Component {
     } catch (err) {
       error('LUNs Detection', err.message || String(err))
     } finally {
-      this.setState({loading: undefined})
+      this.setState(({ loading }) => ({ loading: loading - 1 }))
     }
   }
 
@@ -313,7 +314,7 @@ export default class New extends Component {
     } = this.state
 
     try {
-      this.setState({loading: true})
+      this.setState(({ loading }) => ({ loading: loading + 1 }))
       const list = await probeSrIscsiExists(host.id, iqn.ip, iqn.iqn, lun.scsiId, +port.value, username && username.value, password && password.value)
       const srIds = map(this.getHostSrs(), sr => sr.id)
       const used = filter(list, item => includes(srIds, item.id))
@@ -328,7 +329,7 @@ export default class New extends Component {
     } catch (err) {
       error('iSCSI Error', err.message || String(err))
     } finally {
-      this.setState({loading: undefined})
+      this.setState(({ loading }) => ({ loading: loading - 1 }))
     }
   }
 
@@ -384,7 +385,7 @@ export default class New extends Component {
     } = this.state
 
     try {
-      this.setState({loading: true})
+      this.setState(({ loading }) => ({ loading: loading + 1 }))
       const list = await probeSrNfsExists(host.id, server.value, path)
       const srIds = map(this.getHostSrs(), sr => sr.id)
       const used = filter(list, item => includes(srIds, item.id))
@@ -399,7 +400,7 @@ export default class New extends Component {
     } catch (err) {
       error('NFS Error', err.message || String(err))
     } finally {
-      this.setState({loading: undefined})
+      this.setState(({ loading }) => ({ loading: loading - 1 }))
     }
   }
 
@@ -666,7 +667,7 @@ export default class New extends Component {
                   }
                 </fieldset>
               }
-              {loading &&
+              {loading !== 0 &&
                 <Icon icon='loading' />
               }
             </Section>
