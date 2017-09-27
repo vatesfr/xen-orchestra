@@ -63,6 +63,22 @@ class SelectIqn extends Component {
     )
   }
 
+  componentDidMount () {
+    return this.componentDidUpdate()
+  }
+
+  componentDidUpdate () {
+    let options
+    if (
+      this.state.value === null &&
+      (options = this._getOptions()).length === 1
+    ) {
+      this._handleChange(options[0])
+    }
+  }
+
+  state = { value: null }
+
   render () {
     return (
       <Select
@@ -95,6 +111,22 @@ class SelectLun extends Component {
       () => props.onChange(props.options[value])
     )
   }
+
+  componentDidMount () {
+    return this.componentDidUpdate()
+  }
+
+  componentDidUpdate () {
+    let options
+    if (
+      this.state.value === null &&
+      (options = this._getOptions()).length === 1
+    ) {
+      this._handleChange(options[0])
+    }
+  }
+
+  state = { value: null }
 
   render () {
     return (
