@@ -70,12 +70,14 @@ class SelectIqn extends Component {
   componentDidUpdate () {
     let options
     if (
-      this.state.value === undefined &&
+      this.state.value === null &&
       (options = this._getOptions()).length === 1
     ) {
       this._handleChange(options[0])
     }
   }
+
+  state = { value: null }
 
   render () {
     return (
@@ -117,12 +119,14 @@ class SelectLun extends Component {
   componentDidUpdate () {
     let options
     if (
-      this.state.value === undefined &&
+      this.state.value === null &&
       (options = this._getOptions()).length === 1
     ) {
       this._handleChange(options[0])
     }
   }
+
+  state = { value: null }
 
   render () {
     return (
