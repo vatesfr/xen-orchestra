@@ -6,10 +6,20 @@
 {invalidParameters, unauthorized} = require 'xo-common/api-errors'
 {isArray: $isArray, parseSize} = require '../utils'
 {JsonRpcError} = require 'json-rpc-peer'
+{reduce} = require 'lodash'
 
 #=====================================================================
 
 delete_ = $coroutine ({vdi}) ->
+  resourceSet = reduce(
+    vdi.$VBDs
+    (resourceSet, vbd) => resourceSet || @getObject(@getObject(vbd, 'VBD').VM).resourceSet
+    undefined
+  )
+
+  if resourceSet != undefined
+    yield this.allocateLimitsInResourceSet({ disk: -vdi.size }, resourceSet)
+
   yield @getXapi(vdi).deleteVdi(vdi._xapiId)
 
   return
