@@ -1085,11 +1085,15 @@ export const attachDiskToVm = (vdi, vm, { bootable, mode, position }) => (
 
 // DISK ---------------------------------------------------------------
 
-export const createDisk = (name, size, sr) => (
+export const createDisk = (name, size, sr, { vm, bootable, mode, position }) => (
   _call('disk.create', {
+    bootable,
+    mode,
     name,
+    position,
     size,
-    sr: resolveId(sr)
+    sr: resolveId(sr),
+    vm: resolveId(vm)
   })
 )
 

@@ -2,30 +2,33 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import Component from 'base-component'
-import forEach from 'lodash/forEach'
 import HTML5Backend from 'react-dnd-html5-backend'
 import Icon from 'icon'
-import isEmpty from 'lodash/isEmpty'
 import IsoDevice from 'iso-device'
 import Link from 'link'
-import map from 'lodash/map'
 import propTypes from 'prop-types-decorator'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
-import some from 'lodash/some'
 import StateButton from 'state-button'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import { Container, Row, Col } from 'grid'
-import { createSelector } from 'selectors'
+import { createSelector, createFinder, getCheckPermissions, isAdmin } from 'selectors'
 import { DragDropContext, DragSource, DropTarget } from 'react-dnd'
 import { injectIntl } from 'react-intl'
-import { noop } from 'utils'
-import { SelectSr, SelectVdi } from 'select-objects'
+import { noop, addSubscriptions, formatSize, connectStore, resolveResourceSet } from 'utils'
+import { SelectSr, SelectVdi, SelectResourceSetsSr } from 'select-objects'
 import { SizeInput, Toggle } from 'form'
 import { XoSelect, Size, Text } from 'editable'
 import { confirm } from 'modal'
 import { error } from 'notification'
+import {
+  forEach,
+  get,
+  isEmpty,
+  map,
+  some
+} from 'lodash'
 import {
   attachDiskToVm,
   createDisk,
@@ -38,7 +41,8 @@ import {
   isVmRunning,
   migrateVdi,
   setBootableVbd,
-  setVmBootOrder
+  setVmBootOrder,
+  subscribeResourceSets
 } from 'xo'
 
 const parseBootOrder = bootOrder => {
@@ -66,30 +70,23 @@ const parseBootOrder = bootOrder => {
   onClose: propTypes.func,
   vm: propTypes.object.isRequired
 })
+@addSubscriptions({
+  resourceSets: subscribeResourceSets
+})
+@connectStore({
+  isAdmin
+})
 class NewDisk extends Component {
-  constructor (props) {
-    super(props)
-    this.state = {
-      sr: undefined
-    }
-  }
-
   _createDisk = () => {
     const { vm, onClose = noop } = this.props
-    const {name, size, bootable, readOnly} = this.refs
-    const { sr } = this.state
-    return createDisk(name.value, size.value, sr)
-      .then(diskId => {
-        const mode = readOnly.value ? 'RO' : 'RW'
-        return attachDiskToVm(diskId, vm, {
-          bootable: bootable && bootable.value,
-          mode
-        })
-          .then(onClose)
-      })
-  }
+    const { bootable, name, readOnly, size, sr } = this.state
 
-  _selectSr = sr => this.setState({sr})
+    return createDisk(name, size, sr, {
+      vm,
+      bootable,
+      mode: readOnly ? 'RO' : 'RW'
+    }).then(onClose)
+  }
 
   // FIXME: duplicate code
   _getSrPredicate = createSelector(
@@ -100,31 +97,66 @@ class NewDisk extends Component {
     poolId => sr => sr.$pool === poolId && isSrWritable(sr)
   )
 
+  _getResourceSet = createFinder(
+    () => this.props.resourceSets,
+    createSelector(
+      () => this.props.vm.resourceSet,
+      id => resourceSet => resourceSet.id === id
+    )
+  )
+
+  _getResolvedResourceSet = createSelector(
+    this._getResourceSet,
+    resolveResourceSet
+  )
+
+  _getResourceSetDiskLimit = createSelector(
+    this._getResourceSet,
+    resourceSet => get(resourceSet, 'limits.disk.available')
+  )
+
   render () {
-    const { vm } = this.props
+    const { vm, isAdmin } = this.props
     const { formatMessage } = this.props.intl
+    const { size, sr, name, bootable, readOnly } = this.state
+
+    const diskLimit = this._getResourceSetDiskLimit()
+    const resourceSet = this._getResolvedResourceSet()
+
+    const SelectSr_ = isAdmin || resourceSet == null ? SelectSr : SelectResourceSetsSr
 
     return <form id='newDiskForm'>
       <div className='form-group'>
-        <SelectSr predicate={this._getSrPredicate()} onChange={this._selectSr} required />
+        <SelectSr_
+          onChange={this.linkState('sr')}
+          predicate={this._getSrPredicate()}
+          required
+          resourceSet={isAdmin ? undefined : resourceSet}
+          value={sr}
+        />
       </div>
       <fieldset className='form-inline'>
         <div className='form-group'>
-          <input type='text' ref='name' placeholder={formatMessage(messages.vbdNamePlaceHolder)} className='form-control' required />
+          <input type='text' onChange={this.linkState('name')} value={name} placeholder={formatMessage(messages.vbdNamePlaceHolder)} className='form-control' required />
         </div>
         {' '}
         <div className='form-group'>
-          <SizeInput ref='size' placeholder={formatMessage(messages.vbdSizePlaceHolder)} required />
+          <SizeInput onChange={this.linkState('size')} value={size} placeholder={formatMessage(messages.vbdSizePlaceHolder)} required />
         </div>
         {' '}
         <div className='form-group'>
-          {vm.virtualizationMode === 'pv' && <span>{_('vbdBootable')} <Toggle ref='bootable' /> </span>}
-          <span>{_('vbdReadonly')} <Toggle ref='readOnly' /></span>
+          {vm.virtualizationMode === 'pv' && <span>{_('vbdBootable')} <Toggle onChange={this.toggleState('bootable')} value={bootable} /> </span>}
+          <span>{_('vbdReadonly')} <Toggle onChange={this.toggleState('readOnly')} value={readOnly} /></span>
         </div>
         <span className='pull-right'>
-          <ActionButton form='newDiskForm' icon='add' btnStyle='primary' handler={this._createDisk}>{_('vbdCreate')}</ActionButton>
+          <ActionButton form='newDiskForm' icon='add' btnStyle='primary' handler={this._createDisk} disabled={diskLimit < size}>{_('vbdCreate')}</ActionButton>
         </span>
       </fieldset>
+      {resourceSet != null && diskLimit != null && (
+        diskLimit < size
+          ? <em className='text-danger'>{_('notEnoughSpaceInResourceSet', { resourceSet: <strong>{resourceSet.name}</strong>, spaceLeft: formatSize(diskLimit) })}</em>
+          : <em>{_('useQuotaWarning', { resourceSet: <strong>{resourceSet.name}</strong>, spaceLeft: formatSize(diskLimit) })}</em>
+      )}
     </form>
   }
 }
@@ -156,18 +188,16 @@ class AttachDisk extends Component {
 
   _addVdi = () => {
     const { vm, vbds, onClose = noop } = this.props
-    const { vdi } = this.state
-    const { bootable, readOnly } = this.refs
+    const { bootable, readOnly, vdi } = this.state
+
     const _isFreeForWriting = vdi => vdi.$VBDs.length === 0 || some(vdi.$VBDs, id => {
       const vbd = vbds[id]
       return !vbd || !vbd.attached || vbd.read_only
     })
-    const mode = readOnly.value || !_isFreeForWriting(vdi) ? 'RO' : 'RW'
     return attachDiskToVm(vdi, vm, {
-      bootable: bootable && bootable.value,
-      mode
-    })
-      .then(onClose)
+      bootable,
+      mode: readOnly || !_isFreeForWriting(vdi) ? 'RO' : 'RW'
+    }).then(onClose)
   }
 
   render () {
@@ -350,6 +380,10 @@ class MigrateVdiModalBody extends Component {
   }
 }
 
+@connectStore(() => ({
+  checkPermissions: getCheckPermissions,
+  isAdmin
+}))
 export default class TabDisks extends Component {
   constructor (props) {
     super(props)
@@ -392,6 +426,19 @@ export default class TabDisks extends Component {
     })
   }
 
+  _getIsVmAdmin = createSelector(
+    () => this.props.checkPermissions,
+    () => this.props.vm && this.props.vm.id,
+    (check, vmId) => check(vmId, 'administrate')
+  )
+
+  _getAttachDiskPredicate = createSelector(
+    () => this.props.isAdmin,
+    () => this.props.vm.resourceSet,
+    this._getIsVmAdmin,
+    (isAdmin, resourceSet, isVmAdmin) => isAdmin || (resourceSet == null && isVmAdmin)
+  )
+
   render () {
     const {
       srs,
@@ -415,12 +462,12 @@ export default class TabDisks extends Component {
             icon='add'
             labelId='vbdCreateDeviceButton'
           />
-          <TabButton
+          {this._getAttachDiskPredicate() && <TabButton
             btnStyle={attachDisk ? 'info' : 'primary'}
             handler={this._toggleAttachDisk}
             icon='disk'
             labelId='vdiAttachDeviceButton'
-          />
+          />}
           {vm.virtualizationMode !== 'pv' && <TabButton
             btnStyle={bootOrder ? 'info' : 'primary'}
             handler={this._toggleBootOrder}
