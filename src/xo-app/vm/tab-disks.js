@@ -16,8 +16,8 @@ import { Container, Row, Col } from 'grid'
 import { createSelector, createFinder, getCheckPermissions, isAdmin } from 'selectors'
 import { DragDropContext, DragSource, DropTarget } from 'react-dnd'
 import { injectIntl } from 'react-intl'
-import { noop, addSubscriptions, formatSize, connectStore } from 'utils'
-import { SelectSr, SelectVdi } from 'select-objects'
+import { noop, addSubscriptions, formatSize, connectStore, resolveResourceSet } from 'utils'
+import { SelectSr, SelectVdi, SelectResourceSetsSr } from 'select-objects'
 import { SizeInput, Toggle } from 'form'
 import { XoSelect, Size, Text } from 'editable'
 import { confirm } from 'modal'
@@ -25,7 +25,6 @@ import { error } from 'notification'
 import {
   forEach,
   get,
-  includes,
   isEmpty,
   map,
   some
@@ -88,28 +87,13 @@ class NewDisk extends Component {
     }).then(onClose)
   }
 
-  _getIsInResourceSet = createSelector(
-    () => {
-      const resourceSet = this._getResourceSet()
-      return resourceSet && resourceSet.objects
-    },
-    objectsIds => objectsIds != null
-      ? id => includes(objectsIds, id)
-      : () => true
-  )
-
   // FIXME: duplicate code
   _getSrPredicate = createSelector(
     () => {
       const { vm } = this.props
       return vm && vm.$pool
     },
-    this._getIsInResourceSet,
-    () => this.props.isAdmin,
-    (poolId, isInResourceSet, isAdmin) => sr =>
-      sr.$pool === poolId &&
-      isSrWritable(sr) &&
-      (isAdmin || isInResourceSet(sr.id))
+    poolId => sr => sr.$pool === poolId && isSrWritable(sr)
   )
 
   _getResourceSet = createFinder(
@@ -120,9 +104,9 @@ class NewDisk extends Component {
     )
   )
 
-  _getResourceSetName = createSelector(
+  _getResolvedResourceSet = createSelector(
     this._getResourceSet,
-    resourceSet => resourceSet && resourceSet.name
+    resolveResourceSet
   )
 
   _getResourceSetDiskLimit = createSelector(
@@ -131,16 +115,23 @@ class NewDisk extends Component {
   )
 
   render () {
-    const { vm } = this.props
+    const { vm, isAdmin } = this.props
     const { formatMessage } = this.props.intl
     const { size } = this.state
 
     const diskLimit = this._getResourceSetDiskLimit()
-    const resourceSetName = this._getResourceSetName()
+    const resourceSet = this._getResolvedResourceSet()
+
+    const SelectSr_ = isAdmin || resourceSet == null ? SelectSr : SelectResourceSetsSr
 
     return <form id='newDiskForm'>
       <div className='form-group'>
-        <SelectSr predicate={this._getSrPredicate()} onChange={this.linkState('sr')} required />
+        <SelectSr_
+          onChange={this.linkState('sr')}
+          predicate={this._getSrPredicate()}
+          required
+          resourceSet={isAdmin ? undefined : resourceSet}
+        />
       </div>
       <fieldset className='form-inline'>
         <div className='form-group'>
@@ -159,8 +150,8 @@ class NewDisk extends Component {
           <ActionButton form='newDiskForm' icon='add' btnStyle='primary' handler={this._createDisk} disabled={diskLimit < size}>{_('vbdCreate')}</ActionButton>
         </span>
       </fieldset>
-      {resourceSetName != null && diskLimit >= size && <em>{_('useQuotaWarning', { resourceSet: <strong>{resourceSetName}</strong>, spaceLeft: formatSize(diskLimit) })}</em>}
-      {diskLimit < size && <em className='text-danger'>{_('notEnoughSpaceInResourceSet', { resourceSet: <strong>{resourceSetName}</strong>, spaceLeft: formatSize(diskLimit) })}</em>}
+      {resourceSet != null && diskLimit >= size && <em>{_('useQuotaWarning', { resourceSet: <strong>{resourceSet.name}</strong>, spaceLeft: formatSize(diskLimit) })}</em>}
+      {resourceSet != null && diskLimit < size && <em className='text-danger'>{_('notEnoughSpaceInResourceSet', { resourceSet: <strong>{resourceSet.name}</strong>, spaceLeft: formatSize(diskLimit) })}</em>}
     </form>
   }
 }
