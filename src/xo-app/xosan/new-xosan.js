@@ -187,7 +187,7 @@ export default class NewXosan extends Component {
     () => this.state.pif,
     this._getNSelectedSrs,
     (suggestion, suggestions, pif, nSelectedSrs) =>
-      !suggestions || !suggestions[suggestion] || !pif || nSelectedSrs < 2
+      !suggestions || !suggestions[suggestion] || !pif || nSelectedSrs < 2 || suggestions[suggestion].availableSpace === 0
   )
 
   _createXosanVm = () => {
@@ -362,7 +362,7 @@ export default class NewXosan extends Component {
                   <td>{layout}</td>
                   <td>{redundancy}</td>
                   <td>{capacity}</td>
-                  <td>{formatSize(availableSpace)}</td>
+                  <td>{availableSpace ? formatSize(availableSpace) : <span style={{color: 'red', 'font-weight': 'bold'}}>0</span>}</td>
                 </tr>)}
               </tbody>
             </table>
