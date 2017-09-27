@@ -46,45 +46,30 @@ import {
   options: propTypes.array.isRequired
 })
 class SelectIqn extends Component {
-  _computeOptions (props = this.props) {
-    this.setState({
-      options: map(props.options, (iqn, id) => ({
-        value: `${iqn.ip}$${iqn.iqn}`,
-        label: `${iqn.iqn} (${iqn.ip})`
-      }))
-    })
-  }
-
-  _handleChange = value => {
-    const { onChange } = this.props
-
-    value = value.value
-    const index = value.indexOf('$')
-
-    this.setState({
-      value
-    }, () => onChange({
-      ip: value.slice(0, index),
-      iqn: value.slice(index + 1)
+  _getOptions = createSelector(
+    () => this.props.options,
+    options => map(options, ({ ip, iqn }, index) => ({
+      label: `${iqn} (${ip})`,
+      value: index
     }))
-  }
+  )
 
-  componentWillMount () {
-    this._computeOptions()
-  }
+  _handleChange = ({ value }) => {
+    const { props } = this
 
-  componentWillReceiveProps (props) {
-    this._computeOptions(props)
+    this.setState(
+      { value },
+      () => props.onChange(props.options[value])
+    )
   }
 
   render () {
-    const { state } = this
     return (
       <Select
         clearable={false}
         onChange={this._handleChange}
-        options={state.options}
-        value={state.value}
+        options={this._getOptions()}
+        value={this.state.value}
       />
     )
   }
