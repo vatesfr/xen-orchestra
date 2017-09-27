@@ -81,7 +81,8 @@ class NewDisk extends Component {
     const { vm, onClose = noop } = this.props
     const { bootable, name, readOnly, size, sr } = this.state
 
-    return createDisk(name, size, sr, vm, {
+    return createDisk(name, size, sr, {
+      vm,
       bootable,
       mode: readOnly ? 'RO' : 'RW'
     }).then(onClose)
@@ -117,7 +118,7 @@ class NewDisk extends Component {
   render () {
     const { vm, isAdmin } = this.props
     const { formatMessage } = this.props.intl
-    const { size } = this.state
+    const { size, sr, name, bootable, readOnly } = this.state
 
     const diskLimit = this._getResourceSetDiskLimit()
     const resourceSet = this._getResolvedResourceSet()
@@ -131,27 +132,31 @@ class NewDisk extends Component {
           predicate={this._getSrPredicate()}
           required
           resourceSet={isAdmin ? undefined : resourceSet}
+          value={sr}
         />
       </div>
       <fieldset className='form-inline'>
         <div className='form-group'>
-          <input type='text' onChange={this.linkState('name')} placeholder={formatMessage(messages.vbdNamePlaceHolder)} className='form-control' required />
+          <input type='text' onChange={this.linkState('name')} value={name} placeholder={formatMessage(messages.vbdNamePlaceHolder)} className='form-control' required />
         </div>
         {' '}
         <div className='form-group'>
-          <SizeInput onChange={this.linkState('size')} placeholder={formatMessage(messages.vbdSizePlaceHolder)} required />
+          <SizeInput onChange={this.linkState('size')} value={size} placeholder={formatMessage(messages.vbdSizePlaceHolder)} required />
         </div>
         {' '}
         <div className='form-group'>
-          {vm.virtualizationMode === 'pv' && <span>{_('vbdBootable')} <Toggle onChange={this.toggleState('bootable')} /> </span>}
-          <span>{_('vbdReadonly')} <Toggle onChange={this.toggleState('readOnly')} /></span>
+          {vm.virtualizationMode === 'pv' && <span>{_('vbdBootable')} <Toggle onChange={this.toggleState('bootable')} value={bootable} /> </span>}
+          <span>{_('vbdReadonly')} <Toggle onChange={this.toggleState('readOnly')} value={readOnly} /></span>
         </div>
         <span className='pull-right'>
           <ActionButton form='newDiskForm' icon='add' btnStyle='primary' handler={this._createDisk} disabled={diskLimit < size}>{_('vbdCreate')}</ActionButton>
         </span>
       </fieldset>
-      {resourceSet != null && diskLimit >= size && <em>{_('useQuotaWarning', { resourceSet: <strong>{resourceSet.name}</strong>, spaceLeft: formatSize(diskLimit) })}</em>}
-      {resourceSet != null && diskLimit < size && <em className='text-danger'>{_('notEnoughSpaceInResourceSet', { resourceSet: <strong>{resourceSet.name}</strong>, spaceLeft: formatSize(diskLimit) })}</em>}
+      {resourceSet != null && diskLimit != null && (
+        diskLimit < size
+          ? <em className='text-danger'>{_('notEnoughSpaceInResourceSet', { resourceSet: <strong>{resourceSet.name}</strong>, spaceLeft: formatSize(diskLimit) })}</em>
+          : <em>{_('useQuotaWarning', { resourceSet: <strong>{resourceSet.name}</strong>, spaceLeft: formatSize(diskLimit) })}</em>
+      )}
     </form>
   }
 }

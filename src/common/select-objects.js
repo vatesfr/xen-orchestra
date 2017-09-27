@@ -640,7 +640,6 @@ export const SelectResourceSet = makeSubscriptionSelect(subscriber => {
 
 // ===================================================================
 
-@uncontrollableInput()
 export class SelectResourceSetsVmTemplate extends Component {
   get value () {
     return this.refs.select.value
@@ -673,7 +672,6 @@ export class SelectResourceSetsVmTemplate extends Component {
 
 // ===================================================================
 
-@uncontrollableInput()
 export class SelectResourceSetsSr extends Component {
   get value () {
     return this.refs.select.value
@@ -705,7 +703,6 @@ export class SelectResourceSetsSr extends Component {
 
 // ===================================================================
 
-@uncontrollableInput()
 export class SelectResourceSetsVdi extends Component {
   get value () {
     return this.refs.select.value
@@ -747,7 +744,6 @@ export class SelectResourceSetsVdi extends Component {
 
 // ===================================================================
 
-@uncontrollableInput()
 export class SelectResourceSetsNetwork extends Component {
   get value () {
     return this.refs.select.value
