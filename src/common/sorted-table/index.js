@@ -430,6 +430,12 @@ export default class SortedTable extends Component {
     )
   }
 
+  _executeRowAction = event => {
+    const { props } = this
+    const item = this._getVisibleItems()[event.currentTarget.dataset.index]
+    props.rowAction(item, props.userData)
+  }
+
   render () {
     const { props, state } = this
     const {
@@ -609,8 +615,9 @@ export default class SortedTable extends Component {
                 </BlockLink>
                 : <tr
                   className={rowAction && styles.clickableRow}
+                  data-index={i}
                   key={id}
-                  onClick={rowAction && (() => rowAction(item, userData))}
+                  onClick={rowAction && this._executeRowAction}
                 >
                   {selectionColumn}
                   {columns}
