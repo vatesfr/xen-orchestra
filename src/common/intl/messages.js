@@ -163,7 +163,11 @@ var messages = {
   srNotSharedType: 'Not shared {type}',
 
   // ----- Common components -----
-  sortedTableSelectedItems: '{selected, number} selected on {total, number}',
+  sortedTableAllItemsSelected: 'All of them are selected',
+  sortedTableNumberOfFilteredItems: '{nFiltered, number} of {nTotal, number} items',
+  sortedTableNumberOfItems: '{nTotal, number} items',
+  sortedTableNumberOfSelectedItems: '{nSelected, number} selected',
+  sortedTableSelectAllItems: 'Click here to select all items',
 
   // ----- Forms -----
   add: 'Add',
