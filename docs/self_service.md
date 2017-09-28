@@ -22,7 +22,7 @@ In this example below, we'll create a set called **"sandbox"** with:
 * "SSD NFS" is the only SR where they can create VMs
 * "Pool-wide network with eth0" is the only available network for them
 
-![](https://xen-orchestra.com/blog/content/images/2016/02/selfservice_quotas.png)
+![](./assets/selfserviceset.png)
 
 As you can see, only compatible hosts are shown and could be used for this resource set (here, hosts in another pools aren't). This way, you can be sure to have resource free for other task than self-service.
 
