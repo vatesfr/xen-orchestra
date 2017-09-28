@@ -343,6 +343,23 @@ export default class SortedTable extends Component {
     })
   }
 
+  // TODO: figure out why it's necessary
+  _toggleNestedCheckboxGuard = false
+
+  _toggleNestedCheckbox = event => {
+    const child = event.target.firstElementChild
+    if (child != null && child.tagName === 'INPUT') {
+      if (this._toggleNestedCheckboxGuard) {
+        return
+      }
+      this._toggleNestedCheckboxGuard = true
+      child.dispatchEvent(
+        new window.MouseEvent('click', event.nativeEvent)
+      )
+      this._toggleNestedCheckboxGuard = false
+    }
+  }
+
   _selectItem = event => {
     const { selectedItemsIds } = this.state
     const { target } = event
@@ -444,7 +461,10 @@ export default class SortedTable extends Component {
         <table className='table'>
           <thead className='thead-default'>
             <tr>
-              {hasGroupedActions && <th>
+              {hasGroupedActions && <th
+                className='text-xs-center'
+                onClick={this._toggleNestedCheckbox}
+              >
                 <Checkbox
                   onChange={this._selectAllVisibleItems}
                   checked={nSelectedItems !== 0}
@@ -505,7 +525,10 @@ export default class SortedTable extends Component {
 
               const { id = i } = item
 
-              const selectionColumn = hasGroupedActions && <td>
+              const selectionColumn = hasGroupedActions && <td
+                className='text-xs-center'
+                onClick={this._toggleNestedCheckbox}
+              >
                 <input
                   checked={state.selectedItemsIds.has(id)}
                   name={i} // position in visible items
