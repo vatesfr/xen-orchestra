@@ -293,22 +293,16 @@ export default class SortedTable extends Component {
     this.state.selectedItemsIds = new Set()
 
     this._getShortcutsHandler = createSelector(
-      () => {
-        const items = this._getVisibleItems()
-        return items && items.length
-      },
-      () => {
-        const items = this._getVisibleItems()
-        const { highlighted } = this.state
-        return items && highlighted != null && items[highlighted]
-      },
+      this._getVisibleItems,
       () => this.state.highlighted,
       () => this.props.groupedActions,
       () => this.props.rowLink,
       () => this.props.rowAction,
       () => this.props.userData,
-      (nItems, item, itemIndex, groupedActions, rowLink, rowAction, userData) => (command, event) => {
+      (visibleItems, itemIndex, groupedActions, rowLink, rowAction, userData) => (command, event) => {
         event.preventDefault()
+        const item = itemIndex != null ? visibleItems[itemIndex] : undefined
+
         switch (command) {
           case 'SEARCH':
             this.refs.filterInput.refs.filter.focus()
@@ -317,22 +311,34 @@ export default class SortedTable extends Component {
             if (groupedActions == null && rowAction == null && rowLink == null) {
               break
             }
-            this.setState({ highlighted: (itemIndex + nItems + 1) % nItems || 0 })
+            this.setState({ highlighted: (itemIndex + visibleItems.length + 1) % visibleItems.length || 0 })
             break
           case 'NAV_UP':
             if (groupedActions == null && rowAction == null && rowLink == null) {
               break
             }
-            this.setState({ highlighted: (itemIndex + nItems - 1) % nItems || 0 })
+            this.setState({ highlighted: (itemIndex + visibleItems.length - 1) % visibleItems.length || 0 })
             break
           case 'SELECT':
             if (groupedActions == null) {
               break
             }
-            const { selectedItemsIds } = this.state
+
+            const { all, selectedItemsIds } = this.state
+            if (all) {
+              return this.setState({
+                all: false,
+                selectedItemsIds: new Set().withMutations(selectedItemsIds => {
+                  forEach(visibleItems, _ => selectedItemsIds.add(_.id))
+                  selectedItemsIds.delete(item.id)
+                })
+              })
+            }
+
             const method = selectedItemsIds.has(item.id)
               ? 'delete'
               : 'add'
+
             this.setState({
               selectedItemsIds: selectedItemsIds[method](item.id)
             })
