@@ -1,5 +1,32 @@
 # ChangeLog
 
+## **5.13.0** (2017-09-29)
+
+### Enhancements
+
+ * Auto select iqn or lun if there is only one [#2379](https://github.com/vatesfr/xo-web/issues/2379)
+ * [Sparklines] Hide points [#2370](https://github.com/vatesfr/xo-web/issues/2370)
+ * Allow xo-server-recover-account to generate a random password [#2360](https://github.com/vatesfr/xo-web/issues/2360)
+ * Add disk in existing VM as self user [#2348](https://github.com/vatesfr/xo-web/issues/2348)
+ * Sorted table for Settings/server [#2340](https://github.com/vatesfr/xo-web/issues/2340)
+ * Sign in should be case insensitive [#2337](https://github.com/vatesfr/xo-web/issues/2337)
+ * [SortedTable] Range selection [#2323](https://github.com/vatesfr/xo-web/issues/2323)
+ * Warning on SMB remote creation [#2316](https://github.com/vatesfr/xo-web/issues/2316)
+ * [Home | SortedTable] Add link to syntax doc in the filter input [#2305](https://github.com/vatesfr/xo-web/issues/2305)
+ * [SortedTable] Add optional binding of filter to an URL query [#2301](https://github.com/vatesfr/xo-web/issues/2301)
+ * [Home][Keyboard navigation] Allow selecting the objects [#2214](https://github.com/vatesfr/xo-web/issues/2214)
+ * SR view / Disks: option to display non managed VDIs [#1724](https://github.com/vatesfr/xo-web/issues/1724)
+ * Continuous Replication Retention  [#1692](https://github.com/vatesfr/xo-web/issues/1692)
+
+### Bugs
+
+ * iSCSI issue on LUN selector [#2374](https://github.com/vatesfr/xo-web/issues/2374)
+ * Errors in VM copy are not properly reported [#2347](https://github.com/vatesfr/xo-web/issues/2347)
+ * iSCSI LUN Detection fails with authentification  [#2339](https://github.com/vatesfr/xo-web/issues/2339)
+ * Fix PoolActionBar to add a new SR [#2307](https://github.com/vatesfr/xo-web/issues/2307)
+ * [VM migration] Error if default SR not accessible to target host [#2180](https://github.com/vatesfr/xo-web/issues/2180)
+ * A job shouldn't executable more than once at the same time [#2053](https://github.com/vatesfr/xo-web/issues/2053)
+
 ## **5.12.0** (2017-08-31)
 
 ### Enhancements
