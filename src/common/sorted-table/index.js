@@ -306,46 +306,43 @@ export default class SortedTable extends Component {
       () => this.props.userData,
       (visibleItems, hasGroupedActions, itemIndex, rowLink, rowAction, userData) => (command, event) => {
         event.preventDefault()
-        const item = itemIndex != null ? visibleItems[itemIndex] : undefined
+        const item = itemIndex !== undefined ? visibleItems[itemIndex] : undefined
 
         switch (command) {
           case 'SEARCH':
             this.refs.filterInput.refs.filter.focus()
             break
           case 'NAV_DOWN':
-            if (hasGroupedActions || rowAction != null || rowLink != null) {
+            if (hasGroupedActions || rowAction !== undefined || rowLink !== undefined) {
               this.setState({
                 highlighted: (itemIndex + visibleItems.length + 1) % visibleItems.length || 0
               })
             }
             break
           case 'NAV_UP':
-            if (hasGroupedActions || rowAction != null || rowLink != null) {
+            if (hasGroupedActions || rowAction !== undefined || rowLink !== undefined) {
               this.setState({
                 highlighted: (itemIndex + visibleItems.length - 1) % visibleItems.length || 0
               })
             }
             break
           case 'SELECT':
-            console.log(hasGroupedActions)
-            if (itemIndex != null && hasGroupedActions) {
+            if (itemIndex !== undefined && hasGroupedActions) {
               this._selectItem(itemIndex)
             }
             break
           case 'ROW_ACTION':
-            if (item == null) {
-              break
+            if (item !== undefined) {
+              if (rowLink !== undefined) {
+                this.context.router.push(isFunction(rowLink)
+                  ? rowLink(item, userData)
+                  : rowLink
+                )
+              } else if (rowAction !== undefined) {
+                rowAction(item, userData)
+              }
             }
-            if (rowLink != null) {
-              this.context.router.push(isFunction(rowLink)
-                ? rowLink(item, userData)
-                : rowLink
-              )
-              break
-            }
-            if (rowAction != null) {
-              rowAction(item, userData)
-            }
+            break
         }
       }
     )
