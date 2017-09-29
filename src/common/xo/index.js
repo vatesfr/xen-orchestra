@@ -838,14 +838,13 @@ export const cloneVm = ({ id, name_label: nameLabel }, fullCopy = false) => (
 )
 
 import CopyVmModalBody from './copy-vm-modal' // eslint-disable-line import/first
-export const copyVm = (vm, sr, name, compress) => {
-  if (sr) {
-    return confirm({
+export const copyVm = (vm, sr, name, compress) =>
+  sr !== undefined
+    ? confirm({
       title: _('copyVm'),
       body: _('copyVmConfirm', { SR: sr.name_label })
     }).then(() => _call('vm.copy', { vm: vm.id, sr: sr.id, name: name || vm.name_label + '_COPY', compress }))
-  } else {
-    return confirm({
+    : confirm({
       title: _('copyVm'),
       body: <CopyVmModalBody vm={vm} />
     }).then(
@@ -854,12 +853,10 @@ export const copyVm = (vm, sr, name, compress) => {
           error('copyVmsNoTargetSr', 'copyVmsNoTargetSrMessage')
           return
         }
-        _call('vm.copy', { vm: vm.id, ...params })
+        return _call('vm.copy', { vm: vm.id, ...params })
       },
       noop
     )
-  }
-}
 
 import CopyVmsModalBody from './copy-vms-modal' // eslint-disable-line import/first
 export const copyVms = vms => {
@@ -868,19 +865,17 @@ export const copyVms = vms => {
     title: _('copyVm'),
     body: <CopyVmsModalBody vms={_vms} />
   }).then(
-    params => {
-      if (!params.sr) {
-        error(_('copyVmsNoTargetSr'), _('copyVmsNoTargetSrMessage'))
-        return
+    ({
+      compress,
+      names,
+      sr
+    }) => {
+      if (sr !== undefined) {
+        return Promise.all(map(_vms, (vm, index) =>
+          _call('vm.copy', { vm, sr, compress, name: names[index] })
+        ))
       }
-      const {
-        compress,
-        names,
-        sr
-      } = params
-      Promise.all(map(_vms, (vm, index) =>
-        _call('vm.copy', { vm, sr, compress, name: names[index] })
-      ))
+      error(_('copyVmsNoTargetSr'), _('copyVmsNoTargetSrMessage'))
     },
     noop
   )
