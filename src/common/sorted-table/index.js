@@ -15,6 +15,7 @@ import {
   ceil,
   debounce,
   findIndex,
+  forEach,
   isEmpty,
   isFunction,
   map
@@ -47,8 +48,6 @@ import styles from './index.css'
 @propTypes({
   defaultFilter: propTypes.string,
   filters: propTypes.object,
-  nFilteredItems: propTypes.number.isRequired,
-  nItems: propTypes.number.isRequired,
   onChange: propTypes.func.isRequired
 })
 class TableFilter extends Component {
@@ -70,7 +69,6 @@ class TableFilter extends Component {
 
     return (
       <div className='input-group'>
-        <span className='input-group-addon'>{props.nFilteredItems} / {props.nItems}</span>
         {isEmpty(props.filters)
           ? <span className='input-group-addon'><Icon icon='search' /></span>
           : <span className='input-group-btn'>
@@ -181,7 +179,6 @@ class Checkbox extends Component {
 
 // ===================================================================
 
-const DEFAULT_ITEMS_PER_PAGE = 10
 const actionsShape = propTypes.arrayOf(propTypes.shape({
   // groupedActions: the function will be called with an array of the selected items` ids in parameters
   // individualActions: the function will be called with the related item's id in parameters
@@ -227,6 +224,10 @@ const actionsShape = propTypes.arrayOf(propTypes.shape({
   router: routerShape
 })
 export default class SortedTable extends Component {
+  static defaultProps = {
+    itemsPerPage: 10
+  }
+
   constructor (props, context) {
     super(props, context)
 
@@ -240,12 +241,15 @@ export default class SortedTable extends Component {
     }
 
     this.state = {
+      all: false, // whether all items are selected (accross pages)
       filter: defined(
         () => context.router.location.query[props.filterUrlParam],
         () => props.filters[props.defaultFilter]
       ),
       selectedColumn,
-      itemsPerPage: props.itemsPerPage || DEFAULT_ITEMS_PER_PAGE
+      sortOrder: props.columns[selectedColumn].sortOrder === 'desc'
+        ? 'desc'
+        : 'asc'
     }
 
     this._getSelectedColumn = () =>
@@ -255,7 +259,7 @@ export default class SortedTable extends Component {
       () => this.props.collection
     )
 
-    this._getAllItems = createSort(
+    this._getItems = createSort(
       createFilter(
         () => this.props.collection,
         createSelector(
@@ -277,18 +281,12 @@ export default class SortedTable extends Component {
     this.state.activePage = 1
 
     this._getVisibleItems = createPager(
-      this._getAllItems,
+      this._getItems,
       () => this.state.activePage,
-      this.state.itemsPerPage
+      this.props.itemsPerPage
     )
 
     this.state.selectedItemsIds = new Set()
-  }
-
-  componentWillMount () {
-    this.setState({
-      sortOrder: this.props.columns[this.state.selectedColumn].sortOrder === 'desc' ? 'desc' : 'asc'
-    })
   }
 
   componentDidMount () {
@@ -337,18 +335,51 @@ export default class SortedTable extends Component {
 
   _selectAllVisibleItems = event => {
     this.setState({
+      all: false,
       selectedItemsIds: event.target.checked
         ? this.state.selectedItemsIds.union(map(this._getVisibleItems(), 'id'))
         : this.state.selectedItemsIds.clear()
     })
   }
 
+  // TODO: figure out why it's necessary
+  _toggleNestedCheckboxGuard = false
+
+  _toggleNestedCheckbox = event => {
+    const child = event.target.firstElementChild
+    if (child != null && child.tagName === 'INPUT') {
+      if (this._toggleNestedCheckboxGuard) {
+        return
+      }
+      this._toggleNestedCheckboxGuard = true
+      child.dispatchEvent(
+        new window.MouseEvent('click', event.nativeEvent)
+      )
+      this._toggleNestedCheckboxGuard = false
+    }
+  }
+
+  _selectAll = () => this.setState({ all: true })
+
   _selectItem = event => {
-    const { selectedItemsIds } = this.state
+    const { all, selectedItemsIds } = this.state
     const { target } = event
     const visibleItems = this._getVisibleItems()
 
     const current = +target.name
+
+    if (all) {
+      return this.setState({
+        all: false,
+        selectedItemsIds: new Set().withMutations(selectedItemsIds => {
+          forEach(visibleItems, item => {
+            selectedItemsIds.add(item.id)
+          })
+          selectedItemsIds.delete(visibleItems[current].id)
+        })
+      })
+    }
+
     let method = target.checked ? 'add' : 'delete'
 
     let previous
@@ -392,29 +423,121 @@ export default class SortedTable extends Component {
     })
   }, 500)
 
-  _executeGroupedAction = handler => handler(this.state.selectedItemsIds.toArray())
+  _executeGroupedAction = handler => {
+    const { state } = this
+    return handler(
+      state.all
+        ? map(this._getItems(), 'id')
+        : state.selectedItemsIds.toArray()
+    )
+  }
+
+  _executeRowAction = event => {
+    const { props } = this
+    const item = this._getVisibleItems()[event.currentTarget.dataset.index]
+    props.rowAction(item, props.userData)
+  }
+
+  _renderItem = (item, i) => {
+    const { props, state } = this
+
+    const { individualActions, rowAction, rowLink, userData } = props
+
+    const hasGroupedActions = !isEmpty(props.groupedActions)
+    const hasIndividualActions = !isEmpty(individualActions)
+
+    const columns = map(props.columns, ({
+      component: Component,
+      itemRenderer,
+      textAlign
+    }, key) =>
+      <td
+        className={textAlign && `text-xs-${textAlign}`}
+        key={key}
+      >
+        {Component !== undefined
+          ? <Component item={item} userData={userData} />
+          : itemRenderer(item, userData)
+        }
+      </td>
+    )
+
+    const { id = i } = item
+
+    const selectionColumn = hasGroupedActions && <td
+      className='text-xs-center'
+      onClick={this._toggleNestedCheckbox}
+    >
+      <input
+        checked={state.all || state.selectedItemsIds.has(id)}
+        name={i} // position in visible items
+        onChange={this._selectItem}
+        type='checkbox'
+      />
+    </td>
+    const actionsColumn = hasIndividualActions && <td><div className='pull-right'>
+      <ButtonGroup>
+        {map(individualActions, ({ icon, label, level, handler }, key) => <ActionRowButton
+          btnStyle={level}
+          handler={handler}
+          handlerParam={id}
+          icon={icon}
+          key={key}
+          tooltip={label}
+        />)}
+      </ButtonGroup>
+    </div></td>
+
+    return rowLink != null
+      ? <BlockLink
+        key={id}
+        tagName='tr'
+        to={isFunction(rowLink) ? rowLink(item, userData) : rowLink}
+      >
+        {selectionColumn}
+        {columns}
+        {actionsColumn}
+      </BlockLink>
+      : <tr
+        className={rowAction && styles.clickableRow}
+        data-index={i}
+        key={id}
+        onClick={rowAction && this._executeRowAction}
+      >
+        {selectionColumn}
+        {columns}
+        {actionsColumn}
+      </tr>
+  }
 
   render () {
     const { props, state } = this
     const {
       filterContainer,
-      filters,
       groupedActions,
-      individualActions,
-      paginationContainer,
-      rowAction,
-      rowLink,
-      userData
+      itemsPerPage,
+      paginationContainer
     } = props
+    const { all } = state
 
-    const nFilteredItems = this._getAllItems().length
-    const nVisibleItems = this._getVisibleItems().length
+    const nAllItems = this._getTotalNumberOfItems()
+    const nItems = this._getItems().length
     const nSelectedItems = state.selectedItemsIds.size
+    const nVisibleItems = this._getVisibleItems().length
 
     const hasGroupedActions = !isEmpty(groupedActions)
-    const hasIndividualActions = !isEmpty(individualActions)
+    const hasIndividualActions = !isEmpty(props.individualActions)
 
-    const paginationInstance = (
+    const nColumns = props.columns.length + (hasIndividualActions ? 2 : 1)
+
+    const displayPagination =
+      paginationContainer === undefined &&
+      itemsPerPage < nAllItems
+    const displayFilter =
+      filterContainer === undefined &&
+      nAllItems !== 0
+
+    const paginationInstance = displayPagination && (
       <Pagination
         first
         last
@@ -423,18 +546,16 @@ export default class SortedTable extends Component {
         ellipsis
         boundaryLinks
         maxButtons={10}
-        items={ceil(nFilteredItems / state.itemsPerPage)}
-        activePage={this.state.activePage}
+        items={ceil(nItems / itemsPerPage)}
+        activePage={state.activePage}
         onSelect={this._onPageSelection}
       />
     )
 
-    const filterInstance = (
+    const filterInstance = displayFilter && (
       <TableFilter
         defaultFilter={state.filter}
-        filters={filters}
-        nFilteredItems={nFilteredItems}
-        nItems={this._getTotalNumberOfItems()}
+        filters={props.filters}
         onChange={this._onFilterChange}
       />
     )
@@ -444,11 +565,61 @@ export default class SortedTable extends Component {
         <table className='table'>
           <thead className='thead-default'>
             <tr>
-              {hasGroupedActions && <th>
+              <th colSpan={nColumns}>
+                {nItems === nAllItems
+                  ? _('sortedTableNumberOfItems', { nTotal: nItems })
+                  : _('sortedTableNumberOfFilteredItems', {
+                    nFiltered: nItems,
+                    nTotal: nAllItems
+                  })
+                }
+                {all
+                  ? <span>
+                    {' '}-{' '}
+                    <span className='text-danger'>
+                      {_('sortedTableAllItemsSelected')}
+                    </span>
+                  </span>
+                  : nSelectedItems !== 0 && <span>
+                    {' '}-{' '}
+                    {_('sortedTableNumberOfSelectedItems', {
+                      nSelected: nSelectedItems
+                    })}
+                    {nSelectedItems === nVisibleItems && nSelectedItems < nItems &&
+                      <Button
+                        btnStyle='info'
+                        className='ml-1'
+                        onClick={this._selectAll}
+                        size='small'
+                      >
+                        {_('sortedTableSelectAllItems')}
+                      </Button>
+                    }
+                  </span>
+                }
+                {nSelectedItems !== 0 && <div className='pull-right'>
+                  <ButtonGroup>
+                    {map(groupedActions, ({ icon, label, level, handler }, key) => <ActionRowButton
+                      btnStyle={level}
+                      handler={this._executeGroupedAction}
+                      handlerParam={handler}
+                      icon={icon}
+                      key={key}
+                      tooltip={label}
+                    />)}
+                  </ButtonGroup>
+                </div>}
+              </th>
+            </tr>
+            <tr>
+              {hasGroupedActions && <th
+                className='text-xs-center'
+                onClick={this._toggleNestedCheckbox}
+              >
                 <Checkbox
                   onChange={this._selectAllVisibleItems}
-                  checked={nSelectedItems !== 0}
-                  indeterminate={nSelectedItems !== 0 && nSelectedItems !== nVisibleItems}
+                  checked={all || nSelectedItems !== 0}
+                  indeterminate={!all && nSelectedItems !== 0 && nSelectedItems !== nVisibleItems}
                 />
               </th>}
               {map(props.columns, (column, key) => (
@@ -466,109 +637,35 @@ export default class SortedTable extends Component {
             </tr>
           </thead>
           <tbody>
-            {nSelectedItems !== 0 && <tr className='bg-faded'>
-              <td colSpan={props.columns.length + (individualActions != null ? 2 : 1)}>
-                {_('sortedTableSelectedItems', {
-                  selected: nSelectedItems,
-                  total: nVisibleItems
-                })}
-                <div className='pull-right'>
-                  <ButtonGroup>
-                    {map(groupedActions, ({ icon, label, level, handler }, key) => <ActionRowButton
-                      btnStyle={level}
-                      handler={this._executeGroupedAction}
-                      handlerParam={handler}
-                      icon={icon}
-                      key={key}
-                      tooltip={label}
-                    />)}
-                  </ButtonGroup>
-                </div>
-              </td>
-            </tr>}
-            {map(this._getVisibleItems(), (item, i) => {
-              const columns = map(props.columns, ({
-                component: Component,
-                itemRenderer,
-                textAlign
-              }, key) =>
-                <td
-                  className={textAlign && `text-xs-${textAlign}`}
-                  key={key}
-                >
-                  {Component !== undefined
-                    ? <Component item={item} userData={userData} />
-                    : itemRenderer(item, userData)
-                  }
-                </td>
-              )
-
-              const { id = i } = item
-
-              const selectionColumn = hasGroupedActions && <td>
-                <input
-                  checked={state.selectedItemsIds.has(id)}
-                  name={i} // position in visible items
-                  onChange={this._selectItem}
-                  type='checkbox'
-                />
-              </td>
-              const actionsColumn = hasIndividualActions && <td><div className='pull-right'>
-                <ButtonGroup>
-                  {map(individualActions, ({ icon, label, level, handler }, key) => <ActionRowButton
-                    btnStyle={level}
-                    handler={handler}
-                    handlerParam={id}
-                    icon={icon}
-                    key={key}
-                    tooltip={label}
-                  />)}
-                </ButtonGroup>
-              </div></td>
-
-              return rowLink != null
-                ? <BlockLink
-                  key={id}
-                  tagName='tr'
-                  to={isFunction(rowLink) ? rowLink(item, userData) : rowLink}
-                >
-                  {selectionColumn}
-                  {columns}
-                  {actionsColumn}
-                </BlockLink>
-                : <tr
-                  className={rowAction && styles.clickableRow}
-                  key={id}
-                  onClick={rowAction && (() => rowAction(item, userData))}
-                >
-                  {selectionColumn}
-                  {columns}
-                  {actionsColumn}
-                </tr>
-            })}
+            {nVisibleItems !== 0
+              ? map(this._getVisibleItems(), this._renderItem)
+              : <tr><td className='text-info text-xs-center' colSpan={nColumns}>
+                {_('sortedTableNoItems')}
+              </td></tr>
+            }
           </tbody>
         </table>
-        {(!paginationContainer || !filterContainer) && (
+        {(displayFilter || displayPagination) && (
           <Container>
             <SingleLineRow>
               <Col mediumSize={8}>
-                {paginationContainer
-                  ? (
+                {displayPagination && (
+                  paginationContainer !== undefined
                     // Rebuild container function to refresh Portal component.
-                    <Portal container={() => paginationContainer()}>
+                    ? <Portal container={() => paginationContainer()}>
                       {paginationInstance}
                     </Portal>
-                  ) : paginationInstance
-                }
+                    : paginationInstance
+                )}
               </Col>
               <Col mediumSize={4}>
-                {filterContainer
-                  ? (
-                    <Portal container={() => filterContainer()}>
+                {displayFilter && (
+                  filterContainer
+                    ? <Portal container={() => filterContainer()}>
                       {filterInstance}
                     </Portal>
-                  ) : filterInstance
-                }
+                    : filterInstance
+                )}
               </Col>
             </SingleLineRow>
           </Container>

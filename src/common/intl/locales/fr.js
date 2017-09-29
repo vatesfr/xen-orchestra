@@ -407,6 +407,21 @@ export default {
   // Original text: "Not shared {type}"
   srNotSharedType: '{type} non partagé',
 
+  // Original text: 'All of them are selected'
+  sortedTableAllItemsSelected: 'Toutes sont sélectionnées',
+
+  // Original text: '{nFiltered, number} of {nTotal, number} items'
+  sortedTableNumberOfFilteredItems: '{nFiltered, number} entrées sur {nTotal, number}',
+
+  // Original text: '{nTotal, number} items'
+  sortedTableNumberOfItems: '{nTotal, number} entrées',
+
+  // Original text: '{nSelected, number} selected'
+  sortedTableNumberOfSelectedItems: '{nSelected, number} sélectionnées',
+
+  // Original text: 'Click here to select all items'
+  sortedTableSelectAllItems: 'Cliquez ici pour sélectionner toutes les entrées',
+
   // Original text: "Add"
   add: 'Ajouter',
 
@@ -1478,7 +1493,7 @@ export default {
   // Original text: "Installation started"
   supplementalPackInstallStartedTitle: 'Installation démarrée',
 
-  // Original text: "Installing new supplemental pack..."
+  // Original text: "Installing new supplemental pack…"
   supplementalPackInstallStartedMessage: "Installation d'un nouveau pack supplémentaire",
 
   // Original text: "Installation error"
@@ -3071,8 +3086,8 @@ export default {
   // Original text: "Connection failed. Click for more information."
   serverConnectionFailed: "Echec de connexion. Cliquer pour plus d'informations.",
 
-  // Original text: "Connecting..."
-  serverConnecting: 'Connexion...',
+  // Original text: "Connecting…"
+  serverConnecting: 'Connexion…',
 
   // Original text: "Connected"
   serverConnected: 'Connecté',
@@ -3773,8 +3788,8 @@ export default {
   // Original text: "Create"
   xosanCreate: 'Créer',
 
-  // Original text: "Installing XOSAN. Please wait..."
-  xosanInstalling: 'Installation de XOSAN. Veuillez patienter...',
+  // Original text: "Installing XOSAN. Please wait…"
+  xosanInstalling: 'Installation de XOSAN. Veuillez patienter…',
 
   // Original text: "No XOSAN available for Community Edition"
   xosanCommunity: 'XOSAN non disponible pour la Community Edition',
@@ -3785,8 +3800,8 @@ export default {
   // Original text: "Load cloud plugin first"
   xosanLoadCloudPlugin: 'Charger le plugin cloud avant',
 
-  // Original text: "Loading..."
-  xosanLoading: 'Chargement...',
+  // Original text: "Loading…"
+  xosanLoading: 'Chargement…',
 
   // Original text: "XOSAN is not available at the moment"
   xosanNotAvailable: "XOSAN n'est pas disponible pour le moment",

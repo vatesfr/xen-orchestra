@@ -204,7 +204,7 @@ export default {
   editUserProfile: undefined,
 
   // Original text: "Fetching data…"
-  homeFetchingData: 'Obtendo dados...',
+  homeFetchingData: 'Obtendo dados…',
 
   // Original text: "Welcome on Xen Orchestra!"
   homeWelcome: 'Bem-vindo ao Xen Orchestra',
@@ -228,7 +228,7 @@ export default {
   homeNoVms: 'Não foram encontradas VMs!',
 
   // Original text: "Or…"
-  homeNoVmsOr: 'Ou...',
+  homeNoVmsOr: 'Ou…',
 
   // Original text: "Import VM"
   homeImportVm: 'Importar VM',
@@ -330,7 +330,7 @@ export default {
   homeMore: 'Mais',
 
   // Original text: "Migrate to…"
-  homeMigrateTo: 'Migrar para...',
+  homeMigrateTo: 'Migrar para…',
 
   // Original text: 'Missing patches'
   homeMissingPaths: undefined,
@@ -360,28 +360,28 @@ export default {
   selectSubjects: 'Escolha um usuário(s) e/ou grupo(s)',
 
   // Original text: "Select Object(s)…"
-  selectObjects: 'Selecionar Objeto(s)...',
+  selectObjects: 'Selecionar Objeto(s)…',
 
   // Original text: "Choose a role"
   selectRole: 'Escolha uma função',
 
   // Original text: "Select Host(s)…"
-  selectHosts: 'Selecionar Host(s)...',
+  selectHosts: 'Selecionar Host(s)…',
 
   // Original text: "Select object(s)…"
-  selectHostsVms: 'Selecionar Objeto(s)...',
+  selectHostsVms: 'Selecionar Objeto(s)…',
 
   // Original text: "Select Network(s)…"
-  selectNetworks: 'Selecionar Rede(s)...',
+  selectNetworks: 'Selecionar Rede(s)…',
 
   // Original text: "Select PIF(s)…"
-  selectPifs: 'Selecionar PIF(s)...',
+  selectPifs: 'Selecionar PIF(s)…',
 
   // Original text: "Select Pool(s)…"
-  selectPools: 'Selecionar Pool(s)...',
+  selectPools: 'Selecionar Pool(s)…',
 
   // Original text: "Select Remote(s)…"
-  selectRemotes: 'Selecionar Remote(s)...',
+  selectRemotes: 'Selecionar Remote(s)…',
 
   // Original text: 'Select resource set(s)…'
   selectResourceSets: undefined,
@@ -402,19 +402,19 @@ export default {
   selectSshKey: undefined,
 
   // Original text: "Select SR(s)…"
-  selectSrs: 'Selecionar SR(s)...',
+  selectSrs: 'Selecionar SR(s)…',
 
   // Original text: "Select VM(s)…"
-  selectVms: 'Selecionar VM(s)...',
+  selectVms: 'Selecionar VM(s)…',
 
   // Original text: "Select VM template(s)…"
-  selectVmTemplates: 'Selecionar VM(s) modelo(s)...',
+  selectVmTemplates: 'Selecionar VM(s) modelo(s)…',
 
   // Original text: "Select tag(s)…"
-  selectTags: 'Selecionar etiqueta(s)...',
+  selectTags: 'Selecionar etiqueta(s)…',
 
   // Original text: "Select disk(s)…"
-  selectVdis: 'Selecionar disco(s)...',
+  selectVdis: 'Selecionar disco(s)…',
 
   // Original text: 'Select timezone…'
   selectTimezone: undefined,
@@ -1968,7 +1968,7 @@ export default {
   statsDashboardSelectObjects: 'Selecionar',
 
   // Original text: "Loading…"
-  metricsLoading: 'Carregando...',
+  metricsLoading: 'Carregando…',
 
   // Original text: "Coming soon!"
   comingSoon: 'Em breve!',
@@ -2292,10 +2292,10 @@ export default {
   vmImportFailed: 'Falha na importação',
 
   // Original text: "Import starting…"
-  startVmImport: 'Iniciando importação...',
+  startVmImport: 'Iniciando importação…',
 
   // Original text: "Export starting…"
-  startVmExport: 'Iniciando exportação...',
+  startVmExport: 'Iniciando exportação…',
 
   // Original text: 'N CPUs'
   nCpus: undefined,
@@ -2559,7 +2559,7 @@ export default {
   importBackupModalStart: 'Iniciar VM após restauração',
 
   // Original text: "Select your backup…"
-  importBackupModalSelectBackup: 'Selecionar backup...',
+  importBackupModalSelectBackup: 'Selecionar backup…',
 
   // Original text: "Are you sure you want to remove all orphaned snapshot VDIs?"
   removeAllOrphanedModalWarning: 'Você tem certeza que deseja remover todos as VDIs orfãs?',

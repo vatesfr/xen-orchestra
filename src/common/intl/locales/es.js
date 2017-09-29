@@ -237,7 +237,7 @@ export default {
   editUserProfile: undefined,
 
   // Original text: "Fetching data…"
-  homeFetchingData: 'Recuperando datos...',
+  homeFetchingData: 'Recuperando datos…',
 
   // Original text: "Welcome on Xen Orchestra!"
   homeWelcome: '¡Bienvenido a Xen Orchestra!',
@@ -267,7 +267,7 @@ export default {
   homeNoVms: '¡No hay VMs!',
 
   // Original text: "Or…"
-  homeNoVmsOr: 'O...',
+  homeNoVmsOr: 'O…',
 
   // Original text: "Import VM"
   homeImportVm: 'Importar VM',
@@ -384,7 +384,7 @@ export default {
   homeMore: 'Más',
 
   // Original text: "Migrate to…"
-  homeMigrateTo: 'Migrar a...',
+  homeMigrateTo: 'Migrar a…',
 
   // Original text: 'Missing patches'
   homeMissingPaths: undefined,
@@ -426,28 +426,28 @@ export default {
   selectSubjects: 'Elegir usuario(s) y/o grupo(s)',
 
   // Original text: "Select Object(s)…"
-  selectObjects: 'Elegir Objeto(s)...',
+  selectObjects: 'Elegir Objeto(s)…',
 
   // Original text: "Choose a role"
   selectRole: 'Elegir un rol',
 
   // Original text: "Select Host(s)…"
-  selectHosts: 'Elegir Host(s)...',
+  selectHosts: 'Elegir Host(s)…',
 
   // Original text: "Select object(s)…"
-  selectHostsVms: 'Elegir objeto(s)...',
+  selectHostsVms: 'Elegir objeto(s)…',
 
   // Original text: "Select Network(s)…"
-  selectNetworks: 'Elegir Red(es)...',
+  selectNetworks: 'Elegir Red(es)…',
 
   // Original text: "Select PIF(s)…"
-  selectPifs: 'Elegir PIF(s)...',
+  selectPifs: 'Elegir PIF(s)…',
 
   // Original text: "Select Pool(s)…"
-  selectPools: 'Elegir Pool(s)...',
+  selectPools: 'Elegir Pool(s)…',
 
   // Original text: "Select Remote(s)…"
-  selectRemotes: 'Elegir almacenamiento(s) remoto(s)...',
+  selectRemotes: 'Elegir almacenamiento(s) remoto(s)…',
 
   // Original text: 'Select resource set(s)…'
   selectResourceSets: undefined,
@@ -468,19 +468,19 @@ export default {
   selectSshKey: undefined,
 
   // Original text: "Select SR(s)…"
-  selectSrs: 'Elegir SR(s)...',
+  selectSrs: 'Elegir SR(s)…',
 
   // Original text: "Select VM(s)…"
-  selectVms: 'Elegir VM(s)...',
+  selectVms: 'Elegir VM(s)…',
 
   // Original text: "Select VM template(s)…"
-  selectVmTemplates: 'Elegir plantilla(s) de VM...',
+  selectVmTemplates: 'Elegir plantilla(s) de VM…',
 
   // Original text: "Select tag(s)…"
-  selectTags: 'Elegir etiqueta(s)...',
+  selectTags: 'Elegir etiqueta(s)…',
 
   // Original text: "Select disk(s)…"
-  selectVdis: 'Elegir disco(s)...',
+  selectVdis: 'Elegir disco(s)…',
 
   // Original text: 'Select timezone…'
   selectTimezone: undefined,
@@ -1475,7 +1475,7 @@ export default {
   // Original text: 'Installation started'
   supplementalPackInstallStartedTitle: undefined,
 
-  // Original text: 'Installing new supplemental pack...'
+  // Original text: 'Installing new supplemental pack…'
   supplementalPackInstallStartedMessage: undefined,
 
   // Original text: 'Installation error'
@@ -2283,7 +2283,7 @@ export default {
   statsDashboardSelectObjects: 'Seleccionar',
 
   // Original text: "Loading…"
-  metricsLoading: 'Cargando...',
+  metricsLoading: 'Cargando…',
 
   // Original text: "Coming soon!"
   comingSoon: '¡Próximamente!',
@@ -2613,10 +2613,10 @@ export default {
   vmImportFailed: 'Falló la importación de VM',
 
   // Original text: "Import starting…"
-  startVmImport: 'Comenzando importación...',
+  startVmImport: 'Comenzando importación…',
 
   // Original text: "Export starting…"
-  startVmExport: 'Comenzando export...',
+  startVmExport: 'Comenzando export…',
 
   // Original text: 'N CPUs'
   nCpus: undefined,
@@ -2973,7 +2973,7 @@ export default {
   importBackupModalStart: 'Arrancar la VM tras la restauración',
 
   // Original text: "Select your backup…"
-  importBackupModalSelectBackup: 'Elige el backup...',
+  importBackupModalSelectBackup: 'Elige el backup…',
 
   // Original text: "Are you sure you want to remove all orphaned snapshot VDIs?"
   removeAllOrphanedModalWarning: '¿Estás seguro de querer borrar todos los VDIs huérfanos?',
@@ -3068,7 +3068,7 @@ export default {
   // Original text: 'Connection failed. Click for more information.'
   serverConnectionFailed: undefined,
 
-  // Original text: 'Connecting...'
+  // Original text: 'Connecting…'
   serverConnecting: undefined,
 
   // Original text: 'Connected'
@@ -3770,7 +3770,7 @@ export default {
   // Original text: 'Create'
   xosanCreate: undefined,
 
-  // Original text: 'Installing XOSAN. Please wait...'
+  // Original text: 'Installing XOSAN. Please wait…'
   xosanInstalling: undefined,
 
   // Original text: 'No XOSAN available for Community Edition'
@@ -3782,7 +3782,7 @@ export default {
   // Original text: 'Load cloud plugin first'
   xosanLoadCloudPlugin: undefined,
 
-  // Original text: 'Loading...'
+  // Original text: 'Loading…'
   xosanLoading: undefined,
 
   // Original text: 'XOSAN is not available at the moment'
