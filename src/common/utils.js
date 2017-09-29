@@ -1,23 +1,26 @@
-import escapeRegExp from 'lodash/escapeRegExp'
-import every from 'lodash/every'
-import forEach from 'lodash/forEach'
 import getStream from 'get-stream'
 import humanFormat from 'human-format'
-import isArray from 'lodash/isArray'
-import isEmpty from 'lodash/isEmpty'
-import isFunction from 'lodash/isFunction'
-import isPlainObject from 'lodash/isPlainObject'
-import isString from 'lodash/isString'
-import join from 'lodash/join'
-import keys from 'lodash/keys'
-import map from 'lodash/map'
-import mapValues from 'lodash/mapValues'
 import React from 'react'
 import ReadableStream from 'readable-stream'
-import replace from 'lodash/replace'
-import sample from 'lodash/sample'
-import startsWith from 'lodash/startsWith'
 import { connect } from 'react-redux'
+import {
+  clone,
+  escapeRegExp,
+  every,
+  forEach,
+  isArray,
+  isEmpty,
+  isFunction,
+  isPlainObject,
+  isString,
+  join,
+  keys,
+  map,
+  mapValues,
+  replace,
+  sample,
+  startsWith
+} from 'lodash'
 
 import _ from './intl'
 import * as actions from './store/actions'
@@ -550,5 +553,31 @@ export const generateReadableRandomString = (() => {
       result[i] = sample((i & 1) === 0 ? VOWELS : CONSONANTS)
     }
     return result.join('')
+  }
+})()
+
+export const cowSet = (object, path, value, depth = 0) => {
+  if (depth >= path.length) {
+    return value
+  }
+
+  object = object != null ? clone(object) : {}
+  const prop = path[depth]
+  object[prop] = cowSet(object[prop], path, value, depth + 1)
+  return object
+}
+
+// Generates a function that returns a value between 0 and 1
+// This function returns an estimated progress value between 0 and 1
+// based on the elapsed time since the createFakeProgress call and
+// the given estimated duration d
+export const createFakeProgress = (() => {
+  const S = 0.95 // Progress value after d seconds
+  return d => {
+    const startTime = Date.now() / 1e3
+    return () => {
+      const x = Date.now() / 1e3 - startTime
+      return -Math.exp((x * Math.log(1 - S)) / d) + 1
+    }
   }
 })()

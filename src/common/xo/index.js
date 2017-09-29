@@ -291,15 +291,15 @@ export const subscribeIpPools = createSubscription(() => _call('ipPool.getAll'))
 
 export const subscribeResourceCatalog = createSubscription(() => _call('cloud.getResourceCatalog'))
 
-const xosanSubscriptions = {}
-export const subscribeIsInstallingXosan = (pool, cb) => {
+const checkSrCurrentStateSubscriptions = {}
+export const subscribeCheckSrCurrentState = (pool, cb) => {
   const poolId = resolveId(pool)
 
-  if (!xosanSubscriptions[poolId]) {
-    xosanSubscriptions[poolId] = createSubscription(() => _call('xosan.checkSrIsBusy', { poolId }))
+  if (!checkSrCurrentStateSubscriptions[poolId]) {
+    checkSrCurrentStateSubscriptions[poolId] = createSubscription(() => _call('xosan.checkSrCurrentState', { poolId }))
   }
 
-  return xosanSubscriptions[poolId](cb)
+  return checkSrCurrentStateSubscriptions[poolId](cb)
 }
 
 const missingPatchesByHost = {}
@@ -323,6 +323,34 @@ subscribeHostMissingPatches.forceRefresh = host => {
     subscription.forceRefresh()
   }
 }
+
+const volumeInfoBySr = {}
+export const subscribeVolumeInfo = ({ sr, infoType }, cb) => {
+  sr = resolveId(sr)
+
+  if (volumeInfoBySr[sr] == null) {
+    volumeInfoBySr[sr] = {}
+  }
+
+  if (volumeInfoBySr[sr][infoType] == null) {
+    volumeInfoBySr[sr][infoType] = createSubscription(() => _call('xosan.getVolumeInfo', { sr, infoType }))
+  }
+
+  return volumeInfoBySr[sr][infoType](cb)
+}
+subscribeVolumeInfo.forceRefresh = (() => {
+  const refreshSrVolumeInfo = volumeInfo => {
+    forEach(volumeInfo, subscription => subscription.forceRefresh())
+  }
+
+  return sr => {
+    if (sr === undefined) {
+      forEach(volumeInfoBySr, refreshSrVolumeInfo)
+    } else {
+      refreshSrVolumeInfo(volumeInfoBySr[sr])
+    }
+  }
+})()
 
 const unhealthyVdiChainsLengthSubscriptionsBySr = {}
 export const createSrUnhealthyVdiChainsLengthSubscription = sr => {
@@ -1991,7 +2019,7 @@ export const setIpPool = (ipPool, { name, addresses, networks }) => (
 
 export const getVolumeInfo = (xosanSr, infoType) => _call('xosan.getVolumeInfo', { sr: xosanSr, infoType })
 
-export const createXosanSR = ({ template, pif, vlan, srs, glusterType, redundancy, brickSize, memorySize }) => _call('xosan.createSR', {
+export const createXosanSR = ({ template, pif, vlan, srs, glusterType, redundancy, brickSize, memorySize, ipRange }) => _call('xosan.createSR', {
   template,
   pif: pif.id,
   vlan: String(vlan),
@@ -1999,13 +2027,15 @@ export const createXosanSR = ({ template, pif, vlan, srs, glusterType, redundanc
   glusterType,
   redundancy: Number.parseInt(redundancy),
   brickSize,
-  memorySize
+  memorySize,
+  ipRange
 })
 
 export const addXosanBricks = (xosansr, lvmsrs, brickSize) => _call('xosan.addBricks', {xosansr, lvmsrs, brickSize})
 
 export const replaceXosanBrick = (xosansr, previousBrick, newLvmSr, brickSize, onSameVM = false) =>
-  _call('xosan.replaceBrick', {xosansr, previousBrick, newLvmSr, brickSize, onSameVM})
+  _call('xosan.replaceBrick', resolveIds({ xosansr, previousBrick, newLvmSr, brickSize, onSameVM }))
+
 export const removeXosanBricks = (xosansr, bricks) => _call('xosan.removeBricks', {xosansr, bricks})
 
 export const computeXosanPossibleOptions = (lvmSrs, brickSize) => _call('xosan.computeXosanPossibleOptions', { lvmSrs, brickSize })
@@ -2021,3 +2051,5 @@ export const downloadAndInstallXosanPack = pool =>
   )
 
 export const registerXosan = namespace => _call('cloud.registerResource', { namespace: 'xosan' })
+
+export const fixHostNotInXosanNetwork = (xosanSr, host) => _call('xosan.fixHostNotInNetwork', {xosanSr, host})
