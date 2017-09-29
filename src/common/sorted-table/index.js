@@ -502,7 +502,6 @@ export default class SortedTable extends Component {
         className={rowAction && styles.clickableRow}
         data-index={i}
         key={id}
-        key={id}
         onClick={rowAction && this._executeRowAction}
       >
         {selectionColumn}
