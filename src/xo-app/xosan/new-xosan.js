@@ -362,7 +362,11 @@ export default class NewXosan extends Component {
                   <td>{layout}</td>
                   <td>{redundancy}</td>
                   <td>{capacity}</td>
-                  <td>{availableSpace ? formatSize(availableSpace) : <span style={{color: 'red', 'font-weight': 'bold'}}>0</span>}</td>
+                  <td>{
+                    availableSpace === 0
+                      ? <strong className='text-danger'>0</strong>
+                      : formatSize(availableSpace)
+                  }</td>
                 </tr>)}
               </tbody>
             </table>
