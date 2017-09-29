@@ -1427,8 +1427,8 @@ export default {
   // Original text: "Installation started"
   supplementalPackInstallStartedTitle: 'Installation Started',
 
-  // Original text: "Installing new supplemental pack..."
-  supplementalPackInstallStartedMessage: 'Installing new supplemental pack...',
+  // Original text: "Installing new supplemental pack…"
+  supplementalPackInstallStartedMessage: 'Installing new supplemental pack…',
 
   // Original text: "Installation error"
   supplementalPackInstallErrorTitle: 'Installation error',
@@ -2894,8 +2894,8 @@ export default {
   // Original text: "Connection failed"
   serverConnectionFailed: 'Csatlakozás Sikertelen',
 
-  // Original text: "Connecting..."
-  serverConnecting: 'Csatlakozás...',
+  // Original text: "Connecting…"
+  serverConnecting: 'Csatlakozás…',
 
   // Original text: "Connected"
   serverConnected: 'Kapcsolódva',
@@ -3557,7 +3557,7 @@ export default {
   // Original text: 'Create'
   xosanCreate: undefined,
 
-  // Original text: 'Installing XOSAN. Please wait...'
+  // Original text: 'Installing XOSAN. Please wait…'
   xosanInstalling: undefined,
 
   // Original text: 'You need XenServer 7.0 to install XOSAN'
@@ -3572,7 +3572,7 @@ export default {
   // Original text: 'Load cloud plugin first'
   xosanLoadCloudPlugin: undefined,
 
-  // Original text: 'Loading...'
+  // Original text: 'Loading…'
   xosanLoading: undefined,
 
   // Original text: 'XOSAN is not available at the moment'
