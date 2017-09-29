@@ -292,14 +292,19 @@ export default class SortedTable extends Component {
 
     this.state.selectedItemsIds = new Set()
 
+    this._hasGroupedActions = createSelector(
+      () => this.props.groupedActions,
+      actions => !isEmpty(actions)
+    )
+
     this._getShortcutsHandler = createSelector(
       this._getVisibleItems,
+      this._hasGroupedActions,
       () => this.state.highlighted,
-      () => this.props.groupedActions,
       () => this.props.rowLink,
       () => this.props.rowAction,
       () => this.props.userData,
-      (visibleItems, itemIndex, groupedActions, rowLink, rowAction, userData) => (command, event) => {
+      (visibleItems, hasGroupedActions, itemIndex, rowLink, rowAction, userData) => (command, event) => {
         event.preventDefault()
         const item = itemIndex != null ? visibleItems[itemIndex] : undefined
 
@@ -308,40 +313,24 @@ export default class SortedTable extends Component {
             this.refs.filterInput.refs.filter.focus()
             break
           case 'NAV_DOWN':
-            if (groupedActions == null && rowAction == null && rowLink == null) {
-              break
-            }
-            this.setState({ highlighted: (itemIndex + visibleItems.length + 1) % visibleItems.length || 0 })
-            break
-          case 'NAV_UP':
-            if (groupedActions == null && rowAction == null && rowLink == null) {
-              break
-            }
-            this.setState({ highlighted: (itemIndex + visibleItems.length - 1) % visibleItems.length || 0 })
-            break
-          case 'SELECT':
-            if (groupedActions == null) {
-              break
-            }
-
-            const { all, selectedItemsIds } = this.state
-            if (all) {
-              return this.setState({
-                all: false,
-                selectedItemsIds: new Set().withMutations(selectedItemsIds => {
-                  forEach(visibleItems, _ => selectedItemsIds.add(_.id))
-                  selectedItemsIds.delete(item.id)
-                })
+            if (hasGroupedActions || rowAction != null || rowLink != null) {
+              this.setState({
+                highlighted: (itemIndex + visibleItems.length + 1) % visibleItems.length || 0
               })
             }
-
-            const method = selectedItemsIds.has(item.id)
-              ? 'delete'
-              : 'add'
-
-            this.setState({
-              selectedItemsIds: selectedItemsIds[method](item.id)
-            })
+            break
+          case 'NAV_UP':
+            if (hasGroupedActions || rowAction != null || rowLink != null) {
+              this.setState({
+                highlighted: (itemIndex + visibleItems.length - 1) % visibleItems.length || 0
+              })
+            }
+            break
+          case 'SELECT':
+            console.log(hasGroupedActions)
+            if (itemIndex != null && hasGroupedActions) {
+              this._selectItem(itemIndex)
+            }
             break
           case 'ROW_ACTION':
             if (item == null) {
@@ -435,12 +424,10 @@ export default class SortedTable extends Component {
 
   _selectAll = () => this.setState({ all: true })
 
-  _selectItem = event => {
+  _selectItem (current, selected, range = false) {
     const { all, selectedItemsIds } = this.state
-    const { target } = event
     const visibleItems = this._getVisibleItems()
-
-    const current = +target.name
+    const item = visibleItems[current]
 
     if (all) {
       return this.setState({
@@ -449,17 +436,19 @@ export default class SortedTable extends Component {
           forEach(visibleItems, item => {
             selectedItemsIds.add(item.id)
           })
-          selectedItemsIds.delete(visibleItems[current].id)
+          selectedItemsIds.delete(item.id)
         })
       })
     }
 
-    let method = target.checked ? 'add' : 'delete'
+    let method = (
+      selected === undefined ? !selectedItemsIds.has(item.id) : selected
+    ) ? 'add' : 'delete'
 
     let previous
     this.setState({ selectedItemsIds:
       (
-        event.nativeEvent.shiftKey &&
+        range &&
         (previous = this._previous) !== undefined
       ) ? selectedItemsIds.withMutations(selectedItemsIds => {
         let i = previous
@@ -472,10 +461,15 @@ export default class SortedTable extends Component {
           selectedItemsIds[method](visibleItems[i].id)
         }
       })
-        : selectedItemsIds[method](visibleItems[current].id)
+        : selectedItemsIds[method](item.id)
     })
 
     this._previous = current
+  }
+
+  _onSelectItemCheckbox = event => {
+    const { target } = event
+    this._selectItem(+target.name, target.checked, event.nativeEvent.shiftKey)
   }
 
   _onFilterChange = debounce(filter => {
@@ -518,7 +512,7 @@ export default class SortedTable extends Component {
 
     const { individualActions, rowAction, rowLink, userData } = props
 
-    const hasGroupedActions = !isEmpty(props.groupedActions)
+    const hasGroupedActions = this._hasGroupedActions()
     const hasIndividualActions = !isEmpty(individualActions)
 
     const columns = map(props.columns, ({
@@ -604,7 +598,7 @@ export default class SortedTable extends Component {
     const nSelectedItems = state.selectedItemsIds.size
     const nVisibleItems = this._getVisibleItems().length
 
-    const hasGroupedActions = !isEmpty(groupedActions)
+    const hasGroupedActions = this._hasGroupedActions()
     const hasIndividualActions = !isEmpty(props.individualActions)
 
     const nColumns = props.columns.length + (hasIndividualActions ? 2 : 1)
