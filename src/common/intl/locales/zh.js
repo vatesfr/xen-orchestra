@@ -285,7 +285,7 @@ export default {
   homeMore: '更多',
 
   // Original text: "Migrate to…"
-  homeMigrateTo: '迁移至...',
+  homeMigrateTo: '迁移至…',
 
   // Original text: "Missing patches"
   homeMissingPaths: '缺少补丁',
@@ -1467,7 +1467,7 @@ export default {
   statsDashboardSelectObjects: '选择',
 
   // Original text: "Loading…"
-  metricsLoading: '加载中....',
+  metricsLoading: '加载中….',
 
   // Original text: "Coming soon!"
   comingSoon: '即将呈现',
@@ -1947,7 +1947,7 @@ export default {
   importBackupModalStart: '恢复后启动虚拟机',
 
   // Original text: "Select your backup…"
-  importBackupModalSelectBackup: '选择你的备份...',
+  importBackupModalSelectBackup: '选择你的备份…',
 
   // Original text: "Are you sure you want to remove all orphaned VDIs?"
   removeAllOrphanedModalWarning: '你确定要删除所有孤立的虚拟磁盘？',

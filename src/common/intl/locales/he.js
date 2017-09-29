@@ -204,7 +204,7 @@ export default {
   editUserProfile: undefined,
 
   // Original text: "Fetching data…"
-  homeFetchingData: 'מקבל נתונים, נא להמתין...',
+  homeFetchingData: 'מקבל נתונים, נא להמתין…',
 
   // Original text: "Welcome on Xen Orchestra!"
   homeWelcome: 'ברוכים הבאים',
@@ -228,7 +228,7 @@ export default {
   homeNoVms: 'אין מכונות',
 
   // Original text: "Or…"
-  homeNoVmsOr: 'או...',
+  homeNoVmsOr: 'או…',
 
   // Original text: "Import VM"
   homeImportVm: 'ההלעה של מכונה',
@@ -330,7 +330,7 @@ export default {
   homeMore: 'עוד',
 
   // Original text: "Migrate to…"
-  homeMigrateTo: 'העבר ל...',
+  homeMigrateTo: 'העבר ל…',
 
   // Original text: 'Missing patches'
   homeMissingPaths: undefined,
