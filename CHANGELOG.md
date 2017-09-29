@@ -4,12 +4,16 @@
 
 ### Enhancements
 
+ * replace all '...' with the UTF-8 equivalent [#2391](https://github.com/vatesfr/xo-web/issues/2391)
+ * [SortedTable] Explicit when no items [#2388](https://github.com/vatesfr/xo-web/issues/2388)
  * Auto select iqn or lun if there is only one [#2379](https://github.com/vatesfr/xo-web/issues/2379)
  * [Sparklines] Hide points [#2370](https://github.com/vatesfr/xo-web/issues/2370)
  * Allow xo-server-recover-account to generate a random password [#2360](https://github.com/vatesfr/xo-web/issues/2360)
  * Add disk in existing VM as self user [#2348](https://github.com/vatesfr/xo-web/issues/2348)
  * Sorted table for Settings/server [#2340](https://github.com/vatesfr/xo-web/issues/2340)
  * Sign in should be case insensitive [#2337](https://github.com/vatesfr/xo-web/issues/2337)
+ * [SortedTable] Extend checkbox click to whole column [#2329](https://github.com/vatesfr/xo-web/issues/2329)
+ * [SortedTable] Ability to select all items (across pages) [#2324](https://github.com/vatesfr/xo-web/issues/2324)
  * [SortedTable] Range selection [#2323](https://github.com/vatesfr/xo-web/issues/2323)
  * Warning on SMB remote creation [#2316](https://github.com/vatesfr/xo-web/issues/2316)
  * [Home | SortedTable] Add link to syntax doc in the filter input [#2305](https://github.com/vatesfr/xo-web/issues/2305)
@@ -22,6 +26,8 @@
 
  * iSCSI issue on LUN selector [#2374](https://github.com/vatesfr/xo-web/issues/2374)
  * Errors in VM copy are not properly reported [#2347](https://github.com/vatesfr/xo-web/issues/2347)
+ * Removing a PIF IP fails [#2346](https://github.com/vatesfr/xo-web/issues/2346)
+ * Review and fix creating a VM from a snapshot [#2343](https://github.com/vatesfr/xo-web/issues/2343)
  * iSCSI LUN Detection fails with authentification  [#2339](https://github.com/vatesfr/xo-web/issues/2339)
  * Fix PoolActionBar to add a new SR [#2307](https://github.com/vatesfr/xo-web/issues/2307)
  * [VM migration] Error if default SR not accessible to target host [#2180](https://github.com/vatesfr/xo-web/issues/2180)
