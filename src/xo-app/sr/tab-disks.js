@@ -139,6 +139,7 @@ export default class SrDisks extends Component {
               filterUrlParam='s'
               groupedActions={GROUPED_ACTIONS}
               individualActions={INDIVIDUAL_ACTIONS}
+              shortcutsTarget='body'
             />
             : <h4 className='text-xs-center'>{_('srNoVdis')}</h4>
           }
