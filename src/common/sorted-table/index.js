@@ -179,7 +179,6 @@ class Checkbox extends Component {
 
 // ===================================================================
 
-const DEFAULT_ITEMS_PER_PAGE = 10
 const actionsShape = propTypes.arrayOf(propTypes.shape({
   // groupedActions: the function will be called with an array of the selected items` ids in parameters
   // individualActions: the function will be called with the related item's id in parameters
@@ -225,6 +224,10 @@ const actionsShape = propTypes.arrayOf(propTypes.shape({
   router: routerShape
 })
 export default class SortedTable extends Component {
+  static defaultProps = {
+    itemsPerPage: 10
+  }
+
   constructor (props, context) {
     super(props, context)
 
@@ -246,8 +249,7 @@ export default class SortedTable extends Component {
       selectedColumn,
       sortOrder: props.columns[selectedColumn].sortOrder === 'desc'
         ? 'desc'
-        : 'asc',
-      itemsPerPage: props.itemsPerPage || DEFAULT_ITEMS_PER_PAGE
+        : 'asc'
     }
 
     this._getSelectedColumn = () =>
@@ -281,7 +283,7 @@ export default class SortedTable extends Component {
     this._getVisibleItems = createPager(
       this._getItems,
       () => this.state.activePage,
-      this.state.itemsPerPage
+      this.props.itemsPerPage
     )
 
     this.state.selectedItemsIds = new Set()
@@ -436,17 +438,85 @@ export default class SortedTable extends Component {
     props.rowAction(item, props.userData)
   }
 
+  _renderItem = (item, i) => {
+    const { props, state } = this
+
+    const { individualActions, rowAction, rowLink, userData } = props
+
+    const hasGroupedActions = !isEmpty(props.groupedActions)
+    const hasIndividualActions = !isEmpty(individualActions)
+
+    const columns = map(props.columns, ({
+      component: Component,
+      itemRenderer,
+      textAlign
+    }, key) =>
+      <td
+        className={textAlign && `text-xs-${textAlign}`}
+        key={key}
+      >
+        {Component !== undefined
+          ? <Component item={item} userData={userData} />
+          : itemRenderer(item, userData)
+        }
+      </td>
+    )
+
+    const { id = i } = item
+
+    const selectionColumn = hasGroupedActions && <td
+      className='text-xs-center'
+      onClick={this._toggleNestedCheckbox}
+    >
+      <input
+        checked={state.all || state.selectedItemsIds.has(id)}
+        name={i} // position in visible items
+        onChange={this._selectItem}
+        type='checkbox'
+      />
+    </td>
+    const actionsColumn = hasIndividualActions && <td><div className='pull-right'>
+      <ButtonGroup>
+        {map(individualActions, ({ icon, label, level, handler }, key) => <ActionRowButton
+          btnStyle={level}
+          handler={handler}
+          handlerParam={id}
+          icon={icon}
+          key={key}
+          tooltip={label}
+        />)}
+      </ButtonGroup>
+    </div></td>
+
+    return rowLink != null
+      ? <BlockLink
+        key={id}
+        tagName='tr'
+        to={isFunction(rowLink) ? rowLink(item, userData) : rowLink}
+      >
+        {selectionColumn}
+        {columns}
+        {actionsColumn}
+      </BlockLink>
+      : <tr
+        className={rowAction && styles.clickableRow}
+        data-index={i}
+        key={id}
+        onClick={rowAction && this._executeRowAction}
+      >
+        {selectionColumn}
+        {columns}
+        {actionsColumn}
+      </tr>
+  }
+
   render () {
     const { props, state } = this
     const {
       filterContainer,
-      filters,
       groupedActions,
-      individualActions,
-      paginationContainer,
-      rowAction,
-      rowLink,
-      userData
+      itemsPerPage,
+      paginationContainer
     } = props
     const { all } = state
 
@@ -456,11 +526,18 @@ export default class SortedTable extends Component {
     const nVisibleItems = this._getVisibleItems().length
 
     const hasGroupedActions = !isEmpty(groupedActions)
-    const hasIndividualActions = !isEmpty(individualActions)
+    const hasIndividualActions = !isEmpty(props.individualActions)
 
     const nColumns = props.columns.length + (hasIndividualActions ? 2 : 1)
 
-    const paginationInstance = (
+    const displayPagination =
+      paginationContainer === undefined &&
+      itemsPerPage < nAllItems
+    const displayFilter =
+      filterContainer === undefined &&
+      nAllItems !== 0
+
+    const paginationInstance = displayPagination && (
       <Pagination
         first
         last
@@ -469,16 +546,16 @@ export default class SortedTable extends Component {
         ellipsis
         boundaryLinks
         maxButtons={10}
-        items={ceil(nItems / state.itemsPerPage)}
-        activePage={this.state.activePage}
+        items={ceil(nItems / itemsPerPage)}
+        activePage={state.activePage}
         onSelect={this._onPageSelection}
       />
     )
 
-    const filterInstance = (
+    const filterInstance = displayFilter && (
       <TableFilter
         defaultFilter={state.filter}
-        filters={filters}
+        filters={props.filters}
         onChange={this._onFilterChange}
       />
     )
@@ -560,93 +637,35 @@ export default class SortedTable extends Component {
             </tr>
           </thead>
           <tbody>
-            {map(this._getVisibleItems(), (item, i) => {
-              const columns = map(props.columns, ({
-                component: Component,
-                itemRenderer,
-                textAlign
-              }, key) =>
-                <td
-                  className={textAlign && `text-xs-${textAlign}`}
-                  key={key}
-                >
-                  {Component !== undefined
-                    ? <Component item={item} userData={userData} />
-                    : itemRenderer(item, userData)
-                  }
-                </td>
-              )
-
-              const { id = i } = item
-
-              const selectionColumn = hasGroupedActions && <td
-                className='text-xs-center'
-                onClick={this._toggleNestedCheckbox}
-              >
-                <input
-                  checked={all || state.selectedItemsIds.has(id)}
-                  name={i} // position in visible items
-                  onChange={this._selectItem}
-                  type='checkbox'
-                />
-              </td>
-              const actionsColumn = hasIndividualActions && <td><div className='pull-right'>
-                <ButtonGroup>
-                  {map(individualActions, ({ icon, label, level, handler }, key) => <ActionRowButton
-                    btnStyle={level}
-                    handler={handler}
-                    handlerParam={id}
-                    icon={icon}
-                    key={key}
-                    tooltip={label}
-                  />)}
-                </ButtonGroup>
-              </div></td>
-
-              return rowLink != null
-                ? <BlockLink
-                  key={id}
-                  tagName='tr'
-                  to={isFunction(rowLink) ? rowLink(item, userData) : rowLink}
-                >
-                  {selectionColumn}
-                  {columns}
-                  {actionsColumn}
-                </BlockLink>
-                : <tr
-                  className={rowAction && styles.clickableRow}
-                  data-index={i}
-                  key={id}
-                  onClick={rowAction && this._executeRowAction}
-                >
-                  {selectionColumn}
-                  {columns}
-                  {actionsColumn}
-                </tr>
-            })}
+            {nVisibleItems !== 0
+              ? map(this._getVisibleItems(), this._renderItem)
+              : <tr><td className='text-info text-xs-center' colSpan={nColumns}>
+                {_('sortedTableNoItems')}
+              </td></tr>
+            }
           </tbody>
         </table>
-        {(!paginationContainer || !filterContainer) && (
+        {(displayFilter || displayPagination) && (
           <Container>
             <SingleLineRow>
               <Col mediumSize={8}>
-                {paginationContainer
-                  ? (
+                {displayPagination && (
+                  paginationContainer !== undefined
                     // Rebuild container function to refresh Portal component.
-                    <Portal container={() => paginationContainer()}>
+                    ? <Portal container={() => paginationContainer()}>
                       {paginationInstance}
                     </Portal>
-                  ) : paginationInstance
-                }
+                    : paginationInstance
+                )}
               </Col>
               <Col mediumSize={4}>
-                {filterContainer
-                  ? (
-                    <Portal container={() => filterContainer()}>
+                {displayFilter && (
+                  filterContainer
+                    ? <Portal container={() => filterContainer()}>
                       {filterInstance}
                     </Portal>
-                  ) : filterInstance
-                }
+                    : filterInstance
+                )}
               </Col>
             </SingleLineRow>
           </Container>

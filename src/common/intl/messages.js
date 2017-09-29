@@ -164,6 +164,7 @@ var messages = {
 
   // ----- Common components -----
   sortedTableAllItemsSelected: 'All of them are selected',
+  sortedTableNoItems: 'No items found',
   sortedTableNumberOfFilteredItems: '{nFiltered, number} of {nTotal, number} items',
   sortedTableNumberOfItems: '{nTotal, number} items',
   sortedTableNumberOfSelectedItems: '{nSelected, number} selected',
