@@ -537,7 +537,7 @@ export default class SortedTable extends Component {
       <input
         checked={state.all || state.selectedItemsIds.has(id)}
         name={i} // position in visible items
-        onChange={this._selectItem}
+        onChange={this._onSelectItemCheckbox}
         type='checkbox'
       />
     </td>
