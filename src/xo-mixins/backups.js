@@ -433,12 +433,15 @@ export default class {
       delta.vm.other_config[TAG_SOURCE_VM] = uuid
       delta.vm.other_config[TAG_EXPORT_TIME] = safeDateFormat(now)
 
+      const { streams } = delta
       forEach(delta.vdis, (vdi, key) => {
         const id = `${key}.vhd`
+        const stream = streams[id]
         const sizeStream = createSizeStream().once('finish', () => {
           size += sizeStream.size
         })
-        delta.streams[id] = delta.streams[id].pipe(sizeStream)
+        sizeStream.task = stream.task
+        streams[id] = stream.pipe(sizeStream)
       })
 
       let toRemove = filter(targetXapi.objects.all, obj =>
