@@ -307,7 +307,7 @@ export const subscribeHostMissingPatches = (host, cb) => {
   const hostId = resolveId(host)
 
   if (missingPatchesByHost[hostId] == null) {
-    missingPatchesByHost[hostId] = createSubscription(() => _call('host.listMissingPatches', { host: hostId }))
+    missingPatchesByHost[hostId] = createSubscription(() => getHostMissingPatches(host))
   }
 
   return missingPatchesByHost[hostId](cb)
@@ -588,7 +588,12 @@ export const disableHost = host => (
 )
 
 export const getHostMissingPatches = host => (
-  _call('host.listMissingPatches', { host: resolveId(host) })
+  _call('host.listMissingPatches', { host: resolveId(host) }).then(patches =>
+    // Hide paid patches to XS-free users
+    host.license_params.sku_type !== 'free'
+     ? patches
+     : filter(patches, [ 'paid', false ])
+  )
 )
 
 export const emergencyShutdownHost = host => (

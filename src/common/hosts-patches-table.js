@@ -1,13 +1,16 @@
-import isEmpty from 'lodash/isEmpty'
-import keys from 'lodash/keys'
-import map from 'lodash/map'
 import React from 'react'
 import { Portal } from 'react-overlays'
+import {
+  forEach,
+  isEmpty,
+  keys,
+  map,
+  noop
+} from 'lodash'
 
 import _ from './intl'
 import ActionButton from './action-button'
 import Component from './base-component'
-import forEach from 'lodash/forEach'
 import Link from './link'
 import propTypes from './prop-types-decorator'
 import SortedTable from './sorted-table'
@@ -75,6 +78,9 @@ const ActionButton_ = ({ children, labelId, ...props }) =>
 
 // ===================================================================
 
+@connectStore({
+  hostsById: createGetObjectsOfType('host').groupBy('id')
+})
 class HostsPatchesTable extends Component {
   constructor (props) {
     super(props)
@@ -90,9 +96,11 @@ class HostsPatchesTable extends Component {
   )
 
   _subscribeMissingPatches = (hosts = this.props.hosts) => {
-    const unsubs = map(hosts, host =>
-      subscribeHostMissingPatches(
-        host,
+    const { hostsById } = this.props
+
+    const unsubs = map(hosts, host => hostsById
+      ? subscribeHostMissingPatches(
+        hostsById[host.id][0],
         patches => this.setState({
           missingPatches: {
             ...this.state.missingPatches,
@@ -100,6 +108,7 @@ class HostsPatchesTable extends Component {
           }
         })
       )
+      : noop
     )
 
     if (this.unsubscribeMissingPatches !== undefined) {

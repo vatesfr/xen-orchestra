@@ -178,12 +178,7 @@ export default class Host extends Component {
 
   componentDidMount () {
     this.loop()
-    this.unsubscribeHostMissingPatches = subscribeHostMissingPatches(
-      this.props.routeParams.id,
-      missingPatches => this.setState({
-        missingPatches: sortBy(missingPatches, patch => -patch.time)
-      })
-    )
+    this._subscribePatches(this.props.host)
   }
 
   componentWillUnmount () {
@@ -193,14 +188,17 @@ export default class Host extends Component {
 
   componentWillReceiveProps (props) {
     const hostNext = props.host
+    const hostCur = this.props.host
+
+    if (hostCur && !hostNext) {
+      return this.context.router.push('/')
+    }
+
     if (!hostNext) {
       return
     }
 
-    const hostCur = this.props.host
-    if (hostCur && !hostNext) {
-      this.context.router.push('/')
-    }
+    this._subscribePatches(hostNext)
 
     if (!isRunning(hostCur) && isRunning(hostNext)) {
       this.loop(hostNext)
@@ -209,6 +207,19 @@ export default class Host extends Component {
         statsOverview: undefined
       })
     }
+  }
+
+  _subscribePatches (host) {
+    if (host === undefined) {
+      return
+    }
+
+    this.unsubscribeHostMissingPatches = subscribeHostMissingPatches(
+      host,
+      missingPatches => this.setState({
+        missingPatches: sortBy(missingPatches, patch => -patch.time)
+      })
+    )
   }
 
   _installAllPatches = () => {
