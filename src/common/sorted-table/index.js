@@ -609,13 +609,11 @@ export default class SortedTable extends Component {
 
     const paginationInstance = displayPagination && (
       <Pagination
-        first
-        last
         prev
         next
         ellipsis
         boundaryLinks
-        maxButtons={10}
+        maxButtons={7}
         items={ceil(nItems / itemsPerPage)}
         activePage={state.activePage}
         onSelect={this._onPageSelection}
