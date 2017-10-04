@@ -236,7 +236,7 @@ export default class NewXosan extends Component {
     } = this.state
 
     const {
-      hostsNeedRestart,
+      hostsNeedRestartByPool,
       noPacksByPool,
       poolPredicate
     } = this.props
@@ -245,6 +245,7 @@ export default class NewXosan extends Component {
     const hosts = this._getHosts()
 
     const disableSrCheckbox = this._getDisableSrCheckbox()
+    const hostsNeedRestart = pool !== undefined && hostsNeedRestartByPool !== undefined && hostsNeedRestartByPool[pool.id]
 
     return <Container>
       <Row className='mb-1'>

@@ -171,6 +171,8 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
           pool.xosanPackInstallationTime > host.agentStartTime
         )
       })
+
+      return hostsNeedRestartByPool
     }
   )
 
@@ -252,7 +254,7 @@ export default class Xosan extends Component {
   _onSrCreationStarted = () => this.setState({ showNewXosanForm: false })
 
   render () {
-    const { xosanSrs, noPacksByPool, hostsNeedRestart, poolPredicate } = this.props
+    const { xosanSrs, noPacksByPool, hostsNeedRestartByPool, poolPredicate } = this.props
     const error = this._getError()
 
     return <Page header={HEADER} title='xosan' formatTitle>
@@ -277,7 +279,7 @@ export default class Xosan extends Component {
               <Row>
                 <Col>
                   {this.state.showNewXosanForm && <NewXosan
-                    hostsNeedRestart={hostsNeedRestart}
+                    hostsNeedRestartByPool={hostsNeedRestartByPool}
                     noPacksByPool={noPacksByPool}
                     poolPredicate={poolPredicate}
                     onSrCreationStarted={this._onSrCreationStarted}
