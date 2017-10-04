@@ -283,11 +283,26 @@ export default class SortedTable extends Component {
     )
 
     this.state.activePage = 1
+    this._getActivePage = createSelector(
+      this._getItems,
+      () => this.props.itemsPerPage,
+      () => this.state.activePage,
+      (items, itemsPerPage, page) => {
+        const n = items.length
+        if (n < itemsPerPage) {
+          return 1
+        }
+        if (page * itemsPerPage > n) {
+          return ceil(n / itemsPerPage)
+        }
+        return page
+      }
+    )
 
     this._getVisibleItems = createPager(
       this._getItems,
-      () => this.state.activePage,
-      this.props.itemsPerPage
+      this._getActivePage,
+      () => this.props.itemsPerPage
     )
 
     this.state.selectedItemsIds = new Set()
@@ -615,7 +630,7 @@ export default class SortedTable extends Component {
         boundaryLinks
         maxButtons={7}
         items={ceil(nItems / itemsPerPage)}
-        activePage={state.activePage}
+        activePage={this._getActivePage()}
         onSelect={this._onPageSelection}
       />
     )
