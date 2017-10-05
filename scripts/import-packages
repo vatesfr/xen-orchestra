@@ -1,0 +1,27 @@
+#!/bin/sh
+
+# Import repositories into this mono-repo.
+#
+# For each repository:
+#
+# 1. rewrite history, moving all files into packages/<repository>
+# 2. rename all tags: <tag> → <repository>-<tag>
+# 3. merge with master
+for pkg
+do
+  [ -d "packages/$pkg" ] || { {
+    [ -f ".git/refs/remotes/$pkg/master" ] || \
+    git remote add "$pkg" "https://github.com/vatesfr/$pkg"
+  } && {
+    git fetch --no-tags "$pkg" master refs/tags/*:refs/tags/"$pkg"-* && \
+      git filter-branch -f --index-filter '
+        git ls-files -s | \
+          sed "s%\t\"*%&packages/'"$pkg"'/%" | \
+          GIT_INDEX_FILE=$GIT_INDEX_FILE.new \
+          git update-index --index-info && \
+          mv "$GIT_INDEX_FILE.new" "$GIT_INDEX_FILE"
+      ' --tag-name-filter 'cat' "$pkg/master" && \
+      git merge --allow-unrelated-histories "$pkg/master"
+    git remote rm "$pkg"
+  } }
+done
