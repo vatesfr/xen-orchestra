@@ -1,0 +1,99 @@
+{
+  "name": "xo-server-auth-google",
+  "version": "0.2.0",
+  "license": "AGPL-3.0",
+  "description": "Google authentication plugin for XO-Server",
+  "keywords": [
+    "authentication",
+    "google",
+    "orchestra",
+    "plugin",
+    "xen",
+    "xen-orchestra",
+    "xo-server"
+  ],
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-auth-google",
+  "bugs": "https://github.com/vatesfr/xo-web/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Julien Fontanet",
+    "email": "julien.fontanet@isonoe.net"
+  },
+  "preferGlobal": false,
+  "main": "dist/",
+  "bin": {},
+  "files": [
+    "dist/"
+  ],
+  "engines": {
+    "node": ">=4"
+  },
+  "dependencies": {
+    "babel-runtime": "^6.23.0",
+    "passport-google-oauth20": "^1.0.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-eslint": "^7.2.1",
+    "babel-plugin-lodash": "^3.2.11",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-env": "^1.3.3",
+    "babel-preset-stage-3": "^6.24.1",
+    "cross-env": "^4.0.0",
+    "dependency-check": "^2.8.0",
+    "husky": "^0.13.3",
+    "jest": "^19.0.2",
+    "rimraf": "^2.6.1",
+    "standard": "^10.0.1"
+  },
+  "scripts": {
+    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "commitmsg": "npm test",
+    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
+    "dev-test": "jest --bail --watch",
+    "posttest": "standard && dependency-check ./package.json",
+    "prebuild": "rimraf dist/",
+    "predev": "npm run prebuild",
+    "prepublish": "npm run build",
+    "test": "jest"
+  },
+  "babel": {
+    "env": {
+      "test": {
+        "ignore": null
+      }
+    },
+    "ignore": "*.spec.js",
+    "plugins": [
+      "transform-runtime",
+      "lodash"
+    ],
+    "presets": [
+      [
+        "env",
+        {
+          "targets": {
+            "node": 4
+          }
+        }
+      ],
+      "stage-3"
+    ]
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "roots": [
+      "<rootDir>/src"
+    ],
+    "testRegex": "\\.spec\\.js$"
+  },
+  "standard": {
+    "ignore": [
+      "dist"
+    ],
+    "parser": "babel-eslint"
+  }
+}
