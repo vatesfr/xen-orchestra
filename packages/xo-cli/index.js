@@ -12,7 +12,6 @@ var stat = require('fs-promise').stat
 
 var chalk = require('chalk')
 var eventToPromise = require('event-to-promise')
-var filter = require('lodash/filter')
 var forEach = require('lodash/forEach')
 var getKeys = require('lodash/keys')
 var got = require('got')
@@ -319,17 +318,16 @@ function listObjects (args) {
     }
     : identity
 
-  var sieve = args.length ? parseParameters(args) : null
+  var sieve = args.length ? parseParameters(args) : undefined
 
   return connect().then(function getXoObjects (xo) {
-    return xo.call('xo.getAllObjects')
+    return xo.call('xo.getAllObjects', { filter: sieve })
   }).then(function filterObjects (objects) {
-    objects = filter(objects, sieve)
-
     const stdout = process.stdout
     stdout.write('[\n')
-    for (var i = 0, n = objects.length; i < n;) {
-      stdout.write(JSON.stringify(filterProperties(objects[i]), null, 2))
+    const keys = Object.keys(objects)
+    for (var i = 0, n = keys.length; i < n;) {
+      stdout.write(JSON.stringify(filterProperties(objects[keys[i]]), null, 2))
       stdout.write(++i < n ? ',\n' : '\n')
     }
     stdout.write(']\n')
@@ -415,5 +413,9 @@ exports.call = call
 // ===================================================================
 
 if (!module.parent) {
-  require('exec-promise')(exports)
+  require('exec-promise')(function () {
+    return exports.apply(this, arguments).catch(error => {
+      console.log('%j', error)
+    })
+  })
 }
