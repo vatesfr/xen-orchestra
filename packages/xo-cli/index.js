@@ -413,9 +413,5 @@ exports.call = call
 // ===================================================================
 
 if (!module.parent) {
-  require('exec-promise')(function () {
-    return exports.apply(this, arguments).catch(error => {
-      console.log('%j', error)
-    })
-  })
+  require('exec-promise')(exports)
 }
