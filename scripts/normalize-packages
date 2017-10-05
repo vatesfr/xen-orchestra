@@ -3,25 +3,37 @@
 const PKGS_DIR = `${__dirname}/../packages`
 
 const { fromCallback } = require('promise-toolbox')
-const { readdir, readFile, writeFile } = require('fs')
+const { readdir, readFile, unlink, writeFile } = require('fs')
 
-const normalizePackage = name => fromCallback(cb =>
-  readFile(`${PKGS_DIR}/${name}/package.json`, cb)
-).then(JSON.parse).then(package => {
-  package.name = name
-  package.homepage = `https://github.com/vatesfr/xen-orchestra/tree/master/packages/${name}`
-  package.bugs = `https://github.com/vatesfr/xo-web/issues`
-  package.repository = {
-    type: 'git',
-    url: 'https://github.com/vatesfr/xen-orchestra.git'
+const pUnlink = path => fromCallback(cb =>
+  unlink(path, cb)
+).catch(error => {
+  if (error.code !== 'ENOENT') {
+    throw error
   }
-
-  return fromCallback(cb => writeFile(
-    `${PKGS_DIR}/${name}/package.json`,
-    JSON.stringify(package, null, 2) + '\n',
-    cb
-  ))
 })
+
+const normalizePackage = name => Promise.all([
+  fromCallback(cb =>
+    readFile(`${PKGS_DIR}/${name}/package.json`, cb)
+  ).then(JSON.parse).then(package => {
+    package.name = name
+    package.homepage = `https://github.com/vatesfr/xen-orchestra/tree/master/packages/${name}`
+    package.bugs = `https://github.com/vatesfr/xo-web/issues`
+    package.repository = {
+      type: 'git',
+      url: 'https://github.com/vatesfr/xen-orchestra.git'
+    }
+
+    return fromCallback(cb => writeFile(
+      `${PKGS_DIR}/${name}/package.json`,
+      JSON.stringify(package, null, 2) + '\n',
+      cb
+    ))
+  }),
+  pUnlink(`${PKGS_DIR}/${name}/.editorconfig`),
+  pUnlink(`${PKGS_DIR}/${name}/.gitignore`)
+])
 
 const main =() => fromCallback(cb =>
   readdir(PKGS_DIR, cb)
