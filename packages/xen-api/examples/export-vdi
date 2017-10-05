@@ -1,0 +1,50 @@
+#!/usr/bin/env node
+
+process.env.DEBUG = '*'
+
+const defer = require('golike-defer').default
+const pump = require('pump')
+const { fromCallback } = require('promise-toolbox')
+
+const { createClient } = require('../')
+
+const { createOutputStream, resolveRef } = require('./utils')
+
+defer(async ($defer, args) => {
+  let raw = false
+  if (args[0] === '--raw') {
+    raw = true
+    args.shift()
+  }
+
+  if (args.length < 2) {
+    return console.log('Usage: export-vdi [--raw] <XS URL> <VDI identifier> [<VHD file>]')
+  }
+
+  const xapi = createClient({
+    allowUnauthorized: true,
+    url: args[0],
+    watchEvents: false
+  })
+
+  await xapi.connect()
+  $defer(() => xapi.disconnect())
+
+  // https://xapi-project.github.io/xen-api/snapshots.html#downloading-a-disk-or-snapshot
+  const exportStream = await xapi.getResource('/export_raw_vdi/', {
+    query: {
+      format: raw ? 'raw' : 'vhd',
+      vdi: await resolveRef(xapi, 'VDI', args[1])
+    }
+  })
+
+  console.warn('Export task:', exportStream.headers['task-id'])
+
+  await fromCallback(cb => pump(
+    exportStream,
+    createOutputStream(args[2]),
+    cb
+  ))
+})(process.argv.slice(2)).catch(
+  console.error.bind(console, 'error')
+)
