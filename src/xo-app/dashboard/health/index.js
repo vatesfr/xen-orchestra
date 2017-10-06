@@ -401,7 +401,7 @@ export default class Health extends Component {
     ).then(
       formattedMessages => {
         this.setState({
-          messages: map(formattedMessages, ({ ...formattedMessage, id }) => ({
+          messages: map(formattedMessages, ({ id, ...formattedMessage }) => ({
             formatted: formattedMessage,
             ...props.alertMessages[id]
           }))
