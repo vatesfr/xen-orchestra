@@ -147,13 +147,6 @@ const getTaskResult = (task, onSuccess, onFailure) => {
 
 // -------------------------------------------------------------------
 
-// see https://gist.github.com/julien-f/675b01825302bcc85270dd74f15e7cb0
-const parseEventId = id => typeof id === 'string'
-  ? +id.split(',')[0]
-  : id
-
-// -------------------------------------------------------------------
-
 const MAX_TRIES = 5
 
 const CONNECTED = 'connected'
@@ -259,31 +252,38 @@ export class Xapi extends EventEmitter {
     return `${this._auth.user}@${this._url.hostname}`
   }
 
-  // this method injects an artificial event on the pool and waits for
-  // this event to be received
-  barrier (type, ref) {
+  // ensure we have received all events up to this call
+  //
+  // optionally returns the up to date object for the given ref
+  barrier (ref) {
     const eventWatchers = this._eventWatchers
     if (eventWatchers === undefined) {
       return Promise.reject(new Error('Xapi#barrier() requires events watching'))
     }
 
-    if (type === undefined) {
-      type = 'pool'
-      ref = this._pool.$ref
-    }
+    const key = `xo:barrier:${Math.random().toString(36).slice(2)}`
+    const poolRef = this._pool.$ref
+
+    const { promise, resolve } = defer()
+    eventWatchers[key] = resolve
 
     return this._sessionCall(
-      'event.inject',
-      [ type, ref ]
-    ).then(eventId => {
-      eventId = parseEventId(eventId)
-      const { promise, resolve } = defer()
-      ;(
-        eventWatchers[ref] ||
-        (eventWatchers[ref] = [])
-      ).push({ eventId, resolve })
-      return promise
-    })
+      'pool.add_to_other_config',
+      [ poolRef, key, '' ]
+    ).then(() => promise.then(() => {
+      this._sessionCall('pool.remove_from_other_config', [ poolRef, key ]).catch(noop)
+
+      if (ref === undefined) {
+        return
+      }
+
+      // support legacy params (type, ref)
+      if (arguments.length === 2) {
+        ref = arguments[1]
+      }
+
+      return this.getObjectByRef(ref)
+    }))
   }
 
   connect () {
@@ -741,29 +741,17 @@ export class Xapi extends EventEmitter {
       if (event.operation === 'del') {
         this._removeObject(ref)
       } else {
-        object = this._addObject(event.class, ref, event.snapshot)
-      }
+        const type = event.class
+        object = this._addObject(type, ref, event.snapshot)
 
-      if (eventWatchers !== undefined) {
-        const watchers = eventWatchers[ref]
-        if (watchers !== undefined) {
-          const eventId = parseEventId(event.id)
-
-          const { length } = watchers
-          let i = 0
-          let current
-          while (
-            i < length &&
-            (current = watchers[i]).eventId <= eventId
-          ) {
-            current.resolve(object)
-            ++i
-          }
-          if (i === length) {
-            delete eventWatchers[ref]
-          } else {
-            watchers.splice(0, i)
-          }
+        if (eventWatchers !== undefined && type === 'pool') {
+          forEach(object.other_config, (_, key) => {
+            const eventWatcher = eventWatchers[key]
+            if (eventWatcher !== undefined) {
+              delete eventWatchers[key]
+              eventWatcher(object)
+            }
+          })
         }
       }
     })
