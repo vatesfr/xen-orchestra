@@ -36,6 +36,8 @@ Then, you can define quotas on this set:
 * max RAM
 * max disk usage
 
+> Note: Snapshotting a VM within a self-service will use the quota from the resource set. The same rule applies for backups and replication.  
+
 When you click on create, you can see the resource set and remove or edit it:
 
 ![](https://xen-orchestra.com/blog/content/images/2016/02/selfservice_recap_quotas.png)
