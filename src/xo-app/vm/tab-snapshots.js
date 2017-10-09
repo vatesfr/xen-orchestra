@@ -1,9 +1,7 @@
 import _ from 'intl'
-import ActionRowButton from 'action-row-button'
-import ButtonGroup from 'button-group'
 import Icon from 'icon'
-import isEmpty from 'lodash/isEmpty'
 import React, { Component } from 'react'
+import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import { connectStore } from 'utils'
@@ -12,7 +10,7 @@ import { Container, Row, Col } from 'grid'
 import { Text } from 'editable'
 import {
   includes,
-  map
+  isEmpty
 } from 'lodash'
 import {
   createGetObjectsOfType
@@ -25,6 +23,67 @@ import {
   revertSnapshot,
   snapshotVm
 } from 'xo'
+
+const COLUMNS = [
+  {
+    itemRenderer: snapshot =>
+      <div>
+        <FormattedTime
+          value={snapshot.snapshot_time * 1000}
+          day='numeric'
+          hour='numeric'
+          minute='numeric'
+          month='long'
+          year='numeric'
+        />
+        {' '}
+        (<FormattedRelative value={snapshot.snapshot_time * 1000} />)
+        {' '}
+        {includes(snapshot.tags, 'quiesce') &&
+          <Tooltip content={_('snapshotQuiesce')}>
+            <Icon icon='info' />
+          </Tooltip>
+        }
+      </div>,
+    default: true,
+    name: _('snapshotDate'),
+    sortCriteria: _ => _.snapshot_time
+  },
+  {
+    itemRenderer: snapshot =>
+      <Text
+        onChange={value => editVm(snapshot, {name_label: value})}
+        value={snapshot.name_label}
+      />,
+    name: _('snapshotName'),
+    sortCriteria: _ => _.name_label
+  }
+]
+
+const INDIVIDUAL_ACTIONS = [
+  {
+    handler: copyVm,
+    icon: 'vm-copy',
+    label: _('copySnapshot')
+  },
+  {
+    handler: exportVm,
+    icon: 'export',
+    label: _('exportSnapshot')
+  },
+  {
+    handler: revertSnapshot,
+    icon: 'snapshot-revert',
+    label: _('revertSnapshot'),
+    level: 'warning'
+  },
+  {
+    handler: deleteSnapshot,
+    icon: 'delete',
+    label: _('deleteSnapshot'),
+    level: 'danger'
+  }
+]
 
 @connectStore(() => ({
   snapshots: createGetObjectsOfType('VM-snapshot').pick(
@@ -56,65 +115,11 @@ export default class TabSnapshot extends Component {
         </Row>
         : <Row>
           <Col>
-            <table className='table'>
-              <thead className='thead-default'>
-                <tr>
-                  <th>{_('snapshotDate')}</th>
-                  <th>{_('snapshotName')}</th>
-                  <th>{_('snapshotAction')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {map(snapshots, snapshot =>
-                  <tr key={snapshot.id}>
-                    <td>
-                      <FormattedTime value={snapshot.snapshot_time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={snapshot.snapshot_time * 1000} />)
-                      {' '}
-                      {includes(snapshot.tags, 'quiesce') && <Tooltip content={_('snapshotQuiesce')}><Icon icon='info' /></Tooltip>}
-                    </td>
-                    <td>
-                      <Text value={snapshot.name_label} onChange={value => editVm(snapshot, {name_label: value})} />
-                    </td>
-                    <td>
-                      <ButtonGroup>
-                        <Tooltip content={_('copySnapshot')}>
-                          <ActionRowButton
-                            btnStyle='primary'
-                            handler={copyVm}
-                            handlerParam={snapshot}
-                            icon='vm-copy'
-                          />
-                        </Tooltip>
-                        <Tooltip content={_('exportSnapshot')}>
-                          <ActionRowButton
-                            btnStyle='primary'
-                            handler={exportVm}
-                            handlerParam={snapshot}
-                            icon='export'
-                          />
-                        </Tooltip>
-                        <Tooltip content={_('revertSnapshot')}>
-                          <ActionRowButton
-                            btnStyle='warning'
-                            handler={revertSnapshot}
-                            handlerParam={snapshot}
-                            icon='snapshot-revert'
-                          />
-                        </Tooltip>
-                        <Tooltip content={_('deleteSnapshot')}>
-                          <ActionRowButton
-                            btnStyle='danger'
-                            handler={deleteSnapshot}
-                            handlerParam={snapshot}
-                            icon='delete'
-                          />
-                        </Tooltip>
-                      </ButtonGroup>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+            <SortedTable
+              collection={snapshots}
+              columns={COLUMNS}
+              individualActions={INDIVIDUAL_ACTIONS}
+            />
           </Col>
         </Row>
       }
