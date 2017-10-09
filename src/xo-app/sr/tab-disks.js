@@ -136,10 +136,10 @@ export default class SrDisks extends Component {
               columns={COLUMNS}
               defaultFilter='filterOnlyManaged'
               filters={FILTERS}
-              filterUrlParam='s'
               groupedActions={GROUPED_ACTIONS}
               individualActions={INDIVIDUAL_ACTIONS}
               shortcutsTarget='body'
+              stateUrlParam='s'
             />
             : <h4 className='text-xs-center'>{_('srNoVdis')}</h4>
           }
