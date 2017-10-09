@@ -26,7 +26,7 @@ import ActionRowButton from '../action-row-button'
 import Button from '../button'
 import ButtonGroup from '../button-group'
 import Component from '../base-component'
-import defined from '../xo-defined'
+import defined, { get } from '../xo-defined'
 import Icon from '../icon'
 import propTypes from '../prop-types-decorator'
 import SingleLineRow from '../single-line-row'
@@ -209,7 +209,6 @@ const actionsShape = propTypes.arrayOf(propTypes.shape({
     textAlign: propTypes.string
   })).isRequired,
   filterContainer: propTypes.func,
-  filterUrlParam: propTypes.string,
   filters: propTypes.object,
   groupedActions: actionsShape,
   individualActions: actionsShape,
@@ -223,6 +222,7 @@ const actionsShape = propTypes.arrayOf(propTypes.shape({
   // DOM node selector like body or .my-class
   // The shortcuts will be enabled when the node is focused
   shortcutsTarget: propTypes.string,
+  stateUrlParam: propTypes.string,
   userData: propTypes.any
 }, {
   router: routerShape
@@ -244,16 +244,28 @@ export default class SortedTable extends Component {
       }
     }
 
-    this.state = {
+    const state = this.state = {
       all: false, // whether all items are selected (accross pages)
       filter: defined(
-        () => context.router.location.query[props.filterUrlParam],
-        () => props.filters[props.defaultFilter]
+        () => props.filters[props.defaultFilter],
+        ''
       ),
+      page: 1,
       selectedColumn,
       sortOrder: props.columns[selectedColumn].sortOrder === 'desc'
         ? 'desc'
         : 'asc'
+    }
+
+    const urlState = get(() => context.router.location.query[props.stateUrlParam])
+    if (urlState !== undefined) {
+      const i = urlState.indexOf('-')
+      if (i === -1) {
+        state.filter = urlState
+      } else {
+        state.filter = urlState.slice(i + 1)
+        state.page = +urlState.slice(0, i)
+      }
     }
 
     this._getSelectedColumn = () =>
@@ -282,30 +294,13 @@ export default class SortedTable extends Component {
       () => this.state.sortOrder
     )
 
-    this.state.activePage = 1
-    this._getActivePage = createSelector(
-      this._getItems,
-      () => this.props.itemsPerPage,
-      () => this.state.activePage,
-      (items, itemsPerPage, page) => {
-        const n = items.length
-        if (n < itemsPerPage) {
-          return 1
-        }
-        if (page * itemsPerPage > n) {
-          return ceil(n / itemsPerPage)
-        }
-        return page
-      }
-    )
-
     this._getVisibleItems = createPager(
       this._getItems,
-      this._getActivePage,
+      () => this.state.page,
       () => this.props.itemsPerPage
     )
 
-    this.state.selectedItemsIds = new Set()
+    state.selectedItemsIds = new Set()
 
     this._hasGroupedActions = createSelector(
       () => this.props.groupedActions,
@@ -364,6 +359,8 @@ export default class SortedTable extends Component {
   }
 
   componentDidMount () {
+    this._checkUpdatePage()
+
     // Force one Portal refresh.
     // Because Portal cannot see the container reference at first rendering.
     if (this.props.paginationContainer) {
@@ -401,12 +398,58 @@ export default class SortedTable extends Component {
         this.setState({ selectedItemsIds: newSelectedItems })
       }
     }
+
+    this._checkUpdatePage()
   }
 
-  _onPageSelection = (_, event) => this.setState({
-    activePage: event.eventKey,
-    highlighted: undefined
-  })
+  _saveUrlState (filter, page) {
+    const { stateUrlParam } = this.props
+    if (stateUrlParam === undefined) {
+      return
+    }
+    const { router } = this.context
+    const { location } = router
+    router.replace({
+      ...location,
+      query: {
+        ...location.query,
+        [stateUrlParam]: `${page}-${filter}`
+      }
+    })
+  }
+
+  _setFilter (filter) {
+    this._saveUrlState(filter, 1)
+    this.setState({
+      filter,
+      page: 1,
+      highlighted: undefined
+    })
+  }
+
+  _checkUpdatePage () {
+    const { page } = this.state
+    if (page === 1) {
+      return
+    }
+
+    const n = this._getItems().length
+    const { itemsPerPage } = this.props
+    if (n < itemsPerPage) {
+      return this._setPage(1)
+    }
+
+    if (page * itemsPerPage > n) {
+      return this._setPage(ceil(n / itemsPerPage))
+    }
+  }
+
+  _setPage (page) {
+    this._saveUrlState(this.state.filter, page)
+    this.setState({ page })
+  }
+
+  _onPageSelection = (_, event) => this._setPage(event.eventKey)
 
   _selectAllVisibleItems = event => {
     this.setState({
@@ -485,23 +528,7 @@ export default class SortedTable extends Component {
   }
 
   _onFilterChange = debounce(filter => {
-    const { filterUrlParam } = this.props
-    if (filterUrlParam !== undefined) {
-      const { router } = this.context
-      const { location } = router
-      router.replace({
-        ...location,
-        query: {
-          ...location.query,
-          [filterUrlParam]: filter
-        }
-      })
-    }
-    this.setState({
-      activePage: 1,
-      filter,
-      highlighted: undefined
-    })
+    this._setFilter(filter)
   }, 500)
 
   _executeGroupedAction = handler => {
@@ -630,7 +657,7 @@ export default class SortedTable extends Component {
         boundaryLinks
         maxButtons={7}
         items={ceil(nItems / itemsPerPage)}
-        activePage={this._getActivePage()}
+        activePage={state.page}
         onSelect={this._onPageSelection}
       />
     )
