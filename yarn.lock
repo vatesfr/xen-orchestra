@@ -4910,7 +4910,7 @@ lodash.debounce@^3.1.1:
   dependencies:
     lodash._getnative "^3.0.0"
 
-lodash.debounce@^4, lodash.debounce@^4.0.4, lodash.debounce@^4.0.6:
+lodash.debounce@^4.0.4, lodash.debounce@^4.0.6:
   version "4.0.8"
   resolved "https://registry.yarnpkg.com/lodash.debounce/-/lodash.debounce-4.0.8.tgz#82d79bff30a67c4005ffd5e2515300ad9ca4d7af"
 
@@ -6066,7 +6066,7 @@ prop-types-extra@^1.0.1:
   dependencies:
     warning "^3.0.0"
 
-prop-types@^15, prop-types@^15.0.0, prop-types@^15.5.10, prop-types@^15.5.4, prop-types@^15.5.6, prop-types@^15.5.7, prop-types@^15.5.8:
+prop-types@^15.0.0, prop-types@^15.5.10, prop-types@^15.5.4, prop-types@^15.5.6, prop-types@^15.5.7, prop-types@^15.5.8:
   version "15.6.0"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.6.0.tgz#ceaf083022fc46b4a35f69e13ef75aed0d639856"
   dependencies:
@@ -6326,13 +6326,6 @@ react-copy-to-clipboard@^5.0.1:
   dependencies:
     copy-to-clipboard "^3"
     prop-types "^15.5.8"
-
-react-debounce-input@^3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/react-debounce-input/-/react-debounce-input-3.1.0.tgz#38e63d0ed7d8b519d8b5f39487600aee58af451d"
-  dependencies:
-    lodash.debounce "^4"
-    prop-types "^15"
 
 react-dnd-html5-backend@^2.5.3:
   version "2.5.3"

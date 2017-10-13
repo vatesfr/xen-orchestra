@@ -14,7 +14,6 @@ import {
 } from 'react-bootstrap-4/lib'
 import {
   ceil,
-  debounce,
   findIndex,
   forEach,
   isEmpty,
@@ -34,6 +33,7 @@ import Tooltip from '../tooltip'
 import { BlockLink } from '../link'
 import { Container, Col } from '../grid'
 import { create as createMatcher } from '../complex-matcher'
+import { Input as DebouncedInput } from '../debounce-component-decorator'
 import {
   createCounter,
   createFilter,
@@ -47,15 +47,15 @@ import styles from './index.css'
 // ===================================================================
 
 @propTypes({
-  defaultFilter: propTypes.string,
   filters: propTypes.object,
-  onChange: propTypes.func.isRequired
+  onChange: propTypes.func.isRequired,
+  value: propTypes.string.isRequired
 })
 class TableFilter extends Component {
   _cleanFilter = () => this._setFilter('')
 
   _setFilter = filterValue => {
-    const { filter } = this.refs
+    const filter = this.refs.filter.getWrappedInstance()
     filter.value = filterValue
     filter.focus()
     this.props.onChange(filterValue)
@@ -63,6 +63,10 @@ class TableFilter extends Component {
 
   _onChange = event => {
     this.props.onChange(event.target.value)
+  }
+
+  focus () {
+    this.refs.filter.getWrappedInstance().focus()
   }
 
   render () {
@@ -86,11 +90,11 @@ class TableFilter extends Component {
               </DropdownMenu>
             </Dropdown>
           </span>}
-        <input
+        <DebouncedInput
           className='form-control'
-          defaultValue={props.defaultFilter}
           onChange={this._onChange}
           ref='filter'
+          value={props.value}
         />
         <Tooltip content={_('filterSyntaxLinkTooltip')}>
           <a
@@ -320,7 +324,7 @@ export default class SortedTable extends Component {
 
         switch (command) {
           case 'SEARCH':
-            this.refs.filterInput.refs.filter.focus()
+            this.refs.filterInput.focus()
             break
           case 'NAV_DOWN':
             if (hasGroupedActions || rowAction !== undefined || rowLink !== undefined) {
@@ -418,7 +422,7 @@ export default class SortedTable extends Component {
     })
   }
 
-  _setFilter (filter) {
+  _setFilter = filter => {
     this._saveUrlState(filter, 1)
     this.setState({
       filter,
@@ -526,10 +530,6 @@ export default class SortedTable extends Component {
     const { target } = event
     this._selectItem(+target.name, target.checked, event.nativeEvent.shiftKey)
   }
-
-  _onFilterChange = debounce(filter => {
-    this._setFilter(filter)
-  }, 500)
 
   _executeGroupedAction = handler => {
     const { state } = this
@@ -664,10 +664,10 @@ export default class SortedTable extends Component {
 
     const filterInstance = displayFilter && (
       <TableFilter
-        defaultFilter={state.filter}
         filters={props.filters}
-        onChange={this._onFilterChange}
+        onChange={this._setFilter}
         ref='filterInput'
+        value={state.filter}
       />
     )
 
