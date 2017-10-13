@@ -212,7 +212,7 @@ const CONTINUOUS_REPLICATION_SCHEMA = {
   type: 'object',
   properties: {
     ...COMMON_SCHEMA.properties,
-    retention: DEPTH_PROPERTY,
+    retention: RETENTION_PROPERTY,
     sr: {
       type: 'string',
       'xo:type': 'sr',
@@ -331,25 +331,21 @@ const constructPattern = ({ not, values } = EMPTY_OBJECT, valueTransform = ident
     : pattern
 }
 
+const normalizeMainParams = params => {
+  if (!('retention' in params)) {
+    const { depth, ...rest } = params
+    if (depth != null) {
+      params = rest
+      params.retention = depth
+    }
+  }
+  return params
+}
+
 @connectStore({
   currentUser: getUser
 })
 export default class New extends Component {
-  constructor (props) {
-    super(props)
-
-    // This piece of code is used to replace the deprecated parameter 'depth' with 'retention'
-    if (this._getMainParams().depth !== undefined) {
-      let params = this._getMainParams()
-      params.retention = this._getMainParams().depth
-      delete params.depth
-
-      this.setState({
-        mainParams: params
-      })
-    }
-  }
-
   _getParams = createSelector(
     () => this.props.job,
     () => this.props.schedule,
@@ -364,10 +360,10 @@ export default class New extends Component {
       // legacy backup jobs
       if (items.length === 1) {
         return {
-          main: {
+          main: normalizeMainParams({
             enabled,
             ...items[0].values[0]
-          },
+          }),
           vms: { vms: map(items[0].values.slice(1), extractId) }
         }
       }
@@ -378,10 +374,10 @@ export default class New extends Component {
         const { $pool, tags } = pattern
 
         return {
-          main: {
+          main: normalizeMainParams({
             enabled,
             ...items[0].values[0]
-          },
+          }),
           vms: {
             $pool: destructPattern($pool),
             power_state: pattern.power_state,
@@ -392,10 +388,10 @@ export default class New extends Component {
 
       // normal backup
       return {
-        main: {
+        main: normalizeMainParams({
           enabled,
           ...items[1].values[0]
-        },
+        }),
         vms: { vms: map(items[0].values, extractId) }
       }
     }
