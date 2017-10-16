@@ -1268,6 +1268,7 @@ var messages = {
   proxySettingsPasswordPlaceHolder: 'Password',
   updateRegistrationEmailPlaceHolder: 'Your email account',
   updateRegistrationPasswordPlaceHolder: 'Your password',
+  updaterTroubleshootingLink: 'Troubleshooting documentation',
   update: 'Update',
   refresh: 'Refresh',
   upgrade: 'Upgrade',
