@@ -503,6 +503,8 @@ export const streamToArray = (stream, {
 
 // -------------------------------------------------------------------
 
+// Contrary to most implentations this one use the range 0-11 instead
+// of 1-12 for months.
 export const scheduleFn = (cronTime, fn, timeZone) => {
   let running = false
 
