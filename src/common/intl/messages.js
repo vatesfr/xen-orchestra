@@ -296,7 +296,7 @@ var messages = {
   editBackupTagTitle: 'Tag',
   editBackupReportTitle: 'Report',
   editBackupScheduleEnabled: 'Automatically run as scheduled',
-  editBackupDepthTitle: 'Depth',
+  editBackupRetentionTitle: 'Retention',
   editBackupRemoteTitle: 'Remote',
   deleteOldBackupsFirst: 'Delete the old backups first',
 
