@@ -3,7 +3,6 @@ import ActionButton from 'action-button'
 import BaseComponent from 'base-component'
 import Button from 'button'
 import classNames from 'classnames'
-import DebounceInput from 'react-debounce-input'
 import defined from 'xo-defined'
 import Icon from 'icon'
 import isIp from 'is-ip'
@@ -15,6 +14,7 @@ import Tooltip from 'tooltip'
 import Wizard, { Section } from 'wizard'
 import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
+import { Input as DebounceInput } from 'debounce-component-decorator'
 import { Limits } from 'usage'
 import {
   clamp,
@@ -82,7 +82,6 @@ import {
 
 import styles from './index.css'
 
-const DEBOUNCE_TIMEOUT = 300
 const NB_VMS_MIN = 2
 const NB_VMS_MAX = 100
 
@@ -135,7 +134,6 @@ class Vif extends BaseComponent {
       <Item label={_('newVmMacLabel')}>
         <DebounceInput
           className='form-control'
-          debounceTimeout={DEBOUNCE_TIMEOUT}
           onChange={onChangeMac}
           placeholder={formatMessage(messages.newVmMacPlaceholder)}
           rows={7}
@@ -788,7 +786,6 @@ export default class NewVm extends BaseComponent {
         <Item label={_('newVmNameLabel')}>
           <DebounceInput
             className='form-control'
-            debounceTimeout={DEBOUNCE_TIMEOUT}
             onChange={this._linkState('name_label')}
             value={name_label}
           />
@@ -796,7 +793,6 @@ export default class NewVm extends BaseComponent {
         <Item label={_('newVmDescriptionLabel')}>
           <DebounceInput
             className='form-control'
-            debounceTimeout={DEBOUNCE_TIMEOUT}
             onChange={this._linkState('name_description')}
             value={name_description}
           />
@@ -817,7 +813,6 @@ export default class NewVm extends BaseComponent {
         <Item label={_('newVmVcpusLabel')}>
           <DebounceInput
             className='form-control'
-            debounceTimeout={DEBOUNCE_TIMEOUT}
             min={0}
             onChange={this._linkState('CPUs')}
             type='number'
@@ -911,7 +906,6 @@ export default class NewVm extends BaseComponent {
             <DebounceInput
               className='form-control'
               disabled={!configDrive || installMethod !== 'SSH'}
-              debounceTimeout={DEBOUNCE_TIMEOUT}
               onChange={this._linkState('newSshKey')}
               value={newSshKey}
             />
@@ -944,7 +938,6 @@ export default class NewVm extends BaseComponent {
           &nbsp;
           <DebounceInput
             className={classNames('form-control', styles.customConfig)}
-            debounceTimeout={DEBOUNCE_TIMEOUT}
             disabled={!configDrive || installMethod !== 'customConfig'}
             element='textarea'
             onChange={this._linkState('customConfig')}
@@ -997,7 +990,6 @@ export default class NewVm extends BaseComponent {
               {' '}
               <DebounceInput
                 className='form-control'
-                debounceTimeout={DEBOUNCE_TIMEOUT}
                 disabled={installMethod !== 'network'}
                 key='networkInput'
                 onChange={this._linkState('installNetwork')}
@@ -1008,7 +1000,6 @@ export default class NewVm extends BaseComponent {
             <Item label={_('newVmPvArgsLabel')} key='pv'>
               <DebounceInput
                 className='form-control'
-                debounceTimeout={DEBOUNCE_TIMEOUT}
                 onChange={this._linkState('pv_args')}
                 value={pv_args}
               />
@@ -1031,7 +1022,6 @@ export default class NewVm extends BaseComponent {
         <label>{_('newVmCloudConfig')}</label>
         <DebounceInput
           className='form-control'
-          debounceTimeout={DEBOUNCE_TIMEOUT}
           element='textarea'
           onChange={this._linkState('cloudConfig')}
           rows={7}
@@ -1133,7 +1123,6 @@ export default class NewVm extends BaseComponent {
             <Item label={_('newVmNameLabel')}>
               <DebounceInput
                 className='form-control'
-                debounceTimeout={DEBOUNCE_TIMEOUT}
                 onChange={this._linkState(`existingDisks.${index}.name_label`)}
                 value={disk.name_label}
               />
@@ -1141,7 +1130,6 @@ export default class NewVm extends BaseComponent {
             <Item label={_('newVmDescriptionLabel')}>
               <DebounceInput
                 className='form-control'
-                debounceTimeout={DEBOUNCE_TIMEOUT}
                 onChange={this._linkState(`existingDisks.${index}.name_description`)}
                 value={disk.name_description}
               />
@@ -1179,7 +1167,6 @@ export default class NewVm extends BaseComponent {
             <Item label={_('newVmNameLabel')}>
               <DebounceInput
                 className='form-control'
-                debounceTimeout={DEBOUNCE_TIMEOUT}
                 onChange={this._linkState(`VDIs.${index}.name_label`)}
                 value={vdi.name_label}
               />
@@ -1187,7 +1174,6 @@ export default class NewVm extends BaseComponent {
             <Item label={_('newVmDescriptionLabel')}>
               <DebounceInput
                 className='form-control'
-                debounceTimeout={DEBOUNCE_TIMEOUT}
                 onChange={this._linkState(`VDIs.${index}.name_description`)}
                 value={vdi.name_description}
               />
@@ -1293,7 +1279,6 @@ export default class NewVm extends BaseComponent {
           <Item label={_('newVmCpuWeightLabel')}>
             <DebounceInput
               className='form-control'
-              debounceTimeout={DEBOUNCE_TIMEOUT}
               min={0}
               max={65535}
               onChange={this._linkState('cpuWeight')}
@@ -1305,7 +1290,6 @@ export default class NewVm extends BaseComponent {
           <Item label={_('newVmCpuCapLabel')}>
             <DebounceInput
               className='form-control'
-              debounceTimeout={DEBOUNCE_TIMEOUT}
               min={0}
               onChange={this._linkState('cpuCap')}
               placeholder={formatMessage(messages.newVmDefaultCpuCap, { value: XEN_DEFAULT_CPU_CAP })}
@@ -1332,7 +1316,6 @@ export default class NewVm extends BaseComponent {
           <Item label={_('newVmMultipleVmsPattern')}>
             <DebounceInput
               className='form-control'
-              debounceTimeout={DEBOUNCE_TIMEOUT}
               disabled={!multipleVms}
               onChange={this._linkState('namePattern')}
               placeholder={formatMessage(messages.newVmMultipleVmsPatternPlaceholder)}
@@ -1342,7 +1325,6 @@ export default class NewVm extends BaseComponent {
           <Item label={_('newVmFirstIndex')}>
             <DebounceInput
               className={'form-control'}
-              debounceTimeout={DEBOUNCE_TIMEOUT}
               disabled={!multipleVms}
               onChange={this._linkState('seqStart')}
               type='number'
@@ -1352,7 +1334,6 @@ export default class NewVm extends BaseComponent {
           <Item className='input-group'>
             <DebounceInput
               className='form-control'
-              debounceTimeout={DEBOUNCE_TIMEOUT}
               disabled={!multipleVms}
               max={NB_VMS_MAX}
               min={NB_VMS_MIN}
