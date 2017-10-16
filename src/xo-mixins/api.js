@@ -141,6 +141,16 @@ function resolveParams (method, params) {
   })
 }
 
+// -------------------------------------------------------------------
+
+const removeSensitiveParams = params =>
+  typeof params.password === 'string'
+    ? {
+      ...params,
+      password: '* obfuscated *'
+    }
+    : params
+
 // ===================================================================
 
 export default class Api {
@@ -277,7 +287,7 @@ export default class Api {
       const data = {
         userId,
         method: name,
-        params,
+        params: removeSensitiveParams(params),
         duration: Date.now() - startTime,
         error: serializeError(error)
       }
