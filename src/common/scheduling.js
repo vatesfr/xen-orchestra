@@ -147,6 +147,13 @@ export class SchedulePreview extends Component {
     const { value } = this.state
 
     const cronSched = later.parse.cron(cronPattern)
+
+    // Due to implementation, the range used for months is 0-11
+    // instead of 1-12
+    forEach(cronSched.schedules[0].M, (v, i, a) => {
+      a[i] = v + 1
+    })
+
     const dates = later.schedule(cronSched).next(value)
 
     return (
