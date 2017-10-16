@@ -513,12 +513,16 @@ export default class Scheduler extends Component {
               range={MONTHS_RANGE}
               value={cronPatternArr[PICKTIME_TO_ID['month']]}
             />
+          </Col>
+          <Col mediumSize={6}>
             <DayPicker
               onChange={this._dayChange}
               monthDayPattern={cronPatternArr[PICKTIME_TO_ID['monthDay']]}
               weekDayPattern={cronPatternArr[PICKTIME_TO_ID['weekDay']]}
             />
           </Col>
+        </Row>
+        <Row>
           <Col mediumSize={6}>
             <TimePicker
               labelId='Hour'
@@ -527,6 +531,8 @@ export default class Scheduler extends Component {
               onChange={this._hourChange}
               value={cronPatternArr[PICKTIME_TO_ID['hour']]}
             />
+          </Col>
+          <Col mediumSize={6}>
             <TimePicker
               labelId='Minute'
               options={MINS}
