@@ -194,7 +194,14 @@ class ToggleTd extends Component {
   render () {
     const { props } = this
     return (
-      <td style={CLICKABLE} className={props.value ? 'table-success' : ''} onClick={this._onClick}>
+      <td
+        className={classNames(
+          'text-xs-center',
+          props.value && 'table-success'
+        )}
+        onClick={this._onClick}
+        style={CLICKABLE}
+      >
         {props.children}
       </td>
     )
