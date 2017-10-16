@@ -518,7 +518,7 @@ export default class Scheduler extends Component {
     return (
       <div className='card-block'>
         <Row>
-          <Col mediumSize={6}>
+          <Col largeSize={6}>
             <TimePicker
               labelId='Month'
               optionRenderer={getMonthName}
@@ -528,7 +528,7 @@ export default class Scheduler extends Component {
               value={cronPatternArr[PICKTIME_TO_ID['month']]}
             />
           </Col>
-          <Col mediumSize={6}>
+          <Col largeSize={6}>
             <DayPicker
               onChange={this._dayChange}
               monthDayPattern={cronPatternArr[PICKTIME_TO_ID['monthDay']]}
@@ -537,7 +537,7 @@ export default class Scheduler extends Component {
           </Col>
         </Row>
         <Row>
-          <Col mediumSize={6}>
+          <Col largeSize={6}>
             <TimePicker
               labelId='Hour'
               options={HOURS}
@@ -546,7 +546,7 @@ export default class Scheduler extends Component {
               value={cronPatternArr[PICKTIME_TO_ID['hour']]}
             />
           </Col>
-          <Col mediumSize={6}>
+          <Col largeSize={6}>
             <TimePicker
               labelId='Minute'
               options={MINS}
