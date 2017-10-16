@@ -75,11 +75,11 @@ const WEEK_DAYS = [
 const HOURS = (() => {
   const hours = []
 
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 4; i++) {
     hours[i] = []
 
-    for (let j = 0; j < 8; j++) {
-      hours[i].push(8 * i + j)
+    for (let j = 0; j < 6; j++) {
+      hours[i].push(6 * i + j)
     }
   }
 
