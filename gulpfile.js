@@ -183,7 +183,11 @@ function browserify (path, opts) {
     // FIXME: does not work with react-intl (?!)
     // bundler.plugin('bundle-collapser/plugin')
   } else {
-    bundler = require('watchify')(bundler)
+    bundler = require('watchify')(bundler, {
+      // do not watch in `node_modules`
+      // https://github.com/browserify/watchify#options
+      ignoreWatch: true
+    })
   }
 
   // Append the extension if necessary.
