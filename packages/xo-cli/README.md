@@ -19,8 +19,12 @@ npm install -g xo-cli
 > xo-cli --help
 Usage:
 
-  xo-cli --register <XO-Server URL> <username> [<password>]
+  xo-cli --register [--expiresIn duration] <XO-Server URL> <username> [<password>]
     Registers the XO instance to use.
+
+    --expiresIn duration
+      Can be used to change the validity duration of the
+      authorization token (default: one month).
 
   xo-cli --unregister
     Remove stored credentials.

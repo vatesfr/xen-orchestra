@@ -142,8 +142,12 @@ var help = wrap((function (pkg) {
   return multiline.stripIndent(function () { /*
     Usage:
 
-      $name --register <XO-Server URL> <username> [<password>]
+      $name --register [--expiresIn duration] <XO-Server URL> <username> [<password>]
         Registers the XO instance to use.
+
+        --expiresIn duration
+          Can be used to change the validity duration of the
+          authorization token (default: one month).
 
       $name --unregister
         Remove stored credentials.
@@ -206,27 +210,38 @@ exports = module.exports = main
 exports.help = help
 
 function register (args) {
-  var password, xo
-  return Promise.resolve(args[2] || new Promise(function (resolve) {
+  var i = 0
+  var expiresIn
+  if (args[i] === '--expiresIn') {
+    expiresIn = args[i + 1]
+    i += 2
+  }
+
+  var url = args[i++]
+  var email = args[i++]
+  var password = args[i++]
+
+  var xo
+  return Promise.resolve(password || new Promise(function (resolve) {
     process.stdout.write('Password: ')
     pw(resolve)
   })).then(function (password_) {
     password = password_
 
-    xo = new Xo({ url: args[0] })
+    xo = new Xo({ url })
     return xo.open()
   }).then(function () {
     return xo.signIn({
-      email: args[1],
+      email: email,
       password: password
     })
   }).then(function () {
     console.log('Successfully logged with', xo.user.email)
 
-    return xo.call('token.create')
+    return xo.call('token.create', { expiresIn: expiresIn })
   }).then(function (token) {
     return config.set({
-      server: args[0],
+      server: url,
       token: token
     })
   })
