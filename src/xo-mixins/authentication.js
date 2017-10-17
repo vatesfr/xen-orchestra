@@ -1,3 +1,4 @@
+import ms from 'ms'
 import { noSuchObject } from 'xo-common/api-errors'
 import { ignoreErrors } from 'promise-toolbox'
 
@@ -151,11 +152,18 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  async createAuthenticationToken ({userId}) {
+  async createAuthenticationToken ({
+    expiresIn = ONE_MONTH,
+    userId
+  }) {
     const token = new Token({
       id: await generateToken(),
       user_id: userId,
-      expiration: Date.now() + ONE_MONTH
+      expiration: Date.now() + (
+        typeof expiresIn === 'string'
+          ? ms(expiresIn)
+          : expiresIn
+      )
     })
 
     await this._tokens.add(token)
