@@ -1,6 +1,7 @@
 import deferrable from 'golike-defer'
 import every from 'lodash/every'
 import find from 'lodash/find'
+import filter from 'lodash/filter'
 import includes from 'lodash/includes'
 import isObject from 'lodash/isObject'
 import some from 'lodash/some'
@@ -53,7 +54,8 @@ export default {
         }),
         requirements: mapToArray(ensureArray(patch.requiredpatches), patch => {
           return patch.requiredpatch.uuid
-        })
+        }),
+        paid: patch['update-stream'] === 'premium'
         // TODO: what does it mean, should we handle it?
         // version: patch.version,
       }
@@ -417,7 +419,9 @@ export default {
   async installAllPoolPatchesOnHost (hostId) {
     let host = this.getObject(hostId)
 
-    const installableByUuid = await this._listMissingPoolPatchesOnHost(host)
+    const installableByUuid = host.license_params.sku_type !== 'free'
+      ? await this._listMissingPoolPatchesOnHost(host)
+      : filter(await this._listMissingPoolPatchesOnHost(host), [ 'paid', false ])
 
     // List of all installable patches sorted from the newest to the
     // oldest.
@@ -445,7 +449,10 @@ export default {
       {},
       ...await Promise.all(mapFilter(this.objects.all, host => {
         if (host.$type === 'host') {
-          return this._listMissingPoolPatchesOnHost(host)
+          return this._listMissingPoolPatchesOnHost(host).then(patches => host.license_params.sku_type !== 'free'
+            ? patches
+            : filter(patches, [ 'paid', false ])
+          )
         }
       }))
     )
