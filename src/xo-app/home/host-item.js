@@ -22,6 +22,7 @@ import {
 import {
   connectStore,
   formatSize,
+  formatSizeShort,
   osFamily
 } from 'utils'
 import {
@@ -203,7 +204,9 @@ export default class HostItem extends Component {
             <span>
               {host.cpus.cores}x <Icon icon='cpu' />
               {' '}&nbsp;{' '}
-              {formatSize(host.memory.size)} <Icon icon='memory' />
+              {formatSizeShort(host.memory.size)} <Icon icon='memory' />
+              {' '}&nbsp;{' '}
+              v{host.version.substring(0, 3)}
             </span>
           </Col>
           <Col mediumSize={4}>

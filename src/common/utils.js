@@ -261,6 +261,8 @@ export const osFamily = invoke({
 
 export const formatSize = bytes => humanFormat(bytes, { scale: 'binary', unit: 'B' })
 
+export const formatSizeShort = bytes => humanFormat(bytes, { scale: 'binary', unit: 'B', decimals: 0 })
+
 export const formatSizeRaw = bytes => humanFormat.raw(bytes, { scale: 'binary', unit: 'B' })
 
 export const formatSpeed = (bytes, milliseconds) => humanFormat(
