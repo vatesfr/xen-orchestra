@@ -7,14 +7,15 @@ import React from 'react'
 import replace from 'lodash/replace'
 import Tooltip from 'tooltip'
 import { Container, Col, Row } from 'grid'
+import { createSelector } from 'reselect'
 import { formatSize } from 'utils'
 import { FormattedDate } from 'react-intl'
 import { SelectPlainObject } from 'form'
 import {
-  find,
+  filter,
+  includes,
   isEmpty,
-  map,
-  filter
+  map
 } from 'lodash'
 import {
   scanDisk,
@@ -98,6 +99,14 @@ export default class RestoreFileModalBody extends Component {
     )
   }
 
+  _getSelectableFiles = createSelector(
+    () => this.state.files,
+    () => this.state.selectedFiles,
+    (available, selected) => filter(available, file =>
+      !includes(selected, file)
+    )
+  )
+
   _onBackupChange = backup => {
     this.setState({
       backup,
@@ -159,22 +168,9 @@ export default class RestoreFileModalBody extends Component {
   }
 
   _onFileChange = file => {
-    const { path, selectedFiles } = this.state
-    const isFile = file && file.id !== '..' && !endsWith(file.path, '/')
-
-    if (isFile) {
-      this.setState({
-        file,
-        selectedFiles: find(selectedFiles, { id: file.id })
-          ? selectedFiles
-          : (selectedFiles || []).concat(file)
-      })
+    if (file == null) {
       return
     }
-
-    this.setState({
-      file: undefined
-    })
 
     // Ugly workaround to keep the ReactSelect open after selecting a folder
     // FIXME: Remove and use isOpen/alwaysOpen prop once one of these issues is fixed:
@@ -184,9 +180,17 @@ export default class RestoreFileModalBody extends Component {
     select.blur()
     select.focus()
 
-    if (file) {
+    const isFile = file.id !== '..' && !endsWith(file.path, '/')
+    if (isFile) {
+      const { selectedFiles } = this.state
+      if (!includes(selectedFiles, file)) {
+        this.setState({
+          selectedFiles: (selectedFiles || []).concat(file)
+        })
+      }
+    } else {
       this.setState({
-        path: file.id === '..' ? getParentPath(path) : file.path
+        path: file.id === '..' ? getParentPath(this.state.path) : file.path
       }, this._scanFiles)
     }
   }
@@ -204,12 +208,10 @@ export default class RestoreFileModalBody extends Component {
   }
 
   _selectAllFolderFiles = () => {
-    const { files, selectedFiles } = this.state
-
     this.setState({
-      selectedFiles: (selectedFiles || []).concat(
-        filter(files, ({ path }) =>
-          !endsWith(path, '/') && !find(selectedFiles, file => file.path === path)
+      selectedFiles: (this.state.selectedFiles || []).concat(
+        filter(this._getSelectableFiles(), ({path}) =>
+          !endsWith(path, '/')
         )
       )
     })
@@ -222,8 +224,6 @@ export default class RestoreFileModalBody extends Component {
     const {
       backup,
       disk,
-      file,
-      files,
       format,
       partition,
       partitions,
@@ -293,9 +293,9 @@ export default class RestoreFileModalBody extends Component {
           onChange={this._onFileChange}
           optionKey='id'
           optionRenderer={fileOptionRenderer}
-          options={files}
+          options={this._getSelectableFiles()}
           placeholder={_('restoreFilesSelectFiles')}
-          value={file}
+          value={null}
         />,
         <br />,
         <div>
