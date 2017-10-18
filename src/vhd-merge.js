@@ -1,11 +1,11 @@
 // TODO: remove once completely merged in vhd.js
 
 import assert from 'assert'
-import constantStream from 'constant-stream'
 import eventToPromise from 'event-to-promise'
 import fu from '@nraynaud/struct-fu'
 import isEqual from 'lodash/isEqual'
 
+import constantStream from './constant-stream'
 import {
   noop,
   streamToBuffer
