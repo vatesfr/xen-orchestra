@@ -47,7 +47,8 @@ const COLUMNS = [
       </div>,
     default: true,
     name: _('snapshotDate'),
-    sortCriteria: _ => _.snapshot_time
+    sortCriteria: _ => _.snapshot_time,
+    sortOrder: 'desc'
   },
   {
     itemRenderer: snapshot =>
