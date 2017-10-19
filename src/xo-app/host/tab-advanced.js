@@ -23,7 +23,9 @@ const formatPack = ({ name, author, description, version }) => <tr>
 </tr>
 
 export default ({
-  host
+  host,
+  pgpus,
+  pcis
 }) => <Container>
   <Row>
     <Col className='text-xs-right'>
@@ -139,6 +141,10 @@ export default ({
             <Copiable tagName='td'>
               {host.CPUs.modelname}
             </Copiable>
+          </tr>
+          <tr>
+            <th>GPU</th>
+            <td>{map(pgpus, pgpu => pcis[pgpu.pci].device_name)}</td>
           </tr>
           <tr>
             <th>{_('hostCpusNumber')}</th>
