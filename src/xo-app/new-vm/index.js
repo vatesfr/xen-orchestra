@@ -60,6 +60,7 @@ import {
   SelectSr,
   SelectSshKey,
   SelectVdi,
+  SelectVgpuType,
   SelectVmTemplate
 } from 'select-objects'
 import {
@@ -372,7 +373,9 @@ export default class NewVm extends BaseComponent {
       share: state.share,
       cloudConfig,
       coreOs: state.template.name_label === 'CoreOS',
-      tags: state.tags
+      tags: state.tags,
+      vgpuType: state.vgpuType.id,
+      gpuGroup: state.vgpuType.gpuGroup
     }
 
     return state.multipleVms ? createVms(data, state.nameLabels) : createVm(data)
@@ -1370,6 +1373,11 @@ export default class NewVm extends BaseComponent {
               predicate={this._getAffinityHostPredicate()}
               value={affinityHost}
             />
+          </Item>
+        </SectionContent>,
+        <SectionContent>
+          <Item label={_('vmVgpu')}>
+            <SelectVgpuType onChange={this._linkState('vgpuType')} />
           </Item>
         </SectionContent>
       ]}

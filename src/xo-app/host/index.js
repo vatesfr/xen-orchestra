@@ -65,6 +65,17 @@ const isRunning = host => host && host.power_state === 'Running'
     (state, props) => getHost(state, props).$pool
   )
 
+  const getPgpus = createGetObjectsOfType('PGPU').pick(
+    createSelector(getHost, host => host.$PGPUs)
+  ).sort()
+
+  const getPcis = createGetObjectsOfType('PCI').pick(
+    createSelector(
+      getPgpus,
+      pgpus => map(pgpus, 'pci')
+    )
+  )
+
   const getVmController = createGetObjectsOfType('VM-controller').find(
     createSelector(
       getHost,
@@ -133,6 +144,8 @@ const isRunning = host => host && host.power_state === 'Running'
       networks: getNetworks(state, props),
       nVms: getNumberOfVms(state, props),
       pifs: getPifs(state, props),
+      pcis: getPcis(state, props),
+      pgpus: getPgpus(state, props),
       pool: getPool(state, props),
       vmController: getVmController(state, props),
       vms: getHostVms(state, props)
@@ -300,6 +313,8 @@ export default class Host extends Component {
       'nVms',
       'pbds',
       'pifs',
+      'pgpus',
+      'pcis',
       'srs',
       'vmController',
       'vms'

@@ -74,6 +74,8 @@ import TabPatches from './tab-patches'
 
   const getLogs = createGetObjectMessages(getPool)
 
+  const getGpuGroups = createGetObjectsOfType('gpuGroup')
+
   return (state, props) => {
     const pool = getPool(state, props)
     if (!pool) {
@@ -81,6 +83,7 @@ import TabPatches from './tab-patches'
     }
 
     return {
+      gpuGroups: getGpuGroups(state, props),
       hosts: getHosts(state, props),
       logs: getLogs(state, props),
       master: getMaster(state, props),
@@ -145,6 +148,7 @@ export default class Pool extends Component {
       return <h1>{_('statusLoading')}</h1>
     }
     const childProps = assign(pick(this.props, [
+      'gpuGroups',
       'hosts',
       'logs',
       'master',

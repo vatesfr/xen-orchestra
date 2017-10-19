@@ -209,6 +209,14 @@
     @extend .fa;
     @extend .fa-microchip;
   }
+  &-gpu {
+    @extend .fa;
+    @extend .fa-microchip;
+  }
+  &-vgpu {
+    @extend .fa;
+    @extend .fa-microchip;
+  }
   &-memory {
     @extend .fa;
     @extend .fa-sliders;
@@ -405,6 +413,16 @@
     @extend .fa;
     @extend .fa-circle;
     @extend .xo-status-halted;
+  }
+
+  &-connected {
+    @extend .fa;
+    @extend .fa-link;
+  }
+
+  &-disconnected {
+    @extend .fa;
+    @extend .fa-unlink;
   }
 
   // Task
