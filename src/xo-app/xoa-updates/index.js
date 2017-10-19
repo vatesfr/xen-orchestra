@@ -1,12 +1,9 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ansiUp from 'ansi_up'
-import assign from 'lodash/assign'
 import Button from 'button'
 import Component from 'base-component'
 import Icon from 'icon'
-import isEmpty from 'lodash/isEmpty'
-import map from 'lodash/map'
 import Page from '../page'
 import React from 'react'
 import Tooltip from 'tooltip'
@@ -19,6 +16,12 @@ import { error } from 'notification'
 import { injectIntl } from 'react-intl'
 import { Password } from 'form'
 import { serverVersion } from 'xo'
+import {
+  assign,
+  includes,
+  isEmpty,
+  map
+} from 'lodash'
 
 import pkg from '../../../package'
 
@@ -199,6 +202,7 @@ export default class XoaUpdates extends Component {
                 </CardHeader>
                 <CardBlock>
                   <p>{_('currentVersion')} {`xo-server ${this.state.serverVersion}`} / {`xo-web ${pkg.version}`}</p>
+                  {includes([ 'error', 'disconnected' ], state) && <p><a href='https://xen-orchestra.com/docs/updater.html#troubleshooting'>{_('updaterTroubleshootingLink')}</a></p>}
                   <ActionButton
                     btnStyle='info'
                     handler={update}
