@@ -19,7 +19,7 @@ xo-server-recover-account <user name or email>
   }
 
   let password = await new Promise(resolve => {
-    process.stdout.write('Password (live empty for random): ')
+    process.stdout.write('Password (leave empty for random): ')
     pw(resolve)
   })
 
