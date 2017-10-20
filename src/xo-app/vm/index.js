@@ -68,6 +68,24 @@ import TabAdvanced from './tab-advanced'
     (state, props) => getVm(state, props).$pool
   )
 
+  const getVgpus = createGetObjectsOfType('VGPU').pick(
+    createSelector(getVm, vm => vm.$VGPUs)
+  ).sort()
+
+  const getVgpuType = createGetObjectsOfType('VGPU_type').pick(
+    createSelector(
+      getVgpus,
+      vgpus => map(vgpus, vgpu => vgpu.vgpuType)
+    )
+  )
+
+  const getGpuGroup = createGetObjectsOfType('GPU_group').pick(
+    createSelector(
+      getVgpus,
+      vgpus => map(vgpus, vgpu => vgpu.gpuGroup)
+    )
+  )
+
   const getVbds = createGetObjectsOfType('VBD').pick(
     (state, props) => getVm(state, props).$VBDs
   ).sort()
@@ -96,6 +114,9 @@ import TabAdvanced from './tab-advanced'
       checkPermissions: getCheckPermissions(state, props),
       container: getContainer(state, props),
       hosts: getHosts(state, props),
+      vgpus: getVgpus(state, props),
+      vgpuType: getVgpuType(state, props),
+      gpuGroup: getGpuGroup(state, props),
       isAdmin: isAdmin(state, props),
       pool: getPool(state, props),
       srs: getSrs(state, props),
@@ -265,7 +286,10 @@ export default class Vm extends BaseComponent {
       'vbds',
       'vdis',
       'vm',
-      'vmTotalDiskSpace'
+      'vmTotalDiskSpace',
+      'vgpus',
+      'vgpuType',
+      'gpuGroup'
     ]), pick(this.state, [
       'statsOverview'
     ]))
