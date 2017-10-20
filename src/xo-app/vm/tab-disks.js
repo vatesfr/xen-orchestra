@@ -558,7 +558,7 @@ export default class TabDisks extends Component {
     newDisk
   } = this.state
     const userdata = [vdis, vbds, srs, vm]
-    const test = true
+    console.log(vm.virtualizationMode)
     const INDIVIDUAL_ACTIONS = [
       {
         handler: this._migrateVdi,
@@ -575,7 +575,6 @@ export default class TabDisks extends Component {
         icon: 'vdi-remove',
         label: _('vdiRemove')
       }]
-    console.log(COLUMNS2.map(value => typeof value))
     return <Container>
       <Row>
         <Col className='text-xs-right'>
@@ -610,14 +609,14 @@ export default class TabDisks extends Component {
         <Col>
         foo
           {!isEmpty(vdis)
-             ? (test === true ? <SortedTable
+             ? ((vm.virtualizationMode === 'pv') ? <SortedTable
                collection={vdis}
-               columns={COLUMNS2}
+               columns={COLUMNS}
                individualActions={INDIVIDUAL_ACTIONS}
                userData={userdata}
                 /> : <SortedTable
                   collection={vdis}
-                  columns={COLUMNS}
+                  columns={COLUMNS2}
                   individualActions={INDIVIDUAL_ACTIONS}
                   userData={userdata}
                 />)
