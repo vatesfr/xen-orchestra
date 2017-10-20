@@ -691,8 +691,43 @@ const TRANSFORMS = {
 
       currentlyAttached: Boolean(obj.currently_attached),
       device: obj.device,
+      gpuGroup: link(obj, 'GPU_group'),
       resident_on: link(obj, 'resident_on'),
+      vgpuType: link(obj, 'VGPU_type'),
+      $pgpu: link(obj, 'PGPU'),
       vm: link(obj, 'VM')
+    }
+  },
+
+  // -----------------------------------------------------------------
+
+  gpuGroup (obj) {
+    return {
+      type: 'GPU_group',
+
+      allocation: obj.allocation_algorithm,
+      supportedVgpuTypes: obj.supported_VGPU_types,
+      enabledVgpuTypes: obj.enabled_VGPU_types,
+      name_description: obj.name_description,
+      name_label: obj.name_label,
+      other_config: obj.other_config,
+      $vgpus: link(obj, 'VGPUs'),
+      $pgpus: link(obj, 'PGPUs')
+    }
+  },
+
+  // -----------------------------------------------------------------
+
+  vgpuType (obj) {
+    return {
+      type: 'VGPU_type',
+
+      experimental: Boolean(obj.experimental),
+      maxHeads: obj.max_heads,
+      modelName: obj.model_name,
+      vendorName: obj.vendor_name,
+      $vgpus: link(obj, 'VGPUs'),
+      $pgpu: link(obj, 'PGPU')
     }
   }
 }
