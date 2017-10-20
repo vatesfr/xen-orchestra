@@ -2,10 +2,7 @@ import _ from 'intl'
 import Component from 'base-component'
 import React from 'react'
 import Icon from 'icon'
-import { map,
-	 isEmpty,
-	 pick
-	} from 'lodash'
+import pick from 'lodash/pick'
 import SingleLineRow from 'single-line-row'
 import some from 'lodash/some'
 import SortedTable from 'sorted-table'
