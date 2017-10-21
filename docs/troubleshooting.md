@@ -108,15 +108,15 @@ $ tail -f /var/log/syslog
 
 You can read more about logs [in the dedicated chapter](logs.md).
 
-### Reset XO configuration
+### Ghost tasks
 
-If you have problems with your `xo-server` configuration, you can reset the database. **This operation will delete all your configured users and servers**:
+If you have ghost tasks accumulating on your XenOrchestra you can try
+the following actions in order:
 
-1. `redis-cli`
-2. `FLUSHALL`
-3. `systemctl restart xo-server.service`
-
-You can now log in with `admin@admin.net` and `admin` password.
+1. refresh the web page
+1. disconnect and reconnect the Xen pool/server of the tasks
+1. restart the XenAPI Toolstack of the XenServer master
+1. restart xo-server
 
 ### Redownload and rebuild all the packages
 
@@ -126,3 +126,13 @@ If a package disappear due to a build problem or a human error, you can redownlo
 2. `xoa-updater --upgrade`
 
 > We'll have a `xoa-updater --force-reinstall` option soon, to do this automatically
+
+### Reset XO configuration
+
+If you have problems with your `xo-server` configuration, you can reset the database. **This operation will delete all your configured users and servers**:
+
+1. `redis-cli`
+2. `FLUSHALL`
+3. `systemctl restart xo-server.service`
+
+You can now log in with `admin@admin.net` and `admin` password.
