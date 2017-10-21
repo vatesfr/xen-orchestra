@@ -72,14 +72,14 @@ import TabAdvanced from './tab-advanced'
     createSelector(getVm, vm => vm.$VGPUs)
   ).sort()
 
-  const getVgpuType = createGetObjectsOfType('VGPU_type').pick(
+  const getVgpuType = createGetObjectsOfType('vgpuType').pick(
     createSelector(
       getVgpus,
       vgpus => map(vgpus, vgpu => vgpu.vgpuType)
     )
   )
 
-  const getGpuGroup = createGetObjectsOfType('GPU_group').pick(
+  const getGpuGroup = createGetObjectsOfType('gpuGroup').pick(
     createSelector(
       getVgpus,
       vgpus => map(vgpus, vgpu => vgpu.gpuGroup)
