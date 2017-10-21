@@ -693,17 +693,17 @@ const TRANSFORMS = {
       device: obj.device,
       gpuGroup: link(obj, 'GPU_group'),
       resident_on: link(obj, 'resident_on'),
-      vgpuType: link(obj, 'VGPU_type'),
-      $pgpu: link(obj, 'PGPU'),
+      vgpuType: obj.type,
+      vgpuTypeOk: link(obj, 'type'), // doesn't work??
       vm: link(obj, 'VM')
     }
   },
 
   // -----------------------------------------------------------------
 
-  gpuGroup (obj) {
+  gpu_group (obj) {
     return {
-      type: 'GPU_group',
+      type: 'gpuGroup',
 
       allocation: obj.allocation_algorithm,
       supportedVgpuTypes: obj.supported_VGPU_types,
@@ -718,9 +718,9 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  vgpuType (obj) {
+  vgpu_type (obj) {
     return {
-      type: 'VGPU_type',
+      type: 'vgpuType',
 
       experimental: Boolean(obj.experimental),
       maxHeads: obj.max_heads,
