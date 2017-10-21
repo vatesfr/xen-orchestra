@@ -6,7 +6,7 @@ The key idea is to be able to schedule any action (migrate, reboot etc.), like f
 
 In the main menu, go inside the "Job Manager" section:
 
-![](https://xen-orchestra.com/blog/content/images/2015/11/jobmanager.png)
+![](./assets/jobmanager.png)
 
 You can now **schedule all actions** on your hosts, VMs, or ACLs. It's configured in 2 steps:
 
@@ -15,19 +15,19 @@ You can now **schedule all actions** on your hosts, VMs, or ACLs. It's configure
 
 Real example, step by step: **Creating a job called "security reboot"** (in this case, restart "nfs" and "Core1" VMs):
 
-![](https://xen-orchestra.com/blog/content/images/2015/11/job_create.png)
+![](./assets/job_create.png)
 
 Note that you can execute this job **now** by clicking on the orange play button (to test it for instance):
 
-![](https://xen-orchestra.com/blog/content/images/2015/11/job_execute.png)
+![](./assets/job_execute.png)
 
 **Schedule the job** (every Sunday at 5:00 AM):
 
-![](https://xen-orchestra.com/blog/content/images/2015/11/schedule_job.png)
+![](./assets/schedule_job.png)
 
 And this is it! The job is listed in the Overview:
 
-![](https://xen-orchestra.com/blog/content/images/2015/11/schedule_recap.png)
+![](./assets/schedule_recap.png)
 
 Possibilities are infinite! You can plan a LOT of things (any actions on a VM, like migrate, start, clone, suspend etc. Same thing apply on a host).
 

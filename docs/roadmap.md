@@ -1,16 +1,11 @@
 # Roadmap
-
-Please consider it as an indicative roadmap, things can change.
-
-Item are expressed in a (roughly) decreasing priority order.
+ 
+ > Our roadmap is very flexible, you can check the milestones repository for a complete overview of all the features we are working on. 
 
 ## Features
 
 - [Milestones](https://github.com/vatesfr/xo-web/milestones)
-- Cloud Backup
 - [Alerts and reports](alerts.md)
-- [Auto scalability](auto_scalability.md)
-- [Forecaster](forecaster.md)
 
 
 ## Fixes

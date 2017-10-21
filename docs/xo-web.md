@@ -6,8 +6,8 @@ This is probably the first thing you'll see of Xen Orchestra. It's the Web inter
 
 [Read the features section](https://vates.gitbooks.io/xen-orchestra/content/features.html) to discover what you can do in XO-web.
 
-### JavaScript
+### ReactJS
 
-We are also using JavaScript for XO-web: we stay consistent from the back-end to the front-end with one main language. [AngularJS](https://en.wikipedia.org/wiki/Angularjs) and [Twitter Bootstrap](https://en.wikipedia.org/wiki/Bootstrap_%28front-end_framework%29) are also powerful allies to our everyday development.
+We stay consistent from the back-end to the front-end with one main language: [ReactJS](https://reactjs.org/)
 
-![](http://www.treselle.com/wp-content/uploads/freshizer/b7cac3b15cae8cc0b8dbbbfc780cd7a4_angularjs-bootstrap-863-430-c.jpg)
+![](./assets/react_js.png)
