@@ -693,8 +693,7 @@ const TRANSFORMS = {
       device: obj.device,
       gpuGroup: link(obj, 'GPU_group'),
       resident_on: link(obj, 'resident_on'),
-      vgpuType: obj.type,
-      vgpuTypeOk: link(obj, 'type'), // doesn't work??
+      vgpuType: link(obj, '$type'),
       vm: link(obj, 'VM')
     }
   },
