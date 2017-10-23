@@ -715,7 +715,7 @@ const TRANSFORMS = {
       gpuTypes: obj.GPU_types,
       name_description: obj.name_description,
       name_label: obj.name_label,
-      other_config: obj.other_config,
+      otherConfig: obj.other_config,
       pgpus: link(obj, 'PGPUs'),
       supportedVgpuTypes: link(obj, 'supported_VGPU_types'),
       vgpus: link(obj, 'VGPUs')
