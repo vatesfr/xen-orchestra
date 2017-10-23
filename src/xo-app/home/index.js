@@ -148,10 +148,11 @@ const OPTIONS = {
     showHostsSelector: true,
     showResourceSetsSelector: true,
     sortOptions: [
+      { labelId: 'homeSortByCpus', sortBy: 'CPUs.number', sortOrder: 'desc' },
       { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' },
       { labelId: 'homeSortByPowerstate', sortBy: 'power_state', sortOrder: 'desc' },
       { labelId: 'homeSortByRAM', sortBy: 'memory.size', sortOrder: 'desc' },
-      { labelId: 'homeSortByCpus', sortBy: 'CPUs.number', sortOrder: 'desc' }
+      { labelId: 'homeSortVmsBySnapshots', sortBy: 'snapshots.length', sortOrder: 'desc' }
     ]
   },
   pool: {
