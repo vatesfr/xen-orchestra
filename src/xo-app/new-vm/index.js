@@ -14,7 +14,10 @@ import Tooltip from 'tooltip'
 import Wizard, { Section } from 'wizard'
 import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
-import { Input as DebounceInput } from 'debounce-component-decorator'
+import {
+  Input as DebounceInput,
+  Textarea as DebounceTextarea
+} from 'debounce-component-decorator'
 import { Limits } from 'usage'
 import {
   clamp,
@@ -936,10 +939,9 @@ export default class NewVm extends BaseComponent {
           &nbsp;
           <span>{_('newVmCustomConfig')}</span>
           &nbsp;
-          <DebounceInput
+          <DebounceTextarea
             className={classNames('form-control', styles.customConfig)}
             disabled={!configDrive || installMethod !== 'customConfig'}
-            element='textarea'
             onChange={this._linkState('customConfig')}
             value={customConfig}
           />
@@ -1020,9 +1022,8 @@ export default class NewVm extends BaseComponent {
       </SectionContent>}
       {template.name_label === 'CoreOS' && <div>
         <label>{_('newVmCloudConfig')}</label>
-        <DebounceInput
+        <DebounceTextarea
           className='form-control'
-          element='textarea'
           onChange={this._linkState('cloudConfig')}
           rows={7}
           value={cloudConfig}

@@ -55,4 +55,6 @@ const debounceComponentDecorator = (delay = DEFAULT_DELAY) => Component =>
   }
 export { debounceComponentDecorator as default }
 
+// common components
 export const Input = debounceComponentDecorator()('input')
+export const Textarea = debounceComponentDecorator()('textarea')
