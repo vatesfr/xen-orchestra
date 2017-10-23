@@ -1,0 +1,12 @@
+[ignore]
+
+[include]
+
+[libs]
+
+[lints]
+
+[options]
+experimental.const_params=true
+module.use_strict=true
+unsafe.enable_getters_and_setters=true

@@ -11,21 +11,26 @@
   ],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-cli",
   "bugs": "https://github.com/vatesfr/xo-web/issues",
-  "author": "Julien Fontanet <julien.fontanet@vates.fr>",
-  "preferGlobal": true,
-  "bin": {
-    "xo-cli": "index.js"
-  },
-  "files": [
-    "*.js"
-  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
+  "author": "Julien Fontanet <julien.fontanet@vates.fr>",
+  "preferGlobal": true,
+  "main": "dist/",
+  "bin": {
+    "xo-cli": "dist/index.js"
+  },
+  "files": [
+    "dist/"
+  ],
+  "engines": {
+    "node": ">=6"
+  },
   "dependencies": {
+    "babel-polyfill": "^7.0.0-beta.3",
     "bluebird": "^3.5.1",
-    "chalk": "^2.1.0",
+    "chalk": "^2.2.0",
     "event-to-promise": "^0.8.0",
     "exec-promise": "^0.7.0",
     "fs-promise": "^2.0.3",
@@ -33,25 +38,60 @@
     "human-format": "^0.8.0",
     "l33teral": "^3.0.3",
     "lodash": "^4.17.4",
-    "micromatch": "^3.1.0",
+    "micromatch": "^3.1.3",
     "mkdirp": "^0.5.1",
-    "multiline": "^1.0.2",
     "nice-pipe": "0.0.0",
     "pretty-ms": "^3.0.1",
     "progress-stream": "^2.0.0",
     "pw": "^0.0.4",
+    "strip-indent": "^2.0.0",
     "xdg-basedir": "^3.0.0",
     "xo-lib": "^0.9.0"
   },
   "devDependencies": {
+    "babel-cli": "^7.0.0-beta.3",
+    "babel-eslint": "^8.0.1",
+    "babel-plugin-lodash": "^3.2.11",
+    "babel-preset-env": "^7.0.0-beta.3",
+    "babel-preset-flow": "^7.0.0-beta.3",
+    "commitizen": "^2.9.6",
+    "cross-env": "^5.1.0",
+    "cz-conventional-changelog": "^2.0.0",
+    "dependency-check": "^2.9.1",
+    "flow-bin": "^0.57.3",
+    "jest": "^21.2.1",
+    "rimraf": "^2.6.2",
     "standard": "^10.0.3"
   },
   "scripts": {
-    "test": "standard"
+    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "commitmsg": "npm test",
+    "cz": "git-cz",
+    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
+    "dev-test": "jest --bail --watch",
+    "posttest": "dependency-check ./package.json",
+    "prebuild": "rimraf dist/",
+    "predev": "npm run prebuild",
+    "prepublish": "npm run build",
+    "pretest": "standard --fix && flow status",
+    "test": "jest"
   },
-  "greenkeeper": {
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "roots": [
+      "<rootDir>/src"
+    ],
+    "testRegex": "\\.spec\\.js$"
+  },
+  "standard": {
     "ignore": [
-      "nice-pipe"
-    ]
+      "dist"
+    ],
+    "parser": "babel-eslint"
   }
 }

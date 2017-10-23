@@ -5,7 +5,7 @@
 
 > Basic CLI for Xen-Orchestra
 
-## Installation
+## Install
 
 #### [npm](https://npmjs.org/package/xo-cli)
 
@@ -117,9 +117,31 @@ encoding by prefixing with `json:`:
 > xo-cli vm.import host=60a6939e-8b0a-4352-9954-5bde44bcdf7d @=vm.xva
 ```
 
-## Contributing
+## Development
 
-Contributions are *very* welcome, either on the documentation or on
+```
+# Install dependencies
+> yarn
+
+# Run the tests
+> yarn test
+
+# Continuously compile
+> yarn dev
+
+# Continuously run the tests
+> yarn dev-test
+
+# Build for production (automatically called by npm install)
+> yarn build
+
+# Commit changes
+> yarn cz
+```
+
+## Contributions
+
+Contributions are *very* welcomed, either on the documentation or on
 the code.
 
 You may:
