@@ -673,7 +673,12 @@ const TRANSFORMS = {
     return {
       type: 'PGPU',
 
+      dom0Access: obj.dom0_access,
+      enabledVgpuTypes: link(obj, 'enabled_VGPU_types'),
+      isSystemDisplayDevice: Boolean(obj.is_system_display_device),
       pci: link(obj, 'PCI'),
+      supportedVgpuMaxCapcities: link(obj, 'supported_VGPU_max_capacities'),
+      supportedVgpuTypes: link(obj, 'supported_VGPU_types'),
 
       // TODO: dedupe.
       host: link(obj, 'host'),
@@ -692,6 +697,7 @@ const TRANSFORMS = {
       currentlyAttached: Boolean(obj.currently_attached),
       device: obj.device,
       gpuGroup: link(obj, 'GPU_group'),
+      otherConfig: obj.other_config,
       resident_on: link(obj, 'resident_on'),
       vgpuType: link(obj, '$type'),
       vm: link(obj, 'VM')
@@ -705,13 +711,14 @@ const TRANSFORMS = {
       type: 'gpuGroup',
 
       allocation: obj.allocation_algorithm,
-      supportedVgpuTypes: obj.supported_VGPU_types,
-      enabledVgpuTypes: obj.enabled_VGPU_types,
+      enabledVgpuTypes: link(obj, 'enabled_VGPU_types'),
+      gpuTypes: obj.GPU_types,
       name_description: obj.name_description,
       name_label: obj.name_label,
       other_config: obj.other_config,
-      $vgpus: link(obj, 'VGPUs'),
-      $pgpus: link(obj, 'PGPUs')
+      pgpus: link(obj, 'PGPUs'),
+      supportedVgpuTypes: link(obj, 'supported_VGPU_types'),
+      vgpus: link(obj, 'VGPUs')
     }
   },
 
@@ -722,11 +729,15 @@ const TRANSFORMS = {
       type: 'vgpuType',
 
       experimental: Boolean(obj.experimental),
+      framebufferSize: obj.framebuffer_size,
+      gpuGroup: link(obj, 'GPU_group'),
       maxHeads: obj.max_heads,
+      maxResolutionX: obj.max_resolution_x,
+      maxResolutionY: obj.max_resolution_y,
       modelName: obj.model_name,
+      pgpu: link(obj, 'PGPU'),
       vendorName: obj.vendor_name,
-      $vgpus: link(obj, 'VGPUs'),
-      $pgpu: link(obj, 'PGPU')
+      vgpus: link(obj, 'VGPUs')
     }
   }
 }
