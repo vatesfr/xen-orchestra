@@ -1,11 +1,12 @@
 import _ from 'intl'
+import SortedTable from 'sorted-table'
 import Component from 'base-component'
 import React from 'react'
 import Icon from 'icon'
+import isEmpty from 'lodash/isEmpty'
 import pick from 'lodash/pick'
 import SingleLineRow from 'single-line-row'
 import some from 'lodash/some'
-import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
@@ -20,7 +21,6 @@ import {
   connectPif,
   createNetwork,
   deletePif,
-  deletePifs,
   disconnectPif,
   editNetwork,
   editPif,
@@ -39,9 +39,7 @@ const _toggleDefaultLockingMode = (component, tooltip) => tooltip
 class ConfigureIpModal extends Component {
   constructor (props) {
     super(props)
-
     const { pif } = props
-
     if (pif) {
       this.state = pick(pif, ['ip', 'netmask', 'dns', 'gateway'])
     }
@@ -86,11 +84,15 @@ class ConfigureIpModal extends Component {
   }
 }
 
+@connectStore(() => ({
+  vifsByNetwork: createGetObjectsOfType('VIF').groupBy('$network')
+}))
+
 class PifItemVlan extends Component {
   _editPif = vlan =>
-    editPif(this.props.item, { vlan })
+    editPif(this.props.pif, { vlan })
   render () {
-    const pif = this.props.item
+    const {pif} = this.props
     return <div>{pif.vlan === -1
       ? 'None'
       : <Number value={pif.vlan} onChange={this._editPif}>
@@ -99,32 +101,37 @@ class PifItemVlan extends Component {
     }</div>
   }
 }
+class PifItemIp extends Component {
+  state = { configModes: [] }
 
-const reconfigureIp = (pif, mode) => {
-  if (mode === 'Static') {
-    return confirm({
-      icon: 'ip',
-      title: _('pifConfigureIp'),
-      body: <ConfigureIpModal pif={pif} />
-    }).then(
-      params => {
-        if (!params.ip || !params.netmask) {
-          error(_('configIpErrorTitle'), _('configIpErrorMessage'))
-          return
-        }
-        return reconfigurePifIp(pif, { mode, ...params })
-      },
-      noop
+  componentWillMount () {
+    getIpv4ConfigModes().then(configModes =>
+      this.setState({ configModes })
     )
   }
-  return reconfigurePifIp(pif, { mode })
-}
 
-class PifItemIp extends Component {
-  _onEditIp = () => reconfigureIp(this.props.pif, 'Static')
-
+  _configIp = mode => {
+    if (mode === 'Static') {
+      return confirm({
+        icon: 'ip',
+        title: _('pifConfigureIp'),
+        body: <ConfigureIpModal pif={this.props.pif} />
+      }).then(
+        params => {
+          if (!params.ip || !params.netmask) {
+            error(_('configIpErrorTitle'), _('configIpErrorMessage'))
+            return
+          }
+          return reconfigurePifIp(this.props.pif, { mode, ...params })
+        },
+        noop
+      )
+    }
+    return reconfigurePifIp(this.props.pif, { mode })
+  }
+  _onEditIp = () => this._configIp('Static')
   render () {
-    const { pif } = this.props
+    const {pif} = this.props
     return <div>
       {pif.ip}
       {' '}
@@ -134,20 +141,36 @@ class PifItemIp extends Component {
     </div>
   }
 }
-
 class PifItemMode extends Component {
   state = { configModes: [] }
 
-  componentDidMount () {
+  componentWillMount () {
     getIpv4ConfigModes().then(configModes =>
       this.setState({ configModes })
     )
   }
 
-  _configIp = mode => reconfigureIp(this.props.pif, mode)
-
+  _configIp = mode => {
+    if (mode === 'Static') {
+      return confirm({
+        icon: 'ip',
+        title: _('pifConfigureIp'),
+        body: <ConfigureIpModal pif={this.props.pif} />
+      }).then(
+        params => {
+          if (!params.ip || !params.netmask) {
+            error(_('configIpErrorTitle'), _('configIpErrorMessage'))
+            return
+          }
+          return reconfigurePifIp(this.props.pif, { mode, ...params })
+        },
+        noop
+      )
+    }
+    return reconfigurePifIp(this.props.pif, { mode })
+  }
   render () {
-    const { pif } = this.props
+    const {pif} = this.props
     const { configModes } = this.state
     return <Select
       onChange={this._configIp}
@@ -158,99 +181,151 @@ class PifItemMode extends Component {
     </Select>
   }
 }
-
 @connectStore(() => ({
   vifsByNetwork: createGetObjectsOfType('VIF').groupBy('$network')
 }))
-class PifItemLock extends Component {
-  _editNetwork = () => {
-    const { pif, networks } = this.props
-    return editNetwork(pif.$network, { defaultIsLocked: !networks[pif.$network].defaultIsLocked })
+class PifItemInUse extends Component {
+  state = { configModes: [] }
+
+  componentWillMount () {
+    getIpv4ConfigModes().then(configModes =>
+      this.setState({ configModes })
+    )
   }
+  _configIp = mode => {
+    if (mode === 'Static') {
+      return confirm({
+        icon: 'ip',
+        title: _('pifConfigureIp'),
+        body: <ConfigureIpModal pif={this.props.pif} />
+      }).then(
+          params => {
+            if (!params.ip || !params.netmask) {
+              error(_('configIpErrorTitle'), _('configIpErrorMessage'))
+              return
+            }
+            return reconfigurePifIp(this.props.pif, { mode, ...params })
+          },
+          noop
+        )
+    }
+    return reconfigurePifIp(this.props.pif, { mode })
+  }
+  _onEditIp = () => this._configIp('Static')
+
+  _editPif = vlan =>
+      editPif(this.props.pif, { vlan })
 
   render () {
     const {networks, pif, vifsByNetwork} = this.props
     const pifInUse = some(vifsByNetwork[pif.$network], vif => vif.attached)
-    return _toggleDefaultLockingMode(
-      <Toggle
-        disabled={pifInUse}
-        onChange={this._editNetwork}
-        value={networks[pif.$network].defaultIsLocked}
-      />,
-      pifInUse && _('pifInUse')
-    )
+    return <div className='text-xs-center'>
+      {_toggleDefaultLockingMode(
+        <Toggle
+          disabled={pifInUse}
+          onChange={() => editNetwork(pif.$network, { defaultIsLocked: !networks[pif.$network].defaultIsLocked })}
+          value={networks[pif.$network].defaultIsLocked}
+        />,
+        pifInUse && _('pifInUse')
+      )}
+    </div>
   }
 }
 
 const COLUMNS = [
   {
+    itemRenderer: (pif, networks) => {
+      return pif.device
+    },
     default: true,
-    itemRenderer: pif => pif.device,
     name: _('pifDeviceLabel'),
-    sortCriteria: 'device'
+    sortCriteria: _ => _.device
   },
   {
-    itemRenderer: (pif, networks) => networks[pif.$network].name_label,
+    itemRenderer: (pif, networks) => {
+      return networks[pif.$network].name_label
+    },
+    default: true,
     name: _('pifNetworkLabel'),
     sortCriteria: (pif, networks) => networks[pif.$network].name_label
   },
   {
-    component: PifItemVlan,
+    itemRenderer: (pif, networks) => {
+      return <PifItemVlan key={pif.id} pif={pif} networks={networks} />
+    },
+    default: true,
     name: _('pifVlanLabel'),
-    sortCriteria: 'vlan'
+    sortCriteria: _ => _.vlan
   },
   {
-    itemRenderer: (pif, networks) => <PifItemIp pif={pif} networks={networks} />,
+    itemRenderer: (pif, networks) => {
+      return <PifItemIp key={pif.id} pif={pif} networks={networks} />
+    },
+    default: true,
     name: _('pifAddressLabel'),
-    sortCriteria: 'ip'
+    sortCriteria: _ => _.ip
   },
   {
-    itemRenderer: (pif, networks) => <PifItemMode pif={pif} networks={networks} />,
+    itemRenderer: (pif, networks) => {
+      return <PifItemMode key={pif.id} pif={pif} networks={networks} />
+    },
+    default: true,
     name: _('pifModeLabel'),
-    sortCriteria: 'mode'
+    sortCriteria: _ => _.mode
   },
   {
-    itemRenderer: pif => pif.mac,
+    default: true,
+    itemRenderer: (pif, networks) => {
+      return pif.mac
+    },
     name: _('pifMacLabel'),
-    sortCriteria: 'mac'
+    sortCriteria: _ => _.mac
   },
   {
-    itemRenderer: pif => pif.mtu,
+    itemRenderer: (pif, networks) => {
+      return pif.mtu
+    },
+    default: true,
     name: _('pifMtuLabel'),
-    sortCriteria: 'mtu'
+    sortCriteria: _ => _.mtu
   },
   {
-    itemRenderer: (pif, networks) => <PifItemLock pif={pif} networks={networks} />,
+    itemRenderer: (pif, networks) => {
+      return <PifItemInUse key={pif.id} pif={pif} networks={networks} />
+    },
+    default: true,
     name: _('defaultLockingMode')
   },
   {
-    itemRenderer: pif => <div>
-      <StateButton
-        disabledLabel={_('pifDisconnected')}
-        disabledHandler={connectPif}
-        disabledTooltip={_('connectPif')}
+    itemRenderer: (pif, networks) => {
+      return <div>
+        <StateButton
+          disabledLabel={_('pifDisconnected')}
+          disabledHandler={connectPif}
+          disabledTooltip={_('connectPif')}
 
-        enabledLabel={_('pifConnected')}
-        enabledHandler={disconnectPif}
-        enabledTooltip={_('disconnectPif')}
+          enabledLabel={_('pifConnected')}
+          enabledHandler={disconnectPif}
+          enabledTooltip={_('disconnectPif')}
 
-        disabled={pif.attached && (pif.management || pif.disallowUnplug)}
-        handlerParam={pif}
-        state={pif.attached}
-      />
-      {' '}
-      <Tooltip content={pif.carrier ? _('pifPhysicallyConnected') : _('pifPhysicallyDisconnected')}>
-        <Icon
-          icon='network'
-          size='lg'
-          className={pif.carrier ? 'text-success' : 'text-muted'}
-        />
-      </Tooltip>
-    </div>,
+          disabled={pif.attached && (pif.management || pif.disallowUnplug)}
+          handlerParam={pif}
+          state={pif.attached}
+              />
+        {' '}
+        <Tooltip content={pif.carrier ? _('pifPhysicallyConnected') : _('pifPhysicallyDisconnected')}>
+          <Icon
+            icon='network'
+            size='lg'
+            className={pif.carrier ? 'text-success' : 'text-muted'}
+                />
+        </Tooltip>
+      </div>
+    },
+    default: true,
     name: _('pifStatusLabel')
   }
 ]
-
 const INDIVIDUAL_ACTIONS = [
   {
     handler: deletePif,
@@ -259,40 +334,52 @@ const INDIVIDUAL_ACTIONS = [
   }
 ]
 
-const GROUPED_ACTIONS = [
-  {
-    handler: deletePifs,
-    icon: 'delete',
-    label: _('deletePifs')
-  }
-]
-
-export default class TabNetwork extends Component {
-  render () {
-    return <Container>
-      <Row>
-        <Col className='text-xs-right'>
-          <TabButton
-            btnStyle='primary'
-            handler={createNetwork}
-            handlerParam={this.props.host}
-            icon='add'
-            labelId='networkCreateButton'
-          />
-        </Col>
-      </Row>
-      <Row>
-        <Col>
+export default({
+  host,
+  networks,
+  pifs,
+  vifsByNetwork
+}) => <Container>
+  <Row>
+    <Col className='text-xs-right'>
+      <TabButton
+        btnStyle='primary'
+        handler={createNetwork}
+        handlerParam={host}
+        icon='add'
+        labelId='networkCreateButton'
+      />
+    </Col>
+  </Row>
+  <Row>
+    <Col>
+      {!isEmpty(pifs)
+        ? <span>
+          <Row>
+            <Col>TESTA
+              {
+                !isEmpty(pifs)
+                     ? <SortedTable
+                       collection={pifs}
+                       columns={COLUMNS}
+                       individualActions={INDIVIDUAL_ACTIONS}
+                       userData={networks}
+                        />
+                    : <h4 className='text-xs-center'>{_('vbdNoVbd')}</h4>
+              }
+            </Col>
+          </Row>
+        </span>
+        : <div>
           <SortedTable
-            collection={this.props.pifs}
+            collection={pifs}
             columns={COLUMNS}
-            groupedActions={GROUPED_ACTIONS}
             individualActions={INDIVIDUAL_ACTIONS}
-            stateUrlParam='s'
-            userData={this.props.networks}
-          />
-        </Col>
-      </Row>
-    </Container>
-  }
-}
+            userData={networks}
+           />
+          <h4 className='text-xs-center'>{_('pifNoInterface')}</h4>
+        </div>
+      }
+    </Col>
+  </Row>
+</Container>
