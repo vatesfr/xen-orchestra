@@ -356,7 +356,7 @@ export default({
       {!isEmpty(pifs)
         ? <span>
           <Row>
-            <Col>TESTA
+            <Col>
               {
                 !isEmpty(pifs)
                      ? <SortedTable
