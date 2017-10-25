@@ -187,11 +187,36 @@ class Checkbox extends Component {
 const actionsShape = propTypes.arrayOf(propTypes.shape({
   // groupedActions: the function will be called with an array of the selected items` ids in parameters
   // individualActions: the function will be called with the related item's id in parameters
+  disabled: propTypes.oneOfType([ propTypes.bool, propTypes.func ]),
   handler: propTypes.func.isRequired,
   icon: propTypes.string.isRequired,
   label: propTypes.node.isRequired,
   level: propTypes.oneOf([ 'warning', 'danger' ])
 }))
+
+class IndividualAction extends Component {
+  _getIsDisabled = createSelector(
+    () => this.props.disabled,
+    () => this.props.item,
+    () => this.props.userData,
+    (disabled, item, userData) => isFunction(disabled)
+      ? disabled(item, userData)
+      : disabled
+  )
+
+  render () {
+    const { icon, label, level, handler, itemId } = this.props
+
+    return <ActionRowButton
+      btnStyle={level}
+      disabled={this._getIsDisabled()}
+      handler={handler}
+      handlerParam={itemId}
+      icon={icon}
+      tooltip={label}
+    />
+  }
+}
 
 @propTypes({
   defaultColumn: propTypes.number,
@@ -585,13 +610,12 @@ export default class SortedTable extends Component {
     </td>
     const actionsColumn = hasIndividualActions && <td><div className='pull-right'>
       <ButtonGroup>
-        {map(individualActions, ({ icon, label, level, handler }, key) => <ActionRowButton
-          btnStyle={level}
-          handler={handler}
-          handlerParam={id}
-          icon={icon}
+        {map(individualActions, (props, key) => <IndividualAction
+          {...props}
+          item={item}
+          itemId={id}
           key={key}
-          tooltip={label}
+          userData={userData}
         />)}
       </ButtonGroup>
     </div></td>
