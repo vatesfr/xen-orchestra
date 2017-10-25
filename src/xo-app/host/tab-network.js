@@ -353,7 +353,6 @@ export default({
   </Row>
   <Row>
     <Col>
-    Hei
       {!isEmpty(pifs)
         ? <span>
           <Row>
