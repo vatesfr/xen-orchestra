@@ -353,32 +353,21 @@ export default({
   </Row>
   <Row>
     <Col>
+    Hei
       {!isEmpty(pifs)
         ? <span>
           <Row>
             <Col>
-              {
-                !isEmpty(pifs)
-                     ? <SortedTable
-                       collection={pifs}
-                       columns={COLUMNS}
-                       individualActions={INDIVIDUAL_ACTIONS}
-                       userData={networks}
-                        />
-                    : <h4 className='text-xs-center'>{_('vbdNoVbd')}</h4>
-              }
+              <SortedTable
+                collection={pifs}
+                columns={COLUMNS}
+                individualActions={INDIVIDUAL_ACTIONS}
+                userData={networks}
+                />
             </Col>
           </Row>
         </span>
-        : <div>
-          <SortedTable
-            collection={pifs}
-            columns={COLUMNS}
-            individualActions={INDIVIDUAL_ACTIONS}
-            userData={networks}
-           />
-          <h4 className='text-xs-center'>{_('pifNoInterface')}</h4>
-        </div>
+        : <h4 className='text-xs-center'>{_('pifNoInterface')}</h4>
       }
     </Col>
   </Row>
