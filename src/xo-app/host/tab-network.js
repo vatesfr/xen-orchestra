@@ -104,7 +104,7 @@ class PifItemVlan extends Component {
 
 class PifItemIp extends Component {
   state = { configModes: [] }
-  componentWillMount () {
+  componentDidMount () {
     getIpv4ConfigModes().then(configModes =>
       this.setState({ configModes })
     )
@@ -143,7 +143,7 @@ class PifItemIp extends Component {
 
 class PifItemMode extends Component {
   state = { configModes: [] }
-  componentWillMount () {
+  componentDidMount () {
     getIpv4ConfigModes().then(configModes =>
       this.setState({ configModes })
     )
@@ -183,37 +183,6 @@ class PifItemMode extends Component {
   vifsByNetwork: createGetObjectsOfType('VIF').groupBy('$network')
 }))
 class PifItemInUse extends Component {
-  state = { configModes: [] }
-
-  componentWillMount () {
-    getIpv4ConfigModes().then(configModes =>
-      this.setState({ configModes })
-    )
-  }
-  _configIp = mode => {
-    if (mode === 'Static') {
-      return confirm({
-        icon: 'ip',
-        title: _('pifConfigureIp'),
-        body: <ConfigureIpModal pif={this.props.pif} />
-      }).then(
-          params => {
-            if (!params.ip || !params.netmask) {
-              error(_('configIpErrorTitle'), _('configIpErrorMessage'))
-              return
-            }
-            return reconfigurePifIp(this.props.pif, { mode, ...params })
-          },
-          noop
-        )
-    }
-    return reconfigurePifIp(this.props.pif, { mode })
-  }
-  _onEditIp = () => this._configIp('Static')
-
-  _editPif = vlan =>
-      editPif(this.props.pif, { vlan })
-
   render () {
     const {networks, pif, vifsByNetwork} = this.props
     const pifInUse = some(vifsByNetwork[pif.$network], vif => vif.attached)
@@ -237,7 +206,7 @@ const COLUMNS = [
     },
     default: true,
     name: _('pifDeviceLabel'),
-    sortCriteria: _ => _.device
+    sortCriteria: 'device'
   },
   {
     itemRenderer: (pif, networks) => {
@@ -251,21 +220,21 @@ const COLUMNS = [
       return <PifItemVlan key={pif.id} pif={pif} networks={networks} />
     },
     name: _('pifVlanLabel'),
-    sortCriteria: _ => _.vlan
+    sortCriteria: 'vlan'
   },
   {
     itemRenderer: (pif, networks) => {
       return <PifItemIp key={pif.id} pif={pif} networks={networks} />
     },
     name: _('pifAddressLabel'),
-    sortCriteria: _ => _.ip
+    sortCriteria: 'ip'
   },
   {
     itemRenderer: (pif, networks) => {
       return <PifItemMode key={pif.id} pif={pif} networks={networks} />
     },
     name: _('pifModeLabel'),
-    sortCriteria: _ => _.mode
+    sortCriteria: 'mode'
   },
   {
     default: true,
@@ -273,14 +242,14 @@ const COLUMNS = [
       return pif.mac
     },
     name: _('pifMacLabel'),
-    sortCriteria: _ => _.mac
+    sortCriteria: 'mac'
   },
   {
     itemRenderer: (pif, networks) => {
       return pif.mtu
     },
     name: _('pifMtuLabel'),
-    sortCriteria: _ => _.mtu
+    sortCriteria: 'mtu'
   },
   {
     itemRenderer: (pif, networks) => {
