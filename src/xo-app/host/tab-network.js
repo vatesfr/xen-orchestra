@@ -1,5 +1,4 @@
 import _ from 'intl'
-import SortedTable from 'sorted-table'
 import Component from 'base-component'
 import React from 'react'
 import Icon from 'icon'
@@ -7,6 +6,7 @@ import isEmpty from 'lodash/isEmpty'
 import pick from 'lodash/pick'
 import SingleLineRow from 'single-line-row'
 import some from 'lodash/some'
+import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
@@ -101,15 +101,14 @@ class PifItemVlan extends Component {
     }</div>
   }
 }
+
 class PifItemIp extends Component {
   state = { configModes: [] }
-
   componentWillMount () {
     getIpv4ConfigModes().then(configModes =>
       this.setState({ configModes })
     )
   }
-
   _configIp = mode => {
     if (mode === 'Static') {
       return confirm({
@@ -141,15 +140,14 @@ class PifItemIp extends Component {
     </div>
   }
 }
+
 class PifItemMode extends Component {
   state = { configModes: [] }
-
   componentWillMount () {
     getIpv4ConfigModes().then(configModes =>
       this.setState({ configModes })
     )
   }
-
   _configIp = mode => {
     if (mode === 'Static') {
       return confirm({
@@ -245,7 +243,6 @@ const COLUMNS = [
     itemRenderer: (pif, networks) => {
       return networks[pif.$network].name_label
     },
-    default: true,
     name: _('pifNetworkLabel'),
     sortCriteria: (pif, networks) => networks[pif.$network].name_label
   },
@@ -253,7 +250,6 @@ const COLUMNS = [
     itemRenderer: (pif, networks) => {
       return <PifItemVlan key={pif.id} pif={pif} networks={networks} />
     },
-    default: true,
     name: _('pifVlanLabel'),
     sortCriteria: _ => _.vlan
   },
@@ -261,7 +257,6 @@ const COLUMNS = [
     itemRenderer: (pif, networks) => {
       return <PifItemIp key={pif.id} pif={pif} networks={networks} />
     },
-    default: true,
     name: _('pifAddressLabel'),
     sortCriteria: _ => _.ip
   },
@@ -269,7 +264,6 @@ const COLUMNS = [
     itemRenderer: (pif, networks) => {
       return <PifItemMode key={pif.id} pif={pif} networks={networks} />
     },
-    default: true,
     name: _('pifModeLabel'),
     sortCriteria: _ => _.mode
   },
@@ -285,7 +279,6 @@ const COLUMNS = [
     itemRenderer: (pif, networks) => {
       return pif.mtu
     },
-    default: true,
     name: _('pifMtuLabel'),
     sortCriteria: _ => _.mtu
   },
@@ -293,7 +286,6 @@ const COLUMNS = [
     itemRenderer: (pif, networks) => {
       return <PifItemInUse key={pif.id} pif={pif} networks={networks} />
     },
-    default: true,
     name: _('defaultLockingMode')
   },
   {
@@ -322,7 +314,6 @@ const COLUMNS = [
         </Tooltip>
       </div>
     },
-    default: true,
     name: _('pifStatusLabel')
   }
 ]
