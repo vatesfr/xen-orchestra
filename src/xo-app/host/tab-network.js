@@ -272,14 +272,14 @@ const COLUMNS = [
           disabled={pif.attached && (pif.management || pif.disallowUnplug)}
           handlerParam={pif}
           state={pif.attached}
-              />
+        />
         {' '}
         <Tooltip content={pif.carrier ? _('pifPhysicallyConnected') : _('pifPhysicallyDisconnected')}>
           <Icon
             icon='network'
             size='lg'
             className={pif.carrier ? 'text-success' : 'text-muted'}
-                />
+          />
         </Tooltip>
       </div>
     },
@@ -322,7 +322,7 @@ export default({
                 columns={COLUMNS}
                 individualActions={INDIVIDUAL_ACTIONS}
                 userData={networks}
-                />
+              />
             </Col>
           </Row>
         </span>
