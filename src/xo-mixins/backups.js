@@ -428,10 +428,10 @@ export default class {
       $onFailure(() => srcXapi.deleteVm(delta.vm.uuid))
       $onFailure(cancel)
 
-      const now = Date.now()
-      delta.vm.name_label += ` (${shortDate(now)})`
+      const date = safeDateFormat(Date.now())
+      delta.vm.name_label += ` (${date})`
       delta.vm.other_config[TAG_SOURCE_VM] = uuid
-      delta.vm.other_config[TAG_EXPORT_TIME] = safeDateFormat(now)
+      delta.vm.other_config[TAG_EXPORT_TIME] = date
 
       const { streams } = delta
       forEach(delta.vdis, (vdi, key) => {
