@@ -1,7 +1,3 @@
-
-import SortedTable from 'sorted-table'
-import Link from 'link'
-import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import HTML5Backend from 'react-dnd-html5-backend'
@@ -9,9 +5,12 @@ import Icon from 'icon'
 import IsoDevice from 'iso-device'
 import propTypes from 'prop-types-decorator'
 import React from 'react'
+import Link from 'link'
 import SingleLineRow from 'single-line-row'
+import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import TabButton from 'tab-button'
+import _, { messages } from 'intl'
 import { Container, Row, Col } from 'grid'
 import { createSelector, createFinder, getCheckPermissions, isAdmin } from 'selectors'
 import { DragDropContext, DragSource, DropTarget } from 'react-dnd'
@@ -23,6 +22,8 @@ import { XoSelect, Size, Text } from 'editable'
 import { confirm } from 'modal'
 import { error } from 'notification'
 import {
+  filter,
+  find,
   forEach,
   get,
   isEmpty,
@@ -66,35 +67,32 @@ const parseBootOrder = bootOrder => {
 }
 const COLUMNS = [
   {
-    itemRenderer: (vdi, userdata) => {
-      return <Text value={vdi.name_label}
+    itemRenderer: vdi =>
+      <Text value={vdi.name_label}
         onChange={value => editVdi(vdi,
-                { name_label: value })} />
-    },
-    default: true,
+        { name_label: value })}
+      />,
     name: _('vdiNameLabel'),
-    sortCriteria: _ => _.name_label
-  }, {
-    itemRenderer: (vdi, userdata) => {
-      return <Text value={vdi.name_description} onChange={value => editVdi(vdi, { name_description: value })} />
-    },
     default: true,
-    name: _('vdiNameDescription'),
-    sortCriteria: _ => _.name_description
+    sortCriteria: 'name_label'
   },
   {
-    itemRenderer: (vdi, userdata) => {
-      return <Size value={vdi.size || null} onChange={size => editVdi(vdi, { size })} />
-    },
-    default: true,
+    itemRenderer: vdi =>
+      <Text value={vdi.name_description} onChange={value => editVdi(vdi, { name_description: value })} />,
+    name: _('vdiNameDescription'),
+    sortCriteria: 'name_description'
+  },
+  {
+    itemRenderer: vdi =>
+      <Size value={vdi.size || null} onChange={size => editVdi(vdi, { size })} />,
     name: _('vdiSize'),
-    sortCriteria: _ => _.size
-  }, {
-    itemRenderer: (vdi, userdata) => {
-      const srs = userdata[2]
-      const vm = userdata[3]
+    sortCriteria: 'size'
+  },
+  {
+    itemRenderer: (vdi, userData) => {
+      const {srs, vm} = userData
       const sr = srs[vdi.$SR]
-      if (!sr) return
+      if (sr === undefined) return null
       return <XoSelect
         onChange={sr => migrateVdi(vdi, sr)}
         xoType='SR'
@@ -102,47 +100,33 @@ const COLUMNS = [
         labelProp='name_label'
         value={sr}
         useLongClick
-                      >
+      >
         <Link to={`/srs/${sr.id}`}>{sr.name_label}</Link>
       </XoSelect>
     },
-    default: true,
     name: _('vdiSr'),
-    sortCriteria: sr => sr.name_label
+    sortCriteria: 'name_label'
   },
   {
-    itemRenderer: (vdi, userdata) => {
-      const vdis = userdata[0]
-      const vbds = userdata[1]
-      const vbd = vbds.filter((Vbd) => {
-        if (vdis[Vbd.VDI] === vdi) {
-          return vbd
-        }
-      })
-      const vm = userdata[3]
+    itemRenderer: (vdi, userData) => {
+      const {vdis, vbds, vm} = userData
+      const vbd = find(vbds, vbd => vdis[vbd.VDI] === vdi)
       if (vbd.is_cd_drive || !vdi) {
-        return
+        return null
       }
       if (vm.virtualizationMode === 'pv') {
         return <Toggle
           value={vbd.bootable}
           onChange={bootable => setBootableVbd(vbd, bootable)}
-                   />
+        />
       }
     },
-    default: true,
     name: _('vbdBootableStatus')
   },
   {
-    itemRenderer: (vdi, userdata) => {
-      const vdis = userdata[0]
-      const vbds = userdata[1]
-      const vbd = vbds.filter((Vbd) => {
-        if (vdis[Vbd.VDI] === vdi) {
-          return vbd
-        }
-      })
-      const { vm } = userdata[3]
+    itemRenderer: (vdi, userData) => {
+      const {vdis, vbds, vm} = userData
+      const vbd = find(vbds, vbd => vdis[vbd.VDI] === vdi)
       if (vbd.is_cd_drive || !vdi) {
         return
       }
@@ -157,16 +141,16 @@ const COLUMNS = [
         disabled={!(vbd.attached || isVmRunning(vm))}
         handlerParam={vbd}
         state={vbd.attached}
-          />
+      />
     },
-    default: true,
     name: _('vbdStatus')
   }
 ]
-const COLUMNS2 = COLUMNS.filter(item => {
-  if (item.name.props.id !== 'vbdBootableStatus') {
-    return item
-  }
+
+const COLUMNS2 = filter(COLUMNS, item => {
+  const { id } = item.name.props
+  if (id !== 'vbdBootableStatus') return true
+  return false
 })
 
 @injectIntl
@@ -177,7 +161,6 @@ const COLUMNS2 = COLUMNS.filter(item => {
 @addSubscriptions({
   resourceSets: subscribeResourceSets
 })
-
 @connectStore({
   isAdmin
 })
@@ -235,7 +218,6 @@ class NewDisk extends Component {
           onChange={this.linkState('sr')}
           predicate={this._getSrPredicate()}
           required
-          // why isAdmin true => resourceSet = undefined
           resourceSet={isAdmin ? undefined : resourceSet}
           value={sr}
         />
@@ -488,7 +470,6 @@ class MigrateVdiModalBody extends Component {
   checkPermissions: getCheckPermissions,
   isAdmin
 }))
-
 export default class TabDisks extends Component {
   constructor (props) {
     super(props)
@@ -522,7 +503,7 @@ export default class TabDisks extends Component {
       title: _('vdiMigrate'),
       body: <MigrateVdiModalBody />
     }).then(({ sr, migrateAll }) => {
-      if (!sr) {
+      if (sr === undefined) {
         return error(_('vdiMigrateNoSr'), _('vdiMigrateNoSrMessage'))
       }
       return migrateAll
@@ -543,22 +524,20 @@ export default class TabDisks extends Component {
     this._getIsVmAdmin,
     (isAdmin, resourceSet, isVmAdmin) => isAdmin || (resourceSet == null && isVmAdmin)
   )
-
   render () {
     const {
       srs,
       vbds,
-    vdis,
-    vm
-  } = this.props
-
+      vdis,
+      vm
+          } = this.props
     const {
-    attachDisk,
-    bootOrder,
-    newDisk
-  } = this.state
-    const userdata = [vdis, vbds, srs, vm]
-    console.log(vm.virtualizationMode)
+      attachDisk,
+      bootOrder,
+      newDisk
+          } = this.state
+
+    const userData = {vdis, vbds, srs, vm}
     const INDIVIDUAL_ACTIONS = [
       {
         handler: this._migrateVdi,
@@ -574,7 +553,8 @@ export default class TabDisks extends Component {
         handler: deleteVdi,
         icon: 'vdi-remove',
         label: _('vdiRemove')
-      }]
+      }
+    ]
     return <Container>
       <Row>
         <Col className='text-xs-right'>
@@ -606,23 +586,16 @@ export default class TabDisks extends Component {
         </Col>
       </Row>
       <Row>
-        <Col>
-        foo
+        <Col>disks
           {!isEmpty(vdis)
-             ? ((vm.virtualizationMode === 'pv') ? <SortedTable
-               collection={vdis}
-               columns={COLUMNS}
-               individualActions={INDIVIDUAL_ACTIONS}
-               userData={userdata}
-                /> : <SortedTable
-                  collection={vdis}
-                  columns={COLUMNS2}
-                  individualActions={INDIVIDUAL_ACTIONS}
-                  userData={userdata}
-                />)
+            ? <SortedTable
+              collection={vdis}
+              columns={vm.virtualizationMode === 'pv' ? COLUMNS : COLUMNS2}
+              individualActions={INDIVIDUAL_ACTIONS}
+              userData={userData}
+            />
             : <h4 className='text-xs-center'>{_('vbdNoVbd')}</h4>
           }
-          bar
         </Col>
       </Row>
       <Row>
@@ -632,4 +605,4 @@ export default class TabDisks extends Component {
       </Row>
     </Container>
   }
-  }
+}
