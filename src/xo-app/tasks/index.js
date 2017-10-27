@@ -9,16 +9,26 @@ import React from 'react'
 import SingleLineRow from 'single-line-row'
 import { injectIntl } from 'react-intl'
 import { SelectPool } from 'select-objects'
-import { Card, CardBlock, CardHeader } from 'card'
-import { connectStore, resolveId, resolveIds } from 'utils'
-import { Col, Container, Row } from 'grid'
-import { includes, isEmpty, keys, map } from 'lodash'
+import {
+  connectStore,
+  resolveId,
+  resolveIds
+} from 'utils'
+import {
+  includes,
+  isEmpty,
+  keys,
+  map
+} from 'lodash'
 import {
   createGetObject,
   createGetObjectsOfType,
-  createSelector,
+  createSelector
 } from 'selectors'
-import { cancelTask, destroyTask } from 'xo'
+import {
+  cancelTask,
+  destroyTask
+} from 'xo'
 
 import Page from '../page'
 
@@ -36,46 +46,61 @@ const HEADER = (
 
 const TASK_ITEM_STYLE = {
   // Remove all margin, otherwise it breaks vertical alignment.
-  margin: 0,
+  margin: 0
 }
 
-export const TaskItem = connectStore(() => ({
-  host: createGetObject((_, props) => props.task.$host),
-}))(({ task, host }) => (
-  <SingleLineRow className='mb-1'>
-    <Col mediumSize={6}>
-      {task.name_label} ({task.name_description && `${task.name_description} `}on{' '}
-      {host ? (
-        <Link to={`/hosts/${host.id}`}>{host.name_label}</Link>
-      ) : (
-        `unknown host − ${task.$host}`
-      )})
-      {' ' + Math.round(task.progress * 100)}%
-    </Col>
-    <Col mediumSize={4}>
-      <progress
-        style={TASK_ITEM_STYLE}
-        className='progress'
-        value={task.progress * 100}
-        max='100'
-      />
-    </Col>
-    <Col mediumSize={2}>
-      <ButtonGroup>
-        <ActionRowButton
-          handler={cancelTask}
-          handlerParam={task}
-          icon='task-cancel'
-        />
-        <ActionRowButton
-          handler={destroyTask}
-          handlerParam={task}
-          icon='task-destroy'
-        />
-      </ButtonGroup>
-    </Col>
-  </SingleLineRow>
-))
+@connectStore(() => ({
+  host: createGetObject((_, props) => props.item.$host)
+}))
+export class TaskItem extends Component {
+  render () {
+    return <div>
+      {this.props.item.name_label} ({this.props.item.name_description && `${this.props.item.name_description} `}on {this.props.host
+        ? <Link to={`/hosts/${this.props.host.id}`}>{this.props.host.name_label}</Link>
+        : `unknown host − ${this.props.item.$host}`
+      })
+      {' ' + Math.round(this.props.item.progress * 100)}%
+      </div>
+  }
+}
+
+const COLUMNS = [
+  {
+    component: TaskItem,
+    default: true,
+    name: _('task'),
+    sortCriteria: task => task.progress
+  },
+  {
+    itemRenderer: task => <progress style={TASK_ITEM_STYLE} className='progress' value={task.progress * 100} max='100' />
+  }
+]
+
+const INDIVIDUAL_ACTIONS = [
+  {
+    handler: cancelTask,
+    icon: 'task-cancel',
+    label: _('cancelTask')
+  },
+  {
+    handler: {destroyTask},
+    icon: 'task-destroy',
+    label: _('destroyTask')
+  }
+]
+
+const GROUPED_ACTIONS = [
+  {
+    handler: tasks => map(tasks, task => cancelTask(task)),
+    icon: 'task-cancel',
+    label: _('cancelTasks')
+  },
+  {
+    handler: tasks => map(tasks, task => destroyTask(task)),
+    icon: 'task-destroy',
+    label: _('destroyTasks')
+  }
+]
 
 @connectStore(() => {
   const getPendingTasks = createGetObjectsOfType('task').filter([
@@ -104,61 +129,25 @@ export default class Tasks extends Component {
 
   render () {
     const { props, state } = this
-    const { intl, nTasks, pendingTasksByPool } = props
+    const {
+      pendingTasksByPool
+    } = props
 
-    if (isEmpty(pendingTasksByPool)) {
-      return (
-        <Page header={HEADER} title='taskPage' formatTitle>
-          <CenterPanel>
-            <Card>
-              <CardHeader>{_('noTasks')}</CardHeader>
-              <CardBlock>
-                <Row>
-                  <Col>
-                    <p className='text-muted'>{_('xsTasks')}</p>
-                  </Col>
-                </Row>
-              </CardBlock>
-            </Card>
-          </CenterPanel>
-        </Page>
-      )
-    }
-
-    const { formatMessage } = intl
-    return (
-      <Page
-        header={HEADER}
-        title={`(${nTasks}) ${formatMessage(messages.taskPage)}`}
-      >
-        <Container>
-          <Row className='mb-1'>
-            <SelectPool
-              multi
-              value={state.pools}
-              onChange={this.linkState('pools')}
-            />
-          </Row>
-          {map(
-            props.pools,
-            pool =>
-              this._showPoolTasks(pool) && (
-                <Row>
-                  <Card>
-                    <CardHeader key={pool.id}>
-                      <Link to={`/pools/${pool.id}`}>{pool.name_label}</Link>
-                    </CardHeader>
-                    <CardBlock>
-                      {map(pendingTasksByPool[pool.id], task => (
-                        <TaskItem key={task.id} task={task} />
-                      ))}
-                    </CardBlock>
-                  </Card>
-                </Row>
-              )
-          )}
-        </Container>
-      </Page>
-    )
+    return  ( <div>
+      <br /><br />
+      <SelectPool
+        multi
+        value={state.pools}
+        onChange={this.linkState('pools')}
+      />
+      <br /><br />
+      {map(props.pools, pool => this._showPoolTasks(pool) && <SortedTable
+        collection={pendingTasksByPool[pool.id]}
+        columns={COLUMNS}
+        groupedActions={GROUPED_ACTIONS}
+        individualActions={INDIVIDUAL_ACTIONS}
+        stateUrlParam='s'
+      />)}
+    </div>
   }
 }
