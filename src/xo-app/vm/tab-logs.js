@@ -1,19 +1,13 @@
 import _ from 'intl'
-import ActionRowButton from 'action-row-button'
-import isEmpty from 'lodash/isEmpty'
-import map from 'lodash/map'
 import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
-import TabButton from 'tab-button'
 import { connectStore } from 'utils'
-import { deleteMessage } from 'xo'
-import { FormattedRelative, FormattedTime } from 'react-intl'
-import { Container, Row, Col } from 'grid'
 import { createGetObjectMessages } from 'selectors'
+import { FormattedRelative, FormattedTime } from 'react-intl'
+import { deleteMessage, deleteMessages } from 'xo'
 
 const LOG_COLUMNS = [
   {
-    name: _('logDate'),
     itemRenderer: log => (
       <span>
         <FormattedTime
@@ -27,29 +21,37 @@ const LOG_COLUMNS = [
         (<FormattedRelative value={log.time * 1000} />)
       </span>
     ),
-    sortCriteria: log => log.time,
+    name: _('logDate'),
+    sortCriteria: 'time',
     sortOrder: 'desc',
   },
   {
-    name: _('logName'),
     itemRenderer: log => log.name,
-    sortCriteria: log => log.name,
+    name: _('logName'),
+    sortCriteria: 'name',
   },
   {
-    name: _('logContent'),
     itemRenderer: log => log.body,
-    sortCriteria: log => log.body,
+    name: _('logContent'),
+    sortCriteria: 'body',
   },
+]
+
+const INDIVIDUAL_ACTIONS = [
   {
-    name: _('logAction'),
-    itemRenderer: log => (
-      <ActionRowButton
-        btnStyle='danger'
-        handler={deleteMessage}
-        handlerParam={log}
-        icon='delete'
-      />
-    ),
+    handler: deleteMessage,
+    icon: 'delete',
+    label: _('logDelete'),
+    level: 'danger',
+  },
+]
+
+const GROUPED_ACTIONS = [
+  {
+    handler: deleteMessages,
+    icon: 'delete',
+    label: _('logDeleteSelected'),
+    level: 'danger',
   },
 ]
 
@@ -61,40 +63,15 @@ const LOG_COLUMNS = [
   })
 })
 export default class TabLogs extends Component {
-  _deleteAllLogs = () => map(this.props.logs, deleteMessage)
-
   render () {
-    const { logs } = this.props
-
-    if (isEmpty(logs)) {
-      return (
-        <Row>
-          <Col className='text-xs-center'>
-            <br />
-            <h4>{_('noLogs')}</h4>
-          </Col>
-        </Row>
-      )
-    }
-
     return (
-      <Container>
-        <Row>
-          <Col className='text-xs-right'>
-            <TabButton
-              btnStyle='danger'
-              handler={this._deleteAllLogs}
-              icon='delete'
-              labelId='logRemoveAll'
-            />
-          </Col>
-        </Row>
-        <Row>
-          <Col>
-            <SortedTable collection={logs} columns={LOG_COLUMNS} />
-          </Col>
-        </Row>
-      </Container>
+      <SortedTable
+        collection={this.props.logs}
+        columns={LOG_COLUMNS}
+        groupedActions={GROUPED_ACTIONS}
+        individualActions={INDIVIDUAL_ACTIONS}
+        stateUrlParam='s'
+      />
     )
   }
 }
