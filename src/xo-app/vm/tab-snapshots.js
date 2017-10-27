@@ -58,6 +58,15 @@ const COLUMNS = [
       />,
     name: _('snapshotName'),
     sortCriteria: _ => _.name_label
+  },
+  {
+    itemRenderer: snapshot =>
+      <Text
+        onChange={value => editVm(snapshot, {name_description: value})}
+        value={snapshot.name_description}
+      />,
+    name: _('snapshotDescription'),
+    sortCriteria: _ => _.name_description
   }
 ]
 

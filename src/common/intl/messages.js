@@ -782,6 +782,7 @@ var messages = {
   exportSnapshot: 'Export this snapshot',
   snapshotDate: 'Creation date',
   snapshotName: 'Name',
+  snapshotDescription: 'Description',
   snapshotAction: 'Action',
   snapshotQuiesce: 'Quiesced snapshot',
 

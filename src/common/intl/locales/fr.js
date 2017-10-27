@@ -2039,6 +2039,9 @@ export default {
   // Original text: "Name"
   snapshotName: 'Nom',
 
+  // Original text: "Name"
+  snapshotDescription: 'Description',
+
   // Original text: "Action"
   snapshotAction: 'Action',
 
