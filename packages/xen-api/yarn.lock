@@ -2201,6 +2201,10 @@ istanbul-reports@^1.1.1:
   dependencies:
     handlebars "^4.0.3"
 
+iterable-backoff@^0.0.0:
+  version "0.0.0"
+  resolved "https://registry.yarnpkg.com/iterable-backoff/-/iterable-backoff-0.0.0.tgz#e49660be7e1727fc52ee5c86c67cc3a427b4e109"
+
 jest-changed-files@^20.0.3:
   version "20.0.3"
   resolved "https://registry.yarnpkg.com/jest-changed-files/-/jest-changed-files-20.0.3.tgz#9394d5cc65c438406149bef1bf4d52b68e03e3f8"

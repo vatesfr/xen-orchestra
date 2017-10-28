@@ -5,6 +5,7 @@ import ms from 'ms'
 import httpRequest from 'http-request-plus'
 import { BaseError } from 'make-error'
 import { EventEmitter } from 'events'
+import { fibonacci } from 'iterable-backoff'
 import { filter, forEach, isArray, isObject, map, noop, omit, reduce, startsWith } from 'lodash'
 import {
   Cancel,
@@ -146,8 +147,6 @@ const getTaskResult = (task, onSuccess, onFailure) => {
 }
 
 // -------------------------------------------------------------------
-
-const MAX_TRIES = 5
 
 const CONNECTED = 'connected'
 const CONNECTING = 'connecting'
@@ -866,20 +865,24 @@ Xapi.prototype._transportCall = reduce([
     })
   },
   call => function () {
-    let tries = 1
+    let iterator // lazily created
     const loop = () => call.apply(this, arguments)
       ::pCatch(isNetworkError, isXapiNetworkError, error => {
-        debug('%s: network error %s', this._humanId, error.code)
-
-        if (++tries < MAX_TRIES) {
-          // TODO: ability to cancel the connection
-          // TODO: ability to force immediate reconnection
-          // TODO: implement back-off
-
-          return pDelay(5e3).then(loop)
+        if (iterator === undefined) {
+          iterator = fibonacci().clamp(undefined, 60).take(10).toMs()
         }
 
-        debug('%s too many network errors (%s), give up', this._humanId, tries)
+        const cursor = iterator.next()
+        if (!cursor.done) {
+          // TODO: ability to cancel the connection
+          // TODO: ability to force immediate reconnection
+
+          const delay = cursor.value
+          debug('%s: network error %s, next try in %s ms', this._humanId, error.code, delay)
+          return pDelay(delay).then(loop)
+        }
+
+        debug('%s: network error %s, aborting', this._humanId, error.code)
 
         // mark as disconnected
         this.disconnect()::pCatch(noop)
