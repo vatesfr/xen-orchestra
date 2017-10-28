@@ -26,8 +26,7 @@ class Block {
   constructor (blockSize) {
     const bitmapSize = blockSize / sectorSize / 8
     const bufferSize = Math.ceil((blockSize + bitmapSize) / sectorSize) * sectorSize
-    this.buffer = new Buffer(bufferSize)
-    this.buffer.fill(0)
+    this.buffer = Buffer.alloc(bufferSize)
     this.bitmapBuffer = this.buffer.slice(0, bitmapSize)
     this.dataBuffer = this.buffer.slice(bitmapSize)
     this.bitmapBuffer.fill(0xff)
@@ -161,16 +160,15 @@ export function computeGeometryForSize (size) {
 }
 
 export function createFooter (size, timestamp, geometry, diskType, dataOffsetLow = 0xFFFFFFFF, dataOffsetHigh = 0xFFFFFFFF) {
-  let footer = new Buffer(512)
-  footer.fill(0)
-  new Buffer(footerCookie, 'ascii').copy(footer)
+  let footer = Buffer.alloc(512)
+  Buffer.from(footerCookie, 'ascii').copy(footer)
   footer.writeUInt32BE(2, 8)
   footer.writeUInt32BE(0x00010000, 12)
   footer.writeUInt32BE(dataOffsetHigh, 16)
   footer.writeUInt32BE(dataOffsetLow, 20)
   footer.writeUInt32BE(timestamp, 24)
-  new Buffer(creatorApp, 'ascii').copy(footer, 28)
-  new Buffer(osString, 'ascii').copy(footer, 36)
+  Buffer.from(creatorApp, 'ascii').copy(footer, 28)
+  Buffer.from(osString, 'ascii').copy(footer, 36)
   // do not use & 0xFFFFFFFF to extract lower bits, that would propagate a negative sign if the 2^31 bit is one
   const sizeHigh = Math.floor(size / Math.pow(2, 32)) % Math.pow(2, 32)
   const sizeLow = size % Math.pow(2, 32)
@@ -188,9 +186,8 @@ export function createFooter (size, timestamp, geometry, diskType, dataOffsetLow
 }
 
 export function createDynamicDiskHeader (tableEntries, blockSize) {
-  let header = new Buffer(1024)
-  header.fill(0)
-  new Buffer(headerCookie, 'ascii').copy(header)
+  let header = Buffer.alloc(1024)
+  Buffer.from(headerCookie, 'ascii').copy(header)
   // hard code no next data
   header.writeUInt32BE(0xFFFFFFFF, 8)
   header.writeUInt32BE(0xFFFFFFFF, 12)
@@ -208,8 +205,7 @@ export function createDynamicDiskHeader (tableEntries, blockSize) {
 export function createEmptyTable (dataSize, blockSize) {
   const blockCount = Math.ceil(dataSize / blockSize)
   const tableSizeSectors = Math.ceil(blockCount * 4 / sectorSize)
-  const buffer = new Buffer(tableSizeSectors * sectorSize)
-  buffer.fill(0xff)
+  const buffer = Buffer.alloc(tableSizeSectors * sectorSize, 0xff)
   return {entryCount: blockCount, buffer: buffer, entries: []}
 }
 
@@ -232,14 +228,12 @@ export class ReadableRawVHDStream extends stream.Readable {
       const chunkCount = Math.floor(paddingLength / chunkSize)
       for (let i = 0; i < chunkCount; i++) {
         this.currentFile.push(() => {
-          const paddingBuffer = new Buffer(chunkSize)
-          paddingBuffer.fill(0)
+          const paddingBuffer = Buffer.alloc(chunkSize)
           return paddingBuffer
         })
       }
       this.currentFile.push(() => {
-        const paddingBuffer = new Buffer(paddingLength % chunkSize)
-        paddingBuffer.fill(0)
+        const paddingBuffer = Buffer.alloc(paddingLength % chunkSize)
         return paddingBuffer
       })
     }

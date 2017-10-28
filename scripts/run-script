@@ -1,0 +1,43 @@
+#!/usr/bin/env node
+
+const { delimiter } = require('path')
+const { forEach, fromEvent } = require('promise-toolbox')
+const { spawn } = require('child_process')
+
+const { getPackages } = require('./utils')
+
+const { env } = process
+
+// run a script for each package (also run pre and post)
+//
+// TODO: https://docs.npmjs.com/misc/scripts#environment
+require('exec-promise')(([ script ]) =>
+  getPackages(true).forEach(({ dir, name, package: { scripts } }) => {
+    if (scripts == null) {
+      return
+    }
+
+    const spawnOpts = {
+      cwd: dir,
+      env: Object.assign({}, env, {
+        PATH: `${dir}/node_modules/.bin${delimiter}${env.PATH}`
+      }),
+      shell: true,
+      stdio: 'inherit'
+    }
+    return forEach.call(
+      [ `pre${script}`, script, `post${script}` ],
+      script => {
+        const command = scripts[script]
+        if (command !== undefined) {
+          console.log(`* ${name}:${script}`)
+          return fromEvent(spawn(command, spawnOpts), 'exit').then(code => {
+            if (code !== 0) {
+              throw code
+            }
+          })
+        }
+      }
+    )
+  })
+)

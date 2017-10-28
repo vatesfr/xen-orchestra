@@ -1,12 +1,19 @@
 {
   "devDependencies": {
+    "exec-promise": "^0.7.0",
     "husky": "^0.14.3",
-    "lerna": "^2.3.1",
     "promise-toolbox": "^0.9.5"
   },
+  "engines": {
+    "yarn": "^1.2.1"
+  },
+  "private": true,
   "scripts": {
     "commitmsg": "yarn test",
-    "install": "lerna bootstrap",
-    "test": "lerna run test"
-  }
+    "prepublish": "scripts/run-script prepublish",
+    "test": "scripts/run-script test"
+  },
+  "workspaces": [
+    "packages/*"
+  ]
 }

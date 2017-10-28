@@ -31,7 +31,7 @@ function parseU64b (buffer, offset, valueName) {
 }
 
 function parseDescriptor (descriptorSlice) {
-  const descriptorText = descriptorSlice.toString('ascii').replace(/\x00+$/, '')
+  const descriptorText = descriptorSlice.toString('ascii').replace(/\x00+$/, '') // eslint-disable-line no-control-regex
   const descriptorDict = {}
   const extentList = []
   const lines = descriptorText.split(/\r?\n/).filter((line) => {
@@ -258,8 +258,7 @@ export async function readRawContent (readStream) {
   if (header.grainDirectoryOffsetSectors === -1) {
     header = parseHeader(buffer.slice(-1024, -1024 + sectorSize))
   }
-  const rawOutputBuffer = new Buffer(header.capacitySectors * sectorSize)
-  rawOutputBuffer.fill(0)
+  const rawOutputBuffer = Buffer.alloc(header.capacitySectors * sectorSize)
   const l1Size = Math.floor((header.capacitySectors + header.l1EntrySectors - 1) / header.l1EntrySectors)
   const l2Size = header.numGTEsPerGT
   const l1 = []

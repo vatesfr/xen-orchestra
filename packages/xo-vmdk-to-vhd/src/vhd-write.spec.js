@@ -22,8 +22,8 @@ describe('VHD writing', () => {
     const expectedChecksum1 = 0xFFFFEFB2
     const testValue2 = '6378737061727365FFFFFFFFFFFFFFFF0000000000000600000100000000000100200000'
     const expectedChecksum2 = 0xFFFFF476
-    expect(computeChecksum(new Buffer(testValue1, 'hex'))).to.equal(expectedChecksum1)
-    expect(computeChecksum(new Buffer(testValue2, 'hex'))).to.equal(expectedChecksum2)
+    expect(computeChecksum(Buffer.from(testValue1, 'hex'))).to.equal(expectedChecksum1)
+    expect(computeChecksum(Buffer.from(testValue2, 'hex'))).to.equal(expectedChecksum2)
   })
 
   it('createFooter() does not crash', () => {
@@ -37,10 +37,10 @@ describe('VHD writing', () => {
   it('ReadableRawVHDStream does not crash', () => {
     const data = [{
       lbaBytes: 100,
-      grain: new Buffer('azerzaerazeraze', 'ascii')
+      grain: Buffer.from('azerzaerazeraze', 'ascii')
     }, {
       lbaBytes: 700,
-      grain: new Buffer('gdfslkdfguer', 'ascii')
+      grain: Buffer.from('gdfslkdfguer', 'ascii')
     }]
     let index = 0
     const mockParser = {
@@ -65,10 +65,10 @@ describe('VHD writing', () => {
   it('ReadableRawVHDStream detects when blocks are out of order', () => {
     const data = [{
       lbaBytes: 700,
-      grain: new Buffer('azerzaerazeraze', 'ascii')
+      grain: Buffer.from('azerzaerazeraze', 'ascii')
     }, {
       lbaBytes: 100,
-      grain: new Buffer('gdfslkdfguer', 'ascii')
+      grain: Buffer.from('gdfslkdfguer', 'ascii')
     }]
     let index = 0
     const mockParser = {

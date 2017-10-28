@@ -1,43 +1,32 @@
 #!/usr/bin/env node
 
-const PKGS_DIR = `${__dirname}/../packages`
+const { getPackages, writeFile, unlink } = require('./utils')
 
-const { fromCallback } = require('promise-toolbox')
-const { readdir, readFile, unlink, writeFile } = require('fs')
-
-const pUnlink = path => fromCallback(cb =>
-  unlink(path, cb)
-).catch(error => {
-  if (error.code !== 'ENOENT') {
-    throw error
-  }
-})
-
-const normalizePackage = name => Promise.all([
-  fromCallback(cb =>
-    readFile(`${PKGS_DIR}/${name}/package.json`, cb)
-  ).then(JSON.parse).then(package => {
-    package.name = name
-    package.homepage = `https://github.com/vatesfr/xen-orchestra/tree/master/packages/${name}`
-    package.bugs = `https://github.com/vatesfr/xo-web/issues`
-    package.repository = {
+require('exec-promise')(() =>
+  getPackages(true).map(({ dir, name, package: pkg }) => {
+    pkg.name = name
+    pkg.homepage = `https://github.com/vatesfr/xen-orchestra/tree/master/packages/${name}`
+    pkg.bugs = `https://github.com/vatesfr/xo-web/issues`
+    pkg.repository = {
       type: 'git',
       url: 'https://github.com/vatesfr/xen-orchestra.git'
     }
 
-    return fromCallback(cb => writeFile(
-      `${PKGS_DIR}/${name}/package.json`,
-      JSON.stringify(package, null, 2) + '\n',
-      cb
-    ))
-  }),
-  pUnlink(`${PKGS_DIR}/${name}/.editorconfig`),
-  pUnlink(`${PKGS_DIR}/${name}/.gitignore`)
-])
+    const { devDependencies } = pkg
+    if (devDependencies !== undefined) {
+      delete devDependencies.ghooks
+      delete devDependencies.husky
+    }
 
-const main =() => fromCallback(cb =>
-  readdir(PKGS_DIR, cb)
-).then(pkgs => Promise.all(pkgs.map(pkg =>
-  normalizePackage(pkg)
-)))
-main().catch(console.error)
+    return Promise.all([
+      writeFile(
+        `${dir}/package.json`,
+        JSON.stringify(pkg, null, 2) + '\n'
+      ),
+      unlink(`${dir}/.editorconfig`),
+      unlink(`${dir}/.gitignore`),
+      unlink(`${dir}/.jshintrc`),
+      unlink(`${dir}/yarn.lock`)
+    ])
+  })
+)

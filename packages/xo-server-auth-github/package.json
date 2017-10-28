@@ -34,26 +34,20 @@
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
-    "babel-eslint": "^7.2.3",
+    "babel-eslint": "^8.0.1",
     "babel-plugin-transform-runtime": "^6.15.0",
     "babel-preset-latest": "^6.24.1",
     "babel-preset-stage-0": "^6.24.1",
-    "clarify": "^2.0.0",
     "dependency-check": "^2.9.1",
-    "mocha": "^3.4.2",
-    "must": "^0.13.4",
-    "source-map-support": "^0.4.15",
     "standard": "^10.0.2"
   },
   "scripts": {
     "build": "NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
     "depcheck": "dependency-check ./package.json",
     "dev": "NODE_DEV=development babel --watch --source-maps --out-dir=dist/ src/",
-    "dev-test": "mocha --opts .mocha.opts --watch --reporter=min \"dist/**/*.spec.js\"",
     "lint": "standard",
     "posttest": "yarn run lint && yarn run depcheck",
-    "prepublish": "yarn run build",
-    "test": "mocha --opts .mocha.opts \"dist/**/*.spec.js\""
+    "prepublish": "yarn run build"
   },
   "babel": {
     "plugins": [

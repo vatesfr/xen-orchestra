@@ -33,17 +33,17 @@
   "dependencies": {
     "nodemailer": "3.1.8",
     "nodemailer-markdown": "^1.0.1",
-    "promise-toolbox": "^0.8.2"
+    "promise-toolbox": "^0.9.5"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
-    "babel-eslint": "^7.2.3",
+    "babel-eslint": "^8.0.1",
     "babel-plugin-lodash": "^3.2.11",
     "babel-preset-env": "^1.5.2",
     "babel-preset-stage-3": "^6.24.1",
     "cross-env": "^5.0.1",
     "dependency-check": "^2.9.1",
-    "jest": "^20.0.4",
+    "jest": "^21.2.1",
     "rimraf": "^2.6.1",
     "standard": "^10.0.2"
   },
