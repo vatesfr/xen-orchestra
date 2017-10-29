@@ -37,21 +37,18 @@
   },
   "devDependencies": {
     "babel-cli": "^6.18.0",
-    "babel-eslint": "^8.0.1",
     "babel-preset-env": "^1.0.0",
     "babel-preset-stage-0": "^6.16.0",
     "cross-env": "^5.1.1",
     "dependency-check": "^2.6.0",
-    "rimraf": "^2.5.4",
-    "standard": "^10.0.3"
+    "rimraf": "^2.5.4"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
     "clean": "rimraf dist/",
     "depcheck": "dependency-check ./package.json",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
-    "lint": "standard",
-    "posttest": "npm run lint && npm run depcheck",
+    "posttest": "npm run depcheck",
     "prebuild": "npm run clean",
     "predev": "npm run clean",
     "prepublish": "npm run build"
@@ -68,12 +65,6 @@
       ],
       "stage-0"
     ]
-  },
-  "standard": {
-    "ignore": [
-      "dist"
-    ],
-    "parser": "babel-eslint"
   },
   "config": {
     "ghooks": {

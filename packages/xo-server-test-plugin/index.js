@@ -15,13 +15,13 @@ exports.configurationSchema = {
   required: ['foo']
 }
 
-// This (optional) schema is used to test the configuration 
+// This (optional) schema is used to test the configuration
 // of the plugin.
 exports.testSchema = {
   type: 'object',
   properties: {
     test: {
-       type: 'string'
+      type: 'string'
     }
   },
   required: ['test']

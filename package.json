@@ -1,8 +1,10 @@
 {
   "devDependencies": {
+    "babel-eslint": "^8.0.1",
     "exec-promise": "^0.7.0",
     "husky": "^0.14.3",
-    "promise-toolbox": "^0.9.5"
+    "promise-toolbox": "^0.9.5",
+    "standard": "^10.0.3"
   },
   "engines": {
     "yarn": "^1.2.1"
@@ -11,7 +13,14 @@
   "scripts": {
     "commitmsg": "yarn test",
     "prepublish": "scripts/run-script prepublish",
+    "pretest": "standard --fix",
     "test": "scripts/run-script test"
+  },
+  "standard": {
+    "ignore": [
+      "packages/*/dist"
+    ],
+    "parser": "babel-eslint"
   },
   "workspaces": [
     "packages/*"

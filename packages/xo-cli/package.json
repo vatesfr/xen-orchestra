@@ -50,7 +50,6 @@
   },
   "devDependencies": {
     "babel-cli": "^7.0.0-beta.3",
-    "babel-eslint": "^8.0.1",
     "babel-plugin-lodash": "^3.2.11",
     "babel-preset-env": "^7.0.0-beta.3",
     "babel-preset-flow": "^7.0.0-beta.3",
@@ -60,8 +59,7 @@
     "dependency-check": "^2.9.1",
     "flow-bin": "^0.57.3",
     "jest": "^21.2.1",
-    "rimraf": "^2.6.2",
-    "standard": "^10.0.3"
+    "rimraf": "^2.6.2"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
@@ -73,7 +71,7 @@
     "prebuild": "rimraf dist/",
     "predev": "npm run prebuild",
     "prepublish": "npm run build",
-    "pretest": "standard --fix && flow status",
+    "pretest": "flow status",
     "test": "jest"
   },
   "config": {
@@ -87,11 +85,5 @@
       "<rootDir>/src"
     ],
     "testRegex": "\\.spec\\.js$"
-  },
-  "standard": {
-    "ignore": [
-      "dist"
-    ],
-    "parser": "babel-eslint"
   }
 }

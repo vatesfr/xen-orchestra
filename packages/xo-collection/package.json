@@ -32,7 +32,6 @@
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
-    "babel-eslint": "^8.0.1",
     "babel-plugin-lodash": "^3.2.11",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-preset-env": "^1.5.2",
@@ -41,14 +40,13 @@
     "dependency-check": "^2.9.1",
     "event-to-promise": "^0.8.0",
     "jest": "^21.2.1",
-    "rimraf": "^2.6.1",
-    "standard": "^10.0.2"
+    "rimraf": "^2.6.1"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "dev-test": "jest --bail --watch",
-    "posttest": "standard && dependency-check ./package.json --entry dist/collection.js index.js unique-index.js view.js",
+    "posttest": "dependency-check ./package.json --entry dist/collection.js index.js unique-index.js view.js",
     "prebuild": "rimraf dist/",
     "predev": "yarn run prebuild",
     "prepublish": "yarn run build",
@@ -76,11 +74,5 @@
       "<rootDir>/src"
     ],
     "testRegex": "\\.spec\\.js$"
-  },
-  "standard": {
-    "ignore": [
-      "dist"
-    ],
-    "parser": "babel-eslint"
   }
 }

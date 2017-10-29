@@ -36,22 +36,19 @@
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
-    "babel-eslint": "^8.0.1",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-preset-env": "^1.5.2",
     "babel-preset-stage-3": "^6.24.1",
     "cross-env": "^5.0.1",
     "dependency-check": "^2.9.1",
-    "rimraf": "^2.6.1",
-    "standard": "^10.0.2"
+    "rimraf": "^2.6.1"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
     "clean": "rimraf dist/",
     "depcheck": "dependency-check ./package.json",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
-    "lint": "standard",
-    "posttest": "yarn run lint && yarn run depcheck",
+    "posttest": "yarn run depcheck",
     "prebuild": "yarn run clean",
     "predev": "yarn run clean",
     "prepublish": "yarn run build"
@@ -71,11 +68,5 @@
       ],
       "stage-3"
     ]
-  },
-  "standard": {
-    "ignore": [
-      "dist"
-    ],
-    "parser": "babel-eslint"
   }
 }

@@ -12,10 +12,14 @@ require('exec-promise')(() =>
       url: 'https://github.com/vatesfr/xen-orchestra.git'
     }
 
+    delete pkg.standard
+
     const { devDependencies } = pkg
     if (devDependencies !== undefined) {
       delete devDependencies.ghooks
       delete devDependencies.husky
+      delete devDependencies.standard
+      delete devDependencies['babel-eslint']
     }
 
     return Promise.all([
