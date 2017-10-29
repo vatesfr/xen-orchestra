@@ -18,6 +18,27 @@ This is happening when your anti-virus or firewall is blocking websocket protoco
 
 The solution is to use **HTTPS**. In this way, websockets will be encapsulated in the secured protocol, avoiding interception from your firewalls or anti-virus system.
 
+## XOA migration issues
+
+By default, XOA got a static max memory set to 16GiB. Sometimes, you can have trouble to migrate with this error message:
+
+```
+"Failed","Migrating VM 'XOA' from '<origin_hostname>' to '<destination_hostname>'
+Internal error: Xenops_interface.Internal_error("Domain.Xenguest_failure(\"Error while waiting for suspend notification: xenguest: xc_domain_save: [1] Save failed (0 = Success)\")")
+
+```
+
+In this case, it means you need to reduce the static max memory field to a lower value, and try again.
+
+## XOA boot issues
+
+XOA is configured in HVM. It means you need a hardware that support HVM instructions (almost all hardware since 2011). If it's not the case, the symptom is this one:
+
+1. XOA VM starts for few seconds
+2. Then shutdown itself
+
+Please check that you have enabled virtualization settings in your BIOS or upgrade your hardware.
+
 ## XOA configuration
 
 XOA is a virtual appliance running Debian and Xen Orchestra. If you have any problem, the first thing to do is to use our check service by running the `xoa check` command in a terminal:

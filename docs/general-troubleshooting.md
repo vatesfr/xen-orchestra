@@ -13,13 +13,15 @@ $ xoa check
 ✔ Appliance registration
 ✔ Internet connectivity
 ```  
-If the result you have is completely different from that, or if error messages are displayed, lost packets, etc., you have, indeed, a problem. The next step should be to check in this document if there is an existing troubleshooting for the problem you have. 
+If the result you have is completely different from that, or if error messages are displayed, lost packets, etc., you have, indeed, a problem. The next step should be to check in this document if there is an existing troubleshooting for the problem you have.
 
 > You can also access the log by using this command: `$ tail -f /var/log/syslog` ([learn more](https://xen-orchestra.com/docs/logs.html))
 
 ## General
 
 * [Empty page after login](https://xen-orchestra.com/docs/troubleshooting.html#empty-page-after-login)
+* [Can't migrate XOA](https://xen-orchestra.com/docs/troubleshooting.html#xoa-migration-issues)
+* [Can't boot XOA](https://xen-orchestra.com/docs/troubleshooting.html#xoa-boot-issues)
 * [Network issues](https://xen-orchestra.com/docs/troubleshooting.html#network-issues)
 * [Out of memory](https://xen-orchestra.com/docs/troubleshooting.html#memory)
 * [Transparent proxy and updater](https://xen-orchestra.com/docs/troubleshooting.html#behind-a-transparent-proxy)
@@ -32,5 +34,5 @@ If the result you have is completely different from that, or if error messages a
 * [SR_backend_failure_44](https://xen-orchestra.com/docs/backup_troubleshooting.html#srbackendfailure44-insufficient-space)
 * [Could not find the base VM](https://xen-orchestra.com/docs/backup_troubleshooting.html#could-not-find-the-base-vm)
 
-## You haven't found a solution here? 
-Open a ticket concerning your issue on your personal space [here](https://xen-orchestra.com/#!/member/support) 
+## You haven't found a solution here?
+Open a ticket concerning your issue on your personal space [here](https://xen-orchestra.com/#!/member/support)
