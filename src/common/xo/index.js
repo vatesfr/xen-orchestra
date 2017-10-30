@@ -1424,8 +1424,8 @@ export const deletePbd = pbd => (
 
 // Messages ----------------------------------------------------------
 
-export const deleteMessage = pbd => (
-  _call('message.delete', { id: resolveId(pbd) })
+export const deleteMessage = message => (
+  _call('message.delete', { id: resolveId(message) })
 )
 
 // Tags --------------------------------------------------------------
