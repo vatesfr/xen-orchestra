@@ -1,10 +1,7 @@
 import _ from 'intl'
-import ActionRowButton from 'action-row-button'
-import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
-import TabButton from 'tab-button'
 import { connectStore } from 'utils'
 import { deleteMessage } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
@@ -42,8 +39,6 @@ const LOG_COLUMNS = [
   })
 })
 export default class TabLogs extends Component {
-  _deleteAllLogs = () => map(this.props.logs, deleteMessage)
-
   render () {
     const INDIVIDUAL_ACTIONS = [
       {
@@ -60,7 +55,8 @@ export default class TabLogs extends Component {
       }
     ]
 
-    return <SortedTable collection={this.props.logs}
+    return <SortedTable
+	    collection={this.props.logs}
             columns={LOG_COLUMNS}
             individualActions={INDIVIDUAL_ACTIONS}
             groupedActions={GROUPED_ACTIONS}
