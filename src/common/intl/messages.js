@@ -33,6 +33,8 @@ const messages = {
   filterOnlyUnmanaged: 'Unmanaged disks',
   filterSaveAs: 'Save…',
   filterSyntaxLinkTooltip: 'Explore the search syntax in the documentation',
+  filterVifsOnlyConnected: 'VIFs connected',
+  filterVifsOnlyDisconnected: 'VIFs disconnected',
 
   // ----- Copiable component -----
   copyToClipboard: 'Copy to clipboard',
@@ -791,6 +793,7 @@ const messages = {
   vifConnect: 'Connect',
   vifDisconnect: 'Disconnect',
   vifRemove: 'Remove',
+  vifsRemove: 'Remove selected VIFs',
   vifIpAddresses: 'IP addresses',
   vifMacAutoGenerate: 'Auto-generated if empty',
   vifAllowedIps: 'Allowed IPs',

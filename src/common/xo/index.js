@@ -1205,6 +1205,9 @@ export const disconnectVif = vif =>
 
 export const deleteVif = vif => _call('vif.delete', { id: resolveId(vif) })
 
+export const deleteVifs = vifs =>
+  map(vifs, id => _call('vif.delete', { id: resolveId(id) }))
+
 export const setVif = (
   vif,
   { network, mac, allowedIpv4Addresses, allowedIpv6Addresses }
