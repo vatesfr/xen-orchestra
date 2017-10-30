@@ -56,7 +56,7 @@ const XOSAN_COLUMNS = [
       const pbdsDetached = every(map(sr.pbds, 'attached')) ? null : _('xosanPbdsDetached')
       const badStatus = status && every(status[sr.id])
         ? null
-        : _('xosanBadStatus', { badStatuses: <ul>map(status, (_, status) => <li key={status}>{status}</li>)</ul> })
+        : _('xosanBadStatus', { badStatuses: <ul>{map(status, (_, status) => <li key={status}>{status}</li>)}</ul> })
 
       if (pbdsDetached != null || badStatus != null) {
         return <Tooltip content={pbdsDetached || badStatus}>
