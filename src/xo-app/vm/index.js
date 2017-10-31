@@ -75,7 +75,7 @@ import TabAdvanced from './tab-advanced'
   const getSrs = createGetObjectsOfType('SR').pick(
     createSelector(
       getVdis,
-      vdis => map(vdis, vdi => vdi.$SR)
+      vdis => map(vdis, '$SR')
     )
   )
 
@@ -252,7 +252,6 @@ export default class Vm extends BaseComponent {
 
   render () {
     const { container, vm } = this.props
-
     if (!vm) {
       return <h1>{_('statusLoading')}</h1>
     }

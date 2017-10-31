@@ -1118,6 +1118,12 @@ export const attachDiskToVm = (vdi, vm, { bootable, mode, position }) => (
   })
 )
 
+export const createVgpu = (vm, { gpuGroup, vgpuType }) =>
+  _call('vm.createVgpu', resolveIds({ vm, gpuGroup, vgpuType }))
+
+export const deleteVgpu = vgpu =>
+  _call('vm.deleteVgpu', resolveIds({ vgpu }))
+
 // DISK ---------------------------------------------------------------
 
 export const createDisk = (name, size, sr, { vm, bootable, mode, position }) => (

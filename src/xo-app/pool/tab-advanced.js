@@ -3,12 +3,16 @@ import React from 'react'
 import _ from 'intl'
 import Component from 'base-component'
 import Copiable from 'copiable'
+import renderXoItem from 'render-xo-item'
 import SelectFiles from 'select-files'
 import Upgrade from 'xoa-upgrade'
 import { connectStore } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import { XoSelect } from 'editable'
 import { installSupplementalPackOnAllHosts, setPoolMaster } from 'xo'
+import {
+  map
+} from 'lodash'
 import {
   Container,
   Row,
@@ -39,7 +43,10 @@ class PoolMaster extends Component {
   }
 }
 
-export default ({
+export default connectStore({
+  gpuGroups: createGetObjectsOfType('gpuGroup')
+})(({
+  gpuGroups,
   pool
 }) => <div>
   <h3 className='mb-1'>{_('xenSettingsLabel')}</h3>
@@ -74,8 +81,20 @@ export default ({
       </Col>
     </Row>
   </Container>
+  <h3 className='mt-1 mb-1'>{_('poolGpuGroups')}</h3>
+  <Container>
+    <Row>
+      <Col size={9}>
+        <ul className='list-group'>
+          {map(gpuGroups, gpuGroup => <li className='list-group-item'>
+            {renderXoItem(gpuGroup)}
+          </li>)}
+        </ul>
+      </Col>
+    </Row>
+  </Container>
   <h3 className='mt-1 mb-1'>{_('supplementalPackPoolNew')}</h3>
   <Upgrade place='poolSupplementalPacks' required={2}>
     <SelectFiles onChange={file => installSupplementalPackOnAllHosts(pool, file)} />
   </Upgrade>
-</div>
+</div>)

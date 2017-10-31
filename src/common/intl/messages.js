@@ -201,6 +201,7 @@ var messages = {
   selectTimezone: 'Select timezone…',
   selectIp: 'Select IP(s)…',
   selectIpPool: 'Select IP pool(s)…',
+  selectVgpuType: 'Select VGPU type(s)…',
   fillRequiredInformations: 'Fill required informations.',
   fillOptionalInformations: 'Fill informations (optional)',
   selectTableReset: 'Reset',
@@ -495,6 +496,7 @@ var messages = {
   poolHaEnabled: 'Enabled',
   poolHaDisabled: 'Disabled',
   setpoolMaster: 'Master',
+  poolGpuGroups: 'GPU groups',
   // ----- Pool host tab -----
   hostNameLabel: 'Name',
   hostDescription: 'Description',
@@ -560,6 +562,7 @@ var messages = {
   hostStartedSince: 'Host uptime',
   hostStackStartedSince: 'Toolstack uptime',
   hostCpusModel: 'CPU model',
+  hostGpus: 'GPUs',
   hostCpusNumber: 'Core (socket)',
   hostManufacturerinfo: 'Manufacturer info',
   hostBiosinfo: 'BIOS info',
@@ -834,6 +837,11 @@ var messages = {
   vmMemoryLimitsLabel: 'Memory limits (min/max)',
   vmMaxVcpus: 'vCPUs max:',
   vmMaxRam: 'Memory max:',
+  vmVgpu: 'vGPU',
+  vmVgpus: 'GPUs',
+  vmVgpuNone: 'None',
+  vmAddVgpu: 'Add vGPU',
+  vmSelectVgpuType: 'Select vGPU type',
 
   // ----- VM placeholders -----
 

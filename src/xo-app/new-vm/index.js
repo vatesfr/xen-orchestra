@@ -60,6 +60,7 @@ import {
   SelectSr,
   SelectSshKey,
   SelectVdi,
+  SelectVgpuType,
   SelectVmTemplate
 } from 'select-objects'
 import {
@@ -372,7 +373,9 @@ export default class NewVm extends BaseComponent {
       share: state.share,
       cloudConfig,
       coreOs: state.template.name_label === 'CoreOS',
-      tags: state.tags
+      tags: state.tags,
+      vgpuType: state.vgpuType.id,
+      gpuGroup: state.vgpuType.gpuGroup
     }
 
     return state.multipleVms ? createVms(data, state.nameLabels) : createVm(data)
@@ -572,6 +575,11 @@ export default class NewVm extends BaseComponent {
       '{name}': state => state.name_label || '',
       '%': (_, i) => i
     })
+  )
+
+  _getVgpuTypePredicate = createSelector(
+    () => this.props.pool,
+    pool => vgpuType => pool !== undefined && pool.id === vgpuType.$pool
   )
 
   _getCoresPerSocketPossibilities = createSelector(
@@ -1230,7 +1238,8 @@ export default class NewVm extends BaseComponent {
       seqStart,
       share,
       showAdvanced,
-      tags
+      tags,
+      template
     } = this.state.state
     const { isAdmin } = this.props
     const { formatMessage } = this.props.intl
@@ -1369,6 +1378,14 @@ export default class NewVm extends BaseComponent {
               onChange={this._linkState('affinityHost')}
               predicate={this._getAffinityHostPredicate()}
               value={affinityHost}
+            />
+          </Item>
+        </SectionContent>,
+        template && template.virtualizationMode === 'hvm' && <SectionContent>
+          <Item label={_('vmVgpu')}>
+            <SelectVgpuType
+              onChange={this._linkState('vgpuType')}
+              predicate={this._getVgpuTypePredicate()}
             />
           </Item>
         </SectionContent>

@@ -1,10 +1,10 @@
 import _ from 'intl'
+import ActionButton from 'action-button'
 import Component from 'base-component'
 import Copiable from 'copiable'
 import defined from 'xo-defined'
 import getEventValue from 'get-event-value'
 import Icon from 'icon'
-import isEmpty from 'lodash/isEmpty'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
 import TabButton from 'tab-button'
@@ -12,9 +12,12 @@ import Tooltip from 'tooltip'
 import { Toggle } from 'form'
 import { Number, Size, Text, XoSelect } from 'editable'
 import { Container, Row, Col } from 'grid'
+import { SelectVgpuType } from 'select-objects'
+import { confirm } from 'modal'
 import {
   every,
   includes,
+  isEmpty,
   map,
   uniq
 } from 'lodash'
@@ -26,10 +29,13 @@ import {
   osFamily
 } from 'utils'
 import {
+  createVgpu,
   cloneVm,
   convertVmToTemplate,
+  deleteVgpu,
   deleteVm,
   editVm,
+  isVmRunning,
   recoveryStartVm,
   restartVm,
   resumeVm,
@@ -114,6 +120,69 @@ class AffinityHost extends Component {
   }
 }
 
+class NewVgpu extends Component {
+  get value () {
+    return this.state
+  }
+
+  _getPredicate = createSelector(
+    () => this.props.vm && this.props.vm.$pool,
+    poolId => vgpuType => poolId === vgpuType.$pool
+  )
+
+  render () {
+    return <Container>
+      <Row>
+        <Col size={6}>
+          {_('vmSelectVgpuType')}
+        </Col>
+        <Col size={6}>
+          <SelectVgpuType
+            onChange={this.linkState('vgpuType')}
+            predicate={this._getPredicate()}
+          />
+        </Col>
+      </Row>
+    </Container>
+  }
+}
+
+class Vgpus extends Component {
+  _createVgpu = vgpuType => confirm({
+    icon: 'gpu',
+    title: _('vmAddVgpu'),
+    body: <NewVgpu vm={this.props.vm} />
+  }).then(({ vgpuType }) =>
+    createVgpu(this.props.vm, { vgpuType, gpuGroup: vgpuType.gpuGroup })
+  )
+
+  render () {
+    const { vgpus, vm } = this.props
+
+    return <div>
+      {map(vgpus, vgpu => <span key={vgpu.id} className='mb-1'>
+        {!isVmRunning(vm) && <ActionButton
+          handler={deleteVgpu}
+          handlerParam={vgpu}
+          icon='delete'
+          size='small'
+        />}
+        {' '}
+        {renderXoItem(vgpu)}
+      </span>)}
+      {isEmpty(vgpus) && <span>
+        {!isVmRunning(vm) && <ActionButton
+          handler={this._createVgpu}
+          icon='add'
+          size='small'
+        />}
+        {' '}
+        {_('vmVgpuNone')}
+      </span>}
+    </div>
+  }
+}
+
 class CoresPerSocket extends Component {
   _getCoresPerSocketPossibilities = createSelector(
     () => {
@@ -175,8 +244,35 @@ class CoresPerSocket extends Component {
   }
 }
 
-export default ({
+export default connectStore(() => {
+  const getVgpus = createGetObjectsOfType('vgpu').pick(
+    (_, { vm }) => vm.$VGPUs
+  )
+
+  const getVgpuTypes = createGetObjectsOfType('vgpuType').pick(
+    createSelector(
+      getVgpus,
+      vgpus => map(vgpus, 'vgpuType')
+    )
+  )
+
+  const getGpuGroup = createGetObjectsOfType('gpuGroup').pick(
+    createSelector(
+      getVgpus,
+      vgpus => map(vgpus, 'gpuGroup')
+    )
+  )
+
+  return {
+    gpuGroup: getGpuGroup,
+    vgpus: getVgpus,
+    vgpuTypes: getVgpuTypes
+  }
+})(({
   container,
+  gpuGroup,
+  vgpus,
+  vgpuTypes,
   vm
 }) => <Container>
   <Row>
@@ -317,6 +413,12 @@ export default ({
               <AffinityHost vm={vm} />
             </td>
           </tr>
+          {vm.virtualizationMode === 'hvm' && <tr>
+            <th>{_('vmVgpus')}</th>
+            <td>
+              <Vgpus vgpus={vgpus} vm={vm} />
+            </td>
+          </tr>}
           {vm.virtualizationMode === 'hvm' &&
             <tr>
               <th>{_('vmVga')}</th>
@@ -410,4 +512,4 @@ export default ({
       </table>
     </Col>
   </Row>
-</Container>
+</Container>)

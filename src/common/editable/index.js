@@ -25,6 +25,7 @@ import {
   SelectSr,
   SelectSubject,
   SelectTag,
+  SelectVgpuType,
   SelectVm,
   SelectVmTemplate
 } from '../select-objects'
@@ -385,6 +386,7 @@ const MAP_TYPE_SELECT = {
   SR: SelectSr,
   subject: SelectSubject,
   tag: SelectTag,
+  vgpuType: SelectVgpuType,
   VM: SelectVm,
   'VM-template': SelectVmTemplate
 }

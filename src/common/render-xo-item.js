@@ -1,5 +1,8 @@
 import _ from 'intl'
 import React from 'react'
+import {
+  startsWith
+} from 'lodash'
 
 import Icon from './icon'
 import propTypes from './prop-types-decorator'
@@ -19,7 +22,7 @@ const OBJECT_TYPE_TO_ICON = {
 }
 
 // Host, Network, VM-template.
-export const PoolObjectItem = propTypes({
+const PoolObjectItem = propTypes({
   object: propTypes.object.isRequired
 })(connectStore(() => {
   const getPool = createGetObject(
@@ -42,7 +45,7 @@ export const PoolObjectItem = propTypes({
 }))
 
 // SR.
-export const SrItem = propTypes({
+const SrItem = propTypes({
   sr: propTypes.object.isRequired
 })(connectStore(() => {
   const getContainer = createGetObject(
@@ -67,7 +70,7 @@ export const SrItem = propTypes({
 }))
 
 // VM.
-export const VmItem = propTypes({
+const VmItem = propTypes({
   vm: propTypes.object.isRequired
 })(connectStore(() => {
   const getContainer = createGetObject(
@@ -83,6 +86,16 @@ export const VmItem = propTypes({
     {container && ` (${container.name_label || container.id})`}
   </span>
 )))
+
+const VgpuItem = connectStore(() => ({
+  vgpuType: createGetObject(
+    (_, props) => props.vgpu.vgpuType
+  )
+}))(({ vgpu, vgpuType }) => (
+  <span>
+    <Icon icon='vgpu' /> {vgpuType.modelName}
+  </span>
+))
 
 // ===================================================================
 
@@ -173,6 +186,25 @@ const xoItemToRender = {
   tag: tag => (
     <span>
       <Icon icon='tag' /> {tag.value}
+    </span>
+  ),
+
+  // GPUs
+
+  vgpu: vgpu => <VgpuItem vgpu={vgpu} />,
+
+  vgpuType: type => (
+    <span>
+      <Icon icon='gpu' /> {type.modelName} ({type.vendorName}) {type.maxResolutionX}x{type.maxResolutionY}
+    </span>
+  ),
+
+  gpuGroup: group => (
+    <span>
+      {startsWith(group.name_label, 'Group of ')
+        ? group.name_label.slice(9)
+        : group.name_label
+      }
     </span>
   )
 }

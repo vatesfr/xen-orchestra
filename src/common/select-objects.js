@@ -550,6 +550,41 @@ export const SelectVdi = propTypes({
 }, { placeholder: _('selectVdis') }))
 
 // ===================================================================
+
+export const SelectVgpuType = makeStoreSelect(() => {
+  const getVgpuTypes = createSelector(
+    createGetObjectsOfType('vgpuType').filter(
+      getPredicate
+    ),
+    vgpuTypes => {
+      const gpuGroups = {}
+      forEach(vgpuTypes, vgpuType => {
+        forEach(vgpuType.gpuGroups, gpuGroup => {
+          if (gpuGroups[gpuGroup] === undefined) {
+            gpuGroups[gpuGroup] = []
+          }
+          gpuGroups[gpuGroup].push({
+            ...vgpuType,
+            gpuGroup
+          })
+        })
+      })
+
+      return gpuGroups
+    }
+  )
+
+  const getGpuGroups = createGetObjectsOfType('gpuGroup').pick(
+    createSelector(getVgpuTypes, keys)
+  ).sort()
+
+  return {
+    xoObjects: getVgpuTypes,
+    xoContainers: getGpuGroups
+  }
+}, { placeholder: _('selectVgpuType') })
+
+// ===================================================================
 // Objects from subscriptions.
 // ===================================================================
 
