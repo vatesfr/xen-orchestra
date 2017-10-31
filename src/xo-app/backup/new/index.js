@@ -33,7 +33,6 @@ import {
   every,
   filter,
   forEach,
-  identity,
   isArray,
   isPlainObject,
   map,
@@ -491,6 +490,13 @@ export default class New extends Component {
       }
     }
   )
+
+  _constructPattern = vms => ({
+    $pool: constructPattern(vms.$pool),
+    power_state: vms.power_state === 'All' ? undefined : vms.power_state,
+    tags: constructPattern(vms.tags, tags => map(tags, tag => [ tag ])),
+    type: 'VM'
+  })
 
   _getMainParams = () => this.state.mainParams || this._getParams().main
   _getVmsParam = () => this.state.vmsParam || this._getParams().vms
