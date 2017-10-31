@@ -1,11 +1,9 @@
 import _ from 'intl'
-import ActionRow from 'action-row-button'
 import React, { Component } from 'react'
-import TabButton from 'tab-button'
+import SortedTable from 'sorted-table'
 import { deleteMessage } from 'xo'
 import { createPager, createSelector } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { Container, Row, Col } from 'grid'
 import {
   ceil,
   map
