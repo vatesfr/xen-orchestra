@@ -1238,7 +1238,8 @@ export default class NewVm extends BaseComponent {
       seqStart,
       share,
       showAdvanced,
-      tags
+      tags,
+      template
     } = this.state.state
     const { isAdmin } = this.props
     const { formatMessage } = this.props.intl
@@ -1380,7 +1381,7 @@ export default class NewVm extends BaseComponent {
             />
           </Item>
         </SectionContent>,
-        <SectionContent>
+        template && template.virtualizationMode === 'hvm' && <SectionContent>
           <Item label={_('vmVgpu')}>
             <SelectVgpuType
               onChange={this._linkState('vgpuType')}
