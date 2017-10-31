@@ -2,17 +2,15 @@ import _ from 'intl'
 import Component from 'base-component'
 import React from 'react'
 import Icon from 'icon'
-import isEmpty from 'lodash/isEmpty'
 import pick from 'lodash/pick'
 import SingleLineRow from 'single-line-row'
 import some from 'lodash/some'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
-import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import { confirm } from 'modal'
 import { connectStore, noop } from 'utils'
-import { Container, Row, Col } from 'grid'
+import { Col } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
 import { error } from 'notification'
 import { Select, Number } from 'editable'
@@ -104,11 +102,13 @@ class PifItemVlan extends Component {
 
 class PifItemIp extends Component {
   state = { configModes: [] }
+
   componentDidMount () {
     getIpv4ConfigModes().then(configModes =>
       this.setState({ configModes })
     )
   }
+
   _configIp = mode => {
     if (mode === 'Static') {
       return confirm({
@@ -128,7 +128,9 @@ class PifItemIp extends Component {
     }
     return reconfigurePifIp(this.props.pif, { mode })
   }
+
   _onEditIp = () => this._configIp('Static')
+
   render () {
     const {pif} = this.props
     return <div>
@@ -143,11 +145,13 @@ class PifItemIp extends Component {
 
 class PifItemMode extends Component {
   state = { configModes: [] }
+
   componentDidMount () {
     getIpv4ConfigModes().then(configModes =>
       this.setState({ configModes })
     )
   }
+
   _configIp = mode => {
     if (mode === 'Static') {
       return confirm({
@@ -167,6 +171,7 @@ class PifItemMode extends Component {
     }
     return reconfigurePifIp(this.props.pif, { mode })
   }
+
   render () {
     const {pif} = this.props
     const { configModes } = this.state
@@ -179,6 +184,7 @@ class PifItemMode extends Component {
     </Select>
   }
 }
+
 @connectStore(() => ({
   vifsByNetwork: createGetObjectsOfType('VIF').groupBy('$network')
 }))
@@ -294,40 +300,25 @@ const INDIVIDUAL_ACTIONS = [
   }
 ]
 
-export default({
-  host,
-  networks,
-  pifs,
-  vifsByNetwork
-}) => <Container>
-  <Row>
-    <Col className='text-xs-right'>
-      <TabButton
-        btnStyle='primary'
-        handler={createNetwork}
-        handlerParam={host}
-        icon='add'
-        labelId='networkCreateButton'
+export default class tabNetwork extends Component {
+  _groupedActions = [
+    {
+      label: 'addNetwork',
+      icon: 'add',
+      handler: () => createNetwork(this.props.host)
+    }
+  ]
+
+  render () {
+    const { networks,
+      pifs } = this.props
+
+    return <SortedTable
+      collection={pifs}
+      columns={COLUMNS}
+      individualActions={INDIVIDUAL_ACTIONS}
+      groupedActions={this._groupedActions}
+      userData={networks}
       />
-    </Col>
-  </Row>
-  <Row>
-    <Col>
-      {!isEmpty(pifs)
-        ? <span>
-          <Row>
-            <Col>
-              <SortedTable
-                collection={pifs}
-                columns={COLUMNS}
-                individualActions={INDIVIDUAL_ACTIONS}
-                userData={networks}
-              />
-            </Col>
-          </Row>
-        </span>
-        : <h4 className='text-xs-center'>{_('pifNoInterface')}</h4>
-      }
-    </Col>
-  </Row>
-</Container>
+  }
+}
