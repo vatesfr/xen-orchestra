@@ -20,6 +20,7 @@ import {
 } from 'lodash'
 import {
   connectStore,
+  Debug,
   formatSize,
   getCoresPerSocketPossibilities,
   normalizeXenToolsStatus,
@@ -177,7 +178,10 @@ class CoresPerSocket extends Component {
 
 export default ({
   container,
-  vm
+  vm,
+  vgpus,
+  vgpuType,
+  gpuGroup
 }) => <Container>
   <Row>
     <Col className='text-xs-right'>
@@ -260,6 +264,9 @@ export default ({
     </Col>
   </Row>
   <Row>
+    <span><Debug value={vgpus} /></span>
+    <span><Debug value={gpuGroup} /></span>
+    <span><Debug value={vgpuType} /></span>
     <Col>
       <h3>{_('xenSettingsLabel')}</h3>
       <table className='table'>

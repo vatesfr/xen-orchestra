@@ -31,6 +31,8 @@ export default connectStore(() => {
  ({
   lastShutdownTime,
   statsOverview,
+  vgpus,
+  vgpuType,
   vm,
   vmTotalDiskSpace
 }) => <Container>
@@ -79,6 +81,7 @@ export default connectStore(() => {
           ? _('paraVirtualizedMode')
           : _('hardwareVirtualizedMode')
         }
+        <br />{isEmpty(vgpus) ? null : 'vGPU: ' + map(vgpus, vgpu => vgpuType[vgpu.vgpuType].modelName)}
       </p>
     </Col>
     <Col mediumSize={3}>
