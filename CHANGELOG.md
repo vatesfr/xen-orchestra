@@ -1,5 +1,35 @@
 # ChangeLog
 
+## **5.14.0** (2017-10-31)
+
+### Enhancements
+
+ * VM snapshot description display [#2458](https://github.com/vatesfr/xo-web/issues/2458)
+ * [Home] Ability to sort VM by number of snapshots [#2450](https://github.com/vatesfr/xo-web/issues/2450)
+ * Display XS version in host view [#2439](https://github.com/vatesfr/xo-web/issues/2439)
+ * [File restore]: Clarify the possibility to select multiple files [#2438](https://github.com/vatesfr/xo-web/issues/2438)
+ * [Continuous Replication] Time in replicated VMs [#2431](https://github.com/vatesfr/xo-web/issues/2431)
+ * [SortedTable] Active page in URL param [#2405](https://github.com/vatesfr/xo-web/issues/2405)
+ * replace all '...' with the UTF-8 equivalent [#2391](https://github.com/vatesfr/xo-web/issues/2391)
+ * [SortedTable] Explicit when no items [#2388](https://github.com/vatesfr/xo-web/issues/2388)
+ * Handle patching licenses [#2382](https://github.com/vatesfr/xo-web/issues/2382)
+ * Credential leaking in logs for messages regarding invalid credentials and "too fast authentication" [#2363](https://github.com/vatesfr/xo-web/issues/2363)
+ * [SortedTable] Keyboard support [#2330](https://github.com/vatesfr/xo-web/issues/2330)
+ * token.create should accept an expiration [#1769](https://github.com/vatesfr/xo-web/issues/1769)
+ * On updater error, display link to documentation [#1610](https://github.com/vatesfr/xo-web/issues/1610)
+
+### Bugs
+
+ * Config drive - Custom config not working properly [#2449](https://github.com/vatesfr/xo-web/issues/2449)
+ * Snapshot sorted table breaks copyVm [#2446](https://github.com/vatesfr/xo-web/issues/2446)
+ * [vm/snapshots] Incorrect default sort order [#2442](https://github.com/vatesfr/xo-web/issues/2442)
+ * [Backups/Jobs] Incorrect months mapping [#2427](https://github.com/vatesfr/xo-web/issues/2427)
+ * [Xapi#barrier()] Not compatible with XenServer < 6.1 [#2418](https://github.com/vatesfr/xo-web/issues/2418)
+ * [SortedTable] Change page when no more items on the page [#2401](https://github.com/vatesfr/xo-web/issues/2401)
+ * Review and fix creating a VM from a snapshot [#2343](https://github.com/vatesfr/xo-web/issues/2343)
+ * Unable to edit / save restored backup job [#1922](https://github.com/vatesfr/xo-web/issues/1922)
+
+
 ## **5.13.0** (2017-09-29)
 
 ### Enhancements
