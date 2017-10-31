@@ -29,7 +29,7 @@ import {
   osFamily
 } from 'utils'
 import {
-  addVgpu,
+  createVgpu,
   cloneVm,
   convertVmToTemplate,
   deleteVgpu,
@@ -125,6 +125,11 @@ class NewVgpu extends Component {
     return this.state
   }
 
+  _getPredicate = createSelector(
+    () => this.props.vm && this.props.vm.$pool,
+    poolId => vgpuType => poolId === vgpuType.$pool
+  )
+
   render () {
     return <Container>
       <Row>
@@ -132,7 +137,10 @@ class NewVgpu extends Component {
           {_('vmSelectVgpuType')}
         </Col>
         <Col size={6}>
-          <SelectVgpuType onChange={this.linkState('vgpuType')} />
+          <SelectVgpuType
+            onChange={this.linkState('vgpuType')}
+            predicate={this._getPredicate()}
+          />
         </Col>
       </Row>
     </Container>
@@ -140,12 +148,12 @@ class NewVgpu extends Component {
 }
 
 class Vgpus extends Component {
-  _addVgpu = vgpuType => confirm({
+  _createVgpu = vgpuType => confirm({
     icon: 'gpu',
     title: _('vmAddVgpu'),
     body: <NewVgpu vm={this.props.vm} />
   }).then(({ vgpuType }) =>
-    addVgpu(this.props.vm, { vgpuType, gpuGroup: vgpuType.gpuGroup })
+    createVgpu(this.props.vm, { vgpuType, gpuGroup: vgpuType.gpuGroup })
   )
 
   render () {
@@ -164,7 +172,7 @@ class Vgpus extends Component {
       </span>)}
       {isEmpty(vgpus) && <span>
         {!isVmRunning(vm) && <ActionButton
-          handler={this._addVgpu}
+          handler={this._createVgpu}
           icon='add'
           size='small'
         />}
@@ -237,9 +245,9 @@ class CoresPerSocket extends Component {
 }
 
 export default connectStore(() => {
-  const getVgpus = createGetObjectsOfType('VGPU').pick(
+  const getVgpus = createGetObjectsOfType('vgpu').pick(
     (_, { vm }) => vm.$VGPUs
-  ).sort()
+  )
 
   const getVgpuTypes = createGetObjectsOfType('vgpuType').pick(
     createSelector(

@@ -577,6 +577,11 @@ export default class NewVm extends BaseComponent {
     })
   )
 
+  _getVgpuTypePredicate = createSelector(
+    () => this.props.pool,
+    pool => vgpuType => pool !== undefined && pool.id === vgpuType.$pool
+  )
+
   _getCoresPerSocketPossibilities = createSelector(
     () => {
       const { pool } = this.props
@@ -1377,7 +1382,10 @@ export default class NewVm extends BaseComponent {
         </SectionContent>,
         <SectionContent>
           <Item label={_('vmVgpu')}>
-            <SelectVgpuType onChange={this._linkState('vgpuType')} />
+            <SelectVgpuType
+              onChange={this._linkState('vgpuType')}
+              predicate={this._getVgpuTypePredicate()}
+            />
           </Item>
         </SectionContent>
       ]}

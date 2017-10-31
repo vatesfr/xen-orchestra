@@ -32,7 +32,7 @@ import {
 } from 'xo-sparklines'
 
 export default connectStore(() => {
-  const getVgpus = createGetObjectsOfType('VGPU').pick(
+  const getVgpus = createGetObjectsOfType('vgpu').pick(
     (_, { vm }) => vm.$VGPUs
   ).sort()
 

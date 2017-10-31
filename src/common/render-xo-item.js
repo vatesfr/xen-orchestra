@@ -191,7 +191,7 @@ const xoItemToRender = {
 
   // GPUs
 
-  VGPU: vgpu => <VgpuItem vgpu={vgpu} />,
+  vgpu: vgpu => <VgpuItem vgpu={vgpu} />,
 
   vgpuType: type => (
     <span>
