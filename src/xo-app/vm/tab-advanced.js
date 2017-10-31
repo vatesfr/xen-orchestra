@@ -145,7 +145,7 @@ class Vgpus extends Component {
     title: _('vmAddVgpu'),
     body: <NewVgpu vm={this.props.vm} />
   }).then(({ vgpuType }) =>
-    addVgpu(this.props.vm, { device: 0, vgpuType, gpuGroup: vgpuType.gpuGroup })
+    addVgpu(this.props.vm, { vgpuType, gpuGroup: vgpuType.gpuGroup })
   )
 
   render () {
@@ -236,12 +236,36 @@ class CoresPerSocket extends Component {
   }
 }
 
-export default ({
+export default connectStore(() => {
+  const getVgpus = createGetObjectsOfType('VGPU').pick(
+    (_, { vm }) => vm.$VGPUs
+  ).sort()
+
+  const getVgpuTypes = createGetObjectsOfType('vgpuType').pick(
+    createSelector(
+      getVgpus,
+      vgpus => map(vgpus, 'vgpuType')
+    )
+  )
+
+  const getGpuGroup = createGetObjectsOfType('gpuGroup').pick(
+    createSelector(
+      getVgpus,
+      vgpus => map(vgpus, 'gpuGroup')
+    )
+  )
+
+  return {
+    gpuGroup: getGpuGroup,
+    vgpus: getVgpus,
+    vgpuTypes: getVgpuTypes
+  }
+})(({
   container,
-  vm,
+  gpuGroup,
   vgpus,
   vgpuTypes,
-  gpuGroup
+  vm
 }) => <Container>
   <Row>
     <Col className='text-xs-right'>
@@ -480,4 +504,4 @@ export default ({
       </table>
     </Col>
   </Row>
-</Container>
+</Container>)

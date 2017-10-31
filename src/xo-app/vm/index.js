@@ -25,7 +25,6 @@ import {
   routes
 } from 'utils'
 import {
-  createFinder,
   createGetObject,
   createGetObjectsOfType,
   createGetVmDisks,
@@ -69,28 +68,6 @@ import TabAdvanced from './tab-advanced'
     (state, props) => getVm(state, props).$pool
   )
 
-  const getVgpus = createGetObjectsOfType('VGPU').pick(
-    createSelector(getVm, vm => vm.$VGPUs)
-  ).sort()
-  const getAttachedVgpu = createFinder(
-    getVgpus,
-    vgpu => vgpu.currentlyAttached
-  )
-
-  const getVgpuTypes = createGetObjectsOfType('vgpuType').pick(
-    createSelector(
-      getVgpus,
-      vgpus => map(vgpus, 'vgpuType')
-    )
-  )
-
-  const getGpuGroup = createGetObjectsOfType('gpuGroup').pick(
-    createSelector(
-      getVgpus,
-      vgpus => map(vgpus, 'gpuGroup')
-    )
-  )
-
   const getVbds = createGetObjectsOfType('VBD').pick(
     (state, props) => getVm(state, props).$VBDs
   ).sort()
@@ -119,10 +96,6 @@ import TabAdvanced from './tab-advanced'
       checkPermissions: getCheckPermissions(state, props),
       container: getContainer(state, props),
       hosts: getHosts(state, props),
-      vgpu: getAttachedVgpu(state, props),
-      vgpus: getVgpus(state, props),
-      vgpuTypes: getVgpuTypes(state, props),
-      gpuGroup: getGpuGroup(state, props),
       isAdmin: isAdmin(state, props),
       pool: getPool(state, props),
       srs: getSrs(state, props),
@@ -291,11 +264,7 @@ export default class Vm extends BaseComponent {
       'vbds',
       'vdis',
       'vm',
-      'vmTotalDiskSpace',
-      'vgpu',
-      'vgpus',
-      'vgpuTypes',
-      'gpuGroup'
+      'vmTotalDiskSpace'
     ]), pick(this.state, [
       'statsOverview'
     ]))

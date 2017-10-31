@@ -4,10 +4,15 @@ import React from 'react'
 import TabButton from 'tab-button'
 import SelectFiles from 'select-files'
 import Upgrade from 'xoa-upgrade'
+import { connectStore } from 'utils'
 import { Toggle } from 'form'
 import { enableHost, detachHost, disableHost, forgetHost, restartHost, installSupplementalPack } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Container, Row, Col } from 'grid'
+import {
+  createGetObjectsOfType,
+  createSelector
+} from 'selectors'
 import {
   map
 } from 'lodash'
@@ -22,10 +27,26 @@ const formatPack = ({ name, author, description, version }) => <tr>
   <td>{version}</td>
 </tr>
 
-export default ({
+export default connectStore(() => {
+  const getPgpus = createGetObjectsOfType('PGPU').pick(
+    (_, { host }) => host.$PGPUs
+  ).sort()
+
+  const getPcis = createGetObjectsOfType('PCI').pick(
+    createSelector(
+      getPgpus,
+      pgpus => map(pgpus, 'pci')
+    )
+  )
+
+  return {
+    pcis: getPcis,
+    pgpus: getPgpus
+  }
+})(({
   host,
-  pgpus,
-  pcis
+  pcis,
+  pgpus
 }) => <Container>
   <Row>
     <Col className='text-xs-right'>
@@ -203,4 +224,4 @@ export default ({
       ]}
     </Col>
   </Row>
-</Container>
+</Container>)

@@ -574,12 +574,9 @@ export const SelectVgpuType = makeStoreSelect(() => {
     }
   )
 
-  const getGpuGroups = createSelector(
-    createGetObjectsOfType('gpuGroup').pick(
-      createSelector(getVgpuTypes, keys)
-    ),
-    toArray
-  )
+  const getGpuGroups = createGetObjectsOfType('gpuGroup').pick(
+    createSelector(getVgpuTypes, keys)
+  ).sort()
 
   return {
     xoObjects: getVgpuTypes,

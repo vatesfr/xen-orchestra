@@ -87,7 +87,7 @@ const VmItem = propTypes({
   </span>
 )))
 
-const Vgpu = connectStore(() => ({
+const VgpuItem = connectStore(() => ({
   vgpuType: createGetObject(
     (_, props) => props.vgpu.vgpuType
   )
@@ -191,7 +191,7 @@ const xoItemToRender = {
 
   // GPUs
 
-  VGPU: vgpu => <Vgpu vgpu={vgpu} />,
+  VGPU: vgpu => <VgpuItem vgpu={vgpu} />,
 
   vgpuType: type => (
     <span>

@@ -9,11 +9,16 @@ import HomeTags from 'home-tags'
 import renderXoItem from 'render-xo-item'
 import Tooltip from 'tooltip'
 import { addTag, editVm, removeTag } from 'xo'
-import { createGetVmLastShutdownTime } from 'selectors'
 import { BlockLink } from 'link'
 import { FormattedRelative } from 'react-intl'
 import { Container, Row, Col } from 'grid'
 import { Number, Size } from 'editable'
+import {
+  createFinder,
+  createGetObjectsOfType,
+  createGetVmLastShutdownTime,
+  createSelector
+} from 'selectors'
 import {
   connectStore,
   formatSize,
@@ -27,7 +32,27 @@ import {
 } from 'xo-sparklines'
 
 export default connectStore(() => {
-  return { lastShutdownTime: createGetVmLastShutdownTime() }
+  const getVgpus = createGetObjectsOfType('VGPU').pick(
+    (_, { vm }) => vm.$VGPUs
+  ).sort()
+
+  const getAttachedVgpu = createFinder(
+    getVgpus,
+    vgpu => vgpu.currentlyAttached
+  )
+
+  const getVgpuTypes = createGetObjectsOfType('vgpuType').pick(
+    createSelector(
+      getVgpus,
+      vgpus => map(vgpus, 'vgpuType')
+    )
+  )
+
+  return {
+    lastShutdownTime: createGetVmLastShutdownTime(),
+    vgpu: getAttachedVgpu,
+    vgpuTypes: getVgpuTypes
+  }
 })(
  ({
   lastShutdownTime,

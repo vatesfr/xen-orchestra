@@ -43,7 +43,9 @@ class PoolMaster extends Component {
   }
 }
 
-export default ({
+export default connectStore({
+  gpuGroups: createGetObjectsOfType('gpuGroup')
+})(({
   gpuGroups,
   pool
 }) => <div>
@@ -95,4 +97,4 @@ export default ({
   <Upgrade place='poolSupplementalPacks' required={2}>
     <SelectFiles onChange={file => installSupplementalPackOnAllHosts(pool, file)} />
   </Upgrade>
-</div>
+</div>)
