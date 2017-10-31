@@ -41,6 +41,9 @@ export default {
     coreOs = false,
     cloudConfig = undefined,
 
+    vgpuType = undefined,
+    gpuGroup = undefined,
+
     ...props
   } = {}, checkLimits) {
     const installMethod = (() => {
@@ -187,7 +190,9 @@ export default {
       )))
     }
 
-    // TODO: Assign VGPUs.
+    if (vgpuType !== undefined && gpuGroup !== undefined) {
+      await this.createVgpu(vm, gpuGroup, vgpuType)
+    }
 
     if (cloudConfig != null) {
       // Refresh the record.

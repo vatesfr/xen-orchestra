@@ -211,7 +211,7 @@ create.params = {
   resourceSet: {
     type: 'string',
     optional: true
-  },
+  }
 
   installation: {
     type: 'object'
@@ -220,6 +220,16 @@ create.params = {
       method: { type: 'string' }
       repository: { type: 'string' }
     }
+  }
+
+  vgpuType: {
+    type: 'string',
+    optional: true
+  }
+
+  gpuGroup: {
+    type: 'string',
+    optional: true
   }
 
   # Name/description of the new VM.
@@ -310,6 +320,8 @@ create.params = {
 
 create.resolve = {
   template: ['template', 'VM-template', ''],
+  vgpuType: ['vgpuType', 'vgpuType', ''],
+  gpuGroup: ['gpuGroup', 'gpuGroup', ''],
 }
 
 exports.create = create
@@ -1351,6 +1363,43 @@ createCloudInitConfigDrive.resolve = {
   sr: [ 'sr', 'SR', '' ] # 'operate' ]
 }
 exports.createCloudInitConfigDrive = createCloudInitConfigDrive
+
+#---------------------------------------------------------------------
+
+createVgpu = $coroutine ({ vm, gpuGroup, vgpuType }) ->
+  # TODO: properly handle device. Can a VM have 2 vGPUS?
+  yield @getXapi(vm).createVgpu(vm._xapiId, gpuGroup._xapiId, vgpuType._xapiId)
+
+  return true
+
+createVgpu.params = {
+  vm: { type: 'string' },
+  gpuGroup: { type: 'string' },
+  vgpuType: { type: 'string' }
+}
+
+createVgpu.resolve = {
+  vm: ['vm', 'VM', 'administrate'],
+  gpuGroup: ['gpuGroup', 'gpuGroup', ''],
+  vgpuType: ['vgpuType', 'vgpuType', '']
+}
+exports.createVgpu = createVgpu
+
+#---------------------------------------------------------------------
+
+deleteVgpu = $coroutine ({ vgpu }) ->
+  yield @getXapi(vgpu).deleteVgpu(vgpu._xapiId)
+
+  return true
+
+deleteVgpu.params = {
+  vgpu: { type: 'string' }
+}
+
+deleteVgpu.resolve = {
+  vgpu: ['vgpu', 'vgpu', '']
+}
+exports.deleteVgpu = deleteVgpu
 
 #=====================================================================
 
