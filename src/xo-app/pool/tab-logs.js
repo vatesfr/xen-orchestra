@@ -2,11 +2,10 @@ import _ from 'intl'
 import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
 import { deleteMessage } from 'xo'
+import { createPager, createSelector } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { Container, Row, Col } from 'grid'
 import {
   ceil,
-  isEmpty,
   map
 } from 'lodash'
 
@@ -43,12 +42,29 @@ const INDIVIDUAL_ACTIONS = [
 ]
 
 export default class TabLogs extends Component {
+  constructor () {
+    super()
+
+    this.getLogs = createPager(
+      () => this.props.logs,
+      () => this.state.page,
+      LOGS_PER_PAGE
+    )
+
+    this.getNPages = createSelector(
+      () => this.props.logs ? this.props.logs.length : 0,
+      nLogs => ceil(nLogs / LOGS_PER_PAGE)
+    )
+
+    this.state = {
+      page: 1
+    }
+  }
 
   _deleteAllLogs = () => map(this.props.logs, deleteMessage)
 
   render () {
     const logs = this.getLogs()
-
     const GROUPED_ACTIONS = [
       {
         label: 'deleteLogs',
@@ -58,10 +74,10 @@ export default class TabLogs extends Component {
     ]
 
     return <SortedTable
-            collection={logs}
-            columns={COLUMNS}
-            individualActions={INDIVIDUAL_ACTIONS}
-            groupedActions={GROUPED_ACTIONS}
+      collection={logs}
+      columns={COLUMNS}
+      individualActions={INDIVIDUAL_ACTIONS}
+      groupedActions={GROUPED_ACTIONS}
     />
   }
 }
