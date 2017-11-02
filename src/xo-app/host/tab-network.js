@@ -37,7 +37,9 @@ const _toggleDefaultLockingMode = (component, tooltip) => tooltip
 class ConfigureIpModal extends Component {
   constructor (props) {
     super(props)
+
     const { pif } = props
+
     if (pif) {
       this.state = pick(pif, ['ip', 'netmask', 'dns', 'gateway'])
     }
@@ -90,7 +92,7 @@ class PifItemVlan extends Component {
   _editPif = vlan =>
     editPif(this.props.pif, { vlan })
   render () {
-    const {pif} = this.props
+    const { pif } = this.props
     return <div>{pif.vlan === -1
       ? 'None'
       : <Number value={pif.vlan} onChange={this._editPif}>
@@ -109,30 +111,27 @@ class PifItemIp extends Component {
     )
   }
 
-  _configIp = mode => {
-    if (mode === 'Static') {
-      return confirm({
-        icon: 'ip',
-        title: _('pifConfigureIp'),
-        body: <ConfigureIpModal pif={this.props.pif} />
-      }).then(
-        params => {
-          if (!params.ip || !params.netmask) {
-            error(_('configIpErrorTitle'), _('configIpErrorMessage'))
-            return
-          }
-          return reconfigurePifIp(this.props.pif, { mode, ...params })
-        },
-        noop
-      )
-    }
-    return reconfigurePifIp(this.props.pif, { mode })
+  _configIp = () => {
+    return confirm({
+      icon: 'ip',
+      title: _('pifConfigureIp'),
+      body: <ConfigureIpModal pif={this.props.pif} />
+    }).then(
+      params => {
+        if (!params.ip || !params.netmask) {
+          error(_('configIpErrorTitle'), _('configIpErrorMessage'))
+          return
+        }
+        return reconfigurePifIp(this.props.pif, { mode: 'Static', ...params })
+      },
+      noop
+    )
   }
 
-  _onEditIp = () => this._configIp('Static')
+  _onEditIp = () => this._configIp()
 
   render () {
-    const {pif} = this.props
+    const { pif } = this.props
     return <div>
       {pif.ip}
       {' '}
@@ -173,7 +172,7 @@ class PifItemMode extends Component {
   }
 
   render () {
-    const {pif} = this.props
+    const { pif } = this.props
     const { configModes } = this.state
     return <Select
       onChange={this._configIp}
@@ -189,6 +188,11 @@ class PifItemMode extends Component {
   vifsByNetwork: createGetObjectsOfType('VIF').groupBy('$network')
 }))
 class PifItemInUse extends Component {
+  _editNetwork = () => {
+    const { pif, networks } = this.props
+    return editNetwork(pif.$network, { defaultIsLocked: !networks[pif.$network].defaultIsLocked })
+  }
+
   render () {
     const {networks, pif, vifsByNetwork} = this.props
     const pifInUse = some(vifsByNetwork[pif.$network], vif => vif.attached)
@@ -196,7 +200,7 @@ class PifItemInUse extends Component {
       {_toggleDefaultLockingMode(
         <Toggle
           disabled={pifInUse}
-          onChange={() => editNetwork(pif.$network, { defaultIsLocked: !networks[pif.$network].defaultIsLocked })}
+          onChange={this._editNetwork}
           value={networks[pif.$network].defaultIsLocked}
         />,
         pifInUse && _('pifInUse')
