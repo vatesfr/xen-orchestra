@@ -310,15 +310,13 @@ export default class tabNetwork extends Component {
   ]
 
   render () {
-    const { networks,
-      pifs } = this.props
-
     return <SortedTable
-      collection={pifs}
+      collection={this.props.pifs}
       columns={COLUMNS}
       individualActions={INDIVIDUAL_ACTIONS}
       groupedActions={this._groupedActions}
-      userData={networks}
+      userData={this.props.networks}
+      stateUrlParam='hn'
       />
   }
 }
