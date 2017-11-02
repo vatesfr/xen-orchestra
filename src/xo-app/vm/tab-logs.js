@@ -55,7 +55,8 @@ const GROUPED_ACTIONS = [
 })
 export default class TabLogs extends Component {
   render () {
-    return <SortedTable collection={this.props.logs}
+    return <SortedTable
+      collection={this.props.logs}
       columns={LOG_COLUMNS}
       individualActions={INDIVIDUAL_ACTIONS}
       groupedActions={GROUPED_ACTIONS}
