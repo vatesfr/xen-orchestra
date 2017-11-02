@@ -1615,6 +1615,18 @@ export const deleteRemote = remote =>
     subscribeRemotes.forceRefresh
   )
 
+export const deleteRemotes = remotes =>
+  confirm({
+    title: _('deleteRemotesModalTitle', { nRemotes: remotes.length }),
+    body: <p>{_('deleteRemotesModalMessage', { nRemotes: remotes.length })}</p>,
+  }).then(() =>
+    map(remotes, remote =>
+      _call('remote.delete', { id: resolveId(remote) })::tap(
+        subscribeRemotes.forceRefresh
+      )
+    )
+  )
+
 export const enableRemote = remote =>
   _call('remote.set', { id: resolveId(remote), enabled: true })::tap(
     subscribeRemotes.forceRefresh
