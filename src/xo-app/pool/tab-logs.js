@@ -78,6 +78,7 @@ export default class TabLogs extends Component {
       columns={COLUMNS}
       individualActions={INDIVIDUAL_ACTIONS}
       groupedActions={GROUPED_ACTIONS}
+      stateUrlParam='pl'
     />
   }
 }
