@@ -18,8 +18,8 @@ const COLUMNS = [
         <FormattedTime value={log.time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={log.time * 1000} />)
       </div>,
     name: _('logDate'),
-    sortCriteria: log => log.time,
-    sortOrder: 'desc'
+    default: true,
+    sortCriteria: 'time'
   },
   {
     itemRenderer: log => log.name,
@@ -29,7 +29,6 @@ const COLUMNS = [
   {
     itemRenderer: log => log.body,
     name: _('logContent'),
-    default: true,
     sortCriteria: 'body'
   }
 ]
@@ -40,6 +39,16 @@ const INDIVIDUAL_ACTIONS = [
     handler: deleteMessage
   }
 ]
+
+const GROUPED_ACTIONS = [
+  {
+    label: 'deleteLogs',
+    icon: 'delete',
+    handler: logs => map(logs, deleteMessage)
+  }
+]
+
+const logs = this.getLogs()
 
 export default class TabLogs extends Component {
   constructor () {
@@ -64,15 +73,6 @@ export default class TabLogs extends Component {
   _deleteAllLogs = () => map(this.props.logs, deleteMessage)
 
   render () {
-    const logs = this.getLogs()
-    const GROUPED_ACTIONS = [
-      {
-        label: 'deleteLogs',
-        icon: 'delete',
-        handler: logs => map(logs, deleteMessage)
-      }
-    ]
-
     return <SortedTable
       collection={logs}
       columns={COLUMNS}
