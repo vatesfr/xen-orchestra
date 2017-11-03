@@ -2,7 +2,6 @@ import _ from 'intl'
 import Component from 'base-component'
 import React from 'react'
 import Icon from 'icon'
-import map from 'lodash'
 import pick from 'lodash/pick'
 import SingleLineRow from 'single-line-row'
 import some from 'lodash/some'
@@ -14,12 +13,14 @@ import { confirm } from 'modal'
 import { connectStore, noop } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import { error } from 'notification'
+import { filter, includes } from 'lodash'
 import { Select, Number } from 'editable'
 import { Toggle } from 'form'
 import {
   connectPif,
   createNetwork,
   deletePif,
+  deletePifs,
   disconnectPif,
   editNetwork,
   editPif,
@@ -309,7 +310,7 @@ export default class TabNetwork extends Component {
     {
       label: 'deletePifs',
       icon: 'delete',
-      handler: (...args) => map(this.props.pifs, pif => deletePif(pif))
+      handler: (ids) => deletePifs(filter(this.props.pifs, pif => includes(ids, pif.id)))
     }
   ]
 

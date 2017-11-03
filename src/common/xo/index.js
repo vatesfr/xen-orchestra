@@ -1290,6 +1290,16 @@ export const deletePif = pif =>
     body: _('deletePifConfirm'),
   }).then(() => _call('pif.delete', { pif: resolveId(pif) }), noop)
 
+export const deletePifs = pifs => (
+  confirm({
+    title: _('deletePifs'),
+    body: _('deletePifsConfirm')
+  }).then(
+    () => map(pifs, pif => _call('pif.delete', { pif: resolveId(pif) })),
+    noop
+  )
+)
+
 export const reconfigurePifIp = (pif, { mode, ip, netmask, gateway, dns }) =>
   _call('pif.reconfigureIp', {
     pif: resolveId(pif),

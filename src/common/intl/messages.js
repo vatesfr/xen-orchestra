@@ -1384,6 +1384,8 @@ const messages = {
   disconnectPifConfirm: 'Are you sure you want to disconnect this PIF?',
   deletePif: 'Delete PIF',
   deletePifConfirm: 'Are you sure you want to delete this PIF?',
+  deletePifs: 'Delete PIFs',
+  deletePifsConfirm: 'Are you sure you want to delete these PIFs?',
   pifConnected: 'Connected',
   pifDisconnected: 'Disconnected',
   pifPhysicallyConnected: 'Physically connected',
