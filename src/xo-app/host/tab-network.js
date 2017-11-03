@@ -7,10 +7,10 @@ import SingleLineRow from 'single-line-row'
 import some from 'lodash/some'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
+import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import { confirm } from 'modal'
 import { connectStore, noop } from 'utils'
-import { Col } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
 import { error } from 'notification'
 import { Select, Number } from 'editable'
@@ -211,7 +211,7 @@ class PifItemInUse extends Component {
 
 const COLUMNS = [
   {
-    itemRenderer: (pif, networks) => {
+    itemRenderer: pif => {
       return pif.device
     },
     default: true,
@@ -227,35 +227,34 @@ const COLUMNS = [
   },
   {
     itemRenderer: (pif, networks) => {
-      return <PifItemVlan key={pif.id} pif={pif} networks={networks} />
+      return <PifItemVlan pif={pif} networks={networks} />
     },
     name: _('pifVlanLabel'),
     sortCriteria: 'vlan'
   },
   {
     itemRenderer: (pif, networks) => {
-      return <PifItemIp key={pif.id} pif={pif} networks={networks} />
+      return <PifItemIp pif={pif} networks={networks} />
     },
     name: _('pifAddressLabel'),
     sortCriteria: 'ip'
   },
   {
     itemRenderer: (pif, networks) => {
-      return <PifItemMode key={pif.id} pif={pif} networks={networks} />
+      return <PifItemMode pif={pif} networks={networks} />
     },
     name: _('pifModeLabel'),
     sortCriteria: 'mode'
   },
   {
-    default: true,
-    itemRenderer: (pif, networks) => {
+    itemRenderer: pif => {
       return pif.mac
     },
     name: _('pifMacLabel'),
     sortCriteria: 'mac'
   },
   {
-    itemRenderer: (pif, networks) => {
+    itemRenderer: pif => {
       return pif.mtu
     },
     name: _('pifMtuLabel'),
@@ -263,12 +262,12 @@ const COLUMNS = [
   },
   {
     itemRenderer: (pif, networks) => {
-      return <PifItemInUse key={pif.id} pif={pif} networks={networks} />
+      return <PifItemInUse pif={pif} networks={networks} />
     },
     name: _('defaultLockingMode')
   },
   {
-    itemRenderer: (pif, networks) => {
+    itemRenderer: pif => {
       return <div>
         <StateButton
           disabledLabel={_('pifDisconnected')}
@@ -304,23 +303,40 @@ const INDIVIDUAL_ACTIONS = [
   }
 ]
 
-export default class tabNetwork extends Component {
+export default class TabNetwork extends Component {
   _groupedActions = [
     {
-      label: 'addNetwork',
-      icon: 'add',
+      label: 'deletePifs',
+      icon: 'delete',
       handler: () => createNetwork(this.props.host)
     }
   ]
 
   render () {
-    return <SortedTable
-      collection={this.props.pifs}
-      columns={COLUMNS}
-      individualActions={INDIVIDUAL_ACTIONS}
-      groupedActions={this._groupedActions}
-      userData={this.props.networks}
-      stateUrlParam='hn'
-      />
+    return <Container>
+      <Row>
+        <Col className='text-xs-right'>
+          <TabButton
+            btnStyle='primary'
+            handler={createNetwork}
+            handlerParam={this.props.host}
+            icon='add'
+            labelId='networkCreateButton'
+          />
+        </Col>
+      </Row>
+      <Row>
+        <Col>
+          <SortedTable
+            collection={this.props.pifs}
+            columns={COLUMNS}
+            groupedActions={this._groupedActions}
+            individualActions={INDIVIDUAL_ACTIONS}
+            stateUrlParam='hn'
+            userData={this.props.networks}
+          />
+        </Col>
+      </Row>
+    </Container>
   }
 }
