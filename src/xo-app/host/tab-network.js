@@ -2,6 +2,7 @@ import _ from 'intl'
 import Component from 'base-component'
 import React from 'react'
 import Icon from 'icon'
+import map from 'lodash'
 import pick from 'lodash/pick'
 import SingleLineRow from 'single-line-row'
 import some from 'lodash/some'
@@ -308,7 +309,7 @@ export default class TabNetwork extends Component {
     {
       label: 'deletePifs',
       icon: 'delete',
-      handler: () => createNetwork(this.props.host)
+      handler: (...args) => map(this.props.pifs, pif => deletePif(pif))
     }
   ]
 
