@@ -3,7 +3,7 @@ import ActionButton from 'action-button'
 import BaseComponent from 'base-component'
 import Button from 'button'
 import classNames from 'classnames'
-import defined from 'xo-defined'
+import defined, { get } from 'xo-defined'
 import Icon from 'icon'
 import isIp from 'is-ip'
 import Page from '../page'
@@ -25,7 +25,6 @@ import {
   filter,
   find,
   forEach,
-  get,
   includes,
   isEmpty,
   join,
@@ -374,8 +373,8 @@ export default class NewVm extends BaseComponent {
       cloudConfig,
       coreOs: state.template.name_label === 'CoreOS',
       tags: state.tags,
-      vgpuType: state.vgpuType.id,
-      gpuGroup: state.vgpuType.gpuGroup
+      vgpuType: get(() => state.vgpuType.id),
+      gpuGroup: get(() => state.vgpuType.gpuGroup)
     }
 
     return state.multipleVms ? createVms(data, state.nameLabels) : createVm(data)
@@ -548,8 +547,8 @@ export default class NewVm extends BaseComponent {
       }
 
       const containers = [
-        ...map(existingDisks, disk => get(srs, `${disk.$SR}.$container`)),
-        ...map(VDIs, disk => get(srs, `${disk.SR}.$container`))
+        ...map(existingDisks, disk => get(() => srs[disk.$SR].$container)),
+        ...map(VDIs, disk => get(() => srs[disk.SR].$container))
       ]
       return host => host.$pool === pool.id &&
         every(containers, container =>
@@ -1507,9 +1506,9 @@ export default class NewVm extends BaseComponent {
     const factor = multipleVms ? nameLabels.length : 1
 
     return !(
-      CPUs * factor > get(resourceSet, 'limits.cpus.available') ||
-      memoryDynamicMax * factor > get(resourceSet, 'limits.memory.available') ||
-      (sumBy(VDIs, 'size') + sum(map(existingDisks, disk => disk.size))) * factor > get(resourceSet, 'limits.disk.available')
+      CPUs * factor > get(() => resourceSet.limits.cpus.available) ||
+      memoryDynamicMax * factor > get(() => resourceSet.limits.memory.available) ||
+      (sumBy(VDIs, 'size') + sum(map(existingDisks, disk => disk.size))) * factor > get(() => resourceSet.limits.disk.available)
     )
   }
 }
