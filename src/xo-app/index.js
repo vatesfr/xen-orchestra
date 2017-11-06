@@ -38,7 +38,8 @@ import Tasks from './tasks'
 import User from './user'
 import Vm from './vm'
 import VmImport from './vm-import'
-import XoaUpdates from './xoa-updates'
+import Xoa from './xoa'
+import XoaUpdates from './xoa/update'
 import Xosan from './xosan'
 
 import keymap, { help } from '../keymap'
@@ -87,8 +88,8 @@ const BODY_STYLE = {
   'vms/import': VmImport,
   'vms/new': NewVm,
   'vms/:id': Vm,
-  'xoa-update': XoaUpdates,
-  xosan: Xosan,
+  xoa: Xoa,
+  'xosan': Xosan,
 })
 @connectStore(state => {
   return {

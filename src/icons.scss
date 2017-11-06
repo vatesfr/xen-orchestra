@@ -744,9 +744,17 @@
       @extend .fa-clock-o;
     }
   }
+  &-menu-xoa {
+    @extend .fa;
+    @extend .fa-cube;
+  }
   &-menu-update {
     @extend .fa;
     @extend .fa-refresh;
+  }
+  &-menu-license {
+    @extend .fa;
+    @extend .fa-file-text-o;
   }
   &-menu-settings {
     @extend .fa;
@@ -984,6 +992,10 @@
   &-plan-trial {
     @extend .fa;
     @extend .fa-star;
+  }
+  &-support {
+    @extend .fa;
+    @extend .fa-support;
   }
 
   // XOSAN related

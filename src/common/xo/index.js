@@ -282,6 +282,9 @@ export const subscribeSchedules = createSubscription(() =>
   _call('schedule.getAll')
 )
 
+export const subscribeLicenses = (productIds, cb) =>
+  createSubscription(() => Promise.all(map(productIds, getLicenses)))(cb)
+
 export const subscribeServers = createSubscription(
   invoke(fpSortBy('host'), sort => () => _call('server.getAll').then(sort))
 )
@@ -2065,8 +2068,15 @@ export const downloadAndInstallXosanPack = pool =>
     })
   )
 
-export const registerXosan = namespace =>
-  _call('cloud.registerResource', { namespace: 'xosan' })
-
 export const fixHostNotInXosanNetwork = (xosanSr, host) =>
   _call('xosan.fixHostNotInNetwork', { xosanSr, host })
+
+// Licenses --------------------------------------------------------------------
+
+export const getLicenses = productId => _call('xoa.getLicenses', { productId })
+
+export const checkLicense = boundObjectId =>
+  _call('xoa.checkLicense', { boundObjectId })
+
+export const useLicense = (productId, boundObjectId) =>
+  _call('xoa.useLicense', { productId, boundObjectId })

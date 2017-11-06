@@ -57,7 +57,9 @@ const messages = {
   selfServicePage: 'Self service',
   backupPage: 'Backup',
   jobsPage: 'Jobs',
+  xoaPage: 'XOA',
   updatePage: 'Updates',
+  licensesPage: 'Licenses',
   settingsPage: 'Settings',
   settingsServersPage: 'Servers',
   settingsUsersPage: 'Users',
@@ -95,6 +97,7 @@ const messages = {
   jobsSchedulingPage: 'Scheduling',
   customJob: 'Custom Job',
   userPage: 'User',
+  xoa: 'XOA',
 
   // ----- Support -----
   noSupport: 'No support',
@@ -1597,9 +1600,6 @@ const messages = {
   xosanLoadCloudPlugin: 'Load cloud plugin first',
   xosanLoading: 'Loading…',
   xosanNotAvailable: 'XOSAN is not available at the moment',
-  xosanRegisterBeta: 'Register for the XOSAN beta',
-  xosanSuccessfullyRegistered:
-    'You have successfully registered for the XOSAN beta. Please wait until your request has been approved.',
   xosanInstallPackOnHosts: 'Install XOSAN pack on these hosts:',
   xosanInstallPack: 'Install {pack} v{version}?',
   xosanNoPackFound:
@@ -1646,6 +1646,12 @@ const messages = {
   xosanCustomIpNetwork: 'Custom IP network (/24)',
   xosanIssueHostNotInNetwork:
     'Will configure the host xosan network device with a static IP address and plug it in.',
+
+  // Licenses
+  licensesTitle: 'Licenses',
+  licensesXosanDisclaimer:
+    'You are not registered and therefore will not be able to create or manage your XOSAN SRs. {link}',
+  registerNow: 'Register now!',
 }
 forEach(messages, function (message, id) {
   if (isString(message)) {

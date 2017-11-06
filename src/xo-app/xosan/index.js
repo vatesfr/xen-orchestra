@@ -8,10 +8,12 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
 import { Container, Col, Row } from 'grid'
+import { get } from 'xo-defined'
 import {
   every,
   filter,
   find,
+  flatten,
   forEach,
   isEmpty,
   map,
@@ -25,10 +27,11 @@ import {
   cowSet,
   formatSize,
   isXosanPack,
+  Time,
 } from 'utils'
 import {
   deleteSr,
-  registerXosan,
+  subscribeLicenses,
   subscribePlugins,
   subscribeResourceCatalog,
   subscribeVolumeInfo,
@@ -131,6 +134,29 @@ const XOSAN_COLUMNS = [
       ) : null,
     sortCriteria: sr => sr.physical_usage * 100 / sr.size,
   },
+  {
+    name: 'License',
+    itemRenderer: (sr, { licensesByXosan }) => {
+      const license = licensesByXosan[sr.id]
+      if (license === undefined) {
+        return (
+          <span className='text-danger'>
+            Unknown XOSAN SR.{' '}
+            <a href='http://xen-orchestra.com/'>Contact us!</a>
+          </span>
+        )
+      }
+      return license.productId === 'xosan' ? (
+        <span>
+          License expires on <Time time={license.expires} />
+        </span> // FIXME remove fake timestamp
+      ) : (
+        <span>
+          No license. <Link to={'/xoa/licenses'}>Unlock now!</Link>
+        </span>
+      )
+    },
+  },
 ]
 
 const XOSAN_INDIVIDUAL_ACTIONS = [
@@ -219,12 +245,14 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
     noPacksByPool,
     poolPredicate: getPoolPredicate,
     pools: getPools,
+    xoaRegistration: state => state.xoaRegisterState,
     xosanSrs: getXosanSrs,
   }
 })
 @addSubscriptions({
   catalog: subscribeResourceCatalog,
   plugins: subscribePlugins,
+  licenses: cb => subscribeLicenses(['xosan', 'xosan.trial'], cb),
 })
 export default class Xosan extends Component {
   componentDidMount () {
@@ -256,6 +284,27 @@ export default class Xosan extends Component {
       forEach(unsubscriptions, unsubscribe => unsubscribe())
   }
 
+  _getLicensesByXosan = createSelector(
+    () => this.props.licenses,
+    licenses => {
+      const licensesByXosan = {}
+      forEach(flatten(licenses), license => {
+        let xosan
+        if ((xosan = license.boundObjectId) === undefined) {
+          return
+        }
+        if (licensesByXosan[xosan] !== undefined) {
+          throw new Error(
+            'A XOSAN license should not be bound to more that 1 XOSAN SR'
+          )
+        }
+        licensesByXosan[xosan] = license
+      })
+
+      return licensesByXosan
+    }
+  )
+
   _getError = createSelector(
     () => this.props.plugins,
     () => this.props.catalog,
@@ -281,18 +330,6 @@ export default class Xosan extends Component {
           </span>
         )
       }
-
-      if (xosan.available) {
-        return (
-          <ActionButton handler={registerXosan} btnStyle='primary' icon='add'>
-            {_('xosanRegisterBeta')}
-          </ActionButton>
-        )
-      }
-
-      if (xosan.pending) {
-        return _('xosanSuccessfullyRegistered')
-      }
     }
   )
 
@@ -304,6 +341,7 @@ export default class Xosan extends Component {
       noPacksByPool,
       hostsNeedRestartByPool,
       poolPredicate,
+      xoaRegistration,
     } = this.props
     const error = this._getError()
 
@@ -319,7 +357,16 @@ export default class Xosan extends Component {
               </Row>
             ) : (
               [
-                <Row className='mb-1'>
+                get(() => xoaRegistration.state) !== 'registered' && (
+                  <Row key='disclaimer'>
+                    <Col className='text-danger'>
+                      {_('licensesXosanDisclaimer', {
+                        link: <Link to='/xoa/update'>{_('registerNow')}</Link>,
+                      })}
+                    </Col>
+                  </Row>
+                ),
+                <Row key='new-button' className='mb-1'>
                   <Col>
                     <ActionButton
                       btnStyle='primary'
@@ -330,7 +377,7 @@ export default class Xosan extends Component {
                     </ActionButton>
                   </Col>
                 </Row>,
-                <Row>
+                <Row key='new-form'>
                   <Col>
                     {this.state.showNewXosanForm && (
                       <NewXosan
@@ -342,14 +389,14 @@ export default class Xosan extends Component {
                     )}
                   </Col>
                 </Row>,
-                <Row>
+                <Row key='progress'>
                   <Col>
                     {map(this.props.pools, pool => (
                       <CreationProgress key={pool.id} pool={pool} />
                     ))}
                   </Col>
                 </Row>,
-                <Row>
+                <Row key='srs'>
                   <Col>
                     {isEmpty(xosanSrs) ? (
                       <em>{_('xosanNoSrs')}</em>
@@ -360,6 +407,7 @@ export default class Xosan extends Component {
                         individualActions={XOSAN_INDIVIDUAL_ACTIONS}
                         userData={{
                           status: this.state.status,
+                          licensesByXosan: this._getLicensesByXosan(),
                         }}
                       />
                     )}
