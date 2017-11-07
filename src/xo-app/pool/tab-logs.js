@@ -9,11 +9,11 @@ import {
 
 const COLUMNS = [
   {
+    default: true,
     itemRenderer: log => <div>
       <FormattedTime value={log.time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={log.time * 1000} />)
     </div>,
     name: _('logDate'),
-    default: true,
     sortCriteria: 'time'
   },
   {
