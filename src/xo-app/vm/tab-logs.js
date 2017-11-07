@@ -40,7 +40,7 @@ const GROUPED_ACTIONS = [
   {
     label: 'deleteLogs',
     icon: 'delete',
-    handler: logs => map(logs, deleteMessage)
+    handler: logs => Promise.all(map(logs, deleteMessage))
   }
 ]
 
@@ -58,9 +58,9 @@ export default class TabLogs extends Component {
     return <SortedTable
       collection={this.props.logs}
       columns={LOG_COLUMNS}
-      individualActions={INDIVIDUAL_ACTIONS}
       groupedActions={GROUPED_ACTIONS}
-      stateUrlParam='vl'
+      individualActions={INDIVIDUAL_ACTIONS}
+      stateUrlParam='s'
     />
   }
 }
