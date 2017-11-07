@@ -197,9 +197,6 @@ export default class HostItem extends Component {
       </BlockLink>
       {(this.state.expanded || expandAll) &&
         <Row>
-          <Col mediumSize={6} className={styles.itemExpanded}>
-            <MiniStats hostId={this.props.item} />
-          </Col>
           <Col mediumSize={2} className={styles.itemExpanded} style={{ marginTop: '0.3rem' }}>
             <span>
               {host.cpus.cores}x <Icon icon='cpu' />
@@ -213,6 +210,9 @@ export default class HostItem extends Component {
             <span style={{fontSize: '1.4em'}}>
               <HomeTags type='host' labels={host.tags} onDelete={this._removeTag} onAdd={this._addTag} />
             </span>
+          </Col>
+          <Col mediumSize={6} className={styles.itemExpanded}>
+            <MiniStats hostId={this.props.item} />
           </Col>
         </Row>
       }

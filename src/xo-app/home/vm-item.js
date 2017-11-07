@@ -16,6 +16,7 @@ import {
 import {
   addTag,
   editVm,
+  fetchVmStats,
   migrateVm,
   removeTag,
   startVm,
@@ -35,8 +36,54 @@ import {
   createSelector,
   createSumBy
 } from 'selectors'
+import {
+  CpuSparkLines,
+  VifSparkLines,
+  XvdSparkLines
+} from 'xo-sparklines'
 
 import styles from './index.css'
+
+const MINI_STATS_PROPS = {
+  height: 10,
+  strokeWidth: 0.2,
+  width: 50
+}
+class MiniStats extends Component {
+  _fetch = () => {
+    fetchVmStats(this.props.vmId).then(stats => {
+      this.setState({ stats })
+    })
+  }
+
+  componentWillMount () {
+    this._fetch()
+    this.subscriptionId = setInterval(this._fetch, 5e3)
+  }
+  componentWillUnmount () {
+    clearInterval(this.subscriptionId)
+  }
+
+  render () {
+    const { stats } = this.state
+
+    if (!stats) {
+      return <Icon icon='loading' />
+    }
+
+    return <Row>
+      <Col mediumSize={4} className={styles.itemExpanded}>
+        <CpuSparkLines data={stats} {...MINI_STATS_PROPS} />
+      </Col>
+      <Col mediumSize={4} className={styles.itemExpanded}>
+        <VifSparkLines data={stats} {...MINI_STATS_PROPS} />
+      </Col>
+      <Col mediumSize={4} className={styles.itemExpanded}>
+        <XvdSparkLines data={stats} {...MINI_STATS_PROPS} />
+      </Col>
+    </Row>
+  }
+}
 
 @addSubscriptions({
   resourceSets: subscribeResourceSets
@@ -158,7 +205,7 @@ export default class VmItem extends Component {
       </BlockLink>
       {(this.state.expanded || expandAll) &&
         <Row>
-          <Col mediumSize={3} className={styles.itemExpanded}>
+          <Col mediumSize={4} className={styles.itemExpanded}>
             <span>
               {vm.CPUs.number}x <Icon icon='cpu' />
               {' '}&nbsp;{' '}
@@ -173,16 +220,19 @@ export default class VmItem extends Component {
               {vm.docker ? <Icon icon='vm-docker' /> : null}
             </span>
           </Col>
-          <Col largeSize={3} className={styles.itemExpanded}>
-            {map(vm.addresses, address => <span key={address} className='tag tag-info tag-ip'>{address}</span>)}
-          </Col>
-          <Col mediumSize={3} className='hidden-sm-down'>
+          <Col mediumSize={2} className='hidden-sm-down'>
             {resourceSet && <span>{_('homeResourceSet', { resourceSet: <Link to={`self?resourceSet=${resourceSet.id}`}>{resourceSet.name}</Link> })}</span>}
           </Col>
-          <Col mediumSize={3}>
+          <Col mediumSize={6} className={styles.itemExpanded}>
+            {map(vm.addresses, address => <span key={address} className='tag tag-info tag-ip'>{address}</span>)}
+          </Col>
+          <Col mediumSize={6}>
             <span style={{fontSize: '1.4em'}}>
               <HomeTags type='VM' labels={vm.tags} onDelete={this._removeTag} onAdd={this._addTag} />
             </span>
+          </Col>
+          <Col mediumSize={6} className={styles.itemExpanded}>
+            {this._isRunning && <MiniStats vmId={this.props.item} />}
           </Col>
         </Row>
       }
