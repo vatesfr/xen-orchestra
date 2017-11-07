@@ -14,6 +14,7 @@ import {
 } from 'react-bootstrap-4/lib'
 import {
   ceil,
+  filter,
   findIndex,
   forEach,
   isEmpty,
@@ -185,8 +186,8 @@ class Checkbox extends Component {
 // ===================================================================
 
 const actionsShape = propTypes.arrayOf(propTypes.shape({
-  // groupedActions: the function will be called with an array of the selected items` ids in parameters
-  // individualActions: the function will be called with the related item's id in parameters
+  // groupedActions: the function will be called with an array of the selected items in parameters
+  // individualActions: the function will be called with the related item in parameters
   disabled: propTypes.oneOfType([ propTypes.bool, propTypes.func ]),
   handler: propTypes.func.isRequired,
   icon: propTypes.string.isRequired,
@@ -205,13 +206,13 @@ class IndividualAction extends Component {
   )
 
   render () {
-    const { icon, label, level, handler, itemId } = this.props
+    const { icon, label, level, handler, item } = this.props
 
     return <ActionRowButton
       btnStyle={level}
       disabled={this._getIsDisabled()}
       handler={handler}
-      handlerParam={itemId}
+      handlerParam={item}
       icon={icon}
       tooltip={label}
     />
@@ -560,8 +561,8 @@ export default class SortedTable extends Component {
     const { state } = this
     return handler(
       state.all
-        ? map(this._getItems(), 'id')
-        : state.selectedItemsIds.toArray()
+        ? this._getItems()
+        : filter(this._getItems(), item => state.selectedItemsIds.has(item.id))
     )
   }
 
@@ -613,7 +614,6 @@ export default class SortedTable extends Component {
         {map(individualActions, (props, key) => <IndividualAction
           {...props}
           item={item}
-          itemId={id}
           key={key}
           userData={userData}
         />)}
