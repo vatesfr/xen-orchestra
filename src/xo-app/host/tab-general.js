@@ -16,7 +16,7 @@ import { createString, createProperty, toString } from 'complex-matcher'
 import {
   CpuSparkLines,
   MemorySparkLines,
-  PifSparkLines,
+  NetworkSparkLines,
   LoadSparkLines
 } from 'xo-sparklines'
 
@@ -44,7 +44,7 @@ export default ({
       </Col>
       <Col mediumSize={3}>
         <BlockLink to={`/hosts/${host.id}/network`}><h2>{host.$PIFs.length}x <Icon icon='network' size='lg' /></h2></BlockLink>
-        <BlockLink to={`/hosts/${host.id}/stats`}>{statsOverview && <PifSparkLines data={statsOverview} />}</BlockLink>
+        <BlockLink to={`/hosts/${host.id}/stats`}>{statsOverview && <NetworkSparkLines data={statsOverview} />}</BlockLink>
       </Col>
       <Col mediumSize={3}>
         <BlockLink to={`/hosts/${host.id}/storage`}><h2>{host.$PBDs.length}x <Icon icon='disk' size='lg' /></h2></BlockLink>

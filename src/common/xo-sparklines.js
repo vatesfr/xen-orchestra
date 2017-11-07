@@ -73,36 +73,16 @@ export const XvdSparkLines = propTypes({
   )
 })
 
-export const VifSparkLines = propTypes({
+export const NetworkSparkLines = propTypes({
   data: propTypes.object.isRequired
 })(({ data, width = WIDTH, height = HEIGHT, strokeWidth = STROKE_WIDTH }) => {
-  const { vifs } = data.stats
+  const { pifs, vifs: ifs = pifs } = data.stats
 
-  if (!vifs) {
-    return templateError
-  }
-
-  return (
-    <Sparklines style={STYLE} data={computeObjectsAvg(vifs)} min={0} width={width} height={height}>
+  return ifs === undefined
+    ? templateError
+    : <Sparklines style={STYLE} data={computeObjectsAvg(ifs)} min={0} width={width} height={height}>
       <SparklinesLine style={{ strokeWidth, stroke: '#eca649', fill: '#eca649', fillOpacity: 0.5 }} color='#ffd633' />
     </Sparklines>
-  )
-})
-
-export const PifSparkLines = propTypes({
-  data: propTypes.object.isRequired
-})(({ data, width = WIDTH, height = HEIGHT, strokeWidth = STROKE_WIDTH }) => {
-  const { pifs } = data.stats
-
-  if (!pifs) {
-    return templateError
-  }
-
-  return (
-    <Sparklines style={STYLE} data={computeObjectsAvg(pifs)} min={0} width={width} height={height}>
-      <SparklinesLine style={{ strokeWidth, stroke: '#eca649', fill: '#eca649', fillOpacity: 0.5 }} color='#ffd633' />
-    </Sparklines>
-  )
 })
 
 export const LoadSparkLines = propTypes({
