@@ -334,7 +334,7 @@ export default class TabNetwork extends Component {
             columns={COLUMNS}
             groupedActions={this._groupedActions}
             individualActions={INDIVIDUAL_ACTIONS}
-            stateUrlParam='hn'
+            stateUrlParam='s'
             userData={this.props.networks}
           />
         </Col>
