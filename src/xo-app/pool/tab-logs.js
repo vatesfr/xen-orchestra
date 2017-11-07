@@ -30,9 +30,9 @@ const COLUMNS = [
 
 const INDIVIDUAL_ACTIONS = [
   {
-    label: 'deleteLog',
+    handler: deleteMessage,
     icon: 'delete',
-    handler: deleteMessage
+    label: 'deleteLog'
   }
 ]
 
@@ -42,9 +42,9 @@ export default class TabLogs extends Component {
   render () {
     const GROUPED_ACTIONS = [
       {
-        label: 'deleteLogs',
+        handler: this._deleteAllLogs,
         icon: 'delete',
-        handler: this._deleteAllLogs
+        label: 'deleteLogs'
       }
     ]
 

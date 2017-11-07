@@ -30,17 +30,17 @@ const LOG_COLUMNS = [
 
 const INDIVIDUAL_ACTIONS = [
   {
-    label: 'deleteLog',
+    handler: deleteMessage,
     icon: 'delete',
-    handler: deleteMessage
+    label: 'deleteLog'
   }
 ]
 
 const GROUPED_ACTIONS = [
   {
-    label: 'deleteLogs',
+    handler: logs => Promise.all(map(logs, deleteMessage)),
     icon: 'delete',
-    handler: logs => Promise.all(map(logs, deleteMessage))
+    label: 'deleteLogs'
   }
 ]
 
