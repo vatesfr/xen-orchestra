@@ -53,9 +53,7 @@
     "babel-plugin-lodash": "^3.2.11",
     "babel-preset-env": "^7.0.0-beta.3",
     "babel-preset-flow": "^7.0.0-beta.3",
-    "commitizen": "^2.9.6",
     "cross-env": "^5.1.0",
-    "cz-conventional-changelog": "^2.0.0",
     "dependency-check": "^2.9.1",
     "flow-bin": "^0.57.3",
     "jest": "^21.2.1",
@@ -64,7 +62,6 @@
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
     "commitmsg": "npm test",
-    "cz": "git-cz",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "dev-test": "jest --bail --watch",
     "posttest": "dependency-check ./package.json",
