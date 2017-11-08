@@ -132,23 +132,6 @@ class PifItemIp extends Component {
     )
   }
 
-  _configIp = () => {
-    return confirm({
-      icon: 'ip',
-      title: _('pifConfigureIp'),
-      body: <ConfigureIpModal pif={this.props.pif} />
-    }).then(
-      params => {
-        if (!params.ip || !params.netmask) {
-          error(_('configIpErrorTitle'), _('configIpErrorMessage'))
-          return
-        }
-        return reconfigurePifIp(this.props.pif, { mode: 'Static', ...params })
-      },
-      noop
-    )
-  }
-
   _onEditIp = () => reconfigureIp(this.props.pif, 'Static')
 
   render () {
@@ -201,16 +184,14 @@ class PifItemInUse extends Component {
   render () {
     const {networks, pif, vifsByNetwork} = this.props
     const pifInUse = some(vifsByNetwork[pif.$network], vif => vif.attached)
-    return <div className='text-xs-center'>
-      {_toggleDefaultLockingMode(
-        <Toggle
-          disabled={pifInUse}
-          onChange={this._editNetwork}
-          value={networks[pif.$network].defaultIsLocked}
-        />,
-        pifInUse && _('pifInUse')
-      )}
-    </div>
+    return _toggleDefaultLockingMode(
+      <Toggle
+        disabled={pifInUse}
+        onChange={this._editNetwork}
+        value={networks[pif.$network].defaultIsLocked}
+      />,
+      pifInUse && _('pifInUse')
+    )
   }
 }
 
