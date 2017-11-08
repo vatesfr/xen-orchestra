@@ -15,7 +15,5 @@ We made multiple categories to help you to find what you need:
 * [Job Manager](scheduler.html)
 * [Alerts](alerts.html)
 * [Load balancing](load_balancing.html)
-* [Auto scalability](auto_scalability.html)
-* [Forecaster](forecaster.html)
 
 ![](./assets/xo5tablet.jpg)
