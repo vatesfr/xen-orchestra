@@ -7,7 +7,7 @@ import {
   map
 } from 'lodash'
 
-const COLUMNS = [
+const LOG_COLUMNS = [
   {
     default: true,
     itemRenderer: log => <div>
@@ -32,25 +32,23 @@ const INDIVIDUAL_ACTIONS = [
   {
     handler: deleteMessage,
     icon: 'delete',
-    label: 'deleteLog'
+    label: _('logDelete')
+  }
+]
+
+const GROUPED_ACTIONS = [
+  {
+    handler: logs => Promise.all(map(logs, deleteMessage)),
+    icon: 'delete',
+    label: _('deleteSelectedLogs')
   }
 ]
 
 export default class TabLogs extends Component {
-  _deleteAllLogs = logs => Promise.all(map(logs, deleteMessage))
-
   render () {
-    const GROUPED_ACTIONS = [
-      {
-        handler: this._deleteAllLogs,
-        icon: 'delete',
-        label: 'deleteLogs'
-      }
-    ]
-
     return <SortedTable
-      collection={this.props.logs}
-      columns={COLUMNS}
+      collection={this.props.log}
+      columns={LOG_COLUMNS}
       groupedActions={GROUPED_ACTIONS}
       individualActions={INDIVIDUAL_ACTIONS}
       stateUrlParam='s'

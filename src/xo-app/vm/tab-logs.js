@@ -32,7 +32,7 @@ const INDIVIDUAL_ACTIONS = [
   {
     handler: deleteMessage,
     icon: 'delete',
-    label: 'deleteLog'
+    label: _('logDelete')
   }
 ]
 
@@ -40,7 +40,7 @@ const GROUPED_ACTIONS = [
   {
     handler: logs => Promise.all(map(logs, deleteMessage)),
     icon: 'delete',
-    label: 'deleteLogs'
+    label: _('deleteSelectedLogs')
   }
 ]
 
