@@ -21,7 +21,6 @@ import {
 } from 'xo'
 import {
   connectStore,
-  formatSize,
   formatSizeShort,
   osFamily
 } from 'utils'
@@ -132,7 +131,7 @@ export default class HostItem extends Component {
           </Col>
           <Col largeSize={2} className='hidden-md-down'>
             <span>
-              <Tooltip content={_('memoryLeftTooltip', {used: Math.round((host.memory.usage / host.memory.size) * 100), free: formatSize(host.memory.size - host.memory.usage)})}>
+              <Tooltip content={_('memoryLeftTooltip', {used: Math.round((host.memory.usage / host.memory.size) * 100), free: formatSizeShort(host.memory.size - host.memory.usage)})}>
                 <progress style={{margin: 0}} className='progress' value={host.memory.usage / host.memory.size * 100} max='100' />
               </Tooltip>
             </span>

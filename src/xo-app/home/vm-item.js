@@ -26,7 +26,7 @@ import {
 import {
   addSubscriptions,
   connectStore,
-  formatSize,
+  formatSizeShort,
   osFamily
 } from 'utils'
 import {
@@ -165,9 +165,9 @@ export default class VmItem extends Component {
             <span>
               {vm.CPUs.number}x <Icon icon='cpu' />
               {' '}&nbsp;{' '}
-              {formatSize(vm.memory.size)} <Icon icon='memory' />
+              {formatSizeShort(vm.memory.size)} <Icon icon='memory' />
               {' '}&nbsp;{' '}
-              {formatSize(this.props.totalDiskSize)} <Icon icon='disk' />
+              {formatSizeShort(this.props.totalDiskSize)} <Icon icon='disk' />
               {' '}&nbsp;{' '}
               {isEmpty(vm.snapshots)
                 ? null

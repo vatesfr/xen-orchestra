@@ -20,7 +20,7 @@ import {
 } from 'xo'
 import {
   connectStore,
-  formatSize
+  formatSizeShort
 } from 'utils'
 import {
   createGetObjectsOfType,
@@ -155,7 +155,7 @@ export default class PoolItem extends Component {
           </Col>
           <Col largeSize={4} className='hidden-lg-down'>
             <span>
-              <Tooltip content={_('memoryLeftTooltip', {used: Math.round((hostMetrics.memoryUsage / hostMetrics.memoryTotal) * 100), free: formatSize(hostMetrics.memoryTotal - hostMetrics.memoryUsage)})}>
+              <Tooltip content={_('memoryLeftTooltip', {used: Math.round((hostMetrics.memoryUsage / hostMetrics.memoryTotal) * 100), free: formatSizeShort(hostMetrics.memoryTotal - hostMetrics.memoryUsage)})}>
                 <progress style={{margin: 0}} className='progress' value={(hostMetrics.memoryUsage / hostMetrics.memoryTotal) * 100} max='100' />
               </Tooltip>
             </span>
@@ -180,7 +180,7 @@ export default class PoolItem extends Component {
               {' '}
               {hostMetrics.cpus}x <Icon icon='cpu' />
               {' '}
-              {formatSize(hostMetrics.memoryTotal)}
+              {formatSizeShort(hostMetrics.memoryTotal)}
             </span>
           </Col>
           <Col mediumSize={4} className={styles.itemExpanded}>

@@ -27,7 +27,7 @@ import {
 } from 'xo'
 import {
   connectStore,
-  formatSize
+  formatSizeShort
 } from 'utils'
 
 import styles from './index.css'
@@ -133,11 +133,11 @@ export default class SrItem extends Component {
             {isShared ? _('srSharedType', { type: sr.SR_type }) : sr.SR_type}
           </Col>
           <Col smallSize={2} mediumSize={2} largeSize={2}>
-            {formatSize(sr.size)}
+            {formatSizeShort(sr.size)}
           </Col>
           <Col largeSize={2} className='hidden-md-down'>
             {sr.size > 0 &&
-              <Tooltip content={_('spaceLeftTooltip', {used: String(Math.round((sr.physical_usage / sr.size) * 100)), free: formatSize(sr.size - sr.physical_usage)})}>
+              <Tooltip content={_('spaceLeftTooltip', {used: String(Math.round((sr.physical_usage / sr.size) * 100)), free: formatSizeShort(sr.size - sr.physical_usage)})}>
                 <progress style={{margin: 0}} className='progress' value={(sr.physical_usage / sr.size) * 100} max='100' />
               </Tooltip>
             }
