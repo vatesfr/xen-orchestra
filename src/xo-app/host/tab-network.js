@@ -175,7 +175,7 @@ class PifItemMode extends Component {
 @connectStore(() => ({
   vifsByNetwork: createGetObjectsOfType('VIF').groupBy('$network')
 }))
-class PifItemInUse extends Component {
+class PifItemControl extends Component {
   _editNetwork = () => {
     const { pif, networks } = this.props
     return editNetwork(pif.$network, { defaultIsLocked: !networks[pif.$network].defaultIsLocked })
@@ -233,7 +233,7 @@ const COLUMNS = [
     sortCriteria: 'mtu'
   },
   {
-    itemRenderer: (pif, networks) => <PifItemInUse pif={pif} networks={networks} />,
+    itemRenderer: (pif, networks) => <PifItemControl pif={pif} networks={networks} />,
     name: _('defaultLockingMode')
   },
   {
