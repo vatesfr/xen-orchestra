@@ -13,7 +13,6 @@ import { confirm } from 'modal'
 import { connectStore, noop } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import { error } from 'notification'
-import { filter, includes } from 'lodash'
 import { Select, Number } from 'editable'
 import { Toggle } from 'form'
 import {
@@ -217,9 +216,7 @@ class PifItemInUse extends Component {
 
 const COLUMNS = [
   {
-    itemRenderer: pif => {
-      return pif.device
-    },
+    itemRenderer: pif => pif.device,
     default: true,
     name: _('pifDeviceLabel'),
     sortCriteria: 'device'
@@ -232,9 +229,7 @@ const COLUMNS = [
     sortCriteria: (pif, networks) => networks[pif.$network].name_label
   },
   {
-    itemRenderer: (pif, networks) => {
-      return <PifItemVlan pif={pif} networks={networks} />
-    },
+    component: PifItemVlan,
     name: _('pifVlanLabel'),
     sortCriteria: 'vlan'
   },
@@ -253,16 +248,12 @@ const COLUMNS = [
     sortCriteria: 'mode'
   },
   {
-    itemRenderer: pif => {
-      return pif.mac
-    },
+    itemRenderer: pif => pif.mac,
     name: _('pifMacLabel'),
     sortCriteria: 'mac'
   },
   {
-    itemRenderer: pif => {
-      return pif.mtu
-    },
+    itemRenderer: pif => pif.mtu,
     name: _('pifMtuLabel'),
     sortCriteria: 'mtu'
   },
@@ -273,31 +264,29 @@ const COLUMNS = [
     name: _('defaultLockingMode')
   },
   {
-    itemRenderer: pif => {
-      return <div>
-        <StateButton
-          disabledLabel={_('pifDisconnected')}
-          disabledHandler={connectPif}
-          disabledTooltip={_('connectPif')}
+    itemRenderer: pif => <div>
+      <StateButton
+        disabledLabel={_('pifDisconnected')}
+        disabledHandler={connectPif}
+        disabledTooltip={_('connectPif')}
 
-          enabledLabel={_('pifConnected')}
-          enabledHandler={disconnectPif}
-          enabledTooltip={_('disconnectPif')}
+        enabledLabel={_('pifConnected')}
+        enabledHandler={disconnectPif}
+        enabledTooltip={_('disconnectPif')}
 
-          disabled={pif.attached && (pif.management || pif.disallowUnplug)}
-          handlerParam={pif}
-          state={pif.attached}
+        disabled={pif.attached && (pif.management || pif.disallowUnplug)}
+        handlerParam={pif}
+        state={pif.attached}
+      />
+      {' '}
+      <Tooltip content={pif.carrier ? _('pifPhysicallyConnected') : _('pifPhysicallyDisconnected')}>
+        <Icon
+          icon='network'
+          size='lg'
+          className={pif.carrier ? 'text-success' : 'text-muted'}
         />
-        {' '}
-        <Tooltip content={pif.carrier ? _('pifPhysicallyConnected') : _('pifPhysicallyDisconnected')}>
-          <Icon
-            icon='network'
-            size='lg'
-            className={pif.carrier ? 'text-success' : 'text-muted'}
-          />
-        </Tooltip>
-      </div>
-    },
+      </Tooltip>
+    </div>,
     name: _('pifStatusLabel')
   }
 ]
@@ -310,15 +299,15 @@ const INDIVIDUAL_ACTIONS = [
   }
 ]
 
-export default class TabNetwork extends Component {
-  _groupedActions = [
-    {
-      label: 'deletePifs',
-      icon: 'delete',
-      handler: (ids) => deletePifs(filter(this.props.pifs, pif => includes(ids, pif.id)))
-    }
-  ]
+const GROUPED_ACTIONS = [
+  {
+    label: 'deletePifs',
+    icon: 'delete',
+    handler: deletePifs
+  }
+]
 
+export default class TabNetwork extends Component {
   render () {
     return <Container>
       <Row>
@@ -337,7 +326,7 @@ export default class TabNetwork extends Component {
           <SortedTable
             collection={this.props.pifs}
             columns={COLUMNS}
-            groupedActions={this._groupedActions}
+            groupedActions={GROUPED_ACTIONS}
             individualActions={INDIVIDUAL_ACTIONS}
             stateUrlParam='s'
             userData={this.props.networks}
