@@ -91,9 +91,9 @@ class ConfigureIpModal extends Component {
 
 class PifItemVlan extends Component {
   _editPif = vlan =>
-    editPif(this.props.pif, { vlan })
+    editPif(this.props.item, { vlan })
   render () {
-    const { pif } = this.props
+    const pif = this.props.item
     return <div>{pif.vlan === -1
       ? 'None'
       : <Number value={pif.vlan} onChange={this._editPif}>
@@ -203,9 +203,7 @@ const COLUMNS = [
     sortCriteria: 'device'
   },
   {
-    itemRenderer: (pif, networks) => {
-      return networks[pif.$network].name_label
-    },
+    itemRenderer: (pif, networks) => networks[pif.$network].name_label,
     name: _('pifNetworkLabel'),
     sortCriteria: (pif, networks) => networks[pif.$network].name_label
   },
@@ -215,16 +213,12 @@ const COLUMNS = [
     sortCriteria: 'vlan'
   },
   {
-    itemRenderer: (pif, networks) => {
-      return <PifItemIp pif={pif} networks={networks} />
-    },
+    itemRenderer: (pif, networks) => <PifItemIp pif={pif} networks={networks} />,
     name: _('pifAddressLabel'),
     sortCriteria: 'ip'
   },
   {
-    itemRenderer: (pif, networks) => {
-      return <PifItemMode pif={pif} networks={networks} />
-    },
+    itemRenderer: (pif, networks) => <PifItemMode pif={pif} networks={networks} />,
     name: _('pifModeLabel'),
     sortCriteria: 'mode'
   },
@@ -239,9 +233,7 @@ const COLUMNS = [
     sortCriteria: 'mtu'
   },
   {
-    itemRenderer: (pif, networks) => {
-      return <PifItemInUse pif={pif} networks={networks} />
-    },
+    itemRenderer: (pif, networks) => <PifItemInUse pif={pif} networks={networks} />,
     name: _('defaultLockingMode')
   },
   {
