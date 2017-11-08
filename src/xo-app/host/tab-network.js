@@ -104,6 +104,26 @@ class PifItemVlan extends Component {
   }
 }
 
+const reconfigureIp = (pif, mode) => {
+  if (mode === 'Static') {
+    return confirm({
+      icon: 'ip',
+      title: _('pifConfigureIp'),
+      body: <ConfigureIpModal pif={pif} />
+    }).then(
+      params => {
+        if (!params.ip || !params.netmask) {
+          error(_('configIpErrorTitle'), _('configIpErrorMessage'))
+          return
+        }
+        return reconfigurePifIp(pif, { mode, ...params })
+      },
+      noop
+    )
+  }
+  return reconfigurePifIp(pif, { mode })
+}
+
 class PifItemIp extends Component {
   state = { configModes: [] }
 
@@ -130,7 +150,7 @@ class PifItemIp extends Component {
     )
   }
 
-  _onEditIp = () => this._configIp()
+  _onEditIp = () => reconfigureIp(this.props.pif, 'Static')
 
   render () {
     const { pif } = this.props
@@ -154,23 +174,7 @@ class PifItemMode extends Component {
   }
 
   _configIp = mode => {
-    if (mode === 'Static') {
-      return confirm({
-        icon: 'ip',
-        title: _('pifConfigureIp'),
-        body: <ConfigureIpModal pif={this.props.pif} />
-      }).then(
-        params => {
-          if (!params.ip || !params.netmask) {
-            error(_('configIpErrorTitle'), _('configIpErrorMessage'))
-            return
-          }
-          return reconfigurePifIp(this.props.pif, { mode, ...params })
-        },
-        noop
-      )
-    }
-    return reconfigurePifIp(this.props.pif, { mode })
+    reconfigureIp(this.props.pif, mode)
   }
 
   render () {
@@ -297,6 +301,7 @@ const COLUMNS = [
     name: _('pifStatusLabel')
   }
 ]
+
 const INDIVIDUAL_ACTIONS = [
   {
     handler: deletePif,

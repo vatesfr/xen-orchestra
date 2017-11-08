@@ -1295,7 +1295,7 @@ export const deletePifs = pifs => (
     title: _('deletePifs'),
     body: _('deletePifsConfirm')
   }).then(
-    () => map(pifs, pif => _call('pif.delete', { pif: resolveId(pif) })),
+    () => Promise.all(map(pifs, pif => _call('pif.delete', { pif: resolveId(pif) }))),
     noop
   )
 )
