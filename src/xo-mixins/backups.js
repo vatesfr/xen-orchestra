@@ -432,6 +432,7 @@ export default class {
       delta.vm.name_label += ` (${date})`
       delta.vm.other_config[TAG_SOURCE_VM] = uuid
       delta.vm.other_config[TAG_EXPORT_TIME] = date
+      delta.vm.tags = [ ...delta.vm.tags, 'Continuous Replication' ]
 
       const { streams } = delta
       forEach(delta.vdis, (vdi, key) => {
