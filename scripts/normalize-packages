@@ -12,6 +12,7 @@ require('exec-promise')(() =>
       url: 'https://github.com/vatesfr/xen-orchestra.git'
     }
 
+    delete pkg.jest
     delete pkg.standard
 
     const { devDependencies, scripts } = pkg
@@ -19,6 +20,7 @@ require('exec-promise')(() =>
       delete devDependencies.commitizen
       delete devDependencies.ghooks
       delete devDependencies.husky
+      delete devDependencies.jest
       delete devDependencies.standard
       delete devDependencies['babel-eslint']
       delete devDependencies['cz-conventional-changelog']

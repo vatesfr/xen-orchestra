@@ -3,17 +3,28 @@
     "babel-eslint": "^8.0.1",
     "exec-promise": "^0.7.0",
     "husky": "^0.14.3",
+    "jest": "^21.2.1",
     "promise-toolbox": "^0.9.5",
     "standard": "^10.0.3"
   },
   "engines": {
     "yarn": "^1.2.1"
   },
+  "jest": {
+    "collectCoverage": true,
+    "testEnvironment": "node",
+    "testPathIgnorePatterns": [
+      "/dist/",
+      "/xo-vmdk-to-vhd/"
+    ],
+    "testRegex": "\\.spec\\.js$"
+  },
   "private": true,
   "scripts": {
     "commitmsg": "yarn test",
+    "dev-test": "jest --bail --watch",
     "prepublish": "scripts/run-script prepublish",
-    "pretest": "standard --fix",
+    "pretest": "standard --fix && jest",
     "test": "scripts/run-script test"
   },
   "standard": {

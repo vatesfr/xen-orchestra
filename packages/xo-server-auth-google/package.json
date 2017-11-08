@@ -43,19 +43,16 @@
     "babel-preset-stage-3": "^6.24.1",
     "cross-env": "^5.1.1",
     "dependency-check": "^2.8.0",
-    "jest": "^21.2.1",
     "rimraf": "^2.6.1"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
     "commitmsg": "npm test",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
-    "dev-test": "jest --bail --watch",
     "posttest": "dependency-check ./package.json",
     "prebuild": "rimraf dist/",
     "predev": "npm run prebuild",
-    "prepublish": "npm run build",
-    "test": "jest"
+    "prepublish": "npm run build"
   },
   "babel": {
     "env": {
@@ -79,12 +76,5 @@
       ],
       "stage-3"
     ]
-  },
-  "jest": {
-    "testEnvironment": "node",
-    "roots": [
-      "<rootDir>/src"
-    ],
-    "testRegex": "\\.spec\\.js$"
   }
 }

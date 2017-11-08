@@ -34,18 +34,15 @@
     "cross-env": "^5.0.1",
     "deep-freeze": "^0.0.1",
     "dependency-check": "^2.9.1",
-    "jest": "^21.2.1",
     "rimraf": "^2.6.1"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
-    "dev-test": "jest --bail --watch",
     "posttest": "dependency-check ./package.json",
     "prebuild": "rimraf dist/",
     "predev": "yarn run prebuild",
-    "prepublish": "yarn run build",
-    "test": "jest"
+    "prepublish": "yarn run build"
   },
   "babel": {
     "plugins": [
@@ -63,11 +60,5 @@
       ],
       "stage-3"
     ]
-  },
-  "jest": {
-    "roots": [
-      "<rootDir>/src"
-    ],
-    "testRegex": "\\.spec\\.js$"
   }
 }
