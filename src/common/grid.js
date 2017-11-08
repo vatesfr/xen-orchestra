@@ -3,6 +3,7 @@ import React from 'react'
 
 import propTypes from './prop-types-decorator'
 
+// A column can contain content or a row.
 export const Col = propTypes({
   className: propTypes.string,
   size: propTypes.number,
@@ -39,6 +40,8 @@ export const Col = propTypes({
   {children}
 </div>)
 
+// This is the root component of the grid layout, containers should not be
+// nested.
 export const Container = propTypes({
   className: propTypes.string
 })(({
@@ -48,6 +51,7 @@ export const Container = propTypes({
   {children}
 </div>)
 
+// Only columns can be children of a row.
 export const Row = propTypes({
   className: propTypes.string
 })(({
