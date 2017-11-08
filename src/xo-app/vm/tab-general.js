@@ -27,7 +27,7 @@ import {
 import {
   CpuSparkLines,
   MemorySparkLines,
-  VifSparkLines,
+  NetworkSparkLines,
   XvdSparkLines
 } from 'xo-sparklines'
 
@@ -78,7 +78,7 @@ export default connectStore(() => {
     </Col>
     <Col mediumSize={3}>
       <BlockLink to={`/vms/${vm.id}/network`}><h2>{vm.VIFs.length}x <Icon icon='network' size='lg' /></h2></BlockLink>
-      <BlockLink to={`/vms/${vm.id}/stats`}>{statsOverview && <VifSparkLines data={statsOverview} />}</BlockLink>
+      <BlockLink to={`/vms/${vm.id}/stats`}>{statsOverview && <NetworkSparkLines data={statsOverview} />}</BlockLink>
     </Col>
     <Col mediumSize={3}>
       <BlockLink to={`/vms/${vm.id}/disks`}><h2>{formatSize(vmTotalDiskSpace)} <Icon icon='disk' size='lg' /></h2></BlockLink>

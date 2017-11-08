@@ -13,7 +13,7 @@ import { Container, Row, Col } from 'grid'
 import {
   CpuSparkLines,
   MemorySparkLines,
-  PifSparkLines,
+  NetworkSparkLines,
   LoadSparkLines
 } from 'xo-sparklines'
 
@@ -59,7 +59,7 @@ export default class extends Component {
           <Col mediumSize={3}>
             <Icon icon='network' size={2} />
             {' '}
-            <PifSparkLines data={statsOverview} />
+            <NetworkSparkLines data={statsOverview} />
           </Col>
           <Col mediumSize={3}>
             <Icon icon='disk' size={2} />

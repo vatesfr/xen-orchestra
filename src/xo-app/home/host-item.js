@@ -31,54 +31,9 @@ import {
   createGetObjectsOfType,
   createSelector
 } from 'selectors'
-import {
-  CpuSparkLines,
-  LoadSparkLines,
-  PifSparkLines
-} from 'xo-sparklines'
 
+import MiniStats from './mini-stats'
 import styles from './index.css'
-
-const MINI_STATS_PROPS = {
-  height: 10,
-  strokeWidth: 0.2,
-  width: 50
-}
-class MiniStats extends Component {
-  _fetch = () => {
-    fetchHostStats(this.props.hostId).then(stats => {
-      this.setState({ stats })
-    })
-  }
-
-  componentWillMount () {
-    this._fetch()
-    this.subscriptionId = setInterval(this._fetch, 5e3)
-  }
-  componentWillUnmount () {
-    clearInterval(this.subscriptionId)
-  }
-
-  render () {
-    const { stats } = this.state
-
-    if (!stats) {
-      return <Icon icon='loading' />
-    }
-
-    return <Row>
-      <Col mediumSize={4} className={styles.itemExpanded}>
-        <CpuSparkLines data={stats} {...MINI_STATS_PROPS} />
-      </Col>
-      <Col mediumSize={4} className={styles.itemExpanded}>
-        <PifSparkLines data={stats} {...MINI_STATS_PROPS} />
-      </Col>
-      <Col mediumSize={4} className={styles.itemExpanded}>
-        <LoadSparkLines data={stats} {...MINI_STATS_PROPS} />
-      </Col>
-    </Row>
-  }
-}
 
 @connectStore(() => ({
   container: createGetObject((_, props) => props.item.$pool),
@@ -97,6 +52,7 @@ export default class HostItem extends Component {
   }
 
   _addTag = tag => addTag(this.props.item.id, tag)
+  _fetchStats = () => fetchHostStats(this.props.item.id)
   _removeTag = tag => removeTag(this.props.item.id, tag)
   _setNameDescription = nameDescription => editHost(this.props.item, { name_description: nameDescription })
   _setNameLabel = nameLabel => editHost(this.props.item, { name_label: nameLabel })
@@ -197,9 +153,6 @@ export default class HostItem extends Component {
       </BlockLink>
       {(this.state.expanded || expandAll) &&
         <Row>
-          <Col mediumSize={6} className={styles.itemExpanded}>
-            <MiniStats hostId={this.props.item} />
-          </Col>
           <Col mediumSize={2} className={styles.itemExpanded} style={{ marginTop: '0.3rem' }}>
             <span>
               {host.cpus.cores}x <Icon icon='cpu' />
@@ -213,6 +166,9 @@ export default class HostItem extends Component {
             <span style={{fontSize: '1.4em'}}>
               <HomeTags type='host' labels={host.tags} onDelete={this._removeTag} onAdd={this._addTag} />
             </span>
+          </Col>
+          <Col mediumSize={6} className={styles.itemExpanded}>
+            <MiniStats fetch={this._fetchStats} />
           </Col>
         </Row>
       }

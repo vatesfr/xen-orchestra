@@ -16,6 +16,7 @@ import {
 import {
   addTag,
   editVm,
+  fetchVmStats,
   migrateVm,
   removeTag,
   startVm,
@@ -36,6 +37,7 @@ import {
   createSumBy
 } from 'selectors'
 
+import MiniStats from './mini-stats'
 import styles from './index.css'
 
 @addSubscriptions({
@@ -63,6 +65,7 @@ export default class VmItem extends Component {
   )
 
   _addTag = tag => addTag(this.props.item.id, tag)
+  _fetchStats = () => fetchVmStats(this.props.item.id)
   _migrateVm = host => migrateVm(this.props.item, host)
   _removeTag = tag => removeTag(this.props.item.id, tag)
   _setNameDescription = nameDescription => editVm(this.props.item, { name_description: nameDescription })
@@ -158,7 +161,7 @@ export default class VmItem extends Component {
       </BlockLink>
       {(this.state.expanded || expandAll) &&
         <Row>
-          <Col mediumSize={3} className={styles.itemExpanded}>
+          <Col mediumSize={4} className={styles.itemExpanded}>
             <span>
               {vm.CPUs.number}x <Icon icon='cpu' />
               {' '}&nbsp;{' '}
@@ -173,16 +176,19 @@ export default class VmItem extends Component {
               {vm.docker ? <Icon icon='vm-docker' /> : null}
             </span>
           </Col>
-          <Col largeSize={3} className={styles.itemExpanded}>
-            {map(vm.addresses, address => <span key={address} className='tag tag-info tag-ip'>{address}</span>)}
-          </Col>
-          <Col mediumSize={3} className='hidden-sm-down'>
+          <Col mediumSize={2} className='hidden-sm-down'>
             {resourceSet && <span>{_('homeResourceSet', { resourceSet: <Link to={`self?resourceSet=${resourceSet.id}`}>{resourceSet.name}</Link> })}</span>}
           </Col>
-          <Col mediumSize={3}>
+          <Col mediumSize={6} className={styles.itemExpanded}>
+            {map(vm.addresses, address => <span key={address} className='tag tag-info tag-ip'>{address}</span>)}
+          </Col>
+          <Col mediumSize={6}>
             <span style={{fontSize: '1.4em'}}>
               <HomeTags type='VM' labels={vm.tags} onDelete={this._removeTag} onAdd={this._addTag} />
             </span>
+          </Col>
+          <Col mediumSize={6} className={styles.itemExpanded}>
+            {this._isRunning && <MiniStats fetch={this._fetchStats} />}
           </Col>
         </Row>
       }

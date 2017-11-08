@@ -14,7 +14,7 @@ import { Container, Row, Col } from 'grid'
 import {
   CpuSparkLines,
   MemorySparkLines,
-  VifSparkLines,
+  NetworkSparkLines,
   XvdSparkLines
 } from 'xo-sparklines'
 
@@ -89,7 +89,7 @@ export default class TabConsole extends Component {
             <p>
               <Icon icon='network' size={2} />
               {' '}
-              <VifSparkLines data={statsOverview} />
+              <NetworkSparkLines data={statsOverview} />
             </p>
           </Col>
           <Col mediumSize={3}>
