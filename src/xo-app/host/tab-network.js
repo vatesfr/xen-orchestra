@@ -11,6 +11,7 @@ import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import { confirm } from 'modal'
 import { connectStore, noop } from 'utils'
+import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
 import { error } from 'notification'
 import { Select, Number } from 'editable'
@@ -88,7 +89,6 @@ class ConfigureIpModal extends Component {
 @connectStore(() => ({
   vifsByNetwork: createGetObjectsOfType('VIF').groupBy('$network')
 }))
-
 class PifItemVlan extends Component {
   _editPif = vlan =>
     editPif(this.props.item, { vlan })
@@ -155,9 +155,7 @@ class PifItemMode extends Component {
     )
   }
 
-  _configIp = mode => {
-    reconfigureIp(this.props.pif, mode)
-  }
+  _configIp = mode => reconfigureIp(this.props.pif, mode)
 
   render () {
     const { pif } = this.props
@@ -175,7 +173,7 @@ class PifItemMode extends Component {
 @connectStore(() => ({
   vifsByNetwork: createGetObjectsOfType('VIF').groupBy('$network')
 }))
-class PifItemControl extends Component {
+class PifItemLock extends Component {
   _editNetwork = () => {
     const { pif, networks } = this.props
     return editNetwork(pif.$network, { defaultIsLocked: !networks[pif.$network].defaultIsLocked })
@@ -197,8 +195,8 @@ class PifItemControl extends Component {
 
 const COLUMNS = [
   {
-    itemRenderer: pif => pif.device,
     default: true,
+    itemRenderer: pif => pif.device,
     name: _('pifDeviceLabel'),
     sortCriteria: 'device'
   },
@@ -233,7 +231,7 @@ const COLUMNS = [
     sortCriteria: 'mtu'
   },
   {
-    itemRenderer: (pif, networks) => <PifItemControl pif={pif} networks={networks} />,
+    itemRenderer: (pif, networks) => <PifItemLock pif={pif} networks={networks} />,
     name: _('defaultLockingMode')
   },
   {
@@ -274,9 +272,9 @@ const INDIVIDUAL_ACTIONS = [
 
 const GROUPED_ACTIONS = [
   {
-    label: 'deletePifs',
+    handler: deletePifs,
     icon: 'delete',
-    handler: deletePifs
+    label: _('deletePifs')
   }
 ]
 
