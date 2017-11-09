@@ -1159,7 +1159,7 @@ export const deleteVdis = vdis => (
     title: _('deleteVdisModalTitle', { nVdis: vdis.length }),
     body: _('deleteVdisModalMessage', { nVdis: vdis.length })
   }).then(
-    () => Promise.all(map(resolveIds(vdis), id => _call('vdi.delete', { id }))),
+    () => Promise.all(map(vdis, vdi => _call('vdi.delete', { id: resolveId(vdi) }))),
     noop
   )
 )
