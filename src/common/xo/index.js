@@ -1392,7 +1392,8 @@ export const deleteMessages = logs => (
     title: _('deleteLogsConfirm'),
     body: _('deleteLogsConfirmMessage')
   }).then(
-    () => Promise.all(map(logs, deleteMessage))
+    () => Promise.all(map(logs, deleteMessage)),
+    noop
   )
 )
 

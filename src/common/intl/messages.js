@@ -1438,7 +1438,7 @@ const messages = {
   logDeleteAllTitle: 'Delete all logs',
   logDeleteAllMessage: 'Are you sure you want to delete all the logs?',
   deleteLogsConfirm: 'Delete logs',
-  deleteLogsConfirmMessage: 'Are you sure you want to delete the selected Logs?',
+  deleteLogsConfirmMessage: 'Are you sure you want to delete the selected logs?',
   logIndicationToEnable: 'Click to enable',
   logIndicationToDisable: 'Click to disable',
   reportBug: 'Report a bug',
