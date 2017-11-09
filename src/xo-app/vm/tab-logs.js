@@ -1,9 +1,10 @@
 import _ from 'intl'
-import map from 'lodash/map'
 import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
 import { connectStore } from 'utils'
-import { deleteMessage } from 'xo'
+import { deleteMessage,
+deleteMessages
+} from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import {
   createGetObjectMessages
@@ -32,15 +33,17 @@ const INDIVIDUAL_ACTIONS = [
   {
     handler: deleteMessage,
     icon: 'delete',
-    label: _('logDelete')
+    label: _('logDelete'),
+    level: 'danger'
   }
 ]
 
 const GROUPED_ACTIONS = [
   {
-    handler: logs => Promise.all(map(logs, deleteMessage)),
+    handler: deleteMessages,
     icon: 'delete',
-    label: _('deleteSelectedLogs')
+    label: _('logDeleteSelected'),
+    level: 'danger'
   }
 ]
 

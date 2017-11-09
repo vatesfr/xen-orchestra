@@ -1387,6 +1387,15 @@ export const deletePbd = pbd => _call('pbd.delete', { id: resolveId(pbd) })
 export const deleteMessage = message =>
   _call('message.delete', { id: resolveId(message) })
 
+export const deleteMessages = logs => (
+  confirm({
+    title: _('deleteLogsConfirm'),
+    body: _('deleteLogsConfirmMessage')
+  }).then(
+    Promise.all(map(logs, deleteMessage))
+  )
+)
+
 // Tags --------------------------------------------------------------
 
 export const addTag = (object, tag) =>
