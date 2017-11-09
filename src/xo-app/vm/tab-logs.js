@@ -2,13 +2,14 @@ import _ from 'intl'
 import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
 import { connectStore } from 'utils'
-import { deleteMessage,
-deleteMessages
-} from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import {
   createGetObjectMessages
 } from 'selectors'
+import {
+  deleteMessage,
+  deleteMessages
+} from 'xo'
 
 const LOG_COLUMNS = [
   {

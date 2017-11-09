@@ -1,10 +1,11 @@
 import _ from 'intl'
 import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
-import { deleteMessage,
-deleteMessages
-} from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
+import {
+  deleteMessage,
+  deleteMessages
+} from 'xo'
 
 const LOG_COLUMNS = [
   {
