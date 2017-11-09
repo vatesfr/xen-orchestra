@@ -124,6 +124,14 @@ const reconfigureIp = (pif, mode) => {
 }
 
 class PifItemIp extends Component {
+  state = { configModes: [] }
+
+  componentDidMount () {
+    getIpv4ConfigModes().then(configModes =>
+      this.setState({ configModes })
+    )
+  }
+
   _onEditIp = () => reconfigureIp(this.props.pif, 'Static')
 
   render () {
@@ -139,14 +147,6 @@ class PifItemIp extends Component {
 }
 
 class PifItemMode extends Component {
-  state = { configModes: [] }
-
-  componentDidMount () {
-    getIpv4ConfigModes().then(configModes =>
-      this.setState({ configModes })
-    )
-  }
-
   _configIp = mode => reconfigureIp(this.props.pif, mode)
 
   render () {
