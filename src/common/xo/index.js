@@ -1,20 +1,22 @@
 import asap from 'asap'
-import assign from 'lodash/assign'
 import cookies from 'cookies-js'
-import isEmpty from 'lodash/isEmpty'
-import isEqual from 'lodash/isEqual'
-import filter from 'lodash/filter'
-import forEach from 'lodash/forEach'
-import map from 'lodash/map'
-import once from 'lodash/once'
-import React from 'react'
 import fpSortBy from 'lodash/fp/sortBy'
+import React from 'react'
 import request from 'superagent'
-import size from 'lodash/size'
-import sortBy from 'lodash/sortBy'
-import throttle from 'lodash/throttle'
 import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
+import {
+  assign,
+  isEmpty,
+  isEqual,
+  forEach,
+  map,
+  once,
+  size,
+  sortBy,
+  throttle,
+  filter
+} from 'lodash'
 import { lastly, reflect, tap } from 'promise-toolbox'
 import { forbiddenOperation, noHostsAvailable } from 'xo-common/api-errors'
 import { resolve } from 'url'
