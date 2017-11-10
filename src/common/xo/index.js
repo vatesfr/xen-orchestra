@@ -1926,7 +1926,7 @@ export const deleteSshKey = key => (
     () => {
       const { preferences } = xo.user
       return _setUserPreferences({
-        sshKeys: filter(preferences && preferences.sshKeys, k => k.key !== key.key)
+        sshKeys: filter(preferences && preferences.sshKeys, k => k.key !== resolveId(key))
       })
     },
     noop
@@ -1942,7 +1942,7 @@ export const deleteSshKeys = keys => (
       const { preferences } = xo.user
       const Keys = map(keys, k => k.key)
       return _setUserPreferences({
-        sshKeys: filter(preferences && preferences.sshKeys, k => !includes(Keys, k.key))
+        sshKeys: filter(preferences && preferences.sshKeys, k => !includes(resolveIds(Keys), k.key))
       })
     },
     noop
