@@ -224,10 +224,14 @@ class UserFilters extends Component {
 }
 
 // ===================================================================
+const SSH_KEY_STYLE = { wordWrap: 'break-word' }
+
 const COLUMNS = [
   {
     default: true,
-    itemRenderer: sshKey => sshKey.key,
+    itemRenderer: sshKey => <span style={SSH_KEY_STYLE}>
+      {sshKey.key}
+    </span>,
     name: _('key'),
     sortCriteria: 'key'
   },
