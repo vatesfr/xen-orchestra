@@ -7,15 +7,15 @@ import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
 import {
   assign,
+  filter,
+  forEach,
   isEmpty,
   isEqual,
-  forEach,
   map,
   once,
   size,
   sortBy,
-  throttle,
-  filter
+  throttle
 } from 'lodash'
 import { lastly, reflect, tap } from 'promise-toolbox'
 import { forbiddenOperation, noHostsAvailable } from 'xo-common/api-errors'
