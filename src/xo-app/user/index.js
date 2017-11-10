@@ -227,9 +227,7 @@ class UserFilters extends Component {
 const COLUMNS = [
   {
     default: true,
-    itemRenderer: sshKey => <span size={8} style={SSH_KEY_STYLE}>
-      {sshKey.key}
-    </span>,
+    itemRenderer: sshKey => sshKey.key,
     name: _('key'),
     sortCriteria: 'key'
   },
