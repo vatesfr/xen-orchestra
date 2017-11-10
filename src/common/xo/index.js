@@ -17,7 +17,6 @@ import { createBackoff } from 'jsonrpc-websocket-client'
 import { lastly, reflect, tap } from 'promise-toolbox'
 import { forbiddenOperation, noHostsAvailable } from 'xo-common/api-errors'
 import { resolve } from 'url'
-
 import _ from '../intl'
 import invoke from '../invoke'
 import logError from '../log-error'
@@ -1439,8 +1438,22 @@ export const deleteSchedule = schedule =>
     subscribeSchedules.forceRefresh
   )
 
-export const disableSchedule = id =>
-  _call('scheduler.disable', { id })::tap(subscribeScheduleTable.forceRefresh)
+export const deleteSchedules = schedules => (
+  confirm({
+    title: _('deleteSchedulesModalTitle', { nSchedules: schedules.length }),
+    body: _('deleteSchedulesModalMessage', { nSchedules: schedules.length }),
+  }).then(() =>
+    map(schedules, schedule => _call('schedule.delete', { id: resolveId(schedule) })::tap(
+      subscribeSchedules.forceRefresh)
+    )
+  )
+)
+
+export const disableSchedule = id => (
+  _call('scheduler.disable', { id })::tap(
+    subscribeScheduleTable.forceRefresh
+  )
+)
 
 export const editSchedule = ({
   id,
