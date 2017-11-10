@@ -224,11 +224,44 @@ class UserFilters extends Component {
 }
 
 // ===================================================================
+const COLUMNS = [
+  {
+    default: true,
+    itemRenderer: sshKey => <span size={8} style={SSH_KEY_STYLE}>
+      {sshKey.key}
+    </span>,
+    name: _('key'),
+    sortCriteria: 'key'
+  },
+  {
+    itemRenderer: sshKey => sshKey.title,
+    name: _('title'),
+    sortCriteria: 'title'
+  }
+]
+
+const INDIVIDUAL_ACTIONS = [
+  {
+    handler: deleteSshKey,
+    icon: 'delete',
+    label: _('deleteSshKey')
+  }
+]
+
+const GROUPED_ACTIONS = [
+  {
+    handler: deleteSshKeys,
+    icon: 'delete',
+    label: _('deleteSshKeys')
+  }
+]
 
 const SshKeys = addSubscriptions({
   user: subscribeCurrentUser
 })(({ user }) => {
   const sshKeys = user && user.preferences && user.preferences.sshKeys
+
+  const sshKeysWithIds = map(sshKeys, sshKey => ({ ...sshKey, id: sshKey.key }))
 
   return <div>
     <Card>
