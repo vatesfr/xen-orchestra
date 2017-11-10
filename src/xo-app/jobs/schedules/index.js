@@ -198,6 +198,7 @@ export default class Schedules extends Component {
     } = this.state
     const userData = {jobs}
     return <div>
+
       <h2>{_('newSchedule')}</h2>
       <form id='newScheduleForm'>
         <div className='form-group'>
@@ -232,7 +233,6 @@ export default class Schedules extends Component {
           : <span><Upgrade place='health' available={4} /></span>
         }
       </div>
-
       {schedules !== undefined && <div>
         <h2>{_('jobSchedules')}</h2>
         <SortedTable
@@ -244,6 +244,5 @@ export default class Schedules extends Component {
         />
       </div>
       }
-    </div>
   }
 }
