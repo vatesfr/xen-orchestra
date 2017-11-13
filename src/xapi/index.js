@@ -2123,7 +2123,7 @@ export default class Xapi extends XapiBase {
 
     // First, create a small VDI (10MB) which will become the ConfigDrive
     const buffer = fatfsBufferInit()
-    const vdi = await this.createVdi(buffer.length, { name_label: 'XO CloudConfigDrive', name_description: undefined, sr: sr.$ref })
+    const vdi = await this.createVdi(buffer.length, { name_label: 'XO CloudConfigDrive', sr: sr.$ref })
     $onFailure(() => this._deleteVdi(vdi))
 
     // Then, generate a FAT fs
