@@ -75,7 +75,8 @@ class XapiError extends BaseError {
     this.params = params
 
     // slot than can be assigned later
-    this.method = null
+    this.method = undefined
+    this.url = undefined
   }
 }
 
@@ -548,6 +549,13 @@ export class Xapi extends EventEmitter {
 
       return promise.then(response => {
         const { req } = response
+
+        if (taskResult !== undefined) {
+          taskResult = taskResult.catch(error => {
+            error.url = response.url
+            throw error
+          })
+        }
 
         if (req.finished) {
           req.abort()

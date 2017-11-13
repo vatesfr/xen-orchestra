@@ -3134,13 +3134,13 @@ html-minifier@^3.4.0:
     relateurl "0.2.x"
     uglify-js "3.1.x"
 
-http-request-plus@^0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/http-request-plus/-/http-request-plus-0.4.0.tgz#f9cfe550094c82d4a8d93b6252ff8f37349a8123"
+http-request-plus@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/http-request-plus/-/http-request-plus-0.5.0.tgz#70f93ad514b77c4d31bbfa877f802ad267c15d34"
   dependencies:
     is-redirect "^1.0.0"
     lodash "^4.17.4"
-    promise-toolbox "^0.9.1"
+    promise-toolbox "^0.9.5"
 
 http-signature@~1.1.0:
   version "1.1.1"
@@ -4940,7 +4940,7 @@ promise-toolbox@^0.8.3:
   dependencies:
     make-error "^1.2.3"
 
-promise-toolbox@^0.9.1, promise-toolbox@^0.9.5:
+promise-toolbox@^0.9.5:
   version "0.9.5"
   resolved "https://registry.yarnpkg.com/promise-toolbox/-/promise-toolbox-0.9.5.tgz#ca33e53714cfde924a9bd3d2d23c53b21cb75acc"
   dependencies:
