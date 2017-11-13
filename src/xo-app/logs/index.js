@@ -71,7 +71,7 @@ const JobCallStateInfos = ({ end, error }) => {
   )
 }
 
-const JobTransferredDataInfos = ({ start, end, size }) => (
+const JobDataInfos = ({ start, end, size, merge }) => (
   <div>
     <span>
       <strong>{_('jobTransferredDataSize')}</strong> {formatSize(size)}
@@ -79,8 +79,24 @@ const JobTransferredDataInfos = ({ start, end, size }) => (
     <br />
     <span>
       <strong>{_('jobTransferredDataSpeed')}</strong>{' '}
-      {formatSpeed(size, end - start)}
+      {formatSpeed(
+        size,
+        merge !== undefined ? end - start - merge.duration : end - start
+      )}
     </span>
+    {merge !== undefined && (
+      <div>
+        <br />
+        <span>
+          <strong>{_('jobMergedDataSize')}</strong> {formatSize(merge.size)}
+        </span>
+        <br />
+        <span>
+          <strong>{_('jobMergedDataSpeed')}</strong>{' '}
+          {formatSpeed(merge.size, merge.duration)}
+        </span>
+      </div>
+    )}
   </div>
 )
 
@@ -150,10 +166,11 @@ class Log extends BaseComponent {
                     )}
                   {returnedValue != null &&
                     returnedValue.size !== undefined && (
-                      <JobTransferredDataInfos
+                      <JobDataInfos
                         start={start}
                         end={end}
                         size={returnedValue.size}
+                        merge={returnedValue.merge}
                       />
                     )}
                   {id !== undefined && (

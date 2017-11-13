@@ -240,6 +240,8 @@ const messages = {
   jobCallInProgess: 'In progress',
   jobTransferredDataSize: 'size:',
   jobTransferredDataSpeed: 'speed:',
+  jobMergedDataSize: 'merge size:',
+  jobMergedDataSpeed: 'merge speed:',
   allJobCalls: 'All',
   job: 'Job',
   jobModalTitle: 'Job {job}',
