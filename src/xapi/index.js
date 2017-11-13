@@ -2139,12 +2139,9 @@ export default class Xapi extends XapiBase {
       fs.writeFile('openstack/latest/user_data', config)
     ])
 
-    // ignore VDI_IO_ERROR errors, I (JFT) don't understand why they
-    // are emitted because it works
-    await this._importVdiContent(vdi, buffer, VDI_FORMAT_RAW)::pCatch(
-      { code: 'VDI_IO_ERROR' },
-      console.warn
-    )
+    // ignore errors, I (JFT) don't understand why they are emitted
+    // because it works
+    await this._importVdiContent(vdi, buffer, VDI_FORMAT_RAW).catch(console.warn)
 
     await this._createVbd(vm, vdi)
   }
