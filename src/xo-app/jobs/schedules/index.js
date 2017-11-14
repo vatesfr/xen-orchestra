@@ -233,8 +233,17 @@ export default class Schedules extends Component {
           : <span><Upgrade place='health' available={4} /></span>
         }
       </div>
+<<<<<<< HEAD
       {schedules !== undefined && <div>
         <h2>{_('jobSchedules')}</h2>
+||||||| merged common ancestors
+
+      {schedules !== undefined && <div><h2>{_('jobSchedules')}</h2>
+=======
+
+      {schedules !== undefined && <div>
+        <h2>{_('jobSchedules')}</h2>
+>>>>>>> Fixes
         <SortedTable
           collection={schedules}
           columns={COLUMNS}
