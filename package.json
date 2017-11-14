@@ -157,7 +157,8 @@
     "build-indexes": "index-modules --auto src",
     "dev": "npm run build-indexes && NODE_ENV=development gulp build",
     "dev-test": "jest --watch",
-    "lint-staged-unstash": "git stash pop && true",
+    "lint-staged-stash": "touch .lint-staged && git stash save --include-untracked --keep-index && true",
+    "lint-staged-unstash": "git stash pop && rm -f .lint-staged && true",
     "posttest": "eslint --ignore-path .gitignore src/",
     "precommit": "lint-staged",
     "prepublish": "npm run build",
@@ -204,7 +205,7 @@
   },
   "lint-staged": {
     "*.js": [
-      "git stash push --keep-index",
+      "lint-staged-stash",
       "prettier --write",
       "eslint --fix",
       "jest --findRelatedTests",
