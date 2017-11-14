@@ -7,7 +7,7 @@ import {
   CpuSparkLines,
   LoadSparkLines,
   NetworkSparkLines,
-  XvdSparkLines
+  XvdSparkLines,
 } from 'xo-sparklines'
 
 import styles from './index.css'
@@ -15,11 +15,11 @@ import styles from './index.css'
 const MINI_STATS_PROPS = {
   height: 10,
   strokeWidth: 0.2,
-  width: 50
+  width: 50,
 }
 
 @propTypes({
-  fetchStats: propTypes.func.isRequired
+  fetchStats: propTypes.func.isRequired,
 })
 export default class MiniStats extends Component {
   _fetch = () => {
@@ -44,19 +44,22 @@ export default class MiniStats extends Component {
       return <Icon icon='loading' />
     }
 
-    return <Row>
-      <Col mediumSize={4} className={styles.itemExpanded}>
-        <CpuSparkLines data={stats} {...MINI_STATS_PROPS} />
-      </Col>
-      <Col mediumSize={4} className={styles.itemExpanded}>
-        <NetworkSparkLines data={stats} {...MINI_STATS_PROPS} />
-      </Col>
-      <Col mediumSize={4} className={styles.itemExpanded}>
-        {stats.stats.load !== undefined
-          ? <LoadSparkLines data={stats} {...MINI_STATS_PROPS} />
-          : <XvdSparkLines data={stats} {...MINI_STATS_PROPS} />
-        }
-      </Col>
-    </Row>
+    return (
+      <Row>
+        <Col mediumSize={4} className={styles.itemExpanded}>
+          <CpuSparkLines data={stats} {...MINI_STATS_PROPS} />
+        </Col>
+        <Col mediumSize={4} className={styles.itemExpanded}>
+          <NetworkSparkLines data={stats} {...MINI_STATS_PROPS} />
+        </Col>
+        <Col mediumSize={4} className={styles.itemExpanded}>
+          {stats.stats.load !== undefined ? (
+            <LoadSparkLines data={stats} {...MINI_STATS_PROPS} />
+          ) : (
+            <XvdSparkLines data={stats} {...MINI_STATS_PROPS} />
+          )}
+        </Col>
+      </Row>
+    )
   }
 }

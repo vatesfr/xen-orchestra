@@ -1,19 +1,20 @@
 import React, { Component } from 'react'
 import RFB from '@nraynaud/novnc/lib/rfb'
 import { createBackoff } from 'jsonrpc-websocket-client'
+import { parse as parseUrl, resolve as resolveUrl } from 'url'
 import {
-  parse as parseUrl,
-  resolve as resolveUrl
-} from 'url'
-import { enable as enableShortcuts, disable as disableShortcuts } from 'shortcuts'
+  enable as enableShortcuts,
+  disable as disableShortcuts,
+} from 'shortcuts'
 
 import propTypes from './prop-types-decorator'
 
-const parseRelativeUrl = url => parseUrl(resolveUrl(String(window.location), url))
+const parseRelativeUrl = url =>
+  parseUrl(resolveUrl(String(window.location), url))
 
 const PROTOCOL_ALIASES = {
   'http:': 'ws:',
-  'https:': 'wss:'
+  'https:': 'wss:',
 }
 const fixProtocol = url => {
   const protocol = PROTOCOL_ALIASES[url.protocol]
@@ -24,7 +25,7 @@ const fixProtocol = url => {
 
 @propTypes({
   onClipboardChange: propTypes.func,
-  url: propTypes.string.isRequired
+  url: propTypes.string.isRequired,
 })
 export default class NoVnc extends Component {
   constructor (props) {
@@ -46,7 +47,10 @@ export default class NoVnc extends Component {
       }
 
       clearTimeout(this._retryTimeout)
-      this._retryTimeout = setTimeout(this._connect, this._retryGen.next().value)
+      this._retryTimeout = setTimeout(
+        this._connect,
+        this._retryGen.next().value
+      )
     }
   }
 
@@ -87,14 +91,16 @@ export default class NoVnc extends Component {
     const isSecure = url.protocol === 'wss:'
 
     const { onClipboardChange } = this.props
-    const rfb = this._rfb = new RFB({
+    const rfb = (this._rfb = new RFB({
       encrypt: isSecure,
       target: this.refs.canvas,
-      onClipboard: onClipboardChange && ((_, text) => {
-        onClipboardChange(text)
-      }),
-      onUpdateState: this._onUpdateState
-    })
+      onClipboard:
+        onClipboardChange &&
+        ((_, text) => {
+          onClipboardChange(text)
+        }),
+      onUpdateState: this._onUpdateState,
+    }))
 
     // remove leading slashes from the path
     //
@@ -152,13 +158,15 @@ export default class NoVnc extends Component {
   }
 
   render () {
-    return <canvas
-      className='center-block'
-      height='480'
-      onMouseEnter={this._focus}
-      onMouseLeave={this._unfocus}
-      ref='canvas'
-      width='640'
-    />
+    return (
+      <canvas
+        className='center-block'
+        height='480'
+        onMouseEnter={this._focus}
+        onMouseLeave={this._unfocus}
+        ref='canvas'
+        width='640'
+      />
+    )
   }
 }

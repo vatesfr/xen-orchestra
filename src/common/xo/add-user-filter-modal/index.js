@@ -11,7 +11,7 @@ import { createSelector } from '../../selectors'
 @propTypes({
   type: propTypes.string.isRequired,
   user: propTypes.object.isRequired,
-  value: propTypes.string.isRequired
+  value: propTypes.string.isRequired,
 })
 export default class SaveNewUserFilterModalBody extends Component {
   get value () {
@@ -19,12 +19,11 @@ export default class SaveNewUserFilterModalBody extends Component {
   }
 
   _getFilterOptions = createSelector(
-    tmp => (
+    tmp =>
       (tmp = this.props.user) &&
       (tmp = tmp.preferences) &&
       (tmp = tmp.filters) &&
-      tmp[this.props.type]
-    ),
+      tmp[this.props.type],
     keys
   )
 

@@ -19,12 +19,13 @@ import store from 'store'
 import { connectStore } from 'utils'
 import { Container } from 'grid'
 import { error } from 'notification'
-import { SelectHighLevelObject, SelectRole, SelectSubject } from 'select-objects'
-
 import {
-  createGetObjectsOfType,
-  createSelector
-} from 'selectors'
+  SelectHighLevelObject,
+  SelectRole,
+  SelectSubject,
+} from 'select-objects'
+
+import { createGetObjectsOfType, createSelector } from 'selectors'
 
 import {
   addAcl,
@@ -33,37 +34,50 @@ import {
   subscribeAcls,
   subscribeGroups,
   subscribeRoles,
-  subscribeUsers
+  subscribeUsers,
 } from 'xo'
 
-const TYPES = [
-  'VM',
-  'host',
-  'pool',
-  'SR',
-  'network'
-]
+const TYPES = ['VM', 'host', 'pool', 'SR', 'network']
 
 const ACL_COLUMNS = [
   {
     name: _('subjectName'),
-    itemRenderer: acl => acl.subject.id ? renderXoItem(acl.subject) : renderXoItemFromId(acl.subject),
-    sortCriteria: acl => (acl.subject.name || acl.subject.email || '').toLowerCase()
+    itemRenderer: acl =>
+      acl.subject.id
+        ? renderXoItem(acl.subject)
+        : renderXoItemFromId(acl.subject),
+    sortCriteria: acl =>
+      (acl.subject.name || acl.subject.email || '').toLowerCase(),
   },
   {
     name: _('objectName'),
-    itemRenderer: acl => acl.object.id ? renderXoItem(acl.object) : renderXoItemFromId(acl.object),
-    sortCriteria: acl => (acl.object.name || acl.object.name_label || '').toLowerCase()
+    itemRenderer: acl =>
+      acl.object.id ? renderXoItem(acl.object) : renderXoItemFromId(acl.object),
+    sortCriteria: acl =>
+      (acl.object.name || acl.object.name_label || '').toLowerCase(),
   },
   {
     name: _('roleName'),
-    itemRenderer: acl => <SelectRole clearable={false} onChange={action => action && editAcl(acl, { action })} value={acl.action} />,
-    sortCriteria: acl => (acl.action.name || '').toLowerCase()
+    itemRenderer: acl => (
+      <SelectRole
+        clearable={false}
+        onChange={action => action && editAcl(acl, { action })}
+        value={acl.action}
+      />
+    ),
+    sortCriteria: acl => (acl.action.name || '').toLowerCase(),
   },
   {
     name: '',
-    itemRenderer: acl => <ActionRowButton icon='delete' btnStyle='danger' handler={removeAcl} handlerParam={acl} />
-  }
+    itemRenderer: acl => (
+      <ActionRowButton
+        icon='delete'
+        btnStyle='danger'
+        handler={removeAcl}
+        handlerParam={acl}
+      />
+    ),
+  },
 ]
 
 @connectStore(() => {
@@ -80,10 +94,10 @@ const ACL_COLUMNS = [
       ...keyBy(pools, 'id'),
       ...keyBy(snapshots, 'id'),
       ...keyBy(srs, 'id'),
-      ...keyBy(vms, 'id')
+      ...keyBy(vms, 'id'),
     })
   )
-  return {xoObjects: getHighLevelObjects}
+  return { xoObjects: getHighLevelObjects }
 })
 class AclTable extends Component {
   componentWillMount () {
@@ -93,32 +107,37 @@ class AclTable extends Component {
       const { xoObjects } = this.props
       const { acls, roles } = this.state
       const resolvedAcls = filter(
-        map(acls, ({subject, object, action}) => ({
+        map(acls, ({ subject, object, action }) => ({
           subject: subjects[subject] || subject,
           object: xoObjects[object] || object,
-          action: roles[action] || action
+          action: roles[action] || action,
         })),
-        ({ subject, object, action }) => subject && object && action && object.type !== 'VM-snapshot'
+        ({ subject, object, action }) =>
+          subject && object && action && object.type !== 'VM-snapshot'
       )
       this.setState({
-        resolvedAcls
+        resolvedAcls,
       })
     }
 
-    const unsubscribeAcls = subscribeAcls(acls => this.setState({acls}, refresh))
-    const unsubscribeRoles = subscribeRoles(roles => this.setState({roles: keyBy(roles, 'id')}, refresh))
+    const unsubscribeAcls = subscribeAcls(acls =>
+      this.setState({ acls }, refresh)
+    )
+    const unsubscribeRoles = subscribeRoles(roles =>
+      this.setState({ roles: keyBy(roles, 'id') }, refresh)
+    )
     const unsubscribeGroups = subscribeGroups(groups => {
       groups = keyBy(groups, 'id')
       refresh({
         ...pickBy(subjects, subject => subject.type === 'user'),
-        ...groups
+        ...groups,
       })
     })
     const unsubscribeUsers = subscribeUsers(users => {
       users = keyBy(users, 'id')
       refresh({
         ...pickBy(subjects, subject => subject.type === 'group'),
-        ...users
+        ...users,
       })
     })
 
@@ -133,9 +152,13 @@ class AclTable extends Component {
   render () {
     const { resolvedAcls = [] } = this.state
 
-    return isEmpty(resolvedAcls)
-      ? <p><em>{_('aclNoneFound')}</em></p>
-      : <SortedTable collection={resolvedAcls} columns={ACL_COLUMNS} />
+    return isEmpty(resolvedAcls) ? (
+      <p>
+        <em>{_('aclNoneFound')}</em>
+      </p>
+    ) : (
+      <SortedTable collection={resolvedAcls} columns={ACL_COLUMNS} />
+    )
   }
 }
 
@@ -146,16 +169,12 @@ export default class Acls extends Component {
       action: '',
       objects: [],
       subjects: [],
-      typeFilters: {}
+      typeFilters: {},
     }
   }
 
   _toggleTypeFilter = type => {
-    const {
-      someTypeFilters,
-      typeFilters,
-      objects
-    } = this.state
+    const { someTypeFilters, typeFilters, objects } = this.state
 
     const newTypeFilters = { ...typeFilters, [type]: !typeFilters[type] }
     const newSomeTypeFilters = some(newTypeFilters)
@@ -163,21 +182,30 @@ export default class Acls extends Component {
     // If some objects need to be removed from the selected objects
     if (!newTypeFilters[type] || (!someTypeFilters && newSomeTypeFilters)) {
       this.setState({
-        objects: filter(objects, ({ type }) => !newSomeTypeFilters || newTypeFilters[type])
+        objects: filter(
+          objects,
+          ({ type }) => !newSomeTypeFilters || newTypeFilters[type]
+        ),
       })
     }
 
-    this.setState({
-      typeFilters: { ...typeFilters, [type]: !typeFilters[type] },
-      someTypeFilters: some(newTypeFilters)
-    }, () => {
-      // If some objects need to be removed from the selected objects
-      if (!this.state.typeFilters[type] || (!someTypeFilters && this.state.someTypeFilters)) {
-        this.setState({
-          objects: filter(objects, this._getObjectPredicate())
-        })
+    this.setState(
+      {
+        typeFilters: { ...typeFilters, [type]: !typeFilters[type] },
+        someTypeFilters: some(newTypeFilters),
+      },
+      () => {
+        // If some objects need to be removed from the selected objects
+        if (
+          !this.state.typeFilters[type] ||
+          (!someTypeFilters && this.state.someTypeFilters)
+        ) {
+          this.setState({
+            objects: filter(objects, this._getObjectPredicate()),
+          })
+        }
       }
-    })
+    )
   }
 
   _getObjectPredicate = createSelector(
@@ -201,16 +229,12 @@ export default class Acls extends Component {
   }
 
   _addAcl = async () => {
-    const {
-      subjects,
-      objects,
-      action
-    } = this.state
+    const { subjects, objects, action } = this.state
     try {
       const promises = []
       forEach(subjects, subject => {
         forEach(objects, object => {
-          promises.push(addAcl({subject, object, action}))
+          promises.push(addAcl({ subject, object, action }))
         })
       })
       await Promise.all(promises)
@@ -218,7 +242,7 @@ export default class Acls extends Component {
       this.setState({
         subjects: [],
         objects: [],
-        action: ''
+        action: '',
       })
     } catch (err) {
       error('Add ACL(s)', err.message || String(err))
@@ -226,25 +250,29 @@ export default class Acls extends Component {
   }
 
   render () {
-    const {
-      typeFilters,
-      objects,
-      action,
-      subjects
-    } = this.state
+    const { typeFilters, objects, action, subjects } = this.state
 
-    return process.env.XOA_PLAN > 2
-      ? <Container>
+    return process.env.XOA_PLAN > 2 ? (
+      <Container>
         <form>
           <div className='form-group'>
-            <SelectSubject multi onChange={this.linkState('subjects')} value={subjects} />
+            <SelectSubject
+              multi
+              onChange={this.linkState('subjects')}
+              value={subjects}
+            />
           </div>
           <div className='form-group'>
-            <SelectHighLevelObject multi onChange={this.linkState('objects')} value={objects} predicate={this._getObjectPredicate()} />
+            <SelectHighLevelObject
+              multi
+              onChange={this.linkState('objects')}
+              value={objects}
+              predicate={this._getObjectPredicate()}
+            />
           </div>
           <div className='form-group mb-1'>
             <ButtonGroup>
-              {map(TYPES, type =>
+              {map(TYPES, type => (
                 <ActionButton
                   btnStyle={typeFilters[type] ? 'success' : 'secondary'}
                   handler={this._toggleTypeFilter}
@@ -254,19 +282,34 @@ export default class Acls extends Component {
                   size='small'
                   tooltip={_('settingsAclsButtonTooltip' + type)}
                 />
-              )}
-            </ButtonGroup>
-            {' '}
-            <ActionButton tooltip='Select all' size='small' icon='add' handler={this._selectAll} />
+              ))}
+            </ButtonGroup>{' '}
+            <ActionButton
+              tooltip='Select all'
+              size='small'
+              icon='add'
+              handler={this._selectAll}
+            />
           </div>
           <div className='form-group'>
             <SelectRole onChange={this.linkState('action')} value={action} />
           </div>
-          <ActionButton icon='add' btnStyle='success' handler={this._addAcl} disabled={isEmpty(subjects) || isEmpty(objects) || !action}>{_('aclCreate')}</ActionButton>
+          <ActionButton
+            icon='add'
+            btnStyle='success'
+            handler={this._addAcl}
+            disabled={isEmpty(subjects) || isEmpty(objects) || !action}
+          >
+            {_('aclCreate')}
+          </ActionButton>
         </form>
         <br />
         <AclTable />
       </Container>
-    : <Container><Upgrade place='dashboard' available={3} /></Container>
+    ) : (
+      <Container>
+        <Upgrade place='dashboard' available={3} />
+      </Container>
+    )
   }
 }

@@ -19,7 +19,7 @@ import {
   mapValues,
   replace,
   sample,
-  startsWith
+  startsWith,
 } from 'lodash'
 
 import _ from './intl'
@@ -29,17 +29,17 @@ import invoke from './invoke'
 import store from './store'
 import { getObject } from './selectors'
 
-export const EMPTY_ARRAY = Object.freeze([ ])
-export const EMPTY_OBJECT = Object.freeze({ })
+export const EMPTY_ARRAY = Object.freeze([])
+export const EMPTY_OBJECT = Object.freeze({})
 
 // ===================================================================
 
-export const ensureArray = (value) => {
+export const ensureArray = value => {
   if (value === undefined) {
     return []
   }
 
-  return Array.isArray(value) ? value : [ value ]
+  return Array.isArray(value) ? value : [value]
 }
 
 export const propsEqual = (o1, o2, props) => {
@@ -68,9 +68,7 @@ export const addSubscriptions = subscriptions => Component => {
 
     componentWillMount () {
       this._unsubscribes = map(
-        isFunction(subscriptions)
-          ? subscriptions(this.props)
-          : subscriptions,
+        isFunction(subscriptions) ? subscriptions(this.props) : subscriptions,
         (subscribe, prop) =>
           subscribe(value => this._setState({ [prop]: value }))
       )
@@ -91,10 +89,7 @@ export const addSubscriptions = subscriptions => Component => {
     }
 
     render () {
-      return <Component
-        {...this.props}
-        {...this.state}
-      />
+      return <Component {...this.props} {...this.state} />
     }
   }
 
@@ -132,7 +127,7 @@ export const checkPropsState = (propsNames, stateNames) => Component => {
 
 const _normalizeMapStateToProps = mapper => {
   if (isFunction(mapper)) {
-    let factoryOrMapper = (state, props) => {
+    const factoryOrMapper = (state, props) => {
       const result = mapper(state, props)
 
       // Properly handles factory pattern.
@@ -148,7 +143,8 @@ const _normalizeMapStateToProps = mapper => {
         }
 
         if (every(result, isFunction)) {
-          indirection = (state, props) => mapValues(result, selector => selector(state, props))
+          indirection = (state, props) =>
+            mapValues(result, selector => selector(state, props))
           return indirection(state, props)
         }
       }
@@ -184,7 +180,7 @@ export const connectStore = (mapStateToProps, opts = {}) => {
         },
         set (value) {
           this.getWrappedInstance().value = value
-        }
+        },
       })
     }
 
@@ -230,45 +226,49 @@ export const noop = () => {}
 
 // -------------------------------------------------------------------
 
-export const osFamily = invoke({
-  centos: [ 'centos' ],
-  debian: [ 'debian' ],
-  docker: [ 'coreos' ],
-  fedora: [ 'fedora' ],
-  freebsd: [ 'freebsd' ],
-  gentoo: [ 'gentoo' ],
-  'linux-mint': [ 'linux-mint' ],
-  netbsd: [ 'netbsd' ],
-  oracle: [ 'oracle' ],
-  osx: [ 'osx' ],
-  redhat: [ 'redhat', 'rhel' ],
-  solaris: [ 'solaris' ],
-  suse: [ 'sles', 'suse' ],
-  ubuntu: [ 'ubuntu' ],
-  windows: [ 'windows' ]
-}, osByFamily => {
-  const osToFamily = Object.create(null)
-  forEach(osByFamily, (list, family) => {
-    forEach(list, os => {
-      osToFamily[os] = family
+export const osFamily = invoke(
+  {
+    centos: ['centos'],
+    debian: ['debian'],
+    docker: ['coreos'],
+    fedora: ['fedora'],
+    freebsd: ['freebsd'],
+    gentoo: ['gentoo'],
+    'linux-mint': ['linux-mint'],
+    netbsd: ['netbsd'],
+    oracle: ['oracle'],
+    osx: ['osx'],
+    redhat: ['redhat', 'rhel'],
+    solaris: ['solaris'],
+    suse: ['sles', 'suse'],
+    ubuntu: ['ubuntu'],
+    windows: ['windows'],
+  },
+  osByFamily => {
+    const osToFamily = Object.create(null)
+    forEach(osByFamily, (list, family) => {
+      forEach(list, os => {
+        osToFamily[os] = family
+      })
     })
-  })
 
-  return osName => osName && osToFamily[osName.toLowerCase()]
-})
+    return osName => osName && osToFamily[osName.toLowerCase()]
+  }
+)
 
 // -------------------------------------------------------------------
 
-export const formatSize = bytes => humanFormat(bytes, { scale: 'binary', unit: 'B' })
+export const formatSize = bytes =>
+  humanFormat(bytes, { scale: 'binary', unit: 'B' })
 
-export const formatSizeShort = bytes => humanFormat(bytes, { scale: 'binary', unit: 'B', decimals: 0 })
+export const formatSizeShort = bytes =>
+  humanFormat(bytes, { scale: 'binary', unit: 'B', decimals: 0 })
 
-export const formatSizeRaw = bytes => humanFormat.raw(bytes, { scale: 'binary', unit: 'B' })
+export const formatSizeRaw = bytes =>
+  humanFormat.raw(bytes, { scale: 'binary', unit: 'B' })
 
-export const formatSpeed = (bytes, milliseconds) => humanFormat(
-  bytes * 1e3 / milliseconds,
-  { scale: 'binary', unit: 'B/s' }
-)
+export const formatSpeed = (bytes, milliseconds) =>
+  humanFormat(bytes * 1e3 / milliseconds, { scale: 'binary', unit: 'B/s' })
 
 export const parseSize = size => {
   let bytes = humanFormat.parse.raw(size, { scale: 'binary' })
@@ -310,14 +310,14 @@ export const routes = (indexRoute, childRoutes) => target => {
     indexRoute = undefined
   } else if (isFunction(indexRoute)) {
     indexRoute = {
-      component: indexRoute
+      component: indexRoute,
     }
   } else if (isString(indexRoute)) {
     indexRoute = {
       onEnter: invoke(indexRoute, pathname => (state, replace) => {
         const current = state.location.pathname
         replace((current === '/' ? '' : current) + '/' + pathname)
-      })
+      }),
     }
   }
 
@@ -338,7 +338,7 @@ export const routes = (indexRoute, childRoutes) => target => {
 
   target.route = {
     indexRoute,
-    childRoutes
+    childRoutes,
   }
 
   return target
@@ -354,11 +354,7 @@ export const routes = (indexRoute, childRoutes) => target => {
 // function foo (param = throwFn('param is required')) {}
 // ```
 export const throwFn = error => () => {
-  throw (
-    isString(error)
-      ? new Error(error)
-      : error
-  )
+  throw isString(error) ? new Error(error) : error
 }
 
 // ===================================================================
@@ -374,7 +370,7 @@ export const resolveResourceSet = resourceSet => {
     ...attrs,
     missingObjects: [],
     objectsByType: resolvedObjects,
-    ipPools
+    ipPools,
   }
   const state = store.getState()
 
@@ -390,7 +386,7 @@ export const resolveResourceSet = resourceSet => {
     const { type } = object
 
     if (!resolvedObjects[type]) {
-      resolvedObjects[type] = [ object ]
+      resolvedObjects[type] = [object]
     } else {
       resolvedObjects[type].push(object)
     }
@@ -422,10 +418,11 @@ export const resolveResourceSets = resourceSets =>
 // ```
 export function buildTemplate (pattern, rules) {
   const regExp = new RegExp(join(map(keys(rules), escapeRegExp), '|'), 'g')
-  return (...params) => replace(pattern, regExp, match => {
-    const rule = rules[match]
-    return isFunction(rule) ? rule(...params) : rule
-  })
+  return (...params) =>
+    replace(pattern, regExp, match => {
+      const rule = rules[match]
+      return isFunction(rule) ? rule(...params) : rule
+    })
 }
 
 // ===================================================================
@@ -464,9 +461,7 @@ export const htmlFileToStream = file => {
 // ===================================================================
 
 export const resolveId = value =>
-  (value != null && typeof value === 'object' && 'id' in value)
-    ? value.id
-    : value
+  value != null && typeof value === 'object' && 'id' in value ? value.id : value
 
 export const resolveIds = params => {
   for (const key in params) {
@@ -485,28 +480,29 @@ const OPs = {
   '<=': a => a <= 0,
   '===': a => a === 0,
   '>': a => a > 0,
-  '>=': a => a >= 0
+  '>=': a => a >= 0,
 }
 
-const makeNiceCompare = compare => function () {
-  const { length } = arguments
-  if (length === 2) {
-    return compare(arguments[0], arguments[1])
-  }
-
-  let i = 1
-  let v1 = arguments[0]
-  let op, v2
-  while (i < length) {
-    op = arguments[i++]
-    v2 = arguments[i++]
-    if (!OPs[op](compare(v1, v2))) {
-      return false
+const makeNiceCompare = compare =>
+  function () {
+    const { length } = arguments
+    if (length === 2) {
+      return compare(arguments[0], arguments[1])
     }
-    v1 = v2
+
+    let i = 1
+    let v1 = arguments[0]
+    let op, v2
+    while (i < length) {
+      op = arguments[i++]
+      v2 = arguments[i++]
+      if (!OPs[op](compare(v1, v2))) {
+        return false
+      }
+      v1 = v2
+    }
+    return true
   }
-  return true
-}
 
 export const compareVersions = makeNiceCompare((v1, v2) => {
   v1 = v1.split('.')
@@ -523,8 +519,7 @@ export const compareVersions = makeNiceCompare((v1, v2) => {
   return 0
 })
 
-export const isXosanPack = ({ name }) =>
-  startsWith(name, 'XOSAN')
+export const isXosanPack = ({ name }) => startsWith(name, 'XOSAN')
 
 // ===================================================================
 
@@ -536,7 +531,11 @@ export const getCoresPerSocketPossibilities = (maxCoresPerSocket, vCPUs) => {
   if (maxCoresPerSocket !== undefined && vCPUs !== '') {
     const ratio = vCPUs / maxVCPUs
 
-    for (let coresPerSocket = maxCoresPerSocket; coresPerSocket >= ratio; coresPerSocket--) {
+    for (
+      let coresPerSocket = maxCoresPerSocket;
+      coresPerSocket >= ratio;
+      coresPerSocket--
+    ) {
       if (vCPUs % coresPerSocket === 0) options.push(coresPerSocket)
     }
   }
@@ -579,7 +578,7 @@ export const createFakeProgress = (() => {
     const startTime = Date.now() / 1e3
     return () => {
       const x = Date.now() / 1e3 - startTime
-      return -Math.exp((x * Math.log(1 - S)) / d) + 1
+      return -Math.exp(x * Math.log(1 - S) / d) + 1
     }
   }
 })()

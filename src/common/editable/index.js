@@ -27,7 +27,7 @@ import {
   SelectTag,
   SelectVgpuType,
   SelectVm,
-  SelectVmTemplate
+  SelectVmTemplate,
 } from '../select-objects'
 
 import styles from './index.css'
@@ -35,14 +35,14 @@ import styles from './index.css'
 const LONG_CLICK = 400
 
 @propTypes({
-  alt: propTypes.node.isRequired
+  alt: propTypes.node.isRequired,
 })
 class Hover extends Component {
   constructor () {
     super()
 
     this.state = {
-      hover: false
+      hover: false,
     }
 
     this._onMouseEnter = () => this.setState({ hover: true })
@@ -51,25 +51,18 @@ class Hover extends Component {
 
   render () {
     if (this.state.hover) {
-      return <span onMouseLeave={this._onMouseLeave}>
-        {this.props.alt}
-      </span>
+      return <span onMouseLeave={this._onMouseLeave}>{this.props.alt}</span>
     }
 
-    return <span onMouseEnter={this._onMouseEnter}>
-      {this.props.children}
-    </span>
+    return <span onMouseEnter={this._onMouseEnter}>{this.props.children}</span>
   }
 }
 
 @propTypes({
   onChange: propTypes.func.isRequired,
-  onUndo: propTypes.oneOfType([
-    propTypes.bool,
-    propTypes.func
-  ]),
+  onUndo: propTypes.oneOfType([propTypes.bool, propTypes.func]),
   useLongClick: propTypes.bool,
-  value: propTypes.any.isRequired
+  value: propTypes.any.isRequired,
 })
 class Editable extends Component {
   get value () {
@@ -95,7 +88,7 @@ class Editable extends Component {
     this.setState({
       editing: true,
       error: null,
-      saving: false
+      saving: false,
     })
   }
 
@@ -113,10 +106,7 @@ class Editable extends Component {
   }
 
   _save () {
-    return this.__save(
-      () => this.value,
-      this.props.onChange
-    )
+    return this.__save(() => this.value, this.props.onChange)
   }
 
   async __save (getValue, saveValue) {
@@ -139,7 +129,7 @@ class Editable extends Component {
       this.setState({
         // `error` may be undefined if the action has been cancelled
         error: error !== undefined && (isString(error) ? error : error.message),
-        saving: false
+        saving: false,
       })
       logError(error)
     }
@@ -162,34 +152,59 @@ class Editable extends Component {
       const { useLongClick } = props
 
       const success = <Icon icon='success' />
-      return <span className={classNames(styles.clickToEdit, !useLongClick && styles.shortClick)}>
+      return (
         <span
-          onClick={!useLongClick && this._openEdition}
-          onMouseDown={useLongClick && this.__startTimer}
-          onMouseUp={useLongClick && this.__stopTimer}
+          className={classNames(
+            styles.clickToEdit,
+            !useLongClick && styles.shortClick
+          )}
         >
-          {this._renderDisplay()}
-        </span>
-        {previous != null && (onUndo !== false
-          ? <Hover
-            alt={<a onClick={this._undo}><Icon icon='undo' /></a>}
+          <span
+            onClick={!useLongClick && this._openEdition}
+            onMouseDown={useLongClick && this.__startTimer}
+            onMouseUp={useLongClick && this.__stopTimer}
           >
-            {success}
-          </Hover>
-          : success
-        )}
-      </span>
+            {this._renderDisplay()}
+          </span>
+          {previous != null &&
+            (onUndo !== false ? (
+              <Hover
+                alt={
+                  <a onClick={this._undo}>
+                    <Icon icon='undo' />
+                  </a>
+                }
+              >
+                {success}
+              </Hover>
+            ) : (
+              success
+            ))}
+        </span>
+      )
     }
 
     const { error, saving } = state
 
-    return <span>
-      {this._renderEdition()}
-      {saving && <span>{' '}<Icon icon='loading' /></span>}
-      {error != null && <span>
-        {' '}<Tooltip content={error}><Icon icon='error' /></Tooltip>
-      </span>}
-    </span>
+    return (
+      <span>
+        {this._renderEdition()}
+        {saving && (
+          <span>
+            {' '}
+            <Icon icon='loading' />
+          </span>
+        )}
+        {error != null && (
+          <span>
+            {' '}
+            <Tooltip content={error}>
+              <Icon icon='error' />
+            </Tooltip>
+          </span>
+        )}
+      </span>
+    )
   }
 }
 
@@ -198,7 +213,7 @@ class Editable extends Component {
   maxLength: propTypes.number,
   minLength: propTypes.number,
   pattern: propTypes.string,
-  value: propTypes.string.isRequired
+  value: propTypes.string.isRequired,
 })
 export class Text extends Editable {
   get value () {
@@ -218,25 +233,22 @@ export class Text extends Editable {
   }
 
   _renderDisplay () {
-    const {
-      children,
-      value
-    } = this.props
+    const { children, value } = this.props
 
     if (children || value) {
       return <span> {children || value} </span>
     }
 
-    const {
-      placeholder,
-      useLongClick
-    } = this.props
+    const { placeholder, useLongClick } = this.props
 
-    return <span className='text-muted'>
-      {placeholder ||
-        (useLongClick ? _('editableLongClickPlaceholder') : _('editableClickPlaceholder'))
-      }
-    </span>
+    return (
+      <span className='text-muted'>
+        {placeholder ||
+          (useLongClick
+            ? _('editableLongClickPlaceholder')
+            : _('editableClickPlaceholder'))}
+      </span>
+    )
   }
 
   _renderEdition () {
@@ -248,25 +260,26 @@ export class Text extends Editable {
       'autoComplete',
       'maxLength',
       'minLength',
-      'pattern'
+      'pattern',
     ])
 
-    return <input
-      {...extraProps}
-
-      autoFocus
-      defaultValue={value}
-      onBlur={this._closeEdition}
-      onInput={this._onInput}
-      onKeyDown={this._onKeyDown}
-      readOnly={saving}
-      ref='input'
-      style={{
-        width: `${value.length + 1}ex`,
-        maxWidth: '50ex'
-      }}
-      type={this._isPassword ? 'password' : 'text'}
-    />
+    return (
+      <input
+        {...extraProps}
+        autoFocus
+        defaultValue={value}
+        onBlur={this._closeEdition}
+        onInput={this._onInput}
+        onKeyDown={this._onKeyDown}
+        readOnly={saving}
+        ref='input'
+        style={{
+          width: `${value.length + 1}ex`,
+          maxWidth: '50ex',
+        }}
+        type={this._isPassword ? 'password' : 'text'}
+      />
+    )
   }
 }
 
@@ -278,7 +291,7 @@ export class Password extends Text {
 
 @propTypes({
   nullable: propTypes.bool,
-  value: propTypes.number
+  value: propTypes.number,
 })
 export class Number extends Component {
   get value () {
@@ -301,20 +314,19 @@ export class Number extends Component {
 
   render () {
     const { value } = this.props
-    return <Text
-      {...this.props}
-      onChange={this._onChange}
-      value={value === null ? '' : String(value)}
-    />
+    return (
+      <Text
+        {...this.props}
+        onChange={this._onChange}
+        value={value === null ? '' : String(value)}
+      />
+    )
   }
 }
 
 @propTypes({
-  options: propTypes.oneOfType([
-    propTypes.array,
-    propTypes.object
-  ]).isRequired,
-  renderer: propTypes.func
+  options: propTypes.oneOfType([propTypes.array, propTypes.object]).isRequired,
+  renderer: propTypes.func,
 })
 export class Select extends Editable {
   componentWillReceiveProps (props) {
@@ -322,7 +334,9 @@ export class Select extends Editable {
       props.value !== this.props.value ||
       props.options !== this.props.options
     ) {
-      this.setState({ valueKey: findKey(props.options, option => option === props.value) })
+      this.setState({
+        valueKey: findKey(props.options, option => option === props.value),
+      })
     }
   }
 
@@ -337,12 +351,11 @@ export class Select extends Editable {
   _optionToJsx = (option, key) => {
     const { renderer } = this.props
 
-    return <option
-      key={key}
-      value={key}
-    >
-      {renderer ? renderer(option) : option}
-    </option>
+    return (
+      <option key={key} value={key}>
+        {renderer ? renderer(option) : option}
+      </option>
+    )
   }
 
   _onEditionMount = ref => {
@@ -353,26 +366,27 @@ export class Select extends Editable {
   _renderDisplay () {
     const { children, renderer, value } = this.props
 
-    return children ||
-      <span>{renderer ? renderer(value) : value}</span>
+    return children || <span>{renderer ? renderer(value) : value}</span>
   }
 
   _renderEdition () {
     const { saving, valueKey } = this.state
     const { options } = this.props
 
-    return <select
-      autoFocus
-      className={classNames('form-control', styles.select)}
-      onBlur={this._closeEdition}
-      onChange={this._onChange}
-      onKeyDown={this._onKeyDown}
-      readOnly={saving}
-      ref={this._onEditionMount}
-      value={valueKey}
-    >
-      {map(options, this._optionToJsx)}
-    </select>
+    return (
+      <select
+        autoFocus
+        className={classNames('form-control', styles.select)}
+        onBlur={this._closeEdition}
+        onChange={this._onChange}
+        onKeyDown={this._onKeyDown}
+        readOnly={saving}
+        ref={this._onEditionMount}
+        value={valueKey}
+      >
+        {map(options, this._optionToJsx)}
+      </select>
+    )
   }
 }
 
@@ -388,14 +402,11 @@ const MAP_TYPE_SELECT = {
   tag: SelectTag,
   vgpuType: SelectVgpuType,
   VM: SelectVm,
-  'VM-template': SelectVmTemplate
+  'VM-template': SelectVmTemplate,
 }
 
 @propTypes({
-  value: propTypes.oneOfType([
-    propTypes.string,
-    propTypes.object
-  ])
+  value: propTypes.oneOfType([propTypes.string, propTypes.object]),
 })
 export class XoSelect extends Editable {
   get value () {
@@ -403,19 +414,17 @@ export class XoSelect extends Editable {
   }
 
   _renderDisplay () {
-    return this.props.children ||
-      <span>{this.props.value[this.props.labelProp]}</span>
+    return (
+      this.props.children || (
+        <span>{this.props.value[this.props.labelProp]}</span>
+      )
+    )
   }
 
-  _onChange = object =>
-    this.setState({ value: object }, object && this._save)
+  _onChange = object => this.setState({ value: object }, object && this._save)
 
   _renderEdition () {
-    const {
-      saving,
-      xoType,
-      ...props
-    } = this.props
+    const { saving, xoType, ...props } = this.props
 
     const Select = MAP_TYPE_SELECT[xoType]
     if (process.env.NODE_ENV !== 'production') {
@@ -426,19 +435,21 @@ export class XoSelect extends Editable {
 
     // Anchor is needed so that the BlockLink does not trigger a redirection
     // when this element is clicked.
-    return <a onBlur={this._closeEdition}>
-      <Select
-        {...props}
-        autoFocus
-        disabled={saving}
-        onChange={this._onChange}
-      />
-    </a>
+    return (
+      <a onBlur={this._closeEdition}>
+        <Select
+          {...props}
+          autoFocus
+          disabled={saving}
+          onChange={this._onChange}
+        />
+      </a>
+    )
   }
 }
 
 @propTypes({
-  value: propTypes.number.isRequired
+  value: propTypes.number.isRequired,
 })
 export class Size extends Editable {
   get value () {
@@ -456,27 +467,31 @@ export class Size extends Editable {
     }, 10)
   }
 
-  _focus = () => { this._focused = true }
+  _focus = () => {
+    this._focused = true
+  }
 
   _renderEdition () {
     const { saving } = this.state
     const { value } = this.props
 
-    return <span
-      // SizeInput uses `input-group` which makes it behave as a block element (display: table).
-      // `form-inline` to use it as an inline element
-      className='form-inline'
-      onBlur={this._closeEditionIfUnfocused}
-      onFocus={this._focus}
-      onKeyDown={this._onKeyDown}
-    >
-      <SizeInput
-        autoFocus
-        className={styles.size}
-        ref='input'
-        readOnly={saving}
-        defaultValue={value}
-      />
-    </span>
+    return (
+      <span
+        // SizeInput uses `input-group` which makes it behave as a block element (display: table).
+        // `form-inline` to use it as an inline element
+        className='form-inline'
+        onBlur={this._closeEditionIfUnfocused}
+        onFocus={this._focus}
+        onKeyDown={this._onKeyDown}
+      >
+        <SizeInput
+          autoFocus
+          className={styles.size}
+          ref='input'
+          readOnly={saving}
+          defaultValue={value}
+        />
+      </span>
+    )
   }
 }

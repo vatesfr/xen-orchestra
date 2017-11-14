@@ -5,7 +5,7 @@ import React, { Component } from 'react'
 
 @connectStore(() => {
   const object = createGetObject()
-  return (state, props) => ({object: object(state, props)})
+  return (state, props) => ({ object: object(state, props) })
 })
 export default class ObjectName extends Component {
   render () {

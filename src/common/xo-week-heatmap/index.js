@@ -4,11 +4,7 @@ import map from 'lodash/map'
 import moment from 'moment'
 import sortBy from 'lodash/sortBy'
 import times from 'lodash/times'
-import {
-  extent,
-  interpolateViridis,
-  scaleSequential
-} from 'd3'
+import { extent, interpolateViridis, scaleSequential } from 'd3'
 import { FormattedTime } from 'react-intl'
 
 import _ from '../intl'
@@ -22,7 +18,7 @@ import styles from './index.css'
 
 const DAY_TIME_FORMAT = {
   day: 'numeric',
-  month: 'numeric'
+  month: 'numeric',
 }
 
 // ===================================================================
@@ -32,7 +28,7 @@ const computeColorGen = days => {
   let max = Number.MIN_VALUE
 
   forEach(days, day => {
-    const [ _min, _max ] = extent(day.hours, value => value && value.value)
+    const [_min, _max] = extent(day.hours, value => value && value.value)
 
     if (_min < min) {
       min = _min
@@ -62,12 +58,10 @@ const computeMissingDays = days => {
     if (diff > 1) {
       const missingDays = times(diff - 1, () => ({
         hours,
-        timestamp: a.subtract(1, 'days').valueOf()
+        timestamp: a.subtract(1, 'days').valueOf(),
       })).reverse()
 
-      correctedDays.splice.apply(
-        correctedDays, [i, 0].concat(missingDays)
-      )
+      correctedDays.splice.apply(correctedDays, [i, 0].concat(missingDays))
     }
 
     a = b
@@ -83,13 +77,13 @@ const computeMissingDays = days => {
   data: propTypes.arrayOf(
     propTypes.shape({
       date: propTypes.number.isRequired,
-      value: propTypes.number.isRequired
+      value: propTypes.number.isRequired,
     })
-  ).isRequired
+  ).isRequired,
 })
 export default class XoWeekHeatmap extends Component {
   static defaultProps = {
-    cellRenderer: value => value
+    cellRenderer: value => value,
   }
 
   componentWillReceiveProps (nextProps) {
@@ -114,7 +108,7 @@ export default class XoWeekHeatmap extends Component {
       if (!days[dayId]) {
         days[dayId] = {
           hours: new Array(24),
-          timestamp: elem.date
+          timestamp: elem.date,
         }
       }
 
@@ -124,7 +118,7 @@ export default class XoWeekHeatmap extends Component {
         hours[hourId] = {
           date,
           nb: 1,
-          value
+          value,
         }
       } else {
         const hour = hours[hourId]
@@ -146,9 +140,7 @@ export default class XoWeekHeatmap extends Component {
     })
 
     this.setState({
-      days: computeMissingDays(
-        sortBy(days, 'timestamp')
-      )
+      days: computeMissingDays(sortBy(days, 'timestamp')),
     })
   }
 
@@ -158,16 +150,26 @@ export default class XoWeekHeatmap extends Component {
         <tbody>
           <tr>
             <th />
-            {times(24, hour => <th key={hour} className='text-xs-center'>{hour}</th>)}
+            {times(24, hour => (
+              <th key={hour} className='text-xs-center'>
+                {hour}
+              </th>
+            ))}
           </tr>
           {map(this.state.days, (day, key) => (
             <tr key={key}>
-              <th><FormattedTime value={day.timestamp} {...DAY_TIME_FORMAT} /></th>
+              <th>
+                <FormattedTime value={day.timestamp} {...DAY_TIME_FORMAT} />
+              </th>
               {map(day.hours, (hour, key) => (
                 <Tooltip
-                  content={hour
-                    ? _('weekHeatmapData', { date: hour.date, value: this.props.cellRenderer(hour.value) })
-                    : _('weekHeatmapNoData')
+                  content={
+                    hour
+                      ? _('weekHeatmapData', {
+                        date: hour.date,
+                        value: this.props.cellRenderer(hour.value),
+                      })
+                      : _('weekHeatmapNoData')
                   }
                   key={key}
                 >

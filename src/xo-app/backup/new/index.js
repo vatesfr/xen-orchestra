@@ -25,16 +25,10 @@ import {
   map,
   mapValues,
   noop,
-  startsWith
+  startsWith,
 } from 'lodash'
 
-import {
-  createJob,
-  createSchedule,
-  getRemote,
-  editJob,
-  editSchedule
-} from 'xo'
+import { createJob, createSchedule, getRemote, editJob, editSchedule } from 'xo'
 
 // ===================================================================
 // FIXME: missing most of translation. Can't be done in a dumb way, some of the word are keyword for XO-Server parameters...
@@ -46,13 +40,13 @@ const NO_SMART_SCHEMA = {
       type: 'array',
       items: {
         type: 'string',
-        'xo:type': 'vm'
+        'xo:type': 'vm',
       },
       title: _('editBackupVmsTitle'),
-      description: 'Choose VMs to backup.' // FIXME: can't translate
-    }
+      description: 'Choose VMs to backup.', // FIXME: can't translate
+    },
   },
-  required: [ 'vms' ]
+  required: ['vms'],
 }
 const NO_SMART_UI_SCHEMA = generateUiSchema(NO_SMART_SCHEMA)
 
@@ -61,9 +55,9 @@ const SMART_SCHEMA = {
   properties: {
     power_state: {
       default: 'All', // FIXME: can't translate
-      enum: [ 'All', 'Running', 'Halted' ], // FIXME: can't translate
+      enum: ['All', 'Running', 'Halted'], // FIXME: can't translate
       title: _('editBackupSmartStatusTitle'),
-      description: 'The statuses of VMs to backup.' // FIXME: can't translate
+      description: 'The statuses of VMs to backup.', // FIXME: can't translate
     },
     $pool: {
       type: 'object',
@@ -72,18 +66,19 @@ const SMART_SCHEMA = {
         not: {
           type: 'boolean',
           title: _('editBackupNot'),
-          description: 'Toggle on to backup VMs that are NOT resident on these pools'
+          description:
+            'Toggle on to backup VMs that are NOT resident on these pools',
         },
         values: {
           type: 'array',
           items: {
             type: 'string',
-            'xo:type': 'pool'
+            'xo:type': 'pool',
           },
           title: _('editBackupSmartResidentOn'),
-          description: 'Not used if empty.' // FIXME: can't translate
-        }
-      }
+          description: 'Not used if empty.', // FIXME: can't translate
+        },
+      },
     },
     tags: {
       type: 'object',
@@ -92,21 +87,22 @@ const SMART_SCHEMA = {
         not: {
           type: 'boolean',
           title: _('editBackupNot'),
-          description: 'Toggle on to backup VMs that do NOT contain these tags'
+          description: 'Toggle on to backup VMs that do NOT contain these tags',
         },
         values: {
           type: 'array',
           items: {
             type: 'string',
-            'xo:type': 'tag'
+            'xo:type': 'tag',
           },
           title: _('editBackupSmartTagsTitle'),
-          description: 'VMs which contain at least one of these tags. Not used if empty.' // FIXME: can't translate
-        }
-      }
-    }
+          description:
+            'VMs which contain at least one of these tags. Not used if empty.', // FIXME: can't translate
+        },
+      },
+    },
   },
-  required: [ 'power_state', '$pool', 'tags' ]
+  required: ['power_state', '$pool', 'tags'],
 }
 const SMART_UI_SCHEMA = generateUiSchema(SMART_SCHEMA)
 
@@ -118,37 +114,37 @@ const COMMON_SCHEMA = {
     tag: {
       type: 'string',
       title: _('editBackupTagTitle'),
-      description: 'Back-up tag.' // FIXME: can't translate
+      description: 'Back-up tag.', // FIXME: can't translate
     },
     _reportWhen: {
       default: 'failure',
-      enum: [ 'never', 'always', 'failure' ], // FIXME: can't translate
+      enum: ['never', 'always', 'failure'], // FIXME: can't translate
       title: _('editBackupReportTitle'),
       description: [
         'When to send reports.',
         '',
-        'Plugins *tranport-email* and *backup-reports* need to be configured.'
-      ].join('\n')
+        'Plugins *tranport-email* and *backup-reports* need to be configured.',
+      ].join('\n'),
     },
     enabled: {
       type: 'boolean',
-      title: _('editBackupScheduleEnabled')
-    }
+      title: _('editBackupScheduleEnabled'),
+    },
   },
-  required: [ 'tag', 'vms', '_reportWhen' ]
+  required: ['tag', 'vms', '_reportWhen'],
 }
 
 const RETENTION_PROPERTY = {
   type: 'integer',
   title: _('editBackupRetentionTitle'),
   description: 'How many backups to rollover.', // FIXME: can't translate
-  min: 1
+  min: 1,
 }
 
 const REMOTE_PROPERTY = {
   type: 'string',
   'xo:type': 'remote',
-  title: _('editBackupRemoteTitle')
+  title: _('editBackupRemoteTitle'),
 }
 
 const BACKUP_SCHEMA = {
@@ -160,19 +156,19 @@ const BACKUP_SCHEMA = {
     compress: {
       type: 'boolean',
       title: 'Enable compression',
-      default: true
-    }
+      default: true,
+    },
   },
-  required: COMMON_SCHEMA.required.concat([ 'retention', 'remoteId' ])
+  required: COMMON_SCHEMA.required.concat(['retention', 'remoteId']),
 }
 
 const ROLLING_SNAPSHOT_SCHEMA = {
   type: 'object',
   properties: {
     ...COMMON_SCHEMA.properties,
-    retention: RETENTION_PROPERTY
+    retention: RETENTION_PROPERTY,
   },
-  required: COMMON_SCHEMA.required.concat('retention')
+  required: COMMON_SCHEMA.required.concat('retention'),
 }
 
 const DELTA_BACKUP_SCHEMA = {
@@ -180,9 +176,9 @@ const DELTA_BACKUP_SCHEMA = {
   properties: {
     ...COMMON_SCHEMA.properties,
     retention: RETENTION_PROPERTY,
-    remote: REMOTE_PROPERTY
+    remote: REMOTE_PROPERTY,
   },
-  required: COMMON_SCHEMA.required.concat([ 'retention', 'remote' ])
+  required: COMMON_SCHEMA.required.concat(['retention', 'remote']),
 }
 
 const DISASTER_RECOVERY_SCHEMA = {
@@ -196,16 +192,16 @@ const DISASTER_RECOVERY_SCHEMA = {
       description: [
         'Delete the old backups before copy the vms.',
         '',
-        'If the backup fails, you will lose your old backups.'
-      ].join('\n')
+        'If the backup fails, you will lose your old backups.',
+      ].join('\n'),
     },
     sr: {
       type: 'string',
       'xo:type': 'sr',
-      title: 'To SR'
-    }
+      title: 'To SR',
+    },
   },
-  required: COMMON_SCHEMA.required.concat([ 'retention', 'sr' ])
+  required: COMMON_SCHEMA.required.concat(['retention', 'sr']),
 }
 
 const CONTINUOUS_REPLICATION_SCHEMA = {
@@ -216,10 +212,10 @@ const CONTINUOUS_REPLICATION_SCHEMA = {
     sr: {
       type: 'string',
       'xo:type': 'sr',
-      title: 'To SR'
-    }
+      title: 'To SR',
+    },
   },
-  required: COMMON_SCHEMA.required.concat('sr')
+  required: COMMON_SCHEMA.required.concat('sr'),
 }
 
 let REQUIRED_XOA_PLAN
@@ -227,7 +223,7 @@ if (process.env.XOA_PLAN < 4) {
   REQUIRED_XOA_PLAN = {
     deltaBackup: 3,
     disasterRecovery: 3,
-    continuousReplication: 4
+    continuousReplication: 4,
   }
 }
 
@@ -240,7 +236,7 @@ const BACKUP_METHOD_TO_INFO = {
     label: 'backup',
     icon: 'backup',
     jobKey: 'rollingBackup',
-    method: 'vm.rollingBackup'
+    method: 'vm.rollingBackup',
   },
   'vm.rollingSnapshot': {
     schema: ROLLING_SNAPSHOT_SCHEMA,
@@ -248,7 +244,7 @@ const BACKUP_METHOD_TO_INFO = {
     label: 'rollingSnapshot',
     icon: 'rolling-snapshot',
     jobKey: 'rollingSnapshot',
-    method: 'vm.rollingSnapshot'
+    method: 'vm.rollingSnapshot',
   },
   'vm.rollingDeltaBackup': {
     schema: DELTA_BACKUP_SCHEMA,
@@ -256,7 +252,7 @@ const BACKUP_METHOD_TO_INFO = {
     label: 'deltaBackup',
     icon: 'delta-backup',
     jobKey: 'deltaBackup',
-    method: 'vm.rollingDeltaBackup'
+    method: 'vm.rollingDeltaBackup',
   },
   'vm.rollingDrCopy': {
     schema: DISASTER_RECOVERY_SCHEMA,
@@ -264,7 +260,7 @@ const BACKUP_METHOD_TO_INFO = {
     label: 'disasterRecovery',
     icon: 'disaster-recovery',
     jobKey: 'disasterRecovery',
-    method: 'vm.rollingDrCopy'
+    method: 'vm.rollingDrCopy',
   },
   'vm.deltaCopy': {
     schema: CONTINUOUS_REPLICATION_SCHEMA,
@@ -272,8 +268,8 @@ const BACKUP_METHOD_TO_INFO = {
     label: 'continuousReplication',
     icon: 'continuous-replication',
     jobKey: 'continuousReplication',
-    method: 'vm.deltaCopy'
-  }
+    method: 'vm.deltaCopy',
+  },
 }
 
 // ===================================================================
@@ -289,13 +285,15 @@ class TimeoutInput extends Component {
     const { props } = this
     const { value } = props
 
-    return <input
-      {...props}
-      onChange={this._onChange}
-      min='1'
-      type='number'
-      value={value == null ? '' : String(value / 1e3)}
-    />
+    return (
+      <input
+        {...props}
+        onChange={this._onChange}
+        min='1'
+        type='number'
+        value={value == null ? '' : String(value / 1e3)}
+      />
+    )
   }
 }
 
@@ -315,20 +313,22 @@ const extractId = value => {
   return value
 }
 
-const destructPattern = (pattern, valueTransform = identity) => pattern && ({
-  not: !!pattern.__not,
-  values: valueTransform((pattern.__not || pattern).__or)
-})
+const destructPattern = (pattern, valueTransform = identity) =>
+  pattern && {
+    not: !!pattern.__not,
+    values: valueTransform((pattern.__not || pattern).__or),
+  }
 
-const constructPattern = ({ not, values } = EMPTY_OBJECT, valueTransform = identity) => {
+const constructPattern = (
+  { not, values } = EMPTY_OBJECT,
+  valueTransform = identity
+) => {
   if (values == null || !values.length) {
     return
   }
 
   const pattern = { __or: valueTransform(values) }
-  return not
-    ? { __not: pattern }
-    : pattern
+  return not ? { __not: pattern } : pattern
 }
 
 const normalizeMainParams = params => {
@@ -343,7 +343,7 @@ const normalizeMainParams = params => {
 }
 
 @connectStore({
-  currentUser: getUser
+  currentUser: getUser,
 })
 export default class New extends Component {
   _getParams = createSelector(
@@ -362,9 +362,9 @@ export default class New extends Component {
         return {
           main: normalizeMainParams({
             enabled,
-            ...items[0].values[0]
+            ...items[0].values[0],
           }),
-          vms: { vms: map(items[0].values.slice(1), extractId) }
+          vms: { vms: map(items[0].values.slice(1), extractId) },
         }
       }
 
@@ -376,13 +376,15 @@ export default class New extends Component {
         return {
           main: normalizeMainParams({
             enabled,
-            ...items[0].values[0]
+            ...items[0].values[0],
           }),
           vms: {
             $pool: destructPattern($pool),
             power_state: pattern.power_state,
-            tags: destructPattern(tags, tags => map(tags, tag => isArray(tag) ? tag[0] : tag))
-          }
+            tags: destructPattern(tags, tags =>
+              map(tags, tag => (isArray(tag) ? tag[0] : tag))
+            ),
+          },
         }
       }
 
@@ -390,9 +392,9 @@ export default class New extends Component {
       return {
         main: normalizeMainParams({
           enabled,
-          ...items[1].values[0]
+          ...items[1].values[0],
         }),
-        vms: { vms: map(items[0].values, extractId) }
+        vms: { vms: map(items[0].values, extractId) },
       }
     }
   )
@@ -408,14 +410,12 @@ export default class New extends Component {
         return scheduling
       }
 
-      const {
-        cron = DEFAULT_CRON_PATTERN,
-        timezone = DEFAULT_TIMEZONE
-      } = schedule || EMPTY_OBJECT
+      const { cron = DEFAULT_CRON_PATTERN, timezone = DEFAULT_TIMEZONE } =
+        schedule || EMPTY_OBJECT
 
       return {
         cronPattern: cron,
-        timezone
+        timezone,
       }
     }
   )
@@ -426,10 +426,7 @@ export default class New extends Component {
     const method = this._getValue('job', 'method')
     const backupInfo = BACKUP_METHOD_TO_INFO[method]
 
-    const {
-      enabled,
-      ...mainParams
-    } = this._getMainParams()
+    const { enabled, ...mainParams } = this._getMainParams()
     const vms = this._getVmsParam()
 
     const job = {
@@ -440,33 +437,42 @@ export default class New extends Component {
       paramsVector: {
         type: 'crossProduct',
         items: isArray(vms.vms)
-          ? [{
-            type: 'set',
-            values: map(vms.vms, vm => ({ id: extractId(vm) }))
-          }, {
-            type: 'set',
-            values: [ mainParams ]
-          }]
-          : [{
-            type: 'set',
-            values: [ mainParams ]
-          }, {
-            type: 'map',
-            collection: {
-              type: 'fetchObjects',
-              pattern: {
-                $pool: constructPattern(vms.$pool),
-                power_state: vms.power_state === 'All' ? undefined : vms.power_state,
-                tags: constructPattern(vms.tags, tags => map(tags, tag => [ tag ])),
-                type: 'VM'
-              }
+          ? [
+            {
+              type: 'set',
+              values: map(vms.vms, vm => ({ id: extractId(vm) })),
             },
-            iteratee: {
-              type: 'extractProperties',
-              mapping: { id: 'id' }
-            }
-          }]
-      }
+            {
+              type: 'set',
+              values: [mainParams],
+            },
+          ]
+          : [
+            {
+              type: 'set',
+              values: [mainParams],
+            },
+            {
+              type: 'map',
+              collection: {
+                type: 'fetchObjects',
+                pattern: {
+                  $pool: constructPattern(vms.$pool),
+                  power_state:
+                      vms.power_state === 'All' ? undefined : vms.power_state,
+                  tags: constructPattern(vms.tags, tags =>
+                    map(tags, tag => [tag])
+                  ),
+                  type: 'VM',
+                },
+              },
+              iteratee: {
+                type: 'extractProperties',
+                mapping: { id: 'id' },
+              },
+            },
+          ],
+      },
     }
 
     const scheduling = this._getScheduling()
@@ -497,7 +503,7 @@ export default class New extends Component {
       if (startsWith(remote.url, 'file:')) {
         await confirm({
           title: _('localRemoteWarningTitle'),
-          body: _('localRemoteWarningMessage')
+          body: _('localRemoteWarningMessage'),
         })
       }
     }
@@ -512,7 +518,7 @@ export default class New extends Component {
         id: props.schedule.id,
         cron: scheduling.cronPattern,
         enabled,
-        timezone: scheduling.timezone
+        timezone: scheduling.timezone,
       })
     }
 
@@ -524,7 +530,7 @@ export default class New extends Component {
     return createSchedule(await createJob(job), {
       cron: scheduling.cronPattern,
       enabled,
-      timezone: scheduling.timezone
+      timezone: scheduling.timezone,
     })
   }
 
@@ -547,18 +553,12 @@ export default class New extends Component {
     let tmp
 
     // look in the state
-    if (
-      (tmp = this.state[ns]) != null &&
-      (tmp = tmp[key]) !== undefined
-    ) {
+    if ((tmp = this.state[ns]) != null && (tmp = tmp[key]) !== undefined) {
       return tmp
     }
 
     // look in the props
-    if (
-      (tmp = this.props[ns]) != null &&
-      (tmp = tmp[key]) !== undefined
-    ) {
+    if ((tmp = this.props[ns]) != null && (tmp = tmp[key]) !== undefined) {
       return tmp
     }
 
@@ -577,7 +577,10 @@ export default class New extends Component {
       <Upgrade place='newBackup' required={2}>
         <form id='form-new-vm-backup'>
           <Wizard>
-            <Section icon='backup' title={this.props.job ? 'editVmBackup' : 'newVmBackup'}>
+            <Section
+              icon='backup'
+              title={this.props.job ? 'editVmBackup' : 'newVmBackup'}
+            >
               <Container>
                 <Row>
                   <Col>
@@ -587,7 +590,11 @@ export default class New extends Component {
                         onChange={this.linkState('job.userId', 'id')}
                         predicate={this._subjectPredicate}
                         required
-                        value={this._getValue('job', 'userId', this.props.currentUser.id)}
+                        value={this._getValue(
+                          'job',
+                          'userId',
+                          this.props.currentUser.id
+                        )}
                       />
                     </fieldset>
                     <fieldset className='form-group'>
@@ -599,7 +606,9 @@ export default class New extends Component {
                       />
                     </fieldset>
                     <fieldset className='form-group'>
-                      <label htmlFor='selectBackup'>{_('newBackupSelection')}</label>
+                      <label htmlFor='selectBackup'>
+                        {_('newBackupSelection')}
+                      </label>
                       <select
                         className='form-control'
                         id='selectBackup'
@@ -607,58 +616,87 @@ export default class New extends Component {
                         required
                         value={method}
                       >
-                        {_('noSelectedValue', message => <option value=''>{message}</option>)}
+                        {_('noSelectedValue', message => (
+                          <option value=''>{message}</option>
+                        ))}
                         {map(BACKUP_METHOD_TO_INFO, (info, key) =>
-                          _({ key }, info.label, message => <option value={key}>{message}</option>)
+                          _({ key }, info.label, message => (
+                            <option value={key}>{message}</option>
+                          ))
                         )}
                       </select>
                     </fieldset>
-                    {(method === 'vm.rollingDeltaBackup' || method === 'vm.deltaCopy') && <div className='alert alert-warning' role='alert'>
-                      <Icon icon='error' /> {_('backupVersionWarning')}
-                    </div>}
-                    {backupInfo && <div>
-                      <GenericInput
-                        label={<span><Icon icon={backupInfo.icon} /> {_(backupInfo.label)}</span>}
-                        required
-                        schema={backupInfo.schema}
-                        uiSchema={backupInfo.uiSchema}
-                        onChange={this.linkState('mainParams')}
-                        value={this._getMainParams()}
-                      />
-                      <fieldset className='form-group'>
-                        <label htmlFor='smartMode'>{_('smartBackupModeSelection')}</label>
-                        <select
-                          className='form-control'
-                          id='smartMode'
-                          onChange={this._handleSmartBackupMode}
+                    {(method === 'vm.rollingDeltaBackup' ||
+                      method === 'vm.deltaCopy') && (
+                        <div className='alert alert-warning' role='alert'>
+                          <Icon icon='error' /> {_('backupVersionWarning')}
+                        </div>
+                      )}
+                    {backupInfo && (
+                      <div>
+                        <GenericInput
+                          label={
+                            <span>
+                              <Icon icon={backupInfo.icon} />{' '}
+                              {_(backupInfo.label)}
+                            </span>
+                          }
                           required
-                          value={smartBackupMode ? 'smart' : 'normal'}
-                        >
-                          {_('normalBackup', message => <option value='normal'>{message}</option>)}
-                          {_('smartBackup', message => <option value='smart'>{message}</option>)}
-                        </select>
-                      </fieldset>
-                      {smartBackupMode
-                        ? <Upgrade place='newBackup' required={3}>
+                          schema={backupInfo.schema}
+                          uiSchema={backupInfo.uiSchema}
+                          onChange={this.linkState('mainParams')}
+                          value={this._getMainParams()}
+                        />
+                        <fieldset className='form-group'>
+                          <label htmlFor='smartMode'>
+                            {_('smartBackupModeSelection')}
+                          </label>
+                          <select
+                            className='form-control'
+                            id='smartMode'
+                            onChange={this._handleSmartBackupMode}
+                            required
+                            value={smartBackupMode ? 'smart' : 'normal'}
+                          >
+                            {_('normalBackup', message => (
+                              <option value='normal'>{message}</option>
+                            ))}
+                            {_('smartBackup', message => (
+                              <option value='smart'>{message}</option>
+                            ))}
+                          </select>
+                        </fieldset>
+                        {smartBackupMode ? (
+                          <Upgrade place='newBackup' required={3}>
+                            <GenericInput
+                              label={
+                                <span>
+                                  <Icon icon='vm' /> {_('vmsToBackup')}
+                                </span>
+                              }
+                              onChange={this.linkState('vmsParam')}
+                              required
+                              schema={SMART_SCHEMA}
+                              uiSchema={SMART_UI_SCHEMA}
+                              value={vms}
+                            />
+                          </Upgrade>
+                        ) : (
                           <GenericInput
-                            label={<span><Icon icon='vm' /> {_('vmsToBackup')}</span>}
+                            label={
+                              <span>
+                                <Icon icon='vm' /> {_('vmsToBackup')}
+                              </span>
+                            }
                             onChange={this.linkState('vmsParam')}
                             required
-                            schema={SMART_SCHEMA}
-                            uiSchema={SMART_UI_SCHEMA}
+                            schema={NO_SMART_SCHEMA}
+                            uiSchema={NO_SMART_UI_SCHEMA}
                             value={vms}
                           />
-                        </Upgrade>
-                        : <GenericInput
-                          label={<span><Icon icon='vm' /> {_('vmsToBackup')}</span>}
-                          onChange={this.linkState('vmsParam')}
-                          required
-                          schema={NO_SMART_SCHEMA}
-                          uiSchema={NO_SMART_UI_SCHEMA}
-                          value={vms}
-                        />
-                      }
-                    </div>}
+                        )}
+                      </div>
+                    )}
                   </Col>
                 </Row>
               </Container>
@@ -674,11 +712,18 @@ export default class New extends Component {
                 <Row>
                   <Col>
                     <SchedulePreview cronPattern={scheduling.cronPattern} />
-                    {process.env.XOA_PLAN < 4 && backupInfo && process.env.XOA_PLAN < REQUIRED_XOA_PLAN[backupInfo.jobKey]
-                      ? <Upgrade place='newBackup' available={REQUIRED_XOA_PLAN[backupInfo.jobKey]} />
-                      : (smartBackupMode && process.env.XOA_PLAN < 3
-                        ? <Upgrade place='newBackup' available={3} />
-                        : <fieldset className='pull-right pt-1'>
+                    {process.env.XOA_PLAN < 4 &&
+                    backupInfo &&
+                    process.env.XOA_PLAN <
+                      REQUIRED_XOA_PLAN[backupInfo.jobKey] ? (
+                        <Upgrade
+                          place='newBackup'
+                          available={REQUIRED_XOA_PLAN[backupInfo.jobKey]}
+                        />
+                      ) : smartBackupMode && process.env.XOA_PLAN < 3 ? (
+                        <Upgrade place='newBackup' available={3} />
+                      ) : (
+                        <fieldset className='pull-right pt-1'>
                           <ActionButton
                             btnStyle='primary'
                             className='mr-1'
@@ -694,8 +739,8 @@ export default class New extends Component {
                           <Button onClick={this._handleReset} size='large'>
                             {_('selectTableReset')}
                           </Button>
-                        </fieldset>)
-                  }
+                        </fieldset>
+                      )}
                   </Col>
                 </Row>
               </Container>

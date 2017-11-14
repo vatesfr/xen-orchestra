@@ -22,7 +22,7 @@ const XO_TYPE_TO_COMPONENT = {
   subject: XoSubjectInput,
   tag: XoTagInput,
   vm: XoVmInput,
-  xoobject: XoHighLevelObjectInput
+  xoobject: XoHighLevelObjectInput,
 }
 
 // ===================================================================
@@ -41,10 +41,10 @@ const _generateUiSchema = (schema, uiSchema, key) => {
   const type = getType(schema)
 
   if (type === 'object') {
-    const properties = uiSchema.properties = {}
+    const properties = (uiSchema.properties = {})
 
     forEach(schema.properties, (schema, key) => {
-      const subUiSchema = properties[key] = {}
+      const subUiSchema = (properties[key] = {})
       _generateUiSchema(schema, subUiSchema, key)
     })
   } else if (type === 'array') {
@@ -54,7 +54,7 @@ const _generateUiSchema = (schema, uiSchema, key) => {
       uiSchema.widget = widget
       uiSchema.config = { multi: true }
     } else {
-      const subUiSchema = uiSchema.items = {}
+      const subUiSchema = (uiSchema.items = {})
       _generateUiSchema(schema.items, subUiSchema, key)
     }
   } else if (type === 'string') {

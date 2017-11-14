@@ -23,7 +23,7 @@ const InputByType = {
   integer: IntegerInput,
   number: NumberInput,
   object: ObjectInput,
-  string: StringInput
+  string: StringInput,
 }
 
 // ===================================================================
@@ -34,7 +34,7 @@ const InputByType = {
   label: propTypes.any.isRequired,
   required: propTypes.bool,
   schema: propTypes.object.isRequired,
-  uiSchema: propTypes.object
+  uiSchema: propTypes.object,
 })
 @uncontrollableInput()
 export default class GenericInput extends Component {
@@ -56,7 +56,7 @@ export default class GenericInput extends Component {
       onChange: this._onChange,
       schema,
       uiSchema,
-      value
+      value,
     }
 
     // Enum, special case.

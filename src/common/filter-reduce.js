@@ -11,14 +11,8 @@ import identity from 'lodash/identity'
 const filterReduce = (array, predicate, reducer, initial) => {
   const { length } = array
   let i
-  if (
-    !length ||
-    !predicate ||
-    (i = findIndex(array, predicate)) === -1
-  ) {
-    return initial == null
-      ? array.slice(0)
-      : array.concat(initial)
+  if (!length || !predicate || (i = findIndex(array, predicate)) === -1) {
+    return initial == null ? array.slice(0) : array.concat(initial)
   }
 
   if (reducer == null) {
@@ -26,9 +20,7 @@ const filterReduce = (array, predicate, reducer, initial) => {
   }
 
   const result = array.slice(0, i)
-  let value = initial == null
-    ? array[i]
-    : reducer(initial, array[i], i, array)
+  let value = initial == null ? array[i] : reducer(initial, array[i], i, array)
 
   for (i = i + 1; i < length; ++i) {
     const current = array[i]

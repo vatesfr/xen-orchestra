@@ -13,19 +13,21 @@ export const isIpV6 = isIp.v6
 const ipv4 = /^(?:(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(?:\.(?!$)|$)){4}$/
 
 function ip2hex (ip) {
-  let parts = ip.split('.').map(str => parseInt(str, 10))
+  const parts = ip.split('.').map(str => parseInt(str, 10))
   let n = 0
 
   n += parts[3]
-  n += parts[2] * 256      // 2^8
-  n += parts[1] * 65536    // 2^16
+  n += parts[2] * 256 // 2^8
+  n += parts[1] * 65536 // 2^16
   n += parts[0] * 16777216 // 2^24
 
   return n
 }
 
 function assertIpv4 (str, msg) {
-  if (!ipv4.test(str)) { throw new Error(msg) }
+  if (!ipv4.test(str)) {
+    throw new Error(msg)
+  }
 }
 
 function * range (ip1, ip2) {
@@ -36,13 +38,14 @@ function * range (ip1, ip2) {
   let hex2 = ip2hex(ip2)
 
   if (hex > hex2) {
-    let tmp = hex
+    const tmp = hex
     hex = hex2
     hex2 = tmp
   }
 
   for (let i = hex; i <= hex2; i++) {
-    yield `${(i >> 24) & 0xff}.${(i >> 16) & 0xff}.${(i >> 8) & 0xff}.${i & 0xff}`
+    yield `${(i >> 24) & 0xff}.${(i >> 16) & 0xff}.${(i >> 8) & 0xff}.${i &
+      0xff}`
   }
 }
 
@@ -50,7 +53,10 @@ function * range (ip1, ip2) {
 
 export const getNextIpV4 = ip => {
   const splitIp = ip.split('.')
-  if (splitIp.length !== 4 || some(splitIp, value => value < 0 || value > 255)) {
+  if (
+    splitIp.length !== 4 ||
+    some(splitIp, value => value < 0 || value > 255)
+  ) {
     return
   }
   let index
@@ -85,10 +91,13 @@ export const formatIps = ips => {
     if (splitIp2.length !== 4) {
       return -1
     }
-    return splitIp1[3] - splitIp2[3] +
+    return (
+      splitIp1[3] -
+      splitIp2[3] +
       (splitIp1[2] - splitIp2[2]) * 256 +
       (splitIp1[1] - splitIp2[1]) * 256 * 256 +
       (splitIp1[0] - splitIp2[0]) * 256 * 256 * 256
+    )
   })
   const range = { first: '', last: '' }
   const formattedIps = []
@@ -96,7 +105,8 @@ export const formatIps = ips => {
   forEach(sortedIps, ip => {
     if (ip !== getNextIpV4(range.last)) {
       if (range.first) {
-        formattedIps[index] = range.first === range.last ? range.first : { ...range }
+        formattedIps[index] =
+          range.first === range.last ? range.first : { ...range }
         index++
       }
       range.first = range.last = ip

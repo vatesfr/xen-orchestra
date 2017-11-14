@@ -5,7 +5,15 @@ import { noop } from 'lodash'
 
 import ButtonGroup from './button-group'
 
-export const Action = ({ display, handler, handlerParam, icon, label, pending, redirectOnSuccess }) =>
+export const Action = ({
+  display,
+  handler,
+  handlerParam,
+  icon,
+  label,
+  pending,
+  redirectOnSuccess,
+}) => (
   <ActionButton
     handler={handler}
     handlerParam={handlerParam}
@@ -17,17 +25,18 @@ export const Action = ({ display, handler, handlerParam, icon, label, pending, r
   >
     {display === 'both' && label}
   </ActionButton>
+)
 
 Action.propTypes = {
-  display: propTypes.oneOf([ 'icon', 'both' ]),
+  display: propTypes.oneOf(['icon', 'both']),
   handler: propTypes.func.isRequired,
   icon: propTypes.string.isRequired,
   label: propTypes.node,
   pending: propTypes.bool,
-  redirectOnSuccess: propTypes.string
+  redirectOnSuccess: propTypes.string,
 }
 
-const ActionBar = ({ children, handlerParam = noop, display = 'both' }) =>
+const ActionBar = ({ children, handlerParam = noop, display = 'both' }) => (
   <ButtonGroup>
     {React.Children.map(children, (child, key) => {
       if (!child) {
@@ -38,13 +47,14 @@ const ActionBar = ({ children, handlerParam = noop, display = 'both' }) =>
       return cloneElement(child, {
         display: props.display || display,
         handlerParam: props.handlerParam || handlerParam,
-        key
+        key,
       })
     })}
   </ButtonGroup>
+)
 
 ActionBar.propTypes = {
-  display: propTypes.oneOf([ 'icon', 'both' ]),
-  handlerParam: propTypes.any
+  display: propTypes.oneOf(['icon', 'both']),
+  handlerParam: propTypes.any,
 }
 export { ActionBar as default }

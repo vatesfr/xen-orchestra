@@ -52,14 +52,17 @@ const _computeArraysAvg = arrays => {
 //
 // It's a fix to avoid error like `Uncaught TypeError: Cannot read property 'length' of null`.
 // FIXME: Repare this bug in xo-server. (Warning: Can break the stats of xo-web v4.)
-const removeUndefinedArrays = arrays => mapPlus(arrays, (array, push) => {
-  if (array != null) {
-    push(array)
-  }
-})
+const removeUndefinedArrays = arrays =>
+  mapPlus(arrays, (array, push) => {
+    if (array != null) {
+      push(array)
+    }
+  })
 
-export const computeArraysSum = arrays => _computeArraysSum(removeUndefinedArrays(arrays))
-export const computeArraysAvg = arrays => _computeArraysAvg(removeUndefinedArrays(arrays))
+export const computeArraysSum = arrays =>
+  _computeArraysSum(removeUndefinedArrays(arrays))
+export const computeArraysAvg = arrays =>
+  _computeArraysAvg(removeUndefinedArrays(arrays))
 
 // More complex than computeArraysAvg.
 //
@@ -72,8 +75,6 @@ export const computeArraysAvg = arrays => _computeArraysAvg(removeUndefinedArray
 // Note: The parameter can be also an 3D array.
 export const computeObjectsAvg = objects => {
   return _computeArraysAvg(
-    map(objects, object =>
-      computeArraysAvg(values(object))
-    )
+    map(objects, object => computeArraysAvg(values(object)))
   )
 }

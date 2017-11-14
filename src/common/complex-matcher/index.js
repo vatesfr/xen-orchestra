@@ -42,17 +42,19 @@ const isRawString = string => {
 
 // -------------------------------------------------------------------
 
-export const createAnd = children => children.length === 1
-  ? children[0]
-  : { type: 'and', children }
+export const createAnd = children =>
+  children.length === 1 ? children[0] : { type: 'and', children }
 
-export const createOr = children => children.length === 1
-  ? children[0]
-  : { type: 'or', children }
+export const createOr = children =>
+  children.length === 1 ? children[0] : { type: 'or', children }
 
 export const createNot = child => ({ type: 'not', child })
 
-export const createProperty = (name, child) => ({ type: 'property', name, child })
+export const createProperty = (name, child) => ({
+  type: 'property',
+  name,
+  child,
+})
 
 export const createString = value => ({ type: 'string', value })
 
@@ -97,7 +99,7 @@ export const parse = invoke(() => {
       return
     }
 
-    const terms = [ term ]
+    const terms = [term]
     while ((term = parseTerm())) {
       terms.push(term)
     }
@@ -106,14 +108,13 @@ export const parse = invoke(() => {
   const parseTerm = () => {
     parseWs()
 
-    const child = (
+    const child =
       parseGroupedAnd() ||
       parseOr() ||
       parseNot() ||
       parseProperty() ||
       parseTruthyProperty() ||
       parseString()
-    )
     if (child) {
       parseWs()
       return child
@@ -128,11 +129,7 @@ export const parse = invoke(() => {
   }
   const parseGroupedAnd = backtrace(() => {
     let and
-    if (
-      input[i++] === '(' &&
-      (and = parseAnd()) &&
-      input[i++] === ')'
-    ) {
+    if (input[i++] === '(' && (and = parseAnd()) && input[i++] === ')') {
       return and
     }
   })
@@ -150,10 +147,7 @@ export const parse = invoke(() => {
   })
   const parseNot = backtrace(() => {
     let child
-    if (
-      input[i++] === '!' &&
-      (child = parseTerm())
-    ) {
+    if (input[i++] === '!' && (child = parseTerm())) {
       return createNot(child)
     }
   })
@@ -162,7 +156,7 @@ export const parse = invoke(() => {
     if (
       (name = parseString()) &&
       parseWs() &&
-      (input[i++] === ':') &&
+      input[i++] === ':' &&
       (child = parseTerm())
     ) {
       return createProperty(name.value, child)
@@ -196,10 +190,7 @@ export const parse = invoke(() => {
   const parseRawString = () => {
     let value = ''
     let c
-    while (
-      (c = input[i]) &&
-      RAW_STRING_CHARS[c]
-    ) {
+    while ((c = input[i]) && RAW_STRING_CHARS[c]) {
       ++i
       value += c
     }
@@ -209,11 +200,7 @@ export const parse = invoke(() => {
   }
   const parseTruthyProperty = backtrace(() => {
     let name
-    if (
-      (name = parseString()) &&
-      parseWs() &&
-      input[i++] === '?'
-    ) {
+    if ((name = parseString()) && parseWs() && input[i++] === '?') {
       return createTruthyProperty(name.value)
     }
   })
@@ -251,7 +238,7 @@ const _getPropertyClauseStrings = ({ child }) => {
   }
 
   if (type === 'string') {
-    return [ child.value ]
+    return [child.value]
   }
 
   return []
@@ -267,7 +254,7 @@ export const getPropertyClausesStrings = function () {
 
   if (type === 'property') {
     return {
-      [this.name]: _getPropertyClauseStrings(this)
+      [this.name]: _getPropertyClauseStrings(this),
     }
   }
 
@@ -294,17 +281,17 @@ export const getPropertyClausesStrings = function () {
 
 export const removePropertyClause = function (name) {
   let type
-  if (!this || (
-    (type = this.type) === 'property' &&
-    this.name === name
-  )) {
+  if (!this || ((type = this.type) === 'property' && this.name === name)) {
     return
   }
 
   if (type === 'and') {
-    return createAnd(filter(this.children, node =>
-      node.type !== 'property' || node.name !== name
-    ))
+    return createAnd(
+      filter(
+        this.children,
+        node => node.type !== 'property' || node.name !== name
+      )
+    )
   }
 
   return this
@@ -313,14 +300,14 @@ export const removePropertyClause = function (name) {
 // -------------------------------------------------------------------
 
 const _addAndClause = (node, child, predicate, reducer) =>
-  createAnd(filterReduce(
-    node.type === 'and'
-      ? node.children
-      : [ node ],
-    predicate,
-    reducer,
-    child
-  ))
+  createAnd(
+    filterReduce(
+      node.type === 'and' ? node.children : [node],
+      predicate,
+      reducer,
+      child
+    )
+  )
 
 export const setPropertyClause = function (name, child) {
   const property = createProperty(
@@ -343,18 +330,12 @@ export const setPropertyClause = function (name, child) {
 
 export const execute = invoke(() => {
   const visitors = {
-    and: ({ children }, value) => (
-      every(children, child => child::execute(value))
-    ),
-    not: ({ child }, value) => (
-      !child::execute(value)
-    ),
-    or: ({ children }, value) => (
-      some(children, child => child::execute(value))
-    ),
-    property: ({ name, child }, value) => (
-      value != null && child::execute(value[name])
-    ),
+    and: ({ children }, value) =>
+      every(children, child => child::execute(value)),
+    not: ({ child }, value) => !child::execute(value),
+    or: ({ children }, value) => some(children, child => child::execute(value)),
+    property: ({ name, child }, value) =>
+      value != null && child::execute(value[name]),
     truthyProperty: ({ name }, value) => !!value[name],
     string: invoke(() => {
       const match = (pattern, value) => {
@@ -369,10 +350,8 @@ export const execute = invoke(() => {
         return false
       }
 
-      return ({ value: pattern }, value) => (
-        match(pattern.toLowerCase(), value)
-      )
-    })
+      return ({ value: pattern }, value) => match(pattern.toLowerCase(), value)
+    }),
   }
 
   return function (value) {
@@ -390,11 +369,13 @@ export const toString = invoke(() => {
     and: ({ children }) => toStringGroup(children),
     not: ({ child }) => `!${toString(child)}`,
     or: ({ children }) => `|${toStringGroup(children)}`,
-    property: ({ name, child }) => `${toString(createString(name))}:${toString(child)}`,
-    string: ({ value }) => isRawString(value)
-      ? value
-      : `"${value.replace(/\\|"/g, match => `\\${match}`)}"`,
-    truthyProperty: ({ name }) => `${toString(createString(name))}?`
+    property: ({ name, child }) =>
+      `${toString(createString(name))}:${toString(child)}`,
+    string: ({ value }) =>
+      isRawString(value)
+        ? value
+        : `"${value.replace(/\\|"/g, match => `\\${match}`)}"`,
+    truthyProperty: ({ name }) => `${toString(createString(name))}?`,
   }
 
   const toString = node => visitors[node.type](node)
@@ -403,9 +384,7 @@ export const toString = invoke(() => {
   return function () {
     return !this
       ? ''
-      : this.type === 'and'
-        ? toStringTerms(this.children)
-        : toString(this)
+      : this.type === 'and' ? toStringTerms(this.children) : toString(this)
   }
 })
 

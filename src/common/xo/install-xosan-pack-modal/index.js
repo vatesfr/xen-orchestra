@@ -3,15 +3,13 @@ import Component from 'base-component'
 import React from 'react'
 import { connectStore, compareVersions, isXosanPack } from 'utils'
 import { subscribeResourceCatalog, subscribePlugins } from 'xo'
-import { createGetObjectsOfType, createSelector, createCollectionWrapper } from 'selectors'
-import { satisfies as versionSatisfies } from 'semver'
 import {
-  every,
-  filter,
-  forEach,
-  map,
-  some
-} from 'lodash'
+  createGetObjectsOfType,
+  createSelector,
+  createCollectionWrapper,
+} from 'selectors'
+import { satisfies as versionSatisfies } from 'semver'
+import { every, filter, forEach, map, some } from 'lodash'
 
 const findLatestPack = (packs, hostsVersions) => {
   const checkVersion = version =>
@@ -19,7 +17,8 @@ const findLatestPack = (packs, hostsVersions) => {
 
   let latestPack = { version: '0' }
   forEach(packs, pack => {
-    const xsVersionRequirement = pack.requirements && pack.requirements.xenserver
+    const xsVersionRequirement =
+      pack.requirements && pack.requirements.xenserver
 
     if (
       pack.type === 'iso' &&
@@ -38,20 +37,30 @@ const findLatestPack = (packs, hostsVersions) => {
   return latestPack
 }
 
-@connectStore(() => ({
-  hosts: createGetObjectsOfType('host').filter(
-    createSelector(
-      (_, { pool }) => pool != null && pool.id,
-      poolId => poolId
-        ? host => host.$pool === poolId && !some(host.supplementalPacks, isXosanPack)
-        : false
-    )
-  )
-}), { withRef: true })
+@connectStore(
+  () => ({
+    hosts: createGetObjectsOfType('host').filter(
+      createSelector(
+        (_, { pool }) => pool != null && pool.id,
+        poolId =>
+          poolId
+            ? host =>
+              host.$pool === poolId &&
+                !some(host.supplementalPacks, isXosanPack)
+            : false
+      )
+    ),
+  }),
+  { withRef: true }
+)
 export default class InstallXosanPackModal extends Component {
   componentDidMount () {
-    this._unsubscribePlugins = subscribePlugins(plugins => this.setState({ plugins }))
-    this._unsubscribeResourceCatalog = subscribeResourceCatalog(catalog => this.setState({ catalog }))
+    this._unsubscribePlugins = subscribePlugins(plugins =>
+      this.setState({ plugins })
+    )
+    this._unsubscribeResourceCatalog = subscribeResourceCatalog(catalog =>
+      this.setState({ catalog })
+    )
   }
 
   componentWillUnmount () {
@@ -81,28 +90,41 @@ export default class InstallXosanPackModal extends Component {
     const { hosts } = this.props
     const latestPack = this._getXosanLatestPack()
 
-    return <div>
-      {latestPack
-        ? <div>
-          {_('xosanInstallPackOnHosts')}
-          <ul>
-            {map(hosts, host => <li key={host.id}>{host.name_label}</li>)}
-          </ul>
-          <div className='mt-1'>
-            {_('xosanInstallPack', { pack: latestPack.name, version: latestPack.version })}
+    return (
+      <div>
+        {latestPack ? (
+          <div>
+            {_('xosanInstallPackOnHosts')}
+            <ul>
+              {map(hosts, host => <li key={host.id}>{host.name_label}</li>)}
+            </ul>
+            <div className='mt-1'>
+              {_('xosanInstallPack', {
+                pack: latestPack.name,
+                version: latestPack.version,
+              })}
+            </div>
           </div>
-        </div>
-        : <div>
-          {_('xosanNoPackFound')}
-          <br />
-          {_('xosanPackRequirements')}
-          <ul>
-            {map(this._getXosanPacks(), ({ name, requirements }, key) => <li key={key}>
-              {_.keyValue(name, requirements && requirements.xenserver ? requirements.xenserver : '/')}
-            </li>)}
-          </ul>
-        </div>
-      }
-    </div>
+        ) : (
+          <div>
+            {_('xosanNoPackFound')}
+            <br />
+            {_('xosanPackRequirements')}
+            <ul>
+              {map(this._getXosanPacks(), ({ name, requirements }, key) => (
+                <li key={key}>
+                  {_.keyValue(
+                    name,
+                    requirements && requirements.xenserver
+                      ? requirements.xenserver
+                      : '/'
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    )
   }
 }

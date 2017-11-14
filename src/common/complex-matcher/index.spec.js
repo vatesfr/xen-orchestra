@@ -4,18 +4,15 @@ import {
   getPropertyClausesStrings,
   parse,
   setPropertyClause,
-  toString
+  toString,
 } from './'
-import {
-  ast,
-  pattern
-} from './index.fixtures'
+import { ast, pattern } from './index.fixtures'
 
 it('getPropertyClausesStrings', () => {
   const tmp = parse('foo bar:baz baz:|(foo bar)')::getPropertyClausesStrings()
   expect(tmp).toEqual({
-    bar: [ 'baz' ],
-    baz: [ 'foo', 'bar' ]
+    bar: ['baz'],
+    baz: ['foo', 'bar'],
   })
 })
 
@@ -24,20 +21,24 @@ it('parse', () => {
 })
 
 it('setPropertyClause', () => {
-  expect(
-    null::setPropertyClause('foo', 'bar')::toString()
-  ).toBe('foo:bar')
+  expect(null::setPropertyClause('foo', 'bar')::toString()).toBe('foo:bar')
 
   expect(
-    parse('baz')::setPropertyClause('foo', 'bar')::toString()
+    parse('baz')
+      ::setPropertyClause('foo', 'bar')
+      ::toString()
   ).toBe('baz foo:bar')
 
   expect(
-    parse('plip foo:baz plop')::setPropertyClause('foo', 'bar')::toString()
+    parse('plip foo:baz plop')
+      ::setPropertyClause('foo', 'bar')
+      ::toString()
   ).toBe('plip plop foo:bar')
 
   expect(
-    parse('foo:|(baz plop)')::setPropertyClause('foo', 'bar')::toString()
+    parse('foo:|(baz plop)')
+      ::setPropertyClause('foo', 'bar')
+      ::toString()
   ).toBe('foo:bar')
 })
 

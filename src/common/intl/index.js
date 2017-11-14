@@ -1,18 +1,9 @@
-
 import isFunction from 'lodash/isFunction'
 import isString from 'lodash/isString'
 import moment from 'moment'
-import React, {
-  Component,
-  PropTypes
-} from 'react'
-import {
-  connect
-} from 'react-redux'
-import {
-  FormattedMessage,
-  IntlProvider as IntlProvider_
-} from 'react-intl'
+import React, { Component, PropTypes } from 'react'
+import { connect } from 'react-redux'
+import { FormattedMessage, IntlProvider as IntlProvider_ } from 'react-intl'
 
 import messages from './messages'
 import locales from './locales'
@@ -44,14 +35,17 @@ const getMessage = (props, messageId, values, render) => {
     values = undefined
   }
 
-  return <FormattedMessage {...props} {...message} values={values}>
-    {render}
-  </FormattedMessage>
+  return (
+    <FormattedMessage {...props} {...message} values={values}>
+      {render}
+    </FormattedMessage>
+  )
 }
-getMessage.keyValue = (key, value) => getMessage('keyValue', {
-  key: <strong>{key}</strong>,
-  value
-})
+getMessage.keyValue = (key, value) =>
+  getMessage('keyValue', {
+    key: <strong>{key}</strong>,
+    value,
+  })
 
 export { getMessage as default }
 
@@ -61,8 +55,8 @@ export { messages }
 export class IntlProvider extends Component {
   static propTypes = {
     children: PropTypes.node.isRequired,
-    lang: PropTypes.string.isRequired
-  };
+    lang: PropTypes.string.isRequired,
+  }
 
   render () {
     const { lang, children } = this.props
@@ -71,23 +65,25 @@ export class IntlProvider extends Component {
     // https://github.com/yahoo/react-intl/wiki/Components#dynamic-language-selection
     //
     // FIXME: remove the key prop when React context propagation is fixed (https://github.com/facebook/react/issues/2517)
-    return <IntlProvider_
-      key={lang}
-      locale={lang}
-      messages={locales[lang]}
-    >
-      {children}
-    </IntlProvider_>
+    return (
+      <IntlProvider_ key={lang} locale={lang} messages={locales[lang]}>
+        {children}
+      </IntlProvider_>
+    )
   }
 }
 
 @connect(({ lang }) => ({ lang }))
 export class FormattedDuration extends Component {
   render () {
-    const {
-      duration,
-      lang
-    } = this.props
-    return <span>{moment.duration(duration).locale(lang).humanize()}</span>
+    const { duration, lang } = this.props
+    return (
+      <span>
+        {moment
+          .duration(duration)
+          .locale(lang)
+          .humanize()}
+      </span>
+    )
   }
 }

@@ -12,71 +12,64 @@ import invoke from '../../invoke'
 import SingleLineRow from '../../single-line-row'
 import { Col } from '../../grid'
 import { getDefaultNetworkForVif } from '../utils'
-import {
-  SelectHost,
-  SelectNetwork
-} from '../../select-objects'
-import {
-  connectStore,
-  mapPlus,
-  resolveIds
-} from '../../utils'
+import { SelectHost, SelectNetwork } from '../../select-objects'
+import { connectStore, mapPlus, resolveIds } from '../../utils'
 import {
   createGetObjectsOfType,
   createPicker,
   createSelector,
-  getObject
+  getObject,
 } from '../../selectors'
-import {
-  isSrShared
-} from 'xo'
+import { isSrShared } from 'xo'
 
 import { isSrWritable } from '../'
 
 import styles from './index.css'
 
-@connectStore(() => {
-  const getVm = (_, props) => props.vm
+@connectStore(
+  () => {
+    const getVm = (_, props) => props.vm
 
-  const getVbds = createGetObjectsOfType('VBD').pick(
-    (state, props) => getVm(state, props).$VBDs
-  ).sort()
+    const getVbds = createGetObjectsOfType('VBD')
+      .pick((state, props) => getVm(state, props).$VBDs)
+      .sort()
 
-  const getVdis = createGetObjectsOfType('VDI').pick(
-    createSelector(
-      getVbds,
-      vbds => mapPlus(vbds, (vbd, push) => {
-        if (!vbd.is_cd_drive && vbd.VDI) {
-          push(vbd.VDI)
-        }
-      })
+    const getVdis = createGetObjectsOfType('VDI').pick(
+      createSelector(getVbds, vbds =>
+        mapPlus(vbds, (vbd, push) => {
+          if (!vbd.is_cd_drive && vbd.VDI) {
+            push(vbd.VDI)
+          }
+        })
+      )
     )
-  )
 
-  const getVifs = createGetObjectsOfType('VIF').pick(
-    createSelector(getVm, vm => vm.VIFs)
-  ).sort()
+    const getVifs = createGetObjectsOfType('VIF')
+      .pick(createSelector(getVm, vm => vm.VIFs))
+      .sort()
 
-  const getPifs = createGetObjectsOfType('PIF')
-  const getNetworks = createGetObjectsOfType('network')
-  const getPools = createGetObjectsOfType('pool')
+    const getPifs = createGetObjectsOfType('PIF')
+    const getNetworks = createGetObjectsOfType('network')
+    const getPools = createGetObjectsOfType('pool')
 
-  return {
-    networks: getNetworks,
-    pifs: getPifs,
-    pools: getPools,
-    vbds: getVbds,
-    vdis: getVdis,
-    vifs: getVifs
-  }
-}, { withRef: true })
+    return {
+      networks: getNetworks,
+      pifs: getPifs,
+      pools: getPools,
+      vbds: getVbds,
+      vdis: getVdis,
+      vifs: getVifs,
+    }
+  },
+  { withRef: true }
+)
 export default class MigrateVmModalBody extends BaseComponent {
   constructor (props) {
     super(props)
 
     this.state = {
       mapVdisSrs: {},
-      mapVifsNetworks: {}
+      mapVifsNetworks: {},
     }
 
     this._getHostPredicate = createSelector(
@@ -86,17 +79,16 @@ export default class MigrateVmModalBody extends BaseComponent {
 
     this._getSrPredicate = createSelector(
       () => this.state.host,
-      host => (host
-        ? sr => isSrWritable(sr) && (sr.$container === host.id || sr.$container === host.$pool)
-        : false
-      )
+      host =>
+        host
+          ? sr =>
+            isSrWritable(sr) &&
+              (sr.$container === host.id || sr.$container === host.$pool)
+          : false
     )
 
     this._getTargetNetworkPredicate = createSelector(
-      createPicker(
-        () => this.props.pifs,
-        () => this.state.host.$PIFs
-      ),
+      createPicker(() => this.props.pifs, () => this.state.host.$PIFs),
       pifs => {
         if (!pifs) {
           return false
@@ -112,10 +104,7 @@ export default class MigrateVmModalBody extends BaseComponent {
     )
 
     this._getMigrationNetworkPredicate = createSelector(
-      createPicker(
-        () => this.props.pifs,
-        () => this.state.host.$PIFs
-      ),
+      createPicker(() => this.props.pifs, () => this.state.host.$PIFs),
       pifs => {
         if (!pifs) {
           return false
@@ -141,7 +130,7 @@ export default class MigrateVmModalBody extends BaseComponent {
       sr: this.state.mainSr && this.state.mainSr.id,
       mapVdisSrs: resolveIds(this.state.mapVdisSrs),
       mapVifsNetworks: this.state.mapVifsNetworks,
-      migrationNetwork: this.state.migrationNetworkId
+      migrationNetwork: this.state.migrationNetworkId,
     }
   }
 
@@ -154,7 +143,7 @@ export default class MigrateVmModalBody extends BaseComponent {
     if (!host) {
       this.setState({
         host: undefined,
-        intraPool: undefined
+        intraPool: undefined,
       })
       return
     }
@@ -171,7 +160,9 @@ export default class MigrateVmModalBody extends BaseComponent {
         const _doNotMigrateVdi = {}
         forEach(vbds, vbd => {
           if (vbd.VDI != null) {
-            _doNotMigrateVdi[vbd.VDI] = isSrShared(this._getObject(this._getObject(vbd.VDI).$SR))
+            _doNotMigrateVdi[vbd.VDI] = isSrShared(
+              this._getObject(this._getObject(vbd.VDI).$SR)
+            )
           }
         })
         doNotMigrateVdis = every(_doNotMigrateVdi)
@@ -182,14 +173,17 @@ export default class MigrateVmModalBody extends BaseComponent {
         host,
         intraPool,
         mapVifsNetworks: undefined,
-        migrationNetwork: undefined
+        migrationNetwork: undefined,
       })
       return
     }
 
     // Inter-pool
     const { networks, pifs, vifs } = this.props
-    const defaultMigrationNetworkId = find(pifs, pif => pif.$host === host.id && pif.management).$network
+    const defaultMigrationNetworkId = find(
+      pifs,
+      pif => pif.$host === host.id && pif.management
+    ).$network
 
     const defaultNetwork = invoke(() => {
       // First PIF with an IP.
@@ -201,10 +195,8 @@ export default class MigrateVmModalBody extends BaseComponent {
 
     const defaultNetworksForVif = {}
     forEach(vifs, vif => {
-      defaultNetworksForVif[vif.id] = (
-        getDefaultNetworkForVif(vif, host, pifs, networks) ||
-        defaultNetwork
-      )
+      defaultNetworksForVif[vif.id] =
+        getDefaultNetworkForVif(vif, host, pifs, networks) || defaultNetwork
     })
 
     this.setState({
@@ -212,11 +204,12 @@ export default class MigrateVmModalBody extends BaseComponent {
       host,
       intraPool,
       mapVifsNetworks: defaultNetworksForVif,
-      migrationNetworkId: defaultMigrationNetworkId
+      migrationNetworkId: defaultMigrationNetworkId,
     })
   }
 
-  _selectMigrationNetwork = migrationNetwork => this.setState({ migrationNetworkId: migrationNetwork.id })
+  _selectMigrationNetwork = migrationNetwork =>
+    this.setState({ migrationNetworkId: migrationNetwork.id })
 
   render () {
     const { vdis, vifs, networks } = this.props
@@ -225,71 +218,95 @@ export default class MigrateVmModalBody extends BaseComponent {
       host,
       intraPool,
       mapVifsNetworks,
-      migrationNetworkId
+      migrationNetworkId,
     } = this.state
-    return <div>
-      <div className={styles.block}>
-        <SingleLineRow>
-          <Col size={6}>{_('migrateVmSelectHost')}</Col>
-          <Col size={6}>
-            <SelectHost
-              onChange={this._selectHost}
-              predicate={this._getHostPredicate()}
-              value={host}
-            />
-          </Col>
-        </SingleLineRow>
-      </div>
-      {host && !doNotMigrateVdis && <div className={styles.groupBlock}>
-        <SingleLineRow>
-          <Col size={12}>
-            <ChooseSrForEachVdisModal
-              onChange={props => this.setState(props)}
-              predicate={this._getSrPredicate()}
-              vdis={vdis}
-            />
-          </Col>
-        </SingleLineRow>
-      </div>}
-      {intraPool !== undefined &&
-        (!intraPool &&
-          <div>
+    return (
+      <div>
+        <div className={styles.block}>
+          <SingleLineRow>
+            <Col size={6}>{_('migrateVmSelectHost')}</Col>
+            <Col size={6}>
+              <SelectHost
+                onChange={this._selectHost}
+                predicate={this._getHostPredicate()}
+                value={host}
+              />
+            </Col>
+          </SingleLineRow>
+        </div>
+        {host &&
+          !doNotMigrateVdis && (
             <div className={styles.groupBlock}>
               <SingleLineRow>
-                <Col size={6}>{_('migrateVmSelectMigrationNetwork')}</Col>
-                <Col size={6}>
-                  <SelectNetwork
-                    onChange={this._selectMigrationNetwork}
-                    predicate={this._getMigrationNetworkPredicate()}
-                    value={migrationNetworkId}
+                <Col size={12}>
+                  <ChooseSrForEachVdisModal
+                    onChange={props => this.setState(props)}
+                    predicate={this._getSrPredicate()}
+                    vdis={vdis}
                   />
                 </Col>
               </SingleLineRow>
             </div>
-            <div className={styles.groupBlock}>
-              <SingleLineRow>
-                <Col>{_('migrateVmSelectNetworks')}</Col>
-              </SingleLineRow>
-              <br />
-              <SingleLineRow>
-                <Col size={6}><span className={styles.listTitle}>{_('migrateVmVif')}</span></Col>
-                <Col size={6}><span className={styles.listTitle}>{_('migrateVmNetwork')}</span></Col>
-              </SingleLineRow>
-              {map(vifs, vif => <div className={styles.listItem} key={vif.id}>
+          )}
+        {intraPool !== undefined &&
+          (!intraPool && (
+            <div>
+              <div className={styles.groupBlock}>
                 <SingleLineRow>
-                  <Col size={6}>{vif.MAC} ({networks[vif.$network].name_label})</Col>
+                  <Col size={6}>{_('migrateVmSelectMigrationNetwork')}</Col>
                   <Col size={6}>
                     <SelectNetwork
-                      onChange={network => this.setState({ mapVifsNetworks: { ...mapVifsNetworks, [vif.id]: network.id } })}
-                      predicate={this._getTargetNetworkPredicate()}
-                      value={mapVifsNetworks[vif.id]}
+                      onChange={this._selectMigrationNetwork}
+                      predicate={this._getMigrationNetworkPredicate()}
+                      value={migrationNetworkId}
                     />
                   </Col>
                 </SingleLineRow>
-              </div>)}
+              </div>
+              <div className={styles.groupBlock}>
+                <SingleLineRow>
+                  <Col>{_('migrateVmSelectNetworks')}</Col>
+                </SingleLineRow>
+                <br />
+                <SingleLineRow>
+                  <Col size={6}>
+                    <span className={styles.listTitle}>
+                      {_('migrateVmVif')}
+                    </span>
+                  </Col>
+                  <Col size={6}>
+                    <span className={styles.listTitle}>
+                      {_('migrateVmNetwork')}
+                    </span>
+                  </Col>
+                </SingleLineRow>
+                {map(vifs, vif => (
+                  <div className={styles.listItem} key={vif.id}>
+                    <SingleLineRow>
+                      <Col size={6}>
+                        {vif.MAC} ({networks[vif.$network].name_label})
+                      </Col>
+                      <Col size={6}>
+                        <SelectNetwork
+                          onChange={network =>
+                            this.setState({
+                              mapVifsNetworks: {
+                                ...mapVifsNetworks,
+                                [vif.id]: network.id,
+                              },
+                            })
+                          }
+                          predicate={this._getTargetNetworkPredicate()}
+                          value={mapVifsNetworks[vif.id]}
+                        />
+                      </Col>
+                    </SingleLineRow>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
-    </div>
+          ))}
+      </div>
+    )
   }
 }

@@ -18,7 +18,7 @@ import Select from './select'
   placeholder: propTypes.node,
   predicate: propTypes.func,
   required: propTypes.bool,
-  value: propTypes.any
+  value: propTypes.any,
 })
 @uncontrollableInput()
 export default class SelectPlainObject extends Component {
@@ -27,7 +27,7 @@ export default class SelectPlainObject extends Component {
 
     this.setState({
       options: this._computeOptions(options),
-      value: this._computeValue(value, this.props)
+      value: this._computeValue(value, this.props),
     })
   }
 
@@ -35,7 +35,7 @@ export default class SelectPlainObject extends Component {
     if (newProps !== this.props) {
       this.setState({
         options: this._computeOptions(newProps.options),
-        value: this._computeValue(newProps.value, newProps)
+        value: this._computeValue(newProps.value, newProps),
       })
     }
   }
@@ -43,7 +43,8 @@ export default class SelectPlainObject extends Component {
   _computeValue (value, props = this.props) {
     let { optionKey } = props
     optionKey || (optionKey = 'id')
-    const reduceValue = value => value != null ? (value[optionKey] || value) : ''
+    const reduceValue = value =>
+      value != null ? value[optionKey] || value : ''
     if (props.multi) {
       if (!Array.isArray(value)) {
         value = [value]
@@ -59,7 +60,7 @@ export default class SelectPlainObject extends Component {
     const { optionRenderer = o => o.label || o[optionKey] || o } = this.props
     return map(options, option => ({
       value: option[optionKey] || option,
-      label: optionRenderer(option)
+      label: optionRenderer(option),
     }))
   }
 
@@ -72,7 +73,10 @@ export default class SelectPlainObject extends Component {
 
     const pickValue = value => {
       value = value.value || value
-      return find(options, option => option[optionKey] === value || option === value)
+      return find(
+        options,
+        option => option[optionKey] === value || option === value
+      )
     }
 
     if (this.props.multi) {

@@ -1,10 +1,10 @@
 // This file is coded in ES5 and CommonJS to be compatible with
 // `create-locale`.
 
-var forEach = require('lodash/forEach')
-var isString = require('lodash/isString')
+const forEach = require('lodash/forEach')
+const isString = require('lodash/isString')
 
-var messages = {
+const messages = {
   keyValue: '{key}: {value}',
 
   statusConnecting: 'Connecting',
@@ -107,7 +107,8 @@ var messages = {
   homeFetchingData: 'Fetching data…',
   homeWelcome: 'Welcome to Xen Orchestra!',
   homeWelcomeText: 'Add your XenServer hosts or pools',
-  homeConnectServerText: 'Some XenServers have been registered but are not connected',
+  homeConnectServerText:
+    'Some XenServers have been registered but are not connected',
   homeHelp: 'Want some help?',
   homeAddServer: 'Add server',
   homeConnectServer: 'Connect servers',
@@ -166,7 +167,8 @@ var messages = {
   // ----- Common components -----
   sortedTableAllItemsSelected: 'All of them are selected',
   sortedTableNoItems: 'No items found',
-  sortedTableNumberOfFilteredItems: '{nFiltered, number} of {nTotal, number} items',
+  sortedTableNumberOfFilteredItems:
+    '{nFiltered, number} of {nTotal, number} items',
   sortedTableNumberOfItems: '{nTotal, number} items',
   sortedTableNumberOfSelectedItems: '{nSelected, number} selected',
   sortedTableSelectAllItems: 'Click here to select all items',
@@ -263,21 +265,25 @@ var messages = {
   jobFinished: 'Finished',
   saveBackupJob: 'Save',
   deleteBackupSchedule: 'Remove backup job',
-  deleteBackupScheduleQuestion: 'Are you sure you want to delete this backup job?',
+  deleteBackupScheduleQuestion:
+    'Are you sure you want to delete this backup job?',
   scheduleEnableAfterCreation: 'Enable immediately after creation',
-  scheduleEditMessage: 'You are editing Schedule {name} ({id}). Saving will override previous schedule state.',
-  jobEditMessage: 'You are editing job {name} ({id}). Saving will override previous job state.',
+  scheduleEditMessage:
+    'You are editing Schedule {name} ({id}). Saving will override previous schedule state.',
+  jobEditMessage:
+    'You are editing job {name} ({id}). Saving will override previous job state.',
   noScheduledJobs: 'No scheduled jobs.',
   noJobs: 'No jobs found.',
   noSchedules: 'No schedules found',
   jobActionPlaceHolder: 'Select a xo-server API command',
-  jobTimeoutPlaceHolder: 'Timeout (number of seconds after which a VM is considered failed)',
+  jobTimeoutPlaceHolder:
+    'Timeout (number of seconds after which a VM is considered failed)',
   jobSchedules: 'Schedules',
   jobScheduleNamePlaceHolder: 'Name of your schedule',
   jobScheduleJobPlaceHolder: 'Select a Job',
   jobOwnerPlaceholder: 'Job owner',
-  jobUserNotFound: 'This job\'s creator no longer exists',
-  backupUserNotFound: 'This backup\'s creator no longer exists',
+  jobUserNotFound: "This job's creator no longer exists",
+  backupUserNotFound: "This backup's creator no longer exists",
   backupOwner: 'Backup owner',
 
   // ------ New backup -----
@@ -286,8 +292,10 @@ var messages = {
   normalBackup: 'Normal backup',
   smartBackup: 'Smart backup',
   localRemoteWarningTitle: 'Local remote selected',
-  localRemoteWarningMessage: 'Warning: local remotes will use limited XOA disk space. Only for advanced users.',
-  backupVersionWarning: 'Warning: this feature works only with XenServer 6.5 or newer.',
+  localRemoteWarningMessage:
+    'Warning: local remotes will use limited XOA disk space. Only for advanced users.',
+  backupVersionWarning:
+    'Warning: this feature works only with XenServer 6.5 or newer.',
   editBackupVmsTitle: 'VMs',
   editBackupSmartStatusTitle: 'VMs statuses',
   editBackupSmartResidentOn: 'Resident on',
@@ -309,7 +317,8 @@ var messages = {
   remoteTypeNfs: 'NFS',
   remoteTypeSmb: 'SMB',
   remoteType: 'Type',
-  remoteSmbWarningMessage: 'SMB remotes are meant to work on Windows Server. For other systems (Linux Samba, which means almost all NAS), please use NFS.',
+  remoteSmbWarningMessage:
+    'SMB remotes are meant to work on Windows Server. For other systems (Linux Samba, which means almost all NAS), please use NFS.',
   remoteTestTip: 'Test your remote',
   testRemote: 'Test Remote',
   remoteTestFailure: 'Test failed for {name}',
@@ -421,7 +430,8 @@ var messages = {
   pluginError: 'Plugin error',
   unknownPluginError: 'Unknown error',
   purgePluginConfiguration: 'Purge plugin configuration',
-  purgePluginConfigurationQuestion: 'Are you sure you want to purge this configuration ?',
+  purgePluginConfigurationQuestion:
+    'Are you sure you want to purge this configuration ?',
   editPluginConfiguration: 'Edit',
   cancelPluginEdition: 'Cancel',
   pluginConfigurationSuccess: 'Plugin configuration',
@@ -523,8 +533,10 @@ var messages = {
   addSrLabel: 'Add SR',
   addVmLabel: 'Add VM',
   addHostLabel: 'Add Host',
-  hostNeedsPatchUpdate: 'This host needs to install {patches, number} patch{patches, plural, one {} other {es}} before it can be added to the pool. This operation may be long.',
-  hostNeedsPatchUpdateNoInstall: 'This host cannot be added to the pool because it\'s missing some patches.',
+  hostNeedsPatchUpdate:
+    'This host needs to install {patches, number} patch{patches, plural, one {} other {es}} before it can be added to the pool. This operation may be long.',
+  hostNeedsPatchUpdateNoInstall:
+    "This host cannot be added to the pool because it's missing some patches.",
   addHostErrorTitle: 'Adding host failed',
   addHostNotHomogeneousErrorMessage: 'Host patches could not be homogenized.',
   disconnectServer: 'Disconnect',
@@ -538,17 +550,19 @@ var messages = {
   forceRebootHostLabel: 'Force reboot',
   rebootHostLabel: 'Reboot',
   noHostsAvailableErrorTitle: 'Error while restarting host',
-  noHostsAvailableErrorMessage: 'Some VMs cannot be migrated before restarting this host. Please try force reboot.',
+  noHostsAvailableErrorMessage:
+    'Some VMs cannot be migrated before restarting this host. Please try force reboot.',
   failHostBulkRestartTitle: 'Error while restarting hosts',
-  failHostBulkRestartMessage: '{failedHosts, number}/{totalHosts, number} host{failedHosts, plural, one {} other {s}} could not be restarted.',
+  failHostBulkRestartMessage:
+    '{failedHosts, number}/{totalHosts, number} host{failedHosts, plural, one {} other {s}} could not be restarted.',
   rebootUpdateHostLabel: 'Reboot to apply updates',
   emergencyModeLabel: 'Emergency mode',
   // ----- Host tabs -----
   storageTabName: 'Storage',
   patchesTabName: 'Patches',
-    // ----- host stat tab -----
+  // ----- host stat tab -----
   statLoad: 'Load average',
-    // ----- host advanced tab -----
+  // ----- host advanced tab -----
   memoryHostState: 'RAM Usage: {memoryUsed}',
   hardwareHostSettingsLabel: 'Hardware',
   hostAddress: 'Address',
@@ -577,9 +591,11 @@ var messages = {
   supplementalPackInstallStartedTitle: 'Installation started',
   supplementalPackInstallStartedMessage: 'Installing new supplemental pack…',
   supplementalPackInstallErrorTitle: 'Installation error',
-  supplementalPackInstallErrorMessage: 'The installation of the supplemental pack failed.',
+  supplementalPackInstallErrorMessage:
+    'The installation of the supplemental pack failed.',
   supplementalPackInstallSuccessTitle: 'Installation success',
-  supplementalPackInstallSuccessMessage: 'Supplemental pack successfully installed.',
+  supplementalPackInstallSuccessMessage:
+    'Supplemental pack successfully installed.',
   // ----- Host net tabs -----
   networkCreateButton: 'Add a network',
   networkCreateBondedButton: 'Add a bonded network',
@@ -635,7 +651,8 @@ var messages = {
   hostMissingPatches: 'Missing patches',
   hostUpToDate: 'Host up-to-date!',
   installPatchWarningTitle: 'Non-recommended patch install',
-  installPatchWarningContent: 'This will install a patch only on this host. This is NOT the recommended way: please go into the Pool patch view and follow instructions there. If you are sure about this, you can continue anyway',
+  installPatchWarningContent:
+    'This will install a patch only on this host. This is NOT the recommended way: please go into the Pool patch view and follow instructions there. If you are sure about this, you can continue anyway',
   installPatchWarningReject: 'Go to pool',
   installPatchWarningResolve: 'Install',
   // ----- Pool patch tabs -----
@@ -748,8 +765,10 @@ var messages = {
   resetBootOption: 'Reset',
   deleteSelectedVdis: 'Delete selected VDIs',
   deleteSelectedVdi: 'Delete selected VDI',
-  useQuotaWarning: 'Creating this disk will use the disk space quota from the resource set {resourceSet} ({spaceLeft} left)',
-  notEnoughSpaceInResourceSet: 'Not enough space in resource set {resourceSet} ({spaceLeft} left)',
+  useQuotaWarning:
+    'Creating this disk will use the disk space quota from the resource set {resourceSet} ({spaceLeft} left)',
+  notEnoughSpaceInResourceSet:
+    'Not enough space in resource set {resourceSet} ({spaceLeft} left)',
 
   // ----- VM network tab -----
   vifCreateDeviceButton: 'New device',
@@ -769,7 +788,8 @@ var messages = {
   vifAllowedIps: 'Allowed IPs',
   vifNoIps: 'No IPs',
   vifLockedNetwork: 'Network locked',
-  vifLockedNetworkNoIps: 'Network locked and no IPs are allowed for this interface',
+  vifLockedNetworkNoIps:
+    'Network locked and no IPs are allowed for this interface',
   vifUnLockedNetwork: 'Network not locked',
   vifUnknownNetwork: 'Unknown network',
   vifAction: 'Action',
@@ -813,7 +833,8 @@ var messages = {
   xenToolsStatus: 'Xen tools status',
   xenToolsStatusValue: {
     defaultMessage: '{status}',
-    description: 'status can be `not-installed`, `unknown`, `out-of-date` & `up-to-date`'
+    description:
+      'status can be `not-installed`, `unknown`, `out-of-date` & `up-to-date`',
   },
   osName: 'OS name',
   osKernel: 'OS kernel',
@@ -831,9 +852,11 @@ var messages = {
   vmCpuLimitsLabel: 'CPU limits',
   vmCpuTopology: 'Topology',
   vmChooseCoresPerSocket: 'Default behavior',
-  vmCoresPerSocket: '{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket',
+  vmCoresPerSocket:
+    '{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket',
   vmCoresPerSocketIncorrectValue: 'Incorrect cores per socket value',
-  vmCoresPerSocketIncorrectValueSolution: 'Please change the selected value to fix it.',
+  vmCoresPerSocketIncorrectValueSolution:
+    'Please change the selected value to fix it.',
   vmMemoryLimitsLabel: 'Memory limits (min/max)',
   vmMaxVcpus: 'vCPUs max:',
   vmMaxRam: 'Memory max:',
@@ -855,8 +878,10 @@ var messages = {
   templateHomeNamePlaceholder: 'Click to add a name',
   templateHomeDescriptionPlaceholder: 'Click to add a description',
   templateDelete: 'Delete template',
-  templateDeleteModalTitle: 'Delete VM template{templates, plural, one {} other {s}}',
-  templateDeleteModalBody: 'Are you sure you want to delete {templates, plural, one {this} other {these}} template{templates, plural, one {} other {s}}?',
+  templateDeleteModalTitle:
+    'Delete VM template{templates, plural, one {} other {s}}',
+  templateDeleteModalBody:
+    'Are you sure you want to delete {templates, plural, one {this} other {these}} template{templates, plural, one {} other {s}}?',
 
   // ----- Dashboard -----
   poolPanel: 'Pool{pools, plural, one {} other {s}}',
@@ -984,7 +1009,8 @@ var messages = {
   editResourceSet: 'Edit',
   deleteResourceSet: 'Delete',
   deleteResourceSetWarning: 'Delete resource set',
-  deleteResourceSetQuestion: 'Are you sure you want to delete this resource set?',
+  deleteResourceSetQuestion:
+    'Are you sure you want to delete this resource set?',
   resourceSetMissingObjects: 'Missing objects:',
   resourceSetVcpus: 'vCPUs',
   resourceSetMemory: 'Memory',
@@ -993,7 +1019,8 @@ var messages = {
   availableHosts: 'Available hosts',
   excludedHosts: 'Excluded hosts',
   noHostsAvailable: 'No hosts available.',
-  availableHostsDescription: 'VMs created from this resource set shall run on the following hosts.',
+  availableHostsDescription:
+    'VMs created from this resource set shall run on the following hosts.',
   maxCpus: 'Maximum CPUs',
   maxRam: 'Maximum RAM (GiB)',
   maxDiskSpace: 'Maximum disk space',
@@ -1006,7 +1033,8 @@ var messages = {
   resourceSetNew: 'New',
 
   // ---- VM import ---
-  importVmsList: 'Try dropping some VMs files here, or click to select VMs to upload. Accept only .xva/.ova files.',
+  importVmsList:
+    'Try dropping some VMs files here, or click to select VMs to upload. Accept only .xva/.ova files.',
   noSelectedVms: 'No selected VMs.',
   vmImportToPool: 'To Pool:',
   vmImportToSr: 'To SR:',
@@ -1040,7 +1068,8 @@ var messages = {
   delta: 'delta',
   restoreBackups: 'Restore Backups',
   restoreBackupsInfo: 'Click on a VM to display restore options',
-  restoreDeltaBackupsInfo: 'Only the files of Delta Backup which are not on a SMB remote can be restored',
+  restoreDeltaBackupsInfo:
+    'Only the files of Delta Backup which are not on a SMB remote can be restored',
   remoteEnabled: 'Enabled',
   remoteError: 'Error',
   noBackup: 'No backup available',
@@ -1073,47 +1102,63 @@ var messages = {
   restoreFilesNoFilesSelected: 'No files selected',
   restoreFilesSelectedFiles: 'Selected files ({files}):',
   restoreFilesDiskError: 'Error while scanning disk',
-  restoreFilesSelectAllFiles: 'Select all this folder\'s files',
+  restoreFilesSelectAllFiles: "Select all this folder's files",
   restoreFilesUnselectAll: 'Unselect all files',
 
   // ----- Modals -----
-  emergencyShutdownHostsModalTitle: 'Emergency shutdown Host{nHosts, plural, one {} other {s}}',
-  emergencyShutdownHostsModalMessage: 'Are you sure you want to shutdown {nHosts, number} Host{nHosts, plural, one {} other {s}}?',
+  emergencyShutdownHostsModalTitle:
+    'Emergency shutdown Host{nHosts, plural, one {} other {s}}',
+  emergencyShutdownHostsModalMessage:
+    'Are you sure you want to shutdown {nHosts, number} Host{nHosts, plural, one {} other {s}}?',
   stopHostModalTitle: 'Shutdown host',
-  stopHostModalMessage: 'This will shutdown your host. Do you want to continue? If it\'s the pool master, your connection to the pool will be lost',
+  stopHostModalMessage:
+    "This will shutdown your host. Do you want to continue? If it's the pool master, your connection to the pool will be lost",
   addHostModalTitle: 'Add host',
   addHostModalMessage: 'Are you sure you want to add {host} to {pool}?',
   restartHostModalTitle: 'Restart host',
-  restartHostModalMessage: 'This will restart your host. Do you want to continue?',
-  restartHostsAgentsModalTitle: 'Restart Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}',
-  restartHostsAgentsModalMessage: 'Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}?',
+  restartHostModalMessage:
+    'This will restart your host. Do you want to continue?',
+  restartHostsAgentsModalTitle:
+    'Restart Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}',
+  restartHostsAgentsModalMessage:
+    'Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}?',
   restartHostsModalTitle: 'Restart Host{nHosts, plural, one {} other {s}}',
-  restartHostsModalMessage: 'Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}}?',
+  restartHostsModalMessage:
+    'Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}}?',
   startVmsModalTitle: 'Start VM{vms, plural, one {} other {s}}',
   cloneAndStartVM: 'Start a copy',
   forceStartVm: 'Force start',
   forceStartVmModalTitle: 'Forbidden operation',
   blockedStartVmModalMessage: 'Start operation for this vm is blocked.',
-  blockedStartVmsModalMessage: 'Forbidden operation start for {nVms, number} vm{nVms, plural, one {} other {s}}.',
-  startVmsModalMessage: 'Are you sure you want to start {vms, number} VM{vms, plural, one {} other {s}}?',
-  failedVmsErrorMessage: '{nVms, number} vm{nVms, plural, one {} other {s}} are failed. Please see your logs to get more information',
+  blockedStartVmsModalMessage:
+    'Forbidden operation start for {nVms, number} vm{nVms, plural, one {} other {s}}.',
+  startVmsModalMessage:
+    'Are you sure you want to start {vms, number} VM{vms, plural, one {} other {s}}?',
+  failedVmsErrorMessage:
+    '{nVms, number} vm{nVms, plural, one {} other {s}} are failed. Please see your logs to get more information',
   failedVmsErrorTitle: 'Start failed',
   stopHostsModalTitle: 'Stop Host{nHosts, plural, one {} other {s}}',
-  stopHostsModalMessage: 'Are you sure you want to stop {nHosts, number} Host{nHosts, plural, one {} other {s}}?',
+  stopHostsModalMessage:
+    'Are you sure you want to stop {nHosts, number} Host{nHosts, plural, one {} other {s}}?',
   stopVmsModalTitle: 'Stop VM{vms, plural, one {} other {s}}',
-  stopVmsModalMessage: 'Are you sure you want to stop {vms, number} VM{vms, plural, one {} other {s}}?',
+  stopVmsModalMessage:
+    'Are you sure you want to stop {vms, number} VM{vms, plural, one {} other {s}}?',
   restartVmModalTitle: 'Restart VM',
   restartVmModalMessage: 'Are you sure you want to restart {name}?',
   stopVmModalTitle: 'Stop VM',
   stopVmModalMessage: 'Are you sure you want to stop {name}?',
   restartVmsModalTitle: 'Restart VM{vms, plural, one {} other {s}}',
-  restartVmsModalMessage: 'Are you sure you want to restart {vms, number} VM{vms, plural, one {} other {s}}?',
+  restartVmsModalMessage:
+    'Are you sure you want to restart {vms, number} VM{vms, plural, one {} other {s}}?',
   snapshotVmsModalTitle: 'Snapshot VM{vms, plural, one {} other {s}}',
-  snapshotVmsModalMessage: 'Are you sure you want to snapshot {vms, number} VM{vms, plural, one {} other {s}}?',
+  snapshotVmsModalMessage:
+    'Are you sure you want to snapshot {vms, number} VM{vms, plural, one {} other {s}}?',
   deleteVmsModalTitle: 'Delete VM{vms, plural, one {} other {s}}',
-  deleteVmsModalMessage: 'Are you sure you want to delete {vms, number} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED',
+  deleteVmsModalMessage:
+    'Are you sure you want to delete {vms, number} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED',
   deleteVmModalTitle: 'Delete VM',
-  deleteVmModalMessage: 'Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED',
+  deleteVmModalMessage:
+    'Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED',
   migrateVmModalTitle: 'Migrate VM',
   migrateVmSelectHost: 'Select a destination host:',
   migrateVmSelectMigrationNetwork: 'Select a migration network:',
@@ -1134,29 +1179,37 @@ var messages = {
   chooseSrForEachVdisModalSrLabel: 'SR*',
   chooseSrForEachVdisModalOptionalEntry: '* optional',
   deleteVdiModalTitle: 'Delete VDI',
-  deleteVdiModalMessage: 'Are you sure you want to delete this disk? ALL DATA ON THIS DISK WILL BE LOST',
+  deleteVdiModalMessage:
+    'Are you sure you want to delete this disk? ALL DATA ON THIS DISK WILL BE LOST',
   deleteVdisModalTitle: 'Delete VDI{nVdis, plural, one {} other {s}}',
-  deleteVdisModalMessage: 'Are you sure you want to delete {nVdis, number} disk{nVdis, plural, one {} other {s}}? ALL DATA ON THESE DISKS WILL BE LOST',
+  deleteVdisModalMessage:
+    'Are you sure you want to delete {nVdis, number} disk{nVdis, plural, one {} other {s}}? ALL DATA ON THESE DISKS WILL BE LOST',
   revertVmModalTitle: 'Revert your VM',
   deleteSnapshotModalTitle: 'Delete snapshot',
   deleteSnapshotModalMessage: 'Are you sure you want to delete this snapshot?',
-  revertVmModalMessage: 'Are you sure you want to revert this VM to the snapshot state? This operation is irreversible.',
+  revertVmModalMessage:
+    'Are you sure you want to revert this VM to the snapshot state? This operation is irreversible.',
   revertVmModalSnapshotBefore: 'Snapshot before',
   importBackupModalTitle: 'Import a {name} Backup',
   importBackupModalStart: 'Start VM after restore',
   importBackupModalSelectBackup: 'Select your backup…',
-  removeAllOrphanedModalWarning: 'Are you sure you want to remove all orphaned snapshot VDIs?',
+  removeAllOrphanedModalWarning:
+    'Are you sure you want to remove all orphaned snapshot VDIs?',
   removeAllLogsModalTitle: 'Remove all logs',
   removeAllLogsModalWarning: 'Are you sure you want to remove all logs?',
   definitiveMessageModal: 'This operation is definitive.',
   existingSrModalTitle: 'Previous SR Usage',
-  existingSrModalText: 'This path has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.',
+  existingSrModalText:
+    'This path has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.',
   existingLunModalTitle: 'Previous LUN Usage',
-  existingLunModalText: 'This LUN has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.',
+  existingLunModalText:
+    'This LUN has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.',
   alreadyRegisteredModal: 'Replace current registration?',
-  alreadyRegisteredModalText: 'Your XO appliance is already registered to {email}, do you want to forget and replace this registration ?',
+  alreadyRegisteredModalText:
+    'Your XO appliance is already registered to {email}, do you want to forget and replace this registration ?',
   trialReadyModal: 'Ready for trial?',
-  trialReadyModalText: 'During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans!',
+  trialReadyModalText:
+    'During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans!',
 
   // ----- Servers -----
   serverLabel: 'Label',
@@ -1167,7 +1220,8 @@ var messages = {
   serverReadOnly: 'Read Only',
   serverUnauthorizedCertificates: 'Unauthorized Certificates',
   serverAllowUnauthorizedCertificates: 'Allow Unauthorized Certificates',
-  serverUnauthorizedCertificatesInfo: 'Enable it if your certificate is rejected, but it\'s not recommended because your connection will not be secured.',
+  serverUnauthorizedCertificatesInfo:
+    "Enable it if your certificate is rejected, but it's not recommended because your connection will not be secured.",
   serverDisconnect: 'Disconnect server',
   serverPlaceHolderUser: 'username',
   serverPlaceHolderPassword: 'password',
@@ -1184,7 +1238,8 @@ var messages = {
   serverAuthFailed: 'Authentication error',
   serverUnknownError: 'Unknown error',
   serverSelfSignedCertError: 'Invalid self-signed certificate',
-  serverSelfSignedCertQuestion: 'Do you want to accept self-signed certificate for this server even though it would decrease security?',
+  serverSelfSignedCertQuestion:
+    'Do you want to accept self-signed certificate for this server even though it would decrease security?',
 
   // ----- Copy VM -----
   copyVm: 'Copy VM',
@@ -1200,18 +1255,21 @@ var messages = {
 
   // ----- Detach host -----
   detachHostModalTitle: 'Detach host',
-  detachHostModalMessage: 'Are you sure you want to detach {host} from its pool? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND REBOOT THE HOST.',
+  detachHostModalMessage:
+    'Are you sure you want to detach {host} from its pool? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND REBOOT THE HOST.',
   detachHost: 'Detach',
 
   // ----- Forget host -----
   forgetHostModalTitle: 'Forget host',
-  forgetHostModalMessage: 'Are you sure you want to forget {host} from its pool? Be sure this host can\'t be back online, or use detach instead.',
+  forgetHostModalMessage:
+    "Are you sure you want to forget {host} from its pool? Be sure this host can't be back online, or use detach instead.",
   forgetHost: 'Forget',
 
   // ----- Set pool master -----
 
   setPoolMasterModalTitle: 'Designate a new master',
-  setPoolMasterModalMessage: 'This operation may take several minutes. Do you want to continue?',
+  setPoolMasterModalMessage:
+    'This operation may take several minutes. Do you want to continue?',
 
   // ----- Network -----
   newNetworkCreate: 'Create network',
@@ -1264,7 +1322,8 @@ var messages = {
   or: 'Or',
   tryIt: 'Try it for free!',
   availableIn: 'This feature is available starting from {plan} Edition',
-  notAvailable: 'This feature is not available in your version, contact your administrator to know more.',
+  notAvailable:
+    'This feature is not available in your version, contact your administrator to know more.',
 
   // ----- Updates View -----
   updateTitle: 'Updates',
@@ -1283,30 +1342,40 @@ var messages = {
   refresh: 'Refresh',
   upgrade: 'Upgrade',
   noUpdaterCommunity: 'No updater available for Community Edition',
-  considerSubscribe: 'Please consider subscribing and trying it with all the features for free during 15 days on {link}.',
-  noUpdaterWarning: 'Manual update could break your current installation due to dependencies issues, do it with caution',
+  considerSubscribe:
+    'Please consider subscribing and trying it with all the features for free during 15 days on {link}.',
+  noUpdaterWarning:
+    'Manual update could break your current installation due to dependencies issues, do it with caution',
   currentVersion: 'Current version:',
   register: 'Register',
   editRegistration: 'Edit registration',
-  trialRegistration: 'Please, take time to register in order to enjoy your trial.',
+  trialRegistration:
+    'Please, take time to register in order to enjoy your trial.',
   trialStartButton: 'Start trial',
-  trialAvailableUntil: 'You can use a trial version until {date, date, medium}. Upgrade your appliance to get it.',
-  trialConsumed: 'Your trial has been ended. Contact us or downgrade to Free version',
-  trialLocked: 'Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service.',
+  trialAvailableUntil:
+    'You can use a trial version until {date, date, medium}. Upgrade your appliance to get it.',
+  trialConsumed:
+    'Your trial has been ended. Contact us or downgrade to Free version',
+  trialLocked:
+    'Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service.',
   noUpdateInfo: 'No update information available',
   waitingUpdateInfo: 'Update information may be available',
   upToDate: 'Your XOA is up-to-date',
   mustUpgrade: 'You need to update your XOA (new version is available)',
   registerNeeded: 'Your XOA is not registered for updates',
-  updaterError: 'Can\'t fetch update information',
+  updaterError: "Can't fetch update information",
   promptUpgradeReloadTitle: 'Upgrade successful',
-  promptUpgradeReloadMessage: 'Your XOA has successfully upgraded, and your browser must reload the application. Do you want to reload now ?',
+  promptUpgradeReloadMessage:
+    'Your XOA has successfully upgraded, and your browser must reload the application. Do you want to reload now ?',
 
   // ----- OS Disclaimer -----
   disclaimerTitle: 'Xen Orchestra from the sources',
-  disclaimerText1: 'You are using XO from the sources! That\'s great for a personal/non-profit usage.',
-  disclaimerText2: 'If you are a company, it\'s better to use it with our appliance + pro support included:',
-  disclaimerText3: 'This version is not bundled with any support nor updates. Use it with caution for critical tasks.',
+  disclaimerText1:
+    "You are using XO from the sources! That's great for a personal/non-profit usage.",
+  disclaimerText2:
+    "If you are a company, it's better to use it with our appliance + pro support included:",
+  disclaimerText3:
+    'This version is not bundled with any support nor updates. Use it with caution for critical tasks.',
 
   // ----- PIF -----
   connectPif: 'Connect PIF',
@@ -1328,11 +1397,13 @@ var messages = {
   newPasswordPlaceholder: 'New password',
   confirmPasswordPlaceholder: 'Confirm new password',
   confirmationPasswordError: 'Confirmation password incorrect',
-  confirmationPasswordErrorBody: 'Password does not match the confirm password.',
+  confirmationPasswordErrorBody:
+    'Password does not match the confirm password.',
   pwdChangeSuccess: 'Password changed',
   pwdChangeSuccessBody: 'Your password has been successfully changed.',
   pwdChangeError: 'Incorrect password',
-  pwdChangeErrorBody: 'The old password provided is incorrect. Your password has not been changed.',
+  pwdChangeErrorBody:
+    'The old password provided is incorrect. Your password has not been changed.',
   changePasswordOk: 'OK',
   sshKeys: 'SSH keys',
   newSshKey: 'New SSH key',
@@ -1344,7 +1415,8 @@ var messages = {
   title: 'Title',
   key: 'Key',
   deleteSshKeyConfirm: 'Delete SSH key',
-  deleteSshKeyConfirmMessage: 'Are you sure you want to delete the SSH key {title}?',
+  deleteSshKeyConfirmMessage:
+    'Are you sure you want to delete the SSH key {title}?',
 
   // ----- Usage -----
   others: 'Others',
@@ -1414,7 +1486,8 @@ var messages = {
 
   // ----- Config -----
   noConfigFile: 'No config file selected',
-  importTip: 'Try dropping a config file here, or click to select a config file to upload.',
+  importTip:
+    'Try dropping a config file here, or click to select a config file to upload.',
   config: 'Config',
   importConfig: 'Import',
   importConfigSuccess: 'Config file successfully imported',
@@ -1426,14 +1499,19 @@ var messages = {
   // ----- SR -----
   srReconnectAllModalTitle: 'Reconnect all hosts',
   srReconnectAllModalMessage: 'This will reconnect this SR to all its hosts.',
-  srsReconnectAllModalMessage: 'This will reconnect each selected SR to its host (local SR) or to every hosts of its pool (shared SR).',
+  srsReconnectAllModalMessage:
+    'This will reconnect each selected SR to its host (local SR) or to every hosts of its pool (shared SR).',
   srDisconnectAllModalTitle: 'Disconnect all hosts',
-  srDisconnectAllModalMessage: 'This will disconnect this SR from all its hosts.',
-  srsDisconnectAllModalMessage: 'This will disconnect each selected SR from its host (local SR) or from every hosts of its pool (shared SR).',
+  srDisconnectAllModalMessage:
+    'This will disconnect this SR from all its hosts.',
+  srsDisconnectAllModalMessage:
+    'This will disconnect each selected SR from its host (local SR) or from every hosts of its pool (shared SR).',
   srForgetModalTitle: 'Forget SR',
   srsForgetModalTitle: 'Forget selected SRs',
-  srForgetModalMessage: 'Are you sure you want to forget this SR? VDIs on this storage won\'t be removed.',
-  srsForgetModalMessage: 'Are you sure you want to forget all the selected SRs? VDIs on these storages won\'t be removed.',
+  srForgetModalMessage:
+    "Are you sure you want to forget this SR? VDIs on this storage won't be removed.",
+  srsForgetModalMessage:
+    "Are you sure you want to forget all the selected SRs? VDIs on these storages won't be removed.",
   srAllDisconnected: 'Disconnected',
   srSomeConnected: 'Partially connected',
   srAllConnected: 'Connected',
@@ -1452,7 +1530,8 @@ var messages = {
   xosanUsedSpace: 'Used space',
   xosanNeedPack: 'XOSAN pack needs to be installed on each host of the pool.',
   xosanInstallIt: 'Install it now!',
-  xosanNeedRestart: 'Some hosts need their toolstack to be restarted before you can create an XOSAN',
+  xosanNeedRestart:
+    'Some hosts need their toolstack to be restarted before you can create an XOSAN',
   xosanRestartAgents: 'Restart toolstacks',
   xosanMasterOffline: 'Pool master is not running',
   xosanInstallPackTitle: 'Install XOSAN pack on {pool}',
@@ -1470,7 +1549,8 @@ var messages = {
   xosanAdvanced: 'Advanced',
   xosanRemoveSubvolumes: 'Remove subvolumes',
   xosanAddSubvolume: 'Add subvolume…',
-  xosanWarning: 'This version of XOSAN SR is from the first beta phase. You can keep using it, but to modify it you\'ll have to save your disks and re-create it.',
+  xosanWarning:
+    "This version of XOSAN SR is from the first beta phase. You can keep using it, but to modify it you'll have to save your disks and re-create it.",
   xosanVlan: 'VLAN',
   xosanNoSrs: 'No XOSAN found',
   xosanPbdsDetached: 'Some SRs are detached from the XOSAN',
@@ -1492,16 +1572,20 @@ var messages = {
   xosanLoading: 'Loading…',
   xosanNotAvailable: 'XOSAN is not available at the moment',
   xosanRegisterBeta: 'Register for the XOSAN beta',
-  xosanSuccessfullyRegistered: 'You have successfully registered for the XOSAN beta. Please wait until your request has been approved.',
+  xosanSuccessfullyRegistered:
+    'You have successfully registered for the XOSAN beta. Please wait until your request has been approved.',
   xosanInstallPackOnHosts: 'Install XOSAN pack on these hosts:',
   xosanInstallPack: 'Install {pack} v{version}?',
-  xosanNoPackFound: 'No compatible XOSAN pack found for your XenServer versions.',
-  xosanPackRequirements: 'At least one of these version requirements must be satisfied by all the hosts in this pool:',
+  xosanNoPackFound:
+    'No compatible XOSAN pack found for your XenServer versions.',
+  xosanPackRequirements:
+    'At least one of these version requirements must be satisfied by all the hosts in this pool:',
   // SR tab XOSAN
   xosanVmsNotRunning: 'Some XOSAN Virtual Machines are not running',
   xosanVmsNotFound: 'Some XOSAN Virtual Machines could not be found',
   xosanFilesNeedingHealing: 'Files needing healing',
-  xosanFilesNeedHealing: 'Some XOSAN Virtual Machines have files needing healing',
+  xosanFilesNeedHealing:
+    'Some XOSAN Virtual Machines have files needing healing',
   xosanHostNotInNetwork: 'Host {hostName} is not in XOSAN network',
   xosanVm: 'VM controller',
   xosanUnderlyingStorage: 'SR',
@@ -1534,13 +1618,14 @@ var messages = {
   xosanCouldNotFindVM: 'Could not find VM',
   xosanUnderlyingStorageUsage: 'Using {usage}',
   xosanCustomIpNetwork: 'Custom IP network (/24)',
-  xosanIssueHostNotInNetwork: 'Will configure the host xosan network device with a static IP address and plug it in.'
+  xosanIssueHostNotInNetwork:
+    'Will configure the host xosan network device with a static IP address and plug it in.',
 }
 forEach(messages, function (message, id) {
   if (isString(message)) {
     messages[id] = {
       id,
-      defaultMessage: message
+      defaultMessage: message,
     }
   } else if (!message.id) {
     message.id = id

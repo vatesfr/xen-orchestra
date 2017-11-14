@@ -19,9 +19,6 @@ propTypes(Icon)({
   color: propTypes.string,
   fixedWidth: propTypes.bool,
   icon: propTypes.string,
-  size: propTypes.oneOfType([
-    propTypes.string,
-    propTypes.number
-  ])
+  size: propTypes.oneOfType([propTypes.string, propTypes.number]),
 })
 export default Icon

@@ -16,61 +16,74 @@ const HOST_COLUMNS = [
       const host = hosts[pbd.host]
       return (
         <Link to={`/hosts/${host.id}`}>
-          <Text value={host.name_label} onChange={value => editHost(host, { name_label: value })} useLongClick />
+          <Text
+            value={host.name_label}
+            onChange={value => editHost(host, { name_label: value })}
+            useLongClick
+          />
         </Link>
       )
     },
-    sortCriteria: (pbd, hosts) => hosts[pbd.host].name_label
+    sortCriteria: (pbd, hosts) => hosts[pbd.host].name_label,
   },
   {
     name: _('hostDescription'),
     itemRenderer: (pbd, hosts) => {
       const host = hosts[pbd.host]
       return (
-        <Text value={host.name_description} onChange={value => editHost(host, { name_description: value })} />
+        <Text
+          value={host.name_description}
+          onChange={value => editHost(host, { name_description: value })}
+        />
       )
     },
-    sortCriteria: (pbd, hosts) => hosts[pbd.host].name_description
+    sortCriteria: (pbd, hosts) => hosts[pbd.host].name_description,
   },
   {
     name: _('pbdStatus'),
-    itemRenderer: pbd => <StateButton
-      disabledLabel={_('pbdStatusDisconnected')}
-      disabledHandler={connectPbd}
-      disabledTooltip={_('pbdConnect')}
-
-      enabledLabel={_('pbdStatusConnected')}
-      enabledHandler={disconnectPbd}
-      enabledTooltip={_('pbdDisconnect')}
-
-      handlerParam={pbd}
-      state={pbd.attached}
-    />,
-    sortCriteria: 'attached'
+    itemRenderer: pbd => (
+      <StateButton
+        disabledLabel={_('pbdStatusDisconnected')}
+        disabledHandler={connectPbd}
+        disabledTooltip={_('pbdConnect')}
+        enabledLabel={_('pbdStatusConnected')}
+        enabledHandler={disconnectPbd}
+        enabledTooltip={_('pbdDisconnect')}
+        handlerParam={pbd}
+        state={pbd.attached}
+      />
+    ),
+    sortCriteria: 'attached',
   },
   {
     name: _('pbdAction'),
-    itemRenderer: pbd => !pbd.attached &&
-      <ActionRowButton
-        handler={deletePbd}
-        handlerParam={pbd}
-        icon='sr-forget'
-        tooltip={_('pbdForget')}
-      />,
-    textAlign: 'right'
-  }
+    itemRenderer: pbd =>
+      !pbd.attached && (
+        <ActionRowButton
+          handler={deletePbd}
+          handlerParam={pbd}
+          icon='sr-forget'
+          tooltip={_('pbdForget')}
+        />
+      ),
+    textAlign: 'right',
+  },
 ]
 
-export default ({
-  hosts,
-  pbds
-}) => <Container>
-  <Row>
-    <Col>
-      {!isEmpty(hosts)
-        ? <SortedTable collection={pbds} userData={hosts} columns={HOST_COLUMNS} />
-        : <h4 className='text-xs-center'>{_('noHost')}</h4>
-      }
-    </Col>
-  </Row>
-</Container>
+export default ({ hosts, pbds }) => (
+  <Container>
+    <Row>
+      <Col>
+        {!isEmpty(hosts) ? (
+          <SortedTable
+            collection={pbds}
+            userData={hosts}
+            columns={HOST_COLUMNS}
+          />
+        ) : (
+          <h4 className='text-xs-center'>{_('noHost')}</h4>
+        )}
+      </Col>
+    </Row>
+  </Container>
+)

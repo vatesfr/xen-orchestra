@@ -11,21 +11,12 @@ import { PrimitiveInputWrapper } from './helpers'
 @uncontrollableInput()
 export default class BooleanInput extends Component {
   render () {
-    const {
-      disabled,
-      onChange,
-      value,
-      ...props
-    } = this.props
+    const { disabled, onChange, value, ...props } = this.props
 
     return (
       <PrimitiveInputWrapper {...props}>
         <div className='checkbox form-control'>
-          <Toggle
-            disabled={disabled}
-            onChange={onChange}
-            value={value}
-          />
+          <Toggle disabled={disabled} onChange={onChange} value={value} />
         </div>
       </PrimitiveInputWrapper>
     )

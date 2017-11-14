@@ -15,16 +15,16 @@ const _IGNORED_TAGNAMES = {
   A: true,
   BUTTON: true,
   INPUT: true,
-  SELECT: true
+  SELECT: true,
 }
 
 @propTypes({
   className: propTypes.string,
-  tagName: propTypes.string
+  tagName: propTypes.string,
 })
 export class BlockLink extends Component {
   static contextTypes = {
-    router: routerShape
+    router: routerShape,
   }
 
   _style = { cursor: 'pointer' }

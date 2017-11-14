@@ -14,10 +14,7 @@ export default class EnumInput extends Component {
   _getSelectedIndex = createSelector(
     () => this.props.schema.enum,
     () => {
-      const {
-        schema,
-        value = schema.default
-      } = this.props
+      const { schema, value = schema.default } = this.props
       return value
     },
     (enumValues, value) => {
@@ -34,7 +31,7 @@ export default class EnumInput extends Component {
     const {
       disabled,
       schema: { enum: enumValues, enumNames = enumValues },
-      required
+      required,
     } = this.props
 
     return (
@@ -47,9 +44,11 @@ export default class EnumInput extends Component {
           value={this._getSelectedIndex()}
         >
           {_('noSelectedValue', message => <option value=''>{message}</option>)}
-          {map(enumNames, (name, index) =>
-            <option value={index} key={index}>{name}</option>
-          )}
+          {map(enumNames, (name, index) => (
+            <option value={index} key={index}>
+              {name}
+            </option>
+          ))}
         </select>
       </PrimitiveInputWrapper>
     )

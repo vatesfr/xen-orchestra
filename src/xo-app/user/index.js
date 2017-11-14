@@ -14,16 +14,8 @@ import { Container, Row, Col } from 'grid'
 import { getLang } from 'selectors'
 import { injectIntl } from 'react-intl'
 import { Select } from 'form'
-import {
-  Card,
-  CardBlock,
-  CardHeader
-} from 'card'
-import {
-  addSubscriptions,
-  connectStore,
-  noop
-} from 'utils'
+import { Card, CardBlock, CardHeader } from 'card'
+import { addSubscriptions, connectStore, noop } from 'utils'
 import {
   addSshKey,
   changePassword,
@@ -31,20 +23,24 @@ import {
   editCustomFilter,
   removeCustomFilter,
   setDefaultHomeFilter,
-  subscribeCurrentUser
+  subscribeCurrentUser,
 } from 'xo'
 
 import Page from '../page'
 
 // ===================================================================
 
-const HEADER = <Container>
-  <Row>
-    <Col>
-      <h2><Icon icon='user' /> {_('userPage')}</h2>
-    </Col>
-  </Row>
-</Container>
+const HEADER = (
+  <Container>
+    <Row>
+      <Col>
+        <h2>
+          <Icon icon='user' /> {_('userPage')}
+        </h2>
+      </Col>
+    </Row>
+  </Container>
+)
 
 // ===================================================================
 
@@ -52,7 +48,7 @@ const FILTER_TYPE_TO_LABEL_ID = {
   host: 'homeTypeHost',
   pool: 'homeTypePool',
   VM: 'homeTypeVm',
-  vmTemplate: 'homeTypeVmTemplate'
+  vmTemplate: 'homeTypeVmTemplate',
 }
 
 const SSH_KEY_STYLE = { wordWrap: 'break-word' }
@@ -73,46 +69,47 @@ const getUserPreferences = user => user.preferences || {}
   customFilters: propTypes.object,
   defaultFilter: propTypes.string.isRequired,
   filters: propTypes.object.isRequired,
-  type: propTypes.string.isRequired
+  type: propTypes.string.isRequired,
 })
 class DefaultFilterPicker extends Component {
   _computeOptions (props) {
-    const {
-      customFilters,
-      filters
-    } = props
+    const { customFilters, filters } = props
 
     // Custom filters.
-    const options = [{
-      label: _('customFilters'),
-      disabled: true
-    }]
+    const options = [
+      {
+        label: _('customFilters'),
+        disabled: true,
+      },
+    ]
 
-    options.push.apply(options, map(customFilters, (filter, name) => ({
-      label: name,
-      value: name
-    })))
+    options.push.apply(
+      options,
+      map(customFilters, (filter, name) => ({
+        label: name,
+        value: name,
+      }))
+    )
 
     // Default filters
     options.push({
       label: _('defaultFilters'),
-      disabled: true
+      disabled: true,
     })
 
-    options.push.apply(options, map(filters, (filter, labelId) => ({
-      label: _(labelId),
-      value: labelId
-    })))
+    options.push.apply(
+      options,
+      map(filters, (filter, labelId) => ({
+        label: _(labelId),
+        value: labelId,
+      }))
+    )
 
     this.setState({ options })
   }
 
-  _handleDefaultFilter = value => (
-    setDefaultHomeFilter(
-      this.props.type,
-      value && value.value
-    ).catch(noop)
-  )
+  _handleDefaultFilter = value =>
+    setDefaultHomeFilter(this.props.type, value && value.value).catch(noop)
 
   componentWillMount () {
     this._computeOptions(this.props)
@@ -147,7 +144,7 @@ class DefaultFilterPicker extends Component {
 // ===================================================================
 
 @propTypes({
-  user: propTypes.object.isRequired
+  user: propTypes.object.isRequired,
 })
 class UserFilters extends Component {
   _removeFilter = ({ name, type }) => removeCustomFilter(type, name)
@@ -155,7 +152,7 @@ class UserFilters extends Component {
   render () {
     const {
       defaultHomeFilters,
-      filters: customFiltersByType
+      filters: customFiltersByType,
     } = getUserPreferences(this.props.user)
 
     return (
@@ -170,7 +167,8 @@ class UserFilters extends Component {
                   return
                 }
 
-                const customFilters = customFiltersByType && customFiltersByType[type]
+                const customFilters =
+                  customFiltersByType && customFiltersByType[type]
                 const defaultFilter = getDefaultFilter(defaultHomeFilters, type)
 
                 return (
@@ -188,7 +186,9 @@ class UserFilters extends Component {
                         <Col mediumSize={4}>
                           <div className='input-group'>
                             <Text
-                              onChange={newName => editCustomFilter(type, name, { newName })}
+                              onChange={newName =>
+                                editCustomFilter(type, name, { newName })
+                              }
                               value={name}
                             />
                           </div>
@@ -196,7 +196,9 @@ class UserFilters extends Component {
                         <Col mediumSize={7}>
                           <div className='input-group'>
                             <Text
-                              onChange={newValue => editCustomFilter(type, name, { newValue })}
+                              onChange={newValue =>
+                                editCustomFilter(type, name, { newValue })
+                              }
                               value={filter}
                             />
                           </div>
@@ -226,58 +228,61 @@ class UserFilters extends Component {
 // ===================================================================
 
 const SshKeys = addSubscriptions({
-  user: subscribeCurrentUser
+  user: subscribeCurrentUser,
 })(({ user }) => {
   const sshKeys = user && user.preferences && user.preferences.sshKeys
 
-  return <div>
-    <Card>
-      <CardHeader>
-        <Icon icon='ssh-key' /> {_('sshKeys')}
-        <ActionButton
-          className='btn-success pull-right'
-          icon='add'
-          handler={addSshKey}
-        >
-          {_('newSshKey')}
-        </ActionButton>
-      </CardHeader>
-      <CardBlock>
-        {!isEmpty(sshKeys)
-          ? <Container>
-            {map(sshKeys, (sshKey, key) => (
-              <Row key={key} className='pb-1'>
-                <Col size={2}>
-                  <strong>{sshKey.title}</strong>
-                </Col>
-                <Col size={8} style={SSH_KEY_STYLE}>
-                  {sshKey.key}
-                </Col>
-                <Col size={2} className='text-xs-right'>
-                  <ActionButton
-                    icon='delete'
-                    handler={() => deleteSshKey(sshKey)}
-                  >
-                    {_('deleteSshKey')}
-                  </ActionButton>
-                </Col>
-              </Row>
-            ))}
-          </Container>
-          : _('noSshKeys')
-        }
-      </CardBlock>
-    </Card>
-  </div>
+  return (
+    <div>
+      <Card>
+        <CardHeader>
+          <Icon icon='ssh-key' /> {_('sshKeys')}
+          <ActionButton
+            className='btn-success pull-right'
+            icon='add'
+            handler={addSshKey}
+          >
+            {_('newSshKey')}
+          </ActionButton>
+        </CardHeader>
+        <CardBlock>
+          {!isEmpty(sshKeys) ? (
+            <Container>
+              {map(sshKeys, (sshKey, key) => (
+                <Row key={key} className='pb-1'>
+                  <Col size={2}>
+                    <strong>{sshKey.title}</strong>
+                  </Col>
+                  <Col size={8} style={SSH_KEY_STYLE}>
+                    {sshKey.key}
+                  </Col>
+                  <Col size={2} className='text-xs-right'>
+                    <ActionButton
+                      icon='delete'
+                      handler={() => deleteSshKey(sshKey)}
+                    >
+                      {_('deleteSshKey')}
+                    </ActionButton>
+                  </Col>
+                </Row>
+              ))}
+            </Container>
+          ) : (
+            _('noSshKeys')
+          )}
+        </CardBlock>
+      </Card>
+    </div>
+  )
 })
 
 // ===================================================================
 
 @addSubscriptions({
-  user: subscribeCurrentUser
+  user: subscribeCurrentUser,
 })
 @connectStore({
-  lang: getLang
+  lang: getLang,
 })
 @injectIntl
 export default class User extends Component {
@@ -288,18 +293,26 @@ export default class User extends Component {
   _handleSavePassword = () => {
     const { oldPassword, newPassword, confirmPassword } = this.state
     if (newPassword !== confirmPassword) {
-      return alert(_('confirmationPasswordError'), _('confirmationPasswordErrorBody'))
+      return alert(
+        _('confirmationPasswordError'),
+        _('confirmationPasswordErrorBody')
+      )
     }
-    return changePassword(oldPassword, newPassword).then(() => this.setState({
-      oldPassword: undefined,
-      newPassword: undefined,
-      confirmPassword: undefined
-    }))
+    return changePassword(oldPassword, newPassword).then(() =>
+      this.setState({
+        oldPassword: undefined,
+        newPassword: undefined,
+        confirmPassword: undefined,
+      })
+    )
   }
 
-  _handleOldPasswordChange = event => this.setState({ oldPassword: event.target.value })
-  _handleNewPasswordChange = event => this.setState({ newPassword: event.target.value })
-  _handleConfirmPasswordChange = event => this.setState({ confirmPassword: event.target.value })
+  _handleOldPasswordChange = event =>
+    this.setState({ oldPassword: event.target.value })
+  _handleNewPasswordChange = event =>
+    this.setState({ newPassword: event.target.value })
+  _handleConfirmPasswordChange = event =>
+    this.setState({ confirmPassword: event.target.value })
 
   render () {
     const { lang, user } = this.props
@@ -309,81 +322,93 @@ export default class User extends Component {
     }
 
     const { formatMessage } = this.props.intl
-    const {
-      confirmPassword,
-      newPassword,
-      oldPassword
-    } = this.state
+    const { confirmPassword, newPassword, oldPassword } = this.state
 
-    return <Page header={HEADER} title={user.email}>
-      <Container>
-        <Row>
-          <Col smallSize={2}><strong>{_('username')}</strong></Col>
-          <Col smallSize={10}>
-            {user.email}
-          </Col>
-        </Row>
-        <br />
-        <Row>
-          <Col smallSize={2}><strong>{_('password')}</strong></Col>
-          <Col smallSize={10}>
-            <form className='form-inline' id='changePassword'>
-              <input
-                autoComplete='off'
+    return (
+      <Page header={HEADER} title={user.email}>
+        <Container>
+          <Row>
+            <Col smallSize={2}>
+              <strong>{_('username')}</strong>
+            </Col>
+            <Col smallSize={10}>{user.email}</Col>
+          </Row>
+          <br />
+          <Row>
+            <Col smallSize={2}>
+              <strong>{_('password')}</strong>
+            </Col>
+            <Col smallSize={10}>
+              <form className='form-inline' id='changePassword'>
+                <input
+                  autoComplete='off'
+                  className='form-control'
+                  onChange={this._handleOldPasswordChange}
+                  placeholder={formatMessage(messages.oldPasswordPlaceholder)}
+                  required
+                  type='password'
+                  value={oldPassword || ''}
+                />{' '}
+                <input
+                  type='password'
+                  autoComplete='off'
+                  className='form-control'
+                  onChange={this._handleNewPasswordChange}
+                  placeholder={formatMessage(messages.newPasswordPlaceholder)}
+                  required
+                  value={newPassword}
+                />{' '}
+                <input
+                  autoComplete='off'
+                  className='form-control'
+                  onChange={this._handleConfirmPasswordChange}
+                  placeholder={formatMessage(
+                    messages.confirmPasswordPlaceholder
+                  )}
+                  required
+                  type='password'
+                  value={confirmPassword}
+                />{' '}
+                <ActionButton
+                  icon='save'
+                  form='changePassword'
+                  btnStyle='primary'
+                  handler={this._handleSavePassword}
+                >
+                  {_('changePasswordOk')}
+                </ActionButton>
+              </form>
+            </Col>
+          </Row>
+          <br />
+          <Row>
+            <Col smallSize={2}>
+              <strong>{_('language')}</strong>
+            </Col>
+            <Col smallSize={10}>
+              <select
                 className='form-control'
-                onChange={this._handleOldPasswordChange}
-                placeholder={formatMessage(messages.oldPasswordPlaceholder)}
-                required
-                type='password'
-                value={oldPassword || ''}
-              />
-              {' '}
-              <input type='password'
-                autoComplete='off'
-                className='form-control'
-                onChange={this._handleNewPasswordChange}
-                placeholder={formatMessage(messages.newPasswordPlaceholder)}
-                required
-                value={newPassword}
-              />
-              {' '}
-              <input
-                autoComplete='off'
-                className='form-control'
-                onChange={this._handleConfirmPasswordChange}
-                placeholder={formatMessage(messages.confirmPasswordPlaceholder)}
-                required
-                type='password'
-                value={confirmPassword}
-              />
-              {' '}
-              <ActionButton icon='save' form='changePassword' btnStyle='primary' handler={this._handleSavePassword}>
-                {_('changePasswordOk')}
-              </ActionButton>
-            </form>
-          </Col>
-        </Row>
-        <br />
-        <Row>
-          <Col smallSize={2}><strong>{_('language')}</strong></Col>
-          <Col smallSize={10}>
-            <select className='form-control' onChange={this.handleSelectLang} value={lang} style={{width: '10em'}}>
-              <option value='en'>English</option>
-              <option value='fr'>Français</option>
-              <option value='he'>עברי</option>
-              <option value='pl'>Polski</option>
-              <option value='pt'>Português</option>
-              <option value='es'>Español</option>
-              <option value='zh'>简体中文</option>
-              <option value='hu'>Magyar</option>
-            </select>
-          </Col>
-        </Row>
-      </Container>
-      <hr />
-      <SshKeys />
-      <hr />
-      <UserFilters user={user} />
-    </Page>
+                onChange={this.handleSelectLang}
+                value={lang}
+                style={{ width: '10em' }}
+              >
+                <option value='en'>English</option>
+                <option value='fr'>Français</option>
+                <option value='he'>עברי</option>
+                <option value='pl'>Polski</option>
+                <option value='pt'>Português</option>
+                <option value='es'>Español</option>
+                <option value='zh'>简体中文</option>
+                <option value='hu'>Magyar</option>
+              </select>
+            </Col>
+          </Row>
+        </Container>
+        <hr />
+        <SshKeys />
+        <hr />
+        <UserFilters user={user} />
+      </Page>
+    )
   }
 }

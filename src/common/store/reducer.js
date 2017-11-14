@@ -54,19 +54,16 @@ const combineActionHandlers = invoke(
       const actionType = firstProp(handlers)
       const handler = handlers[actionType]
 
-      return (state = initialState, action) => (
+      return (state = initialState, action) =>
         action.type === actionType
           ? handler(state, action.payload, action)
           : state
-      )
     }
 
     return (state = initialState, action) => {
       const handler = handlers[action.type]
 
-      return handler
-        ? handler(state, action.payload, action)
-        : state
+      return handler ? handler(state, action.payload, action) : state
     }
   }
 )
@@ -79,78 +76,91 @@ export default {
       cookies.set('lang', lang)
 
       return lang
+    },
+  }),
+
+  permissions: combineActionHandlers(
+    {},
+    {
+      [actions.updatePermissions]: (_, permissions) => permissions,
     }
-  }),
+  ),
 
-  permissions: combineActionHandlers({}, {
-    [actions.updatePermissions]: (_, permissions) => permissions
-  }),
+  objects: combineActionHandlers(
+    {
+      all: {}, // Mutable for performance!
+      byType: {},
+    },
+    {
+      [actions.updateObjects]: ({ all, byType: prevByType }, updates) => {
+        const byType = { ...prevByType }
+        const get = type => {
+          const curr = byType[type]
+          const prev = prevByType[type]
+          return curr === prev ? (byType[type] = { ...prev }) : curr
+        }
 
-  objects: combineActionHandlers({
-    all: {}, // Mutable for performance!
-    byType: {}
-  }, {
-    [actions.updateObjects]: ({ all, byType: prevByType }, updates) => {
-      const byType = { ...prevByType }
-      const get = type => {
-        const curr = byType[type]
-        const prev = prevByType[type]
-        return curr === prev
-          ? (byType[type] = { ...prev })
-          : curr
-      }
+        for (const id in updates) {
+          const object = updates[id]
+          const previous = all[id]
 
-      for (const id in updates) {
-        const object = updates[id]
-        const previous = all[id]
+          if (object) {
+            const { type } = object
 
-        if (object) {
-          const { type } = object
+            all[id] = object
+            get(type)[id] = object
 
-          all[id] = object
-          get(type)[id] = object
-
-          if (previous && previous.type !== type) {
+            if (previous && previous.type !== type) {
+              delete get(previous.type)[id]
+            }
+          } else if (previous) {
+            delete all[id]
             delete get(previous.type)[id]
           }
-        } else if (previous) {
-          delete all[id]
-          delete get(previous.type)[id]
         }
-      }
 
-      return { all, byType, fetched: true }
+        return { all, byType, fetched: true }
+      },
     }
-  }),
+  ),
 
   user: combineActionHandlers(null, {
     [actions.signedIn]: {
-      next: (_, user) => user
-    }
+      next: (_, user) => user,
+    },
   }),
 
   status: combineActionHandlers('disconnected', {
     [actions.connected]: () => 'connected',
-    [actions.disconnected]: () => 'disconnected'
+    [actions.disconnected]: () => 'disconnected',
   }),
 
   xoaUpdaterState: combineActionHandlers('disconnected', {
-    [actions.xoaUpdaterState]: (_, state) => state
+    [actions.xoaUpdaterState]: (_, state) => state,
   }),
-  xoaTrialState: combineActionHandlers({}, {
-    [actions.xoaTrialState]: (_, state) => state
-  }),
-  xoaUpdaterLog: combineActionHandlers([], {
-    [actions.xoaUpdaterLog]: (_, log) => log
-  }),
-  xoaRegisterState: combineActionHandlers({state: '?'}, {
-    [actions.xoaRegisterState]: (_, registration) => registration
-  }),
-  xoaConfiguration: combineActionHandlers({proxyHost: '', proxyPort: '', proxyUser: ''}, { // defined values for controlled inputs
-    [actions.xoaConfiguration]: (_, configuration) => {
-      delete configuration.password
-      return configuration
+  xoaTrialState: combineActionHandlers(
+    {},
+    {
+      [actions.xoaTrialState]: (_, state) => state,
     }
-  })
-
+  ),
+  xoaUpdaterLog: combineActionHandlers([], {
+    [actions.xoaUpdaterLog]: (_, log) => log,
+  }),
+  xoaRegisterState: combineActionHandlers(
+    { state: '?' },
+    {
+      [actions.xoaRegisterState]: (_, registration) => registration,
+    }
+  ),
+  xoaConfiguration: combineActionHandlers(
+    { proxyHost: '', proxyPort: '', proxyUser: '' },
+    {
+      // defined values for controlled inputs
+      [actions.xoaConfiguration]: (_, configuration) => {
+        delete configuration.password
+        return configuration
+      },
+    }
+  ),
 }

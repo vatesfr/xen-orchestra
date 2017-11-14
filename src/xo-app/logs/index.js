@@ -14,28 +14,10 @@ import Tooltip from 'tooltip'
 import { alert, confirm } from 'modal'
 import { createGetObject } from 'selectors'
 import { FormattedDate } from 'react-intl'
-import {
-  connectStore,
-  formatSize,
-  formatSpeed
-} from 'utils'
-import {
-  Card,
-  CardHeader,
-  CardBlock
-} from 'card'
-import {
-  forEach,
-  get,
-  includes,
-  isEmpty,
-  map,
-  orderBy
-  } from 'lodash'
-import {
-  deleteJobsLog,
-  subscribeJobsLogs
-} from 'xo'
+import { connectStore, formatSize, formatSpeed } from 'utils'
+import { Card, CardHeader, CardBlock } from 'card'
+import { forEach, get, includes, isEmpty, map, orderBy } from 'lodash'
+import { deleteJobsLog, subscribeJobsLogs } from 'xo'
 
 // ===================================================================
 
@@ -45,19 +27,15 @@ const jobKeyToLabel = {
   disasterRecovery: _('disasterRecovery'),
   genericTask: _('customJob'),
   rollingBackup: _('backup'),
-  rollingSnapshot: _('rollingSnapshot')
+  rollingSnapshot: _('rollingSnapshot'),
 }
 
 // ===================================================================
 
-@connectStore(() => ({object: createGetObject()}))
+@connectStore(() => ({ object: createGetObject() }))
 class JobParam extends Component {
   render () {
-    const {
-      object,
-      paramKey,
-      id
-    } = this.props
+    const { object, paramKey, id } = this.props
 
     return object != null
       ? _.keyValue(object.type || paramKey, renderXoItem(object))
@@ -65,183 +43,262 @@ class JobParam extends Component {
   }
 }
 
-@connectStore(() => ({object: createGetObject()}))
+@connectStore(() => ({ object: createGetObject() }))
 class JobReturn extends Component {
   render () {
-    const {
-      object,
-      id
-    } = this.props
+    const { object, id } = this.props
 
-    return <span><Icon icon='arrow-right' />{' '}{object ? renderXoItem(object) : String(id)}</span>
+    return (
+      <span>
+        <Icon icon='arrow-right' /> {object ? renderXoItem(object) : String(id)}
+      </span>
+    )
   }
 }
 
 const JobCallStateInfos = ({ end, error }) => {
-  const [ icon, tooltip ] = error !== undefined
-    ? ['halted', 'failedJobCall']
-    : end !== undefined
-      ? ['running', 'successfulJobCall']
-      : ['busy', 'jobCallInProgess']
+  const [icon, tooltip] =
+    error !== undefined
+      ? ['halted', 'failedJobCall']
+      : end !== undefined
+        ? ['running', 'successfulJobCall']
+        : ['busy', 'jobCallInProgess']
 
-  return <Tooltip content={_(tooltip)}>
-    <Icon icon={icon} />
-  </Tooltip>
+  return (
+    <Tooltip content={_(tooltip)}>
+      <Icon icon={icon} />
+    </Tooltip>
+  )
 }
 
-const JobTransferredDataInfos = ({ start, end, size }) => <div>
-  <span><strong>{_('jobTransferredDataSize')}</strong> {formatSize(size)}</span>
-  <br />
-  <span><strong>{_('jobTransferredDataSpeed')}</strong> {formatSpeed(size, end - start)}</span>
-</div>
+const JobTransferredDataInfos = ({ start, end, size }) => (
+  <div>
+    <span>
+      <strong>{_('jobTransferredDataSize')}</strong> {formatSize(size)}
+    </span>
+    <br />
+    <span>
+      <strong>{_('jobTransferredDataSpeed')}</strong>{' '}
+      {formatSpeed(size, end - start)}
+    </span>
+  </div>
+)
 
 const CALL_FILTER_OPTIONS = [
-  {label: 'successfulJobCall', value: 'success'},
-  {label: 'failedJobCall', value: 'error'},
-  {label: 'jobCallInProgess', value: 'running'},
-  {label: 'allJobCalls', value: 'all'}
+  { label: 'successfulJobCall', value: 'success' },
+  { label: 'failedJobCall', value: 'error' },
+  { label: 'jobCallInProgess', value: 'running' },
+  { label: 'allJobCalls', value: 'all' },
 ]
 
 const PREDICATES = {
   all: () => true,
   error: call => call.error !== undefined,
   running: call => call.end === undefined && call.error === undefined,
-  success: call => call.end !== undefined && call.error === undefined
+  success: call => call.end !== undefined && call.error === undefined,
 }
 
 class Log extends BaseComponent {
   state = {
-    filter: 'all'
+    filter: 'all',
   }
 
   render () {
     const { props, state } = this
     const predicate = PREDICATES[state.filter]
 
-    return <div>
-      <select
-        className='form-control'
-        onChange={this.linkState('filter')}
-        value={state.filter}
-      >
-        {map(CALL_FILTER_OPTIONS, ({ label, value }) => _(
-          { key: value },
-          label,
-          message => <option value={value}>{message}</option>
-        ))}
-      </select>
-      <br />
-      <ul className='list-group'>
-        {map(props.log.calls, call => {
-          const {
-            end,
-            error,
-            returnedValue,
-            start
-          } = call
+    return (
+      <div>
+        <select
+          className='form-control'
+          onChange={this.linkState('filter')}
+          value={state.filter}
+        >
+          {map(CALL_FILTER_OPTIONS, ({ label, value }) =>
+            _({ key: value }, label, message => (
+              <option value={value}>{message}</option>
+            ))
+          )}
+        </select>
+        <br />
+        <ul className='list-group'>
+          {map(props.log.calls, call => {
+            const { end, error, returnedValue, start } = call
 
-          let id
-          if (returnedValue != null) {
-            id = returnedValue.id
-            if (id === undefined && typeof returnedValue === 'string') {
-              id = returnedValue
+            let id
+            if (returnedValue != null) {
+              id = returnedValue.id
+              if (id === undefined && typeof returnedValue === 'string') {
+                id = returnedValue
+              }
             }
-          }
 
-          return predicate(call) && <li key={call.callKey} className='list-group-item'>
-            <strong className='text-info'>{call.method}: </strong><JobCallStateInfos end={end} error={error} /><br />
-            {map(call.params, (value, key) => [ <JobParam id={value} paramKey={key} key={key} />, <br /> ])}
-            {end !== undefined && _.keyValue(_('jobDuration'), <FormattedDuration duration={end - start} />)}
-            {returnedValue != null && returnedValue.size !== undefined && <JobTransferredDataInfos start={start} end={end} size={returnedValue.size} />}
-            {id !== undefined && <span>{' '}<JobReturn id={id} /></span>}
-            {call.error &&
-              <span className='text-danger'>
-                <Icon icon='error' />
-                {' '}
-                {call.error.message
-                  ? <strong>{call.error.message}</strong>
-                  : JSON.stringify(call.error)
-                }
-              </span>}
-          </li>
-        })}
-      </ul>
-    </div>
+            return (
+              predicate(call) && (
+                <li key={call.callKey} className='list-group-item'>
+                  <strong className='text-info'>{call.method}: </strong>
+                  <JobCallStateInfos end={end} error={error} />
+                  <br />
+                  {map(call.params, (value, key) => [
+                    <JobParam id={value} paramKey={key} key={key} />,
+                    <br />,
+                  ])}
+                  {end !== undefined &&
+                    _.keyValue(
+                      _('jobDuration'),
+                      <FormattedDuration duration={end - start} />
+                    )}
+                  {returnedValue != null &&
+                    returnedValue.size !== undefined && (
+                      <JobTransferredDataInfos
+                        start={start}
+                        end={end}
+                        size={returnedValue.size}
+                      />
+                    )}
+                  {id !== undefined && (
+                    <span>
+                      {' '}
+                      <JobReturn id={id} />
+                    </span>
+                  )}
+                  {call.error && (
+                    <span className='text-danger'>
+                      <Icon icon='error' />{' '}
+                      {call.error.message ? (
+                        <strong>{call.error.message}</strong>
+                      ) : (
+                        JSON.stringify(call.error)
+                      )}
+                    </span>
+                  )}
+                </li>
+              )
+            )
+          })}
+        </ul>
+      </div>
+    )
   }
 }
 
-const showCalls = log => alert(_('jobModalTitle', { job: log.jobId }), <Log log={log} />)
+const showCalls = log =>
+  alert(_('jobModalTitle', { job: log.jobId }), <Log log={log} />)
 
 const LOG_COLUMNS = [
   {
     name: _('jobId'),
     itemRenderer: log => log.jobId,
-    sortCriteria: log => log.jobId
+    sortCriteria: log => log.jobId,
   },
   {
     name: _('jobType'),
     itemRenderer: log => jobKeyToLabel[log.key],
-    sortCriteria: log => log.key
+    sortCriteria: log => log.key,
   },
   {
     name: _('jobTag'),
     itemRenderer: log => get(log, 'calls[0].params.tag'),
-    sortCriteria: log => get(log, 'calls[0].params.tag')
+    sortCriteria: log => get(log, 'calls[0].params.tag'),
   },
   {
     name: _('jobStart'),
-    itemRenderer: log => log.start && <FormattedDate value={new Date(log.start)} month='short' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />,
+    itemRenderer: log =>
+      log.start && (
+        <FormattedDate
+          value={new Date(log.start)}
+          month='short'
+          day='numeric'
+          year='numeric'
+          hour='2-digit'
+          minute='2-digit'
+          second='2-digit'
+        />
+      ),
     sortCriteria: log => log.start,
-    sortOrder: 'desc'
+    sortOrder: 'desc',
   },
   {
     default: true,
     name: _('jobEnd'),
-    itemRenderer: log => log.end && <FormattedDate value={new Date(log.end)} month='short' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />,
+    itemRenderer: log =>
+      log.end && (
+        <FormattedDate
+          value={new Date(log.end)}
+          month='short'
+          day='numeric'
+          year='numeric'
+          hour='2-digit'
+          minute='2-digit'
+          second='2-digit'
+        />
+      ),
     sortCriteria: log => log.end || log.start,
-    sortOrder: 'desc'
+    sortOrder: 'desc',
   },
   {
     name: _('jobDuration'),
-    itemRenderer: log => log.duration && <FormattedDuration duration={log.duration} />,
-    sortCriteria: log => log.duration
+    itemRenderer: log =>
+      log.duration && <FormattedDuration duration={log.duration} />,
+    sortCriteria: log => log.duration,
   },
   {
     name: _('jobStatus'),
-    itemRenderer: log => <span>
-      {log.status === 'finished' &&
-        <span className={classnames('tag', {'tag-success': !log.hasErrors, 'tag-danger': log.hasErrors})}>{_('jobFinished')}</span>
-      }
-      {log.status === 'started' &&
-        <span className='tag tag-warning'>{_('jobStarted')}</span>
-      }
-      {(log.status !== 'started' && log.status !== 'finished') &&
-        <span className='tag tag-default'>{_('jobUnknown')}</span>
-      }
-      {' '}
-      <span className='pull-right'>
-        <ButtonGroup>
-          <Tooltip content={_('logDisplayDetails')}><ActionRowButton icon='preview' handler={showCalls} handlerParam={log} /></Tooltip>
-          <Tooltip content={_('remove')}><ActionRowButton handler={deleteJobsLog} handlerParam={log.logKey} icon='delete' /></Tooltip>
-        </ButtonGroup>
+    itemRenderer: log => (
+      <span>
+        {log.status === 'finished' && (
+          <span
+            className={classnames('tag', {
+              'tag-success': !log.hasErrors,
+              'tag-danger': log.hasErrors,
+            })}
+          >
+            {_('jobFinished')}
+          </span>
+        )}
+        {log.status === 'started' && (
+          <span className='tag tag-warning'>{_('jobStarted')}</span>
+        )}
+        {log.status !== 'started' &&
+          log.status !== 'finished' && (
+            <span className='tag tag-default'>{_('jobUnknown')}</span>
+          )}{' '}
+        <span className='pull-right'>
+          <ButtonGroup>
+            <Tooltip content={_('logDisplayDetails')}>
+              <ActionRowButton
+                icon='preview'
+                handler={showCalls}
+                handlerParam={log}
+              />
+            </Tooltip>
+            <Tooltip content={_('remove')}>
+              <ActionRowButton
+                handler={deleteJobsLog}
+                handlerParam={log.logKey}
+                icon='delete'
+              />
+            </Tooltip>
+          </ButtonGroup>
+        </span>
       </span>
-    </span>,
-    sortCriteria: log => log.hasErrors ? ' ' : log.status
-  }
+    ),
+    sortCriteria: log => (log.hasErrors ? ' ' : log.status),
+  },
 ]
 
 @propTypes({
-  jobKeys: propTypes.array.isRequired
+  jobKeys: propTypes.array.isRequired,
 })
 export default class LogList extends Component {
   constructor (props) {
     super(props)
     this.state = {
-      logsToClear: []
+      logsToClear: [],
     }
     this.filters = {
       onError: 'error',
-      successful: 'success'
+      successful: 'success',
     }
   }
 
@@ -252,7 +309,10 @@ export default class LogList extends Component {
       forEach(rawLogs, (log, logKey) => {
         const data = log.data
         const { time } = log
-        if (data.event === 'job.start' && includes(this.props.jobKeys, data.key)) {
+        if (
+          data.event === 'job.start' &&
+          includes(this.props.jobKeys, data.key)
+        ) {
           logsToClear.push(logKey)
           logs[logKey] = {
             logKey,
@@ -261,7 +321,7 @@ export default class LogList extends Component {
             userId: data.userId,
             start: time,
             calls: {},
-            time
+            time,
           }
         } else {
           const runJobId = data.runJobId
@@ -280,7 +340,7 @@ export default class LogList extends Component {
               params: data.params,
               method: data.method,
               start: time,
-              time
+              time,
             }
           } else if (data.event === 'jobCall.end') {
             const call = entry.calls[data.runCallId]
@@ -308,7 +368,7 @@ export default class LogList extends Component {
 
       this.setState({
         logs: orderBy(logs, ['time'], ['desc']),
-        logsToClear
+        logsToClear,
       })
     })
   }
@@ -316,7 +376,7 @@ export default class LogList extends Component {
   _deleteAllLogs = () => {
     return confirm({
       title: _('removeAllLogsModalTitle'),
-      body: <p>{_('removeAllLogsModalWarning')}</p>
+      body: <p>{_('removeAllLogsModalWarning')}</p>,
     }).then(() => deleteJobsLog(this.state.logsToClear))
   }
 
@@ -326,11 +386,22 @@ export default class LogList extends Component {
     return (
       <Card>
         <CardHeader>
-          <Icon icon='log' /> Logs<span className='pull-right'><ActionButton disabled={isEmpty(logs)} btnStyle='danger' handler={this._deleteAllLogs} icon='delete' /></span>
+          <Icon icon='log' /> Logs<span className='pull-right'>
+            <ActionButton
+              disabled={isEmpty(logs)}
+              btnStyle='danger'
+              handler={this._deleteAllLogs}
+              icon='delete'
+            />
+          </span>
         </CardHeader>
         <CardBlock>
           <NoObjects collection={logs} emptyMessage={_('noLogs')}>
-            <SortedTable collection={logs} columns={LOG_COLUMNS} filters={this.filters} />
+            <SortedTable
+              collection={logs}
+              columns={LOG_COLUMNS}
+              filters={this.filters}
+            />
           </NoObjects>
         </CardBlock>
       </Card>

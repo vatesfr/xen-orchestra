@@ -14,7 +14,7 @@ import {
   CpuSparkLines,
   MemorySparkLines,
   NetworkSparkLines,
-  LoadSparkLines
+  LoadSparkLines,
 } from 'xo-sparklines'
 
 export default class extends Component {
@@ -34,44 +34,43 @@ export default class extends Component {
     return event => setRemoteClipboard(event.target.value)
   })
 
-  _getClipboardContent = () =>
-    this.refs.clipboard && this.refs.clipboard.value
+  _getClipboardContent = () => this.refs.clipboard && this.refs.clipboard.value
 
   render () {
-    const {
-      vmController,
-      statsOverview
-    } = this.props
+    const { vmController, statsOverview } = this.props
 
     return (
       <Container>
-        {statsOverview && <Row className='text-xs-center'>
-          <Col mediumSize={3}>
-            <Icon icon='cpu' size={2} />
-            {' '}
-            <CpuSparkLines data={statsOverview} />
-          </Col>
-          <Col mediumSize={3}>
-            <Icon icon='memory' size={2} />
-            {' '}
-            <MemorySparkLines data={statsOverview} />
-          </Col>
-          <Col mediumSize={3}>
-            <Icon icon='network' size={2} />
-            {' '}
-            <NetworkSparkLines data={statsOverview} />
-          </Col>
-          <Col mediumSize={3}>
-            <Icon icon='disk' size={2} />
-            {' '}
-            <LoadSparkLines data={statsOverview} />
-          </Col>
-        </Row>}
+        {statsOverview && (
+          <Row className='text-xs-center'>
+            <Col mediumSize={3}>
+              <Icon icon='cpu' size={2} />{' '}
+              <CpuSparkLines data={statsOverview} />
+            </Col>
+            <Col mediumSize={3}>
+              <Icon icon='memory' size={2} />{' '}
+              <MemorySparkLines data={statsOverview} />
+            </Col>
+            <Col mediumSize={3}>
+              <Icon icon='network' size={2} />{' '}
+              <NetworkSparkLines data={statsOverview} />
+            </Col>
+            <Col mediumSize={3}>
+              <Icon icon='disk' size={2} />{' '}
+              <LoadSparkLines data={statsOverview} />
+            </Col>
+          </Row>
+        )}
         <br />
         <Row>
           <Col mediumSize={10}>
             <div className='input-group'>
-              <input type='text' className='form-control' ref='clipboard' onChange={this._setRemoteClipboard} />
+              <input
+                type='text'
+                className='form-control'
+                ref='clipboard'
+                onChange={this._setRemoteClipboard}
+              />
               <span className='input-group-btn'>
                 <CopyToClipboard text={this.state.clipboard || ''}>
                   <Button>
@@ -82,16 +81,18 @@ export default class extends Component {
             </div>
           </Col>
           <Col mediumSize={2}>
-            <Button
-              onClick={this._sendCtrlAltDel}
-            >
+            <Button onClick={this._sendCtrlAltDel}>
               <Icon icon='vm-keyboard' /> {_('ctrlAltDelButtonLabel')}
             </Button>
           </Col>
         </Row>
         <Row className='console'>
           <Col>
-            <NoVnc ref='noVnc' url={resolveUrl(`consoles/${vmController.id}`)} onClipboardChange={this._getRemoteClipboard} />
+            <NoVnc
+              ref='noVnc'
+              url={resolveUrl(`consoles/${vmController.id}`)}
+              onClipboardChange={this._getRemoteClipboard}
+            />
           </Col>
         </Row>
       </Container>

@@ -9,10 +9,7 @@ import propTypes from '../prop-types-decorator'
 import { EMPTY_OBJECT } from '../utils'
 
 import GenericInput from './generic-input'
-import {
-  descriptionRender,
-  forceDisplayOptionalAttr
-} from './helpers'
+import { descriptionRender, forceDisplayOptionalAttr } from './helpers'
 
 @propTypes({
   depth: propTypes.number,
@@ -20,26 +17,24 @@ import {
   label: propTypes.any.isRequired,
   required: propTypes.bool,
   schema: propTypes.object.isRequired,
-  uiSchema: propTypes.object
+  uiSchema: propTypes.object,
 })
 @uncontrollableInput()
 export default class ObjectInput extends Component {
   state = {
-    use: this.props.required || forceDisplayOptionalAttr(this.props)
+    use: this.props.required || forceDisplayOptionalAttr(this.props),
   }
 
   _onChildChange = (value, key) => {
     this.props.onChange({
       ...this.props.value,
-      [key]: value
+      [key]: value,
     })
   }
 
   _getRequiredProps = createSelector(
     () => this.props.schema.required,
-    required => required
-      ? keyBy(required)
-      : EMPTY_OBJECT
+    required => (required ? keyBy(required) : EMPTY_OBJECT)
   )
 
   render () {
@@ -51,9 +46,9 @@ export default class ObjectInput extends Component {
         required,
         schema,
         uiSchema,
-        value = EMPTY_OBJECT
+        value = EMPTY_OBJECT,
       },
-      state: { use }
+      state: { use },
     } = this
 
     const childDepth = depth + 2
@@ -61,37 +56,42 @@ export default class ObjectInput extends Component {
     const requiredProps = this._getRequiredProps()
 
     return (
-      <div style={{'paddingLeft': `${depth}em`}}>
+      <div style={{ paddingLeft: `${depth}em` }}>
         <legend>{label}</legend>
         {descriptionRender(schema.description)}
         <hr />
-        {!required && <div className='checkbox'>
-          <label>
-            <input
-              checked={use}
-              disabled={disabled}
-              onChange={this.linkState('use')}
-              type='checkbox'
-            /> {_('fillOptionalInformations')}
-          </label>
-        </div>}
-        {use && <div className='card-block'>
-          {map(schema.properties, (childSchema, key) =>
-            <div className='pb-1' key={key}>
-              <GenericInput
-                depth={childDepth}
+        {!required && (
+          <div className='checkbox'>
+            <label>
+              <input
+                checked={use}
                 disabled={disabled}
-                label={childSchema.title || key}
-                name={key}
-                onChange={this._onChildChange}
-                required={Boolean(requiredProps[key])}
-                schema={childSchema}
-                uiSchema={properties[key]}
-                value={value[key]}
-              />
-            </div>
-          )}
-        </div>}
+                onChange={this.linkState('use')}
+                type='checkbox'
+              />{' '}
+              {_('fillOptionalInformations')}
+            </label>
+          </div>
+        )}
+        {use && (
+          <div className='card-block'>
+            {map(schema.properties, (childSchema, key) => (
+              <div className='pb-1' key={key}>
+                <GenericInput
+                  depth={childDepth}
+                  disabled={disabled}
+                  label={childSchema.title || key}
+                  name={key}
+                  onChange={this._onChildChange}
+                  required={Boolean(requiredProps[key])}
+                  schema={childSchema}
+                  uiSchema={properties[key]}
+                  value={value[key]}
+                />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     )
   }

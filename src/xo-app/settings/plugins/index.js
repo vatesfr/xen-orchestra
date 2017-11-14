@@ -23,7 +23,7 @@ import {
   purgePluginConfiguration,
   subscribePlugins,
   testPlugin,
-  unloadPlugin
+  unloadPlugin,
 } from 'xo'
 
 class Plugin extends Component {
@@ -41,11 +41,11 @@ class Plugin extends Component {
 
   _updateExpanded = () => {
     this.setState({
-      expanded: !this.state.expanded
+      expanded: !this.state.expanded,
     })
   }
 
-  _setAutoload = (event) => {
+  _setAutoload = event => {
     if (this._updateAutoload) {
       return
     }
@@ -56,7 +56,7 @@ class Plugin extends Component {
       ? enablePluginAutoload
       : disablePluginAutoload
 
-    method(this.props.id)::lastly(() => {
+    ;method(this.props.id)::lastly(() => {
       this._updateAutoload = false
     })
   }
@@ -86,14 +86,14 @@ class Plugin extends Component {
     event && event.preventDefault()
 
     this.setState({
-      editedConfig: undefined
+      editedConfig: undefined,
     })
   }
 
   _applyPredefinedConfiguration = () => {
     const configName = this.refs.selectPredefinedConfiguration.value
     this.setState({
-      editedConfig: this.props.configurationPresets[configName]
+      editedConfig: this.props.configurationPresets[configName],
     })
   }
 
@@ -115,16 +115,9 @@ class Plugin extends Component {
   }
 
   render () {
-    const {
-      props,
-      state
-    } = this
+    const { props, state } = this
     const { editedConfig, expanded } = state
-    const {
-      configurationPresets,
-      configurationSchema,
-      loaded
-    } = props
+    const { configurationPresets, configurationSchema, loaded } = props
 
     return (
       <div className='card-block'>
@@ -136,26 +129,29 @@ class Plugin extends Component {
                 handler={this._updateLoad}
                 value={loaded}
               />
-              <span className='text-primary'>
-                {` ${props.name} `}
-              </span>
-              <span>
-                {`(v${props.version}) `}
-              </span>
+              <span className='text-primary'>{` ${props.name} `}</span>
+              <span>{`(v${props.version}) `}</span>
               <div className='checkbox small'>
                 <label className='text-muted'>
-                  {_('autoloadPlugin')} <input type='checkbox' checked={props.autoload} onChange={this._setAutoload} />
+                  {_('autoloadPlugin')}{' '}
+                  <input
+                    type='checkbox'
+                    checked={props.autoload}
+                    onChange={this._setAutoload}
+                  />
                 </label>
               </div>
             </h5>
           </Col>
-          {configurationSchema !== undefined && <Col className='text-xs-right' mediumSize={4}>
-            <Button btnStyle='primary' onClick={this._updateExpanded}>
-              <Icon icon={expanded ? 'minus' : 'plus'} />
-            </Button>
-          </Col>}
+          {configurationSchema !== undefined && (
+            <Col className='text-xs-right' mediumSize={4}>
+              <Button btnStyle='primary' onClick={this._updateExpanded}>
+                <Icon icon={expanded ? 'minus' : 'plus'} />
+              </Button>
+            </Col>
+          )}
         </Row>
-        {expanded &&
+        {expanded && (
           <form id={this.configFormId} onReset={this._stopEditing}>
             {size(configurationPresets) > 0 && (
               <div>
@@ -164,7 +160,11 @@ class Plugin extends Component {
                   <p>{_('pluginConfigurationChoosePreset')}</p>
                 </span>
                 <div className='input-group'>
-                  <select className='form-control' disabled={!editedConfig} ref='selectPredefinedConfiguration'>
+                  <select
+                    className='form-control'
+                    disabled={!editedConfig}
+                    ref='selectPredefinedConfiguration'
+                  >
                     {map(configurationPresets, (_, name) => (
                       <option key={name} value={name}>
                         {name}
@@ -205,10 +205,7 @@ class Plugin extends Component {
                   </ActionButton>
                 </div>
                 <div className='btn-group'>
-                  <Button
-                    disabled={!editedConfig}
-                    type='reset'
-                  >
+                  <Button disabled={!editedConfig} type='reset'>
                     {_('cancelPluginEdition')}
                   </Button>
                 </div>
@@ -226,46 +223,57 @@ class Plugin extends Component {
               </div>
             </div>
           </form>
-        }
-        {expanded && props.testable && <form id={this.testFormId}>
-          {props.testSchema && <GenericInput
-            label='Test data'
-            schema={props.testSchema}
-            uiSchema={generateUiSchema(props.testSchema)}
-            required
-            ref='testInput'
-          />}
-          <div className='form-group pull-right'>
-            <ActionButton
-              btnStyle='primary'
-              form={this.testFormId}
-              handler={this._test}
-              icon='diagnosis'
-            >Test plugin</ActionButton>
-          </div>
-        </form>}
+        )}
+        {expanded &&
+          props.testable && (
+            <form id={this.testFormId}>
+              {props.testSchema && (
+                <GenericInput
+                  label='Test data'
+                  schema={props.testSchema}
+                  uiSchema={generateUiSchema(props.testSchema)}
+                  required
+                  ref='testInput'
+                />
+              )}
+              <div className='form-group pull-right'>
+                <ActionButton
+                  btnStyle='primary'
+                  form={this.testFormId}
+                  handler={this._test}
+                  icon='diagnosis'
+                >
+                  Test plugin
+                </ActionButton>
+              </div>
+            </form>
+          )}
       </div>
     )
   }
 }
 
 @addSubscriptions({
-  plugins: subscribePlugins
+  plugins: subscribePlugins,
 })
 export default class Plugins extends Component {
   render () {
     if (isEmpty(this.props.plugins)) {
-      return <p><em>{_('noPlugins')}</em></p>
+      return (
+        <p>
+          <em>{_('noPlugins')}</em>
+        </p>
+      )
     }
 
     return (
       <div>
-        <ul style={{'paddingLeft': 0}} >
-          {map(this.props.plugins, (plugin, key) =>
+        <ul style={{ paddingLeft: 0 }}>
+          {map(this.props.plugins, (plugin, key) => (
             <li key={key} className='list-group-item clearfix'>
               <Plugin {...plugin} />
             </li>
-          )}
+          ))}
         </ul>
       </div>
     )

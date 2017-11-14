@@ -19,27 +19,27 @@ import {
   isEmpty,
   keys,
   map,
-  pickBy
+  pickBy,
 } from 'lodash'
 import {
   createFilter,
   createGetObjectsOfType,
   createSelector,
-  createSort
+  createSort,
 } from 'selectors'
 import {
   addSubscriptions,
   compareVersions,
   connectStore,
   formatSize,
-  mapPlus
+  mapPlus,
 } from 'utils'
 import {
   computeXosanPossibleOptions,
   createXosanSR,
   downloadAndInstallXosanPack,
   restartHostsAgents,
-  subscribeResourceCatalog
+  subscribeResourceCatalog,
 } from 'xo'
 
 import Graph from './graph'
@@ -60,19 +60,19 @@ const DEFAULT_BRICKSIZE = 100 * 1024 * 1024 * 1024 // 100 GiB
 const DEFAULT_MEMORY = 2 * 1024 * 1024 * 1024 // 2 GiB
 
 @addSubscriptions({
-  catalog: subscribeResourceCatalog
+  catalog: subscribeResourceCatalog,
 })
 @connectStore({
   pbds: createGetObjectsOfType('PBD'),
   hosts: createGetObjectsOfType('host'),
-  srs: createGetObjectsOfType('SR')
+  srs: createGetObjectsOfType('SR'),
 })
 export default class NewXosan extends Component {
   state = {
     selectedSrs: {},
     brickSize: DEFAULT_BRICKSIZE,
     ipRange: '172.31.100.0',
-    memorySize: DEFAULT_MEMORY
+    memorySize: DEFAULT_MEMORY,
   }
 
   _selectPool = pool => {
@@ -81,7 +81,7 @@ export default class NewXosan extends Component {
       brickSize: DEFAULT_BRICKSIZE,
       memorySize: DEFAULT_MEMORY,
       pif: undefined,
-      pool
+      pool,
     })
   }
 
@@ -100,7 +100,7 @@ export default class NewXosan extends Component {
         suggestions: await computeXosanPossibleOptions(
           keys(pickBy(selectedSrs)),
           customBrickSize ? brickSize : undefined
-        )
+        ),
       })
     }
   )
@@ -121,28 +121,31 @@ export default class NewXosan extends Component {
   )
 
   // LVM SRs that are connected
-  _getLvmSrs = createSort(createSelector(
-    createFilter(
-      () => this.props.srs,
-      createSelector(
-        this._getHosts,
-        this._getIsInPool,
-        (hosts, isInPool) =>
-          sr =>
+  _getLvmSrs = createSort(
+    createSelector(
+      createFilter(
+        () => this.props.srs,
+        createSelector(
+          this._getHosts,
+          this._getIsInPool,
+          (hosts, isInPool) => sr =>
             isInPool(sr) &&
             !sr.shared &&
             sr.SR_type === 'lvm' &&
             find(hosts, { id: sr.$container }).power_state === 'Running'
-      )
+        )
+      ),
+      this._getPbdsBySr,
+      (srs, pbdsBySr) =>
+        mapPlus(srs, (sr, push) => {
+          let pbds
+          if ((pbds = pbdsBySr[sr.id]).length) {
+            push({ ...sr, pbds })
+          }
+        })
     ),
-    this._getPbdsBySr,
-    (srs, pbdsBySr) => mapPlus(srs, (sr, push) => {
-      let pbds
-      if ((pbds = pbdsBySr[sr.id]).length) {
-        push({ ...sr, pbds })
-      }
-    })
-  ), 'name_label')
+    'name_label'
+  )
 
   _onCustomBrickSizeChange = async event => {
     const customBrickSize = getEventValue(event)
@@ -171,10 +174,9 @@ export default class NewXosan extends Component {
   )
 
   _getLatestTemplate = createSelector(
-    createFilter(
-      () => this.props.catalog && map(this.props.catalog.xosan),
-      [ ({ type }) => type === 'xva' ]
-    ),
+    createFilter(() => this.props.catalog && map(this.props.catalog.xosan), [
+      ({ type }) => type === 'xva',
+    ]),
     _findLatestTemplate
   )
 
@@ -182,9 +184,11 @@ export default class NewXosan extends Component {
     () => this.state.selectedSrs,
     this._getLvmSrs,
     (selectedSrs, lvmsrs) => sr =>
-      !every(keys(pickBy(selectedSrs)), selectedSrId =>
-        selectedSrId === sr.id ||
-        find(lvmsrs, { id: selectedSrId }).$container !== sr.$container
+      !every(
+        keys(pickBy(selectedSrs)),
+        selectedSrId =>
+          selectedSrId === sr.id ||
+          find(lvmsrs, { id: selectedSrId }).$container !== sr.$container
       )
   )
 
@@ -194,7 +198,11 @@ export default class NewXosan extends Component {
     () => this.state.pif,
     this._getNSelectedSrs,
     (suggestion, suggestions, pif, nSelectedSrs) =>
-      !suggestions || !suggestions[suggestion] || !pif || nSelectedSrs < 2 || suggestions[suggestion].availableSpace === 0
+      !suggestions ||
+      !suggestions[suggestion] ||
+      !pif ||
+      nSelectedSrs < 2 ||
+      suggestions[suggestion].availableSpace === 0
   )
 
   _createXosanVm = () => {
@@ -213,7 +221,7 @@ export default class NewXosan extends Component {
       redundancy: params.redundancy,
       brickSize: this.state.customBrickSize ? this.state.brickSize : undefined,
       memorySize: this.state.memorySize,
-      ipRange: this.state.customIpRange ? this.state.ipRange : undefined
+      ipRange: this.state.customIpRange ? this.state.ipRange : undefined,
     })
 
     this.props.onSrCreationStarted()
@@ -232,242 +240,290 @@ export default class NewXosan extends Component {
       suggestion,
       suggestions,
       useVlan,
-      vlan
+      vlan,
     } = this.state
 
-    const {
-      hostsNeedRestartByPool,
-      noPacksByPool,
-      poolPredicate
-    } = this.props
+    const { hostsNeedRestartByPool, noPacksByPool, poolPredicate } = this.props
 
     const lvmsrs = this._getLvmSrs()
     const hosts = this._getHosts()
 
     const disableSrCheckbox = this._getDisableSrCheckbox()
-    const hostsNeedRestart = pool !== undefined && hostsNeedRestartByPool !== undefined && hostsNeedRestartByPool[pool.id]
+    const hostsNeedRestart =
+      pool !== undefined &&
+      hostsNeedRestartByPool !== undefined &&
+      hostsNeedRestartByPool[pool.id]
 
-    return <Container>
-      <Row className='mb-1'>
-        <Col size={4}>
-          <SelectPool
-            onChange={this._selectPool}
-            predicate={poolPredicate}
-            value={pool}
-          />
-        </Col>
-        <Col size={4}>
-          <SelectPif
-            disabled={pool == null || noPacksByPool[pool.id] || !isEmpty(hostsNeedRestart)}
-            onChange={this.linkState('pif')}
-            predicate={this._getPifPredicate()}
-            value={pif}
-          />
-        </Col>
-      </Row>
-      {pool != null && noPacksByPool[pool.id] && <Row>
-        <Icon icon='error' /> {_('xosanNeedPack')}
-        <br />
-        <ActionButton
-          btnStyle='success'
-          handler={downloadAndInstallXosanPack}
-          handlerParam={pool}
-          icon='export'
-        >
-          {_('xosanInstallIt')}
-        </ActionButton>
-      </Row>}
-      {!isEmpty(hostsNeedRestart) && <Row>
-        <Icon icon='error' /> {_('xosanNeedRestart')}
-        <br />
-        <ActionButton
-          btnStyle='success'
-          handler={restartHostsAgents}
-          handlerParam={hostsNeedRestart}
-          icon='host-restart-agent'
-        >
-          {_('xosanRestartAgents')}
-        </ActionButton>
-      </Row>}
-      {pool != null && !noPacksByPool[pool.id] && isEmpty(hostsNeedRestart) && [
-        <Row>
-          <em>{_('xosanSelect2Srs')}</em>
-          <table className='table table-striped'>
-            <thead>
-              <tr>
-                <th />
-                <th>{_('xosanName')}</th>
-                <th>{_('xosanHost')}</th>
-                <th>{_('xosanSize')}</th>
-                <th>{_('xosanUsedSpace')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {map(lvmsrs, sr => {
-                const host = find(hosts, [ 'id', sr.$container ])
-
-                return <tr key={sr.id}>
-                  <td>
-                    <input
-                      checked={selectedSrs[sr.id] || false}
-                      disabled={disableSrCheckbox(sr)}
-                      onChange={event => this._selectSr(event, sr)}
-                      type='checkbox'
-                    />
-                  </td>
-                  <td>
-                    <Link to={`/srs/${sr.id}/general`}>{sr.name_label}</Link>
-                  </td>
-                  <td>
-                    <Link to={`/hosts/${host.id}/general`}>{host.name_label}</Link>
-                  </td>
-                  <td>
-                    {formatSize(sr.size)}
-                  </td>
-                  <td>
-                    {sr.size > 0 &&
-                    <Tooltip content={_('spaceLeftTooltip', {
-                      used: String(Math.round((sr.physical_usage / sr.size) * 100)),
-                      free: formatSize(sr.size - sr.physical_usage)
-                    })}>
-                      <progress
-                        className='progress'
-                        max='100'
-                        value={(sr.physical_usage / sr.size) * 100}
-                      />
-                    </Tooltip>
-                    }
-                  </td>
-                </tr>
-              })}
-            </tbody>
-          </table>
-        </Row>,
-        <Row>
-          {!isEmpty(suggestions) && <div>
-            <h3>{_('xosanSuggestions')}</h3>
-            <table className='table table-striped'>
-              <thead>
-                <tr>
-                  <th />
-                  <th>{_('xosanLayout')}</th>
-                  <th>{_('xosanRedundancy')}</th>
-                  <th>{_('xosanCapacity')}</th>
-                  <th>{_('xosanAvailableSpace')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {map(suggestions, ({ layout, redundancy, capacity, availableSpace }, index) => <tr key={index}>
-                  <td>
-                    <input
-                      checked={+suggestion === index}
-                      name={`suggestion_${pool.id}`}
-                      onChange={this.linkState('suggestion')}
-                      type='radio'
-                      value={index}
-                    />
-                  </td>
-                  <td>{layout}</td>
-                  <td>{redundancy}</td>
-                  <td>{capacity}</td>
-                  <td>{
-                    availableSpace === 0
-                      ? <strong className='text-danger'>0</strong>
-                      : formatSize(availableSpace)
-                  }</td>
-                </tr>)}
-              </tbody>
-            </table>
-            <Graph
-              height={160}
-              layout={suggestions[suggestion].layout}
-              nSrs={this._getNSelectedSrs()}
-              redundancy={suggestions[suggestion].redundancy}
-              width={600}
+    return (
+      <Container>
+        <Row className='mb-1'>
+          <Col size={4}>
+            <SelectPool
+              onChange={this._selectPool}
+              predicate={poolPredicate}
+              value={pool}
             />
-            <hr />
-            <Toggle
-              onChange={this.toggleState('showAdvanced')}
-              value={this.state.showAdvanced}
-            /> {_('xosanAdvanced')}
-            {' '}
-            {this.state.showAdvanced && <Container className='mb-1'>
-              <SingleLineRow>
-                <Col>{_('xosanVlan')}</Col>
-              </SingleLineRow>
-              <SingleLineRow>
-                <Col size={1}>
-                  <Toggle onChange={this.linkState('useVlan')} value={useVlan} />
-                </Col>
-                <Col size={3}>
-                  <input
-                    className='form-control'
-                    disabled={!useVlan}
-                    onChange={this.linkState('vlan')}
-                    placeholder='VLAN'
-                    type='text'
-                    value={vlan}
-                  />
-                </Col>
-              </SingleLineRow>
-              <SingleLineRow>
-                <Col>{_('xosanCustomIpNetwork')}</Col>
-              </SingleLineRow>
-              <SingleLineRow>
-                <Col size={1}>
-                  <Toggle onChange={this.linkState('customIpRange')} value={customIpRange} />
-                </Col>
-                <Col size={3}>
-                  <input
-                    className='form-control'
-                    disabled={!customIpRange}
-                    onChange={this.linkState('ipRange')}
-                    placeholder='ipRange'
-                    type='text'
-                    value={ipRange}
-                  />
-                </Col>
-              </SingleLineRow>
-              <SingleLineRow>
-                <Col>{_('xosanBrickSize')}</Col>
-              </SingleLineRow>
-              <SingleLineRow>
-                <Col size={1}>
-                  <Toggle className='mr-1' onChange={this._onCustomBrickSizeChange} value={customBrickSize} />
-                </Col>
-                <Col size={3}>
-                  <SizeInput
-                    readOnly={!customBrickSize}
-                    value={brickSize}
-                    onChange={this._onBrickSizeChange}
-                    required
-                  />
-                </Col>
-              </SingleLineRow>
-              <SingleLineRow>
-                <Col size={4}>
-                  <label>{_('xosanMemorySize')}</label>
-                  <SizeInput value={memorySize} onChange={this.linkState('memorySize')} required />
-                </Col>
-              </SingleLineRow>
-            </Container>}
-            <hr />
-          </div>}
-        </Row>,
-        <Row>
-          <Col>
-            <ActionButton
-              btnStyle='success'
-              disabled={this._getDisableCreation()}
-              handler={this._createXosanVm}
-              icon='add'
-            >
-              {_('xosanCreate')}
-            </ActionButton>
+          </Col>
+          <Col size={4}>
+            <SelectPif
+              disabled={
+                pool == null ||
+                noPacksByPool[pool.id] ||
+                !isEmpty(hostsNeedRestart)
+              }
+              onChange={this.linkState('pif')}
+              predicate={this._getPifPredicate()}
+              value={pif}
+            />
           </Col>
         </Row>
-      ]}
-      <hr />
-    </Container>
+        {pool != null &&
+          noPacksByPool[pool.id] && (
+            <Row>
+              <Icon icon='error' /> {_('xosanNeedPack')}
+              <br />
+              <ActionButton
+                btnStyle='success'
+                handler={downloadAndInstallXosanPack}
+                handlerParam={pool}
+                icon='export'
+              >
+                {_('xosanInstallIt')}
+              </ActionButton>
+            </Row>
+          )}
+        {!isEmpty(hostsNeedRestart) && (
+          <Row>
+            <Icon icon='error' /> {_('xosanNeedRestart')}
+            <br />
+            <ActionButton
+              btnStyle='success'
+              handler={restartHostsAgents}
+              handlerParam={hostsNeedRestart}
+              icon='host-restart-agent'
+            >
+              {_('xosanRestartAgents')}
+            </ActionButton>
+          </Row>
+        )}
+        {pool != null &&
+          !noPacksByPool[pool.id] &&
+          isEmpty(hostsNeedRestart) && [
+            <Row>
+              <em>{_('xosanSelect2Srs')}</em>
+              <table className='table table-striped'>
+                <thead>
+                  <tr>
+                    <th />
+                    <th>{_('xosanName')}</th>
+                    <th>{_('xosanHost')}</th>
+                    <th>{_('xosanSize')}</th>
+                    <th>{_('xosanUsedSpace')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {map(lvmsrs, sr => {
+                    const host = find(hosts, ['id', sr.$container])
+
+                    return (
+                      <tr key={sr.id}>
+                        <td>
+                          <input
+                            checked={selectedSrs[sr.id] || false}
+                            disabled={disableSrCheckbox(sr)}
+                            onChange={event => this._selectSr(event, sr)}
+                            type='checkbox'
+                          />
+                        </td>
+                        <td>
+                          <Link to={`/srs/${sr.id}/general`}>
+                            {sr.name_label}
+                          </Link>
+                        </td>
+                        <td>
+                          <Link to={`/hosts/${host.id}/general`}>
+                            {host.name_label}
+                          </Link>
+                        </td>
+                        <td>{formatSize(sr.size)}</td>
+                        <td>
+                          {sr.size > 0 && (
+                            <Tooltip
+                              content={_('spaceLeftTooltip', {
+                                used: String(
+                                  Math.round(sr.physical_usage / sr.size * 100)
+                                ),
+                                free: formatSize(sr.size - sr.physical_usage),
+                              })}
+                            >
+                              <progress
+                                className='progress'
+                                max='100'
+                                value={sr.physical_usage / sr.size * 100}
+                              />
+                            </Tooltip>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </Row>,
+            <Row>
+              {!isEmpty(suggestions) && (
+                <div>
+                  <h3>{_('xosanSuggestions')}</h3>
+                  <table className='table table-striped'>
+                    <thead>
+                      <tr>
+                        <th />
+                        <th>{_('xosanLayout')}</th>
+                        <th>{_('xosanRedundancy')}</th>
+                        <th>{_('xosanCapacity')}</th>
+                        <th>{_('xosanAvailableSpace')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {map(
+                        suggestions,
+                        (
+                          { layout, redundancy, capacity, availableSpace },
+                          index
+                        ) => (
+                          <tr key={index}>
+                            <td>
+                              <input
+                                checked={+suggestion === index}
+                                name={`suggestion_${pool.id}`}
+                                onChange={this.linkState('suggestion')}
+                                type='radio'
+                                value={index}
+                              />
+                            </td>
+                            <td>{layout}</td>
+                            <td>{redundancy}</td>
+                            <td>{capacity}</td>
+                            <td>
+                              {availableSpace === 0 ? (
+                                <strong className='text-danger'>0</strong>
+                              ) : (
+                                formatSize(availableSpace)
+                              )}
+                            </td>
+                          </tr>
+                        )
+                      )}
+                    </tbody>
+                  </table>
+                  <Graph
+                    height={160}
+                    layout={suggestions[suggestion].layout}
+                    nSrs={this._getNSelectedSrs()}
+                    redundancy={suggestions[suggestion].redundancy}
+                    width={600}
+                  />
+                  <hr />
+                  <Toggle
+                    onChange={this.toggleState('showAdvanced')}
+                    value={this.state.showAdvanced}
+                  />{' '}
+                  {_('xosanAdvanced')}{' '}
+                  {this.state.showAdvanced && (
+                    <Container className='mb-1'>
+                      <SingleLineRow>
+                        <Col>{_('xosanVlan')}</Col>
+                      </SingleLineRow>
+                      <SingleLineRow>
+                        <Col size={1}>
+                          <Toggle
+                            onChange={this.linkState('useVlan')}
+                            value={useVlan}
+                          />
+                        </Col>
+                        <Col size={3}>
+                          <input
+                            className='form-control'
+                            disabled={!useVlan}
+                            onChange={this.linkState('vlan')}
+                            placeholder='VLAN'
+                            type='text'
+                            value={vlan}
+                          />
+                        </Col>
+                      </SingleLineRow>
+                      <SingleLineRow>
+                        <Col>{_('xosanCustomIpNetwork')}</Col>
+                      </SingleLineRow>
+                      <SingleLineRow>
+                        <Col size={1}>
+                          <Toggle
+                            onChange={this.linkState('customIpRange')}
+                            value={customIpRange}
+                          />
+                        </Col>
+                        <Col size={3}>
+                          <input
+                            className='form-control'
+                            disabled={!customIpRange}
+                            onChange={this.linkState('ipRange')}
+                            placeholder='ipRange'
+                            type='text'
+                            value={ipRange}
+                          />
+                        </Col>
+                      </SingleLineRow>
+                      <SingleLineRow>
+                        <Col>{_('xosanBrickSize')}</Col>
+                      </SingleLineRow>
+                      <SingleLineRow>
+                        <Col size={1}>
+                          <Toggle
+                            className='mr-1'
+                            onChange={this._onCustomBrickSizeChange}
+                            value={customBrickSize}
+                          />
+                        </Col>
+                        <Col size={3}>
+                          <SizeInput
+                            readOnly={!customBrickSize}
+                            value={brickSize}
+                            onChange={this._onBrickSizeChange}
+                            required
+                          />
+                        </Col>
+                      </SingleLineRow>
+                      <SingleLineRow>
+                        <Col size={4}>
+                          <label>{_('xosanMemorySize')}</label>
+                          <SizeInput
+                            value={memorySize}
+                            onChange={this.linkState('memorySize')}
+                            required
+                          />
+                        </Col>
+                      </SingleLineRow>
+                    </Container>
+                  )}
+                  <hr />
+                </div>
+              )}
+            </Row>,
+            <Row>
+              <Col>
+                <ActionButton
+                  btnStyle='success'
+                  disabled={this._getDisableCreation()}
+                  handler={this._createXosanVm}
+                  icon='add'
+                >
+                  {_('xosanCreate')}
+                </ActionButton>
+              </Col>
+            </Row>,
+          ]}
+        <hr />
+      </Container>
+    )
   }
 }

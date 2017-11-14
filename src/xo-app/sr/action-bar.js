@@ -1,18 +1,16 @@
 import _ from 'intl'
 import ActionBar, { Action } from 'action-bar'
 import React from 'react'
-import { forgetSr, rescanSr, reconnectAllHostsSr, disconnectAllHostsSr } from 'xo'
+import {
+  forgetSr,
+  rescanSr,
+  reconnectAllHostsSr,
+  disconnectAllHostsSr,
+} from 'xo'
 
 const SrActionBar = ({ sr }) => (
-  <ActionBar
-    display='icon'
-    handlerParam={sr}
-  >
-    <Action
-      handler={rescanSr}
-      label={_('srRescan')}
-      icon='refresh'
-    />
+  <ActionBar display='icon' handlerParam={sr}>
+    <Action handler={rescanSr} label={_('srRescan')} icon='refresh' />
     <Action
       handler={reconnectAllHostsSr}
       label={_('srReconnectAll')}
@@ -23,11 +21,7 @@ const SrActionBar = ({ sr }) => (
       label={_('srDisconnectAll')}
       icon='sr-disconnect-all'
     />
-    <Action
-      handler={forgetSr}
-      label={_('srForget')}
-      icon='sr-forget'
-    />
+    <Action handler={forgetSr} label={_('srForget')} icon='sr-forget' />
   </ActionBar>
 )
 export default SrActionBar

@@ -16,7 +16,7 @@ import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
 import {
   Input as DebounceInput,
-  Textarea as DebounceTextarea
+  Textarea as DebounceTextarea,
 } from 'debounce-component-decorator'
 import { Limits } from 'usage'
 import {
@@ -32,7 +32,7 @@ import {
   slice,
   size,
   sum,
-  sumBy
+  sumBy,
 } from 'lodash'
 import {
   addSshKey,
@@ -43,7 +43,7 @@ import {
   subscribePermissions,
   subscribeResourceSets,
   XEN_DEFAULT_CPU_CAP,
-  XEN_DEFAULT_CPU_WEIGHT
+  XEN_DEFAULT_CPU_WEIGHT,
 } from 'xo'
 import {
   SelectHost,
@@ -60,12 +60,9 @@ import {
   SelectSshKey,
   SelectVdi,
   SelectVgpuType,
-  SelectVmTemplate
+  SelectVmTemplate,
 } from 'select-objects'
-import {
-  SizeInput,
-  Toggle
-} from 'form'
+import { SizeInput, Toggle } from 'form'
 import {
   addSubscriptions,
   buildTemplate,
@@ -74,13 +71,13 @@ import {
   getCoresPerSocketPossibilities,
   generateReadableRandomString,
   noop,
-  resolveResourceSet
+  resolveResourceSet,
 } from 'utils'
 import {
   createSelector,
   createGetObject,
   createGetObjectsOfType,
-  getUser
+  getUser,
 } from 'selectors'
 
 import styles from './index.css'
@@ -95,19 +92,19 @@ const getObject = createGetObject((_, id) => id)
 // Sub-components
 
 const SectionContent = ({ column, children }) => (
-  <div className={classNames(
-    'form-inline',
-    styles.sectionContent,
-    column && styles.sectionContentColumn
-  )}>
+  <div
+    className={classNames(
+      'form-inline',
+      styles.sectionContent,
+      column && styles.sectionContentColumn
+    )}
+  >
     {children}
   </div>
 )
 
 const LineItem = ({ children }) => (
-  <div className={styles.lineItem}>
-    {children}
-  </div>
+  <div className={styles.lineItem}>{children}</div>
 )
 
 const Item = ({ label, children, className }) => (
@@ -130,56 +127,64 @@ class Vif extends BaseComponent {
       onDelete,
       pool,
       resourceSet,
-      vif
+      vif,
     } = this.props
 
-    return <LineItem>
-      <Item label={_('newVmMacLabel')}>
-        <DebounceInput
-          className='form-control'
-          onChange={onChangeMac}
-          placeholder={formatMessage(messages.newVmMacPlaceholder)}
-          rows={7}
-          value={vif.mac}
-        />
-      </Item>
-      <Item label={_('newVmNetworkLabel')}>
-        <span className={styles.inlineSelect}>
-          {pool ? <SelectNetwork
-            onChange={onChangeNetwork}
-            predicate={networkPredicate}
-            value={vif.network}
-          />
-          : <SelectResourceSetsNetwork
-            onChange={onChangeNetwork}
-            resourceSet={resourceSet}
-            value={vif.network}
-          />}
-        </span>
-      </Item>
+    return (
       <LineItem>
-        <span className={styles.inlineSelect}>
-          {pool ? <SelectIp
-            containerPredicate={ipPoolPredicate}
-            multi
-            onChange={onChangeAddresses}
-            value={vif.addresses}
+        <Item label={_('newVmMacLabel')}>
+          <DebounceInput
+            className='form-control'
+            onChange={onChangeMac}
+            placeholder={formatMessage(messages.newVmMacPlaceholder)}
+            rows={7}
+            value={vif.mac}
           />
-          : <SelectResourceSetIp
-            containerPredicate={ipPoolPredicate}
-            multi
-            onChange={onChangeAddresses}
-            resourceSetId={resourceSet.id}
-            value={vif.addresses}
-          />}
-        </span>
+        </Item>
+        <Item label={_('newVmNetworkLabel')}>
+          <span className={styles.inlineSelect}>
+            {pool ? (
+              <SelectNetwork
+                onChange={onChangeNetwork}
+                predicate={networkPredicate}
+                value={vif.network}
+              />
+            ) : (
+              <SelectResourceSetsNetwork
+                onChange={onChangeNetwork}
+                resourceSet={resourceSet}
+                value={vif.network}
+              />
+            )}
+          </span>
+        </Item>
+        <LineItem>
+          <span className={styles.inlineSelect}>
+            {pool ? (
+              <SelectIp
+                containerPredicate={ipPoolPredicate}
+                multi
+                onChange={onChangeAddresses}
+                value={vif.addresses}
+              />
+            ) : (
+              <SelectResourceSetIp
+                containerPredicate={ipPoolPredicate}
+                multi
+                onChange={onChangeAddresses}
+                resourceSetId={resourceSet.id}
+                value={vif.addresses}
+              />
+            )}
+          </span>
+        </LineItem>
+        <Item>
+          <Button onClick={onDelete}>
+            <Icon icon='new-vm-remove' />
+          </Button>
+        </Item>
       </LineItem>
-      <Item>
-        <Button onClick={onDelete}>
-          <Icon icon='new-vm-remove' />
-        </Button>
-      </Item>
-    </LineItem>
+    )
   }
 }
 
@@ -188,30 +193,24 @@ class Vif extends BaseComponent {
 @addSubscriptions({
   resourceSets: subscribeResourceSets,
   permissions: subscribePermissions,
-  user: subscribeCurrentUser
+  user: subscribeCurrentUser,
 })
 @connectStore(() => ({
-  isAdmin: createSelector(
-    getUser,
-    user => user && user.permission === 'admin'
-  ),
+  isAdmin: createSelector(getUser, user => user && user.permission === 'admin'),
   networks: createGetObjectsOfType('network').sort(),
   pool: createGetObject((_, props) => props.location.query.pool),
   pools: createGetObjectsOfType('pool'),
   templates: createGetObjectsOfType('VM-template').sort(),
-  userSshKeys: createSelector(
-    (_, props) => {
-      const user = props.user
-      return user && user.preferences && user.preferences.sshKeys
-    },
-    keys => keys
-  ),
-  srs: createGetObjectsOfType('SR')
+  userSshKeys: createSelector((_, props) => {
+    const user = props.user
+    return user && user.preferences && user.preferences.sshKeys
+  }, keys => keys),
+  srs: createGetObjectsOfType('SR'),
 }))
 @injectIntl
 export default class NewVm extends BaseComponent {
   static contextTypes = {
-    router: React.PropTypes.object
+    router: React.PropTypes.object,
   }
 
   constructor () {
@@ -228,7 +227,10 @@ export default class NewVm extends BaseComponent {
   }
 
   _getResourceSet = () => {
-    const { location: { query: { resourceSet: resourceSetId } }, resourceSets } = this.props
+    const {
+      location: { query: { resourceSet: resourceSetId } },
+      resourceSets,
+    } = this.props
     return resourceSets && find(resourceSets, ({ id }) => id === resourceSetId)
   }
 
@@ -237,27 +239,32 @@ export default class NewVm extends BaseComponent {
     resolveResourceSet
   )
 
-// Utils -----------------------------------------------------------------------
+  // Utils -----------------------------------------------------------------------
 
   get _isDiskTemplate () {
     const { template } = this.state.state
-    return template &&
-      template.template_info.disks.length === 0 && template.name_label !== 'Other install media'
+    return (
+      template &&
+      template.template_info.disks.length === 0 &&
+      template.name_label !== 'Other install media'
+    )
   }
   _setState = (newValues, callback) => {
-    this.setState({ state: {
-      ...this.state.state,
-      ...newValues
-    }}, callback)
+    this.setState(
+      {
+        state: {
+          ...this.state.state,
+          ...newValues,
+        },
+      },
+      callback
+    )
   }
-  _replaceState = (state, callback) =>
-    this.setState({ state }, callback)
-  _linkState = (path, targetPath) =>
-    this.linkState(`state.${path}`, targetPath)
-  _toggleState = path =>
-    this.toggleState(`state.${path}`)
+  _replaceState = (state, callback) => this.setState({ state }, callback)
+  _linkState = (path, targetPath) => this.linkState(`state.${path}`, targetPath)
+  _toggleState = path => this.toggleState(`state.${path}`)
 
-// Actions ---------------------------------------------------------------------
+  // Actions ---------------------------------------------------------------------
 
   _reset = () => {
     this._replaceState({
@@ -278,7 +285,7 @@ export default class NewVm extends BaseComponent {
       VIFs: [],
       seqStart: 1,
       share: false,
-      tags: []
+      tags: [],
     })
   }
 
@@ -289,7 +296,7 @@ export default class NewVm extends BaseComponent {
       case 'ISO':
         installation = {
           method: 'cdrom',
-          repository: state.installIso.id
+          repository: state.installIso.id,
         }
         break
       case 'network':
@@ -299,25 +306,32 @@ export default class NewVm extends BaseComponent {
         }
         installation = {
           method: matches[1].toLowerCase(),
-          repository: state.installNetwork
+          repository: state.installNetwork,
         }
         break
       case 'PXE':
         installation = {
           method: 'network',
-          repository: 'pxe'
+          repository: 'pxe',
         }
     }
 
     let cloudConfig
     if (state.configDrive) {
-      const hostname = state.name_label.replace(/^\s+|\s+$/g, '').replace(/\s+/g, '-')
+      const hostname = state.name_label
+        .replace(/^\s+|\s+$/g, '')
+        .replace(/\s+/g, '-')
       if (state.installMethod === 'SSH') {
-        cloudConfig = `#cloud-config\nhostname: ${hostname}\nssh_authorized_keys:\n${
-          join(map(state.sshKeys, keyId => {
-            return this.props.userSshKeys[keyId] ? `  - ${this.props.userSshKeys[keyId].key}\n` : ''
-          }), '')
-        }`
+        cloudConfig = `#cloud-config\nhostname: ${
+          hostname
+        }\nssh_authorized_keys:\n${join(
+          map(state.sshKeys, keyId => {
+            return this.props.userSshKeys[keyId]
+              ? `  - ${this.props.userSshKeys[keyId].key}\n`
+              : ''
+          }),
+          ''
+        )}`
       } else {
         cloudConfig = state.customConfig
       }
@@ -374,10 +388,12 @@ export default class NewVm extends BaseComponent {
       coreOs: state.template.name_label === 'CoreOS',
       tags: state.tags,
       vgpuType: get(() => state.vgpuType.id),
-      gpuGroup: get(() => state.vgpuType.gpuGroup)
+      gpuGroup: get(() => state.vgpuType.gpuGroup),
     }
 
-    return state.multipleVms ? createVms(data, state.nameLabels) : createVm(data)
+    return state.multipleVms
+      ? createVms(data, state.nameLabels)
+      : createVm(data)
   }
 
   _initTemplate = template => {
@@ -405,9 +421,10 @@ export default class NewVm extends BaseComponent {
           name_label: vdi.name_label,
           name_description: vdi.name_description,
           size: vdi.size,
-          $SR: pool || isInResourceSet(vdi.$SR)
-            ? vdi.$SR
-            : resourceSet.objectsByType['SR'][0].id
+          $SR:
+            pool || isInResourceSet(vdi.$SR)
+              ? vdi.$SR
+              : resourceSet.objectsByType['SR'][0].id,
         }
       }
     })
@@ -416,35 +433,47 @@ export default class NewVm extends BaseComponent {
     forEach(template.VIFs, vifId => {
       const vif = getObject(storeState, vifId, resourceSet)
       VIFs.push({
-        network: pool || isInResourceSet(vif.$network)
-          ? vif.$network
-          : resourceSet.objectsByType['network'][0].id
+        network:
+          pool || isInResourceSet(vif.$network)
+            ? vif.$network
+            : resourceSet.objectsByType['network'][0].id,
       })
     })
     if (VIFs.length === 0) {
       const networkId = this._getDefaultNetworkId()
       VIFs.push({
-        network: networkId
+        network: networkId,
       })
     }
-    const name_label = state.name_label === '' || !state.name_labelHasChanged ? template.name_label : state.name_label
-    const name_description = state.name_description === '' || !state.name_descriptionHasChanged ? template.name_description || '' : state.name_description
+    const name_label =
+      state.name_label === '' || !state.name_labelHasChanged
+        ? template.name_label
+        : state.name_label
+    const name_description =
+      state.name_description === '' || !state.name_descriptionHasChanged
+        ? template.name_description || ''
+        : state.name_description
     const replacer = this._buildTemplate()
     this._setState({
       // infos
       name_label,
       template,
       name_description,
-      nameLabels: map(Array(+state.nbVms), (_, index) => replacer({ name_label, name_description, template }, index + 1)),
+      nameLabels: map(Array(+state.nbVms), (_, index) =>
+        replacer({ name_label, name_description, template }, index + 1)
+      ),
       // performances
       CPUs: template.CPUs.number,
       cpuCap: '',
       cpuWeight: '',
       memoryDynamicMax: template.memory.dynamic[1],
       // installation
-      installMethod: (template.install_methods != null && template.install_methods[0]) || 'SSH',
-      sshKeys: this.props.userSshKeys && this.props.userSshKeys.length && [ 0 ],
-      customConfig: '#cloud-config\n#hostname: myhostname\n#ssh_authorized_keys:\n#  - ssh-rsa <myKey>\n#packages:\n#  - htop\n',
+      installMethod:
+        (template.install_methods != null && template.install_methods[0]) ||
+        'SSH',
+      sshKeys: this.props.userSshKeys && this.props.userSshKeys.length && [0],
+      customConfig:
+        '#cloud-config\n#hostname: myhostname\n#ssh_authorized_keys:\n#  - ssh-rsa <myKey>\n#packages:\n#  - htop\n',
       // interfaces
       VIFs,
       // disks
@@ -453,12 +482,11 @@ export default class NewVm extends BaseComponent {
         return {
           ...disk,
           name_description: disk.name_description || 'Created by XO',
-          name_label: (name_label || 'disk') + '_' + generateReadableRandomString(5),
-          SR: pool
-            ? pool.default_SR
-            : resourceSet.objectsByType['SR'][0].id
+          name_label:
+            (name_label || 'disk') + '_' + generateReadableRandomString(5),
+          SR: pool ? pool.default_SR : resourceSet.objectsByType['SR'][0].id,
         }
-      })
+      }),
     })
 
     if (template.name_label === 'CoreOS') {
@@ -469,15 +497,14 @@ export default class NewVm extends BaseComponent {
     }
   }
 
-// Selectors -------------------------------------------------------------------
+  // Selectors -------------------------------------------------------------------
 
   _getIsInPool = createSelector(
     () => {
       const { pool } = this.props
       return pool && pool.id
     },
-    poolId => ({ $pool }) =>
-      $pool === poolId
+    poolId => ({ $pool }) => $pool === poolId
   )
   _getIsInResourceSet = createSelector(
     () => {
@@ -490,18 +517,20 @@ export default class NewVm extends BaseComponent {
   _getVmPredicate = createSelector(
     this._getIsInPool,
     this._getIsInResourceSet,
-    (isInPool, isInResourceSet) => vm =>
-      isInResourceSet(vm.id) || isInPool(vm)
+    (isInPool, isInResourceSet) => vm => isInResourceSet(vm.id) || isInPool(vm)
   )
   _getSrPredicate = createSelector(
     this._getIsInPool,
     this._getIsInResourceSet,
     (isInPool, isInResourceSet) => disk =>
-      (isInResourceSet(disk.id) || isInPool(disk)) && disk.content_type !== 'iso' && disk.size > 0
+      (isInResourceSet(disk.id) || isInPool(disk)) &&
+      disk.content_type !== 'iso' &&
+      disk.size > 0
   )
   _getIsoPredicate = createSelector(
     () => this.props.pool && this.props.pool.id,
-    poolId => sr => (poolId == null || poolId === sr.$pool) && sr.SR_type === 'iso'
+    poolId => sr =>
+      (poolId == null || poolId === sr.$pool) && sr.SR_type === 'iso'
   )
   _getIpPoolPredicate = createSelector(
     () => !!this.props.pool,
@@ -514,10 +543,11 @@ export default class NewVm extends BaseComponent {
       if (!ipPool) {
         return false
       }
-      return pool || (
-        ipPools &&
-        includes(ipPools, ipPool.id) &&
-        find(ipPool.networks, ipPoolNetwork => ipPoolNetwork === vif.network)
+      return (
+        pool ||
+        (ipPools &&
+          includes(ipPools, ipPool.id) &&
+          find(ipPool.networks, ipPoolNetwork => ipPoolNetwork === vif.network))
       )
     }
   )
@@ -548,11 +578,13 @@ export default class NewVm extends BaseComponent {
 
       const containers = [
         ...map(existingDisks, disk => get(() => srs[disk.$SR].$container)),
-        ...map(VDIs, disk => get(() => srs[disk.SR].$container))
+        ...map(VDIs, disk => get(() => srs[disk.SR].$container)),
       ]
-      return host => host.$pool === pool.id &&
-        every(containers, container =>
-          container === pool.id || container === host.id
+      return host =>
+        host.$pool === pool.id &&
+        every(
+          containers,
+          container => container === pool.id || container === host.id
         )
     }
   )
@@ -570,10 +602,11 @@ export default class NewVm extends BaseComponent {
   }
   _buildTemplate = createSelector(
     () => this.state.state.namePattern,
-    namePattern => buildTemplate(namePattern, {
-      '{name}': state => state.name_label || '',
-      '%': (_, i) => i
-    })
+    namePattern =>
+      buildTemplate(namePattern, {
+        '{name}': state => state.name_label || '',
+        '%': (_, i) => i,
+      })
   )
 
   _getVgpuTypePredicate = createSelector(
@@ -592,20 +625,25 @@ export default class NewVm extends BaseComponent {
     getCoresPerSocketPossibilities
   )
 
-// On change -------------------------------------------------------------------
+  // On change -------------------------------------------------------------------
 
-  _onChangeSshKeys = keys => this._setState({ sshKeys: map(keys, key => key.id) })
+  _onChangeSshKeys = keys =>
+    this._setState({ sshKeys: map(keys, key => key.id) })
 
   _updateNbVms = () => {
     const { nbVms, nameLabels, seqStart } = this.state.state
     const nbVmsClamped = clamp(nbVms, NB_VMS_MIN, NB_VMS_MAX)
-    const newNameLabels = [ ...nameLabels ]
+    const newNameLabels = [...nameLabels]
 
     if (nbVmsClamped < nameLabels.length) {
       this._setState({ nameLabels: slice(newNameLabels, 0, nbVmsClamped) })
     } else {
       const replacer = this._buildTemplate()
-      for (let i = +seqStart + nameLabels.length; i <= +seqStart + nbVmsClamped - 1; i++) {
+      for (
+        let i = +seqStart + nameLabels.length;
+        i <= +seqStart + nbVmsClamped - 1;
+        i++
+      ) {
         newNameLabels.push(replacer(this.state.state, i))
       }
       this._setState({ nameLabels: newNameLabels })
@@ -627,7 +665,7 @@ export default class NewVm extends BaseComponent {
 
     this.context.router.push({
       pathname,
-      query: resourceSet && { resourceSet: resourceSet.id }
+      query: resourceSet && { resourceSet: resourceSet.id },
     })
     this._reset()
   }
@@ -636,7 +674,7 @@ export default class NewVm extends BaseComponent {
 
     this.context.router.push({
       pathname,
-      query: pool && { pool: pool.id }
+      query: pool && { pool: pool.id },
     })
     this._reset()
   }
@@ -644,46 +682,66 @@ export default class NewVm extends BaseComponent {
     const { state } = this.state
     const { pool } = this.props
 
-    this._setState({ VDIs: [ ...state.VDIs, {
-      name_description: 'Created by XO',
-      name_label: (state.name_label || 'disk') + '_' + generateReadableRandomString(5),
-      SR: pool && pool.default_SR,
-      type: 'system'
-    }] })
+    this._setState({
+      VDIs: [
+        ...state.VDIs,
+        {
+          name_description: 'Created by XO',
+          name_label:
+            (state.name_label || 'disk') +
+            '_' +
+            generateReadableRandomString(5),
+          SR: pool && pool.default_SR,
+          type: 'system',
+        },
+      ],
+    })
   }
   _removeVdi = index => {
     const { VDIs } = this.state.state
 
-    this._setState({ VDIs: [ ...VDIs.slice(0, index), ...VDIs.slice(index + 1) ] })
+    this._setState({
+      VDIs: [...VDIs.slice(0, index), ...VDIs.slice(index + 1)],
+    })
   }
   _addInterface = () => {
     const networkId = this._getDefaultNetworkId()
 
-    this._setState({ VIFs: [ ...this.state.state.VIFs, {
-      network: networkId
-    }] })
+    this._setState({
+      VIFs: [
+        ...this.state.state.VIFs,
+        {
+          network: networkId,
+        },
+      ],
+    })
   }
   _removeInterface = index => {
     const { VIFs } = this.state.state
 
-    this._setState({ VIFs: [ ...VIFs.slice(0, index), ...VIFs.slice(index + 1) ] })
+    this._setState({
+      VIFs: [...VIFs.slice(0, index), ...VIFs.slice(index + 1)],
+    })
   }
 
   _addNewSshKey = () => {
     const { newSshKey, sshKeys } = this.state.state
     const { userSshKeys } = this.props
     const splitKey = newSshKey.split(' ')
-    const title = splitKey.length === 3 ? splitKey[2].split('\n')[0] : newSshKey.substring(newSshKey.length - 10, newSshKey.length)
+    const title =
+      splitKey.length === 3
+        ? splitKey[2].split('\n')[0]
+        : newSshKey.substring(newSshKey.length - 10, newSshKey.length)
 
     // save key
     addSshKey({
       title,
-      key: newSshKey
+      key: newSshKey,
     }).then(() => {
       // select key
       this._setState({
-        sshKeys: [ ...(sshKeys || []), userSshKeys ? userSshKeys.length : 0 ],
-        newSshKey: ''
+        sshKeys: [...(sshKeys || []), userSshKeys ? userSshKeys.length : 0],
+        newSshKey: '',
       })
     })
   }
@@ -691,124 +749,137 @@ export default class NewVm extends BaseComponent {
   _getRedirectionUrl = id =>
     this.state.state.multipleVms ? '/home' : `/vms/${id}`
 
-// MAIN ------------------------------------------------------------------------
+  // MAIN ------------------------------------------------------------------------
 
   _renderHeader = () => {
-    const {isAdmin, pool, resourceSets} = this.props
-    const selectPool = <span className={styles.inlineSelect}>
-      <SelectPool
-        onChange={this._selectPool}
-        value={pool}
-      />
-    </span>
-    const selectResourceSet = <span className={styles.inlineSelect}>
-      <SelectResourceSet
-        onChange={this._selectResourceSet}
-        value={this.props.location.query.resourceSet}
-      />
-    </span>
-    return <Container>
-      <Row>
-        <Col mediumSize={12}>
-          <h2>
-            {isAdmin || !isEmpty(resourceSets)
-              ? _('newVmCreateNewVmOn', {
-                select: isAdmin ? selectPool : selectResourceSet
-              })
-              : _('newVmCreateNewVmNoPermission')
-            }
-          </h2>
-        </Col>
-      </Row>
-    </Container>
+    const { isAdmin, pool, resourceSets } = this.props
+    const selectPool = (
+      <span className={styles.inlineSelect}>
+        <SelectPool onChange={this._selectPool} value={pool} />
+      </span>
+    )
+    const selectResourceSet = (
+      <span className={styles.inlineSelect}>
+        <SelectResourceSet
+          onChange={this._selectResourceSet}
+          value={this.props.location.query.resourceSet}
+        />
+      </span>
+    )
+    return (
+      <Container>
+        <Row>
+          <Col mediumSize={12}>
+            <h2>
+              {isAdmin || !isEmpty(resourceSets)
+                ? _('newVmCreateNewVmOn', {
+                  select: isAdmin ? selectPool : selectResourceSet,
+                })
+                : _('newVmCreateNewVmNoPermission')}
+            </h2>
+          </Col>
+        </Row>
+      </Container>
+    )
   }
 
   render () {
     const { pool } = this.props
-    return <Page header={this._renderHeader()}>
-      {(pool || this._getResourceSet()) && <form id='vmCreation'>
-        <Wizard>
-          {this._renderInfo()}
-          {this._renderPerformances()}
-          {this._renderInstallSettings()}
-          {this._renderInterfaces()}
-          {this._renderDisks()}
-          {this._renderAdvanced()}
-          {this._renderSummary()}
-        </Wizard>
-        <div className={styles.submitSection}>
-          <ActionButton
-            className={styles.button}
-            handler={this._reset}
-            icon='new-vm-reset'
-          >
-            {_('newVmReset')}
-          </ActionButton>
-          <ActionButton
-            btnStyle='primary'
-            className={styles.button}
-            disabled={!(
-              this._isInfoDone() &&
-              this._isPerformancesDone() &&
-              this._isInstallSettingsDone() &&
-              this._isInterfacesDone() &&
-              this._isDisksDone() &&
-              this._isAdvancedDone()
-            ) || !this._availableResources()}
-            form='vmCreation'
-            handler={this._create}
-            icon='new-vm-create'
-            redirectOnSuccess={this._getRedirectionUrl}
-          >
-            {_('newVmCreate')}
-          </ActionButton>
-        </div>
-      </form>}
-    </Page>
+    return (
+      <Page header={this._renderHeader()}>
+        {(pool || this._getResourceSet()) && (
+          <form id='vmCreation'>
+            <Wizard>
+              {this._renderInfo()}
+              {this._renderPerformances()}
+              {this._renderInstallSettings()}
+              {this._renderInterfaces()}
+              {this._renderDisks()}
+              {this._renderAdvanced()}
+              {this._renderSummary()}
+            </Wizard>
+            <div className={styles.submitSection}>
+              <ActionButton
+                className={styles.button}
+                handler={this._reset}
+                icon='new-vm-reset'
+              >
+                {_('newVmReset')}
+              </ActionButton>
+              <ActionButton
+                btnStyle='primary'
+                className={styles.button}
+                disabled={
+                  !(
+                    this._isInfoDone() &&
+                    this._isPerformancesDone() &&
+                    this._isInstallSettingsDone() &&
+                    this._isInterfacesDone() &&
+                    this._isDisksDone() &&
+                    this._isAdvancedDone()
+                  ) || !this._availableResources()
+                }
+                form='vmCreation'
+                handler={this._create}
+                icon='new-vm-create'
+                redirectOnSuccess={this._getRedirectionUrl}
+              >
+                {_('newVmCreate')}
+              </ActionButton>
+            </div>
+          </form>
+        )}
+      </Page>
+    )
   }
 
-// INFO ------------------------------------------------------------------------
+  // INFO ------------------------------------------------------------------------
 
   _renderInfo = () => {
-    const {
-      name_description,
-      name_label,
-      template
-    } = this.state.state
-    return <Section icon='new-vm-infos' title='newVmInfoPanel' done={this._isInfoDone()}>
-      <SectionContent>
-        <Item label={_('newVmTemplateLabel')}>
-          <span className={styles.inlineSelect}>
-            {this.props.pool ? <SelectVmTemplate
-              onChange={this._initTemplate}
-              placeholder={_('newVmSelectTemplate')}
-              predicate={this._getVmPredicate()}
-              value={template}
+    const { name_description, name_label, template } = this.state.state
+    return (
+      <Section
+        icon='new-vm-infos'
+        title='newVmInfoPanel'
+        done={this._isInfoDone()}
+      >
+        <SectionContent>
+          <Item label={_('newVmTemplateLabel')}>
+            <span className={styles.inlineSelect}>
+              {this.props.pool ? (
+                <SelectVmTemplate
+                  onChange={this._initTemplate}
+                  placeholder={_('newVmSelectTemplate')}
+                  predicate={this._getVmPredicate()}
+                  value={template}
+                />
+              ) : (
+                <SelectResourceSetsVmTemplate
+                  onChange={this._initTemplate}
+                  placeholder={_('newVmSelectTemplate')}
+                  resourceSet={this._getResolvedResourceSet()}
+                  value={template}
+                />
+              )}
+            </span>
+          </Item>
+          <Item label={_('newVmNameLabel')}>
+            <DebounceInput
+              className='form-control'
+              onChange={this._linkState('name_label')}
+              value={name_label}
             />
-            : <SelectResourceSetsVmTemplate
-              onChange={this._initTemplate}
-              placeholder={_('newVmSelectTemplate')}
-              resourceSet={this._getResolvedResourceSet()}
-              value={template}
-            />}
-          </span>
-        </Item>
-        <Item label={_('newVmNameLabel')}>
-          <DebounceInput
-            className='form-control'
-            onChange={this._linkState('name_label')}
-            value={name_label}
-          />
-        </Item>
-        <Item label={_('newVmDescriptionLabel')}>
-          <DebounceInput
-            className='form-control'
-            onChange={this._linkState('name_description')}
-            value={name_description}
-          />
-        </Item>
-      </SectionContent>
-    </Section>
+          </Item>
+          <Item label={_('newVmDescriptionLabel')}>
+            <DebounceInput
+              className='form-control'
+              onChange={this._linkState('name_description')}
+              value={name_description}
+            />
+          </Item>
+        </SectionContent>
+      </Section>
+    )
   }
   _isInfoDone = () => {
     const { template, name_label } = this.state.state
@@ -818,52 +889,64 @@ export default class NewVm extends BaseComponent {
   _renderPerformances = () => {
     const { CPUs, memoryDynamicMax, coresPerSocket } = this.state.state
 
-    return <Section icon='new-vm-perf' title='newVmPerfPanel' done={this._isPerformancesDone()}>
-      <SectionContent>
-        <Item label={_('newVmVcpusLabel')}>
-          <DebounceInput
-            className='form-control'
-            min={0}
-            onChange={this._linkState('CPUs')}
-            type='number'
-            value={CPUs}
-          />
-        </Item>
-        <Item label={_('newVmRamLabel')}>
-          <SizeInput
-            className={styles.sizeInput}
-            onChange={this._linkState('memoryDynamicMax')}
-            value={defined(memoryDynamicMax, null)}
-          />
-        </Item>
-        <Item label={_('vmCpuTopology')}>
-          <select
-            className='form-control'
-            onChange={this._linkState('coresPerSocket')}
-            value={coresPerSocket}
-          >
-            {_('vmChooseCoresPerSocket', message => <option value=''>{message}</option>)}
-            {map(
-              this._getCoresPerSocketPossibilities(),
-              coresPerSocket => _(
-                'vmCoresPerSocket', {
-                  nSockets: CPUs / coresPerSocket,
-                  nCores: coresPerSocket
-                },
-                message => <option key={coresPerSocket} value={coresPerSocket}>{message}</option>
-              )
-            )}
-          </select>
-        </Item>
-      </SectionContent>
-    </Section>
+    return (
+      <Section
+        icon='new-vm-perf'
+        title='newVmPerfPanel'
+        done={this._isPerformancesDone()}
+      >
+        <SectionContent>
+          <Item label={_('newVmVcpusLabel')}>
+            <DebounceInput
+              className='form-control'
+              min={0}
+              onChange={this._linkState('CPUs')}
+              type='number'
+              value={CPUs}
+            />
+          </Item>
+          <Item label={_('newVmRamLabel')}>
+            <SizeInput
+              className={styles.sizeInput}
+              onChange={this._linkState('memoryDynamicMax')}
+              value={defined(memoryDynamicMax, null)}
+            />
+          </Item>
+          <Item label={_('vmCpuTopology')}>
+            <select
+              className='form-control'
+              onChange={this._linkState('coresPerSocket')}
+              value={coresPerSocket}
+            >
+              {_('vmChooseCoresPerSocket', message => (
+                <option value=''>{message}</option>
+              ))}
+              {map(this._getCoresPerSocketPossibilities(), coresPerSocket =>
+                _(
+                  'vmCoresPerSocket',
+                  {
+                    nSockets: CPUs / coresPerSocket,
+                    nCores: coresPerSocket,
+                  },
+                  message => (
+                    <option key={coresPerSocket} value={coresPerSocket}>
+                      {message}
+                    </option>
+                  )
+                )
+              )}
+            </select>
+          </Item>
+        </SectionContent>
+      </Section>
+    )
   }
   _isPerformancesDone = () => {
     const { CPUs, memoryDynamicMax } = this.state.state
     return CPUs && memoryDynamicMax != null
   }
 
-// INSTALL SETTINGS ------------------------------------------------------------
+  // INSTALL SETTINGS ------------------------------------------------------------
 
   _renderInstallSettings = () => {
     const { template } = this.state.state
@@ -879,164 +962,180 @@ export default class NewVm extends BaseComponent {
       installNetwork,
       newSshKey,
       pv_args,
-      sshKeys
+      sshKeys,
     } = this.state.state
     const { formatMessage } = this.props.intl
-    return <Section icon='new-vm-install-settings' title='newVmInstallSettingsPanel' done={this._isInstallSettingsDone()}>
-      {this._isDiskTemplate ? <SectionContent key='diskTemplate' column>
-        <LineItem>
-          <div className={styles.configDrive}>
-            <span className={styles.configDriveToggle}>
-              {_('newVmConfigDrive')}
-            </span>
-            &nbsp;
-            <span className={styles.configDriveToggle}>
-              <Toggle
-                value={configDrive}
-                onChange={this._linkState('configDrive')}
-              />
-            </span>
-          </div>
-        </LineItem>
-        <LineItem>
-          <span>
-            <input
-              checked={installMethod === 'SSH'}
-              disabled={!configDrive}
-              name='installMethod'
-              onChange={this._linkState('installMethod')}
-              type='radio'
-              value='SSH'
-            />
-            {' '}
-            <span>{_('newVmSshKey')}</span>
-          </span>
-          &nbsp;
-          <span className={classNames('input-group', styles.fixedWidth)}>
-            <DebounceInput
-              className='form-control'
-              disabled={!configDrive || installMethod !== 'SSH'}
-              onChange={this._linkState('newSshKey')}
-              value={newSshKey}
-            />
-            <span className='input-group-btn'>
-              <Button onClick={this._addNewSshKey} disabled={!newSshKey}>
-                <Icon icon='add' />
-              </Button>
-            </span>
-          </span>
-          {this.props.userSshKeys && this.props.userSshKeys.length > 0 && <span className={styles.fixedWidth}>
-            <SelectSshKey
-              disabled={!configDrive || installMethod !== 'SSH'}
-              onChange={this._onChangeSshKeys}
-              multi
-              value={sshKeys || []}
-            />
-          </span>}
-        </LineItem>
-        <LineItem>
-          <input
-            checked={installMethod === 'customConfig'}
-            disabled={!configDrive}
-            name='installMethod'
-            onChange={this._linkState('installMethod')}
-            type='radio'
-            value='customConfig'
-          />
-          &nbsp;
-          <span>{_('newVmCustomConfig')}</span>
-          &nbsp;
-          <DebounceTextarea
-            className={classNames('form-control', styles.customConfig)}
-            disabled={!configDrive || installMethod !== 'customConfig'}
-            onChange={this._linkState('customConfig')}
-            value={customConfig}
-          />
-        </LineItem>
-      </SectionContent>
-      : <SectionContent>
-        <Item>
-          <span className={styles.item}>
-            <input
-              checked={installMethod === 'ISO'}
-              name='installMethod'
-              onChange={this._linkState('installMethod')}
-              type='radio'
-              value='ISO'
-            />
-            &nbsp;
-            <span>{_('newVmIsoDvdLabel')}</span>
-            &nbsp;
-            <span className={styles.inlineSelect}>
-              {this.props.pool ? <SelectVdi
-                disabled={installMethod !== 'ISO'}
-                onChange={this._linkState('installIso')}
-                srPredicate={this._getIsoPredicate()}
-                value={installIso}
-              />
-              : <SelectResourceSetsVdi
-                disabled={installMethod !== 'ISO'}
-                onChange={this._linkState('installIso')}
-                resourceSet={this._getResolvedResourceSet()}
-                srPredicate={this._getIsoPredicate()}
-                value={installIso}
-              />}
-            </span>
-          </span>
-        </Item>
-        {template.virtualizationMode === 'pv'
-          ? <span>
-            <Item>
+    return (
+      <Section
+        icon='new-vm-install-settings'
+        title='newVmInstallSettingsPanel'
+        done={this._isInstallSettingsDone()}
+      >
+        {this._isDiskTemplate ? (
+          <SectionContent key='diskTemplate' column>
+            <LineItem>
+              <div className={styles.configDrive}>
+                <span className={styles.configDriveToggle}>
+                  {_('newVmConfigDrive')}
+                </span>
+                &nbsp;
+                <span className={styles.configDriveToggle}>
+                  <Toggle
+                    value={configDrive}
+                    onChange={this._linkState('configDrive')}
+                  />
+                </span>
+              </div>
+            </LineItem>
+            <LineItem>
+              <span>
+                <input
+                  checked={installMethod === 'SSH'}
+                  disabled={!configDrive}
+                  name='installMethod'
+                  onChange={this._linkState('installMethod')}
+                  type='radio'
+                  value='SSH'
+                />{' '}
+                <span>{_('newVmSshKey')}</span>
+              </span>
+              &nbsp;
+              <span className={classNames('input-group', styles.fixedWidth)}>
+                <DebounceInput
+                  className='form-control'
+                  disabled={!configDrive || installMethod !== 'SSH'}
+                  onChange={this._linkState('newSshKey')}
+                  value={newSshKey}
+                />
+                <span className='input-group-btn'>
+                  <Button onClick={this._addNewSshKey} disabled={!newSshKey}>
+                    <Icon icon='add' />
+                  </Button>
+                </span>
+              </span>
+              {this.props.userSshKeys &&
+                this.props.userSshKeys.length > 0 && (
+                  <span className={styles.fixedWidth}>
+                    <SelectSshKey
+                      disabled={!configDrive || installMethod !== 'SSH'}
+                      onChange={this._onChangeSshKeys}
+                      multi
+                      value={sshKeys || []}
+                    />
+                  </span>
+                )}
+            </LineItem>
+            <LineItem>
               <input
-                checked={installMethod === 'network'}
+                checked={installMethod === 'customConfig'}
+                disabled={!configDrive}
                 name='installMethod'
                 onChange={this._linkState('installMethod')}
                 type='radio'
-                value='network'
+                value='customConfig'
               />
-              {' '}
-              <span>{_('newVmNetworkLabel')}</span>
-              {' '}
-              <DebounceInput
-                className='form-control'
-                disabled={installMethod !== 'network'}
-                key='networkInput'
-                onChange={this._linkState('installNetwork')}
-                placeholder={formatMessage(messages.newVmInstallNetworkPlaceHolder)}
-                value={installNetwork}
+              &nbsp;
+              <span>{_('newVmCustomConfig')}</span>
+              &nbsp;
+              <DebounceTextarea
+                className={classNames('form-control', styles.customConfig)}
+                disabled={!configDrive || installMethod !== 'customConfig'}
+                onChange={this._linkState('customConfig')}
+                value={customConfig}
               />
+            </LineItem>
+          </SectionContent>
+        ) : (
+          <SectionContent>
+            <Item>
+              <span className={styles.item}>
+                <input
+                  checked={installMethod === 'ISO'}
+                  name='installMethod'
+                  onChange={this._linkState('installMethod')}
+                  type='radio'
+                  value='ISO'
+                />
+                &nbsp;
+                <span>{_('newVmIsoDvdLabel')}</span>
+                &nbsp;
+                <span className={styles.inlineSelect}>
+                  {this.props.pool ? (
+                    <SelectVdi
+                      disabled={installMethod !== 'ISO'}
+                      onChange={this._linkState('installIso')}
+                      srPredicate={this._getIsoPredicate()}
+                      value={installIso}
+                    />
+                  ) : (
+                    <SelectResourceSetsVdi
+                      disabled={installMethod !== 'ISO'}
+                      onChange={this._linkState('installIso')}
+                      resourceSet={this._getResolvedResourceSet()}
+                      srPredicate={this._getIsoPredicate()}
+                      value={installIso}
+                    />
+                  )}
+                </span>
+              </span>
             </Item>
-            <Item label={_('newVmPvArgsLabel')} key='pv'>
-              <DebounceInput
-                className='form-control'
-                onChange={this._linkState('pv_args')}
-                value={pv_args}
-              />
-            </Item>
-          </span>
-          : <Item>
-            <input
-              checked={installMethod === 'PXE'}
-              name='installMethod'
-              onChange={this._linkState('installMethod')}
-              type='radio'
-              value='PXE'
+            {template.virtualizationMode === 'pv' ? (
+              <span>
+                <Item>
+                  <input
+                    checked={installMethod === 'network'}
+                    name='installMethod'
+                    onChange={this._linkState('installMethod')}
+                    type='radio'
+                    value='network'
+                  />{' '}
+                  <span>{_('newVmNetworkLabel')}</span>{' '}
+                  <DebounceInput
+                    className='form-control'
+                    disabled={installMethod !== 'network'}
+                    key='networkInput'
+                    onChange={this._linkState('installNetwork')}
+                    placeholder={formatMessage(
+                      messages.newVmInstallNetworkPlaceHolder
+                    )}
+                    value={installNetwork}
+                  />
+                </Item>
+                <Item label={_('newVmPvArgsLabel')} key='pv'>
+                  <DebounceInput
+                    className='form-control'
+                    onChange={this._linkState('pv_args')}
+                    value={pv_args}
+                  />
+                </Item>
+              </span>
+            ) : (
+              <Item>
+                <input
+                  checked={installMethod === 'PXE'}
+                  name='installMethod'
+                  onChange={this._linkState('installMethod')}
+                  type='radio'
+                  value='PXE'
+                />{' '}
+                <span>{_('newVmPxeLabel')}</span>
+              </Item>
+            )}
+          </SectionContent>
+        )}
+        {template.name_label === 'CoreOS' && (
+          <div>
+            <label>{_('newVmCloudConfig')}</label>
+            <DebounceTextarea
+              className='form-control'
+              onChange={this._linkState('cloudConfig')}
+              rows={7}
+              value={cloudConfig}
             />
-            {' '}
-            <span>{_('newVmPxeLabel')}</span>
-          </Item>
-        }
-      </SectionContent>}
-      {template.name_label === 'CoreOS' && <div>
-        <label>{_('newVmCloudConfig')}</label>
-        <DebounceTextarea
-          className='form-control'
-          onChange={this._linkState('cloudConfig')}
-          rows={7}
-          value={cloudConfig}
-        />
-      </div>}
-    </Section>
+          </div>
+        )}
+      </Section>
+    )
   }
   _isInstallSettingsDone = () => {
     const {
@@ -1046,179 +1145,211 @@ export default class NewVm extends BaseComponent {
       installMethod,
       installNetwork,
       sshKeys,
-      template
+      template,
     } = this.state.state
     switch (installMethod) {
-      case 'customConfig': return customConfig || !configDrive
-      case 'ISO': return installIso
-      case 'network': return /^(http|ftp|nfs)/i.exec(installNetwork)
-      case 'PXE': return true
-      case 'SSH': return !isEmpty(sshKeys) || !configDrive
-      default: return template && this._isDiskTemplate && !configDrive
+      case 'customConfig':
+        return customConfig || !configDrive
+      case 'ISO':
+        return installIso
+      case 'network':
+        return /^(http|ftp|nfs)/i.exec(installNetwork)
+      case 'PXE':
+        return true
+      case 'SSH':
+        return !isEmpty(sshKeys) || !configDrive
+      default:
+        return template && this._isDiskTemplate && !configDrive
     }
   }
 
-// INTERFACES ------------------------------------------------------------------
+  // INTERFACES ------------------------------------------------------------------
 
   _renderInterfaces = () => {
     const { state: { VIFs } } = this.state
 
-    return <Section icon='new-vm-interfaces' title='newVmInterfacesPanel' done={this._isInterfacesDone()}>
-      <SectionContent column>
-        {map(VIFs, (vif, index) => <div key={index}>
-          <Vif
-            networkPredicate={this._getNetworkPredicate()}
-            onChangeAddresses={this._linkState(`VIFs.${index}.addresses`, '*.id')}
-            onChangeMac={this._linkState(`VIFs.${index}.mac`)}
-            onChangeNetwork={this._linkState(`VIFs.${index}.network`, 'id')}
-            onDelete={() => this._removeInterface(index)}
-            pool={this.props.pool}
-            resourceSet={this._getResolvedResourceSet()}
-            vif={vif}
-          />
-          {index < VIFs.length - 1 && <hr />}
-        </div>)}
-        <Item>
-          <Button onClick={this._addInterface}>
-            <Icon icon='new-vm-add' />
-            {' '}
-            {_('newVmAddInterface')}
-          </Button>
-        </Item>
-      </SectionContent>
-    </Section>
+    return (
+      <Section
+        icon='new-vm-interfaces'
+        title='newVmInterfacesPanel'
+        done={this._isInterfacesDone()}
+      >
+        <SectionContent column>
+          {map(VIFs, (vif, index) => (
+            <div key={index}>
+              <Vif
+                networkPredicate={this._getNetworkPredicate()}
+                onChangeAddresses={this._linkState(
+                  `VIFs.${index}.addresses`,
+                  '*.id'
+                )}
+                onChangeMac={this._linkState(`VIFs.${index}.mac`)}
+                onChangeNetwork={this._linkState(`VIFs.${index}.network`, 'id')}
+                onDelete={() => this._removeInterface(index)}
+                pool={this.props.pool}
+                resourceSet={this._getResolvedResourceSet()}
+                vif={vif}
+              />
+              {index < VIFs.length - 1 && <hr />}
+            </div>
+          ))}
+          <Item>
+            <Button onClick={this._addInterface}>
+              <Icon icon='new-vm-add' /> {_('newVmAddInterface')}
+            </Button>
+          </Item>
+        </SectionContent>
+      </Section>
+    )
   }
-  _isInterfacesDone = () => every(this.state.state.VIFs, vif =>
-    vif.network
-  )
+  _isInterfacesDone = () => every(this.state.state.VIFs, vif => vif.network)
 
-// DISKS -----------------------------------------------------------------------
+  // DISKS -----------------------------------------------------------------------
 
   _renderDisks = () => {
-    const {
-      state: {
-        configDrive,
-        existingDisks,
-        VDIs
-      }
-    } = this.state
+    const { state: { configDrive, existingDisks, VDIs } } = this.state
     const { pool } = this.props
     let i = 0
     const resourceSet = this._getResolvedResourceSet()
 
-    return <Section icon='new-vm-disks' title='newVmDisksPanel' done={this._isDisksDone()}>
-      <SectionContent column>
+    return (
+      <Section
+        icon='new-vm-disks'
+        title='newVmDisksPanel'
+        done={this._isDisksDone()}
+      >
+        <SectionContent column>
+          {/* Existing disks */}
+          {map(existingDisks, (disk, index) => (
+            <div key={i}>
+              <LineItem>
+                <Item label={_('newVmSrLabel')}>
+                  <span className={styles.inlineSelect}>
+                    {pool ? (
+                      <SelectSr
+                        onChange={this._linkState(
+                          `existingDisks.${index}.$SR`,
+                          'id'
+                        )}
+                        predicate={this._getSrPredicate()}
+                        value={disk.$SR}
+                      />
+                    ) : (
+                      <SelectResourceSetsSr
+                        onChange={this._linkState(
+                          `existingDisks.${index}.$SR`,
+                          'id'
+                        )}
+                        predicate={this._getSrPredicate()}
+                        resourceSet={resourceSet}
+                        value={disk.$SR}
+                      />
+                    )}
+                  </span>
+                </Item>{' '}
+                <Item label={_('newVmNameLabel')}>
+                  <DebounceInput
+                    className='form-control'
+                    onChange={this._linkState(
+                      `existingDisks.${index}.name_label`
+                    )}
+                    value={disk.name_label}
+                  />
+                </Item>
+                <Item label={_('newVmDescriptionLabel')}>
+                  <DebounceInput
+                    className='form-control'
+                    onChange={this._linkState(
+                      `existingDisks.${index}.name_description`
+                    )}
+                    value={disk.name_description}
+                  />
+                </Item>
+                <Item label={_('newVmSizeLabel')}>
+                  <SizeInput
+                    className={styles.sizeInput}
+                    onChange={this._linkState(`existingDisks.${index}.size`)}
+                    readOnly={!configDrive}
+                    value={defined(disk.size, null)}
+                  />
+                </Item>
+              </LineItem>
+              {i++ < size(existingDisks) + VDIs.length - 1 && <hr />}
+            </div>
+          ))}
 
-        {/* Existing disks */}
-        {map(existingDisks, (disk, index) => <div key={i}>
-          <LineItem>
-            <Item label={_('newVmSrLabel')}>
-              <span className={styles.inlineSelect}>
-                {pool ? <SelectSr
-                  onChange={this._linkState(`existingDisks.${index}.$SR`, 'id')}
-                  predicate={this._getSrPredicate()}
-                  value={disk.$SR}
-                />
-                : <SelectResourceSetsSr
-                  onChange={this._linkState(`existingDisks.${index}.$SR`, 'id')}
-                  predicate={this._getSrPredicate()}
-                  resourceSet={resourceSet}
-                  value={disk.$SR}
-                />}
-              </span>
-            </Item>
-            {' '}
-            <Item label={_('newVmNameLabel')}>
-              <DebounceInput
-                className='form-control'
-                onChange={this._linkState(`existingDisks.${index}.name_label`)}
-                value={disk.name_label}
-              />
-            </Item>
-            <Item label={_('newVmDescriptionLabel')}>
-              <DebounceInput
-                className='form-control'
-                onChange={this._linkState(`existingDisks.${index}.name_description`)}
-                value={disk.name_description}
-              />
-            </Item>
-            <Item label={_('newVmSizeLabel')}>
-              <SizeInput
-                className={styles.sizeInput}
-                onChange={this._linkState(`existingDisks.${index}.size`)}
-                readOnly={!configDrive}
-                value={defined(disk.size, null)}
-              />
-            </Item>
-          </LineItem>
-          {i++ < size(existingDisks) + VDIs.length - 1 && <hr />}
-        </div>)}
-
-        {/* VDIs */}
-        {map(VDIs, (vdi, index) => <div key={index}>
-          <LineItem>
-            <Item label={_('newVmSrLabel')}>
-              <span className={styles.inlineSelect}>
-                {pool ? <SelectSr
-                  onChange={this._linkState(`VDIs.${index}.SR`, 'id')}
-                  predicate={this._getSrPredicate()}
-                  value={vdi.SR}
-                />
-                : <SelectResourceSetsSr
-                  onChange={this._linkState(`VDIs.${index}.SR`, 'id')}
-                  predicate={this._getSrPredicate()}
-                  resourceSet={resourceSet}
-                  value={vdi.SR}
-                />}
-              </span>
-            </Item>
-            <Item label={_('newVmNameLabel')}>
-              <DebounceInput
-                className='form-control'
-                onChange={this._linkState(`VDIs.${index}.name_label`)}
-                value={vdi.name_label}
-              />
-            </Item>
-            <Item label={_('newVmDescriptionLabel')}>
-              <DebounceInput
-                className='form-control'
-                onChange={this._linkState(`VDIs.${index}.name_description`)}
-                value={vdi.name_description}
-              />
-            </Item>
-            <Item label={_('newVmSizeLabel')}>
-              <SizeInput
-                className={styles.sizeInput}
-                onChange={this._linkState(`VDIs.${index}.size`)}
-                value={defined(vdi.size, null)}
-              />
-            </Item>
-            <Item>
-              <Button onClick={() => this._removeVdi(index)}>
-                <Icon icon='new-vm-remove' />
-              </Button>
-            </Item>
-          </LineItem>
-          {index < VDIs.length - 1 && <hr />}
-        </div>)}
-        <Item>
-          <Button onClick={this._addVdi}>
-            <Icon icon='new-vm-add' />
-            {' '}
-            {_('newVmAddDisk')}
-          </Button>
-        </Item>
-      </SectionContent>
-    </Section>
+          {/* VDIs */}
+          {map(VDIs, (vdi, index) => (
+            <div key={index}>
+              <LineItem>
+                <Item label={_('newVmSrLabel')}>
+                  <span className={styles.inlineSelect}>
+                    {pool ? (
+                      <SelectSr
+                        onChange={this._linkState(`VDIs.${index}.SR`, 'id')}
+                        predicate={this._getSrPredicate()}
+                        value={vdi.SR}
+                      />
+                    ) : (
+                      <SelectResourceSetsSr
+                        onChange={this._linkState(`VDIs.${index}.SR`, 'id')}
+                        predicate={this._getSrPredicate()}
+                        resourceSet={resourceSet}
+                        value={vdi.SR}
+                      />
+                    )}
+                  </span>
+                </Item>
+                <Item label={_('newVmNameLabel')}>
+                  <DebounceInput
+                    className='form-control'
+                    onChange={this._linkState(`VDIs.${index}.name_label`)}
+                    value={vdi.name_label}
+                  />
+                </Item>
+                <Item label={_('newVmDescriptionLabel')}>
+                  <DebounceInput
+                    className='form-control'
+                    onChange={this._linkState(`VDIs.${index}.name_description`)}
+                    value={vdi.name_description}
+                  />
+                </Item>
+                <Item label={_('newVmSizeLabel')}>
+                  <SizeInput
+                    className={styles.sizeInput}
+                    onChange={this._linkState(`VDIs.${index}.size`)}
+                    value={defined(vdi.size, null)}
+                  />
+                </Item>
+                <Item>
+                  <Button onClick={() => this._removeVdi(index)}>
+                    <Icon icon='new-vm-remove' />
+                  </Button>
+                </Item>
+              </LineItem>
+              {index < VDIs.length - 1 && <hr />}
+            </div>
+          ))}
+          <Item>
+            <Button onClick={this._addVdi}>
+              <Icon icon='new-vm-add' /> {_('newVmAddDisk')}
+            </Button>
+          </Item>
+        </SectionContent>
+      </Section>
+    )
   }
-  _isDisksDone = () => every(this.state.state.VDIs, vdi =>
-      vdi.SR && vdi.name_label && vdi.size !== undefined
+  _isDisksDone = () =>
+    every(
+      this.state.state.VDIs,
+      vdi => vdi.SR && vdi.name_label && vdi.size !== undefined
     ) &&
-    every(this.state.state.existingDisks, (vdi, index) =>
-      vdi.$SR && vdi.name_label && vdi.size !== undefined
+    every(
+      this.state.state.existingDisks,
+      (vdi, index) => vdi.$SR && vdi.name_label && vdi.size !== undefined
     )
 
-// ADVANCED --------------------------------------------------------------------
+  // ADVANCED --------------------------------------------------------------------
 
   _renderAdvanced = () => {
     const {
@@ -1238,167 +1369,219 @@ export default class NewVm extends BaseComponent {
       share,
       showAdvanced,
       tags,
-      template
+      template,
     } = this.state.state
     const { isAdmin } = this.props
     const { formatMessage } = this.props.intl
-    return <Section icon='new-vm-advanced' title='newVmAdvancedPanel' done={this._isAdvancedDone()}>
-      <SectionContent column>
-        <Button onClick={this._toggleState('showAdvanced')}>
-          {showAdvanced ? _('newVmHideAdvanced') : _('newVmShowAdvanced')}
-        </Button>
-      </SectionContent>
-      {showAdvanced && [
-        <hr />,
-        <SectionContent>
-          <Item>
-            <input
-              checked={bootAfterCreate}
-              onChange={this._linkState('bootAfterCreate')}
-              type='checkbox'
-            />
-            &nbsp;
-            {_('newVmBootAfterCreate')}
-          </Item>
-          <Item>
-            <input
-              checked={autoPoweron}
-              onChange={this._linkState('autoPoweron')}
-              type='checkbox'
-            />
-            &nbsp;
-            {_('autoPowerOn')}
-          </Item>
-          <Item className={styles.tags}>
-            <Tags labels={tags} onChange={this._linkState('tags')} />
-          </Item>
-        </SectionContent>,
-        this._getResourceSet() !== undefined && <SectionContent>
-          <Item>
-            <input
-              checked={share}
-              onChange={this._linkState('share')}
-              type='checkbox'
-            />
-            &nbsp;
-            {_('newVmShare')}
-          </Item>
-        </SectionContent>,
-        <SectionContent>
-          <Item label={_('newVmCpuWeightLabel')}>
-            <DebounceInput
-              className='form-control'
-              min={0}
-              max={65535}
-              onChange={this._linkState('cpuWeight')}
-              placeholder={formatMessage(messages.newVmDefaultCpuWeight, { value: XEN_DEFAULT_CPU_WEIGHT })}
-              type='number'
-              value={cpuWeight}
-            />
-          </Item>
-          <Item label={_('newVmCpuCapLabel')}>
-            <DebounceInput
-              className='form-control'
-              min={0}
-              onChange={this._linkState('cpuCap')}
-              placeholder={formatMessage(messages.newVmDefaultCpuCap, { value: XEN_DEFAULT_CPU_CAP })}
-              type='number'
-              value={cpuCap}
-            />
-          </Item>
-        </SectionContent>,
-        <SectionContent>
-          <Item label={_('newVmDynamicMinLabel')}>
-            <SizeInput value={defined(memoryDynamicMin, null)} onChange={this._linkState('memoryDynamicMin')} className={styles.sizeInput} />
-          </Item>
-          <Item label={_('newVmDynamicMaxLabel')}>
-            <SizeInput value={defined(memoryDynamicMax, null)} onChange={this._linkState('memoryDynamicMax')} className={styles.sizeInput} />
-          </Item>
-          <Item label={_('newVmStaticMaxLabel')}>
-            <SizeInput value={defined(memoryStaticMax, null)} onChange={this._linkState('memoryStaticMax')} className={styles.sizeInput} />
-          </Item>
-        </SectionContent>,
-        <SectionContent>
-          <Item label={_('newVmMultipleVms')}>
-            <Toggle value={multipleVms} onChange={this._linkState('multipleVms')} />
-          </Item>
-          <Item label={_('newVmMultipleVmsPattern')}>
-            <DebounceInput
-              className='form-control'
-              disabled={!multipleVms}
-              onChange={this._linkState('namePattern')}
-              placeholder={formatMessage(messages.newVmMultipleVmsPatternPlaceholder)}
-              value={namePattern}
-            />
-          </Item>
-          <Item label={_('newVmFirstIndex')}>
-            <DebounceInput
-              className={'form-control'}
-              disabled={!multipleVms}
-              onChange={this._linkState('seqStart')}
-              type='number'
-              value={seqStart}
-            />
-          </Item>
-          <Item className='input-group'>
-            <DebounceInput
-              className='form-control'
-              disabled={!multipleVms}
-              max={NB_VMS_MAX}
-              min={NB_VMS_MIN}
-              onChange={this._linkState('nbVms')}
-              type='number'
-              value={nbVms}
-            />
-            <span className='input-group-btn'>
-              <Tooltip content={_('newVmNumberRecalculate')}>
-                <Button disabled={!multipleVms} onClick={this._updateNbVms}>
-                  <Icon icon='arrow-right' />
-                </Button>
-              </Tooltip>
-            </span>
-          </Item>
-          <Item>
-            <Tooltip content={_('newVmNameRefresh')}>
-              <a className={styles.refreshNames} onClick={this._updateNameLabels}><Icon icon='refresh' /></a>
-            </Tooltip>
-          </Item>
-          {multipleVms && <LineItem>
-            {map(nameLabels, (nameLabel, index) =>
-              <Item key={`nameLabel_${index}`}>
-                <input type='text' className='form-control' value={nameLabel} onChange={this._linkState(`nameLabels.${index}`)} />
-              </Item>
-            )}
-          </LineItem>}
-        </SectionContent>,
-        isAdmin && <SectionContent>
-          <Item label={_('newVmAffinityHost')}>
-            <SelectHost
-              onChange={this._linkState('affinityHost')}
-              predicate={this._getAffinityHostPredicate()}
-              value={affinityHost}
-            />
-          </Item>
-        </SectionContent>,
-        template && template.virtualizationMode === 'hvm' && <SectionContent>
-          <Item label={_('vmVgpu')}>
-            <SelectVgpuType
-              onChange={this._linkState('vgpuType')}
-              predicate={this._getVgpuTypePredicate()}
-            />
-          </Item>
+    return (
+      <Section
+        icon='new-vm-advanced'
+        title='newVmAdvancedPanel'
+        done={this._isAdvancedDone()}
+      >
+        <SectionContent column>
+          <Button onClick={this._toggleState('showAdvanced')}>
+            {showAdvanced ? _('newVmHideAdvanced') : _('newVmShowAdvanced')}
+          </Button>
         </SectionContent>
-      ]}
-    </Section>
+        {showAdvanced && [
+          <hr />,
+          <SectionContent>
+            <Item>
+              <input
+                checked={bootAfterCreate}
+                onChange={this._linkState('bootAfterCreate')}
+                type='checkbox'
+              />
+              &nbsp;
+              {_('newVmBootAfterCreate')}
+            </Item>
+            <Item>
+              <input
+                checked={autoPoweron}
+                onChange={this._linkState('autoPoweron')}
+                type='checkbox'
+              />
+              &nbsp;
+              {_('autoPowerOn')}
+            </Item>
+            <Item className={styles.tags}>
+              <Tags labels={tags} onChange={this._linkState('tags')} />
+            </Item>
+          </SectionContent>,
+          this._getResourceSet() !== undefined && (
+            <SectionContent>
+              <Item>
+                <input
+                  checked={share}
+                  onChange={this._linkState('share')}
+                  type='checkbox'
+                />
+                &nbsp;
+                {_('newVmShare')}
+              </Item>
+            </SectionContent>
+          ),
+          <SectionContent>
+            <Item label={_('newVmCpuWeightLabel')}>
+              <DebounceInput
+                className='form-control'
+                min={0}
+                max={65535}
+                onChange={this._linkState('cpuWeight')}
+                placeholder={formatMessage(messages.newVmDefaultCpuWeight, {
+                  value: XEN_DEFAULT_CPU_WEIGHT,
+                })}
+                type='number'
+                value={cpuWeight}
+              />
+            </Item>
+            <Item label={_('newVmCpuCapLabel')}>
+              <DebounceInput
+                className='form-control'
+                min={0}
+                onChange={this._linkState('cpuCap')}
+                placeholder={formatMessage(messages.newVmDefaultCpuCap, {
+                  value: XEN_DEFAULT_CPU_CAP,
+                })}
+                type='number'
+                value={cpuCap}
+              />
+            </Item>
+          </SectionContent>,
+          <SectionContent>
+            <Item label={_('newVmDynamicMinLabel')}>
+              <SizeInput
+                value={defined(memoryDynamicMin, null)}
+                onChange={this._linkState('memoryDynamicMin')}
+                className={styles.sizeInput}
+              />
+            </Item>
+            <Item label={_('newVmDynamicMaxLabel')}>
+              <SizeInput
+                value={defined(memoryDynamicMax, null)}
+                onChange={this._linkState('memoryDynamicMax')}
+                className={styles.sizeInput}
+              />
+            </Item>
+            <Item label={_('newVmStaticMaxLabel')}>
+              <SizeInput
+                value={defined(memoryStaticMax, null)}
+                onChange={this._linkState('memoryStaticMax')}
+                className={styles.sizeInput}
+              />
+            </Item>
+          </SectionContent>,
+          <SectionContent>
+            <Item label={_('newVmMultipleVms')}>
+              <Toggle
+                value={multipleVms}
+                onChange={this._linkState('multipleVms')}
+              />
+            </Item>
+            <Item label={_('newVmMultipleVmsPattern')}>
+              <DebounceInput
+                className='form-control'
+                disabled={!multipleVms}
+                onChange={this._linkState('namePattern')}
+                placeholder={formatMessage(
+                  messages.newVmMultipleVmsPatternPlaceholder
+                )}
+                value={namePattern}
+              />
+            </Item>
+            <Item label={_('newVmFirstIndex')}>
+              <DebounceInput
+                className={'form-control'}
+                disabled={!multipleVms}
+                onChange={this._linkState('seqStart')}
+                type='number'
+                value={seqStart}
+              />
+            </Item>
+            <Item className='input-group'>
+              <DebounceInput
+                className='form-control'
+                disabled={!multipleVms}
+                max={NB_VMS_MAX}
+                min={NB_VMS_MIN}
+                onChange={this._linkState('nbVms')}
+                type='number'
+                value={nbVms}
+              />
+              <span className='input-group-btn'>
+                <Tooltip content={_('newVmNumberRecalculate')}>
+                  <Button disabled={!multipleVms} onClick={this._updateNbVms}>
+                    <Icon icon='arrow-right' />
+                  </Button>
+                </Tooltip>
+              </span>
+            </Item>
+            <Item>
+              <Tooltip content={_('newVmNameRefresh')}>
+                <a
+                  className={styles.refreshNames}
+                  onClick={this._updateNameLabels}
+                >
+                  <Icon icon='refresh' />
+                </a>
+              </Tooltip>
+            </Item>
+            {multipleVms && (
+              <LineItem>
+                {map(nameLabels, (nameLabel, index) => (
+                  <Item key={`nameLabel_${index}`}>
+                    <input
+                      type='text'
+                      className='form-control'
+                      value={nameLabel}
+                      onChange={this._linkState(`nameLabels.${index}`)}
+                    />
+                  </Item>
+                ))}
+              </LineItem>
+            )}
+          </SectionContent>,
+          isAdmin && (
+            <SectionContent>
+              <Item label={_('newVmAffinityHost')}>
+                <SelectHost
+                  onChange={this._linkState('affinityHost')}
+                  predicate={this._getAffinityHostPredicate()}
+                  value={affinityHost}
+                />
+              </Item>
+            </SectionContent>
+          ),
+          template &&
+            template.virtualizationMode === 'hvm' && (
+            <SectionContent>
+              <Item label={_('vmVgpu')}>
+                <SelectVgpuType
+                  onChange={this._linkState('vgpuType')}
+                  predicate={this._getVgpuTypePredicate()}
+                />
+              </Item>
+            </SectionContent>
+          ),
+        ]}
+      </Section>
+    )
   }
   _isAdvancedDone = () => {
-    const { memoryDynamicMin, memoryDynamicMax, memoryStaticMax } = this.state.state
-    return memoryDynamicMax != null &&
+    const {
+      memoryDynamicMin,
+      memoryDynamicMax,
+      memoryStaticMax,
+    } = this.state.state
+    return (
+      memoryDynamicMax != null &&
       (memoryDynamicMin == null || memoryDynamicMin <= memoryDynamicMax) &&
       (memoryStaticMax == null || memoryDynamicMax <= memoryStaticMax)
+    )
   }
 
-// SUMMARY ---------------------------------------------------------------------
+  // SUMMARY ---------------------------------------------------------------------
 
   _renderSummary = () => {
     const {
@@ -1409,7 +1592,7 @@ export default class NewVm extends BaseComponent {
       multipleVms,
       nameLabels,
       VDIs,
-      VIFs
+      VIFs,
     } = this.state.state
 
     const factor = multipleVms ? nameLabels.length : 1
@@ -1419,73 +1602,82 @@ export default class NewVm extends BaseComponent {
     const memoryLimits = limits && limits.memory
     const diskLimits = limits && limits.disk
 
-    return <Section icon='new-vm-summary' title='newVmSummaryPanel' summary>
-      <Container>
-        <Row>
-          <Col size={3} className='text-xs-center'>
-            <h2>
-              {CPUs || 0}x{' '}
-              <Icon icon='cpu' />
-            </h2>
-          </Col>
-          <Col size={3} className='text-xs-center'>
-            <h2>
-              {memoryDynamicMax ? formatSize(memoryDynamicMax) : '0 B'}
-              {' '}
-              <Icon icon='memory' />
-            </h2>
-          </Col>
-          <Col size={3} className='text-xs-center'>
-            <h2>
-              {size(existingDisks) + VDIs.length || 0}x{' '}
-              <Icon icon='disk' />
-            </h2>
-          </Col>
-          <Col size={3} className='text-xs-center'>
-            <h2>
-              {VIFs.length}x{' '}
-              <Icon icon='network' />
-            </h2>
-          </Col>
-        </Row>
-        {limits && <Row>
-          <Col size={3}>
-            {cpusLimits && <Limits
-              limit={cpusLimits.total}
-              toBeUsed={CPUs * factor}
-              used={cpusLimits.total - cpusLimits.available}
-            />}
-          </Col>
-          <Col size={3}>
-            {memoryLimits && <Limits
-              limit={memoryLimits.total}
-              toBeUsed={memoryDynamicMax * factor}
-              used={memoryLimits.total - memoryLimits.available}
-            />}
-          </Col>
-          <Col size={3}>
-            {diskLimits && <Limits
-              limit={diskLimits.total}
-              toBeUsed={(sumBy(VDIs, 'size') + sum(map(existingDisks, disk => disk.size))) * factor}
-              used={diskLimits.total - diskLimits.available}
-            />}
-          </Col>
-        </Row>}
-      </Container>
-      {this._isDiskTemplate && <div style={{display: 'flex'}}>
-        <span style={{margin: 'auto'}}>
-          <input
-            checked={fastClone}
-            onChange={this._linkState('fastClone')}
-            type='checkbox'
-          />
-          {' '}
-          <Icon icon='vm-fast-clone' />
-          {' '}
-          {_('fastCloneVmLabel')}
-        </span>
-      </div>}
-    </Section>
+    return (
+      <Section icon='new-vm-summary' title='newVmSummaryPanel' summary>
+        <Container>
+          <Row>
+            <Col size={3} className='text-xs-center'>
+              <h2>
+                {CPUs || 0}x <Icon icon='cpu' />
+              </h2>
+            </Col>
+            <Col size={3} className='text-xs-center'>
+              <h2>
+                {memoryDynamicMax ? formatSize(memoryDynamicMax) : '0 B'}{' '}
+                <Icon icon='memory' />
+              </h2>
+            </Col>
+            <Col size={3} className='text-xs-center'>
+              <h2>
+                {size(existingDisks) + VDIs.length || 0}x <Icon icon='disk' />
+              </h2>
+            </Col>
+            <Col size={3} className='text-xs-center'>
+              <h2>
+                {VIFs.length}x <Icon icon='network' />
+              </h2>
+            </Col>
+          </Row>
+          {limits && (
+            <Row>
+              <Col size={3}>
+                {cpusLimits && (
+                  <Limits
+                    limit={cpusLimits.total}
+                    toBeUsed={CPUs * factor}
+                    used={cpusLimits.total - cpusLimits.available}
+                  />
+                )}
+              </Col>
+              <Col size={3}>
+                {memoryLimits && (
+                  <Limits
+                    limit={memoryLimits.total}
+                    toBeUsed={memoryDynamicMax * factor}
+                    used={memoryLimits.total - memoryLimits.available}
+                  />
+                )}
+              </Col>
+              <Col size={3}>
+                {diskLimits && (
+                  <Limits
+                    limit={diskLimits.total}
+                    toBeUsed={
+                      (sumBy(VDIs, 'size') +
+                        sum(map(existingDisks, disk => disk.size))) *
+                      factor
+                    }
+                    used={diskLimits.total - diskLimits.available}
+                  />
+                )}
+              </Col>
+            </Row>
+          )}
+        </Container>
+        {this._isDiskTemplate && (
+          <div style={{ display: 'flex' }}>
+            <span style={{ margin: 'auto' }}>
+              <input
+                checked={fastClone}
+                onChange={this._linkState('fastClone')}
+                type='checkbox'
+              />{' '}
+              <Icon icon='vm-fast-clone' /> {_('fastCloneVmLabel')}
+            </span>
+          </div>
+        )}
+      </Section>
+    )
   }
 
   _availableResources = () => {
@@ -1501,14 +1693,17 @@ export default class NewVm extends BaseComponent {
       memoryDynamicMax,
       VDIs,
       multipleVms,
-      nameLabels
+      nameLabels,
     } = this.state.state
     const factor = multipleVms ? nameLabels.length : 1
 
     return !(
       CPUs * factor > get(() => resourceSet.limits.cpus.available) ||
-      memoryDynamicMax * factor > get(() => resourceSet.limits.memory.available) ||
-      (sumBy(VDIs, 'size') + sum(map(existingDisks, disk => disk.size))) * factor > get(() => resourceSet.limits.disk.available)
+      memoryDynamicMax * factor >
+        get(() => resourceSet.limits.memory.available) ||
+      (sumBy(VDIs, 'size') + sum(map(existingDisks, disk => disk.size))) *
+        factor >
+        get(() => resourceSet.limits.disk.available)
     )
   }
 }

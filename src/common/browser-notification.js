@@ -8,7 +8,7 @@ const sendNotification = (title, body) => {
   new Notify(title, {
     body,
     timeout: 5,
-    icon: 'assets/logo.png'
+    icon: 'assets/logo.png',
   }).show()
 }
 

@@ -1,25 +1,22 @@
 import React from 'react'
 import uncontrollableInput from 'uncontrollable-input'
 import { isEmpty, map } from 'lodash'
-import {
-  DropdownButton,
-  MenuItem
-} from 'react-bootstrap-4/lib'
+import { DropdownButton, MenuItem } from 'react-bootstrap-4/lib'
 
 import Component from './base-component'
 import propTypes from './prop-types-decorator'
 
 @uncontrollableInput({
-  defaultValue: ''
+  defaultValue: '',
 })
 @propTypes({
   disabled: propTypes.bool,
   options: propTypes.oneOfType([
     propTypes.arrayOf(propTypes.string),
-    propTypes.objectOf(propTypes.string)
+    propTypes.objectOf(propTypes.string),
   ]),
   onChange: propTypes.func.isRequired,
-  value: propTypes.string.isRequired
+  value: propTypes.string.isRequired,
 })
 export default class Combobox extends Component {
   _handleChange = event => {
@@ -50,11 +47,11 @@ export default class Combobox extends Component {
             id='selectInput'
             title=''
           >
-            {map(options, option =>
+            {map(options, option => (
               <MenuItem key={option} onClick={() => this._setText(option)}>
                 {option}
               </MenuItem>
-            )}
+            ))}
           </DropdownButton>
         </div>
         {Input}

@@ -9,38 +9,36 @@ import propTypes from '../prop-types-decorator'
 import styles from './index.css'
 
 const Wizard = ({ children }) => {
-  const allDone = every(React.Children.toArray(children), child =>
-    child.props.done || child.props.summary
+  const allDone = every(
+    React.Children.toArray(children),
+    child => child.props.done || child.props.summary
   )
 
-  return <ul className={styles.wizard}>
-    {React.Children.map(children, (child, key) =>
-      child && cloneElement(child, { allDone, key })
-    )}
-  </ul>
+  return (
+    <ul className={styles.wizard}>
+      {React.Children.map(
+        children,
+        (child, key) => child && cloneElement(child, { allDone, key })
+      )}
+    </ul>
+  )
 }
 export { Wizard as default }
 
 @propTypes({
   icon: propTypes.string.isRequired,
-  title: propTypes.string.isRequired
+  title: propTypes.string.isRequired,
 })
 export class Section extends Component {
   componentWillMount () {
-    this.setState({isActive: false})
+    this.setState({ isActive: false })
   }
 
   _onFocus = () => this.setState({ isActive: true })
   _onBlur = () => this.setState({ isActive: false })
 
   render () {
-    const {
-      allDone,
-      icon,
-      title,
-      done,
-      children
-    } = this.props
+    const { allDone, icon, title, done, children } = this.props
     return (
       <li
         className={classNames(
@@ -52,11 +50,15 @@ export class Section extends Component {
         onBlur={this._onBlur}
       >
         {/* TITLE */}
-        <div className={classNames(
-          styles.title,
-          (done || allDone) && styles.success
-        )}>
-          <h4>{icon && <Icon icon={icon} />} {_(title)}</h4>
+        <div
+          className={classNames(
+            styles.title,
+            (done || allDone) && styles.success
+          )}
+        >
+          <h4>
+            {icon && <Icon icon={icon} />} {_(title)}
+          </h4>
         </div>
         {/* CONTENT */}
         <div

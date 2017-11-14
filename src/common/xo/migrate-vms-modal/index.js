@@ -18,60 +18,47 @@ import SingleLineRow from '../../single-line-row'
 import Tooltip from '../../tooltip'
 import { Col } from '../../grid'
 import { getDefaultNetworkForVif } from '../utils'
-import {
-  SelectHost,
-  SelectNetwork,
-  SelectSr
-} from '../../select-objects'
-import {
-  connectStore
-} from '../../utils'
+import { SelectHost, SelectNetwork, SelectSr } from '../../select-objects'
+import { connectStore } from '../../utils'
 import {
   createGetObjectsOfType,
   createPicker,
   createSelector,
-  getObject
+  getObject,
 } from '../../selectors'
-import {
-  isSrShared
-} from 'xo'
+import { isSrShared } from 'xo'
 
 import { isSrWritable } from '../'
 
 const LINE_STYLE = { paddingBottom: '1em' }
 
-@connectStore(() => {
-  const getNetworks = createGetObjectsOfType('network')
-  const getPifs = createGetObjectsOfType('PIF')
-  const getPools = createGetObjectsOfType('pool')
+@connectStore(
+  () => {
+    const getNetworks = createGetObjectsOfType('network')
+    const getPifs = createGetObjectsOfType('PIF')
+    const getPools = createGetObjectsOfType('pool')
 
-  const getVms = createGetObjectsOfType('VM').pick(
-    (_, props) => props.vms
-  )
+    const getVms = createGetObjectsOfType('VM').pick((_, props) => props.vms)
 
-  const getVbdsByVm = createGetObjectsOfType('VBD').pick(
-    createSelector(
-      getVms,
-      vms => flatten(map(vms, vm => vm.$VBDs))
-    )
-  ).groupBy('VM')
+    const getVbdsByVm = createGetObjectsOfType('VBD')
+      .pick(createSelector(getVms, vms => flatten(map(vms, vm => vm.$VBDs))))
+      .groupBy('VM')
 
-  const getVifsByVM = createGetObjectsOfType('VIF').pick(
-    createSelector(
-      getVms,
-      vms => flatten(map(vms, vm => vm.VIFs))
-    )
-  ).groupBy('$VM')
+    const getVifsByVM = createGetObjectsOfType('VIF')
+      .pick(createSelector(getVms, vms => flatten(map(vms, vm => vm.VIFs))))
+      .groupBy('$VM')
 
-  return {
-    networks: getNetworks,
-    pifs: getPifs,
-    pools: getPools,
-    vbdsByVm: getVbdsByVm,
-    vifsByVm: getVifsByVM,
-    vms: getVms
-  }
-}, { withRef: true })
+    return {
+      networks: getNetworks,
+      pifs: getPifs,
+      pools: getPools,
+      vbdsByVm: getVbdsByVm,
+      vifsByVm: getVifsByVM,
+      vms: getVms,
+    }
+  },
+  { withRef: true }
+)
 export default class MigrateVmsModalBody extends BaseComponent {
   constructor (props) {
     super(props)
@@ -83,17 +70,16 @@ export default class MigrateVmsModalBody extends BaseComponent {
 
     this._getSrPredicate = createSelector(
       () => this.state.host,
-      host => (host
-        ? sr => isSrWritable(sr) && (sr.$container === host.id || sr.$container === host.$pool)
-        : false
-      )
+      host =>
+        host
+          ? sr =>
+            isSrWritable(sr) &&
+              (sr.$container === host.id || sr.$container === host.$pool)
+          : false
     )
 
     this._getTargetNetworkPredicate = createSelector(
-      createPicker(
-        () => this.props.pifs,
-        () => this.state.host.$PIFs
-      ),
+      createPicker(() => this.props.pifs, () => this.state.host.$PIFs),
       pifs => {
         if (!pifs) {
           return false
@@ -109,10 +95,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
     )
 
     this._getMigrationNetworkPredicate = createSelector(
-      createPicker(
-        () => this.props.pifs,
-        () => this.state.host.$PIFs
-      ),
+      createPicker(() => this.props.pifs, () => this.state.host.$PIFs),
       pifs => {
         if (!pifs) {
           return false
@@ -138,12 +121,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
     if (!host || isEmpty(vms)) {
       return { vms }
     }
-    const {
-      networks,
-      pifs,
-      vbdsByVm,
-      vifsByVm
-    } = this.props
+    const { networks, pifs, vbdsByVm, vifsByVm } = this.props
     const {
       intraPool,
       doNotMigrateVdi,
@@ -151,7 +129,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
       migrationNetworkId,
       networkId,
       smartVifMapping,
-      srId
+      srId,
     } = this.state
 
     // Map VM --> ( Map VDI --> SR )
@@ -164,19 +142,22 @@ export default class MigrateVmsModalBody extends BaseComponent {
       forEach(vbds, vbd => {
         const vdi = vbd.VDI
         if (!vbd.is_cd_drive && vdi) {
-          mapVdisSrs[vdi] = intraPool && doNotMigrateVdi[vdi] ? this._getObject(vdi).SR : srId
+          mapVdisSrs[vdi] =
+            intraPool && doNotMigrateVdi[vdi] ? this._getObject(vdi).SR : srId
         }
       })
       mapVmsMapVdisSrs[vm] = mapVdisSrs
     })
 
-    const defaultNetwork = smartVifMapping && invoke(() => {
-      // First PIF with an IP.
-      const pifId = find(host.$PIFs, pif => pifs[pif].ip)
-      const pif = pifId && pifs[pifId]
+    const defaultNetwork =
+      smartVifMapping &&
+      invoke(() => {
+        // First PIF with an IP.
+        const pifId = find(host.$PIFs, pif => pifs[pif].ip)
+        const pif = pifId && pifs[pifId]
 
-      return pif && pif.$network
-    })
+        return pif && pif.$network
+      })
 
     // Map VM --> ( Map VIF --> network )
     const mapVmsMapVifsNetworks = {}
@@ -194,8 +175,9 @@ export default class MigrateVmsModalBody extends BaseComponent {
     })
 
     // Map VM --> migration network
-    const mapVmsMigrationNetwork = mapValues(doNotMigrateVmVdis, doNotMigrateVdis =>
-      doNotMigrateVdis ? undefined : migrationNetworkId
+    const mapVmsMigrationNetwork = mapValues(
+      doNotMigrateVmVdis,
+      doNotMigrateVdis => (doNotMigrateVdis ? undefined : migrationNetworkId)
     )
 
     return {
@@ -203,7 +185,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
       mapVmsMapVifsNetworks,
       mapVmsMigrationNetwork,
       targetHost: host.id,
-      vms
+      vms,
     }
   }
 
@@ -217,9 +199,15 @@ export default class MigrateVmsModalBody extends BaseComponent {
       return
     }
     const { pools, pifs } = this.props
-    const defaultMigrationNetworkId = find(pifs, pif => pif.$host === host.id && pif.management).$network
+    const defaultMigrationNetworkId = find(
+      pifs,
+      pif => pif.$host === host.id && pif.management
+    ).$network
     const defaultSrId = pools[host.$pool].default_SR
-    const defaultSrConnectedToHost = some(host.$PBDs, pbd => this._getObject(pbd).SR === defaultSrId)
+    const defaultSrConnectedToHost = some(
+      host.$PBDs,
+      pbd => this._getObject(pbd).SR === defaultSrId
+    )
     const doNotMigrateVmVdis = {}
     const doNotMigrateVdi = {}
     forEach(this.props.vbdsByVm, (vbds, vm) => {
@@ -230,7 +218,9 @@ export default class MigrateVmsModalBody extends BaseComponent {
       const _doNotMigrateVdi = {}
       forEach(vbds, vbd => {
         if (vbd.VDI != null) {
-          doNotMigrateVdi[vbd.VDI] = _doNotMigrateVdi[vbd.VDI] = isSrShared(this._getObject(this._getObject(vbd.VDI).$SR))
+          doNotMigrateVdi[vbd.VDI] = _doNotMigrateVdi[vbd.VDI] = isSrShared(
+            this._getObject(this._getObject(vbd.VDI).$SR)
+          )
         }
       })
       doNotMigrateVmVdis[vm] = every(_doNotMigrateVdi)
@@ -247,13 +237,15 @@ export default class MigrateVmsModalBody extends BaseComponent {
       networkId: defaultMigrationNetworkId,
       noVdisMigration,
       smartVifMapping: true,
-      srId: defaultSrConnectedToHost ? defaultSrId : undefined
+      srId: defaultSrConnectedToHost ? defaultSrId : undefined,
     })
   }
-  _selectMigrationNetwork = migrationNetwork => this.setState({ migrationNetworkId: migrationNetwork.id })
+  _selectMigrationNetwork = migrationNetwork =>
+    this.setState({ migrationNetworkId: migrationNetwork.id })
   _selectNetwork = network => this.setState({ networkId: network.id })
   _selectSr = sr => this.setState({ srId: sr.id })
-  _toggleSmartVifMapping = () => this.setState({ smartVifMapping: !this.state.smartVifMapping })
+  _toggleSmartVifMapping = () =>
+    this.setState({ smartVifMapping: !this.state.smartVifMapping })
 
   render () {
     const {
@@ -265,88 +257,101 @@ export default class MigrateVmsModalBody extends BaseComponent {
       networkId,
       noVdisMigration,
       smartVifMapping,
-      srId
+      srId,
     } = this.state
-    return <div>
-      <div style={LINE_STYLE}>
-        <SingleLineRow>
-          <Col size={6}>{_('migrateVmSelectHost')}</Col>
-          <Col size={6}>
-            <SelectHost
-              onChange={this._selectHost}
-              predicate={this._getHostPredicate()}
-              value={host}
-            />
-          </Col>
-        </SingleLineRow>
-      </div>
-      {intraPool === false &&
+    return (
+      <div>
         <div style={LINE_STYLE}>
           <SingleLineRow>
-            <Col size={6}>{_('migrateVmSelectMigrationNetwork')}</Col>
+            <Col size={6}>{_('migrateVmSelectHost')}</Col>
             <Col size={6}>
-              <SelectNetwork
-                onChange={this._selectMigrationNetwork}
-                predicate={this._getMigrationNetworkPredicate()}
-                value={migrationNetworkId}
+              <SelectHost
+                onChange={this._selectHost}
+                predicate={this._getHostPredicate()}
+                value={host}
               />
             </Col>
           </SingleLineRow>
         </div>
-      }
-      {host && (!intraPool || !noVdisMigration) &&
-        <div key='sr' style={LINE_STYLE}>
-          <SingleLineRow>
-            <Col size={6}>
-              {!intraPool ? _('migrateVmsSelectSr') : _('migrateVmsSelectSrIntraPool')}
-              {' '}
-              {(defaultSrId === undefined || !defaultSrConnectedToHost) &&
-                <Tooltip
-                  content={defaultSrId !== undefined
-                    ? _('migrateVmNotConnectedDefaultSrError')
-                    : _('migrateVmNoDefaultSrError')
-                  }
-                >
-                  <Icon
-                    icon={defaultSrId !== undefined ? 'alarm' : 'info'}
-                    className={defaultSrId !== undefined ? 'text-warning' : 'text-info'}
-                    size='lg'
+        {intraPool === false && (
+          <div style={LINE_STYLE}>
+            <SingleLineRow>
+              <Col size={6}>{_('migrateVmSelectMigrationNetwork')}</Col>
+              <Col size={6}>
+                <SelectNetwork
+                  onChange={this._selectMigrationNetwork}
+                  predicate={this._getMigrationNetworkPredicate()}
+                  value={migrationNetworkId}
+                />
+              </Col>
+            </SingleLineRow>
+          </div>
+        )}
+        {host &&
+          (!intraPool || !noVdisMigration) && (
+            <div key='sr' style={LINE_STYLE}>
+              <SingleLineRow>
+                <Col size={6}>
+                  {!intraPool
+                    ? _('migrateVmsSelectSr')
+                    : _('migrateVmsSelectSrIntraPool')}{' '}
+                  {(defaultSrId === undefined || !defaultSrConnectedToHost) && (
+                    <Tooltip
+                      content={
+                        defaultSrId !== undefined
+                          ? _('migrateVmNotConnectedDefaultSrError')
+                          : _('migrateVmNoDefaultSrError')
+                      }
+                    >
+                      <Icon
+                        icon={defaultSrId !== undefined ? 'alarm' : 'info'}
+                        className={
+                          defaultSrId !== undefined
+                            ? 'text-warning'
+                            : 'text-info'
+                        }
+                        size='lg'
+                      />
+                    </Tooltip>
+                  )}
+                </Col>
+                <Col size={6}>
+                  <SelectSr
+                    onChange={this._selectSr}
+                    predicate={this._getSrPredicate()}
+                    value={srId}
                   />
-                </Tooltip>
-              }
-            </Col>
-            <Col size={6}>
-              <SelectSr
-                onChange={this._selectSr}
-                predicate={this._getSrPredicate()}
-                value={srId}
-              />
-            </Col>
-          </SingleLineRow>
-        </div>
-      }
-      {host && !intraPool &&
-        <div key='network' style={LINE_STYLE}>
-          <SingleLineRow>
-            <Col size={6}>{_('migrateVmsSelectNetwork')}</Col>
-            <Col size={6}>
-              <SelectNetwork
-                disabled={smartVifMapping}
-                onChange={this._selectNetwork}
-                predicate={this._getTargetNetworkPredicate()}
-                value={networkId}
-              />
-            </Col>
-          </SingleLineRow>
-          <SingleLineRow>
-            <Col size={6} offset={6}>
-              <input type='checkbox' onChange={this._toggleSmartVifMapping} checked={smartVifMapping} />
-              {' '}
-              {_('migrateVmsSmartMapping')}
-            </Col>
-          </SingleLineRow>
-        </div>
-      }
-    </div>
+                </Col>
+              </SingleLineRow>
+            </div>
+          )}
+        {host &&
+          !intraPool && (
+            <div key='network' style={LINE_STYLE}>
+              <SingleLineRow>
+                <Col size={6}>{_('migrateVmsSelectNetwork')}</Col>
+                <Col size={6}>
+                  <SelectNetwork
+                    disabled={smartVifMapping}
+                    onChange={this._selectNetwork}
+                    predicate={this._getTargetNetworkPredicate()}
+                    value={networkId}
+                  />
+                </Col>
+              </SingleLineRow>
+              <SingleLineRow>
+                <Col size={6} offset={6}>
+                  <input
+                    type='checkbox'
+                    onChange={this._toggleSmartVifMapping}
+                    checked={smartVifMapping}
+                  />{' '}
+                  {_('migrateVmsSmartMapping')}
+                </Col>
+              </SingleLineRow>
+            </div>
+          )}
+      </div>
+    )
   }
 }

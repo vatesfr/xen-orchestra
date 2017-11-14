@@ -13,9 +13,7 @@ export default class XoAbstractInput extends PureComponent {
     const { props } = this
 
     return props.onChange(
-      props.schema.type === 'array'
-        ? map(value, getId)
-        : getId(value)
+      props.schema.type === 'array' ? map(value, getId) : getId(value)
     )
   }
 }

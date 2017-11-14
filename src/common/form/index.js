@@ -7,20 +7,14 @@ import React from 'react'
 import round from 'lodash/round'
 import SingleLineRow from 'single-line-row'
 import { Container, Col } from 'grid'
-import {
-  DropdownButton,
-  MenuItem
-} from 'react-bootstrap-4/lib'
+import { DropdownButton, MenuItem } from 'react-bootstrap-4/lib'
 
 import Button from '../button'
 import Component from '../base-component'
 import defined from '../xo-defined'
 import getEventValue from '../get-event-value'
 import propTypes from '../prop-types-decorator'
-import {
-  formatSizeRaw,
-  parseSize
-} from '../utils'
+import { formatSizeRaw, parseSize } from '../utils'
 
 export Select from './select'
 export SelectPlainObject from './select-plain-object'
@@ -28,7 +22,7 @@ export SelectPlainObject from './select-plain-object'
 // ===================================================================
 
 @propTypes({
-  enableGenerator: propTypes.bool
+  enableGenerator: propTypes.bool,
 })
 export class Password extends Component {
   get value () {
@@ -51,42 +45,42 @@ export class Password extends Component {
     // FIXME: in controlled mode, visibility should only be updated
     // when the value prop is changed according to the emitted value.
     this.setState({
-      visible: true
+      visible: true,
     })
   }
 
   _toggleVisibility = () => {
     this.setState({
-      visible: !this.state.visible
+      visible: !this.state.visible,
     })
   }
 
   render () {
-    const {
-      className,
-      enableGenerator = false,
-      ...props
-    } = this.props
+    const { className, enableGenerator = false, ...props } = this.props
     const { visible } = this.state
 
-    return <div className='input-group'>
-      {enableGenerator && <span className='input-group-btn'>
-        <Button onClick={this._generate}>
-          <Icon icon='password' />
-        </Button>
-      </span>}
-      <input
-        {...props}
-        className={classNames(className, 'form-control')}
-        ref='field'
-        type={visible ? 'text' : 'password'}
-      />
-      <span className='input-group-btn'>
-        <Button onClick={this._toggleVisibility}>
-          <Icon icon={visible ? 'shown' : 'hidden'} />
-        </Button>
-      </span>
-    </div>
+    return (
+      <div className='input-group'>
+        {enableGenerator && (
+          <span className='input-group-btn'>
+            <Button onClick={this._generate}>
+              <Icon icon='password' />
+            </Button>
+          </span>
+        )}
+        <input
+          {...props}
+          className={classNames(className, 'form-control')}
+          ref='field'
+          type={visible ? 'text' : 'password'}
+        />
+        <span className='input-group-btn'>
+          <Button onClick={this._toggleVisibility}>
+            <Icon icon={visible ? 'shown' : 'hidden'} />
+          </Button>
+        </span>
+      </div>
+    )
   }
 }
 
@@ -97,7 +91,7 @@ export class Password extends Component {
   min: propTypes.number.isRequired,
   onChange: propTypes.func,
   step: propTypes.number,
-  value: propTypes.number
+  value: propTypes.number,
 })
 export class Range extends Component {
   componentDidMount () {
@@ -108,30 +102,31 @@ export class Range extends Component {
     }
   }
 
-  _onChange = value =>
-    this.props.onChange(getEventValue(value))
+  _onChange = value => this.props.onChange(getEventValue(value))
 
   render () {
     const { max, min, step, value } = this.props
 
-    return <Container>
-      <SingleLineRow>
-        <Col size={2}>
-          <span className='pull-right'>{value}</span>
-        </Col>
-        <Col size={10}>
-          <input
-            className='form-control'
-            max={max}
-            min={min}
-            onChange={this._onChange}
-            step={step}
-            type='range'
-            value={value}
-          />
-        </Col>
-      </SingleLineRow>
-    </Container>
+    return (
+      <Container>
+        <SingleLineRow>
+          <Col size={2}>
+            <span className='pull-right'>{value}</span>
+          </Col>
+          <Col size={10}>
+            <input
+              className='form-control'
+              max={max}
+              min={min}
+              onChange={this._onChange}
+              step={step}
+              type='range'
+              value={value}
+            />
+          </Col>
+        </SingleLineRow>
+      </Container>
+    )
   }
 }
 
@@ -149,16 +144,15 @@ const DEFAULT_UNIT = 'GiB'
   readOnly: propTypes.bool,
   required: propTypes.bool,
   style: propTypes.object,
-  value: propTypes.oneOfType([
-    propTypes.number,
-    propTypes.oneOf([ null ])
-  ])
+  value: propTypes.oneOfType([propTypes.number, propTypes.oneOf([null])]),
 })
 export class SizeInput extends BaseComponent {
   constructor (props) {
     super(props)
 
-    this.state = this._createStateFromBytes(defined(props.value, props.defaultValue, null))
+    this.state = this._createStateFromBytes(
+      defined(props.value, props.defaultValue, null)
+    )
   }
 
   componentWillReceiveProps (props) {
@@ -172,21 +166,21 @@ export class SizeInput extends BaseComponent {
     if (bytes === this._bytes) {
       return {
         input: this._input,
-        unit: this._unit
+        unit: this._unit,
       }
     }
 
     if (bytes === null) {
       return {
         input: '',
-        unit: this.props.defaultUnit || DEFAULT_UNIT
+        unit: this.props.defaultUnit || DEFAULT_UNIT,
       }
     }
 
     const { prefix, value } = formatSizeRaw(bytes)
     return {
       input: String(round(value, 2)),
-      unit: `${prefix}B`
+      unit: `${prefix}B`,
     }
   }
 
@@ -214,9 +208,7 @@ export class SizeInput extends BaseComponent {
     const { onChange } = this.props
 
     // Empty input equals null.
-    const bytes = input
-      ? parseSize(`${+input} ${unit}`)
-      : null
+    const bytes = input ? parseSize(`${+input} ${unit}`) : null
 
     const isControlled = this.props.value !== undefined
     if (isControlled) {
@@ -246,8 +238,7 @@ export class SizeInput extends BaseComponent {
 
     const number = +input
 
-    // NaN: do not ack this change.
-    if (number !== number) { // eslint-disable-line no-self-compare
+    if (Number.isNaN(number)) {
       return
     }
 
@@ -278,38 +269,37 @@ export class SizeInput extends BaseComponent {
       readOnly,
       placeholder,
       required,
-      style
+      style,
     } = this.props
 
-    return <span className={classNames('input-group', className)} style={style}>
-      <input
-        autoFocus={autoFocus}
-        className='form-control'
-        disabled={readOnly}
-        onChange={this._updateNumber}
-        placeholder={placeholder}
-        required={required}
-        type='text'
-        value={this.state.input}
-      />
-      <span className='input-group-btn'>
-        <DropdownButton
-          bsStyle='secondary'
-          id='size'
-          pullRight
+    return (
+      <span className={classNames('input-group', className)} style={style}>
+        <input
+          autoFocus={autoFocus}
+          className='form-control'
           disabled={readOnly}
-          title={this.state.unit}
-        >
-          {map(UNITS, unit =>
-            <MenuItem
-              key={unit}
-              onClick={() => this._updateUnit(unit)}
-            >
-              {unit}
-            </MenuItem>
-          )}
-        </DropdownButton>
+          onChange={this._updateNumber}
+          placeholder={placeholder}
+          required={required}
+          type='text'
+          value={this.state.input}
+        />
+        <span className='input-group-btn'>
+          <DropdownButton
+            bsStyle='secondary'
+            id='size'
+            pullRight
+            disabled={readOnly}
+            title={this.state.unit}
+          >
+            {map(UNITS, unit => (
+              <MenuItem key={unit} onClick={() => this._updateUnit(unit)}>
+                {unit}
+              </MenuItem>
+            ))}
+          </DropdownButton>
+        </span>
       </span>
-    </span>
+    )
   }
 }

@@ -11,51 +11,55 @@ import { createSelector } from 'reselect'
 import { formatSize } from 'utils'
 import { FormattedDate } from 'react-intl'
 import { SelectPlainObject } from 'form'
-import {
-  filter,
-  includes,
-  isEmpty,
-  map
-} from 'lodash'
-import {
-  scanDisk,
-  scanFiles
-} from 'xo'
+import { filter, includes, isEmpty, map } from 'lodash'
+import { scanDisk, scanFiles } from 'xo'
 
-const backupOptionRenderer = backup => <span>
-  {backup.tag} - {backup.remoteName}
-  {' '}
-  (<FormattedDate value={backup.datetime * 1e3} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />)
-</span>
+const backupOptionRenderer = backup => (
+  <span>
+    {backup.tag} - {backup.remoteName} (<FormattedDate
+      value={backup.datetime * 1e3}
+      month='long'
+      day='numeric'
+      year='numeric'
+      hour='2-digit'
+      minute='2-digit'
+      second='2-digit'
+    />)
+  </span>
+)
 
-const partitionOptionRenderer = partition => <span>
-  {partition.name} {partition.type} {partition.size && `(${formatSize(+partition.size)})`}
-</span>
+const partitionOptionRenderer = partition => (
+  <span>
+    {partition.name} {partition.type}{' '}
+    {partition.size && `(${formatSize(+partition.size)})`}
+  </span>
+)
 
-const diskOptionRenderer = disk => <span>
-  {disk.name}
-</span>
+const diskOptionRenderer = disk => <span>{disk.name}</span>
 
-const fileOptionRenderer = file => <span>
-  {file.name}
-</span>
+const fileOptionRenderer = file => <span>{file.name}</span>
 
 const formatFilesOptions = (rawFiles, path) => {
-  const files = path !== '/'
-    ? [{
-      name: '..',
-      id: '..',
-      path: getParentPath(path),
-      content: {}
-    }]
-    : []
+  const files =
+    path !== '/'
+      ? [
+        {
+          name: '..',
+          id: '..',
+          path: getParentPath(path),
+          content: {},
+        },
+      ]
+      : []
 
-  return files.concat(map(rawFiles, (file, name) => ({
-    name,
-    id: `${path}${name}`,
-    path: `${path}${name}`,
-    content: file
-  })))
+  return files.concat(
+    map(rawFiles, (file, name) => ({
+      name,
+      id: `${path}${name}`,
+      path: `${path}${name}`,
+      content: file,
+    }))
+  )
 }
 
 const getParentPath = path => replace(path, /^(\/+.+)*(\/+.+)/, '$1/')
@@ -64,7 +68,7 @@ const getParentPath = path => replace(path, /^(\/+.+)*(\/+.+)/, '$1/')
 
 export default class RestoreFileModalBody extends Component {
   state = {
-    format: 'zip'
+    format: 'zip',
   }
 
   get value () {
@@ -75,7 +79,7 @@ export default class RestoreFileModalBody extends Component {
       format: state.format,
       partition: state.partition,
       paths: state.selectedFiles && map(state.selectedFiles, 'path'),
-      remote: state.backup.remoteId
+      remote: state.backup.remoteId,
     }
   }
 
@@ -84,15 +88,16 @@ export default class RestoreFileModalBody extends Component {
     this.setState({ scanningFiles: true })
 
     return scanFiles(backup.remoteId, disk, path, partition).then(
-      rawFiles => this.setState({
-        files: formatFilesOptions(rawFiles, path),
-        scanningFiles: false,
-        scanFilesError: false
-      }),
+      rawFiles =>
+        this.setState({
+          files: formatFilesOptions(rawFiles, path),
+          scanningFiles: false,
+          scanFilesError: false,
+        }),
       error => {
         this.setState({
           scanningFiles: false,
-          scanFilesError: true
+          scanFilesError: true,
         })
         throw error
       }
@@ -102,9 +107,8 @@ export default class RestoreFileModalBody extends Component {
   _getSelectableFiles = createSelector(
     () => this.state.files,
     () => this.state.selectedFiles,
-    (available, selected) => filter(available, file =>
-      !includes(selected, file)
-    )
+    (available, selected) =>
+      filter(available, file => !includes(selected, file))
   )
 
   _onBackupChange = backup => {
@@ -115,7 +119,7 @@ export default class RestoreFileModalBody extends Component {
       file: undefined,
       selectedFiles: undefined,
       scanDiskError: false,
-      scanFilesError: false
+      scanFilesError: false,
     })
   }
 
@@ -125,7 +129,7 @@ export default class RestoreFileModalBody extends Component {
       file: undefined,
       selectedFiles: undefined,
       scanDiskError: false,
-      scanFilesError: false
+      scanFilesError: false,
     })
 
     if (!disk) {
@@ -135,23 +139,26 @@ export default class RestoreFileModalBody extends Component {
     scanDisk(this.state.backup.remoteId, disk).then(
       ({ partitions }) => {
         if (isEmpty(partitions)) {
-          this.setState({
-            disk,
-            path: '/'
-          }, this._scanFiles)
+          this.setState(
+            {
+              disk,
+              path: '/',
+            },
+            this._scanFiles
+          )
 
           return
         }
 
         this.setState({
           disk,
-          partitions
+          partitions,
         })
       },
       error => {
         this.setState({
           disk,
-          scanDiskError: true
+          scanDiskError: true,
         })
         throw error
       }
@@ -159,12 +166,15 @@ export default class RestoreFileModalBody extends Component {
   }
 
   _onPartitionChange = partition => {
-    this.setState({
-      partition,
-      path: '/',
-      file: undefined,
-      selectedFiles: undefined
-    }, partition && this._scanFiles)
+    this.setState(
+      {
+        partition,
+        path: '/',
+        file: undefined,
+        selectedFiles: undefined,
+      },
+      partition && this._scanFiles
+    )
   }
 
   _onFileChange = file => {
@@ -185,35 +195,39 @@ export default class RestoreFileModalBody extends Component {
       const { selectedFiles } = this.state
       if (!includes(selectedFiles, file)) {
         this.setState({
-          selectedFiles: (selectedFiles || []).concat(file)
+          selectedFiles: (selectedFiles || []).concat(file),
         })
       }
     } else {
-      this.setState({
-        path: file.id === '..' ? getParentPath(this.state.path) : file.path
-      }, this._scanFiles)
+      this.setState(
+        {
+          path: file.id === '..' ? getParentPath(this.state.path) : file.path,
+        },
+        this._scanFiles
+      )
     }
   }
 
   _unselectFile = file => {
     this.setState({
-      selectedFiles: filter(this.state.selectedFiles, ({ id }) => id !== file.id)
+      selectedFiles: filter(
+        this.state.selectedFiles,
+        ({ id }) => id !== file.id
+      ),
     })
   }
 
   _unselectAllFiles = () => {
     this.setState({
-      selectedFiles: undefined
+      selectedFiles: undefined,
     })
   }
 
   _selectAllFolderFiles = () => {
     this.setState({
       selectedFiles: (this.state.selectedFiles || []).concat(
-        filter(this._getSelectableFiles(), ({path}) =>
-          !endsWith(path, '/')
-        )
-      )
+        filter(this._getSelectableFiles(), ({ path }) => !endsWith(path, '/'))
+      ),
     })
   }
 
@@ -231,122 +245,144 @@ export default class RestoreFileModalBody extends Component {
       scanDiskError,
       scanFilesError,
       scanningFiles,
-      selectedFiles
+      selectedFiles,
     } = this.state
     const noPartitions = isEmpty(partitions)
 
-    return <div>
-      <SelectPlainObject
-        onChange={this._onBackupChange}
-        optionKey='id'
-        optionRenderer={backupOptionRenderer}
-        options={backups}
-        placeholder={_('restoreFilesSelectBackup')}
-        value={backup}
-      />
-      {backup && [
-        <br />,
+    return (
+      <div>
         <SelectPlainObject
-          onChange={this._onDiskChange}
+          onChange={this._onBackupChange}
           optionKey='id'
-          optionRenderer={diskOptionRenderer}
-          options={backup.disks}
-          placeholder={_('restoreFilesSelectDisk')}
-          value={disk}
+          optionRenderer={backupOptionRenderer}
+          options={backups}
+          placeholder={_('restoreFilesSelectBackup')}
+          value={backup}
         />
-      ]}
-      {scanDiskError &&
-        <span>
-          <Icon icon='error' /> {_('restoreFilesDiskError')}
-        </span>
-      }
-      {disk && !scanDiskError && !noPartitions && [
-        <br />,
-        <SelectPlainObject
-          onChange={this._onPartitionChange}
-          optionKey='id'
-          optionRenderer={partitionOptionRenderer}
-          options={partitions}
-          placeholder={_('restoreFilesSelectPartition')}
-          value={partition}
-        />
-      ]}
-      {(partition || (disk && !scanDiskError && noPartitions)) && [
-        <br />,
-        <Container>
-          <Row>
-            <Col size={10}>
-              <pre>
-                {path} {scanningFiles && <Icon icon='loading' />}{scanFilesError && <Icon icon='error' />}
-              </pre>
-            </Col>
-            <Col size={2}>
-              <span className='pull-right'>
-                <Tooltip content={_('restoreFilesSelectAllFiles')}>
-                  <ActionButton handler={this._selectAllFolderFiles} icon='add' size='small' />
-                </Tooltip>
-              </span>
-            </Col>
-          </Row>
-        </Container>,
-        <SelectPlainObject
-          onChange={this._onFileChange}
-          optionKey='id'
-          optionRenderer={fileOptionRenderer}
-          options={this._getSelectableFiles()}
-          placeholder={_('restoreFilesSelectFiles')}
-          value={null}
-        />,
-        <br />,
-        <div>
-          <span className='mr-1'>
-            <input
-              checked={format === 'zip'}
-              name='format'
-              onChange={this.linkState('format')}
-              type='radio'
-              value='zip'
-            /> ZIP
-          </span>
+        {backup && [
+          <br />,
+          <SelectPlainObject
+            onChange={this._onDiskChange}
+            optionKey='id'
+            optionRenderer={diskOptionRenderer}
+            options={backup.disks}
+            placeholder={_('restoreFilesSelectDisk')}
+            value={disk}
+          />,
+        ]}
+        {scanDiskError && (
           <span>
-            <input
-              checked={format === 'tar'}
-              name='format'
-              onChange={this.linkState('format')}
-              type='radio'
-              value='tar'
-            /> TAR
+            <Icon icon='error' /> {_('restoreFilesDiskError')}
           </span>
-        </div>,
-        <br />,
-        selectedFiles && selectedFiles.length
-          ? <Container>
+        )}
+        {disk &&
+          !scanDiskError &&
+          !noPartitions && [
+            <br />,
+            <SelectPlainObject
+              onChange={this._onPartitionChange}
+              optionKey='id'
+              optionRenderer={partitionOptionRenderer}
+              options={partitions}
+              placeholder={_('restoreFilesSelectPartition')}
+              value={partition}
+            />,
+          ]}
+        {(partition || (disk && !scanDiskError && noPartitions)) && [
+          <br />,
+          <Container>
             <Row>
-              <Col className='pl-0 pb-1' size={10}>
-                <em>{_('restoreFilesSelectedFiles', { files: selectedFiles.length })}</em>
+              <Col size={10}>
+                <pre>
+                  {path} {scanningFiles && <Icon icon='loading' />}
+                  {scanFilesError && <Icon icon='error' />}
+                </pre>
               </Col>
-              <Col size={2} className='text-xs-right'>
-                <ActionButton
-                  handler={this._unselectAllFiles}
-                  icon='remove'
-                  size='small'
-                  tooltip={_('restoreFilesUnselectAll')}
-                />
+              <Col size={2}>
+                <span className='pull-right'>
+                  <Tooltip content={_('restoreFilesSelectAllFiles')}>
+                    <ActionButton
+                      handler={this._selectAllFolderFiles}
+                      icon='add'
+                      size='small'
+                    />
+                  </Tooltip>
+                </span>
               </Col>
             </Row>
-            {map(selectedFiles, file =>
-              <Row key={file.id}>
-                <Col size={10}>
-                  <pre>{file.path}</pre>
+          </Container>,
+          <SelectPlainObject
+            onChange={this._onFileChange}
+            optionKey='id'
+            optionRenderer={fileOptionRenderer}
+            options={this._getSelectableFiles()}
+            placeholder={_('restoreFilesSelectFiles')}
+            value={null}
+          />,
+          <br />,
+          <div>
+            <span className='mr-1'>
+              <input
+                checked={format === 'zip'}
+                name='format'
+                onChange={this.linkState('format')}
+                type='radio'
+                value='zip'
+              />{' '}
+              ZIP
+            </span>
+            <span>
+              <input
+                checked={format === 'tar'}
+                name='format'
+                onChange={this.linkState('format')}
+                type='radio'
+                value='tar'
+              />{' '}
+              TAR
+            </span>
+          </div>,
+          <br />,
+          selectedFiles && selectedFiles.length ? (
+            <Container>
+              <Row>
+                <Col className='pl-0 pb-1' size={10}>
+                  <em>
+                    {_('restoreFilesSelectedFiles', {
+                      files: selectedFiles.length,
+                    })}
+                  </em>
                 </Col>
                 <Col size={2} className='text-xs-right'>
-                  <ActionButton handler={this._unselectFile} handlerParam={file} icon='remove' size='small' />
+                  <ActionButton
+                    handler={this._unselectAllFiles}
+                    icon='remove'
+                    size='small'
+                    tooltip={_('restoreFilesUnselectAll')}
+                  />
                 </Col>
               </Row>
-            )}
-          </Container>
-          : <em>{_('restoreFilesNoFilesSelected')}</em>
-      ]}
-    </div>
+              {map(selectedFiles, file => (
+                <Row key={file.id}>
+                  <Col size={10}>
+                    <pre>{file.path}</pre>
+                  </Col>
+                  <Col size={2} className='text-xs-right'>
+                    <ActionButton
+                      handler={this._unselectFile}
+                      handlerParam={file}
+                      icon='remove'
+                      size='small'
+                    />
+                  </Col>
+                </Row>
+              ))}
+            </Container>
+          ) : (
+            <em>{_('restoreFilesNoFilesSelected')}</em>
+          ),
+        ]}
+      </div>
+    )
   }
 }

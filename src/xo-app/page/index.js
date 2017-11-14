@@ -11,24 +11,26 @@ const Page = ({
   formatTitle,
   header,
   intl,
-  title
+  title,
 }) => {
   const { formatMessage } = intl
 
-  const content = <div className={styles.container}>
-    {!collapsedHeader && <nav className={'page-header ' + styles.header}>
-      {header}
-    </nav>}
-    <div className={styles.content}>
-      {children}
+  const content = (
+    <div className={styles.container}>
+      {!collapsedHeader && (
+        <nav className={'page-header ' + styles.header}>{header}</nav>
+      )}
+      <div className={styles.content}>{children}</div>
     </div>
-  </div>
+  )
 
-  return title
-    ? <DocumentTitle title={formatTitle ? formatMessage(messages[title]) : title}>
+  return title ? (
+    <DocumentTitle title={formatTitle ? formatMessage(messages[title]) : title}>
       {content}
     </DocumentTitle>
-    : content
+  ) : (
+    content
+  )
 }
 
 Page.propTypes = {
@@ -36,7 +38,7 @@ Page.propTypes = {
   collapsedHeader: React.PropTypes.bool,
   formatTitle: React.PropTypes.bool,
   header: React.PropTypes.node,
-  title: React.PropTypes.string
+  title: React.PropTypes.string,
 }
 
 export default injectIntl(Page)

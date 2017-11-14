@@ -8,14 +8,8 @@ import _ from '../intl'
 import propTypes from '../prop-types-decorator'
 import { Toggle } from '../form'
 import { setStyles } from '../d3-utils'
-import {
-  createGetObject,
-  createSelector
-} from '../selectors'
-import {
-  connectStore,
-  propsEqual
-} from '../utils'
+import { createGetObject, createSelector } from '../selectors'
+import { connectStore, propsEqual } from '../utils'
 
 import styles from './index.css'
 
@@ -24,33 +18,33 @@ import styles from './index.css'
 const X_AXIS_STYLE = {
   'shape-rendering': 'crispEdges',
   fill: 'none',
-  stroke: '#000'
+  stroke: '#000',
 }
 
 const X_AXIS_TEXT_STYLE = {
   'font-size': '125%',
   fill: 'black',
-  stroke: 'transparent'
+  stroke: 'transparent',
 }
 
 const LABEL_STYLE = {
-  'font-size': '125%'
+  'font-size': '125%',
 }
 
 const MOUSE_AREA_STYLE = {
   'pointer-events': 'all',
-  fill: 'none'
+  fill: 'none',
 }
 
 const HOVER_LINE_STYLE = {
   'stroke-width': '2px',
   'stroke-dasharray': '5 5',
   stroke: 'red',
-  fill: 'none'
+  fill: 'none',
 }
 
 const HOVER_TEXT_STYLE = {
-  fill: 'black'
+  fill: 'black',
 }
 
 const HORIZON_AREA_N_STEPS = 4
@@ -59,7 +53,7 @@ const HORIZON_AREA_PATH_STYLE = {
   'fill-opacity': 0.25,
   'stroke-opacity': 0.3,
   fill: 'darkgreen',
-  stroke: 'transparent'
+  stroke: 'transparent',
 }
 
 // ===================================================================
@@ -70,20 +64,18 @@ const HORIZON_AREA_PATH_STYLE = {
   data: propTypes.arrayOf(
     propTypes.shape({
       date: propTypes.number.isRequired,
-      value: propTypes.number.isRequired
+      value: propTypes.number.isRequired,
     })
   ).isRequired,
   maxValue: propTypes.number,
   objectId: propTypes.string.isRequired,
   onTooltipChange: propTypes.func.isRequired,
   tooltipX: propTypes.number.isRequired,
-  valueRenderer: propTypes.func
+  valueRenderer: propTypes.func,
 })
 @connectStore(() => {
   const label = createSelector(
-    createGetObject(
-      (_, props) => props.objectId
-    ),
+    createGetObject((_, props) => props.objectId),
     object => object.name_label
   )
 
@@ -93,7 +85,7 @@ class XoWeekChart extends Component {
   static defaultProps = {
     chartHeight: 70,
     chartWidth: 300,
-    valueRenderer: value => value
+    valueRenderer: value => value,
   }
 
   _x = d3.scaleTime()
@@ -101,10 +93,10 @@ class XoWeekChart extends Component {
 
   _bisectDate = d3.bisector(elem => elem.date).left
 
-  _xAxis = d3.axisBottom()
-    .scale(this._x)
+  _xAxis = d3.axisBottom().scale(this._x)
 
-  _line = d3.line()
+  _line = d3
+    .line()
     .x(elem => this._x(elem.date))
     .y(elem => this._y(elem.value))
 
@@ -115,10 +107,12 @@ class XoWeekChart extends Component {
     // Start.
     let date = new Date(data[0].date)
     for (let i = 0; i < HORIZON_AREA_N_STEPS; i++) {
-      splittedData[i] = [{
-        date,
-        value: 0
-      }]
+      splittedData[i] = [
+        {
+          date,
+          value: 0,
+        },
+      ]
     }
 
     // Middle.
@@ -127,7 +121,10 @@ class XoWeekChart extends Component {
       for (let i = 0; i < HORIZON_AREA_N_STEPS; i++) {
         splittedData[i].push({
           date,
-          value: Math.min(Math.max(0, elem.value - intervalSize * i), intervalSize)
+          value: Math.min(
+            Math.max(0, elem.value - intervalSize * i),
+            intervalSize
+          ),
         })
       }
     })
@@ -137,7 +134,7 @@ class XoWeekChart extends Component {
     for (let i = 0; i < HORIZON_AREA_N_STEPS; i++) {
       splittedData[i].push({
         date,
-        value: 0
+        value: 0,
       })
     }
 
@@ -146,13 +143,17 @@ class XoWeekChart extends Component {
 
     const svg = this._svg
 
-    svg.select('.horizon-area').selectAll('path').remove()
+    svg
+      .select('.horizon-area')
+      .selectAll('path')
+      .remove()
     forEach(splittedData, data => {
-      svg.select('.horizon-area')
+      ;svg
+        .select('.horizon-area')
         .append('path')
-          .datum(data)
-          .attr('d', this._line)
-          ::setStyles(HORIZON_AREA_PATH_STYLE)
+        .datum(data)
+        .attr('d', this._line)
+        ::setStyles(HORIZON_AREA_PATH_STYLE)
     })
   }
 
@@ -173,25 +174,28 @@ class XoWeekChart extends Component {
       .attr('width', width)
       .attr('height', height)
       .select('.mouse-area')
-        .attr('width', horizonAreaWidth)
-        .attr('height', horizonAreaHeight)
+      .attr('width', horizonAreaWidth)
+      .attr('height', horizonAreaHeight)
 
-    svg.select('.hover-container')
+    svg
+      .select('.hover-container')
       .select('.hover-line')
-        .attr('y2', horizonAreaHeight)
+      .attr('y2', horizonAreaHeight)
 
     // 2. Draw horizon area.
     this._drawHorizonArea(props.data, props.maxValue)
 
     // 3. Update x axis.
-    svg.select('.x-axis')
+    ;svg
+      .select('.x-axis')
       .call(this._xAxis)
       .attr('transform', `translate(0, ${props.chartHeight})`)
       .selectAll('text')
-        ::setStyles(X_AXIS_TEXT_STYLE)
+      ::setStyles(X_AXIS_TEXT_STYLE)
 
     // 4. Update label.
-    svg.select('.label')
+    svg
+      .select('.label')
       .attr('dx', 5)
       .attr('dy', 20)
       .text(props.label)
@@ -223,11 +227,13 @@ class XoWeekChart extends Component {
     const { props } = this
     const hover = this._svg.select('.hover-container')
 
-    hover.select('.hover-line')
+    hover
+      .select('.hover-line')
       .attr('x1', x)
       .attr('x2', x)
 
-    hover.select('.hover-text')
+    hover
+      .select('.hover-text')
       .attr('dx', x + 5)
       .attr('dy', props.chartHeight / 2)
       .text(props.valueRenderer(elem.value))
@@ -236,38 +242,44 @@ class XoWeekChart extends Component {
   componentDidMount () {
     // Horizon area ----------------------------------------
 
-    const svg = this._svg = d3.select(this.refs.chart)
+    const svg = (this._svg = d3
+      .select(this.refs.chart)
       .append('svg')
-      .attr('transform', `translate(${HORIZON_AREA_MARGIN}, 0)`)
+      .attr('transform', `translate(${HORIZON_AREA_MARGIN}, 0)`))
 
-    svg.append('g')
+    ;svg
+      .append('g')
       .attr('class', 'x-axis')
       ::setStyles(X_AXIS_STYLE)
 
-    svg.append('g')
-      .attr('class', 'horizon-area')
+    svg.append('g').attr('class', 'horizon-area')
 
-    svg.append('text')
+    ;svg
+      .append('text')
       .attr('class', 'label')
       ::setStyles(LABEL_STYLE)
 
     // Tooltip ---------------------------------------------
 
-    svg.append('rect')
+    ;svg
+      .append('rect')
       .attr('class', 'mouse-area')
       .on('mousemove', this._handleMouseMove)
       ::setStyles(MOUSE_AREA_STYLE)
 
-    const hover = svg.append('g')
+    const hover = svg
+      .append('g')
       .attr('class', 'hover-container')
       ::setStyles('pointer-events', 'none')
 
-    hover.append('line')
+    ;hover
+      .append('line')
       .attr('class', 'hover-line')
       .attr('y1', 0)
       ::setStyles(HOVER_LINE_STYLE)
 
-    hover.append('text')
+    ;hover
+      .append('text')
       .attr('class', 'hover-text')
       ::setStyles(HOVER_TEXT_STYLE)
 
@@ -277,11 +289,14 @@ class XoWeekChart extends Component {
   componentWillReceiveProps (nextProps) {
     const { props } = this
 
-    if (!propsEqual(
-      props,
-      nextProps,
-      [ 'chartHeight', 'chartWidth', 'data', 'maxValue' ]
-    )) {
+    if (
+      !propsEqual(props, nextProps, [
+        'chartHeight',
+        'chartWidth',
+        'data',
+        'maxValue',
+      ])
+    ) {
       this._draw(nextProps)
     }
 
@@ -304,19 +319,19 @@ class XoWeekChart extends Component {
       data: propTypes.arrayOf(
         propTypes.shape({
           date: propTypes.number.isRequired,
-          value: propTypes.number.isRequired
+          value: propTypes.number.isRequired,
         })
       ).isRequired,
-      objectId: propTypes.string.isRequired
+      objectId: propTypes.string.isRequired,
     })
   ).isRequired,
-  valueRenderer: propTypes.func
+  valueRenderer: propTypes.func,
 })
 export default class XoWeekCharts extends Component {
   _handleResize = () => {
     const { container } = this.refs
     this.setState({
-      chartsWidth: container && container.offsetWidth
+      chartsWidth: container && container.offsetWidth,
     })
   }
 
@@ -337,7 +352,7 @@ export default class XoWeekCharts extends Component {
     }
 
     this.setState({
-      maxValue: max
+      maxValue: max,
     })
   }
 
@@ -348,7 +363,7 @@ export default class XoWeekCharts extends Component {
 
   componentWillMount () {
     this.setState({
-      tooltipX: 0
+      tooltipX: 0,
     })
   }
 
@@ -366,39 +381,29 @@ export default class XoWeekCharts extends Component {
   }
 
   render () {
-    const {
-      props,
-      state: {
-        chartsWidth,
-        maxValue,
-        tooltipX
-      }
-    } = this
+    const { props, state: { chartsWidth, maxValue, tooltipX } } = this
 
     return (
       <div>
         <div>
           <p className='mt-1'>
-            {_('weeklyChartsScaleInfo')}
-            {' '}
+            {_('weeklyChartsScaleInfo')}{' '}
             <Toggle iconSize={1} icon='scale' onChange={this._updateScale} />
           </p>
         </div>
-        <div
-          ref='container'
-          className={styles.container}
-        >
-          {chartsWidth && map(props.series, (series, key) => (
-            <XoWeekChart
-              {...series}
-              chartWidth={chartsWidth}
-              key={key}
-              maxValue={maxValue}
-              onTooltipChange={this._handleTooltipChange}
-              tooltipX={tooltipX}
-              valueRenderer={props.valueRenderer}
-            />
-          ))}
+        <div ref='container' className={styles.container}>
+          {chartsWidth &&
+            map(props.series, (series, key) => (
+              <XoWeekChart
+                {...series}
+                chartWidth={chartsWidth}
+                key={key}
+                maxValue={maxValue}
+                onTooltipChange={this._handleTooltipChange}
+                tooltipX={tooltipX}
+                valueRenderer={props.valueRenderer}
+              />
+            ))}
         </div>
       </div>
     )

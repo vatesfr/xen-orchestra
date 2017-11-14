@@ -10,14 +10,19 @@ export default class RevertSnapshotModalBody extends BaseComponent {
   }
 
   render () {
-    return <div>
-      <div>{_('revertVmModalMessage')}</div>
-      <br />
-      <label>
-        <input type='checkbox' onChange={this.linkState('snapshotBefore')} checked={this.state.snapshotBefore} />
-        {' '}
-        {_('revertVmModalSnapshotBefore')}
-      </label>
-    </div>
+    return (
+      <div>
+        <div>{_('revertVmModalMessage')}</div>
+        <br />
+        <label>
+          <input
+            type='checkbox'
+            onChange={this.linkState('snapshotBefore')}
+            checked={this.state.snapshotBefore}
+          />{' '}
+          {_('revertVmModalSnapshotBefore')}
+        </label>
+      </div>
+    )
   }
 }

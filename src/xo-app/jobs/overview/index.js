@@ -15,11 +15,7 @@ import Upgrade from 'xoa-upgrade'
 import { addSubscriptions } from 'utils'
 import { Container } from 'grid'
 import { createSelector } from 'selectors'
-import {
-  Card,
-  CardHeader,
-  CardBlock
-} from 'card'
+import { Card, CardHeader, CardBlock } from 'card'
 import {
   deleteSchedule,
   disableSchedule,
@@ -28,36 +24,38 @@ import {
   subscribeJobs,
   subscribeSchedules,
   subscribeScheduleTable,
-  subscribeUsers
+  subscribeUsers,
 } from 'xo'
 
 // ===================================================================
 
 const jobKeyToLabel = {
-  genericTask: _('customJob')
+  genericTask: _('customJob'),
 }
 
 // ===================================================================
 
 @addSubscriptions({
-  users: subscribeUsers
+  users: subscribeUsers,
 })
 export default class Overview extends Component {
   constructor (props) {
     super(props)
     this.state = {
       schedules: [],
-      scheduleTable: {}
+      scheduleTable: {},
     }
   }
 
   componentWillMount () {
     const unsubscribeJobs = subscribeJobs(jobs => {
       const obj = {}
-      forEach(jobs, job => { obj[job.id] = job })
+      forEach(jobs, job => {
+        obj[job.id] = job
+      })
 
       this.setState({
-        jobs: obj
+        jobs: obj,
       })
     })
 
@@ -69,13 +67,15 @@ export default class Overview extends Component {
       })
 
       this.setState({
-        schedules: orderBy(schedules, schedule => +schedule.id.split(':')[1], ['desc'])
+        schedules: orderBy(schedules, schedule => +schedule.id.split(':')[1], [
+          'desc',
+        ]),
       })
     })
 
     const unsubscribeScheduleTable = subscribeScheduleTable(scheduleTable => {
       this.setState({
-        scheduleTable
+        scheduleTable,
       })
     })
 
@@ -107,11 +107,9 @@ export default class Overview extends Component {
         disabledLabel={_('jobStateDisabled')}
         disabledHandler={enableSchedule}
         disabledTooltip={_('logIndicationToEnable')}
-
         enabledLabel={_('jobStateEnabled')}
         enabledHandler={disableSchedule}
         enabledTooltip={_('logIndicationToDisable')}
-
         handlerParam={id}
         state={this.state.scheduleTable[id]}
       />
@@ -125,7 +123,10 @@ export default class Overview extends Component {
       const isScheduleUserMissing = {}
 
       forEach(schedules, schedule => {
-        isScheduleUserMissing[schedule.id] = !!find(users, user => user.id === this._getScheduleJob(schedule).userId)
+        isScheduleUserMissing[schedule.id] = !!find(
+          users,
+          user => user.id === this._getScheduleJob(schedule).userId
+        )
       })
 
       return isScheduleUserMissing
@@ -133,14 +134,12 @@ export default class Overview extends Component {
   )
 
   render () {
-    const {
-      schedules
-    } = this.state
+    const { schedules } = this.state
 
     const isScheduleUserMissing = this._getIsScheduleUserMissing()
 
-    return (process.env.XOA_PLAN > 3
-      ? <Container>
+    return process.env.XOA_PLAN > 3 ? (
+      <Container>
         <Card>
           <CardHeader>
             <Icon icon='schedule' /> {_('backupSchedules')}
@@ -165,13 +164,19 @@ export default class Overview extends Component {
                       <tr key={key}>
                         <td>
                           {this._getScheduleLabel(schedule)}
-                          <Link className='btn btn-sm btn-primary ml-1' to={`/jobs/schedules/${schedule.id}/edit`}>
+                          <Link
+                            className='btn btn-sm btn-primary ml-1'
+                            to={`/jobs/schedules/${schedule.id}/edit`}
+                          >
                             <Icon icon='edit' />
                           </Link>
                         </td>
                         <td>
                           {this._getJobLabel(job)}
-                          <Link className='btn btn-sm btn-primary ml-1' to={`/jobs/${job.id}/edit`}>
+                          <Link
+                            className='btn btn-sm btn-primary ml-1'
+                            to={`/jobs/${job.id}/edit`}
+                          >
                             <Icon icon='edit' />
                           </Link>
                         </td>
@@ -179,7 +184,11 @@ export default class Overview extends Component {
                         <td>{this._getScheduleToggle(schedule)}</td>
                         <td className='text-xs-right'>
                           <fieldset>
-                            {!isScheduleUserMissing[schedule.id] && <Tooltip content={_('jobUserNotFound')}><Icon className='mr-1' icon='error' /></Tooltip>}
+                            {!isScheduleUserMissing[schedule.id] && (
+                              <Tooltip content={_('jobUserNotFound')}>
+                                <Icon className='mr-1' icon='error' />
+                              </Tooltip>
+                            )}
                             <ActionRowButton
                               icon='delete'
                               btnStyle='danger'
@@ -200,12 +209,17 @@ export default class Overview extends Component {
                   })}
                 </tbody>
               </table>
-            ) : <p>{_('noScheduledJobs')}</p>}
+            ) : (
+              <p>{_('noScheduledJobs')}</p>
+            )}
           </CardBlock>
         </Card>
         <LogList jobKeys={Object.keys(jobKeyToLabel)} />
       </Container>
-      : <Container><Upgrade place='health' available={4} /></Container>
+    ) : (
+      <Container>
+        <Upgrade place='health' available={4} />
+      </Container>
     )
   }
 }

@@ -19,22 +19,27 @@ const COLUMNS = [
     name: _('vdiNameLabel'),
     itemRenderer: vdi => (
       <span>
-        <Text value={vdi.name_label} onChange={value => editVdi(vdi, { name_label: value })} />
-        {' '}
-        {vdi.type === 'VDI-snapshot' &&
+        <Text
+          value={vdi.name_label}
+          onChange={value => editVdi(vdi, { name_label: value })}
+        />{' '}
+        {vdi.type === 'VDI-snapshot' && (
           <span className='tag tag-info'>
             <Icon icon='vm-snapshot' />
           </span>
-        }
+        )}
       </span>
     ),
-    sortCriteria: vdi => vdi.name_label
+    sortCriteria: vdi => vdi.name_label,
   },
   {
     name: _('vdiNameDescription'),
     itemRenderer: vdi => (
-      <Text value={vdi.name_description} onChange={value => editVdi(vdi, { name_description: value })} />
-    )
+      <Text
+        value={vdi.name_description}
+        onChange={value => editVdi(vdi, { name_description: value })}
+      />
+    ),
   },
   {
     name: _('vdiVm'),
@@ -42,7 +47,7 @@ const COLUMNS = [
       const getObject = createGetObject((_, id) => id)
 
       return {
-        vm: (state, { item: { $VBDs: [ vbdId ] } }) => {
+        vm: (state, { item: { $VBDs: [vbdId] } }) => {
           if (vbdId === undefined) {
             return null
           }
@@ -51,7 +56,7 @@ const COLUMNS = [
           if (vbd != null) {
             return getObject(state, vbd.VM)
           }
-        }
+        },
       }
     })(({ vm }) => {
       if (vm === null) {
@@ -68,34 +73,30 @@ const COLUMNS = [
         link = `/vms/${vm.id}`
       } else if (type === 'VM-snapshot') {
         const id = vm.$snapshot_of
-        link = id !== undefined
-          ? `/vms/${id}/snapshots`
-          : '/dashboard/health'
+        link = id !== undefined ? `/vms/${id}/snapshots` : '/dashboard/health'
       }
 
       const item = renderXoItem(vm)
-      return link === undefined
-        ? item
-        : <Link to={link}>{item}</Link>
-    })
+      return link === undefined ? item : <Link to={link}>{item}</Link>
+    }),
   },
   {
     name: _('vdiTags'),
-    itemRenderer: vdi => vdi.tags
+    itemRenderer: vdi => vdi.tags,
   },
   {
     name: _('vdiSize'),
     itemRenderer: vdi => formatSize(vdi.size),
-    sortCriteria: vdi => vdi.size
-  }
+    sortCriteria: vdi => vdi.size,
+  },
 ]
 
 const GROUPED_ACTIONS = [
   {
     handler: deleteVdis,
     icon: 'delete',
-    label: _('deleteSelectedVdis')
-  }
+    label: _('deleteSelectedVdis'),
+  },
 ]
 
 const INDIVIDUAL_ACTIONS = [
@@ -103,8 +104,8 @@ const INDIVIDUAL_ACTIONS = [
     handler: deleteVdi,
     icon: 'delete',
     label: _('deleteSelectedVdi'),
-    level: 'danger'
-  }
+    level: 'danger',
+  },
 ]
 
 const FILTERS = {
@@ -112,7 +113,7 @@ const FILTERS = {
   filterOnlyRegular: '!type:|(VDI-snapshot VDI-unmanaged)',
   filterOnlySnapshots: 'type:VDI-snapshot',
   filterOnlyOrphaned: 'type:!VDI-unmanaged $VBDs:!""',
-  filterOnlyUnmanaged: 'type:VDI-unmanaged'
+  filterOnlyUnmanaged: 'type:VDI-unmanaged',
 }
 
 // ===================================================================
@@ -127,24 +128,27 @@ export default class SrDisks extends Component {
 
   render () {
     const vdis = this._getAllVdis()
-    return <Container>
-      <Row>
-        <Col>
-          {!isEmpty(vdis)
-            ? <SortedTable
-              collection={vdis}
-              columns={COLUMNS}
-              defaultFilter='filterOnlyManaged'
-              filters={FILTERS}
-              groupedActions={GROUPED_ACTIONS}
-              individualActions={INDIVIDUAL_ACTIONS}
-              shortcutsTarget='body'
-              stateUrlParam='s'
-            />
-            : <h4 className='text-xs-center'>{_('srNoVdis')}</h4>
-          }
-        </Col>
-      </Row>
-    </Container>
+    return (
+      <Container>
+        <Row>
+          <Col>
+            {!isEmpty(vdis) ? (
+              <SortedTable
+                collection={vdis}
+                columns={COLUMNS}
+                defaultFilter='filterOnlyManaged'
+                filters={FILTERS}
+                groupedActions={GROUPED_ACTIONS}
+                individualActions={INDIVIDUAL_ACTIONS}
+                shortcutsTarget='body'
+                stateUrlParam='s'
+              />
+            ) : (
+              <h4 className='text-xs-center'>{_('srNoVdis')}</h4>
+            )}
+          </Col>
+        </Row>
+      </Container>
+    )
   }
 }

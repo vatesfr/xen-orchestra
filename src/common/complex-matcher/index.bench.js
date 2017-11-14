@@ -1,11 +1,5 @@
-import {
-  parse,
-  toString
-} from './'
-import {
-  ast,
-  pattern
-} from './index.fixtures'
+import { parse, toString } from './'
+import { ast, pattern } from './index.fixtures'
 
 export default ({ benchmark }) => {
   benchmark('parse', () => {
@@ -13,6 +7,6 @@ export default ({ benchmark }) => {
   })
 
   benchmark('toString', () => {
-    ast::toString()
+    ;ast::toString()
   })
 }

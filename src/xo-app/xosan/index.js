@@ -16,96 +16,121 @@ import {
   isEmpty,
   map,
   mapValues,
-  some
+  some,
 } from 'lodash'
-import {
-  createGetObjectsOfType,
-  createSelector
-} from 'selectors'
+import { createGetObjectsOfType, createSelector } from 'selectors'
 import {
   addSubscriptions,
   connectStore,
   cowSet,
   formatSize,
-  isXosanPack
+  isXosanPack,
 } from 'utils'
 import {
   deleteSr,
   registerXosan,
   subscribePlugins,
   subscribeResourceCatalog,
-  subscribeVolumeInfo
+  subscribeVolumeInfo,
 } from 'xo'
 
 import NewXosan from './new-xosan'
 import CreationProgress from './creation-progress'
 
-export const INFO_TYPES = [ 'heal', 'status', 'info', 'statusDetail', 'hosts' ]
+export const INFO_TYPES = ['heal', 'status', 'info', 'statusDetail', 'hosts']
 
 // ==================================================================
 
-const HEADER = <Container>
-  <h2><Icon icon='menu-xosan' /> {_('xosanTitle')}</h2>
-</Container>
+const HEADER = (
+  <Container>
+    <h2>
+      <Icon icon='menu-xosan' /> {_('xosanTitle')}
+    </h2>
+  </Container>
+)
 
 // ==================================================================
 
 const XOSAN_COLUMNS = [
   {
     itemRenderer: (sr, { status }) => {
-      const pbdsDetached = every(map(sr.pbds, 'attached')) ? null : _('xosanPbdsDetached')
-      const badStatus = status && every(status[sr.id])
+      const pbdsDetached = every(map(sr.pbds, 'attached'))
         ? null
-        : _('xosanBadStatus', { badStatuses: <ul>{map(status, (_, status) => <li key={status}>{status}</li>)}</ul> })
+        : _('xosanPbdsDetached')
+      const badStatus =
+        status && every(status[sr.id])
+          ? null
+          : _('xosanBadStatus', {
+            badStatuses: (
+              <ul>
+                {map(status, (_, status) => <li key={status}>{status}</li>)}
+              </ul>
+            ),
+          })
 
       if (pbdsDetached != null || badStatus != null) {
-        return <Tooltip content={pbdsDetached || badStatus}>
-          <Icon icon={pbdsDetached ? 'busy' : 'halted'} />
-        </Tooltip>
+        return (
+          <Tooltip content={pbdsDetached || badStatus}>
+            <Icon icon={pbdsDetached ? 'busy' : 'halted'} />
+          </Tooltip>
+        )
       }
 
-      return <Tooltip content={_('xosanRunning')}>
-        <Icon icon='running' />
-      </Tooltip>
-    }
+      return (
+        <Tooltip content={_('xosanRunning')}>
+          <Icon icon='running' />
+        </Tooltip>
+      )
+    },
   },
   {
     name: _('xosanPool'),
-    itemRenderer: sr => sr.pool == null ? null : <Link to={`/pools/${sr.pool.id}`}>{sr.pool.name_label}</Link>,
-    sortCriteria: sr => sr.pool && sr.pool.name_label
+    itemRenderer: sr =>
+      sr.pool == null ? null : (
+        <Link to={`/pools/${sr.pool.id}`}>{sr.pool.name_label}</Link>
+      ),
+    sortCriteria: sr => sr.pool && sr.pool.name_label,
   },
   {
     name: _('xosanName'),
     itemRenderer: sr => <Link to={`/srs/${sr.id}`}>{sr.name_label}</Link>,
-    sortCriteria: sr => sr.name_label
+    sortCriteria: sr => sr.name_label,
   },
   {
     name: _('xosanHosts'),
-    itemRenderer: sr => <span>
-      {map(sr.hosts, (host, i) => [ i ? ', ' : null, <Link to={`/hosts/${host.id}`}>{host.name_label}</Link> ])}
-    </span>
+    itemRenderer: sr => (
+      <span>
+        {map(sr.hosts, (host, i) => [
+          i ? ', ' : null,
+          <Link to={`/hosts/${host.id}`}>{host.name_label}</Link>,
+        ])}
+      </span>
+    ),
   },
   {
     name: _('xosanSize'),
     itemRenderer: sr => formatSize(sr.size),
-    sortCriteria: sr => sr.size
+    sortCriteria: sr => sr.size,
   },
   {
     name: _('xosanUsedSpace'),
-    itemRenderer: sr => sr.size > 0
-      ? <Tooltip content={_('spaceLeftTooltip', {
-        used: String(Math.round((sr.physical_usage * 100) / sr.size)),
-        free: formatSize(sr.size - sr.physical_usage)
-      })}>
-        <progress
-          className='progress'
-          max='100'
-          value={(sr.physical_usage * 100) / sr.size}
-        />
-      </Tooltip>
-      : null,
-    sortCriteria: sr => (sr.physical_usage * 100) / sr.size
-  }
+    itemRenderer: sr =>
+      sr.size > 0 ? (
+        <Tooltip
+          content={_('spaceLeftTooltip', {
+            used: String(Math.round(sr.physical_usage * 100 / sr.size)),
+            free: formatSize(sr.size - sr.physical_usage),
+          })}
+        >
+          <progress
+            className='progress'
+            max='100'
+            value={sr.physical_usage * 100 / sr.size}
+          />
+        </Tooltip>
+      ) : null,
+    sortCriteria: sr => sr.physical_usage * 100 / sr.size,
+  },
 ]
 
 const XOSAN_INDIVIDUAL_ACTIONS = [
@@ -113,8 +138,8 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
     handler: deleteSr,
     icon: 'delete',
     label: _('xosanDelete'),
-    level: 'danger'
-  }
+    level: 'danger',
+  },
 ]
 
 @connectStore(() => {
@@ -122,16 +147,19 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
   const getHostsByPool = getHosts.groupBy('$pool')
   const getPools = createGetObjectsOfType('pool')
 
-  const noPacksByPool = createSelector(
-    getHostsByPool,
-    hostsByPool => mapValues(hostsByPool, (poolHosts, poolId) =>
-      !every(poolHosts, host => some(host.supplementalPacks, isXosanPack))
+  const noPacksByPool = createSelector(getHostsByPool, hostsByPool =>
+    mapValues(
+      hostsByPool,
+      (poolHosts, poolId) =>
+        !every(poolHosts, host => some(host.supplementalPacks, isXosanPack))
     )
   )
 
   const getPbdsBySr = createGetObjectsOfType('PBD').groupBy('SR')
   const getXosanSrs = createSelector(
-    createGetObjectsOfType('SR').filter([ sr => sr.shared && sr.SR_type === 'xosan' ]),
+    createGetObjectsOfType('SR').filter([
+      sr => sr.shared && sr.SR_type === 'xosan',
+    ]),
     getPbdsBySr,
     getPools,
     getHosts,
@@ -140,8 +168,10 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
         ...sr,
         pbds: pbdsBySr[sr.id],
         pool: find(pools, { id: sr.$pool }),
-        hosts: map(pbdsBySr[sr.id], ({ host }) => find(hosts, [ 'id', host ])),
-        config: sr.other_config['xo:xosan_config'] && JSON.parse(sr.other_config['xo:xosan_config'])
+        hosts: map(pbdsBySr[sr.id], ({ host }) => find(hosts, ['id', host])),
+        config:
+          sr.other_config['xo:xosan_config'] &&
+          JSON.parse(sr.other_config['xo:xosan_config']),
       }))
     }
   )
@@ -153,7 +183,8 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
       const isMasterOfflineByPool = {}
       forEach(pools, pool => {
         const poolMaster = find(hostsByPool[pool.id], { id: pool.master })
-        isMasterOfflineByPool[pool.id] = poolMaster && poolMaster.power_state !== 'Running'
+        isMasterOfflineByPool[pool.id] =
+          poolMaster && poolMaster.power_state !== 'Running'
       })
     }
   )
@@ -165,10 +196,12 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
     (hostsByPool, pools) => {
       const hostsNeedRestartByPool = {}
       forEach(pools, pool => {
-        hostsNeedRestartByPool[pool.id] = filter(hostsByPool[pool.id], host =>
-          host.power_state === 'Running' &&
-          pool.xosanPackInstallationTime !== null &&
-          pool.xosanPackInstallationTime > host.agentStartTime
+        hostsNeedRestartByPool[pool.id] = filter(
+          hostsByPool[pool.id],
+          host =>
+            host.power_state === 'Running' &&
+            pool.xosanPackInstallationTime !== null &&
+            pool.xosanPackInstallationTime > host.agentStartTime
         )
       })
 
@@ -176,9 +209,8 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
     }
   )
 
-  const getPoolPredicate = createSelector(
-    getXosanSrs,
-    srs => pool => every(srs, sr => sr.$pool !== pool.id)
+  const getPoolPredicate = createSelector(getXosanSrs, srs => pool =>
+    every(srs, sr => sr.$pool !== pool.id)
   )
 
   return {
@@ -187,12 +219,12 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
     noPacksByPool,
     poolPredicate: getPoolPredicate,
     pools: getPools,
-    xosanSrs: getXosanSrs
+    xosanSrs: getXosanSrs,
   }
 })
 @addSubscriptions({
   catalog: subscribeResourceCatalog,
-  plugins: subscribePlugins
+  plugins: subscribePlugins,
 })
 export default class Xosan extends Component {
   componentDidMount () {
@@ -210,13 +242,18 @@ export default class Xosan extends Component {
   _subscribeVolumeInfo = srs => {
     const unsubscriptions = []
     forEach(srs, sr => {
-      forEach(INFO_TYPES, infoType => unsubscriptions.push(
-        subscribeVolumeInfo({ sr, infoType }, info => this.setState({
-          status: cowSet(this.state.status, [ sr.id, infoType ], info)
-        }))
-      ))
+      forEach(INFO_TYPES, infoType =>
+        unsubscriptions.push(
+          subscribeVolumeInfo({ sr, infoType }, info =>
+            this.setState({
+              status: cowSet(this.state.status, [sr.id, infoType], info),
+            })
+          )
+        )
+      )
     })
-    this.unsubscribeVolumeInfo = () => forEach(unsubscriptions, unsubscribe => unsubscribe())
+    this.unsubscribeVolumeInfo = () =>
+      forEach(unsubscriptions, unsubscribe => unsubscribe())
   }
 
   _getError = createSelector(
@@ -238,11 +275,19 @@ export default class Xosan extends Component {
 
       const { xosan } = catalog._namespaces
       if (!xosan) {
-        return <span><Icon icon='error' /> {_('xosanNotAvailable')}</span>
+        return (
+          <span>
+            <Icon icon='error' /> {_('xosanNotAvailable')}
+          </span>
+        )
       }
 
       if (xosan.available) {
-        return <ActionButton handler={registerXosan} btnStyle='primary' icon='add'>{_('xosanRegisterBeta')}</ActionButton>
+        return (
+          <ActionButton handler={registerXosan} btnStyle='primary' icon='add'>
+            {_('xosanRegisterBeta')}
+          </ActionButton>
+        )
       }
 
       if (xosan.pending) {
@@ -254,66 +299,90 @@ export default class Xosan extends Component {
   _onSrCreationStarted = () => this.setState({ showNewXosanForm: false })
 
   render () {
-    const { xosanSrs, noPacksByPool, hostsNeedRestartByPool, poolPredicate } = this.props
+    const {
+      xosanSrs,
+      noPacksByPool,
+      hostsNeedRestartByPool,
+      poolPredicate,
+    } = this.props
     const error = this._getError()
 
-    return <Page header={HEADER} title='xosan' formatTitle>
-      {process.env.XOA_PLAN < 5
-        ? <Container>
-          {error
-            ? <Row>
-              <Col><em>{error}</em></Col>
-            </Row>
-            : [
-              <Row className='mb-1'>
-                <Col>
-                  <ActionButton
-                    btnStyle='primary'
-                    handler={this.toggleState('showNewXosanForm')}
-                    icon={this.state.showNewXosanForm ? 'minus' : 'plus'}
-                  >
-                    {_('xosanNew')}
-                  </ActionButton>
-                </Col>
-              </Row>,
+    return (
+      <Page header={HEADER} title='xosan' formatTitle>
+        {process.env.XOA_PLAN < 5 ? (
+          <Container>
+            {error ? (
               <Row>
                 <Col>
-                  {this.state.showNewXosanForm && <NewXosan
-                    hostsNeedRestartByPool={hostsNeedRestartByPool}
-                    noPacksByPool={noPacksByPool}
-                    poolPredicate={poolPredicate}
-                    onSrCreationStarted={this._onSrCreationStarted}
-                  />}
-                </Col>
-              </Row>,
-              <Row>
-                <Col>
-                  {map(this.props.pools, pool => <CreationProgress key={pool.id} pool={pool} />)}
-                </Col>
-              </Row>,
-              <Row>
-                <Col>
-                  {isEmpty(xosanSrs)
-                    ? <em>{_('xosanNoSrs')}</em>
-                    : <SortedTable
-                      collection={xosanSrs}
-                      columns={XOSAN_COLUMNS}
-                      individualActions={XOSAN_INDIVIDUAL_ACTIONS}
-                      userData={{
-                        status: this.state.status
-                      }}
-                    />
-                  }
+                  <em>{error}</em>
                 </Col>
               </Row>
-            ]
-          }
-        </Container>
-        : <Container>
-          <h2 className='text-danger'>{_('xosanCommunity')}</h2>
-          <p>{_('considerSubscribe', { link: <a href='https://xen-orchestra.com'>https://xen-orchestra.com</a> })}</p>
-        </Container>
-      }
-    </Page>
+            ) : (
+              [
+                <Row className='mb-1'>
+                  <Col>
+                    <ActionButton
+                      btnStyle='primary'
+                      handler={this.toggleState('showNewXosanForm')}
+                      icon={this.state.showNewXosanForm ? 'minus' : 'plus'}
+                    >
+                      {_('xosanNew')}
+                    </ActionButton>
+                  </Col>
+                </Row>,
+                <Row>
+                  <Col>
+                    {this.state.showNewXosanForm && (
+                      <NewXosan
+                        hostsNeedRestartByPool={hostsNeedRestartByPool}
+                        noPacksByPool={noPacksByPool}
+                        poolPredicate={poolPredicate}
+                        onSrCreationStarted={this._onSrCreationStarted}
+                      />
+                    )}
+                  </Col>
+                </Row>,
+                <Row>
+                  <Col>
+                    {map(this.props.pools, pool => (
+                      <CreationProgress key={pool.id} pool={pool} />
+                    ))}
+                  </Col>
+                </Row>,
+                <Row>
+                  <Col>
+                    {isEmpty(xosanSrs) ? (
+                      <em>{_('xosanNoSrs')}</em>
+                    ) : (
+                      <SortedTable
+                        collection={xosanSrs}
+                        columns={XOSAN_COLUMNS}
+                        individualActions={XOSAN_INDIVIDUAL_ACTIONS}
+                        userData={{
+                          status: this.state.status,
+                        }}
+                      />
+                    )}
+                  </Col>
+                </Row>,
+              ]
+            )}
+          </Container>
+        ) : (
+          <Container>
+            <h2 className='text-danger'>{_('xosanCommunity')}</h2>
+            <p>
+              {_('considerSubscribe', {
+                link: (
+                  <a href='https://xen-orchestra.com'>
+                    https://xen-orchestra.com
+                  </a>
+                ),
+              })}
+            </p>
+          </Container>
+        )}
+      </Page>
+    )
   }
 }
