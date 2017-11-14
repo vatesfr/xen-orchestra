@@ -26,7 +26,7 @@ export default class TabLogs extends Component {
     )
 
     this.state = {
-      page: 1
+      page: 1,
     }
   }
 

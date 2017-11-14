@@ -13,12 +13,12 @@ import { connectStore } from './utils'
 import {
   createGetObjectsOfType,
   createFilter,
-  createSelector
+  createSelector,
 } from './selectors'
 import {
   installAllHostPatches,
   installAllPatchesOnPool,
-  subscribeHostMissingPatches
+  subscribeHostMissingPatches,
 } from './xo'
 
 // ===================================================================
@@ -29,19 +29,19 @@ const MISSING_PATCHES_COLUMNS = [
     itemRenderer: host => (
       <Link to={`/hosts/${host.id}`}>{host.name_label}</Link>
     ),
-    sortCriteria: host => host.name_label
+    sortCriteria: host => host.name_label,
   },
   {
     name: _('hostDescription'),
     itemRenderer: host => host.name_description,
-    sortCriteria: host => host.name_description
+    sortCriteria: host => host.name_description,
   },
   {
     name: _('hostMissingPatches'),
     itemRenderer: (host, { missingPatches }) => (
       <Link to={`/hosts/${host.id}/patches`}>{missingPatches[host.id]}</Link>
     ),
-    sortCriteria: (host, { missingPatches }) => missingPatches[host.id]
+    sortCriteria: (host, { missingPatches }) => missingPatches[host.id],
   },
   {
     name: _('patchUpdateButton'),
@@ -52,8 +52,8 @@ const MISSING_PATCHES_COLUMNS = [
         handlerParam={host}
         icon='host-patch-update'
       />
-    )
-  }
+    ),
+  },
 ]
 
 const POOLS_MISSING_PATCHES_COLUMNS = [
@@ -63,8 +63,8 @@ const POOLS_MISSING_PATCHES_COLUMNS = [
       const pool = pools[host.$pool]
       return <Link to={`/pools/${pool.id}`}>{pool.name_label}</Link>
     },
-    sortCriteria: (host, { pools }) => pools[host.$pool].name_label
-  }
+    sortCriteria: (host, { pools }) => pools[host.$pool].name_label,
+  },
 ].concat(MISSING_PATCHES_COLUMNS)
 
 // Small component to homogenize Button usage in HostsPatchesTable
@@ -77,7 +77,7 @@ const ActionButton_ = ({ children, labelId, ...props }) => (
 // ===================================================================
 
 @connectStore({
-  hostsById: createGetObjectsOfType('host').groupBy('id')
+  hostsById: createGetObjectsOfType('host').groupBy('id'),
 })
 class HostsPatchesTable extends Component {
   constructor (props) {
@@ -101,13 +101,13 @@ class HostsPatchesTable extends Component {
       host =>
         hostsById
           ? subscribeHostMissingPatches(hostsById[host.id][0], patches =>
-              this.setState({
-                missingPatches: {
-                  ...this.state.missingPatches,
-                  [host.id]: patches.length
-                }
-              })
-            )
+            this.setState({
+              missingPatches: {
+                ...this.state.missingPatches,
+                [host.id]: patches.length,
+              },
+            })
+          )
           : noop
     )
 
@@ -150,7 +150,7 @@ class HostsPatchesTable extends Component {
       container,
       displayPools,
       pools,
-      useTabButton
+      useTabButton,
     } = this.props
 
     const hosts = this._getHosts()
@@ -173,7 +173,7 @@ class HostsPatchesTable extends Component {
             userData={{
               installAllHostPatches,
               missingPatches: this.state.missingPatches,
-              pools
+              pools,
             }}
           />
         ) : (
@@ -201,7 +201,7 @@ class HostsPatchesTable extends Component {
   const getPools = createGetObjectsOfType('pool')
 
   return {
-    pools: getPools
+    pools: getPools,
   }
 })
 class HostsPatchesTableByPool extends Component {
@@ -219,9 +219,9 @@ export default propTypes({
   displayPools: propTypes.bool,
   hosts: propTypes.oneOfType([
     propTypes.arrayOf(propTypes.object),
-    propTypes.objectOf(propTypes.object)
+    propTypes.objectOf(propTypes.object),
   ]).isRequired,
-  useTabButton: propTypes.bool
+  useTabButton: propTypes.bool,
 })(
   props =>
     props.displayPools ? (

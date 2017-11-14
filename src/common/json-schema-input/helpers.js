@@ -51,7 +51,7 @@ export const PrimitiveInputWrapper = ({
   label,
   required = false,
   schema,
-  children
+  children,
 }) => (
   <Row>
     <Col mediumSize={6}>

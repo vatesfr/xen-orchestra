@@ -1,7 +1,7 @@
 import assign from 'lodash/assign'
 import Client, {
   AbortedConnection,
-  ConnectionError
+  ConnectionError,
 } from 'jsonrpc-websocket-client'
 import eventToPromise from 'event-to-promise'
 import forEach from 'lodash/forEach'
@@ -13,7 +13,7 @@ import {
   xoaRegisterState,
   xoaTrialState,
   xoaUpdaterLog,
-  xoaUpdaterState
+  xoaUpdaterState,
 } from 'store/actions'
 
 // ===================================================================
@@ -25,7 +25,7 @@ const states = [
   'upToDate',
   'upgradeNeeded',
   'registerNeeded',
-  'error'
+  'error',
 ]
 
 // ===================================================================
@@ -252,7 +252,7 @@ class XoaUpdater extends EventEmitter {
       this.emit('registerState', {
         state: this.registerState,
         email: (this.token && this.token.registrationEmail) || '',
-        error: this.registerError
+        error: this.registerError,
       })
     }
   }
@@ -278,7 +278,7 @@ class XoaUpdater extends EventEmitter {
       this.emit('registerState', {
         state: this.registerState,
         email: (this.token && this.token.registrationEmail) || '',
-        error: this.registerError
+        error: this.registerError,
       })
       if (this.registerState === 'registered') {
         this.update()
@@ -317,7 +317,7 @@ class XoaUpdater extends EventEmitter {
     const message = error.message || String(error)
     this._xoaState = {
       state: 'ERROR',
-      message
+      message,
     }
     return this._xoaState
   }
@@ -373,7 +373,7 @@ class XoaUpdater extends EventEmitter {
     this._log.unshift({
       date: date.toLocaleString(),
       level,
-      message
+      message,
     })
     while (this._log.length > 10) {
       this._log.pop()

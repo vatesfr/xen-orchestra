@@ -90,7 +90,7 @@ const PICKTIME_TO_ID = {
   hour: 1,
   monthDay: 2,
   month: 3,
-  weekDay: 4
+  weekDay: 4,
 }
 
 const TIME_FORMAT = {
@@ -107,7 +107,7 @@ const TIME_FORMAT = {
 
   // Therefore we can use UTC everywhere and say to the user that the
   // previews are in the configured timezone.
-  timeZone: 'UTC'
+  timeZone: 'UTC',
 }
 
 // ===================================================================
@@ -130,7 +130,7 @@ const getDayName = dayNum => (
 // ===================================================================
 
 @propTypes({
-  cronPattern: propTypes.string.isRequired
+  cronPattern: propTypes.string.isRequired,
 })
 export class SchedulePreview extends Component {
   render () {
@@ -179,7 +179,7 @@ export class SchedulePreview extends Component {
   children: propTypes.any.isRequired,
   onChange: propTypes.func.isRequired,
   tdId: propTypes.number.isRequired,
-  value: propTypes.bool.isRequired
+  value: propTypes.bool.isRequired,
 })
 class ToggleTd extends Component {
   _onClick = () => {
@@ -208,11 +208,11 @@ class ToggleTd extends Component {
   options: propTypes.array.isRequired,
   optionRenderer: propTypes.func,
   onChange: propTypes.func.isRequired,
-  value: propTypes.array.isRequired
+  value: propTypes.array.isRequired,
 })
 class TableSelect extends Component {
   static defaultProps = {
-    optionRenderer: value => value
+    optionRenderer: value => value,
   }
 
   _reset = () => {
@@ -305,7 +305,7 @@ const valueToCron = value => {
   onChange: propTypes.func.isRequired,
   range: propTypes.array,
   labelId: propTypes.string.isRequired,
-  value: propTypes.any.isRequired
+  value: propTypes.any.isRequired,
 })
 class TimePicker extends Component {
   _update = cron => {
@@ -317,7 +317,7 @@ class TimePicker extends Component {
     this.setState({
       periodic,
       tableValue: periodic ? tableValue : newValue,
-      rangeValue: periodic ? newValue : rangeValue
+      rangeValue: periodic ? newValue : rangeValue,
     })
   }
 
@@ -406,11 +406,11 @@ const isWeekDayMode = ({ monthDayPattern, weekDayPattern }) => {
 
 @propTypes({
   monthDayPattern: propTypes.string.isRequired,
-  weekDayPattern: propTypes.string.isRequired
+  weekDayPattern: propTypes.string.isRequired,
 })
 class DayPicker extends Component {
   state = {
-    weekDayMode: isWeekDayMode(this.props)
+    weekDayMode: isWeekDayMode(this.props),
   }
 
   componentWillReceiveProps (props) {
@@ -431,7 +431,7 @@ class DayPicker extends Component {
 
     this.props.onChange([
       isMonthDayPattern ? cron : '*',
-      isMonthDayPattern ? '*' : cron
+      isMonthDayPattern ? '*' : cron,
     ])
   }
 
@@ -479,8 +479,8 @@ class DayPicker extends Component {
   timezone: propTypes.string,
   value: propTypes.shape({
     cronPattern: propTypes.string.isRequired,
-    timezone: propTypes.string
-  })
+    timezone: propTypes.string,
+  }),
 })
 export default class Scheduler extends Component {
   constructor (props) {
@@ -494,7 +494,7 @@ export default class Scheduler extends Component {
 
       this.props.onChange({
         cronPattern: cronPattern.join(' '),
-        timezone: this._getTimezone()
+        timezone: this._getTimezone(),
       })
     }
 
@@ -508,7 +508,7 @@ export default class Scheduler extends Component {
   _onTimezoneChange = timezone => {
     this.props.onChange({
       cronPattern: this._getCronPattern(),
-      timezone
+      timezone,
     })
   }
 

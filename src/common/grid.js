@@ -13,7 +13,7 @@ export const Col = propTypes({
   offset: propTypes.number,
   smallOffset: propTypes.number,
   mediumOffset: propTypes.number,
-  largeOffset: propTypes.number
+  largeOffset: propTypes.number,
 })(
   ({
     children,
@@ -26,7 +26,7 @@ export const Col = propTypes({
     smallOffset = offset,
     mediumOffset,
     largeOffset,
-    style
+    style,
   }) => (
     <div
       className={classNames(
@@ -48,14 +48,14 @@ export const Col = propTypes({
 // This is the root component of the grid layout, containers should not be
 // nested.
 export const Container = propTypes({
-  className: propTypes.string
+  className: propTypes.string,
 })(({ children, className }) => (
   <div className={classNames(className, 'container-fluid')}>{children}</div>
 ))
 
 // Only columns can be children of a row.
 export const Row = propTypes({
-  className: propTypes.string
+  className: propTypes.string,
 })(({ children, className }) => (
   <div className={`${className || ''} row`}>{children}</div>
 ))

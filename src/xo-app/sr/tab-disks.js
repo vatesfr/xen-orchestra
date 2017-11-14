@@ -30,7 +30,7 @@ const COLUMNS = [
         )}
       </span>
     ),
-    sortCriteria: vdi => vdi.name_label
+    sortCriteria: vdi => vdi.name_label,
   },
   {
     name: _('vdiNameDescription'),
@@ -39,7 +39,7 @@ const COLUMNS = [
         value={vdi.name_description}
         onChange={value => editVdi(vdi, { name_description: value })}
       />
-    )
+    ),
   },
   {
     name: _('vdiVm'),
@@ -56,7 +56,7 @@ const COLUMNS = [
           if (vbd != null) {
             return getObject(state, vbd.VM)
           }
-        }
+        },
       }
     })(({ vm }) => {
       if (vm === null) {
@@ -78,25 +78,25 @@ const COLUMNS = [
 
       const item = renderXoItem(vm)
       return link === undefined ? item : <Link to={link}>{item}</Link>
-    })
+    }),
   },
   {
     name: _('vdiTags'),
-    itemRenderer: vdi => vdi.tags
+    itemRenderer: vdi => vdi.tags,
   },
   {
     name: _('vdiSize'),
     itemRenderer: vdi => formatSize(vdi.size),
-    sortCriteria: vdi => vdi.size
-  }
+    sortCriteria: vdi => vdi.size,
+  },
 ]
 
 const GROUPED_ACTIONS = [
   {
     handler: deleteVdis,
     icon: 'delete',
-    label: _('deleteSelectedVdis')
-  }
+    label: _('deleteSelectedVdis'),
+  },
 ]
 
 const INDIVIDUAL_ACTIONS = [
@@ -104,8 +104,8 @@ const INDIVIDUAL_ACTIONS = [
     handler: deleteVdi,
     icon: 'delete',
     label: _('deleteSelectedVdi'),
-    level: 'danger'
-  }
+    level: 'danger',
+  },
 ]
 
 const FILTERS = {
@@ -113,7 +113,7 @@ const FILTERS = {
   filterOnlyRegular: '!type:|(VDI-snapshot VDI-unmanaged)',
   filterOnlySnapshots: 'type:VDI-snapshot',
   filterOnlyOrphaned: 'type:!VDI-unmanaged $VBDs:!""',
-  filterOnlyUnmanaged: 'type:VDI-unmanaged'
+  filterOnlyUnmanaged: 'type:VDI-unmanaged',
 }
 
 // ===================================================================

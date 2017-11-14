@@ -18,7 +18,7 @@ import { createGetObject } from 'selectors'
 import styles from './index.css'
 
 @connectStore({
-  container: createGetObject((_, props) => props.item.$container)
+  container: createGetObject((_, props) => props.item.$container),
 })
 export default class TemplateItem extends Component {
   _addTag = tag => addTag(this.props.item.id, tag)

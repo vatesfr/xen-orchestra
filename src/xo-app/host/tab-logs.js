@@ -28,17 +28,17 @@ const LOG_COLUMNS = [
       </span>
     ),
     sortCriteria: log => log.time,
-    sortOrder: 'desc'
+    sortOrder: 'desc',
   },
   {
     name: _('logName'),
     itemRenderer: log => log.name,
-    sortCriteria: log => log.name
+    sortCriteria: log => log.name,
   },
   {
     name: _('logContent'),
     itemRenderer: log => log.body,
-    sortCriteria: log => log.body
+    sortCriteria: log => log.body,
   },
   {
     name: _('logAction'),
@@ -49,8 +49,8 @@ const LOG_COLUMNS = [
         handlerParam={log}
         icon='delete'
       />
-    )
-  }
+    ),
+  },
 ]
 
 export default class TabLogs extends Component {
@@ -60,7 +60,7 @@ export default class TabLogs extends Component {
     this.getLogs = createPager(() => this.props.logs, () => this.state.page, 10)
 
     this.state = {
-      page: 1
+      page: 1,
     }
   }
 

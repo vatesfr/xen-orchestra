@@ -2296,5 +2296,5 @@ export default {
   changePasswordOk: '确认',
 
   // Original text: "Others"
-  others: '其他'
+  others: '其他',
 }

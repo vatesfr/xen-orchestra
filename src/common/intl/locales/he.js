@@ -3132,5 +3132,5 @@ export default {
   settingsAclsButtonTooltipSR: undefined,
 
   // Original text: 'Network'
-  settingsAclsButtonTooltipnetwork: undefined
+  settingsAclsButtonTooltipnetwork: undefined,
 }

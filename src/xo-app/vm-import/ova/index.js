@@ -16,7 +16,7 @@ const MEMORY_UNIT_TO_FACTOR = {
   k: 1024,
   m: 1048576,
   g: 1073741824,
-  t: 1099511627776
+  t: 1099511627776,
 }
 
 const RESOURCE_TYPE_TO_HANDLER = {
@@ -47,7 +47,7 @@ const RESOURCE_TYPE_TO_HANDLER = {
       'rasd:AddressOnParent': position,
       'rasd:Description': description = 'No description',
       'rasd:ElementName': name,
-      'rasd:HostResource': resource
+      'rasd:HostResource': resource,
     }
   ) => {
     const diskId = resource.match(/^(?:ovf:)?\/disk\/(.+)$/)
@@ -61,7 +61,7 @@ const RESOURCE_TYPE_TO_HANDLER = {
       // TODO: Log error in U.I.
       console.error(`No disk found: '${diskId}'.`)
     }
-  }
+  },
 }
 
 const allocationUnitsToFactor = unit => {
@@ -111,7 +111,7 @@ const parseOvaFile = file =>
           xmlString,
           {
             mergeAttrs: true,
-            explicitArray: false
+            explicitArray: false,
           },
           (err, res) => {
             if (err) {
@@ -123,13 +123,13 @@ const parseOvaFile = file =>
               Envelope: {
                 DiskSection: { Disk: disks },
                 References: { File: files },
-                VirtualSystem: system
-              }
+                VirtualSystem: system,
+              },
             } = res
 
             const data = {
               disks: {},
-              networks: []
+              networks: [],
             }
             const hardware = system.VirtualHardwareSection
 
@@ -153,7 +153,7 @@ const parseOvaFile = file =>
                 capacity:
                   disk['ovf:capacity'] *
                   ((unit && allocationUnitsToFactor(unit)) || 1),
-                path: file && file['ovf:href']
+                path: file && file['ovf:href'],
               }
             })
 

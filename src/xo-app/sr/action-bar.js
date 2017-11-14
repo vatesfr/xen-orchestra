@@ -5,7 +5,7 @@ import {
   forgetSr,
   rescanSr,
   reconnectAllHostsSr,
-  disconnectAllHostsSr
+  disconnectAllHostsSr,
 } from 'xo'
 
 const SrActionBar = ({ sr }) => (

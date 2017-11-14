@@ -25,7 +25,7 @@ import {
   map,
   mapValues,
   noop,
-  startsWith
+  startsWith,
 } from 'lodash'
 
 import { createJob, createSchedule, getRemote, editJob, editSchedule } from 'xo'
@@ -40,13 +40,13 @@ const NO_SMART_SCHEMA = {
       type: 'array',
       items: {
         type: 'string',
-        'xo:type': 'vm'
+        'xo:type': 'vm',
       },
       title: _('editBackupVmsTitle'),
-      description: 'Choose VMs to backup.' // FIXME: can't translate
-    }
+      description: 'Choose VMs to backup.', // FIXME: can't translate
+    },
   },
-  required: ['vms']
+  required: ['vms'],
 }
 const NO_SMART_UI_SCHEMA = generateUiSchema(NO_SMART_SCHEMA)
 
@@ -57,7 +57,7 @@ const SMART_SCHEMA = {
       default: 'All', // FIXME: can't translate
       enum: ['All', 'Running', 'Halted'], // FIXME: can't translate
       title: _('editBackupSmartStatusTitle'),
-      description: 'The statuses of VMs to backup.' // FIXME: can't translate
+      description: 'The statuses of VMs to backup.', // FIXME: can't translate
     },
     $pool: {
       type: 'object',
@@ -67,18 +67,18 @@ const SMART_SCHEMA = {
           type: 'boolean',
           title: _('editBackupNot'),
           description:
-            'Toggle on to backup VMs that are NOT resident on these pools'
+            'Toggle on to backup VMs that are NOT resident on these pools',
         },
         values: {
           type: 'array',
           items: {
             type: 'string',
-            'xo:type': 'pool'
+            'xo:type': 'pool',
           },
           title: _('editBackupSmartResidentOn'),
-          description: 'Not used if empty.' // FIXME: can't translate
-        }
-      }
+          description: 'Not used if empty.', // FIXME: can't translate
+        },
+      },
     },
     tags: {
       type: 'object',
@@ -87,22 +87,22 @@ const SMART_SCHEMA = {
         not: {
           type: 'boolean',
           title: _('editBackupNot'),
-          description: 'Toggle on to backup VMs that do NOT contain these tags'
+          description: 'Toggle on to backup VMs that do NOT contain these tags',
         },
         values: {
           type: 'array',
           items: {
             type: 'string',
-            'xo:type': 'tag'
+            'xo:type': 'tag',
           },
           title: _('editBackupSmartTagsTitle'),
           description:
-            'VMs which contain at least one of these tags. Not used if empty.' // FIXME: can't translate
-        }
-      }
-    }
+            'VMs which contain at least one of these tags. Not used if empty.', // FIXME: can't translate
+        },
+      },
+    },
   },
-  required: ['power_state', '$pool', 'tags']
+  required: ['power_state', '$pool', 'tags'],
 }
 const SMART_UI_SCHEMA = generateUiSchema(SMART_SCHEMA)
 
@@ -114,7 +114,7 @@ const COMMON_SCHEMA = {
     tag: {
       type: 'string',
       title: _('editBackupTagTitle'),
-      description: 'Back-up tag.' // FIXME: can't translate
+      description: 'Back-up tag.', // FIXME: can't translate
     },
     _reportWhen: {
       default: 'failure',
@@ -123,28 +123,28 @@ const COMMON_SCHEMA = {
       description: [
         'When to send reports.',
         '',
-        'Plugins *tranport-email* and *backup-reports* need to be configured.'
-      ].join('\n')
+        'Plugins *tranport-email* and *backup-reports* need to be configured.',
+      ].join('\n'),
     },
     enabled: {
       type: 'boolean',
-      title: _('editBackupScheduleEnabled')
-    }
+      title: _('editBackupScheduleEnabled'),
+    },
   },
-  required: ['tag', 'vms', '_reportWhen']
+  required: ['tag', 'vms', '_reportWhen'],
 }
 
 const RETENTION_PROPERTY = {
   type: 'integer',
   title: _('editBackupRetentionTitle'),
   description: 'How many backups to rollover.', // FIXME: can't translate
-  min: 1
+  min: 1,
 }
 
 const REMOTE_PROPERTY = {
   type: 'string',
   'xo:type': 'remote',
-  title: _('editBackupRemoteTitle')
+  title: _('editBackupRemoteTitle'),
 }
 
 const BACKUP_SCHEMA = {
@@ -156,19 +156,19 @@ const BACKUP_SCHEMA = {
     compress: {
       type: 'boolean',
       title: 'Enable compression',
-      default: true
-    }
+      default: true,
+    },
   },
-  required: COMMON_SCHEMA.required.concat(['retention', 'remoteId'])
+  required: COMMON_SCHEMA.required.concat(['retention', 'remoteId']),
 }
 
 const ROLLING_SNAPSHOT_SCHEMA = {
   type: 'object',
   properties: {
     ...COMMON_SCHEMA.properties,
-    retention: RETENTION_PROPERTY
+    retention: RETENTION_PROPERTY,
   },
-  required: COMMON_SCHEMA.required.concat('retention')
+  required: COMMON_SCHEMA.required.concat('retention'),
 }
 
 const DELTA_BACKUP_SCHEMA = {
@@ -176,9 +176,9 @@ const DELTA_BACKUP_SCHEMA = {
   properties: {
     ...COMMON_SCHEMA.properties,
     retention: RETENTION_PROPERTY,
-    remote: REMOTE_PROPERTY
+    remote: REMOTE_PROPERTY,
   },
-  required: COMMON_SCHEMA.required.concat(['retention', 'remote'])
+  required: COMMON_SCHEMA.required.concat(['retention', 'remote']),
 }
 
 const DISASTER_RECOVERY_SCHEMA = {
@@ -192,16 +192,16 @@ const DISASTER_RECOVERY_SCHEMA = {
       description: [
         'Delete the old backups before copy the vms.',
         '',
-        'If the backup fails, you will lose your old backups.'
-      ].join('\n')
+        'If the backup fails, you will lose your old backups.',
+      ].join('\n'),
     },
     sr: {
       type: 'string',
       'xo:type': 'sr',
-      title: 'To SR'
-    }
+      title: 'To SR',
+    },
   },
-  required: COMMON_SCHEMA.required.concat(['retention', 'sr'])
+  required: COMMON_SCHEMA.required.concat(['retention', 'sr']),
 }
 
 const CONTINUOUS_REPLICATION_SCHEMA = {
@@ -212,10 +212,10 @@ const CONTINUOUS_REPLICATION_SCHEMA = {
     sr: {
       type: 'string',
       'xo:type': 'sr',
-      title: 'To SR'
-    }
+      title: 'To SR',
+    },
   },
-  required: COMMON_SCHEMA.required.concat('sr')
+  required: COMMON_SCHEMA.required.concat('sr'),
 }
 
 let REQUIRED_XOA_PLAN
@@ -223,7 +223,7 @@ if (process.env.XOA_PLAN < 4) {
   REQUIRED_XOA_PLAN = {
     deltaBackup: 3,
     disasterRecovery: 3,
-    continuousReplication: 4
+    continuousReplication: 4,
   }
 }
 
@@ -236,7 +236,7 @@ const BACKUP_METHOD_TO_INFO = {
     label: 'backup',
     icon: 'backup',
     jobKey: 'rollingBackup',
-    method: 'vm.rollingBackup'
+    method: 'vm.rollingBackup',
   },
   'vm.rollingSnapshot': {
     schema: ROLLING_SNAPSHOT_SCHEMA,
@@ -244,7 +244,7 @@ const BACKUP_METHOD_TO_INFO = {
     label: 'rollingSnapshot',
     icon: 'rolling-snapshot',
     jobKey: 'rollingSnapshot',
-    method: 'vm.rollingSnapshot'
+    method: 'vm.rollingSnapshot',
   },
   'vm.rollingDeltaBackup': {
     schema: DELTA_BACKUP_SCHEMA,
@@ -252,7 +252,7 @@ const BACKUP_METHOD_TO_INFO = {
     label: 'deltaBackup',
     icon: 'delta-backup',
     jobKey: 'deltaBackup',
-    method: 'vm.rollingDeltaBackup'
+    method: 'vm.rollingDeltaBackup',
   },
   'vm.rollingDrCopy': {
     schema: DISASTER_RECOVERY_SCHEMA,
@@ -260,7 +260,7 @@ const BACKUP_METHOD_TO_INFO = {
     label: 'disasterRecovery',
     icon: 'disaster-recovery',
     jobKey: 'disasterRecovery',
-    method: 'vm.rollingDrCopy'
+    method: 'vm.rollingDrCopy',
   },
   'vm.deltaCopy': {
     schema: CONTINUOUS_REPLICATION_SCHEMA,
@@ -268,8 +268,8 @@ const BACKUP_METHOD_TO_INFO = {
     label: 'continuousReplication',
     icon: 'continuous-replication',
     jobKey: 'continuousReplication',
-    method: 'vm.deltaCopy'
-  }
+    method: 'vm.deltaCopy',
+  },
 }
 
 // ===================================================================
@@ -316,7 +316,7 @@ const extractId = value => {
 const destructPattern = (pattern, valueTransform = identity) =>
   pattern && {
     not: !!pattern.__not,
-    values: valueTransform((pattern.__not || pattern).__or)
+    values: valueTransform((pattern.__not || pattern).__or),
   }
 
 const constructPattern = (
@@ -343,7 +343,7 @@ const normalizeMainParams = params => {
 }
 
 @connectStore({
-  currentUser: getUser
+  currentUser: getUser,
 })
 export default class New extends Component {
   _getParams = createSelector(
@@ -362,9 +362,9 @@ export default class New extends Component {
         return {
           main: normalizeMainParams({
             enabled,
-            ...items[0].values[0]
+            ...items[0].values[0],
           }),
-          vms: { vms: map(items[0].values.slice(1), extractId) }
+          vms: { vms: map(items[0].values.slice(1), extractId) },
         }
       }
 
@@ -376,15 +376,15 @@ export default class New extends Component {
         return {
           main: normalizeMainParams({
             enabled,
-            ...items[0].values[0]
+            ...items[0].values[0],
           }),
           vms: {
             $pool: destructPattern($pool),
             power_state: pattern.power_state,
             tags: destructPattern(tags, tags =>
               map(tags, tag => (isArray(tag) ? tag[0] : tag))
-            )
-          }
+            ),
+          },
         }
       }
 
@@ -392,9 +392,9 @@ export default class New extends Component {
       return {
         main: normalizeMainParams({
           enabled,
-          ...items[1].values[0]
+          ...items[1].values[0],
         }),
-        vms: { vms: map(items[0].values, extractId) }
+        vms: { vms: map(items[0].values, extractId) },
       }
     }
   )
@@ -415,7 +415,7 @@ export default class New extends Component {
 
       return {
         cronPattern: cron,
-        timezone
+        timezone,
       }
     }
   )
@@ -440,17 +440,17 @@ export default class New extends Component {
           ? [
             {
               type: 'set',
-              values: map(vms.vms, vm => ({ id: extractId(vm) }))
+              values: map(vms.vms, vm => ({ id: extractId(vm) })),
             },
             {
               type: 'set',
-              values: [mainParams]
-            }
+              values: [mainParams],
+            },
           ]
           : [
             {
               type: 'set',
-              values: [mainParams]
+              values: [mainParams],
             },
             {
               type: 'map',
@@ -461,18 +461,18 @@ export default class New extends Component {
                   power_state:
                       vms.power_state === 'All' ? undefined : vms.power_state,
                   tags: constructPattern(vms.tags, tags =>
-                      map(tags, tag => [tag])
-                    ),
-                  type: 'VM'
-                }
+                    map(tags, tag => [tag])
+                  ),
+                  type: 'VM',
+                },
               },
               iteratee: {
                 type: 'extractProperties',
-                mapping: { id: 'id' }
-              }
-            }
-          ]
-      }
+                mapping: { id: 'id' },
+              },
+            },
+          ],
+      },
     }
 
     const scheduling = this._getScheduling()
@@ -503,7 +503,7 @@ export default class New extends Component {
       if (startsWith(remote.url, 'file:')) {
         await confirm({
           title: _('localRemoteWarningTitle'),
-          body: _('localRemoteWarningMessage')
+          body: _('localRemoteWarningMessage'),
         })
       }
     }
@@ -518,7 +518,7 @@ export default class New extends Component {
         id: props.schedule.id,
         cron: scheduling.cronPattern,
         enabled,
-        timezone: scheduling.timezone
+        timezone: scheduling.timezone,
       })
     }
 
@@ -530,7 +530,7 @@ export default class New extends Component {
     return createSchedule(await createJob(job), {
       cron: scheduling.cronPattern,
       enabled,
-      timezone: scheduling.timezone
+      timezone: scheduling.timezone,
     })
   }
 
@@ -628,10 +628,10 @@ export default class New extends Component {
                     </fieldset>
                     {(method === 'vm.rollingDeltaBackup' ||
                       method === 'vm.deltaCopy') && (
-                      <div className='alert alert-warning' role='alert'>
-                        <Icon icon='error' /> {_('backupVersionWarning')}
-                      </div>
-                    )}
+                        <div className='alert alert-warning' role='alert'>
+                          <Icon icon='error' /> {_('backupVersionWarning')}
+                        </div>
+                      )}
                     {backupInfo && (
                       <div>
                         <GenericInput
@@ -719,28 +719,28 @@ export default class New extends Component {
                         <Upgrade
                           place='newBackup'
                           available={REQUIRED_XOA_PLAN[backupInfo.jobKey]}
-                      />
-                    ) : smartBackupMode && process.env.XOA_PLAN < 3 ? (
-                      <Upgrade place='newBackup' available={3} />
-                    ) : (
-                      <fieldset className='pull-right pt-1'>
-                        <ActionButton
-                          btnStyle='primary'
-                          className='mr-1'
-                          disabled={!backupInfo}
-                          form='form-new-vm-backup'
-                          handler={this._handleSubmit}
-                          icon='save'
-                          redirectOnSuccess='/backup/overview'
-                          size='large'
-                        >
-                          {_('saveBackupJob')}
-                        </ActionButton>
-                        <Button onClick={this._handleReset} size='large'>
-                          {_('selectTableReset')}
-                        </Button>
-                      </fieldset>
-                    )}
+                        />
+                      ) : smartBackupMode && process.env.XOA_PLAN < 3 ? (
+                        <Upgrade place='newBackup' available={3} />
+                      ) : (
+                        <fieldset className='pull-right pt-1'>
+                          <ActionButton
+                            btnStyle='primary'
+                            className='mr-1'
+                            disabled={!backupInfo}
+                            form='form-new-vm-backup'
+                            handler={this._handleSubmit}
+                            icon='save'
+                            redirectOnSuccess='/backup/overview'
+                            size='large'
+                          >
+                            {_('saveBackupJob')}
+                          </ActionButton>
+                          <Button onClick={this._handleReset} size='large'>
+                            {_('selectTableReset')}
+                          </Button>
+                        </fieldset>
+                      )}
                   </Col>
                 </Row>
               </Container>

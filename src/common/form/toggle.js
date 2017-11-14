@@ -14,13 +14,13 @@ import propTypes from '../prop-types-decorator'
   iconOn: propTypes.string,
   iconOff: propTypes.string,
   iconSize: propTypes.number,
-  value: propTypes.bool
+  value: propTypes.bool,
 })
 export default class Toggle extends Component {
   static defaultProps = {
     iconOn: 'toggle-on',
     iconOff: 'toggle-off',
-    iconSize: 2
+    iconSize: 2,
   }
 
   _toggle = () => {

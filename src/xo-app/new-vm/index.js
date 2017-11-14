@@ -16,7 +16,7 @@ import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
 import {
   Input as DebounceInput,
-  Textarea as DebounceTextarea
+  Textarea as DebounceTextarea,
 } from 'debounce-component-decorator'
 import { Limits } from 'usage'
 import {
@@ -32,7 +32,7 @@ import {
   slice,
   size,
   sum,
-  sumBy
+  sumBy,
 } from 'lodash'
 import {
   addSshKey,
@@ -43,7 +43,7 @@ import {
   subscribePermissions,
   subscribeResourceSets,
   XEN_DEFAULT_CPU_CAP,
-  XEN_DEFAULT_CPU_WEIGHT
+  XEN_DEFAULT_CPU_WEIGHT,
 } from 'xo'
 import {
   SelectHost,
@@ -60,7 +60,7 @@ import {
   SelectSshKey,
   SelectVdi,
   SelectVgpuType,
-  SelectVmTemplate
+  SelectVmTemplate,
 } from 'select-objects'
 import { SizeInput, Toggle } from 'form'
 import {
@@ -71,13 +71,13 @@ import {
   getCoresPerSocketPossibilities,
   generateReadableRandomString,
   noop,
-  resolveResourceSet
+  resolveResourceSet,
 } from 'utils'
 import {
   createSelector,
   createGetObject,
   createGetObjectsOfType,
-  getUser
+  getUser,
 } from 'selectors'
 
 import styles from './index.css'
@@ -127,7 +127,7 @@ class Vif extends BaseComponent {
       onDelete,
       pool,
       resourceSet,
-      vif
+      vif,
     } = this.props
 
     return (
@@ -193,7 +193,7 @@ class Vif extends BaseComponent {
 @addSubscriptions({
   resourceSets: subscribeResourceSets,
   permissions: subscribePermissions,
-  user: subscribeCurrentUser
+  user: subscribeCurrentUser,
 })
 @connectStore(() => ({
   isAdmin: createSelector(getUser, user => user && user.permission === 'admin'),
@@ -205,12 +205,12 @@ class Vif extends BaseComponent {
     const user = props.user
     return user && user.preferences && user.preferences.sshKeys
   }, keys => keys),
-  srs: createGetObjectsOfType('SR')
+  srs: createGetObjectsOfType('SR'),
 }))
 @injectIntl
 export default class NewVm extends BaseComponent {
   static contextTypes = {
-    router: React.PropTypes.object
+    router: React.PropTypes.object,
   }
 
   constructor () {
@@ -229,7 +229,7 @@ export default class NewVm extends BaseComponent {
   _getResourceSet = () => {
     const {
       location: { query: { resourceSet: resourceSetId } },
-      resourceSets
+      resourceSets,
     } = this.props
     return resourceSets && find(resourceSets, ({ id }) => id === resourceSetId)
   }
@@ -254,8 +254,8 @@ export default class NewVm extends BaseComponent {
       {
         state: {
           ...this.state.state,
-          ...newValues
-        }
+          ...newValues,
+        },
       },
       callback
     )
@@ -285,7 +285,7 @@ export default class NewVm extends BaseComponent {
       VIFs: [],
       seqStart: 1,
       share: false,
-      tags: []
+      tags: [],
     })
   }
 
@@ -296,7 +296,7 @@ export default class NewVm extends BaseComponent {
       case 'ISO':
         installation = {
           method: 'cdrom',
-          repository: state.installIso.id
+          repository: state.installIso.id,
         }
         break
       case 'network':
@@ -306,13 +306,13 @@ export default class NewVm extends BaseComponent {
         }
         installation = {
           method: matches[1].toLowerCase(),
-          repository: state.installNetwork
+          repository: state.installNetwork,
         }
         break
       case 'PXE':
         installation = {
           method: 'network',
-          repository: 'pxe'
+          repository: 'pxe',
         }
     }
 
@@ -388,7 +388,7 @@ export default class NewVm extends BaseComponent {
       coreOs: state.template.name_label === 'CoreOS',
       tags: state.tags,
       vgpuType: get(() => state.vgpuType.id),
-      gpuGroup: get(() => state.vgpuType.gpuGroup)
+      gpuGroup: get(() => state.vgpuType.gpuGroup),
     }
 
     return state.multipleVms
@@ -424,7 +424,7 @@ export default class NewVm extends BaseComponent {
           $SR:
             pool || isInResourceSet(vdi.$SR)
               ? vdi.$SR
-              : resourceSet.objectsByType['SR'][0].id
+              : resourceSet.objectsByType['SR'][0].id,
         }
       }
     })
@@ -436,13 +436,13 @@ export default class NewVm extends BaseComponent {
         network:
           pool || isInResourceSet(vif.$network)
             ? vif.$network
-            : resourceSet.objectsByType['network'][0].id
+            : resourceSet.objectsByType['network'][0].id,
       })
     })
     if (VIFs.length === 0) {
       const networkId = this._getDefaultNetworkId()
       VIFs.push({
-        network: networkId
+        network: networkId,
       })
     }
     const name_label =
@@ -484,9 +484,9 @@ export default class NewVm extends BaseComponent {
           name_description: disk.name_description || 'Created by XO',
           name_label:
             (name_label || 'disk') + '_' + generateReadableRandomString(5),
-          SR: pool ? pool.default_SR : resourceSet.objectsByType['SR'][0].id
+          SR: pool ? pool.default_SR : resourceSet.objectsByType['SR'][0].id,
         }
-      })
+      }),
     })
 
     if (template.name_label === 'CoreOS') {
@@ -578,7 +578,7 @@ export default class NewVm extends BaseComponent {
 
       const containers = [
         ...map(existingDisks, disk => get(() => srs[disk.$SR].$container)),
-        ...map(VDIs, disk => get(() => srs[disk.SR].$container))
+        ...map(VDIs, disk => get(() => srs[disk.SR].$container)),
       ]
       return host =>
         host.$pool === pool.id &&
@@ -605,7 +605,7 @@ export default class NewVm extends BaseComponent {
     namePattern =>
       buildTemplate(namePattern, {
         '{name}': state => state.name_label || '',
-        '%': (_, i) => i
+        '%': (_, i) => i,
       })
   )
 
@@ -665,7 +665,7 @@ export default class NewVm extends BaseComponent {
 
     this.context.router.push({
       pathname,
-      query: resourceSet && { resourceSet: resourceSet.id }
+      query: resourceSet && { resourceSet: resourceSet.id },
     })
     this._reset()
   }
@@ -674,7 +674,7 @@ export default class NewVm extends BaseComponent {
 
     this.context.router.push({
       pathname,
-      query: pool && { pool: pool.id }
+      query: pool && { pool: pool.id },
     })
     this._reset()
   }
@@ -692,16 +692,16 @@ export default class NewVm extends BaseComponent {
             '_' +
             generateReadableRandomString(5),
           SR: pool && pool.default_SR,
-          type: 'system'
-        }
-      ]
+          type: 'system',
+        },
+      ],
     })
   }
   _removeVdi = index => {
     const { VDIs } = this.state.state
 
     this._setState({
-      VDIs: [...VDIs.slice(0, index), ...VDIs.slice(index + 1)]
+      VDIs: [...VDIs.slice(0, index), ...VDIs.slice(index + 1)],
     })
   }
   _addInterface = () => {
@@ -711,16 +711,16 @@ export default class NewVm extends BaseComponent {
       VIFs: [
         ...this.state.state.VIFs,
         {
-          network: networkId
-        }
-      ]
+          network: networkId,
+        },
+      ],
     })
   }
   _removeInterface = index => {
     const { VIFs } = this.state.state
 
     this._setState({
-      VIFs: [...VIFs.slice(0, index), ...VIFs.slice(index + 1)]
+      VIFs: [...VIFs.slice(0, index), ...VIFs.slice(index + 1)],
     })
   }
 
@@ -736,12 +736,12 @@ export default class NewVm extends BaseComponent {
     // save key
     addSshKey({
       title,
-      key: newSshKey
+      key: newSshKey,
     }).then(() => {
       // select key
       this._setState({
         sshKeys: [...(sshKeys || []), userSshKeys ? userSshKeys.length : 0],
-        newSshKey: ''
+        newSshKey: '',
       })
     })
   }
@@ -773,7 +773,7 @@ export default class NewVm extends BaseComponent {
             <h2>
               {isAdmin || !isEmpty(resourceSets)
                 ? _('newVmCreateNewVmOn', {
-                  select: isAdmin ? selectPool : selectResourceSet
+                  select: isAdmin ? selectPool : selectResourceSet,
                 })
                 : _('newVmCreateNewVmNoPermission')}
             </h2>
@@ -926,7 +926,7 @@ export default class NewVm extends BaseComponent {
                   'vmCoresPerSocket',
                   {
                     nSockets: CPUs / coresPerSocket,
-                    nCores: coresPerSocket
+                    nCores: coresPerSocket,
                   },
                   message => (
                     <option key={coresPerSocket} value={coresPerSocket}>
@@ -962,7 +962,7 @@ export default class NewVm extends BaseComponent {
       installNetwork,
       newSshKey,
       pv_args,
-      sshKeys
+      sshKeys,
     } = this.state.state
     const { formatMessage } = this.props.intl
     return (
@@ -1145,7 +1145,7 @@ export default class NewVm extends BaseComponent {
       installMethod,
       installNetwork,
       sshKeys,
-      template
+      template,
     } = this.state.state
     switch (installMethod) {
       case 'customConfig':
@@ -1369,7 +1369,7 @@ export default class NewVm extends BaseComponent {
       share,
       showAdvanced,
       tags,
-      template
+      template,
     } = this.state.state
     const { isAdmin } = this.props
     const { formatMessage } = this.props.intl
@@ -1430,7 +1430,7 @@ export default class NewVm extends BaseComponent {
                 max={65535}
                 onChange={this._linkState('cpuWeight')}
                 placeholder={formatMessage(messages.newVmDefaultCpuWeight, {
-                  value: XEN_DEFAULT_CPU_WEIGHT
+                  value: XEN_DEFAULT_CPU_WEIGHT,
                 })}
                 type='number'
                 value={cpuWeight}
@@ -1442,7 +1442,7 @@ export default class NewVm extends BaseComponent {
                 min={0}
                 onChange={this._linkState('cpuCap')}
                 placeholder={formatMessage(messages.newVmDefaultCpuCap, {
-                  value: XEN_DEFAULT_CPU_CAP
+                  value: XEN_DEFAULT_CPU_CAP,
                 })}
                 type='number'
                 value={cpuCap}
@@ -1555,15 +1555,15 @@ export default class NewVm extends BaseComponent {
           ),
           template &&
             template.virtualizationMode === 'hvm' && (
-              <SectionContent>
-                <Item label={_('vmVgpu')}>
-                  <SelectVgpuType
-                    onChange={this._linkState('vgpuType')}
-                    predicate={this._getVgpuTypePredicate()}
-                  />
-                </Item>
-              </SectionContent>
-            )
+            <SectionContent>
+              <Item label={_('vmVgpu')}>
+                <SelectVgpuType
+                  onChange={this._linkState('vgpuType')}
+                  predicate={this._getVgpuTypePredicate()}
+                />
+              </Item>
+            </SectionContent>
+          ),
         ]}
       </Section>
     )
@@ -1572,7 +1572,7 @@ export default class NewVm extends BaseComponent {
     const {
       memoryDynamicMin,
       memoryDynamicMax,
-      memoryStaticMax
+      memoryStaticMax,
     } = this.state.state
     return (
       memoryDynamicMax != null &&
@@ -1592,7 +1592,7 @@ export default class NewVm extends BaseComponent {
       multipleVms,
       nameLabels,
       VDIs,
-      VIFs
+      VIFs,
     } = this.state.state
 
     const factor = multipleVms ? nameLabels.length : 1
@@ -1693,7 +1693,7 @@ export default class NewVm extends BaseComponent {
       memoryDynamicMax,
       VDIs,
       multipleVms,
-      nameLabels
+      nameLabels,
     } = this.state.state
     const factor = multipleVms ? nameLabels.length : 1
 

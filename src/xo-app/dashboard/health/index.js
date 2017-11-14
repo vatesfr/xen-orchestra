@@ -21,34 +21,34 @@ import {
   deleteVbd,
   deleteVdi,
   deleteVm,
-  isSrWritable
+  isSrWritable,
 } from 'xo'
 import {
   areObjectsFetched,
   createCollectionWrapper,
   createGetObject,
   createGetObjectsOfType,
-  createSelector
+  createSelector,
 } from 'selectors'
 import { flatten, get, map, mapValues } from 'lodash'
 import { connectStore, formatSize, mapPlus, noop } from 'utils'
 
 const SrColContainer = connectStore(() => ({
-  container: createGetObject()
+  container: createGetObject(),
 }))(({ container }) => (
   <Link to={`${container.type}s/${container.id}`}>{container.name_label}</Link>
 ))
 
 const VdiColSr = connectStore(() => ({
-  sr: createGetObject()
+  sr: createGetObject(),
 }))(({ sr }) => <Link to={`srs/${sr.id}`}>{sr.name_label}</Link>)
 
 const VmColContainer = connectStore(() => ({
-  container: createGetObject()
+  container: createGetObject(),
 }))(({ container }) => <span>{container.name_label}</span>)
 
 const AlarmColObject = connectStore(() => ({
-  object: createGetObject()
+  object: createGetObject(),
 }))(({ object }) => {
   if (!object) {
     return null
@@ -67,7 +67,7 @@ const AlarmColObject = connectStore(() => ({
 })
 
 const AlarmColPool = connectStore(() => ({
-  pool: createGetObject()
+  pool: createGetObject(),
 }))(({ pool }) => {
   if (!pool) {
     return null
@@ -79,21 +79,21 @@ const SR_COLUMNS = [
   {
     name: _('srName'),
     itemRenderer: sr => sr.name_label,
-    sortCriteria: sr => sr.name_label
+    sortCriteria: sr => sr.name_label,
   },
   {
     name: _('srPool'),
-    itemRenderer: sr => <SrColContainer id={sr.$container} />
+    itemRenderer: sr => <SrColContainer id={sr.$container} />,
   },
   {
     name: _('srFormat'),
     itemRenderer: sr => sr.SR_type,
-    sortCriteria: sr => sr.SR_type
+    sortCriteria: sr => sr.SR_type,
   },
   {
     name: _('srSize'),
     itemRenderer: sr => formatSize(sr.size),
-    sortCriteria: sr => sr.size
+    sortCriteria: sr => sr.size,
   },
   {
     default: true,
@@ -103,7 +103,7 @@ const SR_COLUMNS = [
         <Tooltip
           content={_('spaceLeftTooltip', {
             used: Math.round(sr.physical_usage / sr.size * 100),
-            free: formatSize(sr.size - sr.physical_usage)
+            free: formatSize(sr.size - sr.physical_usage),
           })}
         >
           <meter
@@ -117,8 +117,8 @@ const SR_COLUMNS = [
         </Tooltip>
       ),
     sortCriteria: sr => sr.physical_usage / sr.size,
-    sortOrder: 'desc'
-  }
+    sortOrder: 'desc',
+  },
 ]
 
 const ORPHANED_VDI_COLUMNS = [
@@ -138,26 +138,26 @@ const ORPHANED_VDI_COLUMNS = [
       </span>
     ),
     sortCriteria: vdi => vdi.snapshot_time,
-    sortOrder: 'desc'
+    sortOrder: 'desc',
   },
   {
     name: _('vdiNameLabel'),
     itemRenderer: vdi => vdi.name_label,
-    sortCriteria: vdi => vdi.name_label
+    sortCriteria: vdi => vdi.name_label,
   },
   {
     name: _('vdiNameDescription'),
     itemRenderer: vdi => vdi.name_description,
-    sortCriteria: vdi => vdi.name_description
+    sortCriteria: vdi => vdi.name_description,
   },
   {
     name: _('vdiSize'),
     itemRenderer: vdi => formatSize(vdi.size),
-    sortCriteria: vdi => vdi.size
+    sortCriteria: vdi => vdi.size,
   },
   {
     name: _('vdiSr'),
-    itemRenderer: vdi => <VdiColSr id={vdi.$SR} />
+    itemRenderer: vdi => <VdiColSr id={vdi.$SR} />,
   },
   {
     name: _('logAction'),
@@ -168,20 +168,20 @@ const ORPHANED_VDI_COLUMNS = [
         handlerParam={vdi}
         icon='delete'
       />
-    )
-  }
+    ),
+  },
 ]
 
 const CONTROL_DOMAIN_VDI_COLUMNS = [
   {
     name: _('vdiNameLabel'),
     itemRenderer: vdi => vdi && vdi.name_label,
-    sortCriteria: vdi => vdi && vdi.name_label
+    sortCriteria: vdi => vdi && vdi.name_label,
   },
   {
     name: _('vdiNameDescription'),
     itemRenderer: vdi => vdi && vdi.name_description,
-    sortCriteria: vdi => vdi && vdi.name_description
+    sortCriteria: vdi => vdi && vdi.name_description,
   },
   {
     name: _('vdiPool'),
@@ -190,18 +190,18 @@ const CONTROL_DOMAIN_VDI_COLUMNS = [
       vdi.pool && (
         <Link to={`pools/${vdi.pool.id}`}>{vdi.pool.name_label}</Link>
       ),
-    sortCriteria: vdi => vdi && vdi.pool && vdi.pool.name_label
+    sortCriteria: vdi => vdi && vdi.pool && vdi.pool.name_label,
   },
   {
     name: _('vdiSize'),
     itemRenderer: vdi => vdi && formatSize(vdi.size),
-    sortCriteria: vdi => vdi && vdi.size
+    sortCriteria: vdi => vdi && vdi.size,
   },
   {
     name: _('vdiSr'),
     itemRenderer: vdi =>
       vdi && vdi.sr && <Link to={`srs/${vdi.sr.id}`}>{vdi.sr.name_label}</Link>,
-    sortCriteria: vdi => vdi && vdi.sr && vdi.sr.name_label
+    sortCriteria: vdi => vdi && vdi.sr && vdi.sr.name_label,
   },
   {
     name: _('vdiAction'),
@@ -214,8 +214,8 @@ const CONTROL_DOMAIN_VDI_COLUMNS = [
           handlerParam={vdi.vbd}
           icon='delete'
         />
-      )
-  }
+      ),
+  },
 ]
 
 const VM_COLUMNS = [
@@ -235,21 +235,21 @@ const VM_COLUMNS = [
       </span>
     ),
     sortCriteria: vm => vm.snapshot_time,
-    sortOrder: 'desc'
+    sortOrder: 'desc',
   },
   {
     name: _('vmNameLabel'),
     itemRenderer: vm => vm.name_label,
-    sortCriteria: vm => vm.name_label
+    sortCriteria: vm => vm.name_label,
   },
   {
     name: _('vmNameDescription'),
     itemRenderer: vm => vm.name_description,
-    sortCriteria: vm => vm.name_description
+    sortCriteria: vm => vm.name_description,
   },
   {
     name: _('vmContainer'),
-    itemRenderer: vm => <VmColContainer id={vm.$container} />
+    itemRenderer: vm => <VmColContainer id={vm.$container} />,
   },
   {
     name: _('logAction'),
@@ -260,8 +260,8 @@ const VM_COLUMNS = [
         handlerParam={vm}
         icon='delete'
       />
-    )
-  }
+    ),
+  },
 ]
 
 const ALARM_COLUMNS = [
@@ -281,7 +281,7 @@ const ALARM_COLUMNS = [
       </span>
     ),
     sortCriteria: message => message.time,
-    sortOrder: 'desc'
+    sortOrder: 'desc',
   },
   {
     name: _('alarmContent'),
@@ -305,15 +305,15 @@ const ALARM_COLUMNS = [
       ) : (
         <pre style={{ whiteSpace: 'pre-wrap' }}>{body}</pre>
       ),
-    sortCriteria: message => message.body
+    sortCriteria: message => message.body,
   },
   {
     name: _('alarmObject'),
-    itemRenderer: message => <AlarmColObject id={message.$object} />
+    itemRenderer: message => <AlarmColObject id={message.$object} />,
   },
   {
     name: _('alarmPool'),
-    itemRenderer: message => <AlarmColPool id={message.$pool} />
+    itemRenderer: message => <AlarmColPool id={message.$pool} />,
   },
   {
     name: _('logAction'),
@@ -324,8 +324,8 @@ const ALARM_COLUMNS = [
         handlerParam={message}
         icon='delete'
       />
-    )
-  }
+    ),
+  },
 ]
 
 @connectStore(() => {
@@ -359,7 +359,7 @@ const ALARM_COLUMNS = [
           ...vdi,
           pool: pools[vbd.$pool],
           sr: srs[vdi.$SR],
-          vbd
+          vbd,
         })
       })
   )
@@ -371,7 +371,7 @@ const ALARM_COLUMNS = [
     createSelector(getOrphanVdiSnapshots, snapshots => map(snapshots, '$SR'))
   )
   const getAlertMessages = createGetObjectsOfType('message').filter([
-    message => message.name === 'ALARM'
+    message => message.name === 'ALARM',
   ])
 
   return {
@@ -381,7 +381,7 @@ const ALARM_COLUMNS = [
     userSrs: getUserSrs,
     vdiOrphaned: getOrphanVdiSnapshots,
     vdiSr: getVdiSrs,
-    vmOrphaned: getOrphanVmSnapshots
+    vmOrphaned: getOrphanVmSnapshots,
   }
 })
 export default class Health extends Component {
@@ -421,8 +421,8 @@ export default class Health extends Component {
       this.setState({
         messages: map(formattedMessages, ({ id, ...formattedMessage }) => ({
           formatted: formattedMessage,
-          ...props.alertMessages[id]
-        }))
+          ...props.alertMessages[id],
+        })),
       })
     }, noop)
   }
@@ -437,7 +437,7 @@ export default class Health extends Component {
           <p>{_('removeAllLogsModalWarning')}</p>
           <p>{_('definitiveMessageModal')}</p>
         </div>
-      )
+      ),
     }).then(
       () => Promise.all(map(this.props.alertMessages, deleteMessage)),
       noop

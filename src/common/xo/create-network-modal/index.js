@@ -25,7 +25,7 @@ class CreateNetworkModalBody extends Component {
       description: refs.description.value,
       pif: refs.pif.value.id,
       mtu: refs.mtu.value,
-      vlan: refs.vlan.value
+      vlan: refs.vlan.value,
     }
   }
 

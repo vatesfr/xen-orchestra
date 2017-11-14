@@ -14,13 +14,13 @@ const ESTIMATED_DURATIONS = [
   30, // configuringVms
   10, // configuringGluster
   5, // creatingSr
-  5 // scanningSr
+  5, // scanningSr
 ]
 
 const TOTAL_ESTIMATED_DURATION = sum(ESTIMATED_DURATIONS)
 
 @addSubscriptions(props => ({
-  currentState: cb => subscribeCheckSrCurrentState(props.pool, cb)
+  currentState: cb => subscribeCheckSrCurrentState(props.pool, cb),
 }))
 export default class CreationProgress extends Component {
   constructor () {

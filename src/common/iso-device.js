@@ -13,12 +13,12 @@ import {
   createGetObjectsOfType,
   createFinder,
   createGetObject,
-  createSelector
+  createSelector,
 } from './selectors'
 import { ejectCd, insertCd } from './xo'
 
 @propTypes({
-  vm: propTypes.object.isRequired
+  vm: propTypes.object.isRequired,
 })
 @connectStore(() => {
   const getCdDrive = createFinder(
@@ -35,7 +35,7 @@ import { ejectCd, insertCd } from './xo'
 
   return {
     cdDrive: getCdDrive,
-    mountedIso: getMountedIso
+    mountedIso: getMountedIso,
   }
 })
 export default class IsoDevice extends Component {

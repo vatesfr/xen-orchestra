@@ -15,7 +15,7 @@ import {
   createGetObject,
   createGetObjectMessages,
   createGetObjectsOfType,
-  createSelector
+  createSelector,
 } from 'selectors'
 
 import TabAdvanced from './tab-advanced'
@@ -33,7 +33,7 @@ import TabXosan from './tab-xosan'
   logs: TabLogs,
   hosts: TabHosts,
   disks: TabDisks,
-  xosan: TabXosan
+  xosan: TabXosan,
 })
 @connectStore(() => {
   const getSr = createGetObject()
@@ -84,13 +84,13 @@ import TabXosan from './tab-xosan'
       vdis: getVdis(state, props),
       unmanagedVdis: getUnmanagedVdis(state, props),
       vdiSnapshots: getVdiSnapshots(state, props),
-      sr
+      sr,
     }
   }
 })
 export default class Sr extends Component {
   static contextTypes = {
-    router: React.PropTypes.object
+    router: React.PropTypes.object,
   }
 
   componentWillReceiveProps (props) {
@@ -173,7 +173,7 @@ export default class Sr extends Component {
         'sr',
         'vdis',
         'unmanagedVdis',
-        'vdiSnapshots'
+        'vdiSnapshots',
       ])
     )
     return (

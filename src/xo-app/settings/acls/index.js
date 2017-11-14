@@ -22,7 +22,7 @@ import { error } from 'notification'
 import {
   SelectHighLevelObject,
   SelectRole,
-  SelectSubject
+  SelectSubject,
 } from 'select-objects'
 
 import { createGetObjectsOfType, createSelector } from 'selectors'
@@ -34,7 +34,7 @@ import {
   subscribeAcls,
   subscribeGroups,
   subscribeRoles,
-  subscribeUsers
+  subscribeUsers,
 } from 'xo'
 
 const TYPES = ['VM', 'host', 'pool', 'SR', 'network']
@@ -47,14 +47,14 @@ const ACL_COLUMNS = [
         ? renderXoItem(acl.subject)
         : renderXoItemFromId(acl.subject),
     sortCriteria: acl =>
-      (acl.subject.name || acl.subject.email || '').toLowerCase()
+      (acl.subject.name || acl.subject.email || '').toLowerCase(),
   },
   {
     name: _('objectName'),
     itemRenderer: acl =>
       acl.object.id ? renderXoItem(acl.object) : renderXoItemFromId(acl.object),
     sortCriteria: acl =>
-      (acl.object.name || acl.object.name_label || '').toLowerCase()
+      (acl.object.name || acl.object.name_label || '').toLowerCase(),
   },
   {
     name: _('roleName'),
@@ -65,7 +65,7 @@ const ACL_COLUMNS = [
         value={acl.action}
       />
     ),
-    sortCriteria: acl => (acl.action.name || '').toLowerCase()
+    sortCriteria: acl => (acl.action.name || '').toLowerCase(),
   },
   {
     name: '',
@@ -76,8 +76,8 @@ const ACL_COLUMNS = [
         handler={removeAcl}
         handlerParam={acl}
       />
-    )
-  }
+    ),
+  },
 ]
 
 @connectStore(() => {
@@ -94,7 +94,7 @@ const ACL_COLUMNS = [
       ...keyBy(pools, 'id'),
       ...keyBy(snapshots, 'id'),
       ...keyBy(srs, 'id'),
-      ...keyBy(vms, 'id')
+      ...keyBy(vms, 'id'),
     })
   )
   return { xoObjects: getHighLevelObjects }
@@ -110,13 +110,13 @@ class AclTable extends Component {
         map(acls, ({ subject, object, action }) => ({
           subject: subjects[subject] || subject,
           object: xoObjects[object] || object,
-          action: roles[action] || action
+          action: roles[action] || action,
         })),
         ({ subject, object, action }) =>
           subject && object && action && object.type !== 'VM-snapshot'
       )
       this.setState({
-        resolvedAcls
+        resolvedAcls,
       })
     }
 
@@ -130,14 +130,14 @@ class AclTable extends Component {
       groups = keyBy(groups, 'id')
       refresh({
         ...pickBy(subjects, subject => subject.type === 'user'),
-        ...groups
+        ...groups,
       })
     })
     const unsubscribeUsers = subscribeUsers(users => {
       users = keyBy(users, 'id')
       refresh({
         ...pickBy(subjects, subject => subject.type === 'group'),
-        ...users
+        ...users,
       })
     })
 
@@ -169,7 +169,7 @@ export default class Acls extends Component {
       action: '',
       objects: [],
       subjects: [],
-      typeFilters: {}
+      typeFilters: {},
     }
   }
 
@@ -185,14 +185,14 @@ export default class Acls extends Component {
         objects: filter(
           objects,
           ({ type }) => !newSomeTypeFilters || newTypeFilters[type]
-        )
+        ),
       })
     }
 
     this.setState(
       {
         typeFilters: { ...typeFilters, [type]: !typeFilters[type] },
-        someTypeFilters: some(newTypeFilters)
+        someTypeFilters: some(newTypeFilters),
       },
       () => {
         // If some objects need to be removed from the selected objects
@@ -201,7 +201,7 @@ export default class Acls extends Component {
           (!someTypeFilters && this.state.someTypeFilters)
         ) {
           this.setState({
-            objects: filter(objects, this._getObjectPredicate())
+            objects: filter(objects, this._getObjectPredicate()),
           })
         }
       }
@@ -242,7 +242,7 @@ export default class Acls extends Component {
       this.setState({
         subjects: [],
         objects: [],
-        action: ''
+        action: '',
       })
     } catch (err) {
       error('Add ACL(s)', err.message || String(err))

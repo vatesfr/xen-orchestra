@@ -11,7 +11,7 @@ const Page = ({
   formatTitle,
   header,
   intl,
-  title
+  title,
 }) => {
   const { formatMessage } = intl
 
@@ -38,7 +38,7 @@ Page.propTypes = {
   collapsedHeader: React.PropTypes.bool,
   formatTitle: React.PropTypes.bool,
   header: React.PropTypes.node,
-  title: React.PropTypes.string
+  title: React.PropTypes.string,
 }
 
 export default injectIntl(Page)

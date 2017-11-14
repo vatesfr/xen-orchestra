@@ -10,11 +10,11 @@ import { createString, createProperty, toString } from './complex-matcher'
   onAdd: propTypes.func,
   onChange: propTypes.func,
   onDelete: propTypes.func,
-  type: propTypes.string
+  type: propTypes.string,
 })
 export default class HomeTags extends Component {
   static contextTypes = {
-    router: React.PropTypes.object
+    router: React.PropTypes.object,
   }
 
   _onClick = label => {

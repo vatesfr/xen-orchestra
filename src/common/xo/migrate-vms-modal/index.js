@@ -24,7 +24,7 @@ import {
   createGetObjectsOfType,
   createPicker,
   createSelector,
-  getObject
+  getObject,
 } from '../../selectors'
 import { isSrShared } from 'xo'
 
@@ -54,7 +54,7 @@ const LINE_STYLE = { paddingBottom: '1em' }
       pools: getPools,
       vbdsByVm: getVbdsByVm,
       vifsByVm: getVifsByVM,
-      vms: getVms
+      vms: getVms,
     }
   },
   { withRef: true }
@@ -73,7 +73,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
       host =>
         host
           ? sr =>
-              isSrWritable(sr) &&
+            isSrWritable(sr) &&
               (sr.$container === host.id || sr.$container === host.$pool)
           : false
     )
@@ -129,7 +129,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
       migrationNetworkId,
       networkId,
       smartVifMapping,
-      srId
+      srId,
     } = this.state
 
     // Map VM --> ( Map VDI --> SR )
@@ -185,7 +185,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
       mapVmsMapVifsNetworks,
       mapVmsMigrationNetwork,
       targetHost: host.id,
-      vms
+      vms,
     }
   }
 
@@ -237,7 +237,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
       networkId: defaultMigrationNetworkId,
       noVdisMigration,
       smartVifMapping: true,
-      srId: defaultSrConnectedToHost ? defaultSrId : undefined
+      srId: defaultSrConnectedToHost ? defaultSrId : undefined,
     })
   }
   _selectMigrationNetwork = migrationNetwork =>
@@ -257,7 +257,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
       networkId,
       noVdisMigration,
       smartVifMapping,
-      srId
+      srId,
     } = this.state
     return (
       <div>

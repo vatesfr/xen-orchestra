@@ -18,7 +18,7 @@ import {
   map,
   mapValues,
   reduce,
-  uniq
+  uniq,
 } from 'lodash'
 import { fetchFiles, listRemoteBackups, subscribeRemotes } from 'xo'
 
@@ -29,7 +29,7 @@ const VM_COLUMNS = [
   {
     name: _('backupVmNameColumn'),
     itemRenderer: ({ last }) => last.name,
-    sortCriteria: ({ last }) => last.name
+    sortCriteria: ({ last }) => last.name,
   },
   {
     name: _('backupTags'),
@@ -44,7 +44,7 @@ const VM_COLUMNS = [
           </Row>
         ))}
       </Container>
-    )
+    ),
   },
   {
     name: _('lastBackupColumn'),
@@ -60,19 +60,19 @@ const VM_COLUMNS = [
       />
     ),
     sortCriteria: ({ last }) => last.datetime,
-    sortOrder: 'desc'
+    sortOrder: 'desc',
   },
   {
     name: _('availableBackupsColumn'),
     itemRenderer: ({ count }) => <span>{count}</span>,
-    sortCriteria: ({ count }) => count
-  }
+    sortCriteria: ({ count }) => count,
+  },
 ]
 
 const openImportModal = ({ backups }) =>
   confirm({
     title: _('restoreFilesFromBackup', { name: backups[0].name }),
-    body: <RestoreFileModalBody vmName={backups[0].name} backups={backups} />
+    body: <RestoreFileModalBody vmName={backups[0].name} backups={backups} />,
   }).then(({ remote, disk, partition, paths, format }) => {
     if (!remote || !disk || !paths || !paths.length) {
       return error(_('restoreFiles'), _('restoreFilesError'))
@@ -95,7 +95,7 @@ const _listAllBackups = async remotes => {
         backupsByVm[backup.name].push({
           ...backup,
           remoteId: remote.id,
-          remoteName: remote.name
+          remoteName: remote.name,
         })
       }
     })
@@ -109,9 +109,9 @@ const _listAllBackups = async remotes => {
       groupBy(backups, 'remoteId'),
       (backups, remoteId) => ({
         remoteName: find(remotes, remote => remote.id === remoteId).name,
-        tags: uniq(map(backups, 'tag'))
+        tags: uniq(map(backups, 'tag')),
       })
-    )
+    ),
   }))
 
   return backupInfoByVm
@@ -121,7 +121,7 @@ const _listAllBackups = async remotes => {
   backupInfoByVm: cb =>
     subscribeRemotes(remotes =>
       _listAllBackups(filter(remotes, 'enabled')).then(cb)
-    )
+    ),
 })
 export default class FileRestore extends Component {
   render () {

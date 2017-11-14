@@ -22,7 +22,7 @@ import {
   subscribeJobs,
   subscribeSchedules,
   subscribeScheduleTable,
-  subscribeUsers
+  subscribeUsers,
 } from 'xo'
 
 // ===================================================================
@@ -32,35 +32,35 @@ const jobKeyToLabel = {
   deltaBackup: _('deltaBackup'),
   disasterRecovery: _('disasterRecovery'),
   rollingBackup: _('backup'),
-  rollingSnapshot: _('rollingSnapshot')
+  rollingSnapshot: _('rollingSnapshot'),
 }
 
 const JOB_COLUMNS = [
   {
     name: _('jobId'),
     itemRenderer: ({ jobId }) => jobId.slice(4, 8),
-    sortCriteria: 'jobId'
+    sortCriteria: 'jobId',
   },
   {
     name: _('jobType'),
     itemRenderer: ({ jobLabel }) => jobLabel,
-    sortCriteria: 'jobLabel'
+    sortCriteria: 'jobLabel',
   },
   {
     name: _('jobTag'),
     itemRenderer: ({ scheduleTag }) => scheduleTag,
     default: true,
-    sortCriteria: ({ scheduleTag }) => scheduleTag
+    sortCriteria: ({ scheduleTag }) => scheduleTag,
   },
   {
     name: _('jobScheduling'),
     itemRenderer: ({ schedule }) => schedule.cron,
-    sortCriteria: ({ schedule }) => schedule.cron
+    sortCriteria: ({ schedule }) => schedule.cron,
   },
   {
     name: _('jobTimezone'),
     itemRenderer: ({ schedule }) => schedule.timezone || _('jobServerTimezone'),
-    sortCriteria: ({ schedule }) => schedule.timezone
+    sortCriteria: ({ schedule }) => schedule.timezone,
   },
   {
     name: _('jobState'),
@@ -76,7 +76,7 @@ const JOB_COLUMNS = [
         state={scheduleToggleValue}
       />
     ),
-    sortCriteria: 'scheduleToggleValue'
+    sortCriteria: 'scheduleToggleValue',
   },
   {
     name: _('jobAction'),
@@ -110,20 +110,20 @@ const JOB_COLUMNS = [
         </ButtonGroup>
       </fieldset>
     ),
-    textAlign: 'right'
-  }
+    textAlign: 'right',
+  },
 ]
 
 // ===================================================================
 
 @addSubscriptions({
-  users: subscribeUsers
+  users: subscribeUsers,
 })
 export default class Overview extends Component {
   constructor (props) {
     super(props)
     this.state = {
-      scheduleTable: {}
+      scheduleTable: {},
     }
   }
 
@@ -135,7 +135,7 @@ export default class Overview extends Component {
       })
 
       this.setState({
-        jobs: obj
+        jobs: obj,
       })
     })
 
@@ -148,14 +148,14 @@ export default class Overview extends Component {
 
       this.setState({
         schedules: orderBy(schedules, schedule => +schedule.id.split(':')[1], [
-          'desc'
-        ])
+          'desc',
+        ]),
       })
     })
 
     const unsubscribeScheduleTable = subscribeScheduleTable(scheduleTable => {
       this.setState({
-        scheduleTable
+        scheduleTable,
       })
     })
 
@@ -188,7 +188,7 @@ export default class Overview extends Component {
             get(items, '[1].values[0].tag') ||
             schedule.id,
           schedule,
-          scheduleToggleValue: scheduleTable && scheduleTable[schedule.id]
+          scheduleToggleValue: scheduleTable && scheduleTable[schedule.id],
         }
       })
     }

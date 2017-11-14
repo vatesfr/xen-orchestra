@@ -3182,5 +3182,5 @@ export default {
   settingsAclsButtonTooltipSR: 'SR',
 
   // Original text: "Network"
-  settingsAclsButtonTooltipnetwork: 'Sieć'
+  settingsAclsButtonTooltipnetwork: 'Sieć',
 }

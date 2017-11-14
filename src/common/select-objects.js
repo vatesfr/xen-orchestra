@@ -18,7 +18,7 @@ import {
   mapValues,
   pick,
   sortBy,
-  toArray
+  toArray,
 } from 'lodash'
 
 import _ from './intl'
@@ -37,7 +37,7 @@ import {
   createGetObjectsOfType,
   createGetTags,
   createSelector,
-  getObject
+  getObject,
 } from './selectors'
 import { addSubscriptions, connectStore, resolveResourceSets } from './utils'
 import {
@@ -48,7 +48,7 @@ import {
   subscribeRemotes,
   subscribeResourceSets,
   subscribeRoles,
-  subscribeUsers
+  subscribeUsers,
 } from './xo'
 
 // ===================================================================
@@ -69,7 +69,7 @@ const getOption = (object, container) => ({
     ? `${getLabel(object)} ${getLabel(container)}`
     : getLabel(object),
   value: object.id,
-  xoItem: object
+  xoItem: object,
 })
 
 const getLabel = object =>
@@ -81,7 +81,7 @@ const getLabel = object =>
   object.label
 
 const options = props => ({
-  defaultValue: props.multi ? [] : undefined
+  defaultValue: props.multi ? [] : undefined,
 })
 
 // ===================================================================
@@ -125,8 +125,8 @@ const options = props => ({
   xoContainers: propTypes.array,
   xoObjects: propTypes.oneOfType([
     propTypes.array,
-    propTypes.objectOf(propTypes.array)
-  ]).isRequired
+    propTypes.objectOf(propTypes.array),
+  ]).isRequired,
 })
 export class GenericSelect extends Component {
   _getObjectsById = createSelector(
@@ -160,7 +160,7 @@ export class GenericSelect extends Component {
       forEach(containers, container => {
         options.push({
           disabled: true,
-          xoItem: container
+          xoItem: container,
         })
 
         forEach(objects[container.id], object => {
@@ -179,8 +179,8 @@ export class GenericSelect extends Component {
             value: val,
             xoItem: {
               id: val,
-              removed: true
-            }
+              removed: true,
+            },
           })
         }
       }
@@ -242,7 +242,7 @@ export class GenericSelect extends Component {
       placeholder,
       required,
 
-      clearable = Boolean(multi || !required)
+      clearable = Boolean(multi || !required),
     } = this.props
 
     const select = (
@@ -253,7 +253,7 @@ export class GenericSelect extends Component {
           disabled,
           multi,
           placeholder,
-          required
+          required,
         }}
         onChange={this._onChange}
         openOnFocus
@@ -360,7 +360,7 @@ export const SelectHost = makeStoreSelect(
       .sort()
 
     return {
-      xoObjects: getHostsByPool
+      xoObjects: getHostsByPool,
     }
   },
   { placeholder: _('selectHosts') }
@@ -372,7 +372,7 @@ export const SelectPool = makeStoreSelect(
   () => ({
     xoObjects: createGetObjectsOfType('pool')
       .filter(getPredicate)
-      .sort()
+      .sort(),
   }),
   { placeholder: _('selectPools') }
 )
@@ -403,7 +403,7 @@ export const SelectSr = makeStoreSelect(
 
     return {
       xoObjects: getSrsByContainer,
-      xoContainers: getContainers
+      xoContainers: getContainers,
     }
   },
   { placeholder: _('selectSrs') }
@@ -435,7 +435,7 @@ export const SelectVm = makeStoreSelect(
 
     return {
       xoObjects: getVmsByContainer,
-      xoContainers: getContainers
+      xoContainers: getContainers,
     }
   },
   { placeholder: _('selectVms') }
@@ -457,7 +457,7 @@ export const SelectHostVm = makeStoreSelect(
     )
 
     return {
-      xoObjects: getObjects
+      xoObjects: getObjects,
     }
   },
   { placeholder: _('selectHostsVms') }
@@ -481,7 +481,7 @@ export const SelectVmTemplate = makeStoreSelect(
 
     return {
       xoObjects: getVmTemplatesByPool,
-      xoContainers: getPools
+      xoContainers: getPools,
     }
   },
   { placeholder: _('selectVmTemplates') }
@@ -505,7 +505,7 @@ export const SelectNetwork = makeStoreSelect(
 
     return {
       xoObjects: getNetworksByPool,
-      xoContainers: getPools
+      xoContainers: getPools,
     }
   },
   { placeholder: _('selectNetworks') }
@@ -527,7 +527,7 @@ export const SelectPif = makeStoreSelect(
 
     return {
       xoObjects: getPifsByHost,
-      xoContainers: getHosts
+      xoContainers: getHosts,
     }
   },
   { placeholder: _('selectPifs') }
@@ -544,7 +544,7 @@ export const SelectTag = makeStoreSelect(
         .filter(getPredicate)
         .sort(),
       tags => map(tags, tag => ({ id: tag, type: 'tag', value: tag }))
-    )
+    ),
   }),
   { placeholder: _('selectTags') }
 )
@@ -566,7 +566,7 @@ export const SelectHighLevelObject = makeStoreSelect(
       (hosts, networks, pools, srs, vms) =>
         sortBy(assign({}, hosts, networks, pools, srs, vms), [
           'type',
-          'name_label'
+          'name_label',
         ])
     )
 
@@ -578,7 +578,7 @@ export const SelectHighLevelObject = makeStoreSelect(
 // ===================================================================
 
 export const SelectVdi = propTypes({
-  srPredicate: propTypes.func
+  srPredicate: propTypes.func,
 })(
   makeStoreSelect(
     () => {
@@ -601,7 +601,7 @@ export const SelectVdi = propTypes({
 
       return {
         xoObjects: getVdis,
-        xoContainers: getSrs.sort()
+        xoContainers: getSrs.sort(),
       }
     },
     { placeholder: _('selectVdis') }
@@ -623,7 +623,7 @@ export const SelectVgpuType = makeStoreSelect(
             }
             gpuGroups[gpuGroup].push({
               ...vgpuType,
-              gpuGroup
+              gpuGroup,
             })
           })
         })
@@ -638,7 +638,7 @@ export const SelectVgpuType = makeStoreSelect(
 
     return {
       xoObjects: getVgpuTypes,
-      xoContainers: getGpuGroups
+      xoContainers: getGpuGroups,
     }
   },
   { placeholder: _('selectVgpuType') }
@@ -661,7 +661,7 @@ export const SelectSubject = makeSubscriptionSelect(
      */
       if (usersLoaded && groupsLoaded) {
         subscriber({
-          xoObjects: subjects
+          xoObjects: subjects,
         })
       }
     }
@@ -691,7 +691,7 @@ export const SelectRole = makeSubscriptionSelect(
     const unsubscribeRoles = subscribeRoles(roles => {
       const xoObjects = map(sortBy(roles, 'name'), role => ({
         ...role,
-        type: 'role'
+        type: 'role',
       }))
       subscriber({ xoObjects })
     })
@@ -717,8 +717,8 @@ export const SelectRemote = makeSubscriptionSelect(
         xoObjects,
         xoContainers: map(xoObjects, (remote, type) => ({
           id: type,
-          label: type
-        }))
+          label: type,
+        })),
       })
     })
 
@@ -892,12 +892,12 @@ export class SelectResourceSetsNetwork extends Component {
 // are correctly imported before they are called
 @addSubscriptions(() => ({
   ipPools: subscribeIpPools,
-  resourceSets: subscribeResourceSets
+  resourceSets: subscribeResourceSets,
 }))
 @propTypes({
   containerPredicate: propTypes.func,
   predicate: propTypes.func,
-  resourceSetId: propTypes.string.isRequired
+  resourceSetId: propTypes.string.isRequired,
 })
 export class SelectResourceSetIp extends Component {
   get value () {
@@ -936,7 +936,7 @@ export class SelectResourceSetIp extends Component {
             id: ip,
             label: ip,
             type: 'ipAddress',
-            used: !isEmpty(address.vifs)
+            used: !isEmpty(address.vifs),
           }))
           return predicate ? filter(poolIps, predicate) : poolIps
         })
@@ -976,8 +976,8 @@ export class SelectSshKey extends Component {
           map(user.preferences.sshKeys, (key, id) => ({
             id,
             label: key.title,
-            type: 'sshKey'
-          }))
+            type: 'sshKey',
+          })),
       })
     })
   }
@@ -1006,12 +1006,12 @@ export const SelectIp = makeSubscriptionSelect(
           id: ip,
           label: ip,
           type: 'ipAddress',
-          used: !isEmpty(address.vifs)
+          used: !isEmpty(address.vifs),
         }))
       )
       const xoContainers = map(sortedIpPools, ipPool => ({
         ...ipPool,
-        type: 'ipPool'
+        type: 'ipPool',
       }))
       subscriber({ xoObjects, xoContainers })
     })
@@ -1029,8 +1029,8 @@ export const SelectIpPool = makeSubscriptionSelect(
       subscriber({
         xoObjects: map(sortBy(ipPools, 'name'), ipPool => ({
           ...ipPool,
-          type: 'ipPool'
-        }))
+          type: 'ipPool',
+        })),
       })
     })
 

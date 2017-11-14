@@ -24,26 +24,26 @@ import {
   subscribeJobs,
   subscribeSchedules,
   subscribeScheduleTable,
-  subscribeUsers
+  subscribeUsers,
 } from 'xo'
 
 // ===================================================================
 
 const jobKeyToLabel = {
-  genericTask: _('customJob')
+  genericTask: _('customJob'),
 }
 
 // ===================================================================
 
 @addSubscriptions({
-  users: subscribeUsers
+  users: subscribeUsers,
 })
 export default class Overview extends Component {
   constructor (props) {
     super(props)
     this.state = {
       schedules: [],
-      scheduleTable: {}
+      scheduleTable: {},
     }
   }
 
@@ -55,7 +55,7 @@ export default class Overview extends Component {
       })
 
       this.setState({
-        jobs: obj
+        jobs: obj,
       })
     })
 
@@ -68,14 +68,14 @@ export default class Overview extends Component {
 
       this.setState({
         schedules: orderBy(schedules, schedule => +schedule.id.split(':')[1], [
-          'desc'
-        ])
+          'desc',
+        ]),
       })
     })
 
     const unsubscribeScheduleTable = subscribeScheduleTable(scheduleTable => {
       this.setState({
-        scheduleTable
+        scheduleTable,
       })
     })
 

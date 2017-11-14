@@ -32,7 +32,7 @@ import {
   runJob,
   subscribeCurrentUser,
   subscribeJobs,
-  subscribeUsers
+  subscribeUsers,
 } from 'xo'
 
 const JOB_KEY = 'genericTask'
@@ -78,7 +78,7 @@ const dataToParamVectorItems = function (params, data) {
         if (values.length) {
           items.push({
             type: 'set',
-            values
+            values,
           })
         }
         delete data[name]
@@ -88,7 +88,7 @@ const dataToParamVectorItems = function (params, data) {
   if (size(data)) {
     items.push({
       type: 'set',
-      values: [mapValues(data, reduceObject)]
+      values: [mapValues(data, reduceObject)],
     })
   }
   return items
@@ -96,7 +96,7 @@ const dataToParamVectorItems = function (params, data) {
 
 @addSubscriptions({
   users: subscribeUsers,
-  currentUser: subscribeCurrentUser
+  currentUser: subscribeCurrentUser,
 })
 @injectIntl
 export default class Jobs extends Component {
@@ -107,7 +107,7 @@ export default class Jobs extends Component {
       action: undefined,
       actions: undefined,
       job: undefined,
-      jobs: undefined
+      jobs: undefined,
     }
     new Promise((resolve, reject) => {
       this._resolveLoaded = resolve
@@ -172,14 +172,14 @@ export default class Jobs extends Component {
       'vm.snapshot',
       'vm.start',
       'vm.stop',
-      'vm.suspend'
+      'vm.suspend',
     ]
     apiMethods.then(methods => {
       const actions = []
 
       for (const method in methods) {
         if (includes(jobCompliantMethods, method)) {
-          let [group, command] = method.split('.')
+          const [group, command] = method.split('.')
           const info = { ...methods[method] }
           info.type = 'object'
 
@@ -199,12 +199,12 @@ export default class Jobs extends Component {
                 Sr: 'Storage(s)',
                 Subject: 'Subject(s)',
                 Vm: 'VM(s)',
-                XoObject: 'Object(s)'
+                XoObject: 'Object(s)',
               }
               prop.type = 'array'
               prop.items = {
                 type: 'string',
-                $type: type
+                $type: type,
               }
               prop.title = titles[type]
             }
@@ -252,7 +252,7 @@ export default class Jobs extends Component {
             group,
             command,
             info,
-            uiSchema: generateUiSchema(info)
+            uiSchema: generateUiSchema(info),
           })
         }
       }
@@ -277,10 +277,10 @@ export default class Jobs extends Component {
         items: dataToParamVectorItems(
           method.value.info.properties,
           params.value
-        )
+        ),
       },
       userId: owner,
-      timeout: timeout ? timeout * 1e3 : undefined
+      timeout: timeout ? timeout * 1e3 : undefined,
     }
 
     job && (_job.id = job.id)
@@ -306,7 +306,7 @@ export default class Jobs extends Component {
     this.setState(
       {
         job,
-        action
+        action,
       },
       () => delay(this._populateForm, 250, job)
     ) // Work around.
@@ -339,7 +339,7 @@ export default class Jobs extends Component {
     params.value = data
     this.setState({
       owner: job.userId,
-      timeout: job.timeout && job.timeout / 1e3
+      timeout: job.timeout && job.timeout / 1e3,
     })
   }
 
@@ -351,7 +351,7 @@ export default class Jobs extends Component {
       action: undefined,
       job: undefined,
       owner: undefined,
-      timeout: ''
+      timeout: '',
     })
   }
 
@@ -424,7 +424,7 @@ export default class Jobs extends Component {
                 <p className='text-warning'>
                   {_('jobEditMessage', {
                     name: job.name,
-                    id: job.id.slice(4, 8)
+                    id: job.id.slice(4, 8),
                   })}
                 </p>
               )}

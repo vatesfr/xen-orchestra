@@ -6,7 +6,7 @@ import { subscribeResourceCatalog, subscribePlugins } from 'xo'
 import {
   createGetObjectsOfType,
   createSelector,
-  createCollectionWrapper
+  createCollectionWrapper,
 } from 'selectors'
 import { satisfies as versionSatisfies } from 'semver'
 import { every, filter, forEach, map, some } from 'lodash'
@@ -45,11 +45,11 @@ const findLatestPack = (packs, hostsVersions) => {
         poolId =>
           poolId
             ? host =>
-                host.$pool === poolId &&
+              host.$pool === poolId &&
                 !some(host.supplementalPacks, isXosanPack)
             : false
       )
-    )
+    ),
   }),
   { withRef: true }
 )
@@ -101,7 +101,7 @@ export default class InstallXosanPackModal extends Component {
             <div className='mt-1'>
               {_('xosanInstallPack', {
                 pack: latestPack.name,
-                version: latestPack.version
+                version: latestPack.version,
               })}
             </div>
           </div>

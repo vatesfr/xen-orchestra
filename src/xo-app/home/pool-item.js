@@ -17,7 +17,7 @@ import { connectStore, formatSizeShort } from 'utils'
 import {
   createGetObjectsOfType,
   createGetHostMetrics,
-  createSelector
+  createSelector,
 } from 'selectors'
 
 import styles from './index.css'
@@ -57,7 +57,7 @@ import styles from './index.css'
     missingPaths: getMissingPatches,
     poolHosts: getPoolHosts,
     nSrs: getNumberOfSrs,
-    nVms: getNumberOfVms
+    nVms: getNumberOfVms,
   }
 })
 export default class PoolItem extends Component {
@@ -84,7 +84,7 @@ export default class PoolItem extends Component {
       hostMetrics,
       poolHosts,
       nSrs,
-      nVms
+      nVms,
     } = this.props
     const { missingPatchCount } = this.state
     return (
@@ -204,7 +204,7 @@ export default class PoolItem extends Component {
                     ),
                     free: formatSizeShort(
                       hostMetrics.memoryTotal - hostMetrics.memoryUsage
-                    )
+                    ),
                   })}
                 >
                   <progress

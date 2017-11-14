@@ -28,16 +28,16 @@ const Collapsible = ({ collapsible, children, ...props }) =>
 
 Collapsible.propTypes = {
   collapsible: propTypes.bool.isRequired,
-  children: propTypes.node.isRequired
+  children: propTypes.node.isRequired,
 }
 
 @propTypes({
   vdis: propTypes.array.isRequired,
-  predicate: propTypes.func
+  predicate: propTypes.func,
 })
 export default class ChooseSrForEachVdisModal extends Component {
   state = {
-    mapVdisSrs: {}
+    mapVdisSrs: {},
   }
 
   componentWillReceiveProps (newProps) {
@@ -47,7 +47,7 @@ export default class ChooseSrForEachVdisModal extends Component {
     ) {
       this.state = {
         mainSr: undefined,
-        mapVdisSrs: {}
+        mapVdisSrs: {},
       }
     }
   }
@@ -62,7 +62,7 @@ export default class ChooseSrForEachVdisModal extends Component {
 
     if (oldSr == null || newSr == null || oldSr.$pool !== newSr.$pool) {
       this.setState({
-        mapVdisSrs: {}
+        mapVdisSrs: {},
       })
     } else if (!newSr.shared) {
       const mapVdisSrs = { ...this.state.mapVdisSrs }
@@ -80,7 +80,7 @@ export default class ChooseSrForEachVdisModal extends Component {
     }
 
     this._onChange({
-      mainSr: newSr
+      mainSr: newSr,
     })
   }
 
@@ -140,7 +140,7 @@ export default class ChooseSrForEachVdisModal extends Component {
                       <SelectSr
                         onChange={sr =>
                           this._onChange({
-                            mapVdisSrs: { ...mapVdisSrs, [vdi.uuid]: sr }
+                            mapVdisSrs: { ...mapVdisSrs, [vdi.uuid]: sr },
                           })
                         }
                         value={mapVdisSrs[vdi.uuid]}

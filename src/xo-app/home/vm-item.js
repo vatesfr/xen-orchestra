@@ -18,31 +18,31 @@ import {
   removeTag,
   startVm,
   stopVm,
-  subscribeResourceSets
+  subscribeResourceSets,
 } from 'xo'
 import {
   addSubscriptions,
   connectStore,
   formatSizeShort,
-  osFamily
+  osFamily,
 } from 'utils'
 import {
   createFinder,
   createGetObject,
   createGetVmDisks,
   createSelector,
-  createSumBy
+  createSumBy,
 } from 'selectors'
 
 import MiniStats from './mini-stats'
 import styles from './index.css'
 
 @addSubscriptions({
-  resourceSets: subscribeResourceSets
+  resourceSets: subscribeResourceSets,
 })
 @connectStore(() => ({
   container: createGetObject((_, props) => props.item.$container),
-  totalDiskSize: createSumBy(createGetVmDisks((_, props) => props.item), 'size')
+  totalDiskSize: createSumBy(createGetVmDisks((_, props) => props.item), 'size'),
 }))
 export default class VmItem extends Component {
   get _isRunning () {
@@ -223,7 +223,7 @@ export default class VmItem extends Component {
                       <Link to={`self?resourceSet=${resourceSet.id}`}>
                         {resourceSet.name}
                       </Link>
-                    )
+                    ),
                   })}
                 </span>
               )}

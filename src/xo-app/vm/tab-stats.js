@@ -12,7 +12,7 @@ import {
   CpuLineChart,
   MemoryLineChart,
   VifLineChart,
-  XvdLineChart
+  XvdLineChart,
 } from 'xo-line-chart'
 
 export default injectIntl(
@@ -46,7 +46,7 @@ export default injectIntl(
         this.setState(
           {
             stats,
-            selectStatsLoading: false
+            selectStatsLoading: false,
           },
           () => {
             this.timeout = setTimeout(this.loop, stats.interval * 1000)
@@ -75,7 +75,7 @@ export default injectIntl(
         vmNext.power_state !== 'Running'
       ) {
         this.setState({
-          stats: undefined
+          stats: undefined,
         })
       }
     }
@@ -87,7 +87,7 @@ export default injectIntl(
       this.setState(
         {
           granularity,
-          selectStatsLoading: true
+          selectStatsLoading: true,
         },
         this.loop
       )
@@ -100,7 +100,7 @@ export default injectIntl(
         granularity,
         selectStatsLoading,
         stats,
-        useCombinedValues
+        useCombinedValues,
       } = this.state
 
       return !stats ? (

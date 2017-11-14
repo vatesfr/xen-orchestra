@@ -24,7 +24,7 @@ import {
   isEmpty,
   isObject,
   keys,
-  map
+  map,
 } from 'lodash'
 import { createIpPool, deleteIpPool, setIpPool, subscribeIpPools } from 'xo'
 
@@ -38,7 +38,7 @@ const IPS_PATTERN = (() => {
 
 @connectStore(() => ({
   networks: createGetObjectsOfType('network').groupBy('id'),
-  vifs: createGetObjectsOfType('VIF').groupBy('id')
+  vifs: createGetObjectsOfType('VIF').groupBy('id'),
 }))
 class IpsCell extends BaseComponent {
   _addIps = () => {
@@ -183,7 +183,7 @@ class NetworksCell extends BaseComponent {
     }
     const { ipPool } = this.props
     setIpPool(ipPool.id, {
-      networks: [...ipPool.networks, ...this.state.newNetworks]
+      networks: [...ipPool.networks, ...this.state.newNetworks],
     })
     this._toggleNewNetworks()
     this.setState({ newNetworks: [] })
@@ -262,7 +262,7 @@ class NetworksCell extends BaseComponent {
 }
 
 @addSubscriptions({
-  ipPools: subscribeIpPools
+  ipPools: subscribeIpPools,
 })
 @injectIntl
 export default class Ips extends BaseComponent {
@@ -273,13 +273,13 @@ export default class Ips extends BaseComponent {
     return createIpPool({
       ips: parseIpPattern(ips),
       name,
-      networks: map(networks, 'id')
+      networks: map(networks, 'id'),
     }).then(() => {
       this.setState({
         creatingIpPool: false,
         ips: undefined,
         name: undefined,
-        networks: []
+        networks: [],
       })
     })
   }
@@ -316,15 +316,15 @@ export default class Ips extends BaseComponent {
           value={ipPool.name}
         />
       ),
-      sortCriteria: ipPool => ipPool.name
+      sortCriteria: ipPool => ipPool.name,
     },
     {
       name: _('ipPoolIps'),
-      itemRenderer: ipPool => <IpsCell ipPool={ipPool} />
+      itemRenderer: ipPool => <IpsCell ipPool={ipPool} />,
     },
     {
       name: _('ipPoolNetworks'),
-      itemRenderer: ipPool => <NetworksCell ipPool={ipPool} />
+      itemRenderer: ipPool => <NetworksCell ipPool={ipPool} />,
     },
     {
       name: '',
@@ -336,8 +336,8 @@ export default class Ips extends BaseComponent {
             icon='delete'
           />
         </span>
-      )
-    }
+      ),
+    },
   ]
 
   render () {

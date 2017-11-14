@@ -10,7 +10,7 @@ React.createElement = (createElement => {
     <p
       className='text-danger'
       style={{
-        fontWeight: 'bold'
+        fontWeight: 'bold',
       }}
     >
       an error has occured

@@ -17,7 +17,7 @@ import {
   CpuSparkLines,
   MemorySparkLines,
   NetworkSparkLines,
-  LoadSparkLines
+  LoadSparkLines,
 } from 'xo-sparklines'
 
 export default ({
@@ -26,7 +26,7 @@ export default ({
   memoryUsed,
   nVms,
   vmController,
-  vms
+  vms,
 }) => {
   const pool = getObject(store.getState(), host.$pool)
   const vmsFilter = encodeURIComponent(
@@ -79,7 +79,7 @@ export default ({
         <Col mediumSize={3}>
           <p className='text-xs-center'>
             {_('started', {
-              ago: <FormattedRelative value={host.startTime * 1000} />
+              ago: <FormattedRelative value={host.startTime * 1000} />,
             })}
           </p>
         </Col>

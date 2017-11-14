@@ -76,20 +76,20 @@ export default {
       cookies.set('lang', lang)
 
       return lang
-    }
+    },
   }),
 
   permissions: combineActionHandlers(
     {},
     {
-      [actions.updatePermissions]: (_, permissions) => permissions
+      [actions.updatePermissions]: (_, permissions) => permissions,
     }
   ),
 
   objects: combineActionHandlers(
     {
       all: {}, // Mutable for performance!
-      byType: {}
+      byType: {},
     },
     {
       [actions.updateObjects]: ({ all, byType: prevByType }, updates) => {
@@ -120,37 +120,37 @@ export default {
         }
 
         return { all, byType, fetched: true }
-      }
+      },
     }
   ),
 
   user: combineActionHandlers(null, {
     [actions.signedIn]: {
-      next: (_, user) => user
-    }
+      next: (_, user) => user,
+    },
   }),
 
   status: combineActionHandlers('disconnected', {
     [actions.connected]: () => 'connected',
-    [actions.disconnected]: () => 'disconnected'
+    [actions.disconnected]: () => 'disconnected',
   }),
 
   xoaUpdaterState: combineActionHandlers('disconnected', {
-    [actions.xoaUpdaterState]: (_, state) => state
+    [actions.xoaUpdaterState]: (_, state) => state,
   }),
   xoaTrialState: combineActionHandlers(
     {},
     {
-      [actions.xoaTrialState]: (_, state) => state
+      [actions.xoaTrialState]: (_, state) => state,
     }
   ),
   xoaUpdaterLog: combineActionHandlers([], {
-    [actions.xoaUpdaterLog]: (_, log) => log
+    [actions.xoaUpdaterLog]: (_, log) => log,
   }),
   xoaRegisterState: combineActionHandlers(
     { state: '?' },
     {
-      [actions.xoaRegisterState]: (_, registration) => registration
+      [actions.xoaRegisterState]: (_, registration) => registration,
     }
   ),
   xoaConfiguration: combineActionHandlers(
@@ -160,7 +160,7 @@ export default {
       [actions.xoaConfiguration]: (_, configuration) => {
         delete configuration.password
         return configuration
-      }
+      },
     }
-  )
+  ),
 }

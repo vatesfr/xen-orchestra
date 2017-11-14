@@ -18,7 +18,7 @@ import {
   createSelector,
   createSumBy,
   getCheckPermissions,
-  isAdmin
+  isAdmin,
 } from 'selectors'
 
 import TabGeneral from './tab-general'
@@ -42,7 +42,7 @@ import TabAdvanced from './tab-advanced'
   logs: TabLogs,
   network: TabNetwork,
   snapshots: TabSnapshots,
-  stats: TabStats
+  stats: TabStats,
 })
 @connectStore(() => {
   const getVm = createGetObject()
@@ -81,13 +81,13 @@ import TabAdvanced from './tab-advanced'
       vbds: getVbds(state, props),
       vdis: getVdis(state, props),
       vm,
-      vmTotalDiskSpace: getVmTotalDiskSpace(state, props)
+      vmTotalDiskSpace: getVmTotalDiskSpace(state, props),
     }
   }
 })
 export default class Vm extends BaseComponent {
   static contextTypes = {
-    router: React.PropTypes.object
+    router: React.PropTypes.object,
   }
 
   loop (vm = this.props.vm) {
@@ -113,7 +113,7 @@ export default class Vm extends BaseComponent {
       clearTimeout(this.timeout)
       this.setState(
         {
-          statsOverview: stats
+          statsOverview: stats,
         },
         () => {
           this.timeout = setTimeout(this.loop, stats.interval * 1000)
@@ -143,7 +143,7 @@ export default class Vm extends BaseComponent {
       this.loop(vmNext)
     } else if (isVmRunning(vmCur) && !isVmRunning(vmNext)) {
       this.setState({
-        statsOverview: undefined
+        statsOverview: undefined,
       })
     }
   }
@@ -155,7 +155,7 @@ export default class Vm extends BaseComponent {
     (checkPermissions, vm, srs) =>
       checkPermissions([
         [vm.id, 'administrate'],
-        ...map(srs, sr => [sr.id, 'operate'])
+        ...map(srs, sr => [sr.id, 'operate']),
       ])
   )
 
@@ -278,7 +278,7 @@ export default class Vm extends BaseComponent {
         'vbds',
         'vdis',
         'vm',
-        'vmTotalDiskSpace'
+        'vmTotalDiskSpace',
       ]),
       pick(this.state, ['statsOverview'])
     )
@@ -292,7 +292,7 @@ export default class Vm extends BaseComponent {
       >
         {cloneElement(this.props.children, {
           ...childProps,
-          toggleHeader: this._toggleHeader
+          toggleHeader: this._toggleHeader,
         })}
       </Page>
     )

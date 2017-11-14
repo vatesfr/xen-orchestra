@@ -8,7 +8,7 @@ import { omit } from 'lodash'
 @propTypes({
   multi: propTypes.bool,
   label: propTypes.node,
-  onChange: propTypes.func.isRequired
+  onChange: propTypes.func.isRequired,
 })
 export default class SelectFiles extends Component {
   _onChange = e => {

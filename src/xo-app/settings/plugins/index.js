@@ -23,7 +23,7 @@ import {
   purgePluginConfiguration,
   subscribePlugins,
   testPlugin,
-  unloadPlugin
+  unloadPlugin,
 } from 'xo'
 
 class Plugin extends Component {
@@ -41,7 +41,7 @@ class Plugin extends Component {
 
   _updateExpanded = () => {
     this.setState({
-      expanded: !this.state.expanded
+      expanded: !this.state.expanded,
     })
   }
 
@@ -55,6 +55,7 @@ class Plugin extends Component {
     const method = event.target.checked
       ? enablePluginAutoload
       : disablePluginAutoload
+
     ;method(this.props.id)::lastly(() => {
       this._updateAutoload = false
     })
@@ -85,14 +86,14 @@ class Plugin extends Component {
     event && event.preventDefault()
 
     this.setState({
-      editedConfig: undefined
+      editedConfig: undefined,
     })
   }
 
   _applyPredefinedConfiguration = () => {
     const configName = this.refs.selectPredefinedConfiguration.value
     this.setState({
-      editedConfig: this.props.configurationPresets[configName]
+      editedConfig: this.props.configurationPresets[configName],
     })
   }
 
@@ -253,7 +254,7 @@ class Plugin extends Component {
 }
 
 @addSubscriptions({
-  plugins: subscribePlugins
+  plugins: subscribePlugins,
 })
 export default class Plugins extends Component {
   render () {

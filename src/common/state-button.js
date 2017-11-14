@@ -42,5 +42,5 @@ const StateButton = ({
 )
 
 export default propTypes({
-  state: propTypes.bool.isRequired
+  state: propTypes.bool.isRequired,
 })(StateButton)

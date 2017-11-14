@@ -164,22 +164,22 @@ export default function (e, target, node, place, effect, offset) {
   if (place === 'left' && outsideLeftResult.result) {
     return {
       isNewState: true,
-      newState: { place: outsideLeftResult.newPlace }
+      newState: { place: outsideLeftResult.newPlace },
     }
   } else if (place === 'right' && outsideRightResult.result) {
     return {
       isNewState: true,
-      newState: { place: outsideRightResult.newPlace }
+      newState: { place: outsideRightResult.newPlace },
     }
   } else if (place === 'top' && outsideTopResult.result) {
     return {
       isNewState: true,
-      newState: { place: outsideTopResult.newPlace }
+      newState: { place: outsideTopResult.newPlace },
     }
   } else if (place === 'bottom' && outsideBottomResult.result) {
     return {
       isNewState: true,
-      newState: { place: outsideBottomResult.newPlace }
+      newState: { place: outsideBottomResult.newPlace },
     }
   }
 
@@ -188,8 +188,8 @@ export default function (e, target, node, place, effect, offset) {
     isNewState: false,
     position: {
       left: getTipOffsetLeft(place) - parentLeft,
-      top: getTipOffsetTop(place) - parentTop
-    }
+      top: getTipOffsetTop(place) - parentTop,
+    },
   }
 }
 
@@ -204,12 +204,12 @@ const getCurrentOffset = (e, currentTarget, effect) => {
   if (effect === 'float') {
     return {
       mouseX: e.clientX,
-      mouseY: e.clientY
+      mouseY: e.clientY,
     }
   }
   return {
     mouseX: targetLeft + targetWidth / 2,
-    mouseY: targetTop + targetHeight / 2
+    mouseY: targetTop + targetHeight / 2,
   }
 }
 
@@ -235,50 +235,50 @@ const getDefaultPosition = (
       l: -(tipWidth / 2),
       r: tipWidth / 2,
       t: -(tipHeight + disToMouse + triangleHeight),
-      b: -disToMouse
+      b: -disToMouse,
     }
     bottom = {
       l: -(tipWidth / 2),
       r: tipWidth / 2,
       t: disToMouse + cursorHeight,
-      b: tipHeight + disToMouse + triangleHeight + cursorHeight
+      b: tipHeight + disToMouse + triangleHeight + cursorHeight,
     }
     left = {
       l: -(tipWidth + disToMouse + triangleHeight),
       r: -disToMouse,
       t: -(tipHeight / 2),
-      b: tipHeight / 2
+      b: tipHeight / 2,
     }
     right = {
       l: disToMouse,
       r: tipWidth + disToMouse + triangleHeight,
       t: -(tipHeight / 2),
-      b: tipHeight / 2
+      b: tipHeight / 2,
     }
   } else if (effect === 'solid') {
     top = {
       l: -(tipWidth / 2),
       r: tipWidth / 2,
       t: -(targetHeight / 2 + tipHeight + triangleHeight),
-      b: -(targetHeight / 2)
+      b: -(targetHeight / 2),
     }
     bottom = {
       l: -(tipWidth / 2),
       r: tipWidth / 2,
       t: targetHeight / 2,
-      b: targetHeight / 2 + tipHeight + triangleHeight
+      b: targetHeight / 2 + tipHeight + triangleHeight,
     }
     left = {
       l: -(tipWidth + targetWidth / 2 + triangleHeight),
       r: -(targetWidth / 2),
       t: -(tipHeight / 2),
-      b: tipHeight / 2
+      b: tipHeight / 2,
     }
     right = {
       l: targetWidth / 2,
       r: tipWidth + targetWidth / 2 + triangleHeight,
       t: -(tipHeight / 2),
-      b: tipHeight / 2
+      b: tipHeight / 2,
     }
   }
 
@@ -293,7 +293,7 @@ const calculateOffset = offset => {
   if (Object.prototype.toString.apply(offset) === '[object String]') {
     offset = JSON.parse(offset.toString().replace(/'/g, '"'))
   }
-  for (let key in offset) {
+  for (const key in offset) {
     if (key === 'top') {
       extraOffsetY -= parseInt(offset[key], 10)
     } else if (key === 'bottom') {

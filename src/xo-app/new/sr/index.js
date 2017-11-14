@@ -23,7 +23,7 @@ import {
   createFilter,
   createGetObjectsOfType,
   createSelector,
-  getObject
+  getObject,
 } from 'selectors'
 import {
   createSrIso,
@@ -36,14 +36,14 @@ import {
   probeSrNfs,
   probeSrNfsExists,
   reattachSrIso,
-  reattachSr
+  reattachSr,
 } from 'xo'
 
 // ===================================================================
 
 @propTypes({
   onChange: propTypes.func.isRequired,
-  options: propTypes.array.isRequired
+  options: propTypes.array.isRequired,
 })
 class SelectIqn extends Component {
   _getOptions = createSelector(
@@ -51,7 +51,7 @@ class SelectIqn extends Component {
     options =>
       map(options, ({ ip, iqn }, index) => ({
         label: `${iqn} (${ip})`,
-        value: index
+        value: index,
       }))
   )
 
@@ -91,7 +91,7 @@ class SelectIqn extends Component {
 
 @propTypes({
   onChange: propTypes.func.isRequired,
-  options: propTypes.array.isRequired
+  options: propTypes.array.isRequired,
 })
 class SelectLun extends Component {
   _getOptions = createSelector(
@@ -101,7 +101,7 @@ class SelectLun extends Component {
         label: `LUN ${lun.id}: ${lun.serial} - ${formatSize(+lun.size)} - (${
           lun.vendor
         })`,
-        value: index
+        value: index,
       }))
   )
 
@@ -146,17 +146,17 @@ const SR_TYPE_TO_LABEL = {
   lvm: 'Local LVM',
   local: 'Local',
   nfsiso: 'NFS ISO',
-  smb: 'SMB'
+  smb: 'SMB',
 }
 
 const SR_GROUP_TO_LABEL = {
   vdisr: 'VDI SR',
-  isosr: 'ISO SR'
+  isosr: 'ISO SR',
 }
 
 const typeGroups = {
   vdisr: ['nfs', 'iscsi', 'lvm'],
-  isosr: ['local', 'nfsiso', 'smb']
+  isosr: ['local', 'nfsiso', 'smb'],
 }
 
 const getSrPath = id => `/srs/${id}`
@@ -166,7 +166,7 @@ const getSrPath = id => `/srs/${id}`
 @injectIntl
 @connectStore(() => ({
   hosts: createGetObjectsOfType('host'),
-  srs: createGetObjectsOfType('SR')
+  srs: createGetObjectsOfType('SR'),
 }))
 export default class New extends Component {
   constructor (props) {
@@ -189,7 +189,7 @@ export default class New extends Component {
       type: undefined,
       unused: undefined,
       usage: undefined,
-      used: undefined
+      used: undefined,
     }
     this.getHostSrs = createFilter(
       () => this.props.srs,
@@ -210,7 +210,7 @@ export default class New extends Component {
       password,
       port,
       server,
-      username
+      username,
     } = this.refs
     const { host, iqn, lun, path, type } = this.state
 
@@ -221,7 +221,7 @@ export default class New extends Component {
           try {
             await confirm({
               title: _('existingSrModalTitle'),
-              body: <p>{_('existingSrModalText')}</p>
+              body: <p>{_('existingSrModalText')}</p>,
             })
           } catch (error) {
             return
@@ -249,7 +249,7 @@ export default class New extends Component {
           try {
             await confirm({
               title: _('existingLunModalTitle'),
-              body: <p>{_('existingLunModalText')}</p>
+              body: <p>{_('existingLunModalText')}</p>,
             })
           } catch (error) {
             return
@@ -296,7 +296,7 @@ export default class New extends Component {
           'smb',
           username && username.value,
           password && password.value
-        )
+        ),
     }
 
     try {
@@ -320,7 +320,7 @@ export default class New extends Component {
       usage: undefined,
       used: undefined,
       unused: undefined,
-      summary: type === 'lvm' || type === 'local' || type === 'smb'
+      summary: type === 'lvm' || type === 'local' || type === 'smb',
     })
   }
 
@@ -339,7 +339,7 @@ export default class New extends Component {
       )
       this.setState({
         iqn,
-        luns
+        luns,
       })
     } catch (err) {
       error('LUNs Detection', err.message || String(err))
@@ -371,7 +371,7 @@ export default class New extends Component {
         usage: true,
         used,
         unused,
-        summary: used.length <= 0
+        summary: used.length <= 0,
       })
     } catch (err) {
       error('iSCSI Error', err.message || String(err))
@@ -383,7 +383,7 @@ export default class New extends Component {
   _handleAuthChoice = () => {
     const auth = this.refs['auth'].checked
     this.setState({
-      auth
+      auth,
     })
   }
 
@@ -397,7 +397,7 @@ export default class New extends Component {
         const paths = await probeSrNfs(host.id, server.value)
         this.setState({
           usage: undefined,
-          paths
+          paths,
         })
       } else if (type === 'iscsi') {
         const iqns = await probeSrIscsiIqns(
@@ -412,7 +412,7 @@ export default class New extends Component {
         } else {
           this.setState({
             usage: undefined,
-            iqns
+            iqns,
           })
         }
       }
@@ -436,7 +436,7 @@ export default class New extends Component {
         usage: true,
         used,
         unused,
-        summary: used.length <= 0
+        summary: used.length <= 0,
       })
     } catch (err) {
       error('NFS Error', err.message || String(err))
@@ -494,7 +494,7 @@ export default class New extends Component {
       type,
       unused,
       usage,
-      used
+      used,
     } = this.state
     const { formatMessage } = this.props.intl
 

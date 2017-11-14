@@ -15,7 +15,7 @@ import {
   PoolCpuLineChart,
   PoolMemoryLineChart,
   PoolPifLineChart,
-  PoolLoadLineChart
+  PoolLoadLineChart,
 } from 'xo-line-chart'
 
 @connectStore({
@@ -24,11 +24,11 @@ import {
       (state, props) => props.pool.id,
       poolId => host => host.power_state === 'Running' && host.$pool === poolId
     )
-  )
+  ),
 })
 export default class PoolStats extends Component {
   state = {
-    useCombinedValues: false
+    useCombinedValues: false,
   }
 
   _loop = () => {
@@ -45,7 +45,7 @@ export default class PoolStats extends Component {
       map(this.props.hosts, host =>
         fetchHostStats(host, this.state.granularity).then(stats => ({
           host: host.name_label,
-          ...stats
+          ...stats,
         }))
       )
     ).then(stats => {
@@ -58,7 +58,7 @@ export default class PoolStats extends Component {
       this.setState(
         {
           stats,
-          selectStatsLoading: false
+          selectStatsLoading: false,
         },
         () => {
           this.timeout = setTimeout(this._loop, stats[0].interval * 1000)
@@ -82,7 +82,7 @@ export default class PoolStats extends Component {
     this.setState(
       {
         granularity,
-        selectStatsLoading: true
+        selectStatsLoading: true,
       },
       this._loop
     )
@@ -93,7 +93,7 @@ export default class PoolStats extends Component {
       granularity,
       selectStatsLoading,
       stats,
-      useCombinedValues
+      useCombinedValues,
     } = this.state
 
     return process.env.XOA_PLAN > 2 ? (

@@ -46,7 +46,7 @@ const Dashboard = routes('overview', {
   health: Health,
   overview: Overview,
   stats: Stats,
-  visualizations: Visualizations
+  visualizations: Visualizations,
 })(({ children }) => (
   <Page header={HEADER} title='dashboardPage' formatTitle>
     {children}

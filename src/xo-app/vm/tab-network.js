@@ -26,7 +26,7 @@ import {
   createFinder,
   createGetObject,
   createGetObjectsOfType,
-  createSelector
+  createSelector,
 } from 'selectors'
 
 import {
@@ -37,7 +37,7 @@ import {
   isVmRunning,
   setVif,
   subscribeIpPools,
-  subscribeResourceSets
+  subscribeResourceSets,
 } from 'xo'
 
 const IP_COLUMN_STYLE = { maxWidth: '20em' }
@@ -45,7 +45,7 @@ const TABLE_STYLE = { minWidth: '0' }
 
 @addSubscriptions({
   ipPools: subscribeIpPools,
-  resourceSets: subscribeResourceSets
+  resourceSets: subscribeResourceSets,
 })
 @connectStore(() => {
   const getVif = createGetObject((_, props) => props.vifId)
@@ -55,7 +55,7 @@ const TABLE_STYLE = { minWidth: '0' }
   return (state, props) => ({
     vif: getVif(state, props),
     network: getNetwork(state, props),
-    networkId: getNetworkId(state, props)
+    networkId: getNetworkId(state, props),
   })
 })
 class VifItem extends BaseComponent {
@@ -306,7 +306,7 @@ class VifItem extends BaseComponent {
 
 @propTypes({
   onClose: propTypes.func,
-  vm: propTypes.object.isRequired
+  vm: propTypes.object.isRequired,
 })
 @connectStore(() => {
   const getHostMaster = createGetObject(
@@ -323,7 +323,7 @@ class VifItem extends BaseComponent {
     )
   )
   return {
-    defaultNetwork: getDefaultNetwork
+    defaultNetwork: getDefaultNetwork,
   }
 })
 @injectIntl
@@ -340,7 +340,7 @@ class NewVif extends BaseComponent {
     const { defaultNetwork } = props
     if (defaultNetwork && !this.state.network) {
       this.setState({
-        network: defaultNetwork
+        network: defaultNetwork,
       })
     }
   }
@@ -355,7 +355,7 @@ class NewVif extends BaseComponent {
 
   _selectNetwork = network => {
     this.setState({
-      network
+      network,
     })
   }
 
@@ -408,7 +408,7 @@ class NewVif extends BaseComponent {
 export default class TabNetwork extends BaseComponent {
   _toggleNewVif = () =>
     this.setState({
-      newVif: !this.state.newVif
+      newVif: !this.state.newVif,
     })
 
   render () {

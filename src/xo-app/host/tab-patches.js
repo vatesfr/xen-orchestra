@@ -16,7 +16,7 @@ const MISSING_PATCH_COLUMNS = [
   {
     name: _('patchNameLabel'),
     itemRenderer: patch => patch.name,
-    sortCriteria: patch => patch.name
+    sortCriteria: patch => patch.name,
   },
   {
     name: _('patchDescription'),
@@ -25,7 +25,7 @@ const MISSING_PATCH_COLUMNS = [
         {patch.description}
       </a>
     ),
-    sortCriteria: patch => patch.description
+    sortCriteria: patch => patch.description,
   },
   {
     name: _('patchReleaseDate'),
@@ -41,12 +41,12 @@ const MISSING_PATCH_COLUMNS = [
       </span>
     ),
     sortCriteria: patch => patch.date,
-    sortOrder: 'desc'
+    sortOrder: 'desc',
   },
   {
     name: _('patchGuidance'),
     itemRenderer: patch => patch.guidance,
-    sortCriteria: patch => patch.guidance
+    sortCriteria: patch => patch.guidance,
   },
   {
     name: _('patchAction'),
@@ -56,20 +56,20 @@ const MISSING_PATCH_COLUMNS = [
         handler={() => _installPatchWarning(patch, installPatch)}
         icon='host-patch-update'
       />
-    )
-  }
+    ),
+  },
 ]
 
 const INSTALLED_PATCH_COLUMNS = [
   {
     name: _('patchNameLabel'),
     itemRenderer: patch => patch.poolPatch.name,
-    sortCriteria: patch => patch.poolPatch.name
+    sortCriteria: patch => patch.poolPatch.name,
   },
   {
     name: _('patchDescription'),
     itemRenderer: patch => patch.poolPatch.description,
-    sortCriteria: patch => patch.poolPatch.description
+    sortCriteria: patch => patch.poolPatch.description,
   },
   {
     default: true,
@@ -89,13 +89,13 @@ const INSTALLED_PATCH_COLUMNS = [
       )
     },
     sortCriteria: patch => patch.time,
-    sortOrder: 'desc'
+    sortOrder: 'desc',
   },
   {
     name: _('patchSize'),
     itemRenderer: patch => formatSize(patch.poolPatch.size),
-    sortCriteria: patch => patch.poolPatch.size
-  }
+    sortCriteria: patch => patch.poolPatch.size,
+  },
 ]
 
 // support for software_version.platform_version ^2.1.1
@@ -104,26 +104,26 @@ const INSTALLED_PATCH_COLUMNS_2 = [
     default: true,
     name: _('patchNameLabel'),
     itemRenderer: patch => patch.name,
-    sortCriteria: patch => patch.name
+    sortCriteria: patch => patch.name,
   },
   {
     name: _('patchDescription'),
     itemRenderer: patch => patch.description,
-    sortCriteria: patch => patch.description
+    sortCriteria: patch => patch.description,
   },
   {
     name: _('patchSize'),
     itemRenderer: patch => formatSize(patch.size),
-    sortCriteria: patch => patch.size
-  }
+    sortCriteria: patch => patch.size,
+  },
 ]
 
 @connectStore(() => ({
-  needsRestart: createDoesHostNeedRestart((_, props) => props.host)
+  needsRestart: createDoesHostNeedRestart((_, props) => props.host),
 }))
 export default class HostPatches extends Component {
   static contextTypes = {
-    router: React.PropTypes.object
+    router: React.PropTypes.object,
   }
 
   _chooseActionPatch = async doInstall => {
@@ -133,11 +133,11 @@ export default class HostPatches extends Component {
         {
           label: _('installPatchWarningResolve'),
           value: 'install',
-          btnStyle: 'primary'
+          btnStyle: 'primary',
         },
-        { label: _('installPatchWarningReject'), value: 'goToPool' }
+        { label: _('installPatchWarningReject'), value: 'goToPool' },
       ],
-      title: _('installPatchWarningTitle')
+      title: _('installPatchWarningTitle'),
     })
 
     return choice === 'install'
@@ -162,13 +162,13 @@ export default class HostPatches extends Component {
       if (isString(host.patches[0])) {
         return {
           patches: hostPatches,
-          columns: INSTALLED_PATCH_COLUMNS
+          columns: INSTALLED_PATCH_COLUMNS,
         }
       }
 
       return {
         patches: host.patches,
-        columns: INSTALLED_PATCH_COLUMNS_2
+        columns: INSTALLED_PATCH_COLUMNS_2,
       }
     }
   )
@@ -209,7 +209,7 @@ export default class HostPatches extends Component {
                 collection={missingPatches}
                 userData={{
                   installPatch,
-                  _installPatchWarning: this._installPatchWarning
+                  _installPatchWarning: this._installPatchWarning,
                 }}
                 columns={MISSING_PATCH_COLUMNS}
               />

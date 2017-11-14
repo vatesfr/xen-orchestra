@@ -16,7 +16,7 @@ import { buildTemplate, connectStore } from 'utils'
   () => {
     const getVms = createGetObjectsOfType('VM').pick((_, props) => props.vms)
     return {
-      vms: getVms
+      vms: getVms,
     }
   },
   { withRef: true }
@@ -32,24 +32,24 @@ class CopyVmsModalBody extends BaseComponent {
 
     const names = namePattern
       ? map(
-          vms,
-          buildTemplate(namePattern, {
-            '{name}': vm => vm.name_label,
-            '{id}': vm => vm.id
-          })
-        )
+        vms,
+        buildTemplate(namePattern, {
+          '{name}': vm => vm.name_label,
+          '{id}': vm => vm.id,
+        })
+      )
       : map(vms, vm => vm.name_label)
     return {
       compress: state.compress,
       names,
-      sr: state.sr.id
+      sr: state.sr.id,
     }
   }
 
   componentWillMount () {
     this.setState({
       compress: false,
-      namePattern: '{name}_COPY'
+      namePattern: '{name}_COPY',
     })
   }
 

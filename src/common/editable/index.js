@@ -27,7 +27,7 @@ import {
   SelectTag,
   SelectVgpuType,
   SelectVm,
-  SelectVmTemplate
+  SelectVmTemplate,
 } from '../select-objects'
 
 import styles from './index.css'
@@ -35,14 +35,14 @@ import styles from './index.css'
 const LONG_CLICK = 400
 
 @propTypes({
-  alt: propTypes.node.isRequired
+  alt: propTypes.node.isRequired,
 })
 class Hover extends Component {
   constructor () {
     super()
 
     this.state = {
-      hover: false
+      hover: false,
     }
 
     this._onMouseEnter = () => this.setState({ hover: true })
@@ -62,7 +62,7 @@ class Hover extends Component {
   onChange: propTypes.func.isRequired,
   onUndo: propTypes.oneOfType([propTypes.bool, propTypes.func]),
   useLongClick: propTypes.bool,
-  value: propTypes.any.isRequired
+  value: propTypes.any.isRequired,
 })
 class Editable extends Component {
   get value () {
@@ -88,7 +88,7 @@ class Editable extends Component {
     this.setState({
       editing: true,
       error: null,
-      saving: false
+      saving: false,
     })
   }
 
@@ -129,7 +129,7 @@ class Editable extends Component {
       this.setState({
         // `error` may be undefined if the action has been cancelled
         error: error !== undefined && (isString(error) ? error : error.message),
-        saving: false
+        saving: false,
       })
       logError(error)
     }
@@ -213,7 +213,7 @@ class Editable extends Component {
   maxLength: propTypes.number,
   minLength: propTypes.number,
   pattern: propTypes.string,
-  value: propTypes.string.isRequired
+  value: propTypes.string.isRequired,
 })
 export class Text extends Editable {
   get value () {
@@ -260,7 +260,7 @@ export class Text extends Editable {
       'autoComplete',
       'maxLength',
       'minLength',
-      'pattern'
+      'pattern',
     ])
 
     return (
@@ -275,7 +275,7 @@ export class Text extends Editable {
         ref='input'
         style={{
           width: `${value.length + 1}ex`,
-          maxWidth: '50ex'
+          maxWidth: '50ex',
         }}
         type={this._isPassword ? 'password' : 'text'}
       />
@@ -291,7 +291,7 @@ export class Password extends Text {
 
 @propTypes({
   nullable: propTypes.bool,
-  value: propTypes.number
+  value: propTypes.number,
 })
 export class Number extends Component {
   get value () {
@@ -326,7 +326,7 @@ export class Number extends Component {
 
 @propTypes({
   options: propTypes.oneOfType([propTypes.array, propTypes.object]).isRequired,
-  renderer: propTypes.func
+  renderer: propTypes.func,
 })
 export class Select extends Editable {
   componentWillReceiveProps (props) {
@@ -335,7 +335,7 @@ export class Select extends Editable {
       props.options !== this.props.options
     ) {
       this.setState({
-        valueKey: findKey(props.options, option => option === props.value)
+        valueKey: findKey(props.options, option => option === props.value),
       })
     }
   }
@@ -402,11 +402,11 @@ const MAP_TYPE_SELECT = {
   tag: SelectTag,
   vgpuType: SelectVgpuType,
   VM: SelectVm,
-  'VM-template': SelectVmTemplate
+  'VM-template': SelectVmTemplate,
 }
 
 @propTypes({
-  value: propTypes.oneOfType([propTypes.string, propTypes.object])
+  value: propTypes.oneOfType([propTypes.string, propTypes.object]),
 })
 export class XoSelect extends Editable {
   get value () {
@@ -449,7 +449,7 @@ export class XoSelect extends Editable {
 }
 
 @propTypes({
-  value: propTypes.number.isRequired
+  value: propTypes.number.isRequired,
 })
 export class Size extends Editable {
   get value () {

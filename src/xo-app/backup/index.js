@@ -46,7 +46,7 @@ const Backup = routes('overview', {
   new: New,
   overview: Overview,
   restore: Restore,
-  'file-restore': FileRestore
+  'file-restore': FileRestore,
 })(({ children }) => (
   <Page header={HEADER} title='backupPage' formatTitle>
     {children}

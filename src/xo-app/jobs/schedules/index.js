@@ -16,7 +16,7 @@ import {
   deleteSchedule,
   subscribeJobs,
   subscribeSchedules,
-  editSchedule
+  editSchedule,
 } from 'xo'
 
 const JOB_KEY = 'genericTask'
@@ -33,7 +33,7 @@ export default class Schedules extends Component {
       cronPattern: DEFAULT_CRON_PATTERN,
       job: undefined,
       jobs: undefined,
-      timezone: undefined
+      timezone: undefined,
     }
     this.loaded = new Promise((resolve, reject) => {
       this._resolveLoaded = resolve
@@ -95,7 +95,7 @@ export default class Schedules extends Component {
       save = createSchedule(job.value.id, {
         cron: cronPattern,
         enabled: enabled.value,
-        name: name.value
+        name: name.value,
       })
     }
     return save
@@ -120,7 +120,7 @@ export default class Schedules extends Component {
     this.setState({
       cronPattern: schedule.cron,
       schedule,
-      timezone: schedule.timezone || null
+      timezone: schedule.timezone || null,
     })
   }
 
@@ -129,7 +129,7 @@ export default class Schedules extends Component {
       {
         cronPattern: DEFAULT_CRON_PATTERN,
         schedule: undefined,
-        timezone: undefined
+        timezone: undefined,
       },
       () => {
         const { name, job, enabled } = this.refs
@@ -192,7 +192,7 @@ export default class Schedules extends Component {
             <p className='text-warning'>
               {_('scheduleEditMessage', {
                 name: schedule.name,
-                id: schedule.id
+                id: schedule.id,
               })}
             </p>
           )}

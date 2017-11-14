@@ -54,11 +54,11 @@ const CONTAINER_STYLE = {
   // Therefore, when there is a scrollbar on the right side, `xo-main`
   // is too large (since the scrollbar uses a few, pixels) which makes
   // an almost useless horizontal scrollbar appear.
-  overflow: 'hidden'
+  overflow: 'hidden',
 }
 const BODY_WRAPPER_STYLE = {
   flex: 1,
-  position: 'relative'
+  position: 'relative',
 }
 const BODY_STYLE = {
   height: '100%',
@@ -66,7 +66,7 @@ const BODY_STYLE = {
   overflow: 'auto',
   position: 'absolute',
   top: 0,
-  width: '100%'
+  width: '100%',
 }
 
 @routes('home', {
@@ -87,20 +87,20 @@ const BODY_STYLE = {
   'vms/new': NewVm,
   'vms/:id': Vm,
   'xoa-update': XoaUpdates,
-  xosan: Xosan
+  xosan: Xosan,
 })
 @connectStore(state => {
   return {
     trial: state.xoaTrialState,
-    signedUp: !!state.user
+    signedUp: !!state.user,
   }
 })
 export default class XoApp extends Component {
   static contextTypes = {
-    router: React.PropTypes.object
+    router: React.PropTypes.object,
   }
   static childContextTypes = {
-    shortcuts: React.PropTypes.object.isRequired
+    shortcuts: React.PropTypes.object.isRequired,
   }
   getChildContext = () => ({ shortcuts: shortcutManager })
 
@@ -183,7 +183,7 @@ export default class XoApp extends Component {
                           <Col size={10}>{message}</Col>
                         </Row>
                       )
-                  )
+                  ),
                 ]
             )}
           </Container>

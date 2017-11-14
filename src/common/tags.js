@@ -9,7 +9,7 @@ import propTypes from './prop-types-decorator'
 
 const INPUT_STYLE = {
   margin: '2px',
-  maxWidth: '4em'
+  maxWidth: '4em',
 }
 const TAG_STYLE = {
   backgroundColor: '#2598d9',
@@ -19,18 +19,18 @@ const TAG_STYLE = {
   margin: '0.2em',
   marginTop: '-0.1em',
   padding: '0.3em',
-  verticalAlign: 'middle'
+  verticalAlign: 'middle',
 }
 const LINK_STYLE = {
-  cursor: 'pointer'
+  cursor: 'pointer',
 }
 const ADD_TAG_STYLE = {
   cursor: 'pointer',
   fontSize: '0.8em',
-  marginLeft: '0.2em'
+  marginLeft: '0.2em',
 }
 const REMOVE_TAG_STYLE = {
-  cursor: 'pointer'
+  cursor: 'pointer',
 }
 
 @propTypes({
@@ -38,7 +38,7 @@ const REMOVE_TAG_STYLE = {
   onAdd: propTypes.func,
   onChange: propTypes.func,
   onClick: propTypes.func,
-  onDelete: propTypes.func
+  onDelete: propTypes.func,
 })
 export default class Tags extends Component {
   componentWillMount () {
@@ -143,5 +143,5 @@ export const Tag = ({ type, label, onDelete, onClick }) => (
   </span>
 )
 Tag.propTypes = {
-  label: React.PropTypes.string.isRequired
+  label: React.PropTypes.string.isRequired,
 }

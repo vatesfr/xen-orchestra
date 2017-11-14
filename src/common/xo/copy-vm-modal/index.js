@@ -16,7 +16,7 @@ class CopyVmModalBody extends Component {
     return {
       compress: state.compress,
       name: this.state.name || this.props.vm.name_label,
-      sr: state.sr.id
+      sr: state.sr.id,
     }
   }
 

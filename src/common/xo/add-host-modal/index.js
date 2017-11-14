@@ -9,7 +9,7 @@ import {
   createCollectionWrapper,
   createGetObjectsOfType,
   createSelector,
-  createGetObject
+  createGetObject,
 } from 'selectors'
 import { SelectHost } from 'select-objects'
 import { differenceBy, forEach } from 'lodash'
@@ -41,7 +41,7 @@ import { differenceBy, forEach } from 'lodash'
     poolMasterPatches: createSelector(
       createGetObject((_, props) => props.pool.master),
       ({ patches }) => patches
-    )
+    ),
   }),
   { withRef: true }
 )
@@ -64,8 +64,8 @@ export default class AddHostModal extends BaseComponent {
       host,
       nMissingPatches: host
         ? differenceBy(this.props.poolMasterPatches, host.patches, 'name')
-            .length
-        : undefined
+          .length
+        : undefined,
     })
   }
 

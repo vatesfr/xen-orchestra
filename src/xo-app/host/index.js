@@ -13,14 +13,14 @@ import {
   fetchHostStats,
   installAllHostPatches,
   installHostPatch,
-  subscribeHostMissingPatches
+  subscribeHostMissingPatches,
 } from 'xo'
 import { connectStore, routes } from 'utils'
 import {
   createDoesHostNeedRestart,
   createGetObject,
   createGetObjectsOfType,
-  createSelector
+  createSelector,
 } from 'selectors'
 import { assign, isEmpty, isString, map, pick, sortBy, sum } from 'lodash'
 
@@ -45,7 +45,7 @@ const isRunning = host => host && host.power_state === 'Running'
   network: TabNetwork,
   patches: TabPatches,
   stats: TabStats,
-  storage: TabStorage
+  storage: TabStorage,
 })
 @connectStore(() => {
   const getHost = createGetObject()
@@ -92,7 +92,7 @@ const isRunning = host => host && host.power_state === 'Running'
     (poolsPatches, hostsPatches) =>
       map(hostsPatches, hostPatch => ({
         ...hostPatch,
-        poolPatch: poolsPatches[hostPatch.pool_patch]
+        poolPatch: poolsPatches[hostPatch.pool_patch],
       }))
   )
 
@@ -119,13 +119,13 @@ const isRunning = host => host && host.power_state === 'Running'
       pifs: getPifs(state, props),
       pool: getPool(state, props),
       vmController: getVmController(state, props),
-      vms: getHostVms(state, props)
+      vms: getHostVms(state, props),
     }
   }
 })
 export default class Host extends Component {
   static contextTypes = {
-    router: React.PropTypes.object
+    router: React.PropTypes.object,
   }
 
   loop (host = this.props.host) {
@@ -155,7 +155,7 @@ export default class Host extends Component {
       clearTimeout(this.timeout)
       this.setState(
         {
-          statsOverview: stats
+          statsOverview: stats,
         },
         () => {
           this.timeout = setTimeout(this.loop, stats.interval * 1000)
@@ -193,7 +193,7 @@ export default class Host extends Component {
       this.loop(hostNext)
     } else if (isRunning(hostCur) && !isRunning(hostNext)) {
       this.setState({
-        statsOverview: undefined
+        statsOverview: undefined,
       })
     }
   }
@@ -207,7 +207,7 @@ export default class Host extends Component {
       host,
       missingPatches =>
         this.setState({
-          missingPatches: sortBy(missingPatches, patch => -patch.time)
+          missingPatches: sortBy(missingPatches, patch => -patch.time),
         })
     )
   }
@@ -328,12 +328,12 @@ export default class Host extends Component {
         'pifs',
         'srs',
         'vmController',
-        'vms'
+        'vms',
       ]),
       pick(this.state, ['missingPatches', 'statsOverview']),
       {
         installAllPatches: this._installAllPatches,
-        installPatch: this._installPatch
+        installPatch: this._installPatch,
       }
     )
     return (

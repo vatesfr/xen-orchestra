@@ -11,10 +11,10 @@ import { isAdmin } from 'selectors'
 const Upgrade = propTypes({
   available: propTypes.number,
   place: propTypes.string.isRequired,
-  required: propTypes.number
+  required: propTypes.number,
 })(
   connectStore({
-    isAdmin
+    isAdmin,
   })
 )(
   ({ available, children, isAdmin, place, required = available }) =>

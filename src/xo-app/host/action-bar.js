@@ -7,7 +7,7 @@ import {
   restartHost,
   restartHostAgent,
   startHost,
-  stopHost
+  stopHost,
 } from 'xo'
 
 const hostActionBarByState = {
@@ -39,7 +39,7 @@ const hostActionBarByState = {
         label={_('startHostLabel')}
       />
     </ActionBar>
-  )
+  ),
 }
 
 const HostActionBar = ({ host }) => {

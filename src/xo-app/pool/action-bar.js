@@ -8,10 +8,10 @@ import { addSubscriptions, connectStore, noop } from 'utils'
 import { addHostToPool, disconnectServer, subscribeServers } from 'xo'
 
 @connectStore({
-  hosts: createGetObjectsOfType('host')
+  hosts: createGetObjectsOfType('host'),
 })
 @addSubscriptions({
-  servers: subscribeServers
+  servers: subscribeServers,
 })
 export default class PoolActionBar extends Component {
   _getMasterAddress = createSelector(

@@ -23,13 +23,13 @@ import {
   editRemote,
   enableRemote,
   subscribeRemotes,
-  testRemote
+  testRemote,
 } from 'xo'
 
 const remoteTypes = {
   file: 'remoteTypeLocal',
   nfs: 'remoteTypeNfs',
-  smb: 'remoteTypeSmb'
+  smb: 'remoteTypeSmb',
 }
 
 class AbstractRemote extends Component {
@@ -54,7 +54,7 @@ class AbstractRemote extends Component {
         <span>
           <Icon icon={answer.success ? 'success' : 'error'} />{' '}
           {_(answer.success ? 'remoteTestSuccess' : 'remoteTestFailure', {
-            name: remote.name
+            name: remote.name,
           })}
         </span>
       )
@@ -287,21 +287,21 @@ class SmbRemote extends AbstractRemote {
     subscribeRemotes(rawRemotes => {
       rawRemotes = map(rawRemotes, remote => ({
         ...remote,
-        ...parse(remote.url)
+        ...parse(remote.url),
       }))
       const remotes = {}
       for (const remoteType in remoteTypes) {
         remotes[remoteType] = filter(rawRemotes, r => r.type === remoteType)
       }
       cb(remotes)
-    })
+    }),
 })
 @injectIntl
 export default class Remotes extends Component {
   constructor (props) {
     super(props)
     this.state = {
-      type: 'file'
+      type: 'file',
     }
   }
 
@@ -316,7 +316,7 @@ export default class Remotes extends Component {
           <Icon icon={'error'} /> {_('remoteTestName')}
         </span>,
         <p>{_('remoteTestNameFailure')}</p>
-        )
+      )
       : this._createRemote()
 
   _createRemote = async () => {
@@ -326,7 +326,7 @@ export default class Remotes extends Component {
     const urlParams = {
       type,
       host: host && host.value,
-      path: path && path.value
+      path: path && path.value,
     }
     username && (urlParams.username = username.value)
     password && (urlParams.password = password.value)

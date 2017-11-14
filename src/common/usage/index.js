@@ -24,7 +24,7 @@ const Usage = ({ total, children }) => {
   )
 }
 Usage.propTypes = {
-  total: PropTypes.number.isRequired
+  total: PropTypes.number.isRequired,
 }
 export { Usage as default }
 
@@ -46,7 +46,7 @@ Element.propTypes = {
   href: PropTypes.string,
   others: PropTypes.bool,
   tooltip: PropTypes.node,
-  value: PropTypes.number.isRequired
+  value: PropTypes.number.isRequired,
 }
 export { Element as UsageElement }
 
@@ -64,7 +64,7 @@ export const Limits = ({ used, toBeUsed, limit }) => {
           toBeUsed > available ? 'limits-over-used' : 'limits-to-be-used'
         }
         style={{
-          width: Math.min(toBeUsed || 0, available) / limit * 100 + '%'
+          width: Math.min(toBeUsed || 0, available) / limit * 100 + '%',
         }}
       />
     </span>
@@ -73,5 +73,5 @@ export const Limits = ({ used, toBeUsed, limit }) => {
 Limits.propTypes = {
   used: PropTypes.number,
   toBeUsed: PropTypes.number,
-  limit: PropTypes.number.isRequired
+  limit: PropTypes.number.isRequired,
 }

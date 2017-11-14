@@ -33,7 +33,7 @@ const SVG_STYLE = {
   left: 0,
   position: 'absolute',
   top: 0,
-  width: '100%'
+  width: '100%',
 }
 
 const SVG_CONTAINER_STYLE = {
@@ -41,34 +41,34 @@ const SVG_CONTAINER_STYLE = {
   'vertical-align': 'middle',
   overflow: 'hidden',
   position: 'relative',
-  width: '100%'
+  width: '100%',
 }
 
 const SVG_CONTENT = {
-  'font-size': `${CHART_WIDTH / 100}px`
+  'font-size': `${CHART_WIDTH / 100}px`,
 }
 
 const COLUMN_TITLE_STYLE = {
   'font-size': '100%',
   'font-weight': 'bold',
-  'text-anchor': 'middle'
+  'text-anchor': 'middle',
 }
 
 const COLUMN_VALUES_STYLE = {
-  'font-size': '100%'
+  'font-size': '100%',
 }
 
 const LINES_CONTAINER_STYLE = {
   'stroke-opacity': 0.5,
   'stroke-width': CHART_WIDTH / DEFAULT_STROKE_WIDTH_FACTOR,
   fill: 'none',
-  stroke: 'red'
+  stroke: 'red',
 }
 
 const TOOLTIP_STYLE = {
   fill: 'white',
   'font-size': '125%',
-  'font-weight': 'bold'
+  'font-weight': 'bold',
 }
 
 // ===================================================================
@@ -78,11 +78,11 @@ const TOOLTIP_STYLE = {
     propTypes.shape({
       data: propTypes.object.isRequired,
       label: propTypes.string.isRequired,
-      objectId: propTypes.string.isRequired
+      objectId: propTypes.string.isRequired,
     })
   ).isRequired,
   labels: propTypes.object.isRequired,
-  renderers: propTypes.object
+  renderers: propTypes.object,
 })
 export default class XoParallelChart extends Component {
   _line = d3.line()
@@ -133,7 +133,7 @@ export default class XoParallelChart extends Component {
     // Brush area: (x0, y0), (x1, y1)
     .extent([
       [-BRUSH_SELECTION_WIDTH / 2, 0],
-      [BRUSH_SELECTION_WIDTH / 2, CHART_HEIGHT]
+      [BRUSH_SELECTION_WIDTH / 2, CHART_HEIGHT],
     ])
     .on('brush', this._handleBrush)
     .on('end', this._handleBrush)
@@ -258,7 +258,7 @@ export default class XoParallelChart extends Component {
         map(
           columnsIds.map(columnId => [
             x(columnId),
-            y[columnId](elem.data[columnId])
+            y[columnId](elem.data[columnId]),
           ])
         )
       )

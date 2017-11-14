@@ -42,7 +42,7 @@ const Jobs = routes('overview', {
   new: New,
   overview: Overview,
   schedules: Schedules,
-  'schedules/:id/edit': EditSchedule
+  'schedules/:id/edit': EditSchedule,
 })(({ children }) => (
   <Page header={HEADER} title='jobsPage' formatTitle>
     {children}

@@ -13,7 +13,7 @@ export const isIpV6 = isIp.v6
 const ipv4 = /^(?:(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(?:\.(?!$)|$)){4}$/
 
 function ip2hex (ip) {
-  let parts = ip.split('.').map(str => parseInt(str, 10))
+  const parts = ip.split('.').map(str => parseInt(str, 10))
   let n = 0
 
   n += parts[3]
@@ -38,7 +38,7 @@ function * range (ip1, ip2) {
   let hex2 = ip2hex(ip2)
 
   if (hex > hex2) {
-    let tmp = hex
+    const tmp = hex
     hex = hex2
     hex2 = tmp
   }

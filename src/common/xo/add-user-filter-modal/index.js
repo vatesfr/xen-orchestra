@@ -11,7 +11,7 @@ import { createSelector } from '../../selectors'
 @propTypes({
   type: propTypes.string.isRequired,
   user: propTypes.object.isRequired,
-  value: propTypes.string.isRequired
+  value: propTypes.string.isRequired,
 })
 export default class SaveNewUserFilterModalBody extends Component {
   get value () {

@@ -17,12 +17,12 @@ import { createUser, deleteUser, editUser, subscribeUsers } from 'xo'
 const permissions = {
   none: {
     label: _('userLabel'),
-    value: 'none'
+    value: 'none',
   },
   admin: {
     label: _('adminLabel'),
-    value: 'admin'
-  }
+    value: 'admin',
+  },
 }
 
 const USER_COLUMNS = [
@@ -34,7 +34,7 @@ const USER_COLUMNS = [
         value={user.email}
       />
     ),
-    sortCriteria: user => user.email
+    sortCriteria: user => user.email,
   },
   {
     name: _('userPermissionColumn'),
@@ -49,7 +49,7 @@ const USER_COLUMNS = [
         options={map(permissions)}
       />
     ),
-    sortCriteria: user => user.permission
+    sortCriteria: user => user.permission,
   },
   {
     name: _('userPasswordColumn'),
@@ -58,7 +58,7 @@ const USER_COLUMNS = [
         onChange={password => editUser(user, { password })}
         value=''
       />
-    )
+    ),
   },
   {
     name: '',
@@ -69,19 +69,19 @@ const USER_COLUMNS = [
         handlerParam={user}
         btnStyle='danger'
       />
-    )
-  }
+    ),
+  },
 ]
 
 @addSubscriptions({
-  users: cb => subscribeUsers(users => cb(keyBy(users, 'id')))
+  users: cb => subscribeUsers(users => cb(keyBy(users, 'id'))),
 })
 @injectIntl
 export default class Users extends Component {
   state = {
     email: '',
     password: '',
-    permission: permissions.none
+    permission: permissions.none,
   }
 
   _create = () => {

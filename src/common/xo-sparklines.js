@@ -17,7 +17,7 @@ const templateError = <div>No stats.</div>
 // ===================================================================
 
 export const CpuSparkLines = propTypes({
-  data: propTypes.object.isRequired
+  data: propTypes.object.isRequired,
 })(({ data, width = WIDTH, height = HEIGHT, strokeWidth = STROKE_WIDTH }) => {
   const { cpus } = data.stats
 
@@ -39,7 +39,7 @@ export const CpuSparkLines = propTypes({
           strokeWidth,
           stroke: '#366e98',
           fill: '#366e98',
-          fillOpacity: 0.5
+          fillOpacity: 0.5,
         }}
         color='#2598d9'
       />
@@ -48,7 +48,7 @@ export const CpuSparkLines = propTypes({
 })
 
 export const MemorySparkLines = propTypes({
-  data: propTypes.object.isRequired
+  data: propTypes.object.isRequired,
 })(({ data, width = WIDTH, height = HEIGHT, strokeWidth = STROKE_WIDTH }) => {
   const { memory, memoryUsed } = data.stats
 
@@ -70,7 +70,7 @@ export const MemorySparkLines = propTypes({
           strokeWidth,
           stroke: '#990822',
           fill: '#990822',
-          fillOpacity: 0.5
+          fillOpacity: 0.5,
         }}
         color='#cc0066'
       />
@@ -79,7 +79,7 @@ export const MemorySparkLines = propTypes({
 })
 
 export const XvdSparkLines = propTypes({
-  data: propTypes.object.isRequired
+  data: propTypes.object.isRequired,
 })(({ data, width = WIDTH, height = HEIGHT, strokeWidth = STROKE_WIDTH }) => {
   const { xvds } = data.stats
 
@@ -100,7 +100,7 @@ export const XvdSparkLines = propTypes({
           strokeWidth,
           stroke: '#089944',
           fill: '#089944',
-          fillOpacity: 0.5
+          fillOpacity: 0.5,
         }}
         color='#33cc33'
       />
@@ -109,7 +109,7 @@ export const XvdSparkLines = propTypes({
 })
 
 export const NetworkSparkLines = propTypes({
-  data: propTypes.object.isRequired
+  data: propTypes.object.isRequired,
 })(({ data, width = WIDTH, height = HEIGHT, strokeWidth = STROKE_WIDTH }) => {
   const { pifs, vifs: ifs = pifs } = data.stats
 
@@ -128,7 +128,7 @@ export const NetworkSparkLines = propTypes({
           strokeWidth,
           stroke: '#eca649',
           fill: '#eca649',
-          fillOpacity: 0.5
+          fillOpacity: 0.5,
         }}
         color='#ffd633'
       />
@@ -137,7 +137,7 @@ export const NetworkSparkLines = propTypes({
 })
 
 export const LoadSparkLines = propTypes({
-  data: propTypes.object.isRequired
+  data: propTypes.object.isRequired,
 })(({ data, width = WIDTH, height = HEIGHT, strokeWidth = STROKE_WIDTH }) => {
   const { load } = data.stats
 
@@ -152,7 +152,7 @@ export const LoadSparkLines = propTypes({
           strokeWidth,
           stroke: '#33cc33',
           fill: '#33cc33',
-          fillOpacity: 0.5
+          fillOpacity: 0.5,
         }}
         color='#33cc33'
       />

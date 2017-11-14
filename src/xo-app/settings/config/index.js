@@ -28,7 +28,7 @@ export default class Config extends Component {
   _handleDrop = files =>
     this.setState({
       configFile: files && files[0],
-      importStatus: 'selectedFile'
+      importStatus: 'selectedFile',
     })
 
   _unselectFile = () =>
@@ -93,7 +93,7 @@ export default class Config extends Component {
                   <a href='https://xen-orchestra.com'>
                     https://xen-orchestra.com
                   </a>
-                )
+                ),
               })}
             </p>
           </div>

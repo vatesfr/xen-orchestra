@@ -9,16 +9,16 @@ import propTypes from './prop-types-decorator'
   children: propTypes.any.isRequired,
   className: propTypes.string,
   buttonText: propTypes.any.isRequired,
-  defaultOpen: propTypes.bool
+  defaultOpen: propTypes.bool,
 })
 export default class Collapse extends Component {
   state = {
-    isOpened: this.props.defaultOpen
+    isOpened: this.props.defaultOpen,
   }
 
   _onClick = () => {
     this.setState({
-      isOpened: !this.state.isOpened
+      isOpened: !this.state.isOpened,
     })
   }
 

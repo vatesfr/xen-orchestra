@@ -3834,5 +3834,5 @@ export default {
   xosanNoPackFound: undefined,
 
   // Original text: 'At least one of these version requirements must be satisfied by all the hosts in this pool:'
-  xosanPackRequirements: undefined
+  xosanPackRequirements: undefined,
 }

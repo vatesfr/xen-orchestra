@@ -19,27 +19,27 @@ import {
   isEmpty,
   keys,
   map,
-  pickBy
+  pickBy,
 } from 'lodash'
 import {
   createFilter,
   createGetObjectsOfType,
   createSelector,
-  createSort
+  createSort,
 } from 'selectors'
 import {
   addSubscriptions,
   compareVersions,
   connectStore,
   formatSize,
-  mapPlus
+  mapPlus,
 } from 'utils'
 import {
   computeXosanPossibleOptions,
   createXosanSR,
   downloadAndInstallXosanPack,
   restartHostsAgents,
-  subscribeResourceCatalog
+  subscribeResourceCatalog,
 } from 'xo'
 
 import Graph from './graph'
@@ -60,19 +60,19 @@ const DEFAULT_BRICKSIZE = 100 * 1024 * 1024 * 1024 // 100 GiB
 const DEFAULT_MEMORY = 2 * 1024 * 1024 * 1024 // 2 GiB
 
 @addSubscriptions({
-  catalog: subscribeResourceCatalog
+  catalog: subscribeResourceCatalog,
 })
 @connectStore({
   pbds: createGetObjectsOfType('PBD'),
   hosts: createGetObjectsOfType('host'),
-  srs: createGetObjectsOfType('SR')
+  srs: createGetObjectsOfType('SR'),
 })
 export default class NewXosan extends Component {
   state = {
     selectedSrs: {},
     brickSize: DEFAULT_BRICKSIZE,
     ipRange: '172.31.100.0',
-    memorySize: DEFAULT_MEMORY
+    memorySize: DEFAULT_MEMORY,
   }
 
   _selectPool = pool => {
@@ -81,7 +81,7 @@ export default class NewXosan extends Component {
       brickSize: DEFAULT_BRICKSIZE,
       memorySize: DEFAULT_MEMORY,
       pif: undefined,
-      pool
+      pool,
     })
   }
 
@@ -100,7 +100,7 @@ export default class NewXosan extends Component {
         suggestions: await computeXosanPossibleOptions(
           keys(pickBy(selectedSrs)),
           customBrickSize ? brickSize : undefined
-        )
+        ),
       })
     }
   )
@@ -175,7 +175,7 @@ export default class NewXosan extends Component {
 
   _getLatestTemplate = createSelector(
     createFilter(() => this.props.catalog && map(this.props.catalog.xosan), [
-      ({ type }) => type === 'xva'
+      ({ type }) => type === 'xva',
     ]),
     _findLatestTemplate
   )
@@ -221,7 +221,7 @@ export default class NewXosan extends Component {
       redundancy: params.redundancy,
       brickSize: this.state.customBrickSize ? this.state.brickSize : undefined,
       memorySize: this.state.memorySize,
-      ipRange: this.state.customIpRange ? this.state.ipRange : undefined
+      ipRange: this.state.customIpRange ? this.state.ipRange : undefined,
     })
 
     this.props.onSrCreationStarted()
@@ -240,7 +240,7 @@ export default class NewXosan extends Component {
       suggestion,
       suggestions,
       useVlan,
-      vlan
+      vlan,
     } = this.state
 
     const { hostsNeedRestartByPool, noPacksByPool, poolPredicate } = this.props
@@ -353,7 +353,7 @@ export default class NewXosan extends Component {
                                 used: String(
                                   Math.round(sr.physical_usage / sr.size * 100)
                                 ),
-                                free: formatSize(sr.size - sr.physical_usage)
+                                free: formatSize(sr.size - sr.physical_usage),
                               })}
                             >
                               <progress
@@ -520,7 +520,7 @@ export default class NewXosan extends Component {
                   {_('xosanCreate')}
                 </ActionButton>
               </Col>
-            </Row>
+            </Row>,
           ]}
         <hr />
       </Container>

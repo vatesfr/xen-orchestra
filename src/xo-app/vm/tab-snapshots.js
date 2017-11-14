@@ -16,7 +16,7 @@ import {
   exportVm,
   editVm,
   revertSnapshot,
-  snapshotVm
+  snapshotVm,
 } from 'xo'
 
 const COLUMNS = [
@@ -42,7 +42,7 @@ const COLUMNS = [
     default: true,
     name: _('snapshotDate'),
     sortCriteria: _ => _.snapshot_time,
-    sortOrder: 'desc'
+    sortOrder: 'desc',
   },
   {
     itemRenderer: snapshot => (
@@ -52,7 +52,7 @@ const COLUMNS = [
       />
     ),
     name: _('snapshotName'),
-    sortCriteria: _ => _.name_label
+    sortCriteria: _ => _.name_label,
   },
   {
     itemRenderer: snapshot => (
@@ -62,39 +62,39 @@ const COLUMNS = [
       />
     ),
     name: _('snapshotDescription'),
-    sortCriteria: _ => _.name_description
-  }
+    sortCriteria: _ => _.name_description,
+  },
 ]
 
 const INDIVIDUAL_ACTIONS = [
   {
     handler: copyVm,
     icon: 'vm-copy',
-    label: _('copySnapshot')
+    label: _('copySnapshot'),
   },
   {
     handler: exportVm,
     icon: 'export',
-    label: _('exportSnapshot')
+    label: _('exportSnapshot'),
   },
   {
     handler: revertSnapshot,
     icon: 'snapshot-revert',
     label: _('revertSnapshot'),
-    level: 'warning'
+    level: 'warning',
   },
   {
     handler: deleteSnapshot,
     icon: 'delete',
     label: _('deleteSnapshot'),
-    level: 'danger'
-  }
+    level: 'danger',
+  },
 ]
 
 @connectStore(() => ({
   snapshots: createGetObjectsOfType('VM-snapshot')
     .pick((_, props) => props.vm.snapshots)
-    .sort()
+    .sort(),
 }))
 export default class TabSnapshot extends Component {
   render () {

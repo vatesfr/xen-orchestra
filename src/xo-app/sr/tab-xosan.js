@@ -22,7 +22,7 @@ import {
   // removeXosanBricks,
   replaceXosanBrick,
   startVm,
-  subscribeVolumeInfo
+  subscribeVolumeInfo,
 } from 'xo'
 
 import { INFO_TYPES } from '../xosan'
@@ -34,13 +34,13 @@ const ISSUE_CODE_TO_MESSAGE = {
   VMS_DOWN: 'xosanVmsNotRunning',
   VMS_NOT_FOUND: 'xosanVmsNotFound',
   FILES_NEED_HEALING: 'xosanFilesNeedHealing',
-  HOST_NOT_IN_NETWORK: 'xosanHostNotInNetwork'
+  HOST_NOT_IN_NETWORK: 'xosanHostNotInNetwork',
 }
 
 const BORDERS = {
   border: 'solid 2px #ccc',
   borderRadius: '5px',
-  borderTop: 'none'
+  borderTop: 'none',
 }
 
 const Issues = ({ issues }) => (
@@ -84,14 +84,14 @@ const Field = ({ title, children }) => (
 
 @connectStore({
   srs: createGetObjectsOfType('SR'),
-  vms: createGetObjectsOfType('VM')
+  vms: createGetObjectsOfType('VM'),
 })
 class Node extends Component {
   _replaceBrick = async ({ brick, vm }) => {
     const { sr, brickSize, onSameVm = false } = await confirm({
       icon: 'refresh',
       title: _('xosanReplace'),
-      body: <ReplaceBrickModalBody vm={vm} />
+      body: <ReplaceBrickModalBody vm={vm} />,
     })
 
     if (sr == null || brickSize == null) {
@@ -110,7 +110,7 @@ class Node extends Component {
       used: String(
         Math.round(100 - +statusDetail.sizeFree / +statusDetail.sizeTotal * 100)
       ),
-      free: formatSize(+statusDetail.sizeFree)
+      free: formatSize(+statusDetail.sizeFree),
     })
   )
 
@@ -122,7 +122,7 @@ class Node extends Component {
           100 - +statusDetail.inodesFree / +statusDetail.inodesTotal * 100
         )
       ),
-      free: formatSize(+statusDetail.inodesFree)
+      free: formatSize(+statusDetail.inodesFree),
     })
   )
 
@@ -137,7 +137,7 @@ class Node extends Component {
       status,
       statusDetail,
       uuid,
-      vm
+      vm,
     } = this.props.node
 
     return (
@@ -202,7 +202,7 @@ class Node extends Component {
                   style={{
                     display: 'inline-block',
                     width: '20em',
-                    height: '1em'
+                    height: '1em',
                   }}
                 >
                   <Tooltip
@@ -259,7 +259,7 @@ class Node extends Component {
                       style={{
                         display: 'inline-block',
                         width: '20em',
-                        height: '1em'
+                        height: '1em',
                       }}
                     >
                       <Tooltip
@@ -292,7 +292,7 @@ class Node extends Component {
                   </Field>,
                   <Field key='path' title={_('xosanPath')}>
                     {statusDetail.path}
-                  </Field>
+                  </Field>,
                 ]}
               </div>,
               <div>
@@ -338,7 +338,7 @@ class Node extends Component {
                       ))}
                     </div>
                   )}
-              </div>
+              </div>,
             ]}
           </Container>
         </div>
@@ -353,7 +353,7 @@ class Node extends Component {
   vms: createGetObjectsOfType('VM'),
   hosts: createGetObjectsOfType('host'),
   vbds: createGetObjectsOfType('VBD'),
-  vdis: createGetObjectsOfType('VDI')
+  vdis: createGetObjectsOfType('VDI'),
 }))
 @addSubscriptions(({ sr }) => {
   const subscriptions = {}
@@ -374,7 +374,7 @@ export default class TabXosan extends Component {
           sr={this.props.sr}
           subvolumeSize={this._getSubvolumeSize()}
         />
-      )
+      ),
     })
 
     if (brickSize == null || (srs && srs.length) !== this._getSubvolumeSize()) {
@@ -461,12 +461,12 @@ export default class TabXosan extends Component {
           size: isEmpty(vm && vm.$VBDs)
             ? null
             : sum(
-                map(vm.$VBDs, vbdId => {
-                  const vdi = vdis[vbds[vbdId].VDI]
-                  return vdi === undefined ? 0 : vdi.size
-                })
-              ),
-          vm
+              map(vm.$VBDs, vbdId => {
+                const vdi = vdis[vbds[vbdId].VDI]
+                return vdi === undefined ? 0 : vdi.size
+              })
+            ),
+          vm,
         }
       })
 
@@ -572,8 +572,8 @@ export default class TabXosan extends Component {
           params: { hostName: hosts[host].name_label },
           fix: {
             action: () => fixHostNotInXosanNetwork(sr.id, host),
-            title: _('xosanIssueHostNotInNetwork')
-          }
+            title: _('xosanIssueHostNotInNetwork'),
+          },
         })
       })
 

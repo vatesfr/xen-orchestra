@@ -7,7 +7,7 @@ import Link from './link'
 
 const STYLE = {
   marginBottom: '1em',
-  marginLeft: '1em'
+  marginLeft: '1em',
 }
 
 const TabButton = ({ labelId, ...props }) => (

@@ -12,7 +12,7 @@ export const Action = ({
   icon,
   label,
   pending,
-  redirectOnSuccess
+  redirectOnSuccess,
 }) => (
   <ActionButton
     handler={handler}
@@ -33,7 +33,7 @@ Action.propTypes = {
   icon: propTypes.string.isRequired,
   label: propTypes.node,
   pending: propTypes.bool,
-  redirectOnSuccess: propTypes.string
+  redirectOnSuccess: propTypes.string,
 }
 
 const ActionBar = ({ children, handlerParam = noop, display = 'both' }) => (
@@ -47,7 +47,7 @@ const ActionBar = ({ children, handlerParam = noop, display = 'both' }) => (
       return cloneElement(child, {
         display: props.display || display,
         handlerParam: props.handlerParam || handlerParam,
-        key
+        key,
       })
     })}
   </ButtonGroup>
@@ -55,6 +55,6 @@ const ActionBar = ({ children, handlerParam = noop, display = 'both' }) => (
 
 ActionBar.propTypes = {
   display: propTypes.oneOf(['icon', 'both']),
-  handlerParam: propTypes.any
+  handlerParam: propTypes.any,
 }
 export { ActionBar as default }

@@ -17,18 +17,18 @@ import { descriptionRender, forceDisplayOptionalAttr } from './helpers'
   label: propTypes.any.isRequired,
   required: propTypes.bool,
   schema: propTypes.object.isRequired,
-  uiSchema: propTypes.object
+  uiSchema: propTypes.object,
 })
 @uncontrollableInput()
 export default class ObjectInput extends Component {
   state = {
-    use: this.props.required || forceDisplayOptionalAttr(this.props)
+    use: this.props.required || forceDisplayOptionalAttr(this.props),
   }
 
   _onChildChange = (value, key) => {
     this.props.onChange({
       ...this.props.value,
-      [key]: value
+      [key]: value,
     })
   }
 
@@ -46,9 +46,9 @@ export default class ObjectInput extends Component {
         required,
         schema,
         uiSchema,
-        value = EMPTY_OBJECT
+        value = EMPTY_OBJECT,
       },
-      state: { use }
+      state: { use },
     } = this
 
     const childDepth = depth + 2

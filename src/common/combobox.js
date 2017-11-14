@@ -7,16 +7,16 @@ import Component from './base-component'
 import propTypes from './prop-types-decorator'
 
 @uncontrollableInput({
-  defaultValue: ''
+  defaultValue: '',
 })
 @propTypes({
   disabled: propTypes.bool,
   options: propTypes.oneOfType([
     propTypes.arrayOf(propTypes.string),
-    propTypes.objectOf(propTypes.string)
+    propTypes.objectOf(propTypes.string),
   ]),
   onChange: propTypes.func.isRequired,
-  value: propTypes.string.isRequired
+  value: propTypes.string.isRequired,
 })
 export default class Combobox extends Component {
   _handleChange = event => {

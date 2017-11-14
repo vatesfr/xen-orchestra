@@ -18,7 +18,7 @@ import {
   createGetObjectsOfType,
   createPicker,
   createSelector,
-  getObject
+  getObject,
 } from '../../selectors'
 import { isSrShared } from 'xo'
 
@@ -58,7 +58,7 @@ import styles from './index.css'
       pools: getPools,
       vbds: getVbds,
       vdis: getVdis,
-      vifs: getVifs
+      vifs: getVifs,
     }
   },
   { withRef: true }
@@ -69,7 +69,7 @@ export default class MigrateVmModalBody extends BaseComponent {
 
     this.state = {
       mapVdisSrs: {},
-      mapVifsNetworks: {}
+      mapVifsNetworks: {},
     }
 
     this._getHostPredicate = createSelector(
@@ -82,7 +82,7 @@ export default class MigrateVmModalBody extends BaseComponent {
       host =>
         host
           ? sr =>
-              isSrWritable(sr) &&
+            isSrWritable(sr) &&
               (sr.$container === host.id || sr.$container === host.$pool)
           : false
     )
@@ -130,7 +130,7 @@ export default class MigrateVmModalBody extends BaseComponent {
       sr: this.state.mainSr && this.state.mainSr.id,
       mapVdisSrs: resolveIds(this.state.mapVdisSrs),
       mapVifsNetworks: this.state.mapVifsNetworks,
-      migrationNetwork: this.state.migrationNetworkId
+      migrationNetwork: this.state.migrationNetworkId,
     }
   }
 
@@ -143,7 +143,7 @@ export default class MigrateVmModalBody extends BaseComponent {
     if (!host) {
       this.setState({
         host: undefined,
-        intraPool: undefined
+        intraPool: undefined,
       })
       return
     }
@@ -173,7 +173,7 @@ export default class MigrateVmModalBody extends BaseComponent {
         host,
         intraPool,
         mapVifsNetworks: undefined,
-        migrationNetwork: undefined
+        migrationNetwork: undefined,
       })
       return
     }
@@ -204,7 +204,7 @@ export default class MigrateVmModalBody extends BaseComponent {
       host,
       intraPool,
       mapVifsNetworks: defaultNetworksForVif,
-      migrationNetworkId: defaultMigrationNetworkId
+      migrationNetworkId: defaultMigrationNetworkId,
     })
   }
 
@@ -218,7 +218,7 @@ export default class MigrateVmModalBody extends BaseComponent {
       host,
       intraPool,
       mapVifsNetworks,
-      migrationNetworkId
+      migrationNetworkId,
     } = this.state
     return (
       <div>
@@ -292,8 +292,8 @@ export default class MigrateVmModalBody extends BaseComponent {
                             this.setState({
                               mapVifsNetworks: {
                                 ...mapVifsNetworks,
-                                [vif.id]: network.id
-                              }
+                                [vif.id]: network.id,
+                              },
                             })
                           }
                           predicate={this._getTargetNetworkPredicate()}

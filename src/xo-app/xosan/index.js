@@ -16,7 +16,7 @@ import {
   isEmpty,
   map,
   mapValues,
-  some
+  some,
 } from 'lodash'
 import { createGetObjectsOfType, createSelector } from 'selectors'
 import {
@@ -24,14 +24,14 @@ import {
   connectStore,
   cowSet,
   formatSize,
-  isXosanPack
+  isXosanPack,
 } from 'utils'
 import {
   deleteSr,
   registerXosan,
   subscribePlugins,
   subscribeResourceCatalog,
-  subscribeVolumeInfo
+  subscribeVolumeInfo,
 } from 'xo'
 
 import NewXosan from './new-xosan'
@@ -65,7 +65,7 @@ const XOSAN_COLUMNS = [
               <ul>
                 {map(status, (_, status) => <li key={status}>{status}</li>)}
               </ul>
-              )
+            ),
           })
 
       if (pbdsDetached != null || badStatus != null) {
@@ -81,7 +81,7 @@ const XOSAN_COLUMNS = [
           <Icon icon='running' />
         </Tooltip>
       )
-    }
+    },
   },
   {
     name: _('xosanPool'),
@@ -89,12 +89,12 @@ const XOSAN_COLUMNS = [
       sr.pool == null ? null : (
         <Link to={`/pools/${sr.pool.id}`}>{sr.pool.name_label}</Link>
       ),
-    sortCriteria: sr => sr.pool && sr.pool.name_label
+    sortCriteria: sr => sr.pool && sr.pool.name_label,
   },
   {
     name: _('xosanName'),
     itemRenderer: sr => <Link to={`/srs/${sr.id}`}>{sr.name_label}</Link>,
-    sortCriteria: sr => sr.name_label
+    sortCriteria: sr => sr.name_label,
   },
   {
     name: _('xosanHosts'),
@@ -102,15 +102,15 @@ const XOSAN_COLUMNS = [
       <span>
         {map(sr.hosts, (host, i) => [
           i ? ', ' : null,
-          <Link to={`/hosts/${host.id}`}>{host.name_label}</Link>
+          <Link to={`/hosts/${host.id}`}>{host.name_label}</Link>,
         ])}
       </span>
-    )
+    ),
   },
   {
     name: _('xosanSize'),
     itemRenderer: sr => formatSize(sr.size),
-    sortCriteria: sr => sr.size
+    sortCriteria: sr => sr.size,
   },
   {
     name: _('xosanUsedSpace'),
@@ -119,7 +119,7 @@ const XOSAN_COLUMNS = [
         <Tooltip
           content={_('spaceLeftTooltip', {
             used: String(Math.round(sr.physical_usage * 100 / sr.size)),
-            free: formatSize(sr.size - sr.physical_usage)
+            free: formatSize(sr.size - sr.physical_usage),
           })}
         >
           <progress
@@ -129,8 +129,8 @@ const XOSAN_COLUMNS = [
           />
         </Tooltip>
       ) : null,
-    sortCriteria: sr => sr.physical_usage * 100 / sr.size
-  }
+    sortCriteria: sr => sr.physical_usage * 100 / sr.size,
+  },
 ]
 
 const XOSAN_INDIVIDUAL_ACTIONS = [
@@ -138,8 +138,8 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
     handler: deleteSr,
     icon: 'delete',
     label: _('xosanDelete'),
-    level: 'danger'
-  }
+    level: 'danger',
+  },
 ]
 
 @connectStore(() => {
@@ -158,7 +158,7 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
   const getPbdsBySr = createGetObjectsOfType('PBD').groupBy('SR')
   const getXosanSrs = createSelector(
     createGetObjectsOfType('SR').filter([
-      sr => sr.shared && sr.SR_type === 'xosan'
+      sr => sr.shared && sr.SR_type === 'xosan',
     ]),
     getPbdsBySr,
     getPools,
@@ -171,7 +171,7 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
         hosts: map(pbdsBySr[sr.id], ({ host }) => find(hosts, ['id', host])),
         config:
           sr.other_config['xo:xosan_config'] &&
-          JSON.parse(sr.other_config['xo:xosan_config'])
+          JSON.parse(sr.other_config['xo:xosan_config']),
       }))
     }
   )
@@ -219,12 +219,12 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
     noPacksByPool,
     poolPredicate: getPoolPredicate,
     pools: getPools,
-    xosanSrs: getXosanSrs
+    xosanSrs: getXosanSrs,
   }
 })
 @addSubscriptions({
   catalog: subscribeResourceCatalog,
-  plugins: subscribePlugins
+  plugins: subscribePlugins,
 })
 export default class Xosan extends Component {
   componentDidMount () {
@@ -246,7 +246,7 @@ export default class Xosan extends Component {
         unsubscriptions.push(
           subscribeVolumeInfo({ sr, infoType }, info =>
             this.setState({
-              status: cowSet(this.state.status, [sr.id, infoType], info)
+              status: cowSet(this.state.status, [sr.id, infoType], info),
             })
           )
         )
@@ -303,7 +303,7 @@ export default class Xosan extends Component {
       xosanSrs,
       noPacksByPool,
       hostsNeedRestartByPool,
-      poolPredicate
+      poolPredicate,
     } = this.props
     const error = this._getError()
 
@@ -318,54 +318,54 @@ export default class Xosan extends Component {
                 </Col>
               </Row>
             ) : (
-            [
-              <Row className='mb-1'>
-                <Col>
-                  <ActionButton
-                    btnStyle='primary'
-                    handler={this.toggleState('showNewXosanForm')}
-                    icon={this.state.showNewXosanForm ? 'minus' : 'plus'}
+              [
+                <Row className='mb-1'>
+                  <Col>
+                    <ActionButton
+                      btnStyle='primary'
+                      handler={this.toggleState('showNewXosanForm')}
+                      icon={this.state.showNewXosanForm ? 'minus' : 'plus'}
                     >
-                    {_('xosanNew')}
-                  </ActionButton>
-                </Col>
-              </Row>,
-              <Row>
-                <Col>
-                  {this.state.showNewXosanForm && (
-                  <NewXosan
-                    hostsNeedRestartByPool={hostsNeedRestartByPool}
-                    noPacksByPool={noPacksByPool}
-                    poolPredicate={poolPredicate}
-                    onSrCreationStarted={this._onSrCreationStarted}
+                      {_('xosanNew')}
+                    </ActionButton>
+                  </Col>
+                </Row>,
+                <Row>
+                  <Col>
+                    {this.state.showNewXosanForm && (
+                      <NewXosan
+                        hostsNeedRestartByPool={hostsNeedRestartByPool}
+                        noPacksByPool={noPacksByPool}
+                        poolPredicate={poolPredicate}
+                        onSrCreationStarted={this._onSrCreationStarted}
                       />
                     )}
-                </Col>
-              </Row>,
-              <Row>
-                <Col>
-                  {map(this.props.pools, pool => (
-                    <CreationProgress key={pool.id} pool={pool} />
+                  </Col>
+                </Row>,
+                <Row>
+                  <Col>
+                    {map(this.props.pools, pool => (
+                      <CreationProgress key={pool.id} pool={pool} />
                     ))}
-                </Col>
-              </Row>,
-              <Row>
-                <Col>
-                  {isEmpty(xosanSrs) ? (
-                    <em>{_('xosanNoSrs')}</em>
+                  </Col>
+                </Row>,
+                <Row>
+                  <Col>
+                    {isEmpty(xosanSrs) ? (
+                      <em>{_('xosanNoSrs')}</em>
                     ) : (
                       <SortedTable
                         collection={xosanSrs}
                         columns={XOSAN_COLUMNS}
                         individualActions={XOSAN_INDIVIDUAL_ACTIONS}
                         userData={{
-                          status: this.state.status
+                          status: this.state.status,
                         }}
                       />
                     )}
-                </Col>
-              </Row>
-            ]
+                  </Col>
+                </Row>,
+              ]
             )}
           </Container>
         ) : (
@@ -377,7 +377,7 @@ export default class Xosan extends Component {
                   <a href='https://xen-orchestra.com'>
                     https://xen-orchestra.com
                   </a>
-                )
+                ),
               })}
             </p>
           </Container>

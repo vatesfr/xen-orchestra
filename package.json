@@ -63,6 +63,14 @@
     "enzyme": "^3.1.1",
     "enzyme-adapter-react-15": "^1.0.5",
     "enzyme-to-json": "^3.2.2",
+    "eslint": "^4.11.0",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-config-standard-jsx": "^4.0.2",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-node": "^5.2.1",
+    "eslint-plugin-promise": "^3.6.0",
+    "eslint-plugin-react": "^7.4.0",
+    "eslint-plugin-standard": "^3.0.1",
     "event-to-promise": "^0.8.0",
     "font-awesome": "^4.7.0",
     "font-mfizz": "^2.4.1",
@@ -130,7 +138,6 @@
     "redux-thunk": "^2.0.1",
     "reselect": "^2.5.4",
     "semver": "^5.4.1",
-    "standard": "^10.0.3",
     "styled-components": "^2.2.3",
     "superagent": "^3.8.0",
     "tar-stream": "^1.5.2",
@@ -148,9 +155,10 @@
     "benchmarks": "./tools/run-benchmarks.js 'src/**/*.bench.js'",
     "build": "npm run build-indexes && NODE_ENV=production gulp build",
     "build-indexes": "index-modules --auto src",
-    "commitmsg": "npm test",
     "dev": "npm run build-indexes && NODE_ENV=development gulp build",
     "dev-test": "jest --watch",
+    "lint-staged-unstash": "git stash pop && true",
+    "posttest": "eslint",
     "precommit": "lint-staged",
     "prepublish": "npm run build",
     "test": "jest"
@@ -196,18 +204,12 @@
   },
   "lint-staged": {
     "*.js": [
+      "git stash push --keep-index",
       "prettier --write",
-      "standard --fix",
-      "git add"
+      "eslint --fix",
+      "jest --findRelatedTests",
+      "git add",
+      "lint-staged-unstash"
     ]
-  },
-  "standard": {
-    "globals": [
-      "__DEV__"
-    ],
-    "ignore": [
-      "dist"
-    ],
-    "parser": "babel-eslint"
   }
 }

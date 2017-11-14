@@ -15,7 +15,7 @@ import {
   CpuSparkLines,
   MemorySparkLines,
   NetworkSparkLines,
-  XvdSparkLines
+  XvdSparkLines,
 } from 'xo-sparklines'
 
 export default class TabConsole extends Component {

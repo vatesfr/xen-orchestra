@@ -23,13 +23,13 @@ export default class ReplaceBrickModalBody extends Component {
   _toggleOnSameVm = () =>
     this.setState({
       onSameVm: !this.state.onSameVm,
-      sr: undefined
+      sr: undefined,
     })
 
   _selectSr = sr => {
     this.setState({
       sr,
-      brickSize: sr.size - sr.physical_usage
+      brickSize: sr.size - sr.physical_usage,
     })
   }
 

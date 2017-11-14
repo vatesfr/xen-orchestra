@@ -16,7 +16,7 @@ import { includes, isEmpty, keys, map } from 'lodash'
 import {
   createGetObject,
   createGetObjectsOfType,
-  createSelector
+  createSelector,
 } from 'selectors'
 import { cancelTask, destroyTask } from 'xo'
 
@@ -36,11 +36,11 @@ const HEADER = (
 
 const TASK_ITEM_STYLE = {
   // Remove all margin, otherwise it breaks vertical alignment.
-  margin: 0
+  margin: 0,
 }
 
 export const TaskItem = connectStore(() => ({
-  host: createGetObject((_, props) => props.task.$host)
+  host: createGetObject((_, props) => props.task.$host),
 }))(({ task, host }) => (
   <SingleLineRow className='mb-1'>
     <Col mediumSize={6}>
@@ -79,7 +79,7 @@ export const TaskItem = connectStore(() => ({
 
 @connectStore(() => {
   const getPendingTasks = createGetObjectsOfType('task').filter([
-    task => task.status === 'pending'
+    task => task.status === 'pending',
   ])
 
   const getNPendingTasks = getPendingTasks.count()
@@ -93,7 +93,7 @@ export const TaskItem = connectStore(() => ({
   return {
     nTasks: getNPendingTasks,
     pendingTasksByPool: getPendingTasksByPool,
-    pools: getPools
+    pools: getPools,
   }
 })
 @injectIntl

@@ -12,7 +12,7 @@ import {
   disableHost,
   forgetHost,
   restartHost,
-  installSupplementalPack
+  installSupplementalPack,
 } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Container, Row, Col } from 'grid'
@@ -42,7 +42,7 @@ export default connectStore(() => {
 
   return {
     pcis: getPcis,
-    pgpus: getPgpus
+    pgpus: getPgpus,
   }
 })(({ host, pcis, pgpus }) => (
   <Container>
@@ -123,7 +123,7 @@ export default connectStore(() => {
               <th>{_('hostStartedSince')}</th>
               <td>
                 {_('started', {
-                  ago: <FormattedRelative value={host.startTime * 1000} />
+                  ago: <FormattedRelative value={host.startTime * 1000} />,
                 })}
               </td>
             </tr>
@@ -131,7 +131,7 @@ export default connectStore(() => {
               <th>{_('hostStackStartedSince')}</th>
               <td>
                 {_('started', {
-                  ago: <FormattedRelative value={host.agentStartTime * 1000} />
+                  ago: <FormattedRelative value={host.agentStartTime * 1000} />,
                 })}
               </td>
             </tr>
@@ -238,7 +238,7 @@ export default connectStore(() => {
           <h3>{_('supplementalPackNew')}</h3>,
           <Container>
             <Upgrade place='supplementalPacks' available={2} />
-          </Container>
+          </Container>,
         ]}
       </Col>
     </Row>

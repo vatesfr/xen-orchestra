@@ -18,7 +18,7 @@ render(
         routes={{
           ...XoApp.route,
           component: XoApp,
-          path: '/'
+          path: '/',
         }}
       />
       {DevTools && <DevTools />}

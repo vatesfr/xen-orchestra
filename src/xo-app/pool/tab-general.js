@@ -69,7 +69,7 @@ export default ({ hosts, nVms, pool, srs }) => (
         <h5>
           {_('poolRamUsage', {
             used: formatSize(sumBy(hosts, 'memory.usage')),
-            total: formatSize(sumBy(hosts, 'memory.size'))
+            total: formatSize(sumBy(hosts, 'memory.size')),
           })}
         </h5>
       </Col>

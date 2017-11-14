@@ -1,10 +1,10 @@
 // This file is coded in ES5 and CommonJS to be compatible with
 // `create-locale`.
 
-var forEach = require('lodash/forEach')
-var isString = require('lodash/isString')
+const forEach = require('lodash/forEach')
+const isString = require('lodash/isString')
 
-var messages = {
+const messages = {
   keyValue: '{key}: {value}',
 
   statusConnecting: 'Connecting',
@@ -834,7 +834,7 @@ var messages = {
   xenToolsStatusValue: {
     defaultMessage: '{status}',
     description:
-      'status can be `not-installed`, `unknown`, `out-of-date` & `up-to-date`'
+      'status can be `not-installed`, `unknown`, `out-of-date` & `up-to-date`',
   },
   osName: 'OS name',
   osKernel: 'OS kernel',
@@ -1619,13 +1619,13 @@ var messages = {
   xosanUnderlyingStorageUsage: 'Using {usage}',
   xosanCustomIpNetwork: 'Custom IP network (/24)',
   xosanIssueHostNotInNetwork:
-    'Will configure the host xosan network device with a static IP address and plug it in.'
+    'Will configure the host xosan network device with a static IP address and plug it in.',
 }
 forEach(messages, function (message, id) {
   if (isString(message)) {
     messages[id] = {
       id,
-      defaultMessage: message
+      defaultMessage: message,
     }
   } else if (!message.id) {
     message.id = id

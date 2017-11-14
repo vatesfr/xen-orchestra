@@ -7,27 +7,27 @@ import { AutoSizer, CellMeasurer, List } from 'react-virtualized'
 import propTypes from '../prop-types-decorator'
 
 const SELECT_MENU_STYLE = {
-  overflow: 'hidden'
+  overflow: 'hidden',
 }
 
 const SELECT_STYLE = {
-  minWidth: '10em'
+  minWidth: '10em',
 }
 
 const LIST_STYLE = {
-  whiteSpace: 'normal'
+  whiteSpace: 'normal',
 }
 
 const MAX_OPTIONS = 5
 
 // See: https://github.com/bvaughn/react-virtualized-select/blob/master/source/VirtualizedSelect/VirtualizedSelect.js
 @propTypes({
-  maxHeight: propTypes.number
+  maxHeight: propTypes.number,
 })
 export default class Select extends Component {
   static defaultProps = {
     maxHeight: 200,
-    optionRenderer: (option, labelKey) => option[labelKey]
+    optionRenderer: (option, labelKey) => option[labelKey],
   }
 
   _renderMenu = ({ focusedOption, options, ...otherOptions }) => {
@@ -44,7 +44,7 @@ export default class Select extends Component {
         key,
         option: options[index],
         options,
-        style
+        style,
       })
 
     return (
@@ -95,7 +95,7 @@ export default class Select extends Component {
     labelKey,
     option,
     style,
-    selectValue
+    selectValue,
   }) => {
     let className = 'Select-option'
 

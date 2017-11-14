@@ -18,7 +18,7 @@ import styles from './index.css'
 
 const DAY_TIME_FORMAT = {
   day: 'numeric',
-  month: 'numeric'
+  month: 'numeric',
 }
 
 // ===================================================================
@@ -58,7 +58,7 @@ const computeMissingDays = days => {
     if (diff > 1) {
       const missingDays = times(diff - 1, () => ({
         hours,
-        timestamp: a.subtract(1, 'days').valueOf()
+        timestamp: a.subtract(1, 'days').valueOf(),
       })).reverse()
 
       correctedDays.splice.apply(correctedDays, [i, 0].concat(missingDays))
@@ -77,13 +77,13 @@ const computeMissingDays = days => {
   data: propTypes.arrayOf(
     propTypes.shape({
       date: propTypes.number.isRequired,
-      value: propTypes.number.isRequired
+      value: propTypes.number.isRequired,
     })
-  ).isRequired
+  ).isRequired,
 })
 export default class XoWeekHeatmap extends Component {
   static defaultProps = {
-    cellRenderer: value => value
+    cellRenderer: value => value,
   }
 
   componentWillReceiveProps (nextProps) {
@@ -108,7 +108,7 @@ export default class XoWeekHeatmap extends Component {
       if (!days[dayId]) {
         days[dayId] = {
           hours: new Array(24),
-          timestamp: elem.date
+          timestamp: elem.date,
         }
       }
 
@@ -118,7 +118,7 @@ export default class XoWeekHeatmap extends Component {
         hours[hourId] = {
           date,
           nb: 1,
-          value
+          value,
         }
       } else {
         const hour = hours[hourId]
@@ -140,7 +140,7 @@ export default class XoWeekHeatmap extends Component {
     })
 
     this.setState({
-      days: computeMissingDays(sortBy(days, 'timestamp'))
+      days: computeMissingDays(sortBy(days, 'timestamp')),
     })
   }
 
@@ -167,7 +167,7 @@ export default class XoWeekHeatmap extends Component {
                     hour
                       ? _('weekHeatmapData', {
                         date: hour.date,
-                        value: this.props.cellRenderer(hour.value)
+                        value: this.props.cellRenderer(hour.value),
                       })
                       : _('weekHeatmapNoData')
                   }

@@ -25,7 +25,7 @@ const promptForReload = (source, force) => {
   if (force || (updateSource && source !== updateSource)) {
     confirm({
       title: _('promptUpgradeReloadTitle'),
-      body: <p>{_('promptUpgradeReloadMessage')}</p>
+      body: <p>{_('promptUpgradeReloadMessage')}</p>,
     }).then(() => window.location.reload())
   }
   updateSource = source
@@ -53,7 +53,7 @@ const states = {
   upToDate: 'Up to Date',
   upgradeNeeded: 'Upgrade required',
   registerNeeded: 'Registration required',
-  error: 'An error occured'
+  error: 'An error occured',
 }
 
 const update = () => xoaUpdater.update()
@@ -65,7 +65,7 @@ const upgrade = () => xoaUpdater.upgrade()
     log: state.xoaUpdaterLog,
     registration: state.xoaRegisterState,
     state: state.xoaUpdaterState,
-    trial: state.xoaTrialState
+    trial: state.xoaTrialState,
   }
 })
 @injectIntl
@@ -99,7 +99,7 @@ export default class XoaUpdates extends Component {
             <p>
               {_('alreadyRegisteredModalText', { email: registration.email })}
             </p>
-          )
+          ),
         })
       } catch (error) {
         return
@@ -119,13 +119,13 @@ export default class XoaUpdates extends Component {
         proxyHost,
         proxyPort,
         proxyUser,
-        proxyPassword: proxyPassword.value
+        proxyPassword: proxyPassword.value,
       })
       .then(config => {
         this.setState({
           proxyHost: undefined,
           proxyPort: undefined,
-          proxyUser: undefined
+          proxyUser: undefined,
         })
         proxyPassword.value = ''
       })
@@ -146,7 +146,7 @@ export default class XoaUpdates extends Component {
     try {
       await confirm({
         title: _('trialReadyModal'),
-        body: <p>{_('trialReadyModalText')}</p>
+        body: <p>{_('trialReadyModalText')}</p>,
       })
       return xoaUpdater
         .requestTrial()
@@ -168,7 +168,7 @@ export default class XoaUpdates extends Component {
       info: 'text-info',
       success: 'text-success',
       warning: 'text-warning',
-      error: 'text-danger'
+      error: 'text-danger',
     }
 
     const { log, registration, state, trial } = this.props
@@ -202,7 +202,7 @@ export default class XoaUpdates extends Component {
                     <a href='https://xen-orchestra.com'>
                       https://xen-orchestra.com
                     </a>
-                  )
+                  ),
                 })}
               </p>
               <p className='text-danger'>{_('noUpdaterWarning')}</p>
@@ -251,7 +251,7 @@ export default class XoaUpdates extends Component {
                             </span>:{' '}
                             <span
                               dangerouslySetInnerHTML={{
-                                __html: ansiUp.ansi_to_html(log.message)
+                                __html: ansiUp.ansi_to_html(log.message),
                               }}
                             />
                           </p>
@@ -404,7 +404,7 @@ export default class XoaUpdates extends Component {
                           {this._trialAvailable(trial) && (
                             <p className='text-success'>
                               {_('trialAvailableUntil', {
-                                date: new Date(trial.trial.end)
+                                date: new Date(trial.trial.end),
                               })}
                             </p>
                           )}
@@ -483,7 +483,7 @@ export const UpdateTag = connectStore(state => {
     log: state.xoaUpdaterLog,
     registration: state.xoaRegisterState,
     state: state.xoaUpdaterState,
-    trial: state.xoaTrialState
+    trial: state.xoaTrialState,
   }
 })(props => {
   const { state } = props
@@ -493,7 +493,7 @@ export const UpdateTag = connectStore(state => {
     upToDate: <UpdateSuccess />,
     upgradeNeeded: <UpdateAlert />,
     registerNeeded: <RegisterAlarm />,
-    error: <UpdateAlarm />
+    error: <UpdateAlarm />,
   }
   const tooltips = {
     disconnected: _('noUpdateInfo'),
@@ -501,7 +501,7 @@ export const UpdateTag = connectStore(state => {
     upToDate: _('upToDate'),
     upgradeNeeded: _('mustUpgrade'),
     registerNeeded: _('registerNeeded'),
-    error: _('updaterError')
+    error: _('updaterError'),
   }
   return <Tooltip content={tooltips[state]}>{components[state]}</Tooltip>
 })

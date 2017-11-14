@@ -24,7 +24,7 @@ const HOST_COLUMNS = [
         </Link>
       )
     },
-    sortCriteria: (pbd, hosts) => hosts[pbd.host].name_label
+    sortCriteria: (pbd, hosts) => hosts[pbd.host].name_label,
   },
   {
     name: _('hostDescription'),
@@ -37,7 +37,7 @@ const HOST_COLUMNS = [
         />
       )
     },
-    sortCriteria: (pbd, hosts) => hosts[pbd.host].name_description
+    sortCriteria: (pbd, hosts) => hosts[pbd.host].name_description,
   },
   {
     name: _('pbdStatus'),
@@ -53,7 +53,7 @@ const HOST_COLUMNS = [
         state={pbd.attached}
       />
     ),
-    sortCriteria: 'attached'
+    sortCriteria: 'attached',
   },
   {
     name: _('pbdAction'),
@@ -66,8 +66,8 @@ const HOST_COLUMNS = [
           tooltip={_('pbdForget')}
         />
       ),
-    textAlign: 'right'
-  }
+    textAlign: 'right',
+  },
 ]
 
 export default ({ hosts, pbds }) => (

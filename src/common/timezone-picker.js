@@ -16,7 +16,7 @@ const LOCAL_TIMEZONE = moment.tz.guess()
   defaultValue: propTypes.string,
   onChange: propTypes.func.isRequired,
   required: propTypes.bool,
-  value: propTypes.string
+  value: propTypes.string,
 })
 export default class TimezonePicker extends Component {
   componentDidMount () {
@@ -28,11 +28,11 @@ export default class TimezonePicker extends Component {
           ...map(moment.tz.names(), value => ({ label: value, value })),
           {
             label: _('serverTimezoneOption', {
-              value: serverTimezone
+              value: serverTimezone,
             }),
-            value: SERVER_TIMEZONE_TAG
-          }
-        ]
+            value: SERVER_TIMEZONE_TAG,
+          },
+        ],
       })
     })
   }
@@ -60,7 +60,7 @@ export default class TimezonePicker extends Component {
 
     this.setState(
       {
-        timezone: (option != null && option.value) || SERVER_TIMEZONE_TAG
+        timezone: (option != null && option.value) || SERVER_TIMEZONE_TAG,
       },
       () =>
         this.props.onChange(

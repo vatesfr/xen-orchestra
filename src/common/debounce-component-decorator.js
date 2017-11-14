@@ -48,7 +48,7 @@ const debounceComponentDecorator = (delay = DEFAULT_DELAY) => Component =>
         ...this.props,
         onChange: this._onChange,
         ref: this._onRef,
-        value: this.state.value
+        value: this.state.value,
       }
       return <Component {...props} />
     }

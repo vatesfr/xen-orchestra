@@ -26,6 +26,6 @@ propTypes(NoObjects)({
   children: propTypes.node.isRequired,
   collection: propTypes.oneOfType([propTypes.array, propTypes.object])
     .isRequired,
-  emptyMessage: propTypes.node.isRequired
+  emptyMessage: propTypes.node.isRequired,
 })
 export default NoObjects

@@ -7,7 +7,7 @@ import styles from './index.css'
 
 @propTypes({
   onDrop: propTypes.func,
-  message: propTypes.node
+  message: propTypes.node,
 })
 export default class Dropzone extends Component {
   render () {

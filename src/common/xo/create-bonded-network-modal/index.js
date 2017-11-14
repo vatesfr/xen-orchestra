@@ -16,7 +16,7 @@ import SingleLineRow from '../../single-line-row'
     poolMaster: createSelector(
       createGetObject((_, props) => props.pool),
       pool => pool.master
-    )
+    ),
   }),
   { withRef: true }
 )
@@ -40,7 +40,7 @@ class CreateBondedNetworkModalBody extends Component {
       description,
       pifs: map(pifs, pif => pif.id),
       mtu,
-      bondMode
+      bondMode,
     }
   }
 

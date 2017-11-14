@@ -45,7 +45,7 @@ export class TooltipViewer extends Component {
             (place === 'top' && '-10px') || (place === 'bottom' && '10px'),
           marginLeft:
             (place === 'left' && '-10px') || (place === 'right' && '10px'),
-          ...style
+          ...style,
         }}
       >
         {content}
@@ -61,7 +61,7 @@ export class TooltipViewer extends Component {
   className: propTypes.string,
   content: propTypes.node,
   style: propTypes.object,
-  tagName: propTypes.string
+  tagName: propTypes.string,
 })
 export default class Tooltip extends Component {
   componentDidMount () {
@@ -114,7 +114,7 @@ export default class Tooltip extends Component {
       className: props.className,
       content: props.content,
       show: true,
-      style: props.style
+      style: props.style,
     })
   }
 

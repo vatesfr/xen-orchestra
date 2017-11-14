@@ -11,7 +11,7 @@ import {
   CpuLineChart,
   MemoryLineChart,
   PifLineChart,
-  LoadLineChart
+  LoadLineChart,
 } from 'xo-line-chart'
 
 export default class HostStats extends Component {
@@ -44,7 +44,7 @@ export default class HostStats extends Component {
       this.setState(
         {
           stats,
-          selectStatsLoading: false
+          selectStatsLoading: false,
         },
         () => {
           this.timeout = setTimeout(this.loop, stats.interval * 1000)
@@ -76,7 +76,7 @@ export default class HostStats extends Component {
       hostNext.power_state !== 'Running'
     ) {
       this.setState({
-        stats: undefined
+        stats: undefined,
       })
     }
   }
@@ -88,7 +88,7 @@ export default class HostStats extends Component {
     this.setState(
       {
         granularity,
-        selectStatsLoading: true
+        selectStatsLoading: true,
       },
       this.loop
     )
@@ -100,7 +100,7 @@ export default class HostStats extends Component {
       granularity,
       selectStatsLoading,
       stats,
-      useCombinedValues
+      useCombinedValues,
     } = this.state
 
     return !stats ? (

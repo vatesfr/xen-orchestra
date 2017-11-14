@@ -26,7 +26,7 @@ const HEADER = (
 )
 
 @connectStore(() => ({
-  user: getUser
+  user: getUser,
 }))
 export default class About extends Component {
   componentWillMount () {
@@ -74,7 +74,7 @@ export default class About extends Component {
                         <a href='https://xen-orchestra.com/#!/?pk_campaign=xoa_source_upgrade&pk_kwd=about'>
                           http://xen-orchestra.com
                         </a>
-                      )
+                      ),
                     })}
                   </p>
                 </Col>

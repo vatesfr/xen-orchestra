@@ -31,7 +31,7 @@ import {
   pick,
   pickBy,
   size,
-  some
+  some,
 } from 'lodash'
 import {
   addCustomFilter,
@@ -53,14 +53,14 @@ import {
   stopHosts,
   stopVms,
   subscribeResourceSets,
-  subscribeServers
+  subscribeServers,
 } from 'xo'
 import { Container, Row, Col } from 'grid'
 import {
   SelectHost,
   SelectPool,
   SelectResourceSet,
-  SelectTag
+  SelectTag,
 } from 'select-objects'
 import { addSubscriptions, connectStore, noop } from 'utils'
 import {
@@ -72,14 +72,14 @@ import {
   createSelector,
   createSort,
   getUser,
-  isAdmin
+  isAdmin,
 } from 'selectors'
 import {
   DropdownButton,
   MenuItem,
   OverlayTrigger,
   Pagination,
-  Popover
+  Popover,
 } from 'react-bootstrap-4/lib'
 
 import styles from './index.css'
@@ -100,18 +100,18 @@ const OPTIONS = {
       {
         handler: restartHostsAgents,
         icon: 'host-restart-agent',
-        tooltip: _('restartHostAgent')
+        tooltip: _('restartHostAgent'),
       },
       {
         handler: emergencyShutdownHosts,
         icon: 'host-emergency-shutdown',
-        tooltip: _('emergencyModeLabel')
+        tooltip: _('emergencyModeLabel'),
       },
       {
         handler: restartHosts,
         icon: 'host-reboot',
-        tooltip: _('rebootHostLabel')
-      }
+        tooltip: _('rebootHostLabel'),
+      },
     ],
     Item: HostItem,
     showPoolsSelector: true,
@@ -120,11 +120,11 @@ const OPTIONS = {
       {
         labelId: 'homeSortByPowerstate',
         sortBy: 'power_state',
-        sortOrder: 'desc'
+        sortOrder: 'desc',
       },
       { labelId: 'homeSortByRAM', sortBy: 'memory.size', sortOrder: 'desc' },
-      { labelId: 'homeSortByCpus', sortBy: 'CPUs.cpu_count', sortOrder: 'desc' }
-    ]
+      { labelId: 'homeSortByCpus', sortBy: 'CPUs.cpu_count', sortOrder: 'desc' },
+    ],
   },
   VM: {
     defaultFilter: 'power_state:running ',
@@ -134,31 +134,31 @@ const OPTIONS = {
       { handler: startVms, icon: 'vm-start', tooltip: _('startVmLabel') },
       { handler: restartVms, icon: 'vm-reboot', tooltip: _('rebootVmLabel') },
       { handler: migrateVms, icon: 'vm-migrate', tooltip: _('migrateVmLabel') },
-      { handler: copyVms, icon: 'vm-copy', tooltip: _('copyVmLabel') }
+      { handler: copyVms, icon: 'vm-copy', tooltip: _('copyVmLabel') },
     ],
     otherActions: [
       {
         handler: restartVms,
         icon: 'vm-force-reboot',
         labelId: 'forceRebootVmLabel',
-        params: true
+        params: true,
       },
       {
         handler: stopVms,
         icon: 'vm-force-shutdown',
         labelId: 'forceShutdownVmLabel',
-        params: true
+        params: true,
       },
       {
         handler: snapshotVms,
         icon: 'vm-snapshot',
-        labelId: 'snapshotVmLabel'
+        labelId: 'snapshotVmLabel',
       },
       {
         handler: deleteVms,
         icon: 'vm-delete',
-        labelId: 'vmRemoveButton'
-      }
+        labelId: 'vmRemoveButton',
+      },
     ],
     Item: VmItem,
     showPoolsSelector: true,
@@ -170,15 +170,15 @@ const OPTIONS = {
       {
         labelId: 'homeSortByPowerstate',
         sortBy: 'power_state',
-        sortOrder: 'desc'
+        sortOrder: 'desc',
       },
       { labelId: 'homeSortByRAM', sortBy: 'memory.size', sortOrder: 'desc' },
       {
         labelId: 'homeSortVmsBySnapshots',
         sortBy: 'snapshots.length',
-        sortOrder: 'desc'
-      }
-    ]
+        sortOrder: 'desc',
+      },
+    ],
   },
   pool: {
     defaultFilter: '',
@@ -186,22 +186,22 @@ const OPTIONS = {
     getActions: noop,
     Item: PoolItem,
     sortOptions: [
-      { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' }
-    ]
+      { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' },
+    ],
   },
   'VM-template': {
     defaultFilter: '',
     filters: homeFilters.vmTemplate,
     mainActions: [
-      { handler: deleteTemplates, icon: 'delete', tooltip: _('templateDelete') }
+      { handler: deleteTemplates, icon: 'delete', tooltip: _('templateDelete') },
     ],
     Item: TemplateItem,
     showPoolsSelector: true,
     sortOptions: [
       { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' },
       { labelId: 'homeSortByRAM', sortBy: 'memory.size', sortOrder: 'desc' },
-      { labelId: 'homeSortByCpus', sortBy: 'CPUs.number', sortOrder: 'desc' }
-    ]
+      { labelId: 'homeSortByCpus', sortBy: 'CPUs.number', sortOrder: 'desc' },
+    ],
   },
   SR: {
     defaultFilter: '',
@@ -211,14 +211,14 @@ const OPTIONS = {
       {
         handler: reconnectAllHostsSrs,
         icon: 'sr-reconnect-all',
-        tooltip: _('srReconnectAll')
+        tooltip: _('srReconnectAll'),
       },
       {
         handler: disconnectAllHostsSrs,
         icon: 'sr-disconnect-all',
-        tooltip: _('srDisconnectAll')
+        tooltip: _('srDisconnectAll'),
       },
-      { handler: forgetSrs, icon: 'sr-forget', tooltip: _('srsForget') }
+      { handler: forgetSrs, icon: 'sr-forget', tooltip: _('srsForget') },
     ],
     Item: SrItem,
     showPoolsSelector: true,
@@ -228,17 +228,17 @@ const OPTIONS = {
         labelId: 'homeSortBySize',
         sortBy: 'size',
         sortOrder: 'desc',
-        default: true
+        default: true,
       },
       { labelId: 'homeSortByShared', sortBy: isSrShared, sortOrder: 'desc' },
       {
         labelId: 'homeSortByUsage',
         sortBy: 'physical_usage',
-        sortOrder: 'desc'
+        sortOrder: 'desc',
       },
-      { labelId: 'homeSortByType', sortBy: 'SR_type', sortOrder: 'asc' }
-    ]
-  }
+      { labelId: 'homeSortByType', sortBy: 'SR_type', sortOrder: 'asc' },
+    ],
+  },
 }
 
 const TYPES = {
@@ -246,13 +246,13 @@ const TYPES = {
   'VM-template': _('homeTypeVmTemplate'),
   host: _('homeTypeHost'),
   pool: _('homeTypePool'),
-  SR: _('homeSrPage')
+  SR: _('homeSrPage'),
 }
 
 const DEFAULT_TYPE = 'VM'
 
 @addSubscriptions({
-  noRegisteredServers: cb => subscribeServers(data => cb(isEmpty(data)))
+  noRegisteredServers: cb => subscribeServers(data => cb(isEmpty(data))),
 })
 @connectStore(() => {
   const noServersConnected = invoke(
@@ -262,12 +262,12 @@ const DEFAULT_TYPE = 'VM'
 
   return {
     areObjectsFetched,
-    noServersConnected
+    noServersConnected,
   }
 })
 @propTypes({
   isAdmin: propTypes.bool.isRequired,
-  noResourceSets: propTypes.bool.isRequired
+  noResourceSets: propTypes.bool.isRequired,
 })
 class NoObjects_ extends Component {
   render () {
@@ -276,7 +276,7 @@ class NoObjects_ extends Component {
       isAdmin,
       noRegisteredServers,
       noResourceSets,
-      noServersConnected
+      noServersConnected,
     } = this.props
 
     if (!areObjectsFetched) {
@@ -386,7 +386,7 @@ class NoObjects_ extends Component {
 }
 
 @addSubscriptions({
-  noResourceSets: cb => subscribeResourceSets(data => cb(isEmpty(data)))
+  noResourceSets: cb => subscribeResourceSets(data => cb(isEmpty(data))),
 })
 @connectStore(() => {
   const type = (_, props) => props.location.query.t || DEFAULT_TYPE
@@ -395,16 +395,16 @@ class NoObjects_ extends Component {
     isAdmin,
     items: createGetObjectsOfType(type),
     type,
-    user: getUser
+    user: getUser,
   }
 })
 export default class Home extends Component {
   static contextTypes = {
-    router: React.PropTypes.object
+    router: React.PropTypes.object,
   }
 
   state = {
-    selectedItems: {}
+    selectedItems: {},
   }
 
   get page () {
@@ -447,7 +447,7 @@ export default class Home extends Component {
 
   _getNumberOfItems = createCounter(() => this.props.items)
   _getNumberOfSelectedItems = createCounter(() => this.state.selectedItems, [
-    identity
+    identity,
   ])
 
   _getType () {
@@ -458,7 +458,7 @@ export default class Home extends Component {
     const { pathname, query } = this.props.location
     this.context.router.push({
       pathname,
-      query: { ...query, t: type, s: undefined }
+      query: { ...query, t: type, s: undefined },
     })
   }
 
@@ -483,7 +483,7 @@ export default class Home extends Component {
 
     return {
       sortBy: defined(() => sortOption.sortBy, 'name_label'),
-      sortOrder: defined(() => sortOption.sortOrder, 'asc')
+      sortOrder: defined(() => sortOption.sortOrder, 'asc'),
     }
   }
 
@@ -515,7 +515,7 @@ export default class Home extends Component {
       selectedPools: properties.$pool,
       selectedTags: properties.tags,
       selectedResourceSets: properties.resourceSet,
-      ...sort
+      ...sort,
     })
 
     const { filterInput } = this.refs
@@ -550,7 +550,7 @@ export default class Home extends Component {
     const { pathname, query } = props.location
     this.context.router[replace ? 'replace' : 'push']({
       pathname,
-      query: { ...query, s: filter }
+      query: { ...query, s: filter },
     })
 
     this.page = 1
@@ -601,11 +601,11 @@ export default class Home extends Component {
     this._setFilter(
       pools.length
         ? filter::ComplexMatcher.setPropertyClause(
-            '$pool',
-            ComplexMatcher.createOr(
-              map(pools, pool => ComplexMatcher.createString(pool.id))
-            )
+          '$pool',
+          ComplexMatcher.createOr(
+            map(pools, pool => ComplexMatcher.createString(pool.id))
           )
+        )
         : filter::ComplexMatcher.removePropertyClause('$pool')
     )
   }
@@ -615,11 +615,11 @@ export default class Home extends Component {
     this._setFilter(
       hosts.length
         ? filter::ComplexMatcher.setPropertyClause(
-            '$container',
-            ComplexMatcher.createOr(
-              map(hosts, host => ComplexMatcher.createString(host.id))
-            )
+          '$container',
+          ComplexMatcher.createOr(
+            map(hosts, host => ComplexMatcher.createString(host.id))
           )
+        )
         : filter::ComplexMatcher.removePropertyClause('$container')
     )
   }
@@ -629,11 +629,11 @@ export default class Home extends Component {
     this._setFilter(
       tags.length
         ? filter::ComplexMatcher.setPropertyClause(
-            'tags',
-            ComplexMatcher.createOr(
-              map(tags, tag => ComplexMatcher.createString(tag.id))
-            )
+          'tags',
+          ComplexMatcher.createOr(
+            map(tags, tag => ComplexMatcher.createString(tag.id))
           )
+        )
         : filter::ComplexMatcher.removePropertyClause('tags')
     )
   }
@@ -643,11 +643,11 @@ export default class Home extends Component {
     this._setFilter(
       resourceSets.length
         ? filter::ComplexMatcher.setPropertyClause(
-            'resourceSet',
-            ComplexMatcher.createOr(
-              map(resourceSets, set => ComplexMatcher.createString(set.id))
-            )
+          'resourceSet',
+          ComplexMatcher.createOr(
+            map(resourceSets, set => ComplexMatcher.createString(set.id))
           )
+        )
         : filter::ComplexMatcher.removePropertyClause('resourceSet')
     )
   }
@@ -701,12 +701,12 @@ export default class Home extends Component {
           break
         case 'NAV_DOWN':
           this.setState({
-            highlighted: (this.state.highlighted + 1) % items.length || 0
+            highlighted: (this.state.highlighted + 1) % items.length || 0,
           })
           break
         case 'NAV_UP':
           this.setState({
-            highlighted: (this.state.highlighted - 1) % items.length || 0
+            highlighted: (this.state.highlighted - 1) % items.length || 0,
           })
           break
         case 'SELECT':
@@ -714,15 +714,15 @@ export default class Home extends Component {
           this.setState({
             selectedItems: {
               ...this.state.selectedItems,
-              [itemId]: !this.state.selectedItems[itemId]
-            }
+              [itemId]: !this.state.selectedItems[itemId],
+            },
           })
           break
         case 'JUMP_INTO':
           const item = items[this.state.highlighted]
           if (includes(['VM', 'host', 'pool', 'SR'], item && item.type)) {
             this.context.router.push({
-              pathname: `${item.type.toLowerCase()}s/${item.id}`
+              pathname: `${item.type.toLowerCase()}s/${item.id}`,
             })
           }
       }
@@ -769,7 +769,7 @@ export default class Home extends Component {
                         {name}
                       </MenuItem>
                     )),
-                    <MenuItem key='divider' divider />
+                    <MenuItem key='divider' divider />,
                   ]}
                   {map(filters, (filter, label) => (
                     <MenuItem
@@ -839,7 +839,7 @@ export default class Home extends Component {
       selectedPools,
       selectedResourceSets,
       selectedTags,
-      sortBy
+      sortBy,
     } = this.state
     const { items, type } = this.props
 
@@ -850,7 +850,7 @@ export default class Home extends Component {
       otherActions,
       showHostsSelector,
       showPoolsSelector,
-      showResourceSetsSelector
+      showResourceSetsSelector,
     } = options
 
     // Necessary because indeterminate cannot be used as an attribute
@@ -882,12 +882,12 @@ export default class Home extends Component {
                     ? _('homeSelectedItems', {
                       icon: <Icon icon={type.toLowerCase()} />,
                       selected: this._getNumberOfSelectedItems(),
-                      total: nItems
+                      total: nItems,
                     })
                     : _('homeDisplayedItems', {
                       displayed: filteredItems.length,
                       icon: <Icon icon={type.toLowerCase()} />,
-                      total: nItems
+                      total: nItems,
                     })}
                 </span>
               </Col>

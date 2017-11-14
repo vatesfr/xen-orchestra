@@ -14,7 +14,7 @@ import {
   orderBy,
   pickBy,
   size,
-  slice
+  slice,
 } from 'lodash'
 
 import invoke from './invoke'
@@ -27,7 +27,7 @@ export {
   // That's usually the name we want to import.
   createSelector,
   // But selectors.create is nice too :)
-  createSelector as create
+  createSelector as create,
 } from 'reselect'
 
 // -------------------------------------------------------------------
@@ -185,7 +185,7 @@ export const createTop = (collection, iteratee, n) =>
     iteratee,
     n,
     _createCollectionWrapper((objects, iteratee, n) => {
-      let results = orderBy(objects, iteratee, 'desc')
+      const results = orderBy(objects, iteratee, 'desc')
       if (n < results.length) {
         results.length = n
       }
@@ -314,7 +314,7 @@ export const createSortForType = invoke(() => {
     tag: tag => tag,
     VBD: vbd => vbd.position,
     'VDI-snapshot': snapshot => snapshot.snapshot_time,
-    'VM-snapshot': snapshot => snapshot.snapshot_time
+    'VM-snapshot': snapshot => snapshot.snapshot_time,
   }
   const defaultIteratees = [object => object.$pool, object => object.name_label]
   const getIteratees = type => iterateesByType[type] || defaultIteratees
@@ -322,7 +322,7 @@ export const createSortForType = invoke(() => {
   const ordersByType = {
     message: 'desc',
     'VDI-snapshot': 'desc',
-    'VM-snapshot': 'desc'
+    'VM-snapshot': 'desc',
   }
   const getOrders = type => ordersByType[type]
 
@@ -413,7 +413,7 @@ export const createGetTags = collectionSelectors => {
     collectionSelectors = [
       createGetObjectsOfType('host'),
       createGetObjectsOfType('pool'),
-      createGetObjectsOfType('VM')
+      createGetObjectsOfType('VM'),
     ]
   }
 
@@ -499,7 +499,7 @@ export const createDoesHostNeedRestart = hostSelector => {
         find(
           guidance,
           action => action === 'restartHost' || action === 'restartXapi'
-        )
+        ),
     ])
 
   return create(
@@ -517,7 +517,7 @@ export const createGetHostMetrics = hostSelector =>
         count: 0,
         cpus: 0,
         memoryTotal: 0,
-        memoryUsage: 0
+        memoryUsage: 0,
       }
       forEach(hosts, host => {
         metrics.count++

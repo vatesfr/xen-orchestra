@@ -33,14 +33,14 @@ const computeMetricArray = (
     metrics[metricKey] = {
       key: metricKey,
       renderer: valueRenderer,
-      values: {} // Stats of all object for one metric.
+      values: {}, // Stats of all object for one metric.
     }
   }
 
   // Stats of one object.
   metrics[metricKey].values[objectId] = map(stats, (value, i) => ({
     value: +value,
-    date: timestampStart + 3600000 * i
+    date: timestampStart + 3600000 * i,
   }))
 }
 
@@ -51,7 +51,7 @@ const computeCpusMetric = (cpus, { objectId, ...params }) => {
     computeMetricArray(cpu, {
       metricKey: `CPU ${index}`,
       objectId,
-      ...params
+      ...params,
     })
   })
 
@@ -79,7 +79,7 @@ const computeCpusMetric = (cpus, { objectId, ...params }) => {
   if (!metrics[allCpusKey]) {
     metrics[allCpusKey] = {
       key: allCpusKey,
-      values: {}
+      values: {},
     }
   }
 
@@ -94,7 +94,7 @@ const computeVifsMetric = (vifs, params) => {
       computeMetricArray(vif, {
         metricKey: `Network ${index} ${rw}`,
         valueRenderer: formatSize,
-        ...params
+        ...params,
       })
     })
   })
@@ -108,7 +108,7 @@ const computePifsMetric = (pifs, params) => {
       computeMetricArray(pif, {
         metricKey: `NIC ${index} ${rw}`,
         valueRenderer: formatSize,
-        ...params
+        ...params,
       })
     })
   })
@@ -122,7 +122,7 @@ const computeXvdsMetric = (xvds, params) => {
       computeMetricArray(xvd, {
         metricKey: `Disk ${index} ${rw}`,
         valueRenderer: formatSize,
-        ...params
+        ...params,
       })
     })
   })
@@ -131,7 +131,7 @@ const computeXvdsMetric = (xvds, params) => {
 const computeLoadMetric = (load, params) => {
   computeMetricArray(load, {
     metricKey: 'Load',
-    ...params
+    ...params,
   })
 }
 
@@ -139,7 +139,7 @@ const computeMemoryUsedMetric = (memoryUsed, params) => {
   computeMetricArray(memoryUsed, {
     metricKey: 'RAM used',
     valueRenderer: formatSize,
-    ...params
+    ...params,
   })
 }
 
@@ -156,11 +156,11 @@ const STATS_TYPE_TO_COMPUTE_FNC = {
   pifs: computePifsMetric,
   xvds: computeXvdsMetric,
   load: computeLoadMetric,
-  memoryUsed: computeMemoryUsedMetric
+  memoryUsed: computeMemoryUsedMetric,
 }
 
 @propTypes({
-  onChange: propTypes.func.isRequired
+  onChange: propTypes.func.isRequired,
 })
 @connectStore(() => {
   const getRunningHosts = createGetObjectsOfType('host')
@@ -172,7 +172,7 @@ const STATS_TYPE_TO_COMPUTE_FNC = {
 
   return {
     hosts: getRunningHosts,
-    vms: getRunningVms
+    vms: getRunningVms,
   }
 })
 class SelectMetric extends Component {
@@ -180,7 +180,7 @@ class SelectMetric extends Component {
     super(props)
     this.state = {
       objects: [],
-      predicate: runningObjectsPredicate
+      predicate: runningObjectsPredicate,
     }
   }
 
@@ -191,8 +191,8 @@ class SelectMetric extends Component {
       objects,
       predicate: objects.length
         ? object =>
-            runningObjectsPredicate(object) && object.type === objects[0].type
-        : runningObjectsPredicate
+          runningObjectsPredicate(object) && object.type === objects[0].type
+        : runningObjectsPredicate,
     })
   }
 
@@ -206,7 +206,7 @@ class SelectMetric extends Component {
       metrics: undefined,
       objects: this.props.hosts,
       predicate: object =>
-        runningObjectsPredicate(object) && object.type === 'host'
+        runningObjectsPredicate(object) && object.type === 'host',
     })
   }
 
@@ -216,7 +216,7 @@ class SelectMetric extends Component {
       metrics: undefined,
       objects: this.props.vms,
       predicate: object =>
-        runningObjectsPredicate(object) && object.type === 'VM'
+        runningObjectsPredicate(object) && object.type === 'VM',
     })
   }
 
@@ -243,7 +243,7 @@ class SelectMetric extends Component {
               metrics,
               objectId: object.id,
               timestampStart:
-                (result.endTimestamp - 3600 * (stats.memory.length - 1)) * 1000
+                (result.endTimestamp - 3600 * (stats.memory.length - 1)) * 1000,
             }
 
             forEach(stats, (stats, type) => {
@@ -268,7 +268,7 @@ class SelectMetric extends Component {
 
     this.setState({
       metricsState: METRICS_LOADED,
-      metrics: sortBy(metrics, metric => metric.key)
+      metrics: sortBy(metrics, metric => metric.key),
     })
   }
 
@@ -352,7 +352,7 @@ class SelectMetric extends Component {
 
 @propTypes({
   metricRenderer: propTypes.func.isRequired,
-  title: propTypes.any.isRequired
+  title: propTypes.any.isRequired,
 })
 class MetricViewer extends Component {
   _handleSelectedMetric = (selectedMetric, objects) => {
@@ -362,7 +362,7 @@ class MetricViewer extends Component {
   render () {
     const {
       props: { metricRenderer, title },
-      state: { selectedMetric, objects }
+      state: { selectedMetric, objects },
     } = this
 
     return (
@@ -407,7 +407,7 @@ const weekChartsRenderer = metric => (
   <XoWeekCharts
     series={map(metric.values, (data, id) => ({
       data,
-      objectId: id
+      objectId: id,
     }))}
     valueRenderer={metric.renderer}
   />

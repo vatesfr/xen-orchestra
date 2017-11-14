@@ -13,7 +13,7 @@ import {
   connect,
   signOut,
   subscribePermissions,
-  subscribeResourceSets
+  subscribeResourceSets,
 } from 'xo'
 import {
   createFilter,
@@ -21,7 +21,7 @@ import {
   createSelector,
   getStatus,
   getUser,
-  isAdmin
+  isAdmin,
 } from 'selectors'
 
 import styles from './index.css'
@@ -32,21 +32,21 @@ const returnTrue = () => true
   () => ({
     isAdmin,
     nTasks: createGetObjectsOfType('task').count([
-      task => task.status === 'pending'
+      task => task.status === 'pending',
     ]),
     pools: createGetObjectsOfType('pool'),
     nHosts: createGetObjectsOfType('host').count(),
     srs: createGetObjectsOfType('SR'),
     status: getStatus,
-    user: getUser
+    user: getUser,
   }),
   {
-    withRef: true
+    withRef: true,
   }
 )
 @addSubscriptions({
   permissions: subscribePermissions,
-  resourceSets: subscribeResourceSets
+  resourceSets: subscribeResourceSets,
 })
 export default class Menu extends Component {
   componentWillMount () {
@@ -124,24 +124,24 @@ export default class Menu extends Component {
           nHosts !== 0 && {
             to: '/home?t=host',
             icon: 'host',
-            label: 'homeHostPage'
+            label: 'homeHostPage',
           },
           !isEmpty(pools) && {
             to: '/home?t=pool',
             icon: 'pool',
-            label: 'homePoolPage'
+            label: 'homePoolPage',
           },
           isAdmin && {
             to: '/home?t=VM-template',
             icon: 'template',
-            label: 'homeTemplatePage'
+            label: 'homeTemplatePage',
           },
           !noOperatableSrs && {
             to: '/home?t=SR',
             icon: 'sr',
-            label: 'homeSrPage'
-          }
-        ]
+            label: 'homeSrPage',
+          },
+        ],
       },
       {
         to: '/dashboard/overview',
@@ -151,29 +151,29 @@ export default class Menu extends Component {
           {
             to: '/dashboard/overview',
             icon: 'menu-dashboard-overview',
-            label: 'overviewDashboardPage'
+            label: 'overviewDashboardPage',
           },
           {
             to: '/dashboard/visualizations',
             icon: 'menu-dashboard-visualization',
-            label: 'overviewVisualizationDashboardPage'
+            label: 'overviewVisualizationDashboardPage',
           },
           {
             to: '/dashboard/stats',
             icon: 'menu-dashboard-stats',
-            label: 'overviewStatsDashboardPage'
+            label: 'overviewStatsDashboardPage',
           },
           {
             to: '/dashboard/health',
             icon: 'menu-dashboard-health',
-            label: 'overviewHealthDashboardPage'
-          }
-        ]
+            label: 'overviewHealthDashboardPage',
+          },
+        ],
       },
       isAdmin && {
         to: '/self',
         icon: 'menu-self-service',
-        label: 'selfServicePage'
+        label: 'selfServicePage',
       },
       isAdmin && {
         to: '/backup/overview',
@@ -183,30 +183,30 @@ export default class Menu extends Component {
           {
             to: '/backup/overview',
             icon: 'menu-backup-overview',
-            label: 'backupOverviewPage'
+            label: 'backupOverviewPage',
           },
           {
             to: '/backup/new',
             icon: 'menu-backup-new',
-            label: 'backupNewPage'
+            label: 'backupNewPage',
           },
           {
             to: '/backup/restore',
             icon: 'menu-backup-restore',
-            label: 'backupRestorePage'
+            label: 'backupRestorePage',
           },
           {
             to: '/backup/file-restore',
             icon: 'menu-backup-file-restore',
-            label: 'backupFileRestorePage'
-          }
-        ]
+            label: 'backupFileRestorePage',
+          },
+        ],
       },
       isAdmin && {
         to: '/xoa-update',
         icon: 'menu-update',
         label: 'updatePage',
-        extra: <UpdateTag />
+        extra: <UpdateTag />,
       },
       isAdmin && {
         to: '/settings/servers',
@@ -216,45 +216,45 @@ export default class Menu extends Component {
           {
             to: '/settings/servers',
             icon: 'menu-settings-servers',
-            label: 'settingsServersPage'
+            label: 'settingsServersPage',
           },
           {
             to: '/settings/users',
             icon: 'menu-settings-users',
-            label: 'settingsUsersPage'
+            label: 'settingsUsersPage',
           },
           {
             to: '/settings/groups',
             icon: 'menu-settings-groups',
-            label: 'settingsGroupsPage'
+            label: 'settingsGroupsPage',
           },
           {
             to: '/settings/acls',
             icon: 'menu-settings-acls',
-            label: 'settingsAclsPage'
+            label: 'settingsAclsPage',
           },
           {
             to: '/settings/remotes',
             icon: 'menu-backup-remotes',
-            label: 'backupRemotesPage'
+            label: 'backupRemotesPage',
           },
           {
             to: '/settings/plugins',
             icon: 'menu-settings-plugins',
-            label: 'settingsPluginsPage'
+            label: 'settingsPluginsPage',
           },
           {
             to: '/settings/logs',
             icon: 'menu-settings-logs',
-            label: 'settingsLogsPage'
+            label: 'settingsLogsPage',
           },
           { to: '/settings/ips', icon: 'ip', label: 'settingsIpsPage' },
           {
             to: '/settings/config',
             icon: 'menu-settings-config',
-            label: 'settingsConfigPage'
-          }
-        ]
+            label: 'settingsConfigPage',
+          },
+        ],
       },
       isAdmin && {
         to: '/jobs/overview',
@@ -264,15 +264,15 @@ export default class Menu extends Component {
           {
             to: '/jobs/overview',
             icon: 'menu-jobs-overview',
-            label: 'jobsOverviewPage'
+            label: 'jobsOverviewPage',
           },
           { to: '/jobs/new', icon: 'menu-jobs-new', label: 'jobsNewPage' },
           {
             to: '/jobs/schedules',
             icon: 'menu-jobs-schedule',
-            label: 'jobsSchedulingPage'
-          }
-        ]
+            label: 'jobsSchedulingPage',
+          },
+        ],
       },
       isAdmin && { to: '/about', icon: 'menu-about', label: 'aboutPage' },
       { to: '/tasks', icon: 'task', label: 'taskMenu', pill: nTasks },
@@ -285,21 +285,21 @@ export default class Menu extends Component {
           (isAdmin || !noResourceSets) && {
             to: '/vms/new',
             icon: 'menu-new-vm',
-            label: 'newVmPage'
+            label: 'newVmPage',
           },
           isAdmin && { to: '/new/sr', icon: 'menu-new-sr', label: 'newSrPage' },
           isAdmin && {
             to: '/settings/servers',
             icon: 'menu-settings-servers',
-            label: 'newServerPage'
+            label: 'newServerPage',
           },
           !noOperatablePools && {
             to: '/vms/import',
             icon: 'menu-new-import',
-            label: 'newImport'
-          }
-        ]
-      }
+            label: 'newImport',
+          },
+        ],
+      },
     ]
     /* eslint-enable object-property-newline */
 
@@ -412,7 +412,7 @@ export default class Menu extends Component {
             <Link className='nav-link text-xs-center' to={'/user'}>
               <Tooltip
                 content={_('editUserProfile', {
-                  username: user ? user.email : ''
+                  username: user ? user.email : '',
                 })}
               >
                 <Icon icon='user' size='lg' />

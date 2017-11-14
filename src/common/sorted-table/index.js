@@ -15,7 +15,7 @@ import {
   forEach,
   isEmpty,
   isFunction,
-  map
+  map,
 } from 'lodash'
 
 import ActionRowButton from '../action-row-button'
@@ -36,7 +36,7 @@ import {
   createFilter,
   createPager,
   createSelector,
-  createSort
+  createSort,
 } from '../selectors'
 
 import styles from './index.css'
@@ -46,7 +46,7 @@ import styles from './index.css'
 @propTypes({
   filters: propTypes.object,
   onChange: propTypes.func.isRequired,
-  value: propTypes.string.isRequired
+  value: propTypes.string.isRequired,
 })
 class TableFilter extends Component {
   _cleanFilter = () => this._setFilter('')
@@ -122,7 +122,7 @@ class TableFilter extends Component {
   columnId: propTypes.number.isRequired,
   name: propTypes.node,
   sort: propTypes.func,
-  sortIcon: propTypes.string
+  sortIcon: propTypes.string,
 })
 class ColumnHead extends Component {
   _sort = () => {
@@ -160,7 +160,7 @@ class ColumnHead extends Component {
 // ===================================================================
 
 @propTypes({
-  indeterminate: propTypes.bool.isRequired
+  indeterminate: propTypes.bool.isRequired,
 })
 class Checkbox extends Component {
   componentDidUpdate () {
@@ -193,7 +193,7 @@ const actionsShape = propTypes.arrayOf(
     handler: propTypes.func.isRequired,
     icon: propTypes.string.isRequired,
     label: propTypes.node.isRequired,
-    level: propTypes.oneOf(['warning', 'danger'])
+    level: propTypes.oneOf(['warning', 'danger']),
   })
 )
 
@@ -236,7 +236,7 @@ class IndividualAction extends Component {
         itemRenderer: propTypes.func,
         sortCriteria: propTypes.oneOfType([propTypes.func, propTypes.string]),
         sortOrder: propTypes.string,
-        textAlign: propTypes.string
+        textAlign: propTypes.string,
       })
     ).isRequired,
     filterContainer: propTypes.func,
@@ -251,15 +251,15 @@ class IndividualAction extends Component {
     // The shortcuts will be enabled when the node is focused
     shortcutsTarget: propTypes.string,
     stateUrlParam: propTypes.string,
-    userData: propTypes.any
+    userData: propTypes.any,
   },
   {
-    router: routerShape
+    router: routerShape,
   }
 )
 export default class SortedTable extends Component {
   static defaultProps = {
-    itemsPerPage: 10
+    itemsPerPage: 10,
   }
 
   constructor (props, context) {
@@ -280,7 +280,7 @@ export default class SortedTable extends Component {
       page: 1,
       selectedColumn,
       sortOrder:
-        props.columns[selectedColumn].sortOrder === 'desc' ? 'desc' : 'asc'
+        props.columns[selectedColumn].sortOrder === 'desc' ? 'desc' : 'asc',
     })
 
     const urlState = get(
@@ -362,7 +362,7 @@ export default class SortedTable extends Component {
               this.setState({
                 highlighted:
                   (itemIndex + visibleItems.length + 1) % visibleItems.length ||
-                  0
+                  0,
               })
             }
             break
@@ -375,7 +375,7 @@ export default class SortedTable extends Component {
               this.setState({
                 highlighted:
                   (itemIndex + visibleItems.length - 1) % visibleItems.length ||
-                  0
+                  0,
               })
             }
             break
@@ -423,7 +423,7 @@ export default class SortedTable extends Component {
 
     this.setState({
       selectedColumn: columnId,
-      sortOrder
+      sortOrder,
     })
   }
 
@@ -457,8 +457,8 @@ export default class SortedTable extends Component {
       ...location,
       query: {
         ...location.query,
-        [stateUrlParam]: `${page}-${filter}`
-      }
+        [stateUrlParam]: `${page}-${filter}`,
+      },
     })
   }
 
@@ -467,7 +467,7 @@ export default class SortedTable extends Component {
     this.setState({
       filter,
       page: 1,
-      highlighted: undefined
+      highlighted: undefined,
     })
   }
 
@@ -500,7 +500,7 @@ export default class SortedTable extends Component {
       all: false,
       selectedItemsIds: event.target.checked
         ? this.state.selectedItemsIds.union(map(this._getVisibleItems(), 'id'))
-        : this.state.selectedItemsIds.clear()
+        : this.state.selectedItemsIds.clear(),
     })
   }
 
@@ -534,13 +534,13 @@ export default class SortedTable extends Component {
             selectedItemsIds.add(item.id)
           })
           selectedItemsIds.delete(item.id)
-        })
+        }),
       })
     }
 
-    let method = (selected === undefined
-    ? !selectedItemsIds.has(item.id)
-    : selected)
+    const method = (selected === undefined
+      ? !selectedItemsIds.has(item.id)
+      : selected)
       ? 'add'
       : 'delete'
 
@@ -559,7 +559,7 @@ export default class SortedTable extends Component {
               selectedItemsIds[method](visibleItems[i].id)
             }
           })
-          : selectedItemsIds[method](item.id)
+          : selectedItemsIds[method](item.id),
     })
 
     this._previous = current
@@ -669,7 +669,7 @@ export default class SortedTable extends Component {
       groupedActions,
       itemsPerPage,
       paginationContainer,
-      shortcutsTarget
+      shortcutsTarget,
     } = props
     const { all } = state
 
@@ -727,7 +727,7 @@ export default class SortedTable extends Component {
                   ? _('sortedTableNumberOfItems', { nTotal: nItems })
                   : _('sortedTableNumberOfFilteredItems', {
                     nFiltered: nItems,
-                    nTotal: nAllItems
+                    nTotal: nAllItems,
                   })}
                 {all ? (
                   <span>
@@ -743,7 +743,7 @@ export default class SortedTable extends Component {
                       {' '}
                       -{' '}
                       {_('sortedTableNumberOfSelectedItems', {
-                        nSelected: nSelectedItems
+                        nSelected: nSelectedItems,
                       })}
                       {nSelectedItems === nVisibleItems &&
                         nSelectedItems < nItems && (

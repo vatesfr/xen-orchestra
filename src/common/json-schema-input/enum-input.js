@@ -31,7 +31,7 @@ export default class EnumInput extends Component {
     const {
       disabled,
       schema: { enum: enumValues, enumNames = enumValues },
-      required
+      required,
     } = this.props
 
     return (

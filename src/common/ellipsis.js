@@ -3,11 +3,11 @@ import React from 'react'
 const ellipsisStyle = {
   overflow: 'hidden',
   textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap'
+  whiteSpace: 'nowrap',
 }
 
 const ellipsisContainerStyle = {
-  display: 'flex'
+  display: 'flex',
 }
 
 const Ellipsis = ({ children }) => <span style={ellipsisStyle}>{children}</span>

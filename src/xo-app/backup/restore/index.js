@@ -32,7 +32,7 @@ import {
   listRemote,
   listRemoteBackups,
   startVm,
-  subscribeRemotes
+  subscribeRemotes,
 } from 'xo'
 
 // Can 2 SRs on the same pool have 2 VDIs used by the same VM
@@ -64,7 +64,7 @@ const VM_COLUMNS = [
   {
     name: _('backupVmNameColumn'),
     itemRenderer: ({ last }) => last.name,
-    sortCriteria: ({ last }) => last.name
+    sortCriteria: ({ last }) => last.name,
   },
   {
     name: _('backupTags'),
@@ -79,7 +79,7 @@ const VM_COLUMNS = [
           </Row>
         ))}
       </Container>
-    )
+    ),
   },
   {
     name: _('lastBackupColumn'),
@@ -95,7 +95,7 @@ const VM_COLUMNS = [
       />
     ),
     sortCriteria: ({ last }) => last.date,
-    sortOrder: 'desc'
+    sortOrder: 'desc',
   },
   {
     name: _('availableBackupsColumn'),
@@ -115,14 +115,14 @@ const VM_COLUMNS = [
           </span>
         )}
       </span>
-    )
-  }
+    ),
+  },
 ]
 
 const openImportModal = ({ backups }) =>
   confirm({
     title: _('importBackupModalTitle', { name: backups[0].name }),
-    body: <ImportModalBody vmName={backups[0].name} backups={backups} />
+    body: <ImportModalBody vmName={backups[0].name} backups={backups} />,
   }).then(doImport)
 
 const doImport = ({ backup, mainSr, start, mapVdisSrs }) => {
@@ -132,7 +132,7 @@ const doImport = ({ backup, mainSr, start, mapVdisSrs }) => {
   }
   const importMethods = {
     delta: importDeltaBackup,
-    simple: importBackup
+    simple: importBackup,
   }
   info(_('importBackupTitle'), _('importBackupMessage'))
   try {
@@ -140,7 +140,7 @@ const doImport = ({ backup, mainSr, start, mapVdisSrs }) => {
       remote: backup.remoteId,
       sr: mainSr,
       file: backup.path,
-      mapVdisSrs
+      mapVdisSrs,
     }).then(id => {
       return id
     })
@@ -157,7 +157,7 @@ class _ModalBody extends Component {
     super()
 
     this.state = {
-      mapVdisSrs: {}
+      mapVdisSrs: {},
     }
   }
 
@@ -185,7 +185,7 @@ class _ModalBody extends Component {
 
     if (oldSr == null || newSr == null || oldSr.$pool !== newSr.$pool) {
       this.setState({
-        mapVdisSrs: {}
+        mapVdisSrs: {},
       })
     } else if (!newSr.shared) {
       const mapVdisSrs = { ...this.state.mapVdisSrs }
@@ -200,12 +200,12 @@ class _ModalBody extends Component {
         }
       })
       this.setState({
-        mapVdisSrs
+        mapVdisSrs,
       })
     }
 
     this.setState({
-      sr: newSr
+      sr: newSr,
     })
   }
 
@@ -240,7 +240,7 @@ class _ModalBody extends Component {
 const ImportModalBody = injectIntl(_ModalBody, { withRef: true })
 
 @addSubscriptions({
-  rawRemotes: subscribeRemotes
+  rawRemotes: subscribeRemotes,
 })
 export default class Restore extends Component {
   componentWillReceiveProps ({ rawRemotes }) {
@@ -257,7 +257,7 @@ export default class Restore extends Component {
     const remotesInfo = await Promise.all(
       map(remotes, async remote => ({
         files: await listRemote(remote.id),
-        backupsInfo: await listRemoteBackups(remote.id)
+        backupsInfo: await listRemoteBackups(remote.id),
       }))
     )
 
@@ -273,7 +273,7 @@ export default class Restore extends Component {
         if (deltaInfo) {
           const [, tag, id, date, name] = deltaInfo
           const vdis = find(remoteInfo.backupsInfo, {
-            id: `${file}.json`
+            id: `${file}.json`,
           }).disks
 
           backup = {
@@ -285,7 +285,7 @@ export default class Restore extends Component {
             tag,
             remoteId: remote.id,
             remoteName: remote.name,
-            vdis
+            vdis,
           }
         } else {
           const backupInfo = /^([^_]+)_([^_]+)_(.*)\.xva$/.exec(file)
@@ -298,7 +298,7 @@ export default class Restore extends Component {
               path: file,
               tag,
               remoteId: remote.id,
-              remoteName: remote.name
+              remoteName: remote.name,
             }
           }
         }
@@ -316,7 +316,7 @@ export default class Restore extends Component {
           groupBy(backups, 'remoteId'),
           (backups, remoteId) => ({
             remoteName: find(remotes, remote => remote.id === remoteId).name,
-            tags: uniq(map(backups, 'tag'))
+            tags: uniq(map(backups, 'tag')),
           })
         ),
         simpleCount: reduce(
@@ -328,7 +328,7 @@ export default class Restore extends Component {
           backups,
           (sum, b) => (b.type === 'delta' ? ++sum : sum),
           0
-        )
+        ),
       }
     })
     this.setState({ backupInfoByVm })

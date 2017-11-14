@@ -14,7 +14,7 @@ import {
   CpuSparkLines,
   MemorySparkLines,
   NetworkSparkLines,
-  LoadSparkLines
+  LoadSparkLines,
 } from 'xo-sparklines'
 
 export default class extends Component {

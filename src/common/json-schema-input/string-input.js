@@ -11,7 +11,7 @@ import { PrimitiveInputWrapper } from './helpers'
 // ===================================================================
 
 @propTypes({
-  password: propTypes.bool
+  password: propTypes.bool,
 })
 @uncontrollableInput()
 export default class StringInput extends Component {

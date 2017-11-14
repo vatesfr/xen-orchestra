@@ -4,7 +4,7 @@ import {
   getPropertyClausesStrings,
   parse,
   setPropertyClause,
-  toString
+  toString,
 } from './'
 import { ast, pattern } from './index.fixtures'
 
@@ -12,7 +12,7 @@ it('getPropertyClausesStrings', () => {
   const tmp = parse('foo bar:baz baz:|(foo bar)')::getPropertyClausesStrings()
   expect(tmp).toEqual({
     bar: ['baz'],
-    baz: ['foo', 'bar']
+    baz: ['foo', 'bar'],
   })
 })
 

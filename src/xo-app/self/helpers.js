@@ -16,26 +16,26 @@ import { subscribeGroups, subscribeUsers } from 'xo'
 // ===================================================================
 
 @propTypes({
-  subjects: propTypes.array.isRequired
+  subjects: propTypes.array.isRequired,
 })
 export class Subjects extends Component {
   constructor (props) {
     super(props)
     this.state = {
       groups: {},
-      users: {}
+      users: {},
     }
   }
 
   componentWillMount () {
     const unsubscribeGroups = subscribeGroups(groups => {
       this.setState({
-        groups: keyBy(groups, 'id')
+        groups: keyBy(groups, 'id'),
       })
     })
     const unsubscribeUsers = subscribeUsers(users => {
       this.setState({
-        users: keyBy(users, 'id')
+        users: keyBy(users, 'id'),
       })
     })
 
@@ -55,7 +55,7 @@ export class Subjects extends Component {
             return renderXoItem(
               { type: 'user', ...state.users[id] },
               {
-                className: 'mr-1'
+                className: 'mr-1',
               }
             )
           }
@@ -64,7 +64,7 @@ export class Subjects extends Component {
             return renderXoItem(
               { type: 'group', ...state.groups[id] },
               {
-                className: 'mr-1'
+                className: 'mr-1',
               }
             )
           }

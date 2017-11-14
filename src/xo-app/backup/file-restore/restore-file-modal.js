@@ -47,8 +47,8 @@ const formatFilesOptions = (rawFiles, path) => {
           name: '..',
           id: '..',
           path: getParentPath(path),
-          content: {}
-        }
+          content: {},
+        },
       ]
       : []
 
@@ -57,7 +57,7 @@ const formatFilesOptions = (rawFiles, path) => {
       name,
       id: `${path}${name}`,
       path: `${path}${name}`,
-      content: file
+      content: file,
     }))
   )
 }
@@ -68,7 +68,7 @@ const getParentPath = path => replace(path, /^(\/+.+)*(\/+.+)/, '$1/')
 
 export default class RestoreFileModalBody extends Component {
   state = {
-    format: 'zip'
+    format: 'zip',
   }
 
   get value () {
@@ -79,7 +79,7 @@ export default class RestoreFileModalBody extends Component {
       format: state.format,
       partition: state.partition,
       paths: state.selectedFiles && map(state.selectedFiles, 'path'),
-      remote: state.backup.remoteId
+      remote: state.backup.remoteId,
     }
   }
 
@@ -92,12 +92,12 @@ export default class RestoreFileModalBody extends Component {
         this.setState({
           files: formatFilesOptions(rawFiles, path),
           scanningFiles: false,
-          scanFilesError: false
+          scanFilesError: false,
         }),
       error => {
         this.setState({
           scanningFiles: false,
-          scanFilesError: true
+          scanFilesError: true,
         })
         throw error
       }
@@ -119,7 +119,7 @@ export default class RestoreFileModalBody extends Component {
       file: undefined,
       selectedFiles: undefined,
       scanDiskError: false,
-      scanFilesError: false
+      scanFilesError: false,
     })
   }
 
@@ -129,7 +129,7 @@ export default class RestoreFileModalBody extends Component {
       file: undefined,
       selectedFiles: undefined,
       scanDiskError: false,
-      scanFilesError: false
+      scanFilesError: false,
     })
 
     if (!disk) {
@@ -142,7 +142,7 @@ export default class RestoreFileModalBody extends Component {
           this.setState(
             {
               disk,
-              path: '/'
+              path: '/',
             },
             this._scanFiles
           )
@@ -152,13 +152,13 @@ export default class RestoreFileModalBody extends Component {
 
         this.setState({
           disk,
-          partitions
+          partitions,
         })
       },
       error => {
         this.setState({
           disk,
-          scanDiskError: true
+          scanDiskError: true,
         })
         throw error
       }
@@ -171,7 +171,7 @@ export default class RestoreFileModalBody extends Component {
         partition,
         path: '/',
         file: undefined,
-        selectedFiles: undefined
+        selectedFiles: undefined,
       },
       partition && this._scanFiles
     )
@@ -195,13 +195,13 @@ export default class RestoreFileModalBody extends Component {
       const { selectedFiles } = this.state
       if (!includes(selectedFiles, file)) {
         this.setState({
-          selectedFiles: (selectedFiles || []).concat(file)
+          selectedFiles: (selectedFiles || []).concat(file),
         })
       }
     } else {
       this.setState(
         {
-          path: file.id === '..' ? getParentPath(this.state.path) : file.path
+          path: file.id === '..' ? getParentPath(this.state.path) : file.path,
         },
         this._scanFiles
       )
@@ -213,13 +213,13 @@ export default class RestoreFileModalBody extends Component {
       selectedFiles: filter(
         this.state.selectedFiles,
         ({ id }) => id !== file.id
-      )
+      ),
     })
   }
 
   _unselectAllFiles = () => {
     this.setState({
-      selectedFiles: undefined
+      selectedFiles: undefined,
     })
   }
 
@@ -227,7 +227,7 @@ export default class RestoreFileModalBody extends Component {
     this.setState({
       selectedFiles: (this.state.selectedFiles || []).concat(
         filter(this._getSelectableFiles(), ({ path }) => !endsWith(path, '/'))
-      )
+      ),
     })
   }
 
@@ -245,7 +245,7 @@ export default class RestoreFileModalBody extends Component {
       scanDiskError,
       scanFilesError,
       scanningFiles,
-      selectedFiles
+      selectedFiles,
     } = this.state
     const noPartitions = isEmpty(partitions)
 
@@ -268,7 +268,7 @@ export default class RestoreFileModalBody extends Component {
             options={backup.disks}
             placeholder={_('restoreFilesSelectDisk')}
             value={disk}
-          />
+          />,
         ]}
         {scanDiskError && (
           <span>
@@ -286,7 +286,7 @@ export default class RestoreFileModalBody extends Component {
               options={partitions}
               placeholder={_('restoreFilesSelectPartition')}
               value={partition}
-            />
+            />,
           ]}
         {(partition || (disk && !scanDiskError && noPartitions)) && [
           <br />,
@@ -349,7 +349,7 @@ export default class RestoreFileModalBody extends Component {
                 <Col className='pl-0 pb-1' size={10}>
                   <em>
                     {_('restoreFilesSelectedFiles', {
-                      files: selectedFiles.length
+                      files: selectedFiles.length,
                     })}
                   </em>
                 </Col>
@@ -380,7 +380,7 @@ export default class RestoreFileModalBody extends Component {
             </Container>
           ) : (
             <em>{_('restoreFilesNoFilesSelected')}</em>
-          )
+          ),
         ]}
       </div>
     )

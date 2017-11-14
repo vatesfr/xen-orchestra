@@ -31,7 +31,7 @@ import {
   editResourceSet,
   recomputeResourceSetsLimits,
   subscribeIpPools,
-  subscribeResourceSets
+  subscribeResourceSets,
 } from 'xo'
 
 import {
@@ -39,7 +39,7 @@ import {
   connectStore,
   formatSize,
   resolveIds,
-  resolveResourceSets
+  resolveResourceSets,
 } from 'utils'
 
 import { Card, CardBlock, CardHeader } from 'card'
@@ -50,7 +50,7 @@ import {
   SelectPool,
   SelectSr,
   SelectSubject,
-  SelectVmTemplate
+  SelectVmTemplate,
 } from 'select-objects'
 
 import { computeAvailableHosts, Subjects } from './helpers'
@@ -75,7 +75,7 @@ const HEADER = (
 
 const Hosts = propTypes({
   eligibleHosts: propTypes.array.isRequired,
-  excludedHosts: propTypes.array.isRequired
+  excludedHosts: propTypes.array.isRequired,
 })(({ eligibleHosts, excludedHosts }) => (
   <div>
     <Row>
@@ -124,7 +124,7 @@ const Hosts = propTypes({
 
 @propTypes({
   onSave: propTypes.func,
-  resourceSet: propTypes.object
+  resourceSet: propTypes.object,
 })
 @connectStore(() => {
   const getHosts = createGetObjectsOfType('host').sort()
@@ -132,7 +132,7 @@ const Hosts = propTypes({
 
   return {
     hosts: getHosts,
-    hostsByPool: getHostsByPool
+    hostsByPool: getHostsByPool,
   }
 })
 @injectIntl
@@ -152,7 +152,7 @@ export class Edit extends Component {
       pools: [],
       srs: [],
       subjects: [],
-      templates: []
+      templates: [],
     }
   }
 
@@ -162,7 +162,7 @@ export class Edit extends Component {
     if (resourceSet) {
       // Objects
       const { objectsByType } = resourceSet
-      let pools = {}
+      const pools = {}
       forEach(objectsByType, objects => {
         forEach(objects, object => {
           pools[object.$pool] = true
@@ -182,7 +182,7 @@ export class Edit extends Component {
       forEach(rawIpPools, ipPool => {
         ipPools.push({
           id: ipPool,
-          quantity: get(limits, `[ipPool:${ipPool}].total`)
+          quantity: get(limits, `[ipPool:${ipPool}].total`),
         })
       })
 
@@ -193,7 +193,7 @@ export class Edit extends Component {
         memory: get(limits, 'memory.total', null),
         name: resourceSet.name,
         subjects: resourceSet.subjects,
-        templates: objectsByType['VM-template'] || []
+        templates: objectsByType['VM-template'] || [],
       })
     }
   }
@@ -208,7 +208,7 @@ export class Edit extends Component {
       networks,
       srs,
       subjects,
-      templates
+      templates,
     } = this.state
 
     const set = this.props.resourceSet || (await createResourceSet(name))
@@ -227,11 +227,11 @@ export class Edit extends Component {
         cpus: cpus === '' ? undefined : +cpus,
         memory: memory === null ? undefined : memory,
         disk: disk === null ? undefined : disk,
-        ...ipPoolsLimits
+        ...ipPoolsLimits,
       },
       objects: resolveIds(objects),
       subjects: resolveIds(subjects),
-      ipPools: resolveIds(ipPools)
+      ipPools: resolveIds(ipPools),
     })
 
     this.props.onSave()
@@ -247,7 +247,7 @@ export class Edit extends Component {
       memory: null,
       newIpPool: undefined,
       newIpPoolQuantity: '',
-      subjects: []
+      subjects: [],
     })
   }
 
@@ -261,7 +261,7 @@ export class Edit extends Component {
         nPools: newPools.length,
         pools: newPools,
         srPredicate: predicate,
-        vmTemplatePredicate: predicate
+        vmTemplatePredicate: predicate,
       },
       () => this._updateSelectedSrs(newSrs || this.state.srs, newNetworks)
     )
@@ -287,7 +287,7 @@ export class Edit extends Component {
         availableHosts,
         networkPredicate,
         nSrs: newSrs.length,
-        srs: newSrs
+        srs: newSrs,
       },
       () => this._updateSelectedNetworks(newNetworks || this.state.networks)
     )
@@ -323,7 +323,7 @@ export class Edit extends Component {
         eligibleHosts,
         host => host.id
       ),
-      networks: newNetworks
+      networks: newNetworks,
     })
   }
 
@@ -334,7 +334,7 @@ export class Edit extends Component {
 
     this.setState({
       ipPools: [...ipPools, { id: newIpPool.id, quantity: newIpPoolQuantity }],
-      newIpPoolQuantity: ''
+      newIpPoolQuantity: '',
     })
   }
 
@@ -555,7 +555,7 @@ export class Edit extends Component {
 }
 
 @addSubscriptions({
-  ipPools: subscribeIpPools
+  ipPools: subscribeIpPools,
 })
 class ResourceSet extends Component {
   _renderDisplay = () => {
@@ -565,7 +565,7 @@ class ResourceSet extends Component {
       limits: { cpus, disk, memory } = {},
       ipPools,
       subjects,
-      objectsByType
+      objectsByType,
     } = resourceSet
 
     return [
@@ -590,7 +590,7 @@ class ResourceSet extends Component {
               <span className='mr-1'>
                 {renderXoItem({
                   name: resolvedIpPool && resolvedIpPool.name,
-                  type: 'ipPool'
+                  type: 'ipPool',
                 })}
                 {limits && (
                   <span>
@@ -616,12 +616,12 @@ class ResourceSet extends Component {
                     <ChartistGraph
                       data={{
                         labels: ['Available', 'Used'],
-                        series: [cpus.available, cpus.total - cpus.available]
+                        series: [cpus.available, cpus.total - cpus.available],
                       }}
                       options={{
                         donut: true,
                         donutWidth: 40,
-                        showLabel: false
+                        showLabel: false,
                       }}
                       type='Pie'
                     />
@@ -651,13 +651,13 @@ class ResourceSet extends Component {
                         labels: ['Available', 'Used'],
                         series: [
                           memory.available,
-                          memory.total - memory.available
-                        ]
+                          memory.total - memory.available,
+                        ],
                       }}
                       options={{
                         donut: true,
                         donutWidth: 40,
-                        showLabel: false
+                        showLabel: false,
                       }}
                       type='Pie'
                     />
@@ -686,12 +686,12 @@ class ResourceSet extends Component {
                     <ChartistGraph
                       data={{
                         labels: ['Available', 'Used'],
-                        series: [disk.available, disk.total - disk.available]
+                        series: [disk.available, disk.total - disk.available],
                       }}
                       options={{
                         donut: true,
                         donutWidth: 40,
-                        showLabel: false
+                        showLabel: false,
                       }}
                       type='Pie'
                     />
@@ -729,7 +729,7 @@ class ResourceSet extends Component {
             {_('deleteResourceSet')}
           </ActionButton>
         </div>
-      </li>
+      </li>,
     ]
   }
 
@@ -778,7 +778,7 @@ export default class Self extends Component {
   componentWillMount () {
     this.componentWillUnmount = subscribeResourceSets(resourceSets => {
       this.setState({
-        resourceSets: resolveResourceSets(resourceSets)
+        resourceSets: resolveResourceSets(resourceSets),
       })
     })
   }
@@ -809,7 +809,7 @@ export default class Self extends Component {
             </div>
             {showNewResourceSetForm && [
               <Edit onSave={this.toggleState('showNewResourceSetForm')} />,
-              <hr />
+              <hr />,
             ]}
             {resourceSets
               ? isEmpty(resourceSets)
@@ -819,8 +819,8 @@ export default class Self extends Component {
                     autoExpand={location.query.resourceSet === resourceSet.id}
                     key={resourceSet.id}
                     resourceSet={resourceSet}
-                    />
-                  ))
+                  />
+                ))
               : _('loadingResourceSets')}
           </div>
         ) : (

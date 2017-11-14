@@ -20,7 +20,7 @@ import {
   createGetHostMetrics,
   createSelector,
   createTop,
-  isAdmin
+  isAdmin,
 } from 'selectors'
 import { connectStore, formatSize } from 'utils'
 import { isSrWritable, subscribeUsers } from 'xo'
@@ -30,7 +30,7 @@ import styles from './index.css'
 // ===================================================================
 
 @propTypes({
-  hosts: propTypes.object.isRequired
+  hosts: propTypes.object.isRequired,
 })
 class PatchesCard extends Component {
   _getContainer = () => this.refs.container
@@ -69,7 +69,7 @@ class PatchesCard extends Component {
     createSelector(writableSrs, writableSrs => {
       const metrics = {
         srTotal: 0,
-        srUsage: 0
+        srUsage: 0,
       }
       forEach(writableSrs, sr => {
         metrics.srUsage += sr.physical_usage
@@ -84,7 +84,7 @@ class PatchesCard extends Component {
         vcpus: 0,
         running: 0,
         halted: 0,
-        other: 0
+        other: 0,
       }
       forEach(vms, vm => {
         if (vm.power_state === 'Running') {
@@ -123,7 +123,7 @@ class PatchesCard extends Component {
       [sr => sr.physical_usage / sr.size],
       5
     ),
-    vmMetrics: getVmMetrics
+    vmMetrics: getVmMetrics,
   }
 })
 export default class Overview extends Component {
@@ -190,8 +190,8 @@ export default class Overview extends Component {
                     series: [
                       props.hostMetrics.memoryUsage,
                       props.hostMetrics.memoryTotal -
-                        props.hostMetrics.memoryUsage
-                    ]
+                        props.hostMetrics.memoryUsage,
+                    ],
                   }}
                   options={{ donut: true, donutWidth: 40, showLabel: false }}
                   type='Pie'
@@ -199,7 +199,7 @@ export default class Overview extends Component {
                 <p className='text-xs-center'>
                   {_('ofUsage', {
                     total: formatSize(props.hostMetrics.memoryTotal),
-                    usage: formatSize(props.hostMetrics.memoryUsage)
+                    usage: formatSize(props.hostMetrics.memoryUsage),
                   })}
                 </p>
               </CardBlock>
@@ -215,19 +215,19 @@ export default class Overview extends Component {
                   <ChartistGraph
                     data={{
                       labels: ['vCPUs', 'CPUs'],
-                      series: [props.vmMetrics.vcpus, props.hostMetrics.cpus]
+                      series: [props.vmMetrics.vcpus, props.hostMetrics.cpus],
                     }}
                     options={{
                       showLabel: false,
                       showGrid: false,
-                      distributeSeries: true
+                      distributeSeries: true,
                     }}
                     type='Bar'
                   />
                   <p className='text-xs-center'>
                     {_('ofUsage', {
                       total: `${props.hostMetrics.cpus} CPUs`,
-                      usage: `${props.vmMetrics.vcpus} vCPUs`
+                      usage: `${props.vmMetrics.vcpus} vCPUs`,
                     })}
                   </p>
                 </div>
@@ -247,20 +247,20 @@ export default class Overview extends Component {
                         labels: ['Used Space', 'Total Space'],
                         series: [
                           props.srMetrics.srUsage,
-                          props.srMetrics.srTotal - props.srMetrics.srUsage
-                        ]
+                          props.srMetrics.srTotal - props.srMetrics.srUsage,
+                        ],
                       }}
                       options={{
                         donut: true,
                         donutWidth: 40,
-                        showLabel: false
+                        showLabel: false,
                       }}
                       type='Pie'
                     />
                     <p className='text-xs-center'>
                       {_('ofUsage', {
                         total: formatSize(props.srMetrics.srTotal),
-                        usage: formatSize(props.srMetrics.srUsage)
+                        usage: formatSize(props.srMetrics.srUsage),
                       })}
                     </p>
                   </BlockLink>
@@ -330,8 +330,8 @@ export default class Overview extends Component {
                       series: [
                         props.vmMetrics.running,
                         props.vmMetrics.halted,
-                        props.vmMetrics.other
-                      ]
+                        props.vmMetrics.other,
+                      ],
                     }}
                     options={{ showLabel: false }}
                     type='Pie'
@@ -339,7 +339,7 @@ export default class Overview extends Component {
                   <p className='text-xs-center'>
                     {_('vmsStates', {
                       running: props.vmMetrics.running,
-                      halted: props.vmMetrics.halted
+                      halted: props.vmMetrics.halted,
                     })}
                   </p>
                 </BlockLink>
@@ -360,13 +360,13 @@ export default class Overview extends Component {
                       series: map(
                         props.topWritableSrs,
                         sr => sr.physical_usage / sr.size * 100
-                      )
+                      ),
                     }}
                     options={{
                       showLabel: false,
                       showGrid: false,
                       distributeSeries: true,
-                      high: 100
+                      high: 100,
                     }}
                     type='Bar'
                   />

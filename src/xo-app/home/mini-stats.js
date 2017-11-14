@@ -7,7 +7,7 @@ import {
   CpuSparkLines,
   LoadSparkLines,
   NetworkSparkLines,
-  XvdSparkLines
+  XvdSparkLines,
 } from 'xo-sparklines'
 
 import styles from './index.css'
@@ -15,11 +15,11 @@ import styles from './index.css'
 const MINI_STATS_PROPS = {
   height: 10,
   strokeWidth: 0.2,
-  width: 50
+  width: 50,
 }
 
 @propTypes({
-  fetchStats: propTypes.func.isRequired
+  fetchStats: propTypes.func.isRequired,
 })
 export default class MiniStats extends Component {
   _fetch = () => {

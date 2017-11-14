@@ -7,14 +7,14 @@ const toString = value =>
 // This component does not handle changes in its `promise` property.
 class DebugAsync extends Component {
   static propTypes = {
-    promise: PropTypes.object.isRequired
+    promise: PropTypes.object.isRequired,
   }
 
   constructor (props) {
     super()
 
     this.state = {
-      status: 'pending'
+      status: 'pending',
     }
 
     props.promise.then(
@@ -53,7 +53,7 @@ const Debug = ({ value }) =>
   )
 
 Debug.propTypes = {
-  value: PropTypes.any.isRequired
+  value: PropTypes.any.isRequired,
 }
 
 export { Debug as default }

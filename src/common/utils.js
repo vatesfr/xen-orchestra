@@ -19,7 +19,7 @@ import {
   mapValues,
   replace,
   sample,
-  startsWith
+  startsWith,
 } from 'lodash'
 
 import _ from './intl'
@@ -127,7 +127,7 @@ export const checkPropsState = (propsNames, stateNames) => Component => {
 
 const _normalizeMapStateToProps = mapper => {
   if (isFunction(mapper)) {
-    let factoryOrMapper = (state, props) => {
+    const factoryOrMapper = (state, props) => {
       const result = mapper(state, props)
 
       // Properly handles factory pattern.
@@ -180,7 +180,7 @@ export const connectStore = (mapStateToProps, opts = {}) => {
         },
         set (value) {
           this.getWrappedInstance().value = value
-        }
+        },
       })
     }
 
@@ -242,7 +242,7 @@ export const osFamily = invoke(
     solaris: ['solaris'],
     suse: ['sles', 'suse'],
     ubuntu: ['ubuntu'],
-    windows: ['windows']
+    windows: ['windows'],
   },
   osByFamily => {
     const osToFamily = Object.create(null)
@@ -310,14 +310,14 @@ export const routes = (indexRoute, childRoutes) => target => {
     indexRoute = undefined
   } else if (isFunction(indexRoute)) {
     indexRoute = {
-      component: indexRoute
+      component: indexRoute,
     }
   } else if (isString(indexRoute)) {
     indexRoute = {
       onEnter: invoke(indexRoute, pathname => (state, replace) => {
         const current = state.location.pathname
         replace((current === '/' ? '' : current) + '/' + pathname)
-      })
+      }),
     }
   }
 
@@ -338,7 +338,7 @@ export const routes = (indexRoute, childRoutes) => target => {
 
   target.route = {
     indexRoute,
-    childRoutes
+    childRoutes,
   }
 
   return target
@@ -370,7 +370,7 @@ export const resolveResourceSet = resourceSet => {
     ...attrs,
     missingObjects: [],
     objectsByType: resolvedObjects,
-    ipPools
+    ipPools,
   }
   const state = store.getState()
 
@@ -480,7 +480,7 @@ const OPs = {
   '<=': a => a <= 0,
   '===': a => a === 0,
   '>': a => a > 0,
-  '>=': a => a >= 0
+  '>=': a => a >= 0,
 }
 
 const makeNiceCompare = compare =>

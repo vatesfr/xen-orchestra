@@ -18,7 +18,7 @@ import {
   createFinder,
   createGetObject,
   createGetObjectsOfType,
-  createSelector
+  createSelector,
 } from 'selectors'
 import { connectStore, formatSize, mapPlus, noop } from 'utils'
 import { SelectNetwork, SelectPool, SelectSr } from 'select-objects'
@@ -32,7 +32,7 @@ import styles from './index.css'
 
 const FORMAT_TO_HANDLER = {
   ova: parseOvaFile,
-  xva: noop
+  xva: noop,
 }
 
 const HEADER = (
@@ -56,14 +56,14 @@ const HEADER = (
       capacity: propTypes.number.isRequired,
       descriptionLabel: propTypes.string.isRequired,
       nameLabel: propTypes.string.isRequired,
-      path: propTypes.string.isRequired
+      path: propTypes.string.isRequired,
     })
   ),
   memory: propTypes.number,
   nameLabel: propTypes.string,
   nCpus: propTypes.number,
   networks: propTypes.array,
-  pool: propTypes.object.isRequired
+  pool: propTypes.object.isRequired,
 })
 @connectStore(
   () => {
@@ -77,7 +77,7 @@ const HEADER = (
     )
 
     return {
-      defaultNetwork: getDefaultNetworkId
+      defaultNetwork: getDefaultNetworkId,
     }
   },
   { withRef: true }
@@ -92,7 +92,7 @@ class VmData extends Component {
         descriptionLabel: refs[`disk-description-${diskId}`].value,
         nameLabel: refs[`disk-name-${diskId}`].value,
         path,
-        position
+        position,
       })),
       memory: +refs.memory.value,
       nameLabel: refs.nameLabel.value,
@@ -100,7 +100,7 @@ class VmData extends Component {
         const network = refs[`network-${networkId}`].value
         return network.id ? network.id : network
       }),
-      nCpus: +refs.nCpus.value
+      nCpus: +refs.nCpus.value,
     }
   }
 
@@ -117,7 +117,7 @@ class VmData extends Component {
       memory,
       nameLabel,
       nCpus,
-      networks
+      networks,
     } = this.props
 
     return (
@@ -172,7 +172,7 @@ class VmData extends Component {
                       <label>
                         {_('diskInfo', {
                           position: `${disk.position}`,
-                          capacity: formatSize(disk.capacity)
+                          capacity: formatSize(disk.capacity),
                         })}
                       </label>
                       <input
@@ -181,7 +181,7 @@ class VmData extends Component {
                         defaultValue={disk.nameLabel}
                         type='text'
                         required
-                        />
+                      />
                     </div>
                   </Col>
                   <Col mediumSize={6}>
@@ -193,11 +193,11 @@ class VmData extends Component {
                         defaultValue={disk.descriptionLabel}
                         type='text'
                         required
-                        />
+                      />
                     </div>
                   </Col>
                 </Row>
-                ))
+              ))
               : _('noDisks')}
           </Col>
           <Col mediumSize={6}>
@@ -209,9 +209,9 @@ class VmData extends Component {
                     defaultValue={defaultNetwork}
                     ref={`network-${networkId}`}
                     predicate={this._getNetworkPredicate()}
-                    />
+                  />
                 </div>
-                ))
+              ))
               : _('noNetworks')}
           </Col>
         </Row>
@@ -227,7 +227,7 @@ const parseFile = async (file, type, func) => {
     return {
       data: await func(file),
       file,
-      type
+      type,
     }
   } catch (error) {
     return { error, file, type }
@@ -248,7 +248,7 @@ export default class Import extends Component {
           const ref = this.refs[`vm-data-${vmIndex}`]
           push({
             ...vm,
-            data: ref && ref.value
+            data: ref && ref.value,
           })
         }
       }),
@@ -276,13 +276,13 @@ export default class Import extends Component {
     )
 
     this.setState({
-      vms: orderBy(vms, vm => [vm.error != null, vm.type, vm.file.name])
+      vms: orderBy(vms, vm => [vm.error != null, vm.type, vm.file.name]),
     })
   }
 
   _handleCleanSelectedVms = () => {
     this.setState({
-      vms: []
+      vms: [],
     })
   }
 
@@ -291,20 +291,20 @@ export default class Import extends Component {
       this.setState({
         pool: undefined,
         sr: undefined,
-        srPredicate: undefined
+        srPredicate: undefined,
       })
     } else {
       this.setState({
         pool,
         sr: pool.default_SR,
-        srPredicate: sr => sr.$pool === this.state.pool.id && isSrWritable(sr)
+        srPredicate: sr => sr.$pool === this.state.pool.id && isSrWritable(sr),
       })
     }
   }
 
   _handleSelectedSr = sr => {
     this.setState({
-      sr: sr === '' ? undefined : sr
+      sr: sr === '' ? undefined : sr,
     })
   }
 

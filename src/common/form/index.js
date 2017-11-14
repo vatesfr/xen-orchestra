@@ -22,7 +22,7 @@ export SelectPlainObject from './select-plain-object'
 // ===================================================================
 
 @propTypes({
-  enableGenerator: propTypes.bool
+  enableGenerator: propTypes.bool,
 })
 export class Password extends Component {
   get value () {
@@ -45,13 +45,13 @@ export class Password extends Component {
     // FIXME: in controlled mode, visibility should only be updated
     // when the value prop is changed according to the emitted value.
     this.setState({
-      visible: true
+      visible: true,
     })
   }
 
   _toggleVisibility = () => {
     this.setState({
-      visible: !this.state.visible
+      visible: !this.state.visible,
     })
   }
 
@@ -91,7 +91,7 @@ export class Password extends Component {
   min: propTypes.number.isRequired,
   onChange: propTypes.func,
   step: propTypes.number,
-  value: propTypes.number
+  value: propTypes.number,
 })
 export class Range extends Component {
   componentDidMount () {
@@ -144,7 +144,7 @@ const DEFAULT_UNIT = 'GiB'
   readOnly: propTypes.bool,
   required: propTypes.bool,
   style: propTypes.object,
-  value: propTypes.oneOfType([propTypes.number, propTypes.oneOf([null])])
+  value: propTypes.oneOfType([propTypes.number, propTypes.oneOf([null])]),
 })
 export class SizeInput extends BaseComponent {
   constructor (props) {
@@ -166,21 +166,21 @@ export class SizeInput extends BaseComponent {
     if (bytes === this._bytes) {
       return {
         input: this._input,
-        unit: this._unit
+        unit: this._unit,
       }
     }
 
     if (bytes === null) {
       return {
         input: '',
-        unit: this.props.defaultUnit || DEFAULT_UNIT
+        unit: this.props.defaultUnit || DEFAULT_UNIT,
       }
     }
 
     const { prefix, value } = formatSizeRaw(bytes)
     return {
       input: String(round(value, 2)),
-      unit: `${prefix}B`
+      unit: `${prefix}B`,
     }
   }
 
@@ -269,7 +269,7 @@ export class SizeInput extends BaseComponent {
       readOnly,
       placeholder,
       required,
-      style
+      style,
     } = this.props
 
     return (

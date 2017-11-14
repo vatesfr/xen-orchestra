@@ -17,14 +17,14 @@ import {
   createFinder,
   createGetObjectsOfType,
   createGetVmLastShutdownTime,
-  createSelector
+  createSelector,
 } from 'selectors'
 import { connectStore, formatSize, osFamily } from 'utils'
 import {
   CpuSparkLines,
   MemorySparkLines,
   NetworkSparkLines,
-  XvdSparkLines
+  XvdSparkLines,
 } from 'xo-sparklines'
 
 export default connectStore(() => {
@@ -41,7 +41,7 @@ export default connectStore(() => {
   return {
     lastShutdownTime: createGetVmLastShutdownTime(),
     vgpu: getAttachedVgpu,
-    vgpuTypes: getVgpuTypes
+    vgpuTypes: getVgpuTypes,
   }
 })(
   ({
@@ -50,7 +50,7 @@ export default connectStore(() => {
     vgpu,
     vgpuTypes,
     vm,
-    vmTotalDiskSpace
+    vmTotalDiskSpace,
   }) => (
     <Container>
       {/* TODO: use CSS style */}
@@ -110,7 +110,7 @@ export default connectStore(() => {
             <div>
               <p className='text-xs-center'>
                 {_('started', {
-                  ago: <FormattedRelative value={vm.startTime * 1000} />
+                  ago: <FormattedRelative value={vm.startTime * 1000} />,
                 })}
               </p>
             </div>
@@ -118,7 +118,7 @@ export default connectStore(() => {
             <p className='text-xs-center'>
               {lastShutdownTime
                 ? _('vmHaltedSince', {
-                  ago: <FormattedRelative value={lastShutdownTime * 1000} />
+                  ago: <FormattedRelative value={lastShutdownTime * 1000} />,
                 })
                 : _('vmNotRunning')}
             </p>

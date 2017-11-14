@@ -11,7 +11,7 @@ export const Column = propTypes(Null)({
   itemRenderer: propTypes.func,
   sortCriteria: propTypes.oneOfType([propTypes.func, propTypes.string]),
   sortOrder: propTypes.string,
-  textAlign: propTypes.string
+  textAlign: propTypes.string,
 })
 export const SortedTable = Null
 

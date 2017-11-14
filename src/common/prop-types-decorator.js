@@ -16,13 +16,13 @@ const propTypes = (propTypes, contextTypes) => target => {
   if (propTypes !== undefined) {
     target.propTypes = {
       ...target.propTypes,
-      ...propTypes
+      ...propTypes,
     }
   }
   if (contextTypes !== undefined) {
     target.contextTypes = {
       ...target.contextTypes,
-      ...contextTypes
+      ...contextTypes,
     }
   }
 

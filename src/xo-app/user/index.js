@@ -23,7 +23,7 @@ import {
   editCustomFilter,
   removeCustomFilter,
   setDefaultHomeFilter,
-  subscribeCurrentUser
+  subscribeCurrentUser,
 } from 'xo'
 
 import Page from '../page'
@@ -48,7 +48,7 @@ const FILTER_TYPE_TO_LABEL_ID = {
   host: 'homeTypeHost',
   pool: 'homeTypePool',
   VM: 'homeTypeVm',
-  vmTemplate: 'homeTypeVmTemplate'
+  vmTemplate: 'homeTypeVmTemplate',
 }
 
 const SSH_KEY_STYLE = { wordWrap: 'break-word' }
@@ -69,7 +69,7 @@ const getUserPreferences = user => user.preferences || {}
   customFilters: propTypes.object,
   defaultFilter: propTypes.string.isRequired,
   filters: propTypes.object.isRequired,
-  type: propTypes.string.isRequired
+  type: propTypes.string.isRequired,
 })
 class DefaultFilterPicker extends Component {
   _computeOptions (props) {
@@ -79,29 +79,29 @@ class DefaultFilterPicker extends Component {
     const options = [
       {
         label: _('customFilters'),
-        disabled: true
-      }
+        disabled: true,
+      },
     ]
 
     options.push.apply(
       options,
       map(customFilters, (filter, name) => ({
         label: name,
-        value: name
+        value: name,
       }))
     )
 
     // Default filters
     options.push({
       label: _('defaultFilters'),
-      disabled: true
+      disabled: true,
     })
 
     options.push.apply(
       options,
       map(filters, (filter, labelId) => ({
         label: _(labelId),
-        value: labelId
+        value: labelId,
       }))
     )
 
@@ -144,7 +144,7 @@ class DefaultFilterPicker extends Component {
 // ===================================================================
 
 @propTypes({
-  user: propTypes.object.isRequired
+  user: propTypes.object.isRequired,
 })
 class UserFilters extends Component {
   _removeFilter = ({ name, type }) => removeCustomFilter(type, name)
@@ -152,7 +152,7 @@ class UserFilters extends Component {
   render () {
     const {
       defaultHomeFilters,
-      filters: customFiltersByType
+      filters: customFiltersByType,
     } = getUserPreferences(this.props.user)
 
     return (
@@ -228,7 +228,7 @@ class UserFilters extends Component {
 // ===================================================================
 
 const SshKeys = addSubscriptions({
-  user: subscribeCurrentUser
+  user: subscribeCurrentUser,
 })(({ user }) => {
   const sshKeys = user && user.preferences && user.preferences.sshKeys
 
@@ -279,10 +279,10 @@ const SshKeys = addSubscriptions({
 // ===================================================================
 
 @addSubscriptions({
-  user: subscribeCurrentUser
+  user: subscribeCurrentUser,
 })
 @connectStore({
-  lang: getLang
+  lang: getLang,
 })
 @injectIntl
 export default class User extends Component {
@@ -302,7 +302,7 @@ export default class User extends Component {
       this.setState({
         oldPassword: undefined,
         newPassword: undefined,
-        confirmPassword: undefined
+        confirmPassword: undefined,
       })
     )
   }

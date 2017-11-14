@@ -68,7 +68,7 @@ const Settings = routes('servers', {
   plugins: Plugins,
   remotes: Remotes,
   servers: Servers,
-  users: Users
+  users: Users,
 })(({ children }) => (
   <Page header={HEADER} title='settingsPage' formatTitle>
     {children}

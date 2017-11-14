@@ -42,11 +42,11 @@ import { error as _error } from './notification'
   redirectOnSuccess: propTypes.oneOfType([propTypes.func, propTypes.string]),
 
   // React element to use tooltip for the component
-  tooltip: propTypes.node
+  tooltip: propTypes.node,
 })
 export default class ActionButton extends Component {
   static contextTypes = {
-    router: propTypes.object
+    router: propTypes.object,
   }
 
   async _execute () {
@@ -59,7 +59,7 @@ export default class ActionButton extends Component {
     try {
       this.setState({
         error: undefined,
-        working: true
+        working: true,
       })
 
       const result = await handler(handlerParam)
@@ -74,12 +74,12 @@ export default class ActionButton extends Component {
       }
 
       this.setState({
-        working: false
+        working: false,
       })
     } catch (error) {
       this.setState({
         error,
-        working: false
+        working: false,
       })
 
       // ignore when undefined because it usually means that the action has been canceled
@@ -122,7 +122,7 @@ export default class ActionButton extends Component {
   render () {
     const {
       props: { children, icon, pending, tooltip, ...props },
-      state: { error, working }
+      state: { error, working },
     } = this
 
     if (error !== undefined) {

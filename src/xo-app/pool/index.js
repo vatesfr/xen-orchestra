@@ -14,7 +14,7 @@ import {
   createGetObject,
   createGetObjectMessages,
   createGetObjectsOfType,
-  createSelector
+  createSelector,
 } from 'selectors'
 
 import TabAdvanced from './tab-advanced'
@@ -32,7 +32,7 @@ import TabPatches from './tab-patches'
   logs: TabLogs,
   network: TabNetwork,
   patches: TabPatches,
-  stats: TabStats
+  stats: TabStats,
 })
 @connectStore(() => {
   const getPool = createGetObject()
@@ -74,7 +74,7 @@ import TabPatches from './tab-patches'
       networks: getNetworks(state, props),
       nVms: getNumberOfVms(state, props),
       pool,
-      srs: getPoolSrs(state, props)
+      srs: getPoolSrs(state, props),
     }
   }
 })
@@ -151,7 +151,7 @@ export default class Pool extends Component {
         'networks',
         'nVms',
         'pool',
-        'srs'
+        'srs',
       ])
     )
     return (

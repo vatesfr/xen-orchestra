@@ -12,7 +12,7 @@ import {
   stopContainer,
   pauseContainer,
   unpauseContainer,
-  restartContainer
+  restartContainer,
 } from 'xo'
 
 const CONTAINER_COLUMNS = [
@@ -20,12 +20,12 @@ const CONTAINER_COLUMNS = [
     name: _('containerName'),
     itemRenderer: container => container.entry.names,
     sortCriteria: container => container.entry.names,
-    sortOrder: 'asc'
+    sortOrder: 'asc',
   },
   {
     name: _('containerCommand'),
     itemRenderer: container => container.entry.command,
-    sortCriteria: container => container.entry.command
+    sortCriteria: container => container.entry.command,
   },
   {
     name: _('containerCreated'),
@@ -43,12 +43,12 @@ const CONTAINER_COLUMNS = [
       </span>
     ),
     sortCriteria: container => container.entry.created,
-    sortOrder: 'desc'
+    sortOrder: 'desc',
   },
   {
     name: _('containerStatus'),
     itemRenderer: container => container.entry.status,
-    sortCriteria: container => container.entry.status
+    sortCriteria: container => container.entry.status,
   },
   {
     action: _('containerAction'),
@@ -75,7 +75,7 @@ const CONTAINER_COLUMNS = [
               handler={() => pauseContainer(vm, container.entry.container)}
               icon='vm-suspend'
             />
-          </Tooltip>
+          </Tooltip>,
         ]}
         {container.entry.status === 'Exited (137)' && (
           <Tooltip content={_('containerStart')}>
@@ -96,8 +96,8 @@ const CONTAINER_COLUMNS = [
           </Tooltip>
         )}
       </ButtonGroup>
-    )
-  }
+    ),
+  },
 ]
 
 export default class TabContainers extends Component {

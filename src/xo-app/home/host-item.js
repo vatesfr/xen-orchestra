@@ -17,14 +17,14 @@ import {
   fetchHostStats,
   removeTag,
   startHost,
-  stopHost
+  stopHost,
 } from 'xo'
 import { connectStore, formatSizeShort, osFamily } from 'utils'
 import {
   createDoesHostNeedRestart,
   createGetObject,
   createGetObjectsOfType,
-  createSelector
+  createSelector,
 } from 'selectors'
 
 import MiniStats from './mini-stats'
@@ -38,7 +38,7 @@ import styles from './index.css'
       (_, props) => props.item.id,
       hostId => obj => obj.$container === hostId
     )
-  )
+  ),
 }))
 export default class HostItem extends Component {
   get _isRunning () {
@@ -182,7 +182,7 @@ export default class HostItem extends Component {
                     used: Math.round(
                       host.memory.usage / host.memory.size * 100
                     ),
-                    free: formatSizeShort(host.memory.size - host.memory.usage)
+                    free: formatSizeShort(host.memory.size - host.memory.usage),
                   })}
                 >
                   <progress

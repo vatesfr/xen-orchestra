@@ -17,7 +17,7 @@ import {
   createSelector,
   createFinder,
   getCheckPermissions,
-  isAdmin
+  isAdmin,
 } from 'selectors'
 import { DragDropContext, DragSource, DropTarget } from 'react-dnd'
 import { injectIntl } from 'react-intl'
@@ -26,7 +26,7 @@ import {
   addSubscriptions,
   formatSize,
   connectStore,
-  resolveResourceSet
+  resolveResourceSet,
 } from 'utils'
 import { SelectSr, SelectVdi, SelectResourceSetsSr } from 'select-objects'
 import { SizeInput, Toggle } from 'form'
@@ -47,7 +47,7 @@ import {
   migrateVdi,
   setBootableVbd,
   setVmBootOrder,
-  subscribeResourceSets
+  subscribeResourceSets,
 } from 'xo'
 
 const parseBootOrder = bootOrder => {
@@ -55,7 +55,7 @@ const parseBootOrder = bootOrder => {
   const bootOptions = {
     c: 'Hard-Drive',
     d: 'DVD-Drive',
-    n: 'Network'
+    n: 'Network',
   }
   const order = []
   if (bootOrder) {
@@ -75,13 +75,13 @@ const parseBootOrder = bootOrder => {
 @injectIntl
 @propTypes({
   onClose: propTypes.func,
-  vm: propTypes.object.isRequired
+  vm: propTypes.object.isRequired,
 })
 @addSubscriptions({
-  resourceSets: subscribeResourceSets
+  resourceSets: subscribeResourceSets,
 })
 @connectStore({
-  isAdmin
+  isAdmin,
 })
 class NewDisk extends Component {
   _createDisk = () => {
@@ -91,7 +91,7 @@ class NewDisk extends Component {
     return createDisk(name, size, sr, {
       vm,
       bootable,
-      mode: readOnly ? 'RO' : 'RW'
+      mode: readOnly ? 'RO' : 'RW',
     }).then(onClose)
   }
 
@@ -198,14 +198,14 @@ class NewDisk extends Component {
             <em className='text-danger'>
               {_('notEnoughSpaceInResourceSet', {
                 resourceSet: <strong>{resourceSet.name}</strong>,
-                spaceLeft: formatSize(diskLimit)
+                spaceLeft: formatSize(diskLimit),
               })}
             </em>
           ) : (
             <em>
               {_('useQuotaWarning', {
                 resourceSet: <strong>{resourceSet.name}</strong>,
-                spaceLeft: formatSize(diskLimit)
+                spaceLeft: formatSize(diskLimit),
               })}
             </em>
           ))}
@@ -217,7 +217,7 @@ class NewDisk extends Component {
 @propTypes({
   onClose: propTypes.func,
   vbds: propTypes.array.isRequired,
-  vm: propTypes.object.isRequired
+  vm: propTypes.object.isRequired,
 })
 class AttachDisk extends Component {
   _getVdiPredicate = createSelector(
@@ -251,7 +251,7 @@ class AttachDisk extends Component {
       })
     return attachDiskToVm(vdi, vm, {
       bootable,
-      mode: readOnly || !_isFreeForWriting(vdi) ? 'RO' : 'RW'
+      mode: readOnly || !_isFreeForWriting(vdi) ? 'RO' : 'RW',
     }).then(onClose)
   }
 
@@ -300,8 +300,8 @@ class AttachDisk extends Component {
 const orderItemSource = {
   beginDrag: props => ({
     id: props.id,
-    index: props.index
-  })
+    index: props.index,
+  }),
 }
 
 const orderItemTarget = {
@@ -315,15 +315,15 @@ const orderItemTarget = {
 
     props.move(dragIndex, hoverIndex)
     monitor.getItem().index = hoverIndex
-  }
+  },
 }
 
 @DropTarget('orderItem', orderItemTarget, connect => ({
-  connectDropTarget: connect.dropTarget()
+  connectDropTarget: connect.dropTarget(),
 }))
 @DragSource('orderItem', orderItemSource, (connect, monitor) => ({
   connectDragSource: connect.dragSource(),
-  isDragging: monitor.isDragging()
+  isDragging: monitor.isDragging(),
 }))
 @propTypes({
   connectDragSource: propTypes.func.isRequired,
@@ -332,7 +332,7 @@ const orderItemTarget = {
   isDragging: propTypes.bool.isRequired,
   id: propTypes.any.isRequired,
   item: propTypes.object.isRequired,
-  move: propTypes.func.isRequired
+  move: propTypes.func.isRequired,
 })
 class OrderItem extends Component {
   _toggle = checked => {
@@ -358,7 +358,7 @@ class OrderItem extends Component {
 
 @propTypes({
   onClose: propTypes.func,
-  vm: propTypes.object.isRequired
+  vm: propTypes.object.isRequired,
 })
 @DragDropContext(HTML5Backend)
 class BootOrder extends Component {
@@ -455,7 +455,7 @@ class MigrateVdiModalBody extends Component {
 
 @connectStore(() => ({
   checkPermissions: getCheckPermissions,
-  isAdmin
+  isAdmin,
 }))
 export default class TabDisks extends Component {
   constructor (props) {
@@ -463,7 +463,7 @@ export default class TabDisks extends Component {
     this.state = {
       attachDisk: false,
       bootOrder: false,
-      newDisk: false
+      newDisk: false,
     }
   }
 
@@ -471,27 +471,27 @@ export default class TabDisks extends Component {
     this.setState({
       newDisk: !this.state.newDisk,
       attachDisk: false,
-      bootOrder: false
+      bootOrder: false,
     })
 
   _toggleAttachDisk = () =>
     this.setState({
       attachDisk: !this.state.attachDisk,
       bootOrder: false,
-      newDisk: false
+      newDisk: false,
     })
 
   _toggleBootOrder = () =>
     this.setState({
       bootOrder: !this.state.bootOrder,
       attachDisk: false,
-      newDisk: false
+      newDisk: false,
     })
 
   _migrateVdi = vdi => {
     return confirm({
       title: _('vdiMigrate'),
-      body: <MigrateVdiModalBody />
+      body: <MigrateVdiModalBody />,
     }).then(({ sr, migrateAll }) => {
       if (!sr) {
         return error(_('vdiMigrateNoSr'), _('vdiMigrateNoSrMessage'))

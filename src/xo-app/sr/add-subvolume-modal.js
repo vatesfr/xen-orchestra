@@ -20,7 +20,7 @@ export default class AddSubvolumeModalBody extends Component {
   _selectSrs = srs => {
     this.setState({
       srs,
-      brickSize: min(map(srs, sr => sr.size - sr.physical_usage))
+      brickSize: min(map(srs, sr => sr.size - sr.physical_usage)),
     })
   }
 

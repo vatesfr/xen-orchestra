@@ -33,7 +33,7 @@ import {
   signedIn,
   signedOut,
   updateObjects,
-  updatePermissions
+  updatePermissions,
 } from '../store/actions'
 
 // ===================================================================
@@ -72,7 +72,7 @@ const xo = invoke(() => {
   }
 
   const xo = new Xo({
-    credentials: { token }
+    credentials: { token },
   })
 
   xo.on('authenticationFailure', signOut)
@@ -98,7 +98,7 @@ const _call = (method, params) => {
         params,
         code: error.code,
         message: error.message,
-        data: error.data
+        data: error.data,
       })
     })
   }
@@ -386,10 +386,11 @@ export const createSrUnhealthyVdiChainsLengthSubscription = sr => {
   sr = resolveId(sr)
   let subscription = unhealthyVdiChainsLengthSubscriptionsBySr[sr]
   if (subscription === undefined) {
-    subscription = createSubscription(() =>
+    subscription = unhealthyVdiChainsLengthSubscriptionsBySr[
+      sr
+    ] = createSubscription(() =>
       _call('sr.getUnhealthyVdiChainsLength', { sr })
     )
-    unhealthyVdiChainsLengthSubscriptionsBySr[sr] = subscription
   }
   return subscription
 }
@@ -424,13 +425,9 @@ export const exportConfig = () =>
 // Server ------------------------------------------------------------
 
 export const addServer = (host, username, password, label) =>
-  _call('server.add', {
-    host,
-    label,
-    password,
-    username
-  })::tap(subscribeServers.forceRefresh, () =>
-    error(_('serverError'), _('serverAddFailed'))
+  _call('server.add', { host, label, password, username })::tap(
+    subscribeServers.forceRefresh,
+    () => error(_('serverError'), _('serverAddFailed'))
   )
 
 export const editServer = (server, props) =>
@@ -466,13 +463,13 @@ export const addHostToPool = (pool, host) => {
       title: _('addHostModalTitle'),
       body: _('addHostModalMessage', {
         pool: pool.name_label,
-        host: host.name_label
-      })
+        host: host.name_label,
+      }),
     }).then(() =>
       _call('pool.mergeInto', {
         source: host.$pool,
         target: pool.id,
-        force: true
+        force: true,
       })
     )
   }
@@ -480,7 +477,7 @@ export const addHostToPool = (pool, host) => {
   return confirm({
     icon: 'add',
     title: _('addHostModalTitle'),
-    body: <AddHostModalBody pool={pool} />
+    body: <AddHostModalBody pool={pool} />,
   }).then(params => {
     if (!params.host) {
       error(_('addHostNoHost'), _('addHostNoHostMessage'))
@@ -489,7 +486,7 @@ export const addHostToPool = (pool, host) => {
     return _call('pool.mergeInto', {
       source: params.host.$pool,
       target: pool.id,
-      force: true
+      force: true,
     }).catch(error => {
       if (error.code !== 'HOSTS_NOT_HOMOGENEOUS') {
         throw error
@@ -505,8 +502,8 @@ export const detachHost = host =>
     icon: 'host-eject',
     title: _('detachHostModalTitle'),
     body: _('detachHostModalMessage', {
-      host: <strong>{host.name_label}</strong>
-    })
+      host: <strong>{host.name_label}</strong>,
+    }),
   }).then(() => _call('host.detach', { host: host.id }))
 
 export const forgetHost = host =>
@@ -514,8 +511,8 @@ export const forgetHost = host =>
     icon: 'host-forget',
     title: _('forgetHostModalTitle'),
     body: _('forgetHostModalMessage', {
-      host: <strong>{host.name_label}</strong>
-    })
+      host: <strong>{host.name_label}</strong>,
+    }),
   }).then(() => _call('host.forget', { host: resolveId(host) }))
 
 export const setDefaultSr = sr =>
@@ -525,8 +522,8 @@ export const setPoolMaster = host =>
   confirm({
     title: _('setPoolMasterModalTitle'),
     body: _('setPoolMasterModalMessage', {
-      host: <strong>{host.name_label}</strong>
-    })
+      host: <strong>{host.name_label}</strong>,
+    }),
   }).then(() => _call('pool.setPoolMaster', { host: resolveId(host) }), noop)
 
 // Host --------------------------------------------------------------
@@ -540,7 +537,7 @@ export const fetchHostStats = (host, granularity) =>
 export const restartHost = (host, force = false) =>
   confirm({
     title: _('restartHostModalTitle'),
-    body: _('restartHostModalMessage')
+    body: _('restartHostModalMessage'),
   }).then(
     () =>
       _call('host.restart', { id: resolveId(host), force }).catch(error => {
@@ -558,7 +555,7 @@ export const restartHosts = (hosts, force = false) => {
   const nHosts = size(hosts)
   return confirm({
     title: _('restartHostsModalTitle', { nHosts }),
-    body: _('restartHostsModalMessage', { nHosts })
+    body: _('restartHostsModalMessage', { nHosts }),
   }).then(
     () =>
       Promise.all(
@@ -572,7 +569,7 @@ export const restartHosts = (hosts, force = false) => {
             _('failHostBulkRestartTitle'),
             _('failHostBulkRestartMessage', {
               failedHosts: nbErrors,
-              totalHosts: results.length
+              totalHosts: results.length,
             })
           )
         }
@@ -588,7 +585,7 @@ export const restartHostsAgents = hosts => {
   const nHosts = size(hosts)
   return confirm({
     title: _('restartHostsAgentsModalTitle', { nHosts }),
-    body: _('restartHostsAgentsModalMessage', { nHosts })
+    body: _('restartHostsAgentsModalMessage', { nHosts }),
   }).then(() => Promise.all(map(hosts, restartHostAgent)), noop)
 }
 
@@ -597,14 +594,14 @@ export const startHost = host => _call('host.start', { id: resolveId(host) })
 export const stopHost = host =>
   confirm({
     title: _('stopHostModalTitle'),
-    body: _('stopHostModalMessage')
+    body: _('stopHostModalMessage'),
   }).then(() => _call('host.stop', { id: resolveId(host) }), noop)
 
 export const stopHosts = hosts => {
   const nHosts = size(hosts)
   return confirm({
     title: _('stopHostsModalTitle', { nHosts }),
-    body: _('stopHostsModalMessage', { nHosts })
+    body: _('stopHostsModalMessage', { nHosts }),
   }).then(
     () => map(hosts, host => _call('host.stop', { id: resolveId(host) })),
     noop
@@ -632,7 +629,7 @@ export const emergencyShutdownHosts = hosts => {
   const nHosts = size(hosts)
   return confirm({
     title: _('emergencyShutdownHostsModalTitle', { nHosts }),
-    body: _('emergencyShutdownHostsModalMessage', { nHosts })
+    body: _('emergencyShutdownHostsModalMessage', { nHosts }),
   }).then(() => map(hosts, host => emergencyShutdownHost(host)), noop)
 }
 
@@ -657,29 +654,28 @@ export const installSupplementalPack = (host, file) => {
     _('supplementalPackInstallStartedMessage')
   )
 
-  return _call('host.installSupplementalPack', {
-    host: resolveId(host)
-  }).then(({ $sendTo: url }) =>
-    request
-      .post(url)
-      .send(file)
-      .then(res => {
-        if (res.status !== 200) {
-          throw new Error('installing supplemental pack failed')
-        }
+  return _call('host.installSupplementalPack', { host: resolveId(host) }).then(
+    ({ $sendTo: url }) =>
+      request
+        .post(url)
+        .send(file)
+        .then(res => {
+          if (res.status !== 200) {
+            throw new Error('installing supplemental pack failed')
+          }
 
-        success(
-          _('supplementalPackInstallSuccessTitle'),
-          _('supplementalPackInstallSuccessMessage')
-        )
-      })
-      .catch(err => {
-        error(
-          _('supplementalPackInstallErrorTitle'),
-          _('supplementalPackInstallErrorMessage')
-        )
-        throw err
-      })
+          success(
+            _('supplementalPackInstallSuccessTitle'),
+            _('supplementalPackInstallSuccessMessage')
+          )
+        })
+        .catch(err => {
+          error(
+            _('supplementalPackInstallErrorTitle'),
+            _('supplementalPackInstallErrorMessage')
+          )
+          throw err
+        })
   )
 }
 
@@ -689,29 +685,28 @@ export const installSupplementalPackOnAllHosts = (pool, file) => {
     _('supplementalPackInstallStartedMessage')
   )
 
-  return _call('pool.installSupplementalPack', {
-    pool: resolveId(pool)
-  }).then(({ $sendTo: url }) =>
-    request
-      .post(url)
-      .send(file)
-      .then(res => {
-        if (res.status !== 200) {
-          throw new Error('installing supplemental pack failed')
-        }
+  return _call('pool.installSupplementalPack', { pool: resolveId(pool) }).then(
+    ({ $sendTo: url }) =>
+      request
+        .post(url)
+        .send(file)
+        .then(res => {
+          if (res.status !== 200) {
+            throw new Error('installing supplemental pack failed')
+          }
 
-        success(
-          _('supplementalPackInstallSuccessTitle'),
-          _('supplementalPackInstallSuccessMessage')
-        )
-      })
-      .catch(err => {
-        error(
-          _('supplementalPackInstallErrorTitle'),
-          _('supplementalPackInstallErrorMessage')
-        )
-        throw err
-      })
+          success(
+            _('supplementalPackInstallSuccessTitle'),
+            _('supplementalPackInstallSuccessMessage')
+          )
+        })
+        .catch(err => {
+          error(
+            _('supplementalPackInstallErrorTitle'),
+            _('supplementalPackInstallErrorMessage')
+          )
+          throw err
+        })
   )
 }
 
@@ -739,9 +734,9 @@ const chooseActionToUnblockForbiddenStartVm = props =>
     icon: 'alarm',
     buttons: [
       { label: _('cloneAndStartVM'), value: 'clone', btnStyle: 'success' },
-      { label: _('forceStartVm'), value: 'force', btnStyle: 'danger' }
+      { label: _('forceStartVm'), value: 'force', btnStyle: 'danger' },
     ],
-    ...props
+    ...props,
   })
 
 const cloneAndStartVM = async vm => _call('vm.start', { id: await cloneVm(vm) })
@@ -754,7 +749,7 @@ export const startVm = vm =>
 
     const choice = await chooseActionToUnblockForbiddenStartVm({
       body: _('blockedStartVmModalMessage'),
-      title: _('forceStartVmModalTitle')
+      title: _('forceStartVmModalTitle'),
     })
 
     if (choice === 'clone') {
@@ -767,7 +762,7 @@ export const startVm = vm =>
 export const startVms = vms =>
   confirm({
     title: _('startVmsModalTitle', { vms: vms.length }),
-    body: _('startVmsModalMessage', { vms: vms.length })
+    body: _('startVmsModalMessage', { vms: vms.length }),
   }).then(async () => {
     const forbiddenStart = []
     let nErrors = 0
@@ -797,7 +792,7 @@ export const startVms = vms =>
 
     const choice = await chooseActionToUnblockForbiddenStartVm({
       body: _('blockedStartVmsModalMessage', { nVms: forbiddenStart.length }),
-      title: _('forceStartVmModalTitle')
+      title: _('forceStartVmModalTitle'),
     }).catch(noop)
 
     if (nErrors !== 0) {
@@ -825,13 +820,13 @@ export const startVms = vms =>
 export const stopVm = (vm, force = false) =>
   confirm({
     title: _('stopVmModalTitle'),
-    body: _('stopVmModalMessage', { name: vm.name_label })
+    body: _('stopVmModalMessage', { name: vm.name_label }),
   }).then(() => _call('vm.stop', { id: resolveId(vm), force }), noop)
 
 export const stopVms = (vms, force = false) =>
   confirm({
     title: _('stopVmsModalTitle', { vms: vms.length }),
-    body: _('stopVmsModalMessage', { vms: vms.length })
+    body: _('stopVmsModalMessage', { vms: vms.length }),
   }).then(
     () => map(vms, vm => _call('vm.stop', { id: resolveId(vm), force })),
     noop
@@ -847,13 +842,13 @@ export const recoveryStartVm = vm =>
 export const restartVm = (vm, force = false) =>
   confirm({
     title: _('restartVmModalTitle'),
-    body: _('restartVmModalMessage', { name: vm.name_label })
+    body: _('restartVmModalMessage', { name: vm.name_label }),
   }).then(() => _call('vm.restart', { id: resolveId(vm), force }), noop)
 
 export const restartVms = (vms, force = false) =>
   confirm({
     title: _('restartVmsModalTitle', { vms: vms.length }),
-    body: _('restartVmsModalMessage', { vms: vms.length })
+    body: _('restartVmsModalMessage', { vms: vms.length }),
   }).then(
     () =>
       Promise.all(
@@ -866,7 +861,7 @@ export const cloneVm = ({ id, name_label: nameLabel }, fullCopy = false) =>
   _call('vm.clone', {
     id,
     name: `${nameLabel}_clone`,
-    full_copy: fullCopy
+    full_copy: fullCopy,
   })
 
 import CopyVmModalBody from './copy-vm-modal' // eslint-disable-line import/first
@@ -875,18 +870,18 @@ export const copyVm = (vm, sr, name, compress) => {
   return sr !== undefined
     ? confirm({
       title: _('copyVm'),
-      body: _('copyVmConfirm', { SR: sr.name_label })
+      body: _('copyVmConfirm', { SR: sr.name_label }),
     }).then(() =>
-        _call('vm.copy', {
-          vm: vmId,
-          sr: sr.id,
-          name: name || vm.name_label + '_COPY',
-          compress
-        })
-      )
+      _call('vm.copy', {
+        vm: vmId,
+        sr: sr.id,
+        name: name || vm.name_label + '_COPY',
+        compress,
+      })
+    )
     : confirm({
       title: _('copyVm'),
-      body: <CopyVmModalBody vm={vm} />
+      body: <CopyVmModalBody vm={vm} />,
     }).then(params => {
       if (!params.sr) {
         error('copyVmsNoTargetSr', 'copyVmsNoTargetSrMessage')
@@ -901,7 +896,7 @@ export const copyVms = vms => {
   const _vms = resolveIds(vms)
   return confirm({
     title: _('copyVm'),
-    body: <CopyVmsModalBody vms={_vms} />
+    body: <CopyVmsModalBody vms={_vms} />,
   }).then(({ compress, names, sr }) => {
     if (sr !== undefined) {
       return Promise.all(
@@ -922,13 +917,13 @@ export const convertVmToTemplate = vm =>
         <p>Are you sure you want to convert this VM into a template?</p>
         <p>This operation is definitive.</p>
       </div>
-    )
+    ),
   }).then(() => _call('vm.convert', { id: resolveId(vm) }), noop)
 
 export const deleteTemplates = templates =>
   confirm({
     title: _('templateDeleteModalTitle', { templates: templates.length }),
-    body: _('templateDeleteModalBody', { templates: templates.length })
+    body: _('templateDeleteModalBody', { templates: templates.length }),
   }).then(
     () =>
       Promise.all(
@@ -944,13 +939,13 @@ export const snapshotVm = vm => _call('vm.snapshot', { id: resolveId(vm) })
 export const snapshotVms = vms =>
   confirm({
     title: _('snapshotVmsModalTitle', { vms: vms.length }),
-    body: _('snapshotVmsModalMessage', { vms: vms.length })
+    body: _('snapshotVmsModalMessage', { vms: vms.length }),
   }).then(() => map(vms, vmId => snapshotVm({ id: vmId })), noop)
 
 export const deleteSnapshot = vm =>
   confirm({
     title: _('deleteSnapshotModalTitle'),
-    body: _('deleteSnapshotModalMessage')
+    body: _('deleteSnapshotModalMessage'),
   }).then(
     () => _call('vm.delete', { id: resolveId(vm), delete_disks: true }),
     noop
@@ -960,7 +955,7 @@ import MigrateVmModalBody from './migrate-vm-modal' // eslint-disable-line impor
 export const migrateVm = (vm, host) =>
   confirm({
     title: _('migrateVmModalTitle'),
-    body: <MigrateVmModalBody vm={vm} host={host} />
+    body: <MigrateVmModalBody vm={vm} host={host} />,
   }).then(params => {
     if (!params.targetHost) {
       return error(
@@ -975,7 +970,7 @@ import MigrateVmsModalBody from './migrate-vms-modal' // eslint-disable-line imp
 export const migrateVms = vms =>
   confirm({
     title: _('migrateVmModalTitle'),
-    body: <MigrateVmsModalBody vms={resolveIds(vms)} />
+    body: <MigrateVmsModalBody vms={resolveIds(vms)} />,
   }).then(params => {
     if (isEmpty(params.vms)) {
       return
@@ -992,7 +987,7 @@ export const migrateVms = vms =>
       mapVmsMapVifsNetworks,
       mapVmsMigrationNetwork,
       targetHost,
-      vms
+      vms,
     } = params
     Promise.all(
       map(vms, ({ id }) =>
@@ -1001,7 +996,7 @@ export const migrateVms = vms =>
           mapVifsNetworks: mapVmsMapVifsNetworks[id],
           migrationNetwork: mapVmsMigrationNetwork[id],
           targetHost,
-          vm: id
+          vm: id,
         })
       )
     )
@@ -1012,7 +1007,7 @@ export const createVm = args => _call('vm.create', args)
 export const createVms = (args, nameLabels) =>
   confirm({
     title: _('newVmCreateVms'),
-    body: _('newVmCreateVmsConfirm', { nbVms: nameLabels.length })
+    body: _('newVmCreateVmsConfirm', { nbVms: nameLabels.length }),
   }).then(
     () =>
       Promise.all(
@@ -1029,7 +1024,7 @@ export const getCloudInitConfig = template =>
 export const deleteVm = vm =>
   confirm({
     title: _('deleteVmModalTitle'),
-    body: _('deleteVmModalMessage')
+    body: _('deleteVmModalMessage'),
   }).then(
     () => _call('vm.delete', { id: resolveId(vm), delete_disks: true }),
     noop
@@ -1038,7 +1033,7 @@ export const deleteVm = vm =>
 export const deleteVms = vms =>
   confirm({
     title: _('deleteVmsModalTitle', { vms: vms.length }),
-    body: _('deleteVmsModalMessage', { vms: vms.length })
+    body: _('deleteVmsModalMessage', { vms: vms.length }),
   }).then(
     () =>
       map(vms, vmId => _call('vm.delete', { id: vmId, delete_disks: true })),
@@ -1055,7 +1050,7 @@ export const importDeltaBackup = ({ remote, file, sr, mapVdisSrs }) =>
       remote,
       filePath: file,
       sr,
-      mapVdisSrs: resolveIds(mapVdisSrs)
+      mapVdisSrs: resolveIds(mapVdisSrs),
     })
   )
 
@@ -1063,7 +1058,7 @@ import RevertSnapshotModalBody from './revert-snapshot-modal' // eslint-disable-
 export const revertSnapshot = vm =>
   confirm({
     title: _('revertVmModalTitle'),
-    body: <RevertSnapshotModalBody />
+    body: <RevertSnapshotModalBody />,
   }).then(
     snapshotBefore => _call('vm.revert', { id: resolveId(vm), snapshotBefore }),
     noop
@@ -1080,22 +1075,20 @@ export const importVm = (file, type = 'xva', data = undefined, sr) => {
 
   info(_('startVmImport'), name)
 
-  return _call('vm.import', {
-    type,
-    data,
-    sr: resolveId(sr)
-  }).then(({ $sendTo: url }) => {
-    const req = request.post(url)
+  return _call('vm.import', { type, data, sr: resolveId(sr) }).then(
+    ({ $sendTo: url }) => {
+      const req = request.post(url)
 
-    req.send(file)
-    req.end((err, res) => {
-      if (!err && res.status === 200) {
-        success(_('vmImportSuccess'), name)
-      } else {
-        error(_('vmImportFailed'), name)
-      }
-    })
-  })
+      req.send(file)
+      req.end((err, res) => {
+        if (!err && res.status === 200) {
+          success(_('vmImportSuccess'), name)
+        } else {
+          error(_('vmImportFailed'), name)
+        }
+      })
+    }
+  )
 }
 
 export const importVms = (vms, sr) =>
@@ -1116,7 +1109,7 @@ export const insertCd = (vm, cd, force = false) =>
   _call('vm.insertCd', {
     id: resolveId(vm),
     cd_id: resolveId(cd),
-    force
+    force,
   })
 
 export const ejectCd = vm => _call('vm.ejectCd', { id: resolveId(vm) })
@@ -1124,7 +1117,7 @@ export const ejectCd = vm => _call('vm.ejectCd', { id: resolveId(vm) })
 export const setVmBootOrder = (vm, order) =>
   _call('vm.setBootOrder', {
     vm: resolveId(vm),
-    order
+    order,
   })
 
 export const attachDiskToVm = (vdi, vm, { bootable, mode, position }) =>
@@ -1133,7 +1126,7 @@ export const attachDiskToVm = (vdi, vm, { bootable, mode, position }) =>
     mode,
     position: (position && String(position)) || undefined,
     vdi: resolveId(vdi),
-    vm: resolveId(vm)
+    vm: resolveId(vm),
   })
 
 export const createVgpu = (vm, { gpuGroup, vgpuType }) =>
@@ -1151,7 +1144,7 @@ export const createDisk = (name, size, sr, { vm, bootable, mode, position }) =>
     position,
     size,
     sr: resolveId(sr),
-    vm: resolveId(vm)
+    vm: resolveId(vm),
   })
 
 // VDI ---------------------------------------------------------------
@@ -1162,13 +1155,13 @@ export const editVdi = (vdi, props) =>
 export const deleteVdi = vdi =>
   confirm({
     title: _('deleteVdiModalTitle'),
-    body: _('deleteVdiModalMessage')
+    body: _('deleteVdiModalMessage'),
   }).then(() => _call('vdi.delete', { id: resolveId(vdi) }), noop)
 
 export const deleteVdis = vdis =>
   confirm({
     title: _('deleteVdisModalTitle', { nVdis: vdis.length }),
-    body: _('deleteVdisModalMessage', { nVdis: vdis.length })
+    body: _('deleteVdisModalMessage', { nVdis: vdis.length }),
   }).then(
     () =>
       Promise.all(
@@ -1185,7 +1178,7 @@ export const deleteOrphanedVdis = vdis =>
         <p>{_('removeAllOrphanedModalWarning')}</p>
         <p>{_('definitiveMessageModal')}</p>
       </div>
-    )
+    ),
   }).then(
     () => Promise.all(map(resolveIds(vdis), id => _call('vdi.delete', { id }))),
     noop
@@ -1230,7 +1223,7 @@ export const setVif = (
     network: resolveId(network),
     mac,
     allowedIpv4Addresses,
-    allowedIpv6Addresses
+    allowedIpv6Addresses,
   })
 
 // Network -----------------------------------------------------------
@@ -1243,7 +1236,7 @@ export const createNetwork = container =>
   confirm({
     icon: 'network',
     title: _('newNetworkCreate'),
-    body: <CreateNetworkModalBody container={container} />
+    body: <CreateNetworkModalBody container={container} />,
   }).then(params => {
     if (!params.name) {
       return error(
@@ -1261,7 +1254,7 @@ export const createBondedNetwork = container =>
   confirm({
     icon: 'network',
     title: _('newBondedNetworkCreate'),
-    body: <CreateBondedNetworkModalBody pool={container.$pool} />
+    body: <CreateBondedNetworkModalBody pool={container.$pool} />,
   }).then(params => {
     if (!params.name) {
       return error(
@@ -1275,7 +1268,7 @@ export const createBondedNetwork = container =>
 export const deleteNetwork = network =>
   confirm({
     title: _('deleteNetwork'),
-    body: _('deleteNetworkConfirm')
+    body: _('deleteNetworkConfirm'),
   }).then(() => _call('network.delete', { network: resolveId(network) }), noop)
 
 // PIF ---------------------------------------------------------------
@@ -1283,19 +1276,19 @@ export const deleteNetwork = network =>
 export const connectPif = pif =>
   confirm({
     title: _('connectPif'),
-    body: _('connectPifConfirm')
+    body: _('connectPifConfirm'),
   }).then(() => _call('pif.connect', { pif: resolveId(pif) }), noop)
 
 export const disconnectPif = pif =>
   confirm({
     title: _('disconnectPif'),
-    body: _('disconnectPifConfirm')
+    body: _('disconnectPifConfirm'),
   }).then(() => _call('pif.disconnect', { pif: resolveId(pif) }), noop)
 
 export const deletePif = pif =>
   confirm({
     title: _('deletePif'),
-    body: _('deletePifConfirm')
+    body: _('deletePifConfirm'),
   }).then(() => _call('pif.delete', { pif: resolveId(pif) }), noop)
 
 export const reconfigurePifIp = (pif, { mode, ip, netmask, gateway, dns }) =>
@@ -1305,7 +1298,7 @@ export const reconfigurePifIp = (pif, { mode, ip, netmask, gateway, dns }) =>
     ip,
     netmask,
     gateway,
-    dns
+    dns,
   })
 
 export const getIpv4ConfigModes = () => _call('pif.getIpv4ConfigurationModes')
@@ -1323,18 +1316,18 @@ export const deleteSr = sr =>
         <p>Are you sure you want to remove this SR?</p>
         <p>This operation is definitive, and ALL DISKS WILL BE LOST FOREVER.</p>
       </div>
-    )
+    ),
   }).then(() => _call('sr.destroy', { id: resolveId(sr) }), noop)
 
 export const forgetSr = sr =>
   confirm({
     title: _('srForgetModalTitle'),
-    body: _('srForgetModalMessage')
+    body: _('srForgetModalMessage'),
   }).then(() => _call('sr.forget', { id: resolveId(sr) }), noop)
 export const forgetSrs = srs =>
   confirm({
     title: _('srsForgetModalTitle'),
-    body: _('srsForgetModalMessage')
+    body: _('srsForgetModalMessage'),
   }).then(
     () => Promise.all(map(resolveIds(srs), id => _call('sr.forget', { id }))),
     noop
@@ -1343,12 +1336,12 @@ export const forgetSrs = srs =>
 export const reconnectAllHostsSr = sr =>
   confirm({
     title: _('srReconnectAllModalTitle'),
-    body: _('srReconnectAllModalMessage')
+    body: _('srReconnectAllModalMessage'),
   }).then(() => _call('sr.connectAllPbds', { id: resolveId(sr) }), noop)
 export const reconnectAllHostsSrs = srs =>
   confirm({
     title: _('srReconnectAllModalTitle'),
-    body: _('srReconnectAllModalMessage')
+    body: _('srReconnectAllModalMessage'),
   }).then(
     () =>
       Promise.all(resolveIds(srs), id => _call('sr.connectAllPbds', { id })),
@@ -1358,12 +1351,12 @@ export const reconnectAllHostsSrs = srs =>
 export const disconnectAllHostsSr = sr =>
   confirm({
     title: _('srDisconnectAllModalTitle'),
-    body: _('srDisconnectAllModalMessage')
+    body: _('srDisconnectAllModalMessage'),
   }).then(() => _call('sr.disconnectAllPbds', { id: resolveId(sr) }), noop)
 export const disconnectAllHostsSrs = srs =>
   confirm({
     title: _('srDisconnectAllModalTitle'),
-    body: _('srsDisconnectAllModalMessage')
+    body: _('srsDisconnectAllModalMessage'),
   }).then(
     () =>
       Promise.all(resolveIds(srs), id => _call('sr.disconnectAllPbds', { id })),
@@ -1374,7 +1367,7 @@ export const editSr = (sr, { nameDescription, nameLabel }) =>
   _call('sr.set', {
     id: resolveId(sr),
     name_description: nameDescription,
-    name_label: nameLabel
+    name_label: nameLabel,
   })
 
 export const rescanSr = sr => _call('sr.scan', { id: resolveId(sr) })
@@ -1441,7 +1434,7 @@ export const createSchedule = (
 export const deleteBackupSchedule = async schedule => {
   await confirm({
     title: _('deleteBackupSchedule'),
-    body: _('deleteBackupScheduleQuestion')
+    body: _('deleteBackupScheduleQuestion'),
   })
   await _call('schedule.delete', { id: schedule.id })
   await _call('job.delete', { id: schedule.job })
@@ -1464,7 +1457,7 @@ export const editSchedule = ({
   cron,
   enabled,
   name,
-  timezone
+  timezone,
 }) =>
   _call('schedule.set', { id, jobId, cron, enabled, name, timezone })::tap(
     subscribeSchedules.forceRefresh
@@ -1509,7 +1502,7 @@ export const configurePlugin = (id, configuration) =>
 export const purgePluginConfiguration = async id => {
   await confirm({
     title: _('purgePluginConfiguration'),
-    body: _('purgePluginConfigurationQuestion')
+    body: _('purgePluginConfigurationQuestion'),
   })
   await _call('plugin.purgeConfiguration', { id })
 
@@ -1535,13 +1528,13 @@ export const editResourceSet = (
     subjects,
     objects,
     limits,
-    ipPools
+    ipPools,
   })::tap(subscribeResourceSets.forceRefresh)
 
 export const deleteResourceSet = async id => {
   await confirm({
     title: _('deleteResourceSetWarning'),
-    body: _('deleteResourceSetQuestion')
+    body: _('deleteResourceSetQuestion'),
   })
   await _call('resourceSet.delete', { id: resolveId(id) })
 
@@ -1694,14 +1687,7 @@ export const createSrIscsi = (
   chapUser = undefined,
   chapPassword = undefined
 ) => {
-  const params = {
-    host,
-    nameLabel,
-    nameDescription,
-    target,
-    targetIqn,
-    scsiId
-  }
+  const params = { host, nameLabel, nameDescription, target, targetIqn, scsiId }
   port && (params.port = port)
   chapUser && (params.chapUser = chapUser)
   chapPassword && (params.chapPassword = chapPassword)
@@ -1759,7 +1745,7 @@ export const editAcl = (
   {
     subject: newSubject = subject,
     object: newObject = object,
-    action: newAction = action
+    action: newAction = action,
   }
 ) =>
   _call('acl.remove', resolveIds({ subject, object, action }))
@@ -1769,7 +1755,7 @@ export const editAcl = (
         resolveIds({
           subject: newSubject,
           object: newObject,
-          action: newAction
+          action: newAction,
         })
       )
     )
@@ -1790,7 +1776,7 @@ export const setGroupName = (group, name) =>
 export const deleteGroup = group =>
   confirm({
     title: _('deleteGroup'),
-    body: <p>{_('deleteGroupConfirm')}</p>
+    body: <p>{_('deleteGroupConfirm')}</p>,
   }).then(
     () =>
       _call('group.delete', resolveIds({ id: group }))::tap(
@@ -1813,23 +1799,19 @@ export const addUserToGroup = (user, group) =>
   )
 
 export const createUser = (email, password, permission) =>
-  _call('user.create', {
-    email,
-    password,
-    permission
-  })::tap(subscribeUsers.forceRefresh, err =>
-    error('Create user', err.message || String(err))
+  _call('user.create', { email, password, permission })::tap(
+    subscribeUsers.forceRefresh,
+    err => error('Create user', err.message || String(err))
   )
 
 export const deleteUser = user =>
   confirm({
     title: _('deleteUser'),
-    body: <p>{_('deleteUserConfirm')}</p>
+    body: <p>{_('deleteUserConfirm')}</p>,
   }).then(() =>
-    _call('user.delete', {
-      id: resolveId(user)
-    })::tap(subscribeUsers.forceRefresh, err =>
-      error(_('deleteUser'), err.message || String(err))
+    _call('user.delete', { id: resolveId(user) })::tap(
+      subscribeUsers.forceRefresh,
+      err => error(_('deleteUser'), err.message || String(err))
     )
   )
 
@@ -1841,7 +1823,7 @@ export const editUser = (user, { email, password, permission }) =>
 export const changePassword = (oldPassword, newPassword) =>
   _call('user.changePassword', {
     oldPassword,
-    newPassword
+    newPassword,
   }).then(
     () => success(_('pwdChangeSuccess'), _('pwdChangeSuccessBody')),
     () => error(_('pwdChangeError'), _('pwdChangeErrorBody'))
@@ -1850,7 +1832,7 @@ export const changePassword = (oldPassword, newPassword) =>
 const _setUserPreferences = preferences =>
   _call('user.set', {
     id: xo.user.id,
-    preferences
+    preferences,
   })::tap(subscribeCurrentUser.forceRefresh)
 
 import NewSshKeyModalBody from './new-ssh-key-modal' // eslint-disable-line import/first
@@ -1859,20 +1841,20 @@ export const addSshKey = key => {
   const otherKeys = (preferences && preferences.sshKeys) || []
   if (key) {
     return _setUserPreferences({
-      sshKeys: [...otherKeys, key]
+      sshKeys: [...otherKeys, key],
     })
   }
   return confirm({
     icon: 'ssh-key',
     title: _('newSshKeyModalTitle'),
-    body: <NewSshKeyModalBody />
+    body: <NewSshKeyModalBody />,
   }).then(newKey => {
     if (!newKey.title || !newKey.key) {
       error(_('sshKeyErrorTitle'), _('sshKeyErrorMessage'))
       return
     }
     return _setUserPreferences({
-      sshKeys: [...otherKeys, newKey]
+      sshKeys: [...otherKeys, newKey],
     })
   }, noop)
 }
@@ -1881,12 +1863,12 @@ export const deleteSshKey = key =>
   confirm({
     title: _('deleteSshKeyConfirm'),
     body: _('deleteSshKeyConfirmMessage', {
-      title: <strong>{key.title}</strong>
-    })
+      title: <strong>{key.title}</strong>,
+    }),
   }).then(() => {
     const { preferences } = xo.user
     return _setUserPreferences({
-      sshKeys: filter(preferences && preferences.sshKeys, k => !isEqual(k, key))
+      sshKeys: filter(preferences && preferences.sshKeys, k => !isEqual(k, key)),
     })
   }, noop)
 
@@ -1897,7 +1879,7 @@ export const addCustomFilter = (type, value) => {
   const { user } = xo
   return confirm({
     title: _('saveNewFilterTitle'),
-    body: <AddUserFilterModalBody user={user} type={type} value={value} />
+    body: <AddUserFilterModalBody user={user} type={type} value={value} />,
   }).then(name => {
     if (name.length === 0) {
       return error(
@@ -1914,9 +1896,9 @@ export const addCustomFilter = (type, value) => {
         ...filters,
         [type]: {
           ...filters[type],
-          [name]: value
-        }
-      }
+          [name]: value,
+        },
+      },
     })
   })
 }
@@ -1924,7 +1906,7 @@ export const addCustomFilter = (type, value) => {
 export const removeCustomFilter = (type, name) =>
   confirm({
     title: _('removeUserFilterTitle'),
-    body: <p>{_('removeUserFilterBody')}</p>
+    body: <p>{_('removeUserFilterBody')}</p>,
   }).then(() => {
     const { user } = xo
     const { filters } = user.preferences
@@ -1934,9 +1916,9 @@ export const removeCustomFilter = (type, name) =>
         ...filters,
         [type]: {
           ...filters[type],
-          [name]: undefined
-        }
-      }
+          [name]: undefined,
+        },
+      },
     })
   })
 
@@ -1948,9 +1930,9 @@ export const editCustomFilter = (type, name, { newName = name, newValue }) => {
       [type]: {
         ...filters[type],
         [name]: undefined,
-        [newName]: newValue || filters[type][name]
-      }
-    }
+        [newName]: newValue || filters[type][name],
+      },
+    },
   })
 }
 
@@ -1962,8 +1944,8 @@ export const setDefaultHomeFilter = (type, name) => {
   return _setUserPreferences({
     defaultHomeFilters: {
       ...defaultFilters,
-      [type]: name
-    }
+      [type]: name,
+    },
   })
 }
 
@@ -1977,7 +1959,7 @@ export const createIpPool = ({ name, ips, networks }) => {
   return _call('ipPool.create', {
     name,
     addresses,
-    networks: resolveIds(networks)
+    networks: resolveIds(networks),
   })::tap(subscribeIpPools.forceRefresh)
 }
 
@@ -1991,7 +1973,7 @@ export const setIpPool = (ipPool, { name, addresses, networks }) =>
     id: resolveId(ipPool),
     name,
     addresses,
-    networks: resolveIds(networks)
+    networks: resolveIds(networks),
   })::tap(subscribeIpPools.forceRefresh)
 
 // XO SAN ----------------------------------------------------------------------
@@ -2008,7 +1990,7 @@ export const createXosanSR = ({
   redundancy,
   brickSize,
   memorySize,
-  ipRange
+  ipRange,
 }) =>
   _call('xosan.createSR', {
     template,
@@ -2019,7 +2001,7 @@ export const createXosanSR = ({
     redundancy: Number.parseInt(redundancy),
     brickSize,
     memorySize,
-    ipRange
+    ipRange,
   })
 
 export const addXosanBricks = (xosansr, lvmsrs, brickSize) =>
@@ -2048,12 +2030,12 @@ export const downloadAndInstallXosanPack = pool =>
   confirm({
     title: _('xosanInstallPackTitle', { pool: pool.name_label }),
     icon: 'export',
-    body: <InstallXosanPackModal pool={pool} />
+    body: <InstallXosanPackModal pool={pool} />,
   }).then(pack =>
     _call('xosan.downloadAndInstallXosanPack', {
       id: pack.id,
       version: pack.version,
-      pool: resolveId(pool)
+      pool: resolveId(pool),
     })
   )
 

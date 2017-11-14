@@ -20,7 +20,7 @@ import {
   formatSize,
   getCoresPerSocketPossibilities,
   normalizeXenToolsStatus,
-  osFamily
+  osFamily,
 } from 'utils'
 import {
   createVgpu,
@@ -37,7 +37,7 @@ import {
   suspendVm,
   XEN_DEFAULT_CPU_CAP,
   XEN_DEFAULT_CPU_WEIGHT,
-  XEN_VIDEORAM_VALUES
+  XEN_VIDEORAM_VALUES,
 } from 'xo'
 import { createGetObjectsOfType, createSelector } from 'selectors'
 
@@ -47,7 +47,7 @@ const fullCopy = vm => cloneVm(vm, true)
 
 @connectStore(() => {
   const getAffinityHost = createGetObjectsOfType('host').find((_, { vm }) => ({
-    id: vm.affinityHost
+    id: vm.affinityHost,
   }))
 
   const getVbds = createGetObjectsOfType('VBD').pick((_, { vm }) => vm.$VBDs)
@@ -72,7 +72,7 @@ const fullCopy = vm => cloneVm(vm, true)
 
   return {
     affinityHost: getAffinityHost,
-    affinityHostPredicate: getAffinityHostPredicate
+    affinityHostPredicate: getAffinityHostPredicate,
   }
 })
 class AffinityHost extends Component {
@@ -134,7 +134,7 @@ class Vgpus extends Component {
     confirm({
       icon: 'gpu',
       title: _('vmAddVgpu'),
-      body: <NewVgpu vm={this.props.vm} />
+      body: <NewVgpu vm={this.props.vm} />,
     }).then(({ vgpuType }) =>
       createVgpu(this.props.vm, { vgpuType, gpuGroup: vgpuType.gpuGroup })
     )
@@ -225,7 +225,7 @@ class CoresPerSocket extends Component {
             <option key={coresPerSocket} value={coresPerSocket}>
               {_('vmCoresPerSocket', {
                 nSockets: vm.CPUs.number / coresPerSocket,
-                nCores: coresPerSocket
+                nCores: coresPerSocket,
               })}
             </option>
           ))}
@@ -254,7 +254,7 @@ export default connectStore(() => {
   return {
     gpuGroup: getGpuGroup,
     vgpus: getVgpus,
-    vgpuTypes: getVgpuTypes
+    vgpuTypes: getVgpuTypes,
   }
 })(({ container, gpuGroup, vgpus, vgpuTypes, vm }) => (
   <Container>
@@ -522,7 +522,7 @@ export default connectStore(() => {
               <th>{_('xenToolsStatus')}</th>
               <td>
                 {_('xenToolsStatusValue', {
-                  status: normalizeXenToolsStatus(vm.xenTools)
+                  status: normalizeXenToolsStatus(vm.xenTools),
                 })}
               </td>
             </tr>

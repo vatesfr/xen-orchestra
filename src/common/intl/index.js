@@ -44,7 +44,7 @@ const getMessage = (props, messageId, values, render) => {
 getMessage.keyValue = (key, value) =>
   getMessage('keyValue', {
     key: <strong>{key}</strong>,
-    value
+    value,
   })
 
 export { getMessage as default }
@@ -55,7 +55,7 @@ export { messages }
 export class IntlProvider extends Component {
   static propTypes = {
     children: PropTypes.node.isRequired,
-    lang: PropTypes.string.isRequired
+    lang: PropTypes.string.isRequired,
   }
 
   render () {

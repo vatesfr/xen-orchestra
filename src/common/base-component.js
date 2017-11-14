@@ -67,7 +67,7 @@ export default class BaseComponent extends PureComponent {
 
     return (linkedState[key] = event => {
       this.setState({
-        [name]: getValue(event)
+        [name]: getValue(event),
       })
     })
   }
@@ -90,7 +90,7 @@ export default class BaseComponent extends PureComponent {
 
     return (linkedState[name] = () => {
       this.setState({
-        [name]: !this.state[name]
+        [name]: !this.state[name],
       })
     })
   }

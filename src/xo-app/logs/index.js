@@ -27,7 +27,7 @@ const jobKeyToLabel = {
   disasterRecovery: _('disasterRecovery'),
   genericTask: _('customJob'),
   rollingBackup: _('backup'),
-  rollingSnapshot: _('rollingSnapshot')
+  rollingSnapshot: _('rollingSnapshot'),
 }
 
 // ===================================================================
@@ -88,19 +88,19 @@ const CALL_FILTER_OPTIONS = [
   { label: 'successfulJobCall', value: 'success' },
   { label: 'failedJobCall', value: 'error' },
   { label: 'jobCallInProgess', value: 'running' },
-  { label: 'allJobCalls', value: 'all' }
+  { label: 'allJobCalls', value: 'all' },
 ]
 
 const PREDICATES = {
   all: () => true,
   error: call => call.error !== undefined,
   running: call => call.end === undefined && call.error === undefined,
-  success: call => call.end !== undefined && call.error === undefined
+  success: call => call.end !== undefined && call.error === undefined,
 }
 
 class Log extends BaseComponent {
   state = {
-    filter: 'all'
+    filter: 'all',
   }
 
   render () {
@@ -141,7 +141,7 @@ class Log extends BaseComponent {
                   <br />
                   {map(call.params, (value, key) => [
                     <JobParam id={value} paramKey={key} key={key} />,
-                    <br />
+                    <br />,
                   ])}
                   {end !== undefined &&
                     _.keyValue(
@@ -189,17 +189,17 @@ const LOG_COLUMNS = [
   {
     name: _('jobId'),
     itemRenderer: log => log.jobId,
-    sortCriteria: log => log.jobId
+    sortCriteria: log => log.jobId,
   },
   {
     name: _('jobType'),
     itemRenderer: log => jobKeyToLabel[log.key],
-    sortCriteria: log => log.key
+    sortCriteria: log => log.key,
   },
   {
     name: _('jobTag'),
     itemRenderer: log => get(log, 'calls[0].params.tag'),
-    sortCriteria: log => get(log, 'calls[0].params.tag')
+    sortCriteria: log => get(log, 'calls[0].params.tag'),
   },
   {
     name: _('jobStart'),
@@ -216,7 +216,7 @@ const LOG_COLUMNS = [
         />
       ),
     sortCriteria: log => log.start,
-    sortOrder: 'desc'
+    sortOrder: 'desc',
   },
   {
     default: true,
@@ -234,13 +234,13 @@ const LOG_COLUMNS = [
         />
       ),
     sortCriteria: log => log.end || log.start,
-    sortOrder: 'desc'
+    sortOrder: 'desc',
   },
   {
     name: _('jobDuration'),
     itemRenderer: log =>
       log.duration && <FormattedDuration duration={log.duration} />,
-    sortCriteria: log => log.duration
+    sortCriteria: log => log.duration,
   },
   {
     name: _('jobStatus'),
@@ -250,7 +250,7 @@ const LOG_COLUMNS = [
           <span
             className={classnames('tag', {
               'tag-success': !log.hasErrors,
-              'tag-danger': log.hasErrors
+              'tag-danger': log.hasErrors,
             })}
           >
             {_('jobFinished')}
@@ -283,22 +283,22 @@ const LOG_COLUMNS = [
         </span>
       </span>
     ),
-    sortCriteria: log => (log.hasErrors ? ' ' : log.status)
-  }
+    sortCriteria: log => (log.hasErrors ? ' ' : log.status),
+  },
 ]
 
 @propTypes({
-  jobKeys: propTypes.array.isRequired
+  jobKeys: propTypes.array.isRequired,
 })
 export default class LogList extends Component {
   constructor (props) {
     super(props)
     this.state = {
-      logsToClear: []
+      logsToClear: [],
     }
     this.filters = {
       onError: 'error',
-      successful: 'success'
+      successful: 'success',
     }
   }
 
@@ -321,7 +321,7 @@ export default class LogList extends Component {
             userId: data.userId,
             start: time,
             calls: {},
-            time
+            time,
           }
         } else {
           const runJobId = data.runJobId
@@ -340,7 +340,7 @@ export default class LogList extends Component {
               params: data.params,
               method: data.method,
               start: time,
-              time
+              time,
             }
           } else if (data.event === 'jobCall.end') {
             const call = entry.calls[data.runCallId]
@@ -368,7 +368,7 @@ export default class LogList extends Component {
 
       this.setState({
         logs: orderBy(logs, ['time'], ['desc']),
-        logsToClear
+        logsToClear,
       })
     })
   }
@@ -376,7 +376,7 @@ export default class LogList extends Component {
   _deleteAllLogs = () => {
     return confirm({
       title: _('removeAllLogsModalTitle'),
-      body: <p>{_('removeAllLogsModalWarning')}</p>
+      body: <p>{_('removeAllLogsModalWarning')}</p>,
     }).then(() => deleteJobsLog(this.state.logsToClear))
   }
 

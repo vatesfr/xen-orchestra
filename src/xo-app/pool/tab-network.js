@@ -19,7 +19,7 @@ import {
   createFinder,
   createGetObject,
   createGetObjectsOfType,
-  createSelector
+  createSelector,
 } from 'selectors'
 import {
   connectPif,
@@ -28,7 +28,7 @@ import {
   deleteNetwork,
   disconnectPif,
   editNetwork,
-  editPif
+  editPif,
 } from 'xo'
 
 // =============================================================================
@@ -59,7 +59,7 @@ const _createGetDefaultPif = () =>
       (_, props) => props && props.network.PIFs
     ),
     pifs => some(pifs, 'isBondMaster')
-  )
+  ),
 }))
 class Name extends Component {
   _editName = value => editNetwork(this.props.network, { name_label: value })
@@ -96,7 +96,7 @@ class Description extends Component {
 // -----------------------------------------------------------------------------
 
 @connectStore(() => ({
-  defaultPif: _createGetDefaultPif()
+  defaultPif: _createGetDefaultPif(),
 }))
 class DefaultPif extends BaseComponent {
   _editPif = vlan => editPif(this.props.defaultPif, { vlan })
@@ -113,7 +113,7 @@ class DefaultPif extends BaseComponent {
 }
 
 @connectStore(() => ({
-  defaultPif: _createGetDefaultPif()
+  defaultPif: _createGetDefaultPif(),
 }))
 class Vlan extends BaseComponent {
   _editPif = vlan => editPif(this.props.defaultPif, { vlan })
@@ -145,7 +145,7 @@ class Vlan extends BaseComponent {
       (_, props) => props && props.network.VIFs
     ),
     vifs => some(vifs, 'attached')
-  )
+  ),
 }))
 class ToggleDefaultLockingMode extends Component {
   _editDefaultIsLocked = () => {
@@ -271,7 +271,7 @@ class PifsItem extends BaseComponent {
   )
 
   return {
-    disableNetworkDelete: getDisableNetworkDelete
+    disableNetworkDelete: getDisableNetworkDelete,
   }
 })
 class NetworkActions extends Component {
@@ -298,24 +298,24 @@ const NETWORKS_COLUMNS = [
   {
     name: _('poolNetworkNameLabel'),
     itemRenderer: network => <Name network={network} />,
-    sortCriteria: network => network.name_label
+    sortCriteria: network => network.name_label,
   },
   {
     name: _('poolNetworkDescription'),
     itemRenderer: network => <Description network={network} />,
-    sortCriteria: network => network.name_description
+    sortCriteria: network => network.name_description,
   },
   {
     name: _('pif'),
-    itemRenderer: network => <DefaultPif network={network} />
+    itemRenderer: network => <DefaultPif network={network} />,
   },
   {
     name: _('pifVlanLabel'),
-    itemRenderer: network => <Vlan network={network} />
+    itemRenderer: network => <Vlan network={network} />,
   },
   {
     name: _('poolNetworkMTU'),
-    itemRenderer: network => network.MTU
+    itemRenderer: network => network.MTU,
   },
   {
     name: (
@@ -325,18 +325,18 @@ const NETWORKS_COLUMNS = [
         </Tooltip>
       </div>
     ),
-    itemRenderer: network => <ToggleDefaultLockingMode network={network} />
+    itemRenderer: network => <ToggleDefaultLockingMode network={network} />,
   },
   {
     name: _('poolNetworkPif'),
     itemRenderer: network =>
-      !isEmpty(network.PIFs) && <PifsItem network={network} />
+      !isEmpty(network.PIFs) && <PifsItem network={network} />,
   },
   {
     name: '',
     itemRenderer: network => <NetworkActions network={network} />,
-    textAlign: 'right'
-  }
+    textAlign: 'right',
+  },
 ]
 
 // =============================================================================

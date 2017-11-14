@@ -14,7 +14,7 @@ import { createGetObjectsOfType } from 'selectors'
   )
 
   return {
-    hosts: getHosts
+    hosts: getHosts,
   }
 })
 export default class TabPatches extends Component {

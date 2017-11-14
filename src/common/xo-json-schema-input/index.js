@@ -22,7 +22,7 @@ const XO_TYPE_TO_COMPONENT = {
   subject: XoSubjectInput,
   tag: XoTagInput,
   vm: XoVmInput,
-  xoobject: XoHighLevelObjectInput
+  xoobject: XoHighLevelObjectInput,
 }
 
 // ===================================================================

@@ -19,7 +19,7 @@ import {
   connectServer,
   disconnectServer,
   removeServer,
-  subscribeServers
+  subscribeServers,
 } from 'xo'
 
 const showInfo = () =>
@@ -33,7 +33,7 @@ const showServerError = server => {
   if (code === 'DEPTH_ZERO_SELF_SIGNED_CERT') {
     return confirm({
       title: _('serverSelfSignedCertError'),
-      body: _('serverSelfSignedCertQuestion')
+      body: _('serverSelfSignedCertQuestion'),
     }).then(
       () =>
         editServer(server, { allowUnauthorized: true }).then(() =>
@@ -61,7 +61,7 @@ const COLUMNS = [
     ),
     default: true,
     name: _('serverLabel'),
-    sortCriteria: _ => _.name_label
+    sortCriteria: _ => _.name_label,
   },
   {
     itemRenderer: (server, formatMessage) => (
@@ -72,7 +72,7 @@ const COLUMNS = [
       />
     ),
     name: _('serverHost'),
-    sortCriteria: _ => _.host
+    sortCriteria: _ => _.host,
   },
   {
     itemRenderer: (server, formatMessage) => (
@@ -83,7 +83,7 @@ const COLUMNS = [
       />
     ),
     name: _('serverUsername'),
-    sortCriteria: _ => _.username
+    sortCriteria: _ => _.username,
   },
   {
     itemRenderer: (server, formatMessage) => (
@@ -93,7 +93,7 @@ const COLUMNS = [
         placeholder={formatMessage(messages.serverPlaceHolderPassword)}
       />
     ),
-    name: _('serverPassword')
+    name: _('serverPassword'),
   },
   {
     itemRenderer: server => (
@@ -122,7 +122,7 @@ const COLUMNS = [
       </div>
     ),
     name: _('serverStatus'),
-    sortCriteria: _ => _.status
+    sortCriteria: _ => _.status,
   },
   {
     itemRenderer: server => (
@@ -132,7 +132,7 @@ const COLUMNS = [
       />
     ),
     name: _('serverReadOnly'),
-    sortCriteria: _ => !!_.readOnly
+    sortCriteria: _ => !!_.readOnly,
   },
   {
     itemRenderer: server => (
@@ -153,20 +153,20 @@ const COLUMNS = [
         </Tooltip>
       </span>
     ),
-    sortCriteria: _ => !!_.allowUnauthorized
-  }
+    sortCriteria: _ => !!_.allowUnauthorized,
+  },
 ]
 const INDIVIDUAL_ACTIONS = [
   {
     handler: removeServer,
     icon: 'delete',
     label: _('remove'),
-    level: 'danger'
-  }
+    level: 'danger',
+  },
 ]
 
 @addSubscriptions({
-  servers: subscribeServers
+  servers: subscribeServers,
 })
 @injectIntl
 export default class Servers extends Component {

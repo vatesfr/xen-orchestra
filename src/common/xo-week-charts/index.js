@@ -18,33 +18,33 @@ import styles from './index.css'
 const X_AXIS_STYLE = {
   'shape-rendering': 'crispEdges',
   fill: 'none',
-  stroke: '#000'
+  stroke: '#000',
 }
 
 const X_AXIS_TEXT_STYLE = {
   'font-size': '125%',
   fill: 'black',
-  stroke: 'transparent'
+  stroke: 'transparent',
 }
 
 const LABEL_STYLE = {
-  'font-size': '125%'
+  'font-size': '125%',
 }
 
 const MOUSE_AREA_STYLE = {
   'pointer-events': 'all',
-  fill: 'none'
+  fill: 'none',
 }
 
 const HOVER_LINE_STYLE = {
   'stroke-width': '2px',
   'stroke-dasharray': '5 5',
   stroke: 'red',
-  fill: 'none'
+  fill: 'none',
 }
 
 const HOVER_TEXT_STYLE = {
-  fill: 'black'
+  fill: 'black',
 }
 
 const HORIZON_AREA_N_STEPS = 4
@@ -53,7 +53,7 @@ const HORIZON_AREA_PATH_STYLE = {
   'fill-opacity': 0.25,
   'stroke-opacity': 0.3,
   fill: 'darkgreen',
-  stroke: 'transparent'
+  stroke: 'transparent',
 }
 
 // ===================================================================
@@ -64,14 +64,14 @@ const HORIZON_AREA_PATH_STYLE = {
   data: propTypes.arrayOf(
     propTypes.shape({
       date: propTypes.number.isRequired,
-      value: propTypes.number.isRequired
+      value: propTypes.number.isRequired,
     })
   ).isRequired,
   maxValue: propTypes.number,
   objectId: propTypes.string.isRequired,
   onTooltipChange: propTypes.func.isRequired,
   tooltipX: propTypes.number.isRequired,
-  valueRenderer: propTypes.func
+  valueRenderer: propTypes.func,
 })
 @connectStore(() => {
   const label = createSelector(
@@ -85,7 +85,7 @@ class XoWeekChart extends Component {
   static defaultProps = {
     chartHeight: 70,
     chartWidth: 300,
-    valueRenderer: value => value
+    valueRenderer: value => value,
   }
 
   _x = d3.scaleTime()
@@ -110,8 +110,8 @@ class XoWeekChart extends Component {
       splittedData[i] = [
         {
           date,
-          value: 0
-        }
+          value: 0,
+        },
       ]
     }
 
@@ -124,7 +124,7 @@ class XoWeekChart extends Component {
           value: Math.min(
             Math.max(0, elem.value - intervalSize * i),
             intervalSize
-          )
+          ),
         })
       }
     })
@@ -134,7 +134,7 @@ class XoWeekChart extends Component {
     for (let i = 0; i < HORIZON_AREA_N_STEPS; i++) {
       splittedData[i].push({
         date,
-        value: 0
+        value: 0,
       })
     }
 
@@ -246,18 +246,21 @@ class XoWeekChart extends Component {
       .select(this.refs.chart)
       .append('svg')
       .attr('transform', `translate(${HORIZON_AREA_MARGIN}, 0)`))
+
     ;svg
       .append('g')
       .attr('class', 'x-axis')
       ::setStyles(X_AXIS_STYLE)
 
     svg.append('g').attr('class', 'horizon-area')
+
     ;svg
       .append('text')
       .attr('class', 'label')
       ::setStyles(LABEL_STYLE)
 
     // Tooltip ---------------------------------------------
+
     ;svg
       .append('rect')
       .attr('class', 'mouse-area')
@@ -268,11 +271,13 @@ class XoWeekChart extends Component {
       .append('g')
       .attr('class', 'hover-container')
       ::setStyles('pointer-events', 'none')
+
     ;hover
       .append('line')
       .attr('class', 'hover-line')
       .attr('y1', 0)
       ::setStyles(HOVER_LINE_STYLE)
+
     ;hover
       .append('text')
       .attr('class', 'hover-text')
@@ -289,7 +294,7 @@ class XoWeekChart extends Component {
         'chartHeight',
         'chartWidth',
         'data',
-        'maxValue'
+        'maxValue',
       ])
     ) {
       this._draw(nextProps)
@@ -314,19 +319,19 @@ class XoWeekChart extends Component {
       data: propTypes.arrayOf(
         propTypes.shape({
           date: propTypes.number.isRequired,
-          value: propTypes.number.isRequired
+          value: propTypes.number.isRequired,
         })
       ).isRequired,
-      objectId: propTypes.string.isRequired
+      objectId: propTypes.string.isRequired,
     })
   ).isRequired,
-  valueRenderer: propTypes.func
+  valueRenderer: propTypes.func,
 })
 export default class XoWeekCharts extends Component {
   _handleResize = () => {
     const { container } = this.refs
     this.setState({
-      chartsWidth: container && container.offsetWidth
+      chartsWidth: container && container.offsetWidth,
     })
   }
 
@@ -347,7 +352,7 @@ export default class XoWeekCharts extends Component {
     }
 
     this.setState({
-      maxValue: max
+      maxValue: max,
     })
   }
 
@@ -358,7 +363,7 @@ export default class XoWeekCharts extends Component {
 
   componentWillMount () {
     this.setState({
-      tooltipX: 0
+      tooltipX: 0,
     })
   }
 

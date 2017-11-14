@@ -26,7 +26,7 @@ import {
   editNetwork,
   editPif,
   getIpv4ConfigModes,
-  reconfigurePifIp
+  reconfigurePifIp,
 } from 'xo'
 
 const EDIT_BUTTON_STYLE = { color: '#999', cursor: 'pointer' }
@@ -102,7 +102,7 @@ class ConfigureIpModal extends Component {
 }
 
 @connectStore(() => ({
-  vifsByNetwork: createGetObjectsOfType('VIF').groupBy('$network')
+  vifsByNetwork: createGetObjectsOfType('VIF').groupBy('$network'),
 }))
 class PifItem extends Component {
   state = { configModes: [] }
@@ -116,7 +116,7 @@ class PifItem extends Component {
       return confirm({
         icon: 'ip',
         title: _('pifConfigureIp'),
-        body: <ConfigureIpModal pif={this.props.pif} />
+        body: <ConfigureIpModal pif={this.props.pif} />,
       }).then(params => {
         if (!params.ip || !params.netmask) {
           error(_('configIpErrorTitle'), _('configIpErrorMessage'))
@@ -181,7 +181,7 @@ class PifItem extends Component {
               disabled={pifInUse}
               onChange={() =>
                 editNetwork(pif.$network, {
-                  defaultIsLocked: !networks[pif.$network].defaultIsLocked
+                  defaultIsLocked: !networks[pif.$network].defaultIsLocked,
                 })
               }
               value={networks[pif.$network].defaultIsLocked}

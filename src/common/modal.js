@@ -11,7 +11,7 @@ import propTypes from './prop-types-decorator'
 import Tooltip from './tooltip'
 import {
   disable as disableShortcuts,
-  enable as enableShortcuts
+  enable as enableShortcuts,
 } from './shortcuts'
 
 let instance
@@ -32,12 +32,12 @@ const modal = (content, onClose) => {
       icon: propTypes.string,
       label: propTypes.node.isRequired,
       tooltip: propTypes.node,
-      value: propTypes.any
+      value: propTypes.any,
     })
   ).isRequired,
   children: propTypes.node.isRequired,
   icon: propTypes.string,
-  title: propTypes.node.isRequired
+  title: propTypes.node.isRequired,
 })
 class GenericModal extends Component {
   _getBodyValue = () => {
@@ -135,7 +135,7 @@ export const confirm = ({ body, icon = 'alarm', title }) =>
     body,
     buttons: CONFIRM_BUTTONS,
     icon,
-    title
+    title,
   })
 
 export const chooseAction = ({ body, buttons, icon, title }) => {

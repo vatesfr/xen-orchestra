@@ -27,7 +27,7 @@ export { Wizard as default }
 
 @propTypes({
   icon: propTypes.string.isRequired,
-  title: propTypes.string.isRequired
+  title: propTypes.string.isRequired,
 })
 export class Section extends Component {
   componentWillMount () {

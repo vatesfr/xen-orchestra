@@ -16,28 +16,28 @@ const COLUMNS = [
   {
     name: _('srUnhealthyVdiNameLabel'),
     itemRenderer: vdi => <span>{vdi.name_label}</span>,
-    sortCriteria: vdi => vdi.name_label
+    sortCriteria: vdi => vdi.name_label,
   },
   {
     name: _('srUnhealthyVdiSize'),
     itemRenderer: vdi => formatSize(vdi.size),
-    sortCriteria: vdi => vdi.size
+    sortCriteria: vdi => vdi.size,
   },
   {
     name: _('srUnhealthyVdiDepth'),
     itemRenderer: (vdi, chains) => chains[vdi.uuid],
-    sortCriteria: (vdi, chains) => chains[vdi.uuid]
-  }
+    sortCriteria: (vdi, chains) => chains[vdi.uuid],
+  },
 ]
 
 const UnhealthyVdiChains = flowRight(
   addSubscriptions(props => ({
-    chains: createSrUnhealthyVdiChainsLengthSubscription(props.sr)
+    chains: createSrUnhealthyVdiChainsLengthSubscription(props.sr),
   })),
   connectStore(() => ({
     vdis: createGetObjectsOfType('VDI').pick(
       createSelector((_, props) => props.chains, keys)
-    )
+    ),
   }))
 )(
   ({ chains, vdis }) =>

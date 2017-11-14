@@ -15,7 +15,7 @@ import { Text } from 'editable'
 import {
   createGetObject,
   createGetObjectsOfType,
-  createSelector
+  createSelector,
 } from 'selectors'
 import {
   addTag,
@@ -23,7 +23,7 @@ import {
   isSrShared,
   reconnectAllHostsSr,
   removeTag,
-  setDefaultSr
+  setDefaultSr,
 } from 'xo'
 import { connectStore, formatSizeShort } from 'utils'
 
@@ -55,7 +55,7 @@ import styles from './index.css'
 
       return nbAttached < nbPbds ? 1 : 2
     }
-  )
+  ),
 })
 export default class SrItem extends Component {
   _addTag = tag => addTag(this.props.item.id, tag)
@@ -106,7 +106,7 @@ export default class SrItem extends Component {
       isDefaultSr,
       isShared,
       item: sr,
-      selected
+      selected,
     } = this.props
 
     return (
@@ -165,7 +165,7 @@ export default class SrItem extends Component {
                 <Tooltip
                   content={_('spaceLeftTooltip', {
                     used: String(Math.round(sr.physical_usage / sr.size * 100)),
-                    free: formatSizeShort(sr.size - sr.physical_usage)
+                    free: formatSizeShort(sr.size - sr.physical_usage),
                   })}
                 >
                   <progress

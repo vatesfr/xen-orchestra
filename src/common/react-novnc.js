@@ -4,7 +4,7 @@ import { createBackoff } from 'jsonrpc-websocket-client'
 import { parse as parseUrl, resolve as resolveUrl } from 'url'
 import {
   enable as enableShortcuts,
-  disable as disableShortcuts
+  disable as disableShortcuts,
 } from 'shortcuts'
 
 import propTypes from './prop-types-decorator'
@@ -14,7 +14,7 @@ const parseRelativeUrl = url =>
 
 const PROTOCOL_ALIASES = {
   'http:': 'ws:',
-  'https:': 'wss:'
+  'https:': 'wss:',
 }
 const fixProtocol = url => {
   const protocol = PROTOCOL_ALIASES[url.protocol]
@@ -25,7 +25,7 @@ const fixProtocol = url => {
 
 @propTypes({
   onClipboardChange: propTypes.func,
-  url: propTypes.string.isRequired
+  url: propTypes.string.isRequired,
 })
 export default class NoVnc extends Component {
   constructor (props) {
@@ -99,7 +99,7 @@ export default class NoVnc extends Component {
         ((_, text) => {
           onClipboardChange(text)
         }),
-      onUpdateState: this._onUpdateState
+      onUpdateState: this._onUpdateState,
     }))
 
     // remove leading slashes from the path

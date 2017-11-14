@@ -13,18 +13,18 @@ import { connectStore, formatSize } from './utils'
 const OBJECT_TYPE_TO_ICON = {
   'VM-template': 'vm',
   host: 'host',
-  network: 'network'
+  network: 'network',
 }
 
 // Host, Network, VM-template.
 const PoolObjectItem = propTypes({
-  object: propTypes.object.isRequired
+  object: propTypes.object.isRequired,
 })(
   connectStore(() => {
     const getPool = createGetObject((_, props) => props.object.$pool)
 
     return (state, props) => ({
-      pool: getPool(state, props)
+      pool: getPool(state, props),
     })
   })(({ object, pool }) => {
     const icon = OBJECT_TYPE_TO_ICON[object.type]
@@ -41,13 +41,13 @@ const PoolObjectItem = propTypes({
 
 // SR.
 const SrItem = propTypes({
-  sr: propTypes.object.isRequired
+  sr: propTypes.object.isRequired,
 })(
   connectStore(() => {
     const getContainer = createGetObject((_, props) => props.sr.$container)
 
     return (state, props) => ({
-      container: getContainer(state, props)
+      container: getContainer(state, props),
     })
   })(({ sr, container }) => {
     let label = `${sr.name_label || sr.id}`
@@ -66,13 +66,13 @@ const SrItem = propTypes({
 
 // VM.
 const VmItem = propTypes({
-  vm: propTypes.object.isRequired
+  vm: propTypes.object.isRequired,
 })(
   connectStore(() => {
     const getContainer = createGetObject((_, props) => props.vm.$container)
 
     return (state, props) => ({
-      container: getContainer(state, props)
+      container: getContainer(state, props),
     })
   })(({ vm, container }) => (
     <span>
@@ -84,7 +84,7 @@ const VmItem = propTypes({
 )
 
 const VgpuItem = connectStore(() => ({
-  vgpuType: createGetObject((_, props) => props.vgpu.vgpuType)
+  vgpuType: createGetObject((_, props) => props.vgpu.vgpuType),
 }))(({ vgpu, vgpuType }) => (
   <span>
     <Icon icon='vgpu' /> {vgpuType.modelName}
@@ -199,7 +199,7 @@ const xoItemToRender = {
         ? group.name_label.slice(9)
         : group.name_label}
     </span>
-  )
+  ),
 }
 
 const renderXoItem = (item, { className } = {}) => {
@@ -246,7 +246,7 @@ const GenericXoItem = connectStore(() => {
   const getObject = createGetObject()
 
   return (state, props) => ({
-    xoItem: getObject(state, props)
+    xoItem: getObject(state, props),
   })
 })(
   ({ xoItem, ...props }) =>

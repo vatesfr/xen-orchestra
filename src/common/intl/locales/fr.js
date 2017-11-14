@@ -3933,5 +3933,5 @@ export default {
 
   // Original text: "At least one of these version requirements must be satisfied by all the hosts in this pool:"
   xosanPackRequirements:
-    'Au moins une de ces condtions de version doit être satisfaite par tous les hôtes de ce pool :'
+    'Au moins une de ces condtions de version doit être satisfaite par tous les hôtes de ce pool :',
 }

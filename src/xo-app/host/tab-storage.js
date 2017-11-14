@@ -26,17 +26,17 @@ const SR_COLUMNS = [
         />
       </Link>
     ),
-    sortCriteria: 'nameLabel'
+    sortCriteria: 'nameLabel',
   },
   {
     name: _('srFormat'),
     itemRenderer: storage => storage.format,
-    sortCriteria: 'format'
+    sortCriteria: 'format',
   },
   {
     name: _('srSize'),
     itemRenderer: storage => formatSize(storage.size),
-    sortCriteria: 'size'
+    sortCriteria: 'size',
   },
   {
     default: true,
@@ -46,7 +46,7 @@ const SR_COLUMNS = [
         <Tooltip
           content={_('spaceLeftTooltip', {
             used: storage.usagePercentage,
-            free: formatSize(storage.free)
+            free: formatSize(storage.free),
           })}
         >
           <meter
@@ -60,13 +60,13 @@ const SR_COLUMNS = [
         </Tooltip>
       ),
     sortCriteria: storage => storage.usagePercentage,
-    sortOrder: 'desc'
+    sortOrder: 'desc',
   },
   {
     name: _('srType'),
     itemRenderer: storage =>
       storage.shared ? _('srShared') : _('srNotShared'),
-    sortCriteria: 'shared'
+    sortCriteria: 'shared',
   },
   {
     name: _('pbdStatus'),
@@ -81,7 +81,7 @@ const SR_COLUMNS = [
         handlerParam={storage.pbdId}
         state={storage.attached}
       />
-    )
+    ),
   },
   {
     name: _('pbdAction'),
@@ -94,8 +94,8 @@ const SR_COLUMNS = [
           tooltip={_('pbdForget')}
         />
       ),
-    textAlign: 'right'
-  }
+    textAlign: 'right',
+  },
 ]
 
 export default connectStore(() => {
@@ -120,7 +120,7 @@ export default connectStore(() => {
         pbdId: pbd.id,
         shared: isSrShared(sr),
         size: size > 0 ? size : 0,
-        usagePercentage: size > 0 && Math.round(100 * usage / size)
+        usagePercentage: size > 0 && Math.round(100 * usage / size),
       }
     })
   )

@@ -21,15 +21,15 @@ import {
   removeUserFromGroup,
   setGroupName,
   subscribeGroups,
-  subscribeUsers
+  subscribeUsers,
 } from 'xo'
 
 @addSubscriptions({
-  users: cb => subscribeUsers(users => cb(keyBy(users, 'id')))
+  users: cb => subscribeUsers(users => cb(keyBy(users, 'id'))),
 })
 @propTypes({
   id: propTypes.string.isRequired, // user id
-  group: propTypes.object.isRequired // group
+  group: propTypes.object.isRequired, // group
 })
 class UserDisplay extends Component {
   _removeUser = () => {
@@ -104,11 +104,11 @@ const GROUP_COLUMNS = [
     itemRenderer: group => (
       <Text value={group.name} onChange={value => setGroupName(group, value)} />
     ),
-    sortCriteria: group => group.name
+    sortCriteria: group => group.name,
   },
   {
     name: _('groupUsersColumn'),
-    itemRenderer: group => <GroupMembersDisplay group={group} />
+    itemRenderer: group => <GroupMembersDisplay group={group} />,
   },
   {
     name: _('addUserToGroupColumn'),
@@ -118,7 +118,7 @@ const GROUP_COLUMNS = [
         onChange={user => user && addUserToGroup(user, group)}
         value={null}
       />
-    )
+    ),
   },
   {
     name: '',
@@ -129,12 +129,12 @@ const GROUP_COLUMNS = [
         handlerParam={group}
         btnStyle='danger'
       />
-    )
-  }
+    ),
+  },
 ]
 
 @addSubscriptions({
-  groups: subscribeGroups
+  groups: subscribeGroups,
 })
 @injectIntl
 export default class Groups extends Component {

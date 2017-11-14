@@ -28,17 +28,17 @@ const LOG_COLUMNS = [
       </span>
     ),
     sortCriteria: log => log.time,
-    sortOrder: 'desc'
+    sortOrder: 'desc',
   },
   {
     name: _('logName'),
     itemRenderer: log => log.name,
-    sortCriteria: log => log.name
+    sortCriteria: log => log.name,
   },
   {
     name: _('logContent'),
     itemRenderer: log => log.body,
-    sortCriteria: log => log.body
+    sortCriteria: log => log.body,
   },
   {
     name: _('logAction'),
@@ -49,15 +49,15 @@ const LOG_COLUMNS = [
         handlerParam={log}
         icon='delete'
       />
-    )
-  }
+    ),
+  },
 ]
 
 @connectStore(() => {
   const logs = createGetObjectMessages((_, props) => props.vm)
 
   return (state, props) => ({
-    logs: logs(state, props)
+    logs: logs(state, props),
   })
 })
 export default class TabLogs extends Component {

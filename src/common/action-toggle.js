@@ -12,5 +12,5 @@ const ActionToggle = ({ className, value, ...props }) => (
 )
 
 export default propTypes({
-  value: propTypes.bool
+  value: propTypes.bool,
 })(ActionToggle)

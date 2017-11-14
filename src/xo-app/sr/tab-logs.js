@@ -17,7 +17,7 @@ export default class TabLogs extends Component {
     this.getLogs = createPager(() => this.props.logs, () => this.state.page, 10)
 
     this.state = {
-      page: 1
+      page: 1,
     }
   }
 

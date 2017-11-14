@@ -15,8 +15,8 @@ import { Container, Row, Col } from 'grid'
 
 @connectStore(() => ({
   master: createGetObjectsOfType('host').find((_, { pool }) => ({
-    id: pool.master
-  }))
+    id: pool.master,
+  })),
 }))
 class PoolMaster extends Component {
   _getPoolMasterPredicate = host => host.$pool === this.props.pool.id
@@ -40,7 +40,7 @@ class PoolMaster extends Component {
 }
 
 export default connectStore({
-  gpuGroups: createGetObjectsOfType('gpuGroup')
+  gpuGroups: createGetObjectsOfType('gpuGroup'),
 })(({ gpuGroups, pool }) => (
   <div>
     <h3 className='mb-1'>{_('xenSettingsLabel')}</h3>

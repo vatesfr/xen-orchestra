@@ -34,11 +34,11 @@ const reportBug = log => {
   window.open(
     process.env.XOA_PLAN < 5
       ? `https://xen-orchestra.com/#!/member/support?title=${title}&message=${
-          message
-        }`
+        message
+      }`
       : `https://github.com/vatesfr/xo-web/issues/new?title=${title}&body=${
-          message
-        }`
+        message
+      }`
   )
 }
 
@@ -55,7 +55,7 @@ const COLUMNS = [
       const user = find(users, user => user.id === log.data.userId)
       return user ? user.email : _('unknownUser')
     },
-    sortCriteria: log => log.data.userId
+    sortCriteria: log => log.data.userId,
   },
   {
     name: _('logMessage'),
@@ -64,7 +64,7 @@ const COLUMNS = [
         {log.data.error && log.data.error.message}
       </pre>
     ),
-    sortCriteria: log => log.data.error && log.data.error.message
+    sortCriteria: log => log.data.error && log.data.error.message,
   },
   {
     default: true,
@@ -85,7 +85,7 @@ const COLUMNS = [
       </span>
     ),
     sortCriteria: log => log.time,
-    sortOrder: 'desc'
+    sortOrder: 'desc',
   },
   {
     name: '',
@@ -114,19 +114,19 @@ const COLUMNS = [
           )}
         </ButtonGroup>
       </div>
-    )
-  }
+    ),
+  },
 ]
 
 @addSubscriptions({
   logs: subscribeApiLogs,
-  users: subscribeUsers
+  users: subscribeUsers,
 })
 export default class Logs extends BaseComponent {
   _deleteAllLogs = () =>
     confirm({
       title: _('logDeleteAllTitle'),
-      body: _('logDeleteAllMessage')
+      body: _('logDeleteAllMessage'),
     }).then(() =>
       Promise.all(map(this.props.logs, (log, id) => deleteApiLog(id)))
     )

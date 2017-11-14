@@ -53,7 +53,7 @@ export const createNot = child => ({ type: 'not', child })
 export const createProperty = (name, child) => ({
   type: 'property',
   name,
-  child
+  child,
 })
 
 export const createString = value => ({ type: 'string', value })
@@ -254,7 +254,7 @@ export const getPropertyClausesStrings = function () {
 
   if (type === 'property') {
     return {
-      [this.name]: _getPropertyClauseStrings(this)
+      [this.name]: _getPropertyClauseStrings(this),
     }
   }
 
@@ -351,7 +351,7 @@ export const execute = invoke(() => {
       }
 
       return ({ value: pattern }, value) => match(pattern.toLowerCase(), value)
-    })
+    }),
   }
 
   return function (value) {
@@ -375,7 +375,7 @@ export const toString = invoke(() => {
       isRawString(value)
         ? value
         : `"${value.replace(/\\|"/g, match => `\\${match}`)}"`,
-    truthyProperty: ({ name }) => `${toString(createString(name))}?`
+    truthyProperty: ({ name }) => `${toString(createString(name))}?`,
   }
 
   const toString = node => visitors[node.type](node)

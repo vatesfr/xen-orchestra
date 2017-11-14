@@ -3654,5 +3654,5 @@ export default {
   xosanInstallPackOnHosts: undefined,
 
   // Original text: 'Install {pack} v{version}?'
-  xosanInstallPack: undefined
+  xosanInstallPack: undefined,
 }

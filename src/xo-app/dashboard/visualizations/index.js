@@ -11,7 +11,7 @@ import {
   createFilter,
   createGetObjectsOfType,
   createPicker,
-  createSelector
+  createSelector,
 } from 'selectors'
 import { connectStore, formatSize } from 'utils'
 
@@ -24,12 +24,12 @@ const DATA_LABELS = {
   ram: 'RAM quantity',
   nVifs: 'VIF number',
   nVdis: 'VDI number',
-  vdisSize: 'Total space'
+  vdisSize: 'Total space',
 }
 
 const DATA_RENDERERS = {
   ram: formatSize,
-  vdisSize: formatSize
+  vdisSize: formatSize,
 }
 
 // ===================================================================
@@ -41,7 +41,7 @@ const DATA_RENDERERS = {
     const getVdisByVmSelectors = createSelector(
       vms => vms,
       vms => {
-        let previous = current
+        const previous = current
         current = {}
 
         forEach(vms, vm => {
@@ -52,7 +52,7 @@ const DATA_RENDERERS = {
               (vm, vbds, vdis) => vdis,
               createSelector(
                 createFilter(createPicker((vm, vbds) => vbds, vm => vm.$VBDs), [
-                  vbd => !vbd.is_cd_drive && vbd.attached
+                  vbd => !vbd.is_cd_drive && vbd.attached,
                 ]),
                 vbds => map(vbds, vbd => vbd.VDI)
               )
@@ -76,7 +76,7 @@ const DATA_RENDERERS = {
 
   return {
     vms: getVms,
-    vdisByVm: getVdisByVm
+    vdisByVm: getVdisByVm,
   }
 })
 export default class Visualizations extends Component {
@@ -101,8 +101,8 @@ export default class Visualizations extends Component {
             nVdis,
             nVifs: vm.VIFs.length,
             ram: vm.memory.size,
-            vdisSize
-          }
+            vdisSize,
+          },
         }
       })
   )
