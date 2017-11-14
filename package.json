@@ -158,7 +158,7 @@
     "dev": "npm run build-indexes && NODE_ENV=development gulp build",
     "dev-test": "jest --watch",
     "lint-staged-unstash": "git stash pop && true",
-    "posttest": "eslint",
+    "posttest": "eslint --ignore-path .gitignore src/",
     "precommit": "lint-staged",
     "prepublish": "npm run build",
     "test": "jest"
