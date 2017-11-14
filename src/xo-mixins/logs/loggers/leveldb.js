@@ -1,7 +1,8 @@
 import highland from 'highland'
 
 import AbstractLogger from './abstract'
-import { forEach, noop } from '../utils'
+
+import { forEach, noop } from '../../../utils'
 
 let lastDate = 0
 let increment = 0
@@ -45,10 +46,7 @@ export default class LevelDbLogger extends AbstractLogger {
   }
 
   del (id) {
-    if (!Array.isArray(id)) {
-      id = [id]
-    }
-    forEach(id, id => {
+    forEach(Array.isArray(id) ? id : [id], id => {
       this._db.get(id).then(value => {
         if (value.namespace === this._namespace) {
           this._db.delSync(id, noop)

@@ -16,7 +16,6 @@ import {
 
 import mixins from './xo-mixins'
 import Connection from './connection'
-import LevelDbLogger from './loggers/leveldb'
 import {
   mixin
 } from './decorators'
@@ -127,15 +126,6 @@ export default class Xo extends EventEmitter {
 
     this.emit('stopped')
     this.removeAllListeners('stopped')
-  }
-
-  // -----------------------------------------------------------------
-
-  getLogger (namespace) {
-    return this.getStore('logs').then(store => new LevelDbLogger(
-      store,
-      namespace
-    ))
   }
 
   // -----------------------------------------------------------------
