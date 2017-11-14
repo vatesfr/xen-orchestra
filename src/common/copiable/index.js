@@ -13,20 +13,22 @@ import styles from './index.css'
 const Copiable = propTypes({
   data: propTypes.string,
   tagName: propTypes.string
-})(({ className, tagName = 'span', ...props }) => createElement(
-  tagName,
-  {
-    ...props,
-    className: classNames(styles.container, className)
-  },
-  props.children,
-  ' ',
-  <Tooltip content={_('copyToClipboard')}>
-    <CopyToClipboard text={props.data || props.children}>
-      <Button className={styles.button} size='small'>
-        <Icon icon='clipboard' />
-      </Button>
-    </CopyToClipboard>
-  </Tooltip>
-))
+})(({ className, tagName = 'span', ...props }) =>
+  createElement(
+    tagName,
+    {
+      ...props,
+      className: classNames(styles.container, className)
+    },
+    props.children,
+    ' ',
+    <Tooltip content={_('copyToClipboard')}>
+      <CopyToClipboard text={props.data || props.children}>
+        <Button className={styles.button} size='small'>
+          <Icon icon='clipboard' />
+        </Button>
+      </CopyToClipboard>
+    </Tooltip>
+  )
+)
 export { Copiable as default }

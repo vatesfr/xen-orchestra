@@ -16,25 +16,15 @@ import { Container, Row, Col } from 'grid'
 import { error } from 'notification'
 import { SelectHostVm } from 'select-objects'
 import { createGetObjectsOfType } from 'selectors'
-import {
-  connectStore,
-  formatSize,
-  mapPlus
-} from 'utils'
-import {
-  fetchHostStats,
-  fetchVmStats
-} from 'xo'
+import { connectStore, formatSize, mapPlus } from 'utils'
+import { fetchHostStats, fetchVmStats } from 'xo'
 
 // ===================================================================
 
-const computeMetricArray = (stats, {
-  metricKey,
-  metrics,
-  objectId,
-  timestampStart,
-  valueRenderer
-}) => {
+const computeMetricArray = (
+  stats,
+  { metricKey, metrics, objectId, timestampStart, valueRenderer }
+) => {
   if (!stats) {
     return
   }
@@ -80,7 +70,9 @@ const computeCpusMetric = (cpus, { objectId, ...params }) => {
     })
   }
 
-  forEach(cpusAvg, value => { value.value /= nCpus })
+  forEach(cpusAvg, value => {
+    value.value /= nCpus
+  })
 
   const allCpusKey = 'All CPUs'
 
@@ -96,7 +88,7 @@ const computeCpusMetric = (cpus, { objectId, ...params }) => {
 
 const computeVifsMetric = (vifs, params) => {
   forEach(vifs, (vifs, vifsType) => {
-    const rw = (vifsType === 'rx') ? 'out' : 'in'
+    const rw = vifsType === 'rx' ? 'out' : 'in'
 
     forEach(vifs, (vif, index) => {
       computeMetricArray(vif, {
@@ -110,7 +102,7 @@ const computeVifsMetric = (vifs, params) => {
 
 const computePifsMetric = (pifs, params) => {
   forEach(pifs, (pifs, pifsType) => {
-    const rw = (pifsType === 'rx') ? 'out' : 'in'
+    const rw = pifsType === 'rx' ? 'out' : 'in'
 
     forEach(pifs, (pif, index) => {
       computeMetricArray(pif, {
@@ -124,7 +116,7 @@ const computePifsMetric = (pifs, params) => {
 
 const computeXvdsMetric = (xvds, params) => {
   forEach(xvds, (xvds, xvdsType) => {
-    const rw = (xvdsType === 'r') ? 'read' : 'write'
+    const rw = xvdsType === 'r' ? 'read' : 'write'
 
     forEach(xvds, (xvd, index) => {
       computeMetricArray(xvd, {
@@ -171,12 +163,12 @@ const STATS_TYPE_TO_COMPUTE_FNC = {
   onChange: propTypes.func.isRequired
 })
 @connectStore(() => {
-  const getRunningHosts = createGetObjectsOfType('host').filter(
-    [ runningObjectsPredicate ]
-  ).sort()
-  const getRunningVms = createGetObjectsOfType('VM').filter(
-    [ runningObjectsPredicate ]
-  ).sort()
+  const getRunningHosts = createGetObjectsOfType('host')
+    .filter([runningObjectsPredicate])
+    .sort()
+  const getRunningVms = createGetObjectsOfType('VM')
+    .filter([runningObjectsPredicate])
+    .sort()
 
   return {
     hosts: getRunningHosts,
@@ -198,7 +190,8 @@ class SelectMetric extends Component {
       metrics: undefined,
       objects,
       predicate: objects.length
-        ? object => runningObjectsPredicate(object) && object.type === objects[0].type
+        ? object =>
+            runningObjectsPredicate(object) && object.type === objects[0].type
         : runningObjectsPredicate
     })
   }
@@ -212,7 +205,8 @@ class SelectMetric extends Component {
       metricsState: undefined,
       metrics: undefined,
       objects: this.props.hosts,
-      predicate: object => runningObjectsPredicate(object) && object.type === 'host'
+      predicate: object =>
+        runningObjectsPredicate(object) && object.type === 'host'
     })
   }
 
@@ -221,7 +215,8 @@ class SelectMetric extends Component {
       metricsState: undefined,
       metrics: undefined,
       objects: this.props.vms,
-      predicate: object => runningObjectsPredicate(object) && object.type === 'VM'
+      predicate: object =>
+        runningObjectsPredicate(object) && object.type === 'VM'
     })
   }
 
@@ -229,7 +224,8 @@ class SelectMetric extends Component {
     this.setState({ metricsState: METRICS_LOADING })
 
     const { objects } = this.state
-    const getStats = (objects[0].type === 'host' && fetchHostStats) || fetchVmStats
+    const getStats =
+      (objects[0].type === 'host' && fetchHostStats) || fetchVmStats
 
     const metrics = {}
 
@@ -246,7 +242,8 @@ class SelectMetric extends Component {
             const params = {
               metrics,
               objectId: object.id,
-              timestampStart: (result.endTimestamp - 3600 * (stats.memory.length - 1)) * 1000
+              timestampStart:
+                (result.endTimestamp - 3600 * (stats.memory.length - 1)) * 1000
             }
 
             forEach(stats, (stats, type) => {
@@ -261,7 +258,8 @@ class SelectMetric extends Component {
             error(
               _('statsDashboardGenericErrorTitle'),
               <span>
-                {_('statsDashboardGenericErrorMessage')} {object.name_label || object.id}
+                {_('statsDashboardGenericErrorMessage')}{' '}
+                {object.name_label || object.id}
               </span>
             )
           })
@@ -278,19 +276,11 @@ class SelectMetric extends Component {
     const { value } = event.target
     const { state } = this
 
-    this.props.onChange(
-      value !== '' && state.metrics[value],
-      state.objects
-    )
+    this.props.onChange(value !== '' && state.metrics[value], state.objects)
   }
 
   render () {
-    const {
-      metricsState,
-      metrics,
-      objects,
-      predicate
-    } = this.state
+    const { metricsState, metrics, objects, predicate } = this.state
 
     return (
       <Container>
@@ -330,19 +320,27 @@ class SelectMetric extends Component {
             </div>
           </Col>
           <Col mediumSize={6}>
-            {metricsState === METRICS_LOADING
-              ? (
-                <div>
-                  <Icon icon='loading' /> {_('metricsLoading')}
-                </div>
-              ) : (metricsState === METRICS_LOADED &&
-                <select className='form-control' onChange={this._handleSelectedMetric}>
-                  {_('noSelectedMetric', message => <option value=''>{message}</option>)}
+            {metricsState === METRICS_LOADING ? (
+              <div>
+                <Icon icon='loading' /> {_('metricsLoading')}
+              </div>
+            ) : (
+              metricsState === METRICS_LOADED && (
+                <select
+                  className='form-control'
+                  onChange={this._handleSelectedMetric}
+                >
+                  {_('noSelectedMetric', message => (
+                    <option value=''>{message}</option>
+                  ))}
                   {map(metrics, (metric, key) => (
-                    <option key={key} value={key}>{metric.key}</option>
+                    <option key={key} value={key}>
+                      {metric.key}
+                    </option>
                   ))}
                 </select>
-              )}
+              )
+            )}
           </Col>
         </Row>
       </Container>
@@ -363,14 +361,8 @@ class MetricViewer extends Component {
 
   render () {
     const {
-      props: {
-        metricRenderer,
-        title
-      },
-      state: {
-        selectedMetric,
-        objects
-      }
+      props: { metricRenderer, title },
+      state: { selectedMetric, objects }
     } = this
 
     return (
@@ -382,13 +374,13 @@ class MetricViewer extends Component {
           <Container>
             <Row>
               <Col>
-                {map(objects, object => renderXoItem(object, { className: 'mr-1' }))}
+                {map(objects, object =>
+                  renderXoItem(object, { className: 'mr-1' })
+                )}
               </Col>
             </Row>
             <Row>
-              <Col>
-                {metricRenderer(selectedMetric)}
-              </Col>
+              <Col>{metricRenderer(selectedMetric)}</Col>
             </Row>
           </Container>
         )}
@@ -421,17 +413,22 @@ const weekChartsRenderer = metric => (
   />
 )
 
-const Stats = () => process.env.XOA_PLAN > 2
-  ? <div>
-    <MetricViewer
-      metricRenderer={weekHeatmapRenderer}
-      title={_('weeklyHeatmap')}
-    />
-    <MetricViewer
-      metricRenderer={weekChartsRenderer}
-      title={_('weeklyCharts')}
-    />
-  </div>
-  : <Container><Upgrade place='dashboardStats' available={3} /></Container>
+const Stats = () =>
+  process.env.XOA_PLAN > 2 ? (
+    <div>
+      <MetricViewer
+        metricRenderer={weekHeatmapRenderer}
+        title={_('weeklyHeatmap')}
+      />
+      <MetricViewer
+        metricRenderer={weekChartsRenderer}
+        title={_('weeklyCharts')}
+      />
+    </div>
+  ) : (
+    <Container>
+      <Upgrade place='dashboardStats' available={3} />
+    </Container>
+  )
 
 export { Stats as default }

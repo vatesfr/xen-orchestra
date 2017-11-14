@@ -43,7 +43,8 @@ export default class SelectPlainObject extends Component {
   _computeValue (value, props = this.props) {
     let { optionKey } = props
     optionKey || (optionKey = 'id')
-    const reduceValue = value => value != null ? (value[optionKey] || value) : ''
+    const reduceValue = value =>
+      value != null ? value[optionKey] || value : ''
     if (props.multi) {
       if (!Array.isArray(value)) {
         value = [value]
@@ -72,7 +73,10 @@ export default class SelectPlainObject extends Component {
 
     const pickValue = value => {
       value = value.value || value
-      return find(options, option => option[optionKey] === value || option === value)
+      return find(
+        options,
+        option => option[optionKey] === value || option === value
+      )
     }
 
     if (this.props.multi) {

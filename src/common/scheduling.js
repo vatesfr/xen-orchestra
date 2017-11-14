@@ -2,13 +2,7 @@ import classNames from 'classnames'
 import later from 'later'
 import React from 'react'
 import { FormattedDate, FormattedTime } from 'react-intl'
-import {
-  forEach,
-  includes,
-  isArray,
-  map,
-  sortedIndex
-} from 'lodash'
+import { forEach, includes, isArray, map, sortedIndex } from 'lodash'
 
 import _ from './intl'
 import Button from './button'
@@ -33,7 +27,7 @@ const PREVIEW_SLIDER_STYLE = { width: '400px' }
 
 // ===================================================================
 
-const UNITS = [ 'minute', 'hour', 'monthDay', 'month', 'weekDay' ]
+const UNITS = ['minute', 'hour', 'monthDay', 'month', 'weekDay']
 
 const MINUTES_RANGE = [2, 30]
 const HOURS_RANGE = [2, 12]
@@ -43,12 +37,7 @@ const MONTHS_RANGE = [2, 6]
 const MIN_PREVIEWS = 5
 const MAX_PREVIEWS = 20
 
-const MONTHS = [
-  [ 0, 1, 2 ],
-  [ 3, 4, 5 ],
-  [ 6, 7, 8 ],
-  [ 9, 10, 11 ]
-]
+const MONTHS = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11]]
 
 const DAYS = (() => {
   const days = []
@@ -66,11 +55,7 @@ const DAYS = (() => {
   return days
 })()
 
-const WEEK_DAYS = [
-  [ 0, 1, 2 ],
-  [ 3, 4, 5 ],
-  [ 6 ]
-]
+const WEEK_DAYS = [[0, 1, 2], [3, 4, 5], [6]]
 
 const HOURS = (() => {
   const hours = []
@@ -128,13 +113,19 @@ const TIME_FORMAT = {
 // ===================================================================
 
 // monthNum: [ 0 : 11 ]
-const getMonthName = (monthNum) =>
+const getMonthName = monthNum => (
   <FormattedDate value={Date.UTC(1970, monthNum)} month='long' timeZone='UTC' />
+)
 
 // dayNum: [ 0 : 6 ]
-const getDayName = (dayNum) =>
+const getDayName = dayNum => (
   // January, 1970, 5th => Monday
-  <FormattedDate value={Date.UTC(1970, 0, 4 + dayNum)} weekday='long' timeZone='UTC' />
+  <FormattedDate
+    value={Date.UTC(1970, 0, 4 + dayNum)}
+    weekday='long'
+    timeZone='UTC'
+  />
+)
 
 // ===================================================================
 
@@ -162,7 +153,12 @@ export class SchedulePreview extends Component {
           {_('cronPattern')} <strong>{cronPattern}</strong>
         </div>
         <div className='mb-1' style={PREVIEW_SLIDER_STYLE}>
-          <Range min={MIN_PREVIEWS} max={MAX_PREVIEWS} onChange={this.linkState('value')} value={+value} />
+          <Range
+            min={MIN_PREVIEWS}
+            max={MAX_PREVIEWS}
+            onChange={this.linkState('value')}
+            value={+value}
+          />
         </div>
         <ul className='list-group'>
           {map(dates, (date, id) => (
@@ -195,10 +191,7 @@ class ToggleTd extends Component {
     const { props } = this
     return (
       <td
-        className={classNames(
-          'text-xs-center',
-          props.value && 'table-success'
-        )}
+        className={classNames('text-xs-center', props.value && 'table-success')}
         onClick={this._onClick}
         style={CLICKABLE}
       >
@@ -248,38 +241,33 @@ class TableSelect extends Component {
   }
 
   render () {
-    const {
-      labelId,
-      options,
-      optionRenderer,
-      value
-    } = this.props
+    const { labelId, options, optionRenderer, value } = this.props
 
-    return <div>
-      <table className='table table-bordered table-sm'>
-        <tbody>
-          {map(options, (line, i) => (
-            <tr key={i}>
-              {map(line, tdOption => (
-                <ToggleTd
-                  children={optionRenderer(tdOption)}
-                  tdId={tdOption}
-                  key={tdOption}
-                  onChange={this._handleChange}
-                  value={includes(value, tdOption)}
-                />
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <Button
-        className='pull-right'
-        onClick={this._reset}
-      >
-        {_(`selectTableAll${labelId}`)} {value && !value.length && <Icon icon='success' />}
-      </Button>
-    </div>
+    return (
+      <div>
+        <table className='table table-bordered table-sm'>
+          <tbody>
+            {map(options, (line, i) => (
+              <tr key={i}>
+                {map(line, tdOption => (
+                  <ToggleTd
+                    children={optionRenderer(tdOption)}
+                    tdId={tdOption}
+                    key={tdOption}
+                    onChange={this._handleChange}
+                    value={includes(value, tdOption)}
+                  />
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <Button className='pull-right' onClick={this._reset}>
+          {_(`selectTableAll${labelId}`)}{' '}
+          {value && !value.length && <Icon icon='success' />}
+        </Button>
+      </div>
+    )
   }
 }
 
@@ -348,53 +336,63 @@ class TimePicker extends Component {
   }
 
   _tableTab = () => this._onChange(this.state.tableValue || [])
-  _periodicTab = () => this._onChange(this.state.rangeValue || this.props.range[0])
+  _periodicTab = () =>
+    this._onChange(this.state.rangeValue || this.props.range[0])
 
   render () {
-    const {
-      headerAddon,
-      labelId,
-      options,
-      optionRenderer,
-      range
-    } = this.props
+    const { headerAddon, labelId, options, optionRenderer, range } = this.props
 
-    const {
-      periodic,
-      tableValue,
-      rangeValue
-    } = this.state
+    const { periodic, tableValue, rangeValue } = this.state
 
-    return <Card>
-      <CardHeader>
-        {_(`scheduling${labelId}`)}
-        {headerAddon}
-      </CardHeader>
-      <CardBlock>
-        {range && <ul className='nav nav-tabs mb-1'>
-          <li className='nav-item'>
-            <a onClick={this._tableTab} className={classNames('nav-link', !periodic && 'active')} style={CLICKABLE}>
-              {_(`schedulingEachSelected${labelId}`)}
-            </a>
-          </li>
-          <li className='nav-item'>
-            <a onClick={this._periodicTab} className={classNames('nav-link', periodic && 'active')} style={CLICKABLE}>
-              {_(`schedulingEveryN${labelId}`)}
-            </a>
-          </li>
-        </ul>}
-        {periodic
-          ? <Range ref='range' min={range[0]} max={range[1]} onChange={this._onChange} value={rangeValue} />
-          : <TableSelect
-            labelId={labelId}
-            onChange={this._onChange}
-            options={options}
-            optionRenderer={optionRenderer}
-            value={tableValue || []}
-          />
-        }
-      </CardBlock>
-    </Card>
+    return (
+      <Card>
+        <CardHeader>
+          {_(`scheduling${labelId}`)}
+          {headerAddon}
+        </CardHeader>
+        <CardBlock>
+          {range && (
+            <ul className='nav nav-tabs mb-1'>
+              <li className='nav-item'>
+                <a
+                  onClick={this._tableTab}
+                  className={classNames('nav-link', !periodic && 'active')}
+                  style={CLICKABLE}
+                >
+                  {_(`schedulingEachSelected${labelId}`)}
+                </a>
+              </li>
+              <li className='nav-item'>
+                <a
+                  onClick={this._periodicTab}
+                  className={classNames('nav-link', periodic && 'active')}
+                  style={CLICKABLE}
+                >
+                  {_(`schedulingEveryN${labelId}`)}
+                </a>
+              </li>
+            </ul>
+          )}
+          {periodic ? (
+            <Range
+              ref='range'
+              min={range[0]}
+              max={range[1]}
+              onChange={this._onChange}
+              value={rangeValue}
+            />
+          ) : (
+            <TableSelect
+              labelId={labelId}
+              onChange={this._onChange}
+              options={options}
+              optionRenderer={optionRenderer}
+              value={tableValue || []}
+            />
+          )}
+        </CardBlock>
+      </Card>
+    )
   }
 }
 
@@ -424,7 +422,7 @@ class DayPicker extends Component {
   }
 
   _setWeekDayMode = weekDayMode => {
-    this.props.onChange([ '*', '*' ])
+    this.props.onChange(['*', '*'])
     this.setState({ weekDayMode })
   }
 
@@ -442,22 +440,34 @@ class DayPicker extends Component {
     const { weekDayMode } = this.state
 
     const dayModeToggle = (
-      <Tooltip content={_(weekDayMode ? 'schedulingSetMonthDayMode' : 'schedulingSetWeekDayMode')}>
-        <span className='pull-right'><Toggle onChange={this._setWeekDayMode} iconSize={1} value={weekDayMode} /></span>
+      <Tooltip
+        content={_(
+          weekDayMode ? 'schedulingSetMonthDayMode' : 'schedulingSetWeekDayMode'
+        )}
+      >
+        <span className='pull-right'>
+          <Toggle
+            onChange={this._setWeekDayMode}
+            iconSize={1}
+            value={weekDayMode}
+          />
+        </span>
       </Tooltip>
     )
 
-    return <TimePicker
-      headerAddon={dayModeToggle}
-      key={weekDayMode ? 'week' : 'month'}
-      labelId='Day'
-      optionRenderer={weekDayMode ? getDayName : undefined}
-      options={weekDayMode ? WEEK_DAYS : DAYS}
-      onChange={this._onChange}
-      range={MONTH_DAYS_RANGE}
-      setWeekDayMode={this._setWeekDayMode}
-      value={weekDayMode ? weekDayPattern : monthDayPattern}
-    />
+    return (
+      <TimePicker
+        headerAddon={dayModeToggle}
+        key={weekDayMode ? 'week' : 'month'}
+        labelId='Day'
+        optionRenderer={weekDayMode ? getDayName : undefined}
+        options={weekDayMode ? WEEK_DAYS : DAYS}
+        onChange={this._onChange}
+        range={MONTH_DAYS_RANGE}
+        setWeekDayMode={this._setWeekDayMode}
+        value={weekDayMode ? weekDayPattern : monthDayPattern}
+      />
+    )
   }
 }
 
@@ -491,7 +501,8 @@ export default class Scheduler extends Component {
     forEach(UNITS, unit => {
       this[`_${unit}Change`] = cron => this._onCronChange({ [unit]: cron })
     })
-    this._dayChange = ([ monthDay, weekDay ]) => this._onCronChange({ monthDay, weekDay })
+    this._dayChange = ([monthDay, weekDay]) =>
+      this._onCronChange({ monthDay, weekDay })
   }
 
   _onTimezoneChange = timezone => {
@@ -559,7 +570,10 @@ export default class Scheduler extends Component {
         <Row>
           <Col>
             <hr />
-            <TimezonePicker value={timezone} onChange={this._onTimezoneChange} />
+            <TimezonePicker
+              value={timezone}
+              onChange={this._onTimezoneChange}
+            />
           </Col>
         </Row>
       </div>

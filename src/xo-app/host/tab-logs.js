@@ -14,7 +14,19 @@ import { Container, Row, Col } from 'grid'
 const LOG_COLUMNS = [
   {
     name: _('logDate'),
-    itemRenderer: log => <span><FormattedTime value={log.time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={log.time * 1000} />)</span>,
+    itemRenderer: log => (
+      <span>
+        <FormattedTime
+          value={log.time * 1000}
+          minute='numeric'
+          hour='numeric'
+          day='numeric'
+          month='long'
+          year='numeric'
+        />{' '}
+        (<FormattedRelative value={log.time * 1000} />)
+      </span>
+    ),
     sortCriteria: log => log.time,
     sortOrder: 'desc'
   },
@@ -45,11 +57,7 @@ export default class TabLogs extends Component {
   constructor () {
     super()
 
-    this.getLogs = createPager(
-      () => this.props.logs,
-      () => this.state.page,
-      10
-    )
+    this.getLogs = createPager(() => this.props.logs, () => this.state.page, 10)
 
     this.state = {
       page: 1
@@ -64,30 +72,34 @@ export default class TabLogs extends Component {
     const logs = this.getLogs()
 
     if (isEmpty(logs)) {
-      return <Row>
-        <Col mediumSize={6} className='text-xs-center'>
-          <br />
-          <h4>{_('noLogs')}</h4>
-        </Col>
-      </Row>
+      return (
+        <Row>
+          <Col mediumSize={6} className='text-xs-center'>
+            <br />
+            <h4>{_('noLogs')}</h4>
+          </Col>
+        </Row>
+      )
     }
 
-    return <Container>
-      <Row>
-        <Col className='text-xs-right'>
-          <TabButton
-            btnStyle='danger'
-            handler={this._deleteAllLogs}
-            icon='delete'
-            labelId='logRemoveAll'
-          />
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-          <SortedTable collection={logs} columns={LOG_COLUMNS} />
-        </Col>
-      </Row>
-    </Container>
+    return (
+      <Container>
+        <Row>
+          <Col className='text-xs-right'>
+            <TabButton
+              btnStyle='danger'
+              handler={this._deleteAllLogs}
+              icon='delete'
+              labelId='logRemoveAll'
+            />
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <SortedTable collection={logs} columns={LOG_COLUMNS} />
+          </Col>
+        </Row>
+      </Container>
+    )
   }
 }

@@ -44,19 +44,22 @@ export default class MiniStats extends Component {
       return <Icon icon='loading' />
     }
 
-    return <Row>
-      <Col mediumSize={4} className={styles.itemExpanded}>
-        <CpuSparkLines data={stats} {...MINI_STATS_PROPS} />
-      </Col>
-      <Col mediumSize={4} className={styles.itemExpanded}>
-        <NetworkSparkLines data={stats} {...MINI_STATS_PROPS} />
-      </Col>
-      <Col mediumSize={4} className={styles.itemExpanded}>
-        {stats.stats.load !== undefined
-          ? <LoadSparkLines data={stats} {...MINI_STATS_PROPS} />
-          : <XvdSparkLines data={stats} {...MINI_STATS_PROPS} />
-        }
-      </Col>
-    </Row>
+    return (
+      <Row>
+        <Col mediumSize={4} className={styles.itemExpanded}>
+          <CpuSparkLines data={stats} {...MINI_STATS_PROPS} />
+        </Col>
+        <Col mediumSize={4} className={styles.itemExpanded}>
+          <NetworkSparkLines data={stats} {...MINI_STATS_PROPS} />
+        </Col>
+        <Col mediumSize={4} className={styles.itemExpanded}>
+          {stats.stats.load !== undefined ? (
+            <LoadSparkLines data={stats} {...MINI_STATS_PROPS} />
+          ) : (
+            <XvdSparkLines data={stats} {...MINI_STATS_PROPS} />
+          )}
+        </Col>
+      </Row>
+    )
   }
 }

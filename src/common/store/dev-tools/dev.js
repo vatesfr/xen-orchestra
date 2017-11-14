@@ -4,10 +4,7 @@ import React from 'react'
 import { createDevTools } from 'redux-devtools'
 
 export default createDevTools(
-  <DockMonitor
-    changePositionKey='ctrl-q'
-    toggleVisibilityKey='ctrl-h'
-  >
+  <DockMonitor changePositionKey='ctrl-q' toggleVisibilityKey='ctrl-h'>
     <LogMonitor />
   </DockMonitor>
 )

@@ -12,15 +12,8 @@ import {
 
 const hostActionBarByState = {
   Running: ({ host }) => (
-    <ActionBar
-      display='icon'
-      handlerParam={host}
-    >
-      <Action
-        handler={stopHost}
-        icon='host-stop'
-        label={_('stopHostLabel')}
-      />
+    <ActionBar display='icon' handlerParam={host}>
+      <Action handler={stopHost} icon='host-stop' label={_('stopHostLabel')} />
       <Action
         handler={restartHostAgent}
         icon='host-restart-agent'
@@ -39,10 +32,7 @@ const hostActionBarByState = {
     </ActionBar>
   ),
   Halted: ({ host }) => (
-    <ActionBar
-      display='icon'
-      handlerParam={host}
-    >
+    <ActionBar display='icon' handlerParam={host}>
       <Action
         handler={startHost}
         icon='host-start'

@@ -25,36 +25,26 @@ import {
   removeTag,
   setDefaultSr
 } from 'xo'
-import {
-  connectStore,
-  formatSizeShort
-} from 'utils'
+import { connectStore, formatSizeShort } from 'utils'
 
 import styles from './index.css'
 
 @connectStore({
-  container: createGetObject((_, props) =>
-    props.item.$container
-  ),
+  container: createGetObject((_, props) => props.item.$container),
   isDefaultSr: createSelector(
-    createGetObjectsOfType('pool').find(
-      (_, props) =>
-        pool => props.item.$pool === pool.id
+    createGetObjectsOfType('pool').find((_, props) => pool =>
+      props.item.$pool === pool.id
     ),
     (_, props) => props.item,
     (pool, sr) => pool && pool.default_SR === sr.id
   ),
-  isShared: createSelector(
-    (_, props) => props.item,
-    isSrShared
-  ),
+  isShared: createSelector((_, props) => props.item, isSrShared),
   status: createSelector(
-    createGetObjectsOfType('PBD').filter(
-      (_, props) => pbd =>
-        pbd.SR === props.item.id
+    createGetObjectsOfType('PBD').filter((_, props) => pbd =>
+      pbd.SR === props.item.id
     ),
     pbds => {
-      const nbAttached = sum(map(pbds, pbd => pbd.attached ? 1 : 0))
+      const nbAttached = sum(map(pbds, pbd => (pbd.attached ? 1 : 0)))
       const nbPbds = size(pbds)
       if (!nbPbds) {
         return -1
@@ -70,8 +60,10 @@ import styles from './index.css'
 export default class SrItem extends Component {
   _addTag = tag => addTag(this.props.item.id, tag)
   _removeTag = tag => removeTag(this.props.item.id, tag)
-  _setNameDescription = nameDescription => editPool(this.props.item, { name_description: nameDescription })
-  _setNameLabel = nameLabel => editPool(this.props.item, { name_label: nameLabel })
+  _setNameDescription = nameDescription =>
+    editPool(this.props.item, { name_description: nameDescription })
+  _setNameLabel = nameLabel =>
+    editPool(this.props.item, { name_label: nameLabel })
   _toggleExpanded = () => this.setState({ expanded: !this.state.expanded })
   _onSelect = () => this.props.onSelect(this.props.item.id)
 
@@ -80,10 +72,30 @@ export default class SrItem extends Component {
 
   _getStatusPill = () => {
     switch (this.props.status) {
-      case -1: return <Tooltip content={_('srAllDisconnected')}><Icon icon='all-disconnected' /></Tooltip>
-      case 0: return <Tooltip content={_('srAllDisconnected')}><Icon icon='all-disconnected' /></Tooltip>
-      case 1: return <Tooltip content={_('srSomeConnected')}><Icon icon='some-connected' /></Tooltip>
-      case 2: return <Tooltip content={_('srAllConnected')}><Icon icon='all-connected' /></Tooltip>
+      case -1:
+        return (
+          <Tooltip content={_('srAllDisconnected')}>
+            <Icon icon='all-disconnected' />
+          </Tooltip>
+        )
+      case 0:
+        return (
+          <Tooltip content={_('srAllDisconnected')}>
+            <Icon icon='all-disconnected' />
+          </Tooltip>
+        )
+      case 1:
+        return (
+          <Tooltip content={_('srSomeConnected')}>
+            <Icon icon='some-connected' />
+          </Tooltip>
+        )
+      case 2:
+        return (
+          <Tooltip content={_('srAllConnected')}>
+            <Icon icon='all-connected' />
+          </Tooltip>
+        )
     }
   }
 
@@ -97,74 +109,109 @@ export default class SrItem extends Component {
       selected
     } = this.props
 
-    return <div className={styles.item}>
-      <BlockLink to={`/srs/${sr.id}`}>
-        <SingleLineRow>
-          <Col smallSize={9} mediumSize={8} largeSize={3}>
-            <EllipsisContainer>
-              <input type='checkbox' checked={selected} onChange={this._onSelect} value={sr.id} />
-              &nbsp;&nbsp;
-              {this._getStatusPill()}
-              &nbsp;&nbsp;
-              <Ellipsis>
-                <Text value={sr.name_label} onChange={this._setNameLabel} useLongClick />
-              </Ellipsis>
-              {isDefaultSr && <span className='tag tag-pill tag-info ml-1'>{_('defaultSr')}</span>}
-            </EllipsisContainer>
-          </Col>
-          <Col largeSize={1} className='hidden-md-down'>
-            <EllipsisContainer>
-              <span className={styles.itemActionButons}>
-                <Tooltip content={_('srReconnectAll')}>
-                  <a onClick={this._reconnectAllHostSr}>
-                    <Icon icon='sr-reconnect-all' size='1' />
-                  </a>
+    return (
+      <div className={styles.item}>
+        <BlockLink to={`/srs/${sr.id}`}>
+          <SingleLineRow>
+            <Col smallSize={9} mediumSize={8} largeSize={3}>
+              <EllipsisContainer>
+                <input
+                  type='checkbox'
+                  checked={selected}
+                  onChange={this._onSelect}
+                  value={sr.id}
+                />
+                &nbsp;&nbsp;
+                {this._getStatusPill()}
+                &nbsp;&nbsp;
+                <Ellipsis>
+                  <Text
+                    value={sr.name_label}
+                    onChange={this._setNameLabel}
+                    useLongClick
+                  />
+                </Ellipsis>
+                {isDefaultSr && (
+                  <span className='tag tag-pill tag-info ml-1'>
+                    {_('defaultSr')}
+                  </span>
+                )}
+              </EllipsisContainer>
+            </Col>
+            <Col largeSize={1} className='hidden-md-down'>
+              <EllipsisContainer>
+                <span className={styles.itemActionButons}>
+                  <Tooltip content={_('srReconnectAll')}>
+                    <a onClick={this._reconnectAllHostSr}>
+                      <Icon icon='sr-reconnect-all' size='1' />
+                    </a>
+                  </Tooltip>{' '}
+                  <Tooltip content={_('setAsDefaultSr')}>
+                    <a onClick={this._setDefaultSr}>
+                      <Icon icon='disk' size='1' />
+                    </a>
+                  </Tooltip>
+                </span>
+              </EllipsisContainer>
+            </Col>
+            <Col largeSize={2} className='hidden-md-down'>
+              {isShared ? _('srSharedType', { type: sr.SR_type }) : sr.SR_type}
+            </Col>
+            <Col smallSize={2} mediumSize={2} largeSize={2}>
+              {formatSizeShort(sr.size)}
+            </Col>
+            <Col largeSize={2} className='hidden-md-down'>
+              {sr.size > 0 && (
+                <Tooltip
+                  content={_('spaceLeftTooltip', {
+                    used: String(Math.round(sr.physical_usage / sr.size * 100)),
+                    free: formatSizeShort(sr.size - sr.physical_usage)
+                  })}
+                >
+                  <progress
+                    style={{ margin: 0 }}
+                    className='progress'
+                    value={sr.physical_usage / sr.size * 100}
+                    max='100'
+                  />
                 </Tooltip>
-                {' '}
-                <Tooltip content={_('setAsDefaultSr')}>
-                  <a onClick={this._setDefaultSr}>
-                    <Icon icon='disk' size='1' />
-                  </a>
-                </Tooltip>
+              )}
+            </Col>
+            <Col mediumSize={1} largeSize={1} className='hidden-sm-down'>
+              {container && (
+                <Link to={`/${container.type}s/${container.id}`}>
+                  {container.name_label}
+                </Link>
+              )}
+            </Col>
+            <Col mediumSize={1} className={styles.itemExpandRow}>
+              <a
+                className={styles.itemExpandButton}
+                onClick={this._toggleExpanded}
+              >
+                <Icon icon='nav' fixedWidth />&nbsp;&nbsp;&nbsp;
+              </a>
+            </Col>
+          </SingleLineRow>
+        </BlockLink>
+        {(this.state.expanded || expandAll) && (
+          <SingleLineRow>
+            <Col mediumSize={1} className={styles.itemExpanded}>
+              {sr.VDIs.length}x <Icon icon='disk' />
+            </Col>
+            <Col mediumSize={4}>
+              <span style={{ fontSize: '1.4em' }}>
+                <HomeTags
+                  type='SR'
+                  labels={sr.tags}
+                  onDelete={this._removeTag}
+                  onAdd={this._addTag}
+                />
               </span>
-            </EllipsisContainer>
-          </Col>
-          <Col largeSize={2} className='hidden-md-down'>
-            {isShared ? _('srSharedType', { type: sr.SR_type }) : sr.SR_type}
-          </Col>
-          <Col smallSize={2} mediumSize={2} largeSize={2}>
-            {formatSizeShort(sr.size)}
-          </Col>
-          <Col largeSize={2} className='hidden-md-down'>
-            {sr.size > 0 &&
-              <Tooltip content={_('spaceLeftTooltip', {used: String(Math.round((sr.physical_usage / sr.size) * 100)), free: formatSizeShort(sr.size - sr.physical_usage)})}>
-                <progress style={{margin: 0}} className='progress' value={(sr.physical_usage / sr.size) * 100} max='100' />
-              </Tooltip>
-            }
-          </Col>
-          <Col mediumSize={1} largeSize={1} className='hidden-sm-down'>
-            {container && <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>}
-          </Col>
-          <Col mediumSize={1} className={styles.itemExpandRow}>
-            <a className={styles.itemExpandButton}
-              onClick={this._toggleExpanded}>
-              <Icon icon='nav' fixedWidth />&nbsp;&nbsp;&nbsp;
-            </a>
-          </Col>
-        </SingleLineRow>
-      </BlockLink>
-      {(this.state.expanded || expandAll) &&
-        <SingleLineRow>
-          <Col mediumSize={1} className={styles.itemExpanded}>
-            {sr.VDIs.length}x <Icon icon='disk' />
-          </Col>
-          <Col mediumSize={4}>
-            <span style={{fontSize: '1.4em'}}>
-              <HomeTags type='SR' labels={sr.tags} onDelete={this._removeTag} onAdd={this._addTag} />
-            </span>
-          </Col>
-        </SingleLineRow>
-      }
-    </div>
+            </Col>
+          </SingleLineRow>
+        )}
+      </div>
+    )
   }
 }

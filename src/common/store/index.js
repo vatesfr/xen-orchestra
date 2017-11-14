@@ -1,10 +1,5 @@
 import reduxThunk from 'redux-thunk'
-import {
-  applyMiddleware,
-  combineReducers,
-  compose,
-  createStore
-} from 'redux'
+import { applyMiddleware, combineReducers, compose, createStore } from 'redux'
 
 import { connectStore as connectXo } from '../xo'
 
@@ -13,9 +8,7 @@ import reducer from './reducer'
 
 // ===================================================================
 
-const enhancers = [
-  applyMiddleware(reduxThunk)
-]
+const enhancers = [applyMiddleware(reduxThunk)]
 DevTools && enhancers.push(DevTools.instrument())
 
 const store = createStore(

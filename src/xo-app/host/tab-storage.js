@@ -17,14 +17,15 @@ import { Text } from 'editable'
 const SR_COLUMNS = [
   {
     name: _('srName'),
-    itemRenderer: storage =>
+    itemRenderer: storage => (
       <Link to={`/srs/${storage.id}`}>
         <Text
           onChange={nameLabel => editSr(storage.id, { nameLabel })}
           useLongClick
           value={storage.nameLabel}
         />
-      </Link>,
+      </Link>
+    ),
     sortCriteria: 'nameLabel'
   },
   {
@@ -40,42 +41,59 @@ const SR_COLUMNS = [
   {
     default: true,
     name: _('srUsage'),
-    itemRenderer: storage => storage.size !== 0 &&
-      <Tooltip content={_('spaceLeftTooltip', {used: storage.usagePercentage, free: formatSize(storage.free)})}>
-        <meter value={storage.usagePercentage} min='0' max='100' optimum='40' low='80' high='90' />
-      </Tooltip>,
+    itemRenderer: storage =>
+      storage.size !== 0 && (
+        <Tooltip
+          content={_('spaceLeftTooltip', {
+            used: storage.usagePercentage,
+            free: formatSize(storage.free)
+          })}
+        >
+          <meter
+            value={storage.usagePercentage}
+            min='0'
+            max='100'
+            optimum='40'
+            low='80'
+            high='90'
+          />
+        </Tooltip>
+      ),
     sortCriteria: storage => storage.usagePercentage,
     sortOrder: 'desc'
   },
   {
     name: _('srType'),
-    itemRenderer: storage => storage.shared ? _('srShared') : _('srNotShared'),
+    itemRenderer: storage =>
+      storage.shared ? _('srShared') : _('srNotShared'),
     sortCriteria: 'shared'
   },
   {
     name: _('pbdStatus'),
-    itemRenderer: storage => <StateButton
-      disabledLabel={_('pbdStatusDisconnected')}
-      disabledHandler={connectPbd}
-      disabledTooltip={_('pbdConnect')}
-
-      enabledLabel={_('pbdStatusConnected')}
-      enabledHandler={disconnectPbd}
-      enabledTooltip={_('pbdDisconnect')}
-
-      handlerParam={storage.pbdId}
-      state={storage.attached}
-    />
+    itemRenderer: storage => (
+      <StateButton
+        disabledLabel={_('pbdStatusDisconnected')}
+        disabledHandler={connectPbd}
+        disabledTooltip={_('pbdConnect')}
+        enabledLabel={_('pbdStatusConnected')}
+        enabledHandler={disconnectPbd}
+        enabledTooltip={_('pbdDisconnect')}
+        handlerParam={storage.pbdId}
+        state={storage.attached}
+      />
+    )
   },
   {
     name: _('pbdAction'),
-    itemRenderer: storage => !storage.attached &&
-      <ActionRowButton
-        handler={deletePbd}
-        handlerParam={storage.pbdId}
-        icon='sr-forget'
-        tooltip={_('pbdForget')}
-      />,
+    itemRenderer: storage =>
+      !storage.attached && (
+        <ActionRowButton
+          handler={deletePbd}
+          handlerParam={storage.pbdId}
+          icon='sr-forget'
+          tooltip={_('pbdForget')}
+        />
+      ),
     textAlign: 'right'
   }
 ]
@@ -85,16 +103,11 @@ export default connectStore(() => {
     (_, props) => props.host.$PBDs
   )
   const srs = createGetObjectsOfType('SR').pick(
-    createSelector(
-      pbds,
-      pbds => map(pbds, pbd => pbd.SR)
-    )
+    createSelector(pbds, pbds => map(pbds, pbd => pbd.SR))
   )
 
-  const storages = createSelector(
-    pbds,
-    srs,
-    (pbds, srs) => map(pbds, pbd => {
+  const storages = createSelector(pbds, srs, (pbds, srs) =>
+    map(pbds, pbd => {
       const sr = srs[pbd.SR]
       const { physical_usage: usage, size } = sr
 
@@ -113,7 +126,7 @@ export default connectStore(() => {
   )
 
   return { storages }
-})(({ host, storages }) =>
+})(({ host, storages }) => (
   <Container>
     <Row>
       <Col className='text-xs-right'>
@@ -126,11 +139,12 @@ export default connectStore(() => {
     </Row>
     <Row>
       <Col>
-        {isEmpty(storages)
-          ? <h4 className='text-xs-center'>{_('pbdNoSr')}</h4>
-          : <SortedTable columns={SR_COLUMNS} collection={storages} />
-        }
+        {isEmpty(storages) ? (
+          <h4 className='text-xs-center'>{_('pbdNoSr')}</h4>
+        ) : (
+          <SortedTable columns={SR_COLUMNS} collection={storages} />
+        )}
       </Col>
     </Row>
   </Container>
-)
+))

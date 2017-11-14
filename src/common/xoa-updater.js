@@ -1,5 +1,8 @@
 import assign from 'lodash/assign'
-import Client, {AbortedConnection, ConnectionError} from 'jsonrpc-websocket-client'
+import Client, {
+  AbortedConnection,
+  ConnectionError
+} from 'jsonrpc-websocket-client'
 import eventToPromise from 'event-to-promise'
 import forEach from 'lodash/forEach'
 import makeError from 'make-error'
@@ -28,7 +31,7 @@ const states = [
 // ===================================================================
 
 export function isTrialRunning (trial) {
-  return (trial && trial.end && Date.now() < trial.end)
+  return trial && trial.end && Date.now() < trial.end
 }
 
 export function exposeTrial (trial) {
@@ -132,7 +135,7 @@ class XoaUpdater extends EventEmitter {
       c.on('notification', n => middle.emit(n.method, n.params))
       c.on('closed', () => middle.emit('disconnected'))
 
-      middle.on('print', ({content}) => {
+      middle.on('print', ({ content }) => {
         Array.isArray(content) || (content = [content])
         content.forEach(elem => this.log('info', elem))
         this.emit('print', content)
@@ -164,7 +167,10 @@ class XoaUpdater extends EventEmitter {
         if (this._lowState === 'register-needed') {
           this.isRegistered()
         }
-        if (this._lowState.state === 'updater-upgraded' || this._lowState.state === 'installer-upgraded') {
+        if (
+          this._lowState.state === 'updater-upgraded' ||
+          this._lowState.state === 'installer-upgraded'
+        ) {
           this.update()
         } else if (this._lowState.state === 'xoa-upgraded') {
           this._upgradeSuccessful()
@@ -192,7 +198,7 @@ class XoaUpdater extends EventEmitter {
         }
         delete this._client
         const message = 'xoa-updater could not be reached'
-        this._xoaStateError({message})
+        this._xoaStateError({ message })
         this.log('error', message)
         this.emit('disconnected')
       })
@@ -216,7 +222,8 @@ class XoaUpdater extends EventEmitter {
     if (c.status === 'open') {
       return c
     } else {
-      return eventToPromise.multi(c, ['open'], ['closed', 'error'])
+      return eventToPromise
+        .multi(c, ['open'], ['closed', 'error'])
         .then(() => c)
     }
   }
@@ -225,7 +232,9 @@ class XoaUpdater extends EventEmitter {
     try {
       const token = await this._call('isRegistered')
       if (token.registrationToken === undefined) {
-        throw new NotRegistered('Your Xen Orchestra Appliance is not registered')
+        throw new NotRegistered(
+          'Your Xen Orchestra Appliance is not registered'
+        )
       } else {
         this.registerState = 'registered'
         this.token = token
@@ -240,13 +249,17 @@ class XoaUpdater extends EventEmitter {
         this.registerState = 'error'
       }
     } finally {
-      this.emit('registerState', {state: this.registerState, email: (this.token && this.token.registrationEmail) || '', error: this.registerError})
+      this.emit('registerState', {
+        state: this.registerState,
+        email: (this.token && this.token.registrationEmail) || '',
+        error: this.registerError
+      })
     }
   }
 
   async register (email, password, renew = false) {
     try {
-      const token = await this._call('register', {email, password, renew})
+      const token = await this._call('register', { email, password, renew })
       this.registerState = 'registered'
       this.registerError = ''
       this.token = token
@@ -262,7 +275,11 @@ class XoaUpdater extends EventEmitter {
         this.registerState = 'error'
       }
     } finally {
-      this.emit('registerState', {state: this.registerState, email: (this.token && this.token.registrationEmail) || '', error: this.registerError})
+      this.emit('registerState', {
+        state: this.registerState,
+        email: (this.token && this.token.registrationEmail) || '',
+        error: this.registerError
+      })
       if (this.registerState === 'registered') {
         this.update()
       }
@@ -278,7 +295,7 @@ class XoaUpdater extends EventEmitter {
       throw new Error('You are already under trial')
     }
     try {
-      return this._call('requestTrial', {trialPlan: 'premium'})
+      return this._call('requestTrial', { trialPlan: 'premium' })
     } finally {
       this.xoaState()
     }
@@ -309,7 +326,7 @@ class XoaUpdater extends EventEmitter {
     try {
       const c = await this._open()
       this.log('info', 'Start ' + (upgrade ? 'upgrading' : 'updating' + '...'))
-      c.notify('update', {upgrade})
+      c.notify('update', { upgrade })
     } catch (error) {
       this._waiting = false
     }
@@ -402,10 +419,16 @@ const xoaUpdater = new XoaUpdater()
 
 export default xoaUpdater
 
-export const connectStore = (store) => {
-  forEach(states, state => xoaUpdater.on(state, () => store.dispatch(xoaUpdaterState(state))))
+export const connectStore = store => {
+  forEach(states, state =>
+    xoaUpdater.on(state, () => store.dispatch(xoaUpdaterState(state)))
+  )
   xoaUpdater.on('trialState', state => store.dispatch(xoaTrialState(state)))
   xoaUpdater.on('log', log => store.dispatch(xoaUpdaterLog(log)))
-  xoaUpdater.on('registerState', registration => store.dispatch(xoaRegisterState(registration)))
-  xoaUpdater.on('configuration', configuration => store.dispatch(xoaConfiguration(configuration)))
+  xoaUpdater.on('registerState', registration =>
+    store.dispatch(xoaRegisterState(registration))
+  )
+  xoaUpdater.on('configuration', configuration =>
+    store.dispatch(xoaConfiguration(configuration))
+  )
 }

@@ -87,9 +87,9 @@ const BODY_STYLE = {
   'vms/new': NewVm,
   'vms/:id': Vm,
   'xoa-update': XoaUpdates,
-  'xosan': Xosan
+  xosan: Xosan
 })
-@connectStore((state) => {
+@connectStore(state => {
   return {
     trial: state.xoaTrialState,
     signedUp: !!state.user
@@ -109,17 +109,26 @@ export default class XoApp extends Component {
     const now = Math.floor(Date.now() / 1e3)
     const oneWeekAgo = now - 7 * 24 * 3600
     if (!previousDisclaimer || previousDisclaimer < oneWeekAgo) {
-      alert(_('disclaimerTitle'), <div>
-        <p>{_('disclaimerText1')}</p>
-        <p>{_('disclaimerText2')} <a href='https://xen-orchestra.com/#!/xoa?pk_campaign=xoa_source_upgrade&pk_kwd=ossmodal'>XOA (turnkey appliance)</a></p>
-        <p>{_('disclaimerText3')}</p>
-      </div>)
+      alert(
+        _('disclaimerTitle'),
+        <div>
+          <p>{_('disclaimerText1')}</p>
+          <p>
+            {_('disclaimerText2')}{' '}
+            <a href='https://xen-orchestra.com/#!/xoa?pk_campaign=xoa_source_upgrade&pk_kwd=ossmodal'>
+              XOA (turnkey appliance)
+            </a>
+          </p>
+          <p>{_('disclaimerText3')}</p>
+        </div>
+      )
       cookies.set('previousDisclaimer', now)
     }
   }
 
   componentDidMount () {
-    this.refs.bodyWrapper.style.minHeight = this.refs.menu.getWrappedInstance().height + 'px'
+    this.refs.bodyWrapper.style.minHeight =
+      this.refs.menu.getWrappedInstance().height + 'px'
     if (+process.env.XOA_PLAN === 5) {
       this.displayOpenSourceDisclaimer()
     }
@@ -150,25 +159,33 @@ export default class XoApp extends Component {
         break
       case 'HELP':
         alert(
-          <span><Icon icon='shortcuts' />{' '}{_('shortcutModalTitle')}</span>,
+          <span>
+            <Icon icon='shortcuts' /> {_('shortcutModalTitle')}
+          </span>,
           <Container>
-            {map(help, (context, contextKey) => context.name && [
-              <Row className='mt-1' key={contextKey}>
-                <Col>
-                  <h4>{context.name}</h4>
-                </Col>
-              </Row>,
-              ...map(context.shortcuts, ({ message, keys }, key) => message &&
-                <Row key={`${contextKey}_${key}`}>
-                  <Col size={2} className='text-xs-right'>
-                    <strong>
-                      {isArray(keys) ? keys[0] : keys}
-                    </strong>
-                  </Col>
-                  <Col size={10}>{message}</Col>
-                </Row>
-              )
-            ])}
+            {map(
+              help,
+              (context, contextKey) =>
+                context.name && [
+                  <Row className='mt-1' key={contextKey}>
+                    <Col>
+                      <h4>{context.name}</h4>
+                    </Col>
+                  </Row>,
+                  ...map(
+                    context.shortcuts,
+                    ({ message, keys }, key) =>
+                      message && (
+                        <Row key={`${contextKey}_${key}`}>
+                          <Col size={2} className='text-xs-right'>
+                            <strong>{isArray(keys) ? keys[0] : keys}</strong>
+                          </Col>
+                          <Col size={10}>{message}</Col>
+                        </Row>
+                      )
+                  )
+                ]
+            )}
           </Container>
         )
         break
@@ -179,25 +196,36 @@ export default class XoApp extends Component {
     const { signedUp, trial } = this.props
     const blocked = signedUp && blockXoaAccess(trial) // If we are under expired or unstable trial (signed up only)
 
-    return <IntlProvider>
-      <ThemeProvider theme={themes.base}>
-        <DocumentTitle title='Xen Orchestra'>
-          <div style={CONTAINER_STYLE}>
-            <Shortcuts name='XoApp' handler={this._shortcutsHandler} targetNodeSelector='body' stopPropagation={false} />
-            <Menu ref='menu' />
-            <div ref='bodyWrapper' style={BODY_WRAPPER_STYLE}>
-              <div style={BODY_STYLE}>
-                {blocked
-                  ? <XoaUpdates />
-                  : signedUp ? this.props.children : <p>Still loading</p>}
+    return (
+      <IntlProvider>
+        <ThemeProvider theme={themes.base}>
+          <DocumentTitle title='Xen Orchestra'>
+            <div style={CONTAINER_STYLE}>
+              <Shortcuts
+                name='XoApp'
+                handler={this._shortcutsHandler}
+                targetNodeSelector='body'
+                stopPropagation={false}
+              />
+              <Menu ref='menu' />
+              <div ref='bodyWrapper' style={BODY_WRAPPER_STYLE}>
+                <div style={BODY_STYLE}>
+                  {blocked ? (
+                    <XoaUpdates />
+                  ) : signedUp ? (
+                    this.props.children
+                  ) : (
+                    <p>Still loading</p>
+                  )}
+                </div>
               </div>
+              <Modal />
+              <Notification />
+              <TooltipViewer />
             </div>
-            <Modal />
-            <Notification />
-            <TooltipViewer />
-          </div>
-        </DocumentTitle>
-      </ThemeProvider>
-    </IntlProvider>
+          </DocumentTitle>
+        </ThemeProvider>
+      </IntlProvider>
+    )
   }
 }

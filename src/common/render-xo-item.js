@@ -1,17 +1,12 @@
 import _ from 'intl'
 import React from 'react'
-import {
-  startsWith
-} from 'lodash'
+import { startsWith } from 'lodash'
 
 import Icon from './icon'
 import propTypes from './prop-types-decorator'
 import { createGetObject } from './selectors'
 import { isSrWritable } from './xo'
-import {
-  connectStore,
-  formatSize
-} from './utils'
+import { connectStore, formatSize } from './utils'
 
 // ===================================================================
 
@@ -24,73 +19,72 @@ const OBJECT_TYPE_TO_ICON = {
 // Host, Network, VM-template.
 const PoolObjectItem = propTypes({
   object: propTypes.object.isRequired
-})(connectStore(() => {
-  const getPool = createGetObject(
-    (_, props) => props.object.$pool
-  )
+})(
+  connectStore(() => {
+    const getPool = createGetObject((_, props) => props.object.$pool)
 
-  return (state, props) => ({
-    pool: getPool(state, props)
+    return (state, props) => ({
+      pool: getPool(state, props)
+    })
+  })(({ object, pool }) => {
+    const icon = OBJECT_TYPE_TO_ICON[object.type]
+    const { id } = object
+
+    return (
+      <span>
+        <Icon icon={icon} /> {`${object.name_label || id} `}
+        {pool && `(${pool.name_label || pool.id})`}
+      </span>
+    )
   })
-})(({ object, pool }) => {
-  const icon = OBJECT_TYPE_TO_ICON[object.type]
-  const { id } = object
-
-  return (
-    <span>
-      <Icon icon={icon} /> {`${object.name_label || id} `}
-      {pool && `(${pool.name_label || pool.id})`}
-    </span>
-  )
-}))
+)
 
 // SR.
 const SrItem = propTypes({
   sr: propTypes.object.isRequired
-})(connectStore(() => {
-  const getContainer = createGetObject(
-    (_, props) => props.sr.$container
-  )
+})(
+  connectStore(() => {
+    const getContainer = createGetObject((_, props) => props.sr.$container)
 
-  return (state, props) => ({
-    container: getContainer(state, props)
+    return (state, props) => ({
+      container: getContainer(state, props)
+    })
+  })(({ sr, container }) => {
+    let label = `${sr.name_label || sr.id}`
+
+    if (isSrWritable(sr)) {
+      label += ` (${formatSize(sr.size - sr.physical_usage)} free)`
+    }
+
+    return (
+      <span>
+        <Icon icon='sr' /> {label}
+      </span>
+    )
   })
-})(({ sr, container }) => {
-  let label = `${sr.name_label || sr.id}`
-
-  if (isSrWritable(sr)) {
-    label += ` (${formatSize(sr.size - sr.physical_usage)} free)`
-  }
-
-  return (
-    <span>
-      <Icon icon='sr' /> {label}
-    </span>
-  )
-}))
+)
 
 // VM.
 const VmItem = propTypes({
   vm: propTypes.object.isRequired
-})(connectStore(() => {
-  const getContainer = createGetObject(
-    (_, props) => props.vm.$container
-  )
+})(
+  connectStore(() => {
+    const getContainer = createGetObject((_, props) => props.vm.$container)
 
-  return (state, props) => ({
-    container: getContainer(state, props)
-  })
-})(({ vm, container }) => (
-  <span>
-    <Icon icon={`vm-${vm.power_state.toLowerCase()}`} /> {vm.name_label || vm.id}
-    {container && ` (${container.name_label || container.id})`}
-  </span>
-)))
+    return (state, props) => ({
+      container: getContainer(state, props)
+    })
+  })(({ vm, container }) => (
+    <span>
+      <Icon icon={`vm-${vm.power_state.toLowerCase()}`} />{' '}
+      {vm.name_label || vm.id}
+      {container && ` (${container.name_label || container.id})`}
+    </span>
+  ))
+)
 
 const VgpuItem = connectStore(() => ({
-  vgpuType: createGetObject(
-    (_, props) => props.vgpu.vgpuType
-  )
+  vgpuType: createGetObject((_, props) => props.vgpu.vgpuType)
 }))(({ vgpu, vgpuType }) => (
   <span>
     <Icon icon='vgpu' /> {vgpuType.modelName}
@@ -111,11 +105,7 @@ const xoItemToRender = {
       <Icon icon='remote' /> {remote.value.name}
     </span>
   ),
-  role: role => (
-    <span>
-      {role.name}
-    </span>
-  ),
+  role: role => <span>{role.name}</span>,
   user: user => (
     <span>
       <Icon icon='user' /> {user.email}
@@ -136,7 +126,7 @@ const xoItemToRender = {
       <Icon icon='ip' /> {ipPool.name}
     </span>
   ),
-  ipAddress: ({label, used}) => {
+  ipAddress: ({ label, used }) => {
     if (used) {
       return <strong className='text-warning'>{label}</strong>
     }
@@ -152,7 +142,8 @@ const xoItemToRender = {
 
   VDI: vdi => (
     <span>
-      <Icon icon='disk' /> {vdi.name_label} {vdi.name_description && <span> ({vdi.name_description})</span>}
+      <Icon icon='disk' /> {vdi.name_label}{' '}
+      {vdi.name_description && <span> ({vdi.name_description})</span>}
     </span>
   ),
 
@@ -169,16 +160,18 @@ const xoItemToRender = {
   'VM-snapshot': vm => <VmItem vm={vm} />,
   'VM-controller': vm => (
     <span>
-      <Icon icon='host' />
-      {' '}
-      <VmItem vm={vm} />
+      <Icon icon='host' /> <VmItem vm={vm} />
     </span>
   ),
 
   // PIF.
   PIF: pif => (
     <span>
-      <Icon icon='network' color={pif.carrier ? 'text-success' : 'text-danger'} /> {pif.device} ({pif.deviceName})
+      <Icon
+        icon='network'
+        color={pif.carrier ? 'text-success' : 'text-danger'}
+      />{' '}
+      {pif.device} ({pif.deviceName})
     </span>
   ),
 
@@ -195,7 +188,8 @@ const xoItemToRender = {
 
   vgpuType: type => (
     <span>
-      <Icon icon='gpu' /> {type.modelName} ({type.vendorName}) {type.maxResolutionX}x{type.maxResolutionY}
+      <Icon icon='gpu' /> {type.modelName} ({type.vendorName}){' '}
+      {type.maxResolutionX}x{type.maxResolutionY}
     </span>
   ),
 
@@ -203,19 +197,21 @@ const xoItemToRender = {
     <span>
       {startsWith(group.name_label, 'Group of ')
         ? group.name_label.slice(9)
-        : group.name_label
-      }
+        : group.name_label}
     </span>
   )
 }
 
-const renderXoItem = (item, {
-  className
-} = {}) => {
+const renderXoItem = (item, { className } = {}) => {
   const { id, type, label } = item
 
   if (item.removed) {
-    return <span key={id} className='text-danger'> <Icon icon='alarm' /> {id}</span>
+    return (
+      <span key={id} className='text-danger'>
+        {' '}
+        <Icon icon='alarm' /> {id}
+      </span>
+    )
   }
 
   if (!type) {
@@ -252,11 +248,15 @@ const GenericXoItem = connectStore(() => {
   return (state, props) => ({
     xoItem: getObject(state, props)
   })
-})(({ xoItem, ...props }) => xoItem
-  ? renderXoItem(xoItem, props)
-  : renderXoUnknownItem()
+})(
+  ({ xoItem, ...props }) =>
+    xoItem ? renderXoItem(xoItem, props) : renderXoUnknownItem()
 )
 
-export const renderXoItemFromId = (id, props) => <GenericXoItem {...props} id={id} />
+export const renderXoItemFromId = (id, props) => (
+  <GenericXoItem {...props} id={id} />
+)
 
-export const renderXoUnknownItem = () => <span className='text-muted'>{_('errorNoSuchItem')}</span>
+export const renderXoUnknownItem = () => (
+  <span className='text-muted'>{_('errorNoSuchItem')}</span>
+)

@@ -39,10 +39,7 @@ import { error as _error } from './notification'
   //
   // if a function, it will be called with the result of the action to
   // compute the path
-  redirectOnSuccess: propTypes.oneOfType([
-    propTypes.func,
-    propTypes.string
-  ]),
+  redirectOnSuccess: propTypes.oneOfType([propTypes.func, propTypes.string]),
 
   // React element to use tooltip for the component
   tooltip: propTypes.node
@@ -57,12 +54,7 @@ export default class ActionButton extends Component {
       return
     }
 
-    const {
-      children,
-      handler,
-      handlerParam,
-      tooltip
-    } = this.props
+    const { children, handler, handlerParam, tooltip } = this.props
 
     try {
       this.setState({
@@ -75,7 +67,9 @@ export default class ActionButton extends Component {
       const { redirectOnSuccess } = this.props
       if (redirectOnSuccess) {
         return this.context.router.push(
-          isFunction(redirectOnSuccess) ? redirectOnSuccess(result) : redirectOnSuccess
+          isFunction(redirectOnSuccess)
+            ? redirectOnSuccess(result)
+            : redirectOnSuccess
         )
       }
 
@@ -91,7 +85,10 @@ export default class ActionButton extends Component {
       // ignore when undefined because it usually means that the action has been canceled
       if (error !== undefined) {
         logError(error)
-        _error(children || tooltip || error.name, error.message || String(error))
+        _error(
+          children || tooltip || error.name,
+          error.message || String(error)
+        )
       }
     }
   }
@@ -106,7 +103,9 @@ export default class ActionButton extends Component {
     const { form } = this.props
 
     if (form) {
-      document.getElementById(form).addEventListener('submit', this._eventListener)
+      document
+        .getElementById(form)
+        .addEventListener('submit', this._eventListener)
     }
   }
 
@@ -114,19 +113,15 @@ export default class ActionButton extends Component {
     const { form } = this.props
 
     if (form) {
-      document.getElementById(form).removeEventListener('submit', this._eventListener)
+      document
+        .getElementById(form)
+        .removeEventListener('submit', this._eventListener)
     }
   }
 
   render () {
     const {
-      props: {
-        children,
-        icon,
-        pending,
-        tooltip,
-        ...props
-      },
+      props: { children, icon, pending, tooltip, ...props },
       state: { error, working }
     } = this
 
@@ -143,14 +138,14 @@ export default class ActionButton extends Component {
     }
     delete props.redirectOnSuccess
 
-    const button = <Button {...props}>
-      <Icon icon={pending || working ? 'loading' : icon} fixedWidth />
-      {children && ' '}
-      {children}
-    </Button>
+    const button = (
+      <Button {...props}>
+        <Icon icon={pending || working ? 'loading' : icon} fixedWidth />
+        {children && ' '}
+        {children}
+      </Button>
+    )
 
-    return tooltip
-      ? <Tooltip content={tooltip}>{button}</Tooltip>
-      : button
+    return tooltip ? <Tooltip content={tooltip}>{button}</Tooltip> : button
   }
 }

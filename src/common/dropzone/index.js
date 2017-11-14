@@ -13,8 +13,14 @@ export default class Dropzone extends Component {
   render () {
     const { onDrop, message } = this.props
 
-    return <ReactDropzone onDrop={onDrop} className={styles.dropzone} activeClassName={styles.activeDropzone}>
-      <div className={styles.dropzoneText}>{message}</div>
-    </ReactDropzone>
+    return (
+      <ReactDropzone
+        onDrop={onDrop}
+        className={styles.dropzone}
+        activeClassName={styles.activeDropzone}
+      >
+        <div className={styles.dropzoneText}>{message}</div>
+      </ReactDropzone>
+    )
   }
 }

@@ -3,17 +3,9 @@ import Component from 'base-component'
 import React from 'react'
 import { Col, Row } from 'grid'
 import { createSelector } from 'selectors'
-import {
-  addSubscriptions,
-  createFakeProgress
-} from 'utils'
-import {
-  subscribeCheckSrCurrentState
-} from 'xo'
-import {
-  map,
-  sum
-} from 'lodash'
+import { addSubscriptions, createFakeProgress } from 'utils'
+import { subscribeCheckSrCurrentState } from 'xo'
+import { map, sum } from 'lodash'
 
 const ESTIMATED_DURATIONS = [
   10, // configuringNetwork
@@ -21,8 +13,8 @@ const ESTIMATED_DURATIONS = [
   30, // copyingVms
   30, // configuringVms
   10, // configuringGluster
-  5,  // creatingSr
-  5   // scanningSr
+  5, // creatingSr
+  5 // scanningSr
 ]
 
 const TOTAL_ESTIMATED_DURATION = sum(ESTIMATED_DURATIONS)
@@ -98,7 +90,9 @@ export default class CreationProgress extends Component {
       }
 
       const previousMilestone = this._milestones[state]
-      const stepLength = (this._milestones[state + 1] || TOTAL_ESTIMATED_DURATION) - previousMilestone
+      const stepLength =
+        (this._milestones[state + 1] || TOTAL_ESTIMATED_DURATION) -
+        previousMilestone
 
       return previousMilestone + intermediateProgress * stepLength
     }
@@ -113,20 +107,22 @@ export default class CreationProgress extends Component {
 
     const { state, states } = currentState
 
-    return <Row>
-      <Col size={3}>
-        <strong>{_('xosanCreatingOn', { pool: pool.name_label })}</strong>
-      </Col>
-      <Col size={3}>
-        ({state + 1}/{states.length}) {_(`xosanState_${states[state]}`)}
-      </Col>
-      <Col size={6}>
-        <progress
-          className='progress'
-          max={TOTAL_ESTIMATED_DURATION}
-          value={this._getMainProgress()}
-        />
-      </Col>
-    </Row>
+    return (
+      <Row>
+        <Col size={3}>
+          <strong>{_('xosanCreatingOn', { pool: pool.name_label })}</strong>
+        </Col>
+        <Col size={3}>
+          ({state + 1}/{states.length}) {_(`xosanState_${states[state]}`)}
+        </Col>
+        <Col size={6}>
+          <progress
+            className='progress'
+            max={TOTAL_ESTIMATED_DURATION}
+            value={this._getMainProgress()}
+          />
+        </Col>
+      </Row>
+    )
   }
 }

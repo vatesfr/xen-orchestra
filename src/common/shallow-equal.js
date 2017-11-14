@@ -32,7 +32,8 @@ const shallowEqual = (c1, c2) => {
   }
 
   let n = 0
-  for (const _ in c2) { // eslint-disable-line no-unused-vars
+  // eslint-disable-next-line no-unused-vars
+  for (const _ in c2) {
     ++n
   }
 

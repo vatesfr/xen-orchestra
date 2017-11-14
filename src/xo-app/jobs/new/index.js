@@ -56,7 +56,8 @@ const getType = function (param) {
 /**
  * Tries extracting Object targeted property
  */
-const reduceObject = (value, propertyName = 'id') => (value != null && value[propertyName]) || value
+const reduceObject = (value, propertyName = 'id') =>
+  (value != null && value[propertyName]) || value
 
 /**
  * Adapts all data "arrayed" by UI-multiple-selectors to job's cross-product trick
@@ -64,13 +65,15 @@ const reduceObject = (value, propertyName = 'id') => (value != null && value[pro
 const dataToParamVectorItems = function (params, data) {
   const items = []
   forEach(params, (param, name) => {
-    if (Array.isArray(data[name]) && param.items) { // We have an array for building cross product, the "real" type was $type
+    if (Array.isArray(data[name]) && param.items) {
+      // We have an array for building cross product, the "real" type was $type
       const values = []
-      if (data[name].length === 1) { // One value, no need to engage cross-product
+      if (data[name].length === 1) {
+        // One value, no need to engage cross-product
         data[name] = data[name].pop()
       } else {
         forEach(data[name], value => {
-          values.push({[name]: reduceObject(value, name)})
+          values.push({ [name]: reduceObject(value, name) })
         })
         if (values.length) {
           items.push({
@@ -108,13 +111,12 @@ export default class Jobs extends Component {
     }
     new Promise((resolve, reject) => {
       this._resolveLoaded = resolve
+    }).then(() => {
+      const { id } = this.props
+      if (id) {
+        this._edit(id)
+      }
     })
-      .then(() => {
-        const { id } = this.props
-        if (id) {
-          this._edit(id)
-        }
-      })
   }
 
   componentWillReceiveProps (props) {
@@ -132,9 +134,9 @@ export default class Jobs extends Component {
       const j = {}
       for (const id in jobs) {
         const job = jobs[id]
-        job && (job.key === JOB_KEY) && (j[id] = job)
+        job && job.key === JOB_KEY && (j[id] = job)
       }
-      this.setState({jobs: j}, this._resolveLoaded)
+      this.setState({ jobs: j }, this._resolveLoaded)
     })
 
     const jobCompliantMethods = [
@@ -178,15 +180,15 @@ export default class Jobs extends Component {
       for (const method in methods) {
         if (includes(jobCompliantMethods, method)) {
           let [group, command] = method.split('.')
-          const info = {...methods[method]}
+          const info = { ...methods[method] }
           info.type = 'object'
 
-          const properties = {...info.params}
+          const properties = { ...info.params }
           delete info.params
 
           const required = []
           for (const key in properties) {
-            const property = {...properties[key]}
+            const property = { ...properties[key] }
             const type = getType(property)
 
             const modifyProperty = (prop, type) => {
@@ -225,7 +227,12 @@ export default class Jobs extends Component {
                   modifyProperty(property, 'Pool')
                 } else if (includes(['sr', 'sr_id', 'target_sr_id'], key)) {
                   modifyProperty(property, 'Sr')
-                } else if (includes(['host', 'host_id', 'target_host_id', 'targetHost'], key)) {
+                } else if (
+                  includes(
+                    ['host', 'host_id', 'target_host_id', 'targetHost'],
+                    key
+                  )
+                ) {
                   modifyProperty(property, 'Host')
                 } else if (includes(['vm'], key)) {
                   modifyProperty(property, 'Vm')
@@ -250,14 +257,14 @@ export default class Jobs extends Component {
         }
       }
 
-      this.setState({actions})
+      this.setState({ actions })
     })
   }
 
-  _handleSelectMethod = action => this.setState({action})
+  _handleSelectMethod = action => this.setState({ action })
 
   _handleSubmit = () => {
-    const {name, method, params} = this.refs
+    const { name, method, params } = this.refs
 
     const { job, owner, timeout } = this.state
     const _job = {
@@ -267,7 +274,10 @@ export default class Jobs extends Component {
       method: method.value.method,
       paramsVector: {
         type: 'crossProduct',
-        items: dataToParamVectorItems(method.value.info.properties, params.value)
+        items: dataToParamVectorItems(
+          method.value.info.properties,
+          params.value
+        )
       },
       userId: owner,
       timeout: timeout ? timeout * 1e3 : undefined
@@ -276,7 +286,9 @@ export default class Jobs extends Component {
     job && (_job.id = job.id)
     const saveJob = job ? editJob : createJob
 
-    return saveJob(_job).then(this._reset).catch(err => error('Create Job', err.message || String(err)))
+    return saveJob(_job)
+      .then(this._reset)
+      .catch(err => error('Create Job', err.message || String(err)))
   }
 
   _edit = id => {
@@ -287,19 +299,22 @@ export default class Jobs extends Component {
       return
     }
 
-    const {name, method} = this.refs
+    const { name, method } = this.refs
     const action = find(actions, action => action.method === job.method)
     name.value = job.name
     method.value = action
-    this.setState({
-      job,
-      action
-    }, () => delay(this._populateForm, 250, job)) // Work around.
+    this.setState(
+      {
+        job,
+        action
+      },
+      () => delay(this._populateForm, 250, job)
+    ) // Work around.
     // Without the delay, some selects are not always ready to load a value
     // Values are displayed, but html5 compliant browsers say the value is required and empty on submit
   }
 
-  _populateForm = (job) => {
+  _populateForm = job => {
     const data = {}
     const paramsVector = job.paramsVector
     if (paramsVector) {
@@ -329,7 +344,7 @@ export default class Jobs extends Component {
   }
 
   _reset = () => {
-    const {name, method} = this.refs
+    const { name, method } = this.refs
     name.value = ''
     method.value = undefined
     this.setState({
@@ -358,86 +373,140 @@ export default class Jobs extends Component {
 
   render () {
     const { state } = this
-    const {
-      action,
-      actions,
-      job,
-      jobs,
-      owner
-    } = state
+    const { action, actions, job, jobs, owner } = state
     const { formatMessage } = this.props.intl
 
     const isJobUserMissing = this._getIsJobUserMissing()
 
-    return <div>
-      <h1>{_('jobsPage')}</h1>
-      <form id='newJobForm'>
-        <SelectSubject
-          onChange={this.linkState('owner', 'id')}
-          placeholder={_('jobOwnerPlaceholder')}
-          predicate={this._subjectPredicate}
-          required
-          value={owner}
-        />
-        <input type='text' ref='name' className='form-control mb-1 mt-1' placeholder={formatMessage(messages.jobNamePlaceholder)} pattern='[^_]+' required />
-        <SelectPlainObject ref='method' options={actions} optionKey='method' onChange={this._handleSelectMethod} placeholder={_('jobActionPlaceHolder')} />
-        <input type='number' onChange={this.linkState('timeout')} value={state.timeout || ''} className='form-control mb-1 mt-1' placeholder={formatMessage(messages.jobTimeoutPlaceHolder)} />
-        {action && <fieldset>
-          <GenericInput ref='params' schema={action.info} uiSchema={action.uiSchema} label={action.method} required />
-          {job && <p className='text-warning'>{_('jobEditMessage', { name: job.name, id: job.id.slice(4, 8) })}</p>}
-          {process.env.XOA_PLAN > 3
-            ? <span><ActionButton form='newJobForm' handler={this._handleSubmit} icon='save' btnStyle='primary'>{_('saveResourceSet')}</ActionButton>
-              {' '}
-              <Button onClick={this._reset}>{_('resetResourceSet')}</Button></span>
-            : <span><Upgrade place='health' available={4} /></span>
-          }
-        </fieldset>
-        }
-      </form>
-      <table className='table'>
-        <thead>
-          <tr>
-            <th>{_('jobName')}</th>
-            <th>{_('jobAction')}</th>
-            <th />
-            <th />
-          </tr>
-        </thead>
-        <tbody>
-          {isEmpty(jobs) && <tr><td><em>{_('noJobs')}</em></td></tr>}
-          {map(jobs, job => <tr key={job.id}>
-            <td>
-              <span>{job.name} <span className='text-muted'>({job.id.slice(4, 8)})</span></span>
-            </td>
-            <td>{job.method}</td>
-            <td>
-              <ActionRowButton
-                disabled={!isJobUserMissing[job.id]}
-                icon='run-schedule'
-                btnStyle='warning'
-                handler={runJob}
-                handlerParam={job.id}
+    return (
+      <div>
+        <h1>{_('jobsPage')}</h1>
+        <form id='newJobForm'>
+          <SelectSubject
+            onChange={this.linkState('owner', 'id')}
+            placeholder={_('jobOwnerPlaceholder')}
+            predicate={this._subjectPredicate}
+            required
+            value={owner}
+          />
+          <input
+            type='text'
+            ref='name'
+            className='form-control mb-1 mt-1'
+            placeholder={formatMessage(messages.jobNamePlaceholder)}
+            pattern='[^_]+'
+            required
+          />
+          <SelectPlainObject
+            ref='method'
+            options={actions}
+            optionKey='method'
+            onChange={this._handleSelectMethod}
+            placeholder={_('jobActionPlaceHolder')}
+          />
+          <input
+            type='number'
+            onChange={this.linkState('timeout')}
+            value={state.timeout || ''}
+            className='form-control mb-1 mt-1'
+            placeholder={formatMessage(messages.jobTimeoutPlaceHolder)}
+          />
+          {action && (
+            <fieldset>
+              <GenericInput
+                ref='params'
+                schema={action.info}
+                uiSchema={action.uiSchema}
+                label={action.method}
+                required
               />
-              {!isJobUserMissing[job.id] && <Tooltip content={_('jobUserNotFound')}><Icon className='ml-1' icon='error' /></Tooltip>}
-            </td>
-            <td>
-              <ActionRowButton
-                icon='edit'
-                btnStyle='primary'
-                handler={this._edit}
-                handlerParam={job.id}
-              />
-              {' '}
-              <ActionRowButton
-                icon='delete'
-                btnStyle='danger'
-                handler={deleteJob}
-                handlerParam={job.id}
-              />
-            </td>
-          </tr>)}
-        </tbody>
-      </table>
-    </div>
+              {job && (
+                <p className='text-warning'>
+                  {_('jobEditMessage', {
+                    name: job.name,
+                    id: job.id.slice(4, 8)
+                  })}
+                </p>
+              )}
+              {process.env.XOA_PLAN > 3 ? (
+                <span>
+                  <ActionButton
+                    form='newJobForm'
+                    handler={this._handleSubmit}
+                    icon='save'
+                    btnStyle='primary'
+                  >
+                    {_('saveResourceSet')}
+                  </ActionButton>{' '}
+                  <Button onClick={this._reset}>{_('resetResourceSet')}</Button>
+                </span>
+              ) : (
+                <span>
+                  <Upgrade place='health' available={4} />
+                </span>
+              )}
+            </fieldset>
+          )}
+        </form>
+        <table className='table'>
+          <thead>
+            <tr>
+              <th>{_('jobName')}</th>
+              <th>{_('jobAction')}</th>
+              <th />
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {isEmpty(jobs) && (
+              <tr>
+                <td>
+                  <em>{_('noJobs')}</em>
+                </td>
+              </tr>
+            )}
+            {map(jobs, job => (
+              <tr key={job.id}>
+                <td>
+                  <span>
+                    {job.name}{' '}
+                    <span className='text-muted'>({job.id.slice(4, 8)})</span>
+                  </span>
+                </td>
+                <td>{job.method}</td>
+                <td>
+                  <ActionRowButton
+                    disabled={!isJobUserMissing[job.id]}
+                    icon='run-schedule'
+                    btnStyle='warning'
+                    handler={runJob}
+                    handlerParam={job.id}
+                  />
+                  {!isJobUserMissing[job.id] && (
+                    <Tooltip content={_('jobUserNotFound')}>
+                      <Icon className='ml-1' icon='error' />
+                    </Tooltip>
+                  )}
+                </td>
+                <td>
+                  <ActionRowButton
+                    icon='edit'
+                    btnStyle='primary'
+                    handler={this._edit}
+                    handlerParam={job.id}
+                  />{' '}
+                  <ActionRowButton
+                    icon='delete'
+                    btnStyle='danger'
+                    handler={deleteJob}
+                    handlerParam={job.id}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )
   }
 }

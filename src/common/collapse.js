@@ -29,7 +29,8 @@ export default class Collapse extends Component {
     return (
       <div className={props.className}>
         <Button block btnStyle='primary' size='large' onClick={this._onClick}>
-          {props.buttonText} <Icon icon={`chevron-${isOpened ? 'up' : 'down'}`} />
+          {props.buttonText}{' '}
+          <Icon icon={`chevron-${isOpened ? 'up' : 'down'}`} />
         </Button>
         {isOpened && props.children}
       </div>

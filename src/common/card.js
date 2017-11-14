@@ -18,10 +18,7 @@ const CARD_HEADER_STYLE = {
 
 export const Card = propTypes({
   shadow: propTypes.bool
-})(({
-  shadow,
-  ...props
-}) => {
+})(({ shadow, ...props }) => {
   props.className = 'card'
   props.style = shadow ? CARD_STYLE_WITH_SHADOW : CARD_STYLE
 
@@ -30,10 +27,7 @@ export const Card = propTypes({
 
 export const CardHeader = propTypes({
   className: propTypes.string
-})(({
-  children,
-  className
-}) => (
+})(({ children, className }) => (
   <h4 className={`card-header ${className || ''}`} style={CARD_HEADER_STYLE}>
     {children}
   </h4>
@@ -41,11 +35,6 @@ export const CardHeader = propTypes({
 
 export const CardBlock = propTypes({
   className: propTypes.string
-})(({
-  children,
-  className
-}) => (
-  <div className={`card-block ${className || ''}`}>
-    {children}
-  </div>
+})(({ children, className }) => (
+  <div className={`card-block ${className || ''}`}>{children}</div>
 ))

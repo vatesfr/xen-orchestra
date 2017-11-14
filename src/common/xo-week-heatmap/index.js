@@ -4,11 +4,7 @@ import map from 'lodash/map'
 import moment from 'moment'
 import sortBy from 'lodash/sortBy'
 import times from 'lodash/times'
-import {
-  extent,
-  interpolateViridis,
-  scaleSequential
-} from 'd3'
+import { extent, interpolateViridis, scaleSequential } from 'd3'
 import { FormattedTime } from 'react-intl'
 
 import _ from '../intl'
@@ -32,7 +28,7 @@ const computeColorGen = days => {
   let max = Number.MIN_VALUE
 
   forEach(days, day => {
-    const [ _min, _max ] = extent(day.hours, value => value && value.value)
+    const [_min, _max] = extent(day.hours, value => value && value.value)
 
     if (_min < min) {
       min = _min
@@ -65,9 +61,7 @@ const computeMissingDays = days => {
         timestamp: a.subtract(1, 'days').valueOf()
       })).reverse()
 
-      correctedDays.splice.apply(
-        correctedDays, [i, 0].concat(missingDays)
-      )
+      correctedDays.splice.apply(correctedDays, [i, 0].concat(missingDays))
     }
 
     a = b
@@ -146,9 +140,7 @@ export default class XoWeekHeatmap extends Component {
     })
 
     this.setState({
-      days: computeMissingDays(
-        sortBy(days, 'timestamp')
-      )
+      days: computeMissingDays(sortBy(days, 'timestamp'))
     })
   }
 
@@ -158,16 +150,26 @@ export default class XoWeekHeatmap extends Component {
         <tbody>
           <tr>
             <th />
-            {times(24, hour => <th key={hour} className='text-xs-center'>{hour}</th>)}
+            {times(24, hour => (
+              <th key={hour} className='text-xs-center'>
+                {hour}
+              </th>
+            ))}
           </tr>
           {map(this.state.days, (day, key) => (
             <tr key={key}>
-              <th><FormattedTime value={day.timestamp} {...DAY_TIME_FORMAT} /></th>
+              <th>
+                <FormattedTime value={day.timestamp} {...DAY_TIME_FORMAT} />
+              </th>
               {map(day.hours, (hour, key) => (
                 <Tooltip
-                  content={hour
-                    ? _('weekHeatmapData', { date: hour.date, value: this.props.cellRenderer(hour.value) })
-                    : _('weekHeatmapNoData')
+                  content={
+                    hour
+                      ? _('weekHeatmapData', {
+                        date: hour.date,
+                        value: this.props.cellRenderer(hour.value)
+                      })
+                      : _('weekHeatmapNoData')
                   }
                   key={key}
                 >

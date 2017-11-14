@@ -32,20 +32,19 @@ export class TooltipViewer extends Component {
   }
 
   render () {
-    const {
-      className,
-      content,
-      place,
-      show,
-      style
-    } = this.state
+    const { className, content, place, show, style } = this.state
 
     return (
       <div
-        className={classNames(show ? styles.tooltipEnabled : styles.tooltipDisabled, className)}
+        className={classNames(
+          show ? styles.tooltipEnabled : styles.tooltipDisabled,
+          className
+        )}
         style={{
-          marginTop: (place === 'top' && '-10px') || (place === 'bottom' && '10px'),
-          marginLeft: (place === 'left' && '-10px') || (place === 'right' && '10px'),
+          marginTop:
+            (place === 'top' && '-10px') || (place === 'bottom' && '10px'),
+          marginLeft:
+            (place === 'left' && '-10px') || (place === 'right' && '10px'),
           ...style
         }}
       >
@@ -58,10 +57,7 @@ export class TooltipViewer extends Component {
 // ===================================================================
 
 @propTypes({
-  children: propTypes.oneOfType([
-    propTypes.element,
-    propTypes.string
-  ]),
+  children: propTypes.oneOfType([propTypes.element, propTypes.string]),
   className: propTypes.string,
   content: propTypes.node,
   style: propTypes.object,
@@ -89,7 +85,7 @@ export default class Tooltip extends Component {
   }
 
   _addListeners () {
-    const node = this._node = ReactDOM.findDOMNode(this)
+    const node = (this._node = ReactDOM.findDOMNode(this))
 
     node.addEventListener('mouseenter', this._showTooltip)
     node.addEventListener('mouseleave', this._hideTooltip)
@@ -128,10 +124,19 @@ export default class Tooltip extends Component {
 
   _updateTooltip = event => {
     const node = ReactDOM.findDOMNode(instance)
-    const result = getPosition(event, event.currentTarget, node, instance.state.place, 'solid', {})
+    const result = getPosition(
+      event,
+      event.currentTarget,
+      node,
+      instance.state.place,
+      'solid',
+      {}
+    )
 
     if (result.isNewState) {
-      return instance.setState(result.newState, () => this._updateTooltip(event))
+      return instance.setState(result.newState, () =>
+        this._updateTooltip(event)
+      )
     }
 
     const { position } = result

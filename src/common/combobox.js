@@ -1,10 +1,7 @@
 import React from 'react'
 import uncontrollableInput from 'uncontrollable-input'
 import { isEmpty, map } from 'lodash'
-import {
-  DropdownButton,
-  MenuItem
-} from 'react-bootstrap-4/lib'
+import { DropdownButton, MenuItem } from 'react-bootstrap-4/lib'
 
 import Component from './base-component'
 import propTypes from './prop-types-decorator'
@@ -50,11 +47,11 @@ export default class Combobox extends Component {
             id='selectInput'
             title=''
           >
-            {map(options, option =>
+            {map(options, option => (
               <MenuItem key={option} onClick={() => this._setText(option)}>
                 {option}
               </MenuItem>
-            )}
+            ))}
           </DropdownButton>
         </div>
         {Input}

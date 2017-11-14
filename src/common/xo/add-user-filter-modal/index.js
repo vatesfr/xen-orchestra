@@ -19,12 +19,11 @@ export default class SaveNewUserFilterModalBody extends Component {
   }
 
   _getFilterOptions = createSelector(
-    tmp => (
+    tmp =>
       (tmp = this.props.user) &&
       (tmp = tmp.preferences) &&
       (tmp = tmp.filters) &&
-      tmp[this.props.type]
-    ),
+      tmp[this.props.type],
     keys
   )
 

@@ -11,14 +11,8 @@ export const LabelCol = propTypes({
 
 export const InputCol = propTypes({
   children: propTypes.any.isRequired
-})(({ children }) => (
-  <Grid.Col mediumSize={10}>{children}</Grid.Col>
-))
+})(({ children }) => <Grid.Col mediumSize={10}>{children}</Grid.Col>)
 
 export const Row = propTypes({
   children: propTypes.arrayOf(propTypes.element).isRequired
-})(({ children }) => (
-  <Grid.Row className='form-group'>
-    {children}
-  </Grid.Row>
-))
+})(({ children }) => <Grid.Row className='form-group'>{children}</Grid.Row>)

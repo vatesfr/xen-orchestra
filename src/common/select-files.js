@@ -19,14 +19,16 @@ export default class SelectFiles extends Component {
   }
 
   render () {
-    return <label className='btn btn-secondary btn-file hidden'>
-      <Icon icon='file' /> {this.props.label || _('browseFiles')}
-      <input
-        {...omit(this.props, [ 'hidden', 'label', 'onChange', 'multi' ])}
-        hidden
-        onChange={this._onChange}
-        type='file'
-      />
-    </label>
+    return (
+      <label className='btn btn-secondary btn-file hidden'>
+        <Icon icon='file' /> {this.props.label || _('browseFiles')}
+        <input
+          {...omit(this.props, ['hidden', 'label', 'onChange', 'multi'])}
+          hidden
+          onChange={this._onChange}
+          type='file'
+        />
+      </label>
+    )
   }
 }

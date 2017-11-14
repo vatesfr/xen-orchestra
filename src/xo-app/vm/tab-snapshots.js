@@ -8,13 +8,8 @@ import { connectStore } from 'utils'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Container, Row, Col } from 'grid'
 import { Text } from 'editable'
-import {
-  includes,
-  isEmpty
-} from 'lodash'
-import {
-  createGetObjectsOfType
-} from 'selectors'
+import { includes, isEmpty } from 'lodash'
+import { createGetObjectsOfType } from 'selectors'
 import {
   copyVm,
   deleteSnapshot,
@@ -26,7 +21,7 @@ import {
 
 const COLUMNS = [
   {
-    itemRenderer: snapshot =>
+    itemRenderer: snapshot => (
       <div>
         <FormattedTime
           value={snapshot.snapshot_time * 1000}
@@ -35,36 +30,37 @@ const COLUMNS = [
           minute='numeric'
           month='long'
           year='numeric'
-        />
-        {' '}
-        (<FormattedRelative value={snapshot.snapshot_time * 1000} />)
-        {' '}
-        {includes(snapshot.tags, 'quiesce') &&
+        />{' '}
+        (<FormattedRelative value={snapshot.snapshot_time * 1000} />){' '}
+        {includes(snapshot.tags, 'quiesce') && (
           <Tooltip content={_('snapshotQuiesce')}>
             <Icon icon='info' />
           </Tooltip>
-        }
-      </div>,
+        )}
+      </div>
+    ),
     default: true,
     name: _('snapshotDate'),
     sortCriteria: _ => _.snapshot_time,
     sortOrder: 'desc'
   },
   {
-    itemRenderer: snapshot =>
+    itemRenderer: snapshot => (
       <Text
-        onChange={value => editVm(snapshot, {name_label: value})}
+        onChange={value => editVm(snapshot, { name_label: value })}
         value={snapshot.name_label}
-      />,
+      />
+    ),
     name: _('snapshotName'),
     sortCriteria: _ => _.name_label
   },
   {
-    itemRenderer: snapshot =>
+    itemRenderer: snapshot => (
       <Text
-        onChange={value => editVm(snapshot, {name_description: value})}
+        onChange={value => editVm(snapshot, { name_description: value })}
         value={snapshot.name_description}
-      />,
+      />
+    ),
     name: _('snapshotDescription'),
     sortCriteria: _ => _.name_description
   }
@@ -96,43 +92,51 @@ const INDIVIDUAL_ACTIONS = [
 ]
 
 @connectStore(() => ({
-  snapshots: createGetObjectsOfType('VM-snapshot').pick(
-    (_, props) => props.vm.snapshots
-  ).sort()
+  snapshots: createGetObjectsOfType('VM-snapshot')
+    .pick((_, props) => props.vm.snapshots)
+    .sort()
 }))
 export default class TabSnapshot extends Component {
   render () {
     const { snapshots, vm } = this.props
-    return <Container>
-      <Row>
-        <Col className='text-xs-right'>
-          <TabButton
-            btnStyle='primary'
-            handler={snapshotVm}
-            handlerParam={vm}
-            icon='add'
-            labelId='snapshotCreateButton'
-            pending={includes(vm.current_operations, 'snapshot')}
-          />
-        </Col>
-      </Row>
-      {isEmpty(snapshots)
-        ? <Row>
-          <Col className='text-xs-center'>
-            <h4>{_('noSnapshots')}</h4>
-            <p><em><Icon icon='info' size={1} /> {_('tipLabel')} {_('tipCreateSnapshotLabel')}</em></p>
-          </Col>
-        </Row>
-        : <Row>
-          <Col>
-            <SortedTable
-              collection={snapshots}
-              columns={COLUMNS}
-              individualActions={INDIVIDUAL_ACTIONS}
+    return (
+      <Container>
+        <Row>
+          <Col className='text-xs-right'>
+            <TabButton
+              btnStyle='primary'
+              handler={snapshotVm}
+              handlerParam={vm}
+              icon='add'
+              labelId='snapshotCreateButton'
+              pending={includes(vm.current_operations, 'snapshot')}
             />
           </Col>
         </Row>
-      }
-    </Container>
+        {isEmpty(snapshots) ? (
+          <Row>
+            <Col className='text-xs-center'>
+              <h4>{_('noSnapshots')}</h4>
+              <p>
+                <em>
+                  <Icon icon='info' size={1} /> {_('tipLabel')}{' '}
+                  {_('tipCreateSnapshotLabel')}
+                </em>
+              </p>
+            </Col>
+          </Row>
+        ) : (
+          <Row>
+            <Col>
+              <SortedTable
+                collection={snapshots}
+                columns={COLUMNS}
+                individualActions={INDIVIDUAL_ACTIONS}
+              />
+            </Col>
+          </Row>
+        )}
+      </Container>
+    )
   }
 }

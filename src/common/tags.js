@@ -42,7 +42,7 @@ const REMOVE_TAG_STYLE = {
 })
 export default class Tags extends Component {
   componentWillMount () {
-    this.setState({editing: false})
+    this.setState({ editing: false })
   }
 
   _startEdit = () => {
@@ -57,7 +57,7 @@ export default class Tags extends Component {
 
     if (!includes(labels, newTag)) {
       onAdd && onAdd(newTag)
-      onChange && onChange([ ...labels, newTag ])
+      onChange && onChange([...labels, newTag])
     }
   }
   _deleteTag = tag => {
@@ -85,30 +85,29 @@ export default class Tags extends Component {
   }
 
   render () {
-    const {
-      labels,
-      onAdd,
-      onChange,
-      onClick,
-      onDelete
-    } = this.props
+    const { labels, onAdd, onChange, onClick, onDelete } = this.props
 
     const deleteTag = (onDelete || onChange) && this._deleteTag
 
     return (
       <span className='form-group' style={{ color: '#999' }}>
-        <Icon icon='tags' />
-        {' '}
+        <Icon icon='tags' />{' '}
         <span>
-          {map(labels.sort(), (label, index) =>
-            <Tag label={label} onDelete={deleteTag} key={index} onClick={onClick} />
-          )}
+          {map(labels.sort(), (label, index) => (
+            <Tag
+              label={label}
+              onDelete={deleteTag}
+              key={index}
+              onClick={onClick}
+            />
+          ))}
         </span>
-        {(onAdd || onChange) && !this.state.editing
-          ? <span onClick={this._startEdit} style={ADD_TAG_STYLE}>
+        {(onAdd || onChange) && !this.state.editing ? (
+          <span onClick={this._startEdit} style={ADD_TAG_STYLE}>
             <Icon icon='add-tag' />
           </span>
-          : <span>
+        ) : (
+          <span>
             <input
               type='text'
               autoFocus
@@ -117,7 +116,7 @@ export default class Tags extends Component {
               onBlur={this._stopEdit}
             />
           </span>
-        }
+        )}
       </span>
     )
   }
@@ -125,16 +124,22 @@ export default class Tags extends Component {
 
 export const Tag = ({ type, label, onDelete, onClick }) => (
   <span style={TAG_STYLE}>
-    <span onClick={onClick && (() => onClick(label))} style={onClick && LINK_STYLE}>
+    <span
+      onClick={onClick && (() => onClick(label))}
+      style={onClick && LINK_STYLE}
+    >
       {label}
-    </span>
-    {' '}
-    {onDelete
-      ? <span onClick={onDelete && (() => onDelete(label))} style={REMOVE_TAG_STYLE}>
+    </span>{' '}
+    {onDelete ? (
+      <span
+        onClick={onDelete && (() => onDelete(label))}
+        style={REMOVE_TAG_STYLE}
+      >
         <Icon icon='remove-tag' />
       </span>
-      : []
-    }
+    ) : (
+      []
+    )}
   </span>
 )
 Tag.propTypes = {

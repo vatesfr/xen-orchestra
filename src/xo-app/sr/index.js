@@ -9,15 +9,8 @@ import { Container, Row, Col } from 'grid'
 import { editSr } from 'xo'
 import { NavLink, NavTabs } from 'nav'
 import { Text } from 'editable'
-import {
-  assign,
-  map,
-  pick
-} from 'lodash'
-import {
-  connectStore,
-  routes
-} from 'utils'
+import { assign, map, pick } from 'lodash'
+import { connectStore, routes } from 'utils'
 import {
   createGetObject,
   createGetObjectMessages,
@@ -54,10 +47,7 @@ import TabXosan from './tab-xosan'
   )
 
   const getSrHosts = createGetObjectsOfType('host').pick(
-    createSelector(
-      getPbds,
-      pbds => map(pbds, pbd => pbd.host)
-    )
+    createSelector(getPbds, pbds => map(pbds, pbd => pbd.host))
   )
 
   // -----------------------------------------------------------------
@@ -68,15 +58,15 @@ import TabXosan from './tab-xosan'
 
   const getVdiIds = (state, props) => getSr(state, props).VDIs
 
-  const getVdis = createGetObjectsOfType('VDI').pick(
-    getVdiIds
-  ).sort()
-  const getVdiSnapshots = createGetObjectsOfType('VDI-snapshot').pick(
-    getVdiIds
-  ).sort()
-  const getUnmanagedVdis = createGetObjectsOfType('VDI-unmanaged').pick(
-    createSelector(getSr, sr => sr.VDIs)
-  ).sort()
+  const getVdis = createGetObjectsOfType('VDI')
+    .pick(getVdiIds)
+    .sort()
+  const getVdiSnapshots = createGetObjectsOfType('VDI-snapshot')
+    .pick(getVdiIds)
+    .sort()
+  const getUnmanagedVdis = createGetObjectsOfType('VDI-unmanaged')
+    .pick(createSelector(getSr, sr => sr.VDIs))
+    .sort()
 
   // -----------------------------------------------------------------
 
@@ -114,50 +104,60 @@ export default class Sr extends Component {
     if (!sr) {
       return <Icon icon='loading' />
     }
-    return <Container>
-      <Row>
-        <Col mediumSize={6} className='header-title'>
-          <h2>
-            <Icon icon='sr' />
-            {' '}
-            <Text
-              value={sr.name_label}
-              onChange={nameLabel => editSr(sr, { nameLabel })}
-            />
-          </h2>
-          <span>
-            <Text
-              value={sr.name_description}
-              onChange={nameDescription => editSr(sr, { nameDescription })}
-            />
-            {container &&
-              <span className='text-muted'>
-                {' - '}<Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>
-              </span>
-            }
-          </span>
-        </Col>
-        <Col mediumSize={6}>
-          <div className='text-xs-center'>
-            <SrActionBar sr={sr} />
-          </div>
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-          <NavTabs>
-            <NavLink to={`/srs/${sr.id}/general`}>{_('generalTabName')}</NavLink>
-            <NavLink to={`/srs/${sr.id}/disks`}>{_('disksTabName', { disks: sr.VDIs.length })}</NavLink>
-            {sr.SR_type === 'xosan' &&
-              <NavLink to={`/srs/${sr.id}/xosan`}>XOSAN</NavLink>
-            }
-            <NavLink to={`/srs/${sr.id}/hosts`}>{_('hostsTabName')}</NavLink>
-            <NavLink to={`/srs/${sr.id}/logs`}>{_('logsTabName')}</NavLink>
-            <NavLink to={`/srs/${sr.id}/advanced`}>{_('advancedTabName')}</NavLink>
-          </NavTabs>
-        </Col>
-      </Row>
-    </Container>
+    return (
+      <Container>
+        <Row>
+          <Col mediumSize={6} className='header-title'>
+            <h2>
+              <Icon icon='sr' />{' '}
+              <Text
+                value={sr.name_label}
+                onChange={nameLabel => editSr(sr, { nameLabel })}
+              />
+            </h2>
+            <span>
+              <Text
+                value={sr.name_description}
+                onChange={nameDescription => editSr(sr, { nameDescription })}
+              />
+              {container && (
+                <span className='text-muted'>
+                  {' - '}
+                  <Link to={`/${container.type}s/${container.id}`}>
+                    {container.name_label}
+                  </Link>
+                </span>
+              )}
+            </span>
+          </Col>
+          <Col mediumSize={6}>
+            <div className='text-xs-center'>
+              <SrActionBar sr={sr} />
+            </div>
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <NavTabs>
+              <NavLink to={`/srs/${sr.id}/general`}>
+                {_('generalTabName')}
+              </NavLink>
+              <NavLink to={`/srs/${sr.id}/disks`}>
+                {_('disksTabName', { disks: sr.VDIs.length })}
+              </NavLink>
+              {sr.SR_type === 'xosan' && (
+                <NavLink to={`/srs/${sr.id}/xosan`}>XOSAN</NavLink>
+              )}
+              <NavLink to={`/srs/${sr.id}/hosts`}>{_('hostsTabName')}</NavLink>
+              <NavLink to={`/srs/${sr.id}/logs`}>{_('logsTabName')}</NavLink>
+              <NavLink to={`/srs/${sr.id}/advanced`}>
+                {_('advancedTabName')}
+              </NavLink>
+            </NavTabs>
+          </Col>
+        </Row>
+      </Container>
+    )
   }
 
   render () {
@@ -165,17 +165,26 @@ export default class Sr extends Component {
     if (!sr) {
       return <h1>{_('statusLoading')}</h1>
     }
-    const childProps = assign(pick(this.props, [
-      'hosts',
-      'logs',
-      'pbds',
-      'sr',
-      'vdis',
-      'unmanagedVdis',
-      'vdiSnapshots'
-    ]))
-    return <Page header={this.header()} title={`${sr.name_label}${container ? ` (${container.name_label})` : ''}`}>
-      {cloneElement(this.props.children, childProps)}
-    </Page>
+    const childProps = assign(
+      pick(this.props, [
+        'hosts',
+        'logs',
+        'pbds',
+        'sr',
+        'vdis',
+        'unmanagedVdis',
+        'vdiSnapshots'
+      ])
+    )
+    return (
+      <Page
+        header={this.header()}
+        title={`${sr.name_label}${
+          container ? ` (${container.name_label})` : ''
+        }`}
+      >
+        {cloneElement(this.props.children, childProps)}
+      </Page>
+    )
   }
 }

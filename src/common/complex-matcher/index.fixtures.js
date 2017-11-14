@@ -12,9 +12,9 @@ export const pattern = 'foo !"\\\\ \\"" name:|(wonderwoman batman) hasCape?'
 export const ast = createAnd([
   createString('foo'),
   createNot(createString('\\ "')),
-  createProperty('name', createOr([
-    createString('wonderwoman'),
-    createString('batman')
-  ])),
+  createProperty(
+    'name',
+    createOr([createString('wonderwoman'), createString('batman')])
+  ),
   createTruthyProperty('hasCape')
 ])

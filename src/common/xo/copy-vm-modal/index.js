@@ -20,23 +20,18 @@ class CopyVmModalBody extends Component {
     }
   }
 
-  _onChangeSr = sr =>
-    this.setState({ sr })
-  _onChangeName = event =>
-    this.setState({ name: event.target.value })
-  _onChangeCompress = compress =>
-    this.setState({ compress })
+  _onChangeSr = sr => this.setState({ sr })
+  _onChangeName = event => this.setState({ name: event.target.value })
+  _onChangeCompress = compress => this.setState({ compress })
 
   render () {
     const { formatMessage } = this.props.intl
-    return process.env.XOA_PLAN > 2
-      ? <div>
+    return process.env.XOA_PLAN > 2 ? (
+      <div>
         <SingleLineRow>
           <Col size={6}>{_('copyVmSelectSr')}</Col>
           <Col size={6}>
-            <SelectSr
-              onChange={this._onChangeSr}
-            />
+            <SelectSr onChange={this._onChangeSr} />
           </Col>
         </SingleLineRow>
         &nbsp;
@@ -55,13 +50,15 @@ class CopyVmModalBody extends Component {
         <SingleLineRow>
           <Col size={6}>{_('copyVmCompress')}</Col>
           <Col size={6}>
-            <Toggle
-              onChange={this._onChangeCompress}
-            />
+            <Toggle onChange={this._onChangeCompress} />
           </Col>
         </SingleLineRow>
       </div>
-      : <div><Upgrade place='vmCopy' available={3} /></div>
+    ) : (
+      <div>
+        <Upgrade place='vmCopy' available={3} />
+      </div>
+    )
   }
 }
 export default injectIntl(CopyVmModalBody, { withRef: true })

@@ -2,11 +2,7 @@ import map from 'lodash/map'
 import React, { Component } from 'react'
 import ReactSelect from 'react-select'
 import sum from 'lodash/sum'
-import {
-  AutoSizer,
-  CellMeasurer,
-  List
-} from 'react-virtualized'
+import { AutoSizer, CellMeasurer, List } from 'react-virtualized'
 
 import propTypes from '../prop-types-decorator'
 
@@ -34,11 +30,7 @@ export default class Select extends Component {
     optionRenderer: (option, labelKey) => option[labelKey]
   }
 
-  _renderMenu = ({
-    focusedOption,
-    options,
-    ...otherOptions
-  }) => {
+  _renderMenu = ({ focusedOption, options, ...otherOptions }) => {
     const { maxHeight } = this.props
 
     const focusedOptionIndex = options.indexOf(focusedOption)
@@ -57,10 +49,12 @@ export default class Select extends Component {
 
     return (
       <AutoSizer disableHeight>
-        {({ width }) => (
+        {({ width }) =>
           width ? (
             <CellMeasurer
-              cellRenderer={({ rowIndex }) => wrappedRowRenderer({ index: rowIndex })}
+              cellRenderer={({ rowIndex }) =>
+                wrappedRowRenderer({ index: rowIndex })
+              }
               columnCount={1}
               rowCount={options.length}
               // FIXME: 16 px: ugly workaround to take into account the scrollbar
@@ -70,22 +64,26 @@ export default class Select extends Component {
             >
               {({ getRowHeight }) => {
                 if (options.length <= MAX_OPTIONS) {
-                  height = sum(map(options, (_, index) => getRowHeight({ index })))
+                  height = sum(
+                    map(options, (_, index) => getRowHeight({ index }))
+                  )
                 }
 
-                return <List
-                  height={height}
-                  rowCount={options.length}
-                  rowHeight={getRowHeight}
-                  rowRenderer={wrappedRowRenderer}
-                  scrollToIndex={focusedOptionIndex}
-                  style={LIST_STYLE}
-                  width={width}
-                />
+                return (
+                  <List
+                    height={height}
+                    rowCount={options.length}
+                    rowHeight={getRowHeight}
+                    rowRenderer={wrappedRowRenderer}
+                    scrollToIndex={focusedOptionIndex}
+                    style={LIST_STYLE}
+                    width={width}
+                  />
+                )
               }}
             </CellMeasurer>
           ) : null
-        )}
+        }
       </AutoSizer>
     )
   }

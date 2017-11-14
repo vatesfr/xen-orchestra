@@ -13,10 +13,7 @@ import {
   createPicker,
   createSelector
 } from 'selectors'
-import {
-  connectStore,
-  formatSize
-} from 'utils'
+import { connectStore, formatSize } from 'utils'
 
 // ===================================================================
 
@@ -49,19 +46,17 @@ const DATA_RENDERERS = {
 
         forEach(vms, vm => {
           const { id } = vm
-          current[id] = previous[id] || createPicker(
-            (vm, vbds, vdis) => vdis,
-            createSelector(
-              createFilter(
-                createPicker(
-                  (vm, vbds) => vbds,
-                  vm => vm.$VBDs
-                ),
-                [ vbd => !vbd.is_cd_drive && vbd.attached ]
-              ),
-              vbds => map(vbds, vbd => vbd.VDI)
+          current[id] =
+            previous[id] ||
+            createPicker(
+              (vm, vbds, vdis) => vdis,
+              createSelector(
+                createFilter(createPicker((vm, vbds) => vbds, vm => vm.$VBDs), [
+                  vbd => !vbd.is_cd_drive && vbd.attached
+                ]),
+                vbds => map(vbds, vbd => vbd.VDI)
+              )
             )
-          )
         })
 
         return current
@@ -72,10 +67,10 @@ const DATA_RENDERERS = {
       getVms,
       createGetObjectsOfType('VBD'),
       createGetObjectsOfType('VDI'),
-      (vms, vbds, vdis) => mapValues(
-        getVdisByVmSelectors(vms),
-        (getVdis, vmId) => getVdis(vms[vmId], vbds, vdis)
-      )
+      (vms, vbds, vdis) =>
+        mapValues(getVdisByVmSelectors(vms), (getVdis, vmId) =>
+          getVdis(vms[vmId], vbds, vdis)
+        )
     )
   })
 
@@ -88,7 +83,7 @@ export default class Visualizations extends Component {
   _getData = createSelector(
     () => this.props.vms,
     () => this.props.vdisByVm,
-    (vms, vdisByVm) => (
+    (vms, vdisByVm) =>
       map(vms, (vm, vmId) => {
         let vdisSize = 0
         let nVdis = 0
@@ -110,12 +105,11 @@ export default class Visualizations extends Component {
           }
         }
       })
-    )
   )
 
   render () {
-    return process.env.XOA_PLAN > 3
-      ? <Container>
+    return process.env.XOA_PLAN > 3 ? (
+      <Container>
         <Row>
           <Col>
             <XoParallelChart
@@ -126,6 +120,10 @@ export default class Visualizations extends Component {
           </Col>
         </Row>
       </Container>
-      : <Container><Upgrade place='health' available={4} /></Container>
+    ) : (
+      <Container>
+        <Upgrade place='health' available={4} />
+      </Container>
+    )
   }
 }

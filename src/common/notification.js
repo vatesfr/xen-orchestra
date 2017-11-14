@@ -25,15 +25,19 @@ export class Notification extends Component {
   }
 
   render () {
-    return <ReactNotify ref={notification => {
-      if (!notification) {
-        return
-      }
+    return (
+      <ReactNotify
+        ref={notification => {
+          if (!notification) {
+            return
+          }
 
-      error = (title, body) => notification.error(title, body, 3e3)
-      info = (title, body) => notification.info(title, body, 3e3)
-      success = (title, body) => notification.success(title, body, 3e3)
-    }} />
+          error = (title, body) => notification.error(title, body, 3e3)
+          info = (title, body) => notification.info(title, body, 3e3)
+          success = (title, body) => notification.success(title, body, 3e3)
+        }}
+      />
+    )
   }
 }
 

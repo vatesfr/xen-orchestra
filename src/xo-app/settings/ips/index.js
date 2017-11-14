@@ -26,12 +26,7 @@ import {
   keys,
   map
 } from 'lodash'
-import {
-  createIpPool,
-  deleteIpPool,
-  setIpPool,
-  subscribeIpPools
-} from 'xo'
+import { createIpPool, deleteIpPool, setIpPool, subscribeIpPools } from 'xo'
 
 const FULL_WIDTH = { width: '100%' }
 const NETWORK_FORM_STYLE = { maxWidth: '40em' }
@@ -71,83 +66,111 @@ class IpsCell extends BaseComponent {
   }
 
   render () {
-    const {
-      ipPool,
-      networks,
-      vifs
-    } = this.props
-    const {
-      newIps,
-      showNewIpForm
-    } = this.state
+    const { ipPool, networks, vifs } = this.props
+    const { newIps, showNewIpForm } = this.state
 
-    return <Container>
-      <Row>
-        <Col mediumSize={6} offset={5}><strong>{_('ipsVifs')}</strong></Col>
-      </Row>
-      {ipPool.addresses && map(formatIps(keys(ipPool.addresses)), (ip, key) => {
-        if (isObject(ip)) { // Range of IPs
-          return <Row key={key}>
-            <Col mediumSize={5}>
-              <strong>{ip.first} <Icon icon='arrow-right' /> {ip.last}</strong>
-            </Col>
-            <Col mediumSize={1} offset={6}>
-              <ActionRowButton
-                handler={this._deleteIp}
-                handlerParam={ip}
-                icon='delete'
-              />
-            </Col>
-          </Row>
-        }
-        const addressVifs = ipPool.addresses[ip].vifs
-        return <Row>
-          <Col mediumSize={5}>
-            <strong>{ip}</strong>
-          </Col>
-          <Col mediumSize={6}>{!isEmpty(addressVifs)
-            ? map(addressVifs, (vifId, index) => {
-              const vif = vifs[vifId] && vifs[vifId][0]
-              const network = vif && networks[vif.$network] && networks[vif.$network][0]
-              return <span key={index} className='mr-1'>
-                {network && vif
-                  ? `${network.name_label} #${vif.device}`
-                  : <em>{_('ipPoolUnknownVif')}</em>
-                }
-              </span>
-            })
-            : <em>{_('ipsNotUsed')}</em>
-          }</Col>
-          <Col mediumSize={1}>
-            <ActionRowButton
-              handler={this._deleteIp}
-              handlerParam={ip}
-              icon='delete'
-            />
+    return (
+      <Container>
+        <Row>
+          <Col mediumSize={6} offset={5}>
+            <strong>{_('ipsVifs')}</strong>
           </Col>
         </Row>
-      })}
-      <Row>
-        <Col>
-          {showNewIpForm
-          ? <form id='newIpForm' className='form-inline'>
-            <ActionButton btnStyle='danger' handler={this.toggleState('showNewIpForm')} icon='remove' />
-            {' '}
-            <DebounceInput
-              autoFocus
-              onChange={this.linkState('newIps')}
-              type='text'
-              className='form-control'
-              required
-              value={newIps || ''}
-            />
-            {' '}
-            <ActionButton form={`newIpForm`} icon='save' btnStyle='primary' handler={this._addIps} />
-          </form>
-          : <ActionButton btnStyle='success' size='small' handler={this.toggleState('showNewIpForm')} icon='add' />}
-        </Col>
-      </Row>
-    </Container>
+        {ipPool.addresses &&
+          map(formatIps(keys(ipPool.addresses)), (ip, key) => {
+            if (isObject(ip)) {
+              // Range of IPs
+              return (
+                <Row key={key}>
+                  <Col mediumSize={5}>
+                    <strong>
+                      {ip.first} <Icon icon='arrow-right' /> {ip.last}
+                    </strong>
+                  </Col>
+                  <Col mediumSize={1} offset={6}>
+                    <ActionRowButton
+                      handler={this._deleteIp}
+                      handlerParam={ip}
+                      icon='delete'
+                    />
+                  </Col>
+                </Row>
+              )
+            }
+            const addressVifs = ipPool.addresses[ip].vifs
+            return (
+              <Row>
+                <Col mediumSize={5}>
+                  <strong>{ip}</strong>
+                </Col>
+                <Col mediumSize={6}>
+                  {!isEmpty(addressVifs) ? (
+                    map(addressVifs, (vifId, index) => {
+                      const vif = vifs[vifId] && vifs[vifId][0]
+                      const network =
+                        vif &&
+                        networks[vif.$network] &&
+                        networks[vif.$network][0]
+                      return (
+                        <span key={index} className='mr-1'>
+                          {network && vif ? (
+                            `${network.name_label} #${vif.device}`
+                          ) : (
+                            <em>{_('ipPoolUnknownVif')}</em>
+                          )}
+                        </span>
+                      )
+                    })
+                  ) : (
+                    <em>{_('ipsNotUsed')}</em>
+                  )}
+                </Col>
+                <Col mediumSize={1}>
+                  <ActionRowButton
+                    handler={this._deleteIp}
+                    handlerParam={ip}
+                    icon='delete'
+                  />
+                </Col>
+              </Row>
+            )
+          })}
+        <Row>
+          <Col>
+            {showNewIpForm ? (
+              <form id='newIpForm' className='form-inline'>
+                <ActionButton
+                  btnStyle='danger'
+                  handler={this.toggleState('showNewIpForm')}
+                  icon='remove'
+                />{' '}
+                <DebounceInput
+                  autoFocus
+                  onChange={this.linkState('newIps')}
+                  type='text'
+                  className='form-control'
+                  required
+                  value={newIps || ''}
+                />{' '}
+                <ActionButton
+                  form={`newIpForm`}
+                  icon='save'
+                  btnStyle='primary'
+                  handler={this._addIps}
+                />
+              </form>
+            ) : (
+              <ActionButton
+                btnStyle='success'
+                size='small'
+                handler={this.toggleState('showNewIpForm')}
+                icon='add'
+              />
+            )}
+          </Col>
+        </Row>
+      </Container>
+    )
   }
 }
 
@@ -160,14 +183,14 @@ class NetworksCell extends BaseComponent {
     }
     const { ipPool } = this.props
     setIpPool(ipPool.id, {
-      networks: [ ...ipPool.networks, ...this.state.newNetworks ]
+      networks: [...ipPool.networks, ...this.state.newNetworks]
     })
     this._toggleNewNetworks()
     this.setState({ newNetworks: [] })
   }
 
   _deleteNetwork = networkId => {
-    const _networks = [ ...this.props.ipPool.networks ]
+    const _networks = [...this.props.ipPool.networks]
     const index = findIndex(_networks, network => network === networkId)
     if (index !== -1) {
       _networks.splice(index, 1)
@@ -179,48 +202,62 @@ class NetworksCell extends BaseComponent {
     this.setState({ showNewNetworkForm: !this.state.showNewNetworkForm })
   _getNetworkPredicate = createSelector(
     () => this.props.ipPool && this.props.ipPool.networks,
-    networks => network =>
-      !includes(networks, network.id)
+    networks => network => !includes(networks, network.id)
   )
 
   render () {
     const { ipPool } = this.props
     const { newNetworks, showNewNetworkForm } = this.state
 
-    return <Container>
-      {map(ipPool.networks, networkId => <Row key={networkId}>
-        <Col mediumSize={11}>
-          {renderXoItemFromId(networkId)}
-        </Col>
-        <Col mediumSize={1}>
-          <ActionRowButton
-            handler={this._deleteNetwork}
-            handlerParam={networkId}
-            icon='delete'
-            size='small'
-          />
-        </Col>
-      </Row>)}
-      <Row>
-        {showNewNetworkForm
-          ? <form id='newNetworkForm' style={NETWORK_FORM_STYLE}>
-            <Col mediumSize={10}>
-              <SelectNetwork
-                autoFocus
-                multi
-                onChange={this.linkState('newNetworks', '*.id')}
-                predicate={this._getNetworkPredicate()}
-                value={newNetworks}
+    return (
+      <Container>
+        {map(ipPool.networks, networkId => (
+          <Row key={networkId}>
+            <Col mediumSize={11}>{renderXoItemFromId(networkId)}</Col>
+            <Col mediumSize={1}>
+              <ActionRowButton
+                handler={this._deleteNetwork}
+                handlerParam={networkId}
+                icon='delete'
+                size='small'
               />
             </Col>
-            <Col mediumSize={2}>
-              <ActionButton form='newNetworkForm' icon='save' btnStyle='primary' handler={this._addNetworks} />
+          </Row>
+        ))}
+        <Row>
+          {showNewNetworkForm ? (
+            <form id='newNetworkForm' style={NETWORK_FORM_STYLE}>
+              <Col mediumSize={10}>
+                <SelectNetwork
+                  autoFocus
+                  multi
+                  onChange={this.linkState('newNetworks', '*.id')}
+                  predicate={this._getNetworkPredicate()}
+                  value={newNetworks}
+                />
+              </Col>
+              <Col mediumSize={2}>
+                <ActionButton
+                  form='newNetworkForm'
+                  icon='save'
+                  btnStyle='primary'
+                  handler={this._addNetworks}
+                />
+              </Col>
+            </form>
+          ) : (
+            <Col>
+              <ActionButton
+                btnStyle='success'
+                size='small'
+                handler={this._toggleNewNetworks}
+                icon='add'
+              />
             </Col>
-          </form>
-          : <Col><ActionButton btnStyle='success' size='small' handler={this._toggleNewNetworks} icon='add' /></Col>
-        }
-      </Row>
-    </Container>
+          )}
+        </Row>
+      </Container>
+    )
   }
 }
 
@@ -261,7 +298,9 @@ export default class Ips extends BaseComponent {
 
   _onChangeIpPoolName = (ipPool, name) => {
     if (some(this.props.ipPools, { name })) {
-      throw new Error(this.props.intl.formatMessage(messages.ipPoolNameAlreadyExists))
+      throw new Error(
+        this.props.intl.formatMessage(messages.ipPoolNameAlreadyExists)
+      )
     }
 
     return setIpPool(ipPool, { name })
@@ -271,7 +310,12 @@ export default class Ips extends BaseComponent {
     {
       default: true,
       name: _('ipPoolName'),
-      itemRenderer: ipPool => <Text onChange={name => this._onChangeIpPoolName(ipPool, name)} value={ipPool.name} />,
+      itemRenderer: ipPool => (
+        <Text
+          onChange={name => this._onChangeIpPoolName(ipPool, name)}
+          value={ipPool.name}
+        />
+      ),
       sortCriteria: ipPool => ipPool.name
     },
     {
@@ -284,88 +328,99 @@ export default class Ips extends BaseComponent {
     },
     {
       name: '',
-      itemRenderer: ipPool => <span className='pull-right'>
-        <ActionButton handler={deleteIpPool} handlerParam={ipPool.id} icon='delete' />
-      </span>
+      itemRenderer: ipPool => (
+        <span className='pull-right'>
+          <ActionButton
+            handler={deleteIpPool}
+            handlerParam={ipPool.id}
+            icon='delete'
+          />
+        </span>
+      )
     }
   ]
 
   render () {
     if (process.env.XOA_PLAN < 4) {
-      return <Container><Upgrade place='health' available={4} /></Container>
+      return (
+        <Container>
+          <Upgrade place='health' available={4} />
+        </Container>
+      )
     }
 
     const { ipPools, intl } = this.props
-    const {
-      creatingIpPool,
-      ips,
-      name,
-      networks
-    } = this.state
+    const { creatingIpPool, ips, name, networks } = this.state
 
-    return <div>
-      <Row>
-        <Col size={6}>
-          <form id='newIpPoolForm' className='form-inline'>
-            <SingleLineRow>
-              <Col mediumSize={6}>
-                <input
-                  className='form-control'
-                  disabled={creatingIpPool}
-                  onChange={this.linkState('name')}
-                  placeholder={intl.formatMessage(messages.ipPoolName)}
-                  required
-                  style={FULL_WIDTH}
-                  type='text'
-                  value={name || ''}
-                />
-              </Col>
-              <Col mediumSize={6}>
-                <input
-                  className='form-control'
-                  disabled={creatingIpPool}
-                  onChange={this.linkState('ips')}
-                  pattern={IPS_PATTERN}
-                  placeholder={intl.formatMessage(messages.ipPoolIps)}
-                  required
-                  style={FULL_WIDTH}
-                  type='text'
-                  value={ips || ''}
-                />
-              </Col>
-            </SingleLineRow>
-            <br />
-            <SingleLineRow>
-              <Col mediumSize={12}>
-                <SelectNetwork
-                  disabled={creatingIpPool}
-                  multi
-                  onChange={this.linkState('networks')}
-                  value={networks}
-                />
-              </Col>
-            </SingleLineRow>
-            <br />
-            <SingleLineRow>
-              <Col mediumSize={6}>
-                <ActionButton
-                  btnStyle='success'
-                  disabled={this._disableCreation()}
-                  form='newIpPoolForm' icon='add'
-                  handler={this._create}
-                >
-                  {_('ipsCreate')}
-                </ActionButton>
-              </Col>
-            </SingleLineRow>
-          </form>
-        </Col>
-      </Row>
-      <hr />
-      {isEmpty(ipPools)
-        ? <p><em>{_('ipsNoIpPool')}</em></p>
-        : <SortedTable collection={ipPools} columns={this._ipColumns} />
-      }
-    </div>
+    return (
+      <div>
+        <Row>
+          <Col size={6}>
+            <form id='newIpPoolForm' className='form-inline'>
+              <SingleLineRow>
+                <Col mediumSize={6}>
+                  <input
+                    className='form-control'
+                    disabled={creatingIpPool}
+                    onChange={this.linkState('name')}
+                    placeholder={intl.formatMessage(messages.ipPoolName)}
+                    required
+                    style={FULL_WIDTH}
+                    type='text'
+                    value={name || ''}
+                  />
+                </Col>
+                <Col mediumSize={6}>
+                  <input
+                    className='form-control'
+                    disabled={creatingIpPool}
+                    onChange={this.linkState('ips')}
+                    pattern={IPS_PATTERN}
+                    placeholder={intl.formatMessage(messages.ipPoolIps)}
+                    required
+                    style={FULL_WIDTH}
+                    type='text'
+                    value={ips || ''}
+                  />
+                </Col>
+              </SingleLineRow>
+              <br />
+              <SingleLineRow>
+                <Col mediumSize={12}>
+                  <SelectNetwork
+                    disabled={creatingIpPool}
+                    multi
+                    onChange={this.linkState('networks')}
+                    value={networks}
+                  />
+                </Col>
+              </SingleLineRow>
+              <br />
+              <SingleLineRow>
+                <Col mediumSize={6}>
+                  <ActionButton
+                    btnStyle='success'
+                    disabled={this._disableCreation()}
+                    form='newIpPoolForm'
+                    icon='add'
+                    handler={this._create}
+                  >
+                    {_('ipsCreate')}
+                  </ActionButton>
+                </Col>
+              </SingleLineRow>
+            </form>
+          </Col>
+        </Row>
+        <hr />
+        {isEmpty(ipPools) ? (
+          <p>
+            <em>{_('ipsNoIpPool')}</em>
+          </p>
+        ) : (
+          <SortedTable collection={ipPools} columns={this._ipColumns} />
+        )}
+      </div>
+    )
   }
 }

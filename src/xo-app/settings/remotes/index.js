@@ -34,98 +34,110 @@ const remoteTypes = {
 
 class AbstractRemote extends Component {
   _changeUrlElement = (value, element) => {
-    const remote = {...this.props.remote}
+    const remote = { ...this.props.remote }
     remote[element] = value
     const url = format(remote)
-    return editRemote(remote, {url})
+    return editRemote(remote, { url })
   }
 
-  _showError = () => alert(
-    _('remoteConnectionFailed'),
-    this.props.remote.error
-  )
+  _showError = () => alert(_('remoteConnectionFailed'), this.props.remote.error)
 
   _changeName = name => {
     const { remote } = this.props
-    return editRemote(remote, {name})
+    return editRemote(remote, { name })
   }
 
   _test = () => {
     const { remote } = this.props
     testRemote(remote).then(answer => {
-      const title = <span>
-        <Icon icon={answer.success ? 'success' : 'error'} />
-        {' '}
-        {_(answer.success ? 'remoteTestSuccess' : 'remoteTestFailure', {name: remote.name})}
-      </span>
+      const title = (
+        <span>
+          <Icon icon={answer.success ? 'success' : 'error'} />{' '}
+          {_(answer.success ? 'remoteTestSuccess' : 'remoteTestFailure', {
+            name: remote.name
+          })}
+        </span>
+      )
       let body
       if (answer.success) {
         body = _('remoteTestSuccessMessage')
       } else {
-        body = <p>
-          <dl className='dl-horizontal'>
-            <dt>{_('remoteTestError')}</dt>
-            <dd>{answer.error}</dd>
-            <dt>{_('remoteTestStep')}</dt>
-            <dd>{answer.step}</dd>
-          </dl>
-        </p>
+        body = (
+          <p>
+            <dl className='dl-horizontal'>
+              <dt>{_('remoteTestError')}</dt>
+              <dd>{answer.error}</dd>
+              <dt>{_('remoteTestStep')}</dt>
+              <dd>{answer.step}</dd>
+            </dl>
+          </p>
+        )
       }
       alert(title, body)
     })
   }
 
   render () {
-    const {
-      remote
-    } = this.props
+    const { remote } = this.props
 
-    return <tr>
-      <td />
-      <td><Text value={remote.name} onChange={this._changeName} placeholder={this.props.intl.formatMessage(messages.remoteNamePlaceHolder)} /></td>
-      <td>{this._renderRemoteInfo(remote)}</td>
-      <td>{this._renderAuthInfo(remote)}</td>
-      <td>
-        <StateButton
-          disabledLabel={_('remoteDisconnected')}
-          disabledHandler={enableRemote}
-          disabledTooltip={_('remoteConnectTip')}
-
-          enabledLabel={_('remoteConnected')}
-          enabledHandler={disableRemote}
-          enabledTooltip={_('remoteDisconnectTip')}
-
-          handlerParam={remote}
-          state={remote.enabled}
-        />
-        {' '}
-        {remote.error &&
-          <Tooltip content={_('remoteConnectionFailed')}>
-            <a
-              className='text-danger btn btn-link'
-              style={{ padding: '0px' }}
-              onClick={this._showError}
-            >
-              <Icon
-                icon='alarm'
-                size='lg'
+    return (
+      <tr>
+        <td />
+        <td>
+          <Text
+            value={remote.name}
+            onChange={this._changeName}
+            placeholder={this.props.intl.formatMessage(
+              messages.remoteNamePlaceHolder
+            )}
+          />
+        </td>
+        <td>{this._renderRemoteInfo(remote)}</td>
+        <td>{this._renderAuthInfo(remote)}</td>
+        <td>
+          <StateButton
+            disabledLabel={_('remoteDisconnected')}
+            disabledHandler={enableRemote}
+            disabledTooltip={_('remoteConnectTip')}
+            enabledLabel={_('remoteConnected')}
+            enabledHandler={disableRemote}
+            enabledTooltip={_('remoteDisconnectTip')}
+            handlerParam={remote}
+            state={remote.enabled}
+          />{' '}
+          {remote.error && (
+            <Tooltip content={_('remoteConnectionFailed')}>
+              <a
+                className='text-danger btn btn-link'
+                style={{ padding: '0px' }}
+                onClick={this._showError}
+              >
+                <Icon icon='alarm' size='lg' />
+              </a>
+            </Tooltip>
+          )}
+        </td>
+        <td className='text-xs-right'>
+          {remote.enabled && (
+            <Tooltip content={_('remoteTestTip')}>
+              <ActionRowButton
+                btnStyle='primary'
+                handler={this._test}
+                icon='diagnosis'
               />
-            </a>
+            </Tooltip>
+          )}{' '}
+          <Tooltip content={_('remoteDeleteTip')}>
+            <ActionRowButton
+              btnStyle='danger'
+              handler={deleteRemote}
+              handlerParam={remote}
+              icon='delete'
+            />
           </Tooltip>
-        }
-      </td>
-      <td className='text-xs-right'>
-        {remote.enabled &&
-          <Tooltip content={_('remoteTestTip')}>
-            <ActionRowButton btnStyle='primary' handler={this._test} icon='diagnosis' />
-          </Tooltip>
-        }
-        {' '}
-        <Tooltip content={_('remoteDeleteTip')}>
-          <ActionRowButton btnStyle='danger' handler={deleteRemote} handlerParam={remote} icon='delete' />
-        </Tooltip>
-      </td>
-    </tr>
+        </td>
+      </tr>
+    )
   }
 
   _renderRemoteInfo () {
@@ -149,7 +161,15 @@ class AbstractRemote extends Component {
 class LocalRemote extends AbstractRemote {
   _renderRemoteInfo () {
     const { remote } = this.props
-    return <Text value={remote.path} onChange={v => this._changeUrlElement(v, 'path')} placeholder={this.props.intl.formatMessage(messages.remoteLocalPlaceHolderPath)} />
+    return (
+      <Text
+        value={remote.path}
+        onChange={v => this._changeUrlElement(v, 'path')}
+        placeholder={this.props.intl.formatMessage(
+          messages.remoteLocalPlaceHolderPath
+        )}
+      />
+    )
   }
 
   _renderAuthInfo () {
@@ -169,11 +189,25 @@ class LocalRemote extends AbstractRemote {
 class NfsRemote extends AbstractRemote {
   _renderRemoteInfo () {
     const { remote } = this.props
-    return <span>
-      <Text value={remote.host} onChange={v => this._changeUrlElement(v, 'host')} placeholder={this.props.intl.formatMessage(messages.remoteNfsPlaceHolderHost)} />
-      :
-      <Text value={remote.path} onChange={v => this._changeUrlElement(v, 'path')} placeholder={this.props.intl.formatMessage(messages.remoteNfsPlaceHolderPath)} />
-    </span>
+    return (
+      <span>
+        <Text
+          value={remote.host}
+          onChange={v => this._changeUrlElement(v, 'host')}
+          placeholder={this.props.intl.formatMessage(
+            messages.remoteNfsPlaceHolderHost
+          )}
+        />
+        :
+        <Text
+          value={remote.path}
+          onChange={v => this._changeUrlElement(v, 'path')}
+          placeholder={this.props.intl.formatMessage(
+            messages.remoteNfsPlaceHolderPath
+          )}
+        />
+      </span>
+    )
   }
 
   _renderAuthInfo () {
@@ -193,25 +227,50 @@ class NfsRemote extends AbstractRemote {
 class SmbRemote extends AbstractRemote {
   _renderRemoteInfo () {
     const { remote } = this.props
-    return <span>
-      <strong className='text-info'>\\</strong>
-      <Text value={remote.host} onChange={v => this._changeUrlElement(v, 'host')} />
-      <strong className='text-info'>\</strong>
+    return (
       <span>
-        <Text value={remote.path} onChange={v => this._changeUrlElement(v, 'path')} placeholder={this.props.intl.formatMessage(messages.remoteSmbPlaceHolderRemotePath)} />
+        <strong className='text-info'>\\</strong>
+        <Text
+          value={remote.host}
+          onChange={v => this._changeUrlElement(v, 'host')}
+        />
+        <strong className='text-info'>\</strong>
+        <span>
+          <Text
+            value={remote.path}
+            onChange={v => this._changeUrlElement(v, 'path')}
+            placeholder={this.props.intl.formatMessage(
+              messages.remoteSmbPlaceHolderRemotePath
+            )}
+          />
+        </span>
       </span>
-    </span>
+    )
   }
 
   _renderAuthInfo () {
     const { remote } = this.props
-    return <span>
-      <Text value={remote.username} onChange={v => this._changeUrlElement(v, 'username')} />
-      :
-      <Password value='' onChange={v => this._changeUrlElement(v, 'password')} placeholder={this.props.intl.formatMessage(messages.remotePlaceHolderPassword)} />
-      @
-      <Text value={remote.domain} onChange={v => this._changeUrlElement(v, 'domain')} />
-    </span>
+    return (
+      <span>
+        <Text
+          value={remote.username}
+          onChange={v => this._changeUrlElement(v, 'username')}
+        />
+        :
+        <Password
+          value=''
+          onChange={v => this._changeUrlElement(v, 'password')}
+          placeholder={this.props.intl.formatMessage(
+            messages.remotePlaceHolderPassword
+          )}
+        />
+        @
+        <Text
+          value={remote.domain}
+          onChange={v => this._changeUrlElement(v, 'domain')}
+        />
+      </span>
+    )
   }
 
   get accessible () {
@@ -224,16 +283,19 @@ class SmbRemote extends AbstractRemote {
 }
 
 @addSubscriptions({
-  remotes: cb => subscribeRemotes(rawRemotes => {
-    rawRemotes = map(rawRemotes, remote => ({...remote, ...parse(remote.url)}))
-    const remotes = {}
-    for (const remoteType in remoteTypes) {
-      remotes[remoteType] = filter(rawRemotes, r => r.type === remoteType)
-    }
-    cb(remotes)
-  })
+  remotes: cb =>
+    subscribeRemotes(rawRemotes => {
+      rawRemotes = map(rawRemotes, remote => ({
+        ...remote,
+        ...parse(remote.url)
+      }))
+      const remotes = {}
+      for (const remoteType in remoteTypes) {
+        remotes[remoteType] = filter(rawRemotes, r => r.type === remoteType)
+      }
+      cb(remotes)
+    })
 })
-
 @injectIntl
 export default class Remotes extends Component {
   constructor (props) {
@@ -243,30 +305,23 @@ export default class Remotes extends Component {
     }
   }
 
-  _handleRemoteTypeSelection = type => this.setState({type})
+  _handleRemoteTypeSelection = type => this.setState({ type })
 
-  _checkNameExists = () => some(
-    this.props.remotes,
-    values => some(values, ['name', this.refs.name.value])
-  )
-    ? alert(
-      <span><Icon icon={'error'} />{' '}{_('remoteTestName')}</span>,
-      <p>{_('remoteTestNameFailure')}</p>
+  _checkNameExists = () =>
+    some(this.props.remotes, values =>
+      some(values, ['name', this.refs.name.value])
     )
-    : this._createRemote()
+      ? alert(
+        <span>
+          <Icon icon={'error'} /> {_('remoteTestName')}
+        </span>,
+        <p>{_('remoteTestNameFailure')}</p>
+        )
+      : this._createRemote()
 
   _createRemote = async () => {
-    const {
-      name,
-      host,
-      path,
-      username,
-      password,
-      domain
-    } = this.refs
-    const {
-      type
-    } = this.state
+    const { name, host, path, username, password, domain } = this.refs
+    const { type } = this.state
 
     const urlParams = {
       type,
@@ -278,13 +333,16 @@ export default class Remotes extends Component {
     domain && (urlParams.domain = domain.value)
 
     const url = format(urlParams)
-    return createRemote(name && name.value, url).then(() => {
-      this.setState({type: 'file'})
-      path && (path.value = '')
-      username && (username.value = '')
-      password && (password.value = '')
-      domain && (domain.value = '')
-    }, err => error('Create Remote', err.message || String(err)))
+    return createRemote(name && name.value, url).then(
+      () => {
+        this.setState({ type: 'file' })
+        path && (path.value = '')
+        username && (username.value = '')
+        password && (password.value = '')
+        domain && (domain.value = '')
+      },
+      err => error('Create Remote', err.message || String(err))
+    )
   }
 
   render () {
@@ -294,7 +352,7 @@ export default class Remotes extends Component {
     return (
       <div>
         <table className='table table-hover'>
-          {!isEmpty(remotes.file) &&
+          {!isEmpty(remotes.file) && (
             <tbody>
               <tr>
                 <th className='text-info'>{_('remoteTypeLocal')}</th>
@@ -304,10 +362,12 @@ export default class Remotes extends Component {
                 <th>{_('remoteState')}</th>
                 <th className='text-xs-right'>{_('remoteAction')}</th>
               </tr>
-              {map(remotes.file, (remote, key) => <LocalRemote remote={remote} key={key} />)}
+              {map(remotes.file, (remote, key) => (
+                <LocalRemote remote={remote} key={key} />
+              ))}
             </tbody>
-          }
-          {!isEmpty(remotes.nfs) &&
+          )}
+          {!isEmpty(remotes.nfs) && (
             <tbody>
               <tr>
                 <th className='text-info'>{_('remoteTypeNfs')}</th>
@@ -317,10 +377,12 @@ export default class Remotes extends Component {
                 <th>{_('remoteState')}</th>
                 <th className='text-xs-right'>{_('remoteAction')}</th>
               </tr>
-              {map(remotes.nfs, (remote, key) => <NfsRemote remote={remote} key={key} />)}
+              {map(remotes.nfs, (remote, key) => (
+                <NfsRemote remote={remote} key={key} />
+              ))}
             </tbody>
-          }
-          {!isEmpty(remotes.smb) &&
+          )}
+          {!isEmpty(remotes.smb) && (
             <tbody>
               <tr>
                 <th className='text-info'>{_('remoteTypeSmb')}</th>
@@ -330,9 +392,11 @@ export default class Remotes extends Component {
                 <th>{_('remoteState')}</th>
                 <th className='text-xs-right'>{_('remoteAction')}</th>
               </tr>
-              {map(remotes.smb, (remote, key) => <SmbRemote remote={remote} key={key} />)}
+              {map(remotes.smb, (remote, key) => (
+                <SmbRemote remote={remote} key={key} />
+              ))}
             </tbody>
-          }
+          )}
         </table>
         <h2>{_('newRemote')}</h2>
         <form id='newRemoteForm'>
@@ -342,56 +406,141 @@ export default class Remotes extends Component {
               id='newRemoteType'
               className='form-control'
               defaultValue={type}
-              onChange={event => { this._handleRemoteTypeSelection(event.target.value) }}
+              onChange={event => {
+                this._handleRemoteTypeSelection(event.target.value)
+              }}
               required
             >
-              {map(remoteTypes, (label, key) => _({key}, label, message => <option value={key}>{message}</option>))}
+              {map(remoteTypes, (label, key) =>
+                _({ key }, label, message => (
+                  <option value={key}>{message}</option>
+                ))
+              )}
             </select>
-            {type === 'smb' && <em className='text-warning'>{_('remoteSmbWarningMessage')}</em>}
+            {type === 'smb' && (
+              <em className='text-warning'>{_('remoteSmbWarningMessage')}</em>
+            )}
           </div>
           <div className='form-group'>
-            <input type='text' ref='name' className='form-control' placeholder={this.props.intl.formatMessage(messages.remoteMyNamePlaceHolder)} required />
+            <input
+              type='text'
+              ref='name'
+              className='form-control'
+              placeholder={this.props.intl.formatMessage(
+                messages.remoteMyNamePlaceHolder
+              )}
+              required
+            />
           </div>
-          {type === 'file' &&
+          {type === 'file' && (
             <fieldset className='form-group'>
               <div className='input-group'>
                 <span className='input-group-addon'>/</span>
-                <input type='text' ref='path' pattern='^(([^/]+)+(/[^/]+)*)?$' className='form-control' placeholder={this.props.intl.formatMessage(messages.remoteLocalPlaceHolderPath)} />
+                <input
+                  type='text'
+                  ref='path'
+                  pattern='^(([^/]+)+(/[^/]+)*)?$'
+                  className='form-control'
+                  placeholder={this.props.intl.formatMessage(
+                    messages.remoteLocalPlaceHolderPath
+                  )}
+                />
               </div>
             </fieldset>
-          }
-          {type === 'nfs' &&
+          )}
+          {type === 'nfs' && (
             <fieldset className='form-group'>
               <div className='form-group'>
-                <input type='text' ref='host' className='form-control' placeholder={this.props.intl.formatMessage(messages.remoteNfsPlaceHolderHost)} required />
+                <input
+                  type='text'
+                  ref='host'
+                  className='form-control'
+                  placeholder={this.props.intl.formatMessage(
+                    messages.remoteNfsPlaceHolderHost
+                  )}
+                  required
+                />
               </div>
               <div className='input-group'>
                 <span className='input-group-addon'>/</span>
-                <input type='text' ref='path' pattern='^(([^/]+)+(/[^/]+)*)?$' className='form-control' placeholder={this.props.intl.formatMessage(messages.remoteNfsPlaceHolderPath)} />
+                <input
+                  type='text'
+                  ref='path'
+                  pattern='^(([^/]+)+(/[^/]+)*)?$'
+                  className='form-control'
+                  placeholder={this.props.intl.formatMessage(
+                    messages.remoteNfsPlaceHolderPath
+                  )}
+                />
               </div>
             </fieldset>
-          }
-          {type === 'smb' &&
+          )}
+          {type === 'smb' && (
             <fieldset className='form-group'>
               <div className='input-group form-group'>
                 <span className='input-group-addon'>\\</span>
-                <input type='text' ref='host' pattern='^([^\\/]+)\\([^\\/]+)$' className='form-control' placeholder={this.props.intl.formatMessage(messages.remoteSmbPlaceHolderAddressShare)} required />
+                <input
+                  type='text'
+                  ref='host'
+                  pattern='^([^\\/]+)\\([^\\/]+)$'
+                  className='form-control'
+                  placeholder={this.props.intl.formatMessage(
+                    messages.remoteSmbPlaceHolderAddressShare
+                  )}
+                  required
+                />
                 <span className='input-group-addon'>\</span>
-                <input type='text' ref='path' pattern='^(([^\\/]+)+(\\[^\\/]+)*)?$' className='form-control' placeholder={this.props.intl.formatMessage(messages.remoteSmbPlaceHolderRemotePath)} />
+                <input
+                  type='text'
+                  ref='path'
+                  pattern='^(([^\\/]+)+(\\[^\\/]+)*)?$'
+                  className='form-control'
+                  placeholder={this.props.intl.formatMessage(
+                    messages.remoteSmbPlaceHolderRemotePath
+                  )}
+                />
               </div>
               <div className='form-group'>
-                <input type='text' ref='username' className='form-control' placeholder={this.props.intl.formatMessage(messages.remoteSmbPlaceHolderUsername)} />
+                <input
+                  type='text'
+                  ref='username'
+                  className='form-control'
+                  placeholder={this.props.intl.formatMessage(
+                    messages.remoteSmbPlaceHolderUsername
+                  )}
+                />
               </div>
               <div className='form-group'>
-                <input type='text' ref='password' className='form-control' placeholder={this.props.intl.formatMessage(messages.remoteSmbPlaceHolderPassword)} />
+                <input
+                  type='text'
+                  ref='password'
+                  className='form-control'
+                  placeholder={this.props.intl.formatMessage(
+                    messages.remoteSmbPlaceHolderPassword
+                  )}
+                />
               </div>
               <div className='form-group'>
-                <input type='text' ref='domain' className='form-control' placeholder={this.props.intl.formatMessage(messages.remoteSmbPlaceHolderDomain)} required />
+                <input
+                  type='text'
+                  ref='domain'
+                  className='form-control'
+                  placeholder={this.props.intl.formatMessage(
+                    messages.remoteSmbPlaceHolderDomain
+                  )}
+                  required
+                />
               </div>
             </fieldset>
-          }
+          )}
           <div className='form-group'>
-            <ActionButton type='submit' form='newRemoteForm' icon='save' btnStyle='primary' handler={this._checkNameExists}>
+            <ActionButton
+              type='submit'
+              form='newRemoteForm'
+              icon='save'
+              btnStyle='primary'
+              handler={this._checkNameExists}
+            >
               {_('savePluginConfiguration')}
             </ActionButton>
           </div>

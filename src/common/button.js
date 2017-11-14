@@ -47,10 +47,7 @@ propTypes({
   ]),
 
   outline: propTypes.bool,
-  size: propTypes.oneOf([
-    'large',
-    'small'
-  ])
+  size: propTypes.oneOf(['large', 'small'])
 })(Button)
 
 export { Button as default }

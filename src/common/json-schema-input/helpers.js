@@ -38,12 +38,21 @@ export const getXoType = schema => {
 
 // ===================================================================
 
-export const descriptionRender = description =>
-  <span className='text-muted' dangerouslySetInnerHTML={{__html: marked(description || '')}} />
+export const descriptionRender = description => (
+  <span
+    className='text-muted'
+    dangerouslySetInnerHTML={{ __html: marked(description || '') }}
+  />
+)
 
 // ===================================================================
 
-export const PrimitiveInputWrapper = ({ label, required = false, schema, children }) => (
+export const PrimitiveInputWrapper = ({
+  label,
+  required = false,
+  schema,
+  children
+}) => (
   <Row>
     <Col mediumSize={6}>
       <div className='input-group'>
@@ -54,9 +63,7 @@ export const PrimitiveInputWrapper = ({ label, required = false, schema, childre
         {children}
       </div>
     </Col>
-    <Col mediumSize={6}>
-      {descriptionRender(schema.description)}
-    </Col>
+    <Col mediumSize={6}>{descriptionRender(schema.description)}</Col>
   </Row>
 )
 

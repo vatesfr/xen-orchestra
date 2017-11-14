@@ -5,7 +5,15 @@ import { noop } from 'lodash'
 
 import ButtonGroup from './button-group'
 
-export const Action = ({ display, handler, handlerParam, icon, label, pending, redirectOnSuccess }) =>
+export const Action = ({
+  display,
+  handler,
+  handlerParam,
+  icon,
+  label,
+  pending,
+  redirectOnSuccess
+}) => (
   <ActionButton
     handler={handler}
     handlerParam={handlerParam}
@@ -17,9 +25,10 @@ export const Action = ({ display, handler, handlerParam, icon, label, pending, r
   >
     {display === 'both' && label}
   </ActionButton>
+)
 
 Action.propTypes = {
-  display: propTypes.oneOf([ 'icon', 'both' ]),
+  display: propTypes.oneOf(['icon', 'both']),
   handler: propTypes.func.isRequired,
   icon: propTypes.string.isRequired,
   label: propTypes.node,
@@ -27,7 +36,7 @@ Action.propTypes = {
   redirectOnSuccess: propTypes.string
 }
 
-const ActionBar = ({ children, handlerParam = noop, display = 'both' }) =>
+const ActionBar = ({ children, handlerParam = noop, display = 'both' }) => (
   <ButtonGroup>
     {React.Children.map(children, (child, key) => {
       if (!child) {
@@ -42,9 +51,10 @@ const ActionBar = ({ children, handlerParam = noop, display = 'both' }) =>
       })
     })}
   </ButtonGroup>
+)
 
 ActionBar.propTypes = {
-  display: propTypes.oneOf([ 'icon', 'both' ]),
+  display: propTypes.oneOf(['icon', 'both']),
   handlerParam: propTypes.any
 }
 export { ActionBar as default }

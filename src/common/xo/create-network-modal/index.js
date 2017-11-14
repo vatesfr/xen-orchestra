@@ -31,63 +31,54 @@ class CreateNetworkModalBody extends Component {
 
   render () {
     const { formatMessage } = this.props.intl
-    return <div>
-      <SingleLineRow>
-        <Col size={6}>{_('newNetworkInterface')}</Col>
-        <Col size={6}>
-          <SelectPif
-            predicate={this._getPifPredicate()}
-            ref='pif'
-          />
-        </Col>
-      </SingleLineRow>
-      &nbsp;
-      <SingleLineRow>
-        <Col size={6}>{_('newNetworkName')}</Col>
-        <Col size={6}>
-          <input
-            className='form-control'
-            ref='name'
-            type='text'
-          />
-        </Col>
-      </SingleLineRow>
-      &nbsp;
-      <SingleLineRow>
-        <Col size={6}>{_('newNetworkDescription')}</Col>
-        <Col size={6}>
-          <input
-            className='form-control'
-            ref='description'
-            type='text'
-          />
-        </Col>
-      </SingleLineRow>
-      &nbsp;
-      <SingleLineRow>
-        <Col size={6}>{_('newNetworkVlan')}</Col>
-        <Col size={6}>
-          <input
-            className='form-control'
-            placeholder={formatMessage(messages.newNetworkDefaultVlan)}
-            ref='vlan'
-            type='text'
-          />
-        </Col>
-      </SingleLineRow>
-      &nbsp;
-      <SingleLineRow>
-        <Col size={6}>{_('newNetworkMtu')}</Col>
-        <Col size={6}>
-          <input
-            className='form-control'
-            placeholder={formatMessage(messages.newNetworkDefaultMtu)}
-            ref='mtu'
-            type='text'
-          />
-        </Col>
-      </SingleLineRow>
-    </div>
+    return (
+      <div>
+        <SingleLineRow>
+          <Col size={6}>{_('newNetworkInterface')}</Col>
+          <Col size={6}>
+            <SelectPif predicate={this._getPifPredicate()} ref='pif' />
+          </Col>
+        </SingleLineRow>
+        &nbsp;
+        <SingleLineRow>
+          <Col size={6}>{_('newNetworkName')}</Col>
+          <Col size={6}>
+            <input className='form-control' ref='name' type='text' />
+          </Col>
+        </SingleLineRow>
+        &nbsp;
+        <SingleLineRow>
+          <Col size={6}>{_('newNetworkDescription')}</Col>
+          <Col size={6}>
+            <input className='form-control' ref='description' type='text' />
+          </Col>
+        </SingleLineRow>
+        &nbsp;
+        <SingleLineRow>
+          <Col size={6}>{_('newNetworkVlan')}</Col>
+          <Col size={6}>
+            <input
+              className='form-control'
+              placeholder={formatMessage(messages.newNetworkDefaultVlan)}
+              ref='vlan'
+              type='text'
+            />
+          </Col>
+        </SingleLineRow>
+        &nbsp;
+        <SingleLineRow>
+          <Col size={6}>{_('newNetworkMtu')}</Col>
+          <Col size={6}>
+            <input
+              className='form-control'
+              placeholder={formatMessage(messages.newNetworkDefaultMtu)}
+              ref='mtu'
+              type='text'
+            />
+          </Col>
+        </SingleLineRow>
+      </div>
+    )
   }
 }
 export default injectIntl(CreateNetworkModalBody, { withRef: true })

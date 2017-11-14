@@ -13,11 +13,14 @@ import XoApp from './xo-app'
 render(
   <Provider store={store}>
     <div>
-      <Router history={hashHistory} routes={{
-        ...XoApp.route,
-        component: XoApp,
-        path: '/'
-      }} />
+      <Router
+        history={hashHistory}
+        routes={{
+          ...XoApp.route,
+          component: XoApp,
+          path: '/'
+        }}
+      />
       {DevTools && <DevTools />}
     </div>
   </Provider>,

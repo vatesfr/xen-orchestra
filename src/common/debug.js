@@ -1,9 +1,8 @@
 import React, { Component, PropTypes } from 'react'
 import { isPromise } from 'promise-toolbox'
 
-const toString = value => value === undefined
-  ? 'undefined'
-  : JSON.stringify(value, null, 2)
+const toString = value =>
+  value === undefined ? 'undefined' : JSON.stringify(value, null, 2)
 
 // This component does not handle changes in its `promise` property.
 class DebugAsync extends Component {
@@ -35,18 +34,23 @@ class DebugAsync extends Component {
       return <pre>{'Promise { <pending> }'}</pre>
     }
 
-    return <pre>
-      {'Promise { '}
-      {status === 'rejected' && '<rejected> '}
-      {toString(value)}
-      {' }'}
-    </pre>
+    return (
+      <pre>
+        {'Promise { '}
+        {status === 'rejected' && '<rejected> '}
+        {toString(value)}
+        {' }'}
+      </pre>
+    )
   }
 }
 
-const Debug = ({ value }) => isPromise(value)
-  ? <DebugAsync promise={value} />
-  : <pre>{toString(value)}</pre>
+const Debug = ({ value }) =>
+  isPromise(value) ? (
+    <DebugAsync promise={value} />
+  ) : (
+    <pre>{toString(value)}</pre>
+  )
 
 Debug.propTypes = {
   value: PropTypes.any.isRequired

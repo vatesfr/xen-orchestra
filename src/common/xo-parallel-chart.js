@@ -66,7 +66,7 @@ const LINES_CONTAINER_STYLE = {
 }
 
 const TOOLTIP_STYLE = {
-  'fill': 'white',
+  fill: 'white',
   'font-size': '125%',
   'font-weight': 'bold'
 }
@@ -92,17 +92,17 @@ export default class XoParallelChart extends Component {
   _handleBrush = () => {
     // 1. Get selected brushes.
     const brushes = []
-    this._svg.selectAll('.chartColumn')
+    this._svg
+      .selectAll('.chartColumn')
       .selectAll('.brush')
-      .each((_1, _2, [ brush ]) => {
+      .each((_1, _2, [brush]) => {
         if (d3.brushSelection(brush) != null) {
           brushes.push(brush)
         }
       })
 
     // 2. Change stroke of selected lines.
-    const lines = this._svg.select('.linesContainer')
-      .selectAll('path')
+    const lines = this._svg.select('.linesContainer').selectAll('path')
 
     lines.each((elem, lineId, lines) => {
       const { data } = elem
@@ -112,7 +112,10 @@ export default class XoParallelChart extends Component {
         const columnId = brush.__data__
         const { invert } = this._y[columnId] // Range to domain.
 
-        return invert(selection[1]) <= data[columnId] && data[columnId] <= invert(selection[0])
+        return (
+          invert(selection[1]) <= data[columnId] &&
+          data[columnId] <= invert(selection[0])
+        )
       })
 
       const line = d3.select(lines[lineId])
@@ -125,9 +128,13 @@ export default class XoParallelChart extends Component {
     })
   }
 
-  _brush = d3.brushY()
+  _brush = d3
+    .brushY()
     // Brush area: (x0, y0), (x1, y1)
-    .extent([[-BRUSH_SELECTION_WIDTH / 2, 0], [BRUSH_SELECTION_WIDTH / 2, CHART_HEIGHT]])
+    .extent([
+      [-BRUSH_SELECTION_WIDTH / 2, 0],
+      [BRUSH_SELECTION_WIDTH / 2, CHART_HEIGHT]
+    ])
     .on('brush', this._handleBrush)
     .on('end', this._handleBrush)
 
@@ -135,9 +142,7 @@ export default class XoParallelChart extends Component {
     const svg = this._svg
 
     // Reset tooltip.
-    svg
-      .selectAll('.objectTooltip')
-      .remove()
+    svg.selectAll('.objectTooltip').remove()
 
     // Reset all lines.
     svg
@@ -155,17 +160,19 @@ export default class XoParallelChart extends Component {
 
     const { label } = elem
 
-    const tooltip = svg.append('g')
-      .attr('class', 'objectTooltip')
+    const tooltip = svg.append('g').attr('class', 'objectTooltip')
 
-    const bbox = tooltip.append('text')
+    const bbox = tooltip
+      .append('text')
       .text(label)
       .attr('x', position[0])
       .attr('y', position[1] - 30)
       ::setStyles(TOOLTIP_STYLE)
-      .node().getBBox()
+      .node()
+      .getBBox()
 
-    tooltip.insert('rect', '*')
+    tooltip
+      .insert('rect', '*')
       .attr('x', bbox.x - TOOLTIP_PADDING)
       .attr('y', bbox.y - TOOLTIP_PADDING)
       .attr('width', bbox.width + TOOLTIP_PADDING * 2)
@@ -177,7 +184,7 @@ export default class XoParallelChart extends Component {
     this._highlight(elem, d3.mouse(paths[pathId]))
   }
 
-  _handleMouseOut = (elem) => {
+  _handleMouseOut = elem => {
     this._highlight()
   }
 
@@ -187,47 +194,49 @@ export default class XoParallelChart extends Component {
 
     const columnsIds = keys(labels)
     const spacing = (CHART_WIDTH - 200) / (columnsIds.length - 1)
-    const x = d3.scaleOrdinal()
-      .domain(columnsIds).range(
-        times(columnsIds.length, n => n * spacing)
-      )
+    const x = d3
+      .scaleOrdinal()
+      .domain(columnsIds)
+      .range(times(columnsIds.length, n => n * spacing))
 
     // 1. Remove old nodes.
-    svg
-      .selectAll('.chartColumn')
-      .remove()
+    svg.selectAll('.chartColumn').remove()
 
-    svg
-      .selectAll('.linesContainer')
-      .remove()
+    svg.selectAll('.linesContainer').remove()
 
     // 2. Build Ys.
-    const y = this._y = {}
+    const y = (this._y = {})
     forEach(columnsIds, (columnId, index) => {
       const max = d3.max(dataSet, elem => elem.data[columnId])
 
-      y[columnId] = d3.scaleLinear()
+      y[columnId] = d3
+        .scaleLinear()
         .domain([0, max])
         .range([CHART_HEIGHT, 0])
     })
 
     // 3. Build columns.
-    const columns = svg.selectAll('.chartColumn')
+    const columns = svg
+      .selectAll('.chartColumn')
       .data(columnsIds)
-        .enter().append('g')
-        .attr('class', 'chartColumn')
-        .attr('transform', d => `translate(${x(d)})`)
+      .enter()
+      .append('g')
+      .attr('class', 'chartColumn')
+      .attr('transform', d => `translate(${x(d)})`)
 
     // 4. Draw titles.
-    columns.append('text')
+    ;columns
+      .append('text')
       .text(columnId => labels[columnId])
       .attr('y', -50)
       ::setStyles(COLUMN_TITLE_STYLE)
 
     // 5. Draw axis.
-    columns.append('g')
+    ;columns
+      .append('g')
       .each((columnId, axisId, axes) => {
-        const axis = d3.axisLeft()
+        const axis = d3
+          .axisLeft()
           .ticks(N_TICKS, ',f')
           .tickSize(TICK_SIZE)
           .scale(y[columnId])
@@ -244,42 +253,54 @@ export default class XoParallelChart extends Component {
       ::setStyles(COLUMN_VALUES_STYLE)
 
     // 6. Draw lines.
-    const path = elem => this._line(map(columnsIds.map(
-      columnId => [x(columnId), y[columnId](elem.data[columnId])]
-    )))
-    svg.append('g')
+    const path = elem =>
+      this._line(
+        map(
+          columnsIds.map(columnId => [
+            x(columnId),
+            y[columnId](elem.data[columnId])
+          ])
+        )
+      )
+    ;svg
+      .append('g')
       .attr('class', 'linesContainer')
       ::setStyles(LINES_CONTAINER_STYLE)
       .selectAll('path')
-        .data(dataSet)
-        .enter().append('path')
-          .attr('d', path)
-          .attr('class', 'chartLine')
-          .attr('id', elem => 'chartLine-' + elem.objectId)
-          .attr('stroke', elem => this._color(elem.label))
-          .attr('shape-rendering', 'optimizeQuality')
-          .attr('stroke-linecap', 'round')
-          .attr('stroke-linejoin', 'round')
-          .on('mouseover', this._handleMouseOver)
-          .on('mouseout', this._handleMouseOut)
+      .data(dataSet)
+      .enter()
+      .append('path')
+      .attr('d', path)
+      .attr('class', 'chartLine')
+      .attr('id', elem => 'chartLine-' + elem.objectId)
+      .attr('stroke', elem => this._color(elem.label))
+      .attr('shape-rendering', 'optimizeQuality')
+      .attr('stroke-linecap', 'round')
+      .attr('stroke-linejoin', 'round')
+      .on('mouseover', this._handleMouseOver)
+      .on('mouseout', this._handleMouseOut)
 
     // 7. Brushes.
-    columns.append('g')
+    columns
+      .append('g')
       .attr('class', 'brush')
-      .each((_, brushId, brushes) => { d3.select(brushes[brushId]).call(this._brush) })
+      .each((_, brushId, brushes) => {
+        d3.select(brushes[brushId]).call(this._brush)
+      })
   }
 
   componentDidMount () {
-    this._svg = d3.select(this.refs.chart)
+    this._svg = d3
+      .select(this.refs.chart)
       .append('div')
       ::setStyles(SVG_CONTAINER_STYLE)
-        .append('svg')
-          ::setStyles(SVG_STYLE)
-          .attr('preserveAspectRatio', 'xMinYMin meet')
-          .attr('viewBox', `0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`)
-          .append('g')
-            .attr('transform', `translate(${100}, ${100})`)
-            ::setStyles(SVG_CONTENT)
+      .append('svg')
+      ::setStyles(SVG_STYLE)
+      .attr('preserveAspectRatio', 'xMinYMin meet')
+      .attr('viewBox', `0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`)
+      .append('g')
+      .attr('transform', `translate(${100}, ${100})`)
+      ::setStyles(SVG_CONTENT)
 
     this._draw()
   }

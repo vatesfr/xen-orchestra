@@ -26,13 +26,15 @@ const modal = (content, onClose) => {
 }
 
 @propTypes({
-  buttons: propTypes.arrayOf(propTypes.shape({
-    btnStyle: propTypes.string,
-    icon: propTypes.string,
-    label: propTypes.node.isRequired,
-    tooltip: propTypes.node,
-    value: propTypes.any
-  })).isRequired,
+  buttons: propTypes.arrayOf(
+    propTypes.shape({
+      btnStyle: propTypes.string,
+      icon: propTypes.string,
+      label: propTypes.node.isRequired,
+      tooltip: propTypes.node,
+      value: propTypes.any
+    })
+  ).isRequired,
   children: propTypes.node.isRequired,
   icon: propTypes.string,
   title: propTypes.node.isRequired
@@ -58,75 +60,62 @@ class GenericModal extends Component {
   }
 
   render () {
-    const {
-      buttons,
-      icon,
-      title
-    } = this.props
+    const { buttons, icon, title } = this.props
 
     const body = _addRef(this.props.children, 'body')
 
-    return <div>
-      <ReactModal.Header closeButton>
-        <ReactModal.Title>
-          {icon
-            ? <span><Icon icon={icon} /> {title}</span>
-            : title
-          }
-        </ReactModal.Title>
-      </ReactModal.Header>
-      <ReactModal.Body>
-        {body}
-      </ReactModal.Body>
-      <ReactModal.Footer>
-        {map(buttons, ({
-          label,
-          tooltip,
-          value,
-          icon,
-          ...props
-        }, key) => {
-          const button = <Button
-            onClick={() => this._resolve(value)}
-            {...props}
-          >
-            {icon !== undefined && <Icon icon={icon} fixedWidth />}
-            {label}
-          </Button>
-          return <span key={key}>
-            {tooltip !== undefined
-              ? <Tooltip content={tooltip}>{button}</Tooltip>
-              : button
-            }
-            {' '}
-          </span>
-        })}
-        {this.props.reject !== undefined &&
-          <Button onClick={this._reject} >
-            {_('genericCancel')}
-          </Button>
-        }
-      </ReactModal.Footer>
-    </div>
+    return (
+      <div>
+        <ReactModal.Header closeButton>
+          <ReactModal.Title>
+            {icon ? (
+              <span>
+                <Icon icon={icon} /> {title}
+              </span>
+            ) : (
+              title
+            )}
+          </ReactModal.Title>
+        </ReactModal.Header>
+        <ReactModal.Body>{body}</ReactModal.Body>
+        <ReactModal.Footer>
+          {map(buttons, ({ label, tooltip, value, icon, ...props }, key) => {
+            const button = (
+              <Button onClick={() => this._resolve(value)} {...props}>
+                {icon !== undefined && <Icon icon={icon} fixedWidth />}
+                {label}
+              </Button>
+            )
+            return (
+              <span key={key}>
+                {tooltip !== undefined ? (
+                  <Tooltip content={tooltip}>{button}</Tooltip>
+                ) : (
+                  button
+                )}{' '}
+              </span>
+            )
+          })}
+          {this.props.reject !== undefined && (
+            <Button onClick={this._reject}>{_('genericCancel')}</Button>
+          )}
+        </ReactModal.Footer>
+      </div>
+    )
   }
 }
 
-const ALERT_BUTTONS = [ { label: _('alertOk'), value: 'ok' } ]
+const ALERT_BUTTONS = [{ label: _('alertOk'), value: 'ok' }]
 
-export const alert = (title, body) => (
+export const alert = (title, body) =>
   new Promise(resolve => {
     modal(
-      <GenericModal
-        buttons={ALERT_BUTTONS}
-        resolve={resolve}
-        title={title}
-      >
+      <GenericModal buttons={ALERT_BUTTONS} resolve={resolve} title={title}>
         {body}
       </GenericModal>,
       resolve
     )
   })
-)
 
 const _addRef = (component, ref) => {
   if (isString(component) || isArray(component)) {
@@ -139,27 +128,17 @@ const _addRef = (component, ref) => {
   return component
 }
 
-const CONFIRM_BUTTONS = [ { btnStyle: 'primary', label: _('confirmOk') } ]
+const CONFIRM_BUTTONS = [{ btnStyle: 'primary', label: _('confirmOk') }]
 
-export const confirm = ({
-  body,
-  icon = 'alarm',
-  title
-}) => (
+export const confirm = ({ body, icon = 'alarm', title }) =>
   chooseAction({
     body,
     buttons: CONFIRM_BUTTONS,
     icon,
     title
   })
-)
 
-export const chooseAction = ({
-  body,
-  buttons,
-  icon,
-  title
-}) => {
+export const chooseAction = ({ body, buttons, icon, title }) => {
   return new Promise((resolve, reject) => {
     modal(
       <GenericModal

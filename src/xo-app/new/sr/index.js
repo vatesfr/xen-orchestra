@@ -48,19 +48,17 @@ import {
 class SelectIqn extends Component {
   _getOptions = createSelector(
     () => this.props.options,
-    options => map(options, ({ ip, iqn }, index) => ({
-      label: `${iqn} (${ip})`,
-      value: index
-    }))
+    options =>
+      map(options, ({ ip, iqn }, index) => ({
+        label: `${iqn} (${ip})`,
+        value: index
+      }))
   )
 
   _handleChange = ({ value }) => {
     const { props } = this
 
-    this.setState(
-      { value },
-      () => props.onChange(props.options[value])
-    )
+    this.setState({ value }, () => props.onChange(props.options[value]))
   }
 
   componentDidMount () {
@@ -98,18 +96,18 @@ class SelectIqn extends Component {
 class SelectLun extends Component {
   _getOptions = createSelector(
     () => this.props.options,
-    options => map(options, (lun, index) => ({
-      label: `LUN ${lun.id}: ${lun.serial} - ${formatSize(+lun.size)} - (${lun.vendor})`,
-      value: index
-    }))
+    options =>
+      map(options, (lun, index) => ({
+        label: `LUN ${lun.id}: ${lun.serial} - ${formatSize(+lun.size)} - (${
+          lun.vendor
+        })`,
+        value: index
+      }))
   )
 
   _handleChange = ({ value }) => {
     const { props } = this
-    this.setState(
-      { value },
-      () => props.onChange(props.options[value])
-    )
+    this.setState({ value }, () => props.onChange(props.options[value]))
   }
 
   componentDidMount () {
@@ -197,7 +195,7 @@ export default class New extends Component {
       () => this.props.srs,
       createSelector(
         () => this.state.host,
-        ({$pool, id}) => sr => sr.$container === $pool || sr.$container === id
+        ({ $pool, id }) => sr => sr.$container === $pool || sr.$container === id
       ),
       true
     )
@@ -214,45 +212,91 @@ export default class New extends Component {
       server,
       username
     } = this.refs
-    const {
-      host,
-      iqn,
-      lun,
-      path,
-      type
-    } = this.state
+    const { host, iqn, lun, path, type } = this.state
 
     const createMethodFactories = {
       nfs: async () => {
         const previous = await probeSrNfsExists(host.id, server.value, path)
         if (previous && previous.length > 0) {
           try {
-            await confirm({title: _('existingSrModalTitle'),
+            await confirm({
+              title: _('existingSrModalTitle'),
               body: <p>{_('existingSrModalText')}</p>
             })
           } catch (error) {
             return
           }
         }
-        return createSrNfs(host.id, name.value, description.value, server.value, path)
+        return createSrNfs(
+          host.id,
+          name.value,
+          description.value,
+          server.value,
+          path
+        )
       },
       iscsi: async () => {
-        const previous = await probeSrIscsiExists(host.id, iqn.ip, iqn.iqn, lun.scsiId, +port.value, username && username.value, password && password.value)
+        const previous = await probeSrIscsiExists(
+          host.id,
+          iqn.ip,
+          iqn.iqn,
+          lun.scsiId,
+          +port.value,
+          username && username.value,
+          password && password.value
+        )
         if (previous && previous.length > 0) {
           try {
-            await confirm({title: _('existingLunModalTitle'),
+            await confirm({
+              title: _('existingLunModalTitle'),
               body: <p>{_('existingLunModalText')}</p>
             })
           } catch (error) {
             return
           }
         }
-        return createSrIscsi(host.id, name.value, description.value, iqn.ip, iqn.iqn, lun.scsiId, +port.value, username && username.value, password && password.value)
+        return createSrIscsi(
+          host.id,
+          name.value,
+          description.value,
+          iqn.ip,
+          iqn.iqn,
+          lun.scsiId,
+          +port.value,
+          username && username.value,
+          password && password.value
+        )
       },
-      lvm: () => createSrLvm(host.id, name.value, description.value, device.value),
-      local: () => createSrIso(host.id, name.value, description.value, localPath.value, 'local'),
-      nfsiso: () => createSrIso(host.id, name.value, description.value, `${server.value}:${path}`, 'nfs', username && username.value, password && password.value),
-      smb: () => createSrIso(host.id, name.value, description.value, server.value, 'smb', username && username.value, password && password.value)
+      lvm: () =>
+        createSrLvm(host.id, name.value, description.value, device.value),
+      local: () =>
+        createSrIso(
+          host.id,
+          name.value,
+          description.value,
+          localPath.value,
+          'local'
+        ),
+      nfsiso: () =>
+        createSrIso(
+          host.id,
+          name.value,
+          description.value,
+          `${server.value}:${path}`,
+          'nfs',
+          username && username.value,
+          password && password.value
+        ),
+      smb: () =>
+        createSrIso(
+          host.id,
+          name.value,
+          description.value,
+          server.value,
+          'smb',
+          username && username.value,
+          password && password.value
+        )
     }
 
     try {
@@ -262,9 +306,10 @@ export default class New extends Component {
     }
   }
 
-  _handleSrHostSelection = host => this.setState({host})
-  _handleNameChange = event => this.setState({name: event.target.value})
-  _handleDescriptionChange = event => this.setState({description: event.target.value})
+  _handleSrHostSelection = host => this.setState({ host })
+  _handleNameChange = event => this.setState({ name: event.target.value })
+  _handleDescriptionChange = event =>
+    this.setState({ description: event.target.value })
 
   _handleSrTypeSelection = event => {
     const type = event.target.value
@@ -280,17 +325,18 @@ export default class New extends Component {
   }
 
   _handleSrIqnSelection = async iqn => {
-    const {
-      username,
-      password
-    } = this.refs
-    const {
-      host
-    } = this.state
+    const { username, password } = this.refs
+    const { host } = this.state
 
     try {
       this.setState(({ loading }) => ({ loading: loading + 1 }))
-      const luns = await probeSrIscsiLuns(host.id, iqn.ip, iqn.iqn, username && username.value, password && password.value)
+      const luns = await probeSrIscsiLuns(
+        host.id,
+        iqn.ip,
+        iqn.iqn,
+        username && username.value,
+        password && password.value
+      )
       this.setState({
         iqn,
         luns
@@ -303,19 +349,20 @@ export default class New extends Component {
   }
 
   _handleSrLunSelection = async lun => {
-    const {
-      password,
-      port,
-      username
-    } = this.refs
-    const {
-      host,
-      iqn
-    } = this.state
+    const { password, port, username } = this.refs
+    const { host, iqn } = this.state
 
     try {
       this.setState(({ loading }) => ({ loading: loading + 1 }))
-      const list = await probeSrIscsiExists(host.id, iqn.ip, iqn.iqn, lun.scsiId, +port.value, username && username.value, password && password.value)
+      const list = await probeSrIscsiExists(
+        host.id,
+        iqn.ip,
+        iqn.iqn,
+        lun.scsiId,
+        +port.value,
+        username && username.value,
+        password && password.value
+      )
       const srIds = map(this.getHostSrs(), sr => sr.id)
       const used = filter(list, item => includes(srIds, item.id))
       const unused = filter(list, item => !includes(srIds, item.id))
@@ -341,17 +388,9 @@ export default class New extends Component {
   }
 
   _handleSearchServer = async () => {
-    const {
-      password,
-      port,
-      server,
-      username
-    } = this.refs
+    const { password, port, server, username } = this.refs
 
-    const {
-      host,
-      type
-    } = this.state
+    const { host, type } = this.state
 
     try {
       if (type === 'nfs' || type === 'nfsiso') {
@@ -361,7 +400,13 @@ export default class New extends Component {
           paths
         })
       } else if (type === 'iscsi') {
-        const iqns = await probeSrIscsiIqns(host.id, server.value, +port.value, username && username.value, password && password.value)
+        const iqns = await probeSrIscsiIqns(
+          host.id,
+          server.value,
+          +port.value,
+          username && username.value,
+          password && password.value
+        )
         if (!iqns.length) {
           info('iSCSI Detection', 'No IQNs found')
         } else {
@@ -377,12 +422,8 @@ export default class New extends Component {
   }
 
   _handleSrPathSelection = async path => {
-    const {
-      server
-    } = this.refs
-    const {
-      host
-    } = this.state
+    const { server } = this.refs
+    const { host } = this.state
 
     try {
       this.setState(({ loading }) => ({ loading: loading + 1 }))
@@ -405,15 +446,9 @@ export default class New extends Component {
   }
 
   _reattach = async uuid => {
-    const {
-      host,
-      type
-    } = this.state
+    const { host, type } = this.state
 
-    let {
-      name,
-      description
-    } = this.refs
+    let { name, description } = this.refs
 
     name = trim(name)
     description = trim(description)
@@ -421,7 +456,7 @@ export default class New extends Component {
       error('Missing General Parameters', 'Please complete General Information')
     }
 
-    const method = (type === 'nfsiso') ? reattachSrIso : reattachSr
+    const method = type === 'nfsiso' ? reattachSrIso : reattachSr
     try {
       await method(host.id, uuid, name, description, type)
     } catch (err) {
@@ -430,13 +465,17 @@ export default class New extends Component {
   }
 
   _renderHeader () {
-    return <Container>
-      <Row>
-        <Col>
-          <h2><Icon icon='sr' /> {_('newSrTitle')}</h2>
-        </Col>
-      </Row>
-    </Container>
+    return (
+      <Container>
+        <Row>
+          <Col>
+            <h2>
+              <Icon icon='sr' /> {_('newSrTitle')}
+            </h2>
+          </Col>
+        </Row>
+      </Container>
+    )
   }
 
   render () {
@@ -499,65 +538,90 @@ export default class New extends Component {
                   onChange={this._handleSrTypeSelection}
                   required
                 >
-                  <option value={null}>{formatMessage(messages.noSelectedValue)}</option>
-                  {map(typeGroups, (types, group) =>
+                  <option value={null}>
+                    {formatMessage(messages.noSelectedValue)}
+                  </option>
+                  {map(typeGroups, (types, group) => (
                     <optgroup key={group} label={SR_GROUP_TO_LABEL[group]}>
-                      {map(types, type =>
-                        <option key={type} value={type}>{SR_TYPE_TO_LABEL[type]}</option>
-                      )}
-                    </optgroup>)}
+                      {map(types, type => (
+                        <option key={type} value={type}>
+                          {SR_TYPE_TO_LABEL[type]}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
                 </select>
               </fieldset>
             </Section>
             <Section icon='settings' title='newSrSettings'>
-              {host &&
+              {host && (
                 <fieldset>
-                  {(type === 'nfs' || type === 'nfsiso') &&
+                  {(type === 'nfs' || type === 'nfsiso') && (
                     <fieldset>
                       <label htmlFor='srServer'>{_('newSrServer')}</label>
                       <div className='input-group'>
                         <input
                           id='srServer'
                           className='form-control'
-                          placeholder={formatMessage(messages.newSrAddressPlaceHolder)}
+                          placeholder={formatMessage(
+                            messages.newSrAddressPlaceHolder
+                          )}
                           ref='server'
                           required
                           type='text'
                         />
                         <span className='input-group-btn'>
-                          <ActionButton icon='search' handler={this._handleSearchServer} />
+                          <ActionButton
+                            icon='search'
+                            handler={this._handleSearchServer}
+                          />
                         </span>
                       </div>
                     </fieldset>
-                  }
-                  {paths &&
+                  )}
+                  {paths && (
                     <fieldset>
                       <label htmlFor='selectSrPath'>{_('newSrPath')}</label>
                       <select
                         className='form-control'
                         defaultValue={null}
                         id='selectSrPath'
-                        onChange={event => { this._handleSrPathSelection(event.target.value) }}
+                        onChange={event => {
+                          this._handleSrPathSelection(event.target.value)
+                        }}
                         ref='path'
                         required
                       >
-                        <option value={null}>{formatMessage(messages.noSelectedValue)}</option>
-                        {map(paths, (item, key) =>
-                          <option key={key} value={item.path}>{item.path}</option>
-                        )}
+                        <option value={null}>
+                          {formatMessage(messages.noSelectedValue)}
+                        </option>
+                        {map(paths, (item, key) => (
+                          <option key={key} value={item.path}>
+                            {item.path}
+                          </option>
+                        ))}
                       </select>
                     </fieldset>
-                  }
-                  {type === 'iscsi' &&
+                  )}
+                  {type === 'iscsi' && (
                     <fieldset>
                       <label htmlFor='srServer'>
-                        {_('newSrServer')} ({_('newSrAuth')}<input type='checkbox' ref='auth' onChange={event => { this._handleAuthChoice() }} />)
+                        {_('newSrServer')} ({_('newSrAuth')}
+                        <input
+                          type='checkbox'
+                          ref='auth'
+                          onChange={event => {
+                            this._handleAuthChoice()
+                          }}
+                        />)
                       </label>
                       <div className='form-inline'>
                         <input
                           id='srServer'
                           className='form-control'
-                          placeholder={formatMessage(messages.newSrAddressPlaceHolder)}
+                          placeholder={formatMessage(
+                            messages.newSrAddressPlaceHolder
+                          )}
                           ref='server'
                           required
                           type='text'
@@ -566,34 +630,45 @@ export default class New extends Component {
                         <input
                           id='srServer'
                           className='form-control'
-                          placeholder={formatMessage(messages.newSrPortPlaceHolder)}
+                          placeholder={formatMessage(
+                            messages.newSrPortPlaceHolder
+                          )}
                           ref='port'
                           type='text'
                         />
-                        <ActionButton icon='search' handler={this._handleSearchServer} />
+                        <ActionButton
+                          icon='search'
+                          handler={this._handleSearchServer}
+                        />
                       </div>
-                      {auth &&
+                      {auth && (
                         <fieldset>
-                          <label htmlFor='srServerUser'>{_('newSrUsername')}</label>
+                          <label htmlFor='srServerUser'>
+                            {_('newSrUsername')}
+                          </label>
                           <input
                             id='srServerUser'
                             className='form-control'
-                            placeholder={formatMessage(messages.newSrUsernamePlaceHolder)}
+                            placeholder={formatMessage(
+                              messages.newSrUsernamePlaceHolder
+                            )}
                             ref='username'
                             required
                             type='text'
                           />
                           <label>{_('newSrPassword')}</label>
                           <Password
-                            placeholder={formatMessage(messages.newSrPasswordPlaceHolder)}
+                            placeholder={formatMessage(
+                              messages.newSrPasswordPlaceHolder
+                            )}
                             ref='password'
                             required
                           />
                         </fieldset>
-                      }
+                      )}
                     </fieldset>
-                  }
-                  {iqns &&
+                  )}
+                  {iqns && (
                     <fieldset>
                       <label>{_('newSrIqn')}</label>
                       <SelectIqn
@@ -601,8 +676,8 @@ export default class New extends Component {
                         onChange={this._handleSrIqnSelection}
                       />
                     </fieldset>
-                  }
-                  {luns &&
+                  )}
+                  {luns && (
                     <fieldset>
                       <label>{_('newSrLun')}</label>
                       <SelectLun
@@ -610,14 +685,16 @@ export default class New extends Component {
                         onChange={this._handleSrLunSelection}
                       />
                     </fieldset>
-                  }
-                  {type === 'smb' &&
+                  )}
+                  {type === 'smb' && (
                     <fieldset>
                       <label htmlFor='srServer'>{_('newSrServer')}</label>
                       <input
                         id='srServer'
                         className='form-control'
-                        placeholder={formatMessage(messages.newSrAddressPlaceHolder)}
+                        placeholder={formatMessage(
+                          messages.newSrAddressPlaceHolder
+                        )}
                         ref='server'
                         required
                         type='text'
@@ -626,96 +703,110 @@ export default class New extends Component {
                       <input
                         id='srServerUser'
                         className='form-control'
-                        placeholder={formatMessage(messages.newSrUsernamePlaceHolder)}
+                        placeholder={formatMessage(
+                          messages.newSrUsernamePlaceHolder
+                        )}
                         ref='username'
                         required
                         type='text'
                       />
                       <label>{_('newSrPassword')}</label>
                       <Password
-                        placeholder={formatMessage(messages.newSrPasswordPlaceHolder)}
+                        placeholder={formatMessage(
+                          messages.newSrPasswordPlaceHolder
+                        )}
                         ref='password'
                         required
                       />
                     </fieldset>
-                  }
-                  {type === 'lvm' &&
+                  )}
+                  {type === 'lvm' && (
                     <fieldset>
                       <label htmlFor='srDevice'>{_('newSrDevice')}</label>
                       <input
                         id='srDevice'
                         className='form-control'
-                        placeholder={formatMessage(messages.newSrLvmDevicePlaceHolder)}
+                        placeholder={formatMessage(
+                          messages.newSrLvmDevicePlaceHolder
+                        )}
                         ref='device'
                         required
                         type='text'
                       />
                     </fieldset>
-                  }
-                  {type === 'local' &&
+                  )}
+                  {type === 'local' && (
                     <fieldset>
                       <label htmlFor='srPath'>{_('newSrPath')}</label>
                       <input
                         id='srPath'
                         className='form-control'
-                        placeholder={formatMessage(messages.newSrLocalPathPlaceHolder)}
+                        placeholder={formatMessage(
+                          messages.newSrLocalPathPlaceHolder
+                        )}
                         ref='localPath'
                         required
                         type='text'
                       />
                     </fieldset>
-                  }
+                  )}
                 </fieldset>
-              }
-              {loading !== 0 &&
-                <Icon icon='loading' />
-              }
+              )}
+              {loading !== 0 && <Icon icon='loading' />}
             </Section>
             <Section icon='shown' title='newSrUsage'>
-              {usage &&
+              {usage && (
                 <div>
-                  {map(unused, (sr, key) =>
+                  {map(unused, (sr, key) => (
                     <p key={key}>
                       {sr.uuid}
                       <span className='pull-right'>
-                        <ActionButton btnStyle='primary' handler={this._reattach} handlerParam={sr.uuid} icon='connect' />
+                        <ActionButton
+                          btnStyle='primary'
+                          handler={this._reattach}
+                          handlerParam={sr.uuid}
+                          icon='connect'
+                        />
                       </span>
                     </p>
-                  )}
-                  {map(used, (sr, key) =>
+                  ))}
+                  {map(used, (sr, key) => (
                     <p key={key}>
                       {sr.uuid}
                       <span className='pull-right'>
-                        <a className='btn btn-warning'>{_('newSrInUse')}</a> // FIXME Goes to sr view
+                        <a className='btn btn-warning'>{_('newSrInUse')}</a> //
+                        FIXME Goes to sr view
                       </span>
                     </p>
-                  )}
+                  ))}
                 </div>
-              }
+              )}
             </Section>
             <Section icon='summary' title='newSrSummary'>
-              {summary &&
+              {summary && (
                 <div>
                   <dl className='dl-horizontal'>
                     <dt>{_('newSrName')}</dt>
                     <dd>{this.refs.name && this.refs.name.value}</dd>
                     <dt>{_('newSrDescription')}</dt>
-                    <dd>{this.refs.description && this.refs.description.value}</dd>
+                    <dd>
+                      {this.refs.description && this.refs.description.value}
+                    </dd>
                     <dt>{_('newSrType')}</dt>
                     <dd>{type}</dd>
                   </dl>
-                  {type === 'iscsi' &&
+                  {type === 'iscsi' && (
                     <dl className='dl-horizontal'>
                       <dt>{_('newSrSize')}</dt>
                       <dd>{formatSize(+lun.size)}</dd>
                     </dl>
-                  }
-                  {type === 'nfs' &&
+                  )}
+                  {type === 'nfs' && (
                     <dl className='dl-horizontal'>
                       <dt>{_('newSrPath')}</dt>
                       <dd>{path}</dd>
                     </dl>
-                  }
+                  )}
                   <ActionButton
                     btnStyle='primary'
                     disabled={lockCreation}
@@ -727,7 +818,7 @@ export default class New extends Component {
                     {_('newSrCreate')}
                   </ActionButton>
                 </div>
-              }
+              )}
             </Section>
           </Wizard>
         </form>

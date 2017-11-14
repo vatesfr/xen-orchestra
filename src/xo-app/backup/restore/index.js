@@ -41,12 +41,24 @@ const areSrsCompatible = (sr1, sr2) =>
 
 const parseDate = date => +moment(date, 'YYYYMMDDTHHmmssZ').format('x')
 
-const backupOptionRenderer = backup => <span>
-  {backup.type === 'delta' && <span><span className='tag tag-info'>{_('delta')}</span>{' '}</span>}
-  {backup.tag} - {backup.remoteName}
-  {' '}
-  (<FormattedDate value={new Date(backup.date)} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />)
-</span>
+const backupOptionRenderer = backup => (
+  <span>
+    {backup.type === 'delta' && (
+      <span>
+        <span className='tag tag-info'>{_('delta')}</span>{' '}
+      </span>
+    )}
+    {backup.tag} - {backup.remoteName} (<FormattedDate
+      value={new Date(backup.date)}
+      month='long'
+      day='numeric'
+      year='numeric'
+      hour='2-digit'
+      minute='2-digit'
+      second='2-digit'
+    />)
+  </span>
+)
 
 const VM_COLUMNS = [
   {
@@ -56,33 +68,62 @@ const VM_COLUMNS = [
   },
   {
     name: _('backupTags'),
-    itemRenderer: ({ tagsByRemote }) => <Container>
-      {map(tagsByRemote, ({ tags, remoteName }, key) => <Row key={key}>
-        <Col mediumSize={3}><strong>{remoteName}</strong></Col>
-        <Col mediumSize={9}>{tags.join(', ')}</Col>
-      </Row>)}
-    </Container>
+    itemRenderer: ({ tagsByRemote }) => (
+      <Container>
+        {map(tagsByRemote, ({ tags, remoteName }, key) => (
+          <Row key={key}>
+            <Col mediumSize={3}>
+              <strong>{remoteName}</strong>
+            </Col>
+            <Col mediumSize={9}>{tags.join(', ')}</Col>
+          </Row>
+        ))}
+      </Container>
+    )
   },
   {
     name: _('lastBackupColumn'),
-    itemRenderer: ({ last }) => <FormattedDate value={last.date} month='long' day='numeric' year='numeric' hour='2-digit' minute='2-digit' second='2-digit' />,
+    itemRenderer: ({ last }) => (
+      <FormattedDate
+        value={last.date}
+        month='long'
+        day='numeric'
+        year='numeric'
+        hour='2-digit'
+        minute='2-digit'
+        second='2-digit'
+      />
+    ),
     sortCriteria: ({ last }) => last.date,
     sortOrder: 'desc'
   },
   {
     name: _('availableBackupsColumn'),
-    itemRenderer: ({ simpleCount, deltaCount }) => <span>
-      {!!simpleCount && <span>{_('simpleBackup')} <span className='tag tag-pill tag-primary'>{simpleCount}</span></span>}
-      {!!simpleCount && !!deltaCount && ', '}
-      {!!deltaCount && <span>{_('delta')} <span className='tag tag-pill tag-primary'>{deltaCount}</span></span>}
-    </span>
+    itemRenderer: ({ simpleCount, deltaCount }) => (
+      <span>
+        {!!simpleCount && (
+          <span>
+            {_('simpleBackup')}{' '}
+            <span className='tag tag-pill tag-primary'>{simpleCount}</span>
+          </span>
+        )}
+        {!!simpleCount && !!deltaCount && ', '}
+        {!!deltaCount && (
+          <span>
+            {_('delta')}{' '}
+            <span className='tag tag-pill tag-primary'>{deltaCount}</span>
+          </span>
+        )}
+      </span>
+    )
   }
 ]
 
-const openImportModal = ({ backups }) => confirm({
-  title: _('importBackupModalTitle', {name: backups[0].name}),
-  body: <ImportModalBody vmName={backups[0].name} backups={backups} />
-}).then(doImport)
+const openImportModal = ({ backups }) =>
+  confirm({
+    title: _('importBackupModalTitle', { name: backups[0].name }),
+    body: <ImportModalBody vmName={backups[0].name} backups={backups} />
+  }).then(doImport)
 
 const doImport = ({ backup, mainSr, start, mapVdisSrs }) => {
   if (!mainSr || !backup) {
@@ -95,11 +136,16 @@ const doImport = ({ backup, mainSr, start, mapVdisSrs }) => {
   }
   info(_('importBackupTitle'), _('importBackupMessage'))
   try {
-    const importPromise = importMethods[backup.type]({remote: backup.remoteId, sr: mainSr, file: backup.path, mapVdisSrs}).then(id => {
+    const importPromise = importMethods[backup.type]({
+      remote: backup.remoteId,
+      sr: mainSr,
+      file: backup.path,
+      mapVdisSrs
+    }).then(id => {
       return id
     })
     if (start) {
-      importPromise.then(id => startVm({id}))
+      importPromise.then(id => startVm({ id }))
     }
   } catch (err) {
     error('VM import', err.message || String(err))
@@ -127,7 +173,10 @@ class _ModalBody extends Component {
       isSrWritable(sr) &&
       defaultSr.$pool === sr.$pool &&
       areSrsCompatible(defaultSr, sr) &&
-      every(mapVdisSrs, selectedSr => selectedSr == null || areSrsCompatible(selectedSr, sr))
+      every(
+        mapVdisSrs,
+        selectedSr => selectedSr == null || areSrsCompatible(selectedSr, sr)
+      )
   )
 
   _onChangeDefaultSr = event => {
@@ -139,9 +188,14 @@ class _ModalBody extends Component {
         mapVdisSrs: {}
       })
     } else if (!newSr.shared) {
-      const mapVdisSrs = {...this.state.mapVdisSrs}
+      const mapVdisSrs = { ...this.state.mapVdisSrs }
       forEach(mapVdisSrs, (sr, vdi) => {
-        if (sr != null && newSr !== sr && sr.$container !== newSr.$container && !sr.shared) {
+        if (
+          sr != null &&
+          newSr !== sr &&
+          sr.$container !== newSr.$container &&
+          !sr.shared
+        ) {
           delete mapVdisSrs[vdi]
         }
       })
@@ -159,26 +213,31 @@ class _ModalBody extends Component {
     const { backups, intl } = this.props
     const vdis = this.state.backup && this.state.backup.vdis
 
-    return <div>
-      <SelectPlainObject
-        onChange={this.linkState('backup')}
-        optionKey='path'
-        optionRenderer={backupOptionRenderer}
-        options={backups}
-        placeholder={intl.formatMessage(messages.importBackupModalSelectBackup)}
-      />
-      <br />
-      <ChooseSrForEachVdisModal
-        vdis={vdis}
-        onChange={props => this.setState(props)}
-      />
-      <br />
-      <Toggle onChange={this.linkState('start')} /> {_('importBackupModalStart')}
-    </div>
+    return (
+      <div>
+        <SelectPlainObject
+          onChange={this.linkState('backup')}
+          optionKey='path'
+          optionRenderer={backupOptionRenderer}
+          options={backups}
+          placeholder={intl.formatMessage(
+            messages.importBackupModalSelectBackup
+          )}
+        />
+        <br />
+        <ChooseSrForEachVdisModal
+          vdis={vdis}
+          onChange={props => this.setState(props)}
+        />
+        <br />
+        <Toggle onChange={this.linkState('start')} />{' '}
+        {_('importBackupModalStart')}
+      </div>
+    )
   }
 }
 
-const ImportModalBody = injectIntl(_ModalBody, {withRef: true})
+const ImportModalBody = injectIntl(_ModalBody, { withRef: true })
 
 @addSubscriptions({
   rawRemotes: subscribeRemotes
@@ -186,16 +245,21 @@ const ImportModalBody = injectIntl(_ModalBody, {withRef: true})
 export default class Restore extends Component {
   componentWillReceiveProps ({ rawRemotes }) {
     let filteredRemotes
-    if ((filteredRemotes = filter(rawRemotes, 'enabled')) !== filter(this.props.rawRemotes, 'enabled')) {
+    if (
+      (filteredRemotes = filter(rawRemotes, 'enabled')) !==
+      filter(this.props.rawRemotes, 'enabled')
+    ) {
       this._listAll(filteredRemotes).catch(noop)
     }
   }
 
   _listAll = async remotes => {
-    const remotesInfo = await Promise.all(map(remotes, async remote => ({
-      files: await listRemote(remote.id),
-      backupsInfo: await listRemoteBackups(remote.id)
-    })))
+    const remotesInfo = await Promise.all(
+      map(remotes, async remote => ({
+        files: await listRemote(remote.id),
+        backupsInfo: await listRemoteBackups(remote.id)
+      }))
+    )
 
     const backupInfoByVm = {}
 
@@ -207,7 +271,7 @@ export default class Restore extends Component {
         const deltaInfo = /^vm_delta_(.*)_([^/]+)\/([^_]+)_(.*)$/.exec(file)
 
         if (deltaInfo) {
-          const [ , tag, id, date, name ] = deltaInfo
+          const [, tag, id, date, name] = deltaInfo
           const vdis = find(remoteInfo.backupsInfo, {
             id: `${file}.json`
           }).disks
@@ -226,7 +290,7 @@ export default class Restore extends Component {
         } else {
           const backupInfo = /^([^_]+)_([^_]+)_(.*)\.xva$/.exec(file)
           if (backupInfo) {
-            const [ , date, tag, name ] = backupInfo
+            const [, date, tag, name] = backupInfo
             backup = {
               type: 'simple',
               date: parseDate(date),
@@ -247,15 +311,24 @@ export default class Restore extends Component {
     forEach(backupInfoByVm, (backups, vm) => {
       backupInfoByVm[vm] = {
         backups,
-        last: reduce(backups, (last, b) => b.date > last.date ? b : last),
-        tagsByRemote: mapValues(groupBy(backups, 'remoteId'), (backups, remoteId) =>
-          ({
+        last: reduce(backups, (last, b) => (b.date > last.date ? b : last)),
+        tagsByRemote: mapValues(
+          groupBy(backups, 'remoteId'),
+          (backups, remoteId) => ({
             remoteName: find(remotes, remote => remote.id === remoteId).name,
             tags: uniq(map(backups, 'tag'))
           })
         ),
-        simpleCount: reduce(backups, (sum, b) => b.type === 'simple' ? ++sum : sum, 0),
-        deltaCount: reduce(backups, (sum, b) => b.type === 'delta' ? ++sum : sum, 0)
+        simpleCount: reduce(
+          backups,
+          (sum, b) => (b.type === 'simple' ? ++sum : sum),
+          0
+        ),
+        deltaCount: reduce(
+          backups,
+          (sum, b) => (b.type === 'delta' ? ++sum : sum),
+          0
+        )
       }
     })
     this.setState({ backupInfoByVm })
@@ -268,17 +341,29 @@ export default class Restore extends Component {
       return <h2>{_('statusLoading')}</h2>
     }
 
-    return process.env.XOA_PLAN > 1
-      ? <Container>
+    return process.env.XOA_PLAN > 1 ? (
+      <Container>
         <h2>{_('restoreBackups')}</h2>
-        {isEmpty(backupInfoByVm)
-          ? _('noBackup')
-          : <div>
-            <em><Icon icon='info' /> {_('restoreBackupsInfo')}</em>
-            <SortedTable collection={backupInfoByVm} columns={VM_COLUMNS} rowAction={openImportModal} defaultColumn={2} />
+        {isEmpty(backupInfoByVm) ? (
+          _('noBackup')
+        ) : (
+          <div>
+            <em>
+              <Icon icon='info' /> {_('restoreBackupsInfo')}
+            </em>
+            <SortedTable
+              collection={backupInfoByVm}
+              columns={VM_COLUMNS}
+              rowAction={openImportModal}
+              defaultColumn={2}
+            />
           </div>
-        }
+        )}
       </Container>
-      : <Container><Upgrade place='restoreBackup' available={2} /></Container>
+    ) : (
+      <Container>
+        <Upgrade place='restoreBackup' available={2} />
+      </Container>
+    )
   }
 }

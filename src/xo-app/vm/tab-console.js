@@ -22,7 +22,11 @@ export default class TabConsole extends Component {
   state = { scale: 1 }
 
   componentWillReceiveProps (props) {
-    if (isVmRunning(this.props.vm) && !isVmRunning(props.vm) && this.state.minimalLayout) {
+    if (
+      isVmRunning(this.props.vm) &&
+      !isVmRunning(props.vm) &&
+      this.state.minimalLayout
+    ) {
       this._toggleMinimalLayout()
     }
   }
@@ -42,8 +46,7 @@ export default class TabConsole extends Component {
     return event => setRemoteClipboard(event.target.value)
   })
 
-  _getClipboardContent = () =>
-    this.refs.clipboard && this.refs.clipboard.value
+  _getClipboardContent = () => this.refs.clipboard && this.refs.clipboard.value
 
   _toggleMinimalLayout = () => {
     this.props.toggleHeader()
@@ -51,14 +54,8 @@ export default class TabConsole extends Component {
   }
 
   render () {
-    const {
-      statsOverview,
-      vm
-    } = this.props
-    const {
-      minimalLayout,
-      scale
-    } = this.state
+    const { statsOverview, vm } = this.props
+    const { minimalLayout, scale } = this.state
 
     if (!isVmRunning(vm)) {
       return (
@@ -70,43 +67,47 @@ export default class TabConsole extends Component {
 
     return (
       <Container>
-        {!minimalLayout && statsOverview && <Row className='text-xs-center'>
-          <Col mediumSize={3}>
-            <p>
-              <Icon icon='cpu' size={2} />
-              {' '}
-              <CpuSparkLines data={statsOverview} />
-            </p>
-          </Col>
-          <Col mediumSize={3}>
-            <p>
-              <Icon icon='memory' size={2} />
-              {' '}
-              <MemorySparkLines data={statsOverview} />
-            </p>
-          </Col>
-          <Col mediumSize={3}>
-            <p>
-              <Icon icon='network' size={2} />
-              {' '}
-              <NetworkSparkLines data={statsOverview} />
-            </p>
-          </Col>
-          <Col mediumSize={3}>
-            <p>
-              <Icon icon='disk' size={2} />
-              {' '}
-              <XvdSparkLines data={statsOverview} />
-            </p>
-          </Col>
-        </Row>}
+        {!minimalLayout &&
+          statsOverview && (
+            <Row className='text-xs-center'>
+              <Col mediumSize={3}>
+                <p>
+                  <Icon icon='cpu' size={2} />{' '}
+                  <CpuSparkLines data={statsOverview} />
+                </p>
+              </Col>
+              <Col mediumSize={3}>
+                <p>
+                  <Icon icon='memory' size={2} />{' '}
+                  <MemorySparkLines data={statsOverview} />
+                </p>
+              </Col>
+              <Col mediumSize={3}>
+                <p>
+                  <Icon icon='network' size={2} />{' '}
+                  <NetworkSparkLines data={statsOverview} />
+                </p>
+              </Col>
+              <Col mediumSize={3}>
+                <p>
+                  <Icon icon='disk' size={2} />{' '}
+                  <XvdSparkLines data={statsOverview} />
+                </p>
+              </Col>
+            </Row>
+          )}
         <Row>
           <Col mediumSize={3}>
             <IsoDevice vm={vm} />
           </Col>
           <Col mediumSize={3}>
             <div className='input-group'>
-              <input type='text' className='form-control' ref='clipboard' onChange={this._setRemoteClipboard} />
+              <input
+                type='text'
+                className='form-control'
+                ref='clipboard'
+                onChange={this._setRemoteClipboard}
+              />
               <span className='input-group-btn'>
                 <CopyToClipboard text={this.state.clipboard || ''}>
                   <Button>
@@ -117,9 +118,7 @@ export default class TabConsole extends Component {
             </div>
           </Col>
           <Col mediumSize={2}>
-            <Button
-              onClick={this._sendCtrlAltDel}
-            >
+            <Button onClick={this._sendCtrlAltDel}>
               <Icon icon='vm-keyboard' /> {_('ctrlAltDelButtonLabel')}
             </Button>
           </Col>
@@ -135,7 +134,11 @@ export default class TabConsole extends Component {
             />
           </Col>
           <Col mediumSize={1}>
-            <Tooltip content={minimalLayout ? _('showHeaderTooltip') : _('hideHeaderTooltip')}>
+            <Tooltip
+              content={
+                minimalLayout ? _('showHeaderTooltip') : _('hideHeaderTooltip')
+              }
+            >
               <Button onClick={this._toggleMinimalLayout}>
                 <Icon icon={minimalLayout ? 'caret' : 'caret-up'} />
               </Button>

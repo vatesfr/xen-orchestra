@@ -21,12 +21,7 @@ import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
 import { SelectNetwork, SelectIp, SelectResourceSetIp } from 'select-objects'
 import { XoSelect, Text } from 'editable'
-import {
-  addSubscriptions,
-  connectStore,
-  EMPTY_ARRAY,
-  noop
-} from 'utils'
+import { addSubscriptions, connectStore, EMPTY_ARRAY, noop } from 'utils'
 import {
   createFinder,
   createGetObject,
@@ -53,13 +48,8 @@ const TABLE_STYLE = { minWidth: '0' }
   resourceSets: subscribeResourceSets
 })
 @connectStore(() => {
-  const getVif = createGetObject(
-    (_, props) => props.vifId
-  )
-  const getNetworkId = createSelector(
-    getVif,
-    vif => vif.$network
-  )
+  const getVif = createGetObject((_, props) => props.vifId)
+  const getNetworkId = createSelector(getVif, vif => vif.$network)
   const getNetwork = createGetObject(getNetworkId)
 
   return (state, props) => ({
@@ -93,9 +83,9 @@ class VifItem extends BaseComponent {
     const { vif } = this.props
     let { allowedIpv4Addresses, allowedIpv6Addresses } = vif
     if (isIpV4(ip.id)) {
-      allowedIpv4Addresses = [ ...allowedIpv4Addresses, ip.id ]
+      allowedIpv4Addresses = [...allowedIpv4Addresses, ip.id]
     } else {
-      allowedIpv6Addresses = [ ...allowedIpv6Addresses, ip.id ]
+      allowedIpv6Addresses = [...allowedIpv6Addresses, ip.id]
     }
     setVif(vif, { allowedIpv4Addresses, allowedIpv6Addresses })
   }
@@ -105,7 +95,10 @@ class VifItem extends BaseComponent {
     if (ipIndex < allowedIpv4Addresses.length) {
       remove(allowedIpv4Addresses, (_, i) => i === ipIndex)
     } else {
-      remove(allowedIpv6Addresses, (_, i) => i === ipIndex - allowedIpv4Addresses.length)
+      remove(
+        allowedIpv6Addresses,
+        (_, i) => i === ipIndex - allowedIpv4Addresses.length
+      )
     }
     setVif(vif, { allowedIpv4Addresses, allowedIpv6Addresses })
   }
@@ -125,10 +118,17 @@ class VifItem extends BaseComponent {
         const isNotUsed = every(ips, vifIp => vifIp !== selectedIp.id)
         let enoughResources
         if (resourceSetId) {
-          const resourceSet = find(resourceSets, set => set.id === resourceSetId)
-          const ipPool = find(ipPools, ipPool => includes(keys(ipPool.addresses), selectedIp.id))
-          const ipPoolLimits = resourceSet && resourceSet.limits[`ipPool:${ipPool.id}`]
-          enoughResources = resourceSet && ipPool && (!ipPoolLimits || ipPoolLimits.available)
+          const resourceSet = find(
+            resourceSets,
+            set => set.id === resourceSetId
+          )
+          const ipPool = find(ipPools, ipPool =>
+            includes(keys(ipPool.addresses), selectedIp.id)
+          )
+          const ipPoolLimits =
+            resourceSet && resourceSet.limits[`ipPool:${ipPool.id}`]
+          enoughResources =
+            resourceSet && ipPool && (!ipPoolLimits || ipPoolLimits.available)
         }
         return isNotUsed && (!resourceSetId || enoughResources)
       }
@@ -136,8 +136,8 @@ class VifItem extends BaseComponent {
   )
   _getIsNetworkAllowed = createSelector(
     () => this.props.networkId,
-    vifNetworkId =>
-      ipPool => find(ipPool.networks, ipPoolNetwork => ipPoolNetwork === vifNetworkId)
+    vifNetworkId => ipPool =>
+      find(ipPool.networks, ipPoolNetwork => ipPoolNetwork === vifNetworkId)
   )
   _getNetworkPredicate = createSelector(
     () => this.props.vif && this.props.vif.$pool,
@@ -151,24 +151,32 @@ class VifItem extends BaseComponent {
 
   _getNetworkStatus = () => {
     if (!isEmpty(this._getIps())) {
-      return <Tooltip content={_('vifLockedNetwork')}>
-        <Icon icon='lock' />
-      </Tooltip>
+      return (
+        <Tooltip content={_('vifLockedNetwork')}>
+          <Icon icon='lock' />
+        </Tooltip>
+      )
     }
     const { network } = this.props
     if (!network) {
-      return <Tooltip content={_('vifUnknownNetwork')}>
-        <Icon icon='unknown-status' />
-      </Tooltip>
+      return (
+        <Tooltip content={_('vifUnknownNetwork')}>
+          <Icon icon='unknown-status' />
+        </Tooltip>
+      )
     }
     if (network.defaultIsLocked) {
-      return <Tooltip content={_('vifLockedNetworkNoIps')}>
-        <Icon icon='error' />
-      </Tooltip>
+      return (
+        <Tooltip content={_('vifLockedNetworkNoIps')}>
+          <Icon icon='error' />
+        </Tooltip>
+      )
     }
-    return <Tooltip content={_('vifUnLockedNetwork')}>
-      <Icon icon='unlock' />
-    </Tooltip>
+    return (
+      <Tooltip content={_('vifUnLockedNetwork')}>
+        <Icon icon='unlock' />
+      </Tooltip>
+    )
   }
 
   render () {
@@ -179,96 +187,120 @@ class VifItem extends BaseComponent {
       return null
     }
 
-    return <tr key={vif.id}>
-      <td>VIF #{vif.device}</td>
-      <td><pre><Text value={vif.MAC} onChange={this._setMac} /></pre></td>
-      <td>{vif.MTU}</td>
-      <td>{network &&
-        <XoSelect
-          onChange={this._setNetwork}
-          predicate={this._getNetworkPredicate()}
-          value={network}
-          xoType='network'
-        >
-          {network.name_label}
-        </XoSelect>
-      }</td>
-      <td style={IP_COLUMN_STYLE}>
-        <Container>
-          {isEmpty(this._getIps())
-            ? <Row>
-              <Col><em>{_('vifNoIps')}</em></Col>
-            </Row>
-            : map(this._getIps(), (ip, ipIndex) => <Row>
+    return (
+      <tr key={vif.id}>
+        <td>VIF #{vif.device}</td>
+        <td>
+          <pre>
+            <Text value={vif.MAC} onChange={this._setMac} />
+          </pre>
+        </td>
+        <td>{vif.MTU}</td>
+        <td>
+          {network && (
+            <XoSelect
+              onChange={this._setNetwork}
+              predicate={this._getNetworkPredicate()}
+              value={network}
+              xoType='network'
+            >
+              {network.name_label}
+            </XoSelect>
+          )}
+        </td>
+        <td style={IP_COLUMN_STYLE}>
+          <Container>
+            {isEmpty(this._getIps()) ? (
+              <Row>
+                <Col>
+                  <em>{_('vifNoIps')}</em>
+                </Col>
+              </Row>
+            ) : (
+              map(this._getIps(), (ip, ipIndex) => (
+                <Row>
+                  <Col size={10}>
+                    <XoSelect
+                      containerPredicate={this._getIsNetworkAllowed()}
+                      onChange={newIp => this._saveIp(ipIndex, newIp)}
+                      predicate={this._getIpPredicate()}
+                      resourceSetId={resourceSet}
+                      value={ip}
+                      xoType={resourceSet ? 'resourceSetIp' : 'ip'}
+                    >
+                      {ip}
+                    </XoSelect>
+                  </Col>
+                  <Col size={1}>
+                    <ActionRowButton
+                      handler={this._deleteIp}
+                      handlerParam={ipIndex}
+                      icon='delete'
+                    />
+                  </Col>
+                </Row>
+              ))
+            )}
+            <Row>
               <Col size={10}>
-                <XoSelect
-                  containerPredicate={this._getIsNetworkAllowed()}
-                  onChange={newIp => this._saveIp(ipIndex, newIp)}
-                  predicate={this._getIpPredicate()}
-                  resourceSetId={resourceSet}
-                  value={ip}
-                  xoType={resourceSet ? 'resourceSetIp' : 'ip'}
-                >
-                  {ip}
-                </XoSelect>
+                {showNewIpForm ? (
+                  <span onBlur={this._toggleNewIp}>
+                    {resourceSet ? (
+                      <SelectResourceSetIp
+                        autoFocus
+                        containerPredicate={this._getIsNetworkAllowed()}
+                        onChange={ip => this._addIp(ip)}
+                        predicate={this._getIpPredicate()}
+                        required
+                        resourceSetId={resourceSet}
+                      />
+                    ) : (
+                      <SelectIp
+                        autoFocus
+                        containerPredicate={this._getIsNetworkAllowed()}
+                        onChange={ip => this._addIp(ip)}
+                        predicate={this._getIpPredicate()}
+                        required
+                      />
+                    )}
+                  </span>
+                ) : (
+                  <ActionButton
+                    btnStyle='success'
+                    size='small'
+                    handler={this._toggleNewIp}
+                    icon='add'
+                  />
+                )}
               </Col>
-              <Col size={1}>
-                <ActionRowButton handler={this._deleteIp} handlerParam={ipIndex} icon='delete' />
-              </Col>
-            </Row>)
-          }
-          <Row>
-            <Col size={10}>
-              {showNewIpForm
-              ? <span onBlur={this._toggleNewIp}>
-                {resourceSet ? <SelectResourceSetIp
-                  autoFocus
-                  containerPredicate={this._getIsNetworkAllowed()}
-                  onChange={ip => this._addIp(ip)}
-                  predicate={this._getIpPredicate()}
-                  required
-                  resourceSetId={resourceSet}
-                />
-                : <SelectIp
-                  autoFocus
-                  containerPredicate={this._getIsNetworkAllowed()}
-                  onChange={ip => this._addIp(ip)}
-                  predicate={this._getIpPredicate()}
-                  required
-                />}
-              </span>
-              : <ActionButton btnStyle='success' size='small' handler={this._toggleNewIp} icon='add' />}
-            </Col>
-          </Row>
-        </Container>
-      </td>
-      <td>
-        <StateButton
-          disabledLabel={_('vifStatusDisconnected')}
-          disabledHandler={isVmRunning && connectVif}
-          disabledTooltip={_('vifConnect')}
-
-          enabledLabel={_('vifStatusConnected')}
-          enabledHandler={disconnectVif}
-          enabledTooltip={_('vifDisconnect')}
-
-          handlerParam={vif}
-          state={vif.attached}
-        />
-        {' '}
-        {this._getNetworkStatus()}
-      </td>
-      <td className='text-xs-right'>
-        {!vif.attached &&
-          <ActionRowButton
-            handler={deleteVif}
+            </Row>
+          </Container>
+        </td>
+        <td>
+          <StateButton
+            disabledLabel={_('vifStatusDisconnected')}
+            disabledHandler={isVmRunning && connectVif}
+            disabledTooltip={_('vifConnect')}
+            enabledLabel={_('vifStatusConnected')}
+            enabledHandler={disconnectVif}
+            enabledTooltip={_('vifDisconnect')}
             handlerParam={vif}
-            icon='remove'
-            tooltip={_('vifRemove')}
-          />
-        }
-      </td>
-    </tr>
+            state={vif.attached}
+          />{' '}
+          {this._getNetworkStatus()}
+        </td>
+        <td className='text-xs-right'>
+          {!vif.attached && (
+            <ActionRowButton
+              handler={deleteVif}
+              handlerParam={vif}
+              icon='remove'
+              tooltip={_('vifRemove')}
+            />
+          )}
+        </td>
+      </tr>
+    )
   }
 }
 
@@ -280,18 +312,13 @@ class VifItem extends BaseComponent {
   const getHostMaster = createGetObject(
     (_, props) => props.pool && props.pool.master
   )
-  const getPifs = createGetObjectsOfType('PIF').pick(
-    (state, props) => {
-      const hostMaster = getHostMaster(state, props)
-      return hostMaster && hostMaster.$PIFs
-    }
-  )
+  const getPifs = createGetObjectsOfType('PIF').pick((state, props) => {
+    const hostMaster = getHostMaster(state, props)
+    return hostMaster && hostMaster.$PIFs
+  })
   const getDefaultNetwork = createGetObject(
     createSelector(
-      createFinder(
-        getPifs,
-        [ pif => pif.management ]
-      ),
+      createFinder(getPifs, [pif => pif.management]),
       pif => pif && pif.$network
     )
   )
@@ -335,89 +362,124 @@ class NewVif extends BaseComponent {
   _createVif = () => {
     const { vm, onClose = noop } = this.props
     const { mac, network } = this.state
-    return createVmInterface(vm, network, mac)
-      .then(onClose)
+    return createVmInterface(vm, network, mac).then(onClose)
   }
 
   render () {
     const formatMessage = this.props.intl.formatMessage
-    const {
-      mac,
-      network
-    } = this.state
-    return <form id='newVifForm'>
-      <div className='form-group'>
-        <SelectNetwork value={network} predicate={this._getNetworkPredicate()} onChange={this._selectNetwork} required />
-      </div>
-      <fieldset className='form-inline'>
+    const { mac, network } = this.state
+    return (
+      <form id='newVifForm'>
         <div className='form-group'>
-          <input type='text' value={mac || ''} onChange={this.linkState('mac')} placeholder={formatMessage(messages.vifMacLabel)} className='form-control' /> ({_('vifMacAutoGenerate')})
+          <SelectNetwork
+            value={network}
+            predicate={this._getNetworkPredicate()}
+            onChange={this._selectNetwork}
+            required
+          />
         </div>
-        <span className='pull-right'>
-          <ActionButton form='newVifForm' icon='add' btnStyle='primary' handler={this._createVif}>{_('vifCreate')}</ActionButton>
-        </span>
-      </fieldset>
-    </form>
+        <fieldset className='form-inline'>
+          <div className='form-group'>
+            <input
+              type='text'
+              value={mac || ''}
+              onChange={this.linkState('mac')}
+              placeholder={formatMessage(messages.vifMacLabel)}
+              className='form-control'
+            />{' '}
+            ({_('vifMacAutoGenerate')})
+          </div>
+          <span className='pull-right'>
+            <ActionButton
+              form='newVifForm'
+              icon='add'
+              btnStyle='primary'
+              handler={this._createVif}
+            >
+              {_('vifCreate')}
+            </ActionButton>
+          </span>
+        </fieldset>
+      </form>
+    )
   }
 }
 
 export default class TabNetwork extends BaseComponent {
-  _toggleNewVif = () => this.setState({
-    newVif: !this.state.newVif
-  })
+  _toggleNewVif = () =>
+    this.setState({
+      newVif: !this.state.newVif
+    })
 
   render () {
     const { newVif } = this.state
     const { pool, vm } = this.props
 
-    return <Container>
-      <Row>
-        <Col className='text-xs-right'>
-          <TabButton
-            btnStyle='primary'
-            handler={this._toggleNewVif}
-            icon='add'
-            labelId='vifCreateDeviceButton'
-          />
-        </Col>
-      </Row>
-      {newVif && <Row className='mb-1'>
-        <Col>
-          <NewVif vm={vm} pool={pool} onClose={this._toggleNewVif} />
-        </Col>
-      </Row>}
-      <Row>
-        <Col>
-          {!isEmpty(vm.VIFs)
-            ? <span>
-              <table className='table' style={TABLE_STYLE}>
-                <thead>
-                  <tr>
-                    <th>{_('vifDeviceLabel')}</th>
-                    <th>{_('vifMacLabel')}</th>
-                    <th>{_('vifMtuLabel')}</th>
-                    <th>{_('vifNetworkLabel')}</th>
-                    <th>{_('vifAllowedIps')}</th>
-                    <th>{_('vifStatusLabel')}</th>
-                    <th className='text-xs-right'>{_('vifAction')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {map(vm.VIFs, vif => <VifItem key={vif} vifId={vif} isVmRunning={isVmRunning(vm)} resourceSet={vm.resourceSet} />)}
-                </tbody>
-              </table>
-              {vm.addresses && !isEmpty(vm.addresses)
-                ? <span>
-                  <h4>{_('vifIpAddresses')}</h4>
-                  {map(vm.addresses, address => <span key={address} className='tag tag-info tag-ip'>{address}</span>)}
-                </span>
-                : _('noIpRecord')
-              }
-            </span>
-            : <h4 className='text-xs-center'>{_('vifNoInterface')}</h4>
-          }
-        </Col>
-      </Row>
-    </Container>
+    return (
+      <Container>
+        <Row>
+          <Col className='text-xs-right'>
+            <TabButton
+              btnStyle='primary'
+              handler={this._toggleNewVif}
+              icon='add'
+              labelId='vifCreateDeviceButton'
+            />
+          </Col>
+        </Row>
+        {newVif && (
+          <Row className='mb-1'>
+            <Col>
+              <NewVif vm={vm} pool={pool} onClose={this._toggleNewVif} />
+            </Col>
+          </Row>
+        )}
+        <Row>
+          <Col>
+            {!isEmpty(vm.VIFs) ? (
+              <span>
+                <table className='table' style={TABLE_STYLE}>
+                  <thead>
+                    <tr>
+                      <th>{_('vifDeviceLabel')}</th>
+                      <th>{_('vifMacLabel')}</th>
+                      <th>{_('vifMtuLabel')}</th>
+                      <th>{_('vifNetworkLabel')}</th>
+                      <th>{_('vifAllowedIps')}</th>
+                      <th>{_('vifStatusLabel')}</th>
+                      <th className='text-xs-right'>{_('vifAction')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {map(vm.VIFs, vif => (
+                      <VifItem
+                        key={vif}
+                        vifId={vif}
+                        isVmRunning={isVmRunning(vm)}
+                        resourceSet={vm.resourceSet}
+                      />
+                    ))}
+                  </tbody>
+                </table>
+                {vm.addresses && !isEmpty(vm.addresses) ? (
+                  <span>
+                    <h4>{_('vifIpAddresses')}</h4>
+                    {map(vm.addresses, address => (
+                      <span key={address} className='tag tag-info tag-ip'>
+                        {address}
+                      </span>
+                    ))}
+                  </span>
+                ) : (
+                  _('noIpRecord')
+                )}
+              </span>
+            ) : (
+              <h4 className='text-xs-center'>{_('vifNoInterface')}</h4>
+            )}
+          </Col>
+        </Row>
+      </Container>
+    )
   }
 }

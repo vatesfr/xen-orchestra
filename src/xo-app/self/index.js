@@ -42,11 +42,7 @@ import {
   resolveResourceSets
 } from 'utils'
 
-import {
-  Card,
-  CardBlock,
-  CardHeader
-} from 'card'
+import { Card, CardBlock, CardHeader } from 'card'
 
 import {
   SelectIpPool,
@@ -57,22 +53,23 @@ import {
   SelectVmTemplate
 } from 'select-objects'
 
-import {
-  computeAvailableHosts,
-  Subjects
-} from './helpers'
+import { computeAvailableHosts, Subjects } from './helpers'
 
 import Page from '../page'
 
 // ===================================================================
 
-const HEADER = <Container>
-  <Row>
-    <Col mediumSize={12}>
-      <h2><Icon icon='menu-self-service' /> {_('selfServicePage')}</h2>
-    </Col>
-  </Row>
-</Container>
+const HEADER = (
+  <Container>
+    <Row>
+      <Col mediumSize={12}>
+        <h2>
+          <Icon icon='menu-self-service' /> {_('selfServicePage')}
+        </h2>
+      </Col>
+    </Row>
+  </Container>
+)
 
 // ===================================================================
 
@@ -93,34 +90,30 @@ const Hosts = propTypes({
     <Row>
       <Col mediumSize={6}>
         <ul className='list-group'>
-          {eligibleHosts.length
-            ? map(eligibleHosts, (host, key) => (
+          {eligibleHosts.length ? (
+            map(eligibleHosts, (host, key) => (
               <li key={key} className='list-group-item'>
                 {renderXoItem(host)}
               </li>
             ))
-            : (
-              <li className='list-group-item'>
-                {_('noHostsAvailable')}
-              </li>
-            )
-          }
+          ) : (
+            <li className='list-group-item'>{_('noHostsAvailable')}</li>
+          )}
         </ul>
       </Col>
       <Col mediumSize={6}>
         <ul className='list-group'>
-          {excludedHosts.length
-            ? map(excludedHosts, (host, key) => (
+          {excludedHosts.length ? (
+            map(excludedHosts, (host, key) => (
               <li key={key} className='list-group-item'>
                 {renderXoItem(host)}
               </li>
             ))
-            : (
-              <li className='list-group-item'>
-                <s>{_('noHostsAvailable')}</s>
-              </li>
-            )
-          }
+          ) : (
+            <li className='list-group-item'>
+              <s>{_('noHostsAvailable')}</s>
+            </li>
+          )}
         </ul>
       </Col>
     </Row>
@@ -176,7 +169,11 @@ export class Edit extends Component {
         })
       })
 
-      this._updateSelectedPools(keys(pools), objectsByType.SR, objectsByType.network)
+      this._updateSelectedPools(
+        keys(pools),
+        objectsByType.SR,
+        objectsByType.network
+      )
 
       // Limits and others
       const { ipPools: rawIpPools, limits } = resourceSet
@@ -214,8 +211,8 @@ export class Edit extends Component {
       templates
     } = this.state
 
-    const set = this.props.resourceSet || await createResourceSet(name)
-    const objects = [ ...templates, ...srs, ...networks ]
+    const set = this.props.resourceSet || (await createResourceSet(name))
+    const objects = [...templates, ...srs, ...networks]
 
     const ipPoolsLimits = {}
     forEach(ipPools, ipPool => {
@@ -254,33 +251,46 @@ export class Edit extends Component {
     })
   }
 
-// -----------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------
 
   _updateSelectedPools = (newPools, newSrs, newNetworks) => {
     const predicate = object => includes(resolveIds(newPools), object.$pool)
 
-    this.setState({
-      nPools: newPools.length,
-      pools: newPools,
-      srPredicate: predicate,
-      vmTemplatePredicate: predicate
-    }, () => this._updateSelectedSrs(newSrs || this.state.srs, newNetworks))
+    this.setState(
+      {
+        nPools: newPools.length,
+        pools: newPools,
+        srPredicate: predicate,
+        vmTemplatePredicate: predicate
+      },
+      () => this._updateSelectedSrs(newSrs || this.state.srs, newNetworks)
+    )
   }
 
   _updateSelectedSrs = (newSrs, newNetworks) => {
-    const availableHosts = computeAvailableHosts(this.state.pools, newSrs, this.props.hostsByPool)
+    const availableHosts = computeAvailableHosts(
+      this.state.pools,
+      newSrs,
+      this.props.hostsByPool
+    )
     const networkPredicate = network => {
       let kept = false
-      forEach(availableHosts, host => !(kept = intersection(network.PIFs, host.PIFs).length > 0))
+      forEach(
+        availableHosts,
+        host => !(kept = intersection(network.PIFs, host.PIFs).length > 0)
+      )
       return kept
     }
 
-    this.setState({
-      availableHosts,
-      networkPredicate,
-      nSrs: newSrs.length,
-      srs: newSrs
-    }, () => this._updateSelectedNetworks(newNetworks || this.state.networks))
+    this.setState(
+      {
+        availableHosts,
+        networkPredicate,
+        nSrs: newSrs.length,
+        srs: newSrs
+      },
+      () => this._updateSelectedNetworks(newNetworks || this.state.networks)
+    )
   }
 
   _updateSelectedNetworks = newNetworks => {
@@ -290,13 +300,16 @@ export class Edit extends Component {
       let keptBySr = false
       let keptByNetwork = false
 
-      forEach(srs, sr =>
-        !(keptBySr = (intersection(sr.$PBDs, host.$PBDs).length > 0))
+      forEach(
+        srs,
+        sr => !(keptBySr = intersection(sr.$PBDs, host.$PBDs).length > 0)
       )
 
       if (keptBySr) {
-        forEach(newNetworks, network =>
-          !(keptByNetwork = intersection(network.PIFs, host.PIFs).length > 0)
+        forEach(
+          newNetworks,
+          network =>
+            !(keptByNetwork = intersection(network.PIFs, host.PIFs).length > 0)
         )
       }
 
@@ -305,186 +318,239 @@ export class Edit extends Component {
 
     this.setState({
       eligibleHosts,
-      excludedHosts: differenceBy(this.props.hosts, eligibleHosts, host => host.id),
+      excludedHosts: differenceBy(
+        this.props.hosts,
+        eligibleHosts,
+        host => host.id
+      ),
       networks: newNetworks
     })
   }
 
-// -----------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------
 
   _onChangeIpPool = newIpPool => {
     const { ipPools, newIpPoolQuantity } = this.state
 
     this.setState({
-      ipPools: [ ...ipPools, { id: newIpPool.id, quantity: newIpPoolQuantity } ],
+      ipPools: [...ipPools, { id: newIpPool.id, quantity: newIpPoolQuantity }],
       newIpPoolQuantity: ''
     })
   }
 
   _removeIpPool = index => {
-    const ipPools = [ ...this.state.ipPools ]
+    const ipPools = [...this.state.ipPools]
     remove(ipPools, (_, i) => index === i)
     this.setState({ ipPools })
   }
 
   _getIpPoolPredicate = createSelector(
     () => map(this.state.ipPools, 'id'),
-    ipPoolsIds => ipPool =>
-      !includes(ipPoolsIds, ipPool.id)
+    ipPoolsIds => ipPool => !includes(ipPoolsIds, ipPool.id)
   )
 
-// -----------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------
 
   render () {
     const { state } = this
     const { formatMessage } = this.props.intl
     const { resourceSet } = this.props
 
-    return <div>
-      <li className='list-group-item'>
-        <form id='resource-set-form' className='card-block'>
-          <div className='form-group'>
-            <Row>
-              <Col mediumSize={4}>
-                <input
-                  className='form-control'
-                  onChange={this.linkState('name')}
-                  placeholder={formatMessage(messages.resourceSetName)}
-                  required
-                  type='text'
-                  value={state.name}
-                />
-              </Col>
-              <Col mediumSize={4}>
-                <SelectSubject
-                  hasSelectAll
-                  multi
-                  onChange={this.linkState('subjects')}
-                  required
-                  value={state.subjects}
-                />
-              </Col>
-              <Col mediumSize={4}>
-                <SelectPool
-                  hasSelectAll
-                  multi
-                  onChange={this._updateSelectedPools}
-                  required
-                  value={state.pools}
-                />
-              </Col>
-            </Row>
+    return (
+      <div>
+        <li className='list-group-item'>
+          <form id='resource-set-form' className='card-block'>
+            <div className='form-group'>
+              <Row>
+                <Col mediumSize={4}>
+                  <input
+                    className='form-control'
+                    onChange={this.linkState('name')}
+                    placeholder={formatMessage(messages.resourceSetName)}
+                    required
+                    type='text'
+                    value={state.name}
+                  />
+                </Col>
+                <Col mediumSize={4}>
+                  <SelectSubject
+                    hasSelectAll
+                    multi
+                    onChange={this.linkState('subjects')}
+                    required
+                    value={state.subjects}
+                  />
+                </Col>
+                <Col mediumSize={4}>
+                  <SelectPool
+                    hasSelectAll
+                    multi
+                    onChange={this._updateSelectedPools}
+                    required
+                    value={state.pools}
+                  />
+                </Col>
+              </Row>
+            </div>
+            <div className='form-group'>
+              <Row>
+                <Col mediumSize={4}>
+                  <SelectVmTemplate
+                    disabled={!state.nPools}
+                    hasSelectAll
+                    multi
+                    onChange={this.linkState('templates')}
+                    predicate={state.vmTemplatePredicate}
+                    required
+                    value={state.templates}
+                  />
+                </Col>
+                <Col mediumSize={4}>
+                  <SelectSr
+                    disabled={!state.nPools}
+                    hasSelectAll
+                    multi
+                    onChange={this._updateSelectedSrs}
+                    predicate={state.srPredicate}
+                    required
+                    value={state.srs}
+                  />
+                </Col>
+                <Col mediumSize={4}>
+                  <SelectNetwork
+                    disabled={!state.nSrs}
+                    hasSelectAll
+                    multi
+                    onChange={this._updateSelectedNetworks}
+                    predicate={state.networkPredicate}
+                    required
+                    value={state.networks}
+                  />
+                </Col>
+              </Row>
+            </div>
+            <div className='form-group'>
+              <Row>
+                <Col mediumSize={4}>
+                  <input
+                    className='form-control'
+                    min={0}
+                    onChange={this.linkState('cpus')}
+                    placeholder={formatMessage(messages.maxCpus)}
+                    type='number'
+                    value={state.cpus}
+                  />
+                </Col>
+                <Col mediumSize={4}>
+                  <SizeInput
+                    onChange={this.linkState('memory')}
+                    placeholder={formatMessage(messages.maxRam)}
+                    value={state.memory}
+                  />
+                </Col>
+                <Col mediumSize={4}>
+                  <SizeInput
+                    onChange={this.linkState('disk')}
+                    placeholder={formatMessage(messages.maxDiskSpace)}
+                    value={state.disk}
+                  />
+                </Col>
+              </Row>
+            </div>
+            <div>
+              <Row>
+                <Col mediumSize={4}>
+                  <Row>
+                    <Col mediumSize={3}>
+                      <strong>{_('quantity')}</strong>
+                    </Col>
+                    <Col mediumSize={7}>
+                      <strong>{_('ipPool')}</strong>
+                    </Col>
+                  </Row>
+                  {map(state.ipPools, (ipPool, index) => (
+                    <Row className='mb-1' key={index}>
+                      <Col mediumSize={3}>
+                        <input
+                          className='form-control'
+                          type='number'
+                          min={0}
+                          onChange={this.linkState(`ipPools.${index}.quantity`)}
+                          value={defined(ipPool.quantity, '')}
+                          placeholder='∞'
+                        />
+                      </Col>
+                      <Col mediumSize={7}>
+                        <SelectIpPool
+                          onChange={this.linkState(`ipPools.${index}.id`, 'id')}
+                          value={ipPool.id}
+                        />
+                      </Col>
+                      <Col mediumSize={2}>
+                        <ActionButton
+                          icon='delete'
+                          handler={this._removeIpPool}
+                          handlerParam={index}
+                        />
+                      </Col>
+                    </Row>
+                  ))}
+                  <Row>
+                    <Col mediumSize={3}>
+                      <input
+                        className='form-control'
+                        type='number'
+                        min={0}
+                        onChange={this.linkState('newIpPoolQuantity')}
+                        value={state.newIpPoolQuantity || ''}
+                        placeholder='∞'
+                      />
+                    </Col>
+                    <Col mediumSize={7}>
+                      <SelectIpPool
+                        onChange={this._onChangeIpPool}
+                        value=''
+                        predicate={this._getIpPoolPredicate()}
+                      />
+                    </Col>
+                  </Row>
+                </Col>
+              </Row>
+            </div>
+            <hr />
+            <Hosts
+              excludedHosts={state.excludedHosts}
+              eligibleHosts={state.eligibleHosts}
+            />
+          </form>
+        </li>
+        <li className='list-group-item text-xs-center'>
+          <div className='btn-toolbar'>
+            <ActionButton
+              btnStyle='primary'
+              icon='save'
+              handler={this._save}
+              type='submit'
+            >
+              {_('saveResourceSet')}
+            </ActionButton>
+            <ActionButton icon='reset' handler={this._reset}>
+              {_('resetResourceSet')}
+            </ActionButton>
+            {resourceSet && (
+              <ActionButton
+                btnStyle='danger'
+                icon='delete'
+                handler={deleteResourceSet}
+                handlerParam={resourceSet}
+              >
+                {_('deleteResourceSet')}
+              </ActionButton>
+            )}
           </div>
-          <div className='form-group'>
-            <Row>
-              <Col mediumSize={4}>
-                <SelectVmTemplate
-                  disabled={!state.nPools}
-                  hasSelectAll
-                  multi
-                  onChange={this.linkState('templates')}
-                  predicate={state.vmTemplatePredicate}
-                  required
-                  value={state.templates}
-                />
-              </Col>
-              <Col mediumSize={4}>
-                <SelectSr
-                  disabled={!state.nPools}
-                  hasSelectAll
-                  multi
-                  onChange={this._updateSelectedSrs}
-                  predicate={state.srPredicate}
-                  required
-                  value={state.srs}
-                />
-              </Col>
-              <Col mediumSize={4}>
-                <SelectNetwork
-                  disabled={!state.nSrs}
-                  hasSelectAll
-                  multi
-                  onChange={this._updateSelectedNetworks}
-                  predicate={state.networkPredicate}
-                  required
-                  value={state.networks}
-                />
-              </Col>
-            </Row>
-          </div>
-          <div className='form-group'>
-            <Row>
-              <Col mediumSize={4}>
-                <input
-                  className='form-control'
-                  min={0}
-                  onChange={this.linkState('cpus')}
-                  placeholder={formatMessage(messages.maxCpus)}
-                  type='number'
-                  value={state.cpus}
-                />
-              </Col>
-              <Col mediumSize={4}>
-                <SizeInput
-                  onChange={this.linkState('memory')}
-                  placeholder={formatMessage(messages.maxRam)}
-                  value={state.memory}
-                />
-              </Col>
-              <Col mediumSize={4}>
-                <SizeInput
-                  onChange={this.linkState('disk')}
-                  placeholder={formatMessage(messages.maxDiskSpace)}
-                  value={state.disk}
-                />
-              </Col>
-            </Row>
-          </div>
-          <div>
-            <Row>
-              <Col mediumSize={4}>
-                <Row>
-                  <Col mediumSize={3}>
-                    <strong>{_('quantity')}</strong>
-                  </Col>
-                  <Col mediumSize={7}>
-                    <strong>{_('ipPool')}</strong>
-                  </Col>
-                </Row>
-                {map(state.ipPools, (ipPool, index) => <Row className='mb-1' key={index}>
-                  <Col mediumSize={3}>
-                    <input className='form-control' type='number' min={0} onChange={this.linkState(`ipPools.${index}.quantity`)} value={defined(ipPool.quantity, '')} placeholder='∞' />
-                  </Col>
-                  <Col mediumSize={7}>
-                    <SelectIpPool onChange={this.linkState(`ipPools.${index}.id`, 'id')} value={ipPool.id} />
-                  </Col>
-                  <Col mediumSize={2}>
-                    <ActionButton icon='delete' handler={this._removeIpPool} handlerParam={index} />
-                  </Col>
-                </Row>)}
-                <Row>
-                  <Col mediumSize={3}>
-                    <input className='form-control' type='number' min={0} onChange={this.linkState('newIpPoolQuantity')} value={state.newIpPoolQuantity || ''} placeholder='∞' />
-                  </Col>
-                  <Col mediumSize={7}>
-                    <SelectIpPool onChange={this._onChangeIpPool} value='' predicate={this._getIpPoolPredicate()} />
-                  </Col>
-                </Row>
-              </Col>
-            </Row>
-          </div>
-          <hr />
-          <Hosts excludedHosts={state.excludedHosts} eligibleHosts={state.eligibleHosts} />
-        </form>
-      </li>
-      <li className='list-group-item text-xs-center'>
-        <div className='btn-toolbar'>
-          <ActionButton btnStyle='primary' icon='save' handler={this._save} type='submit'>{_('saveResourceSet')}</ActionButton>
-          <ActionButton icon='reset' handler={this._reset}>{_('resetResourceSet')}</ActionButton>
-          {resourceSet && <ActionButton btnStyle='danger' icon='delete' handler={deleteResourceSet} handlerParam={resourceSet}>{_('deleteResourceSet')}</ActionButton>}
-        </div>
-      </li>
-    </div>
+        </li>
+      </div>
+    )
   }
 }
 
@@ -496,11 +562,7 @@ class ResourceSet extends Component {
     const { resourceSet } = this.props
     const resolvedIpPools = mapKeys(this.props.ipPools, 'id')
     const {
-      limits: {
-        cpus,
-        disk,
-        memory
-      } = {},
+      limits: { cpus, disk, memory } = {},
       ipPools,
       subjects,
       objectsByType
@@ -512,25 +574,35 @@ class ResourceSet extends Component {
       </li>,
       ...map(objectsByType, (objectsSet, type) => (
         <li key={type} className='list-group-item'>
-          {map(objectsSet, object => renderXoItem(object, { className: 'mr-1' }))}
+          {map(objectsSet, object =>
+            renderXoItem(object, { className: 'mr-1' })
+          )}
         </li>
       )),
-      !isEmpty(ipPools) && <li key='ipPools' className='list-group-item'>
-        {map(ipPools, pool => {
-          const resolvedIpPool = resolvedIpPools[pool]
-          const limits = get(resourceSet, `limits[ipPool:${pool}]`)
-          const available = limits && limits.available
-          const total = limits && limits.total
-          return <span className='mr-1'>
-            {renderXoItem({
-              name: resolvedIpPool && resolvedIpPool.name,
-              type: 'ipPool'
-            })}
-            {limits && <span> ({available}/{total})</span>}
-          </span>
-        }
-      )}
-      </li>,
+      !isEmpty(ipPools) && (
+        <li key='ipPools' className='list-group-item'>
+          {map(ipPools, pool => {
+            const resolvedIpPool = resolvedIpPools[pool]
+            const limits = get(resourceSet, `limits[ipPool:${pool}]`)
+            const available = limits && limits.available
+            const total = limits && limits.total
+            return (
+              <span className='mr-1'>
+                {renderXoItem({
+                  name: resolvedIpPool && resolvedIpPool.name,
+                  type: 'ipPool'
+                })}
+                {limits && (
+                  <span>
+                    {' '}
+                    ({available}/{total})
+                  </span>
+                )}
+              </span>
+            )
+          })}
+        </li>
+      ),
       <li key='graphs' className='list-group-item'>
         <Row>
           <Col mediumSize={4}>
@@ -543,14 +615,21 @@ class ResourceSet extends Component {
                   <div>
                     <ChartistGraph
                       data={{
-                        labels: [ 'Available', 'Used' ],
-                        series: [ cpus.available, cpus.total - cpus.available ]
+                        labels: ['Available', 'Used'],
+                        series: [cpus.available, cpus.total - cpus.available]
                       }}
-                      options={{ donut: true, donutWidth: 40, showLabel: false }}
+                      options={{
+                        donut: true,
+                        donutWidth: 40,
+                        showLabel: false
+                      }}
                       type='Pie'
                     />
                     <p className='text-xs-center'>
-                      {_('usedResource')} {cpus.total - cpus.available} ({_('totalResource')} {cpus.total})
+                      {_('usedResource')} {cpus.total - cpus.available} ({_(
+                        'totalResource'
+                      )}{' '}
+                      {cpus.total})
                     </p>
                   </div>
                 ) : (
@@ -569,14 +648,25 @@ class ResourceSet extends Component {
                   <div>
                     <ChartistGraph
                       data={{
-                        labels: [ 'Available', 'Used' ],
-                        series: [ memory.available, memory.total - memory.available ]
+                        labels: ['Available', 'Used'],
+                        series: [
+                          memory.available,
+                          memory.total - memory.available
+                        ]
                       }}
-                      options={{ donut: true, donutWidth: 40, showLabel: false }}
+                      options={{
+                        donut: true,
+                        donutWidth: 40,
+                        showLabel: false
+                      }}
                       type='Pie'
                     />
                     <p className='text-xs-center'>
-                      {_('usedResource')} {formatSize(memory.total - memory.available)} ({_('totalResource')} {formatSize(memory.total)})
+                      {_('usedResource')}{' '}
+                      {formatSize(memory.total - memory.available)} ({_(
+                        'totalResource'
+                      )}{' '}
+                      {formatSize(memory.total)})
                     </p>
                   </div>
                 ) : (
@@ -595,14 +685,22 @@ class ResourceSet extends Component {
                   <div>
                     <ChartistGraph
                       data={{
-                        labels: [ 'Available', 'Used' ],
-                        series: [ disk.available, disk.total - disk.available ]
+                        labels: ['Available', 'Used'],
+                        series: [disk.available, disk.total - disk.available]
                       }}
-                      options={{ donut: true, donutWidth: 40, showLabel: false }}
+                      options={{
+                        donut: true,
+                        donutWidth: 40,
+                        showLabel: false
+                      }}
                       type='Pie'
                     />
                     <p className='text-xs-center'>
-                      {_('usedResource')} {formatSize(disk.total - disk.available)} ({_('totalResource')} {formatSize(disk.total)})
+                      {_('usedResource')}{' '}
+                      {formatSize(disk.total - disk.available)} ({_(
+                        'totalResource'
+                      )}{' '}
+                      {formatSize(disk.total)})
                     </p>
                   </div>
                 ) : (
@@ -615,8 +713,21 @@ class ResourceSet extends Component {
       </li>,
       <li key='actions' className='list-group-item text-xs-center'>
         <div className='btn-toolbar'>
-          <ActionButton btnStyle='primary' icon='edit' handler={this.toggleState('editionMode')}>{_('editResourceSet')}</ActionButton>
-          <ActionButton btnStyle='danger' icon='delete' handler={deleteResourceSet} handlerParam={resourceSet}>{_('deleteResourceSet')}</ActionButton>
+          <ActionButton
+            btnStyle='primary'
+            icon='edit'
+            handler={this.toggleState('editionMode')}
+          >
+            {_('editResourceSet')}
+          </ActionButton>
+          <ActionButton
+            btnStyle='danger'
+            icon='delete'
+            handler={deleteResourceSet}
+            handlerParam={resourceSet}
+          >
+            {_('deleteResourceSet')}
+          </ActionButton>
         </div>
       </li>
     ]
@@ -635,17 +746,22 @@ class ResourceSet extends Component {
       <div className='mb-1' ref={this._autoExpand}>
         <Collapse buttonText={resourceSet.name} defaultOpen={autoExpand}>
           <ul className='list-group'>
-            {this.state.editionMode
-              ? <Edit resourceSet={this.props.resourceSet} onSave={this.toggleState('editionMode')} />
-              : this._renderDisplay()
-            }
+            {this.state.editionMode ? (
+              <Edit
+                resourceSet={this.props.resourceSet}
+                onSave={this.toggleState('editionMode')}
+              />
+            ) : (
+              this._renderDisplay()
+            )}
           </ul>
         </Collapse>
-        {resourceSet.missingObjects.length > 0 &&
+        {resourceSet.missingObjects.length > 0 && (
           <div className='alert alert-danger mb-0' role='alert'>
-            <strong>{_('resourceSetMissingObjects')}</strong> {resourceSet.missingObjects.join(', ')}
+            <strong>{_('resourceSetMissingObjects')}</strong>{' '}
+            {resourceSet.missingObjects.join(', ')}
           </div>
-        }
+        )}
       </div>
     )
   }
@@ -671,45 +787,48 @@ export default class Self extends Component {
     const { resourceSets, showNewResourceSetForm } = this.state
     const { location } = this.props
 
-    return <Page
-      formatTitle
-      header={HEADER}
-      title='selfServicePage'
-    >
-      {process.env.XOA_PLAN > 3
-        ? <div>
-          <div className='mb-1'>
-            <ActionButton
-              btnStyle='primary'
-              className='mr-1'
-              handler={this.toggleState('showNewResourceSetForm')}
-              icon='add'
-            >
-              {_('resourceSetNew')}
-            </ActionButton>
-            <ActionButton
-              handler={recomputeResourceSetsLimits}
-              icon='refresh'
-            >
-              {_('recomputeResourceSets')}
-            </ActionButton>
+    return (
+      <Page formatTitle header={HEADER} title='selfServicePage'>
+        {process.env.XOA_PLAN > 3 ? (
+          <div>
+            <div className='mb-1'>
+              <ActionButton
+                btnStyle='primary'
+                className='mr-1'
+                handler={this.toggleState('showNewResourceSetForm')}
+                icon='add'
+              >
+                {_('resourceSetNew')}
+              </ActionButton>
+              <ActionButton
+                handler={recomputeResourceSetsLimits}
+                icon='refresh'
+              >
+                {_('recomputeResourceSets')}
+              </ActionButton>
+            </div>
+            {showNewResourceSetForm && [
+              <Edit onSave={this.toggleState('showNewResourceSetForm')} />,
+              <hr />
+            ]}
+            {resourceSets
+              ? isEmpty(resourceSets)
+                ? _('noResourceSets')
+                : map(resourceSets, resourceSet => (
+                  <ResourceSet
+                    autoExpand={location.query.resourceSet === resourceSet.id}
+                    key={resourceSet.id}
+                    resourceSet={resourceSet}
+                    />
+                  ))
+              : _('loadingResourceSets')}
           </div>
-          {showNewResourceSetForm && [ <Edit onSave={this.toggleState('showNewResourceSetForm')} />, <hr /> ]}
-          {resourceSets
-            ? (isEmpty(resourceSets)
-              ? _('noResourceSets')
-              : map(resourceSets, resourceSet => (
-                <ResourceSet
-                  autoExpand={location.query.resourceSet === resourceSet.id}
-                  key={resourceSet.id}
-                  resourceSet={resourceSet}
-                />
-              ))
-            ) : _('loadingResourceSets')
-          }
-        </div>
-        : <Container><Upgrade place='selfDashboard' available={4} /></Container>
-      }
-    </Page>
+        ) : (
+          <Container>
+            <Upgrade place='selfDashboard' available={4} />
+          </Container>
+        )}
+      </Page>
+    )
   }
 }

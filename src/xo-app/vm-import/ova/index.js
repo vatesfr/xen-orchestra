@@ -2,11 +2,7 @@ import find from 'lodash/find'
 import forEach from 'lodash/forEach'
 import tar from 'tar-stream'
 import xml2js from 'xml2js'
-import {
-  ensureArray,
-  htmlFileToStream,
-  streamToString
-} from 'utils'
+import { ensureArray, htmlFileToStream, streamToString } from 'utils'
 
 // ===================================================================
 
@@ -25,34 +21,35 @@ const MEMORY_UNIT_TO_FACTOR = {
 
 const RESOURCE_TYPE_TO_HANDLER = {
   // CPU.
-  '3': (data, {
-    'rasd:VirtualQuantity': nCpus
-  }) => {
+  '3': (data, { 'rasd:VirtualQuantity': nCpus }) => {
     data.nCpus = +nCpus
   },
   // RAM.
-  '4': (data, {
-    'rasd:AllocationUnits': unit,
-    'rasd:VirtualQuantity': quantity
-  }) => {
+  '4': (
+    data,
+    { 'rasd:AllocationUnits': unit, 'rasd:VirtualQuantity': quantity }
+  ) => {
     data.memory = quantity * allocationUnitsToFactor(unit)
   },
   // Network.
-  '10': ({ networks }, {
-    'rasd:AutomaticAllocation': enabled,
-    'rasd:Connection': name
-  }) => {
+  '10': (
+    { networks },
+    { 'rasd:AutomaticAllocation': enabled, 'rasd:Connection': name }
+  ) => {
     if (enabled) {
       networks.push(name)
     }
   },
   // Disk.
-  '17': ({ disks }, {
-    'rasd:AddressOnParent': position,
-    'rasd:Description': description = 'No description',
-    'rasd:ElementName': name,
-    'rasd:HostResource': resource
-  }) => {
+  '17': (
+    { disks },
+    {
+      'rasd:AddressOnParent': position,
+      'rasd:Description': description = 'No description',
+      'rasd:ElementName': name,
+      'rasd:HostResource': resource
+    }
+  ) => {
     const diskId = resource.match(/^(?:ovf:)?\/disk\/(.+)$/)
     const disk = diskId && disks[diskId[1]]
 
@@ -86,7 +83,7 @@ const filterDisks = disks => {
 
 // ===================================================================
 
-const parseOvaFile = file => (
+const parseOvaFile = file =>
   new Promise((resolve, reject) => {
     const stream = htmlFileToStream(file)
     const extract = tar.extract()
@@ -95,7 +92,9 @@ const parseOvaFile = file => (
 
     // tar module can work with bad tar files...
     // So it's necessary to reject at end of stream.
-    extract.on('finish', () => { reject(new Error('No ovf file found.')) })
+    extract.on('finish', () => {
+      reject(new Error('No ovf file found.'))
+    })
     extract.on('error', reject)
     extract.on('entry', ({ name }, stream, cb) => {
       // Not a XML file.
@@ -108,67 +107,78 @@ const parseOvaFile = file => (
 
       // XML file.
       streamToString(stream).then(xmlString => {
-        xml2js.parseString(xmlString, {
-          mergeAttrs: true,
-          explicitArray: false
-        }, (err, res) => {
-          if (err) {
-            reject(err)
-            return
-          }
-
-          const {
-            Envelope: {
-              DiskSection: { Disk: disks },
-              References: { File: files },
-              VirtualSystem: system
-            }
-          } = res
-
-          const data = {
-            disks: {},
-            networks: []
-          }
-          const hardware = system.VirtualHardwareSection
-
-          // Get VM name/description.
-          data.nameLabel = hardware.System['vssd:VirtualSystemIdentifier']
-          data.descriptionLabel =
-            (system.AnnotationSection && system.AnnotationSection.Annotation) ||
-            (system.OperatingSystemSection && system.OperatingSystemSection.Description)
-
-          // Get disks.
-          forEach(ensureArray(disks), disk => {
-            const file = find(ensureArray(files), file => file['ovf:id'] === disk['ovf:fileRef'])
-            const unit = disk['ovf:capacityAllocationUnits']
-
-            data.disks[disk['ovf:diskId']] = {
-              capacity: disk['ovf:capacity'] * ((unit && allocationUnitsToFactor(unit)) || 1),
-              path: file && file['ovf:href']
-            }
-          })
-
-          // Get hardware info: CPU, RAM, disks, networks...
-          forEach(ensureArray(hardware.Item), item => {
-            const handler = RESOURCE_TYPE_TO_HANDLER[item['rasd:ResourceType']]
-            if (!handler) {
+        xml2js.parseString(
+          xmlString,
+          {
+            mergeAttrs: true,
+            explicitArray: false
+          },
+          (err, res) => {
+            if (err) {
+              reject(err)
               return
             }
-            handler(data, item)
-          })
 
-          // Remove disks which not have a position.
-          // (i.e. no info in hardware.Item section.)
-          filterDisks(data.disks)
+            const {
+              Envelope: {
+                DiskSection: { Disk: disks },
+                References: { File: files },
+                VirtualSystem: system
+              }
+            } = res
 
-          // Done!
-          resolve(data)
-          cb()
-        })
+            const data = {
+              disks: {},
+              networks: []
+            }
+            const hardware = system.VirtualHardwareSection
+
+            // Get VM name/description.
+            data.nameLabel = hardware.System['vssd:VirtualSystemIdentifier']
+            data.descriptionLabel =
+              (system.AnnotationSection &&
+                system.AnnotationSection.Annotation) ||
+              (system.OperatingSystemSection &&
+                system.OperatingSystemSection.Description)
+
+            // Get disks.
+            forEach(ensureArray(disks), disk => {
+              const file = find(
+                ensureArray(files),
+                file => file['ovf:id'] === disk['ovf:fileRef']
+              )
+              const unit = disk['ovf:capacityAllocationUnits']
+
+              data.disks[disk['ovf:diskId']] = {
+                capacity:
+                  disk['ovf:capacity'] *
+                  ((unit && allocationUnitsToFactor(unit)) || 1),
+                path: file && file['ovf:href']
+              }
+            })
+
+            // Get hardware info: CPU, RAM, disks, networks...
+            forEach(ensureArray(hardware.Item), item => {
+              const handler =
+                RESOURCE_TYPE_TO_HANDLER[item['rasd:ResourceType']]
+              if (!handler) {
+                return
+              }
+              handler(data, item)
+            })
+
+            // Remove disks which not have a position.
+            // (i.e. no info in hardware.Item section.)
+            filterDisks(data.disks)
+
+            // Done!
+            resolve(data)
+            cb()
+          }
+        )
       })
     })
 
     stream.pipe(extract)
   })
-)
 export { parseOvaFile as default }

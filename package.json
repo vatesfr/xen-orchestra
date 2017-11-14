@@ -88,6 +88,7 @@
     "jsonrpc-websocket-client": "^0.2.0",
     "kindof": "^2.0.0",
     "later": "^1.2.0",
+    "lint-staged": "^5.0.0",
     "lodash": "^4.6.1",
     "loose-envify": "^1.1.0",
     "make-error": "^1.2.1",
@@ -96,6 +97,7 @@
     "moment": "^2.19.1",
     "moment-timezone": "^0.5.14",
     "notifyjs": "^3.0.0",
+    "prettier": "^1.8.2",
     "promise-toolbox": "^0.9.5",
     "random-password": "^0.1.2",
     "react": "^15.4.1",
@@ -149,8 +151,7 @@
     "commitmsg": "npm test",
     "dev": "npm run build-indexes && NODE_ENV=development gulp build",
     "dev-test": "jest --watch",
-    "lint": "standard",
-    "posttest": "npm run lint",
+    "precommit": "lint-staged",
     "prepublish": "npm run build",
     "test": "jest"
   },
@@ -191,6 +192,13 @@
     "setupTestFrameworkScriptFile": "./setup-tests.js",
     "snapshotSerializers": [
       "enzyme-to-json/serializer"
+    ]
+  },
+  "lint-staged": {
+    "*.js": [
+      "prettier --write",
+      "standard --fix",
+      "git add"
     ]
   },
   "standard": {

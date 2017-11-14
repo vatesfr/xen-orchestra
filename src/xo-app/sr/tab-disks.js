@@ -19,13 +19,15 @@ const COLUMNS = [
     name: _('vdiNameLabel'),
     itemRenderer: vdi => (
       <span>
-        <Text value={vdi.name_label} onChange={value => editVdi(vdi, { name_label: value })} />
-        {' '}
-        {vdi.type === 'VDI-snapshot' &&
+        <Text
+          value={vdi.name_label}
+          onChange={value => editVdi(vdi, { name_label: value })}
+        />{' '}
+        {vdi.type === 'VDI-snapshot' && (
           <span className='tag tag-info'>
             <Icon icon='vm-snapshot' />
           </span>
-        }
+        )}
       </span>
     ),
     sortCriteria: vdi => vdi.name_label
@@ -33,7 +35,10 @@ const COLUMNS = [
   {
     name: _('vdiNameDescription'),
     itemRenderer: vdi => (
-      <Text value={vdi.name_description} onChange={value => editVdi(vdi, { name_description: value })} />
+      <Text
+        value={vdi.name_description}
+        onChange={value => editVdi(vdi, { name_description: value })}
+      />
     )
   },
   {
@@ -42,7 +47,7 @@ const COLUMNS = [
       const getObject = createGetObject((_, id) => id)
 
       return {
-        vm: (state, { item: { $VBDs: [ vbdId ] } }) => {
+        vm: (state, { item: { $VBDs: [vbdId] } }) => {
           if (vbdId === undefined) {
             return null
           }
@@ -68,15 +73,11 @@ const COLUMNS = [
         link = `/vms/${vm.id}`
       } else if (type === 'VM-snapshot') {
         const id = vm.$snapshot_of
-        link = id !== undefined
-          ? `/vms/${id}/snapshots`
-          : '/dashboard/health'
+        link = id !== undefined ? `/vms/${id}/snapshots` : '/dashboard/health'
       }
 
       const item = renderXoItem(vm)
-      return link === undefined
-        ? item
-        : <Link to={link}>{item}</Link>
+      return link === undefined ? item : <Link to={link}>{item}</Link>
     })
   },
   {
@@ -127,24 +128,27 @@ export default class SrDisks extends Component {
 
   render () {
     const vdis = this._getAllVdis()
-    return <Container>
-      <Row>
-        <Col>
-          {!isEmpty(vdis)
-            ? <SortedTable
-              collection={vdis}
-              columns={COLUMNS}
-              defaultFilter='filterOnlyManaged'
-              filters={FILTERS}
-              groupedActions={GROUPED_ACTIONS}
-              individualActions={INDIVIDUAL_ACTIONS}
-              shortcutsTarget='body'
-              stateUrlParam='s'
-            />
-            : <h4 className='text-xs-center'>{_('srNoVdis')}</h4>
-          }
-        </Col>
-      </Row>
-    </Container>
+    return (
+      <Container>
+        <Row>
+          <Col>
+            {!isEmpty(vdis) ? (
+              <SortedTable
+                collection={vdis}
+                columns={COLUMNS}
+                defaultFilter='filterOnlyManaged'
+                filters={FILTERS}
+                groupedActions={GROUPED_ACTIONS}
+                individualActions={INDIVIDUAL_ACTIONS}
+                shortcutsTarget='body'
+                stateUrlParam='s'
+              />
+            ) : (
+              <h4 className='text-xs-center'>{_('srNoVdis')}</h4>
+            )}
+          </Col>
+        </Row>
+      </Container>
+    )
   }
 }

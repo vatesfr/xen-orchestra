@@ -7,11 +7,7 @@ import Shortcuts from 'shortcuts'
 import { Portal } from 'react-overlays'
 import { routerShape } from 'react-router/lib/PropTypes'
 import { Set } from 'immutable'
-import {
-  Dropdown,
-  MenuItem,
-  Pagination
-} from 'react-bootstrap-4/lib'
+import { Dropdown, MenuItem, Pagination } from 'react-bootstrap-4/lib'
 import {
   ceil,
   filter,
@@ -75,22 +71,26 @@ class TableFilter extends Component {
 
     return (
       <div className='input-group'>
-        {isEmpty(props.filters)
-          ? <span className='input-group-addon'><Icon icon='search' /></span>
-          : <span className='input-group-btn'>
+        {isEmpty(props.filters) ? (
+          <span className='input-group-addon'>
+            <Icon icon='search' />
+          </span>
+        ) : (
+          <span className='input-group-btn'>
             <Dropdown id='filter'>
               <DropdownToggle bsStyle='info'>
                 <Icon icon='search' />
               </DropdownToggle>
               <DropdownMenu>
-                {map(props.filters, (filter, label) =>
+                {map(props.filters, (filter, label) => (
                   <MenuItem key={label} onClick={() => this._setFilter(filter)}>
                     {_(label)}
                   </MenuItem>
-                )}
+                ))}
               </DropdownMenu>
             </Dropdown>
-          </span>}
+          </span>
+        )}
         <DebouncedInput
           className='form-control'
           onChange={this._onChange}
@@ -185,78 +185,78 @@ class Checkbox extends Component {
 
 // ===================================================================
 
-const actionsShape = propTypes.arrayOf(propTypes.shape({
-  // groupedActions: the function will be called with an array of the selected items in parameters
-  // individualActions: the function will be called with the related item in parameters
-  disabled: propTypes.oneOfType([ propTypes.bool, propTypes.func ]),
-  handler: propTypes.func.isRequired,
-  icon: propTypes.string.isRequired,
-  label: propTypes.node.isRequired,
-  level: propTypes.oneOf([ 'warning', 'danger' ])
-}))
+const actionsShape = propTypes.arrayOf(
+  propTypes.shape({
+    // groupedActions: the function will be called with an array of the selected items in parameters
+    // individualActions: the function will be called with the related item in parameters
+    disabled: propTypes.oneOfType([propTypes.bool, propTypes.func]),
+    handler: propTypes.func.isRequired,
+    icon: propTypes.string.isRequired,
+    label: propTypes.node.isRequired,
+    level: propTypes.oneOf(['warning', 'danger'])
+  })
+)
 
 class IndividualAction extends Component {
   _getIsDisabled = createSelector(
     () => this.props.disabled,
     () => this.props.item,
     () => this.props.userData,
-    (disabled, item, userData) => isFunction(disabled)
-      ? disabled(item, userData)
-      : disabled
+    (disabled, item, userData) =>
+      isFunction(disabled) ? disabled(item, userData) : disabled
   )
 
   render () {
     const { icon, label, level, handler, item } = this.props
 
-    return <ActionRowButton
-      btnStyle={level}
-      disabled={this._getIsDisabled()}
-      handler={handler}
-      handlerParam={item}
-      icon={icon}
-      tooltip={label}
-    />
+    return (
+      <ActionRowButton
+        btnStyle={level}
+        disabled={this._getIsDisabled()}
+        handler={handler}
+        handlerParam={item}
+        icon={icon}
+        tooltip={label}
+      />
+    )
   }
 }
 
-@propTypes({
-  defaultColumn: propTypes.number,
-  defaultFilter: propTypes.string,
-  collection: propTypes.oneOfType([
-    propTypes.array,
-    propTypes.object
-  ]).isRequired,
-  columns: propTypes.arrayOf(propTypes.shape({
-    component: propTypes.func,
-    default: propTypes.bool,
-    name: propTypes.node,
-    itemRenderer: propTypes.func,
-    sortCriteria: propTypes.oneOfType([
-      propTypes.func,
-      propTypes.string
-    ]),
-    sortOrder: propTypes.string,
-    textAlign: propTypes.string
-  })).isRequired,
-  filterContainer: propTypes.func,
-  filters: propTypes.object,
-  groupedActions: actionsShape,
-  individualActions: actionsShape,
-  itemsPerPage: propTypes.number,
-  paginationContainer: propTypes.func,
-  rowAction: propTypes.func,
-  rowLink: propTypes.oneOfType([
-    propTypes.func,
-    propTypes.string
-  ]),
-  // DOM node selector like body or .my-class
-  // The shortcuts will be enabled when the node is focused
-  shortcutsTarget: propTypes.string,
-  stateUrlParam: propTypes.string,
-  userData: propTypes.any
-}, {
-  router: routerShape
-})
+@propTypes(
+  {
+    defaultColumn: propTypes.number,
+    defaultFilter: propTypes.string,
+    collection: propTypes.oneOfType([propTypes.array, propTypes.object])
+      .isRequired,
+    columns: propTypes.arrayOf(
+      propTypes.shape({
+        component: propTypes.func,
+        default: propTypes.bool,
+        name: propTypes.node,
+        itemRenderer: propTypes.func,
+        sortCriteria: propTypes.oneOfType([propTypes.func, propTypes.string]),
+        sortOrder: propTypes.string,
+        textAlign: propTypes.string
+      })
+    ).isRequired,
+    filterContainer: propTypes.func,
+    filters: propTypes.object,
+    groupedActions: actionsShape,
+    individualActions: actionsShape,
+    itemsPerPage: propTypes.number,
+    paginationContainer: propTypes.func,
+    rowAction: propTypes.func,
+    rowLink: propTypes.oneOfType([propTypes.func, propTypes.string]),
+    // DOM node selector like body or .my-class
+    // The shortcuts will be enabled when the node is focused
+    shortcutsTarget: propTypes.string,
+    stateUrlParam: propTypes.string,
+    userData: propTypes.any
+  },
+  {
+    router: routerShape
+  }
+)
 export default class SortedTable extends Component {
   static defaultProps = {
     itemsPerPage: 10
@@ -274,20 +274,18 @@ export default class SortedTable extends Component {
       }
     }
 
-    const state = this.state = {
+    const state = (this.state = {
       all: false, // whether all items are selected (accross pages)
-      filter: defined(
-        () => props.filters[props.defaultFilter],
-        ''
-      ),
+      filter: defined(() => props.filters[props.defaultFilter], ''),
       page: 1,
       selectedColumn,
-      sortOrder: props.columns[selectedColumn].sortOrder === 'desc'
-        ? 'desc'
-        : 'asc'
-    }
+      sortOrder:
+        props.columns[selectedColumn].sortOrder === 'desc' ? 'desc' : 'asc'
+    })
 
-    const urlState = get(() => context.router.location.query[props.stateUrlParam])
+    const urlState = get(
+      () => context.router.location.query[props.stateUrlParam]
+    )
     if (urlState !== undefined) {
       const i = urlState.indexOf('-')
       if (i === -1) {
@@ -301,23 +299,18 @@ export default class SortedTable extends Component {
     this._getSelectedColumn = () =>
       this.props.columns[this.state.selectedColumn]
 
-    this._getTotalNumberOfItems = createCounter(
-      () => this.props.collection
-    )
+    this._getTotalNumberOfItems = createCounter(() => this.props.collection)
 
     this._getItems = createSort(
       createFilter(
         () => this.props.collection,
-        createSelector(
-          () => this.state.filter,
-          createMatcher
-        )
+        createSelector(() => this.state.filter, createMatcher)
       ),
       createSelector(
         () => this._getSelectedColumn().sortCriteria,
         () => this.props.userData,
         (sortCriteria, userData) =>
-          (typeof sortCriteria === 'function')
+          typeof sortCriteria === 'function'
             ? object => sortCriteria(object, userData)
             : sortCriteria
       ),
@@ -344,25 +337,45 @@ export default class SortedTable extends Component {
       () => this.props.rowLink,
       () => this.props.rowAction,
       () => this.props.userData,
-      (visibleItems, hasGroupedActions, itemIndex, rowLink, rowAction, userData) => (command, event) => {
+      (
+        visibleItems,
+        hasGroupedActions,
+        itemIndex,
+        rowLink,
+        rowAction,
+        userData
+      ) => (command, event) => {
         event.preventDefault()
-        const item = itemIndex !== undefined ? visibleItems[itemIndex] : undefined
+        const item =
+          itemIndex !== undefined ? visibleItems[itemIndex] : undefined
 
         switch (command) {
           case 'SEARCH':
             this.refs.filterInput.focus()
             break
           case 'NAV_DOWN':
-            if (hasGroupedActions || rowAction !== undefined || rowLink !== undefined) {
+            if (
+              hasGroupedActions ||
+              rowAction !== undefined ||
+              rowLink !== undefined
+            ) {
               this.setState({
-                highlighted: (itemIndex + visibleItems.length + 1) % visibleItems.length || 0
+                highlighted:
+                  (itemIndex + visibleItems.length + 1) % visibleItems.length ||
+                  0
               })
             }
             break
           case 'NAV_UP':
-            if (hasGroupedActions || rowAction !== undefined || rowLink !== undefined) {
+            if (
+              hasGroupedActions ||
+              rowAction !== undefined ||
+              rowLink !== undefined
+            ) {
               this.setState({
-                highlighted: (itemIndex + visibleItems.length - 1) % visibleItems.length || 0
+                highlighted:
+                  (itemIndex + visibleItems.length - 1) % visibleItems.length ||
+                  0
               })
             }
             break
@@ -374,9 +387,8 @@ export default class SortedTable extends Component {
           case 'ROW_ACTION':
             if (item !== undefined) {
               if (rowLink !== undefined) {
-                this.context.router.push(isFunction(rowLink)
-                  ? rowLink(item, userData)
-                  : rowLink
+                this.context.router.push(
+                  isFunction(rowLink) ? rowLink(item, userData) : rowLink
                 )
               } else if (rowAction !== undefined) {
                 rowAction(item, userData)
@@ -403,13 +415,10 @@ export default class SortedTable extends Component {
     let sortOrder
 
     if (state.selectedColumn === columnId) {
-      sortOrder = state.sortOrder === 'desc'
-        ? 'asc'
-        : 'desc'
+      sortOrder = state.sortOrder === 'desc' ? 'asc' : 'desc'
     } else {
-      sortOrder = this.props.columns[columnId].sortOrder === 'desc'
-        ? 'desc'
-        : 'asc'
+      sortOrder =
+        this.props.columns[columnId].sortOrder === 'desc' ? 'desc' : 'asc'
     }
 
     this.setState({
@@ -422,8 +431,13 @@ export default class SortedTable extends Component {
     const { selectedItemsIds } = this.state
 
     // Unselect items that are no longer visible
-    if ((this._visibleItemsRecomputations || 0) < (this._visibleItemsRecomputations = this._getVisibleItems.recomputations())) {
-      const newSelectedItems = selectedItemsIds.intersect(map(this._getVisibleItems(), 'id'))
+    if (
+      (this._visibleItemsRecomputations || 0) <
+      (this._visibleItemsRecomputations = this._getVisibleItems.recomputations())
+    ) {
+      const newSelectedItems = selectedItemsIds.intersect(
+        map(this._getVisibleItems(), 'id')
+      )
       if (newSelectedItems.size < selectedItemsIds.size) {
         this.setState({ selectedItemsIds: newSelectedItems })
       }
@@ -500,9 +514,7 @@ export default class SortedTable extends Component {
         return
       }
       this._toggleNestedCheckboxGuard = true
-      child.dispatchEvent(
-        new window.MouseEvent('click', event.nativeEvent)
-      )
+      child.dispatchEvent(new window.MouseEvent('click', event.nativeEvent))
       this._toggleNestedCheckboxGuard = false
     }
   }
@@ -526,27 +538,28 @@ export default class SortedTable extends Component {
       })
     }
 
-    let method = (
-      selected === undefined ? !selectedItemsIds.has(item.id) : selected
-    ) ? 'add' : 'delete'
+    let method = (selected === undefined
+    ? !selectedItemsIds.has(item.id)
+    : selected)
+      ? 'add'
+      : 'delete'
 
     let previous
-    this.setState({ selectedItemsIds:
-      (
-        range &&
-        (previous = this._previous) !== undefined
-      ) ? selectedItemsIds.withMutations(selectedItemsIds => {
-        let i = previous
-        let end = current
-        if (previous > current) {
-          i = current
-          end = previous
-        }
-        for (; i <= end; ++i) {
-          selectedItemsIds[method](visibleItems[i].id)
-        }
-      })
-        : selectedItemsIds[method](item.id)
+    this.setState({
+      selectedItemsIds:
+        range && (previous = this._previous) !== undefined
+          ? selectedItemsIds.withMutations(selectedItemsIds => {
+            let i = previous
+            let end = current
+            if (previous > current) {
+              i = current
+              end = previous
+            }
+            for (; i <= end; ++i) {
+              selectedItemsIds[method](visibleItems[i].id)
+            }
+          })
+          : selectedItemsIds[method](item.id)
     })
 
     this._previous = current
@@ -580,69 +593,73 @@ export default class SortedTable extends Component {
     const hasGroupedActions = this._hasGroupedActions()
     const hasIndividualActions = !isEmpty(individualActions)
 
-    const columns = map(props.columns, ({
-      component: Component,
-      itemRenderer,
-      textAlign
-    }, key) =>
-      <td
-        className={textAlign && `text-xs-${textAlign}`}
-        key={key}
-      >
-        {Component !== undefined
-          ? <Component item={item} userData={userData} />
-          : itemRenderer(item, userData)
-        }
-      </td>
+    const columns = map(
+      props.columns,
+      ({ component: Component, itemRenderer, textAlign }, key) => (
+        <td className={textAlign && `text-xs-${textAlign}`} key={key}>
+          {Component !== undefined ? (
+            <Component item={item} userData={userData} />
+          ) : (
+            itemRenderer(item, userData)
+          )}
+        </td>
+      )
     )
 
     const { id = i } = item
 
-    const selectionColumn = hasGroupedActions && <td
-      className='text-xs-center'
-      onClick={this._toggleNestedCheckbox}
-    >
-      <input
-        checked={state.all || state.selectedItemsIds.has(id)}
-        name={i} // position in visible items
-        onChange={this._onSelectItemCheckbox}
-        type='checkbox'
-      />
-    </td>
-    const actionsColumn = hasIndividualActions && <td><div className='pull-right'>
-      <ButtonGroup>
-        {map(individualActions, (props, key) => <IndividualAction
-          {...props}
-          item={item}
-          key={key}
-          userData={userData}
-        />)}
-      </ButtonGroup>
-    </div></td>
+    const selectionColumn = hasGroupedActions && (
+      <td className='text-xs-center' onClick={this._toggleNestedCheckbox}>
+        <input
+          checked={state.all || state.selectedItemsIds.has(id)}
+          name={i} // position in visible items
+          onChange={this._onSelectItemCheckbox}
+          type='checkbox'
+        />
+      </td>
+    )
+    const actionsColumn = hasIndividualActions && (
+      <td>
+        <div className='pull-right'>
+          <ButtonGroup>
+            {map(individualActions, (props, key) => (
+              <IndividualAction
+                {...props}
+                item={item}
+                key={key}
+                userData={userData}
+              />
+            ))}
+          </ButtonGroup>
+        </div>
+      </td>
+    )
 
-    return rowLink != null
-        ? <BlockLink
-          className={state.highlighted === i ? styles.highlight : undefined}
-          key={id}
-          tagName='tr'
-          to={isFunction(rowLink) ? rowLink(item, userData) : rowLink}
-        >
-          {selectionColumn}
-          {columns}
-          {actionsColumn}
-        </BlockLink>
-        : <tr
-          className={classNames(
-            rowAction && styles.clickableRow,
-            state.highlighted === i && styles.highlight
-          )}
-          key={id}
-          onClick={rowAction && (() => rowAction(item, userData))}
-        >
-          {selectionColumn}
-          {columns}
-          {actionsColumn}
-        </tr>
+    return rowLink != null ? (
+      <BlockLink
+        className={state.highlighted === i ? styles.highlight : undefined}
+        key={id}
+        tagName='tr'
+        to={isFunction(rowLink) ? rowLink(item, userData) : rowLink}
+      >
+        {selectionColumn}
+        {columns}
+        {actionsColumn}
+      </BlockLink>
+    ) : (
+      <tr
+        className={classNames(
+          rowAction && styles.clickableRow,
+          state.highlighted === i && styles.highlight
+        )}
+        key={id}
+        onClick={rowAction && (() => rowAction(item, userData))}
+      >
+        {selectionColumn}
+        {columns}
+        {actionsColumn}
+      </tr>
+    )
   }
 
   render () {
@@ -667,11 +684,8 @@ export default class SortedTable extends Component {
     const nColumns = props.columns.length + (hasIndividualActions ? 2 : 1)
 
     const displayPagination =
-      paginationContainer === undefined &&
-      itemsPerPage < nAllItems
-    const displayFilter =
-      filterContainer === undefined &&
-      nAllItems !== 0
+      paginationContainer === undefined && itemsPerPage < nAllItems
+    const displayFilter = filterContainer === undefined && nAllItems !== 0
 
     const paginationInstance = displayPagination && (
       <Pagination
@@ -697,12 +711,14 @@ export default class SortedTable extends Component {
 
     return (
       <div>
-        {shortcutsTarget !== undefined && <Shortcuts
-          handler={this._getShortcutsHandler()}
-          name='SortedTable'
-          stopPropagation
-          targetNodeSelector={shortcutsTarget}
-        />}
+        {shortcutsTarget !== undefined && (
+          <Shortcuts
+            handler={this._getShortcutsHandler()}
+            name='SortedTable'
+            stopPropagation
+            targetNodeSelector={shortcutsTarget}
+          />
+        )}
         <table className='table'>
           <thead className='thead-default'>
             <tr>
@@ -712,101 +728,125 @@ export default class SortedTable extends Component {
                   : _('sortedTableNumberOfFilteredItems', {
                     nFiltered: nItems,
                     nTotal: nAllItems
-                  })
-                }
-                {all
-                  ? <span>
-                    {' '}-{' '}
+                  })}
+                {all ? (
+                  <span>
+                    {' '}
+                    -{' '}
                     <span className='text-danger'>
                       {_('sortedTableAllItemsSelected')}
                     </span>
                   </span>
-                  : nSelectedItems !== 0 && <span>
-                    {' '}-{' '}
-                    {_('sortedTableNumberOfSelectedItems', {
-                      nSelected: nSelectedItems
-                    })}
-                    {nSelectedItems === nVisibleItems && nSelectedItems < nItems &&
-                      <Button
-                        btnStyle='info'
-                        className='ml-1'
-                        onClick={this._selectAll}
-                        size='small'
-                      >
-                        {_('sortedTableSelectAllItems')}
-                      </Button>
-                    }
-                  </span>
-                }
-                {nSelectedItems !== 0 && <div className='pull-right'>
-                  <ButtonGroup>
-                    {map(groupedActions, ({ icon, label, level, handler }, key) => <ActionRowButton
-                      btnStyle={level}
-                      handler={this._executeGroupedAction}
-                      handlerParam={handler}
-                      icon={icon}
-                      key={key}
-                      tooltip={label}
-                    />)}
-                  </ButtonGroup>
-                </div>}
+                ) : (
+                  nSelectedItems !== 0 && (
+                    <span>
+                      {' '}
+                      -{' '}
+                      {_('sortedTableNumberOfSelectedItems', {
+                        nSelected: nSelectedItems
+                      })}
+                      {nSelectedItems === nVisibleItems &&
+                        nSelectedItems < nItems && (
+                          <Button
+                            btnStyle='info'
+                            className='ml-1'
+                            onClick={this._selectAll}
+                            size='small'
+                          >
+                            {_('sortedTableSelectAllItems')}
+                          </Button>
+                        )}
+                    </span>
+                  )
+                )}
+                {nSelectedItems !== 0 && (
+                  <div className='pull-right'>
+                    <ButtonGroup>
+                      {map(
+                        groupedActions,
+                        ({ icon, label, level, handler }, key) => (
+                          <ActionRowButton
+                            btnStyle={level}
+                            handler={this._executeGroupedAction}
+                            handlerParam={handler}
+                            icon={icon}
+                            key={key}
+                            tooltip={label}
+                          />
+                        )
+                      )}
+                    </ButtonGroup>
+                  </div>
+                )}
               </th>
             </tr>
             <tr>
-              {hasGroupedActions && <th
-                className='text-xs-center'
-                onClick={this._toggleNestedCheckbox}
-              >
-                <Checkbox
-                  onChange={this._selectAllVisibleItems}
-                  checked={all || nSelectedItems !== 0}
-                  indeterminate={!all && nSelectedItems !== 0 && nSelectedItems !== nVisibleItems}
-                />
-              </th>}
+              {hasGroupedActions && (
+                <th
+                  className='text-xs-center'
+                  onClick={this._toggleNestedCheckbox}
+                >
+                  <Checkbox
+                    onChange={this._selectAllVisibleItems}
+                    checked={all || nSelectedItems !== 0}
+                    indeterminate={
+                      !all &&
+                      nSelectedItems !== 0 &&
+                      nSelectedItems !== nVisibleItems
+                    }
+                  />
+                </th>
+              )}
               {map(props.columns, (column, key) => (
                 <ColumnHead
                   textAlign={column.textAlign}
                   columnId={key}
-
                   key={key}
                   name={column.name}
                   sort={column.sortCriteria && this._sort}
-                  sortIcon={state.selectedColumn === key ? state.sortOrder : 'sort'}
-               />
+                  sortIcon={
+                    state.selectedColumn === key ? state.sortOrder : 'sort'
+                  }
+                />
               ))}
               {hasIndividualActions && <th />}
             </tr>
           </thead>
           <tbody>
-            {nVisibleItems !== 0
-              ? map(this._getVisibleItems(), this._renderItem)
-              : <tr><td className='text-info text-xs-center' colSpan={nColumns}>
-                {_('sortedTableNoItems')}
-              </td></tr>
-            }
+            {nVisibleItems !== 0 ? (
+              map(this._getVisibleItems(), this._renderItem)
+            ) : (
+              <tr>
+                <td className='text-info text-xs-center' colSpan={nColumns}>
+                  {_('sortedTableNoItems')}
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
         {(displayFilter || displayPagination) && (
           <Container>
             <SingleLineRow>
               <Col mediumSize={8}>
-                {displayPagination && (
-                  paginationContainer !== undefined
+                {displayPagination &&
+                  (paginationContainer !== undefined ? (
                     // Rebuild container function to refresh Portal component.
-                    ? <Portal container={() => paginationContainer()}>
+                    <Portal container={() => paginationContainer()}>
                       {paginationInstance}
                     </Portal>
-                    : paginationInstance
-                )}
+                  ) : (
+                    paginationInstance
+                  ))}
               </Col>
               <Col mediumSize={4}>
-                {displayFilter && (
-                  filterContainer
-                    ? <Portal container={() => filterContainer()}>
+                {displayFilter &&
+                  (filterContainer ? (
+                    <Portal container={() => filterContainer()}>
                       {filterInstance}
                     </Portal>
-                    : filterInstance
-                )}
+                  ) : (
+                    filterInstance
+                  ))}
               </Col>
             </SingleLineRow>
           </Container>

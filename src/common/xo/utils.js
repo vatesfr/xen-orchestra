@@ -1,8 +1,4 @@
-import {
-  forEach,
-  includes,
-  map
-} from 'lodash'
+import { forEach, includes, map } from 'lodash'
 
 export const getDefaultNetworkForVif = (vif, destHost, pifs, networks) => {
   const originNetwork = networks[vif.$network]

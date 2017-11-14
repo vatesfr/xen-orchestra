@@ -1,11 +1,6 @@
 import { PureComponent } from 'react'
 import { cowSet } from 'utils'
-import {
-  includes,
-  isArray,
-  forEach,
-  map
-} from 'lodash'
+import { includes, isArray, forEach, map } from 'lodash'
 
 import getEventValue from './get-event-value'
 
@@ -45,9 +40,7 @@ export default class BaseComponent extends PureComponent {
 
   // See https://preactjs.com/guide/linked-state
   linkState (name, targetPath) {
-    const key = targetPath !== undefined
-      ? `${name}##${targetPath}`
-      : name
+    const key = targetPath !== undefined ? `${name}##${targetPath}` : name
 
     let linkedState = this._linkedState
     let cb

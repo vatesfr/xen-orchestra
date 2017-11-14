@@ -1,12 +1,6 @@
 import React from 'react'
 import { Portal } from 'react-overlays'
-import {
-  forEach,
-  isEmpty,
-  keys,
-  map,
-  noop
-} from 'lodash'
+import { forEach, isEmpty, keys, map, noop } from 'lodash'
 
 import _ from './intl'
 import ActionButton from './action-button'
@@ -32,7 +26,9 @@ import {
 const MISSING_PATCHES_COLUMNS = [
   {
     name: _('srHost'),
-    itemRenderer: host => <Link to={`/hosts/${host.id}`}>{host.name_label}</Link>,
+    itemRenderer: host => (
+      <Link to={`/hosts/${host.id}`}>{host.name_label}</Link>
+    ),
     sortCriteria: host => host.name_label
   },
   {
@@ -42,7 +38,9 @@ const MISSING_PATCHES_COLUMNS = [
   },
   {
     name: _('hostMissingPatches'),
-    itemRenderer: (host, { missingPatches }) => <Link to={`/hosts/${host.id}/patches`}>{missingPatches[host.id]}</Link>,
+    itemRenderer: (host, { missingPatches }) => (
+      <Link to={`/hosts/${host.id}/patches`}>{missingPatches[host.id]}</Link>
+    ),
     sortCriteria: (host, { missingPatches }) => missingPatches[host.id]
   },
   {
@@ -58,23 +56,23 @@ const MISSING_PATCHES_COLUMNS = [
   }
 ]
 
-const POOLS_MISSING_PATCHES_COLUMNS = [{
-  name: _('srPool'),
-  itemRenderer: (host, { pools }) => {
-    const pool = pools[host.$pool]
-    return <Link to={`/pools/${pool.id}`}>{pool.name_label}</Link>
-  },
-  sortCriteria: (host, { pools }) => pools[host.$pool].name_label
-}].concat(MISSING_PATCHES_COLUMNS)
+const POOLS_MISSING_PATCHES_COLUMNS = [
+  {
+    name: _('srPool'),
+    itemRenderer: (host, { pools }) => {
+      const pool = pools[host.$pool]
+      return <Link to={`/pools/${pool.id}`}>{pool.name_label}</Link>
+    },
+    sortCriteria: (host, { pools }) => pools[host.$pool].name_label
+  }
+].concat(MISSING_PATCHES_COLUMNS)
 
 // Small component to homogenize Button usage in HostsPatchesTable
-const ActionButton_ = ({ children, labelId, ...props }) =>
-  <ActionButton
-    {...props}
-    tooltip={_(labelId)}
-  >
+const ActionButton_ = ({ children, labelId, ...props }) => (
+  <ActionButton {...props} tooltip={_(labelId)}>
     {children}
   </ActionButton>
+)
 
 // ===================================================================
 
@@ -98,17 +96,19 @@ class HostsPatchesTable extends Component {
   _subscribeMissingPatches = (hosts = this.props.hosts) => {
     const { hostsById } = this.props
 
-    const unsubs = map(hosts, host => hostsById
-      ? subscribeHostMissingPatches(
-        hostsById[host.id][0],
-        patches => this.setState({
-          missingPatches: {
-            ...this.state.missingPatches,
-            [host.id]: patches.length
-          }
-        })
-      )
-      : noop
+    const unsubs = map(
+      hosts,
+      host =>
+        hostsById
+          ? subscribeHostMissingPatches(hostsById[host.id][0], patches =>
+              this.setState({
+                missingPatches: {
+                  ...this.state.missingPatches,
+                  [host.id]: patches.length
+                }
+              })
+            )
+          : noop
     )
 
     if (this.unsubscribeMissingPatches !== undefined) {
@@ -124,10 +124,7 @@ class HostsPatchesTable extends Component {
       pools[host.$pool] = true
     })
 
-    return Promise.all(map(
-      keys(pools),
-      installAllPatchesOnPool
-    ))
+    return Promise.all(map(keys(pools), installAllPatchesOnPool))
   }
 
   componentDidMount () {
@@ -161,25 +158,27 @@ class HostsPatchesTable extends Component {
 
     const Container = container || 'div'
 
-    const Button = useTabButton
-      ? TabButton
-      : ActionButton_
+    const Button = useTabButton ? TabButton : ActionButton_
 
     return (
       <div>
-        {!noPatches
-          ? (
-            <SortedTable
-              collection={hosts}
-              columns={displayPools ? POOLS_MISSING_PATCHES_COLUMNS : MISSING_PATCHES_COLUMNS}
-              userData={{
-                installAllHostPatches,
-                missingPatches: this.state.missingPatches,
-                pools
-              }}
-            />
-          ) : <p>{_('patchNothing')}</p>
-        }
+        {!noPatches ? (
+          <SortedTable
+            collection={hosts}
+            columns={
+              displayPools
+                ? POOLS_MISSING_PATCHES_COLUMNS
+                : MISSING_PATCHES_COLUMNS
+            }
+            userData={{
+              installAllHostPatches,
+              missingPatches: this.state.missingPatches,
+              pools
+            }}
+          />
+        ) : (
+          <p>{_('patchNothing')}</p>
+        )}
         <Portal container={() => buttonsGroupContainer()}>
           <Container>
             <Button
@@ -223,7 +222,11 @@ export default propTypes({
     propTypes.objectOf(propTypes.object)
   ]).isRequired,
   useTabButton: propTypes.bool
-})(props => props.displayPools
-  ? <HostsPatchesTableByPool {...props} />
-  : <HostsPatchesTable {...props} />
+})(
+  props =>
+    props.displayPools ? (
+      <HostsPatchesTableByPool {...props} />
+    ) : (
+      <HostsPatchesTable {...props} />
+    )
 )

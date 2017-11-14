@@ -11,10 +11,7 @@ import reduce from 'lodash/reduce'
 import renderXoItem from 'render-xo-item'
 import { resolveIds } from 'utils'
 
-import {
-  subscribeGroups,
-  subscribeUsers
-} from 'xo'
+import { subscribeGroups, subscribeUsers } from 'xo'
 
 // ===================================================================
 
@@ -55,18 +52,28 @@ export class Subjects extends Component {
       <div>
         {map(this.props.subjects, id => {
           if (state.users[id]) {
-            return renderXoItem({ type: 'user', ...state.users[id] }, {
-              className: 'mr-1'
-            })
+            return renderXoItem(
+              { type: 'user', ...state.users[id] },
+              {
+                className: 'mr-1'
+              }
+            )
           }
 
           if (state.groups[id]) {
-            return renderXoItem({ type: 'group', ...state.groups[id] }, {
-              className: 'mr-1'
-            })
+            return renderXoItem(
+              { type: 'group', ...state.groups[id] },
+              {
+                className: 'mr-1'
+              }
+            )
           }
 
-          return <span key={id} className='mr-1'>{_('unknownResourceSetValue')}</span>
+          return (
+            <span key={id} className='mr-1'>
+              {_('unknownResourceSetValue')}
+            </span>
+          )
         })}
       </div>
     )
@@ -77,18 +84,14 @@ export const computeAvailableHosts = (pools, srs, hostsByPool) => {
   const validHosts = reduce(
     hostsByPool,
     (result, hosts, poolId) =>
-      includes(resolveIds(pools), poolId)
-        ? result.concat(hosts)
-        : result,
+      includes(resolveIds(pools), poolId) ? result.concat(hosts) : result,
     []
   )
 
   const availableHosts = filter(validHosts, host => {
     let kept = false
 
-    forEach(srs, sr =>
-      !(kept = intersection(sr.$PBDs, host.$PBDs).length > 0)
-    )
+    forEach(srs, sr => !(kept = intersection(sr.$PBDs, host.$PBDs).length > 0))
 
     return kept
   })

@@ -14,15 +14,17 @@ export default class ReplaceBrickModalBody extends Component {
   _getSrPredicate = createSelector(
     () => this.props.vm,
     () => this.state.onSameVm,
-    (vm, onSameVm) => onSameVm
-      ? sr => sr.$container === vm.$container && sr.SR_type === 'lvm'
-      : sr => sr.$pool === vm.$pool && sr.SR_type === 'lvm'
+    (vm, onSameVm) =>
+      onSameVm
+        ? sr => sr.$container === vm.$container && sr.SR_type === 'lvm'
+        : sr => sr.$pool === vm.$pool && sr.SR_type === 'lvm'
   )
 
-  _toggleOnSameVm = () => this.setState({
-    onSameVm: !this.state.onSameVm,
-    sr: undefined
-  })
+  _toggleOnSameVm = () =>
+    this.setState({
+      onSameVm: !this.state.onSameVm,
+      sr: undefined
+    })
 
   _selectSr = sr => {
     this.setState({
@@ -32,32 +34,43 @@ export default class ReplaceBrickModalBody extends Component {
   }
 
   render () {
-    return <Container>
-      <Row className='mb-1'>
-        <Col size={6}><strong>{_('xosanOnSameVm')}</strong></Col>
-        <Col size={6}>
-          <Toggle onChange={this._toggleOnSameVm} value={this.state.onSameVm} />
-        </Col>
-      </Row>
-      <Row className='mb-1'>
-        <Col size={6}><strong>{_('xosanUnderlyingStorage')}</strong></Col>
-        <Col size={6}>
-          <SelectSr
-            onChange={this._selectSr}
-            predicate={this._getSrPredicate()}
-            value={this.state.sr}
-          />
-        </Col>
-      </Row>
-      <Row className='mb-1'>
-        <Col size={6}><strong>{_('xosanBrickSize')}</strong></Col>
-        <Col size={6}>
-          <SizeInput
-            onChange={this.linkState('brickSize')}
-            value={this.state.brickSize}
-          />
-        </Col>
-      </Row>
-    </Container>
+    return (
+      <Container>
+        <Row className='mb-1'>
+          <Col size={6}>
+            <strong>{_('xosanOnSameVm')}</strong>
+          </Col>
+          <Col size={6}>
+            <Toggle
+              onChange={this._toggleOnSameVm}
+              value={this.state.onSameVm}
+            />
+          </Col>
+        </Row>
+        <Row className='mb-1'>
+          <Col size={6}>
+            <strong>{_('xosanUnderlyingStorage')}</strong>
+          </Col>
+          <Col size={6}>
+            <SelectSr
+              onChange={this._selectSr}
+              predicate={this._getSrPredicate()}
+              value={this.state.sr}
+            />
+          </Col>
+        </Row>
+        <Row className='mb-1'>
+          <Col size={6}>
+            <strong>{_('xosanBrickSize')}</strong>
+          </Col>
+          <Col size={6}>
+            <SizeInput
+              onChange={this.linkState('brickSize')}
+              value={this.state.brickSize}
+            />
+          </Col>
+        </Row>
+      </Container>
+    )
   }
 }
