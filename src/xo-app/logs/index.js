@@ -297,8 +297,8 @@ export default class LogList extends Component {
       logsToClear: [],
     }
     this.filters = {
-      onError: 'error',
-      successful: 'success',
+      onError: 'hasErrors?',
+      successful: 'status:finished !hasErrors?',
     }
   }
 
