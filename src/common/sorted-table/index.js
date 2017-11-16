@@ -221,6 +221,30 @@ class IndividualAction extends Component {
     )
   }
 }
+class GroupedActions extends Component {
+  _getIsDisabled = createSelector(
+    () => this.props.disabled,
+    () => this.props.selectedItems,
+    () => this.props.userData,
+    (disabled, selectedItems, userData) =>
+      isFunction(disabled) ? disabled(selectedItems, userData) : disabled
+  )
+
+  render () {
+    const { icon, label, level, handler, handlerParam } = this.props
+
+    return (
+      <ActionRowButton
+        btnStyle={level}
+        disabled={this._getIsDisabled()}
+        handler={handler}
+        handlerParam={handlerParam}
+        icon={icon}
+        tooltip={label}
+      />
+    )
+  }
+}
 
 @propTypes(
   {
@@ -589,6 +613,7 @@ export default class SortedTable extends Component {
     const { props, state } = this
 
     const { individualActions, rowAction, rowLink, userData } = props
+    this.userData = userData
 
     const hasGroupedActions = this._hasGroupedActions()
     const hasIndividualActions = !isEmpty(individualActions)
@@ -665,11 +690,13 @@ export default class SortedTable extends Component {
   render () {
     const { props, state } = this
     const {
+      collection,
       filterContainer,
       groupedActions,
       itemsPerPage,
       paginationContainer,
       shortcutsTarget,
+      userData,
     } = props
     const { all } = state
 
@@ -709,6 +736,10 @@ export default class SortedTable extends Component {
       />
     )
 
+    const selectedItems = filter(this.props.collection, item =>
+      this.state.selectedItemsIds.has(item.id)
+    )
+
     return (
       <div>
         {shortcutsTarget !== undefined && (
@@ -719,6 +750,7 @@ export default class SortedTable extends Component {
             targetNodeSelector={shortcutsTarget}
           />
         )}
+
         <table className='table'>
           <thead className='thead-default'>
             <tr>
@@ -762,19 +794,17 @@ export default class SortedTable extends Component {
                 {nSelectedItems !== 0 && (
                   <div className='pull-right'>
                     <ButtonGroup>
-                      {map(
-                        groupedActions,
-                        ({ icon, label, level, handler }, key) => (
-                          <ActionRowButton
-                            btnStyle={level}
-                            handler={this._executeGroupedAction}
-                            handlerParam={handler}
-                            icon={icon}
-                            key={key}
-                            tooltip={label}
-                          />
-                        )
-                      )}
+                      {map(groupedActions, (props, key) => (
+                        <GroupedActions
+                          {...props}
+                          collection={collection}
+                          handler={this._executeGroupedAction}
+                          handlerParam={props.handler}
+                          key={key}
+                          selectedItems={selectedItems}
+                          userData={userData}
+                        />
+                      ))}
                     </ButtonGroup>
                   </div>
                 )}
