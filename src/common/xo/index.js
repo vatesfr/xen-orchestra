@@ -15,7 +15,7 @@ import {
   once,
   size,
   sortBy,
-  throttle
+  throttle,
 } from 'lodash'
 import { lastly, reflect, tap } from 'promise-toolbox'
 import { forbiddenOperation, noHostsAvailable } from 'xo-common/api-errors'
@@ -1292,15 +1292,17 @@ export const deletePif = pif =>
     body: _('deletePifConfirm'),
   }).then(() => _call('pif.delete', { pif: resolveId(pif) }), noop)
 
-export const deletePifs = pifs => (
+export const deletePifs = pifs =>
   confirm({
     title: _('deletePifs'),
-    body: _('deletePifsConfirm')
+    body: _('deletePifsConfirm'),
   }).then(
-    () => Promise.all(map(pifs, pif => _call('pif.delete', { pif: resolveId(pif) }))),
+    () =>
+      Promise.all(
+        map(pifs, pif => _call('pif.delete', { pif: resolveId(pif) }))
+      ),
     noop
   )
-)
 
 export const reconfigurePifIp = (pif, { mode, ip, netmask, gateway, dns }) =>
   _call('pif.reconfigureIp', {
