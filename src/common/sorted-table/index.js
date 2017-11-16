@@ -221,7 +221,8 @@ class IndividualAction extends Component {
     )
   }
 }
-class GroupedActions extends Component {
+
+class GroupedAction extends Component {
   _getIsDisabled = createSelector(
     () => this.props.disabled,
     () => this.props.selectedItems,
@@ -231,14 +232,14 @@ class GroupedActions extends Component {
   )
 
   render () {
-    const { icon, label, level, handler, handlerParam } = this.props
+    const { icon, label, level, handler, selectedItems } = this.props
 
     return (
       <ActionRowButton
         btnStyle={level}
         disabled={this._getIsDisabled()}
         handler={handler}
-        handlerParam={handlerParam}
+        handlerParam={selectedItems}
         icon={icon}
         tooltip={label}
       />
@@ -593,27 +594,18 @@ export default class SortedTable extends Component {
     const { target } = event
     this._selectItem(+target.name, target.checked, event.nativeEvent.shiftKey)
   }
-
-  _executeGroupedAction = handler => {
-    const { state } = this
-    return handler(
-      state.all
-        ? this._getItems()
-        : filter(this._getItems(), item => state.selectedItemsIds.has(item.id))
-    )
-  }
-
-  _executeRowAction = event => {
-    const { props } = this
-    const item = this._getVisibleItems()[event.currentTarget.dataset.index]
-    props.rowAction(item, props.userData)
-  }
+  _getSelectedItems = createSelector(
+    () => this.state.all,
+    () => this.state.selectedItemsIds,
+    () => this._getItems(),
+    (all, selectedItemsIds, items) =>
+      all ? items : filter(items, item => selectedItemsIds.has(item.id))
+  )
 
   _renderItem = (item, i) => {
     const { props, state } = this
 
     const { individualActions, rowAction, rowLink, userData } = props
-    this.userData = userData
 
     const hasGroupedActions = this._hasGroupedActions()
     const hasIndividualActions = !isEmpty(individualActions)
@@ -690,7 +682,6 @@ export default class SortedTable extends Component {
   render () {
     const { props, state } = this
     const {
-      collection,
       filterContainer,
       groupedActions,
       itemsPerPage,
@@ -736,10 +727,6 @@ export default class SortedTable extends Component {
       />
     )
 
-    const selectedItems = filter(this.props.collection, item =>
-      this.state.selectedItemsIds.has(item.id)
-    )
-
     return (
       <div>
         {shortcutsTarget !== undefined && (
@@ -750,7 +737,6 @@ export default class SortedTable extends Component {
             targetNodeSelector={shortcutsTarget}
           />
         )}
-
         <table className='table'>
           <thead className='thead-default'>
             <tr>
@@ -795,13 +781,10 @@ export default class SortedTable extends Component {
                   <div className='pull-right'>
                     <ButtonGroup>
                       {map(groupedActions, (props, key) => (
-                        <GroupedActions
+                        <GroupedAction
                           {...props}
-                          collection={collection}
-                          handler={this._executeGroupedAction}
-                          handlerParam={props.handler}
                           key={key}
-                          selectedItems={selectedItems}
+                          selectedItems={this._getSelectedItems()}
                           userData={userData}
                         />
                       ))}
