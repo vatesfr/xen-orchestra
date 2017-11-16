@@ -71,29 +71,30 @@ const JobCallStateInfos = ({ end, error }) => {
   )
 }
 
-const JobDataInfos = ({ start, end, size, merge }) => (
+const JobDataInfos = ({
+  transferDuration,
+  transferSize,
+  mergeDuration,
+  mergeSize,
+}) => (
   <div>
     <span>
-      <strong>{_('jobTransferredDataSize')}</strong> {formatSize(size)}
+      <strong>{_('jobTransferredDataSize')}</strong> {formatSize(transferSize)}
     </span>
     <br />
     <span>
       <strong>{_('jobTransferredDataSpeed')}</strong>{' '}
-      {formatSpeed(
-        size,
-        merge !== undefined ? end - start - merge.duration : end - start
-      )}
+      {formatSpeed(transferSize, transferDuration)}
     </span>
-    {merge !== undefined && (
+    {mergeSize !== undefined && (
       <div>
-        <br />
         <span>
-          <strong>{_('jobMergedDataSize')}</strong> {formatSize(merge.size)}
+          <strong>{_('jobMergedDataSize')}</strong> {formatSize(mergeSize)}
         </span>
         <br />
         <span>
           <strong>{_('jobMergedDataSpeed')}</strong>{' '}
-          {formatSpeed(merge.size, merge.duration)}
+          {formatSpeed(mergeSize, mergeDuration)}
         </span>
       </div>
     )}
@@ -165,12 +166,12 @@ class Log extends BaseComponent {
                       <FormattedDuration duration={end - start} />
                     )}
                   {returnedValue != null &&
-                    returnedValue.size !== undefined && (
+                    returnedValue.transferSize !== undefined && (
                       <JobDataInfos
-                        start={start}
-                        end={end}
-                        size={returnedValue.size}
-                        merge={returnedValue.merge}
+                        mergeDuration={returnedValue.mergeDuration}
+                        mergeSize={returnedValue.mergeSize}
+                        transferDuration={returnedValue.transferDuration}
+                        transferSize={returnedValue.transferSize}
                       />
                     )}
                   {id !== undefined && (
