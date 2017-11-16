@@ -834,7 +834,7 @@ const messages = {
   xenToolsStatusValue: {
     defaultMessage: '{status}',
     description:
-      'status can be `not-installed`, `unknown`, `out-of-date` & `up-to-date`',
+      'status can be `not-installed`, `unknown`, `out-of-date` & `up-to-date`'
   },
   osName: 'OS name',
   osKernel: 'OS kernel',
@@ -1418,6 +1418,9 @@ const messages = {
   deleteSshKeyConfirm: 'Delete SSH key',
   deleteSshKeyConfirmMessage:
     'Are you sure you want to delete the SSH key {title}?',
+  deleteSshKeysConfirm: 'Delete SSH keys',
+  deleteSshKeysConfirmMessage:
+    'Are you sure you want to delete {nKeys, number} SSH key{nKeys, plural, one {} other {s}}?',
 
   // ----- Usage -----
   others: 'Others',
@@ -1620,13 +1623,13 @@ const messages = {
   xosanUnderlyingStorageUsage: 'Using {usage}',
   xosanCustomIpNetwork: 'Custom IP network (/24)',
   xosanIssueHostNotInNetwork:
-    'Will configure the host xosan network device with a static IP address and plug it in.',
+    'Will configure the host xosan network device with a static IP address and plug it in.'
 }
-forEach(messages, function (message, id) {
+forEach(messages, function(message, id) {
   if (isString(message)) {
     messages[id] = {
       id,
-      defaultMessage: message,
+      defaultMessage: message
     }
   } else if (!message.id) {
     message.id = id

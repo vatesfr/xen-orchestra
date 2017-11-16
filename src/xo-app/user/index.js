@@ -24,7 +24,7 @@ import {
   editCustomFilter,
   removeCustomFilter,
   setDefaultHomeFilter,
-  subscribeCurrentUser,
+  subscribeCurrentUser
 } from 'xo'
 
 import Page from '../page'
@@ -36,7 +36,7 @@ const HEADER = (
     <Row>
       <Col>
         <h2>
-          <Icon icon='user' /> {_('userPage')}
+          <Icon icon="user" /> {_('userPage')}
         </h2>
       </Col>
     </Row>
@@ -49,7 +49,7 @@ const FILTER_TYPE_TO_LABEL_ID = {
   host: 'homeTypeHost',
   pool: 'homeTypePool',
   VM: 'homeTypeVm',
-  vmTemplate: 'homeTypeVmTemplate',
+  vmTemplate: 'homeTypeVmTemplate'
 }
 
 const SSH_KEY_STYLE = { wordWrap: 'break-word' }
@@ -70,39 +70,39 @@ const getUserPreferences = user => user.preferences || {}
   customFilters: propTypes.object,
   defaultFilter: propTypes.string.isRequired,
   filters: propTypes.object.isRequired,
-  type: propTypes.string.isRequired,
+  type: propTypes.string.isRequired
 })
 class DefaultFilterPicker extends Component {
-  _computeOptions (props) {
+  _computeOptions(props) {
     const { customFilters, filters } = props
 
     // Custom filters.
     const options = [
       {
         label: _('customFilters'),
-        disabled: true,
-      },
+        disabled: true
+      }
     ]
 
     options.push.apply(
       options,
       map(customFilters, (filter, name) => ({
         label: name,
-        value: name,
+        value: name
       }))
     )
 
     // Default filters
     options.push({
       label: _('defaultFilters'),
-      disabled: true,
+      disabled: true
     })
 
     options.push.apply(
       options,
       map(filters, (filter, labelId) => ({
         label: _(labelId),
-        value: labelId,
+        value: labelId
       }))
     )
 
@@ -112,15 +112,15 @@ class DefaultFilterPicker extends Component {
   _handleDefaultFilter = value =>
     setDefaultHomeFilter(this.props.type, value && value.value).catch(noop)
 
-  componentWillMount () {
+  componentWillMount() {
     this._computeOptions(this.props)
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     this._computeOptions(props)
   }
 
-  render () {
+  render() {
     return (
       <Row>
         <Col>
@@ -145,15 +145,15 @@ class DefaultFilterPicker extends Component {
 // ===================================================================
 
 @propTypes({
-  user: propTypes.object.isRequired,
+  user: propTypes.object.isRequired
 })
 class UserFilters extends Component {
   _removeFilter = ({ name, type }) => removeCustomFilter(type, name)
 
-  render () {
+  render() {
     const {
       defaultHomeFilters,
-      filters: customFiltersByType,
+      filters: customFiltersByType
     } = getUserPreferences(this.props.user)
 
     return (
@@ -183,9 +183,9 @@ class UserFilters extends Component {
                       type={type}
                     />
                     {map(customFilters, (filter, name) => (
-                      <Row key={name} className='pb-1'>
+                      <Row key={name} className="pb-1">
                         <Col mediumSize={4}>
-                          <div className='input-group'>
+                          <div className="input-group">
                             <Text
                               onChange={newName =>
                                 editCustomFilter(type, name, { newName })
@@ -195,7 +195,7 @@ class UserFilters extends Component {
                           </div>
                         </Col>
                         <Col mediumSize={7}>
-                          <div className='input-group'>
+                          <div className="input-group">
                             <Text
                               onChange={newValue =>
                                 editCustomFilter(type, name, { newValue })
@@ -206,11 +206,11 @@ class UserFilters extends Component {
                         </Col>
                         <Col mediumSize={1}>
                           <ActionButton
-                            btnStyle='danger'
-                            className='pull-right'
+                            btnStyle="danger"
+                            className="pull-right"
                             handler={this._removeFilter}
                             handlerParam={{ name, type }}
-                            icon='delete'
+                            icon="delete"
                           />
                         </Col>
                       </Row>
@@ -230,14 +230,17 @@ class UserFilters extends Component {
 const COLUMNS = [
   {
     default: true,
-    itemRenderer: sshKey => <span style={SSH_KEY_STYLE}>{sshKey.key}</span>,
-    name: _('key'),
-    sortCriteria: 'key',
-  },
-  {
     itemRenderer: sshKey => sshKey.title,
     name: _('title'),
-    sortCriteria: 'title',
+    sortCriteria: 'title'
+  },
+  {
+    itemRenderer: sshKey => <span style={SSH_KEY_STYLE}>{sshKey.key}</span>,
+    name: _('key'),
+  },
+  {
+    itemRenderer: sshKey => <span style={SSH_KEY_STYLE}>{sshKey.key}</span>,
+    name: _('key'),
   },
 ]
 
@@ -245,20 +248,20 @@ const INDIVIDUAL_ACTIONS = [
   {
     handler: deleteSshKey,
     icon: 'delete',
-    label: _('deleteSshKey'),
-  },
+    label: _('deleteSshKey')
+  }
 ]
 
 const GROUPED_ACTIONS = [
   {
     handler: deleteSshKeys,
     icon: 'delete',
-    label: _('deleteSshKeys'),
-  },
+    label: _('deleteSshKeys')
+  }
 ]
 
 const SshKeys = addSubscriptions({
-  user: subscribeCurrentUser,
+  user: subscribeCurrentUser
 })(({ user }) => {
   const sshKeys = user && user.preferences && user.preferences.sshKeys
 
@@ -269,10 +272,10 @@ const SshKeys = addSubscriptions({
     <div>
       <Card>
         <CardHeader>
-          <Icon icon='ssh-key' /> {_('sshKeys')}
+          <Icon icon="ssh-key" /> {_('sshKeys')}
           <ActionButton
-            className='btn-success pull-right'
-            icon='add'
+            className="btn-success pull-right"
+            icon="add"
             handler={addSshKey}
           >
             {_('newSshKey')}
@@ -283,7 +286,7 @@ const SshKeys = addSubscriptions({
           columns={COLUMNS}
           groupedActions={GROUPED_ACTIONS}
           individualActions={INDIVIDUAL_ACTIONS}
-          stateUrlParam='s'
+          stateUrlParam="s"
         />
       </Card>
     </div>
@@ -293,10 +296,10 @@ const SshKeys = addSubscriptions({
 // ===================================================================
 
 @addSubscriptions({
-  user: subscribeCurrentUser,
+  user: subscribeCurrentUser
 })
 @connectStore({
-  lang: getLang,
+  lang: getLang
 })
 @injectIntl
 export default class User extends Component {
@@ -316,7 +319,7 @@ export default class User extends Component {
       this.setState({
         oldPassword: undefined,
         newPassword: undefined,
-        confirmPassword: undefined,
+        confirmPassword: undefined
       })
     )
   }
@@ -328,7 +331,7 @@ export default class User extends Component {
   _handleConfirmPasswordChange = event =>
     this.setState({ confirmPassword: event.target.value })
 
-  render () {
+  render() {
     const { lang, user } = this.props
 
     if (!user) {
@@ -353,40 +356,40 @@ export default class User extends Component {
               <strong>{_('password')}</strong>
             </Col>
             <Col smallSize={10}>
-              <form className='form-inline' id='changePassword'>
+              <form className="form-inline" id="changePassword">
                 <input
-                  autoComplete='off'
-                  className='form-control'
+                  autoComplete="off"
+                  className="form-control"
                   onChange={this._handleOldPasswordChange}
                   placeholder={formatMessage(messages.oldPasswordPlaceholder)}
                   required
-                  type='password'
+                  type="password"
                   value={oldPassword || ''}
                 />{' '}
                 <input
-                  type='password'
-                  autoComplete='off'
-                  className='form-control'
+                  type="password"
+                  autoComplete="off"
+                  className="form-control"
                   onChange={this._handleNewPasswordChange}
                   placeholder={formatMessage(messages.newPasswordPlaceholder)}
                   required
                   value={newPassword}
                 />{' '}
                 <input
-                  autoComplete='off'
-                  className='form-control'
+                  autoComplete="off"
+                  className="form-control"
                   onChange={this._handleConfirmPasswordChange}
                   placeholder={formatMessage(
                     messages.confirmPasswordPlaceholder
                   )}
                   required
-                  type='password'
+                  type="password"
                   value={confirmPassword}
                 />{' '}
                 <ActionButton
-                  icon='save'
-                  form='changePassword'
-                  btnStyle='primary'
+                  icon="save"
+                  form="changePassword"
+                  btnStyle="primary"
                   handler={this._handleSavePassword}
                 >
                   {_('changePasswordOk')}
@@ -401,19 +404,19 @@ export default class User extends Component {
             </Col>
             <Col smallSize={10}>
               <select
-                className='form-control'
+                className="form-control"
                 onChange={this.handleSelectLang}
                 value={lang}
                 style={{ width: '10em' }}
               >
-                <option value='en'>English</option>
-                <option value='fr'>Français</option>
-                <option value='he'>עברי</option>
-                <option value='pl'>Polski</option>
-                <option value='pt'>Português</option>
-                <option value='es'>Español</option>
-                <option value='zh'>简体中文</option>
-                <option value='hu'>Magyar</option>
+                <option value="en">English</option>
+                <option value="fr">Français</option>
+                <option value="he">עברי</option>
+                <option value="pl">Polski</option>
+                <option value="pt">Português</option>
+                <option value="es">Español</option>
+                <option value="zh">简体中文</option>
+                <option value="hu">Magyar</option>
               </select>
             </Col>
           </Row>
