@@ -198,7 +198,6 @@ export default class Schedules extends Component {
     } = this.state
     const userData = {jobs}
     return <div>
-
       <h2>{_('newSchedule')}</h2>
       <form id='newScheduleForm'>
         <div className='form-group'>
@@ -244,5 +243,6 @@ export default class Schedules extends Component {
         />
       </div>
       }
+    </div>
   }
 }
