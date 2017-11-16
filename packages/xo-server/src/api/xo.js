@@ -1,3 +1,5 @@
+import { forEach } from 'lodash'
+
 import { streamToBuffer } from '../utils'
 
 // ===================================================================
@@ -30,8 +32,18 @@ exportConfig.permission = 'admin'
 
 // -------------------------------------------------------------------
 
-export function getAllObjects ({ filter, limit }) {
-  return this.getObjects({ filter, limit })
+function handleGetAllObjects (req, res, { filter, limit }) {
+  forEach(this.getObjects({ filter, limit }), object => {
+    res.write(JSON.stringify(object))
+    res.write('\n')
+  })
+  res.end()
+}
+
+export function getAllObjects ({ filter, limit, ndjson = false }) {
+  return ndjson
+    ? this.registerHttpRequest(handleGetAllObjects, { filter, limit }).then($getFrom => ({ $getFrom }))
+    : this.getObjects({ filter, limit })
 }
 
 getAllObjects.permission = ''
