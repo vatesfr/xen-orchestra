@@ -1188,17 +1188,9 @@ const messages = {
   deleteVdiModalMessage:
     'Are you sure you want to delete this disk? ALL DATA ON THIS DISK WILL BE LOST',
   deleteVdisModalTitle: 'Delete VDI{nVdis, plural, one {} other {s}}',
-<<<<<<< HEAD
   deleteVdisModalMessage:
     'Are you sure you want to delete {nVdis, number} disk{nVdis, plural, one {} other {s}}? ALL DATA ON THESE DISKS WILL BE LOST',
-  deleteSchedulesModalTitle: 'Delete Schedule{nSchedules, plural, one {} other {s}}',
-||||||| merged common ancestors
-  deleteVdisModalMessage: 'Are you sure you want to delete {nVdis, number} disk{nVdis, plural, one {} other {s}}? ALL DATA ON THESE DISKS WILL BE LOST',
-  deleteSchedulesModalTitle: 'Delete Schedule{nSchedules, plural, one {} other {s}}',
-=======
-  deleteVdisModalMessage: 'Are you sure you want to delete {nVdis, number} disk{nVdis, plural, one {} other {s}}? ALL DATA ON THESE DISKS WILL BE LOST',
   deleteSchedulesModalTitle: 'Delete schedule{nSchedules, plural, one {} other {s}}',
->>>>>>> Fixes
   deleteSchedulesModalMessage: 'Are you sure you want to delete {nSchedules, number} schedule{nSchedules, plural, one {} other {s}}?',
   revertVmModalTitle: 'Revert your VM',
   deleteSnapshotModalTitle: 'Delete snapshot',
