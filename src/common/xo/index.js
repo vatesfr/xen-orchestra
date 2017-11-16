@@ -1,20 +1,22 @@
 import asap from 'asap'
-import assign from 'lodash/assign'
 import cookies from 'cookies-js'
-import isEmpty from 'lodash/isEmpty'
-import isEqual from 'lodash/isEqual'
-import filter from 'lodash/filter'
-import forEach from 'lodash/forEach'
-import map from 'lodash/map'
-import once from 'lodash/once'
-import React from 'react'
 import fpSortBy from 'lodash/fp/sortBy'
+import React from 'react'
 import request from 'superagent'
-import size from 'lodash/size'
-import sortBy from 'lodash/sortBy'
-import throttle from 'lodash/throttle'
 import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
+import {
+  assign,
+  filter,
+  forEach,
+  isEmpty,
+  isEqual,
+  map,
+  once,
+  size,
+  sortBy,
+  throttle
+} from 'lodash'
 import { lastly, reflect, tap } from 'promise-toolbox'
 import { forbiddenOperation, noHostsAvailable } from 'xo-common/api-errors'
 import { resolve } from 'url'
@@ -1386,6 +1388,16 @@ export const deletePbd = pbd => _call('pbd.delete', { id: resolveId(pbd) })
 
 export const deleteMessage = message =>
   _call('message.delete', { id: resolveId(message) })
+
+export const deleteMessages = logs => (
+  confirm({
+    title: _('deleteLogsConfirm'),
+    body: _('deleteLogsConfirmMessage')
+  }).then(
+    () => Promise.all(map(logs, deleteMessage)),
+    noop
+  )
+)
 
 // Tags --------------------------------------------------------------
 

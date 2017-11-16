@@ -518,7 +518,6 @@ export default class TabDisks extends Component {
 
   render () {
     const { srs, vbds, vdis, vm } = this.props
-
     const { attachDisk, bootOrder, newDisk } = this.state
 
     return (
