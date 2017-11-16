@@ -566,6 +566,11 @@ export default async function main (args) {
   // Connects to all registered servers.
   await xo.start()
 
+  // Trigger a clean job.
+  debug('Cleaning: starting…')
+  await xo.clean()
+  debug('Cleaning: finished')
+
   // Express is used to manage non WebSocket connections.
   const express = createExpressApp()
 
