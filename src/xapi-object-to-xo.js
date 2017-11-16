@@ -268,7 +268,7 @@ const TRANSFORMS = {
 
       addresses: (guestMetrics && guestMetrics.networks) || null,
       affinityHost: link(obj, 'affinity'),
-      auto_poweron: Boolean(otherConfig.auto_poweron),
+      auto_poweron: otherConfig.auto_poweron === 'true',
       boot: obj.HVM_boot_params,
       CPUs: {
         max: +obj.VCPUs_max,
