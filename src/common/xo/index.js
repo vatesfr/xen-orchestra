@@ -19,13 +19,13 @@ import { forbiddenOperation, noHostsAvailable } from 'xo-common/api-errors'
 import { resolve } from 'url'
 
 import _ from '../intl'
-import fetch, { post } from '../fetch'
 import invoke from '../invoke'
 import logError from '../log-error'
 import store from 'store'
 import { alert, chooseAction, confirm } from '../modal'
 import { error, info, success } from '../notification'
 import { getObject } from 'selectors'
+import { post } from '../fetch'
 import { noop, resolveId, resolveIds } from '../utils'
 import {
   connected,
