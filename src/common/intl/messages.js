@@ -1408,6 +1408,7 @@ const messages = {
   sshKeys: 'SSH keys',
   newSshKey: 'New SSH key',
   deleteSshKey: 'Delete',
+  deleteSshKeys: 'Delete SSH keys',
   noSshKeys: 'No SSH keys',
   newSshKeyModalTitle: 'New SSH key',
   sshKeyErrorTitle: 'Invalid key',

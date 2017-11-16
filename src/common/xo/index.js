@@ -1,23 +1,26 @@
 import asap from 'asap'
-import assign from 'lodash/assign'
 import cookies from 'cookies-js'
-import isEmpty from 'lodash/isEmpty'
-import isEqual from 'lodash/isEqual'
-import filter from 'lodash/filter'
-import forEach from 'lodash/forEach'
-import map from 'lodash/map'
-import once from 'lodash/once'
-import React from 'react'
 import fpSortBy from 'lodash/fp/sortBy'
+import React from 'react'
 import request from 'superagent'
-import size from 'lodash/size'
-import sortBy from 'lodash/sortBy'
-import throttle from 'lodash/throttle'
 import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
 import { lastly, reflect, tap } from 'promise-toolbox'
-import { forbiddenOperation, noHostsAvailable } from 'xo-common/api-errors'
 import { resolve } from 'url'
+import { forbiddenOperation, noHostsAvailable } from 'xo-common/api-errors'
+import {
+  assign,
+  filter,
+  forEach,
+  includes,
+  isEmpty,
+  isEqual,
+  map,
+  once,
+  size,
+  sortBy,
+  throttle,
+} from 'lodash'
 
 import _ from '../intl'
 import invoke from '../invoke'
@@ -1867,7 +1870,24 @@ export const deleteSshKey = key =>
   }).then(() => {
     const { preferences } = xo.user
     return _setUserPreferences({
-      sshKeys: filter(preferences && preferences.sshKeys, k => !isEqual(k, key)),
+      sshKeys: filter(
+        preferences && preferences.sshKeys,
+        k => k.key !== resolveId(key)
+      ),
+    })
+  }, noop)
+
+export const deleteSshKeys = keys =>
+  confirm({
+    title: _('deleteSshKeysConfirm'),
+    body: _('deleteSshKeysConfirmMessage'),
+  }).then(() => {
+    const { preferences } = xo.user
+    return _setUserPreferences({
+      sshKeys: filter(
+        preferences && preferences.sshKeys,
+        k => !includes(resolveIds(keys), k.key)
+      ),
     })
   }, noop)
 
