@@ -78,24 +78,16 @@ const JobDataInfos = ({
   mergeSize,
 }) => (
   <div>
-    <span>
-      <strong>{_('jobTransferredDataSize')}</strong> {formatSize(transferSize)}
-    </span>
+    <strong>{_('jobTransferredDataSize')}</strong> {formatSize(transferSize)}
     <br />
-    <span>
-      <strong>{_('jobTransferredDataSpeed')}</strong>{' '}
-      {formatSpeed(transferSize, transferDuration)}
-    </span>
+    <strong>{_('jobTransferredDataSpeed')}</strong>{' '}
+    {formatSpeed(transferSize, transferDuration)}
     {mergeSize !== undefined && (
       <div>
-        <span>
-          <strong>{_('jobMergedDataSize')}</strong> {formatSize(mergeSize)}
-        </span>
+        <strong>{_('jobMergedDataSize')}</strong> {formatSize(mergeSize)}
         <br />
-        <span>
-          <strong>{_('jobMergedDataSpeed')}</strong>{' '}
-          {formatSpeed(mergeSize, mergeDuration)}
-        </span>
+        <strong>{_('jobMergedDataSpeed')}</strong>{' '}
+        {formatSpeed(mergeSize, mergeDuration)}
       </div>
     )}
   </div>
@@ -167,12 +159,7 @@ class Log extends BaseComponent {
                     )}
                   {returnedValue != null &&
                     returnedValue.transferSize !== undefined && (
-                      <JobDataInfos
-                        mergeDuration={returnedValue.mergeDuration}
-                        mergeSize={returnedValue.mergeSize}
-                        transferDuration={returnedValue.transferDuration}
-                        transferSize={returnedValue.transferSize}
-                      />
+                      <JobDataInfos {...returnedValue} />
                     )}
                   {id !== undefined && (
                     <span>
