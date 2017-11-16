@@ -262,6 +262,7 @@ const SshKeys = addSubscriptions({
 })(({ user }) => {
   const sshKeys = user && user.preferences && user.preferences.sshKeys
 
+  // sshKeysWithIds variable contains ssh keys Ids to be passed to SortedTable.
   const sshKeysWithIds = map(sshKeys, sshKey => ({ ...sshKey, id: sshKey.key }))
 
   return (

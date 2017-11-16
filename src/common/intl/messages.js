@@ -1418,9 +1418,6 @@ const messages = {
   deleteSshKeyConfirm: 'Delete SSH key',
   deleteSshKeyConfirmMessage:
     'Are you sure you want to delete the SSH key {title}?',
-  deleteSshKeysConfirm: 'Delete SSH keys',
-  deleteSshKeysConfirmMessage:
-    'Are you sure you want to delete the selected SSH key(s)?',
 
   // ----- Usage -----
   others: 'Others',

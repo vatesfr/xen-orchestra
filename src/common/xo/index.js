@@ -5,6 +5,9 @@ import React from 'react'
 import request from 'superagent'
 import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
+import { lastly, reflect, tap } from 'promise-toolbox'
+import { resolve } from 'url'
+import { forbiddenOperation, noHostsAvailable } from 'xo-common/api-errors'
 import {
   assign,
   filter,
@@ -18,9 +21,6 @@ import {
   sortBy,
   throttle,
 } from 'lodash'
-import { lastly, reflect, tap } from 'promise-toolbox'
-import { forbiddenOperation, noHostsAvailable } from 'xo-common/api-errors'
-import { resolve } from 'url'
 
 import _ from '../intl'
 import invoke from '../invoke'
@@ -1883,11 +1883,10 @@ export const deleteSshKeys = keys =>
     body: _('deleteSshKeysConfirmMessage'),
   }).then(() => {
     const { preferences } = xo.user
-    const Keys = map(keys, k => k.key)
     return _setUserPreferences({
       sshKeys: filter(
         preferences && preferences.sshKeys,
-        k => !includes(resolveIds(Keys), k.key)
+        k => !includes(resolveIds(keys), k.key)
       ),
     })
   }, noop)
