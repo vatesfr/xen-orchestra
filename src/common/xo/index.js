@@ -9,7 +9,6 @@ import map from 'lodash/map'
 import once from 'lodash/once'
 import React from 'react'
 import fpSortBy from 'lodash/fp/sortBy'
-import request from 'superagent'
 import size from 'lodash/size'
 import sortBy from 'lodash/sortBy'
 import throttle from 'lodash/throttle'
@@ -20,12 +19,13 @@ import { forbiddenOperation, noHostsAvailable } from 'xo-common/api-errors'
 import { resolve } from 'url'
 
 import _ from '../intl'
+import fetch, { post } from '../fetch'
 import invoke from '../invoke'
 import logError from '../log-error'
 import store from 'store'
-import { getObject } from 'selectors'
 import { alert, chooseAction, confirm } from '../modal'
 import { error, info, success } from '../notification'
+import { getObject } from 'selectors'
 import { noop, resolveId, resolveIds } from '../utils'
 import {
   connected,
@@ -405,15 +405,12 @@ export const getXoServerTimezone = _call('system.getServerTimezone')
 // XO --------------------------------------------------------------------------
 
 export const importConfig = config =>
-  _call('xo.importConfig').then(({ $sendTo: url }) =>
-    request
-      .post(url)
-      .send(config)
-      .then(response => {
-        if (response.status !== 200) {
-          throw new Error('config import failed')
-        }
-      })
+  _call('xo.importConfig').then(({ $sendTo }) =>
+    post($sendTo, config).then(response => {
+      if (response.status !== 200) {
+        throw new Error('config import failed')
+      }
+    })
   )
 
 export const exportConfig = () =>
@@ -654,10 +651,8 @@ export const installSupplementalPack = (host, file) => {
   )
 
   return _call('host.installSupplementalPack', { host: resolveId(host) }).then(
-    ({ $sendTo: url }) =>
-      request
-        .post(url)
-        .send(file)
+    ({ $sendTo }) =>
+      post($sendTo, file)
         .then(res => {
           if (res.status !== 200) {
             throw new Error('installing supplemental pack failed')
@@ -685,10 +680,8 @@ export const installSupplementalPackOnAllHosts = (pool, file) => {
   )
 
   return _call('pool.installSupplementalPack', { pool: resolveId(pool) }).then(
-    ({ $sendTo: url }) =>
-      request
-        .post(url)
-        .send(file)
+    ({ $sendTo }) =>
+      post($sendTo, file)
         .then(res => {
           if (res.status !== 200) {
             throw new Error('installing supplemental pack failed')
@@ -1075,18 +1068,17 @@ export const importVm = (file, type = 'xva', data = undefined, sr) => {
   info(_('startVmImport'), name)
 
   return _call('vm.import', { type, data, sr: resolveId(sr) }).then(
-    ({ $sendTo: url }) => {
-      const req = request.post(url)
-
-      req.send(file)
-      req.end((err, res) => {
-        if (!err && res.status === 200) {
+    ({ $sendTo }) =>
+      post($sendTo, file)
+        .then(res => {
+          if (res.status !== 200) {
+            throw res.status
+          }
           success(_('vmImportSuccess'), name)
-        } else {
+        })
+        .catch(() => {
           error(_('vmImportFailed'), name)
-        }
-      })
-    }
+        })
   )
 }
 
