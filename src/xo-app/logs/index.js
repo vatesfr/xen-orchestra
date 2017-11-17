@@ -72,8 +72,11 @@ const JobCallStateInfos = ({ end, error }) => {
 }
 
 const JobDataInfos = ({
-  transferDuration,
-  transferSize,
+  jobDuration,
+  size,
+
+  transferDuration = jobDuration,
+  transferSize = size,
   mergeDuration,
   mergeSize,
 }) => (
@@ -147,6 +150,8 @@ class Log extends BaseComponent {
               }
             }
 
+            const jobDuration = end - start
+
             return (
               predicate(call) && (
                 <li key={call.callKey} className='list-group-item'>
@@ -160,9 +165,9 @@ class Log extends BaseComponent {
                   {end !== undefined &&
                     _.keyValue(
                       _('jobDuration'),
-                      <FormattedDuration duration={end - start} />
+                      <FormattedDuration duration={jobDuration} />
                     )}
-                  {returnedValue != null && <JobDataInfos {...returnedValue} />}
+                  {returnedValue != null && <JobDataInfos jobDuration={jobDuration} {...returnedValue} />}
                   {id !== undefined && (
                     <span>
                       {' '}
