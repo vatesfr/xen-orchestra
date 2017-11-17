@@ -33,8 +33,8 @@ const messages = {
   filterOnlyUnmanaged: 'Unmanaged disks',
   filterSaveAs: 'Save…',
   filterSyntaxLinkTooltip: 'Explore the search syntax in the documentation',
-  filterVifsOnlyConnected: 'VIFs connected',
-  filterVifsOnlyDisconnected: 'VIFs disconnected',
+  filterVifsOnlyConnected: 'Connected VIFs',
+  filterVifsOnlyDisconnected: 'Disconnected VIFs',
 
   // ----- Copiable component -----
   copyToClipboard: 'Copy to clipboard',
@@ -1205,9 +1205,9 @@ const messages = {
   deleteSchedulesModalMessage:
     'Are you sure you want to delete {nSchedules, number} schedule{nSchedules, plural, one {} other {s}}?',
   revertVmModalTitle: 'Revert your VM',
-  deleteVifsModalTitle: 'Delete VIF{nVIFs, plural, one {} other {s}}',
+  deleteVifsModalTitle: 'Delete VIF{nVifs, plural, one {} other {s}}',
   deleteVifsModalMessage:
-    'Are you sure you want to delete {nVIFs, number} VIF{nVIFs, plural, one {} other {s}}?',
+    'Are you sure you want to delete {nVifs, number} VIF{nVifs, plural, one {} other {s}}?',
   deleteSnapshotModalTitle: 'Delete snapshot',
   deleteSnapshotModalMessage: 'Are you sure you want to delete this snapshot?',
   revertVmModalMessage:

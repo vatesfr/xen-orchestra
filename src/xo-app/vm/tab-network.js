@@ -2,18 +2,9 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import BaseComponent from 'base-component'
-import concat from 'lodash/concat'
-import every from 'lodash/every'
-import filter from 'lodash'
-import find from 'lodash/find'
 import Icon from 'icon'
-import includes from 'lodash/includes'
-import isEmpty from 'lodash/isEmpty'
-import keys from 'lodash/keys'
-import map from 'lodash/map'
 import propTypes from 'prop-types-decorator'
 import React from 'react'
-import remove from 'lodash/remove'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import TabButton from 'tab-button'
@@ -24,6 +15,18 @@ import { injectIntl } from 'react-intl'
 import { SelectNetwork, SelectIp, SelectResourceSetIp } from 'select-objects'
 import { XoSelect, Text } from 'editable'
 import { addSubscriptions, connectStore, EMPTY_ARRAY, noop } from 'utils'
+import {
+  concat,
+  every,
+  find,
+  includes,
+  isEmpty,
+  keys,
+  map,
+  remove,
+  some,
+} from 'lodash'
+
 import {
   createFinder,
   createGetObject,
@@ -43,27 +46,46 @@ import {
   subscribeResourceSets,
 } from 'xo'
 
+@connectStore({
+  network: createGetObject((_, props) => props.item.$network),
+})
+class VifNetwork extends BaseComponent {
+  _getNetworkPredicate = createSelector(
+    () => this.props.item.$pool,
+    vifPoolId => network => network.$pool === vifPoolId
+  )
+
+  render () {
+    const { network } = this.props
+
+    return (
+      network !== undefined && (
+        <XoSelect
+          onChange={network => setVif(this.props.item, { network })}
+          predicate={this._getNetworkPredicate()}
+          value={network}
+          xoType='network'
+        >
+          {network.name_label}
+        </XoSelect>
+      )
+    )
+  }
+}
+
 @addSubscriptions({
   ipPools: subscribeIpPools,
   resourceSets: subscribeResourceSets,
 })
-@connectStore(() => {
-  const getVif = (state, props) => props.item
-  const getNetworkId = createSelector(getVif, vif => vif.$network)
-  const getNetwork = createGetObject(getNetworkId)
-
-  return (state, props) => ({
-    vif: getVif(state, props),
-    network: getNetwork(state, props),
-    networkId: getNetworkId(state, props),
-  })
+@connectStore({
+  network: createGetObject((_, props) => props.item.$network),
 })
 class VifAllowedIps extends BaseComponent {
   _saveIp = (ipIndex, newIp) => {
     if (!isIp(newIp.id)) {
       throw new Error('Not a valid IP')
     }
-    const { vif } = this.props
+    const { vif } = this.props.item
     const { allowedIpv4Addresses, allowedIpv6Addresses } = vif
     if (isIpV4(newIp.id)) {
       allowedIpv4Addresses[ipIndex] = newIp.id
@@ -77,7 +99,7 @@ class VifAllowedIps extends BaseComponent {
     if (!isIp(ip.id)) {
       return
     }
-    const { vif } = this.props
+    const { vif } = this.props.item
     let { allowedIpv4Addresses, allowedIpv6Addresses } = vif
     if (isIpV4(ip.id)) {
       allowedIpv4Addresses = [...allowedIpv4Addresses, ip.id]
@@ -87,7 +109,7 @@ class VifAllowedIps extends BaseComponent {
     setVif(vif, { allowedIpv4Addresses, allowedIpv6Addresses })
   }
   _deleteIp = ipIndex => {
-    const { vif } = this.props
+    const { vif } = this.props.item
     const { allowedIpv4Addresses, allowedIpv6Addresses } = vif
     if (ipIndex < allowedIpv4Addresses.length) {
       remove(allowedIpv4Addresses, (_, i) => i === ipIndex)
@@ -100,8 +122,8 @@ class VifAllowedIps extends BaseComponent {
     setVif(vif, { allowedIpv4Addresses, allowedIpv6Addresses })
   }
   _getIps = createSelector(
-    () => this.props.vif.allowedIpv4Addresses || EMPTY_ARRAY,
-    () => this.props.vif.allowedIpv6Addresses || EMPTY_ARRAY,
+    () => this.props.item.allowedIpv4Addresses || EMPTY_ARRAY,
+    () => this.props.item.allowedIpv6Addresses || EMPTY_ARRAY,
     concat
   )
   _getIpPredicate = createSelector(
@@ -131,15 +153,9 @@ class VifAllowedIps extends BaseComponent {
     }
   )
   _getIsNetworkAllowed = createSelector(
-    () => this.props.networkId,
+    () => this.props.item.$network,
     vifNetworkId => ipPool =>
       find(ipPool.networks, ipPoolNetwork => ipPoolNetwork === vifNetworkId)
-  )
-  _getNetworkPredicate = createSelector(
-    () => this.props.vif && this.props.vif.$pool,
-    () => this.props.vifNetworkId,
-    (vifPoolId, vifNetworkId) => network =>
-      network.$pool === vifPoolId && network.id !== vifNetworkId
   )
 
   _toggleNewIp = () =>
@@ -147,7 +163,9 @@ class VifAllowedIps extends BaseComponent {
 
   render () {
     const { showNewIpForm } = this.state
-    const { resourceSet, vif } = this.props
+    const { resourceSet } = this.props
+    const vif = this.props.item
+
     if (!vif) {
       return null
     }
@@ -192,7 +210,7 @@ class VifAllowedIps extends BaseComponent {
                   <SelectResourceSetIp
                     autoFocus
                     containerPredicate={this._getIsNetworkAllowed()}
-                    onChange={ip => this._addIp(ip)}
+                    onChange={this._addIp}
                     predicate={this._getIpPredicate()}
                     required
                     resourceSetId={resourceSet}
@@ -201,7 +219,7 @@ class VifAllowedIps extends BaseComponent {
                   <SelectIp
                     autoFocus
                     containerPredicate={this._getIsNetworkAllowed()}
-                    onChange={ip => this._addIp(ip)}
+                    onChange={this._addIp}
                     predicate={this._getIpPredicate()}
                     required
                   />
@@ -222,6 +240,68 @@ class VifAllowedIps extends BaseComponent {
   }
 }
 
+@connectStore({
+  network: createGetObject((_, props) => props.item.$network),
+})
+class VifStatus extends BaseComponent {
+  _getIps = createSelector(
+    () => this.props.item.allowedIpv4Addresses || EMPTY_ARRAY,
+    () => this.props.item.allowedIpv6Addresses || EMPTY_ARRAY,
+    concat
+  )
+
+  _getNetworkStatus = () => {
+    const { network } = this.props
+
+    if (!isEmpty(this._getIps())) {
+      return (
+        <Tooltip content={_('vifLockedNetwork')}>
+          <Icon icon='lock' />
+        </Tooltip>
+      )
+    }
+    if (!network) {
+      return (
+        <Tooltip content={_('vifUnknownNetwork')}>
+          <Icon icon='unknown-status' />
+        </Tooltip>
+      )
+    }
+    if (network.defaultIsLocked) {
+      return (
+        <Tooltip content={_('vifLockedNetworkNoIps')}>
+          <Icon icon='error' />
+        </Tooltip>
+      )
+    }
+    return (
+      <Tooltip content={_('vifUnLockedNetwork')}>
+        <Icon icon='unlock' />
+      </Tooltip>
+    )
+  }
+
+  render () {
+    const vif = this.props.item
+
+    return (
+      <div>
+        <StateButton
+          disabledLabel={_('vifStatusDisconnected')}
+          disabledHandler={isVmRunning ? connectVif : noop}
+          disabledTooltip={_('vifConnect')}
+          enabledLabel={_('vifStatusConnected')}
+          enabledHandler={disconnectVif}
+          enabledTooltip={_('vifDisconnect')}
+          handlerParam={vif}
+          state={vif.attached}
+        />{' '}
+        {this._getNetworkStatus()}
+      </div>
+    )
+  }
+}
+
 const COLUMNS = [
   {
     itemRenderer: vif => `VIF #${vif.device}`,
@@ -238,39 +318,10 @@ const COLUMNS = [
   {
     itemRenderer: vif => vif.MTU,
     name: _('vifMtuLabel'),
+    sortCriteria: 'MTU',
   },
   {
-    component: connectStore(() => {
-      const getVif = (state, props) => props.item
-      const getNetworkId = createSelector(getVif, vif => vif.$network)
-      const getNetwork = createGetObject(getNetworkId)
-
-      return (state, props) => ({
-        vif: getVif(state, props),
-        network: getNetwork(state, props),
-        networkId: getNetworkId(state, props),
-      })
-    })(({ vif, network, networkId }) => {
-      const _setNetwork = network => setVif(vif, { network })
-      const _getNetworkPredicate = createSelector(
-        () => vif && vif.$pool,
-        () => networkId,
-        (vifPoolId, vifNetworkId) => network =>
-          network.$pool === vifPoolId && network.id !== vifNetworkId
-      )
-      return (
-        network !== undefined && (
-          <XoSelect
-            onChange={_setNetwork}
-            predicate={_getNetworkPredicate()}
-            value={network}
-            xoType='network'
-          >
-            {network.name_label}
-          </XoSelect>
-        )
-      )
-    }),
+    component: VifNetwork,
     name: _('vifNetworkLabel'),
   },
   {
@@ -278,77 +329,13 @@ const COLUMNS = [
     name: _('vifAllowedIps'),
   },
   {
-    component: connectStore(() => {
-      const getVif = (state, props) => props.item
-      const getNetworkId = createSelector(getVif, vif => vif.$network)
-      const getNetwork = createGetObject(getNetworkId)
-      return (state, props) => ({
-        vif: getVif(state, props),
-        network: getNetwork(state, props),
-        networkId: getNetworkId(state, props),
-      })
-    })(({ vif, network }) => {
-      const _getIps = createSelector(
-        () => vif.allowedIpv4Addresses || EMPTY_ARRAY,
-        () => vif.allowedIpv6Addresses || EMPTY_ARRAY,
-        concat
-      )
-      const _getNetworkStatus = () => {
-        if (!isEmpty(_getIps())) {
-          return (
-            <Tooltip content={_('vifLockedNetwork')}>
-              <Icon icon='lock' />
-            </Tooltip>
-          )
-        }
-        if (!network) {
-          return (
-            <Tooltip content={_('vifUnknownNetwork')}>
-              <Icon icon='unknown-status' />
-            </Tooltip>
-          )
-        }
-        if (network.defaultIsLocked) {
-          return (
-            <Tooltip content={_('vifLockedNetworkNoIps')}>
-              <Icon icon='error' />
-            </Tooltip>
-          )
-        }
-        return (
-          <Tooltip content={_('vifUnLockedNetwork')}>
-            <Icon icon='unlock' />
-          </Tooltip>
-        )
-      }
-
-      return (
-        <div>
-          <StateButton
-            disabledLabel={_('vifStatusDisconnected')}
-            disabledHandler={isVmRunning ? connectVif : noop}
-            disabledTooltip={_('vifConnect')}
-            enabledLabel={_('vifStatusConnected')}
-            enabledHandler={disconnectVif}
-            enabledTooltip={_('vifDisconnect')}
-            handlerParam={vif}
-            state={vif.attached}
-          />{' '}
-          {_getNetworkStatus()}
-        </div>
-      )
-    }),
+    component: VifStatus,
     name: _('vifStatusLabel'),
   },
 ]
 const GROUPED_ACTIONS = [
   {
-    disabled: selectedItems => {
-      const vifsAttached = filter(selectedItems, vif => {
-        if (vif.attached) return true
-      })
-      return selectedItems.length === vifsAttached.length
-    },
+    disabled: selectedItems => some(selectedItems, 'attached'),
     handler: deleteVifs,
     icon: 'remove',
     label: _('vifsRemove'),
@@ -469,7 +456,7 @@ class NewVif extends BaseComponent {
 }
 
 @connectStore(() => ({
-  vifs: createGetObjectsOfType('VIF').pick((state, props) => props.vm.VIFs),
+  vifs: createGetObjectsOfType('VIF').pick((_, props) => props.vm.VIFs),
 }))
 export default class TabNetwork extends BaseComponent {
   _toggleNewVif = () =>
