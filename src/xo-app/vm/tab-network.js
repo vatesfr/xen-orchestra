@@ -4,6 +4,7 @@ import ActionRowButton from 'action-row-button'
 import BaseComponent from 'base-component'
 import concat from 'lodash/concat'
 import every from 'lodash/every'
+import filter from 'lodash'
 import find from 'lodash/find'
 import Icon from 'icon'
 import includes from 'lodash/includes'
@@ -342,6 +343,12 @@ const COLUMNS = [
 ]
 const GROUPED_ACTIONS = [
   {
+    disabled: selectedItems => {
+      const vifsAttached = filter(selectedItems, vif => {
+        if (vif.attached) return true
+      })
+      return selectedItems.length === vifsAttached.length
+    },
     handler: deleteVifs,
     icon: 'remove',
     label: _('vifsRemove'),

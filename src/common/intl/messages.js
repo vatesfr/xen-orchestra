@@ -1205,6 +1205,9 @@ const messages = {
   deleteSchedulesModalMessage:
     'Are you sure you want to delete {nSchedules, number} schedule{nSchedules, plural, one {} other {s}}?',
   revertVmModalTitle: 'Revert your VM',
+  deleteVifsModalTitle: 'Delete VIF{nVIFs, plural, one {} other {s}}',
+  deleteVifsModalMessage:
+    'Are you sure you want to delete {nVIFs, number} VIF{nVIFs, plural, one {} other {s}}?',
   deleteSnapshotModalTitle: 'Delete snapshot',
   deleteSnapshotModalMessage: 'Are you sure you want to delete this snapshot?',
   revertVmModalMessage:

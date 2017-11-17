@@ -1206,7 +1206,10 @@ export const disconnectVif = vif =>
 export const deleteVif = vif => _call('vif.delete', { id: resolveId(vif) })
 
 export const deleteVifs = vifs =>
-  map(vifs, id => _call('vif.delete', { id: resolveId(id) }))
+  confirm({
+    title: _('deleteVifsModalTitle', { nVIFs: vifs.length }),
+    body: _('deleteVifsModalMessage', { nVIFs: vifs.length }),
+  }).then(() => map(vifs, vif => _call('vif.delete', { id: resolveId(vif) })))
 
 export const setVif = (
   vif,
