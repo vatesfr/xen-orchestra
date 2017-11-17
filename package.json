@@ -4,6 +4,7 @@
     "exec-promise": "^0.7.0",
     "husky": "^0.14.3",
     "jest": "^21.2.1",
+    "lint-staged": "^5.0.0",
     "promise-toolbox": "^0.9.5",
     "standard": "^10.0.3"
   },
@@ -19,12 +20,22 @@
     ],
     "testRegex": "\\.spec\\.js$"
   },
+  "lint-staged": {
+    "*.js": [
+      "lint-staged-stash",
+      "standard --fix",
+      "jest --findRelatedTests",
+      "lint-staged-unstash"
+    ]
+  },
   "private": true,
   "scripts": {
-    "commitmsg": "yarn test",
     "dev-test": "jest --bail --watch",
+    "lint-staged-stash": "touch .lint-staged && git stash save --include-untracked --keep-index && true",
+    "lint-staged-unstash": "git stash pop && rm -f .lint-staged && true",
+    "precommit": "lint-staged",
     "prepublish": "scripts/run-script prepublish",
-    "pretest": "standard --fix && jest",
+    "pretest": "standard && jest",
     "test": "scripts/run-script test"
   },
   "standard": {
