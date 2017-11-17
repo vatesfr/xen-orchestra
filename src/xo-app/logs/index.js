@@ -71,16 +71,33 @@ const JobCallStateInfos = ({ end, error }) => {
   )
 }
 
-const JobTransferredDataInfos = ({ start, end, size }) => (
+const JobDataInfos = ({
+  jobDuration,
+  size,
+
+  transferDuration = jobDuration,
+  transferSize = size,
+  mergeDuration,
+  mergeSize,
+}) => (
   <div>
-    <span>
-      <strong>{_('jobTransferredDataSize')}</strong> {formatSize(size)}
-    </span>
-    <br />
-    <span>
-      <strong>{_('jobTransferredDataSpeed')}</strong>{' '}
-      {formatSpeed(size, end - start)}
-    </span>
+    {transferSize !== undefined && (
+      <div>
+        <strong>{_('jobTransferredDataSize')}</strong>{' '}
+        {formatSize(transferSize)}
+        <br />
+        <strong>{_('jobTransferredDataSpeed')}</strong>{' '}
+        {formatSpeed(transferSize, transferDuration)}
+      </div>
+    )}
+    {mergeSize !== undefined && (
+      <div>
+        <strong>{_('jobMergedDataSize')}</strong> {formatSize(mergeSize)}
+        <br />
+        <strong>{_('jobMergedDataSpeed')}</strong>{' '}
+        {formatSpeed(mergeSize, mergeDuration)}
+      </div>
+    )}
   </div>
 )
 
@@ -133,6 +150,8 @@ class Log extends BaseComponent {
               }
             }
 
+            const jobDuration = end - start
+
             return (
               predicate(call) && (
                 <li key={call.callKey} className='list-group-item'>
@@ -146,16 +165,9 @@ class Log extends BaseComponent {
                   {end !== undefined &&
                     _.keyValue(
                       _('jobDuration'),
-                      <FormattedDuration duration={end - start} />
+                      <FormattedDuration duration={jobDuration} />
                     )}
-                  {returnedValue != null &&
-                    returnedValue.size !== undefined && (
-                      <JobTransferredDataInfos
-                        start={start}
-                        end={end}
-                        size={returnedValue.size}
-                      />
-                    )}
+                  {returnedValue != null && <JobDataInfos jobDuration={jobDuration} {...returnedValue} />}
                   {id !== undefined && (
                     <span>
                       {' '}
