@@ -540,6 +540,9 @@ class Vhd {
 
       i = endSector
     }
+
+    // Return the merged data size
+    return data.length
   }
 
   // Write a context footer. (At the end and beginning of a vhd file.)
@@ -613,9 +616,11 @@ export default async function vhdMerge (
 
   await parentVhd.ensureBatSize(childVhd.header.maxTableEntries)
 
+  let mergedDataSize = 0
+
   for (let blockId = 0; blockId < childVhd.header.maxTableEntries; blockId++) {
     if (childVhd._getBatEntry(blockId) !== BLOCK_UNUSED) {
-      await parentVhd.coalesceBlock(childVhd, blockId)
+      mergedDataSize += await parentVhd.coalesceBlock(childVhd, blockId)
     }
   }
 
@@ -630,6 +635,8 @@ export default async function vhdMerge (
   // necessary to update values and to recreate the footer after block
   // creation
   await parentVhd.writeFooter()
+
+  return mergedDataSize
 }
 
 // returns true if the child was actually modified

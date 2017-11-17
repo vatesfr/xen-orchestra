@@ -401,6 +401,7 @@ export default class {
 
   @deferrable.onFailure
   async deltaCopyVm ($onFailure, srcVm, targetSr, force = false, retention = 1) {
+    const transferStart = Date.now()
     const srcXapi = this._xo.getXapi(srcVm)
     const targetXapi = this._xo.getXapi(targetSr)
 
@@ -489,7 +490,8 @@ export default class {
     return {
     // 5. Return the identifier of the new XO VM object.
       id: xapiObjectToXo(dstVm).id,
-      size
+      transferDuration: Date.now() - transferStart,
+      transferSize: size
     }
   }
 
@@ -649,12 +651,13 @@ export default class {
 
     const parent = `${dir}/${backups[fullBackupId]}`
 
+    let mergedDataSize = 0
     for (j = fullBackupId + 1; j <= i; j++) {
       const backup = `${dir}/${backups[j]}`
 
       try {
         await checkFileIntegrity(handler, backup)
-        await vhdMerge(handler, parent, handler, backup)
+        mergedDataSize += await vhdMerge(handler, parent, handler, backup)
       } catch (e) {
         console.error('Unable to use vhd-util.', e)
         throw e
@@ -665,6 +668,8 @@ export default class {
 
     // Rename the first old full backup to the new full backup.
     await handler.rename(parent, newFullBackup)
+
+    return mergedDataSize
   }
 
   async _listDeltaVdiDependencies (handler, filePath) {
@@ -771,6 +776,7 @@ export default class {
 
   @deferrable.onFailure
   async rollingDeltaVmBackup ($onFailure, {vm, remoteId, tag, retention}) {
+    const transferStart = Date.now()
     const handler = await this._xo.getRemoteHandler(remoteId)
     const xapi = this._xo.getXapi(vm)
 
@@ -869,6 +875,8 @@ export default class {
     await handler.outputFile(infoPath, JSON.stringify(delta, null, 2))
 
     let dataSize = 0
+    let mergedDataSize = 0
+    const mergeStart = Date.now()
 
     // Here we have a completed backup. We can merge old vdis.
     await Promise.all(
@@ -879,9 +887,17 @@ export default class {
         dataSize += vdiBackup.value().size
 
         return this._mergeDeltaVdiBackups({ handler, dir: backupDir, retention })
-          .then(() => { this._chainDeltaVdiBackups({ handler, dir: backupDir }) })
+          .then(size => {
+            this._chainDeltaVdiBackups({ handler, dir: backupDir })
+
+            if (size !== undefined) {
+              mergedDataSize += size
+            }
+          })
       })
     )
+
+    const mergeDuration = Date.now() - mergeStart
 
     // Delete old backups.
     await this._removeOldDeltaVmBackups(xapi, { vm, handler, dir, retention })
@@ -893,7 +909,10 @@ export default class {
     return {
       // Returns relative path.
       path: `${dir}/${backupFormat}`,
-      size: dataSize
+      mergeDuration: mergedDataSize !== 0 ? mergeDuration : undefined,
+      mergeSize: mergedDataSize !== 0 ? mergedDataSize : undefined,
+      transferDuration: Date.now() - transferStart - mergeDuration,
+      transferSize: dataSize
     }
   }
 
@@ -971,11 +990,12 @@ export default class {
     await promise
 
     return {
-      size: sizeStream.size
+      transferSize: sizeStream.size
     }
   }
 
   async rollingBackupVm ({vm, remoteId, tag, retention, compress, onlyMetadata}) {
+    const transferStart = Date.now()
     const handler = await this._xo.getRemoteHandler(remoteId)
 
     const files = await handler.list()
@@ -988,6 +1008,7 @@ export default class {
 
     const data = await this._backupVm(vm, handler, file, {compress, onlyMetadata})
     await this._removeOldBackups(backups, handler, undefined, backups.length - (retention - 1))
+    data.transferDuration = Date.now() - transferStart
 
     return data
   }
@@ -1018,6 +1039,7 @@ export default class {
   }
 
   async rollingDrCopyVm ({vm, sr, tag, retention, deleteOldBackupsFirst}) {
+    const transferStart = Date.now()
     tag = 'DR_' + tag
     const reg = new RegExp('^' + escapeStringRegexp(`${vm.name_label}_${tag}_`) + '[0-9]{8}T[0-9]{6}Z$')
 
@@ -1061,7 +1083,8 @@ export default class {
     }
 
     return {
-      size: data.size
+      transferDuration: Date.now() - transferStart,
+      transferSize: data.size
     }
   }
 
