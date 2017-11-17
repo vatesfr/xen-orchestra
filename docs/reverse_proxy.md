@@ -10,7 +10,7 @@ Please use this configuration in this order or it will not work:
 ```apache
 RewriteEngine On
 RewriteCond %{HTTP:upgrade} websocket [NC]
-RewriteRule /[<path>](.*) ws://<xo-server ip>:<xo-server port>/ [L,P]
+RewriteRule /[<path>](.*) ws://<xo-server ip>:<xo-server port>/$1 [L,P]
 
 ProxyPass /[<path>] http://<xo-server ip>:<xo-server port>/
 ProxyPassReverse /[<path>] http://<xo-server ip>:<xo-server port>/
