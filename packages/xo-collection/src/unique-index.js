@@ -5,7 +5,7 @@ import NotImplemented from './not-implemented'
 import {
   ACTION_ADD,
   ACTION_UPDATE,
-  ACTION_REMOVE
+  ACTION_REMOVE,
 } from './collection'
 
 // ===================================================================
@@ -66,7 +66,7 @@ export default class UniqueIndex {
     const {
       computeHash,
       _itemByHash: itemByHash,
-      _keysToHash: keysToHash
+      _keysToHash: keysToHash,
     } = this
 
     for (const key in items) {
@@ -85,7 +85,7 @@ export default class UniqueIndex {
     const {
       computeHash,
       _itemByHash: itemByHash,
-      _keysToHash: keysToHash
+      _keysToHash: keysToHash,
     } = this
 
     for (const key in items) {
@@ -110,7 +110,7 @@ export default class UniqueIndex {
   _onRemove (items) {
     const {
       _itemByHash: itemByHash,
-      _keysToHash: keysToHash
+      _keysToHash: keysToHash,
     } = this
 
     for (const key in items) {

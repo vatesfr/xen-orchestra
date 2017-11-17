@@ -14,9 +14,9 @@ export const configurationSchema = {
       description: 'an array of recipients (mails)',
 
       items: {
-        type: 'string'
+        type: 'string',
       },
-      minItems: 1
+      minItems: 1,
     },
     toXmpp: {
       type: 'array',
@@ -24,11 +24,11 @@ export const configurationSchema = {
       description: 'an array of recipients (xmpp)',
 
       items: {
-        type: 'string'
+        type: 'string',
       },
-      minItems: 1
-    }
-  }
+      minItems: 1,
+    },
+  },
 }
 
 // ===================================================================
@@ -50,13 +50,13 @@ const formatMethod = method =>
 const formatSize = bytes =>
   humanFormat(bytes, {
     scale: 'binary',
-    unit: 'B'
+    unit: 'B',
   })
 
 const formatSpeed = (bytes, milliseconds) =>
   humanFormat(bytes * 1e3 / milliseconds, {
     scale: 'binary',
-    unit: 'B/s'
+    unit: 'B/s',
   })
 
 const logError = e => {
@@ -115,7 +115,7 @@ class BackupReportsXoPlugin {
 
     const reportOnFailure =
       reportWhen === 'fail' || // xo-web < 5
-      reportWhen === 'failure'  // xo-web >= 5
+      reportWhen === 'failure' // xo-web >= 5
 
     let globalMergeSize = 0
     let globalTransferSize = 0
@@ -143,7 +143,7 @@ class BackupReportsXoPlugin {
         `- **UUID**: ${vm !== undefined ? vm.uuid : id}`,
         `- **Start time**: ${formatDate(start)}`,
         `- **End time**: ${formatDate(end)}`,
-        `- **Duration**: ${formatDuration(duration)}`
+        `- **Duration**: ${formatDuration(duration)}`,
       ]
 
       const { error } = call
@@ -205,7 +205,7 @@ class BackupReportsXoPlugin {
       `- **Start time**: ${formatDate(start)}`,
       `- **End time**: ${formatDate(end)}`,
       `- **Duration**: ${formatDuration(duration)}`,
-      `- **Successes**: ${nSuccesses} / ${nCalls}`
+      `- **Successes**: ${nSuccesses} / ${nCalls}`,
     ]
     if (globalTransferSize !== 0) {
       markdown.push(
@@ -256,21 +256,21 @@ class BackupReportsXoPlugin {
         } − Backup report for ${tag} ${
           globalSuccess ? ICON_SUCCESS : ICON_FAILURE
         }`,
-        markdown
+        markdown,
       }),
       xo.sendToXmppClient !== undefined && xo.sendToXmppClient({
         to: this._xmppReceivers,
-        message: markdown
+        message: markdown,
       }),
       xo.sendSlackMessage !== undefined && xo.sendSlackMessage({
-        message: markdown
+        message: markdown,
       }),
       xo.sendPassiveCheck !== undefined && xo.sendPassiveCheck({
         status: globalSuccess ? 0 : 2,
         message: globalSuccess
           ? `[Xen Orchestra] [Success] Backup report for ${tag}`
-          : `[Xen Orchestra] [Failure] Backup report for ${tag} - VMs : ${nagiosText.join(' ')}`
-      })
+          : `[Xen Orchestra] [Failure] Backup report for ${tag} - VMs : ${nagiosText.join(' ')}`,
+      }),
     ])
   }
 }

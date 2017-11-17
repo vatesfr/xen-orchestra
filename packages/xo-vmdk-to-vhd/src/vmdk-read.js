@@ -37,8 +37,8 @@ function parseDescriptor (descriptorSlice) {
   const lines = descriptorText.split(/\r?\n/).filter((line) => {
     return line.trim().length > 0 && line[0] !== '#'
   })
-  for (let line of lines) {
-    let defLine = line.split('=')
+  for (const line of lines) {
+    const defLine = line.split('=')
     // the wonky quote test is to avoid having an equal sign in the name of an extent
     if (defLine.length === 2 && defLine[0].indexOf('"') === -1) {
       descriptorDict[defLine[0]] = defLine[1].replace(/['"]+/g, '')
@@ -49,7 +49,7 @@ function parseDescriptor (descriptorSlice) {
         sizeSectors: items[1],
         type: items[2],
         name: items[3],
-        offset: items.length > 4 ? items[4] : 0
+        offset: items.length > 4 ? items[4] : 0,
       })
     }
   }
@@ -63,7 +63,7 @@ function parseFlags (flagBuffer) {
     useSecondaryGrain: !!(number & (1 << 1)),
     useZeroedGrainTable: !!(number & (1 << 2)),
     compressedGrains: !!(number & (1 << 16)),
-    hasMarkers: !!(number & (1 << 17))
+    hasMarkers: !!(number & (1 << 17)),
   }
 }
 
@@ -98,7 +98,7 @@ function parseHeader (buffer) {
     grainDirectoryOffsetSectors,
     rGrainDirectoryOffsetSectors,
     l1EntrySectors,
-    numGTEsPerGT
+    numGTEsPerGT,
   }
 }
 async function readGrain (offsetSectors, buffer, compressed) {
@@ -115,7 +115,7 @@ async function readGrain (offsetSectors, buffer, compressed) {
     size,
     buffer: grainBuffer,
     grain: grainContent,
-    grainSize: grainContent.byteLength
+    grainSize: grainContent.byteLength,
   }
 }
 

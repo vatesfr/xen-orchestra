@@ -11,18 +11,18 @@ users.getKey = (user) => user.name
 
 // Inserts some data.
 users.add({
-  name: 'bob'
+  name: 'bob',
 })
 users.add({
   name: 'clara',
-  active: true
+  active: true,
 })
 users.add({
-  name: 'ophelia'
+  name: 'ophelia',
 })
 users.add({
   name: 'Steve',
-  active: true
+  active: true,
 })
 
 // -------------------------------------------------------------------
@@ -48,9 +48,9 @@ setTimeout(function () {
 
   users.set({
     name: 'ophelia',
-    active: true
+    active: true,
   })
   users.set({
-    name: 'Steve'
+    name: 'Steve',
   })
 }, 10)

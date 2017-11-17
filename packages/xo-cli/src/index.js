@@ -103,7 +103,7 @@ function parseParameters (args) {
 
 const humanFormatOpts = {
   unit: 'B',
-  scale: 'binary'
+  scale: 'binary',
 }
 
 function printProgress (progress) {
@@ -214,7 +214,7 @@ async function register (args) {
     password = await new Promise(function (resolve) {
       process.stdout.write('Password: ')
       pw(resolve)
-    })
+    }),
   ] = args
 
   const xo = new Xo({ url })
@@ -224,7 +224,7 @@ async function register (args) {
 
   await config.set({
     server: url,
-    token: await xo.call('token.create', { expiresIn })
+    token: await xo.call('token.create', { expiresIn }),
   })
 }
 exports.register = register
@@ -232,7 +232,7 @@ exports.register = register
 function unregister () {
   return config.unset([
     'server',
-    'token'
+    'token',
   ])
 }
 exports.unregister = unregister
@@ -367,7 +367,7 @@ async function call (args) {
           }
         }),
         progress,
-        output
+        output,
       ]), 'finish')
     }
 
@@ -381,16 +381,16 @@ async function call (args) {
         createReadStream(file),
         progressStream({
           length: length,
-          time: 1e3
-        }, printProgress)
+          time: 1e3,
+        }, printProgress),
       ])
 
       const response = await got.post(url, {
         body: input,
         headers: {
-          'content-length': length
+          'content-length': length,
         },
-        method: 'POST'
+        method: 'POST',
       })
       return response.body
     }

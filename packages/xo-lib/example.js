@@ -4,10 +4,10 @@ process.on('unhandledRejection', function (error) {
   console.log(error)
 })
 
-var Xo = require('./').default
+const Xo = require('./').default
 
-var xo = new Xo({
-  url: 'localhost:9000'
+const xo = new Xo({
+  url: 'localhost:9000',
 })
 
 xo.open().then(function () {
@@ -19,7 +19,7 @@ xo.open().then(function () {
 }).then(function () {
   return xo.signIn({
     email: 'admin@admin.net',
-    password: 'admin'
+    password: 'admin',
   }).then(function () {
     console.log('connected as ', xo.user)
   }).catch(function (error) {
@@ -28,7 +28,7 @@ xo.open().then(function () {
 }).then(function () {
   return xo.signIn({
     email: 'tom',
-    password: 'tom'
+    password: 'tom',
   }).then(function () {
     console.log('connected as', xo.user)
 

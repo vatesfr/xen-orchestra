@@ -2,7 +2,7 @@ import { filter, includes, map as mapToArray } from 'lodash'
 
 import {
   EXECUTION_DELAY,
-  debug
+  debug,
 } from './utils'
 
 const MINUTES_OF_HISTORICAL_DATA = 30
@@ -58,7 +58,7 @@ function computeRessourcesAverage (objects, objectsStats, nPoints) {
       ),
       nCpus: stats.cpus.length,
       memoryFree: computeAverage(stats.memoryFree, nPoints),
-      memory: computeAverage(stats.memory, nPoints)
+      memory: computeAverage(stats.memory, nPoints),
     }
   }
 
@@ -91,7 +91,7 @@ function setRealCpuAverageOfVms (vms, vmsAverages, nCpus) {
 export default class Plan {
   constructor (xo, name, poolIds, {
     excludedHosts,
-    thresholds
+    thresholds,
   } = {}) {
     this.xo = xo
     this._name = name
@@ -99,11 +99,11 @@ export default class Plan {
     this._excludedHosts = excludedHosts
     this._thresholds = {
       cpu: {
-        critical: numberOrDefault(thresholds && thresholds.cpu, DEFAULT_CRITICAL_THRESHOLD_CPU)
+        critical: numberOrDefault(thresholds && thresholds.cpu, DEFAULT_CRITICAL_THRESHOLD_CPU),
       },
       memoryFree: {
-        critical: numberOrDefault(thresholds && thresholds.memoryFree, DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE) * 1024
-      }
+        critical: numberOrDefault(thresholds && thresholds.memoryFree, DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE) * 1024,
+      },
     }
 
     for (const key in this._thresholds) {
@@ -157,7 +157,7 @@ export default class Plan {
     return {
       toOptimize,
       averages: avgWithRatio,
-      hosts
+      hosts,
     }
   }
 
@@ -213,7 +213,7 @@ export default class Plan {
         hostsStats[host.id] = {
           nPoints: hostStats.stats.cpus[0].length,
           stats: hostStats.stats,
-          averages: {}
+          averages: {},
         }
       })
     ))
@@ -229,7 +229,7 @@ export default class Plan {
         vmsStats[vm.id] = {
           nPoints: vmStats.stats.cpus[0].length,
           stats: vmStats.stats,
-          averages: {}
+          averages: {},
         }
       })
     ))

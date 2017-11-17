@@ -18,5 +18,5 @@ const [ , , url, user, password ] = process.argv
 createClient({
   auth: { user, password },
   readOnly: true,
-  url
+  url,
 }).connect()

@@ -29,18 +29,18 @@ describe('Index', function () {
   let col, byGroup
   const item1 = {
     id: '2ccb8a72-dc65-48e4-88fe-45ef541f2cba',
-    group: 'foo'
+    group: 'foo',
   }
   const item2 = {
     id: '7d21dc51-4da8-4538-a2e9-dd6f4784eb76',
-    group: 'bar'
+    group: 'bar',
   }
   const item3 = {
     id: '668c1274-4442-44a6-b99a-512188e0bb09',
-    group: 'foo'
+    group: 'foo',
   }
   const item4 = {
-    id: 'd90b7335-e540-4a44-ad22-c4baae9cd0a9'
+    id: 'd90b7335-e540-4a44-ad22-c4baae9cd0a9',
   }
 
   beforeEach(function () {
@@ -61,19 +61,19 @@ describe('Index', function () {
       byGroup: {
         foo: {
           [item1.id]: item1,
-          [item3.id]: item3
+          [item3.id]: item3,
         },
         bar: {
-          [item2.id]: item2
-        }
-      }
+          [item2.id]: item2,
+        },
+      },
     })
   })
 
   it('works with added items', function () {
     const item5 = {
       id: '823b56c4-4b96-4f3a-9533-5d08177167ac',
-      group: 'baz'
+      group: 'baz',
     }
 
     col.add(item5)
@@ -83,15 +83,15 @@ describe('Index', function () {
         byGroup: {
           foo: {
             [item1.id]: item1,
-            [item3.id]: item3
+            [item3.id]: item3,
           },
           bar: {
-            [item2.id]: item2
+            [item2.id]: item2,
           },
           baz: {
-            [item5.id]: item5
-          }
-        }
+            [item5.id]: item5,
+          },
+        },
       })
     })
   })
@@ -99,7 +99,7 @@ describe('Index', function () {
   it('works with updated items', function () {
     const item1bis = {
       id: item1.id,
-      group: 'bar'
+      group: 'bar',
     }
 
     col.update(item1bis)
@@ -108,13 +108,13 @@ describe('Index', function () {
       expect(col.indexes).toEqual({
         byGroup: {
           foo: {
-            [item3.id]: item3
+            [item3.id]: item3,
           },
           bar: {
             [item1.id]: item1bis,
-            [item2.id]: item2
-          }
-        }
+            [item2.id]: item2,
+          },
+        },
       })
     })
   })
@@ -127,10 +127,10 @@ describe('Index', function () {
         byGroup: {
           foo: {
             [item1.id]: item1,
-            [item3.id]: item3
+            [item3.id]: item3,
           },
-          bar: {}
-        }
+          bar: {},
+        },
       })
     })
   })
@@ -139,7 +139,7 @@ describe('Index', function () {
     const item1bis = {
       id: item1.id,
       group: item1.group,
-      newProp: true
+      newProp: true,
     }
 
     col.update(item1bis)
@@ -149,12 +149,12 @@ describe('Index', function () {
         byGroup: {
           foo: {
             [item1.id]: item1bis,
-            [item3.id]: item3
+            [item3.id]: item3,
           },
           bar: {
-            [item2.id]: item2
-          }
-        }
+            [item2.id]: item2,
+          },
+        },
       })
     })
   })
@@ -170,9 +170,9 @@ describe('Index', function () {
           byGroup: {
             foo: {
               [item1.id]: item1,
-              [item3.id]: item3
-            }
-          }
+              [item3.id]: item3,
+            },
+          },
         })
       })
     })

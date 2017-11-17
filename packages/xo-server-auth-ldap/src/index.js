@@ -25,7 +25,7 @@ export const configurationSchema = {
   properties: {
     uri: {
       description: 'URI of the LDAP server.',
-      type: 'string'
+      type: 'string',
     },
     certificateAuthorities: {
       description: `
@@ -35,13 +35,13 @@ If not specified, it will use a default set of well-known CAs.
 `.trim(),
       type: 'array',
       items: {
-        type: 'string'
-      }
+        type: 'string',
+      },
     },
     checkCertificate: {
       description: 'Enforce the validity of the server\'s certificates. You can disable it when connecting to servers that use a self-signed certificate.',
       type: 'boolean',
-      default: true
+      default: true,
     },
     bind: {
       description: 'Credentials to use before looking for the user record.',
@@ -55,18 +55,18 @@ Example: uid=xoa-auth,ou=people,dc=company,dc=net
 
 For Microsoft Active Directory, it can also be \`<user>@<domain>\`.
 `.trim(),
-          type: 'string'
+          type: 'string',
         },
         password: {
           description: 'Password of the user permitted of search the LDAP directory.',
-          type: 'string'
-        }
+          type: 'string',
+        },
       },
-      required: ['dn', 'password']
+      required: ['dn', 'password'],
     },
     base: {
       description: 'The base is the part of the description tree where the users are looked for.',
-      type: 'string'
+      type: 'string',
     },
     filter: {
       description: `
@@ -85,10 +85,10 @@ something like:
 - \`(&(uid={{name}})(memberOf=<group DN>))\`
 `.trim(),
       type: 'string',
-      default: '(uid={{name}})'
-    }
+      default: '(uid={{name}})',
+    },
   },
-  required: ['uri', 'base']
+  required: ['uri', 'base'],
 }
 
 export const testSchema = {
@@ -96,14 +96,14 @@ export const testSchema = {
   properties: {
     username: {
       description: 'LDAP username',
-      type: 'string'
+      type: 'string',
     },
     password: {
       description: 'LDAP password',
-      type: 'string'
-    }
+      type: 'string',
+    },
   },
-  required: ['username', 'password']
+  required: ['username', 'password'],
 }
 
 // ===================================================================
@@ -119,14 +119,14 @@ class AuthLdap {
     const clientOpts = this._clientOpts = {
       url: conf.uri,
       maxConnections: 5,
-      tlsOptions: {}
+      tlsOptions: {},
     }
 
     {
       const {
         bind,
         checkCertificate = true,
-        certificateAuthorities
+        certificateAuthorities,
       } = conf
 
       if (bind) {
@@ -147,7 +147,7 @@ class AuthLdap {
     const {
       bind: credentials,
       base: searchBase,
-      filter: searchFilter = '(uid={{name}})'
+      filter: searchFilter = '(uid={{name}})',
     } = conf
 
     this._credentials = credentials
@@ -166,7 +166,7 @@ class AuthLdap {
   test ({ username, password }) {
     return this._authenticate({
       username,
-      password
+      password,
     }).then(result => {
       if (result === null) {
         throw new Error('could not authenticate user')
@@ -207,8 +207,8 @@ class AuthLdap {
         const response = await search(this._searchBase, {
           scope: 'sub',
           filter: evalFilter(this._searchFilter, {
-            name: username
-          })
+            name: username,
+          }),
         })
 
         response.on('searchEntry', entry => {

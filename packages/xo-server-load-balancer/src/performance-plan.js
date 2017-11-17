@@ -54,7 +54,7 @@ export default class PerformancePlan extends Plan {
 
     const {
       averages,
-      toOptimize
+      toOptimize,
     } = results
     let { hosts } = results
 
@@ -75,7 +75,7 @@ export default class PerformancePlan extends Plan {
       await this._optimize({
         exceededHost,
         hosts,
-        hostsAverages: averages
+        hostsAverages: averages,
       })
     }
   }

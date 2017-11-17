@@ -7,11 +7,11 @@ import DensityPlan from './density-plan'
 import PerformancePlan from './performance-plan'
 import {
   DEFAULT_CRITICAL_THRESHOLD_CPU,
-  DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE
+  DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE,
 } from './plan'
 import {
   EXECUTION_DELAY,
-  debug
+  debug,
 } from './utils'
 
 // ===================================================================
@@ -37,12 +37,12 @@ export const configurationSchema = {
         properties: {
           name: {
             type: 'string',
-            title: 'Name'
+            title: 'Name',
           },
 
           mode: {
             enum: [ 'Performance mode', 'Density mode' ],
-            title: 'Mode'
+            title: 'Mode',
           },
 
           pools: {
@@ -51,8 +51,8 @@ export const configurationSchema = {
 
             items: {
               type: 'string',
-              $type: 'Pool'
-            }
+              $type: 'Pool',
+            },
           },
 
           thresholds: {
@@ -63,14 +63,14 @@ export const configurationSchema = {
               cpu: {
                 type: 'integer',
                 title: 'CPU (%)',
-                default: DEFAULT_CRITICAL_THRESHOLD_CPU
+                default: DEFAULT_CRITICAL_THRESHOLD_CPU,
               },
               memoryFree: {
                 type: 'integer',
                 title: 'RAM, Free memory (MB)',
-                default: DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE
-              }
-            }
+                default: DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE,
+              },
+            },
           },
 
           excludedHosts: {
@@ -80,19 +80,19 @@ export const configurationSchema = {
 
             items: {
               type: 'string',
-              $type: 'Host'
-            }
-          }
+              $type: 'Host',
+            },
+          },
         },
 
-        required: [ 'name', 'mode', 'pools' ]
+        required: [ 'name', 'mode', 'pools' ],
       },
 
-      minItems: 1
-    }
+      minItems: 1,
+    },
   },
 
-  additionalProperties: false
+  additionalProperties: false,
 }
 
 // ===================================================================
@@ -102,7 +102,7 @@ export const configurationSchema = {
 const makeJob = (cronPattern, fn) => {
   const job = {
     running: false,
-    emitter: new EventEmitter()
+    emitter: new EventEmitter(),
   }
 
   job.cron = new CronJob(cronPattern, async () => {

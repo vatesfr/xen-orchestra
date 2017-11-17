@@ -33,16 +33,16 @@ export const configurationSchema = {
       properties: {
         name: {
           type: 'string',
-          description: 'human readable name of the sender'
+          description: 'human readable name of the sender',
         },
         address: {
           type: 'string',
-          description: 'email address of the sender'
-        }
+          description: 'email address of the sender',
+        },
       },
 
       additionalProperties: false,
-      required: ['address']
+      required: ['address'],
     },
 
     transport: {
@@ -51,11 +51,11 @@ export const configurationSchema = {
       properties: {
         host: {
           type: 'string',
-          description: 'hostname or IP address of the SMTP server'
+          description: 'hostname or IP address of the SMTP server',
         },
         port: {
           type: 'integer',
-          description: 'port of the SMTP server (defaults to 25 or 465 for TLS)'
+          description: 'port of the SMTP server (defaults to 25 or 465 for TLS)',
         },
         secure: {
           default: false,
@@ -64,24 +64,24 @@ export const configurationSchema = {
             'auto (uses STARTTLS if available)',
             'force (requires STARTTLS or fail)',
             'disabled (never use STARTTLS)',
-            'TLS'
+            'TLS',
           ],
-          description: 'whether the connection should use TLS'
+          description: 'whether the connection should use TLS',
         },
         ignoreUnauthorized: {
           type: 'boolean',
-          description: 'ignore certificates error (e.g. self-signed certificate)'
+          description: 'ignore certificates error (e.g. self-signed certificate)',
         },
 
         // FIXME: xo-web does not support edition of too nested
         user: {
           type: 'string',
-          description: 'name to use to authenticate'
+          description: 'name to use to authenticate',
         },
         password: {
           type: 'string',
-          description: 'password to use to authenticate'
-        }
+          description: 'password to use to authenticate',
+        },
         // properties.
         // auth: {
         //   type: 'object',
@@ -103,12 +103,12 @@ export const configurationSchema = {
       },
 
       additionalProperties: false,
-      required: ['host']
-    }
+      required: ['host'],
+    },
   },
 
   additionalProperties: false,
-  required: ['from', 'transport']
+  required: ['from', 'transport'],
 }
 
 export const testSchema = {
@@ -117,12 +117,12 @@ export const testSchema = {
   properties: {
     to: {
       type: 'string',
-      description: 'recipient of the test mail'
-    }
+      description: 'recipient of the test mail',
+    },
   },
 
   additionalProperties: false,
-  required: ['to']
+  required: ['to'],
 }
 
 // ===================================================================
@@ -144,7 +144,7 @@ class TransportEmailPlugin {
       secure,
       user,
       ...transportConf
-    }
+    },
   }) {
     if (ignoreUnauthorized != null) {
       (
@@ -190,8 +190,8 @@ The transport-email plugin for Xen Orchestra server seems to be working fine, ni
 `,
       attachments: [ {
         filename: 'example.txt',
-        content: 'Attachments are working too, great!\n'
-      } ]
+        content: 'Attachments are working too, great!\n',
+      } ],
     })
   }
 
@@ -200,7 +200,7 @@ The transport-email plugin for Xen Orchestra server seems to be working fine, ni
     to, cc, bcc,
     subject,
     markdown,
-    attachments
+    attachments,
   }) {
     return this._send(removeUndefined({
       from,
@@ -209,7 +209,7 @@ The transport-email plugin for Xen Orchestra server seems to be working fine, ni
       bcc,
       subject,
       markdown,
-      attachments
+      attachments,
     })).catch(logAndRethrow)
   }
 }

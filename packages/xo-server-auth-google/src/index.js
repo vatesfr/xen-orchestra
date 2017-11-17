@@ -7,22 +7,22 @@ export const configurationSchema = {
   properties: {
     callbackURL: {
       type: 'string',
-      description: 'Must be exactly the same as specified on the Google developer console.'
+      description: 'Must be exactly the same as specified on the Google developer console.',
     },
     clientID: {
-      type: 'string'
+      type: 'string',
     },
     clientSecret: {
-      type: 'string'
+      type: 'string',
     },
     scope: {
       default: 'https://www.googleapis.com/auth/plus.login',
       description: 'Note that changing this value will break existing users.',
       enum: [ 'https://www.googleapis.com/auth/plus.login', 'email' ],
-      enumNames: [ 'Google+ name', 'Simple email address' ]
-    }
+      enumNames: [ 'Google+ name', 'Simple email address' ],
+    },
   },
-  required: ['callbackURL', 'clientID', 'clientSecret']
+  required: ['callbackURL', 'clientID', 'clientSecret'],
 }
 
 // ===================================================================

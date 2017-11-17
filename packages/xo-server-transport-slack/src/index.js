@@ -16,23 +16,23 @@ export const configurationSchema = {
   properties: {
     webhookUri: {
       type: 'string',
-      description: 'The Mattermost or Slack webhook URL.'
+      description: 'The Mattermost or Slack webhook URL.',
     },
     channel: {
       type: 'string',
-      description: 'Channel, private group, or IM channel to send message to.'
+      description: 'Channel, private group, or IM channel to send message to.',
     },
     username: {
       type: 'string',
-      description: 'Bot username.'
+      description: 'Bot username.',
     },
     icon_emoji: {
       type: 'string',
-      description: 'The bot icon. It can be a slack emoji or a URL image.'
-    }
+      description: 'The bot icon. It can be a slack emoji or a URL image.',
+    },
   },
   additionalProperties: false,
-  required: ['webhookUri', 'channel']
+  required: ['webhookUri', 'channel'],
 }
 
 // ===================================================================
@@ -43,7 +43,7 @@ class XoServerTransportSlack {
     this._set = ::xo.defineProperty
     this._unset = null
 
-   // Defined in configure().
+    // Defined in configure().
     this._conf = null
     this._send = null
   }
@@ -70,12 +70,12 @@ class XoServerTransportSlack {
     return this._sendSlack({
       message: `Hi there,
 
-The transport-slack plugin for Xen Orchestra server seems to be working fine, nicely done :)`
+The transport-slack plugin for Xen Orchestra server seems to be working fine, nicely done :)`,
     })
   }
 
   _sendSlack ({
-    message
+    message,
   }) {
     // TODO: handle errors
     return this._send({ ...this._conf, text: message }).catch(logAndRethrow)

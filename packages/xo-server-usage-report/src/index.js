@@ -12,14 +12,14 @@ import {
   orderBy,
   round,
   values,
-  zipObject
+  zipObject,
 } from 'lodash'
 import {
-  promisify
+  promisify,
 } from 'promise-toolbox'
 import {
   readFile,
-  writeFile
+  writeFile,
 } from 'fs'
 
 // ===================================================================
@@ -30,10 +30,10 @@ const pWriteFile = promisify(writeFile)
 const currDate = new Date().toISOString().slice(0, 10)
 
 const compareOperators = {
-  '>': (l, r) => l > r
+  '>': (l, r) => l > r,
 }
 const mathOperators = {
-  '+': (l, r) => l + r
+  '+': (l, r) => l + r,
 }
 
 const gibPower = Math.pow(2, 30)
@@ -50,7 +50,7 @@ pReadFile(`${__dirname}/../report.html.tpl`, 'utf8')
       removeAttributeQuotes: true,
       removeComments: true,
       removeOptionalTags: true,
-      removeRedundantAttributes: true
+      removeRedundantAttributes: true,
     }))
   })
 
@@ -69,18 +69,18 @@ export const configurationSchema = {
     emails: {
       type: 'array',
       items: {
-        type: 'string'
-      }
+        type: 'string',
+      },
     },
     periodicity: {
       type: 'string',
       enum: ['monthly', 'weekly'],
-      description: 'If you choose weekly you will receive the report every sunday and if you choose monthly you will receive it every first day of the month.'
-    }
+      description: 'If you choose weekly you will receive the report every sunday and if you choose monthly you will receive it every first day of the month.',
+    },
   },
 
   additionalProperties: false,
-  required: [ 'emails', 'periodicity' ]
+  required: [ 'emails', 'periodicity' ],
 }
 
 // ===================================================================
@@ -137,7 +137,7 @@ function computeMeans (objects, options) {
     options,
     map(
       options,
-        opt => round(computeMean(map(objects, opt)), 2)
+      opt => round(computeMean(map(objects, opt)), 2)
     )
   )
 }
@@ -156,7 +156,7 @@ function getTop (objects, options) {
         obj => ({
           uuid: obj.uuid,
           name: obj.name,
-          value: round(obj[opt], 2)
+          value: round(obj[opt], 2),
         })
       )
     )
@@ -176,7 +176,7 @@ function conputePercentage (curr, prev, options) {
 function getDiff (oldElements, newElements) {
   return {
     added: differenceBy(oldElements, newElements, 'uuid'),
-    removed: differenceBy(newElements, oldElements, 'uuid')
+    removed: differenceBy(newElements, oldElements, 'uuid'),
   }
 }
 
@@ -184,7 +184,7 @@ function getDiff (oldElements, newElements) {
 
 function getVmsStats ({
   runningVms,
-  xo
+  xo,
 }) {
   return Promise.all(map(runningVms, async vm => {
     const vmStats = await xo.getXapiVmStats(vm, 'days')
@@ -196,14 +196,14 @@ function getVmsStats ({
       diskRead: computeDoubleMean(values(vmStats.stats.xvds.r)) / mibPower,
       diskWrite: computeDoubleMean(values(vmStats.stats.xvds.w)) / mibPower,
       netReception: computeDoubleMean(vmStats.stats.vifs.rx) / kibPower,
-      netTransmission: computeDoubleMean(vmStats.stats.vifs.tx) / kibPower
+      netTransmission: computeDoubleMean(vmStats.stats.vifs.tx) / kibPower,
     }
   }))
 }
 
 function getHostsStats ({
   runningHosts,
-  xo
+  xo,
 }) {
   return Promise.all(map(runningHosts, async host => {
     const hostStats = await xo.getXapiHostStats(host, 'days')
@@ -214,7 +214,7 @@ function getHostsStats ({
       ram: computeMean(hostStats.stats.memoryUsed) / gibPower,
       load: computeMean(hostStats.stats.load),
       netReception: computeDoubleMean(hostStats.stats.pifs.rx) / kibPower,
-      netTransmission: computeDoubleMean(hostStats.stats.pifs.tx) / kibPower
+      netTransmission: computeDoubleMean(hostStats.stats.pifs.tx) / kibPower,
     }
   }))
 }
@@ -222,76 +222,76 @@ function getHostsStats ({
 function computeGlobalVmsStats ({
   haltedVms,
   vmsStats,
-  xo
+  xo,
 }) {
   const allVms = concat(
     map(vmsStats, vm => ({
       uuid: vm.uuid,
-      name: vm.name
+      name: vm.name,
     })),
     map(haltedVms, vm => ({
       uuid: vm.uuid,
-      name: vm.name_label
+      name: vm.name_label,
     }))
   )
 
   return assign(computeMeans(vmsStats, ['cpu', 'ram', 'diskRead', 'diskWrite', 'netReception', 'netTransmission']), {
     number: allVms.length,
-    allVms
+    allVms,
   })
 }
 
 function computeGlobalHostsStats ({
   haltedHosts,
   hostsStats,
-  xo
+  xo,
 }) {
   const allHosts = concat(
     map(hostsStats, host => ({
       uuid: host.uuid,
-      name: host.name
+      name: host.name,
     })),
     map(haltedHosts, host => ({
       uuid: host.uuid,
-      name: host.name_label
+      name: host.name_label,
     }))
   )
 
   return assign(computeMeans(hostsStats, ['cpu', 'ram', 'load', 'netReception', 'netTransmission']), {
     number: allHosts.length,
-    allHosts
+    allHosts,
   })
 }
 
 function getTopVms ({
   vmsStats,
-  xo
+  xo,
 }) {
   return getTop(vmsStats, ['cpu', 'ram', 'diskRead', 'diskWrite', 'netReception', 'netTransmission'])
 }
 
 function getTopHosts ({
   hostsStats,
-  xo
+  xo,
 }) {
   return getTop(hostsStats, ['cpu', 'ram', 'load', 'netReception', 'netTransmission'])
 }
 
 function getMostAllocatedSpaces ({
   disks,
-  xo
+  xo,
 }) {
   return map(
     orderBy(disks, ['size'], ['desc']).slice(0, 3), disk => ({
       uuid: disk.uuid,
       name: disk.name_label,
-      size: round(disk.size / gibPower, 2)
+      size: round(disk.size / gibPower, 2),
     }))
 }
 
 async function getHostsMissingPatches ({
   runningHosts,
-  xo
+  xo,
 }) {
   const hostsMissingPatches = await Promise.all(map(runningHosts, async host => {
     const hostsPatches = await xo.getXapi(host).listMissingPoolPatchesOnHost(host._xapiId)
@@ -299,7 +299,7 @@ async function getHostsMissingPatches ({
       return {
         uuid: host.uuid,
         name: host.name_label,
-        patches: map(hostsPatches, 'name')
+        patches: map(hostsPatches, 'name'),
       }
     }
   }))
@@ -312,7 +312,7 @@ function getAllUsersEmail (users) {
 
 async function storeStats ({
   data,
-  storedStatsPath
+  storedStatsPath,
 }) {
   await pWriteFile(storedStatsPath, JSON.stringify(data))
 }
@@ -332,12 +332,12 @@ async function computeEvolution ({
 
     const vmsEvolution = {
       number: newStatsVms.number - oldStatsVms.number,
-      ...conputePercentage(newStatsVms, oldStatsVms, ['cpu', 'ram', 'diskRead', 'diskWrite', 'netReception', 'netTransmission'])
+      ...conputePercentage(newStatsVms, oldStatsVms, ['cpu', 'ram', 'diskRead', 'diskWrite', 'netReception', 'netTransmission']),
     }
 
     const hostsEvolution = {
       number: newStatsHosts.number - oldStatsHosts.number,
-      ...conputePercentage(newStatsHosts, oldStatsHosts, ['cpu', 'ram', 'load', 'netReception', 'netTransmission'])
+      ...conputePercentage(newStatsHosts, oldStatsHosts, ['cpu', 'ram', 'load', 'netReception', 'netTransmission']),
     }
 
     const vmsRessourcesEvolution = getDiff(oldStatsVms.allVms, newStatsVms.allVms)
@@ -351,7 +351,7 @@ async function computeEvolution ({
       prevDate,
       vmsRessourcesEvolution,
       hostsRessourcesEvolution,
-      usersEvolution
+      usersEvolution,
     }
   } catch (err) {
     if (err.code !== 'ENOENT') throw err
@@ -360,7 +360,7 @@ async function computeEvolution ({
 
 async function dataBuilder ({
   xo,
-  storedStatsPath
+  storedStatsPath,
 }) {
   const xoObjects = values(xo.getObjects())
   const runningVms = filter(xoObjects, {type: 'VM', power_state: 'Running'})
@@ -373,7 +373,7 @@ async function dataBuilder ({
     getVmsStats({xo, runningVms}),
     getHostsStats({xo, runningHosts}),
     getMostAllocatedSpaces({xo, disks}),
-    getHostsMissingPatches({xo, runningHosts})
+    getHostsMissingPatches({xo, runningHosts}),
   ])
 
   const [globalVmsStats, globalHostsStats, topVms, topHosts, usersEmail] = await Promise.all([
@@ -381,13 +381,13 @@ async function dataBuilder ({
     computeGlobalHostsStats({xo, hostsStats, haltedHosts}),
     getTopVms({xo, vmsStats}),
     getTopHosts({xo, hostsStats}),
-    getAllUsersEmail(users)
+    getAllUsersEmail(users),
   ])
   const evolution = await computeEvolution({
     storedStatsPath,
     hosts: globalHostsStats,
     usersEmail,
-    vms: globalVmsStats
+    vms: globalVmsStats,
   })
 
   const data = {
@@ -395,7 +395,7 @@ async function dataBuilder ({
       vms: globalVmsStats,
       hosts: globalHostsStats,
       vmsEvolution: evolution && evolution.vmsEvolution,
-      hostsEvolution: evolution && evolution.hostsEvolution
+      hostsEvolution: evolution && evolution.hostsEvolution,
     },
     topVms,
     topHosts,
@@ -409,8 +409,8 @@ async function dataBuilder ({
       imgXo,
       currDate,
       prevDate: evolution && evolution.prevDate,
-      page: '{{page}}'
-    }
+      page: '{{page}}',
+    },
   }
 
   return data
@@ -432,7 +432,7 @@ class UsageReportPlugin {
     this._job = new CronJob({
       cronTime: configuration.periodicity === 'monthly' ? '00 06 1 * *' : '00 06 * * 0',
       onTick: () => this._sendReport(),
-      start: false
+      start: false,
     })
   }
 
@@ -454,7 +454,7 @@ class UsageReportPlugin {
   async _sendReport () {
     const data = await dataBuilder({
       xo: this._xo,
-      storedStatsPath: this._storedStatsPath
+      storedStatsPath: this._storedStatsPath,
     })
 
     await Promise.all([
@@ -469,13 +469,13 @@ class UsageReportPlugin {
   best regards.`,
         attachments: [{
           filename: `xoReport_${currDate}.html`,
-          content: template(data)
-        }]
+          content: template(data),
+        }],
       }),
       storeStats({
         data,
-        storedStatsPath: this._storedStatsPath
-      })
+        storedStatsPath: this._storedStatsPath,
+      }),
     ])
   }
 }
