@@ -2,16 +2,18 @@
 
 ## Apache
 
-As XO-web and XO-server communicates with *WebSockets*, you need to have the `mod_proxy_wstunnel` in Apache (please [check the Apache documentation](http://httpd.apache.org/docs/2.4/mod/mod_proxy_wstunnel.html) about it). It's available for Apache 2.4.5 and later.
+As XO-web and XO-server communicates with *WebSockets*, you need to have the [`mod_proxy`](http://httpd.apache.org/docs/2.4/mod/mod_proxy.html), [`mod_proxy_http`](http://httpd.apache.org/docs/2.4/mod/mod_proxy_http.html), [`mod_proxy_wstunnel`](http://httpd.apache.org/docs/2.4/mod/mod_proxy_wstunnel.html) and [`mod_rewrite`](http://httpd.apache.org/docs/2.4/mod/mod_rewrite.html) modules enabled.
 
 
 Please use this configuration in this order or it will not work:
 
 ```apache
-ProxyPass /[<path>]/api ws://<xo-server ip>:<xo-server port>/api
-ProxyPass /[<path>] http://<xo-server ip>:<xo-server port>/
+RewriteEngine On
+RewriteCond %{HTTP:upgrade} websocket [NC]
+RewriteRule /[<path>](.*) ws://<xo-server ip>:<xo-server port>/ [L,P]
 
-ProxyPassReverse /[<path>] /
+ProxyPass /[<path>] http://<xo-server ip>:<xo-server port>/
+ProxyPassReverse /[<path>] http://<xo-server ip>:<xo-server port>/
 ```
 
 
