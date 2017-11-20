@@ -3229,9 +3229,9 @@ http-signature@~1.2.0:
     jsprim "^1.2.2"
     sshpk "^1.7.0"
 
-human-format@^0.8.0:
-  version "0.8.0"
-  resolved "https://registry.yarnpkg.com/human-format/-/human-format-0.8.0.tgz#6146370a838fd52718d1e27f16f1916b43a06e92"
+human-format@^0.9.0:
+  version "0.9.0"
+  resolved "https://registry.yarnpkg.com/human-format/-/human-format-0.9.0.tgz#7b66ed1d0567aa431977fc0c283b1da13c4d319b"
 
 husky@^0.14.3:
   version "0.14.3"
