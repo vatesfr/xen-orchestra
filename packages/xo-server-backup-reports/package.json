@@ -43,7 +43,6 @@
     "babel-cli": "^6.24.1",
     "babel-plugin-lodash": "^3.2.10",
     "babel-preset-env": "^1.5.2",
-    "babel-preset-stage-0": "^6.24.1",
     "cross-env": "^5.0.1",
     "dependency-check": "^2.9.1",
     "rimraf": "^2.6.1"
@@ -70,8 +69,7 @@
             "node": 4
           }
         }
-      ],
-      "stage-0"
+      ]
     ]
   }
 }

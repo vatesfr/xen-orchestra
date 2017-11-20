@@ -66,7 +66,7 @@ const logError = e => {
 class BackupReportsXoPlugin {
   constructor (xo) {
     this._xo = xo
-    this._report = ::this._wrapper
+    this._report = this._wrapper.bind(this)
   }
 
   configure ({ toMails, toXmpp }) {
