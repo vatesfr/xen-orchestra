@@ -26,7 +26,7 @@ const COLUMNS = [
   {
     itemRenderer: schedule => (
       <span>
-        {schedule.name}
+        {schedule.name}{' '}
         <span className='text-muted'>({schedule.id.slice(4, 8)})</span>
       </span>
     ),
@@ -37,10 +37,10 @@ const COLUMNS = [
   {
     itemRenderer: (schedule, userData) => {
       const job = userData.jobs[schedule.job]
-      if (job) {
+      if (job !== undefined) {
         return (
           <span>
-            {job.name} - {job.method}
+            {job.name} - {job.method}{' '}
             <span className='text-muted'>({schedule.job.slice(4, 8)})</span>
           </span>
         )
@@ -56,7 +56,7 @@ const COLUMNS = [
   {
     itemRenderer: schedule => schedule.timezone || _('jobServerTimezone'),
     name: _('jobTimezone'),
-    sortCriteria: 'timezone' || _('jobServerTimezone'),
+    sortCriteria: 'timezone',
   },
 ]
 const GROUPED_ACTIONS = [
@@ -189,7 +189,7 @@ export default class Schedules extends Component {
     this.setState(value)
   }
 
-  INDIVIDUAL_ACTIONS = [
+  individualActions = [
     {
       handler: job => this._edit(job.id),
       icon: 'edit',
@@ -282,7 +282,7 @@ export default class Schedules extends Component {
               collection={schedules}
               columns={COLUMNS}
               groupedActions={GROUPED_ACTIONS}
-              individualActions={this.INDIVIDUAL_ACTIONS}
+              individualActions={this.individualActions}
               userData={userData}
             />
           </div>
