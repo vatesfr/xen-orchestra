@@ -124,7 +124,7 @@ export class VHDFile {
 }
 
 export function computeGeometryForSize (size) {
-  let totalSectors = Math.ceil(size / 512)
+  const totalSectors = Math.ceil(size / 512)
   let sectorsPerTrack
   let heads
   let cylinderTimesHeads
@@ -154,13 +154,13 @@ export function computeGeometryForSize (size) {
       cylinderTimesHeads = totalSectors / sectorsPerTrack
     }
   }
-  let cylinders = Math.floor(cylinderTimesHeads / heads)
-  let actualSize = cylinders * heads * sectorsPerTrack * sectorSize
+  const cylinders = Math.floor(cylinderTimesHeads / heads)
+  const actualSize = cylinders * heads * sectorsPerTrack * sectorSize
   return {cylinders, heads, sectorsPerTrack, actualSize}
 }
 
 export function createFooter (size, timestamp, geometry, diskType, dataOffsetLow = 0xFFFFFFFF, dataOffsetHigh = 0xFFFFFFFF) {
-  let footer = Buffer.alloc(512)
+  const footer = Buffer.alloc(512)
   Buffer.from(footerCookie, 'ascii').copy(footer)
   footer.writeUInt32BE(2, 8)
   footer.writeUInt32BE(0x00010000, 12)
@@ -180,13 +180,13 @@ export function createFooter (size, timestamp, geometry, diskType, dataOffsetLow
   footer.writeUInt8(geometry['heads'], 58)
   footer.writeUInt8(geometry['sectorsPerTrack'], 59)
   footer.writeUInt32BE(diskType, 60)
-  let checksum = computeChecksum(footer)
+  const checksum = computeChecksum(footer)
   footer.writeUInt32BE(checksum, 64)
   return footer
 }
 
 export function createDynamicDiskHeader (tableEntries, blockSize) {
-  let header = Buffer.alloc(1024)
+  const header = Buffer.alloc(1024)
   Buffer.from(headerCookie, 'ascii').copy(header)
   // hard code no next data
   header.writeUInt32BE(0xFFFFFFFF, 8)
@@ -197,7 +197,7 @@ export function createDynamicDiskHeader (tableEntries, blockSize) {
   header.writeUInt32BE(0x00010000, 24)
   header.writeUInt32BE(tableEntries, 28)
   header.writeUInt32BE(blockSize, 32)
-  let checksum = computeChecksum(header)
+  const checksum = computeChecksum(header)
   header.writeUInt32BE(checksum, 36)
   return header
 }
@@ -213,7 +213,7 @@ export class ReadableRawVHDStream extends stream.Readable {
   constructor (size, vmdkParser) {
     super()
     this.size = size
-    var geometry = computeGeometryForSize(size)
+    const geometry = computeGeometryForSize(size)
     this.footer = createFooter(size, Math.floor(Date.now() / 1000), geometry, fixedHardDiskType)
     this.position = 0
     this.vmdkParser = vmdkParser

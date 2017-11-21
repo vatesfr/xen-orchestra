@@ -13,7 +13,7 @@ class XoServerCloud {
   constructor ({ xo }) {
     this._xo = xo
 
-   // Defined in configure().
+    // Defined in configure().
     this._conf = null
     this._key = null
   }
@@ -31,16 +31,16 @@ class XoServerCloud {
     registerResource.description = 'Register a resource via cloud plugin'
     registerResource.params = {
       namespace: {
-        type: 'string'
-      }
+        type: 'string',
+      },
     }
     registerResource.permission = 'admin'
 
     this._unsetApiMethods = this._xo.addApiMethods({
       cloud: {
         getResourceCatalog,
-        registerResource
-      }
+        registerResource,
+      },
     })
     this._unsetRequestResource = this._xo.defineProperty('requestResource', this._requestResource, this)
 
@@ -127,7 +127,7 @@ class XoServerCloud {
     const downloadToken = await this._updater.call('getResourceDownloadToken', {
       token: namespaceCatalog._token,
       id,
-      version
+      version,
     })
 
     if (!downloadToken) {

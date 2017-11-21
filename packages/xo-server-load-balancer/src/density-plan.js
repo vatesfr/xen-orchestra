@@ -21,11 +21,11 @@ export default class DensityPlan extends Plan {
 
     const {
       hosts,
-      toOptimize
+      toOptimize,
     } = results
 
     let {
-      averages: hostsAverages
+      averages: hostsAverages,
     } = results
 
     const pools = await this._getPlanPools()
@@ -34,11 +34,11 @@ export default class DensityPlan extends Plan {
     for (const hostToOptimize of toOptimize) {
       const {
         id: hostId,
-        $poolId: poolId
+        $poolId: poolId,
       } = hostToOptimize
 
       const {
-        master: masterId
+        master: masterId,
       } = pools[poolId]
 
       // Avoid master optimization.
@@ -60,7 +60,7 @@ export default class DensityPlan extends Plan {
       for (const dest of hosts) {
         const {
           id: destId,
-          $poolId: destPoolId
+          $poolId: destPoolId,
         } = dest
 
         // Destination host != Host to optimize!
@@ -87,9 +87,9 @@ export default class DensityPlan extends Plan {
           [ poolMaster ],
           poolHosts,
           masters,
-          otherHosts
+          otherHosts,
         ],
-        hostsAverages: clone(hostsAverages)
+        hostsAverages: clone(hostsAverages),
       })
 
       if (simulResults) {
@@ -127,7 +127,7 @@ export default class DensityPlan extends Plan {
 
     const simulResults = {
       hostsAverages,
-      moves: []
+      moves: [],
     }
 
     // Try to find a destination for each VM.
@@ -140,7 +140,7 @@ export default class DensityPlan extends Plan {
           vm,
           destinations: subDestinations,
           hostsAverages,
-          vmsAverages
+          vmsAverages,
         })
 
         // Destination found.
@@ -164,8 +164,8 @@ export default class DensityPlan extends Plan {
   _testMigration ({ vm, destinations, hostsAverages, vmsAverages }) {
     const {
       _thresholds: {
-        critical: criticalThreshold
-      }
+        critical: criticalThreshold,
+      },
     } = this
 
     // Sort the destinations by available memory. (- -> +)
@@ -192,7 +192,7 @@ export default class DensityPlan extends Plan {
       // Available movement.
       return {
         vm,
-        destination
+        destination,
       }
     }
   }
@@ -206,7 +206,7 @@ export default class DensityPlan extends Plan {
       mapToArray(moves, move => {
         const {
           vm,
-          destination
+          destination,
         } = move
         const xapiDest = this.xo.getXapi(destination)
         debug(`Migrate VM (${vm.id}) to Host (${destination.id}) from Host (${vm.$container}).`)

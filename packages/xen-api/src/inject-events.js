@@ -10,7 +10,7 @@ const xapi = (() => {
   return createClient({
     auth: { user, password },
     url,
-    watchEvents: false
+    watchEvents: false,
   })
 })()
 

@@ -30,7 +30,7 @@ const fuFooter = fu.struct([
   fu.uint32('fileFormatVersion'), // 12
   fu.struct('dataOffset', [
     fu.uint32('high'), // 16
-    fu.uint32('low') // 20
+    fu.uint32('low'), // 20
   ]),
   fu.uint32('timestamp'), // 24
   fu.char('creatorApplication', 4), // 28
@@ -38,23 +38,23 @@ const fuFooter = fu.struct([
   fu.uint32('creatorHostOs'), // 36
   fu.struct('originalSize', [ // At the creation, current size of the hard disk.
     fu.uint32('high'), // 40
-    fu.uint32('low') // 44
+    fu.uint32('low'), // 44
   ]),
   fu.struct('currentSize', [ // Current size of the virtual disk. At the creation: currentSize = originalSize.
     fu.uint32('high'), // 48
-    fu.uint32('low') // 52
+    fu.uint32('low'), // 52
   ]),
   fu.struct('diskGeometry', [
     fu.uint16('cylinders'), // 56
     fu.uint8('heads'), // 58
-    fu.uint8('sectorsPerTrackCylinder') // 59
+    fu.uint8('sectorsPerTrackCylinder'), // 59
   ]),
   fu.uint32('diskType'), // 60 Disk type, must be equal to HARD_DISK_TYPE_DYNAMIC/HARD_DISK_TYPE_DIFFERENCING.
   fu.uint32('checksum'), // 64
   fu.uint8('uuid', 16), // 68
   fu.char('saved'), // 84
   fu.char('hidden'), // 85
-  fu.byte('reserved', 426) // 86
+  fu.byte('reserved', 426), // 86
 ])
 const FOOTER_SIZE = fuFooter.size
 
@@ -62,11 +62,11 @@ const fuHeader = fu.struct([
   fu.char('cookie', 8),
   fu.struct('dataOffset', [
     fu.uint32('high'),
-    fu.uint32('low')
+    fu.uint32('low'),
   ]),
   fu.struct('tableOffset', [ // Absolute byte offset of the Block Allocation Table.
     fu.uint32('high'),
-    fu.uint32('low')
+    fu.uint32('low'),
   ]),
   fu.uint32('headerVersion'),
   fu.uint32('maxTableEntries'), // Max entries in the Block Allocation Table.
@@ -83,10 +83,10 @@ const fuHeader = fu.struct([
     fu.uint32('reserved'),
     fu.struct('platformDataOffset', [ // Absolute byte offset of the locator data.
       fu.uint32('high'),
-      fu.uint32('low')
-    ])
+      fu.uint32('low'),
+    ]),
   ], 8),
-  fu.byte('reserved2', 256)
+  fu.byte('reserved2', 256),
 ])
 const HEADER_SIZE = fuHeader.size
 
@@ -265,7 +265,7 @@ export default class Vhd {
 
     return this._handler.createReadStream(this._path, {
       end: begin + length - 1,
-      start: begin
+      start: begin,
     }).then(buf
       ? stream => streamToExistingBuffer(stream, buf, offset, (offset || 0) + length)
       : streamToNewBuffer
@@ -324,7 +324,7 @@ export default class Vhd {
     const sectorsPerBlock = header.blockSize / SECTOR_SIZE
     assert(sectorsPerBlock % 1 === 0)
 
-     // 1 bit per sector, rounded up to full sectors
+    // 1 bit per sector, rounded up to full sectors
     this._blockBitmapSize = Math.ceil(sectorsPerBlock / 8 / SECTOR_SIZE) * SECTOR_SIZE
     assert(this._blockBitmapSize === SECTOR_SIZE)
 

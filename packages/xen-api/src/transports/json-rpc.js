@@ -9,9 +9,9 @@ export default ({ allowUnauthorized, url }) => {
     body: format.request(0, method, args),
     headers: {
       'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     },
-    path: '/jsonrpc'
+    path: '/jsonrpc',
   }).readAll('utf8').then(
     text => {
       let response

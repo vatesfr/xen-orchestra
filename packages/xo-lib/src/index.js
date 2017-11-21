@@ -1,6 +1,6 @@
 import JsonRpcWebSocketClient, {
   OPEN,
-  CLOSED
+  CLOSED,
 } from 'jsonrpc-websocket-client'
 import { BaseError } from 'make-error'
 import { startsWith } from 'lodash'

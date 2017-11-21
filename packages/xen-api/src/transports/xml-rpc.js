@@ -32,7 +32,7 @@ const parseResult = result => {
 
 export default ({
   allowUnauthorized,
-  url: { hostname, path, port, protocol }
+  url: { hostname, path, port, protocol },
 }) => {
   const client = (
     protocol === 'https:'
@@ -41,7 +41,7 @@ export default ({
   )({
     host: hostname,
     port,
-    rejectUnauthorized: !allowUnauthorized
+    rejectUnauthorized: !allowUnauthorized,
   })
   const call = promisify(client.methodCall, client)
 

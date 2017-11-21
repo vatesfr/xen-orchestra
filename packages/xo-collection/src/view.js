@@ -3,7 +3,7 @@ import { bind, forEach, iteratee as createCallback } from 'lodash'
 import Collection, {
   ACTION_ADD,
   ACTION_UPDATE,
-  ACTION_REMOVE
+  ACTION_REMOVE,
 } from './collection'
 
 // ===================================================================

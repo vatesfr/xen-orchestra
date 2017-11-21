@@ -12,7 +12,7 @@ class XoError extends BaseError {
     return {
       message: this.message,
       code: this.code,
-      data: this.data
+      data: this.data,
     }
   }
 }
@@ -28,44 +28,44 @@ const create = (code, getProps) => {
 // =============================================================================
 
 export const notImplemented = create(0, () => ({
-  message: 'not implemented'
+  message: 'not implemented',
 }))
 
 export const noSuchObject = create(1, (id, type) => ({
   data: { id, type },
-  message: 'no such object'
+  message: 'no such object',
 }))
 
 export const unauthorized = create(2, () => ({
-  message: 'not authenticated or not enough permissions'
+  message: 'not authenticated or not enough permissions',
 }))
 
 export const invalidCredentials = create(3, () => ({
-  message: 'invalid credentials'
+  message: 'invalid credentials',
 }))
 
 // Deprecated alreadyAuthenticated (4)
 
 export const forbiddenOperation = create(5, (operation, reason) => ({
   data: { operation, reason },
-  message: `forbidden operation: ${operation}`
+  message: `forbidden operation: ${operation}`,
 }))
 
 // Deprecated GenericError (6)
 
 export const noHostsAvailable = create(7, () => ({
-  message: 'no hosts available'
+  message: 'no hosts available',
 }))
 
 export const authenticationFailed = create(8, () => ({
-  message: 'authentication failed'
+  message: 'authentication failed',
 }))
 
 export const serverUnreachable = create(9, objectId => ({
   data: {
-    objectId
+    objectId,
   },
-  message: 'server unreachable'
+  message: 'server unreachable',
 }))
 
 export const invalidParameters = create(10, (message, errors) => {
@@ -76,22 +76,22 @@ export const invalidParameters = create(10, (message, errors) => {
 
   return {
     data: { errors },
-    message: message || 'invalid parameters'
+    message: message || 'invalid parameters',
   }
 })
 
 export const vmMissingPvDrivers = create(11, ({ vm }) => ({
   data: {
-    objectId: vm
+    objectId: vm,
   },
-  message: 'missing PV drivers'
+  message: 'missing PV drivers',
 }))
 
 export const vmIsTemplate = create(12, ({ vm }) => ({
   data: {
-    objectId: vm
+    objectId: vm,
   },
-  message: 'VM is a template'
+  message: 'VM is a template',
 }))
 
 // TODO: We should probably create a more generic error which gathers all incorrect state errors.
@@ -109,58 +109,58 @@ export const vmBadPowerState = create(13, ({ vm, expected, actual }) => ({
   data: {
     objectId: vm,
     expected,
-    actual
+    actual,
   },
-  message: `VM state is ${actual} but should be ${expected}`
+  message: `VM state is ${actual} but should be ${expected}`,
 }))
 
 export const vmLacksFeature = create(14, ({ vm, feature }) => ({
   data: {
     objectId: vm,
-    feature
+    feature,
   },
-  message: `VM lacks feature ${feature || ''}`
+  message: `VM lacks feature ${feature || ''}`,
 }))
 
 export const notSupportedDuringUpgrade = create(15, () => ({
-  message: 'not supported during upgrade'
+  message: 'not supported during upgrade',
 }))
 
 export const objectAlreadyExists = create(16, ({ objectId, objectType }) => ({
   data: {
     objectId,
-    objectType
+    objectType,
   },
-  message: `${objectType || 'object'} already exists`
+  message: `${objectType || 'object'} already exists`,
 }))
 
 export const vdiInUse = create(17, ({ vdi, operation }) => ({
   data: {
     objectId: vdi,
-    operation
+    operation,
   },
-  message: 'VDI in use'
+  message: 'VDI in use',
 }))
 
 export const hostOffline = create(18, ({ host }) => ({
   data: {
-    objectId: host
+    objectId: host,
   },
-  message: 'host offline'
+  message: 'host offline',
 }))
 
 export const operationBlocked = create(19, ({ objectId, code }) => ({
   data: {
     objectId,
-    code
+    code,
   },
-  message: 'operation blocked'
+  message: 'operation blocked',
 }))
 
 export const patchPrecheckFailed = create(20, ({ errorType, patch }) => ({
   data: {
     objectId: patch,
-    errorType
+    errorType,
   },
-  message: `patch precheck failed: ${errorType}`
+  message: `patch precheck failed: ${errorType}`,
 }))

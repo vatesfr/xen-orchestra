@@ -39,8 +39,8 @@ const main = async args => {
       debounce: 'd',
       help: 'h',
       'read-only': 'ro',
-      verbose: 'v'
-    }
+      verbose: 'v',
+    },
   })
 
   if (opts.help) {
@@ -72,12 +72,12 @@ const main = async args => {
     allowUnauthorized: opts.au,
     auth,
     debounce: opts.debounce != null ? +opts.debounce : null,
-    readOnly: opts.ro
+    readOnly: opts.ro,
   })
   await xapi.connect()
 
   const repl = createRepl({
-    prompt: `${xapi._humanId}> `
+    prompt: `${xapi._humanId}> `,
   })
   repl.context.xapi = xapi
 

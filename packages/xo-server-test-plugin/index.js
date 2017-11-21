@@ -9,10 +9,10 @@ exports.configurationSchema = {
   type: 'object',
   properties: {
     foo: {
-      type: 'string'
-    }
+      type: 'string',
+    },
   },
-  required: ['foo']
+  required: ['foo'],
 }
 
 // This (optional) schema is used to test the configuration
@@ -21,10 +21,10 @@ exports.testSchema = {
   type: 'object',
   properties: {
     test: {
-      type: 'string'
-    }
+      type: 'string',
+    },
   },
-  required: ['test']
+  required: ['test'],
 }
 
 // The default export is just a factory function which will create an
@@ -73,6 +73,6 @@ exports.default = function (opts) {
     test: function (data) {
       console.log('the configuration is about to be tested')
       // TODO: test the configuration, i.e, use the main feature of the plugin and throws any errors.
-    }
+    },
   }
 }

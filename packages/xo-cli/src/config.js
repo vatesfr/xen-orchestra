@@ -2,24 +2,24 @@
 
 // ===================================================================
 
-var promisify = require('bluebird').promisify
+const promisify = require('bluebird').promisify
 
-var readFile = promisify(require('fs').readFile)
-var writeFile = promisify(require('fs').writeFile)
+const readFile = promisify(require('fs').readFile)
+const writeFile = promisify(require('fs').writeFile)
 
-var assign = require('lodash/assign')
-var l33t = require('l33teral')
-var mkdirp = promisify(require('mkdirp'))
-var xdgBasedir = require('xdg-basedir')
-
-// ===================================================================
-
-var configPath = xdgBasedir.config + '/xo-cli'
-var configFile = configPath + '/config.json'
+const assign = require('lodash/assign')
+const l33t = require('l33teral')
+const mkdirp = promisify(require('mkdirp'))
+const xdgBasedir = require('xdg-basedir')
 
 // ===================================================================
 
-var load = exports.load = function () {
+const configPath = xdgBasedir.config + '/xo-cli'
+const configFile = configPath + '/config.json'
+
+// ===================================================================
+
+const load = exports.load = function () {
   return readFile(configFile).then(JSON.parse).catch(function () {
     return {}
   })
@@ -31,7 +31,7 @@ exports.get = function (path) {
   })
 }
 
-var save = exports.save = function (config) {
+const save = exports.save = function (config) {
   return mkdirp(configPath).then(function () {
     return writeFile(configFile, JSON.stringify(config))
   })
@@ -45,7 +45,7 @@ exports.set = function (data) {
 
 exports.unset = function (paths) {
   return load().then(function (config) {
-    var l33tConfig = l33t(config)
+    const l33tConfig = l33t(config)
     ;[].concat(paths).forEach(function (path) {
       l33tConfig.purge(path, true)
     })

@@ -14,7 +14,7 @@ import {
   defer,
   delay as pDelay,
   fromEvents,
-  lastly
+  lastly,
 } from 'promise-toolbox'
 
 import autoTransport from './transports/auto'
@@ -41,7 +41,7 @@ const NETWORK_ERRORS = {
   EHOSTUNREACH: true,
 
   // Connection configured timed out has been reach.
-  ETIMEDOUT: true
+  ETIMEDOUT: true,
 }
 
 const isNetworkError = ({code}) => NETWORK_ERRORS[code]
@@ -50,7 +50,7 @@ const isNetworkError = ({code}) => NETWORK_ERRORS[code]
 
 const XAPI_NETWORK_ERRORS = {
   HOST_STILL_BOOTING: true,
-  HOST_HAS_NO_MANAGEMENT_IP: true
+  HOST_HAS_NO_MANAGEMENT_IP: true,
 }
 
 const isXapiNetworkError = ({code}) => XAPI_NETWORK_ERRORS[code]
@@ -101,7 +101,7 @@ const {
   create: createObject,
   defineProperties,
   defineProperty,
-  freeze: freezeObject
+  freeze: freezeObject,
 } = Object
 
 // -------------------------------------------------------------------
@@ -171,7 +171,7 @@ export class Xapi extends EventEmitter {
       if (user !== undefined) {
         this._auth = {
           user,
-          password: url.password
+          password: url.password,
         }
         delete url.username
         delete url.password
@@ -214,7 +214,7 @@ export class Xapi extends EventEmitter {
     this.__url = url
     this._call = autoTransport({
       allowUnauthorized: this._allowUnauthorized,
-      url
+      url,
     })
   }
 
@@ -306,7 +306,7 @@ export class Xapi extends EventEmitter {
 
     return this._transportCall('session.login_with_password', [
       auth.user,
-      auth.password
+      auth.password,
     ]).then(
       sessionId => {
         this._sessionId = sessionId
@@ -363,7 +363,7 @@ export class Xapi extends EventEmitter {
   createTask (nameLabel, nameDescription = '') {
     const promise = this._sessionCall('task.create', [
       nameLabel,
-      nameDescription
+      nameDescription,
     ])
 
     promise.then(taskRef => {
@@ -423,7 +423,7 @@ export class Xapi extends EventEmitter {
   getResource ($cancelToken, pathname, {
     host,
     query,
-    task
+    task,
   }) {
     return this._autoTask(
       task,
@@ -444,12 +444,12 @@ export class Xapi extends EventEmitter {
         $cancelToken,
         this._url,
         host && {
-          hostname: this.getObject(host).address
+          hostname: this.getObject(host).address,
         },
         {
           pathname,
           query,
-          rejectUnauthorized: !this._allowUnauthorized
+          rejectUnauthorized: !this._allowUnauthorized,
         }
       )
 
@@ -468,7 +468,7 @@ export class Xapi extends EventEmitter {
   putResource ($cancelToken, body, pathname, {
     host,
     query,
-    task
+    task,
   } = {}) {
     return this._autoTask(
       task,
@@ -500,14 +500,14 @@ export class Xapi extends EventEmitter {
         $cancelToken,
         this._url,
         host && {
-          hostname: this.getObject(host).address
+          hostname: this.getObject(host).address,
         },
         {
           body,
           headers,
           pathname,
           query,
-          rejectUnauthorized: !this._allowUnauthorized
+          rejectUnauthorized: !this._allowUnauthorized,
         },
         override
       )
@@ -523,7 +523,7 @@ export class Xapi extends EventEmitter {
             ? omit(query, 'task_id')
             : query,
 
-          maxRedirects: 0
+          maxRedirects: 0,
         }).then(
           response => {
             response.req.abort()
@@ -645,7 +645,7 @@ export class Xapi extends EventEmitter {
       id: true,
       pool: true,
       ref: true,
-      type: true
+      type: true,
     }
     const getKey = (key, obj) => reservedKeys[key] && obj === object
       ? `$$${key}`
@@ -659,7 +659,7 @@ export class Xapi extends EventEmitter {
           // it is not supposed to contain links, therefore, in
           // benefice of the doubt, a resolved property is defined.
           defineProperty(object, getKey(key, object), {
-            value: EMPTY_ARRAY
+            value: EMPTY_ARRAY,
           })
 
           // Minor memory optimization, use the same empty array for
@@ -668,7 +668,7 @@ export class Xapi extends EventEmitter {
         } else if (isOpaqueRef(value[0])) {
           // This is an array of refs.
           defineProperty(object, getKey(key, object), {
-            get: () => freezeObject(map(value, (ref) => objectsByRefs[ref]))
+            get: () => freezeObject(map(value, (ref) => objectsByRefs[ref])),
           })
 
           freezeObject(value)
@@ -679,7 +679,7 @@ export class Xapi extends EventEmitter {
         freezeObject(value)
       } else if (isOpaqueRef(value)) {
         defineProperty(object, getKey(key, object), {
-          get: () => objectsByRefs[value]
+          get: () => objectsByRefs[value],
         })
       }
     })
@@ -689,7 +689,7 @@ export class Xapi extends EventEmitter {
       $id: { value: object.uuid || ref },
       $pool: { get: this._getPool },
       $ref: { value: ref },
-      $type: { value: type }
+      $type: { value: type },
     })
 
     // Finally freezes the object.
@@ -711,7 +711,7 @@ export class Xapi extends EventEmitter {
       this._pool = object
     } else if (type === 'task') {
       const taskWatchers = this._taskWatchers
-      let taskWatcher = taskWatchers[ref]
+      const taskWatcher = taskWatchers[ref]
       if (
         taskWatcher !== undefined &&
         getTaskResult(object, taskWatcher.resolve, taskWatcher.reject)
@@ -768,7 +768,7 @@ export class Xapi extends EventEmitter {
     const loop = () => this.status === CONNECTED && this._sessionCall('event.from', [
       ['*'],
       this._fromToken,
-      60 + 0.1 // Force float.
+      60 + 0.1, // Force float.
     ]).then(onSuccess, onFailure)
 
     const onSuccess = ({token, events}) => {
@@ -906,7 +906,7 @@ Xapi.prototype._transportCall = reduce([
 
         const newUrl = {
           ...this._url,
-          hostname: master
+          hostname: master,
         }
         this.emit('redirect', newUrl)
         this._url = newUrl
@@ -938,7 +938,7 @@ Xapi.prototype._transportCall = reduce([
         throw error
       }
     )
-  }
+  },
 ], (call, decorator) => decorator(call))
 
 // ===================================================================

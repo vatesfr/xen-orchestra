@@ -9,26 +9,26 @@ export const configurationSchema = {
   properties: {
     host: {
       type: 'string',
-      description: 'host where the XMPP server is located'
+      description: 'host where the XMPP server is located',
     },
     port: {
       type: 'integer',
       description: 'port of the XMPP server (default to 5222)',
-      default: 5222
+      default: 5222,
     },
     jid: {
       type: 'string',
       title: 'user',
-      description: 'Xmpp address to use to authenticate'
+      description: 'Xmpp address to use to authenticate',
     },
     password: {
       type: 'string',
-      description: 'password to use to authenticate'
-    }
+      description: 'password to use to authenticate',
+    },
   },
 
   additionalProperties: false,
-  required: ['jid', 'password']
+  required: ['jid', 'password'],
 }
 
 // ===================================================================
@@ -73,7 +73,7 @@ class TransportXmppPlugin {
       this._client.send(
         new XmppClient.Stanza('message', {
           to: receiver,
-          type: 'chat'
+          type: 'chat',
         }).c('body').t(message)
       )
     }

@@ -6,13 +6,13 @@ export const configurationSchema = {
   type: 'object',
   properties: {
     clientID: {
-      type: 'string'
+      type: 'string',
     },
     clientSecret: {
-      type: 'string'
-    }
+      type: 'string',
+    },
   },
-  required: ['clientID', 'clientSecret']
+  required: ['clientID', 'clientSecret'],
 }
 
 // ===================================================================

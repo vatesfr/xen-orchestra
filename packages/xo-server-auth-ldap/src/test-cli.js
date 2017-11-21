@@ -7,10 +7,10 @@ import { readFile, writeFile } from 'fs'
 
 import promptSchema, {
   input,
-  password
+  password,
 } from './prompt-schema'
 import createPlugin, {
-  configurationSchema
+  configurationSchema,
 } from './'
 
 // ===================================================================
@@ -42,8 +42,8 @@ execPromise(async args => {
 
   await plugin._authenticate({
     username: await input('Username', {
-      validate: input => !!input.length
+      validate: input => !!input.length,
     }),
-    password: await password('Password')
+    password: await password('Password'),
   }, bind(console.log, console))
 })

@@ -9,46 +9,46 @@ const EMPTY_OBJECT = Object.freeze({ __proto__: null })
 const _extractValue = ({ value }) => value
 
 export const confirm = (message, {
-  default: defaultValue = null
+  default: defaultValue = null,
 } = EMPTY_OBJECT) => prompt({
   default: defaultValue,
   message,
   name: 'value',
-  type: 'confirm'
+  type: 'confirm',
 }).then(_extractValue)
 
 export const input = (message, {
   default: defaultValue = null,
   filter = undefined,
-  validate = undefined
+  validate = undefined,
 } = EMPTY_OBJECT) => prompt({
   default: defaultValue,
   message,
   name: 'value',
   type: 'input',
-  validate
+  validate,
 }).then(_extractValue)
 
 export const list = (message, choices, {
-  default: defaultValue = null
+  default: defaultValue = null,
 } = EMPTY_OBJECT) => prompt({
   default: defaultValue,
   choices,
   message,
   name: 'value',
-  type: 'list'
+  type: 'list',
 }).then(_extractValue)
 
 export const password = (message, {
   default: defaultValue = null,
   filter = undefined,
-  validate = undefined
+  validate = undefined,
 } = EMPTY_OBJECT) => prompt({
   default: defaultValue,
   message,
   name: 'value',
   type: 'password',
-  validate
+  validate,
 }).then(_extractValue)
 
 // ===================================================================
@@ -86,7 +86,7 @@ const promptByType = {
     while (
       i < n && // eslint-disable-line no-unmodified-loop-condition
       await confirm('additional item?', {
-        default: false
+        default: false,
       })
     ) {
       await promptItem()
@@ -96,23 +96,23 @@ const promptByType = {
   },
 
   boolean: (schema, defaultValue, path) => confirm(path, {
-    default: defaultValue != null ? defaultValue : schema.default
+    default: defaultValue != null ? defaultValue : schema.default,
   }),
 
   enum: (schema, defaultValue, path) => list(path, schema.enum, {
-    defaultValue: defaultValue || schema.defaultValue
+    defaultValue: defaultValue || schema.defaultValue,
   }),
 
   integer: (schema, defaultValue, path) => input(path, {
     default: defaultValue || schema.default,
     filter: input => +input,
-    validate: input => isInteger(+input)
+    validate: input => isInteger(+input),
   }),
 
   number: (schema, defaultValue, path) => input(path, {
     default: defaultValue || schema.default,
     filter: input => +input,
-    validate: input => isFinite(+input)
+    validate: input => isFinite(+input),
   }),
 
   object: async (schema, defaultValue, path) => {
@@ -131,7 +131,7 @@ const promptByType = {
       if (
         required[name] ||
         await confirm(`fill optional ${subpath}?`, {
-          default: Boolean(defaultValue && name in defaultValue)
+          default: Boolean(defaultValue && name in defaultValue),
         })
       ) {
         value[name] = await promptGeneric(
@@ -148,8 +148,8 @@ const promptByType = {
   },
 
   string: (schema, defaultValue, path) => input(path, {
-    default: defaultValue || schema.default
-  })
+    default: defaultValue || schema.default,
+  }),
 }
 
 export default function promptGeneric (schema, defaultValue, path) {

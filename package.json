@@ -1,12 +1,17 @@
 {
   "devDependencies": {
     "babel-eslint": "^8.0.1",
+    "eslint": "^4.11.0",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-node": "^5.2.1",
+    "eslint-plugin-promise": "^3.6.0",
+    "eslint-plugin-standard": "^3.0.1",
     "exec-promise": "^0.7.0",
     "husky": "^0.14.3",
     "jest": "^21.2.1",
     "lint-staged": "^5.0.0",
-    "promise-toolbox": "^0.9.5",
-    "standard": "^10.0.3"
+    "promise-toolbox": "^0.9.5"
   },
   "engines": {
     "yarn": "^1.2.1"
@@ -23,7 +28,7 @@
   "lint-staged": {
     "*.js": [
       "lint-staged-stash",
-      "standard --fix",
+      "eslint --fix",
       "jest --findRelatedTests",
       "lint-staged-unstash"
     ]
@@ -35,14 +40,8 @@
     "lint-staged-unstash": "git stash pop && rm -f .lint-staged && true",
     "precommit": "lint-staged",
     "prepublish": "scripts/run-script prepublish",
-    "pretest": "standard && jest",
+    "pretest": "eslint --ignore-path .gitignore . && jest",
     "test": "scripts/run-script test"
-  },
-  "standard": {
-    "ignore": [
-      "packages/*/dist"
-    ],
-    "parser": "babel-eslint"
   },
   "workspaces": [
     "packages/*"

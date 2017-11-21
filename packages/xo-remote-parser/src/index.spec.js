@@ -12,8 +12,8 @@ const data = deepFreeze({
     string: 'file:///var/lib/xoa/backup',
     object: {
       type: 'file',
-      path: '/var/lib/xoa/backup'
-    }
+      path: '/var/lib/xoa/backup',
+    },
   },
   SMB: {
     string: 'smb://Administrator:pas:sw@ord@toto\\\\192.168.100.225\\smb\0',
@@ -23,17 +23,17 @@ const data = deepFreeze({
       path: '',
       domain: 'toto',
       username: 'Administrator',
-      password: 'pas:sw@ord'
-    }
+      password: 'pas:sw@ord',
+    },
   },
   NFS: {
     string: 'nfs://192.168.100.225:/media/nfs',
     object: {
       type: 'nfs',
       host: '192.168.100.225',
-      path: '/media/nfs'
-    }
-  }
+      path: '/media/nfs',
+    },
+  },
 })
 
 const parseData = deepFreeze({
@@ -43,17 +43,17 @@ const parseData = deepFreeze({
     string: 'file://var/lib/xoa/backup',
     object: {
       type: 'file',
-      path: '/var/lib/xoa/backup'
-    }
+      path: '/var/lib/xoa/backup',
+    },
   },
   'nfs with missing leading slash': {
     string: 'nfs://192.168.100.225:media/nfs',
     object: {
       type: 'nfs',
       host: '192.168.100.225',
-      path: '/media/nfs'
-    }
-  }
+      path: '/media/nfs',
+    },
+  },
 })
 
 const formatData = deepFreeze({
@@ -63,9 +63,9 @@ const formatData = deepFreeze({
     string: 'file:///var/lib/xoa/backup',
     object: {
       type: 'local',
-      path: '/var/lib/xoa/backup'
-    }
-  }
+      path: '/var/lib/xoa/backup',
+    },
+  },
 })
 
 // -------------------------------------------------------------------

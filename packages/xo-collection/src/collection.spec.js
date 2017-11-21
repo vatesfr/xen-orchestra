@@ -261,58 +261,58 @@ describe('Collection', function () {
       'add & update → add': [
         [
           ['add', 'foo', 0],
-          ['update', 'foo', 1]
+          ['update', 'foo', 1],
         ],
         {
           add: {
-            foo: 1
-          }
-        }
+            foo: 1,
+          },
+        },
       ],
 
       'add & remove → ∅': [
         [
           ['add', 'foo', 0],
-          ['remove', 'foo']
+          ['remove', 'foo'],
         ],
-        {}
+        {},
       ],
 
       'update & update → update': [
         [
           ['update', 'bar', 1],
-          ['update', 'bar', 2]
+          ['update', 'bar', 2],
         ],
         {
           update: {
-            bar: 2
-          }
-        }
+            bar: 2,
+          },
+        },
       ],
 
       'update & remove → remove': [
         [
           ['update', 'bar', 1],
-          ['remove', 'bar']
+          ['remove', 'bar'],
         ],
         {
           remove: {
-            bar: undefined
-          }
-        }
+            bar: undefined,
+          },
+        },
       ],
 
       'remove & add → update': [
         [
           ['remove', 'bar'],
-          ['add', 'bar', 0]
+          ['add', 'bar', 0],
         ],
         {
           update: {
-            bar: 0
-          }
-        }
-      ]
+            bar: 0,
+          },
+        },
+      ],
     }, ([operations, results], label) => {
       it(label, function () {
         forEach(operations, ([method, ...args]) => {

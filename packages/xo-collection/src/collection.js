@@ -10,7 +10,7 @@ import isObject from './is-object'
 
 const {
   create: createObject,
-  prototype: { hasOwnProperty }
+  prototype: { hasOwnProperty },
 } = Object
 
 export const ACTION_ADD = 'add'
@@ -269,7 +269,7 @@ export default class Collection extends EventEmitter {
       const data = {
         add: createObject(null),
         remove: createObject(null),
-        update: createObject(null)
+        update: createObject(null),
       }
 
       for (const key in this._buffer) {

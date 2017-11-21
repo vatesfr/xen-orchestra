@@ -12,7 +12,7 @@ import {
   createDynamicDiskHeader,
   createFooter,
   ReadableRawVHDStream,
-  VHDFile
+  VHDFile,
 } from './vhd-write'
 
 describe('VHD writing', () => {
@@ -37,10 +37,10 @@ describe('VHD writing', () => {
   it('ReadableRawVHDStream does not crash', () => {
     const data = [{
       lbaBytes: 100,
-      grain: Buffer.from('azerzaerazeraze', 'ascii')
+      grain: Buffer.from('azerzaerazeraze', 'ascii'),
     }, {
       lbaBytes: 700,
-      grain: Buffer.from('gdfslkdfguer', 'ascii')
+      grain: Buffer.from('gdfslkdfguer', 'ascii'),
     }]
     let index = 0
     const mockParser = {
@@ -52,7 +52,7 @@ describe('VHD writing', () => {
         } else {
           return null
         }
-      }
+      },
     }
     const stream = new ReadableRawVHDStream(100000, mockParser)
     const pipe = stream.pipe(createWriteStream('outputStream'))
@@ -65,10 +65,10 @@ describe('VHD writing', () => {
   it('ReadableRawVHDStream detects when blocks are out of order', () => {
     const data = [{
       lbaBytes: 700,
-      grain: Buffer.from('azerzaerazeraze', 'ascii')
+      grain: Buffer.from('azerzaerazeraze', 'ascii'),
     }, {
       lbaBytes: 100,
-      grain: Buffer.from('gdfslkdfguer', 'ascii')
+      grain: Buffer.from('gdfslkdfguer', 'ascii'),
     }]
     let index = 0
     const mockParser = {
@@ -80,7 +80,7 @@ describe('VHD writing', () => {
         } else {
           return null
         }
-      }
+      },
     }
     return expect(new Promise((resolve, reject) => {
       const stream = new ReadableRawVHDStream(100000, mockParser)

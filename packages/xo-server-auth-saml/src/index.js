@@ -6,19 +6,19 @@ export const configurationSchema = {
   type: 'object',
   properties: {
     cert: {
-      type: 'string'
+      type: 'string',
     },
     entryPoint: {
-      type: 'string'
+      type: 'string',
     },
     issuer: {
-      type: 'string'
+      type: 'string',
     },
     usernameField: {
-      type: 'string'
-    }
+      type: 'string',
+    },
   },
-  required: ['cert', 'entryPoint', 'issuer']
+  required: ['cert', 'entryPoint', 'issuer'],
 }
 
 // ===================================================================

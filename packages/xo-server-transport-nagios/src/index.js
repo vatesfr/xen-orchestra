@@ -10,27 +10,27 @@ export const configurationSchema = {
   properties: {
     server: {
       type: 'string',
-      description: 'The nagios server adress'
+      description: 'The nagios server adress',
     },
     port: {
       type: 'integer',
-      description: 'The NSCA port'
+      description: 'The NSCA port',
     },
     key: {
       type: 'string',
-      description: 'The encryption key'
+      description: 'The encryption key',
     },
     host: {
       type: 'string',
-      description: 'The host name in Nagios'
+      description: 'The host name in Nagios',
     },
     service: {
       type: 'string',
-      description: 'The service description in Nagios'
-    }
+      description: 'The service description in Nagios',
+    },
   },
   additionalProperties: false,
-  required: ['server', 'port', 'key', 'host', 'service']
+  required: ['server', 'port', 'key', 'host', 'service'],
 }
 
 // ===================================================================
@@ -45,7 +45,7 @@ function nscaPacketBuilder ({
   message,
   service,
   status,
-  timestamp
+  timestamp,
 }) {
   // Building NSCA packet
   const SIZE = 720
@@ -92,7 +92,7 @@ class XoServerNagios {
     this._set = bind(xo.defineProperty, xo)
     this._unset = null
 
-   // Defined in configure().
+    // Defined in configure().
     this._conf = null
     this._key = null
   }
@@ -113,13 +113,13 @@ class XoServerNagios {
   test () {
     return this._sendPassiveCheck({
       message: 'The server-nagios plugin for Xen Orchestra server seems to be working fine, nicely done :)',
-      status: OK
+      status: OK,
     })
   }
 
   _sendPassiveCheck ({
     message,
-    status
+    status,
   }) {
     return new Promise((resolve, reject) => {
       if (/\r|\n/.test(message)) {
@@ -140,7 +140,7 @@ class XoServerNagios {
           iv,
           message,
           status,
-          timestamp
+          timestamp,
         })
 
         // 1) Using xor between the NSCA packet and the initialization vector

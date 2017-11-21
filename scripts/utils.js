@@ -9,7 +9,7 @@ exports.getPackages = (readPackageJson = false) => {
   ).then(names => {
     const pkgs = names.map(name => ({
       dir: `${PKGS_DIR}/${name}`,
-      name
+      name,
     }))
     return readPackageJson
       ? Promise.all(pkgs.map(pkg =>
