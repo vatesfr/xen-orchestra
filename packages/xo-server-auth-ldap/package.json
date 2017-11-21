@@ -53,7 +53,6 @@
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
-    "commitmsg": "npm test",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "posttest": "dependency-check ./package.json",
     "prebuild": "rimraf dist/",

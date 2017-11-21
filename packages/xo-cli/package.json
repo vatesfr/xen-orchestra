@@ -60,17 +60,11 @@
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
-    "commitmsg": "npm test",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "posttest": "dependency-check ./package.json",
     "prebuild": "rimraf dist/",
     "predev": "npm run prebuild",
     "prepublish": "npm run build",
     "pretest": "flow status"
-  },
-  "config": {
-    "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
-    }
   }
 }

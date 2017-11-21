@@ -1,6 +1,20 @@
 #!/usr/bin/env node
 
+const isEmpty = require('lodash/isEmpty')
 const { getPackages, writeFile, unlink } = require('./utils')
+
+const deleteProperties = (object, property, properties) => {
+  const nestedObject = object[property]
+  if (nestedObject === undefined) {
+    return
+  }
+  properties.forEach(property => {
+    delete nestedObject[property]
+  })
+  if (isEmpty(object[property])) {
+    delete object[property]
+  }
+}
 
 require('exec-promise')(() =>
   getPackages(true).map(({ dir, name, package: pkg }) => {
@@ -9,25 +23,23 @@ require('exec-promise')(() =>
     pkg.bugs = `https://github.com/vatesfr/xo-web/issues`
     pkg.repository = {
       type: 'git',
-      url: 'https://github.com/vatesfr/xen-orchestra.git'
+      url: 'https://github.com/vatesfr/xen-orchestra.git',
     }
 
     delete pkg.jest
     delete pkg.standard
 
-    const { devDependencies, scripts } = pkg
-    if (devDependencies !== undefined) {
-      delete devDependencies.commitizen
-      delete devDependencies.ghooks
-      delete devDependencies.husky
-      delete devDependencies.jest
-      delete devDependencies.standard
-      delete devDependencies['babel-eslint']
-      delete devDependencies['cz-conventional-changelog']
-    }
-    if (scripts !== undefined) {
-      delete scripts.cz
-    }
+    deleteProperties(pkg, 'config', [ 'commitizen' ])
+    deleteProperties(pkg, 'devDependencies', [
+      'commitizen',
+      'ghooks',
+      'husky',
+      'jest',
+      'standard',
+      'babel-eslint',
+      'cz-conventional-changelog',
+    ])
+    deleteProperties(pkg, 'scripts', [ 'commitmsg', 'cz' ])
 
     return Promise.all([
       writeFile(
@@ -37,7 +49,7 @@ require('exec-promise')(() =>
       unlink(`${dir}/.editorconfig`),
       unlink(`${dir}/.gitignore`),
       unlink(`${dir}/.jshintrc`),
-      unlink(`${dir}/yarn.lock`)
+      unlink(`${dir}/yarn.lock`),
     ])
   })
 )
