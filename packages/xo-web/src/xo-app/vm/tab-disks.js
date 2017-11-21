@@ -102,10 +102,14 @@ const COLUMNS_VM_PV = [
       )
     },
     name: _('vdiSr'),
+    sortCriteria: (vdi, userData) => userData.srs[vdi.$SR].name_label,
   },
   {
     itemRenderer: (vdi, userData) => {
-      const vbd = find(userData.vbds, vbd => vbd.id === vdi.$VBDs[0])
+      const vbd = find(
+        userData.vbds,
+        vbd => vbd.VDI === vdi.id && vbd.VM === userData.vm.id
+      )
       return (
         <Toggle
           onChange={bootable => setBootableVbd(vbd, bootable)}
@@ -118,7 +122,11 @@ const COLUMNS_VM_PV = [
   },
   {
     itemRenderer: (vdi, userData) => {
-      const vbd = find(userData.vbds, vbd => vbd.id === vdi.$VBDs[0])
+      const vm = userData.vm
+      const vbd = find(
+        userData.vbds,
+        vbd => vbd.VDI === vdi.id && vbd.VM === vm.id
+      )
       return (
         <StateButton
           disabledLabel={_('vbdStatusDisconnected')}
@@ -127,7 +135,7 @@ const COLUMNS_VM_PV = [
           enabledLabel={_('vbdStatusConnected')}
           enabledHandler={disconnectVbd}
           enabledTooltip={_('vbdDisconnect')}
-          disabled={!(vbd.attached || isVmRunning(userData.vm))}
+          disabled={!(vbd.attached || isVmRunning(vm))}
           handlerParam={vbd}
           state={vbd.attached}
         />
@@ -149,28 +157,40 @@ const FILTERS = {
 
 const GROUPED_ACTIONS = [
   {
-    disabled: (selectedItems, userData) => {
-      const vbdsAttached = filter(selectedItems, vdi => {
-        const vbd = find(userData.vbds, vbd => vbd.id === vdi.$VBDs[0])
-        if (vbd.attached) return true
-      })
-      return selectedItems.length === vbdsAttached.length
-    },
+    disabled: (selectedItems, userData) =>
+      some(selectedItems, vdi => {
+        let disabled = false
+        some(vdi.$VBDs, vbdId => {
+          const vbd = find(userData.vbds, vbd => vbdId === vbd.id)
+          if (vbd.attached) {
+            disabled = true
+            return true
+          }
+        })
+        return disabled
+      }),
     handler: deleteVbds,
     icon: 'vdi-forget',
     label: _('vdiForget'),
+    level: 'danger',
   },
   {
-    disabled: (selectedItems, userData) => {
-      const vbdsAttached = filter(selectedItems, vdi => {
-        const vbd = find(userData.vbds, vbd => vbd.id === vdi.$VBDs[0])
-        if (vbd.attached) return true
-      })
-      return selectedItems.length === vbdsAttached.length
-    },
+    disabled: (selectedItems, userData) =>
+      some(selectedItems, vdi => {
+        let disabled = false
+        some(vdi.$VBDs, vbdId => {
+          const vbd = find(userData.vbds, vbd => vbdId === vbd.id)
+          if (vbd.attached) {
+            disabled = true
+            return true
+          }
+        })
+        return disabled
+      }),
     handler: deleteVdis,
     icon: 'vdi-remove',
     label: _('vdiRemove'),
+    level: 'danger',
   },
 ]
 
@@ -337,6 +357,7 @@ class NewDisk extends Component {
     )
   }
 }
+
 @propTypes({
   onClose: propTypes.func,
   vbds: propTypes.array.isRequired,
@@ -639,7 +660,7 @@ export default class TabDisks extends Component {
       isAdmin || (resourceSet == null && isVmAdmin)
   )
 
-  INDIVIDUAL_ACTIONS = [
+  individualActions = [
     {
       handler: this._migrateVdi,
       icon: 'vdi-migrate',
@@ -647,21 +668,35 @@ export default class TabDisks extends Component {
     },
     {
       disabled: (vdi, userData) => {
-        const vbd = find(userData.vbds, vbd => vbd.id === vdi.$VBDs[0])
-        return vbd.attached
+        const vbd = find(
+          userData.vbds,
+          vbd => vbd.VDI === vdi.id && vbd.VM === userData.vm.id
+        )
+        if (vbd !== undefined) {
+          return vbd.attached
+        }
+        return true
       },
       handler: deleteVbd,
       icon: 'vdi-forget',
       label: _('vdiForget'),
+      level: 'danger',
     },
     {
       disabled: (vdi, userData) => {
-        const vbd = find(userData.vbds, vbd => vbd.id === vdi.$VBDs[0])
-        return vbd.attached
+        const vbd = find(
+          userData.vbds,
+          vbd => vbd.VDI === vdi.id && vbd.VM === userData.vm.id
+        )
+        if (vbd !== undefined) {
+          return vbd.attached
+        }
+        return true
       },
       handler: deleteVdi,
       icon: 'vdi-remove',
       label: _('vdiRemove'),
+      level: 'danger',
     },
   ]
   render () {
@@ -733,7 +768,7 @@ export default class TabDisks extends Component {
               defaultFilter='filterOnlyManaged'
               filters={FILTERS}
               groupedActions={GROUPED_ACTIONS}
-              individualActions={this.INDIVIDUAL_ACTIONS}
+              individualActions={this.individualActions}
               shortcutsTarget='body'
               stateUrlParam='s'
               userData={userData}
