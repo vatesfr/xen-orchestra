@@ -6,7 +6,8 @@ import { mapValues } from 'lodash'
 const debug = createDebug('xo:config-management')
 
 export default class ConfigManagement {
-  constructor () {
+  constructor (app) {
+    this._app = app
     this._depTree = new DepTree()
     this._managers = { __proto__: null }
   }
@@ -36,5 +37,6 @@ export default class ConfigManagement {
         await manager.importer(data)
       }
     }
+    await this._app.clean()
   }
 }
