@@ -2,6 +2,13 @@ import createDebug from 'debug'
 import kindOf from 'kindof'
 import ms from 'ms'
 import schemaInspector from 'schema-inspector'
+import {
+  forEach,
+  isArray,
+  isFunction,
+  map,
+  mapValues
+} from 'lodash'
 
 import * as methods from '../api'
 import {
@@ -9,8 +16,6 @@ import {
 } from 'json-rpc-peer'
 import {
   createRawObject,
-  forEach,
-  isFunction,
   noop,
   serializeError
 } from '../utils'
@@ -143,13 +148,19 @@ function resolveParams (method, params) {
 
 // -------------------------------------------------------------------
 
-const removeSensitiveParams = params =>
-  typeof params.password === 'string'
-    ? {
-      ...params,
-      password: '* obfuscated *'
-    }
-    : params
+const removeSensitiveParams = (value, name) => {
+  if (name === 'password' && typeof value === 'string') {
+    return '* obfuscated *'
+  }
+
+  if (typeof value !== 'object' || value === null) {
+    return value
+  }
+
+  return isArray(value)
+    ? map(value, removeSensitiveParams)
+    : mapValues(value, removeSensitiveParams)
+}
 
 // ===================================================================
 
