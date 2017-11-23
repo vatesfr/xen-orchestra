@@ -161,7 +161,7 @@
     "lint-staged-unstash": "git stash pop && rm -f .lint-staged && true",
     "posttest": "eslint --ignore-path .gitignore src/",
     "precommit": "lint-staged",
-    "prepublish": "npm run build",
+    "prepublishOnly": "npm run build",
     "test": "jest"
   },
   "browserify": {
