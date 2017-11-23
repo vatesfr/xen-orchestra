@@ -20,7 +20,7 @@ We'll consider at this point that you've got a working node on your box. E.g:
 
 ```
 $ node -v
-v6.10.0
+v8.9.1
 ```
 
 ### Yarn
