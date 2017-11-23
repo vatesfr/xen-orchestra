@@ -120,6 +120,7 @@ $ git checkout next-release
 ```
 $ git pull --ff-only
 $ yarn
+$ yarn build
 ```
 
 ## Troubleshooting
@@ -128,6 +129,7 @@ If you have problem during the buiding phase in `xo-web` or `xo-server`, follow 
 
 1. `rm -rf node_modules`
 1. `yarn`
+1. `yarn build`
 
 ## FreeBSD
 
