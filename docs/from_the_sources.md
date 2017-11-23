@@ -56,6 +56,7 @@ Once you have it, use `yarn`, as the non-root user owning the fetched code, to i
 
 ```
 $ yarn
+$ yarn build
 ```
 
 Then, you have to create a config file for `xo-server`:
@@ -89,6 +90,7 @@ First, we'll also install dependencies:
 
 ```
 $ yarn
+$ yarn build
 ```
 ## Running XO
 
