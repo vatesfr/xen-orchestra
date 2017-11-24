@@ -31,7 +31,7 @@
     "node": ">=4"
   },
   "dependencies": {
-    "nodemailer": "3.1.8",
+    "nodemailer": "4.4.0",
     "nodemailer-markdown": "^1.0.1",
     "promise-toolbox": "^0.9.5"
   },
