@@ -56,6 +56,8 @@ export default class Xo extends EventEmitter {
 
       this._redis = createRedisClient({ path, rename_commands, url })
     }
+
+    this.on('start', () => this._watchObjects())
   }
 
   // -----------------------------------------------------------------
