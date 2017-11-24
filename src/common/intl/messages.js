@@ -274,7 +274,11 @@ const messages = {
     'You are editing Schedule {name} ({id}). Saving will override previous schedule state.',
   jobEditMessage:
     'You are editing job {name} ({id}). Saving will override previous job state.',
+  scheduleEdit: 'Edit',
+  scheduleDelete: 'Delete',
+  deleteSelectedSchedules: 'Delete selected schedules',
   noScheduledJobs: 'No scheduled jobs.',
+  newSchedule: 'New schedule',
   noJobs: 'No jobs found.',
   noSchedules: 'No schedules found',
   jobActionPlaceHolder: 'Select a xo-server API command',
@@ -1186,6 +1190,8 @@ const messages = {
   deleteVdisModalTitle: 'Delete VDI{nVdis, plural, one {} other {s}}',
   deleteVdisModalMessage:
     'Are you sure you want to delete {nVdis, number} disk{nVdis, plural, one {} other {s}}? ALL DATA ON THESE DISKS WILL BE LOST',
+  deleteSchedulesModalTitle: 'Delete schedule{nSchedules, plural, one {} other {s}}',
+  deleteSchedulesModalMessage: 'Are you sure you want to delete {nSchedules, number} schedule{nSchedules, plural, one {} other {s}}?',
   revertVmModalTitle: 'Revert your VM',
   deleteSnapshotModalTitle: 'Delete snapshot',
   deleteSnapshotModalMessage: 'Are you sure you want to delete this snapshot?',

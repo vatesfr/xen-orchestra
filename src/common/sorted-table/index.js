@@ -185,17 +185,15 @@ class Checkbox extends Component {
 
 // ===================================================================
 
-const actionsShape = propTypes.arrayOf(
-  propTypes.shape({
-    // groupedActions: the function will be called with an array of the selected items in parameters
-    // individualActions: the function will be called with the related item in parameters
-    disabled: propTypes.oneOfType([propTypes.bool, propTypes.func]),
-    handler: propTypes.func.isRequired,
-    icon: propTypes.string.isRequired,
-    label: propTypes.node.isRequired,
-    level: propTypes.oneOf(['warning', 'danger']),
-  })
-)
+const actionsShape = propTypes.arrayOf(propTypes.shape({
+  // groupedActions: the function will be called with an array of the selected items in parameters
+  // individualActions: the function will be called with the related item in parameters
+  disabled: propTypes.oneOfType([ propTypes.bool, propTypes.func ]),
+  handler: propTypes.func.isRequired,
+  icon: propTypes.string.isRequired,
+  label: propTypes.node.isRequired,
+  level: propTypes.oneOf([ 'primary', 'warning', 'danger' ]),
+}))
 
 class IndividualAction extends Component {
   _getIsDisabled = createSelector(

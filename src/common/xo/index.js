@@ -1439,6 +1439,18 @@ export const deleteSchedule = schedule =>
     subscribeSchedules.forceRefresh
   )
 
+export const deleteSchedules = schedules =>
+  confirm({
+    title: _('deleteSchedulesModalTitle', { nSchedules: schedules.length }),
+    body: _('deleteSchedulesModalMessage', { nSchedules: schedules.length }),
+  }).then(() =>
+    map(schedules, schedule =>
+      _call('schedule.delete', { id: resolveId(schedule) })::tap(
+        subscribeSchedules.forceRefresh
+      )
+    )
+  )
+
 export const disableSchedule = id =>
   _call('scheduler.disable', { id })::tap(subscribeScheduleTable.forceRefresh)
 
