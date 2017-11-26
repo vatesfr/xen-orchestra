@@ -375,15 +375,17 @@ export class Xapi extends EventEmitter {
 
   @cancelable
   callAsync ($cancelToken, method, ...args) {
-    return this.call(`Async.${method}`, ...args).then(taskRef => {
-      $cancelToken.promise.then(() => {
-        this._sessionCall('task.cancel', taskRef).catch(noop)
-      })
+    return this._readOnly && !isReadOnlyCall(method, args)
+      ? Promise.reject(new Error(`cannot call ${method}() in read only mode`))
+      : this._sessionCall(`Async.${method}`, ...args).then(taskRef => {
+        $cancelToken.promise.then(() => {
+          this._sessionCall('task.cancel', taskRef).catch(noop)
+        })
 
-      return this.watchTask(taskRef)::lastly(() => {
-        this._sessionCall('task.destroy', taskRef).catch(noop)
+        return this.watchTask(taskRef)::lastly(() => {
+          this._sessionCall('task.destroy', taskRef).catch(noop)
+        })
       })
-    })
   }
 
   // create a task and automatically destroy it when settled
