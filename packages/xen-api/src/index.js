@@ -446,6 +446,10 @@ export class Xapi extends EventEmitter {
     throw new Error('there is no object with the UUID ' + uuid)
   }
 
+  getRecord (type, ref) {
+    return this._sessionCall(`${type}.get_record`, ref)
+  }
+
   @cancelable
   getResource ($cancelToken, pathname, {
     host,
