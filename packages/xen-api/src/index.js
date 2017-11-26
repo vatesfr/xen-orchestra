@@ -358,6 +358,8 @@ export class Xapi extends EventEmitter {
         return Promise.reject(new Error('already disconnected'))
       }
 
+      this._transportCall('session.logout', [ this._sessionId ]).catch(noop)
+
       this._sessionId = null
 
       debug('%s: disconnected', this._humanId)
