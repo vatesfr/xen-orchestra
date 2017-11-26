@@ -6,7 +6,19 @@ import httpRequest from 'http-request-plus'
 import { BaseError } from 'make-error'
 import { EventEmitter } from 'events'
 import { fibonacci } from 'iterable-backoff'
-import { filter, forEach, isArray, isObject, map, noop, omit, reduce, startsWith } from 'lodash'
+import {
+  filter,
+  forEach,
+  isArray,
+  isInteger,
+  isObject,
+  map,
+  mapValues,
+  noop,
+  omit,
+  reduce,
+  startsWith,
+} from 'lodash'
 import {
   Cancel,
   cancelable,
@@ -119,6 +131,21 @@ const isReadOnlyCall = (method, args) => (
   isOpaqueRef(args[0]) &&
   RE_READ_ONLY_METHOD.test(method)
 )
+
+// Prepare values before passing them to the XenAPI:
+//
+// - cast integers to strings
+const prepareParam = param => {
+  if (isInteger(param === 'number')) {
+    return String(param)
+  }
+
+  if (typeof param !== 'object' || param === null) {
+    return param
+  }
+
+  return (isArray(param) ? map : mapValues)(param, prepareParam)
+}
 
 // -------------------------------------------------------------------
 
@@ -343,7 +370,7 @@ export class Xapi extends EventEmitter {
   call (method, ...args) {
     return this._readOnly && !isReadOnlyCall(method, args)
       ? Promise.reject(new Error(`cannot call ${method}() in read only mode`))
-      : this._sessionCall(method, args)
+      : this._sessionCall(method, prepareParam(args))
   }
 
   @cancelable
