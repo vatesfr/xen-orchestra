@@ -8,19 +8,15 @@ import { subscribeLicenses, useLicense } from 'xo'
 import { get } from 'xo-defined'
 import { forEach, map } from 'lodash'
 
-const _useLicense = (boundObjectId, licenseId) =>
-  useLicense('xosan', boundObjectId, licenseId)
-
 class SelectLicense extends Component {
   render () {
-    const { onChange, licenses } = this.props
     return (
       <form className='form-inline'>
         <select onChange={this.linkState('license')} className='form-control'>
           <option key='none' disabled selected>
             Select a license
           </option>
-          {map(licenses, license => (
+          {map(this.props.licenses, license => (
             <option key={license.id} value={license.id}>
               <span>
                 {license.id.slice(-4)} ({license.expires === undefined ? (
@@ -36,9 +32,9 @@ class SelectLicense extends Component {
           btnStyle='primary'
           className='ml-1'
           disabled={this.state.license === undefined}
-          handler={onChange}
-          handlerParam={get(() => this.state.license.id)}
-          icon='save'
+          handler={this.props.onChange}
+          handlerParam={get(() => this.state.license)}
+          icon='connect'
         >
           Bind license
         </ActionButton>
@@ -62,7 +58,7 @@ const XOSAN_COLUMNS = [
       ) : (
         <SelectLicense
           licenses={availableLicenses}
-          onChange={licenseId => _useLicense(sr.id, licenseId)}
+          onChange={licenseId => useLicense(licenseId, sr.id)}
         />
       )
     },

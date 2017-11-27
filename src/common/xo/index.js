@@ -2078,5 +2078,11 @@ export const getLicenses = productId => _call('xoa.getLicenses', { productId })
 export const checkLicense = boundObjectId =>
   _call('xoa.checkLicense', { boundObjectId })
 
-export const useLicense = (productId, boundObjectId) =>
-  _call('xoa.useLicense', { productId, boundObjectId })
+export const useLicense = (licenseId, boundObjectId) =>
+  _call('xoa.useLicense', { licenseId, boundObjectId })
+
+export const freeLicense = (licenseId, boundObjectId) =>
+  _call('xoa.freeLicense', { licenseId, boundObjectId })
+
+export const getAvailableTrial = productId =>
+  _call('xoa.getAvailableTrial', { productId })
