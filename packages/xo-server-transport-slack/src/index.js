@@ -39,8 +39,8 @@ export const configurationSchema = {
 
 class XoServerTransportSlack {
   constructor ({ xo }) {
-    this._sendSlack = ::this._sendSlack
-    this._set = ::xo.defineProperty
+    this._sendSlack = this._sendSlack.bind(this)
+    this._set = xo.defineProperty.bind(xo)
     this._unset = null
 
     // Defined in configure().

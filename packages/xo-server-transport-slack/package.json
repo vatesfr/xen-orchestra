@@ -38,7 +38,7 @@
   "devDependencies": {
     "babel-cli": "^6.18.0",
     "babel-preset-env": "^1.0.0",
-    "babel-preset-stage-0": "^6.16.0",
+    "babel-preset-stage-3": "^6.24.1",
     "cross-env": "^5.1.1",
     "dependency-check": "^2.6.0",
     "rimraf": "^2.5.4"
@@ -63,7 +63,7 @@
           }
         }
       ],
-      "stage-0"
+      "stage-3"
     ]
   },
   "config": {

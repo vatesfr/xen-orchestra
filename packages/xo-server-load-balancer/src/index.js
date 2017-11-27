@@ -133,7 +133,7 @@ const makeJob = (cronPattern, fn) => {
 class LoadBalancerPlugin {
   constructor (xo) {
     this.xo = xo
-    this._job = makeJob(`*/${EXECUTION_DELAY} * * * *`, ::this._executePlans)
+    this._job = makeJob(`*/${EXECUTION_DELAY} * * * *`, this._executePlans.bind(this))
   }
 
   async configure ({ plans }) {

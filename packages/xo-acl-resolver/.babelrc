@@ -2,7 +2,12 @@
  "comments": false,
  "compact": true,
  "presets": [
-   "stage-0",
-   "es2015"
+   [
+     "env", {
+       "targets": {
+         "node": 4
+       }
+     }
+   ]
  ]
 }

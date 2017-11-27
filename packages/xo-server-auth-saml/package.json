@@ -38,8 +38,8 @@
   "devDependencies": {
     "babel-cli": "^6.24.1",
     "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-preset-latest": "^6.24.1",
-    "babel-preset-stage-0": "^6.24.1",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-stage-3": "^6.24.1",
     "cross-env": "^5.0.1",
     "dependency-check": "^2.9.1",
     "rimraf": "^2.6.1"
@@ -59,8 +59,15 @@
       "transform-runtime"
     ],
     "presets": [
-      "latest",
-      "stage-0"
+      [
+        "env",
+        {
+          "targets": {
+            "node": 4
+          }
+        }
+      ],
+      "stage-3"
     ]
   }
 }

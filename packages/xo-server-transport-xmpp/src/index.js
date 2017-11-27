@@ -35,8 +35,8 @@ export const configurationSchema = {
 
 class TransportXmppPlugin {
   constructor ({ xo }) {
-    this._sendToXmppClient = ::this._sendToXmppClient
-    this._set = ::xo.defineProperty
+    this._sendToXmppClient = this._sendToXmppClient.bind(this)
+    this._set = xo.defineProperty.bind(xo)
     this._unset = null
 
     // Defined in configure().
