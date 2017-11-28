@@ -50,8 +50,8 @@ const PRODUCTS_COLUMNS = [
   },
   {
     name: 'Purchaser',
-    itemRenderer: ({ purchaser }) => purchaser || '',
-    sortCriteria: 'purchaser',
+    itemRenderer: ({ buyer }) => (buyer ? buyer.email : '-'),
+    sortCriteria: 'buyer.email',
   },
   {
     name: 'Expires',
@@ -151,6 +151,7 @@ export default class Licenses extends Component {
             license.boundObjectId,
             xosanSrs
           ),
+          buyer: license.buyer,
           expires: license.expires,
           id: license.id,
         })
