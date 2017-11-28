@@ -392,6 +392,10 @@ export class Xapi extends EventEmitter {
 
   // create a task and automatically destroy it when settled
   createTask (nameLabel, nameDescription = '') {
+    if (this._readOnly) {
+      return Promise.reject(new Error('cannot create task in read only mode'))
+    }
+
     const promise = this._sessionCall('task.create', [
       nameLabel,
       nameDescription,
@@ -505,6 +509,10 @@ export class Xapi extends EventEmitter {
     query,
     task,
   } = {}) {
+    if (this._readOnly) {
+      return Promise.reject(new Error(new Error('cannot put resource in read only mode')))
+    }
+
     return this._autoTask(
       task,
       `Xapi#putResource ${pathname}`
