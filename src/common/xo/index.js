@@ -1927,6 +1927,26 @@ export const deleteSshKey = key =>
     })
   }, noop)
 
+export const deleteSshKeys = keys =>
+  confirm({
+    title: _('deleteSshKeysConfirm', { nKeys: keys.length }),
+    body: _('deleteSshKeysConfirmMessage', {
+      nKeys: keys.length,
+    }),
+  }).then(() => {
+    const { preferences } = xo.user
+    return Promise.all(
+      map(keys, key =>
+        _setUserPreferences({
+          sshKeys: filter(
+            preferences && preferences.sshKeys,
+            k => !isEqual(k, key)
+          ),
+        })
+      )
+    )
+  }, noop)
+
 // User filters --------------------------------------------------
 
 import AddUserFilterModalBody from './add-user-filter-modal' // eslint-disable-line import/first
