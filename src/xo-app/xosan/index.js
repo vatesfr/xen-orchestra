@@ -148,7 +148,13 @@ const XOSAN_COLUMNS = [
       }
       return license.productId === 'xosan' ? (
         <span>
-          License expires on <Time time={license.expires} />
+          {license.expires === undefined ? (
+            '✔'
+          ) : (
+            <span>
+              License expires on <Time time={license.expires} />
+            </span>
+          )}
         </span> // FIXME remove fake timestamp
       ) : (
         <span>

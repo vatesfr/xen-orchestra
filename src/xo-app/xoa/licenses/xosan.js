@@ -4,9 +4,9 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import { addSubscriptions, connectStore, Time } from 'utils'
 import { createSelector, createGetObjectsOfType, createFilter } from 'selectors'
-import { subscribeLicenses, useLicense } from 'xo'
+import { subscribeLicenses, unlockXosan } from 'xo'
 import { get } from 'xo-defined'
-import { forEach, map } from 'lodash'
+import { filter, forEach, includes, map } from 'lodash'
 
 class SelectLicense extends Component {
   render () {
@@ -58,7 +58,7 @@ const XOSAN_COLUMNS = [
       ) : (
         <SelectLicense
           licenses={availableLicenses}
-          onChange={licenseId => useLicense(licenseId, sr.id)}
+          onChange={licenseId => unlockXosan(licenseId, sr.id)}
         />
       )
     },
@@ -83,7 +83,7 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
 })
 export default class Xosan extends Component {
   _getLicensesByXosan = createSelector(
-    () => get(() => this.props.licenses[0]),
+    () => get(() => this.props.licenses[0]), // xosan
     licenses => {
       const licensesByXosan = {}
       forEach(licenses, license => {
@@ -91,12 +91,10 @@ export default class Xosan extends Component {
         if ((xosan = license.boundObjectId) === undefined) {
           return
         }
-        if (licensesByXosan[xosan] !== undefined) {
-          throw new Error(
-            'A XOSAN license should not be bound to more that 1 XOSAN SR'
-          )
+        // TODO: show that something is wrong if an SR is bound to multiple licenses
+        if (licensesByXosan[xosan] === undefined) {
+          licensesByXosan[xosan] = license
         }
-        licensesByXosan[xosan] = license
       })
 
       return licensesByXosan
@@ -130,15 +128,26 @@ export default class Xosan extends Component {
     ]
   )
 
+  _getTrialSrs = createSelector(
+    createSelector(
+      () => get(() => this.props.licenses[1]), // xosan.trial
+      trialLicenses => filter(map(trialLicenses, 'boundObjectId'))
+    ),
+    () => get(() => this.props.xosanSrs),
+    (trialXosanIds, xosanSrs) =>
+      filter(xosanSrs, ({ id }) => includes(trialXosanIds, id))
+  )
+
   render () {
     return (
       <SortedTable
-        collection={this.props.xosanSrs}
+        collection={this._getTrialSrs()} // xosan.trial
         columns={XOSAN_COLUMNS}
         individualActions={XOSAN_INDIVIDUAL_ACTIONS}
         userData={{
           availableLicenses: this._getAvailableLicenses(),
           licensesByXosan: this._getLicensesByXosan(),
+          xosanSrs: this.props.xosanSrs,
         }}
       />
     )
