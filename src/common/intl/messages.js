@@ -1557,6 +1557,7 @@ const messages = {
   xosanVolumeId: 'Volume ID',
   xosanSize: 'Size',
   xosanUsedSpace: 'Used space',
+  xosanLicense: 'License',
   xosanNeedPack: 'XOSAN pack needs to be installed on each host of the pool.',
   xosanInstallIt: 'Install it now!',
   xosanNeedRestart:
@@ -1598,6 +1599,7 @@ const messages = {
   // Pack download modal
   xosanInstallCloudPlugin: 'Install cloud plugin first',
   xosanLoadCloudPlugin: 'Load cloud plugin first',
+  xosanRegister: 'Register your appliance first',
   xosanLoading: 'Loading…',
   xosanNotAvailable: 'XOSAN is not available at the moment',
   xosanInstallPackOnHosts: 'Install XOSAN pack on these hosts:',
@@ -1649,9 +1651,24 @@ const messages = {
 
   // Licenses
   licensesTitle: 'Licenses',
-  licensesXosanDisclaimer:
+  xosanUnregisteredDisclaimer:
     'You are not registered and therefore will not be able to create or manage your XOSAN SRs. {link}',
+  xosanSourcesDisclaimer:
+    'In order to create a XOSAN SR, you need to use the Xen Orchestra Appliance and buy a XOSAN license on {link}.',
   registerNow: 'Register now!',
+  licensesUnregisteredDisclaimer:
+    'You need to register your appliance to manage your licenses',
+  licenseProduct: 'Product',
+  licenseBoundObject: 'Attached to',
+  licensePurchaser: 'Purchaser',
+  licenseExpires: 'Expires',
+  licensePurchaserYou: 'You',
+  productSupport: 'Support',
+  licenseNotBoundXosan: 'No XOSAN attached',
+  licenseBoundUnknownXosan: 'License attached to an unknown XOSAN',
+  licensesManage: 'Manage the licenses',
+  xosanAdminNoLicenseDisclaimer:
+    'You need a license on this SR to manage the XOSAN.',
 }
 forEach(messages, function (message, id) {
   if (isString(message)) {

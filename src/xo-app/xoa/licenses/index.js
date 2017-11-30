@@ -1,5 +1,4 @@
-// import _ from 'intl'
-// import Icon from 'icon'
+import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import Link from 'link'
@@ -10,19 +9,17 @@ import { createSelector, createGetObjectsOfType } from 'selectors'
 import { forEach } from 'lodash'
 import { addSubscriptions, connectStore, Time } from 'utils'
 import { subscribeLicenses, subscribePlugins } from 'xo'
+import { get } from 'xo-defined'
 
 import Xosan from './xosan'
 
-const openNewLicense = product => {
-  if (product === undefined) {
+const openNewLicense = productId => {
+  if (productId === undefined) {
     window.open('https://beta.xen-orchestra.com/#!/member/purchaser')
   } else {
-    window.open('https://beta.xen-orchestra.com/#!/member/purchaser')
-    // window.open(
-    //   `http://xen-orchestra.com/?boundObjectId=${encodeURIComponent(
-    //     product.boundObjectId
-    //   )}`
-    // )
+    window.open(
+      `https://xen-orchestra.com/?productId=${encodeURIComponent(productId)}`
+    )
   }
 }
 
@@ -34,7 +31,7 @@ const PRODUCTS = ['xoa', 'xosan']
 
 const PRODUCTS_COLUMNS = [
   {
-    name: 'Product',
+    name: _('licenseProduct'),
     itemRenderer: ({ product, id }) => (
       <span>
         {product} <span className='text-muted'>({id.slice(-4)})</span>
@@ -44,19 +41,28 @@ const PRODUCTS_COLUMNS = [
     default: true,
   },
   {
-    name: 'Attached to',
+    name: _('licenseBoundObject'),
     itemRenderer: ({ renderBoundObject }) =>
       renderBoundObject && renderBoundObject(),
   },
   {
-    name: 'Purchaser',
-    itemRenderer: ({ buyer }) => (buyer ? buyer.email : '-'),
+    name: _('licensePurchaser'),
+    itemRenderer: ({ buyer }, { registeredEmail }) =>
+      buyer ? (
+        buyer.email === registeredEmail ? (
+          _('licensePurchaserYou')
+        ) : (
+          <a href={`mailto:${buyer.email}`}>{buyer.email}</a>
+        )
+      ) : (
+        '-'
+      ),
     sortCriteria: 'buyer.email',
   },
   {
-    name: 'Expires',
+    name: _('licenseExpires'),
     itemRenderer: ({ expires }) =>
-      expires !== undefined && <Time time={expires} />,
+      expires !== undefined && <Time timestamp={expires} />,
     sortCriteria: 'expires',
   },
 ]
@@ -65,18 +71,18 @@ const PRODUCTS_INDIVIDUAL_ACTIONS = [
   {
     handler: openSupport,
     icon: 'support',
-    label: 'Support',
+    label: _('productSupport'),
   },
 ]
 
 const getBoundXosanRenderer = (boundObjectId, xosanSrs) => {
   if (boundObjectId === undefined) {
-    return () => 'License not bound to any XOSAN SR'
+    return () => _('licenseNotBoundXosan')
   }
 
   const sr = xosanSrs[boundObjectId]
   if (sr === undefined) {
-    return () => 'License bound to an unknown XOSAN SR'
+    return () => _('licenseBoundUnknownXosan')
   }
 
   return () => <Link to={`srs/${sr.id}`}>{sr.name_label}</Link>
@@ -86,6 +92,7 @@ const getBoundXosanRenderer = (boundObjectId, xosanSrs) => {
   xosanSrs: createGetObjectsOfType('SR').filter([
     ({ SR_type }) => SR_type === 'xosan', // eslint-disable-line camelcase
   ]),
+  xoaRegistration: state => state.xoaRegisterState,
 })
 @addSubscriptions(() => ({
   licenses: cb => subscribeLicenses(PRODUCTS, cb),
@@ -102,42 +109,10 @@ export default class Licenses extends Component {
 
       const [xoaLicenses, xosanLicenses] = rawLicenses
       const products = []
-
-      // TODO: REMOVE
-      // const products = [
-      //   {
-      //     product: 'XOA',
-      //     purchaser: 'Toto'
-      //   },
-      //   {
-      //     product: 'XOSAN',
-      //     purchaser: 'Titi',
-      //     boundObjectId: '123'
-      //   },
-      //   {
-      //     product: 'XOSAN',
-      //     purchaser: 'Tata',
-      //     boundObjectId: '031f416a-4183-73ab-d1fc-f9f0c53177d1'
-      //   }
-      // ]
-
-      // Either:
-      // - find object bound to license
-      // - or overload products array with potential products
-      // forEach(xosanSrs, sr => {
-      //   const index = findIndex(xosanLicenses, [ 'boundObjectId', sr.id ])
-      //   if (index !== undefined) {
-      //     products[index].renderBoundObject = getBoundXosanRenderer(sr)
-      //   } else {
-      //     products.push({
-      //       product: 'XOSAN',
-      //       renderBoundObject: getBoundXosanRenderer(sr),
-      //       boundObjectId: sr.id
-      //     })
-      //   }
-      // })
-      console.log('xoaLicenses', xoaLicenses)
-      console.log('xosanLicenses', xosanLicenses)
+      if (xoaLicenses.state === 'register-needed') {
+        // Should not happen
+        return
+      }
 
       // XOSAN
       const boundSrs = []
@@ -157,12 +132,15 @@ export default class Licenses extends Component {
         })
       })
 
-      console.log('products', products)
       return products
     }
   )
 
   render () {
+    if (get(() => this.props.xoaRegistration.state) !== 'registered') {
+      return <em>{_('licensesUnregisteredDisclaimer')}</em>
+    }
+
     return (
       <Container>
         <Row className='mb-1'>
@@ -182,7 +160,9 @@ export default class Licenses extends Component {
               collection={this._getProducts()}
               columns={PRODUCTS_COLUMNS}
               individualActions={PRODUCTS_INDIVIDUAL_ACTIONS}
-              userData={this.props.licenses}
+              userData={{
+                registeredEmail: this.props.xoaRegistration.email,
+              }}
             />
           </Col>
         </Row>

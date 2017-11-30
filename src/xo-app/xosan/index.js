@@ -41,6 +41,7 @@ import NewXosan from './new-xosan'
 import CreationProgress from './creation-progress'
 
 export const INFO_TYPES = ['heal', 'status', 'info', 'statusDetail', 'hosts']
+const EXPIRES_SOON_DELAY = 30 * 24 * 60 * 60 * 1000 // 1 month
 
 // ==================================================================
 
@@ -142,23 +143,32 @@ const XOSAN_COLUMNS = [
         return (
           <span className='text-danger'>
             Unknown XOSAN SR.{' '}
-            <a href='http://xen-orchestra.com/'>Contact us!</a>
+            <a href='https://xen-orchestra.com/'>Contact us!</a>
           </span>
         )
       }
+      const now = Date.now() // FIXME: on each render?
+      const expiresSoon = license.expires - now < EXPIRES_SOON_DELAY
+      const expired = license.expires < now
       return license.productId === 'xosan' ? (
         <span>
           {license.expires === undefined ? (
             '✔'
-          ) : (
+          ) : expired ? (
             <span>
-              License expires on <Time time={license.expires} />
+              License has expired.{' '}
+              <Link to='/xoa/licenses'>Update it now!</Link>
+            </span>
+          ) : (
+            <span className={expiresSoon && 'text-danger'}>
+              License expires on <Time timestamp={license.expires} />.{' '}
+              {expiresSoon && <Link to='/xoa/licenses'>Update it now!</Link>}
             </span>
           )}
-        </span> // FIXME remove fake timestamp
+        </span>
       ) : (
         <span>
-          No license. <Link to={'/xoa/licenses'}>Unlock now!</Link>
+          No license. <Link to='/xoa/licenses'>Unlock now!</Link>
         </span>
       )
     },
@@ -299,12 +309,10 @@ export default class Xosan extends Component {
         if ((xosan = license.boundObjectId) === undefined) {
           return
         }
-        if (licensesByXosan[xosan] !== undefined) {
-          throw new Error(
-            'A XOSAN license should not be bound to more that 1 XOSAN SR'
-          )
+        // FIXME: we should probably show that something is wrong if a XOSAN is bound to multiple licenses
+        if (licensesByXosan[xosan] === undefined) {
+          licensesByXosan[xosan] = license
         }
-        licensesByXosan[xosan] = license
       })
 
       return licensesByXosan
@@ -313,41 +321,56 @@ export default class Xosan extends Component {
 
   _getError = createSelector(
     () => this.props.plugins,
-    () => this.props.catalog,
-    (plugins, catalog) => {
+    // () => this.props.catalog,
+    (plugins /*, catalog */) => {
       const cloudPlugin = find(plugins, { id: 'cloud' })
       if (!cloudPlugin) {
         return _('xosanInstallCloudPlugin')
       }
 
+      // TODO: remove comment
+      // Still required to get the VM template when installing XOSAN
       if (!cloudPlugin.loaded) {
         return _('xosanLoadCloudPlugin')
       }
 
-      if (!catalog) {
-        return _('xosanLoading')
-      }
+      // TODO: Remove: no need to be registered to see the XOSAN list
+      // if (catalog.state === 'register-needed') {
+      //   return _('xosanRegister')
+      // }
 
-      const { xosan } = catalog._namespaces
-      if (!xosan) {
-        return (
-          <span>
-            <Icon icon='error' /> {_('xosanNotAvailable')}
-          </span>
-        )
-      }
+      // TODO: Remove: we're out of beta
+      // if (!catalog) {
+      //   return _('xosanLoading')
+      // }
+      //
+      // const { xosan } = catalog._namespaces
+      // if (!xosan) {
+      //   return (
+      //     <span>
+      //       <Icon icon='error' /> {_('xosanNotAvailable')}
+      //     </span>
+      //   )
+      // }
     }
+  )
+
+  _showBetaIsOver = createSelector(
+    () => this.props.catalog,
+    () => this.props.licenses,
+    (catalog, licenses) =>
+      get(() => catalog._namespaces.xosan) !== undefined && isEmpty(licenses)
   )
 
   _onSrCreationStarted = () => this.setState({ showNewXosanForm: false })
 
   render () {
     const {
-      xosanSrs,
-      noPacksByPool,
       hostsNeedRestartByPool,
+      noPacksByPool,
       poolPredicate,
       xoaRegistration,
+      xosanSrs,
     } = this.props
     const error = this._getError()
 
@@ -363,12 +386,15 @@ export default class Xosan extends Component {
               </Row>
             ) : (
               [
-                get(() => xoaRegistration.state) !== 'registered' && (
-                  <Row key='disclaimer'>
-                    <Col className='text-danger'>
-                      {_('licensesXosanDisclaimer', {
-                        link: <Link to='/xoa/update'>{_('registerNow')}</Link>,
-                      })}
+                this._showBetaIsOver() && (
+                  <Row>
+                    <Col>
+                      <em>
+                        Beta is over. You may now buy a XOSAN license on{' '}
+                        <a href='https://xen-orchestra.com/#!/member/purchaser'>
+                          https://xen-orchestra.com
+                        </a>.
+                      </em>
                     </Col>
                   </Row>
                 ),
@@ -391,6 +417,9 @@ export default class Xosan extends Component {
                         noPacksByPool={noPacksByPool}
                         poolPredicate={poolPredicate}
                         onSrCreationStarted={this._onSrCreationStarted}
+                        notRegistered={
+                          get(() => xoaRegistration.state) !== 'registered'
+                        }
                       />
                     )}
                   </Col>

@@ -1,3 +1,4 @@
+import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import React from 'react'
@@ -18,13 +19,13 @@ class SelectLicense extends Component {
           </option>
           {map(this.props.licenses, license => (
             <option key={license.id} value={license.id}>
-              <span>
-                {license.id.slice(-4)} ({license.expires === undefined ? (
-                  'Unlimited time'
-                ) : (
-                  <Time time={license.expires} />
-                )})
-              </span>
+              {license.id.slice(-4)}
+              {license.expires !== undefined && (
+                <span>
+                  {' '}
+                  (<Time timestamp={license.expires} />)
+                </span>
+              )}
             </option>
           ))}
         </select>
@@ -45,16 +46,16 @@ class SelectLicense extends Component {
 
 const XOSAN_COLUMNS = [
   {
-    name: 'Name',
+    name: _('xosanName'),
     itemRenderer: sr => sr.name_label,
     sortCriteria: 'name_label',
   },
   {
-    name: 'License',
+    name: _('xosanLicense'),
     itemRenderer: (sr, { availableLicenses, licensesByXosan }) => {
       const license = licensesByXosan[sr.id]
       return license !== undefined ? (
-        `Bound to ${license.id.slice(-4)}`
+        license.id.slice(-4)
       ) : (
         <SelectLicense
           licenses={availableLicenses}
@@ -67,9 +68,9 @@ const XOSAN_COLUMNS = [
 
 const XOSAN_INDIVIDUAL_ACTIONS = [
   {
-    label: 'Support',
+    label: _('productSupport'),
     icon: 'support',
-    handler: () => window.open('http://xen-orchestra.com'),
+    handler: () => window.open('https://xen-orchestra.com'),
   },
 ]
 
@@ -87,13 +88,13 @@ export default class Xosan extends Component {
     licenses => {
       const licensesByXosan = {}
       forEach(licenses, license => {
-        let xosan
-        if ((xosan = license.boundObjectId) === undefined) {
+        let xosanId
+        if ((xosanId = license.boundObjectId) === undefined) {
           return
         }
         // TODO: show that something is wrong if an SR is bound to multiple licenses
-        if (licensesByXosan[xosan] === undefined) {
-          licensesByXosan[xosan] = license
+        if (licensesByXosan[xosanId] === undefined) {
+          licensesByXosan[xosanId] = license
         }
       })
 
@@ -128,20 +129,22 @@ export default class Xosan extends Component {
     ]
   )
 
-  _getTrialSrs = createSelector(
+  _getKnownXosans = createSelector(
     createSelector(
-      () => get(() => this.props.licenses[1]), // xosan.trial
-      trialLicenses => filter(map(trialLicenses, 'boundObjectId'))
+      () => get(() => this.props.licenses[0]) || [], // xosan
+      () => get(() => this.props.licenses[1]) || [], // xosan.trial
+      (licenses, trialLicenses) =>
+        filter(map(licenses.concat(trialLicenses), 'boundObjectId'))
     ),
     () => get(() => this.props.xosanSrs),
-    (trialXosanIds, xosanSrs) =>
-      filter(xosanSrs, ({ id }) => includes(trialXosanIds, id))
+    (knownXosanIds, xosanSrs) =>
+      filter(xosanSrs, ({ id }) => includes(knownXosanIds, id))
   )
 
   render () {
     return (
       <SortedTable
-        collection={this._getTrialSrs()} // xosan.trial
+        collection={this._getKnownXosans()}
         columns={XOSAN_COLUMNS}
         individualActions={XOSAN_INDIVIDUAL_ACTIONS}
         userData={{

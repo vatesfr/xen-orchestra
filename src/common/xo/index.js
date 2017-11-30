@@ -282,8 +282,34 @@ export const subscribeSchedules = createSubscription(() =>
   _call('schedule.getAll')
 )
 
+// FIXME: should this take only 1 productId and build a map of subscriptions?
+// FIXME: forceRefresh
 export const subscribeLicenses = (productIds, cb) =>
   createSubscription(() => Promise.all(map(productIds, getLicenses)))(cb)
+
+const checkLicenseSubscriptions = {}
+export const subscribeCheckLicense = (boundObjectId, cb) => {
+  if (!checkLicenseSubscriptions[boundObjectId]) {
+    checkLicenseSubscriptions[boundObjectId] = createSubscription(() =>
+      _call('xoa.checkLicense', { boundObjectId })
+    )
+  }
+
+  return checkLicenseSubscriptions[boundObjectId](cb)
+}
+subscribeCheckLicense.forceRefresh = boundObjectId => {
+  if (boundObjectId === undefined) {
+    forEach(checkLicenseSubscriptions, subscription =>
+      subscription.forceRefresh()
+    )
+    return
+  }
+
+  const subscription = checkLicenseSubscriptions[boundObjectId]
+  if (subscription !== undefined) {
+    subscription.forceRefresh()
+  }
+}
 
 export const subscribeServers = createSubscription(
   invoke(fpSortBy('host'), sort => () => _call('server.getAll').then(sort))

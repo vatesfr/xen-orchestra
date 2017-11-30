@@ -228,6 +228,18 @@ export default class NewXosan extends Component {
   }
 
   render () {
+    if (process.env.XOA_PLAN === 5) {
+      return (
+        <em>
+          {_('xosanSourcesDisclaimer', {
+            link: (
+              <a href='https://xen-orchestra.com'>https://xen-orchestra.com</a>
+            ),
+          })}
+        </em>
+      )
+    }
+
     const {
       brickSize,
       customBrickSize,
@@ -243,7 +255,22 @@ export default class NewXosan extends Component {
       vlan,
     } = this.state
 
-    const { hostsNeedRestartByPool, noPacksByPool, poolPredicate } = this.props
+    const {
+      hostsNeedRestartByPool,
+      noPacksByPool,
+      poolPredicate,
+      notRegistered,
+    } = this.props
+
+    if (notRegistered) {
+      return (
+        <em>
+          {_('xosanUnregisteredDisclaimer', {
+            link: <Link to='/xoa/update'>{_('registerNow')}</Link>,
+          })}
+        </em>
+      )
+    }
 
     const lvmsrs = this._getLvmSrs()
     const hosts = this._getHosts()

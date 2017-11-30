@@ -13,7 +13,7 @@ import { error } from 'notification'
 import { Toggle } from 'form'
 import { Container, Col, Row } from 'grid'
 import { forEach, isEmpty, map, reduce, sum } from 'lodash'
-import { createGetObjectsOfType, createSelector } from 'selectors'
+import { createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
 import { addSubscriptions, connectStore, formatSize } from 'utils'
 import {
   addXosanBricks,
@@ -22,6 +22,7 @@ import {
   // removeXosanBricks,
   replaceXosanBrick,
   startVm,
+  subscribeCheckLicense,
   subscribeVolumeInfo,
 } from 'xo'
 
@@ -362,6 +363,9 @@ class Node extends Component {
       subscribeVolumeInfo({ sr, infoType }, cb)
   })
 
+  subscriptions.license = cb => subscribeCheckLicense(sr.id, cb)
+  subscriptions.isAdmin = isAdmin
+
   return subscriptions
 })
 export default class TabXosan extends Component {
@@ -583,12 +587,40 @@ export default class TabXosan extends Component {
 
   render () {
     const { showAdvanced } = this.state
-    const { heal_, info_, sr, status_, statusDetail_, vbds, vdis } = this.props
+    const {
+      heal_,
+      info_,
+      sr,
+      status_,
+      statusDetail_,
+      vbds,
+      vdis,
+      license,
+      isAdmin,
+    } = this.props
 
     const xosanConfig = this._getConfig()
+    if (license === undefined || xosanConfig === undefined) {
+      return <em>{_('statusLoading')}</em>
+    }
 
-    if (!xosanConfig) {
-      return null
+    if (license.productId !== 'xosan' && license.productId !== 'xosan.trial') {
+      return (
+        <span className='text-danger'>
+          {_('xosanAdminNoLicenseDisclaimer')}
+          {isAdmin && <Link to='/xoa/licenses'>{_('licensesManage')}</Link>}
+        </span>
+      )
+    }
+
+    if (license.expires < Date.now()) {
+      // license.expires may be undefined: do not block
+      return (
+        <span className='text-danger'>
+          Your XOSAN license has expired.{' '}
+          <Link to='/xoa/licenses'>Manage the licenses.</Link>
+        </span>
+      )
     }
 
     if (!xosanConfig.version) {

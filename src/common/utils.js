@@ -587,13 +587,6 @@ export const createFakeProgress = (() => {
   }
 })()
 
-export const Time = ({ time }) => (
-  <FormattedTime
-    value={time}
-    day='numeric'
-    hour='numeric'
-    minute='numeric'
-    month='long'
-    year='numeric'
-  />
+export const Time = ({ timestamp }) => (
+  <FormattedTime value={timestamp} month='long' year='numeric' />
 )
