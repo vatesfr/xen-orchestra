@@ -614,11 +614,10 @@ export default class TabXosan extends Component {
     }
 
     if (license.expires < Date.now()) {
-      // license.expires may be undefined: do not block
       return (
         <span className='text-danger'>
-          Your XOSAN license has expired.{' '}
-          <Link to='/xoa/licenses'>Manage the licenses.</Link>
+          {_('xosanAdminExpiredLicenseDisclaimer')}
+          {isAdmin && <Link to='/xoa/licenses'>{_('licensesManage')}</Link>}
         </span>
       )
     }

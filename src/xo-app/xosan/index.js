@@ -136,14 +136,14 @@ const XOSAN_COLUMNS = [
     sortCriteria: sr => sr.physical_usage * 100 / sr.size,
   },
   {
-    name: 'License',
+    name: _('xosanLicense'),
     itemRenderer: (sr, { licensesByXosan }) => {
       const license = licensesByXosan[sr.id]
       if (license === undefined) {
         return (
           <span className='text-danger'>
-            Unknown XOSAN SR.{' '}
-            <a href='https://xen-orchestra.com/'>Contact us!</a>
+            _('xosanUnknownSr'){' '}
+            <a href='https://xen-orchestra.com/'>_('contactUs')</a>
           </span>
         )
       }
@@ -156,19 +156,24 @@ const XOSAN_COLUMNS = [
             '✔'
           ) : expired ? (
             <span>
-              License has expired.{' '}
-              <Link to='/xoa/licenses'>Update it now!</Link>
+              {_('xosanLicenseHasExpired')}{' '}
+              <Link to='/xoa/licenses'>{_('xosanUpdateLicenseMessage')}</Link>
             </span>
           ) : (
             <span className={expiresSoon && 'text-danger'}>
-              License expires on <Time timestamp={license.expires} />.{' '}
-              {expiresSoon && <Link to='/xoa/licenses'>Update it now!</Link>}
+              {_('xosanLicenseExpiresDate', {
+                date: <Time timestamp={license.expires} />,
+              })}{' '}
+              {expiresSoon && (
+                <Link to='/xoa/licenses'>{_('xosanUpdateLicenseMessage')}</Link>
+              )}
             </span>
           )}
         </span>
       ) : (
         <span>
-          No license. <Link to='/xoa/licenses'>Unlock now!</Link>
+          _('xosanNoLicense'){' '}
+          <Link to='/xoa/licenses'>_('xosanUnlockNow')</Link>
         </span>
       )
     },
@@ -390,10 +395,13 @@ export default class Xosan extends Component {
                   <Row>
                     <Col>
                       <em>
-                        Beta is over. You may now buy a XOSAN license on{' '}
-                        <a href='https://xen-orchestra.com/#!/member/purchaser'>
-                          https://xen-orchestra.com
-                        </a>.
+                        {_('xosanBetaOverMessage', {
+                          link: (
+                            <a href='https://xen-orchestra.com/#!/member/purchaser'>
+                              https://xen-orchestra.com
+                            </a>
+                          ),
+                        })}
                       </em>
                     </Col>
                   </Row>

@@ -1669,6 +1669,17 @@ const messages = {
   licensesManage: 'Manage the licenses',
   xosanAdminNoLicenseDisclaimer:
     'You need a license on this SR to manage the XOSAN.',
+  xosanAdminExpiredLicenseDisclaimer:
+    'Your XOSAN license has expired. You can still use the SR but cannot administrate it anymore.',
+  xosanLicenseHasExpired: 'License has expired.',
+  xosanLicenseExpiresDate: 'License expires on {date}.',
+  xosanUpdateLicenseMessage: 'Update the license now!',
+  xosanUnknownSr: 'Unknown XOSAN SR.',
+  contactUs: 'Contact us!',
+  xosanNoLicense: 'No license.',
+  xosanUnlockNow: 'Unlock now!',
+  xosanBetaOverMessage:
+    'XOSAN Beta is over. You may now buy a license on {link}.',
 }
 forEach(messages, function (message, id) {
   if (isString(message)) {

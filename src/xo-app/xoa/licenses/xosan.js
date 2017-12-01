@@ -101,24 +101,6 @@ export default class Xosan extends Component {
       return licensesByXosan
     }
   )
-  // _getXosanSrsWithLicenses = createSelector(
-  //   () => this.props.xosanSrs,
-  //   () => this.props.licenses,
-  //   (srs, licenses) => {
-  //     forEach(srs, sr => {
-  //       // FIXME: Don't merge paid and trial XOSAN licenses?
-  //       const license = find(get(() => [...licenses[0], ...licenses[1]]), [
-  //         'boundObjectId',
-  //         sr.id,
-  //       ])
-  //       if (license !== undefined) {
-  //         sr.license = license
-  //       }
-  //     })
-  //
-  //     return srs
-  //   }
-  // )
 
   _getAvailableLicenses = createFilter(
     () => get(() => this.props.licenses[0]),
