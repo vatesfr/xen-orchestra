@@ -147,7 +147,7 @@ const XOSAN_COLUMNS = [
           </span>
         )
       }
-      const now = Date.now() // FIXME: on each render?
+      const now = Date.now()
       const expiresSoon = license.expires - now < EXPIRES_SOON_DELAY
       const expired = license.expires < now
       return license.productId === 'xosan' ? (
