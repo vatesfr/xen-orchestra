@@ -80,11 +80,11 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
   ]),
 })
 @addSubscriptions({
-  licenses: cb => subscribeLicenses(['xosan', 'xosan.trial'], cb),
+  xosanLicenses: cb => subscribeLicenses('xosan', cb),
 })
 export default class Xosan extends Component {
   _getLicensesByXosan = createSelector(
-    () => get(() => this.props.licenses[0]), // xosan
+    () => get(() => this.props.xosanLicenses), // xosan
     licenses => {
       const licensesByXosan = {}
       forEach(licenses, license => {

@@ -273,7 +273,8 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
 @addSubscriptions({
   catalog: subscribeResourceCatalog,
   plugins: subscribePlugins,
-  licenses: cb => subscribeLicenses(['xosan', 'xosan.trial'], cb),
+  xosanLicenses: cb => subscribeLicenses('xosan', cb),
+  xosanTrialLicenses: cb => subscribeLicenses('xosan.trial', cb),
 })
 export default class Xosan extends Component {
   componentDidMount () {
@@ -306,10 +307,11 @@ export default class Xosan extends Component {
   }
 
   _getLicensesByXosan = createSelector(
-    () => this.props.licenses,
-    licenses => {
+    () => this.props.xosanLicenses,
+    () => this.props.xosanTrialLicenses,
+    (xosanLicenses, xosanTrialLicenses) => {
       const licensesByXosan = {}
-      forEach(flatten(licenses), license => {
+      forEach(flatten([xosanLicenses, xosanTrialLicenses]), license => {
         let xosan
         if ((xosan = license.boundObjectId) === undefined) {
           return

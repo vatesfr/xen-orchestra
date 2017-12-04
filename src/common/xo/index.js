@@ -282,11 +282,26 @@ export const subscribeSchedules = createSubscription(() =>
   _call('schedule.getAll')
 )
 
-// FIXME: should this take only 1 productId and build a map of subscriptions?
-// FIXME: forceRefresh
-export const subscribeLicenses = (productIds, cb) => {
-  console.log('productIds', productIds)
-  return createSubscription(() => Promise.all(map(productIds, getLicenses)))(cb)
+const licensesSubscriptions = {}
+export const subscribeLicenses = (productId, cb) => {
+  if (!licensesSubscriptions[productId]) {
+    licensesSubscriptions[productId] = createSubscription(() =>
+      getLicenses(productId)
+    )
+  }
+
+  return licensesSubscriptions[productId](cb)
+}
+subscribeLicenses.forceRefresh = productId => {
+  if (productId === undefined) {
+    forEach(licensesSubscriptions, subscription => subscription.forceRefresh())
+    return
+  }
+
+  const subscription = licensesSubscriptions[productId]
+  if (subscription !== undefined) {
+    subscription.forceRefresh()
+  }
 }
 
 const checkLicenseSubscriptions = {}

@@ -25,8 +25,6 @@ const openSupport = productId => {
   )
 }
 
-const PRODUCTS = ['xosan']
-
 const PRODUCTS_COLUMNS = [
   {
     name: _('licenseProduct'),
@@ -93,21 +91,16 @@ const getBoundXosanRenderer = (boundObjectId, xosanSrs) => {
   xoaRegistration: state => state.xoaRegisterState,
 })
 @addSubscriptions(() => ({
-  licenses: cb => subscribeLicenses(PRODUCTS, cb),
+  xosanLicenses: cb => subscribeLicenses('xosan', cb),
   plugins: subscribePlugins,
 }))
 export default class Licenses extends Component {
   _getProducts = createSelector(
-    () => this.props.licenses,
+    () => this.props.xosanLicenses,
     () => this.props.xosanSrs,
-    (rawLicenses, xosanSrs) => {
-      if (rawLicenses === undefined) {
-        return []
-      }
-
-      const [xoaLicenses, xosanLicenses] = rawLicenses
+    (xosanLicenses, xosanSrs) => {
       const products = []
-      if (xoaLicenses.state === 'register-needed') {
+      if (xosanLicenses.state === 'register-needed') {
         // Should not happen
         return
       }
