@@ -177,8 +177,8 @@ const XOSAN_COLUMNS = [
         </span>
       ) : (
         <span>
-          _('xosanNoLicense'){' '}
-          <Link to='/xoa/licenses'>_('xosanUnlockNow')</Link>
+          {_('xosanNoLicense')}{' '}
+          <Link to='/xoa/licenses'>{_('xosanUnlockNow')}</Link>
         </span>
       )
     },
@@ -315,11 +315,11 @@ export default class Xosan extends Component {
   _getLicensesByXosan = createSelector(
     () => this.props.xosanLicenses,
     () => this.props.xosanTrialLicenses,
-    (xosanLicenses, xosanTrialLicenses) => {
+    (xosanLicenses = [], xosanTrialLicenses = []) => {
       const licensesByXosan = {}
       forEach(flatten([xosanLicenses, xosanTrialLicenses]), license => {
         let xosan
-        if ((xosan = license && license.boundObjectId) === undefined) {
+        if ((xosan = license.boundObjectId) === undefined) {
           return
         }
         // FIXME: we should probably show that something is wrong if a XOSAN is bound to multiple licenses
@@ -334,8 +334,7 @@ export default class Xosan extends Component {
 
   _getError = createSelector(
     () => this.props.plugins,
-    // () => this.props.catalog,
-    (plugins /*, catalog */) => {
+    plugins => {
       const cloudPlugin = find(plugins, { id: 'cloud' })
       if (!cloudPlugin) {
         return _('xosanInstallCloudPlugin')

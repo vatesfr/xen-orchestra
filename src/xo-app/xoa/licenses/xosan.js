@@ -81,10 +81,11 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
 })
 @addSubscriptions({
   xosanLicenses: cb => subscribeLicenses('xosan', cb),
+  xosanTrialLicenses: cb => subscribeLicenses('xosan.trial', cb),
 })
 export default class Xosan extends Component {
   _getLicensesByXosan = createSelector(
-    () => get(() => this.props.xosanLicenses), // xosan
+    () => this.props.xosanLicenses,
     licenses => {
       const licensesByXosan = {}
       forEach(licenses, license => {
@@ -102,23 +103,20 @@ export default class Xosan extends Component {
     }
   )
 
-  _getAvailableLicenses = createFilter(
-    () => get(() => this.props.licenses[0]),
-    [
-      ({ boundObjectId, expires }) =>
-        boundObjectId === undefined &&
-        (expires === undefined || expires > Date.now()),
-    ]
-  )
+  _getAvailableLicenses = createFilter(() => this.props.xosanLicenses, [
+    ({ boundObjectId, expires }) =>
+      boundObjectId === undefined &&
+      (expires === undefined || expires > Date.now()),
+  ])
 
   _getKnownXosans = createSelector(
     createSelector(
-      () => get(() => this.props.licenses[0]) || [], // xosan
-      () => get(() => this.props.licenses[1]) || [], // xosan.trial
-      (licenses, trialLicenses) =>
+      () => this.props.xosanLicenses,
+      () => this.props.xosanTrialLicenses,
+      (licenses = [], trialLicenses = []) =>
         filter(map(licenses.concat(trialLicenses), 'boundObjectId'))
     ),
-    () => get(() => this.props.xosanSrs),
+    () => this.props.xosanSrs,
     (knownXosanIds, xosanSrs) =>
       filter(xosanSrs, ({ id }) => includes(knownXosanIds, id))
   )
