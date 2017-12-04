@@ -52,7 +52,7 @@ class SelectLicense extends Component {
           handlerParam={get(() => this.state.license)}
           icon='connect'
         >
-          Bind license
+          {_('bindLicense')}
         </ActionButton>
       </form>
     )

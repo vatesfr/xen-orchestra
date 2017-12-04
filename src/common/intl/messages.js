@@ -1682,6 +1682,7 @@ const messages = {
   xosanBetaOverMessage:
     'XOSAN Beta is over. You may now delete and create this storage again to be able to manage it.',
   selectLicense: 'Select a license',
+  bindLicense: 'Bind license',
   expiresOn: 'expires on {date}',
 }
 forEach(messages, function (message, id) {
