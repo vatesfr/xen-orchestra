@@ -1681,6 +1681,8 @@ const messages = {
   xosanUnlockNow: 'Unlock now!',
   xosanBetaOverMessage:
     'XOSAN Beta is over. You may now delete and create this storage again to be able to manage it.',
+  selectLicense: 'Select a license',
+  expiresOn: 'expires on {date}',
 }
 forEach(messages, function (message, id) {
   if (isString(message)) {

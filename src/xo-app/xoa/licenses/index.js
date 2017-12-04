@@ -58,8 +58,9 @@ const PRODUCTS_COLUMNS = [
   {
     name: _('licenseExpires'),
     itemRenderer: ({ expires }) =>
-      expires !== undefined && <Time timestamp={expires} />,
+      expires !== undefined ? <Time timestamp={expires} /> : '-',
     sortCriteria: 'expires',
+    sortOrder: 'desc',
   },
 ]
 

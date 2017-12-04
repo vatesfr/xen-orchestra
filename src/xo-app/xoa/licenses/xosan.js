@@ -3,36 +3,51 @@ import ActionButton from 'action-button'
 import Component from 'base-component'
 import React from 'react'
 import SortedTable from 'sorted-table'
-import { addSubscriptions, connectStore, Time } from 'utils'
+import { addSubscriptions, connectStore } from 'utils'
 import { createSelector, createGetObjectsOfType, createFilter } from 'selectors'
 import { subscribeLicenses, unlockXosan } from 'xo'
 import { get } from 'xo-defined'
 import { filter, forEach, includes, map } from 'lodash'
+import { injectIntl } from 'react-intl'
 
+@injectIntl
 class SelectLicense extends Component {
+  state = { license: 'none' }
+
   render () {
     return (
       <form className='form-inline'>
-        <select onChange={this.linkState('license')} className='form-control'>
-          <option key='none' disabled selected>
-            Select a license
-          </option>
-          {map(this.props.licenses, license => (
-            <option key={license.id} value={license.id}>
-              {license.id.slice(-4)}
-              {license.expires !== undefined && (
-                <span>
-                  {' '}
-                  (<Time timestamp={license.expires} />)
-                </span>
-              )}
+        <select className='form-control' onChange={this.linkState('license')}>
+          {_('selectLicense', message => (
+            <option key='none' value='none'>
+              {message}
             </option>
           ))}
+          {map(this.props.licenses, license =>
+            _(
+              'expiresOn',
+              {
+                date:
+                  license.expires !== undefined
+                    ? this.props.intl.formatTime(license.expires, {
+                      day: 'numeric',
+                      month: 'numeric',
+                      year: 'numeric',
+                    })
+                    : '',
+              },
+              message => (
+                <option key={license.id} value={license.id}>
+                  {license.id.slice(-4)} {license.expires ? `(${message})` : ''}
+                </option>
+              )
+            )
+          )}
         </select>
         <ActionButton
           btnStyle='primary'
           className='ml-1'
-          disabled={this.state.license === undefined}
+          disabled={this.state.license === 'none'}
           handler={this.props.onChange}
           handlerParam={get(() => this.state.license)}
           icon='connect'
