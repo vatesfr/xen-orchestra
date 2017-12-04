@@ -20,7 +20,7 @@ import {
   mapValues,
   some,
 } from 'lodash'
-import { createGetObjectsOfType, createSelector } from 'selectors'
+import { createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
 import {
   addSubscriptions,
   connectStore,
@@ -137,7 +137,7 @@ const XOSAN_COLUMNS = [
   },
   {
     name: _('xosanLicense'),
-    itemRenderer: (sr, { licensesByXosan }) => {
+    itemRenderer: (sr, { isAdmin, licensesByXosan }) => {
       const license = licensesByXosan[sr.id]
       if (license === undefined) {
         return (
@@ -157,16 +157,21 @@ const XOSAN_COLUMNS = [
           ) : expired ? (
             <span>
               {_('xosanLicenseHasExpired')}{' '}
-              <Link to='/xoa/licenses'>{_('xosanUpdateLicenseMessage')}</Link>
+              {isAdmin && (
+                <Link to='/xoa/licenses'>{_('xosanUpdateLicenseMessage')}</Link>
+              )}
             </span>
           ) : (
             <span className={expiresSoon && 'text-danger'}>
               {_('xosanLicenseExpiresDate', {
                 date: <Time timestamp={license.expires} />,
               })}{' '}
-              {expiresSoon && (
-                <Link to='/xoa/licenses'>{_('xosanUpdateLicenseMessage')}</Link>
-              )}
+              {expiresSoon &&
+                isAdmin && (
+                  <Link to='/xoa/licenses'>
+                    {_('xosanUpdateLicenseMessage')}
+                  </Link>
+                )}
             </span>
           )}
         </span>
@@ -261,6 +266,7 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
   )
 
   return {
+    isAdmin,
     isMasterOfflineByPool: getIsMasterOfflineByPool,
     hostsNeedRestartByPool: getHostsNeedRestartByPool,
     noPacksByPool,
@@ -313,7 +319,7 @@ export default class Xosan extends Component {
       const licensesByXosan = {}
       forEach(flatten([xosanLicenses, xosanTrialLicenses]), license => {
         let xosan
-        if ((xosan = license.boundObjectId) === undefined) {
+        if ((xosan = license && license.boundObjectId) === undefined) {
           return
         }
         // FIXME: we should probably show that something is wrong if a XOSAN is bound to multiple licenses
@@ -335,38 +341,20 @@ export default class Xosan extends Component {
         return _('xosanInstallCloudPlugin')
       }
 
-      // TODO: remove comment
-      // Still required to get the VM template when installing XOSAN
       if (!cloudPlugin.loaded) {
         return _('xosanLoadCloudPlugin')
       }
-
-      // TODO: Remove: no need to be registered to see the XOSAN list
-      // if (catalog.state === 'register-needed') {
-      //   return _('xosanRegister')
-      // }
-
-      // TODO: Remove: we're out of beta
-      // if (!catalog) {
-      //   return _('xosanLoading')
-      // }
-      //
-      // const { xosan } = catalog._namespaces
-      // if (!xosan) {
-      //   return (
-      //     <span>
-      //       <Icon icon='error' /> {_('xosanNotAvailable')}
-      //     </span>
-      //   )
-      // }
     }
   )
 
   _showBetaIsOver = createSelector(
     () => this.props.catalog,
-    () => this.props.licenses,
-    (catalog, licenses) =>
-      get(() => catalog._namespaces.xosan) !== undefined && isEmpty(licenses)
+    () => this.props.xosanLicenses,
+    () => this.props.xosanTrialLicenses,
+    (catalog, xosanLicenses, xosanTrialLicenses) =>
+      get(() => catalog._namespaces.xosan) !== undefined &&
+      isEmpty(xosanLicenses) &&
+      isEmpty(xosanTrialLicenses)
   )
 
   _onSrCreationStarted = () => this.setState({ showNewXosanForm: false })
@@ -374,6 +362,7 @@ export default class Xosan extends Component {
   render () {
     const {
       hostsNeedRestartByPool,
+      isAdmin,
       noPacksByPool,
       poolPredicate,
       xoaRegistration,
@@ -394,17 +383,9 @@ export default class Xosan extends Component {
             ) : (
               [
                 this._showBetaIsOver() && (
-                  <Row>
+                  <Row key='beta-is-over'>
                     <Col>
-                      <em>
-                        {_('xosanBetaOverMessage', {
-                          link: (
-                            <a href='https://xen-orchestra.com/#!/member/purchaser'>
-                              https://xen-orchestra.com
-                            </a>
-                          ),
-                        })}
-                      </em>
+                      <em>{_('xosanBetaOverMessage')}</em>
                     </Col>
                   </Row>
                 ),
@@ -451,8 +432,9 @@ export default class Xosan extends Component {
                         columns={XOSAN_COLUMNS}
                         individualActions={XOSAN_INDIVIDUAL_ACTIONS}
                         userData={{
-                          status: this.state.status,
+                          isAdmin,
                           licensesByXosan: this._getLicensesByXosan(),
+                          status: this.state.status,
                         }}
                       />
                     )}

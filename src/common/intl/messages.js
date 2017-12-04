@@ -1657,7 +1657,7 @@ const messages = {
     'In order to create a XOSAN SR, you need to use the Xen Orchestra Appliance and buy a XOSAN license on {link}.',
   registerNow: 'Register now!',
   licensesUnregisteredDisclaimer:
-    'You need to register your appliance to manage your licenses',
+    'You need to register your appliance to manage your licenses.',
   licenseProduct: 'Product',
   licenseBoundObject: 'Attached to',
   licensePurchaser: 'Purchaser',
@@ -1680,7 +1680,7 @@ const messages = {
   xosanNoLicense: 'No license.',
   xosanUnlockNow: 'Unlock now!',
   xosanBetaOverMessage:
-    'XOSAN Beta is over. You may now buy a license on {link}.',
+    'XOSAN Beta is over. You may now delete and create this storage again to be able to manage it.',
 }
 forEach(messages, function (message, id) {
   if (isString(message)) {

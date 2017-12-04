@@ -100,7 +100,7 @@ export default class Licenses extends Component {
     () => this.props.xosanSrs,
     (xosanLicenses, xosanSrs) => {
       const products = []
-      if (xosanLicenses.state === 'register-needed') {
+      if (get(() => xosanLicenses.state) === 'register-needed') {
         // Should not happen
         return
       }
@@ -129,7 +129,12 @@ export default class Licenses extends Component {
 
   render () {
     if (get(() => this.props.xoaRegistration.state) !== 'registered') {
-      return <em>{_('licensesUnregisteredDisclaimer')}</em>
+      return (
+        <span>
+          <em>{_('licensesUnregisteredDisclaimer')}</em>{' '}
+          <Link to='xoa/update'>{_('registerNow')}</Link>
+        </span>
+      )
     }
 
     return (
