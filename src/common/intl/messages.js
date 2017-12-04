@@ -1667,6 +1667,7 @@ const messages = {
   licenseNotBoundXosan: 'No XOSAN attached',
   licenseBoundUnknownXosan: 'License attached to an unknown XOSAN',
   licensesManage: 'Manage the licenses',
+  newLicense: 'New license',
   xosanAdminNoLicenseDisclaimer:
     'You need a license on this SR to manage the XOSAN.',
   xosanAdminExpiredLicenseDisclaimer:

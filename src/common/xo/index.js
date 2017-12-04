@@ -284,8 +284,10 @@ export const subscribeSchedules = createSubscription(() =>
 
 // FIXME: should this take only 1 productId and build a map of subscriptions?
 // FIXME: forceRefresh
-export const subscribeLicenses = (productIds, cb) =>
-  createSubscription(() => Promise.all(map(productIds, getLicenses)))(cb)
+export const subscribeLicenses = (productIds, cb) => {
+  console.log('productIds', productIds)
+  return createSubscription(() => Promise.all(map(productIds, getLicenses)))(cb)
+}
 
 const checkLicenseSubscriptions = {}
 export const subscribeCheckLicense = (boundObjectId, cb) => {
@@ -2101,14 +2103,5 @@ export const fixHostNotInXosanNetwork = (xosanSr, host) =>
 
 export const getLicenses = productId => _call('xoa.getLicenses', { productId })
 
-export const checkLicense = boundObjectId =>
-  _call('xoa.checkLicense', { boundObjectId })
-
 export const unlockXosan = (licenseId, srId) =>
   _call('xosan.unlock', { licenseId, srId })
-
-// export const freeLicense = (licenseId, boundObjectId) =>
-//   _call('xoa.freeLicense', { licenseId, boundObjectId })
-//
-// export const getAvailableTrial = productId =>
-//   _call('xoa.getAvailableTrial', { productId })

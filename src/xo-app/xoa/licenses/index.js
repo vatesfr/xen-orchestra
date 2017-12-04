@@ -13,21 +13,19 @@ import { get } from 'xo-defined'
 
 import Xosan from './xosan'
 
-const openNewLicense = productId => {
-  if (productId === undefined) {
-    window.open('https://beta.xen-orchestra.com/#!/member/purchaser')
-  } else {
-    window.open(
-      `https://xen-orchestra.com/?productId=${encodeURIComponent(productId)}`
-    )
-  }
+const openNewLicense = () => {
+  window.open('https://xen-orchestra.com/#!/member/purchaser')
 }
 
-const openSupport = product => {
-  window.open('https://beta.xen-orchestra.com/#!/member/purchaser')
+const openSupport = productId => {
+  window.open(
+    `https://xen-orchestra.com/#!/xosan-home/?productId=${encodeURIComponent(
+      productId
+    )}`
+  )
 }
 
-const PRODUCTS = ['xoa', 'xosan']
+const PRODUCTS = ['xosan']
 
 const PRODUCTS_COLUMNS = [
   {
@@ -150,7 +148,7 @@ export default class Licenses extends Component {
               icon='add'
               handler={openNewLicense}
             >
-              New license
+              {_('newLicense')}
             </ActionButton>
           </Col>
         </Row>

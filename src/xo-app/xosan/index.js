@@ -142,8 +142,8 @@ const XOSAN_COLUMNS = [
       if (license === undefined) {
         return (
           <span className='text-danger'>
-            _('xosanUnknownSr'){' '}
-            <a href='https://xen-orchestra.com/'>_('contactUs')</a>
+            {_('xosanUnknownSr')}{' '}
+            <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
           </span>
         )
       }
