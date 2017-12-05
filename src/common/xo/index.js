@@ -2119,4 +2119,7 @@ export const fixHostNotInXosanNetwork = (xosanSr, host) =>
 export const getLicenses = productId => _call('xoa.getLicenses', { productId })
 
 export const unlockXosan = (licenseId, srId) =>
-  _call('xosan.unlock', { licenseId, srId })
+  _call('xosan.unlock', { licenseId, srId })::tap(() => {
+    subscribeLicenses.forceRefresh('xosan')
+    subscribeCheckLicense.forceRefresh(srId)
+  })
