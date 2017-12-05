@@ -3,6 +3,7 @@ import ActionButton from 'action-button'
 import Component from 'base-component'
 import Link from 'link'
 import React from 'react'
+import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import { Container, Row, Col } from 'grid'
 import { createSelector, createGetObjectsOfType } from 'selectors'
@@ -33,7 +34,7 @@ const PRODUCTS_COLUMNS = [
         {product} <span className='text-muted'>({id.slice(-4)})</span>
       </span>
     ),
-    sortCriteria: 'product',
+    sortCriteria: ({ product, id }) => product + id.slice(-4),
     default: true,
   },
   {
@@ -82,7 +83,7 @@ const getBoundXosanRenderer = (boundObjectId, xosanSrs) => {
     return () => _('licenseBoundUnknownXosan')
   }
 
-  return () => <Link to={`srs/${sr.id}`}>{sr.name_label}</Link>
+  return () => <Link to={`srs/${sr.id}`}>{renderXoItem(sr)}</Link>
 }
 
 @connectStore({
