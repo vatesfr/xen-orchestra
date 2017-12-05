@@ -48,7 +48,7 @@ const GROUPED_ACTIONS = [
   {
     handler: deleteMessages,
     icon: 'delete',
-    label: _('logDeleteSelected'),
+    label: _('logDeleteMultiple'),
     level: 'danger',
   },
 ]
@@ -57,7 +57,7 @@ export default class TabLogs extends Component {
   render () {
     return (
       <SortedTable
-        collection={this.props.log}
+        collection={this.props.logs}
         columns={LOG_COLUMNS}
         groupedActions={GROUPED_ACTIONS}
         individualActions={INDIVIDUAL_ACTIONS}

@@ -50,7 +50,7 @@ const GROUPED_ACTIONS = [
   {
     handler: deleteMessages,
     icon: 'delete',
-    label: _('logDeleteSelected'),
+    label: _('logDeleteMultiple'),
     level: 'danger',
   },
 ]

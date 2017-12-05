@@ -1427,8 +1427,8 @@ export const deleteMessage = message =>
 
 export const deleteMessages = logs =>
   confirm({
-    title: _('logDeleteSelected'),
-    body: _('logDeleteSlectedMessage', { nLogs: logs.length }),
+    title: _('logDeleteMultiple'),
+    body: _('logDeleteMultipleMessage', { nLogs: logs.length }),
   }).then(() => Promise.all(map(logs, deleteMessage)), noop)
 
 // Tags --------------------------------------------------------------
