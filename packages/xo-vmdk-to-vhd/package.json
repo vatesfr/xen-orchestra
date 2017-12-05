@@ -34,7 +34,6 @@
     "babel-plugin-transform-runtime": "^6.15.0",
     "babel-preset-env": "^1.0.0",
     "cross-env": "^5.1.1",
-    "dependency-check": "^2.6.0",
     "mocha": "^4.0.1",
     "must": "^0.13.2",
     "rimraf": "^2.5.4"
@@ -42,13 +41,11 @@
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
     "clean": "rimraf dist/",
-    "depcheck": "dependency-check ./package.json",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "dev-test": "mocha --watch --reporter=min \"dist/**/*.spec.js\"",
-    "posttest": "npm run depcheck",
     "prebuild": "npm run clean",
     "predev": "npm run clean",
-    "prepublish": "npm run build",
+    "prepublishOnly": "npm run build",
     "test-disabled": "mocha \"dist/**/*.spec.js\""
   },
   "babel": {

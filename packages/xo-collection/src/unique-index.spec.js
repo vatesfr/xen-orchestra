@@ -3,8 +3,8 @@
 import eventToPromise from 'event-to-promise'
 import { forEach } from 'lodash'
 
-import Collection from '..'
-import Index from '../unique-index'
+import Collection from './collection'
+import Index from './unique-index'
 
 // ===================================================================
 

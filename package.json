@@ -12,7 +12,8 @@
     "jest": "^21.2.1",
     "lint-staged": "^5.0.0",
     "lodash": "^4.17.4",
-    "promise-toolbox": "^0.9.5"
+    "promise-toolbox": "^0.9.5",
+    "sorted-object": "^2.0.1"
   },
   "engines": {
     "yarn": "^1.2.1"
@@ -40,7 +41,7 @@
     "lint-staged-stash": "touch .lint-staged && git stash save --include-untracked --keep-index && true",
     "lint-staged-unstash": "git stash pop && rm -f .lint-staged && true",
     "precommit": "lint-staged",
-    "prepublish": "scripts/run-script prepublish",
+    "prepare": "scripts/run-script prepare",
     "pretest": "eslint --ignore-path .gitignore . && jest",
     "test": "scripts/run-script test"
   },

@@ -25,14 +25,11 @@
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
-    "babel-preset-env": "^1.6.1",
-    "dependency-check": "^2.9.1"
+    "babel-preset-env": "^1.6.1"
   },
   "scripts": {
     "build": "babel --source-maps --out-dir=dist/ src/",
-    "depcheck": "dependency-check ./package.json",
     "dev": "babel --watch --source-maps --out-dir=dist/ src/",
-    "posttest": "yarn run depcheck",
-    "prepublish": "yarn run build"
+    "prepublishOnly": "yarn run build"
   }
 }

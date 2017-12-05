@@ -38,16 +38,14 @@
     "babel-preset-env": "^1.5.2",
     "babel-preset-stage-3": "^6.24.1",
     "cross-env": "^5.0.1",
-    "dependency-check": "^2.9.1",
     "rimraf": "^2.6.1"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
-    "posttest": "dependency-check ./package.json",
     "prebuild": "rimraf dist/",
     "predev": "npm run prebuild",
-    "prepublish": "npm run build"
+    "prepublishOnly": "npm run build"
   },
   "babel": {
     "plugins": [

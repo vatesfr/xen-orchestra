@@ -1,7 +1,7 @@
 const { createReadStream, createWriteStream, statSync } = require('fs')
 const { PassThrough } = require('stream')
 
-const { isOpaqueRef } = require('../')
+const { isOpaqueRef } = require('../') // eslint-disable-line node/no-missing-require
 
 exports.createInputStream = path => {
   if (path === undefined || path === '-') {

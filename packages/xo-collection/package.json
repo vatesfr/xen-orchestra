@@ -32,13 +32,11 @@
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
-    "babel-eslint": "^8.0.3",
     "babel-plugin-lodash": "^3.3.2",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-preset-env": "^1.5.2",
     "babel-preset-stage-3": "^6.24.1",
     "cross-env": "^5.0.1",
-    "dependency-check": "^2.9.1",
     "eslint": "^4.12.1",
     "event-to-promise": "^0.8.0",
     "lint-staged": "^6.0.0",
@@ -47,10 +45,9 @@
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
-    "posttest": "dependency-check ./package.json --entry dist/collection.js index.js unique-index.js view.js",
     "prebuild": "rimraf dist/",
     "predev": "yarn run prebuild",
-    "prepublish": "yarn run build"
+    "prepublishOnly": "yarn run build"
   },
   "babel": {
     "plugins": [

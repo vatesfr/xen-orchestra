@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const isEmpty = require('lodash/isEmpty')
+const sortedObject = require('sorted-object')
 const { getPackages, writeFile, unlink } = require('./utils')
 
 const deleteProperties = (object, property, properties) => {
@@ -31,15 +32,29 @@ require('exec-promise')(() =>
 
     deleteProperties(pkg, 'config', [ 'commitizen' ])
     deleteProperties(pkg, 'devDependencies', [
+      'babel-eslint',
       'commitizen',
+      'cz-conventional-changelog',
+      'dependency-check',
       'ghooks',
       'husky',
       'jest',
       'standard',
-      'babel-eslint',
-      'cz-conventional-changelog',
     ])
     deleteProperties(pkg, 'scripts', [ 'commitmsg', 'cz' ])
+
+    const { scripts } = pkg
+    if (scripts !== undefined) {
+      const prepublish = scripts.prepublish
+      if (
+        prepublish !== undefined &&
+        !('prepublishOnly' in scripts)
+      ) {
+        delete scripts.prepublish
+        scripts.prepublishOnly = prepublish
+        pkg.scripts = sortedObject(scripts)
+      }
+    }
 
     return Promise.all([
       writeFile(

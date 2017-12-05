@@ -44,18 +44,15 @@
     "babel-plugin-lodash": "^3.3.2",
     "babel-preset-env": "^1.5.2",
     "cross-env": "^5.0.1",
-    "dependency-check": "^2.9.1",
     "rimraf": "^2.6.1"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
     "clean": "rimraf dist/",
-    "depcheck": "dependency-check ./package.json",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
-    "posttest": "yarn run depcheck",
     "prebuild": "yarn run clean",
     "predev": "yarn run clean",
-    "prepublish": "yarn run build"
+    "prepublishOnly": "yarn run build"
   },
   "babel": {
     "plugins": [

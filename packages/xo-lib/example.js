@@ -4,7 +4,7 @@ process.on('unhandledRejection', function (error) {
   console.log(error)
 })
 
-const Xo = require('./').default
+const Xo = require('./').default // eslint-disable-line node/no-missing-require
 
 const xo = new Xo({
   url: 'localhost:9000',
