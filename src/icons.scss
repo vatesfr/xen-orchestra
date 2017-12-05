@@ -27,6 +27,10 @@
     @extend .fa;
     @extend .fa-envelope-o;
   }
+  &-logs {
+    @extend .fa;
+    @extend .fa-list;
+  }
   &-alarm {
     @extend .fa;
     @extend .fa-exclamation-triangle;
