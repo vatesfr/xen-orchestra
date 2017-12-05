@@ -268,9 +268,12 @@ export default class Api {
       //
       // The goal here is to standardize the calls by always providing
       // an id parameter when possible to simplify calls to the API.
-      if (params && params.id === undefined) {
+      if (params != null && params.id === undefined) {
         const namespace = name.slice(0, name.indexOf('.'))
-        params.id = params[namespace]
+        const id = params[namespace]
+        if (typeof id === 'string') {
+          params.id = id
+        }
       }
 
       checkParams.call(context, method, params)
