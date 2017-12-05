@@ -167,7 +167,12 @@ class Log extends BaseComponent {
                       _('jobDuration'),
                       <FormattedDuration duration={jobDuration} />
                     )}
-                  {returnedValue != null && <JobDataInfos jobDuration={jobDuration} {...returnedValue} />}
+                  {returnedValue != null && (
+                    <JobDataInfos
+                      jobDuration={jobDuration}
+                      {...returnedValue}
+                    />
+                  )}
                   {id !== undefined && (
                     <span>
                       {' '}
