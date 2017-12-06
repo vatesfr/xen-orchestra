@@ -137,7 +137,11 @@ const XOSAN_COLUMNS = [
   },
   {
     name: _('xosanLicense'),
-    itemRenderer: (sr, { isAdmin, licensesByXosan }) => {
+    itemRenderer: (sr, { isAdmin, licensesByXosan, licenseError }) => {
+      if (licenseError !== undefined) {
+        return
+      }
+
       const license = licensesByXosan[sr.id]
       if (license === undefined) {
         return (
@@ -283,14 +287,16 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
 export default class Xosan extends Component {
   componentDidMount () {
     this._subscribeVolumeInfo(this.props.xosanSrs)
-    Promise.all([getLicenses('xosan'), getLicenses('xosan.trial')]).then(
-      ([xosanLicenses, xosanTrialLicenses]) => {
+    Promise.all([getLicenses('xosan'), getLicenses('xosan.trial')])
+      .then(([xosanLicenses, xosanTrialLicenses]) => {
         this.setState({
           xosanLicenses,
           xosanTrialLicenses,
         })
-      }
-    )
+      })
+      .catch(error => {
+        this.setState({ licenseError: error })
+      })
   }
 
   componentWillReceiveProps ({ pools, xosanSrs }) {
@@ -356,7 +362,9 @@ export default class Xosan extends Component {
     () => this.props.catalog,
     () => this.state.xosanLicenses,
     () => this.state.xosanTrialLicenses,
-    (catalog, xosanLicenses, xosanTrialLicenses) =>
+    () => this.state.licenseError,
+    (catalog, xosanLicenses, xosanTrialLicenses, licenseError) =>
+      licenseError === undefined &&
       get(() => catalog._namespaces.xosan) !== undefined &&
       isEmpty(xosanLicenses) &&
       isEmpty(xosanTrialLicenses)
@@ -373,6 +381,7 @@ export default class Xosan extends Component {
       xoaRegistration,
       xosanSrs,
     } = this.props
+    const { licenseError } = this.state
     const error = this._getError()
 
     return (
@@ -427,6 +436,15 @@ export default class Xosan extends Component {
                     ))}
                   </Col>
                 </Row>,
+                licenseError !== undefined && (
+                  <Row>
+                    <Col>
+                      <em className='text-danger'>
+                        {_('xosanGetLicensesError')}
+                      </em>
+                    </Col>
+                  </Row>
+                ),
                 <Row key='srs'>
                   <Col>
                     {isEmpty(xosanSrs) ? (
@@ -439,6 +457,7 @@ export default class Xosan extends Component {
                         userData={{
                           isAdmin,
                           licensesByXosan: this._getLicensesByXosan(),
+                          licenseError,
                           status: this.state.status,
                         }}
                       />
