@@ -2,25 +2,25 @@
 
 require('babel-register')
 
-var Benchmark = require('benchmark')
-var globby = require('globby')
-var resolve = require('path').resolve
+const Benchmark = require('benchmark')
+const globby = require('globby')
+const resolve = require('path').resolve
 
 // ===================================================================
 
 function bench (path) {
-  var fn = require(resolve(path))
+  let fn = require(resolve(path))
   if (typeof fn !== 'function') {
     fn = fn.default
   }
 
-  var benchmarks = []
+  const benchmarks = []
   function benchmark (name, fn) {
     benchmarks.push(new Benchmark(name, fn))
   }
 
   fn({
-    benchmark: benchmark
+    benchmark: benchmark,
   })
 
   benchmarks.forEach(function (benchmark) {
@@ -38,7 +38,7 @@ function main (args) {
       throw new Error('no files to run')
     }
 
-    for (var i = 0, n = paths.length; i < n; ++i) {
+    for (let i = 0, n = paths.length; i < n; ++i) {
       bench(paths[i])
     }
   })
