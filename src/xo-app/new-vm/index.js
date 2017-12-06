@@ -322,9 +322,7 @@ export default class NewVm extends BaseComponent {
         .replace(/^\s+|\s+$/g, '')
         .replace(/\s+/g, '-')
       if (state.installMethod === 'SSH') {
-        cloudConfig = `#cloud-config\nhostname: ${
-          hostname
-        }\nssh_authorized_keys:\n${join(
+        cloudConfig = `#cloud-config\nhostname: ${hostname}\nssh_authorized_keys:\n${join(
           map(state.sshKeys, keyId => {
             return this.props.userSshKeys[keyId]
               ? `  - ${this.props.userSshKeys[keyId].key}\n`

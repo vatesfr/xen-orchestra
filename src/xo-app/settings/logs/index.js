@@ -33,12 +33,8 @@ const reportBug = log => {
 
   window.open(
     process.env.XOA_PLAN < 5
-      ? `https://xen-orchestra.com/#!/member/support?title=${title}&message=${
-        message
-      }`
-      : `https://github.com/vatesfr/xo-web/issues/new?title=${title}&body=${
-        message
-      }`
+      ? `https://xen-orchestra.com/#!/member/support?title=${title}&message=${message}`
+      : `https://github.com/vatesfr/xo-web/issues/new?title=${title}&body=${message}`
   )
 }
 
