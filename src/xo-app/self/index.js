@@ -1,4 +1,4 @@
-import _, { messages } from 'intl'
+import _ from 'intl'
 import ActionButton from 'action-button'
 import ChartistGraph from 'react-chartist'
 import Collapse from 'collapse'
@@ -22,7 +22,6 @@ import renderXoItem from 'render-xo-item'
 import Upgrade from 'xoa-upgrade'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType, createSelector } from 'selectors'
-import { injectIntl } from 'react-intl'
 import { SizeInput } from 'form'
 
 import {
@@ -135,7 +134,6 @@ const Hosts = propTypes({
     hostsByPool: getHostsByPool,
   }
 })
-@injectIntl
 export class Edit extends Component {
   constructor (props) {
     super(props)
@@ -353,7 +351,6 @@ export class Edit extends Component {
 
   render () {
     const { state } = this
-    const { formatMessage } = this.props.intl
     const { resourceSet } = this.props
 
     return (
@@ -363,10 +360,20 @@ export class Edit extends Component {
             <div className='form-group'>
               <Row>
                 <Col mediumSize={4}>
+                  <strong>{_('resourceSetName')}</strong>
+                </Col>
+                <Col mediumSize={4}>
+                  <strong>{_('resourceSetUsers')}</strong>
+                </Col>
+                <Col mediumSize={4}>
+                  <strong>{_('resourceSetPools')}</strong>
+                </Col>
+              </Row>
+              <Row>
+                <Col mediumSize={4}>
                   <input
                     className='form-control'
                     onChange={this.linkState('name')}
-                    placeholder={formatMessage(messages.resourceSetName)}
                     required
                     type='text'
                     value={state.name}
@@ -393,6 +400,17 @@ export class Edit extends Component {
               </Row>
             </div>
             <div className='form-group'>
+              <Row>
+                <Col mediumSize={4}>
+                  <strong>{_('resourceSetTemplates')}</strong>
+                </Col>
+                <Col mediumSize={4}>
+                  <strong>{_('resourceSetSrs')}</strong>
+                </Col>
+                <Col mediumSize={4}>
+                  <strong>{_('resourceSetNetworks')}</strong>
+                </Col>
+              </Row>
               <Row>
                 <Col mediumSize={4}>
                   <SelectVmTemplate
@@ -432,11 +450,21 @@ export class Edit extends Component {
             <div className='form-group'>
               <Row>
                 <Col mediumSize={4}>
+                  <strong>{_('maxCpus')}</strong>
+                </Col>
+                <Col mediumSize={4}>
+                  <strong>{_('maxRam')}</strong>
+                </Col>
+                <Col mediumSize={4}>
+                  <strong>{_('maxDiskSpace')}</strong>
+                </Col>
+              </Row>
+              <Row>
+                <Col mediumSize={4}>
                   <input
                     className='form-control'
                     min={0}
                     onChange={this.linkState('cpus')}
-                    placeholder={formatMessage(messages.maxCpus)}
                     type='number'
                     value={state.cpus}
                   />
@@ -444,14 +472,12 @@ export class Edit extends Component {
                 <Col mediumSize={4}>
                   <SizeInput
                     onChange={this.linkState('memory')}
-                    placeholder={formatMessage(messages.maxRam)}
                     value={state.memory}
                   />
                 </Col>
                 <Col mediumSize={4}>
                   <SizeInput
                     onChange={this.linkState('disk')}
-                    placeholder={formatMessage(messages.maxDiskSpace)}
                     value={state.disk}
                   />
                 </Col>
