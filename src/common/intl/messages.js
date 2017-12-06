@@ -763,6 +763,7 @@ const messages = {
   vbdReadonly: 'Readonly',
   vbdAction: 'Action',
   vbdCreate: 'Create',
+  vbdAttach: 'Attach',
   vbdNamePlaceHolder: 'Disk name',
   vbdSizePlaceHolder: 'Size',
   cdDriveNotInstalled: 'CD drive not completely installed',
