@@ -1,6 +1,6 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
-import ansiUp from 'ansi_up'
+import AnsiUp from 'ansi_up'
 import Button from 'button'
 import Component from 'base-component'
 import Icon from 'icon'
@@ -19,6 +19,8 @@ import { serverVersion } from 'xo'
 import { assign, includes, isEmpty, map } from 'lodash'
 
 import pkg from '../../../package'
+
+const ansiUp = new AnsiUp()
 
 let updateSource
 const promptForReload = (source, force) => {
