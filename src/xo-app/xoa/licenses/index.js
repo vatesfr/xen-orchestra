@@ -161,6 +161,13 @@ export default class Licenses extends Component {
       return <span className='text-danger'>{_('xosanGetLicensesError')}</span>
     }
 
+    if (
+      this.state.xosanLicenses === undefined &&
+      this.state.xosanTrialLicenses === undefined
+    ) {
+      return <em>{_('statusLoading')}</em>
+    }
+
     return (
       <Container>
         <Row className='mb-1'>

@@ -351,6 +351,7 @@ class Node extends Component {
 // -----------------------------------------------------------------------------
 
 @connectStore(() => ({
+  isAdmin,
   vms: createGetObjectsOfType('VM'),
   hosts: createGetObjectsOfType('host'),
   vbds: createGetObjectsOfType('VBD'),
@@ -362,8 +363,6 @@ class Node extends Component {
     subscriptions[`${infoType}_`] = cb =>
       subscribeVolumeInfo({ sr, infoType }, cb)
   })
-
-  subscriptions.isAdmin = isAdmin
 
   return subscriptions
 })
