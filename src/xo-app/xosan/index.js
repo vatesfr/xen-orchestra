@@ -31,7 +31,7 @@ import {
 } from 'utils'
 import {
   deleteSr,
-  subscribeLicenses,
+  getLicenses,
   subscribePlugins,
   subscribeResourceCatalog,
   subscribeVolumeInfo,
@@ -279,12 +279,18 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
 @addSubscriptions({
   catalog: subscribeResourceCatalog,
   plugins: subscribePlugins,
-  xosanLicenses: cb => subscribeLicenses('xosan', cb),
-  xosanTrialLicenses: cb => subscribeLicenses('xosan.trial', cb),
 })
 export default class Xosan extends Component {
   componentDidMount () {
     this._subscribeVolumeInfo(this.props.xosanSrs)
+    Promise.all([getLicenses('xosan'), getLicenses('xosan.trial')]).then(
+      ([xosanLicenses, xosanTrialLicenses]) => {
+        this.setState({
+          xosanLicenses,
+          xosanTrialLicenses,
+        })
+      }
+    )
   }
 
   componentWillReceiveProps ({ pools, xosanSrs }) {
@@ -313,8 +319,8 @@ export default class Xosan extends Component {
   }
 
   _getLicensesByXosan = createSelector(
-    () => this.props.xosanLicenses,
-    () => this.props.xosanTrialLicenses,
+    () => this.state.xosanLicenses,
+    () => this.state.xosanTrialLicenses,
     (xosanLicenses = [], xosanTrialLicenses = []) => {
       const licensesByXosan = {}
       forEach(flatten([xosanLicenses, xosanTrialLicenses]), license => {
@@ -348,8 +354,8 @@ export default class Xosan extends Component {
 
   _showBetaIsOver = createSelector(
     () => this.props.catalog,
-    () => this.props.xosanLicenses,
-    () => this.props.xosanTrialLicenses,
+    () => this.state.xosanLicenses,
+    () => this.state.xosanTrialLicenses,
     (catalog, xosanLicenses, xosanTrialLicenses) =>
       get(() => catalog._namespaces.xosan) !== undefined &&
       isEmpty(xosanLicenses) &&

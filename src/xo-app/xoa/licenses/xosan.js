@@ -3,9 +3,9 @@ import ActionButton from 'action-button'
 import Component from 'base-component'
 import React from 'react'
 import SortedTable from 'sorted-table'
-import { addSubscriptions, connectStore } from 'utils'
+import { connectStore } from 'utils'
 import { createSelector, createGetObjectsOfType, createFilter } from 'selectors'
-import { subscribeLicenses, unlockXosan } from 'xo'
+import { unlockXosan } from 'xo'
 import { get } from 'xo-defined'
 import { filter, forEach, includes, map } from 'lodash'
 import { injectIntl } from 'react-intl'
@@ -67,14 +67,19 @@ const XOSAN_COLUMNS = [
   },
   {
     name: _('xosanLicense'),
-    itemRenderer: (sr, { availableLicenses, licensesByXosan }) => {
+    itemRenderer: (
+      sr,
+      { availableLicenses, licensesByXosan, updateLicenses }
+    ) => {
       const license = licensesByXosan[sr.id]
       return license !== undefined ? (
         license.id.slice(-4)
       ) : (
         <SelectLicense
           licenses={availableLicenses}
-          onChange={licenseId => unlockXosan(licenseId, sr.id)}
+          onChange={licenseId =>
+            unlockXosan(licenseId, sr.id).then(updateLicenses)
+          }
         />
       )
     },
@@ -93,10 +98,6 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
   xosanSrs: createGetObjectsOfType('SR').filter([
     ({ SR_type }) => SR_type === 'xosan', // eslint-disable-line camelcase
   ]),
-})
-@addSubscriptions({
-  xosanLicenses: cb => subscribeLicenses('xosan', cb),
-  xosanTrialLicenses: cb => subscribeLicenses('xosan.trial', cb),
 })
 export default class Xosan extends Component {
   _getLicensesByXosan = createSelector(
@@ -146,6 +147,7 @@ export default class Xosan extends Component {
           availableLicenses: this._getAvailableLicenses(),
           licensesByXosan: this._getLicensesByXosan(),
           xosanSrs: this.props.xosanSrs,
+          updateLicenses: this.props.updateLicenses,
         }}
       />
     )

@@ -282,52 +282,6 @@ export const subscribeSchedules = createSubscription(() =>
   _call('schedule.getAll')
 )
 
-const licensesSubscriptions = {}
-export const subscribeLicenses = (productId, cb) => {
-  if (!licensesSubscriptions[productId]) {
-    licensesSubscriptions[productId] = createSubscription(() =>
-      getLicenses(productId)
-    )
-  }
-
-  return licensesSubscriptions[productId](cb)
-}
-subscribeLicenses.forceRefresh = productId => {
-  if (productId === undefined) {
-    forEach(licensesSubscriptions, subscription => subscription.forceRefresh())
-    return
-  }
-
-  const subscription = licensesSubscriptions[productId]
-  if (subscription !== undefined) {
-    subscription.forceRefresh()
-  }
-}
-
-const checkLicenseSubscriptions = {}
-export const subscribeCheckLicense = (boundObjectId, cb) => {
-  if (!checkLicenseSubscriptions[boundObjectId]) {
-    checkLicenseSubscriptions[boundObjectId] = createSubscription(() =>
-      _call('xoa.checkLicense', { boundObjectId })
-    )
-  }
-
-  return checkLicenseSubscriptions[boundObjectId](cb)
-}
-subscribeCheckLicense.forceRefresh = boundObjectId => {
-  if (boundObjectId === undefined) {
-    forEach(checkLicenseSubscriptions, subscription =>
-      subscription.forceRefresh()
-    )
-    return
-  }
-
-  const subscription = checkLicenseSubscriptions[boundObjectId]
-  if (subscription !== undefined) {
-    subscription.forceRefresh()
-  }
-}
-
 export const subscribeServers = createSubscription(
   invoke(fpSortBy('host'), sort => () => _call('server.getAll').then(sort))
 )
@@ -2118,8 +2072,8 @@ export const fixHostNotInXosanNetwork = (xosanSr, host) =>
 
 export const getLicenses = productId => _call('xoa.getLicenses', { productId })
 
+export const checkLicense = boundObjectId =>
+  _call('xoa.checkLicense', { boundObjectId })
+
 export const unlockXosan = (licenseId, srId) =>
-  _call('xosan.unlock', { licenseId, srId })::tap(() => {
-    subscribeLicenses.forceRefresh('xosan')
-    subscribeCheckLicense.forceRefresh(srId)
-  })
+  _call('xosan.unlock', { licenseId, srId })

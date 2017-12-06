@@ -17,12 +17,12 @@ import { createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
 import { addSubscriptions, connectStore, formatSize } from 'utils'
 import {
   addXosanBricks,
+  checkLicense,
   fixHostNotInXosanNetwork,
   // TODO: uncomment when implementing subvolume deletion
   // removeXosanBricks,
   replaceXosanBrick,
   startVm,
-  subscribeCheckLicense,
   subscribeVolumeInfo,
 } from 'xo'
 
@@ -363,12 +363,21 @@ class Node extends Component {
       subscribeVolumeInfo({ sr, infoType }, cb)
   })
 
-  subscriptions.license = cb => subscribeCheckLicense(sr.id, cb)
   subscriptions.isAdmin = isAdmin
 
   return subscriptions
 })
 export default class TabXosan extends Component {
+  componentDidMount () {
+    checkLicense(this.props.sr.id)
+      .then(license => {
+        this.setState({ license })
+      })
+      .catch(error => {
+        this.setState({ licenseError: error })
+      })
+  }
+
   _addSubvolume = async () => {
     const { srs, brickSize } = await confirm({
       icon: 'add',
@@ -586,7 +595,7 @@ export default class TabXosan extends Component {
   )
 
   render () {
-    const { showAdvanced } = this.state
+    const { license, licenseError, showAdvanced } = this.state
     const {
       heal_,
       info_,
@@ -595,9 +604,12 @@ export default class TabXosan extends Component {
       statusDetail_,
       vbds,
       vdis,
-      license,
       isAdmin,
     } = this.props
+
+    if (licenseError !== undefined) {
+      return <span className='text-danger'>{_('xosanCheckLicenseError')}</span>
+    }
 
     const xosanConfig = this._getConfig()
     if (license === undefined || xosanConfig === undefined) {

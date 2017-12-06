@@ -9,7 +9,7 @@ import { Container, Row, Col } from 'grid'
 import { createSelector, createGetObjectsOfType } from 'selectors'
 import { forEach } from 'lodash'
 import { addSubscriptions, connectStore, Time } from 'utils'
-import { subscribeLicenses, subscribePlugins } from 'xo'
+import { subscribePlugins, getLicenses } from 'xo'
 import { get } from 'xo-defined'
 
 import Xosan from './xosan'
@@ -93,12 +93,30 @@ const getBoundXosanRenderer = (boundObjectId, xosanSrs) => {
   xoaRegistration: state => state.xoaRegisterState,
 })
 @addSubscriptions(() => ({
-  xosanLicenses: cb => subscribeLicenses('xosan', cb),
   plugins: subscribePlugins,
 }))
 export default class Licenses extends Component {
+  constructor () {
+    super()
+
+    this.componentDidMount = this._updateLicenses
+  }
+
+  _updateLicenses = () =>
+    Promise.all([getLicenses('xosan'), getLicenses('xosan.trial')])
+      .then(([xosanLicenses, xosanTrialLicenses]) => {
+        this.setState({
+          xosanLicenses,
+          xosanTrialLicenses,
+          licenseError: undefined,
+        })
+      })
+      .catch(error => {
+        this.setState({ licenseError: error })
+      })
+
   _getProducts = createSelector(
-    () => this.props.xosanLicenses,
+    () => this.state.xosanLicenses,
     () => this.props.xosanSrs,
     (xosanLicenses, xosanSrs) => {
       const products = []
@@ -139,6 +157,10 @@ export default class Licenses extends Component {
       )
     }
 
+    if (this.state.licenseError !== undefined) {
+      return <span className='text-danger'>{_('xosanGetLicensesError')}</span>
+    }
+
     return (
       <Container>
         <Row className='mb-1'>
@@ -149,6 +171,14 @@ export default class Licenses extends Component {
               handler={openNewLicense}
             >
               {_('newLicense')}
+            </ActionButton>
+            <ActionButton
+              btnStyle='primary'
+              className='ml-1'
+              icon='refresh'
+              handler={this._updateLicenses}
+            >
+              {_('refreshLicenses')}
             </ActionButton>
           </Col>
         </Row>
@@ -167,7 +197,10 @@ export default class Licenses extends Component {
         <Row>
           <Col>
             <h2>XOSAN</h2>
-            <Xosan />
+            <Xosan
+              xosanTrialLicenses={this.state.xosanTrialLicenses}
+              updateLicenses={this._updateLicenses}
+            />
           </Col>
         </Row>
       </Container>

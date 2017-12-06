@@ -1668,10 +1668,13 @@ const messages = {
   licenseBoundUnknownXosan: 'License attached to an unknown XOSAN',
   licensesManage: 'Manage the licenses',
   newLicense: 'New license',
+  refreshLicenses: 'Refresh',
   xosanAdminNoLicenseDisclaimer:
     'You need a license on this SR to manage the XOSAN.',
   xosanAdminExpiredLicenseDisclaimer:
     'Your XOSAN license has expired. You can still use the SR but cannot administrate it anymore.',
+  xosanCheckLicenseError: 'Could not check the license on this XOSAN SR',
+  xosanGetLicensesError: 'Could not fetch the licenses',
   xosanLicenseHasExpired: 'License has expired.',
   xosanLicenseExpiresDate: 'License expires on {date}.',
   xosanUpdateLicenseMessage: 'Update the license now!',
