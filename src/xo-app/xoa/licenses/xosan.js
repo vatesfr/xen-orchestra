@@ -72,6 +72,16 @@ const XOSAN_COLUMNS = [
       { availableLicenses, licensesByXosan, updateLicenses }
     ) => {
       const license = licensesByXosan[sr.id]
+
+      if (license === null) {
+        return (
+          <span className='text-danger'>
+            {_('xosanMultipleLicenses')}{' '}
+            <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
+          </span>
+        )
+      }
+
       return license !== undefined ? (
         license.id.slice(-4)
       ) : (
@@ -109,10 +119,10 @@ export default class Xosan extends Component {
         if ((xosanId = license.boundObjectId) === undefined) {
           return
         }
-        // TODO: show that something is wrong if an SR is bound to multiple licenses
-        if (licensesByXosan[xosanId] === undefined) {
-          licensesByXosan[xosanId] = license
-        }
+        licensesByXosan[xosanId] =
+          licensesByXosan[xosanId] !== undefined
+            ? null // XOSAN bound to multiple licenses!
+            : license
       })
 
       return licensesByXosan

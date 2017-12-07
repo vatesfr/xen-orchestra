@@ -1558,6 +1558,7 @@ const messages = {
   xosanSize: 'Size',
   xosanUsedSpace: 'Used space',
   xosanLicense: 'License',
+  xosanMultipleLicenses: 'This XOSAN has more than 1 license!',
   xosanNeedPack: 'XOSAN pack needs to be installed on each host of the pool.',
   xosanInstallIt: 'Install it now!',
   xosanNeedRestart:
