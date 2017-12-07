@@ -1,10 +1,10 @@
 import _ from 'intl'
-import ActionButton from 'action-button'
+import ButtonLink from 'button-link'
+import Icon from 'icon'
 import React, { Component } from 'react'
 import ReactNotify from 'react-notify'
 import { connectStore } from 'utils'
 import { isAdmin } from 'selectors'
-import { noop } from 'lodash'
 
 let instance
 
@@ -46,16 +46,14 @@ export class Notification extends Component {
               this.props.isAdmin ? (
                 <div>
                   <div>{body}</div>
-                  <ActionButton
+                  <ButtonLink
                     btnStyle='danger'
                     className='mt-1'
-                    handler={noop}
-                    icon='logs'
-                    redirectOnSuccess='/settings/logs'
                     size='small'
+                    to='/settings/logs'
                   >
-                    {_('showLogs')}
-                  </ActionButton>
+                    <Icon icon='logs' /> {_('showLogs')}
+                  </ButtonLink>
                 </div>
               ) : (
                 body
