@@ -2,7 +2,7 @@ import React from 'react'
 import { routerShape } from 'react-router/lib/PropTypes'
 
 import Button from './button'
-import propTypes from './prop-types'
+import propTypes from './prop-types-decorator'
 
 const ButtonLink = ({ to, ...props }, { router }) => {
   props.onClick = () => {
