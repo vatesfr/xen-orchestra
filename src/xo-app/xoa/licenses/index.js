@@ -18,12 +18,8 @@ const openNewLicense = () => {
   window.open('https://xen-orchestra.com/#!/member/purchaser')
 }
 
-const openSupport = productId => {
-  window.open(
-    `https://xen-orchestra.com/#!/xosan-home/?productId=${encodeURIComponent(
-      productId
-    )}`
-  )
+const openSupport = () => {
+  window.open('https://xen-orchestra.com/#!/xosan-home/')
 }
 
 const PRODUCTS_COLUMNS = [
@@ -62,14 +58,6 @@ const PRODUCTS_COLUMNS = [
       expires !== undefined ? <Time timestamp={expires} /> : '-',
     sortCriteria: 'expires',
     sortOrder: 'desc',
-  },
-]
-
-const PRODUCTS_INDIVIDUAL_ACTIONS = [
-  {
-    handler: openSupport,
-    icon: 'support',
-    label: _('productSupport'),
   },
 ]
 
@@ -187,6 +175,9 @@ export default class Licenses extends Component {
             >
               {_('refreshLicenses')}
             </ActionButton>
+            <ActionButton className='ml-1' handler={openSupport} icon='bug'>
+              {_('productSupport')}
+            </ActionButton>
           </Col>
         </Row>
         <Row>
@@ -194,7 +185,6 @@ export default class Licenses extends Component {
             <SortedTable
               collection={this._getProducts()}
               columns={PRODUCTS_COLUMNS}
-              individualActions={PRODUCTS_INDIVIDUAL_ACTIONS}
               userData={{
                 registeredEmail: this.props.xoaRegistration.email,
               }}
