@@ -246,21 +246,18 @@ class XoWeekChart extends Component {
       .select(this.refs.chart)
       .append('svg')
       .attr('transform', `translate(${HORIZON_AREA_MARGIN}, 0)`))
-
     ;svg
       .append('g')
       .attr('class', 'x-axis')
       ::setStyles(X_AXIS_STYLE)
 
     svg.append('g').attr('class', 'horizon-area')
-
     ;svg
       .append('text')
       .attr('class', 'label')
       ::setStyles(LABEL_STYLE)
 
     // Tooltip ---------------------------------------------
-
     ;svg
       .append('rect')
       .attr('class', 'mouse-area')
@@ -271,13 +268,11 @@ class XoWeekChart extends Component {
       .append('g')
       .attr('class', 'hover-container')
       ::setStyles('pointer-events', 'none')
-
     ;hover
       .append('line')
       .attr('class', 'hover-line')
       .attr('y1', 0)
       ::setStyles(HOVER_LINE_STYLE)
-
     ;hover
       .append('text')
       .attr('class', 'hover-text')

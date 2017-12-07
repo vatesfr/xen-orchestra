@@ -105,7 +105,7 @@
     "moment": "^2.19.2",
     "moment-timezone": "^0.5.14",
     "notifyjs": "^3.0.0",
-    "prettier": "^1.8.2",
+    "prettier": "^1.9.1",
     "promise-toolbox": "^0.9.5",
     "random-password": "^0.1.2",
     "react": "^15.4.1",
@@ -161,7 +161,7 @@
     "lint-staged-unstash": "git stash pop && rm -f .lint-staged && true",
     "posttest": "eslint --ignore-path .gitignore src/",
     "precommit": "lint-staged",
-    "prepublish": "npm run build",
+    "prepublishOnly": "npm run build",
     "test": "jest"
   },
   "browserify": {

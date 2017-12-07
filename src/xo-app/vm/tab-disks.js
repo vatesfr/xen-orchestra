@@ -282,12 +282,12 @@ class AttachDisk extends Component {
             </div>
             <span className='pull-right'>
               <ActionButton
-                icon='add'
+                icon='connect'
                 form='attachDiskForm'
                 btnStyle='primary'
                 handler={this._addVdi}
               >
-                {_('vbdCreate')}
+                {_('vbdAttach')}
               </ActionButton>
             </span>
           </fieldset>

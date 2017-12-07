@@ -2,9 +2,9 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Button from 'button'
 import find from 'lodash/find'
-import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
+import SortedTable from 'sorted-table'
 import Upgrade from 'xoa-upgrade'
 import React, { Component } from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
@@ -14,14 +14,59 @@ import { SelectPlainObject, Toggle } from 'form'
 import {
   createSchedule,
   deleteSchedule,
+  deleteSchedules,
   subscribeJobs,
   subscribeSchedules,
   editSchedule,
 } from 'xo'
 
 const JOB_KEY = 'genericTask'
-
 const DEFAULT_CRON_PATTERN = '0 0 * * *'
+const COLUMNS = [
+  {
+    itemRenderer: schedule => (
+      <span>
+        {schedule.name}{' '}
+        <span className='text-muted'>({schedule.id.slice(4, 8)})</span>
+      </span>
+    ),
+    name: _('jobName'),
+    sortCriteria: 'name',
+    default: true,
+  },
+  {
+    itemRenderer: (schedule, userData) => {
+      const job = userData.jobs[schedule.job]
+      if (job !== undefined) {
+        return (
+          <span>
+            {job.name} - {job.method}{' '}
+            <span className='text-muted'>({schedule.job.slice(4, 8)})</span>
+          </span>
+        )
+      }
+    },
+    name: _('job'),
+    sortCriteria: (schedule, userData) => userData.jobs[schedule.job].name,
+  },
+  {
+    itemRenderer: schedule => schedule.cron,
+    name: _('jobScheduling'),
+  },
+  {
+    itemRenderer: schedule => schedule.timezone || _('jobServerTimezone'),
+    name: _('jobTimezone'),
+    sortCriteria: 'timezone',
+  },
+]
+const GROUPED_ACTIONS = [
+  {
+    handler: deleteSchedules,
+    icon: 'delete',
+    label: _('deleteSelectedSchedules'),
+    level: 'danger',
+  },
+]
 
 @injectIntl
 export default class Schedules extends Component {
@@ -71,8 +116,8 @@ export default class Schedules extends Component {
         if (scheduleJob && scheduleJob.key === JOB_KEY) {
           s[id] = schedule
         }
-        this.setState({ schedules: s }, this._resolveLoaded)
       }
+      this.setState({ schedules: s }, this._resolveLoaded)
     })
 
     this.componentWillUnmount = () => {
@@ -144,11 +189,27 @@ export default class Schedules extends Component {
     this.setState(value)
   }
 
+  individualActions = [
+    {
+      handler: job => this._edit(job.id),
+      icon: 'edit',
+      label: _('scheduleEdit'),
+      level: 'primary',
+    },
+    {
+      handler: deleteSchedule,
+      icon: 'delete',
+      label: _('scheduleDelete'),
+      level: 'danger',
+    },
+  ]
+
   render () {
     const { cronPattern, jobs, schedule, schedules, timezone } = this.state
+    const userData = { jobs }
     return (
       <div>
-        <h1>{_('jobSchedules')}</h1>
+        <h2>{_('newSchedule')}</h2>
         <form id='newScheduleForm'>
           <div className='form-group'>
             <input
@@ -214,66 +275,18 @@ export default class Schedules extends Component {
             </span>
           )}
         </div>
-        <table className='table'>
-          <thead>
-            <tr>
-              <th>{_('jobName')}</th>
-              <th>{_('job')}</th>
-              <th className='hidden-xs-down'>{_('jobScheduling')}</th>
-              <th className='hidden-xs-down'>{_('jobTimezone')}</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {isEmpty(schedules) && (
-              <tr>
-                <td>
-                  <em>{_('noSchedules')}</em>
-                </td>
-              </tr>
-            )}
-            {map(schedules, schedule => (
-              <tr key={schedule.id}>
-                <td>
-                  <span>
-                    {schedule.name}{' '}
-                    <span className='text-muted'>
-                      ({schedule.id.slice(4, 8)})
-                    </span>
-                  </span>
-                </td>
-                <td>
-                  {jobs[schedule.job] && (
-                    <span>
-                      {jobs[schedule.job].name} - {jobs[schedule.job].method}{' '}
-                      <span className='text-muted'>
-                        ({schedule.job.slice(4, 8)})
-                      </span>
-                    </span>
-                  )}
-                </td>
-                <td className='hidden-xs-down'>{schedule.cron}</td>
-                <td className='hidden-xs-down'>
-                  {schedule.timezone || _('jobServerTimezone')}
-                </td>
-                <td>
-                  <Button
-                    btnStyle='primary'
-                    onClick={() => this._edit(schedule.id)}
-                  >
-                    <Icon icon='edit' />
-                  </Button>{' '}
-                  <Button
-                    btnStyle='danger'
-                    onClick={() => deleteSchedule(schedule)}
-                  >
-                    <Icon icon='delete' />
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {schedules !== undefined && (
+          <div>
+            <h2>{_('jobSchedules')}</h2>
+            <SortedTable
+              collection={schedules}
+              columns={COLUMNS}
+              groupedActions={GROUPED_ACTIONS}
+              individualActions={this.individualActions}
+              userData={userData}
+            />
+          </div>
+        )}
       </div>
     )
   }

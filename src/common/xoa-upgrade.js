@@ -26,9 +26,7 @@ const Upgrade = propTypes({
             <p>{_('availableIn', { plan: getXoaPlan(required) })}</p>
             <p>
               <a
-                href={`https://xen-orchestra.com/#!/pricing?pk_campaign=xoa_${getXoaPlan()}_upgrade&pk_kwd=${
-                  place
-                }`}
+                href={`https://xen-orchestra.com/#!/pricing?pk_campaign=xoa_${getXoaPlan()}_upgrade&pk_kwd=${place}`}
                 className='btn btn-primary btn-lg'
               >
                 <Icon icon='plan-upgrade' /> {_('upgradeNow')}

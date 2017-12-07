@@ -193,7 +193,7 @@ const actionsShape = propTypes.arrayOf(
     handler: propTypes.func.isRequired,
     icon: propTypes.string.isRequired,
     label: propTypes.node.isRequired,
-    level: propTypes.oneOf(['warning', 'danger']),
+    level: propTypes.oneOf(['primary', 'warning', 'danger']),
   })
 )
 
