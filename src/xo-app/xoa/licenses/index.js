@@ -175,9 +175,6 @@ export default class Licenses extends Component {
             >
               {_('refreshLicenses')}
             </ActionButton>
-            <ActionButton className='ml-1' handler={openSupport} icon='bug'>
-              {_('productSupport')}
-            </ActionButton>
           </Col>
         </Row>
         <Row>
@@ -193,7 +190,12 @@ export default class Licenses extends Component {
         </Row>
         <Row>
           <Col>
-            <h2>XOSAN</h2>
+            <h2>
+              XOSAN
+              <ActionButton className='ml-1' handler={openSupport} icon='bug'>
+                {_('productSupport')}
+              </ActionButton>
+            </h2>
             <Xosan
               xosanTrialLicenses={this.state.xosanTrialLicenses}
               updateLicenses={this._updateLicenses}

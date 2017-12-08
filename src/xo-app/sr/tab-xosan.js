@@ -606,19 +606,30 @@ export default class TabXosan extends Component {
       isAdmin,
     } = this.props
 
-    if (licenseError !== undefined) {
-      return <span className='text-danger'>{_('xosanCheckLicenseError')}</span>
-    }
-
     const xosanConfig = this._getConfig()
-    if (license === undefined || xosanConfig === undefined) {
+    if (
+      (license === undefined && licenseError === undefined) ||
+      xosanConfig === undefined
+    ) {
       return <em>{_('statusLoading')}</em>
     }
 
-    if (license.productId !== 'xosan' && license.productId !== 'xosan.trial') {
+    if (
+      licenseError !== undefined &&
+      licenseError.message !== 'No license found'
+    ) {
+      return <span className='text-danger'>{_('xosanCheckLicenseError')}</span>
+    }
+
+    if (
+      licenseError !== undefined ||
+      (license !== undefined &&
+        license.productId !== 'xosan' &&
+        license.productId !== 'xosan.trial')
+    ) {
       return (
         <span className='text-danger'>
-          {_('xosanAdminNoLicenseDisclaimer')}
+          {_('xosanAdminNoLicenseDisclaimer')}{' '}
           {isAdmin && <Link to='/xoa/licenses'>{_('licensesManage')}</Link>}
         </span>
       )
