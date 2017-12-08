@@ -350,6 +350,14 @@ export default class SortedTable extends Component {
 
     state.selectedItemsIds = new Set()
 
+    this._getSelectedItems = createSelector(
+      () => this.state.all,
+      () => this.state.selectedItemsIds,
+      this._getItems,
+      (all, selectedItemsIds, items) =>
+        all ? items : filter(items, item => selectedItemsIds.has(item.id))
+    )
+
     this._hasGroupedActions = createSelector(
       () => this.props.groupedActions,
       actions => !isEmpty(actions)
@@ -594,13 +602,6 @@ export default class SortedTable extends Component {
     const { target } = event
     this._selectItem(+target.name, target.checked, event.nativeEvent.shiftKey)
   }
-  _getSelectedItems = createSelector(
-    () => this.state.all,
-    () => this.state.selectedItemsIds,
-    () => this._getItems(),
-    (all, selectedItemsIds, items) =>
-      all ? items : filter(items, item => selectedItemsIds.has(item.id))
-  )
 
   _renderItem = (item, i) => {
     const { props, state } = this
