@@ -172,6 +172,7 @@ const GROUPED_ACTIONS = [
     handler: deleteRemotes,
     icon: 'delete',
     label: _('remoteDeleteSelected'),
+    level: 'danger',
   },
 ]
 

@@ -1619,12 +1619,14 @@ export const deleteRemotes = remotes =>
   confirm({
     title: _('deleteRemotesModalTitle', { nRemotes: remotes.length }),
     body: <p>{_('deleteRemotesModalMessage', { nRemotes: remotes.length })}</p>,
-  }).then(() =>
-    map(remotes, remote =>
-      _call('remote.delete', { id: resolveId(remote) })::tap(
-        subscribeRemotes.forceRefresh
-      )
-    )
+  }).then(
+    () =>
+      map(remotes, remote =>
+        _call('remote.delete', { id: resolveId(remote) })::tap(
+          subscribeRemotes.forceRefresh
+        )
+      ),
+    noop
   )
 
 export const enableRemote = remote =>
