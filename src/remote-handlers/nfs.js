@@ -1,10 +1,8 @@
 import execa from 'execa'
 import fs from 'fs-extra'
+import { forEach } from 'lodash'
 
 import LocalHandler from './local'
-import {
-  forEach
-} from '../utils'
 
 export default class NfsHandler extends LocalHandler {
   get type () {

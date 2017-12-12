@@ -1,10 +1,7 @@
 import eventToPromise from 'event-to-promise'
 import through2 from 'through2'
 import { ignoreErrors } from 'promise-toolbox'
-
-import {
-  parse
-} from 'xo-remote-parser'
+import { parse } from 'xo-remote-parser'
 
 import {
   addChecksumToReadStream,
