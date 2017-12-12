@@ -127,6 +127,7 @@ export default class Select extends Component {
   render () {
     return (
       <ReactSelect
+        closeOnSelect={!this.props.multi}
         {...this.props}
         backspaceToRemoveMessage=''
         menuRenderer={this._renderMenu}
