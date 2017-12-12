@@ -3,7 +3,7 @@ import humanFormat from 'human-format'
 import React from 'react'
 import ReadableStream from 'readable-stream'
 import { connect } from 'react-redux'
-import { FormattedTime } from 'react-intl'
+import { FormattedDate } from 'react-intl'
 import {
   clone,
   escapeRegExp,
@@ -587,6 +587,6 @@ export const createFakeProgress = (() => {
   }
 })()
 
-export const Time = ({ timestamp }) => (
-  <FormattedTime value={timestamp} month='long' year='numeric' />
+export const ShortDate = ({ timestamp }) => (
+  <FormattedDate value={timestamp} month='short' day='numeric' year='numeric' />
 )

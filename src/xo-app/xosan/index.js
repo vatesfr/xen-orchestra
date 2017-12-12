@@ -27,7 +27,7 @@ import {
   cowSet,
   formatSize,
   isXosanPack,
-  Time,
+  ShortDate,
 } from 'utils'
 import {
   deleteSr,
@@ -143,6 +143,8 @@ const XOSAN_COLUMNS = [
       }
 
       const license = licensesByXosan[sr.id]
+
+      // XOSAN not bound to any license, not even trial
       if (license === undefined) {
         return (
           <span className='text-danger'>
@@ -151,6 +153,17 @@ const XOSAN_COLUMNS = [
           </span>
         )
       }
+
+      // XOSAN bound to multiple licenses
+      if (license === null) {
+        return (
+          <span className='text-danger'>
+            {_('xosanMultipleLicenses')}{' '}
+            <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
+          </span>
+        )
+      }
+
       const now = Date.now()
       const expiresSoon = license.expires - now < EXPIRES_SOON_DELAY
       const expired = license.expires < now
@@ -168,7 +181,7 @@ const XOSAN_COLUMNS = [
           ) : (
             <span className={expiresSoon && 'text-danger'}>
               {_('xosanLicenseExpiresDate', {
-                date: <Time timestamp={license.expires} />,
+                date: <ShortDate timestamp={license.expires} />,
               })}{' '}
               {expiresSoon &&
                 isAdmin && (
@@ -330,14 +343,14 @@ export default class Xosan extends Component {
     (xosanLicenses = [], xosanTrialLicenses = []) => {
       const licensesByXosan = {}
       forEach(flatten([xosanLicenses, xosanTrialLicenses]), license => {
-        let xosan
-        if ((xosan = license.boundObjectId) === undefined) {
+        let xosanId
+        if ((xosanId = license.boundObjectId) === undefined) {
           return
         }
-        // FIXME: we should probably show that something is wrong if a XOSAN is bound to multiple licenses
-        if (licensesByXosan[xosan] === undefined) {
-          licensesByXosan[xosan] = license
-        }
+        licensesByXosan[xosanId] =
+          licensesByXosan[xosanId] !== undefined
+            ? null // XOSAN bound to multiple licenses!
+            : license
       })
 
       return licensesByXosan

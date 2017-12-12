@@ -8,7 +8,7 @@ import SortedTable from 'sorted-table'
 import { Container, Row, Col } from 'grid'
 import { createSelector, createGetObjectsOfType } from 'selectors'
 import { forEach } from 'lodash'
-import { addSubscriptions, connectStore, Time } from 'utils'
+import { addSubscriptions, connectStore, ShortDate } from 'utils'
 import { subscribePlugins, getLicenses } from 'xo'
 import { get } from 'xo-defined'
 
@@ -55,7 +55,7 @@ const PRODUCTS_COLUMNS = [
   {
     name: _('licenseExpires'),
     itemRenderer: ({ expires }) =>
-      expires !== undefined ? <Time timestamp={expires} /> : '-',
+      expires !== undefined ? <ShortDate timestamp={expires} /> : '-',
     sortCriteria: 'expires',
     sortOrder: 'desc',
   },
