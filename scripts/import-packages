@@ -1,5 +1,11 @@
 #!/bin/sh
 
+if [ $# -eq 0 ]
+then
+  echo "$0 <repository url>..."
+  exit
+fi
+
 # Import repositories into this mono-repo.
 #
 # For each repository:
@@ -7,11 +13,12 @@
 # 1. rewrite history, moving all files into packages/<repository>
 # 2. rename all tags: <tag> → <repository>-<tag>
 # 3. merge with master
-for pkg
+for url
 do
+  pkg=$(basename "$url" .git)
   [ -d "packages/$pkg" ] || { {
     [ -f ".git/refs/remotes/$pkg/master" ] || \
-    git remote add "$pkg" "https://github.com/vatesfr/$pkg"
+    git remote add "$pkg" "$url"
   } && {
     git fetch --no-tags "$pkg" master refs/tags/*:refs/tags/"$pkg"-* && \
       git filter-branch -f --index-filter '
