@@ -1209,7 +1209,10 @@ export const deleteVifs = vifs =>
   confirm({
     title: _('deleteVifsModalTitle', { nVifs: vifs.length }),
     body: _('deleteVifsModalMessage', { nVifs: vifs.length }),
-  }).then(() => map(vifs, vif => _call('vif.delete', { id: resolveId(vif) })))
+  }).then(
+    () => map(vifs, vif => _call('vif.delete', { id: resolveId(vif) })),
+    noop
+  )
 
 export const setVif = (
   vif,
