@@ -36,6 +36,7 @@ require('exec-promise')(() =>
       'commitizen',
       'cz-conventional-changelog',
       'dependency-check',
+      'eslint',
       'ghooks',
       'husky',
       'jest',

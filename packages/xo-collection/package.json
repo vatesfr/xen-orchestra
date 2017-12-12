@@ -37,7 +37,6 @@
     "babel-preset-env": "^1.5.2",
     "babel-preset-stage-3": "^6.24.1",
     "cross-env": "^5.0.1",
-    "eslint": "^4.12.1",
     "event-to-promise": "^0.8.0",
     "lint-staged": "^6.0.0",
     "rimraf": "^2.6.1"
