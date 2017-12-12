@@ -197,6 +197,7 @@ export default class Licenses extends Component {
               </ActionButton>
             </h2>
             <Xosan
+              xosanLicenses={this.state.xosanLicenses}
               xosanTrialLicenses={this.state.xosanTrialLicenses}
               updateLicenses={this._updateLicenses}
             />
