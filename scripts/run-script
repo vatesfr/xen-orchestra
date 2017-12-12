@@ -20,10 +20,10 @@ require('exec-promise')(([ script ]) =>
     const spawnOpts = {
       cwd: dir,
       env: Object.assign({}, env, {
-        PATH: `${dir}/node_modules/.bin${delimiter}${env.PATH}`
+        PATH: `${dir}/node_modules/.bin${delimiter}${env.PATH}`,
       }),
       shell: true,
-      stdio: 'inherit'
+      stdio: 'inherit',
     }
     return forEach.call(
       [ `pre${script}`, script, `post${script}` ],

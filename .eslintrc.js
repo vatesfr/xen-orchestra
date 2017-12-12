@@ -10,6 +10,6 @@ module.exports = {
     'node/no-extraneous-require': 'error',
     'node/no-missing-import': 'error',
     'node/no-missing-require': 'error',
-    'prefer-const': 'error'
-  }
+    'prefer-const': 'error',
+  },
 }

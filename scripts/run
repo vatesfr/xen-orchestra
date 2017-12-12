@@ -10,7 +10,7 @@ require('exec-promise')(([ command, ...args ]) =>
     console.log('*', name)
     return fromEvent(spawn(command, args, {
       cwd: dir,
-      stdio: 'inherit'
+      stdio: 'inherit',
     }), 'exit').then(code => {
       if (code !== 0) {
         throw code
