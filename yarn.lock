@@ -4520,6 +4520,10 @@ liftoff@^2.3.0:
     rechoir "^0.6.2"
     resolve "^1.1.7"
 
+limit-concurrency-decorator@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/limit-concurrency-decorator/-/limit-concurrency-decorator-0.2.0.tgz#5ed8b8f830d36e22cbe0bcaf281b62498aec3e73"
+
 load-json-file@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/load-json-file/-/load-json-file-1.1.0.tgz#956905708d58b4bab4c2261b04f59f31c99374c0"

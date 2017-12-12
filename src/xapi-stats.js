@@ -1,5 +1,6 @@
 import endsWith from 'lodash/endsWith'
 import JSON5 from 'json5'
+import limitConcurrency from 'limit-concurrency-decorator'
 import { BaseError } from 'make-error'
 
 import { parseDateTime } from './xapi'
@@ -382,6 +383,7 @@ export default class XapiStats {
 
   // Execute one http request on a XenServer for get stats
   // Return stats (Json format) or throws got exception
+  @limitConcurrency(3)
   _getJson (xapi, host, timestamp) {
     return xapi.getResource('/rrd_updates', {
       host,
