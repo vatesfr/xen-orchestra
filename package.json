@@ -40,10 +40,11 @@
     "dev-test": "jest --bail --watch",
     "lint-staged-stash": "touch .lint-staged && git stash save --include-untracked --keep-index && true",
     "lint-staged-unstash": "git stash pop && rm -f .lint-staged && true",
+    "posttest": "scripts/run-script test",
     "precommit": "lint-staged",
     "prepare": "scripts/run-script prepare",
-    "pretest": "eslint --ignore-path .gitignore . && jest",
-    "test": "scripts/run-script test"
+    "pretest": "eslint --ignore-path .gitignore .",
+    "test": "jest"
   },
   "workspaces": [
     "packages/*"
