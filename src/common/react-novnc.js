@@ -1,16 +1,13 @@
 import React, { Component } from 'react'
 import RFB from '@nraynaud/novnc/lib/rfb'
+import URL from 'url-parse'
 import { createBackoff } from 'jsonrpc-websocket-client'
-import { parse as parseUrl, resolve as resolveUrl } from 'url'
 import {
   enable as enableShortcuts,
   disable as disableShortcuts,
 } from 'shortcuts'
 
 import propTypes from './prop-types-decorator'
-
-const parseRelativeUrl = url =>
-  parseUrl(resolveUrl(String(window.location), url))
 
 const PROTOCOL_ALIASES = {
   'http:': 'ws:',
@@ -85,7 +82,7 @@ export default class NoVnc extends Component {
       return
     }
 
-    const url = parseRelativeUrl(this.props.url)
+    const url = new URL(this.props.url)
     fixProtocol(url)
 
     const isSecure = url.protocol === 'wss:'
@@ -105,7 +102,7 @@ export default class NoVnc extends Component {
     // remove leading slashes from the path
     //
     // a leading slassh will be added by noVNC
-    const clippedPath = url.path.replace(/^\/+/, '')
+    const clippedPath = url.pathname.replace(/^\/+/, '')
 
     // a port is required
     //

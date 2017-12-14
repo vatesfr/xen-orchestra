@@ -12,11 +12,11 @@ import fpSortBy from 'lodash/fp/sortBy'
 import size from 'lodash/size'
 import sortBy from 'lodash/sortBy'
 import throttle from 'lodash/throttle'
+import URL from 'url-parse'
 import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
 import { lastly, reflect, tap } from 'promise-toolbox'
 import { forbiddenOperation, noHostsAvailable } from 'xo-common/api-errors'
-import { resolve } from 'url'
 
 import _ from '../intl'
 import invoke from '../invoke'
@@ -151,7 +151,7 @@ export const connectStore = store => {
 
 export const resolveUrl = invoke(
   xo._url, // FIXME: accessing private prop
-  baseUrl => to => resolve(baseUrl, to)
+  baseUrl => to => new URL(to, baseUrl).toString()
 )
 
 // -------------------------------------------------------------------
