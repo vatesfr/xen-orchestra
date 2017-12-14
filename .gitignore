@@ -1,4 +1,4 @@
-/.nyc_output/
+/coverage/
 /dist/
 /node_modules/
 /src/api/index.js
@@ -7,5 +7,8 @@
 
 npm-debug.log
 npm-debug.log.*
+pnpm-debug.log
+pnpm-debug.log.*
+yarn-error.log
 
 .xo-server.*
