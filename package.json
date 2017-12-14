@@ -139,13 +139,13 @@
   },
   "scripts": {
     "build": "gulp build --production",
-    "commitmsg": "npm test",
+    "commitmsg": "yarn run test",
     "dev": "gulp build",
     "dev-test": "jest --bail --watch",
     "posttest": "standard",
     "prebuild": "index-modules src/api src/xapi/mixins src/xo-mixins",
-    "predev": "npm run prebuild",
-    "prepublishOnly": "npm run build",
+    "predev": "yarn run prebuild",
+    "prepublishOnly": "yarn run build",
     "start": "node bin/xo-server",
     "test": "jest"
   },
