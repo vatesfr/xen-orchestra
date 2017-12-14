@@ -1205,6 +1205,15 @@ export const disconnectVif = vif =>
 
 export const deleteVif = vif => _call('vif.delete', { id: resolveId(vif) })
 
+export const deleteVifs = vifs =>
+  confirm({
+    title: _('deleteVifsModalTitle', { nVifs: vifs.length }),
+    body: _('deleteVifsModalMessage', { nVifs: vifs.length }),
+  }).then(
+    () => map(vifs, vif => _call('vif.delete', { id: resolveId(vif) })),
+    noop
+  )
+
 export const setVif = (
   vif,
   { network, mac, allowedIpv4Addresses, allowedIpv6Addresses }
