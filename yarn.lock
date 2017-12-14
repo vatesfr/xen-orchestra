@@ -196,6 +196,30 @@
     "@babel/helper-remap-async-to-generator" "7.0.0-beta.40"
     "@babel/plugin-syntax-async-generators" "7.0.0-beta.40"
 
+"@babel/plugin-proposal-decorators@7.0.0-beta.40":
+  version "7.0.0-beta.40"
+  resolved "https://registry.yarnpkg.com/@babel/plugin-proposal-decorators/-/plugin-proposal-decorators-7.0.0-beta.40.tgz#d2c033bfa55719ddea681c241c9609b346c7cd9c"
+  dependencies:
+    "@babel/plugin-syntax-decorators" "7.0.0-beta.40"
+
+"@babel/plugin-proposal-export-default-from@7.0.0-beta.40":
+  version "7.0.0-beta.40"
+  resolved "https://registry.yarnpkg.com/@babel/plugin-proposal-export-default-from/-/plugin-proposal-export-default-from-7.0.0-beta.40.tgz#af86537dc76cb3d31b6697480e30058a6da3c753"
+  dependencies:
+    "@babel/plugin-syntax-export-default-from" "7.0.0-beta.40"
+
+"@babel/plugin-proposal-export-namespace-from@7.0.0-beta.40":
+  version "7.0.0-beta.40"
+  resolved "https://registry.yarnpkg.com/@babel/plugin-proposal-export-namespace-from/-/plugin-proposal-export-namespace-from-7.0.0-beta.40.tgz#ae8cdf479c256823f45a052e023b3a50aa350c5a"
+  dependencies:
+    "@babel/plugin-syntax-export-namespace-from" "7.0.0-beta.40"
+
+"@babel/plugin-proposal-function-bind@7.0.0-beta.40":
+  version "7.0.0-beta.40"
+  resolved "https://registry.yarnpkg.com/@babel/plugin-proposal-function-bind/-/plugin-proposal-function-bind-7.0.0-beta.40.tgz#2c0269686bdc3fee64bff42db44dea2d2ab7c7a6"
+  dependencies:
+    "@babel/plugin-syntax-function-bind" "7.0.0-beta.40"
+
 "@babel/plugin-proposal-object-rest-spread@7.0.0-beta.40":
   version "7.0.0-beta.40"
   resolved "https://registry.yarnpkg.com/@babel/plugin-proposal-object-rest-spread/-/plugin-proposal-object-rest-spread-7.0.0-beta.40.tgz#ce35d2240908e52706a612eb26d67db667cd700f"
@@ -208,6 +232,24 @@
   dependencies:
     "@babel/plugin-syntax-optional-catch-binding" "7.0.0-beta.40"
 
+"@babel/plugin-proposal-optional-chaining@^7.0.0-beta.40":
+  version "7.0.0-beta.40"
+  resolved "https://registry.yarnpkg.com/@babel/plugin-proposal-optional-chaining/-/plugin-proposal-optional-chaining-7.0.0-beta.40.tgz#2fe8e8e0f17fa0fe0a9bdd3e7d72594ba773cc80"
+  dependencies:
+    "@babel/plugin-syntax-optional-chaining" "7.0.0-beta.40"
+
+"@babel/plugin-proposal-pipeline-operator@^7.0.0-beta.40":
+  version "7.0.0-beta.40"
+  resolved "https://registry.yarnpkg.com/@babel/plugin-proposal-pipeline-operator/-/plugin-proposal-pipeline-operator-7.0.0-beta.40.tgz#768bbde06bb7f1695bf4eef79c1702a269f6c08a"
+  dependencies:
+    "@babel/plugin-syntax-pipeline-operator" "7.0.0-beta.40"
+
+"@babel/plugin-proposal-throw-expressions@^7.0.0-beta.40":
+  version "7.0.0-beta.40"
+  resolved "https://registry.yarnpkg.com/@babel/plugin-proposal-throw-expressions/-/plugin-proposal-throw-expressions-7.0.0-beta.40.tgz#4f34c51a9455baf81fdc2eec176a2c68c59eab20"
+  dependencies:
+    "@babel/plugin-syntax-throw-expressions" "7.0.0-beta.40"
+
 "@babel/plugin-proposal-unicode-property-regex@7.0.0-beta.40":
   version "7.0.0-beta.40"
   resolved "https://registry.yarnpkg.com/@babel/plugin-proposal-unicode-property-regex/-/plugin-proposal-unicode-property-regex-7.0.0-beta.40.tgz#1fb2c29c8bd88d5fff82ec080dbe24e7126ec460"
@@ -219,9 +261,25 @@
   version "7.0.0-beta.40"
   resolved "https://registry.yarnpkg.com/@babel/plugin-syntax-async-generators/-/plugin-syntax-async-generators-7.0.0-beta.40.tgz#6c45889569add3b3721cc9a481ae99906f240874"
 
+"@babel/plugin-syntax-decorators@7.0.0-beta.40":
+  version "7.0.0-beta.40"
+  resolved "https://registry.yarnpkg.com/@babel/plugin-syntax-decorators/-/plugin-syntax-decorators-7.0.0-beta.40.tgz#26700fe4599606701bf73cddedeb6f470aa0fe54"
+
+"@babel/plugin-syntax-export-default-from@7.0.0-beta.40":
+  version "7.0.0-beta.40"
+  resolved "https://registry.yarnpkg.com/@babel/plugin-syntax-export-default-from/-/plugin-syntax-export-default-from-7.0.0-beta.40.tgz#6457a80bd22779eaf61f41b1d322d84d7e2deb65"
+
+"@babel/plugin-syntax-export-namespace-from@7.0.0-beta.40":
+  version "7.0.0-beta.40"
+  resolved "https://registry.yarnpkg.com/@babel/plugin-syntax-export-namespace-from/-/plugin-syntax-export-namespace-from-7.0.0-beta.40.tgz#c1622252e7059f16cd4ed0c8d6353ff73684fc86"
+
 "@babel/plugin-syntax-flow@7.0.0-beta.40":
   version "7.0.0-beta.40"
   resolved "https://registry.yarnpkg.com/@babel/plugin-syntax-flow/-/plugin-syntax-flow-7.0.0-beta.40.tgz#2326da177cd83ad3d12e8324ad003edb702c384c"
+
+"@babel/plugin-syntax-function-bind@7.0.0-beta.40":
+  version "7.0.0-beta.40"
+  resolved "https://registry.yarnpkg.com/@babel/plugin-syntax-function-bind/-/plugin-syntax-function-bind-7.0.0-beta.40.tgz#e871da1b529821affc2954abd4bec9e52da0a357"
 
 "@babel/plugin-syntax-object-rest-spread@7.0.0-beta.40":
   version "7.0.0-beta.40"
@@ -230,6 +288,18 @@
 "@babel/plugin-syntax-optional-catch-binding@7.0.0-beta.40":
   version "7.0.0-beta.40"
   resolved "https://registry.yarnpkg.com/@babel/plugin-syntax-optional-catch-binding/-/plugin-syntax-optional-catch-binding-7.0.0-beta.40.tgz#2e3de0919d05136bb658172ef9ba9ef7e84bce9e"
+
+"@babel/plugin-syntax-optional-chaining@7.0.0-beta.40":
+  version "7.0.0-beta.40"
+  resolved "https://registry.yarnpkg.com/@babel/plugin-syntax-optional-chaining/-/plugin-syntax-optional-chaining-7.0.0-beta.40.tgz#0a2628511e8f7f35666f5977fb07e1a8d1d363eb"
+
+"@babel/plugin-syntax-pipeline-operator@7.0.0-beta.40":
+  version "7.0.0-beta.40"
+  resolved "https://registry.yarnpkg.com/@babel/plugin-syntax-pipeline-operator/-/plugin-syntax-pipeline-operator-7.0.0-beta.40.tgz#602277fa156b41953eb95b154c39d1167a8c98b2"
+
+"@babel/plugin-syntax-throw-expressions@7.0.0-beta.40":
+  version "7.0.0-beta.40"
+  resolved "https://registry.yarnpkg.com/@babel/plugin-syntax-throw-expressions/-/plugin-syntax-throw-expressions-7.0.0-beta.40.tgz#a0d8969dcbfece1d85d1938b4e9ecfac4e411682"
 
 "@babel/plugin-transform-arrow-functions@7.0.0-beta.40":
   version "7.0.0-beta.40"
@@ -1162,7 +1232,7 @@ babel-7-jest@^21.3.2:
     babel-plugin-istanbul "^4.1.5"
     babel-preset-jest "^21.2.0"
 
-babel-cli@^6.18.0, babel-cli@^6.24.1, babel-cli@^6.26.0:
+babel-cli@^6.18.0, babel-cli@^6.24.1:
   version "6.26.0"
   resolved "https://registry.yarnpkg.com/babel-cli/-/babel-cli-6.26.0.tgz#502ab54874d7db88ad00b887a06383ce03d002f1"
   dependencies:
@@ -1732,7 +1802,7 @@ babel-plugin-transform-function-bind@^6.22.0:
     babel-plugin-syntax-function-bind "^6.8.0"
     babel-runtime "^6.22.0"
 
-babel-plugin-transform-object-rest-spread@^6.22.0, babel-plugin-transform-object-rest-spread@^6.26.0:
+babel-plugin-transform-object-rest-spread@^6.22.0:
   version "6.26.0"
   resolved "https://registry.yarnpkg.com/babel-plugin-transform-object-rest-spread/-/babel-plugin-transform-object-rest-spread-6.26.0.tgz#0f36692d50fef6b7e2d4b3ac1478137a963b7b06"
   dependencies:
@@ -7140,8 +7210,8 @@ lodash-compat@^3.10.1:
   resolved "https://registry.yarnpkg.com/lodash-compat/-/lodash-compat-3.10.2.tgz#c6940128a9d30f8e902cd2cf99fd0cba4ecfc183"
 
 lodash-es@^4.17.5, lodash-es@^4.2.1:
-  version "4.17.6"
-  resolved "https://registry.yarnpkg.com/lodash-es/-/lodash-es-4.17.6.tgz#b90209ca7627de7cadd5212dff8b77c607aec8b0"
+  version "4.17.7"
+  resolved "https://registry.yarnpkg.com/lodash-es/-/lodash-es-4.17.7.tgz#db240a3252c3dd8360201ac9feef91ac977ea856"
 
 lodash._arrayeach@^3.0.0:
   version "3.0.0"
