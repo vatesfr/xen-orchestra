@@ -26,13 +26,13 @@ Manual install procedure is [available here](https://xen-orchestra.com/docs/from
 Production build:
 
 ```
-$ npm run build
+$ yarn run build
 ```
 
 Development build:
 
 ```
-$ npm run dev
+$ yarn run dev
 ```
 
 ## How to report a bug?
