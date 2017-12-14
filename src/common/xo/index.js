@@ -1464,8 +1464,26 @@ export const removeTag = (object, tag) =>
 
 export const cancelTask = task => _call('task.cancel', { id: resolveId(task) })
 
+export const cancelTasks = tasks =>
+  confirm({
+    title: _('cancelTasksModalTitle', { nTasks: tasks.length }),
+    body: _('cancelTasksModalMessage', { nTasks: tasks.length }),
+  }).then(
+    () => map(tasks, task => _call('task.cancel', { id: resolveId(task) })),
+    noop
+  )
+
 export const destroyTask = task =>
   _call('task.destroy', { id: resolveId(task) })
+
+export const destroyTasks = tasks =>
+  confirm({
+    title: _('destroyTasksModalTitle', { nTasks: tasks.length }),
+    body: _('destroyTasksModalMessage', { nTasks: tasks.length }),
+  }).then(
+    () => map(tasks, task => _call('task.destroy', { id: resolveId(task) })),
+    noop
+  )
 
 // Jobs -------------------------------------------------------------
 

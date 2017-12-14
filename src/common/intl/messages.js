@@ -1268,6 +1268,12 @@ const messages = {
   trialReadyModal: 'Ready for trial?',
   trialReadyModalText:
     'During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans!',
+  cancelTasksModalTitle: 'Cancel task{nTasks, plural, one {} other {s}}',
+  cancelTasksModalMessage:
+    'Are you sure you want to cancel {nTasks, number} task{nTasks, plural, one {} other {s}}?',
+  destroyTasksModalTitle: 'Destroy task{nTasks, plural, one {} other {s}}',
+  destroyTasksModalMessage:
+    'Are you sure you want to destroy {nTasks, number} task{nTasks, plural, one {} other {s}}?',
 
   // ----- Servers -----
   serverLabel: 'Label',
