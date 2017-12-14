@@ -497,30 +497,28 @@ export default class TabNetwork extends BaseComponent {
         )}
         <Row>
           <Col>
-            <span>
-              <SortedTable
-                collection={vifs}
-                columns={COLUMNS}
-                defaultFilter='filterVifsOnlyConnected'
-                filters={FILTERS}
-                groupedActions={GROUPED_ACTIONS}
-                individualActions={INDIVIDUAL_ACTIONS}
-                stateUrlParam='s'
-                userData={{ networks: networks }}
-              />
-              {!isEmpty(vm.addresses) ? (
-                <span>
-                  <h4>{_('vifIpAddresses')}</h4>
-                  {map(vm.addresses, address => (
-                    <span key={address} className='tag tag-info tag-ip'>
-                      {address}
-                    </span>
-                  ))}
-                </span>
-              ) : (
-                _('noIpRecord')
-              )}
-            </span>
+            <SortedTable
+              collection={vifs}
+              columns={COLUMNS}
+              defaultFilter='filterVifsOnlyConnected'
+              filters={FILTERS}
+              groupedActions={GROUPED_ACTIONS}
+              individualActions={INDIVIDUAL_ACTIONS}
+              stateUrlParam='s'
+              userData={{ networks }}
+            />
+            {!isEmpty(vm.addresses) ? (
+              <span>
+                <h4>{_('vifIpAddresses')}</h4>
+                {map(vm.addresses, address => (
+                  <span key={address} className='tag tag-info tag-ip'>
+                    {address}
+                  </span>
+                ))}
+              </span>
+            ) : (
+              _('noIpRecord')
+            )}
           </Col>
         </Row>
       </Container>
