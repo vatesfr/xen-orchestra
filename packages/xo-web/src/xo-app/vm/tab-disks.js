@@ -32,7 +32,7 @@ import { SizeInput, Toggle } from 'form'
 import { XoSelect, Size, Text } from 'editable'
 import { confirm } from 'modal'
 import { error } from 'notification'
-import { filter, find, forEach, get, map, some } from 'lodash'
+import { filter, find, flatten, forEach, get, map, some } from 'lodash'
 import {
   attachDiskToVm,
   createDisk,
@@ -106,10 +106,7 @@ const COLUMNS_VM_PV = [
   },
   {
     itemRenderer: (vdi, userData) => {
-      const vbd = find(
-        userData.vbds,
-        vbd => vbd.VDI === vdi.id && vbd.VM === userData.vm.id
-      )
+      const vbd = find(userData.vbds[vdi.id], vbd => vbd.VM === userData.vm.id)
       return (
         <Toggle
           onChange={bootable => setBootableVbd(vbd, bootable)}
@@ -123,10 +120,7 @@ const COLUMNS_VM_PV = [
   {
     itemRenderer: (vdi, userData) => {
       const vm = userData.vm
-      const vbd = find(
-        userData.vbds,
-        vbd => vbd.VDI === vdi.id && vbd.VM === vm.id
-      )
+      const vbd = find(userData.vbds[vdi.id], vbd => vbd.VM === userData.vm.id)
       return (
         <StateButton
           disabledLabel={_('vbdStatusDisconnected')}
@@ -158,17 +152,10 @@ const FILTERS = {
 const GROUPED_ACTIONS = [
   {
     disabled: (selectedItems, userData) =>
-      some(selectedItems, vdi => {
-        let disabled = false
-        some(vdi.$VBDs, vbdId => {
-          const vbd = find(userData.vbds, vbd => vbdId === vbd.id)
-          if (vbd.attached) {
-            disabled = true
-            return true
-          }
-        })
-        return disabled
-      }),
+      some(
+        flatten(map(selectedItems, vdi => userData.vbds[vdi.id])),
+        'attached'
+      ),
     handler: deleteVbds,
     icon: 'vdi-forget',
     label: _('vdiForget'),
@@ -176,17 +163,10 @@ const GROUPED_ACTIONS = [
   },
   {
     disabled: (selectedItems, userData) =>
-      some(selectedItems, vdi => {
-        let disabled = false
-        some(vdi.$VBDs, vbdId => {
-          const vbd = find(userData.vbds, vbd => vbdId === vbd.id)
-          if (vbd.attached) {
-            disabled = true
-            return true
-          }
-        })
-        return disabled
-      }),
+      some(
+        flatten(map(selectedItems, vdi => userData.vbds[vdi.id])),
+        'attached'
+      ),
     handler: deleteVdis,
     icon: 'vdi-remove',
     label: _('vdiRemove'),
@@ -669,13 +649,10 @@ export default class TabDisks extends Component {
     {
       disabled: (vdi, userData) => {
         const vbd = find(
-          userData.vbds,
-          vbd => vbd.VDI === vdi.id && vbd.VM === userData.vm.id
+          userData.vbds[vdi.id],
+          vbd => vbd.VM === userData.vm.id
         )
-        if (vbd !== undefined) {
-          return vbd.attached
-        }
-        return true
+        return vbd !== undefined && vbd.attached
       },
       handler: deleteVbd,
       icon: 'vdi-forget',
@@ -685,13 +662,10 @@ export default class TabDisks extends Component {
     {
       disabled: (vdi, userData) => {
         const vbd = find(
-          userData.vbds,
-          vbd => vbd.VDI === vdi.id && vbd.VM === userData.vm.id
+          userData.vbds[vdi.id],
+          vbd => vbd.VM === userData.vm.id
         )
-        if (vbd !== undefined) {
-          return vbd.attached
-        }
-        return true
+        return vbd !== undefined && vbd.attached
       },
       handler: deleteVdi,
       icon: 'vdi-remove',
@@ -704,7 +678,11 @@ export default class TabDisks extends Component {
 
     const { attachDisk, bootOrder, newDisk } = this.state
 
-    const userData = { srs, vm, vbds }
+    const vbdsByVdi = []
+
+    forEach(vdis, vdi => {
+      vbdsByVdi[vdi.id] = map(vdi.$VBDs, id => find(vbds, { id }))
+    })
 
     return (
       <Container>
@@ -771,7 +749,7 @@ export default class TabDisks extends Component {
               individualActions={this.individualActions}
               shortcutsTarget='body'
               stateUrlParam='s'
-              userData={userData}
+              userData={{ srs, vm, vbds: vbdsByVdi }}
             />
           </Col>
         </Row>
