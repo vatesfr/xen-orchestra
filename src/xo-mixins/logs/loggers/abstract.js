@@ -9,7 +9,7 @@ const LEVELS = [
   'warning',
   'notice',
   'informational',
-  'debug'
+  'debug',
 ]
 
 // Create high level log methods.
@@ -17,6 +17,6 @@ for (const level of LEVELS) {
   Object.defineProperty(AbstractLogger.prototype, level, {
     value (message, data) {
       return this._add(level, message, data)
-    }
+    },
   })
 }

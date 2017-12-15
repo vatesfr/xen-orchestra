@@ -27,7 +27,7 @@ add.permission = 'admin'
 add.params = {
   subject: { type: 'string' },
   object: { type: 'string' },
-  action: { type: 'string' }
+  action: { type: 'string' },
 }
 
 add.description = 'add a new ACL entry'
@@ -43,7 +43,7 @@ remove.permission = 'admin'
 remove.params = {
   subject: { type: 'string' },
   object: { type: 'string' },
-  action: { type: 'string' }
+  action: { type: 'string' },
 }
 
 remove.description = 'remove an existing ACL entry'

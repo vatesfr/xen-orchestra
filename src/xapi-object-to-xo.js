@@ -1,5 +1,5 @@
 import {
-  startsWith
+  startsWith,
 } from 'lodash'
 
 import {
@@ -10,23 +10,23 @@ import {
   isEmpty,
   mapFilter,
   mapToArray,
-  parseXml
+  parseXml,
 } from './utils'
 import {
   isHostRunning,
   isVmHvm,
   isVmRunning,
-  parseDateTime
+  parseDateTime,
 } from './xapi'
 import {
-  useUpdateSystem
+  useUpdateSystem,
 } from './xapi/utils'
 
 // ===================================================================
 
 const {
   defineProperties,
-  freeze
+  freeze,
 } = Object
 
 function link (obj, prop, idField = '$id') {
@@ -83,8 +83,8 @@ const TRANSFORMS = {
       xosanPackInstallationTime: toTimestamp(obj.other_config.xosan_pack_installation_time),
       cpus: {
         cores: cpuInfo && +cpuInfo.cpu_count,
-        sockets: cpuInfo && +cpuInfo.socket_count
-      }
+        sockets: cpuInfo && +cpuInfo.socket_count,
+      },
 
       // TODO
       // - ? networks = networksByPool.items[pool.id] (network.$pool.id)
@@ -104,11 +104,11 @@ const TRANSFORMS = {
   host (obj) {
     const {
       $metrics: metrics,
-      other_config: otherConfig
+      other_config: otherConfig,
+      software_version: softwareVersion,
     } = obj
 
     const isRunning = isHostRunning(obj)
-    const { software_version } = obj
     let supplementalPacks, patches
 
     if (useUpdateSystem(obj)) {
@@ -124,7 +124,7 @@ const TRANSFORMS = {
           guidance: update.after_apply_guidance,
           hosts: link(update, 'hosts'),
           vdi: link(update, 'vdi'),
-          size: update.installation_size
+          size: update.installation_size,
         }
 
         if (startsWith(update.name_label, 'XS')) {
@@ -143,11 +143,11 @@ const TRANSFORMS = {
 
       address: obj.address,
       bios_strings: obj.bios_strings,
-      build: obj.software_version.build_number,
+      build: softwareVersion.build_number,
       enabled: Boolean(obj.enabled),
       cpus: {
         cores: cpuInfo && +cpuInfo.cpu_count,
-        sockets: cpuInfo && +cpuInfo.socket_count
+        sockets: cpuInfo && +cpuInfo.socket_count,
       },
       current_operations: obj.current_operations,
       hostname: obj.hostname,
@@ -164,7 +164,7 @@ const TRANSFORMS = {
 
           return {
             usage: total - free,
-            size: total
+            size: total,
           }
         }
 
@@ -173,7 +173,7 @@ const TRANSFORMS = {
           size: 0,
 
           // Deprecated
-          total: 0
+          total: 0,
         }
       })(),
       patches: patches || link(obj, 'patches'),
@@ -183,7 +183,7 @@ const TRANSFORMS = {
         : 'Unknown',
       startTime: toTimestamp(otherConfig.boot_time),
       supplementalPacks: supplementalPacks ||
-        mapFilter(software_version, (value, key) => {
+        mapFilter(softwareVersion, (value, key) => {
           let author, name
           if (([ author, name ] = key.split(':')).length === 2) {
             const [ description, version ] = value.split(', ')
@@ -191,14 +191,14 @@ const TRANSFORMS = {
               name,
               description,
               author,
-              version: version.split(' ')[1]
+              version: version.split(' ')[1],
             }
           }
         }),
       agentStartTime: toTimestamp(otherConfig.agent_start_time),
       rebootRequired: !isEmpty(obj.updates_requiring_reboot),
       tags: obj.tags,
-      version: obj.software_version.product_version,
+      version: softwareVersion.product_version,
 
       // TODO: dedupe.
       PIFs: link(obj, 'PIFs'),
@@ -208,7 +208,7 @@ const TRANSFORMS = {
       PGPUs: link(obj, 'PGPUs'),
       $PGPUs: link(obj, 'PGPUs'),
 
-      $PBDs: link(obj, 'PBDs')
+      $PBDs: link(obj, 'PBDs'),
 
       // TODO:
       // - controller = vmControllersByContainer.items[host.id]
@@ -226,7 +226,7 @@ const TRANSFORMS = {
     const {
       $guest_metrics: guestMetrics,
       $metrics: metrics,
-      other_config: otherConfig
+      other_config: otherConfig,
     } = obj
 
     const isHvm = isVmHvm(obj)
@@ -276,7 +276,7 @@ const TRANSFORMS = {
           isRunning && metrics && xenTools
             ? +metrics.VCPUs_number
             : +obj.VCPUs_at_startup
-        )
+        ),
       },
       current_operations: obj.current_operations,
       docker: (function () {
@@ -287,14 +287,14 @@ const TRANSFORMS = {
 
         if (monitor === 'False') {
           return {
-            enabled: false
+            enabled: false,
           }
         }
 
         const {
           docker_ps: process,
           docker_info: info,
-          docker_version: version
+          docker_version: version,
         } = otherConfig
 
         return {
@@ -302,7 +302,7 @@ const TRANSFORMS = {
           info: info && parseXml(info).docker_info,
           containers: ensureArray(process && parseXml(process).docker_ps.item),
           process: process && parseXml(process).docker_ps, // deprecated (only used in v4)
-          version: version && parseXml(version).docker_version
+          version: version && parseXml(version).docker_version,
         }
       })(),
 
@@ -317,7 +317,7 @@ const TRANSFORMS = {
 
         const memory = {
           dynamic: [ dynamicMin, dynamicMax ],
-          static: [ staticMin, staticMax ]
+          static: [ staticMin, staticMax ],
         }
 
         const gmMemory = guestMetrics && guestMetrics.memory
@@ -365,13 +365,13 @@ const TRANSFORMS = {
 
       // TODO: dedupe
       VGPUs: link(obj, 'VGPUs'),
-      $VGPUs: link(obj, 'VGPUs')
+      $VGPUs: link(obj, 'VGPUs'),
     }
 
     if (isHvm) {
       ({
         vga: vm.vga = 'cirrus',
-        videoram: vm.videoram = 4
+        videoram: vm.videoram = 4,
       } = obj.platform)
     }
 
@@ -418,7 +418,7 @@ const TRANSFORMS = {
 
           return methods ? methods.split(',') : []
         })(),
-        install_repository: otherConfig['install-repository']
+        install_repository: otherConfig['install-repository'],
       }
     }
 
@@ -462,7 +462,7 @@ const TRANSFORMS = {
           ? link(obj, 'pool')
           : link(obj.$PBDs[0], 'host')
       ),
-      $PBDs: link(obj, 'PBDs')
+      $PBDs: link(obj, 'PBDs'),
     }
   },
 
@@ -475,7 +475,7 @@ const TRANSFORMS = {
       attached: Boolean(obj.currently_attached),
       host: link(obj, 'host'),
       SR: link(obj, 'SR'),
-      device_config: obj.device_config
+      device_config: obj.device_config,
     }
   },
 
@@ -506,7 +506,7 @@ const TRANSFORMS = {
       physical: Boolean(obj.physical),
       vlan: +obj.VLAN,
       $host: link(obj, 'host'),
-      $network: link(obj, 'network')
+      $network: link(obj, 'network'),
     }
   },
 
@@ -524,7 +524,7 @@ const TRANSFORMS = {
       usage: +obj.physical_utilisation,
 
       $SR: link(obj, 'SR'),
-      $VBDs: link(obj, 'VBDs')
+      $VBDs: link(obj, 'VBDs'),
     }
 
     if (obj.is_a_snapshot) {
@@ -553,7 +553,7 @@ const TRANSFORMS = {
       position: obj.userdevice,
       read_only: obj.mode === 'RO',
       VDI: link(obj, 'VDI'),
-      VM: link(obj, 'VM')
+      VM: link(obj, 'VM'),
     }
   },
 
@@ -571,7 +571,7 @@ const TRANSFORMS = {
       MTU: +obj.MTU,
 
       $network: link(obj, 'network'),
-      $VM: link(obj, 'VM')
+      $VM: link(obj, 'VM'),
     }
   },
 
@@ -587,7 +587,7 @@ const TRANSFORMS = {
       other_config: obj.other_config,
       tags: obj.tags,
       PIFs: link(obj, 'PIFs'),
-      VIFs: link(obj, 'VIFs')
+      VIFs: link(obj, 'VIFs'),
     }
   },
 
@@ -599,7 +599,7 @@ const TRANSFORMS = {
       name: obj.name,
       time: toTimestamp(obj.timestamp),
 
-      $object: obj.obj_uuid // Special link as it is already an UUID.
+      $object: obj.obj_uuid, // Special link as it is already an UUID.
     }
   },
 
@@ -616,7 +616,7 @@ const TRANSFORMS = {
       result: obj.result,
       status: obj.status,
 
-      $host: link(obj, 'resident_on')
+      $host: link(obj, 'resident_on'),
     }
   },
 
@@ -628,7 +628,7 @@ const TRANSFORMS = {
       time: toTimestamp(obj.timestamp_applied),
       pool_patch: link(obj, 'pool_patch', '$ref'),
 
-      $host: link(obj, 'host')
+      $host: link(obj, 'host'),
     }
   },
 
@@ -649,7 +649,7 @@ const TRANSFORMS = {
       // version: obj.version,
 
       // TODO: host.[$]pool_patches ←→ pool.[$]host_patches
-      $host_patches: link(obj, 'host_patches')
+      $host_patches: link(obj, 'host_patches'),
     }
   },
 
@@ -663,7 +663,7 @@ const TRANSFORMS = {
       device_name: obj.device_name,
       pci_id: obj.pci_id,
 
-      $host: link(obj, 'host')
+      $host: link(obj, 'host'),
     }
   },
 
@@ -685,7 +685,7 @@ const TRANSFORMS = {
       host: link(obj, 'host'),
       $host: link(obj, 'host'),
       vgpus: link(obj, 'resident_VGPUs'),
-      $vgpus: link(obj, 'resident_VGPUs')
+      $vgpus: link(obj, 'resident_VGPUs'),
     }
   },
 
@@ -701,7 +701,7 @@ const TRANSFORMS = {
       otherConfig: obj.other_config,
       resident_on: link(obj, 'resident_on'),
       vgpuType: link(obj, '$type'),
-      vm: link(obj, 'VM')
+      vm: link(obj, 'VM'),
     }
   },
 
@@ -719,7 +719,7 @@ const TRANSFORMS = {
       otherConfig: obj.other_config,
       pgpus: link(obj, 'PGPUs'),
       supportedVgpuTypes: link(obj, 'supported_VGPU_types'),
-      vgpus: link(obj, 'VGPUs')
+      vgpus: link(obj, 'VGPUs'),
     }
   },
 
@@ -738,9 +738,9 @@ const TRANSFORMS = {
       modelName: obj.model_name,
       pgpus: link(obj, 'enabled_on_PGPUs'),
       vendorName: obj.vendor_name,
-      vgpus: link(obj, 'VGPUs')
+      vgpus: link(obj, 'VGPUs'),
     }
-  }
+  },
 }
 
 // ===================================================================
@@ -774,11 +774,11 @@ export default xapiObj => {
   // Internal properties.
   defineProperties(xoObj, {
     _xapiId: {
-      value: xapiObj.$id
+      value: xapiObj.$id,
     },
     _xapiRef: {
-      value: xapiObj.$ref
-    }
+      value: xapiObj.$ref,
+    },
   })
 
   // Freezes and returns the new object.

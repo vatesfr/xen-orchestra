@@ -5,20 +5,20 @@ import {
   gte,
   includes,
   isEmpty,
-  lte
+  lte,
 } from 'lodash'
 
 import {
   forEach,
   mapToArray,
-  parseSize
+  parseSize,
 } from '../../utils'
 
 import {
   isVmHvm,
   isVmRunning,
   makeEditObject,
-  NULL_REF
+  NULL_REF,
 } from '../utils'
 
 // According to: https://xenserver.org/blog/entry/vga-over-cirrus-in-xenserver-6-2.html.
@@ -29,7 +29,7 @@ export default {
   // TODO: clean up on error.
   @deferrable.onFailure
   async createVm ($onFailure, templateId, {
-    name_label, // deprecated
+    name_label, // eslint-disable-line camelcase
     nameLabel = name_label, // eslint-disable-line camelcase
 
     clone = true,
@@ -94,7 +94,7 @@ export default {
           }
 
           this._setObjectProperties(vm, {
-            HVM_boot_params: { ...bootParams, order }
+            HVM_boot_params: { ...bootParams, order },
           })
         }
       } else { // PV
@@ -103,11 +103,11 @@ export default {
             // TODO: normalize RHEL URL?
 
             await this._updateObjectMapProperty(vm, 'other_config', {
-              'install-repository': installRepository
+              'install-repository': installRepository,
             })
           } else if (installMethod === 'cd') {
             await this._updateObjectMapProperty(vm, 'other_config', {
-              'install-repository': 'cdrom'
+              'install-repository': 'cdrom',
             })
           }
         }
@@ -121,7 +121,7 @@ export default {
       // When the VM is started, if PV, the CD drive will become not
       // bootable and the first disk bootable.
       await this._insertCdIntoVm(installRepository, vm, {
-        bootable: true
+        bootable: true,
       })
       hasBootableDisk = true
     }
@@ -158,14 +158,14 @@ export default {
         {
           name_label: vdiDescription.name_label,
           name_description: vdiDescription.name_description,
-          sr: vdiDescription.sr || vdiDescription.SR
+          sr: vdiDescription.sr || vdiDescription.SR,
         }
       )
         .then(ref => this._getOrWaitObject(ref))
         .then(vdi => this._createVbd(vm, vdi, {
           // Either the CD or the 1st disk is bootable (only useful for PV VMs)
           bootable: !(hasBootableDisk || i),
-          userdevice: devices[i]
+          userdevice: devices[i],
         }))
       ))
     }
@@ -185,7 +185,7 @@ export default {
           device: devices[index],
           locking_mode: isEmpty(vif.ipv4_allowed) && isEmpty(vif.ipv6_allowed) ? 'network_default' : 'locked',
           mac: vif.mac,
-          mtu: vif.mtu
+          mtu: vif.mtu,
         }
       )))
     }
@@ -234,26 +234,26 @@ export default {
           'affinity',
           value ? this.getObject(value).$ref : NULL_REF
         )
-      }
+      },
     },
 
     autoPoweron: {
       set (value, vm) {
         return Promise.all([
           this._updateObjectMapProperty(vm, 'other_config', {
-            autoPoweron: value ? 'true' : null
+            autoPoweron: value ? 'true' : null,
           }),
           value && this.setPoolProperties({
-            autoPoweron: true
-          })
+            autoPoweron: true,
+          }),
         ])
-      }
+      },
     },
 
     coresPerSocket: {
       set (coresPerSocket, vm) {
         return this._updateObjectMapProperty(vm, 'platform', {'cores-per-socket': coresPerSocket})
-      }
+      },
     },
 
     CPUs: 'cpus',
@@ -265,7 +265,7 @@ export default {
       // If the other value is not set and the constraint is not
       // respected, the other value is changed first.
       constraints: {
-        cpusStaticMax: gte
+        cpusStaticMax: gte,
       },
 
       get: vm => +vm.VCPUs_at_startup,
@@ -273,46 +273,46 @@ export default {
         'VCPUs_at_startup',
         function (value, vm) {
           return isVmRunning(vm) && this._set('VCPUs_number_live', value)
-        }
-      ]
+        },
+      ],
     },
 
     cpuCap: {
       get: vm => vm.VCPUs_params.cap && +vm.VCPUs_params.cap,
       set (cap, vm) {
         return this._updateObjectMapProperty(vm, 'VCPUs_params', { cap })
-      }
+      },
     },
 
     cpusMax: 'cpusStaticMax',
     cpusStaticMax: {
       constraints: {
-        cpus: lte
+        cpus: lte,
       },
       get: vm => +vm.VCPUs_max,
-      set: 'VCPUs_max'
+      set: 'VCPUs_max',
     },
 
     cpuWeight: {
       get: vm => vm.VCPUs_params.weight && +vm.VCPUs_params.weight,
       set (weight, vm) {
         return this._updateObjectMapProperty(vm, 'VCPUs_params', { weight })
-      }
+      },
     },
 
     highAvailability: {
       set (ha, vm) {
         return this.call('VM.set_ha_restart_priority', vm.$ref, ha ? 'restart' : '')
-      }
+      },
     },
 
     memoryMin: {
       constraints: {
-        memoryMax: gte
+        memoryMax: gte,
       },
       get: vm => +vm.memory_dynamic_min,
       preprocess: parseSize,
-      set: 'memory_dynamic_min'
+      set: 'memory_dynamic_min',
     },
 
     memory: 'memoryMax',
@@ -321,20 +321,20 @@ export default {
       limitName: 'memory',
       constraints: {
         memoryMin: lte,
-        memoryStaticMax: gte
+        memoryStaticMax: gte,
       },
       get: vm => +vm.memory_dynamic_max,
       preprocess: parseSize,
-      set: 'memory_dynamic_max'
+      set: 'memory_dynamic_max',
     },
 
     memoryStaticMax: {
       constraints: {
-        memoryMax: lte
+        memoryMax: lte,
       },
       get: vm => +vm.memory_static_max,
       preprocess: parseSize,
-      set: 'memory_static_max'
+      set: 'memory_static_max',
     },
 
     nameDescription: true,
@@ -351,7 +351,7 @@ export default {
           throw new Error(`The different values that the VGA can take are: ${XEN_VGA_VALUES}`)
         }
         return this._updateObjectMapProperty(vm, 'platform', { vga })
-      }
+      },
     },
 
     videoram: {
@@ -360,8 +360,8 @@ export default {
           throw new Error(`The different values that the video RAM can take are: ${XEN_VIDEORAM_VALUES}`)
         }
         return this._updateObjectMapProperty(vm, 'platform', { videoram })
-      }
-    }
+      },
+    },
   }),
 
   async editVm (id, props, checkLimits) {
@@ -387,5 +387,5 @@ export default {
   async resumeVm (vmId) {
     // the force parameter is always true
     return this.call('VM.resume', this.getObject(vmId).$ref, false, true)
-  }
+  },
 }

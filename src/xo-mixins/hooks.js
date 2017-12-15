@@ -48,7 +48,7 @@ const runHook = (app, hook) => {
     onError: error => console.error(
       `[WARN] hook ${hook} failure:`,
       (error != null && error.stack) || error
-    )
+    ),
   }, hook)
   promise.then(() => {
     debug(`${hook} finished`)
@@ -72,5 +72,5 @@ export default {
   // Run *stop* async listeners.
   //
   // They close connections, unmount file systems, save states, etc.
-  stop: makeSingletonHook('stop', 'stopped')
+  stop: makeSingletonHook('stop', 'stopped'),
 }

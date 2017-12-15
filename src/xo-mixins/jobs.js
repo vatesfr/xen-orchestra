@@ -14,7 +14,7 @@ export default class Jobs {
     const jobsDb = this._jobs = new JobsDb({
       connection: xo._redis,
       prefix: 'xo:job',
-      indexes: ['user_id', 'key']
+      indexes: ['user_id', 'key'],
     })
     this._runningJobs = Object.create(null)
 

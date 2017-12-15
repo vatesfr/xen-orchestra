@@ -16,9 +16,9 @@ configure.description = 'sets the configuration of a plugin'
 
 configure.params = {
   id: {
-    type: 'string'
+    type: 'string',
   },
-  configuration: {}
+  configuration: {},
 }
 
 configure.permission = 'admin'
@@ -33,8 +33,8 @@ disableAutoload.description = ''
 
 disableAutoload.params = {
   id: {
-    type: 'string'
-  }
+    type: 'string',
+  },
 }
 
 disableAutoload.permission = 'admin'
@@ -49,8 +49,8 @@ enableAutoload.description = 'enables a plugin, allowing it to be loaded'
 
 enableAutoload.params = {
   id: {
-    type: 'string'
-  }
+    type: 'string',
+  },
 }
 
 enableAutoload.permission = 'admin'
@@ -65,8 +65,8 @@ load.description = 'loads a plugin'
 
 load.params = {
   id: {
-    type: 'string'
-  }
+    type: 'string',
+  },
 }
 
 load.permission = 'admin'
@@ -81,8 +81,8 @@ unload.description = 'unloads a plugin'
 
 unload.params = {
   id: {
-    type: 'string'
-  }
+    type: 'string',
+  },
 }
 
 unload.permission = 'admin'
@@ -97,8 +97,8 @@ purgeConfiguration.description = 'removes a plugin configuration'
 
 purgeConfiguration.params = {
   id: {
-    type: 'string'
-  }
+    type: 'string',
+  },
 }
 
 purgeConfiguration.permission = 'admin'
@@ -113,11 +113,11 @@ test.description = 'Test a plugin with its current configuration'
 
 test.params = {
   id: {
-    type: 'string'
+    type: 'string',
   },
   data: {
-    optional: true
-  }
+    optional: true,
+  },
 }
 
 test.permission = 'admin'

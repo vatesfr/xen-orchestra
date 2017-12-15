@@ -4,8 +4,8 @@ import {EventEmitter} from 'events'
 import {
   isArray,
   isObject,
-  map
-  } from './utils'
+  map,
+} from './utils'
 
 // ===================================================================
 
@@ -29,7 +29,7 @@ export default class Collection extends EventEmitter {
       configurable: true,
       enumerale: true,
       value: Model,
-      writable: true
+      writable: true,
     })
   }
 

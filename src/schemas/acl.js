@@ -4,25 +4,25 @@ export default {
   properties: {
     id: {
       type: 'string',
-      description: 'unique identifier for this ACL'
+      description: 'unique identifier for this ACL',
     },
     action: {
       type: 'string',
-      description: 'permission (or role)'
+      description: 'permission (or role)',
     },
     object: {
       type: 'string',
-      description: 'item (or set)'
+      description: 'item (or set)',
     },
     subject: {
       type: 'string',
-      description: 'user (or group)'
-    }
+      description: 'user (or group)',
+    },
   },
   required: [
     'id',
     'action',
     'object',
-    'subject'
-  ]
+    'subject',
+  ],
 }

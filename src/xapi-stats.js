@@ -14,14 +14,14 @@ const RRD_STEP_FROM_STRING = {
   'seconds': RRD_STEP_SECONDS,
   'minutes': RRD_STEP_MINUTES,
   'hours': RRD_STEP_HOURS,
-  'days': RRD_STEP_DAYS
+  'days': RRD_STEP_DAYS,
 }
 
 const RRD_POINTS_PER_STEP = {
   [RRD_STEP_SECONDS]: 120,
   [RRD_STEP_MINUTES]: 120,
   [RRD_STEP_HOURS]: 168,
-  [RRD_STEP_DAYS]: 366
+  [RRD_STEP_DAYS]: 366,
 }
 
 export class XapiStatsError extends BaseError {}
@@ -61,12 +61,12 @@ function getNewHostStats () {
     cpus: [],
     pifs: {
       rx: [],
-      tx: []
+      tx: [],
     },
     load: [],
     memory: [],
     memoryFree: [],
-    memoryUsed: []
+    memoryUsed: [],
   }
 }
 
@@ -75,15 +75,15 @@ function getNewVmStats () {
     cpus: [],
     vifs: {
       rx: [],
-      tx: []
+      tx: [],
     },
     xvds: {
       r: {},
-      w: {}
+      w: {},
     },
     memory: [],
     memoryFree: [],
-    memoryUsed: []
+    memoryUsed: [],
   }
 }
 
@@ -96,11 +96,11 @@ function getNewHostLegends () {
     cpus: [],
     pifs: {
       rx: [],
-      tx: []
+      tx: [],
     },
     load: null,
     memoryFree: null,
-    memory: null
+    memory: null,
   }
 }
 
@@ -109,14 +109,14 @@ function getNewVmLegends () {
     cpus: [],
     vifs: {
       rx: [],
-      tx: []
+      tx: [],
     },
     xvds: {
       r: [],
-      w: []
+      w: [],
     },
     memoryFree: null,
-    memory: null
+    memory: null,
   }
 }
 
@@ -391,8 +391,8 @@ export default class XapiStats {
         cf: 'AVERAGE',
         host: 'true',
         json: 'true',
-        start: timestamp
-      }
+        start: timestamp,
+      },
     }).then(response => response.readAll().then(JSON5.parse))
   }
 
@@ -412,7 +412,7 @@ export default class XapiStats {
     if (vmId === undefined) {
       return {
         interval: step,
-        ...hostStats
+        ...hostStats,
       }
     }
 
@@ -422,14 +422,14 @@ export default class XapiStats {
     return {
       interval: step,
       endTimestamp: hostStats.endTimestamp,
-      stats: (vmsStats && vmsStats[vmId]) || getNewVmStats()
+      stats: (vmsStats && vmsStats[vmId]) || getNewVmStats(),
     }
   }
 
   async _getAndUpdatePoints (xapi, host, vmId, granularity) {
     // Get granularity to use
     const step = (granularity === undefined || granularity === 0)
-          ? RRD_STEP_SECONDS : RRD_STEP_FROM_STRING[granularity]
+      ? RRD_STEP_SECONDS : RRD_STEP_FROM_STRING[granularity]
 
     if (step === undefined) {
       throw new FaultyGranularity(`Unknown granularity: '${granularity}'. Use 'seconds', 'minutes', 'hours', or 'days'.`)
@@ -475,7 +475,7 @@ export default class XapiStats {
     if (this._hosts[hostname][step] === undefined) {
       this._hosts[hostname][step] = {
         endTimestamp: 0,
-        localTimestamp: 0
+        localTimestamp: 0,
       }
     }
 

@@ -7,17 +7,17 @@ import {
   isArray,
   isFunction,
   map,
-  mapValues
+  mapValues,
 } from 'lodash'
 
-import * as methods from '../api'
+import * as methods from '../api' // eslint-disable-line node/no-missing-import
 import {
-  MethodNotFound
+  MethodNotFound,
 } from 'json-rpc-peer'
 import {
   createRawObject,
   noop,
-  serializeError
+  serializeError,
 } from '../utils'
 
 import * as errors from 'xo-common/api-errors'
@@ -30,7 +30,7 @@ const PERMISSIONS = {
   none: 0,
   read: 1,
   write: 2,
-  admin: 3
+  admin: 3,
 }
 
 // TODO:
@@ -50,7 +50,7 @@ const XAPI_ERROR_TO_XO_ERROR = {
   VM_IS_TEMPLATE: errors.vmIsTemplate,
   VM_LACKS_FEATURE: ([ vm ], getId) => errors.vmLacksFeature({ vm: getId(vm) }),
   VM_LACKS_FEATURE_SHUTDOWN: ([ vm ], getId) => errors.vmLacksFeature({ vm: getId(vm), feature: 'shutdown' }),
-  VM_MISSING_PV_DRIVERS: ([ vm ], getId) => errors.vmMissingPvDrivers({ vm: getId(vm) })
+  VM_MISSING_PV_DRIVERS: ([ vm ], getId) => errors.vmMissingPvDrivers({ vm: getId(vm) }),
 }
 
 const hasPermission = (user, permission) => (
@@ -65,7 +65,7 @@ function checkParams (method, params) {
 
   const result = schemaInspector.validate({
     type: 'object',
-    properties: schema
+    properties: schema,
   }, params)
 
   if (!result.valid) {
@@ -243,11 +243,11 @@ export default class Api {
     // XO methods called from the API.
     const context = Object.create(this._xo, {
       api: { // Used by system.*().
-        value: this
+        value: this,
       },
       session: {
-        value: session
-      }
+        value: session,
+      },
     })
 
     // Fetch and inject the current user.
@@ -303,7 +303,7 @@ export default class Api {
         method: name,
         params: removeSensitiveParams(params),
         duration: Date.now() - startTime,
-        error: serializeError(error)
+        error: serializeError(error),
       }
       const message = `${userName} | ${name}(${JSON.stringify(params)}) [${ms(Date.now() - startTime)}] =!> ${error}`
 

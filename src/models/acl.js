@@ -3,7 +3,7 @@ import Model from '../model'
 import {
   forEach,
   mapToArray,
-  multiKeyHash
+  multiKeyHash,
 } from '../utils'
 
 // ===================================================================
@@ -21,7 +21,7 @@ Acl.create = (subject, object, action) => {
     id: hash,
     subject,
     object,
-    action
+    action,
   }))
 }
 

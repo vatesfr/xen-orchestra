@@ -32,7 +32,7 @@ export default class Redis extends Collection {
     connection,
     indexes = [],
     prefix,
-    uri
+    uri,
   }) {
     super()
 
@@ -145,7 +145,7 @@ export default class Redis extends Collection {
       const key = `${prefix}:${id}`
       const promises = [
         redis.del(key),
-        redis.hmset(key, ...params)
+        redis.hmset(key, ...params),
       ]
 
       // Update indexes.

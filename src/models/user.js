@@ -11,7 +11,7 @@ import { parseProp } from './utils'
 export default class User extends Model {}
 
 User.prototype.default = {
-  permission: 'none'
+  permission: 'none',
 }
 
 // -------------------------------------------------------------------
@@ -43,8 +43,8 @@ export class Users extends Collection {
       ? undefined
       : JSON.stringify(tmp)
     user.preferences = isEmpty(tmp = user.preferences)
-     ? undefined
-     : JSON.stringify(tmp)
+      ? undefined
+      : JSON.stringify(tmp)
 
     return /* await */ this.update(user)
   }

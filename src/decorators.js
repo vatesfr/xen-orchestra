@@ -2,14 +2,14 @@ import { getBoundPropertyDescriptor } from 'bind-property-descriptor'
 
 import {
   isArray,
-  isFunction
+  isFunction,
 } from './utils'
 
 // ===================================================================
 
 const {
   defineProperties,
-  getOwnPropertyDescriptor
+  getOwnPropertyDescriptor,
 } = Object
 
 // ===================================================================
@@ -29,7 +29,7 @@ export const debounce = duration => (target, name, descriptor) => {
   function debounced () {
     const data = this[s] || (this[s] = {
       lastCall: 0,
-      wrapper: null
+      wrapper: null,
     })
 
     const now = Date.now()
@@ -56,7 +56,7 @@ const _ownKeys = (
   (typeof Reflect !== 'undefined' && Reflect.ownKeys) ||
   (({
     getOwnPropertyNames: names,
-    getOwnPropertySymbols: symbols
+    getOwnPropertySymbols: symbols,
   }) => symbols
     ? obj => names(obj).concat(symbols(obj))
     : names
@@ -75,7 +75,7 @@ const _IGNORED_STATIC_PROPERTIES = {
   caller: true,
   length: true,
   name: true,
-  prototype: true
+  prototype: true,
 }
 const _isIgnoredStaticProperty = name => _IGNORED_STATIC_PROPERTIES[name]
 

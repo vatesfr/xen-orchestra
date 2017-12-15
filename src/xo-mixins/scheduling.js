@@ -5,7 +5,7 @@ import { Schedules } from '../models/schedule'
 import {
   forEach,
   mapToArray,
-  scheduleFn
+  scheduleFn,
 } from '../utils'
 
 // ===================================================================
@@ -40,7 +40,7 @@ export default class {
     const schedules = this._redisSchedules = new Schedules({
       connection: xo._redis,
       prefix: 'xo:schedule',
-      indexes: ['user_id', 'job']
+      indexes: ['user_id', 'job'],
     })
     this._scheduleTable = undefined
 

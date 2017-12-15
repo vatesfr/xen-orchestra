@@ -10,7 +10,7 @@ export async function create ({ pool, name, description, pif, mtu = 1500, vlan =
     description,
     pifId: pif && this.getObject(pif, 'PIF')._xapiId,
     mtu: +mtu,
-    vlan: +vlan
+    vlan: +vlan,
   })
 }
 
@@ -20,11 +20,11 @@ create.params = {
   description: { type: 'string', optional: true },
   pif: { type: 'string', optional: true },
   mtu: { type: ['integer', 'string'], optional: true },
-  vlan: { type: ['integer', 'string'], optional: true }
+  vlan: { type: ['integer', 'string'], optional: true },
 }
 
 create.resolve = {
-  pool: ['pool', 'pool', 'administrate']
+  pool: ['pool', 'pool', 'administrate'],
 }
 create.permission = 'admin'
 
@@ -39,7 +39,7 @@ export async function createBonded ({ pool, name, description, pifs, mtu = 1500,
     ),
     mtu: +mtu,
     mac,
-    bondMode
+    bondMode,
   })
 }
 
@@ -50,17 +50,17 @@ createBonded.params = {
   pifs: {
     type: 'array',
     items: {
-      type: 'string'
-    }
+      type: 'string',
+    },
   },
   mtu: { type: ['integer', 'string'], optional: true },
   mac: { type: 'string', optional: true },
   // RegExp since schema-inspector does not provide a param check based on an enumeration
-  bondMode: { type: 'string', pattern: new RegExp(`^(${getBondModes().join('|')})$`) }
+  bondMode: { type: 'string', pattern: new RegExp(`^(${getBondModes().join('|')})$`) },
 }
 
 createBonded.resolve = {
-  pool: ['pool', 'pool', 'administrate']
+  pool: ['pool', 'pool', 'administrate'],
 }
 createBonded.permission = 'admin'
 createBonded.description = 'Create a bonded network. bondMode can be balance-slb, active-backup or lacp'
@@ -73,35 +73,35 @@ export async function set ({
   name_description: nameDescription,
   name_label: nameLabel,
   defaultIsLocked,
-  id
+  id,
 }) {
   await this.getXapi(network).setNetworkProperties(network._xapiId, {
     nameDescription,
     nameLabel,
-    defaultIsLocked
+    defaultIsLocked,
   })
 }
 
 set.params = {
   id: {
-    type: 'string'
+    type: 'string',
   },
   name_label: {
     type: 'string',
-    optional: true
+    optional: true,
   },
   name_description: {
     type: 'string',
-    optional: true
+    optional: true,
   },
   defaultIsLocked: {
     type: 'boolean',
-    optional: true
-  }
+    optional: true,
+  },
 }
 
 set.resolve = {
-  network: ['id', 'network', 'administrate']
+  network: ['id', 'network', 'administrate'],
 }
 
 // =================================================================
@@ -112,9 +112,9 @@ export async function delete_ ({ network }) {
 export {delete_ as delete}
 
 delete_.params = {
-  id: { type: 'string' }
+  id: { type: 'string' },
 }
 
 delete_.resolve = {
-  network: ['id', 'network', 'administrate']
+  network: ['id', 'network', 'administrate'],
 }

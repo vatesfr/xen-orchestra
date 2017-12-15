@@ -17,7 +17,7 @@ export class PluginsMetadata extends Collection {
     return /* await */ this.update({
       id,
       autoload: autoload ? 'true' : 'false',
-      configuration: configuration && JSON.stringify(configuration)
+      configuration: configuration && JSON.stringify(configuration),
     })
   }
 
@@ -29,7 +29,7 @@ export class PluginsMetadata extends Collection {
 
     return /* await */ this.save({
       ...pluginMetadata.properties,
-      ...data
+      ...data,
     })
   }
 

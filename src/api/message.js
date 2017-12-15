@@ -4,9 +4,9 @@ async function delete_ ({ message }) {
 export {delete_ as delete}
 
 delete_.params = {
-  id: { type: 'string' }
+  id: { type: 'string' },
 }
 
 delete_.resolve = {
-  message: ['id', 'message', 'administrate']
+  message: ['id', 'message', 'administrate'],
 }

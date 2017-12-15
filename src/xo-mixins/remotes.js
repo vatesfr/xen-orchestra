@@ -5,10 +5,10 @@ import RemoteHandlerNfs from '../remote-handlers/nfs'
 import RemoteHandlerSmb from '../remote-handlers/smb'
 import {
   forEach,
-  mapToArray
+  mapToArray,
 } from '../utils'
 import {
-  Remotes
+  Remotes,
 } from '../models/remote'
 
 // ===================================================================
@@ -18,7 +18,7 @@ export default class {
     this._remotes = new Remotes({
       connection: xo._redis,
       prefix: 'xo:remote',
-      indexes: ['enabled']
+      indexes: ['enabled'],
     })
 
     xo.on('clean', () => this._remotes.rebuildIndexes())
@@ -48,7 +48,7 @@ export default class {
     const HANDLERS = {
       file: RemoteHandlerLocal,
       smb: RemoteHandlerSmb,
-      nfs: RemoteHandlerNfs
+      nfs: RemoteHandlerNfs,
     }
 
     // FIXME: should be done in xo-remote-parser.
@@ -84,7 +84,7 @@ export default class {
   }
 
   async createRemote ({name, url}) {
-    let remote = await this._remotes.create(name, url)
+    const remote = await this._remotes.create(name, url)
     return /* await */ this.updateRemote(remote.get('id'), {enabled: true})
   }
 
@@ -125,7 +125,7 @@ export default class {
   // TODO: Should it be private?
   async forgetAllRemotes () {
     const remotes = await this.getAllRemotes()
-    for (let remote of remotes) {
+    for (const remote of remotes) {
       try {
         (await this.getRemoteHandler(remote, true)).forget()
       } catch (_) {}

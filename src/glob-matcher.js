@@ -1,11 +1,11 @@
 // See: https://gist.github.com/julien-f/5b9a3537eb82a34b04e2
 
-var matcher = require('micromatch').matcher
+const matcher = require('micromatch').matcher
 
 module.exports = function globMatcher (patterns, opts) {
   if (!Array.isArray(patterns)) {
     if (patterns[0] === '!') {
-      var m = matcher(patterns.slice(1), opts)
+      const m = matcher(patterns.slice(1), opts)
       return function (string) {
         return !m(string)
       }
@@ -14,12 +14,12 @@ module.exports = function globMatcher (patterns, opts) {
     }
   }
 
-  var noneMustMatch = []
-  var anyMustMatch = []
+  const noneMustMatch = []
+  const anyMustMatch = []
 
   // TODO: could probably be optimized by combining all positive patterns (and all negative patterns) as a single matcher.
-  for (var i = 0, n = patterns.length; i < n; ++i) {
-    var pattern = patterns[i]
+  for (let i = 0, n = patterns.length; i < n; ++i) {
+    const pattern = patterns[i]
     if (pattern[0] === '!') {
       noneMustMatch.push(matcher(pattern.slice(1), opts))
     } else {
@@ -27,11 +27,11 @@ module.exports = function globMatcher (patterns, opts) {
     }
   }
 
-  var nNone = noneMustMatch.length
-  var nAny = anyMustMatch.length
+  const nNone = noneMustMatch.length
+  const nAny = anyMustMatch.length
 
   return function (string) {
-    var i
+    let i
 
     for (i = 0; i < nNone; ++i) {
       if (noneMustMatch[i](string)) {

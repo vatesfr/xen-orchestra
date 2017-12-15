@@ -3,41 +3,41 @@ export default {
   type: 'object',
   properties: {
     type: {
-      enum: ['call']
+      enum: ['call'],
     },
     id: {
       type: 'string',
-      description: 'job identifier'
+      description: 'job identifier',
     },
     name: {
       type: 'string',
-      description: 'human readable name'
+      description: 'human readable name',
     },
     userId: {
       type: 'string',
-      description: 'identifier of the user who have created the job (the permissions of the user are used by the job)'
+      description: 'identifier of the user who have created the job (the permissions of the user are used by the job)',
     },
     key: {
-      type: 'string'
+      type: 'string',
       // TODO description
     },
     method: {
       type: 'string',
-      description: 'called method'
+      description: 'called method',
     },
     paramsVector: {
-      type: 'object'
+      type: 'object',
     },
     timeout: {
       type: 'number',
-      description: 'number of milliseconds after which the job is considered failed'
-    }
+      description: 'number of milliseconds after which the job is considered failed',
+    },
   },
   required: [
     'type',
     'id',
     'userId',
     'key',
-    'method'
-  ]
+    'method',
+  ],
 }

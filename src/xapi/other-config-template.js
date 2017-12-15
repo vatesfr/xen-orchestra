@@ -8,7 +8,7 @@ const OTHER_CONFIG_TEMPLATE = {
   blocked_operations: {},
   ha_always_run: false,
   HVM_boot_params: {
-    order: 'cdn'
+    order: 'cdn',
   },
   HVM_boot_policy: 'BIOS order',
   HVM_shadow_multiplier: 1,
@@ -22,7 +22,7 @@ const OTHER_CONFIG_TEMPLATE = {
     vgpu_pci: '',
     base_template_name: 'Other install media',
     mac_seed: '5e88eb6a-d680-c47f-a94a-028886971ba4',
-    'install-methods': 'cdrom'
+    'install-methods': 'cdrom',
   },
   PCI_bus: '',
   platform: {
@@ -32,7 +32,7 @@ const OTHER_CONFIG_TEMPLATE = {
     apic: 'true',
     pae: 'true',
     hpet: 'true',
-    viridian: 'true'
+    viridian: 'true',
   },
   protection_policy: NULL_REF,
   PV_args: '',
@@ -48,6 +48,6 @@ const OTHER_CONFIG_TEMPLATE = {
   VCPUs_at_startup: 1,
   VCPUs_max: 1,
   VCPUs_params: {},
-  version: 0
+  version: 0,
 }
 export { OTHER_CONFIG_TEMPLATE as default }

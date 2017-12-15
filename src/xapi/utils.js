@@ -19,7 +19,7 @@ import {
   map,
   mapFilter,
   mapToArray,
-  noop
+  noop,
 } from '../utils'
 
 // ===================================================================
@@ -102,7 +102,7 @@ forEach([
   'VM_guest_metrics',
   'VM_metrics',
   'VMPP',
-  'VTPM'
+  'VTPM',
 ], namespace => {
   TYPE_TO_NAMESPACE[namespace.toLowerCase()] = namespace
 })
@@ -152,7 +152,7 @@ export const isVmHvm = vm => Boolean(vm.HVM_boot_policy)
 
 const VM_RUNNING_POWER_STATES = {
   Running: true,
-  Paused: true
+  Paused: true,
 }
 export const isVmRunning = vm => VM_RUNNING_POWER_STATES[vm.power_state]
 
@@ -226,7 +226,7 @@ export const makeEditObject = specs => {
     if (spec === true) {
       spec = {
         get: true,
-        set: true
+        set: true,
       }
     }
 
@@ -287,7 +287,7 @@ export const makeEditObject = specs => {
     // Context used to execute functions.
     const context = {
       __proto__: this,
-      _set: (prop, value) => this.call(_setMethodPrefix + prop, _objectRef, prepareXapiParam(value))
+      _set: (prop, value) => this.call(_setMethodPrefix + prop, _objectRef, prepareXapiParam(value)),
     }
 
     const set = (value, name) => {

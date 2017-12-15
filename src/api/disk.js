@@ -17,14 +17,14 @@ export async function create ({ name, size, sr, vm, bootable, position, mode }) 
   const xapi = this.getXapi(sr)
   const vdi = await xapi.createVdi(parseSize(size), {
     name_label: name,
-    sr: sr._xapiId
+    sr: sr._xapiId,
   })
 
   if (attach) {
     await xapi.attachVdiToVm(vdi.$id, vm._xapiId, {
       bootable,
       position,
-      readOnly: mode === 'RO'
+      readOnly: mode === 'RO',
     })
   }
 
@@ -40,12 +40,12 @@ create.params = {
   vm: { type: 'string', optional: true },
   bootable: { type: 'boolean', optional: true },
   mode: { type: 'string', optional: true },
-  position: { type: 'string', optional: true }
+  position: { type: 'string', optional: true },
 }
 
 create.resolve = {
   vm: ['vm', 'VM', 'administrate'],
-  sr: ['sr', 'SR', false]
+  sr: ['sr', 'SR', false],
 }
 
 // -------------------------------------------------------------------
@@ -58,9 +58,9 @@ resize.description = 'resize an existing VDI'
 
 resize.params = {
   id: { type: 'string' },
-  size: { type: ['integer', 'string'] }
+  size: { type: ['integer', 'string'] },
 }
 
 resize.resolve = {
-  vdi: ['id', ['VDI', 'VDI-snapshot'], 'administrate']
+  vdi: ['id', ['VDI', 'VDI-snapshot'], 'administrate'],
 }

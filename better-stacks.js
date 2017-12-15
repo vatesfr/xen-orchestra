@@ -2,11 +2,11 @@ Error.stackTraceLimit = 100
 
 // Removes internal modules.
 try {
-  var sep = require('path').sep
+  const sep = require('path').sep
 
   require('stack-chain').filter.attach(function (_, frames) {
-    var filtered = frames.filter(function (frame) {
-      var name = frame && frame.getFileName()
+    const filtered = frames.filter(function (frame) {
+      const name = frame && frame.getFileName()
 
       return (
         // has a filename

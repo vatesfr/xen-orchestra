@@ -24,7 +24,7 @@ export default class NfsHandler extends LocalHandler {
           const match = regex.exec(m)
           mounted[match[3]] = {
             host: match[1],
-            share: match[2]
+            share: match[2],
           }
         }
       })

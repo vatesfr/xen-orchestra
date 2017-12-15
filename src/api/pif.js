@@ -20,11 +20,11 @@ async function delete_ ({pif}) {
 export {delete_ as delete}
 
 delete_.params = {
-  id: { type: 'string' }
+  id: { type: 'string' },
 }
 
 delete_.resolve = {
-  pif: ['id', 'PIF', 'administrate']
+  pif: ['id', 'PIF', 'administrate'],
 }
 
 // ===================================================================
@@ -36,11 +36,11 @@ export async function disconnect ({pif}) {
 }
 
 disconnect.params = {
-  id: { type: 'string' }
+  id: { type: 'string' },
 }
 
 disconnect.resolve = {
-  pif: ['id', 'PIF', 'administrate']
+  pif: ['id', 'PIF', 'administrate'],
 }
 // ===================================================================
 // Connect
@@ -51,11 +51,11 @@ export async function connect ({pif}) {
 }
 
 connect.params = {
-  id: { type: 'string' }
+  id: { type: 'string' },
 }
 
 connect.resolve = {
-  pif: ['id', 'PIF', 'administrate']
+  pif: ['id', 'PIF', 'administrate'],
 }
 // ===================================================================
 // Reconfigure IP
@@ -70,11 +70,11 @@ reconfigureIp.params = {
   ip: { type: 'string', optional: true },
   netmask: { type: 'string', optional: true },
   gateway: { type: 'string', optional: true },
-  dns: { type: 'string', optional: true }
+  dns: { type: 'string', optional: true },
 }
 
 reconfigureIp.resolve = {
-  pif: ['id', 'PIF', 'administrate']
+  pif: ['id', 'PIF', 'administrate'],
 }
 
 // ===================================================================
@@ -85,9 +85,9 @@ export async function editPif ({ pif, vlan }) {
 
 editPif.params = {
   id: { type: 'string' },
-  vlan: { type: ['integer', 'string'] }
+  vlan: { type: ['integer', 'string'] },
 }
 
 editPif.resolve = {
-  pif: ['id', 'PIF', 'administrate']
+  pif: ['id', 'PIF', 'administrate'],
 }

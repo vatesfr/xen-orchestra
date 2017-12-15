@@ -10,11 +10,11 @@ async function delete_ ({PBD}) {
 export {delete_ as delete}
 
 delete_.params = {
-  id: { type: 'string' }
+  id: { type: 'string' },
 }
 
 delete_.resolve = {
-  PBD: ['id', 'PBD', 'administrate']
+  PBD: ['id', 'PBD', 'administrate'],
 }
 
 // ===================================================================
@@ -25,11 +25,11 @@ export async function disconnect ({ pbd }) {
 }
 
 disconnect.params = {
-  id: { type: 'string' }
+  id: { type: 'string' },
 }
 
 disconnect.resolve = {
-  pbd: ['id', 'PBD', 'administrate']
+  pbd: ['id', 'PBD', 'administrate'],
 }
 
 // ===================================================================
@@ -41,9 +41,9 @@ export async function connect ({PBD}) {
 }
 
 connect.params = {
-  id: { type: 'string' }
+  id: { type: 'string' },
 }
 
 connect.resolve = {
-  PBD: ['id', 'PBD', 'administrate']
+  PBD: ['id', 'PBD', 'administrate'],
 }

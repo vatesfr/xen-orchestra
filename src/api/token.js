@@ -3,7 +3,7 @@
 export async function create ({ expiresIn }) {
   return (await this.createAuthenticationToken({
     expiresIn,
-    userId: this.session.get('user_id')
+    userId: this.session.get('user_id'),
   })).id
 }
 
@@ -12,8 +12,8 @@ create.description = 'create a new authentication token'
 create.params = {
   expiresIn: {
     optional: true,
-    type: [ 'number', 'string' ]
-  }
+    type: [ 'number', 'string' ],
+  },
 }
 
 create.permission = '' // sign in
@@ -32,5 +32,5 @@ delete_.description = 'delete an existing authentication token'
 delete_.permission = 'admin'
 
 delete_.params = {
-  token: { type: 'string' }
+  token: { type: 'string' },
 }

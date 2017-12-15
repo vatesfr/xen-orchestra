@@ -18,21 +18,21 @@ describe('resolveParamsVector', function () {
         type: 'crossProduct',
         items: [{
           type: 'set',
-          values: [ { id: 3 }, { id: 7 }, { id: 10 } ]
+          values: [ { id: 3 }, { id: 7 }, { id: 10 } ],
         }, {
           type: 'set',
-          values: [ { value: 'foo' }, { value: 'bar' } ]
+          values: [ { value: 'foo' }, { value: 'bar' } ],
         }, {
           type: 'set',
-          values: [ { remote: 'local' } ]
-        }]
-      }
+          values: [ { remote: 'local' } ],
+        }],
+      },
     ],
     'cross product with `set` and `map`': [
       // Expected result.
       [
         { remote: 'local', id: 'vm:2' },
-        { remote: 'smb', id: 'vm:2' }
+        { remote: 'smb', id: 'vm:2' },
       ],
 
       // Entry.
@@ -40,7 +40,7 @@ describe('resolveParamsVector', function () {
         type: 'crossProduct',
         items: [{
           type: 'set',
-          values: [ { remote: 'local' }, { remote: 'smb' } ]
+          values: [ { remote: 'local' }, { remote: 'smb' } ],
         }, {
           type: 'map',
           collection: {
@@ -49,14 +49,14 @@ describe('resolveParamsVector', function () {
               $pool: { __or: [ 'pool:1', 'pool:8', 'pool:12' ] },
               power_state: 'Running',
               tags: [ 'foo' ],
-              type: 'VM'
-            }
+              type: 'VM',
+            },
           },
           iteratee: {
             type: 'extractProperties',
-            mapping: { id: 'id' }
-          }
-        }]
+            mapping: { id: 'id' },
+          },
+        }],
       },
 
       // Context.
@@ -68,28 +68,28 @@ describe('resolveParamsVector', function () {
               $pool: 'pool:1',
               tags: [],
               type: 'VM',
-              power_state: 'Halted'
+              power_state: 'Halted',
             }, {
               id: 'vm:2',
               $pool: 'pool:1',
               tags: [ 'foo' ],
               type: 'VM',
-              power_state: 'Running'
+              power_state: 'Running',
             }, {
               id: 'host:1',
               type: 'host',
-              power_state: 'Running'
+              power_state: 'Running',
             }, {
               id: 'vm:3',
               $pool: 'pool:8',
               tags: [ 'foo' ],
               type: 'VM',
-              power_state: 'Halted'
+              power_state: 'Halted',
             }]
-          }
-        }
-      }
-    ]
+          },
+        },
+      },
+    ],
   }, ([ expectedResult, entry, context ], name) => {
     describe(`with ${name}`, () => {
       it('Resolves params vector', () => {

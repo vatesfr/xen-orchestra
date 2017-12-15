@@ -38,8 +38,8 @@ export default {
           if (lockingMode !== vif.locking_mode) {
             return this._set('locking_mode', lockingMode)
           }
-        }
-      ]
+        },
+      ],
     },
     ipv6Allowed: {
       get: true,
@@ -53,8 +53,8 @@ export default {
           if (lockingMode !== vif.locking_mode) {
             return this._set('locking_mode', lockingMode)
           }
-        }
-      ]
-    }
-  })
+        },
+      ],
+    },
+  }),
 }

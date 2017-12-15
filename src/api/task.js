@@ -3,11 +3,11 @@ export async function cancel ({task}) {
 }
 
 cancel.params = {
-  id: { type: 'string' }
+  id: { type: 'string' },
 }
 
 cancel.resolve = {
-  task: ['id', 'task', 'administrate']
+  task: ['id', 'task', 'administrate'],
 }
 
 // -------------------------------------------------------------------
@@ -17,9 +17,9 @@ export async function destroy ({task}) {
 }
 
 destroy.params = {
-  id: { type: 'string' }
+  id: { type: 'string' },
 }
 
 destroy.resolve = {
-  task: ['id', 'task', 'administrate']
+  task: ['id', 'task', 'administrate'],
 }

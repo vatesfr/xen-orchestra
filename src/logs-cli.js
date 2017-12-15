@@ -105,12 +105,12 @@ function getArgs () {
     default: {
       limit: 100,
       json: false,
-      help: false
+      help: false,
     },
     alias: {
       limit: 'n',
-      help: 'h'
-    }
+      help: 'h',
+    },
   })
 
   const patterns = {}
@@ -176,7 +176,7 @@ export default async function main () {
   }
 
   const config = await appConf.load('xo-server', {
-    ignoreUnknownFormats: true
+    ignoreUnknownFormats: true,
   })
 
   if (args.repair) {

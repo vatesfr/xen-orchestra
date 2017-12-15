@@ -1,7 +1,7 @@
 import Collection from '../collection/redis'
 import Model from '../model'
 import {
-  forEach
+  forEach,
 } from '../utils'
 
 // ===================================================================
@@ -18,7 +18,7 @@ export class Remotes extends Collection {
       name,
       url,
       enabled: false,
-      error: ''
+      error: '',
     }))
   }
 

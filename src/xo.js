@@ -11,18 +11,18 @@ import {
   isString,
   iteratee,
   map as mapToArray,
-  stubTrue
+  stubTrue,
 } from 'lodash'
 
-import mixins from './xo-mixins'
+import mixins from './xo-mixins' // eslint-disable-line node/no-missing-import
 import Connection from './connection'
 import {
-  mixin
+  mixin,
 } from './decorators'
 import {
   createRawObject,
   generateToken,
-  noop
+  noop,
 } from './utils'
 
 // ===================================================================
@@ -49,12 +49,12 @@ export default class Xo extends EventEmitter {
     // Connects to Redis.
     {
       const {
-        renameCommands: rename_commands,
+        renameCommands,
         socket: path,
-        uri: url
+        uri: url,
       } = config.redis || {}
 
-      this._redis = createRedisClient({ path, rename_commands, url })
+      this._redis = createRedisClient({ path, rename_commands: renameCommands, url })
     }
 
     this.on('start', () => this._watchObjects())
@@ -67,8 +67,8 @@ export default class Xo extends EventEmitter {
     const {
       all,
       indexes: {
-        byRef
-      }
+        byRef,
+      },
     } = this._objects
 
     const obj = all[key] || byRef[key]
@@ -180,7 +180,7 @@ export default class Xo extends EventEmitter {
 
     watchers[url] = {
       data,
-      fn
+      fn,
     }
 
     return url
@@ -188,7 +188,7 @@ export default class Xo extends EventEmitter {
 
   async registerHttpRequestHandler (url, fn, {
     data = undefined,
-    persistent = true
+    persistent = true,
   } = {}) {
     const {_httpRequestWatchers: watchers} = this
 
@@ -199,7 +199,7 @@ export default class Xo extends EventEmitter {
     watchers[url] = {
       data,
       fn,
-      persistent
+      persistent,
     }
   }
 
@@ -224,7 +224,7 @@ export default class Xo extends EventEmitter {
 
     Object.defineProperty(this, name, {
       configurable: true,
-      value
+      value,
     })
 
     let unset = () => {
@@ -260,7 +260,7 @@ export default class Xo extends EventEmitter {
   _watchObjects () {
     const {
       _connections: connections,
-      _objects: objects
+      _objects: objects,
     } = this
 
     let entered, exited
@@ -289,11 +289,11 @@ export default class Xo extends EventEmitter {
     objects.on('finish', () => {
       const enteredMessage = !isEmpty(entered) && {
         type: 'enter',
-        items: entered
+        items: entered,
       }
       const exitedMessage = !isEmpty(exited) && {
         type: 'exit',
-        items: exited
+        items: exited,
       }
 
       if (!enteredMessage && !exitedMessage) {

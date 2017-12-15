@@ -1,11 +1,11 @@
 import {
   forEach,
-  groupBy
+  groupBy,
 } from 'lodash'
 
 import {
   createRawObject,
-  mapToArray
+  mapToArray,
 } from '../../utils'
 
 export default {
@@ -92,5 +92,5 @@ export default {
       }
     })
     return unhealthyVdis
-  }
+  },
 }

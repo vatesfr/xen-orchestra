@@ -5,7 +5,7 @@ export async function create ({name}) {
 create.description = 'creates a new group'
 create.permission = 'admin'
 create.params = {
-  name: {type: 'string'}
+  name: {type: 'string'},
 }
 
 // -------------------------------------------------------------------
@@ -21,7 +21,7 @@ export {delete_ as delete}
 delete_.description = 'deletes an existing group'
 delete_.permission = 'admin'
 delete_.params = {
-  id: {type: 'string'}
+  id: {type: 'string'},
 }
 
 // -------------------------------------------------------------------
@@ -44,7 +44,7 @@ setUsers.description = 'sets the users belonging to a group'
 setUsers.permission = 'admin'
 setUsers.params = {
   id: {type: 'string'},
-  userIds: {}
+  userIds: {},
 }
 
 // -------------------------------------------------------------------
@@ -58,7 +58,7 @@ addUser.description = 'adds a user to a group'
 addUser.permission = 'admin'
 addUser.params = {
   id: {type: 'string'},
-  userId: {type: 'string'}
+  userId: {type: 'string'},
 }
 
 // -------------------------------------------------------------------
@@ -74,7 +74,7 @@ removeUser.description = 'removes a user from a group'
 removeUser.permission = 'admin'
 removeUser.params = {
   id: {type: 'string'},
-  userId: {type: 'string'}
+  userId: {type: 'string'},
 }
 
 // -------------------------------------------------------------------
@@ -87,5 +87,5 @@ set.description = 'changes the properties of an existing group'
 set.permission = 'admin'
 set.params = {
   id: { type: 'string' },
-  name: { type: 'string', optional: true }
+  name: { type: 'string', optional: true },
 }

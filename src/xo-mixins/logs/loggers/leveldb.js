@@ -32,7 +32,7 @@ export default class LevelDbLogger extends AbstractLogger {
       message,
       data,
       namespace: this._namespace,
-      time
+      time,
     }
 
     const key = generateUniqueKey(time)

@@ -13,14 +13,14 @@ export default function proxyConsole (ws, vmConsole, sessionId) {
   const socket = connect({
     host: url.host,
     port: url.port || 443,
-    rejectUnauthorized: false
+    rejectUnauthorized: false,
   }, () => {
     // Write headers.
     socket.write([
       `CONNECT ${url.path} HTTP/1.0`,
       `Host: ${url.hostname}`,
       `Cookie: session_id=${sessionId}`,
-      '', ''
+      '', '',
     ].join('\r\n'))
 
     const onSend = (error) => {

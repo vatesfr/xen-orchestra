@@ -5,12 +5,12 @@ export async function add ({tag, object}) {
 add.description = 'add a new tag to an object'
 
 add.resolve = {
-  object: ['id', null, 'administrate']
+  object: ['id', null, 'administrate'],
 }
 
 add.params = {
   tag: { type: 'string' },
-  id: { type: 'string' }
+  id: { type: 'string' },
 }
 
 // -------------------------------------------------------------------
@@ -22,10 +22,10 @@ export async function remove ({tag, object}) {
 remove.description = 'remove an existing tag from an object'
 
 remove.resolve = {
-  object: ['id', null, 'administrate']
+  object: ['id', null, 'administrate'],
 }
 
 remove.params = {
   tag: { type: 'string' },
-  id: { type: 'string' }
+  id: { type: 'string' },
 }

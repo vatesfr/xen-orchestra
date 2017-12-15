@@ -3,12 +3,12 @@ import Ajv from 'ajv'
 import { PluginsMetadata } from '../models/plugin-metadata'
 import {
   invalidParameters,
-  noSuchObject
+  noSuchObject,
 } from 'xo-common/api-errors'
 import {
   createRawObject,
   isFunction,
-  mapToArray
+  mapToArray,
 } from '../utils'
 
 // ===================================================================
@@ -16,13 +16,13 @@ import {
 export default class {
   constructor (xo) {
     this._ajv = new Ajv({
-      useDefaults: true
+      useDefaults: true,
     })
     this._plugins = createRawObject()
 
     this._pluginsMetadata = new PluginsMetadata({
       connection: xo._redis,
-      prefix: 'xo:plugin-metadata'
+      prefix: 'xo:plugin-metadata',
     })
 
     xo.on('start', () => {
@@ -71,7 +71,7 @@ export default class {
       testable: isFunction(instance.test),
       testSchema,
       unloadable: isFunction(instance.unload),
-      version
+      version,
     }
 
     const metadata = await this._getPluginMetadata(id)
@@ -80,13 +80,13 @@ export default class {
     if (metadata) {
       ({
         autoload,
-        configuration
+        configuration,
       } = metadata)
     } else {
       console.log(`[NOTICE] register plugin ${name} for the first time`)
       await this._pluginsMetadata.save({
         id,
-        autoload
+        autoload,
       })
     }
 
@@ -113,11 +113,11 @@ export default class {
       testable,
       testSchema,
       unloadable,
-      version
+      version,
     } = this._getRawPlugin(id)
     const {
       autoload,
-      configuration
+      configuration,
     } = (await this._getPluginMetadata(id)) || {}
 
     return {
@@ -132,7 +132,7 @@ export default class {
       configurationPresets,
       configurationSchema,
       testable,
-      testSchema
+      testSchema,
     }
   }
 
@@ -160,7 +160,7 @@ export default class {
       // Shallow copy of the configuration object to avoid most of the
       // errors when the plugin is altering the configuration object
       // which is handed over to it.
-      ...configuration
+      ...configuration,
     })
     plugin.configured = true
   }
@@ -234,7 +234,7 @@ export default class {
       if (data == null) {
         throw invalidParameters([{
           field: 'data',
-          message: 'is the wrong type'
+          message: 'is the wrong type',
         }])
       }
 

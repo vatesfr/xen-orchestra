@@ -11,10 +11,10 @@ import {
   isEmpty,
   isString,
   popProperty,
-  serializeError
+  serializeError,
 } from '../utils'
 import {
-  Servers
+  Servers,
 } from '../models/server'
 
 // ===================================================================
@@ -25,7 +25,7 @@ export default class {
     const serversDb = this._servers = new Servers({
       connection: xo._redis,
       prefix: 'xo:server',
-      indexes: ['host']
+      indexes: ['host'],
     })
     this._stats = new XapiStats()
     this._xapis = createRawObject()
@@ -41,7 +41,7 @@ export default class {
 
       // Connects to existing servers.
       const servers = await serversDb.get()
-      for (let server of servers) {
+      for (const server of servers) {
         if (server.enabled) {
           this.connectXenServer(server.id).catch(error => {
             console.error(
@@ -62,7 +62,7 @@ export default class {
     label,
     password,
     readOnly,
-    username
+    username,
   }) {
     // FIXME: We are storing passwords which is bad!
     //        Could we use tokens instead?
@@ -74,7 +74,7 @@ export default class {
       label: label || undefined,
       password,
       readOnly: readOnly ? 'true' : undefined,
-      username
+      username,
     })
 
     return server.properties
@@ -96,7 +96,7 @@ export default class {
     label,
     password,
     readOnly,
-    username
+    username,
   }) {
     const server = await this._getXenServer(id)
     const xapi = this._xapis[id]
@@ -225,10 +225,10 @@ export default class {
       allowUnauthorized: Boolean(server.allowUnauthorized),
       auth: {
         user: server.username,
-        password: server.password
+        password: server.password,
       },
       readOnly: Boolean(server.readOnly),
-      url: server.host
+      url: server.host,
     })
 
     xapi.xo = (() => {
@@ -316,7 +316,7 @@ export default class {
 
           // Register the updated object.
           addObject(await xapi._waitObject(id))
-        }
+        },
       }
     })()
 
@@ -410,7 +410,7 @@ export default class {
     const sourceXapi = this.getXapi(sourceId)
     const {
       _auth: { user, password },
-      _url: { hostname }
+      _url: { hostname },
     } = this.getXapi(targetId)
 
     // We don't want the events of the source XAPI to interfere with

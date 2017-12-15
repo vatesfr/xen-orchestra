@@ -4,22 +4,22 @@ export default {
   properties: {
     id: {
       type: 'string',
-      description: 'unique identifier for this user'
+      description: 'unique identifier for this user',
     },
     email: {
       type: 'string',
-      description: 'email address of this user'
+      description: 'email address of this user',
     },
     groups: {
       type: 'array',
       items: {
-        type: 'string'
+        type: 'string',
       },
-      description: 'identifier of groups this user belong to'
+      description: 'identifier of groups this user belong to',
     },
     permission: {
       enum: ['none', 'read', 'write', 'admin'],
-      description: 'root permission for this user, none and admin are the only significant ones'
+      description: 'root permission for this user, none and admin are the only significant ones',
     },
     preferences: {
       type: 'object',
@@ -31,20 +31,20 @@ export default {
             type: 'object',
             properties: {
               key: { type: 'string' },
-              title: { type: 'string' }
+              title: { type: 'string' },
             },
             required: [
               'key',
-              'title'
-            ]
-          }
-        }
+              'title',
+            ],
+          },
+        },
       },
-      description: 'various user preferences'
-    }
+      description: 'various user preferences',
+    },
   },
   required: [
     'id',
-    'email'
-  ]
+    'email',
+  ],
 }

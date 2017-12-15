@@ -20,7 +20,7 @@ import { invalidCredentials } from 'xo-common/api-errors'
 import {
   ensureDir,
   readdir,
-  readFile
+  readFile,
 } from 'fs-extra'
 
 import WebServer from 'http-server-plus'
@@ -31,7 +31,7 @@ import {
   isArray,
   isFunction,
   mapToArray,
-  pFromCallback
+  pFromCallback,
 } from './utils'
 
 import bodyParser from 'body-parser'
@@ -54,12 +54,12 @@ const warn = (...args) => {
 
 const DEPRECATED_ENTRIES = [
   'users',
-  'servers'
+  'servers',
 ]
 
 async function loadConfiguration () {
   const config = await appConf.load('xo-server', {
-    ignoreUnknownFormats: true
+    ignoreUnknownFormats: true,
   })
 
   debug('Configuration loaded.')
@@ -89,7 +89,7 @@ function createExpressApp () {
     saveUninitialized: false,
 
     // TODO: should be in the config file.
-    secret: 'CLWguhRZAZIXZcbrMzHCYmefxgweItKnS'
+    secret: 'CLWguhRZAZIXZcbrMzHCYmefxgweItKnS',
   }))
 
   // Registers the connect-flash middleware, necessary for Passport to
@@ -124,7 +124,7 @@ async function setUpPassport (express, xo) {
   express.get('/signin', (req, res, next) => {
     res.send(signInPage({
       error: req.flash('error')[0],
-      strategies
+      strategies,
     }))
   })
 
@@ -220,7 +220,7 @@ async function registerPlugin (pluginPath, pluginName) {
     default: factory = plugin,
     configurationSchema,
     configurationPresets,
-    testSchema
+    testSchema,
   } = plugin
 
   // The default export can be either a factory or directly a plugin
@@ -231,7 +231,7 @@ async function registerPlugin (pluginPath, pluginName) {
       getDataDir: () => {
         const dir = `${this._config.datadir}/${pluginName}`
         return ensureDir(dir).then(() => dir)
-      }
+      },
     })
     : factory
 
@@ -287,7 +287,7 @@ async function registerPluginsInPath (path) {
 async function registerPlugins (xo) {
   await Promise.all(mapToArray([
     `${__dirname}/../node_modules/`,
-    '/usr/local/lib/node_modules/'
+    '/usr/local/lib/node_modules/',
   ], xo::registerPluginsInPath))
 }
 
@@ -305,7 +305,7 @@ async function makeWebServerListen (webServer, {
   if (cert && key) {
     [opts.cert, opts.key] = await Promise.all([
       readFile(cert),
-      readFile(key)
+      readFile(key),
     ])
   }
   try {
@@ -346,7 +346,7 @@ const setUpProxies = (express, opts, xo) => {
   }
 
   const proxy = createProxyServer({
-    ignorePath: true
+    ignorePath: true,
   }).on('error', (error) => console.error(error))
 
   // TODO: sort proxies by descending prefix length.
@@ -360,7 +360,7 @@ const setUpProxies = (express, opts, xo) => {
         const target = opts[prefix]
 
         proxy.web(req, res, {
-          target: target + url.slice(prefix.length)
+          target: target + url.slice(prefix.length),
         })
 
         return
@@ -372,7 +372,7 @@ const setUpProxies = (express, opts, xo) => {
 
   // WebSocket proxy.
   const webSocketServer = new WebSocket.Server({
-    noServer: true
+    noServer: true,
   })
   xo.on('stop', () => pFromCallback(cb => webSocketServer.close(cb)))
 
@@ -384,7 +384,7 @@ const setUpProxies = (express, opts, xo) => {
         const target = opts[prefix]
 
         proxy.ws(req, socket, head, {
-          target: target + url.slice(prefix.length)
+          target: target + url.slice(prefix.length),
         })
 
         return
@@ -413,7 +413,7 @@ const setUpStaticFiles = (express, opts) => {
 
 const setUpApi = (webServer, xo, verboseLogsOnErrors) => {
   const webSocketServer = new WebSocket.Server({
-    noServer: true
+    noServer: true,
   })
   xo.on('stop', () => pFromCallback(cb => webSocketServer.close(cb)))
 
@@ -474,7 +474,7 @@ const CONSOLE_PROXY_PATH_RE = /^\/api\/consoles\/(.*)$/
 
 const setUpConsoleProxy = (webServer, xo) => {
   const webSocketServer = new WebSocket.Server({
-    noServer: true
+    noServer: true,
   })
   xo.on('stop', () => pFromCallback(cb => webSocketServer.close(cb)))
 
@@ -519,7 +519,7 @@ const setUpConsoleProxy = (webServer, xo) => {
 
 const USAGE = (({
   name,
-  version
+  version,
 }) => `Usage: ${name} [--safe-mode]
 
 ${name} v${version}`)(require('../package.json'))

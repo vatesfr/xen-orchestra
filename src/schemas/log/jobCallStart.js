@@ -3,25 +3,25 @@ export default {
   type: 'object',
   properties: {
     event: {
-      enum: ['jobCall.start']
+      enum: ['jobCall.start'],
     },
     runJobId: {
       type: 'string',
-      description: 'instance id of this job'
+      description: 'instance id of this job',
     },
     method: {
       type: 'string',
-      description: 'method linked to this call'
+      description: 'method linked to this call',
     },
     params: {
       type: 'object',
-      description: 'params of the called method'
-    }
+      description: 'params of the called method',
+    },
   },
   required: [
     'event',
     'runJobId',
     'method',
-    'params'
-  ]
+    'params',
+  ],
 }

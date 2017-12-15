@@ -3,24 +3,24 @@ export default {
   type: 'object',
   properties: {
     event: {
-      enum: ['job.start']
+      enum: ['job.start'],
     },
     userId: {
       type: 'string',
-      description: 'user who executes this job'
+      description: 'user who executes this job',
     },
     jobId: {
       type: 'string',
-      description: 'identifier of this job'
+      description: 'identifier of this job',
     },
     key: {
-      type: 'string'
-    }
+      type: 'string',
+    },
   },
   required: [
     'event',
     'userId',
     'jobId',
-    'key'
-  ]
+    'key',
+  ],
 }

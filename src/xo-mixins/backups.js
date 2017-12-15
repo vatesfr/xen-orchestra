@@ -10,7 +10,7 @@ import { satisfies as versionSatisfies } from 'semver'
 import { utcFormat } from 'd3-time-format'
 import {
   basename,
-  dirname
+  dirname,
 } from 'path'
 import {
   endsWith,
@@ -22,7 +22,7 @@ import {
   range,
   sortBy,
   startsWith,
-  trim
+  trim,
 } from 'lodash'
 
 import createSizeStream from '../size-stream'
@@ -41,10 +41,10 @@ import {
   resolveSubpath,
   safeDateFormat,
   safeDateParse,
-  tmpDir
+  tmpDir,
 } from '../utils'
 import {
-  VDI_FORMAT_VHD
+  VDI_FORMAT_VHD,
 } from '../xapi'
 
 // ===================================================================
@@ -76,7 +76,7 @@ const parseVmBackupPath = name => {
       id: name,
       name: baseMatches[3],
       tag: baseMatches[2],
-      type: 'xva'
+      type: 'xva',
     }
   }
 
@@ -91,7 +91,7 @@ const parseVmBackupPath = name => {
       name: baseMatches[2],
       tag: dirMatches[1],
       type: 'delta',
-      uuid: dirMatches[2]
+      uuid: dirMatches[2],
     }
   }
 
@@ -139,7 +139,7 @@ const listPartitions = (() => {
     // https://github.com/jhermsmeier/node-mbr/blob/master/lib/partition.js#L38
     0x05, 0x0F, 0x85, 0x15, 0x91, 0x9B, 0x5E, 0x5F, 0xCF, 0xD5, 0xC5,
 
-    0x82 // swap
+    0x82, // swap
   ], type => {
     IGNORED[type] = true
   })
@@ -147,7 +147,7 @@ const listPartitions = (() => {
   const TYPES = {
     0x7: 'NTFS',
     0x83: 'linux',
-    0xc: 'FAT'
+    0xc: 'FAT',
   }
 
   const parseLine = createPairsParser({
@@ -158,14 +158,14 @@ const listPartitions = (() => {
       ? +value
       : key === 'type'
         ? TYPES[+value] || value
-        : value
+        : value,
   })
 
   return device => execa.stdout('partx', [
     '--bytes',
     '--output=NR,START,SIZE,NAME,UUID,TYPE',
     '--pairs',
-    device.path
+    device.path,
   ]).then(stdout => mapFilter(splitLines(stdout), line => {
     const partition = parseLine(line)
     const { type } = partition
@@ -187,7 +187,7 @@ const listPartitions2 = device => listPartitions(device).then(partitions => {
             partitions2.push({
               name: lv.lv_name,
               size: +lv.lv_size,
-              id: `${partition.id}/${lv.vg_name}/${lv.lv_name}`
+              id: `${partition.id}/${lv.vg_name}/${lv.lv_name}`,
             })
           })
         })
@@ -203,11 +203,11 @@ const listPartitions2 = device => listPartitions(device).then(partitions => {
 
 const mountPartition = (device, partitionId) => Promise.all([
   partitionId != null && listPartitions(device),
-  tmpDir()
+  tmpDir(),
 ]).then(([ partitions, path ]) => {
   const options = [
     'loop',
-    'ro'
+    'ro',
   ]
 
   if (partitions) {
@@ -222,7 +222,7 @@ const mountPartition = (device, partitionId) => Promise.all([
   const mount = options => execa('mount', [
     `--options=${options.join(',')}`,
     `--source=${device.path}`,
-    `--target=${path}`
+    `--target=${path}`,
   ])
 
   // `norecovery` option is used for ext3/ext4/xfs, if it fails it
@@ -231,7 +231,7 @@ const mountPartition = (device, partitionId) => Promise.all([
     mount(options)
   ).then(() => ({
     path,
-    unmount: once(() => execa('umount', [ '--lazy', path ]))
+    unmount: once(() => execa('umount', [ '--lazy', path ])),
   }), error => {
     console.log(error)
 
@@ -260,7 +260,7 @@ const mountPartition2 = (device, partitionId) => {
     ).then(path =>
       mountPartition({ path }).then(device2 => ({
         ...device2,
-        unmount: () => device2.unmount().then(device1.unmount)
+        unmount: () => device2.unmount().then(device1.unmount),
       }))
     ).catch(error => device1.unmount().then(() => {
       throw error
@@ -274,7 +274,7 @@ const listLvmLvs = device => pvs([
   'lv_name',
   'lv_path',
   'lv_size',
-  'vg_name'
+  'vg_name',
 ], device.path).then(pvs => filter(pvs, 'lv_name'))
 
 const mountLvmPv = (device, partition) => {
@@ -296,9 +296,9 @@ const mountLvmPv = (device, partition) => {
         execa('losetup', [ '-d', path ]),
         pvs('vg_name', path).then(vgNames => execa('vgchange', [
           '-an',
-          ...vgNames
-        ]))
-      ]))
+          ...vgNames,
+        ])),
+      ])),
     }
   })
 }
@@ -313,7 +313,7 @@ export default class {
     // unmounted
     xo.on('start', () => Promise.all([
       execa('losetup', [ '-D' ]),
-      execa('vgchange', [ '-an' ])
+      execa('vgchange', [ '-an' ]),
     ]).then(() =>
       execa('pvscan', [ '--cache' ])
     ))
@@ -367,7 +367,7 @@ export default class {
                 record.disks = mapToArray(JSON.parse(data).vdis, vdi => ({
                   id: `${entry}/${vdi.xoPath}`,
                   name: vdi.name_label,
-                  uuid: vdi.uuid
+                  uuid: vdi.uuid,
                 }))
               })
             }
@@ -390,8 +390,8 @@ export default class {
     await Promise.all([
       xapi.addTag(vm.$id, 'restored from backup'),
       xapi.editVm(vm.$id, {
-        name_label: `${vm.name_label} (${shortDate(datetime * 1e3)})`
-      })
+        name_label: `${vm.name_label} (${shortDate(datetime * 1e3)})`,
+      }),
     ])
 
     return xapiObjectToXo(vm).id
@@ -424,7 +424,7 @@ export default class {
       const { cancel, token } = CancelToken.source()
       const delta = await srcXapi.exportDeltaVm(token, srcVm.$id, localBaseUuid, {
         bypassVdiChainsCheck: force,
-        snapshotNameLabel: `XO_DELTA_EXPORT: ${targetSr.name_label} (${targetSr.uuid})`
+        snapshotNameLabel: `XO_DELTA_EXPORT: ${targetSr.name_label} (${targetSr.uuid})`,
       })
       $onFailure(() => srcXapi.deleteVm(delta.vm.uuid))
       $onFailure(cancel)
@@ -461,7 +461,7 @@ export default class {
         delta,
         {
           deleteBase,
-          srId: targetSr.$id
+          srId: targetSr.$id,
         }
       )
 
@@ -480,7 +480,7 @@ export default class {
       // (Asynchronously) Identify snapshot as future base.
       promise.then(() => {
         return srcXapi._updateObjectMapProperty(srcVm, 'other_config', {
-          [TAG_LAST_BASE_DELTA]: delta.vm.uuid
+          [TAG_LAST_BASE_DELTA]: delta.vm.uuid,
         })
       })::ignoreErrors()
 
@@ -491,7 +491,7 @@ export default class {
     // 5. Return the identifier of the new XO VM object.
       id: xapiObjectToXo(dstVm).id,
       transferDuration: Date.now() - transferStart,
-      transferSize: size
+      transferSize: size,
     }
   }
 
@@ -530,7 +530,7 @@ export default class {
       const stream = await handler.createReadStream(`${dir}/${vdiDir}/${backup}`)
 
       await xapi.importVdiContent(vdiId, stream, {
-        format: VDI_FORMAT_VHD
+        format: VDI_FORMAT_VHD,
       })
     }
 
@@ -550,7 +550,7 @@ export default class {
     // Disable start and change the VM name label during import.
     await Promise.all([
       xapi.addForbiddenOperationToVm(vm.$id, 'start', 'Delta backup import...'),
-      xapi._setObjectProperties(vm, { name_label: `[Importing...] ${vmName}` })
+      xapi._setObjectProperties(vm, { name_label: `[Importing...] ${vmName}` }),
     ])
 
     // Destroy vbds if necessary. Why ?
@@ -583,7 +583,7 @@ export default class {
     // Import done, reenable start and set real vm name.
     await Promise.all([
       xapi.removeForbiddenOperationFromVm(vm.$id, 'start'),
-      xapi._setObjectProperties(vm, { name_label: vmName })
+      xapi._setObjectProperties(vm, { name_label: vmName }),
     ])
 
     return vm
@@ -628,7 +628,7 @@ export default class {
 
   async _mergeDeltaVdiBackups ({handler, dir, retention}) {
     const backups = await this._listVdiBackups(handler, dir)
-    let i = backups.length - retention
+    const i = backups.length - retention
 
     // No merge.
     if (i <= 0) {
@@ -730,7 +730,7 @@ export default class {
         // The problem is in the merge case, a delta merged in a full vdi
         // backup forces us to browse the resulting file =>
         // Significant transfer time on the network !
-        checksum: !isFull
+        checksum: !isFull,
       })
 
       stream.on('error', error => targetStream.emit('error', error))
@@ -742,7 +742,7 @@ export default class {
             .pipe(targetStream),
           'finish'
         ),
-        stream.task
+        stream.task,
       ])
     } catch (error) {
       // Remove new backup. (corrupt).
@@ -754,7 +754,7 @@ export default class {
     return {
       // Returns relative path.
       path: `${backupDirectory}/${vdiFilename}`,
-      size: sizeStream.size
+      size: sizeStream.size,
     }
   }
 
@@ -769,7 +769,7 @@ export default class {
 
         // Remove xva file.
         // Version 0.0.0 (Legacy) Delta Backup.
-        handler.unlink(`${dir}/${getDeltaBackupNameWithoutExt(backup)}.xva`)::ignoreErrors()
+        handler.unlink(`${dir}/${getDeltaBackupNameWithoutExt(backup)}.xva`)::ignoreErrors(),
       ]))
     }
   }
@@ -815,7 +815,7 @@ export default class {
     const delta = await xapi.exportDeltaVm(token, vm.$id, baseVm && baseVm.$id, {
       snapshotNameLabel: `XO_DELTA_BASE_VM_SNAPSHOT_${tag}`,
       fullVdisRequired,
-      disableBaseTags: true
+      disableBaseTags: true,
     })
     $onFailure(() => xapi.deleteVm(delta.vm.uuid))
     $onFailure(cancel)
@@ -831,12 +831,12 @@ export default class {
           handler,
           stream: delta.streams[`${key}.vhd`],
           dir,
-          retention
+          retention,
         })
           .then(data => {
             delta.vdis[key] = {
               ...delta.vdis[key],
-              xoPath: data.path
+              xoPath: data.path,
             }
 
             return data
@@ -912,7 +912,7 @@ export default class {
       mergeDuration: mergedDataSize !== 0 ? mergeDuration : undefined,
       mergeSize: mergedDataSize !== 0 ? mergedDataSize : undefined,
       transferDuration: Date.now() - transferStart - mergeDuration,
-      transferSize: dataSize
+      transferSize: dataSize,
     }
   }
 
@@ -930,7 +930,7 @@ export default class {
     if (!version) {
       // Legacy import. (Version 0.0.0)
       vm = await this._legacyImportDeltaVmBackup(xapi, {
-        remoteId, handler, filePath, info: delta, sr, mapVdisSrs
+        remoteId, handler, filePath, info: delta, sr, mapVdisSrs,
       })
     } else if (versionSatisfies(delta.version, '^1')) {
       const basePath = dirname(filePath)
@@ -956,7 +956,7 @@ export default class {
       vm = await xapi.importDeltaVm(delta, {
         disableStartAfterImport: false,
         srId: sr !== undefined && sr._xapiId,
-        mapVdisSrs
+        mapVdisSrs,
       })
     } else {
       throw new Error(`Unsupported delta backup version: ${version}`)
@@ -982,7 +982,7 @@ export default class {
 
     const sourceStream = await this._xo.getXapi(vm).exportVm(vm._xapiId, {
       compress,
-      onlyMetadata: onlyMetadata || false
+      onlyMetadata: onlyMetadata || false,
     })
 
     const sizeStream = createSizeStream()
@@ -994,7 +994,7 @@ export default class {
     await promise
 
     return {
-      transferSize: sizeStream.size
+      transferSize: sizeStream.size,
     }
   }
 
@@ -1073,11 +1073,11 @@ export default class {
 
     const copyName = `${vm.name_label}_${tag}_${safeDateFormat(new Date())}`
     const data = await sourceXapi.remoteCopyVm(vm.$id, targetXapi, sr.$id, {
-      nameLabel: copyName
+      nameLabel: copyName,
     })
 
     targetXapi._updateObjectMapProperty(data.vm, 'blocked_operations', {
-      start: 'Start operation for this vm is blocked, clone it if you want to use it.'
+      start: 'Start operation for this vm is blocked, clone it if you want to use it.',
     })
 
     await targetXapi.addTag(data.vm.$id, 'Disaster Recovery')
@@ -1088,7 +1088,7 @@ export default class {
 
     return {
       transferDuration: Date.now() - transferStart,
-      transferSize: data.size
+      transferSize: data.size,
     }
   }
 
@@ -1097,7 +1097,7 @@ export default class {
   _mountVhd (remoteId, vhdPath) {
     return Promise.all([
       this._xo.getRemoteHandler(remoteId),
-      tmpDir()
+      tmpDir(),
     ]).then(([ handler, mountDir ]) => {
       if (!handler._getRealPath) {
         throw new Error(`this remote is not supported`)
@@ -1141,7 +1141,7 @@ export default class {
 
           return {
             path: `${mountDir}/vhdi${max}`,
-            unmount: once(() => execa('fusermount', [ '-uz', mountDir ]))
+            unmount: once(() => execa('fusermount', [ '-uz', mountDir ])),
           }
         })
       )
@@ -1152,7 +1152,7 @@ export default class {
     return this._mountVhd(remoteId, vhdPath).then(device =>
       mountPartition2(device, partitionId).then(partition => ({
         ...partition,
-        unmount: () => partition.unmount().then(device.unmount)
+        unmount: () => partition.unmount().then(device.unmount),
       })).catch(error => device.unmount().then(() => {
         throw error
       }))
@@ -1165,7 +1165,7 @@ export default class {
     $defer(device.unmount)
 
     return {
-      partitions: await listPartitions2(device)
+      partitions: await listPartitions2(device),
     }
   }
 

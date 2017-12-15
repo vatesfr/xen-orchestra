@@ -16,13 +16,13 @@ import {
   forEach,
   mapFilter,
   mapToArray,
-  parseXml
+  parseXml,
 } from '../../utils'
 
 import {
   debug,
   extractOpaqueRef,
-  useUpdateSystem
+  useUpdateSystem,
 } from '../utils'
 
 export default {
@@ -55,7 +55,7 @@ export default {
         requirements: mapToArray(ensureArray(patch.requiredpatches), patch => {
           return patch.requiredpatch.uuid
         }),
-        paid: patch['update-stream'] === 'premium'
+        paid: patch['update-stream'] === 'premium',
         // TODO: what does it mean, should we handle it?
         // version: patch.version,
       }
@@ -85,7 +85,7 @@ export default {
         name: version.name,
         id: version.value,
         documentationUrl: version.url,
-        patches: resolveVersionPatches(version.patch)
+        patches: resolveVersionPatches(version.patch),
       }
 
       if (version.latest) {
@@ -96,7 +96,7 @@ export default {
     return {
       patches,
       latestVersion,
-      versions
+      versions,
     }
   },
 
@@ -219,7 +219,7 @@ export default {
       stream,
       '/pool_patch_upload',
       {
-        task: this.createTask('Patch upload', patchName)
+        task: this.createTask('Patch upload', patchName),
       }
     ).then(extractOpaqueRef)
 
@@ -303,7 +303,7 @@ export default {
   _installPatchUpdateOnHost: deferrable(async function ($defer, patchUuid, host) {
     const [ vdi ] = await Promise.all([
       this._getUpdateVdi($defer, patchUuid, host.$id),
-      this._ejectToolsIsos(host.$ref)
+      this._ejectToolsIsos(host.$ref),
     ])
 
     const updateRef = await this.call('pool_update.introduce', vdi.$ref)
@@ -334,7 +334,7 @@ export default {
   async _installPoolPatchOnAllHosts (patchUuid) {
     const [ patch ] = await Promise.all([
       this._getOrUploadPoolPatch(patchUuid),
-      this._ejectToolsIsos()
+      this._ejectToolsIsos(),
     ])
 
     await this.call('pool_patch.pool_apply', patch.$ref)
@@ -344,7 +344,7 @@ export default {
   _installPatchUpdateOnAllHosts: deferrable(async function ($defer, patchUuid) {
     let [ vdi ] = await Promise.all([
       this._getUpdateVdi($defer, patchUuid),
-      this._ejectToolsIsos()
+      this._ejectToolsIsos(),
     ])
     if (vdi == null) {
       vdi = await this._getUpdateVdi($defer, patchUuid, this.pool.master)
@@ -473,5 +473,5 @@ export default {
         }
       })
     }
-  }
+  },
 }

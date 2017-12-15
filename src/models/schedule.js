@@ -18,7 +18,7 @@ export class Schedules extends Collection {
       cron,
       enabled,
       name,
-      timezone
+      timezone,
     }))
   }
 

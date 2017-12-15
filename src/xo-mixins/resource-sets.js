@@ -5,7 +5,7 @@ import some from 'lodash/some'
 import synchronized from 'decorator-synchronized'
 import {
   noSuchObject,
-  unauthorized
+  unauthorized,
 } from 'xo-common/api-errors'
 
 import {
@@ -15,7 +15,7 @@ import {
   lightSet,
   map,
   mapToArray,
-  streamToArray
+  streamToArray,
 } from '../utils'
 
 // ===================================================================
@@ -25,7 +25,7 @@ const VM_RESOURCES = {
   disk: true,
   disks: true,
   memory: true,
-  vms: true
+  vms: true,
 }
 
 const computeVmResourcesUsage = vm => {
@@ -51,7 +51,7 @@ const computeVmResourcesUsage = vm => {
     disk,
     disks,
     memory: vm.memory_dynamic_max,
-    vms: 1
+    vms: 1,
   }
 }
 
@@ -63,13 +63,13 @@ const normalize = set => ({
       ? limit
       : {
         available: limit,
-        total: limit
+        total: limit,
       }
     )
     : {},
   name: set.name || '',
   objects: set.objects || [],
-  subjects: set.subjects || []
+  subjects: set.subjects || [],
 })
 
 // ===================================================================
@@ -115,11 +115,11 @@ export default class {
       // (itself or its groups).
       !some(set.subjects, lightSet(user.groups).add(user.id).has)
     ) || (
-      objectIds &&
+        objectIds &&
 
       // The set does not contains ALL objects.
       !every(objectIds, lightSet(set.objects).has)
-    )) {
+      )) {
       throw unauthorized()
     }
   }
@@ -137,7 +137,7 @@ export default class {
       name,
       objects,
       subjects,
-      limits
+      limits,
     })
 
     await this._store.put(id, set)
@@ -160,7 +160,7 @@ export default class {
     subjects = undefined,
     objects = undefined,
     limits = undefined,
-    ipPools = undefined
+    ipPools = undefined,
   }) {
     const set = await this.getResourceSet(id)
     if (name) {
@@ -179,7 +179,7 @@ export default class {
         if (!previous) {
           return {
             available: quantity,
-            total: quantity
+            total: quantity,
           }
         }
 
@@ -187,7 +187,7 @@ export default class {
 
         return {
           available: available - total + quantity,
-          total: quantity
+          total: quantity,
         }
       })
     }
@@ -212,7 +212,7 @@ export default class {
 
     return streamToArray(this._store.createValueStream(), {
       filter,
-      mapper: normalize
+      mapper: normalize,
     })
   }
 

@@ -4,26 +4,26 @@ export default {
   properties: {
     id: {
       type: 'string',
-      description: 'unique identifier for this log'
+      description: 'unique identifier for this log',
     },
     time: {
       type: 'string',
-      description: 'timestamp (in milliseconds) of this log'
+      description: 'timestamp (in milliseconds) of this log',
     },
     message: {
       type: 'string',
-      description: 'human readable (short) description of this log'
+      description: 'human readable (short) description of this log',
     },
     namespace: {
       type: 'string',
-      description: 'space to store logs'
+      description: 'space to store logs',
     },
-    data: {}
+    data: {},
   },
   required: [
     'id',
     'time',
     'message',
-    'namespace'
-  ]
+    'namespace',
+  ],
 }

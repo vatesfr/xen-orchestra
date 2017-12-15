@@ -21,7 +21,7 @@ export default class Logs {
       }
     }
     const stream = db.createKeyStream({
-      reverse: true
+      reverse: true,
     })
 
     const deleteEntry = key => {

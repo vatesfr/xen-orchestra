@@ -3,7 +3,7 @@ import Smb2 from '@marsaud/smb2-promise'
 import RemoteHandlerAbstract from './abstract'
 import {
   noop,
-  pFinally
+  pFinally,
 } from '../utils'
 
 // Normalize the error code for file not found.
@@ -19,8 +19,8 @@ const normalizeError = error => {
         configurable: true,
         readable: true,
         value: 'ENOENT',
-        writable: true
-      }
+        writable: true,
+      },
     })
     : error
 }
@@ -41,7 +41,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
       domain: remote.domain,
       username: remote.username,
       password: remote.password,
-      autoCloseTimeout: 0
+      autoCloseTimeout: 0,
     })
   }
 

@@ -3,19 +3,19 @@ export default {
   type: 'object',
   properties: {
     event: {
-      enum: ['job.end']
+      enum: ['job.end'],
     },
     runJobId: {
       type: 'string',
-      description: 'instance id of this job'
+      description: 'instance id of this job',
     },
     error: {
       type: 'object',
-      description: 'describe one failure, exists if no call has been made'
-    }
+      description: 'describe one failure, exists if no call has been made',
+    },
   },
   required: [
     'event',
-    'runJobId'
-  ]
+    'runJobId',
+  ],
 }

@@ -2,7 +2,7 @@ import hrp from 'http-request-plus'
 import ProxyAgent from 'proxy-agent'
 
 import {
-  firstDefined
+  firstDefined,
 } from '../utils'
 
 export default class Http {
@@ -10,14 +10,14 @@ export default class Http {
     httpProxy = firstDefined(
       process.env.http_proxy,
       process.env.HTTP_PROXY
-    )
+    ),
   }) {
     this._proxy = httpProxy && new ProxyAgent(httpProxy)
   }
 
   httpRequest (...args) {
     return hrp({
-      agent: this._proxy
+      agent: this._proxy,
     }, ...args)
   }
 }

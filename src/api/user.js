@@ -14,7 +14,7 @@ create.permission = 'admin'
 create.params = {
   email: { type: 'string' },
   password: { type: 'string' },
-  permission: { type: 'string', optional: true }
+  permission: { type: 'string', optional: true },
 }
 
 // -------------------------------------------------------------------
@@ -36,7 +36,7 @@ delete_.description = 'deletes an existing user'
 delete_.permission = 'admin'
 
 delete_.params = {
-  id: { type: 'string' }
+  id: { type: 'string' },
 }
 
 // -------------------------------------------------------------------
@@ -79,7 +79,7 @@ set.params = {
   email: { type: 'string', optional: true },
   password: { type: 'string', optional: true },
   permission: { type: 'string', optional: true },
-  preferences: { type: 'object', optional: true }
+  preferences: { type: 'object', optional: true },
 }
 
 // -------------------------------------------------------------------
@@ -95,5 +95,5 @@ changePassword.permission = ''
 
 changePassword.params = {
   oldPassword: {type: 'string'},
-  newPassword: {type: 'string'}
+  newPassword: {type: 'string'},
 }

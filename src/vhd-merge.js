@@ -8,7 +8,7 @@ import isEqual from 'lodash/isEqual'
 import constantStream from './constant-stream'
 import {
   noop,
-  streamToBuffer
+  streamToBuffer,
 } from './utils'
 
 const VHD_UTIL_DEBUG = 0
@@ -57,7 +57,7 @@ const fuFooter = fu.struct([
   fu.uint32('fileFormatVersion'), // 12
   fu.struct('dataOffset', [
     fu.uint32('high'), // 16
-    fu.uint32('low') // 20
+    fu.uint32('low'), // 20
   ]),
   fu.uint32('timestamp'), // 24
   fu.char('creatorApplication', 4), // 28
@@ -65,34 +65,34 @@ const fuFooter = fu.struct([
   fu.uint32('creatorHostOs'), // 36
   fu.struct('originalSize', [ // At the creation, current size of the hard disk.
     fu.uint32('high'), // 40
-    fu.uint32('low') // 44
+    fu.uint32('low'), // 44
   ]),
   fu.struct('currentSize', [ // Current size of the virtual disk. At the creation: currentSize = originalSize.
     fu.uint32('high'), // 48
-    fu.uint32('low') // 52
+    fu.uint32('low'), // 52
   ]),
   fu.struct('diskGeometry', [
     fu.uint16('cylinders'), // 56
     fu.uint8('heads'), // 58
-    fu.uint8('sectorsPerTrackCylinder') // 59
+    fu.uint8('sectorsPerTrackCylinder'), // 59
   ]),
   fu.uint32('diskType'), // 60 Disk type, must be equal to HARD_DISK_TYPE_DYNAMIC/HARD_DISK_TYPE_DIFFERENCING.
   fu.uint32('checksum'), // 64
   fu.uint8('uuid', 16), // 68
   fu.char('saved'), // 84
   fu.char('hidden'), // 85
-  fu.char('reserved', 426) // 86
+  fu.char('reserved', 426), // 86
 ])
 
 const fuHeader = fu.struct([
   fu.char('cookie', 8),
   fu.struct('dataOffset', [
     fu.uint32('high'),
-    fu.uint32('low')
+    fu.uint32('low'),
   ]),
   fu.struct('tableOffset', [ // Absolute byte offset of the Block Allocation Table.
     fu.uint32('high'),
-    fu.uint32('low')
+    fu.uint32('low'),
   ]),
   fu.uint32('headerVersion'),
   fu.uint32('maxTableEntries'), // Max entries in the Block Allocation Table.
@@ -109,10 +109,10 @@ const fuHeader = fu.struct([
     fu.uint32('reserved'),
     fu.struct('platformDataOffset', [ // Absolute byte offset of the locator data.
       fu.uint32('high'),
-      fu.uint32('low')
-    ])
+      fu.uint32('low'),
+    ]),
   ], VHD_PARENT_LOCATOR_ENTRIES),
-  fu.char('reserved2', 256)
+  fu.char('reserved2', 256),
 ])
 
 // ===================================================================
@@ -191,7 +191,7 @@ class Vhd {
   _readStream (start, n) {
     return this._handler.createReadStream(this._path, {
       start,
-      end: start + n - 1 // end is inclusive
+      end: start + n - 1, // end is inclusive
     })
   }
 
@@ -313,7 +313,7 @@ class Vhd {
       ? { bitmap: buf }
       : {
         bitmap: buf.slice(0, this.bitmapSize),
-        data: buf.slice(this.bitmapSize)
+        data: buf.slice(this.bitmapSize),
       }
     )
   }
@@ -370,7 +370,7 @@ class Vhd {
     // TODO: could probably be merged in remote handlers.
     return this._handler.createOutputStream(this._path, {
       flags: 'r+',
-      start: offset
+      start: offset,
     }).then(
       Buffer.isBuffer(data)
         ? stream => new Promise((resolve, reject) => {
@@ -413,7 +413,7 @@ class Vhd {
     if (tableOffset + batSize < sectorsToBytes(firstSector)) {
       return Promise.all([
         extendBat(),
-        this.writeHeader()
+        this.writeHeader(),
       ])
     }
 
@@ -429,7 +429,7 @@ class Vhd {
 
       this._setBatEntry(first, newFirstSector),
       this.writeHeader(),
-      this.writeFooter()
+      this.writeFooter(),
     ])
   }
 
@@ -460,7 +460,7 @@ class Vhd {
         sectorsToBytes(blockAddr)
       ),
 
-      this._setBatEntry(blockId, blockAddr)
+      this._setBatEntry(blockId, blockAddr),
     ])
 
     return blockAddr
@@ -585,7 +585,7 @@ export default async function vhdMerge (
   // Reading footer and header.
   await Promise.all([
     parentVhd.readHeaderAndFooter(),
-    childVhd.readHeaderAndFooter()
+    childVhd.readHeaderAndFooter(),
   ])
 
   assert(childVhd.header.blockSize === parentVhd.header.blockSize)
@@ -611,7 +611,7 @@ export default async function vhdMerge (
   // Read allocation table of child/parent.
   await Promise.all([
     parentVhd.readBlockTable(),
-    childVhd.readBlockTable()
+    childVhd.readBlockTable(),
   ])
 
   await parentVhd.ensureBatSize(childVhd.header.maxTableEntries)
@@ -648,7 +648,7 @@ export async function chainVhd (
   const childVhd = new Vhd(childHandler, childPath)
   await Promise.all([
     parentVhd.readHeaderAndFooter(),
-    childVhd.readHeaderAndFooter()
+    childVhd.readHeaderAndFooter(),
   ])
 
   const { header } = childVhd

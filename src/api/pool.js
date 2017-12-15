@@ -9,30 +9,30 @@ export async function set ({
 
   // TODO: use camel case.
   name_description: nameDescription,
-  name_label: nameLabel
+  name_label: nameLabel,
 }) {
   await this.getXapi(pool).setPoolProperties({
     nameDescription,
-    nameLabel
+    nameLabel,
   })
 }
 
 set.params = {
   id: {
-    type: 'string'
+    type: 'string',
   },
   name_label: {
     type: 'string',
-    optional: true
+    optional: true,
   },
   name_description: {
     type: 'string',
-    optional: true
-  }
+    optional: true,
+  },
 }
 
 set.resolve = {
-  pool: ['id', 'pool', 'administrate']
+  pool: ['id', 'pool', 'administrate'],
 }
 
 // -------------------------------------------------------------------
@@ -47,12 +47,12 @@ setDefaultSr.permission = '' // signed in
 
 setDefaultSr.params = {
   sr: {
-    type: 'string'
-  }
+    type: 'string',
+  },
 }
 
 setDefaultSr.resolve = {
-  sr: ['sr', 'SR']
+  sr: ['sr', 'SR'],
 }
 
 // -------------------------------------------------------------------
@@ -65,12 +65,12 @@ export async function setPoolMaster ({ host }) {
 
 setPoolMaster.params = {
   host: {
-    type: 'string'
-  }
+    type: 'string',
+  },
 }
 
 setPoolMaster.resolve = {
-  host: ['host', 'host']
+  host: ['host', 'host'],
 }
 
 // -------------------------------------------------------------------
@@ -81,15 +81,15 @@ export async function installPatch ({pool, patch: patchUuid}) {
 
 installPatch.params = {
   pool: {
-    type: 'string'
+    type: 'string',
   },
   patch: {
-    type: 'string'
-  }
+    type: 'string',
+  },
 }
 
 installPatch.resolve = {
-  pool: ['pool', 'pool', 'administrate']
+  pool: ['pool', 'pool', 'administrate'],
 }
 // -------------------------------------------------------------------
 
@@ -99,12 +99,12 @@ export async function installAllPatches ({ pool }) {
 
 installAllPatches.params = {
   pool: {
-    type: 'string'
-  }
+    type: 'string',
+  },
 }
 
 installAllPatches.resolve = {
-  pool: ['pool', 'pool', 'administrate']
+  pool: ['pool', 'pool', 'administrate'],
 }
 
 installAllPatches.description = 'Install automatically all patches for every hosts of a pool'
@@ -124,16 +124,16 @@ async function handlePatchUpload (req, res, {pool}) {
 
 export async function uploadPatch ({pool}) {
   return {
-    $sendTo: await this.registerHttpRequest(handlePatchUpload, {pool})
+    $sendTo: await this.registerHttpRequest(handlePatchUpload, {pool}),
   }
 }
 
 uploadPatch.params = {
-  pool: { type: 'string' }
+  pool: { type: 'string' },
 }
 
 uploadPatch.resolve = {
-  pool: ['pool', 'pool', 'administrate']
+  pool: ['pool', 'pool', 'administrate'],
 }
 
 // Compatibility
@@ -167,12 +167,12 @@ export async function mergeInto ({ source, target, force }) {
 mergeInto.params = {
   force: { type: 'boolean', optional: true },
   source: { type: 'string' },
-  target: { type: 'string' }
+  target: { type: 'string' },
 }
 
 mergeInto.resolve = {
   source: ['source', 'pool', 'administrate'],
-  target: ['target', 'pool', 'administrate']
+  target: ['target', 'pool', 'administrate'],
 }
 
 // -------------------------------------------------------------------
@@ -186,12 +186,12 @@ export async function getLicenseState ({pool}) {
 
 getLicenseState.params = {
   pool: {
-    type: 'string'
-  }
+    type: 'string',
+  },
 }
 
 getLicenseState.resolve = {
-  pool: ['pool', 'pool', 'administrate']
+  pool: ['pool', 'pool', 'administrate'],
 }
 
 // -------------------------------------------------------------------
@@ -215,16 +215,16 @@ async function handleInstallSupplementalPack (req, res, { poolId }) {
 
 export async function installSupplementalPack ({ pool }) {
   return {
-    $sendTo: await this.registerHttpRequest(handleInstallSupplementalPack, { poolId: pool.id })
+    $sendTo: await this.registerHttpRequest(handleInstallSupplementalPack, { poolId: pool.id }),
   }
 }
 
 installSupplementalPack.description = 'installs supplemental pack from ISO file on all hosts'
 
 installSupplementalPack.params = {
-  pool: { type: 'string' }
+  pool: { type: 'string' },
 }
 
 installSupplementalPack.resolve = {
-  pool: ['pool', 'pool', 'admin']
+  pool: ['pool', 'pool', 'admin'],
 }

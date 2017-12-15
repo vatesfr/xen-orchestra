@@ -17,25 +17,25 @@ add.permission = 'admin'
 add.params = {
   label: {
     optional: true,
-    type: 'string'
+    type: 'string',
   },
   host: {
-    type: 'string'
+    type: 'string',
   },
   username: {
-    type: 'string'
+    type: 'string',
   },
   password: {
-    type: 'string'
+    type: 'string',
   },
   autoConnect: {
     optional: true,
-    type: 'boolean'
+    type: 'boolean',
   },
   allowUnauthorized: {
     optional: true,
-    type: 'boolean'
-  }
+    type: 'boolean',
+  },
 }
 
 // -------------------------------------------------------------------
@@ -50,8 +50,8 @@ remove.permission = 'admin'
 
 remove.params = {
   id: {
-    type: 'string'
-  }
+    type: 'string',
+  },
 }
 
 // -------------------------------------------------------------------
@@ -78,28 +78,28 @@ set.permission = 'admin'
 
 set.params = {
   id: {
-    type: 'string'
+    type: 'string',
   },
   label: {
     type: 'string',
-    optional: true
+    optional: true,
   },
   host: {
     type: 'string',
-    optional: true
+    optional: true,
   },
   username: {
     type: 'string',
-    optional: true
+    optional: true,
   },
   password: {
     type: 'string',
-    optional: true
+    optional: true,
   },
   allowUnauthorized: {
     optional: true,
-    type: 'boolean'
-  }
+    type: 'boolean',
+  },
 }
 
 // -------------------------------------------------------------------
@@ -115,8 +115,8 @@ connect.permission = 'admin'
 
 connect.params = {
   id: {
-    type: 'string'
-  }
+    type: 'string',
+  },
 }
 
 // -------------------------------------------------------------------
@@ -132,6 +132,6 @@ disconnect.permission = 'admin'
 
 disconnect.params = {
   id: {
-    type: 'string'
-  }
+    type: 'string',
+  },
 }

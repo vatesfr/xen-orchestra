@@ -21,7 +21,7 @@ import {
   lightSet,
   mapToArray,
   streamToArray,
-  throwFn
+  throwFn,
 } from '../utils'
 
 // ===================================================================
@@ -31,13 +31,13 @@ const normalize = ({
   id = throwFn('id is a required field'),
   name = '',
   networks,
-  resourceSets
+  resourceSets,
 }) => ({
   addresses,
   id,
   name,
   networks,
-  resourceSets
+  resourceSets,
 })
 
 const _isAddressInIpPool = (address, network, ipPool) => (
@@ -71,7 +71,7 @@ export default class IpPools {
       addresses,
       id,
       name,
-      networks
+      networks,
     })
 
     return id
@@ -98,7 +98,7 @@ export default class IpPools {
   _getAllIpPools (filter) {
     return streamToArray(this._store.createValueStream(), {
       filter,
-      mapper: normalize
+      mapper: normalize,
     })
   }
 
@@ -161,8 +161,8 @@ export default class IpPools {
         const saveIpPools = () => Promise.all(mapToArray(updatedIpPools, ipPool => this._save(ipPool)))
         return resourseSetId
           ? this._xo.allocateLimitsInResourceSet(limits, resourseSetId).then(
-              saveIpPools
-            )
+            saveIpPools
+          )
           : saveIpPools()
       }
     })()
@@ -243,7 +243,7 @@ export default class IpPools {
 
       return getXapi(vif).editVif(vif._xapiId, {
         ipv4Allowed: allowedIpv4Addresses,
-        ipv6Allowed: allowedIpv6Addresses
+        ipv6Allowed: allowedIpv6Addresses,
       })
     }))
   }
@@ -252,7 +252,7 @@ export default class IpPools {
     addresses,
     name,
     networks,
-    resourceSets
+    resourceSets,
   }) {
     const ipPool = await this.getIpPool(id)
     const previousAddresses = { ...ipPool.addresses }

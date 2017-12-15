@@ -11,7 +11,7 @@ export function list ({ remote }) {
 
 list.permission = 'admin'
 list.params = {
-  remote: { type: 'string' }
+  remote: { type: 'string' },
 }
 
 // -------------------------------------------------------------------
@@ -23,7 +23,7 @@ export function scanDisk ({ remote, disk }) {
 scanDisk.permission = 'admin'
 scanDisk.params = {
   remote: { type: 'string' },
-  disk: { type: 'string' }
+  disk: { type: 'string' },
 }
 
 // -------------------------------------------------------------------
@@ -37,7 +37,7 @@ scanFiles.params = {
   remote: { type: 'string' },
   disk: { type: 'string' },
   partition: { type: 'string', optional: true },
-  path: { type: 'string' }
+  path: { type: 'string' },
 }
 
 // -------------------------------------------------------------------
@@ -80,7 +80,7 @@ export async function fetchFiles ({ format = 'zip', ...params }) {
     : basename(params.paths[0])
 
   return this.registerHttpRequest(handleFetchFiles, { ...params, format }, {
-    suffix: encodeURI(`/${fileName}`)
+    suffix: encodeURI(`/${fileName}`),
   }).then(url => ({ $getFrom: url }))
 }
 
@@ -93,6 +93,6 @@ fetchFiles.params = {
   paths: {
     type: 'array',
     items: { type: 'string' },
-    minLength: 1
-  }
+    minLength: 1,
+  },
 }

@@ -9,7 +9,7 @@ import {
   formatXml,
   generateToken,
   parseSize,
-  pSettle
+  pSettle,
 } from './utils'
 
 // ===================================================================
@@ -57,7 +57,7 @@ describe('diffItems', () => {
       ['baz', 'foo']
     )).toEqual([
       ['bar'],
-      ['baz']
+      ['baz'],
     ])
   })
 })
@@ -109,9 +109,9 @@ describe('formatXml()', function () {
       foo: {
         bar: [
           {$: {baz: 'plop'}},
-          {$: {baz: 'plip'}}
-        ]
-      }
+          {$: {baz: 'plip'}},
+        ],
+      },
     })).toBe(`<foo>
   <bar baz="plop"/>
   <bar baz="plip"/>
@@ -157,11 +157,11 @@ describe('pSettle()', () => {
     const [
       status1,
       status2,
-      status3
+      status3,
     ] = await pSettle([
       Promise.resolve(42),
       Math.PI,
-      Promise.reject(rejection)
+      Promise.reject(rejection),
     ])
 
     expect(status1.isRejected()).toBe(false)
@@ -187,11 +187,11 @@ describe('pSettle()', () => {
     const {
       a: status1,
       b: status2,
-      c: status3
+      c: status3,
     } = await pSettle({
       a: Promise.resolve(42),
       b: Math.PI,
-      c: Promise.reject(rejection)
+      c: Promise.reject(rejection),
     })
 
     expect(status1.isRejected()).toBe(false)

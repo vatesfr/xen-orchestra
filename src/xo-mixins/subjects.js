@@ -3,24 +3,24 @@ import { ignoreErrors } from 'promise-toolbox'
 import {
   hash,
   needsRehash,
-  verify
+  verify,
 } from 'hashy'
 import {
   invalidCredentials,
-  noSuchObject
+  noSuchObject,
 } from 'xo-common/api-errors'
 
 import {
-  Groups
+  Groups,
 } from '../models/group'
 import {
-  Users
+  Users,
 } from '../models/user'
 import {
   forEach,
   isEmpty,
   lightSet,
-  mapToArray
+  mapToArray,
 } from '../utils'
 
 // ===================================================================
@@ -40,17 +40,17 @@ export default class {
 
     const groupsDb = this._groups = new Groups({
       connection: redis,
-      prefix: 'xo:group'
+      prefix: 'xo:group',
     })
     const usersDb = this._users = new Users({
       connection: redis,
       prefix: 'xo:user',
-      indexes: ['email']
+      indexes: ['email'],
     })
 
     xo.on('clean', () => Promise.all([
       groupsDb.rebuildIndexes(),
-      usersDb.rebuildIndexes()
+      usersDb.rebuildIndexes(),
     ]))
     xo.on('start', async () => {
       xo.addConfigManager('groups',
@@ -135,7 +135,7 @@ export default class {
     name = email,
     password,
     permission,
-    preferences
+    preferences,
   }) {
     const user = await this.getUser(id)
 
@@ -210,7 +210,7 @@ export default class {
 
   // Get or create a user associated with an auth provider.
   async registerUser (provider, name) {
-    let user = await this.getUserByName(name, true)
+    const user = await this.getUserByName(name, true)
     if (user) {
       if (user._provider !== provider) {
         throw new Error(`the name ${name} is already taken`)
@@ -225,7 +225,7 @@ export default class {
 
     return /* await */ this.createUser({
       name,
-      _provider: provider
+      _provider: provider,
     })
   }
 
@@ -306,7 +306,7 @@ export default class {
   async addUserToGroup (userId, groupId) {
     const [user, group] = await Promise.all([
       this.getUser(userId),
-      this.getGroup(groupId)
+      this.getGroup(groupId),
     ])
 
     user.groups = addToArraySet(user.groups, groupId)
@@ -314,7 +314,7 @@ export default class {
 
     await Promise.all([
       this._users.save(user),
-      this._groups.save(group)
+      this._groups.save(group),
     ])
   }
 
@@ -331,12 +331,12 @@ export default class {
   async removeUserFromGroup (userId, groupId) {
     const [user, group] = await Promise.all([
       this.getUser(userId),
-      this.getGroup(groupId)
+      this.getGroup(groupId),
     ])
 
     await Promise.all([
       this._removeUserFromGroup(userId, group),
-      this._removeGroupFromUser(groupId, user)
+      this._removeGroupFromUser(groupId, user),
     ])
   }
 
@@ -357,7 +357,7 @@ export default class {
     const getUser = ::this.getUser
     const [newUsers, oldUsers] = await Promise.all([
       Promise.all(newUsersIds.map(getUser)),
-      Promise.all(oldUsersIds.map(getUser))
+      Promise.all(oldUsersIds.map(getUser)),
     ])
 
     forEach(newUsers, user => {
@@ -373,7 +373,7 @@ export default class {
     await Promise.all([
       Promise.all(mapToArray(newUsers, saveUser)),
       Promise.all(mapToArray(oldUsers, saveUser)),
-      this._groups.save(group)
+      this._groups.save(group),
     ])
   }
 }

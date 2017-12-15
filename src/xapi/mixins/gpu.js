@@ -5,5 +5,5 @@ export default {
   },
   deleteVgpu (vgpu) {
     return this.call('VGPU.destroy', this.getObject(vgpu).$ref)
-  }
+  },
 }

@@ -14,7 +14,7 @@ export async function get (id) {
 get.permission = 'admin'
 get.description = 'Gets an existing job'
 get.params = {
-  id: {type: 'string'}
+  id: {type: 'string'},
 }
 
 export async function create ({job}) {
@@ -44,14 +44,14 @@ create.params = {
           items: {
             type: 'array',
             items: {
-              type: 'object'
-            }
-          }
+              type: 'object',
+            },
+          },
         },
-        optional: true
-      }
-    }
-  }
+        optional: true,
+      },
+    },
+  },
 }
 
 export async function set ({job}) {
@@ -77,14 +77,14 @@ set.params = {
           items: {
             type: 'array',
             items: {
-              type: 'object'
-            }
-          }
+              type: 'object',
+            },
+          },
         },
-        optional: true
-      }
-    }
-  }
+        optional: true,
+      },
+    },
+  },
 }
 
 async function delete_ ({id}) {
@@ -94,7 +94,7 @@ async function delete_ ({id}) {
 delete_.permission = 'admin'
 delete_.description = 'Deletes an existing job'
 delete_.params = {
-  id: {type: 'string'}
+  id: {type: 'string'},
 }
 
 export {delete_ as delete}
@@ -106,5 +106,5 @@ export async function runSequence ({idSequence}) {
 runSequence.permission = 'admin'
 runSequence.description = 'Runs jobs sequentially, in the provided order'
 runSequence.params = {
-  idSequence: {type: 'array', items: {type: 'string'}}
+  idSequence: {type: 'array', items: {type: 'string'}},
 }

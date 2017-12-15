@@ -14,7 +14,7 @@ export async function get (id) {
 get.permission = 'admin'
 get.description = 'Gets an existing schedule'
 get.params = {
-  id: {type: 'string'}
+  id: {type: 'string'},
 }
 
 export async function create ({ jobId, cron, enabled, name, timezone }) {
@@ -27,7 +27,7 @@ create.params = {
   jobId: {type: 'string'},
   cron: {type: 'string'},
   enabled: {type: 'boolean', optional: true},
-  name: {type: 'string', optional: true}
+  name: {type: 'string', optional: true},
 }
 
 export async function set ({ id, jobId, cron, enabled, name, timezone }) {
@@ -41,7 +41,7 @@ set.params = {
   jobId: {type: 'string', optional: true},
   cron: {type: 'string', optional: true},
   enabled: {type: 'boolean', optional: true},
-  name: {type: 'string', optional: true}
+  name: {type: 'string', optional: true},
 }
 
 async function delete_ ({id}) {
@@ -51,7 +51,7 @@ async function delete_ ({id}) {
 delete_.permission = 'admin'
 delete_.description = 'Deletes an existing schedule'
 delete_.params = {
-  id: {type: 'string'}
+  id: {type: 'string'},
 }
 
 export {delete_ as delete}

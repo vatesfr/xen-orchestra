@@ -6,7 +6,7 @@ import { isArray, map } from 'lodash'
 // ===================================================================
 
 const parse = createParser({
-  keyTransform: key => key.slice(5).toLowerCase()
+  keyTransform: key => key.slice(5).toLowerCase(),
 })
 const makeFunction = command => (fields, ...args) =>
   execa.stdout(command, [
@@ -18,7 +18,7 @@ const makeFunction = command => (fields, ...args) =>
     'b',
     '-o',
     String(fields),
-    ...args
+    ...args,
   ]).then(stdout => map(
     splitLines(stdout),
     isArray(fields)

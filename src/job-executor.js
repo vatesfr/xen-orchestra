@@ -12,13 +12,13 @@ import {
   map,
   mapValues,
   size,
-  some
+  some,
 } from 'lodash'
 
 import { crossProduct } from './math'
 import {
   serializeError,
-  thunkToArray
+  thunkToArray,
 } from './utils'
 
 export class JobExecutorError extends BaseError {}
@@ -81,11 +81,11 @@ const paramsVectorActionsMap = {
     return map(resolveParamsVector.call(this, collection), value => {
       return resolveParamsVector.call(this, {
         ...iteratee,
-        [paramName]: value
+        [paramName]: value,
       })
     })
   },
-  set: ({ values }) => values
+  set: ({ values }) => values,
 }
 
 export function resolveParamsVector (paramsVector) {
@@ -114,7 +114,7 @@ export default class JobExecutor {
       event: 'job.start',
       userId: job.userId,
       jobId: job.id,
-      key: job.key
+      key: job.key,
     })
 
     try {
@@ -128,13 +128,13 @@ export default class JobExecutor {
 
       this._logger.notice(`Execution terminated for ${job.id}.`, {
         event: 'job.end',
-        runJobId
+        runJobId,
       })
     } catch (error) {
       this._logger.error(`The execution of ${job.id} has failed.`, {
         event: 'job.end',
         runJobId,
-        error: serializeError(error)
+        error: serializeError(error),
       })
 
       throw error
@@ -157,7 +157,7 @@ export default class JobExecutor {
       calls: {},
       runJobId,
       start: Date.now(),
-      timezone: schedule !== undefined ? schedule.timezone : undefined
+      timezone: schedule !== undefined ? schedule.timezone : undefined,
     }
 
     await Bluebird.map(paramsFlatVector, params => {
@@ -165,13 +165,13 @@ export default class JobExecutor {
         event: 'jobCall.start',
         runJobId,
         method: job.method,
-        params
+        params,
       })
 
       const call = execStatus.calls[runCallId] = {
         method: job.method,
         params,
-        start: Date.now()
+        start: Date.now(),
       }
       let promise = this.xo.callApiMethod(connection, job.method, assign({}, params))
       if (job.timeout) {
@@ -184,7 +184,7 @@ export default class JobExecutor {
             event: 'jobCall.end',
             runJobId,
             runCallId,
-            returnedValue: value
+            returnedValue: value,
           })
 
           call.returnedValue = value
@@ -195,7 +195,7 @@ export default class JobExecutor {
             event: 'jobCall.end',
             runJobId,
             runCallId,
-            error: serializeError(reason)
+            error: serializeError(reason),
           })
 
           call.error = reason
@@ -203,7 +203,7 @@ export default class JobExecutor {
         }
       )
     }, {
-      concurrency: 2
+      concurrency: 2,
     })
 
     connection.close()

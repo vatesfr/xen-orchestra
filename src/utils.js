@@ -30,11 +30,11 @@ import {
   fromCallback,
   isPromise,
   promisify,
-  reflect as pReflect
+  reflect as pReflect,
 } from 'promise-toolbox'
 import {
   createHash,
-  randomBytes
+  randomBytes,
 } from 'crypto'
 
 // ===================================================================
@@ -111,7 +111,7 @@ export const diffItems = (coll1, coll2) => {
 const ALGORITHM_TO_ID = {
   md5: '1',
   sha256: '5',
-  sha512: '6'
+  sha512: '6',
 }
 
 const ID_TO_ALGORITHM = invert(ALGORITHM_TO_ID)
@@ -258,7 +258,7 @@ export const generateToken = (randomBytes => {
 
 export const formatXml = (function () {
   const builder = new xml2js.Builder({
-    headless: true
+    headless: true,
   })
 
   return (...args) => builder.buildObject(...args)
@@ -267,7 +267,7 @@ export const formatXml = (function () {
 export const parseXml = (function () {
   const opts = {
     mergeAttrs: true,
-    explicitArray: false
+    explicitArray: false,
   }
 
   return (xml) => {
@@ -315,7 +315,7 @@ export const lightSet = collection => {
       return set
     },
     has: value => data[value],
-    toArray: () => keys(data)
+    toArray: () => keys(data),
   }
   return set
 }
@@ -375,7 +375,7 @@ export {
   lastly as pFinally,
   promisify,
   promisifyAll,
-  reflect as pReflect
+  reflect as pReflect,
 } from 'promise-toolbox'
 
 // -------------------------------------------------------------------
@@ -489,7 +489,7 @@ export const resolveSubpath = (root, path) =>
 
 export const streamToArray = (stream, {
   filter,
-  mapper
+  mapper,
 } = {}) => new Promise((resolve, reject) => {
   stream = highland(stream).stopOnError(reject)
   if (filter) {
@@ -526,7 +526,7 @@ export const scheduleFn = (cronTime, fn, timeZone) => {
       }
     },
     start: true,
-    timeZone
+    timeZone,
   })
 
   return () => {
@@ -540,7 +540,7 @@ export const scheduleFn = (cronTime, fn, timeZone) => {
 export const serializeError = error => ({
   message: error.message,
   stack: error.stack,
-  ...error // Copy enumerable properties.
+  ...error, // Copy enumerable properties.
 })
 
 // -------------------------------------------------------------------
@@ -598,7 +598,7 @@ export const splitFirst = (string, separator) => {
   const i = string.indexOf(separator)
   return i === -1 ? null : [
     string.slice(0, i),
-    string.slice(i + separator.length)
+    string.slice(i + separator.length),
   ]
 }
 

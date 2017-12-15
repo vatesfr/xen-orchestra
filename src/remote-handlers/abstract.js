@@ -7,7 +7,7 @@ import {
   addChecksumToReadStream,
   getPseudoRandomBytes,
   streamToBuffer,
-  validChecksumOfReadStream
+  validChecksumOfReadStream,
 } from '../utils'
 
 export default class RemoteHandlerAbstract {
@@ -56,14 +56,14 @@ export default class RemoteHandlerAbstract {
         throw new Error('output and input did not match')
       }
       return {
-        success: true
+        success: true,
       }
     } catch (error) {
       return {
         success: false,
         step,
         file: testFileName,
-        error: error.message || String(error)
+        error: error.message || String(error),
       }
     } finally {
       this.unlink(testFileName)::ignoreErrors()
@@ -73,7 +73,7 @@ export default class RemoteHandlerAbstract {
   async outputFile (file, data, options) {
     return this._outputFile(file, data, {
       flags: 'wx',
-      ...options
+      ...options,
     })
   }
 
@@ -127,7 +127,7 @@ export default class RemoteHandlerAbstract {
           promise,
           this.getSize(file).then(size => {
             stream.length = size
-          })::ignoreErrors()
+          })::ignoreErrors(),
         ])
       }
 
@@ -175,7 +175,7 @@ export default class RemoteHandlerAbstract {
   } = {}) {
     const streamP = this._createOutputStream(file, {
       flags: 'wx',
-      ...options
+      ...options,
     })
 
     if (!checksum) {
@@ -202,7 +202,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async unlink (file, {
-    checksum = true
+    checksum = true,
   } = {}) {
     if (checksum) {
       this._unlink(`${file}.checksum`)::ignoreErrors()

@@ -47,7 +47,7 @@ export function init () {
     BootSig: 41,
     VolID: 895111106,
     VolLab: 'NO NAME    ',
-    FilSysType: 'FAT16   '
+    FilSysType: 'FAT16   ',
   }, buf)
 
   // End of sector.
@@ -80,6 +80,6 @@ export default buffer => {
     writeSectors: (i, source, cb) => {
       source.copy(buffer, i * SECTOR_SIZE, 0)
       cb()
-    }
+    },
   }
 }

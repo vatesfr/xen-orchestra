@@ -6,15 +6,15 @@ getPermissionsForUser.permission = 'admin'
 
 getPermissionsForUser.params = {
   userId: {
-    type: 'string'
-  }
+    type: 'string',
+  },
 }
 
 // -------------------------------------------------------------------
 
 export function hasPermission ({ userId, objectId, permission }) {
   return this.hasPermissions(userId, [
-    [ objectId, permission ]
+    [ objectId, permission ],
   ])
 }
 
@@ -22,14 +22,14 @@ hasPermission.permission = 'admin'
 
 hasPermission.params = {
   userId: {
-    type: 'string'
+    type: 'string',
   },
   objectId: {
-    type: 'string'
+    type: 'string',
   },
   permission: {
-    type: 'string'
-  }
+    type: 'string',
+  },
 }
 
 // -------------------------------------------------------------------
@@ -44,8 +44,8 @@ export function wait ({duration, returnValue}) {
 
 wait.params = {
   duration: {
-    type: 'string'
-  }
+    type: 'string',
+  },
 }
 
 // -------------------------------------------------------------------
@@ -77,10 +77,10 @@ copyVm.permission = 'admin'
 
 copyVm.params = {
   vm: { type: 'string' },
-  sr: { type: 'string' }
+  sr: { type: 'string' },
 }
 
 copyVm.resolve = {
   vm: [ 'vm', 'VM' ],
-  sr: [ 'sr', 'SR' ]
+  sr: [ 'sr', 'SR' ],
 }

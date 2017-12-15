@@ -2,23 +2,23 @@
 
 // ===================================================================
 
-var gulp = require('gulp')
+const gulp = require('gulp')
 
-var babel = require('gulp-babel')
-var coffee = require('gulp-coffee')
-var plumber = require('gulp-plumber')
-var rimraf = require('rimraf')
-var sourceMaps = require('gulp-sourcemaps')
-var watch = require('gulp-watch')
+const babel = require('gulp-babel')
+const coffee = require('gulp-coffee')
+const plumber = require('gulp-plumber')
+const rimraf = require('rimraf')
+const sourceMaps = require('gulp-sourcemaps')
+const watch = require('gulp-watch')
 
-var join = require('path').join
+const join = require('path').join
 
 // ===================================================================
 
-var SRC_DIR = join(__dirname, 'src')
-var DIST_DIR = join(__dirname, 'dist')
+const SRC_DIR = join(__dirname, 'src')
+const DIST_DIR = join(__dirname, 'dist')
 
-var PRODUCTION = process.argv.indexOf('--production') !== -1
+const PRODUCTION = process.argv.indexOf('--production') !== -1
 
 // ===================================================================
 
@@ -26,13 +26,13 @@ function src (patterns) {
   return PRODUCTION
     ? gulp.src(patterns, {
       base: SRC_DIR,
-      cwd: SRC_DIR
+      cwd: SRC_DIR,
     })
     : watch(patterns, {
       base: SRC_DIR,
       cwd: SRC_DIR,
       ignoreInitial: false,
-      verbose: true
+      verbose: true,
     })
       .pipe(plumber())
 }
@@ -47,7 +47,7 @@ gulp.task(function buildCoffee () {
   return src('**/*.coffee')
     .pipe(sourceMaps.init())
     .pipe(coffee({
-      bare: true
+      bare: true,
     }))
 
     // Necessary to correctly compile generators.

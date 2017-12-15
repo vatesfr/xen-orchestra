@@ -17,11 +17,11 @@ async function delete_ ({vif}) {
 export {delete_ as delete}
 
 delete_.params = {
-  id: { type: 'string' }
+  id: { type: 'string' },
 }
 
 delete_.resolve = {
-  vif: ['id', 'VIF', 'administrate']
+  vif: ['id', 'VIF', 'administrate'],
 }
 
 // -------------------------------------------------------------------
@@ -33,11 +33,11 @@ export async function disconnect ({vif}) {
 }
 
 disconnect.params = {
-  id: { type: 'string' }
+  id: { type: 'string' },
 }
 
 disconnect.resolve = {
-  vif: ['id', 'VIF', 'operate']
+  vif: ['id', 'VIF', 'operate'],
 }
 
 // -------------------------------------------------------------------
@@ -48,11 +48,11 @@ export async function connect ({vif}) {
 }
 
 connect.params = {
-  id: { type: 'string' }
+  id: { type: 'string' },
 }
 
 connect.resolve = {
-  vif: ['id', 'VIF', 'operate']
+  vif: ['id', 'VIF', 'operate'],
 }
 
 // -------------------------------------------------------------------
@@ -63,7 +63,7 @@ export async function set ({
   mac,
   allowedIpv4Addresses,
   allowedIpv6Addresses,
-  attached
+  attached,
 }) {
   const oldIpAddresses = vif.allowedIpv4Addresses.concat(vif.allowedIpv6Addresses)
   const newIpAddresses = []
@@ -88,7 +88,7 @@ export async function set ({
     const newVif = await xapi.createVif(vm.$id, network.$id, {
       mac,
       currently_attached: attached,
-      ipv4_allowed: newIpAddresses
+      ipv4_allowed: newIpAddresses,
     })
 
     await this.allocIpAddresses(newVif.$id, newIpAddresses)
@@ -108,7 +108,7 @@ export async function set ({
 
   return this.getXapi(vif).editVif(vif._xapiId, {
     ipv4Allowed: allowedIpv4Addresses,
-    ipv6Allowed: allowedIpv6Addresses
+    ipv6Allowed: allowedIpv6Addresses,
   })
 }
 
@@ -119,21 +119,21 @@ set.params = {
   allowedIpv4Addresses: {
     type: 'array',
     items: {
-      type: 'string'
+      type: 'string',
     },
-    optional: true
+    optional: true,
   },
   allowedIpv6Addresses: {
     type: 'array',
     items: {
-      type: 'string'
+      type: 'string',
     },
-    optional: true
+    optional: true,
   },
-  attached: { type: 'boolean', optional: true }
+  attached: { type: 'boolean', optional: true },
 }
 
 set.resolve = {
   vif: ['id', 'VIF', 'operate'],
-  network: ['network', 'network', 'operate']
+  network: ['network', 'network', 'operate'],
 }

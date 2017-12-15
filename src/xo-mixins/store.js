@@ -7,7 +7,7 @@ import { ensureDir } from 'fs-extra'
 import {
   forEach,
   isFunction,
-  promisify
+  promisify,
 } from '../utils'
 
 // ===================================================================
@@ -19,7 +19,7 @@ const _levelHas = function has (key, cb) {
         error.notFound
           ? cb(null, false)
           : cb(error)
-        )
+      )
       : cb(null, true)
     )
   }
@@ -68,7 +68,7 @@ export default class {
     const dir = `${xo._config.datadir}/leveldb`
     this._db = ensureDir(dir).then(() => {
       return sublevel(levelup(dir, {
-        valueEncoding: 'json'
+        valueEncoding: 'json',
       }))
     })
   }

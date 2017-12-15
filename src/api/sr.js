@@ -5,7 +5,7 @@ import {
   asyncMap,
   ensureArray,
   forEach,
-  parseXml
+  parseXml,
 } from '../utils'
 
 // ===================================================================
@@ -15,11 +15,11 @@ export async function set ({
 
   // TODO: use camel case.
   name_description: nameDescription,
-  name_label: nameLabel
+  name_label: nameLabel,
 }) {
   await this.getXapi(sr).setSrProperties(sr._xapiId, {
     nameDescription,
-    nameLabel
+    nameLabel,
   })
 }
 
@@ -28,11 +28,11 @@ set.params = {
 
   name_label: { type: 'string', optional: true },
 
-  name_description: { type: 'string', optional: true }
+  name_description: { type: 'string', optional: true },
 }
 
 set.resolve = {
-  sr: ['id', 'SR', 'operate']
+  sr: ['id', 'SR', 'operate'],
 }
 
 // -------------------------------------------------------------------
@@ -42,11 +42,11 @@ export async function scan ({ SR }) {
 }
 
 scan.params = {
-  id: { type: 'string' }
+  id: { type: 'string' },
 }
 
 scan.resolve = {
-  SR: ['id', 'SR', 'operate']
+  SR: ['id', 'SR', 'operate'],
 }
 
 // -------------------------------------------------------------------
@@ -71,11 +71,11 @@ export async function destroy ({sr}) {
 }
 
 destroy.params = {
-  id: { type: 'string' }
+  id: { type: 'string' },
 }
 
 destroy.resolve = {
-  sr: ['id', 'SR', 'administrate']
+  sr: ['id', 'SR', 'administrate'],
 }
 
 // -------------------------------------------------------------------
@@ -85,11 +85,11 @@ export async function forget ({ SR }) {
 }
 
 forget.params = {
-  id: { type: 'string' }
+  id: { type: 'string' },
 }
 
 forget.resolve = {
-  SR: ['id', 'SR', 'administrate']
+  SR: ['id', 'SR', 'administrate'],
 }
 
 // -------------------------------------------------------------------
@@ -99,11 +99,11 @@ export async function connectAllPbds ({ SR }) {
 }
 
 connectAllPbds.params = {
-  id: { type: 'string' }
+  id: { type: 'string' },
 }
 
 connectAllPbds.resolve = {
-  SR: ['id', 'SR', 'administrate']
+  SR: ['id', 'SR', 'administrate'],
 }
 
 // -------------------------------------------------------------------
@@ -113,11 +113,11 @@ export async function disconnectAllPbds ({ SR }) {
 }
 
 disconnectAllPbds.params = {
-  id: { type: 'string' }
+  id: { type: 'string' },
 }
 
 disconnectAllPbds.resolve = {
-  SR: ['id', 'SR', 'administrate']
+  SR: ['id', 'SR', 'administrate'],
 }
 
 // -------------------------------------------------------------------
@@ -129,7 +129,7 @@ export async function createIso ({
   path,
   type,
   user,
-  password
+  password,
 }) {
   const xapi = this.getXapi(host)
 
@@ -169,11 +169,11 @@ createIso.params = {
   path: { type: 'string' },
   type: { type: 'string' },
   user: { type: 'string', optional: true },
-  password: { type: 'string', optional: true }
+  password: { type: 'string', optional: true },
 }
 
 createIso.resolve = {
-  host: ['host', 'host', 'administrate']
+  host: ['host', 'host', 'administrate'],
 }
 
 // -------------------------------------------------------------------
@@ -187,13 +187,13 @@ export async function createNfs ({
   nameDescription,
   server,
   serverPath,
-  nfsVersion
+  nfsVersion,
 }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
     server,
-    serverpath: serverPath
+    serverpath: serverPath,
   }
 
   //  if NFS version given
@@ -224,11 +224,11 @@ createNfs.params = {
   nameDescription: { type: 'string' },
   server: { type: 'string' },
   serverPath: { type: 'string' },
-  nfsVersion: { type: 'string', optional: true }
+  nfsVersion: { type: 'string', optional: true },
 }
 
 createNfs.resolve = {
-  host: ['host', 'host', 'administrate']
+  host: ['host', 'host', 'administrate'],
 }
 
 // -------------------------------------------------------------------
@@ -240,12 +240,12 @@ export async function createHba ({
   host,
   nameLabel,
   nameDescription,
-  scsiId
+  scsiId,
 }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
-    scsiId
+    scsiId,
   }
 
   const srRef = await xapi.call(
@@ -269,11 +269,11 @@ createHba.params = {
   host: { type: 'string' },
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string' },
-  scsiId: { type: 'string' }
+  scsiId: { type: 'string' },
 }
 
 createHba.resolve = {
-  host: ['host', 'host', 'administrate']
+  host: ['host', 'host', 'administrate'],
 }
 
 // -------------------------------------------------------------------
@@ -285,12 +285,12 @@ export async function createLvm ({
   host,
   nameLabel,
   nameDescription,
-  device
+  device,
 }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
-    device
+    device,
   }
 
   const srRef = await xapi.call(
@@ -314,11 +314,11 @@ createLvm.params = {
   host: { type: 'string' },
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string' },
-  device: { type: 'string' }
+  device: { type: 'string' },
 }
 
 createLvm.resolve = {
-  host: ['host', 'host', 'administrate']
+  host: ['host', 'host', 'administrate'],
 }
 
 // -------------------------------------------------------------------
@@ -327,12 +327,12 @@ createLvm.resolve = {
 
 export async function probeNfs ({
   host,
-  server
+  server,
 }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
-    server
+    server,
   }
 
   let xml
@@ -359,7 +359,7 @@ export async function probeNfs ({
   forEach(ensureArray(xml['nfs-exports'].Export), nfsExport => {
     nfsExports.push({
       path: nfsExport.Path.trim(),
-      acl: nfsExport.Accesslist.trim()
+      acl: nfsExport.Accesslist.trim(),
     })
   })
 
@@ -368,18 +368,18 @@ export async function probeNfs ({
 
 probeNfs.params = {
   host: { type: 'string' },
-  server: { type: 'string' }
+  server: { type: 'string' },
 }
 
 probeNfs.resolve = {
-  host: ['host', 'host', 'administrate']
+  host: ['host', 'host', 'administrate'],
 }
 
 // -------------------------------------------------------------------
 // This function helps to detect all HBA devices on the host
 
 export async function probeHba ({
-  host
+  host,
 }) {
   const xapi = this.getXapi(host)
 
@@ -409,7 +409,7 @@ export async function probeHba ({
       path: hbaDevice.path.trim(),
       scsciId: hbaDevice.SCSIid.trim(),
       size: hbaDevice.size.trim(),
-      vendor: hbaDevice.vendor.trim()
+      vendor: hbaDevice.vendor.trim(),
     })
   })
 
@@ -417,11 +417,11 @@ export async function probeHba ({
 }
 
 probeHba.params = {
-  host: { type: 'string' }
+  host: { type: 'string' },
 }
 
 probeHba.resolve = {
-  host: ['host', 'host', 'administrate']
+  host: ['host', 'host', 'administrate'],
 }
 
 // -------------------------------------------------------------------
@@ -439,14 +439,14 @@ export async function createIscsi ({
   targetIqn,
   scsiId,
   chapUser,
-  chapPassword
+  chapPassword,
 }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
     target,
     targetIQN: targetIqn,
-    SCSIid: scsiId
+    SCSIid: scsiId,
   }
 
   // if we give user and password
@@ -486,11 +486,11 @@ createIscsi.params = {
   targetIqn: { type: 'string' },
   scsiId: { type: 'string' },
   chapUser: { type: 'string', optional: true },
-  chapPassword: { type: 'string', optional: true }
+  chapPassword: { type: 'string', optional: true },
 }
 
 createIscsi.resolve = {
-  host: ['host', 'host', 'administrate']
+  host: ['host', 'host', 'administrate'],
 }
 
 // -------------------------------------------------------------------
@@ -502,12 +502,12 @@ export async function probeIscsiIqns ({
   target: targetIp,
   port,
   chapUser,
-  chapPassword
+  chapPassword,
 }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
-    target: targetIp
+    target: targetIp,
   }
 
   // if we give user and password
@@ -550,7 +550,7 @@ export async function probeIscsiIqns ({
     if (target.IPAddress.trim() === targetIp) {
       targets.push({
         iqn: target.TargetIQN.trim(),
-        ip: target.IPAddress.trim()
+        ip: target.IPAddress.trim(),
       })
     }
   })
@@ -563,10 +563,10 @@ probeIscsiIqns.params = {
   target: { type: 'string' },
   port: { type: 'integer', optional: true },
   chapUser: { type: 'string', optional: true },
-  chapPassword: { type: 'string', optional: true }
+  chapPassword: { type: 'string', optional: true },
 }
 probeIscsiIqns.resolve = {
-  host: ['host', 'host', 'administrate']
+  host: ['host', 'host', 'administrate'],
 }
 
 // -------------------------------------------------------------------
@@ -579,13 +579,13 @@ export async function probeIscsiLuns ({
   port,
   targetIqn,
   chapUser,
-  chapPassword
+  chapPassword,
 }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
     target: targetIp,
-    targetIQN: targetIqn
+    targetIQN: targetIqn,
   }
 
   // if we give user and password
@@ -626,7 +626,7 @@ export async function probeIscsiLuns ({
       vendor: lun.vendor.trim(),
       serial: lun.serial.trim(),
       size: lun.size.trim(),
-      scsiId: lun.SCSIid.trim()
+      scsiId: lun.SCSIid.trim(),
     })
   })
 
@@ -639,11 +639,11 @@ probeIscsiLuns.params = {
   port: { type: 'integer', optional: true },
   targetIqn: { type: 'string' },
   chapUser: { type: 'string', optional: true },
-  chapPassword: { type: 'string', optional: true }
+  chapPassword: { type: 'string', optional: true },
 }
 
 probeIscsiLuns.resolve = {
-  host: ['host', 'host', 'administrate']
+  host: ['host', 'host', 'administrate'],
 }
 
 // -------------------------------------------------------------------
@@ -657,14 +657,14 @@ export async function probeIscsiExists ({
   targetIqn,
   scsiId,
   chapUser,
-  chapPassword
+  chapPassword,
 }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
     target: targetIp,
     targetIQN: targetIqn,
-    SCSIid: scsiId
+    SCSIid: scsiId,
   }
 
   // if we give user and password
@@ -696,11 +696,11 @@ probeIscsiExists.params = {
   targetIqn: { type: 'string' },
   scsiId: { type: 'string' },
   chapUser: { type: 'string', optional: true },
-  chapPassword: { type: 'string', optional: true }
+  chapPassword: { type: 'string', optional: true },
 }
 
 probeIscsiExists.resolve = {
-  host: ['host', 'host', 'administrate']
+  host: ['host', 'host', 'administrate'],
 }
 
 // -------------------------------------------------------------------
@@ -710,13 +710,13 @@ probeIscsiExists.resolve = {
 export async function probeNfsExists ({
   host,
   server,
-  serverPath
+  serverPath,
 }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
     server,
-    serverpath: serverPath
+    serverpath: serverPath,
   }
 
   const xml = parseXml(await xapi.call('SR.probe', host._xapiRef, deviceConfig, 'nfs', {}))
@@ -734,11 +734,11 @@ export async function probeNfsExists ({
 probeNfsExists.params = {
   host: { type: 'string' },
   server: { type: 'string' },
-  serverPath: { type: 'string' }
+  serverPath: { type: 'string' },
 }
 
 probeNfsExists.resolve = {
-  host: ['host', 'host', 'administrate']
+  host: ['host', 'host', 'administrate'],
 }
 
 // -------------------------------------------------------------------
@@ -749,7 +749,7 @@ export async function reattach ({
   uuid,
   nameLabel,
   nameDescription,
-  type
+  type,
 }) {
   const xapi = this.getXapi(host)
 
@@ -777,11 +777,11 @@ reattach.params = {
   uuid: { type: 'string' },
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string' },
-  type: { type: 'string' }
+  type: { type: 'string' },
 }
 
 reattach.resolve = {
-  host: ['host', 'host', 'administrate']
+  host: ['host', 'host', 'administrate'],
 }
 
 // -------------------------------------------------------------------
@@ -792,7 +792,7 @@ export async function reattachIso ({
   uuid,
   nameLabel,
   nameDescription,
-  type
+  type,
 }) {
   const xapi = this.getXapi(host)
 
@@ -820,11 +820,11 @@ reattachIso.params = {
   uuid: { type: 'string' },
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string' },
-  type: { type: 'string' }
+  type: { type: 'string' },
 }
 
 reattachIso.resolve = {
-  host: ['host', 'host', 'administrate']
+  host: ['host', 'host', 'administrate'],
 }
 
 // -------------------------------------------------------------------
@@ -834,9 +834,9 @@ export function getUnhealthyVdiChainsLength ({ sr }) {
 }
 
 getUnhealthyVdiChainsLength.params = {
-  id: { type: 'string' }
+  id: { type: 'string' },
 }
 
 getUnhealthyVdiChainsLength.resolve = {
-  sr: ['id', 'SR', 'operate']
+  sr: ['id', 'SR', 'operate'],
 }

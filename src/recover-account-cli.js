@@ -29,7 +29,7 @@ xo-server-recover-account <user name or email>
   }
 
   const xo = new Xo(await appConf.load('xo-server', {
-    ignoreUnknownFormats: true
+    ignoreUnknownFormats: true,
   }))
 
   const user = await xo.getUserByName(name, true)

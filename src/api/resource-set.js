@@ -1,5 +1,5 @@
 import {
-  unauthorized
+  unauthorized,
 } from 'xo-common/api-errors'
 
 // ===================================================================
@@ -12,26 +12,26 @@ create.permission = 'admin'
 
 create.params = {
   name: {
-    type: 'string'
+    type: 'string',
   },
   subjects: {
     type: 'array',
     items: {
-      type: 'string'
+      type: 'string',
     },
-    optional: true
+    optional: true,
   },
   objects: {
     type: 'array',
     items: {
-      type: 'string'
+      type: 'string',
     },
-    optional: true
+    optional: true,
   },
   limits: {
     type: 'object',
-    optional: true
-  }
+    optional: true,
+  },
 }
 
 // -------------------------------------------------------------------
@@ -45,8 +45,8 @@ delete_.permission = 'admin'
 
 delete_.params = {
   id: {
-    type: 'string'
-  }
+    type: 'string',
+  },
 }
 
 // -------------------------------------------------------------------
@@ -57,7 +57,7 @@ export function set ({ id, name, subjects, objects, ipPools, limits }) {
     name,
     objects,
     ipPools,
-    subjects
+    subjects,
   })
 }
 
@@ -65,37 +65,37 @@ set.permission = 'admin'
 
 set.params = {
   id: {
-    type: 'string'
+    type: 'string',
   },
   name: {
     type: 'string',
-    optional: true
+    optional: true,
   },
   subjects: {
     type: 'array',
     items: {
-      type: 'string'
+      type: 'string',
     },
-    optional: true
+    optional: true,
   },
   objects: {
     type: 'array',
     items: {
-      type: 'string'
+      type: 'string',
     },
-    optional: true
+    optional: true,
   },
   ipPools: {
     type: 'array',
     items: {
-      type: 'string'
+      type: 'string',
     },
-    optional: true
+    optional: true,
   },
   limits: {
     type: 'object',
-    optional: true
-  }
+    optional: true,
+  },
 }
 
 // -------------------------------------------------------------------
@@ -108,8 +108,8 @@ get.permission = 'admin'
 
 get.params = {
   id: {
-    type: 'string'
-  }
+    type: 'string',
+  },
 }
 
 // -------------------------------------------------------------------
@@ -135,11 +135,11 @@ addObject.permission = 'admin'
 
 addObject.params = {
   id: {
-    type: 'string'
+    type: 'string',
   },
   object: {
-    type: 'string'
-  }
+    type: 'string',
+  },
 }
 
 // -------------------------------------------------------------------
@@ -152,11 +152,11 @@ removeObject.permission = 'admin'
 
 removeObject.params = {
   id: {
-    type: 'string'
+    type: 'string',
   },
   object: {
-    type: 'string'
-  }
+    type: 'string',
+  },
 }
 
 // -------------------------------------------------------------------
@@ -169,11 +169,11 @@ addSubject.permission = 'admin'
 
 addSubject.params = {
   id: {
-    type: 'string'
+    type: 'string',
   },
   subject: {
-    type: 'string'
-  }
+    type: 'string',
+  },
 }
 
 // -------------------------------------------------------------------
@@ -186,11 +186,11 @@ removeSubject.permission = 'admin'
 
 removeSubject.params = {
   id: {
-    type: 'string'
+    type: 'string',
   },
   subject: {
-    type: 'string'
-  }
+    type: 'string',
+  },
 }
 
 // -------------------------------------------------------------------
@@ -203,14 +203,14 @@ addLimit.permission = 'admin'
 
 addLimit.params = {
   id: {
-    type: 'string'
+    type: 'string',
   },
   limitId: {
-    type: 'string'
+    type: 'string',
   },
   quantity: {
-    type: 'integer'
-  }
+    type: 'integer',
+  },
 }
 
 // -------------------------------------------------------------------
@@ -223,11 +223,11 @@ removeLimit.permission = 'admin'
 
 removeLimit.params = {
   id: {
-    type: 'string'
+    type: 'string',
   },
   limitId: {
-    type: 'string'
-  }
+    type: 'string',
+  },
 }
 
 // -------------------------------------------------------------------

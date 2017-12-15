@@ -6,7 +6,7 @@ import Token, { Tokens } from '../models/token'
 import {
   createRawObject,
   forEach,
-  generateToken
+  generateToken,
 } from '../utils'
 
 // ===================================================================
@@ -30,13 +30,13 @@ export default class {
     const tokensDb = this._tokens = new Tokens({
       connection: xo._redis,
       prefix: 'xo:token',
-      indexes: ['user_id']
+      indexes: ['user_id'],
     })
 
     // Password authentication provider.
     this.registerAuthenticationProvider(async ({
       username,
-      password
+      password,
     }) => {
       if (username === undefined || password === undefined) {
         return
@@ -50,7 +50,7 @@ export default class {
 
     // Token authentication provider.
     this.registerAuthenticationProvider(async ({
-      token: tokenId
+      token: tokenId,
     }) => {
       if (!tokenId) {
         return
@@ -154,7 +154,7 @@ export default class {
 
   async createAuthenticationToken ({
     expiresIn = ONE_MONTH,
-    userId
+    userId,
   }) {
     const token = new Token({
       id: await generateToken(),
@@ -163,7 +163,7 @@ export default class {
         typeof expiresIn === 'string'
           ? ms(expiresIn)
           : expiresIn
-      )
+      ),
     })
 
     await this._tokens.add(token)

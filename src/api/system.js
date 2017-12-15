@@ -14,7 +14,7 @@ export function getMethodsInfo () {
     methods[name] = {
       description: method.description,
       params: method.params || {},
-      permission: method.permission
+      permission: method.permission,
     }
   })
 
@@ -60,8 +60,8 @@ export function methodSignature ({method: name}) {
       name,
       description: method.description,
       params: method.params || {},
-      permission: method.permission
-    }
+      permission: method.permission,
+    },
   ]
 }
 methodSignature.description = 'returns the signature of an API method'

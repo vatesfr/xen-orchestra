@@ -14,13 +14,13 @@ export async function exportConfig () {
   return {
     $getFrom: await this.registerHttpRequest((req, res) => {
       res.writeHead(200, 'OK', {
-        'content-disposition': 'attachment'
+        'content-disposition': 'attachment',
       })
 
       return this.exportConfig()
     },
     undefined,
-    { suffix: '/config.json' })
+    { suffix: '/config.json' }),
   }
 }
 
@@ -37,7 +37,7 @@ getAllObjects.description = 'Returns all XO objects'
 
 getAllObjects.params = {
   filter: { type: 'object', optional: true },
-  limit: { type: 'number', optional: true }
+  limit: { type: 'number', optional: true },
 }
 
 // -------------------------------------------------------------------
@@ -48,7 +48,7 @@ export async function importConfig () {
       await this.importConfig(JSON.parse(await streamToBuffer(req)))
 
       res.end('config successfully imported')
-    })
+    }),
   }
 }
 

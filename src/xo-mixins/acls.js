@@ -1,16 +1,16 @@
 import checkAuthorization from 'xo-acl-resolver'
 
 import {
-  ModelAlreadyExists
+  ModelAlreadyExists,
 } from '../collection'
 import {
-  Acls
+  Acls,
 } from '../models/acl'
 import {
   createRawObject,
   forEach,
   includes,
-  mapToArray
+  mapToArray,
 } from '../utils'
 
 // ===================================================================
@@ -22,7 +22,7 @@ export default class {
     const aclsDb = this._acls = new Acls({
       connection: xo._redis,
       prefix: 'xo:acl',
-      indexes: ['subject', 'object']
+      indexes: ['subject', 'object'],
     })
 
     xo.on('start', () => {
@@ -93,10 +93,10 @@ export default class {
   async getPermissionsForUser (userId) {
     const [
       acls,
-      permissionsByRole
+      permissionsByRole,
     ] = await Promise.all([
       this._getAclsForUser(userId),
-      this._getPermissionsByRole()
+      this._getPermissionsByRole(),
     ])
 
     const permissions = createRawObject()
@@ -152,16 +152,16 @@ export default class {
         id: 'viewer',
         name: 'Viewer',
         permissions: [
-          'view'
-        ]
+          'view',
+        ],
       },
       {
         id: 'operator',
         name: 'Operator',
         permissions: [
           'view',
-          'operate'
-        ]
+          'operate',
+        ],
       },
       {
         id: 'admin',
@@ -169,9 +169,9 @@ export default class {
         permissions: [
           'view',
           'operate',
-          'administrate'
-        ]
-      }
+          'administrate',
+        ],
+      },
     ]
   }
 

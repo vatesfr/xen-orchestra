@@ -3,7 +3,7 @@ import {EventEmitter} from 'events'
 import {
   forEach,
   isEmpty,
-  isString
+  isString,
 } from './utils'
 
 // ===================================================================

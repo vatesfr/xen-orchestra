@@ -4,11 +4,11 @@ export async function register ({vm}) {
 register.description = 'Register the VM for Docker management'
 
 register.params = {
-  vm: { type: 'string' }
+  vm: { type: 'string' },
 }
 
 register.resolve = {
-  vm: ['vm', 'VM', 'administrate']
+  vm: ['vm', 'VM', 'administrate'],
 }
 
 // -----------------------------------------------------------------------------
@@ -19,11 +19,11 @@ export async function deregister ({vm}) {
 deregister.description = 'Deregister the VM for Docker management'
 
 deregister.params = {
-  vm: { type: 'string' }
+  vm: { type: 'string' },
 }
 
 deregister.resolve = {
-  vm: ['vm', 'VM', 'administrate']
+  vm: ['vm', 'VM', 'administrate'],
 }
 
 // -----------------------------------------------------------------------------
@@ -48,13 +48,13 @@ export async function unpause ({vm, container}) {
   await this.getXapi(vm).unpauseDockerContainer(vm._xapiId, container)
 }
 
-for (let fn of [start, stop, restart, pause, unpause]) {
+for (const fn of [start, stop, restart, pause, unpause]) {
   fn.params = {
     vm: { type: 'string' },
-    container: { type: 'string' }
+    container: { type: 'string' },
   }
 
   fn.resolve = {
-    vm: ['vm', 'VM', 'operate']
+    vm: ['vm', 'VM', 'operate'],
   }
 }

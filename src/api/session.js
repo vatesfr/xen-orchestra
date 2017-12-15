@@ -23,7 +23,7 @@ export const signInWithPassword = deprecate(signIn, 'use session.signIn() instea
 
 signInWithPassword.params = {
   email: { type: 'string' },
-  password: { type: 'string' }
+  password: { type: 'string' },
 }
 
 // -------------------------------------------------------------------
@@ -31,7 +31,7 @@ signInWithPassword.params = {
 export const signInWithToken = deprecate(signIn, 'use session.signIn() instead')
 
 signInWithToken.params = {
-  token: { type: 'string' }
+  token: { type: 'string' },
 }
 
 // -------------------------------------------------------------------
