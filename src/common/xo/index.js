@@ -9,6 +9,7 @@ import {
   assign,
   filter,
   forEach,
+  includes,
   isEmpty,
   isEqual,
   map,
@@ -1923,7 +1924,7 @@ export const deleteSshKey = key =>
   }).then(() => {
     const { preferences } = xo.user
     return _setUserPreferences({
-      sshKeys: filter(preferences && preferences.sshKeys, k => !isEqual(k, key)),
+      sshKeys: filter(preferences && preferences.sshKeys, k => k.key !== key.id),
     })
   }, noop)
 
@@ -1934,17 +1935,13 @@ export const deleteSshKeys = keys =>
       nKeys: keys.length,
     }),
   }).then(() => {
-    const { preferences } = xo.user
-    return Promise.all(
-      map(keys, key =>
-        _setUserPreferences({
-          sshKeys: filter(
-            preferences && preferences.sshKeys,
-            k => !isEqual(k, key)
-          ),
-        })
-      )
-    )
+    const sshKeys = xo.user.preferences.sshKeys
+    const idKeys = map(keys, 'id')
+    const newKeys = filter(sshKeys, sshKey => !includes(idKeys, sshKey.key))
+
+    return _setUserPreferences({
+      sshKeys: newKeys,
+    })
   }, noop)
 
 // User filters --------------------------------------------------

@@ -14,7 +14,7 @@ import { getLang } from 'selectors'
 import { map } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { Select } from 'form'
-import { Card, CardHeader } from 'card'
+import { Card, CardBlock, CardHeader } from 'card'
 import { addSubscriptions, connectStore, noop } from 'utils'
 import {
   addSshKey,
@@ -278,13 +278,15 @@ const SshKeys = addSubscriptions({
             {_('newSshKey')}
           </ActionButton>
         </CardHeader>
-        <SortedTable
-          collection={sshKeysWithIds}
-          columns={COLUMNS}
-          groupedActions={GROUPED_ACTIONS}
-          individualActions={INDIVIDUAL_ACTIONS}
-          stateUrlParam='s'
-        />
+        <CardBlock>
+          <SortedTable
+            collection={sshKeysWithIds}
+            columns={COLUMNS}
+            groupedActions={GROUPED_ACTIONS}
+            individualActions={INDIVIDUAL_ACTIONS}
+            stateUrlParam='s'
+          />
+        </CardBlock>
       </Card>
     </div>
   )
