@@ -17,7 +17,7 @@ import { createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
 import { addSubscriptions, connectStore, formatSize } from 'utils'
 import {
   addXosanBricks,
-  checkLicense,
+  getLicense,
   fixHostNotInXosanNetwork,
   // TODO: uncomment when implementing subvolume deletion
   // removeXosanBricks,
@@ -368,13 +368,14 @@ class Node extends Component {
 })
 export default class TabXosan extends Component {
   componentDidMount () {
-    checkLicense(this.props.sr.id)
-      .then(license => {
-        this.setState({ license })
-      })
-      .catch(error => {
-        this.setState({ licenseError: error })
-      })
+    const { id } = this.props.sr
+
+    getLicense('xosan', id)
+      .then(
+        license => this.setState({ license }),
+        () => getLicense('xosan.trial', id)
+      )
+      .catch(error => this.setState({ licenseError: error }))
   }
 
   _addSubvolume = async () => {

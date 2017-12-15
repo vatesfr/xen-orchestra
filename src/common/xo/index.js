@@ -2072,8 +2072,8 @@ export const fixHostNotInXosanNetwork = (xosanSr, host) =>
 
 export const getLicenses = productId => _call('xoa.getLicenses', { productId })
 
-export const checkLicense = boundObjectId =>
-  _call('xoa.checkLicense', { boundObjectId })
+export const getLicense = (productId, boundObjectId) =>
+  _call('xoa.getLicense', { productId, boundObjectId })
 
 export const unlockXosan = (licenseId, srId) =>
   _call('xosan.unlock', { licenseId, srId })
