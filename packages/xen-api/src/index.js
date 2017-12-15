@@ -80,19 +80,28 @@ const isSessionInvalid = ({code}) => code === 'SESSION_INVALID'
 // -------------------------------------------------------------------
 
 class XapiError extends BaseError {
-  constructor ([code, ...params]) {
+  constructor (code, params) {
     super(`${code}(${params.join(', ')})`)
 
     this.code = code
     this.params = params
 
-    // slot than can be assigned later
+    // slots than can be assigned later
     this.method = undefined
     this.url = undefined
   }
 }
 
-export const wrapError = error => new XapiError(error)
+export const wrapError = error => {
+  let code, params
+  if (isArray(error)) { // < XenServer 7.3
+    [ code, ...params ] = error
+  } else {
+    code = error.message
+    params = error.data
+  }
+  return new XapiError(code, params)
+}
 
 // ===================================================================
 
@@ -907,7 +916,7 @@ export class Xapi extends EventEmitter {
 Xapi.prototype._transportCall = reduce([
   function (method, args) {
     return this._call(method, args).catch(error => {
-      if (isArray(error)) {
+      if (!(error instanceof Error)) {
         error = wrapError(error)
       }
 
