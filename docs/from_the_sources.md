@@ -23,11 +23,13 @@ $ node -v
 v8.9.1
 ```
 
+See [this page](https://nodejs.org/en/download/package-manager/) for instructions on how to install Node.
+
 ### Yarn
 
 > Yarn is a package manager which offers more guarantees than npm.
 
-See [this page](https://yarnpkg.com/en/docs/install) to know how to install it.
+See [this page](https://yarnpkg.com/en/docs/install#linux-tab) for instructions on how to install Yarn.
 
 ### Packages
 
@@ -74,9 +76,9 @@ Edit and uncomment it to have the right path to deliver `xo-web`, because `xo-se
 
 **WARNING: YAML is very strict with indentation: use spaces for it, not tabs**.
 
-In this config file, you can also change default ports (80 and 443) for xo-server.
+In this config file, you can also change default ports (80 and 443) for xo-server. If you are running the server as a non-root user, you will need to set the port to 1024 or higher.
 
-You can try to start xo-server to see if it works. You should have something like that:
+You can try to start xo-server to see if it works. You should have something like this:
 
 ```
 $ yarn start
@@ -103,11 +105,33 @@ That's it! Go on your browser to the xo-server IP address, and it works! :)
 
 ## Misc
 
-- You can also consider using [forever](https://github.com/nodejitsu/forever) to have always the process running.
+- You can use [forever](https://github.com/nodejitsu/forever) to have the process always running:
 
 ```
 $ yarn global add forever
 $ forever start bin/xo-server
+```
+
+- Or you can use  [forever-service](https://github.com/zapty/forever-service) to install XO as a service, so it starts automatically at boot. As root:
+
+```
+yarn global add forever
+yarn global add forever-service
+cd /home/username/xo-server/bin/
+forever-service install orchestra -r username -s xo-server
+```
+
+Be sure to change the usernames to the user you are running xo-server as. The forever-service command must be run in the xo-server bin directory. Now you can manage the service, and it will start on boot with the machine:
+
+```
+service orchestra start
+service orchestra status
+```
+
+If you need to delete the service:
+
+```
+forever-service delete orchestra
 ```
 
 - Our stable branch is *stable* and the beta branch is *next-release*. You can change it if you want to test our latest features (on both xo-server and `xo-web`, do NOT mix them):
