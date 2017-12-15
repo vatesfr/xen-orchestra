@@ -65,6 +65,7 @@ require('exec-promise')(() =>
       unlink(`${dir}/.editorconfig`),
       unlink(`${dir}/.gitignore`),
       unlink(`${dir}/.jshintrc`),
+      unlink(`${dir}/.travis.yml`),
       unlink(`${dir}/yarn.lock`),
     ])
   })
