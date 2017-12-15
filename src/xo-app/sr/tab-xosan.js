@@ -12,7 +12,7 @@ import { confirm } from 'modal'
 import { error } from 'notification'
 import { Toggle } from 'form'
 import { Container, Col, Row } from 'grid'
-import { forEach, isEmpty, map, reduce, sum } from 'lodash'
+import { find, forEach, isEmpty, map, reduce, sum } from 'lodash'
 import { createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
 import { addSubscriptions, connectStore, formatSize } from 'utils'
 import {
@@ -23,6 +23,7 @@ import {
   // removeXosanBricks,
   replaceXosanBrick,
   startVm,
+  subscribePlugins,
   subscribeVolumeInfo,
 } from 'xo'
 
@@ -364,6 +365,8 @@ class Node extends Component {
       subscribeVolumeInfo({ sr, infoType }, cb)
   })
 
+  subscriptions.plugins = subscribePlugins
+
   return subscriptions
 })
 export default class TabXosan extends Component {
@@ -437,6 +440,24 @@ export default class TabXosan extends Component {
   //     return subVolumes
   //   }
   // )
+
+  _getMissingXoaPlugin = createSelector(
+    () => this.props.plugins,
+    plugins => {
+      if (plugins === undefined) {
+        return true
+      }
+
+      const xoaPlugin = find(plugins, { id: 'xoa' })
+      if (!xoaPlugin) {
+        return _('xosanInstallXoaPlugin')
+      }
+
+      if (!xoaPlugin.loaded) {
+        return _('xosanLoadXoaPlugin')
+      }
+    }
+  )
 
   _getConfig = createSelector(
     () => this.props.sr && this.props.sr.other_config['xo:xosan_config'],
@@ -606,6 +627,11 @@ export default class TabXosan extends Component {
       vdis,
       isAdmin,
     } = this.props
+
+    const missingXoaPlugin = this._getMissingXoaPlugin()
+    if (missingXoaPlugin !== undefined) {
+      return <em>{missingXoaPlugin}</em>
+    }
 
     const xosanConfig = this._getConfig()
     if (

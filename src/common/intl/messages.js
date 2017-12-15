@@ -1688,6 +1688,8 @@ const messages = {
   selectLicense: 'Select a license',
   bindLicense: 'Bind license',
   expiresOn: 'expires on {date}',
+  xosanInstallXoaPlugin: 'Install XOA plugin first',
+  xosanLoadXoaPlugin: 'Load XOA plugin first',
 }
 forEach(messages, function (message, id) {
   if (isString(message)) {

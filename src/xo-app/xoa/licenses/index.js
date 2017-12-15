@@ -7,7 +7,7 @@ import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import { Container, Row, Col } from 'grid'
 import { createSelector, createGetObjectsOfType } from 'selectors'
-import { forEach } from 'lodash'
+import { find, forEach } from 'lodash'
 import { addSubscriptions, connectStore, ShortDate } from 'utils'
 import { subscribePlugins, getLicenses } from 'xo'
 import { get } from 'xo-defined'
@@ -135,6 +135,24 @@ export default class Licenses extends Component {
     }
   )
 
+  _getMissingXoaPlugin = createSelector(
+    () => this.props.plugins,
+    plugins => {
+      if (plugins === undefined) {
+        return true
+      }
+
+      const xoaPlugin = find(plugins, { id: 'xoa' })
+      if (!xoaPlugin) {
+        return _('xosanInstallXoaPlugin')
+      }
+
+      if (!xoaPlugin.loaded) {
+        return _('xosanLoadXoaPlugin')
+      }
+    }
+  )
+
   render () {
     if (get(() => this.props.xoaRegistration.state) !== 'registered') {
       return (
@@ -143,6 +161,11 @@ export default class Licenses extends Component {
           <Link to='xoa/update'>{_('registerNow')}</Link>
         </span>
       )
+    }
+
+    const missingXoaPlugin = this._getMissingXoaPlugin()
+    if (missingXoaPlugin !== undefined) {
+      return <em>{missingXoaPlugin}</em>
     }
 
     if (this.state.licenseError !== undefined) {
