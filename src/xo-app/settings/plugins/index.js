@@ -55,7 +55,7 @@ class Plugin extends Component {
     const method = event.target.checked
       ? enablePluginAutoload
       : disablePluginAutoload
-    ;method(this.props.id)::lastly(() => {
+    method(this.props.id)::lastly(() => {
       this._updateAutoload = false
     })
   }

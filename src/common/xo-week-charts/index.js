@@ -186,7 +186,7 @@ class XoWeekChart extends Component {
     this._drawHorizonArea(props.data, props.maxValue)
 
     // 3. Update x axis.
-    ;svg
+    svg
       .select('.x-axis')
       .call(this._xAxis)
       .attr('transform', `translate(0, ${props.chartHeight})`)
@@ -246,19 +246,19 @@ class XoWeekChart extends Component {
       .select(this.refs.chart)
       .append('svg')
       .attr('transform', `translate(${HORIZON_AREA_MARGIN}, 0)`))
-    ;svg
+    svg
       .append('g')
       .attr('class', 'x-axis')
       ::setStyles(X_AXIS_STYLE)
 
     svg.append('g').attr('class', 'horizon-area')
-    ;svg
+    svg
       .append('text')
       .attr('class', 'label')
       ::setStyles(LABEL_STYLE)
 
     // Tooltip ---------------------------------------------
-    ;svg
+    svg
       .append('rect')
       .attr('class', 'mouse-area')
       .on('mousemove', this._handleMouseMove)
@@ -268,12 +268,12 @@ class XoWeekChart extends Component {
       .append('g')
       .attr('class', 'hover-container')
       ::setStyles('pointer-events', 'none')
-    ;hover
+    hover
       .append('line')
       .attr('class', 'hover-line')
       .attr('y1', 0)
       ::setStyles(HOVER_LINE_STYLE)
-    ;hover
+    hover
       .append('text')
       .attr('class', 'hover-text')
       ::setStyles(HOVER_TEXT_STYLE)

@@ -225,14 +225,14 @@ export default class XoParallelChart extends Component {
       .attr('transform', d => `translate(${x(d)})`)
 
     // 4. Draw titles.
-    ;columns
+    columns
       .append('text')
       .text(columnId => labels[columnId])
       .attr('y', -50)
       ::setStyles(COLUMN_TITLE_STYLE)
 
     // 5. Draw axis.
-    ;columns
+    columns
       .append('g')
       .each((columnId, axisId, axes) => {
         const axis = d3
@@ -262,7 +262,7 @@ export default class XoParallelChart extends Component {
           ])
         )
       )
-    ;svg
+    svg
       .append('g')
       .attr('class', 'linesContainer')
       ::setStyles(LINES_CONTAINER_STYLE)
