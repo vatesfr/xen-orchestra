@@ -16,8 +16,8 @@ exports.getPackages = (readPackageJson = false) => {
         readFile(`${pkg.dir}/package.json`).then(data => {
           pkg.package = JSON.parse(data)
           return pkg
-        })
-      ))
+        }, noop)
+      )).then(pkgs => pkgs.filter(pkg => pkg !== undefined))
       : pkgs
   })
   p.forEach = fn => p.then(pkgs => forEach.call(pkgs, fn))
