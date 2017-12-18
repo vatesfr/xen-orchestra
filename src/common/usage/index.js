@@ -1,6 +1,7 @@
 import _ from 'intl'
 import classNames from 'classnames'
-import React, { PropTypes, cloneElement } from 'react'
+import PropTypes from 'prop-types'
+import React, { cloneElement } from 'react'
 import sum from 'lodash/sum'
 
 import Tooltip from '../tooltip'

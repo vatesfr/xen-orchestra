@@ -4,6 +4,7 @@ import DocumentTitle from 'react-document-title'
 import Icon from 'icon'
 import isArray from 'lodash/isArray'
 import map from 'lodash/map'
+import PropTypes from 'prop-types'
 import React from 'react'
 import Shortcuts from 'shortcuts'
 import themes from 'themes'
@@ -97,10 +98,10 @@ const BODY_STYLE = {
 })
 export default class XoApp extends Component {
   static contextTypes = {
-    router: React.PropTypes.object,
+    router: PropTypes.object,
   }
   static childContextTypes = {
-    shortcuts: React.PropTypes.object.isRequired,
+    shortcuts: PropTypes.object.isRequired,
   }
   getChildContext = () => ({ shortcuts: shortcutManager })
 

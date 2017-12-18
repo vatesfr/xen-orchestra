@@ -7,6 +7,7 @@ import defined, { get } from 'xo-defined'
 import Icon from 'icon'
 import isIp from 'is-ip'
 import Page from '../page'
+import PropTypes from 'prop-types'
 import React from 'react'
 import store from 'store'
 import Tags from 'tags'
@@ -210,7 +211,7 @@ class Vif extends BaseComponent {
 @injectIntl
 export default class NewVm extends BaseComponent {
   static contextTypes = {
-    router: React.PropTypes.object,
+    router: PropTypes.object,
   }
 
   constructor () {

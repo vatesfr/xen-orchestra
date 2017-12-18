@@ -107,6 +107,7 @@
     "notifyjs": "^3.0.0",
     "prettier": "^1.9.2",
     "promise-toolbox": "^0.9.5",
+    "prop-types": "^15.6.0",
     "random-password": "^0.1.2",
     "react": "^15.4.1",
     "react-addons-shallow-compare": "^15.6.2",

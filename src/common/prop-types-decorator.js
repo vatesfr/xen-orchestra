@@ -1,5 +1,5 @@
 import assign from 'lodash/assign'
-import { PropTypes } from 'react'
+import PropTypes from 'prop-types'
 
 // Decorators to help declaring properties and context types on React
 // components without using the tedious static properties syntax.

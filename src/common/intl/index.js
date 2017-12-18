@@ -1,7 +1,8 @@
 import isFunction from 'lodash/isFunction'
 import isString from 'lodash/isString'
 import moment from 'moment'
-import React, { Component, PropTypes } from 'react'
+import PropTypes from 'prop-types'
+import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { FormattedMessage, IntlProvider as IntlProvider_ } from 'react-intl'
 

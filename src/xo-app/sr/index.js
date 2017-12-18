@@ -3,6 +3,7 @@ import Component from 'base-component'
 import Icon from 'icon'
 import Link from 'link'
 import Page from '../page'
+import PropTypes from 'prop-types'
 import React, { cloneElement } from 'react'
 import SrActionBar from './action-bar'
 import { Container, Row, Col } from 'grid'
@@ -90,7 +91,7 @@ import TabXosan from './tab-xosan'
 })
 export default class Sr extends Component {
   static contextTypes = {
-    router: React.PropTypes.object,
+    router: PropTypes.object,
   }
 
   componentWillReceiveProps (props) {
