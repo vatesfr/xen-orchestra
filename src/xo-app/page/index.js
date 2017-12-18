@@ -1,6 +1,5 @@
 import { messages } from 'intl'
 import DocumentTitle from 'react-document-title'
-import PropTypes from 'prop-types'
 import React from 'react'
 import { injectIntl } from 'react-intl'
 
