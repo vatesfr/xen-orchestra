@@ -62,7 +62,12 @@ class SelectLicense extends Component {
 const XOSAN_COLUMNS = [
   {
     name: _('xosanName'),
-    itemRenderer: sr => sr.name_label,
+    itemRenderer: (sr, { poolsBySr }) => (
+      <span>
+        {sr.name_label}{' '}
+        <span className='text-muted'>({poolsBySr[sr.id].name_label})</span>
+      </span>
+    ),
     sortCriteria: 'name_label',
   },
   {
@@ -104,10 +109,27 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
   },
 ]
 
-@connectStore({
-  xosanSrs: createGetObjectsOfType('SR').filter([
+@connectStore(() => {
+  const getXosanSrs = createGetObjectsOfType('SR').filter([
     ({ SR_type }) => SR_type === 'xosan', // eslint-disable-line camelcase
-  ]),
+  ])
+  const getPoolsBySr = createSelector(
+    getXosanSrs,
+    createGetObjectsOfType('pool'),
+    (srs, pools) => {
+      const poolsBySr = {}
+      forEach(srs, sr => {
+        poolsBySr[sr.id] = pools[sr.$pool]
+      })
+
+      return poolsBySr
+    }
+  )
+
+  return {
+    xosanSrs: getXosanSrs,
+    poolsBySr: getPoolsBySr,
+  }
 })
 export default class Xosan extends Component {
   _getLicensesByXosan = createSelector(
@@ -148,6 +170,7 @@ export default class Xosan extends Component {
   )
 
   render () {
+    console.log('this.props.poolsBySr', this.props.poolsBySr)
     return (
       <SortedTable
         collection={this._getKnownXosans()}
@@ -156,6 +179,7 @@ export default class Xosan extends Component {
         userData={{
           availableLicenses: this._getAvailableLicenses(),
           licensesByXosan: this._getLicensesByXosan(),
+          poolsBySr: this.props.poolsBySr,
           xosanSrs: this.props.xosanSrs,
           updateLicenses: this.props.updateLicenses,
         }}
