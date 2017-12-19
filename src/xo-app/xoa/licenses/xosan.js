@@ -170,7 +170,6 @@ export default class Xosan extends Component {
   )
 
   render () {
-    console.log('this.props.poolsBySr', this.props.poolsBySr)
     return (
       <SortedTable
         collection={this._getKnownXosans()}

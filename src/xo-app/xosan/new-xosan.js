@@ -222,7 +222,7 @@ export default class NewXosan extends Component {
       brickSize: this.state.customBrickSize ? this.state.brickSize : undefined,
       memorySize: this.state.memorySize,
       ipRange: this.state.customIpRange ? this.state.ipRange : undefined,
-    })
+    }).then(this.props.onSrCreationFinished)
 
     this.props.onSrCreationStarted()
   }

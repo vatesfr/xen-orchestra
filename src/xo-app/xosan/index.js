@@ -300,6 +300,18 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
 export default class Xosan extends Component {
   componentDidMount () {
     this._subscribeVolumeInfo(this.props.xosanSrs)
+    this._updateLicenses()
+  }
+
+  componentWillReceiveProps ({ pools, xosanSrs }) {
+    if (xosanSrs !== this.props.xosanSrs) this._subscribeVolumeInfo(xosanSrs)
+  }
+
+  componentWillUnmount () {
+    if (this.unsubscribeVolumeInfo != null) this.unsubscribeVolumeInfo()
+  }
+
+  _updateLicenses = () =>
     Promise.all([getLicenses('xosan'), getLicenses('xosan.trial')])
       .then(([xosanLicenses, xosanTrialLicenses]) => {
         this.setState({
@@ -310,15 +322,18 @@ export default class Xosan extends Component {
       .catch(error => {
         this.setState({ licenseError: error })
       })
-  }
 
-  componentWillReceiveProps ({ pools, xosanSrs }) {
-    if (xosanSrs !== this.props.xosanSrs) this._subscribeVolumeInfo(xosanSrs)
-  }
-
-  componentWillUnmount () {
-    if (this.unsubscribeVolumeInfo != null) this.unsubscribeVolumeInfo()
-  }
+  _updateLicenses = () =>
+    Promise.all([getLicenses('xosan'), getLicenses('xosan.trial')])
+      .then(([xosanLicenses, xosanTrialLicenses]) => {
+        this.setState({
+          xosanLicenses,
+          xosanTrialLicenses,
+        })
+      })
+      .catch(error => {
+        this.setState({ licenseError: error })
+      })
 
   _subscribeVolumeInfo = srs => {
     const unsubscriptions = []
@@ -434,6 +449,7 @@ export default class Xosan extends Component {
                         hostsNeedRestartByPool={hostsNeedRestartByPool}
                         noPacksByPool={noPacksByPool}
                         poolPredicate={poolPredicate}
+                        onSrCreationFinished={this._updateLicenses}
                         onSrCreationStarted={this._onSrCreationStarted}
                         notRegistered={
                           get(() => xoaRegistration.state) !== 'registered'
