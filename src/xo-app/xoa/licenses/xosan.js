@@ -1,7 +1,9 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
+import Link from 'link'
 import React from 'react'
+import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import { connectStore } from 'utils'
 import { createSelector, createGetObjectsOfType, createFilter } from 'selectors'
@@ -62,12 +64,15 @@ class SelectLicense extends Component {
 const XOSAN_COLUMNS = [
   {
     name: _('xosanName'),
-    itemRenderer: (sr, { poolsBySr }) => (
-      <span>
-        {sr.name_label}{' '}
-        <span className='text-muted'>({poolsBySr[sr.id].name_label})</span>
-      </span>
-    ),
+    itemRenderer: (sr, { poolsBySr }) => {
+      const pool = poolsBySr[sr.id]
+      return (
+        <span>
+          <Link to={`srs/${sr.id}`}>{renderXoItem(sr)}</Link>{' '}
+          <span className='text-muted'>({pool.name_label})</span>
+        </span>
+      )
+    },
     sortCriteria: 'name_label',
   },
   {
