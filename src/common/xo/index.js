@@ -2076,4 +2076,4 @@ export const getLicense = (productId, boundObjectId) =>
   _call('xoa.getLicense', { productId, boundObjectId })
 
 export const unlockXosan = (licenseId, srId) =>
-  _call('xosan.unlock', { licenseId, srId })
+  _call('xosan.unlock', { licenseId, sr: srId })
