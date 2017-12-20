@@ -374,11 +374,11 @@ export default class TabXosan extends Component {
     const { id } = this.props.sr
 
     getLicense('xosan', id)
+      .catch(() => getLicense('xosan.trial', id))
       .then(
         license => this.setState({ license }),
-        () => getLicense('xosan.trial', id)
+        error => this.setState({ licenseError: error })
       )
-      .catch(error => this.setState({ licenseError: error }))
   }
 
   _addSubvolume = async () => {
