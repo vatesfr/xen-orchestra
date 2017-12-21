@@ -529,7 +529,6 @@ export default class Xapi extends XapiBase {
     const sr = targetXapi.getObject(targetSrId)
     let stream = await this.exportVm(vmId, {
       compress,
-      onlyMetadata: false,
     })
 
     const sizeStream = createSizeStream()
@@ -724,19 +723,17 @@ export default class Xapi extends XapiBase {
   // Returns a stream to the exported VM.
   async exportVm (vmId, {
     compress = true,
-    onlyMetadata = false,
   } = {}) {
     const vm = this.getObject(vmId)
 
     let host
     let snapshotRef
-    // It's not needed to snapshot the VM to get the metadata
-    if (isVmRunning(vm) && !onlyMetadata) {
+    if (isVmRunning(vm)) {
       host = vm.$resident_on
       snapshotRef = (await this._snapshotVm(vm)).$ref
     }
 
-    const promise = this.getResource(onlyMetadata ? '/export_metadata/' : '/export/', {
+    const promise = this.getResource('/export/', {
       host,
       query: {
         ref: snapshotRef || vm.$ref,
@@ -1199,11 +1196,9 @@ export default class Xapi extends XapiBase {
     })))
   }
 
-  async _importVm (stream, sr, onlyMetadata = false, onVmCreation = undefined) {
+  async _importVm (stream, sr, onVmCreation = undefined) {
     const taskRef = await this.createTask('VM import')
-    const query = {
-      force: onlyMetadata,
-    }
+    const query = {}
 
     let host
     if (sr != null) {
@@ -1219,21 +1214,13 @@ export default class Xapi extends XapiBase {
 
     const vmRef = await this.putResource(
       stream,
-      onlyMetadata ? '/import_metadata/' : '/import/',
+      '/import/',
       {
         host,
         query,
         task: taskRef,
       }
     ).then(extractOpaqueRef)
-
-    // Importing a metadata archive of running VMs is currently
-    // broken: its VBDs are incorrectly seen as attached.
-    //
-    // A call to VM.power_state_reset fixes this problem.
-    if (onlyMetadata) {
-      await this.call('VM.power_state_reset', vmRef)
-    }
 
     return vmRef
   }
@@ -1325,7 +1312,6 @@ export default class Xapi extends XapiBase {
   // TODO: an XVA can contain multiple VMs
   async importVm (stream, {
     data,
-    onlyMetadata = false,
     srId,
     type = 'xva',
   } = {}) {
@@ -1335,7 +1321,6 @@ export default class Xapi extends XapiBase {
       return /* await */ this._getOrWaitObject(await this._importVm(
         stream,
         sr,
-        onlyMetadata
       ))
     }
 

@@ -807,8 +807,8 @@ exports.rollingSnapshot = rollingSnapshot
 
 #---------------------------------------------------------------------
 
-backup = $coroutine ({vm, remoteId, file, compress, onlyMetadata}) ->
-  yield @backupVm({vm, remoteId, file, compress, onlyMetadata})
+backup = $coroutine ({vm, remoteId, file, compress}) ->
+  yield @backupVm({vm, remoteId, file, compress})
 
 backup.permission = 'admin'
 
@@ -817,7 +817,6 @@ backup.params = {
   remoteId: { type: 'string' }
   file: { type: 'string' }
   compress: { type: 'boolean', optional: true }
-  onlyMetadata: { type: 'boolean', optional: true }
 }
 
 backup.resolve = {
@@ -850,14 +849,13 @@ exports.importBackup = importBackup
 
 #---------------------------------------------------------------------
 
-rollingBackup = $coroutine ({vm, remoteId, tag, depth, retention = depth, compress, onlyMetadata}) ->
+rollingBackup = $coroutine ({vm, remoteId, tag, depth, retention = depth, compress}) ->
   return yield @rollingBackupVm({
     vm,
     remoteId,
     tag,
     retention,
     compress,
-    onlyMetadata
   })
 
 rollingBackup.permission = 'admin'
@@ -1014,10 +1012,9 @@ exports.revert = revert
 
 #---------------------------------------------------------------------
 
-handleExport = $coroutine (req, res, {xapi, id, compress, onlyMetadata}) ->
+handleExport = $coroutine (req, res, {xapi, id, compress}) ->
   stream = yield xapi.exportVm(id, {
     compress: compress ? true,
-    onlyMetadata: onlyMetadata ? false
   })
   res.on('close', () ->
     stream.cancel()
@@ -1034,7 +1031,7 @@ handleExport = $coroutine (req, res, {xapi, id, compress, onlyMetadata}) ->
   return
 
 # TODO: integrate in xapi.js
-export_ = $coroutine ({vm, compress, onlyMetadata}) ->
+export_ = $coroutine ({vm, compress}) ->
   if vm.power_state is 'Running'
     yield checkPermissionOnSrs.call(this, vm)
 
@@ -1042,7 +1039,6 @@ export_ = $coroutine ({vm, compress, onlyMetadata}) ->
     xapi: @getXapi(vm),
     id: vm._xapiId,
     compress,
-    onlyMetadata
   }
 
   return {
@@ -1054,7 +1050,6 @@ export_ = $coroutine ({vm, compress, onlyMetadata}) ->
 export_.params = {
   vm: { type: 'string' }
   compress: { type: 'boolean', optional: true }
-  onlyMetadata: { type: 'boolean', optional: true }
 }
 
 export_.resolve = {

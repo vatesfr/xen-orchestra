@@ -43,9 +43,6 @@ import {
   safeDateParse,
   tmpDir,
 } from '../utils'
-import {
-  VDI_FORMAT_VHD,
-} from '../xapi'
 
 // ===================================================================
 
@@ -513,84 +510,6 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  async _legacyImportDeltaVdiBackup (xapi, { vmId, handler, dir, vdiInfo }) {
-    const vdi = await xapi.createVdi(vdiInfo.virtual_size, vdiInfo)
-    const vdiId = vdi.$id
-
-    // dir = vm_delta_xxx
-    // xoPath = vdi_xxx/timestamp_(full|delta).vhd
-    // vdiDir = vdi_xxx
-    const { xoPath } = vdiInfo
-    const filePath = `${dir}/${xoPath}`
-    const vdiDir = dirname(xoPath)
-
-    const backups = await this._listDeltaVdiDependencies(handler, filePath)
-
-    for (const backup of backups) {
-      const stream = await handler.createReadStream(`${dir}/${vdiDir}/${backup}`)
-
-      await xapi.importVdiContent(vdiId, stream, {
-        format: VDI_FORMAT_VHD,
-      })
-    }
-
-    return vdiId
-  }
-
-  async _legacyImportDeltaVmBackup (xapi, { remoteId, handler, filePath, info, sr, mapVdisSrs = {} }) {
-    // Import vm metadata.
-    const vm = await (async () => {
-      const stream = await handler.createReadStream(`${filePath}.xva`)
-      return /* await */ xapi.importVm(stream, { onlyMetadata: true })
-    })()
-
-    const vmName = vm.name_label
-    const dir = dirname(filePath)
-
-    // Disable start and change the VM name label during import.
-    await Promise.all([
-      xapi.addForbiddenOperationToVm(vm.$id, 'start', 'Delta backup import...'),
-      xapi._setObjectProperties(vm, { name_label: `[Importing...] ${vmName}` }),
-    ])
-
-    // Destroy vbds if necessary. Why ?
-    // Because XenServer creates Vbds linked to the vdis of the backup vm if it exists.
-    await xapi.destroyVbdsFromVm(vm.uuid)
-
-    // Import VDIs.
-    const vdiIds = {}
-    await Promise.all(
-      mapToArray(
-        info.vdis,
-        async vdiInfo => {
-          vdiInfo.sr = mapVdisSrs[vdiInfo.uuid] || sr._xapiId
-
-          const vdiId = await this._legacyImportDeltaVdiBackup(xapi, { vmId: vm.$id, handler, dir, vdiInfo })
-          vdiIds[vdiInfo.uuid] = vdiId
-        }
-      )
-    )
-
-    await Promise.all(
-      mapToArray(
-        info.vbds,
-        vbdInfo => {
-          xapi.attachVdiToVm(vdiIds[vbdInfo.xoVdi], vm.$id, vbdInfo)
-        }
-      )
-    )
-
-    // Import done, reenable start and set real vm name.
-    await Promise.all([
-      xapi.removeForbiddenOperationFromVm(vm.$id, 'start'),
-      xapi._setObjectProperties(vm, { name_label: vmName }),
-    ])
-
-    return vm
-  }
-
-  // -----------------------------------------------------------------
-
   async _listVdiBackups (handler, dir) {
     let files
 
@@ -763,14 +682,10 @@ export default class {
     const nOldBackups = backups.length - retention
 
     if (nOldBackups > 0) {
-      await asyncMap(backups.slice(0, nOldBackups), backup => Promise.all([
+      await asyncMap(backups.slice(0, nOldBackups), backup =>
         // Remove json file.
-        handler.unlink(`${dir}/${backup}`),
-
-        // Remove xva file.
-        // Version 0.0.0 (Legacy) Delta Backup.
-        handler.unlink(`${dir}/${getDeltaBackupNameWithoutExt(backup)}.xva`)::ignoreErrors(),
-      ]))
+        handler.unlink(`${dir}/${backup}`)
+      )
     }
   }
 
@@ -925,14 +840,9 @@ export default class {
 
     const delta = JSON.parse(await handler.readFile(filePath))
     let vm
-    const { version } = delta
+    const { version = '0.0.0' } = delta
 
-    if (!version) {
-      // Legacy import. (Version 0.0.0)
-      vm = await this._legacyImportDeltaVmBackup(xapi, {
-        remoteId, handler, filePath, info: delta, sr, mapVdisSrs,
-      })
-    } else if (versionSatisfies(delta.version, '^1')) {
+    if (versionSatisfies(version, '^1')) {
       const basePath = dirname(filePath)
       const streams = delta.streams = {}
 
@@ -967,13 +877,13 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  async backupVm ({vm, remoteId, file, compress, onlyMetadata}) {
+  async backupVm ({vm, remoteId, file, compress}) {
     const handler = await this._xo.getRemoteHandler(remoteId)
-    return this._backupVm(vm, handler, file, {compress, onlyMetadata})
+    return this._backupVm(vm, handler, file, {compress})
   }
 
   @deferrable
-  async _backupVm ($defer, vm, handler, file, {compress, onlyMetadata}) {
+  async _backupVm ($defer, vm, handler, file, {compress}) {
     const targetStream = await handler.createOutputStream(file)
     $defer.onFailure.call(handler, 'unlink', file)
     $defer.onFailure.call(targetStream, 'close')
@@ -982,7 +892,6 @@ export default class {
 
     const sourceStream = await this._xo.getXapi(vm).exportVm(vm._xapiId, {
       compress,
-      onlyMetadata: onlyMetadata || false,
     })
 
     const sizeStream = createSizeStream()
@@ -998,7 +907,7 @@ export default class {
     }
   }
 
-  async rollingBackupVm ({vm, remoteId, tag, retention, compress, onlyMetadata}) {
+  async rollingBackupVm ({vm, remoteId, tag, retention, compress}) {
     const transferStart = Date.now()
     const handler = await this._xo.getRemoteHandler(remoteId)
 
@@ -1010,7 +919,7 @@ export default class {
     const date = safeDateFormat(new Date())
     const file = `${date}_${tag}_${vm.name_label}.xva`
 
-    const data = await this._backupVm(vm, handler, file, {compress, onlyMetadata})
+    const data = await this._backupVm(vm, handler, file, {compress})
     await this._removeOldBackups(backups, handler, undefined, backups.length - (retention - 1))
     data.transferDuration = Date.now() - transferStart
 
