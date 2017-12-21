@@ -3069,9 +3069,9 @@ glogg@^1.0.0:
   dependencies:
     sparkles "^1.0.0"
 
-golike-defer@^0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/golike-defer/-/golike-defer-0.3.0.tgz#3043bf000e545ea8b4bddbda62f6198104c1a08a"
+golike-defer@^0.4.1:
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/golike-defer/-/golike-defer-0.4.1.tgz#7a1cd435d61e461305805d980b133a0f3db4e1cc"
 
 graceful-fs@4.X, graceful-fs@^4.0.0, graceful-fs@^4.1.0, graceful-fs@^4.1.11, graceful-fs@^4.1.2, graceful-fs@^4.1.6:
   version "4.1.11"

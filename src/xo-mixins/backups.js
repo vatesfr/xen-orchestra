@@ -399,8 +399,8 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  @deferrable.onFailure
-  async deltaCopyVm ($onFailure, srcVm, targetSr, force = false, retention = 1) {
+  @deferrable
+  async deltaCopyVm ($defer, srcVm, targetSr, force = false, retention = 1) {
     const transferStart = Date.now()
     const srcXapi = this._xo.getXapi(srcVm)
     const targetXapi = this._xo.getXapi(targetSr)
@@ -426,8 +426,8 @@ export default class {
         bypassVdiChainsCheck: force,
         snapshotNameLabel: `XO_DELTA_EXPORT: ${targetSr.name_label} (${targetSr.uuid})`,
       })
-      $onFailure(() => srcXapi.deleteVm(delta.vm.uuid))
-      $onFailure(cancel)
+      $defer.onFailure(() => srcXapi.deleteVm(delta.vm.uuid))
+      $defer.onFailure(cancel)
 
       const date = safeDateFormat(Date.now())
       delta.vm.name_label += ` (${date})`
@@ -774,8 +774,8 @@ export default class {
     }
   }
 
-  @deferrable.onFailure
-  async rollingDeltaVmBackup ($onFailure, {vm, remoteId, tag, retention}) {
+  @deferrable
+  async rollingDeltaVmBackup ($defer, {vm, remoteId, tag, retention}) {
     const transferStart = Date.now()
     const handler = await this._xo.getRemoteHandler(remoteId)
     const xapi = this._xo.getXapi(vm)
@@ -817,8 +817,8 @@ export default class {
       fullVdisRequired,
       disableBaseTags: true,
     })
-    $onFailure(() => xapi.deleteVm(delta.vm.uuid))
-    $onFailure(cancel)
+    $defer.onFailure(() => xapi.deleteVm(delta.vm.uuid))
+    $defer.onFailure(cancel)
 
     // Save vdis.
     const vdiBackups = await pSettle(
@@ -857,7 +857,7 @@ export default class {
       }
     }
 
-    $onFailure(() => asyncMap(fulFilledVdiBackups, vdiBackup =>
+    $defer.onFailure(() => asyncMap(fulFilledVdiBackups, vdiBackup =>
       handler.unlink(`${dir}/${vdiBackup.value()}`)::ignoreErrors()
     ))
 
@@ -869,7 +869,7 @@ export default class {
     const backupFormat = `${date}_${vm.name_label}`
     const infoPath = `${dir}/${backupFormat}${DELTA_BACKUP_EXT}`
 
-    $onFailure(() => handler.unlink(infoPath))
+    $defer.onFailure(() => handler.unlink(infoPath))
 
     // Write Metadata.
     await handler.outputFile(infoPath, JSON.stringify(delta, null, 2))
@@ -972,11 +972,11 @@ export default class {
     return this._backupVm(vm, handler, file, {compress, onlyMetadata})
   }
 
-  @deferrable.onFailure
-  async _backupVm ($onFailure, vm, handler, file, {compress, onlyMetadata}) {
+  @deferrable
+  async _backupVm ($defer, vm, handler, file, {compress, onlyMetadata}) {
     const targetStream = await handler.createOutputStream(file)
-    $onFailure.call(handler, 'unlink', file)
-    $onFailure.call(targetStream, 'close')
+    $defer.onFailure.call(handler, 'unlink', file)
+    $defer.onFailure.call(targetStream, 'close')
 
     const promise = eventToPromise(targetStream, 'finish')
 

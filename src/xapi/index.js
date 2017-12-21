@@ -792,8 +792,8 @@ export default class Xapi extends XapiBase {
 
   // Create a snapshot of the VM and returns a delta export object.
   @cancellable
-  @deferrable.onFailure
-  async exportDeltaVm ($onFailure, $cancelToken, vmId, baseVmId = undefined, {
+  @deferrable
+  async exportDeltaVm ($defer, $cancelToken, vmId, baseVmId = undefined, {
     bypassVdiChainsCheck = false,
 
     // Contains a vdi.$id set of vmId.
@@ -807,7 +807,7 @@ export default class Xapi extends XapiBase {
     }
 
     const vm = await this.snapshotVm(vmId)
-    $onFailure(() => this._deleteVm(vm))
+    $defer.onFailure(() => this._deleteVm(vm))
     if (snapshotNameLabel) {
       this._setObjectProperties(vm, {
         nameLabel: snapshotNameLabel,
@@ -878,7 +878,7 @@ export default class Xapi extends XapiBase {
           $SR$uuid: vdi.$SR.uuid,
         }
       const stream = streams[`${vdiRef}.vhd`] = this._exportVdi($cancelToken, vdi, baseVdi, VDI_FORMAT_VHD)
-      $onFailure(stream.cancel)
+      $defer.onFailure(stream.cancel)
     })
 
     const vifs = {}
@@ -908,8 +908,8 @@ export default class Xapi extends XapiBase {
     })
   }
 
-  @deferrable.onFailure
-  async importDeltaVm ($onFailure, delta, {
+  @deferrable
+  async importDeltaVm ($defer, delta, {
     deleteBase = false,
     disableStartAfterImport = true,
     mapVdisSrs = {},
@@ -950,7 +950,7 @@ export default class Xapi extends XapiBase {
         is_a_template: false,
       })
     )
-    $onFailure(() => this._deleteVm(vm))
+    $defer.onFailure(() => this._deleteVm(vm))
 
     await Promise.all([
       this._setObjectProperties(vm, {
@@ -983,7 +983,7 @@ export default class Xapi extends XapiBase {
           },
           sr: mapVdisSrs[vdi.uuid] || srId,
         })
-        $onFailure(() => this._deleteVdi(newVdi))
+        $defer.onFailure(() => this._deleteVdi(newVdi))
 
         return newVdi
       }
@@ -999,7 +999,7 @@ export default class Xapi extends XapiBase {
       const newVdi = await this._getOrWaitObject(
         await this._cloneVdi(baseVdi)
       )
-      $onFailure(() => this._deleteVdi(newVdi))
+      $defer.onFailure(() => this._deleteVdi(newVdi))
 
       await this._updateObjectMapProperty(newVdi, 'other_config', {
         [TAG_COPY_SRC]: vdi.uuid,
@@ -1238,8 +1238,8 @@ export default class Xapi extends XapiBase {
     return vmRef
   }
 
-  @deferrable.onFailure
-  async _importOvaVm ($onFailure, stream, {
+  @deferrable
+  async _importOvaVm ($defer, stream, {
     descriptionLabel,
     disks,
     memory,
@@ -1260,7 +1260,7 @@ export default class Xapi extends XapiBase {
         VCPUs_max: nCpus,
       })
     )
-    $onFailure(() => this._deleteVm(vm))
+    $defer.onFailure(() => this._deleteVm(vm))
     // Disable start and change the VM name label during import.
     await Promise.all([
       this.addForbiddenOperationToVm(vm.$id, 'start', 'OVA import in progress...'),
@@ -1277,7 +1277,7 @@ export default class Xapi extends XapiBase {
           name_label: disk.nameLabel,
           sr: sr.$ref,
         })
-        $onFailure(() => this._deleteVdi(vdi))
+        $defer.onFailure(() => this._deleteVdi(vdi))
 
         return this._createVbd(vm, vdi, { position: disk.position })
       }).concat(map(networks, (networkId, i) => (
@@ -1959,8 +1959,8 @@ export default class Xapi extends XapiBase {
       )
     )
   }
-  @deferrable.onFailure
-  async createNetwork ($onFailure, {
+  @deferrable
+  async createNetwork ($defer, {
     name,
     description = 'Created with Xen Orchestra',
     pifId,
@@ -1973,7 +1973,7 @@ export default class Xapi extends XapiBase {
       MTU: asInteger(mtu),
       other_config: {},
     })
-    $onFailure(() => this.call('network.destroy', networkRef))
+    $defer.onFailure(() => this.call('network.destroy', networkRef))
     if (pifId) {
       await this.call('pool.create_VLAN_from_PIF', this.getObject(pifId).$ref, networkRef, asInteger(vlan))
     }
@@ -2017,15 +2017,15 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  @deferrable.onFailure
-  async createBondedNetwork ($onFailure, {
+  @deferrable
+  async createBondedNetwork ($defer, {
     bondMode,
     mac = '',
     pifIds,
     ...params
   }) {
     const network = await this.createNetwork(params)
-    $onFailure(() => this.deleteNetwork(network))
+    $defer.onFailure(() => this.deleteNetwork(network))
     // TODO: test and confirm:
     // Bond.create is called here with PIFs from one host but XAPI should then replicate the
     // bond on each host in the same pool with the corresponding PIFs (ie same interface names?).
@@ -2116,15 +2116,15 @@ export default class Xapi extends XapiBase {
   }
 
   // Generic Config Drive
-  @deferrable.onFailure
-  async createCloudInitConfigDrive ($onFailure, vmId, srId, config) {
+  @deferrable
+  async createCloudInitConfigDrive ($defer, vmId, srId, config) {
     const vm = this.getObject(vmId)
     const sr = this.getObject(srId)
 
     // First, create a small VDI (10MB) which will become the ConfigDrive
     const buffer = fatfsBufferInit()
     const vdi = await this.createVdi(buffer.length, { name_label: 'XO CloudConfigDrive', sr: sr.$ref })
-    $onFailure(() => this._deleteVdi(vdi))
+    $defer.onFailure(() => this._deleteVdi(vdi))
 
     // Then, generate a FAT fs
     const fs = promisifyAll(fatfs.createFileSystem(fatfsBuffer(buffer)))
@@ -2146,14 +2146,14 @@ export default class Xapi extends XapiBase {
     await this._createVbd(vm, vdi)
   }
 
-  @deferrable.onFailure
-  async createTemporaryVdiOnSr ($onFailure, stream, sr, name_label, name_description) {
+  @deferrable
+  async createTemporaryVdiOnSr ($defer, stream, sr, name_label, name_description) {
     const vdi = await this.createVdi(stream.length, {
       sr: sr.$ref,
       name_label,
       name_description,
     })
-    $onFailure(() => this._deleteVdi(vdi))
+    $defer.onFailure(() => this._deleteVdi(vdi))
 
     await this.importVdiContent(vdi.$id, stream, { format: VDI_FORMAT_RAW })
 

@@ -308,7 +308,7 @@ async function glusterCmd (glusterEndpoint, cmd, ignoreError = false) {
   return result
 }
 
-const createNetworkAndInsertHosts = defer.onFailure(async function ($onFailure, xapi, pif, vlan, networkPrefix) {
+const createNetworkAndInsertHosts = defer(async function ($defer, xapi, pif, vlan, networkPrefix) {
   let hostIpLastNumber = HOST_FIRST_NUMBER
   const xosanNetwork = await xapi.createNetwork({
     name: 'XOSAN network',
@@ -317,7 +317,7 @@ const createNetworkAndInsertHosts = defer.onFailure(async function ($onFailure, 
     mtu: pif.mtu,
     vlan: +vlan,
   })
-  $onFailure(() => xapi.deleteNetwork(xosanNetwork))
+  $defer.onFailure(() => xapi.deleteNetwork(xosanNetwork))
   const addresses = xosanNetwork.$PIFs.map(pif => ({pif, address: networkPrefix + (hostIpLastNumber++)}))
   await asyncMap(addresses, addressAndPif => reconfigurePifIP(xapi, addressAndPif.pif, addressAndPif.address))
   const master = xapi.pool.$master
@@ -354,10 +354,10 @@ async function getOrCreateSshKey (xapi) {
   return sshKey
 }
 
-const _probePoolAndWaitForPresence = defer.onFailure(async function ($onFailure, glusterEndpoint, addresses) {
+const _probePoolAndWaitForPresence = defer(async function ($defer, glusterEndpoint, addresses) {
   await asyncMap(addresses, async (address) => {
     await glusterCmd(glusterEndpoint, 'peer probe ' + address)
-    $onFailure(() => glusterCmd(glusterEndpoint, 'peer detach ' + address, true))
+    $defer.onFailure(() => glusterCmd(glusterEndpoint, 'peer detach ' + address, true))
   })
 
   function shouldRetry (peers) {
@@ -416,7 +416,7 @@ async function configureGluster (redundancy, ipAndHosts, glusterEndpoint, gluste
   await glusterCmd(glusterEndpoint, 'volume start xosan')
 }
 
-export const createSR = defer.onFailure(async function ($onFailure, {
+export const createSR = defer(async function ($defer, {
   template, pif, vlan, srs, glusterType,
   redundancy, brickSize = this::computeBrickSize(srs), memorySize = 2 * GIGABYTE, ipRange = DEFAULT_NETWORK_PREFIX + '.0',
 }) {
@@ -444,7 +444,7 @@ export const createSR = defer.onFailure(async function ($onFailure, {
   CURRENT_POOL_OPERATIONS[poolId] = {...OPERATION_OBJECT, state: 0}
   try {
     const xosanNetwork = await createNetworkAndInsertHosts(xapi, pif, vlan, networkPrefix)
-    $onFailure(() => xapi.deleteNetwork(xosanNetwork))
+    $defer.onFailure(() => xapi.deleteNetwork(xosanNetwork))
     const sshKey = await getOrCreateSshKey(xapi)
     const srsObjects = map(srs, srId => xapi.getObject(srId))
     await Promise.all(srsObjects.map(sr => callPlugin(xapi, sr.$PBDs[0].$host, 'receive_ssh_keys', {
@@ -456,11 +456,11 @@ export const createSR = defer.onFailure(async function ($onFailure, {
     const firstSr = srsObjects[0]
     CURRENT_POOL_OPERATIONS[poolId] = {...OPERATION_OBJECT, state: 1}
     const firstVM = await this::_importGlusterVM(xapi, template, firstSr)
-    $onFailure(() => xapi.deleteVm(firstVM, true))
+    $defer.onFailure(() => xapi.deleteVm(firstVM, true))
     CURRENT_POOL_OPERATIONS[poolId] = {...OPERATION_OBJECT, state: 2}
     const copiedVms = await asyncMap(srsObjects.slice(1), sr =>
       copyVm(xapi, firstVM, sr)::tap(({vm}) =>
-        $onFailure(() => xapi.deleteVm(vm))
+        $defer.onFailure(() => xapi.deleteVm(vm))
       )
     )
     const vmsAndSrs = [{
@@ -473,7 +473,7 @@ export const createSR = defer.onFailure(async function ($onFailure, {
       const sr = firstSr
       const arbiterIP = networkPrefix + (vmIpLastNumber++)
       const arbiterVm = await xapi.copyVm(firstVM, sr)
-      $onFailure(() => xapi.deleteVm(arbiterVm, true))
+      $defer.onFailure(() => xapi.deleteVm(arbiterVm, true))
       arbiter = await _prepareGlusterVm(xapi, sr, arbiterVm, xosanNetwork, arbiterIP, {
         labelSuffix: '_arbiter',
         increaseDataDisk: false,
@@ -498,7 +498,7 @@ export const createSR = defer.onFailure(async function ($onFailure, {
       'xosan', '', true, {})
     debug('sr created')
     // we just forget because the cleanup actions are stacked in the $onFailure system
-    $onFailure(() => xapi.forgetSr(xosanSrRef))
+    $defer.onFailure(() => xapi.forgetSr(xosanSrRef))
     if (arbiter) {
       ipAndHosts.push(arbiter)
     }
@@ -802,7 +802,7 @@ const _median = arr => {
   return arr[Math.floor(arr.length / 2)]
 }
 
-const insertNewGlusterVm = defer.onFailure(async function ($onFailure, xapi, xosansr, lvmsrId, {
+const insertNewGlusterVm = defer(async function ($defer, xapi, xosansr, lvmsrId, {
   labelSuffix = '',
   glusterEndpoint = null, ipAddress = null, increaseDataDisk = true, brickSize = Infinity,
 }) {
@@ -822,7 +822,7 @@ const insertNewGlusterVm = defer.onFailure(async function ($onFailure, xapi, xos
   const srObject = xapi.getObject(lvmsrId)
   // can't really copy an existing VM, because existing gluster VMs disks might too large to be copied.
   const newVM = await this::_importGlusterVM(xapi, data.template, lvmsrId)
-  $onFailure(() => xapi.deleteVm(newVM, true))
+  $defer.onFailure(() => xapi.deleteVm(newVM, true))
   const addressAndHost = await _prepareGlusterVm(xapi, srObject, newVM, xosanNetwork, ipAddress, {
     labelSuffix,
     increaseDataDisk,
@@ -836,7 +836,7 @@ const insertNewGlusterVm = defer.onFailure(async function ($onFailure, xapi, xos
   return {data, newVM, addressAndHost, glusterEndpoint}
 })
 
-export const addBricks = defer.onFailure(async function ($onFailure, {xosansr, lvmsrs, brickSize}) {
+export const addBricks = defer(async function ($defer, {xosansr, lvmsrs, brickSize}) {
   const OPERATION_OBJECT = {
     operation: 'addBricks',
     states: ['insertingNewVms', 'addingBricks', 'scaningSr'],
@@ -857,8 +857,8 @@ export const addBricks = defer.onFailure(async function ($onFailure, {xosansr, l
       const ipAddress = _findIPAddressOutsideList(usedAddresses.concat(newAddresses), data.networkPrefix)
       newAddresses.push(ipAddress)
       const {newVM, addressAndHost} = await this::insertNewGlusterVm(xapi, xosansr, newSr, {ipAddress, brickSize})
-      $onFailure(() => glusterCmd(glusterEndpoint, 'peer detach ' + ipAddress, true))
-      $onFailure(() => xapi.deleteVm(newVM, true))
+      $defer.onFailure(() => glusterCmd(glusterEndpoint, 'peer detach ' + ipAddress, true))
+      $defer.onFailure(() => xapi.deleteVm(newVM, true))
       const brickName = addressAndHost.brickName
       newNodes.push({brickName, host: addressAndHost.host.$id, vm: {id: newVM.$id, ip: ipAddress}, underlyingSr: newSr})
     }
@@ -901,7 +901,7 @@ addBricks.resolve = {
   lvmsrs: ['sr', 'SR', 'administrate'],
 }
 
-export const removeBricks = defer.onFailure(async function ($onFailure, {xosansr, bricks}) {
+export const removeBricks = defer(async function ($defer, {xosansr, bricks}) {
   const xapi = this.getXapi(xosansr)
   if (CURRENT_POOL_OPERATIONS[xapi.pool.$id]) {
     throw new Error('this there is already a XOSAN operation running on this pool')

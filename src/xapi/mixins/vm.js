@@ -27,8 +27,8 @@ const XEN_VIDEORAM_VALUES = [1, 2, 4, 8, 16]
 
 export default {
   // TODO: clean up on error.
-  @deferrable.onFailure
-  async createVm ($onFailure, templateId, {
+  @deferrable
+  async createVm ($defer, templateId, {
     name_label, // eslint-disable-line camelcase
     nameLabel = name_label, // eslint-disable-line camelcase
 
@@ -62,7 +62,7 @@ export default {
 
     // Clones the template.
     const vmRef = await this[clone ? '_cloneVm' : '_copyVm'](template, nameLabel)
-    $onFailure(() => this.deleteVm(vmRef))
+    $defer.onFailure(() => this.deleteVm(vmRef))
 
     // TODO: copy BIOS strings?
 
