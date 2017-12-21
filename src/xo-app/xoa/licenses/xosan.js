@@ -64,16 +64,15 @@ class SelectLicense extends Component {
 const XOSAN_COLUMNS = [
   {
     name: _('xosanName'),
+    itemRenderer: sr => <Link to={`srs/${sr.id}`}>{renderXoItem(sr)}</Link>,
+    sortCriteria: 'name_label',
+  },
+  {
+    name: _('xosanPool'),
     itemRenderer: (sr, { poolsBySr }) => {
       const pool = poolsBySr[sr.id]
-      return (
-        <span>
-          <Link to={`srs/${sr.id}`}>{renderXoItem(sr)}</Link>{' '}
-          <span className='text-muted'>({pool.name_label})</span>
-        </span>
-      )
+      return <Link to={`pools/${pool.id}`}>{renderXoItem(pool)}</Link>
     },
-    sortCriteria: 'name_label',
   },
   {
     name: _('xosanLicense'),

@@ -58,19 +58,22 @@ const HEADER = (
 const XOSAN_COLUMNS = [
   {
     itemRenderer: (sr, { status }) => {
+      if (status === undefined) {
+        return null
+      }
+
       const pbdsDetached = every(map(sr.pbds, 'attached'))
         ? null
         : _('xosanPbdsDetached')
-      const badStatus =
-        status && every(status[sr.id])
-          ? null
-          : _('xosanBadStatus', {
-            badStatuses: (
-              <ul>
-                {map(status, (_, status) => <li key={status}>{status}</li>)}
-              </ul>
-            ),
-          })
+      const badStatus = every(status[sr.id])
+        ? null
+        : _('xosanBadStatus', {
+          badStatuses: (
+            <ul>
+              {map(status, (_, status) => <li key={status}>{status}</li>)}
+            </ul>
+          ),
+        })
 
       if (pbdsDetached != null || badStatus != null) {
         return (
@@ -299,12 +302,16 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
 })
 export default class Xosan extends Component {
   componentDidMount () {
-    this._subscribeVolumeInfo(this.props.xosanSrs)
-    this._updateLicenses()
+    this._updateLicenses().then(() =>
+      this._subscribeVolumeInfo(this.props.xosanSrs)
+    )
   }
 
   componentWillReceiveProps ({ pools, xosanSrs }) {
-    if (xosanSrs !== this.props.xosanSrs) this._subscribeVolumeInfo(xosanSrs)
+    if (xosanSrs !== this.props.xosanSrs) {
+      this.unsubscribeVolumeInfo && this.unsubscribeVolumeInfo()
+      this._subscribeVolumeInfo(xosanSrs)
+    }
   }
 
   componentWillUnmount () {
@@ -336,8 +343,22 @@ export default class Xosan extends Component {
       })
 
   _subscribeVolumeInfo = srs => {
+    const licensesByXosan = this._getLicensesByXosan()
+    const now = Date.now()
+    const canAdminXosan = sr => {
+      const license = licensesByXosan[sr.id]
+
+      return (
+        license !== undefined &&
+        (license.expires === undefined || license.expires > now)
+      )
+    }
+
     const unsubscriptions = []
     forEach(srs, sr => {
+      if (!canAdminXosan(sr)) {
+        return
+      }
       forEach(INFO_TYPES, infoType =>
         unsubscriptions.push(
           subscribeVolumeInfo({ sr, infoType }, info =>
