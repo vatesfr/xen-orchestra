@@ -32,6 +32,7 @@ require('exec-promise')(() =>
 
     deleteProperties(pkg, 'config', [ 'commitizen' ])
     deleteProperties(pkg, 'devDependencies', [
+      'babel-7-jest',
       'babel-eslint',
       'commitizen',
       'cz-conventional-changelog',
@@ -68,7 +69,7 @@ require('exec-promise')(() =>
         JSON.stringify(pkg, null, 2) + '\n'
       ),
       unlink(`${dir}/.editorconfig`),
-      unlink(`${dir}/.eslintrc`),
+      unlink(`${dir}/.eslintrc.js`),
       unlink(`${dir}/.gitignore`),
       unlink(`${dir}/.jshintrc`),
       unlink(`${dir}/.travis.yml`),

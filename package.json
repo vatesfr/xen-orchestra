@@ -1,5 +1,6 @@
 {
   "devDependencies": {
+    "babel-7-jest": "^21.3.2",
     "babel-eslint": "^8.0.1",
     "eslint": "^4.13.1",
     "eslint-config-standard": "^11.0.0-beta.0",
@@ -25,7 +26,11 @@
       "/dist/",
       "/xo-vmdk-to-vhd/"
     ],
-    "testRegex": "\\.spec\\.js$"
+    "testRegex": "\\.spec\\.js$",
+    "transform": {
+      "complex-matcher/.+\\.jsx?$": "babel-7-jest",
+      "\\.jsx?$": "babel-jest"
+    }
   },
   "lint-staged": {
     "*.js": [

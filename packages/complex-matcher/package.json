@@ -1,0 +1,45 @@
+{
+  "name": "complex-matcher",
+  "version": "0.1.0",
+  "license": "ISC",
+  "description": "",
+  "keywords": [],
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/complex-matcher",
+  "bugs": "https://github.com/vatesfr/xo-web/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Julien Fontanet",
+    "email": "julien.fontanet@isonoe.net"
+  },
+  "preferGlobal": false,
+  "main": "dist/",
+  "bin": {},
+  "files": [
+    "dist/"
+  ],
+  "engines": {
+    "node": ">=4"
+  },
+  "dependencies": {
+    "@babel/polyfill": "^7.0.0-beta.35",
+    "lodash": "^4.17.4"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.0.0-beta.35",
+    "@babel/core": "^7.0.0-beta.35",
+    "@babel/preset-env": "^7.0.0-beta.35",
+    "babel-plugin-lodash": "^3.3.2",
+    "cross-env": "^5.1.1",
+    "rimraf": "^2.6.2"
+  },
+  "scripts": {
+    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
+    "prebuild": "rimraf dist/",
+    "predev": "npm run prebuild",
+    "prepublishOnly": "npm run build"
+  }
+}
