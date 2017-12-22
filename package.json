@@ -57,6 +57,7 @@
     "chartist-plugin-legend": "^0.6.1",
     "chartist-plugin-tooltip": "0.0.11",
     "classnames": "^2.2.3",
+    "complex-matcher": "^0.1.0",
     "cookies-js": "^1.2.2",
     "d3": "^4.12.0",
     "dependency-check": "^2.9.2",

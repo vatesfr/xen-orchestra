@@ -1,3 +1,4 @@
+import * as CM from 'complex-matcher'
 import _ from 'intl'
 import Copiable from 'copiable'
 import Icon from 'icon'
@@ -12,7 +13,6 @@ import { FormattedRelative } from 'react-intl'
 import { formatSize } from 'utils'
 import Usage, { UsageElement } from 'usage'
 import { getObject } from 'selectors'
-import { createString, createProperty, toString } from 'complex-matcher'
 import {
   CpuSparkLines,
   MemorySparkLines,
@@ -30,7 +30,7 @@ export default ({
 }) => {
   const pool = getObject(store.getState(), host.$pool)
   const vmsFilter = encodeURIComponent(
-    createProperty('$container', createString(host.id))::toString()
+    new CM.Property('$container', new CM.String(host.id)).toString()
   )
 
   return (

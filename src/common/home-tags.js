@@ -1,9 +1,9 @@
+import * as CM from 'complex-matcher'
 import React from 'react'
 
 import Component from './base-component'
 import propTypes from './prop-types-decorator'
 import Tags from './tags'
-import { createString, createProperty, toString } from './complex-matcher'
 
 @propTypes({
   labels: propTypes.arrayOf(React.PropTypes.string).isRequired,
@@ -19,7 +19,7 @@ export default class HomeTags extends Component {
 
   _onClick = label => {
     const s = encodeURIComponent(
-      createProperty('tags', createString(label))::toString()
+      new CM.Property('tags', new CM.String(label)).toString()
     )
     const t = encodeURIComponent(this.props.type)
 

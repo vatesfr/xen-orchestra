@@ -1,3 +1,4 @@
+import * as CM from 'complex-matcher'
 import _ from 'intl'
 import classNames from 'classnames'
 import DropdownMenu from 'react-bootstrap-4/lib/DropdownMenu' // https://phabricator.babeljs.io/T6662 so Dropdown.Menu won't work like https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
@@ -29,7 +30,6 @@ import SingleLineRow from '../single-line-row'
 import Tooltip from '../tooltip'
 import { BlockLink } from '../link'
 import { Container, Col } from '../grid'
-import { create as createMatcher } from '../complex-matcher'
 import { Input as DebouncedInput } from '../debounce-component-decorator'
 import {
   createCounter,
@@ -326,6 +326,7 @@ export default class SortedTable extends Component {
 
     this._getTotalNumberOfItems = createCounter(() => this.props.collection)
 
+    const createMatcher = str => CM.parse(str).createPredicate()
     this._getItems = createSort(
       createFilter(
         () => this.props.collection,
