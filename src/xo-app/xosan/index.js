@@ -58,7 +58,7 @@ const HEADER = (
 const XOSAN_COLUMNS = [
   {
     itemRenderer: (sr, { status }) => {
-      if (status === undefined) {
+      if (status === undefined || status[sr.id] === undefined) {
         return null
       }
 
