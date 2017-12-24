@@ -27,7 +27,7 @@ import {
   constructFilter,
   constructPattern,
   destructPattern,
-  EMPTY_OBJECT
+  EMPTY_OBJECT,
 } from 'utils'
 import {
   every,
@@ -45,13 +45,7 @@ import {
   startsWith,
 } from 'lodash'
 
-import {
-  createJob,
-  createSchedule,
-  getRemote,
-  editJob,
-  editSchedule
-} from 'xo'
+import { createJob, createSchedule, getRemote, editJob, editSchedule } from 'xo'
 
 // ===================================================================
 // FIXME: missing most of translation. Can't be done in a dumb way, some of the word are keyword for XO-Server parameters...
@@ -309,14 +303,22 @@ const match = (pattern, value) => {
       }
     }
 
-    return isPlainObject(value) && every(pattern, (subpattern, key) => (
-      value[key] !== undefined && match(subpattern, value[key])
-    ))
+    return (
+      isPlainObject(value) &&
+      every(
+        pattern,
+        (subpattern, key) =>
+          value[key] !== undefined && match(subpattern, value[key])
+      )
+    )
   }
 
   if (isArray(pattern)) {
-    return isArray(value) && every(pattern, subpattern =>
-      some(value, subvalue => match(subpattern, subvalue))
+    return (
+      isArray(value) &&
+      every(pattern, subpattern =>
+        some(value, subvalue => match(subpattern, subvalue))
+      )
     )
   }
 
@@ -328,57 +330,62 @@ const match = (pattern, value) => {
 const SAMPLE_SIZE_OF_MATCHING_VMS = 3
 
 @propTypes({
-  pattern: propTypes.object.isRequired
+  pattern: propTypes.object.isRequired,
 })
 @connectStore({
-  vms: createGetObjectsOfType('VM')
+  vms: createGetObjectsOfType('VM'),
 })
 class SmartBackupPreview extends Component {
   _getMatchingVms = createSelector(
     () => this.props.pattern,
     () => this.props.vms,
-    (pattern, vms) => filter(
-      vms,
-      vm => match(pickBy(pattern, val => val != null), vm)
-    )
+    (pattern, vms) =>
+      filter(vms, vm => match(pickBy(pattern, val => val != null), vm))
   )
 
   render () {
     const matchingVms = this._getMatchingVms()
     const nMatchingVms = matchingVms.length
 
-    return <Card>
-      <CardHeader>{_('sampleOfMatchingVms')}</CardHeader>
-      <CardBlock>
-        {nMatchingVms === 0
-          ? <p className='text-xs-center'>{_('noMatchingVms')}</p>
-          : <div>
-            <ul className='list-group'>
-              {map(
-                sampleSize(matchingVms, SAMPLE_SIZE_OF_MATCHING_VMS),
-                vm => <li className='list-group-item' key={vm.id}>{renderXoItem(vm)}</li>
-              )}
-            </ul>
-            <br />
-            <Tooltip content={_('redirectToMatchingVms')}>
-              <Link
-                className={'pull-right'}
-                target={'_blank'}
-                to={{
-                  pathname: '/home',
-                  query: { t: 'VM', s: constructFilter(this.props.pattern) }
-                }}
-              >
-                {_('allMatchingVms', {
-                  icon: <Icon icon='preview' />,
-                  nMatchingVms
-                })}
-              </Link>
-            </Tooltip>
-          </div>
-        }
-      </CardBlock>
-    </Card>
+    return (
+      <Card>
+        <CardHeader>{_('sampleOfMatchingVms')}</CardHeader>
+        <CardBlock>
+          {nMatchingVms === 0 ? (
+            <p className='text-xs-center'>{_('noMatchingVms')}</p>
+          ) : (
+            <div>
+              <ul className='list-group'>
+                {map(
+                  sampleSize(matchingVms, SAMPLE_SIZE_OF_MATCHING_VMS),
+                  vm => (
+                    <li className='list-group-item' key={vm.id}>
+                      {renderXoItem(vm)}
+                    </li>
+                  )
+                )}
+              </ul>
+              <br />
+              <Tooltip content={_('redirectToMatchingVms')}>
+                <Link
+                  className={'pull-right'}
+                  target={'_blank'}
+                  to={{
+                    pathname: '/home',
+                    query: { t: 'VM', s: constructFilter(this.props.pattern) },
+                  }}
+                >
+                  {_('allMatchingVms', {
+                    icon: <Icon icon='preview' />,
+                    nMatchingVms,
+                  })}
+                </Link>
+              </Tooltip>
+            </div>
+          )}
+        </CardBlock>
+      </Card>
+    )
   }
 }
 
@@ -494,8 +501,8 @@ export default class New extends Component {
   _constructPattern = vms => ({
     $pool: constructPattern(vms.$pool),
     power_state: vms.power_state === 'All' ? undefined : vms.power_state,
-    tags: constructPattern(vms.tags, tags => map(tags, tag => [ tag ])),
-    type: 'VM'
+    tags: constructPattern(vms.tags, tags => map(tags, tag => [tag])),
+    type: 'VM',
   })
 
   _getMainParams = () => this.state.mainParams || this._getParams().main
@@ -556,6 +563,7 @@ export default class New extends Component {
               collection: {
                 type: 'fetchObjects',
                 pattern: this._constructPattern(vms),
+              },
               iteratee: {
                 type: 'extractProperties',
                 mapping: { id: 'id' },
@@ -757,7 +765,7 @@ export default class New extends Component {
                           </select>
                         </fieldset>
                         {smartBackupMode ? (
-		          <div>
+                          <div>
                             <Upgrade place='newBackup' required={3}>
                               <GenericInput
                                 label={
@@ -772,7 +780,9 @@ export default class New extends Component {
                                 value={vms}
                               />
                             </Upgrade>
-                            <SmartBackupPreview pattern={this._constructPattern(vms)} />
+                            <SmartBackupPreview
+                              pattern={this._constructPattern(vms)}
+                            />
                           </div>
                         ) : (
                           <GenericInput
