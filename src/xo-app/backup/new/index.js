@@ -6,15 +6,16 @@ import GenericInput from 'json-schema-input'
 import getEventValue from 'get-event-value'
 import Icon from 'icon'
 import Link from 'link'
+import match from 'xo-common/match'
 import moment from 'moment-timezone'
 import propTypes from 'prop-types-decorator'
 import React from 'react'
+import renderXoItem from 'render-xo-item'
 import Scheduler, { SchedulePreview } from 'scheduling'
+import Tooltip from 'tooltip'
 import uncontrollableInput from 'uncontrollable-input'
 import Upgrade from 'xoa-upgrade'
 import Wizard, { Section } from 'wizard'
-import renderXoItem from 'render-xo-item'
-import Tooltip from 'tooltip'
 import { confirm } from 'modal'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Row, Col } from 'grid'
@@ -30,18 +31,14 @@ import {
   EMPTY_OBJECT,
 } from 'utils'
 import {
-  every,
   filter,
   forEach,
   isArray,
-  isPlainObject,
   map,
   mapValues,
   noop,
   pickBy,
   sampleSize,
-  size,
-  some,
   startsWith,
 } from 'lodash'
 
@@ -287,42 +284,6 @@ const BACKUP_METHOD_TO_INFO = {
     jobKey: 'continuousReplication',
     method: 'vm.deltaCopy',
   },
-}
-
-// ===================================================================
-
-const match = (pattern, value) => {
-  if (isPlainObject(pattern)) {
-    if (size(pattern) === 1) {
-      let op
-      if ((op = pattern.__or) !== undefined) {
-        return some(op, subpattern => match(subpattern, value))
-      }
-      if ((op = pattern.__not) !== undefined) {
-        return !match(op, value)
-      }
-    }
-
-    return (
-      isPlainObject(value) &&
-      every(
-        pattern,
-        (subpattern, key) =>
-          value[key] !== undefined && match(subpattern, value[key])
-      )
-    )
-  }
-
-  if (isArray(pattern)) {
-    return (
-      isArray(value) &&
-      every(pattern, subpattern =>
-        some(value, subvalue => match(subpattern, subvalue))
-      )
-    )
-  }
-
-  return pattern === value
 }
 
 // ===================================================================
