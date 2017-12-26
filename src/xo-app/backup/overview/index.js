@@ -12,19 +12,8 @@ import StateButton from 'state-button'
 import Tooltip from 'tooltip'
 import { addSubscriptions, constructFilter } from 'utils'
 import { createSelector } from 'selectors'
-import {
-  Card,
-  CardHeader,
-  CardBlock,
-} from 'card'
-import {
-  filter,
-  find,
-  forEach,
-  get,
-  map,
-  orderBy,
-} from 'lodash'
+import { Card, CardHeader, CardBlock } from 'card'
+import { filter, find, forEach, get, map, orderBy } from 'lodash'
 import {
   deleteBackupSchedule,
   disableSchedule,
@@ -91,35 +80,46 @@ const JOB_COLUMNS = [
   },
   {
     name: _('jobAction'),
-    itemRenderer: ({ redirect, schedule }, isScheduleUserMissing) => <fieldset>
-      {!isScheduleUserMissing[schedule.id] && <Tooltip content={_('backupUserNotFound')}><Icon className='mr-1' icon='error' /></Tooltip>}
-      <Link className='btn btn-sm btn-primary mr-1' to={`/backup/${schedule.id}/edit`}>
-        <Icon icon='edit' />
-      </Link>
-      <ButtonGroup>
-        {redirect && <ActionRowButton
-          btnStyle='primary'
-          handler={redirect}
-          icon='preview'
-          tooltip={_('redirectToMatchingVms')}
-        />}
-        <ActionRowButton
-          icon='delete'
-          btnStyle='danger'
-          handler={deleteBackupSchedule}
-          handlerParam={schedule}
-        />
-        <ActionRowButton
-          disabled={!isScheduleUserMissing[schedule.id]}
-          icon='run-schedule'
-          btnStyle='warning'
-          handler={runJob}
-          handlerParam={schedule.job}
-        />
-      </ButtonGroup>
-    </fieldset>,
-    textAlign: 'right'
-  }
+    itemRenderer: ({ redirect, schedule }, isScheduleUserMissing) => (
+      <fieldset>
+        {!isScheduleUserMissing[schedule.id] && (
+          <Tooltip content={_('backupUserNotFound')}>
+            <Icon className='mr-1' icon='error' />
+          </Tooltip>
+        )}
+        <Link
+          className='btn btn-sm btn-primary mr-1'
+          to={`/backup/${schedule.id}/edit`}
+        >
+          <Icon icon='edit' />
+        </Link>
+        <ButtonGroup>
+          {redirect && (
+            <ActionRowButton
+              btnStyle='primary'
+              handler={redirect}
+              icon='preview'
+              tooltip={_('redirectToMatchingVms')}
+            />
+          )}
+          <ActionRowButton
+            icon='delete'
+            btnStyle='danger'
+            handler={deleteBackupSchedule}
+            handlerParam={schedule}
+          />
+          <ActionRowButton
+            disabled={!isScheduleUserMissing[schedule.id]}
+            icon='run-schedule'
+            btnStyle='warning'
+            handler={runJob}
+            handlerParam={schedule.job}
+          />
+        </ButtonGroup>
+      </fieldset>
+    ),
+    textAlign: 'right',
+  },
 ]
 
 // ===================================================================
@@ -129,7 +129,7 @@ const JOB_COLUMNS = [
 })
 export default class Overview extends Component {
   static contextTypes = {
-    router: React.PropTypes.object
+    router: React.PropTypes.object,
   }
 
   constructor (props) {
@@ -181,7 +181,7 @@ export default class Overview extends Component {
   _redirectToMatchingVms = pattern => {
     this.context.router.push({
       pathname: '/home',
-      query: { t: 'VM', s: constructFilter(pattern) }
+      query: { t: 'VM', s: constructFilter(pattern) },
     })
   }
 
@@ -202,7 +202,9 @@ export default class Overview extends Component {
         return {
           jobId: job.id,
           jobLabel: jobKeyToLabel[job.key] || _('unknownSchedule'),
-          redirect: pattern !== undefined && (() => this._redirectToMatchingVms(pattern)),
+          redirect:
+            pattern !== undefined &&
+            (() => this._redirectToMatchingVms(pattern)),
           // Old versions of XenOrchestra use items[0]
           scheduleTag:
             get(items, '[0].values[0].tag') ||

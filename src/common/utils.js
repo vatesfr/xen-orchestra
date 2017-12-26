@@ -1,3 +1,4 @@
+import * as CM from 'complex-matcher'
 import getStream from 'get-stream'
 import humanFormat from 'human-format'
 import React from 'react'
@@ -29,14 +30,6 @@ import * as actions from './store/actions'
 import invoke from './invoke'
 import store from './store'
 import { getObject } from './selectors'
-import {
-  createAnd,
-  createNot,
-  createOr,
-  createProperty,
-  createString,
-  toString
-} from './complex-matcher'
 
 export const EMPTY_ARRAY = Object.freeze([])
 export const EMPTY_OBJECT = Object.freeze({})
@@ -537,32 +530,32 @@ export const ShortDate = ({ timestamp }) => (
 // ===================================================================
 
 // Smart backup
-export const destructPattern = (pattern, valueTransform = identity) => pattern && ({
-  not: !!pattern.__not,
-  values: valueTransform((pattern.__not || pattern).__or)
-})
+export const destructPattern = (pattern, valueTransform = identity) =>
+  pattern && {
+    not: !!pattern.__not,
+    values: valueTransform((pattern.__not || pattern).__or),
+  }
 
-export const constructPattern = ({ not, values } = EMPTY_OBJECT, valueTransform = identity) => {
+export const constructPattern = (
+  { not, values } = EMPTY_OBJECT,
+  valueTransform = identity
+) => {
   if (values == null || !values.length) {
     return
   }
 
   const pattern = { __or: valueTransform(values) }
-  return not
-    ? { __not: pattern }
-    : pattern
+  return not ? { __not: pattern } : pattern
 }
 
 const parsePattern = pattern => {
   const patternValues = map(pattern.values, value => {
-    return isArray(value)
-      ? createString(value[0])
-      : createString(value)
+    return isArray(value) ? new CM.String(value[0]) : new CM.String(value)
   })
 
   return pattern.not
-    ? createNot(createOr(patternValues))
-    : createOr(patternValues)
+    ? new CM.Not(new CM.Or(patternValues))
+    : new CM.Or(patternValues)
 }
 
 export const constructFilter = pattern => {
@@ -570,32 +563,24 @@ export const constructFilter = pattern => {
   const pool = destructPattern(pattern.$pool)
   const tags = destructPattern(pattern.tags)
 
-  let filter = []
+  const filter = []
 
   if (powerState !== undefined) {
     filter.push(
-      createProperty(
+      new CM.Property(
         'power_state',
-        powerState === 'Running' ? createString('running') : createNot(createString('running'))
+        powerState === 'Running'
+          ? new CM.String('running')
+          : new CM.Not(new CM.String('running'))
       )
     )
   }
   if (pool !== undefined) {
-    filter.push(
-      createProperty(
-        '$pool',
-        parsePattern(pool)
-      )
-    )
+    filter.push(new CM.Property('$pool', parsePattern(pool)))
   }
   if (tags !== undefined) {
-    filter.push(
-      createProperty(
-        'tags',
-        parsePattern(tags)
-      )
-    )
+    filter.push(new CM.Property('tags', parsePattern(tags)))
   }
 
-  return createAnd(filter)::toString()
+  return new CM.And(filter).toString()
 }
