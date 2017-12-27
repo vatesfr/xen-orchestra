@@ -24,13 +24,13 @@
     "node": ">=4"
   },
   "dependencies": {
-    "@babel/polyfill": "^7.0.0-beta.35",
+    "@babel/polyfill": "^7.0.0-beta.36",
     "lodash": "^4.17.4"
   },
   "devDependencies": {
-    "@babel/cli": "^7.0.0-beta.35",
-    "@babel/core": "^7.0.0-beta.35",
-    "@babel/preset-env": "^7.0.0-beta.35",
+    "@babel/cli": "^7.0.0-beta.36",
+    "@babel/core": "^7.0.0-beta.36",
+    "@babel/preset-env": "^7.0.0-beta.36",
     "babel-plugin-lodash": "^3.3.2",
     "cross-env": "^5.1.1",
     "rimraf": "^2.6.2"

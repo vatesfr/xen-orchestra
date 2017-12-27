@@ -37,7 +37,7 @@
     "babel-runtime": "^6.23.0",
     "cron": "^1.2.1",
     "handlebars": "^4.0.6",
-    "html-minifier": "^3.5.7",
+    "html-minifier": "^3.5.8",
     "lodash": "^4.17.4",
     "promise-toolbox": "^0.9.5"
   },

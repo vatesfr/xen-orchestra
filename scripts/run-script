@@ -11,8 +11,12 @@ const { env } = process
 // run a script for each package (also run pre and post)
 //
 // TODO: https://docs.npmjs.com/misc/scripts#environment
-require('exec-promise')(([ script ]) =>
-  getPackages(true).forEach(({ dir, name, package: { scripts } }) => {
+require('exec-promise')(args => {
+  const parallel = args[0] === '--parallel'
+  let script = args[parallel ? 1 : 0]
+
+  let errors = 0
+  return getPackages(true)[parallel ? 'map' : 'forEach'](({ dir, name, package: { scripts } }) => {
     if (scripts == null) {
       return
     }
@@ -30,14 +34,19 @@ require('exec-promise')(([ script ]) =>
       script => {
         const command = scripts[script]
         if (command !== undefined) {
-          console.log(`* ${name}:${script}`)
+          console.log(`* ${name}:${script} −`, command)
           return fromEvent(spawn(command, spawnOpts), 'exit').then(code => {
             if (code !== 0) {
-              throw code
+              ++errors
+              console.log(`* ${name}:${script} − Error:`, code)
             }
           })
         }
       }
     )
+  }).then(() => {
+    if (errors !== 0) {
+      throw errors
+    }
   })
-)
+})
