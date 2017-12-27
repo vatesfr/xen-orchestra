@@ -506,7 +506,7 @@ export default class Home extends Component {
     }
 
     const parsed = ComplexMatcher.parse(filter)
-    const properties = parsed::ComplexMatcher.getPropertyClausesStrings()
+    const properties = ComplexMatcher.getPropertyClausesStrings(parsed)
 
     const sort = this._getDefaultSort(props)
 
@@ -537,14 +537,14 @@ export default class Home extends Component {
 
   _getFilterFunction = createSelector(
     this._getParsedFilter,
-    filter => filter && (value => filter::ComplexMatcher.execute(value))
+    filter => filter !== undefined && filter.createPredicate()
   )
 
   // Optionally can take the props to be able to use it in
   // componentWillReceiveProps().
   _setFilter (filter, props = this.props, replace) {
     if (!isString(filter)) {
-      filter = filter::ComplexMatcher.toString()
+      filter = filter.toString()
     }
 
     const { pathname, query } = props.location
@@ -600,13 +600,14 @@ export default class Home extends Component {
 
     this._setFilter(
       pools.length
-        ? filter::ComplexMatcher.setPropertyClause(
+        ? ComplexMatcher.setPropertyClause(
+          filter,
           '$pool',
-          ComplexMatcher.createOr(
-            map(pools, pool => ComplexMatcher.createString(pool.id))
+          new ComplexMatcher.Or(
+            map(pools, pool => new ComplexMatcher.String(pool.id))
           )
         )
-        : filter::ComplexMatcher.removePropertyClause('$pool')
+        : ComplexMatcher.setPropertyClause(filter, '$pool', undefined)
     )
   }
   _updateSelectedHosts = hosts => {
@@ -614,13 +615,14 @@ export default class Home extends Component {
 
     this._setFilter(
       hosts.length
-        ? filter::ComplexMatcher.setPropertyClause(
+        ? ComplexMatcher.setPropertyClause(
+          filter,
           '$container',
-          ComplexMatcher.createOr(
-            map(hosts, host => ComplexMatcher.createString(host.id))
+          new ComplexMatcher.Or(
+            map(hosts, host => new ComplexMatcher.String(host.id))
           )
         )
-        : filter::ComplexMatcher.removePropertyClause('$container')
+        : ComplexMatcher.setPropertyClause(filter, '$container', undefined)
     )
   }
   _updateSelectedTags = tags => {
@@ -628,13 +630,14 @@ export default class Home extends Component {
 
     this._setFilter(
       tags.length
-        ? filter::ComplexMatcher.setPropertyClause(
+        ? ComplexMatcher.setPropertyClause(
+          filter,
           'tags',
-          ComplexMatcher.createOr(
-            map(tags, tag => ComplexMatcher.createString(tag.id))
+          new ComplexMatcher.Or(
+            map(tags, tag => new ComplexMatcher.String(tag.id))
           )
         )
-        : filter::ComplexMatcher.removePropertyClause('tags')
+        : ComplexMatcher.setPropertyClause(filter, 'tags', undefined)
     )
   }
   _updateSelectedResourceSets = resourceSets => {
@@ -642,13 +645,14 @@ export default class Home extends Component {
 
     this._setFilter(
       resourceSets.length
-        ? filter::ComplexMatcher.setPropertyClause(
+        ? ComplexMatcher.setPropertyClause(
+          filter,
           'resourceSet',
-          ComplexMatcher.createOr(
-            map(resourceSets, set => ComplexMatcher.createString(set.id))
+          new ComplexMatcher.Or(
+            map(resourceSets, set => new ComplexMatcher.String(set.id))
           )
         )
-        : filter::ComplexMatcher.removePropertyClause('resourceSet')
+        : ComplexMatcher.setPropertyClause(filter, 'resourceSet', undefined)
     )
   }
   _addCustomFilter = () => {
