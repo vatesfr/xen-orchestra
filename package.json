@@ -30,6 +30,7 @@
     "testRegex": "\\.spec\\.js$",
     "transform": {
       "complex-matcher/.+\\.jsx?$": "babel-7-jest",
+      "value-matcher/.+\\.jsx?$": "babel-7-jest",
       "xo-cli/.+\\.jsx?$": "babel-7-jest",
       "\\.jsx?$": "babel-jest"
     }
