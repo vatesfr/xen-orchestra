@@ -1,22 +1,25 @@
 const { NODE_ENV = 'development' } = process.env
+const __PROD__ = NODE_ENV === 'production'
+const __TEST__ = NODE_ENV === 'test'
 
 module.exports = {
-  comments: false,
-  compact: true,
-  ignore: NODE_ENV === 'test' ? undefined : ['*.spec.js'],
-  // plugins: ['lodash']
+  comments: !__PROD__,
+  compact: __PROD__,
+  ignore: __TEST__ ? undefined : [ /\.spec\.js$/ ],
+  plugins: ['lodash'],
   presets: [
     [
-      'env',
+      '@babel/env',
       {
-        debug: true,
+        debug: !__TEST__,
         loose: true,
-        targets: {
-          node: process.env.NODE_ENV === 'production' ? '6' : 'current',
-        },
+        shippedProposals: true,
+        targets: __PROD__
+          ? { node: '6' }
+          : { node: 'current' },
         useBuiltIns: 'usage',
       },
     ],
-    'flow',
+    '@babel/flow',
   ],
 }
