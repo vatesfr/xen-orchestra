@@ -2,6 +2,7 @@
 
 import {
   getPropertyClausesStrings,
+  Null,
   parse,
   setPropertyClause,
 } from './'
@@ -15,8 +16,14 @@ it('getPropertyClausesStrings', () => {
   })
 })
 
-it('parse', () => {
-  expect(parse(pattern)).toEqual(ast)
+describe('parse', () => {
+  it('analyses a string and returns a node/tree', () => {
+    expect(parse(pattern)).toEqual(ast)
+  })
+
+  it('supports an empty string', () => {
+    expect(parse('')).toEqual(new Null())
+  })
 })
 
 describe('setPropertyClause', () => {

@@ -74,6 +74,16 @@ class Node {
   }
 }
 
+export class Null extends Node {
+  match () {
+    return true
+  }
+
+  toString () {
+    return ''
+  }
+}
+
 const formatTerms = terms => terms.map(term => term.toString(true)).join(' ')
 
 export class And extends Node {
@@ -202,7 +212,8 @@ export class TruthyProperty extends Node {
 
 // -------------------------------------------------------------------
 
-// terms          = term+
+// terms          = null || term+
+// *null          = /$/
 // term           = ws (and | or | not | property | truthyProperty | string) ws
 // ws             = ' '*
 // *and           = "(" terms ")"
@@ -234,7 +245,7 @@ export const parse = invoke(() => {
   const parseTerms = Node => {
     let term = parseTerm()
     if (!term) {
-      return
+      return new Null()
     }
 
     const terms = [term]
