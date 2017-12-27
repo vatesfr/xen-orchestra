@@ -7,6 +7,7 @@
 [lints]
 
 [options]
-experimental.const_params=true
+include_warnings=true
 module.use_strict=true
-unsafe.enable_getters_and_setters=true
+
+[strict]
