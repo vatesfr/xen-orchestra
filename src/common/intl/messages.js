@@ -1550,6 +1550,8 @@ const messages = {
   xosanSrTitle: 'Xen Orchestra SAN SR',
   xosanAvailableSrsTitle: 'Select local SRs (lvm)',
   xosanSuggestions: 'Suggestions',
+  xosanDisperseWarning:
+    'Warning: using disperse layout is not recommended right now. Please read {link}.',
   xosanName: 'Name',
   xosanHost: 'Host',
   xosanHosts: 'Connected Hosts',

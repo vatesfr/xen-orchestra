@@ -280,6 +280,7 @@ export default class NewXosan extends Component {
       pool !== undefined &&
       hostsNeedRestartByPool !== undefined &&
       hostsNeedRestartByPool[pool.id]
+    const architecture = suggestions && suggestions[suggestion]
 
     return (
       <Container>
@@ -443,11 +444,22 @@ export default class NewXosan extends Component {
                       )}
                     </tbody>
                   </table>
+                  {architecture.layout === 'disperse' && (
+                    <div className='alert alert-danger'>
+                      {_('xosanDisperseWarning', {
+                        link: (
+                          <a href='https://xen-orchestra.com/docs/xosan_types.html'>
+                            xen-orchestra.com/docs/xosan_types.html
+                          </a>
+                        ),
+                      })}
+                    </div>
+                  )}
                   <Graph
                     height={160}
-                    layout={suggestions[suggestion].layout}
+                    layout={architecture.layout}
                     nSrs={this._getNSelectedSrs()}
-                    redundancy={suggestions[suggestion].redundancy}
+                    redundancy={architecture.redundancy}
                     width={600}
                   />
                   <hr />
