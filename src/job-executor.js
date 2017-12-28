@@ -1,18 +1,14 @@
 import Bluebird from 'bluebird'
 import { BaseError } from 'make-error'
+import { createPredicate } from 'value-matcher'
 import { timeout } from 'promise-toolbox'
 import {
   assign,
-  every,
   filter,
   find,
-  isArray,
   isEmpty,
-  isPlainObject,
   map,
   mapValues,
-  size,
-  some,
 } from 'lodash'
 
 import { crossProduct } from './math'
@@ -35,32 +31,6 @@ export class UnsupportedVectorType extends JobExecutorError {
 
 // ===================================================================
 
-const match = (pattern, value) => {
-  if (isPlainObject(pattern)) {
-    if (size(pattern) === 1) {
-      let op
-      if ((op = pattern.__or) !== undefined) {
-        return some(op, subpattern => match(subpattern, value))
-      }
-      if ((op = pattern.__not) !== undefined) {
-        return !match(op, value)
-      }
-    }
-
-    return isPlainObject(value) && every(pattern, (subpattern, key) => (
-      value[key] !== undefined && match(subpattern, value[key])
-    ))
-  }
-
-  if (isArray(pattern)) {
-    return isArray(value) && every(pattern, subpattern =>
-      some(value, subvalue => match(subpattern, subvalue))
-    )
-  }
-
-  return pattern === value
-}
-
 const paramsVectorActionsMap = {
   extractProperties ({ mapping, value }) {
     return mapValues(mapping, key => value[key])
@@ -71,7 +41,7 @@ const paramsVectorActionsMap = {
     ))
   },
   fetchObjects ({ pattern }) {
-    const objects = filter(this.xo.getObjects(), object => match(pattern, object))
+    const objects = filter(this.xo.getObjects(), createPredicate(pattern))
     if (isEmpty(objects)) {
       throw new Error('no objects match this pattern')
     }
