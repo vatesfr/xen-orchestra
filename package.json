@@ -211,7 +211,7 @@
       "lint-staged-stash",
       "prettier --write",
       "eslint --fix",
-      "jest --findRelatedTests",
+      "jest --findRelatedTests --passWithNoTests",
       "git add",
       "lint-staged-unstash"
     ]
