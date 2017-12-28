@@ -39,7 +39,7 @@
     "*.js": [
       "lint-staged-stash",
       "eslint --fix",
-      "jest --findRelatedTests",
+      "jest --findRelatedTests --passWithNoTests",
       "lint-staged-unstash"
     ]
   },
