@@ -1,5 +1,5 @@
 import deferrable from 'golike-defer'
-import { ignoreErrors } from 'promise-toolbox'
+import { catchPlus as pCatch, ignoreErrors } from 'promise-toolbox'
 import {
   find,
   gte,
@@ -319,13 +319,30 @@ export default {
     memoryMax: {
       addToLimits: true,
       limitName: 'memory',
-      constraints: {
-        memoryMin: lte,
-        memoryStaticMax: gte,
-      },
       get: vm => +vm.memory_dynamic_max,
       preprocess: parseSize,
-      set: 'memory_dynamic_max',
+      set (dynamicMax, vm) {
+        const staticMin = Math.min(vm.memory_static_min, dynamicMax)
+        const staticMax = Math.max(dynamicMax, vm.memory_static_max)
+        const dynamicMin = Math.min(vm.memory_dynamic_min, dynamicMax)
+        return this.call(
+          'VM.set_memory_limits',
+          vm.$ref,
+          staticMin,
+          staticMax,
+          dynamicMin,
+          dynamicMax
+        )::pCatch({ code: 'MEMORY_CONSTRAINT_VIOLATION' }, () =>
+          this.call(
+            'VM.set_memory_limits',
+            vm.$ref,
+            staticMin,
+            dynamicMax,
+            dynamicMax,
+            dynamicMax
+          )
+        )
+      },
     },
 
     memoryStaticMax: {
