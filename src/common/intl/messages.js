@@ -1644,7 +1644,7 @@ const messages = {
   xosanRemove: 'Remove',
   xosanVolume: 'Volume',
   xosanVolumeOptions: 'Volume options',
-  xosanCouldNotFindVM: 'Could not find VM',
+  xosanCouldNotFindVm: 'Could not find VM',
   xosanUnderlyingStorageUsage: 'Using {usage}',
   xosanCustomIpNetwork: 'Custom IP network (/24)',
   xosanIssueHostNotInNetwork:

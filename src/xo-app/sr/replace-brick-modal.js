@@ -14,10 +14,15 @@ export default class ReplaceBrickModalBody extends Component {
   _getSrPredicate = createSelector(
     () => this.props.vm,
     () => this.state.onSameVm,
-    (vm, onSameVm) =>
-      onSameVm
+    (vm, onSameVm) => {
+      if (vm === undefined) {
+        return sr => sr.SR_type === 'lvm'
+      }
+
+      return onSameVm
         ? sr => sr.$container === vm.$container && sr.SR_type === 'lvm'
         : sr => sr.$pool === vm.$pool && sr.SR_type === 'lvm'
+    }
   )
 
   _toggleOnSameVm = () =>
@@ -36,17 +41,19 @@ export default class ReplaceBrickModalBody extends Component {
   render () {
     return (
       <Container>
-        <Row className='mb-1'>
-          <Col size={6}>
-            <strong>{_('xosanOnSameVm')}</strong>
-          </Col>
-          <Col size={6}>
-            <Toggle
-              onChange={this._toggleOnSameVm}
-              value={this.state.onSameVm}
-            />
-          </Col>
-        </Row>
+        {this.props.vm !== undefined && (
+          <Row className='mb-1'>
+            <Col size={6}>
+              <strong>{_('xosanOnSameVm')}</strong>
+            </Col>
+            <Col size={6}>
+              <Toggle
+                onChange={this._toggleOnSameVm}
+                value={this.state.onSameVm}
+              />
+            </Col>
+          </Row>
+        )}
         <Row className='mb-1'>
           <Col size={6}>
             <strong>{_('xosanUnderlyingStorage')}</strong>
