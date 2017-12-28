@@ -328,6 +328,19 @@ export const subscribeCheckSrCurrentState = (pool, cb) => {
 
   return checkSrCurrentStateSubscriptions[poolId](cb)
 }
+subscribeCheckSrCurrentState.forceRefresh = pool => {
+  if (pool === undefined) {
+    forEach(checkSrCurrentStateSubscriptions, subscription =>
+      subscription.forceRefresh()
+    )
+    return
+  }
+
+  const subscription = checkSrCurrentStateSubscriptions[resolveId(pool)]
+  if (subscription !== undefined) {
+    subscription.forceRefresh()
+  }
+}
 
 const missingPatchesByHost = {}
 export const subscribeHostMissingPatches = (host, cb) => {
@@ -2017,8 +2030,8 @@ export const createXosanSR = ({
   brickSize,
   memorySize,
   ipRange,
-}) =>
-  _call('xosan.createSR', {
+}) => {
+  const promise = _call('xosan.createSR', {
     template,
     pif: pif.id,
     vlan: String(vlan),
@@ -2029,6 +2042,11 @@ export const createXosanSR = ({
     memorySize,
     ipRange,
   })
+
+  subscribeCheckSrCurrentState.forceRefresh()
+
+  return promise
+}
 
 export const addXosanBricks = (xosansr, lvmsrs, brickSize) =>
   _call('xosan.addBricks', { xosansr, lvmsrs, brickSize })
