@@ -322,18 +322,30 @@ export default {
       get: vm => +vm.memory_dynamic_max,
       preprocess: parseSize,
       set (dynamicMax, vm) {
+        const { $ref } = vm
+        const dynamicMin = Math.min(vm.memory_dynamic_min, dynamicMax)
+
+        if (isVmRunning(vm)) {
+          return this.call(
+            'VM.set_memory_dynamic_range',
+            $ref,
+            dynamicMin,
+            dynamicMax
+          )
+        }
+
         const staticMin = Math.min(vm.memory_static_min, dynamicMax)
         return this.call(
           'VM.set_memory_limits',
-          vm.$ref,
+          $ref,
           staticMin,
           Math.max(dynamicMax, vm.memory_static_max),
-          Math.min(vm.memory_dynamic_min, dynamicMax),
+          dynamicMin,
           dynamicMax
         )::pCatch({ code: 'MEMORY_CONSTRAINT_VIOLATION' }, () =>
           this.call(
             'VM.set_memory_limits',
-            vm.$ref,
+            $ref,
             staticMin,
             dynamicMax,
             dynamicMax,
