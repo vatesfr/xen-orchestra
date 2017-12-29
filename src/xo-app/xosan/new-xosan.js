@@ -73,6 +73,7 @@ export default class NewXosan extends Component {
     brickSize: DEFAULT_BRICKSIZE,
     ipRange: '172.31.100.0',
     memorySize: DEFAULT_MEMORY,
+    suggestion: 0,
   }
 
   _selectPool = pool => {
@@ -280,7 +281,7 @@ export default class NewXosan extends Component {
       pool !== undefined &&
       hostsNeedRestartByPool !== undefined &&
       hostsNeedRestartByPool[pool.id]
-    const architecture = suggestions !== undefined && suggestions[suggestion]
+    const architecture = suggestions != null && suggestions[suggestion]
 
     return (
       <Container>
