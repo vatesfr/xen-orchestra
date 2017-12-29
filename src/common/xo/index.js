@@ -328,6 +328,19 @@ export const subscribeCheckSrCurrentState = (pool, cb) => {
 
   return checkSrCurrentStateSubscriptions[poolId](cb)
 }
+subscribeCheckSrCurrentState.forceRefresh = pool => {
+  if (pool === undefined) {
+    forEach(checkSrCurrentStateSubscriptions, subscription =>
+      subscription.forceRefresh()
+    )
+    return
+  }
+
+  const subscription = checkSrCurrentStateSubscriptions[resolveId(pool)]
+  if (subscription !== undefined) {
+    subscription.forceRefresh()
+  }
+}
 
 const missingPatchesByHost = {}
 export const subscribeHostMissingPatches = (host, cb) => {
@@ -2017,8 +2030,8 @@ export const createXosanSR = ({
   brickSize,
   memorySize,
   ipRange,
-}) =>
-  _call('xosan.createSR', {
+}) => {
+  const promise = _call('xosan.createSR', {
     template,
     pif: pif.id,
     vlan: String(vlan),
@@ -2029,6 +2042,12 @@ export const createXosanSR = ({
     memorySize,
     ipRange,
   })
+
+  // Force refresh in parallel to get the creation progress sooner
+  subscribeCheckSrCurrentState.forceRefresh()
+
+  return promise
+}
 
 export const addXosanBricks = (xosansr, lvmsrs, brickSize) =>
   _call('xosan.addBricks', { xosansr, lvmsrs, brickSize })
@@ -2065,8 +2084,15 @@ export const downloadAndInstallXosanPack = pool =>
     })
   )
 
-export const registerXosan = namespace =>
-  _call('cloud.registerResource', { namespace: 'xosan' })
-
 export const fixHostNotInXosanNetwork = (xosanSr, host) =>
   _call('xosan.fixHostNotInNetwork', { xosanSr, host })
+
+// Licenses --------------------------------------------------------------------
+
+export const getLicenses = productId => _call('xoa.getLicenses', { productId })
+
+export const getLicense = (productId, boundObjectId) =>
+  _call('xoa.getLicense', { productId, boundObjectId })
+
+export const unlockXosan = (licenseId, srId) =>
+  _call('xosan.unlock', { licenseId, sr: srId })

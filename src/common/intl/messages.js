@@ -57,7 +57,9 @@ const messages = {
   selfServicePage: 'Self service',
   backupPage: 'Backup',
   jobsPage: 'Jobs',
+  xoaPage: 'XOA',
   updatePage: 'Updates',
+  licensesPage: 'Licenses',
   settingsPage: 'Settings',
   settingsServersPage: 'Servers',
   settingsUsersPage: 'Users',
@@ -95,6 +97,7 @@ const messages = {
   jobsSchedulingPage: 'Scheduling',
   customJob: 'Custom Job',
   userPage: 'User',
+  xoa: 'XOA',
 
   // ----- Support -----
   noSupport: 'No support',
@@ -1547,6 +1550,8 @@ const messages = {
   xosanSrTitle: 'Xen Orchestra SAN SR',
   xosanAvailableSrsTitle: 'Select local SRs (lvm)',
   xosanSuggestions: 'Suggestions',
+  xosanDisperseWarning:
+    'Warning: using disperse layout is not recommended right now. Please read {link}.',
   xosanName: 'Name',
   xosanHost: 'Host',
   xosanHosts: 'Connected Hosts',
@@ -1554,6 +1559,8 @@ const messages = {
   xosanVolumeId: 'Volume ID',
   xosanSize: 'Size',
   xosanUsedSpace: 'Used space',
+  xosanLicense: 'License',
+  xosanMultipleLicenses: 'This XOSAN has more than 1 license!',
   xosanNeedPack: 'XOSAN pack needs to be installed on each host of the pool.',
   xosanInstallIt: 'Install it now!',
   xosanNeedRestart:
@@ -1595,11 +1602,9 @@ const messages = {
   // Pack download modal
   xosanInstallCloudPlugin: 'Install cloud plugin first',
   xosanLoadCloudPlugin: 'Load cloud plugin first',
+  xosanRegister: 'Register your appliance first',
   xosanLoading: 'Loading…',
   xosanNotAvailable: 'XOSAN is not available at the moment',
-  xosanRegisterBeta: 'Register for the XOSAN beta',
-  xosanSuccessfullyRegistered:
-    'You have successfully registered for the XOSAN beta. Please wait until your request has been approved.',
   xosanInstallPackOnHosts: 'Install XOSAN pack on these hosts:',
   xosanInstallPack: 'Install {pack} v{version}?',
   xosanNoPackFound:
@@ -1641,11 +1646,53 @@ const messages = {
   xosanRemove: 'Remove',
   xosanVolume: 'Volume',
   xosanVolumeOptions: 'Volume options',
-  xosanCouldNotFindVM: 'Could not find VM',
+  xosanCouldNotFindVm: 'Could not find VM',
   xosanUnderlyingStorageUsage: 'Using {usage}',
   xosanCustomIpNetwork: 'Custom IP network (/24)',
   xosanIssueHostNotInNetwork:
     'Will configure the host xosan network device with a static IP address and plug it in.',
+
+  // Licenses
+  licensesTitle: 'Licenses',
+  xosanUnregisteredDisclaimer:
+    'You are not registered and therefore will not be able to create or manage your XOSAN SRs. {link}',
+  xosanSourcesDisclaimer:
+    'In order to create a XOSAN SR, you need to use the Xen Orchestra Appliance and buy a XOSAN license on {link}.',
+  registerNow: 'Register now!',
+  licensesUnregisteredDisclaimer:
+    'You need to register your appliance to manage your licenses.',
+  licenseProduct: 'Product',
+  licenseBoundObject: 'Attached to',
+  licensePurchaser: 'Purchaser',
+  licenseExpires: 'Expires',
+  licensePurchaserYou: 'You',
+  productSupport: 'Support',
+  licenseNotBoundXosan: 'No XOSAN attached',
+  licenseBoundUnknownXosan: 'License attached to an unknown XOSAN',
+  licensesManage: 'Manage the licenses',
+  newLicense: 'New license',
+  refreshLicenses: 'Refresh',
+  xosanLicenseRestricted: 'Limited size because XOSAN is in trial',
+  xosanAdminNoLicenseDisclaimer:
+    'You need a license on this SR to manage the XOSAN.',
+  xosanAdminExpiredLicenseDisclaimer:
+    'Your XOSAN license has expired. You can still use the SR but cannot administrate it anymore.',
+  xosanCheckLicenseError: 'Could not check the license on this XOSAN SR',
+  xosanGetLicensesError: 'Could not fetch licenses',
+  xosanLicenseHasExpired: 'License has expired.',
+  xosanLicenseExpiresDate: 'License expires on {date}.',
+  xosanUpdateLicenseMessage: 'Update the license now!',
+  xosanUnknownSr: 'Unknown XOSAN SR.',
+  contactUs: 'Contact us!',
+  xosanNoLicense: 'No license.',
+  xosanUnlockNow: 'Unlock now!',
+  xosanBetaOverMessage:
+    'XOSAN Beta is over. You may now delete and create this storage again to be able to manage it.',
+  selectLicense: 'Select a license',
+  bindLicense: 'Bind license',
+  expiresOn: 'expires on {date}',
+  xosanInstallXoaPlugin: 'Install XOA plugin first',
+  xosanLoadXoaPlugin: 'Load XOA plugin first',
 }
 forEach(messages, function (message, id) {
   if (isString(message)) {

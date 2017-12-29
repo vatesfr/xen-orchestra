@@ -8,27 +8,30 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
 import { Container, Col, Row } from 'grid'
+import { get } from 'xo-defined'
 import {
   every,
   filter,
   find,
+  flatten,
   forEach,
   isEmpty,
   map,
   mapValues,
   some,
 } from 'lodash'
-import { createGetObjectsOfType, createSelector } from 'selectors'
+import { createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
 import {
   addSubscriptions,
   connectStore,
   cowSet,
   formatSize,
   isXosanPack,
+  ShortDate,
 } from 'utils'
 import {
   deleteSr,
-  registerXosan,
+  getLicenses,
   subscribePlugins,
   subscribeResourceCatalog,
   subscribeVolumeInfo,
@@ -38,6 +41,7 @@ import NewXosan from './new-xosan'
 import CreationProgress from './creation-progress'
 
 export const INFO_TYPES = ['heal', 'status', 'info', 'statusDetail', 'hosts']
+const EXPIRES_SOON_DELAY = 30 * 24 * 60 * 60 * 1000 // 1 month
 
 // ==================================================================
 
@@ -54,19 +58,22 @@ const HEADER = (
 const XOSAN_COLUMNS = [
   {
     itemRenderer: (sr, { status }) => {
+      if (status === undefined || status[sr.id] === undefined) {
+        return null
+      }
+
       const pbdsDetached = every(map(sr.pbds, 'attached'))
         ? null
         : _('xosanPbdsDetached')
-      const badStatus =
-        status && every(status[sr.id])
-          ? null
-          : _('xosanBadStatus', {
-            badStatuses: (
-              <ul>
-                {map(status, (_, status) => <li key={status}>{status}</li>)}
-              </ul>
-            ),
-          })
+      const badStatus = every(status[sr.id])
+        ? null
+        : _('xosanBadStatus', {
+          badStatuses: (
+            <ul>
+              {map(status, (_, status) => <li key={status}>{status}</li>)}
+            </ul>
+          ),
+        })
 
       if (pbdsDetached != null || badStatus != null) {
         return (
@@ -130,6 +137,71 @@ const XOSAN_COLUMNS = [
         </Tooltip>
       ) : null,
     sortCriteria: sr => sr.physical_usage * 100 / sr.size,
+  },
+  {
+    name: _('xosanLicense'),
+    itemRenderer: (sr, { isAdmin, licensesByXosan, licenseError }) => {
+      if (licenseError !== undefined) {
+        return
+      }
+
+      const license = licensesByXosan[sr.id]
+
+      // XOSAN not bound to any license, not even trial
+      if (license === undefined) {
+        return (
+          <span className='text-danger'>
+            {_('xosanUnknownSr')}{' '}
+            <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
+          </span>
+        )
+      }
+
+      // XOSAN bound to multiple licenses
+      if (license === null) {
+        return (
+          <span className='text-danger'>
+            {_('xosanMultipleLicenses')}{' '}
+            <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
+          </span>
+        )
+      }
+
+      const now = Date.now()
+      const expiresSoon = license.expires - now < EXPIRES_SOON_DELAY
+      const expired = license.expires < now
+      return license.productId === 'xosan' ? (
+        <span>
+          {license.expires === undefined ? (
+            '✔'
+          ) : expired ? (
+            <span>
+              {_('xosanLicenseHasExpired')}{' '}
+              {isAdmin && (
+                <Link to='/xoa/licenses'>{_('xosanUpdateLicenseMessage')}</Link>
+              )}
+            </span>
+          ) : (
+            <span className={expiresSoon && 'text-danger'}>
+              {_('xosanLicenseExpiresDate', {
+                date: <ShortDate timestamp={license.expires} />,
+              })}{' '}
+              {expiresSoon &&
+                isAdmin && (
+                  <Link to='/xoa/licenses'>
+                    {_('xosanUpdateLicenseMessage')}
+                  </Link>
+                )}
+            </span>
+          )}
+        </span>
+      ) : (
+        <span>
+          {_('xosanNoLicense')}{' '}
+          <Link to='/xoa/licenses'>{_('xosanUnlockNow')}</Link>
+        </span>
+      )
+    },
   },
 ]
 
@@ -214,11 +286,13 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
   )
 
   return {
+    isAdmin,
     isMasterOfflineByPool: getIsMasterOfflineByPool,
     hostsNeedRestartByPool: getHostsNeedRestartByPool,
     noPacksByPool,
     poolPredicate: getPoolPredicate,
     pools: getPools,
+    xoaRegistration: state => state.xoaRegisterState,
     xosanSrs: getXosanSrs,
   }
 })
@@ -228,20 +302,51 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
 })
 export default class Xosan extends Component {
   componentDidMount () {
-    this._subscribeVolumeInfo(this.props.xosanSrs)
+    this._updateLicenses().then(() =>
+      this._subscribeVolumeInfo(this.props.xosanSrs)
+    )
   }
 
   componentWillReceiveProps ({ pools, xosanSrs }) {
-    if (xosanSrs !== this.props.xosanSrs) this._subscribeVolumeInfo(xosanSrs)
+    if (xosanSrs !== this.props.xosanSrs) {
+      this.unsubscribeVolumeInfo && this.unsubscribeVolumeInfo()
+      this._subscribeVolumeInfo(xosanSrs)
+    }
   }
 
   componentWillUnmount () {
     if (this.unsubscribeVolumeInfo != null) this.unsubscribeVolumeInfo()
   }
 
+  _updateLicenses = () =>
+    Promise.all([getLicenses('xosan'), getLicenses('xosan.trial')])
+      .then(([xosanLicenses, xosanTrialLicenses]) => {
+        this.setState({
+          xosanLicenses,
+          xosanTrialLicenses,
+        })
+      })
+      .catch(error => {
+        this.setState({ licenseError: error })
+      })
+
   _subscribeVolumeInfo = srs => {
+    const licensesByXosan = this._getLicensesByXosan()
+    const now = Date.now()
+    const canAdminXosan = sr => {
+      const license = licensesByXosan[sr.id]
+
+      return (
+        license !== undefined &&
+        (license.expires === undefined || license.expires > now)
+      )
+    }
+
     const unsubscriptions = []
     forEach(srs, sr => {
+      if (!canAdminXosan(sr)) {
+        return
+      }
       forEach(INFO_TYPES, infoType =>
         unsubscriptions.push(
           subscribeVolumeInfo({ sr, infoType }, info =>
@@ -256,10 +361,29 @@ export default class Xosan extends Component {
       forEach(unsubscriptions, unsubscribe => unsubscribe())
   }
 
+  _getLicensesByXosan = createSelector(
+    () => this.state.xosanLicenses,
+    () => this.state.xosanTrialLicenses,
+    (xosanLicenses = [], xosanTrialLicenses = []) => {
+      const licensesByXosan = {}
+      forEach(flatten([xosanLicenses, xosanTrialLicenses]), license => {
+        let xosanId
+        if ((xosanId = license.boundObjectId) === undefined) {
+          return
+        }
+        licensesByXosan[xosanId] =
+          licensesByXosan[xosanId] !== undefined
+            ? null // XOSAN bound to multiple licenses!
+            : license
+      })
+
+      return licensesByXosan
+    }
+  )
+
   _getError = createSelector(
     () => this.props.plugins,
-    () => this.props.catalog,
-    (plugins, catalog) => {
+    plugins => {
       const cloudPlugin = find(plugins, { id: 'cloud' })
       if (!cloudPlugin) {
         return _('xosanInstallCloudPlugin')
@@ -268,43 +392,33 @@ export default class Xosan extends Component {
       if (!cloudPlugin.loaded) {
         return _('xosanLoadCloudPlugin')
       }
-
-      if (!catalog) {
-        return _('xosanLoading')
-      }
-
-      const { xosan } = catalog._namespaces
-      if (!xosan) {
-        return (
-          <span>
-            <Icon icon='error' /> {_('xosanNotAvailable')}
-          </span>
-        )
-      }
-
-      if (xosan.available) {
-        return (
-          <ActionButton handler={registerXosan} btnStyle='primary' icon='add'>
-            {_('xosanRegisterBeta')}
-          </ActionButton>
-        )
-      }
-
-      if (xosan.pending) {
-        return _('xosanSuccessfullyRegistered')
-      }
     }
+  )
+
+  _showBetaIsOver = createSelector(
+    () => this.props.catalog,
+    () => this.state.xosanLicenses,
+    () => this.state.xosanTrialLicenses,
+    () => this.state.licenseError,
+    (catalog, xosanLicenses, xosanTrialLicenses, licenseError) =>
+      licenseError === undefined &&
+      get(() => catalog._namespaces.xosan) !== undefined &&
+      isEmpty(xosanLicenses) &&
+      isEmpty(xosanTrialLicenses)
   )
 
   _onSrCreationStarted = () => this.setState({ showNewXosanForm: false })
 
   render () {
     const {
-      xosanSrs,
-      noPacksByPool,
       hostsNeedRestartByPool,
+      isAdmin,
+      noPacksByPool,
       poolPredicate,
+      xoaRegistration,
+      xosanSrs,
     } = this.props
+    const { licenseError } = this.state
     const error = this._getError()
 
     return (
@@ -319,7 +433,14 @@ export default class Xosan extends Component {
               </Row>
             ) : (
               [
-                <Row className='mb-1'>
+                this._showBetaIsOver() && (
+                  <Row key='beta-is-over'>
+                    <Col>
+                      <em>{_('xosanBetaOverMessage')}</em>
+                    </Col>
+                  </Row>
+                ),
+                <Row key='new-button' className='mb-1'>
                   <Col>
                     <ActionButton
                       btnStyle='primary'
@@ -330,26 +451,39 @@ export default class Xosan extends Component {
                     </ActionButton>
                   </Col>
                 </Row>,
-                <Row>
+                <Row key='new-form'>
                   <Col>
                     {this.state.showNewXosanForm && (
                       <NewXosan
                         hostsNeedRestartByPool={hostsNeedRestartByPool}
                         noPacksByPool={noPacksByPool}
                         poolPredicate={poolPredicate}
+                        onSrCreationFinished={this._updateLicenses}
                         onSrCreationStarted={this._onSrCreationStarted}
+                        notRegistered={
+                          get(() => xoaRegistration.state) !== 'registered'
+                        }
                       />
                     )}
                   </Col>
                 </Row>,
-                <Row>
+                <Row key='progress'>
                   <Col>
                     {map(this.props.pools, pool => (
                       <CreationProgress key={pool.id} pool={pool} />
                     ))}
                   </Col>
                 </Row>,
-                <Row>
+                licenseError !== undefined && (
+                  <Row>
+                    <Col>
+                      <em className='text-danger'>
+                        {_('xosanGetLicensesError')}
+                      </em>
+                    </Col>
+                  </Row>
+                ),
+                <Row key='srs'>
                   <Col>
                     {isEmpty(xosanSrs) ? (
                       <em>{_('xosanNoSrs')}</em>
@@ -359,6 +493,9 @@ export default class Xosan extends Component {
                         columns={XOSAN_COLUMNS}
                         individualActions={XOSAN_INDIVIDUAL_ACTIONS}
                         userData={{
+                          isAdmin,
+                          licensesByXosan: this._getLicensesByXosan(),
+                          licenseError,
                           status: this.state.status,
                         }}
                       />

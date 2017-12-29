@@ -12,16 +12,18 @@ import { confirm } from 'modal'
 import { error } from 'notification'
 import { Toggle } from 'form'
 import { Container, Col, Row } from 'grid'
-import { forEach, isEmpty, map, reduce, sum } from 'lodash'
-import { createGetObjectsOfType, createSelector } from 'selectors'
+import { find, forEach, isEmpty, map, reduce, sum } from 'lodash'
+import { createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
 import { addSubscriptions, connectStore, formatSize } from 'utils'
 import {
   addXosanBricks,
+  getLicense,
   fixHostNotInXosanNetwork,
   // TODO: uncomment when implementing subvolume deletion
   // removeXosanBricks,
   replaceXosanBrick,
   startVm,
+  subscribePlugins,
   subscribeVolumeInfo,
 } from 'xo'
 
@@ -350,6 +352,7 @@ class Node extends Component {
 // -----------------------------------------------------------------------------
 
 @connectStore(() => ({
+  isAdmin,
   vms: createGetObjectsOfType('VM'),
   hosts: createGetObjectsOfType('host'),
   vbds: createGetObjectsOfType('VBD'),
@@ -362,9 +365,22 @@ class Node extends Component {
       subscribeVolumeInfo({ sr, infoType }, cb)
   })
 
+  subscriptions.plugins = subscribePlugins
+
   return subscriptions
 })
 export default class TabXosan extends Component {
+  componentDidMount () {
+    const { id } = this.props.sr
+
+    getLicense('xosan', id)
+      .catch(() => getLicense('xosan.trial', id))
+      .then(
+        license => this.setState({ license }),
+        error => this.setState({ licenseError: error })
+      )
+  }
+
   _addSubvolume = async () => {
     const { srs, brickSize } = await confirm({
       icon: 'add',
@@ -424,6 +440,24 @@ export default class TabXosan extends Component {
   //     return subVolumes
   //   }
   // )
+
+  _getMissingXoaPlugin = createSelector(
+    () => this.props.plugins,
+    plugins => {
+      if (plugins === undefined) {
+        return _('xosanInstallXoaPlugin')
+      }
+
+      const xoaPlugin = find(plugins, { id: 'xoa' })
+      if (xoaPlugin === undefined) {
+        return _('xosanInstallXoaPlugin')
+      }
+
+      if (!xoaPlugin.loaded) {
+        return _('xosanLoadXoaPlugin')
+      }
+    }
+  )
 
   _getConfig = createSelector(
     () => this.props.sr && this.props.sr.other_config['xo:xosan_config'],
@@ -582,13 +616,59 @@ export default class TabXosan extends Component {
   )
 
   render () {
-    const { showAdvanced } = this.state
-    const { heal_, info_, sr, status_, statusDetail_, vbds, vdis } = this.props
+    const { license, licenseError, showAdvanced } = this.state
+    const {
+      heal_,
+      info_,
+      sr,
+      status_,
+      statusDetail_,
+      vbds,
+      vdis,
+      isAdmin,
+    } = this.props
+
+    const missingXoaPlugin = this._getMissingXoaPlugin()
+    if (missingXoaPlugin !== undefined) {
+      return <em>{missingXoaPlugin}</em>
+    }
 
     const xosanConfig = this._getConfig()
+    if (
+      (license === undefined && licenseError === undefined) ||
+      xosanConfig === undefined
+    ) {
+      return <em>{_('statusLoading')}</em>
+    }
 
-    if (!xosanConfig) {
-      return null
+    if (
+      licenseError !== undefined &&
+      licenseError.message !== 'No license found'
+    ) {
+      return <span className='text-danger'>{_('xosanCheckLicenseError')}</span>
+    }
+
+    if (
+      licenseError !== undefined ||
+      (license !== undefined &&
+        license.productId !== 'xosan' &&
+        license.productId !== 'xosan.trial')
+    ) {
+      return (
+        <span className='text-danger'>
+          {_('xosanAdminNoLicenseDisclaimer')}{' '}
+          {isAdmin && <Link to='/xoa/licenses'>{_('licensesManage')}</Link>}
+        </span>
+      )
+    }
+
+    if (license.expires < Date.now()) {
+      return (
+        <span className='text-danger'>
+          {_('xosanAdminExpiredLicenseDisclaimer')}{' '}
+          {isAdmin && <Link to='/xoa/licenses'>{_('licensesManage')}</Link>}
+        </span>
+      )
     }
 
     if (!xosanConfig.version) {

@@ -222,12 +222,24 @@ export default class NewXosan extends Component {
       brickSize: this.state.customBrickSize ? this.state.brickSize : undefined,
       memorySize: this.state.memorySize,
       ipRange: this.state.customIpRange ? this.state.ipRange : undefined,
-    })
+    }).then(this.props.onSrCreationFinished)
 
     this.props.onSrCreationStarted()
   }
 
   render () {
+    if (process.env.XOA_PLAN === 5) {
+      return (
+        <em>
+          {_('xosanSourcesDisclaimer', {
+            link: (
+              <a href='https://xen-orchestra.com'>https://xen-orchestra.com</a>
+            ),
+          })}
+        </em>
+      )
+    }
+
     const {
       brickSize,
       customBrickSize,
@@ -243,7 +255,22 @@ export default class NewXosan extends Component {
       vlan,
     } = this.state
 
-    const { hostsNeedRestartByPool, noPacksByPool, poolPredicate } = this.props
+    const {
+      hostsNeedRestartByPool,
+      noPacksByPool,
+      poolPredicate,
+      notRegistered,
+    } = this.props
+
+    if (notRegistered) {
+      return (
+        <em>
+          {_('xosanUnregisteredDisclaimer', {
+            link: <Link to='/xoa/update'>{_('registerNow')}</Link>,
+          })}
+        </em>
+      )
+    }
 
     const lvmsrs = this._getLvmSrs()
     const hosts = this._getHosts()
@@ -253,6 +280,7 @@ export default class NewXosan extends Component {
       pool !== undefined &&
       hostsNeedRestartByPool !== undefined &&
       hostsNeedRestartByPool[pool.id]
+    const architecture = suggestions !== undefined && suggestions[suggestion]
 
     return (
       <Container>
@@ -416,11 +444,22 @@ export default class NewXosan extends Component {
                       )}
                     </tbody>
                   </table>
+                  {architecture.layout === 'disperse' && (
+                    <div className='alert alert-danger'>
+                      {_('xosanDisperseWarning', {
+                        link: (
+                          <a href='https://xen-orchestra.com/docs/xosan_types.html'>
+                            xen-orchestra.com/docs/xosan_types.html
+                          </a>
+                        ),
+                      })}
+                    </div>
+                  )}
                   <Graph
                     height={160}
-                    layout={suggestions[suggestion].layout}
+                    layout={architecture.layout}
                     nSrs={this._getNSelectedSrs()}
-                    redundancy={suggestions[suggestion].redundancy}
+                    redundancy={architecture.redundancy}
                     width={600}
                   />
                   <hr />

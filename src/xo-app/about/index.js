@@ -100,7 +100,7 @@ export default class About extends Component {
             <div>
               <Row>
                 <Col>
-                  <Link to={'/xoa-update'}>
+                  <Link to='/xoa-update'>
                     <h2>{_('freeTrial')}</h2>
                     {_('freeTrialNow')}
                   </Link>

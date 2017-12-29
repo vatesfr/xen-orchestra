@@ -7,7 +7,7 @@ import Link from 'link'
 import map from 'lodash/map'
 import React from 'react'
 import Tooltip from 'tooltip'
-import { UpdateTag } from '../xoa-updates'
+import { UpdateTag } from '../xoa/update'
 import { addSubscriptions, connectStore, getXoaPlan, noop } from 'utils'
 import {
   connect,
@@ -203,10 +203,14 @@ export default class Menu extends Component {
         ],
       },
       isAdmin && {
-        to: '/xoa-update',
-        icon: 'menu-update',
-        label: 'updatePage',
+        to: 'xoa/update',
+        icon: 'menu-xoa',
+        label: 'xoa',
         extra: <UpdateTag />,
+        subMenu: [
+          { to: 'xoa/update', icon: 'menu-update', label: 'updatePage' },
+          { to: 'xoa/licenses', icon: 'menu-license', label: 'licensesPage' },
+        ],
       },
       isAdmin && {
         to: '/settings/servers',

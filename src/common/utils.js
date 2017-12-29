@@ -3,6 +3,7 @@ import humanFormat from 'human-format'
 import React from 'react'
 import ReadableStream from 'readable-stream'
 import { connect } from 'react-redux'
+import { FormattedDate } from 'react-intl'
 import {
   clone,
   escapeRegExp,
@@ -572,6 +573,9 @@ export const cowSet = (object, path, value, depth = 0) => {
 // This function returns an estimated progress value between 0 and 1
 // based on the elapsed time since the createFakeProgress call and
 // the given estimated duration d
+//
+// const getProgress = createFakeProgress(120)
+// setInterval(() => console.log(`Progress: ${getProgress() * 100} %`), 1000)
 export const createFakeProgress = (() => {
   const S = 0.95 // Progress value after d seconds
   return d => {
@@ -582,3 +586,7 @@ export const createFakeProgress = (() => {
     }
   }
 })()
+
+export const ShortDate = ({ timestamp }) => (
+  <FormattedDate value={timestamp} month='short' day='numeric' year='numeric' />
+)
