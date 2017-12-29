@@ -8,7 +8,6 @@ import { invalidParameters } from 'xo-common/api-errors'
 import { v4 as generateUuid } from 'uuid'
 import {
   includes,
-  isArray,
   remove,
   filter,
   find,
@@ -16,7 +15,7 @@ import {
 } from 'lodash'
 
 import { asInteger } from '../xapi/utils'
-import { asyncMap, parseXml } from '../utils'
+import { asyncMap, parseXml, ensureArray } from '../utils'
 
 const debug = createLogger('xo:xosan')
 
@@ -27,7 +26,7 @@ const HOST_FIRST_NUMBER = 1
 const GIGABYTE = 1024 * 1024 * 1024
 const XOSAN_VM_SYSTEM_DISK_SIZE = 10 * GIGABYTE
 const XOSAN_DATA_DISK_USEAGE_RATIO = 0.99
-const XOSAN_MAX_DISK_SIZE = 2093050 * 1024 * 1024 // a bit under 2To
+const XOSAN_LICENSE_QUOTA = 50 * GIGABYTE
 
 const CURRENT_POOL_OPERATIONS = {}
 
@@ -83,15 +82,13 @@ async function rateLimitedRetry (action, shouldRetry, retryCount = 20) {
   return result
 }
 
-export async function getVolumeInfo ({sr, infoType}) {
-  const glusterEndpoint = this::_getGlusterEndpoint(sr)
-
+function createVolumeInfoTypes () {
   function parseHeal (parsed) {
     const bricks = []
     parsed['healInfo']['bricks']['brick'].forEach(brick => {
       bricks.push(brick)
-      if (brick['file'] && !isArray(brick['file'])) {
-        brick['file'] = [brick['file']]
+      if (brick.file) {
+        brick.file = ensureArray(brick.file)
       }
     })
     return {commandStatus: true, result: {bricks}}
@@ -110,23 +107,52 @@ export async function getVolumeInfo ({sr, infoType}) {
     }
   }
 
-  function parseInfo (parsed) {
+  async function parseInfo (parsed) {
     const volume = parsed['volInfo']['volumes']['volume']
     volume['bricks'] = volume['bricks']['brick']
     volume['options'] = volume['options']['option']
     return {commandStatus: true, result: volume}
   }
 
-  function sshInfoType (command, handler) {
-    return async () => {
-      const cmdShouldRetry = result => !result['commandStatus'] && result.parsed && result.parsed['cliOutput']['opErrno'] === '30802'
+  const sshInfoType = (command, handler) => {
+    return async function (sr) {
+      const glusterEndpoint = this::_getGlusterEndpoint(sr)
+      const cmdShouldRetry = result =>
+        !result['commandStatus'] &&
+        ((result.parsed && result.parsed['cliOutput']['opErrno'] === '30802') ||
+          result.stderr.match(/Another transaction is in progress/))
       const runCmd = async () => glusterCmd(glusterEndpoint, 'volume ' + command, true)
-      const commandResult = await rateLimitedRetry(runCmd, cmdShouldRetry)
-      return commandResult['commandStatus'] ? handler(commandResult.parsed['cliOutput']) : commandResult
+      const commandResult = await rateLimitedRetry(runCmd, cmdShouldRetry, 30)
+      return commandResult['commandStatus'] ? this::handler(commandResult.parsed['cliOutput'], sr) : commandResult
     }
   }
 
-  function checkHosts () {
+  async function profileType (sr) {
+    async function parseProfile (parsed) {
+      const volume = parsed['volProfile']
+      volume['bricks'] = ensureArray(volume['brick'])
+      delete volume['brick']
+      return {commandStatus: true, result: volume}
+    }
+
+    return this::(sshInfoType('profile xosan info', parseProfile))(sr)
+  }
+
+  async function profileTopType (sr) {
+    async function parseTop (parsed) {
+      const volume = parsed['volTop']
+      volume['bricks'] = ensureArray(volume['brick'])
+      delete volume['brick']
+      return {commandStatus: true, result: volume}
+    }
+
+    const topTypes = ['open', 'read', 'write', 'opendir', 'readdir']
+    return asyncMap(topTypes, async type => ({
+      type, result: await this::(sshInfoType(`top xosan ${type}`, parseTop))(sr),
+    }))
+  }
+
+  function checkHosts (sr) {
     const xapi = this.getXapi(sr)
     const data = getXosanConfig(sr, xapi)
     const network = xapi.getObject(data.network)
@@ -134,22 +160,33 @@ export async function getVolumeInfo ({sr, infoType}) {
     return badPifs.map(pif => ({pif, host: pif.$host.$id}))
   }
 
-  const infoTypes = {
+  return {
     heal: sshInfoType('heal xosan info', parseHeal),
     status: sshInfoType('status xosan', parseStatus),
     statusDetail: sshInfoType('status xosan detail', parseStatus),
     statusMem: sshInfoType('status xosan mem', parseStatus),
     info: sshInfoType('info xosan', parseInfo),
-    hosts: this::checkHosts,
+    profile: profileType,
+    profileTop: profileTopType,
+    hosts: checkHosts,
   }
+}
+
+const VOLUME_INFO_TYPES = createVolumeInfoTypes()
+
+export async function getVolumeInfo ({sr, infoType}) {
+  await this.checkXosanLicense({ srId: sr.uuid })
+
+  const glusterEndpoint = this::_getGlusterEndpoint(sr)
+
   if (glusterEndpoint == null) {
     return null
   }
-  const foundType = infoTypes[infoType]
+  const foundType = VOLUME_INFO_TYPES[infoType]
   if (!foundType) {
     throw new Error('getVolumeInfo(): "' + infoType + '" is an invalid type')
   }
-  return foundType()
+  return this::foundType(sr)
 }
 
 getVolumeInfo.description = 'info on gluster volume'
@@ -161,9 +198,38 @@ getVolumeInfo.params = {
   },
   infoType: {
     type: 'string',
+    eq: Object.keys(VOLUME_INFO_TYPES),
   },
 }
 getVolumeInfo.resolve = {
+  sr: ['sr', 'SR', 'administrate'],
+}
+
+export async function profileStatus ({sr, changeStatus = null}) {
+  await this.checkXosanLicense({ srId: sr.uuid })
+
+  const glusterEndpoint = this::_getGlusterEndpoint(sr)
+  if (changeStatus === false) {
+    await glusterCmd(glusterEndpoint, 'volume profile xosan stop')
+    return null
+  }
+  if (changeStatus === true) {
+    await glusterCmd(glusterEndpoint, 'volume profile xosan start')
+  }
+  return this::getVolumeInfo({sr: sr, infoType: 'profile'})
+}
+
+profileStatus.description = 'activate, deactivate, or interrogate profile data'
+profileStatus.permission = 'admin'
+profileStatus.params = {
+  sr: {
+    type: 'string',
+  },
+  changeStatus: {
+    type: 'bool', optional: true,
+  },
+}
+profileStatus.resolve = {
   sr: ['sr', 'SR', 'administrate'],
 }
 
@@ -173,6 +239,8 @@ function reconfigurePifIP (xapi, pif, newIP) {
 
 // this function should probably become fixSomething(thingToFix, parmas)
 export async function fixHostNotInNetwork ({xosanSr, host}) {
+  await this.checkXosanLicense({ srId: xosanSr.uuid })
+
   const xapi = this.getXapi(xosanSr)
   const data = getXosanConfig(xosanSr, xapi)
   const network = xapi.getObject(data.network)
@@ -400,6 +468,7 @@ async function configureGluster (redundancy, ipAndHosts, glusterEndpoint, gluste
   await glusterCmd(glusterEndpoint, volumeCreation)
   await glusterCmd(glusterEndpoint, 'volume set xosan network.remote-dio enable')
   await glusterCmd(glusterEndpoint, 'volume set xosan cluster.eager-lock enable')
+  await glusterCmd(glusterEndpoint, 'volume set xosan cluster.locking-scheme granular')
   await glusterCmd(glusterEndpoint, 'volume set xosan performance.io-cache off')
   await glusterCmd(glusterEndpoint, 'volume set xosan performance.read-ahead off')
   await glusterCmd(glusterEndpoint, 'volume set xosan performance.quick-read off')
@@ -408,17 +477,30 @@ async function configureGluster (redundancy, ipAndHosts, glusterEndpoint, gluste
   await glusterCmd(glusterEndpoint, 'volume set xosan server.event-threads 8')
   await glusterCmd(glusterEndpoint, 'volume set xosan performance.io-thread-count 64')
   await glusterCmd(glusterEndpoint, 'volume set xosan performance.stat-prefetch on')
+  await glusterCmd(glusterEndpoint, 'volume set xosan performance.low-prio-threads 32')
   await glusterCmd(glusterEndpoint, 'volume set xosan features.shard on')
   await glusterCmd(glusterEndpoint, 'volume set xosan features.shard-block-size 512MB')
+  await glusterCmd(glusterEndpoint, 'volume set xosan user.cifs off')
   for (const confChunk of configByType[glusterType].extra) {
     await glusterCmd(glusterEndpoint, confChunk)
   }
   await glusterCmd(glusterEndpoint, 'volume start xosan')
+  await _setQuota(glusterEndpoint)
+}
+
+async function _setQuota (glusterEndpoint) {
+  await glusterCmd(glusterEndpoint, 'volume quota xosan enable', true)
+  await glusterCmd(glusterEndpoint, 'volume set xosan quota-deem-statfs on', true)
+  await glusterCmd(glusterEndpoint, `volume quota xosan limit-usage / ${XOSAN_LICENSE_QUOTA}B`, true)
+}
+
+async function _removeQuota (glusterEndpoint) {
+  await glusterCmd(glusterEndpoint, 'volume quota xosan disable', true)
 }
 
 export const createSR = defer(async function ($defer, {
   template, pif, vlan, srs, glusterType,
-  redundancy, brickSize = this::computeBrickSize(srs), memorySize = 2 * GIGABYTE, ipRange = DEFAULT_NETWORK_PREFIX + '.0',
+  redundancy, brickSize = this::computeBrickSize(srs), memorySize = 4 * GIGABYTE, ipRange = DEFAULT_NETWORK_PREFIX + '.0',
 }) {
   const OPERATION_OBJECT = {
     operation: 'createSr',
@@ -432,9 +514,7 @@ export const createSR = defer(async function ($defer, {
   if (srs.length < 1) {
     return // TODO: throw an error
   }
-  // '172.31.100.0' -> '172.31.100.'
-  const networkPrefix = ipRange.split('.').slice(0, 3).join('.') + '.'
-  let vmIpLastNumber = VM_FIRST_NUMBER
+
   const xapi = this.getXapi(srs[0])
   const poolId = xapi.pool.$id
   if (CURRENT_POOL_OPERATIONS[poolId]) {
@@ -442,6 +522,15 @@ export const createSR = defer(async function ($defer, {
   }
 
   CURRENT_POOL_OPERATIONS[poolId] = {...OPERATION_OBJECT, state: 0}
+
+  const tmpBoundObjectId = srs.join(',')
+  const license = await this.createBoundXosanTrialLicense({ boundObjectId: tmpBoundObjectId })
+  $defer.onFailure(() => this.unbindXosanLicense({ srId: tmpBoundObjectId }))
+
+  // '172.31.100.0' -> '172.31.100.'
+  const networkPrefix = ipRange.split('.').slice(0, 3).join('.') + '.'
+  let vmIpLastNumber = VM_FIRST_NUMBER
+
   try {
     const xosanNetwork = await createNetworkAndInsertHosts(xapi, pif, vlan, networkPrefix)
     $defer.onFailure(() => xapi.deleteNetwork(xosanNetwork))
@@ -511,6 +600,7 @@ export const createSR = defer(async function ($defer, {
     }))
     await xapi.xo.setData(xosanSrRef, 'xosan_config', {
       version: 'beta2',
+      creationDate: new Date().toISOString(),
       nodes: nodes,
       template: template,
       network: xosanNetwork.$id,
@@ -521,6 +611,11 @@ export const createSR = defer(async function ($defer, {
     CURRENT_POOL_OPERATIONS[poolId] = {...OPERATION_OBJECT, state: 6}
     debug('scanning new SR')
     await xapi.call('SR.scan', xosanSrRef)
+    await this.rebindLicense({
+      licenseId: license.id,
+      oldBoundObjectId: tmpBoundObjectId,
+      newBoundObjectId: xapi.getObject(xosanSrRef).uuid,
+    })
   } finally {
     delete CURRENT_POOL_OPERATIONS[poolId]
   }
@@ -568,13 +663,14 @@ async function umountDisk (localEndpoint, diskMountPoint) {
 async function createVDIOnLVMWithoutSizeLimit (xapi, lvmSr, diskSize) {
   const VG_PREFIX = 'VG_XenStorage-'
   const LV_PREFIX = 'LV-'
-  if (lvmSr.type !== 'lvm') {
-    throw new Error('expecting a lvm sr type, got"' + lvmSr.type + '"')
+  const { type, uuid: srUuid, $PBDs } = xapi.getObject(lvmSr)
+  if (type !== 'lvm') {
+    throw new Error('expecting a lvm sr type, got"' + type + '"')
   }
   const uuid = generateUuid()
   const lvName = LV_PREFIX + uuid
-  const vgName = VG_PREFIX + lvmSr.uuid
-  const host = lvmSr.$PBDs[0].$host
+  const vgName = VG_PREFIX + srUuid
+  const host = $PBDs[0].$host
   const sizeMb = Math.ceil(diskSize / 1024 / 1024)
   const result = await callPlugin(xapi, host, 'run_lvcreate', {sizeMb: asInteger(sizeMb), lvName, vgName})
   if (result.exit !== 0) {
@@ -651,6 +747,8 @@ async function replaceBrickOnSameVM (xosansr, previousBrick, newLvmSr, brickSize
 }
 
 export async function replaceBrick ({xosansr, previousBrick, newLvmSr, brickSize, onSameVM = true}) {
+  await this.checkXosanLicense({ srId: xosansr.uuid })
+
   const OPERATION_OBJECT = {
     operation: 'replaceBrick',
     states: ['insertingNewVm', 'swapingBrick', 'deletingVm', 'scaningSr'],
@@ -746,10 +844,6 @@ async function _prepareGlusterVm (xapi, lvmSr, newVM, xosanNetwork, ipAddress, {
   await xapi.editVm(newVM, {
     name_label: `XOSAN - ${lvmSr.name_label} - ${host.name_label} ${labelSuffix}`,
     name_description: 'Xosan VM storage',
-    // https://bugs.xenserver.org/browse/XSO-762
-    memoryMax: memorySize,
-    memoryMin: memorySize,
-    memoryStaticMax: memorySize,
     memory: memorySize,
   })
   await xapi.call('VM.set_xenstore_data', newVM.$ref, xenstoreData)
@@ -764,8 +858,7 @@ async function _prepareGlusterVm (xapi, lvmSr, newVM, xosanNetwork, ipAddress, {
   const localEndpoint = {xapi: xapi, hosts: [host], addresses: [ip]}
   const srFreeSpace = sr.physical_size - sr.physical_utilisation
   // we use a percentage because it looks like the VDI overhead is proportional
-  const newSize = Math.min(floor2048(Math.min(maxDiskSize - rootDiskSize, srFreeSpace * XOSAN_DATA_DISK_USEAGE_RATIO)),
-    XOSAN_MAX_DISK_SIZE)
+  const newSize = floor2048(Math.min(maxDiskSize - rootDiskSize, srFreeSpace * XOSAN_DATA_DISK_USEAGE_RATIO))
   const smallDiskSize = 1073741824
   const deviceFile = await createNewDisk(xapi, lvmSr, newVM, increaseDataDisk ? newSize : smallDiskSize)
   const brickName = await mountNewDisk(localEndpoint, ip, deviceFile)
@@ -837,6 +930,8 @@ const insertNewGlusterVm = defer(async function ($defer, xapi, xosansr, lvmsrId,
 })
 
 export const addBricks = defer(async function ($defer, {xosansr, lvmsrs, brickSize}) {
+  await this.checkXosanLicense({ srId: xosansr.uuid })
+
   const OPERATION_OBJECT = {
     operation: 'addBricks',
     states: ['insertingNewVms', 'addingBricks', 'scaningSr'],
@@ -902,25 +997,27 @@ addBricks.resolve = {
 }
 
 export const removeBricks = defer(async function ($defer, {xosansr, bricks}) {
+  await this.checkXosanLicense({ srId: xosansr.uuid })
+
   const xapi = this.getXapi(xosansr)
   if (CURRENT_POOL_OPERATIONS[xapi.pool.$id]) {
     throw new Error('this there is already a XOSAN operation running on this pool')
   }
   CURRENT_POOL_OPERATIONS[xapi.pool.$id] = true
   try {
-    const data = getXosanConfig(xosansr, xapi)
+    const data = getXosanConfig(xosansr.id, xapi)
     // IPV6
     const ips = map(bricks, b => b.split(':')[0])
-    const glusterEndpoint = this::_getGlusterEndpoint(xosansr)
+    const glusterEndpoint = this::_getGlusterEndpoint(xosansr.id)
     // "peer detach" doesn't allow removal of locahost
     remove(glusterEndpoint.addresses, ip => ips.includes(ip))
-    const dict = _getIPToVMDict(xapi, xosansr)
+    const dict = _getIPToVMDict(xapi, xosansr.id)
     const brickVMs = map(bricks, b => dict[b])
     await glusterCmd(glusterEndpoint, `volume remove-brick xosan ${bricks.join(' ')} force`)
     await asyncMap(ips, ip => glusterCmd(glusterEndpoint, 'peer detach ' + ip, true))
     remove(data.nodes, node => ips.includes(node.vm.ip))
-    await xapi.xo.setData(xosansr, 'xosan_config', data)
-    await xapi.call('SR.scan', xapi.getObject(xosansr).$ref)
+    await xapi.xo.setData(xosansr.id, 'xosan_config', data)
+    await xapi.call('SR.scan', xapi.getObject(xosansr._xapiId).$ref)
     await asyncMap(brickVMs, vm => xapi.deleteVm(vm.vm, true))
   } finally {
     delete CURRENT_POOL_OPERATIONS[xapi.pool.$id]
@@ -936,6 +1033,7 @@ removeBricks.params = {
     items: {type: 'string'},
   },
 }
+removeBricks.resolve = { xosansr: ['sr', 'SR', 'administrate'] }
 
 export function checkSrCurrentState ({poolId}) {
   return CURRENT_POOL_OPERATIONS[poolId]
@@ -948,33 +1046,40 @@ checkSrCurrentState.params = {poolId: {type: 'string'}}
 const POSSIBLE_CONFIGURATIONS = {}
 POSSIBLE_CONFIGURATIONS[2] = [{layout: 'replica_arbiter', redundancy: 3, capacity: 1}]
 POSSIBLE_CONFIGURATIONS[3] = [
+  {layout: 'replica', redundancy: 3, capacity: 1},
   {layout: 'disperse', redundancy: 1, capacity: 2},
-  {layout: 'replica', redundancy: 3, capacity: 1}]
+]
 POSSIBLE_CONFIGURATIONS[4] = [{layout: 'replica', redundancy: 2, capacity: 2}]
 POSSIBLE_CONFIGURATIONS[5] = [{layout: 'disperse', redundancy: 1, capacity: 4}]
 POSSIBLE_CONFIGURATIONS[6] = [
-  {layout: 'disperse', redundancy: 2, capacity: 4},
   {layout: 'replica', redundancy: 2, capacity: 3},
-  {layout: 'replica', redundancy: 3, capacity: 2}]
+  {layout: 'replica', redundancy: 3, capacity: 2},
+  {layout: 'disperse', redundancy: 2, capacity: 4},
+]
 POSSIBLE_CONFIGURATIONS[7] = [{layout: 'disperse', redundancy: 3, capacity: 4}]
 POSSIBLE_CONFIGURATIONS[8] = [{layout: 'replica', redundancy: 2, capacity: 4}]
 POSSIBLE_CONFIGURATIONS[9] = [
+  {layout: 'replica', redundancy: 3, capacity: 3},
   {layout: 'disperse', redundancy: 1, capacity: 8},
-  {layout: 'replica', redundancy: 3, capacity: 3}]
+]
 POSSIBLE_CONFIGURATIONS[10] = [
+  {layout: 'replica', redundancy: 2, capacity: 5},
   {layout: 'disperse', redundancy: 2, capacity: 8},
-  {layout: 'replica', redundancy: 2, capacity: 5}]
+]
 POSSIBLE_CONFIGURATIONS[11] = [{layout: 'disperse', redundancy: 3, capacity: 8}]
 POSSIBLE_CONFIGURATIONS[12] = [
+  {layout: 'replica', redundancy: 2, capacity: 6},
   {layout: 'disperse', redundancy: 4, capacity: 8},
-  {layout: 'replica', redundancy: 2, capacity: 6}]
+]
 POSSIBLE_CONFIGURATIONS[13] = [{layout: 'disperse', redundancy: 5, capacity: 8}]
 POSSIBLE_CONFIGURATIONS[14] = [
+  {layout: 'replica', redundancy: 2, capacity: 7},
   {layout: 'disperse', redundancy: 6, capacity: 8},
-  {layout: 'replica', redundancy: 2, capacity: 7}]
+]
 POSSIBLE_CONFIGURATIONS[15] = [
+  {layout: 'replica', redundancy: 3, capacity: 5},
   {layout: 'disperse', redundancy: 7, capacity: 8},
-  {layout: 'replica', redundancy: 3, capacity: 5}]
+]
 POSSIBLE_CONFIGURATIONS[16] = [{layout: 'replica', redundancy: 2, capacity: 8}]
 
 function computeBrickSize (srs, brickSize = Infinity) {
@@ -1007,6 +1112,29 @@ computeXosanPossibleOptions.params = {
   brickSize: {
     type: 'number', optional: true,
   },
+}
+
+// ---------------------------------------------------------------------
+
+export async function unlock ({ licenseId, sr }) {
+  await this.unlockXosanLicense({ licenseId, srId: sr.id })
+
+  const glusterEndpoint = this::_getGlusterEndpoint(sr.id)
+  await _removeQuota(glusterEndpoint)
+  await glusterEndpoint.xapi.call('SR.scan', glusterEndpoint.xapi.getObject(sr).$ref)
+}
+
+unlock.description = 'Unlock XOSAN SR functionalities by binding it to a paid license'
+
+unlock.permission = 'admin'
+
+unlock.params = {
+  licenseId: { type: 'string' },
+  sr: { type: 'string' },
+}
+
+unlock.resolve = {
+  sr: ['sr', 'SR', 'administrate'],
 }
 
 // ---------------------------------------------------------------------

@@ -68,6 +68,9 @@ export async function destroy ({sr}) {
   await xapi.forgetSr(sr._xapiId)
   await asyncMap(config.nodes, node => xapi.deleteVm(node.vm.id))
   await xapi.deleteNetwork(config.network)
+  if (sr.SR_type === 'xosan') {
+    await this.unbindXosanLicense({ srId: sr.id })
+  }
 }
 
 destroy.params = {
