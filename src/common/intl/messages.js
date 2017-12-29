@@ -1672,6 +1672,7 @@ const messages = {
   licensesManage: 'Manage the licenses',
   newLicense: 'New license',
   refreshLicenses: 'Refresh',
+  xosanLicenseRestricted: 'Limited size because XOSAN is in trial',
   xosanAdminNoLicenseDisclaimer:
     'You need a license on this SR to manage the XOSAN.',
   xosanAdminExpiredLicenseDisclaimer:
