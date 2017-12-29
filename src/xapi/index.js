@@ -1690,17 +1690,10 @@ export default class Xapi extends XapiBase {
     await this.call('VDI.destroy', vdi.$ref)
   }
 
-  async _resizeVdi (vdi, size) {
+  _resizeVdi (vdi, size) {
     debug(`Resizing VDI ${vdi.name_label} from ${vdi.virtual_size} to ${size}`)
 
-    try {
-      await this.call('VDI.resize_online', vdi.$ref, String(size))
-    } catch (error) {
-      if (error.code !== 'SR_OPERATION_NOT_SUPPORTED') {
-        throw error
-      }
-      await this.call('VDI.resize', vdi.$ref, String(size))
-    }
+    return this.call('VDI.resize', vdi.$ref, size)
   }
 
   _getVmCdDrive (vm) {
