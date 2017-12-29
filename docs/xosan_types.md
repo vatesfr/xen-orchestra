@@ -10,3 +10,19 @@ Here is those 2 types:
 
 * [Replicated](xosan_replicated.md)
 * [Disperse](xosan_disperse.md)
+
+## Which mode to choose
+
+In the vast majority of cases, **replicated is better**, because:
+
+* it's almost ALWAYS faster
+* it's easier to manage
+* it's easier to grow
+
+The only downside is that replicated will "waste" more space.
+
+Using disperse makes sense only if:
+
+* you have big HDDs and you want use the space at most
+* you don't use database (or don't care about performances)
+* you store big files and you don't need ultra fast data access
