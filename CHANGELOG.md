@@ -1,5 +1,30 @@
 # ChangeLog
 
+## **5.15.0** (2017-12-29)
+
+### Enhancements
+
+ * VDI resize online method removed in 7.3 [#2542](https://github.com/vatesfr/xo-web/issues/2542)
+ * Smart replace VDI.pool_migrate removed from XenServer 7.3 Free [#2541](https://github.com/vatesfr/xo-web/issues/2541)
+ * New memory constraints in XenServer 7.3 [#2540](https://github.com/vatesfr/xo-web/issues/2540)
+ * Link to Settings/Logs for admins in error notifications [#2516](https://github.com/vatesfr/xo-web/issues/2516)
+ * [Self Service] Do not use placehodlers to describe inputs  [#2509](https://github.com/vatesfr/xo-web/issues/2509)
+ * Obfuscate password in log in LDAP plugin test [#2506](https://github.com/vatesfr/xo-web/issues/2506)
+ * Log rotation [#2492](https://github.com/vatesfr/xo-web/issues/2492)
+ * Continuous Replication TAG [#2473](https://github.com/vatesfr/xo-web/issues/2473)
+ * Graphs in VM list view [#2469](https://github.com/vatesfr/xo-web/issues/2469)
+ * [Delta Backups] Do not include merge duration in transfer speed stat [#2426](https://github.com/vatesfr/xo-web/issues/2426)
+ * Warning for disperse mode [#2537](https://github.com/vatesfr/xo-web/issues/2537)
+
+### Bugs
+
+ * VM console doesn't work when using IPv6 in URL [#2530](https://github.com/vatesfr/xo-web/issues/2530)
+ * Retention issue with failed basic backup [#2524](https://github.com/vatesfr/xo-web/issues/2524)
+ * [VM/Advanced] Check that the autopower on setting is working [#2489](https://github.com/vatesfr/xo-web/issues/2489)
+ * Cloud config drive create fail on XenServer < 7 [#2478](https://github.com/vatesfr/xo-web/issues/2478)
+ * VM create fails due to missing vGPU id [#2466](https://github.com/vatesfr/xo-web/issues/2466)
+
+
 ## **5.14.0** (2017-10-31)
 
 ### Enhancements
@@ -17,6 +42,8 @@
  * [SortedTable] Keyboard support [#2330](https://github.com/vatesfr/xo-web/issues/2330)
  * token.create should accept an expiration [#1769](https://github.com/vatesfr/xo-web/issues/1769)
  * On updater error, display link to documentation [#1610](https://github.com/vatesfr/xo-web/issues/1610)
+* Add basic vGPU support [#2413](https://github.com/vatesfr/xo-web/issues/2413)
+ * Storage View - Disk Tab - real disk usage [#2475](https://github.com/vatesfr/xo-web/issues/2475)
 
 ### Bugs
 
