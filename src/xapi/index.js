@@ -39,6 +39,7 @@ import {
   map,
   mapToArray,
   pAll,
+  parseSize,
   pDelay,
   pFinally,
   promisifyAll,
@@ -971,7 +972,7 @@ export default class Xapi extends XapiBase {
     const newVdis = await map(delta.vdis, async vdi => {
       const remoteBaseVdiUuid = vdi.other_config[TAG_BASE_DELTA]
       if (!remoteBaseVdiUuid) {
-        const newVdi = await this.createVdi(vdi.virtual_size, {
+        const newVdi = await this.createVdi({
           ...vdi,
           other_config: {
             ...vdi.other_config,
@@ -1263,9 +1264,10 @@ export default class Xapi extends XapiBase {
     const vifDevices = await this.call('VM.get_allowed_VIF_devices', vm.$ref)
     await Promise.all(
       map(disks, async disk => {
-        const vdi = vdis[disk.path] = await this.createVdi(disk.capacity, {
+        const vdi = vdis[disk.path] = await this.createVdi({
           name_description: disk.descriptionLabel,
           name_label: disk.nameLabel,
+          size: disk.capacity,
           sr: sr.$ref,
         })
         $defer.onFailure(() => this._deleteVdi(vdi))
@@ -1608,47 +1610,38 @@ export default class Xapi extends XapiBase {
     return this.call('VDI.clone', vdi.$ref)
   }
 
-  async _createVdi (size, {
-    name_description = undefined,
-    name_label = '',
+  async createVdi ({
+    name_description,
+    name_label,
     other_config = {},
     read_only = false,
     sharable = false,
-
-    // FIXME: should be named srId or an object.
-    sr = this.pool.default_SR,
-
-    tags = [],
+    sm_config,
+    SR,
+    tags,
     type = 'user',
-    xenstore_data = undefined,
-  } = {}) {
-    if (sr === NULL_REF) {
-      throw new Error('SR required to create VDI')
-    }
+    virtual_size,
+    xenstore_data,
 
+    size,
+    sr = SR !== undefined && SR !== NULL_REF ? SR : this.pool.default_SR,
+  } = {}) {
     sr = this.getObject(sr)
     debug(`Creating VDI ${name_label} on ${sr.name_label}`)
 
-    sharable = Boolean(sharable)
-    read_only = Boolean(read_only)
-
-    const data = {
+    return this._getOrWaitObject(await this.call('VDI.create', {
       name_description,
       name_label,
       other_config,
       read_only,
       sharable,
+      sm_config,
+      SR: sr.$ref,
       tags,
       type,
-      virtual_size: String(size),
-      SR: sr.$ref,
-    }
-
-    if (xenstore_data) {
-      data.xenstore_data = xenstore_data
-    }
-
-    return /* await */ this.call('VDI.create', data)
+      virtual_size: size !== undefined ? parseSize(size) : virtual_size,
+      xenstore_data,
+    }))
   }
 
   async moveVdi (vdiId, srId) {
@@ -1777,12 +1770,6 @@ export default class Xapi extends XapiBase {
         await this.disconnectVbd(vbd.$ref)::ignoreErrors()
         return this.call('VBD.destroy', vbd.$ref)
       })
-    )
-  }
-
-  async createVdi (size, opts) {
-    return /* await */ this._getOrWaitObject(
-      await this._createVdi(size, opts)
     )
   }
 
@@ -2106,7 +2093,11 @@ export default class Xapi extends XapiBase {
 
     // First, create a small VDI (10MB) which will become the ConfigDrive
     const buffer = fatfsBufferInit()
-    const vdi = await this.createVdi(buffer.length, { name_label: 'XO CloudConfigDrive', sr: sr.$ref })
+    const vdi = await this.createVdi({
+      name_label: 'XO CloudConfigDrive',
+      size: buffer.length,
+      sr: sr.$ref,
+    })
     $defer.onFailure(() => this._deleteVdi(vdi))
 
     // Then, generate a FAT fs
@@ -2131,10 +2122,11 @@ export default class Xapi extends XapiBase {
 
   @deferrable
   async createTemporaryVdiOnSr ($defer, stream, sr, name_label, name_description) {
-    const vdi = await this.createVdi(stream.length, {
-      sr: sr.$ref,
-      name_label,
+    const vdi = await this.createVdi({
       name_description,
+      name_label,
+      size: stream.length,
+      sr: sr.$ref,
     })
     $defer.onFailure(() => this._deleteVdi(vdi))
 

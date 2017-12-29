@@ -153,15 +153,12 @@ export default {
     // TODO: set vm.suspend_SR
     if (!isEmpty(vdis)) {
       const devices = await this.call('VM.get_allowed_VBD_devices', vm.$ref)
-      await Promise.all(mapToArray(vdis, (vdiDescription, i) => this._createVdi(
-        vdiDescription.size, // FIXME: Should not be done in Xapi.
-        {
-          name_label: vdiDescription.name_label,
-          name_description: vdiDescription.name_description,
-          sr: vdiDescription.sr || vdiDescription.SR,
-        }
-      )
-        .then(ref => this._getOrWaitObject(ref))
+      await Promise.all(mapToArray(vdis, (vdiDescription, i) => this.createVdi({
+        name_description: vdiDescription.name_description,
+        name_label: vdiDescription.name_label,
+        size: vdiDescription.size,
+        sr: vdiDescription.sr || vdiDescription.SR,
+      })
         .then(vdi => this.createVbd({
           // Either the CD or the 1st disk is bootable (only useful for PV VMs)
           bootable: !(hasBootableDisk || i),

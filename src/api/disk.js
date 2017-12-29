@@ -15,8 +15,9 @@ export async function create ({ name, size, sr, vm, bootable, position, mode }) 
   }
 
   const xapi = this.getXapi(sr)
-  const vdi = await xapi.createVdi(parseSize(size), {
+  const vdi = await xapi.createVdi({
     name_label: name,
+    size,
     sr: sr._xapiId,
   })
 
