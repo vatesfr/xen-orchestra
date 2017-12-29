@@ -445,11 +445,11 @@ export default class TabXosan extends Component {
     () => this.props.plugins,
     plugins => {
       if (plugins === undefined) {
-        return true
+        return _('xosanInstallXoaPlugin')
       }
 
       const xoaPlugin = find(plugins, { id: 'xoa' })
-      if (!xoaPlugin) {
+      if (xoaPlugin === undefined) {
         return _('xosanInstallXoaPlugin')
       }
 

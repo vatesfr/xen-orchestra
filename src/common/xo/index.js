@@ -2043,6 +2043,7 @@ export const createXosanSR = ({
     ipRange,
   })
 
+  // Force refresh in parallel to get the creation progress sooner
   subscribeCheckSrCurrentState.forceRefresh()
 
   return promise

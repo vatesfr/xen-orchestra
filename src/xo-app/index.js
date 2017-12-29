@@ -89,7 +89,7 @@ const BODY_STYLE = {
   'vms/new': NewVm,
   'vms/:id': Vm,
   xoa: Xoa,
-  'xosan': Xosan,
+  xosan: Xosan,
 })
 @connectStore(state => {
   return {

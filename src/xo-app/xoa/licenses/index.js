@@ -15,10 +15,12 @@ import { get } from 'xo-defined'
 import Xosan from './xosan'
 
 const openNewLicense = () => {
+  // FIXME: use link with target attribute
   window.open('https://xen-orchestra.com/#!/member/purchaser')
 }
 
 const openSupport = () => {
+  // FIXME: use link with target attribute
   window.open('https://xen-orchestra.com/#!/xosan-home/')
 }
 
@@ -36,12 +38,12 @@ const PRODUCTS_COLUMNS = [
   {
     name: _('licenseBoundObject'),
     itemRenderer: ({ renderBoundObject }) =>
-      renderBoundObject && renderBoundObject(),
+      renderBoundObject !== undefined && renderBoundObject(),
   },
   {
     name: _('licensePurchaser'),
     itemRenderer: ({ buyer }, { registeredEmail }) =>
-      buyer ? (
+      buyer !== undefined ? (
         buyer.email === registeredEmail ? (
           _('licensePurchaserYou')
         ) : (

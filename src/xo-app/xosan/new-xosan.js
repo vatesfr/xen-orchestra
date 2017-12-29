@@ -280,7 +280,7 @@ export default class NewXosan extends Component {
       pool !== undefined &&
       hostsNeedRestartByPool !== undefined &&
       hostsNeedRestartByPool[pool.id]
-    const architecture = suggestions && suggestions[suggestion]
+    const architecture = suggestions !== undefined && suggestions[suggestion]
 
     return (
       <Container>

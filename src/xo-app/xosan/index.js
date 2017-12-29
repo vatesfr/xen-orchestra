@@ -330,18 +330,6 @@ export default class Xosan extends Component {
         this.setState({ licenseError: error })
       })
 
-  _updateLicenses = () =>
-    Promise.all([getLicenses('xosan'), getLicenses('xosan.trial')])
-      .then(([xosanLicenses, xosanTrialLicenses]) => {
-        this.setState({
-          xosanLicenses,
-          xosanTrialLicenses,
-        })
-      })
-      .catch(error => {
-        this.setState({ licenseError: error })
-      })
-
   _subscribeVolumeInfo = srs => {
     const licensesByXosan = this._getLicensesByXosan()
     const now = Date.now()
