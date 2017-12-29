@@ -590,7 +590,7 @@ async function createVDIOnLVMWithoutSizeLimit (xapi, lvmSr, diskSize) {
 
 async function createNewDisk (xapi, sr, vm, diskSize) {
   const newDisk = await createVDIOnLVMWithoutSizeLimit(xapi, sr, diskSize)
-  await xapi.attachVdiToVm(newDisk, vm)
+  await xapi.createVbd({ vdi: newDisk, vm })
   let vbd = await xapi._waitObjectState(newDisk.$id, disk => Boolean(disk.$VBDs.length)).$VBDs[0]
   vbd = await xapi._waitObjectState(vbd.$id, vbd => Boolean(vbd.device.length))
   return '/dev/' + vbd.device

@@ -162,10 +162,13 @@ export default {
         }
       )
         .then(ref => this._getOrWaitObject(ref))
-        .then(vdi => this._createVbd(vm, vdi, {
+        .then(vdi => this.createVbd({
           // Either the CD or the 1st disk is bootable (only useful for PV VMs)
           bootable: !(hasBootableDisk || i),
+
           userdevice: devices[i],
+          vdi,
+          vm,
         }))
       ))
     }

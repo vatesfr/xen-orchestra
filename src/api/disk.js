@@ -21,10 +21,12 @@ export async function create ({ name, size, sr, vm, bootable, position, mode }) 
   })
 
   if (attach) {
-    await xapi.attachVdiToVm(vdi.$id, vm._xapiId, {
+    await xapi.createVbd({
       bootable,
-      position,
-      readOnly: mode === 'RO',
+      mode,
+      userdevice: position,
+      vdi: vdi.$id,
+      vm: vm._xapiId,
     })
   }
 

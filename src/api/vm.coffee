@@ -1146,10 +1146,12 @@ exports.import = import_
 # FIXME: if position is used, all other disks after this position
 # should be shifted.
 attachDisk = $coroutine ({vm, vdi, position, mode, bootable}) ->
-  yield @getXapi(vm).attachVdiToVm(vdi._xapiId, vm._xapiId, {
+  yield @getXapi(vm).createVbd({
     bootable,
-    position,
-    readOnly: mode is 'RO'
+    mode,
+    userdevice: position,
+    vdi: vdi._xapiId,
+    vm: vm._xapiId,
   })
   return
 

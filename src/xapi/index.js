@@ -1015,7 +1015,11 @@ export default class Xapi extends XapiBase {
       // Create VBDs.
       asyncMap(
         delta.vbds,
-        vbd => this._createVbd(vm, newVdis[vbd.VDI], vbd)
+        vbd => this.createVbd({
+          ...vbd,
+          vdi: newVdis[vbd.VDI],
+          vm,
+        })
       ),
 
       // Import VDI contents.
@@ -1266,7 +1270,11 @@ export default class Xapi extends XapiBase {
         })
         $defer.onFailure(() => this._deleteVdi(vdi))
 
-        return this._createVbd(vm, vdi, { position: disk.position })
+        return this.createVbd({
+          userdevice: disk.position,
+          vdi,
+          vm,
+        })
       }).concat(map(networks, (networkId, i) => (
         this._createVif(vm, this.getObject(networkId), {
           device: vifDevices[i],
@@ -1530,54 +1538,62 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
-  async _createVbd (vm, vdi, {
+  async createVbd ({
     bootable = false,
-    empty = !vdi,
+    other_config = {},
+    qos_algorithm_params = {},
+    qos_algorithm_type = '',
     type = 'Disk',
     unpluggable = false,
-    userdevice = undefined,
+    userdevice,
+    VDI,
+    VM,
 
+    vdi = VDI,
+
+    empty = vdi === undefined,
     mode = (type === 'Disk') ? 'RW' : 'RO',
-    position = userdevice,
-
-    readOnly = (mode === 'RO'),
+    vm = VM,
   } = {}) {
+    vdi = this.getObject(vdi)
+    vm = this.getObject(vm)
+
     debug(`Creating VBD for VDI ${vdi.name_label} on VM ${vm.name_label}`)
 
-    if (position == null) {
+    if (userdevice == null) {
       const allowed = await this.call('VM.get_allowed_VBD_devices', vm.$ref)
       const {length} = allowed
-      if (!length) {
-        throw new Error('no allowed VBD positions (devices)')
+      if (length === 0) {
+        throw new Error('no allowed VBD devices')
       }
 
       if (type === 'CD') {
         // Choose position 3 if allowed.
-        position = includes(allowed, '3')
+        userdevice = includes(allowed, '3')
           ? '3'
           : allowed[0]
       } else {
-        position = allowed[0]
+        userdevice = allowed[0]
 
-        // Avoid position 3 if possible.
-        if (position === '3' && length > 1) {
-          position = allowed[1]
+        // Avoid userdevice 3 if possible.
+        if (userdevice === '3' && length > 1) {
+          userdevice = allowed[1]
         }
       }
     }
 
     // By default a VBD is unpluggable.
     const vbdRef = await this.call('VBD.create', {
-      bootable: Boolean(bootable),
-      empty: Boolean(empty),
-      mode: readOnly ? 'RO' : 'RW',
-      other_config: {},
-      qos_algorithm_params: {},
-      qos_algorithm_type: '',
+      bootable,
+      empty,
+      mode,
+      other_config,
+      qos_algorithm_params,
+      qos_algorithm_type,
       type,
-      unpluggable: Boolean(unpluggable),
-      userdevice: String(position),
-      VDI: vdi.$ref,
+      unpluggable,
+      userdevice,
+      VDI: vdi && vdi.$ref,
       VM: vm.$ref,
     })
 
@@ -1649,24 +1665,21 @@ export default class Xapi extends XapiBase {
     try {
       await this.call('VDI.pool_migrate', vdi.$ref, sr.$ref, {})
     } catch (error) {
-      if (error.code !== 'VDI_NEEDS_VM_FOR_MIGRATE') {
+      const { code } = error
+      if (code !== 'LICENCE_RESTRICTION' && code !== 'VDI_NEEDS_VM_FOR_MIGRATE') {
         throw error
       }
-      const newVdiref = await this.call('VDI.copy', vdi.$ref, sr.$ref)
-      const newVdi = await this._getOrWaitObject(newVdiref)
-      await Promise.all(mapToArray(vdi.$VBDs, async vbd => {
-        // Remove the old VBD
-        await this.call('VBD.destroy', vbd.$ref)
-        // Attach the new VDI to the VM with old VBD settings
-        await this._createVbd(vbd.$VM, newVdi, {
-          bootable: vbd.bootable,
-          position: vbd.userdevice,
-          type: vbd.type,
-          readOnly: vbd.mode === 'RO',
-        })
-        // Remove the old VDI
-        await this._deleteVdi(vdi)
-      }))
+      const newVdi = await this.barrier(
+        await this.call('VDI.copy', vdi.$ref, sr.$ref)
+      )
+      await asyncMap(vdi.$VBDs, vbd => Promise.all([
+        this.call('VBD.destroy', vbd.$ref),
+        this.createVbd({
+          ...vbd,
+          vdi: newVdi,
+        }),
+      ]))
+      await this._deleteVdi(vdi)
     }
   }
 
@@ -1728,19 +1741,13 @@ export default class Xapi extends XapiBase {
         await this._setObjectProperties(cdDrive, {bootable})
       }
     } else {
-      await this._createVbd(vm, cd, {
+      await this.createVbd({
         bootable,
         type: 'CD',
+        vdi: cd,
+        vm,
       })
     }
-  }
-
-  async attachVdiToVm (vdiId, vmId, opts = undefined) {
-    await this._createVbd(
-      this.getObject(vmId),
-      this.getObject(vdiId),
-      opts
-    )
   }
 
   async connectVbd (vbdId) {
@@ -2128,7 +2135,7 @@ export default class Xapi extends XapiBase {
     // because it works
     await this._importVdiContent(vdi, buffer, VDI_FORMAT_RAW).catch(console.warn)
 
-    await this._createVbd(vm, vdi)
+    await this.createVbd({ vdi, vm })
   }
 
   @deferrable
