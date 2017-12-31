@@ -2,19 +2,69 @@
 
 set -eu
 
-if [ $# -eq 0 ]
-then
-  echo "$0 <repository url>..."
-  exit
-fi
+usage () {
+  echo "$0 [--commit | --rewrite] <repository url>..."
+}
 
-# Import repositories into this mono-repo.
-#
-# For each repository:
-#
-# 1. import all branches and tags as <repository>/*
-# 2. rewrite history, moving all files into packages/<repository>
-# 3. merge and delete <repository>/master
+move=commit
+while [ $# -ne 0 ]
+do
+  case "$1" in
+  -h|--help)
+    usage
+    exit
+    ;;
+  --commit)
+    move=commit
+    ;;
+  --rewrite)
+    move=rewrite
+    ;;
+  -*)
+    echo "Invalid argument: $1" >&2
+    usage >&2
+    exit 1
+    ;;
+  *)
+    break
+    ;;
+  esac
+  shift
+done
+
+# Create a commit in branch <package>/master moving all files in <path>.
+move_commit () {
+  local head index new_index
+  head=$(git symbolic-ref HEAD)
+
+  git symbolic-ref HEAD "refs/heads/$1/master"
+
+  index=$(git rev-parse --git-path index)
+  new_index=$index.new
+  git read-tree HEAD
+  git ls-files -s | \
+    sed "s%\t\"*%&$2/%" | \
+    GIT_INDEX_FILE=$new_index git update-index --index-info
+  mv "$index.new" "$index"
+  git commit -m "feat($1): move all files to $2"
+
+  git symbolic-ref HEAD "$head"
+  git read-tree HEAD
+}
+
+# Rewrite all branches <package>/* moving all files in <path>.
+move_rewrite () {
+  git filter-branch -f --index-filter '
+    git ls-files -s | \
+      sed "s%\t\"*%&'"$2"'/%" | \
+      GIT_INDEX_FILE=$GIT_INDEX_FILE.new \
+      git update-index --index-info && \
+      if [ -f "$GIT_INDEX_FILE.new" ]; then \
+        mv "$GIT_INDEX_FILE.new" "$GIT_INDEX_FILE"; \
+      fi
+  ' --tag-name-filter 'cat' -- --branches="$1/*"
+}
+
 for url
 do
   pkg=$(basename "$url" .git)
@@ -23,22 +73,16 @@ do
     continue
   fi
 
+  # import all branches and tags as <repository>/*
   git remote add "$pkg" "$url"
   git fetch --no-tags "$pkg" \
     "refs/heads/*:refs/heads/$pkg/*" \
     "refs/tags/*:refs/tags/$pkg/*"
   git remote rm "$pkg"
 
-  git filter-branch -f --index-filter '
-    git ls-files -s | \
-      sed "s%\t\"*%&packages/'"$pkg"'/%" | \
-      GIT_INDEX_FILE=$GIT_INDEX_FILE.new \
-      git update-index --index-info && \
-      if [ -f "$GIT_INDEX_FILE.new" ]; then \
-        mv "$GIT_INDEX_FILE.new" "$GIT_INDEX_FILE"; \
-      fi
-  ' --tag-name-filter 'cat' -- --branches="$pkg/*"
+  move_"$move" "$pkg" "packages/$pkg"
 
+  # merge and delete master branch
   git merge --allow-unrelated-histories "$pkg/master"
   git branch -d "$pkg/master"
 done
