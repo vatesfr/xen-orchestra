@@ -34,18 +34,13 @@ done
 
 # Create a commit in branch <package>/master moving all files in <path>.
 move_commit () {
-  local head index new_index
+  local head
   head=$(git symbolic-ref HEAD)
 
   git symbolic-ref HEAD "refs/heads/$1/master"
 
-  index=$(git rev-parse --git-path index)
-  new_index=$index.new
-  git read-tree HEAD
-  git ls-files -s | \
-    sed "s%\t\"*%&$2/%" | \
-    GIT_INDEX_FILE=$new_index git update-index --index-info
-  mv "$index.new" "$index"
+  rm -f "$(git rev-parse --git-path index)"
+  git read-tree --prefix="$2/" HEAD
   git commit -m "feat($1): move all files to $2"
 
   git symbolic-ref HEAD "$head"
