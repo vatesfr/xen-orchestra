@@ -6,7 +6,6 @@ import GenericInput from 'json-schema-input'
 import getEventValue from 'get-event-value'
 import Icon from 'icon'
 import Link from 'link'
-import match from 'xo-common/match'
 import moment from 'moment-timezone'
 import propTypes from 'prop-types-decorator'
 import React from 'react'
@@ -19,6 +18,7 @@ import Wizard, { Section } from 'wizard'
 import { confirm } from 'modal'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Row, Col } from 'grid'
+import { createPredicate } from 'value-matcher'
 import { createSelector } from 'reselect'
 import { generateUiSchema } from 'xo-json-schema-input'
 import { SelectSubject } from 'select-objects'
@@ -301,7 +301,7 @@ class SmartBackupPreview extends Component {
     () => this.props.pattern,
     () => this.props.vms,
     (pattern, vms) =>
-      filter(vms, vm => match(pickBy(pattern, val => val != null), vm))
+      filter(vms, createPredicate(pickBy(pattern, val => val != null)))
   )
 
   render () {
