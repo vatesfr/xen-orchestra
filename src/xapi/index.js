@@ -1456,7 +1456,9 @@ export default class Xapi extends XapiBase {
       if (e.code === 'OPERATION_BLOCKED') {
         throw forbiddenOperation('Start', e.params[1])
       }
-
+      if (e.code === 'VM_BAD_POWER_STATE') {
+        return this.resumeVm(vmId)
+      }
       throw e
     }
   }
