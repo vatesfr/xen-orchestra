@@ -1,14 +1,11 @@
 import * as CM from 'complex-matcher'
 import _ from 'intl'
 import classNames from 'classnames'
-import DropdownMenu from 'react-bootstrap-4/lib/DropdownMenu' // https://phabricator.babeljs.io/T6662 so Dropdown.Menu won't work like https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
-import DropdownToggle from 'react-bootstrap-4/lib/DropdownToggle' // https://phabricator.babeljs.io/T6662 so Dropdown.Toggle won't work https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
 import React from 'react'
 import Shortcuts from 'shortcuts'
 import { Portal } from 'react-overlays'
 import { routerShape } from 'react-router/lib/PropTypes'
 import { Set } from 'immutable'
-import { Dropdown, MenuItem } from 'react-bootstrap-4/lib'
 import {
   ceil,
   filter,
@@ -18,6 +15,12 @@ import {
   isFunction,
   map,
 } from 'lodash'
+import {
+  DropdownItem,
+  DropdownMenu,
+  DropdownToggle,
+  UncontrolledButtonDropdown,
+} from 'reactstrap'
 
 import ActionRowButton from '../action-row-button'
 import Button from '../button'
@@ -78,18 +81,18 @@ class TableFilter extends Component {
           </span>
         ) : (
           <span className='input-group-btn'>
-            <Dropdown id='filter'>
-              <DropdownToggle bsStyle='info'>
+            <UncontrolledButtonDropdown>
+              <DropdownToggle color='info'>
                 <Icon icon='search' />
               </DropdownToggle>
               <DropdownMenu>
                 {map(props.filters, (filter, label) => (
-                  <MenuItem key={label} onClick={() => this._setFilter(filter)}>
+                  <DropdownItem key={label} onClick={() => this._setFilter(filter)}>
                     {_(label)}
-                  </MenuItem>
+                  </DropdownItem>
                 ))}
               </DropdownMenu>
-            </Dropdown>
+            </UncontrolledButtonDropdown>
           </span>
         )}
         <DebouncedInput

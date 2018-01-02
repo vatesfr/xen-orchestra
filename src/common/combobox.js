@@ -1,7 +1,12 @@
 import React from 'react'
 import uncontrollableInput from 'uncontrollable-input'
 import { isEmpty, map } from 'lodash'
-import { DropdownButton, MenuItem } from 'react-bootstrap-4/lib'
+import {
+  DropdownItem,
+  DropdownMenu,
+  DropdownToggle,
+  UncontrolledButtonDropdown,
+} from 'reactstrap'
 
 import Component from './base-component'
 import propTypes from './prop-types-decorator'
@@ -41,18 +46,19 @@ export default class Combobox extends Component {
     return (
       <div className='input-group'>
         <div className='input-group-btn'>
-          <DropdownButton
-            bsStyle='secondary'
-            disabled={props.disabled}
-            id='selectInput'
-            title=''
-          >
-            {map(options, option => (
-              <MenuItem key={option} onClick={() => this._setText(option)}>
-                {option}
-              </MenuItem>
-            ))}
-          </DropdownButton>
+          <UncontrolledButtonDropdown>
+            <DropdownToggle
+              caret
+              disabled={props.disabled}
+            />
+            <DropdownMenu>
+              {map(options, option => (
+                <DropdownItem key={option} onClick={() => this._setText(option)}>
+                  {option}
+                </DropdownItem>
+              ))}
+            </DropdownMenu>
+          </UncontrolledButtonDropdown>
         </div>
         {Input}
       </div>

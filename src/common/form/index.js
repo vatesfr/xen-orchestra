@@ -7,7 +7,12 @@ import React from 'react'
 import round from 'lodash/round'
 import SingleLineRow from 'single-line-row'
 import { Container, Col } from 'grid'
-import { DropdownButton, MenuItem } from 'react-bootstrap-4/lib'
+import {
+  DropdownItem,
+  DropdownMenu,
+  DropdownToggle,
+  UncontrolledButtonDropdown,
+} from 'reactstrap'
 
 import Button from '../button'
 import Component from '../base-component'
@@ -285,19 +290,18 @@ export class SizeInput extends BaseComponent {
           value={this.state.input}
         />
         <span className='input-group-btn'>
-          <DropdownButton
-            bsStyle='secondary'
-            id='size'
-            pullRight
-            disabled={readOnly}
-            title={this.state.unit}
-          >
-            {map(UNITS, unit => (
-              <MenuItem key={unit} onClick={() => this._updateUnit(unit)}>
-                {unit}
-              </MenuItem>
-            ))}
-          </DropdownButton>
+          <UncontrolledButtonDropdown>
+            <DropdownToggle disabled={readOnly}>
+              {this.state.unit}
+            </DropdownToggle>
+            <DropdownMenu>
+              {map(UNITS, unit => (
+                <DropdownItem key={unit} onClick={() => this._updateUnit(unit)}>
+                  {unit}
+                </DropdownItem>
+              ))}
+            </DropdownMenu>
+          </UncontrolledButtonDropdown>
         </span>
       </span>
     )

@@ -132,6 +132,7 @@
     "react-sparklines": "1.6.0",
     "react-test-renderer": "^16.2.0",
     "react-virtualized": "^8.0.8",
+    "reactstrap": "^5.0.0-alpha.4",
     "readable-stream": "^2.3.3",
     "redux": "^3.7.2",
     "redux-thunk": "^2.0.1",

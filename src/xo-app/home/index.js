@@ -77,8 +77,12 @@ import {
   isAdmin,
 } from 'selectors'
 import {
-  DropdownButton,
-  MenuItem,
+  DropdownItem,
+  DropdownMenu,
+  DropdownToggle,
+  UncontrolledButtonDropdown,
+} from 'reactstrap'
+import {
   OverlayTrigger,
   Popover,
 } from 'react-bootstrap-4/lib'
@@ -597,9 +601,9 @@ export default class Home extends Component {
   // High level filters --------------------------------------------------------
 
   _typesDropdownItems = map(TYPES, (label, type) => (
-    <MenuItem key={type} onClick={() => this._setType(type)}>
+    <DropdownItem key={type} onClick={() => this._setType(type)}>
       {label}
-    </MenuItem>
+    </DropdownItem>
   ))
   _updateSelectedPools = pools => {
     const filter = this._getParsedFilter()
@@ -750,46 +754,48 @@ export default class Home extends Component {
       <Container>
         <Row className={styles.itemRowHeader}>
           <Col mediumSize={3}>
-            <DropdownButton
-              id='typeMenu'
-              bsStyle='info'
-              title={TYPES[this._getType()]}
-            >
-              {this._typesDropdownItems}
-            </DropdownButton>
+            <UncontrolledButtonDropdown>
+              <DropdownToggle color='info'>
+                {TYPES[this._getType()]}
+              </DropdownToggle>
+              <DropdownMenu>
+                {this._typesDropdownItems}
+              </DropdownMenu>
+            </UncontrolledButtonDropdown>
           </Col>
           <Col mediumSize={6}>
             <div className='input-group'>
               <span className='input-group-btn'>
-                <DropdownButton
-                  id='filter'
-                  bsStyle='info'
-                  title={_('homeFilters')}
-                >
-                  <MenuItem onClick={this._addCustomFilter}>
-                    {_('filterSaveAs')}
-                  </MenuItem>
-                  <MenuItem divider />
-                  {!isEmpty(customFilters) && [
-                    map(customFilters, (filter, name) => (
-                      <MenuItem
-                        key={`custom-${name}`}
+                <UncontrolledButtonDropdown>
+                  <DropdownToggle color='info'>
+                    {_('homeFilters')}
+                  </DropdownToggle>
+                  <DropdownMenu>
+                    <DropdownItem onClick={this._addCustomFilter}>
+                      {_('filterSaveAs')}
+                    </DropdownItem>
+                    <DropdownItem divider />
+                    {!isEmpty(customFilters) && [
+                      map(customFilters, (filter, name) => (
+                        <DropdownItem
+                          key={`custom-${name}`}
+                          onClick={() => this._setFilter(filter)}
+                        >
+                          {name}
+                        </DropdownItem>
+                      )),
+                      <MenuItem key='divider' divider />,
+                    ]}
+                    {map(filters, (filter, label) => (
+                      <DropdownItem
+                        key={label}
                         onClick={() => this._setFilter(filter)}
                       >
-                        {name}
-                      </MenuItem>
-                    )),
-                    <MenuItem key='divider' divider />,
-                  ]}
-                  {map(filters, (filter, label) => (
-                    <MenuItem
-                      key={label}
-                      onClick={() => this._setFilter(filter)}
-                    >
-                      {_(label)}
-                    </MenuItem>
-                  ))}
-                </DropdownButton>
+                        {_(label)}
+                      </DropdownItem>
+                    ))}
+                  </DropdownMenu>
+                </UncontrolledButtonDropdown>
               </span>
               <input
                 className='form-control'
@@ -917,26 +923,27 @@ export default class Home extends Component {
                       </div>
                     )}
                     {otherActions && (
-                      <DropdownButton
-                        bsStyle='secondary'
-                        id='advanced'
-                        title={_('homeMore')}
-                      >
-                        {map(otherActions, (action, key) => (
-                          <MenuItem
-                            key={key}
-                            onClick={() => {
-                              action.handler(
-                                this._getSelectedItemsIds(),
-                                action.params
-                              )
-                            }}
-                          >
-                            <Icon icon={action.icon} fixedWidth />{' '}
-                            {_(action.labelId)}
-                          </MenuItem>
-                        ))}
-                      </DropdownButton>
+                      <UncontrolledButtonDropdown>
+                        <DropdownToggle>
+                          {_('homeMore')}
+                        </DropdownToggle>
+                        <DropdownMenu>
+                          {map(otherActions, (action, key) => (
+                            <DropdownItem
+                              key={key}
+                              onClick={() => {
+                                action.handler(
+                                  this._getSelectedItemsIds(),
+                                  action.params
+                                )
+                              }}
+                              >
+                                <Icon icon={action.icon} fixedWidth />{' '}
+                                {_(action.labelId)}
+                              </DropdownItem>
+                            ))}
+                        </DropdownMenu>
+                      </UncontrolledButtonDropdown>
                     )}
                   </div>
                 ) : (
@@ -1040,30 +1047,31 @@ export default class Home extends Component {
                           </Button>
                         </OverlayTrigger>
                       )}
-                    <DropdownButton
-                      bsStyle='link'
-                      id='sort'
-                      title={_('homeSortBy')}
-                    >
-                      {map(
-                        options.sortOptions,
-                        ({ labelId, sortBy: _sortBy, sortOrder }, key) => (
-                          <MenuItem
-                            key={key}
-                            onClick={() =>
-                              this.setState({ sortBy: _sortBy, sortOrder })
-                            }
-                          >
-                            {this._tick(_sortBy === sortBy)}
-                            {_sortBy === sortBy ? (
-                              <strong>{_(labelId)}</strong>
-                            ) : (
-                              _(labelId)
-                            )}
-                          </MenuItem>
-                        )
-                      )}
-                    </DropdownButton>
+                    <UncontrolledButtonDropdown>
+                      <DropdownToggle color='link'>
+                        {_('homeSortBy')}
+                      </DropdownToggle>
+                      <DropdownMenu>
+                        {map(
+                          options.sortOptions,
+                          ({ labelId, sortBy: _sortBy, sortOrder }, key) => (
+                            <DropdownItem
+                              key={key}
+                              onClick={() =>
+                                this.setState({ sortBy: _sortBy, sortOrder })
+                              }
+                              >
+                                {this._tick(_sortBy === sortBy)}
+                                {_sortBy === sortBy ? (
+                                  <strong>{_(labelId)}</strong>
+                                ) : (
+                                  _(labelId)
+                                )}
+                              </DropdownItem>
+                            )
+                          )}
+                      </DropdownMenu>
+                    </UncontrolledButtonDropdown>
                   </div>
                 )}
               </Col>
