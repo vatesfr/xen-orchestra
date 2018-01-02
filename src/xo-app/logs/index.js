@@ -415,9 +415,10 @@ export default class LogList extends Component {
         <CardBlock>
           <NoObjects
             collection={logs}
+            columns={LOG_COLUMNS}
             component={SortedTable}
-            filters={this.filters}
             emptyMessage={_('noLogs')}
+            filters={this.filters}
           />
         </CardBlock>
       </Card>

@@ -834,8 +834,11 @@ export default class Self extends Component {
               </ActionButton>
             </div>
             {showNewResourceSetForm && [
-              <Edit onSave={this.toggleState('showNewResourceSetForm')} />,
-              <hr />,
+              <Edit
+                key={0}
+                onSave={this.toggleState('showNewResourceSetForm')}
+              />,
+              <hr key={1} />,
             ]}
             {resourceSets
               ? isEmpty(resourceSets)

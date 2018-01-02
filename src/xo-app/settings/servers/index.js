@@ -137,7 +137,7 @@ const COLUMNS = [
   {
     itemRenderer: server => (
       <Toggle
-        value={server.allowUnauthorized}
+        value={Boolean(server.allowUnauthorized)}
         onChange={allowUnauthorized =>
           editServer(server, { allowUnauthorized })
         }
