@@ -1166,6 +1166,9 @@ const messages = {
   restartVmModalMessage: 'Are you sure you want to restart {name}?',
   stopVmModalTitle: 'Stop VM',
   stopVmModalMessage: 'Are you sure you want to stop {name}?',
+  suspendVmsModalTitle: 'Suspend VM{vms, plural, one {} other {s}}',
+  suspendVmsModalMessage:
+    'Are you sure you want to suspend {vms, number} VM{vms, plural, one {} other {s}}?',
   restartVmsModalTitle: 'Restart VM{vms, plural, one {} other {s}}',
   restartVmsModalMessage:
     'Are you sure you want to restart {vms, number} VM{vms, plural, one {} other {s}}?',

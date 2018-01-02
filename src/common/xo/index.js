@@ -841,6 +841,16 @@ export const stopVms = (vms, force = false) =>
 
 export const suspendVm = vm => _call('vm.suspend', { id: resolveId(vm) })
 
+export const suspendVms = vms =>
+  confirm({
+    title: _('suspendVmsModalTitle', { nVms: vms.length }),
+    body: _('suspendVmsModalMessage', { nVms: vms.length }),
+  }).then(
+    () =>
+      Promise.all(map(vms, vm => _call('vm.suspend', { id: resolveId(vm) }))),
+    noop
+  )
+
 export const resumeVm = vm => _call('vm.resume', { id: resolveId(vm) })
 
 export const recoveryStartVm = vm =>
