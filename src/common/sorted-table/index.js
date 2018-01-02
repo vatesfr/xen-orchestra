@@ -8,7 +8,7 @@ import Shortcuts from 'shortcuts'
 import { Portal } from 'react-overlays'
 import { routerShape } from 'react-router/lib/PropTypes'
 import { Set } from 'immutable'
-import { Dropdown, MenuItem, Pagination } from 'react-bootstrap-4/lib'
+import { Dropdown, MenuItem } from 'react-bootstrap-4/lib'
 import {
   ceil,
   filter,
@@ -25,6 +25,7 @@ import ButtonGroup from '../button-group'
 import Component from '../base-component'
 import defined, { get } from '../xo-defined'
 import Icon from '../icon'
+import Pagination from '../pagination'
 import propTypes from '../prop-types-decorator'
 import SingleLineRow from '../single-line-row'
 import Tooltip from '../tooltip'
@@ -526,8 +527,7 @@ export default class SortedTable extends Component {
     this._saveUrlState(this.state.filter, page)
     this.setState({ page })
   }
-
-  _onPageSelection = (_, event) => this._setPage(event.eventKey)
+  _setPage = this._setPage.bind(this)
 
   _selectAllVisibleItems = event => {
     this.setState({
@@ -709,14 +709,10 @@ export default class SortedTable extends Component {
 
     const paginationInstance = displayPagination && (
       <Pagination
-        prev
-        next
-        ellipsis
-        boundaryLinks
+        pages={ceil(nItems / itemsPerPage)}
         maxButtons={7}
-        items={ceil(nItems / itemsPerPage)}
-        activePage={state.page}
-        onSelect={this._onPageSelection}
+        onChange={this._setPage}
+        value={state.page}
       />
     )
 
