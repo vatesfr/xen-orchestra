@@ -54,6 +54,7 @@ import {
   stopVms,
   subscribeResourceSets,
   subscribeServers,
+  suspendVms,
 } from 'xo'
 import { Container, Row, Col } from 'grid'
 import {
@@ -137,6 +138,12 @@ const OPTIONS = {
       { handler: copyVms, icon: 'vm-copy', tooltip: _('copyVmLabel') },
     ],
     otherActions: [
+      {
+        handler: suspendVms,
+        icon: 'vm-suspend',
+        labelId: 'suspendVmLabel',
+        params: true,
+      },
       {
         handler: restartVms,
         icon: 'vm-force-reboot',
