@@ -843,13 +843,11 @@ export const suspendVm = vm => _call('vm.suspend', { id: resolveId(vm) })
 
 export const suspendVms = vms =>
   confirm({
-    title: _('suspendVmsModalTitle', { vms: vms.length }),
-    body: _('suspendVmsModalMessage', { vms: vms.length }),
+    title: _('suspendVmsModalTitle', { nVms: vms.length }),
+    body: _('suspendVmsModalMessage', { nVms: vms.length }),
   }).then(
     () =>
-      Promise.all(
-        map(vms, vmId => _call('vm.suspend', { id: resolveId(vmId) }))
-      ),
+      Promise.all(map(vms, vm => _call('vm.suspend', { id: resolveId(vm) }))),
     noop
   )
 

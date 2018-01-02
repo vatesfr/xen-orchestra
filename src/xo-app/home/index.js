@@ -142,7 +142,6 @@ const OPTIONS = {
         handler: suspendVms,
         icon: 'vm-suspend',
         labelId: 'suspendVmLabel',
-        params: true,
       },
       {
         handler: restartVms,
