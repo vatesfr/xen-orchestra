@@ -1083,7 +1083,9 @@ export default class Home extends Component {
               map(visibleItems, (item, index) => (
                 <div
                   key={item.id}
-                  className={highlighted === index && styles.highlight}
+                  className={
+                    highlighted === index ? styles.highlight : undefined
+                  }
                 >
                   <Item
                     expandAll={expandAll}

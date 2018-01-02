@@ -173,7 +173,7 @@ export const CpuLineChart = injectIntl(
 export const PoolCpuLineChart = injectIntl(
   propTypes({
     addSumSeries: propTypes.bool,
-    data: propTypes.object.isRequired,
+    data: propTypes.array.isRequired,
     options: propTypes.object,
   })(({ addSumSeries, data, options = {}, intl }) => {
     const firstHostData = data[0]
@@ -261,7 +261,7 @@ export const MemoryLineChart = injectIntl(
 export const PoolMemoryLineChart = injectIntl(
   propTypes({
     addSumSeries: propTypes.bool,
-    data: propTypes.object.isRequired,
+    data: propTypes.array.isRequired,
     options: propTypes.object,
   })(({ addSumSeries, data, options = {}, intl }) => {
     const firstHostData = data[0]
@@ -384,7 +384,7 @@ export const VifLineChart = injectIntl(
 export const PifLineChart = injectIntl(
   propTypes({
     addSumSeries: propTypes.bool,
-    data: propTypes.object.isRequired,
+    data: propTypes.array.isRequired,
     options: propTypes.object,
   })(({ addSumSeries, data, options = {}, intl }) => {
     const stats = data.stats.pifs
@@ -419,7 +419,7 @@ const ios = ['rx', 'tx']
 export const PoolPifLineChart = injectIntl(
   propTypes({
     addSumSeries: propTypes.bool,
-    data: propTypes.object.isRequired,
+    data: propTypes.array.isRequired,
     options: propTypes.object,
   })(({ addSumSeries, data, options = {}, intl }) => {
     const firstHostData = data[0]
@@ -508,7 +508,7 @@ export const LoadLineChart = injectIntl(
 export const PoolLoadLineChart = injectIntl(
   propTypes({
     addSumSeries: propTypes.bool,
-    data: propTypes.object.isRequired,
+    data: propTypes.array.isRequired,
     options: propTypes.object,
   })(({ addSumSeries, data, options = {}, intl }) => {
     const firstHostData = data[0]

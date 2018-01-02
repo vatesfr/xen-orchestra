@@ -226,11 +226,13 @@ export default class Overview extends Component {
               collection={schedules}
               emptyMessage={_('noScheduledJobs')}
             >
-              <SortedTable
-                columns={JOB_COLUMNS}
-                collection={this._getScheduleCollection()}
-                userData={isScheduleUserMissing}
-              />
+              {() => (
+                <SortedTable
+                  columns={JOB_COLUMNS}
+                  collection={this._getScheduleCollection()}
+                  userData={isScheduleUserMissing}
+                />
+              )}
             </NoObjects>
           </CardBlock>
         </Card>

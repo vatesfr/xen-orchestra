@@ -17,14 +17,14 @@ import {
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType, createSelector } from 'selectors'
-import { map } from 'lodash'
+import { map, noop } from 'lodash'
 
 const ALLOW_INSTALL_SUPP_PACK = process.env.XOA_PLAN > 1
 
 const forceReboot = host => restartHost(host, true)
 
-const formatPack = ({ name, author, description, version }) => (
-  <tr>
+const formatPack = ({ name, author, description, version }, key) => (
+  <tr key={key}>
     <th>{_('supplementalPackTitle', { author, name })}</th>
     <td>{description}</td>
     <td>{version}</td>
@@ -116,7 +116,11 @@ export default connectStore(() => {
             <tr>
               <th>{_('hostPowerOnMode')}</th>
               <td>
-                <Toggle value={host.powerOnMode} disabled />
+                <Toggle
+                  disabled
+                  onChange={noop}
+                  value={Boolean(host.powerOnMode)}
+                />
               </td>
             </tr>
             <tr>
