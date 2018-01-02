@@ -131,9 +131,7 @@ const dest = lazyFn(function () {
   }
 
   const opts = {
-    sourcemaps: {
-      path: '.',
-    },
+    sourcemaps: '.',
   }
 
   return PRODUCTION
@@ -238,7 +236,7 @@ function browserify (path, opts) {
 
 gulp.task(function buildPages () {
   return pipe(
-    src('index.pug', { sourcemaps: true }),
+    src('index.pug'),
     require('gulp-pug')(),
     DEVELOPMENT &&
       require('gulp-embedlr')({
