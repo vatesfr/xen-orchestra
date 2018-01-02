@@ -710,7 +710,6 @@ export default class SortedTable extends Component {
     const paginationInstance = displayPagination && (
       <Pagination
         pages={ceil(nItems / itemsPerPage)}
-        maxButtons={7}
         onChange={this._setPage}
         value={state.page}
       />
