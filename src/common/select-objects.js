@@ -248,7 +248,7 @@ export class GenericSelect extends Component {
     const select = (
       <Select
         {...{
-          autofocus: autoFocus,
+          autoFocus,
           clearable,
           disabled,
           multi,
