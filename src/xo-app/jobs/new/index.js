@@ -3,6 +3,7 @@ import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import Button from 'button'
 import Component from 'base-component'
+import defined from 'xo-defined'
 import delay from 'lodash/delay'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
@@ -13,6 +14,7 @@ import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
 import React from 'react'
+import Select from 'form/select'
 import size from 'lodash/size'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
@@ -21,7 +23,6 @@ import { createSelector } from 'selectors'
 import { error } from 'notification'
 import { generateUiSchema } from 'xo-json-schema-input'
 import { injectIntl } from 'react-intl'
-import { SelectPlainObject } from 'form'
 import { SelectSubject } from 'select-objects'
 
 import {
@@ -119,17 +120,7 @@ export default class Jobs extends Component {
     })
   }
 
-  componentWillReceiveProps (props) {
-    const { currentUser } = props
-    const { owner } = this.state
-
-    if (currentUser && !owner) {
-      this.setState({ owner: currentUser.id })
-    }
-  }
-
   componentWillMount () {
-    this.setState({ owner: this.props.user && this.props.user.id })
     this.componentWillUnmount = subscribeJobs(jobs => {
       const j = {}
       for (const id in jobs) {
@@ -279,7 +270,7 @@ export default class Jobs extends Component {
           params.value
         ),
       },
-      userId: owner,
+      userId: owner !== undefined ? owner : this.props.currentUser.id,
       timeout: timeout ? timeout * 1e3 : undefined,
     }
 
@@ -372,8 +363,8 @@ export default class Jobs extends Component {
     type === 'user' && permission === 'admin'
 
   render () {
-    const { state } = this
-    const { action, actions, job, jobs, owner } = state
+    const { props, state } = this
+    const { action, actions, job, jobs } = state
     const { formatMessage } = this.props.intl
 
     const isJobUserMissing = this._getIsJobUserMissing()
@@ -387,7 +378,7 @@ export default class Jobs extends Component {
             placeholder={_('jobOwnerPlaceholder')}
             predicate={this._subjectPredicate}
             required
-            value={owner}
+            value={defined(state.owner, () => props.currentUser.id)}
           />
           <input
             type='text'
@@ -397,12 +388,13 @@ export default class Jobs extends Component {
             pattern='[^_]+'
             required
           />
-          <SelectPlainObject
-            ref='method'
-            options={actions}
-            optionKey='method'
+          <Select
+            labelKey='method'
             onChange={this._handleSelectMethod}
+            options={actions}
             placeholder={_('jobActionPlaceHolder')}
+            ref='method'
+            valueKey='method'
           />
           <input
             type='number'

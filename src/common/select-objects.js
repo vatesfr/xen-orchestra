@@ -1,5 +1,5 @@
 import React from 'react'
-import classNames from 'classnames'
+import PropTypes from 'prop-types'
 import { parse as parseRemote } from 'xo-remote-parser'
 import {
   assign,
@@ -23,14 +23,12 @@ import {
 
 import _ from './intl'
 import Button from './button'
-import Component from './base-component'
 import Icon from './icon'
-import propTypes from './prop-types-decorator'
 import renderXoItem from './render-xo-item'
+import Select from './form/select'
 import store from './store'
 import Tooltip from './tooltip'
 import uncontrollableInput from 'uncontrollable-input'
-import { Select } from './form'
 import {
   createCollectionWrapper,
   createFilter,
@@ -112,23 +110,18 @@ const options = props => ({
  *  ]
  * }
  */
-@propTypes({
-  autoFocus: propTypes.bool,
-  clearable: propTypes.bool,
-  disabled: propTypes.bool,
-  hasSelectAll: propTypes.bool,
-  multi: propTypes.bool,
-  onChange: propTypes.func,
-  placeholder: propTypes.any.isRequired,
-  required: propTypes.bool,
-  value: propTypes.any,
-  xoContainers: propTypes.array,
-  xoObjects: propTypes.oneOfType([
-    propTypes.array,
-    propTypes.objectOf(propTypes.array),
-  ]).isRequired,
-})
-export class GenericSelect extends Component {
+class GenericSelect extends React.Component {
+  static propTypes = {
+    hasSelectAll: PropTypes.bool,
+    multi: PropTypes.bool,
+    onChange: PropTypes.func.isRequired,
+    xoContainers: PropTypes.array,
+    xoObjects: PropTypes.oneOfType([
+      PropTypes.array,
+      PropTypes.objectOf(PropTypes.array),
+    ]).isRequired,
+  }
+
   _getObjectsById = createSelector(
     () => this.props.xoObjects,
     objects =>
@@ -142,8 +135,8 @@ export class GenericSelect extends Component {
       // createCollectionWrapper with a depth?
       const { name } = this.constructor
 
-      let options = []
-      if (!containers) {
+      let options
+      if (containers === undefined) {
         if (__DEV__ && !isArray(objects)) {
           throw new Error(
             `${name}: without xoContainers, xoObjects must be an array`
@@ -151,27 +144,29 @@ export class GenericSelect extends Component {
         }
 
         options = map(objects, getOption)
-      } else if (__DEV__ && isArray(objects)) {
-        throw new Error(
-          `${name}: with xoContainers, xoObjects must be an object`
-        )
+      } else {
+        if (__DEV__ && isArray(objects)) {
+          throw new Error(
+            `${name}: with xoContainers, xoObjects must be an object`
+          )
+        }
+
+        options = []
+        forEach(containers, container => {
+          options.push({
+            disabled: true,
+            xoItem: container,
+          })
+
+          forEach(objects[container.id], object => {
+            options.push(getOption(object, container))
+          })
+        })
       }
 
-      forEach(containers, container => {
-        options.push({
-          disabled: true,
-          xoItem: container,
-        })
-
-        forEach(objects[container.id], object => {
-          options.push(getOption(object, container))
-        })
-      })
-
-      const values = this._getSelectValue()
       const objectsById = this._getObjectsById()
       const addIfMissing = val => {
-        if (val && !objectsById[val]) {
+        if (val != null && !(val in objectsById)) {
           options.push({
             disabled: true,
             id: val,
@@ -185,6 +180,7 @@ export class GenericSelect extends Component {
         }
       }
 
+      const values = this._getSelectedIds()
       if (isArray(values)) {
         forEach(values, addIfMissing)
       } else {
@@ -195,27 +191,25 @@ export class GenericSelect extends Component {
     }
   )
 
-  _getSelectValue = createSelector(
+  _getSelectedIds = createSelector(
     () => this.props.value,
     createCollectionWrapper(getIds)
   )
 
-  _getNewSelectedObjects = createSelector(
-    this._getObjectsById,
-    value => value,
-    (objectsById, value) =>
-      value == null
-        ? value
-        : isArray(value)
+  _getSelectedObjects = (() => {
+    const helper = createSelector(
+      this._getObjectsById,
+      value => value,
+      (objectsById, value) =>
+        isArray(value)
           ? map(value, value => objectsById[value.value])
           : objectsById[value.value]
-  )
+    )
+    return value => (value == null ? value : helper(value))
+  })()
 
   _onChange = value => {
-    const { onChange } = this.props
-    if (onChange) {
-      onChange(this._getNewSelectedObjects(value))
-    }
+    this.props.onChange(this._getSelectedObjects(value))
   }
 
   _selectAll = () => {
@@ -225,46 +219,32 @@ export class GenericSelect extends Component {
   // GroupBy: Display option with margin if not disabled and containers exists.
   _renderOption = option => (
     <span
-      className={classNames(
-        !option.disabled && this.props.xoContainers && 'ml-1'
-      )}
+      className={
+        !option.disabled && this.props.xoContainers !== undefined
+          ? 'ml-1'
+          : undefined
+      }
     >
       {renderXoItem(option.xoItem)}
     </span>
   )
 
   render () {
-    const {
-      autoFocus,
-      disabled,
-      hasSelectAll,
-      multi,
-      placeholder,
-      required,
-
-      clearable = Boolean(multi || !required),
-    } = this.props
+    const { hasSelectAll, xoContainers, xoObjects, ...props } = this.props
 
     const select = (
       <Select
-        {...{
-          autoFocus,
-          clearable,
-          disabled,
-          multi,
-          placeholder,
-          required,
-        }}
+        {...props}
         onChange={this._onChange}
         openOnFocus
         optionRenderer={this._renderOption}
         options={this._getOptions()}
-        value={this._getSelectValue()}
+        value={this._getSelectedIds()}
         valueRenderer={this._renderOption}
       />
     )
 
-    if (!multi || !hasSelectAll) {
+    if (!props.multi || !hasSelectAll) {
       return select
     }
 
@@ -295,36 +275,34 @@ const makeStoreSelect = (createSelectors, defaultProps) =>
 
 const makeSubscriptionSelect = (subscribe, props) =>
   uncontrollableInput(options)(
-    class extends Component {
-      constructor (props) {
-        super(props)
+    class extends React.PureComponent {
+      state = {}
 
-        this._getFilteredXoContainers = createFilter(
-          () => this.state.xoContainers,
-          () => this.props.containerPredicate
-        )
+      _getFilteredXoContainers = createFilter(
+        () => this.state.xoContainers,
+        () => this.props.containerPredicate
+      )
 
-        this._getFilteredXoObjects = createSelector(
-          () => this.state.xoObjects,
-          () => this.state.xoContainers && this._getFilteredXoContainers(),
-          () => this.props.predicate,
-          (xoObjects, xoContainers, predicate) => {
-            if (xoContainers == null) {
-              return filter(xoObjects, predicate)
-            } else {
-              // Filter xoObjects with `predicate`...
-              const filteredObjects = mapValues(xoObjects, xoObjectsGroup =>
-                filter(xoObjectsGroup, predicate)
-              )
-              // ...and keep only those whose xoContainer hasn't been filtered out
-              return pick(
-                filteredObjects,
-                map(xoContainers, container => container.id)
-              )
-            }
+      _getFilteredXoObjects = createSelector(
+        () => this.state.xoObjects,
+        () => this.state.xoContainers && this._getFilteredXoContainers(),
+        () => this.props.predicate,
+        (xoObjects, xoContainers, predicate) => {
+          if (xoContainers == null) {
+            return filter(xoObjects, predicate)
+          } else {
+            // Filter xoObjects with `predicate`...
+            const filteredObjects = mapValues(xoObjects, xoObjectsGroup =>
+              filter(xoObjectsGroup, predicate)
+            )
+            // ...and keep only those whose xoContainer hasn't been filtered out
+            return pick(
+              filteredObjects,
+              map(xoContainers, container => container.id)
+            )
           }
-        )
-      }
+        }
+      )
 
       componentWillMount () {
         this.componentWillUnmount = subscribe(::this.setState)
@@ -577,36 +555,35 @@ export const SelectHighLevelObject = makeStoreSelect(
 
 // ===================================================================
 
-export const SelectVdi = propTypes({
-  srPredicate: propTypes.func,
-})(
-  makeStoreSelect(
-    () => {
-      const getSrs = createGetObjectsOfType('SR').filter(
-        (_, props) => props.srPredicate
-      )
-      const getVdis = createGetObjectsOfType('VDI')
-        .filter(
-          createSelector(
-            getSrs,
-            getPredicate,
-            (srs, predicate) =>
-              predicate
-                ? vdi => srs[vdi.$SR] && predicate(vdi)
-                : vdi => srs[vdi.$SR]
-          )
+export const SelectVdi = makeStoreSelect(
+  () => {
+    const getSrs = createGetObjectsOfType('SR').filter(
+      (_, props) => props.srPredicate
+    )
+    const getVdis = createGetObjectsOfType('VDI')
+      .filter(
+        createSelector(
+          getSrs,
+          getPredicate,
+          (srs, predicate) =>
+            predicate
+              ? vdi => srs[vdi.$SR] && predicate(vdi)
+              : vdi => srs[vdi.$SR]
         )
-        .sort()
-        .groupBy('$SR')
+      )
+      .sort()
+      .groupBy('$SR')
 
-      return {
-        xoObjects: getVdis,
-        xoContainers: getSrs.sort(),
-      }
-    },
-    { placeholder: _('selectVdis') }
-  )
+    return {
+      xoObjects: getVdis,
+      xoContainers: getSrs.sort(),
+    }
+  },
+  { placeholder: _('selectVdis') }
 )
+SelectVdi.propTypes = {
+  srPredicate: PropTypes.func,
+}
 
 // ===================================================================
 
@@ -747,7 +724,7 @@ export const SelectResourceSet = makeSubscriptionSelect(
 
 // ===================================================================
 
-export class SelectResourceSetsVmTemplate extends Component {
+export class SelectResourceSetsVmTemplate extends React.PureComponent {
   get value () {
     return this.refs.select.value
   }
@@ -782,7 +759,7 @@ export class SelectResourceSetsVmTemplate extends Component {
 
 // ===================================================================
 
-export class SelectResourceSetsSr extends Component {
+export class SelectResourceSetsSr extends React.PureComponent {
   get value () {
     return this.refs.select.value
   }
@@ -813,7 +790,7 @@ export class SelectResourceSetsSr extends Component {
 
 // ===================================================================
 
-export class SelectResourceSetsVdi extends Component {
+export class SelectResourceSetsVdi extends React.PureComponent {
   get value () {
     return this.refs.select.value
   }
@@ -853,7 +830,7 @@ export class SelectResourceSetsVdi extends Component {
 
 // ===================================================================
 
-export class SelectResourceSetsNetwork extends Component {
+export class SelectResourceSetsNetwork extends React.PureComponent {
   get value () {
     return this.refs.select.value
   }
@@ -894,12 +871,13 @@ export class SelectResourceSetsNetwork extends Component {
   ipPools: subscribeIpPools,
   resourceSets: subscribeResourceSets,
 }))
-@propTypes({
-  containerPredicate: propTypes.func,
-  predicate: propTypes.func,
-  resourceSetId: propTypes.string.isRequired,
-})
-export class SelectResourceSetIp extends Component {
+export class SelectResourceSetIp extends React.Component {
+  static propTypes = {
+    containerPredicate: PropTypes.func,
+    predicate: PropTypes.func,
+    resourceSetId: PropTypes.string.isRequired,
+  }
+
   get value () {
     return this.refs.select.value
   }
@@ -958,7 +936,7 @@ export class SelectResourceSetIp extends Component {
 
 // ===================================================================
 
-export class SelectSshKey extends Component {
+export class SelectSshKey extends React.PureComponent {
   get value () {
     return this.refs.select.value
   }
