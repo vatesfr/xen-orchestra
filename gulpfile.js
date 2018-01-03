@@ -252,9 +252,10 @@ gulp.task(function buildScripts () {
       plugins: [
         // ['css-modulesify', {
         [
-          'modular-css/browserify',
+          'modular-cssify',
           {
             css: DIST_DIR + '/modules.css',
+            from: undefined,
           },
         ],
       ],

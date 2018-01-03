@@ -1376,10 +1376,6 @@ benchmark@^2.1.0:
     lodash "^4.17.4"
     platform "^1.3.3"
 
-big.js@^3.1.3:
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/big.js/-/big.js-3.2.0.tgz#a5fc298b81b9e0dca2e458824784b65c52ba588e"
-
 binary-extensions@^1.0.0:
   version "1.11.0"
   resolved "https://registry.yarnpkg.com/binary-extensions/-/binary-extensions-1.11.0.tgz#46aa1751fb6a2f93ee5e689bb1087d4b14c6c205"
@@ -2882,10 +2878,6 @@ elliptic@^6.0.0:
     minimalistic-assert "^1.0.0"
     minimalistic-crypto-utils "^1.0.0"
 
-emojis-list@^2.0.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/emojis-list/-/emojis-list-2.1.0.tgz#4daa4d9db00f9819880c79fa457ae5b09a1fd389"
-
 encoding@^0.1.11:
   version "0.1.12"
   resolved "https://registry.yarnpkg.com/encoding/-/encoding-0.1.12.tgz#538b66f3ee62cd1ab51ec323829d1f9480c74beb"
@@ -3164,10 +3156,6 @@ esrecurse@^4.1.0:
 estraverse@^4.0.0, estraverse@^4.1.0, estraverse@^4.1.1, estraverse@^4.2.0:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/estraverse/-/estraverse-4.2.0.tgz#0dee3fed31fcd469618ce7342099fc1afa0bdb13"
-
-estree-walker@^0.3.0:
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/estree-walker/-/estree-walker-0.3.1.tgz#e6b1a51cf7292524e7237c312e5fe6660c1ce1aa"
 
 esutils@^2.0.2:
   version "2.0.2"
@@ -3794,7 +3782,7 @@ globby@^7.1.1:
     pify "^3.0.0"
     slash "^1.0.0"
 
-globule@^1.0.0, globule@^1.1.0:
+globule@^1.0.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/globule/-/globule-1.2.0.tgz#1dc49c6822dd9e8a2fa00ba2a295006e8664bd09"
   dependencies:
@@ -5209,7 +5197,7 @@ json-stringify-safe@~5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/json-stringify-safe/-/json-stringify-safe-5.0.1.tgz#1296a2d58fd45f19a0f6ce01d65701e2c735b6eb"
 
-json5@^0.5.0, json5@^0.5.1:
+json5@^0.5.1:
   version "0.5.1"
   resolved "https://registry.yarnpkg.com/json5/-/json5-0.5.1.tgz#1eade7acc012034ad84e2396767ead9fa5495821"
 
@@ -5484,14 +5472,6 @@ load-json-file@^2.0.0:
     parse-json "^2.2.0"
     pify "^2.0.0"
     strip-bom "^3.0.0"
-
-loader-utils@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/loader-utils/-/loader-utils-1.1.0.tgz#c98aef488bcceda2ffb5e2de646d6a754429f5cd"
-  dependencies:
-    big.js "^3.1.3"
-    emojis-list "^2.0.0"
-    json5 "^0.5.0"
 
 locate-path@^2.0.0:
   version "2.0.0"
@@ -5919,15 +5899,6 @@ mixin-deep@^1.2.0:
   dependencies:
     minimist "0.0.8"
 
-modular-css-cli@^7.2.0:
-  version "7.2.0"
-  resolved "https://registry.yarnpkg.com/modular-css-cli/-/modular-css-cli-7.2.0.tgz#1b34f3510f5d599ceb3963b615c63ad1e62ffb71"
-  dependencies:
-    meow "^3.7.0"
-    mkdirp "^0.5.1"
-    modular-css-core "^7.2.0"
-    modular-css-glob "^7.2.0"
-
 modular-css-core@^7.2.0:
   version "7.2.0"
   resolved "https://registry.yarnpkg.com/modular-css-core/-/modular-css-core-7.2.0.tgz#a7ca68bc7f04d641777a7d32ee6105965b499f5f"
@@ -5948,43 +5919,6 @@ modular-css-core@^7.2.0:
     resolve-from "^4.0.0"
     "true-case-path" "^1.0.2"
     unique-slug "^2.0.0"
-
-modular-css-glob@^7.2.0:
-  version "7.2.0"
-  resolved "https://registry.yarnpkg.com/modular-css-glob/-/modular-css-glob-7.2.0.tgz#1745cff85c653c28e29219e8c144402836e1d9e4"
-  dependencies:
-    globule "^1.1.0"
-    modular-css-core "^7.2.0"
-
-modular-css-rollup@^7.2.0:
-  version "7.2.0"
-  resolved "https://registry.yarnpkg.com/modular-css-rollup/-/modular-css-rollup-7.2.0.tgz#a127ac3fc1141b770e23845f405427f793ff671e"
-  dependencies:
-    esutils "^2.0.2"
-    mkdirp "^0.5.1"
-    modular-css-core "^7.2.0"
-    rollup-pluginutils "^2.0.1"
-
-modular-css-webpack@^7.2.0:
-  version "7.2.0"
-  resolved "https://registry.yarnpkg.com/modular-css-webpack/-/modular-css-webpack-7.2.0.tgz#0cd26f974b7f6274f4d105c5a7f43fc81d9f2ed6"
-  dependencies:
-    esutils "^2.0.2"
-    loader-utils "^1.1.0"
-    modular-css-core "^7.2.0"
-    webpack-sources "^1.0.1"
-
-modular-css@^7.2.0:
-  version "7.2.0"
-  resolved "https://registry.yarnpkg.com/modular-css/-/modular-css-7.2.0.tgz#0be29e41dc23f2fab802c1c6240fde09b67c8eaf"
-  dependencies:
-    modular-css-cli "^7.2.0"
-    modular-css-core "^7.2.0"
-    modular-css-glob "^7.2.0"
-    modular-css-rollup "^7.2.0"
-    modular-css-webpack "^7.2.0"
-    modular-cssify "^7.2.0"
-    postcss-modular-css "^7.2.0"
 
 modular-cssify@^7.2.0:
   version "7.2.0"
@@ -6708,14 +6642,6 @@ pn@^1.0.0:
 posix-character-classes@^0.1.0:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/posix-character-classes/-/posix-character-classes-0.1.1.tgz#01eac0fe3b5af71a2a6c02feabb8c1fef7e00eab"
-
-postcss-modular-css@^7.2.0:
-  version "7.2.0"
-  resolved "https://registry.yarnpkg.com/postcss-modular-css/-/postcss-modular-css-7.2.0.tgz#c546eff472798df6464e6619251f8a17ad35d51c"
-  dependencies:
-    mkdirp "^0.5.1"
-    modular-css-core "^7.2.0"
-    postcss "^6.0.11"
 
 postcss-selector-parser@^3.0.0:
   version "3.1.1"
@@ -7704,13 +7630,6 @@ ripemd160@^2.0.0, ripemd160@^2.0.1:
     hash-base "^2.0.0"
     inherits "^2.0.1"
 
-rollup-pluginutils@^2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/rollup-pluginutils/-/rollup-pluginutils-2.0.1.tgz#7ec95b3573f6543a46a6461bd9a7c544525d0fc0"
-  dependencies:
-    estree-walker "^0.3.0"
-    micromatch "^2.3.11"
-
 rst-selector-parser@^2.2.3:
   version "2.2.3"
   resolved "https://registry.yarnpkg.com/rst-selector-parser/-/rst-selector-parser-2.2.3.tgz#81b230ea2fcc6066c89e3472de794285d9b03d91"
@@ -7936,10 +7855,6 @@ sntp@2.x.x:
   resolved "https://registry.yarnpkg.com/sntp/-/sntp-2.1.0.tgz#2c6cec14fedc2222739caf9b5c3d85d1cc5a2cc8"
   dependencies:
     hoek "4.x.x"
-
-source-list-map@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/source-list-map/-/source-list-map-2.0.0.tgz#aaa47403f7b245a92fbc97ea08f250d6087ed085"
 
 source-map-resolve@^0.3.0:
   version "0.3.1"
@@ -8879,13 +8794,6 @@ weak@^1.0.1:
 webidl-conversions@^4.0.1, webidl-conversions@^4.0.2:
   version "4.0.2"
   resolved "https://registry.yarnpkg.com/webidl-conversions/-/webidl-conversions-4.0.2.tgz#a855980b1f0b6b359ba1d5d9fb39ae941faa63ad"
-
-webpack-sources@^1.0.1:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/webpack-sources/-/webpack-sources-1.1.0.tgz#a101ebae59d6507354d71d8013950a3a8b7a5a54"
-  dependencies:
-    source-list-map "^2.0.0"
-    source-map "~0.6.1"
 
 websocket-driver@>=0.3.6:
   version "0.7.0"
