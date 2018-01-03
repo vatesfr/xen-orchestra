@@ -313,7 +313,7 @@ export default class Remotes extends Component {
     )
       ? alert(
         <span>
-          <Icon icon={'error'} /> {_('remoteTestName')}
+          <Icon icon='error' /> {_('remoteTestName')}
         </span>,
         <p>{_('remoteTestNameFailure')}</p>
       )

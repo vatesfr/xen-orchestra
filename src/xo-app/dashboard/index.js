@@ -21,18 +21,18 @@ const HEADER = (
       </Col>
       <Col mediumSize={9}>
         <NavTabs className='pull-right'>
-          <NavLink to={'/dashboard/overview'}>
+          <NavLink to='/dashboard/overview'>
             <Icon icon='menu-dashboard-overview' /> {_('overviewDashboardPage')}
           </NavLink>
-          <NavLink to={'/dashboard/visualizations'}>
+          <NavLink to='/dashboard/visualizations'>
             <Icon icon='menu-dashboard-visualization' />{' '}
             {_('overviewVisualizationDashboardPage')}
           </NavLink>
-          <NavLink to={'/dashboard/stats'}>
+          <NavLink to='/dashboard/stats'>
             <Icon icon='menu-dashboard-stats' />{' '}
             {_('overviewStatsDashboardPage')}
           </NavLink>
-          <NavLink to={'/dashboard/health'}>
+          <NavLink to='/dashboard/health'>
             <Icon icon='menu-dashboard-health' />{' '}
             {_('overviewHealthDashboardPage')}
           </NavLink>

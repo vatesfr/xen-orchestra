@@ -19,10 +19,10 @@ const HEADER = (
       </Col>
       <Col mediumSize={9}>
         <NavTabs className='pull-right'>
-          <NavLink to={'/xoa/update'}>
+          <NavLink to='/xoa/update'>
             <Icon icon='menu-xoa-update' /> {_('updatePage')}
           </NavLink>
-          <NavLink to={'/xoa/licenses'}>
+          <NavLink to='/xoa/licenses'>
             <Icon icon='menu-xoa-licenses' /> {_('licensesPage')}
           </NavLink>
         </NavTabs>

@@ -809,27 +809,25 @@ export default class TabXosan extends Component {
                 <div>
                   <h3>{_('xosanVolume')}</h3>
                   <Container>
-                    <Field title={'Name'}>{strippedVolumeInfo.name}</Field>
-                    <Field title={'Status'}>
-                      {strippedVolumeInfo.statusStr}
-                    </Field>
-                    <Field title={'Type'}>{strippedVolumeInfo.typeStr}</Field>
-                    <Field title={'Brick Count'}>
+                    <Field title='Name'>{strippedVolumeInfo.name}</Field>
+                    <Field title='Status'>{strippedVolumeInfo.statusStr}</Field>
+                    <Field title='Type'>{strippedVolumeInfo.typeStr}</Field>
+                    <Field title='Brick Count'>
                       {strippedVolumeInfo.brickCount}
                     </Field>
-                    <Field title={'Stripe Count'}>
+                    <Field title='Stripe Count'>
                       {strippedVolumeInfo.stripeCount}
                     </Field>
-                    <Field title={'Replica Count'}>
+                    <Field title='Replica Count'>
                       {strippedVolumeInfo.replicaCount}
                     </Field>
-                    <Field title={'Arbiter Count'}>
+                    <Field title='Arbiter Count'>
                       {strippedVolumeInfo.arbiterCount}
                     </Field>
-                    <Field title={'Disperse Count'}>
+                    <Field title='Disperse Count'>
                       {strippedVolumeInfo.disperseCount}
                     </Field>
-                    <Field title={'Redundancy Count'}>
+                    <Field title='Redundancy Count'>
                       {strippedVolumeInfo.redundancyCount}
                     </Field>
                   </Container>

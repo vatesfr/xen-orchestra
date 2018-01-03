@@ -339,7 +339,7 @@ export default class Menu extends Component {
               <Link
                 className='nav-link'
                 style={{ display: 'flex' }}
-                to={'/about'}
+                to='/about'
               >
                 {+process.env.XOA_PLAN === 5 ? (
                   <span>
@@ -413,7 +413,7 @@ export default class Menu extends Component {
             </a>
           </li>
           <li className='nav-item xo-menu-item'>
-            <Link className='nav-link text-xs-center' to={'/user'}>
+            <Link className='nav-link text-xs-center' to='/user'>
               <Tooltip
                 content={_('editUserProfile', {
                   username: user ? user.email : '',

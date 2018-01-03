@@ -22,13 +22,13 @@ const HEADER = (
       </Col>
       <Col mediumSize={9}>
         <NavTabs className='pull-right'>
-          <NavLink to={'/jobs/overview'}>
+          <NavLink to='/jobs/overview'>
             <Icon icon='menu-jobs-overview' /> {_('jobsOverviewPage')}
           </NavLink>
-          <NavLink to={'/jobs/new'}>
+          <NavLink to='/jobs/new'>
             <Icon icon='menu-jobs-new' /> {_('jobsNewPage')}
           </NavLink>
-          <NavLink to={'/jobs/schedules'}>
+          <NavLink to='/jobs/schedules'>
             <Icon icon='menu-jobs-schedule' /> {_('jobsSchedulingPage')}
           </NavLink>
         </NavTabs>

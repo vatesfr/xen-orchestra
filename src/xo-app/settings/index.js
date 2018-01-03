@@ -26,31 +26,31 @@ const HEADER = (
       </Col>
       <Col mediumSize={9}>
         <NavTabs className='pull-right'>
-          <NavLink to={'/settings/servers'}>
+          <NavLink to='/settings/servers'>
             <Icon icon='menu-settings-servers' /> {_('settingsServersPage')}
           </NavLink>
-          <NavLink to={'/settings/users'}>
+          <NavLink to='/settings/users'>
             <Icon icon='menu-settings-users' /> {_('settingsUsersPage')}
           </NavLink>
-          <NavLink to={'/settings/groups'}>
+          <NavLink to='/settings/groups'>
             <Icon icon='menu-settings-groups' /> {_('settingsGroupsPage')}
           </NavLink>
-          <NavLink to={'/settings/acls'}>
+          <NavLink to='/settings/acls'>
             <Icon icon='menu-settings-acls' /> {_('settingsAclsPage')}
           </NavLink>
-          <NavLink to={'/settings/remotes'}>
+          <NavLink to='/settings/remotes'>
             <Icon icon='menu-backup-remotes' /> {_('backupRemotesPage')}
           </NavLink>
-          <NavLink to={'/settings/plugins'}>
+          <NavLink to='/settings/plugins'>
             <Icon icon='menu-settings-plugins' /> {_('settingsPluginsPage')}
           </NavLink>
-          <NavLink to={'/settings/logs'}>
+          <NavLink to='/settings/logs'>
             <Icon icon='menu-settings-logs' /> {_('settingsLogsPage')}
           </NavLink>
-          <NavLink to={'/settings/ips'}>
+          <NavLink to='/settings/ips'>
             <Icon icon='ip' /> {_('settingsIpsPage')}
           </NavLink>
-          <NavLink to={'/settings/config'}>
+          <NavLink to='/settings/config'>
             <Icon icon='menu-settings-config' /> {_('settingsConfigPage')}
           </NavLink>
         </NavTabs>

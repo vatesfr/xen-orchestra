@@ -1491,7 +1491,7 @@ export default class NewVm extends BaseComponent {
             </Item>
             <Item label={_('newVmFirstIndex')}>
               <DebounceInput
-                className={'form-control'}
+                className='form-control'
                 disabled={!multipleVms}
                 onChange={this._linkState('seqStart')}
                 type='number'

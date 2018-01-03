@@ -22,16 +22,16 @@ const HEADER = (
       </Col>
       <Col mediumSize={9}>
         <NavTabs className='pull-right'>
-          <NavLink to={'/backup/overview'}>
+          <NavLink to='/backup/overview'>
             <Icon icon='menu-backup-overview' /> {_('backupOverviewPage')}
           </NavLink>
-          <NavLink to={'/backup/new'}>
+          <NavLink to='/backup/new'>
             <Icon icon='menu-backup-new' /> {_('backupNewPage')}
           </NavLink>
-          <NavLink to={'/backup/restore'}>
+          <NavLink to='/backup/restore'>
             <Icon icon='menu-backup-restore' /> {_('backupRestorePage')}
           </NavLink>
-          <NavLink to={'/backup/file-restore'}>
+          <NavLink to='/backup/file-restore'>
             <Icon icon='menu-backup-file-restore' />{' '}
             {_('backupFileRestorePage')}
           </NavLink>
