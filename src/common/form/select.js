@@ -114,8 +114,8 @@ export default class Select extends Component {
     return (
       <div
         className={className}
-        onClick={!disabled && (() => selectValue(option))}
-        onMouseOver={!disabled && (() => focusOption(option))}
+        onClick={disabled ? undefined : () => selectValue(option)}
+        onMouseOver={disabled ? undefined : () => focusOption(option)}
         style={style}
         key={key}
       >
