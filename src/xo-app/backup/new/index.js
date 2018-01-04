@@ -25,8 +25,8 @@ import { SelectSubject } from 'select-objects'
 import { createGetObjectsOfType, getUser } from 'selectors'
 import {
   connectStore,
-  constructFilter,
   constructPattern,
+  constructQueryString,
   destructPattern,
   EMPTY_OBJECT,
 } from 'utils'
@@ -297,11 +297,13 @@ const SAMPLE_SIZE_OF_MATCHING_VMS = 3
   vms: createGetObjectsOfType('VM'),
 })
 class SmartBackupPreview extends Component {
+  _createPredicate = createSelector(pattern => pattern, createPredicate)
+
   _getMatchingVms = createSelector(
     () => this.props.pattern,
     () => this.props.vms,
     (pattern, vms) =>
-      filter(vms, createPredicate(pickBy(pattern, val => val != null)))
+      filter(vms, this._createPredicate(pickBy(pattern, val => val != null)))
   )
 
   render () {
@@ -333,7 +335,10 @@ class SmartBackupPreview extends Component {
                   target={'_blank'}
                   to={{
                     pathname: '/home',
-                    query: { t: 'VM', s: constructFilter(this.props.pattern) },
+                    query: {
+                      t: 'VM',
+                      s: constructQueryString(this.props.pattern),
+                    },
                   }}
                 >
                   {_('allMatchingVms', {

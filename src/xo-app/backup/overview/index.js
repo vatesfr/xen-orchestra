@@ -10,7 +10,7 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
-import { addSubscriptions, constructFilter } from 'utils'
+import { addSubscriptions, constructQueryString } from 'utils'
 import { createSelector } from 'selectors'
 import { Card, CardHeader, CardBlock } from 'card'
 import { filter, find, forEach, get, map, orderBy } from 'lodash'
@@ -181,7 +181,7 @@ export default class Overview extends Component {
   _redirectToMatchingVms = pattern => {
     this.context.router.push({
       pathname: '/home',
-      query: { t: 'VM', s: constructFilter(pattern) },
+      query: { t: 'VM', s: constructQueryString(pattern) },
     })
   }
 

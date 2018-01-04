@@ -558,7 +558,7 @@ const parsePattern = pattern => {
     : new CM.Or(patternValues)
 }
 
-export const constructFilter = pattern => {
+export const constructQueryString = pattern => {
   const powerState = pattern.power_state
   const pool = destructPattern(pattern.$pool)
   const tags = destructPattern(pattern.tags)
@@ -566,14 +566,7 @@ export const constructFilter = pattern => {
   const filter = []
 
   if (powerState !== undefined) {
-    filter.push(
-      new CM.Property(
-        'power_state',
-        powerState === 'Running'
-          ? new CM.String('running')
-          : new CM.Not(new CM.String('running'))
-      )
-    )
+    filter.push(new CM.Property('power_state', new CM.String(powerState)))
   }
   if (pool !== undefined) {
     filter.push(new CM.Property('$pool', parsePattern(pool)))
