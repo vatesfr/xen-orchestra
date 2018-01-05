@@ -5,7 +5,7 @@ const call = fn => fn()
 
 // `subscriptions` can be a function if we want to ensure that the subscription
 // callbacks have been correctly initialized when there are circular dependencies
-export const addSubscriptions = subscriptions => Component =>
+const addSubscriptions = subscriptions => Component =>
   class SubscriptionWrapper extends React.PureComponent {
     _unsubscribes = null
 
@@ -26,3 +26,4 @@ export const addSubscriptions = subscriptions => Component =>
       return <Component {...this.props} {...this.state} />
     }
   }
+export { addSubscriptions as default }
