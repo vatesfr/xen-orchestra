@@ -35,6 +35,10 @@ export const EMPTY_OBJECT = Object.freeze({})
 
 // ===================================================================
 
+export addSubscriptions from './add-subscriptions'
+
+// ===================================================================
+
 export const ensureArray = value => {
   if (value === undefined) {
     return []
@@ -56,48 +60,6 @@ export const propsEqual = (o1, o2, props) => {
 }
 
 // ===================================================================
-
-// `subscriptions` can be a function if we want to ensure that the subscription
-// callbacks have been correctly initialized when there are circular dependencies
-export const addSubscriptions = subscriptions => Component => {
-  class SubscriptionWrapper extends BaseComponent {
-    constructor () {
-      super()
-
-      this._unsubscribes = null
-    }
-
-    componentWillMount () {
-      this._unsubscribes = map(
-        isFunction(subscriptions) ? subscriptions(this.props) : subscriptions,
-        (subscribe, prop) =>
-          subscribe(value => this._setState({ [prop]: value }))
-      )
-    }
-
-    componentDidMount () {
-      this._setState = this.setState
-    }
-
-    componentWillUnmount () {
-      forEach(this._unsubscribes, unsubscribe => unsubscribe())
-      this._unsubscribes = null
-      delete this._setState
-    }
-
-    _setState (nextState) {
-      this.state = { ...this.state, nextState }
-    }
-
-    render () {
-      return <Component {...this.props} {...this.state} />
-    }
-  }
-
-  return SubscriptionWrapper
-}
-
-// -------------------------------------------------------------------
 
 export const checkPropsState = (propsNames, stateNames) => Component => {
   const nProps = propsNames && propsNames.length
