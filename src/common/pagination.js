@@ -39,7 +39,7 @@ export default class Pagination extends React.PureComponent {
 
   _onClick (event) {
     event.preventDefault()
-    this.props.onChange(+event.target.dataset.value)
+    this.props.onChange(+event.currentTarget.dataset.value)
   }
   _onClick = this._onClick.bind(this)
 
