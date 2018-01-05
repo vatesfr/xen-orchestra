@@ -25,7 +25,6 @@ import {
 
 import _ from './intl'
 import * as actions from './store/actions'
-import BaseComponent from './base-component'
 import invoke from './invoke'
 import store from './store'
 import { getObject } from './selectors'
@@ -60,33 +59,6 @@ export const propsEqual = (o1, o2, props) => {
 }
 
 // ===================================================================
-
-export const checkPropsState = (propsNames, stateNames) => Component => {
-  const nProps = propsNames && propsNames.length
-  const nState = stateNames && stateNames.length
-
-  Component.prototype.shouldComponentUpdate = (newProps, newState) => {
-    const { props, state } = this
-
-    for (let i = 0; i < nProps; ++i) {
-      const name = propsNames[i]
-      if (newProps[name] !== props[name]) {
-        return true
-      }
-    }
-
-    for (let i = 0; i < nState; ++i) {
-      const name = stateNames[i]
-      if (newState[name] !== state[name]) {
-        return true
-      }
-    }
-  }
-
-  return Component
-}
-
-// -------------------------------------------------------------------
 
 const _normalizeMapStateToProps = mapper => {
   if (isFunction(mapper)) {
