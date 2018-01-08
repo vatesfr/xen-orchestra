@@ -101,7 +101,7 @@ export default class SelectPlainObject extends Component {
 
     return (
       <Select
-        autofocus={props.autoFocus}
+        autoFocus={props.autoFocus}
         disabled={props.disabled}
         multi={props.multi}
         onChange={this._handleChange}
