@@ -161,21 +161,23 @@ export default class Logs extends BaseComponent {
         message={_('noLogs')}
         predicate={this._getPredicate}
       >
-        <div>
-          <span className='pull-right'>
-            <TabButton
-              btnStyle='danger'
-              handler={this._deleteAllLogs}
-              icon='delete'
-              labelId='logDeleteAll'
+        {() => (
+          <div>
+            <span className='pull-right'>
+              <TabButton
+                btnStyle='danger'
+                handler={this._deleteAllLogs}
+                icon='delete'
+                labelId='logDeleteAll'
+              />
+            </span>{' '}
+            <SortedTable
+              collection={logs}
+              columns={COLUMNS}
+              userData={this._getData()}
             />
-          </span>{' '}
-          <SortedTable
-            collection={logs}
-            columns={COLUMNS}
-            userData={this._getData()}
-          />
-        </div>
+          </div>
+        )}
       </NoObjects>
     )
   }

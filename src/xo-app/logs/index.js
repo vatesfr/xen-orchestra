@@ -413,13 +413,13 @@ export default class LogList extends Component {
           </span>
         </CardHeader>
         <CardBlock>
-          <NoObjects collection={logs} emptyMessage={_('noLogs')}>
-            <SortedTable
-              collection={logs}
-              columns={LOG_COLUMNS}
-              filters={this.filters}
-            />
-          </NoObjects>
+          <NoObjects
+            collection={logs}
+            columns={LOG_COLUMNS}
+            component={SortedTable}
+            emptyMessage={_('noLogs')}
+            filters={this.filters}
+          />
         </CardBlock>
       </Card>
     )

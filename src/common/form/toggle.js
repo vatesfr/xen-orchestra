@@ -9,12 +9,12 @@ import propTypes from '../prop-types-decorator'
 @uncontrollableInput()
 @propTypes({
   className: propTypes.string,
-  onChange: propTypes.func,
+  onChange: propTypes.func.isRequired,
   icon: propTypes.string,
   iconOn: propTypes.string,
   iconOff: propTypes.string,
   iconSize: propTypes.number,
-  value: propTypes.bool,
+  value: propTypes.bool.isRequired,
 })
 export default class Toggle extends Component {
   static defaultProps = {

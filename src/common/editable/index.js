@@ -160,9 +160,9 @@ class Editable extends Component {
           )}
         >
           <span
-            onClick={!useLongClick && this._openEdition}
-            onMouseDown={useLongClick && this.__startTimer}
-            onMouseUp={useLongClick && this.__stopTimer}
+            onClick={useLongClick ? undefined : this._openEdition}
+            onMouseDown={useLongClick ? this.__startTimer : undefined}
+            onMouseUp={useLongClick ? this.__stopTimer : undefined}
           >
             {this._renderDisplay()}
           </span>

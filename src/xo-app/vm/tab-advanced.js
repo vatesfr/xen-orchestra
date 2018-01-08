@@ -209,26 +209,28 @@ class CoresPerSocket extends Component {
           onChange={this._onChange}
           value={selectedCoresPerSocket || ''}
         >
-          {_('vmChooseCoresPerSocket', message => (
-            <option key='none' value=''>
-              {message}
-            </option>
+          {_({ key: 'none' }, 'vmChooseCoresPerSocket', message => (
+            <option value=''>{message}</option>
           ))}
           {this._selectedValueIsNotInOptions() &&
-            _('vmCoresPerSocketIncorrectValue', message => (
-              <option key='incorrect' value={selectedCoresPerSocket}>
-                {' '}
-                {message}
-              </option>
-            ))}
-          {map(options, coresPerSocket => (
-            <option key={coresPerSocket} value={coresPerSocket}>
-              {_('vmCoresPerSocket', {
+            _(
+              { key: 'incorrect' },
+              'vmCoresPerSocketIncorrectValue',
+              message => (
+                <option value={selectedCoresPerSocket}> {message}</option>
+              )
+            )}
+          {map(options, coresPerSocket =>
+            _(
+              { key: coresPerSocket },
+              'vmCoresPerSocket',
+              {
                 nSockets: vm.CPUs.number / coresPerSocket,
                 nCores: coresPerSocket,
-              })}
-            </option>
-          ))}
+              },
+              message => <option value={coresPerSocket}>{message}</option>
+            )
+          )}
         </select>{' '}
         {this._selectedValueIsNotInOptions() && (
           <Tooltip content={_('vmCoresPerSocketIncorrectValueSolution')}>
@@ -398,7 +400,7 @@ export default connectStore(() => {
               <th>{_('autoPowerOn')}</th>
               <td>
                 <Toggle
-                  value={vm.auto_poweron}
+                  value={Boolean(vm.auto_poweron)}
                   onChange={value => editVm(vm, { auto_poweron: value })}
                 />
               </td>

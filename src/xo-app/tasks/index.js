@@ -143,7 +143,7 @@ export default class Tasks extends Component {
             props.pools,
             pool =>
               this._showPoolTasks(pool) && (
-                <Row>
+                <Row key={pool.id}>
                   <Card>
                     <CardHeader key={pool.id}>
                       <Link to={`/pools/${pool.id}`}>{pool.name_label}</Link>

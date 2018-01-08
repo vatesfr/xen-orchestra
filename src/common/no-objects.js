@@ -13,19 +13,29 @@ import propTypes from './prop-types-decorator'
 //    {children}
 // </NoObjects>
 // ````
-const NoObjects = ({ children, collection, emptyMessage }) =>
-  collection == null ? (
-    <img src='assets/loading.svg' alt='loading' />
-  ) : isEmpty(collection) ? (
-    <p>{emptyMessage}</p>
+const NoObjects = props => {
+  const { collection } = props
+
+  if (collection == null) {
+    return <img src='assets/loading.svg' alt='loading' />
+  }
+
+  if (isEmpty(collection)) {
+    return <p>{props.emptyMessage}</p>
+  }
+
+  const { children, component: Component, ...otherProps } = props
+  return children !== undefined ? (
+    children(otherProps)
   ) : (
-    <div>{children}</div>
+    <Component {...otherProps} />
   )
+}
 
 propTypes(NoObjects)({
-  children: propTypes.node.isRequired,
-  collection: propTypes.oneOfType([propTypes.array, propTypes.object])
-    .isRequired,
+  children: propTypes.func,
+  collection: propTypes.oneOfType([propTypes.array, propTypes.object]),
+  component: propTypes.func,
   emptyMessage: propTypes.node.isRequired,
 })
 export default NoObjects

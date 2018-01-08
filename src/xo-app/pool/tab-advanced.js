@@ -76,7 +76,9 @@ export default connectStore({
         <Col size={9}>
           <ul className='list-group'>
             {map(gpuGroups, gpuGroup => (
-              <li className='list-group-item'>{renderXoItem(gpuGroup)}</li>
+              <li key={gpuGroup.id} className='list-group-item'>
+                {renderXoItem(gpuGroup)}
+              </li>
             ))}
           </ul>
         </Col>

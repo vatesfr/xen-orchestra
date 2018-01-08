@@ -461,16 +461,18 @@ export default class Health extends Component {
                   collection={props.areObjectsFetched ? props.userSrs : null}
                   emptyMessage={_('noSrs')}
                 >
-                  <Row>
-                    <Col>
-                      <SortedTable
-                        collection={props.userSrs}
-                        columns={SR_COLUMNS}
-                        rowLink={this._getSrUrl}
-                        shortcutsTarget='body'
-                      />
-                    </Col>
-                  </Row>
+                  {() => (
+                    <Row>
+                      <Col>
+                        <SortedTable
+                          collection={props.userSrs}
+                          columns={SR_COLUMNS}
+                          rowLink={this._getSrUrl}
+                          shortcutsTarget='body'
+                        />
+                      </Col>
+                    </Row>
+                  )}
                 </NoObjects>
               </CardBlock>
             </Card>
@@ -489,26 +491,28 @@ export default class Health extends Component {
                   }
                   emptyMessage={_('noOrphanedObject')}
                 >
-                  <div>
-                    <Row>
-                      <Col className='text-xs-right'>
-                        <TabButton
-                          btnStyle='danger'
-                          handler={this._deleteOrphanedVdis}
-                          icon='delete'
-                          labelId='removeAllOrphanedObject'
-                        />
-                      </Col>
-                    </Row>
-                    <Row>
-                      <Col>
-                        <SortedTable
-                          collection={this.props.vdiOrphaned}
-                          columns={ORPHANED_VDI_COLUMNS}
-                        />
-                      </Col>
-                    </Row>
-                  </div>
+                  {() => (
+                    <div>
+                      <Row>
+                        <Col className='text-xs-right'>
+                          <TabButton
+                            btnStyle='danger'
+                            handler={this._deleteOrphanedVdis}
+                            icon='delete'
+                            labelId='removeAllOrphanedObject'
+                          />
+                        </Col>
+                      </Row>
+                      <Row>
+                        <Col>
+                          <SortedTable
+                            collection={this.props.vdiOrphaned}
+                            columns={ORPHANED_VDI_COLUMNS}
+                          />
+                        </Col>
+                      </Row>
+                    </div>
+                  )}
                 </NoObjects>
               </CardBlock>
             </Card>
@@ -525,13 +529,10 @@ export default class Health extends Component {
                   collection={
                     props.areObjectsFetched ? props.controlDomainVdis : null
                   }
+                  columns={CONTROL_DOMAIN_VDI_COLUMNS}
+                  component={SortedTable}
                   emptyMessage={_('noControlDomainVdis')}
-                >
-                  <SortedTable
-                    collection={props.controlDomainVdis}
-                    columns={CONTROL_DOMAIN_VDI_COLUMNS}
-                  />
-                </NoObjects>
+                />
               </CardBlock>
             </Card>
           </Col>
@@ -545,14 +546,11 @@ export default class Health extends Component {
               <CardBlock>
                 <NoObjects
                   collection={props.areObjectsFetched ? props.vmOrphaned : null}
+                  columns={VM_COLUMNS}
+                  component={SortedTable}
                   emptyMessage={_('noOrphanedObject')}
-                >
-                  <SortedTable
-                    collection={props.vmOrphaned}
-                    columns={VM_COLUMNS}
-                    shortcutsTarget='.orphaned-vms'
-                  />
-                </NoObjects>
+                  shortcutsTarget='.orphaned-vms'
+                />
               </CardBlock>
             </Card>
           </Col>
@@ -570,26 +568,28 @@ export default class Health extends Component {
                   }
                   emptyMessage={_('noAlarms')}
                 >
-                  <div>
-                    <Row>
-                      <Col className='text-xs-right'>
-                        <TabButton
-                          btnStyle='danger'
-                          handler={this._deleteAllLogs}
-                          icon='delete'
-                          labelId='logRemoveAll'
-                        />
-                      </Col>
-                    </Row>
-                    <Row>
-                      <Col>
-                        <SortedTable
-                          collection={this.state.messages}
-                          columns={ALARM_COLUMNS}
-                        />
-                      </Col>
-                    </Row>
-                  </div>
+                  {() => (
+                    <div>
+                      <Row>
+                        <Col className='text-xs-right'>
+                          <TabButton
+                            btnStyle='danger'
+                            handler={this._deleteAllLogs}
+                            icon='delete'
+                            labelId='logRemoveAll'
+                          />
+                        </Col>
+                      </Row>
+                      <Row>
+                        <Col>
+                          <SortedTable
+                            collection={this.state.messages}
+                            columns={ALARM_COLUMNS}
+                          />
+                        </Col>
+                      </Row>
+                    </div>
+                  )}
                 </NoObjects>
               </CardBlock>
             </Card>
