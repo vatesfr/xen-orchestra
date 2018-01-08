@@ -10,6 +10,7 @@ import Icon from 'icon'
 import invoke from 'invoke'
 import Link from 'link'
 import Page from '../page'
+import Pagination from 'pagination'
 import propTypes from 'prop-types-decorator'
 import React from 'react'
 import Shortcuts from 'shortcuts'
@@ -79,7 +80,6 @@ import {
   DropdownButton,
   MenuItem,
   OverlayTrigger,
-  Pagination,
   Popover,
 } from 'react-bootstrap-4/lib'
 
@@ -586,8 +586,8 @@ export default class Home extends Component {
 
   _expandAll = () => this.setState({ expandAll: !this.state.expandAll })
 
-  _onPageSelection = (_, event) => {
-    this.page = event.eventKey
+  _onPageSelection = page => {
+    this.page = page
   }
 
   _tick = isCriteria => (
@@ -1101,16 +1101,9 @@ export default class Home extends Component {
               <div style={{ display: 'flex', width: '100%' }}>
                 <div style={{ margin: 'auto' }}>
                   <Pagination
-                    first
-                    last
-                    prev
-                    next
-                    ellipsis
-                    boundaryLinks
-                    maxButtons={5}
-                    items={ceil(filteredItems.length / ITEMS_PER_PAGE)}
-                    activePage={activePage}
-                    onSelect={this._onPageSelection}
+                    onChange={this._onPageSelection}
+                    pages={ceil(filteredItems.length / ITEMS_PER_PAGE)}
+                    value={activePage}
                   />
                 </div>
               </div>
