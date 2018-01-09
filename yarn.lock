@@ -6443,9 +6443,9 @@ xdg-basedir@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/xdg-basedir/-/xdg-basedir-3.0.0.tgz#496b2cc109eca8dbacfe2dc72b603c17c5870ad4"
 
-xen-api@^0.16.0:
-  version "0.16.0"
-  resolved "https://registry.yarnpkg.com/xen-api/-/xen-api-0.16.0.tgz#c59297e5ba5e8c73bb9a2d8ae36b77b2acd050d8"
+xen-api@^0.16.1:
+  version "0.16.1"
+  resolved "https://registry.yarnpkg.com/xen-api/-/xen-api-0.16.1.tgz#14fadfa335f5171257578d47049c03457f5119f7"
   dependencies:
     babel-polyfill "^6.23.0"
     blocked "^1.2.1"
