@@ -322,7 +322,7 @@ create.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function delete_ ({ vm, delete_disks: deleteDisks = false }) {
+async function delete_ ({ vm, delete_disks: deleteDisks = false }) {
   const xapi = this.getXapi(vm)
 
   this.getAllAcls().then(acls => {
@@ -379,6 +379,8 @@ delete_.params = {
 delete_.resolve = {
   vm: ['id', ['VM', 'VM-snapshot', 'VM-template'], 'administrate'],
 }
+
+export { delete_ as delete }
 
 // -------------------------------------------------------------------
 
