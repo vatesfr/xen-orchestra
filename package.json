@@ -159,7 +159,7 @@
     "clean": "gulp clean",
     "dev": "npm run build-indexes && NODE_ENV=development gulp build",
     "dev-test": "jest --watch",
-    "lint-staged-stash": "git diff-index --binary --exit-code --ignore-submodules --no-color --no-ext > .git/lint-staged.diff && git checkout . && true",
+    "lint-staged-stash": "git diff-index --binary --exit-code --ignore-submodules --no-color --no-ext HEAD > .git/lint-staged.diff && git checkout . && true",
     "lint-staged-unstash": "git apply --whitespace=nowarn .git/lint-staged.diff && rm -f .git/lint-staged.diff && true",
     "posttest": "eslint --ignore-path .gitignore src/",
     "prebuild": "npm run clean",
