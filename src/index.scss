@@ -168,8 +168,8 @@ $select-input-height: 40px; // Bootstrap input height
   width: max-content;
 
   &:hover {
-    background-color: $nav-pills-active-link-bg;
-    color: $nav-pills-active-link-color;
+    background-color: $nav-pills-link-active-bg;
+    color: $nav-pills-link-active-color;
   }
 }
 
@@ -191,7 +191,7 @@ $select-input-height: 40px; // Bootstrap input height
 // PAGE HEADER STYLE ===========================================================
 
 .page-header {
-  background: $gray-lighter;
+  background: $gray-200;
 }
 
 // NOTIFICATIONS STYLE =========================================================
@@ -214,19 +214,13 @@ $select-input-height: 40px; // Bootstrap input height
   margin: 5px 10px;
   width: 250px;
   &.success {
-    background: $alert-success-bg;
-    border-color: $alert-success-border;
-    color: $alert-success-text;
+    @extend .alert-success;
   }
   &.info {
-    background: $alert-info-bg;
-    border-color: $alert-info-border;
-    color: $alert-info-text;
+    @extend .alert-info;
   }
   &.error {
-    background: $alert-danger-bg;
-    border-color: $alert-danger-border;
-    color: $alert-danger-text;
+    @extend .alert-danger;
   }
 }
 
