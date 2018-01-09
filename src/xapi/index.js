@@ -1558,7 +1558,7 @@ export default class Xapi extends XapiBase {
     empty = vdi === undefined,
     mode = (type === 'Disk') ? 'RW' : 'RO',
     vm = VM,
-  } = {}) {
+  }) {
     vdi = this.getObject(vdi)
     vm = this.getObject(vm)
 
@@ -1627,7 +1627,7 @@ export default class Xapi extends XapiBase {
 
     size,
     sr = SR !== undefined && SR !== NULL_REF ? SR : this.pool.default_SR,
-  } = {}) {
+  }) {
     sr = this.getObject(sr)
     debug(`Creating VDI ${name_label} on ${sr.name_label}`)
 
