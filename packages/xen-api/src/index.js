@@ -145,7 +145,7 @@ const isReadOnlyCall = (method, args) => (
 //
 // - cast integers to strings
 const prepareParam = param => {
-  if (isInteger(param === 'number')) {
+  if (isInteger(param)) {
     return String(param)
   }
 
