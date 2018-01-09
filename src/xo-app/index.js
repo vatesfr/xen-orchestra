@@ -90,6 +90,7 @@ const BODY_STYLE = {
   'vms/:id': Vm,
   xoa: Xoa,
   xosan: Xosan,
+  test: require('./test').default,
 })
 @connectStore(state => {
   return {
