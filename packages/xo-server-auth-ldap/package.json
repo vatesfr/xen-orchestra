@@ -36,7 +36,7 @@
     "babel-runtime": "^6.22.0",
     "event-to-promise": "^0.8.0",
     "exec-promise": "^0.7.0",
-    "inquirer": "^4.0.1",
+    "inquirer": "^5.0.0",
     "ldapjs": "^1.0.1",
     "lodash": "^4.17.4",
     "promise-toolbox": "^0.9.5"
