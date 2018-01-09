@@ -41,7 +41,7 @@ move_commit () {
 
   rm -f "$(git rev-parse --git-path index)"
   git read-tree --prefix="$2/" HEAD
-  git commit -m "feat($1): move all files to $2"
+  git commit -nm "feat($1): move all files to $2"
 
   git symbolic-ref HEAD "$head"
   git read-tree HEAD
