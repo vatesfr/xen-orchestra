@@ -75,6 +75,7 @@ require('exec-promise')(() =>
       unlink(`${dir}/.gitignore`),
       unlink(`${dir}/.jshintrc`),
       unlink(`${dir}/.travis.yml`),
+      unlink(`${dir}/package-lock.json`),
       unlink(`${dir}/yarn.lock`),
     ])
   })
