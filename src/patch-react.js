@@ -1,12 +1,6 @@
-import createReactClass from 'create-react-class'
 import logError from 'log-error'
-import PropTypes from 'prop-types'
 import React from 'react'
 import { assign, isFunction } from 'lodash'
-
-// TODO: remove when all dependencies correctly supports React 16
-React.createClass = createReactClass
-React.PropTypes = PropTypes
 
 // Avoid global breakage if a component fails to render.
 //
