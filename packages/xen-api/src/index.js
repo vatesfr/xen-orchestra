@@ -153,7 +153,17 @@ const prepareParam = param => {
     return param
   }
 
-  return (isArray(param) ? map : mapValues)(param, prepareParam)
+  if (isArray(param)) {
+    return map(param, prepareParam)
+  }
+
+  const values = {}
+  forEach(param, (value, key) => {
+    if (value !== undefined) {
+      values[key] = prepareParam(value)
+    }
+  })
+  return values
 }
 
 // -------------------------------------------------------------------
