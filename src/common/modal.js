@@ -1,172 +1,51 @@
-import isArray from 'lodash/isArray'
-import isString from 'lodash/isString'
-import map from 'lodash/map'
-import React, { Component, cloneElement } from 'react'
-import { Modal as ReactModal } from 'react-bootstrap-4/lib'
+import React from 'react'
+import { isArray } from 'lodash'
+import { Modal, ModalBody, ModalFooter, ModalHeader } from 'reactstrap'
 
 import _ from './intl'
-import Button from './button'
+import ActionButton from './action-button'
 import Icon from './icon'
-import propTypes from './prop-types-decorator'
-import Tooltip from './tooltip'
 import {
   disable as disableShortcuts,
   enable as enableShortcuts,
 } from './shortcuts'
 
-let instance
-
-const modal = (content, onClose) => {
-  if (!instance) {
-    throw new Error('No modal instance.')
-  } else if (instance.state.showModal) {
-    throw new Error('Other modal still open.')
-  }
-  instance.setState({ content, onClose, showModal: true }, disableShortcuts)
-}
-
-@propTypes({
-  buttons: propTypes.arrayOf(
-    propTypes.shape({
-      btnStyle: propTypes.string,
-      icon: propTypes.string,
-      label: propTypes.node.isRequired,
-      tooltip: propTypes.node,
-      value: propTypes.any,
-    })
-  ).isRequired,
-  children: propTypes.node.isRequired,
-  icon: propTypes.string,
-  title: propTypes.node.isRequired,
-})
-class GenericModal extends Component {
-  _getBodyValue = () => {
-    const { body } = this.refs
-    if (body !== undefined) {
-      return body.getWrappedInstance === undefined
-        ? body.value
-        : body.getWrappedInstance().value
-    }
-  }
-
-  _resolve = (value = this._getBodyValue()) => {
-    this.props.resolve(value)
-    instance.close()
-  }
-
-  _reject = () => {
-    this.props.reject()
-    instance.close()
-  }
-
-  render () {
-    const { buttons, icon, title } = this.props
-
-    const body = _addRef(this.props.children, 'body')
-
-    return (
-      <div>
-        <ReactModal.Header closeButton>
-          <ReactModal.Title>
-            {icon ? (
-              <span>
-                <Icon icon={icon} /> {title}
-              </span>
-            ) : (
-              title
-            )}
-          </ReactModal.Title>
-        </ReactModal.Header>
-        <ReactModal.Body>{body}</ReactModal.Body>
-        <ReactModal.Footer>
-          {map(buttons, ({ label, tooltip, value, icon, ...props }, key) => {
-            const button = (
-              <Button onClick={() => this._resolve(value)} {...props}>
-                {icon !== undefined && <Icon icon={icon} fixedWidth />}
-                {label}
-              </Button>
-            )
-            return (
-              <span key={key}>
-                {tooltip !== undefined ? (
-                  <Tooltip content={tooltip}>{button}</Tooltip>
-                ) : (
-                  button
-                )}{' '}
-              </span>
-            )
-          })}
-          {this.props.reject !== undefined && (
-            <Button onClick={this._reject}>{_('genericCancel')}</Button>
-          )}
-        </ReactModal.Footer>
-      </div>
-    )
-  }
-}
-
-const ALERT_BUTTONS = [{ label: _('alertOk'), value: 'ok' }]
-
-export const alert = (title, body) =>
-  new Promise(resolve => {
-    modal(
-      <GenericModal buttons={ALERT_BUTTONS} resolve={resolve} title={title}>
-        {body}
-      </GenericModal>,
-      resolve
-    )
-  })
-
-const _addRef = (component, ref) => {
-  if (isString(component) || isArray(component)) {
+const addRef = (component, ref) => {
+  if (typeof component === 'string' || isArray(component)) {
     return component
   }
 
   try {
-    return cloneElement(component, { ref })
+    return React.cloneElement(component, { ref })
   } catch (_) {} // Stateless component.
   return component
 }
 
-const CONFIRM_BUTTONS = [{ btnStyle: 'primary', label: _('confirmOk') }]
-
-export const confirm = ({ body, icon = 'alarm', title }) =>
-  chooseAction({
-    body,
-    buttons: CONFIRM_BUTTONS,
-    icon,
-    title,
-  })
-
-export const chooseAction = ({ body, buttons, icon, title }) => {
-  return new Promise((resolve, reject) => {
-    modal(
-      <GenericModal
-        buttons={buttons}
-        icon={icon}
-        reject={reject}
-        resolve={resolve}
-        title={title}
-      >
-        {body}
-      </GenericModal>,
-      reject
-    )
-  })
-}
-
-export default class Modal extends Component {
-  constructor () {
-    super()
-
-    this.state = { showModal: false }
+let instance
+export default class XoModal extends React.Component {
+  state = {
+    body: undefined,
+    buttons: undefined,
+    icon: undefined,
+    isOpen: false,
+    title: undefined,
   }
 
   componentDidMount () {
-    if (instance) {
-      throw new Error('Modal is a singleton!')
+    if (instance !== undefined) {
+      throw new Error('only one instance of Modal can be mounted')
     }
     instance = this
+  }
+
+  componentDidUpdate (_, { isOpen: wasOpen }) {
+    if (this.state.isOpen) {
+      if (!wasOpen) {
+        disableShortcuts()
+      }
+    } else if (wasOpen) {
+      enableShortcuts()
+    }
   }
 
   componentWillUnmount () {
@@ -174,21 +53,127 @@ export default class Modal extends Component {
   }
 
   close () {
-    this.setState({ showModal: false }, enableShortcuts)
+    this.setState({
+      body: undefined,
+      buttons: undefined,
+      icon: undefined,
+      isOpen: false,
+      title: undefined,
+    })
+  }
+  close = this.close.bind(this)
+
+  onButtonClick (button) {
+    let bodyValue
+    const { body } = this.refs
+    if (body !== undefined) {
+      bodyValue =
+        body.getWrappedInstance === undefined
+          ? body.value
+          : body.getWrappedInstance().value
+    }
+    return new Promise(resolve =>
+      resolve(button.handler(button.handlerParam, bodyValue))
+    ).then(this.close)
+  }
+  onButtonClick = this.onButtonClick.bind(this)
+
+  open ({ body, buttons, icon, title }) {
+    if (this.state.isOpen) {
+      throw new Error('Modal is already open')
+    }
+
+    this.setState({ body, buttons, icon, isOpen: true, title })
   }
 
-  _onHide = () => {
-    this.close()
-
-    const { onClose } = this.state
-    onClose && onClose()
-  }
+  toggle = () => this.setState(state => ({ isOpen: state.isOpen }))
 
   render () {
+    const { close, onButtonClick, state } = this
+
+    const { buttons, icon, title } = state
+    const body = addRef(state.body)
+
     return (
-      <ReactModal show={this.state.showModal} onHide={this._onHide}>
-        {this.state.content}
-      </ReactModal>
+      <Modal isOpen={state.isOpen} toggle={close}>
+        <ModalHeader toggle={close}>
+          {icon !== undefined ? (
+            <span>
+              <Icon icon={icon} /> {title}
+            </span>
+          ) : (
+            title
+          )}
+        </ModalHeader>
+        <ModalBody>{body}</ModalBody>
+        <ModalFooter>
+          {buttons !== undefined &&
+            buttons.map((button, key) => (
+              <ActionButton
+                icon='success'
+                {...button}
+                handler={onButtonClick}
+                handlerParam={button}
+                key={key}
+              />
+            ))}
+        </ModalFooter>
+      </Modal>
     )
   }
 }
+
+// -------------------------------------------------------------------
+
+export const alert = (title, body) =>
+  new Promise(resolve => {
+    instance.open({
+      body,
+      buttons: [
+        {
+          children: _('alertOk'),
+          handler: resolve,
+        },
+      ],
+      title,
+    })
+  })
+
+export const chooseAction = ({ body, buttons, icon, title }) =>
+  new Promise((resolve, reject) => {
+    instance.open({
+      body,
+      buttons: [
+        ...buttons.map(({ label, value, ...button }) => ({
+          ...button,
+          children: label,
+          handler: resolve,
+          handlerParam: value,
+        })),
+        {
+          children: _('genericCancel'),
+          handler: reject,
+        },
+      ],
+      icon,
+      title,
+    })
+  })
+
+export const confirm = ({ body, icon = 'alarm', title }) =>
+  new Promise((resolve, reject) => {
+    instance.open({
+      body,
+      buttons: [
+        {
+          btnStyle: 'primary',
+          children: _('confirmOk'),
+          handler: resolve,
+        },
+        {
+          children: _('genericCancel'),
+          handler: reject,
+        },
+      ],
+    })
+  })

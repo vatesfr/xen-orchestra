@@ -758,9 +758,7 @@ export default class Home extends Component {
               <DropdownToggle color='info'>
                 {TYPES[this._getType()]}
               </DropdownToggle>
-              <DropdownMenu>
-                {this._typesDropdownItems}
-              </DropdownMenu>
+              <DropdownMenu>{this._typesDropdownItems}</DropdownMenu>
             </UncontrolledButtonDropdown>
           </Col>
           <Col mediumSize={6}>
@@ -784,7 +782,7 @@ export default class Home extends Component {
                           {name}
                         </DropdownItem>
                       )),
-                      <MenuItem key='divider' divider />,
+                      <DropdownItem key='divider' divider />,
                     ]}
                     {map(filters, (filter, label) => (
                       <DropdownItem
@@ -924,9 +922,7 @@ export default class Home extends Component {
                     )}
                     {otherActions && (
                       <UncontrolledButtonDropdown>
-                        <DropdownToggle>
-                          {_('homeMore')}
-                        </DropdownToggle>
+                        <DropdownToggle>{_('homeMore')}</DropdownToggle>
                         <DropdownMenu>
                           {map(otherActions, (action, key) => (
                             <DropdownItem
@@ -937,11 +933,11 @@ export default class Home extends Component {
                                   action.params
                                 )
                               }}
-                              >
-                                <Icon icon={action.icon} fixedWidth />{' '}
-                                {_(action.labelId)}
-                              </DropdownItem>
-                            ))}
+                            >
+                              <Icon icon={action.icon} fixedWidth />{' '}
+                              {_(action.labelId)}
+                            </DropdownItem>
+                          ))}
                         </DropdownMenu>
                       </UncontrolledButtonDropdown>
                     )}
@@ -1060,16 +1056,16 @@ export default class Home extends Component {
                               onClick={() =>
                                 this.setState({ sortBy: _sortBy, sortOrder })
                               }
-                              >
-                                {this._tick(_sortBy === sortBy)}
-                                {_sortBy === sortBy ? (
-                                  <strong>{_(labelId)}</strong>
-                                ) : (
-                                  _(labelId)
-                                )}
-                              </DropdownItem>
-                            )
-                          )}
+                            >
+                              {this._tick(_sortBy === sortBy)}
+                              {_sortBy === sortBy ? (
+                                <strong>{_(labelId)}</strong>
+                              ) : (
+                                _(labelId)
+                              )}
+                            </DropdownItem>
+                          )
+                        )}
                       </DropdownMenu>
                     </UncontrolledButtonDropdown>
                   </div>
