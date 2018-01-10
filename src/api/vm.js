@@ -740,7 +740,7 @@ rollingDeltaBackup.permission = 'admin'
 
 // -------------------------------------------------------------------
 
-function importDeltaBackup ({ sr, remote, filePath, mapVdisSrs }) {
+export function importDeltaBackup ({ sr, remote, filePath, mapVdisSrs }) {
   const mapVdisSrsXapi = {}
 
   forEach(mapVdisSrs, (srId, vdiId) => {
@@ -945,7 +945,7 @@ rollingDrCopy.description =
 
 // -------------------------------------------------------------------
 
-function start ({ vm, force }) {
+export function start ({ vm, force }) {
   return this.getXapi(vm).startVm(vm._xapiId, force)
 }
 
