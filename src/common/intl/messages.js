@@ -1098,6 +1098,7 @@ const messages = {
   destroyTask: 'Destroy',
   cancelTasks: 'Cancel selceted tasks',
   destroyTasks: 'Destroy selected tasks',
+  pool: 'Pools',
   task: 'Tasks',
 
   // ---- Backup views ---

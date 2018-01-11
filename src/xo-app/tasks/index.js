@@ -60,8 +60,15 @@ export class TaskItem extends Component {
 
 const COLUMNS = [
   {
-    component: TaskItem,
     default: true,
+    itemRenderer: (task, userData) => (
+      <Link to={`/pools/${userData.pool.id}`}>{userData.pool.name_label}</Link>
+    ),
+    name: _('pool'),
+    sortCriteria: (task, userData) => userData.pool.name_label,
+  },
+  {
+    component: TaskItem,
     name: _('task'),
     sortCriteria: task => task.progress,
   },
@@ -179,6 +186,7 @@ export default class Tasks extends Component {
                   groupedActions={GROUPED_ACTIONS}
                   individualActions={INDIVIDUAL_ACTIONS}
                   stateUrlParam='s'
+                  userData={{ pool }}
                 />
               )
           )}
