@@ -1924,7 +1924,10 @@ export const deleteSshKey = key =>
   }).then(() => {
     const { preferences } = xo.user
     return _setUserPreferences({
-      sshKeys: filter(preferences && preferences.sshKeys, k => k.key !== key.id),
+      sshKeys: filter(
+        preferences && preferences.sshKeys,
+        k => k.key !== resolveId(key)
+      ),
     })
   }, noop)
 
@@ -1935,12 +1938,12 @@ export const deleteSshKeys = keys =>
       nKeys: keys.length,
     }),
   }).then(() => {
-    const sshKeys = xo.user.preferences.sshKeys
-    const idKeys = map(keys, 'id')
-    const newKeys = filter(sshKeys, sshKey => !includes(idKeys, sshKey.key))
-
+    const { preferences } = xo.user
     return _setUserPreferences({
-      sshKeys: newKeys,
+      sshKeys: filter(
+        preferences && preferences.sshKeys,
+        sshKey => !includes(resolveIds(keys), sshKey.key)
+      ),
     })
   }, noop)
 
