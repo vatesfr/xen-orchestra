@@ -1465,6 +1465,10 @@ const messages = {
   logNoStackTrace: 'No stack trace',
   logNoParams: 'No params',
   logDelete: 'Delete log',
+  logsDelete: 'Delete logs',
+  logDeleteMultiple: 'Delete log{nLogs, plural, one {} other {s}}',
+  logDeleteMultipleMessage:
+    'Are you sure you want to delete {nLogs, number} log{nLogs, plural, one {} other {s}}?',
   logDeleteAll: 'Delete all logs',
   logDeleteAllTitle: 'Delete all logs',
   logDeleteAllMessage: 'Are you sure you want to delete all the logs?',
