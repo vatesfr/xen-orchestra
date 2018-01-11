@@ -50,7 +50,7 @@ export default function proxyConsole (ws, vmConsole, sessionId) {
         closed = true
         debug('error from the XO client: %s', error.stack || error.message || error)
 
-        socket.close()
+        socket.end()
       })
       .on('message', data => {
         if (!closed) {
