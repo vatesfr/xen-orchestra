@@ -1096,10 +1096,10 @@ const messages = {
   xsTasks: 'Currently, there are not any pending XenServer tasks',
   cancelTask: 'Cancel',
   destroyTask: 'Destroy',
-  cancelTasks: 'Cancel selceted tasks',
+  cancelTasks: 'Cancel selected tasks',
   destroyTasks: 'Destroy selected tasks',
-  pool: 'Pools',
-  task: 'Tasks',
+  pool: 'Pool',
+  task: 'Task',
 
   // ---- Backup views ---
   backupSchedules: 'Schedules',

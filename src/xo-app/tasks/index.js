@@ -70,7 +70,7 @@ const COLUMNS = [
   {
     component: TaskItem,
     name: _('task'),
-    sortCriteria: task => task.progress,
+    sortCriteria: task => task.name_label,
   },
   {
     itemRenderer: task => (
@@ -81,6 +81,7 @@ const COLUMNS = [
         max='100'
       />
     ),
+    sortCriteria: 'progress',
   },
 ]
 

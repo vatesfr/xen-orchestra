@@ -1469,7 +1469,10 @@ export const cancelTasks = tasks =>
     title: _('cancelTasksModalTitle', { nTasks: tasks.length }),
     body: _('cancelTasksModalMessage', { nTasks: tasks.length }),
   }).then(
-    () => map(tasks, task => _call('task.cancel', { id: resolveId(task) })),
+    () =>
+      Promise.all(
+        map(tasks, task => _call('task.cancel', { id: resolveId(task) }))
+      ),
     noop
   )
 
@@ -1481,7 +1484,10 @@ export const destroyTasks = tasks =>
     title: _('destroyTasksModalTitle', { nTasks: tasks.length }),
     body: _('destroyTasksModalMessage', { nTasks: tasks.length }),
   }).then(
-    () => map(tasks, task => _call('task.destroy', { id: resolveId(task) })),
+    () =>
+      Promise.all(
+        map(tasks, task => _call('task.destroy', { id: resolveId(task) }))
+      ),
     noop
   )
 
