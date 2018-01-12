@@ -1939,11 +1939,11 @@ export const deleteSshKeys = keys =>
     }),
   }).then(() => {
     const { preferences } = xo.user
-    const idKeys = resolveIds(keys)
+    const keyIds = resolveIds(keys)
     return _setUserPreferences({
       sshKeys: filter(
         preferences && preferences.sshKeys,
-        sshKey => !includes(idKeys, sshKey.key)
+        sshKey => !includes(keyIds, sshKey.key)
       ),
     })
   }, noop)
