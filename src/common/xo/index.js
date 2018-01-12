@@ -9,6 +9,7 @@ import {
   assign,
   filter,
   forEach,
+  includes,
   isEmpty,
   isEqual,
   map,
@@ -1923,7 +1924,27 @@ export const deleteSshKey = key =>
   }).then(() => {
     const { preferences } = xo.user
     return _setUserPreferences({
-      sshKeys: filter(preferences && preferences.sshKeys, k => !isEqual(k, key)),
+      sshKeys: filter(
+        preferences && preferences.sshKeys,
+        k => k.key !== resolveId(key)
+      ),
+    })
+  }, noop)
+
+export const deleteSshKeys = keys =>
+  confirm({
+    title: _('deleteSshKeysConfirm', { nKeys: keys.length }),
+    body: _('deleteSshKeysConfirmMessage', {
+      nKeys: keys.length,
+    }),
+  }).then(() => {
+    const { preferences } = xo.user
+    const keyIds = resolveIds(keys)
+    return _setUserPreferences({
+      sshKeys: filter(
+        preferences && preferences.sshKeys,
+        sshKey => !includes(keyIds, sshKey.key)
+      ),
     })
   }, noop)
 

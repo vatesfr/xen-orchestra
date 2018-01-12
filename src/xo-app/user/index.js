@@ -4,14 +4,14 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import Icon from 'icon'
-import isEmpty from 'lodash/isEmpty'
-import map from 'lodash/map'
 import propTypes from 'prop-types-decorator'
 import React from 'react'
+import SortedTable from 'sorted-table'
 import { Text } from 'editable'
 import { alert } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { getLang } from 'selectors'
+import { map } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { Select } from 'form'
 import { Card, CardBlock, CardHeader } from 'card'
@@ -20,6 +20,7 @@ import {
   addSshKey,
   changePassword,
   deleteSshKey,
+  deleteSshKeys,
   editCustomFilter,
   removeCustomFilter,
   setDefaultHomeFilter,
@@ -226,11 +227,43 @@ class UserFilters extends Component {
 }
 
 // ===================================================================
+const COLUMNS = [
+  {
+    default: true,
+    itemRenderer: sshKey => sshKey.title,
+    name: _('title'),
+    sortCriteria: 'title',
+  },
+  {
+    itemRenderer: sshKey => <span style={SSH_KEY_STYLE}>{sshKey.key}</span>,
+    name: _('key'),
+  },
+]
+
+const INDIVIDUAL_ACTIONS = [
+  {
+    handler: deleteSshKey,
+    icon: 'delete',
+    label: _('deleteSshKey'),
+    level: 'danger',
+  },
+]
+
+const GROUPED_ACTIONS = [
+  {
+    handler: deleteSshKeys,
+    icon: 'delete',
+    label: _('deleteSshKeys'),
+    level: 'danger',
+  },
+]
 
 const SshKeys = addSubscriptions({
   user: subscribeCurrentUser,
 })(({ user }) => {
   const sshKeys = user && user.preferences && user.preferences.sshKeys
+
+  const sshKeysWithIds = map(sshKeys, sshKey => ({ ...sshKey, id: sshKey.key }))
 
   return (
     <div>
@@ -246,30 +279,13 @@ const SshKeys = addSubscriptions({
           </ActionButton>
         </CardHeader>
         <CardBlock>
-          {!isEmpty(sshKeys) ? (
-            <Container>
-              {map(sshKeys, (sshKey, key) => (
-                <Row key={key} className='pb-1'>
-                  <Col size={2}>
-                    <strong>{sshKey.title}</strong>
-                  </Col>
-                  <Col size={8} style={SSH_KEY_STYLE}>
-                    {sshKey.key}
-                  </Col>
-                  <Col size={2} className='text-xs-right'>
-                    <ActionButton
-                      icon='delete'
-                      handler={() => deleteSshKey(sshKey)}
-                    >
-                      {_('deleteSshKey')}
-                    </ActionButton>
-                  </Col>
-                </Row>
-              ))}
-            </Container>
-          ) : (
-            _('noSshKeys')
-          )}
+          <SortedTable
+            collection={sshKeysWithIds}
+            columns={COLUMNS}
+            groupedActions={GROUPED_ACTIONS}
+            individualActions={INDIVIDUAL_ACTIONS}
+            stateUrlParam='s'
+          />
         </CardBlock>
       </Card>
     </div>

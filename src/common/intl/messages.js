@@ -1440,6 +1440,7 @@ const messages = {
   sshKeys: 'SSH keys',
   newSshKey: 'New SSH key',
   deleteSshKey: 'Delete',
+  deleteSshKeys: 'Delete selected SSH keys',
   noSshKeys: 'No SSH keys',
   newSshKeyModalTitle: 'New SSH key',
   sshKeyErrorTitle: 'Invalid key',
@@ -1449,6 +1450,9 @@ const messages = {
   deleteSshKeyConfirm: 'Delete SSH key',
   deleteSshKeyConfirmMessage:
     'Are you sure you want to delete the SSH key {title}?',
+  deleteSshKeysConfirm: 'Delete SSH key{nKeys, plural, one {} other {s}}',
+  deleteSshKeysConfirmMessage:
+    'Are you sure you want to delete {nKeys, number} SSH key{nKeys, plural, one {} other {s}}?',
 
   // ----- Usage -----
   others: 'Others',
