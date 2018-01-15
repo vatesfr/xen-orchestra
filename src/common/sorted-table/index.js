@@ -518,8 +518,9 @@ export default class SortedTable extends Component {
       return this._setPage(1)
     }
 
-    if (page * itemsPerPage > n) {
-      return this._setPage(ceil(n / itemsPerPage))
+    const last = ceil(n / itemsPerPage)
+    if (page > last) {
+      return this._setPage(last)
     }
   }
 
