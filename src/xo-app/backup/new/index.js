@@ -7,7 +7,7 @@ import getEventValue from 'get-event-value'
 import Icon from 'icon'
 import Link from 'link'
 import moment from 'moment-timezone'
-import propTypes from 'prop-types-decorator'
+import PropTypes from 'prop-types'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
 import Scheduler, { SchedulePreview } from 'scheduling'
@@ -23,13 +23,12 @@ import { createSelector } from 'reselect'
 import { generateUiSchema } from 'xo-json-schema-input'
 import { SelectSubject } from 'select-objects'
 import { createGetObjectsOfType, getUser } from 'selectors'
+import { connectStore, EMPTY_OBJECT } from 'utils'
 import {
-  connectStore,
   constructPattern,
-  constructQueryString,
   destructPattern,
-  EMPTY_OBJECT,
-} from 'utils'
+  constructQueryString,
+} from 'smart-backup-pattern'
 import {
   filter,
   forEach,
@@ -290,25 +289,33 @@ const BACKUP_METHOD_TO_INFO = {
 
 const SAMPLE_SIZE_OF_MATCHING_VMS = 3
 
-@propTypes({
-  pattern: propTypes.object.isRequired,
-})
 @connectStore({
   vms: createGetObjectsOfType('VM'),
 })
 class SmartBackupPreview extends Component {
-  _createPredicate = createSelector(pattern => pattern, createPredicate)
+  static propTypes = {
+    pattern: PropTypes.object.isRequired,
+  }
+
+  _createPredicate = createSelector(
+    pattern => pickBy(pattern, val => val != null),
+    createPredicate
+  )
 
   _getMatchingVms = createSelector(
     () => this.props.pattern,
     () => this.props.vms,
-    (pattern, vms) =>
-      filter(vms, this._createPredicate(pickBy(pattern, val => val != null)))
+    (pattern, vms) => filter(vms, this._createPredicate(pattern))
   )
 
   render () {
     const matchingVms = this._getMatchingVms()
     const nMatchingVms = matchingVms.length
+    const sampleOfMatchingVms = sampleSize(
+      matchingVms,
+      SAMPLE_SIZE_OF_MATCHING_VMS
+    )
+    const queryString = constructQueryString(this.props.pattern)
 
     return (
       <Card>
@@ -319,25 +326,22 @@ class SmartBackupPreview extends Component {
           ) : (
             <div>
               <ul className='list-group'>
-                {map(
-                  sampleSize(matchingVms, SAMPLE_SIZE_OF_MATCHING_VMS),
-                  vm => (
-                    <li className='list-group-item' key={vm.id}>
-                      {renderXoItem(vm)}
-                    </li>
-                  )
-                )}
+                {map(sampleOfMatchingVms, vm => (
+                  <li className='list-group-item' key={vm.id}>
+                    {renderXoItem(vm)}
+                  </li>
+                ))}
               </ul>
               <br />
               <Tooltip content={_('redirectToMatchingVms')}>
                 <Link
-                  className={'pull-right'}
-                  target={'_blank'}
+                  className='pull-right'
+                  target='_blank'
                   to={{
                     pathname: '/home',
                     query: {
                       t: 'VM',
-                      s: constructQueryString(this.props.pattern),
+                      s: queryString,
                     },
                   }}
                 >
