@@ -10,7 +10,7 @@ import { SelectPool } from 'select-objects'
 import { Card, CardBlock, CardHeader } from 'card'
 import { connectStore, resolveId, resolveIds } from 'utils'
 import { Col, Container, Row } from 'grid'
-import { includes, isEmpty, keys, map } from 'lodash'
+import { filter, find, flatMap, includes, isEmpty, keys } from 'lodash'
 import {
   createGetObject,
   createGetObjectsOfType,
@@ -61,11 +61,15 @@ export class TaskItem extends Component {
 const COLUMNS = [
   {
     default: true,
-    itemRenderer: (task, userData) => (
-      <Link to={`/pools/${userData.pool.id}`}>{userData.pool.name_label}</Link>
-    ),
+    itemRenderer: (task, userData) => {
+      const pool = find(userData.pools, { id: task.$poolId })
+      return <Link to={`/pools/${pool.id}`}>{pool.name_label}</Link>
+    },
     name: _('pool'),
-    sortCriteria: (task, userData) => userData.pool.name_label,
+    sortCriteria: (task, userData) => {
+      const pool = find(userData.pools, { id: task.$poolId })
+      return pool.name_label
+    },
   },
   {
     component: TaskItem,
@@ -142,7 +146,7 @@ export default class Tasks extends Component {
 
   render () {
     const { props, state } = this
-    const { intl, nTasks, pendingTasksByPool } = props
+    const { intl, nTasks, pendingTasksByPool, pools } = props
 
     if (isEmpty(pendingTasksByPool)) {
       return (
@@ -164,6 +168,19 @@ export default class Tasks extends Component {
     }
 
     const { formatMessage } = intl
+
+    const _getTasks = createSelector(
+      () => pools,
+      pools =>
+        filter(
+          flatMap(
+            pools,
+            pool => this._showPoolTasks(pool) && pendingTasksByPool[pool.id]
+          ),
+          task => task !== false
+        )
+    )
+
     return (
       <Page
         header={HEADER}
@@ -177,20 +194,14 @@ export default class Tasks extends Component {
               onChange={this.linkState('pools')}
             />
           </Row>
-          {map(
-            props.pools,
-            pool =>
-              this._showPoolTasks(pool) && (
-                <SortedTable
-                  collection={pendingTasksByPool[pool.id]}
-                  columns={COLUMNS}
-                  groupedActions={GROUPED_ACTIONS}
-                  individualActions={INDIVIDUAL_ACTIONS}
-                  stateUrlParam='s'
-                  userData={{ pool }}
-                />
-              )
-          )}
+          <SortedTable
+            collection={_getTasks()}
+            columns={COLUMNS}
+            groupedActions={GROUPED_ACTIONS}
+            individualActions={INDIVIDUAL_ACTIONS}
+            stateUrlParam='s'
+            userData={{ pools }}
+          />
         </Container>
       </Page>
     )
