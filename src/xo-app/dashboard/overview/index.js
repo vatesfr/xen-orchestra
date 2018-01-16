@@ -545,7 +545,7 @@ export default class Overview extends Component {
   render () {
     const { props } = this
     const showResourceSets = !isEmpty(props.resourceSets) && !props.isAdmin
-    const showDefault = !isEmpty(props.permissions) || props.isAdmin
+    const authorized = !isEmpty(props.permissions) || props.isAdmin
 
     if (process.env.XOA_PLAN < 3) {
       return (
@@ -555,7 +555,7 @@ export default class Overview extends Component {
       )
     }
 
-    if (!showDefault && !showResourceSets) {
+    if (!authorized && !showResourceSets) {
       return <h2>{_('notEnoughPermissionsError')}</h2>
     }
 
