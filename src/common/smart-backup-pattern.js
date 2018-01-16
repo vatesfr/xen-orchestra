@@ -1,5 +1,5 @@
 import * as CM from 'complex-matcher'
-import { identity, isArray, map } from 'lodash'
+import { flatten, identity, map } from 'lodash'
 
 import { EMPTY_OBJECT } from './utils'
 
@@ -22,19 +22,20 @@ export const constructPattern = (
 }
 
 const parsePattern = pattern => {
-  const patternValues = map(pattern.values, value => {
-    return isArray(value) ? new CM.String(value[0]) : new CM.String(value)
-  })
+  const patternValues = flatten(
+    pattern.__not !== undefined ? pattern.__not.__or : pattern.__or
+  )
 
-  return pattern.not
-    ? new CM.Not(new CM.Or(patternValues))
-    : new CM.Or(patternValues)
+  const queryString = new CM.Or(
+    map(patternValues, array => new CM.String(array))
+  )
+  return pattern.__not !== undefined ? CM.Not(queryString) : queryString
 }
 
 export const constructQueryString = pattern => {
   const powerState = pattern.power_state
-  const pool = destructPattern(pattern.$pool)
-  const tags = destructPattern(pattern.tags)
+  const pool = pattern.$pool
+  const tags = pattern.tags
 
   const filter = []
 
