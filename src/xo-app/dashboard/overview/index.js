@@ -3,7 +3,7 @@ import ButtonGroup from 'button-group'
 import ChartistGraph from 'react-chartist'
 import Component from 'base-component'
 import Icon from 'icon'
-import propTypes from 'prop-types-decorator'
+import PropTypes from 'prop-types'
 import Link, { BlockLink } from 'link'
 import HostsPatchesTable from 'hosts-patches-table'
 import React from 'react'
@@ -41,10 +41,11 @@ const PIE_GRAPH_OPTIONS = { donut: true, donutWidth: 40, showLabel: false }
 
 // ===================================================================
 
-@propTypes({
-  hosts: propTypes.object.isRequired,
-})
 class PatchesCard extends Component {
+  static propTypes = {
+    hosts: PropTypes.object.isRequired,
+  }
+
   _getContainer = () => this.refs.container
 
   render () {
@@ -67,11 +68,12 @@ class PatchesCard extends Component {
   }
 }
 
-@propTypes({
-  resourceSet: propTypes.object.isRequired,
-})
 @injectIntl
 class ResourceSetCard extends Component {
+  static propTypes = {
+    resourceSet: PropTypes.object.isRequired,
+  }
+
   _getQuotas = createSelector(
     () => this.props.resourceSet.limits,
     limits => {

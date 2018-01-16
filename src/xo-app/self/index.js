@@ -16,7 +16,7 @@ import isEmpty from 'lodash/isEmpty'
 import keys from 'lodash/keys'
 import map from 'lodash/map'
 import mapKeys from 'lodash/mapKeys'
-import propTypes from 'prop-types-decorator'
+import PropTypes from 'prop-types'
 import React from 'react'
 import remove from 'lodash/remove'
 import renderXoItem from 'render-xo-item'
@@ -73,10 +73,7 @@ const HEADER = (
 
 // ===================================================================
 
-const Hosts = propTypes({
-  eligibleHosts: propTypes.array.isRequired,
-  excludedHosts: propTypes.array.isRequired,
-})(({ eligibleHosts, excludedHosts }) => (
+const Hosts = ({ eligibleHosts, excludedHosts }) => (
   <div>
     <Row>
       <Col mediumSize={6}>
@@ -118,14 +115,15 @@ const Hosts = propTypes({
       </Col>
     </Row>
   </div>
-))
+)
+
+Hosts.propTypes = {
+  eligibleHosts: PropTypes.array.isRequired,
+  excludedHosts: PropTypes.array.isRequired,
+}
 
 // ===================================================================
 
-@propTypes({
-  onSave: propTypes.func,
-  resourceSet: propTypes.object,
-})
 @connectStore(() => {
   const getHosts = createGetObjectsOfType('host').sort()
   const getHostsByPool = getHosts.groupBy('$pool')
@@ -136,6 +134,11 @@ const Hosts = propTypes({
   }
 })
 export class Edit extends Component {
+  static propTypes = {
+    onSave: PropTypes.func,
+    resourceSet: PropTypes.object,
+  }
+
   constructor (props) {
     super(props)
 
