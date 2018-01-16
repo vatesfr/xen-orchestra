@@ -1,4 +1,5 @@
 import { format } from 'json-rpc-peer'
+import {ignoreErrors} from 'promise-toolbox'
 
 // ===================================================================
 
@@ -108,8 +109,17 @@ stop.resolve = {
 
 // -------------------------------------------------------------------
 
-export function detach ({ host }) {
-  return this.getXapi(host).ejectHostFromPool(host._xapiId)
+export async function detach ({host}) {
+  const xapi = this.getXapi(host)
+  await xapi.ejectHostFromPool(host._xapiId)
+
+  const { user, password } = xapi._auth
+
+  this.registerXenServer({
+    host: host.address,
+    user,
+    password,
+  }).then(server => this.connectXenServer(server.id))::ignoreErrors()
 }
 
 detach.description = 'eject the host of a pool'

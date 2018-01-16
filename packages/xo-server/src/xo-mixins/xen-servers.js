@@ -1,7 +1,7 @@
 import { ignoreErrors } from 'promise-toolbox'
 import { noSuchObject } from 'xo-common/api-errors'
 import { parseUrl } from 'xen-api'
-import { some } from 'lodash'
+import { isEqual, some } from 'lodash'
 
 import Xapi from '../xapi'
 import xapiObjectToXo from '../xapi-object-to-xo'
@@ -334,7 +334,7 @@ export default class {
       const servers = await this.getAllXenServers()
       const serverExists = some(
         servers,
-        server => server.host === url.hostname
+        server => isEqual(parseUrl(server.host), url)
       )
 
       if (serverExists) {
@@ -351,7 +351,7 @@ export default class {
         if (redirect && await redirectedToAnExistingServer) {
           error = {
             code: 'Connection failed',
-            message: 'host is slave and the master is already connected'
+            message: 'host is slave and the master is already connected',
           }
 
           await this.disconnectXenServer(id)
