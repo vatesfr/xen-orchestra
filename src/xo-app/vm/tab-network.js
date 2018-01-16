@@ -510,8 +510,8 @@ export default class TabNetwork extends BaseComponent {
             {!isEmpty(vm.addresses) ? (
               <span>
                 <h4>{_('vifIpAddresses')}</h4>
-                {map(vm.addresses, address => (
-                  <span key={address} className='tag tag-info tag-ip'>
+                {map(vm.addresses, (address, key) => (
+                  <span key={key} className='tag tag-info tag-ip'>
                     {address}
                   </span>
                 ))}
