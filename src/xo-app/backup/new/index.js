@@ -306,20 +306,19 @@ class SmartBackupPreview extends Component {
     (vms, predicate) => filter(vms, predicate)
   )
 
-  _getMatchingVms = createSelector(
+  _getSampleOfMatchingVms = createSelector(this._getMatchingVms, vms =>
+    sampleSize(vms, SAMPLE_SIZE_OF_MATCHING_VMS)
+  )
+
+  _getQueryString = createSelector(
     () => this.props.pattern,
-    () => this.props.vms,
-    (pattern, vms) => filter(vms, this._createPredicate(pattern))
+    constructQueryString
   )
 
   render () {
-    const matchingVms = this._getMatchingVms()
-    const nMatchingVms = matchingVms.length
-    const sampleOfMatchingVms = sampleSize(
-      matchingVms,
-      SAMPLE_SIZE_OF_MATCHING_VMS
-    )
-    const queryString = constructQueryString(this.props.pattern)
+    const nMatchingVms = this._getMatchingVms().length
+    const sampleOfMatchingVms = this._getSampleOfMatchingVms()
+    const queryString = this._getQueryString()
 
     return (
       <Card>
