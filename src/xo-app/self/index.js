@@ -1,9 +1,10 @@
-import _ from 'intl'
+import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ChartistGraph from 'react-chartist'
 import Collapse from 'collapse'
 import Component from 'base-component'
 import defined from 'xo-defined'
+import { injectIntl } from 'react-intl'
 import differenceBy from 'lodash/differenceBy'
 import filter from 'lodash/filter'
 import forEach from 'lodash/forEach'
@@ -595,7 +596,10 @@ class ResourceSet extends Component {
       subjects,
       objectsByType,
     } = resourceSet
-    const labels = [ formatMessage(messages.availableResourceLabel), formatMessage(messages.usedResourceLabel) ]
+    const labels = [
+      formatMessage(messages.availableResourceLabel),
+      formatMessage(messages.usedResourceLabel),
+    ]
 
     return [
       <li key='subjects' className='list-group-item'>
@@ -645,7 +649,7 @@ class ResourceSet extends Component {
                     <ChartistGraph
                       data={{
                         labels,
-                        series: [ cpus.available, cpus.total - cpus.available ]
+                        series: [cpus.available, cpus.total - cpus.available],
                       }}
                       options={{
                         donut: true,
@@ -657,7 +661,7 @@ class ResourceSet extends Component {
                     <p className='text-xs-center'>
                       {_('resourceSetQuota', {
                         total: cpus.total.toString(),
-                        usage: (cpus.total - cpus.available).toString()
+                        usage: (cpus.total - cpus.available).toString(),
                       })}
                     </p>
                   </div>
@@ -678,7 +682,10 @@ class ResourceSet extends Component {
                     <ChartistGraph
                       data={{
                         labels,
-                        series: [ memory.available, memory.total - memory.available ]
+                        series: [
+                          memory.available,
+                          memory.total - memory.available,
+                        ],
                       }}
                       options={{
                         donut: true,
@@ -690,7 +697,7 @@ class ResourceSet extends Component {
                     <p className='text-xs-center'>
                       {_('resourceSetQuota', {
                         total: formatSize(memory.total),
-                        usage: formatSize(memory.total - memory.available)
+                        usage: formatSize(memory.total - memory.available),
                       })}
                     </p>
                   </div>
@@ -711,7 +718,7 @@ class ResourceSet extends Component {
                     <ChartistGraph
                       data={{
                         labels,
-                        series: [ disk.available, disk.total - disk.available ]
+                        series: [disk.available, disk.total - disk.available],
                       }}
                       options={{
                         donut: true,
@@ -723,7 +730,7 @@ class ResourceSet extends Component {
                     <p className='text-xs-center'>
                       {_('resourceSetQuota', {
                         total: formatSize(disk.total),
-                        usage: formatSize(disk.total - disk.available)
+                        usage: formatSize(disk.total - disk.available),
                       })}
                     </p>
                   </div>
