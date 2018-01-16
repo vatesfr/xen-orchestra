@@ -297,9 +297,13 @@ class SmartBackupPreview extends Component {
     pattern: PropTypes.object.isRequired,
   }
 
-  _createPredicate = createSelector(
-    pattern => pickBy(pattern, val => val != null),
-    createPredicate
+  _getMatchingVms = createSelector(
+    () => this.props.vms,
+    createSelector(
+      () => this.props.pattern,
+      pattern => createPredicate(pickBy(pattern, val => val != null))
+    ),
+    (vms, predicate) => filter(vms, predicate)
   )
 
   _getMatchingVms = createSelector(
