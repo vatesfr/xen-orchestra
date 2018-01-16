@@ -88,7 +88,7 @@ export default class About extends Component {
                   <p className='text-muted'>{_('bugTrackerText')}</p>
                 </Col>
                 <Col mediumSize={6}>
-                  <a href='https://xen-orchestra.com/forum'>
+                  <a href='https://xen-orchestra.com/forum/'>
                     <Icon icon='group' size={4} />
                     <h4>{_('community')}</h4>
                   </a>
@@ -100,7 +100,7 @@ export default class About extends Component {
             <div>
               <Row>
                 <Col>
-                  <Link to='/xoa-update'>
+                  <Link to='/xoa/update'>
                     <h2>{_('freeTrial')}</h2>
                     {_('freeTrialNow')}
                   </Link>

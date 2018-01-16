@@ -32,7 +32,7 @@ const Upgrade = propTypes({
                 <Icon icon='plan-upgrade' /> {_('upgradeNow')}
               </a>{' '}
               {_('or')}&nbsp;
-              <Link className='btn btn-success btn-lg' to='/xoa-update'>
+              <Link className='btn btn-success btn-lg' to='/xoa/update'>
                 <Icon icon='plan-trial' /> {_('tryIt')}
               </Link>
             </p>
