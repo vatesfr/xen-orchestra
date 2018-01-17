@@ -1,11 +1,12 @@
-const { NODE_ENV = 'development' } = process.env
+const dependencies = require('./package').dependencies || {}
+
+const NODE_ENV = process.env.NODE_ENV || 'development'
 const __PROD__ = NODE_ENV === 'production'
 const __TEST__ = NODE_ENV === 'test'
 
 module.exports = {
   comments: !__PROD__,
-  compact: __PROD__,
-  ignore: __TEST__ ? undefined : [ /\.spec\.js$/ ],
+  ignore: __TEST__ ? undefined : [/\.spec\.js$/],
   plugins: ['lodash'],
   presets: [
     [
@@ -20,7 +21,7 @@ module.exports = {
             node: '4',
           }
           : { node: 'current' },
-        useBuiltIns: 'usage',
+        useBuiltIns: '@babel/polyfill' in dependencies && 'usage',
       },
     ],
   ],
