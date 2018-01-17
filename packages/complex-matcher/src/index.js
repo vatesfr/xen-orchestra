@@ -141,6 +141,23 @@ export class Not extends Node {
   }
 }
 
+export class NumberNode extends Node {
+  constructor (value) {
+    super()
+
+    this.value = value
+  }
+
+  match (value) {
+    return value === this.value
+  }
+
+  toString () {
+    return String(this.value)
+  }
+}
+export { NumberNode as Number }
+
 export class Property extends Node {
   constructor (name, child) {
     super()
@@ -159,9 +176,10 @@ export class Property extends Node {
 }
 
 const escapeChar = char => '\\' + char
-const formatString = value => isRawString(value)
-  ? value
-  : `"${value.replace(/\\|"/g, escapeChar)}"`
+const formatString = value =>
+  Number.isNaN(+value)
+    ? isRawString(value) ? value : `"${value.replace(/\\|"/g, escapeChar)}"`
+    : `"${value}"`
 
 export class StringNode extends Node {
   constructor (value) {
@@ -214,14 +232,15 @@ export class TruthyProperty extends Node {
 
 // terms          = null || term+
 // *null          = /$/
-// term           = ws (and | or | not | property | truthyProperty | string) ws
+// term           = ws (and | or | not | property | truthyProperty | numberOrString) ws
 // ws             = ' '*
 // *and           = "(" terms ")"
 // *or            = "|" ws "(" terms ")"
 // *not           = "!" term
 // *property      = string ws ":" term
 // *truthyProperty = string ws "?"
-// *string        = quotedString | rawString
+// numberOrString = string
+// string         = quotedString | rawString
 // quotedString   = "\"" ( /[^"\]/ | "\\\\" | "\\\"" )+
 // rawString      = /[a-z0-9-_.]+/i
 export const parse = invoke(() => {
@@ -263,7 +282,7 @@ export const parse = invoke(() => {
       parseNot() ||
       parseProperty() ||
       parseTruthyProperty() ||
-      parseString()
+      parseNumberOrString()
     if (child) {
       parseWs()
       return child
@@ -308,16 +327,27 @@ export const parse = invoke(() => {
       input[i++] === ':' &&
       (child = parseTerm())
     ) {
-      return new Property(name.value, child)
+      return new Property(name, child)
     }
   })
+  const parseNumberOrString = () => {
+    let str = parseQuotedString()
+    if (str !== undefined) {
+      return new StringNode(str)
+    }
+    str = parseRawString()
+    if (str !== undefined) {
+      const asNum = +str
+      return Number.isNaN(asNum) ? new StringNode(str) : new NumberNode(asNum)
+    }
+  }
   const parseString = () => {
     let value
     if (
       (value = parseQuotedString()) !== undefined ||
       (value = parseRawString()) !== undefined
     ) {
-      return new StringNode(value)
+      return value
     }
   }
   const parseQuotedString = backtrace(() => {
@@ -350,7 +380,7 @@ export const parse = invoke(() => {
   const parseTruthyProperty = backtrace(() => {
     let name
     if ((name = parseString()) && parseWs() && input[i++] === '?') {
-      return new TruthyProperty(name.value)
+      return new TruthyProperty(name)
     }
   })
 

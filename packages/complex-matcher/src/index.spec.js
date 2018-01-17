@@ -24,6 +24,20 @@ describe('parse', () => {
   it('supports an empty string', () => {
     expect(parse('')).toEqual(new Null())
   })
+
+  it('differentiate between numbers and numbers in strings', () => {
+    let node
+
+    node = parse('32')
+    expect(node.match(32)).toBe(true)
+    expect(node.match('32')).toBe(false)
+    expect(node.toString()).toBe('32')
+
+    node = parse('"32"')
+    expect(node.match(32)).toBe(false)
+    expect(node.match('32')).toBe(true)
+    expect(node.toString()).toBe('"32"')
+  })
 })
 
 describe('setPropertyClause', () => {
