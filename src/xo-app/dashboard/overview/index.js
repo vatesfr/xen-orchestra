@@ -549,30 +549,24 @@ export default class Overview extends Component {
     const showResourceSets = !isEmpty(props.resourceSets) && !props.isAdmin
     const authorized = !isEmpty(props.permissions) || props.isAdmin
 
-    if (process.env.XOA_PLAN < 3) {
-      return (
-        <Container>
-          <Upgrade place='dashboard' available={3} />
-        </Container>
-      )
-    }
-
     if (!authorized && !showResourceSets) {
-      return <h2>{_('notEnoughPermissionsError')}</h2>
+      return <em>{_('notEnoughPermissionsError')}</em>
     }
 
     return (
-      <Container>
-        {showResourceSets ? (
-          map(props.resourceSets, resourceSet => (
-            <Row key={resourceSet.id}>
-              <ResourceSetCard resourceSet={resourceSet} />
-            </Row>
-          ))
-        ) : (
-          <DefaultCard isAdmin={props.isAdmin} />
-        )}
-      </Container>
+      <Upgrade place='dashboard' required={3}>
+        <Container>
+          {showResourceSets ? (
+            map(props.resourceSets, resourceSet => (
+              <Row key={resourceSet.id}>
+                <ResourceSetCard resourceSet={resourceSet} />
+              </Row>
+            ))
+          ) : (
+            <DefaultCard isAdmin={props.isAdmin} />
+          )}
+        </Container>
+      </Upgrade>
     )
   }
 }
