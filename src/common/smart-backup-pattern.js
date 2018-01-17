@@ -49,5 +49,5 @@ export const constructQueryString = pattern => {
     filter.push(new CM.Property('tags', parsePattern(tags)))
   }
 
-  return new CM.And(filter).toString()
+  return filter.length !== 0 ? new CM.And(filter).toString() : ''
 }

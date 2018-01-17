@@ -37,7 +37,6 @@ import {
   mapValues,
   noop,
   pickBy,
-  sampleSize,
   startsWith,
 } from 'lodash'
 
@@ -307,7 +306,7 @@ class SmartBackupPreview extends Component {
   )
 
   _getSampleOfMatchingVms = createSelector(this._getMatchingVms, vms =>
-    sampleSize(vms, SAMPLE_SIZE_OF_MATCHING_VMS)
+    vms.slice(0, SAMPLE_SIZE_OF_MATCHING_VMS)
   )
 
   _getQueryString = createSelector(
@@ -788,7 +787,6 @@ export default class New extends Component {
               <Container>
                 <Row>
                   <Col>
-                    <SchedulePreview cronPattern={scheduling.cronPattern} />
                     {process.env.XOA_PLAN < 4 &&
                     backupInfo &&
                     process.env.XOA_PLAN <
