@@ -1,7 +1,7 @@
 import BaseComponent from 'base-component'
 import every from 'lodash/every'
-import forEach from 'lodash/forEach'
 import find from 'lodash/find'
+import forEach from 'lodash/forEach'
 import map from 'lodash/map'
 import React from 'react'
 import store from 'store'
@@ -11,24 +11,16 @@ import ChooseSrForEachVdisModal from '../choose-sr-for-each-vdis-modal'
 import invoke from '../../invoke'
 import SingleLineRow from '../../single-line-row'
 import { Col } from '../../grid'
+import { connectStore, mapPlus, resolveId, resolveIds } from '../../utils'
 import { getDefaultNetworkForVif } from '../utils'
-import {
-  SelectHost,
-  SelectNetwork
-} from '../../select-objects'
-import {
-  connectStore,
-  mapPlus,
-  resolveId,
-  resolveIds
-} from '../../utils'
+import { isSrShared } from '../'
+import { SelectHost, SelectNetwork } from '../../select-objects'
 import {
   createGetObjectsOfType,
   createPicker,
   createSelector,
   getObject,
 } from '../../selectors'
-import { isSrShared } from 'xo'
 
 import { isSrWritable } from '../'
 
@@ -77,7 +69,7 @@ export default class MigrateVmModalBody extends BaseComponent {
 
     this.state = {
       mapVifsNetworks: {},
-      targetSrs: {}
+      targetSrs: {},
     }
 
     this._getHostPredicate = createSelector(
@@ -134,11 +126,11 @@ export default class MigrateVmModalBody extends BaseComponent {
 
   get value () {
     return {
-      targetHost: this.state.host && this.state.host.id,
-      sr: resolveId(this.state.targetSrs.mainSr),
       mapVdisSrs: resolveIds(this.state.targetSrs.mapVdisSrs),
       mapVifsNetworks: this.state.mapVifsNetworks,
       migrationNetwork: this.state.migrationNetworkId,
+      sr: resolveId(this.state.targetSrs.mainSr),
+      targetHost: this.state.host && this.state.host.id,
     }
   }
 
@@ -182,7 +174,7 @@ export default class MigrateVmModalBody extends BaseComponent {
         intraPool,
         mapVifsNetworks: undefined,
         migrationNetwork: undefined,
-        targetSrs: {}
+        targetSrs: {},
       })
       return
     }
@@ -214,7 +206,7 @@ export default class MigrateVmModalBody extends BaseComponent {
       intraPool,
       mapVifsNetworks: defaultNetworksForVif,
       migrationNetworkId: defaultMigrationNetworkId,
-      targetSrs: {}
+      targetSrs: {},
     })
   }
 
@@ -229,7 +221,7 @@ export default class MigrateVmModalBody extends BaseComponent {
       intraPool,
       mapVifsNetworks,
       migrationNetworkId,
-      targetSrs
+      targetSrs,
     } = this.state
     return (
       <div>
@@ -251,11 +243,11 @@ export default class MigrateVmModalBody extends BaseComponent {
               <SingleLineRow>
                 <Col size={12}>
                   <ChooseSrForEachVdisModal
-		    mainSrPredicate={this._getSrPredicate()}
-		    onChange={this.linkState('targetSrs')}
-		    value={targetSrs}
-		    vdis={vdis}
-		  />
+                    mainSrPredicate={this._getSrPredicate()}
+                    onChange={this.linkState('targetSrs')}
+                    value={targetSrs}
+                    vdis={vdis}
+                  />
                 </Col>
               </SingleLineRow>
             </div>

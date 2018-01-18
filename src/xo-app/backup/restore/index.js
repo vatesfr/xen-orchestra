@@ -135,7 +135,12 @@ const doImport = ({ backup, targetSrs, start }) => {
   }
   info(_('importBackupTitle'), _('importBackupMessage'))
   try {
-    const importPromise = importMethods[backup.type]({remote: backup.remoteId, sr: targetSrs.mainSr, file: backup.path, mapVdisSrs: targetSrs.mapVdisSrs}).then(id => {
+    const importPromise = importMethods[backup.type]({
+      file: backup.path,
+      mapVdisSrs: targetSrs.mapVdisSrs,
+      remote: backup.remoteId,
+      sr: targetSrs.mainSr,
+    }).then(id => {
       return id
     })
     if (start) {
@@ -148,7 +153,7 @@ const doImport = ({ backup, targetSrs, start }) => {
 
 class _ModalBody extends Component {
   state = {
-    targetSrs: {}
+    targetSrs: {},
   }
 
   get value () {
@@ -172,15 +177,24 @@ class _ModalBody extends Component {
     const oldMainSr = this.state.targetSrs.mainSr
     const newMainSr = props.mainSr
 
-    const targetSrs = {...props}
+    const targetSrs = { ...props }
 
     // This code fixes the incompatibilities between the mapVdisSrs values
     if (oldMainSr !== newMainSr) {
-      if (oldMainSr == null || newMainSr == null || oldMainSr.$pool !== newMainSr.$pool) {
+      if (
+        oldMainSr == null ||
+        newMainSr == null ||
+        oldMainSr.$pool !== newMainSr.$pool
+      ) {
         targetSrs.mapVdisSrs = {}
       } else if (!newMainSr.shared) {
         forEach(targetSrs.mapVdisSrs, (sr, vdi) => {
-          if (sr != null && newMainSr !== sr && sr.$container !== newMainSr.$container && !sr.shared) {
+          if (
+            sr != null &&
+            newMainSr !== sr &&
+            sr.$container !== newMainSr.$container &&
+            !sr.shared
+          ) {
             delete targetSrs.mapVdisSrs[vdi]
           }
         })
@@ -194,24 +208,29 @@ class _ModalBody extends Component {
     const { props, state } = this
     const vdis = state.backup && state.backup.vdis
 
-    return <div>
-      <SelectPlainObject
-        onChange={this.linkState('backup')}
-        optionKey='path'
-        optionRenderer={backupOptionRenderer}
-        options={props.backups}
-        placeholder={props.intl.formatMessage(messages.importBackupModalSelectBackup)}
-      />
-      <br />
-      <ChooseSrForEachVdisModal
-        onChange={this._onSrsChange}
-        srPredicate={this._getSrPredicate()}
-        value={state.targetSrs}
-        vdis={vdis}
-      />
-      <br />
-      <Toggle onChange={this.linkState('start')} /> {_('importBackupModalStart')}
-    </div>
+    return (
+      <div>
+        <SelectPlainObject
+          onChange={this.linkState('backup')}
+          optionKey='path'
+          optionRenderer={backupOptionRenderer}
+          options={props.backups}
+          placeholder={props.intl.formatMessage(
+            messages.importBackupModalSelectBackup
+          )}
+        />
+        <br />
+        <ChooseSrForEachVdisModal
+          onChange={this._onSrsChange}
+          srPredicate={this._getSrPredicate()}
+          value={state.targetSrs}
+          vdis={vdis}
+        />
+        <br />
+        <Toggle onChange={this.linkState('start')} />{' '}
+        {_('importBackupModalStart')}
+      </div>
+    )
   }
 }
 
