@@ -13,7 +13,6 @@ import SingleLineRow from '../../single-line-row'
 import { Col } from '../../grid'
 import { connectStore, mapPlus, resolveId, resolveIds } from '../../utils'
 import { getDefaultNetworkForVif } from '../utils'
-import { isSrShared } from '../'
 import { SelectHost, SelectNetwork } from '../../select-objects'
 import {
   createGetObjectsOfType,
@@ -22,7 +21,7 @@ import {
   getObject,
 } from '../../selectors'
 
-import { isSrWritable } from '../'
+import { isSrShared, isSrWritable } from '../'
 
 import styles from './index.css'
 
