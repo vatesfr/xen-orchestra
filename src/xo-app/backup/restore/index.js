@@ -1,34 +1,34 @@
 import _, { messages } from 'intl'
+import React from 'react'
+import { FormattedDate, injectIntl } from 'react-intl'
+import {
+  every,
+  filter,
+  find,
+  forEach,
+  groupBy,
+  isEmpty,
+  map,
+  mapValues,
+  reduce,
+  uniq,
+} from 'lodash'
+
 import ChooseSrForEachVdisModal from 'xo/choose-sr-for-each-vdis-modal'
 import Component from 'base-component'
-import every from 'lodash/every'
-import filter from 'lodash/filter'
-import find from 'lodash/find'
-import forEach from 'lodash/forEach'
-import groupBy from 'lodash/groupBy'
 import Icon from 'icon'
-import isEmpty from 'lodash/isEmpty'
-import map from 'lodash/map'
-import mapValues from 'lodash/mapValues'
-import moment from 'moment'
-import React from 'react'
-import reduce from 'lodash/reduce'
 import SortedTable from 'sorted-table'
-import uniq from 'lodash/uniq'
 import Upgrade from 'xoa-upgrade'
-import { confirm } from 'modal'
-import { createSelector } from 'selectors'
 import { addSubscriptions, noop } from 'utils'
+import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
-import { FormattedDate, injectIntl } from 'react-intl'
+import { createSelector } from 'selectors'
 import { info, error } from 'notification'
 import { SelectPlainObject, Toggle } from 'form'
-
 import {
   importBackup,
   importDeltaBackup,
   isSrWritable,
-  listRemote,
   listRemoteBackups,
   startVm,
   subscribeRemotes,
@@ -37,8 +37,6 @@ import {
 // Can 2 SRs on the same pool have 2 VDIs used by the same VM
 const areSrsCompatible = (sr1, sr2) =>
   sr1.shared || sr2.shared || sr1.$container === sr2.$container
-
-const parseDate = date => +moment(date, 'YYYYMMDDTHHmmssZ').format('x')
 
 const backupOptionRenderer = backup => (
   <span>
@@ -131,7 +129,7 @@ const doImport = ({ backup, targetSrs, start }) => {
   }
   const importMethods = {
     delta: importDeltaBackup,
-    simple: importBackup,
+    xva: importBackup,
   }
   info(_('importBackupTitle'), _('importBackupMessage'))
   try {
@@ -251,60 +249,38 @@ export default class Restore extends Component {
   }
 
   _listAll = async remotes => {
-    const remotesInfo = await Promise.all(
-      map(remotes, async remote => ({
-        files: await listRemote(remote.id),
-        backupsInfo: await listRemoteBackups(remote.id),
-      }))
-    )
+    const remotesBackups = await Promise.all(map(remotes, listRemoteBackups))
 
     const backupInfoByVm = {}
 
-    forEach(remotesInfo, (remoteInfo, index) => {
-      const remote = remotes[index]
+    forEach(remotesBackups, (remoteBackups, index) => {
+      const { id: remoteId, name: remoteName } = remotes[index]
 
-      forEach(remoteInfo.files, file => {
-        let backup
-        const deltaInfo = /^vm_delta_(.*)_([^/]+)\/([^_]+)_(.*)$/.exec(file)
+      forEach(remoteBackups, backupInfo => {
+        const { datetime, disks, id, name, tag, type, uuid } = backupInfo
 
-        if (deltaInfo) {
-          const [, tag, id, date, name] = deltaInfo
-          const vdis = find(remoteInfo.backupsInfo, {
-            id: `${file}.json`,
-          }).disks
+        const backup = {
+          date: datetime * 1000,
+          name,
+          remoteId,
+          remoteName,
+          tag,
+          type,
+        }
 
-          backup = {
-            type: 'delta',
-            date: parseDate(date),
-            id,
-            name,
-            path: file,
-            tag,
-            remoteId: remote.id,
-            remoteName: remote.name,
-            vdis,
-          }
+        if (type === 'delta') {
+          backup.path = /^(.*)\..*$/.exec(id)[1]
+          backup.id = uuid
+          backup.vdis = disks
         } else {
-          const backupInfo = /^([^_]+)_([^_]+)_(.*)\.xva$/.exec(file)
-          if (backupInfo) {
-            const [, date, tag, name] = backupInfo
-            backup = {
-              type: 'simple',
-              date: parseDate(date),
-              name,
-              path: file,
-              tag,
-              remoteId: remote.id,
-              remoteName: remote.name,
-            }
-          }
+          backup.path = id
         }
-        if (backup) {
-          backupInfoByVm[backup.name] || (backupInfoByVm[backup.name] = [])
-          backupInfoByVm[backup.name].push(backup)
-        }
+
+        backupInfoByVm[backup.name] || (backupInfoByVm[backup.name] = [])
+        backupInfoByVm[backup.name].push(backup)
       })
     })
+
     forEach(backupInfoByVm, (backups, vm) => {
       backupInfoByVm[vm] = {
         backups,
@@ -318,7 +294,7 @@ export default class Restore extends Component {
         ),
         simpleCount: reduce(
           backups,
-          (sum, b) => (b.type === 'simple' ? ++sum : sum),
+          (sum, b) => (b.type === 'xva' ? ++sum : sum),
           0
         ),
         deltaCount: reduce(
