@@ -249,9 +249,7 @@ export default class Restore extends Component {
   }
 
   _listAll = async remotes => {
-    const remotesBackups = await Promise.all(
-      map(remotes, remote => listRemoteBackups(remote.id))
-    )
+    const remotesBackups = await Promise.all(map(remotes, listRemoteBackups))
 
     const backupInfoByVm = {}
 
