@@ -5,7 +5,6 @@ import every from 'lodash/every'
 import filter from 'lodash/filter'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
-import getEventValue from 'get-event-value'
 import groupBy from 'lodash/groupBy'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
@@ -125,8 +124,8 @@ const openImportModal = ({ backups }) =>
     body: <ImportModalBody vmName={backups[0].name} backups={backups} />,
   }).then(doImport)
 
-const doImport = ({ backup, mainSr, start, mapVdisSrs }) => {
-  if (!mainSr || !backup) {
+const doImport = ({ backup, targetSrs, start }) => {
+  if (targetSrs.mainSr === undefined || backup === undefined) {
     error(_('backupRestoreErrorTitle'), _('backupRestoreErrorMessage'))
     return
   }
@@ -137,10 +136,10 @@ const doImport = ({ backup, mainSr, start, mapVdisSrs }) => {
   info(_('importBackupTitle'), _('importBackupMessage'))
   try {
     const importPromise = importMethods[backup.type]({
-      remote: backup.remoteId,
-      sr: mainSr,
       file: backup.path,
-      mapVdisSrs,
+      mapVdisSrs: targetSrs.mapVdisSrs,
+      remote: backup.remoteId,
+      sr: targetSrs.mainSr,
     }).then(id => {
       return id
     })
@@ -153,12 +152,8 @@ const doImport = ({ backup, mainSr, start, mapVdisSrs }) => {
 }
 
 class _ModalBody extends Component {
-  constructor () {
-    super()
-
-    this.state = {
-      mapVdisSrs: {},
-    }
+  state = {
+    targetSrs: {},
   }
 
   get value () {
@@ -166,52 +161,52 @@ class _ModalBody extends Component {
   }
 
   _getSrPredicate = createSelector(
-    () => this.state.sr,
-    () => this.state.mapVdisSrs,
-    (defaultSr, mapVdisSrs) => sr =>
-      sr !== defaultSr &&
+    () => this.state.targetSrs.mainSr,
+    () => this.state.targetSrs.mapVdisSrs,
+    (mainSr, mapVdisSrs) => sr =>
       isSrWritable(sr) &&
-      defaultSr.$pool === sr.$pool &&
-      areSrsCompatible(defaultSr, sr) &&
+      mainSr.$pool === sr.$pool &&
+      areSrsCompatible(mainSr, sr) &&
       every(
         mapVdisSrs,
         selectedSr => selectedSr == null || areSrsCompatible(selectedSr, sr)
       )
   )
 
-  _onChangeDefaultSr = event => {
-    const oldSr = this.state.sr
-    const newSr = getEventValue(event)
+  _onSrsChange = props => {
+    const oldMainSr = this.state.targetSrs.mainSr
+    const newMainSr = props.mainSr
 
-    if (oldSr == null || newSr == null || oldSr.$pool !== newSr.$pool) {
-      this.setState({
-        mapVdisSrs: {},
-      })
-    } else if (!newSr.shared) {
-      const mapVdisSrs = { ...this.state.mapVdisSrs }
-      forEach(mapVdisSrs, (sr, vdi) => {
-        if (
-          sr != null &&
-          newSr !== sr &&
-          sr.$container !== newSr.$container &&
-          !sr.shared
-        ) {
-          delete mapVdisSrs[vdi]
-        }
-      })
-      this.setState({
-        mapVdisSrs,
-      })
+    const targetSrs = { ...props }
+
+    // This code fixes the incompatibilities between the mapVdisSrs values
+    if (oldMainSr !== newMainSr) {
+      if (
+        oldMainSr == null ||
+        newMainSr == null ||
+        oldMainSr.$pool !== newMainSr.$pool
+      ) {
+        targetSrs.mapVdisSrs = {}
+      } else if (!newMainSr.shared) {
+        forEach(targetSrs.mapVdisSrs, (sr, vdi) => {
+          if (
+            sr != null &&
+            newMainSr !== sr &&
+            sr.$container !== newMainSr.$container &&
+            !sr.shared
+          ) {
+            delete targetSrs.mapVdisSrs[vdi]
+          }
+        })
+      }
     }
 
-    this.setState({
-      sr: newSr,
-    })
+    this.setState({ targetSrs })
   }
 
   render () {
-    const { backups, intl } = this.props
-    const vdis = this.state.backup && this.state.backup.vdis
+    const { props, state } = this
+    const vdis = state.backup && state.backup.vdis
 
     return (
       <div>
@@ -219,15 +214,17 @@ class _ModalBody extends Component {
           onChange={this.linkState('backup')}
           optionKey='path'
           optionRenderer={backupOptionRenderer}
-          options={backups}
-          placeholder={intl.formatMessage(
+          options={props.backups}
+          placeholder={props.intl.formatMessage(
             messages.importBackupModalSelectBackup
           )}
         />
         <br />
         <ChooseSrForEachVdisModal
+          onChange={this._onSrsChange}
+          srPredicate={this._getSrPredicate()}
+          value={state.targetSrs}
           vdis={vdis}
-          onChange={props => this.setState(props)}
         />
         <br />
         <Toggle onChange={this.linkState('start')} />{' '}
