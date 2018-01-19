@@ -36,7 +36,6 @@ export default class Select extends React.PureComponent {
   }
 
   _cellMeasurerCache = new CellMeasurerCache({
-    defaultHeight: 45,
     fixedWidth: true,
   })
 
