@@ -545,7 +545,6 @@ export default class Xapi extends XapiBase {
       await targetXapi._importVm(
         stream,
         sr,
-        false,
         onVmCreation
       )
     )
