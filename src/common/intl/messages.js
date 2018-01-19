@@ -366,11 +366,11 @@ const messages = {
   remoteLocalPlaceHolderPath: '/path/to/backup',
   remoteNfsPlaceHolderHost: 'host *',
   remoteNfsPlaceHolderPath: 'path/to/backup',
-  remoteSmbPlaceHolderRemotePath: 'subfolder [path\\to\\backup]',
+  remoteSmbPlaceHolderRemotePath: 'subfolder [path\\\\to\\\\backup]',
   remoteSmbPlaceHolderUsername: 'Username',
   remoteSmbPlaceHolderPassword: 'Password',
   remoteSmbPlaceHolderDomain: 'Domain',
-  remoteSmbPlaceHolderAddressShare: '<address>\\<share> *',
+  remoteSmbPlaceHolderAddressShare: '<address>\\\\<share> *',
   remotePlaceHolderPassword: 'password(fill to edit)',
 
   // ------ New Storage -----
@@ -1215,7 +1215,8 @@ const messages = {
   deleteSchedulesModalMessage:
     'Are you sure you want to delete {nSchedules, number} schedule{nSchedules, plural, one {} other {s}}?',
   deleteRemotesModalTitle: 'Delete remote{nRemotes, plural, one {} other {s}}',
-  deleteRemotesModalMessage: 'Are you sure you want to delete {nRemotes, number} remote{nRemotes, plural, one {} other {s}}?',
+  deleteRemotesModalMessage:
+    'Are you sure you want to delete {nRemotes, number} remote{nRemotes, plural, one {} other {s}}?',
   revertVmModalTitle: 'Revert your VM',
   deleteVifsModalTitle: 'Delete VIF{nVifs, plural, one {} other {s}}',
   deleteVifsModalMessage:

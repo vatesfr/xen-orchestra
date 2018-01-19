@@ -1621,11 +1621,11 @@ export const deleteRemotes = remotes =>
     body: <p>{_('deleteRemotesModalMessage', { nRemotes: remotes.length })}</p>,
   }).then(
     () =>
-      map(remotes, remote =>
-        _call('remote.delete', { id: resolveId(remote) })::tap(
-          subscribeRemotes.forceRefresh
+      Promise.all(
+        map(remotes, remote =>
+          _call('remote.delete', { id: resolveId(remote) })
         )
-      ),
+      )::tap(subscribeRemotes.forceRefresh),
     noop
   )
 
