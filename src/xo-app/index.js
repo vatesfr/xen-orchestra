@@ -71,7 +71,7 @@ const BODY_STYLE = {
   width: '100%',
 }
 
-const routesMap = {
+@routes('home', {
   about: About,
   backup: Backup,
   dashboard: Dashboard,
@@ -90,12 +90,7 @@ const routesMap = {
   'vms/:id': Vm,
   xoa: Xoa,
   xosan: Xosan,
-}
-if (__DEV__) {
-  routesMap.test = require('./test').default
-}
-
-@routes('home', routesMap)
+})
 @connectStore(state => {
   return {
     trial: state.xoaTrialState,
