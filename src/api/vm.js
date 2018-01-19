@@ -48,7 +48,7 @@ const extract = (obj, prop) => {
 export async function create (params) {
   const { user } = this
   const resourceSet = extract(params, 'resourceSet')
-  if (resourceSet !== undefined && user.permission !== 'admin') {
+  if (resourceSet === undefined && user.permission !== 'admin') {
     throw unauthorized()
   }
 
