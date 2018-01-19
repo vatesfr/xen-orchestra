@@ -1,6 +1,5 @@
-import _, { messages } from 'intl'
+import _ from 'intl'
 import ActionButton from 'action-button'
-import ChartistGraph from 'react-chartist'
 import Collapse from 'collapse'
 import Component from 'base-component'
 import defined from 'xo-defined'
@@ -20,6 +19,7 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import remove from 'lodash/remove'
 import renderXoItem from 'render-xo-item'
+import ResourceSetQuotas from 'resource-set-quotas'
 import Upgrade from 'xoa-upgrade'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType, createSelector } from 'selectors'
@@ -37,12 +37,9 @@ import {
 import {
   addSubscriptions,
   connectStore,
-  formatSize,
   resolveIds,
   resolveResourceSets,
 } from 'utils'
-
-import { Card, CardBlock, CardHeader } from 'card'
 
 import {
   SelectIpPool,
@@ -591,18 +588,8 @@ export class Edit extends Component {
 class ResourceSet extends Component {
   _renderDisplay = () => {
     const { resourceSet } = this.props
-    const { formatMessage } = this.props.intl
     const resolvedIpPools = mapKeys(this.props.ipPools, 'id')
-    const {
-      limits: { cpus, disk, memory } = {},
-      ipPools,
-      subjects,
-      objectsByType,
-    } = resourceSet
-    const labels = [
-      formatMessage(messages.availableResourceLabel),
-      formatMessage(messages.usedResourceLabel),
-    ]
+    const { limits, ipPools, subjects, objectsByType } = resourceSet
 
     return [
       <li key='subjects' className='list-group-item'>
@@ -619,16 +606,16 @@ class ResourceSet extends Component {
         <li key='ipPools' className='list-group-item'>
           {map(ipPools, pool => {
             const resolvedIpPool = resolvedIpPools[pool]
-            const limits = get(resourceSet, `limits[ipPool:${pool}]`)
-            const available = limits && limits.available
-            const total = limits && limits.total
+            const ipPoolLimits = limits && get(limits, `[ipPool:${pool}]`)
+            const available = ipPoolLimits && ipPoolLimits.available
+            const total = ipPoolLimits && ipPoolLimits.total
             return (
               <span className='mr-1'>
                 {renderXoItem({
                   name: resolvedIpPool && resolvedIpPool.name,
                   type: 'ipPool',
                 })}
-                {limits && (
+                {ipPoolLimits && (
                   <span>
                     {' '}
                     ({available}/{total})
@@ -641,108 +628,7 @@ class ResourceSet extends Component {
       ),
       <li key='graphs' className='list-group-item'>
         <Row>
-          <Col mediumSize={4}>
-            <Card>
-              <CardHeader>
-                <Icon icon='cpu' /> {_('resourceSetVcpus')}
-              </CardHeader>
-              <CardBlock className='text-center'>
-                {cpus ? (
-                  <div>
-                    <ChartistGraph
-                      data={{
-                        labels,
-                        series: [cpus.available, cpus.total - cpus.available],
-                      }}
-                      options={{
-                        donut: true,
-                        donutWidth: 40,
-                        showLabel: false,
-                      }}
-                      type='Pie'
-                    />
-                    <p className='text-xs-center'>
-                      {_('resourceSetQuota', {
-                        total: cpus.total.toString(),
-                        usage: (cpus.total - cpus.available).toString(),
-                      })}
-                    </p>
-                  </div>
-                ) : (
-                  <p className='text-xs-center display-1'>&infin;</p>
-                )}
-              </CardBlock>
-            </Card>
-          </Col>
-          <Col mediumSize={4}>
-            <Card>
-              <CardHeader>
-                <Icon icon='memory' /> {_('resourceSetMemory')}
-              </CardHeader>
-              <CardBlock className='text-center'>
-                {memory ? (
-                  <div>
-                    <ChartistGraph
-                      data={{
-                        labels,
-                        series: [
-                          memory.available,
-                          memory.total - memory.available,
-                        ],
-                      }}
-                      options={{
-                        donut: true,
-                        donutWidth: 40,
-                        showLabel: false,
-                      }}
-                      type='Pie'
-                    />
-                    <p className='text-xs-center'>
-                      {_('resourceSetQuota', {
-                        total: formatSize(memory.total),
-                        usage: formatSize(memory.total - memory.available),
-                      })}
-                    </p>
-                  </div>
-                ) : (
-                  <p className='text-xs-center display-1'>&infin;</p>
-                )}
-              </CardBlock>
-            </Card>
-          </Col>
-          <Col mediumSize={4}>
-            <Card>
-              <CardHeader>
-                <Icon icon='disk' /> {_('resourceSetStorage')}
-              </CardHeader>
-              <CardBlock>
-                {disk ? (
-                  <div>
-                    <ChartistGraph
-                      data={{
-                        labels,
-                        series: [disk.available, disk.total - disk.available],
-                      }}
-                      options={{
-                        donut: true,
-                        donutWidth: 40,
-                        showLabel: false,
-                      }}
-                      type='Pie'
-                    />
-                    <p className='text-xs-center'>
-                      {_('resourceSetQuota', {
-                        total: formatSize(disk.total),
-                        usage: formatSize(disk.total - disk.available),
-                      })}
-                    </p>
-                  </div>
-                ) : (
-                  <p className='text-xs-center display-1'>&infin;</p>
-                )}
-              </CardBlock>
-            </Card>
-          </Col>
+          <ResourceSetQuotas limits={limits} />
         </Row>
       </li>,
       <li key='actions' className='list-group-item text-xs-center'>

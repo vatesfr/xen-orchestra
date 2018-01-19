@@ -2,6 +2,7 @@ import _, { messages } from 'intl'
 import ButtonGroup from 'button-group'
 import ChartistGraph from 'react-chartist'
 import Component from 'base-component'
+import ResourceSetQuotas from 'resource-set-quotas'
 import Icon from 'icon'
 import PropTypes from 'prop-types'
 import Link, { BlockLink } from 'link'
@@ -33,10 +34,6 @@ import styles from './index.css'
 
 // ===================================================================
 
-const RESOURCES = ['disk', 'memory', 'cpus']
-
-// ===================================================================
-
 const PIE_GRAPH_OPTIONS = { donut: true, donutWidth: 40, showLabel: false }
 
 // ===================================================================
@@ -62,132 +59,6 @@ class PatchesCard extends Component {
             displayPools
             hosts={this.props.hosts}
           />
-        </CardBlock>
-      </Card>
-    )
-  }
-}
-
-@injectIntl
-class ResourceSetCard extends Component {
-  static propTypes = {
-    resourceSet: PropTypes.object.isRequired,
-  }
-
-  _getQuotas = createSelector(
-    () => this.props.resourceSet.limits,
-    limits => {
-      const quotas = {}
-
-      forEach(RESOURCES, resource => {
-        if (limits[resource] != null) {
-          const { available, total } = limits[resource]
-
-          quotas[resource] = {
-            available,
-            total,
-            usage: total - available,
-          }
-        } else {
-          quotas[resource] = {
-            available: 0,
-            total: 0,
-            usage: 0,
-          }
-        }
-      })
-
-      return quotas
-    }
-  )
-
-  render () {
-    const { cpus, disk, memory } = this._getQuotas()
-    const { formatMessage } = this.props.intl
-    const labels = [
-      formatMessage(messages.availableResourceLabel),
-      formatMessage(messages.usedResourceLabel),
-    ]
-
-    return (
-      <Card>
-        <CardHeader>
-          <Icon icon='menu-self-service' /> {this.props.resourceSet.name}
-        </CardHeader>
-        <CardBlock>
-          <Container>
-            <Row>
-              <Col mediumSize={4}>
-                <Card>
-                  <CardHeader>
-                    <Icon icon='cpu' /> {_('cpuStatePanel')}
-                  </CardHeader>
-                  <CardBlock>
-                    <ChartistGraph
-                      data={{
-                        labels,
-                        series: [cpus.available, cpus.usage],
-                      }}
-                      options={PIE_GRAPH_OPTIONS}
-                      type='Pie'
-                    />
-                    <p className='text-xs-center'>
-                      {_('resourceSetQuota', {
-                        total: cpus.total.toString(),
-                        usage: cpus.usage.toString(),
-                      })}
-                    </p>
-                  </CardBlock>
-                </Card>
-              </Col>
-              <Col mediumSize={4}>
-                <Card>
-                  <CardHeader>
-                    <Icon icon='memory' /> {_('memoryStatePanel')}
-                  </CardHeader>
-                  <CardBlock className='dashboardItem'>
-                    <ChartistGraph
-                      data={{
-                        labels,
-                        series: [memory.available, memory.usage],
-                      }}
-                      options={PIE_GRAPH_OPTIONS}
-                      type='Pie'
-                    />
-                    <p className='text-xs-center'>
-                      {_('resourceSetQuota', {
-                        total: formatSize(memory.total),
-                        usage: formatSize(memory.usage),
-                      })}
-                    </p>
-                  </CardBlock>
-                </Card>
-              </Col>
-              <Col mediumSize={4}>
-                <Card>
-                  <CardHeader>
-                    <Icon icon='disk' /> {_('srUsageStatePanel')}
-                  </CardHeader>
-                  <CardBlock>
-                    <ChartistGraph
-                      data={{
-                        labels,
-                        series: [disk.available, disk.usage],
-                      }}
-                      options={PIE_GRAPH_OPTIONS}
-                      type='Pie'
-                    />
-                    <p className='text-xs-center'>
-                      {_('resourceSetQuota', {
-                        total: formatSize(disk.total),
-                        usage: formatSize(disk.usage),
-                      })}
-                    </p>
-                  </CardBlock>
-                </Card>
-              </Col>
-            </Row>
-          </Container>
         </CardBlock>
       </Card>
     )
@@ -559,7 +430,14 @@ export default class Overview extends Component {
           {showResourceSets ? (
             map(props.resourceSets, resourceSet => (
               <Row key={resourceSet.id}>
-                <ResourceSetCard resourceSet={resourceSet} />
+                <ResourceSetQuotas
+                  limits={resourceSet.limits}
+                  header={
+                    <span>
+                      <Icon icon='menu-self-service' /> {resourceSet.name}
+                    </span>
+                  }
+                />
               </Row>
             ))
           ) : (
