@@ -706,7 +706,7 @@ export default class SortedTable extends Component {
 
     const displayPagination =
       paginationContainer === undefined && itemsPerPage < nAllItems
-    const displayFilter = filterContainer === undefined && nAllItems !== 0
+    const displayFilter = nAllItems !== 0
 
     const paginationInstance = displayPagination && (
       <Pagination
