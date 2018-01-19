@@ -11,6 +11,9 @@ import {
   List,
 } from 'react-virtualized'
 
+const SELECT_STYLE = {
+  minWidth: '10em',
+}
 const MENU_STYLE = {
   overflow: 'hidden',
 }
@@ -149,6 +152,7 @@ export default class Select extends React.PureComponent {
         clearable={multi || !props.required}
         closeOnSelect={!multi}
         isLoading={isEmpty(props.options)}
+        style={SELECT_STYLE}
         {...props}
         menuRenderer={this._renderMenu}
         menuStyle={MENU_STYLE}
