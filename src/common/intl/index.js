@@ -87,12 +87,18 @@ export class FormattedDuration extends Component {
   _humanizeDuration = createSelector(
     () => this.props.duration,
     () => this.props.lang,
-    (duration, lang) => moment.duration(duration).locale(lang).humanize()
+    (duration, lang) =>
+      moment
+        .duration(duration)
+        .locale(lang)
+        .humanize()
   )
 
   render () {
-    return <Tooltip content={getMessage('parseDuration', this._parseDuration())}>
-      <span>{this._humanizeDuration()}</span>
-    </Tooltip>
+    return (
+      <Tooltip content={getMessage('parseDuration', this._parseDuration())}>
+        <span>{this._humanizeDuration()}</span>
+      </Tooltip>
+    )
   }
 }
