@@ -1,7 +1,6 @@
 import isFunction from 'lodash/isFunction'
 import isString from 'lodash/isString'
 import moment from 'moment'
-import { parseDuration } from 'utils'
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
@@ -77,11 +76,21 @@ export class IntlProvider extends Component {
   }
 }
 
+const parseDuration = seconds => {
+  const days = Math.floor(seconds / 86400)
+  seconds -= days * 86400
+  const hours = Math.floor(seconds / 3600)
+  seconds -= hours * 3600
+  const minutes = Math.floor(seconds / 60)
+  seconds -= minutes * 60
+  return { days, hours, minutes, seconds }
+}
+
 @connect(({ lang }) => ({ lang }))
 export class FormattedDuration extends Component {
   _parseDuration = createSelector(
     () => this.props.duration,
-    duration => parseDuration(moment.duration(duration).asSeconds())
+    duration => parseDuration(duration / 1e3)
   )
 
   _humanizeDuration = createSelector(

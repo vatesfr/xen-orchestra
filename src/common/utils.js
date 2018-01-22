@@ -205,16 +205,6 @@ export const formatSizeRaw = bytes =>
 export const formatSpeed = (bytes, milliseconds) =>
   humanFormat(bytes * 1e3 / milliseconds, { scale: 'binary', unit: 'B/s' })
 
-export const parseDuration = seconds => {
-  const days = Math.floor(seconds / 86400)
-  seconds -= days * 86400
-  const hours = Math.floor(seconds / 3600)
-  seconds -= hours * 3600
-  const minutes = Math.floor(seconds / 60)
-  seconds -= minutes * 60
-  return { days, hours, minutes, seconds }
-}
-
 export const parseSize = size => {
   let bytes = humanFormat.parse.raw(size, { scale: 'binary' })
   if (bytes.unit && bytes.unit !== 'B') {

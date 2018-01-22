@@ -206,7 +206,6 @@ class Log extends BaseComponent {
                       {...returnedValue}
                     />
                   )}
-
                   {id !== undefined && (
                     <span>
                       {' '}
