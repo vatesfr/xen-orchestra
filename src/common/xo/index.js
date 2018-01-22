@@ -1053,14 +1053,25 @@ export const createVms = (args, nameLabels) =>
 export const getCloudInitConfig = template =>
   _call('vm.getCloudInitConfig', { template })
 
-export const deleteVm = vm =>
-  confirm({
+export const deleteVm = (vm, retryWithForce = false) => {
+  const params = { id: resolveId(vm), delete_disks: true }
+
+  return confirm({
     title: _('deleteVmModalTitle'),
     body: _('deleteVmModalMessage'),
-  }).then(
-    () => _call('vm.delete', { id: resolveId(vm), delete_disks: true }),
-    noop
-  )
+  })
+    .then(() => _call('vm.delete', params), noop)
+    .catch(error => {
+      if (error.code !== 19 || !retryWithForce) {
+        throw error
+      }
+
+      return confirm({
+        title: _('deleteVmBlockedModalTitle'),
+        body: _('deleteVmBlockedModalMessage'),
+      }).then(() => _call('vm.delete', { ...params, force: true }), noop)
+    })
+}
 
 export const deleteVms = vms =>
   confirm({
