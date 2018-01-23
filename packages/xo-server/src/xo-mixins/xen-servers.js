@@ -88,19 +88,17 @@ export default class {
     }
   }
 
-  async updateXenServer (
-    id,
-    {
-      allowUnauthorized,
-      enabled,
-      error,
-      host,
-      label,
-      password,
-      readOnly,
-      username,
-    }
-  ) {
+  async updateXenServer (id, {
+    allowUnauthorized,
+    enabled,
+    error,
+    force,
+    host,
+    label,
+    password,
+    readOnly,
+    username,
+  }) {
     const server = await this._getXenServer(id)
     const xapi = this._xapis[id]
     const requireDisconnected =
@@ -110,6 +108,7 @@ export default class {
       username !== undefined
 
     if (
+      !force &&
       requireDisconnected &&
       xapi !== undefined &&
       xapi.status !== 'disconnected'
@@ -339,10 +338,10 @@ export default class {
 
       if (serverExists) {
         resolveRedirectedToAnExistingServer(true)
+      } else {
+        await this.updateXenServer(id, {host: url.hostname, force: true})
+        resolveRedirectedToAnExistingServer(false)
       }
-
-      await this.updateXenServer(id, {host: url.hostname})
-      resolveRedirectedToAnExistingServer(false)
     })
 
     await xapi.connect().then(
@@ -361,10 +360,10 @@ export default class {
           )
         }
 
-        return this.updateXenServer(id, { error })
+        return this.updateXenServer(id, { force: true, error })
       },
       error => {
-        this.updateXenServer(id, { error: serializeError(error) })
+        this.updateXenServer(id, { force: true, error: serializeError(error) })
 
         throw error
       }
