@@ -537,6 +537,7 @@ export class Edit extends Component {
                       <SelectIpPool
                         onChange={this._onChangeIpPool}
                         predicate={this._getIpPoolPredicate()}
+                        value={null}
                       />
                     </Col>
                   </Row>
