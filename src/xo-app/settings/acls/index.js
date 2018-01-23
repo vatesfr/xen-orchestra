@@ -166,7 +166,6 @@ export default class Acls extends Component {
   constructor (props) {
     super(props)
     this.state = {
-      action: '',
       objects: [],
       subjects: [],
       typeFilters: {},
