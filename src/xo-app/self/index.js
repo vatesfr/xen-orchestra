@@ -390,6 +390,7 @@ export class Edit extends Component {
                 </Col>
                 <Col mediumSize={4}>
                   <SelectPool
+                    autoSelectSingleOption={false}
                     hasSelectAll
                     multi
                     onChange={this._updateSelectedPools}
