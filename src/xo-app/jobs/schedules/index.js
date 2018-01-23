@@ -224,6 +224,7 @@ export default class Schedules extends Component {
           </div>
           <div className='form-group'>
             <Select
+              labelKey='name'
               ref='job'
               options={map(jobs)}
               valueKey='id'

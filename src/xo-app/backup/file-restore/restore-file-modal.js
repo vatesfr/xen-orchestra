@@ -252,6 +252,7 @@ export default class RestoreFileModalBody extends Component {
     return (
       <div>
         <Select
+          labelKey='name'
           onChange={this._onBackupChange}
           optionRenderer={backupOptionRenderer}
           options={backups}
@@ -262,6 +263,7 @@ export default class RestoreFileModalBody extends Component {
         {backup && [
           <br />,
           <Select
+            labelKey='name'
             onChange={this._onDiskChange}
             optionRenderer={diskOptionRenderer}
             options={backup.disks}
@@ -280,6 +282,7 @@ export default class RestoreFileModalBody extends Component {
           !noPartitions && [
             <br />,
             <Select
+              labelKey='name'
               onChange={this._onPartitionChange}
               optionRenderer={partitionOptionRenderer}
               options={partitions}
@@ -312,6 +315,7 @@ export default class RestoreFileModalBody extends Component {
             </Row>
           </Container>,
           <Select
+            labelKey='name'
             onChange={this._onFileChange}
             optionRenderer={fileOptionRenderer}
             options={this._getSelectableFiles()}

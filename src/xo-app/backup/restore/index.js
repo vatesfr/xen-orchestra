@@ -211,6 +211,7 @@ class _ModalBody extends Component {
     return (
       <div>
         <Select
+          labelKey='name'
           onChange={this.linkState('backup')}
           optionRenderer={backupOptionRenderer}
           options={props.backups}

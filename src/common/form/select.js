@@ -152,6 +152,7 @@ export default class Select extends React.PureComponent {
         closeOnSelect={!multi}
         isLoading={isEmpty(props.options)}
         style={SELECT_STYLE}
+        valueRenderer={props.optionRenderer}
         {...props}
         menuRenderer={this._renderMenu}
         menuStyle={MENU_STYLE}
