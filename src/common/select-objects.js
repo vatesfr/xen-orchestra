@@ -240,7 +240,6 @@ class GenericSelect extends React.Component {
         optionRenderer={this._renderOption}
         options={this._getOptions()}
         value={this._getSelectedIds()}
-        valueRenderer={this._renderOption}
       />
     )
 
