@@ -149,7 +149,7 @@ export default class Select extends React.PureComponent {
         backspaceToRemoveMessage=''
         clearable={multi || !props.required}
         closeOnSelect={!multi}
-        isLoading={isEmpty(props.options)}
+        isLoading={!props.disabled && isEmpty(props.options)}
         style={SELECT_STYLE}
         valueRenderer={props.optionRenderer}
         {...props}
