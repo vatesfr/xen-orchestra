@@ -77,7 +77,7 @@ export class IntlProvider extends Component {
 }
 
 const parseDuration = milliseconds => {
-  let seconds = milliseconds / 1e3
+  let seconds = Math.floor(milliseconds / 1e3)
   const days = Math.floor(seconds / 86400)
   seconds -= days * 86400
   const hours = Math.floor(seconds / 3600)
