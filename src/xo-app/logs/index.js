@@ -164,36 +164,32 @@ class Log extends BaseComponent {
                   ])}
                   {_.keyValue(
                     _('jobStart'),
-                    <span>
-                      <FormattedDate
-                        value={new Date(start)}
-                        month='short'
-                        day='numeric'
-                        year='numeric'
-                        hour='2-digit'
-                        minute='2-digit'
-                        second='2-digit'
-                      />
-                      <br />
-                    </span>
+                    <FormattedDate
+                      value={new Date(start)}
+                      month='short'
+                      day='numeric'
+                      year='numeric'
+                      hour='2-digit'
+                      minute='2-digit'
+                      second='2-digit'
+                    />
                   )}
+                  <br />
                   {end !== undefined && (
                     <div>
                       {_.keyValue(
                         _('jobEnd'),
-                        <span>
-                          <FormattedDate
-                            value={new Date(end)}
-                            month='short'
-                            day='numeric'
-                            year='numeric'
-                            hour='2-digit'
-                            minute='2-digit'
-                            second='2-digit'
-                          />
-                          <br />
-                        </span>
+                        <FormattedDate
+                          value={new Date(end)}
+                          month='short'
+                          day='numeric'
+                          year='numeric'
+                          hour='2-digit'
+                          minute='2-digit'
+                          second='2-digit'
+                        />
                       )}
+                      <br />
                       {_.keyValue(
                         _('jobDuration'),
                         <FormattedDuration duration={jobDuration} />
