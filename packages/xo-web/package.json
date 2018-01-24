@@ -1,5 +1,4 @@
 {
-  "private": false,
   "name": "xo-web",
   "version": "5.29.3",
   "license": "AGPL-3.0",
@@ -16,40 +15,34 @@
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
-  "author": {
-    "name": "Julien Fontanet",
-    "email": "julien.fontanet@vates.fr"
-  },
   "preferGlobal": false,
   "main": "dist/",
   "bin": {},
   "files": [
     "dist/"
   ],
-  "engines": {
-    "node": ">=6"
-  },
+  "browserslist": [
+    ">2%"
+  ],
   "devDependencies": {
+    "@babel/core": "^7.0.0",
+    "@babel/plugin-proposal-class-properties": "^7.0.0",
+    "@babel/plugin-proposal-decorators": "^7.0.0",
+    "@babel/plugin-proposal-export-default-from": "^7.0.0",
+    "@babel/plugin-proposal-function-bind": "^7.0.0",
+    "@babel/plugin-proposal-optional-chaining": "^7.0.0",
+    "@babel/plugin-proposal-pipeline-operator": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "@babel/preset-react": "^7.0.0",
     "@nraynaud/novnc": "0.6.1",
     "@xen-orchestra/cron": "^1.0.3",
     "@xen-orchestra/defined": "^0.0.0",
     "ansi_up": "^3.0.0",
     "asap": "^2.0.6",
-    "babel-core": "^6.26.0",
     "babel-plugin-dev": "^1.0.0",
     "babel-plugin-lodash": "^3.2.11",
-    "babel-plugin-transform-decorators-legacy": "^1.3.4",
-    "babel-plugin-transform-react-constant-elements": "^6.5.0",
-    "babel-plugin-transform-react-inline-elements": "^6.6.5",
-    "babel-plugin-transform-react-jsx-self": "^6.11.0",
-    "babel-plugin-transform-react-jsx-source": "^6.9.0",
-    "babel-plugin-transform-runtime": "^6.6.0",
     "babel-preset-env": "^1.6.1",
-    "babel-preset-react": "^6.5.0",
-    "babel-preset-stage-0": "^6.24.1",
-    "babel-register": "^6.26.0",
-    "babel-runtime": "^6.26.0",
-    "babelify": "^8.0.0",
+    "babelify": "^10.0.0",
     "bootstrap": "4.0.0-alpha.5",
     "browserify": "^16.0.0",
     "bundle-collapser": "^1.3.0",
@@ -155,44 +148,14 @@
       "loose-envify"
     ]
   },
-  "babel": {
-    "env": {
-      "development": {
-        "plugins": [
-          "transform-react-jsx-self",
-          "transform-react-jsx-source"
-        ]
-      },
-      "production": {
-        "plugins": [
-          "transform-react-constant-elements",
-          "transform-react-inline-elements"
-        ]
-      }
-    },
-    "plugins": [
-      "dev",
-      "lodash",
-      "transform-decorators-legacy",
-      "transform-runtime"
-    ],
-    "presets": [
-      [
-        "env",
-        {
-          "targets": {
-            "browsers": ">2%"
-          }
-        }
-      ],
-      "react",
-      "stage-0"
-    ]
-  },
   "jest": {
+    "collectCoverage": true,
     "setupTestFrameworkScriptFile": "./setup-tests.js",
     "snapshotSerializers": [
       "enzyme-to-json/serializer"
     ]
+  },
+  "dependencies": {
+    "@babel/polyfill": "^7.0.0"
   }
 }

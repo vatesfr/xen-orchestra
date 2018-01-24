@@ -12,18 +12,23 @@ ___
 
 XOA or manual install procedure is [available here](https://xen-orchestra.com/docs/installation.html)
 
-## Compilation
-
-Production build:
+## Development
 
 ```
-$ npm run build
-```
+# Install dependencies
+> yarn
 
-Development build:
+# Run the tests
+> yarn test
 
-```
-$ npm run dev
+# Continuously compile
+> yarn dev
+
+# Continuously run the tests
+> yarn dev-test
+
+# Build for production
+> yarn build
 ```
 
 ### Environment
