@@ -235,6 +235,8 @@ export class Xapi extends EventEmitter {
       // Memoize this function _addObject().
       this._getPool = () => this._pool
 
+      this._nTasks = 0
+
       const objects = this._objects = new Collection()
       objects.getKey = getKey
 
@@ -770,7 +772,22 @@ export class Xapi extends EventEmitter {
 
     if (type === 'pool') {
       this._pool = object
+
+      const eventWatchers = this._eventWatchers
+      if (eventWatchers !== undefined) {
+        forEach(object.other_config, (_, key) => {
+          const eventWatcher = eventWatchers[key]
+          if (eventWatcher !== undefined) {
+            delete eventWatchers[key]
+            eventWatcher(object)
+          }
+        })
+      }
     } else if (type === 'task') {
+      if (prev === undefined) {
+        ++this._nTasks
+      }
+
       const taskWatchers = this._taskWatchers
       const taskWatcher = taskWatchers[ref]
       if (
@@ -780,16 +797,18 @@ export class Xapi extends EventEmitter {
         delete taskWatchers[ref]
       }
     }
-
-    return object
   }
 
-  _removeObject (ref) {
+  _removeObject (type, ref) {
     const byRefs = this._objectsByRefs
     const object = byRefs[ref]
     if (object !== undefined) {
       this._objects.unset(object.$id)
       delete byRefs[ref]
+
+      if (type === 'task') {
+        --this._nTasks
+      }
     }
 
     const taskWatchers = this._taskWatchers
@@ -801,26 +820,12 @@ export class Xapi extends EventEmitter {
   }
 
   _processEvents (events) {
-    const eventWatchers = this._eventWatchers
-
     forEach(events, event => {
-      let object
-      const { ref } = event
+      const { class: type, ref } = event
       if (event.operation === 'del') {
-        this._removeObject(ref)
+        this._removeObject(type, ref)
       } else {
-        const type = event.class
-        object = this._addObject(type, ref, event.snapshot)
-
-        if (eventWatchers !== undefined && type === 'pool') {
-          forEach(object.other_config, (_, key) => {
-            const eventWatcher = eventWatchers[key]
-            if (eventWatcher !== undefined) {
-              delete eventWatchers[key]
-              eventWatcher(object)
-            }
-          })
-        }
+        this._addObject(type, ref, event.snapshot)
       }
     })
   }
@@ -832,9 +837,23 @@ export class Xapi extends EventEmitter {
       60 + 0.1, // Force float.
     ]).then(onSuccess, onFailure)
 
-    const onSuccess = ({token, events}) => {
+    const onSuccess = ({ events, token, valid_ref_counts: { task } }) => {
       this._fromToken = token
       this._processEvents(events)
+
+      if (task !== this._nTasks) {
+        forEach(this.objects.all, object => {
+          if (object.$type === 'task') {
+            this._removeObject('task', object.$ref)
+          }
+        })
+
+        this._sessionCall('task.get_all_records').then(tasks => {
+          forEach(tasks, (task, ref) => {
+            this._addObject('task', ref, task)
+          })
+        }).catch(noop)
+      }
 
       const debounce = this._debounce
       return debounce != null
