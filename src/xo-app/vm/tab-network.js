@@ -500,7 +500,6 @@ export default class TabNetwork extends BaseComponent {
             <SortedTable
               collection={vifs}
               columns={COLUMNS}
-              defaultFilter='filterVifsOnlyConnected'
               filters={FILTERS}
               groupedActions={GROUPED_ACTIONS}
               individualActions={INDIVIDUAL_ACTIONS}
