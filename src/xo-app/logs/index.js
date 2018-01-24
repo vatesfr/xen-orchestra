@@ -162,11 +162,40 @@ class Log extends BaseComponent {
                     <JobParam id={value} paramKey={key} key={key} />,
                     <br />,
                   ])}
-                  {end !== undefined &&
-                    _.keyValue(
-                      _('jobDuration'),
-                      <FormattedDuration duration={jobDuration} />
-                    )}
+                  {_.keyValue(
+                    _('jobStart'),
+                    <FormattedDate
+                      value={new Date(start)}
+                      month='short'
+                      day='numeric'
+                      year='numeric'
+                      hour='2-digit'
+                      minute='2-digit'
+                      second='2-digit'
+                    />
+                  )}
+                  <br />
+                  {end !== undefined && (
+                    <div>
+                      {_.keyValue(
+                        _('jobEnd'),
+                        <FormattedDate
+                          value={new Date(end)}
+                          month='short'
+                          day='numeric'
+                          year='numeric'
+                          hour='2-digit'
+                          minute='2-digit'
+                          second='2-digit'
+                        />
+                      )}
+                      <br />
+                      {_.keyValue(
+                        _('jobDuration'),
+                        <FormattedDuration duration={jobDuration} />
+                      )}
+                    </div>
+                  )}
                   {returnedValue != null && (
                     <JobDataInfos
                       jobDuration={jobDuration}

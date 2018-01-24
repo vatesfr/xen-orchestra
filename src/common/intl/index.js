@@ -6,8 +6,10 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { FormattedMessage, IntlProvider as IntlProvider_ } from 'react-intl'
 
-import messages from './messages'
 import locales from './locales'
+import messages from './messages'
+import Tooltip from '.././tooltip'
+import { createSelector } from '.././selectors'
 
 // ===================================================================
 
@@ -74,17 +76,36 @@ export class IntlProvider extends Component {
   }
 }
 
+const parseDuration = milliseconds => {
+  let seconds = Math.floor(milliseconds / 1e3)
+  const days = Math.floor(seconds / 86400)
+  seconds -= days * 86400
+  const hours = Math.floor(seconds / 3600)
+  seconds -= hours * 3600
+  const minutes = Math.floor(seconds / 60)
+  seconds -= minutes * 60
+  return { days, hours, minutes, seconds }
+}
+
 @connect(({ lang }) => ({ lang }))
 export class FormattedDuration extends Component {
+  _parseDuration = createSelector(() => this.props.duration, parseDuration)
+
+  _humanizeDuration = createSelector(
+    () => this.props.duration,
+    () => this.props.lang,
+    (duration, lang) =>
+      moment
+        .duration(duration)
+        .locale(lang)
+        .humanize()
+  )
+
   render () {
-    const { duration, lang } = this.props
     return (
-      <span>
-        {moment
-          .duration(duration)
-          .locale(lang)
-          .humanize()}
-      </span>
+      <Tooltip content={getMessage('durationFormat', this._parseDuration())}>
+        <span>{this._humanizeDuration()}</span>
+      </Tooltip>
     )
   }
 }
