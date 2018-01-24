@@ -10,7 +10,7 @@ import React, { Component } from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
 import { error } from 'notification'
 import { injectIntl } from 'react-intl'
-import { SelectPlainObject, Toggle } from 'form'
+import { Select, Toggle } from 'form'
 import {
   createSchedule,
   deleteSchedule,
@@ -223,10 +223,11 @@ export default class Schedules extends Component {
             />
           </div>
           <div className='form-group'>
-            <SelectPlainObject
+            <Select
+              labelKey='name'
               ref='job'
               options={map(jobs)}
-              optionKey='id'
+              valueKey='id'
               placeholder={this.props.intl.formatMessage(
                 messages.jobScheduleJobPlaceHolder
               )}

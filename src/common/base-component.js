@@ -10,7 +10,7 @@ import getEventValue from './get-event-value'
 const VERBOSE = false
 
 const get = (object, path, depth) => {
-  if (depth >= path.length) {
+  if (object == null || depth >= path.length) {
     return object
   }
 

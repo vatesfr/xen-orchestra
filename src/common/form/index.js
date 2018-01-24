@@ -17,7 +17,6 @@ import propTypes from '../prop-types-decorator'
 import { formatSizeRaw, parseSize } from '../utils'
 
 export Select from './select'
-export SelectPlainObject from './select-plain-object'
 
 // ===================================================================
 
