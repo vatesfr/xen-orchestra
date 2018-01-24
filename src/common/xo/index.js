@@ -1052,9 +1052,9 @@ export const deleteVms = vms =>
   confirm({
     title: _('deleteVmsModalTitle', { vms: vms.length }),
     body: _('deleteVmsModalMessage', { vms: vms.length }),
-    strongConfirm: vms.length > 10 && {
+    strongConfirm: {
       messageId: 'deleteVmsConfirmText',
-      values: { vms: vms.length },
+      values: { nVms: vms.length },
     },
   }).then(
     () =>

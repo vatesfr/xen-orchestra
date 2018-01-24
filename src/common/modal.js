@@ -2,9 +2,9 @@ import isArray from 'lodash/isArray'
 import isString from 'lodash/isString'
 import map from 'lodash/map'
 import React, { Component, cloneElement } from 'react'
-import { Modal as ReactModal } from 'react-bootstrap-4/lib'
-import { injectIntl } from 'react-intl'
 import { createSelector } from 'selectors'
+import { injectIntl } from 'react-intl'
+import { Modal as ReactModal } from 'react-bootstrap-4/lib'
 
 import _, { messages } from './intl'
 import Button from './button'
@@ -165,7 +165,7 @@ class StrongConfirm extends Component {
 
     let disabled
     if (
-      (userInput === strongConfirmString) ^
+      (userInput.toLowerCase() === strongConfirmString.toLowerCase()) ^
       (disabled = !confirmButton.disabled)
     ) {
       this.setState({

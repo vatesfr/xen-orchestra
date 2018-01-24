@@ -1181,7 +1181,7 @@ const messages = {
   deleteVmsModalMessage:
     'Are you sure you want to delete {vms, number} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED',
   deleteVmsConfirmText:
-    'Delete {vms, number} VM{vms, plural, one {} other {s}}',
+    'delete {nVms, number} vm{nVms, plural, one {} other {s}}',
   deleteVmModalTitle: 'Delete VM',
   deleteVmModalMessage:
     'Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED',
