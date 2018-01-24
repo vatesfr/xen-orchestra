@@ -5,12 +5,12 @@ import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
 import SortedTable from 'sorted-table'
+import { connectStore } from 'utils'
 import { injectIntl } from 'react-intl'
 import { SelectPool } from 'select-objects'
 import { Card, CardBlock, CardHeader } from 'card'
-import { connectStore, resolveId, resolveIds } from 'utils'
 import { Col, Container, Row } from 'grid'
-import { filter, find, flatMap, includes, isEmpty, keys } from 'lodash'
+import { find, flatMap, isEmpty, keys } from 'lodash'
 import {
   createGetObject,
   createGetObjectsOfType,
@@ -62,8 +62,12 @@ const COLUMNS = [
   {
     default: true,
     itemRenderer: (task, userData) => {
-      const pool = find(userData.pools, { id: task.$poolId })
-      return <Link to={`/pools/${pool.id}`}>{pool.name_label}</Link>
+      const pool = userData.pools[task.$poolId]
+      return (
+        pool !== undefined && (
+          <Link to={`/pools/${pool.id}`}>{pool.name_label}</Link>
+        )
+      )
     },
     name: _('pool'),
     sortCriteria: (task, userData) => {
@@ -74,7 +78,7 @@ const COLUMNS = [
   {
     component: TaskItem,
     name: _('task'),
-    sortCriteria: task => task.name_label,
+    sortCriteria: 'name_label',
   },
   {
     itemRenderer: task => (
@@ -128,9 +132,9 @@ const GROUPED_ACTIONS = [
 
   const getPendingTasksByPool = getPendingTasks.sort().groupBy('$pool')
 
-  const getPools = createGetObjectsOfType('pool')
-    .pick(createSelector(getPendingTasksByPool, keys))
-    .sort()
+  const getPools = createGetObjectsOfType('pool').pick(
+    createSelector(getPendingTasksByPool, keys)
+  )
 
   return {
     nTasks: getNPendingTasks,
@@ -140,12 +144,30 @@ const GROUPED_ACTIONS = [
 })
 @injectIntl
 export default class Tasks extends Component {
-  _showPoolTasks = pool =>
-    isEmpty(this.state.pools) ||
-    includes(resolveIds(this.state.pools), resolveId(pool))
+  componentWillMount () {
+    this._autoFill(this.props)
+  }
+
+  componentWillReceiveProps (props) {
+    this._autoFill(props)
+  }
+
+  _autoFill = props => {
+    const { pools } = props
+    if (!isEmpty(pools)) {
+      this.setState({ pools })
+    }
+  }
+
+  _getTasks = createSelector(
+    () => this.state.pools !== undefined && this.state.pools,
+    () => this.props.pendingTasksByPool,
+    (pools, pendingTasksByPool) =>
+      flatMap(pools, pool => pendingTasksByPool[pool.id])
+  )
 
   render () {
-    const { props, state } = this
+    const { props } = this
     const { intl, nTasks, pendingTasksByPool, pools } = props
 
     if (isEmpty(pendingTasksByPool)) {
@@ -169,18 +191,6 @@ export default class Tasks extends Component {
 
     const { formatMessage } = intl
 
-    const _getTasks = createSelector(
-      () => pools,
-      pools =>
-        filter(
-          flatMap(
-            pools,
-            pool => this._showPoolTasks(pool) && pendingTasksByPool[pool.id]
-          ),
-          task => task !== false
-        )
-    )
-
     return (
       <Page
         header={HEADER}
@@ -189,24 +199,20 @@ export default class Tasks extends Component {
         <Container>
           <Row className='mb-1'>
             <Col mediumSize={8}>
-              <SelectPool
-                multi
-                value={state.pools}
-                onChange={this.linkState('pools')}
-              />
+              <SelectPool multi onChange={this.linkState('pools')} />
             </Col>
             <Col mediumSize={4}>
               <div ref={container => this.setState({ container })} />
             </Col>
           </Row>
           <SortedTable
-            collection={_getTasks()}
+            collection={this._getTasks()}
             columns={COLUMNS}
+            filterContainer={() => this.state.container}
             groupedActions={GROUPED_ACTIONS}
             individualActions={INDIVIDUAL_ACTIONS}
             stateUrlParam='s'
             userData={{ pools }}
-            filterContainer={() => this.state.container}
           />
         </Container>
       </Page>
