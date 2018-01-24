@@ -1618,7 +1618,7 @@ export const deleteRemote = remote =>
 export const deleteRemotes = remotes =>
   confirm({
     title: _('deleteRemotesModalTitle', { nRemotes: remotes.length }),
-    body: <p>{_('deleteRemotesModalMessage', { nRemotes: remotes.length })}</p>,
+    body: _('deleteRemotesModalMessage', { nRemotes: remotes.length }),
   }).then(
     () =>
       Promise.all(

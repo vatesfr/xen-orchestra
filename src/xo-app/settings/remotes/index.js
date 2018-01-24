@@ -69,7 +69,7 @@ const COLUMN_STATE = {
         <Tooltip content={_('remoteConnectionFailed')}>
           <a
             className='text-danger btn btn-link'
-            onClick={_showError(remote)}
+            onClick={() => _showError(remote)}
             style={{ padding: '0px' }}
           >
             <Icon icon='alarm' size='lg' />
@@ -328,7 +328,6 @@ export default class Remotes extends Component {
             <SortedTable
               collection={remotes.file}
               columns={COLUMNS_LOCAL_REMOTE}
-              defaultFilter='filterRemotesOnlyDisconnected'
               filters={FILTERS}
               groupedActions={GROUPED_ACTIONS}
               individualActions={INDIVIDUAL_ACTIONS}
@@ -343,7 +342,6 @@ export default class Remotes extends Component {
             <SortedTable
               collection={remotes.nfs}
               columns={COLUMNS_NFS_REMOTE}
-              defaultFilter='filterRemotesOnlyDisconnected'
               filters={FILTERS}
               groupedActions={GROUPED_ACTIONS}
               individualActions={INDIVIDUAL_ACTIONS}
@@ -358,7 +356,6 @@ export default class Remotes extends Component {
             <SortedTable
               collection={remotes.smb}
               columns={COLUMNS_SMB_REMOTE}
-              defaultFilter='filterRemotesOnlyDisconnected'
               filters={FILTERS}
               groupedActions={GROUPED_ACTIONS}
               individualActions={INDIVIDUAL_ACTIONS}
@@ -386,118 +383,125 @@ export default class Remotes extends Component {
                 ))
               )}
             </select>
+            {type === 'smb' && (
+              <em className='text-warning'>{_('remoteSmbWarningMessage')}</em>
+            )}
           </div>
           <div className='form-group'>
-            <input
-              type='text'
-              ref='name'
-              className='form-control'
-              placeholder={this.props.intl.formatMessage(
-                messages.remoteMyNamePlaceHolder
+            <div className='form-group'>
+              <input
+                type='text'
+                ref='name'
+                className='form-control'
+                placeholder={this.props.intl.formatMessage(
+                  messages.remoteMyNamePlaceHolder
+                )}
+                required
+              />
+            </div>
+            <div className='form-group'>
+              {type === 'file' && (
+                <fieldset className='form-group'>
+                  <div className='input-group'>
+                    <span className='input-group-addon'>/</span>
+                    <input
+                      type='text'
+                      ref='path'
+                      pattern='^(([^/]+)+(/[^/]+)*)?$'
+                      className='form-control'
+                      placeholder={this.props.intl.formatMessage(
+                        messages.remoteLocalPlaceHolderPath
+                      )}
+                    />
+                  </div>
+                </fieldset>
               )}
-              required
-            />
-            {type === 'file' && (
-              <fieldset className='form-group'>
-                <div className='input-group'>
-                  <span className='input-group-addon'>/</span>
-                  <input
-                    type='text'
-                    ref='path'
-                    pattern='^(([^/]+)+(/[^/]+)*)?$'
-                    className='form-control'
-                    placeholder={this.props.intl.formatMessage(
-                      messages.remoteLocalPlaceHolderPath
-                    )}
-                  />
-                </div>
-              </fieldset>
-            )}
-            {type === 'nfs' && (
-              <fieldset className='form-group'>
-                <div className='form-group'>
-                  <input
-                    type='text'
-                    ref='host'
-                    className='form-control'
-                    placeholder={this.props.intl.formatMessage(
-                      messages.remoteNfsPlaceHolderHost
-                    )}
-                    required
-                  />
-                </div>
-                <div className='input-group'>
-                  <span className='input-group-addon'>/</span>
-                  <input
-                    type='text'
-                    ref='path'
-                    pattern='^(([^/]+)+(/[^/]+)*)?$'
-                    className='form-control'
-                    placeholder={this.props.intl.formatMessage(
-                      messages.remoteNfsPlaceHolderPath
-                    )}
-                  />
-                </div>
-              </fieldset>
-            )}
-            {type === 'smb' && (
-              <fieldset className='form-group'>
-                <div className='input-group form-group'>
-                  <span className='input-group-addon'>\\</span>
-                  <input
-                    type='text'
-                    ref='host'
-                    pattern='^([^\\/]+)\\([^\\/]+)$'
-                    className='form-control'
-                    placeholder={this.props.intl.formatMessage(
-                      messages.remoteSmbPlaceHolderAddressShare
-                    )}
-                    required
-                  />
-                  <span className='input-group-addon'>\</span>
-                  <input
-                    type='text'
-                    ref='path'
-                    pattern='^(([^\\/]+)+(\\[^\\/]+)*)?$'
-                    className='form-control'
-                    placeholder={this.props.intl.formatMessage(
-                      messages.remoteSmbPlaceHolderRemotePath
-                    )}
-                  />
-                </div>
-                <div className='form-group'>
-                  <input
-                    type='text'
-                    ref='username'
-                    className='form-control'
-                    placeholder={this.props.intl.formatMessage(
-                      messages.remoteSmbPlaceHolderUsername
-                    )}
-                  />
-                </div>
-                <div className='form-group'>
-                  <input
-                    type='text'
-                    ref='password'
-                    className='form-control'
-                    placeholder={this.props.intl.formatMessage(
-                      messages.remoteSmbPlaceHolderPassword
-                    )}
-                  />
-                </div>
-                <div className='form-group'>
-                  <input
-                    type='text'
-                    ref='domain'
-                    className='form-control'
-                    placeholder={this.props.intl.formatMessage(
-                      messages.remoteSmbPlaceHolderDomain
-                    )}
-                    required
-                  />
-                </div>
-              </fieldset>
-            )}
+              {type === 'nfs' && (
+                <fieldset className='form-group'>
+                  <div className='form-group'>
+                    <input
+                      type='text'
+                      ref='host'
+                      className='form-control'
+                      placeholder={this.props.intl.formatMessage(
+                        messages.remoteNfsPlaceHolderHost
+                      )}
+                      required
+                    />
+                  </div>
+                  <div className='input-group'>
+                    <span className='input-group-addon'>/</span>
+                    <input
+                      type='text'
+                      ref='path'
+                      pattern='^(([^/]+)+(/[^/]+)*)?$'
+                      className='form-control'
+                      placeholder={this.props.intl.formatMessage(
+                        messages.remoteNfsPlaceHolderPath
+                      )}
+                    />
+                  </div>
+                </fieldset>
+              )}
+              {type === 'smb' && (
+                <fieldset className='form-group'>
+                  <div className='input-group form-group'>
+                    <span className='input-group-addon'>\\</span>
+                    <input
+                      type='text'
+                      ref='host'
+                      pattern='^([^\\/]+)\\([^\\/]+)$'
+                      className='form-control'
+                      placeholder={this.props.intl.formatMessage(
+                        messages.remoteSmbPlaceHolderAddressShare
+                      )}
+                      required
+                    />
+                    <span className='input-group-addon'>\</span>
+                    <input
+                      type='text'
+                      ref='path'
+                      pattern='^(([^\\/]+)+(\\[^\\/]+)*)?$'
+                      className='form-control'
+                      placeholder={this.props.intl.formatMessage(
+                        messages.remoteSmbPlaceHolderRemotePath
+                      )}
+                    />
+                  </div>
+                  <div className='form-group'>
+                    <input
+                      type='text'
+                      ref='username'
+                      className='form-control'
+                      placeholder={this.props.intl.formatMessage(
+                        messages.remoteSmbPlaceHolderUsername
+                      )}
+                    />
+                  </div>
+                  <div className='form-group'>
+                    <input
+                      type='text'
+                      ref='password'
+                      className='form-control'
+                      placeholder={this.props.intl.formatMessage(
+                        messages.remoteSmbPlaceHolderPassword
+                      )}
+                    />
+                  </div>
+                  <div className='form-group'>
+                    <input
+                      type='text'
+                      ref='domain'
+                      className='form-control'
+                      placeholder={this.props.intl.formatMessage(
+                        messages.remoteSmbPlaceHolderDomain
+                      )}
+                      required
+                    />
+                  </div>
+                </fieldset>
+              )}
+            </div>
           </div>
           <div className='form-group'>
             <ActionButton
