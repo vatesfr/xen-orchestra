@@ -237,3 +237,11 @@ $select-input-height: 40px; // Bootstrap input height
 .notify-title {
   font-weight: 700;
 }
+
+// =============================================================================
+
+.no-text-selection {
+  cursor: not-allowed;
+  -moz-user-select: none; /* Firefox */
+  user-select: none; /* Chrome */
+}

@@ -22,6 +22,7 @@ const messages = {
   alertOk: 'OK',
   confirmOk: 'OK',
   genericCancel: 'Cancel',
+  enterConfirmText: 'Enter the following text to confirm:',
 
   // ----- Filters -----
   onError: 'On error',
@@ -1179,6 +1180,8 @@ const messages = {
   deleteVmsModalTitle: 'Delete VM{vms, plural, one {} other {s}}',
   deleteVmsModalMessage:
     'Are you sure you want to delete {vms, number} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED',
+  deleteVmsConfirmText:
+    'delete {nVms, number} vm{nVms, plural, one {} other {s}}',
   deleteVmModalTitle: 'Delete VM',
   deleteVmModalMessage:
     'Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED',

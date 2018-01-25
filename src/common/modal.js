@@ -2,9 +2,11 @@ import isArray from 'lodash/isArray'
 import isString from 'lodash/isString'
 import map from 'lodash/map'
 import React, { Component, cloneElement } from 'react'
+import { createSelector } from 'selectors'
+import { injectIntl } from 'react-intl'
 import { Modal as ReactModal } from 'react-bootstrap-4/lib'
 
-import _ from './intl'
+import _, { messages } from './intl'
 import Button from './button'
 import Icon from './icon'
 import propTypes from './prop-types-decorator'
@@ -14,8 +16,9 @@ import {
   enable as enableShortcuts,
 } from './shortcuts'
 
-let instance
+// -----------------------------------------------------------------------------
 
+let instance
 const modal = (content, onClose) => {
   if (!instance) {
     throw new Error('No modal instance.')
@@ -24,6 +27,19 @@ const modal = (content, onClose) => {
   }
   instance.setState({ content, onClose, showModal: true }, disableShortcuts)
 }
+
+const _addRef = (component, ref) => {
+  if (isString(component) || isArray(component)) {
+    return component
+  }
+
+  try {
+    return cloneElement(component, { ref })
+  } catch (_) {} // Stateless component.
+  return component
+}
+
+// -----------------------------------------------------------------------------
 
 @propTypes({
   buttons: propTypes.arrayOf(
@@ -105,39 +121,6 @@ class GenericModal extends Component {
   }
 }
 
-const ALERT_BUTTONS = [{ label: _('alertOk'), value: 'ok' }]
-
-export const alert = (title, body) =>
-  new Promise(resolve => {
-    modal(
-      <GenericModal buttons={ALERT_BUTTONS} resolve={resolve} title={title}>
-        {body}
-      </GenericModal>,
-      resolve
-    )
-  })
-
-const _addRef = (component, ref) => {
-  if (isString(component) || isArray(component)) {
-    return component
-  }
-
-  try {
-    return cloneElement(component, { ref })
-  } catch (_) {} // Stateless component.
-  return component
-}
-
-const CONFIRM_BUTTONS = [{ btnStyle: 'primary', label: _('confirmOk') }]
-
-export const confirm = ({ body, icon = 'alarm', title }) =>
-  chooseAction({
-    body,
-    buttons: CONFIRM_BUTTONS,
-    icon,
-    title,
-  })
-
 export const chooseAction = ({ body, buttons, icon, title }) => {
   return new Promise((resolve, reject) => {
     modal(
@@ -154,6 +137,115 @@ export const chooseAction = ({ body, buttons, icon, title }) => {
     )
   })
 }
+
+@propTypes({
+  body: propTypes.node,
+  strongConfirm: propTypes.object.isRequired,
+  icon: propTypes.string,
+  reject: propTypes.func,
+  resolve: propTypes.func,
+  title: propTypes.node.isRequired,
+})
+@injectIntl
+class StrongConfirm extends Component {
+  state = {
+    buttons: [{ btnStyle: 'danger', label: _('confirmOk'), disabled: true }],
+  }
+
+  _getStrongConfirmString = createSelector(
+    () => this.props.intl.formatMessage,
+    () => this.props.strongConfirm,
+    (format, { messageId, values }) => format(messages[messageId], values)
+  )
+
+  _onInputChange = event => {
+    const userInput = event.target.value
+    const strongConfirmString = this._getStrongConfirmString()
+    const confirmButton = this.state.buttons[0]
+
+    let disabled
+    if (
+      (userInput.toLowerCase() === strongConfirmString.toLowerCase()) ^
+      (disabled = !confirmButton.disabled)
+    ) {
+      this.setState({
+        buttons: [{ ...confirmButton, disabled }],
+      })
+    }
+  }
+
+  render () {
+    const {
+      body,
+      strongConfirm: { messageId, values },
+      icon,
+      reject,
+      resolve,
+      title,
+    } = this.props
+
+    return (
+      <GenericModal
+        buttons={this.state.buttons}
+        icon={icon}
+        reject={reject}
+        resolve={resolve}
+        title={title}
+      >
+        {body}
+        <hr />
+        <div>
+          {_('enterConfirmText')}{' '}
+          <strong className='no-text-selection'>{_(messageId, values)}</strong>
+        </div>
+        <div>
+          <input className='form-control' onChange={this._onInputChange} />
+        </div>
+      </GenericModal>
+    )
+  }
+}
+
+// -----------------------------------------------------------------------------
+
+const ALERT_BUTTONS = [{ label: _('alertOk'), value: 'ok' }]
+
+export const alert = (title, body) =>
+  new Promise(resolve => {
+    modal(
+      <GenericModal buttons={ALERT_BUTTONS} resolve={resolve} title={title}>
+        {body}
+      </GenericModal>,
+      resolve
+    )
+  })
+
+// -----------------------------------------------------------------------------
+
+const CONFIRM_BUTTONS = [{ btnStyle: 'primary', label: _('confirmOk') }]
+
+export const confirm = ({ body, icon = 'alarm', title, strongConfirm }) =>
+  strongConfirm
+    ? new Promise((resolve, reject) => {
+      modal(
+        <StrongConfirm
+          body={body}
+          icon={icon}
+          reject={reject}
+          resolve={resolve}
+          strongConfirm={strongConfirm}
+          title={title}
+        />
+      )
+    })
+    : chooseAction({
+      body,
+      buttons: CONFIRM_BUTTONS,
+      icon,
+      title,
+    })
+
+// -----------------------------------------------------------------------------
 
 export default class Modal extends Component {
   constructor () {
