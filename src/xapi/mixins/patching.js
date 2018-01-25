@@ -56,6 +56,7 @@ export default {
           return patch.requiredpatch.uuid
         }),
         paid: patch['update-stream'] === 'premium',
+        upgrade: /^XS\d{2,}$/.test(patch['name-label']),
         // TODO: what does it mean, should we handle it?
         // version: patch.version,
       }
@@ -421,7 +422,7 @@ export default {
 
     const installableByUuid = host.license_params.sku_type !== 'free'
       ? await this._listMissingPoolPatchesOnHost(host)
-      : filter(await this._listMissingPoolPatchesOnHost(host), [ 'paid', false ])
+      : filter(await this._listMissingPoolPatchesOnHost(host), { paid: false, upgrade: false })
 
     // List of all installable patches sorted from the newest to the
     // oldest.
@@ -451,7 +452,7 @@ export default {
         if (host.$type === 'host') {
           return this._listMissingPoolPatchesOnHost(host).then(patches => host.license_params.sku_type !== 'free'
             ? patches
-            : filter(patches, [ 'paid', false ])
+            : filter(patches, { paid: false, upgrade: false })
           )
         }
       }))
