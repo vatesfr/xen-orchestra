@@ -15,6 +15,7 @@ import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { fromCallback } from 'promise-toolbox'
+import { SelectPool } from 'select-objects'
 import {
   deleteMessage,
   deleteOrphanedVdis,
@@ -30,8 +31,8 @@ import {
   createGetObjectsOfType,
   createSelector,
 } from 'selectors'
-import { flatten, get, map, mapValues } from 'lodash'
-import { connectStore, formatSize, mapPlus, noop } from 'utils'
+import { includes, isEmpty, flatten, filter, get, map, mapValues } from 'lodash'
+import { connectStore, formatSize, mapPlus, noop, resolveIds } from 'utils'
 
 const SrColContainer = connectStore(() => ({
   container: createGetObject(),
@@ -385,6 +386,10 @@ const ALARM_COLUMNS = [
   }
 })
 export default class Health extends Component {
+  state = {
+    pools: [],
+  }
+
   componentWillReceiveProps (props) {
     if (props.alertMessages !== this.props.alertMessages) {
       this._updateAlarms(props)
@@ -445,11 +450,43 @@ export default class Health extends Component {
 
   _getSrUrl = sr => `srs/${sr.id}`
 
+  _getFilteredCollection = createSelector(
+    () => this.state.pools,
+    collection => collection,
+    (pools, collection) =>
+      isEmpty(pools)
+        ? collection
+        : filter(collection, item => includes(resolveIds(pools), item.$pool))
+  )
+
   render () {
-    const { props } = this
+    const { props, state } = this
+    const collections = [
+      props.userSrs,
+      props.vdiOrphaned,
+      props.controlDomainVdis,
+      props.vmOrphaned,
+      props.alertMessages,
+      state.messages,
+    ]
+    const [
+      userSrs,
+      vdiOrphaned,
+      controlDomainVdis,
+      vmOrphaned,
+      alertMessages,
+      messages,
+    ] = map(collections, this._getFilteredCollection)
 
     return process.env.XOA_PLAN > 3 ? (
       <Container>
+        <Row className='mb-1'>
+          <SelectPool
+            multi
+            value={state.pools}
+            onChange={this.linkState('pools')}
+          />
+        </Row>
         <Row>
           <Col>
             <Card>
@@ -458,14 +495,14 @@ export default class Health extends Component {
               </CardHeader>
               <CardBlock>
                 <NoObjects
-                  collection={props.areObjectsFetched ? props.userSrs : null}
+                  collection={props.areObjectsFetched ? userSrs : null}
                   emptyMessage={_('noSrs')}
                 >
                   {() => (
                     <Row>
                       <Col>
                         <SortedTable
-                          collection={props.userSrs}
+                          collection={userSrs}
                           columns={SR_COLUMNS}
                           rowLink={this._getSrUrl}
                           shortcutsTarget='body'
@@ -486,9 +523,7 @@ export default class Health extends Component {
               </CardHeader>
               <CardBlock>
                 <NoObjects
-                  collection={
-                    props.areObjectsFetched ? props.vdiOrphaned : null
-                  }
+                  collection={props.areObjectsFetched ? vdiOrphaned : null}
                   emptyMessage={_('noOrphanedObject')}
                 >
                   {() => (
@@ -506,7 +541,7 @@ export default class Health extends Component {
                       <Row>
                         <Col>
                           <SortedTable
-                            collection={this.props.vdiOrphaned}
+                            collection={vdiOrphaned}
                             columns={ORPHANED_VDI_COLUMNS}
                           />
                         </Col>
@@ -527,7 +562,7 @@ export default class Health extends Component {
               <CardBlock>
                 <NoObjects
                   collection={
-                    props.areObjectsFetched ? props.controlDomainVdis : null
+                    props.areObjectsFetched ? controlDomainVdis : null
                   }
                   columns={CONTROL_DOMAIN_VDI_COLUMNS}
                   component={SortedTable}
@@ -545,7 +580,7 @@ export default class Health extends Component {
               </CardHeader>
               <CardBlock>
                 <NoObjects
-                  collection={props.areObjectsFetched ? props.vmOrphaned : null}
+                  collection={props.areObjectsFetched ? vmOrphaned : null}
                   columns={VM_COLUMNS}
                   component={SortedTable}
                   emptyMessage={_('noOrphanedObject')}
@@ -563,9 +598,7 @@ export default class Health extends Component {
               </CardHeader>
               <CardBlock>
                 <NoObjects
-                  collection={
-                    props.areObjectsFetched ? props.alertMessages : null
-                  }
+                  collection={props.areObjectsFetched ? alertMessages : null}
                   emptyMessage={_('noAlarms')}
                 >
                   {() => (
@@ -583,7 +616,7 @@ export default class Health extends Component {
                       <Row>
                         <Col>
                           <SortedTable
-                            collection={this.state.messages}
+                            collection={messages}
                             columns={ALARM_COLUMNS}
                           />
                         </Col>
