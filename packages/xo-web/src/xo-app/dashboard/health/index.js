@@ -452,11 +452,13 @@ export default class Health extends Component {
 
   _getFilteredCollection = createSelector(
     () => this.state.pools,
-    collection => collection,
-    (pools, collection) =>
+    collections => collections,
+    (pools, collections) =>
       isEmpty(pools)
-        ? collection
-        : filter(collection, item => includes(resolveIds(pools), item.$pool))
+        ? collections
+        : map(collections, collection =>
+          filter(collection, item => includes(resolveIds(pools), item.$pool))
+        )
   )
 
   render () {
@@ -476,7 +478,7 @@ export default class Health extends Component {
       vmOrphaned,
       alertMessages,
       messages,
-    ] = map(collections, this._getFilteredCollection)
+    ] = this._getFilteredCollection(collections)
 
     return process.env.XOA_PLAN > 3 ? (
       <Container>
