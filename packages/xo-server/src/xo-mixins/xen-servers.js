@@ -322,52 +322,43 @@ export default class {
 
     xapi.xo.install()
 
-    let resolveRedirectedToAnExistingServer
-    const redirectedToAnExistingServer = new Promise(resolve => {
-      resolveRedirectedToAnExistingServer = resolve
+    let _url
+    xapi.on('redirect', url => {
+      _url = url
     })
 
-    let redirect = false
-    xapi.on('redirect', async url => {
-      redirect = true
-      const servers = await this.getAllXenServers()
-      const serverExists = some(
-        servers,
-        server => isEqual(parseUrl(server.host), url)
-      )
-
-      if (serverExists) {
-        resolveRedirectedToAnExistingServer(true)
-      } else {
-        await this.updateXenServer(id, {host: url.hostname, force: true})
-        resolveRedirectedToAnExistingServer(false)
-      }
-    })
-
-    await xapi.connect().then(
-      async () => {
-        let error = null
-        if (redirect && await redirectedToAnExistingServer) {
-          error = {
-            code: 'Connection failed',
-            message: 'host is slave and the master is already connected',
-          }
-
-          await this.disconnectXenServer(id)
-          console.error(
-            `[WARN] ${server.host}:`,
-            error.message
-          )
-        }
-
-        return this.updateXenServer(id, { force: true, error })
-      },
+    await xapi.connect().catch(
       error => {
         this.updateXenServer(id, { force: true, error: serializeError(error) })
-
         throw error
       }
     )
+
+    let error = null
+    if (_url !== undefined) {
+      const servers = await this.getAllXenServers()
+      const serverExists = some(
+        servers,
+        server => isEqual(parseUrl(server.host), _url)
+      )
+
+      if (!serverExists) {
+        return this.updateXenServer(id, { host: _url.hostname, force: true, error })
+      } else {
+        await this.disconnectXenServer(id)
+
+        error = {
+          code: 'Connection failed',
+          message: 'host is slave and the master is already connected',
+        }
+        console.error(
+          `[WARN] ${server.host}:`,
+          error.message
+        )
+      }
+    }
+
+    return this.updateXenServer(id, { force: true, error })
   }
 
   async disconnectXenServer (id) {
