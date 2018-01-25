@@ -32,7 +32,7 @@ import { SizeInput, Toggle } from 'form'
 import { XoSelect, Size, Text } from 'editable'
 import { confirm } from 'modal'
 import { error } from 'notification'
-import { filter, find, flatMap, forEach, get, map, some } from 'lodash'
+import { filter, find, forEach, get, map, some } from 'lodash'
 import {
   attachDiskToVm,
   createDisk,
@@ -109,7 +109,7 @@ const COLUMNS_VM_PV = [
   },
   {
     itemRenderer: (vdi, userData) => {
-      const vbd = find(userData.vbdsByVdi[vdi.id], { VM: userData.vm.id })
+      const vbd = userData.vbdsByVdi[vdi.id]
       return (
         <Toggle
           onChange={bootable => setBootableVbd(vbd, bootable)}
@@ -122,8 +122,7 @@ const COLUMNS_VM_PV = [
   },
   {
     itemRenderer: (vdi, userData) => {
-      const vm = userData.vm
-      const vbd = find(userData.vbdsByVdi[vdi.id], { VM: userData.vm.id })
+      const vbd = userData.vbdsByVdi[vdi.id]
       return (
         <StateButton
           disabledLabel={_('vbdStatusDisconnected')}
@@ -132,7 +131,7 @@ const COLUMNS_VM_PV = [
           enabledLabel={_('vbdStatusConnected')}
           enabledHandler={disconnectVbd}
           enabledTooltip={_('vbdDisconnect')}
-          disabled={!(vbd.attached || isVmRunning(vm))}
+          disabled={!(vbd.attached || isVmRunning(userData.vm))}
           handlerParam={vbd}
           state={vbd.attached}
         />
@@ -144,21 +143,10 @@ const COLUMNS_VM_PV = [
 
 const COLUMNS = filter(COLUMNS_VM_PV, col => col.id !== 'vbdBootableStatus')
 
-const FILTERS = {
-  filterOnlyManaged: 'type:!VDI-unmanaged',
-  filterOnlyRegular: '!type:|(VDI-snapshot VDI-unmanaged)',
-  filterOnlySnapshots: 'type:VDI-snapshot',
-  filterOnlyOrphaned: 'type:!VDI-unmanaged $VBDs:!""',
-  filterOnlyUnmanaged: 'type:VDI-unmanaged',
-}
-
 const GROUPED_ACTIONS = [
   {
     disabled: (selectedItems, userData) =>
-      some(
-        flatMap(selectedItems, vdi => userData.vbdsByVdi[vdi.id]),
-        'attached'
-      ),
+      some(map(selectedItems, vdi => userData.vbdsByVdi[vdi.id]), 'attached'),
     handler: deleteVbds,
     icon: 'vdi-forget',
     label: _('vdiForget'),
@@ -166,10 +154,7 @@ const GROUPED_ACTIONS = [
   },
   {
     disabled: (selectedItems, userData) =>
-      some(
-        flatMap(selectedItems, vdi => userData.vbdsByVdi[vdi.id]),
-        'attached'
-      ),
+      some(map(selectedItems, vdi => userData.vbdsByVdi[vdi.id]), 'attached'),
     handler: deleteVdis,
     icon: 'vdi-remove',
     label: _('vdiRemove'),
@@ -643,6 +628,19 @@ export default class TabDisks extends Component {
       isAdmin || (resourceSet == null && isVmAdmin)
   )
 
+  _getVbdsByVdi = createSelector(
+    () => this.props.vdis,
+    () => this.props.vbds,
+    () => this.props.vm,
+    (vdis, vbds, vm) => {
+      const vbdsByVdi = []
+      forEach(vdis, vdi => {
+        vbdsByVdi[vdi.id] = find(vbds, { VDI: vdi.id, VM: vm.id })
+      })
+      return vbdsByVdi
+    }
+  )
+
   individualActions = [
     {
       handler: this._migrateVdi,
@@ -651,7 +649,7 @@ export default class TabDisks extends Component {
     },
     {
       disabled: (vdi, userData) => {
-        const vbd = find(userData.vbdsByVdi[vdi.id], { VM: userData.vm.id })
+        const vbd = userData.vbdsByVdi[vdi.id]
         return vbd !== undefined && vbd.attached
       },
       handler: deleteVbd,
@@ -661,7 +659,7 @@ export default class TabDisks extends Component {
     },
     {
       disabled: (vdi, userData) => {
-        const vbd = find(userData.vbdsByVdi[vdi.id], { VM: userData.vm.id })
+        const vbd = userData.vbdsByVdi[vdi.id]
         return vbd !== undefined && vbd.attached
       },
       handler: deleteVdi,
@@ -674,17 +672,6 @@ export default class TabDisks extends Component {
     const { srs, vbds, vdis, vm } = this.props
 
     const { attachDisk, bootOrder, newDisk } = this.state
-
-    const _getVbdsByVdi = createSelector(
-      () => vdis,
-      vdis => {
-        const vbdsByVdi = []
-        forEach(vdis, vdi => {
-          vbdsByVdi[vdi.id] = map(vdi.$VBDs, id => find(vbds, { id }))
-        })
-        return vbdsByVdi
-      }
-    )
 
     return (
       <Container>
@@ -745,13 +732,11 @@ export default class TabDisks extends Component {
             <SortedTable
               collection={vdis}
               columns={vm.virtualizationMode === 'pv' ? COLUMNS_VM_PV : COLUMNS}
-              defaultFilter='filterOnlyManaged'
-              filters={FILTERS}
               groupedActions={GROUPED_ACTIONS}
               individualActions={this.individualActions}
               shortcutsTarget='body'
               stateUrlParam='s'
-              userData={{ srs, vm, vbdsByVdi: _getVbdsByVdi() }}
+              userData={{ srs, vm, vbdsByVdi: this._getVbdsByVdi() }}
             />
           </Col>
         </Row>
