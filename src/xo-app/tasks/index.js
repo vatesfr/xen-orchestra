@@ -10,7 +10,7 @@ import { injectIntl } from 'react-intl'
 import { SelectPool } from 'select-objects'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Col, Container, Row } from 'grid'
-import { find, flatMap, isEmpty, keys } from 'lodash'
+import { flatMap, isEmpty, keys } from 'lodash'
 import {
   createGetObject,
   createGetObjectsOfType,
@@ -70,10 +70,7 @@ const COLUMNS = [
       )
     },
     name: _('pool'),
-    sortCriteria: (task, userData) => {
-      const pool = find(userData.pools, { id: task.$poolId })
-      return pool.name_label
-    },
+    sortCriteria: (task, userData) => userData.pools[task.$poolId].name_label,
   },
   {
     component: TaskItem,
