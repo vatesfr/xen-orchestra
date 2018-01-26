@@ -183,12 +183,13 @@ class Log extends BaseComponent {
                       <JobReturn id={id} />
                     </span>
                   )}
-                  {error !== undefined &&
+                  {error != null &&
                     (error.message === UNHEALTHY_VDI_CHAIN_ERROR ? (
                       <Tooltip content={_('clickForMoreInformation')}>
                         <a
                           className='text-info'
                           href={UNHEALTHY_VDI_CHAIN_LINK}
+                          rel='noopener noreferrer'
                           target='_blank'
                         >
                           <Icon icon='info' /> {_('unhealthyVdiChainError')}
@@ -197,7 +198,7 @@ class Log extends BaseComponent {
                     ) : (
                       <span className='text-danger'>
                         <Icon icon='error' />{' '}
-                        {error.message !== undefined ? (
+                        {error.message != null ? (
                           <strong>{error.message}</strong>
                         ) : (
                           JSON.stringify(error)
