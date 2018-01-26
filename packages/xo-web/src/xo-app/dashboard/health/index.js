@@ -468,18 +468,18 @@ export default class Health extends Component {
           filter(collection, item => includes(poolIds, item.$pool))
   )
 
-  _getFilteredCollection = collection =>
+  _getFilteredCollectionSelector = collection =>
     createSelector(collection, this._getPoolFilter, (collection, filter) =>
       filter(collection)
     )
 
   _getFilteredCollections = createSelector(
-    this._getFilteredCollection(() => this.props.userSrs),
-    this._getFilteredCollection(() => this.props.vdiOrphaned),
-    this._getFilteredCollection(() => this.props.controlDomainVdis),
-    this._getFilteredCollection(() => this.props.vmOrphaned),
-    this._getFilteredCollection(() => this.props.alertMessages),
-    this._getFilteredCollection(() => this.state.messages),
+    this._getFilteredCollectionSelector(() => this.props.userSrs),
+    this._getFilteredCollectionSelector(() => this.props.vdiOrphaned),
+    this._getFilteredCollectionSelector(() => this.props.controlDomainVdis),
+    this._getFilteredCollectionSelector(() => this.props.vmOrphaned),
+    this._getFilteredCollectionSelector(() => this.props.alertMessages),
+    this._getFilteredCollectionSelector(() => this.state.messages),
     (...filteredCollections) => filteredCollections
   )
 
