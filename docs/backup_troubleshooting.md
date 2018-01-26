@@ -43,3 +43,9 @@ Workarounds:
 ### Could not find the base VM
 
 This message appears when the previous replicated VM has been deleted on the target side which breaks the replication. To reset the process it's necessary to delete VM snapshot related to this CR job on the original VM. The name of this snapshot is: `XO_DELTA_EXPORT: <name label of target SR> (<UUID of target SR>)`
+
+### LICENCE_RESTRICTION(PCI_device_for_auto_update)
+
+This message appears when you try to do a backup/snapshot from a VM that was previously on a host with an active commercial XenServer license and which is now on a host with a free edition of XenServer.
+
+To solve it, you have to change a parameter in your VM. `xe vm-param-set has-vendor-device=false uuid=<VM_UUID>`
