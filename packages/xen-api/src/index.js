@@ -847,15 +847,19 @@ export class Xapi extends EventEmitter {
       this._processEvents(events)
 
       if (task !== this._nTasks) {
-        forEach(this.objects.all, object => {
-          if (object.$type === 'task') {
-            this._removeObject('task', object.$ref)
-          }
-        })
-
         this._sessionCall('task.get_all_records').then(tasks => {
+          const toRemove = new Set()
+          forEach(this.objects.all, object => {
+            if (object.$type === 'task') {
+              toRemove.add(object.$ref)
+            }
+          })
           forEach(tasks, (task, ref) => {
+            toRemove.delete(ref)
             this._addObject('task', ref, task)
+          })
+          toRemove.forEach(ref => {
+            this._removeObject('task', ref)
           })
         }).catch(noop)
       }
