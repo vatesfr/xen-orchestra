@@ -1,12 +1,13 @@
 /* eslint-env jest */
 
+import { ast, pattern } from './index.fixtures'
 import {
   getPropertyClausesStrings,
   Null,
+  NumberNode,
   parse,
   setPropertyClause,
 } from './'
-import { ast, pattern } from './index.fixtures'
 
 it('getPropertyClausesStrings', () => {
   const tmp = getPropertyClausesStrings(parse('foo bar:baz baz:|(foo bar)'))
@@ -37,6 +38,12 @@ describe('parse', () => {
     expect(node.match(32)).toBe(false)
     expect(node.match('32')).toBe(true)
     expect(node.toString()).toBe('"32"')
+  })
+})
+
+describe('Number', () => {
+  it('match a number recursively', () => {
+    expect(new NumberNode(3).match([{ foo: 3 }])).toBe(true)
   })
 })
 

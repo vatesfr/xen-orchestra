@@ -146,10 +146,18 @@ export class NumberNode extends Node {
     super()
 
     this.value = value
+
+    // should not be enumerable for the tests
+    Object.defineProperty(this, 'match', {
+      value: this.match.bind(this),
+    })
   }
 
   match (value) {
-    return value === this.value
+    return (
+      value === this.value ||
+      (value !== null && typeof value === 'object' && some(value, this.match))
+    )
   }
 
   toString () {
