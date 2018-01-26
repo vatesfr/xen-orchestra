@@ -141,21 +141,6 @@ const GROUPED_ACTIONS = [
 })
 @injectIntl
 export default class Tasks extends Component {
-  componentWillMount () {
-    this._autoFill(this.props)
-  }
-
-  componentWillReceiveProps (props) {
-    this._autoFill(props)
-  }
-
-  _autoFill = props => {
-    const { pools } = props
-    if (!isEmpty(pools)) {
-      this.setState({ pools })
-    }
-  }
-
   _getTasks = createSelector(
     createSelector(() => this.state.pools, resolveIds),
     () => this.props.pendingTasksByPool,
