@@ -399,13 +399,13 @@ export class Xapi extends EventEmitter {
   callAsync ($cancelToken, method, ...args) {
     return this._readOnly && !isReadOnlyCall(method, args)
       ? Promise.reject(new Error(`cannot call ${method}() in read only mode`))
-      : this._sessionCall(`Async.${method}`, ...args).then(taskRef => {
+      : this._sessionCall(`Async.${method}`, args).then(taskRef => {
         $cancelToken.promise.then(() => {
-          this._sessionCall('task.cancel', taskRef).catch(noop)
+          this._sessionCall('task.cancel', [taskRef]).catch(noop)
         })
 
         return this.watchTask(taskRef)::lastly(() => {
-          this._sessionCall('task.destroy', taskRef).catch(noop)
+          this._sessionCall('task.destroy', [taskRef]).catch(noop)
         })
       })
   }
@@ -423,7 +423,7 @@ export class Xapi extends EventEmitter {
 
     promise.then(taskRef => {
       const destroy = () =>
-        this._sessionCall('task.destroy', taskRef).catch(noop)
+        this._sessionCall('task.destroy', [taskRef]).catch(noop)
       this.watchTask(taskRef).then(destroy, destroy)
     })
 
@@ -475,7 +475,7 @@ export class Xapi extends EventEmitter {
   }
 
   getRecord (type, ref) {
-    return this._sessionCall(`${type}.get_record`, ref)
+    return this._sessionCall(`${type}.get_record`, [ref])
   }
 
   @cancelable
@@ -848,7 +848,7 @@ export class Xapi extends EventEmitter {
           }
         })
 
-        this._sessionCall('task.get_all_records').then(tasks => {
+        this._sessionCall('task.get_all_records', []).then(tasks => {
           forEach(tasks, (task, ref) => {
             this._addObject('task', ref, task)
           })
