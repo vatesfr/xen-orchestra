@@ -687,7 +687,12 @@ export class Xapi extends EventEmitter {
         throw new Error('session.*() methods are disabled from this interface')
       }
 
-      return this._transportCall(method, [this.sessionId].concat(args))
+      const newArgs = [this.sessionId]
+      if (args !== undefined) {
+        newArgs.push.apply(newArgs, args)
+      }
+
+      return this._transportCall(method, newArgs)
         ::pCatch(isSessionInvalid, () => {
           // XAPI is sometimes reinitialized and sessions are lost.
           // Try to login again.
@@ -848,7 +853,7 @@ export class Xapi extends EventEmitter {
           }
         })
 
-        this._sessionCall('task.get_all_records', []).then(tasks => {
+        this._sessionCall('task.get_all_records').then(tasks => {
           forEach(tasks, (task, ref) => {
             this._addObject('task', ref, task)
           })
@@ -889,7 +894,7 @@ export class Xapi extends EventEmitter {
   // It also has to manually get all objects first.
   _watchEventsLegacy () {
     const getAllObjects = () => {
-      return this._sessionCall('system.listMethods', []).then(methods => {
+      return this._sessionCall('system.listMethods').then(methods => {
         // Uses introspection to determine the methods to use to get
         // all objects.
         const getAllRecordsMethods = filter(
@@ -899,7 +904,7 @@ export class Xapi extends EventEmitter {
 
         return Promise.all(map(
           getAllRecordsMethods,
-          method => this._sessionCall(method, []).then(
+          method => this._sessionCall(method).then(
             objects => {
               const type = method.slice(0, method.indexOf('.')).toLowerCase()
               forEach(objects, (object, ref) => {
@@ -918,7 +923,7 @@ export class Xapi extends EventEmitter {
 
     const watchEvents = () => this._sessionCall('event.register', [ ['*'] ]).then(loop)
 
-    const loop = () => this.status === CONNECTED && this._sessionCall('event.next', []).then(onSuccess, onFailure)
+    const loop = () => this.status === CONNECTED && this._sessionCall('event.next').then(onSuccess, onFailure)
 
     const onSuccess = events => {
       this._processEvents(events)
