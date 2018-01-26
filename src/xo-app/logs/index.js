@@ -198,7 +198,7 @@ class Log extends BaseComponent {
                     ) : (
                       <span className='text-danger'>
                         <Icon icon='error' />{' '}
-                        {error.message != null ? (
+                        {error.message !== undefined ? (
                           <strong>{error.message}</strong>
                         ) : (
                           JSON.stringify(error)
