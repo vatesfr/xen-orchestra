@@ -32,7 +32,7 @@ import { SizeInput, Toggle } from 'form'
 import { XoSelect, Size, Text } from 'editable'
 import { confirm } from 'modal'
 import { error } from 'notification'
-import { filter, find, forEach, get, map, some } from 'lodash'
+import { filter, find, forEach, get, map, mapValues, some } from 'lodash'
 import {
   attachDiskToVm,
   createDisk,
@@ -632,13 +632,8 @@ export default class TabDisks extends Component {
     () => this.props.vdis,
     () => this.props.vbds,
     () => this.props.vm,
-    (vdis, vbds, vm) => {
-      const vbdsByVdi = []
-      forEach(vdis, vdi => {
-        vbdsByVdi[vdi.id] = find(vbds, { VDI: vdi.id, VM: vm.id })
-      })
-      return vbdsByVdi
-    }
+    (vdis, vbds, vm) =>
+      mapValues(vdis, vdi => find(vbds, { VDI: vdi.id, VM: vm.id }))
   )
 
   individualActions = [
