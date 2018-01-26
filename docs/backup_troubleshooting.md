@@ -10,11 +10,11 @@ Another good way to check if there is activity is the XOA VM stats view (on the 
 
 ## Error messages
 
-### `unhealthy VDI chain`
+### `VDI chain protection`
 
-> This message is relevent for Continuous Delta Backup or Continuous Replication only.
+> This message is relevant for *Continuous Delta Backup* or *Continuous Replication* only.
 
-It means your previous VM disks and snapshots should be "merged" (*coalesced* in the XenServer world) before we take a new snapshot. This mechanism is handled by XenServer itself, not us. But we can check your existing chain and avoiding creating more snapshots than your storage can merge.
+It means your previous VM disks and snapshots should be "merged" (*coalesced* in the XenServer world) before we take a new snapshot. This mechanism is handled by XenServer itself, not Xen Orchestra. But we can check your existing VDI chain and avoiding creating more snapshots than your storage can merge. Otherwise, this will lead to catastrophic consequences. Xen Orchestra is the **only** XenServer/XCP backup product dealing with this.
 
 Without this detection, you could have 2 potential issues:
 
