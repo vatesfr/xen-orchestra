@@ -2,17 +2,17 @@ import _, { messages } from 'intl'
 import ButtonGroup from 'button-group'
 import ChartistGraph from 'react-chartist'
 import Component from 'base-component'
-import ResourceSetQuotas from 'resource-set-quotas'
-import Icon from 'icon'
-import PropTypes from 'prop-types'
-import Link, { BlockLink } from 'link'
 import HostsPatchesTable from 'hosts-patches-table'
+import Icon from 'icon'
+import Link, { BlockLink } from 'link'
+import PropTypes from 'prop-types'
 import React from 'react'
+import ResourceSetQuotas from 'resource-set-quotas'
 import Upgrade from 'xoa-upgrade'
-import { injectIntl } from 'react-intl'
-import { forEach, isEmpty, map, size } from 'lodash'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Row, Col } from 'grid'
+import { forEach, isEmpty, map, size } from 'lodash'
+import { injectIntl } from 'react-intl'
 import {
   createCollectionWrapper,
   createCounter,
@@ -430,14 +430,14 @@ export default class Overview extends Component {
           {showResourceSets ? (
             map(props.resourceSets, resourceSet => (
               <Row key={resourceSet.id}>
-                <ResourceSetQuotas
-                  limits={resourceSet.limits}
-                  header={
-                    <span>
-                      <Icon icon='menu-self-service' /> {resourceSet.name}
-                    </span>
-                  }
-                />
+                <card>
+                  <CardHeader>
+                    <Icon icon='menu-self-service' /> {resourceSet.name}
+                  </CardHeader>
+                  <CardBlock>
+                    <ResourceSetQuotas limits={resourceSet.limits} />
+                  </CardBlock>
+                </card>
               </Row>
             ))
           ) : (

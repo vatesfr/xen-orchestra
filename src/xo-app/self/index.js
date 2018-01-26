@@ -3,7 +3,6 @@ import ActionButton from 'action-button'
 import Collapse from 'collapse'
 import Component from 'base-component'
 import defined from 'xo-defined'
-import { injectIntl } from 'react-intl'
 import differenceBy from 'lodash/differenceBy'
 import filter from 'lodash/filter'
 import forEach from 'lodash/forEach'
@@ -23,6 +22,7 @@ import ResourceSetQuotas from 'resource-set-quotas'
 import Upgrade from 'xoa-upgrade'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType, createSelector } from 'selectors'
+import { injectIntl } from 'react-intl'
 import { SizeInput } from 'form'
 
 import {
@@ -627,9 +627,7 @@ class ResourceSet extends Component {
         </li>
       ),
       <li key='graphs' className='list-group-item'>
-        <Row>
-          <ResourceSetQuotas limits={limits} />
-        </Row>
+        <ResourceSetQuotas limits={limits} />
       </li>,
       <li key='actions' className='list-group-item text-xs-center'>
         <div className='btn-toolbar'>
