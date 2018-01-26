@@ -31,7 +31,16 @@ import {
   createGetObjectsOfType,
   createSelector,
 } from 'selectors'
-import { includes, isEmpty, flatten, filter, get, map, mapValues } from 'lodash'
+import {
+  identity,
+  includes,
+  isEmpty,
+  flatten,
+  filter,
+  get,
+  map,
+  mapValues,
+} from 'lodash'
 import { connectStore, formatSize, mapPlus, noop, resolveIds } from 'utils'
 
 const SrColContainer = connectStore(() => ({
@@ -450,27 +459,32 @@ export default class Health extends Component {
 
   _getSrUrl = sr => `srs/${sr.id}`
 
-  _getFilteredCollection = createSelector(
-    () => this.state.pools,
-    collections => collections,
-    (pools, collections) =>
-      isEmpty(pools)
-        ? collections
-        : map(collections, collection =>
-          filter(collection, item => includes(resolveIds(pools), item.$pool))
-        )
+  _getPoolFilter = createSelector(
+    createSelector(() => this.state.pools, resolveIds),
+    poolIds =>
+      isEmpty(poolIds)
+        ? identity
+        : collection =>
+          filter(collection, item => includes(poolIds, item.$pool))
+  )
+
+  _getFilteredCollection = collection =>
+    createSelector(collection, this._getPoolFilter, (collection, filter) =>
+      filter(collection)
+    )
+
+  _getFilteredCollections = createSelector(
+    this._getFilteredCollection(() => this.props.userSrs),
+    this._getFilteredCollection(() => this.props.vdiOrphaned),
+    this._getFilteredCollection(() => this.props.controlDomainVdis),
+    this._getFilteredCollection(() => this.props.vmOrphaned),
+    this._getFilteredCollection(() => this.props.alertMessages),
+    this._getFilteredCollection(() => this.state.messages),
+    (...filteredCollections) => filteredCollections
   )
 
   render () {
     const { props, state } = this
-    const collections = [
-      props.userSrs,
-      props.vdiOrphaned,
-      props.controlDomainVdis,
-      props.vmOrphaned,
-      props.alertMessages,
-      state.messages,
-    ]
     const [
       userSrs,
       vdiOrphaned,
@@ -478,7 +492,7 @@ export default class Health extends Component {
       vmOrphaned,
       alertMessages,
       messages,
-    ] = this._getFilteredCollection(collections)
+    ] = this._getFilteredCollections()
 
     return process.env.XOA_PLAN > 3 ? (
       <Container>
