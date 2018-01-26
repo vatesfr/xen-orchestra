@@ -115,6 +115,10 @@ const PREDICATES = {
   success: call => call.end !== undefined && call.error === undefined,
 }
 
+const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
+const UNHEALTHY_VDI_CHAIN_LINK =
+  'https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection'
+
 class Log extends BaseComponent {
   state = {
     filter: 'all',
@@ -179,16 +183,27 @@ class Log extends BaseComponent {
                       <JobReturn id={id} />
                     </span>
                   )}
-                  {call.error && (
-                    <span className='text-danger'>
-                      <Icon icon='error' />{' '}
-                      {call.error.message ? (
-                        <strong>{call.error.message}</strong>
-                      ) : (
-                        JSON.stringify(call.error)
-                      )}
-                    </span>
-                  )}
+                  {error !== undefined &&
+                    (error.message === UNHEALTHY_VDI_CHAIN_ERROR ? (
+                      <Tooltip content={_('clickForMoreInformation')}>
+                        <a
+                          className='text-info'
+                          href={UNHEALTHY_VDI_CHAIN_LINK}
+                          target='_blank'
+                        >
+                          <Icon icon='info' /> {_('unhealthyVdiChainError')}
+                        </a>
+                      </Tooltip>
+                    ) : (
+                      <span className='text-danger'>
+                        <Icon icon='error' />{' '}
+                        {error.message !== undefined ? (
+                          <strong>{error.message}</strong>
+                        ) : (
+                          JSON.stringify(error)
+                        )}
+                      </span>
+                    ))}
                 </li>
               )
             )

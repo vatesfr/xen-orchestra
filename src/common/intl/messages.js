@@ -1480,6 +1480,8 @@ const messages = {
   logIndicationToEnable: 'Click to enable',
   logIndicationToDisable: 'Click to disable',
   reportBug: 'Report a bug',
+  unhealthyVdiChainError: 'Job canceled to protect the VDI chain',
+  clickForMoreInformation: 'Click for more information',
 
   // ----- IPs ------
   ipPoolName: 'Name',
