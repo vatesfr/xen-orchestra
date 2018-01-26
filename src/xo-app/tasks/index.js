@@ -5,12 +5,12 @@ import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
 import SortedTable from 'sorted-table'
-import { connectStore } from 'utils'
 import { injectIntl } from 'react-intl'
 import { SelectPool } from 'select-objects'
+import { connectStore, resolveIds } from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Col, Container, Row } from 'grid'
-import { flatMap, isEmpty, keys } from 'lodash'
+import { flatMap, flatten, isEmpty, keys, toArray } from 'lodash'
 import {
   createGetObject,
   createGetObjectsOfType,
@@ -157,10 +157,12 @@ export default class Tasks extends Component {
   }
 
   _getTasks = createSelector(
-    () => this.state.pools !== undefined && this.state.pools,
+    createSelector(() => this.state.pools, resolveIds),
     () => this.props.pendingTasksByPool,
-    (pools, pendingTasksByPool) =>
-      flatMap(pools, pool => pendingTasksByPool[pool.id])
+    (poolIds, pendingTasksByPool) =>
+      isEmpty(poolIds)
+        ? flatten(toArray(pendingTasksByPool))
+        : flatMap(poolIds, poolId => pendingTasksByPool[poolId] || [])
   )
 
   render () {
