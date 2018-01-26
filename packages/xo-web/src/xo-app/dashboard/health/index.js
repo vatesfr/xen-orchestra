@@ -468,8 +468,8 @@ export default class Health extends Component {
           filter(collection, item => includes(poolIds, item.$pool))
   )
 
-  _getFilteredCollectionSelector = collection =>
-    createSelector(collection, this._getPoolFilter, (collection, filter) =>
+  _getFilteredCollectionSelector = getCollection =>
+    createSelector(getCollection, this._getPoolFilter, (collection, filter) =>
       filter(collection)
     )
 
