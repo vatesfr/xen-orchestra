@@ -430,14 +430,14 @@ export default class Overview extends Component {
           {showResourceSets ? (
             map(props.resourceSets, resourceSet => (
               <Row key={resourceSet.id}>
-                <card>
+                <Card>
                   <CardHeader>
                     <Icon icon='menu-self-service' /> {resourceSet.name}
                   </CardHeader>
                   <CardBlock>
                     <ResourceSetQuotas limits={resourceSet.limits} />
                   </CardBlock>
-                </card>
+                </Card>
               </Row>
             ))
           ) : (

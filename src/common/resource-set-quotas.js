@@ -3,7 +3,7 @@ import ChartistGraph from 'react-chartist'
 import PropTypes from 'prop-types'
 import React from 'react'
 import { Card, CardBlock, CardHeader } from 'card'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import { forEach, map } from 'lodash'
 import { injectIntl } from 'react-intl'
 
@@ -81,45 +81,47 @@ export default class ResourceSetQuotas extends Component {
       },
     ]
     return (
-      <Row>
-        {map(quotas, ({ header, validFormat, quota }, key) => (
-          <Col key={key} mediumSize={4}>
-            <Card>
-              <CardHeader>{header}</CardHeader>
-              <CardBlock className='text-center'>
-                {quota !== undefined ? (
-                  <div>
-                    <ChartistGraph
-                      data={{
-                        labels,
-                        series: [quota.available, quota.usage],
-                      }}
-                      options={{
-                        donut: true,
-                        donutWidth: 40,
-                        showLabel: false,
-                      }}
-                      type='Pie'
-                    />
-                    <p className='text-xs-center'>
-                      {_('resourceSetQuota', {
-                        total: validFormat
-                          ? quota.total.toString()
-                          : formatSize(quota.total),
-                        usage: validFormat
-                          ? quota.usage.toString()
-                          : formatSize(quota.usage),
-                      })}
-                    </p>
-                  </div>
-                ) : (
-                  <p className='text-xs-center display-1'>&infin;</p>
-                )}
-              </CardBlock>
-            </Card>
-          </Col>
-        ))}
-      </Row>
+      <Container>
+        <Row>
+          {map(quotas, ({ header, validFormat, quota }, key) => (
+            <Col key={key} mediumSize={4}>
+              <Card>
+                <CardHeader>{header}</CardHeader>
+                <CardBlock className='text-center'>
+                  {quota !== undefined ? (
+                    <div>
+                      <ChartistGraph
+                        data={{
+                          labels,
+                          series: [quota.available, quota.usage],
+                        }}
+                        options={{
+                          donut: true,
+                          donutWidth: 40,
+                          showLabel: false,
+                        }}
+                        type='Pie'
+                      />
+                      <p className='text-xs-center'>
+                        {_('resourceSetQuota', {
+                          total: validFormat
+                            ? quota.total.toString()
+                            : formatSize(quota.total),
+                          usage: validFormat
+                            ? quota.usage.toString()
+                            : formatSize(quota.usage),
+                        })}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className='text-xs-center display-1'>&infin;</p>
+                  )}
+                </CardBlock>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      </Container>
     )
   }
 }
