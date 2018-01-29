@@ -1,6 +1,5 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
-import ChartistGraph from 'react-chartist'
 import Collapse from 'collapse'
 import Component from 'base-component'
 import defined from 'xo-defined'
@@ -15,13 +14,15 @@ import isEmpty from 'lodash/isEmpty'
 import keys from 'lodash/keys'
 import map from 'lodash/map'
 import mapKeys from 'lodash/mapKeys'
-import propTypes from 'prop-types-decorator'
+import PropTypes from 'prop-types'
 import React from 'react'
 import remove from 'lodash/remove'
 import renderXoItem from 'render-xo-item'
+import ResourceSetQuotas from 'resource-set-quotas'
 import Upgrade from 'xoa-upgrade'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType, createSelector } from 'selectors'
+import { injectIntl } from 'react-intl'
 import { SizeInput } from 'form'
 
 import {
@@ -36,12 +37,9 @@ import {
 import {
   addSubscriptions,
   connectStore,
-  formatSize,
   resolveIds,
   resolveResourceSets,
 } from 'utils'
-
-import { Card, CardBlock, CardHeader } from 'card'
 
 import {
   SelectIpPool,
@@ -72,10 +70,7 @@ const HEADER = (
 
 // ===================================================================
 
-const Hosts = propTypes({
-  eligibleHosts: propTypes.array.isRequired,
-  excludedHosts: propTypes.array.isRequired,
-})(({ eligibleHosts, excludedHosts }) => (
+const Hosts = ({ eligibleHosts, excludedHosts }) => (
   <div>
     <Row>
       <Col mediumSize={6}>
@@ -117,14 +112,15 @@ const Hosts = propTypes({
       </Col>
     </Row>
   </div>
-))
+)
+
+Hosts.propTypes = {
+  eligibleHosts: PropTypes.array.isRequired,
+  excludedHosts: PropTypes.array.isRequired,
+}
 
 // ===================================================================
 
-@propTypes({
-  onSave: propTypes.func,
-  resourceSet: propTypes.object,
-})
 @connectStore(() => {
   const getHosts = createGetObjectsOfType('host').sort()
   const getHostsByPool = getHosts.groupBy('$pool')
@@ -135,6 +131,11 @@ const Hosts = propTypes({
   }
 })
 export class Edit extends Component {
+  static propTypes = {
+    onSave: PropTypes.func,
+    resourceSet: PropTypes.object,
+  }
+
   constructor (props) {
     super(props)
 
@@ -588,16 +589,12 @@ export class Edit extends Component {
 @addSubscriptions({
   ipPools: subscribeIpPools,
 })
+@injectIntl
 class ResourceSet extends Component {
   _renderDisplay = () => {
     const { resourceSet } = this.props
     const resolvedIpPools = mapKeys(this.props.ipPools, 'id')
-    const {
-      limits: { cpus, disk, memory } = {},
-      ipPools,
-      subjects,
-      objectsByType,
-    } = resourceSet
+    const { limits, ipPools, subjects, objectsByType } = resourceSet
 
     return [
       <li key='subjects' className='list-group-item'>
@@ -614,16 +611,16 @@ class ResourceSet extends Component {
         <li key='ipPools' className='list-group-item'>
           {map(ipPools, pool => {
             const resolvedIpPool = resolvedIpPools[pool]
-            const limits = get(resourceSet, `limits[ipPool:${pool}]`)
-            const available = limits && limits.available
-            const total = limits && limits.total
+            const ipPoolLimits = limits && get(limits, `[ipPool:${pool}]`)
+            const available = ipPoolLimits && ipPoolLimits.available
+            const total = ipPoolLimits && ipPoolLimits.total
             return (
               <span className='mr-1'>
                 {renderXoItem({
                   name: resolvedIpPool && resolvedIpPool.name,
                   type: 'ipPool',
                 })}
-                {limits && (
+                {ipPoolLimits && (
                   <span>
                     {' '}
                     ({available}/{total})
@@ -635,112 +632,7 @@ class ResourceSet extends Component {
         </li>
       ),
       <li key='graphs' className='list-group-item'>
-        <Row>
-          <Col mediumSize={4}>
-            <Card>
-              <CardHeader>
-                <Icon icon='cpu' /> {_('resourceSetVcpus')}
-              </CardHeader>
-              <CardBlock className='text-center'>
-                {cpus ? (
-                  <div>
-                    <ChartistGraph
-                      data={{
-                        labels: ['Available', 'Used'],
-                        series: [cpus.available, cpus.total - cpus.available],
-                      }}
-                      options={{
-                        donut: true,
-                        donutWidth: 40,
-                        showLabel: false,
-                      }}
-                      type='Pie'
-                    />
-                    <p className='text-xs-center'>
-                      {_('usedResource')} {cpus.total - cpus.available} ({_(
-                        'totalResource'
-                      )}{' '}
-                      {cpus.total})
-                    </p>
-                  </div>
-                ) : (
-                  <p className='text-xs-center display-1'>&infin;</p>
-                )}
-              </CardBlock>
-            </Card>
-          </Col>
-          <Col mediumSize={4}>
-            <Card>
-              <CardHeader>
-                <Icon icon='memory' /> {_('resourceSetMemory')}
-              </CardHeader>
-              <CardBlock className='text-center'>
-                {memory ? (
-                  <div>
-                    <ChartistGraph
-                      data={{
-                        labels: ['Available', 'Used'],
-                        series: [
-                          memory.available,
-                          memory.total - memory.available,
-                        ],
-                      }}
-                      options={{
-                        donut: true,
-                        donutWidth: 40,
-                        showLabel: false,
-                      }}
-                      type='Pie'
-                    />
-                    <p className='text-xs-center'>
-                      {_('usedResource')}{' '}
-                      {formatSize(memory.total - memory.available)} ({_(
-                        'totalResource'
-                      )}{' '}
-                      {formatSize(memory.total)})
-                    </p>
-                  </div>
-                ) : (
-                  <p className='text-xs-center display-1'>&infin;</p>
-                )}
-              </CardBlock>
-            </Card>
-          </Col>
-          <Col mediumSize={4}>
-            <Card>
-              <CardHeader>
-                <Icon icon='disk' /> {_('resourceSetStorage')}
-              </CardHeader>
-              <CardBlock>
-                {disk ? (
-                  <div>
-                    <ChartistGraph
-                      data={{
-                        labels: ['Available', 'Used'],
-                        series: [disk.available, disk.total - disk.available],
-                      }}
-                      options={{
-                        donut: true,
-                        donutWidth: 40,
-                        showLabel: false,
-                      }}
-                      type='Pie'
-                    />
-                    <p className='text-xs-center'>
-                      {_('usedResource')}{' '}
-                      {formatSize(disk.total - disk.available)} ({_(
-                        'totalResource'
-                      )}{' '}
-                      {formatSize(disk.total)})
-                    </p>
-                  </div>
-                ) : (
-                  <p className='text-xs-center display-1'>&infin;</p>
-                )}
-              </CardBlock>
-            </Card>
-          </Col>
-        </Row>
+        <ResourceSetQuotas limits={limits} />
       </li>,
       <li key='actions' className='list-group-item text-xs-center'>
         <div className='btn-toolbar'>
