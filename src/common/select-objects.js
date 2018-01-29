@@ -235,6 +235,7 @@ class GenericSelect extends React.Component {
     const select = (
       <Select
         {...props}
+        autoSelectSingleOption={false}
         onChange={this._onChange}
         openOnFocus
         optionRenderer={this._renderOption}
