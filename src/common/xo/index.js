@@ -1052,6 +1052,10 @@ export const deleteVms = vms =>
   confirm({
     title: _('deleteVmsModalTitle', { vms: vms.length }),
     body: _('deleteVmsModalMessage', { vms: vms.length }),
+    strongConfirm: vms.length > 1 && {
+      messageId: 'deleteVmsConfirmText',
+      values: { nVms: vms.length },
+    },
   }).then(
     () =>
       map(vms, vmId => _call('vm.delete', { id: vmId, delete_disks: true })),

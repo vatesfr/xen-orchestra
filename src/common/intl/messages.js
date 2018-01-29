@@ -22,6 +22,7 @@ const messages = {
   alertOk: 'OK',
   confirmOk: 'OK',
   genericCancel: 'Cancel',
+  enterConfirmText: 'Enter the following text to confirm:',
 
   // ----- Filters -----
   onError: 'On error',
@@ -868,6 +869,7 @@ const messages = {
   vmChooseCoresPerSocket: 'Default behavior',
   vmCoresPerSocket:
     '{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket',
+  vmCoresPerSocketNone: 'None',
   vmCoresPerSocketIncorrectValue: 'Incorrect cores per socket value',
   vmCoresPerSocketIncorrectValueSolution:
     'Please change the selected value to fix it.',
@@ -1190,6 +1192,8 @@ const messages = {
   deleteVmsModalTitle: 'Delete VM{vms, plural, one {} other {s}}',
   deleteVmsModalMessage:
     'Are you sure you want to delete {vms, number} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED',
+  deleteVmsConfirmText:
+    'delete {nVms, number} vm{nVms, plural, one {} other {s}}',
   deleteVmModalTitle: 'Delete VM',
   deleteVmModalMessage:
     'Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED',
@@ -1491,6 +1495,8 @@ const messages = {
   logIndicationToEnable: 'Click to enable',
   logIndicationToDisable: 'Click to disable',
   reportBug: 'Report a bug',
+  unhealthyVdiChainError: 'Job canceled to protect the VDI chain',
+  clickForMoreInformation: 'Click for more information',
 
   // ----- IPs ------
   ipPoolName: 'Name',
@@ -1716,6 +1722,10 @@ const messages = {
   expiresOn: 'expires on {date}',
   xosanInstallXoaPlugin: 'Install XOA plugin first',
   xosanLoadXoaPlugin: 'Load XOA plugin first',
+
+  // ----- Utils -----
+  durationFormat:
+    '{days, plural, =0 {} one {# day } other {# days }}{hours, plural, =0 {} one {# hour } other {# hours }}{minutes, plural, =0 {} one {# minute } other {# minutes }}{seconds, plural, =0 {} one {# second} other {# seconds}}',
 }
 forEach(messages, function (message, id) {
   if (isString(message)) {

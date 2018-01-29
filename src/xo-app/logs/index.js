@@ -115,6 +115,10 @@ const PREDICATES = {
   success: call => call.end !== undefined && call.error === undefined,
 }
 
+const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
+const UNHEALTHY_VDI_CHAIN_LINK =
+  'https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection'
+
 class Log extends BaseComponent {
   state = {
     filter: 'all',
@@ -162,11 +166,40 @@ class Log extends BaseComponent {
                     <JobParam id={value} paramKey={key} key={key} />,
                     <br />,
                   ])}
-                  {end !== undefined &&
-                    _.keyValue(
-                      _('jobDuration'),
-                      <FormattedDuration duration={jobDuration} />
-                    )}
+                  {_.keyValue(
+                    _('jobStart'),
+                    <FormattedDate
+                      value={new Date(start)}
+                      month='short'
+                      day='numeric'
+                      year='numeric'
+                      hour='2-digit'
+                      minute='2-digit'
+                      second='2-digit'
+                    />
+                  )}
+                  <br />
+                  {end !== undefined && (
+                    <div>
+                      {_.keyValue(
+                        _('jobEnd'),
+                        <FormattedDate
+                          value={new Date(end)}
+                          month='short'
+                          day='numeric'
+                          year='numeric'
+                          hour='2-digit'
+                          minute='2-digit'
+                          second='2-digit'
+                        />
+                      )}
+                      <br />
+                      {_.keyValue(
+                        _('jobDuration'),
+                        <FormattedDuration duration={jobDuration} />
+                      )}
+                    </div>
+                  )}
                   {returnedValue != null && (
                     <JobDataInfos
                       jobDuration={jobDuration}
@@ -179,16 +212,28 @@ class Log extends BaseComponent {
                       <JobReturn id={id} />
                     </span>
                   )}
-                  {call.error && (
-                    <span className='text-danger'>
-                      <Icon icon='error' />{' '}
-                      {call.error.message ? (
-                        <strong>{call.error.message}</strong>
-                      ) : (
-                        JSON.stringify(call.error)
-                      )}
-                    </span>
-                  )}
+                  {error != null &&
+                    (error.message === UNHEALTHY_VDI_CHAIN_ERROR ? (
+                      <Tooltip content={_('clickForMoreInformation')}>
+                        <a
+                          className='text-info'
+                          href={UNHEALTHY_VDI_CHAIN_LINK}
+                          rel='noopener noreferrer'
+                          target='_blank'
+                        >
+                          <Icon icon='info' /> {_('unhealthyVdiChainError')}
+                        </a>
+                      </Tooltip>
+                    ) : (
+                      <span className='text-danger'>
+                        <Icon icon='error' />{' '}
+                        {error.message !== undefined ? (
+                          <strong>{error.message}</strong>
+                        ) : (
+                          JSON.stringify(error)
+                        )}
+                      </span>
+                    ))}
                 </li>
               )
             )

@@ -22,7 +22,7 @@ import { addSubscriptions, noop } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { FormattedDate, injectIntl } from 'react-intl'
 import { info, error } from 'notification'
-import { SelectPlainObject, Toggle } from 'form'
+import { Select, Toggle } from 'form'
 
 import {
   importBackup,
@@ -210,14 +210,15 @@ class _ModalBody extends Component {
 
     return (
       <div>
-        <SelectPlainObject
+        <Select
+          labelKey='name'
           onChange={this.linkState('backup')}
-          optionKey='path'
           optionRenderer={backupOptionRenderer}
           options={props.backups}
           placeholder={props.intl.formatMessage(
             messages.importBackupModalSelectBackup
           )}
+          valueKey='path'
         />
         <br />
         <ChooseSrForEachVdisModal

@@ -5,12 +5,12 @@ import endsWith from 'lodash/endsWith'
 import Icon from 'icon'
 import React from 'react'
 import replace from 'lodash/replace'
+import Select from 'form/select'
 import Tooltip from 'tooltip'
 import { Container, Col, Row } from 'grid'
 import { createSelector } from 'reselect'
 import { formatSize } from 'utils'
 import { FormattedDate } from 'react-intl'
-import { SelectPlainObject } from 'form'
 import { filter, includes, isEmpty, map } from 'lodash'
 import { scanDisk, scanFiles } from 'xo'
 
@@ -251,23 +251,25 @@ export default class RestoreFileModalBody extends Component {
 
     return (
       <div>
-        <SelectPlainObject
+        <Select
+          labelKey='name'
           onChange={this._onBackupChange}
-          optionKey='id'
           optionRenderer={backupOptionRenderer}
           options={backups}
           placeholder={_('restoreFilesSelectBackup')}
           value={backup}
+          valueKey='id'
         />
         {backup && [
           <br />,
-          <SelectPlainObject
+          <Select
+            labelKey='name'
             onChange={this._onDiskChange}
-            optionKey='id'
             optionRenderer={diskOptionRenderer}
             options={backup.disks}
             placeholder={_('restoreFilesSelectDisk')}
             value={disk}
+            valueKey='id'
           />,
         ]}
         {scanDiskError && (
@@ -279,13 +281,14 @@ export default class RestoreFileModalBody extends Component {
           !scanDiskError &&
           !noPartitions && [
             <br />,
-            <SelectPlainObject
+            <Select
+              labelKey='name'
               onChange={this._onPartitionChange}
-              optionKey='id'
               optionRenderer={partitionOptionRenderer}
               options={partitions}
               placeholder={_('restoreFilesSelectPartition')}
               value={partition}
+              valueKey='id'
             />,
           ]}
         {(partition || (disk && !scanDiskError && noPartitions)) && [
@@ -311,13 +314,14 @@ export default class RestoreFileModalBody extends Component {
               </Col>
             </Row>
           </Container>,
-          <SelectPlainObject
+          <Select
+            labelKey='name'
             onChange={this._onFileChange}
-            optionKey='id'
             optionRenderer={fileOptionRenderer}
             options={this._getSelectableFiles()}
             placeholder={_('restoreFilesSelectFiles')}
             value={null}
+            valueKey='id'
           />,
           <br />,
           <div>

@@ -382,6 +382,7 @@ export class Edit extends Component {
                 </Col>
                 <Col mediumSize={4}>
                   <SelectSubject
+                    autoSelectSingleOption={false}
                     hasSelectAll
                     multi
                     onChange={this.linkState('subjects')}
@@ -391,6 +392,7 @@ export class Edit extends Component {
                 </Col>
                 <Col mediumSize={4}>
                   <SelectPool
+                    autoSelectSingleOption={false}
                     hasSelectAll
                     multi
                     onChange={this._updateSelectedPools}
@@ -415,6 +417,7 @@ export class Edit extends Component {
               <Row>
                 <Col mediumSize={4}>
                   <SelectVmTemplate
+                    autoSelectSingleOption={false}
                     disabled={!state.nPools}
                     hasSelectAll
                     multi
@@ -426,6 +429,7 @@ export class Edit extends Component {
                 </Col>
                 <Col mediumSize={4}>
                   <SelectSr
+                    autoSelectSingleOption={false}
                     disabled={!state.nPools}
                     hasSelectAll
                     multi
@@ -437,6 +441,7 @@ export class Edit extends Component {
                 </Col>
                 <Col mediumSize={4}>
                   <SelectNetwork
+                    autoSelectSingleOption={false}
                     disabled={!state.nSrs}
                     hasSelectAll
                     multi
@@ -536,8 +541,8 @@ export class Edit extends Component {
                     <Col mediumSize={7}>
                       <SelectIpPool
                         onChange={this._onChangeIpPool}
-                        value=''
                         predicate={this._getIpPoolPredicate()}
+                        value={null}
                       />
                     </Col>
                   </Row>
