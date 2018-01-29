@@ -816,6 +816,7 @@ const messages = {
   tipCreateSnapshotLabel: 'Just click on the snapshot button to create one!',
   revertSnapshot: 'Revert VM to this snapshot',
   deleteSnapshot: 'Remove this snapshot',
+  deleteSnapshots: 'Remove selected snapshots',
   copySnapshot: 'Create a VM from this snapshot',
   exportSnapshot: 'Export this snapshot',
   snapshotDate: 'Creation date',
@@ -919,7 +920,8 @@ const messages = {
   usersStatePanel: 'Users',
   srStatePanel: 'Storage state',
   ofUsage: '{usage} (of {total})',
-  ofCpusUsage: '{nVcpus, number} vCPU{nVcpus, plural, one {} other {s}} (of {nCpus, number} CPU{nCpus, plural, one {} other {s}})',
+  ofCpusUsage:
+    '{nVcpus, number} vCPU{nVcpus, plural, one {} other {s}} (of {nCpus, number} CPU{nCpus, plural, one {} other {s}})',
   noSrs: 'No storage',
   srName: 'Name',
   srPool: 'Pool',
@@ -1232,6 +1234,9 @@ const messages = {
     'Are you sure you want to delete {nVifs, number} VIF{nVifs, plural, one {} other {s}}?',
   deleteSnapshotModalTitle: 'Delete snapshot',
   deleteSnapshotModalMessage: 'Are you sure you want to delete this snapshot?',
+  deleteSnapshotsModalTitle: 'Delete snapshot{nVms, plural, one {} other {s}}',
+  deleteSnapshotsModalMessage:
+    'Are you sure you want to delete {nVms, number} snapshot{nVms, plural, one {} other {s}}?',
   revertVmModalMessage:
     'Are you sure you want to revert this VM to the snapshot state? This operation is irreversible.',
   revertVmModalSnapshotBefore: 'Snapshot before',

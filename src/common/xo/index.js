@@ -969,6 +969,20 @@ export const deleteSnapshot = vm =>
     noop
   )
 
+export const deleteSnapshots = vms =>
+  confirm({
+    title: _('deleteSnapshotsModalTitle', { nVms: vms.length }),
+    body: _('deleteSnapshotsModalMessage', { nVms: vms.length }),
+  }).then(
+    () =>
+      Promise.all(
+        map(vms, vm =>
+          _call('vm.delete', { id: resolveId(vm), delete_disks: true })
+        )
+      ),
+    noop
+  )
+
 import MigrateVmModalBody from './migrate-vm-modal' // eslint-disable-line import/first
 export const migrateVm = (vm, host) =>
   confirm({

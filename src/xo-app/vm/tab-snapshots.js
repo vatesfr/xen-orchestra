@@ -13,6 +13,7 @@ import { createGetObjectsOfType } from 'selectors'
 import {
   copyVm,
   deleteSnapshot,
+  deleteSnapshots,
   exportVm,
   editVm,
   revertSnapshot,
@@ -63,6 +64,14 @@ const COLUMNS = [
     ),
     name: _('snapshotDescription'),
     sortCriteria: _ => _.name_description,
+  },
+]
+
+const GROUPED_ACTIONS = [
+  {
+    handler: deleteSnapshots,
+    icon: 'delete',
+    label: _('deleteSnapshots'),
   },
 ]
 
@@ -131,6 +140,7 @@ export default class TabSnapshot extends Component {
               <SortedTable
                 collection={snapshots}
                 columns={COLUMNS}
+                groupedActions={GROUPED_ACTIONS}
                 individualActions={INDIVIDUAL_ACTIONS}
               />
             </Col>
