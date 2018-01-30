@@ -1199,6 +1199,9 @@ const messages = {
   deleteVmModalTitle: 'Delete VM',
   deleteVmModalMessage:
     'Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED',
+  deleteVmBlockedModalTitle: 'Blocked operation',
+  deleteVmBlockedModalMessage:
+    'Removing the VM is a blocked operation. Would you like to remove it anyway?',
   migrateVmModalTitle: 'Migrate VM',
   migrateVmSelectHost: 'Select a destination host:',
   migrateVmSelectMigrationNetwork: 'Select a migration network:',
