@@ -322,7 +322,7 @@ create.resolve = {
 
 // -------------------------------------------------------------------
 
-async function delete_ ({ vm, delete_disks: deleteDisks = false }) {
+async function delete_ ({ vm, delete_disks: deleteDisks = false, force }) {
   const xapi = this.getXapi(vm)
 
   this.getAllAcls().then(acls => {
@@ -365,13 +365,18 @@ async function delete_ ({ vm, delete_disks: deleteDisks = false }) {
     )
   }
 
-  return xapi.deleteVm(vm._xapiId, deleteDisks)
+  return xapi.deleteVm(vm._xapiId, deleteDisks, force)
 }
 
 delete_.params = {
   id: { type: 'string' },
 
   delete_disks: {
+    optional: true,
+    type: 'boolean',
+  },
+
+  force: {
     optional: true,
     type: 'boolean',
   },

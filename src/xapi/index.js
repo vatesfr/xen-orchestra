@@ -650,7 +650,7 @@ export default class Xapi extends XapiBase {
     }))
   }
 
-  async _deleteVm (vm, deleteDisks = true) {
+  async _deleteVm (vm, deleteDisks = true, force = false) {
     debug(`Deleting VM ${vm.name_label}`)
 
     const { $ref } = vm
@@ -659,6 +659,12 @@ export default class Xapi extends XapiBase {
     // to be able to delete their VDIs.
     if (vm.power_state !== 'Halted') {
       await this.call('VM.hard_shutdown', $ref)
+    }
+
+    if (force) {
+      await this._updateObjectMapProperty(vm, 'blocked_operations', {
+        destroy: null,
+      })
     }
 
     // ensure the vm record is up-to-date
@@ -702,10 +708,11 @@ export default class Xapi extends XapiBase {
     ])
   }
 
-  async deleteVm (vmId, deleteDisks) {
+  async deleteVm (vmId, deleteDisks, force) {
     return /* await */ this._deleteVm(
       this.getObject(vmId),
-      deleteDisks
+      deleteDisks,
+      force
     )
   }
 
