@@ -1070,7 +1070,10 @@ export const deleteVms = vms =>
       messageId: 'deleteVmsConfirmText',
       values: { nVms: vms.length },
     },
-  }).then(() => map(vms, vmId => _call('vm.delete', { id: vmId })), noop)
+  }).then(
+    () => map(vms, vmId => _call('vm.delete', { id: resolveId(vmId) })),
+    noop
+  )
 
 export const importBackup = ({ remote, file, sr }) =>
   _call('vm.importBackup', resolveIds({ remote, file, sr }))
