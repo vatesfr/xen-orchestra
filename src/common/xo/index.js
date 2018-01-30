@@ -944,11 +944,7 @@ export const deleteTemplates = templates =>
     body: _('templateDeleteModalBody', { templates: templates.length }),
   }).then(
     () =>
-      Promise.all(
-        map(resolveIds(templates), id =>
-          _call('vm.delete', { id, delete_disks: true })
-        )
-      ),
+      Promise.all(map(resolveIds(templates), id => _call('vm.delete', { id }))),
     noop
   )
 
@@ -964,10 +960,7 @@ export const deleteSnapshot = vm =>
   confirm({
     title: _('deleteSnapshotModalTitle'),
     body: _('deleteSnapshotModalMessage'),
-  }).then(
-    () => _call('vm.delete', { id: resolveId(vm), delete_disks: true }),
-    noop
-  )
+  }).then(() => _call('vm.delete', { id: resolveId(vm) }), noop)
 
 export const deleteSnapshots = vms =>
   confirm({
@@ -975,11 +968,7 @@ export const deleteSnapshots = vms =>
     body: _('deleteSnapshotsModalMessage', { nVms: vms.length }),
   }).then(
     () =>
-      Promise.all(
-        map(vms, vm =>
-          _call('vm.delete', { id: resolveId(vm), delete_disks: true })
-        )
-      ),
+      Promise.all(map(vms, vm => _call('vm.delete', { id: resolveId(vm) }))),
     noop
   )
 
@@ -1053,14 +1042,12 @@ export const createVms = (args, nameLabels) =>
 export const getCloudInitConfig = template =>
   _call('vm.getCloudInitConfig', { template })
 
-export const deleteVm = (vm, retryWithForce = true) => {
-  const params = { id: resolveId(vm), delete_disks: true }
-
-  return confirm({
+export const deleteVm = (vm, retryWithForce = true) =>
+  confirm({
     title: _('deleteVmModalTitle'),
     body: _('deleteVmModalMessage'),
   })
-    .then(() => _call('vm.delete', params), noop)
+    .then(() => _call('vm.delete', { id: resolveId(vm) }), noop)
     .catch(error => {
       if (forbiddenOperation.is(error) || !retryWithForce) {
         throw error
@@ -1069,9 +1056,11 @@ export const deleteVm = (vm, retryWithForce = true) => {
       return confirm({
         title: _('deleteVmBlockedModalTitle'),
         body: _('deleteVmBlockedModalMessage'),
-      }).then(() => _call('vm.delete', { ...params, force: true }), noop)
+      }).then(
+        () => _call('vm.delete', { id: resolveId(vm), force: true }),
+        noop
+      )
     })
-}
 
 export const deleteVms = vms =>
   confirm({
@@ -1081,11 +1070,7 @@ export const deleteVms = vms =>
       messageId: 'deleteVmsConfirmText',
       values: { nVms: vms.length },
     },
-  }).then(
-    () =>
-      map(vms, vmId => _call('vm.delete', { id: vmId, delete_disks: true })),
-    noop
-  )
+  }).then(() => map(vms, vmId => _call('vm.delete', { id: vmId })), noop)
 
 export const importBackup = ({ remote, file, sr }) =>
   _call('vm.importBackup', resolveIds({ remote, file, sr }))
