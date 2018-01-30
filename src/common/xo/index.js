@@ -1071,7 +1071,10 @@ export const deleteVms = vms =>
       values: { nVms: vms.length },
     },
   }).then(
-    () => map(vms, vmId => _call('vm.delete', { id: resolveId(vmId) })),
+    () =>
+      Promise.all(
+        map(vms, vmId => _call('vm.delete', { id: resolveId(vmId) }))
+      ),
     noop
   )
 
