@@ -1053,7 +1053,7 @@ export const createVms = (args, nameLabels) =>
 export const getCloudInitConfig = template =>
   _call('vm.getCloudInitConfig', { template })
 
-export const deleteVm = (vm, retryWithForce = false) => {
+export const deleteVm = (vm, retryWithForce = true) => {
   const params = { id: resolveId(vm), delete_disks: true }
 
   return confirm({
@@ -1062,7 +1062,7 @@ export const deleteVm = (vm, retryWithForce = false) => {
   })
     .then(() => _call('vm.delete', params), noop)
     .catch(error => {
-      if (error.code !== 19 || !retryWithForce) {
+      if (forbiddenOperation.is(error) || !retryWithForce) {
         throw error
       }
 
