@@ -1232,6 +1232,13 @@ export async function createInterface ({
   allowedIpv4Addresses,
   allowedIpv6Addresses,
 }) {
+  const { resourceSet } = vm
+  if (resourceSet != null) {
+    await this.checkResourceSetConstraints(resourceSet, this.user.id, [ network.id ])
+  } else if (!(await this.hasPermissions(this.user.id, [ [ network.id, 'view' ] ]))) {
+    throw unauthorized()
+  }
+
   let ipAddresses
   const vif = await this.getXapi(vm).createVif(vm._xapiId, network._xapiId, {
     mac,
@@ -1276,8 +1283,10 @@ createInterface.params = {
 }
 
 createInterface.resolve = {
+  // Not compatible with resource sets.
+  // FIXME: find a workaround.
+  network: ['network', 'network', ''],
   vm: ['vm', 'VM', 'administrate'],
-  network: ['network', 'network', 'view'],
 }
 
 // -------------------------------------------------------------------
