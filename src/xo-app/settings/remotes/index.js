@@ -427,7 +427,7 @@ export default class Remotes extends Component {
                   required
                 />
               </div>
-              <div className=' input-group form-group'>
+              <div className='input-group form-group'>
                 <span className='input-group-addon'>/</span>
                 <input
                   type='text'
