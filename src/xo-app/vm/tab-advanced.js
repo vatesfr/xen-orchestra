@@ -9,12 +9,12 @@ import React from 'react'
 import renderXoItem from 'render-xo-item'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
-import { Toggle, Select } from 'form'
+import { Toggle } from 'form'
 import { Number, Size, Text, XoSelect } from 'editable'
 import { Container, Row, Col } from 'grid'
-import { SelectVgpuType } from 'select-objects'
+import { SelectResourceSet, SelectVgpuType } from 'select-objects'
 import { confirm } from 'modal'
-import { every, includes, isEmpty, map, uniq } from 'lodash'
+import { assign, every, find, includes, isEmpty, map, uniq } from 'lodash'
 import {
   addSubscriptions,
   connectStore,
@@ -101,6 +101,24 @@ class AffinityHost extends Component {
         )}
       </span>
     )
+  }
+}
+
+@addSubscriptions({
+  resourceSets: subscribeResourceSets,
+})
+class ResourceSetItem extends Component {
+  _getResourceSet = createSelector(
+    () => this.props.resourceSets,
+    () => this.props.id,
+    (resourceSets, id) =>
+      assign(find(resourceSets, { id }), { type: 'resourceSet' })
+  )
+
+  render () {
+    return this.props.resourceSets === undefined
+      ? null
+      : renderXoItem(this._getResourceSet())
   }
 }
 
@@ -251,41 +269,6 @@ class CoresPerSocket extends Component {
           _('vmCoresPerSocketNone')
         )}
       </form>
-    )
-  }
-}
-
-@addSubscriptions({
-  resourceSets: subscribeResourceSets,
-})
-class VmResourceSet extends Component {
-  _onChange = resourceSet =>
-    editVm(this.props.vm, {
-      resourceSet: resourceSet != null ? resourceSet.id : resourceSet,
-    })
-
-  _optionRenderer = resourceSet => (
-    <span>
-      <strong>
-        <Icon icon='resource-set' /> {resourceSet.name}
-      </strong>{' '}
-      ({resourceSet.id})
-    </span>
-  )
-
-  render () {
-    const { props } = this
-
-    return (
-      <Select
-        labelKey='name'
-        onChange={this._onChange}
-        optionRenderer={this._optionRenderer}
-        options={props.resourceSets}
-        placeholder={_('resourceSetNone')}
-        value={props.vm.resourceSet || ''}
-        valueKey='id'
-      />
     )
   }
 }
@@ -616,9 +599,17 @@ export default connectStore(() => {
               <th>{_('resourceSet')}</th>
               <td>
                 {isAdmin ? (
-                  <VmResourceSet vm={vm} />
+                  <SelectResourceSet
+                    onChange={resourceSet =>
+                      editVm(vm, {
+                        resourceSet:
+                          resourceSet != null ? resourceSet.id : resourceSet,
+                      })
+                    }
+                    value={vm.resourceSet}
+                  />
                 ) : vm.resourceSet !== undefined ? (
-                  <span>{vm.resourceSet}</span>
+                  <ResourceSetItem id={vm.resourceSet} />
                 ) : (
                   _('resourceSetNone')
                 )}
