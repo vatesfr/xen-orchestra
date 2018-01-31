@@ -70,7 +70,10 @@ const COLUMNS = [
       )
     },
     name: _('pool'),
-    sortCriteria: (task, userData) => userData.pools[task.$poolId].name_label,
+    sortCriteria: (task, userData) => {
+      const pool = userData.pools[task.$poolId]
+      return pool !== undefined && pool.name_label
+    },
   },
   {
     component: TaskItem,
@@ -189,15 +192,19 @@ export default class Tasks extends Component {
               <div ref={container => this.setState({ container })} />
             </Col>
           </Row>
-          <SortedTable
-            collection={this._getTasks()}
-            columns={COLUMNS}
-            filterContainer={() => this.state.container}
-            groupedActions={GROUPED_ACTIONS}
-            individualActions={INDIVIDUAL_ACTIONS}
-            stateUrlParam='s'
-            userData={{ pools }}
-          />
+          <Row>
+            <Col>
+              <SortedTable
+                collection={this._getTasks()}
+                columns={COLUMNS}
+                filterContainer={() => this.state.container}
+                groupedActions={GROUPED_ACTIONS}
+                individualActions={INDIVIDUAL_ACTIONS}
+                stateUrlParam='s'
+                userData={{ pools }}
+              />
+            </Col>
+          </Row>
         </Container>
       </Page>
     )
