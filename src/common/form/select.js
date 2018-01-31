@@ -26,6 +26,7 @@ export default class Select extends React.PureComponent {
     multi: ReactSelect.defaultProps.multi,
     options: [],
     required: ReactSelect.defaultProps.required,
+    simpleValue: ReactSelect.defaultProps.simpleValue,
     valueKey: ReactSelect.defaultProps.valueKey,
   }
 
@@ -134,10 +135,25 @@ export default class Select extends React.PureComponent {
 
   componentDidUpdate () {
     const { props } = this
-    const { autoSelectSingleOption = props.required, options } = props
-    if (autoSelectSingleOption && options != null && options.length === 1) {
-      const value = options[0][props.valueKey]
-      props.onChange(props.multi ? [value] : value)
+    const {
+      autoSelectSingleOption = props.required,
+      multi,
+      options,
+      simpleValue,
+      value,
+    } = props
+    if (
+      autoSelectSingleOption &&
+      options != null &&
+      options.length === 1 &&
+      (value == null ||
+        (simpleValue && value === '') ||
+        (multi && value.length === 0))
+    ) {
+      const option = options[0]
+      props.onChange(
+        simpleValue ? option[props.valueKey] : multi ? [option] : option
+      )
     }
   }
 

@@ -61,7 +61,7 @@ const COLUMNS = [
     ),
     default: true,
     name: _('serverLabel'),
-    sortCriteria: _ => _.name_label,
+    sortCriteria: _ => _.label,
   },
   {
     itemRenderer: (server, formatMessage) => (

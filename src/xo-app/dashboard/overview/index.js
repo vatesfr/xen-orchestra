@@ -1,18 +1,18 @@
-import _ from 'intl'
+import _, { messages } from 'intl'
 import ButtonGroup from 'button-group'
 import ChartistGraph from 'react-chartist'
 import Component from 'base-component'
-import forEach from 'lodash/forEach'
-import Icon from 'icon'
-import propTypes from 'prop-types-decorator'
-import Link, { BlockLink } from 'link'
-import map from 'lodash/map'
 import HostsPatchesTable from 'hosts-patches-table'
+import Icon from 'icon'
+import Link, { BlockLink } from 'link'
+import PropTypes from 'prop-types'
 import React from 'react'
-import size from 'lodash/size'
+import ResourceSetQuotas from 'resource-set-quotas'
 import Upgrade from 'xoa-upgrade'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Row, Col } from 'grid'
+import { forEach, isEmpty, map, size } from 'lodash'
+import { injectIntl } from 'react-intl'
 import {
   createCollectionWrapper,
   createCounter,
@@ -22,17 +22,27 @@ import {
   createTop,
   isAdmin,
 } from 'selectors'
-import { connectStore, formatSize } from 'utils'
-import { isSrWritable, subscribeUsers } from 'xo'
+import { addSubscriptions, connectStore, formatSize } from 'utils'
+import {
+  isSrWritable,
+  subscribePermissions,
+  subscribeResourceSets,
+  subscribeUsers,
+} from 'xo'
 
 import styles from './index.css'
 
 // ===================================================================
 
-@propTypes({
-  hosts: propTypes.object.isRequired,
-})
+const PIE_GRAPH_OPTIONS = { donut: true, donutWidth: 40, showLabel: false }
+
+// ===================================================================
+
 class PatchesCard extends Component {
+  static propTypes = {
+    hosts: PropTypes.object.isRequired,
+  }
+
   _getContainer = () => this.refs.container
 
   render () {
@@ -54,8 +64,6 @@ class PatchesCard extends Component {
     )
   }
 }
-
-// ===================================================================
 
 @connectStore(() => {
   const getHosts = createGetObjectsOfType('host')
@@ -111,7 +119,6 @@ class PatchesCard extends Component {
   return {
     hostMetrics: getHostMetrics,
     hosts: getHosts,
-    isAdmin,
     nAlarmMessages: getNumberOfAlarmMessages,
     nHosts: getNumberOfHosts,
     nPools: getNumberOfPools,
@@ -126,18 +133,22 @@ class PatchesCard extends Component {
     vmMetrics: getVmMetrics,
   }
 })
-export default class Overview extends Component {
+@injectIntl
+class DefaultCard extends Component {
   componentWillMount () {
     this.componentWillUnmount = subscribeUsers(users => {
       this.setState({ users })
     })
   }
+
   render () {
     const { props, state } = this
     const users = state && state.users
     const nUsers = size(users)
 
-    return process.env.XOA_PLAN > 2 ? (
+    const { formatMessage } = props.intl
+
+    return (
       <Container>
         <Row>
           <Col mediumSize={4}>
@@ -186,14 +197,17 @@ export default class Overview extends Component {
               <CardBlock className='dashboardItem'>
                 <ChartistGraph
                   data={{
-                    labels: ['Used Memory', 'Total Memory'],
+                    labels: [
+                      formatMessage(messages.usedMemory),
+                      formatMessage(messages.totalMemory),
+                    ],
                     series: [
                       props.hostMetrics.memoryUsage,
                       props.hostMetrics.memoryTotal -
                         props.hostMetrics.memoryUsage,
                     ],
                   }}
-                  options={{ donut: true, donutWidth: 40, showLabel: false }}
+                  options={PIE_GRAPH_OPTIONS}
                   type='Pie'
                 />
                 <p className='text-xs-center'>
@@ -214,7 +228,10 @@ export default class Overview extends Component {
                 <div className='ct-chart dashboardItem'>
                   <ChartistGraph
                     data={{
-                      labels: ['vCPUs', 'CPUs'],
+                      labels: [
+                        formatMessage(messages.usedVCpus),
+                        formatMessage(messages.totalCpus),
+                      ],
                       series: [props.vmMetrics.vcpus, props.hostMetrics.cpus],
                     }}
                     options={{
@@ -225,9 +242,9 @@ export default class Overview extends Component {
                     type='Bar'
                   />
                   <p className='text-xs-center'>
-                    {_('ofUsage', {
-                      total: `${props.hostMetrics.cpus} CPUs`,
-                      usage: `${props.vmMetrics.vcpus} vCPUs`,
+                    {_('ofCpusUsage', {
+                      nCpus: props.hostMetrics.cpus,
+                      nVcpus: props.vmMetrics.vcpus,
                     })}
                   </p>
                 </div>
@@ -244,17 +261,16 @@ export default class Overview extends Component {
                   <BlockLink to='/dashboard/health'>
                     <ChartistGraph
                       data={{
-                        labels: ['Used Space', 'Total Space'],
+                        labels: [
+                          formatMessage(messages.usedSpace),
+                          formatMessage(messages.totalSpace),
+                        ],
                         series: [
                           props.srMetrics.srUsage,
                           props.srMetrics.srTotal - props.srMetrics.srUsage,
                         ],
                       }}
-                      options={{
-                        donut: true,
-                        donutWidth: 40,
-                        showLabel: false,
-                      }}
+                      options={PIE_GRAPH_OPTIONS}
                       type='Pie'
                     />
                     <p className='text-xs-center'>
@@ -326,7 +342,11 @@ export default class Overview extends Component {
                 <BlockLink to='/home?t=VM'>
                   <ChartistGraph
                     data={{
-                      labels: ['Running', 'Halted', 'Other'],
+                      labels: [
+                        formatMessage(messages.vmStateRunning),
+                        formatMessage(messages.vmStateHalted),
+                        formatMessage(messages.vmStateOther),
+                      ],
                       series: [
                         props.vmMetrics.running,
                         props.vmMetrics.halted,
@@ -381,10 +401,50 @@ export default class Overview extends Component {
           </Col>
         </Row>
       </Container>
-    ) : (
-      <Container>
-        <Upgrade place='dashboard' available={3} />
-      </Container>
+    )
+  }
+}
+
+// ===================================================================
+
+@addSubscriptions({
+  resourceSets: subscribeResourceSets,
+  permissions: subscribePermissions,
+})
+@connectStore({
+  isAdmin,
+})
+export default class Overview extends Component {
+  render () {
+    const { props } = this
+    const showResourceSets = !isEmpty(props.resourceSets) && !props.isAdmin
+    const authorized = !isEmpty(props.permissions) || props.isAdmin
+
+    if (!authorized && !showResourceSets) {
+      return <em>{_('notEnoughPermissionsError')}</em>
+    }
+
+    return (
+      <Upgrade place='dashboard' required={3}>
+        <Container>
+          {showResourceSets ? (
+            map(props.resourceSets, resourceSet => (
+              <Row key={resourceSet.id}>
+                <Card>
+                  <CardHeader>
+                    <Icon icon='menu-self-service' /> {resourceSet.name}
+                  </CardHeader>
+                  <CardBlock>
+                    <ResourceSetQuotas limits={resourceSet.limits} />
+                  </CardBlock>
+                </Card>
+              </Row>
+            ))
+          ) : (
+            <DefaultCard isAdmin={props.isAdmin} />
+          )}
+        </Container>
+      </Upgrade>
     )
   }
 }

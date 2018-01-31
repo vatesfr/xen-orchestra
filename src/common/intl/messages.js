@@ -22,6 +22,7 @@ const messages = {
   alertOk: 'OK',
   confirmOk: 'OK',
   genericCancel: 'Cancel',
+  enterConfirmText: 'Enter the following text to confirm:',
 
   // ----- Filters -----
   onError: 'On error',
@@ -818,6 +819,7 @@ const messages = {
   tipCreateSnapshotLabel: 'Just click on the snapshot button to create one!',
   revertSnapshot: 'Revert VM to this snapshot',
   deleteSnapshot: 'Remove this snapshot',
+  deleteSnapshots: 'Remove selected snapshots',
   copySnapshot: 'Create a VM from this snapshot',
   exportSnapshot: 'Export this snapshot',
   snapshotDate: 'Creation date',
@@ -906,12 +908,23 @@ const messages = {
   hostPanel: 'Host{hosts, plural, one {} other {s}}',
   vmPanel: 'VM{vms, plural, one {} other {s}}',
   memoryStatePanel: 'RAM Usage:',
+  usedMemory: 'Used Memory',
+  totalMemory: 'Total Memory',
+  totalCpus: 'CPUs Total',
+  usedVCpus: 'Used vCPUs',
+  usedSpace: 'Used Space',
+  totalSpace: 'Total Space',
   cpuStatePanel: 'CPUs Usage',
   vmStatePanel: 'VMs Power state',
+  vmStateHalted: 'Halted',
+  vmStateOther: 'Other',
+  vmStateRunning: 'Running',
   taskStatePanel: 'Pending tasks',
   usersStatePanel: 'Users',
   srStatePanel: 'Storage state',
   ofUsage: '{usage} (of {total})',
+  ofCpusUsage:
+    '{nVcpus, number} vCPU{nVcpus, plural, one {} other {s}} (of {nCpus, number} CPU{nCpus, plural, one {} other {s}})',
   noSrs: 'No storage',
   srName: 'Name',
   srPool: 'Pool',
@@ -923,6 +936,7 @@ const messages = {
   srFree: 'free',
   srUsageStatePanel: 'Storage Usage',
   srTopUsageStatePanel: 'Top 5 SR Usage (in %)',
+  notEnoughPermissionsError: 'Not enough permissions!',
   vmsStates: '{running, number} running ({halted, number} halted)',
   dashboardStatsButtonRemoveAll: 'Clear selection',
   dashboardStatsButtonAddAllHost: 'Add all hosts',
@@ -1050,9 +1064,10 @@ const messages = {
   ipPool: 'IP pool',
   quantity: 'Quantity',
   noResourceSetLimits: 'No limits.',
-  totalResource: 'Total:',
   remainingResource: 'Remaining:',
-  usedResource: 'Used:',
+  usedResourceLabel: 'Used',
+  availableResourceLabel: 'Available',
+  resourceSetQuota: 'Used: {usage} (Total: {total})',
   resourceSetNew: 'New',
 
   // ---- VM import ---
@@ -1082,6 +1097,13 @@ const messages = {
   // ---- Tasks ---
   noTasks: 'No pending tasks',
   xsTasks: 'Currently, there are not any pending XenServer tasks',
+  cancelTask: 'Cancel',
+  destroyTask: 'Destroy',
+  cancelTasks: 'Cancel selected tasks',
+  destroyTasks: 'Destroy selected tasks',
+  pool: 'Pool',
+  task: 'Task',
+  progress: 'Progress',
 
   // ---- Backup views ---
   backupSchedules: 'Schedules',
@@ -1182,9 +1204,14 @@ const messages = {
   deleteVmsModalTitle: 'Delete VM{vms, plural, one {} other {s}}',
   deleteVmsModalMessage:
     'Are you sure you want to delete {vms, number} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED',
+  deleteVmsConfirmText:
+    'delete {nVms, number} vm{nVms, plural, one {} other {s}}',
   deleteVmModalTitle: 'Delete VM',
   deleteVmModalMessage:
     'Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED',
+  deleteVmBlockedModalTitle: 'Blocked operation',
+  deleteVmBlockedModalMessage:
+    'Removing the VM is a blocked operation. Would you like to remove it anyway?',
   migrateVmModalTitle: 'Migrate VM',
   migrateVmSelectHost: 'Select a destination host:',
   migrateVmSelectMigrationNetwork: 'Select a migration network:',
@@ -1223,6 +1250,9 @@ const messages = {
     'Are you sure you want to delete {nVifs, number} VIF{nVifs, plural, one {} other {s}}?',
   deleteSnapshotModalTitle: 'Delete snapshot',
   deleteSnapshotModalMessage: 'Are you sure you want to delete this snapshot?',
+  deleteSnapshotsModalTitle: 'Delete snapshot{nVms, plural, one {} other {s}}',
+  deleteSnapshotsModalMessage:
+    'Are you sure you want to delete {nVms, number} snapshot{nVms, plural, one {} other {s}}?',
   revertVmModalMessage:
     'Are you sure you want to revert this VM to the snapshot state? This operation is irreversible.',
   revertVmModalSnapshotBefore: 'Snapshot before',
@@ -1246,6 +1276,12 @@ const messages = {
   trialReadyModal: 'Ready for trial?',
   trialReadyModalText:
     'During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans!',
+  cancelTasksModalTitle: 'Cancel task{nTasks, plural, one {} other {s}}',
+  cancelTasksModalMessage:
+    'Are you sure you want to cancel {nTasks, number} task{nTasks, plural, one {} other {s}}?',
+  destroyTasksModalTitle: 'Destroy task{nTasks, plural, one {} other {s}}',
+  destroyTasksModalMessage:
+    'Are you sure you want to destroy {nTasks, number} task{nTasks, plural, one {} other {s}}?',
 
   // ----- Servers -----
   serverLabel: 'Label',
@@ -1486,6 +1522,8 @@ const messages = {
   logIndicationToEnable: 'Click to enable',
   logIndicationToDisable: 'Click to disable',
   reportBug: 'Report a bug',
+  unhealthyVdiChainError: 'Job canceled to protect the VDI chain',
+  clickForMoreInformation: 'Click for more information',
 
   // ----- IPs ------
   ipPoolName: 'Name',

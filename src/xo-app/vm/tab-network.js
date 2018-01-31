@@ -12,9 +12,20 @@ import Tooltip from 'tooltip'
 import { isIp, isIpV4 } from 'ip'
 import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
-import { SelectNetwork, SelectIp, SelectResourceSetIp } from 'select-objects'
 import { XoSelect, Text } from 'editable'
-import { addSubscriptions, connectStore, EMPTY_ARRAY, noop } from 'utils'
+import {
+  addSubscriptions,
+  connectStore,
+  EMPTY_ARRAY,
+  noop,
+  resolveResourceSet,
+} from 'utils'
+import {
+  SelectNetwork,
+  SelectIp,
+  SelectResourceSetIp,
+  SelectResourceSetsNetwork,
+} from 'select-objects'
 import {
   concat,
   every,
@@ -32,6 +43,7 @@ import {
   createGetObject,
   createGetObjectsOfType,
   createSelector,
+  isAdmin,
 } from 'selectors'
 
 import {
@@ -356,6 +368,9 @@ const FILTERS = {
   onClose: propTypes.func,
   vm: propTypes.object.isRequired,
 })
+@addSubscriptions({
+  resourceSets: subscribeResourceSets,
+})
 @connectStore(() => {
   const getHostMaster = createGetObject(
     (_, props) => props.pool && props.pool.master
@@ -372,6 +387,7 @@ const FILTERS = {
   )
   return {
     defaultNetwork: getDefaultNetwork,
+    isAdmin,
   }
 })
 @injectIntl
@@ -413,17 +429,37 @@ class NewVif extends BaseComponent {
     return createVmInterface(vm, network, mac).then(onClose)
   }
 
+  _getResourceSet = createFinder(
+    () => this.props.resourceSets,
+    createSelector(
+      () => this.props.vm.resourceSet,
+      id => resourceSet => resourceSet.id === id
+    )
+  )
+
+  _getResolvedResourceSet = createSelector(
+    this._getResourceSet,
+    resolveResourceSet
+  )
+
   render () {
     const formatMessage = this.props.intl.formatMessage
+    const { isAdmin } = this.props
     const { mac, network } = this.state
+    const resourceSet = this._getResolvedResourceSet()
+
+    const Select_ =
+      isAdmin || resourceSet == null ? SelectNetwork : SelectResourceSetsNetwork
+
     return (
       <form id='newVifForm'>
         <div className='form-group'>
-          <SelectNetwork
-            value={network}
-            predicate={this._getNetworkPredicate()}
+          <Select_
             onChange={this._selectNetwork}
+            predicate={this._getNetworkPredicate()}
             required
+            resourceSet={isAdmin ? undefined : resourceSet}
+            value={network}
           />
         </div>
         <fieldset className='form-inline'>
