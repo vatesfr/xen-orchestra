@@ -61,6 +61,7 @@
     "complex-matcher": "^0.2.1",
     "cookies-js": "^1.2.2",
     "d3": "^4.12.2",
+    "debounce-input-decorator": "^0.1.0",
     "dependency-check": "^3.0.0",
     "enzyme": "^3.3.0",
     "enzyme-adapter-react-15": "^1.0.5",

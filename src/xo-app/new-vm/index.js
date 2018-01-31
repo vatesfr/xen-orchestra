@@ -18,7 +18,7 @@ import { injectIntl } from 'react-intl'
 import {
   Input as DebounceInput,
   Textarea as DebounceTextarea,
-} from 'debounce-component-decorator'
+} from 'debounce-input-decorator'
 import { Limits } from 'usage'
 import {
   clamp,
