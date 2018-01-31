@@ -1,24 +1,22 @@
 import _, { messages } from 'intl'
-import ActionRowButton from 'action-row-button'
-import ButtonGroup from 'button-group'
 import CenterPanel from 'center-panel'
 import Component from 'base-component'
 import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
-import SingleLineRow from 'single-line-row'
+import SortedTable from 'sorted-table'
 import { injectIntl } from 'react-intl'
 import { SelectPool } from 'select-objects'
+import { connectStore, resolveIds } from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
-import { connectStore, resolveId, resolveIds } from 'utils'
 import { Col, Container, Row } from 'grid'
-import { includes, isEmpty, keys, map } from 'lodash'
+import { flatMap, flatten, isEmpty, keys, toArray } from 'lodash'
 import {
   createGetObject,
   createGetObjectsOfType,
   createSelector,
 } from 'selectors'
-import { cancelTask, destroyTask } from 'xo'
+import { cancelTask, cancelTasks, destroyTask, destroyTasks } from 'xo'
 
 import Page from '../page'
 
@@ -38,44 +36,93 @@ const TASK_ITEM_STYLE = {
   // Remove all margin, otherwise it breaks vertical alignment.
   margin: 0,
 }
+@connectStore(() => ({
+  host: createGetObject((_, props) => props.item.$host),
+}))
+export class TaskItem extends Component {
+  render () {
+    const { host, item: task } = this.props
 
-export const TaskItem = connectStore(() => ({
-  host: createGetObject((_, props) => props.task.$host),
-}))(({ task, host }) => (
-  <SingleLineRow className='mb-1'>
-    <Col mediumSize={6}>
-      {task.name_label} ({task.name_description && `${task.name_description} `}on{' '}
-      {host ? (
-        <Link to={`/hosts/${host.id}`}>{host.name_label}</Link>
-      ) : (
-        `unknown host − ${task.$host}`
-      )})
-      {' ' + Math.round(task.progress * 100)}%
-    </Col>
-    <Col mediumSize={4}>
+    return (
+      <div>
+        {task.name_label} ({task.name_description &&
+          `${task.name_description} `}on{' '}
+        {host ? (
+          <Link to={`/hosts/${host.id}`}>{host.name_label}</Link>
+        ) : (
+          `unknown host − ${task.$host}`
+        )})
+        {' ' + Math.round(task.progress * 100)}%
+      </div>
+    )
+  }
+}
+
+const COLUMNS = [
+  {
+    default: true,
+    itemRenderer: (task, userData) => {
+      const pool = userData.pools[task.$poolId]
+      return (
+        pool !== undefined && (
+          <Link to={`/pools/${pool.id}`}>{pool.name_label}</Link>
+        )
+      )
+    },
+    name: _('pool'),
+    sortCriteria: (task, userData) => {
+      const pool = userData.pools[task.$poolId]
+      return pool !== undefined && pool.name_label
+    },
+  },
+  {
+    component: TaskItem,
+    name: _('task'),
+    sortCriteria: 'name_label',
+  },
+  {
+    itemRenderer: task => (
       <progress
         style={TASK_ITEM_STYLE}
         className='progress'
         value={task.progress * 100}
         max='100'
       />
-    </Col>
-    <Col mediumSize={2}>
-      <ButtonGroup>
-        <ActionRowButton
-          handler={cancelTask}
-          handlerParam={task}
-          icon='task-cancel'
-        />
-        <ActionRowButton
-          handler={destroyTask}
-          handlerParam={task}
-          icon='task-destroy'
-        />
-      </ButtonGroup>
-    </Col>
-  </SingleLineRow>
-))
+    ),
+    name: _('progress'),
+    sortCriteria: 'progress',
+  },
+]
+
+const INDIVIDUAL_ACTIONS = [
+  {
+    handler: cancelTask,
+    icon: 'task-cancel',
+    label: _('cancelTask'),
+    level: 'danger',
+  },
+  {
+    handler: destroyTask,
+    icon: 'task-destroy',
+    label: _('destroyTask'),
+    level: 'danger',
+  },
+]
+
+const GROUPED_ACTIONS = [
+  {
+    handler: cancelTasks,
+    icon: 'task-cancel',
+    label: _('cancelTasks'),
+    level: 'danger',
+  },
+  {
+    handler: destroyTasks,
+    icon: 'task-destroy',
+    label: _('destroyTasks'),
+    level: 'danger',
+  },
+]
 
 @connectStore(() => {
   const getPendingTasks = createGetObjectsOfType('task').filter([
@@ -86,9 +133,9 @@ export const TaskItem = connectStore(() => ({
 
   const getPendingTasksByPool = getPendingTasks.sort().groupBy('$pool')
 
-  const getPools = createGetObjectsOfType('pool')
-    .pick(createSelector(getPendingTasksByPool, keys))
-    .sort()
+  const getPools = createGetObjectsOfType('pool').pick(
+    createSelector(getPendingTasksByPool, keys)
+  )
 
   return {
     nTasks: getNPendingTasks,
@@ -98,13 +145,18 @@ export const TaskItem = connectStore(() => ({
 })
 @injectIntl
 export default class Tasks extends Component {
-  _showPoolTasks = pool =>
-    isEmpty(this.state.pools) ||
-    includes(resolveIds(this.state.pools), resolveId(pool))
+  _getTasks = createSelector(
+    createSelector(() => this.state.pools, resolveIds),
+    () => this.props.pendingTasksByPool,
+    (poolIds, pendingTasksByPool) =>
+      isEmpty(poolIds)
+        ? flatten(toArray(pendingTasksByPool))
+        : flatMap(poolIds, poolId => pendingTasksByPool[poolId] || [])
+  )
 
   render () {
-    const { props, state } = this
-    const { intl, nTasks, pendingTasksByPool } = props
+    const { props } = this
+    const { intl, nTasks, pendingTasksByPool, pools } = props
 
     if (isEmpty(pendingTasksByPool)) {
       return (
@@ -126,6 +178,7 @@ export default class Tasks extends Component {
     }
 
     const { formatMessage } = intl
+
     return (
       <Page
         header={HEADER}
@@ -133,30 +186,26 @@ export default class Tasks extends Component {
       >
         <Container>
           <Row className='mb-1'>
-            <SelectPool
-              multi
-              value={state.pools}
-              onChange={this.linkState('pools')}
-            />
+            <Col mediumSize={8}>
+              <SelectPool multi onChange={this.linkState('pools')} />
+            </Col>
+            <Col mediumSize={4}>
+              <div ref={container => this.setState({ container })} />
+            </Col>
           </Row>
-          {map(
-            props.pools,
-            pool =>
-              this._showPoolTasks(pool) && (
-                <Row key={pool.id}>
-                  <Card>
-                    <CardHeader key={pool.id}>
-                      <Link to={`/pools/${pool.id}`}>{pool.name_label}</Link>
-                    </CardHeader>
-                    <CardBlock>
-                      {map(pendingTasksByPool[pool.id], task => (
-                        <TaskItem key={task.id} task={task} />
-                      ))}
-                    </CardBlock>
-                  </Card>
-                </Row>
-              )
-          )}
+          <Row>
+            <Col>
+              <SortedTable
+                collection={this._getTasks()}
+                columns={COLUMNS}
+                filterContainer={() => this.state.container}
+                groupedActions={GROUPED_ACTIONS}
+                individualActions={INDIVIDUAL_ACTIONS}
+                stateUrlParam='s'
+                userData={{ pools }}
+              />
+            </Col>
+          </Row>
         </Container>
       </Page>
     )
