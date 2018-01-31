@@ -9,18 +9,20 @@ import React from 'react'
 import renderXoItem from 'render-xo-item'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
-import { Toggle } from 'form'
+import { Toggle, Select } from 'form'
 import { Number, Size, Text, XoSelect } from 'editable'
 import { Container, Row, Col } from 'grid'
 import { SelectVgpuType } from 'select-objects'
 import { confirm } from 'modal'
 import { every, includes, isEmpty, map, uniq } from 'lodash'
 import {
+  addSubscriptions,
   connectStore,
   formatSize,
   getCoresPerSocketPossibilities,
   normalizeXenToolsStatus,
   osFamily,
+  resolveId,
 } from 'utils'
 import {
   createVgpu,
@@ -34,6 +36,7 @@ import {
   restartVm,
   resumeVm,
   stopVm,
+  subscribeResourceSets,
   suspendVm,
   XEN_DEFAULT_CPU_CAP,
   XEN_DEFAULT_CPU_WEIGHT,
@@ -249,6 +252,39 @@ class CoresPerSocket extends Component {
           _('vmCoresPerSocketNone')
         )}
       </form>
+    )
+  }
+}
+
+@addSubscriptions({
+  resourceSets: subscribeResourceSets,
+})
+class VmResourceSet extends Component {
+  _onChange = resourceSet =>
+    editVm(this.props.vm, { resourceSet: resolveId(resourceSet) })
+
+  _optionRenderer = resourceSet => (
+    <span>
+      <strong>
+        <Icon icon='resource-set' /> {resourceSet.name}
+      </strong>{' '}
+      ({resourceSet.id})
+    </span>
+  )
+
+  render () {
+    const { props } = this
+
+    return (
+      <Select
+        labelKey='name'
+        onChange={this._onChange}
+        optionRenderer={this._optionRenderer}
+        options={props.resourceSets}
+        placeholder={_('resourceSetNone')}
+        value={props.vm.resourceSet || ''}
+        valueKey='id'
+      />
     )
   }
 }
@@ -472,6 +508,18 @@ export default connectStore(() => {
                 </td>
               </tr>
             )}
+          </tbody>
+        </table>
+        <br />
+        <h3>{_('vmResourceSet')}</h3>
+        <table className='table table-hover'>
+          <tbody>
+            <tr>
+              <th>{_('resourceSet')}</th>
+              <td>
+                <VmResourceSet vm={vm} />
+              </td>
+            </tr>
           </tbody>
         </table>
         <br />
