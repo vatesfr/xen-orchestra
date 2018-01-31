@@ -612,14 +612,18 @@ export default connectStore(() => {
                   : _('unknownOriginalTemplate')}
               </td>
             </tr>
-            {isAdmin && (
-              <tr>
-                <th>{_('resourceSet')}</th>
-                <td>
+            <tr>
+              <th>{_('resourceSet')}</th>
+              <td>
+                {isAdmin ? (
                   <VmResourceSet vm={vm} />
-                </td>
-              </tr>
-            )}
+                ) : vm.resourceSet !== undefined ? (
+                  <span>{vm.resourceSet}</span>
+                ) : (
+                  _('resourceSetNone')
+                )}
+              </td>
+            </tr>
           </tbody>
         </table>
       </Col>
