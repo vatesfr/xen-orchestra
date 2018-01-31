@@ -12,10 +12,11 @@ import Tooltip from 'tooltip'
 import { Toggle } from 'form'
 import { Number, Size, Text, XoSelect } from 'editable'
 import { Container, Row, Col } from 'grid'
-import { SelectVgpuType } from 'select-objects'
+import { SelectResourceSet, SelectVgpuType } from 'select-objects'
 import { confirm } from 'modal'
-import { every, includes, isEmpty, map, uniq } from 'lodash'
+import { assign, every, find, includes, isEmpty, map, uniq } from 'lodash'
 import {
+  addSubscriptions,
   connectStore,
   formatSize,
   getCoresPerSocketPossibilities,
@@ -34,12 +35,13 @@ import {
   restartVm,
   resumeVm,
   stopVm,
+  subscribeResourceSets,
   suspendVm,
   XEN_DEFAULT_CPU_CAP,
   XEN_DEFAULT_CPU_WEIGHT,
   XEN_VIDEORAM_VALUES,
 } from 'xo'
-import { createGetObjectsOfType, createSelector } from 'selectors'
+import { createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
 
 const forceReboot = vm => restartVm(vm, true)
 const forceShutdown = vm => stopVm(vm, true)
@@ -99,6 +101,24 @@ class AffinityHost extends Component {
         )}
       </span>
     )
+  }
+}
+
+@addSubscriptions({
+  resourceSets: subscribeResourceSets,
+})
+class ResourceSetItem extends Component {
+  _getResourceSet = createSelector(
+    () => this.props.resourceSets,
+    () => this.props.id,
+    (resourceSets, id) =>
+      assign(find(resourceSets, { id }), { type: 'resourceSet' })
+  )
+
+  render () {
+    return this.props.resourceSets === undefined
+      ? null
+      : renderXoItem(this._getResourceSet())
   }
 }
 
@@ -266,10 +286,11 @@ export default connectStore(() => {
 
   return {
     gpuGroup: getGpuGroup,
+    isAdmin,
     vgpus: getVgpus,
     vgpuTypes: getVgpuTypes,
   }
-})(({ container, gpuGroup, vgpus, vgpuTypes, vm }) => (
+})(({ container, gpuGroup, isAdmin, vgpus, vgpuTypes, vm }) => (
   <Container>
     <Row>
       <Col className='text-xs-right'>
@@ -572,6 +593,26 @@ export default connectStore(() => {
                 {vm.other.base_template_name
                   ? vm.other.base_template_name
                   : _('unknownOriginalTemplate')}
+              </td>
+            </tr>
+            <tr>
+              <th>{_('resourceSet')}</th>
+              <td>
+                {isAdmin ? (
+                  <SelectResourceSet
+                    onChange={resourceSet =>
+                      editVm(vm, {
+                        resourceSet:
+                          resourceSet != null ? resourceSet.id : resourceSet,
+                      })
+                    }
+                    value={vm.resourceSet}
+                  />
+                ) : vm.resourceSet !== undefined ? (
+                  <ResourceSetItem id={vm.resourceSet} />
+                ) : (
+                  _('resourceSetNone')
+                )}
               </td>
             </tr>
           </tbody>

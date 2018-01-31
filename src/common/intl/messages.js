@@ -868,6 +868,8 @@ const messages = {
   unknownOsKernel: 'Unknown',
   unknownOriginalTemplate: 'Unknown',
   vmLimitsLabel: 'VM limits',
+  resourceSet: 'Resource set',
+  resourceSetNone: 'None',
   vmCpuLimitsLabel: 'CPU limits',
   vmCpuTopology: 'Topology',
   vmChooseCoresPerSocket: 'Default behavior',
