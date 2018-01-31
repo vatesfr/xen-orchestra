@@ -1,12 +1,12 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
-import ActionRowButton from 'action-row-button'
 import filter from 'lodash/filter'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React, { Component } from 'react'
 import some from 'lodash/some'
+import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
 import { addSubscriptions } from 'utils'
@@ -19,6 +19,7 @@ import { injectIntl } from 'react-intl'
 import {
   createRemote,
   deleteRemote,
+  deleteRemotes,
   disableRemote,
   editRemote,
   enableRemote,
@@ -31,255 +32,225 @@ const remoteTypes = {
   nfs: 'remoteTypeNfs',
   smb: 'remoteTypeSmb',
 }
-
-class AbstractRemote extends Component {
-  _changeUrlElement = (value, element) => {
-    const remote = { ...this.props.remote }
-    remote[element] = value
-    const url = format(remote)
-    return editRemote(remote, { url })
-  }
-
-  _showError = () => alert(_('remoteConnectionFailed'), this.props.remote.error)
-
-  _changeName = name => {
-    const { remote } = this.props
-    return editRemote(remote, { name })
-  }
-
-  _test = () => {
-    const { remote } = this.props
-    testRemote(remote).then(answer => {
-      const title = (
-        <span>
-          <Icon icon={answer.success ? 'success' : 'error'} />{' '}
-          {_(answer.success ? 'remoteTestSuccess' : 'remoteTestFailure', {
-            name: remote.name,
-          })}
-        </span>
+const _changeUrlElement = (remote, value, element) =>
+  editRemote(remote, { url: format({ ...remote, [element]: value }) })
+const _showError = remote => alert(_('remoteConnectionFailed'), remote.error)
+const COLUMN_NAME = {
+  component: @injectIntl
+  class RemoteName extends Component {
+    render () {
+      const { item: remote, intl } = this.props
+      return (
+        <Text
+          onChange={name => editRemote(remote, { name })}
+          placeholder={intl.formatMessage(messages.remoteMyNamePlaceHolder)}
+          value={remote.name}
+        />
       )
-      let body
-      if (answer.success) {
-        body = _('remoteTestSuccessMessage')
-      } else {
-        body = (
-          <p>
-            <dl className='dl-horizontal'>
-              <dt>{_('remoteTestError')}</dt>
-              <dd>{answer.error}</dd>
-              <dt>{_('remoteTestStep')}</dt>
-              <dd>{answer.step}</dd>
-            </dl>
-          </p>
+    }
+  },
+  name: _('remoteName'),
+  sortCriteria: 'name',
+}
+const COLUMN_STATE = {
+  itemRenderer: remote => (
+    <div>
+      <StateButton
+        disabledLabel={_('remoteDisconnected')}
+        disabledHandler={enableRemote}
+        disabledTooltip={_('remoteConnectTip')}
+        enabledLabel={_('remoteConnected')}
+        enabledHandler={disableRemote}
+        enabledTooltip={_('remoteDisconnectTip')}
+        handlerParam={remote}
+        state={remote.enabled}
+      />{' '}
+      {remote.error && (
+        <Tooltip content={_('remoteConnectionFailed')}>
+          <a
+            className='text-danger btn btn-link'
+            onClick={() => _showError(remote)}
+            style={{ padding: '0px' }}
+          >
+            <Icon icon='alarm' size='lg' />
+          </a>
+        </Tooltip>
+      )}
+    </div>
+  ),
+  name: _('remoteState'),
+}
+
+const COLUMNS_LOCAL_REMOTE = [
+  COLUMN_NAME,
+  {
+    component: @injectIntl
+    class LocalRemotePath extends Component {
+      render () {
+        const { item: remote, intl } = this.props
+        return (
+          <Text
+            onChange={v => _changeUrlElement(remote, v, 'path')}
+            placeholder={intl.formatMessage(
+              messages.remoteLocalPlaceHolderPath
+            )}
+            value={remote.path}
+          />
         )
       }
-      alert(title, body)
-    })
-  }
-
-  render () {
-    const { remote } = this.props
-
-    return (
-      <tr>
-        <td />
-        <td>
-          <Text
-            value={remote.name}
-            onChange={this._changeName}
-            placeholder={this.props.intl.formatMessage(
-              messages.remoteNamePlaceHolder
-            )}
-          />
-        </td>
-        <td>{this._renderRemoteInfo(remote)}</td>
-        <td>{this._renderAuthInfo(remote)}</td>
-        <td>
-          <StateButton
-            disabledLabel={_('remoteDisconnected')}
-            disabledHandler={enableRemote}
-            disabledTooltip={_('remoteConnectTip')}
-            enabledLabel={_('remoteConnected')}
-            enabledHandler={disableRemote}
-            enabledTooltip={_('remoteDisconnectTip')}
-            handlerParam={remote}
-            state={remote.enabled}
-          />{' '}
-          {remote.error && (
-            <Tooltip content={_('remoteConnectionFailed')}>
-              <a
-                className='text-danger btn btn-link'
-                style={{ padding: '0px' }}
-                onClick={this._showError}
-              >
-                <Icon icon='alarm' size='lg' />
-              </a>
-            </Tooltip>
-          )}
-        </td>
-        <td className='text-xs-right'>
-          {remote.enabled && (
-            <Tooltip content={_('remoteTestTip')}>
-              <ActionRowButton
-                btnStyle='primary'
-                handler={this._test}
-                icon='diagnosis'
-              />
-            </Tooltip>
-          )}{' '}
-          <Tooltip content={_('remoteDeleteTip')}>
-            <ActionRowButton
-              btnStyle='danger'
-              handler={deleteRemote}
-              handlerParam={remote}
-              icon='delete'
+    },
+    name: _('remotePath'),
+  },
+  COLUMN_STATE,
+]
+const COLUMNS_NFS_REMOTE = [
+  COLUMN_NAME,
+  {
+    component: @injectIntl
+    class NfsRemoteInfo extends Component {
+      render () {
+        const { item: remote, intl } = this.props
+        return (
+          <span>
+            <strong className='text-info'>\\</strong>
+            <Text
+              onChange={v => _changeUrlElement(remote, v, 'host')}
+              placeholder={intl.formatMessage(
+                messages.remoteNfsPlaceHolderHost
+              )}
+              value={remote.host}
             />
-          </Tooltip>
-        </td>
-      </tr>
-    )
-  }
+            :
+            <Text
+              onChange={v => _changeUrlElement(remote, v, 'path')}
+              placeholder={intl.formatMessage(
+                messages.remoteNfsPlaceHolderPath
+              )}
+              value={remote.path}
+            />
+          </span>
+        )
+      }
+    },
+    name: _('remoteDevice'),
+  },
+  COLUMN_STATE,
+]
+const COLUMNS_SMB_REMOTE = [
+  COLUMN_NAME,
+  {
+    component: @injectIntl
+    class SmbRemoteInfo extends Component {
+      render () {
+        const { item: remote, intl } = this.props
+        return (
+          <span>
+            <strong className='text-info'>\\</strong>
+            <Text
+              value={remote.host}
+              onChange={v => _changeUrlElement(remote, v, 'host')}
+            />
+            <strong className='text-info'>\</strong>
+            <span>
+              <Text
+                onChange={v => _changeUrlElement(remote, v, 'path')}
+                placeholder={intl.formatMessage(
+                  messages.remoteSmbPlaceHolderRemotePath
+                )}
+                value={remote.path}
+              />
+            </span>
+          </span>
+        )
+      }
+    },
+    name: _('remoteShare'),
+  },
+  COLUMN_STATE,
+  {
+    component: @injectIntl
+    class SmbRemoteAuthInfo extends Component {
+      render () {
+        const { item: remote, intl } = this.props
+        return (
+          <span>
+            <Text
+              value={remote.username}
+              onChange={v => _changeUrlElement(remote, v, 'username')}
+            />
+            :
+            <Password
+              value=''
+              onChange={v => _changeUrlElement(remote, v, 'password')}
+              placeholder={intl.formatMessage(
+                messages.remotePlaceHolderPassword
+              )}
+            />
+            @
+            <Text
+              value={remote.domain}
+              onChange={v => _changeUrlElement(remote, v, 'domain')}
+            />
+          </span>
+        )
+      }
+    },
+    name: _('remoteAuth'),
+  },
+]
 
-  _renderRemoteInfo () {
-    throw new Error('NOT IMPLEMENTED')
-  }
+const GROUPED_ACTIONS = [
+  {
+    handler: deleteRemotes,
+    icon: 'delete',
+    label: _('remoteDeleteSelected'),
+    level: 'danger',
+  },
+]
 
-  _renderAuthInfo () {
-    throw new Error('NOT IMPLEMENTED')
-  }
-
-  get accessible () {
-    throw new Error('NOT IMPLEMENTED')
-  }
-
-  get unaccessible () {
-    throw new Error('NOT IMPLEMENTED')
-  }
-}
-
-@injectIntl
-class LocalRemote extends AbstractRemote {
-  _renderRemoteInfo () {
-    const { remote } = this.props
-    return (
-      <Text
-        value={remote.path}
-        onChange={v => this._changeUrlElement(v, 'path')}
-        placeholder={this.props.intl.formatMessage(
-          messages.remoteLocalPlaceHolderPath
-        )}
-      />
-    )
-  }
-
-  _renderAuthInfo () {
-    return ''
-  }
-
-  get accessible () {
-    return 'Accessible'
-  }
-
-  get unaccessible () {
-    return 'Unaccessible'
-  }
-}
-
-@injectIntl
-class NfsRemote extends AbstractRemote {
-  _renderRemoteInfo () {
-    const { remote } = this.props
-    return (
-      <span>
-        <Text
-          value={remote.host}
-          onChange={v => this._changeUrlElement(v, 'host')}
-          placeholder={this.props.intl.formatMessage(
-            messages.remoteNfsPlaceHolderHost
-          )}
-        />
-        :
-        <Text
-          value={remote.path}
-          onChange={v => this._changeUrlElement(v, 'path')}
-          placeholder={this.props.intl.formatMessage(
-            messages.remoteNfsPlaceHolderPath
-          )}
-        />
-      </span>
-    )
-  }
-
-  _renderAuthInfo () {
-    return ''
-  }
-
-  get accessible () {
-    return _('remoteMounted')
-  }
-
-  get unaccessible () {
-    return _('remoteUnmounted')
-  }
-}
-
-@injectIntl
-class SmbRemote extends AbstractRemote {
-  _renderRemoteInfo () {
-    const { remote } = this.props
-    return (
-      <span>
-        <strong className='text-info'>\\</strong>
-        <Text
-          value={remote.host}
-          onChange={v => this._changeUrlElement(v, 'host')}
-        />
-        <strong className='text-info'>\</strong>
-        <span>
-          <Text
-            value={remote.path}
-            onChange={v => this._changeUrlElement(v, 'path')}
-            placeholder={this.props.intl.formatMessage(
-              messages.remoteSmbPlaceHolderRemotePath
-            )}
-          />
-        </span>
-      </span>
-    )
-  }
-
-  _renderAuthInfo () {
-    const { remote } = this.props
-    return (
-      <span>
-        <Text
-          value={remote.username}
-          onChange={v => this._changeUrlElement(v, 'username')}
-        />
-        :
-        <Password
-          value=''
-          onChange={v => this._changeUrlElement(v, 'password')}
-          placeholder={this.props.intl.formatMessage(
-            messages.remotePlaceHolderPassword
-          )}
-        />
-        @
-        <Text
-          value={remote.domain}
-          onChange={v => this._changeUrlElement(v, 'domain')}
-        />
-      </span>
-    )
-  }
-
-  get accessible () {
-    return 'Accessible'
-  }
-
-  get unaccessible () {
-    return 'Unaccessible'
-  }
+const INDIVIDUAL_ACTIONS = [
+  {
+    disabled: remote => !remote.enabled,
+    handler: remote =>
+      testRemote(remote).then(
+        answer =>
+          answer.success
+            ? alert(
+              <span>
+                <Icon icon='success' />{' '}
+                {_('remoteTestSuccess', { name: remote.name })}
+              </span>,
+              _('remoteTestSuccessMessage')
+            )
+            : alert(
+              <span>
+                <Icon icon='error' />{' '}
+                {_('remoteTestFailure', { name: remote.name })}
+              </span>,
+              <p>
+                <dl className='dl-horizontal'>
+                  <dt>{_('remoteTestError')}</dt>
+                  <dd>{answer.error}</dd>
+                  <dt>{_('remoteTestStep')}</dt>
+                  <dd>{answer.step}</dd>
+                </dl>
+              </p>
+            )
+      ),
+    icon: 'diagnosis',
+    label: _('remoteTestTip'),
+    level: 'primary',
+  },
+  {
+    handler: deleteRemote,
+    icon: 'delete',
+    label: _('remoteDeleteTip'),
+    level: 'danger',
+  },
+]
+const FILTERS = {
+  filterRemotesOnlyConnected: 'enabled?',
+  filterRemotesOnlyDisconnected: '!enabled?',
 }
 
 @addSubscriptions({
@@ -351,53 +322,48 @@ export default class Remotes extends Component {
 
     return (
       <div>
-        <table className='table table-hover'>
-          {!isEmpty(remotes.file) && (
-            <tbody>
-              <tr>
-                <th className='text-info'>{_('remoteTypeLocal')}</th>
-                <th>{_('remoteName')}</th>
-                <th>{_('remotePath')}</th>
-                <th />
-                <th>{_('remoteState')}</th>
-                <th className='text-xs-right'>{_('remoteAction')}</th>
-              </tr>
-              {map(remotes.file, (remote, key) => (
-                <LocalRemote remote={remote} key={key} />
-              ))}
-            </tbody>
-          )}
-          {!isEmpty(remotes.nfs) && (
-            <tbody>
-              <tr>
-                <th className='text-info'>{_('remoteTypeNfs')}</th>
-                <th>{_('remoteName')}</th>
-                <th>{_('remoteDevice')}</th>
-                <th />
-                <th>{_('remoteState')}</th>
-                <th className='text-xs-right'>{_('remoteAction')}</th>
-              </tr>
-              {map(remotes.nfs, (remote, key) => (
-                <NfsRemote remote={remote} key={key} />
-              ))}
-            </tbody>
-          )}
-          {!isEmpty(remotes.smb) && (
-            <tbody>
-              <tr>
-                <th className='text-info'>{_('remoteTypeSmb')}</th>
-                <th>{_('remoteName')}</th>
-                <th>{_('remoteShare')}</th>
-                <th>{_('remoteAuth')}</th>
-                <th>{_('remoteState')}</th>
-                <th className='text-xs-right'>{_('remoteAction')}</th>
-              </tr>
-              {map(remotes.smb, (remote, key) => (
-                <SmbRemote remote={remote} key={key} />
-              ))}
-            </tbody>
-          )}
-        </table>
+        {!isEmpty(remotes.file) && (
+          <div>
+            <h2>{_('remoteTypeLocal')}</h2>
+            <SortedTable
+              collection={remotes.file}
+              columns={COLUMNS_LOCAL_REMOTE}
+              filters={FILTERS}
+              groupedActions={GROUPED_ACTIONS}
+              individualActions={INDIVIDUAL_ACTIONS}
+              stateUrlParam='l'
+            />
+          </div>
+        )}
+
+        {!isEmpty(remotes.nfs) && (
+          <div>
+            <h2>{_('remoteTypeNfs')}</h2>
+            <SortedTable
+              collection={remotes.nfs}
+              columns={COLUMNS_NFS_REMOTE}
+              filters={FILTERS}
+              groupedActions={GROUPED_ACTIONS}
+              individualActions={INDIVIDUAL_ACTIONS}
+              stateUrlParam='nfs'
+            />
+          </div>
+        )}
+
+        {!isEmpty(remotes.smb) && (
+          <div>
+            <h2>{_('remoteTypeSmb')}</h2>
+            <SortedTable
+              collection={remotes.smb}
+              columns={COLUMNS_SMB_REMOTE}
+              filters={FILTERS}
+              groupedActions={GROUPED_ACTIONS}
+              individualActions={INDIVIDUAL_ACTIONS}
+              stateUrlParam='smb'
+            />
+          </div>
+        )}
+
         <h2>{_('newRemote')}</h2>
         <form id='newRemoteForm'>
           <div className='form-group'>
@@ -449,7 +415,7 @@ export default class Remotes extends Component {
             </fieldset>
           )}
           {type === 'nfs' && (
-            <fieldset className='form-group'>
+            <fieldset>
               <div className='form-group'>
                 <input
                   type='text'
@@ -461,7 +427,7 @@ export default class Remotes extends Component {
                   required
                 />
               </div>
-              <div className='input-group'>
+              <div className='input-group form-group'>
                 <span className='input-group-addon'>/</span>
                 <input
                   type='text'
@@ -476,7 +442,7 @@ export default class Remotes extends Component {
             </fieldset>
           )}
           {type === 'smb' && (
-            <fieldset className='form-group'>
+            <fieldset>
               <div className='input-group form-group'>
                 <span className='input-group-addon'>\\</span>
                 <input

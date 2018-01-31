@@ -36,6 +36,8 @@ const messages = {
   filterSyntaxLinkTooltip: 'Explore the search syntax in the documentation',
   filterVifsOnlyConnected: 'Connected VIFs',
   filterVifsOnlyDisconnected: 'Disconnected VIFs',
+  filterRemotesOnlyConnected: 'Connected remotes',
+  filterRemotesOnlyDisconnected: 'Disconnected remotes',
 
   // ----- Copiable component -----
   copyToClipboard: 'Copy to clipboard',
@@ -359,16 +361,17 @@ const messages = {
   remoteConnected: 'Connected',
   remoteDisconnected: 'Disconnected',
   remoteDeleteTip: 'Delete',
+  remoteDeleteSelected: 'Delete selected remotes',
   remoteNamePlaceHolder: 'remote name *',
   remoteMyNamePlaceHolder: 'Name *',
   remoteLocalPlaceHolderPath: '/path/to/backup',
   remoteNfsPlaceHolderHost: 'host *',
   remoteNfsPlaceHolderPath: 'path/to/backup',
-  remoteSmbPlaceHolderRemotePath: 'subfolder [path\\to\\backup]',
+  remoteSmbPlaceHolderRemotePath: 'subfolder [path\\\\to\\\\backup]',
   remoteSmbPlaceHolderUsername: 'Username',
   remoteSmbPlaceHolderPassword: 'Password',
   remoteSmbPlaceHolderDomain: 'Domain',
-  remoteSmbPlaceHolderAddressShare: '<address>\\<share> *',
+  remoteSmbPlaceHolderAddressShare: '<address>\\\\<share> *',
   remotePlaceHolderPassword: 'password(fill to edit)',
 
   // ------ New Storage -----
@@ -1238,6 +1241,9 @@ const messages = {
     'Delete schedule{nSchedules, plural, one {} other {s}}',
   deleteSchedulesModalMessage:
     'Are you sure you want to delete {nSchedules, number} schedule{nSchedules, plural, one {} other {s}}?',
+  deleteRemotesModalTitle: 'Delete remote{nRemotes, plural, one {} other {s}}',
+  deleteRemotesModalMessage:
+    'Are you sure you want to delete {nRemotes, number} remote{nRemotes, plural, one {} other {s}}?',
   revertVmModalTitle: 'Revert your VM',
   deleteVifsModalTitle: 'Delete VIF{nVifs, plural, one {} other {s}}',
   deleteVifsModalMessage:
