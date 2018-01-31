@@ -248,6 +248,9 @@ class GroupedAction extends Component {
   }
 }
 
+// page number and sort info are optional for backward compatibility
+const URL_STATE_RE = /^(?:(\d+)(?:_(\d+)(_desc)?)?-)?(.*)$/
+
 @propTypes(
   {
     defaultColumn: propTypes.number,
@@ -312,13 +315,24 @@ export default class SortedTable extends Component {
     const urlState = get(
       () => context.router.location.query[props.stateUrlParam]
     )
-    if (urlState !== undefined) {
-      const i = urlState.indexOf('-')
-      if (i === -1) {
-        state.filter = urlState
-      } else {
-        state.filter = urlState.slice(i + 1)
-        state.page = +urlState.slice(0, i)
+
+    let matches
+    if (
+      urlState !== undefined &&
+      (matches = URL_STATE_RE.exec(urlState)) !== null
+    ) {
+      state.filter = matches[4]
+      const page = matches[1]
+      if (page !== undefined) {
+        state.page = +page
+      }
+      let selectedColumn = matches[2]
+      if (
+        selectedColumn !== undefined &&
+        (selectedColumn = +selectedColumn) < props.columns.length
+      ) {
+        state.selectedColumn = selectedColumn
+        state.sortOrder = matches[3] !== undefined ? 'desc' : 'asc'
       }
     }
 
@@ -456,7 +470,7 @@ export default class SortedTable extends Component {
         this.props.columns[columnId].sortOrder === 'desc' ? 'desc' : 'asc'
     }
 
-    this.setState({
+    this._setVisibleState({
       selectedColumn: columnId,
       sortOrder,
     })
@@ -481,25 +495,28 @@ export default class SortedTable extends Component {
     this._checkUpdatePage()
   }
 
-  _saveUrlState (filter, page) {
-    const { stateUrlParam } = this.props
-    if (stateUrlParam === undefined) {
-      return
-    }
+  _saveUrlState = () => {
+    const { filter, page, selectedColumn, sortOrder } = this.state
     const { router } = this.context
     const { location } = router
     router.replace({
       ...location,
       query: {
         ...location.query,
-        [stateUrlParam]: `${page}-${filter}`,
+        [this.props.stateUrlParam]: `${page}_${selectedColumn}${
+          sortOrder === 'desc' ? '_desc' : ''
+        }-${filter}`,
       },
     })
   }
 
+  // update state in the state and update the URL param
+  _setVisibleState (state) {
+    this.setState(state, this.props.stateUrlParam && this._saveUrlState)
+  }
+
   _setFilter = filter => {
-    this._saveUrlState(filter, 1)
-    this.setState({
+    this._setVisibleState({
       filter,
       page: 1,
       highlighted: undefined,
@@ -525,8 +542,7 @@ export default class SortedTable extends Component {
   }
 
   _setPage (page) {
-    this._saveUrlState(this.state.filter, page)
-    this.setState({ page })
+    this._setVisibleState({ page })
   }
   _setPage = this._setPage.bind(this)
 
