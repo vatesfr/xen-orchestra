@@ -1100,6 +1100,7 @@ const messages = {
   destroyTasks: 'Destroy selected tasks',
   pool: 'Pool',
   task: 'Task',
+  progress: 'Progress',
 
   // ---- Backup views ---
   backupSchedules: 'Schedules',

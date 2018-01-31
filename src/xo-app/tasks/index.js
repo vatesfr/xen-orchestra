@@ -89,6 +89,7 @@ const COLUMNS = [
         max='100'
       />
     ),
+    name: _('progress'),
     sortCriteria: 'progress',
   },
 ]
