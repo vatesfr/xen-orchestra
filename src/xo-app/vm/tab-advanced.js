@@ -22,7 +22,6 @@ import {
   getCoresPerSocketPossibilities,
   normalizeXenToolsStatus,
   osFamily,
-  resolveId,
 } from 'utils'
 import {
   createVgpu,
@@ -42,7 +41,7 @@ import {
   XEN_DEFAULT_CPU_WEIGHT,
   XEN_VIDEORAM_VALUES,
 } from 'xo'
-import { createGetObjectsOfType, createSelector } from 'selectors'
+import { createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
 
 const forceReboot = vm => restartVm(vm, true)
 const forceShutdown = vm => stopVm(vm, true)
@@ -261,7 +260,9 @@ class CoresPerSocket extends Component {
 })
 class VmResourceSet extends Component {
   _onChange = resourceSet =>
-    editVm(this.props.vm, { resourceSet: resolveId(resourceSet) })
+    editVm(this.props.vm, {
+      resourceSet: resourceSet != null ? resourceSet.id : resourceSet,
+    })
 
   _optionRenderer = resourceSet => (
     <span>
@@ -302,10 +303,11 @@ export default connectStore(() => {
 
   return {
     gpuGroup: getGpuGroup,
+    isAdmin,
     vgpus: getVgpus,
     vgpuTypes: getVgpuTypes,
   }
-})(({ container, gpuGroup, vgpus, vgpuTypes, vm }) => (
+})(({ container, gpuGroup, isAdmin, vgpus, vgpuTypes, vm }) => (
   <Container>
     <Row>
       <Col className='text-xs-right'>
@@ -511,18 +513,6 @@ export default connectStore(() => {
           </tbody>
         </table>
         <br />
-        <h3>{_('vmResourceSet')}</h3>
-        <table className='table table-hover'>
-          <tbody>
-            <tr>
-              <th>{_('resourceSet')}</th>
-              <td>
-                <VmResourceSet vm={vm} />
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <br />
         <h3>{_('vmLimitsLabel')}</h3>
         <table className='table table-hover'>
           <tbody>
@@ -622,6 +612,14 @@ export default connectStore(() => {
                   : _('unknownOriginalTemplate')}
               </td>
             </tr>
+            {isAdmin && (
+              <tr>
+                <th>{_('resourceSet')}</th>
+                <td>
+                  <VmResourceSet vm={vm} />
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </Col>

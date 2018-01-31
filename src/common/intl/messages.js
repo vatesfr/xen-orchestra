@@ -865,7 +865,6 @@ const messages = {
   unknownOsKernel: 'Unknown',
   unknownOriginalTemplate: 'Unknown',
   vmLimitsLabel: 'VM limits',
-  vmResourceSet: 'VM resource set',
   resourceSet: 'Resource set',
   resourceSetNone: 'None',
   vmCpuLimitsLabel: 'CPU limits',
