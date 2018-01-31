@@ -1,5 +1,4 @@
 import concat from 'lodash/concat'
-import merge from 'lodash/merge'
 import { format } from 'json-rpc-peer'
 import { ignoreErrors } from 'promise-toolbox'
 import {
@@ -360,15 +359,7 @@ async function delete_ ({
   // Update resource sets
   const resourceSet = xapi.xo.getData(vm._xapiId, 'resourceSet')
   if (resourceSet != null) {
-    const resourceSetUsage = this.computeVmResourcesUsage(vm)
-    const ipPoolsUsage = await this.computeVmIpPoolsUsage(vm)
-
-    ignoreErrors.call(
-      this.releaseLimitsInResourceSet(
-        merge(resourceSetUsage, ipPoolsUsage),
-        resourceSet
-      )
-    )
+    this.setVmResourceSet(vm._xapiId, null)::ignoreErrors()
   }
 
   return xapi.deleteVm(vm._xapiId, deleteDisks, force)
@@ -504,11 +495,22 @@ migrate.resolve = {
 
 // -------------------------------------------------------------------
 
-export function set (params) {
+export async function set (params) {
   const VM = extract(params, 'VM')
   const xapi = this.getXapi(VM)
+  const vmId = VM._xapiId
 
-  return xapi.editVm(VM._xapiId, params, async (limits, vm) => {
+  const resourceSetId = extract(params, 'resourceSet')
+
+  if (resourceSetId !== undefined) {
+    if (this.user.permission !== 'admin') {
+      throw unauthorized()
+    }
+
+    await this.setVmResourceSet(vmId, resourceSetId)
+  }
+
+  return xapi.editVm(vmId, params, async (limits, vm) => {
     const resourceSet = xapi.xo.getData(vm, 'resourceSet')
 
     if (resourceSet) {
@@ -576,6 +578,9 @@ set.params = {
   videoram: { type: ['string', 'number'], optional: true },
 
   coresPerSocket: { type: ['string', 'number', 'null'], optional: true },
+
+  // Move the vm In to/Out of Self Service
+  resourceSet: { type: ['string', 'null'], optional: true },
 }
 
 set.resolve = {

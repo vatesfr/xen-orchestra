@@ -1,4 +1,5 @@
 import checkAuthorization from 'xo-acl-resolver'
+import { forEach, includes, map } from 'lodash'
 
 import {
   ModelAlreadyExists,
@@ -8,9 +9,6 @@ import {
 } from '../models/acl'
 import {
   createRawObject,
-  forEach,
-  includes,
-  mapToArray,
 } from '../utils'
 
 // ===================================================================
@@ -59,7 +57,7 @@ export default class {
       push.apply(acls, entries)
     })(acls.push)
 
-    await Promise.all(mapToArray(
+    await Promise.all(map(
       subjects,
       subject => this.getAclsForSubject(subject).then(pushAcls)
     ))
@@ -131,6 +129,11 @@ export default class {
       id => this._xo.getObject(id),
       permissions
     )
+  }
+
+  async removeAclsForObject (objectId) {
+    const acls = this._acls
+    await acls.remove(map(await acls.get({ object: objectId }), 'id'))
   }
 
   // -----------------------------------------------------------------

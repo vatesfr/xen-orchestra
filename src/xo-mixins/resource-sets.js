@@ -1,20 +1,24 @@
-import every from 'lodash/every'
-import keyBy from 'lodash/keyBy'
-import remove from 'lodash/remove'
-import some from 'lodash/some'
 import synchronized from 'decorator-synchronized'
+import {
+  assign,
+  every,
+  forEach,
+  isObject,
+  keyBy,
+  map as mapToArray,
+  remove,
+  some,
+} from 'lodash'
 import {
   noSuchObject,
   unauthorized,
 } from 'xo-common/api-errors'
 
 import {
-  forEach,
+  asyncMap,
   generateUnsecureToken,
-  isObject,
   lightSet,
   map,
-  mapToArray,
   streamToArray,
 } from '../utils'
 
@@ -124,9 +128,12 @@ export default class {
     }
   }
 
-  computeVmResourcesUsage (vm) {
-    return computeVmResourcesUsage(
-      this._xo.getXapi(vm).getObject(vm._xapiId)
+  async computeVmResourcesUsage (vm) {
+    return assign(
+      computeVmResourcesUsage(
+        this._xo.getXapi(vm).getObject(vm._xapiId)
+      ),
+      await this._xo.computeVmIpPoolsUsage(vm)
     )
   }
 
@@ -343,5 +350,35 @@ export default class {
     })
 
     await Promise.all(mapToArray(sets, set => this._save(set)))
+  }
+
+  async setVmResourceSet (vmId, resourceSetId) {
+    const xapi = this._xo.getXapi(vmId)
+    const previousResourceSetId = xapi.xo.getData(vmId, 'resourceSet')
+
+    if (resourceSetId === previousResourceSetId || (previousResourceSetId === undefined && resourceSetId === null)) {
+      return
+    }
+
+    const resourcesUsage = await this.computeVmResourcesUsage(this._xo.getObject(vmId))
+
+    if (resourceSetId != null) {
+      await this.allocateLimitsInResourceSet(resourcesUsage, resourceSetId)
+    }
+    if (previousResourceSetId !== undefined) {
+      await this.releaseLimitsInResourceSet(resourcesUsage, previousResourceSetId)
+    }
+
+    await xapi.xo.setData(vmId, 'resourceSet', resourceSetId === undefined ? null : resourceSetId)
+
+    if (previousResourceSetId !== undefined) {
+      await this._xo.removeAclsForObject(vmId)
+    }
+    if (resourceSetId != null) {
+      const { subjects } = await this.getResourceSet(resourceSetId)
+      await asyncMap(subjects, subject =>
+        this._xo.addAcl(subject, vmId, 'admin')
+      )
+    }
   }
 }

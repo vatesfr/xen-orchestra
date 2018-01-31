@@ -311,7 +311,7 @@ export default class {
           await xapi._updateObjectMapProperty(
             xapi.getObject(id),
             'other_config',
-            { [`xo:${camelToSnakeCase(key)}`]: JSON.stringify(value) }
+            { [`xo:${camelToSnakeCase(key)}`]: value !== null ? JSON.stringify(value) : value }
           )
 
           // Register the updated object.
