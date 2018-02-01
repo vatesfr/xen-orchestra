@@ -5,6 +5,7 @@ import DropdownMenu from 'react-bootstrap-4/lib/DropdownMenu' // https://phabric
 import DropdownToggle from 'react-bootstrap-4/lib/DropdownToggle' // https://phabricator.babeljs.io/T6662 so Dropdown.Toggle won't work https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
 import React from 'react'
 import Shortcuts from 'shortcuts'
+import { Input as DebouncedInput } from 'debounce-input-decorator'
 import { Portal } from 'react-overlays'
 import { routerShape } from 'react-router/lib/PropTypes'
 import { Set } from 'immutable'
@@ -31,7 +32,6 @@ import SingleLineRow from '../single-line-row'
 import Tooltip from '../tooltip'
 import { BlockLink } from '../link'
 import { Container, Col } from '../grid'
-import { Input as DebouncedInput } from '../debounce-component-decorator'
 import {
   createCounter,
   createFilter,
