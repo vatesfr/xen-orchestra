@@ -8,6 +8,10 @@
 /packages/*/dist/
 /packages/*/node_modules/
 
+/packages/xo-server/src/api/index.js
+/packages/xo-server/src/xapi/mixins/index.js
+/packages/xo-server/src/xo-mixins/index.js
+
 npm-debug.log
 npm-debug.log.*
 pnpm-debug.log
