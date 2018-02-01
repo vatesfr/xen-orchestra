@@ -59,6 +59,7 @@ const DEPRECATED_ENTRIES = [
 
 async function loadConfiguration () {
   const config = await appConf.load('xo-server', {
+    appDir: joinPath(__dirname, '..'),
     ignoreUnknownFormats: true,
   })
 
