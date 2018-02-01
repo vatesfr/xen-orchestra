@@ -29,9 +29,10 @@
     ],
     "testRegex": "\\.spec\\.js$",
     "transform": {
-      "complex-matcher/.+\\.jsx?$": "babel-7-jest",
-      "value-matcher/.+\\.jsx?$": "babel-7-jest",
-      "xo-cli/.+\\.jsx?$": "babel-7-jest",
+      "/@xen-orchestra/cron/.+\\.jsx?$": "babel-7-jest",
+      "/packages/complex-matcher/.+\\.jsx?$": "babel-7-jest",
+      "/packages/value-matcher/.+\\.jsx?$": "babel-7-jest",
+      "/packages/xo-cli/.+\\.jsx?$": "babel-7-jest",
       "\\.jsx?$": "babel-jest"
     }
   },
@@ -57,6 +58,7 @@
     "test": "jest && flow status"
   },
   "workspaces": [
+    "@xen-orchestra/*",
     "packages/*"
   ]
 }

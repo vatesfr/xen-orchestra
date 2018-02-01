@@ -3,6 +3,8 @@
 /lerna-debug.log
 /lerna-debug.log.*
 
+/@xen-orchestra/*/dist/
+/@xen-orchestra/*/node_modules/
 /packages/*/dist/
 /packages/*/node_modules/
 

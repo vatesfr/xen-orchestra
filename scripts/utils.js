@@ -1,16 +1,25 @@
 const { forEach, fromCallback } = require('promise-toolbox')
 const fs = require('fs')
 
-const PKGS_DIR = `${__dirname}/../packages`
+const ROOT_DIR = `${__dirname}/..`
+
+const _getPackages = scope => {
+  const inScope = scope !== undefined
+  const dir = `${ROOT_DIR}/${inScope ? scope : 'packages'}`
+  return fromCallback(cb => fs.readdir(dir, cb)).then(names =>
+    names.map(name => ({
+      dir: `${dir}/${name}`,
+      name: inScope ? `${scope}/${name}` : name,
+    }))
+  )
+}
 
 exports.getPackages = (readPackageJson = false) => {
-  const p = fromCallback(cb =>
-    fs.readdir(PKGS_DIR, cb)
-  ).then(names => {
-    const pkgs = names.map(name => ({
-      dir: `${PKGS_DIR}/${name}`,
-      name,
-    }))
+  const p = Promise.all([
+    _getPackages(),
+    _getPackages('@xen-orchestra'),
+  ]).then(pkgs => {
+    pkgs = [].concat(...pkgs) // flatten
     return readPackageJson
       ? Promise.all(pkgs.map(pkg =>
         readFile(`${pkg.dir}/package.json`).then(data => {
