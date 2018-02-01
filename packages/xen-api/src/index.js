@@ -819,7 +819,7 @@ export class Xapi extends EventEmitter {
     const taskWatchers = this._taskWatchers
     const taskWatcher = taskWatchers[ref]
     if (taskWatcher !== undefined) {
-      taskWatcher.reject(new Error('task has been detroyed before completion'))
+      taskWatcher.reject(new Error('task has been destroyed before completion'))
       delete taskWatchers[ref]
     }
   }
