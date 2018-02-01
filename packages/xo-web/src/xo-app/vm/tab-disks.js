@@ -148,6 +148,8 @@ const GROUPED_ACTIONS = [
     disabled: (selectedItems, userData) =>
       some(map(selectedItems, vdi => userData.vbdsByVdi[vdi.id]), 'attached'),
     handler: deleteVbds,
+    handlerParam: (selectedItems, userData) =>
+      map(selectedItems, vdi => userData.vbdsByVdi[vdi.id]),
     icon: 'vdi-forget',
     label: _('vdiForget'),
     level: 'danger',
@@ -648,6 +650,10 @@ export default class TabDisks extends Component {
         return vbd !== undefined && vbd.attached
       },
       handler: deleteVbd,
+      handlerParam: (vdi, userData) => {
+        const vbd = userData.vbdsByVdi[vdi.id]
+        return vbd !== undefined && vbd
+      },
       icon: 'vdi-forget',
       label: _('vdiForget'),
       level: 'danger',
