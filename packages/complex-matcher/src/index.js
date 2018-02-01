@@ -238,172 +238,225 @@ export class TruthyProperty extends Node {
 
 // -------------------------------------------------------------------
 
-// terms          = null || term+
-// *null          = /$/
-// term           = ws (and | or | not | property | truthyProperty | numberOrString) ws
-// ws             = ' '*
-// *and           = "(" terms ")"
-// *or            = "|" ws "(" terms ")"
-// *not           = "!" term
-// *property      = string ws ":" term
-// *truthyProperty = string ws "?"
-// numberOrString = string
-// string         = quotedString | rawString
-// quotedString   = "\"" ( /[^"\]/ | "\\\\" | "\\\"" )+
-// rawString      = /[a-z0-9-_.]+/i
-export const parse = invoke(() => {
-  let i
-  let n
-  let input
+// https://gist.github.com/yelouafi/556e5159e869952335e01f6b473c4ec1
 
-  // -----
-
-  const backtrace = parser => () => {
-    const pos = i
-    const node = parser()
-    if (node !== undefined) {
-      return node
-    }
-    i = pos
+class Failure {
+  constructor (pos, expected) {
+    this.expected = expected
+    this.pos = pos
   }
 
-  // -----
+  get value () {
+    throw new Error(
+      `parse error: expected ${this.expected} at position ${this.pos}`
+    )
+  }
+}
 
-  const parseTerms = Node => {
-    let term = parseTerm()
-    if (!term) {
-      return new Null()
-    }
+class Success {
+  constructor (pos, value) {
+    this.pos = pos
+    this.value = value
+  }
+}
 
-    const terms = [term]
-    while ((term = parseTerm())) {
-      terms.push(term)
-    }
-    return new Node(terms)
-  }
-  const parseTerm = () => {
-    parseWs()
+// -------------------------------------------------------------------
 
-    const child =
-      parseAnd() ||
-      parseOr() ||
-      parseNot() ||
-      parseProperty() ||
-      parseTruthyProperty() ||
-      parseNumberOrString()
-    if (child) {
-      parseWs()
-      return child
-    }
+class P {
+  static alt (...parsers) {
+    const { length } = parsers
+    return new P((input, pos, end) => {
+      for (let i = 0; i < length; ++i) {
+        const result = parsers[i]._parse(input, pos, end)
+        if (result instanceof Success) {
+          return result
+        }
+      }
+      return new Failure(pos, 'alt')
+    })
   }
-  const parseWs = () => {
-    while (input[i] === ' ') {
-      ++i
-    }
 
-    return true
+  static grammar (rules) {
+    const grammar = {}
+    Object.keys(rules).forEach(k => {
+      const rule = rules[k]
+      grammar[k] = rule instanceof P ? rule : P.lazy(rule, grammar)
+    })
+    return grammar
   }
-  const parseAnd = backtrace(() => {
-    let and
-    if (input[i++] === '(' && (and = parseTerm(And)) && input[i++] === ')') {
-      return and
-    }
-  })
-  const parseOr = backtrace(() => {
-    let or
-    if (
-      input[i++] === '|' &&
-      parseWs() &&
-      input[i++] === '(' &&
-      (or = parseTerms(Or)) &&
-      input[i++] === ')'
-    ) {
-      return or
-    }
-  })
-  const parseNot = backtrace(() => {
-    let child
-    if (input[i++] === '!' && (child = parseTerm())) {
-      return new Not(child)
-    }
-  })
-  const parseProperty = backtrace(() => {
-    let name, child
-    if (
-      (name = parseString()) &&
-      parseWs() &&
-      input[i++] === ':' &&
-      (child = parseTerm())
-    ) {
-      return new Property(name, child)
-    }
-  })
-  const parseNumberOrString = () => {
-    let str = parseQuotedString()
-    if (str !== undefined) {
-      return new StringNode(str)
-    }
-    str = parseRawString()
-    if (str !== undefined) {
-      const asNum = +str
-      return Number.isNaN(asNum) ? new StringNode(str) : new NumberNode(asNum)
-    }
+
+  static lazy (parserCreator, arg) {
+    const parser = new P((input, pos, end) =>
+      (parser._parse = parserCreator(arg)._parse)(input, pos, end)
+    )
+    return parser
   }
-  const parseString = () => {
-    let value
-    if (
-      (value = parseQuotedString()) !== undefined ||
-      (value = parseRawString()) !== undefined
-    ) {
-      return value
-    }
+
+  static regex (regex) {
+    regex = new RegExp(regex.source, 'y')
+    return new P((input, pos) => {
+      regex.lastIndex = pos
+      const matches = regex.exec(input)
+      return matches !== null
+        ? new Success(regex.lastIndex, matches[0])
+        : new Failure(pos, regex)
+    })
   }
-  const parseQuotedString = backtrace(() => {
-    if (input[i++] !== '"') {
-      return
+
+  static seq (...parsers) {
+    const { length } = parsers
+    return new P((input, pos, end) => {
+      const values = new Array(length)
+      for (let i = 0; i < length; ++i) {
+        const result = parsers[i]._parse(input, pos, end)
+        if (result instanceof Failure) {
+          return result
+        }
+        pos = result.pos
+        values[i] = result.value
+      }
+      return new Success(pos, values)
+    })
+  }
+
+  static text (text) {
+    const { length } = text
+    return new P(
+      (input, pos) =>
+        input.startsWith(text, pos)
+          ? new Success(pos + length, text)
+          : new Failure(pos, `'${text}'`)
+    )
+  }
+
+  constructor (parse) {
+    this._parse = parse
+  }
+
+  map (fn) {
+    return new P((input, pos, end) => {
+      const result = this._parse(input, pos, end)
+      if (result instanceof Success) {
+        result.value = fn(result.value)
+      }
+      return result
+    })
+  }
+
+  parse (input, pos = 0, end = input.length) {
+    return this._parse(input, pos, end).value
+  }
+
+  repeat (min = 0, max = Infinity) {
+    return new P((input, pos, end) => {
+      const value = []
+      let result
+      let i = 0
+      while (i < min) {
+        ++i
+        result = this._parse(input, pos, end)
+        if (result instanceof Failure) {
+          return result
+        }
+        value.push(result.value)
+        pos = result.pos
+      }
+      while (i < max && (result = this._parse(input, pos, end)) instanceof Success) {
+        ++i
+        value.push(result.value)
+        pos = result.pos
+      }
+      return new Success(pos, value)
+    })
+  }
+
+  skip (otherParser) {
+    return new P((input, pos, end) => {
+      const result = this._parse(input, pos, end)
+      if (result instanceof Failure) {
+        return result
+      }
+      const otherResult = otherParser._parse(input, result.pos, end)
+      if (otherResult instanceof Failure) {
+        return otherResult
+      }
+      result.pos = otherResult.pos
+      return result
+    })
+  }
+}
+
+P.eof = new P(
+  (input, pos, end) =>
+    pos < end ? new Failure(pos, 'end of input') : new Success(pos)
+)
+
+// -------------------------------------------------------------------
+
+const parser = P.grammar({
+  default: r =>
+    P.seq(r.ws, r.term.repeat(), P.eof)
+      .map(([, terms]) => (terms.length === 0 ? new Null() : new And(terms))),
+  quotedString: new P((input, pos, end) => {
+    if (input[pos] !== '"') {
+      return new Failure(pos, '"')
     }
+    ++pos
 
     const value = []
     let char
-    while (i < n && (char = input[i++]) !== '"') {
+    while (pos < end && (char = input[pos++]) !== '"') {
       if (char === '\\') {
-        char = input[i++]
+        char = input[pos++]
       }
       value.push(char)
     }
 
-    return value.join('')
-  })
-  const parseRawString = () => {
+    return new Success(pos, value.join(''))
+  }),
+  rawString: new P((input, pos, end) => {
     let value = ''
     let c
-    while ((c = input[i]) && RAW_STRING_CHARS[c]) {
-      ++i
+    while (pos < end && RAW_STRING_CHARS[(c = input[pos])]) {
+      ++pos
       value += c
     }
-    if (value.length) {
-      return value
-    }
-  }
-  const parseTruthyProperty = backtrace(() => {
-    let name
-    if ((name = parseString()) && parseWs() && input[i++] === '?') {
-      return new TruthyProperty(name)
-    }
-  })
-
-  return input_ => {
-    i = 0
-    input = input_.split('')
-    n = input.length
-
-    try {
-      return parseTerms(And)
-    } finally {
-      input = undefined
-    }
-  }
-})
+    return value.length === 0
+      ? new Failure(pos, 'a raw string')
+      : new Success(pos, value)
+  }),
+  string: r => P.alt(r.quotedString, r.rawString),
+  term: r =>
+    P.alt(
+      P.seq(P.text('('), r.ws, r.term.repeat(1), P.text(')')).map(
+        _ => new And(_[2])
+      ),
+      P.seq(
+        P.text('|'),
+        r.ws,
+        P.text('('),
+        r.ws,
+        r.term.repeat(1),
+        P.text(')')
+      ).map(_ => new Or(_[4])),
+      P.seq(P.text('!'), r.ws, r.term).map(_ => new Not(_[2])),
+      P.seq(r.string, r.ws, P.text(':'), r.ws, r.term).map(
+        _ => new Property(_[0], _[4])
+      ),
+      P.seq(r.string, P.text('?')).map(_ => new TruthyProperty(_[0])),
+      P.alt(
+        r.quotedString.map(_ => new StringNode(_)),
+        r.rawString.map(str => {
+          const asNum = +str
+          return Number.isNaN(asNum)
+            ? new StringNode(str)
+            : new NumberNode(asNum)
+        })
+      ),
+    ).skip(r.ws),
+  ws: P.regex(/\s*/),
+}).default
+export const parse = parser.parse.bind(parser)
 
 // -------------------------------------------------------------------
 
