@@ -830,6 +830,7 @@ export default class SortedTable extends Component {
         {shortcutsTarget !== undefined && (
           <Shortcuts
             handler={this._getShortcutsHandler()}
+            isolate
             name='SortedTable'
             stopPropagation
             targetNodeSelector={shortcutsTarget}
