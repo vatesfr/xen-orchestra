@@ -46,7 +46,7 @@ apt-get install build-essential redis-server libpng-dev git python-minimal
 You need to use the `git` source code manager:
 
 ```
-git clone -b stable http://github.com/vatesfr/xen-orchestra
+git clone -b master http://github.com/vatesfr/xen-orchestra
 git clone -b stable http://github.com/vatesfr/xo-web
 ```
 
@@ -139,11 +139,6 @@ If you need to delete the service:
 forever-service delete orchestra
 ```
 
-- Our stable branch is *stable* and the beta branch is *master*. You can change it if you want to test our latest features (on both `xen-orchestra` and `xo-web`, do NOT mix them):
-
-```
-$ git checkout master
-```
 - If you want to update your current version, do this on both repositories:
 
 ```
