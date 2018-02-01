@@ -8,7 +8,7 @@
 
 This installation is validated against a fresh Debian 8 (Jessie) 64 bits. It should be almost the same on others dpkg systems. For RPMs based OS, it should be close, because most of our dependencies came from NPM and not the OS itself.
 
-As you may have seen, in other parts of the documentation, XO is composed of two parts: [xo-server](https://github.com/vatesfr/xo-server/) and [xo-web](https://github.com/vatesfr/xo-web/). They can be installed separately, even on different machines, but for the sake of simplicity we will set them up together.
+As you may have seen, in other parts of the documentation, XO is composed of two parts: [xo-server](https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server/) and [xo-web](https://github.com/vatesfr/xo-web/). They can be installed separately, even on different machines, but for the sake of simplicity we will set them up together.
 
 ## Packages and Pre-requisites
 
@@ -43,18 +43,22 @@ apt-get install build-essential redis-server libpng-dev git python-minimal
 
 ## Fetching the Code
 
-You may either download them [here](https://github.com/vatesfr/xo-server/archive/stable.zip) and [here](https://github.com/vatesfr/xo-web/archive/stable.zip) or use `git` with these repositories from `http://github.com/vatesfr/xo-server` and `http://github.com/vatesfr/xo-web`:
+You need to use the `git` source code manager:
 
 ```
-git clone -b stable http://github.com/vatesfr/xo-server
+git clone -b stable http://github.com/vatesfr/xen-orchestra
 git clone -b stable http://github.com/vatesfr/xo-web
 ```
+
+> Note: xo-server has been migrated to the
+[xen-orchestra](https://github.com/vatesfr/xen-orchestra)
+mono-repository, and xo-web **will migrate in future too**.
 
 ## Installing dependencies
 
 ### xo-server
 
-Once you have it, use `yarn`, as the non-root user owning the fetched code, to install the other dependencies. Into `xo-server` directory and launch the following command:
+Once you have it, use `yarn`, as the non-root user owning the fetched code, to install the other dependencies. Into `xen-orchestra` directory and launch the following command:
 
 ```
 $ yarn
@@ -64,13 +68,14 @@ $ yarn build
 Then, you have to create a config file for `xo-server`:
 
 ```
-cp sample.config.yaml .xo-server.yaml
+$ cd packages/xo-server
+$ cp sample.config.yaml .xo-server.yaml
 ```
 
 Edit and uncomment it to have the right path to deliver `xo-web`, because `xo-server` embeds an HTTP server (we assume that `xo-server` and `xo-web` are on the same directory). It's near the end of the file:
 
 ```yaml
-  mounts: '/': '../xo-web/dist/'
+  mounts: '/': '../../../xo-web/dist/'
 ```
 > Note this `dist` folder will be created in the next step (see the `xo-web` section)
 
@@ -117,7 +122,7 @@ $ forever start bin/xo-server
 ```
 yarn global add forever
 yarn global add forever-service
-cd /home/username/xo-server/bin/
+cd /home/username/xen-orchestra/packages/xo-server/bin/
 forever-service install orchestra -r username -s xo-server
 ```
 
@@ -134,10 +139,10 @@ If you need to delete the service:
 forever-service delete orchestra
 ```
 
-- Our stable branch is *stable* and the beta branch is *next-release*. You can change it if you want to test our latest features (on both xo-server and `xo-web`, do NOT mix them):
+- Our stable branch is *stable* and the beta branch is *master*. You can change it if you want to test our latest features (on both `xen-orchestra` and `xo-web`, do NOT mix them):
 
 ```
-$ git checkout next-release
+$ git checkout master
 ```
 - If you want to update your current version, do this on both repositories:
 
@@ -149,7 +154,7 @@ $ yarn build
 
 ## Troubleshooting
 
-If you have problem during the buiding phase in `xo-web` or `xo-server`, follow these steps:
+If you have problem during the building phase in `xo-web` or `xo-server`, follow these steps:
 
 1. `rm -rf node_modules`
 1. `yarn`

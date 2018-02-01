@@ -19,15 +19,15 @@ Please, do explain:
 The best way to propose a change on the documentation or the code is
 to create a [GitHub pull request](https://help.github.com/articles/using-pull-requests/).
 
-> Your pull request should always been against the `next-release`
+> Your pull request should always been against the `master`
 > branch and not against `stable` which is the stable branch!
 
 
 1. Create a branch for your work
-2. Create a pull request for this branch against the `next-release` branch
+2. Create a pull request for this branch against the `master` branch
 3. Push into the branch until the pull request is ready to merge
-4. Avoid unnecessary merges: keep you branch up to date by regularly rebasing `git rebase origin/next-release`
-5. When ready to merge, clean up the history (reorder commits, squash some of them together, rephrase messages): `git rebase -i origin/next-release`
+4. Avoid unnecessary merges: keep you branch up to date by regularly rebasing `git rebase origin/master`
+5. When ready to merge, clean up the history (reorder commits, squash some of them together, rephrase messages): `git rebase -i origin/master`
 
 ### Issue triage
 
@@ -72,13 +72,6 @@ For all issues:
 
 - duplicate: issue is a duplicate → SHOULD be closed
 - in progress: issue has been assigned and some work is going on
-
-> For now there is also the `fixed in next-release` label which
-> indicates this issue is resolved in `next-release` and will be
-> closed when merged on `stable`.
->
-> This label will no longer be necessary once the branch
-> reorganization (#69).
 
 For bugs:
 
