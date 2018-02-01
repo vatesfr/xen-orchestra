@@ -72,7 +72,7 @@ $ cd packages/xo-server
 $ cp sample.config.yaml .xo-server.yaml
 ```
 
-Edit and uncomment it to have the right path to deliver `xo-web`, because `xo-server` embeds an HTTP server (we assume that `xo-server` and `xo-web` are on the same directory). It's near the end of the file:
+Edit and uncomment it to have the right path to deliver `xo-web`, because `xo-server` embeds an HTTP server (we assume that `xen-orchestra` and `xo-web` are in the same directory). It's near the end of the file:
 
 ```yaml
   mounts: '/': '../../../xo-web/dist/'
