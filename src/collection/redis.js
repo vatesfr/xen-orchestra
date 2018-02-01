@@ -64,18 +64,24 @@ export default class Redis extends Collection {
       return Promise.resolve()
     }
 
+    const idsIndex = `${prefix}_ids`
     return asyncMap(indexes, index =>
       redis.keys(`${prefix}_${index}:*`).then(keys =>
         keys.length !== 0 && redis.del(keys)
       )
-    ).then(() => asyncMap(redis.smembers(`${prefix}_ids`), id =>
+    ).then(() => asyncMap(redis.smembers(idsIndex), id =>
       redis.hgetall(`${prefix}:${id}`).then(values =>
-        asyncMap(indexes, index => {
-          const value = values[index]
-          if (value !== undefined) {
-            return redis.sadd(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
-          }
-        })
+        values == null
+          ? redis.srem(idsIndex, id) // entry no longer exists
+          : asyncMap(indexes, index => {
+            const value = values[index]
+            if (value !== undefined) {
+              return redis.sadd(
+                `${prefix}_${index}:${String(value).toLowerCase()}`,
+                id
+              )
+            }
+          })
       )
     ))
   }
