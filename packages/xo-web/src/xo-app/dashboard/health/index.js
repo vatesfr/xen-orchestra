@@ -12,7 +12,9 @@ import Upgrade from 'xoa-upgrade'
 import xml2js from 'xml2js'
 import { Card, CardHeader, CardBlock } from 'card'
 import { confirm } from 'modal'
+import { connectStore, formatSize, mapPlus, noop, resolveIds } from 'utils'
 import { Container, Row, Col } from 'grid'
+import { flatten, get, includes, isEmpty, map, mapValues } from 'lodash'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { fromCallback } from 'promise-toolbox'
 import { SelectPool } from 'select-objects'
@@ -27,21 +29,11 @@ import {
 import {
   areObjectsFetched,
   createCollectionWrapper,
+  createFilter,
   createGetObject,
   createGetObjectsOfType,
   createSelector,
 } from 'selectors'
-import {
-  identity,
-  includes,
-  isEmpty,
-  flatten,
-  filter,
-  get,
-  map,
-  mapValues,
-} from 'lodash'
-import { connectStore, formatSize, mapPlus, noop, resolveIds } from 'utils'
 
 const SrColContainer = connectStore(() => ({
   container: createGetObject(),
@@ -459,27 +451,19 @@ export default class Health extends Component {
 
   _getSrUrl = sr => `srs/${sr.id}`
 
-  _getPoolFilter = createSelector(
+  _getPoolPredicate = createSelector(
     createSelector(() => this.state.pools, resolveIds),
     poolIds =>
-      isEmpty(poolIds)
-        ? identity
-        : collection =>
-          filter(collection, item => includes(poolIds, item.$pool))
+      isEmpty(poolIds) ? undefined : item => includes(poolIds, item.$pool)
   )
 
-  _getFilteredCollectionSelector = getCollection =>
-    createSelector(getCollection, this._getPoolFilter, (collection, filter) =>
-      filter(collection)
-    )
-
   _getFilteredCollections = createSelector(
-    this._getFilteredCollectionSelector(() => this.props.userSrs),
-    this._getFilteredCollectionSelector(() => this.props.vdiOrphaned),
-    this._getFilteredCollectionSelector(() => this.props.controlDomainVdis),
-    this._getFilteredCollectionSelector(() => this.props.vmOrphaned),
-    this._getFilteredCollectionSelector(() => this.props.alertMessages),
-    this._getFilteredCollectionSelector(() => this.state.messages),
+    createFilter(() => this.props.userSrs, this._getPoolPredicate),
+    createFilter(() => this.props.vdiOrphaned, this._getPoolPredicate),
+    createFilter(() => this.props.controlDomainVdis, this._getPoolPredicate),
+    createFilter(() => this.props.vmOrphaned, this._getPoolPredicate),
+    createFilter(() => this.props.alertMessages, this._getPoolPredicate),
+    createFilter(() => this.state.messages, this._getPoolPredicate),
     (...filteredCollections) => filteredCollections
   )
 
@@ -499,8 +483,8 @@ export default class Health extends Component {
         <Row className='mb-1'>
           <SelectPool
             multi
-            value={state.pools}
             onChange={this.linkState('pools')}
+            value={state.pools}
           />
         </Row>
         <Row>
