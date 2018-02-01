@@ -1,0 +1,50 @@
+doctype html
+html
+  head
+    meta(charset = 'utf-8')
+    meta(http-equiv = 'X-UA-Compatible' content = 'IE=edge,chrome=1')
+    meta(name = 'viewport' content = 'width=device-width, initial-scale=1.0')
+    title Xen Orchestra
+    meta(name = 'author' content = 'Vates SAS')
+    link(rel = 'stylesheet' href = 'index.css')
+  body(style = 'display: flex; height: 100vh;')
+    div(style = 'margin: auto; width: 20em;')
+      div.mb-2(style = 'display: flex;')
+        img(src = 'assets/logo.png' style = 'margin: auto;')
+      h2.text-xs-center.mb-2 Xen Orchestra
+      form(action = 'signin/local' method = 'post')
+        fieldset
+          if error
+            p.text-danger #{error}
+          .input-group.mb-1
+            span.input-group-addon
+              i.xo-icon-user.fa-fw
+            input.form-control(
+              name = 'username'
+              type = 'text'
+              placeholder = 'Username'
+              required
+            )
+          .input-group.mb-1
+            span.input-group-addon
+              i.fa.fa-key.fa-fw
+            input.form-control(
+              name = 'password'
+              type = 'password'
+              placeholder = 'Password'
+              required
+            )
+          .checkbox
+            label
+              input(
+                name = 'remember-me'
+                type = 'checkbox'
+              )
+              | &nbsp;
+              | Remember me
+          div
+            button.btn.btn-block.btn-info
+              i.fa.fa-sign-in
+              |  Sign in
+          each label, id in strategies
+            div: a(href = 'signin/' + id) Sign in with #{label}
