@@ -74,16 +74,24 @@ const COLUMNS = [
           {map(vbds, vbd => {
             const vm = vms[vbd.VM]
             const item = renderXoItem(vm)
+            const { type } = vm
+            let link
+
+            if (type === 'VM') {
+              link = `/vms/${vm.id}`
+            } else if (type === 'VM-snapshot') {
+              const id = vm.$snapshot_of
+              link =
+                id !== undefined ? `/vms/${id}/snapshots` : '/dashboard/health'
+            }
 
             return (
               <Row>
-                <Col mediumSize={8}>
-                  {<Link to={`/vms/${vm.id}`}>{item}</Link>}
-                </Col>
+                <Col mediumSize={8}>{<Link to={link}>{item}</Link>}</Col>
                 <Col mediumSize={2}>
                   <ActionRowButton
                     btnStyle='danger'
-                    disabled={!vbd.attached}
+                    disabled={vbd.attached}
                     handler={deleteVbd}
                     handlerParam={vbd}
                     icon='vdi-forget'
