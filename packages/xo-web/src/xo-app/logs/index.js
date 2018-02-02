@@ -59,7 +59,9 @@ class JobReturn extends Component {
 const JobCallStateInfos = ({ end, error }) => {
   const [icon, tooltip] =
     error !== undefined
-      ? ['halted', 'failedJobCall']
+      ? isAnError(error)
+        ? ['halted', 'failedJobCall']
+        : ['skipped', 'jobCallSkipped']
       : end !== undefined
         ? ['running', 'successfulJobCall']
         : ['busy', 'jobCallInProgess']
@@ -102,22 +104,29 @@ const JobDataInfos = ({
 )
 
 const CALL_FILTER_OPTIONS = [
-  { label: 'successfulJobCall', value: 'success' },
+  { label: 'allJobCalls', value: 'all' },
   { label: 'failedJobCall', value: 'error' },
   { label: 'jobCallInProgess', value: 'running' },
-  { label: 'allJobCalls', value: 'all' },
+  { label: 'jobCallSkipped', value: 'skipped' },
+  { label: 'successfulJobCall', value: 'success' },
 ]
 
 const PREDICATES = {
   all: () => true,
-  error: call => call.error !== undefined,
+  skipped: call => call.error !== undefined && !isAnError(call.error),
+  error: call => call.error !== undefined && isAnError(call.error),
   running: call => call.end === undefined && call.error === undefined,
   success: call => call.end !== undefined && call.error === undefined,
 }
 
 const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
+const NO_SUCH_OBJECT_ERROR = 'no such object'
 const UNHEALTHY_VDI_CHAIN_LINK =
   'https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection'
+
+const isAnError = error =>
+  error.message !== UNHEALTHY_VDI_CHAIN_ERROR &&
+  error.message !== NO_SUCH_OBJECT_ERROR
 
 class Log extends BaseComponent {
   state = {
@@ -225,8 +234,12 @@ class Log extends BaseComponent {
                         </a>
                       </Tooltip>
                     ) : (
-                      <span className='text-danger'>
-                        <Icon icon='error' />{' '}
+                      <span
+                        className={
+                          isAnError(error) ? 'text-danger' : 'text-info'
+                        }
+                      >
+                        <Icon icon={isAnError(error) ? 'error' : 'alarm'} />{' '}
                         {error.message !== undefined ? (
                           <strong>{error.message}</strong>
                         ) : (
@@ -311,8 +324,9 @@ const LOG_COLUMNS = [
         {log.status === 'finished' && (
           <span
             className={classnames('tag', {
-              'tag-success': !log.hasErrors,
               'tag-danger': log.hasErrors,
+              'tag-info': !log.hasErrors && log.callSkipped,
+              'tag-success': !log.hasErrors && !log.callSkipped,
             })}
           >
             {_('jobFinished')}
@@ -361,6 +375,7 @@ export default class LogList extends Component {
     this.filters = {
       onError: 'hasErrors?',
       successful: 'status:finished !hasErrors?',
+      jobCallSkipped: '!hasErrors? callSkipped?',
     }
   }
 
@@ -409,7 +424,11 @@ export default class LogList extends Component {
 
             if (data.error) {
               call.error = data.error
-              entry.hasErrors = true
+              if (isAnError(data.error)) {
+                entry.hasErrors = true
+              } else {
+                entry.callSkipped = true
+              }
               entry.meta = 'error'
             } else {
               call.returnedValue = data.returnedValue

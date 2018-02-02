@@ -247,6 +247,7 @@ const messages = {
   backupEditNotFoundMessage: 'Missing required info for edition',
   successfulJobCall: 'Successful',
   failedJobCall: 'Failed',
+  jobCallSkipped: 'Skipped',
   jobCallInProgess: 'In progress',
   jobTransferredDataSize: 'Transfer size:',
   jobTransferredDataSpeed: 'Transfer speed:',
