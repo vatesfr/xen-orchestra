@@ -391,10 +391,14 @@ export default class {
       await this._xo.removeAclsForObject(vmId)
     }
     if (resourceSetId != null) {
-      const { subjects } = await this.getResourceSet(resourceSetId)
-      await asyncMap(subjects, subject =>
-        this._xo.addAcl(subject, vmId, 'admin')
-      )
+      this.shareVmResourceSet(vmId, resourceSetId)
     }
+  }
+
+  async shareVmResourceSet (vmId, resourceSetId) {
+    const { subjects } = await this.getResourceSet(resourceSetId)
+    await asyncMap(subjects, subject =>
+      this._xo.addAcl(subject, vmId, 'admin')
+    )
   }
 }
