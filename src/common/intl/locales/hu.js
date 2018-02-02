@@ -8,6 +8,9 @@ addLocaleData(reactIntlData)
 // ===================================================================
 
 export default {
+  // Original text: '{key}: {value}'
+  keyValue: undefined,
+
   // Original text: "Connecting"
   statusConnecting: 'Kapcsolódás',
 
@@ -32,20 +35,53 @@ export default {
   // Original text: "Browse files"
   browseFiles: 'Fájlok böngészése',
 
+  // Original text: 'Show logs'
+  showLogs: undefined,
+
   // Original text: "OK"
   alertOk: 'OK',
 
   // Original text: "OK"
   confirmOk: 'OK',
 
-  // Original text: "Cancel"
-  confirmCancel: 'Mégsem',
+  // Original text: 'Cancel'
+  genericCancel: undefined,
+
+  // Original text: 'Enter the following text to confirm:'
+  enterConfirmText: undefined,
 
   // Original text: "On error"
   onError: 'Hiba',
 
   // Original text: "Successful"
   successful: 'Sikeres',
+
+  // Original text: 'Managed disks'
+  filterOnlyManaged: undefined,
+
+  // Original text: 'Orphaned disks'
+  filterOnlyOrphaned: undefined,
+
+  // Original text: 'Normal disks'
+  filterOnlyRegular: undefined,
+
+  // Original text: 'Snapshot disks'
+  filterOnlySnapshots: undefined,
+
+  // Original text: 'Unmanaged disks'
+  filterOnlyUnmanaged: undefined,
+
+  // Original text: 'Save…'
+  filterSaveAs: undefined,
+
+  // Original text: 'Explore the search syntax in the documentation'
+  filterSyntaxLinkTooltip: undefined,
+
+  // Original text: 'Connected VIFs'
+  filterVifsOnlyConnected: undefined,
+
+  // Original text: 'Disconnected VIFs'
+  filterVifsOnlyDisconnected: undefined,
 
   // Original text: "Copy to clipboard"
   copyToClipboard: 'Másolás a vágólapra',
@@ -95,8 +131,14 @@ export default {
   // Original text: "Jobs"
   jobsPage: 'Jobok',
 
+  // Original text: 'XOA'
+  xoaPage: undefined,
+
   // Original text: "Updates"
   updatePage: 'Frissítések',
+
+  // Original text: 'Licenses'
+  licensesPage: undefined,
 
   // Original text: "Settings"
   settingsPage: 'Beállítások',
@@ -209,6 +251,9 @@ export default {
   // Original text: "User"
   userPage: 'Felhasználó',
 
+  // Original text: 'XOA'
+  xoa: undefined,
+
   // Original text: "No support"
   noSupport: 'Nincs szupport',
 
@@ -224,15 +269,14 @@ export default {
   // Original text: "Fetching data…"
   homeFetchingData: 'Adatok betöltése…',
 
-  // Original text: "Welcome on Xen Orchestra!"
+  // Original text: "Welcome to Xen Orchestra!"
   homeWelcome: 'Üdvözöljük a Felhőben!',
 
   // Original text: "Add your XenServer hosts or pools"
   homeWelcomeText: 'Hozzáadása your XenServer kiszolgálók or pools',
 
   // Original text: "Some XenServers have been registered but are not connected"
-  homeConnectServerText:
-    'Some XenServers have been registered but are not Kapcsolódva',
+  homeConnectServerText: 'Some XenServers have been registered but are not Kapcsolódva',
 
   // Original text: "Want some help?"
   homeHelp: 'Segítségre van szüksége?',
@@ -303,6 +347,9 @@ export default {
   // Original text: "Tags"
   homeAllTags: 'Címke',
 
+  // Original text: 'Resource sets'
+  homeAllResourceSets: undefined,
+
   // Original text: "New VM"
   homeNewVm: 'Új VPS',
 
@@ -333,6 +380,9 @@ export default {
   // Original text: "Sort by"
   homeSortBy: 'Rendezés',
 
+  // Original text: "CPUs"
+  homeSortByCpus: 'CPUs',
+
   // Original text: "Name"
   homeSortByName: 'Név',
 
@@ -342,30 +392,29 @@ export default {
   // Original text: "RAM"
   homeSortByRAM: 'RAM',
 
-  // Original text: "vCPUs"
-  homeSortByvCPUs: 'vCPUs',
-
-  // Original text: "CPUs"
-  homeSortByCpus: 'CPUs',
-
   // Original text: "Shared/Not shared"
   homeSortByShared: 'Osztott/Nem osztott',
 
   // Original text: "Size"
   homeSortBySize: 'Méret',
 
+  // Original text: "Type"
+  homeSortByType: 'Típus',
+
   // Original text: "Usage"
   homeSortByUsage: 'Használat',
 
-  // Original text: "Type"
-  homeSortByType: 'Típus',
+  // Original text: "vCPUs"
+  homeSortByvCPUs: 'vCPUs',
+
+  // Original text: 'Snapshots'
+  homeSortVmsBySnapshots: undefined,
 
   // Original text: "{displayed, number}x {icon} (on {total, number})"
   homeDisplayedItems: '{displayed, number}x {icon} (on {total, number})',
 
   // Original text: "{selected, number}x {icon} selected (on {total, number})"
-  homeSelectedItems:
-    '{selected, number}x {icon} kiválasztott (on {total, number})',
+  homeSelectedItems: '{selected, number}x {icon} kiválasztott (on {total, number})',
 
   // Original text: "More"
   homeMore: 'Több',
@@ -390,6 +439,24 @@ export default {
 
   // Original text: "Not shared {type}"
   srNotSharedType: 'Nem osztott {type}',
+
+  // Original text: 'All of them are selected'
+  sortedTableAllItemsSelected: undefined,
+
+  // Original text: 'No items found'
+  sortedTableNoItems: undefined,
+
+  // Original text: '{nFiltered, number} of {nTotal, number} items'
+  sortedTableNumberOfFilteredItems: undefined,
+
+  // Original text: '{nTotal, number} items'
+  sortedTableNumberOfItems: undefined,
+
+  // Original text: '{nSelected, number} selected'
+  sortedTableNumberOfSelectedItems: undefined,
+
+  // Original text: 'Click here to select all items'
+  sortedTableSelectAllItems: undefined,
 
   // Original text: "Add"
   add: 'Hozzáadás',
@@ -478,6 +545,9 @@ export default {
   // Original text: "Select IP pool(s)…"
   selectIpPool: 'IP tartomány(ok) választása…',
 
+  // Original text: 'Select VGPU type(s)…'
+  selectVgpuType: undefined,
+
   // Original text: "Fill required informations."
   fillRequiredInformations: 'Szükséges információk kitöltése.',
 
@@ -562,6 +632,30 @@ export default {
   // Original text: "Missing required info for edition"
   backupEditNotFoundMessage: 'Hiányzó szükséges információ',
 
+  // Original text: 'Successful'
+  successfulJobCall: undefined,
+
+  // Original text: 'Failed'
+  failedJobCall: undefined,
+
+  // Original text: 'In progress'
+  jobCallInProgess: undefined,
+
+  // Original text: 'Transfer size:'
+  jobTransferredDataSize: undefined,
+
+  // Original text: 'Transfer speed:'
+  jobTransferredDataSpeed: undefined,
+
+  // Original text: 'Merge size:'
+  jobMergedDataSize: undefined,
+
+  // Original text: 'Merge speed:'
+  jobMergedDataSpeed: undefined,
+
+  // Original text: 'All'
+  allJobCalls: undefined,
+
   // Original text: "Job"
   job: 'Feladat',
 
@@ -620,8 +714,7 @@ export default {
   runJob: 'Feladat futtatása',
 
   // Original text: "One shot running started. See overview for logs."
-  runJobVerbose:
-    'Sikeresen elindítva. A logokat kérjük mindneképp nézze meg az eredményekhez.',
+  runJobVerbose: 'Sikeresen elindítva. A logokat kérjük mindneképp nézze meg az eredményekhez.',
 
   // Original text: "Started"
   jobStarted: 'Elindítva',
@@ -636,22 +729,31 @@ export default {
   deleteBackupSchedule: 'Mentési feladat eltávolítása',
 
   // Original text: "Are you sure you want to delete this backup job?"
-  deleteBackupScheduleQuestion:
-    'Biztos benne, hogy törli ezt a mentési feladatot?',
+  deleteBackupScheduleQuestion: 'Biztos benne, hogy törli ezt a mentési feladatot?',
 
   // Original text: "Enable immediately after creation"
   scheduleEnableAfterCreation: 'Létrehozás utáni bekapcsolás engedélyezése',
 
   // Original text: "You are editing Schedule {name} ({id}). Saving will override previous schedule state."
-  scheduleEditMessage:
-    'A következő Időzítést szerkeszti: {név} ({id}). A mentés felülírja az előző állapotot.',
+  scheduleEditMessage: 'A következő Időzítést szerkeszti: {név} ({id}). A mentés felülírja az előző állapotot.',
 
   // Original text: "You are editing job {name} ({id}). Saving will override previous job state."
-  jobEditMessage:
-    'A következő Feladatot szerkeszti:  {név} ({id}). A mentés felülírja az előző állapotot.',
+  jobEditMessage: 'A következő Feladatot szerkeszti:  {név} ({id}). A mentés felülírja az előző állapotot.',
+
+  // Original text: 'Edit'
+  scheduleEdit: undefined,
+
+  // Original text: 'Delete'
+  scheduleDelete: undefined,
+
+  // Original text: 'Delete selected schedules'
+  deleteSelectedSchedules: undefined,
 
   // Original text: "No scheduled jobs."
   noScheduledJobs: 'Nincsenek időzített feladatok.',
+
+  // Original text: 'New schedule'
+  newSchedule: undefined,
 
   // Original text: "No jobs found."
   noJobs: 'Nincsenek feladatok.',
@@ -661,6 +763,9 @@ export default {
 
   // Original text: "Select a xo-server API command"
   jobActionPlaceHolder: 'API parancs kiválasztása',
+
+  // Original text: 'Timeout (number of seconds after which a VM is considered failed)'
+  jobTimeoutPlaceHolder: undefined,
 
   // Original text: "Schedules"
   jobSchedules: 'Időzítések',
@@ -678,8 +783,7 @@ export default {
   jobUserNotFound: 'A feladat létrehozója már nem érhető el a rendszerben',
 
   // Original text: "This backup's creator no longer exists"
-  backupUserNotFound:
-    'A mentési feladat létrehozója már nem érhető el a rendszerben',
+  backupUserNotFound: 'A mentési feladat létrehozója már nem érhető el a rendszerben',
 
   // Original text: "Backup owner"
   backupOwner: 'Mentés tulajdonosa',
@@ -700,12 +804,10 @@ export default {
   localRemoteWarningTitle: 'Lokális távoli kiválasztva',
 
   // Original text: "Warning: local remotes will use limited XOA disk space. Only for advanced users."
-  localRemoteWarningMessage:
-    'Figyelmeztetés: lokális távoli mentés korlátozott rendszer helyet használ. Kizárólag haladó felhasználóknak ajánlott, ha biztos benne, hogy ez a szervere elérhetőségét nem befolyásolja!.',
+  localRemoteWarningMessage: 'Figyelmeztetés: lokális távoli mentés korlátozott rendszer helyet használ. Kizárólag haladó felhasználóknak ajánlott, ha biztos benne, hogy ez a szervere elérhetőségét nem befolyásolja!.',
 
   // Original text: "Warning: this feature works only with XenServer 6.5 or newer."
-  backupVersionWarning:
-    'Figyelmeztetés: 6.5 vagy újabb Xen támogatás szükséges!',
+  backupVersionWarning: 'Figyelmeztetés: 6.5 vagy újabb Xen támogatás szükséges!',
 
   // Original text: "VMs"
   editBackupVmsTitle: 'VPS-ek',
@@ -734,14 +836,17 @@ export default {
   // Original text: "Report"
   editBackupReportTitle: 'Riport',
 
-  // Original text: "Enable immediately after creation"
+  // Original text: "Automatically run as scheduled"
   editBackupScheduleEnabled: 'Azonnal a létrehozás után',
 
-  // Original text: "Depth"
-  editBackupDepthTitle: 'Mélység',
+  // Original text: 'Retention'
+  editBackupRetentionTitle: undefined,
 
   // Original text: "Remote"
   editBackupRemoteTitle: 'Távoli',
+
+  // Original text: 'Delete the old backups first'
+  deleteOldBackupsFirst: undefined,
 
   // Original text: "Remote stores for backup"
   remoteList: 'Távoli Mentési Helyek',
@@ -760,6 +865,9 @@ export default {
 
   // Original text: "Type"
   remoteType: 'Típus',
+
+  // Original text: 'SMB remotes are meant to work on Windows Server. For other systems (Linux Samba, which means almost all NAS), please use NFS.'
+  remoteSmbWarningMessage: undefined,
 
   // Original text: "Test your remote"
   remoteTestTip: 'Tesztelés',
@@ -1043,7 +1151,7 @@ export default {
   // Original text: "No user in group"
   noUserInGroup: 'Nincs felhasználó a csoportban',
 
-  // Original text: "{users} user{users, plural, one {} other {s}}"
+  // Original text: "{users, number} user{users, plural, one {} other {s}}"
   countUsers: '{user} felhasználó{users, plural, one {} other {s}}',
 
   // Original text: "Select Permission"
@@ -1187,6 +1295,18 @@ export default {
   // Original text: "Console"
   vmConsoleLabel: 'Konzol',
 
+  // Original text: 'Name'
+  srUnhealthyVdiNameLabel: undefined,
+
+  // Original text: 'Size'
+  srUnhealthyVdiSize: undefined,
+
+  // Original text: 'Depth'
+  srUnhealthyVdiDepth: undefined,
+
+  // Original text: 'VDI to coalesce ({total, number})'
+  srUnhealthyVdiTitle: undefined,
+
   // Original text: "Rescan all disks"
   srRescan: 'Összes diszk újraszkennelése',
 
@@ -1243,6 +1363,12 @@ export default {
 
   // Original text: "Disabled"
   poolHaDisabled: 'Kikapcsolva',
+
+  // Original text: 'Master'
+  setpoolMaster: undefined,
+
+  // Original text: 'GPU groups'
+  poolGpuGroups: undefined,
 
   // Original text: "Name"
   hostNameLabel: 'Név',
@@ -1310,6 +1436,18 @@ export default {
   // Original text: "Add Host"
   addHostLabel: 'Kiszolgáló Hozzáadása',
 
+  // Original text: 'This host needs to install {patches, number} patch{patches, plural, one {} other {es}} before it can be added to the pool. This operation may be long.'
+  hostNeedsPatchUpdate: undefined,
+
+  // Original text: "This host cannot be added to the pool because it's missing some patches."
+  hostNeedsPatchUpdateNoInstall: undefined,
+
+  // Original text: 'Adding host failed'
+  addHostErrorTitle: undefined,
+
+  // Original text: 'Host patches could not be homogenized.'
+  addHostNotHomogeneousErrorMessage: undefined,
+
   // Original text: "Disconnect"
   disconnectServer: 'Lecsatol',
 
@@ -1338,19 +1476,16 @@ export default {
   noHostsAvailableErrorTitle: 'Hiba a kiszolgáló újraindítása közben',
 
   // Original text: "Some VMs cannot be migrated before restarting this host. Please try force reboot."
-  noHostsAvailableErrorMessage:
-    'Some VMs cannot be migrated before restarting this Host. Please try force Restart.',
+  noHostsAvailableErrorMessage: 'Some VMs cannot be migrated before restarting this Host. Please try force Restart.',
 
   // Original text: "Error while restarting hosts"
   failHostBulkRestartTitle: 'Hiba lépett fel a kiszolgálók újraindítása közben',
 
-  // Original text: "{failedHosts}/{totalHosts} host{failedHosts, plural, one {} other {s}} could not be restarted."
-  failHostBulkRestartMessage:
-    '{failedhosts}/{totalHosts} Kiszolgáló újraindítása nem sikerült.',
+  // Original text: "{failedHosts, number}/{totalHosts, number} host{failedHosts, plural, one {} other {s}} could not be restarted."
+  failHostBulkRestartMessage: '{failedhosts}/{totalHosts} Kiszolgáló újraindítása nem sikerült.',
 
   // Original text: "Reboot to apply updates"
-  rebootUpdateHostLabel:
-    'A változtatások életbe lépéséhez újraindítás szükséges',
+  rebootUpdateHostLabel: 'A változtatások életbe lépéséhez újraindítás szükséges',
 
   // Original text: "Emergency mode"
   emergencyModeLabel: 'Vészhelyzet üzem',
@@ -1403,6 +1538,9 @@ export default {
   // Original text: "CPU model"
   hostCpusModel: 'CPU model',
 
+  // Original text: 'GPUs'
+  hostGpus: undefined,
+
   // Original text: "Core (socket)"
   hostCpusNumber: 'Core (socket)',
 
@@ -1412,7 +1550,7 @@ export default {
   // Original text: "BIOS info"
   hostBiosinfo: 'BIOS infó',
 
-  // Original text: "Licence"
+  // Original text: "License"
   licenseHostSettingsLabel: 'Liszensz',
 
   // Original text: "Type"
@@ -1446,15 +1584,13 @@ export default {
   supplementalPackInstallErrorTitle: 'Installation error',
 
   // Original text: "The installation of the supplemental pack failed."
-  supplementalPackInstallErrorMessage:
-    'The installation of the supplemental pack failed.',
+  supplementalPackInstallErrorMessage: 'The installation of the supplemental pack failed.',
 
   // Original text: "Installation success"
   supplementalPackInstallSuccessTitle: 'Installation success',
 
   // Original text: "Supplemental pack successfully installed."
-  supplementalPackInstallSuccessMessage:
-    'Supplemental pack successfully installed.',
+  supplementalPackInstallSuccessMessage: 'Supplemental pack successfully installed.',
 
   // Original text: "Add a network"
   networkCreateButton: 'Add a Hálózat',
@@ -1497,6 +1633,9 @@ export default {
 
   // Original text: "This interface is currently in use"
   pifInUse: 'This interface is currently in use',
+
+  // Original text: 'Action'
+  pifAction: undefined,
 
   // Original text: "Default locking mode"
   defaultLockingMode: 'Alapértelmezett locking üzem',
@@ -1585,7 +1724,7 @@ export default {
   // Original text: "Missing patches"
   patchStatusNotApplied: 'Missing patches',
 
-  // Original text: "No patch detected"
+  // Original text: "No patches detected"
   patchNothing: 'No patch detected',
 
   // Original text: "Release date"
@@ -1605,6 +1744,18 @@ export default {
 
   // Original text: "Host up-to-date!"
   hostUpToDate: 'Host up-to-Dátum!',
+
+  // Original text: 'Non-recommended patch install'
+  installPatchWarningTitle: undefined,
+
+  // Original text: 'This will install a patch only on this host. This is NOT the recommended way: please go into the Pool patch view and follow instructions there. If you are sure about this, you can continue anyway'
+  installPatchWarningContent: undefined,
+
+  // Original text: 'Go to pool'
+  installPatchWarningReject: undefined,
+
+  // Original text: 'Install'
+  installPatchWarningResolve: undefined,
 
   // Original text: "Refresh patches"
   refreshPatches: 'Refresh patches',
@@ -1672,6 +1823,9 @@ export default {
   // Original text: "Not running"
   vmNotRunning: 'Nem fut',
 
+  // Original text: 'Halted {ago}'
+  vmHaltedSince: undefined,
+
   // Original text: "No Xen tools detected"
   noToolsDetected: 'No Xen tools detected',
 
@@ -1725,10 +1879,6 @@ export default {
 
   // Original text: "Tip:"
   tipLabel: 'Tip:',
-
-  // Original text: "Due to a XenServer issue, non-US keyboard layouts aren't well supported. Switch your own layout to US to workaround it."
-  tipConsoleLabel:
-    'Rendszerkompatibilitás miatt egyedül amerikai (US) billentyűzetkiosztás működik a legstabilabban, ennek használata javasolt.',
 
   // Original text: "Hide infos"
   hideHeaderTooltip: 'Információk elrejtése',
@@ -1787,6 +1937,12 @@ export default {
   // Original text: "Description"
   vdiNameDescription: 'Leírás',
 
+  // Original text: 'Pool'
+  vdiPool: undefined,
+
+  // Original text: 'Disconnect'
+  vdiDisconnect: undefined,
+
   // Original text: "Tags"
   vdiTags: 'Cimkék',
 
@@ -1819,6 +1975,9 @@ export default {
 
   // Original text: "Remove VDI"
   vdiRemove: 'VDI Eltávolítás',
+
+  // Original text: 'No VDIs attached to Control Domain'
+  noControlDomainVdis: undefined,
 
   // Original text: "Boot flag"
   vbdBootableStatus: 'Boot flag',
@@ -1853,17 +2012,38 @@ export default {
   // Original text: "Create"
   vbdCreate: 'Létrehozás',
 
+  // Original text: 'Attach'
+  vbdAttach: undefined,
+
   // Original text: "Disk name"
   vbdNamePlaceHolder: 'Diszk név',
 
   // Original text: "Size"
   vbdSizePlaceHolder: 'Méret',
 
+  // Original text: 'CD drive not completely installed'
+  cdDriveNotInstalled: undefined,
+
+  // Original text: 'Stop and start the VM to install the CD drive'
+  cdDriveInstallation: undefined,
+
   // Original text: "Save"
   saveBootOption: 'Mentés',
 
   // Original text: "Reset"
   resetBootOption: 'Visszaállítás',
+
+  // Original text: 'Delete selected VDIs'
+  deleteSelectedVdis: undefined,
+
+  // Original text: 'Delete selected VDI'
+  deleteSelectedVdi: undefined,
+
+  // Original text: 'Creating this disk will use the disk space quota from the resource set {resourceSet} ({spaceLeft} left)'
+  useQuotaWarning: undefined,
+
+  // Original text: 'Not enough space in resource set {resourceSet} ({spaceLeft} left)'
+  notEnoughSpaceInResourceSet: undefined,
 
   // Original text: "New device"
   vifCreateDeviceButton: 'Új eszköz',
@@ -1901,6 +2081,9 @@ export default {
   // Original text: "Remove"
   vifRemove: 'Eltávolítás',
 
+  // Original text: 'Remove selected VIFs'
+  vifsRemove: undefined,
+
   // Original text: "IP addresses"
   vifIpAddresses: 'IP címek',
 
@@ -1917,8 +2100,7 @@ export default {
   vifLockedNetwork: 'Hálózat zárolva',
 
   // Original text: "Network locked and no IPs are allowed for this interface"
-  vifLockedNetworkNoIps:
-    'Hálózat zárolva és nincsenek engedélyezve IP címek ehhez az interfészhez',
+  vifLockedNetworkNoIps: 'Hálózat zárolva és nincsenek engedélyezve IP címek ehhez az interfészhez',
 
   // Original text: "Network not locked"
   vifUnLockedNetwork: 'Hálózat nincs zárolva',
@@ -1939,8 +2121,7 @@ export default {
   snapshotCreateButton: 'Új Pillanatkép',
 
   // Original text: "Just click on the snapshot button to create one!"
-  tipCreateSnapshotLabel:
-    'Csak kattintson a Pillanatkép gombra új pillanatkép készítéséhez!',
+  tipCreateSnapshotLabel: 'Csak kattintson a Pillanatkép gombra új pillanatkép készítéséhez!',
 
   // Original text: "Revert VM to this snapshot"
   revertSnapshot: 'VPS visszaállítása erre a pillanatképre',
@@ -1959,6 +2140,9 @@ export default {
 
   // Original text: "Name"
   snapshotName: 'Név',
+
+  // Original text: 'Description'
+  snapshotDescription: undefined,
 
   // Original text: "Action"
   snapshotAction: 'Művelet',
@@ -2038,6 +2222,18 @@ export default {
   // Original text: "HA"
   ha: 'HA',
 
+  // Original text: 'Affinity host'
+  vmAffinityHost: undefined,
+
+  // Original text: 'VGA'
+  vmVga: undefined,
+
+  // Original text: 'Video RAM'
+  vmVideoram: undefined,
+
+  // Original text: 'None'
+  noAffinityHost: undefined,
+
   // Original text: "Original template"
   originalTemplate: 'Eredeti sablon',
 
@@ -2056,6 +2252,24 @@ export default {
   // Original text: "CPU limits"
   vmCpuLimitsLabel: 'CPU limitek',
 
+  // Original text: 'Topology'
+  vmCpuTopology: undefined,
+
+  // Original text: 'Default behavior'
+  vmChooseCoresPerSocket: undefined,
+
+  // Original text: '{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket'
+  vmCoresPerSocket: undefined,
+
+  // Original text: 'None'
+  vmCoresPerSocketNone: undefined,
+
+  // Original text: 'Incorrect cores per socket value'
+  vmCoresPerSocketIncorrectValue: undefined,
+
+  // Original text: 'Please change the selected value to fix it.'
+  vmCoresPerSocketIncorrectValueSolution: undefined,
+
   // Original text: "Memory limits (min/max)"
   vmMemoryLimitsLabel: 'Memória limitek (min/max)',
 
@@ -2064,6 +2278,21 @@ export default {
 
   // Original text: "Memory max:"
   vmMaxRam: 'Memória max:',
+
+  // Original text: 'vGPU'
+  vmVgpu: undefined,
+
+  // Original text: 'GPUs'
+  vmVgpus: undefined,
+
+  // Original text: 'None'
+  vmVgpuNone: undefined,
+
+  // Original text: 'Add vGPU'
+  vmAddVgpu: undefined,
+
+  // Original text: 'Select vGPU type'
+  vmSelectVgpuType: undefined,
 
   // Original text: "Long click to add a name"
   vmHomeNamePlaceholder: 'Kattintson hosszan név hozzáadásához',
@@ -2087,12 +2316,10 @@ export default {
   templateDelete: 'Sablon törlése',
 
   // Original text: "Delete VM template{templates, plural, one {} other {s}}"
-  templateDeleteModalTitle:
-    'VPS sablon{Templates, plural, one {} other {ok}} törlése',
+  templateDeleteModalTitle: 'VPS sablon{Templates, plural, one {} other {ok}} törlése',
 
   // Original text: "Are you sure you want to delete {templates, plural, one {this} other {these}} template{templates, plural, one {} other {s}}?"
-  templateDeleteModalBody:
-    'Biztos benne, hogy törölni kívánja a kiválasztott {templates, plural, one {this} other {these}} sablon{Templates, plural, one {} other {oka}}t?',
+  templateDeleteModalBody: 'Biztos benne, hogy törölni kívánja a kiválasztott {templates, plural, one {this} other {these}} sablon{Templates, plural, one {} other {oka}}t?',
 
   // Original text: "Pool{pools, plural, one {} other {s}}"
   poolPanel: 'Pool{pools, plural, one {} other {ok}}',
@@ -2157,7 +2384,7 @@ export default {
   // Original text: "Top 5 SR Usage (in %)"
   srTopUsageStatePanel: 'Top 5 Adattároló használat (in %)',
 
-  // Original text: "{running} running ({halted} halted)"
+  // Original text: "{running, number} running ({halted, number} halted)"
   vmsStates: '{running} fut ({halted} halted)',
 
   // Original text: "Clear selection"
@@ -2188,8 +2415,7 @@ export default {
   statsDashboardGenericErrorTitle: 'Statisztikák hiba',
 
   // Original text: "There is no stats available for:"
-  statsDashboardGenericErrorMessage:
-    'Jelenleg nincs elérhető statisztika a következőhöz:',
+  statsDashboardGenericErrorMessage: 'Jelenleg nincs elérhető statisztika a következőhöz:',
 
   // Original text: "No selected metric"
   noSelectedMetric: 'Nincs kiválasztott mérőszám',
@@ -2214,6 +2440,9 @@ export default {
 
   // Original text: "Remove all orphaned snapshot VDIs"
   removeAllOrphanedObject: 'Árván maradt VPS Pillanatkép VDI-k eltávolítása',
+
+  // Original text: 'VDIs attached to Control Domain'
+  vdisOnControlDomain: undefined,
 
   // Original text: "Name"
   vmNameLabel: 'Név',
@@ -2251,12 +2480,8 @@ export default {
   // Original text: "Create a new VM on {select}"
   newVmCreateNewVmOn: 'VPS létrehozása a következőn: {select}',
 
-  // Original text: "Create a new VM on {select1} or {select2}"
-  newVmCreateNewVmOn2: 'VPS létrehozása a következőn: {select1} vagy {select2}',
-
   // Original text: "You have no permission to create a VM"
-  newVmCreateNewVmNoPermission:
-    'Sajnáljuk, nincs jogosultsága új VPS készítéséhez',
+  newVmCreateNewVmNoPermission: 'Sajnáljuk, nincs jogosultsága új VPS készítéséhez',
 
   // Original text: "Infos"
   newVmInfoPanel: 'Információk',
@@ -2372,7 +2597,7 @@ export default {
   // Original text: "Create VMs"
   newVmCreateVms: 'VPSek Létrehozása',
 
-  // Original text: "Are you sure you want to create {nbVms} VMs?"
+  // Original text: "Are you sure you want to create {nbVms, number} VMs?"
   newVmCreateVmsConfirm: 'Biztos benne, hogy létrehoz {nbVms} VPS-t?',
 
   // Original text: "Multiple VMs:"
@@ -2395,6 +2620,9 @@ export default {
 
   // Original text: "Refresh VMs name"
   newVmNameRefresh: 'VPS nevek frissítése',
+
+  // Original text: 'Affinity host'
+  newVmAffinityHost: undefined,
 
   // Original text: "Advanced"
   newVmAdvancedPanel: 'Haladó',
@@ -2419,6 +2647,21 @@ export default {
 
   // Original text: "Resource set name"
   resourceSetName: 'Erőforrás készlet neve',
+
+  // Original text: 'Users'
+  resourceSetUsers: undefined,
+
+  // Original text: 'Pools'
+  resourceSetPools: undefined,
+
+  // Original text: 'Templates'
+  resourceSetTemplates: undefined,
+
+  // Original text: 'SRs'
+  resourceSetSrs: undefined,
+
+  // Original text: 'Networks'
+  resourceSetNetworks: undefined,
 
   // Original text: "Recompute all limits"
   recomputeResourceSets: 'Összes limit újraszámolása',
@@ -2466,13 +2709,12 @@ export default {
   noHostsAvailable: 'Nincs elérhető kiszolgáló.',
 
   // Original text: "VMs created from this resource set shall run on the following hosts."
-  availableHostsDescription:
-    'Ezzel az erőforrás készlettel létrehozott VPS-ek a következő kiszolgálókon tudnak futni.',
+  availableHostsDescription: 'Ezzel az erőforrás készlettel létrehozott VPS-ek a következő kiszolgálókon tudnak futni.',
 
   // Original text: "Maximum CPUs"
   maxCpus: 'Maximum CPU',
 
-  // Original text: "Maximum RAM (GiB)"
+  // Original text: "Maximum RAM"
   maxRam: 'Maximum RAM (GiB)',
 
   // Original text: "Maximum disk space"
@@ -2500,8 +2742,7 @@ export default {
   resourceSetNew: 'Új',
 
   // Original text: "Try dropping some VMs files here, or click to select VMs to upload. Accept only .xva/.ova files."
-  importVmsList:
-    'Húzza ide a VPS fájlokat, vagy kattintson a VPS választásra a feltöltésre. Csak .xva/.ova fájlok támogatottak.',
+  importVmsList: 'Húzza ide a VPS fájlokat, vagy kattintson a VPS választásra a feltöltésre. Csak .xva/.ova fájlok támogatottak.',
 
   // Original text: "No selected VMs."
   noSelectedVms: 'Nincs kiválasztott VPS.',
@@ -2588,8 +2829,10 @@ export default {
   restoreBackups: 'Adatmentések Visszaállítása',
 
   // Original text: "Click on a VM to display restore options"
-  restoreBackupsInfo:
-    'Kattintson egy VPS-re a visszaállítási lehetőségek megtekintéséhez',
+  restoreBackupsInfo: 'Kattintson egy VPS-re a visszaállítási lehetőségek megtekintéséhez',
+
+  // Original text: 'Only the files of Delta Backup which are not on a SMB remote can be restored'
+  restoreDeltaBackupsInfo: undefined,
 
   // Original text: "Enabled"
   remoteEnabled: 'Bekapcsolva',
@@ -2617,6 +2860,18 @@ export default {
 
   // Original text: "Choose a SR and a backup"
   backupRestoreErrorMessage: 'Válasszon egy Adattárolót és egy Mentést',
+
+  // Original text: 'Select default SR…'
+  backupRestoreSelectDefaultSr: undefined,
+
+  // Original text: 'Choose a SR for each VDI'
+  backupRestoreChooseSrForEachVdis: undefined,
+
+  // Original text: 'VDI'
+  backupRestoreVdiLabel: undefined,
+
+  // Original text: 'SR'
+  backupRestoreSrLabel: undefined,
 
   // Original text: "Display backups"
   displayBackup: 'Mentések megjelenítése',
@@ -2678,60 +2933,76 @@ export default {
   // Original text: "Emergency shutdown Host{nHosts, plural, one {} other {s}}"
   emergencyShutdownHostsModalTitle: 'Vészhelyzet Kiszolgáló Lekapcsolás',
 
-  // Original text: "Are you sure you want to shutdown {nHosts} Host{nHosts, plural, one {} other {s}}?"
-  emergencyShutdownHostsModalMessage:
-    'Biztos benne, hogy lekapcsolja ezeket a kiszolgálókat?',
+  // Original text: "Are you sure you want to shutdown {nHosts, number} Host{nHosts, plural, one {} other {s}}?"
+  emergencyShutdownHostsModalMessage: 'Biztos benne, hogy lekapcsolja ezeket a kiszolgálókat?',
 
   // Original text: "Shutdown host"
   stopHostModalTitle: 'Kiszolgáló Leállítása',
 
   // Original text: "This will shutdown your host. Do you want to continue? If it's the pool master, your connection to the pool will be lost"
-  stopHostModalMessage:
-    'Ezzel le fogja kapcsolni a Kiszolgálót. Biztos benne? Amennyiben ez a pool master a kapcsolatot el fogja veszíteni!',
+  stopHostModalMessage: 'Ezzel le fogja kapcsolni a Kiszolgálót. Biztos benne? Amennyiben ez a pool master a kapcsolatot el fogja veszíteni!',
 
   // Original text: "Add host"
   addHostModalTitle: 'Kiszolgáló Hozzáadása',
 
   // Original text: "Are you sure you want to add {host} to {pool}?"
-  addHostModalMessage:
-    'Biztos benne, hogy hozzádja a(z) {Host} kiszolgálót a következő poolhoz: {pool}?',
+  addHostModalMessage: 'Biztos benne, hogy hozzádja a(z) {Host} kiszolgálót a következő poolhoz: {pool}?',
 
   // Original text: "Restart host"
   restartHostModalTitle: 'Kiszolgáló Újraindítása',
 
   // Original text: "This will restart your host. Do you want to continue?"
-  restartHostModalMessage:
-    'Ez újra fogja indítani a Kiszolgálót. Biztosan folytatja?',
+  restartHostModalMessage: 'Ez újra fogja indítani a Kiszolgálót. Biztosan folytatja?',
 
   // Original text: "Restart Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}"
   restartHostsAgentsModalTitle: 'Kiszolgáló(k) Újraindítása',
 
-  // Original text: "Are you sure you want to restart {nHosts} Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}?"
+  // Original text: "Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}?"
   restartHostsAgentsModalMessage: 'Biztos benne, hogy újraindítja?',
 
   // Original text: "Restart Host{nHosts, plural, one {} other {s}}"
   restartHostsModalTitle: 'Kiszolgáló(k) Újraindítása',
 
-  // Original text: "Are you sure you want to restart {nHosts} Host{nHosts, plural, one {} other {s}}?"
+  // Original text: "Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}}?"
   restartHostsModalMessage: 'Biztos benne, hogy újraindítja?',
 
   // Original text: "Start VM{vms, plural, one {} other {s}}"
   startVmsModalTitle: 'VPS Elindítása',
 
-  // Original text: "Are you sure you want to start {vms} VM{vms, plural, one {} other {s}}?"
+  // Original text: 'Start a copy'
+  cloneAndStartVM: undefined,
+
+  // Original text: 'Force start'
+  forceStartVm: undefined,
+
+  // Original text: 'Forbidden operation'
+  forceStartVmModalTitle: undefined,
+
+  // Original text: 'Start operation for this vm is blocked.'
+  blockedStartVmModalMessage: undefined,
+
+  // Original text: 'Forbidden operation start for {nVms, number} vm{nVms, plural, one {} other {s}}.'
+  blockedStartVmsModalMessage: undefined,
+
+  // Original text: "Are you sure you want to start {vms, number} VM{vms, plural, one {} other {s}}?"
   startVmsModalMessage: 'Biztos benne, hogy elindítja?',
+
+  // Original text: '{nVms, number} vm{nVms, plural, one {} other {s}} are failed. Please see your logs to get more information'
+  failedVmsErrorMessage: undefined,
+
+  // Original text: 'Start failed'
+  failedVmsErrorTitle: undefined,
 
   // Original text: "Stop Host{nHosts, plural, one {} other {s}}"
   stopHostsModalTitle: 'Kiszolgáló Leállítása',
 
-  // Original text: "Are you sure you want to stop {nHosts} Host{nHosts, plural, one {} other {s}}?"
-  stopHostsModalMessage:
-    'Biztos benne, hogy leállítja? Ha ez a master, a kapcsolat elveszhet!',
+  // Original text: "Are you sure you want to stop {nHosts, number} Host{nHosts, plural, one {} other {s}}?"
+  stopHostsModalMessage: 'Biztos benne, hogy leállítja? Ha ez a master, a kapcsolat elveszhet!',
 
   // Original text: "Stop VM{vms, plural, one {} other {s}}"
   stopVmsModalTitle: 'VPS Leállítás',
 
-  // Original text: "Are you sure you want to stop {vms} VM{vms, plural, one {} other {s}}?"
+  // Original text: "Are you sure you want to stop {vms, number} VM{vms, plural, one {} other {s}}?"
   stopVmsModalMessage: 'Biztos benne, hogy leállítja?',
 
   // Original text: "Restart VM"
@@ -2746,31 +3017,38 @@ export default {
   // Original text: "Are you sure you want to stop {name}?"
   stopVmModalMessage: 'Biztos benne, hogy to leállítja: {name}-t?',
 
+  // Original text: 'Suspend VM{vms, plural, one {} other {s}}'
+  suspendVmsModalTitle: undefined,
+
+  // Original text: 'Are you sure you want to suspend {vms, number} VM{vms, plural, one {} other {s}}?'
+  suspendVmsModalMessage: undefined,
+
   // Original text: "Restart VM{vms, plural, one {} other {s}}"
   restartVmsModalTitle: 'VPS Újraindítás',
 
-  // Original text: "Are you sure you want to restart {vms} VM{vms, plural, one {} other {s}}?"
+  // Original text: "Are you sure you want to restart {vms, number} VM{vms, plural, one {} other {s}}?"
   restartVmsModalMessage: 'Biztos benne, hogy újraindítja?',
 
   // Original text: "Snapshot VM{vms, plural, one {} other {s}}"
   snapshotVmsModalTitle: 'VPS Pillanatképek',
 
-  // Original text: "Are you sure you want to snapshot {vms} VM{vms, plural, one {} other {s}}?"
+  // Original text: "Are you sure you want to snapshot {vms, number} VM{vms, plural, one {} other {s}}?"
   snapshotVmsModalMessage: 'Biztos benne, hogy készít Pillanatképet a VPS-ről?',
 
   // Original text: "Delete VM{vms, plural, one {} other {s}}"
   deleteVmsModalTitle: 'VPS Törlés',
 
-  // Original text: "Are you sure you want to delete {vms} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED"
-  deleteVmsModalMessage:
-    'Biztos benne, hogy törli a VPS-t? ÖSSZES VPS DISZK ELTÁVOLÍTÁSRA KERÜL!',
+  // Original text: "Are you sure you want to delete {vms, number} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED"
+  deleteVmsModalMessage: 'Biztos benne, hogy törli a VPS-t? ÖSSZES VPS DISZK ELTÁVOLÍTÁSRA KERÜL!',
+
+  // Original text: 'delete {nVms, number} vm{nVms, plural, one {} other {s}}'
+  deleteVmsConfirmText: undefined,
 
   // Original text: "Delete VM"
   deleteVmModalTitle: 'VPS Törlés',
 
   // Original text: "Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED"
-  deleteVmModalMessage:
-    'Biztos benne, hogy törli a VPS-t? ÖSSZES VPS DISZK ELTÁVOLÍTÁSRA KERÜL!',
+  deleteVmModalMessage: 'Biztos benne, hogy törli a VPS-t? ÖSSZES VPS DISZK ELTÁVOLÍTÁSRA KERÜL!',
 
   // Original text: "Migrate VM"
   migrateVmModalTitle: 'VPS Migrálása',
@@ -2781,9 +3059,6 @@ export default {
   // Original text: "Select a migration network:"
   migrateVmSelectMigrationNetwork: 'Válasszon egy migrációs hálózatot:',
 
-  // Original text: "For each VDI, select an SR:"
-  migrateVmSelectSrs: 'Minden VDI számára: válasszon egy Adattárolót:',
-
   // Original text: "For each VIF, select a network:"
   migrateVmSelectNetworks: 'Minden VIF számára, válasszon egy Hálózatot:',
 
@@ -2791,21 +3066,13 @@ export default {
   migrateVmsSelectSr: 'Válasszon cél Adattárolót:',
 
   // Original text: "Select a destination SR for local disks:"
-  migrateVmsSelectSrIntraPool:
-    'Válasszon egy cél Adattárolót a helyi diszkek számára:',
+  migrateVmsSelectSrIntraPool: 'Válasszon egy cél Adattárolót a helyi diszkek számára:',
 
   // Original text: "Select a network on which to connect each VIF:"
-  migrateVmsSelectNetwork:
-    'Válasszon egy Hálózatot amelyekhez csatlakoztasson minden VIF-et:',
+  migrateVmsSelectNetwork: 'Válasszon egy Hálózatot amelyekhez csatlakoztasson minden VIF-et:',
 
   // Original text: "Smart mapping"
   migrateVmsSmartMapping: 'Okos feltérképezés',
-
-  // Original text: "Name"
-  migrateVmName: 'Név',
-
-  // Original text: "SR"
-  migrateVmSr: 'Adattároló',
 
   // Original text: "VIF"
   migrateVmVif: 'VIF',
@@ -2817,29 +3084,64 @@ export default {
   migrateVmNoTargetHost: 'Nincs cél Kiszolgáló',
 
   // Original text: "A target host is required to migrate a VM"
-  migrateVmNoTargetHostMessage:
-    'Egy cél Kiszolgáló szükséges a VPS migráláshoz!',
+  migrateVmNoTargetHostMessage: 'Egy cél Kiszolgáló szükséges a VPS migráláshoz!',
+
+  // Original text: 'No default SR'
+  migrateVmNoDefaultSrError: undefined,
+
+  // Original text: 'Default SR not connected to host'
+  migrateVmNotConnectedDefaultSrError: undefined,
+
+  // Original text: 'For each VDI, select an SR:'
+  chooseSrForEachVdisModalSelectSr: undefined,
+
+  // Original text: 'Select main SR…'
+  chooseSrForEachVdisModalMainSr: undefined,
+
+  // Original text: 'VDI'
+  chooseSrForEachVdisModalVdiLabel: undefined,
+
+  // Original text: 'SR*'
+  chooseSrForEachVdisModalSrLabel: undefined,
+
+  // Original text: '* optional'
+  chooseSrForEachVdisModalOptionalEntry: undefined,
 
   // Original text: "Delete VDI"
   deleteVdiModalTitle: 'VDI Törlése',
 
   // Original text: "Are you sure you want to delete this disk? ALL DATA ON THIS DISK WILL BE LOST"
-  deleteVdiModalMessage:
-    'Biztos benne, hogy törli a VPS diszkjét? ÖSSZES ADAT ELTÁVOLÍTÁSRA KERÜL!',
+  deleteVdiModalMessage: 'Biztos benne, hogy törli a VPS diszkjét? ÖSSZES ADAT ELTÁVOLÍTÁSRA KERÜL!',
+
+  // Original text: 'Delete VDI{nVdis, plural, one {} other {s}}'
+  deleteVdisModalTitle: undefined,
+
+  // Original text: 'Are you sure you want to delete {nVdis, number} disk{nVdis, plural, one {} other {s}}? ALL DATA ON THESE DISKS WILL BE LOST'
+  deleteVdisModalMessage: undefined,
+
+  // Original text: 'Delete schedule{nSchedules, plural, one {} other {s}}'
+  deleteSchedulesModalTitle: undefined,
+
+  // Original text: 'Are you sure you want to delete {nSchedules, number} schedule{nSchedules, plural, one {} other {s}}?'
+  deleteSchedulesModalMessage: undefined,
 
   // Original text: "Revert your VM"
   revertVmModalTitle: 'VPS Visszaállítása',
+
+  // Original text: 'Delete VIF{nVifs, plural, one {} other {s}}'
+  deleteVifsModalTitle: undefined,
+
+  // Original text: 'Are you sure you want to delete {nVifs, number} VIF{nVifs, plural, one {} other {s}}?'
+  deleteVifsModalMessage: undefined,
 
   // Original text: "Delete snapshot"
   deleteSnapshotModalTitle: 'Pillanatkép Törlése',
 
   // Original text: "Are you sure you want to delete this snapshot?"
-  deleteSnapshotModalMessage:
-    'Biztos benne, hogy törli a kiválasztott Pillanatképet?',
+  deleteSnapshotModalMessage: 'Biztos benne, hogy törli a kiválasztott Pillanatképet?',
 
   // Original text: "Are you sure you want to revert this VM to the snapshot state? This operation is irreversible."
-  revertVmModalMessage:
-    'Biztos benne, hogy visszaállítja a VPS-t a kiválasztott Pillanatkép állapotra? A folyamat visszafordíthatatlan és minden adat elveszik ami a Pillanatkép készítése óta keletkezett!',
+  revertVmModalMessage: 'Biztos benne, hogy visszaállítja a VPS-t a kiválasztott Pillanatkép állapotra? A folyamat visszafordíthatatlan és minden adat elveszik ami a Pillanatkép készítése óta keletkezett!',
 
   // Original text: "Snapshot before"
   revertVmModalSnapshotBefore: 'Pillanatkép ezelőtt',
@@ -2854,8 +3156,7 @@ export default {
   importBackupModalSelectBackup: 'Válasszon mentést…',
 
   // Original text: "Are you sure you want to remove all orphaned snapshot VDIs?"
-  removeAllOrphanedModalWarning:
-    'Biztos benne, hogy Eltávolítja az összes árvány hagyott Pillanatkép VDI-t?',
+  removeAllOrphanedModalWarning: 'Biztos benne, hogy Eltávolítja az összes árvány hagyott Pillanatkép VDI-t?',
 
   // Original text: "Remove all logs"
   removeAllLogsModalTitle: 'Összes Log Eltávolítása',
@@ -2870,29 +3171,28 @@ export default {
   existingSrModalTitle: 'Előző Adattároló használata',
 
   // Original text: "This path has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation."
-  existingSrModalText:
-    'This path has been previously used as a Storage by a XenServer Host. All data will be lost if you choose to continue the Storage Creation.',
+  existingSrModalText: 'This path has been previously used as a Storage by a XenServer Host. All data will be lost if you choose to continue the Storage Creation.',
 
   // Original text: "Previous LUN Usage"
   existingLunModalTitle: 'Előző LUN használat',
 
   // Original text: "This LUN has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation."
-  existingLunModalText:
-    'This LUN has been previously used as a Storage by a XenServer Host. All data will be lost if you choose to continue the Storage Creation.',
+  existingLunModalText: 'This LUN has been previously used as a Storage by a XenServer Host. All data will be lost if you choose to continue the Storage Creation.',
 
   // Original text: "Replace current registration?"
   alreadyRegisteredModal: 'Replace current registration?',
 
   // Original text: "Your XO appliance is already registered to {email}, do you want to forget and replace this registration ?"
-  alreadyRegisteredModalText:
-    'Your XO appliance is already registered to {email}, do you want to Elfelejt and replace this registration ?',
+  alreadyRegisteredModalText: 'Your XO appliance is already registered to {email}, do you want to Elfelejt and replace this registration ?',
 
   // Original text: "Ready for trial?"
   trialReadyModal: 'Ready for trial?',
 
   // Original text: "During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans!"
-  trialReadyModalText:
-    'During the trial period, XOA need to have a working internet Ceonnection This limitation does not apply for our paid plans!',
+  trialReadyModalText: 'During the trial period, XOA need to have a working internet Ceonnection This limitation does not apply for our paid plans!',
+
+  // Original text: 'Label'
+  serverLabel: undefined,
 
   // Original text: "Host"
   serverHost: 'Kiszolgáló',
@@ -2909,6 +3209,15 @@ export default {
   // Original text: "Read Only"
   serverReadOnly: 'Csak Olvasható',
 
+  // Original text: 'Unauthorized Certificates'
+  serverUnauthorizedCertificates: undefined,
+
+  // Original text: 'Allow Unauthorized Certificates'
+  serverAllowUnauthorizedCertificates: undefined,
+
+  // Original text: "Enable it if your certificate is rejected, but it's not recommended because your connection will not be secured."
+  serverUnauthorizedCertificatesInfo: undefined,
+
   // Original text: "Disconnect server"
   serverDisconnect: 'Szerver Lecsatlakozás',
 
@@ -2920,6 +3229,9 @@ export default {
 
   // Original text: "address[:port]"
   serverPlaceHolderAddress: 'address[:port]',
+
+  // Original text: 'label'
+  serverPlaceHolderLabel: undefined,
 
   // Original text: "Connect"
   serverConnect: 'Csatlakozás',
@@ -2933,7 +3245,7 @@ export default {
   // Original text: "Status"
   serverStatus: 'Állapot',
 
-  // Original text: "Connection failed"
+  // Original text: "Connection failed. Click for more information."
   serverConnectionFailed: 'Csatlakozás Sikertelen',
 
   // Original text: "Connecting…"
@@ -2951,12 +3263,17 @@ export default {
   // Original text: "Unknown error"
   serverUnknownError: 'Ismeretlen hiba',
 
+  // Original text: 'Invalid self-signed certificate'
+  serverSelfSignedCertError: undefined,
+
+  // Original text: 'Do you want to accept self-signed certificate for this server even though it would decrease security?'
+  serverSelfSignedCertQuestion: undefined,
+
   // Original text: "Copy VM"
   copyVm: 'VPS Másolás',
 
   // Original text: "Are you sure you want to copy this VM to {SR}?"
-  copyVmConfirm:
-    'Biztos benne, hogy a VPS-t a következő Adattárolóra másolja? {Storage}?',
+  copyVmConfirm: 'Biztos benne, hogy a VPS-t a következő Adattárolóra másolja? {Storage}?',
 
   // Original text: "Name"
   copyVmName: 'Név',
@@ -2986,11 +3303,25 @@ export default {
   detachHostModalTitle: 'Detach Host',
 
   // Original text: "Are you sure you want to detach {host} from its pool? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND REBOOT THE HOST."
-  detachHostModalMessage:
-    'Biztos benne?? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND RESTART THE HOST.',
+  detachHostModalMessage: 'Biztos benne?? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND RESTART THE HOST.',
 
   // Original text: "Detach"
   detachHost: 'Detach',
+
+  // Original text: 'Forget host'
+  forgetHostModalTitle: undefined,
+
+  // Original text: "Are you sure you want to forget {host} from its pool? Be sure this host can't be back online, or use detach instead."
+  forgetHostModalMessage: undefined,
+
+  // Original text: 'Forget'
+  forgetHost: undefined,
+
+  // Original text: 'Designate a new master'
+  setPoolMasterModalTitle: undefined,
+
+  // Original text: 'This operation may take several minutes. Do you want to continue?'
+  setPoolMasterModalMessage: undefined,
 
   // Original text: "Create network"
   newNetworkCreate: 'Hálózat Létrehozása',
@@ -3047,8 +3378,7 @@ export default {
   addHostNoHost: 'Nincs Kiszolgáló',
 
   // Original text: "No host selected to be added"
-  addHostNoHostMessage:
-    'Nincs Kiszolgáló kiválasztva amihez hozzá lehetne adni',
+  addHostNoHostMessage: 'Nincs Kiszolgáló kiválasztva amihez hozzá lehetne adni',
 
   // Original text: "Xen Orchestra"
   xenOrchestra: 'CLOUDXO',
@@ -3126,8 +3456,7 @@ export default {
   availableIn: 'This feature is available Starting from {plan} Edition',
 
   // Original text: "This feature is not available in your version, contact your administrator to know more."
-  notAvailable:
-    'This feature is not available in your Version, contact your administrator to know more.',
+  notAvailable: 'This feature is not available in your Version, contact your administrator to know more.',
 
   // Original text: "Updates"
   updateTitle: 'UpDates',
@@ -3162,6 +3491,9 @@ export default {
   // Original text: "Your password"
   updateRegistrationPasswordPlaceHolder: 'Your jelszó',
 
+  // Original text: 'Troubleshooting documentation'
+  updaterTroubleshootingLink: undefined,
+
   // Original text: "Update"
   update: 'UpDates',
 
@@ -3174,13 +3506,11 @@ export default {
   // Original text: "No updater available for Community Edition"
   noUpdaterCommunity: 'No upDate available for Community Edition',
 
-  // Original text: "Please consider subscribe and try it with all features for free during 15 days on {link}."
-  considerSubscribe:
-    'Please consider subscribe and try it with all features for free during 15 days on {link}.',
+  // Original text: "Please consider subscribing and trying it with all the features for free during 15 days on {link}."
+  considerSubscribe: 'Please consider subscribe and try it with all features for free during 15 days on {link}.',
 
   // Original text: "Manual update could break your current installation due to dependencies issues, do it with caution"
-  noUpdaterWarning:
-    'Manual upDate could break your current installation due to dependencies issues, do it with caution',
+  noUpdaterWarning: 'Manual upDate could break your current installation due to dependencies issues, do it with caution',
 
   // Original text: "Current version:"
   currentVersion: 'Jelenlegi Verzió:',
@@ -3192,23 +3522,19 @@ export default {
   editRegistration: 'Szerkesztés registration',
 
   // Original text: "Please, take time to register in order to enjoy your trial."
-  trialRegistration:
-    'Please, take time to register in order to enjoy your trial.',
+  trialRegistration: 'Please, take time to register in order to enjoy your trial.',
 
   // Original text: "Start trial"
   trialStartButton: 'Elindít trial',
 
   // Original text: "You can use a trial version until {date, date, medium}. Upgrade your appliance to get it."
-  trialAvailableUntil:
-    'You can use a trial Verzió until {date, Dátum, medium}. Upgrade your appliance to get it.',
+  trialAvailableUntil: 'You can use a trial Verzió until {date, Dátum, medium}. Upgrade your appliance to get it.',
 
   // Original text: "Your trial has been ended. Contact us or downgrade to Free version"
-  trialConsumed:
-    'Your trial has been ended. Contact us or downgrade to Free Verzió',
+  trialConsumed: 'Your trial has been ended. Contact us or downgrade to Free Verzió',
 
   // Original text: "Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service."
-  trialLocked:
-    'Your xoa-upDátumr service appears to be down. Your XOA cannot run fully without reaching this service.',
+  trialLocked: 'Your xoa-upDátumr service appears to be down. Your XOA cannot run fully without reaching this service.',
 
   // Original text: "No update information available"
   noUpdateInfo: 'No upDátum information available',
@@ -3232,23 +3558,19 @@ export default {
   promptUpgradeReloadTitle: 'Upgrade successful',
 
   // Original text: "Your XOA has successfully upgraded, and your browser must reload the application. Do you want to reload now ?"
-  promptUpgradeReloadMessage:
-    'Your XOA has successfully upgraded, and your browser must reload the application. Do you want to reload now ?',
+  promptUpgradeReloadMessage: 'Your XOA has successfully upgraded, and your browser must reload the application. Do you want to reload now ?',
 
   // Original text: "Xen Orchestra from the sources"
   disclaimerTitle: 'Xen Orchestra from the sources',
 
   // Original text: "You are using XO from the sources! That's great for a personal/non-profit usage."
-  disclaimerText1:
-    "You are using XO from the sources! That's great for a personal/non-profit használat.",
+  disclaimerText1: "You are using XO from the sources! That's great for a personal/non-profit használat.",
 
   // Original text: "If you are a company, it's better to use it with our appliance + pro support included:"
-  disclaimerText2:
-    "If you are a company, it's better to use it with our appliance + pro support included:",
+  disclaimerText2: "If you are a company, it's better to use it with our appliance + pro support included:",
 
   // Original text: "This version is not bundled with any support nor updates. Use it with caution for critical tasks."
-  disclaimerText3:
-    'This Verzió is not bundled with any support nor upDates. Use it with caution for critical tasks.',
+  disclaimerText3: 'This Verzió is not bundled with any support nor upDates. Use it with caution for critical tasks.',
 
   // Original text: "Connect PIF"
   connectPif: 'Csatlakozás PIF',
@@ -3267,6 +3589,24 @@ export default {
 
   // Original text: "Are you sure you want to delete this PIF?"
   deletePifConfirm: 'Biztos benne, hogyi to delete this PIF?',
+
+  // Original text: 'Delete PIFs'
+  deletePifs: undefined,
+
+  // Original text: 'Are you sure you want to delete {nPifs, number} PIF{nPifs, plural, one {} other {s}}?'
+  deletePifsConfirm: undefined,
+
+  // Original text: 'Connected'
+  pifConnected: undefined,
+
+  // Original text: 'Disconnected'
+  pifDisconnected: undefined,
+
+  // Original text: 'Physically connected'
+  pifPhysicallyConnected: undefined,
+
+  // Original text: 'Physically disconnected'
+  pifPhysicallyDisconnected: undefined,
 
   // Original text: "Username"
   username: 'Felhasználónév',
@@ -3302,8 +3642,7 @@ export default {
   pwdChangeError: 'Helytelen jelszó',
 
   // Original text: "The old password provided is incorrect. Your password has not been changed."
-  pwdChangeErrorBody:
-    'A megadott régi jelszó helytelen, így a jelszó NEM lett megváltoztatva!',
+  pwdChangeErrorBody: 'A megadott régi jelszó helytelen, így a jelszó NEM lett megváltoztatva!',
 
   // Original text: "OK"
   changePasswordOk: 'OK',
@@ -3316,6 +3655,9 @@ export default {
 
   // Original text: "Delete"
   deleteSshKey: 'Törlés',
+
+  // Original text: 'Delete selected SSH keys'
+  deleteSshKeys: undefined,
 
   // Original text: "No SSH keys"
   noSshKeys: 'Nincsenek SSH kulcsok',
@@ -3339,8 +3681,13 @@ export default {
   deleteSshKeyConfirm: 'SSH kulcs törlése',
 
   // Original text: "Are you sure you want to delete the SSH key {title}?"
-  deleteSshKeyConfirmMessage:
-    'Biztos benne, hogy törli a(z) {title} SSH kulcsot?',
+  deleteSshKeyConfirmMessage: 'Biztos benne, hogy törli a(z) {title} SSH kulcsot?',
+
+  // Original text: 'Delete SSH key{nKeys, plural, one {} other {s}}'
+  deleteSshKeysConfirm: undefined,
+
+  // Original text: 'Are you sure you want to delete {nKeys, number} SSH key{nKeys, plural, one {} other {s}}?'
+  deleteSshKeysConfirmMessage: undefined,
 
   // Original text: "Others"
   others: 'Egyebek',
@@ -3378,6 +3725,15 @@ export default {
   // Original text: "Delete log"
   logDelete: 'Log Törlése',
 
+  // Original text: 'Delete logs'
+  logsDelete: undefined,
+
+  // Original text: 'Delete log{nLogs, plural, one {} other {s}}'
+  logDeleteMultiple: undefined,
+
+  // Original text: 'Are you sure you want to delete {nLogs, number} log{nLogs, plural, one {} other {s}}?'
+  logDeleteMultipleMessage: undefined,
+
   // Original text: "Delete all logs"
   logDeleteAll: 'Összes Log Törlése',
 
@@ -3395,6 +3751,12 @@ export default {
 
   // Original text: "Report a bug"
   reportBug: 'Hibabejelentés',
+
+  // Original text: 'Job canceled to protect the VDI chain'
+  unhealthyVdiChainError: undefined,
+
+  // Original text: 'Click for more information'
+  clickForMoreInformation: undefined,
 
   // Original text: "Name"
   ipPoolName: 'Név',
@@ -3429,50 +3791,71 @@ export default {
   // Original text: "unknown VIF"
   ipPoolUnknownVif: 'ismeretlen VIF',
 
+  // Original text: 'Name already exists'
+  ipPoolNameAlreadyExists: undefined,
+
   // Original text: "Keyboard shortcuts"
   shortcutModalTitle: 'Billentyűzet kiosztások',
 
   // Original text: "Global"
   shortcut_XoApp: 'Globális',
 
-  // Original text: "Go to hosts list"
-  shortcut_GO_TO_HOSTS: 'Menjen a Kiszolgálók listájához',
+  // Original text: 'Go to hosts list'
+  shortcut_XoApp_GO_TO_HOSTS: undefined,
 
-  // Original text: "Go to pools list"
-  shortcut_GO_TO_POOLS: 'Go to pools list',
+  // Original text: 'Go to pools list'
+  shortcut_XoApp_GO_TO_POOLS: undefined,
 
-  // Original text: "Go to VMs list"
-  shortcut_GO_TO_VMS: 'Go to VMs list',
+  // Original text: 'Go to VMs list'
+  shortcut_XoApp_GO_TO_VMS: undefined,
 
-  // Original text: "Go to SRs list"
-  shortcut_GO_TO_SRS: 'Go to Storage list',
+  // Original text: 'Go to SRs list'
+  shortcut_XoApp_GO_TO_SRS: undefined,
 
-  // Original text: "Create a new VM"
-  shortcut_CREATE_VM: 'Új VPS Létrehozása',
+  // Original text: 'Create a new VM'
+  shortcut_XoApp_CREATE_VM: undefined,
 
-  // Original text: "Unfocus field"
-  shortcut_UNFOCUS: 'Unfocus field',
+  // Original text: 'Unfocus field'
+  shortcut_XoApp_UNFOCUS: undefined,
 
-  // Original text: "Show shortcuts key bindings"
-  shortcut_HELP: 'Show shortcuts key bindings',
+  // Original text: 'Show shortcuts key bindings'
+  shortcut_XoApp_HELP: undefined,
 
   // Original text: "Home"
   shortcut_Home: 'Kezdőlap',
 
-  // Original text: "Focus search bar"
-  shortcut_SEARCH: 'Focus keresősáv',
+  // Original text: 'Focus search bar'
+  shortcut_Home_SEARCH: undefined,
 
-  // Original text: "Next item"
-  shortcut_NAV_DOWN: 'Következő',
+  // Original text: 'Next item'
+  shortcut_Home_NAV_DOWN: undefined,
 
-  // Original text: "Previous item"
-  shortcut_NAV_UP: 'Előző',
+  // Original text: 'Previous item'
+  shortcut_Home_NAV_UP: undefined,
 
-  // Original text: "Select item"
-  shortcut_SELECT: 'Válasszon',
+  // Original text: 'Select item'
+  shortcut_Home_SELECT: undefined,
 
-  // Original text: "Open"
-  shortcut_JUMP_INTO: 'Megnyitás',
+  // Original text: 'Open'
+  shortcut_Home_JUMP_INTO: undefined,
+
+  // Original text: 'Supported tables'
+  shortcut_SortedTable: undefined,
+
+  // Original text: 'Focus the table search bar'
+  shortcut_SortedTable_SEARCH: undefined,
+
+  // Original text: 'Next item'
+  shortcut_SortedTable_NAV_DOWN: undefined,
+
+  // Original text: 'Previous item'
+  shortcut_SortedTable_NAV_UP: undefined,
+
+  // Original text: 'Select item'
+  shortcut_SortedTable_SELECT: undefined,
+
+  // Original text: 'Action'
+  shortcut_SortedTable_ROW_ACTION: undefined,
 
   // Original text: "VM"
   settingsAclsButtonTooltipVM: 'VMPS',
@@ -3493,8 +3876,7 @@ export default {
   noConfigFile: 'Nincs kiválasztott konfigurációs fájl',
 
   // Original text: "Try dropping a config file here, or click to select a config file to upload."
-  importTip:
-    'Try dropping a config file here, or click to choose a config file to upload.',
+  importTip: 'Try dropping a config file here, or click to choose a config file to upload.',
 
   // Original text: "Config"
   config: 'Konfiguráció',
@@ -3515,30 +3897,25 @@ export default {
   downloadConfig: 'Download current config',
 
   // Original text: "No config import available for Community Edition"
-  noConfigImportCommunity:
-    'No config import available for Community Szerkesztésion',
+  noConfigImportCommunity: 'No config import available for Community Szerkesztésion',
 
   // Original text: "Reconnect all hosts"
   srReconnectAllModalTitle: 'Reconnect all hosts',
 
   // Original text: "This will reconnect this SR to all its hosts."
-  srReconnectAllModalMessage:
-    'This will reconnecting this Storage to all its hosts.',
+  srReconnectAllModalMessage: 'This will reconnecting this Storage to all its hosts.',
 
   // Original text: "This will reconnect each selected SR to its host (local SR) or to every hosts of its pool (shared SR)."
-  srsReconnectAllModalMessage:
-    'This will reconnecz each kiválasztott SR to its Kiszolgáló (local SR) or to every kiszolgálók of its pool (Megosztva Adattároló).',
+  srsReconnectAllModalMessage: 'This will reconnecz each kiválasztott SR to its Kiszolgáló (local SR) or to every kiszolgálók of its pool (Megosztva Adattároló).',
 
   // Original text: "Disconnect all hosts"
   srDisconnectAllModalTitle: 'Lecsatlakozás all kiszolgálók',
 
   // Original text: "This will disconnect this SR from all its hosts."
-  srDisconnectAllModalMessage:
-    'This will Lecsatlakozás this Adattároló from all its kiszolgálók.',
+  srDisconnectAllModalMessage: 'This will Lecsatlakozás this Adattároló from all its kiszolgálók.',
 
   // Original text: "This will disconnect each selected SR from its host (local SR) or from every hosts of its pool (shared SR)."
-  srsDisconnectAllModalMessage:
-    'This will Lecsatlakozás each kiválasztott SR from its Kiszolgáló (local SR) or from every kiszolgálók of its pool (Megosztva Adattároló).',
+  srsDisconnectAllModalMessage: 'This will Lecsatlakozás each kiválasztott SR from its Kiszolgáló (local SR) or from every kiszolgálók of its pool (Megosztva Adattároló).',
 
   // Original text: "Forget SR"
   srForgetModalTitle: 'Elfelejt Adattároló',
@@ -3547,12 +3924,10 @@ export default {
   srsForgetModalTitle: 'Elfelejt kiválasztott Adattárolók',
 
   // Original text: "Are you sure you want to forget this SR? VDIs on this storage won't be removed."
-  srForgetModalMessage:
-    "Biztos benne, hogyi to Elfelejt this Adattároló? VDIs on this storage won't be Eltávolításd.",
+  srForgetModalMessage: "Biztos benne, hogyi to Elfelejt this Adattároló? VDIs on this storage won't be Eltávolításd.",
 
   // Original text: "Are you sure you want to forget all the selected SRs? VDIs on these storages won't be removed."
-  srsForgetModalMessage:
-    "Biztos benne, hogyi to Elfelejt all the kiválasztott Adattárolók? VDIs on these storages won't be Eltávolításd.",
+  srsForgetModalMessage: "Biztos benne, hogyi to Elfelejt all the kiválasztott Adattárolók? VDIs on these storages won't be Eltávolításd.",
 
   // Original text: "Disconnected"
   srAllDisconnected: 'Lekapcsolódva',
@@ -3575,14 +3950,20 @@ export default {
   // Original text: 'Suggestions'
   xosanSuggestions: undefined,
 
+  // Original text: 'Warning: using disperse layout is not recommended right now. Please read {link}.'
+  xosanDisperseWarning: undefined,
+
   // Original text: 'Name'
   xosanName: undefined,
 
   // Original text: 'Host'
   xosanHost: undefined,
 
-  // Original text: 'Hosts'
+  // Original text: 'Connected Hosts'
   xosanHosts: undefined,
+
+  // Original text: 'Pool'
+  xosanPool: undefined,
 
   // Original text: 'Volume ID'
   xosanVolumeId: undefined,
@@ -3593,11 +3974,26 @@ export default {
   // Original text: 'Used space'
   xosanUsedSpace: undefined,
 
+  // Original text: 'License'
+  xosanLicense: undefined,
+
+  // Original text: 'This XOSAN has more than 1 license!'
+  xosanMultipleLicenses: undefined,
+
   // Original text: 'XOSAN pack needs to be installed on each host of the pool.'
   xosanNeedPack: undefined,
 
   // Original text: 'Install it now!'
   xosanInstallIt: undefined,
+
+  // Original text: 'Some hosts need their toolstack to be restarted before you can create an XOSAN'
+  xosanNeedRestart: undefined,
+
+  // Original text: 'Restart toolstacks'
+  xosanRestartAgents: undefined,
+
+  // Original text: 'Pool master is not running'
+  xosanMasterOffline: undefined,
 
   // Original text: 'Install XOSAN pack on {pool}'
   xosanInstallPackTitle: undefined,
@@ -3623,14 +4019,74 @@ export default {
   // Original text: 'Create'
   xosanCreate: undefined,
 
+  // Original text: 'Add'
+  xosanAdd: undefined,
+
   // Original text: 'Installing XOSAN. Please wait…'
   xosanInstalling: undefined,
 
-  // Original text: 'You need XenServer 7.0 to install XOSAN'
-  xosanBadVersion: undefined,
-
   // Original text: 'No XOSAN available for Community Edition'
   xosanCommunity: undefined,
+
+  // Original text: 'New'
+  xosanNew: undefined,
+
+  // Original text: 'Advanced'
+  xosanAdvanced: undefined,
+
+  // Original text: 'Remove subvolumes'
+  xosanRemoveSubvolumes: undefined,
+
+  // Original text: 'Add subvolume…'
+  xosanAddSubvolume: undefined,
+
+  // Original text: "This version of XOSAN SR is from the first beta phase. You can keep using it, but to modify it you'll have to save your disks and re-create it."
+  xosanWarning: undefined,
+
+  // Original text: 'VLAN'
+  xosanVlan: undefined,
+
+  // Original text: 'No XOSAN found'
+  xosanNoSrs: undefined,
+
+  // Original text: 'Some SRs are detached from the XOSAN'
+  xosanPbdsDetached: undefined,
+
+  // Original text: 'Something is wrong with: {badStatuses}'
+  xosanBadStatus: undefined,
+
+  // Original text: 'Running'
+  xosanRunning: undefined,
+
+  // Original text: 'Delete XOSAN'
+  xosanDelete: undefined,
+
+  // Original text: 'Fix'
+  xosanFixIssue: undefined,
+
+  // Original text: 'Creating XOSAN on {pool}'
+  xosanCreatingOn: undefined,
+
+  // Original text: 'Configuring network…'
+  xosanState_configuringNetwork: undefined,
+
+  // Original text: 'Importing VM…'
+  xosanState_importingVm: undefined,
+
+  // Original text: 'Copying VMs…'
+  xosanState_copyingVms: undefined,
+
+  // Original text: 'Configuring VMs…'
+  xosanState_configuringVms: undefined,
+
+  // Original text: 'Configuring gluster…'
+  xosanState_configuringGluster: undefined,
+
+  // Original text: 'Creating SR…'
+  xosanState_creatingSr: undefined,
+
+  // Original text: 'Scanning SR…'
+  xosanState_scanningSr: undefined,
 
   // Original text: 'Install cloud plugin first'
   xosanInstallCloudPlugin: undefined,
@@ -3638,21 +4094,240 @@ export default {
   // Original text: 'Load cloud plugin first'
   xosanLoadCloudPlugin: undefined,
 
+  // Original text: 'Register your appliance first'
+  xosanRegister: undefined,
+
   // Original text: 'Loading…'
   xosanLoading: undefined,
 
   // Original text: 'XOSAN is not available at the moment'
   xosanNotAvailable: undefined,
 
-  // Original text: 'Register for the XOSAN beta'
-  xosanRegisterBeta: undefined,
-
-  // Original text: 'You have successfully registered for the XOSAN beta. Please wait until your request has been approved.'
-  xosanSuccessfullyRegistered: undefined,
-
   // Original text: 'Install XOSAN pack on these hosts:'
   xosanInstallPackOnHosts: undefined,
 
   // Original text: 'Install {pack} v{version}?'
   xosanInstallPack: undefined,
+
+  // Original text: 'No compatible XOSAN pack found for your XenServer versions.'
+  xosanNoPackFound: undefined,
+
+  // Original text: 'At least one of these version requirements must be satisfied by all the hosts in this pool:'
+  xosanPackRequirements: undefined,
+
+  // Original text: 'Some XOSAN Virtual Machines are not running'
+  xosanVmsNotRunning: undefined,
+
+  // Original text: 'Some XOSAN Virtual Machines could not be found'
+  xosanVmsNotFound: undefined,
+
+  // Original text: 'Files needing healing'
+  xosanFilesNeedingHealing: undefined,
+
+  // Original text: 'Some XOSAN Virtual Machines have files needing healing'
+  xosanFilesNeedHealing: undefined,
+
+  // Original text: 'Host {hostName} is not in XOSAN network'
+  xosanHostNotInNetwork: undefined,
+
+  // Original text: 'VM controller'
+  xosanVm: undefined,
+
+  // Original text: 'SR'
+  xosanUnderlyingStorage: undefined,
+
+  // Original text: 'Replace…'
+  xosanReplace: undefined,
+
+  // Original text: 'On same VM'
+  xosanOnSameVm: undefined,
+
+  // Original text: 'Brick name'
+  xosanBrickName: undefined,
+
+  // Original text: 'Brick UUID'
+  xosanBrickUuid: undefined,
+
+  // Original text: 'Brick size'
+  xosanBrickSize: undefined,
+
+  // Original text: 'Memory size'
+  xosanMemorySize: undefined,
+
+  // Original text: 'Status'
+  xosanStatus: undefined,
+
+  // Original text: 'Arbiter'
+  xosanArbiter: undefined,
+
+  // Original text: 'Used Inodes'
+  xosanUsedInodes: undefined,
+
+  // Original text: 'Block size'
+  xosanBlockSize: undefined,
+
+  // Original text: 'Device'
+  xosanDevice: undefined,
+
+  // Original text: 'FS name'
+  xosanFsName: undefined,
+
+  // Original text: 'Mount options'
+  xosanMountOptions: undefined,
+
+  // Original text: 'Path'
+  xosanPath: undefined,
+
+  // Original text: 'Job'
+  xosanJob: undefined,
+
+  // Original text: 'PID'
+  xosanPid: undefined,
+
+  // Original text: 'Port'
+  xosanPort: undefined,
+
+  // Original text: 'Missing values'
+  xosanReplaceBrickErrorTitle: undefined,
+
+  // Original text: 'You need to select a SR and a size'
+  xosanReplaceBrickErrorMessage: undefined,
+
+  // Original text: 'Bad values'
+  xosanAddSubvolumeErrorTitle: undefined,
+
+  // Original text: 'You need to select {nSrs, number} and a size'
+  xosanAddSubvolumeErrorMessage: undefined,
+
+  // Original text: 'Select {nSrs, number} SRs'
+  xosanSelectNSrs: undefined,
+
+  // Original text: 'Run'
+  xosanRun: undefined,
+
+  // Original text: 'Remove'
+  xosanRemove: undefined,
+
+  // Original text: 'Volume'
+  xosanVolume: undefined,
+
+  // Original text: 'Volume options'
+  xosanVolumeOptions: undefined,
+
+  // Original text: 'Could not find VM'
+  xosanCouldNotFindVm: undefined,
+
+  // Original text: 'Using {usage}'
+  xosanUnderlyingStorageUsage: undefined,
+
+  // Original text: 'Custom IP network (/24)'
+  xosanCustomIpNetwork: undefined,
+
+  // Original text: 'Will configure the host xosan network device with a static IP address and plug it in.'
+  xosanIssueHostNotInNetwork: undefined,
+
+  // Original text: 'Licenses'
+  licensesTitle: undefined,
+
+  // Original text: 'You are not registered and therefore will not be able to create or manage your XOSAN SRs. {link}'
+  xosanUnregisteredDisclaimer: undefined,
+
+  // Original text: 'In order to create a XOSAN SR, you need to use the Xen Orchestra Appliance and buy a XOSAN license on {link}.'
+  xosanSourcesDisclaimer: undefined,
+
+  // Original text: 'Register now!'
+  registerNow: undefined,
+
+  // Original text: 'You need to register your appliance to manage your licenses.'
+  licensesUnregisteredDisclaimer: undefined,
+
+  // Original text: 'Product'
+  licenseProduct: undefined,
+
+  // Original text: 'Attached to'
+  licenseBoundObject: undefined,
+
+  // Original text: 'Purchaser'
+  licensePurchaser: undefined,
+
+  // Original text: 'Expires'
+  licenseExpires: undefined,
+
+  // Original text: 'You'
+  licensePurchaserYou: undefined,
+
+  // Original text: 'Support'
+  productSupport: undefined,
+
+  // Original text: 'No XOSAN attached'
+  licenseNotBoundXosan: undefined,
+
+  // Original text: 'License attached to an unknown XOSAN'
+  licenseBoundUnknownXosan: undefined,
+
+  // Original text: 'Manage the licenses'
+  licensesManage: undefined,
+
+  // Original text: 'New license'
+  newLicense: undefined,
+
+  // Original text: 'Refresh'
+  refreshLicenses: undefined,
+
+  // Original text: 'Limited size because XOSAN is in trial'
+  xosanLicenseRestricted: undefined,
+
+  // Original text: 'You need a license on this SR to manage the XOSAN.'
+  xosanAdminNoLicenseDisclaimer: undefined,
+
+  // Original text: 'Your XOSAN license has expired. You can still use the SR but cannot administrate it anymore.'
+  xosanAdminExpiredLicenseDisclaimer: undefined,
+
+  // Original text: 'Could not check the license on this XOSAN SR'
+  xosanCheckLicenseError: undefined,
+
+  // Original text: 'Could not fetch licenses'
+  xosanGetLicensesError: undefined,
+
+  // Original text: 'License has expired.'
+  xosanLicenseHasExpired: undefined,
+
+  // Original text: 'License expires on {date}.'
+  xosanLicenseExpiresDate: undefined,
+
+  // Original text: 'Update the license now!'
+  xosanUpdateLicenseMessage: undefined,
+
+  // Original text: 'Unknown XOSAN SR.'
+  xosanUnknownSr: undefined,
+
+  // Original text: 'Contact us!'
+  contactUs: undefined,
+
+  // Original text: 'No license.'
+  xosanNoLicense: undefined,
+
+  // Original text: 'Unlock now!'
+  xosanUnlockNow: undefined,
+
+  // Original text: 'XOSAN Beta is over. You may now delete and recreate previous existing XOSAN SRs.'
+  xosanBetaOverMessage: undefined,
+
+  // Original text: 'Select a license'
+  selectLicense: undefined,
+
+  // Original text: 'Bind license'
+  bindLicense: undefined,
+
+  // Original text: 'expires on {date}'
+  expiresOn: undefined,
+
+  // Original text: 'Install XOA plugin first'
+  xosanInstallXoaPlugin: undefined,
+
+  // Original text: 'Load XOA plugin first'
+  xosanLoadXoaPlugin: undefined,
+
+  // Original text: '{days, plural, =0 {} one {# day } other {# days }}{hours, plural, =0 {} one {# hour } other {# hours }}{minutes, plural, =0 {} one {# minute } other {# minutes }}{seconds, plural, =0 {} one {# second} other {# seconds}}'
+  durationFormat: undefined,
 }

@@ -8,6 +8,9 @@ addLocaleData(reactIntlData)
 // ===================================================================
 
 export default {
+  // Original text: '{key}: {value}'
+  keyValue: undefined,
+
   // Original text: 'Connecting'
   statusConnecting: undefined,
 
@@ -29,6 +32,12 @@ export default {
   // Original text: "Click to edit"
   editableClickPlaceholder: 'לחץ לעריכה',
 
+  // Original text: 'Browse files'
+  browseFiles: undefined,
+
+  // Original text: 'Show logs'
+  showLogs: undefined,
+
   // Original text: 'OK'
   alertOk: undefined,
 
@@ -36,13 +45,43 @@ export default {
   confirmOk: undefined,
 
   // Original text: 'Cancel'
-  confirmCancel: undefined,
+  genericCancel: undefined,
+
+  // Original text: 'Enter the following text to confirm:'
+  enterConfirmText: undefined,
 
   // Original text: 'On error'
   onError: undefined,
 
   // Original text: 'Successful'
   successful: undefined,
+
+  // Original text: 'Managed disks'
+  filterOnlyManaged: undefined,
+
+  // Original text: 'Orphaned disks'
+  filterOnlyOrphaned: undefined,
+
+  // Original text: 'Normal disks'
+  filterOnlyRegular: undefined,
+
+  // Original text: 'Snapshot disks'
+  filterOnlySnapshots: undefined,
+
+  // Original text: 'Unmanaged disks'
+  filterOnlyUnmanaged: undefined,
+
+  // Original text: 'Save…'
+  filterSaveAs: undefined,
+
+  // Original text: 'Explore the search syntax in the documentation'
+  filterSyntaxLinkTooltip: undefined,
+
+  // Original text: 'Connected VIFs'
+  filterVifsOnlyConnected: undefined,
+
+  // Original text: 'Disconnected VIFs'
+  filterVifsOnlyDisconnected: undefined,
 
   // Original text: 'Copy to clipboard'
   copyToClipboard: undefined,
@@ -64,6 +103,9 @@ export default {
 
   // Original text: 'Templates'
   homeTemplatePage: undefined,
+
+  // Original text: 'Storages'
+  homeSrPage: undefined,
 
   // Original text: "Dashboard"
   dashboardPage: 'לוח מכוונים',
@@ -89,8 +131,14 @@ export default {
   // Original text: "Jobs"
   jobsPage: 'משימות',
 
+  // Original text: 'XOA'
+  xoaPage: undefined,
+
   // Original text: "Updates"
   updatePage: 'עדכונים',
+
+  // Original text: 'Licenses'
+  licensesPage: undefined,
 
   // Original text: "Settings"
   settingsPage: 'הגדרות',
@@ -116,8 +164,14 @@ export default {
   // Original text: 'IPs'
   settingsIpsPage: undefined,
 
+  // Original text: 'Config'
+  settingsConfigPage: undefined,
+
   // Original text: "About"
   aboutPage: 'אודות',
+
+  // Original text: 'About XO {xoaPlan}'
+  aboutXoaPlan: undefined,
 
   // Original text: "New"
   newMenu: 'חדש',
@@ -140,6 +194,9 @@ export default {
   // Original text: "Import"
   newImport: 'ההלעה',
 
+  // Original text: 'XOSAN'
+  xosan: undefined,
+
   // Original text: "Overview"
   backupOverviewPage: 'הרחבה',
 
@@ -151,6 +208,9 @@ export default {
 
   // Original text: "Restore"
   backupRestorePage: 'שחזור',
+
+  // Original text: 'File restore'
+  backupFileRestorePage: undefined,
 
   // Original text: "Schedule"
   schedule: 'תזמון',
@@ -191,6 +251,9 @@ export default {
   // Original text: 'User'
   userPage: undefined,
 
+  // Original text: 'XOA'
+  xoa: undefined,
+
   // Original text: 'No support'
   noSupport: undefined,
 
@@ -206,17 +269,23 @@ export default {
   // Original text: "Fetching data…"
   homeFetchingData: 'מקבל נתונים, נא להמתין…',
 
-  // Original text: "Welcome on Xen Orchestra!"
+  // Original text: "Welcome to Xen Orchestra!"
   homeWelcome: 'ברוכים הבאים',
 
   // Original text: "Add your XenServer hosts or pools"
   homeWelcomeText: 'נא להוסיף שרתים או משאבים',
+
+  // Original text: 'Some XenServers have been registered but are not connected'
+  homeConnectServerText: undefined,
 
   // Original text: "Want some help?"
   homeHelp: 'צריך עזרה?',
 
   // Original text: "Add server"
   homeAddServer: 'הוספת שרת',
+
+  // Original text: 'Connect servers'
+  homeConnectServer: undefined,
 
   // Original text: "Online Doc"
   homeOnlineDoc: 'דוקומנטציה',
@@ -278,8 +347,14 @@ export default {
   // Original text: "Tags"
   homeAllTags: 'מילות מפתח',
 
+  // Original text: 'Resource sets'
+  homeAllResourceSets: undefined,
+
   // Original text: "New VM"
   homeNewVm: 'מכונה חדשה',
+
+  // Original text: 'None'
+  homeFilterNone: undefined,
 
   // Original text: "Running hosts"
   homeFilterRunningHosts: 'מערכות פעילות',
@@ -305,6 +380,9 @@ export default {
   // Original text: "Sort by"
   homeSortBy: 'סנן לפי',
 
+  // Original text: 'CPUs'
+  homeSortByCpus: undefined,
+
   // Original text: "Name"
   homeSortByName: 'שם',
 
@@ -314,11 +392,23 @@ export default {
   // Original text: "RAM"
   homeSortByRAM: 'זכרון RAM',
 
+  // Original text: 'Shared/Not shared'
+  homeSortByShared: undefined,
+
+  // Original text: 'Size'
+  homeSortBySize: undefined,
+
+  // Original text: 'Type'
+  homeSortByType: undefined,
+
+  // Original text: 'Usage'
+  homeSortByUsage: undefined,
+
   // Original text: "vCPUs"
   homeSortByvCPUs: 'כמות המאבדים',
 
-  // Original text: 'CPUs'
-  homeSortByCpus: undefined,
+  // Original text: 'Snapshots'
+  homeSortVmsBySnapshots: undefined,
 
   // Original text: '{displayed, number}x {icon} (on {total, number})'
   homeDisplayedItems: undefined,
@@ -338,11 +428,41 @@ export default {
   // Original text: 'Master:'
   homePoolMaster: undefined,
 
+  // Original text: 'Resource set: {resourceSet}'
+  homeResourceSet: undefined,
+
   // Original text: 'High Availability'
   highAvailability: undefined,
 
+  // Original text: 'Shared {type}'
+  srSharedType: undefined,
+
+  // Original text: 'Not shared {type}'
+  srNotSharedType: undefined,
+
+  // Original text: 'All of them are selected'
+  sortedTableAllItemsSelected: undefined,
+
+  // Original text: 'No items found'
+  sortedTableNoItems: undefined,
+
+  // Original text: '{nFiltered, number} of {nTotal, number} items'
+  sortedTableNumberOfFilteredItems: undefined,
+
+  // Original text: '{nTotal, number} items'
+  sortedTableNumberOfItems: undefined,
+
+  // Original text: '{nSelected, number} selected'
+  sortedTableNumberOfSelectedItems: undefined,
+
+  // Original text: 'Click here to select all items'
+  sortedTableSelectAllItems: undefined,
+
   // Original text: "Add"
   add: 'הוסף',
+
+  // Original text: 'Select all'
+  selectAll: undefined,
 
   // Original text: "Remove"
   remove: 'הסר',
@@ -425,6 +545,9 @@ export default {
   // Original text: 'Select IP pool(s)…'
   selectIpPool: undefined,
 
+  // Original text: 'Select VGPU type(s)…'
+  selectVgpuType: undefined,
+
   // Original text: 'Fill required informations.'
   fillRequiredInformations: undefined,
 
@@ -437,38 +560,56 @@ export default {
   // Original text: 'Month'
   schedulingMonth: undefined,
 
+  // Original text: 'Every N month'
+  schedulingEveryNMonth: undefined,
+
   // Original text: 'Each selected month'
   schedulingEachSelectedMonth: undefined,
 
-  // Original text: 'Day of the month'
-  schedulingMonthDay: undefined,
+  // Original text: 'Day'
+  schedulingDay: undefined,
+
+  // Original text: 'Every N day'
+  schedulingEveryNDay: undefined,
 
   // Original text: 'Each selected day'
-  schedulingEachSelectedMonthDay: undefined,
+  schedulingEachSelectedDay: undefined,
 
-  // Original text: 'Day of the week'
-  schedulingWeekDay: undefined,
+  // Original text: 'Switch to week days'
+  schedulingSetWeekDayMode: undefined,
 
-  // Original text: 'Each selected day'
-  schedulingEachSelectedWeekDay: undefined,
+  // Original text: 'Switch to month days'
+  schedulingSetMonthDayMode: undefined,
 
   // Original text: 'Hour'
   schedulingHour: undefined,
 
-  // Original text: 'Every N hour'
-  schedulingEveryNHour: undefined,
-
   // Original text: 'Each selected hour'
   schedulingEachSelectedHour: undefined,
+
+  // Original text: 'Every N hour'
+  schedulingEveryNHour: undefined,
 
   // Original text: 'Minute'
   schedulingMinute: undefined,
 
+  // Original text: 'Each selected minute'
+  schedulingEachSelectedMinute: undefined,
+
   // Original text: 'Every N minute'
   schedulingEveryNMinute: undefined,
 
-  // Original text: 'Each selected minute'
-  schedulingEachSelectedMinute: undefined,
+  // Original text: 'Every month'
+  selectTableAllMonth: undefined,
+
+  // Original text: 'Every day'
+  selectTableAllDay: undefined,
+
+  // Original text: 'Every hour'
+  selectTableAllHour: undefined,
+
+  // Original text: 'Every minute'
+  selectTableAllMinute: undefined,
 
   // Original text: 'Reset'
   schedulingReset: undefined,
@@ -476,14 +617,8 @@ export default {
   // Original text: 'Unknown'
   unknownSchedule: undefined,
 
-  // Original text: 'Xo-server timezone:'
-  timezonePickerServerValue: undefined,
-
   // Original text: 'Web browser timezone'
   timezonePickerUseLocalTime: undefined,
-
-  // Original text: 'Xo-server timezone'
-  timezonePickerUseServerTime: undefined,
 
   // Original text: 'Server timezone ({value})'
   serverTimezoneOption: undefined,
@@ -497,11 +632,41 @@ export default {
   // Original text: 'Missing required info for edition'
   backupEditNotFoundMessage: undefined,
 
+  // Original text: 'Successful'
+  successfulJobCall: undefined,
+
+  // Original text: 'Failed'
+  failedJobCall: undefined,
+
+  // Original text: 'In progress'
+  jobCallInProgess: undefined,
+
+  // Original text: 'Transfer size:'
+  jobTransferredDataSize: undefined,
+
+  // Original text: 'Transfer speed:'
+  jobTransferredDataSpeed: undefined,
+
+  // Original text: 'Merge size:'
+  jobMergedDataSize: undefined,
+
+  // Original text: 'Merge speed:'
+  jobMergedDataSpeed: undefined,
+
+  // Original text: 'All'
+  allJobCalls: undefined,
+
   // Original text: 'Job'
   job: undefined,
 
-  // Original text: 'Job ID'
+  // Original text: 'Job {job}'
+  jobModalTitle: undefined,
+
+  // Original text: 'ID'
   jobId: undefined,
+
+  // Original text: 'Type'
+  jobType: undefined,
 
   // Original text: 'Name'
   jobName: undefined,
@@ -533,10 +698,16 @@ export default {
   // Original text: 'State'
   jobState: undefined,
 
+  // Original text: 'Enabled'
+  jobStateEnabled: undefined,
+
+  // Original text: 'Disabled'
+  jobStateDisabled: undefined,
+
   // Original text: 'Timezone'
   jobTimezone: undefined,
 
-  // Original text: 'xo-server'
+  // Original text: 'Server'
   jobServerTimezone: undefined,
 
   // Original text: 'Run job'
@@ -569,8 +740,20 @@ export default {
   // Original text: 'You are editing job {name} ({id}). Saving will override previous job state.'
   jobEditMessage: undefined,
 
+  // Original text: 'Edit'
+  scheduleEdit: undefined,
+
+  // Original text: 'Delete'
+  scheduleDelete: undefined,
+
+  // Original text: 'Delete selected schedules'
+  deleteSelectedSchedules: undefined,
+
   // Original text: 'No scheduled jobs.'
   noScheduledJobs: undefined,
+
+  // Original text: 'New schedule'
+  newSchedule: undefined,
 
   // Original text: 'No jobs found.'
   noJobs: undefined,
@@ -581,6 +764,9 @@ export default {
   // Original text: 'Select a xo-server API command'
   jobActionPlaceHolder: undefined,
 
+  // Original text: 'Timeout (number of seconds after which a VM is considered failed)'
+  jobTimeoutPlaceHolder: undefined,
+
   // Original text: 'Schedules'
   jobSchedules: undefined,
 
@@ -589,6 +775,18 @@ export default {
 
   // Original text: 'Select a Job'
   jobScheduleJobPlaceHolder: undefined,
+
+  // Original text: 'Job owner'
+  jobOwnerPlaceholder: undefined,
+
+  // Original text: "This job's creator no longer exists"
+  jobUserNotFound: undefined,
+
+  // Original text: "This backup's creator no longer exists"
+  backupUserNotFound: undefined,
+
+  // Original text: 'Backup owner'
+  backupOwner: undefined,
 
   // Original text: 'Select your backup type:'
   newBackupSelection: undefined,
@@ -608,6 +806,9 @@ export default {
   // Original text: 'Warning: local remotes will use limited XOA disk space. Only for advanced users.'
   localRemoteWarningMessage: undefined,
 
+  // Original text: 'Warning: this feature works only with XenServer 6.5 or newer.'
+  backupVersionWarning: undefined,
+
   // Original text: 'VMs'
   editBackupVmsTitle: undefined,
 
@@ -617,8 +818,17 @@ export default {
   // Original text: 'Resident on'
   editBackupSmartResidentOn: undefined,
 
+  // Original text: 'Pools'
+  editBackupSmartPools: undefined,
+
+  // Original text: 'Tags'
+  editBackupSmartTags: undefined,
+
   // Original text: 'VMs Tags'
   editBackupSmartTagsTitle: undefined,
+
+  // Original text: 'Reverse'
+  editBackupNot: undefined,
 
   // Original text: 'Tag'
   editBackupTagTitle: undefined,
@@ -626,14 +836,17 @@ export default {
   // Original text: 'Report'
   editBackupReportTitle: undefined,
 
-  // Original text: 'Enable immediately after creation'
+  // Original text: 'Automatically run as scheduled'
   editBackupScheduleEnabled: undefined,
 
-  // Original text: 'Depth'
-  editBackupDepthTitle: undefined,
+  // Original text: 'Retention'
+  editBackupRetentionTitle: undefined,
 
   // Original text: 'Remote'
   editBackupRemoteTitle: undefined,
+
+  // Original text: 'Delete the old backups first'
+  deleteOldBackupsFirst: undefined,
 
   // Original text: 'Remote stores for backup'
   remoteList: undefined,
@@ -652,6 +865,9 @@ export default {
 
   // Original text: 'Type'
   remoteType: undefined,
+
+  // Original text: 'SMB remotes are meant to work on Windows Server. For other systems (Linux Samba, which means almost all NAS), please use NFS.'
+  remoteSmbWarningMessage: undefined,
 
   // Original text: 'Test your remote'
   remoteTestTip: undefined,
@@ -674,8 +890,17 @@ export default {
   // Original text: 'Test file'
   remoteTestFile: undefined,
 
+  // Original text: 'Test name'
+  remoteTestName: undefined,
+
+  // Original text: 'Remote name already exists!'
+  remoteTestNameFailure: undefined,
+
   // Original text: 'The remote appears to work correctly'
   remoteTestSuccessMessage: undefined,
+
+  // Original text: 'Connection failed'
+  remoteConnectionFailed: undefined,
 
   // Original text: 'Name'
   remoteName: undefined,
@@ -692,6 +917,9 @@ export default {
   // Original text: 'Share'
   remoteShare: undefined,
 
+  // Original text: 'Action'
+  remoteAction: undefined,
+
   // Original text: 'Auth'
   remoteAuth: undefined,
 
@@ -706,6 +934,12 @@ export default {
 
   // Original text: 'Disconnect'
   remoteDisconnectTip: undefined,
+
+  // Original text: 'Connected'
+  remoteConnected: undefined,
+
+  // Original text: 'Disconnected'
+  remoteDisconnected: undefined,
 
   // Original text: 'Delete'
   remoteDeleteTip: undefined,
@@ -722,7 +956,7 @@ export default {
   // Original text: 'host *'
   remoteNfsPlaceHolderHost: undefined,
 
-  // Original text: '/path/to/backup'
+  // Original text: 'path/to/backup'
   remoteNfsPlaceHolderPath: undefined,
 
   // Original text: 'subfolder [path\\to\\backup]'
@@ -917,11 +1151,14 @@ export default {
   // Original text: 'No user in group'
   noUserInGroup: undefined,
 
-  // Original text: '{users} user{users, plural, one {} other {s}}'
+  // Original text: '{users, number} user{users, plural, one {} other {s}}'
   countUsers: undefined,
 
   // Original text: 'Select Permission'
   selectPermission: undefined,
+
+  // Original text: 'No plugins found'
+  noPlugins: undefined,
 
   // Original text: 'Auto-load at server start'
   autoloadPlugin: undefined,
@@ -1058,17 +1295,32 @@ export default {
   // Original text: "Console"
   vmConsoleLabel: 'קונסול',
 
+  // Original text: 'Name'
+  srUnhealthyVdiNameLabel: undefined,
+
+  // Original text: 'Size'
+  srUnhealthyVdiSize: undefined,
+
+  // Original text: 'Depth'
+  srUnhealthyVdiDepth: undefined,
+
+  // Original text: 'VDI to coalesce ({total, number})'
+  srUnhealthyVdiTitle: undefined,
+
   // Original text: 'Rescan all disks'
   srRescan: undefined,
 
   // Original text: 'Connect to all hosts'
   srReconnectAll: undefined,
 
-  // Original text: 'Disconnect to all hosts'
+  // Original text: 'Disconnect from all hosts'
   srDisconnectAll: undefined,
 
   // Original text: 'Forget this SR'
   srForget: undefined,
+
+  // Original text: 'Forget SRs'
+  srsForget: undefined,
 
   // Original text: 'Remove this SR'
   srRemoveButton: undefined,
@@ -1085,8 +1337,23 @@ export default {
   // Original text: 'Master:'
   poolMaster: undefined,
 
+  // Original text: 'Display all hosts of this pool'
+  displayAllHosts: undefined,
+
+  // Original text: 'Display all storages of this pool'
+  displayAllStorages: undefined,
+
+  // Original text: 'Display all VMs of this pool'
+  displayAllVMs: undefined,
+
   // Original text: 'Hosts'
   hostsTabName: undefined,
+
+  // Original text: 'Vms'
+  vmsTabName: undefined,
+
+  // Original text: 'Srs'
+  srsTabName: undefined,
 
   // Original text: 'High Availability'
   poolHaStatus: undefined,
@@ -1096,6 +1363,12 @@ export default {
 
   // Original text: 'Disabled'
   poolHaDisabled: undefined,
+
+  // Original text: 'Master'
+  setpoolMaster: undefined,
+
+  // Original text: 'GPU groups'
+  poolGpuGroups: undefined,
 
   // Original text: 'Name'
   hostNameLabel: undefined,
@@ -1111,6 +1384,9 @@ export default {
 
   // Original text: '{used}% used ({free} free)'
   memoryLeftTooltip: undefined,
+
+  // Original text: 'PIF'
+  pif: undefined,
 
   // Original text: 'Name'
   poolNetworkNameLabel: undefined,
@@ -1139,6 +1415,18 @@ export default {
   // Original text: 'Hide PIFs'
   hidePifs: undefined,
 
+  // Original text: 'Show details'
+  showDetails: undefined,
+
+  // Original text: 'Hide details'
+  hideDetails: undefined,
+
+  // Original text: 'No stats'
+  poolNoStats: undefined,
+
+  // Original text: 'All hosts'
+  poolAllHosts: undefined,
+
   // Original text: 'Add SR'
   addSrLabel: undefined,
 
@@ -1147,6 +1435,18 @@ export default {
 
   // Original text: 'Add Host'
   addHostLabel: undefined,
+
+  // Original text: 'This host needs to install {patches, number} patch{patches, plural, one {} other {es}} before it can be added to the pool. This operation may be long.'
+  hostNeedsPatchUpdate: undefined,
+
+  // Original text: "This host cannot be added to the pool because it's missing some patches."
+  hostNeedsPatchUpdateNoInstall: undefined,
+
+  // Original text: 'Adding host failed'
+  addHostErrorTitle: undefined,
+
+  // Original text: 'Host patches could not be homogenized.'
+  addHostNotHomogeneousErrorMessage: undefined,
 
   // Original text: 'Disconnect'
   disconnectServer: undefined,
@@ -1172,6 +1472,18 @@ export default {
   // Original text: 'Reboot'
   rebootHostLabel: undefined,
 
+  // Original text: 'Error while restarting host'
+  noHostsAvailableErrorTitle: undefined,
+
+  // Original text: 'Some VMs cannot be migrated before restarting this host. Please try force reboot.'
+  noHostsAvailableErrorMessage: undefined,
+
+  // Original text: 'Error while restarting hosts'
+  failHostBulkRestartTitle: undefined,
+
+  // Original text: '{failedHosts, number}/{totalHosts, number} host{failedHosts, plural, one {} other {s}} could not be restarted.'
+  failHostBulkRestartMessage: undefined,
+
   // Original text: 'Reboot to apply updates'
   rebootUpdateHostLabel: undefined,
 
@@ -1186,6 +1498,9 @@ export default {
 
   // Original text: 'Load average'
   statLoad: undefined,
+
+  // Original text: 'RAM Usage: {memoryUsed}'
+  memoryHostState: undefined,
 
   // Original text: 'Hardware'
   hardwareHostSettingsLabel: undefined,
@@ -1223,6 +1538,9 @@ export default {
   // Original text: 'CPU model'
   hostCpusModel: undefined,
 
+  // Original text: 'GPUs'
+  hostGpus: undefined,
+
   // Original text: 'Core (socket)'
   hostCpusNumber: undefined,
 
@@ -1232,7 +1550,7 @@ export default {
   // Original text: 'BIOS info'
   hostBiosinfo: undefined,
 
-  // Original text: 'Licence'
+  // Original text: 'License'
   licenseHostSettingsLabel: undefined,
 
   // Original text: 'Type'
@@ -1243,6 +1561,36 @@ export default {
 
   // Original text: 'Expiry'
   hostLicenseExpiry: undefined,
+
+  // Original text: 'Installed supplemental packs'
+  supplementalPacks: undefined,
+
+  // Original text: 'Install new supplemental pack'
+  supplementalPackNew: undefined,
+
+  // Original text: 'Install supplemental pack on every host'
+  supplementalPackPoolNew: undefined,
+
+  // Original text: '{name} (by {author})'
+  supplementalPackTitle: undefined,
+
+  // Original text: 'Installation started'
+  supplementalPackInstallStartedTitle: undefined,
+
+  // Original text: 'Installing new supplemental pack…'
+  supplementalPackInstallStartedMessage: undefined,
+
+  // Original text: 'Installation error'
+  supplementalPackInstallErrorTitle: undefined,
+
+  // Original text: 'The installation of the supplemental pack failed.'
+  supplementalPackInstallErrorMessage: undefined,
+
+  // Original text: 'Installation success'
+  supplementalPackInstallSuccessTitle: undefined,
+
+  // Original text: 'Supplemental pack successfully installed.'
+  supplementalPackInstallSuccessMessage: undefined,
 
   // Original text: 'Add a network'
   networkCreateButton: undefined,
@@ -1286,6 +1634,9 @@ export default {
   // Original text: 'This interface is currently in use'
   pifInUse: undefined,
 
+  // Original text: 'Action'
+  pifAction: undefined,
+
   // Original text: 'Default locking mode'
   defaultLockingMode: undefined,
 
@@ -1318,6 +1669,9 @@ export default {
 
   // Original text: 'Type'
   srType: undefined,
+
+  // Original text: 'Action'
+  pbdAction: undefined,
 
   // Original text: 'Status'
   pbdStatus: undefined,
@@ -1370,7 +1724,7 @@ export default {
   // Original text: 'Missing patches'
   patchStatusNotApplied: undefined,
 
-  // Original text: 'No patch detected'
+  // Original text: 'No patches detected'
   patchNothing: undefined,
 
   // Original text: 'Release date'
@@ -1390,6 +1744,18 @@ export default {
 
   // Original text: 'Host up-to-date!'
   hostUpToDate: undefined,
+
+  // Original text: 'Non-recommended patch install'
+  installPatchWarningTitle: undefined,
+
+  // Original text: 'This will install a patch only on this host. This is NOT the recommended way: please go into the Pool patch view and follow instructions there. If you are sure about this, you can continue anyway'
+  installPatchWarningContent: undefined,
+
+  // Original text: 'Go to pool'
+  installPatchWarningReject: undefined,
+
+  // Original text: 'Install'
+  installPatchWarningResolve: undefined,
 
   // Original text: 'Refresh patches'
   refreshPatches: undefined,
@@ -1457,6 +1823,9 @@ export default {
   // Original text: 'Not running'
   vmNotRunning: undefined,
 
+  // Original text: 'Halted {ago}'
+  vmHaltedSince: undefined,
+
   // Original text: 'No Xen tools detected'
   noToolsDetected: undefined,
 
@@ -1510,9 +1879,6 @@ export default {
 
   // Original text: 'Tip:'
   tipLabel: undefined,
-
-  // Original text: 'non-US keyboard could have issues with console: switch your own layout to US.'
-  tipConsoleLabel: undefined,
 
   // Original text: 'Hide infos'
   hideHeaderTooltip: undefined,
@@ -1571,6 +1937,12 @@ export default {
   // Original text: 'Description'
   vdiNameDescription: undefined,
 
+  // Original text: 'Pool'
+  vdiPool: undefined,
+
+  // Original text: 'Disconnect'
+  vdiDisconnect: undefined,
+
   // Original text: 'Tags'
   vdiTags: undefined,
 
@@ -1604,6 +1976,9 @@ export default {
   // Original text: 'Remove VDI'
   vdiRemove: undefined,
 
+  // Original text: 'No VDIs attached to Control Domain'
+  noControlDomainVdis: undefined,
+
   // Original text: 'Boot flag'
   vbdBootableStatus: undefined,
 
@@ -1631,8 +2006,14 @@ export default {
   // Original text: 'Readonly'
   vbdReadonly: undefined,
 
+  // Original text: 'Action'
+  vbdAction: undefined,
+
   // Original text: 'Create'
   vbdCreate: undefined,
+
+  // Original text: 'Attach'
+  vbdAttach: undefined,
 
   // Original text: 'Disk name'
   vbdNamePlaceHolder: undefined,
@@ -1640,11 +2021,29 @@ export default {
   // Original text: 'Size'
   vbdSizePlaceHolder: undefined,
 
+  // Original text: 'CD drive not completely installed'
+  cdDriveNotInstalled: undefined,
+
+  // Original text: 'Stop and start the VM to install the CD drive'
+  cdDriveInstallation: undefined,
+
   // Original text: 'Save'
   saveBootOption: undefined,
 
   // Original text: 'Reset'
   resetBootOption: undefined,
+
+  // Original text: 'Delete selected VDIs'
+  deleteSelectedVdis: undefined,
+
+  // Original text: 'Delete selected VDI'
+  deleteSelectedVdi: undefined,
+
+  // Original text: 'Creating this disk will use the disk space quota from the resource set {resourceSet} ({spaceLeft} left)'
+  useQuotaWarning: undefined,
+
+  // Original text: 'Not enough space in resource set {resourceSet} ({spaceLeft} left)'
+  notEnoughSpaceInResourceSet: undefined,
 
   // Original text: 'New device'
   vifCreateDeviceButton: undefined,
@@ -1682,6 +2081,9 @@ export default {
   // Original text: 'Remove'
   vifRemove: undefined,
 
+  // Original text: 'Remove selected VIFs'
+  vifsRemove: undefined,
+
   // Original text: 'IP addresses'
   vifIpAddresses: undefined,
 
@@ -1705,6 +2107,9 @@ export default {
 
   // Original text: 'Unknown network'
   vifUnknownNetwork: undefined,
+
+  // Original text: 'Action'
+  vifAction: undefined,
 
   // Original text: 'Create'
   vifCreate: undefined,
@@ -1736,8 +2141,14 @@ export default {
   // Original text: 'Name'
   snapshotName: undefined,
 
+  // Original text: 'Description'
+  snapshotDescription: undefined,
+
   // Original text: 'Action'
   snapshotAction: undefined,
+
+  // Original text: 'Quiesced snapshot'
+  snapshotQuiesce: undefined,
 
   // Original text: 'Remove all logs'
   logRemoveAll: undefined,
@@ -1811,6 +2222,18 @@ export default {
   // Original text: 'HA'
   ha: undefined,
 
+  // Original text: 'Affinity host'
+  vmAffinityHost: undefined,
+
+  // Original text: 'VGA'
+  vmVga: undefined,
+
+  // Original text: 'Video RAM'
+  vmVideoram: undefined,
+
+  // Original text: 'None'
+  noAffinityHost: undefined,
+
   // Original text: 'Original template'
   originalTemplate: undefined,
 
@@ -1829,6 +2252,24 @@ export default {
   // Original text: 'CPU limits'
   vmCpuLimitsLabel: undefined,
 
+  // Original text: 'Topology'
+  vmCpuTopology: undefined,
+
+  // Original text: 'Default behavior'
+  vmChooseCoresPerSocket: undefined,
+
+  // Original text: '{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket'
+  vmCoresPerSocket: undefined,
+
+  // Original text: 'None'
+  vmCoresPerSocketNone: undefined,
+
+  // Original text: 'Incorrect cores per socket value'
+  vmCoresPerSocketIncorrectValue: undefined,
+
+  // Original text: 'Please change the selected value to fix it.'
+  vmCoresPerSocketIncorrectValueSolution: undefined,
+
   // Original text: 'Memory limits (min/max)'
   vmMemoryLimitsLabel: undefined,
 
@@ -1837,6 +2278,21 @@ export default {
 
   // Original text: 'Memory max:'
   vmMaxRam: undefined,
+
+  // Original text: 'vGPU'
+  vmVgpu: undefined,
+
+  // Original text: 'GPUs'
+  vmVgpus: undefined,
+
+  // Original text: 'None'
+  vmVgpuNone: undefined,
+
+  // Original text: 'Add vGPU'
+  vmAddVgpu: undefined,
+
+  // Original text: 'Select vGPU type'
+  vmSelectVgpuType: undefined,
 
   // Original text: 'Long click to add a name'
   vmHomeNamePlaceholder: undefined,
@@ -1874,7 +2330,7 @@ export default {
   // Original text: 'VM{vms, plural, one {} other {s}}'
   vmPanel: undefined,
 
-  // Original text: 'RAM Usage'
+  // Original text: 'RAM Usage:'
   memoryStatePanel: undefined,
 
   // Original text: 'CPUs Usage'
@@ -1928,7 +2384,7 @@ export default {
   // Original text: 'Top 5 SR Usage (in %)'
   srTopUsageStatePanel: undefined,
 
-  // Original text: '{running} running ({halted} halted)'
+  // Original text: '{running, number} running ({halted, number} halted)'
   vmsStates: undefined,
 
   // Original text: 'Clear selection'
@@ -1985,6 +2441,9 @@ export default {
   // Original text: 'Remove all orphaned snapshot VDIs'
   removeAllOrphanedObject: undefined,
 
+  // Original text: 'VDIs attached to Control Domain'
+  vdisOnControlDomain: undefined,
+
   // Original text: 'Name'
   vmNameLabel: undefined,
 
@@ -2020,9 +2479,6 @@ export default {
 
   // Original text: 'Create a new VM on {select}'
   newVmCreateNewVmOn: undefined,
-
-  // Original text: 'Create a new VM on {select1} or {select2}'
-  newVmCreateNewVmOn2: undefined,
 
   // Original text: 'You have no permission to create a VM'
   newVmCreateNewVmNoPermission: undefined,
@@ -2090,9 +2546,6 @@ export default {
   // Original text: 'SR'
   newVmSrLabel: undefined,
 
-  // Original text: 'Bootable'
-  newVmBootableLabel: undefined,
-
   // Original text: 'Size'
   newVmSizeLabel: undefined,
 
@@ -2144,7 +2597,7 @@ export default {
   // Original text: 'Create VMs'
   newVmCreateVms: undefined,
 
-  // Original text: 'Are you sure you want to create {nbVms} VMs?'
+  // Original text: 'Are you sure you want to create {nbVms, number} VMs?'
   newVmCreateVmsConfirm: undefined,
 
   // Original text: 'Multiple VMs:'
@@ -2168,6 +2621,9 @@ export default {
   // Original text: 'Refresh VMs name'
   newVmNameRefresh: undefined,
 
+  // Original text: 'Affinity host'
+  newVmAffinityHost: undefined,
+
   // Original text: 'Advanced'
   newVmAdvancedPanel: undefined,
 
@@ -2176,6 +2632,9 @@ export default {
 
   // Original text: 'Hide advanced settings'
   newVmHideAdvanced: undefined,
+
+  // Original text: 'Share this VM'
+  newVmShare: undefined,
 
   // Original text: 'Resource sets'
   resourceSets: undefined,
@@ -2188,6 +2647,21 @@ export default {
 
   // Original text: 'Resource set name'
   resourceSetName: undefined,
+
+  // Original text: 'Users'
+  resourceSetUsers: undefined,
+
+  // Original text: 'Pools'
+  resourceSetPools: undefined,
+
+  // Original text: 'Templates'
+  resourceSetTemplates: undefined,
+
+  // Original text: 'SRs'
+  resourceSetSrs: undefined,
+
+  // Original text: 'Networks'
+  resourceSetNetworks: undefined,
 
   // Original text: 'Recompute all limits'
   recomputeResourceSets: undefined,
@@ -2240,7 +2714,7 @@ export default {
   // Original text: 'Maximum CPUs'
   maxCpus: undefined,
 
-  // Original text: 'Maximum RAM (GiB)'
+  // Original text: 'Maximum RAM'
   maxRam: undefined,
 
   // Original text: 'Maximum disk space'
@@ -2357,6 +2831,9 @@ export default {
   // Original text: 'Click on a VM to display restore options'
   restoreBackupsInfo: undefined,
 
+  // Original text: 'Only the files of Delta Backup which are not on a SMB remote can be restored'
+  restoreDeltaBackupsInfo: undefined,
+
   // Original text: 'Enabled'
   remoteEnabled: undefined,
 
@@ -2384,6 +2861,18 @@ export default {
   // Original text: 'Choose a SR and a backup'
   backupRestoreErrorMessage: undefined,
 
+  // Original text: 'Select default SR…'
+  backupRestoreSelectDefaultSr: undefined,
+
+  // Original text: 'Choose a SR for each VDI'
+  backupRestoreChooseSrForEachVdis: undefined,
+
+  // Original text: 'VDI'
+  backupRestoreVdiLabel: undefined,
+
+  // Original text: 'SR'
+  backupRestoreSrLabel: undefined,
+
   // Original text: 'Display backups'
   displayBackup: undefined,
 
@@ -2396,10 +2885,55 @@ export default {
   // Original text: 'VMs to backup'
   vmsToBackup: undefined,
 
+  // Original text: 'List remote backups'
+  listRemoteBackups: undefined,
+
+  // Original text: 'Restore backup files'
+  restoreFiles: undefined,
+
+  // Original text: 'Invalid options'
+  restoreFilesError: undefined,
+
+  // Original text: 'Restore file from {name}'
+  restoreFilesFromBackup: undefined,
+
+  // Original text: 'Select a backup…'
+  restoreFilesSelectBackup: undefined,
+
+  // Original text: 'Select a disk…'
+  restoreFilesSelectDisk: undefined,
+
+  // Original text: 'Select a partition…'
+  restoreFilesSelectPartition: undefined,
+
+  // Original text: 'Folder path'
+  restoreFilesSelectFolderPath: undefined,
+
+  // Original text: 'Select a file…'
+  restoreFilesSelectFiles: undefined,
+
+  // Original text: 'Content not found'
+  restoreFileContentNotFound: undefined,
+
+  // Original text: 'No files selected'
+  restoreFilesNoFilesSelected: undefined,
+
+  // Original text: 'Selected files ({files}):'
+  restoreFilesSelectedFiles: undefined,
+
+  // Original text: 'Error while scanning disk'
+  restoreFilesDiskError: undefined,
+
+  // Original text: "Select all this folder's files"
+  restoreFilesSelectAllFiles: undefined,
+
+  // Original text: 'Unselect all files'
+  restoreFilesUnselectAll: undefined,
+
   // Original text: 'Emergency shutdown Host{nHosts, plural, one {} other {s}}'
   emergencyShutdownHostsModalTitle: undefined,
 
-  // Original text: 'Are you sure you want to shutdown {nHosts} Host{nHosts, plural, one {} other {s}}?'
+  // Original text: 'Are you sure you want to shutdown {nHosts, number} Host{nHosts, plural, one {} other {s}}?'
   emergencyShutdownHostsModalMessage: undefined,
 
   // Original text: 'Shutdown host'
@@ -2423,31 +2957,52 @@ export default {
   // Original text: 'Restart Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}'
   restartHostsAgentsModalTitle: undefined,
 
-  // Original text: 'Are you sure you want to restart {nHosts} Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}?'
+  // Original text: 'Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}?'
   restartHostsAgentsModalMessage: undefined,
 
   // Original text: 'Restart Host{nHosts, plural, one {} other {s}}'
   restartHostsModalTitle: undefined,
 
-  // Original text: 'Are you sure you want to restart {nHosts} Host{nHosts, plural, one {} other {s}}?'
+  // Original text: 'Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}}?'
   restartHostsModalMessage: undefined,
 
   // Original text: 'Start VM{vms, plural, one {} other {s}}'
   startVmsModalTitle: undefined,
 
-  // Original text: 'Are you sure you want to start {vms} VM{vms, plural, one {} other {s}}?'
+  // Original text: 'Start a copy'
+  cloneAndStartVM: undefined,
+
+  // Original text: 'Force start'
+  forceStartVm: undefined,
+
+  // Original text: 'Forbidden operation'
+  forceStartVmModalTitle: undefined,
+
+  // Original text: 'Start operation for this vm is blocked.'
+  blockedStartVmModalMessage: undefined,
+
+  // Original text: 'Forbidden operation start for {nVms, number} vm{nVms, plural, one {} other {s}}.'
+  blockedStartVmsModalMessage: undefined,
+
+  // Original text: 'Are you sure you want to start {vms, number} VM{vms, plural, one {} other {s}}?'
   startVmsModalMessage: undefined,
+
+  // Original text: '{nVms, number} vm{nVms, plural, one {} other {s}} are failed. Please see your logs to get more information'
+  failedVmsErrorMessage: undefined,
+
+  // Original text: 'Start failed'
+  failedVmsErrorTitle: undefined,
 
   // Original text: 'Stop Host{nHosts, plural, one {} other {s}}'
   stopHostsModalTitle: undefined,
 
-  // Original text: 'Are you sure you want to stop {nHosts} Host{nHosts, plural, one {} other {s}}?'
+  // Original text: 'Are you sure you want to stop {nHosts, number} Host{nHosts, plural, one {} other {s}}?'
   stopHostsModalMessage: undefined,
 
   // Original text: 'Stop VM{vms, plural, one {} other {s}}'
   stopVmsModalTitle: undefined,
 
-  // Original text: 'Are you sure you want to stop {vms} VM{vms, plural, one {} other {s}}?'
+  // Original text: 'Are you sure you want to stop {vms, number} VM{vms, plural, one {} other {s}}?'
   stopVmsModalMessage: undefined,
 
   // Original text: 'Restart VM'
@@ -2462,23 +3017,32 @@ export default {
   // Original text: 'Are you sure you want to stop {name}?'
   stopVmModalMessage: undefined,
 
+  // Original text: 'Suspend VM{vms, plural, one {} other {s}}'
+  suspendVmsModalTitle: undefined,
+
+  // Original text: 'Are you sure you want to suspend {vms, number} VM{vms, plural, one {} other {s}}?'
+  suspendVmsModalMessage: undefined,
+
   // Original text: 'Restart VM{vms, plural, one {} other {s}}'
   restartVmsModalTitle: undefined,
 
-  // Original text: 'Are you sure you want to restart {vms} VM{vms, plural, one {} other {s}}?'
+  // Original text: 'Are you sure you want to restart {vms, number} VM{vms, plural, one {} other {s}}?'
   restartVmsModalMessage: undefined,
 
   // Original text: 'Snapshot VM{vms, plural, one {} other {s}}'
   snapshotVmsModalTitle: undefined,
 
-  // Original text: 'Are you sure you want to snapshot {vms} VM{vms, plural, one {} other {s}}?'
+  // Original text: 'Are you sure you want to snapshot {vms, number} VM{vms, plural, one {} other {s}}?'
   snapshotVmsModalMessage: undefined,
 
   // Original text: 'Delete VM{vms, plural, one {} other {s}}'
   deleteVmsModalTitle: undefined,
 
-  // Original text: 'Are you sure you want to delete {vms} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED'
+  // Original text: 'Are you sure you want to delete {vms, number} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED'
   deleteVmsModalMessage: undefined,
+
+  // Original text: 'delete {nVms, number} vm{nVms, plural, one {} other {s}}'
+  deleteVmsConfirmText: undefined,
 
   // Original text: 'Delete VM'
   deleteVmModalTitle: undefined,
@@ -2495,9 +3059,6 @@ export default {
   // Original text: 'Select a migration network:'
   migrateVmSelectMigrationNetwork: undefined,
 
-  // Original text: 'For each VDI, select an SR:'
-  migrateVmSelectSrs: undefined,
-
   // Original text: 'For each VIF, select a network:'
   migrateVmSelectNetworks: undefined,
 
@@ -2513,12 +3074,6 @@ export default {
   // Original text: 'Smart mapping'
   migrateVmsSmartMapping: undefined,
 
-  // Original text: 'Name'
-  migrateVmName: undefined,
-
-  // Original text: 'SR'
-  migrateVmSr: undefined,
-
   // Original text: 'VIF'
   migrateVmVif: undefined,
 
@@ -2531,14 +3086,53 @@ export default {
   // Original text: 'A target host is required to migrate a VM'
   migrateVmNoTargetHostMessage: undefined,
 
+  // Original text: 'No default SR'
+  migrateVmNoDefaultSrError: undefined,
+
+  // Original text: 'Default SR not connected to host'
+  migrateVmNotConnectedDefaultSrError: undefined,
+
+  // Original text: 'For each VDI, select an SR:'
+  chooseSrForEachVdisModalSelectSr: undefined,
+
+  // Original text: 'Select main SR…'
+  chooseSrForEachVdisModalMainSr: undefined,
+
+  // Original text: 'VDI'
+  chooseSrForEachVdisModalVdiLabel: undefined,
+
+  // Original text: 'SR*'
+  chooseSrForEachVdisModalSrLabel: undefined,
+
+  // Original text: '* optional'
+  chooseSrForEachVdisModalOptionalEntry: undefined,
+
   // Original text: 'Delete VDI'
   deleteVdiModalTitle: undefined,
 
   // Original text: 'Are you sure you want to delete this disk? ALL DATA ON THIS DISK WILL BE LOST'
   deleteVdiModalMessage: undefined,
 
+  // Original text: 'Delete VDI{nVdis, plural, one {} other {s}}'
+  deleteVdisModalTitle: undefined,
+
+  // Original text: 'Are you sure you want to delete {nVdis, number} disk{nVdis, plural, one {} other {s}}? ALL DATA ON THESE DISKS WILL BE LOST'
+  deleteVdisModalMessage: undefined,
+
+  // Original text: 'Delete schedule{nSchedules, plural, one {} other {s}}'
+  deleteSchedulesModalTitle: undefined,
+
+  // Original text: 'Are you sure you want to delete {nSchedules, number} schedule{nSchedules, plural, one {} other {s}}?'
+  deleteSchedulesModalMessage: undefined,
+
   // Original text: 'Revert your VM'
   revertVmModalTitle: undefined,
+
+  // Original text: 'Delete VIF{nVifs, plural, one {} other {s}}'
+  deleteVifsModalTitle: undefined,
+
+  // Original text: 'Are you sure you want to delete {nVifs, number} VIF{nVifs, plural, one {} other {s}}?'
+  deleteVifsModalMessage: undefined,
 
   // Original text: 'Delete snapshot'
   deleteSnapshotModalTitle: undefined,
@@ -2597,6 +3191,9 @@ export default {
   // Original text: 'During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans!'
   trialReadyModalText: undefined,
 
+  // Original text: 'Label'
+  serverLabel: undefined,
+
   // Original text: 'Host'
   serverHost: undefined,
 
@@ -2612,6 +3209,15 @@ export default {
   // Original text: 'Read Only'
   serverReadOnly: undefined,
 
+  // Original text: 'Unauthorized Certificates'
+  serverUnauthorizedCertificates: undefined,
+
+  // Original text: 'Allow Unauthorized Certificates'
+  serverAllowUnauthorizedCertificates: undefined,
+
+  // Original text: "Enable it if your certificate is rejected, but it's not recommended because your connection will not be secured."
+  serverUnauthorizedCertificatesInfo: undefined,
+
   // Original text: 'Disconnect server'
   serverDisconnect: undefined,
 
@@ -2624,8 +3230,44 @@ export default {
   // Original text: 'address[:port]'
   serverPlaceHolderAddress: undefined,
 
+  // Original text: 'label'
+  serverPlaceHolderLabel: undefined,
+
   // Original text: 'Connect'
   serverConnect: undefined,
+
+  // Original text: 'Error'
+  serverError: undefined,
+
+  // Original text: 'Adding server failed'
+  serverAddFailed: undefined,
+
+  // Original text: 'Status'
+  serverStatus: undefined,
+
+  // Original text: 'Connection failed. Click for more information.'
+  serverConnectionFailed: undefined,
+
+  // Original text: 'Connecting…'
+  serverConnecting: undefined,
+
+  // Original text: 'Connected'
+  serverConnected: undefined,
+
+  // Original text: 'Disconnected'
+  serverDisconnected: undefined,
+
+  // Original text: 'Authentication error'
+  serverAuthFailed: undefined,
+
+  // Original text: 'Unknown error'
+  serverUnknownError: undefined,
+
+  // Original text: 'Invalid self-signed certificate'
+  serverSelfSignedCertError: undefined,
+
+  // Original text: 'Do you want to accept self-signed certificate for this server even though it would decrease security?'
+  serverSelfSignedCertQuestion: undefined,
 
   // Original text: 'Copy VM'
   copyVm: undefined,
@@ -2665,6 +3307,21 @@ export default {
 
   // Original text: 'Detach'
   detachHost: undefined,
+
+  // Original text: 'Forget host'
+  forgetHostModalTitle: undefined,
+
+  // Original text: "Are you sure you want to forget {host} from its pool? Be sure this host can't be back online, or use detach instead."
+  forgetHostModalMessage: undefined,
+
+  // Original text: 'Forget'
+  forgetHost: undefined,
+
+  // Original text: 'Designate a new master'
+  setPoolMasterModalTitle: undefined,
+
+  // Original text: 'This operation may take several minutes. Do you want to continue?'
+  setPoolMasterModalMessage: undefined,
 
   // Original text: 'Create network'
   newNetworkCreate: undefined,
@@ -2726,10 +3383,10 @@ export default {
   // Original text: 'Xen Orchestra'
   xenOrchestra: undefined,
 
-  // Original text: 'server'
+  // Original text: 'Xen Orchestra server'
   xenOrchestraServer: undefined,
 
-  // Original text: 'web client'
+  // Original text: 'Xen Orchestra web client'
   xenOrchestraWeb: undefined,
 
   // Original text: 'No pro support provided!'
@@ -2738,8 +3395,8 @@ export default {
   // Original text: 'Use in production at your own risks'
   noProductionUse: undefined,
 
-  // Original text: 'You can download our turnkey appliance at'
-  downloadXoa: undefined,
+  // Original text: 'You can download our turnkey appliance at {website}'
+  downloadXoaFromWebsite: undefined,
 
   // Original text: 'Bug Tracker'
   bugTracker: undefined,
@@ -2774,7 +3431,7 @@ export default {
   // Original text: 'Pro support included'
   proSupportIncluded: undefined,
 
-  // Original text: 'Acces your XO Account'
+  // Original text: 'Access your XO Account'
   xoAccount: undefined,
 
   // Original text: 'Report a problem'
@@ -2834,6 +3491,9 @@ export default {
   // Original text: 'Your password'
   updateRegistrationPasswordPlaceHolder: undefined,
 
+  // Original text: 'Troubleshooting documentation'
+  updaterTroubleshootingLink: undefined,
+
   // Original text: 'Update'
   update: undefined,
 
@@ -2846,8 +3506,8 @@ export default {
   // Original text: 'No updater available for Community Edition'
   noUpdaterCommunity: undefined,
 
-  // Original text: 'Please consider subscribe and try it with all features for free during 15 days on'
-  noUpdaterSubscribe: undefined,
+  // Original text: 'Please consider subscribing and trying it with all the features for free during 15 days on {link}.'
+  considerSubscribe: undefined,
 
   // Original text: 'Manual update could break your current installation due to dependencies issues, do it with caution'
   noUpdaterWarning: undefined,
@@ -2930,6 +3590,24 @@ export default {
   // Original text: 'Are you sure you want to delete this PIF?'
   deletePifConfirm: undefined,
 
+  // Original text: 'Delete PIFs'
+  deletePifs: undefined,
+
+  // Original text: 'Are you sure you want to delete {nPifs, number} PIF{nPifs, plural, one {} other {s}}?'
+  deletePifsConfirm: undefined,
+
+  // Original text: 'Connected'
+  pifConnected: undefined,
+
+  // Original text: 'Disconnected'
+  pifDisconnected: undefined,
+
+  // Original text: 'Physically connected'
+  pifPhysicallyConnected: undefined,
+
+  // Original text: 'Physically disconnected'
+  pifPhysicallyDisconnected: undefined,
+
   // Original text: 'Username'
   username: undefined,
 
@@ -2978,6 +3656,9 @@ export default {
   // Original text: 'Delete'
   deleteSshKey: undefined,
 
+  // Original text: 'Delete selected SSH keys'
+  deleteSshKeys: undefined,
+
   // Original text: 'No SSH keys'
   noSshKeys: undefined,
 
@@ -3001,6 +3682,12 @@ export default {
 
   // Original text: 'Are you sure you want to delete the SSH key {title}?'
   deleteSshKeyConfirmMessage: undefined,
+
+  // Original text: 'Delete SSH key{nKeys, plural, one {} other {s}}'
+  deleteSshKeysConfirm: undefined,
+
+  // Original text: 'Are you sure you want to delete {nKeys, number} SSH key{nKeys, plural, one {} other {s}}?'
+  deleteSshKeysConfirmMessage: undefined,
 
   // Original text: 'Others'
   others: undefined,
@@ -3038,6 +3725,15 @@ export default {
   // Original text: 'Delete log'
   logDelete: undefined,
 
+  // Original text: 'Delete logs'
+  logsDelete: undefined,
+
+  // Original text: 'Delete log{nLogs, plural, one {} other {s}}'
+  logDeleteMultiple: undefined,
+
+  // Original text: 'Are you sure you want to delete {nLogs, number} log{nLogs, plural, one {} other {s}}?'
+  logDeleteMultipleMessage: undefined,
+
   // Original text: 'Delete all logs'
   logDeleteAll: undefined,
 
@@ -3046,6 +3742,21 @@ export default {
 
   // Original text: 'Are you sure you want to delete all the logs?'
   logDeleteAllMessage: undefined,
+
+  // Original text: 'Click to enable'
+  logIndicationToEnable: undefined,
+
+  // Original text: 'Click to disable'
+  logIndicationToDisable: undefined,
+
+  // Original text: 'Report a bug'
+  reportBug: undefined,
+
+  // Original text: 'Job canceled to protect the VDI chain'
+  unhealthyVdiChainError: undefined,
+
+  // Original text: 'Click for more information'
+  clickForMoreInformation: undefined,
 
   // Original text: 'Name'
   ipPoolName: undefined,
@@ -3077,6 +3788,12 @@ export default {
   // Original text: 'Not used'
   ipsNotUsed: undefined,
 
+  // Original text: 'unknown VIF'
+  ipPoolUnknownVif: undefined,
+
+  // Original text: 'Name already exists'
+  ipPoolNameAlreadyExists: undefined,
+
   // Original text: 'Keyboard shortcuts'
   shortcutModalTitle: undefined,
 
@@ -3084,40 +3801,61 @@ export default {
   shortcut_XoApp: undefined,
 
   // Original text: 'Go to hosts list'
-  shortcut_GO_TO_HOSTS: undefined,
+  shortcut_XoApp_GO_TO_HOSTS: undefined,
 
   // Original text: 'Go to pools list'
-  shortcut_GO_TO_POOLS: undefined,
+  shortcut_XoApp_GO_TO_POOLS: undefined,
 
   // Original text: 'Go to VMs list'
-  shortcut_GO_TO_VMS: undefined,
+  shortcut_XoApp_GO_TO_VMS: undefined,
+
+  // Original text: 'Go to SRs list'
+  shortcut_XoApp_GO_TO_SRS: undefined,
 
   // Original text: 'Create a new VM'
-  shortcut_CREATE_VM: undefined,
+  shortcut_XoApp_CREATE_VM: undefined,
 
   // Original text: 'Unfocus field'
-  shortcut_UNFOCUS: undefined,
+  shortcut_XoApp_UNFOCUS: undefined,
 
   // Original text: 'Show shortcuts key bindings'
-  shortcut_HELP: undefined,
+  shortcut_XoApp_HELP: undefined,
 
   // Original text: 'Home'
   shortcut_Home: undefined,
 
   // Original text: 'Focus search bar'
-  shortcut_SEARCH: undefined,
+  shortcut_Home_SEARCH: undefined,
 
   // Original text: 'Next item'
-  shortcut_NAV_DOWN: undefined,
+  shortcut_Home_NAV_DOWN: undefined,
 
   // Original text: 'Previous item'
-  shortcut_NAV_UP: undefined,
+  shortcut_Home_NAV_UP: undefined,
 
   // Original text: 'Select item'
-  shortcut_SELECT: undefined,
+  shortcut_Home_SELECT: undefined,
 
   // Original text: 'Open'
-  shortcut_JUMP_INTO: undefined,
+  shortcut_Home_JUMP_INTO: undefined,
+
+  // Original text: 'Supported tables'
+  shortcut_SortedTable: undefined,
+
+  // Original text: 'Focus the table search bar'
+  shortcut_SortedTable_SEARCH: undefined,
+
+  // Original text: 'Next item'
+  shortcut_SortedTable_NAV_DOWN: undefined,
+
+  // Original text: 'Previous item'
+  shortcut_SortedTable_NAV_UP: undefined,
+
+  // Original text: 'Select item'
+  shortcut_SortedTable_SELECT: undefined,
+
+  // Original text: 'Action'
+  shortcut_SortedTable_ROW_ACTION: undefined,
 
   // Original text: 'VM'
   settingsAclsButtonTooltipVM: undefined,
@@ -3133,4 +3871,463 @@ export default {
 
   // Original text: 'Network'
   settingsAclsButtonTooltipnetwork: undefined,
+
+  // Original text: 'No config file selected'
+  noConfigFile: undefined,
+
+  // Original text: 'Try dropping a config file here, or click to select a config file to upload.'
+  importTip: undefined,
+
+  // Original text: 'Config'
+  config: undefined,
+
+  // Original text: 'Import'
+  importConfig: undefined,
+
+  // Original text: 'Config file successfully imported'
+  importConfigSuccess: undefined,
+
+  // Original text: 'Error while importing config file'
+  importConfigError: undefined,
+
+  // Original text: 'Export'
+  exportConfig: undefined,
+
+  // Original text: 'Download current config'
+  downloadConfig: undefined,
+
+  // Original text: 'No config import available for Community Edition'
+  noConfigImportCommunity: undefined,
+
+  // Original text: 'Reconnect all hosts'
+  srReconnectAllModalTitle: undefined,
+
+  // Original text: 'This will reconnect this SR to all its hosts.'
+  srReconnectAllModalMessage: undefined,
+
+  // Original text: 'This will reconnect each selected SR to its host (local SR) or to every hosts of its pool (shared SR).'
+  srsReconnectAllModalMessage: undefined,
+
+  // Original text: 'Disconnect all hosts'
+  srDisconnectAllModalTitle: undefined,
+
+  // Original text: 'This will disconnect this SR from all its hosts.'
+  srDisconnectAllModalMessage: undefined,
+
+  // Original text: 'This will disconnect each selected SR from its host (local SR) or from every hosts of its pool (shared SR).'
+  srsDisconnectAllModalMessage: undefined,
+
+  // Original text: 'Forget SR'
+  srForgetModalTitle: undefined,
+
+  // Original text: 'Forget selected SRs'
+  srsForgetModalTitle: undefined,
+
+  // Original text: "Are you sure you want to forget this SR? VDIs on this storage won't be removed."
+  srForgetModalMessage: undefined,
+
+  // Original text: "Are you sure you want to forget all the selected SRs? VDIs on these storages won't be removed."
+  srsForgetModalMessage: undefined,
+
+  // Original text: 'Disconnected'
+  srAllDisconnected: undefined,
+
+  // Original text: 'Partially connected'
+  srSomeConnected: undefined,
+
+  // Original text: 'Connected'
+  srAllConnected: undefined,
+
+  // Original text: 'XOSAN'
+  xosanTitle: undefined,
+
+  // Original text: 'Xen Orchestra SAN SR'
+  xosanSrTitle: undefined,
+
+  // Original text: 'Select local SRs (lvm)'
+  xosanAvailableSrsTitle: undefined,
+
+  // Original text: 'Suggestions'
+  xosanSuggestions: undefined,
+
+  // Original text: 'Warning: using disperse layout is not recommended right now. Please read {link}.'
+  xosanDisperseWarning: undefined,
+
+  // Original text: 'Name'
+  xosanName: undefined,
+
+  // Original text: 'Host'
+  xosanHost: undefined,
+
+  // Original text: 'Connected Hosts'
+  xosanHosts: undefined,
+
+  // Original text: 'Pool'
+  xosanPool: undefined,
+
+  // Original text: 'Volume ID'
+  xosanVolumeId: undefined,
+
+  // Original text: 'Size'
+  xosanSize: undefined,
+
+  // Original text: 'Used space'
+  xosanUsedSpace: undefined,
+
+  // Original text: 'License'
+  xosanLicense: undefined,
+
+  // Original text: 'This XOSAN has more than 1 license!'
+  xosanMultipleLicenses: undefined,
+
+  // Original text: 'XOSAN pack needs to be installed on each host of the pool.'
+  xosanNeedPack: undefined,
+
+  // Original text: 'Install it now!'
+  xosanInstallIt: undefined,
+
+  // Original text: 'Some hosts need their toolstack to be restarted before you can create an XOSAN'
+  xosanNeedRestart: undefined,
+
+  // Original text: 'Restart toolstacks'
+  xosanRestartAgents: undefined,
+
+  // Original text: 'Pool master is not running'
+  xosanMasterOffline: undefined,
+
+  // Original text: 'Install XOSAN pack on {pool}'
+  xosanInstallPackTitle: undefined,
+
+  // Original text: 'Select at least 2 SRs'
+  xosanSelect2Srs: undefined,
+
+  // Original text: 'Layout'
+  xosanLayout: undefined,
+
+  // Original text: 'Redundancy'
+  xosanRedundancy: undefined,
+
+  // Original text: 'Capacity'
+  xosanCapacity: undefined,
+
+  // Original text: 'Available space'
+  xosanAvailableSpace: undefined,
+
+  // Original text: '* Can fail without data loss'
+  xosanDiskLossLegend: undefined,
+
+  // Original text: 'Create'
+  xosanCreate: undefined,
+
+  // Original text: 'Add'
+  xosanAdd: undefined,
+
+  // Original text: 'Installing XOSAN. Please wait…'
+  xosanInstalling: undefined,
+
+  // Original text: 'No XOSAN available for Community Edition'
+  xosanCommunity: undefined,
+
+  // Original text: 'New'
+  xosanNew: undefined,
+
+  // Original text: 'Advanced'
+  xosanAdvanced: undefined,
+
+  // Original text: 'Remove subvolumes'
+  xosanRemoveSubvolumes: undefined,
+
+  // Original text: 'Add subvolume…'
+  xosanAddSubvolume: undefined,
+
+  // Original text: "This version of XOSAN SR is from the first beta phase. You can keep using it, but to modify it you'll have to save your disks and re-create it."
+  xosanWarning: undefined,
+
+  // Original text: 'VLAN'
+  xosanVlan: undefined,
+
+  // Original text: 'No XOSAN found'
+  xosanNoSrs: undefined,
+
+  // Original text: 'Some SRs are detached from the XOSAN'
+  xosanPbdsDetached: undefined,
+
+  // Original text: 'Something is wrong with: {badStatuses}'
+  xosanBadStatus: undefined,
+
+  // Original text: 'Running'
+  xosanRunning: undefined,
+
+  // Original text: 'Delete XOSAN'
+  xosanDelete: undefined,
+
+  // Original text: 'Fix'
+  xosanFixIssue: undefined,
+
+  // Original text: 'Creating XOSAN on {pool}'
+  xosanCreatingOn: undefined,
+
+  // Original text: 'Configuring network…'
+  xosanState_configuringNetwork: undefined,
+
+  // Original text: 'Importing VM…'
+  xosanState_importingVm: undefined,
+
+  // Original text: 'Copying VMs…'
+  xosanState_copyingVms: undefined,
+
+  // Original text: 'Configuring VMs…'
+  xosanState_configuringVms: undefined,
+
+  // Original text: 'Configuring gluster…'
+  xosanState_configuringGluster: undefined,
+
+  // Original text: 'Creating SR…'
+  xosanState_creatingSr: undefined,
+
+  // Original text: 'Scanning SR…'
+  xosanState_scanningSr: undefined,
+
+  // Original text: 'Install cloud plugin first'
+  xosanInstallCloudPlugin: undefined,
+
+  // Original text: 'Load cloud plugin first'
+  xosanLoadCloudPlugin: undefined,
+
+  // Original text: 'Register your appliance first'
+  xosanRegister: undefined,
+
+  // Original text: 'Loading…'
+  xosanLoading: undefined,
+
+  // Original text: 'XOSAN is not available at the moment'
+  xosanNotAvailable: undefined,
+
+  // Original text: 'Install XOSAN pack on these hosts:'
+  xosanInstallPackOnHosts: undefined,
+
+  // Original text: 'Install {pack} v{version}?'
+  xosanInstallPack: undefined,
+
+  // Original text: 'No compatible XOSAN pack found for your XenServer versions.'
+  xosanNoPackFound: undefined,
+
+  // Original text: 'At least one of these version requirements must be satisfied by all the hosts in this pool:'
+  xosanPackRequirements: undefined,
+
+  // Original text: 'Some XOSAN Virtual Machines are not running'
+  xosanVmsNotRunning: undefined,
+
+  // Original text: 'Some XOSAN Virtual Machines could not be found'
+  xosanVmsNotFound: undefined,
+
+  // Original text: 'Files needing healing'
+  xosanFilesNeedingHealing: undefined,
+
+  // Original text: 'Some XOSAN Virtual Machines have files needing healing'
+  xosanFilesNeedHealing: undefined,
+
+  // Original text: 'Host {hostName} is not in XOSAN network'
+  xosanHostNotInNetwork: undefined,
+
+  // Original text: 'VM controller'
+  xosanVm: undefined,
+
+  // Original text: 'SR'
+  xosanUnderlyingStorage: undefined,
+
+  // Original text: 'Replace…'
+  xosanReplace: undefined,
+
+  // Original text: 'On same VM'
+  xosanOnSameVm: undefined,
+
+  // Original text: 'Brick name'
+  xosanBrickName: undefined,
+
+  // Original text: 'Brick UUID'
+  xosanBrickUuid: undefined,
+
+  // Original text: 'Brick size'
+  xosanBrickSize: undefined,
+
+  // Original text: 'Memory size'
+  xosanMemorySize: undefined,
+
+  // Original text: 'Status'
+  xosanStatus: undefined,
+
+  // Original text: 'Arbiter'
+  xosanArbiter: undefined,
+
+  // Original text: 'Used Inodes'
+  xosanUsedInodes: undefined,
+
+  // Original text: 'Block size'
+  xosanBlockSize: undefined,
+
+  // Original text: 'Device'
+  xosanDevice: undefined,
+
+  // Original text: 'FS name'
+  xosanFsName: undefined,
+
+  // Original text: 'Mount options'
+  xosanMountOptions: undefined,
+
+  // Original text: 'Path'
+  xosanPath: undefined,
+
+  // Original text: 'Job'
+  xosanJob: undefined,
+
+  // Original text: 'PID'
+  xosanPid: undefined,
+
+  // Original text: 'Port'
+  xosanPort: undefined,
+
+  // Original text: 'Missing values'
+  xosanReplaceBrickErrorTitle: undefined,
+
+  // Original text: 'You need to select a SR and a size'
+  xosanReplaceBrickErrorMessage: undefined,
+
+  // Original text: 'Bad values'
+  xosanAddSubvolumeErrorTitle: undefined,
+
+  // Original text: 'You need to select {nSrs, number} and a size'
+  xosanAddSubvolumeErrorMessage: undefined,
+
+  // Original text: 'Select {nSrs, number} SRs'
+  xosanSelectNSrs: undefined,
+
+  // Original text: 'Run'
+  xosanRun: undefined,
+
+  // Original text: 'Remove'
+  xosanRemove: undefined,
+
+  // Original text: 'Volume'
+  xosanVolume: undefined,
+
+  // Original text: 'Volume options'
+  xosanVolumeOptions: undefined,
+
+  // Original text: 'Could not find VM'
+  xosanCouldNotFindVm: undefined,
+
+  // Original text: 'Using {usage}'
+  xosanUnderlyingStorageUsage: undefined,
+
+  // Original text: 'Custom IP network (/24)'
+  xosanCustomIpNetwork: undefined,
+
+  // Original text: 'Will configure the host xosan network device with a static IP address and plug it in.'
+  xosanIssueHostNotInNetwork: undefined,
+
+  // Original text: 'Licenses'
+  licensesTitle: undefined,
+
+  // Original text: 'You are not registered and therefore will not be able to create or manage your XOSAN SRs. {link}'
+  xosanUnregisteredDisclaimer: undefined,
+
+  // Original text: 'In order to create a XOSAN SR, you need to use the Xen Orchestra Appliance and buy a XOSAN license on {link}.'
+  xosanSourcesDisclaimer: undefined,
+
+  // Original text: 'Register now!'
+  registerNow: undefined,
+
+  // Original text: 'You need to register your appliance to manage your licenses.'
+  licensesUnregisteredDisclaimer: undefined,
+
+  // Original text: 'Product'
+  licenseProduct: undefined,
+
+  // Original text: 'Attached to'
+  licenseBoundObject: undefined,
+
+  // Original text: 'Purchaser'
+  licensePurchaser: undefined,
+
+  // Original text: 'Expires'
+  licenseExpires: undefined,
+
+  // Original text: 'You'
+  licensePurchaserYou: undefined,
+
+  // Original text: 'Support'
+  productSupport: undefined,
+
+  // Original text: 'No XOSAN attached'
+  licenseNotBoundXosan: undefined,
+
+  // Original text: 'License attached to an unknown XOSAN'
+  licenseBoundUnknownXosan: undefined,
+
+  // Original text: 'Manage the licenses'
+  licensesManage: undefined,
+
+  // Original text: 'New license'
+  newLicense: undefined,
+
+  // Original text: 'Refresh'
+  refreshLicenses: undefined,
+
+  // Original text: 'Limited size because XOSAN is in trial'
+  xosanLicenseRestricted: undefined,
+
+  // Original text: 'You need a license on this SR to manage the XOSAN.'
+  xosanAdminNoLicenseDisclaimer: undefined,
+
+  // Original text: 'Your XOSAN license has expired. You can still use the SR but cannot administrate it anymore.'
+  xosanAdminExpiredLicenseDisclaimer: undefined,
+
+  // Original text: 'Could not check the license on this XOSAN SR'
+  xosanCheckLicenseError: undefined,
+
+  // Original text: 'Could not fetch licenses'
+  xosanGetLicensesError: undefined,
+
+  // Original text: 'License has expired.'
+  xosanLicenseHasExpired: undefined,
+
+  // Original text: 'License expires on {date}.'
+  xosanLicenseExpiresDate: undefined,
+
+  // Original text: 'Update the license now!'
+  xosanUpdateLicenseMessage: undefined,
+
+  // Original text: 'Unknown XOSAN SR.'
+  xosanUnknownSr: undefined,
+
+  // Original text: 'Contact us!'
+  contactUs: undefined,
+
+  // Original text: 'No license.'
+  xosanNoLicense: undefined,
+
+  // Original text: 'Unlock now!'
+  xosanUnlockNow: undefined,
+
+  // Original text: 'XOSAN Beta is over. You may now delete and recreate previous existing XOSAN SRs.'
+  xosanBetaOverMessage: undefined,
+
+  // Original text: 'Select a license'
+  selectLicense: undefined,
+
+  // Original text: 'Bind license'
+  bindLicense: undefined,
+
+  // Original text: 'expires on {date}'
+  expiresOn: undefined,
+
+  // Original text: 'Install XOA plugin first'
+  xosanInstallXoaPlugin: undefined,
+
+  // Original text: 'Load XOA plugin first'
+  xosanLoadXoaPlugin: undefined,
+
+  // Original text: '{days, plural, =0 {} one {# day } other {# days }}{hours, plural, =0 {} one {# hour } other {# hours }}{minutes, plural, =0 {} one {# minute } other {# minutes }}{seconds, plural, =0 {} one {# second} other {# seconds}}'
+  durationFormat: undefined,
 }
