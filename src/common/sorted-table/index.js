@@ -272,7 +272,7 @@ const URL_STATE_RE = /^(?:(\d+)(?:_(\d+)(_desc)?)?-)?(.*)$/
     filters: propTypes.object,
     actions: propTypes.arrayOf(
       propTypes.shape({
-        // regroupe individual actions and grouped actions
+        // regroup individual actions and grouped actions
         disabled: propTypes.oneOfType([propTypes.bool, propTypes.func]),
         handler: propTypes.func.isRequired,
         icon: propTypes.string.isRequired,
@@ -632,31 +632,22 @@ export default class SortedTable extends Component {
     this._selectItem(+target.name, target.checked, event.nativeEvent.shiftKey)
   }
 
-  _getIndividualActions = createSelector(
-    () => this.props.individualActions,
-    () => this.props.actions,
-    (individualActions, actions) =>
-      individualActions != null && actions != null
-        ? individualActions.concat(actions)
-        : individualActions || actions
-  )
-
   _getGroupedActions = createSelector(
     () => this.props.groupedActions,
     () => this.props.actions,
     (groupedActions, actions) =>
-      groupedActions != null && actions != null
+      groupedActions !== undefined && actions !== undefined
         ? groupedActions.concat(actions)
         : groupedActions || actions
   )
 
   _renderItem = (item, i) => {
     const { props, state } = this
-    const { rowAction, rowLink, userData } = props
-    const individualActions = this._getIndividualActions()
+    const { actions, individualActions, rowAction, rowLink, userData } = props
 
     const hasGroupedActions = this._hasGroupedActions()
-    const hasIndividualActions = !isEmpty(individualActions)
+    const hasIndividualActions =
+      !isEmpty(individualActions) || !isEmpty(actions)
 
     const columns = map(
       props.columns,
@@ -690,8 +681,16 @@ export default class SortedTable extends Component {
             {map(individualActions, (props, key) => (
               <IndividualAction
                 {...props}
-                handler={props.individualHandler || props.handler}
                 item={item}
+                key={key}
+                userData={userData}
+              />
+            ))}
+            {map(actions, (props, key) => (
+              <IndividualAction
+                {...props}
+                handler={props.individualHandler || props.handler}
+                item={props.individualHandler !== undefined ? item : [item]}
                 key={key}
                 userData={userData}
               />
@@ -731,7 +730,9 @@ export default class SortedTable extends Component {
   render () {
     const { props, state } = this
     const {
+      actions,
       filterContainer,
+      individualActions,
       itemsPerPage,
       paginationContainer,
       shortcutsTarget,
@@ -746,7 +747,8 @@ export default class SortedTable extends Component {
     const nVisibleItems = this._getVisibleItems().length
 
     const hasGroupedActions = this._hasGroupedActions()
-    const hasIndividualActions = !isEmpty(this._getIndividualActions())
+    const hasIndividualActions =
+      !isEmpty(individualActions) || !isEmpty(actions)
 
     const nColumns = props.columns.length + (hasIndividualActions ? 2 : 1)
 
