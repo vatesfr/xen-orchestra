@@ -512,8 +512,12 @@ export async function set (params) {
   const share = extract(params, 'share')
   const vmResourceSetId = VM.resourceSet
 
-  if (share && vmResourceSetId !== undefined) {
-    this.shareVmResourceSet(vmId, vmResourceSetId)
+  if (share && vmResourceSetId === undefined) {
+    throw new Error('the vm is not in a resource set')
+  }
+
+  if (share) {
+    await this.shareVmResourceSet(vmId, vmResourceSetId)
   }
 
   return xapi.editVm(vmId, params, async (limits, vm) => {

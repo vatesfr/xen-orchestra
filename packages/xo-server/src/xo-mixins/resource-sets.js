@@ -391,7 +391,7 @@ export default class {
       await this._xo.removeAclsForObject(vmId)
     }
     if (resourceSetId != null) {
-      this.shareVmResourceSet(vmId, resourceSetId)
+      await this.shareVmResourceSet(vmId, resourceSetId)
     }
   }
 
