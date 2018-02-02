@@ -123,6 +123,33 @@ class ResourceSetItem extends Component {
   }
 }
 
+@addSubscriptions({
+  resourceSets: subscribeResourceSets,
+})
+class ShareVmButton extends Component {
+  _getResourceSet = createSelector(
+    () => this.props.resourceSets,
+    () => this.props.vm.resourceSet,
+    (resourceSets, id) =>
+      assign(find(resourceSets, { id }), { type: 'resourceSet' })
+  )
+
+  render () {
+    return (
+      <TabButton
+        btnStyle='primary'
+        handler={shareVm}
+        handlerParam={{
+          vm: this.props.vm,
+          resourceSet: this._getResourceSet(),
+        }}
+        icon='vm-share'
+        labelId='vmShareButton'
+      />
+    )
+  }
+}
+
 class NewVgpu extends Component {
   get value () {
     return this.state
@@ -295,16 +322,7 @@ export default connectStore(() => {
   <Container>
     <Row>
       <Col className='text-xs-right'>
-        {isAdmin &&
-          vm.resourceSet != null && (
-            <TabButton
-              btnStyle='primary'
-              handler={shareVm}
-              handlerParam={vm}
-              icon='vm-share'
-              labelId='vmShareButton'
-            />
-          )}
+        {isAdmin && vm.resourceSet != null && <ShareVmButton vm={vm} />}
         {vm.power_state === 'Running' && (
           <span>
             <TabButton
