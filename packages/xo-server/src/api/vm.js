@@ -512,7 +512,7 @@ export async function set (params) {
   const share = extract(params, 'share')
   const vmResourceSetId = VM.resourceSet
 
-  if (share & vmResourceSetId !== undefined) {
+  if (share && vmResourceSetId !== undefined) {
     this.shareVmResourceSet(vmId, vmResourceSetId)
   }
 
