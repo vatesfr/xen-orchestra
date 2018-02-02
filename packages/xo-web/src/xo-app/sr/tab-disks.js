@@ -4,7 +4,7 @@ import Component from 'base-component'
 import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
-import renderXoItem, { renderXoUnknownItem } from 'render-xo-item'
+import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import { concat, find, isEmpty, map } from 'lodash'
 import { connectStore, formatSize } from 'utils'
@@ -57,55 +57,34 @@ const COLUMNS = [
       const getVbds = createGetObjectsOfType('VBD').pick(
         (_, props) => props.item.$VBDs
       )
-      const getVMsId = createSelector(getVbds, vbds => map(vbds, vbd => vbd.VM))
-      const getVMs = createGetObjectsOfType('VM').pick(getVMsId)
+      const getVmIds = createSelector(getVbds, vbds => map(vbds, 'VM'))
+      const getVms = createGetObjectsOfType('VM').pick(getVmIds)
 
       return (state, props) => ({
-        vms: getVMs(state, props),
+        vms: getVms(state, props),
         vbds: getVbds(state, props),
-        vdi: props.item,
       })
-    })(({ vdi, vbds, vms }) => {
-      if (vms === null) {
-        return null // no attached VM
-      }
-
-      if (vms === undefined) {
-        return renderXoUnknownItem()
+    })(({ vbds, vms }) => {
+      if (isEmpty(vms)) {
+        return null
       }
 
       return (
         <Container>
           {map(vms, vm => {
-            if (vm === null) {
-              return null // no attached VM
-            }
-
-            if (vm === undefined) {
-              return renderXoUnknownItem()
-            }
-            let link
-            const { type } = vm
-            if (type === 'VM') {
-              link = `/vms/${vm.id}`
-            } else if (type === 'VM-snapshot') {
-              const id = vm.$snapshot_of
-              link =
-                id !== undefined ? `/vms/${id}/snapshots` : '/dashboard/health'
-            }
-
+            const vmId = vm.id
             const item = renderXoItem(vm)
-            const vbd = find(vbds, { VDI: vdi.id, VM: vm.id })
+            const vbd = find(vbds, { VM: vmId })
 
             return (
               <Row>
                 <Col mediumSize={8}>
-                  {link === undefined ? item : <Link to={link}>{item}</Link>}{' '}
+                  {<Link to={`/vms/${vmId}`}>{item}</Link>}{' '}
                 </Col>
                 <Col mediumSize={2}>
                   <ActionRowButton
                     btnStyle='danger'
-                    disabled={!(vbd !== undefined && vbd.attached)}
+                    disabled={!vbd.attached}
                     handler={deleteVbd}
                     handlerParam={vbd}
                     icon='vdi-forget'
@@ -159,7 +138,6 @@ export default class SrDisks extends Component {
 
   render () {
     const vdis = this._getAllVdis()
-
     return (
       <Container>
         <Row>
