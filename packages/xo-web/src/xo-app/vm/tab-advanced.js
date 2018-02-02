@@ -24,9 +24,9 @@ import {
   osFamily,
 } from 'utils'
 import {
-  createVgpu,
   cloneVm,
   convertVmToTemplate,
+  createVgpu,
   deleteVgpu,
   deleteVm,
   editVm,
@@ -34,6 +34,7 @@ import {
   recoveryStartVm,
   restartVm,
   resumeVm,
+  shareVm,
   stopVm,
   subscribeResourceSets,
   suspendVm,
@@ -294,6 +295,16 @@ export default connectStore(() => {
   <Container>
     <Row>
       <Col className='text-xs-right'>
+        {isAdmin &&
+          vm.resourceSet != null && (
+            <TabButton
+              btnStyle='primary'
+              handler={shareVm}
+              handlerParam={vm}
+              icon='vm-share'
+              labelId='vmShareButton'
+            />
+          )}
         {vm.power_state === 'Running' && (
           <span>
             <TabButton

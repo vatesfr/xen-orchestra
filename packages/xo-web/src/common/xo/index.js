@@ -1171,6 +1171,12 @@ export const createVgpu = (vm, { gpuGroup, vgpuType }) =>
 
 export const deleteVgpu = vgpu => _call('vm.deleteVgpu', resolveIds({ vgpu }))
 
+export const shareVm = vm =>
+  confirm({
+    title: _('shareVmModalTitle'),
+    body: _('shareVmModalMessage', { self: <strong>{vm.resourceSet}</strong> }),
+  }).then(() => editVm(vm, { share: true }), noop)
+
 // DISK ---------------------------------------------------------------
 
 export const createDisk = (name, size, sr, { vm, bootable, mode, position }) =>
