@@ -6,7 +6,7 @@ import Link from 'link'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
-import { concat, find, isEmpty, map } from 'lodash'
+import { concat, isEmpty, map } from 'lodash'
 import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType, createSelector } from 'selectors'
@@ -52,7 +52,7 @@ const COLUMNS = [
     sortCriteria: vdi => vdi.size,
   },
   {
-    name: _('vdiVm'),
+    name: _('vdiVms'),
     component: connectStore(() => {
       const getVbds = createGetObjectsOfType('VBD').pick(
         (_, props) => props.item.$VBDs
@@ -71,15 +71,14 @@ const COLUMNS = [
 
       return (
         <Container>
-          {map(vms, vm => {
-            const vmId = vm.id
+          {map(vbds, vbd => {
+            const vm = vms[vbd.VM]
             const item = renderXoItem(vm)
-            const vbd = find(vbds, { VM: vmId })
 
             return (
               <Row>
                 <Col mediumSize={8}>
-                  {<Link to={`/vms/${vmId}`}>{item}</Link>}{' '}
+                  {<Link to={`/vms/${vm.id}`}>{item}</Link>}
                 </Col>
                 <Col mediumSize={2}>
                   <ActionRowButton
