@@ -2,43 +2,7 @@ import { isPlainObject, some } from 'lodash'
 
 // ===================================================================
 
-// Invoke a function and returns it result.
-// All parameters are forwarded.
-//
-// Why using `invoke()`?
-// - avoid tedious IIFE syntax
-// - avoid declaring variables in the common scope
-// - monkey-patching
-//
-// ```js
-// const sum = invoke(1, 2, (a, b) => a + b)
-//
-// eventEmitter.emit = invoke(eventEmitter.emit, emit => function (event) {
-//   if (event === 'foo') {
-//     throw new Error('event foo is disabled')
-//   }
-//
-//   return emit.apply(this, arguments)
-// })
-// ```
-function invoke (fn) {
-  const n = arguments.length - 1
-  if (!n) {
-    return fn()
-  }
-
-  fn = arguments[n]
-  const args = new Array(n)
-  for (let i = 0; i < n; ++i) {
-    args[i] = arguments[i]
-  }
-
-  return fn.apply(undefined, args)
-}
-
-// ===================================================================
-
-const RAW_STRING_CHARS = invoke(() => {
+const RAW_STRING_CHARS = (() => {
   const chars = { __proto__: null }
   const add = (a, b = a) => {
     let i = a.charCodeAt(0)
@@ -55,7 +19,7 @@ const RAW_STRING_CHARS = invoke(() => {
   add('A', 'Z')
   add('a', 'z')
   return chars
-})
+})()
 const isRawString = string => {
   const { length } = string
   for (let i = 0; i < length; ++i) {
