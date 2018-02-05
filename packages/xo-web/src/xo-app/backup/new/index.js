@@ -96,11 +96,6 @@ const SMART_SCHEMA = {
       type: 'object',
       title: _('editBackupSmartTags'),
       properties: {
-        not: {
-          type: 'boolean',
-          title: _('editBackupNot'),
-          description: 'Toggle on to backup VMs that do NOT contain these tags',
-        },
         values: {
           type: 'array',
           items: {
@@ -110,6 +105,15 @@ const SMART_SCHEMA = {
           title: _('editBackupSmartTagsTitle'),
           description:
             'VMs which contain at least one of these tags. Not used if empty.', // FIXME: can't translate
+        },
+        notValues: {
+          type: 'array',
+          items: {
+            type: 'string',
+            'xo:type': 'tag',
+          },
+          title: _('editBackupSmartNoTagsTitle'),
+          description: 'VMs that do not contain these tags.', // FIXME: can't translate
         },
       },
     },
