@@ -3,6 +3,9 @@
 // eslint-disable-next-line no-use-before-define
 export type Pattern = OrPattern | NotPattern | ObjectPattern | ArrayPattern | ValuePattern
 
+// all patterns must match
+type AndPattern = {| __and: Array<Pattern> |}
+
 // one of the pattern must match
 type OrPattern = {| __or: Array<Pattern> |}
 
@@ -32,6 +35,10 @@ const match = (pattern: Pattern, value: any) => {
 
     if (length === 1) {
       const [ key ] = keys
+      if (key === '__and') {
+        const andPattern: AndPattern = (pattern: any)
+        return andPattern.__and.every(subpattern => match(subpattern, value))
+      }
       if (key === '__or') {
         const orPattern: OrPattern = (pattern: any)
         return orPattern.__or.some(subpattern => match(subpattern, value))
