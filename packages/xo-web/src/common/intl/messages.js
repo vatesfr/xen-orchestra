@@ -719,6 +719,7 @@ const messages = {
   // ----- VM stat tab -----
   statsCpu: 'CPU usage',
   statsMemory: 'Memory usage',
+  statsGpuMemory: 'GPU memory usage',
   statsNetwork: 'Network throughput',
   useStackedValuesOnStats: 'Stacked values',
   statDisk: 'Disk throughput',

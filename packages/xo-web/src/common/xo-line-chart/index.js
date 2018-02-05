@@ -258,6 +258,46 @@ export const MemoryLineChart = injectIntl(
   })
 )
 
+export const GpuMemoryLineChart = injectIntl(
+  propTypes({
+    data: propTypes.object.isRequired,
+    options: propTypes.object,
+  })(({ data, options = {}, intl }) => {
+    const { gpuMemoryFree, gpuMemoryUsed } = data.stats
+
+    if (gpuMemoryFree === undefined || gpuMemoryUsed === undefined) {
+      return templateError
+    }
+
+    return (
+      <ChartistGraph
+        type='Line'
+        data={{
+          series: [
+            {
+              name: 'GPU',
+              data: gpuMemoryUsed,
+            },
+          ],
+        }}
+        options={{
+          ...makeOptions({
+            intl,
+            nValues: gpuMemoryUsed.length,
+            endTimestamp: data.endTimestamp,
+            interval: data.interval,
+            valueTransform: formatSize,
+          }),
+          high:
+            gpuMemoryFree[gpuMemoryUsed.length - 1] +
+            gpuMemoryUsed[gpuMemoryUsed.length - 1],
+          ...options,
+        }}
+      />
+    )
+  })
+)
+
 export const PoolMemoryLineChart = injectIntl(
   propTypes({
     addSumSeries: propTypes.bool,

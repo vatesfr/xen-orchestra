@@ -9,9 +9,10 @@ import { Toggle } from 'form'
 import { fetchHostStats } from 'xo'
 import {
   CpuLineChart,
+  GpuMemoryLineChart,
+  LoadLineChart,
   MemoryLineChart,
   PifLineChart,
-  LoadLineChart,
 } from 'xo-line-chart'
 
 export default class HostStats extends Component {
@@ -178,6 +179,20 @@ export default class HostStats extends Component {
             <LoadLineChart data={stats} />
           </Col>
         </Row>
+        {stats.gpuMemoryUsed !== undefined && (
+          <div>
+            <br />
+            <hr />
+            <Row>
+              <Col mediumSize={12}>
+                <h5 className='text-xs-center'>
+                  <Icon icon='memory' size={1} /> {_('statsGpuMemory')}
+                </h5>
+                <GpuMemoryLineChart data={stats} />
+              </Col>
+            </Row>
+          </div>
+        )}
       </Container>
     ) : (
       <Container>
