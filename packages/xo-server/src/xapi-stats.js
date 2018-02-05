@@ -1,6 +1,7 @@
 import endsWith from 'lodash/endsWith'
 import JSON5 from 'json5'
 import limitConcurrency from 'limit-concurrency-decorator'
+import startsWith from 'lodash/startsWith'
 import { BaseError } from 'make-error'
 
 import { parseDateTime } from './xapi'
@@ -67,6 +68,8 @@ function getNewHostStats () {
     memory: [],
     memoryFree: [],
     memoryUsed: [],
+    gpuMemoryFree: [],
+    gpuMemoryUsed: [],
   }
 }
 
@@ -101,6 +104,8 @@ function getNewHostLegends () {
     load: null,
     memoryFree: null,
     memory: null,
+    gpuMemoryFree: null,
+    gpuMemoryUsed: null,
   }
 }
 
@@ -121,6 +126,7 @@ function getNewVmLegends () {
 }
 
 // Compute one legend line for one host
+// GPU memory type: according to https://www.citrix.com/blogs/2014/01/22/xenserverxendesktop-vgpu-new-metrics-available-to-monitor-nvidia-grid-gpus/
 function parseOneHostLegend (hostLegend, type, index) {
   let resReg
 
@@ -138,6 +144,10 @@ function parseOneHostLegend (hostLegend, type, index) {
     hostLegend.memoryFree = index
   } else if (type === 'memory_total_kib') {
     hostLegend.memory = index
+  } else if (startsWith(type, 'gpu_memory_free')) {
+    hostLegend.gpuMemoryFree = index
+  } else if (startsWith(type, 'gpu_memory_used')) {
+    hostLegend.gpuMemoryUsed = index
   }
 }
 
@@ -259,6 +269,10 @@ export default class XapiStats {
         dest.memory.splice(0, length)
         dest.memoryFree.splice(0, length)
         dest.memoryUsed.splice(0, length)
+      } else if (key === 'gpuMemoryFree') {
+        const length = dest.gpuMemoryFree.length - pointsPerStep
+        dest.gpuMemoryFree.splice(0, length)
+        dest.gpuMemoryUsed.splice(0, length)
       }
     }
   }
@@ -302,6 +316,15 @@ export default class XapiStats {
     if (hostLegends.memoryFree !== undefined) {
       hostStats.memoryFree.push(memoryFree)
       hostStats.memoryUsed.push(memory - memoryFree)
+    }
+
+    // GPU memory
+    if (hostLegends.gpuMemoryFree !== undefined) {
+      const gpuMemoryFree = values[hostLegends.gpuMemoryFree] * 1024
+      const gpuMemoryUsed = values[hostLegends.gpuMemoryUsed] * 1024
+
+      hostStats.gpuMemoryFree.push(gpuMemoryFree)
+      hostStats.gpuMemoryUsed.push(gpuMemoryUsed)
     }
   }
 
