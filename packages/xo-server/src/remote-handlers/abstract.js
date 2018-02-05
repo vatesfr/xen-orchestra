@@ -1,6 +1,7 @@
 import eventToPromise from 'event-to-promise'
 import through2 from 'through2'
 import { ignoreErrors } from 'promise-toolbox'
+// eslint-disable-next-line node/no-missing-import
 import { parse } from 'xo-remote-parser'
 
 import {

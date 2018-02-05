@@ -1,3 +1,4 @@
+// eslint-disable-next-line node/no-missing-import
 import checkAuthorization from 'xo-acl-resolver'
 import { forEach, includes, map } from 'lodash'
 

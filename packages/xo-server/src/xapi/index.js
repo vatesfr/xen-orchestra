@@ -3,10 +3,13 @@ import deferrable from 'golike-defer'
 import fatfs from 'fatfs'
 import synchronized from 'decorator-synchronized'
 import tarStream from 'tar-stream'
+// eslint-disable-next-line node/no-missing-import
 import vmdkToVhd from 'xo-vmdk-to-vhd'
 import { cancellable, catchPlus as pCatch, defer, ignoreErrors } from 'promise-toolbox'
 import { PassThrough } from 'stream'
 import { forbiddenOperation } from 'xo-common/api-errors'
+// eslint-disable-next-line node/no-missing-import
+import { Xapi as XapiBase } from 'xen-api'
 import {
   every,
   find,
@@ -19,9 +22,6 @@ import {
   startsWith,
   uniq,
 } from 'lodash'
-import {
-  Xapi as XapiBase,
-} from 'xen-api'
 import {
   satisfies as versionSatisfies,
 } from 'semver'
