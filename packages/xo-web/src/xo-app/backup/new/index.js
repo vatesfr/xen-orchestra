@@ -130,7 +130,7 @@ const COMMON_SCHEMA = {
     },
     _reportWhen: {
       default: 'failure',
-      enum: ['never', 'always', 'failure'], // FIXME: can't translate
+      enum: ['never', 'always', 'failure or skipped'], // FIXME: can't translate
       title: _('editBackupReportTitle'),
       description: [
         'When to send reports.',
