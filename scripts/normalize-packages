@@ -48,6 +48,7 @@ require('exec-promise')(() =>
       'ghooks',
       'husky',
       'jest',
+      'lint-staged',
       'standard',
     ])
     deleteProperties(pkg, 'scripts', [ 'commitmsg', 'cz' ])
