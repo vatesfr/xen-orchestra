@@ -44,8 +44,8 @@
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "prebuild": "rimraf dist/",
-    "predev": "npm run prebuild",
-    "prepublishOnly": "npm run build"
+    "predev": "yarn run prebuild",
+    "prepublishOnly": "yarn run build"
   },
   "babel": {
     "plugins": [

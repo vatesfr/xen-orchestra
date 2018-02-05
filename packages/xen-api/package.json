@@ -65,9 +65,9 @@
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "plot": "gnuplot -p memory-test.gnu",
     "prebuild": "rimraf dist/",
-    "predev": "npm run prebuild",
-    "prepare": "npm run build",
-    "prepublishOnly": "npm run build"
+    "predev": "yarn run prebuild",
+    "prepare": "yarn run build",
+    "prepublishOnly": "yarn run build"
   },
   "babel": {
     "plugins": [
