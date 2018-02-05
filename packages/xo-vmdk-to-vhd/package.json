@@ -45,6 +45,7 @@
     "dev-test": "mocha --watch --reporter=min \"dist/**/*.spec.js\"",
     "prebuild": "npm run clean",
     "predev": "npm run clean",
+    "prepare": "npm run build",
     "prepublishOnly": "npm run build",
     "test-disabled": "mocha \"dist/**/*.spec.js\""
   },

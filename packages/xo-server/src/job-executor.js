@@ -1,6 +1,5 @@
 import Bluebird from 'bluebird'
 import { BaseError } from 'make-error'
-// eslint-disable-next-line node/no-missing-import
 import { createPredicate } from 'value-matcher'
 import { timeout } from 'promise-toolbox'
 import {

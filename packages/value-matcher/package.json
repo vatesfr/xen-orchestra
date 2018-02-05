@@ -36,9 +36,11 @@
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "clean": "rimraf dist/",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
-    "prebuild": "rimraf dist/",
+    "prebuild": "yarn run clean",
     "predev": "yarn run prebuild",
+    "prepare": "yarn run build",
     "prepublishOnly": "yarn run build"
   }
 }

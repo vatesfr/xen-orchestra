@@ -66,6 +66,7 @@
     "plot": "gnuplot -p memory-test.gnu",
     "prebuild": "rimraf dist/",
     "predev": "npm run prebuild",
+    "prepare": "npm run build",
     "prepublishOnly": "npm run build"
   },
   "babel": {
